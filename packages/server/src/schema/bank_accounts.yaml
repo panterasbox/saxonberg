@@ -1,0 +1,40 @@
+collection: bank_accounts
+owner: AccountBalance
+ownerModule: /lib/banking/AccountBalance
+subsystem: banking.md
+summary: >-
+  The materialized account registry and balance — a cache over the ledger.
+purpose: |
+  One row per account: who owns it, which bank holds it, and the balance the
+  last replay derived. Rebuildable in full from `bank_ledger`, which is the
+  point — a balance is a reading of the ledger, never a number somebody can
+  set.
+
+  The {owner, bank} pair is the institution key: an account is always
+  somebody's account AT somewhere.
+invariants:
+  - >-
+    Fully rebuildable from `bank_ledger`; a disagreement is resolved in
+    the ledger's favour.
+  - >-
+    `accountId` is unique — it is the key ledger legs name.
+  - >-
+    SHADOW(skip) under the sandbox: in-circle readers derive live from the
+    ledger, so there is no cache write to revert.
+sandbox:
+  verb: "shadow"
+  mode: "skip"
+reset: wipe
+indexes:
+  - keys: { accountId: 1 }
+    unique: true
+    why: |
+      The ledger key and the `warm()` load. Unique because a ledger leg
+      naming two account rows would have no balance to move.
+  - keys: { owner: 1 }
+    why: |
+      Identity resolution by holder — 'my accounts'.
+  - keys: { bank: 1 }
+    why: |
+      The other half of the {owner, bank} institution key — 'accounts at
+      this bank'.

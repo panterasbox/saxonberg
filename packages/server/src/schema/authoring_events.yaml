@@ -1,0 +1,34 @@
+collection: authoring_events
+owner: AuthoringEvent
+ownerModule: /lib/standing/AuthoringEvent
+subsystem: provenance.md
+summary: >-
+  The append-only authorship ledger: who made what, derived from context
+  rather than claimed.
+purpose: |
+  One row per authoring act. The author is taken from the execution context
+  at the moment of the write — nobody types their own name into it — and
+  `recordAuthoring` is the one gate every producer goes through.
+
+  It answers two questions from opposite ends: who wrote the thing at this
+  path, and what has this person made.
+invariants:
+  - >-
+    Append-only; nothing here is overwritten.
+  - >-
+    The author is context-derived, never a parameter a caller chooses.
+  - >-
+    PASS(mark) under the sandbox: authorship inside a circle genuinely
+    happened, and the mark records that it did.
+sandbox:
+  verb: "pass"
+  mark: true
+reset: wipe
+indexes:
+  - keys: { path: 1 }
+    why: |
+      Derive the author of a content path — the read `CreditRouting` and the
+      CMS attribution bridge both make.
+  - keys: { author: 1 }
+    why: |
+      The other direction: a creator's whole body of work.

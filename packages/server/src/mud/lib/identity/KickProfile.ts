@@ -21,6 +21,7 @@ import { Document } from '../persistence/Document';
 import { EncryptedStringMarshaller } from '../../platform/idea/persistence/EncryptedStringMarshaller';
 import type { KickProfile as IKickProfile } from '@saxonberg/types';
 import type { FieldMeta } from '../mixin';
+import { Collections } from '../persistence/Collections';
 
 /**
  * Kick OAuth profile data (persistent, token-bearing). A Document —
@@ -30,7 +31,7 @@ export class KickProfile extends Document implements IKickProfile {
   /**
    * MongoDB collection name.
    */
-  static collectionName = 'kick_profiles';
+  static collectionName = Collections.KickProfiles;
 
   /**
    * Persistent fields for auto-sync.

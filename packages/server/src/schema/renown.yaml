@@ -1,0 +1,31 @@
+collection: renown
+owner: RenownStanding
+ownerModule: /lib/standing/RenownStanding
+subsystem: renown.md
+summary: >-
+  The materialized per-(subject, scope) renown standing — a cache, and
+  disposable.
+purpose: |
+  The rebuildable read-side of renown: one row per subject per scope,
+  holding the decayed aggregate the recompute last derived from
+  `renown_events`.
+
+  It is a cache in the strict sense — if it disagrees with the event log,
+  the log wins and this gets rebuilt. That is why a sandboxed write SKIPS
+  rather than stamping: in-circle readers derive live from the event ledger,
+  so there is nothing to revert.
+invariants:
+  - >-
+    Fully rebuildable from `renown_events`; never a source of truth.
+  - >-
+    SHADOW(skip) under the sandbox — the circle-side write is dropped and
+    the read derives live.
+sandbox:
+  verb: "shadow"
+  mode: "skip"
+reset: wipe
+indexes:
+  - keys: { subject: 1, scope: 1 }
+    why: |
+      The recompute's upsert key and the shape `warm()` loads by — one row
+      per subject per scope, addressed by both halves of that pair.

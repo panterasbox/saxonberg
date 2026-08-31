@@ -1,0 +1,36 @@
+collection: forum_entries
+owner: Entry
+ownerModule: /lib/forum/Entry
+subsystem: forums.md
+summary: >-
+  The reply tree: threads and posts, one row each.
+purpose: |
+  Board → Thread → Post is one recursive shape, so a thread and a post are
+  both Entries and the tree is a parent pointer. A thread root is an entry
+  with a null parent.
+
+  Also one of `recall`'s three corpora, which is why it carries a text
+  index.
+invariants:
+  - >-
+    A thread root has a null `parent`; everything else names its parent
+    entry.
+  - >-
+    REFUSE under the sandbox.
+sandbox: refuse
+reset: wipe
+indexes:
+  - keys: { board: 1 }
+    why: |
+      A board's threads — the board listing read.
+  - keys: { parent: 1 }
+    why: |
+      A thread's posts. Null parent means a thread root, so this one index
+      serves both levels of the tree.
+  - keys: { title: "text", body: "text" }
+    text: true
+    why: |
+      One of `recall`'s three corpora. Mongo allows exactly ONE text index
+      per collection, so it is a compound over every field the verb searches
+      — add a searchable field and this index changes shape rather than
+      gaining a sibling.

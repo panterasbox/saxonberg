@@ -112,6 +112,58 @@ describe("HelpRoutes", () => {
     expect(res.body).toEqual(KIND_LIST);
   });
 
+  it("GET /api/help/kind accepts `collection` — the third projector's kind", async () => {
+    // The kind allowlist is a hand-written set beside a closed union, so
+    // a new HelpKind that the route does not know is a 400 nobody sees
+    // until they ask for it.
+    const collections: HelpKindListResult = {
+      kind: "collection",
+      topics: [
+        {
+          id: "collection.bank_ledger",
+          kind: "collection",
+          title: "bank_ledger",
+          summary: "The money system of record.",
+          keywords: ["bank_ledger", "collection"],
+        },
+      ],
+    };
+    vi.spyOn(HelpApi, "listKind").mockReturnValue(collections);
+    const agent = request.agent(makeApp());
+    await agent.post("/test-login").expect(200);
+    const res = await agent.get("/api/help/kind?kind=collection");
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual(collections);
+  });
+
+  it("GET /api/help/topic round-trips a collection topic whole", async () => {
+    const topic: HelpTopic = {
+      id: "collection.bank_ledger",
+      kind: "collection",
+      title: "bank_ledger",
+      summary: "The money system of record.",
+      keywords: ["bank_ledger", "persistence"],
+      body: "bank_ledger\n\nEvery movement of money, append-only.",
+      relations: [
+        {
+          kind: "see-also",
+          targetId: "api.BankingApi",
+          targetTitle: "BankingApi",
+        },
+      ],
+      spoiler: false,
+      source: { subdivision: "persistence", ref: "bank_ledger" },
+    };
+    vi.spyOn(HelpApi, "fullTopic").mockReturnValue(topic);
+    const agent = request.agent(makeApp());
+    await agent.post("/test-login").expect(200);
+    const res = await agent.get(
+      "/api/help/topic?id=collection.bank_ledger"
+    );
+    expect(res.status).toBe(200);
+    expect(res.body.topic).toEqual(topic);
+  });
+
   it("GET /api/help/kind 400s on a bad kind", async () => {
     const agent = request.agent(makeApp());
     await agent.post("/test-login").expect(200);

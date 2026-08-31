@@ -1,0 +1,30 @@
+collection: world_state
+owner: WorldClockState
+ownerModule: /lib/time/WorldClockState
+subsystem: time.md
+summary: >-
+  The world-clock singleton — one row, the current in-world time.
+purpose: |
+  A collection of one row, holding the world clock's epoch and rate.
+  `WorldClockApi` reads it at boot and advances in memory; the row is the
+  checkpoint that survives a restart.
+
+  Time is not player state. A calendar that restarted at zero every morning
+  would make every in-world date a lie, every scheduled event unmoored, and
+  every chronicle entry's timestamp meaningless — which is why this is one
+  of the six collections the nightly reset keeps.
+invariants:
+  - >-
+    Exactly one row.
+  - >-
+    Written only by `WorldClockApi`'s checkpoint; nothing in play sets the
+    time.
+  - >-
+    REFUSE under the sandbox: a circle may not move the world's clock.
+sandbox: refuse
+reset:
+  verb: keep
+  because: |
+    the world clock. Time is not player state, and a calendar that restarts
+    at zero every morning makes every in-world date a lie
+indexes: []

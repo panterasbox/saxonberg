@@ -1,0 +1,39 @@
+collection: blueprints
+owner: Blueprint
+ownerModule: /lib/studio/Blueprint
+subsystem: studio.md
+summary: >-
+  The Studio's composition catalogue — one row per authored blueprint.
+purpose: |
+  The global catalogue behind the Studio's mixin-aware composition surface:
+  each row is a named composition of particles an author assembled,
+  addressable by a durable id and deduplicated by structure.
+
+  The dedup is the interesting part: two authors who compose the same
+  particles collide to one blueprint rather than two, so the catalogue
+  describes the space of compositions rather than the history of who tried
+  what.
+invariants:
+  - >-
+    `blueprintId` is the durable key and is unique.
+  - >-
+    `signature` is the structural dedup key and is unique — identical
+    compositions are one row.
+  - >-
+    REFUSE under the sandbox: dedup OVERWRITES an existing row's identity
+    fields on a signature hit, which is field-visible mutation, so it
+    fails closed.
+sandbox: refuse
+reset: wipe
+indexes:
+  - keys: { blueprintId: 1 }
+    unique: true
+    why: |
+      The durable key the catalogue resolve reads. Unique because a
+      blueprint id that named two rows would make 'which one' unanswerable.
+  - keys: { signature: 1 }
+    unique: true
+    why: |
+      The structural dedup key: two authors composing the same particles
+      collide to one blueprint. Unique is what performs the collision —
+      without it the dedup would be advisory.

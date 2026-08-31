@@ -1,0 +1,43 @@
+collection: users
+owner: User
+ownerModule: /lib/identity/User
+subsystem: connection.md
+summary: >-
+  One row per human account — the identity every character hangs off.
+purpose: |
+  The account, and nothing else. A `User` holds the foreign keys to
+  whichever OAuth profiles the person has linked and the list of player ids
+  they may play; it holds no game state, no money and no standing. That
+  separation is what lets a character be wiped, rebuilt or re-embodied
+  without touching the login.
+
+  Every identity provider is a login vector, so a new provider adds a
+  nullable FK here rather than a parallel account table.
+invariants:
+  - >-
+    Created only by `Application.findOrCreateUserFromGoogle` and its
+    sibling per-provider resolves — nothing else mints a User.
+  - >-
+    A provider FK is unique across users: two accounts may never claim the
+    same Google/Twitch/Kick identity.
+  - >-
+    `playerIds` is the authoritative list of characters this account may
+    select; the WebSocket upgrade validates against it.
+  - >-
+    REFUSE under the sandbox: identity is field-real, and an account
+    minted inside a circle would be an account.
+sandbox: refuse
+reset: wipe
+indexes:
+  - keys: { googleProfileId: 1 }
+    why: |
+      The returning-login resolve: Google's profile row id → the account.
+      The hot path of every sign-in.
+  - keys: { twitchProfileId: 1 }
+    why: |
+      The second provider FK. A Twitch login resolves the same account a
+      Google login does, which is what makes providers linkable rather than
+      parallel.
+  - keys: { kickProfileId: 1 }
+    why: |
+      The third provider FK, same shape as the other two.

@@ -1,0 +1,24 @@
+collection: chattel
+owner: ChattelRecord
+ownerModule: /lib/chattel/ChattelRecord
+subsystem: chattel.md
+summary: >-
+  Per-instance ownership of movable things: one row per owned object.
+purpose: |
+  Real property has `parcels`; movables have this. A chattel row carries the
+  durable `_chattelId` stamped on the instance and the party who owns it, so
+  a sword keeps its owner across a drop, a theft and a restart.
+
+  Ownership of a movable is per-INSTANCE, which is why it cannot live on a
+  template and cannot be a property of the class.
+invariants:
+  - >-
+    One row per `_chattelId`; the id is stamped durably on the instance.
+  - >-
+    `chattel_events` is the chain of title behind this row.
+  - >-
+    REFUSE under the sandbox: a circle may not mint or transfer real
+    ownership.
+sandbox: refuse
+reset: wipe
+indexes: []

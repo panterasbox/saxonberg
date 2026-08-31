@@ -13,9 +13,10 @@
 import { Document } from '../persistence/Document';
 import type { AuthProvider, User as IUser } from '@saxonberg/types';
 import type { FieldMeta } from '../mixin';
+import { Collections } from '../persistence/Collections';
 
 export class User extends Document implements IUser {
-  static collectionName = 'users';
+  static collectionName = Collections.Users;
 
   /**
    * Session-principal id prefix that marks an *anonymous* (guest) login

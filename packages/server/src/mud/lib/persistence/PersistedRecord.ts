@@ -32,9 +32,10 @@
 import { Document } from "./Document";
 import type { MixinSlice, HostPlacement } from "./PersistenceSlice";
 import type { FieldMeta } from "../mixin";
+import { Collections } from './Collections';
 
 export class PersistedRecord extends Document {
-  static collectionName = "holder_snapshots";
+  static collectionName = Collections.HolderSnapshots;
   static fieldMeta: FieldMeta = {
     scope: { persistent: true },
     owner: { persistent: true },

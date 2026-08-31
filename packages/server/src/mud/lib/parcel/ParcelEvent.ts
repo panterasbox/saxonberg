@@ -18,12 +18,13 @@
 import { Document } from "../persistence/Document";
 import type { ParcelOwner } from "./ParcelRecord";
 import type { FieldMeta } from "../mixin";
+import { Collections } from '../persistence/Collections';
 
 /** The kind of title event a row records. */
 export type ParcelEventKind = "subdivide" | "transfer" | "grant";
 
 export class ParcelEvent extends Document {
-  static collectionName = "parcel_events";
+  static collectionName = Collections.ParcelEvents;
   static fieldMeta: FieldMeta = {
     extent: { persistent: true },
     event: { persistent: true },

@@ -30,9 +30,10 @@
 
 import { Document } from "../persistence/Document";
 import type { FieldMeta } from "../mixin";
+import { Collections } from '../persistence/Collections';
 
 export class StoredDocument extends Document {
-  static collectionName = "documents";
+  static collectionName = Collections.Documents;
   static fieldMeta: FieldMeta = {
     path: { persistent: true },
     owner: { persistent: true },

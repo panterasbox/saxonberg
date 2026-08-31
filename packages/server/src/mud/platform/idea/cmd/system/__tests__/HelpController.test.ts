@@ -24,7 +24,11 @@ import { makeStuff } from "../../../../../lib/security/__tests__/test-setup";
 function topic(id: string, body: string): HelpTopic {
   return {
     id,
-    kind: id.startsWith("command.") ? "command" : "api",
+    kind: id.startsWith("command.")
+      ? "command"
+      : id.startsWith("collection.")
+        ? "collection"
+        : "api",
     title: id.split(".").slice(1).join("."),
     summary: "",
     keywords: [],
@@ -66,6 +70,15 @@ describe("HelpController", () => {
     });
     vi.spyOn(HelpApi, "commandTopic").mockImplementation((verb: string) =>
       verb === "look" ? topic("command.look", "LOOK: Look around\n\nSyntax:\n  look [item]") : null
+    );
+    vi.spyOn(HelpApi, "collectionTopic").mockImplementation((name: string) =>
+      name === "bank_ledger"
+        ? topic(
+            "collection.bank_ledger",
+            "bank_ledger\n\nEvery movement of money, append-only.\n\n" +
+              "The nightly reset EMPTIES this collection."
+          )
+        : null
     );
     vi.spyOn(HelpApi, "apiTopic").mockImplementation((target: string) =>
       target === "ContainmentApi.move"
@@ -119,6 +132,29 @@ describe("HelpController", () => {
   it("fallthrough `help look` renders the command topic", () => {
     const out = run({ topic: "look" });
     expect(out.body).toContain("LOOK: Look around");
+  });
+
+  it("fallthrough `help bank_ledger` reaches the collection topic", () => {
+    // Acceptance criterion 7's shape, at the controller. That it works
+    // over a real socket is proved by driving, not here.
+    const out = run({ topic: "bank_ledger" });
+    expect(out.body).toContain("Every movement of money, append-only.");
+    expect(out.body).toContain("The nightly reset EMPTIES this collection.");
+  });
+
+  it("a verb wins over a collection of the same name", () => {
+    // The fallthrough order is command → collection → api, because a
+    // verb is what most people mean by a bare word.
+    const out = run({ topic: "look" });
+    expect(out.body).toContain("LOOK: Look around");
+  });
+
+  it("`help verb bank_ledger` stays strict — it does NOT fall through", () => {
+    // Asking for a VERB by that name should say the verb does not
+    // exist, not wander off into the persistence layer.
+    const out = run({ subcommand: "verb", name: "bank_ledger" });
+    expect(out.body).toContain("unknown command: bank_ledger");
+    expect(out.body).not.toContain("append-only");
   });
 
   it("legacy `help verb look` still resolves the command topic", () => {

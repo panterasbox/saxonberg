@@ -62,6 +62,7 @@
 
 import { Document } from '../persistence/Document';
 import type { FieldMeta } from '../mixin';
+import { Collections } from '../persistence/Collections';
 
 /** The two axes of one bank, resolved. */
 export interface DescriptorAxes {
@@ -72,7 +73,7 @@ export interface DescriptorAxes {
 }
 
 export class DescriptorBank extends Document {
-  static collectionName = 'descriptor_banks';
+  static collectionName = Collections.DescriptorBanks;
   static fieldMeta: FieldMeta = {
     key: { persistent: true },
     primary: { persistent: true },

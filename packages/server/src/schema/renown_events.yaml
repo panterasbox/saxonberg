@@ -1,0 +1,34 @@
+collection: renown_events
+owner: RenownEvent
+ownerModule: /lib/standing/RenownEvent
+subsystem: renown.md
+summary: >-
+  The append-only, scope-tagged log of every signal that moves someone's
+  standing.
+purpose: |
+  One row per signal — a reaction, a reception, an act witnessed in a scope.
+  Renown is measured, not awarded: the standing is a decayed reading over
+  these rows within a scope, so 'known in the Warren' and 'known in
+  Terminus' are separate answers derived from one log.
+
+  The `renown` collection beside it is a cache of that reading and can be
+  thrown away.
+invariants:
+  - >-
+    Append-only; the rebuild in `renown` is derived entirely from these
+    rows.
+  - >-
+    Every row carries its scope — a signal is always a signal SOMEWHERE.
+  - >-
+    STAMP under the sandbox: standing moves in-circle and reverts on exit.
+sandbox: stamp
+reset: wipe
+indexes:
+  - keys: { subject: 1 }
+    why: |
+      The hot read partition: everything about one subject. Keeps a standing
+      read O(rows-for-this-subject) rather than a collection scan.
+  - keys: { subject: 1, at: 1 }
+    why: |
+      The decay-ordered slice the recompute walks — subject first, then
+      time, so the walk is an index range rather than a sort.

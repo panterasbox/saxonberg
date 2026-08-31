@@ -235,8 +235,15 @@ every morning makes every in-world date a lie.
 `lib/persistence/ResetPolicy.ts` is a `Record<Collections,
 ResetDisposition>`, so **a new collection cannot ship without a
 decision** — the same trick `COLLECTION_POLICIES` uses, failing closed
-at build time rather than at an audit. Every survivor states its reason
-at the site, and the suite asserts that it does.
+at build time rather than at an audit. Every survivor states its reason,
+and the suite asserts that it does.
+
+⚠ Since the schema-docs build, `ResetPolicy.ts` is **generated**: each
+collection's disposition and its `because` are authored in
+`packages/server/src/schema/<collection>.yaml` under `reset:`, and
+`pnpm gen:schema` emits the table. Edit the YAML, never the `.ts`. The
+totality argument is unchanged — the generator is total over the same
+directory the vocabulary itself comes from.
 
 ### The three safeguards
 
