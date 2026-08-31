@@ -3,7 +3,8 @@
 > **Status: requirements conversation IN PROGRESS.** Decisions marked
 > **LOCKED** are agreed with the user; sections marked *(draft)* are
 > the build agent's opening position, not yet discussed. Locked so far:
-> the suburban-garden invariant (D0), the land model (D5).
+> the suburban-garden invariant (D0), the fruit cycle (D1–D2), the
+> land model (D5).
 
 Make farming an actual production chain. The libations build made the
 bar's supply chain real from the cash-and-carry **down**; everything
@@ -19,11 +20,12 @@ This build closes that gap: the eight produce materials the bar buys
 (lime, lemon, orange, grapefruit, mint, cherry, olive, cranberry)
 become **grown, harvested, packed and consigned** production, and the
 census faucet for them is deleted. The core new substrate is the
-**perennial** — seven of the eight are tree or shrub fruit, so "a
-harvest ends the plant" (the shipped annual rule) cannot carry this
-trade, and the family conventions already name the answer: the
-**standing tap** yield shape (ranching-slate § the five conventions,
-convention 4; farming-slate § Orchards).
+**fruit cycle** (D1–D2) — seven of the eight are tree or shrub fruit
+and mint is cut-and-come-again, so "a harvest ends the plant" (the
+shipped rule, i.e. monocarpy) cannot carry this trade; the family
+conventions already name the yield shape (the **standing tap**,
+ranching-slate convention 4; farming-slate § Orchards), and the cycle
+is its honest mechanism.
 
 Seeded by [farming-slate](../slates/builds/farming-slate.md) and
 [supply-chain-slate](../slates/builds/supply-chain-slate.md); built on
@@ -43,9 +45,10 @@ Seeded by [farming-slate](../slates/builds/farming-slate.md) and
 
 ## Goals
 
-- **A perennial exists.** A mature, well-kept fruiting plant yields
-  repeatedly over game-time without being destroyed by harvest — the
-  standing-tap yield shape, on the shipped reconcile-on-read engine.
+- **The fruit cycle exists.** A mature, well-kept polycarpic plant
+  flowers, sets, fills and ripens a crop repeatedly over game-time
+  without being destroyed by harvest — the standing-tap yield shape,
+  riding the shipped flowering latch on the reconcile-on-read engine.
 - **All eight bar produce materials are grown.** Each has a plant + seed
   row in `trade-farming` riding the perennial mechanic (citrus ×4,
   cherry, olive as trees; cranberry as a shrub; mint as a cut-and-
@@ -64,8 +67,8 @@ Seeded by [farming-slate](../slates/builds/farming-slate.md) and
   cash-and-carry exactly as today; the lounge keeper's `restocks` buy
   is untouched. Steady state sustains the lounge's par draw.
 - **Quality is honest.** A harvest's grade derives from the plant's
-  worst limiting stretch over the window since the last harvest; a
-  neglected window grades poor; nitrogen exports with the take.
+  worst limiting stretch over the cycle that made the crop; a
+  neglected cycle grades poor; nitrogen exports with the take.
 - **Everything the NPC does, a player can do** — plant, water, feed,
   harvest, pack, consign — with purchasable planting stock.
 
@@ -116,47 +119,66 @@ invariant deliberately does NOT flatten is economics: a quarter-acre
 yard tops out at a few beds of draw; making a living takes hectares —
 area and land price doing their job, not a rule.
 
-### D1 — The perennial is the mechanic; one shape covers all eight *(draft)*
+### D1 — Monocarpic vs polycarpic: the real split — LOCKED
 
-Seven of the eight produce materials are botanically perennial, and mint
-regrows from cutting; forcing them through the annual
-harvest-destructs-the-plant rule would be dishonest and would make the
-supply cadence absurd (replant an orchard per crate). The **fruiting
-window** on `GrowingMixin` is the one new mechanic; every grown species
-in this build (and the two D8 crops) rides it. The carrot demonstrates
-the annual path is unchanged.
+The mechanical split is not a "perennial flag" — it is botany's own
+taxonomy, chosen by the pedagogy test: **monocarpic** plants fruit
+once and are done (wheat, agave — and effectively the carrot, a
+biennial pulled in year one), **polycarpic** plants fruit repeatedly
+(every tree, shrub, vine and herb in the roster). Harvest ends a
+monocarp — the shipped rule, now with its true name and no special
+path — and a polycarp re-enters the cycle (D2). All ten grown species
+(the eight bar materials + grapes and juniper) are polycarps; the
+carrot stays the monocarp exemplar, untouched. The houseplant is the
+degenerate case for free: its flowering episode setting one seed is a
+fruit cycle whose yield is the propagule.
 
-### D2 — The fruiting window: accrue under the limiting factor, harvest takes the window *(draft)*
+### D2 — The fruit cycle — LOCKED
 
-A mature perennial **accrues yield** (a fruit/sprig count) during
-reconcile, at an authored per-game-day rate scaled by the same
-limiting-factor minimum that drives growth, capped at an authored load
-(*"the tree is full"*). `harvest` on a perennial:
+**Fruit comes from flowers, and a crop is a pulse, not a drip.** An
+earlier draft here (continuous yield accrual at `limiting × rate`,
+capped — a fruit faucet) was rejected on the honesty test: no bloom,
+no season of readiness, fruit accumulating like interest. Instead the
+shipped **flowering latch** generalizes into the cycle:
 
-1. mints the accrued count of yield items,
-2. grades them off the **worst limiting satisfaction over the window
-   since the last harvest** (see below),
-3. exports nitrogen scaled by the take (`nutrientDraw` per full load,
-   pro-rated),
-4. resets the window (accrual to zero, worst-tracker re-seeded),
-5. **does not destruct the plant.**
+1. **Latch** — mature + thriving latches a flowering episode (the
+   shipped rule, unchanged);
+2. **Set** — the episode sets a **crop of authored count** (the
+   houseplant's one-seed set is the degenerate case);
+3. **Fill** — the set fills over authored game-days, scaled by the
+   same limiting-factor minimum that drives growth (a starved cycle
+   fills less — one mechanism, no second neglect rule);
+4. **Ripe** — the crop reads ready; `harvest` mints it, each item
+   graded off the **worst limiting stretch over THIS cycle** (the
+   fruit on the tree was made during this cycle; last drought marked
+   last crop), and pro-rates the nitrogen export to the take;
+5. **Re-enter or end** — a polycarp returns to the cycle; a monocarp
+   is done (the shipped harvest-ends-it path).
 
-The grade semantics **unify** rather than fork: `_worstLimiting`
-becomes *worst since last harvest (or since planting)* for every
-growing thing — an annual's window is simply its whole life, so the
-carrot's behavior and phase 2's suite are unchanged by construction.
-Reward-your-worst-moment is preserved per window: a drought between
-harvests marks that harvest, and the tree carries no permanent scar
-(vigor already models the lasting damage).
+Reconcile-on-read only — the cycle advances in the same read-triggered
+steps; no tick. Supply therefore arrives in **pulses**: with no global
+season yet, every plant's cycle free-runs, so a many-field farm
+desyncs into smooth aggregate supply while a single backyard tree
+gives its owner a real harvest day.
 
-Flowering/seed-set (`onFloweringLatched`, one seed per episode) is
-untouched — propagation stays the houseplant's loop. Neglect still
-kills: the death floor applies to perennials exactly as to annuals; a
-dead orchard is a replant.
+**Dials with homes, shipped OFF** — the model reserves places for the
+real orchard-keeping phenomena without building them now: thinning
+(set count vs final size/grade), alternate bearing (a heavy crop
+suppressing the next latch), per-stage stress sensitivities (phase 4),
+and the over-ripe/drop window (**the preservation-family seam** — ripe
+fruit waits patiently for v1; forgiveness first, per the family
+contract).
 
-No tick, no scheduler: accrual is computed in the same read-triggered
-reconcile steps. Whether perennial-ness is a flag or the presence of
-the fruiting profile fields is the planner's call.
+**Refusals name the state**: a mature polycarp between crops refuses
+with *nothing ripe yet* (never "still young"); dead zeroes any set and
+stays terminal — the death floor applies to polycarps exactly as ever.
+
+**Harvest accepts the GROUND — locked with this.** A plant seated in a
+bed's slot is not keyword-reachable (smallholding's known issue), so
+`harvest`'s target admits `GrowingMixin|CultivableMixin` and a
+Cultivable target resolves to a ripe occupant — the `water the pot`
+convention, closing the harvest half of that gap. `pick` joins as an
+alias.
 
 ### D3 — Harvest mints the real item, graded and marked *(draft)*
 
@@ -347,9 +369,9 @@ placeholders for a running game, per the husbandry calibration stance.
 
 ## Acceptance criteria
 
-- A perennial test plant, kept well, yields on two successive harvests
-  without replanting; the second window's grade reflects only the
-  second window's worst stretch; the plant dies under sustained neglect.
+- A polycarpic test plant, kept well, completes two successive fruit
+  cycles without replanting; the second crop's grade reflects only the
+  second cycle's worst stretch; the plant dies under sustained neglect.
 - Harvesting the carrot still ends the plant; the phase-1/2 husbandry
   and smallholding suites pass unmodified.
 - Harvested produce carries the derived grade band and maker's mark;
