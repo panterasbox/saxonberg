@@ -30,7 +30,14 @@ data:
   # mug + the bills carry the bar's attributed, un-fakeable history.
   details:
     signs:
-      keywords: [sign, signs, neon, tap, taps, handle, handles, light, lights]
+      # ⚠ NOT `tap`/`taps`. The beer tap claims those (`Tap.ts` sets
+      # keywords `[tap, taps, beer-tap]`, primary `tap`), and it is the
+      # fixture a keeper actually operates — `put keg on tap`, and the
+      # `tap` capability the pint recipe requires. With `tap` on both,
+      # `look tap` returned this WALL DECORATION instead of the tap, the
+      # same divergence the stools' claim on `rail` caused. The handles
+      # are still reachable as `handle`/`handles`, which is what they are.
+      keywords: [sign, signs, neon, handle, handles, light, lights]
       description: |
         The glow is corporate. Each neon sign and brass tap handle carries a maker's mark, and Dave chose every one — which makes the far wall a map of his politics. A Veshko sign hums beside an Aevex one that's never quite forgiven it; a cheap proud Hollis light buzzes a few feet from the cool Vionne script it's spent years undercutting. Read the wall and you can read the whole avenue's quarrels, lit up in amber and rose.
     photos:
