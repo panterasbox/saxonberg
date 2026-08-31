@@ -20,12 +20,14 @@
  * lease-gated door is the *door*. So the room stays plain, and the next
  * venue that wants a bathroom writes a seed row.
  *
- * Composition — **DormRoom's stack minus `WarrenMember`**, which is the
- * Warren's business and not a room's:
+ * Composition — **DormRoom's stack** (the residences build added
+ * `WarrenMember` + the population witness here: a holding programme
+ * manages its rooms as warren members, and the back-ref is inert —
+ * null — for every free-standing venue room):
  *
- *   Persistable → PostRegistration → Exitable → Detailed → Visible
- *     → Reserved → Populates → Location   (Location carries Container,
- *                                          Adornable, AmbientLit, Atmospheric)
+ *   Persistable → WarrenMember → PostRegistration → Exitable → Detailed
+ *     → Visible → Reserved → Populates → Location  (Location carries
+ *     Container, Adornable, AmbientLit, Atmospheric)
  *
  * Every layer is load-bearing and the omission of any of them is silent:
  * without `Populates` a seed's `populates:` is INERT and no fixture ever
@@ -53,20 +55,32 @@ import { DetailedMixin } from "../../lib/description/Detailed";
 import { ExitableMixin } from "../../lib/boundary/Exitable";
 import { PostRegistrationMixin } from "../../lib/stuff/PostRegistration";
 import { ReservedMixin } from "../../lib/reserve";
+import { WarrenMemberMixin, type WarrenMember } from "../../lib/location/WarrenMember";
+import { MixinApi } from "../../api/mixin";
 import { CallSecurity, Final } from "../../lib/security/decorators";
 import { SecurityPolicies } from "../../lib/security/SecurityPolicies";
+import type { Stuff } from "../../lib/stuff/Stuff";
+import type { Container } from "../../lib/spatial/Container";
+import type { Containable } from "../../lib/spatial/Containable";
 import type { FieldMeta } from "../../lib/mixin";
 
 /** The default posted designation — the room says nothing about who it is for. */
 export const UNRESTRICTED = "unrestricted";
 
 const FurnishableRoomBase = PersistableMixin(
-  PostRegistrationMixin(
-    ExitableMixin(
-      DetailedMixin(VisibleMixin(ReservedMixin(PopulatesMixin(Location)))),
+  WarrenMemberMixin(
+    PostRegistrationMixin(
+      ExitableMixin(
+        DetailedMixin(VisibleMixin(ReservedMixin(PopulatesMixin(Location)))),
+      ),
     ),
   ),
 );
+
+/** Structural view of the warren surface the population witness pokes. */
+interface WarrenView {
+  notifyPopulationChange(room: Stuff & Container): void;
+}
 
 export default class FurnishableRoom extends FurnishableRoomBase {
   static fieldMeta: FieldMeta = {
@@ -123,5 +137,29 @@ export default class FurnishableRoom extends FurnishableRoomBase {
     this.postedAs = typeof value === "string" && value.length > 0
       ? value
       : UNRESTRICTED;
+  }
+
+  /**
+   * Population witness (the DormRoom fold, generalized — residences
+   * D16): an arrival/departure of a `HasInteractive` occupant pokes the
+   * owning warren's population-change coalescer, which drives the
+   * whole-holding dormancy reap. A NO-OP with no warren back-ref —
+   * every existing venue's rooms behave exactly as before.
+   */
+  public onContainableAdded(thing: Stuff & Containable): void {
+    this.notePopulation(thing);
+  }
+
+  public onContainableRemoved(thing: Stuff & Containable): void {
+    this.notePopulation(thing);
+  }
+
+  private notePopulation(thing: Stuff & Containable): void {
+    if (!MixinApi.isHasInteractive(thing as unknown as Stuff)) return;
+    const warren = (this as unknown as WarrenMember).getWarren() as unknown as
+      | WarrenView
+      | null;
+    if (!warren) return;
+    warren.notifyPopulationChange(this as unknown as Stuff & Container);
   }
 }

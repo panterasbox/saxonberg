@@ -152,6 +152,11 @@ function seedDomain(): void {
   col('content').push({ _id: `d-${++idCounter}`, path: PH, class: PH, data: {} });
 
   addSeed(DormWarren.WARREN_PATH, `${SEEDS}world/eternal/duncan-hall/dorm-warren.yaml`);
+  // D16 step 2: the unit's degenerate one-room programme row.
+  addSeed(
+    DormWarren.PROGRAMME_PATH,
+    `${SEEDS}world/eternal/duncan-hall/dorm-programme.yaml`,
+  );
   addSeed(DormRoom.SCOPE, `${SEEDS}world/eternal/duncan-hall/dormroom.yaml`);
   addSeed(
     DormWarren.CORRIDOR_TEMPLATE,

@@ -50,6 +50,8 @@ export default class DormWarren extends DormWarrenBase {
   static readonly CORRIDOR_TEMPLATE = '/world/eternal/duncan-hall/corridor';
   /** The building's ground-floor landing (the fixed seed room). */
   static readonly LOBBY_PATH = '/world/eternal/duncan-hall/lobby';
+  /** The degenerate one-room holding programme row (D16 step 2). */
+  static readonly PROGRAMME_PATH = '/world/eternal/duncan-hall/dorm-programme';
   /** The parent parcel the unit parcels subdivide under. */
   static readonly DORMS_EXTENT = '/world/eternal/duncan-hall/dorms';
   /** Units per floor — the AUTHORED default under the operator's
@@ -156,15 +158,25 @@ export default class DormWarren extends DormWarrenBase {
   // ─────────────── HoldingWarren policy hooks ─────────────────────
 
   /**
-   * Stand one unit up, whole: clone the `DormRoom` shell, register it
-   * as a member, then `restoreOrSeed` keyed on the unit extent (the
-   * keyed-holder ground pattern) — the exact pre-lift order.
+   * Stand one unit up, whole — through the unit's keyed
+   * {@link HoldingProgramme} instance (D16 step 2, the degenerate
+   * one-room floorplan): clone the programme row, restore-or-seed it
+   * keyed on the unit extent, wake it (which stands the `DormRoom` up
+   * keyed on the SAME extent — no leaf, so the D1 record shape is
+   * byte-identical to the pre-programme dorm). The institution's
+   * member is the programme; `admit` still answers the room (the
+   * base's entry resolution).
    */
   protected async standUpHolding(key: string): Promise<MemberStuff> {
-    const room = await this.createMemberSerialized();
-    this.addMember(room);
-    await PersistableApi.restoreOrSeed(room, key);
-    return room;
+    const programme = await StuffApi.clone<MemberStuff>(
+      DormWarren.PROGRAMME_PATH,
+    );
+    this.addMember(programme);
+    await PersistableApi.restoreOrSeed(programme, key);
+    await (
+      programme as unknown as { wake(): Promise<void> }
+    ).wake();
+    return programme;
   }
 
   /** Every minted floor is a corridor clone. */
@@ -256,8 +268,11 @@ export default class DormWarren extends DormWarrenBase {
    * exit. The corridor → room direction is the unit's `DormDoor`
    * (`ensureUnitDoor`), so the two never duplicate.
    */
-  protected override async wireHubExit(room: MemberStuff): Promise<void> {
-    const key = (room as unknown as Persistable).getPersistenceKey();
+  protected override async wireHubExit(holding: MemberStuff): Promise<void> {
+    // The holding is the unit's programme (D16 step 2); the return leg
+    // hangs on its ROOM. (A bare room — a test fixture — wires itself.)
+    const room = this.entryRoomOf(holding);
+    const key = (holding as unknown as Persistable).getPersistenceKey();
     const slot = key ? ParcelRecord.slotOfExtent(key) : null;
     if (!slot) return;
     const corridor = await this.ensureFloor(slot.floor);

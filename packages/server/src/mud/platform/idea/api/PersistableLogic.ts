@@ -170,6 +170,14 @@ function capturePlacement(host: Stuff): HostPlacement | null {
   ) {
     return null;
   }
+  // A KEYED host container (a holding's room — residences D16): record
+  // `(scope, key)` so restore re-enters the exact room through the
+  // owning institution, never a fresh clone of the shared row.
+  if (MixinApi.isPersistable(env) && env.isPersistenceKeyExplicit()) {
+    const scope = env.getIdentityPath();
+    const key = env.getPersistenceKey();
+    if (scope && key) return { container: scope, containerKey: key };
+  }
   if (MixinApi.isWarrenMember(env)) {
     const warren = env.getWarren()?.getTemplatePath();
     if (warren) return { startLocation: warren };
@@ -195,6 +203,25 @@ async function restorePlacement(
       place.startLocation,
     );
     ContainmentApi.move(host as Stuff & Containable, container);
+    return;
+  }
+  if (place.container && place.containerKey) {
+    // A keyed room: re-enter through the owning institution's admit
+    // (the log-out-in-your-yard seam, residences D16) — exact room,
+    // exact state, never a fresh clone of the shared row.
+    const { HoldingWarren } = await import(
+      '../../../lib/location/HoldingWarren'
+    );
+    const room = await HoldingWarren.admitFor(place.containerKey);
+    if (room && MixinApi.isContainer(room)) {
+      ContainmentApi.move(host as Stuff & Containable, room);
+      return;
+    }
+    console.warn(
+      `PersistableLogic.restorePlacement: keyed container ` +
+        `'${place.container}#${place.containerKey}' unresolvable — ` +
+        `host left where cloned`,
+    );
     return;
   }
   if (place.container) {

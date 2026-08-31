@@ -101,7 +101,8 @@ persisted — `ParcelApi` → `ParcelLogic` → `ParcelRegistry`:
 | `grantUse(extent, holder, expiresAt)` | grants a lease, **replacing** any prior grant for that holder (holder-keyed, at most one grant each); mutates the live trie handle in place so `hasUseGrant` reads the same object |
 | `revokeUse(extent, holder)` | removes the grant; `false` when none existed |
 | `hasUseGrant(extent, holder)` | **expiry-honoring** — delegates to `ParcelRecord.hasActiveGrant(record, holder, now)` |
-| `heldUnitOf(holder)` | the reverse index — the unit a holder currently leases (⚠ a linear scan, and it assumes **at most one** lease per holder; see below) |
+| `heldUnitOf(holder, underExtent?)` | the reverse index — the unit a holder currently leases, optionally scoped to one institution's wing (⚠ a linear scan; see below) |
+| `heldUnitsOf(holder)` | the PLURAL — every unit the holder holds an active grant on (the residence ladder's ascent gate reads this: a dorm lease, an apartment lease and a title are three rungs of one ladder — residences build) |
 
 `ParcelRecord.activeGrantFor` / `hasActiveGrant` are the static readers every
 expiry check goes through, so an expired grant is inert without needing a

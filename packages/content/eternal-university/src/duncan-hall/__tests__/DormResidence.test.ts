@@ -80,6 +80,11 @@ function seedDomain(): void {
     domain.push({ _id: `d-${++idCounter}`, path, class: cls, hydratorClass: PH, data });
   domain.push({ _id: `d-${++idCounter}`, path: PH, class: PH, data: {} });
   add(DormWarren.WARREN_PATH, '/world/eternal/duncan-hall/DormWarren');
+  // D16 step 2: the unit's degenerate one-room programme row.
+  add(DormWarren.PROGRAMME_PATH, '/residence/idea/HoldingProgramme', {
+    floorplan: [{ room: DormRoom.SCOPE, entry: true }],
+    upkeepTerm: 'institution-all',
+  });
   add(DormRoom.SCOPE, '/world/eternal/duncan-hall/DormRoom', {
     shortDescription: 'a dorm room',
     // Fixtures as data — the spine's seedBornWith lays these down once.
@@ -441,7 +446,11 @@ describe('unprovision — revert + free slot; re-provision = default look', () =
 
     // Personalize (seal a style), then move iris out so the unit is vacant.
     await DormThemes.applyTo(room, 'medic');
-    expect(snapshots().filter((s) => s.owner === k1)).toHaveLength(1);
+    // The ROOM's record (the programme's own D16 record rides the same
+    // owner — filter by scope).
+    expect(
+      snapshots().filter((s) => s.owner === k1 && s.scope === DormRoom.SCOPE),
+    ).toHaveLength(1);
     ContainmentApi.move(iris, (await w.ensureFloor(1))! as Stuff & Container);
 
     // Unprovision the tenant (iris → her held unit k1) → revoke + revert +

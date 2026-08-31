@@ -32,6 +32,7 @@
 
 import { Warren } from './Warren';
 import { PlatPlan } from './PlatPlan';
+import { MqlApi } from '../../api/mql';
 import { StuffApi } from '../../api/stuff';
 import { AppApi } from '../../api/app';
 import { ParcelApi } from '../../api/parcel';
@@ -243,14 +244,88 @@ export abstract class HoldingWarren extends Warren {
    * consumer's whole stand-up (`standUpHolding` — clone/programme +
    * restore, in the consumer's own order) → wire (the Warren
    * `wireHubExit` hook, which holding consumers override) → cache.
+   * Returns the holding's ENTRY room — for a plain-room holding that
+   * is the holding itself; a programme-shaped holding (a warren one
+   * level down, D16) answers its own entry.
    */
   public async admit(key: string): Promise<MemberStuff> {
     const cached = this._holdingsByKey.get(key);
-    if (cached && !cached.isDestroyed()) return cached;
+    if (cached && !cached.isDestroyed()) return this.entryRoomOf(cached);
     const holding = await this.standUpHolding(key);
     await this.wireHubExit(holding);
     this._holdingsByKey.set(key, holding);
+    return this.entryRoomOf(holding);
+  }
+
+  /**
+   * The room a mover LANDS in for a holding: a programme-shaped
+   * holding's own entry (duck-typed — the programme class ships in the
+   * residence pack and the kernel imports no pack code), else the
+   * holding itself.
+   */
+  protected entryRoomOf(holding: MemberStuff): MemberStuff {
+    const entry = (
+      holding as unknown as { entryRoom?: () => MemberStuff | null }
+    ).entryRoom;
+    if (typeof entry === 'function') {
+      const room = entry.call(holding) as MemberStuff | null;
+      if (room && !room.isDestroyed()) return room;
+    }
     return holding;
+  }
+
+  /**
+   * A holding's population, holding-shaped: a warren-shaped holding (a
+   * programme) aggregates over its member rooms — the D16
+   * whole-holding sleep witness — while a plain room counts its own
+   * interactive occupants.
+   */
+  protected override occupantsOf(m: MemberStuff): (Stuff & Container)[] {
+    if (m instanceof Warren) {
+      const out: (Stuff & Container)[] = [];
+      for (const room of (m as unknown as Warren).getMembers()) {
+        out.push(...super.occupantsOf(room as MemberStuff));
+      }
+      return out;
+    }
+    return super.occupantsOf(m);
+  }
+
+  /**
+   * Re-enter a keyed room from a captured placement: find the resident
+   * institution whose parent extent prefixes the key (the boot roster —
+   * every institution boots as a producer), admit the holding, and
+   * resolve the specific room. The log-out-in-your-yard seam
+   * (residences D16); null when no institution covers the key.
+   */
+  public static async admitFor(
+    key: string,
+  ): Promise<MemberStuff | null> {
+    const warrens = MqlApi.resolveMany('world:[class.HoldingWarren]', {
+      commandGiver: null,
+      scope: 'world',
+    }).stuff;
+    for (const w of warrens) {
+      if (!(w instanceof HoldingWarren)) continue;
+      const parent = w.getParentExtent();
+      if (!parent || !key.startsWith(parent + '/')) continue;
+      const rest = key.slice(parent.length + 1);
+      const holdingKey = `${parent}/${rest.split('/')[0]!}`;
+      await w.admit(holdingKey);
+      const holding = w.holdingFor(holdingKey);
+      if (!holding) continue;
+      const byKey = (
+        holding as unknown as {
+          roomForKey?: (k: string) => MemberStuff | null;
+        }
+      ).roomForKey;
+      if (typeof byKey === 'function') {
+        const room = byKey.call(holding, key) as MemberStuff | null;
+        if (room && !room.isDestroyed()) return room;
+      }
+      return w.entryRoomOf(holding);
+    }
+    return null;
   }
 
   /** The live holding for a key (if standing), or null. */
@@ -369,9 +444,7 @@ export abstract class HoldingWarren extends Warren {
         continue;
       }
       if (this.occupantsOf(holding).length === 0) {
-        if (MixinApi.isPersistable(holding)) {
-          await PersistableApi.capture(holding, key); // no-op if markForRevert
-        }
+        await this.captureHoldingForDormancy(key, holding);
         this.teardownHolding(key, holding);
       }
     }
@@ -437,6 +510,28 @@ export abstract class HoldingWarren extends Warren {
 
   // ── shared internals ────────────────────────────────────────────
 
+  /**
+   * The dormancy capture, holding-shaped: a programme-shaped holding
+   * captures WHOLE (every room's record + its own — D16's
+   * sleeps-and-wakes-whole; duck-typed for the pack-shipped programme),
+   * a plain persistable room captures itself.
+   */
+  protected async captureHoldingForDormancy(
+    key: string,
+    holding: MemberStuff,
+  ): Promise<void> {
+    const whole = (
+      holding as unknown as { captureAll?: () => Promise<void> }
+    ).captureAll;
+    if (typeof whole === 'function') {
+      await whole.call(holding);
+      return;
+    }
+    if (MixinApi.isPersistable(holding)) {
+      await PersistableApi.capture(holding, key); // no-op if markForRevert
+    }
+  }
+
   protected teardownHolding(key: string, holding: MemberStuff): void {
     this.removeMember(holding); // clears the WarrenMember back-ref
     // The caller has already persisted (reconcile captures first) or is
@@ -446,6 +541,13 @@ export abstract class HoldingWarren extends Warren {
     // holding — a synthetic fixture — has no backstop to silence.)
     if (MixinApi.isPersistable(holding)) {
       (holding as unknown as Persistable).markForRevert();
+    }
+    // A warren-shaped holding (a programme) tears its ROOMS down with it
+    // — destruct alone runs only mixin cleanups, never a base class's
+    // teardown, and a leaked room would collide the unique-key guard on
+    // the next admit. Marked first, so the rooms skip their backstop.
+    if (holding instanceof Warren) {
+      (holding as unknown as Warren).teardown();
     }
     StuffApi.destruct(holding as unknown as Stuff);
     this._holdingsByKey.delete(key);

@@ -139,6 +139,13 @@ export type MixinSlice =
  */
 export interface HostPlacement {
   container?: string;
+  /**
+   * The container's explicit persistence key, when it is a KEYED host
+   * (a holding's room — many share one row, so `container` alone would
+   * collapse them; residences D16). Restore re-enters through the
+   * owning institution's admit.
+   */
+  containerKey?: string;
   startLocation?: string;
 }
 
