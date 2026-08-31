@@ -492,8 +492,11 @@ rule that landed while it was in flight.
 - **The allowance cascade** stays inert.
 - **No residence ladder and no ascent gate** — stewardship owns them, and
   both this build and the parallel apartment build decline them.
-- **Perennials.** A harvest ends the plant; re-fruiting is a later
-  question.
+- **Perennials.** ~~A harvest ends the plant; re-fruiting is a later
+  question.~~ **Landed** (the farming build): the fruit cycle —
+  monocarp vs polycarp on the flowering latch, `pick`, ground-targeted
+  harvest — lives in
+  [husbandry.md § The fruit cycle](./husbandry.md#the-fruit-cycle--monocarp-vs-polycarp).
 
 ---
 

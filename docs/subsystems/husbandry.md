@@ -255,6 +255,72 @@ dim corner that stresses the lily suits it.
 
 ---
 
+## The fruit cycle — monocarp vs polycarp
+
+The mechanical split is botany's own taxonomy, not a "perennial flag":
+**monocarpic** plants fruit once and are done (the carrot — a biennial
+pulled in year one — and effectively every annual), **polycarpic** plants
+fruit repeatedly (every tree, shrub, vine and herb in the produce
+roster). Harvest ends a monocarp — the original shipped rule, now with
+its true name and no special path — and a polycarp re-enters the cycle.
+
+**Fruit comes from flowers, and a crop is a pulse, not a drip.** A
+continuous yield-accrual model (fruit accumulating like interest) fails
+the honesty test — no bloom, no season of readiness. Instead the shipped
+flowering latch generalizes into the cycle:
+
+1. **Latch** — mature + thriving latches a flowering episode (the
+   shipped rule, unchanged);
+2. **Set** — the episode **sets a crop** of authored count instead of
+   dropping a seed (`onFloweringLatched` never fires for a polycarp; the
+   houseplant's one-seed set is the degenerate case, byte-identical);
+3. **Fill** — `_fruitFill` advances by `limiting × dt / (fruitFillDays ×
+   DAY)` while the window is open — a starved cycle fills slower, one
+   mechanism, no second neglect rule;
+4. **Ripe** — fill 1; `isHarvestable` for a polycarp means mature ∧
+   alive ∧ **ripe**. A pick mints `fruitSetCount` items, each graded off
+   the worst limiting stretch over THIS cycle, draws the full authored
+   nitrogen once, and `settleCycle()` re-opens the window — the plant
+   survives;
+5. **Re-enter or end** — a polycarp's next thriving reconcile latches a
+   new episode; a monocarp is done.
+
+**The verdict window re-seeds at the SET, not at harvest**:
+`_worstLimiting` returns to 1 the moment the crop sets, so the fruit on
+the tree is graded by the keeping that made it — a seedling drought
+marks the tree's first crop only through its slower arrival, and last
+cycle's neglect never follows the tree. A monocarp never re-seeds: its
+one crop is its one life.
+
+The profile's `fruitSetCount` + `fruitFillDays` **are the polycarp
+marker** — both > 0, no flag; a profile authoring neither takes no new
+branch anywhere. Persistent state: `_fruitFill` (with the shipped
+`_flowering`/`_seedSet` reused as the window latch — a mid-fill dip
+clears `_flowering` but the SET crop survives it, precisely so the bad
+stretch grades the crop). Death zeroes the cycle. Presentation rides the
+size line: a filling crop reads the flowering phrase, a ripe one reads
+*"heavy with fruit"*.
+
+Supply therefore arrives in **pulses**: with no global season, every
+plant's cycle free-runs — a many-tree farm desyncs into smooth aggregate
+supply while a single backyard tree gives its owner a real harvest day.
+
+**Refusals name the state**: a mature polycarp between crops refuses
+with *nothing ripe on it yet* (`nothing-ripe`), never "still young".
+**Harvest accepts the ground**: the spec admits
+`GrowingMixin|CultivableMixin`, and a Cultivable target resolves to its
+first harvestable occupant, else its first growing one (so the refusal
+names the stage), else *nothing is growing* — the `water the pot`
+convention; `pick` is an alias on the same spec.
+
+**Dials with homes, shipped OFF** (comment-documented seams on
+`GrowthProfileData`, deliberately no fields): thinning (set count vs
+fill), alternate bearing (a mast-year modulation), per-stage stress
+sensitivities (phase 4), and the over-ripe/drop window (the
+preservation-family seam — ripe fruit waits patiently for v1).
+
+---
+
 ## Legibility — size, condition, and the cause read separately
 
 `look` carries three lines, appended by a `markupAugmenter` in this order —
