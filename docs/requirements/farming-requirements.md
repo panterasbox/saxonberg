@@ -5,7 +5,7 @@
 > the build agent's opening position, not yet discussed. Locked so far:
 > the suburban-garden invariant (D0), the fruit cycle (D1–D2), the
 > harvest mint + matter-not-mark rule (D3), the faucet closure + the
-> market path (D4), the land model (D5).
+> market path (D4), the land model (D5), the farmer + the beats (D6).
 
 Make farming an actual production chain. The libations build made the
 bar's supply chain real from the cash-and-carry **down**; everything
@@ -329,8 +329,8 @@ rooms: every location participates in a coordinate system.
 
 **The NPC exemplar farm** is a pre-sold holding (the Hinkley lot-1
 move) with three or four fields already broken — citrus, stone fruit,
-vines, herbs — worked by the trade outfit as a tenant of the locality,
-so the chain runs from boot and the district's prose is true.
+vines, herbs — worked by its farmer-proprietor (D6), so the chain runs
+from boot and the district's prose is true.
 
 Open sub-items within D5 (leans stated, not locked): break-ground's
 cost (lean: a real engagement with game-time); field retirement back
@@ -342,16 +342,48 @@ this build or data-only; the packaging split (which pack ships the
 district's geography vs the trade content — Hinkley precedent has
 world-seed shipping ground and claims).
 
-### D6 — The grower: the family's first production brain *(draft)*
+### D6 — The farmer-proprietor and the beats — LOCKED
 
-The farm outfit gains a **grower position** and NPC running a new
-kernel `tends` brain — the production brain the living-world roadmap
-lists as phase 8's enabler, arriving at its first real consumer. Like
-`consigns` / `restocks` it drives **literal verbs** through
-`CommandApi.forceCommand`: read the ground, `water` / `feed` what needs
-it, `harvest` loaded plants, pack crates, `put` them in the farm's
-Stock. Not presence-gated; cadence-triggered; nothing it does is
-unavailable to a player. Wen Hartley's `consigns` beat is untouched.
+**The exemplar farmer earns the residual, not a wage.** The pre-sold
+holding is worked by **one farmer-proprietor NPC** whose income is the
+**draw** — the compensation substrate's `residual` basis — teaching
+enterprise income vs wage labor at the bottom of the chain, the bar's
+P&L lesson inverted. (The waged-hand outfit shape stays available to
+authors for larger holdings; both are shipped substrate. This replaces
+the earlier appointed-outfit-with-purchasing-hand exemplar.)
+
+**One new kernel brain — the producer loop**, the living-world
+roadmap's own named gap ("no NPC produces anything today"), arriving
+at its first real consumer. The `consigns`/`restocks` doctrine to the
+letter: **literal verbs only** through `CommandApi.forceCommand`, the
+same reads a player makes — look at the ground, `water`/`feed` what
+needs it, `pick` what's ripe — then carry the harvest to town, sell at
+the stall, come home. Bounded per beat; cadence-triggered; not
+presence-gated; nothing it does is unavailable to a player. The
+selling half is not new machinery at all: a market stall is the
+shipped consignment surface, and the farmer listing at their own ask
+is what `consign` does.
+
+**The bar's route: the keeper shops the market.** The lounge's produce
+par lines re-point their `supplier` from the distributor to the
+farmers market venue; the `restocks` brain already goes wherever a par
+line points, so she buys limes off a farmer's stall like anybody. The
+four stub trades keep the cash-and-carry lane unchanged.
+
+**Market placement: Terminus.** Von Thünen and the supply-chain
+slate's Incoterms point ("the venue of the sale IS the delivery term")
+both say the producer hauls to demand — the haul is the farmer's cost,
+which is what makes distance economics real. A station-side stand at
+Murphy's is future expressiveness, not v1.
+
+**Named prerequisite — the commuting-cast persistence fix.** Found
+live in the discarded branch, real regardless of design: a cast NPC
+moving between two *persistable* rooms is captured into both rooms'
+snapshots and restores twice (`expected singleton, found 2` at boot).
+Any commuting farmer hits it. The principled fix was prototyped — the
+cast is never a room-snapshot's content (rooms already skip live
+avatars); it re-establishes from populates/roster on restore — and
+lands in this build as spine work with its own tests.
 
 ### D7 — The grove ships established; a new tree is a real commitment *(draft — "grove" wording predates D5's holdings)*
 
