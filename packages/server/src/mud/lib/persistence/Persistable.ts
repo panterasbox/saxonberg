@@ -42,7 +42,12 @@ import type { MixinConstructor } from "../mixin";
 import type { Stuff, EvictionContext } from "../stuff/Stuff";
 import type { VetoResult } from "../errors";
 import type { PopulateSpec, Populates } from "../stuff/Populates";
-import { MixinApi } from "../../api/mixin";
+import type { Container } from "../spatial/Container";
+import type { Containable } from "../spatial/Containable";
+import { Mixins } from "../mixin";
+import { MixinApi, type AnyConstructor } from "../../api/mixin";
+import { StuffApi } from "../../api/stuff";
+import { ContainmentApi } from "../../api/containment";
 import { PersistableApi } from "../../api/persistable";
 
 /** Public shape provided by PersistableMixin. */
@@ -134,6 +139,22 @@ export interface Persistable {
    * seed methods with author-editable data.
    */
   seedBornWith(): Promise<void>;
+
+  /**
+   * Re-seed this host's transient CAST. Capture skips `Behaved` occupants
+   * (`ContainerMixin.captureSlice`'s third skip): cast commutes between
+   * persistable rooms, so two rooms' records could each carry the same
+   * NPC and the next boot would restore it twice — `expected singleton,
+   * found 2`. A restored room therefore comes back troupe-less, and this
+   * is the establishing half that puts the cast back: for each retained
+   * born-with spec whose template resolves to a `Behaved` class with **no
+   * live instance anywhere**, mint one and move it in. Live cast is
+   * conserved — an instance standing in any room (this one, the counter
+   * it commutes to) suppresses the re-mint. Called by the materialize
+   * path after a successful restore; a no-op when no `populates:` was
+   * declared.
+   */
+  reseedTransientCast(): Promise<void>;
 }
 
 export function PersistableMixin<
@@ -235,6 +256,44 @@ export function PersistableMixin<
       // the Hydrator when `populates` is an instruction field, i.e. the host
       // composes PopulatesMixin below). The `?.` guards the vacuous case.
       await super.applyPopulates?.(this._bornWithSpecs);
+    }
+
+    /**
+     * See {@link Persistable.reseedTransientCast}. Resolution mirrors
+     * `PopulatesMixin.applyPopulates` (template row → class → mixin
+     * check); a spec that resolves to anything non-Behaved is left to the
+     * record (it was captured as ordinary content).
+     */
+    async reseedTransientCast(): Promise<void> {
+      if (this._bornWithSpecs.length === 0) return;
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isContainer(self)) return;
+      // Lazy import to dodge any cycle through Stuff (the Populates
+      // precedent).
+      const { Template } = await import("../stuff/Template");
+      for (const spec of this._bornWithSpecs) {
+        const path = typeof spec === "string" ? spec : spec?.template;
+        if (typeof path !== "string" || path.length === 0) continue;
+        try {
+          const tpl = await Template.findByPath(path);
+          if (!tpl?.class) continue;
+          const cls = (await StuffApi.loadClassByPath(
+            tpl.class,
+          )) as AnyConstructor;
+          if (!MixinApi.hasMixin(cls, Mixins.Behaved)) continue;
+          // Live cast is conserved: an instance anywhere suppresses the
+          // re-mint — a hand captured mid-commute at the counter is still
+          // the one hand.
+          if (StuffApi.findAllByTemplatePath(path).length > 0) continue;
+          const npc = await StuffApi.clone<Stuff & Containable>(path);
+          ContainmentApi.move(npc, self as unknown as Stuff & Container);
+        } catch (err) {
+          console.warn(
+            `Persistable.reseedTransientCast: could not re-seed '${path}':`,
+            err,
+          );
+        }
+      }
     }
 
     /**

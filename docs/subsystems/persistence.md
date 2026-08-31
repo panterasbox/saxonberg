@@ -604,7 +604,11 @@ shapes:
   sub-containers); a **nested host** is a reference
   `{ ref, key?, placement }` — not absorbed, because it persists itself
   (see *Keyed nested hosts* below). Surface-resting items record the index
-  of the Surfaced sibling they rest on.
+  of the Surfaced sibling they rest on. Three occupants are **skipped**
+  (one filter, one ordering shared with the Slotted slice): a live avatar
+  (`HasInteractive` — persists itself), a player-stamped good
+  (`ChattelApi.isOwnerPersisted` — persists in its owner's estate), and a
+  `Behaved` NPC (**cast, never content** — see *The third skip* below).
 - **slotted** (`{ worn }`, `SlottedMixin.captureSlice`) — worn/equipped
   occupancy by **position** (indices into the container slice) + the slot
   names each item claims; non-content occupants (a rider, a sitter) resolve
@@ -1087,3 +1091,30 @@ The **second persistence scope** landed: owned chattel persists with its
 - **New Api surface:** `captureDetached` / `restoreDetached` (one non-host
   good's composed state) and `placeIdOf` (a host's room identity — scope
   plus its per-instance key **only when explicit**).
+
+## History — the farming build (2026-08-31): the third skip
+
+**Cast is CAST, never a room's content.** A `Behaved` NPC commutes between
+persistable rooms — a hand's floor and the counter it consigns at — so each
+room's capture caught it wherever it happened to stand, BOTH records could
+carry it, and the next boot restored it twice: `expected singleton, found
+2`, boot dead. Verified live. Three touches close it:
+
+- **Capture skips `Behaved` occupants** — the third skip in
+  `ContainerMixin.captureSlice`'s single filter (beside `HasInteractive`
+  and owner-persisted goods; the three must share one filter because the
+  Container and Slotted slices read one content ordering).
+- **Restore skips a legacy cast entry** — `PersistableLogic.restoreItem`
+  resolves a content entry's template class (`Template.findByPath` →
+  `StuffApi.loadClassByPath`) and drops a Behaved-resolving entry, so a
+  record written before the rule cannot re-mint cast beside the live one.
+- **`Persistable.reseedTransientCast()`** — the establishing half: after a
+  successful restore, `materializeImpl` walks the host's retained
+  `_bornWithSpecs` (the `populates:` data the hydration hook keeps) and
+  re-mints any Behaved spec with **zero live instances**, moving it in.
+  Live cast is conserved — an instance standing anywhere (mid-commute at
+  the counter) suppresses the re-mint.
+
+The troupe's durable home is the authored `populates:` data, exactly like
+the born-with seed; only its *liveness* is transient. Proven in
+`lib/persistence/__tests__/CastReseed.test.ts`.

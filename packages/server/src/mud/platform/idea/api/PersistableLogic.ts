@@ -15,6 +15,7 @@ import { ChattelApi } from "../../../api/chattel";
 import { Mixins } from "../../../lib/mixin";
 import { ExecutionContextApi } from "../../../api/execution-context";
 import { PersistedRecord } from "../../../lib/persistence/PersistedRecord";
+import { Template } from "../../../lib/stuff/Template";
 import { Document } from "../../../lib/persistence/Document";
 import PersistentHydrator from "../persistence/PersistentHydrator";
 import type { Marshaller } from "../../../lib/persistence/Marshaller";
@@ -629,6 +630,23 @@ function clearSeededContents(
 }
 
 /**
+ * Does this template path resolve to a `Behaved` class? Cast entries in a
+ * container slice are skipped on restore (see `restoreItem`). Unresolvable
+ * templates answer `false` — the ordinary clone path then reports its own
+ * error honestly.
+ */
+async function resolvesToBehaved(templatePath: string): Promise<boolean> {
+  try {
+    const tpl = await Template.findByPath(templatePath);
+    if (!tpl?.class) return false;
+    const cls = (await StuffApi.loadClassByPath(tpl.class)) as AnyConstructor;
+    return MixinApi.hasMixin(cls, Mixins.Behaved);
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Reconstitute one `ContentEntry` into a live Stuff placed inside `host`.
  * A `{ ref }` follows the reference — cloning the nested host's shell (and,
  * when the ref carries a key, materializing that instance's own record);
@@ -652,6 +670,14 @@ async function restoreItem(
     return nested;
   }
   if (!entry.templatePath) return null;
+  // The capture-side cast skip's symmetric half: a record written BEFORE
+  // the rule (or by an older build) may still carry a `Behaved` NPC as a
+  // content entry. Restoring it would re-mint cast beside the live one —
+  // the doubled-singleton boot failure the skip exists to end — so a
+  // Behaved-resolving entry is dropped here; `reseedTransientCast` (run
+  // after the restore) re-seeds the troupe from the host's own
+  // `populates:` data instead.
+  if (await resolvesToBehaved(entry.templatePath)) return null;
   const clone = await StuffApi.clone<Stuff>(entry.templatePath);
   clearSeededContents(clone, entry.state);
   await restoreState(clone, entry.state, principal);
@@ -748,7 +774,14 @@ async function materializeImpl(host: Stuff, key?: string): Promise<void> {
   stashKey(host, owner, key !== undefined);
   assertUniqueKey(scope, owner, host);
   const record = await PersistedRecord.findByScopeAndOwner(scope, owner);
-  if (record) await restoreRecord(host, record);
+  if (record) {
+    await restoreRecord(host, record);
+    // The cast is transient (capture's third skip), so a restored room
+    // comes back without its troupe — re-seed any Behaved born-with spec
+    // that has no live instance. Walks the retained `_bornWithSpecs`, so
+    // it is a no-op for a host that declares no cast.
+    if (MixinApi.isPersistable(host)) await host.reseedTransientCast();
+  }
 }
 
 /** Restore one record onto `host` under its owning principal (shared by the
