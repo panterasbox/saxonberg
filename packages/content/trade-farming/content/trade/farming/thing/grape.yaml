@@ -1,0 +1,13 @@
+# A bunch of grapes — the discrete produce item (a graded Provision over
+# its own material, the prime-cut shape). D8: it ships ahead of its
+# consumer — the wine press is a later distilling build.
+class: /platform/thing/Provision
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a bunch of grapes
+  primaryKeyword: grapes
+  keywords: [grapes, grape, bunch, produce]
+  longDescription: "A tight bunch of wine grapes, dusty-skinned."
+  _materialPath: /trade/farming/idea/material/grape
+  gradeBand: fair
+  mass: 0.4

@@ -1,0 +1,36 @@
+# A grapevine — a fruiting plant on the CYCLE (D1/D2):
+# D8: the crop ships ahead of its consumer — fermentation is a later
+# distilling build's one new mechanic. The trellis is prose (P10).
+# No moisture reserve — the water lives in the ground (see peace-lily).
+class: /platform/thing/Plant
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a grapevine
+  primaryKeyword: "grapevine"
+  keywords: [grapevine, grape, vine, plant]
+  longDescription: |
+    A grapevine trained along a rough trellis of poles and twine, tendrils reaching for more.
+  _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/vitales/vitaceae/vitis/vinifera
+  material: /stuff/idea/material/tissue/plant-tissue
+  lifecycleState: alive
+  seedTemplatePath: /trade/farming/thing/seed/grape
+  harvestTemplatePath: /trade/farming/thing/grape
+  nutrientDraw: 10
+  profile:
+    moistureHappyAt: 0.25
+    moistureWiltAt: 0.04
+    litresPerGameDay: 0.2
+    luxHappyAt: 110
+    luxDarkAt: 12
+    rootDemand:
+      seedling: 0.3
+      young: 1.5
+      established: 4
+      mature: 9
+    daysToStage:
+      young: 30
+      established: 90
+      mature: 200
+    # The fruit cycle (D1/D2): the PAIR is the polycarp marker.
+    fruitSetCount: 12
+    fruitFillDays: 25

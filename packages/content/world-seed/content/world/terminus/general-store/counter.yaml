@@ -41,6 +41,20 @@ data:
     - { itemTemplatePath: /trade/farming/thing/pot/large, par: 2 }
     - { itemTemplatePath: /stuff/thing/vessel/soil-sack, par: 4 }
     - { itemTemplatePath: /trade/farming/thing/seed/snake-plant, par: 3 }
+    # The produce seeds (farming A5) — one packet per bar fruit, so the
+    # suburban-garden path (D0) starts here: buy a seed, grow the tree,
+    # pick the fruit. Trees are dearer than the herb; all reachable on
+    # the stipend.
+    - { itemTemplatePath: /trade/farming/thing/seed/lime, par: 2 }
+    - { itemTemplatePath: /trade/farming/thing/seed/lemon, par: 2 }
+    - { itemTemplatePath: /trade/farming/thing/seed/orange, par: 2 }
+    - { itemTemplatePath: /trade/farming/thing/seed/grapefruit, par: 2 }
+    - { itemTemplatePath: /trade/farming/thing/seed/cherry, par: 2 }
+    - { itemTemplatePath: /trade/farming/thing/seed/olive, par: 2 }
+    - { itemTemplatePath: /trade/farming/thing/seed/mint, par: 3 }
+    - { itemTemplatePath: /trade/farming/thing/seed/cranberry, par: 2 }
+    - { itemTemplatePath: /trade/farming/thing/seed/grape, par: 2 }
+    - { itemTemplatePath: /trade/farming/thing/seed/juniper, par: 2 }
   prices:
     /world/terminus/general-store/goods/torch: 2
     /world/terminus/general-store/goods/rations: 3
@@ -59,3 +73,13 @@ data:
     /trade/farming/thing/pot/large: 8
     /stuff/thing/vessel/soil-sack: 2
     /trade/farming/thing/seed/snake-plant: 5
+    /trade/farming/thing/seed/lime: 6
+    /trade/farming/thing/seed/lemon: 6
+    /trade/farming/thing/seed/orange: 6
+    /trade/farming/thing/seed/grapefruit: 6
+    /trade/farming/thing/seed/cherry: 6
+    /trade/farming/thing/seed/olive: 6
+    /trade/farming/thing/seed/mint: 4
+    /trade/farming/thing/seed/cranberry: 5
+    /trade/farming/thing/seed/grape: 6
+    /trade/farming/thing/seed/juniper: 5

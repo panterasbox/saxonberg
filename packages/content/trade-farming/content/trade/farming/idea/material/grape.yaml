@@ -1,0 +1,18 @@
+# Grape — produce's food material; tag `grape` is the recipe category (a
+# future press's item slot; the par sheet).
+class: /platform/idea/material/ConsumableMaterial
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: grape
+  appearance: "a dusty-skinned wine grape"
+  keywords: ["grape"]
+  density: 1000
+  thermalConductivity: 0.5
+  specificHeat: 3600
+  edibility: true
+  nutrients: ["water", "sugar"]
+  toxicity:
+    []
+  tags: ["solid", "food", "produce", "grape", "fruit"]
+  composition: []
+  biologicalSource: null

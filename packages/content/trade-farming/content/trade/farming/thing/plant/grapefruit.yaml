@@ -1,0 +1,35 @@
+# A grapefruit tree — a fruiting plant on the CYCLE (D1/D2):
+# The heaviest citrus — thirsty, and slow to fill.
+# No moisture reserve — the water lives in the ground (see peace-lily).
+class: /platform/thing/Plant
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a grapefruit tree
+  primaryKeyword: "grapefruit tree"
+  keywords: ["grapefruit tree", grapefruit, tree, citrus, plant]
+  longDescription: |
+    A grapefruit tree, broad-leaved, its fruit hanging in heavy pairs.
+  _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/sapindales/rutaceae/citrus/paradisi
+  material: /stuff/idea/material/tissue/plant-tissue
+  lifecycleState: alive
+  seedTemplatePath: /trade/farming/thing/seed/grapefruit
+  harvestTemplatePath: /trade/farming/thing/grapefruit
+  nutrientDraw: 10
+  profile:
+    moistureHappyAt: 0.3
+    moistureWiltAt: 0.05
+    litresPerGameDay: 0.32
+    luxHappyAt: 110
+    luxDarkAt: 10
+    rootDemand:
+      seedling: 0.5
+      young: 2
+      established: 6
+      mature: 11
+    daysToStage:
+      young: 45
+      established: 130
+      mature: 250
+    # The fruit cycle (D1/D2): the PAIR is the polycarp marker.
+    fruitSetCount: 12
+    fruitFillDays: 28

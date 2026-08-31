@@ -1,0 +1,37 @@
+# A clump of mint — a fruiting plant on the CYCLE (D1/D2):
+# Cut-and-come-again: the fastest cycle on the list — five days from
+# flower to a pickable flush — and happy in a pot's worth of soil. The
+# "fruit" is the flush of sprigs; cutting it is the pick.
+# No moisture reserve — the water lives in the ground (see peace-lily).
+class: /platform/thing/Plant
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a clump of mint
+  primaryKeyword: "mint"
+  keywords: [mint, clump, spearmint, herb, plant]
+  longDescription: |
+    A dense clump of spearmint, spreading exactly as far as it is allowed to and then somewhat further.
+  _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/lamiales/lamiaceae/mentha/spicata
+  material: /stuff/idea/material/tissue/plant-tissue
+  lifecycleState: alive
+  seedTemplatePath: /trade/farming/thing/seed/mint
+  harvestTemplatePath: /trade/farming/thing/mint
+  nutrientDraw: 5
+  profile:
+    moistureHappyAt: 0.4
+    moistureWiltAt: 0.08
+    litresPerGameDay: 0.1
+    luxHappyAt: 40
+    luxDarkAt: 4
+    rootDemand:
+      seedling: 0.05
+      young: 0.2
+      established: 0.5
+      mature: 1.2
+    daysToStage:
+      young: 7
+      established: 20
+      mature: 40
+    # The fruit cycle (D1/D2): the PAIR is the polycarp marker.
+    fruitSetCount: 12
+    fruitFillDays: 5

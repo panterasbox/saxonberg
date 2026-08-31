@@ -1,0 +1,36 @@
+# A juniper bush — a fruiting plant on the CYCLE (D1/D2):
+# D8: gin's berry ships as a crop; the still learns it later. The
+# hardest thing here to kill and the slowest to reward you.
+# No moisture reserve — the water lives in the ground (see peace-lily).
+class: /platform/thing/Plant
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a juniper bush
+  primaryKeyword: "juniper"
+  keywords: [juniper, bush, plant]
+  longDescription: |
+    A dense, prickly juniper bush, dusted with berries that take two seasons to decide to ripen.
+  _speciesPath: /stuff/idea/species/plantae/tracheophyta/pinopsida/pinales/cupressaceae/juniperus/communis
+  material: /stuff/idea/material/tissue/plant-tissue
+  lifecycleState: alive
+  seedTemplatePath: /trade/farming/thing/seed/juniper
+  harvestTemplatePath: /trade/farming/thing/juniper-berries
+  nutrientDraw: 6
+  profile:
+    moistureHappyAt: 0.12
+    moistureWiltAt: 0.02
+    litresPerGameDay: 0.05
+    luxHappyAt: 60
+    luxDarkAt: 6
+    rootDemand:
+      seedling: 0.2
+      young: 1
+      established: 3
+      mature: 8
+    daysToStage:
+      young: 45
+      established: 140
+      mature: 280
+    # The fruit cycle (D1/D2): the PAIR is the polycarp marker.
+    fruitSetCount: 12
+    fruitFillDays: 30
