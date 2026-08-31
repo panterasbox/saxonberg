@@ -290,9 +290,15 @@ one read.
 
 ### ⚠ Still open
 
-- Item 7's display scenes: no video-arm row ships (by ruling), and a
-  card pushed by `Display.show` was not observed reaching a second
-  character in the room — unresolved, needs a clean two-character test.
+- Item 7: **the card arm is verified** — the clean two-socket test I
+  should have run first. The keeper drives the tablet RESTING in the
+  room; both sockets receive `card-opened stock/"house stock"`, and the
+  bystander gets only the card, never the keeper's prose. *The display
+  you can see shows X.*
+  ⚠ My earlier "the bystander never got it" was two mistakes at once: a
+  dead WebSocket, and a tablet in someone's POCKET (which correctly
+  shows nobody — `sees()` needs to perceive the screen). The video arm
+  stays undrivable: no row ships one, by ruling.
 - Dilution over a game-hour, the mojito's `muddled` marker, and the
   bitters 1 mL debit: not yet driven.
 - `put ice in bin` answers "an ice bin isn't a place". Correct — the bin
