@@ -4,7 +4,8 @@
 > **LOCKED** are agreed with the user; sections marked *(draft)* are
 > the build agent's opening position, not yet discussed. Locked so far:
 > the suburban-garden invariant (D0), the fruit cycle (D1–D2), the
-> harvest mint + matter-not-mark rule (D3), the land model (D5).
+> harvest mint + matter-not-mark rule (D3), the faucet closure + the
+> market path (D4), the land model (D5).
 
 Make farming an actual production chain. The libations build made the
 bar's supply chain real from the cash-and-carry **down**; everything
@@ -18,8 +19,8 @@ cultivation verbs carry exactly one crop (carrot) and two houseplants.
 
 This build closes that gap: the eight produce materials the bar buys
 (lime, lemon, orange, grapefruit, mint, cherry, olive, cranberry)
-become **grown, harvested, packed and consigned** production, and the
-census faucet for them is deleted. The core new substrate is the
+become **grown, harvested and brought to market** by the people who
+grew them, and the census faucet for them is deleted. The core new substrate is the
 **fruit cycle** (D1–D2) — seven of the eight are tree or shrub fruit
 and mint is cut-and-come-again, so "a harvest ends the plant" (the
 shipped rule, i.e. monocarpy) cannot carry this trade; the family
@@ -61,16 +62,16 @@ Seeded by [farming-slate](../slates/builds/farming-slate.md) and
   title, live on, and break into fields — a farm is also a residence.
   The NPC exemplar farm is one pre-sold holding, worked, with water
   and compost sources.
-- **The chain runs unattended.** A grower NPC tends, harvests, packs
-  and stocks through literal verbs (the `consigns` / `restocks`
-  precedent); Wen's consigns beat carries packed crates to the
-  cash-and-carry exactly as today; the lounge keeper's `restocks` buy
-  is untouched. Steady state sustains the lounge's par draw.
+- **The chain runs unattended.** A grower NPC tends, picks, and
+  brings produce to market through literal verbs (the `consigns` /
+  `restocks` precedent); how the bar's produce par is met downstream —
+  the keeper shopping the farmers market vs the distributor lane — is
+  D6/D9's to settle. Steady state sustains the lounge's par draw.
 - **Quality is honest.** A harvest's grade derives from the plant's
   worst limiting stretch over the cycle that made the crop; a
   neglected cycle grades poor; nitrogen exports with the take.
 - **Everything the NPC does, a player can do** — plant, water, feed,
-  harvest, pack, consign — with purchasable planting stock.
+  pick, carry to market, sell — with purchasable planting stock.
 
 ## Non-goals
 
@@ -219,21 +220,37 @@ stock by the same matter-not-mark rule.
 untouched, plus targeted tests on the healed predicate (a marked
 edible gathers; a marked tool still never does).
 
-### D4 — Packing is a real act; the crate rows leave the spawn table *(draft)*
+### D4 — The faucet closes; produce moves LOOSE to market — LOCKED
 
-Fruit reaches the floor in crates via the shipped verbs (`get`,
-`put … in crate`); the empty-crate template ships already. The
-crate-of-X rows keep their census identity (`censusKey` keys the
-consigns brain's ask table) but **stop being spawn candidates and stop
-minting fruit**: their `populates:` fruit lines and region-targeted
-placement go. The exact field surgery (vs. a candidate predicate) is
-the planner's; the outcome is checkable — a produce crate is packed by
-hand, never stood up by the sweep, and *"an empty holder is not
-product"* already keeps a freshly-packed-empty crate out of the census.
+**The closure.** The census and the sweep are two things wearing one
+mechanism: the census *counts* (observation), the sweep *injects* to
+target. The crate rows author **`regionTarget: 0`** — permanently at
+target, never drawn — keeping their `censusKey` so the count and the
+price vocabulary survive while the pump stops. Their `populates:`
+fruit lines and home `container:` go.
 
-Minting the empty crate at packing time is an **accepted packaging
-abstraction**, at parity with bottles: the growing now costs somebody
-the activity; the box does not (uncertainty.md's abstraction law).
+**The principle: wild matter may circulate; packed goods are only ever
+made.** The spawn sweep remains *nature's* faucet — an authored zone
+`stocks:` line for windfall berries in a forest is honest nature, and
+it is the foraging seam waiting to happen (a deliberate per-region
+authorial act, not a leak). What may never spawn is a packed,
+processed good: a stenciled dozen-lime crate is human work, and making
+that work real is what this build is for.
+
+**Packing is DEFERRED — produce moves loose.** Farmers (player and
+NPC alike) pick their own crops and carry them to market themselves; a
+harvest travels as fruit in hand or a basket-load, not a packed case.
+Crates and the packing act arrive with the carpentry-era widening D3
+already names (lumber as stock → crate-making as a craft); until then
+the crate rows sit inert — off the spawn table, dormant as content.
+
+**The farmers market.** The direct-to-market path gets a first-class
+venue: a **farmers market in town**, where growers sell their own
+harvest at their own ask — the shipped consignment machinery in stall
+form. This is supply-chain stage 1 made diegetic and local. Placement
+and its exact shape (stall rows, caps, whether the lounge keeper shops
+it for the bar's produce line) ripple into D6/D9 and are settled
+there; the venue's existence is locked here.
 
 ### D5 — The land model: the Valley of Heart's Delight — LOCKED
 
@@ -413,11 +430,12 @@ placeholders for a running game, per the husbandry calibration stance.
   the removed rows is updated, not deleted.
 - Nitrogen: a harvest debits the ground pro-rata; `feed` restores it;
   an unfed orchard's grade sags via the nutrient factor.
-- Live drive: from a fresh boot — the grower harvests and packs; the
-  hand consigns crates at the cash-and-carry; the lounge keeper buys;
-  a drink whose recipe takes a lime is ordered and made with a grown,
-  graded lime. (One full-suite run at finalize; `test:near` + pack
-  suites + lints gate the iteration loop.)
+- Live drive: from a fresh boot — grown produce reaches the bar
+  through the market path the beats settle on (D6/D9); a drink whose
+  recipe takes a lime is ordered and made with a grown, graded lime;
+  a player picks their own crop and sells it at the farmers market.
+  (One full-suite run at finalize; `test:near` + pack suites + lints
+  gate the iteration loop.)
 - Player path drives live: reach the farm, buy a seed packet, plant in
   admitted ground, water/feed, and (clock permitting via a test/dial)
   harvest.
