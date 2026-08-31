@@ -140,6 +140,67 @@ The dispatch keeps a `Set<string>` of currently-active
 its own dispatch throws `HookReentryError`. Loud failure beats a silent
 loop.
 
+### The resident `content` cache
+
+`PersistenceManager` holds the whole `content` collection in memory —
+path → row — and answers a bare `find(content, { path })` from it.
+
+**Why it is allowed to hold the whole thing.** `content` is the authored
+world: on the shipped packs, 991 rows totalling under 600 KB. It is
+read-mostly and read *by path*, thousands of times a boot — the clone
+pipeline's template load, and the zone walk's one read per ancestor path
+— and each of those was a serialized ~30 ms round trip.
+
+**The MISS is the point.** Because the map holds the entire collection,
+an absent path is an *answer*, not a reason to ask. `resolveZoneForPath`
+walks every ancestor of a template path, and most of those rows do not
+exist; each was a round trip to learn nothing.
+
+**Invalidation is by construction, not by enumeration.** Every write to
+every collection lands in `persistSave` / `persistDelete` / `deleteMany`
+on this same object, so the cache is updated at the chokepoint that
+writes. There is no list of CMS-save / pack-install / go-live /
+`restoreFromTemplate` / hot-reload callers to keep in sync, and a new
+writer cannot forget to invalidate. A save that re-paths a row (the `mv`
+shape: same `_id`, new `path`) evicts the path that id used to hold; a
+bulk `deleteMany` drops the cache whole.
+
+**Two conditions gate it, and both are load-bearing.**
+
+- **A live connection.** The cache is a property of one process owning
+  one database. A `PersistenceManager` with a stubbed collection and no
+  `db` — every unit test — reads through, so no test inherits another
+  test's cached rows. It follows that a *second* process writing
+  `content` against the same database would not be seen; one process
+  per database is the deployment ([deployment.md](./deployment.md)) and
+  the four-database rule keeps the dev worktrees apart.
+- **`content` is still a sandbox `pass` collection.** A cached row is
+  one row for every reader, which is only true while
+  `composeScopeReadFilter` leaves its queries untouched. Should the
+  policy ever become `stamp` or `shadow`, the cache disengages itself
+  rather than serving one circle's row to another.
+
+Rows are handed out as `structuredClone` copies, so a caller mutating
+what it got cannot corrupt the cache. A row that will not clone is left
+out of the map and read through — a slower right answer rather than a
+fast wrong one.
+
+⚠ **A cache is not a substitute for a query.** Only a bare `{ path }`
+read is served; anything with more terms, or with sort/limit/skip, goes
+to Mongo unchanged.
+
+### The query trace
+
+`SAXONBERG_QUERY_TRACE=1` counts every op at the chokepoint, attributes
+it to a chain of caller frames outside the persistence and
+call-security plumbing, and dumps a table ranked by time-in-Mongo every
+30 s and on `SIGUSR2`.
+
+It exists because **a CPU profile is the wrong instrument for a process
+that is waiting.** A boot that is 96% blocked on round trips profiles as
+76% idle, and the profile names no query. This prints the count, the
+collection and who asked. Off by default: one boolean test per op.
+
 ## `PersistApi` — the gated chokepoint + `lint:pm` lockdown
 
 `PersistenceManager` is an **ungated process singleton** — reaching it via
