@@ -7,7 +7,12 @@ data:
   shortDescription: the well
   longDescription: The speed rail below the bar's lip, the working bottles necked in a row within a hand's reach.
   primaryKeyword: well
-  # ⚠ NOT `rail`/`shelf` — the back-bar owns both. In the trade this IS
-  # the speed rail, so it keeps the unambiguous spellings of that.
-  keywords: [well, speed-rail, speedrail]
+  # ⚠ NOT `rail`/`shelf` — the back-bar owns both.
+  #
+  # ⚠⚠ And NOT `speed-rail` either, which is the subtler half: a
+  # HYPHENATED keyword implicitly claims its parts, so `speed-rail`
+  # answered to `rail` and put the well back in the candidate list the
+  # cut had just removed it from. Driven and measured: `look rail` still
+  # returned two matches until this line read `speedrail`.
+  keywords: [well, speedrail]
   mass: 20
