@@ -121,7 +121,7 @@ function currentTypeRecord(
 ): Record<string, unknown> | null {
   if (!MixinApi.isIdentifiable(target)) return null;
   if (!MixinApi.isBeliefStore(viewer)) return null;
-  const signature = target.getTemplatePath();
+  const signature = target.getIdentityPath();
   if (!signature) return null;
   const record = viewer.recall(IDENTIFICATION, signature);
   if (!record?.payload.typeKnown) return null;
@@ -193,7 +193,7 @@ function unidentifiedLook(viewer: Stuff, target: Stuff): string | null {
 
   // A record from a PRIOR generation: hedge, never assert.
   if (!MixinApi.isBeliefStore(viewer)) return look;
-  const signature = target.getTemplatePath();
+  const signature = target.getIdentityPath();
   if (!signature) return look;
   const record = viewer.recall(IDENTIFICATION, signature)?.payload as
     | { typeKnown?: boolean; learnedGeneration?: number }
@@ -314,7 +314,7 @@ function describeCore(
 
   // Recognition (instance axis) — living beings only.
   if (MixinApi.isOrganism(target)) {
-    const referent = target.getTemplatePath();
+    const referent = target.getIdentityPath();
     const instanceName =
       referent && MixinApi.isBeliefStore(viewer)
         ? (viewer.recall(RECOGNITION, referent)?.knownAs ?? null)
@@ -405,7 +405,7 @@ function learnIdentityImpl(
   name: string | null
 ): void {
   if (!MixinApi.isBeliefStore(viewer)) return;
-  const referent = subject.getTemplatePath();
+  const referent = subject.getIdentityPath();
   if (!referent) return;
   viewer.know(RECOGNITION, referent, { knownAs: name });
 }
@@ -413,7 +413,7 @@ function learnIdentityImpl(
 /** See {@link RecognitionApi.recognizes}. */
 function recognizesImpl(viewer: Stuff, subject: Stuff): boolean {
   if (!MixinApi.isBeliefStore(viewer)) return false;
-  const referent = subject.getTemplatePath();
+  const referent = subject.getIdentityPath();
   if (!referent) return false;
   const record = viewer.recall(RECOGNITION, referent) as
     | { knownAs?: string | null }

@@ -80,7 +80,7 @@ export default class JobController extends CommandController<JobModel> {
     board: JobBoard,
   ): Promise<void> {
     const giver = context.commandGiver;
-    const giverKey = giver.getTemplatePath() ?? "";
+    const giverKey = giver.getIdentityPath() ?? "";
     const gigs = await ContractApi.openGigsOn(board.getTemplatePath() ?? "");
     if (gigs.length === 0) {
       this.send(
@@ -195,7 +195,7 @@ export default class JobController extends CommandController<JobModel> {
       // settled/expired id gets its real refusal, not "no such").
       return raw;
     }
-    const giverKey = context.commandGiver.getTemplatePath() ?? "";
+    const giverKey = context.commandGiver.getIdentityPath() ?? "";
     const mine = gigs.filter((g) => g.claimant === giverKey);
     if (mine.length === 1) return mine[0]?.contractId ?? null;
     this.fail(

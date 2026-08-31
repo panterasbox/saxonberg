@@ -31,16 +31,16 @@ import {
 
 type Loose = Record<string, unknown>;
 
-// The realm + city rows are the platform pack's, the per-locality rows
-// world-seed's (content-packs wave 3).
-const seedsRoot = fileURLToPath(new URL("../../../../../../../content/world-seed/content", import.meta.url));
-const platformRoot = fileURLToPath(
-  new URL("../../../../../../../content/platform/content", import.meta.url),
+// The realm + city rows are the platform pack's, the reference Locality/
+// Government rows world-seed's, and the venue rows their locality packs'
+// (residences D18) — search them all.
+const SEED_ROOTS = ["platform", "world-seed", "terminus", "eternal-university", "hinkley-hills"].map(
+  (p) => fileURLToPath(new URL(`../../../../../../../content/${p}/content`, import.meta.url)),
 );
 
 function seedData(relative: string): Loose {
-  const inPlatform = `${platformRoot}/${relative}`;
-  const file = existsSync(inPlatform) ? inPlatform : `${seedsRoot}/${relative}`;
+  const file = SEED_ROOTS.map((r) => `${r}/${relative}`).find((f) => existsSync(f));
+  if (!file) throw new Error(`no pack ships ${relative}`);
   const doc = parse(readFileSync(file, "utf8")) as {
     data?: Loose;
   };

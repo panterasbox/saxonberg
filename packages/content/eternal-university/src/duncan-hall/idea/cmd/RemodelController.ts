@@ -33,7 +33,7 @@ const TOPIC = 'act.deed';
 export default class RemodelController extends CommandController<CommandModel> {
   async execute(_model: CommandModel, context: CommandContext): Promise<void> {
     const actor = context.commandGiver as Stuff;
-    const holder = actor.getTemplatePath() ?? '';
+    const holder = actor.getIdentityPath() ?? '';
     const unit = holder ? await ParcelApi.heldUnitOf(holder) : null;
     if (!unit) {
       return this.fail(context, "You don't hold a dorm lease.", 'no-lease');

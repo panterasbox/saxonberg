@@ -708,7 +708,7 @@ export default class EnrollController extends CommandController<EnrollModel> {
     const avatar = await StuffApi.clone<Avatar>(
       Avatar.SEED_TEMPLATE_PATH,
       { user, playerId },
-      { dataOverlay: overlay, asTemplatePath: path },
+      { dataOverlay: overlay, asIdentityPath: path },
     );
 
     // 4. Sex is species-constrained, so set it on the live avatar after

@@ -174,7 +174,7 @@ function capturePlacement(host: Stuff): HostPlacement | null {
     const warren = env.getWarren()?.getTemplatePath();
     if (warren) return { startLocation: warren };
   }
-  const container = env.getTemplatePath();
+  const container = env.getIdentityPath();
   return container ? { container } : null;
 }
 
@@ -701,7 +701,7 @@ async function cloneHost(scope: string, key?: string): Promise<Stuff | null> {
 
 async function captureImpl(host: Stuff, key?: string): Promise<void> {
   if (optedOutOfPersistence(host)) return; // guest / opted-out host
-  const scope = host.getTemplatePath();
+  const scope = host.getIdentityPath();
   if (!scope) {
     throw new Error("PersistableLogic.capture: host has no templatePath stamp");
   }
@@ -737,7 +737,7 @@ async function captureImpl(host: Stuff, key?: string): Promise<void> {
 
 async function materializeImpl(host: Stuff, key?: string): Promise<void> {
   if (optedOutOfPersistence(host)) return; // guest / opted-out host
-  const scope = host.getTemplatePath();
+  const scope = host.getIdentityPath();
   if (!scope) return;
   // Resolve the key the SAME way capture does (explicit → stashed →
   // scope-derived), so restore is the exact inverse: one `(scope, key)`
@@ -759,7 +759,7 @@ async function materializeImpl(host: Stuff, key?: string): Promise<void> {
  * one `DormRoom` template, so the scope alone would collapse them).
  */
 function placeIdOf(host: Stuff): string {
-  const scope = host.getTemplatePath() ?? "";
+  const scope = host.getIdentityPath() ?? "";
   // Only an EXPLICIT key qualifies — the same rule `captureItem` applies to
   // a nested host ref. A keyless host's stashed key is scope-DERIVED (the
   // singleton's self/parcel owner), so folding it in would give one room two
@@ -954,7 +954,7 @@ async function restoreOrSeedImpl(host: Stuff, key: string): Promise<boolean> {
         `PersistableMixin (${host.getTemplatePath() ?? "unregistered"})`,
     );
   }
-  const scope = host.getTemplatePath();
+  const scope = host.getIdentityPath();
   if (!scope) {
     throw new Error(
       "PersistableLogic.restoreOrSeed: host has no templatePath stamp",

@@ -23,7 +23,7 @@
  * ## The room gets an IDENTITY, not a copy
  *
  * A lot's room is minted at `<lotExtent>/<leaf>` through
- * `StuffApi.clone`'s `asTemplatePath` channel — the identity doctrine's
+ * `StuffApi.clone`'s `asIdentityPath` channel — the identity doctrine's
  * *minted singleton with a scheme-derived key*. The shared template is
  * the SOURCE; lot 2's yard is its own place.
  *
@@ -210,16 +210,21 @@ export default class LotHolder extends LotHolderBase {
     if (cached) this._roomsByLot.delete(lotExtent);
     // MINT AN IDENTITY rather than sharing the source template's. The
     // room is a singleton-shaped cartesian room, so lot 2's yard has to
-    // BE lot 2's yard — `asTemplatePath` is the identity-doctrine channel
-    // for exactly this (templatePath = identity; instance for minted
-    // singletons with scheme-derived keys).
+    // BE lot 2's yard — `asIdentityPath` is the identity-doctrine channel
+    // for exactly this (D17: templatePath = the row; identityPath = the
+    // minted instance with its scheme-derived key). The residences
+    // build's keyed rework (wave 5) deletes this mint entirely.
     //
     // It also buys three things the shared-template shape got wrong: land
     // use resolves per lot from the path, an avatar's captured placement
     // returns them to THEIR yard rather than a fresh clone, and the
     // persistence scope is already unique.
-    const room = await StuffApi.clone<Stuff>(this.roomTemplate, {
-      asTemplatePath: this.identityFor(lotExtent),
+    // ⚠ opts is clone's THIRD parameter — the pre-residences call
+    // passed the mint in the `context` slot, where clone never read
+    // it, so the production mint silently never happened (the 2-arg
+    // test stub was the only thing that ever saw it).
+    const room = await StuffApi.clone<Stuff>(this.roomTemplate, undefined, {
+      asIdentityPath: this.identityFor(lotExtent),
     });
     const restored = await PersistableApi.restoreOrSeed(room, lotExtent);
     this._roomsByLot.set(lotExtent, room);

@@ -52,6 +52,7 @@ import {
 import {
   makeStuff,
   makeStuffAtPath,
+  stampIdentityPathForTest,
   withRootContext,
 } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import {
@@ -280,16 +281,25 @@ describe('title', () => {
     // The holder clones a room per sold lot and keys it through the
     // persistence spine, so the stub has to be a PERSISTABLE room — a
     // bare Location would make restoreOrSeed throw, correctly.
-    // Honour `asTemplatePath` — the mint is the thing under test in one
+    // Honour `asIdentityPath` — the mint is the thing under test in one
     // of these, and a stub that ignored it would quietly prove nothing.
+    // The stub takes clone's REAL 3-arg shape: the pre-residences stub
+    // read opts from the second (context) position, which is where the
+    // old LotHolder call put it — and where the real clone never looked.
     vi.spyOn(StuffApi, 'clone').mockImplementation((async (
-      _path: string,
-      opts?: { asTemplatePath?: string },
-    ) =>
-      makeStuffAtPath(
+      path: string,
+      _ctx?: unknown,
+      opts?: { asIdentityPath?: string },
+    ) => {
+      const room = makeStuffAtPath(
         () => new TitleTestRoom(),
-        opts?.asTemplatePath ?? fresh('/world/_title/room'),
-      )) as unknown as typeof StuffApi.clone);
+        path.startsWith('/') ? path : fresh('/world/_title/room'),
+      );
+      if (opts?.asIdentityPath) {
+        stampIdentityPathForTest(room, opts.asIdentityPath);
+      }
+      return room;
+    }) as unknown as typeof StuffApi.clone);
 
     settled = [];
     settleWorks = true;
@@ -584,7 +594,9 @@ describe('title', () => {
     // a template rather than their own yard, and a cartesian room could
     // not be used at all (singleton-shaped, so N clones collide).
     //
-    // Minting through `asTemplatePath` fixes all three. Pin the identity.
+    // Minting through `asIdentityPath` fixes all three (D17: the
+    // templatePath stays the source ROW; the minted identity rides the
+    // identity slot and the registry index). Pin the identity.
     const holder = StuffApi.findByTemplatePath<LotHolder>(HOLDER_PATH)!;
     expect(holder.identityFor(`${LOTS}/lot-2`)).toBe(
       `${LOTS}/lot-2/yard`,
@@ -605,14 +617,16 @@ describe('title', () => {
     expect(three).not.toBeNull();
     expect(two).not.toBe(three);
 
-    // …and each carries its OWN path, so a placement recorded against it
-    // points at that lot rather than at a shared template.
-    expect(two!.getTemplatePath()).toBe(`${LOTS}/lot-2/yard`);
-    expect(three!.getTemplatePath()).toBe(`${LOTS}/lot-3/yard`);
+    // …and each carries its OWN identity, so a placement recorded
+    // against it points at that lot rather than at a shared template —
+    // while the template lineage stays the source ROW (D17).
+    expect(two!.getIdentityPath()).toBe(`${LOTS}/lot-2/yard`);
+    expect(three!.getIdentityPath()).toBe(`${LOTS}/lot-3/yard`);
+    expect(two!.getTemplatePath()).toBe(`${SUBURB}/yard`);
 
     // ⭐ Which means land use resolves PER LOT from the path alone — no
     // persistence key needed to tell them apart.
-    expect(ParcelApi.landUseOf(two!.getTemplatePath()!)).toBe('residential');
+    expect(ParcelApi.landUseOf(two!.getIdentityPath()!)).toBe('residential');
   });
 
   it('title list shows unsold lots and marks sold ones', async () => {

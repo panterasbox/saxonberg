@@ -277,13 +277,13 @@ export default class Login extends LoginBase {
 
     // No playerId → not registered with PlayerApi; `isGuest` marks it.
     // The guest data rides the clone's `dataOverlay` and the random
-    // guest path is minted via `asTemplatePath` — no transient template
+    // guest path is minted via `asIdentityPath` — no transient template
     // row to write and delete (the identity doctrine: rows are for
     // authored content; a throwaway guest gets none).
     const avatar = await StuffApi.clone<Avatar>(
       Avatar.SEED_TEMPLATE_PATH,
       { user, isGuest: true },
-      { dataOverlay: data, asTemplatePath: path },
+      { dataOverlay: data, asIdentityPath: path },
     );
 
     // Sex is species-constrained, so set it post-clone (as `commit` does).

@@ -35,7 +35,7 @@ export default class StandingController extends CommandController<CommandModel> 
     // (Phase 0) — the live stuffId is re-minted on re-clone. Falls back to
     // the stuffId for an un-templated actor (e.g. a guest), matching the
     // faucet's own fallback so the key always agrees.
-    const subjectId = actor.getTemplatePath() ?? actor.stuffId;
+    const subjectId = actor.getIdentityPath() ?? actor.stuffId;
 
     // The three influence stocks — make / fund / play — are three
     // dimensions of every member, each earned and shown independently.

@@ -285,11 +285,12 @@ describe('PlayerApi', () => {
       await PlayerApi.loadAvatarsForUser(user);
 
       // Snapshot-backed identity: the clone SOURCE is the shared seed;
-      // the minted identity path rides `asTemplatePath`.
+      // the minted identity path rides `asIdentityPath` (D17 — the
+      // clone's templatePath stays the seed ROW).
       expect(cloneSpy).toHaveBeenCalledWith(
         Avatar.SEED_TEMPLATE_PATH,
         { user, playerId: 'player1' },
-        { asTemplatePath: Avatar.getTemplatePath('player1') },
+        { asIdentityPath: Avatar.getTemplatePath('player1') },
       );
     });
 

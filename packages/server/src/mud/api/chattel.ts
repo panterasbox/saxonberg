@@ -50,7 +50,7 @@ function logic(): ChattelLogic {
  * `organization` arm; anything else is a player.
  */
 function ownerKeyOf(owner: Stuff): ChattelOwner {
-  const templatePath = owner.getTemplatePath() ?? "";
+  const templatePath = owner.getIdentityPath() ?? "";
   return MixinApi.isOrganization(owner)
     ? { kind: "organization", templatePath }
     : { kind: "player", templatePath };

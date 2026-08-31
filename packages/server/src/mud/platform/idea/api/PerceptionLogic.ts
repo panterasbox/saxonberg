@@ -923,7 +923,7 @@ function effectivePerceptionImpl(
  */
 function discoveryReferentOf(target: Stuff): string | null {
   if (MixinApi.isConcealable(target)) return target.getDiscoveryKey() ?? null;
-  return target.getTemplatePath() ?? null;
+  return target.getIdentityPath() ?? null;
 }
 
 /** See {@link PerceptionApi.hasDiscovered}. */

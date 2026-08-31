@@ -36,6 +36,7 @@
     "build": "pnpm -r build",
     "lint": "eslint . --ext .ts,.tsx --cache",
     "lint:gates": "pnpm --filter @saxonberg/server run lint:gates",
+    "lint:census": "pnpm --filter @saxonberg/server run lint:census",
     "lint:field-meta": "pnpm --filter @saxonberg/server run lint:field-meta",
     "lint:does-nothing": "pnpm --filter @saxonberg/server run lint:does-nothing",
     "lint:inert-weapon": "pnpm --filter @saxonberg/server run lint:inert-weapon",

@@ -151,7 +151,7 @@ export class ChattelLogic extends ApiLogic {
     const host = this.nearestHost(item);
     if (!host) return; // transient space — leave the last placement alone
     const place =
-      host.getTemplatePath() === owner.templatePath
+      host.getIdentityPath() === owner.templatePath
         ? ESTATE_INVENTORY
         : PersistableApi.placeIdOf(host);
     await this.applyPlace(item, place);

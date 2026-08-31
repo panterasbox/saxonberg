@@ -67,7 +67,7 @@ async function holdsAuthorityImpl(
   if (principal === null || ref === null) return false;
   switch (ref.kind) {
     case 'entity': {
-      const path = principal.getTemplatePath();
+      const path = principal.getIdentityPath();
       return path !== null && path === ref.path;
     }
     case 'office':
@@ -140,7 +140,7 @@ function holdersByPositionImpl(
     scope: 'world',
   }).stuff.filter((s): s is EmployedActor => MixinApi.isEmployed(s));
   for (const holder of holders) {
-    const who = holder.getTemplatePath() ?? '';
+    const who = holder.getIdentityPath() ?? '';
     if (!who) continue;
     const record = holder.getEmployment(organizationPath);
     if (!record) continue;
@@ -188,7 +188,7 @@ function mayPublishAsImpl(
 ): boolean {
   if (principal === null) return false;
   if (!MixinApi.isPublisher(publisher)) return false;
-  const who = principal.getTemplatePath();
+  const who = principal.getIdentityPath();
   if (who === null || who.length === 0) return false;
   const allowed = publisher.getPublishingPositions();
   for (const [positionKey, holders] of holdersByPositionImpl(publisher)) {
@@ -748,7 +748,7 @@ async function flowSplitsForImpl(
     const cut = Math.floor(amountMinor * share);
     if (cut <= 0) continue;
     if (total + cut >= amountMinor) break; // Σ splits stays below the flow
-    const holderKey = holder.getTemplatePath() ?? '';
+    const holderKey = holder.getIdentityPath() ?? '';
     if (!holderKey) continue;
     // Payer-derived: an NPC holder gets an account at the business's own
     // bank; a player with none is skipped (never silently signed up — the

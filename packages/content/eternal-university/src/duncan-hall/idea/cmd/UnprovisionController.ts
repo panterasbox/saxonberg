@@ -62,7 +62,7 @@ export default class UnprovisionController extends CommandController<Unprovision
 
     // Resolve the tenant, then their held unit.
     const target = model.player?.stuff as Stuff | undefined;
-    const playerPath = target?.getTemplatePath() ?? '';
+    const playerPath = target?.getIdentityPath() ?? '';
     if (!playerPath) {
       return this.fail(context, 'End whose dorm lease?', 'no-player');
     }

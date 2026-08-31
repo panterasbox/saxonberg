@@ -51,7 +51,7 @@ export default class OrderController extends CraftController<OrderModel> {
     // close policy) refuses; the bar is self-service, so it won't.
     const point = this.resolveAttendantPoint(context);
     if (point) {
-      const key = giver.getTemplatePath();
+      const key = giver.getIdentityPath();
       if (key && point.requestAttention(key).status === 'closed') {
         MessageApi.scene(giver)
           .topic(TOPIC)

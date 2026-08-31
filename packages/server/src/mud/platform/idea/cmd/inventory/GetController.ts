@@ -296,7 +296,7 @@ export default class GetController extends CommandController<GetModel> {
       MixinApi.isHazard(operand) &&
       operand.isArmed() &&
       operand.getPlacedBy() &&
-      operand.getPlacedBy() !== giver.getTemplatePath()
+      operand.getPlacedBy() !== giver.getIdentityPath()
     ) {
       context.note({
         kind: 'controller-rejected',

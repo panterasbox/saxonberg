@@ -200,7 +200,7 @@ function dispatchFor(actor: Stuff & CommandGiver): DispatchFn {
 
 /** The actor's home recipe path: `/home/<key>/scripts/<name>`. */
 function homeScriptPath(actor: Stuff, name: string): string | null {
-  const key = actor.getTemplatePath()?.split("/").filter(Boolean).pop() ?? null;
+  const key = actor.getIdentityPath()?.split("/").filter(Boolean).pop() ?? null;
   return key ? `/home/${key}/scripts/${name}` : null;
 }
 

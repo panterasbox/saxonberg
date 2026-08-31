@@ -79,7 +79,7 @@ export default class ProvisionController extends CommandController<ProvisionMode
     }
 
     const target = model.player?.stuff as Stuff | undefined;
-    const playerPath = target?.getTemplatePath() ?? '';
+    const playerPath = target?.getIdentityPath() ?? '';
     if (!target || !playerPath) {
       return this.fail(context, 'Provision a dorm for whom?', 'no-player');
     }
@@ -202,7 +202,7 @@ export default class ProvisionController extends CommandController<ProvisionMode
     if (await AccessApi.isWizard(actor)) return true;
     const ref = await ParcelApi.resolveOwnerRef(owner);
     if (!ref) return false;
-    const key = actor.getTemplatePath();
+    const key = actor.getIdentityPath();
     return key ? GroupApi.isMember(key, ref) : false;
   }
 }

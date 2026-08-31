@@ -27,7 +27,7 @@ function clamp(value: number): number {
  */
 function readRegard(viewer: Stuff, subject: Stuff): number {
   if (!MixinApi.isBeliefStore(viewer)) return 0;
-  const referent = subject.getTemplatePath();
+  const referent = subject.getIdentityPath();
   if (!referent) return 0;
   return viewer.recall(REGARD, referent)?.payload.regard ?? 0;
 }
@@ -39,7 +39,7 @@ function readRegard(viewer: Stuff, subject: Stuff): number {
  */
 function writeRegard(viewer: Stuff, subject: Stuff, value: number): void {
   if (!MixinApi.isBeliefStore(viewer)) return;
-  const referent = subject.getTemplatePath();
+  const referent = subject.getIdentityPath();
   if (!referent) return;
   viewer.know(REGARD, referent, { regard: clamp(value) });
 }
@@ -84,7 +84,7 @@ export class RegardLogic extends ApiLogic {
   @CallSecurity(RegardApiCallers)
   public clearRegard(viewer: Stuff, subject: Stuff): void {
     if (!MixinApi.isBeliefStore(viewer)) return;
-    const referent = subject.getTemplatePath();
+    const referent = subject.getIdentityPath();
     if (!referent) return;
     viewer.forgetField(REGARD, referent, 'regard');
   }

@@ -146,7 +146,7 @@ export default class TitleController extends CommandController<TitleModel> {
   /** `title` — what ground do I hold, and what may I do on it. */
   private async executeHoldings(context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
-    const me = giver.getTemplatePath() ?? '';
+    const me = giver.getIdentityPath() ?? '';
     const held: string[] = [];
 
     for (const book of this.books()) {
@@ -282,7 +282,7 @@ export default class TitleController extends CommandController<TitleModel> {
       return;
     }
 
-    const buyer = giver.getTemplatePath();
+    const buyer = giver.getIdentityPath();
     if (!buyer) {
       this.reject(
         context,

@@ -1371,7 +1371,7 @@ function hasMixinByLowercaseName(stuff: Stuff, name: string): boolean {
 }
 
 function matchesTemplate(stuff: Stuff, pattern: string): boolean {
-  const path = stuff.getTemplatePath();
+  const path = stuff.getIdentityPath();
   if (!path) return false;
   return PathPatternApi.matches(path, pattern);
 }

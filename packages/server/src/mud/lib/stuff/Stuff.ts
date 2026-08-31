@@ -297,17 +297,36 @@ export abstract class Stuff {
   }
 
   /**
+   * The minted INSTANCE identity, when this object has one — the D17
+   * identity axis. `null` for every ordinary object (its identity IS
+   * its template lineage); stamped at clone time by the
+   * `asIdentityPath` channel for minted singletons with scheme-derived
+   * keys (`/platform/agent/Avatar/<playerId>`). Hard-private for the
+   * same tamper reasons as `#templatePath`; the registry's
+   * `byTemplatePath` index keys on `identity ?? templatePath`, so a
+   * minted instance stays addressable by the path it always had while
+   * `getTemplatePath()` now always resolves to a content ROW.
+   */
+  #identityPath: string | null = null;
+
+  /**
    * The IDENTITY this object acts as — the key the identity-keyed
    * epistemic producers (belief viewer key, chronicle owner,
-   * transcript/disposition/renown subject) attribute to. Defaults to
-   * `getTemplatePath()` (byte-identical for every ordinary object); a
-   * projection vessel (the sandbox `WireBody`) overrides it to return
-   * the real identity's path (`/platform/agent/Avatar/<playerId>`), so in-circle
-   * derive-on-read composes the player's real history ∪ scoped appends
-   * and PASS rows attribute to the real identity, never the vessel.
+   * transcript/disposition/renown subject), grants, group memberships,
+   * chattel stamps and snapshot owners attribute to. The stamped
+   * instance identity when one was minted (`asIdentityPath` — D17),
+   * else `getTemplatePath()` (byte-identical for every ordinary
+   * object); a projection vessel (the sandbox `WireBody`) overrides
+   * the METHOD to return the real identity's path
+   * (`/platform/agent/Avatar/<playerId>`), so in-circle derive-on-read
+   * composes the player's real history ∪ scoped appends and PASS rows
+   * attribute to the real identity, never the vessel. (The registry
+   * index deliberately reads the raw SLOT, not this method — a vessel
+   * must never index under the identity it projects.)
    */
   public getIdentityPath(): string | null {
-    return this.getTemplatePath();
+    const raw = ProxyApi.unwrap(this as unknown as Stuff);
+    return raw.#identityPath ?? this.getTemplatePath();
   }
 
   /**
@@ -376,6 +395,34 @@ export abstract class Stuff {
   ): void {
     Stuff.#assertStampGateAllowed('_stampTemplatePath');
     ProxyApi.unwrap(stuff).#templatePath = path;
+  }
+
+  /**
+   * Pre-register stamp seam for the minted instance identity (the D17
+   * `asIdentityPath` channel) — caller-gated exactly like
+   * `_stampTemplatePath`. Skips any reindex for the same reason: the
+   * clone pipeline stamps before the register pass.
+   * @internal
+   */
+  public static _stampIdentityPath(
+    stuff: Stuff,
+    path: string | null
+  ): void {
+    Stuff.#assertStampGateAllowed('_stampIdentityPath');
+    ProxyApi.unwrap(stuff).#identityPath = path;
+  }
+
+  /**
+   * The raw stamped identity slot (never the overridable method) — what
+   * the registry index keys on (`identity ?? templatePath`). A sandbox
+   * vessel overrides `getIdentityPath()` to PROJECT another identity;
+   * indexing through the method would file the vessel under the path it
+   * projects. Caller-gated like the stamp seams.
+   * @internal
+   */
+  public static _identityStampOf(stuff: Stuff): string | null {
+    Stuff.#assertStampGateAllowed('_identityStampOf');
+    return ProxyApi.unwrap(stuff).#identityPath;
   }
 
   /**

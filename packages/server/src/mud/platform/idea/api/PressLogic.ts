@@ -234,7 +234,7 @@ async function publishImpl(req: PublishRequest): Promise<Release> {
   };
   const release = Release.of(
     `${feed}/${releaseId}`,
-    publisher.getTemplatePath() ?? '',
+    publisher.getIdentityPath() ?? '',
     data
   );
   await writeReleaseImpl(publisher, release);
@@ -375,7 +375,7 @@ function frontPagePublishersImpl(): Array<Stuff & Publisher> {
 function pressRoomImpl(limit?: number): PublicReleaseRow[] {
   const listed = new Map(
     frontPagePublishersImpl().map((p) => [
-      (p as Stuff).getTemplatePath() ?? '',
+      (p as Stuff).getIdentityPath() ?? '',
       p,
     ])
   );
