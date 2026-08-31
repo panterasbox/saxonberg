@@ -38,14 +38,17 @@ minted rooms. The region parcel stays deferred for the genuinely
 *seamless* open-coordinate case, but suburbia — named in §L as its
 motivating consumer — no longer needs it.
 
-Corollary that collapses the build's geography: **Hinkley's lots are
-already zoned `residential`** (`plat-book.yaml`: *"Residential: admits a
-garden bed, refuses a field"*), and the lane's `house` detail prose is a
-described house waiting to be built. The slate's "frontier smallholding
-before apartment→townhome" ordering is therefore moot — the frontier rung
-and the SFH suburb rung are the *same shipped content*, half-built. This
-build has **two sites**: Hinkley houses and a Terminus apartment building.
-No new locality.
+Corollary that settles the build's geography: **Hinkley Hills is the
+suburbs** — the name is a reference to *The 'Burbs* — and its lots are
+already zoned `residential` (`plat-book.yaml`), with the lane's `house`
+detail prose a described house waiting to be built. The smallholding
+build's "frontier rung" framing leaves Hinkley with this build: farmland
+is a **separate locality**, coordinated with build-3 (whether the shipped
+yard keeps its garden bed is their call; nothing here depends on it). The
+slate's "frontier smallholding before apartment→townhome" ordering is
+therefore moot. This build has **two sites**: Hinkley houses and a
+Terminus apartment building on a new residential side street off
+University Avenue (D9).
 
 ## Goals
 
@@ -68,10 +71,11 @@ No new locality.
   sale chokepoint. The *yard gate stays ungated* (smallholding's
   deliberate call — the fence is fiction, the house is locked); the
   house door checks key presentation exactly as `DormDoor` does.
-- **A Terminus apartment building exists and leases units.** An elastic
-  building (the `DormWarren` precedent one cardinality up: a Warren whose
-  member is a multi-room *unit*, not a single room), owned by a **private
-  landlord organization**, leasing fronted by an NPC property manager
+- **A Terminus apartment building exists and leases units**, fronting
+  its own **residential side street** one block off University Avenue
+  (D9). An elastic building (the `DormWarren` precedent one cardinality
+  up: a Warren whose member is a multi-room *unit*, not a single room),
+  owned by a **private landlord organization**, leasing fronted by an NPC property manager
   (the Katie / owner-conferred-agency pattern; never a raw player verb,
   never a wizard stand-in). A unit is a floorplan of rooms behind one
   key-gated front door; the lease is the dorm's use-grant reused.
@@ -82,6 +86,14 @@ No new locality.
   room overlay). Lease end evicts owned chattel to storage
   (`evictToStorage` — intact, titled, never destructed) and reverts the
   shell.
+- **Every rung grows on demand.** No authored rosters of empty stock:
+  lots and units mint when a resident needs them; capacity is a runtime
+  operator dial with a shipped default (D10). The plat book's authored
+  40-lot roster retires.
+- **Owned goods can be mounted, not just set down.** Wall/finer
+  placement lands as a small verb over the shipped `Adornable` fixture
+  surface (D11) — hang a lamp, take it back down; a mounted good
+  persists like any placed good and stays titled to its owner.
 - **Furniture is purchasable.** The Terminus general store gains a
   furniture line (bed, table, chairs, wardrobe/chest, lamp — the
   ladder-visible bed at `restQuality` above the dorm's 1.5) on the
@@ -139,11 +151,16 @@ No new locality.
   for a friend is still the follow-on.
 - **An HOA as shipped content** — the tenure term makes it expressible;
   no HOA organization or venue ships.
-- **A second residential locality** — the suburb is Hinkley Lane.
+- **A second residential locality** — the suburb is Hinkley Lane; the
+  apartment street is a district *within* Terminus.
+- **The farmland locality** — frontier smallholding and farm tenure
+  move out of Hinkley to their own locality; build-3's coordination,
+  not this build's content.
 - **Cultivation anything** — beds, plants, harvest, the bed-reset
-  question behind the red Hinkley e2e are build-3's. This build's
-  drives buy *fresh* lots (Governor-funded, the shipped e2e pattern)
-  rather than touching the pre-sold lot's bed. (The stale "lot 2"
+  question behind the red Hinkley e2e are build-3's (including whether
+  the shipped yard keeps its bed at all, now that Hinkley is squarely
+  the suburbs). This build's drives buy *fresh* lots (Governor-funded,
+  the shipped e2e pattern) rather than touching the pre-sold lot's bed. (The stale "lot 2"
   comment in `yard.yaml` gets fixed in passing — the manifest pre-sells
   lot-1.)
 
@@ -151,11 +168,13 @@ No new locality.
 
 ### D1 — The ladder's three rungs are dorm → apartment → Hinkley house
 
-Dorm (granted lease, shipped) → apartment (rented, Terminus) → single-
-family home (owned, Hinkley Lane). The slate's frontier-vs-city ordering
-question dissolved: Hinkley is zoned residential and half-built, so the
-frontier rung *is* the SFH rung. Smallholding-at-scale (fields, herds)
-remains the rung above, owned by future farming/ranching cycles.
+Dorm (granted lease, shipped) → apartment (rented, Terminus) →
+single-family home (owned, Hinkley Lane — the suburbs, *The 'Burbs* by
+name). The slate's frontier-vs-city ordering question dissolved: the
+suburb rung is half-built and this build finishes it. Frontier
+smallholding and farm-scale tenure move to a **separate farmland
+locality** owned by the farming cycles (build-3 coordination); they are
+not Hinkley and not this build.
 
 ### D2 — The house is minted rooms behind a locked door
 
@@ -236,6 +255,65 @@ customization scheme (field-bundle themes, tier filters, document-tree
 diffs) was superseded by the shipped theme overlay + owned-goods model;
 its retirement is a sweep decision, flagged here.
 
+### D9 — The apartment building fronts its own residential side street
+
+A new small district one block off University Avenue
+(`/world/terminus/<street>/` — the street's name is content), completing
+a legible density gradient the town already implies: commercial core
+(Counting-House Row) → apartments a block off the avenue → dorms by the
+university → suburbs at the edge (Hinkley) → farmland beyond (a
+separate locality, build-3's). The side street gives the leased rung a
+neighborhood, room for a second building when the first fills, and real
+addresses (`terminus/<street>/<building>` + unit). Over-the-shop flats
+above the avenue remain a clean later stock on the same substrate
+(`storeys` already accommodates them); they were considered and set
+aside, not rejected.
+
+### D10 — Elasticity: singleton institution, on-demand stock, runtime caps
+
+**Singleton for the institution, elastic for the inventory; capacity is
+a runtime dial, never an authored roster.** The institution — plat book,
+lot holder, front desk, lobby, the lane — is authored singleton content.
+The stock — lots, units, floors — is minted on demand, keyed by parcel
+extent, dormant when empty. Concretely: the **plat book goes
+generative** (`lot-<n>` minted at sale; the authored 40-entry `lots:`
+roster retires — the "surveyed for a hundred families" survey becomes
+prose, where it always belonged); **`ROOMS_PER_FLOOR` graduates** from
+`static readonly` to the operator's dial (its own deferred-seam note
+already points here); the **apartment building is born elastic** on the
+dorm's pattern. The cap is two-layered and only the lower layer ships:
+the **operator's capacity** — the owner's runtime-adjustable limit,
+read at provision, shipped with a default — sits under a future
+**zoning density ceiling** on the parcel (the stewardship slate's
+"density is the quantitative half of land use", deferred with
+zoning-as-governance). Whether the lane physically extends as lots sell
+is the planner's question; the shape is lane-authored, lots-minted.
+
+### D11 — Furnishing is the domestic face of the economy
+
+Neither the Sims nor Animal Crossing. **Function is real** and comes
+from mixin composition + physics, never advertised stats: a bed confers
+`lie` and a `restQuality` metabolism actually integrates, a range is
+real heat, a lamp is real lux. There is no buy-mode/decorate-mode UI —
+placing furniture is embodied verbs, encumbrance-honest (you carry the
+bed home or hire haulage). **Attachment comes from provenance**, not
+catalog sets — maker's mark, grade, chain of custody; a graded
+masterwork by a named crafter *is* the collectible (matched sets, if
+ever, are brand/material coherence — the cosmetics/textiles chain, not
+this build). **The market is the actual economy**: the store line is
+the floor, crafted goods grade above it.
+
+**Placement grammar:** containment + surfaces (`put lamp on table`,
+shipped) **plus wall placement** — a player can mount an owned,
+adornment-capable good on a room's `Adornable` surface (the shipped
+fixture substrate every Location already composes; wall sconces are its
+own doc example) via a new verb (`hang`/`mount`; category the
+planner's call), and take it back down; a mounted good persists like
+any placed good and stays titled to its owner. No grid, no rotation.
+Room capacity is **read, never enforced** — `spaceOf` may make a
+crowded room read crowded; a hard furniture cap is the
+administered-multiplier sin (the land-draw rule applied indoors).
+
 ## Constraints
 
 - **No residence subsystem, no per-feature Api.** Apartments and houses
@@ -278,9 +356,15 @@ its retirement is a sweep decision, flagged here.
   its fixtures, and the placed good persist keyed on the lot.
 - **The apartment loop drives end-to-end:** talk to the property manager
   → lease → key → walk in to an empty unit (built-ins only) → buy
-  furniture at the general store → place it → restart → it persists →
-  unlease → chattel lands in storage intact and titled → the unit
-  re-leases empty and re-keyed.
+  furniture at the general store → place it (one good on a surface, one
+  mounted on the wall) → restart → all of it persists → unlease →
+  chattel lands in storage intact and titled → the unit re-leases empty
+  and re-keyed.
+- **Stock is minted, not rostered:** buying a lot beyond the retired
+  roster's range works with no authored row; the operator cap refuses
+  at its limit and admits after the owner raises the dial at runtime;
+  an empty unit goes dormant and reconstitutes from the durable slot
+  set.
 - **Condition works:** a neglected shell's condition declines on read
   over elapsed game time (slope, with cause legible); maintenance
   restores it; a well-kept dorm/lease passes the ascent gate and a
