@@ -50,11 +50,11 @@ class Hand extends BehavedMixin(ContainableMixin(Idea)) {}
 // Ordinary content — persists in the room's record as ever.
 class Trinket extends ContainableMixin(Idea) {}
 
-const FLOOR = "/world/cast/floor";
-const COUNTER = "/world/cast/counter";
-const HAND = "/world/cast/agent/hand";
+const FLOOR = "/test/cast/floor";
+const COUNTER = "/test/cast/counter";
+const HAND = "/test/cast/agent/hand";
 const HAND_CLASS = "/platform/agent/NPC";
-const TRINKET = "/world/cast/thing/trinket";
+const TRINKET = "/test/cast/thing/trinket";
 
 /* ─────────────────────────── PM + clone mocks ──────────────────────── */
 
@@ -199,7 +199,7 @@ describe("restore: the symmetric skip", () => {
     await PersistableApi.materialize(reborn);
 
     // ONE hand: the legacy entry was skipped, the reseed minted it.
-    const hands = StuffApi.findAllByTemplatePath(HAND);
+    const hands = StuffApi.findAllByTemplatePath<Hand>(HAND);
     expect(hands).toHaveLength(1);
     expect(hands[0]!.getContainer()).toBe(reborn);
     // The trinket restored as ordinary content beside it.

@@ -73,8 +73,8 @@ import {
 } from '../../../lib/banking/__tests__/banking-test-harness';
 
 const GROVE = '/trade/farming/location/test-grove';
-const STALL = '/world/terminus/market/stalls';
-const MARKET = '/world/terminus/market/square';
+const STALL = '/test/farm/market/stalls';
+const MARKET = '/test/farm/market/square';
 const FARM_BIZ = '/trade/farming/idea/test-farm-biz';
 const BANK = '/stuff/test/farm/bank-counter';
 const CARD = '/stuff/thing/PaymentCard';

@@ -62,7 +62,7 @@ const MEAT_MAT = '/stuff/idea/material/food/roast';
 const STEEL_MAT = '/stuff/idea/material/metal/steel';
 const JUICE_MAT = '/stuff/idea/material/juice/lime-juice';
 const GLASS = '/trade/hospitality/thing/juice-bottle';
-const COOK = '/world/test/cook-matter';
+const COOK = '/test/cook-matter';
 
 let store: Record<string, Record<string, unknown>[]>;
 
