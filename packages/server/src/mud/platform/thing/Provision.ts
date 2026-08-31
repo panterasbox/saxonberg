@@ -27,7 +27,9 @@ const ProvisionBase = CraftedMixin(DetailedMixin(Thing));
  * declaration MERGE restores the full `Crafted extends Graded` surface
  * on the class type — same runtime, honest statics.
  */
+// eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging -- deliberate: the interface half only restates surface the runtime class already has (Crafted ⊃ Graded, present via the inner mixin); nothing is declared that isn't there.
 interface Provision extends Crafted {}
+// eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging -- the class half of the same merge
 class Provision extends ProvisionBase {}
 
 export default Provision;
