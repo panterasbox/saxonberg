@@ -631,6 +631,42 @@ created), T title(s) (granted, kept, conflict)[, S row(s)
 skipped (extent sold)], boot: A sync-read + B producer, staffed|UNSTAFFED`
 — the second boot of a settled deployment is all zeros on every pack.
 
+#### The install read window
+
+A pack's plan needs the rows THAT pack stamped, and the natural query
+says exactly that: `{ sourcePack, ...stampedQuery }`, one round trip per
+(pack, kind). On the shipped world that is **twenty-five packs times
+eight document kinds = 200 queries** against a collection of a few
+hundred rows, plus a per-pack read of `content`, `forum_subjects` and
+`descriptor_banks`. With the template cache in
+([persistence.md](./persistence.md)), it was the largest remaining cost
+of a boot.
+
+Inside one `install()` the `sourcePack` term moves out of the query and
+into a filter: each `(collection, stampedQuery)` is read **once** and
+each pack takes its own slice in memory. 200 queries become 8.
+
+It is safe for a rule the installer already enforces: **a row is owned
+by exactly one pack**, so what pack A writes can never appear in pack
+B's slice, and no pack is reconciled twice in a window. Outside a window
+— an operator's `pack sync` or `pack diff` — nothing changes and the
+read goes to Mongo.
+
+⚠ **Two per-pack reads stay.** The **settings singleton** is *written*
+during the install, so a pack may legitimately need a value an earlier
+pack merged; caching that is a correctness question, not a performance
+one. The **subject** kind's `loadStamped` mints across collections and
+renders its own preimage.
+
+⚠ **The installer's content WRITES cannot be batched the same way.**
+They look like a serial loop worth parallelising (987 saves × ~33 ms on
+a fresh boot) but they are order-dependent *through the hook chain*:
+`content`'s around-save hook walks the row's ancestors for the
+folder/leaf invariant, and `validateSingletonContainerTarget` requires
+the row named by `data.container` to already exist — both read rows an
+earlier save in the same install just wrote. Batching means validating
+serially and bulk-writing after, which is a change to the hook contract.
+
 ### Runtime — the `pack` verb
 
 `platform/idea/cmd/author/PackController.ts` + the platform pack's

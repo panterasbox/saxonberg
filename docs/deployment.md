@@ -304,7 +304,7 @@ environments:
 
 ### Runtime shape (both instances)
 
-Two facts both boxes depend on:
+Three facts both boxes depend on:
 
 - **The server runs from TypeScript source via `tsx`**, not a compiled
   `dist`. The call-security loader hook (`preload.js` →
@@ -324,6 +324,16 @@ Two facts both boxes depend on:
   server/WS endpoints from `window.location` (see
   `packages/client/src/config.ts`) — no build-time URL baked in — and
   Caddy stays a dumb TLS reverse proxy.
+- ⚠ **One server process per database.** A second process writing the
+  same database's `content` collection would not be seen: the server
+  holds that collection resident and keeps it current at its own write
+  chokepoint, so writes made by a *different* process are invisible to
+  it (see [persistence.md § The resident `content`
+  cache](./subsystems/persistence.md)). Today's shape satisfies this by
+  construction — one box, one server, and the four-database rule keeps
+  the dev worktrees on databases of their own — but it is now a
+  constraint rather than a coincidence, and it is what a future
+  horizontally-scaled shape would have to answer for first.
 
 Dockerfile (prod) deltas from the old project: `yarn` → `pnpm` workspaces,
 drop the private-registry/`NPM_TOKEN` dance (`@saxonberg/types` is a

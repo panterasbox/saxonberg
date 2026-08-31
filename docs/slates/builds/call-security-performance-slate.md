@@ -190,6 +190,54 @@ naming them all is the work. Not built here; filed. It is the actual
 answer to "fresh boot 5–13 min", which the call-security pass does not
 touch.
 
+> ### ✅ BUILT 2026-08-31 (`perf/boot-time`) — and the fear above was wrong
+>
+> **Naming the invalidation points is NOT the work, because you never
+> have to name them.** Every write to every collection already lands in
+> `persistSave` / `persistDelete` / `deleteMany` on `PersistenceManager`
+> — so a cache that lives *at that object* updates at the same
+> chokepoint that writes. There is no list of callers to maintain and a
+> new writer cannot forget. That is the difference between caching in
+> `Template` (where the invalidation points would indeed have to be
+> enumerated) and caching in the mediator.
+>
+> The other correction is about size. The paragraph above reasons about
+> *which rows* to cache; nobody had counted the collection. It is **991
+> rows and under 600 KB** — small enough to hold whole, which makes a
+> MISS an answer rather than a reason to ask. That matters more than the
+> hits: the zone walk asks for ancestor paths that mostly do not exist.
+>
+> Measured, warm boot to "world open", same box, same database:
+>
+> | | ops | in Mongo | wall |
+> |---|---|---|---|
+> | before | 8 168 | 259.3 s | ~270 s |
+> | + resident `content` | 478 | 15.7 s | 42 s |
+> | + the pack-install read window | 295 | 10.9 s | 35 s |
+>
+> And the case §4 was actually about — a **FRESH** boot, empty database,
+> the full 341-object spawn sweep — went from the **5.7 minutes** measured
+> above to **109 s to world open, 133 s to listening, zero errors**. What
+> is left of it is one-time-per-database *writes*: 987 `save content` +
+> 301 `save documents`, ~33 ms each.
+>
+> ⚠ **Those writes cannot simply be parallelized**, and the reason is
+> worth keeping: `content`'s around-save hook validates the folder/leaf
+> invariant by walking the row's ancestors, and
+> `validateSingletonContainerTarget` requires the row named by
+> `data.container` to **already exist**. Both read rows an earlier save in
+> the same install wrote. The installer's content writes are
+> order-dependent *through the hook chain*, not by accident. Batching them
+> would mean validating serially (cheap now — those walks are the cache's
+> best customer) and bulk-writing after, which is a real change to the
+> hook contract rather than a loop rewrite.
+>
+> The instrument that found it is now permanent:
+> `SAXONBERG_QUERY_TRACE=1` — see
+> [persistence.md § The query trace](../../subsystems/persistence.md).
+> It exists because **§4's own profile was the wrong instrument**: a
+> boot 96% blocked on round trips reads as 76% idle and names no query.
+
 ---
 
 ## 5. The rule this produces
@@ -250,7 +298,9 @@ and then the site carries the guards the proxy would have applied
   - Caching recognition per (viewer, target) per resolve was considered
     and is **low value**: each candidate is visited once per resolve, so
     the win is smaller than it looks.
-- **§4, the boot round trips.** The big one, and not this subsystem.
+- ~~**§4, the boot round trips.** The big one, and not this subsystem.~~
+  **✅ Built 2026-08-31** — see §4's own note. Warm boot 270 s → 35 s,
+  fresh boot 5.7 min → 109 s.
 
 ---
 

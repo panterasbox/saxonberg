@@ -2138,6 +2138,62 @@ interface KindPlan<F> {
 type StampedRow = Record<string, unknown> & { _id?: string; sourcePack?: string };
 
 /**
+ * The install read window.
+ *
+ * A pack's plan needs the rows THAT pack stamped, and the natural query
+ * says exactly that — `{ sourcePack, ...stampedQuery }`, one round trip
+ * per (pack, kind). Across an install that is the boot's largest
+ * remaining cost: twenty-five packs times eight document kinds is two
+ * hundred queries against one collection of a few hundred rows, plus a
+ * per-pack read of `content`, `forum_subjects`, `descriptor_banks` and
+ * the settings singleton.
+ *
+ * Inside a window, the `sourcePack` term moves from the query to a
+ * filter: each `(collection, stampedQuery)` is read ONCE for every pack,
+ * and each pack takes its own slice in memory. Two hundred queries
+ * become eight.
+ *
+ * It is safe because **a row is owned by exactly one pack** — that is
+ * the installer's own conflict rule — so what pack A writes can never
+ * be in pack B's slice, and no pack is reconciled twice in a window.
+ * Outside a window (an operator's `pack sync`, `pack diff`) nothing
+ * changes: the read goes straight to Mongo.
+ */
+let stampedWindow: Map<string, StampedRow[]> | null = null;
+
+/** Run `fn` with an install read window open. */
+async function withStampedWindow<T>(fn: () => Promise<T>): Promise<T> {
+  const outer = stampedWindow;
+  stampedWindow = new Map();
+  try {
+    return await fn();
+  } finally {
+    stampedWindow = outer;
+  }
+}
+
+/** The rows `packId` stamped on `collection`, through the window if open. */
+async function stampedRowsOf(
+  collection: Collections,
+  stamped: Record<string, unknown>,
+  packId: string,
+): Promise<StampedRow[]> {
+  if (stampedWindow === null) {
+    return (await PersistApi.find(collection, {
+      sourcePack: packId,
+      ...stamped,
+    })) as StampedRow[];
+  }
+  const key = `${collection}|${JSON.stringify(stamped)}`;
+  let all = stampedWindow.get(key);
+  if (all === undefined) {
+    all = (await PersistApi.find(collection, stamped)) as StampedRow[];
+    stampedWindow.set(key, all);
+  }
+  return all.filter((r) => r.sourcePack === packId);
+}
+
+/**
  * The pure planner: decide, for every file and every stamped row of one
  * kind, what the reconcile WOULD do — reads only. `record === null` is
  * the first install: every row is inserted and its baseline is what was
@@ -2180,10 +2236,11 @@ async function computeKindPlan<F>(
 
   const stampedRows =
     (await strategy.loadStamped?.(packId)) ??
-    ((await PersistApi.find(strategy.collection, {
-      sourcePack: packId,
-      ...(strategy.stampedQuery?.() ?? {}),
-    })) as StampedRow[]);
+    (await stampedRowsOf(
+      strategy.collection,
+      strategy.stampedQuery?.() ?? {},
+      packId,
+    ));
   const stampedByKey = new Map(
     stampedRows.map((r) => [strategy.recordKeyOfRow(r), r]),
   );
@@ -3574,20 +3631,24 @@ export class PackLogic extends ApiLogic {
     const flat = flatKeyFailures(read);
     const set = installSetOf(read);
 
-    for (const rp of read) {
-      const id = rp.pack.manifest.id;
-      const flatFailure = flat.get(id);
-      if (flatFailure) {
-        results.set(id, await recordFailure(rp.pack, new PackStepError(flatFailure.step, flatFailure.error, flatFailure.file)));
-        continue;
+    // One read window for the whole install: every pack's stamped rows
+    // come out of one read per (collection, kind). See `stampedWindow`.
+    await withStampedWindow(async () => {
+      for (const rp of read) {
+        const id = rp.pack.manifest.id;
+        const flatFailure = flat.get(id);
+        if (flatFailure) {
+          results.set(id, await recordFailure(rp.pack, new PackStepError(flatFailure.step, flatFailure.error, flatFailure.file)));
+          continue;
+        }
+        try {
+          results.set(id, await reconcilePack(rp, { rehydrate: false, installSet: set }));
+        } catch (err) {
+          // A failed pack boots WITHOUT the pack; it never bricks the boot.
+          results.set(id, await recordFailure(rp.pack, err));
+        }
       }
-      try {
-        results.set(id, await reconcilePack(rp, { rehydrate: false, installSet: set }));
-      } catch (err) {
-        // A failed pack boots WITHOUT the pack; it never bricks the boot.
-        results.set(id, await recordFailure(rp.pack, err));
-      }
-    }
+    });
     await reportUnreferencedClasses(
       read.filter((rp) => results.get(rp.pack.manifest.id)?.failure === null),
     );
