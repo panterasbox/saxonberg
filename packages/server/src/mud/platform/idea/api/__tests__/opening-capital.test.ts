@@ -30,8 +30,8 @@ import {
   teardownBankingHarness,
 } from "../../../../lib/banking/__tests__/banking-test-harness";
 
-const BUSINESS = "/world/test/business";
-const WORKER = "/world/test/npc/worker";
+const BUSINESS = "/test/business";
+const WORKER = "/test/npc/worker";
 const DEFAULT_CAPITAL = 20_000;
 
 /** Layer the opening-capital dial over the harness's setting stub. */
@@ -44,7 +44,7 @@ function withCapitalDial(minor: number): void {
 
 function seedBusiness(openingCapital?: number): BusinessEntity {
   const b = makeStuffAtPath(() => new BusinessEntity(), BUSINESS);
-  b.proprietorPath = "/world/test/npc/dave";
+  b.proprietorPath = "/test/npc/dave";
   b.banksAt = BankingApi.defaultCustodianBank();
   if (openingCapital !== undefined) b.openingCapital = openingCapital;
   return b;
@@ -163,9 +163,9 @@ describe("concurrent mints keep ONE supply row per currency", () => {
     const businesses = Array.from({ length: 9 }, (_, i) => {
       const b = makeStuffAtPath(
         () => new BusinessEntity(),
-        `/world/test/business-${i}`
+        `/test/business-${i}`
       );
-      b.proprietorPath = "/world/test/npc/dave";
+      b.proprietorPath = "/test/npc/dave";
       b.banksAt = BankingApi.defaultCustodianBank();
       return b;
     });
