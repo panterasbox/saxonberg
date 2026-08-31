@@ -93,9 +93,24 @@ export default class FeelController extends SingleSenseControllerBase {
     const actor = context.commandGiver;
     const surface = object.getSurfaceTemperature();
     const band = Touch.bandFor(surface.rawValue());
+    /*
+     * ⚠ NO hardcoded article. `getPresentation()` brings its own —
+     * "an ice bin", "the well", or a bare proper name — so a literal
+     * "The " in front of it produced "**The an ice bin** feels
+     * comfortable." and, feeling yourself, "**The senses** feels
+     * comfortable." Capitalise what comes back instead.
+     *
+     * Nobody had seen either sentence: `feel` was gated on a `touch`
+     * modality no body plan granted, so the verb had never once run.
+     */
+    const shown = object.getPresentation();
+    const line =
+      object === (actor as unknown as Stuff & Thermal)
+        ? Mml.compose`You feel ${band}.`
+        : Mml.compose`${shown.charAt(0).toUpperCase() + shown.slice(1)} feels ${band}.`;
     MessageApi.scene(actor)
       .topic(this.sceneTopic)
-      .toSelf(Mml.compose`The ${object.getPresentation()} feels ${band}.`)
+      .toSelf(line)
       .send();
     this.burnOnContact(actor, surface.rawValue());
   }
