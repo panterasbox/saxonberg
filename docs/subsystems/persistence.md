@@ -180,6 +180,12 @@ bulk `deleteMany` drops the cache whole.
   policy ever become `stamp` or `shadow`, the cache disengages itself
   rather than serving one circle's row to another.
 
+⚠ **A write that lands while the preload query is in flight** is not in
+the snapshot that query returns, and has no map to fold itself into —
+so it is buffered and replayed the moment the map exists. Without that,
+a row written in the window between issuing the read and assigning the
+map would be invisible for the life of the cache.
+
 Rows are handed out as `structuredClone` copies, so a caller mutating
 what it got cannot corrupt the cache. A row that will not clone is left
 out of the map and read through — a slower right answer rather than a

@@ -298,7 +298,9 @@ and then the site carries the guards the proxy would have applied
   - Caching recognition per (viewer, target) per resolve was considered
     and is **low value**: each candidate is visited once per resolve, so
     the win is smaller than it looks.
-- **§4, the boot round trips.** The big one, and not this subsystem.
+- ~~**§4, the boot round trips.** The big one, and not this subsystem.~~
+  **✅ Built 2026-08-31** — see §4's own note. Warm boot 270 s → 35 s,
+  fresh boot 5.7 min → 109 s.
 
 ---
 

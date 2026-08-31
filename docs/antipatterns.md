@@ -3653,16 +3653,36 @@ round trip, one shipped item costs about **13 serialized trips —
 another, for **152 seconds of a 5.7-minute boot**. A CPU profile of that
 boot is **76% idle**: it is not computing, it is waiting.
 
-⚠ **Not fixed — filed.** A template read cache is a real design
-conversation (the invalidation points — CMS save, pack install,
-go-live, `restoreFromTemplate`, hot reload — all exist as chokepoints,
-but enumerating them all is the work). Recorded here so the next person
-to profile a slow boot does not start, as this investigation did, by
-optimising the CPU.
+✅ **Fixed 2026-08-31** — and the reasoning that had filed it was the
+antipattern. It was filed as *"a real design conversation: the
+invalidation points (CMS save, pack install, go-live,
+`restoreFromTemplate`, hot reload) all exist as chokepoints, but
+enumerating them all is the work."*
+
+⭐ **You never enumerate them. Put the cache where the writes already
+funnel, not where the reads are.** Every write to every collection
+lands in `persistSave` / `persistDelete` / `deleteMany` on
+`PersistenceManager`, so a cache living *on that object* updates at the
+same chokepoint that writes: no list to keep in sync, and a new writer
+cannot forget. Caching in `Template` — next to the hot read, which is
+where the instinct points — is what would have required naming all five.
+
+The second half was a number nobody had checked. The collection those
+~7 500 reads were hammering is **991 rows and 579 KB**, so it is held
+*whole* — which makes a **miss an answer**: `resolveZoneForPath` walks
+every ancestor of a template path and most of those rows do not exist,
+so each was a round trip to learn nothing. See
+[persistence.md § The resident `content` cache](./subsystems/persistence.md).
+
+Warm boot 270 s → 35 s; fresh boot 5.7 min → 109 s.
 
 **The general form:** before optimising a slow phase, check whether it
 is *busy* or *waiting*. An idle-dominated profile means round trips, and
 no amount of per-call work removes a round trip.
+
+**And a profiler is the wrong instrument for a waiting process** — it
+reports where CPU went, and there is a query trace at the persistence
+chokepoint (`SAXONBERG_QUERY_TRACE=1`) for where the wall clock went.
 
 ## Two things in one room answering to one word
 
