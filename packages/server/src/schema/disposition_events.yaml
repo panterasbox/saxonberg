@@ -1,0 +1,29 @@
+collection: disposition_events
+owner: DispositionEntry
+subsystem: trait.md
+summary: >-
+  The trait evidence ledger — the Transcript's sibling, for who you are
+  rather than what you can do.
+purpose: |
+  One row per disposition-valenced act: the character did a thing that sits
+  somewhere on one of the seventeen opposed pairs. The TraitPosition you
+  read is derived from these rows exactly as Competence is derived from the
+  Transcript.
+
+  ⚠ Nothing WRITES a player's trait — there is no field to set. A trait is a
+  reading of a ledger, which is why an accusation about someone's character
+  is checkable and a stamped value would not be.
+invariants:
+  - >-
+    Append-only, and the only source of trait position — no trait value is
+    persisted on a character.
+  - >-
+    STAMP under the sandbox, matching the Transcript: disposition earned
+    in-circle reverts with the circle.
+sandbox: stamp
+reset: wipe
+indexes:
+  - keys: { owner: 1 }
+    why: |
+      The owner-scoped read the derive-on-read trait position walks, and the
+      key the per-player cleanup cascade deletes by.

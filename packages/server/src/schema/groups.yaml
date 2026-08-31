@@ -1,0 +1,34 @@
+collection: groups
+owner: Group
+subsystem: grouping.md
+summary: >-
+  Named sets of people — the axis groups, the packs' bodies, and everything
+  in between.
+purpose: |
+  One row per group: an owner and a member list, sitting behind `GroupApi`
+  as one of four `GroupProvider` implementations.
+
+  ⚠ It carries the AXIS groups — `wizards`, `archwizards`, `streamers` —
+  which are minted in CODE by `AccessRegistry.postRegister`, idempotently.
+  That is why wiping this collection is survivable: the axis groups come
+  back on the next boot, and `PackApi.reprovision` re-mints the packs'
+  groups from the install records. Founder access is part of the boot phase,
+  not an operator's memory.
+invariants:
+  - >-
+    Group membership is durable identifiers only — never a live reference.
+  - >-
+    The axis groups are code-minted and idempotent; nothing hand-creates
+    them.
+  - >-
+    REFUSE under the sandbox: group membership is an authorization fact.
+sandbox: refuse
+reset: wipe
+indexes:
+  - keys: { owner: 1 }
+    why: |
+      Groups by holder — the 'groups this party owns' read.
+  - keys: { memberIds: 1 }
+    why: |
+      The reverse: 'groups I am in', which is the read every capability
+      check makes. A multikey index over the member array.

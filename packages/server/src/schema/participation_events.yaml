@@ -1,0 +1,29 @@
+collection: participation_events
+owner: ParticipationEvent
+subsystem: participation.md
+summary: >-
+  The append-only active-bucket log: when someone was actually present and
+  doing something.
+purpose: |
+  The quantity half of influence. One row per (subject, bucket) — a bucket
+  being a coarse unit of time — so the log records presence and activity
+  without recording what was done.
+
+  Participation decays in real time, which means an old row stops
+  contributing on its own rather than needing to be pruned.
+invariants:
+  - >-
+    One row per (subject, bucket); a repeat within a bucket is a dedup
+    hit, not a second row.
+  - >-
+    STAMP under the sandbox.
+sandbox: stamp
+reset: wipe
+indexes:
+  - keys: { subject: 1 }
+    why: |
+      The recompute group: every bucket for one subject.
+  - keys: { subject: 1, bucket: 1 }
+    why: |
+      The per-append dedup lookup — this is what makes a second act in the
+      same bucket a no-op rather than a duplicate row.

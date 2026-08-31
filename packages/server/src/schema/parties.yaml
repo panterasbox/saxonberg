@@ -1,0 +1,37 @@
+collection: parties
+owner: PartyRecord
+subsystem: party.md
+summary: >-
+  Durable party mirrors — the crews that outlive a session.
+purpose: |
+  One row per DURABLE party. An ad-hoc party is a live Idea and is never
+  written here at all; this collection exists only for the ones meant to
+  persist, and the row mirrors the Idea rather than replacing it.
+
+  The party is the fourth `GroupProvider`, so a durable crew is a group for
+  every purpose that asks about groups — including combat's `sideOf` /
+  `areAllied` seam.
+invariants:
+  - >-
+    Ad-hoc parties are never written here. A row means somebody chose
+    durability.
+  - >-
+    `path` is the party Idea's templatePath and is the durable join key.
+  - >-
+    REFUSE under the sandbox.
+sandbox: refuse
+reset: wipe
+indexes:
+  - keys: { path: 1 }
+    unique: true
+    why: |
+      The durable join key — the party Idea's templatePath. Unique because
+      the Idea and its mirror are one thing.
+  - keys: { name: 1 }
+    unique: true
+    why: |
+      The clash check on naming a crew. Unique so the check IS the index
+      rather than a scan that races.
+  - keys: { memberIds: 1 }
+    why: |
+      'Durable crews I'm on' — a multikey read over the member array.

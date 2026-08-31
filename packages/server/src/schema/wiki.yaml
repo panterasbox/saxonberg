@@ -1,0 +1,56 @@
+collection: wiki
+owner: WikiPage
+subsystem: wiki.md
+summary: >-
+  The encyclopedia's current page state — one row per article.
+purpose: |
+  The community's own reference layer: typed subjects, a frozen render
+  pipeline, and the two-axis reveal model (capability DELETES, appetite
+  TAGS) applied at one gate.
+
+  It is authored truth and a communications surface — people writing to each
+  other — which is why a sandboxed edit PASSES rather than failing closed. A
+  circle session that may edit a room template has no business being refused
+  an encyclopedia edit about one.
+invariants:
+  - >-
+    Slugs and aliases share ONE name space within a namespace: a name
+    resolves to at most one page.
+  - >-
+    Uniqueness is enforced at the `WikiRegistry` write chokepoint, not by
+    an index — see the name index's note.
+  - >-
+    PASS under the sandbox. An article cannot affect advancement, mint
+    anything or be spent; authorization still resolves through
+    `AccessApi`, which is circle-independent.
+sandbox: pass
+reset: wipe
+indexes:
+  - keys: { namespace: 1, slug: 1 }
+    why: |
+      The load-bearing one. Slugs and aliases share one name space within a
+      namespace, so the lookup and the collision check are the same query.
+
+      ⚠ NOT declared unique: `aliases` is an array, so a unique index would
+      be a multikey unique across the WHOLE collection rather than per
+      namespace, and would reject two namespaces legitimately holding the
+      same name. Uniqueness lives at the one write chokepoint
+      (`WikiRegistry`), which is also where a refusal can name the holder
+      instead of surfacing a driver error.
+  - keys: { namespace: 1, aliases: 1 }
+    why: |
+      The alias half of that same name space — a multikey index over the
+      alias array, scoped by namespace.
+  - keys: { "subject.ref": 1 }
+    why: |
+      The total reverse lookup: 'is this documented?' Answerable for every
+      subject in the world, which is what makes coverage a number rather
+      than an impression.
+  - keys: { tags: 1 }
+    why: |
+      Tag browse — a multikey index over the tag array.
+  - keys: { title: "text", body: "text" }
+    text: true
+    why: |
+      One of `recall`'s three corpora, compound over every field the verb
+      searches because Mongo allows exactly one text index per collection.

@@ -1,0 +1,35 @@
+collection: parcels
+owner: ParcelRecord
+subsystem: parcel.md
+summary: >-
+  The real-property title registry: who holds title to which extent.
+purpose: |
+  One row per titled extent — the current-state cache over `parcel_events`.
+  `ParcelApi.ownerOf` resolves a path to a holder by longest prefix, and
+  every content-write authorization in the system bottoms out here.
+
+  ⚠⚠ Stored SEPARATELY from the `content` rows it gates. That is the
+  governing security invariant: if title lived beside the thing it governs,
+  editing the thing could edit who may edit it.
+invariants:
+  - >-
+    Title is stored apart from the content it gates — never in the same
+    collection.
+  - >-
+    An untitled path resolves to `null`, and every write against it fails
+    closed.
+  - >-
+    Rebuildable from `parcel_events`; the event log is the chain of title.
+  - >-
+    REFUSE under the sandbox: title is field-real, and a circle may not
+    mint it.
+sandbox: refuse
+reset: wipe
+indexes:
+  - keys: { extent: 1 }
+    why: |
+      The coverage-index key and the seed/mutation upsert lookup — the read
+      `ownerOf` walks for every authorization decision in the system.
+  - keys: { parentParcel: 1 }
+    why: |
+      The sparse-hierarchy child scan: the subdivisions under one parcel.

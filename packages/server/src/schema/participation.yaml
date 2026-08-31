@@ -1,0 +1,24 @@
+collection: participation
+owner: ParticipationStanding
+subsystem: participation.md
+summary: >-
+  The materialized per-subject participation standing — a rebuildable cache.
+purpose: |
+  The read-side aggregate over `participation_events`, one row per subject.
+  Scope is always the Compact-wide `*` today; the column is there because
+  the shape is shared with renown and producer standings, not because
+  participation is scoped yet.
+invariants:
+  - >-
+    Fully rebuildable from `participation_events`.
+  - >-
+    SHADOW(skip) under the sandbox.
+sandbox:
+  verb: "shadow"
+  mode: "skip"
+reset: wipe
+indexes:
+  - keys: { subject: 1, scope: 1 }
+    why: |
+      The upsert key and the `warm()` load shape, shared with the other two
+      standing caches.

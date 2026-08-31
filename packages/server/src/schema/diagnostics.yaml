@@ -1,0 +1,46 @@
+collection: diagnostics
+owner: none
+subsystem: diagnostics.md
+summary: >-
+  The author-diagnostics store: what broke in your content, TTL-rotated.
+purpose: |
+  Three producers write here — the runtime error path, the compile path, and
+  the pack reconcile — and an author reads their own rows with the `errors`
+  verb or the CMS pane. Rows expire on their own via a TTL index rather than
+  a sweep.
+
+  It exists because an author whose content throws at 3am needs to find out
+  without reading the server log, and the server log is not theirs to read.
+invariants:
+  - >-
+    Rows carry `expiresAt` and are evicted by Mongo's TTL, not by any job.
+  - >-
+    Written through `DiagnosticApi` by all three producers; no `Document`
+    class.
+  - >-
+    PASS(mark) under the sandbox — a diagnostic from inside a circle is
+    still a real thing that broke.
+sandbox:
+  verb: "pass"
+  mark: true
+reset: wipe
+indexes:
+  - keys: { channel: 1, ts: -1 }
+    why: |
+      Tail-by-channel: the newest rows of one channel, which is the default
+      read.
+  - keys: { author: 1, ts: -1 }
+    why: |
+      The 'my content's errors' read behind `errors --mine` — one author,
+      newest first.
+  - keys: { path: 1, versionId: 1 }
+    why: |
+      The compile supersede: a new compile of one path at one version
+      replaces the last.
+  - keys: { expiresAt: 1 }
+    expireAfterSeconds: 0
+    why: |
+      The TTL. `expireAfterSeconds: 0` means 'at the instant `expiresAt`',
+      which lets Mongo do the eviction with no cron on our side. First of
+      its kind in this repo — the pattern to copy if another store ever
+      needs rotation.

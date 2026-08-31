@@ -1,0 +1,28 @@
+collection: forum_votes
+owner: Vote
+subsystem: forums.md
+summary: >-
+  One row per (entry, voter) — the vote, and the enforcement of one vote.
+purpose: |
+  Votes are rows rather than a counter, so the aggregate is a recompute
+  rather than an increment nobody can audit. The unique compound key is what
+  enforces one-account-one-vote per entry — at the index, not in a check
+  that can race.
+invariants:
+  - >-
+    One row per (entry, voter), enforced unique — a second vote is a
+    driver-level refusal, not a lost race.
+  - >-
+    The aggregate on an entry is derived from these rows, never stored as
+    a counter.
+  - >-
+    REFUSE under the sandbox.
+sandbox: refuse
+reset: wipe
+indexes:
+  - keys: { entry: 1, voter: 1 }
+    unique: true
+    why: |
+      One-account-one-vote per entry, enforced by the index itself. `entry`
+      alone is the prefix, so the same index also serves the aggregate
+      recompute — one structure, two jobs.

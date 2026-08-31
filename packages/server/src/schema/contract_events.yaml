@@ -1,0 +1,29 @@
+collection: contract_events
+owner: ContractEvent
+subsystem: contract.md
+summary: >-
+  The append-only gig lifecycle chain: posted, claimed, delivered, settled.
+purpose: |
+  One row per lifecycle transition, in the `chattel_events` shape. Nothing
+  is overwritten, so a dispute over whether a clause was satisfied reads as
+  a sequence rather than a verdict.
+
+  Money legs live in `bank_ledger` and are linked from here by `txId`.
+invariants:
+  - >-
+    Append-only.
+  - >-
+    A row may reference a ledger transaction by `txId`; it never carries
+    the value itself.
+  - >-
+    REFUSE under the sandbox.
+sandbox: refuse
+reset: wipe
+indexes:
+  - keys: { contractId: 1 }
+    why: |
+      The chain readout for one contract, in order — the whole reason the
+      collection exists.
+  - keys: { at: 1 }
+    why: |
+      Time-ordered slices across contracts, for the operational reads.

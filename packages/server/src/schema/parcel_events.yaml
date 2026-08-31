@@ -1,0 +1,25 @@
+collection: parcel_events
+owner: ParcelEvent
+subsystem: parcel.md
+summary: >-
+  The chain of title — every grant, subdivision and transfer, append-only.
+purpose: |
+  One row per title event; nothing overwritten. `parcels` is the current
+  state, this is how it got there, and the two are separate for the same
+  reason a deed registry is separate from a map.
+
+  A dispute about who owns something is answerable here, which is the only
+  reason a current-state row can be trusted.
+invariants:
+  - >-
+    Append-only. A transfer is a new event, never an edit to the old one.
+  - >-
+    `parcels` is fully derivable from this log.
+  - >-
+    REFUSE under the sandbox.
+sandbox: refuse
+reset: wipe
+indexes:
+  - keys: { extent: 1 }
+    why: |
+      The lineage readout for one title — the whole chain, in order.

@@ -1,0 +1,32 @@
+collection: producer_events
+owner: ProducerEvent
+subsystem: influence.md
+summary: >-
+  The append-only attributed-engagement log: whose work someone else spent
+  time on.
+purpose: |
+  The producer stock's evidence. A row attributes one actor's engagement to
+  the author whose content they engaged with — so an author's standing
+  measures what their work did for other people, rather than what they did
+  themselves.
+
+  Bucketed per (author, actor, bucket) so that one person hammering one
+  piece of content does not read as a crowd.
+invariants:
+  - >-
+    One row per (author, actor, bucket) — the bucket is the anti-
+    amplification bound.
+  - >-
+    REFUSE under the sandbox: attribution to a real author from inside a
+    circle would be a field-real claim about somebody who is not in it.
+sandbox: refuse
+reset: wipe
+indexes:
+  - keys: { author: 1 }
+    why: |
+      The routing key and the recompute group — everything attributed to one
+      author.
+  - keys: { author: 1, actor: 1, bucket: 1 }
+    why: |
+      The per-append dedup lookup, which is what bounds one actor's
+      contribution to one bucket.

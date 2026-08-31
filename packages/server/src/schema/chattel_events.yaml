@@ -1,0 +1,23 @@
+collection: chattel_events
+owner: ChattelEvent
+subsystem: chattel.md
+summary: >-
+  The chain of title for movables — stamp, transfer, and every hand it
+  passed through.
+purpose: |
+  The append-only sibling of `chattel`, in the shape `parcel_events` already
+  established: the current-state row says who owns it, this says how they
+  came to.
+
+  Kept separate so that reading who owns a thing never drags its whole
+  history.
+invariants:
+  - >-
+    Append-only.
+  - >-
+    `chattel` is derivable from this log.
+  - >-
+    REFUSE under the sandbox.
+sandbox: refuse
+reset: wipe
+indexes: []

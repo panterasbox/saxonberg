@@ -1,0 +1,34 @@
+collection: channels
+owner: Channel
+subsystem: chat.md
+summary: >-
+  Chat channels — one row per named channel, of three kinds.
+purpose: |
+  The Channel document behind `ChannelCatalogue`: a name, a kind, and the
+  members. Channels ride the forums' Subject layer, so a channel is a place
+  to talk that a subject can also be discussed at.
+
+  The name is a flat global handle, which is what makes 'join the tavern
+  channel' resolve without a path.
+invariants:
+  - >-
+    `name` is unique across all channels — the handle is flat and global.
+  - >-
+    Membership is durable identifiers only.
+  - >-
+    REFUSE under the sandbox.
+sandbox: refuse
+reset: wipe
+indexes:
+  - keys: { name: 1 }
+    unique: true
+    why: |
+      The handle resolve, and the collision check on create — the same
+      query, which is why the index is unique.
+  - keys: { memberIds: 1 }
+    why: |
+      'Channels I'm in' — the per-session read on login. A multikey index
+      over the member array.
+  - keys: { kind: 1 }
+    why: |
+      The per-kind listing, which is how the three kinds are browsed apart.

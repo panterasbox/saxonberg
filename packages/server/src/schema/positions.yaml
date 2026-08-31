@@ -1,0 +1,31 @@
+collection: positions
+owner: Position
+subsystem: influence.md
+summary: >-
+  Held conviction — one row per stake somebody currently holds.
+purpose: |
+  Not a log but a current-state table: one row per (subject, stock, target),
+  recording that this person holds this position on this thing. A position
+  is held, flipped or released, and the tally over every holder is what a
+  conviction reading means.
+
+  Distinct from the three event ledgers beside it: those measure what
+  happened, this records what is currently believed.
+invariants:
+  - >-
+    One row per (subject, stock, target) — holding is idempotent, so the
+    write is an upsert.
+  - >-
+    REFUSE under the sandbox: a conviction held from inside a circle would
+    be a real claim about a real target.
+sandbox: refuse
+reset: wipe
+indexes:
+  - keys: { subject: 1, stock: 1, target: 1 }
+    why: |
+      The upsert / `positionOf` key — the one row for one holder's stake on
+      one target.
+  - keys: { stock: 1, target: 1 }
+    why: |
+      The tally read: every holder of a position on one target, which is the
+      aggregate a conviction reading is.

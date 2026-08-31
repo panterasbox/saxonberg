@@ -1,0 +1,32 @@
+collection: app_settings
+owner: AppSettings
+subsystem: app-settings.md
+summary: >-
+  The configuration singleton — one row, the whole knob board.
+purpose: |
+  A collection of one row. Every operator-tunable value the world reads at
+  runtime lives here under the closed `AppSettingKeys` vocabulary, seeded
+  from YAML on first boot and edited thereafter with the `config` verb.
+
+  ⚠⚠ It is load-bearing for the nightly reset itself: the job reads its own
+  arming and its own policy from here. That is why it is a `keep` — a wipe
+  would disarm the job on its first run and silently retract the front
+  door's notice.
+invariants:
+  - >-
+    Exactly one row. `AppApi` reads it through a warmed singleton, never
+    per-key.
+  - >-
+    Keys are the closed `AppSettingKeys` vocabulary; an unknown key is a
+    bug, not a new setting.
+  - >-
+    REFUSE under the sandbox: a circle may never rewrite the world's
+    configuration.
+sandbox: refuse
+reset:
+  verb: keep
+  because: |
+    ⚠⚠ the job reads its own arming and its own reset POLICY from here;
+    wiping it would disarm the job and silently retract the front door's
+    notice on the first run
+indexes: []

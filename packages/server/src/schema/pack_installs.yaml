@@ -1,0 +1,40 @@
+collection: pack_installs
+owner: none
+subsystem: content-packs.md
+summary: >-
+  The pack installer's per-deployment ledger: what is installed, and from
+  what.
+purpose: |
+  One record per content pack per deployment — version, pins, open
+  conflicts, failure state, and the *baselines*: the hash and canonical body
+  of every row as installed. The three-way reconcile on the next boot
+  compares the live row against its baseline to tell an operator's
+  deliberate divergence from a pack's update.
+
+  ⚠ Deliberately its OWN collection so that no contribution kind can ever
+  reach it — the same reasoning that keeps `parcels` out of `content`. A
+  pack that could write the installer's ledger could rewrite its own
+  history.
+invariants:
+  - >-
+    One record per `packId` — enforced unique.
+  - >-
+    Written only by `PackLogic`; there is no `Document` class, and no pack
+    contribution kind names this collection.
+  - >-
+    Survives the nightly reset: wiping it would re-run the one-time
+    adoption and silently overwrite operator divergence.
+sandbox: refuse
+reset:
+  verb: keep
+  because: |
+    the pack installer’s ledger — the baselines the next boot’s three-way
+    reconcile compares against; wiping it would re-run the one-time adoption
+    and silently overwrite operator divergence
+indexes:
+  - keys: { packId: 1 }
+    unique: true
+    why: |
+      One record per content pack per deployment. Unique because a second
+      row for a pack would mean two disagreeing baselines and a reconcile
+      with no answer.

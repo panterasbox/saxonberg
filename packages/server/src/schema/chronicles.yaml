@@ -1,0 +1,33 @@
+collection: chronicles
+owner: ChronicleEntry
+subsystem: chronicle.md
+summary: >-
+  The per-character append-only identity ledger: deeds recorded, claims
+  recorded as claims.
+purpose: |
+  What a character has done and what they say about themselves, kept apart.
+  A deed is written by the engine when it happens; a claim is written by the
+  character and marked as a claim, so reading a chronicle never requires
+  trusting its subject.
+
+  Append-only, and the three singularity patterns keep a single event from
+  being recorded twice under different names.
+invariants:
+  - >-
+    Append-only. A chronicle is never edited, only added to.
+  - >-
+    A deed and a claim are distinguishable on the row; nothing collapses
+    the two.
+  - >-
+    PASS(mark) under the sandbox — what happened to you in a circle
+    happened, and the mark says where.
+sandbox:
+  verb: "pass"
+  mark: true
+reset: wipe
+indexes:
+  - keys: { owner: 1 }
+    why: |
+      The owner-scoped read (`ChronicleEntry.find({ owner })`) and the per-
+      player cleanup cascade's keyed delete. Every read of a chronicle is
+      one owner's rows.

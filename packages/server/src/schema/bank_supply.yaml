@@ -1,0 +1,26 @@
+collection: bank_supply
+owner: SupplyAggregate
+subsystem: banking.md
+summary: >-
+  The single-row money-supply headline — how much exists, rebuildable from
+  the ledger.
+purpose: |
+  One row. It holds the running total the conservation chokepoint maintains,
+  so 'how much money is in the world' is a read rather than an aggregation
+  over the whole ledger.
+
+  Like the account cache, it is derived: if it ever disagrees with a full
+  replay of `bank_ledger`, the ledger is right. One row means there is no
+  index to have.
+invariants:
+  - >-
+    Exactly one row — hence no index.
+  - >-
+    Fully rebuildable from `bank_ledger`.
+  - >-
+    SHADOW(skip) under the sandbox.
+sandbox:
+  verb: "shadow"
+  mode: "skip"
+reset: wipe
+indexes: []

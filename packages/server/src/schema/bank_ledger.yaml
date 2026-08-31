@@ -1,0 +1,44 @@
+collection: bank_ledger
+owner: LedgerEntry
+subsystem: banking.md
+summary: >-
+  The money system of record. Every movement of money, append-only.
+purpose: |
+  Double-entry, append-only, and the only thing in the system that is
+  allowed to say how much money exists. `bank_accounts` and `bank_supply`
+  are rebuildable caches OVER this — if they disagree with it, this wins and
+  they get rebuilt.
+
+  ⚠⚠ Money is not a property and not a field. The sealed
+  `BankingApi.postTransaction` chokepoint is the only writer, which is what
+  makes conservation a property of the code rather than a hope about it.
+invariants:
+  - >-
+    Only `BankingApi.postTransaction` writes here — the sealed chokepoint,
+    and the reason conservation holds.
+  - >-
+    Append-only: a correction is a new pair of legs, never an edit.
+  - >-
+    A ledger leg may never cross currencies.
+  - >-
+    STAMP under the sandbox: the economy genuinely runs in-circle, then
+    reverts on exit.
+sandbox: stamp
+reset: wipe
+indexes:
+  - keys: { fromAccount: 1 }
+    why: |
+      The per-account replay and every outbound read — one side of the
+      double entry.
+  - keys: { toAccount: 1 }
+    why: |
+      The other side. Two indexes rather than one compound because a leg is
+      read from whichever end you are standing at.
+  - keys: { kind: 1 }
+    why: |
+      The supply and report scans, which slice by kind of movement rather
+      than by account.
+  - keys: { at: 1 }
+    why: |
+      Time-ordered slices — the statement read, and every 'what happened
+      between these hours'.

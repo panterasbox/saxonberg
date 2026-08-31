@@ -1,0 +1,34 @@
+collection: forum_events
+owner: ForumEvent
+subsystem: forums.md
+summary: >-
+  The forums' append-only audit and archive log.
+purpose: |
+  One row per forum event, indexed on every dependency key so the live
+  subscription's history and backfill reads are scoped rather than scans.
+
+  It is an archive as well as an audit trail: a thread that is edited or
+  removed leaves this log intact.
+invariants:
+  - >-
+    Append-only.
+  - >-
+    REFUSE under the sandbox.
+sandbox: refuse
+reset: wipe
+indexes:
+  - keys: { subject: 1 }
+    why: |
+      Events about one subject — the subscription's history read at the
+      subject level.
+  - keys: { board: 1 }
+    why: |
+      Events on one board.
+  - keys: { thread: 1 }
+    why: |
+      Events in one thread — the backfill a client asks for when it opens
+      one.
+  - keys: { entry: 1 }
+    why: |
+      Events on one entry, the finest grain the subscription dep-index
+      tracks.

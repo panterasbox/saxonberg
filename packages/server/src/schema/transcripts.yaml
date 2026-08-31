@@ -1,0 +1,33 @@
+collection: transcripts
+owner: TranscriptEntry
+subsystem: advancement.md
+summary: >-
+  The advancement evidence ledger: one row per sub-check a character
+  actually attempted.
+purpose: |
+  Append-only evidence, never a score. A row records that this character
+  attempted this kind of thing under these conditions and it went this way;
+  the Competence band you see is DERIVED on read by walking the rows, never
+  stamped on the character.
+
+  That is the whole design: growth is a reading of what you did, so there is
+  no number to award, inflate or take away — and a disagreement about
+  someone's competence is settled by re-reading the evidence.
+invariants:
+  - >-
+    Append-only. Nothing updates or deletes a transcript row in play.
+  - >-
+    Competence is derived on read from these rows; no Competence value is
+    persisted anywhere.
+  - >-
+    STAMP under the sandbox: advancement genuinely happens in a circle,
+    and genuinely reverts on exit.
+sandbox: stamp
+reset: wipe
+indexes:
+  - keys: { owner: 1 }
+    why: |
+      The owner-scoped read — the derive-on-read Competence estimator and
+      the self-view both ask for one character's rows, and the per-player
+      cleanup cascade deletes by the same key. Without it, every competence
+      read is a full scan.

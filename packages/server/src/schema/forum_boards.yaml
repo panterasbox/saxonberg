@@ -1,0 +1,21 @@
+collection: forum_boards
+owner: Board
+subsystem: forums.md
+summary: >-
+  One row per board — the forum manifestation of a subject.
+purpose: |
+  A Board is a Subject's popularity-forum face. The row is thin because the
+  subject carries the identity and the entries carry the content; the board
+  is the organizer between them.
+invariants:
+  - >-
+    A board points at exactly one subject.
+  - >-
+    REFUSE under the sandbox.
+sandbox: refuse
+reset: wipe
+indexes:
+  - keys: { subject: 1 }
+    why: |
+      The 'board for this subject' resolve — an owner-scoped read, and the
+      only way in from the subject side.
