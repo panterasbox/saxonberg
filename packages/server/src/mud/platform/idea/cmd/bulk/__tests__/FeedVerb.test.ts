@@ -398,7 +398,7 @@ describe('feed <bed>', () => {
 
     expect(captured).toContain(bed);
     expect(deeds).toHaveLength(1);
-    expect(deeds[0]!.discipline).toBe('agriculture');
+    expect(deeds[0]!.discipline).toBe('horticulture');
   });
 
   it('an explicitly named source is used over a carried one', async () => {

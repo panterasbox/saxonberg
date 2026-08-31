@@ -1,23 +1,36 @@
-verbs: [harvest]
+verbs: [harvest, pick]
 controller: /platform/idea/cmd/inventory/HarvestController
-description: "Take the crop off a mature plant"
+description: "Take the crop off a mature plant, or pick ripe fruit"
 help: |
   Take the crop off a plant that has finished growing. What you get goes
-  straight into your hands, and the plant itself is done — a harvest ends
-  it, so there is nothing left in the bed afterwards but a free place and
-  poorer soil.
+  straight into your hands.
+
+  An ANNUAL — a row of carrots — is spent by it: a harvest ends the
+  plant, so there is nothing left in the bed afterwards but a free place
+  and poorer soil. A FRUITING plant — a cherry tree, a mint bed — bears
+  in cycles instead: when the fruit has ripened, `pick` takes the whole
+  set and the plant keeps its place, flowers again, and fills the next
+  crop in its own time. Nothing ripe means nothing to pick.
+
+  Naming the ground works too: `pick the bed` takes from whatever is
+  ripe in it.
 
   The crop's quality is read off the plant's WORST stretch, not its
-  average and not the state it finished in. A plant you let go dry for a
-  fortnight and then nursed back looks perfectly healthy at harvest and
-  still grades badly. Attention is the input; you cannot buy the band
-  back at the end.
+  average and not the state it finished in — an annual's whole life, a
+  fruiting plant's current cycle (each cycle starts clean). A plant you
+  let go dry for a fortnight and then nursed back looks perfectly
+  healthy at harvest and still grades badly. Attention is the input; you
+  cannot buy the band back at the end.
 
   Harvesting takes nitrogen out of the ground with it. An unfed bed
   yields worse each time round — `feed` is what puts it back.
 examples:
   - cmd: harvest the carrots
-    note: Take the crop; the plant is spent
+    note: Take the crop; an annual plant is spent
+  - cmd: pick the cherry tree
+    note: A ripe tree gives its whole set and keeps its place
+  - cmd: pick the bed
+    note: Naming the ground picks its ripest plant
 validators:
   - /lib/command/validators/requiresAnimate
   # Pulling a carrot and turning compost into a bed are both acts on
@@ -29,4 +42,6 @@ args:
     type: object
     required: true
     scope: "reachable"
-    requires: [VisibleMixin, GrowingMixin]
+    # The plant OR the ground it grows in — naming a bed resolves to its
+    # ripest growing occupant (the put.yaml OR-within-an-entry shape).
+    requires: [VisibleMixin, GrowingMixin|CultivableMixin]

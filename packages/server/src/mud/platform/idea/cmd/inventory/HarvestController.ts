@@ -1,27 +1,37 @@
 /**
- * HarvestController — `harvest <plant>`.
+ * HarvestController — `harvest <plant>` / `pick <plant|ground>`.
  *
- * Mints the crop, ends the plant, and takes nitrogen out of the ground
- * with it. The three halves in order, because the ordering matters:
+ * Two yield shapes, one verb (D1/D2):
+ *
+ *   - **An annual** (monocarp): mint the crop, END the plant, export the
+ *     nitrogen. The shipped phase-1 flow, unchanged.
+ *   - **A polycarp** (the fruit cycle): a RIPE plant gives its whole set
+ *     (`fruitSetCount` clones), the cycle settles, and the plant keeps
+ *     its place — the standing tap. The grade reads the CYCLE window
+ *     (`_worstLimiting` re-seeds at the set), so each pick is graded by
+ *     the keeping that made it, and the next cycle regrades clean.
+ *
+ * The three halves stay in order, because the ordering matters:
  *
  *   1. **Read the grade BEFORE anything changes.** It comes off the
- *      plant's `_worstLimiting` — the monotone minimum of its limiting
- *      satisfaction over its whole life — which is what makes farming
- *      reward your worst moment rather than your average. A plant nursed
- *      back from a drought looks perfectly healthy at harvest and still
- *      grades badly, and that is not recoverable from the smoothed vigor
- *      after the fact.
- *   2. **Mint through `StuffApi.clone` and stamp through `CraftedMixin`.**
- *      The maker derives from the execution context and is never a
- *      parameter — crafting's rule, honoured rather than re-invented.
- *   3. **Debit the bed, then destruct the plant, then capture.** The bed
- *      has to be read while the plant is still seated (that is what makes
- *      `captureHostOf` resolve to the right host), and the capture has to
- *      be last so it records the finished state.
+ *      plant's `_worstLimiting` — the monotone minimum over the window
+ *      (an annual's whole life; a polycarp's set → harvest) — which is
+ *      what makes farming reward your worst moment rather than your
+ *      average. A plant nursed back from a drought looks perfectly
+ *      healthy at harvest and still grades badly.
+ *   2. **Mint through `StuffApi.clone` and stamp.** A Crafted crop takes
+ *      the full maker's mark (the maker derives from the execution
+ *      context and is never a parameter — crafting's rule); a merely
+ *      Graded one takes the band.
+ *   3. **Debit the bed, then settle/end the plant, then capture.** The
+ *      bed is read while the plant is still seated; the capture is last
+ *      so it records the finished state. A ripe pick draws the FULL
+ *      authored nitrogen — the whole set comes off at once, so there is
+ *      nothing to pro-rate under ripe-only picking.
  *
- * A harvest ENDS the plant. There is no re-fruiting in v1: the bed gets
- * its place back and the soil is poorer, which is the loop phase 2 is
- * after. Perennials are a later question.
+ * **Ground-targeting**: naming a bed or pot resolves to its first
+ * harvestable growing occupant, else its first growing occupant (so the
+ * refusal names the stage), else refuses with "nothing is growing".
  */
 
 import { CommandController } from '../../../../lib/command/CommandController';
@@ -39,6 +49,7 @@ import { WorldClockApi } from '../../../../api/worldclock';
 import { ExecutionContextApi } from '../../../../api/execution-context';
 import { AppSettingKeys } from '../../../../lib/config/AppSettings';
 import { Grade, type GradeBand } from '../../../../lib/craft/Grade';
+import type { Growing } from '../../../../lib/husbandry/Growing';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Containable } from '../../../../lib/spatial/Containable';
 import type { Container } from '../../../../lib/spatial/Container';
@@ -79,13 +90,32 @@ export default class HarvestController extends CommandController<HarvestModel> {
       return;
     }
 
-    // ⭐ The CAPABILITY, not the `Plant` class — the same predicate the
-    // spec declares (`requires: GrowingMixin`). It used to be
-    // `instanceof Plant` while the arg declared the mixin: two
-    // predicates for one gate, which is how `plant` came to be offered
-    // on a rock. A cutting, a vine or a fungus should not have to
-    // inherit `Plant` to be harvested.
-    if (!MixinApi.isGrowing(named)) {
+    // ⭐ The CAPABILITY, not the `Plant` class — the same predicates the
+    // spec declares (`requires: GrowingMixin|CultivableMixin`). Naming
+    // the GROUND resolves to what grows in it: the first harvestable
+    // occupant, else the first growing one (so the refusal names the
+    // stage rather than saying "no").
+    let plant: (Stuff & Growing) | null = null;
+    if (MixinApi.isGrowing(named)) {
+      plant = named;
+    } else if (MixinApi.isCultivable(named)) {
+      const growing = named
+        .getPlants()
+        .filter((p): p is Stuff & Growing => MixinApi.isGrowing(p));
+      plant = growing.find((p) => p.isHarvestable()) ?? growing[0] ?? null;
+      if (!plant) {
+        MessageApi.scene(giver)
+          .topic(TOPIC)
+          .toSelf(Mml.compose`There's nothing growing in ${Mml.thing(named)}.`)
+          .send();
+        context.note({
+          kind: 'controller-rejected',
+          reason: 'nothing-growing',
+          detail: `${named.getPresentation()} holds no growing plant`,
+        });
+        return;
+      }
+    } else {
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(Mml.compose`${Mml.thing(named)} isn't a plant.`)
@@ -97,7 +127,6 @@ export default class HarvestController extends CommandController<HarvestModel> {
       });
       return;
     }
-    const plant = named;
 
     const cropPath = plant.getHarvestTemplatePath();
     if (!cropPath) {
@@ -113,38 +142,72 @@ export default class HarvestController extends CommandController<HarvestModel> {
       return;
     }
 
-    // Refuse an immature plant NAMING the stage, so the player learns what
-    // they are waiting for rather than being told "no".
+    // Refuse an unready plant NAMING what it is waiting for: the stage
+    // for an immature one, the ripening for a mature polycarp between
+    // cycles, and the plain fact for a dead one.
     if (!plant.isHarvestable()) {
       const stage = plant.getGrowthStage();
       const dead = plant.getConditionBand() === 'dead';
+      const unripe = !dead && plant.isPolycarp() && stage === 'mature';
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(
           dead
             ? Mml.compose`${Mml.thing(plant)} is dead. There is nothing to take.`
-            : Mml.compose`${Mml.thing(plant)} isn't ready — it is still ${stage}.`,
+            : unripe
+              ? Mml.compose`${Mml.thing(plant)} has nothing ripe on it yet.`
+              : Mml.compose`${Mml.thing(plant)} isn't ready — it is still ${stage}.`,
         )
         .send();
       context.note({
         kind: 'controller-rejected',
-        reason: dead ? 'plant-dead' : 'not-mature',
+        reason: dead ? 'plant-dead' : unripe ? 'nothing-ripe' : 'not-mature',
         detail: dead
           ? `${plant.getPresentation()} is dead`
-          : `${plant.getPresentation()} is ${stage}, not mature`,
+          : unripe
+            ? `${plant.getPresentation()} has not filled its set`
+            : `${plant.getPresentation()} is ${stage}, not mature`,
       });
       return;
     }
 
-    // (1) Read the verdict BEFORE anything changes. The worst moment is
-    // the measure, and destructing the plant would take it with them.
+    // (1) Read the verdict BEFORE anything changes — the window closes
+    // with the pick, and an ended annual takes its reading with it.
     const band = this.bandFor(plant.getWorstLimiting());
     const bed = plant.getBed();
+    const polycarp = plant.isPolycarp();
+    const count = polycarp
+      ? Math.max(1, Math.floor(plant.getProfile()?.fruitSetCount ?? 1))
+      : 1;
 
-    // (2) Mint and stamp.
-    let crop: Stuff;
+    // (2) Mint and stamp — the whole set for a polycarp, one for an
+    // annual. The maker is NEVER a parameter; it derives from who acts.
+    const maker =
+      (ExecutionContextApi.getActingAuthor() as Stuff | null) ?? giver;
+    const crops: Stuff[] = [];
     try {
-      crop = await StuffApi.clone<Stuff>(cropPath);
+      for (let i = 0; i < count; i++) {
+        const crop = await StuffApi.clone<Stuff>(cropPath);
+        if (MixinApi.isCrafted(crop)) {
+          crop.stamp({
+            maker: maker.getTemplatePath() ?? '',
+            grade: Grade.of(band),
+            recipe: cropPath,
+            craftedAt: this.nowSeconds(),
+          });
+        } else if (MixinApi.isGraded(crop)) {
+          // A merely-graded crop (no maker's mark) still carries the
+          // window's verdict.
+          crop.setGrade(Grade.of(band));
+        }
+        if (MixinApi.isContainable(crop) && MixinApi.isContainer(giver)) {
+          ContainmentApi.move(
+            crop as Stuff & Containable,
+            giver as Stuff & Container,
+          );
+        }
+        crops.push(crop);
+      }
     } catch (err) {
       console.warn(`HarvestController: could not mint '${cropPath}':`, err);
       MessageApi.scene(giver)
@@ -159,41 +222,37 @@ export default class HarvestController extends CommandController<HarvestModel> {
       return;
     }
 
-    if (MixinApi.isCrafted(crop)) {
-      // The maker is NEVER a parameter — it derives from who is acting.
-      const maker =
-        (ExecutionContextApi.getActingAuthor() as Stuff | null) ?? giver;
-      crop.stamp({
-        maker: maker.getTemplatePath() ?? '',
-        grade: Grade.of(band),
-        recipe: cropPath,
-        craftedAt: this.nowSeconds(),
-      });
-    }
-
-    if (MixinApi.isContainable(crop) && MixinApi.isContainer(giver)) {
-      ContainmentApi.move(crop as Stuff & Containable, giver as Stuff & Container);
-    }
-
-    // (3) Export the nitrogen while the plant is still seated, then end
-    // it, then capture. A crop takes fertility away with it — that is the
-    // whole reason `feed` exists.
+    // (3) Export the nitrogen while the plant is still seated. A ripe
+    // pick takes the FULL authored draw — the whole set comes off at
+    // once, so there is nothing to pro-rate under ripe-only picking.
     const draw = plant.getNutrientDraw();
     if (bed && draw > 0) bed.drawNutrient(draw);
 
-    const difficulty = plant.transplantDifficulty();
+    // A routine pick must never grade `hard` — that would be a levelling
+    // mill riding the fruit cycle. The annual keeps the root-disturbance
+    // scale (ending a mature plant is real work).
+    const difficulty = polycarp ? 'easy' : plant.transplantDifficulty();
     const presentation = plant.getPresentation();
-    await StuffApi.destruct(plant);
+
+    if (polycarp) {
+      // The plant SURVIVES: settle the cycle so the next thriving
+      // reconcile opens a fresh window (which re-seeds the verdict).
+      plant.settleCycle();
+    } else {
+      await StuffApi.destruct(plant);
+    }
 
     try {
-      await PersistableApi.captureHostOf(bed ?? crop);
+      await PersistableApi.captureHostOf(bed ?? crops[0]!);
+      // A polycarp is its own persistence host and just changed state.
+      if (polycarp) await PersistableApi.captureHostOf(plant);
     } catch (err) {
       console.warn('HarvestController: capture after harvesting failed:', err);
     }
 
     try {
       await AdvancementApi.recordDeed(giver, {
-        discipline: 'agriculture',
+        discipline: 'horticulture',
         difficulty,
         outcome: 'success',
       });
@@ -201,13 +260,28 @@ export default class HarvestController extends CommandController<HarvestModel> {
       console.warn('HarvestController: recording the deed failed:', err);
     }
 
-    MessageApi.scene(giver)
-      .topic(TOPIC)
-      .toSelf(
-        Mml.compose`You take ${Mml.thing(crop)} off ${presentation}, and what is left of the plant comes away with it.`,
-      )
-      .toPeers(Mml.compose`${Mml.actor(giver)} harvests ${Mml.thing(crop)}.`)
-      .send();
+    const sample = crops[0]!;
+    if (polycarp) {
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(
+          count > 1
+            ? Mml.compose`You pick ${Mml.thing(sample)} from ${presentation} — ${String(count)} in all — and it keeps its place.`
+            : Mml.compose`You pick ${Mml.thing(sample)} from ${presentation}, and it keeps its place.`,
+        )
+        .toPeers(
+          Mml.compose`${Mml.actor(giver)} picks ${Mml.thing(sample)} from ${presentation}.`,
+        )
+        .send();
+    } else {
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(
+          Mml.compose`You take ${Mml.thing(sample)} off ${presentation}, and what is left of the plant comes away with it.`,
+        )
+        .toPeers(Mml.compose`${Mml.actor(giver)} harvests ${Mml.thing(sample)}.`)
+        .send();
+    }
   }
 
   /**
