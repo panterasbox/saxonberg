@@ -1,0 +1,25 @@
+id: eternal-university
+version: 0.1.0
+root: /world/eternal
+description: >-
+  Eternal University — the campus locality, homed whole out of the
+  transitional world-seed (residences D18): Duncan Hall (the dorm — the
+  ladder's first rung) and University Avenue, content and parked TS
+  together. A locality pack's src/ registers against its extent, so the
+  class paths (/world/eternal/…) are unchanged by the move.
+requires:
+  groups:
+    # The landlord's staff — Katie's membership is CONFERRED here by the
+    # owner (never self-enrolled); her row sits under the pack's own
+    # /world/eternal/duncan-hall claim, which the NPC-only fence requires.
+    - name: duncan-hall
+      purpose: the landlord's staff
+      members:
+        - { id: /world/eternal/duncan-hall/npc/katie, role: member }
+  title:
+    # Duncan Hall: the landlord holds the building (so Katie's row is under
+    # the pack's own claim) and the dorms wing the leased units subdivide under.
+    - { extent: /world/eternal/duncan-hall,       holder: { group: duncan-hall } }
+    - { extent: /world/eternal/duncan-hall/dorms, parentParcel: /world/eternal/duncan-hall, holder: { group: duncan-hall }, landUse: residential }
+boot:
+  - { template: /world/eternal/duncan-hall/dorm-warren, role: producer, reason: installs the lobby stair and rebuilds the floor cache at postRegister }

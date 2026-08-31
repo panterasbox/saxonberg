@@ -48,9 +48,16 @@ export function packSources(contentDir: string = CONTENT): PackSource[] {
     const srcDir = join(packDir, "src");
     if (!existsSync(manifestFile) || !existsSync(srcDir) || !statSync(srcDir).isDirectory()) continue;
     const m = YAML.parse(readFileSync(manifestFile, "utf8")) as Manifest;
-    const roots = new Set<string>([m.root ?? `/${m.id}`]);
-    for (const t of m.requires?.title ?? []) roots.add(t.extent);
-    out.push({ id: m.id, packDir, srcDir, roots: [...roots] });
+    const all = new Set<string>([m.root ?? `/${m.id}`]);
+    for (const t of m.requires?.title ?? []) all.add(t.extent);
+    // Descendant roots are dropped — one src/, one covering root — the
+    // installer's namespaceRootsOf, mirrored (a locality pack claims
+    // extents inside its own root, and a descendant root would misdirect
+    // longest-prefix class resolution into the wrong src/ subpath).
+    const roots = [...all].filter(
+      (r) => ![...all].some((o) => o !== r && (r === o || r.startsWith(o + "/"))),
+    );
+    out.push({ id: m.id, packDir, srcDir, roots });
   }
   return out;
 }

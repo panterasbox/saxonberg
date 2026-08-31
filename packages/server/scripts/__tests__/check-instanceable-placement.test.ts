@@ -50,6 +50,12 @@ describe('check-instanceable-placement over a capability pack', () => {
     // behavior/ is the Brain category's home in a pack — flat, one file per brain.
     expect(packSrcPlacementOk('behavior/paces.ts')).toBe(true);
     expect(packSrcPlacementOk('behavior/nested/paces.ts')).toBe(false);
+    // A locality pack mirrors its rows: locality subdirs and flat files
+    // pass; lib/ never does (residences D18 — the locality packs).
+    expect(packSrcPlacementOk('duncan-hall/DormWarren.ts', true)).toBe(true);
+    expect(packSrcPlacementOk('duncan-hall/idea/cmd/ProvisionController.ts', true)).toBe(true);
+    expect(packSrcPlacementOk('TicketClerk.ts', true)).toBe(true);
+    expect(packSrcPlacementOk('lib/Helper.ts', true)).toBe(false);
   });
 
   it('a pack behavior/ module must be brain-shaped', () => {

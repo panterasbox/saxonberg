@@ -1,0 +1,20 @@
+id: terminus
+version: 0.1.0
+root: /world/terminus
+description: >-
+  Terminus — the core city locality, homed whole out of the transitional
+  world-seed (residences D18): the terminal, Counting-House Row, the
+  general store, the Registry and the city budget, content and parked TS
+  together. saxonberg-lounge stays a dependency for ONE reason — the
+  departure terminal's route names /world/lounge/thing/terminal; the two
+  corpo edges carry the counting-houses affiliations.
+requires:
+  groups:
+    - name: terminus
+      purpose: the Terminus municipality
+  title:
+    # The Terminus municipality's ground.
+    - { extent: /world/terminus/terminal,        holder: { group: terminus }, landUse: civic }
+    - { extent: /world/terminus/counting-houses, holder: { group: terminus }, landUse: commercial }
+    - { extent: /world/terminus/general-store,   holder: { group: terminus }, landUse: commercial }
+    - { extent: /world/terminus/registry,        holder: { group: terminus }, landUse: civic }

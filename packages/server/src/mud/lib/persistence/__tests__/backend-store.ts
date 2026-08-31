@@ -18,3 +18,58 @@ export {
   PersistenceManager,
   Collections,
 } from "../../../../backend/PersistenceManager";
+
+import { vi } from "vitest";
+import {
+  PersistenceManager as PM,
+  Collections as Cols,
+} from "../../../../backend/PersistenceManager";
+
+/** A template-shaped doc for the in-memory content store. */
+export type Doc = Record<string, unknown> & {
+  _id?: string;
+  path: string;
+  class: string;
+  hydratorClass?: string;
+  data: Record<string, unknown>;
+};
+
+/**
+ * Install an in-memory PersistenceManager backed by `docs` — the
+ * content-collection stub every locality standup test mocks the store
+ * with. Graduated from the lounge fixtures when the locality packs took
+ * their tests with them (residences wave 0).
+ */
+export function installStore(docs: Doc[]): Doc[] {
+  const store: Doc[] = docs.map((d, i) => ({ _id: String(i + 1), ...d }));
+  const save = vi.fn(async (_c: string, doc: Doc) => {
+    const copy = { ...doc };
+    if (copy._id) {
+      const idx = store.findIndex((d) => d._id === copy._id);
+      if (idx >= 0) store[idx] = copy;
+      else store.push(copy);
+      return copy._id!;
+    }
+    copy._id = String(store.length + 1);
+    store.push(copy);
+    return copy._id;
+  });
+  const find = vi.fn(
+    async (collection: string, query: Record<string, unknown>) => {
+      if (collection !== Cols.Content) return [];
+      if (typeof query.path === "string") {
+        return store.filter((d) => d.path === query.path);
+      }
+      return store.slice();
+    },
+  );
+  const findById = vi.fn(async (_c: string, id: string) => {
+    return store.find((d) => d._id === id) ?? null;
+  });
+  vi.spyOn(PM, "get").mockReturnValue({
+    save,
+    find,
+    findById,
+  } as unknown as PM);
+  return store;
+}

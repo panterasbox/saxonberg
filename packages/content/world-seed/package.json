@@ -3,16 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "TRANSITIONAL \u2014 the locality rows SeederManager used to insert, verbatim, until each locality is homed in its own pack.",
+  "description": "TRANSITIONAL — moor, practicum, substation, the common TPA travel card and the commons stuff/ tree, until each is homed in its own pack.",
   "dependencies": {
-    "@saxonberg/content-corpo-goodkin": "workspace:*",
-    "@saxonberg/content-residence": "workspace:*",
-    "@saxonberg/content-corpo-vionne": "workspace:*",
     "@saxonberg/content-platform": "workspace:*",
-    "@saxonberg/content-saxonberg-lounge": "workspace:*",
-    "@saxonberg/content-trade-distilling": "workspace:*",
-    "@saxonberg/content-trade-farming": "workspace:*",
-    "@saxonberg/content-trade-smithing": "workspace:*",
     "@saxonberg/server": "workspace:*",
     "@saxonberg/types": "workspace:*"
   }

@@ -214,18 +214,27 @@ export class StuffApi {
    */
   public static resolveClassFile(classPath: string): ClassResolution {
     const validated = this.#validateClassPath(classPath);
+    // Longest matching ROOT wins (the table is sorted by dir, which is
+    // the URL→id direction's key): two packs may nest their roots —
+    // /world/terminus (terminus) under /world/terminus/hinkley-hills
+    // (hinkley-hills) — and the deeper pack owns the deeper namespace.
+    let best: { dir: string; root: string } | null = null;
     for (const { dir, root } of ModuleApi.packSources()) {
       if (validated === root || validated.startsWith(root + '/')) {
-        const file = dir + validated.slice(root.length + 1) + '.ts';
-        if (!existsSync(file)) {
-          throw new Error(
-            `StuffApi.resolveClassFile('${classPath}'): the namespace ` +
-              `'${root}' is a capability pack's, and its src/ has no ` +
-              `'${validated.slice(root.length + 1)}.ts' (looked in ${dir})`
-          );
-        }
-        return { file, origin: { root, srcRoot: dir } };
+        if (!best || root.length > best.root.length) best = { dir, root };
       }
+    }
+    if (best) {
+      const { dir, root } = best;
+      const file = dir + validated.slice(root.length + 1) + '.ts';
+      if (!existsSync(file)) {
+        throw new Error(
+          `StuffApi.resolveClassFile('${classPath}'): the namespace ` +
+            `'${root}' is a capability pack's, and its src/ has no ` +
+            `'${validated.slice(root.length + 1)}.ts' (looked in ${dir})`
+        );
+      }
+      return { file, origin: { root, srcRoot: dir } };
     }
     const moduleDir = new URL('..', import.meta.url); // <srcRoot>/mud/
     for (const ext of ['ts', 'js']) {

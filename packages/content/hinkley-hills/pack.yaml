@@ -1,0 +1,21 @@
+id: hinkley-hills
+version: 0.1.0
+root: /world/terminus/hinkley-hills
+description: >-
+  Hinkley Hills — the suburb locality (residences D18): the stop, the
+  lane, the plat and the lots. ~24 hectares held by the Improvement
+  District until lots sell out of it; lot-1 is the one lot that was
+  taken before you got here. The plat machinery its rows name (PlatBook,
+  LotHolder, LotGateExit) is the residence capability pack's.
+requires:
+  groups:
+    # The Improvement District — empty of members: a government that
+    # exists only on paper.
+    - name: hinkley-hills
+      purpose: the Improvement District
+  title:
+    - { extent: /world/terminus/hinkley-hills, holder: { group: hinkley-hills }, landUse: residential, areaM2: 240000 }
+    - { extent: /world/terminus/hinkley-hills/lots/lot-1, parentParcel: /world/terminus/hinkley-hills, holder: { group: hinkley-hills }, landUse: residential, areaM2: 1000 }
+boot:
+  - { template: /world/terminus/hinkley-hills/plat-book, role: producer, reason: title enumerates live books }
+  - { template: /world/terminus/hinkley-hills/lot-holder, role: producer, reason: the book names it by path and a sale resolves it }

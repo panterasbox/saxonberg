@@ -2,43 +2,11 @@ id: world-seed
 version: 0.1.0
 root: /world
 description: >-
-  TRANSITIONAL. The locality rows SeederManager used to insert, verbatim, so
-  the seeders could be deleted in wave 3 without the localities sitting in the
-  platform under a false owner. Deleted piecewise as waves 4–5 home each
-  locality: the lounge and the hearthworks left in wave 4b; eternal, terminus,
-  moor, practicum, substation and common remain.
-# saxonberg-lounge stays a dependency for ONE reason: the Terminus departure
-# terminal's route names /world/lounge/thing/terminal.
-requires:
-  groups:
-    # The landlord's staff — Katie's membership is CONFERRED here by the
-    # owner (never self-enrolled); her row sits under the pack's own
-    # /world/eternal/duncan-hall claim, which the NPC-only fence requires.
-    - name: duncan-hall
-      purpose: the landlord's staff
-      members:
-        - { id: /world/eternal/duncan-hall/npc/katie, role: member }
-    # The Improvement District — empty of members: a government that exists
-    # only on paper.
-    - name: hinkley-hills
-      purpose: the Improvement District
-    - name: terminus
-      purpose: the Terminus municipality
-  title:
-    # The Terminus municipality's ground.
-    - { extent: /world/terminus/terminal,        holder: { group: terminus }, landUse: civic }
-    - { extent: /world/terminus/counting-houses, holder: { group: terminus }, landUse: commercial }
-    - { extent: /world/terminus/general-store,   holder: { group: terminus }, landUse: commercial }
-    - { extent: /world/terminus/registry,        holder: { group: terminus }, landUse: civic }
-    # Hinkley Hills — ~24 hectares held by the District until lots sell out
-    # of it; lot-1 is the one lot that was taken before you got here.
-    - { extent: /world/terminus/hinkley-hills, holder: { group: hinkley-hills }, landUse: residential, areaM2: 240000 }
-    - { extent: /world/terminus/hinkley-hills/lots/lot-1, parentParcel: /world/terminus/hinkley-hills, holder: { group: hinkley-hills }, landUse: residential, areaM2: 1000 }
-    # Duncan Hall: the landlord holds the building (so Katie's row is under
-    # the pack's own claim) and the dorms wing the leased units subdivide under.
-    - { extent: /world/eternal/duncan-hall,       holder: { group: duncan-hall } }
-    - { extent: /world/eternal/duncan-hall/dorms, parentParcel: /world/eternal/duncan-hall, holder: { group: duncan-hall }, landUse: residential }
-boot:
-  - { template: /world/eternal/duncan-hall/dorm-warren, role: producer, reason: installs the lobby stair and rebuilds the floor cache at postRegister }
-  - { template: /world/terminus/hinkley-hills/plat-book, role: producer, reason: title enumerates live books }
-  - { template: /world/terminus/hinkley-hills/lot-holder, role: producer, reason: the book names it by path and a sale resolves it }
+  TRANSITIONAL. The locality rows SeederManager used to insert, verbatim,
+  deleted piecewise as each locality is homed in its own pack: the lounge
+  and the hearthworks left in wave 4b; eternal, terminus and hinkley-hills
+  left with the residences build (eternal-university / terminus /
+  hinkley-hills). What remains: moor, practicum, substation, the common
+  TPA travel card, and the commons stuff/ tree (the Locality and
+  Government reference rows). All of it rides the platform's /world and
+  /stuff claims, so this pack declares nothing.
