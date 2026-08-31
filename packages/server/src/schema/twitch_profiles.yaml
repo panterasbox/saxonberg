@@ -18,6 +18,8 @@ invariants:
   - >-
     Token fields are encrypted at rest by the field marshaller; a
     plaintext token in this collection is a bug.
+  - >-
+    REFUSE under the sandbox — identity, like every provider record.
 sandbox: refuse
 reset: wipe
 indexes:

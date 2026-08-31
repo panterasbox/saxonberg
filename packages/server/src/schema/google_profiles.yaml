@@ -19,6 +19,8 @@ invariants:
     Written only by the auth spine
     (`Application.findOrCreateUserFromGoogle`); nothing in play reaches
     it.
+  - >-
+    REFUSE under the sandbox — identity, like every provider record.
 sandbox: refuse
 reset: wipe
 indexes:

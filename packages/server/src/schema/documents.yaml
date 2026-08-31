@@ -24,6 +24,9 @@ invariants:
   - >-
     A write is authorized by parcel title over the path; there is no
     author tier.
+  - >-
+    PASS under the sandbox, with `content`: authored truth, governed by
+    title rather than by scope.
 sandbox: pass
 reset:
   verb: wipe-except

@@ -18,6 +18,8 @@ invariants:
     collection.
   - >-
     Token fields are encrypted at rest by the field marshaller.
+  - >-
+    REFUSE under the sandbox — identity, like every provider record.
 sandbox: refuse
 reset: wipe
 indexes:

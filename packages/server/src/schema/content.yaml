@@ -23,6 +23,10 @@ invariants:
   - >-
     Writes go through the pack installer or the CMS save path; both run
     under the folder/leaf invariant hook.
+  - >-
+    PASS under the sandbox: authored truth. A circle session that may edit
+    a room template edits the real template, and the parcel-title gate is
+    what governs that — not the circle.
 sandbox: pass
 reset:
   verb: keep

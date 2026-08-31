@@ -22,6 +22,9 @@ invariants:
   - >-
     `playerIds` is the authoritative list of characters this account may
     select; the WebSocket upgrade validates against it.
+  - >-
+    REFUSE under the sandbox: identity is field-real, and an account
+    minted inside a circle would be an account.
 sandbox: refuse
 reset: wipe
 indexes:

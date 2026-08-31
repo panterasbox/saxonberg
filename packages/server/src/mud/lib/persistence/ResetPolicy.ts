@@ -1,39 +1,45 @@
+/*
+ * ⚠ GENERATED FILE — DO NOT EDIT.
+ *
+ * Emitted by `pnpm gen:schema` from the authored schema docs in
+ * `packages/server/src/schema/`. Edit the YAML doc for the collection
+ * you mean, then re-run the generator; `pnpm lint:schema` fails if this
+ * file and the docs disagree.
+ */
+
 /**
  * ResetPolicy — what survives the night.
  *
  * The one concept this module defines: a **total** disposition for every
- * collection the world persists into, consulted by the nightly reset
- * job. Totality is the whole design: `Record<Collections, …>` makes a
- * new collection without a decision a COMPILE error, exactly as
+ * collection the world persists into, consulted by the nightly reset job.
+ * Totality is the whole design: `Record<Collections, …>` makes a new
+ * collection without a decision a COMPILE error, exactly as
  * `COLLECTION_POLICIES` does for the sandbox. A destructive job whose
- * coverage is a hand-maintained list is a job that quietly stops
- * covering things.
+ * coverage is a hand-maintained list is a job that quietly stops covering
+ * things.
  *
  * ## ⚠⚠ The survivors list is short on purpose
  *
- * Decided by the user, 2026-08-14: the reset removes all **player
- * state** except `documents` rows with `kind: 'release'` — the press
- * releases the front door's press room displays. Accounts included.
- *
- * That list is sharp *because* it is short: `RELEASE_DOCUMENT_KIND`
- * already exists as a discriminator, so the survivor predicate is one
- * equality rather than a policy table.
+ * Decided by the user, 2026-08-14: the reset removes all **player state**
+ * except `documents` rows carrying a declared kind — the press releases
+ * the front door's press room displays, and the pack-installed world
+ * content beside them. Accounts included.
  *
  * ## ⚠ Seeded world content is not player state
  *
- * The seeder and the content-pack installer are **insert-only and run
- * at boot**. The job does not restart the process, so anything they
- * populate is `keep`: wiping it would empty the world until somebody
- * rebooted, and *a wipe that empties the world is a wipe that broke the
- * game*. This is the one place "wipe everything", read literally, is
- * wrong — which is why every `keep` here states its reason at the site
- * rather than in a doc somewhere else.
+ * The seeder and the content-pack installer are **insert-only and run at
+ * boot**. The job does not restart the process, so anything they populate
+ * is `keep`: wiping it would empty the world until somebody rebooted, and
+ * *a wipe that empties the world is a wipe that broke the game*. This is
+ * the one place "wipe everything", read literally, is wrong — which is
+ * why every `keep` states its reason, now in its collection's schema doc
+ * and repeated here as the `because` the job itself carries.
  *
- * ⚠ The knowing cost: CMS-authored templates live in `domain` beside
+ * ⚠ The knowing cost: CMS-authored templates live in `content` beside
  * the seeds and therefore survive too. There is no discriminator that
  * separates them (`sourcePack` marks pack rows, not authored ones), and
- * the alternative — an empty world every morning — is worse. Recorded
- * so it is a decision rather than a surprise.
+ * the alternative — an empty world every morning — is worse. Recorded so
+ * it is a decision rather than a surprise.
  */
 
 import { Collections } from './Collections';
@@ -43,8 +49,8 @@ import { DECLARED_DOCUMENT_KINDS } from '../document/DocumentKinds';
 /**
  * What the reset does to one collection.
  *
- * `because` is required on anything that is not a plain wipe. A
- * survivor without a stated reason is how a survivors list grows.
+ * `because` is required on anything that is not a plain wipe. A survivor
+ * without a stated reason is how a survivors list grows.
  */
 export type ResetDisposition =
   | { readonly verb: 'wipe' }
@@ -57,12 +63,42 @@ export type ResetDisposition =
     };
 
 /**
- * The total table. Every collection, every night.
+ * The total table. Every collection, every night — from each schema doc's
+ * `reset:` field.
  */
 export const RESET_DISPOSITIONS: Readonly<
   Record<Collections, ResetDisposition>
 > = {
-  // ── The one survivor (plus the pack-installed document kinds) ──
+  [Collections.AccountabilityEvents]: { verb: 'wipe' },
+  [Collections.AppSettings]: {
+    verb: 'keep',
+    because:
+      '⚠⚠ the job reads its own arming and its own reset POLICY from ' +
+      'here; wiping it would disarm the job and silently retract the ' +
+      'front door\'s notice on the first run',
+  },
+  [Collections.AuthoringEvents]: { verb: 'wipe' },
+  [Collections.BankAccounts]: { verb: 'wipe' },
+  [Collections.BankLedger]: { verb: 'wipe' },
+  [Collections.BankSupply]: { verb: 'wipe' },
+  [Collections.Beliefs]: { verb: 'wipe' },
+  [Collections.Blueprints]: { verb: 'wipe' },
+  [Collections.Channels]: { verb: 'wipe' },
+  [Collections.Chattel]: { verb: 'wipe' },
+  [Collections.ChattelEvents]: { verb: 'wipe' },
+  [Collections.Chronicles]: { verb: 'wipe' },
+  [Collections.Content]: {
+    verb: 'keep',
+    because: 'the world itself; the seeder is insert-only and runs at boot',
+  },
+  [Collections.ContractEvents]: { verb: 'wipe' },
+  [Collections.Contracts]: { verb: 'wipe' },
+  [Collections.DescriptorBanks]: {
+    verb: 'keep',
+    because: 'pack-installed unidentified-appearance pools',
+  },
+  [Collections.Diagnostics]: { verb: 'wipe' },
+  [Collections.DispositionEvents]: { verb: 'wipe' },
   [Collections.Documents]: {
     verb: 'wipe-except',
     keep: {
@@ -75,11 +111,25 @@ export const RESET_DISPOSITIONS: Readonly<
       '(emotes, recipes, name banks, blueprints, msh scripts, command ' +
       'views) — pack-installed world content (the expression / ' +
       'generic-objects / species-and-names / platform / saxonberg-lounge ' +
-      'packs), reference data not player state; wiping it would empty ' +
-      'the soul vocabulary at 04:00 until a reboot re-installed it',
+      'packs), reference data not player state; wiping it would empty the ' +
+      'soul vocabulary at 04:00 until a reboot re-installed it',
   },
-
-  // ── Seeded / pack-installed world content: keep, or the world empties ──
+  [Collections.ForumBoards]: { verb: 'wipe' },
+  [Collections.ForumEntries]: { verb: 'wipe' },
+  [Collections.ForumEvents]: { verb: 'wipe' },
+  [Collections.ForumSubjects]: { verb: 'wipe' },
+  [Collections.ForumVotes]: { verb: 'wipe' },
+  [Collections.GoogleProfiles]: { verb: 'wipe' },
+  [Collections.Groups]: { verb: 'wipe' },
+  [Collections.HolderSnapshots]: { verb: 'wipe' },
+  [Collections.KickProfiles]: { verb: 'wipe' },
+  [Collections.MediaAssets]: {
+    verb: 'keep',
+    because:
+      'generated illustration provenance — written by an offline CLI, not ' +
+      'reachable from play, and expensive to regenerate',
+  },
+  [Collections.OfficeHolders]: { verb: 'wipe' },
   [Collections.PackInstalls]: {
     verb: 'keep',
     because:
@@ -87,93 +137,26 @@ export const RESET_DISPOSITIONS: Readonly<
       'three-way reconcile compares against; wiping it would re-run the ' +
       'one-time adoption and silently overwrite operator divergence',
   },
-  [Collections.Content]: {
-    verb: 'keep',
-    because: 'the world itself; the seeder is insert-only and runs at boot',
-  },
-  [Collections.DescriptorBanks]: {
-    verb: 'keep',
-    because: 'pack-installed unidentified-appearance pools',
-  },
-  [Collections.MediaAssets]: {
-    verb: 'keep',
-    because:
-      'generated illustration provenance — written by an offline CLI, not ' +
-      'reachable from play, and expensive to regenerate',
-  },
-  [Collections.AppSettings]: {
-    verb: 'keep',
-    because:
-      '⚠⚠ the job reads its own arming and its own reset POLICY from here; ' +
-      'wiping it would disarm the job and silently retract the front ' +
-      "door's notice on the first run",
-  },
+  [Collections.ParcelEvents]: { verb: 'wipe' },
+  [Collections.Parcels]: { verb: 'wipe' },
+  [Collections.Participation]: { verb: 'wipe' },
+  [Collections.ParticipationEvents]: { verb: 'wipe' },
+  [Collections.Parties]: { verb: 'wipe' },
+  [Collections.PlayerFrames]: { verb: 'wipe' },
+  [Collections.Positions]: { verb: 'wipe' },
+  [Collections.Producer]: { verb: 'wipe' },
+  [Collections.ProducerEvents]: { verb: 'wipe' },
+  [Collections.Renown]: { verb: 'wipe' },
+  [Collections.RenownEvents]: { verb: 'wipe' },
+  [Collections.Transcripts]: { verb: 'wipe' },
+  [Collections.TwitchProfiles]: { verb: 'wipe' },
+  [Collections.Users]: { verb: 'wipe' },
+  [Collections.Wiki]: { verb: 'wipe' },
+  [Collections.WikiRevisions]: { verb: 'wipe' },
   [Collections.WorldState]: {
     verb: 'keep',
     because:
       'the world clock. Time is not player state, and a calendar that ' +
       'restarts at zero every morning makes every in-world date a lie',
   },
-
-  // ── Identity ──
-  [Collections.Users]: { verb: 'wipe' },
-  [Collections.GoogleProfiles]: { verb: 'wipe' },
-  [Collections.TwitchProfiles]: { verb: 'wipe' },
-  [Collections.KickProfiles]: { verb: 'wipe' },
-
-  // ── The self-persistence spine + the record layer ──
-  [Collections.HolderSnapshots]: { verb: 'wipe' },
-  [Collections.PlayerFrames]: { verb: 'wipe' },
-
-  // ── Standing and evidence ledgers ──
-  [Collections.Transcripts]: { verb: 'wipe' },
-  [Collections.DispositionEvents]: { verb: 'wipe' },
-  [Collections.RenownEvents]: { verb: 'wipe' },
-  [Collections.Renown]: { verb: 'wipe' },
-  [Collections.ParticipationEvents]: { verb: 'wipe' },
-  [Collections.Participation]: { verb: 'wipe' },
-  [Collections.ProducerEvents]: { verb: 'wipe' },
-  [Collections.Producer]: { verb: 'wipe' },
-  [Collections.AuthoringEvents]: { verb: 'wipe' },
-  [Collections.Positions]: { verb: 'wipe' },
-  [Collections.Chronicles]: { verb: 'wipe' },
-  [Collections.Beliefs]: { verb: 'wipe' },
-  [Collections.AccountabilityEvents]: { verb: 'wipe' },
-
-  // ── Money, title, and the contracts over them ──
-  [Collections.BankLedger]: { verb: 'wipe' },
-  [Collections.BankAccounts]: { verb: 'wipe' },
-  [Collections.BankSupply]: { verb: 'wipe' },
-  [Collections.Parcels]: { verb: 'wipe' },
-  [Collections.ParcelEvents]: { verb: 'wipe' },
-  [Collections.Chattel]: { verb: 'wipe' },
-  [Collections.ChattelEvents]: { verb: 'wipe' },
-  [Collections.Contracts]: { verb: 'wipe' },
-  [Collections.ContractEvents]: { verb: 'wipe' },
-
-  // ── Social structures ──
-  // ⚠ `groups` carries the AXIS groups (`wizards`, `archwizards`,
-  // `streamers`) — minted in CODE by `AccessRegistry.postRegister`,
-  // idempotently, so the job re-runs it right after the wipe — and the
-  // packs' groups (maintainers, the localities' bodies), which
-  // `PackApi.reprovision` re-mints from the install records along with
-  // every title in `parcels`. Founder access is part of the phase, not
-  // an operator's memory.
-  [Collections.Groups]: { verb: 'wipe' },
-  [Collections.Channels]: { verb: 'wipe' },
-  [Collections.Parties]: { verb: 'wipe' },
-  [Collections.OfficeHolders]: { verb: 'wipe' },
-
-  // ── Authored player content ──
-  [Collections.Wiki]: { verb: 'wipe' },
-  [Collections.WikiRevisions]: { verb: 'wipe' },
-  [Collections.ForumSubjects]: { verb: 'wipe' },
-  [Collections.ForumBoards]: { verb: 'wipe' },
-  [Collections.ForumEntries]: { verb: 'wipe' },
-  [Collections.ForumVotes]: { verb: 'wipe' },
-  [Collections.ForumEvents]: { verb: 'wipe' },
-  [Collections.Blueprints]: { verb: 'wipe' },
-
-  // ── Operational ──
-  [Collections.Diagnostics]: { verb: 'wipe' },
 };
