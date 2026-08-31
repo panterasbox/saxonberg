@@ -33,6 +33,88 @@ import { AsyncLocalStorage } from 'node:async_hooks';
 import YAML from 'yaml';
 import { Collections } from '../mud/lib/persistence/Collections';
 
+// ─────────────────────────────────────────────────────────────────────
+// The query trace — `SAXONBERG_QUERY_TRACE=1`.
+//
+// Counts every Mongo op at the chokepoint and attributes it to a chain
+// of caller frames, then dumps a table ranked by time-in-Mongo every
+// 30 s and on SIGUSR2. Off by default; one boolean test per op when it
+// is off, a captured stack per op when it is on.
+//
+// It exists because a CPU profile is the wrong instrument for this
+// process: a boot that is 96% *waiting* shows up as 76% idle, and the
+// profile names no query. What you need is the count, the collection,
+// and who asked — which is what this prints. The measurement that found
+// the content cache: 8 168 ops and 259 s in Mongo across a 270 s boot,
+// 7 500 of them by-path reads of a 991-row collection.
+//
+// Frames inside the persistence and call-security plumbing are skipped,
+// so the chain starts at the first line that made a *decision* to read.
+// Async frames make the tail approximate — the head is reliable.
+// ─────────────────────────────────────────────────────────────────────
+const _qtraceOn = process.env.SAXONBERG_QUERY_TRACE === '1';
+type _QRow = { n: number; ms: number };
+const _qstats = new Map<string, _QRow>();
+let _qwired = false;
+
+const _QPLUMBING = [
+  'PersistenceManager.ts',
+  '/api/persist.ts',
+  'Document.ts',
+  'security.ts',
+  'proxy.ts',
+  'execution-context.ts',
+  'module.ts',
+  'node:internal',
+];
+
+function _qcaller(): string {
+  const stack = new Error().stack ?? '';
+  const frames: string[] = [];
+  for (const line of stack.split('\n').slice(2)) {
+    if (_QPLUMBING.some((p) => line.includes(p))) continue;
+    const m = line.match(/([^()\s/\\]+\.ts):(\d+):\d+/);
+    if (!m) continue;
+    const f = `${m[1]}:${m[2]}`;
+    if (frames[frames.length - 1] === f) continue;
+    frames.push(f);
+    if (frames.length === 3) break;
+  }
+  return frames.length > 0 ? frames.join(' < ') : '?';
+}
+
+function _qrec(op: string, coll: string, keys: string, t0: number): void {
+  const key = `${op} ${coll} {${keys}} ← ${_qcaller()}`;
+  const row = _qstats.get(key) ?? { n: 0, ms: 0 };
+  row.n += 1;
+  row.ms += performance.now() - t0;
+  _qstats.set(key, row);
+}
+
+function _qdump(label: string): void {
+  const rows = [..._qstats.entries()].sort((a, b) => b[1].ms - a[1].ms);
+  const totN = rows.reduce((a, r) => a + r[1].n, 0);
+  const totMs = rows.reduce((a, r) => a + r[1].ms, 0);
+  const lines = [
+    `── query trace (${label}) — ${totN} ops, ${(totMs / 1000).toFixed(1)}s in Mongo ──`,
+  ];
+  for (const [k, v] of rows.slice(0, 40)) {
+    lines.push(
+      `${String(v.n).padStart(7)}  ${(v.ms / 1000).toFixed(1).padStart(7)}s  ` +
+        `${(v.ms / v.n).toFixed(1).padStart(6)}ms  ${k}`
+    );
+  }
+  console.info(lines.join('\n'));
+}
+
+function _qwire(): void {
+  if (_qwired || !_qtraceOn) return;
+  _qwired = true;
+  Error.stackTraceLimit = 40;
+  setInterval(() => _qdump('interval'), 30_000).unref();
+  process.on('SIGUSR2', () => _qdump('SIGUSR2'));
+}
+
 /**
  * The MongoDB collection-name vocabulary.
  *
@@ -300,6 +382,39 @@ export class PersistenceManager {
   /**
    * Hook registry keyed by `${collection}:${operation}`.
    */
+  /**
+   * The resident `content` cache — path → row, plus the id → path
+   * reverse index a write needs to find the entry it is replacing.
+   *
+   * ⭐ **The whole collection lives here.** `content` is the authored
+   * world: ~1 000 rows totalling well under a megabyte, read-mostly,
+   * and read by path thousands of times a boot (the clone pipeline's
+   * template load, and the zone walk's one read per ancestor). Every
+   * one of those was a serialized ~30 ms round trip against a
+   * collection small enough to hold whole.
+   *
+   * **Invalidation is by construction, not by enumeration.** Every
+   * write to every collection lands in `persistSave` / `persistDelete`
+   * / `deleteMany` on this object, so the cache is updated at the same
+   * chokepoint that writes — there is no list of CMS, pack-install,
+   * go-live or hot-reload call sites to keep in sync, and adding a new
+   * writer cannot forget to invalidate. It follows that the cache is
+   * only as authoritative as this process's exclusivity over the
+   * collection: a SECOND process writing `content` against the same
+   * database would not be seen. One process per database is the
+   * deployment (see docs/deployment.md), and the four-database rule
+   * keeps the dev worktrees apart.
+   *
+   * `content` is a sandbox `pass` collection — `composeScopeReadFilter`
+   * leaves its queries untouched — so a cached row is the same row
+   * every reader would have got, in every scope.
+   */
+  private contentByPath: Map<string, Record<string, unknown>> | null = null;
+  private contentPathById: Map<string, string> = new Map();
+
+  /** In-flight preload, so N concurrent first-readers issue one query. */
+  private contentPreload: Promise<void> | null = null;
+
   private saveHooks: Map<string, AroundSaveFn[]> = new Map();
   private deleteHooks: Map<string, AroundDeleteFn[]> = new Map();
 
@@ -381,6 +496,7 @@ export class PersistenceManager {
       this.db = this.client.db(dbName);
 
       console.info(`PersistenceManager: Connected to MongoDB database '${dbName}'`);
+      _qwire();
 
       // Create indexes
       await this.createIndexes();
@@ -394,6 +510,7 @@ export class PersistenceManager {
    * Disconnect from MongoDB.
    */
   public async disconnect(): Promise<void> {
+    this.dropContentCache();
     if (!this.client) {
       return;
     }
@@ -489,7 +606,11 @@ export class PersistenceManager {
     collectionName: string,
     document: Record<string, unknown>
   ): Promise<string> {
-    return this.dispatchSave(collectionName, document);
+    if (!_qtraceOn) return this.dispatchSave(collectionName, document);
+    const _t0 = performance.now();
+    const out = await this.dispatchSave(collectionName, document);
+    _qrec('save', collectionName, '', _t0);
+    return out;
   }
 
   /**
@@ -497,7 +618,12 @@ export class PersistenceManager {
    * blueprint catalogue's class enumeration). Read-only.
    */
   public async distinct(collectionName: string, field: string): Promise<unknown[]> {
-    return this.getCollection(collectionName).distinct(field) as Promise<unknown[]>;
+    const _t0 = _qtraceOn ? performance.now() : 0;
+    const out = (await this.getCollection(collectionName).distinct(
+      field
+    )) as unknown[];
+    if (_qtraceOn) _qrec('distinct', collectionName, field, _t0);
+    return out;
   }
 
   /**
@@ -512,6 +638,7 @@ export class PersistenceManager {
     id: string
   ): Promise<Record<string, unknown> | null> {
     const collection = this.getCollection(collectionName);
+    const _t0 = _qtraceOn ? performance.now() : 0;
 
     try {
       const objectId = new ObjectId(id);
@@ -519,6 +646,7 @@ export class PersistenceManager {
         _id: objectId,
       });
       const doc = await collection.findOne(filter);
+      if (_qtraceOn) _qrec('findById', collectionName, '_id', _t0);
 
       if (doc) {
         // Convert _id to string for consistency
@@ -549,7 +677,17 @@ export class PersistenceManager {
     query: Record<string, unknown>,
     options?: FindOptions
   ): Promise<Record<string, unknown>[]> {
+    // The resident `content` cache answers a bare by-path read — the
+    // clone pipeline's hot query — without touching the network. An
+    // `options` (sort/limit/skip) read is not one it serves.
+    if (this.contentCacheEngaged(collectionName) && options === undefined) {
+      await this.ensureContentCache();
+      const cached = this.cachedContentFind(query);
+      if (cached !== null) return cached;
+    }
+
     const collection = this.getCollection(collectionName);
+    const _t0 = _qtraceOn ? performance.now() : 0;
 
     try {
       const filtered = this.composeScopeReadFilter(collectionName, query);
@@ -558,6 +696,8 @@ export class PersistenceManager {
       if (options?.skip != null) cursor = cursor.skip(options.skip);
       if (options?.limit != null) cursor = cursor.limit(options.limit);
       const docs = await cursor.toArray();
+      if (_qtraceOn)
+        _qrec('find', collectionName, Object.keys(query).join(','), _t0);
 
       // Convert _id to string for each document
       return docs.map((doc) => ({
@@ -625,6 +765,9 @@ export class PersistenceManager {
       const collection = this.getCollection(collectionName);
       try {
         const result = await collection.deleteMany(effectiveFilter);
+        // A bulk filter names no ids to evict — drop the cache whole and
+        // let the next reader repopulate it.
+        if (collectionName === Collections.Content) this.dropContentCache();
         return result.deletedCount ?? 0;
       } catch (error) {
         console.error(
@@ -911,6 +1054,147 @@ export class PersistenceManager {
   }
 
   /**
+   * Load every `content` row into {@link contentByPath}. Idempotent and
+   * concurrency-safe: the first caller issues the query, the rest await
+   * the same promise.
+   *
+   * A row that cannot be structured-cloned is left OUT of the map — it
+   * then simply misses and falls through to Mongo, which is the same
+   * answer, slower. That keeps an exotic BSON value from turning a
+   * performance cache into a correctness bug.
+   */
+  /**
+   * Whether the resident cache may answer for `collectionName`.
+   *
+   * Two conditions, and both are load-bearing:
+   *
+   * - **A live connection.** The cache is a property of one process
+   *   owning one database; a `PersistenceManager` with a stubbed
+   *   collection and no `db` (every unit test) reads through, so no
+   *   test inherits another's cached rows.
+   * - **The sandbox policy is still `pass`.** A cached row is one row
+   *   for every reader; that is only true while `content` is neither
+   *   STAMP nor SHADOW. Should the policy ever change, the cache
+   *   disengages itself rather than serving one circle's row to
+   *   another.
+   */
+  private contentCacheEngaged(collectionName?: string): boolean {
+    if ((collectionName ?? Collections.Content) !== Collections.Content)
+      return false;
+    if (this.db === null) return false;
+    return (
+      !STAMP_COLLECTIONS.has(Collections.Content) &&
+      !SHADOW_COLLECTIONS.has(Collections.Content)
+    );
+  }
+
+  private async ensureContentCache(): Promise<void> {
+    if (this.contentByPath !== null) return;
+    if (this.contentPreload !== null) return this.contentPreload;
+
+    this.contentPreload = (async () => {
+      const docs = await this.getCollection(Collections.Content)
+        .find({})
+        .toArray();
+      const byPath = new Map<string, Record<string, unknown>>();
+      const pathById = new Map<string, string>();
+      let skipped = 0;
+      for (const raw of docs) {
+        const doc = { ...raw, _id: raw._id.toString() } as Record<
+          string,
+          unknown
+        >;
+        const path = doc.path;
+        if (typeof path !== 'string') continue;
+        try {
+          structuredClone(doc);
+        } catch {
+          skipped += 1;
+          continue;
+        }
+        byPath.set(path, doc);
+        pathById.set(doc._id as string, path);
+      }
+      this.contentByPath = byPath;
+      this.contentPathById = pathById;
+      console.info(
+        `PersistenceManager: ${byPath.size} content row(s) resident` +
+          (skipped > 0 ? ` (${skipped} uncacheable, read through)` : '')
+      );
+    })();
+
+    try {
+      await this.contentPreload;
+    } finally {
+      this.contentPreload = null;
+    }
+  }
+
+  /**
+   * The cached answer to `find(content, { path })`, or `null` when this
+   * query is not one the cache can answer.
+   *
+   * A MISS is an answer: the map holds the whole collection, so an
+   * absent path means an absent row. That matters more than the hits —
+   * the zone walk asks for ancestor paths that mostly do not exist, and
+   * every one of those used to be a round trip to learn nothing.
+   */
+  private cachedContentFind(
+    query: Record<string, unknown>
+  ): Record<string, unknown>[] | null {
+    const byPath = this.contentByPath;
+    if (byPath === null) return null;
+    const keys = Object.keys(query);
+    if (keys.length !== 1 || keys[0] !== 'path') return null;
+    const path = query.path;
+    if (typeof path !== 'string') return null;
+    const doc = byPath.get(path);
+    return doc === undefined ? [] : [structuredClone(doc)];
+  }
+
+  /**
+   * Fold a written row into the cache. Handles the re-path case (a
+   * `mv` in the content tree keeps the `_id` and changes the `path`)
+   * by evicting whatever path that id held before.
+   */
+  private noteContentSave(doc: Record<string, unknown>, id: string): void {
+    const byPath = this.contentByPath;
+    if (byPath === null) return;
+    const previous = this.contentPathById.get(id);
+    if (previous !== undefined) byPath.delete(previous);
+    const path = doc.path;
+    if (typeof path !== 'string') return;
+    const stored = { ...doc, _id: id };
+    try {
+      structuredClone(stored);
+    } catch {
+      // Uncacheable: drop the entry so reads fall through to Mongo.
+      this.contentPathById.delete(id);
+      return;
+    }
+    byPath.set(path, stored);
+    this.contentPathById.set(id, path);
+  }
+
+  /** Evict the row `id` held. */
+  private noteContentDelete(id: string): void {
+    const byPath = this.contentByPath;
+    if (byPath === null) return;
+    const path = this.contentPathById.get(id);
+    if (path !== undefined) byPath.delete(path);
+    this.contentPathById.delete(id);
+  }
+
+  /**
+   * Drop the cache whole. The answer for a bulk delete (whose filter
+   * names no ids to evict) and for disconnect.
+   */
+  private dropContentCache(): void {
+    this.contentByPath = null;
+    this.contentPathById = new Map();
+  }
+
+  /**
    * Terminal save: the actual MongoDB upsert.
    */
   private async persistSave(
@@ -932,10 +1216,16 @@ export class PersistenceManager {
 
         await collection.updateOne({ _id: id }, { $set: updateDoc });
 
-        return String(document._id);
+        const savedId = String(document._id);
+        if (this.contentCacheEngaged(collectionName))
+          this.noteContentSave(document, savedId);
+        return savedId;
       } else {
         const result = await collection.insertOne(document as Parameters<typeof collection.insertOne>[0]);
-        return result.insertedId.toString();
+        const savedId = result.insertedId.toString();
+        if (this.contentCacheEngaged(collectionName))
+          this.noteContentSave(document, savedId);
+        return savedId;
       }
     } catch (error) {
       console.error(
@@ -964,6 +1254,7 @@ export class PersistenceManager {
           ? { _id: objectId, circleScope: scopeGuard }
           : { _id: objectId };
       await collection.deleteOne(filter);
+      if (this.contentCacheEngaged(collectionName)) this.noteContentDelete(id);
     } catch (error) {
       console.error(
         `PersistenceManager: Error deleting document from ${collectionName}:`,
