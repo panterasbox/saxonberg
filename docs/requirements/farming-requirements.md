@@ -4,7 +4,7 @@
 > **LOCKED** are agreed with the user; sections marked *(draft)* are
 > the build agent's opening position, not yet discussed. Locked so far:
 > the suburban-garden invariant (D0), the fruit cycle (D1–D2), the
-> land model (D5).
+> harvest mint + matter-not-mark rule (D3), the land model (D5).
 
 Make farming an actual production chain. The libations build made the
 bar's supply chain real from the cash-and-carry **down**; everything
@@ -180,15 +180,44 @@ Cultivable target resolves to a ripe occupant — the `water the pot`
 convention, closing the harvest half of that gap. `pick` joins as an
 alias.
 
-### D3 — Harvest mints the real item, graded and marked *(draft)*
+### D3 — Harvest mints the real item, graded AND marked; matter, not mark — LOCKED
 
-A lime tree's `harvestTemplatePath` is `/trade/farming/thing/lime` —
-the very `Provision` the bar's recipes consume. Harvest stamps each
-minted item with the window's grade band (`GradedMixin` already rides
-`Provision`) and the grower's mark (the maker derives from execution
-context, crafting's rule — compose `CraftedMixin` where needed). The
-authored `gradeBand: fair` on the produce rows becomes the derive
-default for an ungraded scrap, not the band every lime carries.
+**The mint.** A lime tree's `harvestTemplatePath` is
+`/trade/farming/thing/lime` — the very `Provision` the bar's recipes
+consume; harvest mints one per set-count. The authored
+`gradeBand: fair` on the produce rows is demoted to the derive default
+for a stocked scrap; a harvested item carries **this cycle's band**
+and **the grower's mark** (the maker derives from execution context —
+crafting's rule; `CraftedMixin` composed onto produce).
+
+**The healed predicate — "the distinction is the material, not a
+flag."** Crafting's gather refuses `Crafted` things as raw item inputs
+(*"raw matter, not capital or a made form"* —
+`CraftingLogic.isItemCandidate`), which made a marked lime
+unconsumable — and the shipped Crafted carrot `Crop` already carried
+the same latent tension (it cannot be cooked). But the gather's OWN
+bulk branch states the true principle: a crafted pool bottle holding a
+real material IS stock — *"the distinction is the material, not a
+flag."* Locked: extend that rule to solids — **a marked discrete item
+whose material is real edible matter is stock**. The mark records
+HISTORY (who, when, how well); the MATERIAL decides candidacy; the
+gather's real job — the anvil never feeds the forge — is untouched.
+
+**Marks end at transformation.** The roast's mark is the cook's; the
+inputs' marks are consumed, their contribution flowing through the
+shipped **grade spread** (input grade shapes output grade) — no input
+lineage tree, per the ledger's own rule that value is never traced
+through a transform. The mill isn't on the menu; it shows in the
+quality. Immediate expressiveness payoff: a famous grower's fine limes
+make finer daiquiris today with zero new machinery — the substrate the
+named-cultivar future, grower renown and farm brands stand on.
+
+**Named future widening, not this build:** milled lumber as carpentry
+stock by the same matter-not-mark rule.
+
+**Regression gate:** the bar + hearthworks crafting suites must pass
+untouched, plus targeted tests on the healed predicate (a marked
+edible gathers; a marked tool still never does).
 
 ### D4 — Packing is a real act; the crate rows leave the spawn table *(draft)*
 
@@ -374,8 +403,10 @@ placeholders for a running game, per the husbandry calibration stance.
   second cycle's worst stretch; the plant dies under sustained neglect.
 - Harvesting the carrot still ends the plant; the phase-1/2 husbandry
   and smallholding suites pass unmodified.
-- Harvested produce carries the derived grade band and maker's mark;
-  a well-kept window yields ≥ `fair` (the bar's recipe floor).
+- Harvested produce carries the cycle's grade band and the grower's
+  mark; a well-kept cycle yields ≥ `fair` (the bar's recipe floor);
+  a marked lime is accepted as a daiquiri input (the healed gather)
+  while a marked tool still never gathers.
 - Grepping the content tree shows no produce crate with region-targeted
   spawn placement; a booted world contains no produce that was not
   harvested (grove-authored plants aside); the spawn-sweep suite for
