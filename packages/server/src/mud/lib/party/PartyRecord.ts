@@ -17,11 +17,10 @@
 
 import { Document } from "../persistence/Document";
 import type { FieldMeta } from "../mixin";
-
-export const PARTIES_COLLECTION = "parties";
+import { Collections } from '../persistence/Collections';
 
 export class PartyRecord extends Document {
-  static collectionName = PARTIES_COLLECTION;
+  static collectionName = Collections.Parties;
   static fieldMeta: FieldMeta = {
     path: { persistent: true },
     name: { persistent: true },

@@ -22,6 +22,7 @@
 
 import { Document } from '../persistence/Document';
 import type { FieldMeta } from '../mixin';
+import { Collections } from '../persistence/Collections';
 
 export type GroupRole = 'owner' | 'admin' | 'member';
 
@@ -50,7 +51,7 @@ const VALID_ROLES: ReadonlySet<GroupRole> = new Set([
 ]);
 
 export class Group extends Document {
-  static collectionName = 'groups';
+  static collectionName = Collections.Groups;
   static fieldMeta: FieldMeta = {
     name: { persistent: true },
     owner: { persistent: true },
