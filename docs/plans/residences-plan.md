@@ -198,6 +198,17 @@ the eternal + terminus trees are gone from kernel
 
 **Depends on:** Waves 1, 3.
 
+**Cross-build interface (build-3 farming, their Stage B):** the
+programme's member contract stays **open to runtime-added outdoor
+members** — farming's break-ground act buds field rooms into a
+holding's set from a programme-level field ledger, on this base
+(their plan P7; their requirements' interface note). Nothing in this
+wave may assume floorplan-only membership — the floorplan is the
+*initial* mint (D16), never the closed set. Also: the key-over-path
+coverage read this wave generalizes is already shipped precedent at
+the cultivation gate (`PlantController` reads a room's persistence
+key over its template path — the comment build-3's D5 cites).
+
 **Files — create:**
 - `packages/server/src/mud/platform/idea/HoldingProgramme.ts` — instanceable (`PersistableMixin(PostRegistrationMixin(Warren))`-shaped; **no** SingletonMixin — many keyed instances per row; the D1 unique-key guard carries uniqueness). Fields (authored on the row): `floorplan` (list of `{leaf, room (a row path), exits: [{from, to, direction}], entry?: true, door?: {locked: true}}`), `upkeepTerm`, `addressBase?`. Instance state (persistent): `shellCondition`, `shellStamp`. Behavior: `wake()` (stand every room up keyed `(roomRow, <extent>/<leaf>)` via `restoreOrSeed`, wire intra-holding exits + the locked front-door edge, stamp per-room addresses `<addressBase or derived>/<leaf>` via `setAddress`), dormancy-as-unit (aggregated population witness → when no room holds an interactive, capture **all** rooms + self, then reap the whole set — never room-by-room), `reconcileShell()` + `conditionBand()` (P10), `termOf()`, `satisfiedArchetypes()` (P5 union over rooms), `revert()` (end-lease: `evictToStorage(placePrefix)` + markForRevert + record deletes), `keywayOf` support for its front door. Static re-entry resolver: `HoldingProgramme.admitFor(extent)` — enumerate `world:[class.HoldingWarren]` (boot roster), find the institution whose `parentExtent` prefixes the extent, `warren.admit(key)`.
 - `packages/server/src/mud/platform/idea/FrontDoorExit.ts` — generic `DeferredDestinationExit`: eager destination = the entry room's **row** (accurate class template), `canTraverse` = `CredentialApi.presentsKey` against the holding's keyway (sync, off the warren/programme cache; empty keyway admits no one), `computeDestination` = programme admit → entry room. Used by Hinkley's house door and the apartment unit doors; `DormDoor` stays (P1).
