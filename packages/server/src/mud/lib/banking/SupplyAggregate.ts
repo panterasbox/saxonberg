@@ -60,7 +60,18 @@ export default class SupplyAggregate extends Document {
             "(packages/server/scripts/migrate-currency.ts --apply)"
         );
       }
-      next.set(row.currency, { minted: row.minted, drained: row.drained });
+      // ⭐ SUM, never last-wins. One row per currency is the invariant, not a
+      // guarantee: a duplicate (a concurrent create, a hand-edited
+      // collection) used to make this silently REPORT ONE OF THEM — and the
+      // number it drops is the money supply, the one figure the whole
+      // conservation audit is built on. Summing is both the correct read of
+      // a cumulative aggregate and self-healing: the collection is a
+      // rebuildable cache over `bank_ledger`, which stays the record.
+      const seen = next.get(row.currency);
+      next.set(row.currency, {
+        minted: (seen?.minted ?? 0) + row.minted,
+        drained: (seen?.drained ?? 0) + row.drained,
+      });
     }
     SupplyAggregate._cache = next;
   }

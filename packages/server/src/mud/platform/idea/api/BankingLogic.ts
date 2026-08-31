@@ -1610,21 +1610,56 @@ async function applyDelta(
 }
 
 /**
+ * The per-currency write queue for {@link bumpSupply}.
+ *
+ * ⚠⚠ **`bumpSupply` is read-modify-write across an `await`, and that is a
+ * race.** Nine businesses opening their accounts during one boot posted nine
+ * mints concurrently; every one of them ran `find` before any of them ran
+ * `save`, every one found nothing, and every one created its own row — six
+ * `bank_supply` documents for a single currency, and a money supply that read
+ * a fraction of what had been minted.
+ *
+ * It never showed before because minting was RARE: a hand-typed
+ * `reserve mint` and nothing else. Opening capital made it the common case
+ * on the first boot of any world, which is exactly when nobody is watching.
+ *
+ * A promise chain per currency is the whole fix here: `postTransaction` is
+ * the sealed, in-process, single-writer chokepoint, so serializing its
+ * aggregate write against itself makes find→save atomic without inventing a
+ * persistence-layer `$inc`. Keyed per currency because conservation is N
+ * independent domains — a zorkmid posting must not wait behind a scrip one.
+ */
+const _supplyWrites = new Map<string, Promise<void>>();
+
+/**
  * Find-or-create **this currency's** supply row, add the deltas, keep the
  * mirror. Conservation is N independent domains — one row per currency.
+ *
+ * Serialized per currency — see {@link _supplyWrites}.
  */
 async function bumpSupply(
   currency: string,
   minted: number,
   drained: number,
 ): Promise<void> {
-  const [existing] = await SupplyAggregate.find<SupplyAggregate>({ currency });
-  const row = existing ?? new SupplyAggregate();
-  if (!existing) row.currency = currency;
-  row.minted += minted;
-  row.drained += drained;
-  await row.save();
-  await SupplyAggregate.warm();
+  const prior = _supplyWrites.get(currency) ?? Promise.resolve();
+  const next = prior
+    .catch(() => {
+      /* a failed predecessor must not poison the queue */
+    })
+    .then(async () => {
+      const [existing] = await SupplyAggregate.find<SupplyAggregate>({
+        currency,
+      });
+      const row = existing ?? new SupplyAggregate();
+      if (!existing) row.currency = currency;
+      row.minted += minted;
+      row.drained += drained;
+      await row.save();
+      await SupplyAggregate.warm();
+    });
+  _supplyWrites.set(currency, next);
+  return next;
 }
 
 /** All ledger rows touching `accountId` on either side (dedup by `_id`). */

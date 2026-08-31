@@ -23,6 +23,7 @@ import { AppSettingKeys } from "../../../../lib/config/AppSettings";
 import { BankingApi, Currency, Money } from "../../../../api/banking";
 import { EmploymentApi } from "../../../../api/employment";
 import BusinessEntity from "../../Business";
+import SupplyAggregate from "../../../../lib/banking/SupplyAggregate";
 import { makeStuffAtPath } from "../../../../lib/security/__tests__/test-setup";
 import {
   installBankingHarness,
@@ -139,5 +140,53 @@ describe("the supply report names the overdraft", () => {
     const b = seedBusiness();
     await EmploymentApi.operatingAccountOf(b);
     expect(BankingApi.reconcile(Currency.compact()).overdraft).toBe(0);
+  });
+});
+
+describe("concurrent mints keep ONE supply row per currency", () => {
+  beforeEach(() => {
+    installBankingHarness();
+    withCapitalDial(DEFAULT_CAPITAL);
+  });
+  afterEach(() => teardownBankingHarness());
+
+  /**
+   * ⚠⚠ The bug this pins is invisible without concurrency, and opening
+   * capital is what made it common: `bumpSupply` was read-modify-write
+   * across an `await`, so nine businesses opening accounts during one boot
+   * each ran `find` before any ran `save`, each found nothing, and each
+   * created its own row. A live fresh boot produced SIX `bank_supply`
+   * documents for one currency and a supply figure reading a fraction of
+   * what had been minted.
+   */
+  it("nine businesses opening at once mint nine times into one row", async () => {
+    const businesses = Array.from({ length: 9 }, (_, i) => {
+      const b = makeStuffAtPath(
+        () => new BusinessEntity(),
+        `/world/test/business-${i}`
+      );
+      b.proprietorPath = "/world/test/npc/dave";
+      b.banksAt = BankingApi.defaultCustodianBank();
+      return b;
+    });
+
+    // All at once — the boot shape, not a loop with awaits.
+    const accounts = await Promise.all(
+      businesses.map((b) => EmploymentApi.operatingAccountOf(b))
+    );
+    expect(new Set(accounts).size).toBe(9);
+
+    const expected = 9 * DEFAULT_CAPITAL;
+    const r = BankingApi.reconcile(Currency.compact());
+    expect(r.accountTotal).toBe(expected);
+    expect(r.supply).toBe(expected);
+    expect(r.balanced).toBe(true);
+
+    // ⚠ THE assertion. `warm()` sums duplicates, so the reconcile figures
+    // above stay right even while the collection is being shredded — which
+    // is why this test has to count ROWS. One currency, one row.
+    const rows = await SupplyAggregate.find<SupplyAggregate>({});
+    expect(rows).toHaveLength(1);
+    expect(rows[0]!.minted).toBe(expected);
   });
 });
