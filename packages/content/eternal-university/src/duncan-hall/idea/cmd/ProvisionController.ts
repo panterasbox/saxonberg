@@ -39,7 +39,7 @@ import { GroupApi } from '@saxonberg/server/mud/api/group';
 import { ParcelApi } from '@saxonberg/server/mud/api/parcel';
 import { CredentialApi } from '@saxonberg/server/mud/api/credential';
 import { Lock } from '@saxonberg/server/mud/lib/lock/Lock';
-import { ParcelRecord, type ParcelOwner } from '@saxonberg/server/mud/lib/parcel/ParcelRecord';
+import { type ParcelOwner } from '@saxonberg/server/mud/lib/parcel/ParcelRecord';
 import DormWarren from '../../DormWarren';
 import DormRoom from '../../DormRoom';
 import { Character } from '@saxonberg/server/mud/lib/character/Character';
@@ -95,12 +95,33 @@ export default class ProvisionController extends CommandController<ProvisionMode
       );
     }
 
-    // Lowest-free slot: the first `f<n>-r<p>` not already minted, scanning
-    // floors from 1 and positions 1..ROOMS_PER_FLOOR (gap reuse before a
-    // new floor).
+    // Lowest-free slot via the plat plan (gap reuse before a new floor;
+    // D10/D13: the per-floor count is the `dorm.roomsPerFloor` dial, the
+    // total the institution's capacity — refused at cap with the reason).
     const children = await ParcelApi.childParcelsOf(DormWarren.DORMS_EXTENT);
-    const taken = new Set(children.map((c) => c.getExtent()));
-    const unitExtent = this.lowestFreeExtent(taken);
+    const planWarren = await DormWarren.resolve();
+    if (children.length >= planWarren.capacity()) {
+      return this.fail(
+        context,
+        `Duncan Hall is at capacity: ${children.length} of ` +
+          `${planWarren.capacity()} rooms are taken.`,
+        'at-capacity',
+      );
+    }
+    const taken = new Set(
+      children.map((c) => {
+        const e = c.getExtent();
+        return e.slice(e.lastIndexOf('/') + 1);
+      }),
+    );
+    const leaf = planWarren.getPlatPlan().nextFreeSlot(
+      taken,
+      planWarren.capacity(),
+    );
+    if (!leaf) {
+      return this.fail(context, 'No free room slot.', 'at-capacity');
+    }
+    const unitExtent = `${DormWarren.DORMS_EXTENT}/${leaf}`;
 
     await ParcelApi.subdivide(unitExtent, DormWarren.DORMS_EXTENT, owner);
     await ParcelApi.grantUse(unitExtent, playerPath, null);
@@ -156,20 +177,6 @@ export default class ProvisionController extends CommandController<ProvisionMode
       context,
       Mml.compose`\nProvisioned ${unitExtent} and leased it to ${who}; handed over the key.\n`,
     );
-  }
-
-  /** The first free `…/dorms/f<n>-r<p>` extent (gap reuse, then a new floor). */
-  private lowestFreeExtent(taken: Set<string>): string {
-    for (let floor = 1; ; floor++) {
-      for (let pos = 1; pos <= DormWarren.ROOMS_PER_FLOOR; pos++) {
-        const extent = ParcelRecord.extentForSlot(
-          DormWarren.DORMS_EXTENT,
-          floor,
-          pos,
-        );
-        if (!taken.has(extent)) return extent;
-      }
-    }
   }
 
   private send(context: CommandContext, body: Mml): void {

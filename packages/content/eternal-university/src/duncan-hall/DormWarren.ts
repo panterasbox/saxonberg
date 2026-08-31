@@ -1,31 +1,30 @@
 /**
  * DormWarren — the elastic, two-tier room-collection manager for Duncan
- * Hall's dorms wing. A singleton content `Warren` subclass (the
- * `LoungeWarren` precedent), NOT a subsystem. It supplies the dorm *policy*
- * over the base Warren mechanism, in two tiers:
+ * Hall's dorms wing. A singleton content subclass of the shared
+ * {@link HoldingWarren} base (residences D12/D16 — the two-tier
+ * holdings + circulation machinery was lifted there; this class keeps
+ * the dorm *policy*): rooms are keyed holdings (unit parcel extents),
+ * floors are linear-plan circulation nodes (`main:<floor>`), doors are
+ * entry edges. The public surface (`admit`, `ensureFloor`,
+ * `ensureUnitDoor`, `keywayOf`, `dropUnit`, `roomFor`,
+ * `corridorForUnit`, `floorReachable`) is unchanged — the existing
+ * suite pins it.
  *
- *   - **Rooms** are keyed Warren members (`_unitsByKey`, keyed by unit
- *     parcel extent), added via `addMember`, persisted via D1. `admit`
- *     materializes one (restore-or-seed) on entry.
- *   - **Floors** are runtime `Corridor` clones (`_corridorsByFloor`), OUTSIDE
- *     `_members`. `ensureFloor(n)` builds one lazily; corridors reap top-down
- *     when empty (`reconcile`).
- *
- * The building starts as JUST the lobby and provisions nothing in advance;
- * it grows on provisioning and reconstitutes from the durable slot set (the
- * child parcels of `dorms`). `_hostMember` stays **null forever** — the
- * Warren never uses the placement kernel (`getHost`); entry is driven by
- * `admit`, and vertical travel by `FloorStairExit`s. See
+ * The building starts as JUST the lobby and provisions nothing in
+ * advance; it grows on provisioning and reconstitutes from the durable
+ * slot set. `_hostMember` stays **null forever** — entry is driven by
+ * `admit`, vertical travel by `FloorStairExit`s. See
  * `docs/subsystems/residence.md`.
  */
 
-import { Warren, type Attachment } from '@saxonberg/server/mud/lib/location/Warren';
+import { HoldingWarren } from '@saxonberg/server/mud/lib/location/HoldingWarren';
+import type { Attachment } from '@saxonberg/server/mud/lib/location/Warren';
 import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';
 import { PostRegistrationMixin } from '@saxonberg/server/mud/lib/stuff/PostRegistration';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import { AppApi } from '@saxonberg/server/mud/api/app';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
-import { ParcelApi } from '@saxonberg/server/mud/api/parcel';
 import { ParcelRecord } from '@saxonberg/server/mud/lib/parcel/ParcelRecord';
 import type { LockType } from '@saxonberg/server/mud/lib/lock/Lock';
 import Exit from '@saxonberg/server/mud/lib/boundary/Exit';
@@ -40,7 +39,7 @@ import type { Persistable } from '@saxonberg/server/mud/lib/persistence/Persista
 type MemberStuff = Stuff & Container;
 type ExitableContainer = Stuff & Container & Exitable;
 
-const DormWarrenBase = SingletonMixin(PostRegistrationMixin(Warren));
+const DormWarrenBase = SingletonMixin(PostRegistrationMixin(HoldingWarren));
 
 export default class DormWarren extends DormWarrenBase {
   /** Seeded Warren-definition path (the singleton). */
@@ -53,25 +52,18 @@ export default class DormWarren extends DormWarrenBase {
   static readonly LOBBY_PATH = '/world/eternal/duncan-hall/lobby';
   /** The parent parcel the unit parcels subdivide under. */
   static readonly DORMS_EXTENT = '/world/eternal/duncan-hall/dorms';
-  /** Units per floor before provisioning buds the next floor (a static knob;
-   *  an AppSetting is a deferred tuning seam). */
+  /** Units per floor — the AUTHORED default under the operator's
+   *  `dorm.roomsPerFloor` dial (D10: the graduated knob). */
   static readonly ROOMS_PER_FLOOR = 12;
+  /** The AppSettings key the per-floor dial lives under. */
+  static readonly ROOMS_PER_FLOOR_KEY = 'dorm.roomsPerFloor';
   /** The lock technology dorm doors use — a brass pin-tumbler (a keycard/
    *  electronic tech is a downtown/corporate thing, deferred). */
   static readonly DORM_LOCK_TECH: LockType = 'pin-tumbler';
 
-  /** Live rooms, keyed by unit parcel extent (the true Warren members). */
-  private _unitsByKey: Map<string, MemberStuff> = new Map();
-  /** Live floor corridors, keyed by floor number (outside `_members`). */
-  private _corridorsByFloor: Map<number, MemberStuff> = new Map();
-  /** Live unit doors, keyed by unit extent (Exits on their floor corridor). */
-  private _doorsByKey: Map<string, DormDoor> = new Map();
-  /** Floors that have (or sit below) a provisioned unit — sync reachability. */
-  private _provisionedFloors: Set<number> = new Set();
-  /** unitKey → the unit's lock keyway — the door's SYNC lock identity (the
-   *  door checks whether the mover presents a matching KEY, not who they are).
-   *  Refreshed from the durable parcel keyway whenever provisioning changes. */
-  private _keywayByUnit: Map<string, string> = new Map();
+  /** The dorm carries a generous shipped cap (the institution has no
+   *  roster; the operator's `dorm.roomCap` dial can lower or raise it). */
+  public override defaultCapacity = 240;
 
   /** Resolve the singleton (async — clones on first access). */
   static async resolve(): Promise<DormWarren> {
@@ -83,10 +75,34 @@ export default class DormWarren extends DormWarrenBase {
     return StuffApi.findByTemplatePath<DormWarren>(DormWarren.WARREN_PATH) ?? null;
   }
 
+  /** The per-floor room count: the operator's dial, else the authored
+   *  default (`ROOMS_PER_FLOOR` — the graduated `static readonly`). */
+  public roomsPerFloor(): number {
+    try {
+      const raw = AppApi.setting(DormWarren.ROOMS_PER_FLOOR_KEY);
+      const n = Number.parseInt(raw, 10);
+      if (Number.isFinite(n) && n > 0) return n;
+    } catch {
+      /* cache not warmed — authored default */
+    }
+    return DormWarren.ROOMS_PER_FLOOR;
+  }
+
+  /** The dorms wing's parent extent is a fact about the building. */
+  public override getParentExtent(): string {
+    return this.parentExtent || DormWarren.DORMS_EXTENT;
+  }
+
+  /** Feed the plan the runtime dial (a linear plan's frontage count). */
+  protected override frontagesDial(): number {
+    return this.roomsPerFloor();
+  }
+
   /**
-   * On warm: rebuild the sync reachability cache from the durable slot set
-   * and install the lobby's `up` `FloorStairExit` (→ `ensureFloor(1)`), so the
-   * building reconstitutes from just the parcel rows.
+   * On warm: rebuild the sync reachability cache from the durable slot
+   * set and install the lobby's `up` `FloorStairExit` (→
+   * `ensureFloor(1)`), so the building reconstitutes from just the
+   * parcel rows.
    */
   public override async postRegister(context?: unknown): Promise<void> {
     await super.postRegister?.(context);
@@ -94,56 +110,83 @@ export default class DormWarren extends DormWarrenBase {
     await this.installLobbyUpExit();
   }
 
-  // ───────────────────── tier 1: rooms ─────────────────────
+  // ─────────────── the dorm's floor-shaped surface ────────────────
+
+  /** The live corridor for floor `n`, built if needed (null when the
+   *  floor is unreachable). */
+  public async ensureFloor(n: number): Promise<MemberStuff | null> {
+    return this.ensureNode(`main:${n}`);
+  }
+
+  /** Sync floor reachability (any provisioned unit on `n` or above). */
+  public floorReachable(n: number): boolean {
+    return this.nodeReachable(`main:${n}`);
+  }
+
+  /** Ensure the `DormDoor` for `unitKey` hangs on its (live) floor. */
+  public async ensureUnitDoor(unitKey: string): Promise<void> {
+    return this.ensureEntry(unitKey);
+  }
+
+  /** The `DormDoor` for a unit (for the `unlock`/lease-gate seam), or null. */
+  public doorFor(unitKey: string): DormDoor | null {
+    return (this.entryFor(unitKey) as DormDoor | null) ?? null;
+  }
+
+  /** The live room for a unit (if materialized), or null. */
+  public roomFor(unitKey: string): MemberStuff | null {
+    return this.holdingFor(unitKey);
+  }
+
+  /** The live corridor for a unit's floor (if materialized), or null. */
+  public corridorForUnit(unitKey: string): MemberStuff | null {
+    const slot = ParcelRecord.slotOfExtent(unitKey);
+    if (!slot) return null;
+    return this.circulationForNode(`main:${slot.floor}`);
+  }
+
+  /** Tear a unit down (end-lease). See {@link HoldingWarren.dropHolding}. */
+  public async dropUnit(
+    unitKey: string,
+    opts: { revert?: boolean } = {},
+  ): Promise<void> {
+    return this.dropHolding(unitKey, opts);
+  }
+
+  // ─────────────── HoldingWarren policy hooks ─────────────────────
 
   /**
-   * The live room for `unitKey`, materialized if needed. Cached → clone the
-   * `DormRoom` shell → `PersistableApi.restoreOrSeed` (the keyed-holder
-   * ground pattern: key it, then restore its record or lay down the declared
-   * `populates:` fixtures and capture them) → wire the return leg to its
-   * floor corridor → cache.
-   *
-   * The restore-or-seed decision itself is NOT dorm-specific and no longer
-   * lives here; the Warren membership, the hub-exit wiring and the cache
-   * are what actually make this a dorm.
+   * Stand one unit up, whole: clone the `DormRoom` shell, register it
+   * as a member, then `restoreOrSeed` keyed on the unit extent (the
+   * keyed-holder ground pattern) — the exact pre-lift order.
    */
-  public async admit(unitKey: string): Promise<MemberStuff> {
-    const cached = this._unitsByKey.get(unitKey);
-    if (cached && !cached.isDestroyed()) return cached;
-
+  protected async standUpHolding(key: string): Promise<MemberStuff> {
     const room = await this.createMemberSerialized();
     this.addMember(room);
-    await PersistableApi.restoreOrSeed(room, unitKey);
-
-    await this.wireHubExit(room);
-    this._unitsByKey.set(unitKey, room);
+    await PersistableApi.restoreOrSeed(room, key);
     return room;
   }
 
-  // ───────────────────── tier 2: floors ─────────────────────
+  /** Every minted floor is a corridor clone. */
+  protected circulationTemplateFor(): string | null {
+    return DormWarren.CORRIDOR_TEMPLATE;
+  }
 
   /**
-   * The live corridor for floor `n`, built if needed. Returns null when the
-   * floor is unreachable (no provisioned unit on it or above). Clones the
-   * corridor → wires its `down` to the floor below (lobby for n=1, else
-   * `ensureFloor(n-1)`) + its `up` `FloorStairExit` → clones the `DormDoor`s
-   * for the units whose slot is on floor n → caches.
+   * Wire a fresh floor corridor into the stairwell: `down` to the floor
+   * below (the lobby for n=1, else the lower corridor — built
+   * recursively), and this floor's `up` `FloorStairExit`.
    */
-  public async ensureFloor(n: number): Promise<MemberStuff | null> {
-    const cached = this._corridorsByFloor.get(n);
-    if (cached && !cached.isDestroyed()) return cached;
-    if (!this.floorReachable(n)) return null;
-
-    const corridor = await StuffApi.clone<MemberStuff>(
-      DormWarren.CORRIDOR_TEMPLATE,
-    );
-    this._corridorsByFloor.set(n, corridor);
+  protected async wireCirculationNode(
+    nodeId: string,
+    corridor: MemberStuff,
+  ): Promise<void> {
+    const n = Number(nodeId.slice(nodeId.lastIndexOf(':') + 1));
     const corrEx = this.requireExitable(corridor);
 
-    // Wire `down` to the floor below (one-way; the below-side `up` is that
-    // floor's own FloorStairExit / the lobby's).
-    const below =
-      n === 1 ? await this.lobby() : await this.ensureFloor(n - 1);
+    // Wire `down` to the floor below (one-way; the below-side `up` is
+    // that floor's own FloorStairExit / the lobby's).
+    const below = n === 1 ? await this.lobby() : await this.ensureFloor(n - 1);
     if (below && MixinApi.isExitable(below)) {
       const down = StuffApi.createSync(
         () =>
@@ -163,120 +206,24 @@ export default class DormWarren extends DormWarrenBase {
       const up = StuffApi.createSync(() => new FloorStairExit(corridor, n + 1));
       await corrEx.addExit(up);
     }
-
-    // Clone the DormDoors for the units whose slot is on this floor.
-    for (const child of await ParcelApi.childParcelsOf(DormWarren.DORMS_EXTENT)) {
-      const slot = ParcelRecord.slotOfExtent(child.getExtent());
-      if (slot?.floor === n) await this.ensureUnitDoor(child.getExtent());
-    }
-
-    return corridor;
   }
 
-  /**
-   * Ensure the `DormDoor` for `unitKey` is present on its floor's (live)
-   * corridor. Called by `ensureFloor` for every unit on the floor, and by
-   * provisioning so a unit added to an already-live floor gets its door
-   * immediately. No-op when the floor isn't live yet (it's cloned when the
-   * floor next materializes).
-   */
-  public async ensureUnitDoor(unitKey: string): Promise<void> {
-    const existing = this._doorsByKey.get(unitKey);
-    if (existing) return;
-    const slot = ParcelRecord.slotOfExtent(unitKey);
-    if (!slot) return;
-    const corridor = this._corridorsByFloor.get(slot.floor);
-    if (!corridor || corridor.isDestroyed()) return;
-    const corrEx = this.requireExitable(corridor);
-    const dir = `unit-${slot.pos}`;
-    if (corrEx.getExit(dir)) return;
-    const door = StuffApi.createSync(
-      () => new DormDoor(corridor, unitKey, dir),
-    );
-    await corrEx.addExit(door);
-    this._doorsByKey.set(unitKey, door as unknown as DormDoor);
-  }
-
-  /** The `DormDoor` for a unit (for the `unlock`/lease-gate seam), or null. */
-  public doorFor(unitKey: string): DormDoor | null {
-    const door = this._doorsByKey.get(unitKey);
-    return door && !door.isDestroyed() ? door : null;
-  }
-
-  /** The live room for a unit (if materialized), or null. */
-  public roomFor(unitKey: string): MemberStuff | null {
-    const room = this._unitsByKey.get(unitKey);
-    return room && !room.isDestroyed() ? room : null;
-  }
-
-  /** The live corridor for a unit's floor (if materialized), or null. */
-  public corridorForUnit(unitKey: string): MemberStuff | null {
-    const slot = ParcelRecord.slotOfExtent(unitKey);
+  /** The unit's `DormDoor`, hung on its floor corridor as `unit-<pos>`. */
+  protected async entryEdgeFor(
+    key: string,
+    corridor: ExitableContainer,
+  ): Promise<Exit | null> {
+    const slot = ParcelRecord.slotOfExtent(key);
     if (!slot) return null;
-    const corridor = this._corridorsByFloor.get(slot.floor);
-    return corridor && !corridor.isDestroyed() ? corridor : null;
+    const dir = `unit-${slot.pos}`;
+    const existing = corridor.getExit(dir);
+    if (existing) return existing as unknown as Exit;
+    const door = StuffApi.createSync(() => new DormDoor(corridor, key, dir));
+    await corridor.addExit(door);
+    return door as unknown as Exit;
   }
 
-  // ───────────────────── provisioning support ─────────────────────
-
-  /** Rebuild the sync reachability + keyway caches from the durable slot set
-   *  (called at warm and whenever provisioning changes). */
-  public async refreshProvisioned(): Promise<void> {
-    const floors = new Set<number>();
-    const keyways = new Map<string, string>();
-    for (const child of await ParcelApi.childParcelsOf(DormWarren.DORMS_EXTENT)) {
-      const extent = child.getExtent();
-      const slot = ParcelRecord.slotOfExtent(extent);
-      if (slot) floors.add(slot.floor);
-      const keyway = child.getKeyway();
-      if (keyway) keyways.set(extent, keyway);
-    }
-    this._provisionedFloors = floors;
-    this._keywayByUnit = keyways;
-  }
-
-  /**
-   * The unit's lock keyway, or null — the `DormDoor`'s synchronous lock
-   * identity. The door opens for whoever presents a KEY matching this keyway
-   * (bearer possession), not for a fixed identity; an empty/absent keyway is
-   * an unprovisioned/re-keyed unit no key opens.
-   */
-  public keywayOf(unitKey: string): string | null {
-    return this._keywayByUnit.get(unitKey) ?? null;
-  }
-
-  /**
-   * Whether floor `n` can be climbed to — true when any provisioned unit
-   * sits on floor n OR above (so the stairwell stays contiguous from the
-   * lobby up to the highest occupied floor, even across an empty middle).
-   */
-  public floorReachable(n: number): boolean {
-    for (const f of this._provisionedFloors) if (f >= n) return true;
-    return false;
-  }
-
-  /**
-   * Tear a unit down (end-lease, DECISION B). `revert` marks the live room
-   * so its `shouldPersist()` goes false (no recapture races the record
-   * delete). No-op when the unit isn't live. Pokes `reconcile` so a
-   * now-empty floor can reap.
-   */
-  public async dropUnit(
-    unitKey: string,
-    opts: { revert?: boolean } = {},
-  ): Promise<void> {
-    this.removeUnitDoor(unitKey);
-    const room = this._unitsByKey.get(unitKey);
-    if (room && !room.isDestroyed()) {
-      if (opts.revert) (room as unknown as Persistable).markForRevert();
-      this.teardownRoom(unitKey, room);
-    } else {
-      this._unitsByKey.delete(unitKey);
-    }
-    await this.reconcile();
-  }
-
-  // ───────────────────── Warren policy hooks ─────────────────────
+  // ─────────────── Warren policy hooks ────────────────────────────
 
   /** Clone one fresh `DormRoom` (it self-registers nothing; `admit` drives). */
   protected async createMember(): Promise<MemberStuff> {
@@ -303,11 +250,11 @@ export default class DormWarren extends DormWarrenBase {
   }
 
   /**
-   * Wire a room's one-way return leg to ITS floor corridor (not a host).
-   * Reads the room's floor from its stashed key; ensures the corridor;
-   * installs `out` (room → corridor) as a live-ref one-way exit. The
-   * corridor → room direction is the unit's `DormDoor` (`ensureUnitDoor`),
-   * so the two never duplicate.
+   * Wire a room's one-way return leg to ITS floor corridor (not a
+   * host). Reads the room's floor from its stashed key; ensures the
+   * corridor; installs `out` (room → corridor) as a live-ref one-way
+   * exit. The corridor → room direction is the unit's `DormDoor`
+   * (`ensureUnitDoor`), so the two never duplicate.
    */
   protected override async wireHubExit(room: MemberStuff): Promise<void> {
     const key = (room as unknown as Persistable).getPersistenceKey();
@@ -330,67 +277,7 @@ export default class DormWarren extends DormWarrenBase {
     await roomEx.addExit(out);
   }
 
-  /**
-   * Population-reactive reconcile (DECISION I): reap empty rooms
-   * (capture-then-cull), then reap corridors strictly top-down — a floor's
-   * corridor reaps only when it holds no live room AND no live corridor sits
-   * above it, keeping `lobby↔c1↔…↔c_top` contiguous.
-   */
-  protected async reconcile(): Promise<void> {
-    // 1. Room dormancy — an empty room captures + reaps.
-    for (const [key, room] of [...this._unitsByKey]) {
-      if (room.isDestroyed()) {
-        this._unitsByKey.delete(key);
-        continue;
-      }
-      if (this.occupantsOf(room).length === 0) {
-        await PersistableApi.capture(room, key); // no-op if markForRevert
-        this.teardownRoom(key, room);
-      }
-    }
-
-    // 2. Corridor reap, strictly top-down.
-    const floors = [...this._corridorsByFloor.keys()].sort((a, b) => b - a);
-    for (const n of floors) {
-      const corridor = this._corridorsByFloor.get(n);
-      if (!corridor || corridor.isDestroyed()) {
-        this._corridorsByFloor.delete(n);
-        continue;
-      }
-      const liveRoomHere = this.hasLiveRoomOnFloor(n);
-      const liveCorridorAbove = floors.some(
-        (f) =>
-          f > n &&
-          !!this._corridorsByFloor.get(f) &&
-          !this._corridorsByFloor.get(f)!.isDestroyed(),
-      );
-      if (!liveRoomHere && !liveCorridorAbove) {
-        StuffApi.destruct(corridor as unknown as Stuff);
-        this._corridorsByFloor.delete(n);
-      }
-    }
-  }
-
-  /**
-   * Teardown (HMR / shutdown): destruct every member (base), then the
-   * out-of-`_members` corridors + doors, and clear the maps.
-   */
-  public override teardown(): void {
-    super.teardown();
-    for (const door of this._doorsByKey.values()) {
-      if (!door.isDestroyed()) StuffApi.destruct(door as unknown as Stuff);
-    }
-    for (const corridor of this._corridorsByFloor.values()) {
-      if (!corridor.isDestroyed()) StuffApi.destruct(corridor as unknown as Stuff);
-    }
-    this._unitsByKey.clear();
-    this._corridorsByFloor.clear();
-    this._doorsByKey.clear();
-    this._provisionedFloors.clear();
-    this._keywayByUnit.clear();
-  }
-
-  // ───────────────────── private helpers ─────────────────────
+  // ───────────────────── private helpers ──────────────────────────
 
   private async lobby(): Promise<ExitableContainer | null> {
     const lobby = await StuffApi.singleton<Stuff>(DormWarren.LOBBY_PATH);
@@ -404,34 +291,5 @@ export default class DormWarren extends DormWarrenBase {
     if (!lobby || lobby.getExit('up')) return;
     const up = StuffApi.createSync(() => new FloorStairExit(lobby, 1));
     await lobby.addExit(up);
-  }
-
-  private teardownRoom(key: string, room: MemberStuff): void {
-    this.removeMember(room); // clears the WarrenMember back-ref
-    // The caller has already persisted (reconcile captures first) or is
-    // deleting the record (end-lease); mark-for-revert so the destruct
-    // capture-on-destruct backstop doesn't redundantly re-capture a room
-    // whose contents are mid-evacuation.
-    (room as unknown as Persistable).markForRevert();
-    StuffApi.destruct(room as unknown as Stuff); // its own exits tear down
-    this._unitsByKey.delete(key);
-  }
-
-  private removeUnitDoor(unitKey: string): void {
-    const door = this._doorsByKey.get(unitKey);
-    this._doorsByKey.delete(unitKey);
-    if (!door || door.isDestroyed()) return;
-    const source = door.getSource();
-    if (MixinApi.isExitable(source)) source.removeExit(door.getDirection());
-    StuffApi.destruct(door as unknown as Stuff);
-  }
-
-  private hasLiveRoomOnFloor(n: number): boolean {
-    for (const [key, room] of this._unitsByKey) {
-      if (room.isDestroyed()) continue;
-      const slot = ParcelRecord.slotOfExtent(key);
-      if (slot?.floor === n) return true;
-    }
-    return false;
   }
 }

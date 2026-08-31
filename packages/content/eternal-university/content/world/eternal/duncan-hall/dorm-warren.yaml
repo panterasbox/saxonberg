@@ -8,4 +8,16 @@
 # the unit parcels: rooms/corridors/doors reconstitute lazily on entry after
 # a restart. No hydratorClass — no persistent or instruction fields.
 class: /world/eternal/duncan-hall/DormWarren
-data: {}
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  # D13: layout is authored data — the dorm is the LINEAR shape (floors
+  # stack; `frontagesPerNode` is the authored default under the
+  # operator's `dorm.roomsPerFloor` runtime dial, D10).
+  plan:
+    shape: linear
+    frontagesPerNode: 12
+  # D10: the institution's total capacity — the operator's runtime dial
+  # (`config set dorm.roomCap N`) over a generous shipped default.
+  capacityKey: dorm.roomCap
+  defaultCapacity: 240
+  parentExtent: /world/eternal/duncan-hall/dorms
