@@ -1023,13 +1023,12 @@ is now a driver over three sources:
 |---|---|---|
 | **Authored** | 84 | the `indexes[]` of each schema doc |
 | **Text** | 3 of those | the same, with `text: true` — routed through `ensureTextIndex`, whose drop-and-recreate-on-conflict recovery is BEHAVIOUR and stays in PM |
-| **Derived** | 6 | two loops over another vocabulary |
+| **Derived** | two loops | the `circleScope` partial on every STAMP collection (5 today), and the `{ kind, data.<naturalKey> }` partial-unique per declared document kind (5 today) |
 
-The derived pair are the `circleScope` partial index on every STAMP
-collection and the `{ kind, data.<naturalKey> }` partial-unique index per
-declared document kind. They are **consequences of another declaration**,
-not authored facts, and writing them out per collection would be the
-duplication the docs refuse.
+Both derived loops are **consequences of another declaration**, not
+authored facts, and writing them out per collection would be the
+duplication the docs refuse. Their COUNTS move on their own when the
+vocabulary they walk changes, which is exactly why they are not a list.
 
 ⭐ Declaring `sandbox: stamp` in a doc is now what gives a collection its
 `circleScope` index: `STAMP_COLLECTIONS` derives from
@@ -1112,7 +1111,8 @@ no data). They are repo files loaded at boot, exactly as `hooks.yaml` is.
 index, reconnects so the driver rebuilds from scratch, and dumps
 `listIndexes()` for all 48 collections. Run it before and after any
 change to index declaration and diff. When indexes moved into the docs
-the diff was empty: **139 indexes across 48 collections, byte-identical.**
+the diff was empty: **139 `listIndexes()` rows across 48 collections** (45
+of them the automatic `_id_`), byte-identical before and after.
 
 ⚠ Point it at this worktree's own `saxonberg_buildN`. Rebuilding every
 index on a live database is not free.
