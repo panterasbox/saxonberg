@@ -1523,10 +1523,7 @@ export class PersistenceManager {
       for (const index of doc.indexes) {
         const options: CreateIndexesOptions = {};
         if (index.unique) options.unique = true;
-        if (index.collation) {
-          options.collation =
-            index.collation as unknown as CreateIndexesOptions['collation'];
-        }
+        if (index.collation) options.collation = index.collation;
         if (index.expireAfterSeconds !== undefined) {
           options.expireAfterSeconds = index.expireAfterSeconds;
         }

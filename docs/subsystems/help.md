@@ -284,7 +284,9 @@ built here.
 | DTOs | `packages/types/src/index.ts` (Help block) |
 | Enriched projection + signature renderer | `packages/server/scripts/project-author-surface.ts` |
 | Command roster accessor | `mud/api/command.ts` + `mud/platform/idea/api/CommandLogic.ts` (`allDefinitions`) |
-| Index singleton + two projectors | `mud/platform/idea/HelpCatalogue.ts` |
+| Index singleton + three projectors | `mud/platform/idea/HelpCatalogue.ts` |
+| Collection topics' source | `packages/server/src/schema/*.yaml` + `mud/lib/persistence/SchemaDoc.ts` (the parser) |
+| Directory read for them | `SourceTreeApi.listResource` + `readYamlResource` |
 | Read chokepoint + capability filter | `mud/api/help.ts` |
 | REST surface | `backend/HelpRoutes.ts` (mounted in `services/Server.ts`) |
 | Verb | `content/platform/cmd/system/help.yaml` + `mud/platform/idea/cmd/system/HelpController.ts` |

@@ -17,8 +17,10 @@ invariants:
     `contractId` is unique and is the key both the escrow account and the
     event chain name.
   - >-
-    No money amounts are settled here; the ledger is the only place value
-    moves.
+    The row carries the agreed reward (`rewardMinor`) and the escrow
+    account id as TERMS of the agreement. It is not a balance and it never
+    moves: value moves only in `bank_ledger`, and the escrow account is
+    where it sits meanwhile.
   - >-
     REFUSE under the sandbox.
 sandbox: refuse

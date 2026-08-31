@@ -55,7 +55,12 @@ export interface SchemaIndex {
   /** The key spec, exactly as Mongo takes it. */
   readonly keys: Readonly<Record<string, 1 | -1 | 'text'>>;
   readonly unique?: boolean;
-  readonly collation?: Readonly<Record<string, unknown>>;
+  /**
+   * ⚠ `locale` is required, and the parser enforces it — Mongo's own
+   * `CollationOptions` requires it too, so a collation without one is a
+   * driver error at boot rather than a silently ignored index option.
+   */
+  readonly collation?: Readonly<{ locale: string } & Record<string, unknown>>;
   readonly expireAfterSeconds?: number;
   readonly partialFilterExpression?: Readonly<Record<string, unknown>>;
   /**
@@ -355,7 +360,7 @@ export class SchemaDoc {
       const index: {
         keys: Record<string, 1 | -1 | 'text'>;
         unique?: boolean;
-        collation?: Record<string, unknown>;
+        collation?: { locale: string } & Record<string, unknown>;
         expireAfterSeconds?: number;
         partialFilterExpression?: Record<string, unknown>;
         text?: boolean;
@@ -388,7 +393,14 @@ export class SchemaDoc {
         ) {
           return fail(`\`${at}.collation\` must be a mapping`);
         }
-        index.collation = map.collation as Record<string, unknown>;
+        const collation = map.collation as Record<string, unknown>;
+        if (typeof collation.locale !== 'string') {
+          return fail(`\`${at}.collation.locale\` is required`);
+        }
+        index.collation = collation as { locale: string } & Record<
+          string,
+          unknown
+        >;
       }
       if (map.partialFilterExpression !== undefined) {
         if (

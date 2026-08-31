@@ -28,6 +28,7 @@ const SCHEMA_DIR = join(
 const WELL_FORMED = {
   collection: 'bank_ledger',
   owner: 'LedgerEntry',
+  ownerModule: '/lib/banking/LedgerEntry',
   subsystem: 'banking.md',
   summary: 'The money system of record.',
   purpose: 'Every movement of money, append-only.',
@@ -49,6 +50,7 @@ describe('SchemaDoc.parse', () => {
     const doc = SchemaDoc.parse(WELL_FORMED, 'bank_ledger.yaml');
     expect(doc.collection).toBe('bank_ledger');
     expect(doc.owner).toBe('LedgerEntry');
+    expect(doc.ownerModule).toBe('/lib/banking/LedgerEntry');
     expect(doc.subsystem).toBe('banking.md');
     expect(doc.summary).toBe('The money system of record.');
     expect(doc.purpose).toBe('Every movement of money, append-only.');
@@ -61,7 +63,9 @@ describe('SchemaDoc.parse', () => {
   });
 
   it('reads `owner: none` as no owning class', () => {
-    expect(parse({ owner: 'none' }).owner).toBeNull();
+    const doc = parse({ owner: 'none', ownerModule: undefined });
+    expect(doc.owner).toBeNull();
+    expect(doc.ownerModule).toBeNull();
   });
 
   it('takes the mapping form of a sandbox policy with options', () => {
@@ -114,6 +118,26 @@ describe('SchemaDoc.parse', () => {
     expect(() => parse({ owner: undefined })).toThrow(/`owner`/);
   });
 
+  it('rejects an `owner` with no `ownerModule` to resolve it by', () => {
+    // The field harvest needs the class OBJECT, so an owner the
+    // projector cannot resolve is an owner whose fields never render.
+    expect(() => parse({ ownerModule: undefined })).toThrow(
+      /`ownerModule` is required alongside an `owner`/
+    );
+  });
+
+  it('rejects an `ownerModule` that is not a mud-rooted path', () => {
+    expect(() => parse({ ownerModule: 'lib/banking/LedgerEntry' })).toThrow(
+      /`ownerModule` is required alongside an `owner`/
+    );
+  });
+
+  it('rejects `ownerModule` alongside `owner: none`', () => {
+    expect(() => parse({ owner: 'none' })).toThrow(
+      /`ownerModule` has no meaning with `owner: none`/
+    );
+  });
+
   it('rejects a `subsystem` that does not name a .md file', () => {
     expect(() => parse({ subsystem: 'banking' })).toThrow(/`subsystem`/);
   });
@@ -148,6 +172,16 @@ describe('SchemaDoc.parse', () => {
     expect(() =>
       parse({ indexes: [{ keys: { a: 2 }, why: 'x' }] })
     ).toThrow(/must be 1, -1 or 'text'/);
+  });
+
+  it('rejects a collation with no `locale`', () => {
+    // Mongo's own CollationOptions requires it, so a collation without
+    // one is a driver error at boot rather than an ignored option.
+    expect(() =>
+      parse({
+        indexes: [{ keys: { a: 1 }, collation: { strength: 2 }, why: 'x' }],
+      })
+    ).toThrow(/`indexes\[0\]\.collation\.locale` is required/);
   });
 
   it('rejects an index with no keys at all', () => {

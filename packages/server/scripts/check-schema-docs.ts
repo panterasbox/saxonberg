@@ -168,10 +168,10 @@ export function collectionNameSites(files: string[]): CollectionNameSite[] {
   return sites;
 }
 
-/** `Collections.BankLedger` → `bank_ledger`. */
+/** `Collections.BankLedger` → `bank_ledger`; `null` for a name that is not a member. */
 function valueOfMember(member: string): string | null {
-  const table = Collections as unknown as Record<string, string>;
-  return table[member] ?? null;
+  const hit = Object.entries(Collections).find(([name]) => name === member);
+  return hit ? hit[1] : null;
 }
 
 // ── The six assertions ────────────────────────────────────────────────

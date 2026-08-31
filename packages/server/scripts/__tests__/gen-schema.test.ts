@@ -47,7 +47,9 @@ describe('gen-schema', () => {
   });
 
   it('emits one enum member per doc, in filename order', () => {
-    const emitted = [...emitCollections(docs).matchAll(/^  (\w+) = '(\w+)',$/gm)];
+    const emitted = [
+      ...emitCollections(docs).matchAll(/^ {2}(\w+) = '(\w+)',$/gm),
+    ];
     expect(emitted).toHaveLength(docs.length);
     expect(emitted.map((m) => m[2])).toEqual(
       [...docs.map((d) => d.collection)].sort()

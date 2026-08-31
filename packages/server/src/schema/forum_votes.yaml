@@ -14,8 +14,10 @@ invariants:
     One row per (entry, voter), enforced unique — a second vote is a
     driver-level refusal, not a lost race.
   - >-
-    The aggregate on an entry is derived from these rows, never stored as
-    a counter.
+    These rows are the system of record for the count. `forum_entries`
+    carries a DENORMALIZED upvote count and net score for the popularity
+    sorts — recomputed from here, not incremented in place, so a
+    disagreement is resolved by recounting.
   - >-
     REFUSE under the sandbox.
 sandbox: refuse

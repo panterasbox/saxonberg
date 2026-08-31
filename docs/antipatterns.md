@@ -1155,6 +1155,52 @@ Platform paths only. Authored `/world/` content references its own paths
 in seeds (and, for spawn/evacuation, app config) — that's content, not
 platform, and stays out of the index.
 
+## Collection Names as String Literals — Use `Collections.X`
+
+**ANTIPATTERN**: `static collectionName = 'users'`.
+
+A collection name is not a string, it is a member of a closed
+vocabulary — and that vocabulary is the key everything else about the
+collection hangs off. A literal names a collection the vocabulary cannot
+see, so that collection gets **no schema doc, no index, no sandbox
+policy row, no reset disposition and no help topic**, and nothing
+complains. Eleven production classes did this until the schema-docs
+build; CLAUDE.md had called `Collections.ts` the single source of truth
+the whole time, and nothing enforced it.
+
+### BAD
+
+```typescript
+class User extends Document {
+  static collectionName = 'users';
+}
+
+// And the same failure one indirection out:
+export const PARTIES_COLLECTION = 'parties';
+class PartyRecord extends Document {
+  static collectionName = PARTIES_COLLECTION;   // still not the enum
+}
+```
+
+### GOOD
+
+```typescript
+import { Collections } from '../persistence/Collections';
+
+class User extends Document {
+  static collectionName = Collections.Users;
+}
+```
+
+Enforced by `pnpm lint:schema` (AST-based, file-scoped), which also
+checks that the collection's schema doc names this class back. Test
+fixtures under `__tests__` are the one exemption: they name collections
+that are deliberately outside the vocabulary and must stay literals.
+
+⚠ The same rule kills the *indirection* variant. A module-level constant
+holding the literal is a third way of saying the name, and it defeats
+the gate for the same reason the literal does.
+
 ## Reaching Into Raw Alias Storage
 
 **ANTIPATTERN**: Mutating `aliases` / `aliasesSession` directly,

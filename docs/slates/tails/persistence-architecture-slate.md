@@ -414,3 +414,28 @@ docs carry all 84.
 
 Wave 3 (marshallers / hooks / Hydrator as path-resolved modules) is
 untouched and independent.
+
+### The tail Wave 4 left
+
+Two attach points, deliberately not built and not stubbed. Both are
+recorded in [persistence.md § What a schema doc does NOT
+carry](../../subsystems/persistence.md); they live here because they are
+design space, not documentation.
+
+- **Per-field prose.** The schema doc carries no field list — the help
+  projector harvests it from `fieldMeta`, so the fields cannot drift.
+  The cost is that *what does `circleScope` mean on this collection*
+  has nowhere to live. `FieldMetaEntry` gaining a `description` is the
+  obvious next move, and the projector would render it with **no
+  schema-doc change and no projector change** — the attach point is
+  already the right shape. The open question is scope: `fieldMeta` is
+  declared on ~200 classes, so "add a description" is a sweep, and the
+  interesting half is deciding which fields deserve one rather than how
+  to store it.
+
+- **Mongo-side JSON Schema validators.** The schema docs *describe*;
+  they do not enforce document shape at write time. Deriving a Mongo
+  `$jsonSchema` validator from `fieldMeta` is mechanically close and
+  strategically not: a validator rejects existing rows, which is the
+  one place this repo's "no migrations, drop the DB" rule stops being
+  free. It wants its own conversation.

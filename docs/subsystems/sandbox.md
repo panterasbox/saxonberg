@@ -38,12 +38,23 @@ one policy lookup per PM write).
 ## The write-path policy table (VERIFIED 2026-07-30)
 
 Verified writer-by-writer against the live tree (every collection's
-writers, gameplay reachability, and unique indexes audited). The
-enforced copy is `COLLECTION_POLICIES` in
-`backend/PersistenceManager.ts` — `Record<Collections, …>` makes
-totality a **compile error** (a new collection cannot ship without a
-policy row). An unclassified string collection written from circle
-context fails closed at runtime.
+writers, gameplay reachability, and unique indexes audited).
+
+The **authored** copy is each collection's `sandbox:` field in
+`packages/server/src/schema/<collection>.yaml`, and the argument for the
+verb it carries is that doc's `invariants` — which is where to read it
+and where to change it. The **enforced** copy is `COLLECTION_POLICIES` in
+`mud/lib/persistence/CollectionPolicy.ts`, ⚠ **generated** from those
+docs by `pnpm gen:schema`; `Record<Collections, …>` makes totality a
+**compile error** (a new collection cannot ship without a policy row),
+and `pnpm lint:schema` fails if the generated table and the docs
+disagree. An unclassified string collection written from circle context
+fails closed at runtime.
+
+⚠ The table below is a THIRD copy, kept by review rather than by a gate.
+It is the reading view — the four verbs side by side, which no
+per-collection file can show. When it disagrees with the schema docs,
+the docs are right.
 
 | Verb | Collections | Disposition from circle context |
 |---|---|---|
