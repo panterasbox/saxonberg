@@ -102,6 +102,15 @@ University Avenue (D9).
   fronting every plat book in the world (D14) — land purchase gets a
   diegetic front the way the dorm has Katie; rentals go through the
   landlord's own manager instead.
+- **Home-making is structured and legible.** Archetype satisfaction
+  (D15) derives on read over a room or holding from capability-shaped
+  needs, and a dedicated legible read reports it; the dorm bedsit reads
+  as all four archetypes, a bare room reads as none, and nothing is
+  ever enforced.
+- **Every holding is a floorplan.** At every rung the holding
+  materializes as an authored room-graph minted under its extent, and
+  title / provisioning / persistence / dormancy align on that extent
+  (D16) — the parity claim across all residential parcels.
 - **Owned goods can be mounted, not just set down.** Wall/finer
   placement lands as a small verb over the shipped `Adornable` fixture
   surface (D11) — hang a lamp, take it back down; a mounted good
@@ -163,6 +172,17 @@ University Avenue (D9).
   for a friend is still the follow-on.
 - **An HOA as shipped content** — the tenure term makes it expressible;
   no HOA organization or venue ships.
+- **The general-store split / commercial units** — breaking the store
+  into smaller businesses is a future commercial build riding this
+  substrate unchanged (a shop unit is the same holding machinery under
+  a `commercial` land use; a trade bundle is its archetype). This
+  build's obligation is the genericity constraint below, no shop
+  content.
+- **Remodel / floorplan expansion** — adding rooms to a holding is
+  editing its floorplan (D16), a development-slate seam.
+- **Valuation** — the assessed read (archetypes + condition priced for
+  a market) waits for the Landwrights/resale build; only the
+  satisfaction predicate and its legible read ship (D15).
 - **A second residential locality** — the suburb is Hinkley Lane; the
   apartment street is a district *within* Terminus.
 - **The farmland locality** — frontier smallholding and farm tenure
@@ -394,6 +414,65 @@ through a realtor unless you're renting. Named seams, not scope: a
 *developer* is a player selling a subdivision's book over land they
 hold (the development slate's vocation).
 
+### D15 — An archetype is a satisfiable checklist, never a room class
+
+The castle-freedom vs structure tension resolves the way libations'
+venue checklist already did (`coldStorage` satisfied by any space or
+object holding the capability, *"reported, never enforced"*):
+
+- **A need is a capability predicate** — heat to cook on, a work
+  surface, cold storage, running water, a rest surface, a wash place —
+  satisfied by *whatever carries the capability*, never `instanceof`.
+- **An archetype is a named bundle of needs** (kitchen, bedroom,
+  bathroom, living, workshop…) — authored data with an **open
+  vocabulary** (packs can add; archetypes invent recognition, not
+  mechanics, so closure buys nothing).
+- **Satisfaction derives on read over a *space*** — a room or the whole
+  holding — and is never enforced. Forced by shipped content: the dorm
+  room is *"the four archetypes collapsed into one room; archetypes
+  compose rather than partition"* (furnishing.md). A studio's kitchen
+  corner is a kitchen.
+- **Payoffs are the mechanics the satisfied needs unlock at home**
+  (cook → meal chemistry; a good bed → sleep-as-logout quality;
+  living → hosting) — the needs are capability predicates, so the
+  mechanics consume the objects directly; the archetype read adds
+  **legibility**, never a multiplier or a happiness stat.
+- **There is no Kitchen class at any tier.** Template inheritance does
+  not exist; every kitchen everywhere is a `FurnishableRoom` row.
+  Tiers differ on two data axes only: **floorplan** (which rooms a
+  holding has and how they collapse) and **grade** (fixture quality,
+  the shipped crafting axis). The shipped archetype rows are exemplar
+  bundles a floorplan cites, not classes anything narrows on.
+- **The read ships and is its own surface**: a dedicated, legible
+  player-facing read of a holding's satisfied archetypes (its own verb
+  or a subcommand on an existing one — the planner picks whatever is
+  most legible; not necessarily `look`). The realtor/Landwrights
+  *valuation* — an assessed read feeding a future resale market — is a
+  named seam on top of this predicate, not this build.
+
+Outside the vocabulary: everything. A room satisfying no archetype is
+just a room full of your stuff; freedom is the default, recognition is
+laid over it.
+
+### D16 — The warren bottoms out at the holding; a holding is a floorplan
+
+No warren-of-warrens. A warren earns its machinery through **dynamic
+membership**; a holding's interior has none — its rooms are a fixed set
+that materializes and sleeps together. So the warren's member is the
+**holding** (unit, lot), and the holding materializes as its
+**floorplan**: a small authored graph of rooms minted under the
+holding's extent (`<extent>/<leaf>`, the shipped Hinkley channel — the
+yard is an outdoor leaf of the lot's floorplan). **The four lifecycles
+align on the extent**: title, provisioning, persistence keying, and
+dormancy all operate on the holding as one thing — an apartment goes
+dormant as a unit, never room-by-room. The symmetry with D13 is the
+abstraction: **the plat plan is to the institution what the floorplan
+is to the holding** — authored data a provisioner consumes to mint a
+graph — with different lifecycles (stock grows member-at-a-time; a
+floorplan stands up whole). Remodel/expansion — adding a room to your
+house — is *editing the floorplan*, a named seam (development-slate
+territory), not warren mechanics and not this build.
+
 ## Constraints
 
 - **No residence subsystem, no per-feature Api.** Apartments and houses
@@ -424,6 +503,14 @@ hold (the development slate's vocation).
   the affordance), and every verb passes the affordance chain —
   contributed, in scope, parseable, conferred by something present. The
   furnishing build's lesson is a checklist item here, twice paid for.
+- **Nothing keys on `residential`.** The holding/warren/floorplan/
+  tenure machinery is land-use-agnostic; gates read `landUse` where
+  they must, and the future commercial build (shop units, the store
+  split) must ride this substrate with zero rework.
+- **No happiness stat, no archetype multiplier.** Archetype
+  satisfaction is recognition over capabilities the mechanics already
+  consume; it never feeds a bonus, a score, or an enforcement gate
+  (D15).
 - **Verify by driving.** A green controller test is not a reachable
   feature; each rung's loop gets a live drive before "done".
 
@@ -455,6 +542,12 @@ hold (the development slate's vocation).
   dialogue lists what's for sale across books, walks the buyer to the
   confirm, and the purchase fires as the buyer through settle; the raw
   `title` verb still works as the operator surface.
+- **Archetype recognition works:** the legible read reports the dorm
+  bedsit as satisfying all four archetypes and a bare room as none;
+  furnishing a studio corner with a heat source, work surface, and
+  cold storage makes it read as a kitchen — whatever objects satisfied
+  the needs; nothing anywhere enforces an archetype (tested: an
+  unrecognized room provisions, persists, and functions identically).
 - **Condition works:** a neglected shell's condition declines on read
   over elapsed game time (slope, with cause legible); maintenance
   restores it; a well-kept dorm/lease passes the ascent gate and a
