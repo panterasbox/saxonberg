@@ -838,7 +838,11 @@ operating location (the `shifts` shape; a walk is the locomotion
 slate's), `forceCommand(host, 'wallet use house')`, `buy <keyword>`
 per unit of shortfall (bottles: `ceil(shortfall / bottle L)`; produce:
 crates; ice: bags; glasses: `buy coupe`), teleport back, `put <kw> on
-<shelf>` / `put <kw> in bin|rack` per bought thing; then the bussing
+<shelf>` / `put <kw> in <rack>` / `pour <kw> into <bin>` per bought
+thing (⚠ ice is POURED — the bin is a Bulkable Thermos, not a
+container, and `put ice in bin` is refused with "an ice bin isn't a
+place"; the shipped `restocks` brain has this right, this line did
+not); then the bussing
 beat: any soiled empty glass in the room → `get`, `put in rack`,
 `wash`. Config keys only name fixtures; the supplier comes from the par
 line. If a `buy` declines (`insufficient-funds`), stop — the sheet
