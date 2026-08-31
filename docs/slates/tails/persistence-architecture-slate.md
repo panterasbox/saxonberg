@@ -260,3 +260,66 @@ This slate boils down to:
 
 The marshaller/hook un-Stuffing waits for its own wave and shares the
 path-resolved-module design with NPC brains.
+
+---
+
+## Wave 4 (proposed 2026-08-31) — the schema as loaded content
+
+> **Status: captured, not designed.** Raised during the boot-time build.
+> It supersedes the "MongoDB schema / indexing — no change needed" line
+> in *What this slate does NOT cover* above, which was written before
+> anyone wanted the schema to be data.
+
+**The want, in the raiser's words:** *externalize all the DB schema into
+YAML docs with their own version histories, and PM just loads whatever
+docs are present, like a seeder would.*
+
+### What is a hard-coded table today
+
+Four of them, all in TypeScript, all read by `PersistenceManager`:
+
+| Table | Where | What it decides |
+|---|---|---|
+| The collection vocabulary | `lib/persistence/Collections.ts` | what names exist |
+| Indexes | `PersistenceManager.createIndexes()` | unique/TTL/text, per collection |
+| The sandbox policy | `COLLECTION_POLICIES` in `PersistenceManager` | stamp / shadow / pass / refuse |
+| The reset policy | `lib/persistence/ResetPolicy.ts` | what a nightly reset does |
+
+A new collection means editing four places in three files, and only the
+first is anywhere a reviewer looks.
+
+### What it buys
+
+- **The tables become reviewable.** A diff that says a collection went
+  from `pass` to `stamp` is a sentence, not a constant buried in a
+  1 600-line file.
+- **A pack could declare its own storage.** Today a capability pack that
+  wanted a collection would need a kernel MR — precisely the
+  "a pack must never need a kernel list edit" rule the capability-packs
+  build established everywhere *else*.
+- **It closes the resilience slate's commonest failure** — a control
+  "designed, documented, given a default, and never connected." A table
+  that is loaded is a table you can assert over at boot.
+
+### The two things to settle before building it
+
+- ⚠ **`Collections` is a TYPE, not only data.** The enum is used in type
+  position across the tree, and `DocumentKinds` is a closed vocabulary
+  the compiler checks. Parsing it from YAML at runtime moves a whole
+  class of error from build time to boot time — the opposite of every
+  other gate here. The likely honest shape is **YAML as the source and a
+  generated TS vocabulary** (the lint-family pattern: the data is
+  authored, a build step derives the checkable form, and a gate proves
+  they agree) rather than PM parsing YAML with no compile-time trace.
+- ⚠ **What does a version history mean under "no migrations ever"?** The
+  standing rule is that a rename is a DB drop, so a schema version that
+  no migration reads is documentation, not machinery. That may be
+  exactly what is wanted — a legible record of what the shape was and
+  when it changed — but it should be *said*, so nobody later builds a
+  migration runner to consume it.
+
+### Where it would sit
+
+After Wave 3 (marshallers/hooks/Hydrator as path-resolved modules) and
+independent of it: both waves are the same move — **stop expressing
+persistence policy as TypeScript the framework happens to read.**

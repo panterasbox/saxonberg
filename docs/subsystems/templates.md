@@ -51,7 +51,16 @@ class LeafTemplate extends Template {} // type-level marker; leaves.
 
 `findByPath`, `findDescendants`, and `loadById` all dispatch into the
 right subclass — callers that hold a `Template` get back the correct
-shape without needing to sniff `class`. The split is the primary
+shape without needing to sniff `class`.
+
+⭐ **`findByPath` does not go to the database.** The `content`
+collection is held resident by `PersistenceManager` and a by-path read
+is answered from memory, hit or miss — which is what makes the clone
+pipeline's per-clone template load, and the zone walk's read per
+ancestor path, free rather than a ~30 ms round trip each. The cache is
+kept current at the same chokepoint every write passes through; see
+[persistence.md § The resident `content` cache](./persistence.md). The
+other three still query. The split is the primary
 expression of the folder/leaf invariant; the `DomainHook` that fires
 on save/delete is defense-in-depth at the persistence chokepoint.
 

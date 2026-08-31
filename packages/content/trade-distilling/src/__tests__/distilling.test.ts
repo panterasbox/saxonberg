@@ -395,7 +395,13 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
       const here = (giver as unknown as TestHand).getContainer() as Location;
       const [verb, ...rest] = text.split(' ');
       if (verb === 'get') {
-        const kw = rest[0]!;
+        // `get 1 <kw>` — the quantity form the beat uses so a lift takes
+        // ONE of a keyword rather than every match on the floor (see
+        // `lib/behavior/consigns.ts`). The real verb takes a leading
+        // count; the stub has to as well, or the lift silently matches
+        // nothing and the beat stops at the first good.
+        const rst = /^\d+$/.test(rest[0] ?? '') ? rest.slice(1) : rest;
+        const kw = rst[0]!;
         const stock = here.getContents().find((c): c is Stock => c instanceof Stock);
         const item = stock?.getContents().find((c) => MixinApi.isPerceptible(c) && c.hasKeyword(kw));
         if (item) ContainmentApi.move(item as never, giver as never);
@@ -503,7 +509,7 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
     } as unknown as BrainContext;
     await consigns.act(brainCtx);
     // One lifted, one listed; the second bottle never left the floor.
-    expect(lines).toEqual(['get gin', 'wallet use house', 'consign gin --ask 10']);
+    expect(lines).toEqual(['get 1 gin', 'wallet use house', 'consign gin --ask 10']);
     expect(vodka.getContainer()).toBe(floorStock);
     expect(counter.activeListingCount(OUTFIT)).toBe(1);
     // The cap is full: the next beat lifts nothing and issues no verb.
@@ -534,7 +540,7 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
     await consigns.act(brainCtx);
 
     // The verbs, in order: two gets, the wallet once, two consigns at the asks.
-    expect(lines).toEqual(['get gin', 'get vodka', 'wallet use house', 'consign gin --ask 14', 'consign vodka --ask 10']);
+    expect(lines).toEqual(['get 1 gin', 'get 1 vodka', 'wallet use house', 'consign gin --ask 14', 'consign vodka --ask 10']);
     // Custody moved to the counter; the listing names the OUTFIT as consignor;
     // the good is stamped to the outfit (an organization, never the hand).
     expect(gin.getContainer()).toBe(counter);
