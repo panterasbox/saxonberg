@@ -1,0 +1,25 @@
+# The Farmers Market — the municipal market operator (the budget.yaml
+# shape: proprietor-absent = public/municipal, no corpoKey). It exists so
+# a sale at the stalls has somewhere to attribute: commission lands on
+# the market's own P&L, wholly separate from any grower's account.
+#
+# Stands up lazily and derived: the employment engine reads
+# `operatingLocations` and stands it up on first `businessAt(the
+# stalls)` — the first sale is the trigger. No roster in v1: the stalls
+# are self-service; a market clerk is a later hire the positions list is
+# ready for.
+class: /platform/idea/Business
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  # City-run: the committee over the ground it operates on (the market
+  # square is the `terminus` group's).
+  appointingAuthority:
+    kind: committee
+    parcel: /world/terminus/market
+  positions: []
+  rosterSlots: []
+  # Where the municipality banks (the budget.yaml precedent): city
+  # governance is content — a commercial account like anyone's.
+  banksAt: goodkin
+  operatingLocations:
+    - /world/terminus/market/stalls

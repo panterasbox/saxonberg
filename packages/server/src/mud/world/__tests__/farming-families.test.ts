@@ -148,6 +148,40 @@ describe('trade-farming — the ten grown families resolve end to end', () => {
     }
   });
 
+  it('the farmers market resolves: square ↔ avenue pair, stalls, operator (A6)', () => {
+    const square = byPath.get('/world/terminus/market/square');
+    expect(square).toBeDefined();
+    const exits = square!.data.exits as Record<string, { destination: string }>;
+    expect(exits.northeast.destination).toBe(
+      '/world/terminus/counting-houses/avenue-block',
+    );
+    // Both sides explicit (the cash-and-carry precedent).
+    const avenue = byPath.get('/world/terminus/counting-houses/avenue-block')!;
+    const avenueExits = avenue.data.exits as Record<string, { destination: string }>;
+    expect(avenueExits.southwest.destination).toBe('/world/terminus/market/square');
+    // The zone row is the sibling .yaml.
+    expect(byPath.get('/world/terminus/market')!.class).toBe(
+      '/platform/idea/location/CartesianZone',
+    );
+
+    const stalls = byPath.get('/world/terminus/market/stalls');
+    expect(stalls).toBeDefined();
+    expect(stalls!.class).toBe('/platform/thing/Stock');
+    expect(stalls!.data.stockLines).toEqual([]); // consignment-only, no par
+    expect(Number(stalls!.data.listingCapOverride)).toBeGreaterThan(24);
+    expect((square!.data.populates as string[])).toContain(
+      '/world/terminus/market/stalls',
+    );
+
+    const business = byPath.get(stalls!.data.businessPath as string);
+    expect(business, 'market business').toBeDefined();
+    expect(business!.data.proprietorPath ?? '').toBe(''); // municipal
+    expect(business!.data.banksAt).toBe('goodkin');
+    expect(business!.data.operatingLocations).toContain(
+      '/world/terminus/market/stalls',
+    );
+  });
+
   it('a tree fits a garden bed alone — the D0 suburban-garden invariant', () => {
     // The Hinkley-yard acceptance leg plants a lime in a 12 L bed: every
     // grown family's MATURE root demand must fit a whole bed to itself,

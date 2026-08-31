@@ -41,6 +41,12 @@ data:
     # cardinal exit, both sides explicit — the hall declares NORTH back.
     south:
       destination: /trade/distilling/location/cash-and-carry
+    # SOUTHWEST down the side lane to the farmers market square — the
+    # produce end of the district, deliberately off the money block
+    # (demand-side placement: the buyers are already here). Cross-zone,
+    # both sides explicit — the square declares NORTHEAST back.
+    southwest:
+      destination: /world/terminus/market/square
   details:
     hollis:
       keywords: [hollis, jingle, free]
