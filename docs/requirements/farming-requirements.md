@@ -1,12 +1,9 @@
 # Farming — requirements
 
-> **Status: requirements conversation IN PROGRESS.** Decisions marked
-> **LOCKED** are agreed with the user; sections marked *(draft)* are
-> the build agent's opening position, not yet discussed. Locked so far:
-> the suburban-garden invariant (D0), the fruit cycle (D1–D2), the
-> harvest mint + matter-not-mark rule (D3), the faucet closure + the
-> market path (D4), the land model (D5), the farmer + the beats (D6),
-> the two entry points (D7).
+> **Status: requirements CLOSED (2026-08-31).** Every decision D0–D9
+> was discussed and **LOCKED** with the user in conversation; D5's
+> sub-items were resolved in a closing sweep (leans applied with the
+> user's go-ahead — see D5). Next phase: plan.
 
 Make farming an actual production chain. The libations build made the
 bar's supply chain real from the cash-and-carry **down**; everything
@@ -52,7 +49,7 @@ Seeded by [farming-slate](../slates/builds/farming-slate.md) and
   without being destroyed by harvest — the standing-tap yield shape,
   riding the shipped flowering latch on the reconcile-on-read engine.
 - **All eight bar produce materials are grown.** Each has a plant + seed
-  row in `trade-farming` riding the perennial mechanic (citrus ×4,
+  row in `trade-farming` riding the fruit cycle (citrus ×4,
   cherry, olive as trees; cranberry as a shrub; mint as a cut-and-
   come-again herb). Carrot stays the annual exemplar, untouched.
 - **The census faucet for produce is closed.** No produce item or
@@ -63,11 +60,10 @@ Seeded by [farming-slate](../slates/builds/farming-slate.md) and
   title, live on, and break into fields — a farm is also a residence.
   The NPC exemplar farm is one pre-sold holding, worked, with water
   and compost sources.
-- **The chain runs unattended.** A grower NPC tends, picks, and
-  brings produce to market through literal verbs (the `consigns` /
-  `restocks` precedent); how the bar's produce par is met downstream —
-  the keeper shopping the farmers market vs the distributor lane — is
-  D6/D9's to settle. Steady state sustains the lounge's par draw.
+- **The chain runs unattended.** The farmer-proprietor tends, picks,
+  and brings produce to market through literal verbs (the `consigns` /
+  `restocks` precedent); the lounge keeper shops the farmers market
+  for produce (D6). Steady state sustains the lounge's par draw (D9).
 - **Quality is honest.** A harvest's grade derives from the plant's
   worst limiting stretch over the cycle that made the crop; a
   neglected cycle grades poor; nitrogen exports with the take.
@@ -77,8 +73,8 @@ Seeded by [farming-slate](../slates/builds/farming-slate.md) and
 ## Non-goals
 
 - **Seasons / winter in the growth model** — the ∫weather integral and
-  the sun→light driver are phase 4's (living-world-roadmap). The grove
-  uses authored ambient light, the Hinkley-yard precedent.
+  the sun→light driver are phase 4's (living-world-roadmap). Fields
+  use authored ambient light, the Hinkley-yard precedent.
 - **Spoilage / preservation** — the adjacent slate
   ([preservation-slate](../slates/builds/preservation-slate.md),
   phase 3). Harvested produce keeps, for now.
@@ -91,7 +87,7 @@ Seeded by [farming-slate](../slates/builds/farming-slate.md) and
   `supplier:` fields and the four stub trades behind the distributor
   are the lounge/distilling side and unchanged here.
 - **Fungible/glob produce** — supply-chain Part 2. Produce stays
-  discrete `Provision`s in crates; consignment stays chattel-shaped.
+  loose, discrete `Provision`s; consignment stays chattel-shaped.
 - **The distillery consuming grapes/juniper** — a future distilling
   build (fermentation is its one new mechanic). This build only ships
   the crops (see D8).
@@ -99,7 +95,7 @@ Seeded by [farming-slate](../slates/builds/farming-slate.md) and
   (D5), but the road network linking it to the wider map, and freight
   over it, stay with the locomotion/freight slates. The map *UI*
   (2D/3D) is its own work item; this build owes honest placement data
-  (see D5's open sub-items).
+  (see D5's resolved sub-items).
 
 ## Surface decisions
 
@@ -333,15 +329,26 @@ move) with three or four fields already broken — citrus, stone fruit,
 vines, herbs — worked by its farmer-proprietor (D6), so the chain runs
 from boot and the district's prose is true.
 
-Open sub-items within D5 (leans stated, not locked): break-ground's
-cost (lean: a real engagement with game-time); field retirement back
-to grass (lean: defer); verify/wire `radius` driving the
-photometric/air/ranged size scale as cartesian `extent` does (a small
-principled addition if absent); foci auto-packed v1 (player-placed
-wants the map UI first); whether a first "your holding" map card is in
-this build or data-only; the packaging split (which pack ships the
-district's geography vs the trade content — Hinkley precedent has
-world-seed shipping ground and claims).
+**D5 sub-items — RESOLVED** (the closing sweep; leans applied with
+the user's go-ahead):
+
+- **Break-ground is a real engagement** with real game-time; a coin
+  fee stays an optional dial.
+- **Field retirement** (back to grass, area reclaimed) — deferred, a
+  named seam; a young game rarely un-farms.
+- **`radius` → size scale**: verify at build time whether
+  `SphericalLocation` drives the photometric/air/ranged scale from
+  `radius` as cartesian `extent` does; wire it if absent (a small
+  principled addition, done once).
+- **Foci are auto-packed** v1 (the holder derives placement; the
+  player chooses *area*); player-placed fields wait for the map UI.
+- **The map is DATA-ONLY this build**: honest placement (focus +
+  radius / coords) for every room it mints; the "your holding" card
+  rides the map-UI work item, not this cycle.
+- **Packaging split per the Hinkley precedent**: world-seed ships the
+  district's geography and title claims (Heart's Delight, Murphy's
+  Station, the plat book); trade-farming ships the farming substrate,
+  species/plant content, and the exemplar farm's tenancy.
 
 ### D6 — The farmer-proprietor and the beats — LOCKED
 
@@ -428,22 +435,32 @@ margin — instead of a seed); planting-stock retail placement is
 content (seed packets sell at retail, the general store's gardening
 line precedent).
 
-### D8 — Grapes and juniper ship; grain does not *(draft)*
+### D8 — Grapes and juniper ship; grain does not — LOCKED
 
-Two more perennials — the grapevine and the juniper shrub — ship on the
-same mechanic as crops with no current consumer. They are distilling's
-two hardest future inputs (supply-chain § the martini), they fit the
-fruiting window exactly, and their marginal cost is a handful of rows.
-Grain and cane are annual field crops at the aggregate density and wait
-for phase 4. *(Cuttable if review wants the set minimal.)*
+*Stub = downstream of production only* (the libations doctrine), and
+the content-packs rule says *seed the economy backwards from shipped
+sinks*: the winemaker and distiller stubs exist, their real upstream
+inputs don't. The grapevine and the juniper shrub ride the fruit cycle
+as two more species — **complete at their tier without the distiller**
+(grown, picked, sold at the market, eaten: food and seasoning), which
+is what never-half-grown requires — and stand as the first true
+upstream matter waiting for the fermentation build. Grain and cane are
+aggregate-density field crops and wait for phase 4, as non-goaled.
 
-### D9 — Throughput is tuned against the lounge's par *(draft)*
+### D9 — Throughput is dials; the dials assert nothing — LOCKED
 
-Accrual rates, fruit caps, and beat cadences are dials
-(`AppSetting`-backed where the husbandry precedent has dials) tuned so
-the shipped grove sustains the lounge's steady-state draw with all
-three beats running (tends → consigns → restocks). Numbers are
-placeholders for a running game, per the husbandry calibration stance.
+Every number is a placeholder for a running game (the husbandry
+calibration stance): cycle lengths, set counts, beat cadences — all
+profile/`AppSetting` data, freely retunable by authors. What the build
+owes is two **observable truths**, not numbers:
+
+1. the exemplar holding sustains the lounge's produce par at steady
+   state through the market path — many free-running cycles desyncing
+   into smooth aggregate supply (D2's pulse argument doing its job);
+2. a single backyard tree gives its keeper a real harvest day.
+
+Tests assert mechanism; the live drive asserts the steady state; **no
+test ever pins a tuning number**.
 
 ## Constraints
 
@@ -454,12 +471,13 @@ placeholders for a running game, per the husbandry calibration stance.
   family clock (no far-past guard, step-cap-not-time-cap) governs the
   fruiting window like everything else.
 - **Mutating acts capture their host** (`PersistableApi.captureHostOf`)
-  — harvest on a perennial now mutates a *surviving* plant and its
+  — harvest on a polycarp now mutates a *surviving* plant and its
   ground; both must capture.
 - **The land-use gate is honored, not bypassed** — the farm's beds are
   `fixedGround` on ground the manifest zones agricultural. No
   hard-coded venue exemption.
-- **Template rows follow `/trade/farming/<branch>/…`**; nothing
+- **Template rows follow their pack's root conventions** (world-seed
+  for the district, `/trade/farming/<branch>/…` for the trade); nothing
   instances `/lib/`; `lint:instanceable`, `lint:untitled`,
   `lint:topics`, `lint:imports`, `lint:test-content` stay green.
 - **No new Api unless subsystem-shaped** — extend the husbandry surface
