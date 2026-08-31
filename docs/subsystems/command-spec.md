@@ -560,6 +560,27 @@ than the unstable pronoun.
 
 Empty resolutions never touch focus regardless of mode.
 
+⭐⭐ **A DISAMBIGUATED pick anchors on the THING, never on the word.**
+The focus is an MQL fragment and `$focus` **re-resolves** it on every
+later command that defaults to it (`look` declares `default: "$focus"`).
+So storing the keyword the player typed, after they were asked to choose
+between eleven things that matched it, stores the ambiguity: the next
+bare `look` finds eleven again and asks again, forever. When the
+candidate list held more than one, the binder anchors focus on
+`#<stuffId>` — a viewer-free MQL seed that resolves to exactly what was
+picked and still chains (`#abc:label`) for drilling. An UNambiguous
+match keeps the player's own word: it names one thing, and it is what
+`focus` shows them.
+
+⚠ It reads back as the thing, not the id — `buildPromptContext`
+resolves a bare id anchor to its presentation, so the shell prompt says
+`the house tablet>` and not `#wtYvAoxeDjtrMJku8NThs>`.
+
+⚠⚠ And the failure mode was worse than a loop: **a command sent while a
+prompt is open produces no response at all**, so from the seat the
+session did not loop, it went silent. See
+[prompt.md](./prompt.md).
+
 Only meaningful when the giver is `Focused` (Avatars composing
 `ShelledCharacter`). NPCs without `FocusedMixin` ignore the field.
 

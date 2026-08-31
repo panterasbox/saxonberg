@@ -238,6 +238,18 @@ and then the site carries the guards the proxy would have applied
   justifies touching the get trap.
 - **The static-Api wrapper's apply thunk** — one closure per static Api
   call, off the dispatch path but everywhere else.
+- **Recognition, and the walk around it.** Salvaged from the retired
+  `gate-cost-slate`, which measured the MQL scope walk before the gate
+  was fixed and named two candidates the pass above never took:
+  - **Hoist the viewer-invariant checks out of `describeCore`.**
+    `isSensor(viewer)` / `isPerception(viewer)` are the same for all ~35
+    candidates in one walk and are re-asked per candidate.
+  - **`pushDirect` calls `describe` AND `perceivedKeywords`**, and for an
+    ORGANISM the latter re-enters `describeCore` a second time
+    (`RecognitionLogic:390`).
+  - Caching recognition per (viewer, target) per resolve was considered
+    and is **low value**: each candidate is visited once per resolve, so
+    the win is smaller than it looks.
 - **§4, the boot round trips.** The big one, and not this subsystem.
 
 ---
@@ -314,4 +326,4 @@ one read.
 [persistence.md](../../subsystems/persistence.md) ·
 [antipatterns.md](../../antipatterns.md) ·
 [testing.md](../../testing.md) ·
-[gate-cost-slate.md](./gate-cost-slate.md) (the short version)
+*(supersedes the retired `gate-cost-slate` — its surface is salvaged above)*

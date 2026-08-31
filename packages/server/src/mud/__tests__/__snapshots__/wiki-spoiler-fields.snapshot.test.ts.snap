@@ -142,6 +142,7 @@ BulkableMixin.surfaceCapacity = 0
 BulkableMixin.surfaceMaterial = 0
 BulkableMixin.surfacePayload = 0
 BusinessMixin.banksAt = 0
+BusinessMixin.openingCapital = 0
 BusinessMixin.operatingLocations = 0
 BusinessMixin.parLines = 0
 CartesianCoordinatesMixin.coordinates = 0

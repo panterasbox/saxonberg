@@ -253,6 +253,19 @@ Both cancel passes run while the Interactive is still
 addressable; pending awaits reject before the Interactive goes
 away, so controllers' try/catch handlers can react cleanly.
 
+### ⚠ A command sent while a prompt is open gets NO response
+
+Measured on the wire during a live drive: with a `mqlObject` prompt
+outstanding, an ordinary command from the same actor produces **no
+dispatch-response, no note, no prose**. The client sends it, the socket
+is healthy, and nothing comes back.
+
+That is survivable when the prompt is answerable — but it is what turned
+a focus bug into a session that appeared dead rather than one that
+looped, and it cost an hour of diagnosis pointed at the wrong layer.
+**A queued or refused command should say so.** Not fixed here; recorded
+because the silence is the expensive part, not the queueing.
+
 ## Outbound delivery
 
 Every server-pushed envelope (push / validation-failed / dismissed)
@@ -278,6 +291,17 @@ subscription needed.
 ```yaml
 prompt.format: "{{ focus }}>"     # default
 ```
+
+⚠ **`{{ focus }}` renders a focus ANCHOR as the thing, not as an id.**
+After a disambiguation the binder anchors focus on `#<stuffId>` so
+`$focus` re-resolves to what was picked rather than to the ambiguous
+word (see [command-spec.md](./command-spec.md) § `updates_focus:`).
+That fragment is MQL and the prompt is prose, so `buildPromptContext`
+resolves a bare id anchor to its presentation — the prompt reads
+`the house tablet>`, not `#wtYvAoxeDjtrMJku8NThs>`, which is what a live
+drive got. Only the bare-anchor form: `here`, `here:bookcase:book` and
+every other fragment are already the player's own words and show as
+written; an id that no longer resolves falls back to the fragment.
 
 Registered on `EnvironmentMixin` alongside other shell settings.
 Players change via the existing `settings` / `set` vocabulary:

@@ -403,7 +403,18 @@ deferred until a sub-clade lands and earns the inheritance machinery.
   Indexed against the perception substrate's
   `PerceptionApi.modalityByOrganKey` — `sensoryPort.modality` is the
   organ key (`'vision'`, `'hearing'`, `'smell'`, `'touch'`,
-  `'taste'`). ESP modalities (`'verbal-esp'`, `'emotive-esp'`) are
+  `'taste'`).
+
+  ⚠⚠ **A port nobody declares is a verb nobody can use, and it fails
+  SILENTLY.** `biped` and `quadruped` shipped with vision, hearing and
+  smell only — no touch, no taste. The `feel` and `taste` verbs ship,
+  their `requiresTouch` / `requiresTaste` validators ship, the modality
+  singletons ship, and every character in the world got *"You can't feel
+  anything."* forever, because the last link was a line in this list. It
+  surfaced only when somebody typed the verb during a live drive. **A
+  new modality is not live until some body plan grants it**; both plans
+  now declare touch (`circumferential` — skin is all around) and taste
+  (`forward`). ESP modalities (`'verbal-esp'`, `'emotive-esp'`) are
   reserved values the substrate accepts but no v1 species declares —
   ESP capability arrives via augment-conferral instead (see
   [augmentation.md](./augmentation.md)). A future telepath species

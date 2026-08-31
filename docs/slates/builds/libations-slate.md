@@ -1,9 +1,9 @@
 # Libations slate — the bar's supply chain, and putting things where they go
 
-> **Built 2026-08-28 on `design/libations`** — review rulings: a corpo pack is capital + the mark only (products in the trade pack); **a verb lives with the pack whose content affords it** (hospitality/hearth-cooking/smithing own their steps; the capability vocabulary is open and a tool row names its own verbs; `menu`/`order` are platform `retail`). Requirements
-> `docs/requirements/libations-requirements.md` (D1–D14), plan
-> `docs/plans/libations-plan.md` (six phases, twenty findings; its
-> *Blockers / deviations* records what the code forced: the lounge stays
+> **Built 2026-08-28 on `design/libations`** — review rulings: a corpo pack is capital + the mark only (products in the trade pack); **a verb lives with the pack whose content affords it** (hospitality/hearth-cooking/smithing own their steps; the capability vocabulary is open and a tool row names its own verbs; `menu`/`order` are platform `retail`). The requirements
+> (D1–D14) and plan (six phases, twenty findings) were **retired at the
+> pre-merge sweep**; what the code forced is recorded here and in the
+> subsystem docs: the lounge stays
 > a data pack, `measureCount` is the shipped `count`, `shake` existed, the
 > display composes no aether mixin, the blend base went to the platform
 > pack, the sweep needed the batch draw + a boot run). Build-time

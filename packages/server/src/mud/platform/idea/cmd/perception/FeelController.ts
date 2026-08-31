@@ -105,7 +105,7 @@ export default class FeelController extends SingleSenseControllerBase {
      */
     const shown = object.getPresentation();
     const line =
-      object === (actor as unknown as Stuff & Thermal)
+      (object as Stuff) === (actor as Stuff)
         ? Mml.compose`You feel ${band}.`
         : Mml.compose`${shown.charAt(0).toUpperCase() + shown.slice(1)} feels ${band}.`;
     MessageApi.scene(actor)

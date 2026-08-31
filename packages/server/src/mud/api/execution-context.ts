@@ -154,17 +154,33 @@ interface FrameNode {
   readonly frame: CallFrame;
   readonly parent: FrameNode | null;
   /** Frame 0. Self on a root node. */
-  root: FrameNode;
+  readonly root: FrameNode;
 }
 
 /** ALS-backed storage — the innermost frame; walk `parent` for the rest. */
 const _als = new AsyncLocalStorage<FrameNode>();
 
-/** Link `frame` beneath the current node (or start a fresh stack). */
+/**
+ * Link `frame` beneath the current node (or start a fresh stack).
+ *
+ * A class rather than an object literal for one reason: `root` on a root
+ * node is the node ITSELF, and a literal cannot name itself while it is
+ * being built — expressing it that way needed a
+ * `null as unknown as FrameNode` placeholder to satisfy the field's type
+ * and then overwrite it. A constructor has `this`.
+ */
+class LinkedFrame implements FrameNode {
+  readonly root: FrameNode;
+  constructor(
+    readonly frame: CallFrame,
+    readonly parent: FrameNode | null
+  ) {
+    this.root = parent !== null ? parent.root : this;
+  }
+}
+
 function _linkFrame(frame: CallFrame, parent: FrameNode | null): FrameNode {
-  const node: FrameNode = { frame, parent, root: null as unknown as FrameNode };
-  node.root = parent !== null ? parent.root : node;
-  return node;
+  return new LinkedFrame(frame, parent);
 }
 
 /**
