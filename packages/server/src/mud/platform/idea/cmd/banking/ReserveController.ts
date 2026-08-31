@@ -130,9 +130,19 @@ export default class ReserveController extends BankingControllerBase<ReserveMode
       const c = record.key;
       const r = await BankingApi.fullReconcile(c);
       const amount = (minor: number): string => Money.of(minor, c).render();
+      // ⭐ The overdraft line is only printed when there IS one, and it is
+      // the Governor's most important number when there is: `accountTotal`
+      // NETS, so money paid out of an unfunded account cancels itself out of
+      // the supply figure while remaining spendable in the payee's hands.
+      // Without this line a world running entirely on unissued credit reads
+      // as a world with no money at all — and reconciles clean.
+      const overdraft =
+        r.overdraft > 0
+          ? `\n  of which overdraft: ${amount(r.overdraft)} (unissued credit)`
+          : "";
       blocks.push(
         `Money supply (${record.plural}): ${amount(r.supply)}\n` +
-          `  in accounts:       ${amount(r.accountTotal)}\n` +
+          `  in accounts:       ${amount(r.accountTotal)}${overdraft}\n` +
           `  in circulation:    ${amount(r.circulatingCoin)}\n` +
           `  in bank vaults:    ${amount(r.vaultCoin)} (backed on-ledger)\n` +
           `  held offline:      ${amount(r.snapshotCoin)}\n` +
