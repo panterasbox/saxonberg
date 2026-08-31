@@ -246,8 +246,9 @@ export default class HoldingProgramme extends ProgrammeBase {
     if (from.getExit(edge.direction)) return;
     const { default: KeyedDoorExit } = await import('./KeyedDoorExit');
     if (edge.locked) {
-      // The locked edge — both sides are the same keyway-gated door
-      // (the dorm-door model applied intra-holding).
+      // The locked edge — keyway-gated INWARD (the dorm-door model);
+      // the way back OUT is free (a guest let in is never trapped, and
+      // leaving your own house needs no key).
       const doorIn = StuffApi.createSync(
         () =>
           new KeyedDoorExit(from, to, edge.direction, this, {
@@ -257,8 +258,18 @@ export default class HoldingProgramme extends ProgrammeBase {
       await from.addExit(doorIn);
       const back = edge.opposite ?? 'out';
       if (!to.getExit(back)) {
+        const { default: Exit } = await import(
+          '@saxonberg/server/mud/lib/boundary/Exit'
+        );
         const doorOut = StuffApi.createSync(
-          () => new KeyedDoorExit(to, from, back, this, { oneWay: true }),
+          () =>
+            new Exit({
+              direction: back,
+              source: to,
+              destination: from as never,
+              keepLiveDestination: true,
+              oneWay: true,
+            }),
         );
         await to.addExit(doorOut);
       }

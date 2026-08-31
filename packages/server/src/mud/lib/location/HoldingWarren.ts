@@ -292,6 +292,37 @@ export abstract class HoldingWarren extends Warren {
   }
 
   /**
+   * The shell condition of the holding at `extent` — the residence
+   * ladder's ascent-gate read (P10): admit the holding through its
+   * institution and ask its programme (duck-typed — the programme class
+   * ships in the residence pack). Null when no institution covers the
+   * extent or the holding carries no shell clock (a bare room).
+   */
+  public static async conditionOf(
+    extent: string,
+  ): Promise<{ condition: number; band: string } | null> {
+    const room = await HoldingWarren.admitFor(extent);
+    if (!room) return null;
+    const programme = (
+      room as unknown as { getWarren?: () => unknown }
+    ).getWarren?.() as
+      | { reconcileShell?: () => number; conditionBand?: () => string }
+      | null
+      | undefined;
+    if (
+      !programme ||
+      typeof programme.reconcileShell !== 'function' ||
+      typeof programme.conditionBand !== 'function'
+    ) {
+      return null;
+    }
+    return {
+      condition: programme.reconcileShell(),
+      band: programme.conditionBand(),
+    };
+  }
+
+  /**
    * Re-enter a keyed room from a captured placement: find the resident
    * institution whose parent extent prefixes the key (the boot roster —
    * every institution boots as a producer), admit the holding, and

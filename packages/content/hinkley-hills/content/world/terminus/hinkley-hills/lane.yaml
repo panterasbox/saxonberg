@@ -3,10 +3,12 @@
 #
 # There is NO authored exit into a lot. A gate is hung here per SOLD lot
 # by the LotHolder (a deferred `LotGateExit`, directioned by the lot leaf
-# — `lot-1`), because the street cannot name one room: each lot's room is
-# minted at its own identity path. A static `north -> .../yard` named the
-# shared source TEMPLATE, which then materialized as an unowned yard on
-# nobody's lot — the defect that shipped past a green unit suite.
+# — `lot-1`), because the street cannot name one room: each lot's rooms
+# are KEYED instances of real rows under the lots zone (residences
+# D16/D17). This lane is the plat plan's AUTHORED segment (lane:1); the
+# reaches beyond it are minted road-segment clones that stand as their
+# frontage sells (`lots/road-segment.yaml`), and Hinkley Court branches
+# off the second reach.
 #
 # The unbuilt neighbouring lots are `details:` PROSE, not nine empty
 # rooms. Their emptiness is the story — a subdivision drawn for a hundred

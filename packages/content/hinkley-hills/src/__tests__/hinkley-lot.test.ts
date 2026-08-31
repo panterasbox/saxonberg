@@ -32,7 +32,7 @@ const read = (rel: string): { class?: string; data?: Record<string, unknown> } =
 const HINKLEY = "world/terminus/hinkley-hills";
 
 describe("the yard ships the kit that makes it workable", () => {
-  const yard = read(`${HINKLEY}/yard.yaml`);
+  const yard = read(`${HINKLEY}/lots/yard.yaml`);
   const populates = (yard.data?.populates ?? []) as string[];
 
   it("⭐ ships a WATERING CAN, because `water` is tool-conferred", () => {
@@ -72,7 +72,7 @@ describe("the lane authors no exit into a lot", () => {
       expect(
         spec.destination,
         `lane exit '${dir}' names the yard template`,
-      ).not.toBe(`/${HINKLEY}/yard`);
+      ).not.toBe(`/${HINKLEY}/lots/yard`);
     }
   });
 
@@ -103,8 +103,21 @@ describe("one lot ships already sold", () => {
     expect(lot1?.areaM2).toBe(book.data?.areaM2);
   });
 
-  it("its leaf is one the plat book knows, so `title list` reads `sold`", () => {
+  it("its leaf fits the GENERATIVE book (D10 — prefix + capacity, no roster)", () => {
     const book = read(`${HINKLEY}/plat-book.yaml`);
-    expect((book.data?.lots ?? []) as string[]).toContain("lot-1");
+    const holder = read(`${HINKLEY}/lot-holder.yaml`);
+    expect(book.data?.lots).toBeUndefined(); // the roster is retired
+    const prefix = String(book.data?.lotPrefix ?? 'lot-');
+    expect('lot-1'.startsWith(prefix)).toBe(true);
+    expect(Number(holder.data?.defaultCapacity)).toBeGreaterThanOrEqual(1);
+  });
+
+  it("the house floorplan cites real rows only (D17)", () => {
+    const programme = read(`${HINKLEY}/house-programme.yaml`);
+    const rooms = (programme.data?.floorplan ?? []) as Array<{ room?: string }>;
+    expect(rooms.length).toBeGreaterThanOrEqual(5);
+    for (const r of rooms) {
+      expect(String(r.room ?? '')).toMatch(/^\//);
+    }
   });
 });

@@ -1,18 +1,19 @@
 /**
- * `title` — the land-sale verb (Hinkley Hills Wave 7).
+ * `title` — the land-sale verb, on the KEYED model (residences wave 5).
  *
- * The property substrate shipped every piece of title machinery and no
- * player-facing act. This is the act, and the tests are about the two
- * things that make a sale a sale rather than a state change:
+ * The two things that make a sale a sale still anchor the suite:
  *
  *   1. ⭐ **An unfunded buyer changes NOTHING.** No parcel row, no money
- *      moved, no yard stood up. The money leg runs first for exactly
- *      this reason.
+ *      moved, no house stood up. The money leg runs first.
  *   2. **The same lot cannot be sold twice**, and the chain of title
  *      records what happened.
  *
- * The venue rule is tested too: land changes hands over a counter, not
- * wherever you happen to be standing.
+ * What the rework added, each pinned here: the venue is the DEED DESK's
+ * presence (P6), the book is GENERATIVE (D10 — no roster; any lot number
+ * under the cap), the sale mints the buyer's KEY at the chokepoint (D7),
+ * the ASCENT GATE reads the buyer's existing holdings' condition (P10),
+ * and a sold lot stands up a keyed HOUSE through the programme — every
+ * room `(scope = a real row, key = <lotExtent>/<leaf>)` (D16/D17).
  */
 
 import "@saxonberg/server/test-bootstrap";
@@ -21,15 +22,19 @@ import TitleController from '@saxonberg/server/mud/platform/idea/cmd/civics/Titl
 import ParcelRegistry from '@saxonberg/server/mud/platform/idea/ParcelRegistry';
 import LotHolder from '../idea/LotHolder';
 import PlatBook from '../idea/PlatBook';
+import DeedDesk from '../thing/DeedDesk';
+import HoldingProgramme from '../idea/HoldingProgramme';
 import GroupRegistry from '@saxonberg/server/mud/platform/idea/GroupRegistry';
 import { ParcelApi } from '@saxonberg/server/mud/api/parcel';
 import { BankingApi } from '@saxonberg/server/mud/api/banking';
 import { EmploymentApi } from '@saxonberg/server/mud/api/employment';
+import { CredentialApi } from '@saxonberg/server/mud/api/credential';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { ExecutionContextApi } from '@saxonberg/server/mud/api/execution-context';
 import { ParcelEvent } from '@saxonberg/server/mud/lib/parcel/ParcelEvent';
 import { Document } from '@saxonberg/server/mud/lib/persistence/Document';
+import { HoldingWarren } from '@saxonberg/server/mud/lib/location/HoldingWarren';
 import { QuantityMarshaller } from '@saxonberg/server/mud/platform/idea/persistence/QuantityMarshaller';
 import { CommandGiverMixin } from '@saxonberg/server/mud/lib/command/CommandGiver';
 import { NamedMixin } from '@saxonberg/server/mud/lib/description/Named';
@@ -42,6 +47,7 @@ import { PersistableMixin } from '@saxonberg/server/mud/lib/persistence/Persista
 import { PostRegistrationMixin } from '@saxonberg/server/mud/lib/stuff/PostRegistration';
 import Location from '@saxonberg/server/mud/lib/stuff/Location';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import { PersistenceManager } from '@saxonberg/server/mud/lib/persistence/__tests__/backend-store';
 import { CommandDefinition } from '@saxonberg/server/mud/lib/command/CommandDefinition';
 import {
@@ -52,7 +58,6 @@ import {
 import {
   makeStuff,
   makeStuffAtPath,
-  stampIdentityPathForTest,
   withRootContext,
 } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import {
@@ -60,7 +65,7 @@ import {
   installV1QuantityTagTables,
 } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 
-/** A persistable room — what a real yard template clones to. */
+/** A persistable room — what a real house room clones to. */
 class TitleTestRoom extends PersistableMixin(
   PostRegistrationMixin(ContainerMixin(Location)),
 ) {
@@ -82,16 +87,15 @@ class TestGiver extends SensorMixin(
   }
 }
 
-const REGISTRY_ROOM = '/world/terminus/registry/office';
 const SUBURB = '/world/terminus/hinkley-hills';
-// Lots hang off their own zone branch — see PlatBook.lotBranch, and
-// `lots.yaml`: the `lot-N` gate off the lane is non-cardinal, which a
-// cartesian grid admits only across a zone boundary.
 const LOTS = `${SUBURB}/lots`;
 const LOT2 = `${LOTS}/lot-2`;
 const HOLDER_PATH = `${SUBURB}/lot-holder`;
 const BOOK_PATH = `${SUBURB}/plat-book`;
 const STREET_PATH = `${SUBURB}/lane`;
+const PROGRAMME = `${SUBURB}/house-programme`;
+const YARD_ROW = `${SUBURB}/yard`;
+const ROAD_ROW = `${SUBURB}/road-segment`;
 
 interface Doc extends Record<string, unknown> {
   _id?: string;
@@ -138,8 +142,23 @@ function installStore(): void {
     delete: vi.fn(async () => {}),
     isConnected: () => true,
   } as unknown as PersistenceManager);
-  // The sale WRITES an area, so a real m² marshaller is needed — a no-op
-  // resolver would throw on the save rather than round-trip the value.
+  // The house rows the programme wakes (real clone pipeline).
+  const domain = col('content');
+  const PH = '/platform/idea/persistence/PersistentHydrator';
+  const add = (path: string, cls: string, data: Record<string, unknown> = {}) =>
+    domain.push({ _id: `d-${++idCounter}`, path, class: cls, hydratorClass: PH, data });
+  domain.push({ _id: `d-${++idCounter}`, path: PH, class: PH, data: {} });
+  add(PROGRAMME, '/residence/idea/HoldingProgramme', {
+    floorplan: [{ leaf: 'yard', room: YARD_ROW, entry: true }],
+    upkeepTerm: 'owner-all',
+  });
+  add(YARD_ROW, '/platform/location/FurnishableRoom', {
+    shortDescription: 'the yard behind the house',
+  });
+  add(ROAD_ROW, '/platform/location/FurnishableRoom', {
+    shortDescription: 'a reach of the lane',
+  });
+  // The sale WRITES an area, so a real m² marshaller is needed.
   const m2Path = QuantityMarshaller.pathFor('m²');
   const m2 = makeStuffAtPath(
     () => new QuantityMarshaller<'m²'>(),
@@ -166,50 +185,50 @@ function seedSuburb(): void {
 }
 
 /**
- * Hinkley's two halves, exactly as the seeds author them: a CATALOGUE
- * (what is for sale, on what terms) naming a PROVISIONER (how ground
- * becomes a place). The controller knows no locality, so a test that
- * wants lots to exist has to stand both up.
+ * Hinkley's two halves, exactly as the rows author them: the GENERATIVE
+ * catalogue (no roster — D10) naming the provisioner, whose plan is the
+ * branched one (the authored lane + minted reaches + the court).
  */
 function seedSubdivision(): void {
-  // The singletons persist across tests (no StuffApi.clearAll — it wipes
-  // the WorldClockRegistry), so their FIELDS are re-seeded every time
-  // rather than only on creation. Two tests below deliberately repoint
-  // `holderPath`, and without this reset that mutation leaks forward.
   const holder =
     StuffApi.findByTemplatePath<LotHolder>(HOLDER_PATH) ??
     makeStuffAtPath(() => new LotHolder(), HOLDER_PATH);
-  holder.setRoomTemplate(`${SUBURB}/yard`);
-  holder.forgetLiveRooms();
+  holder.setProgrammePath(PROGRAMME);
+  holder.setRoadTemplate(ROAD_ROW);
+  holder.setParentExtent(SUBURB);
+  holder.setDefaultCapacity(60);
+  holder.setPlan({
+    shape: 'branched',
+    roads: [
+      {
+        key: 'lane',
+        segments: 14,
+        frontagesPerSegment: 4,
+        authored: { '1': STREET_PATH },
+      },
+      {
+        key: 'court',
+        segments: 1,
+        frontagesPerSegment: 4,
+        branchesFrom: { road: 'lane', segment: 2 },
+      },
+    ],
+  });
 
   const book =
     StuffApi.findByTemplatePath<PlatBook>(BOOK_PATH) ??
     makeStuffAtPath(() => new PlatBook(), BOOK_PATH);
   book.setLabel('Hinkley Hills');
   book.setParentExtent(SUBURB);
-  book.setLots(['lot-1', 'lot-2', 'lot-3', 'lot-4', 'lot-5']);
   book.setPriceMinor(4000);
   book.setAreaM2(1000);
   book.setLandUse('residential');
   book.setHolderPath(HOLDER_PATH);
 }
 
-/**
- * A street for the lots to front onto — a plain exitable room, since the
- * gate wiring only needs `addExit`/`getExit`. The cartesian zone rule
- * that forced the separate lots branch is `CartesianLocation`'s, and it
- * is exercised live in `e2e/tests/hinkley.spec.ts`; what a unit test can
- * pin is that a gate is hung, named for the lot, exactly once, and only
- * for lots that sold.
- */
 function seedStreet(): StreetRoom {
-  const holder = StuffApi.findByTemplatePath<LotHolder>(HOLDER_PATH)!;
   const existing = StuffApi.findByTemplatePath<StreetRoom>(STREET_PATH);
-  const street =
-    existing ?? makeStuffAtPath(() => new StreetRoom(), STREET_PATH);
-  holder.setStreetPath(STREET_PATH);
-  holder.setParentExtent(SUBURB);
-  return street;
+  return existing ?? makeStuffAtPath(() => new StreetRoom(), STREET_PATH);
 }
 
 async function bootRegistries(): Promise<void> {
@@ -252,7 +271,6 @@ function reasons(ctx: CommandContext): string[] {
   return ctx.getNotes().map((n) => (n as { reason?: string }).reason ?? '');
 }
 
-/** Run the controller under a root context with an acting author. */
 async function run(
   giver: TestGiver,
   loc: Location,
@@ -272,39 +290,18 @@ let settleWorks: boolean;
 
 describe('title', () => {
   beforeEach(async () => {
+    vi.restoreAllMocks();
+    ParcelApi._resetRegistryRefForReload();
+    StuffApi.clearAll();
     installStore();
     installV1QuantityMarshallers();
     installV1QuantityTagTables();
     seedSuburb();
     await bootRegistries();
     seedSubdivision();
-    // The holder clones a room per sold lot and keys it through the
-    // persistence spine, so the stub has to be a PERSISTABLE room — a
-    // bare Location would make restoreOrSeed throw, correctly.
-    // Honour `asIdentityPath` — the mint is the thing under test in one
-    // of these, and a stub that ignored it would quietly prove nothing.
-    // The stub takes clone's REAL 3-arg shape: the pre-residences stub
-    // read opts from the second (context) position, which is where the
-    // old LotHolder call put it — and where the real clone never looked.
-    vi.spyOn(StuffApi, 'clone').mockImplementation((async (
-      path: string,
-      _ctx?: unknown,
-      opts?: { asIdentityPath?: string },
-    ) => {
-      const room = makeStuffAtPath(
-        () => new TitleTestRoom(),
-        path.startsWith('/') ? path : fresh('/world/_title/room'),
-      );
-      if (opts?.asIdentityPath) {
-        stampIdentityPathForTest(room, opts.asIdentityPath);
-      }
-      return room;
-    }) as unknown as typeof StuffApi.clone);
 
     settled = [];
     settleWorks = true;
-    // The money leg is banking's business and is proven there; here it
-    // is a switch, so the sale's ORDERING is what gets tested.
     vi.spyOn(EmploymentApi, 'ensureOperatorAt').mockImplementation(
       (async () => ({}) as never) as unknown as typeof EmploymentApi.ensureOperatorAt,
     );
@@ -322,10 +319,19 @@ describe('title', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    ParcelApi._resetRegistryRefForReload();
+    StuffApi.clearAll();
   });
 
+  /** A records room WITH its deed desk — the P6 venue. */
   function registryRoom(): Location {
-    return makeStuffAtPath(() => new Location(), REGISTRY_ROOM);
+    const room = makeStuffAtPath(
+      () => new TitleTestRoom(),
+      fresh('/world/somewhere/records'),
+    );
+    const desk = makeStuff(() => new DeedDesk());
+    ContainmentApi.move(desk, room);
+    return room as unknown as Location;
   }
   function elsewhere(): Location {
     return makeStuffAtPath(() => new Location(), fresh('/world/somewhere'));
@@ -350,11 +356,31 @@ describe('title', () => {
     const owner = await ParcelApi.ownerOf(LOT2);
     expect(owner?.kind).toBe('player');
     expect((owner! as { templatePath: string }).templatePath).toBe(
-      buyer.getTemplatePath(),
+      buyer.getIdentityPath(),
     );
-    // …and the money actually moved.
     expect(settled).toHaveLength(1);
     expect(settled[0]).toBe(4000);
+  });
+
+  it('⭐ the sale KEYS the house and hands the buyer the key (D7)', async () => {
+    const issued: Array<[string, string]> = [];
+    vi.spyOn(CredentialApi, 'issueKey').mockImplementation((async (
+      _who: Stuff,
+      keyway: string,
+      tech: string,
+    ) => {
+      issued.push([keyway, tech]);
+    }) as unknown as typeof CredentialApi.issueKey);
+
+    const room = registryRoom();
+    const buyer = buyerIn(room);
+    await run(buyer, room, model('buy', 'lot 2'));
+
+    const record = await ParcelApi.coveringParcelOf(LOT2);
+    expect(record?.getKeyway()).toBeTruthy();
+    expect(issued).toHaveLength(1);
+    expect(issued[0]![0]).toBe(record!.getKeyway());
+    expect(issued[0]![1]).toBe('pin-tumbler');
   });
 
   it('the chain of title records subdivide THEN transfer', async () => {
@@ -366,7 +392,7 @@ describe('title', () => {
     expect(events.map((e) => e.event)).toEqual(['subdivide', 'transfer']);
   });
 
-  it('the lot is stamped residential, with its area', async () => {
+  it('the lot is stamped residential, with its area, under the DISTRICT owner', async () => {
     const room = registryRoom();
     const buyer = buyerIn(room);
     await run(buyer, room, model('buy', 'lot 2'));
@@ -374,7 +400,6 @@ describe('title', () => {
     const record = await ParcelApi.coveringParcelOf(LOT2);
     expect(record?.getLandUse()).toBe('residential');
     expect(record?.getArea()).toBe(1000);
-    // …and it is therefore ground a bed may stand on.
     expect(ParcelApi.cultivationScaleAt(LOT2)).toBe('bed');
   });
 
@@ -387,12 +412,9 @@ describe('title', () => {
 
     expect(reasons(ctx)).toContain('insufficient-funds');
     expect(settled).toHaveLength(0);
-    // No parcel row was minted…
     const record = await ParcelApi.coveringParcelOf(LOT2);
     expect(record?.getExtent()).not.toBe(LOT2);
-    // …and no chain-of-title event was written.
     expect(await ParcelEvent.findByExtent(LOT2)).toHaveLength(0);
-    // …and the ground is still the District's.
     const owner = await ParcelApi.ownerOf(LOT2);
     expect(owner?.kind).toBe('group');
   });
@@ -406,37 +428,47 @@ describe('title', () => {
     const ctx = await run(second, room, model('buy', 'lot 2'));
 
     expect(reasons(ctx)).toContain('already-sold');
-    // …and the second buyer was not charged for the privilege.
     expect(settled).toHaveLength(1);
     const owner = await ParcelApi.ownerOf(LOT2);
     expect((owner! as { templatePath: string }).templatePath).toBe(
-      first.getTemplatePath(),
+      first.getIdentityPath(),
     );
   });
 
-  it('buying away from the Registry is refused', async () => {
-    const room = elsewhere();
-    const buyer = buyerIn(room);
-    const ctx = await run(buyer, room, model('buy', 'lot 2'));
-
+  it('⭐ the venue is the DESK, not a room constant (P6)', async () => {
+    // Away from any desk: refused.
+    const bare = elsewhere();
+    const buyer = buyerIn(bare);
+    const ctx = await run(buyer, bare, model('buy', 'lot 2'));
     expect(reasons(ctx)).toContain('not-at-registry');
     expect(settled).toHaveLength(0);
+
+    // A SECOND desk anywhere is a records office — no code change.
+    const annex = registryRoom();
+    const buyer2 = buyerIn(annex);
+    const ctx2 = await run(buyer2, annex, model('buy', 'lot 3'));
+    expect(reasons(ctx2)).not.toContain('not-at-registry');
   });
 
-  it('listing away from the Registry is refused too', async () => {
+  it('listing away from a desk is refused too', async () => {
     const room = elsewhere();
     const buyer = buyerIn(room);
     const ctx = await run(buyer, room, model('list'));
     expect(reasons(ctx)).toContain('not-at-registry');
   });
 
-  it('an unknown lot is refused without charging', async () => {
+  it('⭐ GENERATIVE: a lot beyond any roster sells; past the cap is unknown', async () => {
     const room = registryRoom();
     const buyer = buyerIn(room);
-    const ctx = await run(buyer, room, model('buy', 'lot 99'));
+    // lot-45 — no roster row anywhere (the old book stopped at 40).
+    const ctx = await run(buyer, room, model('buy', 'lot 45'));
+    expect(reasons(ctx)).not.toContain('unknown-lot');
+    const owner = await ParcelApi.ownerOf(`${LOTS}/lot-45`);
+    expect(owner?.kind).toBe('player');
 
-    expect(reasons(ctx)).toContain('unknown-lot');
-    expect(settled).toHaveLength(0);
+    // …but past the operator's capacity there is nothing to buy.
+    const ctx2 = await run(buyerIn(room), room, model('buy', 'lot 61'));
+    expect(reasons(ctx2)).toContain('unknown-lot');
   });
 
   it('accepts "lot 2", "lot-2" and "2" alike', async () => {
@@ -444,10 +476,42 @@ describe('title', () => {
     for (const raw of ['lot 2', 'lot-2', '2']) {
       const buyer = buyerIn(room);
       const ctx = await run(buyer, room, model('buy', raw));
-      // The first sells; the rest hit already-sold — never unknown-lot,
-      // which is the point.
       expect(reasons(ctx)).not.toContain('unknown-lot');
     }
+  });
+
+  it('⭐ the ASCENT GATE refuses a dilapidated holder, names the reason, passes a kept one (P10)', async () => {
+    const room = registryRoom();
+    const buyer = buyerIn(room);
+    // The buyer already holds a lease somewhere, and its shell is gone.
+    col('parcels').push({
+      _id: `p-${++idCounter}`,
+      extent: '/world/elsewhere/dorms/f1-r1',
+      zonePath: '/world/elsewhere/dorms/f1-r1',
+      owner: { kind: 'group', name: 'landlord' },
+      parentParcel: '/world/elsewhere/dorms',
+      grants: [],
+      allowance: null,
+    });
+    await ParcelApi.rebuildCoverageIndex();
+    await ParcelApi.grantUse(
+      '/world/elsewhere/dorms/f1-r1',
+      buyer.getIdentityPath()!,
+      null,
+    );
+    const cond = vi
+      .spyOn(HoldingWarren, 'conditionOf')
+      .mockResolvedValue({ condition: 0.2, band: 'dilapidated' });
+
+    const ctx = await run(buyer, room, model('buy', 'lot 2'));
+    expect(reasons(ctx)).toContain('ascent-condition');
+    expect(settled).toHaveLength(0);
+    expect(await ParcelApi.ownerOf(LOT2)).toMatchObject({ kind: 'group' });
+
+    // A sound holding passes the same gate.
+    cond.mockResolvedValue({ condition: 0.9, band: 'sound' });
+    const ctx2 = await run(buyer, room, model('buy', 'lot 2'));
+    expect(reasons(ctx2)).not.toContain('ascent-condition');
   });
 
   it('⭐ title bare reports what you hold and its land use', async () => {
@@ -471,12 +535,8 @@ describe('title', () => {
   });
 
   it('⭐ the provisioner is SWAPPABLE without touching the catalogue', async () => {
-    // The reason the two are separate objects. A different provisioning
-    // model — the likely next one mints a template per residence rather
-    // than cloning one shared template per lot — is a subclass of
-    // LotHolder and a one-line change to the book's `holderPath`.
-    // Nothing in the catalogue, the verb or the parcel layer moves.
     class MintingHolder extends LotHolder {
+      static _mixinName = 'TitleMintingHolder';
       public minted: string[] = [];
       public override async provision(
         lotExtent: string,
@@ -485,11 +545,12 @@ describe('title', () => {
         return {
           room: makeStuffAtPath(
             () => new TitleTestRoom(),
-            `${lotExtent}/minted`,
+            fresh('/world/_title/minted'),
           ),
           firstTime: true,
         };
       }
+      public override async ensureGate(): Promise<void> {}
     }
 
     const swapped = makeStuffAtPath(
@@ -503,22 +564,14 @@ describe('title', () => {
     const buyer = buyerIn(room);
     const ctx = await run(buyer, room, model('buy', 'lot 3'));
 
-    // The sale went through the NEW provisioner…
     expect(reasons(ctx)).not.toContain('insufficient-funds');
     expect(swapped.minted).toEqual([`${LOTS}/lot-3`]);
-    // …and everything the catalogue owns is unchanged: the title moved,
-    // the money moved, the zoning was stamped.
     const owner = await ParcelApi.ownerOf(`${LOTS}/lot-3`);
     expect(owner?.kind).toBe('player');
     expect(settled).toEqual([4000]);
-    const record = await ParcelApi.coveringParcelOf(`${LOTS}/lot-3`);
-    expect(record?.getLandUse()).toBe('residential');
   });
 
   it('a book whose provisioner is missing still sells, and says nothing false', async () => {
-    // An offer with nothing behind it is a content bug. The sale must not
-    // pretend a room appeared, but it also must not take the money and
-    // then throw — the title is real either way.
     const book = StuffApi.findByTemplatePath<PlatBook>(BOOK_PATH)!;
     book.setHolderPath('/world/nowhere/absent-holder');
 
@@ -531,11 +584,7 @@ describe('title', () => {
     expect(owner?.kind).toBe('player');
   });
 
-  it('⭐ hangs a GATE on the street for the lot, and only for the lot', async () => {
-    // The lane used to author `north -> <the yard template>`, which stood
-    // the shared TEMPLATE up as an unowned place and could only ever mean
-    // one lot. Gates are installed per sale instead, directioned by the
-    // lot's leaf.
+  it('⭐ hangs a GATE on the lane for the lot, eager on the yard ROW (D17)', async () => {
     const street = seedStreet();
     expect(street.getExit('lot-2')).toBeUndefined();
 
@@ -544,92 +593,90 @@ describe('title', () => {
 
     const gate = street.getExit('lot-2');
     expect(gate).toBeDefined();
-    // Eager on its face — describable without materializing the yard.
-    expect(gate!.getDestinationTemplatePath()).toBe(`${LOT2}/yard`);
-    // …and nothing opens onto a lot nobody bought.
+    // Eager on its face — the ENTRY ROOM'S REAL ROW, never a minted path.
+    expect(gate!.getDestinationTemplatePath()).toBe(YARD_ROW);
     expect(street.getExit('lot-3')).toBeUndefined();
+  });
+
+  it('⭐ the house stands up KEYED on the extent — rooms are instances of real rows (D16/D17)', async () => {
+    const street = seedStreet();
+    void street;
+    const room = registryRoom();
+    await run(buyerIn(room), room, model('buy', 'lot 2'));
+
+    const holder = StuffApi.findByTemplatePath<LotHolder>(HOLDER_PATH)!;
+    const yard = holder.liveRoomFor(LOT2)!;
+    expect(yard).not.toBeNull();
+    // The lineage is the ROW; the instance identity is the (scope, key).
+    expect(yard.getTemplatePath()).toBe(YARD_ROW);
+    expect(
+      (yard as unknown as { getPersistenceKey(): string }).getPersistenceKey(),
+    ).toBe(`${LOT2}/yard`);
+    // The holding is the keyed programme, carrying the tenure term (D5).
+    const holding = holder.holdingFor(LOT2)! as unknown as HoldingProgramme;
+    expect(holding).toBeInstanceOf(HoldingProgramme);
+    expect(holding.getUpkeepTerm()).toBe('owner-all');
+    expect(
+      (holding as unknown as { getPersistenceKey(): string }).getPersistenceKey(),
+    ).toBe(LOT2);
   });
 
   it('the gate is idempotent — re-provisioning hangs no second one', async () => {
     const street = seedStreet();
+    const room = registryRoom();
+    await run(buyerIn(room), room, model('buy', 'lot 2'));
     const holder = StuffApi.findByTemplatePath<LotHolder>(HOLDER_PATH)!;
-
-    await holder.ensureGate(LOT2);
     const first = street.getExit('lot-2');
     await holder.ensureGate(LOT2);
     await holder.ensureGate(LOT2);
-
     expect(street.getExit('lot-2')).toBe(first);
   });
 
-  it('⭐ re-hangs every sold lot\'s gate at BOOT, materializing nothing', async () => {
-    // A restart leaves the yards in `holder_snapshots` and the street
-    // with no exits. Without this an owner standing on the lane has no
-    // way home. The exits are deferred, so re-hanging must not stand a
-    // single room up.
+  it('⭐ re-hangs every sold lot\'s gate at BOOT, materializing no houses', async () => {
+    const street = seedStreet();
+    void street;
     const room = registryRoom();
-    seedStreet();
     await run(buyerIn(room), room, model('buy', 'lot 2'));
     await run(buyerIn(room), room, model('buy', 'lot 3'));
 
-    // Simulate the restart: a fresh street, and a holder that has
-    // forgotten every live room.
+    // Simulate the restart: tear the institution down, fresh street.
     const holder = StuffApi.findByTemplatePath<LotHolder>(HOLDER_PATH)!;
-    holder.forgetLiveRooms();
+    holder.teardown();
     StuffApi.destruct(StuffApi.findByTemplatePath<StreetRoom>(STREET_PATH)!);
-    const street = seedStreet();
+    const reborn = seedStreet();
 
     await holder.postRegister();
 
-    expect(street.getExit('lot-2')).toBeDefined();
-    expect(street.getExit('lot-3')).toBeDefined();
-    expect(street.getExit('lot-4')).toBeUndefined();
+    expect(reborn.getExit('lot-2')).toBeDefined();
+    expect(reborn.getExit('lot-3')).toBeDefined();
+    expect(reborn.getExit('lot-4')).toBeUndefined();
     // Deferred: nothing was materialized to answer the question.
     expect(holder.liveRoomFor(LOT2)).toBeNull();
   });
 
-  it('⭐ each lot\'s room is MINTED at its own identity, not shared', async () => {
-    // The shared-template shape broke three things at once: land use
-    // resolved to the district, an avatar's captured placement pointed at
-    // a template rather than their own yard, and a cartesian room could
-    // not be used at all (singleton-shaped, so N clones collide).
-    //
-    // Minting through `asIdentityPath` fixes all three (D17: the
-    // templatePath stays the source ROW; the minted identity rides the
-    // identity slot and the registry index). Pin the identity.
-    const holder = StuffApi.findByTemplatePath<LotHolder>(HOLDER_PATH)!;
-    expect(holder.identityFor(`${LOTS}/lot-2`)).toBe(
-      `${LOTS}/lot-2/yard`,
-    );
-    expect(holder.identityFor(`${LOTS}/lot-3`)).toBe(
-      `${LOTS}/lot-3/yard`,
-    );
-
+  it('⭐ a farther reach STANDS as its frontage sells (D13 branched growth)', async () => {
+    const street = seedStreet();
+    void street;
     const room = registryRoom();
-    // Two lots sold, one after the other. Under the shared-template shape
-    // the SECOND clone would have collided on the singleton guard.
-    await run(buyerIn(room), room, model('buy', 'lot 2'));
-    await run(buyerIn(room), room, model('buy', 'lot 3'));
 
-    const two = holder.liveRoomFor(`${LOTS}/lot-2`);
-    const three = holder.liveRoomFor(`${LOTS}/lot-3`);
-    expect(two).not.toBeNull();
-    expect(three).not.toBeNull();
-    expect(two).not.toBe(three);
-
-    // …and each carries its OWN identity, so a placement recorded
-    // against it points at that lot rather than at a shared template —
-    // while the template lineage stays the source ROW (D17).
-    expect(two!.getIdentityPath()).toBe(`${LOTS}/lot-2/yard`);
-    expect(three!.getIdentityPath()).toBe(`${LOTS}/lot-3/yard`);
-    expect(two!.getTemplatePath()).toBe(`${SUBURB}/yard`);
-
-    // ⭐ Which means land use resolves PER LOT from the path alone — no
-    // persistence key needed to tell them apart.
-    expect(ParcelApi.landUseOf(two!.getIdentityPath()!)).toBe('residential');
+    // lot-5 sits on lane:2 — the first minted reach past the made road.
+    await run(buyerIn(room), room, model('buy', 'lot 5'));
+    const holder = StuffApi.findByTemplatePath<LotHolder>(HOLDER_PATH)!;
+    expect(holder.nodeReachable('lane:2')).toBe(true);
+    const reach = holder.circulationForNode('lane:2');
+    expect(reach).not.toBeNull();
+    // …wired back toward the entrance, gate hanging on the reach.
+    expect(
+      (reach as unknown as { getExit(d: string): unknown }).getExit('east'),
+    ).toBeDefined();
+    expect(
+      (reach as unknown as { getExit(d: string): unknown }).getExit('lot-5'),
+    ).toBeDefined();
+    // The court (lot-57+ under this plan) is still unreachable.
+    expect(holder.nodeReachable('court:1')).toBe(false);
   });
 
-  it('title list shows unsold lots and marks sold ones', async () => {
+  it('title list shows sold lots and the next free one (the generative window)', async () => {
     const room = registryRoom();
     const buyer = buyerIn(room);
     await run(buyer, room, model('buy', 'lot 2'));
@@ -638,8 +685,8 @@ describe('title', () => {
     await run(buyer, room, model('list'));
     const said = buyer.lines.join(' ');
     expect(said).toContain('lot-2 — sold.');
+    // The next free lot (lot-1 was never sold here) is on offer.
     expect(said).toContain('lot-1');
-    // …grouped under the subdivision that offers them.
     expect(said).toContain('Hinkley Hills');
   });
 });

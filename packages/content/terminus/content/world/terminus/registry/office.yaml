@@ -20,6 +20,8 @@ data:
     z: 0
   populates:
     - /world/terminus/registry/clerk
+    # The deed desk — the `title` verb's venue predicate (residences P6).
+    - /world/terminus/registry/desk
   exits:
     west:
       destination: /world/terminus/terminal/arrival-gate

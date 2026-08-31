@@ -1,0 +1,12 @@
+# The Registry's deed desk — the counter land business is transacted
+# over (residences P6): the `title` verb's venue is the DESK's
+# presence, never a room constant, so the realty office (and any future
+# records office) is a populated row and no code change.
+class: /residence/thing/DeedDesk
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the deed desk
+  primaryKeyword: desk
+  keywords: [desk, counter, book, plat]
+  longDescription: |
+    A high clerk's desk with a brass rail, the plat book chained open on its slope. The pages smell of ink and blotting sand; the chain is not decoration.

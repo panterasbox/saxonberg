@@ -1,310 +1,329 @@
 /**
- * LotHolder — **how titled ground becomes a place**, and the live rooms
- * that result.
+ * LotHolder — **how titled ground becomes a place**: the provisioning
+ * half of selling land, REWORKED onto the shared holdings +
+ * circulation base (residences wave 5, through the very `@hook` swap
+ * seam the smallholding build designed for a provisioning-model
+ * change).
  *
- * The provisioning half of selling land; {@link PlatBook} is the
- * catalogue half and names one of these by path. The book says *lot 2,
- * a quarter acre, residential, 4000*; this says *when it sells, a
- * room minted at lot 2's own identity path*.
+ * What changed (D16/D17): a sold lot no longer mints ONE rowless yard —
+ * it stands up a keyed, multi-room house through the subdivision's
+ * {@link HoldingProgramme} row (`programmePath`), every room a keyed
+ * instance of a REAL row `(scope = the row, key = <lotExtent>/<leaf>)`.
+ * The old `identityFor` mint and the `asIdentityPath` channel are GONE.
+ * Circulation comes from the plat plan (D13): the authored lane is the
+ * plan's authored segment; reaches beyond it are minted road-segment
+ * clones that stand as frontage sells and reap outside-in; the court
+ * branch is a road off a segment.
  *
- * ## Why this is its own object
- *
- * Because it is the piece most likely to be replaced wholesale: it is
- * the one that says *what physically appears*, and every future model —
- * multi-room floorplans, player-chosen blueprints, prefab catalogues —
- * changes only that. Separated, such a change is a subclass of this class
- * and a one-line edit to a plat book's `holderPath`; nothing in the
- * catalogue, the `title` verb or the parcel layer moves. Fused, it would
- * reach into the object that also owns pricing.
- *
- * `SingletonMixin` is one-instance-per-templatePath, so a holder per
- * subdivision is exactly what composing it means.
- *
- * ## The room gets an IDENTITY, not a copy
- *
- * A lot's room is minted at `<lotExtent>/<leaf>` through
- * `StuffApi.clone`'s `asIdentityPath` channel — the identity doctrine's
- * *minted singleton with a scheme-derived key*. The shared template is
- * the SOURCE; lot 2's yard is its own place.
- *
- * That is not bookkeeping. Sharing one templatePath across N lots broke
- * two things at once, and minting fixes both without a special case:
- *
- *   1. **Land use** resolved to the district rather than the lot,
- *      because the path was the district's.
- *   2. **An avatar's captured placement** recorded the shared template,
- *      so logging out in your own yard returned you to a fresh clone.
- *      The dorm needs a Warren to avoid this; an identity gets it free.
- *
- * It also takes the room OFF the district's cartesian grid, and that is a
- * consequence rather than a cost: N lots cannot share one coordinate, so
- * a per-lot room was never a grid member. The grid says so itself —
- * `CartesianLocation.addExit` refuses the non-cardinal `lot-1` gate
- * between two rooms in one zone. A yard is reached through a gate.
- *
- * Title and durable state still share one identity, because the mint is
- * derived FROM the parcel extent. Sell the lot and the garden goes with
- * it, because there is nothing else it could do.
- *
- * The standing-up itself is one call to `PersistableApi.restoreOrSeed` —
- * the keyed-holder ground pattern, shared with `DormWarren.admit`. This
- * is its second consumer, and the reason it lives on the spine rather
- * than in the dorm.
- *
- * ## Not boundary-exempt, and it should not be
- *
- * Content, so the sandbox's ordinary scope compare applies (the exempt
- * list is an enumeration of framework registries; `DormWarren` is
- * likewise absent from it). A new module category fails closed, which is
- * the right default for a thing that mints rooms.
+ * {@link PlatBook} is the catalogue half; the sale chokepoint
+ * (`TitleController`) calls `provision` + `ensureGate` exactly as
+ * before — the designed swap seam, swapped.
  */
 
-import { Idea } from "@saxonberg/server/mud/lib/stuff/Idea";
+import { HoldingWarren } from "@saxonberg/server/mud/lib/location/HoldingWarren";
 import { SingletonMixin } from "@saxonberg/server/mud/lib/stuff/Singleton";
 import { PostRegistrationMixin } from "@saxonberg/server/mud/lib/stuff/PostRegistration";
 import { StuffApi } from "@saxonberg/server/mud/api/stuff";
 import { MixinApi } from "@saxonberg/server/mud/api/mixin";
-import { ParcelApi } from "@saxonberg/server/mud/api/parcel";
 import { PersistableApi } from "@saxonberg/server/mud/api/persistable";
+import { Template } from "@saxonberg/server/mud/lib/stuff/Template";
+import Exit from "@saxonberg/server/mud/lib/boundary/Exit";
 import LotGateExit from "./LotGateExit";
 import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
 import type { Container } from "@saxonberg/server/mud/lib/spatial/Container";
+import type { Exitable } from "@saxonberg/server/mud/lib/boundary/Exitable";
 import type { VetoResult } from "@saxonberg/server/mud/lib/errors";
 import type { FieldMeta } from "@saxonberg/server/mud/lib/mixin";
 
-const LotHolderBase = SingletonMixin(PostRegistrationMixin(Idea));
+type MemberStuff = Stuff & Container;
+type ExitableContainer = Stuff & Container & Exitable;
+
+const LotHolderBase = SingletonMixin(PostRegistrationMixin(HoldingWarren));
 
 export default class LotHolder extends LotHolderBase {
   static fieldMeta: FieldMeta = {
-    roomTemplate: { persistent: true, authorable: true, authorPicker: 'Template' },
-    streetPath: { persistent: true, authorable: true, authorPicker: 'Template' },
-    parentExtent: { persistent: true },
+    ...HoldingWarren.fieldMeta,
+    programmePath: { persistent: true, authorable: true, authorPicker: 'Template' },
+    roadTemplate: { persistent: true, authorable: true, authorPicker: 'Template' },
   };
 
   /**
-   * The room template cloned per sold lot. Hinkley's is a yard; another
-   * subdivision's might be a dock or a shopfront, which is exactly why
-   * this is data rather than a class.
-   *
-   * It must resolve to a **persistable** room — `FurnishableRoom` or a
-   * subclass. A plain `Location` persists nothing it holds and
-   * `restoreOrSeed` throws on it.
-   *
-   * It must ALSO not be a `CartesianLocation`. A per-lot room cannot be a
-   * member of the district's shared grid — N lots would occupy one
-   * coordinate — and the grid enforces that: `CartesianLocation.addExit`
-   * refuses a non-cardinal direction between two rooms in the same zone,
-   * which is exactly the `lot-1` gate. A yard is reached through a gate,
-   * not by a grid step.
+   * The {@link HoldingProgramme} row a sold lot's house is a keyed
+   * instance of — the floorplan, the tenure term, the shell clock.
    */
-  public roomTemplate: string = "";
+  public programmePath: string = "";
 
   /**
-   * The room the lots front onto — the street. Each sold lot gets a
-   * {@link LotGateExit} installed here, directioned by its leaf, so
-   * `lot-1` walks you in.
-   *
-   * Data rather than an exit on the street's own template because the
-   * street CANNOT author it: there is no one room behind the gate. A
-   * subdivision has N lots, each with a room at its own identity path,
-   * and a static `north → <the shared room template>` names the template
-   * itself — which then materializes as an unowned yard on nobody's lot.
-   * Empty = no street wiring (a subdivision reached some other way).
+   * The road-segment row a MINTED circulation reach clones from ("the
+   * road peters out into stakes and grass"). The plan's authored
+   * segments (the lane) resolve their own singletons instead.
    */
-  public streetPath: string = "";
-
-  /**
-   * The subdivision's own parcel extent — the parent every sold lot
-   * subdivides under. Read at boot to re-install a gate for each lot that
-   * has already sold, so an owner can still get home after a restart.
-   * Deferred, so no yard materializes until somebody walks in.
-   */
-  public parentExtent: string = "";
-
-  /** Live rooms by lot extent — the process-lifetime cache. */
-  private _roomsByLot = new Map<string, Stuff>();
+  public roadTemplate: string = "";
 
   /** A load-bearing process-lifetime singleton is never culled. */
   public canEvict(): VetoResult {
     return { ok: false, reason: "system singleton; never culled" };
   }
 
-  public getRoomTemplate(): string {
-    return this.roomTemplate;
+  public getProgrammePath(): string {
+    return this.programmePath;
   }
 
-  public setRoomTemplate(value: string): void {
-    this.roomTemplate = value;
+  public setProgrammePath(value: string): void {
+    this.programmePath = value;
   }
 
-  public getStreetPath(): string {
-    return this.streetPath;
+  public getRoadTemplate(): string {
+    return this.roadTemplate;
   }
 
-  public setStreetPath(value: string): void {
-    this.streetPath = value;
-  }
-
-  public getParentExtent(): string {
-    return this.parentExtent;
-  }
-
-  public setParentExtent(value: string): void {
-    this.parentExtent = value;
+  public setRoadTemplate(value: string): void {
+    this.roadTemplate = value;
   }
 
   /**
-   * Re-hang a gate on the street for every lot that has already sold.
-   *
-   * The exits are deferred, so this materializes no rooms — it only makes
-   * the way home describable and walkable again after a restart. Without
-   * it an owner who logs in on the lane has no gate: their yard exists
-   * only in `holder_snapshots` and nothing on the street points at it.
-   *
-   * Failures are logged, never thrown: a subdivision whose street will
-   * not resolve is a content error, and a holder that refuses to register
-   * over it would take the whole locality down with it.
+   * Re-hang a gate for every lot that has already sold (the boot
+   * re-hang, now node-aware: an authored-lane lot's gate hangs on the
+   * lane; a farther lot's road reach stands first). Failures are
+   * logged, never thrown — a subdivision that will not wire must not
+   * take the locality down with it.
    *
    * @hook
    */
   public override async postRegister(context?: unknown): Promise<void> {
     await super.postRegister(context);
-    if (!this.streetPath || !this.parentExtent) return;
+    if (!this.getParentExtent()) return;
     try {
-      const sold = await ParcelApi.childParcelsOf(this.parentExtent);
-      for (const parcel of sold) {
-        await this.ensureGate(parcel.getExtent());
+      await this.refreshProvisioned();
+      for (const key of await this.provisionedKeys()) {
+        await this.ensureGate(key);
       }
     } catch (err) {
       console.warn(
-        `LotHolder(${this.getTemplatePath()}): could not re-hang lot ` +
-          `gates on ${this.streetPath}:`,
+        `LotHolder(${this.getTemplatePath()}): boot gate re-hang failed:`,
         err,
       );
     }
   }
 
+  /** The provisioned lot keys, off the durable slot set (sync cache). */
+  private async provisionedKeys(): Promise<string[]> {
+    const { ParcelApi } = await import("@saxonberg/server/mud/api/parcel");
+    const children = await ParcelApi.childParcelsOf(this.getParentExtent());
+    return children.map((c) => c.getExtent());
+  }
+
+  /** The next free slot leaf under the plan (the book's listing read). */
+  public nextFreeLeaf(taken: ReadonlySet<string>): string | null {
+    return this.getPlatPlan().nextFreeSlot(taken, this.capacity());
+  }
+
   /**
-   * The live room for `lotExtent`, materialized if needed, plus whether
+   * The live house for `lotExtent`, stood up if needed, plus whether
    * this was a FIRST provisioning (`true`) or a re-entry to ground
-   * already worked. The sale uses that to decide how to describe it.
+   * already worked.
    *
-   * The override point for a different provisioning model — a multi-room
-   * floorplan, a player-chosen blueprint — replaces this method and
-   * nothing else.
+   * The override point for a different provisioning model — the
+   * designed `@hook` — now standing up the keyed programme (D16).
+   * Refuses over the operator's capacity (D10), reason named.
    *
    * @hook
    */
   public async provision(
     lotExtent: string,
   ): Promise<{ room: Stuff; firstTime: boolean }> {
-    const cached = this._roomsByLot.get(lotExtent);
-    if (cached && !cached.isDestroyed()) {
-      return { room: cached, firstTime: false };
+    await this.refreshProvisioned();
+    const live = this.holdingFor(lotExtent);
+    if (!live) {
+      const cap = this.assertBelowCap();
+      // A lot that is already PROVISIONED (its parcel row exists) may
+      // always re-enter; the cap gates NEW ground only.
+      if (!cap.ok && !(await this.isProvisioned(lotExtent))) {
+        throw new Error(`LotHolder.provision refused — ${cap.reason}`);
+      }
     }
-    // Prune, don't merely skip. Every reader guarded on `isDestroyed()`
-    // and none of them ever deleted the key, and this is a
-    // process-lifetime singleton — so a reaped room's entry was retained
-    // for the life of the process. Not a correctness bug (no dangling
-    // ref escaped) but an unbounded retention leak.
-    if (cached) this._roomsByLot.delete(lotExtent);
-    // MINT AN IDENTITY rather than sharing the source template's. The
-    // room is a singleton-shaped cartesian room, so lot 2's yard has to
-    // BE lot 2's yard — `asIdentityPath` is the identity-doctrine channel
-    // for exactly this (D17: templatePath = the row; identityPath = the
-    // minted instance with its scheme-derived key). The residences
-    // build's keyed rework (wave 5) deletes this mint entirely.
-    //
-    // It also buys three things the shared-template shape got wrong: land
-    // use resolves per lot from the path, an avatar's captured placement
-    // returns them to THEIR yard rather than a fresh clone, and the
-    // persistence scope is already unique.
-    // ⚠ opts is clone's THIRD parameter — the pre-residences call
-    // passed the mint in the `context` slot, where clone never read
-    // it, so the production mint silently never happened (the 2-arg
-    // test stub was the only thing that ever saw it).
-    const room = await StuffApi.clone<Stuff>(this.roomTemplate, undefined, {
-      asIdentityPath: this.identityFor(lotExtent),
-    });
-    const restored = await PersistableApi.restoreOrSeed(room, lotExtent);
-    this._roomsByLot.set(lotExtent, room);
-    return { room, firstTime: !restored };
+    const firstTime = !(await PersistableApi.hasRecord(
+      this.programmePath,
+      lotExtent,
+    ));
+    const room = await this.admit(lotExtent);
+    return { room, firstTime };
+  }
+
+  private async isProvisioned(lotExtent: string): Promise<boolean> {
+    return (await this.provisionedKeys()).includes(lotExtent);
   }
 
   /**
-   * Hang this lot's gate on the street, unless it is already hanging.
-   *
-   * Idempotent by direction: re-selling, re-provisioning and the boot
-   * re-hang all land here, and only the first installs anything. The exit
-   * is deferred, so hanging it materializes no room.
-   *
-   * A no-op when no street is configured, or when the street does not
-   * resolve to something exits can be hung on — the sale still completes,
-   * because losing the way in is a smaller failure than losing the title.
+   * Hang this lot's gate on its circulation node (idempotent). The
+   * node's road reach stands first (authored lane → its singleton;
+   * beyond → minted road-segment clones back to the entrance). A
+   * no-op when the plan does not place the lot.
    */
   public async ensureGate(lotExtent: string): Promise<void> {
-    if (!this.streetPath) return;
-    const street = await StuffApi.singleton<Stuff>(this.streetPath);
-    if (!MixinApi.isExitable(street) || !MixinApi.isContainer(street)) return;
-    const direction = lotExtent.slice(lotExtent.lastIndexOf("/") + 1);
-    if (!direction || street.getExit(direction)) return;
-    // `createSync` because an Exit IS a Stuff — bare `new` on a Stuff
-    // subclass is refused by the framework. The `DormWarren.ensureUnitDoor`
-    // shape, exactly.
-    const gate = StuffApi.createSync(
-      () =>
-        new LotGateExit(
-          street as Stuff & Container,
-          this,
-          lotExtent,
-          direction,
-        ),
-    );
-    await street.addExit(gate);
-  }
-
-  /**
-   * The minted identity path for a lot's room: the lot's parcel extent
-   * plus the source template's leaf, so `…/lot-2` + `yard` reads
-   * `…/lot-2/yard`. Scheme-derived, so it is stable across restarts and
-   * derivable by anything holding the extent.
-   */
-  public identityFor(lotExtent: string): string {
-    const leaf = this.roomTemplate.slice(
-      this.roomTemplate.lastIndexOf("/") + 1,
-    );
-    return `${lotExtent}/${leaf || "room"}`;
-  }
-
-  /**
-   * Release every live room this holder is standing.
-   *
-   * It UNREGISTERS them rather than merely dropping the map: a minted
-   * room occupies its identity path, so forgetting one while leaving it
-   * registered would leave two live instances at that path the moment the
-   * lot is provisioned again — which the persistence spine correctly
-   * refuses ("two live instances … would clobber one record").
-   *
-   * A process-lifetime holder outlives a test's world, so a suite that
-   * stands the world up repeatedly needs this.
-   *
-   * @internal
-   */
-  public forgetLiveRooms(): void {
-    for (const room of this._roomsByLot.values()) {
-      if (!room.isDestroyed()) StuffApi.unregister(room);
+    const leaf = leafOf(lotExtent);
+    const node = this.getPlatPlan().nodeOfSlot(leaf);
+    if (!node) return;
+    // Losing the way in is a smaller failure than losing the title: a
+    // street that will not stand or wire is logged, never thrown into
+    // the sale (the shipped LotHolder doctrine, kept).
+    try {
+      await this.ensureNode(node);
+      await this.ensureEntry(lotExtent);
+    } catch (err) {
+      console.warn(
+        `LotHolder(${this.getTemplatePath()}): gate for ${lotExtent} ` +
+          `could not hang:`,
+        err,
+      );
     }
-    this._roomsByLot.clear();
   }
 
-  /** The live room for a lot if one is standing, else null. */
+  /** The live house's entry room for a lot (if standing), or null. */
   public liveRoomFor(lotExtent: string): Stuff | null {
-    const cached = this._roomsByLot.get(lotExtent);
-    if (!cached) return null;
-    if (cached.isDestroyed()) {
-      this._roomsByLot.delete(lotExtent);
-      return null;
-    }
-    return cached;
+    const holding = this.holdingFor(lotExtent);
+    return holding ? this.entryRoomOf(holding) : null;
   }
+
+  // ─────────────── HoldingWarren policy hooks ─────────────────────
+
+  /** Stand one house up whole: the keyed programme, woken (D16). */
+  protected async standUpHolding(key: string): Promise<MemberStuff> {
+    if (!this.programmePath) {
+      throw new Error(
+        `LotHolder(${this.getTemplatePath()}): no programmePath authored`,
+      );
+    }
+    const programme = await StuffApi.clone<MemberStuff>(this.programmePath);
+    this.addMember(programme);
+    await PersistableApi.restoreOrSeed(programme, key);
+    await (programme as unknown as { wake(): Promise<void> }).wake();
+    return programme;
+  }
+
+  /** A minted road reach clones the road-segment row. */
+  protected circulationTemplateFor(): string | null {
+    return this.roadTemplate || null;
+  }
+
+  /**
+   * Wire a MINTED road reach to its predecessor on the route: `east`
+   * walks back toward the entrance, the onward direction is `west`
+   * along a road and the branch road's key at a fork.
+   */
+  protected async wireCirculationNode(
+    nodeId: string,
+    room: MemberStuff,
+  ): Promise<void> {
+    const plan = this.getPlatPlan();
+    const pred = plan.predecessorOf(nodeId);
+    if (!pred) return;
+    const predRoom = await this.ensureNode(pred);
+    if (!predRoom || !MixinApi.isExitable(predRoom)) return;
+    if (!MixinApi.isExitable(room)) return;
+    const sameRoad =
+      nodeId.slice(0, nodeId.lastIndexOf(":")) ===
+      pred.slice(0, pred.lastIndexOf(":"));
+    const onward = sameRoad ? "west" : nodeId.slice(0, nodeId.lastIndexOf(":")).split("/").pop()!;
+    if ((predRoom as ExitableContainer).getExit(onward)) return;
+    await (room as ExitableContainer).addBidirectionalExit(
+      predRoom as ExitableContainer,
+      "east",
+      { opposite: onward, keepLiveDestination: true },
+    );
+  }
+
+  /** The lot's gate — a deferred `LotGateExit`, directioned by its
+   *  leaf, eager on the programme's ENTRY ROW (D17: a real row). */
+  protected async entryEdgeFor(
+    key: string,
+    circulation: ExitableContainer,
+  ): Promise<Exit | null> {
+    const direction = leafOf(key);
+    const existing = circulation.getExit(direction);
+    if (existing) return existing as unknown as Exit;
+    const entryRow = await this.entryRowPath();
+    const gate = StuffApi.createSync(
+      () => new LotGateExit(circulation, this, key, direction, entryRow),
+    );
+    await circulation.addExit(gate);
+    return gate as unknown as Exit;
+  }
+
+  /** The programme's entry-room ROW (the gate's eager face), cached. */
+  private _entryRow: string | null = null;
+
+  public async entryRowPath(): Promise<string> {
+    if (this._entryRow) return this._entryRow;
+    const row = await Template.findByPath(this.programmePath);
+    const floorplan = (row?.data as { floorplan?: Array<Record<string, unknown>> })
+      ?.floorplan;
+    const entry =
+      floorplan?.find((r) => r.entry === true) ?? floorplan?.[0];
+    this._entryRow = String(entry?.room ?? this.programmePath);
+    return this._entryRow;
+  }
+
+  /** Wire the house's way OUT: the entry room's `south` back onto its
+   *  lot's circulation node (the yard opens on the lane). */
+  protected override async wireHubExit(holding: MemberStuff): Promise<void> {
+    const entry = this.entryRoomOf(holding);
+    const key = (
+      holding as unknown as { getPersistenceKey(): string | null }
+    ).getPersistenceKey?.();
+    if (!key || !MixinApi.isExitable(entry)) return;
+    const node = this.getPlatPlan().nodeOfSlot(leafOf(key));
+    if (!node) return;
+    let nodeRoom: MemberStuff | null = null;
+    try {
+      nodeRoom = await this.ensureNode(node);
+    } catch (err) {
+      console.warn(
+        `LotHolder(${this.getTemplatePath()}): way out for ${key} ` +
+          `could not wire:`,
+        err,
+      );
+      return;
+    }
+    if (!nodeRoom) return;
+    const entryEx = entry as ExitableContainer;
+    if (entryEx.getExit("south")) return;
+    const out = StuffApi.createSync(
+      () =>
+        new Exit({
+          direction: "south",
+          source: entry,
+          destination: nodeRoom as ExitableContainer,
+          keepLiveDestination: true,
+          oneWay: true,
+        }),
+    );
+    await entryEx.addExit(out);
+  }
+
+  // ─────────────── Warren policy hooks ────────────────────────────
+
+  protected async createMember(): Promise<MemberStuff> {
+    throw new Error("LotHolder stands holdings up via provision/admit");
+  }
+
+  public async admitArrival(): Promise<void> {
+    /* lots don't population-bud */
+  }
+
+  protected attachmentFor(): { direction: string } {
+    return { direction: "out" };
+  }
+
+  protected async wireHostFixtures(): Promise<void> {
+    /* no host */
+  }
+
+  protected async unwireHostFixtures(): Promise<void> {
+    /* no-op */
+  }
+}
+
+function leafOf(extent: string): string {
+  return extent.slice(extent.lastIndexOf("/") + 1);
 }

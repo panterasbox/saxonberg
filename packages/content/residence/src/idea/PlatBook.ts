@@ -1,42 +1,30 @@
 /**
- * PlatBook — **what a subdivision has for sale**, and on what terms.
+ * PlatBook — **what a subdivision has for sale**, and on what terms —
+ * now GENERATIVE (residences D10): the authored 40-entry `lots:` roster
+ * is retired ("surveyed for a hundred families" is prose, where it
+ * always belonged). A lot exists to sell when its number fits under the
+ * operator's capacity dial; the plat plan (on the holder) says where it
+ * lands.
  *
- * The catalogue half of selling land. It answers the questions a buyer
- * standing at a records counter asks: which lots exist here, how big is
- * one, what will it be zoned, what does it cost. It knows nothing about
- * what physically appears when a lot is bought — that is
- * {@link LotHolder}'s job, named here by path.
- *
- * ## Why the two are separate objects
- *
- * They are the same size today and they will not stay that way. The
- * catalogue grows *outward* as land becomes a market — terms, dynamic
- * offers, demand-priced lots, auctions — while provisioning grows
- * *inward* and is the piece most likely to be replaced wholesale: the
- * current shape clones one shared room template per lot and keys it,
- * and the likely successor mints a template per residence instead.
- *
- * Keeping them apart means that replacement is a **new `LotHolder`
- * subclass and a one-line seed edit**, with nothing in the book, the
- * `title` verb or the parcel layer touched. Fused, the same change would
- * reach into the object that also owns pricing.
- *
- * ## Holding the terms, not the title
- *
- * A plat book records what is *offered*. Who actually holds a lot is the
- * `parcels` collection's business and is read through `ParcelApi` — this
- * class deliberately has no opinion, so there is exactly one answer to
- * "who owns this ground" and it is the gated one.
- *
- * See [docs/subsystems/smallholding.md] and [docs/subsystems/parcel.md].
+ * The catalogue half of selling land; {@link LotHolder} is the
+ * provisioning half, named here by path. Who actually holds a lot stays
+ * the `parcels` collection's business, read through `ParcelApi`.
  */
 
 import { Idea } from "@saxonberg/server/mud/lib/stuff/Idea";
 import { SingletonMixin } from "@saxonberg/server/mud/lib/stuff/Singleton";
 import { PostRegistrationMixin } from "@saxonberg/server/mud/lib/stuff/PostRegistration";
 import { LandUses, type LandUse } from "@saxonberg/server/mud/lib/parcel/LandUse";
+import { StuffApi } from "@saxonberg/server/mud/api/stuff";
+import { ParcelApi } from "@saxonberg/server/mud/api/parcel";
 import type { VetoResult } from "@saxonberg/server/mud/lib/errors";
 import type { FieldMeta } from "@saxonberg/server/mud/lib/mixin";
+
+/** The holder surface the book consults (capacity + the plan's order). */
+interface HolderView {
+  capacity(): number;
+  nextFreeLeaf(taken: ReadonlySet<string>): string | null;
+}
 
 const PlatBookBase = SingletonMixin(PostRegistrationMixin(Idea));
 
@@ -45,49 +33,30 @@ export default class PlatBook extends PlatBookBase {
     label: { persistent: true, authorable: true },
     parentExtent: { persistent: true, authorable: true },
     lotBranch: { persistent: true, authorable: true },
-    lots: { persistent: true, authorable: true },
+    lotPrefix: { persistent: true, authorable: true },
     priceMinor: { persistent: true, authorable: true },
     areaM2: { persistent: true, authorable: true },
     landUse: { persistent: true, authorable: true },
     holderPath: { persistent: true, authorable: true, authorPicker: 'Template' },
   };
 
-  /**
-   * What to call this subdivision — "Hinkley Hills". A plain label
-   * rather than `NamedMixin`: proper names belong to characters, and
-   * this is a record, not somebody.
-   */
+  /** What to call this subdivision — "Hinkley Hills". */
   public label: string = "";
 
-  /**
-   * The district extent lots are subdivided OUT of — the parcel row that
-   * already exists, and that a sold lot becomes a child of.
-   */
+  /** The district extent lots are subdivided OUT of. */
   public parentExtent: string = "";
 
   /**
-   * The lot leaf names this subdivision sells. Leaves, not full extents:
-   * the extent is `parentExtent/<lotBranch>/<leaf>`, so a book cannot
-   * accidentally offer ground its district does not cover.
-   */
-  public lots: string[] = [];
-
-  /**
    * The branch lots hang off, between the district and the leaf —
-   * `…/hinkley-hills` + `lots` + `lot-1`.
-   *
-   * It exists to keep the lots in a **zone of their own**, and that is
-   * load-bearing rather than tidiness. A street is a cartesian grid, and
-   * a cartesian zone admits a non-cardinal exit (the `lot-1` gate) only
-   * across a zone boundary — correctly, because a lot is not a grid cell
-   * of the street: N lots cannot share one coordinate. One authored
-   * `FolderZone` template at `<parentExtent>/<lotBranch>` puts every lot
-   * on the far side of that boundary, with no per-lot template row.
-   *
-   * Empty flattens it back to `parentExtent/<leaf>` for a subdivision
-   * whose district is not a grid.
+   * `…/hinkley-hills` + `lots` + `lot-1`. Load-bearing: one authored
+   * zone at `<parentExtent>/<lotBranch>` puts every lot's room across
+   * the cartesian boundary. Empty flattens to `parentExtent/<leaf>`.
    */
   public lotBranch: string = "lots";
+
+  /** The slot-leaf prefix (`lot-` → `lot-7`). Generative D10: any
+   *  `<prefix><n>` with n ≤ the capacity is offered. */
+  public lotPrefix: string = "lot-";
 
   /** Price of one lot, in minor units. */
   public priceMinor: number = 0;
@@ -95,19 +64,11 @@ export default class PlatBook extends PlatBookBase {
   /** Declared area of one lot, in m². */
   public areaM2: number = 0;
 
-  /**
-   * The land use a sold lot is stamped with. Validated against the closed
-   * vocabulary on the setter, so a typo fails at seed time rather than
-   * reading as `wild` — and therefore as "nothing may be grown here" —
-   * much later and much less obviously.
-   */
+  /** The land use a sold lot is stamped with (validated on set). */
   public landUse: LandUse = "residential";
 
-  /**
-   * The {@link LotHolder} that stands ground up when a lot here sells.
-   * A path rather than a live ref (an identity ref): the book is reference
-   * data, and naming the mechanism keeps the two swappable.
-   */
+  /** The {@link LotHolder} that stands ground up when a lot sells (an
+   *  identity path — the book is reference data). */
   public holderPath: string = "";
 
   /** A load-bearing process-lifetime singleton is never culled. */
@@ -131,14 +92,6 @@ export default class PlatBook extends PlatBookBase {
     this.parentExtent = value;
   }
 
-  public getLots(): string[] {
-    return [...this.lots];
-  }
-
-  public setLots(value: string[]): void {
-    this.lots = [...value];
-  }
-
   public getPriceMinor(): number {
     return this.priceMinor;
   }
@@ -159,10 +112,16 @@ export default class PlatBook extends PlatBookBase {
     return this.lotBranch;
   }
 
-  /** Trailing/leading slashes are stripped — the branch is one segment,
-   *  and an authored `/lots/` would double the separator in every extent. */
   public setLotBranch(value: string): void {
     this.lotBranch = value.replace(/^\/+|\/+$/g, "");
+  }
+
+  public getLotPrefix(): string {
+    return this.lotPrefix;
+  }
+
+  public setLotPrefix(value: string): void {
+    this.lotPrefix = value;
   }
 
   public getLandUse(): LandUse {
@@ -181,25 +140,64 @@ export default class PlatBook extends PlatBookBase {
     this.holderPath = value;
   }
 
+  /** The provisioner, resolved live (null when not registered). */
+  private holderView(): HolderView | null {
+    if (!this.holderPath) return null;
+    const holder = StuffApi.findByTemplatePath(this.holderPath);
+    if (!holder) return null;
+    const h = holder as unknown as Partial<HolderView>;
+    return typeof h.capacity === "function" &&
+      typeof h.nextFreeLeaf === "function"
+      ? (h as HolderView)
+      : null;
+  }
+
+  /** The operator's capacity (the holder's D10 dial; 40 with no holder). */
+  public capacity(): number {
+    return this.holderView()?.capacity() ?? 40;
+  }
+
   /**
    * The full extent for a lot leaf, or null when this book does not
-   * offer it. Accepts `lot 2`, `lot-2` and `2` alike — a player types
-   * all three, and a plat book is a handful of entries.
+   * offer it. Accepts `lot 2`, `lot-2` and `2` alike — GENERATIVE: any
+   * number from 1 up to the capacity is a real offer (D10: minted at
+   * sale, no roster).
    */
   public extentFor(raw: string): string | null {
     const cleaned = raw.trim().toLowerCase().replace(/\s+/g, "-");
-    const candidate = /^\d+$/.test(cleaned) ? `lot-${cleaned}` : cleaned;
-    if (!this.lots.includes(candidate)) return null;
+    const candidate = /^\d+$/.test(cleaned)
+      ? `${this.lotPrefix}${cleaned}`
+      : cleaned;
+    const n = this.lotNumberOf(candidate);
+    if (n === null || n < 1 || n > this.capacity()) return null;
     return this.extentOfLeaf(candidate);
   }
 
-  /** Every lot extent this book offers, in authored order. */
-  public lotExtents(): string[] {
-    return this.lots.map((l) => this.extentOfLeaf(l));
+  /**
+   * The listing set: every SOLD lot ∪ the next free one — the window a
+   * buyer reads (`title list` / the realty window). The roster is gone;
+   * what exists is what sold plus what the plan offers next.
+   */
+  public async lotExtents(): Promise<string[]> {
+    const sold: string[] = [];
+    const takenLeafs = new Set<string>();
+    for (const child of await ParcelApi.childParcelsOf(this.parentExtent)) {
+      const extent = child.getExtent();
+      if (!this.governs(extent)) continue;
+      sold.push(extent);
+      takenLeafs.add(extent.slice(extent.lastIndexOf("/") + 1));
+    }
+    sold.sort(
+      (a, b) => (this.lotNumberOf(leafOf(a)) ?? 0) - (this.lotNumberOf(leafOf(b)) ?? 0),
+    );
+    const next = this.holderView()?.nextFreeLeaf(takenLeafs) ?? null;
+    if (next && this.lotNumberOf(next) !== null) {
+      sold.push(this.extentOfLeaf(next));
+    }
+    return sold;
   }
 
-  /** The branch lots hang off — `<parentExtent>/<lotBranch>`, or the
-   *  district itself when no branch is configured. */
+  /** The branch lots hang off. */
   public lotsExtent(): string {
     return this.lotBranch
       ? `${this.parentExtent}/${this.lotBranch}`
@@ -210,8 +208,22 @@ export default class PlatBook extends PlatBookBase {
     return `${this.lotsExtent()}/${leaf}`;
   }
 
-  /** Whether `extent` is a lot this book offers. */
-  public governs(extent: string): boolean {
-    return this.lotExtents().includes(extent);
+  private lotNumberOf(leaf: string): number | null {
+    if (!leaf.startsWith(this.lotPrefix)) return null;
+    const n = Number(leaf.slice(this.lotPrefix.length));
+    return Number.isInteger(n) ? n : null;
   }
+
+  /** Whether `extent` is a lot this book offers — by prefix + cap
+   *  (generative), never a roster. */
+  public governs(extent: string): boolean {
+    const prefix = `${this.lotsExtent()}/`;
+    if (!extent.startsWith(prefix)) return false;
+    const n = this.lotNumberOf(extent.slice(prefix.length));
+    return n !== null && n >= 1 && n <= this.capacity();
+  }
+}
+
+function leafOf(extent: string): string {
+  return extent.slice(extent.lastIndexOf("/") + 1);
 }

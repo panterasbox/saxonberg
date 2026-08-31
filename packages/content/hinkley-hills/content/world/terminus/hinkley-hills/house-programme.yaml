@@ -1,0 +1,34 @@
+# The Hinkley house programme — the holding-as-a-warren-one-level-down
+# (residences D16): ONE row, one keyed instance per sold lot
+# (`scope = this row, key = the lot's parcel extent`). The floorplan is
+# the initial mint — every room a keyed instance of a REAL row (D17);
+# the yard is the entry (reached by the ungated lane gate), and the
+# house door north of it is LOCKED to the lot's keyway (the key `title
+# buy` hands the buyer). `owner-all` (D5): a Hinkley owner owes the
+# whole shell.
+class: /residence/idea/HoldingProgramme
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  upkeepTerm: owner-all
+  floorplan:
+    - leaf: yard
+      room: /world/terminus/hinkley-hills/lots/yard
+      entry: true
+      exits:
+        - { to: hall, direction: north, opposite: south, locked: true }
+    - leaf: hall
+      room: /world/terminus/hinkley-hills/lots/hall
+      exits:
+        - { to: kitchen, direction: east, opposite: west }
+        - { to: living, direction: west, opposite: east }
+        - { to: bedroom, direction: north, opposite: south }
+    - leaf: kitchen
+      room: /world/terminus/hinkley-hills/lots/kitchen
+    - leaf: living
+      room: /stuff/location/room/living
+    - leaf: bedroom
+      room: /stuff/location/room/bedroom
+      exits:
+        - { to: bathroom, direction: east, opposite: west }
+    - leaf: bathroom
+      room: /stuff/location/room/bathroom

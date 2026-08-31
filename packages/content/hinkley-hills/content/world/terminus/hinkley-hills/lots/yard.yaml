@@ -1,17 +1,15 @@
-# The yard behind the house on lot 2 — the KEYED room, and the only place
-# in the game where a player can grow something on ground they own.
+# The yard behind the house on lot-1 — the KEYED entry room of every
+# Hinkley holding (residences D16/D17): cloned per lot by the lot's
+# HoldingProgramme and keyed `(this row, <lotExtent>/yard)`, so title and
+# durable state share one identity and `templatePath` always resolves to
+# THIS row. It lives under the `lots` zone (P8): a clone's zone resolves
+# from the ROW's ancestry, and the yard is reached by the lane's
+# non-cardinal `lot-N` gate — admissible only across the zone boundary.
 #
-# This template is cloned PER LOT by the LotHolder and keyed on the lot's
-# parcel extent, exactly as `dormroom.yaml` is cloned per unit and keyed
-# on its unit parcel. Title and durable state therefore share one
-# identity: the row that says you own the ground is keyed the same as the
-# record that remembers what is growing on it.
-#
-# THE HOUSE IS PROSE. It is `details:` on this room rather than an
-# interior, deliberately: the residence build is furnishing real interiors
-# in parallel, and a house that is described rather than built can be
-# upgraded later instead of rebuilt. What phase 2 is about is the ground
-# behind it.
+# THE HOUSE IS REAL NOW (the residences build): behind the kitchen door
+# in the north wall is the hall, keyed to the buyer's lock — the
+# programme's floorplan (`house-programme.yaml`) wires it. The garden
+# bed below stays build-3's (cultivation).
 #
 # `populates:` lays the bed down once, on first provisioning, through the
 # born-with path — after which the yard's own record carries it and the
@@ -44,9 +42,9 @@ data:
     Grass, a wire fence, and the back of the house — a white weatherboard wall with two windows and a step down from the kitchen door. The ground falls away west just enough to catch the afternoon.
 
     Somebody dug a bed here and framed it in boards, and then either ran out of time or ran out of reasons. It is good soil under the grass; the rest of the lot is still lot.
-  exits:
-    south:
-      destination: /world/terminus/hinkley-hills/lane
+  # NO authored exits: the programme wires the locked house door (north)
+  # and the way back out the gate (south) per holding — an authored edge
+  # here would point every keyed clone at one shared room.
   populates:
     - /trade/farming/thing/bed/garden
     - /world/terminus/hinkley-hills/standpipe
@@ -60,7 +58,7 @@ data:
     house:
       keywords: [house, wall, weatherboard, windows, door, kitchen, step]
       description: |
-        Low, white, and older than the survey — the farmhouse that was here before anyone drew lots over the paddock. Two windows onto the yard, a kitchen door with a worn step, and a gutter that wants clearing. Inside is dim and quiet and yours; from out here it is mostly a wall to keep the wind off the bed.
+        Low, white, and older than the survey — the farmhouse shape every lot out here gets. Two windows onto the yard, a kitchen door with a worn step in the north wall, and a gutter that wants clearing. The door is kept locked; your key fits your own.
     fence:
       keywords: [fence, wire, boundary]
       description: |
