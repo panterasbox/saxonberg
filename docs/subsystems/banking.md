@@ -605,6 +605,36 @@ Goodkin bank runs.
   seed can't guarantee), idempotent — a module-internal op, not a public verb.
   Lets early ledger-credit withdrawals work before deposits accumulate.
   `banking.openingFloat` AppSetting.
+- **⭐ Opening capital.** The float's sibling **one tier down**: a branch's till
+  is capitalized for its customers, a *venue's account* for its trade. Minted
+  into a business's operating account the first time that account is
+  materialized (`ensureVenueAccount`, the same lazy-and-idempotent shape — the
+  existing-account guard is what makes it once-only), logged as a `mint` with
+  P&L category `subsidy`. Default `banking.openingCapital`; a Business may
+  override with an authored `openingCapital:` (a distillery needs more standing
+  capital than a bar), and an authored `0` deliberately opens a business on
+  nothing.
+
+  ⚠ **Why a venue needs it at all** — the asymmetry that makes this
+  load-bearing rather than a convenience. `payWage` runs **no** solvency check
+  (a venue runs its P&L red by design; see the deficit-as-target note in
+  `payWageImpl`), but `settle` **does** — it refuses an overdrawn payer. So an
+  uncapitalized venue pays staff into the red and then cannot buy stock, and
+  the supply chain stops at the first `buy`. A live drive found Dave's Bar at
+  −349 with a world money supply of **zero**.
+
+  ⚠ **Not for a worker or a payee.** `ensureVenueAccount` also opens accounts
+  for payer-derived NPC workers and gig payees; both pass an explicit `0`. A
+  worker earns.
+- **The overdraft line.** `reconcile` reports `overdraft` — Σ of the negative
+  balances, as a positive number — and `reserve supply` prints it when it is
+  nonzero. ⭐ `accountTotal` **nets**, so an overdraft cancels itself out of the
+  supply figure: the same live drive showed a world reporting a supply of 0,
+  reconciling "balanced", while its NPCs held ~600 zorkmids of real spendable
+  wages that were never issued. Conservation still holds arithmetically; what
+  stops meaning anything is *money supply*. An account allowed to go negative
+  is a second mint the Governor does not control — reported, never blocked,
+  because running a venue red is the design.
 - **Goodkin re-homed.** From the placeholder `/world/eternal/university-avenue/bank`
   into the Terminus **Counting-Houses** (`domain/terminus/counting-houses/`): a
   Locality + zone + a public avenue block (the four rival frontages as prose) +

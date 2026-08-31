@@ -324,6 +324,7 @@ async function ensureVenueAccountImpl(
   bank: string,
   corpoKey: string,
   currency: string,
+  openingCapital?: number,
 ): Promise<string> {
   if (!active()) {
     throw new Error("BankingLogic.ensureVenueAccount: no persistence");
@@ -349,6 +350,30 @@ async function ensureVenueAccountImpl(
   row.currency = currency;
   await row.save();
   AccountBalance.putCached(row.accountId, 0, currency);
+  // ⭐ Capitalize on FIRST materialization — the `openingFloat` pattern one
+  // tier down, and idempotent for the same reason: the `existing` guard
+  // above means this line is reached exactly once per (owner, bank).
+  //
+  // `undefined` takes the configured default; an explicit `0` declines it,
+  // which is how a WORKER's payer-derived account opens (a worker earns
+  // wages, they are not capitalized). Best-effort: a capital failure must
+  // never block opening the account — an uncapitalized venue is a venue
+  // that cannot buy, not a venue that cannot exist.
+  const capital = openingCapital ?? openingCapitalMinor();
+  if (capital > 0) {
+    await postTransaction("mint", [
+      {
+        currency,
+        from: Account.ISSUANCE,
+        to: row.accountId,
+        amount: capital,
+        memo: "opening capital",
+        category: "subsidy",
+      },
+    ]).catch(() => {
+      /* best-effort — see above */
+    });
+  }
   return row.accountId;
 }
 
@@ -547,6 +572,16 @@ async function seedFloatImpl(
 function openingFloatMinor(): number {
   try {
     const raw = Number(AppApi.setting(AppSettingKeys.bankingOpeningFloat));
+    return Number.isFinite(raw) && raw > 0 ? Math.floor(raw) : 0;
+  } catch {
+    return 0;
+  }
+}
+
+/** The configured default opening capital (minor units), 0 if unset/pre-warm. */
+function openingCapitalMinor(): number {
+  try {
+    const raw = Number(AppApi.setting(AppSettingKeys.bankingOpeningCapital));
     return Number.isFinite(raw) && raw > 0 ? Math.floor(raw) : 0;
   } catch {
     return 0;
@@ -1332,12 +1367,15 @@ function reconcileImpl(currency: string): ReconcileResult {
   const accountTotal =
     AccountBalance.cachedTotalsByCurrency().get(currency) ?? 0;
   const { circulating: circulatingCoin } = liveCoinOf(currency);
+  const overdraft =
+    AccountBalance.cachedOverdraftByCurrency().get(currency) ?? 0;
   return {
     currency,
     supply,
     accountTotal,
     circulatingCoin,
     cashInExistence: supply - accountTotal,
+    overdraft,
     balanced: supply === accountTotal + circulatingCoin,
   };
 }
@@ -2170,8 +2208,15 @@ export class BankingLogic extends ApiLogic {
     bank: string,
     corpoKey: string,
     currency: string,
+    openingCapital?: number,
   ): Promise<string> {
-    return ensureVenueAccountImpl(ownerPath, bank, corpoKey, currency);
+    return ensureVenueAccountImpl(
+      ownerPath,
+      bank,
+      corpoKey,
+      currency,
+      openingCapital,
+    );
   }
 
   /** See {@link BankingApi.ensureCorpoTreasury}. The corpo's royalty account. */

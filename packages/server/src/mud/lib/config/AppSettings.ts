@@ -289,6 +289,14 @@ export const AppSettingKeys = {
    */
   bankingOpeningFloat: "banking.openingFloat",
   /**
+   * Banking — the **opening capital** (minor units) minted into a business's
+   * operating account the first time it is materialized. `openingFloat`'s
+   * sibling one tier down: a branch's till is capitalized for its customers,
+   * a venue's account for its trade. A business may override per-row with
+   * `openingCapital:`. `0` disables. See docs/subsystems/banking.md.
+   */
+  bankingOpeningCapital: "banking.openingCapital",
+  /**
    * Banking — the **default custodian bank** (an institution key, e.g.
    * `goodkin`) — the boot restamp's LAST RESORT for legacy rows with no
    * derivable custodian relationship (a business banks at its authored

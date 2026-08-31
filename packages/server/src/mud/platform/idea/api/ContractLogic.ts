@@ -577,11 +577,14 @@ async function completeImpl(contractId: string): Promise<CompleteResult> {
     if (!custodian) {
       return { ok: false, reason: "the stake's bank can't be resolved" };
     }
+    // ⚠ Opening capital 0: this is a PAYEE opening an account to receive a
+    // gig's stake, not a venue being capitalized to trade.
     payee = await BankingApi.ensureVenueAccount(
       key,
       custodian,
       "",
       Currency.compact(),
+      0,
     );
   }
 

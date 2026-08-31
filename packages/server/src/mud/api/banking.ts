@@ -494,14 +494,26 @@ export class BankingApi {
    * path, custodied at the `bank` institution), creating a primary one if
    * absent — lazily, on first banking interaction at the venue. The bar's
    * account the order/pnl/payroll flows resolve.
+   *
+   * `openingCapital` (minor units) is minted in on the FIRST materialization
+   * only. Omit it to take the `banking.openingCapital` default; pass `0` to
+   * decline — which is what a worker's payer-derived account does, since a
+   * worker earns wages rather than being capitalized.
    */
   public static async ensureVenueAccount(
     ownerPath: string,
     bank: string,
     corpoKey: string,
-    currency: string
+    currency: string,
+    openingCapital?: number
   ): Promise<string> {
-    return logic().ensureVenueAccount(ownerPath, bank, corpoKey, currency);
+    return logic().ensureVenueAccount(
+      ownerPath,
+      bank,
+      corpoKey,
+      currency,
+      openingCapital
+    );
   }
 
   /**

@@ -56,6 +56,8 @@ export interface BusinessTrade {
   getAccountPath(): string;
   /** The bank branch custodying the operating account ('' = unauthored). */
   getBanksAt(): string;
+  /** Authored opening capital (minor units), or `undefined` for the default. */
+  getOpeningCapital(): number | undefined;
   /** The par manifest — what the house keeps on hand, and from whom. */
   getParLines(): readonly ParLine[];
   /** Set (or replace, by category) one par line. */
@@ -97,6 +99,7 @@ export function BusinessMixin<
         authorPicker: 'Template',
       },
       banksAt: { persistent: true, authorable: true, authorPicker: 'Template' },
+      openingCapital: { persistent: true, authorable: true },
       parLines: { persistent: true, authorable: true },
     };
 
@@ -115,6 +118,19 @@ export function BusinessMixin<
      * `EmploymentApi.operatingAccountOf`).
      */
     public banksAt: string = '';
+
+    /**
+     * Opening capital (minor units) minted into this business's operating
+     * account the first time that account is materialized — **a per-venue
+     * override of `banking.openingCapital`**, because a distillery needs
+     * more standing capital than a bar.
+     *
+     * `-1` (the default) means "unauthored — take the configured default".
+     * An explicit `0` opens the business on nothing, which is a legitimate
+     * thing to author: it will pay wages into the red and be unable to buy,
+     * exactly as an undercapitalized business should.
+     */
+    public openingCapital: number = -1;
 
     /**
      * The **par manifest**: the levels of each category of goods the
@@ -145,6 +161,14 @@ export function BusinessMixin<
 
     public getBanksAt(): string {
       return this.banksAt;
+    }
+
+    /**
+     * The authored opening capital in minor units, or `undefined` when the
+     * row does not author one (take the configured default).
+     */
+    public getOpeningCapital(): number | undefined {
+      return this.openingCapital >= 0 ? this.openingCapital : undefined;
     }
 
     public getOperatingLocations(): readonly string[] {

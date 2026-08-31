@@ -567,11 +567,17 @@ async function operatingAccountOfImpl(
         `its operating account`,
     );
   }
+  // A BUSINESS is capitalized on first materialization — its authored
+  // `openingCapital:` if it declares one, else the `banking.openingCapital`
+  // default. Without it a venue pays wages into the red (payroll runs no
+  // solvency check, by design) and then cannot buy stock (purchases DO
+  // check), so the supply chain stops at the first `buy`.
   return BankingApi.ensureVenueAccount(
     business.getAccountPath(),
     banksAt,
     '',
     Currency.compact(),
+    business.getOpeningCapital(),
   );
 }
 
@@ -594,11 +600,15 @@ async function ensurePayableWorker(
   if (!banksAt) return false;
   // A worker's first account opens in the PAYER's currency — which is how
   // company-scrip wages will eventually work. Nothing else here is scrip.
+  //
+  // ⚠ Opening capital 0, explicitly: a worker EARNS. Capitalizing every NPC
+  // who takes a shift would mint the payroll twice over.
   await BankingApi.ensureVenueAccount(
     employeeKey,
     banksAt,
     '',
     Currency.compact(),
+    0,
   );
   return true;
 }
