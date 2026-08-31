@@ -293,10 +293,13 @@ first is anywhere a reviewer looks.
 - **The tables become reviewable.** A diff that says a collection went
   from `pass` to `stamp` is a sentence, not a constant buried in a
   1 600-line file.
-- **A pack could declare its own storage.** Today a capability pack that
-  wanted a collection would need a kernel MR — precisely the
-  "a pack must never need a kernel list edit" rule the capability-packs
-  build established everywhere *else*.
+- ~~**A pack could declare its own storage.**~~ ⚠ **Struck 2026-08-31 —
+  this was wrong.** A content pack cannot create a Mongo collection at
+  all, so there was never a rule being violated here. The schema docs
+  are **repo files, not pack content**: they seed nothing, they describe
+  what the code already writes. Removing this also removes the pressure
+  toward runtime extensibility — the set of collections is closed and
+  repo-owned, which is what makes generating the vocabulary viable.
 - **It closes the resilience slate's commonest failure** — a control
   "designed, documented, given a default, and never connected." A table
   that is loaded is a table you can assert over at boot.
@@ -323,3 +326,57 @@ first is anywhere a reviewer looks.
 After Wave 3 (marshallers/hooks/Hydrator as path-resolved modules) and
 independent of it: both waves are the same move — **stop expressing
 persistence policy as TypeScript the framework happens to read.**
+
+---
+
+### ⭐ Decided 2026-08-31 — and the real motivation
+
+**The driver is pedagogy, not tidiness.** The point is to link a
+collection to the `Document` class that writes it and to the subsystem
+doc that owns it, and then **project the whole thing into the help
+system** so a player can read how the persistence layer works. Every
+decision below follows from that being the goal.
+
+**The mechanism needs no invention.** PM already reads an in-repo YAML
+manifest at a default path at boot — `loadHooks` over
+`mud/platform/idea/hooks/hooks.yaml`, `readFileSync` + `YAML.parse`, not
+a pack, not a seed, no `content` collection involved. Schema docs read
+the same way sit next to that precedent.
+
+| Decision | Ruling |
+|---|---|
+| **The `Collections` vocabulary** | **Generated from the YAML and committed**, with a lint proving the tree matches. It is the one piece used in *type* position across ~50 files, so parsing it at runtime alone would trade a compile-time error class for a boot-time one. Authored once, checkable at build time — the lint-family pattern applied to data. PM still *loads* the YAML at boot for indexes, policy and metadata. |
+| **The field list** | **Not in the doc.** `fieldMeta` is what the Hydrator reflects on; a YAML that restated it would be two copies of one sentence, and the copy that drifts is the one nobody executes. The help projector **harvests** fields from the owner class's `fieldMeta`. ⚠ Consequence accepted: per-FIELD prose then has no home until `fieldMeta` grows one. |
+| **Scope** | **The full refactor in one build** — docs, the help projector, the binding gate, indexes, and both policy tables. |
+
+**What the inventory found** (2026-08-31, against the live tree):
+
+- 48 collections. `COLLECTION_POLICIES` and `RESET_DISPOSITIONS` are
+  both **complete** and already machine-readable — they are simply
+  written in TypeScript. `createIndexes()` is **89 `createIndex` calls
+  in one method** (18 unique, 2 TTL, 2 partial, plus text indexes),
+  and is the table that is genuinely awkward in code.
+- ⭐ **The description is what is missing, not the policy.** Only **4 of
+  48** collections carry any prose in `Collections.ts`, and CLAUDE.md's
+  orientation list covers **28 of 48**.
+- ⭐ `RESET_DISPOSITIONS` already carries a `because:` string on every
+  `keep`. Per-collection reasoning partly EXISTS — it just lives where
+  only a developer sees it. It migrates rather than being invented.
+- ⚠ **The link this build wants to make is currently broken and
+  unchecked.** Eleven production `Document` classes name their
+  collection with a bare string literal rather than `Collections.X` —
+  `User`, `Group`, `Channel`, `Blueprint`, `StoredDocument`,
+  `PersistedRecord`, `ParcelEvent`, `DescriptorBank` and the three OAuth
+  profiles. CLAUDE.md calls `Collections.ts` the single source of truth;
+  nothing enforces it.
+- The help side is a clean fit: `HelpCatalogue` already **harvests
+  rather than registers**, with two projectors over a uniform
+  `HelpTopic`. This is a third. ⚠ It does mean touching
+  `@saxonberg/types`: `HelpKind` and `HelpSource.subdivision` are both
+  closed unions needing a new member.
+
+**Still open, for the requirements pass:** what "version history" should
+mean. These are repo files, so git already gives developers one; the
+question is whether a *player* reading the help entry should see a
+readable "this changed, and why" — i.e. an authored `history:` block —
+or whether git is enough and the help entry carries only current truth.
