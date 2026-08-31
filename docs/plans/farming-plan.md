@@ -517,7 +517,7 @@ check, ONE full suite, lints, push — stop for the user's MR review
 
 ## Risks & opens
 
-**OPEN for the user:**
+**OPEN for the user — RESOLVED 2026-08-31: defaults accepted on all four.**
 1. **Market square placement + name** — off the counting-houses block
    is the plan's default (demand-side, von Thünen); name is content.
    Say the word if you want it elsewhere (or named now).
