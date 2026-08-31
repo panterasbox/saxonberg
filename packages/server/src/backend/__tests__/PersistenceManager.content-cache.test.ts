@@ -28,13 +28,21 @@ const MINTED_ID = 'cccccccccccccccccccccccc';
 interface FakeState {
   rows: Record<string, unknown>[];
   findFilters: unknown[];
+  /** Set true to make the NEXT `find` wait; `hold` then releases it. */
+  gateNext: boolean;
+  hold: (() => void) | null;
 }
 
 function installFakeContent(
   pm: PersistenceManager,
   rows: Record<string, unknown>[]
 ): FakeState {
-  const state: FakeState = { rows: [...rows], findFilters: [] };
+  const state: FakeState = {
+    rows: [...rows],
+    findFilters: [],
+    gateNext: false,
+    hold: null,
+  };
   const matches = (
     row: Record<string, unknown>,
     filter: Record<string, unknown>
@@ -54,11 +62,24 @@ function installFakeContent(
     find: vi.fn((filter: Record<string, unknown>) => {
       state.findFilters.push(filter);
       const hits = state.rows.filter((r) => matches(r, filter));
+      // One-shot: only the find that was explicitly armed waits, so a
+      // later read (a re-preload, say) is not gated by a lock nobody
+      // holds the key to.
+      let gate: Promise<void> | null = null;
+      if (state.gateNext) {
+        state.gateNext = false;
+        gate = new Promise<void>((release) => {
+          state.hold = release as () => void;
+        });
+      }
       const cursor = {
         sort: () => cursor,
         skip: () => cursor,
         limit: () => cursor,
-        toArray: async () => hits,
+        toArray: async () => {
+          if (gate) await gate;
+          return hits;
+        },
       };
       return cursor;
     }),
@@ -71,8 +92,8 @@ function installFakeContent(
 }
 
 const ROWS = [
-  { _id: BAR_ID, path: '/world/lounge/bar', class: '/platform/thing/Prop' },
-  { _id: WELL_ID, path: '/trade/hospitality/thing/well', class: '/x/Well' },
+  { _id: BAR_ID, path: '/test/room/bar', class: '/platform/thing/Prop' },
+  { _id: WELL_ID, path: '/test/thing/well', class: '/x/Well' },
 ];
 
 describe('PersistenceManager — the resident content cache', () => {
@@ -96,10 +117,10 @@ describe('PersistenceManager — the resident content cache', () => {
     const state = installFakeContent(pm, ROWS);
 
     const first = await pm.find(Collections.Content, {
-      path: '/world/lounge/bar',
+      path: '/test/room/bar',
     });
     const second = await pm.find(Collections.Content, {
-      path: '/world/lounge/bar',
+      path: '/test/room/bar',
     });
 
     expect(first[0]?.class).toBe('/platform/thing/Prop');
@@ -110,41 +131,44 @@ describe('PersistenceManager — the resident content cache', () => {
 
   it('answers a MISS without a round trip', async () => {
     const state = installFakeContent(pm, ROWS);
-    await pm.find(Collections.Content, { path: '/world/lounge/bar' });
+    await pm.find(Collections.Content, { path: '/test/room/bar' });
     state.findFilters.length = 0;
 
-    // The shape the zone walk makes: ancestors that mostly do not exist.
-    expect(await pm.find(Collections.Content, { path: '/world' })).toEqual([]);
-    expect(await pm.find(Collections.Content, { path: '/trade' })).toEqual([]);
+    // The shape the zone walk makes: every ancestor of the row's own
+    // path, none of which exists as a row here.
+    expect(await pm.find(Collections.Content, { path: '/test/room' })).toEqual(
+      []
+    );
+    expect(await pm.find(Collections.Content, { path: '/test' })).toEqual([]);
     expect(state.findFilters).toEqual([]);
   });
 
   it('hands out copies — a caller mutating a row cannot corrupt it', async () => {
     installFakeContent(pm, ROWS);
     const got = await pm.find(Collections.Content, {
-      path: '/world/lounge/bar',
+      path: '/test/room/bar',
     });
     (got[0] as Record<string, unknown>).class = '/tampered';
 
     const again = await pm.find(Collections.Content, {
-      path: '/world/lounge/bar',
+      path: '/test/room/bar',
     });
     expect(again[0]?.class).toBe('/platform/thing/Prop');
   });
 
   it('a save is written through, so the next read sees it', async () => {
     const state = installFakeContent(pm, ROWS);
-    await pm.find(Collections.Content, { path: '/world/lounge/bar' });
+    await pm.find(Collections.Content, { path: '/test/room/bar' });
     state.findFilters.length = 0;
 
     await pm.save(Collections.Content, {
       _id: BAR_ID,
-      path: '/world/lounge/bar',
+      path: '/test/room/bar',
       class: '/platform/thing/Chair',
     });
 
     const got = await pm.find(Collections.Content, {
-      path: '/world/lounge/bar',
+      path: '/test/room/bar',
     });
     expect(got[0]?.class).toBe('/platform/thing/Chair');
     expect(state.findFilters).toEqual([]);
@@ -152,48 +176,48 @@ describe('PersistenceManager — the resident content cache', () => {
 
   it('a save that re-paths a row evicts the path it used to hold', async () => {
     installFakeContent(pm, ROWS);
-    await pm.find(Collections.Content, { path: '/world/lounge/bar' });
+    await pm.find(Collections.Content, { path: '/test/room/bar' });
 
     // The `mv` shape: same `_id`, new `path`.
     await pm.save(Collections.Content, {
       _id: BAR_ID,
-      path: '/world/lounge/snug',
+      path: '/test/room/snug',
       class: '/platform/thing/Prop',
     });
 
-    expect(await pm.find(Collections.Content, { path: '/world/lounge/bar' }))
+    expect(await pm.find(Collections.Content, { path: '/test/room/bar' }))
       .toEqual([]);
     expect(
-      (await pm.find(Collections.Content, { path: '/world/lounge/snug' }))[0]
+      (await pm.find(Collections.Content, { path: '/test/room/snug' }))[0]
         ?.class
     ).toBe('/platform/thing/Prop');
   });
 
   it('a delete evicts the row', async () => {
     installFakeContent(pm, ROWS);
-    await pm.find(Collections.Content, { path: '/world/lounge/bar' });
+    await pm.find(Collections.Content, { path: '/test/room/bar' });
 
     await pm.delete(Collections.Content, BAR_ID);
 
     expect(
-      await pm.find(Collections.Content, { path: '/world/lounge/bar' })
+      await pm.find(Collections.Content, { path: '/test/room/bar' })
     ).toEqual([]);
   });
 
   it('a bulk delete drops the cache whole and the next read repopulates', async () => {
     const state = installFakeContent(pm, ROWS);
-    await pm.find(Collections.Content, { path: '/world/lounge/bar' });
+    await pm.find(Collections.Content, { path: '/test/room/bar' });
     state.findFilters.length = 0;
 
     await pm.deleteMany(Collections.Content, { sourcePack: 'whatever' });
 
-    await pm.find(Collections.Content, { path: '/world/lounge/bar' });
+    await pm.find(Collections.Content, { path: '/test/room/bar' });
     expect(state.findFilters).toEqual([{}]);
   });
 
   it('passes a non-by-path query through to Mongo', async () => {
     const state = installFakeContent(pm, ROWS);
-    await pm.find(Collections.Content, { path: '/world/lounge/bar' });
+    await pm.find(Collections.Content, { path: '/test/room/bar' });
     state.findFilters.length = 0;
 
     await pm.find(Collections.Content, { class: '/platform/thing/Prop' });
@@ -202,23 +226,78 @@ describe('PersistenceManager — the resident content cache', () => {
 
   it('never answers for another collection, even a by-path query', async () => {
     const state = installFakeContent(pm, ROWS);
-    await pm.find(Collections.Content, { path: '/world/lounge/bar' });
+    await pm.find(Collections.Content, { path: '/test/room/bar' });
     state.findFilters.length = 0;
 
-    await pm.find(Collections.Documents, { path: '/world/lounge/bar' });
-    expect(state.findFilters).toEqual([{ path: '/world/lounge/bar' }]);
+    await pm.find(Collections.Documents, { path: '/test/room/bar' });
+    expect(state.findFilters).toEqual([{ path: '/test/room/bar' }]);
+  });
+
+  it('does not lose a save that lands while the preload is in flight', async () => {
+    const state = installFakeContent(pm, ROWS);
+    state.gateNext = true;
+
+    // The preload's snapshot is taken now and predates the save below.
+    const reading = pm.find(Collections.Content, { path: '/test/room/bar' });
+    await pm.save(Collections.Content, {
+      path: '/test/room/snug',
+      class: '/platform/thing/Prop',
+    });
+    state.hold!(); // the snapshot lands, without the new row in it
+    await reading;
+
+    // Without the pending-write buffer this row is invisible for the
+    // life of the cache: not in the snapshot, and no map to fold into.
+    const got = await pm.find(Collections.Content, {
+      path: '/test/room/snug',
+    });
+    expect(got[0]?.class).toBe('/platform/thing/Prop');
+  });
+
+  it('does not resurrect a delete that lands while the preload is in flight', async () => {
+    const state = installFakeContent(pm, ROWS);
+    state.gateNext = true;
+
+    const reading = pm.find(Collections.Content, { path: '/test/room/bar' });
+    await pm.delete(Collections.Content, BAR_ID);
+    state.hold!(); // the snapshot lands, still holding the deleted row
+    await reading;
+
+    expect(
+      await pm.find(Collections.Content, { path: '/test/room/bar' })
+    ).toEqual([]);
+  });
+
+  it('discards a preload whose snapshot a bulk delete has already invalidated', async () => {
+    const state = installFakeContent(pm, ROWS);
+    state.gateNext = true;
+
+    const reading = pm.find(Collections.Content, { path: '/test/room/bar' });
+    // The bulk filter names no ids to replay, so the in-flight snapshot
+    // — which still holds every row — cannot be corrected, only dropped.
+    state.rows = state.rows.filter((r) => r.path !== '/test/room/bar');
+    await pm.deleteMany(Collections.Content, { sourcePack: 'gone' });
+    state.hold!();
+    await reading;
+
+    state.findFilters.length = 0;
+    expect(
+      await pm.find(Collections.Content, { path: '/test/room/bar' })
+    ).toEqual([]);
+    // It re-read rather than installing the stale snapshot.
+    expect(state.findFilters).toEqual([{}]);
   });
 
   it('reads through when there is no connection', async () => {
     (pm as unknown as { db: unknown }).db = null;
     const state = installFakeContent(pm, ROWS);
 
-    await pm.find(Collections.Content, { path: '/world/lounge/bar' });
-    await pm.find(Collections.Content, { path: '/world/lounge/bar' });
+    await pm.find(Collections.Content, { path: '/test/room/bar' });
+    await pm.find(Collections.Content, { path: '/test/room/bar' });
 
     expect(state.findFilters).toEqual([
-      { path: '/world/lounge/bar' },
-      { path: '/world/lounge/bar' },
+      { path: '/test/room/bar' },
+      { path: '/test/room/bar' },
     ]);
   });
 });

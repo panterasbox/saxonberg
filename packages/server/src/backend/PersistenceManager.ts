@@ -380,9 +380,6 @@ export class PersistenceManager {
   private databaseName: string = 'saxonberg';
 
   /**
-   * Hook registry keyed by `${collection}:${operation}`.
-   */
-  /**
    * The resident `content` cache — path → row, plus the id → path
    * reverse index a write needs to find the entry it is replacing.
    *
@@ -415,6 +412,26 @@ export class PersistenceManager {
   /** In-flight preload, so N concurrent first-readers issue one query. */
   private contentPreload: Promise<void> | null = null;
 
+  /**
+   * Writes that landed while the preload query was in flight, replayed
+   * onto the map the moment it exists. `doc === null` is a delete.
+   */
+  private contentPending: Array<{
+    id: string;
+    doc: Record<string, unknown> | null;
+  }> | null = null;
+
+  /**
+   * Bumped by every {@link dropContentCache}. A preload that finishes
+   * after a drop is holding a snapshot of a collection that has since
+   * changed underneath it, and must throw its result away rather than
+   * install it.
+   */
+  private contentGeneration = 0;
+
+  /**
+   * Hook registry keyed by `${collection}:${operation}`.
+   */
   private saveHooks: Map<string, AroundSaveFn[]> = new Map();
   private deleteHooks: Map<string, AroundDeleteFn[]> = new Map();
 
@@ -1054,16 +1071,6 @@ export class PersistenceManager {
   }
 
   /**
-   * Load every `content` row into {@link contentByPath}. Idempotent and
-   * concurrency-safe: the first caller issues the query, the rest await
-   * the same promise.
-   *
-   * A row that cannot be structured-cloned is left OUT of the map — it
-   * then simply misses and falls through to Mongo, which is the same
-   * answer, slower. That keeps an exotic BSON value from turning a
-   * performance cache into a correctness bug.
-   */
-  /**
    * Whether the resident cache may answer for `collectionName`.
    *
    * Two conditions, and both are load-bearing:
@@ -1088,14 +1095,41 @@ export class PersistenceManager {
     );
   }
 
+  /**
+   * Load every `content` row into {@link contentByPath}. Idempotent and
+   * concurrency-safe: the first caller issues the query, the rest await
+   * the same promise.
+   *
+   * A row that cannot be structured-cloned is left OUT of the map — it
+   * then simply misses and falls through to Mongo, which is the same
+   * answer, slower. That keeps an exotic BSON value from turning a
+   * performance cache into a correctness bug.
+   *
+   * ⚠ A write that lands WHILE the preload query is in flight is not in
+   * the snapshot the query returns, and has no map to fold itself into
+   * — so it is buffered and replayed once the map exists. Without that,
+   * a row written in the window between issuing `find({})` and
+   * assigning the map would be invisible for the life of the cache.
+   *
+   * ⚠ A *bulk delete* in that same window cannot be replayed — its
+   * filter names no ids — so it bumps a generation instead, and a
+   * preload that finishes on a stale generation discards its snapshot
+   * rather than installing rows the delete has already removed.
+   */
   private async ensureContentCache(): Promise<void> {
     if (this.contentByPath !== null) return;
     if (this.contentPreload !== null) return this.contentPreload;
 
+    this.contentPending = [];
+    const generation = this.contentGeneration;
     this.contentPreload = (async () => {
       const docs = await this.getCollection(Collections.Content)
         .find({})
         .toArray();
+      // A bulk delete landed while this query was in flight: the rows it
+      // removed are still in this snapshot. Discard it — the next reader
+      // preloads again against the collection as it now stands.
+      if (this.contentGeneration !== generation) return;
       const byPath = new Map<string, Record<string, unknown>>();
       const pathById = new Map<string, string>();
       let skipped = 0;
@@ -1117,6 +1151,13 @@ export class PersistenceManager {
       }
       this.contentByPath = byPath;
       this.contentPathById = pathById;
+      // Replay anything written under us, in the order it was written.
+      const pending = this.contentPending ?? [];
+      this.contentPending = null;
+      for (const w of pending) {
+        if (w.doc === null) this.noteContentDelete(w.id);
+        else this.noteContentSave(w.doc, w.id);
+      }
       console.info(
         `PersistenceManager: ${byPath.size} content row(s) resident` +
           (skipped > 0 ? ` (${skipped} uncacheable, read through)` : '')
@@ -1127,6 +1168,7 @@ export class PersistenceManager {
       await this.contentPreload;
     } finally {
       this.contentPreload = null;
+      this.contentPending = null;
     }
   }
 
@@ -1159,11 +1201,20 @@ export class PersistenceManager {
    */
   private noteContentSave(doc: Record<string, unknown>, id: string): void {
     const byPath = this.contentByPath;
-    if (byPath === null) return;
+    if (byPath === null) {
+      // Mid-preload: the snapshot in flight predates this write.
+      this.contentPending?.push({ id, doc });
+      return;
+    }
     const previous = this.contentPathById.get(id);
     if (previous !== undefined) byPath.delete(previous);
     const path = doc.path;
-    if (typeof path !== 'string') return;
+    if (typeof path !== 'string') {
+      // A row with no path is one the cache cannot address; forget the
+      // id too, or the index keeps pointing at a path it no longer has.
+      this.contentPathById.delete(id);
+      return;
+    }
     const stored = { ...doc, _id: id };
     try {
       structuredClone(stored);
@@ -1179,7 +1230,10 @@ export class PersistenceManager {
   /** Evict the row `id` held. */
   private noteContentDelete(id: string): void {
     const byPath = this.contentByPath;
-    if (byPath === null) return;
+    if (byPath === null) {
+      this.contentPending?.push({ id, doc: null });
+      return;
+    }
     const path = this.contentPathById.get(id);
     if (path !== undefined) byPath.delete(path);
     this.contentPathById.delete(id);
@@ -1192,6 +1246,8 @@ export class PersistenceManager {
   private dropContentCache(): void {
     this.contentByPath = null;
     this.contentPathById = new Map();
+    this.contentPending = null;
+    this.contentGeneration += 1;
   }
 
   /**
