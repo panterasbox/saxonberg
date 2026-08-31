@@ -7,5 +7,7 @@ data:
   shortDescription: the well
   longDescription: The speed rail below the bar's lip, the working bottles necked in a row within a hand's reach.
   primaryKeyword: well
-  keywords: [well, rail, speed-rail, shelf]
+  # ⚠ NOT `rail`/`shelf` — the back-bar owns both. In the trade this IS
+  # the speed rail, so it keeps the unambiguous spellings of that.
+  keywords: [well, speed-rail, speedrail]
   mass: 20

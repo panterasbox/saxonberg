@@ -7,4 +7,7 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: the back-bar
   longDescription: A long mirrored back-bar, its rail worn smooth, ranked with bottles.
-  keywords: [back-bar, backbar, bar, shelf, rail]
+  # ⚠ NOT `bar` — that is the counter you sit at (and the room). This is
+  # the shelf behind it: `back-bar`, `shelf`, and `rail` (the word the
+  # whole build uses for it).
+  keywords: [back-bar, backbar, shelf, rail]

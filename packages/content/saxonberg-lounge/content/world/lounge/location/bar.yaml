@@ -36,8 +36,8 @@ data:
       # `tap` capability the pint recipe requires. With `tap` on both,
       # `look tap` returned this WALL DECORATION instead of the tap, the
       # same divergence the stools' claim on `rail` caused. The handles
-      # are still reachable as `handle`/`handles`, which is what they are.
-      keywords: [sign, signs, neon, handle, handles, light, lights]
+      # handles belong to the tap, which claims `handle` itself.
+      keywords: [sign, signs, neon, light, lights]
       description: |
         The glow is corporate. Each neon sign and brass tap handle carries a maker's mark, and Dave chose every one — which makes the far wall a map of his politics. A Veshko sign hums beside an Aevex one that's never quite forgiven it; a cheap proud Hollis light buzzes a few feet from the cool Vionne script it's spent years undercutting. Read the wall and you can read the whole avenue's quarrels, lit up in amber and rose.
     photos:
@@ -45,7 +45,9 @@ data:
       description: |
         Decades of regulars, going yellow in their frames. A younger Dave mid-impression, caught with one arm flung wide and the whole room laughing. A broad half-orc — Augie, unmistakably — behind the bar with a clipboard under one arm and a grin like he owns the place, though he never did. Empty stools photographed on purpose, the way you photograph people who aren't coming back.
     mug:
-      keywords: [mug, tankard, shelf, brass, plate]
+      # ⚠ NOT `shelf` — the back-bar owns it, and that is the shelf anyone
+      # in here actually reaches for. This one is scenery.
+      keywords: [mug, tankard, brass, plate]
       description: |
         A chipped pewter mug sits alone on a high shelf, a little brass plate screwed beneath it with a name worn past reading. Nobody washes it. Nobody moves it. The bar keeps its own, and this is how it remembers them.
     bills:
@@ -53,7 +55,11 @@ data:
       description: |
         Signed bills tacked up behind the rail, gone soft with smoke and years — first dollars, dares paid off, a couple of IOUs in Dave's own hand that he plainly never meant to collect. Every one is somebody's small story, kept where they can see it kept.
     slab:
-      keywords: [slab, counter, woodwork, wood, scar, scars, rings]
+      # ⚠ NOT `counter` — the bar counter is a real OBJECT in this room
+      # (`/world/lounge/thing/bar-counter`) and it owns the words you act
+      # with (`bar`, `counter`); this detail owns the words you look
+      # closely with. The object for doing, the detail for reading.
+      keywords: [slab, woodwork, wood, scar, scars, rings]
       description: |
         Up close the dark slab is a ledger of its own — water rings inside water rings, a constellation of old cigarette burns, initials gouged in by somebody who got told off for it. Sanded smooth, never replaced. A newer bar would have thrown it out years ago; that's rather the point.
     stools:
