@@ -346,6 +346,47 @@ the Hinkley pour-the-soil trap, dodged in data).
   if B0 finds the programme extension belongs beside the programme —
   B0 decides under D18's membership tests).
 
+### P10 — Inputs, water, incorporation, disciplines (the pre-greenlight scan, user-approved)
+
+**The v1 input set is medieval and exactly four things**: water,
+compost (bought sacks — at medieval tech compost IS the fertilizer;
+synthetic N is a far-future unlock; **manure is ranching's return
+leg**, never faked early), seed (retail), and hands. **No weeds/pest
+axis** — the slate's audit found it entirely net-new; it arrives as
+the adversarial reserve in phase 4/6, and the medieval answer is the
+hoe, not chemicals. pH/amendments ride phase 4's six-reserve soil.
+The vine trellis is prose.
+
+**Water: a dug well, and what it's hiding.** Mechanically every water
+source in the game is the same `WaterFixture` over `UnboundedSource`
+("NOT a regenerating well… deferred", its own docstring) — our farm's
+is no different, and honestly so. Fiction: each holding's water is a
+**dug well, part of the provision, priced into the lot** — the real
+Valley of Heart's Delight was sold on its artesian water; the well is
+the plat book's pitch made object. **Named seams**: the
+finite-but-regenerating source is where water becomes an economy
+(rights, drilling, irrigation — the user's deferral), and the aquifer-
+as-commons in an unincorporated district is precisely what Heart's
+Delight farmers would first incorporate over.
+
+**Unincorporated is modelled by absence** — the civics substrate's own
+shape: government is a data Idea with Locality-declared jurisdiction,
+and Heart's Delight ships **no Government row**. Title works without
+government (property is Compact-level). ⚠ B1 verify: how civics READS
+the absence (no jurisdiction claimed vs. inherited), so the district's
+prose is honest.
+
+**One discipline: `horticulture`** — every act here (plant, water,
+feed, pick, break ground) credits the practised leaf; `agriculture`
+stays the uncredited spine parent. Fix in passing (Wave A3): the
+shipped `HarvestController` credits `'agriculture'` where husbandry.md
+says the leaf — align to `'horticulture'`. **No conferrals, per the
+shipped stance** — the tech ladder (irrigation, grafting, the
+nursery, instruments) arrives later as conferrals + known-of→can-make
+recipes gated on exercised competence: **trades ship at medieval tech
+and advance as players exercise disciplines** (the user's
+trade-progression doctrine, recorded here for successor builds).
+
 ---
 
 ## Stage A
@@ -381,7 +422,10 @@ round-trip. `Growing.test.ts` itself untouched.
 
 ### Wave A3 — Harvest + `pick` + ground-targeting
 
-Per P2: `harvest.yaml` (platform pack) + `HarvestController`.
+Per P2: `harvest.yaml` (platform pack) + `HarvestController` — and
+the P10 alignment: the deed discipline string `'agriculture'` →
+`'horticulture'` (the doc's practised leaf), with the advancement
+test updated.
 **Tests:** extend `HarvestVerb.test.ts` — polycarp mints setCount,
 each graded off the cycle window; survives with a fresh window (second
 cycle regrades clean); nutrient draw on pick; bed-target resolves the
