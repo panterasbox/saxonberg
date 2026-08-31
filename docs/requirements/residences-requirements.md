@@ -502,6 +502,18 @@ once:
   and **remodel — changing that set — has an owner** (still a
   development-slate seam, not this build).
 
+**Member identity policy is per member class, and identity follows
+state longevity.** A minted room is a *clone by mechanism, singleton by
+identity* — one clone pipeline, two identity policies — so the warren's
+member contract (compose singletons or clones) is unchanged. State that
+outlives the tenure gets a minted identity (dwelling rooms); state that
+dies with the stay, or no state at all, stays an anonymous clone — the
+wiring (doors, gate/stair exits, rebuilt from durable rows and reaped
+freely) today, and the **inn room** later (interchangeable short-stay
+space that re-leases clean nightly, where a minted identity would be
+actively wrong — a named future consumer of this substrate, not this
+build).
+
 The **floorplan** is the programme's *initial* data — what to mint at
 provision; the plat plan : institution :: floorplan : holding symmetry
 stands. The four lifecycles — title, provisioning, persistence keying,
