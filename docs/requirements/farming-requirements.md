@@ -591,3 +591,8 @@ this build's sequencing and seams:
   [crafting](../subsystems/crafting.md) ·
   [parcel](../subsystems/parcel.md) ·
   [content-packs](../subsystems/content-packs.md)
+- Parallel build (residences, branch `design/residences`):
+  `docs/requirements/residences-requirements.md` (D16 the programme ·
+  D17 identity · D18 packaging) · `docs/plans/residences-plan.md`
+  (Waves 0–5 are Stage B's dependency) — see § Dependencies &
+  interfaces
