@@ -252,22 +252,47 @@ their build as expected.
 ### P7 — Break-ground: a programme-level act over a field ledger
 
 On the landed `HoldingProgramme` base: the farm holding's programme
-carries the **field ledger** (`fields: [{leaf, name, areaM2}]`,
-persistent instance state) and buds each field as a keyed member —
-`(scope = the authored field row, key = <holdingExtent>/<leaf>)` —
-into the district's fields `SphericalZone`. The **break-ground act**
-(`break ground <name> --area <n>`; category with the cultivation
-verbs; `requiresEmbodied`): title check (the actor holds the
-holding) → area check (Σ fields + homestead reserve ≤ holding area) →
-an **engagement** over real game-time (the crafting ManualBuild
-shape) → append the ledger → bud the room → wire the named gate off
-the homestead. Spherical placement: the holding's anchor focus is a
-fixed projection of its lot's plan slot (deterministic, collision-free
-across holdings); fields ring-pack around the anchor,
-`radius = √(areaM2/π)`; **no-overlap is asserted by the act against
-the ledger** (the zone doesn't enforce it). `radius` → size-scale
-wiring lands here if B0's verify finds it absent. Field retirement:
-deferred seam, comment only.
+carries the **field ledger** — `fields: [{leaf, name, areaM2, focus,
+radius}]`, persistent instance state, so placement is durable, the
+overlap assertion is pure ledger arithmetic, and wake re-wires exits
+deterministically from geometry — and buds each field as a keyed
+member — `(scope = the authored field row, key =
+<holdingExtent>/<leaf>)` — into the district's fields
+`SphericalZone`. The **break-ground act** (`break ground <name>
+--area <n>`; category with the cultivation verbs; `requiresEmbodied`;
+input = a name and an area, nothing else — placement is derived,
+per the auto-packed-foci ruling): title check (the actor holds the
+holding) → area checks (Σ fields + homestead reserve ≤ holding area;
+`areaM2 ≤` the **per-field cap**, an authored dial ~4 ha that keeps
+one room honest — wanting more means breaking a second field; the
+giant contiguous staple field is phase 4's aggregate-density
+question) → an **engagement** over real game-time (the crafting
+ManualBuild shape; duration scales with area) → append the ledger →
+bud the room → wire the gates.
+
+**Placement is TANGENT PACKING, and the graph IS the geometry** (user
+ruling): the first field's sphere is placed tangent to the
+homestead's anchor; every later field is placed tangent to an
+existing sphere, spiraling outward — **no overlap and connectivity
+both by construction**. Exits derive from the same facts: touching
+spheres get a lateral exit; fields tangent to the anchor get the
+homestead gate. Depth is emergent, never authored — a 3-field croft
+is a star off the yard; a 12-field spread is a spiral web where the
+back forty is a real walk through intervening fields (von Thünen
+inside one farm). `radius = √(areaM2/π)`.
+
+**Cross-holding separation**: each holding's anchor is a fixed
+projection of its lot's plan slot, reserving a disc bounded by the
+holding's known area (`√(2A/π)` — packing headroom); anchor spacing
+keeps discs disjoint by construction, and the act asserts it anyway
+(the zone deliberately doesn't). **One zone per district, one room
+per field, always**: all holdings' fields share the single district
+fields zone (forced by shared-row zone resolution; what makes
+region-level facts resolve); a holding never gets its own zone; a
+second rural district ships its own fields zone in its own pack.
+
+`radius` → size-scale wiring lands here if B0's verify finds it
+absent. Field retirement: deferred seam, comment only.
 
 **Soil at the mint — no roll, no check, a fact of the place** (user
 ruling): a discipline check on break-ground would violate three
