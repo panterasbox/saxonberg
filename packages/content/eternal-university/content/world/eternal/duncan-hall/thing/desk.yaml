@@ -1,7 +1,7 @@
 # Desk — a university-owned dorm fixture (invariant, respawned from
 # template), seeded into each DormRoom via its `populates:` data. A work surface;
 # generic label, no Named.
-class: /world/eternal/duncan-hall/Desk
+class: /world/eternal/duncan-hall/thing/Desk
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a plain desk

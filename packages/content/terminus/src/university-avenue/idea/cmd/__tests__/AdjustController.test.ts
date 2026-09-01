@@ -8,7 +8,7 @@
 import "@saxonberg/server/test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import AdjustController from '../AdjustController';
-import Watch from '../../../Watch';
+import Watch from '../../../thing/Watch';
 import Location from '@saxonberg/server/mud/lib/stuff/Location';
 import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
 import { CommandGiverMixin } from '@saxonberg/server/mud/lib/command/CommandGiver';

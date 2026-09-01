@@ -31,7 +31,7 @@ import { ParcelApi } from '@saxonberg/server/mud/api/parcel';
 import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import ProvisionController from './ProvisionController';
-import DormWarren from '../../DormWarren';
+import DormWarren from '../DormWarren';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';

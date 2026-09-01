@@ -5,7 +5,7 @@
 
 import "@saxonberg/server/test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
-import Whistle from '../Whistle';
+import Whistle from '../thing/Whistle';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { Mixins } from '@saxonberg/server/mud/lib/mixin';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';

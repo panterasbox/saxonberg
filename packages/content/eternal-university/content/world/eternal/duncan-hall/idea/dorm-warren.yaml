@@ -1,0 +1,23 @@
+# The Duncan Hall dorms Warren — the singleton coordinator (an incorporeal
+# Idea, NOT a Location) that manages the elastic two-tier dorm graph: keyed
+# rooms (Warren members, persisted via D1) + runtime floor corridors.
+#
+# Boot-warmed (bootstrapManifest) so its `postRegister` installs the lobby's
+# `up` LazyFloorExit and rebuilds the sync reachability cache from the
+# durable slot set. Nothing about the graph persists beyond this definition +
+# the unit parcels: rooms/corridors/doors reconstitute lazily on entry after
+# a restart. No hydratorClass — no persistent or instruction fields.
+class: /world/eternal/duncan-hall/idea/DormWarren
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  # D13: layout is authored data — the dorm is the LINEAR shape (floors
+  # stack; `frontagesPerNode` is the authored default under the
+  # operator's `dorm.roomsPerFloor` runtime dial, D10).
+  plan:
+    shape: linear
+    frontagesPerNode: 12
+  # D10: the institution's total capacity — the operator's runtime dial
+  # (`config set dorm.roomCap N`) over a generous shipped default.
+  capacityKey: dorm.roomCap
+  defaultCapacity: 240
+  parentExtent: /world/eternal/duncan-hall/dorms

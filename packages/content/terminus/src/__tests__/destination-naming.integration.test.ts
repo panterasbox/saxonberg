@@ -68,8 +68,8 @@ const WILDS = join(
   dirname(createRequire(import.meta.url).resolve("@saxonberg/content-newbie-wilds/package.json")),
   "content",
 );
-const ARRIVAL = "/world/terminus/terminal/arrival-terminal";
-const GATE_A = "/world/terminus/terminal/departure-terminal-a";
+const ARRIVAL = "/world/terminus/terminal/thing/arrival-terminal";
+const GATE_A = "/world/terminus/terminal/thing/departure-terminal-a";
 const CROSSROADS = "/world/newbie-wilds/crossroads/terminal";
 
 // A lounge-terminal stub (Gate A's free route target) + its room.
@@ -81,10 +81,10 @@ const STUBS: Doc[] = [
     data: { seatIn: "/world/test/lounge-room", shortDescription: "The Lounge", keywords: ["lounge"], directionality: "both", routes: [] },
   },
   { path: "/world/test/lounge-room", class: "/platform/location/VoidLocation", hydratorClass: PH, data: { shortDescription: "the lounge" } },
-  { path: "/world/terminus/university-avenue/crossing", class: "/platform/location/VoidLocation", hydratorClass: PH, data: { shortDescription: "University Avenue" } },
+  { path: "/world/terminus/university-avenue/location/crossing", class: "/platform/location/VoidLocation", hydratorClass: PH, data: { shortDescription: "University Avenue" } },
   // The office populates the clerk (a full NPC, Phase 4) — stub it here so the
   // cascade resolves without heavy NPC hydration.
-  { path: "/world/terminus/terminal/clerk", class: "/platform/thing/Prop", hydratorClass: PH, data: { shortDescription: "the clerk" } },
+  { path: "/world/terminus/terminal/agent/clerk", class: "/platform/thing/Prop", hydratorClass: PH, data: { shortDescription: "the clerk" } },
   // The registry office (cascaded off the arrival gate, civics) populates
   // the registrar — same stub treatment.
   { path: "/world/terminus/registry/clerk", class: "/platform/thing/Prop", hydratorClass: PH, data: { shortDescription: "the registrar" } },

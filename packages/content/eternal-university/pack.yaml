@@ -38,4 +38,4 @@ requires:
     - { extent: /world/eternal/duncan-hall,       holder: { group: duncan-hall } }
     - { extent: /world/eternal/duncan-hall/dorms, parentParcel: /world/eternal/duncan-hall, holder: { group: duncan-hall }, landUse: residential }
 boot:
-  - { template: /world/eternal/duncan-hall/dorm-warren, role: producer, reason: installs the lobby stair and rebuilds the floor cache at postRegister }
+  - { template: /world/eternal/duncan-hall/idea/dorm-warren, role: producer, reason: installs the lobby stair and rebuilds the floor cache at postRegister }

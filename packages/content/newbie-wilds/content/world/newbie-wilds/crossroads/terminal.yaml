@@ -29,5 +29,5 @@ data:
   status: operational
   surcharge: 2
   routes:
-    - to: /world/terminus/terminal/arrival-terminal
+    - to: /world/terminus/terminal/thing/arrival-terminal
       fee: 0

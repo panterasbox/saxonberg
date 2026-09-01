@@ -6,7 +6,7 @@
 import "@saxonberg/server/test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import BlowController from '../BlowController';
-import Whistle from '../../../Whistle';
+import Whistle from '../../../thing/Whistle';
 import Location from '@saxonberg/server/mud/lib/stuff/Location';
 import { CommandGiverMixin } from '@saxonberg/server/mud/lib/command/CommandGiver';
 import { SensorMixin } from '@saxonberg/server/mud/lib/message/Sensor';

@@ -56,22 +56,22 @@ function seed(relFromSeeds: string, path: string): Doc {
   };
 }
 
-const CROSSING = "/world/terminus/university-avenue/crossing";
-const ARRIVAL_GATE = "/world/terminus/terminal/arrival-gate";
-const HALL = "/world/terminus/terminal/hall";
-const GATE_C = "/world/terminus/terminal/departure-gate-c";
+const CROSSING = "/world/terminus/university-avenue/location/crossing";
+const ARRIVAL_GATE = "/world/terminus/terminal/location/arrival-gate";
+const HALL = "/world/terminus/terminal/location/hall";
+const GATE_C = "/world/terminus/terminal/location/departure-gate-c";
 const AVENUE_BLOCK = "/world/terminus/counting-houses/avenue-block";
-const CAMPUS_GATE = "/world/terminus/university-avenue/campus-gate";
-const DOOR = "/world/terminus/university-avenue/campus-gate-door";
+const CAMPUS_GATE = "/world/terminus/university-avenue/location/campus-gate";
+const DOOR = "/world/terminus/university-avenue/thing/campus-gate-door";
 
 // The curated realized set: only the flavorful touchables survive as Stuff
 // (the camp chair, the beacon, the gutter ticket-stub). The generic municipal
 // furniture (bench / lamppost / litter bin) is now room `details:` prose, not
 // populated objects — see crossing.yaml.
 const OBJECTS = [
-  "/world/terminus/university-avenue/camp-chair",
-  "/world/terminus/university-avenue/beacon",
-  "/world/terminus/university-avenue/gutter-litter",
+  "/world/terminus/university-avenue/thing/camp-chair",
+  "/world/terminus/university-avenue/thing/beacon",
+  "/world/terminus/university-avenue/thing/gutter-litter",
 ];
 
 // Gus + his gear (Phase 4). Gus is a plain populate into the room; his gear
@@ -80,12 +80,12 @@ const OBJECTS = [
 // resolvable species + body plan, so the test store carries a minimal human
 // Species pointing at the real biped body plan.
 const GUS = "/world/terminus/university-avenue/agent/gus";
-const VEST = "/world/terminus/university-avenue/vest";
-const WHISTLE = "/world/terminus/university-avenue/whistle";
-const PADDLE = "/world/terminus/university-avenue/paddle";
-const WATCH = "/world/terminus/university-avenue/pocket-watch";
-const LOG = "/world/terminus/university-avenue/crossing-log";
-const THERMOS = "/world/terminus/university-avenue/thermos";
+const VEST = "/world/terminus/university-avenue/thing/vest";
+const WHISTLE = "/world/terminus/university-avenue/thing/whistle";
+const PADDLE = "/world/terminus/university-avenue/thing/paddle";
+const WATCH = "/world/terminus/university-avenue/thing/pocket-watch";
+const LOG = "/world/terminus/university-avenue/thing/crossing-log";
+const THERMOS = "/world/terminus/university-avenue/thing/thermos";
 const HUMAN =
   "/stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens";
 const BIPED = "/stuff/idea/species/BodyPlan/biped";
@@ -101,20 +101,20 @@ function docs(): Doc[] {
     ),
     seed("world/terminus/terminal.yaml", "/world/terminus/terminal"),
     // The crossing area.
-    seed("world/terminus/university-avenue/crossing.yaml", CROSSING),
-    seed("world/terminus/university-avenue/campus-gate.yaml", CAMPUS_GATE),
-    seed("world/terminus/university-avenue/campus-gate-door.yaml", DOOR),
-    seed("world/terminus/university-avenue/camp-chair.yaml", OBJECTS[0]!),
-    seed("world/terminus/university-avenue/beacon.yaml", OBJECTS[1]!),
-    seed("world/terminus/university-avenue/gutter-litter.yaml", OBJECTS[2]!),
+    seed("world/terminus/university-avenue/location/crossing.yaml", CROSSING),
+    seed("world/terminus/university-avenue/location/campus-gate.yaml", CAMPUS_GATE),
+    seed("world/terminus/university-avenue/thing/campus-gate-door.yaml", DOOR),
+    seed("world/terminus/university-avenue/thing/camp-chair.yaml", OBJECTS[0]!),
+    seed("world/terminus/university-avenue/thing/beacon.yaml", OBJECTS[1]!),
+    seed("world/terminus/university-avenue/thing/gutter-litter.yaml", OBJECTS[2]!),
     // Gus + his gear templates + the anatomy his equip resolves against.
     seed("world/terminus/university-avenue/agent/gus.yaml", GUS),
-    seed("world/terminus/university-avenue/vest.yaml", VEST),
-    seed("world/terminus/university-avenue/whistle.yaml", WHISTLE),
-    seed("world/terminus/university-avenue/paddle.yaml", PADDLE),
-    seed("world/terminus/university-avenue/pocket-watch.yaml", WATCH),
-    seed("world/terminus/university-avenue/crossing-log.yaml", LOG),
-    seed("world/terminus/university-avenue/thermos.yaml", THERMOS),
+    seed("world/terminus/university-avenue/thing/vest.yaml", VEST),
+    seed("world/terminus/university-avenue/thing/whistle.yaml", WHISTLE),
+    seed("world/terminus/university-avenue/thing/paddle.yaml", PADDLE),
+    seed("world/terminus/university-avenue/thing/pocket-watch.yaml", WATCH),
+    seed("world/terminus/university-avenue/thing/crossing-log.yaml", LOG),
+    seed("world/terminus/university-avenue/thing/thermos.yaml", THERMOS),
     seed("stuff/idea/species/BodyPlan/biped.yaml", BIPED),
     // Minimal human species → the real biped body plan (the full species
     // tree is content-pack installed and out of scope for this seed test).
@@ -125,15 +125,15 @@ function docs(): Doc[] {
       data: { name: "human", _bodyPlanPath: BIPED },
     },
     // The reoriented terminal frontage across the avenue.
-    seed("world/terminus/terminal/arrival-gate.yaml", ARRIVAL_GATE),
-    seed("world/terminus/terminal/hall.yaml", HALL),
+    seed("world/terminus/terminal/location/arrival-gate.yaml", ARRIVAL_GATE),
+    seed("world/terminus/terminal/location/hall.yaml", HALL),
     // The hall's populates list stands the public noticeboard up (the
     // labor market's discovery surface — see contract.md).
     seed(
-      "world/terminus/terminal/job-board.yaml",
-      "/world/terminus/terminal/job-board",
+      "world/terminus/terminal/thing/job-board.yaml",
+      "/world/terminus/terminal/thing/job-board",
     ),
-    seed("world/terminus/terminal/departure-gate-c.yaml", GATE_C),
+    seed("world/terminus/terminal/location/departure-gate-c.yaml", GATE_C),
   ];
   // Light stubs for the rest of the hub the cascade reaches.
   const stub = (p: string, cls = "/platform/location/VoidLocation"): Doc => ({
@@ -144,12 +144,12 @@ function docs(): Doc[] {
   });
   const stubs: Doc[] = [
     stub(AVENUE_BLOCK),
-    stub("/world/terminus/terminal/departure-gate-a"),
-    stub("/world/terminus/terminal/departure-gate-b"),
-    stub("/world/terminus/terminal/office"),
+    stub("/world/terminus/terminal/location/departure-gate-a"),
+    stub("/world/terminus/terminal/location/departure-gate-b"),
+    stub("/world/terminus/terminal/location/office"),
     // The registry annex off the arrival gate's east frontage (civics).
     stub("/world/terminus/registry/office"),
-    stub("/world/terminus/terminal/departure-terminal-c", "/platform/thing/Prop"),
+    stub("/world/terminus/terminal/thing/departure-terminal-c", "/platform/thing/Prop"),
   ];
   return [...real, ...stubs];
 }

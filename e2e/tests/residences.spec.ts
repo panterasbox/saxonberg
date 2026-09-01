@@ -24,7 +24,7 @@ import {
  */
 
 const REGISTRY = '/world/terminus/registry/office';
-const LANE = '/world/terminus/hinkley-hills/lane';
+const LANE = '/world/terminus/hinkley-hills/location/lane';
 const LOT_FILE = '.auth/residences-lot';
 
 /** A lot nobody has bought yet, read off the generative plat window. */

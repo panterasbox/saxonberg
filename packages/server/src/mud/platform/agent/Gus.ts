@@ -33,8 +33,8 @@ import { ContainmentApi } from '../../api/containment';
 import { SpeciesApi } from '../../api/species';
 import { MixinApi } from '../../api/mixin';
 
-/** The zone root Gus's gear templates live under. */
-const ROOT = '/world/terminus/university-avenue';
+/** The branch Gus's gear templates live under — all six are Things. */
+const ROOT = '/world/terminus/university-avenue/thing';
 
 /**
  * Worn/wielded gear — each item resolves its OWN body-plan slot claim

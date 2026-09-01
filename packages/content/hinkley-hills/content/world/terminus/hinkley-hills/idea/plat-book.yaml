@@ -1,0 +1,22 @@
+# Hinkley Hills' plat book — the CATALOGUE half, now GENERATIVE
+# (residences D10): the authored 40-lot roster is retired — "surveyed
+# for a hundred families" is the lane's prose, where it always
+# belonged. A lot exists to sell when its number fits under the
+# operator's capacity dial (`hinkley-hills.lotCap`, default 40); the
+# plat plan on the lot-holder says where each lands. What physically
+# appears when a lot sells is the PlatWarren's programme
+# (house-programme.yaml).
+class: /residence/idea/PlatBook
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  label: Hinkley Hills
+  parentExtent: /world/terminus/hinkley-hills
+  lotBranch: lots
+  lotPrefix: lot-
+  # A real sum for an early character and nowhere near a fortune.
+  priceMinor: 4000
+  # 1000 m² — a quarter-acre, which is what the `lot` tag-table calls it.
+  areaM2: 1000
+  # Residential: admits a garden bed, refuses a field.
+  landUse: residential
+  holderPath: /world/terminus/hinkley-hills/idea/lot-holder

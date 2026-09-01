@@ -7,8 +7,8 @@
 import "@saxonberg/server/test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import TallyController from '../TallyController';
-import CrossingLog from '../../../CrossingLog';
-import Watch from '../../../Watch';
+import CrossingLog from '../../../thing/CrossingLog';
+import Watch from '../../../thing/Watch';
 import Location from '@saxonberg/server/mud/lib/stuff/Location';
 import { CommandGiverMixin } from '@saxonberg/server/mud/lib/command/CommandGiver';
 import { SensorMixin } from '@saxonberg/server/mud/lib/message/Sensor';

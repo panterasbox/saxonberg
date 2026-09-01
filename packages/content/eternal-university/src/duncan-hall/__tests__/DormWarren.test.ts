@@ -11,12 +11,12 @@
 
 import "@saxonberg/server/test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import DormWarren from '../DormWarren';
-import DormRoom from '../DormRoom';
-import Corridor from '../Corridor';
-import Bed from '../Bed';
-import Desk from '../Desk';
-import Footlocker from '../Footlocker';
+import DormWarren from '../idea/DormWarren';
+import DormRoom from '../location/DormRoom';
+import Corridor from '../location/Corridor';
+import Bed from '../thing/Bed';
+import Desk from '../thing/Desk';
+import Footlocker from '../thing/Footlocker';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -74,33 +74,33 @@ function seedDomain(): void {
   const add = (path: string, cls: string, data: Record<string, unknown> = {}) =>
     domain.push({ _id: `d-${++idCounter}`, path, class: cls, hydratorClass: PH, data });
   domain.push({ _id: `d-${++idCounter}`, path: PH, class: PH, data: {} });
-  add(DormWarren.WARREN_PATH, '/world/eternal/duncan-hall/DormWarren');
+  add(DormWarren.WARREN_PATH, '/world/eternal/duncan-hall/idea/DormWarren');
   // D16 step 2: the unit's degenerate one-room programme row.
   add(DormWarren.PROGRAMME_PATH, '/residence/idea/HoldingWarren', {
     floorplan: [{ room: DormRoom.SCOPE, entry: true }],
     upkeepTerm: 'institution-all',
   });
-  add(DormRoom.SCOPE, '/world/eternal/duncan-hall/DormRoom', {
+  add(DormRoom.SCOPE, '/world/eternal/duncan-hall/location/DormRoom', {
     shortDescription: 'a dorm room',
     // Fixtures as data — the spine's seedBornWith lays these down once.
     populates: FIXTURES,
   });
-  add(DormWarren.CORRIDOR_TEMPLATE, '/world/eternal/duncan-hall/Corridor', {
+  add(DormWarren.CORRIDOR_TEMPLATE, '/world/eternal/duncan-hall/location/Corridor', {
     shortDescription: 'a dorm corridor',
   });
   // The lobby stand-in — a Corridor-class exitable container (the real lobby
   // is a CartesianLocation needing its zone; the stair wiring only needs an
   // Exitable container here).
-  add(DormWarren.LOBBY_PATH, '/world/eternal/duncan-hall/Corridor', {
+  add(DormWarren.LOBBY_PATH, '/world/eternal/duncan-hall/location/Corridor', {
     shortDescription: 'the lobby',
   });
-  add(FIXTURES[0]!, '/world/eternal/duncan-hall/Bed', {
+  add(FIXTURES[0]!, '/world/eternal/duncan-hall/thing/Bed', {
     shortDescription: 'a narrow bed',
   });
-  add(FIXTURES[1]!, '/world/eternal/duncan-hall/Desk', {
+  add(FIXTURES[1]!, '/world/eternal/duncan-hall/thing/Desk', {
     shortDescription: 'a plain desk',
   });
-  add(FIXTURES[2]!, '/world/eternal/duncan-hall/Footlocker', {
+  add(FIXTURES[2]!, '/world/eternal/duncan-hall/thing/Footlocker', {
     shortDescription: 'a footlocker',
   });
   add('/stuff/thing/Key', '/platform/thing/Key', { shortDescription: 'a key' });

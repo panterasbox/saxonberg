@@ -24,10 +24,10 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { readFileSync, readdirSync } from 'fs';
 import { fileURLToPath } from 'url';
 import YAML from 'yaml';
-import DormWarren from '../DormWarren';
-import DormRoom from '../DormRoom';
-import Desk from '../Desk';
-import Footlocker from '../Footlocker';
+import DormWarren from '../idea/DormWarren';
+import DormRoom from '../location/DormRoom';
+import Desk from '../thing/Desk';
+import Footlocker from '../thing/Footlocker';
 import Plant from '@saxonberg/server/mud/platform/thing/Plant';
 import PlantPot, { PLANT_SLOT } from '@saxonberg/server/mud/platform/thing/PlantPot';
 import { SOIL_MOISTURE_RESERVE_KEY } from '@saxonberg/server/mud/lib/husbandry/Cultivable';
@@ -151,20 +151,20 @@ const SNAKE_SPECIES =
 function seedDomain(): void {
   col('content').push({ _id: `d-${++idCounter}`, path: PH, class: PH, data: {} });
 
-  addSeed(DormWarren.WARREN_PATH, `${SEEDS}world/eternal/duncan-hall/dorm-warren.yaml`);
+  addSeed(DormWarren.WARREN_PATH, `${SEEDS}world/eternal/duncan-hall/idea/dorm-warren.yaml`);
   // D16 step 2: the unit's degenerate one-room programme row.
   addSeed(
     DormWarren.PROGRAMME_PATH,
-    `${SEEDS}world/eternal/duncan-hall/dorm-programme.yaml`,
+    `${SEEDS}world/eternal/duncan-hall/idea/dorm-programme.yaml`,
   );
-  addSeed(DormRoom.SCOPE, `${SEEDS}world/eternal/duncan-hall/dormroom.yaml`);
+  addSeed(DormRoom.SCOPE, `${SEEDS}world/eternal/duncan-hall/location/dormroom.yaml`);
   addSeed(
     DormWarren.CORRIDOR_TEMPLATE,
-    `${SEEDS}world/eternal/duncan-hall/corridor.yaml`,
+    `${SEEDS}world/eternal/duncan-hall/location/corridor.yaml`,
   );
   addSeed(
     DormWarren.LOBBY_PATH,
-    `${SEEDS}world/eternal/duncan-hall/corridor.yaml`,
+    `${SEEDS}world/eternal/duncan-hall/location/corridor.yaml`,
   );
   for (const f of ['bed', 'desk', 'footlocker', 'tap']) {
     addSeed(

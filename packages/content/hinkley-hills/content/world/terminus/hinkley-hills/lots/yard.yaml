@@ -47,7 +47,7 @@ data:
   # here would point every keyed clone at one shared room.
   populates:
     - /trade/farming/thing/bed/garden
-    - /world/terminus/hinkley-hills/standpipe
+    - /world/terminus/hinkley-hills/thing/standpipe
     # The can is not decoration — `water` is a TOOL-conferred verb
     # (ToolCapability `watering`, placement `carried`), so a yard with a
     # bed and a standpipe and no can is ground you cannot actually work.

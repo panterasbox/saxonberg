@@ -2,7 +2,7 @@
 # template), seeded into each DormRoom via its `populates:` data. A store surface;
 # generic label, no Named. Its tenant-scoped contents are the deferred
 # "possession" seam (the apartment's chattel-title); v1 is functional-empty.
-class: /world/eternal/duncan-hall/Footlocker
+class: /world/eternal/duncan-hall/thing/Footlocker
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a footlocker

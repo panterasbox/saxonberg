@@ -11,8 +11,8 @@
 
 import "@saxonberg/server/test-bootstrap";
 import { describe, it, expect, beforeEach } from "vitest";
-import Bed from "../Bed";
-import DormRoom from "../DormRoom";
+import Bed from "../thing/Bed";
+import DormRoom from "../location/DormRoom";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { parse } from "yaml";
@@ -94,7 +94,7 @@ describe("the dorm bed", () => {
  */
 describe("the dorm fixtures earn their classes", () => {
   it("Desk is a Surface PLUS an affordance carrier and a theme discriminant", async () => {
-    const { default: Desk } = await import("../Desk");
+    const { default: Desk } = await import("../thing/Desk");
     // 1. It affords `remodel` to the room's occupants. A container does not
     //    afford its own verbs — a co-located sibling does (the
     //    Menu-in-the-room precedent), so the desk is the carrier.

@@ -50,6 +50,6 @@ describe("the dorm bed against the bedroom archetype", () => {
     // capability landed on the class and the slot spec landed as DATA, so
     // the template row still names the same class it always did.
     const dorm = read("world/eternal/duncan-hall/thing/bed.yaml");
-    expect(dorm.class).toBe("/world/eternal/duncan-hall/Bed");
+    expect(dorm.class).toBe("/world/eternal/duncan-hall/thing/Bed");
   });
 });

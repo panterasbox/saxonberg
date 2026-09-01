@@ -23,7 +23,7 @@ import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { SlotApi } from '@saxonberg/server/mud/api/slot';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
-import CrossingLog from '../../CrossingLog';
+import CrossingLog from '../../thing/CrossingLog';
 
 interface TallyModel extends CommandModel {
   target?: MqlOneResult;

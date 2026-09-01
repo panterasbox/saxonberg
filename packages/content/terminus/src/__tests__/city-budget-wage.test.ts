@@ -27,7 +27,7 @@ import {
 } from "@saxonberg/server/mud/lib/banking/__tests__/banking-test-harness";
 
 const BUDGET = "/world/terminus/budget";
-const CLERK = "/world/terminus/terminal/clerk";
+const CLERK = "/world/terminus/terminal/agent/clerk";
 const HOUR = 3_600;
 
 class Person extends Idea {
@@ -44,7 +44,7 @@ function seedBudget(): BusinessEntity {
   b.banksAt = BankingApi.defaultCustodianBank();
   b.positions = [{ key: "clerk", label: "staffing the ticket office", wageRate: 4, confers: [] }];
   // Fixture-keyed: the budget operates the departure TERMINAL, not the room.
-  b.operatingLocations = ["/world/terminus/terminal/departure-terminal-a"];
+  b.operatingLocations = ["/world/terminus/terminal/thing/departure-terminal-a"];
   return b;
 }
 
@@ -100,7 +100,7 @@ describe("Terminus city-budget wage loop", () => {
   it("resolves the municipal budget as the operator of the departure terminal", async () => {
     seedBudget();
     // Fixture-keyed: the operator is resolved from the terminal, not the room.
-    const op = EmploymentApi.businessAt("/world/terminus/terminal/departure-terminal-a");
+    const op = EmploymentApi.businessAt("/world/terminus/terminal/thing/departure-terminal-a");
     expect(op).toBeTruthy();
     expect(op!.getAccountPath()).toBe(BUDGET);
     expect(op!.getProprietor()).toBeUndefined(); // municipal (proprietor-absent)

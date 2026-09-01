@@ -29,7 +29,7 @@ data:
     z: 0
   exits:
     east:
-      destination: /world/terminus/university-avenue/crossing
+      destination: /world/terminus/university-avenue/location/crossing
     west:
       destination: /world/terminus/counting-houses/banking-hall
     # NORTH into the general store (its own zone; cross-zone cardinal exit,

@@ -64,18 +64,18 @@ function loadSeeds(dir: string, rootLen: number): Doc[] {
 }
 
 const TERMINALS = [
-  "/world/terminus/terminal/arrival-terminal",
-  "/world/terminus/terminal/departure-terminal-a",
-  "/world/terminus/terminal/departure-terminal-b",
-  "/world/terminus/terminal/departure-terminal-c",
+  "/world/terminus/terminal/thing/arrival-terminal",
+  "/world/terminus/terminal/thing/departure-terminal-a",
+  "/world/terminus/terminal/thing/departure-terminal-b",
+  "/world/terminus/terminal/thing/departure-terminal-c",
 ];
 const ROOMS = [
-  "/world/terminus/terminal/hall",
-  "/world/terminus/terminal/arrival-gate",
-  "/world/terminus/terminal/departure-gate-a",
-  "/world/terminus/terminal/departure-gate-b",
-  "/world/terminus/terminal/departure-gate-c",
-  "/world/terminus/terminal/office",
+  "/world/terminus/terminal/location/hall",
+  "/world/terminus/terminal/location/arrival-gate",
+  "/world/terminus/terminal/location/departure-gate-a",
+  "/world/terminus/terminal/location/departure-gate-b",
+  "/world/terminus/terminal/location/departure-gate-c",
+  "/world/terminus/terminal/location/office",
 ];
 
 /**
@@ -107,11 +107,11 @@ const STUBS: Doc[] = [
     data: { seatIn: "/world/test/crossroads-room", keywords: ["crossroads"], directionality: "both", routes: [] },
   },
   { path: "/world/test/crossroads-room", class: "/platform/location/VoidLocation", hydratorClass: PH, data: { shortDescription: "the crossroads" } },
-  { path: "/world/terminus/terminal/clerk", class: "/platform/thing/Prop", hydratorClass: PH, data: { shortDescription: "the clerk" } },
+  { path: "/world/terminus/terminal/agent/clerk", class: "/platform/thing/Prop", hydratorClass: PH, data: { shortDescription: "the clerk" } },
   // The registry office (cascaded via the arrival gate's east exit)
   // populates the registrar — same heavy-NPC stub treatment.
   { path: "/world/terminus/registry/clerk", class: "/platform/thing/Prop", hydratorClass: PH, data: { shortDescription: "the registrar" } },
-  { path: "/world/terminus/university-avenue/crossing", class: "/platform/location/VoidLocation", hydratorClass: PH, data: { shortDescription: "University Avenue" } },
+  { path: "/world/terminus/university-avenue/location/crossing", class: "/platform/location/VoidLocation", hydratorClass: PH, data: { shortDescription: "University Avenue" } },
 ];
 
 /**
@@ -176,7 +176,7 @@ describe("Terminus content standup (real seeds)", () => {
   it("wires the cross-branch exit from the arrival gate to the EU crossing", async () => {
     await boot();
     const arrivalGate = StuffApi.findByTemplatePath(
-      "/world/terminus/terminal/arrival-gate",
+      "/world/terminus/terminal/location/arrival-gate",
     )!;
     expect(MixinApi.isExitable(arrivalGate)).toBe(true);
     const exits = (
@@ -185,22 +185,22 @@ describe("Terminus content standup (real seeds)", () => {
       }
     ).getExits();
     const dests = [...exits.values()].map((e) => e.getDestinationTemplatePath());
-    expect(dests).toContain("/world/terminus/university-avenue/crossing");
-    expect(dests).toContain("/world/terminus/terminal/hall");
+    expect(dests).toContain("/world/terminus/university-avenue/location/crossing");
+    expect(dests).toContain("/world/terminus/terminal/location/hall");
   });
 
   it("declares every intra-zone connection explicitly on both sides", async () => {
     await boot();
-    const HALL = "/world/terminus/terminal/hall";
+    const HALL = "/world/terminus/terminal/location/hall";
     // Each neighbour's OWN template declares its explicit exit back to the hall
     // (getExits() is the explicit map — grid-derived exits aren't in it). The
     // template is self-describing: read the room, know what it connects to.
     const backExit: Record<string, string> = {
-      "/world/terminus/terminal/arrival-gate": "south",
-      "/world/terminus/terminal/departure-gate-a": "west",
-      "/world/terminus/terminal/departure-gate-b": "east",
-      "/world/terminus/terminal/departure-gate-c": "north",
-      "/world/terminus/terminal/office": "down",
+      "/world/terminus/terminal/location/arrival-gate": "south",
+      "/world/terminus/terminal/location/departure-gate-a": "west",
+      "/world/terminus/terminal/location/departure-gate-b": "east",
+      "/world/terminus/terminal/location/departure-gate-c": "north",
+      "/world/terminus/terminal/location/office": "down",
     };
     for (const [room, dir] of Object.entries(backExit)) {
       const exits = explicitExits(StuffApi.findByTemplatePath(room)!);

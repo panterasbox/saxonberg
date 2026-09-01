@@ -68,7 +68,7 @@ class TestAvatar extends ContainerMixin(ContainableMixin(PropertiedMixin(Idea)))
 describe("Goodkin seeds — the authored branch is well-formed", () => {
   it("the room exit chain walks crossing → avenue → hall ↔ parlor", () => {
     const crossing = seedData(
-      "world/terminus/university-avenue/crossing.yaml",
+      "world/terminus/university-avenue/location/crossing.yaml",
     ) as { exits: Record<string, { destination: string }> };
     expect(crossing.exits.west?.destination).toBe(
       "/world/terminus/counting-houses/avenue-block",
@@ -77,7 +77,7 @@ describe("Goodkin seeds — the authored branch is well-formed", () => {
       exits: Record<string, { destination: string }>;
     };
     expect(avenue.exits.east?.destination).toBe(
-      "/world/terminus/university-avenue/crossing",
+      "/world/terminus/university-avenue/location/crossing",
     );
     expect(avenue.exits.west?.destination).toBe(
       "/world/terminus/counting-houses/banking-hall",

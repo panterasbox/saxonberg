@@ -45,7 +45,7 @@ describe("the yard ships the kit that makes it workable", () => {
 
   it("ships the bed and the water source", () => {
     expect(populates).toContain("/trade/farming/thing/bed/garden");
-    expect(populates).toContain(`/${HINKLEY}/standpipe`);
+    expect(populates).toContain(`/${HINKLEY}/thing/standpipe`);
   });
 
   it("is NOT a CartesianLocation — a per-lot room is off the grid", () => {
@@ -58,7 +58,7 @@ describe("the yard ships the kit that makes it workable", () => {
 });
 
 describe("the lane authors no exit into a lot", () => {
-  const lane = read(`${HINKLEY}/lane.yaml`);
+  const lane = read(`${HINKLEY}/location/lane.yaml`);
   const exits = (lane.data?.exits ?? {}) as Record<
     string,
     { destination?: string }
@@ -99,13 +99,13 @@ describe("one lot ships already sold", () => {
   });
 
   it("is a quarter-acre, like every lot the book sells", () => {
-    const book = read(`${HINKLEY}/plat-book.yaml`);
+    const book = read(`${HINKLEY}/idea/plat-book.yaml`);
     expect(lot1?.areaM2).toBe(book.data?.areaM2);
   });
 
   it("its leaf fits the GENERATIVE book (D10 — prefix + capacity, no roster)", () => {
-    const book = read(`${HINKLEY}/plat-book.yaml`);
-    const holder = read(`${HINKLEY}/lot-holder.yaml`);
+    const book = read(`${HINKLEY}/idea/plat-book.yaml`);
+    const holder = read(`${HINKLEY}/idea/lot-holder.yaml`);
     expect(book.data?.lots).toBeUndefined(); // the roster is retired
     const prefix = String(book.data?.lotPrefix ?? 'lot-');
     expect('lot-1'.startsWith(prefix)).toBe(true);
@@ -113,7 +113,7 @@ describe("one lot ships already sold", () => {
   });
 
   it("the house floorplan cites real rows only (D17)", () => {
-    const programme = read(`${HINKLEY}/house-programme.yaml`);
+    const programme = read(`${HINKLEY}/idea/house-programme.yaml`);
     const rooms = (programme.data?.floorplan ?? []) as Array<{ room?: string }>;
     expect(rooms.length).toBeGreaterThanOrEqual(5);
     for (const r of rooms) {

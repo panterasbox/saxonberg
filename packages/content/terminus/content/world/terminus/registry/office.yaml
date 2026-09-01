@@ -24,7 +24,7 @@ data:
     - /world/terminus/registry/desk
   exits:
     west:
-      destination: /world/terminus/terminal/arrival-gate
+      destination: /world/terminus/terminal/location/arrival-gate
   details:
     counter:
       keywords: [counter, wood, ledgers, shelves]

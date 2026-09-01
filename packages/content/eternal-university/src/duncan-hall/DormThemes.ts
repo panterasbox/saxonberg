@@ -22,9 +22,9 @@
  */
 
 import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
-import Bed from './Bed';
-import Desk from './Desk';
-import Footlocker from './Footlocker';
+import Bed from './thing/Bed';
+import Desk from './thing/Desk';
+import Footlocker from './thing/Footlocker';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Visible } from '@saxonberg/server/mud/lib/description/Visible';

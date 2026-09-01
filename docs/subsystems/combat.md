@@ -287,7 +287,7 @@ here on `WieldableMixin` (arming yourself is a combat prerequisite;
 ## The demonstrator — the treeline cull
 
 `attack` a brain-driven **wolf** (`/stuff/idea/species/wolf` quadruped +
-`/world/newbie-wilds/npc/wolf`, a `wolfshead` bounty) in **the treeline**
+`/world/newbie-wilds/agent/wolf`, a `wolfshead` bounty) in **the treeline**
 (`/world/newbie-wilds/crossroads/treeline`, off the crossroads hub, reached
 via the char-gen `startLocation` override, no inbound exit wired — content-
 area standup stays clean). Pick up + wield the dropped steel dagger, `attack
@@ -439,7 +439,7 @@ state (poise / flags / armed / condition). Bands, never numbers.
 ### The demonstrator — the consented duel
 
 `attack` **the gentleman out of the fog who works with a knife** (the
-crossroads bounty the board already names): `/world/newbie-wilds/npc/
+crossroads bounty the board already names): `/world/newbie-wilds/agent/
 duelist` — a sentient human whose standing terms are lethal, waiting in the
 **fog hollow** (`/world/newbie-wilds/crossroads/hollow`, one step west of
 the treeline). He takes up a knife from the duelling-stone via the new

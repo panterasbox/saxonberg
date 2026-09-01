@@ -17,7 +17,7 @@
 # The slot spec is DATA, not code — the class supplies the capability and the
 # seed supplies the shape, which is why this retrofit needed no `class:`
 # change and therefore no migration of the live per-unit records.
-class: /world/eternal/duncan-hall/Bed
+class: /world/eternal/duncan-hall/thing/Bed
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a narrow bed

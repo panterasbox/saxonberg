@@ -21,7 +21,7 @@ import { Mml } from '@saxonberg/server/mud/api/mml';
 import { ParcelApi } from '@saxonberg/server/mud/api/parcel';
 import { PromptApi } from '@saxonberg/server/mud/api/prompt';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import DormWarren from '../../DormWarren';
+import DormWarren from '../DormWarren';
 import DormThemes, {
   DormThemeError,
 } from '../../DormThemes';

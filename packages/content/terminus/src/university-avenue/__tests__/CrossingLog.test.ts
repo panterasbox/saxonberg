@@ -7,7 +7,7 @@
 
 import "@saxonberg/server/test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
-import CrossingLog from '../CrossingLog';
+import CrossingLog from '../thing/CrossingLog';
 import { Time } from '@saxonberg/server/mud/lib/time/Time';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { Mixins } from '@saxonberg/server/mud/lib/mixin';
