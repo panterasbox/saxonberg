@@ -1016,20 +1016,149 @@ compass bearing, so you follow the lode with `drive NE` instead of
 zig-zagging, and **dip** is a stair-step of `drive SE` + `sink` — which is
 drift-and-winze, exactly how real mines chase a dipping seam.
 
-### Cave-ins — two tracks, neither fatal
+### Cave-ins — two tracks, neither fatal **[from the content bible]**
 
 - **Sealing (routine, safe)** — the reap above. Not a hazard; the map
   healing back toward the live workings. You return to find dead ground
   already walled off.
 - **Collapse (rare, telegraphed, survivable)** — the danger event on a live
-  push. **It blocks, it never kills.** The room becomes a *Fall* you dig
-  out of, wait for rescue in, or route around. **Always announced first**
-  (creaking, dust, air pressure); always preventable by shoring; **no
-  instakills, ever.** In v1 collapse strikes unshored Provisional rock
-  only.
+  push. **It blocks, it never kills.** Always announced first (creaking,
+  dust, air pressure); always preventable by shoring; **no instakills,
+  ever.** In v1 collapse strikes unshored Provisional rock only.
 
-*(This is the answer to mining-slate § Open's "cave-in — build it or skip
-it": build it, as a blocker, on the Provisional/shored axis.)*
+⚠ **Superseded in scope by the section below** — the *collapse* half is
+**deferred until the player population can support a rescue**; what v1
+builds is prevention. The rules above stand for whenever it lands.
+
+### ⭐⭐⭐ Ground support — prevention ships; collapse waits for people **[DECIDED 2026-08-31]**
+
+**The user's ruling:** *"I don't really want to design any actual cave-ins
+until we have enough players to handle it, because that seems like a
+collective-action sort of thing. However we do need to design cave-in
+PREVENTION and wire that up to our mine so there's a reason no one's
+getting buried."*
+
+So v1 ships **the maintenance system, not the disaster** — and the
+maintenance system is complete on its own.
+
+#### The thing that spans rooms is the SUPPORT, not the failure
+
+The granularity objection is right: a real roof fall is *sub-room* (a slab
+off one part of the back) or *supra-room* (a district subsides), and
+neither is "one room." The resolution is to stop modelling the failure
+geometry and model the **support**, which is naturally multi-room and
+entirely representable.
+
+> ⭐⭐ **Shoring is a placed, durable, maintained OBJECT — not a flag.**
+
+A timber set is a `Thing` with a `Durable` condition: timber takes load,
+deforms, and rots in wet ground. The safety of a working is therefore **an
+inventory of objects in known condition**, and keeping it good runs on the
+**shipped repair economy** — `analyze` the set, `repair` or replace it.
+**No hazard machinery at all.**
+
+This is what gives the workflow its crafting and market halves:
+
+- **Crafting** — props, caps and lagging are made from timber: a recipe,
+  like the five smithing ones.
+- ⭐ **Market** — **shoring timber is to mining what charcoal is to
+  smelting**: a bulk consumable off the same coppice. That is the wood
+  contest this slate kept asserting, now with two concrete consumers
+  pulling on one supply (§ *Fuel is the trade* in
+  [metal-chain-slate](./metal-chain-slate.md)).
+- ⭐⭐ **The cheapest support is the ore you don't take.** A pillar is free
+  and permanent; timber costs money. Every working therefore carries a
+  standing economic choice — *buy timber, or leave the good stuff
+  standing* — and it is the same span function either way.
+
+#### Sub-room geometry already exists: it is the face model
+
+The ten-direction model gives exactly enough resolution — **a face is a
+sub-room location**, addressed by direction, engaged not occupied.
+
+> ⭐⭐⭐ **Falls happen at FACES, not rooms.**
+
+A face goes bad, sheds rock, and is **blocked** — rubble cleared by an
+engagement. The room stays traversable, nobody is buried, nothing
+cascades. Small, local, frequent, and it is the *creep* a room-scale model
+cannot express, because faces degrade individually and one bad face does
+not infect its neighbours.
+
+**No cascade in v1, on principle rather than caution:** cascading requires
+modelling load **redistribution**, and redistribution is precisely what
+makes real collapses catastrophic — the part that needs a player
+population to be survivable. **Keeping failures local is what makes the
+system shippable alone.**
+
+#### The consequence of neglect, with nobody buried
+
+**1 · Refusal.** Bad ground **stops work**: you cannot drive a heading from
+a room whose back is working, and the engagement refuses *and says why*.
+Honest rather than punitive — a real miner will not work under bad ground,
+and the deep-law already says ***"sap not the props."*** ⭐ Neglect costs
+you **access to your own ore**, which in a trade whose income is production
+is a serious penalty with no bodies.
+
+**2 · Loose falling.** A face sheds rock: a blocked face, a broken lamp, a
+bruise through the shipped harm system. Annoying, never fatal.
+
+**And it is structurally easy to avoid**, which is the requirement: the
+telegraph is **free and coarse** (creaking timber, dust, drummy rock, in
+the room description), sets are cheap against ore value, and refusal is a
+**hard stop rather than a gamble**. ⭐ **An attentive player cannot be hurt
+in v1.** The risk belongs entirely to whoever skips dead work, and even
+then the worst case is a blocked face.
+
+#### Reading the ground rides the surveying machinery
+
+Unchanged from § *Surveying* — three tiers, same rule that competence buys
+resolution and never outcome:
+
+- **Free / coarse** — the timber creaks, dust sifts, water seeps. Ambient,
+  everyone gets it.
+- ⭐ **Skilled** — **sounding the back**: strike the roof with a bar and
+  listen. Solid rock rings; detached rock sounds **drummy**. The real
+  technique, a `listen` act with a tool.
+- **Instrumented** — a plumb or convergence marker on a prop reads the
+  roof coming down slowly (`measure convergence`).
+
+Stability itself is **derive-on-read over facts already stored** —
+`f(span, ground, support, water)`, where span comes from the carved set,
+ground from the host `Material`, support from the sets present and their
+condition, water from the wetness substrate. ⭐ It is the **derived** kind
+of [field](./field-substrate-slate.md), consuming the **seeded** geology
+field's ground quality: the two compose exactly as that slate predicted.
+
+⚠ **And it is a threshold, never a roll** — `uncertainty.md` forbids
+rolling to decide what your action did. The number moves deterministically
+as you widen span or let sets decay; what the player experiences as risk is
+**epistemic** (they cannot see it), which is the legal provenance.
+
+#### The timberman — maintenance is a job, funded like the pump
+
+Support spanning rooms is what gives maintenance its shape: **you do not
+inspect a room, you walk the workings.**
+
+⭐ That is the **timberman** — a real occupation, an employment `Position`,
+and the safety half of *dead work*. He patrols the levels, sounds the
+backs, replaces bad sets. A maintained drift benefits everyone who uses
+it, so **he is paid the way the pump is: out of the hoist toll.** No new
+funding machinery — one more line item on the levy § *The commons* already
+establishes.
+
+#### What is deliberately deferred
+
+Room-scale collapse, entrapment, the rescue clock, and ***"answer the
+call"*** — **all of it waits for population.** The prevention system above
+is complete without it, and collapse needs no rework when it arrives: it is
+simply *what happens when the maintained thing was not maintained*, at a
+scale the face model does not cover.
+
+> ⭐ Recorded now so nothing forecloses it: **the rescue commons is this
+> design's endpoint.** It is the beat that makes the deep-law's gravest
+> clause real — non-excludable, uncompensated, enforced by norm rather
+> than by levy. Drainage is a commons you fund; rescue is a commons you
+> *are*.
 
 ### ⭐ Barren is the default — failure has to be real
 
@@ -1209,9 +1338,14 @@ decipherment engine is deferred and v1 is a taste.
 
 ## Open (residual)
 
-- **Cave-in / structural collapse [OPEN]** — build the new structural-hazard
-  mechanic, or lean on the existing air/thermal/dead-zone/light dangers and skip
-  it for v1? (The only hazard not already an owned system.)
+- ~~**Cave-in / structural collapse [OPEN]**~~ — **CLOSED 2026-08-31, split
+  in two.** *Prevention* ships: shoring as placed `Durable` objects on the
+  repair economy, falls at **faces** not rooms, neglect punished by
+  **refusal** rather than burial, and the timberman as a funded position.
+  *Collapse* — entrapment, the rescue clock, "answer the call" — is
+  **deferred until the population can support a collective rescue** (user's
+  call). It needs no new hazard system either way; stability is
+  derive-on-read over span/ground/support/water. See § *Ground support*.
 - **Seam model [OPEN, LEAN finite]** — finite veins you *deplete and must
   re-prospect* (drives the deduction/exploration layer), or replenishing nodes
   (steadier, OSRS-style)? Lean finite-and-prospect — it makes the one new
