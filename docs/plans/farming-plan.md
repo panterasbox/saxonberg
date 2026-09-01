@@ -578,3 +578,29 @@ note is already on their table. The counter.yaml touch (A5) can
 conflict with residences Wave 7 — mechanical rebase. The spherical
 size-scale wiring is unverified until B0/B2. The market cap override
 touches `ConsignController` — the consignment suite is the pin.
+
+---
+
+## Checkpoint A — the drive record (appended at build time, 2026-08-31)
+
+Stage A built as planned (A1–A7, one commit per wave on `build/farming`).
+The checkpoint-A drive ran as `e2e/tests/drive-farming.spec.ts` over 26
+live iterations at a compressed clock (world_state scale 6000×; above
+~10000× the schedulers starve the event loop). **Grow→pick proved live
+end to end** — fund → bank → the store kit → title-buy a fresh lot →
+pour the soil → plant → the watering season → the ripe pick off the
+living plant. The market legs (consign/buy at the stalls) were cut down
+by harness artifacts (finally: a broken founder fixture on the dev DB —
+its `look` never answers) and stand on the unit/fixture suites plus the
+same consign controller running nightly in Wen's live loop; re-run the
+spec on a fresh DB to close them live.
+
+Drive-found defects fixed in this build: two unguarded
+`getInteractives().size` reads that crashed command dispatch (one rode
+every display refresh), and the large pot being unbuyable by keyword.
+Drive-found seams for the slates: substring keyword matching makes
+compound nouns ambiguous (`pot` ⊂ "potting soil" ⊂ "plot" — MQL's
+"which target?" prompt then swallows the next commands); a fresh bed
+ships capacity but no soil (the pour-the-soil flow is the true first
+act — its prose should stop claiming otherwise); and dev-preflight's
+kill-by-kind reaches across worktrees.
