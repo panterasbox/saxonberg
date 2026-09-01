@@ -53,6 +53,18 @@ const RECIPES = [
   { recipeId: 'poker', name: 'fire poker', discipline: 'smithing', toolCapabilities: ['anvil'], requiresHeatK: 1400, outputTemplate: '/fx/thing/poker', inputSlots: [{ kind: 'bulk', category: 'x', measureL: 0.01 }] },
 ];
 
+/**
+ * A genuinely malformed row. It states TWO needs in one capability,
+ * which is the validator's own rule ("exactly ONE need") — it used to be
+ * a row with no `industry`, but a room archetype legitimately has none
+ * (residences D15), so absence stopped being an error and this fixture
+ * had to say something that is still wrong.
+ */
+const BROKEN = {
+  archetypeId: 'broken',
+  capabilities: [{ key: 'muddle', needs: { surface: true, seating: 1 } }],
+};
+
 let seq = 0;
 let catalogue: ArchetypeCatalogue;
 
@@ -63,7 +75,7 @@ describe('the venue archetype', () => {
     vi.spyOn(console, 'warn').mockImplementation(() => {});
     vi.spyOn(DocumentApi, 'listOfKind').mockImplementation(async (kind: string) =>
       kind === 'archetype'
-        ? [doc('/trade/fx/archetypes/hospitality', BAR), doc('/trade/fx/archetypes/broken', { archetypeId: 'broken' })]
+        ? [doc('/trade/fx/archetypes/hospitality', BAR), doc('/trade/fx/archetypes/broken', BROKEN)]
         : RECIPES.map((r) => doc(`/trade/fx/recipes/${r.recipeId}`, r)),
     );
     catalogue = makeStuffAtPath(() => new ArchetypeCatalogue(), '/platform/idea/ArchetypeCatalogue');

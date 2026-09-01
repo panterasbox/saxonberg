@@ -9,6 +9,7 @@
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import LeaseController from '../idea/cmd/LeaseController';
+import Walter from '../npc/Walter';
 import UnleaseController from '../idea/cmd/UnleaseController';
 import type UnitBuilding from '@saxonberg/content-residence/src/idea/UnitBuilding';
 import ParcelRegistry from '@saxonberg/server/mud/platform/idea/ParcelRegistry';
@@ -467,5 +468,24 @@ describe('Seznick House — the lease loop', () => {
     const reborn = await w.admit(unit);
     expect(reborn.isDestroyed()).toBe(false);
     expect(reborn.getTemplatePath()).toBe(`${HOUSE}/rooms/hall`);
+  });
+
+  /**
+   * ⚠⚠ The affordance is a STATIC ON A CLASS, and nothing else.
+   *
+   * Walter's row first carried `commandContributions:` inside its `data`
+   * block, which reads like it works and does nothing at all: the
+   * per-instance contributor hook was removed on purpose (two records of
+   * one fact, one of them on the containment hot path), so the field
+   * landed on an instance property nobody reads and BOTH lease verbs
+   * were unreachable — silently, with every other test still green. This
+   * is the test that would have caught it.
+   */
+  it('⭐ Walter affords the operator verbs — from his CLASS, sideways to the room', () => {
+    const verbs = CommandApi.collectContributions(Walter, 'peers')
+      .map((d) => d.verbs)
+      .flat();
+    expect(verbs).toContain('lease');
+    expect(verbs).toContain('unlease');
   });
 });

@@ -4,7 +4,7 @@
 # raw operator verb. The Katie pattern, one rung up the ladder; the
 # `maintains` cadence (the landlord-shell upkeep the term owes) joins
 # him in the condition wave.
-class: /platform/agent/NPC
+class: /world/terminus/mayfield-row/npc/Walter
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Walter
@@ -19,14 +19,19 @@ data:
     - { disposition: diligence, valence: 70 }
     - { disposition: constancy, valence: 65 }
     - { disposition: candor, valence: -30 }
-  # The operator escape hatch is afforded BY WALTER (he is the front
-  # desk); both views carry requiresWizard so only an operator SEES the
-  # raw verbs, and the real owner-agency gate lives at execute().
-  commandContributions:
-    environment:
-      - world/terminus/mayfield-row/cmd/lease.yaml
-      - world/terminus/mayfield-row/cmd/unlease.yaml
+  populates:
+    # The landlord-shell term says the walls and the weather are his.
+    # The kit is what lets him mean it.
+    - /residence/thing/householders-kit
   behaviors:
+    # The shell round (residences D5). `landlord-shell` is a claim about
+    # who is responsible; this is the agency that performs it. What a
+    # tenant puts INSIDE a unit stays the tenant's problem, which is
+    # exactly what the term says and exactly what `maintain` does.
+    - brain: /lib/behavior/maintains
+      trigger: cadence:19m
+      config:
+        extent: /world/terminus/mayfield-row/seznick-house
     - brain: /lib/behavior/introduces
       trigger: arrival
     - brain: /lib/behavior/tree-dialogue

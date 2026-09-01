@@ -422,7 +422,22 @@ export abstract class Stuff {
    */
   public static _identityStampOf(stuff: Stuff): string | null {
     Stuff.#assertStampGateAllowed('_identityStampOf');
-    return ProxyApi.unwrap(stuff).#identityPath;
+    // ⚠ PEEL, don't unwrap once. A Stuff can be wrapped twice (a test
+    // helper wraps, then `StuffApi.create` wraps the result again), and
+    // one `unwrap` of a proxy-of-a-proxy yields the INNER PROXY — which
+    // carries no private slot at all, so reading it throws `Cannot read
+    // private member`. That is not a hypothetical: it turned a
+    // deliberate `postRegister` failure into the wrong error on the
+    // unregister path. The slot check is the terminator, so this stays
+    // correct however many wrappers there are.
+    let raw: Stuff = stuff;
+    for (let hops = 0; hops < 8; hops += 1) {
+      if (#identityPath in raw) return raw.#identityPath;
+      const next = ProxyApi.unwrap(raw);
+      if (next === raw) break;
+      raw = next;
+    }
+    return null;
   }
 
   /**

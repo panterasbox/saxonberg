@@ -91,6 +91,7 @@ describe('Avatar.enter — releaseWindow', () => {
       stuffId: 's',
       getPresentation: () => 'somewhere',
       getTemplatePath: () => null,
+      getIdentityPath: () => null,
     } as never);
     vi.spyOn(avatar, 'startAutoSave').mockImplementation(() => {});
 
@@ -117,6 +118,7 @@ describe('Avatar.enter — releaseWindow', () => {
       stuffId: 's',
       getPresentation: () => 'somewhere',
       getTemplatePath: () => null,
+      getIdentityPath: () => null,
     } as never);
     vi.spyOn(avatar, 'startAutoSave').mockImplementation(() => {});
 

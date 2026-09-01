@@ -1,0 +1,24 @@
+verbs: [survey]
+controller: /platform/idea/cmd/perception/SurveyController
+description: "Take stock of the place you're standing in"
+help: |
+  `look` tells you what is in a room. `survey` tells you what the room
+  IS: which of the things a home is made of — a bedroom, a kitchen, a
+  bathroom, a living room — this place actually answers to, and by what.
+  A hotplate, a board and a cold box make a kitchen as surely as a range
+  does; the report names whatever did it, and says plainly what is
+  missing.
+
+  Standing anywhere inside a home you own or rent, `survey` reads the
+  WHOLE place rather than the one room, and adds two things only a home
+  has: what shape the fabric is in, and who owes the upkeep.
+
+  Nothing in the game is gated on any of this. A room nobody would call
+  a kitchen works exactly as well as one anybody would; the survey is a
+  mirror, not a score.
+examples:
+  - cmd: survey
+    note: Read the room — or, at home, the whole place
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresEmbodied

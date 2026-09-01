@@ -1,0 +1,17 @@
+# The BATHROOM archetype — water, and the fixture everybody looks for.
+#
+# `presence` is the weakest need in the vocabulary and it is here on
+# purpose. The toilet is prose-LOD by decision (see the row: it composes
+# no capability mixin, and a test enforces that) — so the strongest
+# honest claim an archetype can make about one is that it is THERE.
+# Inventing a mechanic to give the checklist something firmer to hold
+# would be exactly the "worst return on effort in the corpus" the toilet
+# row refuses.
+#
+# Water is the real read: `bulkSource: water` is the same need the bar's
+# wash station states, and the basin and the tub both answer it.
+archetypeId: bathroom
+label: a bathroom
+capabilities:
+  - { key: water, needs: { bulkSource: water }, default: /stuff/thing/fixture/basin }
+  - { key: relief, needs: { presence: toilet }, default: /stuff/thing/fixture/toilet }
