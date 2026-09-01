@@ -1,0 +1,43 @@
+# Mayfield & Co., the shopfront — the one counter that fronts EVERY plat
+# book (residences D14). The listing is enumerated live off the books
+# themselves, so a subdivision anywhere in the world appears here with no
+# edit to this row and no code change: that is the acceptance, and the
+# reason the office holds no list of its own.
+#
+# Cross-zone exit pair with Mayfield Row, both sides explicit (the street
+# declares `realty` in; this declares `row` back) — a non-cardinal name
+# across a zone boundary, the mayfield/avenue precedent.
+class: /platform/location/Room
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: Mayfield & Co., land agents
+  primaryKeyword: office
+  alternateNames: [realty, agents, shopfront]
+  _address: terminus/city/mayfield-row/realty
+  ambientIntensity: 320
+  ambientColorTemperature: 4200
+  coords:
+    x: 0
+    y: 0
+    z: 0
+  longDescription: |
+    A narrow shopfront with its name in gilt on the glass, back-to-front from in here: MAYFIELD & CO., LAND AGENTS. The whole city's unsold ground is on the walls — survey sheets pinned edge to edge, the Hinkley plat with its lane inked in by hand, the newer subdivisions still in pencil. A rail of chairs faces a broad desk; a kettle sits on a ring behind it, permanently just off the boil.
+  populates:
+    - /world/terminus/realty/desk
+    - /world/terminus/realty/npc/ricky
+  exits:
+    row:
+      destination: /world/terminus/mayfield-row/street
+  details:
+    maps:
+      keywords: [maps, survey, sheets, plat, wall, walls]
+      description: |
+        Survey sheets pinned edge to edge, each subdivision in its own hand: Hinkley Hills drawn carefully in ink, the lane running west and a court pencilled off it where somebody expects the frontage to fill. Sold lots are crossed through in red. There is a lot of white paper.
+    kettle:
+      keywords: [kettle, ring, tea]
+      description: |
+        A kettle on a ring, kept just off the boil all day. The mugs are mismatched and there are four of them, which tells you how often somebody sits down to sign something.
+    glass:
+      keywords: [glass, gilt, window, name]
+      description: |
+        MAYFIELD & CO., LAND AGENTS, in gilt on the window — read from inside, the letters run backwards over the street.

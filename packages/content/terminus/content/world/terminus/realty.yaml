@@ -1,0 +1,13 @@
+# Mayfield & Co. — the realty office's zone. A one-room shopfront at the
+# quiet end of Mayfield Row, where the ground the city has to sell is
+# fronted in one place instead of one plat book at a time (residences
+# D14). A small CartesianZone, the registry.yaml precedent.
+#
+# Ownership is NOT declared here — it lives in the gated `parcels`
+# collection (the pack manifest's title claim), the governing security
+# invariant.
+class: /platform/idea/location/CartesianZone
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: Mayfield & Co.
+  cellSize: 3.0

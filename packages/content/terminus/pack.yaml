@@ -29,5 +29,9 @@ requires:
     # the private landlord holds the building the units subdivide under.
     - { extent: /world/terminus/mayfield-row, holder: { group: terminus }, landUse: residential }
     - { extent: /world/terminus/mayfield-row/seznick-house, parentParcel: /world/terminus/mayfield-row, holder: { group: mayfield-holdings }, landUse: residential }
+    # The land agents' shopfront (residences D14). Commercial, and the
+    # municipality's like the rest of the built city — the office SELLS
+    # ground, it does not own the ground it sells.
+    - { extent: /world/terminus/realty, holder: { group: terminus }, landUse: commercial }
 boot:
   - { template: /world/terminus/mayfield-row/seznick-house/building, role: producer, reason: warms the unit caches from the durable slot set and installs the lobby stair at postRegister }

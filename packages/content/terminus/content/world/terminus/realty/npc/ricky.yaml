@@ -1,0 +1,67 @@
+# Ricky — the land agent, and the diegetic front door to `title buy`
+# (residences D14).
+#
+# ⭐⭐ His two dialogue effects are NOT `dispatch`. The intrinsic
+# `dispatch` runs a command as the NPC — right for Walter granting a
+# lease out of his employer's stock, and wrong here: a realtor does not
+# buy your house for you. `realty-buy` opens the listing and the price
+# on the BUYER's own prompt and, on their yes, runs `title buy` as THEM.
+# Their money, their affordances, their ascent gate, their title. The
+# choice is the consent.
+#
+# He sells GROUND and nothing else — rentals are a landlord's act at his
+# own building (Walter, up the Row), and there is deliberately no beat
+# here that leads to one.
+class: /world/terminus/realty/npc/Realtor
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: Ricky
+  pronouns: he
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  shortDescription: a land agent in a good coat gone slightly shiny
+  longDescription: |
+    A trim, quick man in a coat that was expensive about six years ago, with a rule in his breast pocket where another man would keep a pen. He talks about ground the way other people talk about weather — constantly, cheerfully, and with the assumption that you are as interested as he is.
+  dispositions:
+    - { disposition: candor, valence: 40 }
+    - { disposition: diligence, valence: 55 }
+    - { disposition: warmth, valence: 60 }
+  behaviors:
+    - brain: /lib/behavior/introduces
+      trigger: arrival
+    - brain: /lib/behavior/tree-dialogue
+      trigger: engage
+      config:
+        entry:
+          - node: greet
+        nodes:
+          greet:
+            beat: "'Ricky — Mayfield and Co.' He is up out of the chair before you have finished coming in. 'Every subdivision in the city goes through this desk. Looking, or buying?'"
+            choices:
+              - line: "What's on the books?"
+                to: listed
+                effects:
+                  - { verb: realty-list }
+              - line: "I'd like to buy a lot."
+                to: buying
+                effects:
+                  - { verb: realty-buy }
+              - line: "Just passing."
+                to: passing
+          listed:
+            beat: "'Take your time. Ground doesn't spoil.' He taps the wall of survey sheets with two fingers. 'Say the word and I'll do the paperwork here and now.'"
+            choices:
+              - line: "Actually, I'd like to buy one."
+                to: buying
+                effects:
+                  - { verb: realty-buy }
+              - { line: "Thanks.", to: end }
+          buying:
+            beat: "He turns the plat book round so it faces you, which is the whole of his professional courtesy and, in fairness, quite a lot of it."
+            choices:
+              - { line: "Thanks.", to: end }
+          passing:
+            beat: "'Passing's how most of them start.' He sits back down, entirely unbothered. 'The kettle's on if you change your mind.'"
+            choices:
+              - { line: "Goodbye.", to: end }
+          end:
+            beat: "Ricky is already back at the desk, squaring the survey sheets."
