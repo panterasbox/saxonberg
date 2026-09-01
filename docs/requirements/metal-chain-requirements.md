@@ -97,8 +97,11 @@ NPCs are functional only (registrar, buyer, storekeeper), canned.
 uncrafted `generic-objects` templates), no domestic metal, no stock forms
 (bar, sheet, wire, nails).
 
+**Client and UI.** No map, no minimap, no mine plan view. The survey card
+is the only client surface this build adds.
+
 **The title tail.** No coordinate-extent parcels; no ore theft, detection
-or reckoning; no title lapse or abandonment adjudication; no `sell`-coupled
+or reckoning (nor **high-grading** as a punishable offence); no title lapse or abandonment adjudication; no `sell`-coupled
 parcel payment (property phase 1).
 
 **The economic tail.** No **tribute** pitches and no setting-day auction
@@ -194,7 +197,7 @@ an act this build introduces demands the object and (b) it fills a
 difficulty rung the branch lacks — *the recipe tiers are the ladder a
 learner climbs*.
 
-⚠ **Mining's `hew`/`drive`/`shore` acquire no deed gate.** They are labour,
+⚠ **Mining's `hew`/`drive`/`sink`/`raise`/`shore` acquire no deed gate.** They are labour,
 not craft.
 
 ### Ground support: prevention only, and failures land on faces
@@ -274,7 +277,8 @@ different world.
 
 #### What stays in the trade
 
-The acts (`hew`/`drive`/`shore`), `MineWarren`'s policy machinery, the
+The acts (`hew`/`drive`/`sink`/`raise`/`shore`), `MineWarren`'s policy
+machinery, the
 `Deposit` **class**, the ore lump and its grade field, the instruments,
 the tool recipes, the `geology` Discipline, the archetype, and the two
 working animals. **Everything that answers "how does mining work" —
@@ -288,7 +292,7 @@ warren root + SEED field**, parcel = the mineral claim."*
 
 | Pack | Kind | Holds |
 |---|---|---|
-| **`trade-mining`** | capability (ships `src/`) | the act controllers, **`MineWarren`** (the `Warren` subclass supplying mining's policy), the `Deposit` **class**, the ore lump, the survey instruments, tool recipes, the `geology` Discipline, **the mine archetype**, and the two *functional* species (pit pony, canary) |
+| **`trade-mining`** | capability (ships `src/`) | the act controllers (`hew`/`drive`/`sink`/`raise`/`shore`), **`MineWarren`** (the `Warren` subclass supplying mining's policy), the `Deposit` **class**, the ore lump, the survey instruments, tool recipes, the `geology` Discipline, **the mine archetype**, and the two *functional* species (pit pony, canary) |
 | **`trade-fuel`** | capability | the coppice, the burn, charcoal |
 | **`trade-smelting`** | capability | the furnace acts, the smelt recipes |
 | **`rejection`** | locality | the two zones, the pithead's five rooms, the adit + three galleries, **the four procedural room type rows**, **the `Deposit` row**, the claim field, the fuel-yard and smelter sites, the functional NPCs, the cave biome's occurrence table, **its own ecology rows** (crickets, delve-rats, pale grazer, glowcap), and its **descriptor banks** |
@@ -367,7 +371,8 @@ remains the only mint; wear is the matter sink.
 
 - **Tutwork** — wage or piece-rate for development and cutting, straight
   on the shipped employment engine (the co-op is the Business, you are on
-  the roster). Zero capital, steady, no title.
+  the roster). Zero capital, steady, no title. Paid in coin; ore sold on
+  **consignment** at the assay shed, with payment on assay.
 - **Working your own claim** — parcel title through the Claims Office,
   and ⭐ *in Stage A an independent needs the co-op for nothing*: with an
   adit and no shaft there is no throat to pay a toll at, so you walk your
@@ -462,6 +467,71 @@ co-op's grant and the district that adjudicates).
 Stage A — Held demotes to Provisional on neglect, already specified. The
 **title** lapsing is governance: somebody must adjudicate abandonment, and
 that is Stage B's district.
+
+### Winzes ship, so climbing does
+
+The oxide cap runs to `-45`, so **Stage A has real vertical extent even
+without a shaft**: `sink` and `raise` ship alongside `hew`/`drive`, and a
+winze is climbed rather than walked — **`climb` locomotion is in scope**
+(the bible's U3 Winze Head teaches exactly this). What does *not* ship is
+the **cage**: a called, capacity-limited lift is Stage B's shaft, and an
+adit needs none.
+
+### The matter model: ore is `Globbable`, and grade pools
+
+Ore **stacks fungibly**, and **grade averages when lumps pool** — the
+bible's ore-pass ruling (*"grade-mixing pooled + assay-averaged"*), and
+literally what happens in a cart. **Assay is per-lot, at the scale.**
+
+⭐ This sharpens *"true weight, true grade"* rather than weakening it:
+**the lie moves from physics to declaration.** Ore that pools cannot be
+audited lump by lump, so **high-grading** — pocketing the rich pieces
+before the lot is weighed — is a real theft that works *because* ore
+pools. Stage A ships **the pooling and the honest assay**; high-grading as
+an *offence* (detection, reckoning, sanction) is Stage B, which is where
+the co-op's grant and an adjudicator exist.
+
+### The safety model, stated once: ground cannot kill, air can
+
+- **Ground is non-lethal.** Refusal to work bad ground, a blocked face, a
+  bruise. An attentive player cannot be hurt, and no player can be trapped.
+- **Air is lethal**, riding shipped `respiration` and mortality's
+  rescuable dying clock.
+
+⭐ Air is the **right** lethal hazard for a build with no population:
+it carries a **free continuous warning** (the canary's behaviour, the
+crickets going quiet), an **obvious unilateral escape** (walk out), and
+**needs no rescue** — so unlike collapse it does not wait for other
+players to exist. Stage A's stakes live here and nowhere else.
+
+### Selling ore: consignment, and the delay is the feature
+
+A miner is paid through the shipped **consignment** path
+(`consign`/`reclaim` over chattel) at the assay shed — **zero new
+mechanism**, and historically exact: **you were paid after the assay, not
+on the spot.** The wait is not friction to be smoothed; it is what makes
+the assay an event. The co-op's own ore moves business-to-business through
+banking.
+
+### Survey knowledge is a per-viewer belief
+
+What `analyze ground` learns lands in the **belief store's DISCOVERY
+realm** — per-viewer, so two characters standing on the same outcrop know
+different things. ⭐ That is the mechanism behind *"negative knowledge
+still sells"*: **a survey record is an asset you can trade**, and it is why
+private instrument readings are load-bearing rather than flavour.
+
+### The one piece of client work: a pinned survey card
+
+The three-point problem is played across three measurement points in three
+places, so it needs a readable surface or it is trigonometry on scrollback.
+Stage A ships **one pinned card** on the shipped card surface, accumulating
+a character's readings for a deposit.
+
+⚠ **Explicitly not a map or a minimap.** mining-slate assumed *"client
+minimap fills on room-entry (general feature, mine rides it)"* — that
+feature does not exist and is **not** in this build. The card is the whole
+of the client work.
 
 ### Natural chambers are their own zones
 
@@ -613,6 +683,16 @@ never blocks a room, and no character can be trapped or killed by ground.
 recovers when connected through; the canary's behaviour tracks that value
 and is the only free reading of it; a pit pony hauls a cart at a measurably
 lower draft cost than a character carrying the same load.
+
+**The stakes are real and legible.** A character who drives a dead-end
+heading and stays experiences a degrading air reading with a free warning
+ahead of it, can die if they ignore it, and can always walk out. No
+character can be killed or trapped by ground.
+
+**Survey knowledge is personal and portable.** Two characters on the same
+outcrop hold different DISCOVERY-realm beliefs; a survey card accumulates
+readings across measurement points and is legible enough to solve strike
+from three of them.
 
 **Title holds.** A claim is stakeable through the Claims Office and
 transferable; the mine's estate can be severed from the surface parcel and
