@@ -1,0 +1,11 @@
+# A unit's bedroom — built-ins only; the BED is the tenant's first real
+# purchase (the store's ladder-visible rung above the dorm's 1.5).
+class: /platform/location/FurnishableRoom
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the bedroom
+  primaryKeyword: bedroom
+  ambientIntensity: 25
+  ambientColorTemperature: 4200
+  longDescription: |
+    A quiet back room with one window on the light-well, an empty picture rail, and a fitted cupboard whose door sticks in a friendly way. No bed yet — the floor is honest about that.

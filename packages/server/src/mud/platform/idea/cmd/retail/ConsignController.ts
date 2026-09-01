@@ -94,7 +94,7 @@ export default class ConsignController extends CommandController<ConsignModel> {
     // your wallet (and that you buy for), else yourself.
     const house = await this.activeHouse(giver);
     const principal: Stuff = house ?? giver;
-    const consignorKey = principal.getTemplatePath();
+    const consignorKey = principal.getIdentityPath();
 
     // You consign what you own (authoritative via ownerOf, not custody) —
     // the house's goods when acting as the house, your own otherwise.
@@ -128,7 +128,7 @@ export default class ConsignController extends CommandController<ConsignModel> {
       owner === null ||
       owner.kind === "group" ||
       (owner.kind === "organization" && chain.includes(owner.templatePath)) ||
-      ownedBy(giver.getTemplatePath());
+      ownedBy(giver.getIdentityPath());
     if (!ownedByPrincipal) {
       this.reject(giver, context, Mml.compose`${Mml.thing(item)} isn't yours to sell.`, {
         kind: "controller-rejected",
@@ -150,7 +150,9 @@ export default class ConsignController extends CommandController<ConsignModel> {
     }
 
     // Per-consignor cap — the shared-shelf anti-grief guard (0 disables).
-    const cap = this.listingCap();
+    // The shelf's authored override wins (the market stall's generous
+    // cap); every other shelf rides the global dial.
+    const cap = shelf.getListingCapOverride() ?? this.listingCap();
     if (cap > 0 && shelf.activeListingCount(consignorKey) >= cap) {
       this.reject(
         giver,
@@ -186,7 +188,7 @@ export default class ConsignController extends CommandController<ConsignModel> {
     const active = BankingApi.activeCredential()?.getActiveAccount() ?? null;
     if (!active) return null;
     const ownerKey = await BankingApi.ownerKeyOf(active);
-    if (!ownerKey || ownerKey === giver.getTemplatePath()) return null;
+    if (!ownerKey || ownerKey === giver.getIdentityPath()) return null;
     const live = StuffApi.findByTemplatePath(ownerKey);
     if (!live || !MixinApi.isBusiness(live)) return null;
     const mine = await EmploymentApi.buysFor(giver);

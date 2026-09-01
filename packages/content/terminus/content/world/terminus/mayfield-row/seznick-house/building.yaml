@@ -1,0 +1,19 @@
+# Seznick House — the elastic unit building (residences D3/D10): the
+# generic /residence/idea/BuildingWarren under a data row. Units mint on
+# demand at `f<floor>-u<pos>` (the `u` leaf keeps dorm tooling from
+# misreading them), floors stack as they fill (4 to a landing), empty
+# units go dormant, and the durable slot set reconstitutes the shape.
+# Capacity is the operator's `mayfield.unitCap` dial over the shipped 8.
+class: /residence/idea/BuildingWarren
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  programmePath: /world/terminus/mayfield-row/seznick-house/unit-programme
+  corridorTemplate: /world/terminus/mayfield-row/seznick-house/corridor
+  lobbyPath: /world/terminus/mayfield-row/seznick-house/lobby
+  parentExtent: /world/terminus/mayfield-row/seznick-house
+  capacityKey: mayfield.unitCap
+  defaultCapacity: 8
+  plan:
+    shape: linear
+    frontagesPerNode: 4
+    frontageLeaf: u

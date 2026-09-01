@@ -18,5 +18,5 @@ packs wave 4b). Root `/world/lounge`; the `lounge` group holds title over
 Rows are sorted by their class's Stuff branch (`location`/`thing`/`idea`/
 `agent`); the source mirrors it under `packages/server/src/mud/world/lounge/`.
 The bar's stations, the cocktail recipes and the tip-jar template are the
-hospitality trade's (`/trade/hospitality`); the bar `populates:` them by
+hospitality trade's (`/trade/hospitality`); the bar `props:` them by
 reference. The bottles are the venue's own stock.

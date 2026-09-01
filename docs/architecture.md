@@ -133,7 +133,8 @@ adding.
   `Creature`, `Modality`). Overridable. When one of these is *also*
   being cloned generically, it splits: the base stays here and a thin
   concrete subclass in `platform/<branch>/` takes the clones (`Thing` →
-  `platform/thing/Prop`, `CartesianLocation` → `platform/location/Room`).
+  `platform/thing/Prop`, `lib/location/CartesianLocation` →
+  `platform/location/CartesianLocation`).
 - **Framework attachments** — objects that ride a Stuff, model nothing
   on their own, and are never template-backed. `lib/stuff/Shadow` is
   the exemplar and a **permanent** exception to "platform/ holds Stuff
@@ -918,7 +919,7 @@ registry) lives in `lib/mixin.ts`.
 | `lib/spatial/` | `ExitableMixin` | exit map host; `addExit`, `getObviousExits`, etc. |
 | `lib/location/` | `CartesianCoordinatesMixin` | `[x,y,z]` position carrier |
 | `lib/location/` | `SphericalCoordinatesMixin` | `{rho,theta,phi,radius}` position carrier |
-| `lib/location/` | `WarrenMemberMixin` | optional member-side back-ref to a `Warren` (the MultiLocation elastic-graph coordinator); Pattern-B live ref, Warren-owned. See [location.md](./subsystems/location.md). |
+| `lib/location/` | `WarrenMemberMixin` | optional member-side back-ref to a `Warren` (the elastic-graph coordinator); Pattern-B live ref, Warren-owned. A warren is `InnerWarren` (members are rooms) or `OuterWarren` (members are warrens) — `occupantsOf` is abstract, so the tier is chosen by which base you extend. See [holding.md](./subsystems/holding.md) for the tiers, [location.md](./subsystems/location.md) for the graph. |
 | `domain/lounge/` | `LoungeMixin` | lounge-room behavior (self-register, population witnesses, over-capacity re-seat); requires `WarrenMemberMixin`. A content mixin under `/world/lounge/`, not the generic substrate. |
 | `lib/spatial/` | `SealableMixin` | open/closed state (doors) |
 | `lib/` | `BistateMixin` | shared guarded-boolean base (typeof-boolean guard, round-trip persistence) under `Sealable` / `Switchable` / `Foldable`. **Unregistered / unmarked** — an implementation base, not a registry mixin. See [boundary.md](./subsystems/boundary.md). |
@@ -929,7 +930,7 @@ registry) lives in `lib/mixin.ts`.
 | `lib/time/` | `MechanicalMovementMixin` | the windable, drifting clockwork inside a mechanical timepiece (`Timekeeping` over `Reserved` — the mainspring); `wind`/`adjust` gate on its presence. In `lib/time` since content packs wave 4b (graduated out of University Avenue; `Watch` stays content). See [time.md](./subsystems/time.md). |
 | `lib/spatial/` | `DoorBearingMixin` | adds `door: Door \| null` for hosts whose exits are synthesized rather than authored (`ExitableVessel`). Constrained to `Stuff & Exitable`. |
 | `lib/stuff/` | `SingletonMixin` | class-level uniqueness — refuses a second `clone()` for the same templatePath. Composed by `CartesianZone` / `SphericalZone`. |
-| `lib/stuff/` | `PopulatesMixin` | declarative content-spawn for Container hosts; `populates:` instruction field lists entries to clone (non-singletons) or singleton-resolve into self — each a bare templatePath (moved in) or a `{template, onto}` object (placed on an already-populated sibling surface via `placeOn`). Phase 2 applier. |
+| `lib/stuff/` | `PopulatesMixin` | declarative content-spawn for Container hosts; `props:` instruction field lists entries to clone (non-singletons) or singleton-resolve into self — each a bare templatePath (moved in) or a `{template, onto}` object (placed on an already-populated sibling surface via `placeOn`). Phase 2 applier. |
 | `lib/message/` | `SensorMixin` | `handleMessage(frame)` notification hook |
 | `lib/message/` | `VocalMixin` | `say(text)` with scope inference |
 | `lib/command/` | `CommandGiverMixin` | `executeCommand`, `getAvailableCommands`, `getAffordances` |

@@ -42,7 +42,7 @@ both without a hand-authored parallel schema:
   `@authorable`/`@runtimeState`/`ref:` tags over the mud source tree
   (`StudioLogic.scanClassification`, cached on the singleton; the source is
   present in the deployed server). Instruction-only fields (no instance
-  declaration — `container`, `exits`, `adornments`, `populates`, `warren`)
+  declaration — `container`, `exits`, `adornments`, `props`, `warren`)
   are classified on their **`applyX` applier** (the scan maps
   `applyWarren → warren`).
 

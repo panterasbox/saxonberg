@@ -1,0 +1,35 @@
+# A lemon tree — a fruiting plant on the CYCLE (D1/D2):
+# Citrus, the lime's sibling row — same appetites, its own species.
+# No moisture reserve — the water lives in the ground (see peace-lily).
+class: /platform/thing/Plant
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a lemon tree
+  primaryKeyword: "lemon tree"
+  keywords: ["lemon tree", lemon, tree, citrus, plant]
+  longDescription: |
+    A lemon tree with pale, sharp-scented leaves and thorns you find the hard way.
+  _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/sapindales/rutaceae/citrus/limon
+  material: /stuff/idea/material/tissue/plant-tissue
+  lifecycleState: alive
+  seedTemplatePath: /trade/farming/thing/seed/lemon
+  harvestTemplatePath: /trade/farming/thing/lemon
+  nutrientDraw: 10
+  profile:
+    moistureHappyAt: 0.3
+    moistureWiltAt: 0.05
+    litresPerGameDay: 0.3
+    luxHappyAt: 100
+    luxDarkAt: 10
+    rootDemand:
+      seedling: 0.5
+      young: 2
+      established: 6
+      mature: 10
+    daysToStage:
+      young: 40
+      established: 120
+      mature: 240
+    # The fruit cycle (D1/D2): the PAIR is the polycarp marker.
+    fruitSetCount: 12
+    fruitFillDays: 25

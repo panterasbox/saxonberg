@@ -69,6 +69,16 @@ Concrete rooms layer Visible, Exitable, and a coordinate mixin on top:
   No restrictions on `addExit` direction labels — spherical zones
   have no implicit adjacency, so semantic labels are the only way to
   author exits.
+- **`PersistentCartesianLocation`** = `Persistable(CartesianLocation)` —
+  the durable singleton coordinate room: one row, one room, in a zone's
+  grid, whose `props:` write back to `holder_snapshots`
+  (`StuffApi.singleton` is its establishing context — restore-or-seed,
+  the venue-`Stock` seam; cast rides `cast:` as anywhere). For the
+  bespoke stateful venue: a hand-authored farm whose beds must keep
+  their soil state (`captureHostOf` walks to the nearest persistable
+  ancestor, and a plain `CartesianLocation` gives it none). The keyed
+  multi-instance interior unit remains `FurnishableRoom`; a spherical
+  twin is derived when a spherical venue first needs one.
 
 Both compose `VisibleMixin` so a `look` on the room returns its
 description; `NamedMixin` is opt-in for rooms that take proper names
@@ -318,8 +328,18 @@ geometry classes documented above):**
 
 | File | Role |
 |---|---|
-| `Warren.ts` | Abstract base — the generic mechanism. |
+| `Warren.ts` | Abstract base — the generic mechanism. Declares `occupantsOf` **abstract**, so every warren must choose a tier. |
+| `InnerWarren.ts` | Abstract base — **members are ROOMS**; occupancy is who is standing in a member. Refuses a warren member. |
+| `OuterWarren.ts` | Abstract base — **members are WARRENS**; occupancy is who is anywhere inside a member's rooms. Carries the holdings + circulation machinery ([holding.md](./holding.md)). |
 | `WarrenMember.ts` | `WarrenMemberMixin` — optional member-side back-ref. |
+
+⭐ **Every warren ends in `Warren`, and picks one of the two tiers.**
+The tier is not decoration — it *is* what "who is in here" means, and
+the leaf answer used to be a concrete default on `Warren` that the outer
+tier had to remember to override. A warren that forgot read every
+holding as empty and would reap an occupied one. Abstract on the root
+means the compiler asks. See
+[holding.md](./holding.md#every-warren-is-inner-or-outer-and-the-compiler-asks).
 
 **Content — `world/lounge/` (the lounge area; class paths
 `/world/lounge/<branch>/*`, branch subdirs since content packs wave 4b —
@@ -329,10 +349,10 @@ mirrors it):**
 | File | Role |
 |---|---|
 | `location/Lounge.ts` | The one room template every lounge instance clones from. |
-| `location/Bar.ts` | Singleton external-neighbor shell (Dave's Bar); self-stocks crafting content via `populates:` (the hospitality trade's back-bar + stations by reference, the venue's bottles `onto` it, plus Dave + the menu). |
+| `location/Bar.ts` | Singleton external-neighbor shell (Dave's Bar); self-stocks crafting content via `props:` (the hospitality trade's back-bar + stations by reference, the venue's bottles `onto` it, plus the menu) and its troupe via `cast:` (Dave and the lounge cast). |
 | `location/GlassAlley.ts` | The alley. |
 | `thing/LoungeTerminal.ts` | The TPA node (a `TpaTerminal`, a Thing) — the pack's boot entry. |
-| `idea/LoungeWarren.ts` | Concrete singleton Warren — the lounge *policy*. (The **second** Warren subclass, `DormWarren`, is an elastic *two-tier* consumer — keyed persistent members + runtime floor scaffold; see [residence.md](./residence.md).) |
+| `idea/LoungeWarren.ts` | Concrete singleton **`InnerWarren`** — the lounge *policy* (its members are rooms). The elastic *two-tier* consumers (`DormWarren`, `BuildingWarren`, `PlatWarren`) are `OuterWarren`s whose members are themselves warrens — see [holding.md](./holding.md). |
 | `LoungeMixin.ts` | `LoungeMixin` — lounge-room behavior + the home for future room functionality (a locality's mixin has no branch; it stays at the root, with `paths.ts`). |
 
 The composition-only classes the lounge used to carry (`Menu`,
@@ -346,7 +366,7 @@ mirroring its template namespace. The generic Warren substrate stays in
 Content rows: `saxonberg-lounge/content/world/lounge/{idea/warren,location/lounge,location/bar}.yaml`
 (templates at `/world/lounge/{idea/warren,location/lounge,location/bar}`,
 leaves under the `/world/lounge` FolderZone the same pack ships), plus
-the venue's stock the `Bar` self-stocks via `populates:` (the four
+the venue's stock the `Bar` self-stocks via `props:` (the four
 bottles, `bar-menu`, `dave` — venue rows; `back-bar`, `shaker`,
 `mixing-glass`, `cocktail-glass`, `tip-jar` — the hospitality trade's
 templates, populated by reference). See [crafting.md](./crafting.md).

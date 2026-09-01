@@ -83,6 +83,7 @@ function makeFakeCollection(store: Row[]) {
 let store: Row[];
 const actor = {
   getTemplatePath: () => '/platform/agent/Avatar/alice',
+  getIdentityPath: () => '/platform/agent/Avatar/alice',
 } as unknown as Stuff;
 
 beforeEach(() => {

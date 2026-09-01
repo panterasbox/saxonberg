@@ -1488,7 +1488,7 @@ function pickInterceptor(
 function brainPathFor(combatant: Stuff): string | null {
   if (
     MixinApi.isHasInteractive(combatant) &&
-    combatant.getInteractives().size > 0
+    (combatant.getInteractives()?.size ?? 0) > 0
   ) {
     return null; // player-driven (directed autocombat)
   }

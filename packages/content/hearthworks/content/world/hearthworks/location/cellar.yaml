@@ -20,5 +20,5 @@ data:
       unit: "%"
       theme: atmosphere
       floorEffect: null
-  populates:
+  props:
     - /stuff/thing/items/dry-log

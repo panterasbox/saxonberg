@@ -250,11 +250,19 @@ export class ParcelApi {
     return logic().setKeyway(extent, keyway);
   }
 
-  /** The unit parcel `holder` currently leases, or null (a linear scan). */
+  /** The unit parcel `holder` currently leases, or null (a linear
+   *  scan). `underExtent` scopes to one institution's wing. */
   public static async heldUnitOf(
     holder: string,
+    underExtent?: string,
   ): Promise<ParcelRecord | null> {
-    return logic().heldUnitOf(holder);
+    return logic().heldUnitOf(holder, underExtent);
+  }
+
+  /** Every unit parcel `holder` holds an active use-grant on — the
+   *  residence ladder's plural (the ascent gate's read). */
+  public static async heldUnitsOf(holder: string): Promise<ParcelRecord[]> {
+    return logic().heldUnitsOf(holder);
   }
 
   /** Every child parcel of `parentExtent` (the provisioned units). */

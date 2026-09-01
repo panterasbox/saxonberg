@@ -13,6 +13,6 @@ data:
   # A fixture by encumbrance (the anvil rule): nobody walks off with
   # the pantry.
   mass: 90
-  populates:
+  props:
     - /stuff/thing/items/prime-cut
     - /stuff/thing/items/ration-stock

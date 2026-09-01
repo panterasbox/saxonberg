@@ -1,0 +1,13 @@
+# A packet of cranberry seed — same discrete-Thing shape as the carrot
+# seed (never Globbable): it names the plant it grows into and carries no
+# variation of its own (genetics is farming-slate phase 2).
+class: /platform/thing/Seed
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a packet of cranberry seed
+  primaryKeyword: seed
+  keywords: [seed, seeds, "cranberry seed", cranberry, packet]
+  longDescription: |
+    A paper packet of cranberry seed.
+  growsIntoPath: /trade/farming/thing/plant/cranberry
+  _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/ericales/ericaceae/vaccinium/macrocarpon

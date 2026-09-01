@@ -37,6 +37,7 @@ function makeTarget(): Stuff {
   return {
     stuffId: 't1',
     getTemplatePath: () => '/platform/agent/Avatar/t1',
+    getIdentityPath: () => '/platform/agent/Avatar/t1',
     getPresentation: () => 'Mara',
     getName: () => 'Mara',
     getHonorific: () => undefined,
@@ -159,6 +160,7 @@ describe('ProfileLogic.composeRow — country always, status gated', () => {
     return {
       stuffId: 't1',
       getTemplatePath: () => '/platform/agent/Avatar/t1',
+      getIdentityPath: () => '/platform/agent/Avatar/t1',
       getPresentation: () => 'Mara',
       getPlayerId: () => 'p-mara',
       allContacts: () => [], // viewer is not a contact of the target
@@ -169,6 +171,7 @@ describe('ProfileLogic.composeRow — country always, status gated', () => {
       stuffId: 'v1',
       getPlayerId: () => 'p-view',
       getTemplatePath: () => '/platform/agent/Avatar/p-view',
+      getIdentityPath: () => '/platform/agent/Avatar/p-view',
     } as unknown as Stuff;
   }
 

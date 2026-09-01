@@ -150,7 +150,7 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
       ctx: CaptureContext,
     ): ContainerSlice {
       const container = host as Stuff & Container;
-      // Two skips, one filter — they must produce the SINGLE ordering the
+      // Three skips, one filter — they must produce the SINGLE ordering the
       // Slotted slice indexes into, so they cannot be separate passes.
       //
       // 1. A live player avatar (HasInteractive) is a transient occupant,
@@ -162,12 +162,24 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
       //    as it always has, which is why the rule keys on the stamp and
       //    not on `ownerOf`: a fixture under a parcel extent is *owned* but
       //    not *stamped*, and belongs to its room's record.
+      // 3. A `Behaved` NPC is CAST, never content. A hand that commutes
+      //    between two persistable rooms (its floor and the counter it
+      //    consigns at) stands in whichever one each room's capture
+      //    happens to catch — so BOTH records can carry it, and the next
+      //    boot restores it twice: `expected singleton, found 2`, boot
+      //    dead. The cast is authored `cast:` data; a room's
+      //    materialize re-seeds a missing troupe via
+      //    `Persistable.reseedCast`, so skipping it here loses nothing.
+      //    (The skip keys on the MIXIN, not the authored list — a
+      //    wandering NPC standing here at capture time is some other
+      //    room's cast, and equally not our content.)
       //
       // The skipped goods are reported so `PersistableLogic` can flush them
       // into their owners' estates after this synchronous walk. Dropping
       // one here without reporting it would destroy it with the host.
       const contents = container.getContents().filter((item) => {
         if (MixinApi.isHasInteractive(item)) return false;
+        if (MixinApi.isBehaved(item)) return false;
         if (ChattelApi.isOwnerPersisted(item)) {
           ctx.noteOwnedGood(item);
           return false;

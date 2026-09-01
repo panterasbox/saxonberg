@@ -36,7 +36,7 @@ import Wand from '../../../../../../content/arcana/src/thing/Wand';
 import { Template } from '../../stuff/Template';
 import { Character } from '../../character/Character';
 import Species from '../../../platform/idea/species/Species';
-import Room from '../../../platform/location/Room';
+import SingletonCartesianLocation from '../../../platform/location/SingletonCartesianLocation';
 import { Quantity } from '../../quantity';
 import { Postures } from '../../slot/Postured';
 import { MANA_RESERVE_KEY } from '../Caster';
@@ -104,8 +104,8 @@ function makeCaster(): TestCharacter {
   return actor;
 }
 
-function makeRoom(): Room {
-  const room = makeStuff(() => new Room());
+function makeRoom(): SingletonCartesianLocation {
+  const room = makeStuff(() => new SingletonCartesianLocation());
   stampTemplatePathForTest(room, `/obj/test/coupled-room-${seq++}`);
   return room;
 }
@@ -286,7 +286,7 @@ describe('AC7 — the endpoint takes the reaction', () => {
     wand.setCapacityKJ(25);
     ContainmentApi.move(wand, user);
     vi.spyOn(StuffApi, 'clone').mockImplementation(async () =>
-      makeStuff(() => new Room()),
+      makeStuff(() => new SingletonCartesianLocation()),
     );
     actingAs(user);
 

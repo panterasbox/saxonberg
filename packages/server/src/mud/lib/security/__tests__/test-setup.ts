@@ -99,6 +99,28 @@ export function stampTemplatePathForTest(
 }
 
 /**
+ * Stamp a minted instance IDENTITY (the D17 `asIdentityPath` axis) on a
+ * test Stuff — the registry index keys on `identity ?? templatePath`,
+ * so re-registering files the stuff under the identity. The mirror of
+ * `stampTemplatePathForTest` for the identity slot.
+ *
+ * @internal
+ */
+export function stampIdentityPathForTest(
+  stuff: Stuff,
+  path: string,
+  register = true
+): void {
+  if (register) {
+    StuffApi.unregister(stuff);
+  }
+  StuffClass._stampIdentityPath(stuff, path);
+  if (register) {
+    StuffApi.register(stuff);
+  }
+}
+
+/**
  * Make a Stuff and stamp its `templatePath` before registering, so
  * the `byTemplatePath` index picks it up on the initial register
  * pass. Equivalent to `makeStuff` plus an inline stamp.

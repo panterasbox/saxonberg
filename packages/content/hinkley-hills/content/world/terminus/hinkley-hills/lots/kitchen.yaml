@@ -1,0 +1,26 @@
+# The kitchen — a keyed room of every Hinkley holding (residences D16),
+# citing the GENERIC fixtures (range, counter, larder — the archetype
+# needs' carriers) rather than trade-hearth-cooking's venue row, so the
+# suburb doesn't buy a cross-pack dependency for a stove. It authors a
+# finite `air` reserve because it is the room you deliberately run a
+# fire in — a lit range behind a closed door burns incomplete (D12's
+# lesson, at home).
+class: /platform/location/FurnishableRoom
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the kitchen
+  primaryKeyword: kitchen
+  keywords: [kitchen]
+  ambientIntensity: 60
+  ambientColorTemperature: 4800
+  longDescription: |
+    A farmhouse kitchen with the range set into the old chimney breast, a scrubbed counter under the window, and a larder cupboard built into the cool of the south wall. The window looks over the yard; the light comes in over the counter most of the afternoon.
+  reserves:
+    air:
+      capacityValue: 100
+      currentValue: 100
+      unit: "%"
+  props:
+    - /stuff/thing/fixture/range
+    - /stuff/thing/fixture/counter
+    - /stuff/thing/fixture/larder

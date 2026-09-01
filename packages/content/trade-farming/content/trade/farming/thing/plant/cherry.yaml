@@ -1,0 +1,35 @@
+# A cherry tree — a fruiting plant on the CYCLE (D1/D2):
+# The quickest tree to fill — and the quickest to sulk when dry.
+# No moisture reserve — the water lives in the ground (see peace-lily).
+class: /platform/thing/Plant
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a cherry tree
+  primaryKeyword: "cherry tree"
+  keywords: ["cherry tree", cherry, tree, plant]
+  longDescription: |
+    A young sweet cherry on dwarfing stock, its bark banded and shining.
+  _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/rosales/rosaceae/prunus/avium
+  material: /stuff/idea/material/tissue/plant-tissue
+  lifecycleState: alive
+  seedTemplatePath: /trade/farming/thing/seed/cherry
+  harvestTemplatePath: /trade/farming/thing/cherry
+  nutrientDraw: 10
+  profile:
+    moistureHappyAt: 0.35
+    moistureWiltAt: 0.06
+    litresPerGameDay: 0.28
+    luxHappyAt: 100
+    luxDarkAt: 12
+    rootDemand:
+      seedling: 0.5
+      young: 2
+      established: 6
+      mature: 10
+    daysToStage:
+      young: 35
+      established: 110
+      mature: 220
+    # The fruit cycle (D1/D2): the PAIR is the polycarp marker.
+    fruitSetCount: 12
+    fruitFillDays: 20

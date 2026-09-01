@@ -159,13 +159,35 @@ plus its per-instance key **only when that key is explicit**. A keyless
 host's stashed key is scope-derived, so folding it in would give one room
 two identities either side of its first capture.
 
+### Goods on the WALL (residences, 2026-08-31)
+
+A good can be *in* a room or *on* it. `hang` moves an
+`AdornmentMixin`-composing good out of custody and onto the room's
+`Adornable` fixture map; the estate entry records
+`mounted: { slot }`, derived from where the good actually hangs so the
+marker can never disagree with the map, and the overlay re-attaches it
+as a fixture instead of dropping it on the floor.
+
+The load-bearing half is on the capture side: **`AdornableMixin`
+contributes a capture pass of its own**, reporting stamped fixtures to
+`noteOwnedGood` exactly as the container slice reports stamped contents.
+Without it a room that went dormant while its owner was offline took the
+lamp down with it and nobody captured it — the container slice never sees
+a fixture. Mount slots for owned goods are `mounted:<chattelId>`, which
+is stable across restarts and cannot collide with the synthetic
+`fixture:<n>` counter an authored `adornments:` uses.
+
+`get` is how it comes down, and it is the guarded direction: your own
+good comes off freely, anything else needs write authority over the
+room — the bar's neon stays on the bar's wall.
+
 ## Restore routing
 
 | `place` | on materialize |
 |---|---|
 | `inventory` | cloned into the owner's own container |
 | `storage` | **nothing at all** — the good is live in the registry and the record, with no presence in the world |
-| a room identity | deferred to that room's materialize |
+| a room identity | deferred to that room's materialize (mounted goods re-attach as fixtures) |
 
 Storage is what makes "move house" work: it is the *absence* of a
 placement, not a place. `ChattelApi.evictToStorage(prefix)` is the
@@ -272,7 +294,7 @@ Persistable → PostRegistration → Exitable → Detailed → Visible
 ```
 
 Every layer is load-bearing and **every omission is silent**: without
-`Populates` a seed's `populates:` is inert and no fixture ever lands;
+`Populates` a seed's `props:` is inert and no fixture ever lands;
 without `Visible` its prose is inert; without `Exitable` you cannot walk
 in. The shipped dorm room already had exactly this stack, which is why it
 is mirrored rather than re-derived.
@@ -317,7 +339,7 @@ ladder should be visible from where you start.
 > than a refactor.
 
 It is **venue-generic**: a bank's bathroom and a bar's kitchen are the
-same class with a different `populates:`. Home-ness is supplied by the **parcel above
+same class with a different `props:`. Home-ness is supplied by the **parcel above
 the room** — title, land use, the lease — never by the room.
 
 Four archetypes ship, and they are four *different kinds of answer*:
@@ -333,7 +355,7 @@ They add **zero new classes, mixins or verbs** — a test enumerates the six
 shipped classes every fixture uses.
 
 **Three trade bundles** joined them in libations, each a `FurnishableRoom`
-row with a `populates:` of the trade's own fixtures: hospitality's
+row with a `props:` of the trade's own fixtures: hospitality's
 **`bar`** (`/trade/hospitality/location/bar` — back-bar, well, the tools,
 tap, ice bin, water tap, basin, the glass rack with its pool, seating,
 the house tablet) and **`cellar`** (racking, a keg, a cold store);
@@ -344,8 +366,21 @@ so a room lists its fixtures itself; the bundle row is the exemplar).
 The lounge's `Bar` keeps its own class (a `SingletonMixin` room the
 Warren wires) and lists the bundle's fixtures by reference.
 
-> ⚠ **The archetypes need a provisioner, and this build does not ship one.**
-> On a persistable host `applyPopulates` only **retains** the specs;
+> ✅ **CLOSED by the residences build (2026-08-31).** The provisioner
+> shipped: `HoldingWarren.wake()` stands every room of a holding up as
+> a keyed instance of its authored row and drives exactly the flow this
+> warning describes (`restoreOrSeed` → `seedBornWith` on the no-record
+> branch). Hinkley's houses instantiate the generic bedroom, living and
+> bathroom rows directly; Seznick House's units author their own bare
+> rooms and cite the generic bathroom. The four archetypes are content
+> the world now instantiates, and `survey` reads them back
+> ([holding.md](./holding.md)). The warning is kept because the SPINE
+> behaviour it documents is unchanged and still catches people: a bare
+> `clone` of an archetype row still gives you prose and no fixtures, and
+> still correctly so.
+>
+> ⚠ **(historical) The archetypes need a provisioner, and this build does not ship one.**
+> On a persistable host `applyProps` only **retains** the specs;
 > `seedBornWith()` lays them down, driven by a provisioning flow
 > (`DormWarren.admit`'s shape: clone → key → `hasRecord ? materialize :
 > seedBornWith`). A bare `clone` never calls it — and cannot, having no unit
@@ -357,7 +392,9 @@ Warren wires) and lists the bundle's fixtures by reference.
 > "Wave 6 is deferred": **the four archetypes are content that nothing in
 > the world currently instantiates.** The fixtures work individually (a
 > cloned tub accepts `lie`, a cloned toilet exposes nothing), and the
-> assembly waits on the unit Warren. Three of the four will never earn a
+> assembly waits on the unit Warren.
+
+Three of the four *conditions* will never earn a
 class: spoilage belongs to food and its container, pests to debris plus
 food, cleanliness to items and bodies — none of them to the room.
 
@@ -520,6 +557,7 @@ db.domain.findOne({ path: '/world/eternal/duncan-hall/dorm-fixtures/bed' })
 
 [chattel](./chattel.md) · [persistence](./persistence.md) ·
 [parcel](./parcel.md) · [residence](./residence.md) ·
+[holding](./holding.md) ·
 [posture](./posture.md) · [slot](./slot.md) ·
 [metabolism](./metabolism.md) · [fire](./fire.md) ·
 [crafting](./crafting.md) · [spatial](./spatial.md)

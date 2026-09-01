@@ -102,7 +102,7 @@ export default class TipController extends CommandController<TipModel> {
       });
       return;
     }
-    const patronKey = giver.getTemplatePath();
+    const patronKey = giver.getIdentityPath();
     const patronAccount = patronKey
       ? await BankingApi.primaryAccountIdOf(patronKey)
       : null;

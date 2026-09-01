@@ -177,20 +177,12 @@ export class PlayerLogic extends ApiLogic {
   /**
    * Materialize one avatar for a returning login. The character's
    * durable state is its persistence-spine snapshot; the identity path
-   * (`/platform/agent/Avatar/<playerId>`) is MINTED, not template-backed (the
-   * identity doctrine — no per-player `domain` row):
-   *
-   *   1. Snapshot exists → clone the SHARED seed template with the
-   *      identity minted via `asTemplatePath`; `Avatar.postRegister`
-   *      materializes the snapshot over the seed defaults.
-   *   2. No snapshot but a LEGACY per-player row exists (a pre-spine /
-   *      pre-retirement character that never logged in since) → clone
-   *      the row one last time; `postRegister` captures the first
-   *      snapshot, after which the row is dead weight (deletable by
-   *      the operator cleanup — see deployment notes).
-   *   3. Neither → the roster references a character with no state;
-   *      clone the seed bare (defaults) so login still succeeds, and
-   *      the capture creates its snapshot.
+   * (`/platform/agent/Avatar/<playerId>`) is MINTED on the identity
+   * axis (D17 — no per-player `domain` row, ever): clone the SHARED
+   * seed row with the identity via `asIdentityPath`;
+   * `Avatar.postRegister` materializes the snapshot over the seed
+   * defaults (a roster entry with no snapshot logs in on defaults and
+   * the first capture creates one).
    */
   private async materializeAvatar(
     AvatarClass: AvatarClassRef,
@@ -198,23 +190,10 @@ export class PlayerLogic extends ApiLogic {
     playerId: string
   ): Promise<Avatar> {
     const identityPath = AvatarClass.getTemplatePath(playerId);
-    const { PersistableApi } = await import('../../../api/persistable');
-    const hasSnapshot = await PersistableApi.hasRecord(
-      identityPath,
-      identityPath
-    );
-    if (!hasSnapshot) {
-      const { Template } = await import('../../../lib/stuff/Template');
-      const legacyRow = await Template.findByPath(identityPath);
-      if (legacyRow) {
-        // Legacy fallback (case 2): hydrate from the per-player row.
-        return StuffApi.clone<Avatar>(identityPath, { user, playerId });
-      }
-    }
     return StuffApi.clone<Avatar>(
       AvatarClass.SEED_TEMPLATE_PATH,
       { user, playerId },
-      { asTemplatePath: identityPath }
+      { asIdentityPath: identityPath }
     );
   }
 

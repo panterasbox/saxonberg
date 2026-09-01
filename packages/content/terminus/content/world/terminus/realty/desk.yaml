@@ -1,0 +1,16 @@
+# The realty office's deed desk. The SAME class the Registry's counter
+# uses, and that is the whole point of the venue predicate (residences
+# P6): `title list` and `title buy` answer wherever a deed desk stands,
+# so a second records counter is a populated row and no code change.
+#
+# ⚠ A desk confers no money authority. Every gate on the sale — the
+# funds, the ascent condition, the subdivision, the transfer — is its
+# own, and the desk only says "paperwork happens here".
+class: /residence/thing/DeedDesk
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the deed desk
+  primaryKeyword: desk
+  keywords: [desk, counter, plat, book, maps]
+  longDescription: |
+    A broad oak desk facing the window, its slope covered with survey maps under glass and the plat books of three subdivisions stacked at one corner. A japanned tin of drawing pins, a steel rule, and a blotter gone violet with signatures.

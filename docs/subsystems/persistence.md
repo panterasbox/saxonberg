@@ -561,7 +561,7 @@ Persistence is a property of **hosts** — singletons keyed by `templatePath`
 `PersistableMixin` (`lib/persistence/Persistable.ts`, `_mixinName =
 'PersistableMixin'`), **outermost**, and carries three behaviors: a
 `postRegister` **materialize driver** (with a record → restore; without →
-capture the first record, the seed-then-persist gate), an `applyPopulates`
+capture the first record, the seed-then-persist gate), an `applyProps`
 override that skips the seed once a record exists (no duplication), and a
 `cleanupOnDestruct` **capture-on-destruct backstop**.
 
@@ -604,7 +604,11 @@ shapes:
   sub-containers); a **nested host** is a reference
   `{ ref, key?, placement }` — not absorbed, because it persists itself
   (see *Keyed nested hosts* below). Surface-resting items record the index
-  of the Surfaced sibling they rest on.
+  of the Surfaced sibling they rest on. Three occupants are **skipped**
+  (one filter, one ordering shared with the Slotted slice): a live avatar
+  (`HasInteractive` — persists itself), a player-stamped good
+  (`ChattelApi.isOwnerPersisted` — persists in its owner's estate), and a
+  `Behaved` NPC (**cast, never content** — see *The third skip* below).
 - **slotted** (`{ worn }`, `SlottedMixin.captureSlice`) — worn/equipped
   occupancy by **position** (indices into the container slice) + the slot
   names each item claims; non-content occupants (a rider, a sitter) resolve
@@ -695,7 +699,7 @@ Two related rules fall out:
   stays load-bearing.
 - **The record is authoritative over born-with content.** A non-host content
   item is restored by re-cloning its template, and a clone re-runs the
-  template's `populates:` — so a container declaring born-with contents (a
+  template's `props:` — so a container declaring born-with contents (a
   stocked chest, a pre-planted pot) arrived holding a *fresh* set that then
   collided with the recorded set: doubled contents, and a `Slotted`
   re-occupy that threw because the born-with occupant had already claimed
@@ -703,7 +707,7 @@ Two related rules fall out:
   what the record says, scoped by the record (contents only when the state
   carries a container slice, slots only when it carries a slotted one). A
   *host* never had this problem —
-  `PersistableMixin.applyPopulates` only retains the specs and
+  `PersistableMixin.applyProps` only retains the specs and
   `seedBornWith` runs on the no-record branch alone — so this is the same
   rule for the non-host case.
 
@@ -769,7 +773,7 @@ first provisioning from a re-entry and wire exits, announce or bill
 accordingly.
 
 Two consumers: **`DormWarren.admit`** (per leased unit) and
-**`LotHolder`** (per titled lot — see
+**`PlatWarren`** (per titled lot — see
 [smallholding.md](./smallholding.md)). It lives here rather than in either
 because hand-rolled, the same six lines invite three specific mistakes:
 capturing on the restore path, re-seeding a room that already has
@@ -846,7 +850,7 @@ the key resolved explicit → stashed → scope-derived, so a singleton is the
 degenerate case (key from scope) and a keyed room is the general one, with
 **no `multiInstance` marker/mode**. The single invariant `assertUniqueKey`
 (no two live instances share a `(scope, key)`) replaced the eager
-singleton-scope guard; `applyPopulates` is a uniform no-op (holders seed
+singleton-scope guard; `applyProps` is a uniform no-op (holders seed
 imperatively via their context); `postRegister` no longer auto-drives. First
 consumer: the leased dorm room (keyed on its unit parcel). See
 [residence.md](./residence.md).
@@ -1175,7 +1179,7 @@ index on a live database is not free.
   snapshot the sync-block invariant promises is frozen — now detached, and
   promoted to an [antipatterns.md](../antipatterns.md) entry because the trap
   generalizes past persistence); a restore-cloned **non-host container
-  re-ran its `populates:`**, doubling contents and throwing on the `Slotted`
+  re-ran its `props:`**, doubling contents and throwing on the `Slotted`
   re-occupy (the record is authoritative — `restoreItem` now clears what the
   clone seeded, the same rule `seedBornWith` already gives hosts); and a
   nested host captured its own `place`, fighting the referrer that actually
@@ -1212,3 +1216,93 @@ The **second persistence scope** landed: owned chattel persists with its
 - **New Api surface:** `captureDetached` / `restoreDetached` (one non-host
   good's composed state) and `placeIdOf` (a host's room identity — scope
   plus its per-instance key **only when explicit**).
+
+## History — the residences build (2026-08-31)
+
+The spine's keyed-host model was already here (the dorm's D1
+multi-instance change); the residential ladder made two things follow
+from it, and added one marker.
+
+### A placement can name a KEYED container
+
+`HostPlacement` gained `containerKey?`. A holding's rooms all share one
+template row and are separated only by their persistence key, so
+`{ container }` alone would collapse every tenant's yard into one; and
+the room is not standing when the placement restores, because the whole
+holding is dormant. So `capturePlacement` records the pair, and
+`restorePlacement` re-enters through `OuterWarren.admitFor(key)` —
+which finds the institution whose parent extent prefixes the key, stands
+the holding back up, and returns the exact room.
+
+That is the **"log out in your own yard, log back into the same yard"**
+acceptance, and it is the general form of the dorm's Warren
+reconciliation rather than a second mechanism beside it.
+
+### An owned good can be MOUNTED
+
+`EstateEntry` gained `mounted?: { slot }`. A good hung on a wall lives in
+its room's `Adornable` fixture map rather than its contents; the marker
+is **derived** from the good's own live attachment (`getMountSlot()`) at
+capture time rather than passed in, so it can never disagree with the
+map, and the room overlay re-attaches instead of floor-placing.
+
+⚠ **`AdornableMixin` needed a capture pass of its own.** The container
+slice never sees a fixture, so a stamped good on a wall was reported by
+nobody: a room going dormant while its owner was offline took the lamp
+with it. The mixin now walks `getFixtures()` and reports stamped ones to
+`noteOwnedGood`, exactly as the container slice reports stamped contents.
+Its slice is deliberately empty — fixtures are runtime-only and an
+authored one is rebuilt from the row on every hydrate; the pass exists
+for the REPORT.
+
+### `_identityStampOf` peels, it does not unwrap once
+
+The D17 identity split reads a hard-private slot to key the registry
+index. One `ProxyApi.unwrap` of a proxy-of-a-proxy yields the inner
+PROXY, which carries no private slot and throws — which turned a
+deliberate `postRegister` failure into the wrong error on the unregister
+path. It now peels until the slot is present, which is correct at any
+wrapping depth.
+
+## Props and cast — the two born-with designations (2026-09-01)
+
+**Cast is CAST, never a room's content.** A `Behaved` NPC commutes between
+persistable rooms — a hand's floor and the counter it consigns at — so each
+room's capture caught it wherever it happened to stand, BOTH records could
+carry it, and the next boot restored it twice: `expected singleton, found
+2`, boot dead. Verified live in the farming build (2026-08-31); the
+designation became **declared** the day after. A template authors its
+born-with content in the theatre vocabulary:
+
+- **`props:`** — the set dressing (fixtures, stock, furniture). Ordinary
+  content: captured into the host's record and written back; the record is
+  authoritative after the first seed.
+- **`cast:`** — the troupe (`Behaved` NPCs). Never captured, conserved
+  live, re-seeded on restore.
+
+The class is the check, not the designation: each `PopulatesMixin` applier
+resolves an entry's template class and gates on `Mixins.Behaved` **before**
+minting — a Behaved entry under `props:` (or a non-Behaved one under
+`cast:`) is an authoring error at hydrate, not a latent lifecycle bug.
+Two touches carry the lifecycle:
+
+- **Capture skips `Behaved` occupants** — the third skip in
+  `ContainerMixin.captureSlice`'s single filter (beside `HasInteractive`
+  and owner-persisted goods; the three must share one filter because the
+  Container and Slotted slices read one content ordering). This keys on the
+  MIXIN, not the authored list — a wandering NPC standing here at capture
+  time is some other room's cast, and equally not our content. Capture is
+  the only record writer, so no record can carry a cast entry (the old
+  restore-side sniff was migration compat and is deleted).
+- **`Persistable.reseedCast()`** — the establishing half: after a
+  successful restore, `materializeImpl` walks the host's retained
+  `_bornWithCast` (the `cast:` data the hydration hook keeps) and re-mints
+  any entry with **zero live instances**, moving it in. Live cast is
+  conserved — an instance standing anywhere (mid-commute at the counter)
+  suppresses the re-mint. No class resolution: the declaration already
+  said what is cast.
+
+The troupe's durable home is the authored `cast:` data, exactly like the
+born-with seed; only its *liveness* is transient. Proven in
+`lib/persistence/__tests__/CastReseed.test.ts` and the designation gate in
+`lib/stuff/__tests__/Populates.test.ts`.

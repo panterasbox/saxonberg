@@ -1,0 +1,13 @@
+# A packet of mint seed — same discrete-Thing shape as the carrot
+# seed (never Globbable): it names the plant it grows into and carries no
+# variation of its own (genetics is farming-slate phase 2).
+class: /platform/thing/Seed
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a packet of mint seed
+  primaryKeyword: seed
+  keywords: [seed, seeds, "mint seed", mint, packet]
+  longDescription: |
+    A paper packet of mint seed, fine as dust.
+  growsIntoPath: /trade/farming/thing/plant/mint
+  _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/lamiales/lamiaceae/mentha/spicata

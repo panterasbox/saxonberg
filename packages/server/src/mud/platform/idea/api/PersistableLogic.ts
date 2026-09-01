@@ -9,12 +9,14 @@ import { MixinApi, type AnyConstructor } from "../../../api/mixin";
 import { SpeciesApi } from "../../../api/species";
 import { StuffApi } from "../../../api/stuff";
 import { ContainmentApi } from "../../../api/containment";
+import type { Adornment } from "../../../lib/boundary/Adornment";
 import { SlotApi } from "../../../api/slot";
 import { ParcelApi } from "../../../api/parcel";
 import { ChattelApi } from "../../../api/chattel";
 import { Mixins } from "../../../lib/mixin";
 import { ExecutionContextApi } from "../../../api/execution-context";
 import { PersistedRecord } from "../../../lib/persistence/PersistedRecord";
+import { Template } from "../../../lib/stuff/Template";
 import { Document } from "../../../lib/persistence/Document";
 import PersistentHydrator from "../persistence/PersistentHydrator";
 import type { Marshaller } from "../../../lib/persistence/Marshaller";
@@ -170,11 +172,19 @@ function capturePlacement(host: Stuff): HostPlacement | null {
   ) {
     return null;
   }
+  // A KEYED host container (a holding's room — residences D16): record
+  // `(scope, key)` so restore re-enters the exact room through the
+  // owning institution, never a fresh clone of the shared row.
+  if (MixinApi.isPersistable(env) && env.isPersistenceKeyExplicit()) {
+    const scope = env.getIdentityPath();
+    const key = env.getPersistenceKey();
+    if (scope && key) return { container: scope, containerKey: key };
+  }
   if (MixinApi.isWarrenMember(env)) {
     const warren = env.getWarren()?.getTemplatePath();
     if (warren) return { startLocation: warren };
   }
-  const container = env.getTemplatePath();
+  const container = env.getIdentityPath();
   return container ? { container } : null;
 }
 
@@ -195,6 +205,25 @@ async function restorePlacement(
       place.startLocation,
     );
     ContainmentApi.move(host as Stuff & Containable, container);
+    return;
+  }
+  if (place.container && place.containerKey) {
+    // A keyed room: re-enter through the owning institution's admit
+    // (the log-out-in-your-yard seam, residences D16) — exact room,
+    // exact state, never a fresh clone of the shared row.
+    const { OuterWarren } = await import(
+      '../../../lib/location/OuterWarren'
+    );
+    const room = await OuterWarren.admitFor(place.containerKey);
+    if (room && MixinApi.isContainer(room)) {
+      ContainmentApi.move(host as Stuff & Containable, room);
+      return;
+    }
+    console.warn(
+      `PersistableLogic.restorePlacement: keyed container ` +
+        `'${place.container}#${place.containerKey}' unresolvable — ` +
+        `host left where cloned`,
+    );
     return;
   }
   if (place.container) {
@@ -370,11 +399,15 @@ async function flushSkippedOwnedGoods(goods: Iterable<Stuff>): Promise<void> {
     if (!chattelId) continue;
     const owner = await ChattelApi.ownerOf(good);
     if (owner?.kind !== "player") continue;
+    // A hung good keeps its wall: the mount slot rides the entry so the
+    // room's next overlay re-attaches it as a fixture (residences D11).
+    const mountSlot = MixinApi.isAdornment(good) ? good.getMountSlot() : null;
     const entry: EstateEntry = {
       chattelId,
       templatePath: good.getTemplatePath() ?? "",
       state: captureState(good),
       place: good.getPlace(),
+      ...(mountSlot ? { mounted: { slot: mountSlot } } : {}),
     };
     const live = StuffApi.findByTemplatePath<Stuff>(owner.templatePath);
     if (live && MixinApi.isEstate(live)) {
@@ -595,13 +628,13 @@ async function restoreState(
 
 /**
  * **The record is authoritative.** A non-host content item is restored by
- * re-cloning its template, and a clone re-runs the template's `populates:`
+ * re-cloning its template, and a clone re-runs the template's `props:`
  * — so a container that declares born-with contents (a stocked chest, a
  * pre-planted pot) arrives holding a fresh set of them, which then collides
  * with the recorded set: doubled contents, and a `Slotted` re-occupy that
  * throws because the born-with occupant already claimed the slot.
  *
- * A *host* never has this problem: `PersistableMixin.applyPopulates` only
+ * A *host* never has this problem: `PersistableMixin.applyProps` only
  * retains the specs, and `seedBornWith` runs on the no-record branch alone.
  * This is the same rule for the non-host case — clear what the clone seeded
  * before applying what the record says.
@@ -701,7 +734,7 @@ async function cloneHost(scope: string, key?: string): Promise<Stuff | null> {
 
 async function captureImpl(host: Stuff, key?: string): Promise<void> {
   if (optedOutOfPersistence(host)) return; // guest / opted-out host
-  const scope = host.getTemplatePath();
+  const scope = host.getIdentityPath();
   if (!scope) {
     throw new Error("PersistableLogic.capture: host has no templatePath stamp");
   }
@@ -737,7 +770,7 @@ async function captureImpl(host: Stuff, key?: string): Promise<void> {
 
 async function materializeImpl(host: Stuff, key?: string): Promise<void> {
   if (optedOutOfPersistence(host)) return; // guest / opted-out host
-  const scope = host.getTemplatePath();
+  const scope = host.getIdentityPath();
   if (!scope) return;
   // Resolve the key the SAME way capture does (explicit → stashed →
   // scope-derived), so restore is the exact inverse: one `(scope, key)`
@@ -748,7 +781,14 @@ async function materializeImpl(host: Stuff, key?: string): Promise<void> {
   stashKey(host, owner, key !== undefined);
   assertUniqueKey(scope, owner, host);
   const record = await PersistedRecord.findByScopeAndOwner(scope, owner);
-  if (record) await restoreRecord(host, record);
+  if (record) {
+    await restoreRecord(host, record);
+    // The cast is transient (capture's third skip), so a restored room
+    // comes back without its troupe — re-seed any `cast:` entry that has
+    // no live instance. Walks the retained `_bornWithCast`, so it is a
+    // no-op for a host that declares no cast.
+    if (MixinApi.isPersistable(host)) await host.reseedCast();
+  }
 }
 
 /** Restore one record onto `host` under its owning principal (shared by the
@@ -759,7 +799,7 @@ async function materializeImpl(host: Stuff, key?: string): Promise<void> {
  * one `DormRoom` template, so the scope alone would collapse them).
  */
 function placeIdOf(host: Stuff): string {
-  const scope = host.getTemplatePath() ?? "";
+  const scope = host.getIdentityPath() ?? "";
   // Only an EXPLICIT key qualifies — the same rule `captureItem` applies to
   // a nested host ref. A keyless host's stashed key is scope-DERIVED (the
   // singleton's self/parcel owner), so folding it in would give one room two
@@ -812,6 +852,15 @@ async function overlayOwnedGoods(host: Stuff): Promise<void> {
         return PersistableLogicRestoreDetached(entry, host, principal);
       },
     );
+    // A MOUNTED good goes back on the wall, not on the floor: out of the
+    // host's contents (the not-portable invariant forbids being in both)
+    // and into its fixture slot. Slot names for owned goods are minted
+    // `mounted:<chattelId>` by `hang`, so they can never collide with the
+    // synthetic `fixture:<n>` counter the authored adornments use.
+    if (good && entry.mounted && MixinApi.isAdornable(host)) {
+      if (MixinApi.isContainable(good)) ContainmentApi.move(good, null);
+      host.addFixture(good as Stuff & Adornment, entry.mounted.slot);
+    }
     if (good && ownerHost && MixinApi.isEstate(ownerHost)) {
       ownerHost._putEstateEntry(entry, good);
     }
@@ -954,7 +1003,7 @@ async function restoreOrSeedImpl(host: Stuff, key: string): Promise<boolean> {
         `PersistableMixin (${host.getTemplatePath() ?? "unregistered"})`,
     );
   }
-  const scope = host.getTemplatePath();
+  const scope = host.getIdentityPath();
   if (!scope) {
     throw new Error(
       "PersistableLogic.restoreOrSeed: host has no templatePath stamp",
@@ -965,7 +1014,7 @@ async function restoreOrSeedImpl(host: Stuff, key: string): Promise<boolean> {
     await materializeImpl(host, key);
     return true;
   }
-  // No record: lay the declared `populates:` fixtures down ONCE, then
+  // No record: lay the declared `props:` fixtures down ONCE, then
   // capture them so the next standup restores rather than re-seeds.
   await host.seedBornWith();
   await captureImpl(host, key);

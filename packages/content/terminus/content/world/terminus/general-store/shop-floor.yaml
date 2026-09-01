@@ -1,0 +1,31 @@
+# The general store — the shop floor. One room off the counting-houses avenue
+# block (SOUTH back to the street; the avenue block declares NORTH back here),
+# on the new-player path between the Terminus arrival gate and the university
+# crossing. The counter (Stock), the consignment shelf, and the cast (clerk +
+# keeper) are `props` (fresh clones each boot). Indoor room, no biome.
+#
+# Its own zone (`/world/terminus/general-store`), but addressed under the
+# counting-houses Locality (`counting-houses/general-store`) — it sits on that
+# street, so no new address node is minted (the slim-roster discipline).
+class: /platform/location/SingletonCartesianLocation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the general store
+  primaryKeyword: store
+  alternateNames: [shop, store, general]
+  _address: counting-houses/general-store
+  longDescription: |
+    A cramped, well-loved general store, every inch of it earning its keep. Shelves climb the walls stacked with the plain gear of getting by underground; a plank counter runs the length of one side with a chalk price slate above it, and by the door a tall consignment shelf holds the odds and ends other delvers have left to be sold on. It smells of tar and lamp oil and old paper. A doorway south lets back out onto the avenue.
+  coords:
+    x: 0
+    y: 0
+    z: 0
+  exits:
+    south:
+      destination: /world/terminus/counting-houses/avenue-block
+  props:
+    - /world/terminus/general-store/counter
+    - /world/terminus/general-store/consignment-shelf
+  cast:
+    - /world/terminus/general-store/agent/clerk
+    - /world/terminus/general-store/agent/keeper

@@ -1,0 +1,20 @@
+# Citrus limon — the lemon. Sessile body plan, the same
+# shallow `_parentCladePath` as every plant (the directory carries the
+# taxonomy; the clade link is deliberately shallow). What makes it a crop
+# is entirely on its `/trade/farming/thing/plant/lemon` template: the
+# harvest surface and — for a fruiting plant — the cycle fields.
+class: /platform/idea/species/Species
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  binomial: Citrus limon
+  commonNames: ["lemon", "lemon tree"]
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/sessile
+  _parentCladePath: /stuff/idea/species/plantae
+  _defaultMaterialPath: /stuff/idea/material/tissue/plant-tissue
+  lifecycleStates: ["alive", "dead"]
+  sexDeterminationSystem: monoecious
+  reproductiveMode: sexual
+  lifespanMin: 0
+  lifespanMax: 80
+  circadianBand: aperiodic
+  diet: photosynthesis

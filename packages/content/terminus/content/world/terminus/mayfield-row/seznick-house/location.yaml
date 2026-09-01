@@ -1,0 +1,39 @@
+# /world/terminus/mayfield-row/seznick-house/location — the ZONE the let
+# units' rooms live in. It exists for the same reason Hinkley's `lots`
+# zone does (residences P8), and the reason is a grid rule, not taste.
+#
+# A landing is a cartesian cell, so it is a grid, and a grid admits a
+# NON-CARDINAL exit only across a zone boundary. A unit's front door is
+# non-cardinal by necessity — it is directioned `unit-1`, `unit-2`,
+# because the door is identified by which unit it opens, and a landing
+# serving four units cannot spend four compass points on them and still
+# say which way the stair goes.
+#
+# Without this boundary the door throws at `addExit`: the corridor and
+# `location/hall` would both resolve to the mayfield-row zone, and the
+# cardinal-only-intra-zone invariant refuses. Hinkley did not hit it
+# because its gate already crossed into `lots`.
+#
+# ⚠⚠ **The filename is load-bearing.** `resolveZoneForPath` walks
+# TEMPLATE ancestry, so a zone row zones the directory that shares its
+# name — this file zones `location/` because it is called `location`. It
+# was called `rooms` while the rooms sat in `rooms/`; the branch-
+# directory sort moved them to `location/` and left the zone behind,
+# zoning an empty path, which put the corridor and the unit rooms back in
+# one zone and re-armed the throw. `pnpm lint:locations` now refuses a
+# zone row with nothing under it.
+#
+# ⚠ A test cannot be trusted to catch this on its own: the rule only
+# fires when BOTH paths resolve to a real zone row, and a fixture that
+# omits the zone rows silently skips it. The unit suites now install
+# them for exactly that reason.
+#
+# A CartesianZone rather than a FolderZone: only a SpatialZone can be a
+# room's zone (`resolveZoneForPath` skips folders), so a FolderZone here
+# would be walked straight past and every unit room would land back in
+# the street's zone — which is the failure this fixes.
+class: /platform/idea/location/CartesianZone
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: Seznick House units
+  cellSize: 3.0

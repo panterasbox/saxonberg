@@ -111,7 +111,7 @@ export default class ArmController extends CommandController<ArmModel> {
       );
     }
     trap.setConcealment(level);
-    trap.setPlacedBy(giver.getTemplatePath() ?? '');
+    trap.setPlacedBy(giver.getIdentityPath() ?? '');
     ContainmentApi.move(trap, room as Stuff & Container);
     StuffApi.destruct(kit);
 

@@ -100,10 +100,12 @@ export default class CartesianZone extends SingletonMixin(SpatialZone) {
    * and invalidates the derived cache.
    */
   public override removeLocation(location: Location): boolean {
+    // A member with no coordinates was never ON the grid — a keyed
+    // holding room lives under a cartesian zone for its ancestry (the
+    // lots zone, residences P8) without being a grid cell. Its destruct
+    // cleanup must not throw; there is simply no grid entry to clear.
     if (!MixinApi.isCartesianCoordinates(location)) {
-      throw new Error(
-        'CartesianZone.removeLocation: location must compose CartesianCoordinatesMixin.'
-      );
+      return super.removeLocation(location);
     }
     const coords = location.getCoordinates();
     const key = gridKey(coords[0], coords[1], coords[2]);

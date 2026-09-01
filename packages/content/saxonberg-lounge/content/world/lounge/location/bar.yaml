@@ -5,7 +5,7 @@
 # declared here.
 #
 # SingletonMixin pins it to one instance (the host-fixture wiring resolves
-# it via StuffApi.singleton). `populates:` furnishes it each boot: the
+# it via StuffApi.singleton). `props:` furnishes it each boot: the
 # hospitality bar bundle's fixtures (the back-bar and well, the tools ON
 # the well, the stations, the glass rack, the seats), the chalkboard menu
 # and the house tablet — plus the cast. NO bottles: the rail is stocked by
@@ -103,7 +103,7 @@ data:
   # the `shifts` brain sorts them by the game clock — whoever's on shift
   # stays, the rest step out back. The staff are `Crafter`s (MakerMixin
   # NPCs) so the present bartender fulfills an `order`.
-  populates:
+  props:
     # The bar bundle by reference (`/trade/hospitality/location/bar` —
     # template inheritance does not exist, so the same list is spelled
     # here): the shelves, the tools on the well, the stations, the seats.
@@ -142,6 +142,7 @@ data:
     # is earned). `order` consults it before serving.
     - /world/lounge/thing/bar-counter
     - /world/lounge/thing/bar-menu
+  cast:
     - /world/lounge/agent/mara
     - /world/lounge/agent/remy
     - /world/lounge/agent/sloane

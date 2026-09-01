@@ -43,7 +43,7 @@ export default class CommitteeController extends CommandController<CommitteeMode
     if (explicit.length > 0) return explicit;
     return (
       context.location?.getTemplatePath() ??
-      context.commandGiver.getTemplatePath() ??
+      context.commandGiver.getIdentityPath() ??
       ''
     );
   }

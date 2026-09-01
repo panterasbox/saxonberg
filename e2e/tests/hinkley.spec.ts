@@ -21,7 +21,9 @@ import {
  *      one coordinate) — and as one it read 16.7 lux, under a carrot's
  *      light floor;
  *   3. the lots needed a spatial zone of their own before the
- *      non-cardinal `lot-N` gate was admissible;
+ *      non-cardinal `lot-N` gate was admissible — since superseded: the
+ *      gate is CARDINAL now (the plat's gate ring puts a lot on a SIDE
+ *      of the road), so it is legal inside one zone and has a way back;
  *   4. the yard shipped a bed and a standpipe and no watering can, so
  *      `water` — a tool-conferred verb — was undispatchable on it.
  *
@@ -39,7 +41,7 @@ import {
  */
 
 const REGISTRY = '/world/terminus/registry/office';
-const LANE = '/world/terminus/hinkley-hills/lane';
+const LANE = '/world/terminus/hinkley-hills/location/lane';
 
 /**
  * The lot that ships already sold — seeded in `config/parcels.yaml`, held
@@ -60,6 +62,11 @@ const LANE = '/world/terminus/hinkley-hills/lane';
  * so it can run against a live world forever.
  */
 const SOLD_LOT = 'lot-1';
+// ⭐ The gate is a compass point, not the lot leaf. The lane runs west,
+// so its ring is north, south, northwest, southwest — lot-1 faces north,
+// lot-2 south. `title buy` tells the buyer which side theirs is on.
+const SOLD_GATE = 'north';
+const UNSOLD_GATE = 'south';
 
 /** A lot nobody may take — nothing must ever open onto it. */
 const UNSOLD_LOT = 'lot-5';
@@ -95,7 +102,7 @@ test('the suburb is reachable and the lane describes the empty lots', async ({
   browser,
 }) => {
   const { page, close } = await openWorldAs(browser, 'hh-reach', {
-    startLocation: '/world/terminus/hinkley-hills/arrival',
+    startLocation: '/world/terminus/hinkley-hills/location/arrival',
     wizard: true,
   });
   try {
@@ -127,7 +134,7 @@ test('the TPA carries a route to the suburb, priced as a commute', async ({
   // NOT a wizard: `teleport` is dual-mode and the privileged fork
   // self-powers past the TPA entirely.
   const { page, close } = await openWorldAs(browser, 'hh-board', {
-    startLocation: '/world/terminus/terminal/departure-gate-a',
+    startLocation: '/world/terminus/terminal/location/departure-gate-a',
   });
   try {
     await sendUntil(
@@ -152,7 +159,7 @@ test('⭐ an UNSOLD lot has no gate — the lane only opens what sold', async ({
     // Nothing in this suite buys, so every lot but SOLD_LOT is open ground.
     await sendUntil(
       page,
-      `go ${UNSOLD_LOT}`,
+      `go ${UNSOLD_GATE}`,
       page.getByText(/can't walk that way/i).first()
     );
   } finally {
@@ -172,12 +179,12 @@ test('⭐ WALK IN and WORK IT — the gate, populates, and the whole verb set', 
     wizard: true,
   });
   try {
-    // ⭐ The gate is hanging, named for the lot.
-    await sendUntil(page, 'look', page.getByText(new RegExp(SOLD_LOT, 'i')).first());
+    // ⭐ The gate is hanging, on the side of the road the ring gave it.
+    await sendUntil(page, 'look', page.getByText(new RegExp(SOLD_GATE, 'i')).first());
     // `go` is one-way, so it must NOT ride `sendUntil` (a re-send after a
     // successful move just bounces off a wall). Arrival prints movement
     // prose, not a room description — the `look` is what shows the yard.
-    await runCommand(page, `go ${SOLD_LOT}`);
+    await runCommand(page, `go ${SOLD_GATE}`);
     await page.waitForTimeout(3000);
     await sendUntil(page, 'look', page.getByText(/yard behind the house/i).first());
 
@@ -193,7 +200,7 @@ test('⭐ WALK IN and WORK IT — the gate, populates, and the whole verb set', 
     // So bring our own, the way the wizard brings the soil and the seed.
     await runCommand(page, 'clone /stuff/thing/vessel/watering-can');
     await runCommand(page, 'clone /stuff/thing/vessel/soil-sack');
-    await runCommand(page, 'clone /stuff/thing/seed/carrot');
+    await runCommand(page, 'clone /trade/farming/thing/seed/carrot');
     await sendUntil(page, 'inventory', page.getByText(/carrot seed/i).first());
 
     // ⭐ From here the assertions are about DISPATCH, not outcome, and
@@ -322,9 +329,9 @@ test('⭐ the land-use gate REFUSES a bed on the Registry floor', async ({
     wizard: true,
   });
   try {
-    await runCommand(page, 'clone /stuff/thing/bed/garden --here');
+    await runCommand(page, 'clone /trade/farming/thing/bed/garden --here');
     await runCommand(page, 'clone /stuff/thing/vessel/soil-sack');
-    await runCommand(page, 'clone /stuff/thing/seed/carrot');
+    await runCommand(page, 'clone /trade/farming/thing/seed/carrot');
     await sendUntil(page, 'look', page.getByText(/garden bed/i).first());
 
     // ⭐ Clear the slot BEFORE planting, not after. The lot is PRE-SOLD,

@@ -4,7 +4,7 @@
  * The code-field gate gates only the **direct** code-naming fields
  * (`class` / `hydratorClass` / `behaviors[].brain`). The **transitive**
  * reference fields (`exits[].destination`, `adornments[].template`,
- * `populates[]`, `container`, …) get no per-field gate — they are closed
+ * `props[]`, `cast[]`, `container`, …) get no per-field gate — they are closed
  * *by construction*: every template a transitive field can resolve to
  * must itself have passed the `class` gate, so a reference can only ever
  * instantiate a wizard-vetted-or-protowizard-safe class.
@@ -31,7 +31,7 @@ import {
 import { PersistenceManager } from "../../../../../backend/PersistenceManager";
 
 const IDEA = "/lib/stuff/Idea";
-const DANGEROUS = "/platform/location/Room"; // any leaf w/ a class
+const DANGEROUS = "/platform/location/SingletonCartesianLocation"; // any leaf w/ a class
 const HOST_PATH = "/world/gallery/room";
 const TARGET_PATH = "/world/gallery/trap";
 const ALICE = "/platform/agent/Avatar/alice";

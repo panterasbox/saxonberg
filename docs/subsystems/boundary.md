@@ -165,7 +165,7 @@ The base owns the fault-in lifecycle; subclasses supply only
 a key check vs. a reachability check). Consumers: the dorm's `DormDoor`
 (a unit's room) and `FloorStairExit` (a floor's corridor) — see
 [residence.md](./residence.md) — and `obj/LotGateExit` (a sold lot's
-yard, hung on the street by `LotHolder`; see
+yard, hung on the street by `PlatWarren`; see
 [smallholding.md](./smallholding.md)).
 
 `LotGateExit` is the case where the eager path is **exact** rather than a
@@ -551,12 +551,12 @@ getFixtureLightSources(): (Stuff & Adornment)[];
 
 `adornments` is an **instruction field** on `AdornableMixin` (declared
 via `adornments: { instruction: true }`) — the `applyExits` /
-`applyPopulates` precedent applied to fixtures. Its YAML data is an
+`applyProps` precedent applied to fixtures. Its YAML data is an
 array of `AdornmentSpec` entries (a bare `template` path, or
 `{ template, slot }` for a meaningful slot name). The Hydrator's
 Phase-2 dispatch calls `applyAdornments`, which **clones** each
 template (fixtures are per-instance — no singleton dispatch like
-`applyPopulates`), guards that it composes `AdornmentMixin`
+`applyProps`), guards that it composes `AdornmentMixin`
 (`MixinApi.isAdornment`, else a configuration-error throw naming the
 path), and attaches it via `addFixture`. There is no paired getter —
 the live fixtures are read through `getFixtures()`; the spec is

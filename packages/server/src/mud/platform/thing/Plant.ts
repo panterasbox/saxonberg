@@ -12,7 +12,7 @@
  *
  * `PersistableMixin` composes **outermost** (the host rule): its
  * `cleanupOnDestruct` must fire before any inner evacuation, and its
- * `applyPopulates` override must wrap `Populates`.
+ * `applyProps` override must wrap `Populates`.
  *
  * Everything about *how* it grows lives in `GrowingMixin`; this class is
  * only the three host seams the mixin declares plus the bed relationship:

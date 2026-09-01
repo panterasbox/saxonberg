@@ -94,7 +94,7 @@ function viewerPlayerId(viewer: Stuff): string {
  * group ref).
  */
 function durablePersonId(person: Stuff): string | null {
-  return person.getTemplatePath() ?? null;
+  return person.getIdentityPath() ?? null;
 }
 
 /**

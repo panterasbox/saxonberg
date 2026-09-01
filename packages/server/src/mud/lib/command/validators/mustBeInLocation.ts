@@ -39,6 +39,13 @@ const validator: FieldValidator = (value, field, context) => {
       (s) => s.stuffId,
     ),
   );
+  // A hung fixture is in the room without being in its contents (it
+  // rides `getFixtures()`), and the `peers` scope offers it — so the
+  // validator must admit it or it refuses what the binder just bound.
+  // `get` takes it down; the controller owns whether that is allowed.
+  if (location && MixinApi.isAdornable(location)) {
+    for (const f of location.getFixtures()) locationIds.add(f.stuffId);
+  }
 
   for (const stuff of stuffs) {
     if (locationIds.has((stuff as Stuff).stuffId)) continue;

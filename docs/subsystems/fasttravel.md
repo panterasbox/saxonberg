@@ -169,7 +169,7 @@ another way and `register` first".
 
 **Born-with floor:** every credential is born registered for the
 **three-node set** `BORN_WITH_TRAVEL_NODES` (`lib/credential/Credential.ts`)
-— the **Terminus arrival node** (`/world/terminus/terminal/arrival-terminal`),
+— the **Terminus arrival node** (`/world/terminus/terminal/thing/arrival-terminal`),
 **the lounge** (`/world/lounge/thing/terminal`), and **the paid destination**
 (`/world/newbie-wilds/crossroads/terminal`) — the documented exception to
 "reach-before-travel". The hub has no foot path to the rest of the world, so
@@ -201,7 +201,7 @@ the CB mints:
   authoring error → refuse.
 - **The TPA's operating budget** — a **network fee** to the **Teleport
   Authority Business** (`fasttravel.tpaBusinessPath`, a minimal
-  Business seed at `/world/terminus/terminal/tpa`: proprietor-absent
+  Business seed at `/world/terminus/terminal/idea/tpa`: proprietor-absent
   public-infrastructure operator, empty `operatingLocations` so it never
   collides with the per-terminal fare operators, resolved by path). The
   fee lands on its operating account at its authored `banksAt` (the TPA
@@ -265,11 +265,11 @@ fork reads `getStatus()` at authorization and refuses a non-operational
 departure (**D8**; the seam stays authored-static — no dynamic breakdown).
 
 The four terminals are **not** boot-manifest entries — they load by
-**`populates:` cascade** from the single lounge root (`saxonberg-lounge`'s
+**`props:` cascade** from the single lounge root (`saxonberg-lounge`'s
 `boot:` list holds one hub anchor, `/world/lounge/thing/terminal`, not one
 entry per terminal). The three departure terminals
 are never route targets, so a plain route-target cascade would never reach
-them; instead each departure gate room declares `populates:` its own
+them; instead each departure gate room declares `props:` its own
 terminal fixture, so standing up the hub materializes every gate + its
 terminal. The office's **terminal clerk** (`TicketClerk`,
 "Tootie") is the city-budget `Business`'s paid employee — she **procures a

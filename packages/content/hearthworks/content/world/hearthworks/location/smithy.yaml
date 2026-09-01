@@ -5,7 +5,7 @@
 # of offers. Order it made, or make it yourself with their tools — the
 # DIY floor. Recipes own FORMING (ingot → blade), gated on reachable
 # heat: `forge knife` at a cold forge is a diegetic decline.
-class: /platform/location/Room
+class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a smithy
@@ -18,7 +18,7 @@ data:
     z: 0
   adornments:
     - /world/hearthworks/thing/forge-floor
-  populates:
+  props:
     - /stuff/thing/Forge
     - /trade/smithing/thing/iron-ingot
     - /trade/smithing/thing/spare-ingot
@@ -28,4 +28,5 @@ data:
     - /stuff/thing/items/hide-stock
     - /trade/smithing/thing/whetstone
     - /world/hearthworks/thing/smithy-menu
+  cast:
     - /world/hearthworks/agent/smith

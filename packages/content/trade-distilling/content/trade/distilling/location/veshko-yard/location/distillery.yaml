@@ -3,7 +3,12 @@
 # the stock the zone's `stocks:` fills, the hand. The stills that make it
 # are the distillery build's; today the floor stands at target through the
 # sweep, which is the sanctioned faucet.
-class: /platform/location/FurnishableRoom
+# An ordinary location, not a FurnishableRoom: that class is the
+# FURNISHING archetypes' base. A trade floor's durability lives on its
+# persistable fixtures (the Stock, the racking, the counter) — the
+# consigned goods and their listings ride those, never the room; the
+# `populates` set below is the placement and respawns each boot.
+class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: the Veshko distillery floor
@@ -13,7 +18,8 @@ data:
     A hangar of a floor: column stills in a row behind a chain-link fence, forklifts, and pallets of grey-labelled Volk under sodium light. Everything is stencilled.
   ambientIntensity: 30
   ambientColorTemperature: 3800
-  populates:
+  props:
     - /trade/distilling/thing/racking
     - /trade/distilling/location/veshko-yard/thing/stock
+  cast:
     - /trade/distilling/location/veshko-yard/agent/hand

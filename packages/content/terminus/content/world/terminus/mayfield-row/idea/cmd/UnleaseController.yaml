@@ -1,0 +1,3 @@
+# The unlease verb's controller template.
+class: /world/terminus/mayfield-row/idea/cmd/UnleaseController
+data: {}

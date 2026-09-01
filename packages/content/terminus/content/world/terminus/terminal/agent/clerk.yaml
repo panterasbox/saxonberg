@@ -1,0 +1,115 @@
+# Tootie — the Terminus ticket clerk. The one full character carve of this
+# build: a nod to the original Eternal City TPA, where "Tootie" worked the
+# ticket window and sold you your card. Reborn here as a real employee of the
+# municipal city-budget Business (she draws a wage; the fare loop closes on
+# her). She's the woman who has stamped ten thousand cards and watched a
+# hundred thousand people arrive somewhere they weren't sure they wanted to
+# be. Brisk, dry, unshockable, and — under the bureaucratic armour — genuinely
+# on your side. She procures a replacement card for anyone who's lost theirs,
+# free, because a stranded traveller is a problem and Tootie does not care for
+# problems. Human (canon).
+class: /world/terminus/terminal/agent/TicketClerk
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: Tootie
+  pronouns: she
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  primaryKeyword: tootie
+  alternateNames:
+    - clerk
+    - ticket clerk
+  shortDescription: Tootie, the ticket clerk
+  longDescription: |
+    A compact, iron-haired woman behind the ticket window, reading glasses
+    pushed up into a nest of pins, a franking stamp within easy reach of her
+    right hand. She has the unhurried competence of someone who has seen every
+    way a journey can go wrong and has a form for each of them. When she looks
+    up at you it's over the top of the glasses, with the mild, appraising
+    patience of a clerk deciding which of the three forms that still matter
+    your particular problem needs. Lose your card and she'll have a new one
+    across the counter before you've finished apologising.
+  # Established, seen-it-all, brisk-but-kind: low ambition (she likes her
+  # window), high diligence, moderate warmth under the dryness.
+  dispositions:
+    - { disposition: ambition, valence: -60 }
+    - { disposition: diligence, valence: 70 }
+    - { disposition: patience, valence: 40 }
+  behaviors:
+    # Name herself to newcomers (the NPC auto-introduce half).
+    - brain: /lib/behavior/introduces
+      trigger: arrival
+    # Greet arrivals at the window.
+    - brain: /lib/behavior/greets
+      trigger: arrival
+      config:
+        lines:
+          - "Tootie looks up over her glasses. \"Lost your card, or just lost?\""
+          - "Tootie taps the LOST YOUR CARD? ASK HERE placard without looking up."
+          - "\"Window's open,\" Tootie says. \"Speak up, I don't bite before noon.\""
+    # Small-business idle: the texture of a working ticket window.
+    - brain: /lib/behavior/idles
+      trigger: cadence:20s
+      config:
+        pool:
+          - { kind: free, value: "franks a form with a decisive thump." }
+          - { kind: free, value: "slides a stamped card into a pigeonhole without looking." }
+          - { kind: free, value: "nudges her reading glasses further up into her hair." }
+          - { kind: say, value: "Next window's been 'temporarily closed' since the war. This one works." }
+    # A small conversation tree: directions, cards, and the state of the hub.
+    - brain: /lib/behavior/tree-dialogue
+      trigger: engage
+      config:
+        entry:
+          - node: warm
+            guard:
+              - { fact: regard, op: gte, value: 20 }
+          - node: neutral
+        nodes:
+          warm:
+            beat: "Ah — you again. Good. Half these travellers can't tell an arrival gate from a hole in the wall. What do you need?"
+            choices:
+              - { line: "Lost my card. Can you sort me out?", to: card }
+              - { line: "Which gates actually run?", to: gates }
+              - { line: "Just saying hello, Tootie.", to: done, effects: [ { verb: regard, delta: 2 } ] }
+          neutral:
+            beat: "Ticket window. If it's a lost card, say so; if it's directions, say that; if it's philosophy, the bar's a free ride down at Gate A. Which is it?"
+            choices:
+              - { line: "I've lost my travel card.", to: card }
+              - { line: "How do I get anywhere from here?", to: gates }
+              - { line: "How's the day treating you?", to: chat }
+              - { line: "Nothing, thanks.", to: done }
+          card:
+            beat: >-
+              Happens more than you'd think. Step to the window and `procure
+              card` — it's free, don't argue, a stranded traveller is more
+              paperwork than a new card. Mind you it's an instrument, not a
+              passport: it lets you use the network, it doesn't remember where
+              you've been. That's you.
+            choices:
+              - { line: "Understood. Thanks, Tootie.", to: done, effects: [ { verb: regard, delta: 2 } ] }
+              - { line: "Wait — where can I go?", to: gates }
+          gates:
+            beat: >-
+              Gate A runs — free ride back down to the lounge, and a paid line
+              out to the frontier crossroads if you've the coin. Gates B and C
+              are 'out of service,' which is Authority for 'don't ask.' And
+              through the west door it's University Avenue — the campus is the
+              last mile, on foot.
+            choices:
+              - { line: "The frontier — what's the fare?", to: fare }
+              - { line: "Good to know. Thanks.", to: done }
+          fare:
+            beat: >-
+              Modest. Enough to keep the lights on and the Authority's cut off
+              the top — they take a little off every ride, base plus a sliver,
+              same as they take off everyone. Pay at the gate. Cash or card,
+              she doesn't mind which.
+            choices:
+              - { line: "Fair enough.", to: done, effects: [ { verb: regard, delta: 1 } ] }
+          chat:
+            beat: "Same as it treats everyone — one form at a time. Can't complain. Well. I can, but I've a card to stamp."
+            choices:
+              - { line: "Don't let me keep you.", to: done, effects: [ { verb: regard, delta: 1 } ] }
+          done:
+            beat: "Mind the gap, and mind yourself."

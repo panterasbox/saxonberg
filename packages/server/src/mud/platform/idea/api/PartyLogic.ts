@@ -218,7 +218,7 @@ function fireChange(party: Party): void {
 function memberIdOf(s: Stuff): string {
   if (MixinApi.isPartyMember(s)) return s.partyMemberId();
   if (PlayerApi.isAvatarStuff(s)) return s.getPlayerId() ?? "";
-  return s.getTemplatePath() ?? "";
+  return s.getIdentityPath() ?? "";
 }
 
 /** Resolve a member ref back to a live Stuff, or null. */

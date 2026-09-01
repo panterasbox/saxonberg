@@ -178,9 +178,19 @@ export class ParcelLogic extends ApiLogic {
 
   /** See {@link ParcelApi.heldUnitOf}. */
   @CallSecurity(ParcelApiCallers)
-  public async heldUnitOf(holder: string): Promise<ParcelRecord | null> {
+  public async heldUnitOf(
+    holder: string,
+    underExtent?: string,
+  ): Promise<ParcelRecord | null> {
     const reg = lookupRegistry();
-    return reg ? reg.heldUnitOf(holder) : null;
+    return reg ? reg.heldUnitOf(holder, underExtent) : null;
+  }
+
+  /** See {@link ParcelApi.heldUnitsOf}. */
+  @CallSecurity(ParcelApiCallers)
+  public async heldUnitsOf(holder: string): Promise<ParcelRecord[]> {
+    const reg = lookupRegistry();
+    return reg ? reg.heldUnitsOf(holder) : [];
   }
 
   /** See {@link ParcelApi.childParcelsOf}. */

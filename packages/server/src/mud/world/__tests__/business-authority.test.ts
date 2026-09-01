@@ -116,7 +116,7 @@ describe('the shipped Business seeds', () => {
 describe('`entity` — somebody owns it', () => {
   it.each([
     ['lounge', '/world/lounge/agent/dave'],
-    ['general-store', '/world/terminus/general-store/npc/keeper'],
+    ['general-store', '/world/terminus/general-store/agent/keeper'],
     ['hearthworks', '/world/hearthworks/agent/smith'],
   ])('%s names its proprietor', (fragment, path) => {
     expect(byPath(fragment).data.appointingAuthority).toEqual({
@@ -145,7 +145,7 @@ describe('⭐ `committee` — a city department', () => {
   it.each([
     ['terminus/registry', '/world/terminus/registry'],
     ['terminus/budget', '/world/terminus/terminal'],
-    ['terminal/tpa', '/world/terminus/terminal'],
+    ['terminal/idea/tpa', '/world/terminus/terminal'],
   ])('%s is staffed by the committee over %s', (fragment, parcel) => {
     expect(byPath(fragment).data.appointingAuthority).toEqual({
       kind: 'committee',
@@ -158,7 +158,7 @@ describe('⭐ `committee` — a city department', () => {
     // state default (`core`) — which would silently mean "the operator
     // staffs the city", the exact wrong answer. The parcel has to be
     // somebody's, and that somebody has to be the city.
-    for (const fragment of ['terminus/registry', 'terminus/budget', 'terminal/tpa']) {
+    for (const fragment of ['terminus/registry', 'terminus/budget', 'terminal/idea/tpa']) {
       const ref = byPath(fragment).data.appointingAuthority as {
         parcel: string;
       };

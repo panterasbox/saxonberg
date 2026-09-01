@@ -31,6 +31,7 @@ import {
 } from "../../../lib/persistence/PersistenceSlice";
 import type { ChattelOwner } from "../../../lib/chattel/ChattelRecord";
 import type { Chattel } from "../../../lib/chattel/Chattel";
+import type { Adornment } from "../../../lib/boundary/Adornment";
 import type { ChattelStampResult } from "../../../api/chattel";
 import type ChattelRegistry from "../ChattelRegistry";
 import type { Stuff } from "../../../lib/stuff/Stuff";
@@ -151,7 +152,7 @@ export class ChattelLogic extends ApiLogic {
     const host = this.nearestHost(item);
     if (!host) return; // transient space — leave the last placement alone
     const place =
-      host.getTemplatePath() === owner.templatePath
+      host.getIdentityPath() === owner.templatePath
         ? ESTATE_INVENTORY
         : PersistableApi.placeIdOf(host);
     await this.applyPlace(item, place);
@@ -180,7 +181,14 @@ export class ChattelLogic extends ApiLogic {
    * containment cycle, the `captureHostOf` precedent.
    */
   private nearestHost(item: Stuff): Stuff | null {
-    let cur: Stuff | null = item;
+    // A HUNG good is in no container at all — it rides its host's fixture
+    // map (the same uncontained shape an attached door has). Start the
+    // outward walk at what it adorns, so `hang` is an ordinary custody
+    // change like every other one and needs no bespoke placement call.
+    let cur: Stuff | null =
+      MixinApi.isAdornment(item) && item.getAdornedTo()
+        ? (item.getAdornedTo() as unknown as Stuff)
+        : item;
     for (let hops = 0; cur && hops < 32; hops++) {
       if (cur !== item && MixinApi.isPersistable(cur)) return cur;
       cur = MixinApi.isContainable(cur) ? cur.getContainer() : null;
@@ -249,12 +257,20 @@ export class ChattelLogic extends ApiLogic {
     if (owner?.kind !== "player") return;
     const host = StuffApi.findByTemplatePath<Stuff>(owner.templatePath);
     if (!host || !MixinApi.isEstate(host)) return;
+    // A hung good records WHERE it hangs, so the overlay puts it back on
+    // the wall and not on the floor (residences D11). Derived from the
+    // good's own live attachment rather than passed in, so the marker can
+    // never disagree with the fixture map.
+    const mountSlot = MixinApi.isAdornment(good as Stuff)
+      ? (good as unknown as Adornment).getMountSlot()
+      : null;
     host._putEstateEntry(
       {
         chattelId: good.getChattelId(),
         templatePath: good.getTemplatePath() ?? "",
         state: PersistableApi.captureDetached(good as Stuff),
         place,
+        ...(mountSlot ? { mounted: { slot: mountSlot } } : {}),
       },
       good as Stuff,
     );

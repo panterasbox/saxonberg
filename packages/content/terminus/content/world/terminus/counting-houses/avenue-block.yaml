@@ -1,0 +1,77 @@
+# The Counting-Houses — the downtown avenue block. The connective public
+# street (it *bleeds*: the tissue between the crossing and the Goodkin branch),
+# one segment west of the crossing where University Avenue runs down into the
+# money district. Sky-exposed outdoor city street (weather-eligible via the
+# biome; address under the counting-houses locality).
+#
+# Cross-zone exit EAST back to the crossing (in the eternal/university-avenue
+# zone) — reciprocal of the crossing's repointed WEST; both sides explicit, a
+# cardinal name allowed cross-zone (the crossing↔terminal precedent). WEST one
+# cell to the Goodkin banking hall. Exits eager-clone their destination at boot.
+#
+# The four rival bank frontages (Hollis / Vionne / aevex / Veshko) are PROSE
+# here — finished set-dressing that makes the district legible and defines
+# Goodkin by contrast — never enterable (the accepted-vs-refused contrast waits
+# for a real rival build; rivals-out per the requirements).
+class: /platform/location/SingletonCartesianLocation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: Counting-House Row, University Avenue
+  primaryKeyword: row
+  alternateNames: [avenue, block, street, downtown]
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  _address: counting-houses/row
+  longDescription: |
+    Down the avenue from the crossing the street changes character: the swept-and-empty passage gives way to a canyon of banking halls, close-set and grand, their stone fronts carved with the marks of the five great corpo houses. This is the Counting-Houses, where Terminus keeps its money. Grey slab façades stand shoulder to shoulder — a Hollis branch loud with a painted FREE! and a jingle leaking from its doors, the hushed gold-on-black frontage of a Vionne private bank with no price in the window and no welcome either, an aevex terminal lobby all glass and no human behind it, a Veshko house like a bunker with nothing on its front but its name. And set among the grey slabs, one frontage in warm sunrise stone with its doors propped open and a mascot in the window: Goodkin, west. Across the row, south, a roller door stands half up over a cold hall of racked cases — the cash-and-carry, where the district's bartenders come to buy. Between two bank fronts a quieter turning slips away toward Mayfield Row, where the district's clerks walk home.
+  coords:
+    x: 0
+    y: 0
+    z: 0
+  exits:
+    east:
+      destination: /world/terminus/university-avenue/location/crossing
+    west:
+      destination: /world/terminus/counting-houses/banking-hall
+    # NORTH into the general store (its own zone; cross-zone cardinal exit,
+    # both sides explicit — the shop floor declares SOUTH back here).
+    north:
+      destination: /world/terminus/general-store/shop-floor
+    # SOUTH into the cash-and-carry — the district's drinks distributor
+    # (trade-distilling's showroom; the bar's keeper buys here). Cross-zone
+    # cardinal exit, both sides explicit — the hall declares NORTH back.
+    south:
+      destination: /trade/distilling/location/cash-and-carry
+    # SOUTHWEST down the side lane to the farmers market square — the
+    # produce end of the district, deliberately off the money block
+    # (demand-side placement: the buyers are already here). Cross-zone,
+    # both sides explicit — the square declares NORTHEAST back.
+    southwest:
+      destination: /world/terminus/market/square
+    # MAYFIELD — the residential turning behind the row (residences D9).
+    # A NAMED cross-zone exit (all four cardinals here are spoken for;
+    # non-cardinal names are admissible across a zone boundary, and a
+    # street you turn into reads better named). The street declares
+    # `avenue` back.
+    mayfield:
+      destination: /world/terminus/mayfield-row/street
+  details:
+    hollis:
+      keywords: [hollis, jingle, free]
+      description: |
+        The Hollis branch shouts for custom: FREE! painted three times across the glass, a tinny jingle looping through a speaker over the door, a queue of the everyman shuffling in. It wants your volume, not to know you — and the fees, they say, come later, in the small print.
+    vionne:
+      keywords: [vionne, private, salon]
+      description: |
+        The Vionne house shows the street nothing: gold lettering on black, a shut door, a discreet functionary just visible past the glass who will not meet a stranger's eye. You are received here, not admitted. There is no price in the window because if you have to ask, the answer is no.
+    aevex:
+      keywords: [aevex, terminal, terminals, screens]
+      description: |
+        The aevex lobby is all pale glass and cold light, rows of self-serve terminals and not one human face. The terms are free; you pay in data, they say, though the frontage says nothing so honest. It is the anti-Goodkin — a screen where the warm bank keeps a teller.
+    veshko:
+      keywords: [veshko, bunker, grey]
+      description: |
+        The Veshko house is a grey bunker with its name cut into the lintel and nothing else — no jingle, no velvet, no welcome. Best rates in the district, they say, if you are worth them; cut without mercy if you are not. The most honest front on the row.
+    goodkin:
+      keywords: [goodkin, sunrise, warm, mascot, doors]
+      description: |
+        One frontage breaks the grey: warm sunrise stone, doors propped generously open, a smiling mascot in the window over a hand-lettered sign — GOODKIN. COME IN, YOU'RE ONE OF OURS. It is the only bank on the row that looks like it wants the newcomer, and the warmth is real. Whether it stays warmth is the thing you learn later. The doors stand open to the west.

@@ -576,8 +576,10 @@ class Parser {
     }
     if (t.value === 'name') return { kind: 'name' };
     if (t.value === 'id') return { kind: 'id' };
+    if (t.value === 'key') return { kind: 'key' };
+    if (t.value === 'address') return { kind: 'address' };
     throw new MqlParseError(
-      `'${t.value}' is not a known atom — expected 'name', 'id', or namespaced 'X.Y'`,
+      `'${t.value}' is not a known atom — expected 'name', 'id', 'key', 'address', or namespaced 'X.Y'`,
       t.start
     );
   }

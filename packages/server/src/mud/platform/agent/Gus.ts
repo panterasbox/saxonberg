@@ -6,7 +6,7 @@
  * thermos he never opens.
  *
  * WHY A CLASS (and not pure seed data): there is no declarative seed path to
- * put gear on a creature. `populates:` is composed only on rooms
+ * put gear on a creature. `props:` is composed only on rooms
  * (`CartesianLocation`), not on `Creature`/`Character`/`NPC`, and worn/
  * wielded occupancy is deliberately runtime-only (never persisted, never
  * seedable — see `lib/slot/Slotted.ts`). So a fresh NPC clone always boots
@@ -33,8 +33,8 @@ import { ContainmentApi } from '../../api/containment';
 import { SpeciesApi } from '../../api/species';
 import { MixinApi } from '../../api/mixin';
 
-/** The zone root Gus's gear templates live under. */
-const ROOT = '/world/eternal/university-avenue';
+/** The branch Gus's gear templates live under — all six are Things. */
+const ROOT = '/world/terminus/university-avenue/thing';
 
 /**
  * Worn/wielded gear — each item resolves its OWN body-plan slot claim

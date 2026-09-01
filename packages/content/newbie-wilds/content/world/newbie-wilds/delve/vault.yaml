@@ -4,7 +4,7 @@
 # traps wound and redirect along the way but never gate. It holds the OBVIOUS
 # reward (unconcealed, taken with no search) — the concealed cache back in
 # corridor 1 is a bonus, not the prize.
-class: /platform/location/Room
+class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: the delve vault
@@ -22,5 +22,5 @@ data:
       destination: /world/newbie-wilds/delve/corridor-3
   # The obvious reward — unconcealed, no search needed. The prize is the
   # plainly-reachable one; the concealed cache in corridor 1 is pure upside.
-  populates:
+  props:
     - /world/newbie-wilds/delve/reward

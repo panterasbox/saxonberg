@@ -19,7 +19,11 @@
  * code constants headed for app settings (`AppApi`)).
  */
 
-import { Warren, type Attachment } from '../../../lib/location/Warren';
+import { type Attachment } from '../../../lib/location/Warren';
+// The lounge's members are ROOMS (the host and its satellites), so it is
+// an inner warren — the tier that says occupancy is who is standing in a
+// member. `Warren` makes that choice explicit, not defaulted.
+import { InnerWarren } from '../../../lib/location/InnerWarren';
 import { SingletonMixin } from '../../../lib/stuff/Singleton';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';
@@ -34,7 +38,7 @@ import { ScheduleApi, type ScheduleHandle } from '../../../api/schedule';
 type MemberStuff = Stuff & Container;
 type ExitableContainer = Stuff & Container & Exitable;
 
-export default class LoungeWarren extends SingletonMixin(Warren) {
+export default class LoungeWarren extends SingletonMixin(InnerWarren) {
   /** Seeded Warren-definition path; the `startLocation` spawn reference. */
   static readonly WARREN_PATH = '/world/lounge/idea/warren';
   /** The one lounge-room template every instance clones from. */

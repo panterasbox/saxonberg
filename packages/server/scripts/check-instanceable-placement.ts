@@ -10,7 +10,7 @@
  *   /lib/  holds substrate that is ONLY EVER INHERITED: abstract roots,
  *   mixins, value objects, and framework attachments.
  *
- * Eight invariants:
+ * Ten invariants:
  *
  *   1. No template's `class:` resolves under `/lib/`.       (the headline)
  *   2. No template PATH lives under `/lib/`.
@@ -33,6 +33,12 @@
  *      named class-expression. A `class:` under a pack namespace
  *      resolves into that pack's `src/` (invariant 3, through the same
  *      table `StuffApi.resolveClassFile` reads — `scripts/pack-roots.ts`).
+ *   9. Every curated blueprint's `classPath:` resolves (blueprints carry
+ *      no `class:`, so invariant 3 never sees them).
+ *  10. No template row carries the RETIRED `populates:` key (split into
+ *      `props:`/`cast:` 2026-09-01) — the Hydrator silently discards a
+ *      data key with no applier, so a surviving row quietly stops being
+ *      furnished. Fails with the conversion rule in hand.
  *
  * Invariants 5 and 6 are the `hydratorClass` pair, and 6 is the one that
  * matters: `StuffApi.clone` step 5 runs NO hydration when the field is
@@ -160,12 +166,20 @@ export function tradePlacementOk(
  * outside a branch directory (`thing/`, `idea/`, `agent/`, `location/`)
  * or the pack's `behavior/` (a brain — one file per brain, flat).
  * `rel` is `src/`-relative with forward slashes; tests are not modules.
+ *
+ * A LOCALITY pack (`locality: true` — its manifest root is a `/world/`
+ * extent) mirrors its rows instead: template paths inside
+ * `/world/<locality>` are exempt from `<root>/<branch>` sorting (the
+ * invariant-7 note), and source mirrors path, so its `src/` follows the
+ * rows — branch subdirs by lineage past ~6 files, flat below (the
+ * lounge convention). Only `lib/` and mis-shaped brains stay refusable.
  */
-export function packSrcPlacementOk(rel: string): boolean {
+export function packSrcPlacementOk(rel: string, locality = false): boolean {
   const parts = rel.split('/');
   if (parts.includes('__tests__')) return true;
   const top = parts[0];
   if (top === 'lib') return false;
+  if (locality) return true;
   if (parts.length < 2) return false;
   if (top === 'behavior') return parts.length === 2;
   return (BRANCHES as readonly string[]).includes(top!);
@@ -251,6 +265,26 @@ function main(): void {
         detail: `classPath: ${classPath} resolves to no module + export`,
       });
     }
+    // 10 — the RETIRED `populates:` key (2026-09-01: split into
+    // `props:` + `cast:`). The Hydrator silently discards a data key
+    // with no applier, so a surviving row quietly stops being
+    // furnished — no conflict, no error, just a bare room (the exact
+    // silent-vanish failure invariant 6 exists for). Machine-decidable
+    // conversion: an entry whose target row has `behaviors:` is cast;
+    // everything else is props.
+    if (
+      (data && typeof data === 'object' && 'populates' in (data as object)) ||
+      'populates' in t
+    ) {
+      findings.push({
+        invariant: 10,
+        file,
+        detail:
+          `carries retired \`populates:\` — split into \`props:\` ` +
+          `(write-back content) and \`cast:\` (Behaved troupe); the ` +
+          `Hydrator discards the old key silently`,
+      });
+    }
     // 7 — the obj/ segment rule inside an industry's subtree
     if (!tradePlacementOk(path, cls !== null, packRoots)) {
       findings.push({ invariant: 7, file, detail: `${path} names a class but its second segment is not a branch (thing|idea|agent|location)` });
@@ -276,9 +310,12 @@ function main(): void {
     if (existsSync(join(pack.srcDir, 'lib'))) {
       findings.push({ invariant: 8, file: join(pack.srcDir, 'lib'), detail: `pack ${pack.id} ships src/lib/ — substrate a pack needs is the kernel's, or a class under a branch` });
     }
+    // A locality pack's src/ mirrors its rows (roots[0] is the manifest
+    // root — insertion order in packSources).
+    const locality = (pack.roots[0] ?? '').startsWith('/world/');
     for (const f of packSrcFiles(pack.srcDir)) {
       const rel = relative(pack.srcDir, f).split('\\').join('/');
-      if (!packSrcPlacementOk(rel)) {
+      if (!packSrcPlacementOk(rel, locality)) {
         findings.push({ invariant: 8, file: f, detail: `pack ${pack.id}: src/${rel} is outside a branch directory (thing|idea|agent|location) or behavior/` });
       } else if (rel.startsWith('behavior/') && !packBrainShapeOk(readFileSync(f, 'utf8'))) {
         findings.push({ invariant: 8, file: f, detail: `pack ${pack.id}: src/${rel} is not brain-shaped (sole export \`brain\`, a named class-expression)` });
@@ -324,6 +361,7 @@ function main(): void {
     7: 'instanceable template not under a branch segment (thing|idea|agent|location)',
     8: 'a capability pack src/ outside the taxonomy (lib/, a module not under a branch or behavior/, or a behavior/ module not brain-shaped)',
     9: 'classPath: does not resolve (a curated blueprint pointing at nothing)',
+    10: 'retired `populates:` key (split into props:/cast: 2026-09-01) — the Hydrator discards it silently',
   };
   console.warn(
     `\n[check-instanceable-placement — ${EXIT_ON_FINDINGS ? 'ERROR' : 'WARN'}] ` +

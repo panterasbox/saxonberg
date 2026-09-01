@@ -1,0 +1,18 @@
+# The BEDROOM archetype — the first ROOM archetype, as opposed to a venue
+# one (residences D15).
+#
+# No `industry`: no recipe makes a bedroom. A venue archetype states only
+# the residue and derives the rest from its trade's recipes; a room
+# archetype is residue all the way down, which is why `industry` became
+# optional rather than a fiction like `industry: living`.
+#
+# One need, and it is a real read rather than a furniture checklist: a
+# body that sleeps here recovers by `posture × restQuality`, so a room
+# answers "bedroom" exactly when something in it is worth lying on.
+# WHAT that something is stays open — a bed, a bunk, a hammock, a pile of
+# straw an author gives a `lie` slot to. Reported, never enforced: a room
+# with no bed is a room, not an error.
+archetypeId: bedroom
+label: a bedroom
+capabilities:
+  - { key: sleeping, needs: { rest: 1 }, default: /stuff/thing/fixture/bed }

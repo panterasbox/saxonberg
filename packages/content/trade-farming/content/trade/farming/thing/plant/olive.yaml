@@ -1,0 +1,36 @@
+# An olive tree — a fruiting plant on the CYCLE (D1/D2):
+# Drought-hardy and patient: content on nearly dry ground, slowest
+# to bear, and wanting the most light of anything on this list.
+# No moisture reserve — the water lives in the ground (see peace-lily).
+class: /platform/thing/Plant
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: an olive tree
+  primaryKeyword: "olive tree"
+  keywords: ["olive tree", olive, tree, plant]
+  longDescription: |
+    A silver-leaved olive, trunk already going gnarled the way olives do from the start.
+  _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/lamiales/oleaceae/olea/europaea
+  material: /stuff/idea/material/tissue/plant-tissue
+  lifecycleState: alive
+  seedTemplatePath: /trade/farming/thing/seed/olive
+  harvestTemplatePath: /trade/farming/thing/olive
+  nutrientDraw: 8
+  profile:
+    moistureHappyAt: 0.15
+    moistureWiltAt: 0.02
+    litresPerGameDay: 0.12
+    luxHappyAt: 120
+    luxDarkAt: 15
+    rootDemand:
+      seedling: 0.4
+      young: 1.5
+      established: 5
+      mature: 9
+    daysToStage:
+      young: 50
+      established: 150
+      mature: 280
+    # The fruit cycle (D1/D2): the PAIR is the polycarp marker.
+    fruitSetCount: 12
+    fruitFillDays: 30

@@ -34,6 +34,15 @@ export interface ConsignmentListing {
 
 /** The listing-registry surface the consignment shelf exposes. */
 export interface ConsignmentShelf {
+  /**
+   * The authored per-shelf listing cap, or null to ride the global
+   * `retail.consignment.listingCap`. A market stall selling LOOSE
+   * produce means dozens of listings per seller, so the stall authors a
+   * generous cap — an authored, per-venue fact, never a global raise
+   * that leaks to every shelf.
+   */
+  getListingCapOverride(): number | null;
+  setListingCapOverride(value: number | null): void;
   recordListing(
     itemChattelId: string,
     consignorKey: string,
@@ -55,10 +64,25 @@ export function ConsignmentShelfMixin<TBase extends MixinConstructor<Stuff>>(
 
     static fieldMeta: FieldMeta = {
       consignmentListings: { persistent: true, runtimeState: true },
+      listingCapOverride: { persistent: true, authorable: true },
     };
 
     /** The active brokerage listings on this shelf. */
     public consignmentListings: ConsignmentListing[] = [];
+
+    /** Authored per-shelf cap; null = the global dial. See the getter. */
+    public listingCapOverride: number | null = null;
+
+    public getListingCapOverride(): number | null {
+      return this.listingCapOverride;
+    }
+
+    public setListingCapOverride(value: number | null): void {
+      this.listingCapOverride =
+        typeof value === "number" && Number.isFinite(value) && value >= 0
+          ? Math.floor(value)
+          : null;
+    }
 
     /** Mint + record a listing (fresh, collision-resistant id). */
     public recordListing(

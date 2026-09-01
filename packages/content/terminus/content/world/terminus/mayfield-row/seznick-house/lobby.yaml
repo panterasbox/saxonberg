@@ -1,0 +1,33 @@
+# The Seznick House lobby — the building's authored ground floor. The
+# stair up is installed at warm by the BuildingWarren (an UpstairsExit —
+# impassable while no unit is leased above, the dorm's honest-empty
+# rule); the way back out is the street door.
+class: /platform/location/SingletonCartesianLocation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the Seznick House lobby
+  primaryKeyword: lobby
+  alternateNames: [hall, entrance]
+  _address: terminus/mayfield-row/seznick-house
+  ambientIntensity: 45
+  ambientColorTemperature: 4200
+  coords:
+    x: 1
+    y: 0
+    z: 0
+  longDescription: |
+    A narrow lobby of dark wainscot and diamond floor tile, pigeonholes for the post behind a shelf nobody dusts, and the manager's door standing ajar at the back with a radio murmuring behind it. The stair climbs into the house's quiet; the letting board by the door lists floors, not names.
+  exits:
+    out:
+      destination: /world/terminus/mayfield-row/street
+  cast:
+    - /world/terminus/mayfield-row/agent/walter
+  details:
+    board:
+      keywords: [board, letting, list]
+      description: |
+        A letting board of sliding wooden tabs — floors and doors, vacant or taken, no names. Walter keeps it current the way some men keep clocks.
+    pigeonholes:
+      keywords: [pigeonholes, post, mail]
+      description: |
+        A grid of little wooden mouths, most empty. The post comes twice a day whether anyone writes or not.

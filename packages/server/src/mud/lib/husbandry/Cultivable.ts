@@ -590,7 +590,7 @@ export function CultivableMixin<
      * slot — exactly the trap that makes the Slotted capture slice record
      * index `-1` and silently drop the occupant on restore. So the applier
      * super-chains and then seats whatever `Slottable`s arrived, leaving
-     * `populates:` author-editable data.
+     * `props:` author-editable data.
      *
      * Idempotent: already-claimed slots are left alone, and a candidate
      * the slot refuses (`canOccupy`, which consults the plant's own
@@ -598,8 +598,8 @@ export function CultivableMixin<
      * authored too small for its own starter plant is a content bug, not a
      * crash.
      */
-    public async applyPopulates(specs: PopulateSpec[]): Promise<void> {
-      await super.applyPopulates(specs);
+    public async applyProps(specs: PopulateSpec[]): Promise<void> {
+      await super.applyProps(specs);
       this.adoptArrivals();
     }
 

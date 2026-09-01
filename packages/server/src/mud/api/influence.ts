@@ -125,7 +125,7 @@ export class InfluenceApi {
     // The durable subject the faucets re-key storage to; the live
     // stuffId is re-minted on re-clone. Matches the faucet's own
     // fallback so the key always agrees.
-    const subject = host.getTemplatePath() ?? host.stuffId;
+    const subject = host.getIdentityPath() ?? host.stuffId;
 
     if (STOCK_LEVEL[stock] === 'character') {
       return InfluenceApi.standingOf(subject, stock);

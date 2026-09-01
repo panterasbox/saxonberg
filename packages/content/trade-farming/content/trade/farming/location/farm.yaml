@@ -2,7 +2,12 @@
 # `container:` — the sweep stands them at target here) and the hand whose
 # `consigns` beat carries them to the cash-and-carry. No exits: the hand
 # teleports (the `shifts` shape); a walk is the locomotion slate's.
-class: /platform/location/FurnishableRoom
+# An ordinary location, not a FurnishableRoom: that class is the
+# FURNISHING archetypes' base. A trade floor's durability lives on its
+# persistable fixtures (the Stock, the racking, the counter) — the
+# consigned goods and their listings ride those, never the room; the
+# `populates` set below is the placement and respawns each boot.
+class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: "the farm"
@@ -12,6 +17,11 @@ data:
     A packing shed open on one side: trestles, a scale, crates under wet sacking (the growing is the smallholding's; the floor stands at target through the sweep until a grower supplies it).
   ambientIntensity: 25
   ambientColorTemperature: 4200
-  populates:
+  coords:
+    x: 0
+    y: 0
+    z: 0
+  props:
     - /trade/farming/thing/farm-stock
+  cast:
     - /trade/farming/agent/farm-hand

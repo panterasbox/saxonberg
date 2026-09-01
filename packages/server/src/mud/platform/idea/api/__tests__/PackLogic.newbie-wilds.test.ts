@@ -63,7 +63,7 @@ describe('the newbie-wilds pack (real root, real class resolution)', () => {
     expect(r!.packId).toBe('newbie-wilds');
     expect(r!.inserted).toHaveLength(21);
     expect(r!.inserted).toContain('/world/newbie-wilds/crossroads/hub');
-    expect(r!.inserted).toContain('/world/newbie-wilds/npc/wolf');
+    expect(r!.inserted).toContain('/world/newbie-wilds/agent/wolf');
     expect(r!.inserted.every((p) => p.startsWith('/world/newbie-wilds'))).toBe(true);
     expect(contentRows().every((row) => row.sourcePack === 'newbie-wilds')).toBe(true);
     const rec = recordOf('newbie-wilds')!;

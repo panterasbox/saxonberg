@@ -2,9 +2,26 @@
 
 The **residence** subsystem is the player's first home: a **leased,
 furnished, theme-personalizable, persistent** dorm room you **walk into**, in
-an **elastic building that grows on demand**. It is the *simple rung* of the
-residence ladder (the *rich rung* — apartments furnished with owned chattel —
-is a downstream build; see `docs/requirements/apartment-requirements.md`).
+an **elastic building that grows on demand**. It is the *bottom rung* of the
+residence ladder.
+
+> ⭐ **The rest of the ladder shipped in the residences build (2026-08-31),
+> and the dorm converged onto it.** A let unit at Seznick House and a bought
+> house at Hinkley Hills ride the same two-tier substrate this building's
+> machinery was lifted into — see **[holding.md](./holding.md)**, which is the
+> source of truth for `OuterWarren`, `PlatPlan`, `HoldingWarren`,
+> `FrontDoorExit`, the weathering clock, the tenure terms, the capacity dials
+> and the archetype read. This doc stays the source of truth for the DORM: its
+> D1 multi-instance persistence model (which the whole ladder now rides), its
+> theme overlay, its provisioning verbs and Katie.
+>
+> What converged, and what deliberately did not: `DormWarren` re-parented onto
+> `OuterWarren` and each unit gained a degenerate one-room
+> `HoldingWarren`, so the dorm's condition, term and archetype read answer
+> like every other rung. `DormWarren`, `DormRoom`, `DormDoor` and
+> `FloorStairExit` **kept their names, template paths, extent scheme
+> (`f<n>-r<p>`) and observable behavior** — the duncan-hall suite is the pin,
+> and it runs unchanged.
 
 The load-bearing realization: **a dorm needs almost no dorm-specific code.**
 There is **no residence subsystem in the module sense** — no `DormApi`, no
@@ -16,7 +33,12 @@ only *engine* change was the spine's **multi-instance-host** generalization
 (D1). This doc is the source of truth for that model, the elastic building,
 provisioning, and the theme overlay.
 
-Homed at `packages/server/src/mud/world/eternal/duncan-hall/`.
+Homed in the **`eternal-university`** pack
+(`packages/content/eternal-university/`) — content under
+`content/world/eternal/duncan-hall/`, classes under
+`src/duncan-hall/`. That pack is the CAMPUS: University Avenue, the
+street the campus gate opens onto, is a Terminus street and ships in the
+`terminus` pack (`/world/terminus/university-avenue`).
 
 ## D1 — the multi-instance persistence model
 
@@ -44,18 +66,18 @@ the spine (`lib/persistence/Persistable.ts`, `platform/idea/api/PersistableLogic
   rooms never do. (This replaced the old eager `assertSingletonScope` +
   `multiInstance` relaxation with the real invariant.)
 - **Born-with content is declarative DATA, seeded once.** A persistable host
-  declares its starting contents as `populates:` in its template (the same
+  declares its starting contents as `props:` in its template (the same
   field a non-persistent container uses). At hydration the spine's
-  `applyPopulates` only **retains** the specs (it does NOT seed — the host is a
+  `applyProps` only **retains** the specs (it does NOT seed — the host is a
   bare shell whose key isn't set yet, so a `hasRecord` gate can't tell seed
   from restore, and seeding on every wake would double-seed). The establishing
   context lays them down exactly once via **`seedBornWith`** on the no-record
   branch, then captures; thereafter it restores. So a `DormRoom` declares its
-  bed/desk/footlocker as `populates:` data (`dormroom.yaml`) — a content author
+  bed/desk/footlocker as `props:` data (`dormroom.yaml`) — a content author
   edits the fixture set with no code change — and carries no imperative install
   method. (Avatar's loadout stays imperative in `installDefaultLoadout`: it
   attunes + hosts implant apps, which isn't a plain clone-into-inventory list;
-  `seedBornWith` no-ops when no `populates:` is declared.)
+  `seedBornWith` no-ops when no `props:` is declared.)
 - **`postRegister` no longer auto-drives persistence.** The mixin provides
   capture/restore; the establishing context decides *when* and *with what
   key*. Avatar drives an explicit self-keyed materialize/capture at login
@@ -142,7 +164,7 @@ unitKey)`** → wires the return leg → caches.
 
 > The restore-or-seed decision itself is **no longer dorm code**. It was
 > extracted to the spine in living-world phase 2 (`restoreOrSeed`: key the
-> host, then restore its record or lay the declared `populates:` fixtures
+> host, then restore its record or lay the declared `props:` fixtures
 > down and capture them) because a smallholding needed the same six lines
 > per titled lot. What still makes this a dorm is the Warren membership,
 > the hub-exit wiring and the cache. See
@@ -216,7 +238,7 @@ Document, so it rides the manifest, not a template row —
 [content-packs.md](./content-packs.md)). She does **not** enroll herself in her own class code —
 that would be circular (an agent "authorized" only because it wrote its own
 name into the ledger). The same rule governs her master ring (legitimate master
-access to every pin-tumbler dorm lock): it is a physical `Key` `populates`d
+access to every pin-tumbler dorm lock): it is a physical `Key` `props:`-cloned
 into her inventory from `npc/master-ring.yaml` (the serialized `key` credential
 carries `masterTechs: [pin-tumbler]`), an owner-authored spawn loadout — not a
 credential she issues herself. Her `Katie` class thus carries **no bespoke
@@ -292,8 +314,8 @@ pick.)
   captures — the record carries each fixture's personalized prose. On wake,
   the spine's `restoreItem` clones each fixture from its **current** template
   (function always current) then applies the captured prose. Fixtures are
-  seeded once from the room's declared `populates:` data (`seedBornWith` on the
-  no-record branch), never re-seeded (`applyPopulates` only retains the specs).
+  seeded once from the room's declared `props:` data (`seedBornWith` on the
+  no-record branch), never re-seeded (`applyProps` only retains the specs).
   No field double-owned.
 - **Deferred:** **custom prose** (writing your own room/item descriptions) —
   a light player input (a `PromptApi.text` box / a summoned panel), validated
@@ -345,8 +367,11 @@ the floor corridor first (best-effort).
   an ex-tenant keeps their (dead) physical key rather than returning it.
 - **Reap grace period** — v1 reaps a room immediately on empty; the
   `LoungeWarren` `reapGraceMs` grace is deferred.
-- **`ROOMS_PER_FLOOR` as an AppSetting** — v1 is a `static readonly` const on
-  `DormWarren`; a `dorm.roomsPerFloor` tuning knob is deferred.
+- ~~**`ROOMS_PER_FLOOR` as an AppSetting**~~ — **shipped** (residences,
+  2026-08-31): `dorm.roomsPerFloor` is an `AppSettings` key read through
+  `DormWarren.roomsPerFloor()`, with the authored default on the row. The
+  capacity dial is the same mechanism for all three rungs — see
+  [holding.md § Capacity](./holding.md#capacity--the-operator-dial).
 - **Finer provisioning gate** — v1 is `requiresWizard`; the `AccessApi`
   dorms-parcel-owner gate lands once the dorms parcel carries a resolvable
   zone resource.
@@ -355,8 +380,10 @@ the floor corridor first (best-effort).
   independent of provisioned units.
 - **Katie / onboarding** — the diegetic move-in fronts `provision`
   (`docs/staging/eternal-university/npcs/property-manager.md`).
-- **Chattel / owned effects** — furnishing with owned goods (the Footlocker's
-  tenant-scoped contents); the apartment build, property 0b's back half.
+- ~~**Chattel / owned effects**~~ and ~~**multi-room apartments**~~ —
+  **shipped** (furnishing, then residences): owned goods persist owner-side
+  against a `place` ([furnishing.md](./furnishing.md)), and the let unit at
+  Seznick House is the multi-room rung ([holding.md](./holding.md)).
 - **Hand-authored custom prose**, **the roommate half**, **multi-room
   apartments**, **timed auto-revert on expiry**, **first-class keyed members
   in the base `Warren`**, **a real elevator** (a moving room / `Switchable`
@@ -370,10 +397,10 @@ the floor corridor first (best-effort).
 - [parcel.md](./parcel.md) — the `grants[]` lease + provisioning mint
 - [location.md](./location.md) — the `Warren` (the second elastic subclass)
 - [residency.md](./residency.md) — dorm-when-empty
-- The rich rung (downstream apartment build):
-  `docs/requirements/apartment-requirements.md` +
-  `docs/plans/apartment-plan.md`. (The dorm build's own requirements + plan
-  retired at merge — this doc is the live reference.)
+- **[holding.md](./holding.md)** — the ladder this converged onto: the
+  two-tier institution, the plat plan, the per-holding programme, condition,
+  terms and the capacity dials. (`docs/requirements/apartment-requirements.md`
+  is superseded by it.)
 </content>
 
 

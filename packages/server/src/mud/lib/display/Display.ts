@@ -326,7 +326,10 @@ export function DisplayMixin<TBase extends MixinConstructor<Stuff>>(
       const out: (Stuff & HasInteractive)[] = [];
       for (const s of this.subtreeOf(room)) {
         if (!MixinApi.isHasInteractive(s)) continue;
-        if (s.getInteractives().size === 0) continue;
+        // getInteractives() is undefined on an avatar mid-teardown —
+        // and this walk runs inside command dispatch (a display refresh
+        // rides look/move), so an unguarded read crashes the COMMAND.
+        if ((s.getInteractives()?.size ?? 0) === 0) continue;
         if (this.sees(s)) out.push(s);
       }
       return out;

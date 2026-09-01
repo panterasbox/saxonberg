@@ -1,0 +1,36 @@
+# A cranberry shrub — a fruiting plant on the CYCLE (D1/D2):
+# A bog plant: it wants the soil WETTER than anything else here —
+# the one row where an attentive can matters more than the sun.
+# No moisture reserve — the water lives in the ground (see peace-lily).
+class: /platform/thing/Plant
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a cranberry shrub
+  primaryKeyword: "cranberry"
+  keywords: [cranberry, shrub, bush, plant]
+  longDescription: |
+    A low, wiry cranberry shrub, runners spreading flat over the soil.
+  _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/ericales/ericaceae/vaccinium/macrocarpon
+  material: /stuff/idea/material/tissue/plant-tissue
+  lifecycleState: alive
+  seedTemplatePath: /trade/farming/thing/seed/cranberry
+  harvestTemplatePath: /trade/farming/thing/cranberry
+  nutrientDraw: 8
+  profile:
+    moistureHappyAt: 0.55
+    moistureWiltAt: 0.12
+    litresPerGameDay: 0.15
+    luxHappyAt: 80
+    luxDarkAt: 8
+    rootDemand:
+      seedling: 0.2
+      young: 0.8
+      established: 2
+      mature: 5
+    daysToStage:
+      young: 25
+      established: 75
+      mature: 150
+    # The fruit cycle (D1/D2): the PAIR is the polycarp marker.
+    fruitSetCount: 12
+    fruitFillDays: 15

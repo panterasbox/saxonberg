@@ -11,7 +11,10 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a small clay pot
   primaryKeyword: pot
-  keywords: [pot, "small pot", "clay pot", planter]
+  # No `planter` here: `buy <keyword>` is single-token and resolves the
+  # FIRST match, so the large pot needs one keyword the small one lacks —
+  # a small pot is a pot; the two-armed planter is the planter.
+  keywords: [pot, "small pot", "clay pot"]
   longDescription: |
     A squat unglazed pot the size of two cupped hands, with a chipped rim and a drainage hole worn smooth.
   material: /stuff/idea/material/ceramic/ceramic

@@ -1,9 +1,14 @@
 # The `warehouse` bundle — the exemplar a producer's floor is cut from: the
 # racking, and a roller door that leads nowhere until a locality gives it
 # a dock. A corpo's distillery or a stub's yard is a room of this shape
-# with its own stock + hand in `populates` (template inheritance does not
+# with its own stock + hand in `props` (template inheritance does not
 # exist — the bundle is copied by listing, not extended).
-class: /platform/location/FurnishableRoom
+# An ordinary location, not a FurnishableRoom: that class is the
+# FURNISHING archetypes' base. A trade floor's durability lives on its
+# persistable fixtures (the Stock, the racking, the counter) — the
+# consigned goods and their listings ride those, never the room; the
+# `populates` set below is the placement and respawns each boot.
+class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a warehouse
@@ -13,5 +18,5 @@ data:
     A bare warehouse floor under a corrugated roof, racking down one wall and a roller door down the other, the concrete stained in rings where casks once stood.
   ambientIntensity: 25
   ambientColorTemperature: 4200
-  populates:
+  props:
     - /trade/distilling/thing/racking

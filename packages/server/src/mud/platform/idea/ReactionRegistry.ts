@@ -649,7 +649,7 @@ export default class ReactionRegistry extends Idea {
     reactorId: string,
   ): boolean {
     if (!MixinApi.isContacts(viewer)) return false;
-    const tpath = reactor.getTemplatePath() ?? undefined;
+    const tpath = reactor.getIdentityPath() ?? undefined;
     for (const c of viewer.allContacts()) {
       if (c.kind === 'avatar' && c.playerId === reactorId) return true;
       if (c.kind === 'npc' && tpath !== undefined && c.templatePath === tpath) {

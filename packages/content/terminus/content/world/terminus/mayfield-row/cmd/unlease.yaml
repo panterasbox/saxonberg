@@ -1,0 +1,21 @@
+verbs: [unlease]
+controller: /world/terminus/mayfield-row/idea/cmd/UnleaseController
+description: "End a Seznick House lease and reclaim the unit"
+help: |
+  End the named tenant's Seznick House lease: their owned goods go to
+  storage — intact, titled, recoverable — the shell reverts, the records
+  clear, the slot frees, and the unit re-keys (the old key is dead
+  metal).
+
+  Authorized for Mayfield Holdings' agents (Walter) or an operator.
+examples:
+  - cmd: unlease alice
+    note: End Alice's lease
+validators:
+  - /lib/command/validators/requiresWizard
+args:
+  - name: player
+    type: object
+    required: true
+    scope: "online"
+    requires: class:Agent

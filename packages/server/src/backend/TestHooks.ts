@@ -38,7 +38,6 @@ import { AppApi } from '../mud/api/app';
 import { AppSettingKeys } from '../mud/lib/config/AppSettings';
 import Avatar from '../mud/platform/agent/Avatar';
 import { Template } from '../mud/lib/stuff/Template';
-import { TemplateApi } from '../mud/api/template';
 import { SecurityApi } from '../mud/api/security';
 
 export class TestHooks {
@@ -146,6 +145,7 @@ export class TestHooks {
     }
     if (user.playerIds.length === 0) {
       const playerId = await TestHooks.#createDefaultCharacter(
+        user,
         name,
         undefined,
         startLocation
@@ -215,21 +215,21 @@ export class TestHooks {
   }
 
   /**
-   * Mint a default character as a legacy-style **per-player template
-   * row** and let the FIRST login migrate it via
-   * `PlayerLogic.materializeAvatar`'s legacy-row fallback (clone the
-   * row → capture the first snapshot). Two payoffs over a headless
-   * clone-capture-destruct: it can't corrupt a snapshot by re-capturing
-   * a mid-teardown avatar (the bug that shipped otherwise), and it
-   * gives the deployed pre-retirement-character migration path real
-   * end-to-end coverage on every e2e login. The row is test-DB-only, so
-   * the no-per-player-row doctrine — which governs the production
-   * authoring surface — is not in scope.
+   * Mint a default character on the IDENTITY AXIS (residences D17 — the
+   * legacy per-player-row fallback is gone): clone the SHARED seed with
+   * the overlay riding `dataOverlay` and the identity minted via
+   * `asIdentityPath` — exactly the enroll path — and leave the avatar
+   * RESIDENT. `Avatar.postRegister` installs the loadout and captures
+   * the first snapshot; the `play` that follows multiplexes onto the
+   * live instance, so nothing is torn down and nothing can re-capture a
+   * mid-teardown avatar (the failure the old headless
+   * clone-capture-destruct shape had).
    *
    * @returns the generated playerId (identity path:
    * `/platform/agent/Avatar/<playerId>`)
    */
   static async #createDefaultCharacter(
+    user: User,
     name: string,
     surname?: string,
     startLocation?: string
@@ -253,10 +253,17 @@ export class TestHooks {
       name,
     };
     if (surname) data.surname = surname;
-    await TemplateApi.saveTemplate(path, seed.class, data, seed.hydratorClass);
+    const { StuffApi } = await import('../mud/api/stuff');
+    const avatar = await StuffApi.clone<Avatar>(
+      Avatar.SEED_TEMPLATE_PATH,
+      { user, playerId },
+      { dataOverlay: data, asIdentityPath: path }
+    );
+    // Belt to postRegister's first capture — a second capture of a live,
+    // fully-formed avatar is a cheap no-op-shaped write.
+    await avatar.save();
     console.info(
-      `TestHooks: provisioned test character ${path} (legacy-row; ` +
-        `migrates to a snapshot on first login)`
+      `TestHooks: provisioned test character ${path} (snapshot-backed, resident)`
     );
     return playerId;
   }

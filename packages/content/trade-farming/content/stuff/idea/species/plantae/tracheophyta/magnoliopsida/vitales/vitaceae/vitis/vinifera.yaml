@@ -1,0 +1,20 @@
+# Vitis vinifera — the wine grape (D8: the crop ships; fermentation is a later distilling build). Sessile body plan, the same
+# shallow `_parentCladePath` as every plant (the directory carries the
+# taxonomy; the clade link is deliberately shallow). What makes it a crop
+# is entirely on its `/trade/farming/thing/plant/grape` template: the
+# harvest surface and — for a fruiting plant — the cycle fields.
+class: /platform/idea/species/Species
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  binomial: Vitis vinifera
+  commonNames: ["grape", "grapevine"]
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/sessile
+  _parentCladePath: /stuff/idea/species/plantae
+  _defaultMaterialPath: /stuff/idea/material/tissue/plant-tissue
+  lifecycleStates: ["alive", "dead"]
+  sexDeterminationSystem: monoecious
+  reproductiveMode: sexual
+  lifespanMin: 0
+  lifespanMax: 100
+  circadianBand: aperiodic
+  diet: photosynthesis

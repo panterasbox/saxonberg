@@ -49,6 +49,11 @@ import { SlottedMixin } from '../slot/Slotted';
 
 import type { Boundary } from './Boundary';
 import { BoundaryAnchor } from './BoundaryAnchor';
+import { ChattelApi } from '../../api/chattel';
+import type {
+  CaptureContext,
+  FieldsSlice,
+} from '../persistence/PersistenceSlice';
 
 /**
  * One `adornments` entry. A bare path string clones the template and
@@ -59,7 +64,7 @@ import { BoundaryAnchor } from './BoundaryAnchor';
  *
  * Fixtures are per-instance by nature (two Veshko signs are two
  * objects), so the applier always **clones** — there is no singleton
- * dispatch like `applyPopulates`.
+ * dispatch like `applyProps`.
  */
 export type AdornmentSpec = string | { template: string; slot?: string };
 
@@ -74,6 +79,8 @@ export interface Adornable {
   addFixture(f: Stuff & Adornment, slotName?: string): boolean;
   removeFixture(f: Stuff & Adornment): boolean;
   hasFixture(f: Stuff & Adornment): boolean;
+  /** The slot name `f` occupies on this host, or null when unattached. */
+  slotOfFixture(f: Stuff & Adornment): string | null;
   getFixtures(): readonly (Stuff & Adornment)[];
   getFixtureBoundaries(): Boundary[];
   getFixtureLightSources(): (Stuff & Adornment)[];
@@ -100,7 +107,7 @@ export function AdornableMixin<TBase extends MixinConstructor<Stuff & Container>
     /**
      * Instruction field consumed by `applyAdornments`. The YAML data is
      * an array of `AdornmentSpec` entries; Phase 2 clones each and
-     * attaches it as a fixture. The `applyExits` / `applyPopulates`
+     * attaches it as a fixture. The `applyExits` / `applyProps`
      * precedent — declarative content over the imperative `addFixture`.
      */
     static fieldMeta: FieldMeta = {
@@ -111,8 +118,34 @@ export function AdornableMixin<TBase extends MixinConstructor<Stuff & Container>
     };
 
     /**
+     * **The fixtures capture pass** — and it deliberately captures
+     * NOTHING of its own.
+     *
+     * Fixtures are runtime-only: an authored sconce is rebuilt from the
+     * host's `adornments` field on every hydrate, so a host's record has
+     * no business carrying them. But a good a PLAYER hung on the wall is
+     * not authored — it is chattel, and it persists owner-side (D2's
+     * skip rule, one collection over). Without this pass a room going
+     * dormant while its owner is offline would take the lamp with it: the
+     * container slice never sees a fixture, so nobody reports it and
+     * nobody captures it.
+     *
+     * So: report every stamped fixture to `ctx.noteOwnedGood`, which
+     * flushes it into its owner's estate (mount slot and all), and emit
+     * an empty field slice. Exactly the Container-slice rule, applied to
+     * the fixtures map.
+     */
+    static captureSlice(host: Stuff, ctx: CaptureContext): FieldsSlice {
+      const adornable = host as Stuff & Adornable;
+      for (const f of adornable.getFixtures()) {
+        if (ChattelApi.isOwnerPersisted(f)) ctx.noteOwnedGood(f);
+      }
+      return { fields: {} };
+    }
+
+    /**
      * Phase 2 applier — clone each adornment template and attach it as a
-     * fixture. Mirrors `applyPopulates`, minus the singleton dispatch:
+     * fixture. Mirrors `applyProps`, minus the singleton dispatch:
      * fixtures are per-instance, so every entry is cloned fresh. A
      * template that doesn't compose `AdornmentMixin` is a configuration
      * error (it can't be a fixture) and throws, naming the path.
@@ -187,6 +220,13 @@ export function AdornableMixin<TBase extends MixinConstructor<Stuff & Container>
         if (existing === f) return true;
       }
       return false;
+    }
+
+    slotOfFixture(f: Stuff & Adornment): string | null {
+      for (const [k, v] of this.fixtureSlots.entries()) {
+        if (v === f) return k;
+      }
+      return null;
     }
 
     getFixtures(): readonly (Stuff & Adornment)[] {

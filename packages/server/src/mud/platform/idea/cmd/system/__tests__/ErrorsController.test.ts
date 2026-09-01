@@ -85,7 +85,10 @@ describe('ErrorsController', () => {
 
     note = vi.fn();
     ctx = {
-      commandGiver: { getTemplatePath: () => '/platform/agent/Avatar/alice' } as never,
+      commandGiver: {
+        getTemplatePath: () => '/platform/agent/Avatar/alice',
+        getIdentityPath: () => '/platform/agent/Avatar/alice',
+      } as never,
       note,
     } as unknown as CommandContext;
   });
@@ -115,7 +118,7 @@ describe('ErrorsController', () => {
     expect(output.join('\n')).toContain('brain threw');
   });
 
-  it('--mine scopes to the actor templatePath', async () => {
+  it('--mine scopes to the actor identity path', async () => {
     await run({ mine: true });
     expect(DiagnosticApi.list).toHaveBeenCalledWith(
       expect.objectContaining({ author: '/platform/agent/Avatar/alice' })

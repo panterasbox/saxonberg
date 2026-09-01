@@ -11,7 +11,7 @@
  * touches the DB a concurrent dev server is using.
  *
  * Run from `packages/server/`:
- *   tsx src/tools/illustrate-preload.js location /world/eternal/duncan-hall/lobby
+ *   tsx src/tools/illustrate-preload.js location /world/eternal/duncan-hall/location/lobby
  */
 import "dotenv/config";
 import { writeFileSync, mkdirSync } from "node:fs";
@@ -80,7 +80,7 @@ function locationPrompt(loc: unknown): { prompt: string; size: string } {
   const short = d.getShortDescription?.() ?? "";
   const long = d.getLongDescription?.() ?? "";
 
-  // Composed state #1 — what's actually in the room (the `populates` clones).
+  // Composed state #1 — what's actually in the room (the `props` clones).
   const contents = (loc as ContainerLike).getContents()
     .map((c) => c.getPresentation())
     .filter(Boolean);

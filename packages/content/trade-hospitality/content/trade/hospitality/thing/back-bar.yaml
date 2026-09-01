@@ -1,5 +1,5 @@
 # The back-bar — a Surfaced fixture behind the bar. The working bottles and
-# bar tools rest ON it (placed via the bar's `populates: { onto }` entries),
+# bar tools rest ON it (placed via the bar's `props: { onto }` entries),
 # so they're visible "on the back-bar" and reachable, but render under it
 # rather than as loose items among the room's occupants.
 class: /trade/hospitality/thing/BarStation

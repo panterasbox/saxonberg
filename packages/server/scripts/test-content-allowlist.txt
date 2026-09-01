@@ -84,7 +84,6 @@ packages/server/src/mud/platform/idea/cmd/banking/__tests__/DrawController.test.
 packages/server/src/mud/platform/idea/cmd/charactergen/__tests__/EnrollController.chronicle.test.ts
 packages/server/src/mud/platform/idea/cmd/charactergen/__tests__/EnrollController.commit.test.ts
 packages/server/src/mud/platform/idea/cmd/civics/__tests__/GovernmentController.test.ts
-packages/server/src/mud/platform/idea/cmd/civics/__tests__/TitleVerb.test.ts
 packages/server/src/mud/platform/idea/cmd/device/__tests__/ArmController.test.ts
 packages/server/src/mud/platform/idea/cmd/employment/__tests__/tips.test.ts
 packages/server/src/mud/platform/idea/cmd/retail/__tests__/BuyController.test.ts

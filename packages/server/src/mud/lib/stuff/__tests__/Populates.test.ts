@@ -9,6 +9,7 @@ import { ContainableMixin } from '../../spatial/Containable';
 import PersistentHydrator from '../../../platform/idea/persistence/PersistentHydrator';
 import { PersistenceManager, Collections } from '../../../../backend/PersistenceManager';
 import { StuffApi } from '../../../api/stuff';
+import { BehavedMixin } from '../../behavior/Behaved';
 import { MixinApi } from '../../../api/mixin';
 import type { FieldMeta } from '../../mixin';
 
@@ -79,6 +80,12 @@ class SingletonContainerTest extends SingletonContainerBase {
 
 // Non-singleton Container.
 const NonSingletonContainerBase = ContainableMixin(ContainerMixin(Idea));
+
+// A Behaved containable — the cast shape (the designation-gate tests).
+const BehavedAgentBase = BehavedMixin(ContainableMixin(ContainerMixin(Idea)));
+class BehavedAgentTest extends BehavedAgentBase {
+  static fieldMeta: FieldMeta = {};
+}
 class NonSingletonContainerTest extends NonSingletonContainerBase {
   static fieldMeta: FieldMeta = {};
 }
@@ -102,9 +109,10 @@ describe('PopulatesMixin', () => {
     StuffApi.clearAll();
   });
 
-  it('declares populates as an instruction field', () => {
+  it('declares props and cast as instruction fields', () => {
     const fields = MixinApi.getAllInstructionFields(PopulatesHostTest);
-    expect(fields).toContain('populates');
+    expect(fields).toContain('props');
+    expect(fields).toContain('cast');
   });
 
   it('declares _mixinName = "PopulatesMixin"', () => {
@@ -113,7 +121,7 @@ describe('PopulatesMixin', () => {
     expect(names).toContain('PopulatesMixin');
   });
 
-  it('exposes applyPopulates on instances', async () => {
+  it('exposes applyProps on instances', async () => {
     installInMemoryStore([
       {
         path: PersistentHydrator.templatePath,
@@ -122,7 +130,7 @@ describe('PopulatesMixin', () => {
       },
     ]);
     const host = await StuffApi.create(() => new PopulatesHostTest());
-    expect(typeof (host as unknown as { applyPopulates: unknown }).applyPopulates)
+    expect(typeof (host as unknown as { applyProps: unknown }).applyProps)
       .toBe('function');
   });
 
@@ -135,7 +143,7 @@ describe('PopulatesMixin', () => {
       },
     ]);
     const host = await StuffApi.create(() => new PopulatesHostTest());
-    await host.applyPopulates([]);
+    await host.applyProps([]);
     expect(host.getContents().length).toBe(0);
   });
 
@@ -148,7 +156,7 @@ describe('PopulatesMixin', () => {
       },
     ]);
     const host = await StuffApi.create(() => new PopulatesHostTest());
-    await host.applyPopulates([
+    await host.applyProps([
       '',
       null as unknown as string,
       42 as unknown as string,
@@ -165,7 +173,7 @@ describe('PopulatesMixin', () => {
       },
     ]);
     const host = await StuffApi.create(() => new PopulatesHostTest());
-    await host.applyPopulates(undefined as unknown as string[]);
+    await host.applyProps(undefined as unknown as string[]);
     expect(host.getContents().length).toBe(0);
   });
 
@@ -179,7 +187,7 @@ describe('PopulatesMixin', () => {
     ]);
     const host = await StuffApi.create(() => new PopulatesHostTest());
     await expect(
-      host.applyPopulates(['/test/missing'])
+      host.applyProps(['/test/missing'])
     ).rejects.toThrow(/no template at '\/test\/missing'/);
   });
 
@@ -223,7 +231,7 @@ describe('PopulatesMixin', () => {
         .mockImplementation(async (_path: string) => fakeChild as never);
 
       const host = await StuffApi.create(() => new PopulatesHostTest());
-      await host.applyPopulates(['/test/singleton-child']);
+      await host.applyProps(['/test/singleton-child']);
 
       expect(singletonSpy).toHaveBeenCalledWith('/test/singleton-child');
       expect(host.hasContainable(fakeChild)).toBe(true);
@@ -262,7 +270,7 @@ describe('PopulatesMixin', () => {
         .mockImplementation(async (_path: string) => fakeChild as never);
 
       const host = await StuffApi.create(() => new PopulatesHostTest());
-      await host.applyPopulates(['/test/non-singleton-child']);
+      await host.applyProps(['/test/non-singleton-child']);
 
       expect(cloneSpy).toHaveBeenCalledWith('/test/non-singleton-child');
       expect(host.hasContainable(fakeChild)).toBe(true);
@@ -299,7 +307,7 @@ describe('PopulatesMixin', () => {
       );
 
       const host = await StuffApi.create(() => new PopulatesHostTest());
-      await host.applyPopulates(['/test/elsewhere-singleton']);
+      await host.applyProps(['/test/elsewhere-singleton']);
 
       // Still elsewhere — skip preserved its placement.
       expect(child.getContainer()).toBe(elsewhere);
@@ -340,12 +348,85 @@ describe('PopulatesMixin', () => {
       );
 
       const host = await StuffApi.create(() => new PopulatesHostTest());
-      await host.applyPopulates(['/test/non-singleton-child']);
+      await host.applyProps(['/test/non-singleton-child']);
 
       // Moved into host regardless of prior container.
       expect(child.getContainer()).toBe(host);
       expect(host.hasContainable(child)).toBe(true);
       expect(elsewhere.hasContainable(child)).toBe(false);
+    });
+  });
+
+  describe('the designation gate (props vs cast)', () => {
+    const seedStore = () =>
+      installInMemoryStore([
+        {
+          path: PersistentHydrator.templatePath,
+          class: '/platform/idea/persistence/PersistentHydrator',
+          data: {},
+        },
+        { path: '/test/agent-child', class: '/test/BehavedAgentTest', data: {} },
+        {
+          path: '/test/thing-child',
+          class: '/test/NonSingletonContainerTest',
+          data: {},
+        },
+      ]);
+    const stubLoader = () =>
+      vi.spyOn(StuffApi, 'loadClassByPath').mockImplementation(
+        async (path: string) => {
+          if (path === '/test/BehavedAgentTest') {
+            return BehavedAgentTest as unknown as new (...a: unknown[]) => Stuff;
+          }
+          if (path === '/test/NonSingletonContainerTest') {
+            return NonSingletonContainerTest as unknown as new (
+              ...a: unknown[]
+            ) => Stuff;
+          }
+          throw new Error(`unexpected class path: ${path}`);
+        }
+      );
+
+    it('applyProps THROWS on a Behaved entry — that is cast, not props', async () => {
+      seedStore();
+      stubLoader();
+      const cloneSpy = vi.spyOn(StuffApi, 'clone');
+      const host = await StuffApi.create(() => new PopulatesHostTest());
+      await expect(host.applyProps(['/test/agent-child'])).rejects.toThrow(
+        /cast, not props/
+      );
+      // The gate fires BEFORE minting — no half-made NPC left behind.
+      expect(cloneSpy).not.toHaveBeenCalled();
+      // The once-flag stays clear: a designation error is not "populated".
+      expect(host.hasPopulated()).toBe(false);
+    });
+
+    it('applyCast THROWS on a non-Behaved entry — that is a prop, not cast', async () => {
+      seedStore();
+      stubLoader();
+      const cloneSpy = vi.spyOn(StuffApi, 'clone');
+      const host = await StuffApi.create(() => new PopulatesHostTest());
+      await expect(host.applyCast(['/test/thing-child'])).rejects.toThrow(
+        /prop, not cast/
+      );
+      expect(cloneSpy).not.toHaveBeenCalled();
+      expect(host.hasPopulated()).toBe(false);
+    });
+
+    it('applyCast mints a Behaved entry into the host', async () => {
+      seedStore();
+      stubLoader();
+      const npc = await StuffApi.create(() => new BehavedAgentTest());
+      vi.spyOn(StuffApi, 'clone').mockImplementation(
+        async (_path: string) => npc as never
+      );
+      const host = await StuffApi.create(() => new PopulatesHostTest());
+      await host.applyCast(['/test/agent-child']);
+      expect(host.hasContainable(npc)).toBe(true);
+      // Each list guards its own once-flag: cast laid, props still open.
+      expect(host.hasPopulated()).toBe(true);
+      await host.applyCast(['/test/agent-child']); // no-op — laid once
+      expect(host.getContents().length).toBe(1);
     });
   });
 });

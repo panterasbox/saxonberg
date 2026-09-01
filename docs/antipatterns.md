@@ -2617,7 +2617,7 @@ this gap**, none of them visible to a green suite:
 
 | What was tested | What was broken |
 |---|---|
-| `FurnishableRoom`'s fields round-trip | the class composed no `PopulatesMixin`, so every seed's `populates:` was inert and **no fixture ever landed** |
+| `FurnishableRoom`'s fields round-trip | the class composed no `PopulatesMixin`, so every seed's `props:` was inert and **no fixture ever landed** |
 | the bed seed's YAML says `restQuality` | `SeederManager` is insert-only, so the live row **never updated** |
 | `SlotApi.occupyAll` puts a body in a bed | nothing contributed `posture/lie.yaml`, so **no player could issue `lie`** |
 | ...the same test | no actor composed `SlottableMixin`, so the verb **rejected everyone** |
@@ -2741,7 +2741,7 @@ exits:
 ### GOOD (the provisioner installs one deferred edge per instance)
 
 ```typescript
-// LotHolder.ensureGate — hung as lots sell, re-hung at boot from the
+// PlatWarren.ensureGate — hung as lots sell, re-hung at boot from the
 // title registry, directioned by the lot's own leaf.
 const gate = StuffApi.createSync(
   () => new LotGateExit(street, this, lotExtent, direction),
@@ -2758,44 +2758,68 @@ author a static exit *to* it. Ask "how many live rooms could this edge
 mean?" — if the answer is not exactly one, the edge belongs to whatever
 mints the instances.
 
-## A per-instance minted room composed as a `CartesianLocation`
+## A minted room that keeps a persistence record without a scope of its own
 
-A room minted per instance (`StuffApi.clone(path, { asTemplatePath })`)
-**cannot be a member of a shared cartesian grid**: N instances would
-occupy one coordinate. The grid enforces this, but only at the moment you
-try to hang a semantic exit — `CartesianLocation.addExit` refuses a
-non-cardinal direction between two rooms in the same zone — so the
-mistake surfaces far from its cause.
+A room minted per instance (`StuffApi.clone(path, { asIdentityPath })`)
+composed with `PersistableMixin` and nothing to key it.
 
-Two consequences make it worth catching at design time, not at `addExit`:
+`PersistableMixin.cleanupOnDestruct` fires with
+`scope = getTemplatePath()`. So N instances from one row share **one**
+scope: every reap writes a `holder_snapshots` row, they all collide, and
+nothing ever reads them back. Write-only records, on a path that reaps
+constantly by design.
 
-- **`getSizeScale()` is the zone's `cellSize²`**, and it is a photometric
-  denominator. A yard in a `cellSize: 6` zone divided its 600-flux open
-  sky by 36 m² and read **16.7 lux** — under the light floor its own crop
-  needed. Plain `Location`'s flat 1.0 was the correct answer, arrived at
-  by accident.
-- The instance is **outdoors-shaped in every way except the grid**, which
-  makes the grid look like the natural fit right up until it isn't.
+It is easy to fall into because for a long time `FurnishableRoom` was the
+only multi-instance location that existed, so anything minted
+many-times-from-one-row had nowhere else to go — and picked up a
+persistence record on the way. Thirteen trade floors and three pieces of
+minted scaffolding got one that way.
+
+⚠ **Two identical compositions are not the same class.** The rule is
+about what a class INHERITS, and re-listing a mixin stack instead of
+extending the class that owns the behaviour produces something that
+type-checks, passes every test, and has quietly dropped an override.
+`platform/location/CartesianLocation` shipped re-composed for one commit
+and had lost `CartesianLocation.addExit` — the cardinal-only-intra-zone
+rule — so minted road reaches accepted non-cardinal exits while the
+authored lane beside them still refused one.
 
 ### BAD
 
 ```typescript
-// one template, N minted identities, all at coords (-1, 1, 0)
+// one row, N minted instances, all sharing scope = the row's path
 export default class TitledRoom extends PersistableMixin(CartesianLocation) {}
 ```
 
 ### GOOD
 
 ```typescript
-// FurnishableRoom = Persistable → … → Populates → Location.
-// Venue-generic, not singleton-shaped, no grid membership.
-class: /lib/location/FurnishableRoom
+// Singleton: one row IS one place, so the scope is unambiguous.
+class: /platform/location/SingletonCartesianLocation
+
+// …or KEYED: a WarrenMember whose provisioner supplies the key, which
+// is what makes N instances from one row addressable.
+class: /platform/location/FurnishableRoom
 ```
 
-Instances that need a semantic exit still need a **zone** of their own —
-one authored `SpatialZone` above all of them (`resolveZoneForPath` skips
-folders and cannot see a minted zone at all). See
-[zone.md](./subsystems/zone.md).
+Enforced by `platform/location/__tests__/PersistableLocations.test.ts`,
+which **walks the directory** rather than naming classes — the classes it
+most needs to cover are the ones that do not exist yet.
+
+### The related question: does it belong on the grid at all?
+
+Separately from persistence, a minted room usually should not be a
+`CartesianLocation` at all, because `getSizeScale()` is the zone's
+`cellSize²` and it is a **photometric denominator**. A yard in a
+`cellSize: 6` zone divided its 600-flux open sky by 36 m² and read
+**16.7 lux** — under the light floor its own crop needed. Plain
+`Location`'s flat 1.0 was the right answer. That regressed a second time
+when the location-class taxonomy briefly put `FurnishableRoom` on the
+cartesian base, which is why `FurnishableRoom` is plain `Location` today
+and a test pins `getSizeScale() === 1.0`.
+
+Not one shipped furnished row authors `coords`. A floorplan looks like a
+small grid and is not one.
 
 ## An optional witness implemented by more than one composed layer
 
@@ -3693,7 +3717,7 @@ Its two siblings, both of which cost real time here:
 
 `StuffApi.clone` → `Template.findByPath` → `PersistApi.find` goes to
 Mongo **every time**, and the hydration cascade recurses through `clone`
-for `hydratorClass` and `populates:`. Against Atlas at a measured 33 ms
+for `hydratorClass` and `props:`. Against Atlas at a measured 33 ms
 round trip, one shipped item costs about **13 serialized trips —
 448 ms** — and the boot spawn sweep clones 341 of them, one after
 another, for **152 seconds of a 5.7-minute boot**. A CPU profile of that
@@ -3791,7 +3815,7 @@ board: two real boards, one honest question.
 ### Finding them
 
 A sweep over every room's `details` keywords against the keywords of the
-rows its `populates`/`adornments` name, comparing by substring, found
+rows its `props`/`adornments` name, comparing by substring, found
 every instance in the shipped world in one pass. ⚠ It only sees the YAML
 half — a class that sets its keywords in a constructor (`Tap.ts`) is
 invisible to it, which is an argument for a real lint rather than a

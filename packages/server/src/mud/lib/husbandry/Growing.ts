@@ -24,6 +24,16 @@
  * flowering latches at `mature` in thriving condition and sets one seed per
  * episode via the `onFloweringLatched` host hook.
  *
+ * **The fruit cycle (polycarpy).** A profile authoring `fruitSetCount` +
+ * `fruitFillDays` bears repeatedly: the flowering latch SETS a crop
+ * instead of dropping a seed (the yield IS the crop — `onFloweringLatched`
+ * never fires), `_fruitFill` advances toward ripe at the limiting rate,
+ * and the worst-limiting verdict RE-SEEDS at the set — so a pick grades
+ * the cycle that made it (set → harvest), never the tree's whole life.
+ * The plant survives; `settleCycle()` re-opens the next window. A
+ * monocarp (no cycle fields) is byte-identical to phase 1. See
+ * docs/subsystems/husbandry.md § The fruit cycle.
+ *
  * ### The clock rule — deliberately NOT `Wet.ts`'s
  *
  * This mixin copies `Wet.ts`'s skeleton (decomposed scalar persistence, a
@@ -101,6 +111,24 @@ export interface GrowthProfileData {
   rootDemand: Record<GrowthStage, number>;
   /** Cumulative well-kept game-days to reach each post-seedling stage. */
   daysToStage: { young: number; established: number; mature: number };
+  /**
+   * Fruits minted per ripe pick — polycarps only. With `fruitFillDays`,
+   * the PAIR is the polycarp marker (both > 0 ⇔ polycarp; no flag). An
+   * annual or ornamental authors neither: no fields, no branch,
+   * byte-identical to phase 1.
+   */
+  fruitSetCount?: number;
+  /**
+   * Well-kept game-days from set to ripe — fill advances by
+   * `limiting × dt / (fruitFillDays × DAY)` while the window is open.
+   *
+   * Deferred dials whose home is HERE when demand arrives (seams, not
+   * fields): **thinning** (trade set count against fill rate),
+   * **alternate bearing** (a mast-year modulation of the set count),
+   * **over-ripe** (fill past 1 decaying toward drop — pairs with the
+   * preservation slate's spoilage).
+   */
+  fruitFillDays?: number;
 }
 
 const SECONDS_PER_GAME_DAY = 86_400;
@@ -160,6 +188,24 @@ export interface Growing {
    * average: a plant nursed back looks fine and still grades badly.
    */
   getWorstLimiting(): number;
+  /**
+   * Whether this plant bears on the FRUIT CYCLE (polycarpy): the profile
+   * authors both `fruitSetCount` and `fruitFillDays`. The fields are the
+   * marker — there is no flag.
+   */
+  isPolycarp(): boolean;
+  /**
+   * Fill fraction of the set crop, `[0, 1]` (reconciles on read). Ripe ⇔
+   * 1; always 0 for a monocarp.
+   */
+  getFruitFill(): number;
+  /**
+   * Close the cycle after a pick: clear the set crop, the fill, and the
+   * flowering latch so the next thriving reconcile opens a NEW window
+   * (which re-seeds the worst-limiting verdict at its set). Harvest calls
+   * this; the plant survives.
+   */
+  settleCycle(): void;
   /**
    * The `/trade/farming/thing/crop/…` template a harvest mints, mirroring the host's
    * seed path exactly (the same instantiate-don't-resolve identity-ref
@@ -230,6 +276,7 @@ export interface Growing {
   _seedSet: boolean;
   _lastLux: number;
   _worstLimiting: number;
+  _fruitFill: number;
   profile: GrowthProfileData | null;
 }
 
@@ -243,6 +290,10 @@ const STAGE_PHRASE: Record<GrowthStage, string> = {
 
 /** The mature-and-flowering variant — the one stage that reads differently. */
 const FLOWERING_PHRASE = 'It is fully grown, and in flower.';
+
+/** The ripe polycarp — outranks the flowering phrase (a filling crop still
+ * reads as flowering; a ripe one reads as the thing you can pick). */
+const RIPE_PHRASE = 'It is fully grown, heavy with fruit.';
 
 /** The player-facing band phrase (state, never cause). */
 const CONDITION_PHRASE: Record<Exclude<ConditionBand, 'dead'>, string> = {
@@ -287,8 +338,13 @@ function conditionAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
     // is over, and the description says only that.
     lines.push('It is dead.');
   } else {
+    const ripe = host.isPolycarp() && host.getFruitFill() >= 1;
     lines.push(
-      host.isFlowering() ? FLOWERING_PHRASE : STAGE_PHRASE[host.getGrowthStage()],
+      ripe
+        ? RIPE_PHRASE
+        : host.isFlowering()
+          ? FLOWERING_PHRASE
+          : STAGE_PHRASE[host.getGrowthStage()],
     );
     lines.push(CONDITION_PHRASE[band]);
     const limiting = host.getLimitingFactor();
@@ -313,6 +369,7 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
       _seedSet: { persistent: true },
       _lastLux: { persistent: true },
       _worstLimiting: { persistent: true },
+      _fruitFill: { persistent: true },
       profile: { persistent: true },
       // ⭐ Moved off the `Plant` CLASS. `harvest` and `repot` used to
       // narrow with `instanceof Plant` while their specs declared
@@ -348,6 +405,12 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
      * substrate — see {@link Growing.getWorstLimiting}.
      */
     public _worstLimiting = 1;
+    /**
+     * Fill fraction of the SET crop, `[0, 1]` — accrues at the limiting
+     * rate while a polycarp's cycle window is open (`_seedSet`). Ripe ⇔
+     * 1. Always 0 for a monocarp.
+     */
+    public _fruitFill = 0;
     /** The authored reaction norm (see {@link GrowthProfileData}). */
     public profile: GrowthProfileData | null = null;
 
@@ -405,6 +468,22 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
       return clamp01(this._worstLimiting);
     }
 
+    public isPolycarp(): boolean {
+      const p = this.profile;
+      return !!p && (p.fruitSetCount ?? 0) > 0 && (p.fruitFillDays ?? 0) > 0;
+    }
+
+    public getFruitFill(): number {
+      if (!this._reconcilingGrowth) this.reconcileGrowth();
+      return clamp01(this._fruitFill);
+    }
+
+    public settleCycle(): void {
+      this._fruitFill = 0;
+      this._seedSet = false;
+      this._flowering = false;
+    }
+
     /*
      * ⭐ The harvest + rooting surface, moved here from the `Plant`
      * class. `harvest` and `repot` narrowed with `instanceof Plant`
@@ -440,7 +519,11 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
     public isHarvestable(): boolean {
       if (!this.harvestTemplatePath) return false;
       if (this.getGrowthStage() !== 'mature') return false;
-      return this.getConditionBand() !== 'dead';
+      if (this.getConditionBand() === 'dead') return false;
+      // A polycarp is harvestable only when the set crop is RIPE — a
+      // mature tree between cycles has nothing on it to take.
+      if (this.isPolycarp()) return this._fruitFill >= 1;
+      return true;
     }
 
     /*
@@ -600,6 +683,7 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
             if (this.advanceStage()) satRoot = this.satRoot();
           }
           this.updateFlowering();
+          this.accrueFruitFill(limiting, dt);
           if (this._vigor < deathAt) {
             this.latchDead();
             break;
@@ -817,12 +901,43 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
         this._flowering = true;
         if (!this._seedSet) {
           this._seedSet = true;
-          this.onFloweringLatched();
+          if (this.isPolycarp()) {
+            // The episode SETS THE CROP instead of dropping a seed — the
+            // yield IS the crop, so `onFloweringLatched` never fires for
+            // a polycarp. The cycle window opens here: fill starts at
+            // zero and the worst-limiting verdict RE-SEEDS, so a pick
+            // grades the cycle that made it (set → harvest), never the
+            // tree's whole life. A monocarp never re-seeds — its one
+            // crop is its one life.
+            this._fruitFill = 0;
+            this._worstLimiting = 1;
+          } else {
+            this.onFloweringLatched();
+          }
         }
       } else if (!shouldFlower && this._flowering) {
         this._flowering = false;
-        this._seedSet = false;
+        // A polycarp's SET crop survives the dip — the window stays open
+        // precisely so the bad stretch grades the crop. Only a monocarp's
+        // episode mark clears (re-arming the one-seed latch).
+        if (!this.isPolycarp()) this._seedSet = false;
       }
+    }
+
+    /**
+     * Advance the set crop toward ripe at the limiting rate. Only while a
+     * polycarp's window is open; clamped at 1 (over-ripe is a documented
+     * seam on the profile, not a mechanic).
+     */
+    private accrueFruitFill(limiting: number, dt: number): void {
+      if (!this._seedSet || !this.isPolycarp()) return;
+      if (this._fruitFill >= 1) return;
+      const fillDays = this.profile?.fruitFillDays ?? 0;
+      if (fillDays <= 0) return;
+      this._fruitFill = Math.min(
+        1,
+        this._fruitFill + (limiting * dt) / (fillDays * SECONDS_PER_GAME_DAY),
+      );
     }
 
     /**
@@ -835,6 +950,7 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
       this._vigor = 0;
       this._flowering = false;
       this._seedSet = false;
+      this._fruitFill = 0; // death zeroes the cycle — nothing to pick
       const self = this as unknown as Stuff;
       if (MixinApi.isOrganism(self)) self.setLifecycleState('dead');
     }

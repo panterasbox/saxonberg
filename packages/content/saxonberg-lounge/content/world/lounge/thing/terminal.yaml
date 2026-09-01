@@ -21,4 +21,4 @@ data:
   keywords: [lounge]
   directionality: both
   routes:
-    - to: /world/terminus/terminal/arrival-terminal
+    - to: /world/terminus/terminal/thing/arrival-terminal
