@@ -1,0 +1,19 @@
+# University gatehouse — the placeholder destination just inside the locked
+# Eternal University gate, NORTH of the crossing. The campus interior is
+# deferred (out of scope this build), but the crossing's north exit eager-
+# clones its destination at boot (Exitable.applyExits → StuffApi.singleton),
+# so a real loadable room must sit behind the gate — a dangling path would
+# throw at hydration. It is unreachable in play: the gate Door is closed +
+# locked, so nobody ever stands here. A dead-end stub (no exits) on purpose;
+# the real campus entry replaces it when EU content lands.
+class: /platform/location/SingletonCartesianLocation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the university gatehouse
+  primaryKeyword: gatehouse
+  longDescription: |
+    A cramped stone gatehouse just inside the university wall, its inner door barred and its lamp unlit. Beyond it a gravel path climbs toward the campus proper — closed to the town for now. Nobody is on duty; nobody comes through.
+  coords:
+    x: 0
+    y: 1
+    z: 0

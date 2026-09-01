@@ -1,0 +1,37 @@
+collection: accountability_events
+owner: AccountabilityEvent
+ownerModule: /lib/accountability/AccountabilityEvent
+subsystem: accountability.md
+summary: >-
+  The unified harm-consent ledger: who did what to whom, with blame left
+  underived.
+purpose: |
+  One row per attribution act — combat and traps both produce here, and the
+  ledger is the generalized home of what used to be combat's private blame
+  store. Nothing in a row says who is *to blame*: blame is derived on read
+  from the whole chain, so a later fact can change the reading without
+  rewriting history.
+
+  Producers write, not a chokepoint. That is deliberate — a chokepoint would
+  have to know about every way harm can happen.
+invariants:
+  - >-
+    Append-only; nothing is overwritten.
+  - >-
+    Blame is never stamped on a row — it is derived on read.
+  - >-
+    PASS(mark) under the sandbox: harm inside a circle happened to
+    somebody, and the mark records the circle.
+sandbox:
+  verb: "pass"
+  mark: true
+reset: wipe
+indexes:
+  - keys: { victim: 1 }
+    why: |
+      Derive who is to blame for what happened to one victim — the read the
+      whole subsystem exists to serve.
+  - keys: { sessionId: 1 }
+    why: |
+      A producer's whole chain of rows for one session, which is how a
+      sequence of blows reads as one incident.

@@ -132,12 +132,12 @@ describe('Window.setAttachedHosts', () => {
     installInMemoryStore([
       {
         path: '/room/a',
-        class: '/platform/location/CartesianLocation',
+        class: '/platform/location/SingletonCartesianLocation',
         data: {},
       },
       {
         path: '/room/b',
-        class: '/platform/location/CartesianLocation',
+        class: '/platform/location/SingletonCartesianLocation',
         data: {},
       },
     ]);

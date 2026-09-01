@@ -49,7 +49,7 @@ function actingAuthor(): Stuff | null {
 function isOwnHomePath(actor: Stuff, path: string): boolean {
   const owner = ParcelApi.selfHomeOwnerOf(path);
   if (!owner || owner.kind !== "player") return false;
-  const key = actor.getTemplatePath()?.split("/").filter(Boolean).pop();
+  const key = actor.getIdentityPath()?.split("/").filter(Boolean).pop();
   return key !== undefined && owner.templatePath === `/home/${key}`;
 }
 

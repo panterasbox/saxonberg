@@ -89,7 +89,7 @@ describe('Declarative content lazy hydrate — CartesianZone + rooms + Window', 
       // CartesianLocation A — has coords + exits → roomB.
       {
         path: '/test/declarative/zone/roomA',
-        class: '/platform/location/CartesianLocation',
+        class: '/platform/location/SingletonCartesianLocation',
         hydratorClass: PersistentHydrator.templatePath,
         data: {
           coords: { x: 0, y: 0, z: 0 },
@@ -103,7 +103,7 @@ describe('Declarative content lazy hydrate — CartesianZone + rooms + Window', 
       // clone when the applier resolves the destination via singleton.
       {
         path: '/test/declarative/zone/roomB',
-        class: '/platform/location/CartesianLocation',
+        class: '/platform/location/SingletonCartesianLocation',
         hydratorClass: PersistentHydrator.templatePath,
         data: {
           coords: { x: 0, y: 1, z: 0 },
@@ -209,7 +209,7 @@ describe('Declarative content lazy hydrate — CartesianZone + rooms + Window', 
       },
       {
         path: '/back/zone/a',
-        class: '/platform/location/CartesianLocation',
+        class: '/platform/location/SingletonCartesianLocation',
         hydratorClass: PersistentHydrator.templatePath,
         data: {
           coords: { x: 0, y: 0, z: 0 },
@@ -221,7 +221,7 @@ describe('Declarative content lazy hydrate — CartesianZone + rooms + Window', 
       // and no-op.
       {
         path: '/back/zone/b',
-        class: '/platform/location/CartesianLocation',
+        class: '/platform/location/SingletonCartesianLocation',
         hydratorClass: PersistentHydrator.templatePath,
         data: {
           coords: { x: 0, y: 1, z: 0 },

@@ -11,7 +11,12 @@
 # a powered chiller, with a running cost and an outage that spoils what is
 # in it. That is the upgrade a bar buys into, and it waits for the power
 # meter to be worth having.
-class: /platform/location/FurnishableRoom
+# An ordinary location, not a FurnishableRoom: that class is the
+# FURNISHING archetypes' base. A trade floor's durability lives on its
+# persistable fixtures (the Stock, the racking, the counter) — the
+# consigned goods and their listings ride those, never the room; the
+# `populates` set below is the placement and respawns each boot.
+class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: a cellar

@@ -31,7 +31,7 @@ import {
 import { PersistenceManager } from "../../../../../backend/PersistenceManager";
 
 const IDEA = "/lib/stuff/Idea";
-const DANGEROUS = "/platform/location/CartesianLocation"; // any leaf w/ a class
+const DANGEROUS = "/platform/location/SingletonCartesianLocation"; // any leaf w/ a class
 const HOST_PATH = "/world/gallery/room";
 const TARGET_PATH = "/world/gallery/trap";
 const ALICE = "/platform/agent/Avatar/alice";

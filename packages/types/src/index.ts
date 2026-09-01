@@ -4466,11 +4466,18 @@ export interface MixinDetail {
 // ---- Help system --------------------------------------------------------
 
 /**
- * The four graded subdivisions a help topic can belong to. `command`
- * and `api`/`mixin`/`type` are the two Wave 1 subdivisions (the latter
- * three are the API projector's graded kinds).
+ * The graded subdivisions a help topic can belong to. `command` and
+ * `api`/`mixin`/`type` are the two Wave 1 subdivisions (the latter three
+ * are the API projector's graded kinds); `collection` is the third
+ * projector — one topic per Mongo collection, from its authored schema
+ * doc, so a player can read how the persistence layer works.
  */
-export type HelpKind = 'command' | 'api' | 'mixin' | 'type';
+export type HelpKind =
+  | 'command'
+  | 'api'
+  | 'mixin'
+  | 'type'
+  | 'collection';
 
 /** The typed edges between help topics — see {@link HelpRelation}. */
 export type HelpRelationKind =
@@ -4490,14 +4497,20 @@ export interface HelpRelation {
 
 /** Provenance: which subdivision/source a topic was harvested from. */
 export interface HelpSource {
-  subdivision: 'commands' | 'api';
-  /** command → primary verb; api/mixin/type → qualified `module#Face.member`. */
+  subdivision: 'commands' | 'api' | 'persistence';
+  /**
+   * command → primary verb; api/mixin/type → qualified
+   * `module#Face.member`; collection → the collection name.
+   */
   ref: string;
 }
 
 /** The single uniform shape the index/search/REST/verb all traffic in. */
 export interface HelpTopic {
-  /** 'command.look' | 'api.ContainmentApi.move' | 'mixin.Container' | 'type.Grade'. */
+  /**
+   * 'command.look' | 'api.ContainmentApi.move' | 'mixin.Container' |
+   * 'type.Grade' | 'collection.bank_ledger'.
+   */
   id: string;
   kind: HelpKind;
   title: string;

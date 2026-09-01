@@ -20,17 +20,27 @@
  * lease-gated door is the *door*. So the room stays plain, and the next
  * venue that wants a bathroom writes a seed row.
  *
- * Composition — **DormRoom's stack minus `WarrenMember`**, which is the
- * Warren's business and not a room's:
+ * Composition — `CartesianLocation` plus the three layers a room
+ * somebody FURNISHES needs:
  *
- *   Persistable → PostRegistration → Exitable → Detailed → Visible
- *     → Reserved → Populates → Location   (Location carries Container,
- *                                          Adornable, AmbientLit, Atmospheric)
+ *   Persistable → WarrenMember → Reserved → CartesianLocation
+ *     (which carries PostRegistration, Populates, Detailed, Perceptible,
+ *     Exitable, CartesianCoordinates, Visible, and Location's Container,
+ *     Adornable, AmbientLit, Atmospheric, Addressable)
+ *
+ * It sits in the location taxonomy rather than beside it — the axis is
+ * `{cartesian, spherical} × {authored, minted}`, and a furnished room is
+ * MINTED (many rooms per row, keyed per holding — three houses on three
+ * lots are three halls from one `hall.yaml`) and CARTESIAN (a floorplan
+ * is a grid, and its authored exits say so: `direction: east`,
+ * `direction: north`).
  *
  * Every layer is load-bearing and the omission of any of them is silent:
  * without `Populates` a seed's `props:` is INERT and no fixture ever
  * lands; without `Visible` its prose is inert; without `Exitable` you cannot
  * walk into it. `Reserved` is what lets a room AUTHOR a finite `air` budget.
+ * `WarrenMember` is the back-ref a holding programme manages its rooms
+ * through — inert (null) for a free-standing venue room.
  *
  * That the shipped dorm room already had exactly this stack is the reason
  * to mirror it rather than re-derive: `DormRoom` IS a room archetype (a
@@ -53,20 +63,61 @@ import { DetailedMixin } from "../../lib/description/Detailed";
 import { ExitableMixin } from "../../lib/boundary/Exitable";
 import { PostRegistrationMixin } from "../../lib/stuff/PostRegistration";
 import { ReservedMixin } from "../../lib/reserve";
+import { WarrenMemberMixin, type WarrenMember } from "../../lib/location/WarrenMember";
+import { MixinApi } from "../../api/mixin";
 import { CallSecurity, Final } from "../../lib/security/decorators";
 import { SecurityPolicies } from "../../lib/security/SecurityPolicies";
+import type { Stuff } from "../../lib/stuff/Stuff";
+import type { Container } from "../../lib/spatial/Container";
+import type { Containable } from "../../lib/spatial/Containable";
 import type { FieldMeta } from "../../lib/mixin";
 
 /** The default posted designation — the room says nothing about who it is for. */
 export const UNRESTRICTED = "unrestricted";
 
+// ⭐⭐ **It is NOT one of the four Location classes, and that is a claim
+// about what a furnished room IS.**
+//
+// **Minted**, yes: many live rooms per row, keyed per holding — three
+// houses on three lots are three halls from one `hall.yaml`. Never a
+// singleton.
+//
+// **But not CARTESIAN**, and this is the part that is easy to get wrong,
+// because a floorplan looks like a small grid: the authored exits say
+// `{ to: kitchen, direction: east }`, rooms sit north and east of one
+// another, and it is tempting to conclude there is a coordinate system
+// underneath. There is not, and the give-away is that not one shipped
+// row authors `coords`.
+//
+// ⚠ The cost of getting it wrong is not abstract. A `CartesianLocation`
+// derives its cell geometry from its ZONE — `getSizeScale()` is
+// `cellSize²` — and the light walk divides flux by that to get lux. A
+// furnished room on the cartesian base therefore reads
+// `cellSize²`-times dimmer the moment it is zoned: a Hinkley yard at 600
+// lumens of open sky came out at **16.7 lux**, under the light floor its
+// own crop needs, and every interior went the same way on its fixtures.
+// This class was cartesian for one commit and did exactly that. A lot is
+// not a grid cell of the street either — N lots cannot share one
+// coordinate.
+//
+// So: plain `Location` with the room mixins, plus the three things a
+// room somebody FURNISHES needs and a bare cell does not — a record of
+// its own (`Persistable`), a warren to belong to (`WarrenMember`), and
+// the ability to author a finite `air` budget (`Reserved`).
 const FurnishableRoomBase = PersistableMixin(
-  PostRegistrationMixin(
-    ExitableMixin(
-      DetailedMixin(VisibleMixin(ReservedMixin(PopulatesMixin(Location)))),
+  WarrenMemberMixin(
+    PostRegistrationMixin(
+      ExitableMixin(
+        DetailedMixin(VisibleMixin(ReservedMixin(PopulatesMixin(Location)))),
+      ),
     ),
   ),
 );
+
+/** Structural view of the warren surface the population witness pokes. */
+interface WarrenView {
+  notifyPopulationChange(room: Stuff & Container): void;
+}
 
 export default class FurnishableRoom extends FurnishableRoomBase {
   static fieldMeta: FieldMeta = {
@@ -123,5 +174,29 @@ export default class FurnishableRoom extends FurnishableRoomBase {
     this.postedAs = typeof value === "string" && value.length > 0
       ? value
       : UNRESTRICTED;
+  }
+
+  /**
+   * Population witness (the DormRoom fold, generalized — residences
+   * D16): an arrival/departure of a `HasInteractive` occupant pokes the
+   * owning warren's population-change coalescer, which drives the
+   * whole-holding dormancy reap. A NO-OP with no warren back-ref —
+   * every existing venue's rooms behave exactly as before.
+   */
+  public onContainableAdded(thing: Stuff & Containable): void {
+    this.notePopulation(thing);
+  }
+
+  public onContainableRemoved(thing: Stuff & Containable): void {
+    this.notePopulation(thing);
+  }
+
+  private notePopulation(thing: Stuff & Containable): void {
+    if (!MixinApi.isHasInteractive(thing as unknown as Stuff)) return;
+    const warren = (this as unknown as WarrenMember).getWarren() as unknown as
+      | WarrenView
+      | null;
+    if (!warren) return;
+    warren.notifyPopulationChange(this as unknown as Stuff & Container);
   }
 }

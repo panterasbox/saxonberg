@@ -427,7 +427,14 @@ export type CmpOp = '=' | '!=' | '>' | '<' | '>=' | '<=';
 export type AtomNode =
   | { kind: 'namespaced'; namespace: string; key: string }
   | { kind: 'name' }
-  | { kind: 'id' };
+  | { kind: 'id' }
+  /** The object's explicit persistence key — the D16 keyed-instance
+   *  axis (`[key = '<parcel extent>/<leaf>']`); `undefined` for an
+   *  unkeyed object, so it never false-matches. */
+  | { kind: 'key' }
+  /** The declared Locality address (`[address = 'terminus/…/lot-1']`)
+   *  — the human per-place identity (residences D16). */
+  | { kind: 'address' };
 
 export type ValueNode =
   | { kind: 'value-int'; value: number }

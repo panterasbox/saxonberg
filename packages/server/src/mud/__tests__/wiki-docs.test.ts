@@ -90,9 +90,19 @@ describe('the index entries (31)', () => {
     expect(line!.trimStart().startsWith('- [')).toBe(true);
   });
 
-  it('CLAUDE.md gains exactly two collection lines', () => {
-    expect(claude).toMatch(/^- `wiki` — /m);
-    expect(claude).toMatch(/^- `wiki_revisions` — /m);
+  it('both collections have an authored schema doc', () => {
+    // ⚠ This assertion moved. It used to check CLAUDE.md's per-collection
+    // orientation list, which the schema-docs build DELETED rather than
+    // grew to 48 — it covered 28 of 48 and was misleading by omission.
+    // The stronger home is the authored doc itself, which `pnpm
+    // lint:schema` makes total over the vocabulary: a collection with no
+    // doc fails the build AND the boot.
+    for (const collection of ['wiki', 'wiki_revisions']) {
+      const doc = read(`packages/server/src/schema/${collection}.yaml`);
+      expect(doc).toMatch(new RegExp(`^collection: ${collection}$`, 'm'));
+      expect(doc).toMatch(/^subsystem: wiki\.md$/m);
+      expect(doc).toMatch(/^summary: /m);
+    }
   });
 
   it('architecture.md gains the wiki-component category', () => {

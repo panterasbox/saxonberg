@@ -90,7 +90,7 @@ describe('Template subclass dispatch (Phase Z2)', () => {
     installInMemoryStore([
       {
         path: '/narnia/foyer',
-        class: '/platform/location/CartesianLocation',
+        class: '/platform/location/SingletonCartesianLocation',
         data: {},
       },
     ]);
@@ -139,7 +139,7 @@ describe('Template subclass dispatch (Phase Z2)', () => {
       },
       {
         path: '/narnia/castle/foyer',
-        class: '/platform/location/CartesianLocation',
+        class: '/platform/location/SingletonCartesianLocation',
         data: {},
       },
     ]);

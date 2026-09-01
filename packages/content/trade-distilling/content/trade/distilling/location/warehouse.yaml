@@ -3,7 +3,12 @@
 # a dock. A corpo's distillery or a stub's yard is a room of this shape
 # with its own stock + hand in `props` (template inheritance does not
 # exist — the bundle is copied by listing, not extended).
-class: /platform/location/FurnishableRoom
+# An ordinary location, not a FurnishableRoom: that class is the
+# FURNISHING archetypes' base. A trade floor's durability lives on its
+# persistable fixtures (the Stock, the racking, the counter) — the
+# consigned goods and their listings ride those, never the room; the
+# `populates` set below is the placement and respawns each boot.
+class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a warehouse

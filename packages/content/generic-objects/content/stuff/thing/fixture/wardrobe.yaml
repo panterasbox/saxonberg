@@ -1,0 +1,19 @@
+# A wardrobe — storage you OWN, in a room that may not be yours.
+#
+# `/platform/thing/Chest` is the shipped openable container: the lid (here a
+# pair of doors) is the honest switch — an open wardrobe is contents in
+# reach, a shut one is put away. Sold shut.
+#
+# Being a good rather than a built-in, it is chattel: it holds your
+# clothes in a let unit and leaves with you when the lease ends
+# (eviction moves it to storage intact, with what is in it).
+class: /platform/thing/Chest
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a pine wardrobe
+  primaryKeyword: wardrobe
+  keywords: [wardrobe, closet, press, doors]
+  longDescription: |
+    A tall pine wardrobe with two doors and a brass turn-catch, deep enough to hang a coat full-length. The inside smells of cedar shavings and, faintly, of whoever owned it last.
+  open: false
+  mass: 70

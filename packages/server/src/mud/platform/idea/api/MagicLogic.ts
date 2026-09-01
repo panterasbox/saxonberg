@@ -1362,7 +1362,7 @@ function execIdentify(ctx: EffectContext, target: Stuff | undefined): string {
     return `There is nothing hidden to learn about ${target.getPresentation()}.`;
   }
   const learner = ctx.actor;
-  const signature = subject.getTemplatePath();
+  const signature = subject.getIdentityPath();
   if (!MixinApi.isBeliefStore(learner) || !signature) {
     return 'The knowing finds nowhere to settle.';
   }
@@ -1459,7 +1459,7 @@ function execMisidentify(ctx: EffectContext, target: Stuff | undefined): string 
     return `There is nothing hidden to learn about ${target.getPresentation()}.`;
   }
   const learner = ctx.actor;
-  const signature = subject.getTemplatePath();
+  const signature = subject.getIdentityPath();
   if (!MixinApi.isBeliefStore(learner) || !signature) {
     return 'The knowing finds nowhere to settle.';
   }
@@ -1480,7 +1480,7 @@ function execMisidentify(ctx: EffectContext, target: Stuff | undefined): string 
   }).stuff.filter(
     (o) =>
       MixinApi.isIdentifiable(o) &&
-      o.getTemplatePath() !== signature &&
+      o.getIdentityPath() !== signature &&
       o.getIdentifiedName().length > 0,
   );
   const decoy = others[0];

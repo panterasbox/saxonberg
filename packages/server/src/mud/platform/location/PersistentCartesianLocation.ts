@@ -4,8 +4,9 @@
  *
  * The missing cell in the room taxonomy:
  *
- *   - `CartesianLocation` — singleton, coordinate-addressed, transient
- *     contents (rebuilt from `props:`/`cast:` each boot).
+ *   - `CartesianLocation` — the permissive minted kind (post-residences:
+ *     no SingletonMixin); `SingletonCartesianLocation` — one row IS one
+ *     place, transient contents (rebuilt from `props:`/`cast:` each boot).
  *   - `FurnishableRoom` — keyed multi-instance interior unit (the
  *     furnishing archetypes, cloned per dorm/lot and keyed by its
  *     provisioner); no coordinates, no singleton shape.
@@ -34,22 +35,19 @@
  * A spherical twin (`PersistentSphericalLocation`) is derived the same
  * way when a spherical venue first needs one.
  *
- * ⚠ REBASE NOTE (!212 / residences): that branch takes `SingletonMixin`
- * OFF the lib cartesian base (the mixin SUBTRACTS — a class without it
- * still backs singleton rows via `StuffApi.singleton`; one WITH it can
- * back only those) and ships `SingletonCartesianLocation` as the marked
- * name. After the merge this class must compose over
- * `SingletonCartesianLocation`, or it silently becomes minted+durable —
- * every minted room sharing ONE `holder_snapshots` scope. !212's
- * platform/location walk test fails this file with the fix named.
+ * Composes over `SingletonCartesianLocation`, not the lib base: post-
+ * residences the mixin SUBTRACTS (`SingletonMixin` opts a class into
+ * one-live-instance-per-row; the unmarked `CartesianLocation` is the
+ * permissive minted kind), and a durable room over the permissive base
+ * would silently share ONE `holder_snapshots` scope across every mint.
  */
 
-import CartesianLocationBase from '../../lib/location/CartesianLocation';
+import SingletonCartesianLocation from './SingletonCartesianLocation';
 import { PersistableMixin } from '../../lib/persistence/Persistable';
 import type { FieldMeta } from '../../lib/mixin';
 
 const PersistentCartesianLocationBase = PersistableMixin(
-  CartesianLocationBase
+  SingletonCartesianLocation
 );
 
 export default class PersistentCartesianLocation extends PersistentCartesianLocationBase {

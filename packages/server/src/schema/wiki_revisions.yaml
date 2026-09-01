@@ -1,0 +1,35 @@
+collection: wiki_revisions
+owner: WikiRevision
+ownerModule: /lib/wiki/WikiRevision
+subsystem: wiki.md
+summary: >-
+  The append-only wiki edit log, in its own collection so a page read never
+  drags its history.
+purpose: |
+  Every edit, forever. Separate from `wiki` for two reasons that both
+  matter: a heavily-edited page would otherwise approach Mongo's 16 MB
+  document cap, and a page READ would otherwise pay for a history nobody
+  asked for.
+
+  `{pageId, rev}` is the materialisation of the compare-and-swap token the
+  edit path uses.
+invariants:
+  - >-
+    Append-only.
+  - >-
+    One row per (pageId, rev), enforced unique — two rows at one rev would
+    mean a lost edit that the history records as having happened.
+  - >-
+    PASS under the sandbox, matching `wiki`.
+sandbox: pass
+reset: wipe
+indexes:
+  - keys: { pageId: 1, rev: -1 }
+    unique: true
+    why: |
+      The compare-and-swap token, materialised. Unique because two rows at
+      one rev is a lost edit that history nevertheless records — the worst
+      kind of data loss, the sort that leaves a receipt.
+  - keys: { author: 1 }
+    why: |
+      A contributor's edits across pages.

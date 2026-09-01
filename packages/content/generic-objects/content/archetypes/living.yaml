@@ -1,0 +1,11 @@
+# The LIVING ROOM archetype — somewhere for TWO to sit.
+#
+# The number is the whole design. One seat is a chair in a room; two is a
+# room you can have someone over in, which is what a living room is FOR.
+# It is the only archetype whose need is about other people, and the
+# cheapest one to satisfy — an armchair and a bench, a bed that also
+# takes `sit` and a stool, whatever an author gives a `sit` slot to.
+archetypeId: living
+label: a living room
+capabilities:
+  - { key: seating, needs: { seating: 2 }, default: /stuff/thing/fixture/armchair }

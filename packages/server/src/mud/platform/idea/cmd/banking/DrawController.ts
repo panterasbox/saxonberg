@@ -40,7 +40,7 @@ export default class DrawController extends CommandController<DrawModel> {
         "not-proprietor",
       );
     }
-    const giverKey = giver.getTemplatePath() ?? "";
+    const giverKey = giver.getIdentityPath() ?? "";
     let account: string;
     try {
       // Custody is the business's authored banksAt (never a default).

@@ -277,7 +277,7 @@ export class DiagnosticLogic extends ApiLogic {
     // `mine`: the spoof-safe "my content" lens — author resolved from the
     // context actor here, never the caller. A subject with no durable
     // templatePath matches nothing.
-    if (filter.mine) q.author = subject?.getTemplatePath() ?? '__no_author__';
+    if (filter.mine) q.author = subject?.getIdentityPath() ?? '__no_author__';
     if (filter.since) q.ts = { $gte: filter.since };
     if (filter.pathPrefix) {
       q.path = { $regex: `^${escapeRegex(filter.pathPrefix)}` };
@@ -305,7 +305,7 @@ export class DiagnosticLogic extends ApiLogic {
     let ok = await AccessApi.isWizard(subject);
     if (!ok && subject) {
       const owner = await ProvenanceApi.authorOf(path);
-      ok = !!owner && owner === subject.getTemplatePath();
+      ok = !!owner && owner === subject.getIdentityPath();
     }
     if (!ok) return -1;
     return PersistApi.deleteMany(Collections.Diagnostics, { path });

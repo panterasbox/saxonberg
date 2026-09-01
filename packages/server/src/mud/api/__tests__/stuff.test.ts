@@ -22,7 +22,7 @@ describe('StuffApi', () => {
 
     it('should accept valid /platform/ paths', () => {
       expect(() => validateClassPath('/platform/agent/Avatar')).not.toThrow();
-      expect(() => validateClassPath('/platform/location/CartesianLocation')).not.toThrow();
+      expect(() => validateClassPath('/platform/location/SingletonCartesianLocation')).not.toThrow();
       expect(() => validateClassPath('/platform/thing/subdir/Item')).not.toThrow();
     });
 

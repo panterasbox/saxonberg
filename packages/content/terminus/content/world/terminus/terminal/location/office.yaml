@@ -1,0 +1,30 @@
+# Terminus Terminal — the ticket office. A raised mezzanine overlooking the
+# hall, reached by the iron stair (the hall lies one cell down; the `down`
+# exit is declared explicitly here, the `up` on the hall). The terminal clerk
+# works here; `props` stands the clerk NPC up on hydrate, and the clerk's
+# postRegister stands up the city-budget Business (Phase 4). Generic room.
+class: /platform/location/SingletonCartesianLocation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the Terminus ticket office
+  primaryKeyword: office
+  longDescription: |
+    A cramped mezzanine office walled in frosted glass, overlooking the concourse from above the arrival arch. A single ticket window faces a short counter; behind it, pigeonholes of forms, a franking stamp, a cold kettle, and a hand-lettered card that reads LOST YOUR CARD? ASK HERE. The whole room smells of carbon paper and stewed tea.
+  coords:
+    x: 0
+    y: 0
+    z: 1
+  exits:
+    down:
+      destination: /world/terminus/terminal/location/hall
+  cast:
+    - /world/terminus/terminal/agent/clerk
+  details:
+    window:
+      keywords: [window, counter, ticket]
+      description: |
+        A brass-barred ticket window over a worn counter, a hollow scooped in the wood where a hundred thousand cards have been slid across. A card taped to the glass: LOST YOUR CARD? ASK HERE.
+    pigeonholes:
+      keywords: [pigeonholes, forms, shelves, paperwork]
+      description: |
+        Ranks of pigeonholes stuffed with forms in triplicate, most of them for procedures the Authority no longer performs. The clerk knows which three still matter.

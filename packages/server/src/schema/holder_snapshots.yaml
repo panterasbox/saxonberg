@@ -1,0 +1,45 @@
+collection: holder_snapshots
+owner: PersistedRecord
+ownerModule: /lib/persistence/PersistedRecord
+subsystem: persistence.md
+summary: >-
+  The self-persistence spine's records — a live host's runtime state,
+  captured.
+purpose: |
+  The engine of record for `PersistableApi.capture` / `materialize`. One row
+  per host `scope` × `owner`: a character's inventory, a room's furnishings,
+  anything a live object needs to survive a restart without a template row
+  of its own.
+
+  ⭐ This is where a MINTED identity backs onto. A per-instance `domain` row
+  is the anti-pattern; a snapshot here is the answer.
+invariants:
+  - >-
+    Written only by the gated `PersistableLogic`, as the owning principal
+    — nothing else may write here.
+  - >-
+    One record per (scope, owner) — enforced unique.
+  - >-
+    Capture is per-mixin-composed: a host's row holds exactly what its
+    composed mixins contribute.
+  - >-
+    PASS under the sandbox: the spine is the mechanism's own store, and a
+    scoped snapshot would be a host that restores differently depending on
+    where you stood.
+sandbox: pass
+reset: wipe
+indexes:
+  - keys: { scope: 1 }
+    why: |
+      `materialize` loads every record scoped to a host, so scope alone is a
+      read shape in its own right.
+  - keys: { owner: 1 }
+    why: |
+      The account-deletion cascade — a keyed delete of everything one owner
+      has anywhere.
+  - keys: { scope: 1, owner: 1 }
+    unique: true
+    why: |
+      The single-record capture upsert. Unique because two rows for one
+      (scope, owner) would make a restore ambiguous, and the pair is exactly
+      one host's slice.

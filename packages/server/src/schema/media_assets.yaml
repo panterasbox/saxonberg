@@ -1,0 +1,29 @@
+collection: media_assets
+owner: MediaAsset
+ownerModule: /lib/media/MediaAsset
+subsystem: media.md
+summary: >-
+  Provenance for every generated illustration: prompt, model, and where the
+  bytes went.
+purpose: |
+  One row per generated image — what was asked for, which model answered,
+  and the URL `mediaUrl()` resolves for a `Visible.illustration`. It is a
+  provenance record, not a blob store; the bytes live wherever the pipeline
+  put them.
+
+  Its only writer is the offline `illustrate` CLI. Nothing reachable from
+  play writes here, which is why it is both REFUSE under the sandbox and a
+  `keep` across the reset — regenerating the images costs real money.
+invariants:
+  - >-
+    Written only by the offline image-generation CLI; no runtime path
+    reaches it.
+  - >-
+    A row records provenance for an asset, never the asset's bytes.
+sandbox: refuse
+reset:
+  verb: keep
+  because: |
+    generated illustration provenance — written by an offline CLI, not
+    reachable from play, and expensive to regenerate
+indexes: []

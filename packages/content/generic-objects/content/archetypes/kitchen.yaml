@@ -1,0 +1,22 @@
+# The KITCHEN archetype — heat, a surface, somewhere cold, and water.
+#
+# The four capabilities `cook` actually asks for, stated as capabilities
+# so a studio corner with a hotplate, a board and a cold box reads as a
+# kitchen and the report names the hotplate. The volcano-vent rule,
+# domestic: nothing here knows what a range is.
+#
+# `heatK: 373` is the honest floor — you must be able to boil water. The
+# shipped range holds 500 K.
+#
+# `coldStorage` has no default and is EXPECTED to go unmet in most homes:
+# cold is a property of a SPACE (a cellar) or of an insulated, closable
+# holder, and the shipped larder is neither — it is a cupboard. That is a
+# gap the survey names, not a bug to paper over; it is also the reason to
+# want a cold box later.
+archetypeId: kitchen
+label: a kitchen
+capabilities:
+  - { key: heat, needs: { heatK: 373 }, default: /stuff/thing/fixture/range }
+  - { key: surface, needs: { surface: true }, default: /stuff/thing/fixture/counter }
+  - { key: water, needs: { bulkSource: water }, default: /stuff/thing/fixture/basin }
+  - { key: cold, needs: { coldStorage: true } }

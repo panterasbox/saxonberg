@@ -1,0 +1,28 @@
+collection: office_holders
+owner: OfficeHolder
+ownerModule: /lib/governance/OfficeHolder
+subsystem: governance.md
+summary: >-
+  Who currently holds which office — sparse, because absence means the
+  founder default.
+purpose: |
+  The government-office handoff store. A row exists only once an office has
+  been handed off from its founder default; until then there is nothing to
+  read, and the absence IS the answer.
+
+  ⚠ Authority is always `holdsOffice` / `holdsSeat`, never 'is the founder'.
+  The founder is the DEFAULT HOLDER of an un-handed-off seat and nothing
+  more — which is what lets every check ask about the office instead of
+  about a person.
+invariants:
+  - >-
+    Sparse by design: no row means the founder default holds, not that the
+    office is vacant.
+  - >-
+    Every authority check reads the office, never the founder directly.
+  - >-
+    REFUSE under the sandbox: a circle may not appoint anybody to a real
+    seat.
+sandbox: refuse
+reset: wipe
+indexes: []

@@ -123,6 +123,28 @@ export class SourceTreeApi {
   }
 
   /**
+   * List the filenames in a **shipped resource directory**, sorted.
+   * Synchronous, and resolved from the caller's own `import.meta.url`
+   * exactly as {@link SourceTreeApi.readResource} is — the pair a
+   * projector needs when the authored data is a DIRECTORY of files rather
+   * than one file (the schema docs, one per collection).
+   *
+   * The async {@link SourceTreeApi.list} is the shell's `ls`: it takes an
+   * absolute path and returns typed entries. This is the resource form,
+   * and returns names because that is what a caller then hands back to
+   * `readYamlResource`.
+   *
+   * @param moduleUrl the caller's `import.meta.url`
+   * @param relativePath directory path relative to the calling module
+   */
+  public static listResource(
+    moduleUrl: string,
+    relativePath: string,
+  ): string[] {
+    return logic().listResource(moduleUrl, relativePath);
+  }
+
+  /**
    * Parse a YAML (or JSON — YAML is a superset) document out of a string
    * that did not come from the file system: a command argument, a CMS
    * field, a pasted spec. Throws on malformed input; callers that are

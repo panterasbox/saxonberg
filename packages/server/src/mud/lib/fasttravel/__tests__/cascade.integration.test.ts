@@ -30,8 +30,8 @@ import PersistentHydrator from "../../../platform/idea/persistence/PersistentHyd
 const PH = PersistentHydrator.templatePath;
 // Repointed: the lounge routes to the Terminus arrival gate (the standalone
 // University Avenue terminal is retired — Phase 6).
-const TERMINUS_TERMINAL = "/world/terminus/terminal/arrival-terminal";
-const TERMINUS_ROOM = "/world/terminus/terminal/arrival-gate";
+const TERMINUS_TERMINAL = "/world/terminus/terminal/thing/arrival-terminal";
+const TERMINUS_ROOM = "/world/terminus/terminal/location/arrival-gate";
 
 const fastTravelDocs: Doc[] = [
   {

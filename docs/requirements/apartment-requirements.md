@@ -1,5 +1,19 @@
 # Apartments — requirements
 
+> ⚠⚠ **SUPERSEDED by the residences build (2026-08-31).** The rung this
+> document specifies **shipped**: Seznick House on Mayfield Row is a
+> `BuildingWarren` letting multi-room, empty-at-move-in units furnished with
+> real owned goods, with keys, whole-unit dormancy and evict-to-storage.
+> The live reference is **[holding.md](../subsystems/holding.md)**
+> (the substrate) and [furnishing.md](../subsystems/furnishing.md) (the
+> owner-based persistence it rides).
+>
+> This file is kept until the next sweep as the record of what was asked
+> for; **read the subsystem docs, not this, for what the world does.**
+> Where the two disagree the subsystem doc is right — notably, the
+> apartment did not get its own substrate: it converged onto the same
+> two-tier institution the dorm and the bought house use.
+
 An apartment is the **rich rung** of the residence ladder: a **leased,
 multi-room, *empty-at-move-in* residence** that a player **furnishes with
 real owned goods** — the furniture they crafted, bought, or looted, placed

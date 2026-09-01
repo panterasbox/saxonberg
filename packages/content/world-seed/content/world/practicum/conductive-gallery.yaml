@@ -2,7 +2,7 @@
 # flooded-cell precedent): a brine-pooled floor that grounds and bridges
 # whoever stands in it. Cast spark at the pool while wading and the walk
 # finds YOU too — the caster-obeys-own-physics lesson, no special case.
-class: /platform/location/CartesianLocation
+class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: the conductive gallery

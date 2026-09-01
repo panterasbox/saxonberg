@@ -64,7 +64,7 @@ export default class ErrorsController extends CommandController<ErrorsModel> {
       severity: asSeverity(model.severity),
       source: asSource(model.source),
       pathPrefix: model.path?.trim() || undefined,
-      author: model.mine ? actor.getTemplatePath() ?? undefined : undefined,
+      author: model.mine ? actor.getIdentityPath() ?? undefined : undefined,
       limit: model.limit,
     });
 

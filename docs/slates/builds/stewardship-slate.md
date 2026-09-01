@@ -275,13 +275,25 @@ not allocate it"). The jurisdiction hook shipped; the power is new.
 
 ---
 
-## The residence ladder **[PROPOSED]**
+## The residence ladder **[SHIPPED 2026-08-31 — the first three rungs]**
+
+> ✅ **The residences build shipped rungs 1–3 and their gate.** Granted (the
+> dorm), let (Seznick House on Mayfield Row) and owned (a house on a bought
+> Hinkley lot) all ride one two-tier substrate; condition is a real,
+> reconciled-on-read shell state with five bands and a cause line; the
+> ascent gate reads the condition of what you already hold at BOTH
+> chokepoints and refuses below a shipped threshold, naming the band. The
+> design claim below — *money is necessary and not sufficient; the binding
+> gate is the condition of what you already hold* — is now mechanism, not
+> proposal. See **[holding.md](../../subsystems/holding.md)**.
+>
+> Still proposal: the smallholding and farm/ranch rungs' ASCENT (the ground
+> itself is buyable and farmable today — that is the farming build — but no
+> gate ties those rungs to the ladder), and every allocation procedure.
 
 The property slate states the ladder twice and inconsistently — the body says
 *dorm → plot → estate → district*; §L says *dorm (rented) → apartment →
-townhome → single-family home → manor*. **§L is the real one**, and it is a
-forward-compat sketch only: **there is no mechanism anywhere for how a player
-ascends.** No eligibility rule, no purchase flow, no queue.
+townhome → single-family home → manor*. **§L is the real one.**
 
 | Rung | Tenure | Land use | Supports | Gate to next |
 |---|---|---|---|---|
@@ -356,7 +368,30 @@ use**:
 
 ---
 
-## Blockers (verified 2026-07-31)
+## Blockers (verified 2026-07-31; re-verified 2026-08-31)
+
+> **2026-08-31 re-verification.** Two of these four moved, and the way they
+> moved is worth recording because it was not by closing them.
+>
+> - **Dense suburbia** — still structurally impossible, and the residences
+>   build **routed around it rather than through it**. A subdivision is one
+>   parcel with children (`lot-<n>`), and a lot's rooms are keyed
+>   instances rather than grid members — so a lane of houses needs no
+>   region parcel and no grid fragmentation. That is enough for Hinkley
+>   Hills and enough for Mayfield Row; it is NOT dense suburbia, and a
+>   coordinate-region parcel is still the thing that would buy it.
+> - **The allowance still has a field and no meter.** Untouched.
+>   Capacity — how many lots a subdivision offers, how many units a
+>   building lets — turned out to be a *different* question with a
+>   different answer (an `AppSettings` operator dial per institution), so
+>   the ladder shipped without the allowance meter existing. The cascade
+>   above remains a policy over a meter that must still be built.
+> - **No allocation procedure exists** — one now does, and it is the
+>   simplest possible: a plat book offers lots at an authored price, first
+>   come, and a land agent fronts every book at one counter. No auction, no
+>   queue, no application. Enough to sell ground; nowhere near a land
+>   office.
+> - **One city.** Unchanged.
 
 - **Dense suburbia is structurally impossible today.** The property slate names
   it exactly: a suburb of many single-family lots without grid-fragmentation "is
@@ -390,15 +425,26 @@ no region parcels required. So **_dorm → go west and farm_ ships well before
 _apartment → townhome → suburb_.** Given that farming and ranching are the
 destination, that is the order the substrate is offering.
 
-Suggested sequence:
+Suggested sequence — **re-ordered 2026-08-31 to what actually shipped**:
 
-1. **Land use** — the vocabulary + the parcel field + `ParcelApi` reads + the
-   three consumer gates. Unblocks farming/ranching/pets.
-2. **The frontier smallholding** — the first non-dorm rung, on shipped parcels.
-3. **Premises + utilities** — obligations, on the money side.
-4. **Stewardship** — condition + the Discipline; closes the ladder's gate.
-5. **The allowance meter** (property Phase 1) — the prerequisite for…
-6. **The cascade + zoning authority** — the political layer, once there is a
+1. ✅ **Land use** — shipped (the closed six + the parcel field + the three
+   consumer gates). [smallholding.md](../../subsystems/smallholding.md)
+2. ✅ **The frontier smallholding** — shipped (Hinkley Hills; the plat book,
+   the lot holder, `title`).
+3. ✅ **Condition + the ladder's gate** — shipped (the weathering clock, five
+   bands, `survey`, `maintain`, the ascent gate at both chokepoints).
+   **Note what did NOT ship with it: the stewardship *Discipline*.**
+   Condition is a property of a PLACE, reconciled on read; nothing yet
+   measures a person's care of it, and the slate's Discipline half is
+   untouched. [holding.md](../../subsystems/holding.md)
+4. ✅ **The let rung** — shipped (Seznick House), which the sequence did not
+   anticipate: the middle city rung turned out to need no region parcel
+   either, because a building's units subdivide under the building.
+5. **Premises + utilities** — obligations, on the money side. **Now the
+   next thing**: a lease with no money leg is the ladder's biggest
+   remaining fiction, and the contract substrate is where rent belongs.
+6. **The allowance meter** (property Phase 1) — still the prerequisite for…
+7. **The cascade + zoning authority** — the political layer, once there is a
    meter to apportion and a second city to compete.
 
 ---

@@ -1,0 +1,38 @@
+collection: beliefs
+owner: BeliefDocument
+ownerModule: /lib/belief/BeliefDocument
+subsystem: belief.md
+summary: >-
+  Per-viewer identity memory: what YOU know about who someone is.
+purpose: |
+  One row per (viewerId, realm, referent). Identity in this world is not
+  global — recognition, disguise and regard are all per-viewer, and this is
+  where that per-viewer state lives. `RecognitionApi.describe` reads it to
+  decide whether you see a name or a description.
+
+  The realm axis keeps the kinds of knowing apart: recognizing a face is a
+  different fact from what you think of the person wearing it.
+invariants:
+  - >-
+    One row per (viewerId, realm, referent).
+  - >-
+    A belief is always somebody's; there is no viewer-independent identity
+    memory.
+  - >-
+    PASS(mark) under the sandbox: what you learned in a circle, you
+    learned.
+sandbox:
+  verb: "pass"
+  mark: true
+reset: wipe
+indexes:
+  - keys: { viewerId: 1 }
+    why: |
+      The session's lazy hydrate (`find({ viewerId })`) and the per-player
+      cleanup cascade. Keeps both O(rows-for-this-viewer) rather than a full
+      scan.
+  - keys: { realm: 1, referent: 1 }
+    why: |
+      The reverse direction — every belief held TOWARD a subject. The regard
+      realm's renown / Sybil-keystone data path ('what does the community
+      feel about Bob'). Additive; no consumer reads it yet.

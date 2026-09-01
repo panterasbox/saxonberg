@@ -12,7 +12,7 @@
 # and an open meadow in the same zone could not differ. The override is
 # ONE number and it moves light and air with it — a bigger room really is
 # dimmer and airier, not just longer-ranged.
-class: /platform/location/CartesianLocation
+class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: the long meadow

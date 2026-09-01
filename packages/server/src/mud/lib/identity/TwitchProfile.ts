@@ -21,6 +21,7 @@ import { Document } from '../persistence/Document';
 import { EncryptedStringMarshaller } from '../../platform/idea/persistence/EncryptedStringMarshaller';
 import type { TwitchProfile as ITwitchProfile } from '@saxonberg/types';
 import type { FieldMeta } from '../mixin';
+import { Collections } from '../persistence/Collections';
 
 /**
  * Twitch OAuth profile data (persistent, token-bearing). A Document —
@@ -30,7 +31,7 @@ export class TwitchProfile extends Document implements ITwitchProfile {
   /**
    * MongoDB collection name.
    */
-  static collectionName = 'twitch_profiles';
+  static collectionName = Collections.TwitchProfiles;
 
   /**
    * Persistent fields for auto-sync.

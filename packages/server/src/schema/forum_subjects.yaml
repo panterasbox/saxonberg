@@ -1,0 +1,38 @@
+collection: forum_subjects
+owner: Subject
+ownerModule: /lib/forum/Subject
+subsystem: forums.md
+summary: >-
+  The linking spine: the subject a board, a channel or an article can all be
+  about.
+purpose: |
+  A Subject is what several surfaces point AT. A board-subject's `title` is
+  a flat global handle; a thread-subject's handle is scoped to its parent,
+  which is what lets two boards each have a thread called 'introductions'
+  without collision.
+
+  It is the layer that makes 'discuss this', 'chat about this' and 'write
+  about this' the same noun.
+invariants:
+  - >-
+    A board-subject's title is globally unique, case-insensitively.
+  - >-
+    A thread-subject's handle is scoped to `parentSubject`.
+  - >-
+    REFUSE under the sandbox.
+sandbox: refuse
+reset: wipe
+indexes:
+  - keys: { title: 1 }
+    unique: true
+    collation: { locale: "en", strength: 2 }
+    why: |
+      The flat-global handle. `SubjectCatalogue.resolveByTitle` and the
+      `make`-on-taken-name guard are the same O(1) query, and the collation
+      (`locale: en, strength: 2`) makes it case-insensitive — so 'The
+      Warren' and 'the warren' collide, which is what a person means by a
+      name.
+  - keys: { parentSubject: 1 }
+    why: |
+      The board-scoped resolve, and the reverse 'threads promoted under this
+      board' read.

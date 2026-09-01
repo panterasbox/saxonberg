@@ -170,6 +170,15 @@ lint:
     # with no state default an unclaimed path is one nobody can edit,
     # broadcast over or teleport within, silently.
     - pnpm -C packages/server lint:untitled
+    # Every collection has one authored schema doc, the doc names the
+    # class that writes it and the subsystem doc that owns the concept,
+    # the three generated tables (Collections / COLLECTION_POLICIES /
+    # RESET_DISPOSITIONS) are current with the docs, and no
+    # `static collectionName` is a bare string literal. The four legs
+    # used to live in four TypeScript files with nothing tying them
+    # together — 11 classes named their collection with a string, and 44
+    # of 48 collections had no prose anywhere.
+    - pnpm -C packages/server lint:schema
 
 test:
   extends: [.node, .mr-only]

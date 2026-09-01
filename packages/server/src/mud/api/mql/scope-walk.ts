@@ -119,6 +119,16 @@ export function candidatesForInventory(
  * Build the candidate pool for the giver's peers — the contents of
  * the giver's location, excluding the giver itself. Each peer
  * contributes its direct entry plus any Details it carries.
+ *
+ * Fixtures count as peers. A wall sconce, a neon sign, a mounted TV is
+ * an object standing in the room with you, even though it rides the
+ * room's `getFixtures()` rather than its `getContents()` — and it is
+ * `peers`, not `here`, precisely because `here` is the surface you
+ * never pick up (the room, its details, its exits and their doors)
+ * while a fixture is a thing a person hangs and takes down. Without
+ * this every fixture in the game is unnameable by every verb: `look
+ * sconce` finds nothing, `switch sconce on` finds nothing, and a lamp a
+ * player hung cannot be taken back down.
  */
 export function candidatesForPeers(
   giver: Stuff,
@@ -141,6 +151,12 @@ export function candidatesForPeers(
       for (const inner of item.getContents()) {
         pushDirect(out, inner, giver, attention);
       }
+    }
+  }
+  if (MixinApi.isAdornable(env)) {
+    for (const fixture of env.getFixtures()) {
+      pushDirect(out, fixture, giver, attention);
+      pushDetails(out, fixture, giver);
     }
   }
   return out;

@@ -31,16 +31,16 @@ import {
 
 type Loose = Record<string, unknown>;
 
-// The realm + city rows are the platform pack's, the per-locality rows
-// world-seed's (content-packs wave 3).
-const seedsRoot = fileURLToPath(new URL("../../../../../../../content/world-seed/content", import.meta.url));
-const platformRoot = fileURLToPath(
-  new URL("../../../../../../../content/platform/content", import.meta.url),
+// The realm + city rows are the platform pack's, the reference Locality/
+// Government rows world-seed's, and the venue rows their locality packs'
+// (residences D18) — search them all.
+const SEED_ROOTS = ["platform", "world-seed", "terminus", "eternal-university", "hinkley-hills"].map(
+  (p) => fileURLToPath(new URL(`../../../../../../../content/${p}/content`, import.meta.url)),
 );
 
 function seedData(relative: string): Loose {
-  const inPlatform = `${platformRoot}/${relative}`;
-  const file = existsSync(inPlatform) ? inPlatform : `${seedsRoot}/${relative}`;
+  const file = SEED_ROOTS.map((r) => `${r}/${relative}`).find((f) => existsSync(f));
+  if (!file) throw new Error(`no pack ships ${relative}`);
   const doc = parse(readFileSync(file, "utf8")) as {
     data?: Loose;
   };
@@ -121,7 +121,7 @@ describe("the civics flagship (authored seeds, end-to-end)", () => {
 
   it("a dorm address resolves the three-deep chain", () => {
     // The address the duncan-hall room seeds declare.
-    const dorm = seedData("world/eternal/duncan-hall/dormroom.yaml");
+    const dorm = seedData("world/eternal/duncan-hall/location/dormroom.yaml");
     expect(dorm._address).toBe("terminus/city/campus/duncan-hall");
     const chain = GovernmentApi.governmentChainAt(String(dorm._address));
     expect(chain.map((g) => g.key)).toEqual([
@@ -137,7 +137,7 @@ describe("the civics flagship (authored seeds, end-to-end)", () => {
   });
 
   it("the terminal resolves [city, realm] — sparse inheritance on real content", () => {
-    const gate = seedData("world/terminus/terminal/arrival-gate.yaml");
+    const gate = seedData("world/terminus/terminal/location/arrival-gate.yaml");
     expect(gate._address).toBe("terminus/city/arrival-gate");
     const chain = GovernmentApi.governmentChainAt(String(gate._address));
     expect(chain.map((g) => g.key)).toEqual(["terminus-city", "terminus-realm"]);
@@ -152,9 +152,9 @@ describe("the civics flagship (authored seeds, end-to-end)", () => {
     // The cross-zone exit pair, declared on both sides.
     const exits = office.exits as Record<string, { destination: string }>;
     expect(exits.west!.destination).toBe(
-      "/world/terminus/terminal/arrival-gate"
+      "/world/terminus/terminal/location/arrival-gate"
     );
-    const gate = seedData("world/terminus/terminal/arrival-gate.yaml");
+    const gate = seedData("world/terminus/terminal/location/arrival-gate.yaml");
     const gateExits = gate.exits as Record<string, { destination: string }>;
     expect(gateExits.east!.destination).toBe(
       "/world/terminus/registry/office"

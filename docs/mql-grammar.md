@@ -337,6 +337,19 @@ The split keeps the common cases reading naturally: `:online` /
 `:reachable` / `:i` / `:e` extend ("for each of these, give me
 peers / reachable / contents / container").
 
+**`:members`** is the flat-map for institutions: each prior element
+that is a **Warren** (a dorm, a lot holder, a holding programme —
+anything managing a member set) expands to its **live** members; a
+non-Warren prior element contributes nothing. Live only, deliberately
+— a query cannot materialize a dormant holding; walk in (or provision)
+first. The keyed-member locator composes it with the `key` / `address`
+atoms:
+
+```
+world:[class.DormWarren]:members:[key = '/world/eternal/duncan-hall/dorms/f1-r3']
+world:[mixin.PersistableMixin][address = 'terminus/hinkley-hills/lot-1']
+```
+
 A migration note: an older form like `flower:peers` used to mean
 "flowers among the peer pool" (intersection). Under the new rule
 it means "peers of each flower, excluding the flowers themselves"
@@ -382,8 +395,12 @@ Inside `[…]`, atoms read object facts via `namespace.key`:
 | `keyword.X` | boolean: has keyword X |
 | `template.X` | boolean: cloned from template path X (glob-aware) |
 
-Plus the bare atoms `name` (display name, string) and `id` (stuff id,
-string).
+Plus the bare atoms `name` (display name, string), `id` (stuff id,
+string), `key` (the object's explicit **persistence key** — the keyed-
+instance axis a holding's rooms are recorded under; `undefined` for an
+unkeyed object, so `[key = …]` never false-matches), and `address` (the
+declared **Locality address**, e.g. `terminus/hinkley-hills/lot-1` —
+the human per-place identity; `undefined` when undeclared).
 
 Comparisons, boolean composition, existence:
 

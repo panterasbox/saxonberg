@@ -1,7 +1,7 @@
 # The bare venue — the room `Archetype.materialize()` clones and fills
 # with an archetype's default bindings (the derived test venue, A13.5).
 # Nothing populates it; the archetype does.
-class: /platform/location/FurnishableRoom
+class: /platform/location/CartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: a venue

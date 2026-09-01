@@ -35,6 +35,10 @@ import type { CommandDefinition } from "../../lib/command/CommandDefinition";
 import type { VetoResult } from "../../lib/errors";
 import type { EvictionContext } from '../../lib/stuff/Stuff';
 import { SourceTreeApi } from '../../api/source-tree';
+import { StuffApi } from '../../api/stuff';
+import { MixinApi, type AnyConstructor } from '../../api/mixin';
+import { SchemaDoc } from '../../lib/persistence/SchemaDoc';
+import type { FieldMeta } from '../../lib/mixin';
 
 // ── The parsed shape of `author-surface.json` (the build artifact the
 //    projection script emits). Declared locally because the script lives
@@ -68,17 +72,53 @@ export interface AuthorSurface {
 }
 
 /** Fixed display order for kinds (categories + search groups). */
-const KIND_ORDER: HelpKind[] = ["command", "api", "mixin", "type"];
+const KIND_ORDER: HelpKind[] = [
+  "command",
+  "api",
+  "mixin",
+  "type",
+  "collection",
+];
 const KIND_TITLE: Record<HelpKind, string> = {
   command: "Commands",
   api: "Apis",
   mixin: "Mixins",
   type: "Types",
+  collection: "Collections",
 };
 
 /** Strip the `Mixin` suffix from a registry value: `ContainerMixin` → `Container`. */
 function stripMixinSuffix(value: string): string {
   return value.endsWith("Mixin") ? value.slice(0, -"Mixin".length) : value;
+}
+
+/**
+ * Load every authored schema doc; `null` if the directory is absent or a
+ * doc is malformed.
+ *
+ * The mudlib's only legal read: `SourceTreeApi` resolves both the listing
+ * and each file against this module's own `import.meta.url`, which is a
+ * language construct rather than an import (docs/architecture.md § The
+ * import boundary).
+ */
+function loadSchemaDocsFromDisk(): SchemaDoc[] | null {
+  try {
+    const dir = "../../../schema";
+    const files = SourceTreeApi.listResource(import.meta.url, dir).filter(
+      (name) => name.endsWith(".yaml")
+    );
+    return files.map((file) =>
+      SchemaDoc.parse(
+        SourceTreeApi.readYamlResource<unknown>(
+          import.meta.url,
+          `${dir}/${file}`
+        ),
+        file
+      )
+    );
+  } catch {
+    return null;
+  }
 }
 
 /** Load + parse the author-surface artifact; `null` if absent/unparseable. */
@@ -110,6 +150,8 @@ export default class HelpCatalogue extends HelpCatalogueBase {
   private byKind: Map<HelpKind, string[]> = new Map();
   /** One-shot guard so the degrade warning logs exactly once. */
   private warnedMissingSurface = false;
+  /** Same, for the schema docs. */
+  private warnedMissingSchema = false;
 
   public override async postRegister(_context?: unknown): Promise<void> {
     await this.warm();
@@ -119,17 +161,24 @@ export default class HelpCatalogue extends HelpCatalogueBase {
    * (Re)build the index from the two projectors. Injectable for tests:
    *   - `commandDefs` defaults to the full loaded roster (`CommandApi.allDefinitions()`).
    *   - `surface` `undefined` → load from disk; `null` → simulate absent (degrade); object → use it.
+   *   - `schema` follows the same three-state convention.
    */
   public async warm(opts?: {
     commandDefs?: CommandDefinition[];
     surface?: AuthorSurface | null;
+    schema?: SchemaDoc[] | null;
   }): Promise<void> {
     const commandDefs = opts?.commandDefs ?? CommandApi.allDefinitions();
     const surface =
       opts === undefined || opts.surface === undefined
         ? loadAuthorSurfaceFromDisk()
         : opts.surface;
-    this.rebuild(commandDefs, surface);
+    const schema =
+      opts === undefined || opts.schema === undefined
+        ? loadSchemaDocsFromDisk()
+        : opts.schema;
+    const fields = schema === null ? new Map() : await harvestFields(schema);
+    this.rebuild(commandDefs, surface, schema, fields);
   }
 
   /** Drop the warmed index (HMR / admin invalidation). */
@@ -221,6 +270,17 @@ export default class HelpCatalogue extends HelpCatalogueBase {
     return null;
   }
 
+  /** Resolve a collection topic by name (`bank_ledger` or the full id). */
+  public findCollectionTopic(name: string): HelpTopic | null {
+    this.ensureWarm();
+    const lower = name.trim().toLowerCase();
+    return (
+      this.topics!.get(lower) ??
+      this.topics!.get(`collection.${lower}`) ??
+      null
+    );
+  }
+
   public findApiTopic(target: string): HelpTopic | null {
     this.ensureWarm();
     // Already-prefixed id, then face.member / bare-name resolution.
@@ -241,10 +301,24 @@ export default class HelpCatalogue extends HelpCatalogueBase {
 
   private rebuild(
     commandDefs: CommandDefinition[],
-    surface: AuthorSurface | null
+    surface: AuthorSurface | null,
+    schema: SchemaDoc[] | null,
+    fields: Map<string, FieldMeta>
   ): void {
     const topics = new Map<string, HelpTopic>();
     for (const t of this.projectCommands(commandDefs)) topics.set(t.id, t);
+
+    if (schema === null) {
+      if (!this.warnedMissingSchema) {
+        this.warnedMissingSchema = true;
+        console.warn(
+          "HelpCatalogue: src/schema/ unreadable — collection topics " +
+            "unavailable. Command topics unaffected."
+        );
+      }
+    } else {
+      for (const t of projectCollections(schema, fields)) topics.set(t.id, t);
+    }
 
     if (surface === null) {
       if (!this.warnedMissingSurface) {
@@ -257,6 +331,36 @@ export default class HelpCatalogue extends HelpCatalogueBase {
     } else {
       for (const t of this.projectApiSurface(surface)) topics.set(t.id, t);
       this.deriveRelations(topics, surface);
+    }
+
+    // A collection topic points at the engine surface for its concept:
+    // the owner class where that class is itself documented, and the Api
+    // face of its owning subsystem. Derived, never authored — and outside
+    // the surface guard above, because a collection topic is worth having
+    // with or without `author-surface.json`.
+    //
+    // ⚠ The owner edge is usually dormant: a `Document` subclass is not
+    // Stuff and not an Api, so it has no topic of its own. The SUBSYSTEM
+    // edge is the one that fires — `banking.md` → `BankingApi` — because
+    // a subsystem doc and its Api face are named for the same concept.
+    for (const topic of topics.values()) {
+      if (topic.kind !== "collection") continue;
+      const doc = (schema ?? []).find((d) => d.collection === topic.source.ref);
+      if (!doc) continue;
+      const stem = doc.subsystem.replace(/\.md$/, "").replace(/-/g, "");
+      const candidates = [
+        ...(doc.owner ? [`api.${doc.owner}`, `mixin.${doc.owner}`] : []),
+        `api.${stem.charAt(0).toUpperCase()}${stem.slice(1)}Api`,
+      ];
+      for (const id of candidates) {
+        const target = topics.get(id);
+        if (!target) continue;
+        topic.relations.push({
+          kind: "see-also",
+          targetId: id,
+          targetTitle: target.title,
+        });
+      }
     }
 
     // Bodies are assembled as plain text — signatures and syntax that
@@ -567,6 +671,196 @@ export default class HelpCatalogue extends HelpCatalogueBase {
         "use forceDestruct (admin-gated) if you really mean it",
     };
   }
+}
+
+
+// ── The collection projector — one topic per authored schema doc ──────
+
+/**
+ * Resolve each doc's owner class and harvest its `fieldMeta`.
+ *
+ * ⭐ D3, made real: the doc does NOT carry a field list. `fieldMeta` is
+ * what the `Hydrator` actually reflects on, so a YAML restating it would
+ * be two copies of one sentence and the copy that drifts is the one
+ * nobody executes. Adding a persistent field to `LedgerEntry` changes
+ * `help bank_ledger` with no edit to `bank_ledger.yaml`.
+ *
+ * `StuffApi.loadClassByPath` is the one place a class path becomes a
+ * class — `ownerModule` is gated by `pnpm lint:schema` against the file
+ * the class is really declared in, so it cannot dangle. A resolve that
+ * fails anyway degrades to no field list rather than to no topic: the
+ * purpose and the invariants are still worth reading.
+ */
+async function harvestFields(
+  docs: SchemaDoc[]
+): Promise<Map<string, FieldMeta>> {
+  const out = new Map<string, FieldMeta>();
+  for (const doc of docs) {
+    if (doc.ownerModule === null) continue;
+    try {
+      const owner = await StuffApi.loadClassByPath(doc.ownerModule);
+      if (typeof owner !== 'function') continue;
+      out.set(doc.collection, MixinApi.getAllFieldMeta(owner as AnyConstructor));
+    } catch {
+      // Degrade to no field list; the rest of the topic still reads.
+    }
+  }
+  return out;
+}
+
+/** The sandbox policy in plain words — never `{ verb: 'stamp' }`. */
+function sandboxSentence(doc: SchemaDoc): string {
+  const policy = doc.sandbox;
+  switch (policy.verb) {
+    case 'stamp':
+      return (
+        'Inside a sandbox circle, a write here is STAMPED with the ' +
+        'circle: it happens for real while you are in there, field reads ' +
+        'never see it, and leaving the circle discards it.'
+      );
+    case 'refuse':
+      return (
+        'Inside a sandbox circle, a write here is REFUSED. This holds ' +
+        'state the world outside the circle depends on, and a circle may ' +
+        'not change it.'
+      );
+    case 'pass':
+      return policy.mark
+        ? 'Inside a sandbox circle, a write here PASSES — it is real and ' +
+            'it stays — and the row is marked with the circle it happened ' +
+            'in. Nothing filters reads by that mark.'
+        : 'Inside a sandbox circle, a write here PASSES: it is real and ' +
+            'it stays. What governs it is title, not where you were standing.';
+    case 'shadow':
+      return (
+        'Inside a sandbox circle, a write here is SKIPPED. This is a ' +
+        'rebuildable cache, and a reader in a circle derives the answer ' +
+        'live from the ledger underneath instead.'
+      );
+  }
+}
+
+/** The reset disposition in plain words. */
+function resetSentence(doc: SchemaDoc): string {
+  const reset = doc.reset;
+  if (reset.verb === 'wipe') {
+    return 'The nightly reset EMPTIES this collection.';
+  }
+  if (reset.verb === 'keep') {
+    return `The nightly reset KEEPS this collection, because ${reset.because}.`;
+  }
+  return (
+    'The nightly reset empties this collection EXCEPT the rows it is ' +
+    `told to spare, because ${reset.because}.`
+  );
+}
+
+/** `{ subject: 1, at: -1 }` → `subject ascending, at descending`. */
+function keyPhrase(keys: Readonly<Record<string, 1 | -1 | 'text'>>): string {
+  return Object.entries(keys)
+    .map(([field, direction]) => {
+      if (direction === 'text') return `${field} (full text)`;
+      return `${field} ${direction === 1 ? 'ascending' : 'descending'}`;
+    })
+    .join(', ');
+}
+
+/** The field list, harvested from the owner class. */
+function fieldLines(meta: FieldMeta | undefined): string[] {
+  if (!meta) return [];
+  const rows: string[] = [];
+  for (const [field, entry] of Object.entries(meta)) {
+    if (!entry) continue;
+    const notes: string[] = [];
+    if (entry.persistent) notes.push('stored');
+    if (entry.instruction) notes.push('applied at hydrate');
+    if (entry.marshaller) notes.push(`via ${entry.marshaller}`);
+    if (entry.globIdentity) notes.push('part of glob identity');
+    if (entry.ref) notes.push(`points at other stuff (${entry.ref})`);
+    if (entry.lifetime) notes.push(`lifetime ${entry.lifetime}`);
+    rows.push(
+      notes.length > 0 ? `  ${field} — ${notes.join(', ')}` : `  ${field}`
+    );
+  }
+  return rows;
+}
+
+/** Assemble the body of one collection topic. */
+function renderCollectionBody(doc: SchemaDoc, meta: FieldMeta | undefined): string {
+  const lines: string[] = [doc.collection, '', doc.purpose];
+
+  if (doc.invariants.length > 0) {
+    lines.push('', 'Always true here:');
+    for (const invariant of doc.invariants) lines.push(`  - ${invariant}`);
+  }
+
+  const fields = fieldLines(meta);
+  if (fields.length > 0) {
+    lines.push('', `Fields (from ${doc.owner}):`, ...fields);
+  } else if (doc.owner) {
+    lines.push('', `Written by ${doc.owner}.`);
+  } else {
+    lines.push(
+      '',
+      'No record class owns this collection — everything that writes here ' +
+        'goes straight through PersistApi.'
+    );
+  }
+
+  if (doc.indexes.length > 0) {
+    lines.push('', 'Indexes, and what each one is for:');
+    for (const index of doc.indexes) {
+      const flags: string[] = [];
+      if (index.unique) flags.push('unique');
+      if (index.text) flags.push('full-text');
+      if (index.expireAfterSeconds !== undefined) flags.push('expiring');
+      const head = flags.length > 0 ? ` [${flags.join(', ')}]` : '';
+      lines.push(`  ${keyPhrase(index.keys)}${head}`);
+      for (const line of index.why.split('\n')) {
+        if (line.trim().length > 0) lines.push(`    ${line.trim()}`);
+      }
+    }
+  } else {
+    lines.push('', 'No indexes — nothing queries this by anything but its id.');
+  }
+
+  lines.push('', sandboxSentence(doc), '', resetSentence(doc));
+  lines.push('', `The subsystem doc that owns this: docs/subsystems/${doc.subsystem}`);
+  return lines.join('\n');
+}
+
+/**
+ * One `HelpTopic` per schema doc — the third projector, harvesting
+ * exactly as the other two do. Nothing is registered; the directory IS
+ * the roster.
+ */
+function projectCollections(
+  docs: SchemaDoc[],
+  fields: Map<string, FieldMeta>
+): HelpTopic[] {
+  const out: HelpTopic[] = [];
+  for (const doc of docs) {
+    out.push({
+      id: `collection.${doc.collection}`,
+      kind: 'collection',
+      title: doc.collection,
+      summary: doc.summary,
+      keywords: [
+        doc.collection,
+        ...doc.collection.split('_'),
+        ...(doc.owner ? [doc.owner.toLowerCase()] : []),
+        'collection',
+        'persistence',
+      ],
+      body: renderCollectionBody(doc, fields.get(doc.collection)),
+      relations: [],
+      // ⚠ Never a spoiler: how the world remembers things is not a
+      // secret, and the capability floor this cycle is anonymous.
+      spoiler: false,
+      source: { subdivision: 'persistence', ref: doc.collection },
+    });
+  }
+  return out;
 }
 
 // ── Pure render helpers — assemble topic bodies as plain text; rebuild()

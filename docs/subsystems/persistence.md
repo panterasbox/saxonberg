@@ -773,7 +773,7 @@ first provisioning from a re-entry and wire exits, announce or bill
 accordingly.
 
 Two consumers: **`DormWarren.admit`** (per leased unit) and
-**`LotHolder`** (per titled lot — see
+**`PlatWarren`** (per titled lot — see
 [smallholding.md](./smallholding.md)). It lives here rather than in either
 because hand-rolled, the same six lines invite three specific mistakes:
 capturing on the restore path, re-seeding a room that already has
@@ -938,63 +938,188 @@ field-level adapter over it — it keeps the envelope validation and the
 `Marshaller` shape, and holds no key. The key is memoised process-wide
 and lazily loaded; `_resetEncryptionKeyForTest` invalidates it.
 
-## Collections
+## Collections, and the schema docs that describe them
 
-Defined in **`mud/lib/persistence/Collections.ts`**, and re-exported by
-`backend/PersistenceManager` so the driver side keeps one import site
-(`COLLECTION_POLICIES` is a total `Record<Collections, …>`).
+**Every collection has exactly one authored YAML doc** at
+`packages/server/src/schema/<collection>.yaml`. That doc is where the
+collection is described — what it is for, what is true of every row, why
+each index exists — and it is the source the three machine-readable
+tables are generated from.
 
-It lives in the mudlib because it is **vocabulary, not mechanism** — no
-driver, no connection, no I/O — and mudlib records name their own
-collection (`static collectionName = Collections.BankLedger`). Under
-[the import boundary](../architecture.md) a mudlib module may not reach
-into `backend/` to learn its own name, so the enum moved to the side
-that reads it; ~30 ledger-shaped records import it directly today.
+Before this existed the four facts about a collection lived in four
+TypeScript files (the name, the sandbox policy, the reset disposition,
+the indexes), what the collection was *for* lived almost nowhere (4 of 48
+had any prose), and 11 record classes named their collection with a bare
+string literal so the vocabulary could not see them.
 
-```typescript
-enum Collections {
-  Users = 'users',
-  GoogleProfiles = 'google_profiles',
-  Domain = 'domain',
-  Emotes = 'emotes',
-  Groups = 'groups',
-  Channels = 'channels',
-  Beliefs = 'beliefs',
-}
+⭐ **The motivation is pedagogy, not tidiness.** Moving four tables into
+YAML is the means; `help bank_ledger` is the end.
+
+### The shape
+
+```yaml
+collection: bank_ledger
+owner: LedgerEntry                    # the Document class, or `none`
+ownerModule: /lib/banking/LedgerEntry # where that class lives
+subsystem: banking.md                 # the doc that owns the concept
+summary: >-
+  The money system of record. Every movement of money, append-only.
+purpose: |
+  Double-entry, append-only, and the only thing in the system that is
+  allowed to say how much money exists. …
+invariants:
+  - >-
+    Only `BankingApi.postTransaction` writes here — the sealed
+    chokepoint, and the reason conservation holds.
+sandbox: stamp                        # or a mapping: {verb: pass, mark: true}
+reset: wipe                           # or {verb: keep, because: …}
+indexes:
+  - keys: { fromAccount: 1 }
+    why: |
+      The per-account replay and every outbound read — one side of the
+      double entry.
 ```
 
-`Domain` is the templates collection. The social-cluster collections
-(`groups`, `channels`) hold `Document` subclasses (`Group`, `Channel`);
-emotes, recipes and name banks are `documents` rows of a declared
-kind — see the corresponding subsystem docs. `beliefs`
-holds `BeliefDocument` rows (one per `{viewerId, realm, referent}`) — the
-per-viewer identity-memory working set, a lazily-hydrated keyed set rather
-than a singleton or a one-doc-per-owner blob; see
-[belief.md](./belief.md).
+`mud/lib/persistence/SchemaDoc.ts` is the parser, and **all three readers
+go through it**, so a malformed doc fails the same way everywhere. It is
+a pure value object — no `fs`, no YAML parser; the caller hands it an
+already-parsed object, which is what keeps it import-clean under
+[the import boundary](../architecture.md).
 
-Indexes are created on connect:
+⚠ It deliberately does **not** check that `collection` is a member of
+`Collections`: the enum is generated from these docs, so a membership
+check there would be the tail wagging the dog. Set equivalence is
+asserted by the loader (at boot) and by `pnpm lint:schema` (at build).
 
-- `google_profiles.googleId` — unique
-- `google_profiles.email` — non-unique
-- `users.googleProfileId` — non-unique
-- `domain.path` — unique
-- `emotes.verb` — unique
-- `emotes.aliases` — non-unique
-- `groups.owner` — non-unique
-- `groups.memberIds` — non-unique
-- `channels.name` — unique
-- `channels.memberIds` — non-unique (powers "channels I'm in" lookups)
-- `channels.kind` — non-unique
-- `beliefs.viewerId` — non-unique (powers per-viewer hydrate + the
-  future per-player cleanup cascade)
-- `holder_snapshots.scope` — non-unique (materialize loads every record
-  scoped to a host)
-- `holder_snapshots.owner` — non-unique (the account-deletion cascade key)
-- `holder_snapshots.{scope, owner}` — unique (the single-record capture
-  upsert) — the persistence-spine engine-of-record; see [The self-persistence
-  spine](#the-self-persistence-spine-persistable)
+### The three readers
 
-Index creation is best-effort (logs and continues on failure).
+| reader | what it does with them |
+|---|---|
+| `backend/PersistenceManager` | `loadSchemaDocs()` at `connect()`, then builds every index from them |
+| `scripts/gen-schema.ts` | emits `Collections.ts`, `CollectionPolicy.ts`, `ResetPolicy.ts` |
+| `platform/idea/HelpCatalogue` | `projectCollections()` — one help topic per doc |
+
+### ⚠ The generated files are never hand-edited
+
+`Collections.ts`, `CollectionPolicy.ts` and `ResetPolicy.ts` each open
+with a do-not-edit banner. Edit the YAML doc for the collection you mean
+and re-run `pnpm gen:schema`; `pnpm lint:schema` fails if the emitted
+files and the docs disagree.
+
+The module-level TSDoc of each emitted file is a template constant in
+`scripts/gen-schema.ts` — **that** is its editable copy. Everything below
+the module comment (every enum member, every table row, every `because`)
+comes from the docs.
+
+**Why generate rather than parse at runtime.** `Collections` is used in
+TYPE position — `Record<Collections, …>`, `PersistApi.find(Collections.X,
+…)` across ~50 files. Parsing the vocabulary at boot would trade a whole
+class of compile-time error for a boot-time one. Generating keeps both:
+one authored source, and a typo is still a build failure. It is the
+lint-family pattern applied to data.
+
+### Indexes are data; two loops stay derived
+
+`createIndexes()` was 570 lines of hand-written `createIndex` calls. It
+is now a driver over three sources:
+
+| kind | count | where it comes from |
+|---|---|---|
+| **Authored** | 84 | the `indexes[]` of each schema doc |
+| **Text** | 3 of those | the same, with `text: true` — routed through `ensureTextIndex`, whose drop-and-recreate-on-conflict recovery is BEHAVIOUR and stays in PM |
+| **Derived** | two loops | the `circleScope` partial on every STAMP collection (5 today), and the `{ kind, data.<naturalKey> }` partial-unique per declared document kind (5 today) |
+
+Both derived loops are **consequences of another declaration**, not
+authored facts, and writing them out per collection would be the
+duplication the docs refuse. Their COUNTS move on their own when the
+vocabulary they walk changes, which is exactly why they are not a list.
+
+⭐ Declaring `sandbox: stamp` in a doc is now what gives a collection its
+`circleScope` index: `STAMP_COLLECTIONS` derives from
+`COLLECTION_POLICIES`, which is generated from the docs. There is no list.
+
+⭐⭐ **Every index is attempted independently.** The predecessor wrapped
+the whole list in one `try`, so the first failure skipped every index
+below it — found by driving, when a stale text index on `player_frames`
+silently took the wiki index, the forum index and every sandbox partial
+with it. Per-index isolation was called "a large mechanical rewrite"
+while the calls were written by hand; over a loop it is free.
+
+`plannedIndexes()` is the pure half — what this deployment declares,
+computable without a connection, and what a test asserts against.
+
+### ⚠⚠ A missing doc is an error, not a default
+
+`loadSchemaDocs()` throws at boot, naming every undescribed collection
+(not just the first). A doc naming an unknown collection throws too. A
+collection nobody described is precisely the state these docs exist to
+end, so the runtime refuses to paper over it — `lint:schema` catches it
+long before a boot does, and the runtime check is what makes the gate
+load-bearing rather than advisory.
+
+### `pnpm lint:schema` — the six assertions
+
+CI-gating (wired in `.gitlab-ci.yml`'s lint job), **no exemption list**:
+
+1. Every doc names a collection; every collection has exactly one doc;
+   neither set has an extra.
+2. Regenerating produces byte-identical generated files.
+3. Every `static collectionName` outside `__tests__` is `Collections.X`,
+   never a string literal.
+4. Every `owner` names a real `Document` subclass whose `collectionName`
+   is that collection, and `ownerModule` names exactly the file that
+   class is declared in. `owner: none` is legal and means *nothing but
+   `PersistApi` writes here*, which must then be true.
+5. Every `subsystem` resolves to a real file under `docs/subsystems/`.
+6. Every doc has a non-empty, non-placeholder `summary` and `purpose`.
+
+Test-fixture classes (`boxes`, `widgets`, `test_wallets`) are exempt from
+(3) by living under `__tests__`; they name collections that are not in
+the vocabulary and must not be. That is the only carve-out.
+
+⚠ Resolution for (3) and (4) is AST-based and **file-scoped** — the
+`lint:topics` lesson: a tree-wide name table silently resolves a name
+against an unrelated file, and the gate then passes while the thing it
+watches is broken.
+
+### `ownerModule` is not a second copy of `owner`
+
+The field list in a collection's help topic is **harvested** from
+`Owner.fieldMeta`, never restated in the YAML — a doc carrying a field
+list would be two copies of one sentence, and the copy that drifts is the
+one nobody executes. Harvesting needs the class OBJECT rather than its
+name, and `StuffApi.resolveClassFile` is the one place a class path
+becomes a file. So the doc names the path, the projector resolves it, and
+assertion 4 proves the path names exactly the file the class is declared
+in — a class that moves fails the build.
+
+### What a schema doc does NOT carry
+
+- **A field list** — harvested from `fieldMeta`, above.
+- **Per-field prose** — it has no home until `fieldMeta` grows a
+  `description`. That is the obvious next move and is explicitly not
+  attempted here; the projector's field harvest would render it with no
+  schema-doc change.
+- **A history block** — git is the record.
+- **Schema *validation*** — these docs describe; they do not enforce
+  document shape at write time. Mongo-side JSON Schema validators are a
+  separate build with a real migration question attached.
+
+They are also **not a content pack** (a pack cannot create a collection,
+and the set is closed and repo-owned) and **not seed files** (they seed
+no data). They are repo files loaded at boot, exactly as `hooks.yaml` is.
+
+### Proving a change is safe
+
+`scripts/dump-indexes.ts --reindex --out <file>` drops every non-`_id`
+index, reconnects so the driver rebuilds from scratch, and dumps
+`listIndexes()` for all 48 collections. Run it before and after any
+change to index declaration and diff. When indexes moved into the docs
+the diff was empty: **139 `listIndexes()` rows across 48 collections** (45
+of them the automatic `_id_`), byte-identical before and after.
+
+⚠ Point it at this worktree's own `saxonberg_buildN`. Rebuilding every
+index on a live database is not free.
 
 ## Cross-References
 
@@ -1091,6 +1216,53 @@ The **second persistence scope** landed: owned chattel persists with its
 - **New Api surface:** `captureDetached` / `restoreDetached` (one non-host
   good's composed state) and `placeIdOf` (a host's room identity — scope
   plus its per-instance key **only when explicit**).
+
+## History — the residences build (2026-08-31)
+
+The spine's keyed-host model was already here (the dorm's D1
+multi-instance change); the residential ladder made two things follow
+from it, and added one marker.
+
+### A placement can name a KEYED container
+
+`HostPlacement` gained `containerKey?`. A holding's rooms all share one
+template row and are separated only by their persistence key, so
+`{ container }` alone would collapse every tenant's yard into one; and
+the room is not standing when the placement restores, because the whole
+holding is dormant. So `capturePlacement` records the pair, and
+`restorePlacement` re-enters through `OuterWarren.admitFor(key)` —
+which finds the institution whose parent extent prefixes the key, stands
+the holding back up, and returns the exact room.
+
+That is the **"log out in your own yard, log back into the same yard"**
+acceptance, and it is the general form of the dorm's Warren
+reconciliation rather than a second mechanism beside it.
+
+### An owned good can be MOUNTED
+
+`EstateEntry` gained `mounted?: { slot }`. A good hung on a wall lives in
+its room's `Adornable` fixture map rather than its contents; the marker
+is **derived** from the good's own live attachment (`getMountSlot()`) at
+capture time rather than passed in, so it can never disagree with the
+map, and the room overlay re-attaches instead of floor-placing.
+
+⚠ **`AdornableMixin` needed a capture pass of its own.** The container
+slice never sees a fixture, so a stamped good on a wall was reported by
+nobody: a room going dormant while its owner was offline took the lamp
+with it. The mixin now walks `getFixtures()` and reports stamped ones to
+`noteOwnedGood`, exactly as the container slice reports stamped contents.
+Its slice is deliberately empty — fixtures are runtime-only and an
+authored one is rebuilt from the row on every hydrate; the pass exists
+for the REPORT.
+
+### `_identityStampOf` peels, it does not unwrap once
+
+The D17 identity split reads a hard-private slot to key the registry
+index. One `ProxyApi.unwrap` of a proxy-of-a-proxy yields the inner
+PROXY, which carries no private slot and throws — which turned a
+deliberate `postRegister` failure into the wrong error on the unregister
+path. It now peels until the slot is present, which is correct at any
+wrapping depth.
 
 ## Props and cast — the two born-with designations (2026-09-01)
 

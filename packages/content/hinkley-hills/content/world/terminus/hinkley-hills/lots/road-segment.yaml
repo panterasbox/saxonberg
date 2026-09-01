@@ -1,0 +1,21 @@
+# A reach of Hinkley Lane past the made road's end — the MINTED
+# circulation row (residences D13): cloned per plan node as frontage
+# sells, reaped outside-in when it empties. The prose is the honest
+# state of an unbuilt reach; the gates that hang here as lots sell are
+# what make it a street.
+class: /platform/location/CartesianLocation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a reach of Hinkley Lane
+  primaryKeyword: lane
+  alternateNames: [road, reach, street]
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  ambientIntensity: 600
+  ambientColorTemperature: 5800
+  longDescription: |
+    The made road gives out here into graded dirt, and past that the lane peters out into stakes and grass — the survey ran on ahead of the building. Where a lot along this reach has been taken there is a gate and, behind it, somebody's roof; everything else is numbers on stakes and string gone slack between them.
+  details:
+    stakes:
+      keywords: [stakes, string, survey, grass]
+      description: |
+        Survey stakes with the lot numbers stencilled on, string run between them and sagging. The grass inside the lines is the same as the grass outside them.

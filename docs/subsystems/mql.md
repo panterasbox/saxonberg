@@ -434,6 +434,26 @@ focus chains resolve coherently:
 | `here:bookcase` | (room, via=[bookcase]). Detail name "bookcase" matched; keyword space at this depth is bookcase detail's display + child detail names. |
 | `here:bookcase:book` | (room, via=[bookcase, book]). Child detail "book" matched. |
 
+##### `:members` and the keyed-member locator (residences D16)
+
+`:members` is a reserved single-word chain element beside the
+element-derivable seeds: it flat-maps each prior element that is
+`instanceof Warren` to `getMembers()` (live members only — a sync
+query cannot materialize a dormant holding; the locator is the
+operator/author surface and a drive admits first), deduped by
+`stuffId`, score carried from the prior match. A non-Warren prior
+element contributes nothing. Holding programmes are warren-shaped one
+level down, so `warren:members:members` walks institution → holding →
+rooms.
+
+Two filter atoms complete the locator, beside `name`/`id` in
+`evalAtom`: **`key`** — the explicit persistence key via the
+`Persistable` narrow (`getPersistenceKey() ?? undefined`), and
+**`address`** — the declared Locality address via the `Addressable`
+narrow. Both read `undefined` off an unkeyed/unaddressed object, so a
+comparison never false-matches (`docs/mql-grammar.md` § Filter
+expressions).
+
 #### Set operations
 
 | Form | Means |

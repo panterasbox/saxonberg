@@ -31,6 +31,8 @@ import type { StoredDocument } from '../document/StoredDocument';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
 import type RecipeCatalogue from '../../platform/idea/RecipeCatalogue';
+import type { Postured } from '../slot/Postured';
+import type { BulkAffordance } from '../bulk/Bulkable';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
 import { ContainmentApi } from '../../api/containment';
@@ -55,8 +57,31 @@ export interface EffectiveRow {
 export interface ArchetypeDescription {
   archetypeId: string;
   label: string;
-  industry: string;
+  industry: string | null;
   rows: EffectiveRow[];
+}
+
+/** One row of {@link Archetype.satisfies}: the need, and what met it. */
+export interface SatisfactionRow {
+  key: string;
+  needs: CapabilityNeed;
+  satisfied: boolean;
+  /**
+   * What satisfied the need, as a presentation phrase — *whatever
+   * object* did it. The read is the capability, never the furniture:
+   * a hearth and a range both answer `heatK`, and the report names the
+   * one that actually did.
+   */
+  by: string | null;
+}
+
+/** {@link Archetype.satisfies}'s answer over one space or one holding. */
+export interface Satisfaction {
+  archetypeId: string;
+  label: string;
+  /** Every row satisfied. */
+  satisfied: boolean;
+  rows: SatisfactionRow[];
 }
 
 /**
@@ -72,6 +97,14 @@ export interface ArchetypeDescription {
  * - `coldStorage` — somewhere cold: the VENUE itself when it is cool
  *   (a cellar, a walk-in — cold storage is a property of a SPACE), or an
  *   insulated, sealable holder in it (`Thermal` + `Sealable`).
+ * - `rest` — a posture-bearing `lie` slot whose `restQuality` reaches
+ *   `n`. What makes a bedroom a bedroom, and it is a real read: a body
+ *   that sleeps on it recovers by `posture × restQuality`.
+ * - `presence` — a thing answering to `<keyword>` is here. Deliberately
+ *   the WEAKEST need in the vocabulary, and the honest one for a
+ *   bathroom: a toilet is prose-LOD, it affords nothing the kernel
+ *   checks, and claiming otherwise would be inventing a mechanic to
+ *   make a checklist tidy.
  */
 export type CapabilityNeed =
   | { tool: string }
@@ -79,7 +112,9 @@ export type CapabilityNeed =
   | { bulkSource: string }
   | { surface: true }
   | { seating: number }
-  | { coldStorage: true };
+  | { coldStorage: true }
+  | { rest: number }
+  | { presence: string };
 
 export interface CapabilitySlot {
   /** The slot's name in the archetype (`water`, `dispensing`, `cold`). */
@@ -92,12 +127,29 @@ export interface CapabilitySlot {
 export interface ArchetypeData {
   archetypeId: string;
   label: string;
-  /** The `Recipe.discipline` whose recipes derive the rest of the floor. */
-  industry: string;
+  /**
+   * The `Recipe.discipline` whose recipes derive the rest of the floor.
+   *
+   * **Optional.** A venue archetype is mostly derived from an industry's
+   * recipes and states only the residue; a ROOM archetype (a bedroom, a
+   * bathroom) has no industry at all — it is residue the whole way down,
+   * and there is nothing to derive. Absent means "derive nothing", not
+   * "derive from everything".
+   */
+  industry: string | null;
   capabilities: CapabilitySlot[];
 }
 
-const NEED_KEYS = ['tool', 'heatK', 'bulkSource', 'surface', 'seating', 'coldStorage'] as const;
+const NEED_KEYS = [
+  'tool',
+  'heatK',
+  'bulkSource',
+  'surface',
+  'seating',
+  'coldStorage',
+  'rest',
+  'presence',
+] as const;
 
 function fail(archetypeId: string, msg: string): never {
   throw new Error(`archetype '${archetypeId}': ${msg}`);
@@ -115,10 +167,12 @@ function needOf(archetypeId: string, key: string, raw: unknown): CapabilityNeed 
   switch (k) {
     case 'tool':
     case 'bulkSource':
+    case 'presence':
       if (typeof v !== 'string' || v.length === 0) fail(archetypeId, `capability '${key}': \`${k}\` must be a non-empty string`);
       return { [k]: v } as CapabilityNeed;
     case 'heatK':
     case 'seating':
+    case 'rest':
       if (typeof v !== 'number' || !Number.isFinite(v) || v <= 0) fail(archetypeId, `capability '${key}': \`${k}\` must be a positive number`);
       return { [k]: v } as CapabilityNeed;
     case 'surface':
@@ -144,10 +198,13 @@ export class Archetype {
       throw new Error("archetype: 'archetypeId' must be a non-empty string");
     }
     const label = typeof data.label === 'string' && data.label.length > 0 ? data.label : id;
-    const industry = data.industry;
-    if (typeof industry !== 'string' || industry.length === 0) {
-      fail(id, "'industry' must name the discipline whose recipes derive the floor");
+    // Optional: a room archetype derives nothing (no recipes make a
+    // bedroom). Present-but-empty is an authoring mistake, not a room.
+    const rawIndustry = data.industry;
+    if (rawIndustry !== undefined && rawIndustry !== null && (typeof rawIndustry !== 'string' || rawIndustry.length === 0)) {
+      fail(id, "'industry', when present, must name the discipline whose recipes derive the floor");
     }
+    const industry = typeof rawIndustry === 'string' ? rawIndustry : null;
     const rawCaps = data.capabilities ?? [];
     if (!Array.isArray(rawCaps)) fail(id, "'capabilities' must be a list");
     const seen = new Set<string>();
@@ -169,7 +226,7 @@ export class Archetype {
 
   getArchetypeId(): string { return this.data.archetypeId; }
   getLabel(): string { return this.data.label; }
-  getIndustry(): string { return this.data.industry; }
+  getIndustry(): string | null { return this.data.industry; }
   getCapabilities(): readonly CapabilitySlot[] { return this.data.capabilities; }
 
   /** A stable identity for a need, so a derived row merges with an authored one. */
@@ -179,6 +236,8 @@ export class Archetype {
     if ('bulkSource' in need) return `bulkSource:${need.bulkSource}`;
     if ('surface' in need) return 'surface';
     if ('seating' in need) return 'seating';
+    if ('rest' in need) return 'rest';
+    if ('presence' in need) return `presence:${need.presence}`;
     return 'coldStorage';
   }
 
@@ -230,14 +289,56 @@ export class Archetype {
       rows.set(k, { key: k, needs: need, default: null, derivedFrom: [recipeId] });
       order.push(k);
     };
+    // No industry ⇒ nothing to derive. A bedroom is residue all the way
+    // down; skipping the walk is the whole of "industry is optional".
+    const industry = this.getIndustry();
+    if (industry === null) return order.map((k) => rows.get(k)!);
     const recipes = StuffApi.findByTemplatePath<RecipeCatalogue>(RECIPES_PATH) ?? null;
     for (const r of recipes?.allRecipes() ?? []) {
-      if (r.getDiscipline() !== this.getIndustry()) continue;
+      if (r.getDiscipline() !== industry) continue;
       for (const cap of r.getToolCapabilities()) add({ tool: cap }, r.getRecipeId());
       const heat = r.getRequiresHeatK();
       if (heat > 0) add({ heatK: heat }, r.getRecipeId());
     }
     return order.map((k) => rows.get(k)!);
+  }
+
+  /**
+   * **Does this space answer the archetype?** — the third derived read,
+   * and the one a person asks (`survey`).
+   *
+   * Evaluated over the union of one or more spaces' direct contents AND
+   * their fixtures, so a holding answers as a whole (a kitchen counter
+   * in one room and a bed in another are one home) and a sconce on the
+   * wall counts as much as a lamp on the floor. Per row: satisfied, and
+   * BY WHAT — because the answer is the capability, never the furniture.
+   * A studio corner with a hotplate, a board and a cold box reads as a
+   * kitchen; the report names the hotplate.
+   *
+   * ⚠ **Nothing consumes this.** It is reported, never enforced: an
+   * unrecognized room provisions, persists and functions identically,
+   * and no multiplier anywhere reads a satisfaction. D15's whole point
+   * is that a home you like is not a home that scores.
+   */
+  satisfies(space: (Stuff & Container) | readonly (Stuff & Container)[]): Satisfaction {
+    const spaces = Array.isArray(space)
+      ? (space as readonly (Stuff & Container)[])
+      : [space as Stuff & Container];
+    const pool: Stuff[] = [];
+    for (const sp of spaces) {
+      for (const item of sp.getContents()) pool.push(item);
+      if (MixinApi.isAdornable(sp)) for (const f of sp.getFixtures()) pool.push(f);
+    }
+    const rows = this.effectiveRows().map((row) => {
+      const by = satisfyingItem(row.needs, pool, spaces);
+      return { key: row.key, needs: row.needs, satisfied: by !== null, by };
+    });
+    return {
+      archetypeId: this.getArchetypeId(),
+      label: this.getLabel(),
+      satisfied: rows.every((r) => r.satisfied),
+      rows,
+    };
   }
 
   /**
@@ -257,4 +358,104 @@ export class Archetype {
     }
     return venue;
   }
+}
+
+/**
+ * **The checker.** One need, one pool of candidate objects (a space's
+ * contents + fixtures), and the spaces themselves for the needs that are
+ * properties of a SPACE. Returns the presentation of whatever satisfied
+ * it, or null.
+ *
+ * Every clause asks the kernel a question the kernel already answers —
+ * that is the archetype contract: the volcano-vent smithy satisfies
+ * `heatK` without an exemption, because nothing here knows what a forge
+ * is.
+ */
+function satisfyingItem(
+  need: CapabilityNeed,
+  pool: readonly Stuff[],
+  spaces: readonly (Stuff & Container)[],
+): string | null {
+  if ('tool' in need) {
+    const hit = pool.find((i) => MixinApi.isTool(i) && i.hasCapability(need.tool));
+    return hit ? hit.getPresentation() : null;
+  }
+  if ('heatK' in need) {
+    const want = need.heatK;
+    const hit = pool.find(
+      (i) => MixinApi.isFurnace(i) && i.getHeldTemperatureK() >= want,
+    );
+    return hit ? hit.getPresentation() : null;
+  }
+  if ('bulkSource' in need) {
+    const hit = pool.find((i) => holdsBulkOf(i, need.bulkSource));
+    return hit ? hit.getPresentation() : null;
+  }
+  if ('surface' in need) {
+    const hit = pool.find((i) => MixinApi.isSurfaced(i));
+    return hit ? hit.getPresentation() : null;
+  }
+  if ('seating' in need) {
+    const seats = pool.filter((i) => posturedFor(i, 'sit') !== null);
+    return seats.length >= need.seating
+      ? seats.map((s) => s.getPresentation()).join(', ')
+      : null;
+  }
+  if ('rest' in need) {
+    const want = need.rest;
+    const hit = pool.find((i) => {
+      const slot = posturedFor(i, 'lie');
+      return slot !== null && (i as Stuff & Postured).getRestQuality() >= want;
+    });
+    return hit ? hit.getPresentation() : null;
+  }
+  if ('presence' in need) {
+    const hit = pool.find((i) => answersTo(i, need.presence));
+    return hit ? hit.getPresentation() : null;
+  }
+  // coldStorage — a property of a SPACE first (a cellar, a walk-in), and
+  // only then of a holder in it (insulated AND closable).
+  for (const sp of spaces) {
+    if (MixinApi.isThermal(sp) && sp.getTemperature().rawValue() <= COLD_K) {
+      return sp.getPresentation();
+    }
+  }
+  const box = pool.find((i) => MixinApi.isThermal(i) && MixinApi.isSealable(i));
+  return box ? box.getPresentation() : null;
+}
+
+/** At or below this, a space is cold storage (≈ 10 °C — a cellar). */
+const COLD_K = 283;
+
+/** Does `item` hold, or endlessly supply, bulk matter answering `token`? */
+function holdsBulkOf(item: Stuff, token: string): boolean {
+  if (!MixinApi.isBulkable(item)) return false;
+  const affordances: BulkAffordance[] = [];
+  if (item.hasInteriorBulk()) affordances.push('interior');
+  if (item.hasSurfaceBulk()) affordances.push('surface');
+  for (const a of affordances) {
+    const slot = item.getBulk(a);
+    if (slot.available() <= 0) continue;
+    const path = slot.getMaterialPath();
+    // Match on the material's LEAF (`…/liquid/water` for `water`), or on
+    // the vessel kind (`ice-bin`) — the two ways content names a source.
+    if (path && (path === token || path.endsWith(`/${token}`))) return true;
+    if (item.getCategory() === token) return true;
+  }
+  return false;
+}
+
+/** The Postured slot on `item` accepting `posture`, or null. */
+function posturedFor(item: Stuff, posture: string): string | null {
+  if (!MixinApi.isPostured(item)) return null;
+  const slots = item.getSlotsAcceptingPosture(posture);
+  return slots.length > 0 ? slots[0]! : null;
+}
+
+/** Does `item` answer to `keyword` — its name or any of its keywords? */
+function answersTo(item: Stuff, keyword: string): boolean {
+  const want = keyword.toLowerCase();
+  if (!MixinApi.isPerceptible(item)) return false;
+  if (item.getPrimaryKeyword()?.toLowerCase() === want) return true;
+  return item.getKeywords().some((k) => k.toLowerCase() === want);
 }

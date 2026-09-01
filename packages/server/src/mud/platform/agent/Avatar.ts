@@ -123,7 +123,7 @@ function forwardingTargets(body: Avatar): Iterable<Interactive> {
  */
 function standingSubject(stuff: Stuff, viewer: Stuff): string | undefined {
   if (viewer?.stuffId !== stuff.stuffId) return undefined;
-  return stuff.getTemplatePath() ?? undefined;
+  return stuff.getIdentityPath() ?? undefined;
 }
 
 /**
@@ -339,7 +339,7 @@ export default class Avatar extends AvatarBase {
         // puts its band on the wire as a plain string; this matches it.
         return { band: InfluenceApi.bandOf(key, 'consumer').name };
       },
-      durableKey: (stuff) => stuff.getTemplatePath() ?? undefined,
+      durableKey: (stuff) => stuff.getIdentityPath() ?? undefined,
     },
     {
       /**
@@ -366,7 +366,7 @@ export default class Avatar extends AvatarBase {
         // Band NAME on the wire, as `playStanding` — see there.
         return { band: standing.band.name };
       },
-      durableKey: (stuff) => stuff.getTemplatePath() ?? undefined,
+      durableKey: (stuff) => stuff.getIdentityPath() ?? undefined,
     },
     {
       name: 'renown',
@@ -382,7 +382,7 @@ export default class Avatar extends AvatarBase {
         if (value === undefined) return undefined;
         return { value };
       },
-      durableKey: (stuff) => stuff.getTemplatePath() ?? undefined,
+      durableKey: (stuff) => stuff.getIdentityPath() ?? undefined,
     },
   ];
 
@@ -626,7 +626,7 @@ export default class Avatar extends AvatarBase {
     // session-scoped aether apps (comms / forums / the credential wallet)
     // are re-provisioned onto it — they are deliberately not in the
     // snapshot.
-    const spineKey = this.shouldPersist() ? this.getTemplatePath() : null;
+    const spineKey = this.shouldPersist() ? this.getIdentityPath() : null;
     const hasSnapshot = spineKey
       ? await PersistableApi.hasRecord(spineKey, spineKey)
       : false;
@@ -753,7 +753,7 @@ export default class Avatar extends AvatarBase {
     // gear + spawn location, into the avatar's `holder_snapshots` record.
     // Explicit self-key (D1); a keyless capture would also reuse the stashed
     // key set at login, but pass it for clarity and independence from order.
-    await PersistableApi.capture(this, this.getTemplatePath() ?? undefined);
+    await PersistableApi.capture(this, this.getIdentityPath() ?? undefined);
   }
 
   /**
@@ -768,7 +768,7 @@ export default class Avatar extends AvatarBase {
    * top). Should not be invoked during the initial clone cascade.
    */
   public async restore(): Promise<void> {
-    await PersistableApi.materialize(this, this.getTemplatePath() ?? undefined);
+    await PersistableApi.materialize(this, this.getIdentityPath() ?? undefined);
   }
 
   /**
@@ -841,7 +841,7 @@ export default class Avatar extends AvatarBase {
       kind: "deed",
       template: "Arrived at {{ place | location }}.",
       vars: { place: startingLocation },
-      where: startingLocation.getTemplatePath() ?? null,
+      where: startingLocation.getIdentityPath() ?? null,
       tags: ["arrival"],
     });
 

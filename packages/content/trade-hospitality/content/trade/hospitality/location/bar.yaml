@@ -3,8 +3,13 @@
 # not exist: a venue with its own class — Dave's Bar — lists the same
 # fixtures in its own `props:`). Every station the menu exposes, and
 # NO bottles: the rail is stocked by buying (the keeper's `restocks` beat
-# at the cash-and-carry), never by `props` magic.
-class: /platform/location/FurnishableRoom
+# at the cash-and-carry), never by `populates` magic.
+# An ordinary location, not a FurnishableRoom: that class is the
+# FURNISHING archetypes' base. A trade floor's durability lives on its
+# persistable fixtures (the Stock, the racking, the counter) — the
+# consigned goods and their listings ride those, never the room; the
+# `populates` set below is the placement and respawns each boot.
+class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: a bar

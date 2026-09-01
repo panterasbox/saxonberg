@@ -42,7 +42,7 @@ describe('The Weeping Moor — content integrity', () => {
 
   it('the stormy heath is a SkyExposed CartesianLocation under `moor`', () => {
     const heath = seed('world/moor/stormy-heath');
-    expect(heath.class).toBe('/platform/location/CartesianLocation');
+    expect(heath.class).toBe('/platform/location/SingletonCartesianLocation');
     expect(heath.data?._biomePath).toBe('/stuff/idea/biome/outdoor/baseline');
     expect(heath.data?.address).toBe('moor/heath');
     expect(templateExists('/stuff/idea/biome/outdoor/baseline')).toBe(true);
@@ -53,7 +53,7 @@ describe('The Weeping Moor — content integrity', () => {
 
   it('the weeping chamber is an indoor scope-pinned rain room', () => {
     const chamber = seed('world/moor/weeping-chamber');
-    expect(chamber.class).toBe('/platform/location/CartesianLocation');
+    expect(chamber.class).toBe('/platform/location/SingletonCartesianLocation');
     expect(chamber.data?._biomePath).toBe('/stuff/idea/biome/indoor/baseline');
     expect(chamber.data?._weatherPin).toEqual({ type: 'rain', mode: 'frozen' });
     expect(chamber.data?._humidity).toBe(98); // authored sodden air

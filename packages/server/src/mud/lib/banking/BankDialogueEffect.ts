@@ -23,7 +23,7 @@ export const BANK_CIRCLE_EFFECT: DialogueEffectHandler = {
       : ["bank-circle requires a string 'corpo'"];
   },
   async apply({ player, effect }) {
-    const key = player.getTemplatePath();
+    const key = player.getIdentityPath();
     if (key) await BankingApi.enrollCircle(key, String(effect.corpo));
   },
 };

@@ -6,6 +6,7 @@
  *   - `help <verb>`          → that command's topic (bare fallthrough)
  *   - `help verb [name]`     → legacy verb form (still works)
  *   - `help api [target]`    → api/mixin/type topic (real signature + summary)
+ *   - `help <collection>`    → how the world stores that thing, and why
  *   - `help search <q>`      → search, results grouped by kind
  *
  * Every form reads through the index. Topic bodies arrive as valid MML
@@ -46,9 +47,9 @@ export default class HelpController extends CommandController<HelpModel> {
       case "search":
         return this.showSearch(model.query ?? "", context);
       default:
-        // Bare `help` or fallthrough `help <verb>`.
+        // Bare `help` or fallthrough `help <anything>`.
         return model.topic
-          ? this.showCommand(model.topic, context)
+          ? this.showFallthrough(model.topic, context)
           : this.showLanding(context);
     }
   }
@@ -66,9 +67,37 @@ export default class HelpController extends CommandController<HelpModel> {
     }
     lines.push("");
     lines.push('Type "help <verb>" for a command, "help api <Type>" for the');
-    lines.push('engine surface, or "help search <word>".');
+    lines.push('engine surface, "help <collection>" for how the world stores');
+    lines.push('something, or "help search <word>".');
     lines.push("");
     this.tellText(context, lines.join("\n"));
+  }
+
+  /**
+   * Bare `help <word>` — a verb first, then a collection, then the engine
+   * surface.
+   *
+   * The order is what a player means by the word: a verb is what most
+   * people are asking about, and a collection name (`bank_ledger`) cannot
+   * collide with one. `help verb <name>` stays strict — asking for a verb
+   * by that name should say the verb does not exist, not wander off into
+   * the persistence layer.
+   */
+  private showFallthrough(target: string, context: CommandContext): void {
+    const topic =
+      HelpApi.commandTopic(target) ??
+      HelpApi.collectionTopic(target) ??
+      HelpApi.apiTopic(target);
+    if (!topic) {
+      this.tellText(context, `\nno help topic for '${target}'.\n`);
+      context.note({
+        kind: "controller-rejected",
+        reason: "unknown-topic",
+        detail: target,
+      });
+      return;
+    }
+    this.renderTopic(topic, context);
   }
 
   /** Render one command topic by verb / alias. */

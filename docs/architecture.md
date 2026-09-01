@@ -133,7 +133,8 @@ adding.
   `Creature`, `Modality`). Overridable. When one of these is *also*
   being cloned generically, it splits: the base stays here and a thin
   concrete subclass in `platform/<branch>/` takes the clones (`Thing` →
-  `platform/thing/Prop`, `CartesianLocation` → `platform/location/CartesianLocation`).
+  `platform/thing/Prop`, `lib/location/CartesianLocation` →
+  `platform/location/CartesianLocation`).
 - **Framework attachments** — objects that ride a Stuff, model nothing
   on their own, and are never template-backed. `lib/stuff/Shadow` is
   the exemplar and a **permanent** exception to "platform/ holds Stuff
@@ -154,11 +155,16 @@ adding.
 - **Named value-object / vocabulary / registry modules** — the
   sanctioned home for a substrate primitive that isn't an instanceable
   `Stuff` but is still *the concept the module exists for*: a value
-  class (`Light`, `Quantity`, `Reserve`), an enum-like vocabulary plus
+  class (`Light`, `Quantity`, `Reserve`, `lib/persistence/SchemaDoc.ts`'s
+  `SchemaDoc` — the parsed, validated form of one authored collection
+  description, no `fs` and no YAML parser, so the three readers hand it
+  an already-parsed object), an enum-like vocabulary plus
   its validation array (`lib/persistence/Collections.ts`'s
   `Collections` — collection *names*, no driver and no I/O, which is
   why it lives here and `backend/PersistenceManager` re-exports it
-  rather than owning it), or a platform-wide registry (`lib/mixin.ts`'s
+  rather than owning it; **generated** from the schema docs, along with
+  `CollectionPolicy.ts` and `ResetPolicy.ts`), or a platform-wide
+  registry (`lib/mixin.ts`'s
   `Mixins`, `lib/paths.ts`'s `TemplatePaths`). This is the fourth
   category named so that an orphan type/constant has a home other than
   the forbidden `types.ts` / `constants.ts` reflex — see
@@ -913,7 +919,7 @@ registry) lives in `lib/mixin.ts`.
 | `lib/spatial/` | `ExitableMixin` | exit map host; `addExit`, `getObviousExits`, etc. |
 | `lib/location/` | `CartesianCoordinatesMixin` | `[x,y,z]` position carrier |
 | `lib/location/` | `SphericalCoordinatesMixin` | `{rho,theta,phi,radius}` position carrier |
-| `lib/location/` | `WarrenMemberMixin` | optional member-side back-ref to a `Warren` (the MultiLocation elastic-graph coordinator); Pattern-B live ref, Warren-owned. See [location.md](./subsystems/location.md). |
+| `lib/location/` | `WarrenMemberMixin` | optional member-side back-ref to a `Warren` (the elastic-graph coordinator); Pattern-B live ref, Warren-owned. A warren is `InnerWarren` (members are rooms) or `OuterWarren` (members are warrens) — `occupantsOf` is abstract, so the tier is chosen by which base you extend. See [holding.md](./subsystems/holding.md) for the tiers, [location.md](./subsystems/location.md) for the graph. |
 | `domain/lounge/` | `LoungeMixin` | lounge-room behavior (self-register, population witnesses, over-capacity re-seat); requires `WarrenMemberMixin`. A content mixin under `/world/lounge/`, not the generic substrate. |
 | `lib/spatial/` | `SealableMixin` | open/closed state (doors) |
 | `lib/` | `BistateMixin` | shared guarded-boolean base (typeof-boolean guard, round-trip persistence) under `Sealable` / `Switchable` / `Foldable`. **Unregistered / unmarked** — an implementation base, not a registry mixin. See [boundary.md](./subsystems/boundary.md). |

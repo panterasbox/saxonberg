@@ -84,6 +84,7 @@ behavior. Read the relevant doc before editing in its area.
   - [lifecycle.md](./docs/subsystems/lifecycle.md) — create/destroy choreography, construction sentinel, onDestruct
   - [residency.md](./docs/subsystems/residency.md) — object self-maintenance sweeps: self-eviction of the cold tail, `canEvict` veto, ResidencyLogic
   - [residence.md](./docs/subsystems/residence.md) — the dorm-room first home over Warren + parcels + spine; `(scope, key)` multi-instance persistence; DeferredDestinationExit; Katie
+  - [holding.md](./docs/subsystems/holding.md) — the residence ladder as ONE substrate: a holding is a warren one level down; Warren/Inner/Outer tiers, PlatPlan + the gate ring, the shell clock vs the goods clock, tenure terms, the D/P decision index
   - [state-model.md](./docs/subsystems/state-model.md) — what gets persisted; Avatar self-contained, Document track for auth/meta
   - [connection.md](./docs/subsystems/connection.md) — login/logout, WebSocket upgrade, Interactive/Login/Avatar handoff, multiplexing
   - [char-gen.md](./docs/subsystems/char-gen.md) — new-player intake: `enroll` draft machine, species dossier + NameBank, commit/spawn atomicity
@@ -177,7 +178,7 @@ behavior. Read the relevant doc before editing in its area.
   - [encumbrance.md](./docs/subsystems/encumbrance.md) — the carry-weight gauge: LoadBearing derived burden, the consequence ladder, the haulage draft term
   - [metabolism.md](./docs/subsystems/metabolism.md) — the intake/chemistry driver: digestion buffer, reconcile-on-read, condition cascades, meal chemistry, toxins
   - [husbandry.md](./docs/subsystems/husbandry.md) — the growth model: GrowingMixin reconcile-on-read (no far-past guard), min-of-four limiting factor, the pot-as-N=1-bed object shape, the houseplant
-  - [smallholding.md](./docs/subsystems/smallholding.md) — ground you own: CultivableMixin (a pot is a bed with one slot), soil's own checkpoint, land use's closed six, weakest-link harvest grade, `title`, PlatBook/LotHolder/LotGateExit, Hinkley Hills
+  - [smallholding.md](./docs/subsystems/smallholding.md) — ground you own: CultivableMixin (a pot is a bed with one slot), soil's own checkpoint, land use's closed six, weakest-link harvest grade, `title`, PlatBook/PlatWarren/LotGateExit, Hinkley Hills
   - [thermal.md](./docs/subsystems/thermal.md) — heat exchange: ThermalMixin Newton cooling, the thermos/campfire, ThermalRegulation
   - [respiration.md](./docs/subsystems/respiration.md) — air exchange + asphyxiation: the crisis engagement drain, `breathableMedia`, AirTank
   - [shell-workspace.md](./docs/subsystems/shell-workspace.md) — WorkspaceMixin cwd state, `workspace.tree`, read/write verb suite, SourceTreeApi
@@ -316,6 +317,8 @@ pnpm test:near        # only the tests beside what you changed (fast loop)
 pnpm test:gym         # the balance benches — NOT in `test`; own CI job
 pnpm lint             # ESLint across all packages
 pnpm format           # Prettier
+pnpm gen:schema       # regenerate Collections / the two policy tables
+                      #   from packages/server/src/schema/*.yaml
 ```
 
 ⚠⚠ **`pnpm test` costs ~15 minutes, and a green run stays valid until a
@@ -477,6 +480,18 @@ discoverability.
   and fails too. A kernel test proves the kernel over synthetic fixtures;
   a test of real content lives beside the content (`src/mud/world/**`,
   exempt). CI-gating. See [testing.md](./docs/testing.md).
+- `pnpm lint:schema` (`scripts/check-schema-docs.ts`) — **the collection
+  ↔ schema doc ↔ record class ↔ subsystem doc link.** Six assertions: one
+  doc per collection and no extras either way; the three generated tables
+  are current with the docs; every `static collectionName` is
+  `Collections.X` and never a string literal (this failed on 11 classes
+  when written); every `owner` names the class that really writes there
+  and every `ownerModule` names the file that class is really declared
+  in; every `subsystem` resolves under `docs/subsystems/`; every doc says
+  what its collection is. No exemption list — test fixtures are exempt
+  from the literal rule by living under `__tests__`, and that is the only
+  carve-out. Resolution is AST-based and **file-scoped** (the
+  `lint:topics` lesson). CI-gating.
 - `pnpm lint:untitled` (`scripts/check-untitled-paths.ts`) — **every
   shipped template path under a claimed root** lies under some pack's
   `requires.title` claim. The title roots are **derived** — the first
@@ -486,6 +501,22 @@ discoverability.
   new root. `ownerOf` returns `null` for untitled content
   and every write fails closed, so an unclaimed shipped path is a path
   nobody can ever edit. No exemption list. CI-gating.
+- `pnpm lint:census` (`scripts/check-template-census.ts`) — **every
+  template-path-valued field in every shipped row resolves to a real
+  row**, and `clone()`'s `asTemplatePath` channel stays retired. A minted
+  identity is a stamped slot now (D17), never a synthesized path, because
+  a path naming no row cannot be edited, addressed, or zoned. CI-gating.
+- `pnpm lint:locations` (`scripts/check-location-classes.ts`) — three
+  checks over the location vocabulary. The **`FurnishableRoom` roster**
+  (that class carries a persistence record, so a room nobody furnishes
+  wants a plain location) and the **minted `CartesianLocation` roster**
+  are enumerated, not inferred — adding a row is the design question
+  *"does a player furnish this?"* / *"is this a KIND of place?"*, and it
+  should be a diff a reviewer sees. The third is structural: **a zone row
+  that zones nothing fails**, because a zone governs the directory that
+  shares its name, and moving that directory leaves a valid zone over an
+  empty path with every room silently falling back to the enclosing one.
+  CI-gating.
 - **Sealed-subdir isolation** (`.eslintrc.js`, `no-restricted-imports`,
   error) — only `api/<x>.ts` may import from `api/<x>/**` (`mql`, `mml`
   today).
@@ -758,9 +789,10 @@ platform/thing/FoldingChair` is ordinary OO and correct. Only classes that are
 
 **When a substrate class is also cloned generically, split it.** The
 abstract base stays in `lib/`; a thin concrete subclass in `platform/`
-absorbs the clones, and templates name that. Eight exist:
-`platform/thing/Prop` (← `lib/stuff/Thing`), `platform/location/CartesianLocation` (←
-`CartesianLocation`), `platform/agent/Corpse` (← `Creature`), and `platform/agent/NPC`,
+absorbs the clones, and templates name that. Nine exist:
+`platform/thing/Prop` (← `lib/stuff/Thing`), `platform/agent/Corpse` (←
+`Creature`), and `platform/agent/NPC`, `platform/location/CartesianLocation`,
+`platform/location/SingletonCartesianLocation`,
 `platform/thing/Vessel`, `platform/idea/Exit`, `platform/idea/material/Material`, `platform/idea/Biome`, which
 deliberately share their base's name (the import aliases it; the module
 registry keys on class identity, not name).
@@ -958,7 +990,8 @@ orchestration cases:
 | `await GroupApi.isMember(playerId, ref)` inside a controller to gate a staff verb | `await AccessApi.can(giver, action, resource)` — resolves title via `ParcelApi.ownerOf` (parcel registry, longest-prefix) then dispatches on owner kind (group / player / organization); untitled → `null` → **denied**. See [access.md](./docs/subsystems/access.md) + [parcel.md](./docs/subsystems/parcel.md). |
 | Hard-coded "is this player an admin?" check | `await AccessApi.can(giver, action, resource)` (resource-targeted), or `AccessApi.canMutateZone(giver, zone)` for Zone-Template targets, `AccessApi.canAtPath(giver, action, path)` for the path-addressed trees, `AccessApi.heldExtents(giver)` for a within-your-extent listing (there is no author tier), `AccessApi.isWizard(giver)` for the orthogonal code-trust (TS-escape) axis (eval, reload, source-tree writes, **and the `class`/`hydratorClass`/`behaviors[].brain` content-template fields**), `AccessApi.isArchwizard(giver)` for the wizard-conferral axis. |
 | Reaching `AccessRegistry` directly via `StuffApi.findByTemplatePath('/platform/idea/AccessRegistry')` and calling its methods | `AccessApi` — the Registry's public methods carry `@CallSecurity(FromModule('/api/access#AccessApi'))` and throw on any other caller. The facade is the only legitimate path. |
-| `import { readFileSync } from 'fs'` (or `path`/`url`/`yaml`/`../backend/…`) anywhere in the mudlib | Only `api/**` + `platform/idea/api/**` import outside `src/mud/`. To load an authored data file: `SourceTreeApi.readYamlResource(import.meta.url, '…/file.yaml')` (`import.meta.url` is a language construct, not an import). Also `readResource` / `readJsonResource` / `parseYaml` / `toMudPath` / `resolveFrom`. Enforced by `pnpm lint:imports`. |
+| `static collectionName = 'users'` (or a module constant holding the literal) | `static collectionName = Collections.Users` — a literal names a collection the vocabulary cannot see, so it gets no schema doc, no index, no sandbox policy and no help topic, silently. Enforced by `pnpm lint:schema`; `__tests__` fixtures are the one exemption. |
+| `import { readFileSync } from 'fs'` (or `path`/`url`/`yaml`/`../backend/…`) anywhere in the mudlib | Only `api/**` + `platform/idea/api/**` import outside `src/mud/`. To load an authored data file: `SourceTreeApi.readYamlResource(import.meta.url, '…/file.yaml')` (`import.meta.url` is a language construct, not an import). Also `readResource` / `readJsonResource` / `listResource` (a directory of authored files) / `parseYaml` / `toMudPath` / `resolveFrom`. Enforced by `pnpm lint:imports`. |
 
 Full list with examples: [docs/antipatterns.md](./docs/antipatterns.md).
 
@@ -1009,39 +1042,28 @@ multiplexing, disconnect): see
 
 ## MongoDB Collections
 
-One line per collection; the owning subsystem doc holds the schema,
-indexes, and write-path rules — this list is for orientation only. The
-name vocabulary itself is `mud/lib/persistence/Collections.ts` (mudlib
-side — `backend/PersistenceManager` re-exports it).
+**Every collection has one authored doc at
+`packages/server/src/schema/<collection>.yaml`** — what it is for, what
+is true of every row, why each index exists, the class that writes it,
+and the subsystem doc that owns the concept. 48 files, one per
+collection. Read the one you need; `ls packages/server/src/schema/` is
+the index, and `Collections.ts` carries every summary line.
 
-- `users` / `google_profiles` / `twitch_profiles` / `kick_profiles` — auth records + per-provider OAuth profiles, token-bearing ones encrypted at rest (connection.md)
-- `content` — the templates collection; pack-installed rows carry `sourcePack` (content-packs.md)
-- `pack_installs` — the pack installer's per-deployment ledger: baselines, pins, conflicts; three-way reconcile reads it (content-packs.md)
-- `app_settings` / `world_state` — the config and world-clock singletons
-- `descriptor_banks` — the unidentified-appearance pools, one per item class; pack-installed reference data (magic-items.md)
-- `beliefs` — per-viewer identity-memory rows (belief.md)
-- `chronicles` — per-character append-only identity ledger (chronicle.md)
-- `transcripts` — advancement evidence ledger; Competence derives on read (advancement.md)
-- `disposition_events` — trait evidence ledger, the Transcript's sibling (trait.md)
-- `renown_events` / `renown` — renown signal log + rebuildable standings cache (renown.md)
-- `participation_events` / `participation` — active-bucket log + rebuildable standings (participation.md)
-- `producer_events` / `producer` — attributed-engagement log + rebuildable standings (influence.md)
-- `authoring_events` — append-only authorship ledger (provenance.md)
-- `positions` — held conviction stakes (influence.md)
-- `blueprints` — the Studio composition catalogue (studio.md)
-- `documents` — the path-addressed, kind-tagged document store: scripts (`msh`), releases, and the pack-installed kinds — `emote`, `recipe`, `name-bank`, `blueprint` (the curated overlay), `command-view` (document-store.md)
-- `office_holders` — the sparse government-office handoff store; absence = founder default (governance.md)
-- `bank_ledger` / `bank_accounts` / `bank_supply` — the banking system of record + rebuildable caches; the sealed `postTransaction` chokepoint is the only ledger writer (banking.md)
-- `parcels` / `parcel_events` — property-title registry + chain-of-title; stored SEPARATELY from the `domain` content it gates — the governing security invariant (parcel.md)
-- `chattel` / `chattel_events` — per-instance ownership row + chain-of-title (chattel.md)
-- `diagnostics` — the author-diagnostics store, TTL-rotated (diagnostics.md)
-- `holder_snapshots` — the self-persistence spine's records; written only by the gated PersistableLogic (persistence.md)
-- `player_frames` — the per-player rolling window of delivered frames; owner-only reads, lazy oldest-first eviction (record-layer.md)
-- `parties` — durable Party mirrors; ad-hoc parties never write here (party.md)
-- `accountability_events` — the unified harm-consent ledger; blame derived on read, never stamped (accountability.md)
-- `contracts` / `contract_events` — gig current-state rows + the append-only lifecycle chain; money legs live only in `bank_ledger` (contract.md)
-- `wiki` — the encyclopedia's current page state, one row per article (wiki.md)
-- `wiki_revisions` — the append-only edit log; a separate collection so a page READ never drags its history (wiki.md)
+⭐ **Decided by this build (2026-08-31): the 28-line orientation list
+that used to live here is gone, not grown to 48.** It covered 28 of 48
+and was therefore already misleading by omission; every collection now
+has a full description in its own file, a summary line on its
+`Collections` enum member, and a help topic (`help bank_ledger`). A
+partial list in the file that is always in context is the worst place
+for it.
+
+The three machine-readable tables — `Collections`, `COLLECTION_POLICIES`,
+`RESET_DISPOSITIONS` — are **generated** from those docs by
+`pnpm gen:schema` and carry a do-not-edit banner. Indexes are loaded from
+them at boot. `pnpm lint:schema` gates that the docs, the generated
+tables, the record classes and the subsystem docs all agree.
+
+See [persistence.md § Collections](./docs/subsystems/persistence.md).
 
 ## Session Notes for Claude
 

@@ -1,0 +1,19 @@
+# The hall — the first room behind the locked kitchen door (residences
+# D16): the holding's interior crossroads. A keyed instance of THIS row
+# per lot (`<lotExtent>/hall`); the programme wires kitchen east, living
+# west, bedroom north, and the way back down the step south.
+class: /platform/location/FurnishableRoom
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the hall
+  primaryKeyword: hall
+  alternateNames: [hallway, passage]
+  ambientIntensity: 40
+  ambientColorTemperature: 4500
+  longDescription: |
+    A short square hall with a worn runner on the boards and hooks by the door that came with the house. Doorways open east to the kitchen and west to the front room; the bedroom is through the north door, and the kitchen step drops back down to the yard behind you.
+  details:
+    hooks:
+      keywords: [hooks, pegs]
+      description: |
+        A row of iron hooks at shoulder height, polished by decades of coats that are not here any more. They are yours to fill.

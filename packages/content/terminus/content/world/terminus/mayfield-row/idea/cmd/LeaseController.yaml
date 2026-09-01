@@ -1,0 +1,4 @@
+# The lease verb's controller template — a content-domain Idea row (the
+# duncan-hall ProvisionController pattern).
+class: /world/terminus/mayfield-row/idea/cmd/LeaseController
+data: {}

@@ -86,7 +86,7 @@ function installStore(): void {
     },
     {
       path: '/world/lounge/location/office',
-      class: '/platform/location/CartesianLocation',
+      class: '/platform/location/SingletonCartesianLocation',
       hydratorClass: PH,
       data: { shortDescription: "Dave's office", primaryKeyword: 'office' },
     },

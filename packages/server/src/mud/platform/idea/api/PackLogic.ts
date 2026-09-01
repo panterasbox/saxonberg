@@ -577,11 +577,21 @@ function resolvePack(root: string): ResolvedPack {
   return { manifest, root, contentRoot: join(root, 'content'), srcRoot };
 }
 
-/** The namespace roots a pack's `src/` backs: its manifest root + every title claim. */
+/**
+ * The namespace roots a pack's `src/` backs: its manifest root + every
+ * title claim — minus any root that lies UNDER another root of the same
+ * pack. A locality pack claims extents inside its own root
+ * (`/world/eternal` claims `/world/eternal/duncan-hall`), and a
+ * descendant root would misdirect longest-prefix class resolution into
+ * the wrong `src/` subpath (`duncan-hall/DormWarren` would be looked up
+ * as `DormWarren`). One `src/`, one covering root.
+ */
 function namespaceRootsOf(manifest: PackManifest): string[] {
-  const out = new Set<string>([manifest.root]);
-  for (const t of manifest.requires.title) out.add(t.extent);
-  return [...out];
+  const all = new Set<string>([manifest.root]);
+  for (const t of manifest.requires.title) all.add(t.extent);
+  return [...all].filter(
+    (r) => ![...all].some((other) => other !== r && underExtent(r, other)),
+  );
 }
 
 /**

@@ -138,7 +138,7 @@ async function holdsSeatImpl(
     if (sawExit) return false;
   }
 
-  const characterPath = character.getTemplatePath();
+  const characterPath = character.getIdentityPath();
   if (!characterPath) return false;
   const assignments = await rosterAssignmentsOf(seat.department);
   return assignments.some(

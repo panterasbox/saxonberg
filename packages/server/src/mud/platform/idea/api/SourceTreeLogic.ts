@@ -2,7 +2,7 @@
 // SourceTreeApi. (Doc comment lives on the class declaration below so
 // @internal lands on the reflection TypeDoc emits, not on the module.)
 
-import { promises as fs, readFileSync } from 'node:fs';
+import { promises as fs, readFileSync, readdirSync } from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ApiLogic } from '../../../lib/stuff/ApiLogic';
@@ -78,6 +78,12 @@ export class SourceTreeLogic extends ApiLogic {
       'utf-8',
     );
     return JSON.parse(raw) as T;
+  }
+
+  /** See {@link SourceTreeApi.listResource}. */
+  @CallSecurity(SourceTreeApiCallers)
+  public listResource(moduleUrl: string, relativePath: string): string[] {
+    return readdirSync(resolveResource(moduleUrl, relativePath)).sort();
   }
 
   /** See {@link SourceTreeApi.parseYaml}. */

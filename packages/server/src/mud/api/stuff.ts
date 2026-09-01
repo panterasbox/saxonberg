@@ -133,16 +133,22 @@ export class StuffApi {
    */
   static #updateIndexes(obj: Stuff, action: 'add' | 'remove'): void {
     const id = obj.stuffId;
-    const templatePath = obj.getTemplatePath();
+    // The index keys on IDENTITY (the raw stamped slot) falling back to
+    // the template path (D17): a minted instance
+    // (`/platform/agent/Avatar/<pid>`) stays addressable by the path it
+    // always had while `getTemplatePath()` resolves to the content ROW.
+    // Deliberately the raw slot, never the overridable method — a
+    // sandbox vessel projects another identity and must not index there.
+    const key = Stuff._identityStampOf(obj) ?? obj.getTemplatePath();
     if (action === 'add') {
       this.#indexes.byId.set(id, obj);
-      if (templatePath) {
-        this.#indexes.byTemplatePath.insert(templatePath, obj);
+      if (key) {
+        this.#indexes.byTemplatePath.insert(key, obj);
       }
     } else {
       this.#indexes.byId.delete(id);
-      if (templatePath) {
-        this.#indexes.byTemplatePath.remove(templatePath, obj);
+      if (key) {
+        this.#indexes.byTemplatePath.remove(key, obj);
       }
     }
   }
@@ -214,18 +220,27 @@ export class StuffApi {
    */
   public static resolveClassFile(classPath: string): ClassResolution {
     const validated = this.#validateClassPath(classPath);
+    // Longest matching ROOT wins (the table is sorted by dir, which is
+    // the URL→id direction's key): two packs may nest their roots —
+    // /world/terminus (terminus) under /world/terminus/hinkley-hills
+    // (hinkley-hills) — and the deeper pack owns the deeper namespace.
+    let best: { dir: string; root: string } | null = null;
     for (const { dir, root } of ModuleApi.packSources()) {
       if (validated === root || validated.startsWith(root + '/')) {
-        const file = dir + validated.slice(root.length + 1) + '.ts';
-        if (!existsSync(file)) {
-          throw new Error(
-            `StuffApi.resolveClassFile('${classPath}'): the namespace ` +
-              `'${root}' is a capability pack's, and its src/ has no ` +
-              `'${validated.slice(root.length + 1)}.ts' (looked in ${dir})`
-          );
-        }
-        return { file, origin: { root, srcRoot: dir } };
+        if (!best || root.length > best.root.length) best = { dir, root };
       }
+    }
+    if (best) {
+      const { dir, root } = best;
+      const file = dir + validated.slice(root.length + 1) + '.ts';
+      if (!existsSync(file)) {
+        throw new Error(
+          `StuffApi.resolveClassFile('${classPath}'): the namespace ` +
+            `'${root}' is a capability pack's, and its src/ has no ` +
+            `'${validated.slice(root.length + 1)}.ts' (looked in ${dir})`
+        );
+      }
+      return { file, origin: { root, srcRoot: dir } };
     }
     const moduleDir = new URL('..', import.meta.url); // <srcRoot>/mud/
     for (const ext of ['ts', 'js']) {
@@ -283,10 +298,11 @@ export class StuffApi {
    *   The channel that lets a caller clone a shared seed with
    *   instance-specific fields instead of forking a throwaway
    *   per-instance template row (the retired Avatar/guest pattern).
-   * - `asTemplatePath` — the minted identity path stamped on the clone
-   *   instead of the source template's path. Registration indexes and
-   *   zone resolution see the identity path from birth. The SOURCE
-   *   template stays the hydration lineage only.
+   * - `asIdentityPath` — the minted instance identity stamped on the
+   *   clone's identity slot (D17). The clone's `templatePath` is ALWAYS
+   *   the source row's path — it resolves to a row by construction —
+   *   while the registry index and zone resolution key on the identity,
+   *   so lookup behavior is byte-identical for every existing caller.
    */
   /**
    * Run `fn` outside any in-flight clone tree. The cycle guard's store
@@ -304,7 +320,7 @@ export class StuffApi {
   public static async clone<T extends Stuff>(
     templatePath: string,
     context?: unknown,
-    opts?: { dataOverlay?: Record<string, unknown>; asTemplatePath?: string }
+    opts?: { dataOverlay?: Record<string, unknown>; asIdentityPath?: string }
   ): Promise<T> {
     // Per-clone-tree cycle guard (see `#cloneStackALS`). Catches a
     // template whose `hydratorClass` resolves (transitively) back to
@@ -342,7 +358,7 @@ export class StuffApi {
   static async #cloneInner<T extends Stuff>(
     templatePath: string,
     context?: unknown,
-    opts?: { dataOverlay?: Record<string, unknown>; asTemplatePath?: string }
+    opts?: { dataOverlay?: Record<string, unknown>; asIdentityPath?: string }
   ): Promise<T> {
     // 1. Load Template from domain collection. Lazy-import to avoid the
     //    Template module-load cycle at init time.
@@ -407,10 +423,11 @@ export class StuffApi {
     //     allow at most one live instance per templatePath. Use
     //     `singleton(path)` to get-or-create; bare `clone()` on an
     //     already-instantiated singleton path throws.
-    // The clone's identity path — the minted `asTemplatePath` when the
-    // caller supplies one (the identity-doctrine channel), else the
-    // source template's own path.
-    const identityPath = opts?.asTemplatePath ?? templatePath;
+    // The clone's identity path — the minted `asIdentityPath` when the
+    // caller supplies one (the D17 identity channel), else the source
+    // template's own path. The singleton guard and zone resolution key
+    // on it; the stamp below splits the two axes.
+    const identityPath = opts?.asIdentityPath ?? templatePath;
     if (
       MixinApi.hasMixin(ClassConstructor, Mixins.Singleton) &&
       this.#indexes.byTemplatePath.exact(identityPath).length > 0
@@ -463,15 +480,18 @@ export class StuffApi {
     // slot directly; only `mud/api/stuff.ts` and test seams may
     // call it.
     if (zone) Stuff._stampZone(obj, zone);
-    // Stamp the template path BEFORE register, so #updateIndexes
-    // sees it and adds the byTemplatePath entry as part of the
-    // single register pass. `_stampTemplatePath` writes the `#`
-    // slot without re-indexing (the setter's reindex-on-set
-    // contract assumes a registered Stuff — at this point the
-    // object isn't registered yet). The seam is caller-gated:
-    // only this file (`mud/api/stuff.ts`) and the test-setup
-    // helper may invoke it; any other caller throws.
-    Stuff._stampTemplatePath(obj, identityPath);
+    // Stamp BOTH axes BEFORE register, so #updateIndexes sees them
+    // and adds the byTemplatePath entry (keyed identity ?? template)
+    // as part of the single register pass. `templatePath` is ALWAYS
+    // the source row's path (D17 — it resolves to a row by
+    // construction); a minted instance identity rides the identity
+    // slot. The seams are caller-gated: only this file
+    // (`mud/api/stuff.ts`) and the test-setup helper may invoke
+    // them; any other caller throws.
+    Stuff._stampTemplatePath(obj, templatePath);
+    if (opts?.asIdentityPath) {
+      Stuff._stampIdentityPath(obj, opts.asIdentityPath);
+    }
     const data = opts?.dataOverlay
       ? { ...(template.data ?? {}), ...opts.dataOverlay }
       : (template.data ?? {});
@@ -1218,6 +1238,10 @@ export class StuffApi {
     oldPath: string | null,
     newPath: string
   ): void {
+    // A minted instance identity dominates the index key (D17):
+    // re-stamping the template lineage of an identity-stamped object
+    // changes nothing about where it is filed.
+    if (Stuff._identityStampOf(obj)) return;
     if (oldPath) {
       this.#indexes.byTemplatePath.remove(oldPath, obj);
     }

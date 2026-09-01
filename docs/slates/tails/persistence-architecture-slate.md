@@ -265,10 +265,17 @@ path-resolved-module design with NPC brains.
 
 ## Wave 4 (proposed 2026-08-31) — the schema as loaded content
 
-> **Status: captured, not designed.** Raised during the boot-time build.
-> It supersedes the "MongoDB schema / indexing — no change needed" line
-> in *What this slate does NOT cover* above, which was written before
-> anyone wanted the schema to be data.
+> ## ✅ **BUILT — the schema-docs build, 2026-08-31.**
+> Graduated to
+> [persistence.md § Collections](../../subsystems/persistence.md) and
+> [help.md § Collections projector](../../subsystems/help.md). The
+> section below is kept as the *record of what was asked for*; the
+> shipped answer differs on one point, recorded at the end.
+>
+> **Status when raised: captured, not designed.** Raised during the
+> boot-time build. It supersedes the "MongoDB schema / indexing — no
+> change needed" line in *What this slate does NOT cover* above, which
+> was written before anyone wanted the schema to be data.
 
 **The want, in the raiser's words:** *externalize all the DB schema into
 YAML docs with their own version histories, and PM just loads whatever
@@ -293,10 +300,13 @@ first is anywhere a reviewer looks.
 - **The tables become reviewable.** A diff that says a collection went
   from `pass` to `stamp` is a sentence, not a constant buried in a
   1 600-line file.
-- **A pack could declare its own storage.** Today a capability pack that
-  wanted a collection would need a kernel MR — precisely the
-  "a pack must never need a kernel list edit" rule the capability-packs
-  build established everywhere *else*.
+- ~~**A pack could declare its own storage.**~~ ⚠ **Struck 2026-08-31 —
+  this was wrong.** A content pack cannot create a Mongo collection at
+  all, so there was never a rule being violated here. The schema docs
+  are **repo files, not pack content**: they seed nothing, they describe
+  what the code already writes. Removing this also removes the pressure
+  toward runtime extensibility — the set of collections is closed and
+  repo-owned, which is what makes generating the vocabulary viable.
 - **It closes the resilience slate's commonest failure** — a control
   "designed, documented, given a default, and never connected." A table
   that is loaded is a table you can assert over at boot.
@@ -323,3 +333,109 @@ first is anywhere a reviewer looks.
 After Wave 3 (marshallers/hooks/Hydrator as path-resolved modules) and
 independent of it: both waves are the same move — **stop expressing
 persistence policy as TypeScript the framework happens to read.**
+
+---
+
+### ⭐ Decided 2026-08-31 — and the real motivation
+
+**The driver is pedagogy, not tidiness.** The point is to link a
+collection to the `Document` class that writes it and to the subsystem
+doc that owns it, and then **project the whole thing into the help
+system** so a player can read how the persistence layer works. Every
+decision below follows from that being the goal.
+
+**The mechanism needs no invention.** PM already reads an in-repo YAML
+manifest at a default path at boot — `loadHooks` over
+`mud/platform/idea/hooks/hooks.yaml`, `readFileSync` + `YAML.parse`, not
+a pack, not a seed, no `content` collection involved. Schema docs read
+the same way sit next to that precedent.
+
+| Decision | Ruling |
+|---|---|
+| **The `Collections` vocabulary** | **Generated from the YAML and committed**, with a lint proving the tree matches. It is the one piece used in *type* position across ~50 files, so parsing it at runtime alone would trade a compile-time error class for a boot-time one. Authored once, checkable at build time — the lint-family pattern applied to data. PM still *loads* the YAML at boot for indexes, policy and metadata. |
+| **The field list** | **Not in the doc.** `fieldMeta` is what the Hydrator reflects on; a YAML that restated it would be two copies of one sentence, and the copy that drifts is the one nobody executes. The help projector **harvests** fields from the owner class's `fieldMeta`. ⚠ Consequence accepted: per-FIELD prose then has no home until `fieldMeta` grows one. |
+| **Scope** | **The full refactor in one build** — docs, the help projector, the binding gate, indexes, and both policy tables. |
+
+**What the inventory found** (2026-08-31, against the live tree):
+
+- 48 collections. `COLLECTION_POLICIES` and `RESET_DISPOSITIONS` are
+  both **complete** and already machine-readable — they are simply
+  written in TypeScript. `createIndexes()` is **89 `createIndex` calls
+  in one method** (18 unique, 2 TTL, 2 partial, plus text indexes),
+  and is the table that is genuinely awkward in code.
+- ⭐ **The description is what is missing, not the policy.** Only **4 of
+  48** collections carry any prose in `Collections.ts`, and CLAUDE.md's
+  orientation list covers **28 of 48**.
+- ⭐ `RESET_DISPOSITIONS` already carries a `because:` string on every
+  `keep`. Per-collection reasoning partly EXISTS — it just lives where
+  only a developer sees it. It migrates rather than being invented.
+- ⚠ **The link this build wants to make is currently broken and
+  unchecked.** Eleven production `Document` classes name their
+  collection with a bare string literal rather than `Collections.X` —
+  `User`, `Group`, `Channel`, `Blueprint`, `StoredDocument`,
+  `PersistedRecord`, `ParcelEvent`, `DescriptorBank` and the three OAuth
+  profiles. CLAUDE.md calls `Collections.ts` the single source of truth;
+  nothing enforces it.
+- The help side is a clean fit: `HelpCatalogue` already **harvests
+  rather than registers**, with two projectors over a uniform
+  `HelpTopic`. This is a third. ⚠ It does mean touching
+  `@saxonberg/types`: `HelpKind` and `HelpSource.subdivision` are both
+  closed unions needing a new member.
+
+**Still open, for the requirements pass:** what "version history" should
+mean. These are repo files, so git already gives developers one; the
+question is whether a *player* reading the help entry should see a
+readable "this changed, and why" — i.e. an authored `history:` block —
+or whether git is enough and the help entry carries only current truth.
+
+### ✅ What shipped, and the one place it differs
+
+Built 2026-08-31 (`design/schema-docs`). One authored YAML per
+collection at `packages/server/src/schema/`, the three tables generated
+and committed, `pnpm lint:schema` binding collection ↔ doc ↔ class ↔
+subsystem doc, and a third help projector — `help bank_ledger` reads the
+whole thing over a socket.
+
+Two rulings the requirements pass settled:
+
+- **`history:` was declined** (the "still open" question above). These
+  are repo files, so git already gives a history, and a fifth authored
+  block to keep in sync serves a reader worse than a good `purpose`
+  does.
+- **PM loads the docs; it does not load them "like a seeder would".**
+  The vocabulary is used in TYPE position across ~50 files, so it is
+  GENERATED from the docs and committed rather than parsed at boot —
+  which keeps the compile-time error a typo produces today. The
+  indexes, which have no type surface, genuinely are loaded.
+
+⚠ One count in the survey above was off: `createIndexes()` held **84**
+authored index specs, not 89, plus the two derived loops. The shipped
+docs carry all 84.
+
+Wave 3 (marshallers / hooks / Hydrator as path-resolved modules) is
+untouched and independent.
+
+### The tail Wave 4 left
+
+Two attach points, deliberately not built and not stubbed. Both are
+recorded in [persistence.md § What a schema doc does NOT
+carry](../../subsystems/persistence.md); they live here because they are
+design space, not documentation.
+
+- **Per-field prose.** The schema doc carries no field list — the help
+  projector harvests it from `fieldMeta`, so the fields cannot drift.
+  The cost is that *what does `circleScope` mean on this collection*
+  has nowhere to live. `FieldMetaEntry` gaining a `description` is the
+  obvious next move, and the projector would render it with **no
+  schema-doc change and no projector change** — the attach point is
+  already the right shape. The open question is scope: `fieldMeta` is
+  declared on ~200 classes, so "add a description" is a sweep, and the
+  interesting half is deciding which fields deserve one rather than how
+  to store it.
+
+- **Mongo-side JSON Schema validators.** The schema docs *describe*;
+  they do not enforce document shape at write time. Deriving a Mongo
+  `$jsonSchema` validator from `fieldMeta` is mechanically close and
+  strategically not: a validator rejects existing rows, which is the
+  one place this repo's "no migrations, drop the DB" rule stops being
+  free. It wants its own conversation.

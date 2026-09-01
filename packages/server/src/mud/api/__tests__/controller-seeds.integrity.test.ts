@@ -54,9 +54,23 @@ const MUD_ROOT = join(here, "..", "..");
 // The engine verbs are the platform pack's content (content-packs wave 2).
 const CMD_ROOT = join(MUD_ROOT, "..", "..", "..", "content", "platform", "content", "platform", "cmd");
 const DOMAIN_ROOT = join(MUD_ROOT, "world");
-// The domain-local controllers are world-seed's rows (content-packs wave 3).
-const SEEDS_ROOT = join(MUD_ROOT, "..", "..", "..", "content", "world-seed", "content");
-const PLATFORM_CONTENT = join(MUD_ROOT, "..", "..", "..", "content", "platform", "content");
+const PACKS_DIR = join(MUD_ROOT, "..", "..", "..", "content");
+const PLATFORM_CONTENT = join(PACKS_DIR, "platform", "content");
+
+/**
+ * Every shipped pack's `content/` root.
+ *
+ * ⚠ DERIVED, never listed. The domain-local views and their controller
+ * rows used to live in `world-seed`; the residences pack cut moved each
+ * locality into its own pack, and a hard-coded `world-seed` root meant
+ * this suite silently stopped seeing a single domain controller — which
+ * is exactly what the "covers the domain-local command bundles" guard
+ * below caught. A pack list would rot the same way; a directory scan
+ * cannot.
+ */
+const CONTENT_ROOTS: string[] = readdirSync(PACKS_DIR)
+  .map((pack) => join(PACKS_DIR, pack, "content"))
+  .filter((dir) => existsSync(dir) && statSync(dir).isDirectory());
 
 function walkYaml(dir: string, out: string[]): void {
   for (const entry of readdirSync(dir)) {
@@ -83,7 +97,7 @@ function collectSpecFiles(): string[] {
   // A locality's views are its pack's `content/world/**/cmd/*.yaml`
   // (world-seed's, until each locality is homed); the code tree under
   // `mud/world` holds none since content-packs wave 3.
-  for (const root of [DOMAIN_ROOT, join(SEEDS_ROOT, "world")]) {
+  for (const root of [DOMAIN_ROOT, ...CONTENT_ROOTS.map((r) => join(r, "world"))]) {
     try {
       walkYaml(root, domainAll);
     } catch {
@@ -106,20 +120,25 @@ function resolveController(rawController: string, specFilePath: string): string 
   const abs = resolvePath(dirname(specFilePath), rawController);
   // A view under a pack's content root maps to the mud-rooted path the
   // same way the dispatcher anchors it (`join(MUD_ROOT, viewKey)`).
-  const root = specFilePath.startsWith(SEEDS_ROOT) ? SEEDS_ROOT : MUD_ROOT;
+  const root =
+    CONTENT_ROOTS.find((r) => specFilePath.startsWith(r)) ?? MUD_ROOT;
   return "/" + relative(root, abs).split(sep).join("/");
 }
 
 /**
- * Where the template row for a resolved template path lives on disk: the
- * platform pack's content (the engine controllers, content-packs wave 3),
- * else the world-seed pack's content (the domain-local controllers, until
- * `world-seed` takes them at wave 3 step 7).
+ * Where the template row for a resolved template path lives on disk —
+ * whichever pack ships it. The platform pack holds the engine
+ * controllers; each locality pack holds its own domain-local ones.
+ * Falls back to the platform path so the failure message names a
+ * plausible home rather than an arbitrary one.
  */
 function seedPathFor(templatePath: string): string {
   const rel = `${templatePath.slice(1)}.yaml`;
-  const inPlatform = join(PLATFORM_CONTENT, rel);
-  return existsSync(inPlatform) ? inPlatform : join(SEEDS_ROOT, rel);
+  for (const root of CONTENT_ROOTS) {
+    const candidate = join(root, rel);
+    if (existsSync(candidate)) return candidate;
+  }
+  return join(PLATFORM_CONTENT, rel);
 }
 
 /**

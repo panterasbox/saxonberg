@@ -26,12 +26,17 @@ import {
   type IndexSpecification,
   type CreateIndexesOptions,
 } from 'mongodb';
-import { readFileSync } from 'fs';
+import { readFileSync, readdirSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join, isAbsolute } from 'path';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import YAML from 'yaml';
 import { Collections } from '../mud/lib/persistence/Collections';
+import {
+  COLLECTION_POLICIES,
+  type CollectionPolicy,
+} from '../mud/lib/persistence/CollectionPolicy';
+import { SchemaDoc } from '../mud/lib/persistence/SchemaDoc';
 
 // ─────────────────────────────────────────────────────────────────────
 // The query trace — `SAXONBERG_QUERY_TRACE=1`.
@@ -200,127 +205,39 @@ export class SandboxWriteRefusedError extends Error {
 }
 
 /**
- * Per-collection sandbox write disposition (docs/subsystems/sandbox.md):
- *
- *   - `stamp`  — the write proceeds with `circleScope` stamped on the row;
- *     field reads exclude stamped rows; exit discards them. The material
- *     ledgers: the game genuinely runs in-circle, then reverts.
- *   - `refuse` — circle context may not write here at all (field-real
- *     registries, identity, title, config). Throws.
- *   - `pass`   — the write is identity-real and persists (authored truth,
- *     the epistemic ledgers). `mark: true` additionally records the scope
- *     on the row (the epistemic wire mark) without ever filtering reads.
- *   - `shadow` — rebuildable caches. `mode: 'skip'` silently skips the
- *     terminal write from circle context (readers derive live from their
- *     event ledgers in-circle). `mode: 'overlay'` is specified as the
- *     labeled attach point but not built — no collection needs it today.
+ * The sandbox write-disposition surface, defined in the mudlib
+ * (`mud/lib/persistence/CollectionPolicy`) beside the collection
+ * vocabulary it is total over. Re-exported here so the driver side keeps
+ * one import site for the surface it speaks.
  */
-export type CollectionPolicy =
-  | { verb: 'stamp' }
-  | { verb: 'refuse' }
-  | { verb: 'pass'; mark?: boolean }
-  | { verb: 'shadow'; mode: 'skip' | 'overlay' };
+export { COLLECTION_POLICIES };
+export type { CollectionPolicy };
 
 /**
- * The total policy table — `Record<Collections, …>` makes totality a
- * COMPILE error: a new collection cannot ship without a policy row (fails
- * closed at build time, not at an audit). Verified writer-by-writer in
- * docs/subsystems/sandbox.md; keep the two in sync.
+ * One index this deployment declares — what `createIndexes()` will issue,
+ * and where it came from.
+ *
+ * Exists as a named shape because the PLAN and the ISSUING are worth
+ * separating: the plan is pure and testable, the issuing is I/O with
+ * per-index error handling. It also answers an operator question the old
+ * 570-line method could not — *what indexes does this build declare?* —
+ * without connecting to anything.
  */
-export const COLLECTION_POLICIES: Readonly<
-  Record<Collections, CollectionPolicy>
-> = {
-  // ── STAMP: the material gameplay ledgers — run in-circle, revert ──
-  [Collections.BankLedger]: { verb: 'stamp' },
-  [Collections.Transcripts]: { verb: 'stamp' },
-  [Collections.RenownEvents]: { verb: 'stamp' },
-  [Collections.ParticipationEvents]: { verb: 'stamp' },
-  [Collections.DispositionEvents]: { verb: 'stamp' },
-  // ── PASS(mark): the epistemic ledgers — persist, wire-marked ──
-  [Collections.Chronicles]: { verb: 'pass', mark: true },
-  [Collections.Beliefs]: { verb: 'pass', mark: true },
-  [Collections.AuthoringEvents]: { verb: 'pass', mark: true },
-  [Collections.AccountabilityEvents]: { verb: 'pass', mark: true },
-  [Collections.Diagnostics]: { verb: 'pass', mark: true },
-  // The frame store is *what happened to you* — the epistemic shape
-  // exactly. A frame delivered inside a circle was genuinely delivered
-  // and genuinely read; STAMP would revert your own scrollback out from
-  // under you on exit, which is the one thing a record of what you were
-  // told must never do. MARK records that it happened in-circle.
-  [Collections.PlayerFrames]: { verb: 'pass', mark: true },
-  // ── PASS(unmarked): authored truth + the mechanism's own stores ──
-  [Collections.Content]: { verb: 'pass' },
-  [Collections.Documents]: { verb: 'pass' },
-  [Collections.HolderSnapshots]: { verb: 'pass' },
-  // The wiki is **authored truth and a communications surface**, so it
-  // joins `domain` here rather than failing closed. An article cannot
-  // affect advancement, cannot mint anything, and cannot be spent — it
-  // is people writing to each other. There is no conflict to contain.
-  //
-  // The wiki is also strictly LESS powerful than `domain`, which is
-  // PASS: a circle session that may edit a room template has no
-  // business being refused an encyclopedia edit about one.
-  //
-  // Neither of the other verbs fits. STAMP would be actively harmful —
-  // a scoped page reverting on circle exit is a page an author watched
-  // themselves write and then lose, and its scoped revision rows would
-  // collide with the unique `{pageId, rev}` index. The epistemic MARK
-  // is for "what happened to *you*"; an article is not a personal
-  // record.
-  //
-  // Authorization is unaffected: `WikiRegistry`'s protection ladder
-  // resolves through `AccessApi`, which is circle-independent, so a
-  // circle grants no editing rights its occupant did not already have.
-  [Collections.Wiki]: { verb: 'pass' },
-  [Collections.WikiRevisions]: { verb: 'pass' },
-  // ── SHADOW(skip): rebuildable caches — skip-and-rebuild ──
-  [Collections.BankAccounts]: { verb: 'shadow', mode: 'skip' },
-  [Collections.BankSupply]: { verb: 'shadow', mode: 'skip' },
-  [Collections.Renown]: { verb: 'shadow', mode: 'skip' },
-  [Collections.Participation]: { verb: 'shadow', mode: 'skip' },
-  [Collections.Producer]: { verb: 'shadow', mode: 'skip' },
-  // ── REFUSE: field-real registries, identity, title, config ──
-  [Collections.Users]: { verb: 'refuse' },
-  // The pack installer's per-deployment ledger is field-real system state
-  // (what was installed, the baselines three-way reconciliation compares
-  // against). A circle must never write it.
-  [Collections.PackInstalls]: { verb: 'refuse' },
-  [Collections.GoogleProfiles]: { verb: 'refuse' },
-  [Collections.TwitchProfiles]: { verb: 'refuse' },
-  [Collections.KickProfiles]: { verb: 'refuse' },
-  // Descriptor banks are immutable authored reference data installed by
-  // a content pack — the same posture as name banks. A sandboxed write
-  // to them would change what every unidentified item in the world looks
-  // like, which is a field-real registry mutation by any reading.
-  [Collections.DescriptorBanks]: { verb: 'refuse' },
-  [Collections.Groups]: { verb: 'refuse' },
-  [Collections.Channels]: { verb: 'refuse' },
-  [Collections.Parties]: { verb: 'refuse' },
-  [Collections.ForumSubjects]: { verb: 'refuse' },
-  [Collections.ForumBoards]: { verb: 'refuse' },
-  [Collections.ForumEntries]: { verb: 'refuse' },
-  [Collections.ForumVotes]: { verb: 'refuse' },
-  [Collections.ForumEvents]: { verb: 'refuse' },
-  [Collections.ProducerEvents]: { verb: 'refuse' },
-  [Collections.Positions]: { verb: 'refuse' },
-  [Collections.Parcels]: { verb: 'refuse' },
-  [Collections.ParcelEvents]: { verb: 'refuse' },
-  [Collections.Contracts]: { verb: 'refuse' },
-  [Collections.ContractEvents]: { verb: 'refuse' },
-  [Collections.Chattel]: { verb: 'refuse' },
-  [Collections.ChattelEvents]: { verb: 'refuse' },
-  [Collections.AppSettings]: { verb: 'refuse' },
-  [Collections.WorldState]: { verb: 'refuse' },
-  [Collections.OfficeHolders]: { verb: 'refuse' },
-  // Audit-flipped from provisional PASS (2026-07-30): blueprint dedup
-  // OVERWRITES an existing global catalogue row's identity fields on a
-  // signature hit — field-visible mutation, so it fails closed. The CMS
-  // publish path is unaffected (the acting avatar resolves to the parked
-  // field body, whose scope is null). media_assets' only writer is the
-  // offline illustrate CLI; no circle path should ever reach it.
-  [Collections.Blueprints]: { verb: 'refuse' },
-  [Collections.MediaAssets]: { verb: 'refuse' },
-};
+export interface PlannedIndex {
+  collection: string;
+  keys: Record<string, 1 | -1 | 'text'>;
+  options: CreateIndexesOptions;
+  /** Routed through `ensureTextIndex` rather than a bare `createIndex`. */
+  text: boolean;
+  /**
+   * `authored` — an `indexes[]` entry in a schema doc.
+   * `derived` — a consequence of another declaration (the `circleScope`
+   * partial on every STAMP collection).
+   */
+  source: 'authored' | 'derived';
+  /** The authored reason, or the derivation's own.  */
+  why: string;
+}
 
 /**
  * The five STAMP collections — the set that carries scoped rows, gets the
@@ -460,6 +377,12 @@ export class PersistenceManager {
    * Defaults to "no scope" so pre-wiring boots and tests behave exactly
    * as before the sandbox build.
    */
+  /**
+   * The authored schema docs, by collection — loaded by `connect()`
+   * before `createIndexes()`, which is driven from them.
+   */
+  private schemaDocs: Map<string, SchemaDoc> = new Map();
+
   private scopeResolver: ScopeResolver = () => null;
 
   /**
@@ -514,6 +437,11 @@ export class PersistenceManager {
 
       console.info(`PersistenceManager: Connected to MongoDB database '${dbName}'`);
       _qwire();
+
+      // ⚠ Order matters: the index driver reads the schema docs, so the
+      // load has to complete first. It depends on nothing in the mudlib,
+      // which is what lets it run this early in the boot.
+      this.loadSchemaDocs();
 
       // Create indexes
       await this.createIndexes();
@@ -872,6 +800,88 @@ export class PersistenceManager {
     console.info(
       `PersistenceManager: Loaded ${manifest.hooks.length} hook binding(s) from ${path}`
     );
+  }
+
+
+  /**
+   * Load every authored schema doc from `src/schema/`.
+   *
+   * The second manifest PM reads at boot, in exactly the shape
+   * `loadHooks` established: a path resolved from `import.meta.url`,
+   * `readFileSync`, `YAML.parse`. It depends on nothing in the mudlib
+   * beyond the pure {@link SchemaDoc} value object, which is what lets it
+   * run before `createIndexes()` — i.e. before `PackApi.install`,
+   * `loadHooks` and `BootstrapManager`.
+   *
+   * ⚠⚠ **A missing doc is an error, not a default.** A collection nobody
+   * described is precisely the state the schema docs exist to end, so the
+   * boot fails naming it rather than papering over it. `pnpm lint:schema`
+   * catches this long before a boot does; the runtime check is what makes
+   * the gate load-bearing rather than advisory.
+   *
+   * @param dir Optional override; defaults to `<src>/schema`.
+   */
+  public loadSchemaDocs(dir?: string): void {
+    const directory = dir ?? this.defaultSchemaDir();
+    const docs = new Map<string, SchemaDoc>();
+    for (const file of readdirSync(directory).sort()) {
+      if (!file.endsWith('.yaml')) continue;
+      const raw = YAML.parse(readFileSync(join(directory, file), 'utf-8'));
+      const doc = SchemaDoc.parse(raw, file);
+      if (doc.collection !== file.replace(/\.yaml$/, '')) {
+        throw new Error(
+          `PersistenceManager.loadSchemaDocs: ${file} declares collection ` +
+            `'${doc.collection}' — the filename must be the collection name`
+        );
+      }
+      docs.set(doc.collection, doc);
+    }
+
+    // Set equivalence, both directions. Either half being wrong means
+    // something is undescribed or something described does not exist.
+    const known = new Set<string>(Object.values(Collections));
+    const undescribed = [...known].filter((c) => !docs.has(c)).sort();
+    if (undescribed.length > 0) {
+      throw new Error(
+        `PersistenceManager.loadSchemaDocs: no schema doc for ` +
+          `${undescribed.join(', ')} — every collection needs one at ` +
+          `src/schema/<collection>.yaml`
+      );
+    }
+    const unknown = [...docs.keys()].filter((c) => !known.has(c)).sort();
+    if (unknown.length > 0) {
+      throw new Error(
+        `PersistenceManager.loadSchemaDocs: schema doc(s) for ` +
+          `${unknown.join(', ')} name no collection in the vocabulary — ` +
+          `run \`pnpm gen:schema\``
+      );
+    }
+
+    this.schemaDocs = docs;
+    console.info(
+      `PersistenceManager: Loaded ${docs.size} schema doc(s) from ${directory}`
+    );
+  }
+
+  /**
+   * Resolve the default schema directory relative to this module.
+   * `src/backend/PersistenceManager.ts` → `src/schema/`. Works in both
+   * ts-source (tsx) and built-dist layouts, like the hook manifest.
+   */
+  private defaultSchemaDir(): string {
+    const here = dirname(fileURLToPath(import.meta.url));
+    const candidate = join(here, '../schema');
+    return isAbsolute(candidate) ? candidate : join(process.cwd(), candidate);
+  }
+
+  /** The authored doc for one collection, or `null` before `connect()`. */
+  public schemaDocFor(collection: string): SchemaDoc | null {
+    return this.schemaDocs.get(collection) ?? null;
+  }
+
+  /** Every authored doc, in collection-name order. */
+  public allSchemaDocs(): SchemaDoc[] {
+    return [...this.schemaDocs.values()];
   }
 
   /**
@@ -1406,576 +1416,152 @@ export class PersistenceManager {
   }
 
   /**
-   * Create indexes for collections.
-   * Called during connection setup.
+   * Build every index the world needs. Called from `connect()`, after
+   * `loadSchemaDocs()`.
    *
-   * ⚠⚠ **Every index is attempted independently.** This used to be one
-   * `try` around the whole list, so the FIRST failure skipped every
-   * index after it — and the log said "Error creating indexes" once,
-   * which reads like one index failed rather than forty. Found by
-   * driving: a text-index conflict on `player_frames` silently skipped
-   * the wiki index, the forum index and every sandbox partial index
-   * below it. Indexes are optional for correctness and load-bearing for
-   * speed, which is precisely the combination that makes a silent skip
-   * survive.
+   * This used to be 570 lines of hand-written `createIndex` calls. It is
+   * now a driver over three sources, and the split is the design:
+   *
+   *   1. **Authored** — every `indexes[]` entry in every schema doc. The
+   *      key spec and its options are data; the reason it exists is prose
+   *      beside them, which is the half that used to live only in a
+   *      comment nobody could read from in-game.
+   *   2. **Text** — an authored index with `text: true`, routed through
+   *      {@link ensureTextIndex}, whose drop-and-recreate-on-conflict
+   *      recovery is BEHAVIOUR and stays here.
+   *   3. **Derived** — the two loops over another vocabulary: the
+   *      `circleScope` partial index on every STAMP collection, and the
+   *      `{ kind, data.<naturalKey> }` partial-unique index per declared
+   *      document kind. These are consequences of another declaration,
+   *      not authored facts; writing them out per collection would be the
+   *      duplication the schema docs refuse.
+   *
+   * ⭐ Declaring `sandbox: stamp` in a doc is now what gives a collection
+   * its `circleScope` index — `STAMP_COLLECTIONS` derives from
+   * `COLLECTION_POLICIES`, which is generated from the docs. No list.
+   *
+   * ⭐⭐ **Every index is attempted independently.** The predecessor wrapped
+   * the whole list in one `try`, so the FIRST failure skipped every index
+   * after it — found by driving, when a stale text index on
+   * `player_frames` silently took the wiki index, the forum index and
+   * every sandbox partial with it. Per-index isolation was called "a large
+   * mechanical rewrite" while the calls were written out by hand; over a
+   * loop it is free, so the hazard is gone rather than documented.
+   * Indexes are optional for correctness and load-bearing for speed,
+   * which is exactly the combination that makes a silent skip survive.
    */
   private async createIndexes(): Promise<void> {
-    try {
-      // Google Profiles: unique index on googleId
-      await this.getCollection(Collections.GoogleProfiles).createIndex(
-        { googleId: 1 },
-        { unique: true }
-      );
+    let built = 0;
+    const failures: string[] = [];
 
-      // Google Profiles: index on email
-      await this.getCollection(Collections.GoogleProfiles).createIndex(
-        { email: 1 }
-      );
-
-      // Users: index on googleProfileId
-      await this.getCollection(Collections.Users).createIndex(
-        { googleProfileId: 1 }
-      );
-
-      // Users: index on twitchProfileId (the second provider FK).
-      await this.getCollection(Collections.Users).createIndex(
-        { twitchProfileId: 1 }
-      );
-
-      // Users: index on kickProfileId (the third provider FK).
-      await this.getCollection(Collections.Users).createIndex(
-        { kickProfileId: 1 }
-      );
-
-      // Twitch Profiles: unique index on twitchUserId (the stable Helix
-      // identifier the returning-login resolve keys on).
-      await this.getCollection(Collections.TwitchProfiles).createIndex(
-        { twitchUserId: 1 },
-        { unique: true }
-      );
-
-      // Kick Profiles: unique index on kickUserId (the stable identifier
-      // the returning-login resolve keys on).
-      await this.getCollection(Collections.KickProfiles).createIndex(
-        { kickUserId: 1 },
-        { unique: true }
-      );
-
-      // Domain: unique index on `path` — every Template doc carries a
-      // `path` field, and the seeder + boot-time clone pipeline both
-      // assume it is one document per path. Without this index,
-      // concurrent `PackApi.install` invocations (e.g. two
-      // tsx-watch processes racing during dev) double-insert and
-      // `BootstrapManager.run` crashes with a duplicate-templatePath
-      // error on the next boot. `createIndex` is idempotent — same
-      // spec is a no-op; an existing duplicate throws E11000 here,
-      // which the outer catch logs without crashing the process,
-      // surfacing the admin-fixable condition.
-      await this.getCollection(Collections.Content).createIndex(
-        { path: 1 },
-        { unique: true }
-      );
-
-      // Descriptor banks: unique key (the item class) for the
-      // appearance resolver's by-key warm.
-      await this.getCollection(Collections.DescriptorBanks).createIndex(
-        { key: 1 },
-        { unique: true }
-      );
-
-      // Blueprints: unique blueprintId (durable key, catalogue resolve) +
-      // unique signature (the structural dedup key — two authors composing
-      // the same particles collide to one blueprint).
-      await this.getCollection(Collections.Blueprints).createIndex(
-        { blueprintId: 1 },
-        { unique: true }
-      );
-      await this.getCollection(Collections.Blueprints).createIndex(
-        { signature: 1 },
-        { unique: true }
-      );
-
-      // Documents: the path-addressed tree. Releases live here now
-      // (`kind: 'release'`) rather than in a collection of their own —
-      // they are owner-scoped content with a place, and nobody queries
-      // them across jurisdictions. `path` serves find-or-create and the
-      // prefix walk; `kind` serves the warm-window rebuild that replaced
-      // the retired `bulletins` scan.
-      //
-      // ⚠ `path` is deliberately NOT unique even though one document per
-      // path is the invariant: this collection predates the release move
-      // and a unique index that a live row violates fails at BOOT. The
-      // invariant is enforced at the write (find-or-create), where a
-      // violation is visible and fixable.
-      await this.getCollection(Collections.Documents).createIndex({ path: 1 });
-      await this.getCollection(Collections.Documents).createIndex({ kind: 1 });
-      await this.#createDocumentKindIndexes(
-        this.#indexTarget(this.getCollection(Collections.Documents))
-      );
-
-      // Groups: queryable owner / member shape (Phase 2B).
-      await this.getCollection(Collections.Groups).createIndex({ owner: 1 });
-      await this.getCollection(Collections.Groups).createIndex({ memberIds: 1 });
-
-      // Channels: name unique + memberIds (for "channels I'm in"
-      // lookups) + kind (Phase 3).
-      await this.getCollection(Collections.Channels).createIndex(
-        { name: 1 },
-        { unique: true }
-      );
-      await this.getCollection(Collections.Channels).createIndex({
-        memberIds: 1,
-      });
-      await this.getCollection(Collections.Channels).createIndex({ kind: 1 });
-
-      // Parties: durable-party records (PartyRecord; ad-hoc parties are
-      // live Ideas only, never written). `path` (the party Idea's
-      // templatePath) is the durable join key; `name` unique for the
-      // clash check; `memberIds` for the "durable crews I'm on" read.
-      await this.getCollection(Collections.Parties).createIndex(
-        { path: 1 },
-        { unique: true }
-      );
-      await this.getCollection(Collections.Parties).createIndex(
-        { name: 1 },
-        { unique: true }
-      );
-      await this.getCollection(Collections.Parties).createIndex({
-        memberIds: 1,
-      });
-
-      // Pack installs: one record per content pack per deployment.
-      await this.getCollection(Collections.PackInstalls).createIndex(
-        { packId: 1 },
-        { unique: true }
-      );
-
-      // Beliefs: per-viewer identity-memory working set (one doc per
-      // {viewerId, realm, referent}). Indexed on `viewerId` so a
-      // session's lazy-hydrate (`BeliefDocument.find({ viewerId })`) and
-      // the future per-player cleanup cascade (`deleteMany({ viewerId })`)
-      // are O(rows-for-this-viewer), not a full scan.
-      await this.getCollection(Collections.Beliefs).createIndex({
-        viewerId: 1,
-      });
-      // Reverse direction: "all beliefs held *toward* subject X" — the
-      // regard realm's renown / Sybil-keystone data path ("what does the
-      // community feel about Bob"). Additive; no consumer reads it yet.
-      await this.getCollection(Collections.Beliefs).createIndex({
-        realm: 1,
-        referent: 1,
-      });
-
-      // Chronicles: per-character append-only identity ledger (one doc
-      // per entry). Indexed on `owner` so an owner-scoped read
-      // (`ChronicleEntry.find({ owner })`) and the future per-player
-      // cleanup cascade (`deleteMany({ owner })`) are
-      // O(rows-for-this-owner), not a full scan.
-      await this.getCollection(Collections.Chronicles).createIndex({
-        owner: 1,
-      });
-
-      // Transcripts: per-character append-only evidence ledger (one doc
-      // per sub-check). Indexed on `owner` so the owner-scoped read
-      // (`TranscriptEntry.find({ owner })`, which the derive-on-read
-      // Competence estimator and the self-view consume) and the future
-      // per-player cleanup cascade are O(rows-for-this-owner).
-      await this.getCollection(Collections.Transcripts).createIndex({
-        owner: 1,
-      });
-
-      // Disposition events: per-character append-only disposition-valenced
-      // -act ledger (one doc per sub-check) — the sibling of the Transcript
-      // that the derive-on-read trait-position reads. Indexed on `owner` so
-      // the owner-scoped read (`DispositionEntry.find({ owner })`) and the
-      // future per-player cleanup cascade are O(rows-for-this-owner).
-      await this.getCollection(Collections.DispositionEvents).createIndex({
-        owner: 1,
-      });
-
-      // Forum subjects: the linking spine. A board-subject's `title` is a
-      // flat-global handle (unique, case-insensitive via a collation), so
-      // `SubjectCatalogue.resolveByTitle` and the `make`-on-taken-name
-      // guard are O(1). A thread-subject's handle is board-scoped, so
-      // `parentSubject` is indexed for the board-scoped resolve + the
-      // "threads promoted under this board" reverse read.
-      await this.getCollection(Collections.ForumSubjects).createIndex(
-        { title: 1 },
-        { unique: true, collation: { locale: 'en', strength: 2 } }
-      );
-      await this.getCollection(Collections.ForumSubjects).createIndex({
-        parentSubject: 1,
-      });
-
-      // Forum boards: resolved board-by-subject (a Subject's
-      // popularity-forum manifestation points at the Board, and the
-      // reverse "board for this subject" read is owner-scoped).
-      await this.getCollection(Collections.ForumBoards).createIndex({
-        subject: 1,
-      });
-
-      // Forum entries: the reply tree. `board` scopes a board's threads;
-      // `parent` scopes a thread's posts (null = thread roots).
-      await this.getCollection(Collections.ForumEntries).createIndex({
-        board: 1,
-      });
-      await this.getCollection(Collections.ForumEntries).createIndex({
-        parent: 1,
-      });
-
-      // Forum votes: one row per (entry, voter) — unique compound index
-      // enforces one-account-one-vote per entry; `entry` alone serves the
-      // aggregate recompute.
-      await this.getCollection(Collections.ForumVotes).createIndex(
-        { entry: 1, voter: 1 },
-        { unique: true }
-      );
-
-      // Forum events: the append-only audit/archive log. Indexed on each
-      // dependency key so the Wave 3 subscription's history/backfill reads
-      // (and the deferred audit tooling) are scoped, not full scans.
-      await this.getCollection(Collections.ForumEvents).createIndex({
-        subject: 1,
-      });
-      await this.getCollection(Collections.ForumEvents).createIndex({
-        board: 1,
-      });
-      await this.getCollection(Collections.ForumEvents).createIndex({
-        thread: 1,
-      });
-      await this.getCollection(Collections.ForumEvents).createIndex({
-        entry: 1,
-      });
-
-      // Renown events: append-only, scope-tagged signal log (one doc per
-      // signal). Indexed on `subject` (the hot read partition) and
-      // `{ subject, at }` (the decay-ordered slice the recompute walks),
-      // so both stay O(rows-for-this-subject), not a full scan.
-      await this.getCollection(Collections.RenownEvents).createIndex({
-        subject: 1,
-      });
-      await this.getCollection(Collections.RenownEvents).createIndex({
-        subject: 1,
-        at: 1,
-      });
-
-      // Renown standings: the materialized per-{subject, scope} aggregate
-      // (a rebuildable cache). Indexed on `{ subject, scope }` — the
-      // recompute's upsert key and the warm() load shape.
-      await this.getCollection(Collections.Renown).createIndex({
-        subject: 1,
-        scope: 1,
-      });
-
-      // Participation events: append-only active-bucket log (one doc per
-      // (subject, bucket)). Indexed on `subject` (the recompute group) and
-      // `{ subject, bucket }` (the per-append dedup lookup), so both stay
-      // O(rows-for-this-subject), not a full scan.
-      await this.getCollection(Collections.ParticipationEvents).createIndex({
-        subject: 1,
-      });
-      await this.getCollection(Collections.ParticipationEvents).createIndex({
-        subject: 1,
-        bucket: 1,
-      });
-
-      // Participation standings: the materialized per-subject aggregate (a
-      // rebuildable cache). Indexed on `{ subject, scope }` — the upsert key
-      // and the warm() load shape (scope is always the Compact-wide '*').
-      await this.getCollection(Collections.Participation).createIndex({
-        subject: 1,
-        scope: 1,
-      });
-
-      // Producer events: append-only attributed-engagement log (one doc per
-      // (author, actor, bucket)). Indexed on `author` (the routing key + the
-      // recompute group) and `{ author, actor, bucket }` (the per-append
-      // dedup lookup), so both stay O(rows-for-this-author).
-      await this.getCollection(Collections.ProducerEvents).createIndex({
-        author: 1,
-      });
-      await this.getCollection(Collections.ProducerEvents).createIndex({
-        author: 1,
-        actor: 1,
-        bucket: 1,
-      });
-
-      // Producer standings: the materialized per-author aggregate (a
-      // rebuildable cache). Indexed on `{ subject, scope }` — the upsert key
-      // and the warm() load shape (subject is the author, scope the '*').
-      await this.getCollection(Collections.Producer).createIndex({
-        subject: 1,
-        scope: 1,
-      });
-
-      // Authoring events: the append-only authorship ledger (one doc per
-      // authoring act; nothing overwritten). Indexed on `path` (derive the
-      // author of a content path) and `author` (a creator's body of work).
-      await this.getCollection(Collections.AuthoringEvents).createIndex({
-        path: 1,
-      });
-      await this.getCollection(Collections.AuthoringEvents).createIndex({
-        author: 1,
-      });
-
-      // Accountability: the append-only harm-attribution ledger (one doc
-      // per attribution act; nothing overwritten). The generalized home of
-      // combat's former blame ledger — combat + traps both produce here.
-      // Indexed on `victim` (derive who is to blame) and `sessionId` (a
-      // producer's whole chain of rows).
-      await this.getCollection(Collections.AccountabilityEvents).createIndex({
-        victim: 1,
-      });
-      await this.getCollection(Collections.AccountabilityEvents).createIndex({
-        sessionId: 1,
-      });
-
-      // Positions: held conviction, one doc per (subject, stock, target).
-      // Indexed on `{ subject, stock, target }` (the upsert / positionOf key)
-      // and `{ stock, target }` (the tally read over every holder).
-      await this.getCollection(Collections.Positions).createIndex({
-        subject: 1,
-        stock: 1,
-        target: 1,
-      });
-      await this.getCollection(Collections.Positions).createIndex({
-        stock: 1,
-        target: 1,
-      });
-
-      // Bank ledger: the append-only system of record (one doc per transfer
-      // leg). Indexed on `fromAccount` / `toAccount` (the per-account replay
-      // + reads), `kind` (the supply / report scans), and `at` (time-ordered
-      // slices) — the `renown_events` block, two-sided for double-entry.
-      await this.getCollection(Collections.BankLedger).createIndex({
-        fromAccount: 1,
-      });
-      await this.getCollection(Collections.BankLedger).createIndex({
-        toAccount: 1,
-      });
-      await this.getCollection(Collections.BankLedger).createIndex({ kind: 1 });
-      await this.getCollection(Collections.BankLedger).createIndex({ at: 1 });
-
-      // Bank accounts: the materialized account registry + balance (a
-      // rebuildable cache). Unique on `accountId` (the ledger key + warm()
-      // load), indexed on `owner` / `bank` (identity resolution — the
-      // {owner, bank} institution key; the legacy `bankPath` index is
-      // retired with the field).
-      await this.getCollection(Collections.BankAccounts).createIndex(
-        { accountId: 1 },
-        { unique: true }
-      );
-      await this.getCollection(Collections.BankAccounts).createIndex({
-        owner: 1,
-      });
-      await this.getCollection(Collections.BankAccounts).createIndex({
-        bank: 1,
-      });
-
-      // Bank supply: the single-row running money-supply headline
-      // (rebuildable from the ledger). One row — no index needed.
-
-      // Parcels: the real-property title registry (one doc per titled
-      // extent, the rebuildable current-state cache). Indexed on `extent`
-      // (the coverage-index key + the seed/mutation upsert lookup) and
-      // `parentParcel` (the sparse-hierarchy child scan).
-      await this.getCollection(Collections.Parcels).createIndex({
-        extent: 1,
-      });
-      await this.getCollection(Collections.Parcels).createIndex({
-        parentParcel: 1,
-      });
-
-      // Parcel events: the append-only chain-of-title log (one doc per
-      // title event; nothing overwritten — the `renown_events` shape).
-      // Indexed on `extent` (the lineage readout for a title).
-      await this.getCollection(Collections.ParcelEvents).createIndex({
-        extent: 1,
-      });
-
-      // Diagnostics: the author-diagnostics store (runtime / compile rows,
-      // rotated by TTL). Indexed on `{channel, ts}` (tail-by-channel),
-      // `{author, ts}` (the "my content's errors" / `--mine` read), and
-      // `{path, versionId}` (the compile supersede). The TTL index on
-      // `expiresAt` (first-of-kind in this repo) lets Mongo evict rows with
-      // no cron — `expireAfterSeconds: 0` means "at the instant `expiresAt`".
-      await this.getCollection(Collections.Diagnostics).createIndex({
-        channel: 1,
-        ts: -1,
-      });
-      await this.getCollection(Collections.Diagnostics).createIndex({
-        author: 1,
-        ts: -1,
-      });
-      await this.getCollection(Collections.Diagnostics).createIndex({
-        path: 1,
-        versionId: 1,
-      });
-      await this.getCollection(Collections.Diagnostics).createIndex(
-        { expiresAt: 1 },
-        { expireAfterSeconds: 0 }
-      );
-
-      // Holder snapshots: the persistence-spine engine-of-record (one doc
-      // per host `scope` × `owner`). Indexed on `scope` (materialize loads
-      // every record scoped to a host) and `owner` (the account-deletion
-      // cascade, a keyed delete). The compound `{ scope, owner }` serves
-      // the single-record capture upsert.
-      await this.getCollection(Collections.HolderSnapshots).createIndex({
-        scope: 1,
-      });
-      await this.getCollection(Collections.HolderSnapshots).createIndex({
-        owner: 1,
-      });
-      await this.getCollection(Collections.HolderSnapshots).createIndex(
-        { scope: 1, owner: 1 },
-        { unique: true },
-      );
-
-      // Contracts: the gig current-state rows (the chattel/parcel shape —
-      // one writer, all reads async finders, no registry Stuff). Unique on
-      // `contractId` (the escrow account + event chain key), indexed on
-      // `state` and `boardPath` (the board browse + claimant scans).
-      await this.getCollection(Collections.Contracts).createIndex(
-        { contractId: 1 },
-        { unique: true },
-      );
-      await this.getCollection(Collections.Contracts).createIndex({
-        state: 1,
-      });
-      await this.getCollection(Collections.Contracts).createIndex({
-        boardPath: 1,
-      });
-
-      // Contract events: the append-only gig event chain (nothing
-      // overwritten — the `chattel_events` shape; money legs live in
-      // `bank_ledger`, linked by txId). Indexed on `contractId` (the chain
-      // readout) and `at` (time-ordered slices).
-      await this.getCollection(Collections.ContractEvents).createIndex({
-        contractId: 1,
-      });
-      await this.getCollection(Collections.ContractEvents).createIndex({
-        at: 1,
-      });
-
-      // Wiki pages: the current-state rows. The load-bearing one is the
-      // NAME index — slugs and aliases share ONE name space within a
-      // namespace (a name resolves to at most one page), so the lookup
-      // and the collision check are the same query. It is NOT declared
-      // unique: `aliases` is an array, so a unique index would be a
-      // multikey unique across the whole collection rather than per
-      // namespace, and would reject two namespaces legitimately holding
-      // the same name. Uniqueness is enforced at the one write
-      // chokepoint (`WikiRegistry`), which is also where the refusal can
-      // name the holder (criterion 63) instead of surfacing a driver
-      // error. `subject.ref` serves the total reverse lookup
-      // ("is this documented?" — criterion 6).
-      await this.getCollection(Collections.Wiki).createIndex({
-        namespace: 1,
-        slug: 1,
-      });
-      await this.getCollection(Collections.Wiki).createIndex({
-        namespace: 1,
-        aliases: 1,
-      });
-      await this.getCollection(Collections.Wiki).createIndex({
-        'subject.ref': 1,
-      });
-      await this.getCollection(Collections.Wiki).createIndex({ tags: 1 });
-
-      // Wiki revisions: the append-only edit log, in its own collection
-      // so a heavily-edited page never approaches Mongo's 16MB document
-      // cap and a page READ never drags its history (criterion 11).
-      // `{pageId, rev}` is unique — it is the compare-and-swap token's
-      // materialisation, and two rows at one rev would mean a lost edit
-      // that history records as having happened.
-      await this.getCollection(Collections.WikiRevisions).createIndex(
-        { pageId: 1, rev: -1 },
-        { unique: true },
-      );
-      await this.getCollection(Collections.WikiRevisions).createIndex({
-        author: 1,
-      });
-
-      // Player frames: the record layer's rolling window. `{owner, seq}`
-      // is the load-bearing one — it serves the backfill read (newest N
-      // for one owner), the `recall` scan, AND the eviction delete
-      // (`seq <= high - window`), which is why the window bound costs one
-      // indexed range delete rather than a count-and-scan. The TEXT index
-      // is what makes `recall` a query instead of a regex crawl.
-      await this.getCollection(Collections.PlayerFrames).createIndex({
-        owner: 1,
-        seq: -1,
-      });
-      // ⚠ The text index is COMPOUND on `owner` first. Mongo allows one
-      // text index per collection, and an equality prefix is the only
-      // way a per-owner text search uses it — a bare `{body:'text'}`
-      // would scan every player's frames and filter afterwards, which
-      // on the highest-volume collection in the system is the whole
-      // difference between a query and a crawl.
-      //
-      // ⚠⚠ The three text indexes and the sandbox partials below sit in
-      // their OWN try, because they are last in the list and a failure
-      // anywhere above would otherwise skip them silently — which is
-      // exactly what happened when a stale text index was found by
-      // driving. Per-index isolation for all 80-odd would be a large
-      // mechanical rewrite; guarding the tail is the proportionate
-      // half, and the catch below now says what a failure costs.
+    const attempt = async (
+      label: string,
+      run: () => Promise<unknown>
+    ): Promise<void> => {
       try {
-        await this.ensureTextIndex(Collections.PlayerFrames, {
-          owner: 1,
-          body: 'text',
-        });
-
-      // Wiki + forum text indexes — the other two `recall` corpora.
-      // Mongo allows exactly ONE text index per collection, so each is a
-      // compound over every field the verb searches.
-        await this.ensureTextIndex(Collections.Wiki, {
-          title: 'text',
-          body: 'text',
-        });
-        await this.ensureTextIndex(Collections.ForumEntries, {
-          title: 'text',
-          body: 'text',
-        });
-
-      // Sandbox: partial circleScope index on every STAMP collection —
-      // serves circle-side $or reads and exit's deleteMany({circleScope})
-      // while costing nothing for the (overwhelming) unscoped majority.
-      // Partial beats sparse: same storage win, clearer semantics.
-        for (const stampCollection of STAMP_COLLECTIONS) {
-          await this.getCollection(stampCollection).createIndex(
-            { circleScope: 1 },
-            { partialFilterExpression: { circleScope: { $exists: true } } }
-          );
-        }
+        await run();
+        built += 1;
       } catch (error) {
-        // Loud and specific: a text/partial index that fails to build
-        // makes `recall` and the circle-scoped reads fall back to a
-        // scan, which is slow rather than wrong — the shape of failure
-        // nobody notices until the data is large.
+        failures.push(label);
         console.error(
-          'PersistenceManager: search / sandbox indexes NOT built — ' +
-            'text queries and circle-scoped reads will fall back to a ' +
-            'collection scan:',
+          `PersistenceManager: index ${label} NOT built — the queries it ` +
+            `serves will fall back to a collection scan:`,
           error
         );
       }
+    };
 
-      console.info('PersistenceManager: Indexes created successfully');
-    } catch (error) {
-      // ⚠⚠ Everything AFTER the failing index is skipped. Worth saying
-      // out loud: the old message read like one index failed, and the
-      // real cost is every index below it — found by driving, when a
-      // stale text index quietly took the wiki index, the forum index
-      // and every sandbox partial with it.
-      console.error(
-        'PersistenceManager: index creation stopped at the first failure ' +
-          '— every index declared after it was SKIPPED:',
-        error
+    for (const index of this.plannedIndexes()) {
+      const label = `${index.collection} ${JSON.stringify(index.keys)}`;
+      if (index.text) {
+        await attempt(label, () =>
+          this.ensureTextIndex(index.collection, index.keys)
+        );
+        continue;
+      }
+      await attempt(label, () =>
+        this.getCollection(index.collection).createIndex(
+          index.keys as IndexSpecification,
+          index.options
+        )
       );
-      // Don't throw - indexes are optional for basic functionality
     }
+
+    // The other derived loop: one `{kind, data.<naturalKey>}`
+    // partial-unique index per declared document kind. It stays outside
+    // the plan because the vocabulary is a lazy import — PM must never
+    // statically import a mudlib model, and the cycle risk is structural
+    // rather than current.
+    await attempt('documents (declared kinds)', () =>
+      this.#createDocumentKindIndexes(
+        this.#indexTarget(this.getCollection(Collections.Documents))
+      )
+    );
+
+    if (failures.length === 0) {
+      console.info(`PersistenceManager: ${built} indexes created successfully`);
+    } else {
+      console.error(
+        `PersistenceManager: ${built} indexes built, ${failures.length} ` +
+          `FAILED (${failures.join('; ')}). Every other index was still ` +
+          `attempted.`
+      );
+    }
+  }
+
+  /**
+   * Every index this deployment declares, in a stable order: the authored
+   * ones from the schema docs, then the derived `circleScope` partials.
+   *
+   * Pure — no I/O, no connection. `createIndexes()` issues it; a test can
+   * assert it; an operator can print it.
+   */
+  public plannedIndexes(): PlannedIndex[] {
+    const plan: PlannedIndex[] = [];
+
+    for (const doc of this.schemaDocs.values()) {
+      for (const index of doc.indexes) {
+        const options: CreateIndexesOptions = {};
+        if (index.unique) options.unique = true;
+        if (index.collation) options.collation = index.collation;
+        if (index.expireAfterSeconds !== undefined) {
+          options.expireAfterSeconds = index.expireAfterSeconds;
+        }
+        if (index.partialFilterExpression) {
+          options.partialFilterExpression = index.partialFilterExpression;
+        }
+        plan.push({
+          collection: doc.collection,
+          keys: { ...index.keys },
+          options,
+          text: index.text === true,
+          source: 'authored',
+          why: index.why,
+        });
+      }
+    }
+
+    // ⭐ Derived from the sandbox policy, which is generated from the same
+    // docs — so declaring `sandbox: stamp` is what gives a collection its
+    // `circleScope` index. There is no list to keep in step.
+    for (const collection of STAMP_COLLECTIONS) {
+      plan.push({
+        collection,
+        keys: { circleScope: 1 },
+        options: {
+          partialFilterExpression: { circleScope: { $exists: true } },
+        },
+        text: false,
+        source: 'derived',
+        why:
+          'serves circle-side $or reads and exit\'s ' +
+          'deleteMany({circleScope}) while costing nothing for the ' +
+          '(overwhelming) unscoped majority. Partial beats sparse: same ' +
+          'storage win, clearer semantics.',
+      });
+    }
+
+    return plan;
   }
 
   /**

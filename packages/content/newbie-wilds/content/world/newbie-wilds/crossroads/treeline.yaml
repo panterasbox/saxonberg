@@ -5,7 +5,7 @@
 # by walking south back to the crossroads; deliberately no inbound exit
 # wired from the hub (keeps content-area standup clean). Carries the
 # Last-Counted-Mile locality address like the hub.
-class: /platform/location/CartesianLocation
+class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: the treeline past the crossroads
@@ -58,5 +58,5 @@ data:
     # backs you up (join) for a consented 2v1 duel in the hollow.
     - /stuff/thing/arms/steel-dagger
   cast:
-    - /world/newbie-wilds/npc/wolf
-    - /world/newbie-wilds/npc/sellsword
+    - /world/newbie-wilds/agent/wolf
+    - /world/newbie-wilds/agent/sellsword

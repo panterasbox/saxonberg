@@ -38,7 +38,7 @@ import { Template } from '../../stuff/Template';
 import { Idea } from '../../stuff/Idea';
 import { Character } from '../../character/Character';
 import Species from '../../../platform/idea/species/Species';
-import CartesianLocation from '../../../platform/location/CartesianLocation';
+import SingletonCartesianLocation from '../../../platform/location/SingletonCartesianLocation';
 import { Dose } from '../Dose';
 import { MarkedMixin, MARK_FORMS } from '../../description/Marked';
 import { ConsumableMixin } from '../Consumable';
@@ -128,8 +128,8 @@ function makeActor(): TestCharacter {
   return actor;
 }
 
-function makeRoom(): CartesianLocation {
-  const room = makeStuff(() => new CartesianLocation());
+function makeRoom(): SingletonCartesianLocation {
+  const room = makeStuff(() => new SingletonCartesianLocation());
   stampTemplatePathForTest(room, `/obj/test/cons-room-${seq++}`);
   return room;
 }

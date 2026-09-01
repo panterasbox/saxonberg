@@ -7,7 +7,7 @@
 #
 # Its Floor pool is authored **empty** (`adornments:`); the rain fills it. No
 # exits wired (reachable by teleport — the substation precedent).
-class: /platform/location/CartesianLocation
+class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a storm-lashed heath

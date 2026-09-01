@@ -176,7 +176,7 @@ Content affords content: the board's own `commandContributions` afford
 the **`job`/`jobs`** verb (`environment`), first placed in the
 **Terminus terminal hall** (a public noticeboard on the station
 concourse — where newcomers arrive needing a living;
-`world-seed/content/world/terminus/terminal/job-board.yaml` + the hall's
+`world-seed/content/world/terminus/terminal/thing/job-board.yaml` + the hall's
 `props`; keyworded `noticeboard` — the hall's `board` detail is the
 split-flap departures board).
 

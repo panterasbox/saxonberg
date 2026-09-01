@@ -1,0 +1,40 @@
+collection: contracts
+owner: ContractRecord
+ownerModule: /lib/employment/ContractRecord
+subsystem: contract.md
+summary: >-
+  Work-contract current state: one row per gig, from posting to settlement.
+purpose: |
+  The gig substrate's current-state rows — the chattel/parcel shape, with
+  one writer and every read an async finder rather than a registry Stuff. A
+  contract is clauses over verifiable conditions plus an escrow account, and
+  this row is what the board browses and the custodian rule acts on.
+
+  ⚠ Money legs never live here. They live in `bank_ledger`, linked by `txId`
+  — the money firewall holds even for the system that spends it.
+invariants:
+  - >-
+    `contractId` is unique and is the key both the escrow account and the
+    event chain name.
+  - >-
+    The row carries the agreed reward (`rewardMinor`) and the escrow
+    account id as TERMS of the agreement. It is not a balance and it never
+    moves: value moves only in `bank_ledger`, and the escrow account is
+    where it sits meanwhile.
+  - >-
+    REFUSE under the sandbox.
+sandbox: refuse
+reset: wipe
+indexes:
+  - keys: { contractId: 1 }
+    unique: true
+    why: |
+      The escrow account and event-chain key. Unique because two rows at one
+      contract id would mean two escrows for one agreement.
+  - keys: { state: 1 }
+    why: |
+      The board browse by lifecycle state — open gigs, claimed gigs, gigs
+      awaiting the custodian.
+  - keys: { boardPath: 1 }
+    why: |
+      The per-board scan: everything posted to one board.

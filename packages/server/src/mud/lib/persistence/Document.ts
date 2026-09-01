@@ -14,15 +14,26 @@
  * `GoogleProfile`) and CMS assets (`Template`).
  *
  * Subclasses must declare:
- *   - `static collectionName: string`
+ *   - `static collectionName` — always a {@link Collections} member,
+ *     never a string literal. `pnpm lint:schema` enforces it: a literal
+ *     names a collection the vocabulary cannot see, and the collection
+ *     it names then has no schema doc, no index, and no help topic.
+ *     (Test fixtures under `__tests__` are the one exemption; they name
+ *     collections that are deliberately outside the vocabulary.)
  *   - `static fieldMeta: FieldMeta` — the fields copied to/from the doc
- *     are its `{ persistent: true }` entries
+ *     are its `{ persistent: true }` entries. Also what the collection's
+ *     help topic harvests its field list from, so this is the only place
+ *     that list is written down.
+ *
+ * Every collection also has an authored doc at
+ * `packages/server/src/schema/<collection>.yaml` — see
+ * docs/subsystems/persistence.md § Collections.
  *
  * Construction is a plain `new T()` — no `StuffApi.create`:
  *
  * ```typescript
  * class User extends Document {
- *   static collectionName = 'users';
+ *   static collectionName = Collections.Users;
  *   static fieldMeta: FieldMeta = {
  *     googleProfileId: { persistent: true },
  *     playerIds: { persistent: true },

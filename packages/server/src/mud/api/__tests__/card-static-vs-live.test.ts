@@ -23,12 +23,12 @@ import { ShadowApi } from '../shadow';
 import { MqlSubscriptionApi } from '../mql-subscription';
 import { ContainmentApi } from '../containment';
 import { CARDS } from '../../lib/connection/Cards';
-import CartesianLocation from '../../platform/location/CartesianLocation';
+import SingletonCartesianLocation from '../../platform/location/SingletonCartesianLocation';
 import Prop from '../../platform/thing/Prop';
 import { makeHarness, makeContext, type Harness } from './card-harness';
 
-async function makeRoom(name: string): Promise<CartesianLocation> {
-  const room = await StuffApi.create(() => new CartesianLocation());
+async function makeRoom(name: string): Promise<SingletonCartesianLocation> {
+  const room = await StuffApi.create(() => new SingletonCartesianLocation());
   room.setShortDescription(name);
   return room;
 }

@@ -12,7 +12,7 @@
 # scope-walk list it and `go north` works — the search-reveals-hidden
 # unlock (concealment-detection Phase 3). The south exit back out is plain
 # and visible.
-class: /platform/location/CartesianLocation
+class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: Dave's office

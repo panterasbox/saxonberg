@@ -49,6 +49,11 @@ import { SlottedMixin } from '../slot/Slotted';
 
 import type { Boundary } from './Boundary';
 import { BoundaryAnchor } from './BoundaryAnchor';
+import { ChattelApi } from '../../api/chattel';
+import type {
+  CaptureContext,
+  FieldsSlice,
+} from '../persistence/PersistenceSlice';
 
 /**
  * One `adornments` entry. A bare path string clones the template and
@@ -74,6 +79,8 @@ export interface Adornable {
   addFixture(f: Stuff & Adornment, slotName?: string): boolean;
   removeFixture(f: Stuff & Adornment): boolean;
   hasFixture(f: Stuff & Adornment): boolean;
+  /** The slot name `f` occupies on this host, or null when unattached. */
+  slotOfFixture(f: Stuff & Adornment): string | null;
   getFixtures(): readonly (Stuff & Adornment)[];
   getFixtureBoundaries(): Boundary[];
   getFixtureLightSources(): (Stuff & Adornment)[];
@@ -109,6 +116,32 @@ export function AdornableMixin<TBase extends MixinConstructor<Stuff & Container>
       // host it adorns, so the holder's death is the fixture's death.
       fixtureSlots: { ref: 'instance', lifetime: 'owned' },
     };
+
+    /**
+     * **The fixtures capture pass** — and it deliberately captures
+     * NOTHING of its own.
+     *
+     * Fixtures are runtime-only: an authored sconce is rebuilt from the
+     * host's `adornments` field on every hydrate, so a host's record has
+     * no business carrying them. But a good a PLAYER hung on the wall is
+     * not authored — it is chattel, and it persists owner-side (D2's
+     * skip rule, one collection over). Without this pass a room going
+     * dormant while its owner is offline would take the lamp with it: the
+     * container slice never sees a fixture, so nobody reports it and
+     * nobody captures it.
+     *
+     * So: report every stamped fixture to `ctx.noteOwnedGood`, which
+     * flushes it into its owner's estate (mount slot and all), and emit
+     * an empty field slice. Exactly the Container-slice rule, applied to
+     * the fixtures map.
+     */
+    static captureSlice(host: Stuff, ctx: CaptureContext): FieldsSlice {
+      const adornable = host as Stuff & Adornable;
+      for (const f of adornable.getFixtures()) {
+        if (ChattelApi.isOwnerPersisted(f)) ctx.noteOwnedGood(f);
+      }
+      return { fields: {} };
+    }
 
     /**
      * Phase 2 applier — clone each adornment template and attach it as a
@@ -187,6 +220,13 @@ export function AdornableMixin<TBase extends MixinConstructor<Stuff & Container>
         if (existing === f) return true;
       }
       return false;
+    }
+
+    slotOfFixture(f: Stuff & Adornment): string | null {
+      for (const [k, v] of this.fixtureSlots.entries()) {
+        if (v === f) return k;
+      }
+      return null;
     }
 
     getFixtures(): readonly (Stuff & Adornment)[] {

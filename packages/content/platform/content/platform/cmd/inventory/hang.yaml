@@ -1,0 +1,32 @@
+verbs: [hang, mount]
+controller: /platform/idea/cmd/inventory/HangController
+description: "Hang a fixture on the wall of the room you're in"
+help: |
+  Put something up. `hang` takes a wall fixture you're carrying — a
+  sconce, a sign, a screen — out of your hands and fixes it to the
+  room, where it stays put: it won't be picked up with the loose
+  things on the floor and it won't follow you out the door.
+
+  What you hang stays yours. A lamp you bought and hung in a room you
+  rent is still your lamp: it survives the room being empty, and it
+  comes off the wall with you when you leave. `get` takes it down
+  again — in a home that isn't yours, only if you own it.
+
+  Only things made to go on a wall can be hung; most goods just sit
+  where you `drop` or `put` them.
+examples:
+  - cmd: hang the sconce
+    note: Put a wall light up in this room
+  - cmd: get sconce
+    note: Take it down again
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: item
+    type: object
+    required: true
+    scope: "inventory"
+    requires: AdornmentMixin
+    validators:
+      - /lib/command/validators/mustBeInInventory

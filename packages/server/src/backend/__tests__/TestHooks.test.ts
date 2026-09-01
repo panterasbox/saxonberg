@@ -10,8 +10,29 @@ import { TestHooks } from '../TestHooks';
 import Avatar from '../../mud/platform/agent/Avatar';
 import { Template } from '../../mud/lib/stuff/Template';
 import { TemplateApi } from '../../mud/api/template';
+import { StuffApi } from '../../mud/api/stuff';
 import { User } from '../../mud/lib/identity/User';
 import { AppApi } from '../../mud/api/app';
+
+/**
+ * The mint clones the SEED row through the real `StuffApi.clone`
+ * channel. Stub it: this is a unit test of the hook's contract, not of
+ * the clone pipeline (which has its own suite), and an unstubbed clone
+ * here needs a booted world and a database.
+ */
+function stubSeedClone() {
+  // The hook reads the seed row first (and refuses loudly when the
+  // platform pack has not installed it), so the read is stubbed too.
+  vi.spyOn(Template, 'findByPath').mockResolvedValue({
+    path: Avatar.SEED_TEMPLATE_PATH,
+    class: '/platform/agent/Avatar',
+    data: {},
+    hydratorClass: '/platform/idea/persistence/PersistentHydrator',
+  } as never);
+  return vi.spyOn(StuffApi, 'clone').mockResolvedValue({
+    save: vi.fn().mockResolvedValue(undefined),
+  } as never);
+}
 
 describe('TestHooks.provisionCharacter', () => {
   const ORIG_AUTH_MODE = process.env.AUTH_MODE;
@@ -33,7 +54,7 @@ describe('TestHooks.provisionCharacter', () => {
     );
   });
 
-  it('mints exactly one ready character for a fresh user', async () => {
+  it('mints exactly one ready character for a fresh user — and writes NO template row', async () => {
     process.env.AUTH_MODE = 'test';
     const user = {
       _id: 'u1',
@@ -41,31 +62,34 @@ describe('TestHooks.provisionCharacter', () => {
       save: vi.fn().mockResolvedValue(undefined),
     };
     vi.spyOn(User, 'findById').mockResolvedValue(user as never);
-    // Test seam writes a LEGACY-style template row (migrated to a
-    // snapshot on first login by `materializeAvatar` — see the
-    // method doc). Mock the seed read + the row write.
-    vi.spyOn(Template, 'findByPath').mockResolvedValue({
-      path: Avatar.SEED_TEMPLATE_PATH,
-      class: '/platform/agent/Avatar',
-      data: {},
-      hydratorClass: '/platform/idea/persistence/PersistentHydrator',
-    } as never);
     const tmplSave = vi
       .spyOn(TemplateApi, 'saveTemplate')
       .mockResolvedValue(undefined as never);
+    const clone = stubSeedClone();
 
     await TestHooks.provisionCharacter('u1', 'Tester');
     expect(user.playerIds).toHaveLength(1);
     expect(user.save).toHaveBeenCalledTimes(1);
-    expect(tmplSave).toHaveBeenCalledTimes(1);
-    const [path, , data] = tmplSave.mock.calls[0]! as [
+
+    // ⭐ The D17 shape (residences build): the mint CLONES THE SEED ROW
+    // and stamps a per-player IDENTITY. It used to write a legacy
+    // per-player template row, which is exactly the rowless
+    // `templatePath` the identity split retired — so the strongest
+    // assertion here is the negative one.
+    expect(tmplSave).not.toHaveBeenCalled();
+    expect(clone).toHaveBeenCalledTimes(1);
+    const [seedPath, , opts] = clone.mock.calls[0]! as [
       string,
       unknown,
-      Record<string, unknown>,
+      { dataOverlay: Record<string, unknown>; asIdentityPath: string },
     ];
-    expect(path).toMatch(/^\/platform\/agent\/Avatar\//);
+    expect(seedPath).toBe(Avatar.SEED_TEMPLATE_PATH);
+    expect(opts.asIdentityPath).toBe(
+      Avatar.getTemplatePath(user.playerIds[0]!),
+    );
     // Spawn home injected from app config (defaultStartLocation).
-    expect(data.startLocation).toBe('/test/idea/warren');
+    expect(opts.dataOverlay.startLocation).toBe('/test/idea/warren');
+    expect(opts.dataOverlay.name).toBe('Tester');
   });
 
   it('honors a startLocation override (spawn-room pin for co-location E2E)', async () => {
@@ -76,21 +100,15 @@ describe('TestHooks.provisionCharacter', () => {
       save: vi.fn().mockResolvedValue(undefined),
     };
     vi.spyOn(User, 'findById').mockResolvedValue(user as never);
-    vi.spyOn(Template, 'findByPath').mockResolvedValue({
-      path: Avatar.SEED_TEMPLATE_PATH,
-      class: '/platform/agent/Avatar',
-      data: {},
-      hydratorClass: '/platform/idea/persistence/PersistentHydrator',
-    } as never);
-    const tmplSave = vi
-      .spyOn(TemplateApi, 'saveTemplate')
-      .mockResolvedValue(undefined as never);
+    const clone = stubSeedClone();
 
     await TestHooks.provisionCharacter('u1', 'Tester', '/test/location/bar');
     // The override wins over the app-config default — the avatar is
     // pinned to the named singleton room rather than the lounge Warren.
-    const data = tmplSave.mock.calls[0]![2] as Record<string, unknown>;
-    expect(data.startLocation).toBe('/test/location/bar');
+    const opts = clone.mock.calls[0]![2] as {
+      dataOverlay: Record<string, unknown>;
+    };
+    expect(opts.dataOverlay.startLocation).toBe('/test/location/bar');
   });
 
   it('is idempotent — no-op when the user already has a character', async () => {

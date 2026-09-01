@@ -227,6 +227,17 @@ const MANIFEST: ReadonlyArray<{ site: string; classification: string }> = [
     classification: "validation-only",
   },
   {
+    // Help's collection projector: resolves each schema doc's
+    // `ownerModule` to read `fieldMeta` off the owning `Document` class,
+    // so a collection's help topic lists the fields the class really
+    // declares. Introspection only — nothing is constructed and nothing
+    // author-named runs. The path is not author-supplied either: schema
+    // docs are repo files, not content, and `pnpm lint:schema` proves
+    // every `ownerModule` names the file its class is declared in.
+    site: "platform/idea/HelpCatalogue.ts::loadClassByPath",
+    classification: "validation-only",
+  },
+  {
     // Sandbox circle materialization: authored templates under the
     // circle path re-clone only when their class is Location-shaped —
     // the class resolve is the room filter (docs/subsystems/sandbox.md).
