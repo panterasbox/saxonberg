@@ -22,7 +22,7 @@ import { SingletonMixin } from '../../../lib/stuff/Singleton';
 import type { FieldMeta } from '../../../lib/mixin';
 
 // `PopulatesMixin` lets the bar stock itself declaratively from the seed's
-// `populates:` list on hydration — the crafting fixtures (back-bar, bottles
+// `props:` list on hydration — the crafting fixtures (back-bar, bottles
 // + tools placed `onto` it, the menu) and the cast (each NPC a non-singleton
 // clone moved in), all fresh each boot (transient runtime). The bar is
 // otherwise a plain room: crafting is location-agnostic, so there is NO

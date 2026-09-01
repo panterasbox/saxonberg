@@ -49,11 +49,11 @@ function brandKeys(): Set<string> {
 
 describe("Dave's Bar — the rail is bought, never populated (libations D14)", () => {
   const populates = (): string[] =>
-    ((loadLounge("location/bar.yaml").data?.populates ?? []) as (string | { template: string })[]).map(
+    ((loadLounge("location/bar.yaml").data?.props ?? []) as (string | { template: string })[]).map(
       (p) => (typeof p === "string" ? p : p.template),
     );
 
-  it("no bottle rides `populates` — the keeper's restocks beat stocks the rail by buying", () => {
+  it("no bottle rides `props` — the keeper's restocks beat stocks the rail by buying", () => {
     for (const t of populates()) expect(t, t).not.toMatch(/bottle|keg|crate/);
     for (const f of ["gin-bottle", "vermouth-bottle", "rum-bottle", "lime-bottle"]) {
       expect(existsSync(`${LOUNGE_DIR}thing/${f}.yaml`), f).toBe(false);
@@ -68,7 +68,7 @@ describe("Dave's Bar — the rail is bought, never populated (libations D14)", (
   });
 
   it("the house tablet is the lounge's own row, signed in as the bar's business, on the back-bar", () => {
-    const entry = (loadLounge("location/bar.yaml").data?.populates as { template?: string; onto?: string }[]).find(
+    const entry = (loadLounge("location/bar.yaml").data?.props as { template?: string; onto?: string }[]).find(
       (p) => typeof p === "object" && p.template === "/world/lounge/thing/house-tablet",
     );
     expect(entry?.onto).toBe("/trade/hospitality/thing/back-bar");

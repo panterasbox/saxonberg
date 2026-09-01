@@ -268,19 +268,35 @@ function claimGlass(
 }
 
 /**
+ * Whether a Crafted discrete is EDIBLE MATTER — food by its own material
+ * (`ConsumableMaterial.edibility`, the surface `eat`/metabolism already
+ * consume). The maker's mark on a lime says who grew it, not what it is:
+ * **the distinction is the material, not a flag** (the D3 precedent, the
+ * same rule the crafted-bulkable branch applies to a bottle of pressed
+ * juice). A marked roast gathers too — leftovers feeding the next dish
+ * is deliberate.
+ */
+function isEdibleMatter(c: Stuff): boolean {
+  if (!MixinApi.isTangible(c)) return false;
+  const material = c.getMaterial();
+  return material !== null && material.getEdibility();
+}
+
+/**
  * Whether `c` qualifies as a discrete/glob item-input candidate: a
  * Material-bearing Tangible that is raw *matter*, not capital or a made
- * form — not a tool (the anvil never feeds the forge), not crafted gear,
- * not a graded bottle (those are bulk candidates), not a container (the
- * pantry chest is reached *into*, never consumed), and not something
- * living.
+ * form — not a tool (the anvil never feeds the forge), not crafted
+ * NON-FOOD (a grown, marked lime is still matter — see
+ * {@link isEdibleMatter}), not a graded bottle (those are bulk
+ * candidates), not a container (the pantry chest is reached *into*,
+ * never consumed), and not something living.
  */
 function isItemCandidate(c: Stuff): boolean {
   return (
     MixinApi.isTangible(c) &&
     c.getMaterial() !== null &&
     !MixinApi.isTool(c) &&
-    !MixinApi.isCrafted(c) &&
+    (!MixinApi.isCrafted(c) || isEdibleMatter(c)) &&
     !MixinApi.isContainer(c) &&
     !MixinApi.isBulkable(c) &&
     !MixinApi.isOrganism(c) &&

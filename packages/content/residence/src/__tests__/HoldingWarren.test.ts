@@ -125,7 +125,7 @@ function seedDomain(): void {
   });
   add(ROOM_A, '/platform/location/FurnishableRoom', {
     shortDescription: 'the hall',
-    populates: ['/world/prog-test/coatrack'],
+    props: ['/world/prog-test/coatrack'],
   });
   add(ROOM_B, '/platform/location/FurnishableRoom', {
     shortDescription: 'a bedroom',

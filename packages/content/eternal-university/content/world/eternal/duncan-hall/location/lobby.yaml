@@ -13,7 +13,7 @@
 # steps get the back-exit "north" automatically via
 # Exitable.applyExits.
 #
-# `populates:` seeds a couple of instrument instances into the
+# `props:` seeds a couple of instrument instances into the
 # lobby on hydrate so the inspection card's contents list has
 # something to render — demonstrating the contents projection
 # end-to-end against real content.
@@ -46,12 +46,13 @@ data:
       destination: /world/eternal/duncan-hall/location/steps
       door: /world/eternal/duncan-hall/thing/front-doors
       bidirectional: true
-  populates:
+  props:
     - /stuff/thing/instrument/thermometer
     - /stuff/thing/instrument/barometer
     - /stuff/thing/instrument/hygrometer
     - /stuff/thing/instrument/altimeter
     - /stuff/thing/instrument/balance
+  cast:
     # Katie, the live-in super — the day-one housing touchpoint. Talk to her
     # to get a room; she fronts provisioning (see her seed + Katie.ts).
     - /world/eternal/duncan-hall/agent/katie

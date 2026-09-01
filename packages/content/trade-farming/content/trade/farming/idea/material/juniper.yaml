@@ -1,0 +1,18 @@
+# Juniper — produce's food material; tag `juniper` is the recipe category
+# (the gin still's item slot, when a distilling build learns it).
+class: /platform/idea/material/ConsumableMaterial
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: juniper
+  appearance: "a blue-black juniper berry"
+  keywords: ["juniper"]
+  density: 800
+  thermalConductivity: 0.5
+  specificHeat: 3600
+  edibility: true
+  nutrients: ["water"]
+  toxicity:
+    []
+  tags: ["solid", "food", "produce", "juniper", "berry"]
+  composition: []
+  biologicalSource: null

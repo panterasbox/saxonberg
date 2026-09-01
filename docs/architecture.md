@@ -930,7 +930,7 @@ registry) lives in `lib/mixin.ts`.
 | `lib/time/` | `MechanicalMovementMixin` | the windable, drifting clockwork inside a mechanical timepiece (`Timekeeping` over `Reserved` — the mainspring); `wind`/`adjust` gate on its presence. In `lib/time` since content packs wave 4b (graduated out of University Avenue; `Watch` stays content). See [time.md](./subsystems/time.md). |
 | `lib/spatial/` | `DoorBearingMixin` | adds `door: Door \| null` for hosts whose exits are synthesized rather than authored (`ExitableVessel`). Constrained to `Stuff & Exitable`. |
 | `lib/stuff/` | `SingletonMixin` | class-level uniqueness — refuses a second `clone()` for the same templatePath. Composed by `CartesianZone` / `SphericalZone`. |
-| `lib/stuff/` | `PopulatesMixin` | declarative content-spawn for Container hosts; `populates:` instruction field lists entries to clone (non-singletons) or singleton-resolve into self — each a bare templatePath (moved in) or a `{template, onto}` object (placed on an already-populated sibling surface via `placeOn`). Phase 2 applier. |
+| `lib/stuff/` | `PopulatesMixin` | declarative content-spawn for Container hosts; `props:` instruction field lists entries to clone (non-singletons) or singleton-resolve into self — each a bare templatePath (moved in) or a `{template, onto}` object (placed on an already-populated sibling surface via `placeOn`). Phase 2 applier. |
 | `lib/message/` | `SensorMixin` | `handleMessage(frame)` notification hook |
 | `lib/message/` | `VocalMixin` | `say(text)` with scope inference |
 | `lib/command/` | `CommandGiverMixin` | `executeCommand`, `getAvailableCommands`, `getAffordances` |

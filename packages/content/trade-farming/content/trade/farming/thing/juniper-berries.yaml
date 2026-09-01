@@ -1,0 +1,12 @@
+# A handful of juniper berries — the discrete produce item. D8: gin's
+# berry ships as a crop; the still learns it in a later distilling build.
+class: /platform/thing/Provision
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a handful of juniper berries
+  primaryKeyword: berries
+  keywords: [juniper, berries, berry, produce, "juniper berries"]
+  longDescription: "A handful of blue-black juniper berries, resinous when crushed."
+  _materialPath: /trade/farming/idea/material/juniper
+  gradeBand: fair
+  mass: 0.03

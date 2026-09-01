@@ -1,11 +1,11 @@
 /**
  * The hearthworks venue names its trade rows and commons by TEMPLATE PATH
- * (`populates:`), and content-packs wave 4a moved those rows into three
+ * (`props:` / `cast:`), and content-packs wave 4a moved those rows into three
  * packs. A template row sits at the path its FILE mirrors under a pack's
  * `content/` (only documents derive from the manifest `root`) — so every
  * path a venue populates must be a file in SOME shipped pack at
  * `content<path>.yaml`. Found live on 2026-08-27: the trade rows shipped
- * from `content/obj/` landed at `/obj/anvil`, and the smithy's populates
+ * from `content/obj/` landed at `/obj/anvil`, and the smithy's props list
  * threw `no template at '/trade/smithing/thing/iron-ingot'` on connect.
  */
 
@@ -34,7 +34,7 @@ function shippedFile(path: string): string | null {
   return null;
 }
 
-describe('the hearthworks venue pack populates rows the packs ship at those paths', () => {
+describe('the hearthworks venue pack props/cast rows the packs ship at those paths', () => {
   const venues = walk(VENUE);
   it('ships thirteen rows under branch subdirs', () => {
     expect(venues.map((f) => f.slice(VENUE.length + 1)).sort()).toEqual([
@@ -43,12 +43,14 @@ describe('the hearthworks venue pack populates rows the packs ship at those path
       'thing/forge-floor.yaml', 'thing/kitchen-menu.yaml', 'thing/pantry-chest.yaml', 'thing/smithy-menu.yaml',
     ]);
   });
-  it('every populates: path is a shipped template file (trade-smithing, generic-objects, the venue itself)', () => {
+  it('every props:/cast: path is a shipped template file (trade-smithing, generic-objects, the venue itself)', () => {
     const missing: string[] = [];
     const seen = new Set<string>();
     for (const file of venues) {
-      const doc = YAML.parse(readFileSync(file, 'utf-8')) as { data?: { populates?: unknown[] } };
-      for (const spec of doc.data?.populates ?? []) {
+      const doc = YAML.parse(readFileSync(file, 'utf-8')) as {
+        data?: { props?: unknown[]; cast?: unknown[] };
+      };
+      for (const spec of [...(doc.data?.props ?? []), ...(doc.data?.cast ?? [])]) {
         const path = typeof spec === 'string' ? spec : (spec as { template?: string }).template;
         if (!path) continue;
         seen.add(path);

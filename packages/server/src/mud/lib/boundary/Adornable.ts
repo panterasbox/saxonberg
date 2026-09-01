@@ -64,7 +64,7 @@ import type {
  *
  * Fixtures are per-instance by nature (two Veshko signs are two
  * objects), so the applier always **clones** — there is no singleton
- * dispatch like `applyPopulates`.
+ * dispatch like `applyProps`.
  */
 export type AdornmentSpec = string | { template: string; slot?: string };
 
@@ -107,7 +107,7 @@ export function AdornableMixin<TBase extends MixinConstructor<Stuff & Container>
     /**
      * Instruction field consumed by `applyAdornments`. The YAML data is
      * an array of `AdornmentSpec` entries; Phase 2 clones each and
-     * attaches it as a fixture. The `applyExits` / `applyPopulates`
+     * attaches it as a fixture. The `applyExits` / `applyProps`
      * precedent — declarative content over the imperative `addFixture`.
      */
     static fieldMeta: FieldMeta = {
@@ -145,7 +145,7 @@ export function AdornableMixin<TBase extends MixinConstructor<Stuff & Container>
 
     /**
      * Phase 2 applier — clone each adornment template and attach it as a
-     * fixture. Mirrors `applyPopulates`, minus the singleton dispatch:
+     * fixture. Mirrors `applyProps`, minus the singleton dispatch:
      * fixtures are per-instance, so every entry is cloned fresh. A
      * template that doesn't compose `AdornmentMixin` is a configuration
      * error (it can't be a fixture) and throws, naming the path.

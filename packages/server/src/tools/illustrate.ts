@@ -80,7 +80,7 @@ function locationPrompt(loc: unknown): { prompt: string; size: string } {
   const short = d.getShortDescription?.() ?? "";
   const long = d.getLongDescription?.() ?? "";
 
-  // Composed state #1 — what's actually in the room (the `populates` clones).
+  // Composed state #1 — what's actually in the room (the `props` clones).
   const contents = (loc as ContainerLike).getContents()
     .map((c) => c.getPresentation())
     .filter(Boolean);

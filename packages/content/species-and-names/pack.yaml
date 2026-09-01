@@ -1,3 +1,3 @@
 id: species-and-names
 version: 0.2.0          # reserved; nothing reads/enforces it (non-goal: version machinery)
-description: Species (the Species/Clade taxonomy, the body plans) and the char-gen name banks.
+description: Species (the wild Species/Clade taxonomy skeleton, the body plans, the ornamental houseplants) and the char-gen name banks. A trade's DOMESTICATES ship in that trade's own pack (trade-farming carries its eleven crops), landing in the same /stuff/idea/species commons.

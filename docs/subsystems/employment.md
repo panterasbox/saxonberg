@@ -478,7 +478,7 @@ Tips are **physical cash**, two routes, never the bar's P&L:
   fills visibly. Affords `tip` + `collect` from the environment bucket
   (the `Menu` affordance pattern). The *template* is the hospitality
   trade's (`/trade/hospitality/thing/tip-jar`); the lounge's bar
-  `populates:` an instance onto its back-bar.
+  `props:` an instance onto its back-bar.
 - **`tip <amount> [--eft]`** — **cash** (default): `BankingApi.settle` cash
   moves coin patron→jar, off every ledger (anonymous, the under-the-counter
   take). **EFT** (`--eft`, or the automatic fallback when the patron lacks

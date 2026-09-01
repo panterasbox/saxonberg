@@ -128,7 +128,7 @@ describe('libations annexes — the floor rows fit the faucet', () => {
   it('every bottle row holds a shipped material whose tags carry a recipe category; every crate populates a shipped item', () => {
     for (const r of floorRows) {
       if (r.class === '/platform/thing/Crate') {
-        const items = r.data.populates as string[];
+        const items = r.data.props as string[];
         expect(items.length, r.path).toBeGreaterThan(0);
         const item = byPath.get(items[0]!);
         expect(item, `${r.path} populates ${items[0]}`).toBeDefined();

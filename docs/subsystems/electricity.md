@@ -181,7 +181,7 @@ metal armor does NOT protect against a shock).
   (the treeline precedent — keeps content-area standup clean; reachable by
   teleport / a future travel node).
 - **`StunBaton`** (`lib/electricity/StunBaton.ts`, authored as a template at
-  `/world/substation/stun-baton` and `populates:`-placed in the cell) — a
+  `/world/substation/stun-baton` and `props:`-placed in the cell) — a
   `Weapon` + `Energized` + `Switchable` (the combat toe-hold). A landed hit
   routes through **`ElectricityApi.shockContact`** — a **direct two-terminal
   contact** (a taser/baton completes its own circuit through its electrodes,

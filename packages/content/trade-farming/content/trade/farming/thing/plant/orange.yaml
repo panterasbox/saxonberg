@@ -1,0 +1,35 @@
+# An orange tree — a fruiting plant on the CYCLE (D1/D2):
+# The slowest of the citrus — a bigger tree, a longer fill.
+# No moisture reserve — the water lives in the ground (see peace-lily).
+class: /platform/thing/Plant
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: an orange tree
+  primaryKeyword: "orange tree"
+  keywords: ["orange tree", orange, tree, citrus, plant]
+  longDescription: |
+    A round-headed orange tree, dark leaves over fruit that goes from green to lantern-bright.
+  _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/sapindales/rutaceae/citrus/sinensis
+  material: /stuff/idea/material/tissue/plant-tissue
+  lifecycleState: alive
+  seedTemplatePath: /trade/farming/thing/seed/orange
+  harvestTemplatePath: /trade/farming/thing/orange
+  nutrientDraw: 10
+  profile:
+    moistureHappyAt: 0.3
+    moistureWiltAt: 0.05
+    litresPerGameDay: 0.32
+    luxHappyAt: 110
+    luxDarkAt: 10
+    rootDemand:
+      seedling: 0.5
+      young: 2
+      established: 6
+      mature: 11
+    daysToStage:
+      young: 45
+      established: 130
+      mature: 260
+    # The fruit cycle (D1/D2): the PAIR is the polycarp marker.
+    fruitSetCount: 12
+    fruitFillDays: 28

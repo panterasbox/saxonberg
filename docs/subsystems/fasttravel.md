@@ -265,11 +265,11 @@ fork reads `getStatus()` at authorization and refuses a non-operational
 departure (**D8**; the seam stays authored-static — no dynamic breakdown).
 
 The four terminals are **not** boot-manifest entries — they load by
-**`populates:` cascade** from the single lounge root (`saxonberg-lounge`'s
+**`props:` cascade** from the single lounge root (`saxonberg-lounge`'s
 `boot:` list holds one hub anchor, `/world/lounge/thing/terminal`, not one
 entry per terminal). The three departure terminals
 are never route targets, so a plain route-target cascade would never reach
-them; instead each departure gate room declares `populates:` its own
+them; instead each departure gate room declares `props:` its own
 terminal fixture, so standing up the hub materializes every gate + its
 terminal. The office's **terminal clerk** (`TicketClerk`,
 "Tootie") is the city-budget `Business`'s paid employee — she **procures a

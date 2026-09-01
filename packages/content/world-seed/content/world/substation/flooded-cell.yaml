@@ -4,7 +4,7 @@
 # → conduct hazard trigger, unlike the cistern's declarative `_atmosphere:
 # water`) at the substation's origin cell. Its hazard fixtures are authored
 # templates placed **declaratively**: the salt-water-pooled `Floor` (ground +
-# conductive medium) via `adornments:`, the downed `LiveWire` via `populates:`
+# conductive medium) via `adornments:`, the downed `LiveWire` via `props:`
 # — no imperative construction.
 #
 # Wade in barefoot and the current bridges you to ground through the water —
@@ -29,6 +29,6 @@ data:
   # The downed live cable, lying in the pool — a room content, cloned fresh
   # each standup. The stun baton lies here too (safed): pick it up, arm it,
   # and it becomes the combat toe-hold.
-  populates:
+  props:
     - /world/substation/live-wire
     - /world/substation/stun-baton

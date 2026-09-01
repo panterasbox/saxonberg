@@ -636,27 +636,27 @@ describe("eviction seam (AC #9)", () => {
 });
 
 describe("seed-then-persist (AC #10)", () => {
-  it("applyPopulates RETAINS the declared specs but does not seed at hydration", async () => {
+  it("applyProps RETAINS the declared specs but does not seed at hydration", async () => {
     cloneFactories = { "/world/chest": () => new ContentChest() };
     // A persistable host is a bare shell at hydration (its key isn't set yet,
-    // so a hasRecord gate can't tell seed from restore). The `populates` hook
+    // so a hasRecord gate can't tell seed from restore). The `props` hook
     // therefore only retains the specs — it seeds NOTHING here, even with a
     // clone factory available. The keyed holder lays them down later.
     const fresh = makeStuffAtPath(() => new RoomHost(), "/world/fresh");
-    await fresh.applyPopulates(["/world/chest"]); // retains; does NOT seed now
+    await fresh.applyProps(["/world/chest"]); // retains; does NOT seed now
     expect(fresh.getContents()).toHaveLength(0);
   });
 
   // The positive path — seedBornWith → the real PopulatesMixin applier →
   // clone-into-self — needs a Template store, so it's covered end-to-end by
   // the dorm integration tests (DormResidence "move-in seals the style; it
-  // survives reap" seeds bed/desk/footlocker via `populates:` and asserts they
+  // survives reap" seeds bed/desk/footlocker via `props:` and asserts they
   // land + persist; DormWarren likewise). This suite's stub can't reach the
   // applier, so it covers the retain / no-op / no-double-seed invariants here.
 
   it("seedBornWith is a no-op when no populates were declared", async () => {
     cloneFactories = {};
-    // A persistable host with no `populates:` (an Avatar, whose loadout is
+    // A persistable host with no `props:` (an Avatar, whose loadout is
     // seeded imperatively) seeds nothing — no PopulatesMixin need be composed.
     const fresh = makeStuffAtPath(() => new RoomHost(), "/world/fresh");
     await fresh.seedBornWith(); // empty specs → no-op, no throw
@@ -676,7 +676,7 @@ describe("seed-then-persist (AC #10)", () => {
 
     evict(room);
     const reborn = makeStuffAtPath(() => new RoomHost(), "/world/room");
-    await reborn.applyPopulates(["/world/chest"]); // retained, but NOT seeded
+    await reborn.applyProps(["/world/chest"]); // retained, but NOT seeded
     expect(reborn.getContents()).toHaveLength(0); // restore branch: no re-seed
   });
 });
@@ -891,11 +891,11 @@ describe("multi-instance hosts (D1: explicit-key persistence)", () => {
     ).toBe("edited");
   });
 
-  it("applyPopulates is a no-op (the context drives seed vs restore with the key)", async () => {
+  it("applyProps is a no-op (the context drives seed vs restore with the key)", async () => {
     cloneFactories = { "/world/chest": () => new ContentChest() };
     const room = makeStuffAtPath(() => new MultiRoom(), "/world/dormroom");
     // Even with NO record, a keyed host seeds nothing here (context-driven).
-    await room.applyPopulates(["/world/chest"]);
+    await room.applyProps(["/world/chest"]);
     expect(room.getContents()).toHaveLength(0);
   });
 });

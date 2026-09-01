@@ -4,7 +4,7 @@
  * persisted state (the tenant's theme prose + its fixtures' captured prose),
  * keyed by the unit's parcel extent (D1) — the `(scope, key)` identity every
  * persistable host has, no marker needed. The room's born-with fixtures are
- * declared as **data** (`populates:` in its seed, not code): the spine retains
+ * declared as **data** (`props:` in its seed, not code): the spine retains
  * the specs at hydration, and `DormWarren` drives seed-vs-restore with the
  * unit key — `seedBornWith` (laying the fixtures down once) on the no-record
  * branch, `materialize` (restoring captured prose) thereafter.
@@ -67,7 +67,7 @@ export default class DormRoom extends DormRoomBase {
   /**
    * Prose rides the Visible/Detailed slices; the Warren back-ref + exits are
    * runtime; the theme overlay + fixtures ride the spine's slices. The
-   * born-with fixtures (Bed / Desk / Footlocker) are declared as `populates:`
+   * born-with fixtures (Bed / Desk / Footlocker) are declared as `props:`
    * DATA in the seed and laid down once by the spine's `seedBornWith` — no
    * imperative install code lives here.
    */

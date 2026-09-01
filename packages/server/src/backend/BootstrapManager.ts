@@ -219,7 +219,7 @@ export class BootstrapManager {
       try {
         // A boot entry is a singleton by definition, and `singleton` is a
         // persistable singleton's establishing context (a venue room's
-        // `populates:` seeds, or its record restores, right here) — a
+        // `props:` seeds, or its record restores, right here) — a
         // bare `clone` left a booted FurnishableRoom with no fixtures.
         clone = await StuffApi.singleton(path);
       } catch (cause) {

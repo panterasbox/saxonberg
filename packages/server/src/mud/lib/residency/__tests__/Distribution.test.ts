@@ -3,7 +3,7 @@
  *
  * AC 32 — item rarity DERIVES from the grid cell via the price list; no
  *         authored rarity table exists in the codebase.
- * AC 33 — both placement channels work; `populates:` is unchanged and is
+ * AC 33 — both placement channels work; `props:` is unchanged and is
  *         not the injection path for economy-bearing items.
  * AC 34 — the census counts authored and random stock alike, and both
  *         channels decline at target. Authored placement suppresses

@@ -123,9 +123,11 @@ types by package specifier (`@saxonberg/server/mud/lib/behavior/brain`).
 
 **The class rule:** *a brain lives in the pack whose content is the only
 thing that names it.* A generic economy brain (`restocks`, `consigns`,
-`shifts`, `covers`) is kernel; the first real pack brain arrives with
-the first pack that needs a bespoke one. Proof:
-`lib/behavior/__tests__/pack-brain.test.ts`.
+`shifts`, `covers`) is kernel; the first shipped pack brain is
+trade-farming's `farms` (`/trade/farming/behavior/farms` — its tends,
+picks and consigns are named only by that pack's grounds and stalls),
+whose suite travels with it under `src/behavior/__tests__/`. Substrate
+proof: `lib/behavior/__tests__/pack-brain.test.ts`.
 
 ## Triggers: cadence + witness — no new events
 

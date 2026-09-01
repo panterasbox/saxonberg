@@ -66,7 +66,7 @@ function col(collection: string): Doc[] {
   return arr;
 }
 
-// The born-with fixtures a DormRoom seeds, declared as `populates:` data (the
+// The born-with fixtures a DormRoom seeds, declared as `props:` data (the
 // same list the real dormroom.yaml carries) — no longer a class const.
 const FIXTURES = [
   '/world/eternal/duncan-hall/thing/bed',
@@ -88,7 +88,7 @@ function seedDomain(): void {
   add(DormRoom.SCOPE, '/world/eternal/duncan-hall/location/DormRoom', {
     shortDescription: 'a dorm room',
     // Fixtures as data — the spine's seedBornWith lays these down once.
-    populates: FIXTURES,
+    props: FIXTURES,
   });
   add(DormWarren.CORRIDOR_TEMPLATE, '/world/eternal/duncan-hall/location/Corridor', {
     shortDescription: 'a dorm corridor',

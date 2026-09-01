@@ -11,7 +11,7 @@
 # programme's floorplan (`house-programme.yaml`) wires it. The garden
 # bed below stays build-3's (cultivation).
 #
-# `populates:` lays the bed down once, on first provisioning, through the
+# `props:` lays the bed down once, on first provisioning, through the
 # born-with path — after which the yard's own record carries it and the
 # specs sit unused (never double-seeded).
 # `/lib/location/FurnishableRoom`, and NOT a CartesianLocation — the
@@ -45,7 +45,7 @@ data:
   # NO authored exits: the programme wires the locked house door (north)
   # and the way back out the gate (south) per holding — an authored edge
   # here would point every keyed clone at one shared room.
-  populates:
+  props:
     - /trade/farming/thing/bed/garden
     - /world/terminus/hinkley-hills/thing/standpipe
     # The can is not decoration — `water` is a TOOL-conferred verb

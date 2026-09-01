@@ -19,7 +19,7 @@ data:
     - { disposition: diligence, valence: 70 }
     - { disposition: constancy, valence: 65 }
     - { disposition: candor, valence: -30 }
-  populates:
+  props:
     # The landlord-shell term says the walls and the weather are his.
     # The kit is what lets him mean it.
     - /residence/thing/householders-kit

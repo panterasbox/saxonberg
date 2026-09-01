@@ -289,7 +289,7 @@ allow ladder:
 
 **The transitive set closes by construction.** The reference fields
 (`adornments[].template`, `exits[].destination`, `exits[].door`,
-`populates[]`, `container`, `warren`, `startLocation`,
+`props[]`, `cast[]`, `container`, `warren`, `startLocation`,
 `routes[].to`/`.warren`) get **no per-field gate**: each names *another
 template*, which must itself have passed the `class` gate, so a
 reference can only ever instantiate a wizard-vetted-or-protowizard-safe

@@ -5,7 +5,7 @@
 # `lib/bulk/UnboundedSource.ts`'s own docstring; ∞ is the honest v1.
 #
 # A university-owned fixture: invariant, respawned from template, seeded
-# into each DormRoom via its `populates:` data.
+# into each DormRoom via its `props:` data.
 class: /platform/thing/WaterFixture
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:

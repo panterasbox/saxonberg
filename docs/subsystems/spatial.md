@@ -250,7 +250,7 @@ this constraint should be re-evaluated alongside the addressing
 scheme (templatePath alone is 1:1; multirooms need richer keys).
 
 For populating a Container with children declaratively (the inverse
-direction), see `PopulatesMixin` and the `populates:` instruction
+direction), see `PopulatesMixin` and the `props:` instruction
 field — covered in the [containment](#containment) section's
 [Hydrator contract](../subsystems/templates.md#the-hydrator-contract)
 cross-reference.

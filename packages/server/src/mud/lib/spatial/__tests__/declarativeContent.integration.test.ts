@@ -86,7 +86,7 @@ describe('Declarative content lazy hydrate — CartesianZone + rooms + Window', 
         hydratorClass: PersistentHydrator.templatePath,
         data: { name: 'test zone', cellSize: 25 },
       },
-      // Room A — has coords + exits → roomB.
+      // CartesianLocation A — has coords + exits → roomB.
       {
         path: '/test/declarative/zone/roomA',
         class: '/platform/location/SingletonCartesianLocation',
@@ -98,7 +98,7 @@ describe('Declarative content lazy hydrate — CartesianZone + rooms + Window', 
           },
         },
       },
-      // Room B — declares its OWN exit back (exits are explicit on both
+      // CartesianLocation B — declares its OWN exit back (exits are explicit on both
       // sides; no auto-reciprocal). roomA's `north` still triggers roomB's
       // clone when the applier resolves the destination via singleton.
       {

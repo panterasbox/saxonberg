@@ -177,7 +177,7 @@ the **`job`/`jobs`** verb (`environment`), first placed in the
 **Terminus terminal hall** (a public noticeboard on the station
 concourse — where newcomers arrive needing a living;
 `world-seed/content/world/terminus/terminal/thing/job-board.yaml` + the hall's
-`populates`; keyworded `noticeboard` — the hall's `board` detail is the
+`props`; keyworded `noticeboard` — the hall's `board` detail is the
 split-flap departures board).
 
 Two verbs in the new **`work`** category (the house subcommand

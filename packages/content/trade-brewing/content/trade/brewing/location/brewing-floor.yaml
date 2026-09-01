@@ -17,6 +17,7 @@ data:
     A wet stone floor under a roller door: stacked kegs, a hose, the sweet-sour smell of the mash room beyond (the ferment is the distillery build's; the floor stands at target through the sweep until then).
   ambientIntensity: 25
   ambientColorTemperature: 4200
-  populates:
+  props:
     - /trade/brewing/thing/brewing-stock
+  cast:
     - /trade/brewing/agent/brewing-hand

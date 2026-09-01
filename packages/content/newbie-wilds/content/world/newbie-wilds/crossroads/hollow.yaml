@@ -45,8 +45,7 @@ data:
   # brain lifts the nearest and wields it), the other waits for a
   # challenger to arm themselves before they call him out. All cloned
   # fresh at standup.
-  populates:
-    - /world/newbie-wilds/agent/duelist
+  props:
     - /stuff/thing/arms/steel-dagger
     - /stuff/thing/arms/steel-dagger
     # A rack of longer arms for the reach / shield demo — the spear
@@ -56,3 +55,5 @@ data:
     - /stuff/thing/arms/steel-sword
     - /stuff/thing/arms/steel-shield
     - /stuff/thing/arms/leather-whip
+  cast:
+    - /world/newbie-wilds/agent/duelist

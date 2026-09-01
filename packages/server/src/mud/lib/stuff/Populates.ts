@@ -1,11 +1,28 @@
 /**
- * PopulatesMixin — declarative content-spawn for Container hosts.
+ * PopulatesMixin — declarative born-with content for Container hosts,
+ * in the theatre vocabulary: **props** and **cast**.
  *
- * Composes onto `Container` (`Stuff & Container`). Declares
- * `static instructionFields = ['populates']` and exposes
- * `applyPopulates(specs: string[]): Promise<void>` — Phase 2 of the
- * Hydrator's two-phase dispatch invokes the applier with the YAML-
- * declared `populates: [path, ...]` list.
+ * Composes onto `Container` (`Stuff & Container`) and declares two
+ * instruction fields, applied by Phase 2 of the Hydrator's two-phase
+ * dispatch:
+ *
+ *   - **`props:`** — the set dressing: fixtures, stock, furniture,
+ *     anything inanimate the host is born holding. Props are ordinary
+ *     content — on a persistable host they are CAPTURED and written
+ *     back (a barrel a player half-drained stays half-drained).
+ *     A `Behaved`-composing class may never be a prop; the applier
+ *     throws before cloning one (list it under `cast:`).
+ *   - **`cast:`** — the troupe: `Behaved` NPCs staffing the host. Cast
+ *     is never content — never captured into a persistence record
+ *     (capture's third skip), conserved-live and re-seeded on restore
+ *     by `Persistable.reseedCast`. A non-`Behaved` class may never be
+ *     cast; the applier throws before cloning one (an inert dummy is a
+ *     prop).
+ *
+ * The designation is DECLARED, and the class is the check: each applier
+ * resolves the entry's template class and gates on `Mixins.Behaved`
+ * before minting, so a mis-filed entry is an authoring error at
+ * hydrate, not a latent lifecycle bug.
  *
  * For each entry, the applier dispatches by the source template's
  * class:
@@ -15,30 +32,27 @@
  *     the instance is already placed somewhere
  *     (`getContainer() !== null`), the move is skipped — the
  *     singleton lives wherever it was first placed (its own
- *     `applyContainer`, another `populates:` parent, player action).
+ *     `applyContainer`, another host's list, player action).
  *   - Non-singleton: `StuffApi.clone(path)` mints a fresh instance,
  *     unconditionally moved into self via `ContainmentApi.move`.
  *
  * Cycle protection: inherited from `StuffApi.clone`'s existing
- * in-flight-clone-paths guard. A populates → populates cycle
- * surfaces a clear diagnostic naming the path chain.
+ * in-flight-clone-paths guard. A props → props cycle surfaces a clear
+ * diagnostic naming the path chain.
  *
- * v1 spec entries are bare path strings. Richer shapes
- * (`{ template, count }`, conditional spawns) are out of scope; see
- * `docs/slates/declarative-content-slate.md` § Future.
+ * `props` and `cast` are instruction fields (consumed by `applyProps` /
+ * `applyCast` to produce runtime placements). There are NO paired
+ * getters on the runtime instance — the specs are discarded after
+ * Phase 2 (except on a persistable host, whose override retains them
+ * for the establishing context — see `Persistable`).
  *
- * `populates` is an instruction field (consumed by `applyPopulates`
- * to produce runtime placements). There is NO paired `getPopulates()`
- * accessor on the runtime instance — the spec is discarded after
- * Phase 2.
+ * ## ⭐ Run ONCE, at birth — props and cast are initial furnishing
  *
- * ## ⭐ Run ONCE, at birth — `populates` is initial furnishing
- *
- * The applier no-ops once `_populated` is set. This is load-bearing, not
+ * Each applier no-ops once its flag is set. This is load-bearing, not
  * hygiene: `TemplateApi.restoreFromTemplate` — the CMS save go-live and
  * the pack reconcile go-live — re-runs the FULL `hydrate`, which
  * re-dispatches every instruction applier. Without the guard, editing a
- * `populates` row and publishing minted a fresh set into every live
+ * `props` row and publishing minted a fresh set into every live
  * instance: every crate in the world gaining six more grapefruits, every
  * non-singleton fixture in a plain room duplicated. A content edit is not
  * a faucet.
@@ -66,39 +80,59 @@ import { StuffApi } from '../../api/stuff';
 import { ContainmentApi } from '../../api/containment';
 
 /**
- * One `populates` entry. A bare path string moves the spawned instance
+ * One `props` entry. A bare path string moves the spawned instance
  * **into** self (containment); the object form places it **on** a surface —
  * `onto` names another entry's path (a `Surfaced` host) that must appear
  * **earlier** in the list (so it's already populated). The surface itself is
  * populated by a bare-string entry first; its resting items follow with
  * `onto` pointing at it.
+ *
+ * A `cast` entry is a bare path string only — the troupe stands in the
+ * room; it does not rest on furniture.
  */
 export type PopulateSpec = string | { template: string; onto: string };
 
 /**
  * Public shape provided by PopulatesMixin.
  *
- * The applier is the only public surface. The spec is consumed
+ * The appliers are the only public surface. The specs are consumed
  * during Phase 2 hydration and not retained.
  */
 export interface Populates {
   /**
    * @hook Invoked by the `Hydrator`'s Phase-2 instruction dispatch from
-   *   a template's `populates` field. **Instruction applier** — consumes
-   *   the spec during hydration to spawn/populate; the spec is not
-   *   retained and there is no paired getter (not a property).
+   *   a template's `props` field. **Instruction applier** — consumes
+   *   the spec during hydration to spawn the host's born-with props;
+   *   the spec is not retained and there is no paired getter (not a
+   *   property). Throws on an entry whose class composes `Behaved`
+   *   (that is cast, not props).
    *
-   *   ⭐ Runs **once per instance**: a no-op once this host has been
-   *   populated, so a go-live re-hydrate does not mint a second set.
+   *   ⭐ Runs **once per instance**: a no-op once this host's props are
+   *   laid, so a go-live re-hydrate does not mint a second set.
    *   See the class docstring.
    */
-  applyPopulates(specs: PopulateSpec[]): Promise<void>;
+  applyProps(specs: PopulateSpec[]): Promise<void>;
 
-  /** Whether this host has already laid down its born-with contents. */
+  /**
+   * @hook Invoked by the `Hydrator`'s Phase-2 instruction dispatch from
+   *   a template's `cast` field. **Instruction applier** — mints the
+   *   host's troupe. Throws on an entry whose class does NOT compose
+   *   `Behaved` (that is a prop, not cast).
+   *
+   *   ⭐ Runs **once per instance**, same guard discipline as
+   *   {@link Populates.applyProps}.
+   */
+  applyCast(specs: string[]): Promise<void>;
+
+  /** Whether this host has already laid down its born-with contents
+   * (props, cast, or both). */
   hasPopulated(): boolean;
 
-  /** Storage for {@link Populates.hasPopulated} (public for the Hydrator). */
-  _populated: boolean;
+  /** Storage for the props once-guard (public for the Hydrator). */
+  _propsPopulated: boolean;
+
+  /** Storage for the cast once-guard (public for the Hydrator). */
+  _castPopulated: boolean;
 }
 
 export function PopulatesMixin<
@@ -108,40 +142,59 @@ export function PopulatesMixin<
     static _mixinName = 'PopulatesMixin';
 
     /**
-     * Instruction field consumed by `applyPopulates`. The YAML data
-     * is an array of templatePath strings; Phase 2 dispatches by
-     * source-template singleton-shape and moves the resulting
-     * instance into self.
+     * Two instruction fields, one per designation. The YAML data is an
+     * array of specs; Phase 2 dispatches by source-template
+     * singleton-shape and moves the resulting instance into self.
+     * The once-flags are runtime state, never authored: set by the
+     * appliers themselves so a go-live re-hydrate cannot mint a second
+     * set. Persistent so the fact survives a capture/restore round trip.
      */
     static fieldMeta: FieldMeta = {
-      populates: { instruction: true, authorable: true },
-      // Runtime state, never authored: set by the applier itself so a
-      // go-live re-hydrate cannot mint a second set. Persistent so the
-      // fact survives a capture/restore round trip.
-      _populated: { persistent: true, runtimeState: true },
+      props: { instruction: true, authorable: true },
+      cast: { instruction: true, authorable: true },
+      _propsPopulated: { persistent: true, runtimeState: true },
+      _castPopulated: { persistent: true, runtimeState: true },
     };
 
-    /** True once this host has laid down its born-with contents. */
-    public _populated: boolean = false;
+    public _propsPopulated: boolean = false;
+    public _castPopulated: boolean = false;
 
+    /** True once this host has laid down any born-with contents. */
     public hasPopulated(): boolean {
-      return this._populated;
+      return this._propsPopulated || this._castPopulated;
+    }
+
+    /** Phase 2 applier for `props:`. See class docstring. */
+    async applyProps(specs: PopulateSpec[]): Promise<void> {
+      if (!Array.isArray(specs)) return;
+      if (this._propsPopulated) return;
+      await this.populateList(specs, 'props');
+      // Set after a successful run: a throw mid-list is a content bug
+      // that aborts the clone, and leaving the flag clear keeps the
+      // half-populated shell out of the "already done" state.
+      this._propsPopulated = true;
+    }
+
+    /** Phase 2 applier for `cast:`. See class docstring. */
+    async applyCast(specs: string[]): Promise<void> {
+      if (!Array.isArray(specs)) return;
+      if (this._castPopulated) return;
+      await this.populateList(specs, 'cast');
+      this._castPopulated = true;
     }
 
     /**
-     * Phase 2 applier. See class docstring for dispatch semantics.
-     *
-     * Class resolution goes through `StuffApi.loadClassByPath` — the
-     * existing public class-loading Api surface. The Template lookup
-     * is a separate `Template.findByPath` call so we have `tpl.class`
-     * to feed into `loadClassByPath`.
+     * The shared minting walk. Class resolution goes through
+     * `StuffApi.loadClassByPath` — the existing public class-loading
+     * Api surface — which is also where the designation gate sits:
+     * the class is checked against `Mixins.Behaved` BEFORE anything is
+     * cloned, so a mis-filed entry never leaves a half-minted NPC
+     * behind.
      */
-    async applyPopulates(specs: PopulateSpec[]): Promise<void> {
-      if (!Array.isArray(specs)) return;
-      // ⭐ Initial furnishing, once. `restoreFromTemplate` re-runs the
-      // whole hydrate on go-live; without this, publishing an edit to a
-      // `populates:` row mints a fresh set into every live instance.
-      if (this._populated) return;
+    private async populateList(
+      specs: PopulateSpec[],
+      kind: 'props' | 'cast'
+    ): Promise<void> {
       // Lazy import to dodge any cycle through Stuff.
       const { Template } = await import('./Template');
       // Track populated instances by source path so a later `onto` entry can
@@ -154,12 +207,27 @@ export function PopulatesMixin<
         const tpl = await Template.findByPath(path);
         if (!tpl) {
           throw new Error(
-            `PopulatesMixin.applyPopulates: no template at '${path}'`
+            `PopulatesMixin.apply${kind === 'props' ? 'Props' : 'Cast'}: ` +
+              `no template at '${path}'`
           );
         }
         const cls = (await StuffApi.loadClassByPath(tpl.class)) as new (
           ...args: unknown[]
         ) => Stuff;
+        // The designation gate: declared kind must match the class.
+        const behaved = MixinApi.hasMixin(cls, Mixins.Behaved);
+        if (kind === 'props' && behaved) {
+          throw new Error(
+            `PopulatesMixin.applyProps: '${path}' resolves to a Behaved ` +
+              `class — that is cast, not props; list it under cast:`
+          );
+        }
+        if (kind === 'cast' && !behaved) {
+          throw new Error(
+            `PopulatesMixin.applyCast: '${path}' does not resolve to a ` +
+              `Behaved class — that is a prop, not cast; list it under props:`
+          );
+        }
         const singleton = MixinApi.hasMixin(cls, Mixins.Singleton);
         let inst: Stuff & Containable;
         if (singleton) {
@@ -174,13 +242,13 @@ export function PopulatesMixin<
           const surface = placed.get(onto);
           if (!surface) {
             throw new Error(
-              `PopulatesMixin.applyPopulates: '${path}' onto '${onto}' — ` +
+              `PopulatesMixin.applyProps: '${path}' onto '${onto}' — ` +
                 `the surface must be populated earlier in the list`
             );
           }
           if (!MixinApi.isSurfaced(surface)) {
             throw new Error(
-              `PopulatesMixin.applyPopulates: onto '${onto}' is not a Surfaced host`
+              `PopulatesMixin.applyProps: onto '${onto}' is not a Surfaced host`
             );
           }
           ContainmentApi.placeOn(inst, surface);
@@ -189,10 +257,6 @@ export function PopulatesMixin<
         }
         placed.set(path, inst);
       }
-      // Set after a successful run: a throw mid-list is a content bug
-      // that aborts the clone, and leaving the flag clear keeps the
-      // half-populated shell out of the "already done" state.
-      this._populated = true;
     }
   };
 }

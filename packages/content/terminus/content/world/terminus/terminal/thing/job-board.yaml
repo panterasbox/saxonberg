@@ -2,7 +2,7 @@
 # Terminus terminal hall: posted work (reward held in escrow) waiting for
 # whoever steps off a gate needing a living. Affords the `job` verb to the
 # hall; the travel half (`fulfill`) rides the courier's own implant.
-# Populated by the hall's `populates` list. Keyworded as a NOTICEBOARD —
+# Populated by the hall's `props` list. Keyworded as a NOTICEBOARD —
 # the hall's `board` detail is the split-flap departures board.
 class: /platform/thing/JobBoard
 hydratorClass: /platform/idea/persistence/PersistentHydrator

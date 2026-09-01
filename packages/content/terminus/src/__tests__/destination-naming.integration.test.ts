@@ -44,11 +44,15 @@ function loadDir(dir: string, pathPrefixFrom: string): Doc[] {
         string,
         unknown
       >;
+      // Stand the rooms up WITHOUT their troupes (`cast:` stripped) — the
+      // transient NPC layer is heavy Phase-4 hydration with its own tests.
+      const data = { ...((parsed.data as Record<string, unknown>) ?? {}) };
+      delete data.cast;
       out.push({
         path: `/${path}`,
         class: parsed.class as string,
         hydratorClass: (parsed.hydratorClass as string) ?? PH,
-        data: (parsed.data as Record<string, unknown>) ?? {},
+        data,
       });
     }
   }
@@ -82,12 +86,10 @@ const STUBS: Doc[] = [
   },
   { path: "/world/test/lounge-room", class: "/platform/location/VoidLocation", hydratorClass: PH, data: { shortDescription: "the lounge" } },
   { path: "/world/terminus/university-avenue/location/crossing", class: "/platform/location/VoidLocation", hydratorClass: PH, data: { shortDescription: "University Avenue" } },
-  // The office populates the clerk (a full NPC, Phase 4) — stub it here so the
-  // cascade resolves without heavy NPC hydration.
+  // The terminal office lists the clerk under props (a Prop stub keeps the
+  // cascade light); the registry office's registrar rides `cast:`, which
+  // the loader strips.
   { path: "/world/terminus/terminal/agent/clerk", class: "/platform/thing/Prop", hydratorClass: PH, data: { shortDescription: "the clerk" } },
-  // The registry office (cascaded off the arrival gate, civics) populates
-  // the registrar — same stub treatment.
-  { path: "/world/terminus/registry/clerk", class: "/platform/thing/Prop", hydratorClass: PH, data: { shortDescription: "the registrar" } },
 ];
 
 describe("destination naming + crossroads (real seeds)", () => {
@@ -95,7 +97,7 @@ describe("destination naming + crossroads (real seeds)", () => {
     StuffApi.clearAll();
     // ⚠ A stub must WIN over a real row. University Avenue used to be
     // another pack's, so the walk below never saw it; it is this pack's
-    // street now, and the real crossing `populates:` Gus — a full NPC
+    // street now, and the real crossing `cast:`s Gus — a full NPC
     // whose dispositions reach TraitLogic. This suite is about how a
     // destination is NAMED from its covering Locality, not about who is
     // standing in it, so the crossing stays a stub and the override is

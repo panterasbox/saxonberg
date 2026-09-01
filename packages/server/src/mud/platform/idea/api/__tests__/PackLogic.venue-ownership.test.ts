@@ -42,7 +42,7 @@ const BAR = '/studio/x/location/bar';
 const KEEPER_REL = 'studio/x/agent/keeper.yaml';
 const KEEPER = '/studio/x/agent/keeper';
 
-const barFile = (name: string) => ({ rel: BAR_REL, data: { name, populates: ['/trade/y/thing/stool'] } });
+const barFile = (name: string) => ({ rel: BAR_REL, data: { name, props: ['/trade/y/thing/stool'] } });
 
 /** A synthetic venue pack: two rows under branch subdirs, its own claim. */
 async function installVenue(): Promise<string> {
