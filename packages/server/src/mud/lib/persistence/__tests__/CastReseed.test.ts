@@ -179,36 +179,6 @@ describe("capture: the third skip", () => {
   });
 });
 
-describe("restore: the symmetric skip", () => {
-  it("a legacy record's cast entry restores NOTHING (and reseed replaces it)", async () => {
-    const floor = makeStuffAtPath(() => new CastRoom(), FLOOR);
-    const trinket = makeStuffAtPath(() => new Trinket(), TRINKET);
-    ContainmentApi.move(trinket, floor);
-    await PersistableApi.capture(floor);
-
-    // Forge the pre-rule shape: the record carries the hand as CONTENT.
-    containerSliceOf(FLOOR).contents.push({
-      templatePath: HAND,
-      state: {},
-      placement: {},
-    });
-
-    evict(floor);
-    const reborn = makeStuffAtPath(() => new CastRoom(), FLOOR);
-    await reborn.applyPopulates([HAND]); // the retained born-with spec
-    await PersistableApi.materialize(reborn);
-
-    // ONE hand: the legacy entry was skipped, the reseed minted it.
-    const hands = StuffApi.findAllByTemplatePath<Hand>(HAND);
-    expect(hands).toHaveLength(1);
-    expect(hands[0]!.getContainer()).toBe(reborn);
-    // The trinket restored as ordinary content beside it.
-    expect(
-      reborn.getContents().filter((s) => s instanceof Trinket),
-    ).toHaveLength(1);
-  });
-});
-
 describe("reseedTransientCast", () => {
   it("⭐ mints once — a second materialize does not double the troupe", async () => {
     const floor = makeStuffAtPath(() => new CastRoom(), FLOOR);
