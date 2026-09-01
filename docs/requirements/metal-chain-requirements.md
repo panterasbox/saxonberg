@@ -205,6 +205,65 @@ walk off: the **fuel yard with its coppice** and the **smelter beside it**
 smelter sits near the fuel. NPCs are functional (registrar, buyer,
 storekeeper) and canned.
 
+### ⭐⭐⭐ The governing separation: the trade is mechanism, the locality is expression
+
+> **The trade is what makes a mine WORK. The locality is what makes a mine
+> THIS mine.**
+
+Rejection is the **first** mining town, not the only one — a reference
+implementation other authors copy and diverge from. So the line is drawn
+by a falsifiable test:
+
+> ⭐ **A second mining town must need ZERO pack code.** If making a mine
+> look, read or feel different requires touching `trade-mining`, the wrong
+> thing is in the trade.
+
+And the corollary that makes the exemplar work:
+
+> ⭐⭐ **Code is shared; content is copied.** A second mine *imports* the
+> three trade packs and *copies and diverges from* `rejection`'s rows.
+> Copying content is the intended path; copying code is the failure.
+
+**The trade states needs; the locality binds them.** The shipped mechanism
+is the **venue archetype** (`archetypes/*.yaml`) — *"what a venue NEEDS, as
+capability slots… each with the default row `materialize()` binds,"*
+**reported, never enforced**. `content-pack-units.md:94` already assigns
+mining a *"mine archetype"*. So `trade-mining` ships one naming the slots a
+working mine requires — light, haulage, support, assay, survey, a place to
+sell — and Rejection binds each with its own rows.
+
+⭐ The demonstration that this is real rather than decorative: the
+archetype says *you need light underground*. **Rejection answers with
+cultivated glowcap; another mine answers with oil lamps.** Same slot,
+different world.
+
+#### Three consequences that move content out of the trade
+
+1. ⭐⭐ **The four procedural room type rows (`Face`/`Junction`/`Stope`/
+   `Fall`) are LOCALITY content, not trade content.** If they lived in
+   `trade-mining`, every mine's procedural workings would read identically
+   — mechanism leaking into aesthetic. `MineWarren.createMember()` takes
+   them as **policy**, which is exactly what `Warren`'s abstract hooks
+   exist for. A second mine supplies sandstone galleries or ice caves and
+   the machinery does not care.
+2. **The ecology splits on function vs character.** *Revising the earlier
+   all-seven-in-the-trade decision:* the **pit pony and canary are
+   functional** — haulage and air-reading are needs of any mine — so they
+   ship in `trade-mining`. **The crickets, delve-rats, pale grazer and
+   glowcap are the character of this place's ecology** and ship in
+   `rejection`. A second mine writes or copies its own fauna.
+3. **Prose vocabulary is locality.** How a seam or a back *reads* rides
+   **descriptor banks** (the `arcana` precedent), authored per venue. The
+   materials it names stay commons; the voice does not.
+
+#### What stays in the trade
+
+The acts (`hew`/`drive`/`shore`), `MineWarren`'s policy machinery, the
+`Deposit` **class**, the ore lump and its grade field, the instruments,
+the tool recipes, the `geology` Discipline, the archetype, and the two
+working animals. **Everything that answers "how does mining work" —
+nothing that answers "what is it like here."**
+
 ### Pack layout: three capability packs and one locality pack
 
 `content-pack-units.md:94` already ruled the split for mining — *"pack =
@@ -213,10 +272,10 @@ warren root + SEED field**, parcel = the mineral claim."*
 
 | Pack | Kind | Holds |
 |---|---|---|
-| **`trade-mining`** | capability (ships `src/`) | the act controllers (`hew`/`drive`/`shore`), the survey instruments, mining tool recipes, the `geology` Discipline, the seven species rows |
+| **`trade-mining`** | capability (ships `src/`) | the act controllers, **`MineWarren`** (the `Warren` subclass supplying mining's policy), the `Deposit` **class**, the ore lump, the survey instruments, tool recipes, the `geology` Discipline, **the mine archetype**, and the two *functional* species (pit pony, canary) |
 | **`trade-fuel`** | capability | the coppice, the burn, charcoal |
 | **`trade-smelting`** | capability | the furnace acts, the smelt recipes |
-| **`rejection`** | locality | the two zones, the pithead's five rooms, the adit + three galleries, **the `Deposit` row**, the claim field, the fuel-yard and smelter sites, the functional NPCs, the cave biome's occurrence table |
+| **`rejection`** | locality | the two zones, the pithead's five rooms, the adit + three galleries, **the four procedural room type rows**, **the `Deposit` row**, the claim field, the fuel-yard and smelter sites, the functional NPCs, the cave biome's occurrence table, **its own ecology rows** (crickets, delve-rats, pale grazer, glowcap), and its **descriptor banks** |
 
 **`hearthworks` is the exact precedent** — a venue pack composing
 `trade-smithing` + `trade-hearth-cooking`. `rejection` composes the three
@@ -234,10 +293,13 @@ ship in that trade's own pack, landing in the same `/stuff/idea/species`
 commons… the rows travel with the trade that domesticates them"* — and
 its crops sit at full Linnaean paths inside `trade-farming`.
 
-**All seven species ship in `trade-mining`, at the `/stuff/idea/species`
-commons path.** Mining is currently the only reason any of them exists in
-the world, and `species-and-names` — a pack whose organizing principle the
-user wants to revisit — does not grow.
+**Species split on function vs character**, per the governing separation
+above: the **pit pony and canary ship in `trade-mining`** (any mine needs
+haulage and a way to read air); **the crickets, delve-rats, pale grazer and
+glowcap ship in `rejection`** (this place's ecology, which a second mine
+should be free to replace). All of them land at the `/stuff/idea/species`
+commons **path**, and `species-and-names` — a pack whose organizing
+principle the user wants to revisit — does not grow.
 
 ⭐ **This is safe because pack ownership ≠ path namespace.** Nothing
 references a pack; things reference `/stuff/idea/species/…`. Relocating
@@ -297,10 +359,33 @@ when residences merges.
 ### One MR, kernel waves first
 
 Per the standing agreement, this is **one MR reviewed once**, not a kernel
-MR followed by a pack MR. The kernel half (the `Deposit` class and field
-resolver, the carved-set ledger and three-state persistence, per-lump
-grade, stability) lands in the early waves; the capability packs and
-content follow in the same branch.
+MR followed by a pack MR.
+
+⭐ **The kernel half is far smaller than a first pass assumed.** `Warren`
+is *already* an abstract base in `lib/location/` whose subclasses supply
+policy hooks, so `MineWarren` is an ordinary pack class; the carved-set
+ledger is instance state on it; stability is a derive-on-read over that;
+the `Deposit` class and the ore lump are pack classes (the `arcana`
+`src/idea/material/` precedent). **Packs may freely *call* kernel Apis —
+they simply may not *define* substrate**, and none of this needs to.
+
+That leaves roughly one kernel item: **the survey channels**, since
+`measure` and `analyze` are platform verbs whose views live in the
+platform pack and whose controllers live in
+`mud/platform/idea/cmd/perception/`.
+
+⚠ **Two questions the planner must resolve against the code rather than
+assume**, because both move the kernel/pack line:
+
+1. **Can a pack contribute a *subcommand* to a platform verb**, the way
+   content contributes whole verbs through `commandContributions`? If it
+   can, this build's kernel footprint is **zero**. If it cannot, the three
+   survey channels are the one kernel edit.
+2. **Does the archetype `needs` vocabulary cover a mine?** It is closed —
+   `tool` / `heatK` / `bulkSource` / `surface` / `seating` / `coldStorage`,
+   validated by `Archetype.fromData`. A mine's needs (a way down, a place
+   to sell) may not express in it, and widening the vocabulary *is* a
+   kernel edit. Resolve before sizing the archetype wave.
 
 ---
 
@@ -381,6 +466,12 @@ never blocks a room, and no character can be trapped or killed by ground.
 recovers when connected through; the canary's behaviour tracks that value
 and is the only free reading of it; a pit pony hauls a cart at a measurably
 lower draft cost than a character carrying the same load.
+
+**The exemplar test.** A second mining town is demonstrably a locality
+pack plus a deposit row plus room rows — `requires` the three trades,
+touches no `src/`. Shown at least on paper in the build's docs, and the
+archetype's slots are all bound by rows `rejection` owns rather than by
+trade defaults.
 
 **The chamber seam.** Breaking into the authored feature pin lands the
 character in a separate chamber zone with its own geometry and returns them
