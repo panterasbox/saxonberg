@@ -46,6 +46,80 @@ Risks R7 and R8.
 
 ---
 
+---
+
+## ⚠⚠ RE-GROUNDING — read before wave one (checked 2026-09-01)
+
+This plan was written against `origin/master` at `78e46f4ee`. **Master has
+moved, and both sibling builds now have open, mergeable MRs that change
+things this plan depends on.** Nothing below invalidates the design; all of
+it changes *what to write*.
+
+**Sibling state:** MR **!213** (build/farming, Stage A) and MR **!212**
+(build/residences, the ladder) are both **open, mergeable, blocking
+discussions resolved** — 9619/1 and 10 873/0 respectively. ⭐ **If both
+land before wave one, the concurrency fence in this plan's header
+dissolves and the right move is to re-ground once against a merged master
+rather than dodge three trees.**
+
+### What is stale, in severity order
+
+1. ⚠⚠ **`MineWarren extends Warren` will not compile.** Residences split
+   the warren into `Warren` (abstract, and it now declares `occupantsOf`
+   **abstract** "so the choice cannot be skipped") → **`InnerWarren`**
+   (members are ROOMS) / **`OuterWarren`** (members are warrens), plus
+   `HoldingWarren` and `PlatPlan`. **A mine's members are rooms, so P7
+   targets `InnerWarren`.**
+   ⭐ **And a design question falls out**: residences' `HoldingWarren` +
+   `HoldingProgramme` is the shared base *"the farming build's Stage B buds
+   field rooms into a holding on"*. **Should the mine be a holding rather
+   than a bare inner warren?** It has an extent, a programme of rooms, and
+   a tenure. Decide before M2 — it may make P5's claim work smaller.
+2. ⚠⚠ **`PlatBook` has moved into the `residence` PACK**
+   (`packages/content/residence/src/idea/PlatBook.ts`); the kernel keeps
+   `PlatPlan`. P5 builds the claim register on `PlatBook` + `title buy`.
+   **Verify where `title` and the register class live post-!212, and
+   whether `rejection` would have to depend on the residence pack** — a
+   mineral claim depending on a *residence* pack is a smell worth
+   resolving rather than accepting. (Precedent for the fix: !212 moved
+   `survey` OUT of the pack to platform for exactly this reason.)
+3. ⚠⚠ **`survey` now ships as a PLATFORM verb** — *"take stock of the
+   place you're standing in."* ⭐ Read as an **opportunity, not a
+   collision**: a mine's ground reading *is* taking stock of where you
+   stand, so `survey` may simply BE the geological read, removing
+   `analyze ground` and one third of P1's platform-view edit.
+4. ⚠ **`Archetype.ts` gained 211 lines on build-2** — a `satisfies()`
+   evaluator (P2's grounding says there is none: **now false**),
+   `industry: string | null`, and ⭐ **a new `rest` need kind.** K1 must be
+   written against their file. **This is good news**: adding a need kind is
+   now precedented rather than novel, and there is an evaluator for
+   `lightLux` to mean something to.
+5. ⚠ **`/platform/location/Room` is renamed `CartesianLocation`**
+   (build-3, 41 content rows, plus CLAUDE.md's split table). R1/R2 author
+   eight rooms and four type rows — **use the new name.**
+6. ⚠ **D17 went further than this plan records**: `asTemplatePath` is
+   **deleted**, instance identity is a stamped `identityPath`, and there is
+   a **new CI-gating `lint:census`** (1012 rows, 462 field refs) proving
+   the channel stays retired. **Add `lint:census` to every wave's lint
+   list** — it polices P8's keyed-member design directly.
+7. **Additive, no action:** build-3's `CommandGiver` change is only the
+   `getInteractives()?.size` null-guard, so P1/P12's dispatch reasoning
+   stands; `Consignment` gained `listingCapOverride`, which M6's ore sale
+   can *use* (a per-shelf cap is right for ore lots). Residences also fixed
+   **"every fixture in the game was unnameable by every verb"** — which is
+   what makes the mine's lamps, timber sets and ore-pass nameable at all.
+
+### ⚠ One hazard both siblings hit, and mining is worse
+
+Farming's drive found that **substring keyword matching makes compound
+nouns ambiguous** — *"`pot` matches **pot**ting soil and **plot**"* — and
+that the MQL "which target?" prompt then swallows following commands.
+**Mining is denser in near-identical nouns than farming**: dial/drift,
+ore/ore-pass, pick/pick head, face/carve-face, shore/shoring, drive/drift.
+**Author keywords defensively from wave one** and drive them early; this
+is a content hazard, not a code one, and it is cheapest to avoid before
+forty rows exist.
+
 ## Grounding — facts verified against the code this cycle
 
 File refs are current at plan time. Everything below was read, not
