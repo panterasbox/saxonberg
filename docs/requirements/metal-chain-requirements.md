@@ -46,6 +46,9 @@ pattern the geology field instantiates).
   metal somebody dug.
 - **The copper import is closed.** Nothing in the shipped world mints
   copper stock from nowhere once this lands.
+- **Title is real and cannot be forged from content.** A claim is a parcel
+  record; the mine's estate can be severed from the surface above it; and a
+  cut lump carries its owner from the face to the scale.
 - **The venue functions as a place of work**: buy tools and lamp oil,
   record a claim, sell ore for money, recover between shifts.
 - **The chain is four businesses, and money circulates rather than
@@ -93,6 +96,10 @@ NPCs are functional only (registrar, buyer, storekeeper), canned.
 **Wave B and beyond of the demand side.** No arms or armor recipes (the 14
 uncrafted `generic-objects` templates), no domestic metal, no stock forms
 (bar, sheet, wire, nails).
+
+**The title tail.** No coordinate-extent parcels; no ore theft, detection
+or reckoning; no title lapse or abandonment adjudication; no `sell`-coupled
+parcel payment (property phase 1).
 
 **The economic tail.** No **tribute** pitches and no setting-day auction
 (Stage B, with the shaft that makes a grant worth something); no price
@@ -385,6 +392,77 @@ whether a co-op can actually pay its wages out of ore revenue — is a
 **balance** question against a running game, not a requirement of this
 build.
 
+### Title: claims, the split estate, and who owns the ore
+
+**A claim is a `ParcelRecord`** — the shipped real-property layer, written
+**only** by the gated `ParcelApi` and **never declared in content**. That
+security invariant is not incidental here: ownership lives outside the
+editable collection precisely so a content edit cannot forge a title, which
+is exactly the attack a claim field invites.
+
+#### ⭐⭐ The split estate needs no new substrate
+
+The venue's property lesson — *the surface was granted, the minerals were
+claimed* — falls out of a decision already made for other reasons:
+**the surface pithead and the mine are different zones, therefore different
+paths.** Parcel ownership resolves by **longest prefix**, so:
+
+- with **no** parcel at the mine's path, the surface holder owns what is
+  beneath — which is exactly an **unsevered** estate;
+- **severance is `subdivide`** — minting a parcel at the mine's path with a
+  different owner.
+
+The whole pedagogical payload is the shipped resolution rule applied to a
+zone split we were making anyway. **No coordinate-aware parcels, no new
+title concept.**
+
+#### Land use is `industrial` — no vocabulary widening
+
+`LAND_USES` is a **closed six** (residential · agricultural · commercial ·
+industrial · civic · wild). A mine is **`industrial`**, which matches
+[zoning-slate](../slates/builds/zoning-slate.md)'s own definition —
+*industrial is defined by what leaves*. Ore leaves. Nothing to add.
+
+#### The parcel grants the right; the ledger records the fact
+
+Two different questions, two different homes:
+
+- **"May you drive here?"** — the parcel. Title, checked through
+  `AccessApi`.
+- **"Whose working is this?"** — the **carved-set ledger's `holder`**
+  (`{cell, tier, holder}` on `MineWarren`).
+
+⚠ **The open the planner must resolve, and the constraint on the answer.**
+Parcels are titled over **paths**; a mining claim is a **region of a
+coordinate space**. Stage A's answer must be the cheapest one that does not
+foreclose: **authored claim parcels at adit level** — the Hinkley
+`PlatBook`/`LotHolder` precedent — with the cell↔claim mapping **declared
+on the claim rather than derived from geometry**. ⚠ **Do not invent
+coordinate-extent parcels**; that is a property-substrate build, not a
+mining one.
+
+#### ⭐ Who owns the ore once it is cut
+
+The third institutional question, and the one that makes ore theft
+meaningful later:
+
+- Ore cut **on tutwork** belongs to the co-op — *"the business keeps the
+  ground and the ore."*
+- Ore cut **on your own claim** is yours.
+
+It rides [chattel](../subsystems/chattel.md) — per-instance ownership of
+movables, `stamp`/`transfer`/`ownerOf` — so a lump carries its owner from
+the face to the assay scale. **Stage A ships the stamping and the honest
+sale; it does not ship theft, detection or reckoning** (Stage B, with the
+co-op's grant and the district that adjudicates).
+
+#### Lapse
+
+*"Work your bounds or lose them"* has two halves. The **working** lapses in
+Stage A — Held demotes to Provisional on neglect, already specified. The
+**title** lapsing is governance: somebody must adjudicate abandonment, and
+that is Stage B's district.
+
 ### Natural chambers are their own zones
 
 The grid is right for **excavation** and wrong for anything nobody cut. A
@@ -535,6 +613,12 @@ never blocks a room, and no character can be trapped or killed by ground.
 recovers when connected through; the canary's behaviour tracks that value
 and is the only free reading of it; a pit pony hauls a cart at a measurably
 lower draft cost than a character carrying the same load.
+
+**Title holds.** A claim is stakeable through the Claims Office and
+transferable; the mine's estate can be severed from the surface parcel and
+each resolves to its own owner; and **a content edit cannot mint or alter a
+title**, asserted by a test. A lump cut on tutwork resolves to the co-op as
+owner, one cut on a held claim to the holder.
 
 **The economy circulates.** Ore sold to the smelter, ingots sold to the
 smith, tools bought by a miner — with **no net money created**, asserted by
