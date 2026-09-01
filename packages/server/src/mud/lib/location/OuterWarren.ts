@@ -409,6 +409,14 @@ export abstract class OuterWarren extends Warren {
    * a minted node clones `circulationTemplateFor(node)`. Either way the
    * consumer's `wireCirculationNode` wires it, and every provisioned
    * holding on the node gets its entry edge.
+   *
+   * ⭐ A minted node gets its own **identity** — `<parentExtent>/<nodeId>`
+   * — because its row describes a KIND of place and the instances are
+   * the places (a `MintedCartesianLocation`; nine reaches of one lane, a landing
+   * per floor). Identity per instance is what makes them distinguishable
+   * in the registry, and it is what carries them past the singleton
+   * guard, which keys on identity rather than on template path (D17).
+   * The row itself stays the templatePath, so it still resolves.
    */
   public async ensureNode(nodeId: string): Promise<MemberStuff | null> {
     const cached = this._circulationByNode.get(nodeId);
@@ -423,7 +431,9 @@ export abstract class OuterWarren extends Warren {
     } else {
       const template = this.circulationTemplateFor(nodeId);
       if (!template) return null;
-      room = await StuffApi.clone<MemberStuff>(template);
+      room = await StuffApi.clone<MemberStuff>(template, undefined, {
+        asIdentityPath: `${this.getParentExtent()}/${nodeId}`,
+      });
     }
     this._circulationByNode.set(nodeId, room);
     await this.wireCirculationNode(nodeId, room);

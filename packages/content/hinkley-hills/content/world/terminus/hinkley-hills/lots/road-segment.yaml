@@ -3,7 +3,7 @@
 # sells, reaped outside-in when it empties. The prose is the honest
 # state of an unbuilt reach; the gates that hang here as lots sell are
 # what make it a street.
-class: /platform/location/FurnishableRoom
+class: /platform/location/MintedCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a reach of Hinkley Lane
