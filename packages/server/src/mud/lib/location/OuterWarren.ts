@@ -64,6 +64,38 @@ export interface CapacityCheck {
   reason?: string;
 }
 
+/**
+ * ⭐ **The structural view of a HOLDING**, and the reason it is
+ * structural: the kernel may not import a capability pack, so where a
+ * warren must read the thing hanging off it (the residence pack's
+ * `HoldingWarren`, a mine's workings later) it reads it BY SHAPE. Every
+ * member is optional — a holding that implements none of this is still a
+ * legal member, it simply declines each offer and the base falls back.
+ *
+ * Named once rather than spelled inline at each call site: five
+ * anonymous probes for one concept hid how wide the seam actually is,
+ * and a second consumer has to be able to see the whole surface it is
+ * being asked for. Same pattern as `FurnishableRoom`'s `WarrenView` and
+ * `TitleController`'s `PlatWarrenShape`.
+ */
+interface HoldingView {
+  /** Where a mover lands — the holding's own entry room. */
+  entryRoom?: () => MemberStuff | null;
+  /** One room of the holding by its leaf key. */
+  roomForKey?: (k: string) => MemberStuff | null;
+  /** Capture the holding WHOLE (never room-by-room — see `sleep`). */
+  captureAll?: () => Promise<void>;
+  /** The shell's weathering, reconciled on read. */
+  reconcileShell?: () => number;
+  /** The banded, no-gauge read of the same. */
+  conditionBand?: () => string;
+}
+
+/** The back-ref a member room carries to the holding it belongs to. */
+interface WarrenMemberView {
+  getWarren?: () => HoldingView | null | undefined;
+}
+
 export abstract class OuterWarren extends Warren {
   static fieldMeta: FieldMeta = {
     plan: { persistent: true, authorable: true },
@@ -274,9 +306,7 @@ export abstract class OuterWarren extends Warren {
    * holding itself.
    */
   protected entryRoomOf(holding: MemberStuff): MemberStuff {
-    const entry = (
-      holding as unknown as { entryRoom?: () => MemberStuff | null }
-    ).entryRoom;
+    const entry = (holding as unknown as HoldingView).entryRoom;
     if (typeof entry === 'function') {
       const room = entry.call(holding) as MemberStuff | null;
       if (room && !room.isDestroyed()) return room;
@@ -316,11 +346,8 @@ export abstract class OuterWarren extends Warren {
     const room = await OuterWarren.admitFor(extent);
     if (!room) return null;
     const programme = (
-      room as unknown as { getWarren?: () => unknown }
-    ).getWarren?.() as
-      | { reconcileShell?: () => number; conditionBand?: () => string }
-      | null
-      | undefined;
+      room as unknown as WarrenMemberView
+    ).getWarren?.();
     if (
       !programme ||
       typeof programme.reconcileShell !== 'function' ||
@@ -357,11 +384,7 @@ export abstract class OuterWarren extends Warren {
       await w.admit(holdingKey);
       const holding = w.holdingFor(holdingKey);
       if (!holding) continue;
-      const byKey = (
-        holding as unknown as {
-          roomForKey?: (k: string) => MemberStuff | null;
-        }
-      ).roomForKey;
+      const byKey = (holding as unknown as HoldingView).roomForKey;
       if (typeof byKey === 'function') {
         const room = byKey.call(holding, key) as MemberStuff | null;
         if (room && !room.isDestroyed()) return room;
@@ -573,9 +596,7 @@ export abstract class OuterWarren extends Warren {
     key: string,
     holding: MemberStuff,
   ): Promise<void> {
-    const whole = (
-      holding as unknown as { captureAll?: () => Promise<void> }
-    ).captureAll;
+    const whole = (holding as unknown as HoldingView).captureAll;
     if (typeof whole === 'function') {
       await whole.call(holding);
       return;

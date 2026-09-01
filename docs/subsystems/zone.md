@@ -203,8 +203,8 @@ without loading the destination room. See
 >   is refused anyway — with an error naming the *parent's* zone, which
 >   reads as if the branch you authored does not exist.
 > - **It must be an AUTHORED template row.** The walk reads template
->   ancestry in Mongo, so a zone *minted* at runtime through
->   `asTemplatePath` is invisible to it. One authored branch zone above N
+>   ancestry in Mongo, so a zone *minted* at runtime — with its identity
+>   stamped by `asIdentityPath` — is invisible to it. One authored branch zone above N
 >   minted children is the shape; a zone per minted child is not
 >   available at all.
 

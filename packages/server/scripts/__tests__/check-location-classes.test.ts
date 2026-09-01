@@ -70,19 +70,23 @@ describe('check-location-classes.classifyMinted (the cross-branch trap)', () => 
   it('an authored place landing on the permissive class is caught', () => {
     const out = classifyMinted([
       r(A_MINTED, MINTED),
-      r('newbie-wilds/content/world/newbie-wilds/crossroads/hub.yaml', MINTED),
-      r('hearthworks/content/world/hearthworks/location/smithy.yaml', MINTED),
+      // Synthetic stand-ins for the real shape: an authored PLACE (a
+      // hub, a smithy) arriving on the permissive class. Synthetic
+      // rather than the real rows because a kernel test proves the
+      // kernel over /test/** fixtures — lint:test-content enforces it.
+      r('p/content/test/village/hub.yaml', MINTED),
+      r('p/content/test/village/smithy.yaml', MINTED),
     ]);
     expect(out.unexpected).toEqual([
-      'hearthworks/content/world/hearthworks/location/smithy.yaml',
-      'newbie-wilds/content/world/newbie-wilds/crossroads/hub.yaml',
+      'p/content/test/village/hub.yaml',
+      'p/content/test/village/smithy.yaml',
     ]);
   });
 
   it('the same places on the SINGLETON class are fine', () => {
     const out = classifyMinted([
       r(A_MINTED, MINTED),
-      r('newbie-wilds/content/world/newbie-wilds/crossroads/hub.yaml', SINGLETON),
+      r('p/content/test/village/hub.yaml', SINGLETON),
     ]);
     expect(out.unexpected).toEqual([]);
   });
