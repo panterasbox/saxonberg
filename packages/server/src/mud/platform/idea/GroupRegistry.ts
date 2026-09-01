@@ -123,7 +123,7 @@ export default class GroupRegistry extends GroupRegistryBase {
       case 'system':
         return false;
       case 'player': {
-        const path = actor.getTemplatePath();
+        const path = actor.getIdentityPath();
         return !!path && owner.templatePath === path;
       }
       case 'office':

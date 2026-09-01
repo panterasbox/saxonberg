@@ -49,7 +49,7 @@ import { MagicEffects, EFFECT_KINDS } from '../Effect';
 import { Template } from '../../stuff/Template';
 import { Character } from '../../character/Character';
 import Species from '../../../platform/idea/species/Species';
-import Room from '../../../platform/location/Room';
+import SingletonCartesianLocation from '../../../platform/location/SingletonCartesianLocation';
 import {
   makeStuff,
   stampTemplatePathForTest,
@@ -124,8 +124,8 @@ function makeActor(): TestCharacter {
   return actor;
 }
 
-function makeRoom(): Room {
-  const room = makeStuff(() => new Room());
+function makeRoom(): SingletonCartesianLocation {
+  const room = makeStuff(() => new SingletonCartesianLocation());
   stampTemplatePathForTest(room, `/obj/test/rc-room-${seq++}`);
   return room;
 }

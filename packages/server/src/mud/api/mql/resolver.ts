@@ -23,6 +23,7 @@
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { CommandGiver } from '../../lib/command/CommandGiver';
 import { MixinApi } from '../mixin';
+import { Warren } from '../../lib/location/Warren';
 import { PathPatternApi } from '../path-pattern';
 import { StuffApi } from '../stuff';
 import {
@@ -729,6 +730,9 @@ function applyColon(
     case 'keywords': {
       if (el.words.length === 1) {
         const name = el.words[0]!;
+        if (name === 'members') {
+          return flatMapMembers(input);
+        }
         if (ELEMENT_DERIVABLE_SEEDS.has(name)) {
           return flatMapBySeed(input, name, ctx.attention);
         }
@@ -813,6 +817,31 @@ function intersectWithSeed(
  * self-reachable matches. So `(bob, joe):reachable` keeps bob and
  * joe in the result, while `(bob, joe):peers` excludes them.
  */
+/**
+ * `:members` — the keyed-member locator (residences D16): expand each
+ * prior element that is a `Warren` (an institution — or a holding
+ * programme, which is warren-shaped one level down) to its LIVE
+ * members, union the results. A non-Warren prior element contributes
+ * nothing. Live members only, deliberately: a sync query cannot
+ * materialize a dormant holding — the locator serves the operator /
+ * author surface, and a drive admits first. Reserved as a chain word;
+ * an object keyworded `members` is reachable via `[keyword.members]`.
+ */
+function flatMapMembers(input: MqlMatch[]): MqlMatch[] {
+  const out: MqlMatch[] = [];
+  const seen = new Set<string>();
+  for (const m of input) {
+    if (!(m.stuff instanceof Warren)) continue;
+    for (const member of m.stuff.getMembers()) {
+      const s = member as Stuff;
+      if (seen.has(s.stuffId)) continue;
+      seen.add(s.stuffId);
+      out.push({ stuff: s, score: m.score });
+    }
+  }
+  return out;
+}
+
 function flatMapBySeed(
   input: MqlMatch[],
   seedName: string,
@@ -1259,6 +1288,21 @@ function readAtom(
   if (atom.kind === 'id') {
     return stuff.stuffId;
   }
+  if (atom.kind === 'key') {
+    // The object's explicit persistence key — the D16 keyed-instance
+    // axis (`(scope, key)`); `undefined` for a non-Persistable or an
+    // unkeyed one, so `[key = …]` never false-matches.
+    return MixinApi.isPersistable(stuff)
+      ? (stuff.getPersistenceKey() ?? undefined)
+      : undefined;
+  }
+  if (atom.kind === 'address') {
+    // The declared Locality address (`setAddress` / `getAddress`) — the
+    // human per-place identity. `undefined` when undeclared.
+    return MixinApi.isAddressable(stuff)
+      ? (stuff.getAddress() ?? undefined)
+      : undefined;
+  }
   // namespaced
   const op = `${atom.namespace}.${atom.key}`;
   switch (atom.namespace) {
@@ -1371,7 +1415,7 @@ function hasMixinByLowercaseName(stuff: Stuff, name: string): boolean {
 }
 
 function matchesTemplate(stuff: Stuff, pattern: string): boolean {
-  const path = stuff.getTemplatePath();
+  const path = stuff.getIdentityPath();
   if (!path) return false;
   return PathPatternApi.matches(path, pattern);
 }

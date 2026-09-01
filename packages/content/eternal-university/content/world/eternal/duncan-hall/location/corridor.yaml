@@ -1,0 +1,22 @@
+# Corridor — the ONE template every dorm floor's hallway is a clone of. A
+# runtime clone (one per live floor), built by `DormWarren.ensureFloor` and
+# reaped top-down when empty; it is NOT a Warren member (the DormWarren keeps
+# corridors in its own map) and carries its own `canEvict → false`.
+#
+# No persistence, no `populates:`, no `exits:` — the stair exits (`down` to
+# the floor below, `up` LazyFloorExit) and the per-unit DormDoors are wired
+# imperatively by the DormWarren. A plain non-coordinate Location; generic
+# label, no Named.
+class: /world/eternal/duncan-hall/location/Corridor
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  _address: terminus/city/campus/duncan-hall
+  shortDescription: a dorm corridor
+  primaryKeyword: corridor
+  longDescription: |
+    A long hallway of identical doors, each with a small brass number and a slot for a name card. A stairwell landing anchors one end. The carpet is the specific grey of somewhere nobody lingers.
+  # Institutional strip lighting: enough to read a door number by and not
+  # much more. `dim` (5-20 lux) — a corridor is a plausibly darker place
+  # than a dorm room, so a plant left out here is measurably worse off.
+  ambientIntensity: 9
+  ambientColorTemperature: 4000

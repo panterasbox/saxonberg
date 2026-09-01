@@ -49,7 +49,7 @@ export default class ReclaimController extends CommandController<ReclaimModel> {
     const owner = await ChattelApi.ownerOf(item);
     if (
       owner?.kind !== "player" ||
-      owner.templatePath !== giver.getTemplatePath()
+      owner.templatePath !== giver.getIdentityPath()
     ) {
       this.reject(giver, context, Mml.compose`${Mml.thing(item)} isn't yours to take.`, {
         kind: "controller-rejected",

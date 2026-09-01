@@ -11,7 +11,7 @@
  * touches the DB a concurrent dev server is using.
  *
  * Run from `packages/server/`:
- *   tsx src/tools/illustrate-preload.js location /world/eternal/duncan-hall/lobby
+ *   tsx src/tools/illustrate-preload.js location /world/eternal/duncan-hall/location/lobby
  */
 import "dotenv/config";
 import { writeFileSync, mkdirSync } from "node:fs";

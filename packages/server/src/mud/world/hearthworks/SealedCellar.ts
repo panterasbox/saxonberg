@@ -10,7 +10,7 @@
  * shipped `FireApi` air model reading it. See docs/subsystems/fire.md.
  */
 
-import CartesianLocation from '../../lib/location/CartesianLocation';
+import SingletonCartesianLocation from '../../lib/location/SingletonCartesianLocation';
 import { ReservedMixin } from '../../lib/reserve';
 
-export default class SealedCellar extends ReservedMixin(CartesianLocation) {}
+export default class SealedCellar extends ReservedMixin(SingletonCartesianLocation) {}

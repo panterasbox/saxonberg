@@ -81,6 +81,15 @@ describe("the four archetypes are template rows over ONE class (D6)", () => {
       "/platform/thing/WaterFixture",
       "/platform/thing/Surface", // the counter
       "/platform/thing/Prop", // the toilet — prose, no capability
+      // ⭐ The one fixture that DID need a class, made explicitly (this
+      // test's own instruction). A sconce is a light that lives in a
+      // room's fixture map rather than its contents, which is
+      // `Adornment` over the portable-light composition — no shipped
+      // class is both, and faking it with a `Prop` would have made the
+      // first thing a player hangs on a wall a decoration that emits
+      // nothing. It ships in `generic-objects` (a pack's `src/`), beside
+      // the row that names it.
+      "/generic-objects/thing/SconceLamp",
     ]);
     for (const file of readdirSync(join(SEEDS, "stuff/thing/fixture"))) {
       const seed = read(`stuff/thing/fixture/${file}`);

@@ -1,0 +1,48 @@
+id: terminus
+version: 0.1.0
+root: /world/terminus
+description: >-
+  Terminus — the core city locality, homed whole out of the transitional
+  world-seed (residences D18): University Avenue, the terminal,
+  Counting-House Row, the general store, the Registry, Mayfield Row and
+  the city budget, content and parked TS together. saxonberg-lounge stays
+  a dependency for ONE reason — the departure terminal's route names
+  /world/lounge/thing/terminal; the two corpo edges carry the
+  counting-houses affiliations.
+
+  University Avenue is the city street the university gate opens onto —
+  it runs from the terminal mouth past the campus wall down to the
+  Counting-Houses, and every room on it is somewhere a traveller passes
+  through. It first shipped under /world/eternal because it shared a path
+  root with the campus; the path is now what the world already said.
+  Behind the gate is Eternal University's, and it is a different pack.
+requires:
+  groups:
+    - name: terminus
+      purpose: the Terminus municipality
+    # The landlord's staff — Walter's membership is CONFERRED here by
+    # the owner (the Katie pattern; never self-enrolled). His row sits
+    # under the pack's own seznick-house claim, per the NPC-only fence.
+    - name: mayfield-holdings
+      purpose: the Mayfield Holdings letting staff
+      members:
+        - { id: /world/terminus/mayfield-row/agent/walter, role: member }
+  title:
+    # The Terminus municipality's ground.
+    - { extent: /world/terminus/terminal,        holder: { group: terminus }, landUse: civic }
+    - { extent: /world/terminus/counting-houses, holder: { group: terminus }, landUse: commercial }
+    - { extent: /world/terminus/general-store,   holder: { group: terminus }, landUse: commercial }
+    - { extent: /world/terminus/registry,        holder: { group: terminus }, landUse: civic }
+    # University Avenue — the city street the campus gate fronts. Civic
+    # like every other public street the municipality keeps.
+    - { extent: /world/terminus/university-avenue, holder: { group: terminus }, landUse: civic }
+    # Mayfield Row (residences D9): the municipality holds the street;
+    # the private landlord holds the building the units subdivide under.
+    - { extent: /world/terminus/mayfield-row, holder: { group: terminus }, landUse: residential }
+    - { extent: /world/terminus/mayfield-row/seznick-house, parentParcel: /world/terminus/mayfield-row, holder: { group: mayfield-holdings }, landUse: residential }
+    # The land agents' shopfront (residences D14). Commercial, and the
+    # municipality's like the rest of the built city — the office SELLS
+    # ground, it does not own the ground it sells.
+    - { extent: /world/terminus/realty, holder: { group: terminus }, landUse: commercial }
+boot:
+  - { template: /world/terminus/mayfield-row/seznick-house/building, role: producer, reason: warms the unit caches from the durable slot set and installs the lobby stair at postRegister }

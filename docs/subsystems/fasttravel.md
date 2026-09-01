@@ -169,7 +169,7 @@ another way and `register` first".
 
 **Born-with floor:** every credential is born registered for the
 **three-node set** `BORN_WITH_TRAVEL_NODES` (`lib/credential/Credential.ts`)
-— the **Terminus arrival node** (`/world/terminus/terminal/arrival-terminal`),
+— the **Terminus arrival node** (`/world/terminus/terminal/thing/arrival-terminal`),
 **the lounge** (`/world/lounge/thing/terminal`), and **the paid destination**
 (`/world/newbie-wilds/crossroads/terminal`) — the documented exception to
 "reach-before-travel". The hub has no foot path to the rest of the world, so
@@ -201,7 +201,7 @@ the CB mints:
   authoring error → refuse.
 - **The TPA's operating budget** — a **network fee** to the **Teleport
   Authority Business** (`fasttravel.tpaBusinessPath`, a minimal
-  Business seed at `/world/terminus/terminal/tpa`: proprietor-absent
+  Business seed at `/world/terminus/terminal/idea/tpa`: proprietor-absent
   public-infrastructure operator, empty `operatingLocations` so it never
   collides with the per-terminal fare operators, resolved by path). The
   fee lands on its operating account at its authored `banksAt` (the TPA

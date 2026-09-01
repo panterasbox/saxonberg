@@ -163,7 +163,7 @@ describe('TemplateApi.validateFolderLeafSave', () => {
     await expect(
       TemplateApi.validateFolderLeafSave({
         path: '/narnia/castle/foyer',
-        class: '/platform/location/Room',
+        class: '/platform/location/SingletonCartesianLocation',
       })
     ).resolves.toBeUndefined();
   });
@@ -172,19 +172,19 @@ describe('TemplateApi.validateFolderLeafSave', () => {
     await TemplateApi.saveTemplate('/narnia/castle', '/platform/idea/location/CartesianZone', {});
     await TemplateApi.saveTemplate(
       '/narnia/castle/foyer',
-      '/platform/location/Room',
+      '/platform/location/SingletonCartesianLocation',
       {}
     );
     await TemplateApi.saveTemplate(
       '/narnia/castle/library',
-      '/platform/location/Room',
+      '/platform/location/SingletonCartesianLocation',
       {}
     );
 
     await expect(
       TemplateApi.validateFolderLeafSave({
         path: '/narnia/castle',
-        class: '/platform/location/Room',
+        class: '/platform/location/SingletonCartesianLocation',
       })
     ).rejects.toThrow(/child template/i);
   });
@@ -193,14 +193,14 @@ describe('TemplateApi.validateFolderLeafSave', () => {
     await TemplateApi.saveTemplate('/narnia/castle', '/platform/idea/location/CartesianZone', {});
     await TemplateApi.saveTemplate(
       '/narnia/castle/foyer',
-      '/platform/location/Room',
+      '/platform/location/SingletonCartesianLocation',
       {}
     );
 
     await expect(
       TemplateApi.validateFolderLeafSave({
         path: '/narnia/castle/foyer/tapestry',
-        class: '/platform/location/Room',
+        class: '/platform/location/SingletonCartesianLocation',
       })
     ).rejects.toThrow(/leaf template/i);
   });
@@ -214,7 +214,7 @@ describe('TemplateApi.validateFolderLeafSave', () => {
     await expect(
       TemplateApi.validateFolderLeafSave({
         path: '/stuff/idea/species/animalia/foo',
-        class: '/platform/location/Room',
+        class: '/platform/location/SingletonCartesianLocation',
       })
     ).resolves.toBeUndefined();
   });
@@ -222,7 +222,7 @@ describe('TemplateApi.validateFolderLeafSave', () => {
   it('allows upgrading a parent path to a Zone template above an existing leaf', async () => {
     await TemplateApi.saveTemplate(
       '/orphanage/playroom',
-      '/platform/location/Room',
+      '/platform/location/SingletonCartesianLocation',
       {}
     );
 
@@ -280,7 +280,7 @@ describe('TemplateApi.validateFolderLeafDelete', () => {
   it('allows deleting a leaf template', async () => {
     const id = await TemplateApi.saveTemplate(
       '/narnia/foyer',
-      '/platform/location/Room',
+      '/platform/location/SingletonCartesianLocation',
       {}
     );
     await expect(TemplateApi.validateFolderLeafDelete(id)).resolves.toBeUndefined();
@@ -294,7 +294,7 @@ describe('TemplateApi.validateFolderLeafDelete', () => {
     );
     await TemplateApi.saveTemplate(
       '/narnia/castle/foyer',
-      '/platform/location/Room',
+      '/platform/location/SingletonCartesianLocation',
       {}
     );
 

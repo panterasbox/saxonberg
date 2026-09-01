@@ -3,7 +3,7 @@
 # open-container gather path — flip the lid, cook), the kitchen board,
 # and the cook. Order a meal, or make it yourself with their tools — the
 # DIY floor.
-class: /platform/location/Room
+class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a cookhouse

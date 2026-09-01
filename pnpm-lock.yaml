@@ -32,6 +32,9 @@ importers:
       '@saxonberg/content-corpo-vionne':
         specifier: workspace:*
         version: link:packages/content/corpo-vionne
+      '@saxonberg/content-eternal-university':
+        specifier: workspace:*
+        version: link:packages/content/eternal-university
       '@saxonberg/content-expression':
         specifier: workspace:*
         version: link:packages/content/expression
@@ -41,18 +44,27 @@ importers:
       '@saxonberg/content-hearthworks':
         specifier: workspace:*
         version: link:packages/content/hearthworks
+      '@saxonberg/content-hinkley-hills':
+        specifier: workspace:*
+        version: link:packages/content/hinkley-hills
       '@saxonberg/content-newbie-wilds':
         specifier: workspace:*
         version: link:packages/content/newbie-wilds
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:packages/content/platform
+      '@saxonberg/content-residence':
+        specifier: workspace:*
+        version: link:packages/content/residence
       '@saxonberg/content-saxonberg-lounge':
         specifier: workspace:*
         version: link:packages/content/saxonberg-lounge
       '@saxonberg/content-species-and-names':
         specifier: workspace:*
         version: link:packages/content/species-and-names
+      '@saxonberg/content-terminus':
+        specifier: workspace:*
+        version: link:packages/content/terminus
       '@saxonberg/content-trade-bottling':
         specifier: workspace:*
         version: link:packages/content/trade-bottling
@@ -295,6 +307,37 @@ importers:
         specifier: workspace:*
         version: link:../../types
 
+  packages/content/eternal-university:
+    dependencies:
+      '@saxonberg/content-generic-objects':
+        specifier: workspace:*
+        version: link:../generic-objects
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:../platform
+      '@saxonberg/content-residence':
+        specifier: workspace:*
+        version: link:../residence
+      '@saxonberg/content-trade-farming':
+        specifier: workspace:*
+        version: link:../trade-farming
+      '@saxonberg/server':
+        specifier: workspace:*
+        version: link:../../server
+      '@saxonberg/types':
+        specifier: workspace:*
+        version: link:../../types
+    devDependencies:
+      typescript:
+        specifier: ^5.4.0
+        version: 5.9.3
+      vitest:
+        specifier: ^2.0.0
+        version: 2.1.9(@types/node@20.19.28)(jsdom@25.0.1)
+      yaml:
+        specifier: ^2.8.2
+        version: 2.9.0
+
   packages/content/expression:
     dependencies:
       '@saxonberg/content-platform':
@@ -318,6 +361,16 @@ importers:
       '@saxonberg/types':
         specifier: workspace:*
         version: link:../../types
+    devDependencies:
+      typescript:
+        specifier: ^5.4.0
+        version: 5.9.3
+      vitest:
+        specifier: ^2.0.0
+        version: 2.1.9(@types/node@20.19.28)(jsdom@25.0.1)
+      yaml:
+        specifier: ^2.8.2
+        version: 2.9.0
 
   packages/content/hearthworks:
     dependencies:
@@ -340,6 +393,40 @@ importers:
         specifier: workspace:*
         version: link:../../types
 
+  packages/content/hinkley-hills:
+    dependencies:
+      '@saxonberg/content-generic-objects':
+        specifier: workspace:*
+        version: link:../generic-objects
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:../platform
+      '@saxonberg/content-residence':
+        specifier: workspace:*
+        version: link:../residence
+      '@saxonberg/content-terminus':
+        specifier: workspace:*
+        version: link:../terminus
+      '@saxonberg/content-trade-farming':
+        specifier: workspace:*
+        version: link:../trade-farming
+      '@saxonberg/server':
+        specifier: workspace:*
+        version: link:../../server
+      '@saxonberg/types':
+        specifier: workspace:*
+        version: link:../../types
+    devDependencies:
+      typescript:
+        specifier: ^5.4.0
+        version: 5.9.3
+      vitest:
+        specifier: ^2.0.0
+        version: 2.1.9(@types/node@20.19.28)(jsdom@25.0.1)
+      yaml:
+        specifier: ^2.8.2
+        version: 2.9.0
+
   packages/content/newbie-wilds:
     dependencies:
       '@saxonberg/content-platform':
@@ -360,6 +447,28 @@ importers:
       '@saxonberg/types':
         specifier: workspace:*
         version: link:../../types
+
+  packages/content/residence:
+    dependencies:
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:../platform
+      '@saxonberg/server':
+        specifier: workspace:*
+        version: link:../../server
+      '@saxonberg/types':
+        specifier: workspace:*
+        version: link:../../types
+    devDependencies:
+      typescript:
+        specifier: ^5.4.0
+        version: 5.9.3
+      vitest:
+        specifier: ^2.0.0
+        version: 2.1.9(@types/node@20.19.28)(jsdom@25.0.1)
+      yaml:
+        specifier: ^2.8.2
+        version: 2.9.0
 
   packages/content/saxonberg-lounge:
     dependencies:
@@ -402,6 +511,52 @@ importers:
       '@saxonberg/types':
         specifier: workspace:*
         version: link:../../types
+
+  packages/content/terminus:
+    dependencies:
+      '@saxonberg/content-corpo-goodkin':
+        specifier: workspace:*
+        version: link:../corpo-goodkin
+      '@saxonberg/content-corpo-vionne':
+        specifier: workspace:*
+        version: link:../corpo-vionne
+      '@saxonberg/content-generic-objects':
+        specifier: workspace:*
+        version: link:../generic-objects
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:../platform
+      '@saxonberg/content-residence':
+        specifier: workspace:*
+        version: link:../residence
+      '@saxonberg/content-saxonberg-lounge':
+        specifier: workspace:*
+        version: link:../saxonberg-lounge
+      '@saxonberg/content-trade-distilling':
+        specifier: workspace:*
+        version: link:../trade-distilling
+      '@saxonberg/content-trade-farming':
+        specifier: workspace:*
+        version: link:../trade-farming
+      '@saxonberg/content-trade-smithing':
+        specifier: workspace:*
+        version: link:../trade-smithing
+      '@saxonberg/server':
+        specifier: workspace:*
+        version: link:../../server
+      '@saxonberg/types':
+        specifier: workspace:*
+        version: link:../../types
+    devDependencies:
+      typescript:
+        specifier: ^5.4.0
+        version: 5.9.3
+      vitest:
+        specifier: ^2.0.0
+        version: 2.1.9(@types/node@20.19.28)(jsdom@25.0.1)
+      yaml:
+        specifier: ^2.8.2
+        version: 2.9.0
 
   packages/content/trade-bottling:
     dependencies:
@@ -628,27 +783,9 @@ importers:
 
   packages/content/world-seed:
     dependencies:
-      '@saxonberg/content-corpo-goodkin':
-        specifier: workspace:*
-        version: link:../corpo-goodkin
-      '@saxonberg/content-corpo-vionne':
-        specifier: workspace:*
-        version: link:../corpo-vionne
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform
-      '@saxonberg/content-saxonberg-lounge':
-        specifier: workspace:*
-        version: link:../saxonberg-lounge
-      '@saxonberg/content-trade-distilling':
-        specifier: workspace:*
-        version: link:../trade-distilling
-      '@saxonberg/content-trade-farming':
-        specifier: workspace:*
-        version: link:../trade-farming
-      '@saxonberg/content-trade-smithing':
-        specifier: workspace:*
-        version: link:../trade-smithing
       '@saxonberg/server':
         specifier: workspace:*
         version: link:../../server

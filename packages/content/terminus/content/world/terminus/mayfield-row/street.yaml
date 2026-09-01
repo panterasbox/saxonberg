@@ -1,0 +1,45 @@
+# Mayfield Row, the street — a quiet residential turning off the
+# Counting-Houses end of University Avenue. Cross-zone exit pair with
+# the avenue-block, BOTH sides explicit (`avenue` back out; the block
+# declares `mayfield` in) — non-cardinal names are admissible across a
+# zone boundary, and a street you turn INTO reads better named than
+# compassed (the lot-gate precedent).
+class: /platform/location/SingletonCartesianLocation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: Mayfield Row
+  primaryKeyword: row
+  alternateNames: [street, mayfield]
+  _address: terminus/mayfield-row
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  ambientIntensity: 500
+  ambientColorTemperature: 5600
+  coords:
+    x: 0
+    y: 0
+    z: 0
+  longDescription: |
+    A short residential street tucked behind the banking row, close-set brick fronts with railed steps and window boxes that somebody waters. Halfway along, a taller house stands back from the pavement behind its own railing: Seznick House, rooms let by the floor, a brass plate by the door polished thin. At the quiet end, where the terrace runs out, a narrow shopfront carries MAYFIELD & CO., LAND AGENTS in gilt on the glass. The avenue's noise arrives here as a murmur.
+  exits:
+    avenue:
+      destination: /world/terminus/counting-houses/avenue-block
+    house:
+      destination: /world/terminus/mayfield-row/seznick-house/lobby
+    # The land agents at the quiet end (residences D14). Its own zone,
+    # so a named cross-zone pair, both sides explicit — the office
+    # declares `row` back.
+    realty:
+      destination: /world/terminus/realty/office
+  details:
+    plate:
+      keywords: [plate, brass, sign]
+      description: |
+        SEZNICK HOUSE — FURNISHED ROOMS BY THE FLOOR. ENQUIRE OF THE MANAGER. The brass is older than the wording; you can see an earlier inscription ghosting under the polish.
+    shopfront:
+      keywords: [shopfront, gilt, agents, mayfield, co]
+      description: |
+        A narrow window with survey maps papering it from the inside and MAYFIELD & CO., LAND AGENTS in gilt across the glass. Somebody in there is always up out of their chair before you reach the door.
+    houses:
+      keywords: [houses, brick, fronts, boxes, railing]
+      description: |
+        Terraced brick, two and three storeys, the railings painted whatever colour the leaseholder liked best a decade ago. Lived-in, all of it — the district the avenue's clerks walk home to.

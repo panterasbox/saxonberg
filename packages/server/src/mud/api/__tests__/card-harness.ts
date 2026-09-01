@@ -17,7 +17,7 @@ import { stampTemplatePathForTest } from '../../lib/security/__tests__/test-setu
 import EventRegistry from '../../platform/idea/EventRegistry';
 import Interactive from '../../platform/idea/Interactive';
 import Avatar from '../../platform/agent/Avatar';
-import Room from '../../platform/location/Room';
+import SingletonCartesianLocation from '../../platform/location/SingletonCartesianLocation';
 import { ContainmentApi } from '../containment';
 import { CommandDefinition } from '../../lib/command/CommandDefinition';
 import type { CommandContext } from '../command';
@@ -41,7 +41,7 @@ export interface Harness {
    * which reads as "the card is broken" rather than "the fixture is
    * unlike every real caller".
    */
-  room: Room;
+  room: SingletonCartesianLocation;
   envelopes: CapturedEnvelope[];
   /** Envelopes of one type, in arrival order. */
   ofType(type: string): CapturedEnvelope[];
@@ -57,7 +57,7 @@ export async function makeHarness(name = 'Alice'): Promise<Harness> {
   await bootEventRegistry();
   const avatar = await StuffApi.create(() => new Avatar());
   avatar.setName(name);
-  const room = await StuffApi.create(() => new Room());
+  const room = await StuffApi.create(() => new SingletonCartesianLocation());
   room.setShortDescription('the harness room');
   ContainmentApi.move(avatar, room);
   const interactive = await StuffApi.create(

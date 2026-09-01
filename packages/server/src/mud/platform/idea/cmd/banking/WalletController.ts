@@ -60,7 +60,7 @@ export default class WalletController extends BankingControllerBase<WalletModel>
     const corpo = active ? await BankingApi.corpoKeyOf(active) : null;
     const ownerKey = active ? await BankingApi.ownerKeyOf(active) : null;
     const house =
-      ownerKey && ownerKey !== giver.getTemplatePath()
+      ownerKey && ownerKey !== giver.getIdentityPath()
         ? BankingControllerBase.businessNamed(ownerKey)
         : null;
     MessageApi.scene(giver)

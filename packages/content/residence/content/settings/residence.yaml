@@ -1,0 +1,33 @@
+# residence — application settings shipped by the residence capability
+# pack (the `settings` kind: merge-missing — a key the app_settings
+# singleton lacks is merged in; a value the operator changed via
+# `config` is never touched). These are the residences build's shipped
+# defaults (D10 capacity dials, the P10 weathering + ascent numbers);
+# the institution rows name their own capacity keys.
+settings:
+  # Units per dorm floor — DormWarren's graduated ROOMS_PER_FLOOR knob.
+  - key: dorm.roomsPerFloor
+    value: "12"
+
+  # The dorm building's total room capacity.
+  - key: dorm.roomCap
+    value: "240"
+
+  # Hinkley Hills' lot capacity (the plat book's retired 40-lot roster,
+  # as the operator's dial).
+  - key: hinkley-hills.lotCap
+    value: "40"
+
+  # Seznick House's unit capacity (Mayfield Row).
+  - key: mayfield.unitCap
+    value: "8"
+
+  # Shell weathering (P10): game-days from sound (1.0) to worn (0.5) —
+  # the linear slope's rate; reconcile-on-read, no scheduler.
+  - key: residence.weather.daysToWorn
+    value: "45"
+
+  # The ascent gate (P10/D6): acquiring the next rung is refused while
+  # the holding you already have sits below this shell condition.
+  - key: residence.ascent.minCondition
+    value: "0.5"

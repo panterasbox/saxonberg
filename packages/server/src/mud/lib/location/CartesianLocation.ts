@@ -27,7 +27,6 @@ import { PerceptibleMixin } from '../description/Perceptible';
 import { DetailedMixin } from '../description/Detailed';
 import { PostRegistrationMixin } from '../stuff/PostRegistration';
 import { PopulatesMixin } from '../stuff/Populates';
-import { SingletonMixin } from '../stuff/Singleton';
 import { NavigationApi } from '../../api/navigation';
 import { ZoneApi } from '../../api/zone';
 import { Quantity } from '../quantity';
@@ -36,19 +35,27 @@ import type Exit from '../boundary/Exit';
 import type { Stuff } from '../stuff/Stuff';
 import type { FieldMeta } from '../mixin';
 
-// CartesianLocation is singleton-shaped: every cartesian room is
-// uniquely identified by its template path (a `[x,y,z]` cell in a
-// specific zone). The mixin enforces this at clone-time; the same
-// shape also satisfies `TemplateApi.validateSingletonContainerTarget`,
-// which is what `Avatar.save()` needs when snapshotting
-// `data.container` back to the player's per-room landing point.
-const CartesianLocationBase = SingletonMixin(
-  PostRegistrationMixin(
-    PopulatesMixin(
-      DetailedMixin(
-        PerceptibleMixin(
-          ExitableMixin(CartesianCoordinatesMixin(VisibleMixin(Location)))
-        )
+// ⭐ NOT singleton-shaped — and the asymmetry is the whole reason this
+// class holds the unmarked name.
+//
+// A class WITHOUT `SingletonMixin` still backs singleton templates
+// perfectly well: `StuffApi.singleton(path)` get-or-creates, which is
+// how an eager exit resolves its destination. A class WITH the mixin can
+// back ONLY singleton templates — `clone()` throws after the first. The
+// mixin subtracts, so the permissive class is the default and
+// {@link SingletonCartesianLocation} is the one that opts into the
+// restriction.
+//
+// The restriction is worth opting into wherever one row IS one place: it
+// catches a second `clone()` of the Registry office, which would
+// otherwise silently produce two of them. It is wrong wherever a row
+// describes a KIND of place minted many times — nine reaches of one
+// lane, a landing per floor — which had nowhere to live before.
+const CartesianLocationBase = PostRegistrationMixin(
+  PopulatesMixin(
+    DetailedMixin(
+      PerceptibleMixin(
+        ExitableMixin(CartesianCoordinatesMixin(VisibleMixin(Location)))
       )
     )
   )

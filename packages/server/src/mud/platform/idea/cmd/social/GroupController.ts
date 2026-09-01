@@ -85,8 +85,8 @@ export default class GroupController extends CommandController<GroupModel> {
     }
     const g = new Group();
     g.name = name;
-    g.owner = Group.playerOwner(avatar.getTemplatePath() ?? '');
-    g.memberIds = [avatar.getTemplatePath() ?? ''];
+    g.owner = Group.playerOwner(avatar.getIdentityPath() ?? '');
+    g.memberIds = [avatar.getIdentityPath() ?? ''];
     g.memberRoles = ['owner'];
     await g.save();
     this.send(context, Mml.compose`\nCreated group '${name}'.\n`);
@@ -249,7 +249,7 @@ export default class GroupController extends CommandController<GroupModel> {
     avatar: Avatar,
     context: CommandContext,
   ): Promise<void> {
-    const all = await Group.find({ memberIds: avatar.getTemplatePath() ?? '' });
+    const all = await Group.find({ memberIds: avatar.getIdentityPath() ?? '' });
     // Hide channel-backing Groups — they're an implementation detail
     // of chat, not "your groups." Chat owns this bookkeeping (Group
     // itself knows nothing about chat).
@@ -261,7 +261,7 @@ export default class GroupController extends CommandController<GroupModel> {
     }
     const lines = ['You belong to:'];
     for (const g of groups) {
-      const role = g.roleOf(avatar.getTemplatePath() ?? '') ?? 'member';
+      const role = g.roleOf(avatar.getIdentityPath() ?? '') ?? 'member';
       lines.push(`  ${g.name}  [${role}]`);
     }
     this.send(context, Mml.fromMarkup(`\n${lines.join('\n')}\n`));
@@ -270,7 +270,7 @@ export default class GroupController extends CommandController<GroupModel> {
   /** Owner (resolved through `GroupApi.ownsGroup`) OR an `admin` on the roster. */
   private async ownerOrAdmin(avatar: Avatar, g: Group): Promise<boolean> {
     if (await GroupApi.ownsGroup(avatar, g)) return true;
-    return g.roleOf(avatar.getTemplatePath() ?? '') === 'admin';
+    return g.roleOf(avatar.getIdentityPath() ?? '') === 'admin';
   }
 
   /** An office owner renders with who holds the seat right now. */

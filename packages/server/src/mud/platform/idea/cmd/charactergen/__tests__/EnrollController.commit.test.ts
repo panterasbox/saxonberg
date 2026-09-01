@@ -105,7 +105,7 @@ describe('EnrollController.commit', () => {
     } as never);
     // No per-player template row is written anymore (the identity
     // doctrine): the picks ride the clone's `dataOverlay` and the
-    // identity path is minted via `asTemplatePath`. Capture both off
+    // identity path is minted via `asIdentityPath` (D17). Capture both off
     // the seed-clone call for the overlay assertions.
     savedTemplate = null;
 
@@ -125,12 +125,12 @@ describe('EnrollController.commit', () => {
         _context?: unknown,
         opts?: {
           dataOverlay?: Record<string, unknown>;
-          asTemplatePath?: string;
+          asIdentityPath?: string;
         },
       ) => {
         if (path === Avatar.SEED_TEMPLATE_PATH) {
           savedTemplate = {
-            path: opts?.asTemplatePath ?? path,
+            path: opts?.asIdentityPath ?? path,
             data: opts?.dataOverlay ?? {},
           };
           return avatar as never;

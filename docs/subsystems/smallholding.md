@@ -251,13 +251,13 @@ residential lot ceiling — a district is what lots are subdivided *out of*.
 restore its `(scope, key)` record or lay down its born-with fixtures and
 capture them. Returns `true` on restore, `false` on a fresh seed.
 
-`DormWarren.admit` and `LotHolder` are its two consumers, and the
+`DormWarren.admit` and `PlatWarren` are its two consumers, and the
 extraction earns itself on the branch it gets right: hand-rolled, the six
 lines invite capturing on the restore path, re-seeding a room that already
 has contents, or skipping the key stash so the next keyless capture writes
 a second record.
 
-`LotHolder` keys on the **parcel extent**, so title and durable state share
+`PlatWarren` keys on the **parcel extent**, so title and durable state share
 one identity — sell the lot and the garden goes with it, because there is
 nothing else it could do. It is content, so it is **not** boundary-exempt,
 and should not be (`DormWarren` likewise is not).
@@ -270,7 +270,7 @@ general (`/platform/… + /stuff/`) and each subdivision seeds **instances** —
 `SingletonMixin` is one-instance-per-templatePath, so one of each per
 subdivision is exactly what composing it means.
 
-| | `PlatBook` | `LotHolder` |
+| | `PlatBook` | `PlatWarren` |
 |---|---|---|
 | answers | *what is for sale, on what terms* | *how titled ground becomes a place* |
 | data | `label`, `parentExtent`, `lots`, `priceMinor`, `areaM2`, `landUse`, `holderPath` | `roomTemplate` |
@@ -280,11 +280,11 @@ subdivision is exactly what composing it means.
 current provisioning model clones one shared room template per lot and
 tells the clones apart with a persistence key; the likely successor mints
 a template *per residence*, at which point the template path becomes the
-identity and no key is needed at all. Separated, that is **a `LotHolder`
+identity and no key is needed at all. Separated, that is **a `PlatWarren`
 subclass and a one-line edit to a book's `holderPath`** — nothing in the
 catalogue, the `title` verb or the parcel layer moves. Fused, the same
 change would reach into the object that also owns pricing.
-`LotHolder.provision` is the `@hook` that swap overrides, and there is a
+`PlatWarren.provision` is the `@hook` that swap overrides, and there is a
 test that swaps it.
 
 A second subdivision anywhere in the world is therefore **a seed file and
@@ -300,20 +300,37 @@ See [persistence.md](./persistence.md) and [residence.md](./residence.md).
 
 ### ⭐ A lot's room gets an IDENTITY, not a copy
 
-`LotHolder` mints each room at **`<lotExtent>/<leaf>`** through
-`StuffApi.clone`'s `asTemplatePath` channel — the identity doctrine's
-*minted instance with a scheme-derived key*. The shared template is the
-SOURCE; lot 2's yard is its own place.
+> ⚠⚠ **SUPERSEDED by the residences build (2026-08-31).** The mechanism
+> below is the right *idea* with the wrong *mechanism*, and the wrong one
+> shipped for one release. `PlatWarren` minted each room at a
+> `<lotExtent>/<leaf>` path through `StuffApi.clone`'s `asTemplatePath`
+> channel — which made the room's `templatePath` resolve to **no row at
+> all**. A rowless path cannot be edited by an author, cannot resolve a
+> zone from its ancestry, and cannot be hydrated from content; it was
+> also the reason a bought yard had no addressable rooms behind it.
+>
+> The channel is **deleted**. A holding's rooms are now **keyed
+> instances of real rows** — `(scope = the room's template row, key =
+> <lotExtent>/<leaf>)` on the persistence spine — and the minted
+> identity, where one is genuinely needed, rides a separate stamped
+> `identityPath` slot (`getIdentityPath()`). `templatePath` ALWAYS
+> resolves to a row, and `pnpm lint:census` enforces it.
+>
+> Everything the table below claims is still true — land use and
+> placement both resolve per lot — it is now the persistence KEY that
+> carries it rather than a synthesized path. The provisioning itself
+> moved to `HoldingWarren.wake()` behind the same `PlatWarren.provision`
+> seam. See **[holding.md](./holding.md)**.
 
-Sharing one templatePath across N lots broke two things at once, and
-minting fixes both with no special case:
+The original reasoning, kept because the problem it names is the real
+one. Sharing one templatePath across N lots broke two things at once:
 
 | | shared template | minted identity |
 |---|---|---|
 | land use | resolved to the **district** — right only because every Hinkley lot is zoned alike | resolves per lot, from the path alone |
 | avatar placement | recorded the shared template — log out in your yard, log back into a fresh one | exact; the dorm needs a Warren for this, an identity gets it free |
 
-Title and durable state still share one identity, because the mint is
+Title and durable state still share one identity, because the key is
 derived FROM the parcel extent. Sell the lot and the garden goes with
 it.
 
@@ -325,8 +342,16 @@ find: **the room class cannot be a `CartesianLocation`.**
 N lots cannot share one coordinate, so a per-lot room was never a grid
 member — and the grid says so itself. `CartesianLocation.addExit`
 refuses a **non-cardinal** direction between two rooms in the same zone,
-which is exactly the `lot-1` gate off the lane (see *the gate*, below).
-The rule is right; the room was wrong.
+which was exactly the `lot-1` gate off the lane before the gate ring made
+it cardinal (see *the gate*, below). The rule is right; the room was
+wrong — and it is wrong for a second, independent reason that outlived
+the gate fix: a `CartesianLocation` derives `getSizeScale()` from its
+zone's `cellSize²` and the light walk divides flux by it, so a cartesian
+yard reads `cellSize²`-times dimmer. **This regressed once more**, when
+the location-class taxonomy put `FurnishableRoom` on the cartesian base:
+600 lumens of open sky came back out at 16.7 lux again. `FurnishableRoom`
+is plain `Location` with the room mixins, and a test beside the class
+pins `getSizeScale() === 1.0`.
 
 So a lot's room is a **`FurnishableRoom`** — the furnishing build's
 venue-generic persistable room ([furnishing.md](./furnishing.md)) — and
@@ -367,17 +392,34 @@ ways, none of which a unit test could see:
 
 So the street's exits are **installed by the provisioner**:
 `LotGateExit`, a `DeferredDestinationExit` (the `DormDoor` shape) whose
-`computeDestination` calls `LotHolder.provision(lotExtent)`. Hung as
+`computeDestination` calls `PlatWarren.provision(lotExtent)`. Hung as
 lots sell, and re-hung at boot from the title registry
-(`LotHolder.postRegister` → `ParcelApi.childParcelsOf`) so an owner can
+(`PlatWarren.postRegister` → `ParcelApi.childParcelsOf`) so an owner can
 still get home after a restart. Deferred, so a lane with five sold lots
 materializes no yards until somebody walks in.
 
-**Direction is the lot's leaf** — `lot-1`, which is what is stencilled
-on the stake. `north` collides the moment a second lot sells, and no
-compass scheme survives an arbitrary plat. It is non-cardinal, which is
-what forces the separate lots zone above. `go lot-1`; bare `lot-1` is
-cardinal-only sugar.
+**Direction is the plat's GATE RING** — *which side of the road your
+house is on*. `go north`, and `south` brings you back out.
+
+It used to be the lot's leaf (`lot-1`, what is stencilled on the stake),
+on the reasoning that `north` collides the moment a second lot sells. It
+does — but only if you think a reach has one usable compass point. It
+has six: **a road runs along ONE axis and leaves the other six planar
+points free**, which is how a street actually works. So the ring is
+right, left, ahead-right, ahead-left, behind-right, behind-left of
+somebody walking the road in its heading (`PlatPlan.gateDirectionOfSlot`),
+minus any point a branch road already leaves by. The lane runs west, so
+its lots face north, south, northwest, southwest.
+
+Three things fall out. The gate is **cardinal**, so it no longer needs a
+zone boundary to be legal. It has a **known inverse**, which is what the
+grid rule exists to guarantee and what `lot-1` could never have. And
+**six frontages per reach is the ceiling** — five on a reach a road
+branches off — checked at parse, so an over-subscribed plat fails at
+install rather than running out of compass on a sale.
+
+The lot number does not vanish: `title buy` tells the buyer which side
+theirs is on, and the stake still says which lot it is.
 
 **Ungated, deliberately.** A yard behind a house is not locked from the
 lane; the house is. A gate that refused non-owners would put a property
@@ -444,6 +486,22 @@ between things, which is what makes a room out here read as a yard.
 
 ---
 
+
+### The plat book went generative (residences, 2026-08-31)
+
+The `lots:` roster on `PlatBook` is **retired**. A book now carries a
+`lotPrefix` and defers its capacity to the holder's operator dial
+(`hinkley-hills.lotCap`, default 40): `extentFor` accepts any `lot-<n>`
+up to the cap, and `lotExtents()` returns *sold ∪ the next free one* —
+the window a buyer actually reads. Lot 45 sells with no authored row
+anywhere, and raising the dial at runtime is the whole of "the
+subdivision got bigger".
+
+Where the lot GOES is authored data too, on the holder's `plan:` field —
+Hinkley runs a **branched** plan whose segment 1 IS the hand-written
+lane, with a court branching off segment 2 as frontage fills. Bespoke
+streets, minted homes, one institution. See
+[holding.md § PlatPlan](./holding.md#tier-1½--platplan-the-layout-as-authored-data).
 
 ### Known issue: the pre-sold lot cannot be re-driven
 
@@ -562,7 +620,7 @@ minting a room per lot (`b0cf1df4`; the merge that preceded it is
 |---|---|
 | the lane had an exit north | it pointed at the **shared yard template**, which stood the template up as an unowned yard on nobody's lot — and then collided with the minted identities |
 | `TitledRoom` composed correctly | a per-lot room cannot be a `CartesianLocation` at all, and as one the yard read **16.7 lux** — under a carrot's light floor |
-| exits were added | a non-cardinal `lot-1` gate needs a *spatial, authored* zone the lots do not otherwise have |
+| exits were added | a non-cardinal `lot-1` gate needs a *spatial, authored* zone the lots do not otherwise have — **since superseded**: the gate ring made it cardinal, and the zone stays only for the grid-geometry reason |
 | `water` had a controller and a test | nothing in the yard **conferred** it — the can was missing |
 
 Three lessons worth keeping, none of them about farming:
@@ -592,3 +650,6 @@ Three lessons worth keeping, none of them about farming:
 - [civics.md](./civics.md) — governments and jurisdiction
 - [crafting.md](./crafting.md) — `CraftedMixin`, `Grade`, the maker's mark
 - [banking.md](./banking.md) — the settle chokepoint the sale rides
+- **[holding.md](./holding.md)** — the residential ladder the holder half
+  converged onto (residences, 2026-08-31): the two-tier institution, the
+  authored plat plan, keyed rooms, condition and the capacity dials

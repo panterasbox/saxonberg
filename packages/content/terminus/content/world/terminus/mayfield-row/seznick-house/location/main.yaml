@@ -1,0 +1,12 @@
+# A unit's main room — built-ins only (a hearth alcove and shelving in
+# the prose; furniture is the tenant's own). Empty at move-in (D9).
+class: /platform/location/FurnishableRoom
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the main room
+  primaryKeyword: room
+  alternateNames: [main, sitting, living]
+  ambientIntensity: 55
+  ambientColorTemperature: 4800
+  longDescription: |
+    The flat's one generous room: two tall windows over the Row, a shallow hearth alcove with an empty grate, and built-in shelving painted the same tired cream as the walls. Bare boards, bare walls, good light — everything it will become is yours to bring.

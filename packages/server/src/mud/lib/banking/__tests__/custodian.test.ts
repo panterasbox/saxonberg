@@ -172,7 +172,7 @@ describe("the boot restamp pass (legacy → institution keys)", () => {
   });
 
   it("re-owns the legacy raw `tpa` accumulator to the TPA Business", async () => {
-    const TPA_BIZ = "/world/terminus/terminal/tpa";
+    const TPA_BIZ = "/world/terminus/terminal/idea/tpa";
     vi.spyOn(AppApi, "setting").mockImplementation((k: string) => {
       if (k === AppSettingKeys.fasttravelTpaBusinessPath) return TPA_BIZ;
       if (k === AppSettingKeys.bankingDefaultCustodianBank) return "goodkin";

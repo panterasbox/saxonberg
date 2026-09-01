@@ -1,0 +1,91 @@
+# The general-store counter — the Stock fixture. One fixture that holds the
+# shelf goods (a Container/Vessel), prices them (PricedOffer — Law 1, worth on
+# the offer not the good), attends its customers (Attendant — instant/scrum,
+# no wait for the newcomer path), and tops itself back to par on the game-time
+# reset sweep (Resettable). It stocks itself to par on standup (postRegister →
+# reset). The Business stands up lazily off `operatingLocations` (this path).
+#
+# Prices are the store's authored stance, calibrated to the shipped anchors
+# (stipend 20 / wages 4-6 per game-hour / coinage 1/5/25): a relative ladder a
+# fresh arrival on the 20-credit stipend can shop against. The goods are all
+# discrete Things (never Globbable) so each carries a chattel stamp on buy.
+class: /platform/thing/Stock
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the general-store counter
+  primaryKeyword: counter
+  keywords: [counter, shelf, shelves, goods, stock]
+  longDescription: |
+    A long plank counter worn pale by decades of elbows, and behind it shelves stacked to the ceiling with the honest gear of getting by underground: torches and waterskins, ration packs and a tray of clasp knives, a row of tin lanterns catching the light. Along the back wall, where the ceiling gives them room, stand the furnishings — a bed frame on its end, a pine wardrobe, tables and chairs stacked two deep, and a card of brass sconces hung up like fish. A chalk slate by the till lists the prices in a plain hand. Nothing here is fine; everything here works.
+  discipline: scrum
+  attendDurationMs: 0
+  staffingPolicy: self-service
+  serverPositionKeys: [clerk]
+  businessPath: /world/terminus/general-store/business
+  stockLines:
+    - { itemTemplatePath: /world/terminus/general-store/thing/torch, par: 4 }
+    - { itemTemplatePath: /world/terminus/general-store/thing/rations, par: 5 }
+    - { itemTemplatePath: /world/terminus/general-store/thing/waterskin, par: 3 }
+    - { itemTemplatePath: /world/terminus/general-store/thing/clasp-knife, par: 2 }
+    - { itemTemplatePath: /world/terminus/general-store/thing/lantern, par: 2 }
+    - { itemTemplatePath: /world/terminus/general-store/thing/whetstone, par: 2 }
+    - { itemTemplatePath: /world/terminus/general-store/thing/iron-ingot, par: 3 }
+    - { itemTemplatePath: /world/terminus/general-store/thing/sewing-kit, par: 2 }
+    - { itemTemplatePath: /world/terminus/general-store/thing/sewing-machine, par: 1 }
+    # The gardening line. These are ordinary `/obj/` templates, NOT
+    # store-local `goods/` ones: `itemTemplatePath` takes any path, and
+    # duplicating them here would mean two pots (and two seeds growing the
+    # same plant) drifting apart. The existing goods live under `goods/`
+    # because they are store-specific, not because the path is required.
+    - { itemTemplatePath: /trade/farming/thing/pot/small, par: 3 }
+    - { itemTemplatePath: /trade/farming/thing/pot/large, par: 2 }
+    - { itemTemplatePath: /stuff/thing/vessel/soil-sack, par: 4 }
+    - { itemTemplatePath: /trade/farming/thing/seed/snake-plant, par: 3 }
+    # The furnishings line (residences D7/D11). These cite the GENERIC
+    # `/stuff/thing/fixture/` rows — the same reason the gardening line
+    # cites the farming pack's pots rather than copying them: one bed row,
+    # one armchair row, and a store that stocks what the world already has.
+    # Low par on purpose: a shop floor is not a warehouse, and the reset
+    # sweep tops it back up.
+    - { itemTemplatePath: /stuff/thing/fixture/bed, par: 1 }
+    - { itemTemplatePath: /stuff/thing/fixture/wardrobe, par: 1 }
+    - { itemTemplatePath: /stuff/thing/fixture/table, par: 2 }
+    - { itemTemplatePath: /stuff/thing/fixture/armchair, par: 2 }
+    - { itemTemplatePath: /stuff/thing/fixture/sconce-lamp, par: 3 }
+    # The householder's kit — the tool `maintain` needs, and the only
+    # thing that confers the verb. A cross-pack line (the residence pack
+    # ships the substrate's own goods); the same rule as the others —
+    # one kit row in the world, and a shop that sells it.
+    - { itemTemplatePath: /residence/thing/householders-kit, par: 3 }
+  prices:
+    /world/terminus/general-store/thing/torch: 2
+    /world/terminus/general-store/thing/rations: 3
+    /world/terminus/general-store/thing/waterskin: 4
+    /world/terminus/general-store/thing/clasp-knife: 6
+    /world/terminus/general-store/thing/lantern: 10
+    /world/terminus/general-store/thing/whetstone: 3
+    /world/terminus/general-store/thing/iron-ingot: 5
+    /world/terminus/general-store/thing/sewing-kit: 5
+    /world/terminus/general-store/thing/sewing-machine: 18
+    # Against the shipped ladder (stipend 20; torch 2, rations 3, waterskin
+    # 4, clasp-knife 6, lantern 10). The large pot is deliberately a real
+    # but reachable purchase — it is the first thing a new player has a
+    # REASON to buy, and the reason is legible before the purchase.
+    /trade/farming/thing/pot/small: 3
+    /trade/farming/thing/pot/large: 8
+    /stuff/thing/vessel/soil-sack: 2
+    /trade/farming/thing/seed/snake-plant: 5
+    # Furnishings sit at the TOP of the ladder — a home is the first thing
+    # in the game worth saving for. Against the anchors (stipend 20,
+    # sewing-machine 18, wages 4-6/hr): a sconce is an evening's wage, a
+    # bed is a week of them. The bed is dearest by design; it is also the
+    # one that pays back (`restQuality: 2.0` while you are away).
+    /stuff/thing/fixture/bed: 45
+    /stuff/thing/fixture/wardrobe: 34
+    /stuff/thing/fixture/armchair: 26
+    /stuff/thing/fixture/table: 22
+    /stuff/thing/fixture/sconce-lamp: 12
+    # Cheap on purpose: upkeep must never be the thing you cannot afford
+    # to do. It wears with use, so the recurring cost is real without the
+    # first one being a barrier — a couple of hours' wages.
+    /residence/thing/householders-kit: 9

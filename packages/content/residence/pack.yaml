@@ -1,0 +1,21 @@
+id: residence
+version: 0.1.0          # reserved; nothing reads/enforces it (non-goal: version machinery)
+root: /residence
+description: >-
+  Residence — the capability pack for title becoming a place (D18). It
+  ships the substrate classes the locality packs' residential rows name:
+  the plat machinery (PlatBook the catalogue, PlatWarren the provisioner,
+  LotGateExit the way in), moved out of the kernel platform tree with
+  their class paths repointed /platform/idea/… → /residence/idea/….
+  The residences build adds the holding programme, the generic front
+  door, the substrate's own verbs (survey, maintain), its settings
+  defaults and the householder's kit here as they land. The membership
+  test is arcana's: a capability pack holds what other packs' content
+  names — nothing here is one locality's.
+requires:
+  groups:
+    - name: residence
+      purpose: the residence pack's own body — the holding substrate
+      owner: { office: prime-minister }
+  title:
+    - { extent: /residence, holder: { group: residence } }

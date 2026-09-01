@@ -1,0 +1,13 @@
+# A Seznick House landing — the minted circulation row (one clone per
+# occupied floor; reaped outside-in when its units empty). Unit doors
+# hang here as FrontDoorExits (`unit-<pos>`), keyed to each lease.
+class: /platform/location/CartesianLocation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a Seznick House landing
+  primaryKeyword: landing
+  alternateNames: [corridor, hallway]
+  ambientIntensity: 25
+  ambientColorTemperature: 4000
+  longDescription: |
+    A landing of scuffed runner and brown-painted doors, a sash window at the end letting in the Row's grey light. The house's quiet has weight up here; the stair continues past you in both directions when the floors above are taken.

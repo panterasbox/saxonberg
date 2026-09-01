@@ -14,20 +14,19 @@ import { SphericalCoordinatesMixin } from '../../lib/location/SphericalCoordinat
 import { ExitableMixin } from '../../lib/boundary/Exitable';
 import { VisibleMixin } from '../../lib/description/Visible';
 import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
-import { SingletonMixin } from '../../lib/stuff/Singleton';
 import { Quantity } from '../../lib/quantity';
 import type SphericalZone from '../idea/location/SphericalZone';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { FieldMeta } from '../../lib/mixin';
 
-// SphericalLocation is singleton-shaped — same rationale as
-// `CartesianLocation`: every authored location is unique-by-path.
-// Required so `Avatar.save()` can snapshot `data.container` against
-// a spherical room without tripping the singleton-container validator.
-const SphericalLocationBase = SingletonMixin(
-  PostRegistrationMixin(
-    ExitableMixin(SphericalCoordinatesMixin(VisibleMixin(Location)))
-  )
+// ⭐ NOT singleton — the same asymmetry as `CartesianLocation`, and the
+// same reason it holds the unmarked name: the mixin SUBTRACTS. A class
+// without it still backs singleton templates via
+// `StuffApi.singleton(path)`; a class with it can back ONLY those,
+// because `clone()` throws after the first.
+// {@link SingletonSphericalLocation} is the opt-in.
+const SphericalLocationBase = PostRegistrationMixin(
+  ExitableMixin(SphericalCoordinatesMixin(VisibleMixin(Location)))
 );
 
 export default class SphericalLocation extends SphericalLocationBase {

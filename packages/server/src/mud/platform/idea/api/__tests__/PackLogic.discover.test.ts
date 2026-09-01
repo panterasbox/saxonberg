@@ -57,9 +57,9 @@ describe('discovery', () => {
 });
 
 describe('the shipped packs (real discovery, no install)', () => {
-  it('twenty-five ship; the trade packs order after generic-objects (wave 4a); the venues after their trades (wave 4b)', () => {
+  it('twenty-nine ship; the trade packs order after generic-objects (wave 4a); the venues after their trades (wave 4b); the localities after residence (residences D18)', () => {
     const ids = PackApi.contentRoots().map((root) => root.split('/').slice(-2)[0]!);
-    expect(ids).toHaveLength(25);
+    expect(ids).toHaveLength(29);
     expect(ids[0]).toBe('platform');
     for (const trade of ['trade-smithing', 'trade-hearth-cooking', 'trade-hospitality', 'trade-distilling']) {
       expect(ids.indexOf(trade)).toBeGreaterThan(ids.indexOf('generic-objects'));
@@ -68,5 +68,11 @@ describe('the shipped packs (real discovery, no install)', () => {
       expect(ids.indexOf('hearthworks')).toBeGreaterThan(ids.indexOf(trade));
     }
     expect(ids.indexOf('hearthworks')).toBeGreaterThan(ids.indexOf('corpo-goodkin'));
+    // The residences cut: the three locality packs depend on the
+    // residence capability pack (and hinkley-hills on terminus).
+    for (const locality of ['eternal-university', 'terminus', 'hinkley-hills']) {
+      expect(ids.indexOf(locality)).toBeGreaterThan(ids.indexOf('residence'));
+    }
+    expect(ids.indexOf('hinkley-hills')).toBeGreaterThan(ids.indexOf('terminus'));
   });
 });

@@ -5,7 +5,7 @@
 # by walking south back to the crossroads; deliberately no inbound exit
 # wired from the hub (keeps content-area standup clean). Carries the
 # Last-Counted-Mile locality address like the hub.
-class: /platform/location/Room
+class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: the treeline past the crossroads
@@ -51,11 +51,11 @@ data:
   # The cull: one wolfshead and a dropped dagger, both cloned fresh at
   # standup. Pick up the dagger, wield it, and `attack the wolf`.
   populates:
-    - /world/newbie-wilds/npc/wolf
+    - /world/newbie-wilds/agent/wolf
     - /stuff/thing/arms/steel-dagger
     # The cycle-2 multi-party demonstrator: a recruitable sellsword and a
     # second blade for her to take up. Form a party, `party enlist the
     # sellsword`, then walk west and `attack the gentleman --lethal` — she
     # backs you up (join) for a consented 2v1 duel in the hollow.
-    - /world/newbie-wilds/npc/sellsword
+    - /world/newbie-wilds/agent/sellsword
     - /stuff/thing/arms/steel-dagger

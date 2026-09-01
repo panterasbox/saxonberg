@@ -17,7 +17,7 @@ import {
 const SHOT = (n: string) =>
   `/tmp/claude-1000/-home-bobalu-play-saxonberg-build-1/7b521696-7891-4cf3-93e6-32c8504f67b0/scratchpad/drive-${n}.png`;
 
-const HALL = '/world/terminus/terminal/hall';
+const HALL = '/world/terminus/terminal/location/hall';
 /** Goodkin's banking hall — where the boss opens an account. */
 const BANK = '/world/terminus/counting-houses/banking-hall';
 
@@ -137,7 +137,7 @@ test('work-contracts live drive', async ({ browser }) => {
   await cmd(bp, 'drop torch', 2200);
   const posted = await cmd(
     bp,
-    'job post torch to /world/terminus/terminal/arrival-gate for 25',
+    'job post torch to /world/terminus/terminal/location/arrival-gate for 25',
     3000,
   );
   await bp.screenshot({ path: SHOT('04-boss-posted'), fullPage: true });

@@ -63,7 +63,7 @@ public-street / civic / device systems). Two rules:
   `CartesianLocation` in the `university-avenue` `CartesianZone` (renamed
   from `plaza`; `primaryKeyword: crossing`, `shortDescription` stays
   `University Avenue`).
-- **`south`** → `/world/terminus/terminal/arrival-gate` — **BUILT**. The
+- **`south`** → `/world/terminus/terminal/location/arrival-gate` — **BUILT**. The
   terminal fronts the crossing to the south; players spill out of the
   arrival gate and cross **north**. Cardinal, cross-zone, reciprocal (the
   terminal side was re-cardinaled to `north`→here; the arrival alcove was

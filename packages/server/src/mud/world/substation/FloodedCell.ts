@@ -25,13 +25,13 @@
  * See docs/subsystems/electricity.md.
  */
 
-import CartesianLocation from '../../lib/location/CartesianLocation';
+import SingletonCartesianLocation from '../../lib/location/SingletonCartesianLocation';
 import { MixinApi } from '../../api/mixin';
 import { ElectricityApi } from '../../api/electricity';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
 
-export default class FloodedCell extends CartesianLocation {
+export default class FloodedCell extends SingletonCartesianLocation {
   /**
    * The hazard: fired on the destination when a body walks in (the
    * `Mobile.traverse` → `onEntered` seam). Conduct from every live source in

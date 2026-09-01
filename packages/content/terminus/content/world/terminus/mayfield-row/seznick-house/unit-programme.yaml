@@ -1,0 +1,27 @@
+# The Seznick House unit programme (residences D16): one row, one keyed
+# instance per leased unit (scope = this row, key = the unit's parcel
+# extent `…/units/f<floor>-u<pos>`). EMPTY AT MOVE-IN (D9): the rooms
+# are built-ins-only rows; the tenant places owned chattel, and lease
+# end evicts it to storage intact. `landlord-shell` (D5): Mayfield
+# Holdings owes the shell — the term rent will later pay for — and the
+# tenant owes walls-in. The bathroom is the generic archetype row
+# directly (it is all built-ins).
+class: /residence/idea/HoldingWarren
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  upkeepTerm: landlord-shell
+  floorplan:
+    - leaf: hall
+      room: /world/terminus/mayfield-row/seznick-house/location/hall
+      entry: true
+      exits:
+        - { to: main, direction: north, opposite: south }
+        - { to: bedroom, direction: west, opposite: east }
+    - leaf: main
+      room: /world/terminus/mayfield-row/seznick-house/location/main
+    - leaf: bedroom
+      room: /world/terminus/mayfield-row/seznick-house/location/bedroom
+      exits:
+        - { to: bathroom, direction: north, opposite: south }
+    - leaf: bathroom
+      room: /stuff/location/room/bathroom

@@ -98,7 +98,7 @@ Discovery: a locality's `cmd/*.yaml` are installed as `command-view`
 documents at `/world/<…>/cmd/<verb>` like any other view, and
 `commandContributions` on the owning class references the view by its
 `world/`-prefixed key (e.g.
-`'world/eternal/university-avenue/cmd/blow.yaml'`). Nothing else
+`'world/terminus/university-avenue/cmd/blow.yaml'`). Nothing else
 changes — the same YAML schema, controller skeleton, validators, and
 template contract apply.
 
@@ -111,7 +111,7 @@ domain-local. The exemplars are **`blow`** (the Whistle), **`tally`**
 (the CrossingLog), and **`wind`**/**`adjust`** (the mechanical Watch) in
 the University Avenue crossing bundle — each inseparable from its one
 object, so spec, controller, and seed all live under
-`mud/world/eternal/university-avenue/` (`cmd/` + `command/`) beside
+`world/terminus/university-avenue/` (`cmd/` + `idea/cmd/`) beside
 `Whistle.ts`, `CrossingLog.ts`, and `Watch.ts`.
 
 **Who affords a verb is a separate question from where its spec

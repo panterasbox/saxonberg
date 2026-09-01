@@ -1,0 +1,40 @@
+# The Counting-Houses — the Goodkin Circle parlor. The relationship face: a
+# cozy carpeted back room you're *ushered* into to "get you set up," where the
+# branch officer (Halloran) opens your account personally and enrols you into
+# the Circle. Where the warmth thickens into the leash — all implication, no
+# mechanism (credit is deferred).
+#
+# Indoor room. Exit SOUTH back to the banking hall (the mechanical act happens
+# at the hall counter — a little parlor↔hall movement is the design). Halloran
+# is a `populate`; the enrollment tree is his brain config, not its own Stuff.
+class: /platform/location/SingletonCartesianLocation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the Goodkin Circle parlor
+  primaryKeyword: parlor
+  alternateNames: [parlour, circle, office, back]
+  _address: counting-houses/goodkin-parlor
+  longDescription: |
+    The parlor is small and deliberately warm: a carpet you sink into, two armchairs drawn up by a fire that's always lit, a low table with — of course — more coffee. The walls are hung with framed photographs of the Goodkin "family," a hundred smiling faces at picnics and ribbon-cuttings, and pride of place goes to a desk of dark wood where accounts are opened and, the little brass plate says, MEMBERS ARE WELCOMED. It is the most comfortable room in the district, and something about how comfortable it is makes you want to check where the door is. The door back to the hall is south.
+  coords:
+    x: -1
+    y: 1
+    z: 0
+  exits:
+    south:
+      destination: /world/terminus/counting-houses/banking-hall
+  details:
+    photographs:
+      keywords: [photographs, photos, photo, family, pictures, wall]
+      description: |
+        Framed photographs cover the walls: the Goodkin family — customers, they mean — at company picnics, clinic openings, Enclave move-in days, every one of them beaming. There are no dates and no names, just the warmth, repeated until it stops looking like a coincidence and starts looking like a policy.
+    desk:
+      keywords: [desk, plate, brass]
+      description: |
+        A broad desk of dark wood, its surface clear but for a blotter, a good pen, and a brass plate reading MEMBERS ARE WELCOMED. This is where the account gets opened and the Circle gets joined — where a signature and a coffee turn you into one of theirs.
+    fire:
+      keywords: [fire, hearth, armchairs, armchair, chairs]
+      description: |
+        A small fire kept lit past any need for warmth, two armchairs angled toward it and toward each other. Everything in the room is arranged so that sitting down feels like the natural thing, and getting back up feels like leaving somewhere you belong.
+  populates:
+    - /world/terminus/counting-houses/agent/officer

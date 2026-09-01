@@ -65,7 +65,7 @@ export default class BuyController extends CommandController<BuyModel> {
 
     // Attendant: a store with a counter refuses when it's closed.
     if (stock) {
-      const key = giver.getTemplatePath();
+      const key = giver.getIdentityPath();
       if (key && stock.requestAttention(key).status === "closed") {
         this.reject(
           giver,
@@ -149,7 +149,7 @@ export default class BuyController extends CommandController<BuyModel> {
   private async buyerOf(giver: Stuff, receipt: SettlementReceipt): Promise<Stuff> {
     if (receipt.method !== "credential" || !receipt.accountId) return giver;
     const ownerKey = await BankingApi.ownerKeyOf(receipt.accountId);
-    if (!ownerKey || ownerKey === giver.getTemplatePath()) return giver;
+    if (!ownerKey || ownerKey === giver.getIdentityPath()) return giver;
     const live = StuffApi.findByTemplatePath(ownerKey);
     return live && MixinApi.isBusiness(live) ? live : giver;
   }

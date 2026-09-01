@@ -12,7 +12,7 @@ import '../../../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import BroadcastController from '../BroadcastController';
 import Avatar from '../../../../agent/Avatar';
-import Room from '../../../../location/Room';
+import SingletonCartesianLocation from '../../../../location/SingletonCartesianLocation';
 import { AccessApi } from '../../../../../api/access';
 import { ParcelApi } from '../../../../../api/parcel';
 import { MqlApi } from '../../../../../api/mql';
@@ -43,14 +43,14 @@ function captureScenes(): void {
   vi.spyOn(MessageApi, 'refOf').mockReturnValue({} as never);
 }
 
-function makeAvatar(id: string, room: Room): Avatar {
+function makeAvatar(id: string, room: SingletonCartesianLocation): Avatar {
   const av = makeStuffAtPath(() => new Avatar(), `/platform/agent/Avatar/${id}`);
   av.setPlayerId(id);
   ContainmentApi.move(av, room);
   return av;
 }
 
-function ctx(giver: Avatar, location: Room): CommandContext {
+function ctx(giver: Avatar, location: SingletonCartesianLocation): CommandContext {
   notes = [];
   return {
     commandGiver: giver,
@@ -73,12 +73,12 @@ function stubTitle(held: Record<string, string[]>, covering: Record<string, stri
   });
 }
 
-let lounge: Room;
-let terminus: Room;
-let home: Room;
+let lounge: SingletonCartesianLocation;
+let terminus: SingletonCartesianLocation;
+let home: SingletonCartesianLocation;
 let online: Avatar[];
 
-async function run(giver: Avatar, location: Room, model: Record<string, unknown>): Promise<void> {
+async function run(giver: Avatar, location: SingletonCartesianLocation, model: Record<string, unknown>): Promise<void> {
   vi.spyOn(MqlApi, 'resolveMany').mockReturnValue({ stuff: online } as never);
   const ctrl = makeStuff(() => new BroadcastController());
   await ctrl.execute({ message: 'hi', ...model } as CommandModel as never, ctx(giver, location));
@@ -87,9 +87,9 @@ async function run(giver: Avatar, location: Room, model: Record<string, unknown>
 beforeEach(() => {
   StuffApi.clearAll();
   captureScenes();
-  lounge = makeStuffAtPath(() => new Room(), '/studio/lounge/bar');
-  terminus = makeStuffAtPath(() => new Room(), '/studio/terminus/terminal/hall');
-  home = makeStuffAtPath(() => new Room(), '/home/dave/parlor');
+  lounge = makeStuffAtPath(() => new SingletonCartesianLocation(), '/studio/lounge/bar');
+  terminus = makeStuffAtPath(() => new SingletonCartesianLocation(), '/studio/terminus/terminal/hall');
+  home = makeStuffAtPath(() => new SingletonCartesianLocation(), '/home/dave/parlor');
   online = [];
 });
 afterEach(() => {

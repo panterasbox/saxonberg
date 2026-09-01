@@ -483,16 +483,42 @@ export default class ParcelRegistry extends ParcelRegistryBase {
 
   /**
    * The unit parcel `holder` currently leases, or null — a linear scan over
-   * the parcel rows (the deferred `heldUnitOf` index is a later seam; a
-   * player leases at most one dorm in v1).
+   * the parcel rows (the deferred `heldUnitOf` index is a later seam).
+   * `underExtent` scopes the answer to one institution's wing (the
+   * dorm's already-housed check scopes to its dorms extent — residences
+   * D16: the multi-residence ladder means a holder may hold one of
+   * each rung).
    */
   @CallSecurity(ParcelApiCallers)
-  public async heldUnitOf(holder: string): Promise<ParcelRecord | null> {
+  public async heldUnitOf(
+    holder: string,
+    underExtent?: string,
+  ): Promise<ParcelRecord | null> {
     const now = Date.now();
     for (const record of await ParcelRecord.findAll()) {
-      if (ParcelRecord.hasActiveGrant(record, holder, now)) return record;
+      if (!ParcelRecord.hasActiveGrant(record, holder, now)) continue;
+      if (underExtent && !record.getExtent().startsWith(underExtent + '/')) {
+        continue;
+      }
+      return record;
     }
     return null;
+  }
+
+  /**
+   * EVERY unit parcel `holder` holds an active use-grant on — the
+   * plural the residence ladder's ascent gate reads (a dorm lease + an
+   * apartment lease + a title are three rungs of one ladder;
+   * residences P10).
+   */
+  @CallSecurity(ParcelApiCallers)
+  public async heldUnitsOf(holder: string): Promise<ParcelRecord[]> {
+    const now = Date.now();
+    const out: ParcelRecord[] = [];
+    for (const record of await ParcelRecord.findAll()) {
+      if (ParcelRecord.hasActiveGrant(record, holder, now)) out.push(record);
+    }
+    return out;
   }
 
   /**

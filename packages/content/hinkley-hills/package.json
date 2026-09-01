@@ -1,0 +1,26 @@
+{
+  "name": "@saxonberg/content-hinkley-hills",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Hinkley Hills — the suburb locality: the lane, the plat, the lots and the homes the residences build stands on them.",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run --passWithNoTests",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@saxonberg/content-generic-objects": "workspace:*",
+    "@saxonberg/content-platform": "workspace:*",
+    "@saxonberg/content-residence": "workspace:*",
+    "@saxonberg/content-terminus": "workspace:*",
+    "@saxonberg/content-trade-farming": "workspace:*",
+    "@saxonberg/server": "workspace:*",
+    "@saxonberg/types": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "vitest": "^2.0.0",
+    "yaml": "^2.8.2"
+  }
+}

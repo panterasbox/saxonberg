@@ -2,7 +2,7 @@
 # and one rain-soaked log. Light one (`ignite log`); the presence-gated fire
 # tick spreads it to the dry neighbours over a few beats, but the wet log
 # resists until it dries. Placed declaratively via `populates:`.
-class: /platform/location/Room
+class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a timber woodshed

@@ -498,8 +498,8 @@ physics.
 | `TimekeepingMixin` (+ `Timekeeping`) | Mixin | `lib/time/Timekeeping.ts` |
 | `Time` | Named value-object | `lib/time/Time.ts` |
 | `MechanicalMovementMixin` (+ `MechanicalMovement`) | Mixin | `lib/time/MechanicalMovement.ts` (in `lib/time` since content packs wave 4b) |
-| `Watch` | Stuff (locality content) | `world/eternal/university-avenue/Watch.ts` |
-| `WindController` / `AdjustController` | Controller (locality content) | `world/eternal/university-avenue/idea/cmd/` |
+| `Watch` | Stuff (locality content) | `world/terminus/university-avenue/Watch.ts` |
+| `WindController` / `AdjustController` | Controller (locality content) | `world/terminus/university-avenue/idea/cmd/` |
 | `Analyze{Time,Sky}Controller`, `Measure{Shadow,Altitude}Controller` | Controller | `platform/idea/cmd/` |
 | `analyze` / `measure` subcommands | Command YAML | `cmd/perception/analyze.yaml`, `cmd/perception/measure.yaml` |
 | `scale` default / `CAMPUS_LATITUDE` / `CAMPUS_LONGITUDE` / `SNAPSHOT_INTERVAL_MS` | module constants | on the two Apis (NOT settings) |

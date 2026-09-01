@@ -240,7 +240,7 @@ Each rides an existing seam when wanted; none is blocked by v1's shape.
   condition Idea.
 - `seeds/lib/material/bulk/air.yaml`,
   `generic-objects/content/stuff/thing/gear/{air-tank,air-compressor}.yaml`,
-  `world-seed/content/world/eternal/duncan-hall/cistern.yaml` — proof content.
+  `world-seed/content/world/eternal/duncan-hall/location/cistern.yaml` — proof content.
 - `cmd/posture/{inhale,exhale}.yaml` +
   `platform/idea/cmd/posture/{Inhale,Exhale}Controller.ts` — the verbs.
 

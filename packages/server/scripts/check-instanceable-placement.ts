@@ -160,12 +160,20 @@ export function tradePlacementOk(
  * outside a branch directory (`thing/`, `idea/`, `agent/`, `location/`)
  * or the pack's `behavior/` (a brain — one file per brain, flat).
  * `rel` is `src/`-relative with forward slashes; tests are not modules.
+ *
+ * A LOCALITY pack (`locality: true` — its manifest root is a `/world/`
+ * extent) mirrors its rows instead: template paths inside
+ * `/world/<locality>` are exempt from `<root>/<branch>` sorting (the
+ * invariant-7 note), and source mirrors path, so its `src/` follows the
+ * rows — branch subdirs by lineage past ~6 files, flat below (the
+ * lounge convention). Only `lib/` and mis-shaped brains stay refusable.
  */
-export function packSrcPlacementOk(rel: string): boolean {
+export function packSrcPlacementOk(rel: string, locality = false): boolean {
   const parts = rel.split('/');
   if (parts.includes('__tests__')) return true;
   const top = parts[0];
   if (top === 'lib') return false;
+  if (locality) return true;
   if (parts.length < 2) return false;
   if (top === 'behavior') return parts.length === 2;
   return (BRANCHES as readonly string[]).includes(top!);
@@ -276,9 +284,12 @@ function main(): void {
     if (existsSync(join(pack.srcDir, 'lib'))) {
       findings.push({ invariant: 8, file: join(pack.srcDir, 'lib'), detail: `pack ${pack.id} ships src/lib/ — substrate a pack needs is the kernel's, or a class under a branch` });
     }
+    // A locality pack's src/ mirrors its rows (roots[0] is the manifest
+    // root — insertion order in packSources).
+    const locality = (pack.roots[0] ?? '').startsWith('/world/');
     for (const f of packSrcFiles(pack.srcDir)) {
       const rel = relative(pack.srcDir, f).split('\\').join('/');
-      if (!packSrcPlacementOk(rel)) {
+      if (!packSrcPlacementOk(rel, locality)) {
         findings.push({ invariant: 8, file: f, detail: `pack ${pack.id}: src/${rel} is outside a branch directory (thing|idea|agent|location) or behavior/` });
       } else if (rel.startsWith('behavior/') && !packBrainShapeOk(readFileSync(f, 'utf8'))) {
         findings.push({ invariant: 8, file: f, detail: `pack ${pack.id}: src/${rel} is not brain-shaped (sole export \`brain\`, a named class-expression)` });

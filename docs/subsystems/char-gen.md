@@ -442,7 +442,7 @@ sequence, in order:
    the roster, so a crash mid-char-gen leaves no trace.
 3. **Clone the runtime Avatar from the SHARED seed** with the overlay
    riding `StuffApi.clone`'s `dataOverlay` and the minted identity path
-   via `asTemplatePath` (`postRegister` stamps identity, installs the
+   via `asIdentityPath` (`postRegister` stamps identity, installs the
    baseline implant, self-places at the app-config spawn, and captures
    the FIRST snapshot — the moment the character becomes durable).
 4. **Set sex** on the live avatar (species-constrained, so applied after

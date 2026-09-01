@@ -1,0 +1,13 @@
+# A unit's hall — the entry room behind the locked front door
+# (residences D16): BUILT-INS ONLY, empty at move-in (D9) — the tenant
+# furnishes it with owned goods; the landlord's shell is the walls.
+class: /platform/location/FurnishableRoom
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the entry hall
+  primaryKeyword: hall
+  alternateNames: [hallway, entry]
+  ambientIntensity: 30
+  ambientColorTemperature: 4200
+  longDescription: |
+    A small square hall, bare boards and a picture rail with nothing on it yet. Doorways open ahead to the main room and left to the bedroom; the flat smells faintly of soap and long sunlit dust — a cleaned slate.

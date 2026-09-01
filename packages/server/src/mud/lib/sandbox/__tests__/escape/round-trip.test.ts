@@ -206,7 +206,7 @@ describe('sandbox-escape: the round-trip criterion', () => {
         // author a template under the circle namespace — the deliberate save
         await PersistApi.save(Collections.Content, {
           path: `${SCOPE}/workshop`,
-          class: '/platform/location/Room',
+          class: '/platform/location/SingletonCartesianLocation',
         });
         // fight + transact — material ledger rows
         await PersistApi.save(Collections.BankLedger, {
@@ -260,7 +260,7 @@ describe('sandbox-escape: the round-trip criterion', () => {
     ]);
     // …the authored edit persists (the deliberate save is the product)…
     expect(store.get(Collections.Content)).toEqual([
-      { path: `${SCOPE}/workshop`, class: '/platform/location/Room' },
+      { path: `${SCOPE}/workshop`, class: '/platform/location/SingletonCartesianLocation' },
     ]);
     // …and the epistemic record exists, wire-marked.
     //

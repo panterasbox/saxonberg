@@ -84,6 +84,7 @@ behavior. Read the relevant doc before editing in its area.
   - [lifecycle.md](./docs/subsystems/lifecycle.md) — create/destroy choreography, construction sentinel, onDestruct
   - [residency.md](./docs/subsystems/residency.md) — object self-maintenance sweeps: self-eviction of the cold tail, `canEvict` veto, ResidencyLogic
   - [residence.md](./docs/subsystems/residence.md) — the dorm-room first home over Warren + parcels + spine; `(scope, key)` multi-instance persistence; DeferredDestinationExit; Katie
+  - [holding.md](./docs/subsystems/holding.md) — the residence ladder as ONE substrate: a holding is a warren one level down; Warren/Inner/Outer tiers, PlatPlan + the gate ring, the shell clock vs the goods clock, tenure terms, the D/P decision index
   - [state-model.md](./docs/subsystems/state-model.md) — what gets persisted; Avatar self-contained, Document track for auth/meta
   - [connection.md](./docs/subsystems/connection.md) — login/logout, WebSocket upgrade, Interactive/Login/Avatar handoff, multiplexing
   - [char-gen.md](./docs/subsystems/char-gen.md) — new-player intake: `enroll` draft machine, species dossier + NameBank, commit/spawn atomicity
@@ -177,7 +178,7 @@ behavior. Read the relevant doc before editing in its area.
   - [encumbrance.md](./docs/subsystems/encumbrance.md) — the carry-weight gauge: LoadBearing derived burden, the consequence ladder, the haulage draft term
   - [metabolism.md](./docs/subsystems/metabolism.md) — the intake/chemistry driver: digestion buffer, reconcile-on-read, condition cascades, meal chemistry, toxins
   - [husbandry.md](./docs/subsystems/husbandry.md) — the growth model: GrowingMixin reconcile-on-read (no far-past guard), min-of-four limiting factor, the pot-as-N=1-bed object shape, the houseplant
-  - [smallholding.md](./docs/subsystems/smallholding.md) — ground you own: CultivableMixin (a pot is a bed with one slot), soil's own checkpoint, land use's closed six, weakest-link harvest grade, `title`, PlatBook/LotHolder/LotGateExit, Hinkley Hills
+  - [smallholding.md](./docs/subsystems/smallholding.md) — ground you own: CultivableMixin (a pot is a bed with one slot), soil's own checkpoint, land use's closed six, weakest-link harvest grade, `title`, PlatBook/PlatWarren/LotGateExit, Hinkley Hills
   - [thermal.md](./docs/subsystems/thermal.md) — heat exchange: ThermalMixin Newton cooling, the thermos/campfire, ThermalRegulation
   - [respiration.md](./docs/subsystems/respiration.md) — air exchange + asphyxiation: the crisis engagement drain, `breathableMedia`, AirTank
   - [shell-workspace.md](./docs/subsystems/shell-workspace.md) — WorkspaceMixin cwd state, `workspace.tree`, read/write verb suite, SourceTreeApi
@@ -500,6 +501,22 @@ discoverability.
   new root. `ownerOf` returns `null` for untitled content
   and every write fails closed, so an unclaimed shipped path is a path
   nobody can ever edit. No exemption list. CI-gating.
+- `pnpm lint:census` (`scripts/check-template-census.ts`) — **every
+  template-path-valued field in every shipped row resolves to a real
+  row**, and `clone()`'s `asTemplatePath` channel stays retired. A minted
+  identity is a stamped slot now (D17), never a synthesized path, because
+  a path naming no row cannot be edited, addressed, or zoned. CI-gating.
+- `pnpm lint:locations` (`scripts/check-location-classes.ts`) — three
+  checks over the location vocabulary. The **`FurnishableRoom` roster**
+  (that class carries a persistence record, so a room nobody furnishes
+  wants a plain location) and the **minted `CartesianLocation` roster**
+  are enumerated, not inferred — adding a row is the design question
+  *"does a player furnish this?"* / *"is this a KIND of place?"*, and it
+  should be a diff a reviewer sees. The third is structural: **a zone row
+  that zones nothing fails**, because a zone governs the directory that
+  shares its name, and moving that directory leaves a valid zone over an
+  empty path with every room silently falling back to the enclosing one.
+  CI-gating.
 - **Sealed-subdir isolation** (`.eslintrc.js`, `no-restricted-imports`,
   error) — only `api/<x>.ts` may import from `api/<x>/**` (`mql`, `mml`
   today).
@@ -772,9 +789,10 @@ platform/thing/FoldingChair` is ordinary OO and correct. Only classes that are
 
 **When a substrate class is also cloned generically, split it.** The
 abstract base stays in `lib/`; a thin concrete subclass in `platform/`
-absorbs the clones, and templates name that. Eight exist:
-`platform/thing/Prop` (← `lib/stuff/Thing`), `platform/location/Room` (←
-`CartesianLocation`), `platform/agent/Corpse` (← `Creature`), and `platform/agent/NPC`,
+absorbs the clones, and templates name that. Nine exist:
+`platform/thing/Prop` (← `lib/stuff/Thing`), `platform/agent/Corpse` (←
+`Creature`), and `platform/agent/NPC`, `platform/location/CartesianLocation`,
+`platform/location/SingletonCartesianLocation`,
 `platform/thing/Vessel`, `platform/idea/Exit`, `platform/idea/material/Material`, `platform/idea/Biome`, which
 deliberately share their base's name (the import aliases it; the module
 registry keys on class identity, not name).

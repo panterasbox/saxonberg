@@ -1,0 +1,32 @@
+# The householder's kit — a box of the boring things that keep weather
+# out of a building: putty, a scraper, a paint pot, tacks, a small saw.
+#
+# The `upkeep` tool capability is what `maintain` looks for, and the
+# class is what confers the verb (an affordance is a static on a class,
+# never a field on a row). It wears with USE, like every durable — a
+# season of keeping a house sound costs a kit, which is the whole
+# economic content of upkeep.
+#
+# Store-stocked (the general store's furnishings line cites this row
+# cross-pack), and carried by the property managers whose term owes the
+# shell — Katie for the dorm, Walter for Seznick House.
+class: /residence/thing/HouseholdersKit
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a householder's kit
+  primaryKeyword: kit
+  keywords: [kit, householder, householders, tools, box, putty]
+  longDescription: |
+    A shallow wooden box with a rope handle, holding the unglamorous half of keeping a roof over your head: a tub of putty gone stiff at the edges, a scraper, a paint pot with a stick in it, a coil of tarred twine, a paper of tacks and a saw the length of your forearm.
+  mass: 6
+  condition: 1
+  capabilities:
+    - kind: upkeep
+      rate: 1
+  details:
+    putty:
+      keywords: [putty, tub]
+      description: A tub of glazier's putty, skinned over on top and still soft underneath.
+    saw:
+      keywords: [saw, blade]
+      description: A short saw with a worn beech handle, the teeth set by somebody who knew how.

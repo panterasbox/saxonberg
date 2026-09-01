@@ -177,7 +177,7 @@ export default class SubjectCatalogue extends SubjectCatalogueBase {
       // member's templatePath (a player as `/platform/agent/Avatar/<id>`) — the uniform
       // key the managed provider resolves and the audience check compares;
       // `ownerId` (the playerId) stays the Subject.owner *identity*.
-      const ownerMemberKey = owner.getTemplatePath() ?? ownerId;
+      const ownerMemberKey = owner.getIdentityPath() ?? ownerId;
       const ids = [
         ownerMemberKey,
         ...(opts.curatedMembers ?? []).map((m) => m.id),
@@ -278,7 +278,7 @@ export default class SubjectCatalogue extends SubjectCatalogueBase {
     await this.ensureCache();
     // Uniform member key: the actor's templatePath (a player as
     // `/platform/agent/Avatar/<id>`, an NPC as its own path) — no player-vs-NPC branch.
-    const memberKey = actor.getTemplatePath() ?? '';
+    const memberKey = actor.getIdentityPath() ?? '';
     const out: Subject[] = [];
     for (const s of this.byTitle.values()) {
       if (s.state !== 'active') continue;
@@ -295,7 +295,7 @@ export default class SubjectCatalogue extends SubjectCatalogueBase {
   /** True when `actor` is in `subject`'s audience (open ⇒ everyone). */
   public async isAudienceMember(actor: Stuff, subject: Subject): Promise<boolean> {
     if (subject.isOpen()) return true;
-    const memberKey = actor.getTemplatePath() ?? '';
+    const memberKey = actor.getIdentityPath() ?? '';
     if (!memberKey) return false;
     return GroupApi.isMember(memberKey, subject.getGroupRef());
   }

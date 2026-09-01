@@ -998,7 +998,7 @@ async function recordCraftEvidence(
   for (const witness of location.getContents()) {
     if (witness === maker) continue;
     if (!MixinApi.isCommandGiver(witness)) continue;
-    if (!witness.getTemplatePath()) continue;
+    if (!witness.getIdentityPath()) continue;
     await RecipeKnowledge.noteKnown(
       witness,
       recipe.getRecipeId(),
@@ -1043,7 +1043,7 @@ async function mintFromBuildImpl(req: BuildMintRequest): Promise<CraftOutcome> {
   // engaged-completion case, where the command frame is already gone.
   // Both are context-derived, never a wire value.
   const liveMaker = (ExecutionContextApi.getActingAuthor() ?? null) as Stuff | null;
-  const makerPath = liveMaker?.getTemplatePath() ?? req.makerPath ?? '';
+  const makerPath = liveMaker?.getIdentityPath() ?? req.makerPath ?? '';
   const makerStuff =
     liveMaker ??
     (makerPath ? (StuffApi.findByTemplatePath<Stuff>(makerPath) ?? null) : null);

@@ -42,12 +42,12 @@ const CARD_DEED_LIMIT = 5;
 
 /** The durable standing key — the template path the faucets re-key to. */
 function subjectIdOf(target: Stuff): string {
-  return target.getTemplatePath() ?? target.stuffId;
+  return target.getIdentityPath() ?? target.stuffId;
 }
 
 /** The stable per-target roster/card key. */
 function handleOf(target: Stuff): string {
-  return target.getTemplatePath() ?? target.stuffId;
+  return target.getIdentityPath() ?? target.stuffId;
 }
 
 /** Map a regard scalar to a qualitative line, or undefined when neutral. */
@@ -65,7 +65,7 @@ function contactEntryFor(
   if (!MixinApi.isContacts(holder)) return undefined;
   const isAvatar = PlayerApi.isAvatarStuff(person);
   const personPlayerId = isAvatar ? person.getPlayerId() : undefined;
-  const personTemplate = person.getTemplatePath() ?? undefined;
+  const personTemplate = person.getIdentityPath() ?? undefined;
   for (const entry of holder.allContacts()) {
     if (
       isAvatar &&
