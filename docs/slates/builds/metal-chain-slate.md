@@ -790,62 +790,158 @@ as a specific legislative act with a specific artifact at stake.
 
 ---
 
+## ⭐⭐⭐ Who owns what — the three layers and the throat **[DECIDED — closes Opens 1 + 10]**
+
+### Open 1 was not a contradiction — "commons" was doing two jobs
+
+- `ferrow-delving.md` §9: ***"Ferrow is a company mine, not ownerless
+  commons.** The developed mine is owned by the **Ferrow co-op** (a
+  `Business`); you work it under contract — tutwork or tribute."*
+- `content-pack-units.md:94`: *"Ferrow Delving (commons/deep-law) vs
+  Delving 9 (corporate wage) — opposite economic forms."*
+
+**These agree.** Pack-units uses "commons" for the **not-corporate
+pole** — a co-operative against a corporation. The bible denies a
+different reading: that the mine is **ownerless open-access ground**.
+Both say a workers' co-operative owns the developed mine. And §1 already
+states the chain as canon:
+
+> **house → abandoned at the Widening → reclaimed by the commons (co-op)
+> → Veshko now wants it corporate** — *"the ownership chain is the
+> world's whole economic history in one hole."*
+
+**The real conflict was elsewhere, and it is this slate's:** the bible
+says *"private staked claims are a **different** (frontier) mine,"* while
+the 2026-08-29 merge put the co-op mine and the claim field in **one**
+venue. The merge postdates the bible and wins; the reconciliation is the
+historically normal one — **a company operation with independents working
+the margins**, which is Cornwall and Derbyshire both.
+
+### The three layers
+
+| | Held by | The path it offers |
+|---|---|---|
+| **The developed mine** — shaft, cage, pump, main levels | the **co-op** (a `Business`) | tutwork or tribute: zero capital, steady income, **no title** |
+| **The claim field** around it | independents, by **parcel title** | ownership and upside, **all** the risk |
+| **The way up** | the **co-op** | everyone's, eventually |
+
+The bible resolved the physical fact independently: ***"vertical transit
+= a called lift"*** — capacity-limited, time-scaling with depth,
+signalled, **"the only way up for people."** Bulk ore is decoupled
+(ore-pass → skip → surface tipple), which is why the cage is about
+*people and control*, not throughput.
+
+### ⭐⭐ Who owns the shaft is the entire arc
+
+> **Veshko does not need to buy the claim field. It only needs to buy the
+> throat.**
+
+Every independent's title becomes worthless the moment the corpo owns the
+only way ore and people come up. **You do not need to own production —
+you need to own the bottleneck.** Railroads, pipelines, ports, app
+stores; here it is a physical fact a player verifies by climbing.
+
+It is also the same chokepoint § *The commons* levies to fund the pump —
+so the co-op's toll is simultaneously its public-finance instrument and
+its instrument of power over independents. ⭐ **One object, two
+politics**, and a buyout captures both at once.
+
+**Three legible counters**, which is what makes this play rather than
+doom:
+
+1. **Sink their own shaft** — huge capital, and the commons problem again
+   at a smaller scale.
+2. **Join the co-op** — trade autonomy for reliability. The bible's
+   risk/autonomy dial, now with teeth.
+3. ⭐ **Get the district to declare the cage a common carrier** — the
+   actual legal invention for exactly this situation, and the perfect
+   thing for a voluntary `Organization` with no sovereignty to try to
+   enforce. It is the *recognition-vs-absorption* question in miniature:
+   the district can only make it stick if somebody bigger backs it.
+
+---
+
 ## ⭐⭐⭐ The deposit is zoned — where tin lives **[DECIDED — closes Open 6]**
 
-**Tin's home is the bottom of the Ferrow.** One deposit, three metals,
-three depths — and the reason is textbook economic geology, not
-convenience.
+**Tin's home is the bottom of the Ferrow.** Nothing needs a second
+locality: the deposit already has a vertical structure, and this adds one
+axis beneath it.
 
-Around a granite intrusion, ore minerals sort themselves by the
-temperature of the fluids that deposited them: **tin innermost and
-hottest, then copper, then lead–zinc, then iron and manganese at the
-distal fringe.** Spatially, "innermost" means nearest the granite
-contact — which, under a hill, means *deeper*.
+### ⚠ Correction — this section originally put iron at the top
 
-| Depth | Metal | Ladder rung |
+An earlier pass proposed *iron shallow → copper → tin at the granite*.
+That is **magmatic zoning** (temperature, distance from the intrusion),
+and it wrote across a decision the content bible had already resolved:
+
+> `ferrow-delving.md` §9 — *"slate country rock + quartz **oxide-copper**
+> lode shallow (soft, lean, green/rust) → hard **sulfides** deep (rich,
+> **+silver**, sour air & water)"*; §1 — the house **worked the oxide
+> zone out**, and the co-op is *"chasing silver down-dip."*
+
+That is **supergene zoning** — weathering, controlled by the water table.
+The two are real and **orthogonal**: supergene is a near-surface
+overprint on whatever primary structure lies beneath. So tin-at-depth
+stacks underneath the bible's sequence unharmed. **Iron-shallow does
+not**, and is retracted.
+
+### The corrected stack
+
+| Depth | What is there | Who worked it |
 |---|---|---|
-| shallow / outer | **iron** | the rung you cannot use yet |
-| middle | **copper** | rung one — malachite is green, so it is the one you can see |
-| deep, against the granite | **tin** | rung two, and the world's only source |
+| **oxide cap** — soft, lean, green and rust | weathered copper carbonates (malachite) | **House Ferrow**, and it is **played out** — the leavings |
+| **primary sulfide** — hard, rich, **+silver**, sour air and water | chalcopyrite and its silver | **the co-op**, now, chasing silver down-dip |
+| **against the granite** — deepest, hottest | **tin** (cassiterite) | **nobody yet** — the revelation |
 
-The country rock is already shipped: `rock/granite` exists, with a
-comment inviting exactly the mineral templates this needs.
+The country rock is authored: `rock/granite` ships already, with a
+comment inviting exactly the mineral templates this needs, and the
+bible's slate-and-quartz killas sits above it — which is Cornwall's own
+arrangement, lodes cutting both.
 
-### ⭐⭐ It inverts against the tech ladder, which is the point
+⭐ **Iron, if it wants a home, is the distal fringe** — lean ground out at
+the lateral edges, which is magmatic zoning's own answer and conveniently
+explains why independents on the claim field scratch while the co-op does
+not.
 
-**You can dig iron on day one and be unable to smelt it** — your fuel
-will not reach 1811 K. The ore sits in the spoil heap until your
-technology catches up, and then one day it is wealth. **The resource
-never changed; you did.** That is the cleanest available statement of
-what a tech ladder actually is, and it costs nothing to author because
-the melting points are already in the material sheets.
+### ⭐⭐ The technology gate is a PROCESS, not a temperature
 
-### ⭐ It explains the lapse, and gives prospecting something to find
+The beat this section was reaching for — *the resource never changed, you
+did* — survives in a better form, and the bible's chemistry supplies it
+free:
 
-House Ferrow worked the **shallow iron** — what a medieval house would
-work — and the mine lapsed. **Nobody ever went deeper.** So the copper is
-a discovery and the tin is a *revelation*, and the deduction layer has
-real objects to find rather than more of the same seam. The venue's
-central secret is geological rather than authored.
+> **Oxide copper smelts directly. Sulfide copper does not — you must
+> roast the sulfur off first.** The house worked the oxide cap because
+> oxide was all it could process. The sulfides beneath were always there,
+> always richer, and useless to them.
+
+So the gate is **roasting** — the step this slate already assigned to
+`trade-smelting` (§ *Beneficiation*: the line between the trades is the
+furnace). The chain closes on itself, and the bible's *"sour air and
+water"* stops being flavour: it is the sulfur you are about to drive off.
+
+### It explains the lapse, and gives prospecting something to find
+
+House Ferrow worked the oxide and left; **nobody ever went deeper than
+the sulfides.** So the silver is the co-op's living, and the tin is a
+*revelation* — the deduction layer has a real object to find rather than
+more of the same seam. The venue's central secret is geological rather
+than authored.
 
 ### What it costs, and where the lesson moves
 
 Bronze becomes locally makeable, so the *"you must import"* lesson
-relocates — to the demand side, where it is stronger: **Terminus depends
-on one tin source and the players are standing on it.** A strategic
-chokepoint the miners hold is better play than a dependency they suffer,
-and it hands the arc a real motive — **Veshko's buyout is not for "a
-mine," it is for the only tin.** Together with the shaft toll (§ *The
-commons*), that is two independent grips on the same venue.
+relocates to the demand side, where it is stronger: **Terminus depends on
+one tin source and the players are standing on it.** A chokepoint the
+miners hold is better play than a dependency they suffer, and it hands
+the arc a second motive — **Veshko's buyout is not for "a mine," it is
+for the only tin**, alongside the throat (§ *Who owns what*).
 
 ### The two rejected homes
 
-- **The Weeping Moor** — granite moorland under permanent storm, which is
-  almost too apt (stream tin is Dartmoor). But it is a **two-room weather
+- **The Weeping Moor** — granite moorland under permanent storm, almost
+  too apt (stream tin is Dartmoor). But it is a **two-room weather
   demonstrator** whose own docstring says it deliberately has no inbound
   exit "keeps content-area standup clean," and alluvial tin needs
-  **placer**, which is parked. A repurposed test fixture plus a parked
-  mechanic plus a second locality.
+  **placer**, which is parked.
 - **An off-map importer with a price** — ruled out on this slate's own
   doctrine. *Every finished good is a faucet too*; closing the ingot
   faucet while opening a tin faucet is the same anti-pattern one layer
@@ -854,11 +950,11 @@ commons*), that is two independent grips on the same venue.
 ### ⭐ But bank the moor as the monopoly-breaker
 
 Cornwall's tin monopoly ended when Malayan and Bolivian tin undercut it —
-which is what happens to resource chokepoints. So when placer ships, the
-moor becomes a **stream-tin district that breaks Rejection's grip**: a
-second venue that matters for what it does to the first one's *prices*,
-not because it is more mine. That is a better second mine than another
-hole, and it is the natural home for the parked placer mechanic.
+what happens to resource chokepoints. So when placer ships, the moor
+becomes a **stream-tin district that breaks Rejection's grip**: a second
+venue that matters for what it does to the first one's *prices*, not
+because it is more mine, and the natural home for the parked placer
+mechanic.
 
 ---
 
@@ -983,13 +1079,11 @@ scope rather than to content.
 
 ## Open
 
-1. **Ownership model, narrowed but not ratified** — `content-pack-units.md:94`
-   calls Ferrow *commons / deep-law*; `ferrow-delving.md` §9 makes it a
-   company mine held by a co-op `Business`. This slate's *private workings
-   in a shared deposit, with the district as a voluntary `Organization`*
-   reconciles them in principle (a company operation with independents on
-   the margins is the historical norm), but it has not been checked
-   against those two documents line by line.
+1. ~~Ownership model~~ — **CLOSED, and it was never a contradiction**:
+   "commons" meant *not-corporate* in one document and *ownerless* in the
+   other. The co-op owns the developed mine; independents hold the claim
+   field; the merge's one-venue ruling beats the bible's two-venue split.
+   See § *Who owns what*.
 2. ~~How the commons is funded~~ — **CLOSED**: toll the hoist (excludable)
    to fund the pump (not). See § *The commons*.
 3. **The per-heading cap** — farming caps a field at ~4 ha so one room
@@ -1015,10 +1109,11 @@ scope rather than to content.
 9. **Recipe scope for demand classes A and B** — how many tool and
    arms/armor recipes ship in the first cut, and whether the smith's
    known-of → can-make ladder gates them or they all ship known.
-10. **Who owns the shaft at Rejection** — the toll good is a natural
-   monopoly and the mine's instrument of power. The co-op, a corpo
-   (Veshko's lever for the buyout arc), or the district itself? This is
-   where the temporal mirror gets its grip.
+10. ~~Who owns the shaft~~ — **CLOSED: the co-op.** It is simultaneously
+   the pump's funding instrument and its power over independents, so a
+   buyout captures both at once — *Veshko need only buy the throat.*
+   Counters: sink your own, join, or **common carrier**. See § *Who owns
+   what*.
 
 *(Retire when: this promotes to formal requirements for a metal-chain
 build, or folds into the Rejection venue build that adopts it.)*
