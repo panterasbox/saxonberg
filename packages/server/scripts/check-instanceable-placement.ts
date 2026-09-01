@@ -10,7 +10,7 @@
  *   /lib/  holds substrate that is ONLY EVER INHERITED: abstract roots,
  *   mixins, value objects, and framework attachments.
  *
- * Eight invariants:
+ * Ten invariants:
  *
  *   1. No template's `class:` resolves under `/lib/`.       (the headline)
  *   2. No template PATH lives under `/lib/`.
@@ -33,6 +33,12 @@
  *      named class-expression. A `class:` under a pack namespace
  *      resolves into that pack's `src/` (invariant 3, through the same
  *      table `StuffApi.resolveClassFile` reads — `scripts/pack-roots.ts`).
+ *   9. Every curated blueprint's `classPath:` resolves (blueprints carry
+ *      no `class:`, so invariant 3 never sees them).
+ *  10. No template row carries the RETIRED `populates:` key (split into
+ *      `props:`/`cast:` 2026-09-01) — the Hydrator silently discards a
+ *      data key with no applier, so a surviving row quietly stops being
+ *      furnished. Fails with the conversion rule in hand.
  *
  * Invariants 5 and 6 are the `hydratorClass` pair, and 6 is the one that
  * matters: `StuffApi.clone` step 5 runs NO hydration when the field is
@@ -251,6 +257,26 @@ function main(): void {
         detail: `classPath: ${classPath} resolves to no module + export`,
       });
     }
+    // 10 — the RETIRED `populates:` key (2026-09-01: split into
+    // `props:` + `cast:`). The Hydrator silently discards a data key
+    // with no applier, so a surviving row quietly stops being
+    // furnished — no conflict, no error, just a bare room (the exact
+    // silent-vanish failure invariant 6 exists for). Machine-decidable
+    // conversion: an entry whose target row has `behaviors:` is cast;
+    // everything else is props.
+    if (
+      (data && typeof data === 'object' && 'populates' in (data as object)) ||
+      'populates' in t
+    ) {
+      findings.push({
+        invariant: 10,
+        file,
+        detail:
+          `carries retired \`populates:\` — split into \`props:\` ` +
+          `(write-back content) and \`cast:\` (Behaved troupe); the ` +
+          `Hydrator discards the old key silently`,
+      });
+    }
     // 7 — the obj/ segment rule inside an industry's subtree
     if (!tradePlacementOk(path, cls !== null, packRoots)) {
       findings.push({ invariant: 7, file, detail: `${path} names a class but its second segment is not a branch (thing|idea|agent|location)` });
@@ -324,6 +350,7 @@ function main(): void {
     7: 'instanceable template not under a branch segment (thing|idea|agent|location)',
     8: 'a capability pack src/ outside the taxonomy (lib/, a module not under a branch or behavior/, or a behavior/ module not brain-shaped)',
     9: 'classPath: does not resolve (a curated blueprint pointing at nothing)',
+    10: 'retired `populates:` key (split into props:/cast: 2026-09-01) — the Hydrator discards it silently',
   };
   console.warn(
     `\n[check-instanceable-placement — ${EXIT_ON_FINDINGS ? 'ERROR' : 'WARN'}] ` +

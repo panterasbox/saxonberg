@@ -33,6 +33,15 @@
  *
  * A spherical twin (`PersistentSphericalLocation`) is derived the same
  * way when a spherical venue first needs one.
+ *
+ * ⚠ REBASE NOTE (!212 / residences): that branch takes `SingletonMixin`
+ * OFF the lib cartesian base (the mixin SUBTRACTS — a class without it
+ * still backs singleton rows via `StuffApi.singleton`; one WITH it can
+ * back only those) and ships `SingletonCartesianLocation` as the marked
+ * name. After the merge this class must compose over
+ * `SingletonCartesianLocation`, or it silently becomes minted+durable —
+ * every minted room sharing ONE `holder_snapshots` scope. !212's
+ * platform/location walk test fails this file with the fix named.
  */
 
 import CartesianLocationBase from '../../lib/location/CartesianLocation';
