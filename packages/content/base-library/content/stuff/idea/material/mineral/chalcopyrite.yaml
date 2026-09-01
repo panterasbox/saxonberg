@@ -1,0 +1,35 @@
+# Chalcopyrite — CuFeS2. The primary copper sulfide, and in the Ferrow
+# deposit it lies BELOW the water table.
+#
+# ⚠ Stage A cannot reach it and cannot smelt it: a sulfide wants roasting
+# before reduction, and the ground it sits in wants a pump. It ships now
+# for one reason — so the survey's honest inference ("sulfides below, if
+# it holds") has a real referent in the deposit rather than a promise in
+# the prose. The stratigraphy names this row; nothing this build ships
+# mines it.
+#
+# Brassy yellow, and it tarnishes iridescent — which is why it is
+# "fool's gold" to everyone who has not weighed it.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: chalcopyrite
+  density: 4200
+  specificHeat: 540
+  thermalConductivity: 8.0
+  electricalConductivity: 1.0e3
+  waterAbsorptionCapacity: 0.2
+  # Mohs 3.5-4 — soft for a sulfide, softer than the pyrite it is
+  # mistaken for, which is the field test.
+  hardness: 200
+  toughness: 15
+  edibility: false
+  nutrients: ["copper"]
+  toxicity: [{ type: copper-poisoning, amount: 0 }]
+  tags: ["mineral", "sulfide", "ore", "copper", "primary", "below-water-table"]
+  composition:
+    - { materialPath: /stuff/idea/material/element/copper, fraction: 0.3463 }
+    - { materialPath: /stuff/idea/material/element/iron, fraction: 0.3043 }
+  formula: CuFeS2
+  molarMass: 183.54
+  biologicalSource: null

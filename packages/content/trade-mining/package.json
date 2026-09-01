@@ -1,0 +1,24 @@
+{
+  "name": "@saxonberg/content-trade-mining",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "The mining trade — the acts, the warren, the geology field's model, the ore lump, the instruments, the archetype.",
+  "dependencies": {
+    "@saxonberg/content-base-library": "workspace:*",
+    "@saxonberg/content-generic-objects": "workspace:*",
+    "@saxonberg/content-platform": "workspace:*",
+    "@saxonberg/server": "workspace:*",
+    "@saxonberg/types": "workspace:*"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "vitest": "^2.0.0",
+    "yaml": "^2.8.2"
+  }
+}

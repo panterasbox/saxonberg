@@ -1,0 +1,28 @@
+# Quartz — SiO2. The gangue: what comes up with the ore and is worth
+# nothing. Hard, chemically stubborn, and the reason a rich-looking
+# lump can assay poor — a quartz-heavy sample is heavy and glassy and
+# carries no metal at all.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: quartz
+  density: 2650
+  specificHeat: 730
+  thermalConductivity: 3.0
+  electricalConductivity: 1.0e-14
+  waterAbsorptionCapacity: 0.1
+  # Mohs 7 — harder than the country rock it sits in, which is why a
+  # quartz vein stands proud on an outcrop and is the thing you follow.
+  hardness: 1100
+  toughness: 12
+  # Melts far above anything a charcoal furnace reaches; it fluxes off
+  # as slag rather than melting, which is the smelt's whole gangue story.
+  meltingPoint: 1983
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["mineral", "silicate", "gangue", "crystalline"]
+  composition: []
+  formula: SiO2
+  molarMass: 60.08
+  biologicalSource: null

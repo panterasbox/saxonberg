@@ -53,6 +53,9 @@ importers:
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:packages/content/platform
+      '@saxonberg/content-rejection':
+        specifier: workspace:*
+        version: link:packages/content/rejection
       '@saxonberg/content-residence':
         specifier: workspace:*
         version: link:packages/content/residence
@@ -77,12 +80,21 @@ importers:
       '@saxonberg/content-trade-farming':
         specifier: workspace:*
         version: link:packages/content/trade-farming
+      '@saxonberg/content-trade-fuel':
+        specifier: workspace:*
+        version: link:packages/content/trade-fuel
       '@saxonberg/content-trade-hearth-cooking':
         specifier: workspace:*
         version: link:packages/content/trade-hearth-cooking
       '@saxonberg/content-trade-hospitality':
         specifier: workspace:*
         version: link:packages/content/trade-hospitality
+      '@saxonberg/content-trade-mining':
+        specifier: workspace:*
+        version: link:packages/content/trade-mining
+      '@saxonberg/content-trade-smelting':
+        specifier: workspace:*
+        version: link:packages/content/trade-smelting
       '@saxonberg/content-trade-smithing':
         specifier: workspace:*
         version: link:packages/content/trade-smithing
@@ -448,6 +460,30 @@ importers:
         specifier: workspace:*
         version: link:../../types
 
+  packages/content/rejection:
+    dependencies:
+      '@saxonberg/content-base-library':
+        specifier: workspace:*
+        version: link:../base-library
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:../platform
+      '@saxonberg/content-trade-fuel':
+        specifier: workspace:*
+        version: link:../trade-fuel
+      '@saxonberg/content-trade-mining':
+        specifier: workspace:*
+        version: link:../trade-mining
+      '@saxonberg/content-trade-smelting':
+        specifier: workspace:*
+        version: link:../trade-smelting
+      '@saxonberg/server':
+        specifier: workspace:*
+        version: link:../../server
+      '@saxonberg/types':
+        specifier: workspace:*
+        version: link:../../types
+
   packages/content/residence:
     dependencies:
       '@saxonberg/content-platform':
@@ -653,6 +689,34 @@ importers:
         specifier: ^2.0.0
         version: 2.1.9(@types/node@20.19.28)(jsdom@25.0.1)
 
+  packages/content/trade-fuel:
+    dependencies:
+      '@saxonberg/content-base-library':
+        specifier: workspace:*
+        version: link:../base-library
+      '@saxonberg/content-generic-objects':
+        specifier: workspace:*
+        version: link:../generic-objects
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:../platform
+      '@saxonberg/server':
+        specifier: workspace:*
+        version: link:../../server
+      '@saxonberg/types':
+        specifier: workspace:*
+        version: link:../../types
+    devDependencies:
+      typescript:
+        specifier: ^5.4.0
+        version: 5.9.3
+      vitest:
+        specifier: ^2.0.0
+        version: 2.1.9(@types/node@20.19.28)(jsdom@25.0.1)
+      yaml:
+        specifier: ^2.8.2
+        version: 2.9.0
+
   packages/content/trade-hearth-cooking:
     dependencies:
       '@saxonberg/content-base-library':
@@ -713,6 +777,68 @@ importers:
       '@saxonberg/content-trade-winemaking':
         specifier: workspace:*
         version: link:../trade-winemaking
+      '@saxonberg/server':
+        specifier: workspace:*
+        version: link:../../server
+      '@saxonberg/types':
+        specifier: workspace:*
+        version: link:../../types
+    devDependencies:
+      typescript:
+        specifier: ^5.4.0
+        version: 5.9.3
+      vitest:
+        specifier: ^2.0.0
+        version: 2.1.9(@types/node@20.19.28)(jsdom@25.0.1)
+      yaml:
+        specifier: ^2.8.2
+        version: 2.9.0
+
+  packages/content/trade-mining:
+    dependencies:
+      '@saxonberg/content-base-library':
+        specifier: workspace:*
+        version: link:../base-library
+      '@saxonberg/content-generic-objects':
+        specifier: workspace:*
+        version: link:../generic-objects
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:../platform
+      '@saxonberg/server':
+        specifier: workspace:*
+        version: link:../../server
+      '@saxonberg/types':
+        specifier: workspace:*
+        version: link:../../types
+    devDependencies:
+      typescript:
+        specifier: ^5.4.0
+        version: 5.9.3
+      vitest:
+        specifier: ^2.0.0
+        version: 2.1.9(@types/node@20.19.28)(jsdom@25.0.1)
+      yaml:
+        specifier: ^2.8.2
+        version: 2.9.0
+
+  packages/content/trade-smelting:
+    dependencies:
+      '@saxonberg/content-base-library':
+        specifier: workspace:*
+        version: link:../base-library
+      '@saxonberg/content-generic-objects':
+        specifier: workspace:*
+        version: link:../generic-objects
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:../platform
+      '@saxonberg/content-trade-fuel':
+        specifier: workspace:*
+        version: link:../trade-fuel
+      '@saxonberg/content-trade-mining':
+        specifier: workspace:*
+        version: link:../trade-mining
       '@saxonberg/server':
         specifier: workspace:*
         version: link:../../server
