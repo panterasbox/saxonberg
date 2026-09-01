@@ -48,110 +48,67 @@ Risks R7 and R8.
 
 ---
 
-## ⚠⚠ RE-GROUNDING — read before wave one (checked 2026-09-01)
+## ✅ RE-GROUNDED — verified against merged master (2026-09-01)
 
-This plan was written against `origin/master` at `78e46f4ee`. **Master has
-moved, and both sibling builds now have open, mergeable MRs that change
-things this plan depends on.** Nothing below invalidates the design; all of
-it changes *what to write*.
+**Both siblings have merged.** !212 (residences) and !213 (farming) are on
+master; this branch has merged master in and is current. **The concurrency
+fence is gone** — it survives in this document only as the record of why
+the design avoided those trees. Every item below was re-checked against the
+merged code, not against an MR description.
 
-**Sibling state — and the decision: WE WAIT.** MR **!213**
-(build/farming, Stage A) and MR **!212** (build/residences, the ladder)
-are both **open, mergeable, blocking discussions resolved** — 9619/1 and
-10 873/0. **User's call 2026-09-01: this build waits for both to land.**
+**What changed, and what it costs:**
 
-⭐ **Consequences, all simplifying:**
+1. ✅ **`MineWarren extends InnerWarren`** — and there is now a **shipped
+   non-residential precedent**: `LoungeWarren extends SingletonMixin(InnerWarren)`.
+   `HoldingWarren`, `PlatWarren` and `PlatBook` all remain
+   **`packages/content/residence/` pack content**, so P7's reasoning and
+   P5's `stake` verb both stand unchanged.
+2. ⭐⭐ **K1 HALVES.** `CapabilityNeed` on master already carries **eight**
+   members — `tool · heatK · bulkSource · surface · seating · coldStorage ·
+   rest · presence`. **`presence: string`** is a kind-is-here need
+   (`{ presence: toilet }` in the bathroom archetype), which **covers
+   haulage and air directly** — `{ presence: pit-pony }`,
+   `{ presence: canary }`. So the proposed `species` need is **dropped**,
+   and **K1 adds exactly one member: `lightLux`.** ⚠ It inherits
+   `presence`'s keyword-match semantics, which is the same ambiguity hazard
+   named at the end of this section — author the two species' keywords
+   distinctly.
+3. ⭐ **The location tier is a real choice, and `lint:locations` gates it.**
+   `Room` is gone; the tiers are **`CartesianLocation`** (a row describing
+   a KIND of place minted many times — the doc's own example is *"a landing
+   per floor"*) and **`SingletonCartesianLocation`** (*"one row IS one
+   place"*), and ⚠ **the mixin SUBTRACTS**: a class with it can back ONLY
+   singleton templates. So:
+   - **R1's Spine** — the five surface rooms, the adit, the three Upper
+     Galleries → **`SingletonCartesianLocation`**.
+   - **R2's four type rows** — `Face`/`Junction`/`Stope`/`Fall`, each
+     minted many times → **plain `CartesianLocation`**.
+4. ⚠⚠ **The lint list in this plan was badly short.** Master ships
+   **22**: `gates · blessed-bands · field-meta · module-scope · boundary ·
+   world-scan · thin-forwarder · pm · imports · does-nothing ·
+   inert-weapon · combat-dynamics · instanceable · locations · census ·
+   arg-kinds · descriptors · topics · test-bootstrap · test-content ·
+   schema · untitled`. **Run the family, not a list** — and note
+   `lint:census`, `lint:locations` and `lint:descriptors` all police
+   decisions this plan makes (P8's keyed members, the tier choice above,
+   and P10's refusal to use the descriptor-bank kind).
+5. ✅ **`survey` is on master** — P17 stands unchanged.
+6. ✅ **`analyze`/`measure` are unchanged by either merge** — P1's
+   dispatch findings and P12's `drive` collision both stand. Build-3's only
+   `CommandGiver` edit was the `getInteractives()?.size` null-guard.
+7. ⭐ **`Consignment.listingCapOverride` is on master** — M6's ore sale
+   should use it; a per-shelf cap is right for ore lots, and it is farming's
+   own answer to the same problem.
 
-- **The concurrency fence in this plan's header dissolves.** It stays in
-  the document as a record of why the design avoided those trees, but the
-  build is no longer dodging anything — **re-ground once against a merged
-  master before wave one** and treat items 4–7 below as simply *the state
-  of master*, not as incoming change.
-- **Items 4–7 stop being risks and become facts to read.** `Archetype`'s
-  `satisfies()` + `rest` precedent, `Room` → `CartesianLocation`,
-  `lint:census`, and the keyword hazard are all just master.
-- ⭐⭐ **The holding graduation re-opens as a Stage A option** — see below.
+### ⚠ The hazard both merged builds hit, and mining has worse
 
-### ⭐ The one decision waiting re-opens: when does the holding graduate?
-
-P7 defers the `HoldingWarren` graduation to Stage B **because you cannot
-graduate a class that is not on master.** Once !212 lands, that reason is
-gone, and doing it in Stage A would mean `MineWarren extends
-HoldingWarren` from the first commit — **no base swap, no alignment
-gymnastics, and `MineWarren` itself gets SMALLER**, because the class
-already owns keyed identity, dormancy-as-a-unit, the tenure term,
-archetype aggregation and runtime-added members. Mining would write only
-carve policy, faces, geology consultation, stability and air.
-
-⚠ **The counter-argument, and it is the reason to still lean Stage B:**
-refactoring a subsystem **the week it lands** is how you collide with its
-author's own follow-up fixes. `HoldingWarren` will not have settled.
-
-**Decide at re-grounding, with the merged code in front of you** — that is
-what this section is for. If the holding code looks settled, graduate in
-Stage A and delete P7's base-swap hedging. If it still looks live, keep
-Stage A on `InnerWarren`; the `<claimExtent>/<cell>` key alignment already
-makes the later swap cheap either way.
-
-### What is stale, in severity order
-
-1. ✅ **RESOLVED — `MineWarren extends InnerWarren`** (see P7). Was: a bare
-   `extends Warren` will not compile. Residences split
-   the warren into `Warren` (abstract, and it now declares `occupantsOf`
-   **abstract** "so the choice cannot be skipped") → **`InnerWarren`**
-   (members are ROOMS) / **`OuterWarren`** (members are warrens), plus
-   `HoldingWarren` and `PlatPlan`. **A mine's members are rooms, so P7
-   targets `InnerWarren`.**
-   ⭐ **And a design question falls out**: residences' `HoldingWarren` +
-   `HoldingProgramme` is the shared base *"the farming build's Stage B buds
-   field rooms into a holding on"*. **Should the mine be a holding rather
-   than a bare inner warren?** It has an extent, a programme of rooms, and
-   a tenure. Decide before M2 — it may make P5's claim work smaller.
-2. ✅ **RESOLVED — a claim is STAKED, not bought** (see P5). Was:
-   **`PlatBook` has moved into the `residence` PACK**
-   (`packages/content/residence/src/idea/PlatBook.ts`); the kernel keeps
-   `PlatPlan`. P5 builds the claim register on `PlatBook` + `title buy`.
-   **Verify where `title` and the register class live post-!212, and
-   whether `rejection` would have to depend on the residence pack** — a
-   mineral claim depending on a *residence* pack is a smell worth
-   resolving rather than accepting. (Precedent for the fix: !212 moved
-   `survey` OUT of the pack to platform for exactly this reason.)
-3. ✅ **RESOLVED — `survey` answers in the mine but is NOT the geological
-   read** (see P17). Was: **`survey` now ships as a PLATFORM verb** — *"take stock of the
-   place you're standing in."* ⭐ Read as an **opportunity, not a
-   collision**: a mine's ground reading *is* taking stock of where you
-   stand, so `survey` may simply BE the geological read, removing
-   `analyze ground` and one third of P1's platform-view edit.
-4. ⚠ **`Archetype.ts` gained 211 lines on build-2** — a `satisfies()`
-   evaluator (P2's grounding says there is none: **now false**),
-   `industry: string | null`, and ⭐ **a new `rest` need kind.** K1 must be
-   written against their file. **This is good news**: adding a need kind is
-   now precedented rather than novel, and there is an evaluator for
-   `lightLux` to mean something to.
-5. ⚠ **`/platform/location/Room` is renamed `CartesianLocation`**
-   (build-3, 41 content rows, plus CLAUDE.md's split table). R1/R2 author
-   eight rooms and four type rows — **use the new name.**
-6. ⚠ **D17 went further than this plan records**: `asTemplatePath` is
-   **deleted**, instance identity is a stamped `identityPath`, and there is
-   a **new CI-gating `lint:census`** (1012 rows, 462 field refs) proving
-   the channel stays retired. **Add `lint:census` to every wave's lint
-   list** — it polices P8's keyed-member design directly.
-7. **Additive, no action:** build-3's `CommandGiver` change is only the
-   `getInteractives()?.size` null-guard, so P1/P12's dispatch reasoning
-   stands; `Consignment` gained `listingCapOverride`, which M6's ore sale
-   can *use* (a per-shelf cap is right for ore lots). Residences also fixed
-   **"every fixture in the game was unnameable by every verb"** — which is
-   what makes the mine's lamps, timber sets and ore-pass nameable at all.
-
-### ⚠ One hazard both siblings hit, and mining is worse
-
-Farming's drive found that **substring keyword matching makes compound
-nouns ambiguous** — *"`pot` matches **pot**ting soil and **plot**"* — and
-that the MQL "which target?" prompt then swallows following commands.
-**Mining is denser in near-identical nouns than farming**: dial/drift,
-ore/ore-pass, pick/pick head, face/carve-face, shore/shoring, drive/drift.
-**Author keywords defensively from wave one** and drive them early; this
-is a content hazard, not a code one, and it is cheapest to avoid before
+Farming's drive found **substring keyword matching makes compound nouns
+ambiguous** — *"`pot` matches **pot**ting soil and **plot**"* — and the MQL
+"which target?" prompt then swallows following commands. **Mining is denser
+in near-identical nouns**: dial/drift, ore/ore-pass, pick/pick head,
+face/carve-face, shore/shoring, drive/drift, and now pit-pony/canary as
+archetype `presence` keys. **Author keywords defensively from wave one and
+drive them early.** Content hazard, not a code one, and far cheaper before
 forty rows exist.
 
 ## Grounding — facts verified against the code this cycle
@@ -687,10 +644,14 @@ locator; this build only *uses* it).
 
 - **Spine** — the five surface rooms, the adit and the three Upper
   Galleries are **authored singletons**, real rows in `rejection`, one
-  instance each. Never members.
+  instance each. Never members. ⭐ Class:
+  **`SingletonCartesianLocation`** — *"one row IS one place"*, and
+  `lint:locations` checks the choice.
 - **Workings** — every carved cell is a **keyed member**: scope is one of
   `rejection`'s four type rows (`Face` / `Junction` / `Stope` / `Fall`),
-  key is **`<claimExtent>/<cell>`**. ⭐ **Not a bare coordinate** — this
+  key is **`<claimExtent>/<cell>`**. ⭐ The four type rows take **plain
+  `CartesianLocation`** — a kind of place minted many times; ⚠ *not* the
+  Singleton face, whose mixin SUBTRACTS and would refuse the second clone. ⭐ **Not a bare coordinate** — this
   matches `HoldingWarren`'s shipped `<extent>/<leaf>` convention, so the
   Stage-B graduation is a base swap; and it puts **claim scoping in the
   key**, which makes part of `claimFor(cell)` derivable rather than a
@@ -968,18 +929,21 @@ into the channel model and P1's platform edit drops to zero.
 
 ### Wave K1 — the archetype `needs` vocabulary
 
-Per P2. `packages/server/src/mud/lib/archetype/Archetype.ts`: two new
-`CapabilityNeed` members (`lightLux`, `species`), their entries in
-`NEED_KEYS`, their validation arms in `needOf` (positive finite number;
-non-empty `/`-rooted path), their arms in `Archetype.needKey`, and the
-doc-comment paragraph each — the existing six are documented one apiece
-and the new two match.
+Per P2, **as reduced by re-grounding item 2**:
+`packages/server/src/mud/lib/archetype/Archetype.ts` gains **exactly one**
+`CapabilityNeed` member — **`lightLux: number`** — with its entry in
+`NEED_KEYS`, its validation arm in `needOf` (a positive finite number, the
+`heatK`/`seating`/`rest` shape), its arm in `Archetype.needKey`, and a
+doc-comment paragraph matching the existing eight.
+
+⚠ **`species` is dropped**: master's shipped **`presence: string`** already
+answers *a thing of this kind is here*, so haulage and air author as
+`{ presence: pit-pony }` and `{ presence: canary }`.
 
 **Tests:** extend `platform/__tests__/ArchetypeCatalogue.test.ts` — a
-`lightLux` slot round-trips through `fromData` → `toData`; a
-zero/negative `lightLux` and an unrooted `species` each fail with the
-archetype id in the message; `needKey` distinguishes two `species` slots
-and merges two `lightLux` ones; the shipped `hospitality.yaml` is
+`lightLux` slot round-trips through `fromData` → `toData`; a zero or
+negative `lightLux` fails with the archetype id in the message; `needKey`
+merges two `lightLux` slots; the shipped `hospitality.yaml` is
 byte-identical in `describe()` output (the no-regression pin).
 
 **Unblocks:** M8. Nothing else depends on it, so K1 can land first and
@@ -1557,12 +1521,20 @@ build-2, **say so before writing M2** rather than adapting silently.
 (`_runChain`) and `platform/idea/api/CommandLogic.ts:2280` — plus M3's
 own tripwire test, which is the real answer.
 
-**R3 — `onMerged` may see a zeroed `quantity`.** P9's pooling arithmetic
-needs the absorbed stack's count. *Resolves at:*
-`packages/server/src/mud/platform/idea/api/GlobbableLogic.ts:167–190` —
-read the ordering around line 185 before writing `Ore.onMerged`. If the
-count is already folded, the hook takes the delta instead and the formula
-inverts; either way it is a one-line difference and no kernel change.
+**R3 — ⚠ ORDERING NOW KNOWN, and P9's formula must change.**
+`GlobbableLogic.merge` runs, in order:
+`survivor.setQuantity(survivor + absorbed)` → `StuffApi.destruct(absorbed)`
+→ `survivor.onMerged(absorbed)`. **So by the time the hook fires the
+survivor's quantity is already the TOTAL and the absorbed stack has been
+destructed.** P9's `(g·q + g'·q')/(q+q')` cannot be written as stated. Use
+the **delta** form — with `Q` the new total and `a` the absorbed count:
+
+    grade = (grade × (Q − a) + absorbedGrade × a) / Q
+
+⚠ **The one thing left to verify in M6:** whether `absorbed`'s `grade` and
+`quantity` are still readable *after* `destruct`. If they are not, read
+them in an `onSplit`-style pre-hook or have `canMergeWith` stash them —
+either way a pack-side change, no kernel.
 
 **R4 — a platform view naming a pack controller is new.** P1 argues it is
 legal and the failure is legible, but nothing in the repo does it today.
