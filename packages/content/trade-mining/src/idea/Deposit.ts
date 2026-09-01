@@ -39,8 +39,17 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 
-/** A cell of the workings' grid — integer coordinates, z negative down. */
-export type Cell = readonly [number, number, number];
+/**
+ * A point in the ground, **in metres**, z negative going down.
+ *
+ * ⭐ Metres, not grid cells, and that is deliberate: a deposit is a fact
+ * about the rock, and the rock does not know what cell size somebody
+ * chose for the workings cut through it. An author writes
+ * `waterTable: -45` and means forty-five metres; {@link Working}
+ * multiplies its cell by the zone's `cellSize` on the way in. Two mines
+ * at different cell sizes can name the same seam.
+ */
+export type Point = readonly [number, number, number];
 
 /**
  * One stratigraphic band, top-down: the country rock from the band above
@@ -126,7 +135,7 @@ export interface FeaturePin {
 
 /** The authored feature layer: hand-placed cells and seeded pocket rules. */
 export interface DepositFeatures {
-  /** Cell key (`"x,y,z"`) → the authored fact at that cell. */
+  /** Point key (`"x,y,z"`) → the authored fact at that cell. */
   pins?: Record<string, FeaturePin>;
   /**
    * Feature keys the procedural layer may place, with the per-cell
@@ -287,18 +296,18 @@ export default class Deposit extends Idea {
    * `depletion` lean, which scales — never replaces — the procedural
    * value underneath.
    *
-   * @param cell the working's integer grid coordinate
+   * @param at the point in the ground, in metres
    * @param seed {@link Deposit.seedFor} of the covering Locality's address
    */
-  public sampleAt(cell: Cell, seed: number): GroundSample {
-    const key = cellKey(cell);
+  public sampleAt(at: Point, seed: number): GroundSample {
+    const key = pointKey(at);
     const pin = this.features?.pins?.[key];
 
-    const hostPath = pin?.host ?? this.hostAt(cell[2]);
-    const water = this.waterAt(cell[2]);
+    const hostPath = pin?.host ?? this.hostAt(at[2]);
+    const water = this.waterAt(at[2]);
 
-    const inLode = this.isInLode(cell);
-    const band = this.bandAt(cell[2]);
+    const inLode = this.isInLode(at);
+    const band = this.bandAt(at[2]);
 
     // The procedural grade: the band's mean, spread by the cell's own
     // seeded roll. Barren ground is the default and the common case.
@@ -310,7 +319,7 @@ export default class Deposit extends Idea {
       ganguePath = this.lode?.gangue ?? null;
       const r = roll01(seed, hashString(key));
       grade = clamp01(band.meanGrade + band.spread * (2 * r - 1));
-      grade *= this.depletionScaleAt(cell);
+      grade *= this.depletionScaleAt(at);
     }
 
     // The pin wins outright — but only over the fields it states.
@@ -328,7 +337,7 @@ export default class Deposit extends Idea {
       ganguePath: grade > 0 ? ganguePath : null,
       grade,
       water,
-      feature: pin?.feature ?? this.seededFeatureAt(cell, seed, inLode),
+      feature: pin?.feature ?? this.seededFeatureAt(at, seed, inLode),
     };
   }
 
@@ -392,11 +401,11 @@ export default class Deposit extends Idea {
    * cell is actually IN the lode — you measure dip on the vein, and the
    * surface has none to offer.
    */
-  public dipReadingAt(cell: Cell, errorDeg: number, seed: number): { dipDeg: number; readingDeg: number; errorDeg: number } | null {
+  public dipReadingAt(at: Point, errorDeg: number, seed: number): { dipDeg: number; readingDeg: number; errorDeg: number } | null {
     const lode = this.lode;
-    if (lode === null || !this.isInLode(cell)) return null;
+    if (lode === null || !this.isInLode(at)) return null;
     const dipDeg = lode.dip;
-    const offset = (2 * roll01(seed, hashString(`dip:${cellKey(cell)}`)) - 1) * errorDeg;
+    const offset = (2 * roll01(seed, hashString(`dip:${pointKey(at)}`)) - 1) * errorDeg;
     return { dipDeg, readingDeg: clampDip(dipDeg + offset), errorDeg };
   }
 
@@ -432,11 +441,11 @@ export default class Deposit extends Idea {
   }
 
   /** Is this cell inside the lode's plane, thickness and finite extent? */
-  public isInLode(cell: Cell): boolean {
+  public isInLode(at: Point): boolean {
     const lode = this.lode;
     if (lode === null) return false;
     const p0 = lode.through;
-    const d: [number, number, number] = [cell[0] - p0[0], cell[1] - p0[1], cell[2] - p0[2]];
+    const d: [number, number, number] = [at[0] - p0[0], at[1] - p0[1], at[2] - p0[2]];
     const n = normalOf(lode);
     const perp = Math.abs(d[0] * n[0] + d[1] * n[1] + d[2] * n[2]);
     if (perp > lode.thickness / 2) return false;
@@ -448,24 +457,24 @@ export default class Deposit extends Idea {
   }
 
   /** The authored lean's multiplier at a cell — 1 where nothing is declared. */
-  private depletionScaleAt(cell: Cell): number {
+  private depletionScaleAt(at: Point): number {
     let scale = 1;
     for (const b of this.depletion) {
       const inside =
-        cell[0] >= Math.min(b.from[0], b.to[0]) && cell[0] <= Math.max(b.from[0], b.to[0]) &&
-        cell[1] >= Math.min(b.from[1], b.to[1]) && cell[1] <= Math.max(b.from[1], b.to[1]) &&
-        cell[2] >= Math.min(b.from[2], b.to[2]) && cell[2] <= Math.max(b.from[2], b.to[2]);
+        at[0] >= Math.min(b.from[0], b.to[0]) && at[0] <= Math.max(b.from[0], b.to[0]) &&
+        at[1] >= Math.min(b.from[1], b.to[1]) && at[1] <= Math.max(b.from[1], b.to[1]) &&
+        at[2] >= Math.min(b.from[2], b.to[2]) && at[2] <= Math.max(b.from[2], b.to[2]);
       if (inside) scale *= b.scale;
     }
     return scale;
   }
 
   /** A seeded feature at this cell, or `null`. Seeded, never drawn. */
-  private seededFeatureAt(cell: Cell, seed: number, inLode: boolean): string | null {
+  private seededFeatureAt(at: Point, seed: number, inLode: boolean): string | null {
     const rules = this.features?.seeded ?? [];
     for (const rule of rules) {
       if (rule.inLodeOnly === true && !inLode) continue;
-      const r = roll01(seed ^ hashString(rule.feature), hashString(cellKey(cell)));
+      const r = roll01(seed ^ hashString(rule.feature), hashString(pointKey(at)));
       if (r < rule.chance) return rule.feature;
     }
     return null;
@@ -482,9 +491,9 @@ const DEFAULT_HOST = '/stuff/idea/material/rock/granite';
  */
 const BASE_SEED = 0x5a10f00d;
 
-/** Cell → its canonical key string. Also the persistence key and the survey address. */
-function cellKey(cell: Cell): string {
-  return `${cell[0]},${cell[1]},${cell[2]}`;
+/** A point → its canonical key string, and the hash's whole input. */
+function pointKey(at: Point): string {
+  return `${at[0]},${at[1]},${at[2]}`;
 }
 
 /** FNV-1a 32-bit string hash — deterministic and process-independent. */

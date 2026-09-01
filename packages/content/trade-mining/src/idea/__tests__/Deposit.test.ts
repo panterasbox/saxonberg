@@ -26,7 +26,7 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import Material from '@saxonberg/server/mud/platform/idea/material/Material';
 import Deposit from '../Deposit';
-import type { Cell } from '../Deposit';
+import type { Point } from '../Deposit';
 
 const SLATE = '/stuff/idea/material/rock/slate';
 const GRANITE = '/stuff/idea/material/rock/granite';
@@ -67,7 +67,7 @@ function fixture(): Deposit {
 }
 
 /** Walk the plane and return the first cell that is actually in the lode. */
-function anOreCell(d: Deposit, z: number, bound = 60): Cell {
+function anOreCell(d: Deposit, z: number, bound = 60): Point {
   for (let x = -bound; x <= bound; x++) {
     for (let y = -bound; y <= bound; y++) {
       if (d.isInLode([x, y, z])) return [x, y, z];
@@ -77,7 +77,7 @@ function anOreCell(d: Deposit, z: number, bound = 60): Cell {
 }
 
 /** …and the first cell at that depth that is NOT — the ordinary case. */
-function aBarrenCell(d: Deposit, z: number): Cell {
+function aBarrenCell(d: Deposit, z: number): Point {
   for (let x = -60; x <= 60; x++) {
     for (let y = -60; y <= 60; y++) {
       if (!d.isInLode([x, y, z])) return [x, y, z];
@@ -172,7 +172,7 @@ describe('Deposit — the geology field', () => {
   it('⭐ an authored pin and a computed cell are indistinguishable — asserted by SHAPE', () => {
     const d = fixture();
     const computed = anOreCell(d, -30);
-    const pinned: Cell = aBarrenCell(d, -30);
+    const pinned: Point = aBarrenCell(d, -30);
     // The pinned cell is barren ground the author decided is a pocket.
     expect(d.sampleAt(pinned, SEED).grade).toBe(0);
     d.setFeatures({
@@ -195,7 +195,7 @@ describe('Deposit — the geology field', () => {
     const d = fixture();
     let ore = 0;
     for (let i = 0; i < 1000; i++) {
-      const cell: Cell = [(i * 7) % 100 - 50, (i * 13) % 100 - 50, -((i * 3) % 40)];
+      const cell: Point = [(i * 7) % 100 - 50, (i * 13) % 100 - 50, -((i * 3) % 40)];
       if (d.sampleAt(cell, SEED).grade > 0) ore++;
     }
     expect(ore).toBeGreaterThan(0);
@@ -268,7 +268,7 @@ describe('Deposit — the geology field', () => {
   it('a seeded feature is a fact about the place, not a draw', () => {
     const d = fixture();
     d.setFeatures({ seeded: [{ feature: 'vug', chance: 0.15 }] });
-    const cells: Cell[] = [];
+    const cells: Point[] = [];
     for (let i = 0; i < 200; i++) cells.push([i % 20, (i * 3) % 20, -12]);
     const first = cells.map((c) => d.sampleAt(c, SEED).feature);
     const again = cells.map((c) => d.sampleAt(c, SEED).feature);
