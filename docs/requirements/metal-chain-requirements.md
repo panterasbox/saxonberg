@@ -63,6 +63,12 @@ pattern the geology field instantiates).
 - **The mine is inhabited.** Ore moves on a pit pony rather than only on
   your back; a canary reads the air by behaving; and the upper workings
   have a resident ambient life whose silence is itself a reading.
+- ⭐⭐ **A bespoke, hand-authored mine works with no warren at all.** Every
+  read a mine needs — faces, stability, air — derives from **the room and
+  its zone**, never from how the room came to exist. The warren creates
+  rooms; it does not interpret them. A static mine simply does not *grow*
+  (no carving, no tiering, no seal-and-reap), which is a coherent thing to
+  be rather than a degraded one.
 - **Surveying is what earns the geology discipline**, at world-derived
   difficulty.
 

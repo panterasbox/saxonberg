@@ -868,6 +868,56 @@ rightly), **fuel 1** (charcoal), **smelting 2** (smelt oxide copper,
 cast a bar). Roasting, bronze, bloomery iron and steel are the rungs
 Stage A does not reach; Wave B's arms and armor are out.
 
+### ⭐⭐ P18 — The warren creates rooms; it does not interpret them
+
+**A bespoke, hand-authored mine — all singletons, no warren — must work.**
+That is not a nicety: the exemplar test already says *a second mining town
+needs zero pack code*, and **a static hand-built mine is the most likely
+second mine anybody authors.** If the substrate only functions when the
+warren drives it, the exemplar claim is false.
+
+An earlier draft of P7 put `stabilityAt`, `airAt` and `facesOf` on
+`MineWarren`, deriving them from its carved-set ledger. **That breaks the
+static case outright** — no warren, no ledger, no ground refusal and no
+foul air, which is half of what makes a mine a mine. It also contradicts
+the rule this plan quotes approvingly from the content bible:
+
+> *"the Warren bud/reap machinery is the **mutation** layer, the
+> `CartesianZone` is the **space**."*
+
+A read placed on the mutation layer. So:
+
+> ⭐⭐ **The warren creates rooms. It does not interpret them. Reads go to
+> the space.**
+
+**`WorkingMixin`** (`trade-mining/src/…`) is composed by the mine's room
+class and derives everything from **the room itself and its zone**:
+
+| Read | Derived from |
+|---|---|
+| `facesOf()` | the neighbour cells' geology — a zone lookup by coordinate |
+| `stabilityAt()` | span (*which neighbouring cells are open rooms* — a zone lookup, **not** a ledger scan) · ground (the deposit's host material) · support (**the timber sets in this room**) · water |
+| `airAt()` | a walk over the **exit graph** to a through-connection |
+
+**A hand-authored room composing `WorkingMixin`, at real coordinates in a
+deposit-bearing zone, behaves identically to a carved one**, because
+nothing consults how it came to exist.
+
+`MineWarren` keeps only what it genuinely owns: **`carve` · `abandon` ·
+the tier ledger · seal-and-reap.** Which is closer to residences' own
+framing of the base — *"a coordinator, not a containment tier."*
+
+⭐ **And a static mine is simpler in one place**: authored rooms have real
+paths, so `ParcelApi`'s longest-prefix resolution answers *whose claim is
+this* directly. **The `claimBlocks` coordinate mapping (P5) is a workaround
+for keyed members not having distinct paths — a static mine does not need
+it at all.**
+
+**What a static mine still cannot do, and should not:** carve, the
+Held/Provisional tiering, seal-and-reap. Those *are* the elastic half.
+**A static mine is a mine that does not grow** — every room is Spine by
+definition — which is a coherent thing to be, not a degraded one.
+
 ### P17 — `survey` answers in the mine, and is NOT the geological read
 
 Residences shipped **`survey` as a platform verb** — *"take stock of the
@@ -982,19 +1032,25 @@ material and granite/slate differ.
 
 **Unblocks:** everything.
 
-### Wave M2 — `MineWarren` and the carved set
+### Wave M2 — `WorkingMixin` and `MineWarren`
 
-Per P7 and P8. `src/idea/MineWarren.ts`: the five hooks, the carve chain,
+Per P7, P8 and **P18 — two classes, and the split is the point.**
+
+**`WorkingMixin`** (composed by the mine's room class, and by any
+hand-authored mine room) owns every **read**: `facesOf(cell)` (the
+ten-direction model, off the neighbour cells' geology), `stabilityAt()`
+(span from a zone lookup, ground from the deposit, support from the timber
+sets present, water from the wetness substrate) and `airAt()` (a walk over
+the exit graph to a through-connection). ⭐ **None of these consults a
+warren**, so a fully authored static mine behaves identically.
+
+**`MineWarren`** owns only the **mutation**: `src/idea/MineWarren.ts`: the five hooks, the carve chain,
 `carve(cell, type)`, `abandon(cell)`, the `{cell, tier, holder}` ledger
 and the sparse `workedFaces` map, `claimBlocks` + `claimFor(cell)` +
-`holderOf(cell)`, `typeRows` policy, `promote(cell)` /
-`demote(cell)` (Provisional ↔ Held), `stabilityAt(cell)`,
-`airAt(cell)`, **the duck-typed `WarrenMember` shape `survey` reads by
-(P17 — answer it and the shipped verb reports in a working for free)**,
-`facesOf(cell)` (the ten-direction model: each face
-Exit / Seam / Carve-face / Dead, computed off `Deposit.sampleAt` of the
-neighbour), and the `wireHubExit` override wiring orthogonal neighbours.
-Capture/restore through `PersistableApi`.
+`holderOf(cell)`, `typeRows` policy, `promote(cell)` / `demote(cell)`
+(Provisional ↔ Held), seal-and-reap, **the duck-typed `WarrenMember` shape
+`survey` reads by (P17)**, and the `wireHubExit` override wiring
+orthogonal neighbours. Capture/restore through `PersistableApi`.
 
 **Tests** (`src/idea/__tests__/MineWarren.test.ts`, synthetic type rows
 and a synthetic deposit): a carve mints a keyed member and no template
