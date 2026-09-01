@@ -544,6 +544,265 @@ the table above is a ruling they will otherwise make alone.
 
 ---
 
+## Beneficiation: the line is the furnace **[DECIDED — closes Open 7]**
+
+Between the face and the smelter you throw rock away. Three mechanical
+steps, all pre-industrial:
+
+- **Cobbing / sorting** — break the lump, hand-pick the barren rock out.
+  No capital at all.
+- **Crushing** — reduce until the mineral is liberated from the gangue.
+- **Washing / jigging** — density separation in water; the dense ore
+  sinks, the light rock washes off.
+
+⭐ That last one is **the same physics as panning**, so parking placer as
+a venue did not cost us its lesson — it returns as the dressing floor.
+
+**Where it lives is decided by whether it needs a furnace.** Mechanical
+dressing (sort · crush · wash) is **`trade-mining`** — a hammer and
+water, at the pithead. **Roasting** — heating ore in air to drive off
+sulphur or carbonate before reduction — is a furnace act and belongs to
+**`trade-smelting`**. A principled line, and it matches where the work
+physically happened.
+
+### It is mass balance, so it is the same arithmetic
+
+Beneficiation creates no metal. It **raises grade by discarding mass**:
+10 kg at 0.30 becomes 4 kg at 0.70 plus 6 kg of tailings at 0.03. Metal
+in equals metal out, minus losses — the `composition` arithmetic already
+doing all the other work in this chain.
+
+### ⭐⭐ Why it exists is location theory
+
+**Ore is heavy and mostly worthless, and haulage is priced by mass.** You
+dress at the mine because it is cheaper to throw rock away where it lies
+than to carry it. [encumbrance](../../subsystems/encumbrance.md) already
+ships the haulage draft term to price it. And the consequence:
+
+> The mine sits on the ore. But **the smelter sits near the fuel** —
+> you burn more mass of charcoal than you smelt of ore, and charcoal is
+> bulky and fragile. Historically smelters were in the woods, not at the
+> pithead.
+
+That is Weber's least-cost location — *industry locates at its heaviest
+input* — derived by the player from freight costs rather than asserted.
+⭐ **It is also why the three trades want to be in three different
+places**, which is what makes them a supply chain instead of a diorama.
+
+### Two things it hands the venue for free
+
+- ⭐ **The dressing floor is the onboarding ramp.** Surface work, indoors,
+  safe, low-skill, and it pays — historically done by women and children
+  while the men were underground. A new player earns on the dressing
+  floor of a lethal industry, learning ore from rock by handling a
+  hundred lumps, without going down the shaft. **A dangerous vertical
+  badly needs a safe rung**, and this one is not invented.
+- **Tailings are terrain and inventory.** Crushed rock in piles — loose
+  ground, which is what dirt dragons swim through, so the dressing floor
+  manufactures the threat too. And real mines rework their own tailings
+  when prices rise or dressing improves: a permanent low-grade fallback
+  that rewards better technique later.
+
+---
+
+## ⭐⭐⭐ The commons: excludability is physics, not policy **[DECIDED — closes Open 2]**
+
+### The four goods split themselves
+
+| Infrastructure | Can you gate it? | So it is |
+|---|---|---|
+| **Hoist / shaft** | **yes** — meter who rides and what comes up | a **toll good**. Whoever owns the shaft owns the mine's throat — a natural monopoly. |
+| **Haulage / tramway** | **yes** | toll |
+| **Pump / drainage** | **no** — water finds its level; draining my working drains yours | **true public good** |
+| **Ventilation** | **no** — air moves through connected workings | **true public good** |
+
+> ⭐⭐ **You can put a gate on a shaft. You cannot put a gate on
+> groundwater.** That is why the pump is the political problem and the
+> hoist is not — and it is a physical fact the player can verify, not a
+> rule they are handed.
+
+### The problem arrives with depth, never on day one
+
+An **adit drains by gravity, free, forever**. Only workings *below adit
+level* flood. So the mine begins with no commons problem at all, and the
+moment someone sinks below the adit, everyone's dry workings become
+contingent on somebody's pump. ⭐ **The free-rider problem arrives as a
+consequence of success** — real, and a far better teaching curve than
+starting there.
+
+### ⚠ The layer correction: this is NOT an Office
+
+A first pass reached for the `Office` substrate. That is the wrong layer
+and the distinction is load-bearing:
+
+- **`Office`** ([governance.md](../../subsystems/governance.md)) — *"a
+  named single-holder seat with a branch and an origin, **authored in
+  code**. Not user-minted."* This is the **Compact's** apparatus — the
+  meta-institution that determines how systems work by nature. The
+  Governor of the Central Bank is one.
+- **`Government`** ([civics.md](../../subsystems/civics.md)) — diegetic,
+  plural, **content**; *"jurisdiction is declared on the `Locality`"*,
+  seats are **employment positions** on an organization's chart.
+- The line, from governance.md: ***"whether a constitutional document
+  points at the position."***
+
+A Barmaster is not an Office. **And it cannot be a `Government` seat
+either — jurisdiction is declared on a Locality, and there is no
+Locality.**
+
+### ⭐⭐ So the district is an Organization — a voluntary association
+
+Which is what the history actually is. **The surface was granted; the
+minerals were claimed.** Surface land went by survey and patent (the
+Homestead Act — Hinkley Hills' `PlatBook`/`LotHolder` exactly). Mineral
+land on the public domain was **free entry**: find it, post a notice,
+record it with your district, hold it by working it. Miners in California
+from 1848 were legally **trespassers on federal land** — there was no
+federal mining law until 1866.
+
+What they did instead is the thing worth building: each district held a
+meeting, **wrote its own code** (claim size, staking, how much work per
+year holds it, how disputes settle) and elected a recorder. Hundreds of
+them. Then Congress ratified them after the fact — the General Mining Act
+of 1872 defers to *"the local customs or rules of miners in the several
+mining districts,"* and is still in force. **The state adopted the
+miners' law rather than imposing its own.**
+
+⭐ This is the deliberate **yes** that rejection-slate Open 1b asked for:
+Hinkley teaches the grant, Rejection teaches the claim, and **split
+estate is the real distinction between them**, not a contrivance to
+justify a second property venue.
+
+Build-3 already laid the track: ***"Unincorporated is modelled by
+absence"*** — Heart's Delight ships no `Government` row — and decisively,
+***"title works without government (property is Compact-level)."*** A
+claim can exist with no polity at all.
+
+So the district is an **`Organization`** with a **register** and a **code
+that is a contract among its members**. It has no sovereignty and must
+not pretend to: its authority comes entirely from the fact that *a claim
+nobody recognizes is just a hole you are standing in.*
+
+**Enforcement follows, and is cheap.** The association cannot fine
+anyone. What it can do to a member who will not pay is **strike their
+claim from the register and stop recognizing it** — expulsion from the
+property system, the actual historical sanction. That is already the
+deep-law's middle rung (*restitution → claim-forfeiture → exile*), and it
+satisfies civics's own constraint that there be **no legal machinery**.
+
+### ⭐⭐ The funding: you tax what you can observe
+
+You cannot charge for drainage. But the hoist is the **excludable** good,
+and every ounce anyone raises has to come up the shaft.
+
+> **Toll the thing you can meter, to fund the thing you cannot.**
+
+No assessment institution, no honest-weight audit, no measuring what each
+working produced — the levy sits on the one chokepoint the physics
+already gives you. That is real public finance (states tax what is
+observable, which is why tariffs and salt taxes precede income tax by
+millennia), and it explains why owning the shaft is owning the mine's
+throat: **the toll is both the mine's funding mechanism and its principal
+instrument of power.**
+
+⭐ It also means **the commons can be funded in v1 without building a
+state.**
+
+### The labor half: tutwork and tribute
+
+The content bible already says Ferrow runs "on tutwork and tribute," and
+those are precisely the two work-types this slate split:
+
+- **Tutwork** — paid by the fathom driven. **Development**: paid for
+  progress through rock, ore or not.
+- **Tribute** — paid a share of the value of what you raise.
+  **Production**: paid for results.
+
+⭐ And tributers **bid**. On setting day a pitch is auctioned, miners
+bidding down the fraction they will accept, on their own read of the
+ground. **The auction price is a public reading of what experienced
+miners believe about that vein** — the prospecting skill made liquid,
+over the shipped [contract](../../subsystems/contract.md) substrate and
+nothing else.
+
+### The arc
+
+Terminus later declares jurisdiction over the claim field and either
+**adopts the district's register** — the 1866/1872 move — or **replaces
+it**. That is *recognition vs absorption*, the political tension the
+mining slate already names as the deep-law's central question, arriving
+as a specific legislative act with a specific artifact at stake.
+
+---
+
+## ⭐⭐⭐ The demand side — what the metal is FOR **[DECIDED]**
+
+Audited 2026-08-31 against shipped content. The finding reframes the
+build:
+
+**Arms and armor content already ships — 17 templates** in
+`generic-objects`: steel sword · dagger · mace · flail · spear ·
+warhammer · shield · whip · oak waster; and a full **layered** armor set
+— padded gambeson · mail hauberk · steel breastplate · **bronze
+breastplate** · hide jerkin · leather boots. That is the layered stack
+[materials-response](../../subsystems/materials-response.md) was built to
+read, already authored.
+
+**Recipes across every pack — 39 total, and 34 are drinks or food.** The
+complete list of durable-goods recipes in the game:
+
+```
+trade-smithing: belt-knife · cook-pot · fire-poker · leather-jerkin · smiths-hammer
+```
+
+> ⚠⚠ **Of 17 arms and armor items, roughly three are craftable. The rest
+> enter the world by being authored into a room. A player cannot make a
+> sword** — not because swords do not exist, but because no recipe does.
+
+*(Wear is fine: `DurableMixin` is composed on the `Weapon` and `Armor`
+classes themselves, so condition and repeat demand are structural, not
+per-item authoring anyone forgot.)*
+
+### ⭐⭐ The structural point
+
+> **The ingot is not the only faucet. Every finished good is one too.** A
+> metal-chain build that stops at the ingot **moves** the faucet without
+> closing it. The recipe layer is not a follow-on — it is the half that
+> makes this build economic rather than scenic.
+
+### Three demand classes, in build order **[SCOPE — user's call: A then B]**
+
+**A. Tools — the keystone, and not one ships.** No pick, sledge, axe,
+billhook, tongs, hoe, sickle, spade or pruning knife exists. Every
+trade's instruments are today either big placed fixtures (anvil,
+workbench, still) or absent. Author them and **every shipped trade
+becomes a daily customer of the metal chain** — farmer, collier, cook,
+bartender, miner. ⭐ It is the loop that connects the whole graph, it is
+why every village had a smith, and **it is the demand that does not
+depend on a player choosing to fight.**
+
+**B. Arms and armor — the showcase, and the cheapest unlock.** The
+templates are done; what is missing is transform specs, which are data
+files, not design. This is where the chain visibly pays off — the sword's
+material and grade descend from the ore somebody dug, and `analyze
+weapon` reads it back. ⭐ **`bronze-breastplate` already exists**: the
+copper rung has its payoff item authored and waiting.
+
+**C. Domestic and building metal — the cross-build demand.** Locks and
+keys (the [credential](../../subsystems/credential.md) substrate ships
+lock/key + `presentsKey`), lamps, pots, hinges, nails, bar and sheet
+stock. Residences is landing homes with nothing to fit out and
+[furnishing](../../subsystems/furnishing.md) ships `place`. **A lock is
+the most demanded metal object in any settlement and is currently
+unmakeable.** Rides along wherever it touches residences.
+
+On the governing rule: recipes are the single most **expressive** thing
+for content authors — the whole known-of → can-make ladder rides them,
+and a recipe is a data file — and pedagogically **the chain only teaches
+anything if the last link is a thing a player wanted.**
+
+---
+
 ## What this supersedes
 
 - **mining-slate § *Materials, metallurgy & money***: "metallurgy is a
@@ -564,17 +823,15 @@ the table above is a ruling they will otherwise make alone.
 
 ## Open
 
-1. **Ownership model, inherited and still unsettled** —
-   `content-pack-units.md:94` calls Ferrow *commons / deep-law*;
-   `ferrow-delving.md` §9 makes it a company mine held by a co-op
-   `Business`. This slate's *private workings in a shared deposit + a
-   commons infrastructure* is probably the reconciliation, but it has not
-   been ratified against those two documents.
-2. **How the commons is funded** — a levy on tonnage, a co-op share, a
-   municipal subsidy, or voluntary and therefore chronically
-   underfunded? The last is the most honest and the most likely to be
-   *felt*; it needs a decision, and it is a governance question as much
-   as an economic one.
+1. **Ownership model, narrowed but not ratified** — `content-pack-units.md:94`
+   calls Ferrow *commons / deep-law*; `ferrow-delving.md` §9 makes it a
+   company mine held by a co-op `Business`. This slate's *private workings
+   in a shared deposit, with the district as a voluntary `Organization`*
+   reconciles them in principle (a company operation with independents on
+   the margins is the historical norm), but it has not been checked
+   against those two documents line by line.
+2. ~~How the commons is funded~~ — **CLOSED**: toll the hoist (excludable)
+   to fund the pump (not). See § *The commons*.
 3. **The per-heading cap** — farming caps a field at ~4 ha so one room
    stays honest. Mining needs the equivalent: the maximum advance one
    `drive` may cut. Probably a function of the crew and the ground.
@@ -582,14 +839,25 @@ the table above is a ruling they will otherwise make alone.
    (mining-slate's residual open). Shoring is the counter and dead work
    is the cost, so the design pressure now exists; the mechanic does not.
 5. **Where the vein geometry lives** — on the zone, on a deposit `Idea`,
-   or as a `ParcelRecord` annexe. Interacts with the mineral-vs-surface
-   split-estate question in rejection-slate § Open 1b.
+   or as a `ParcelRecord` annexe. *(rejection-slate Open 1b — whether the
+   Hinkley/Rejection pairing is a deliberate yes — is answered YES by
+   § The commons: the surface was granted, the minerals were claimed.)*
 6. **Tin's home** — if bronze needs a trade route, some *other* locality
-   has to hold cassiterite. Saxonberg is the obvious candidate and it
-   does not exist yet; the interim is an importer with a price.
-7. **Beneficiation** — crush/wash/sort between the mine and the smelter
-   is real (and is where grade is *raised* before smelting). Its own
-   step, folded into mining, or folded into smelting?
+   must hold cassiterite. Saxonberg is the obvious candidate and does not
+   exist yet; the interim is an importer with a price.
+7. ~~Beneficiation~~ — **CLOSED**: mechanical dressing is mining, roasting
+   is smelting, the line is the furnace. See § *Beneficiation*.
+8. **Does v1 ship the district formed or forming?** — do the miners have a
+   code and a recorder when you arrive, or do you arrive to unrecorded
+   claims and a flooding level, with founding it as the play? The second
+   is the richer lesson and the greater risk. **Still the user's call.**
+9. **Recipe scope for demand classes A and B** — how many tool and
+   arms/armor recipes ship in the first cut, and whether the smith's
+   known-of → can-make ladder gates them or they all ship known.
+10. **Who owns the shaft at Rejection** — the toll good is a natural
+   monopoly and the mine's instrument of power. The co-op, a corpo
+   (Veshko's lever for the buyout arc), or the district itself? This is
+   where the temporal mirror gets its grip.
 
 *(Retire when: this promotes to formal requirements for a metal-chain
 build, or folds into the Rejection venue build that adopts it.)*
