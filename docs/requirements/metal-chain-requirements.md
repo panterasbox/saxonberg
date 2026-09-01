@@ -460,6 +460,24 @@ Two different questions, two different homes:
 - **"Whose working is this?"** — the **carved-set ledger's `holder`**
   (`{cell, tier, holder}` on `MineWarren`).
 
+#### What a holding is, and why the mine is not one yet
+
+> **A parcel answers *whose is it*. A holding answers *what is on it and
+> what use is it held for*.** A holding is **a parcel being put to a use**
+> — tenure plus purpose — and `landUse` names the purpose: rooms serve
+> residential, fields serve agricultural, workings serve industrial. The
+> weathering shell is a *residential* concern that rides the general class,
+> not a defining property (a field has no paint).
+
+⭐ **Conceptually the mine IS a holding.** Stage A does not use
+`HoldingWarren` for one reason only: it is **residence-pack content**, and
+a trade pack must not depend on a residence pack. **Direction of travel:
+the abstract holding belongs in core, like parcels — the residence pack
+ships *residential* holdings, industries ship *industrial* ones** — and
+the graduation is **Stage B**, with mining as the second consumer per the
+two-consumers rule. Stage A's keys are chosen so that adoption is a base
+swap.
+
 ⭐ **A claim is STAKED, not bought** (decided 2026-09-01). `title buy` is
 buying from a catalogue; **staking is a first-come registration** — you
 find ground, post a notice, and the recorder writes it down. So mining

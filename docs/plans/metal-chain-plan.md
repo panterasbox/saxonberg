@@ -569,11 +569,41 @@ That is the push-your-luck decision arriving as a missing parameter.
 > `InnerWarren` (`lib/location/InnerWarren`) is **kernel** — the sanctioned
 > path for a non-residential warren whose members are rooms.
 >
-> ⚠ **Not `HoldingWarren`**, which lives in `packages/content/residence/`:
-> a trade pack must not depend on a residence pack, and the fit is wrong
-> anyway — **a holding sleeps and wakes WHOLE**, while the mine's whole
-> design is **per-cell tiering** (Spine live, Held persisted, Provisional
-> culled cold). Incompatible by construction, not merely different.
+> ⚠ **Not `HoldingWarren`** — but **only** because it lives in
+> `packages/content/residence/` and a trade pack must not depend on a
+> residence pack. **The fit is otherwise good**, and an earlier draft of
+> this decision was wrong to call it *"incompatible by construction."*
+>
+> ⭐ **A holding is a parcel being put to a use** — tenure plus purpose —
+> and `landUse` names the purpose. Rooms serve residential, fields serve
+> agricultural, workings serve industrial. The weathering shell is a
+> *residential* concern that happens to live on the general class, not a
+> defining property of holdings (farming's fields prove it — a field has
+> no paint).
+>
+> ⭐⭐ And `HoldingWarren` is **already** two of this plan's own decisions:
+> its identity model is *"each holding gets a keyed instance (scope = the
+> row, key = the holding's parcel extent); each room is a keyed instance of
+> a REAL room row (scope = the room row, key = `<extent>/<leaf>`)"* — P8
+> verbatim — and its member contract *"stays **open to runtime-added
+> members** (the cross-build interface with farming's break-ground act):
+> the floorplan is the **initial** mint, never the closed set."* It was
+> designed for a build that carves rooms at runtime.
+>
+> **Dormancy is not lapse.** Held workings would sleep and wake whole like
+> any holding. **Provisional ground was never a member** — it is the
+> commons you are cutting into, and it reverts because you never secured
+> it. Which makes *"shoring is this mine's provisioning act"* literal:
+> **shoring is what admits a cell to the holding.**
+
+> ⭐ **So shape `MineWarren` for a base swap, not a redesign** (see P8's key
+> convention). When `HoldingWarren` graduates to kernel — **Stage B, with
+> mining as the second consumer, per the two-consumers rule** — adopting it
+> is `extends InnerWarren` → `extends HoldingWarren`. The only genuinely
+> residential residue to leave behind or make optional is the **shell
+> condition and weathering clock**; everything else that class owns
+> (keyed identity, dormancy as a unit, tenure term, archetype aggregation,
+> runtime-added members) is general.
 
 `Warren` is build-2's tree and `createMember()` takes **no arguments**,
 while a mine carves a *keyed* member of one of *four* type rows. Both
@@ -629,10 +659,17 @@ locator; this build only *uses* it).
   instance each. Never members.
 - **Workings** — every carved cell is a **keyed member**: scope is one of
   `rejection`'s four type rows (`Face` / `Junction` / `Stope` / `Fall`),
-  key is the cell coordinate string. `restoreOrSeed(room, cellKey)` is
-  the whole identity mechanism; nothing mints a template row, and
-  `lint:instanceable` passes because every `class:` and `templatePath`
-  belongs to one of the four authored rows.
+  key is **`<claimExtent>/<cell>`**. ⭐ **Not a bare coordinate** — this
+  matches `HoldingWarren`'s shipped `<extent>/<leaf>` convention, so the
+  Stage-B graduation is a base swap; and it puts **claim scoping in the
+  key**, which makes part of `claimFor(cell)` derivable rather than a
+  ledger scan. `restoreOrSeed(room, key)` is the whole identity mechanism;
+  nothing mints a template row, and `lint:instanceable` passes because
+  every `class:` and `templatePath` belongs to one of the four authored
+  rows.
+- **The warren itself** is keyed on **the claim's parcel extent**
+  (`scope = an authored `rejection` row, key = the extent`) — again
+  `HoldingWarren`'s convention, taken now so it costs nothing later.
 - **Geology** — no identity at all.
 
 ⭐ **The four type rows are LOCALITY content and are passed in as
