@@ -97,6 +97,11 @@ NPCs are functional only (registrar, buyer, storekeeper), canned.
 uncrafted `generic-objects` templates), no domestic metal, no stock forms
 (bar, sheet, wire, nails).
 
+**Light.** No burn-time or fuel economy for portable lights —
+`PortableLight` defers that to the combustion build and Rejection's glowcap
+decays rather than burns. No colour-of-light effect on identification
+beyond the shipped band gate.
+
 **Client and UI.** No map, no minimap, no mine plan view. The survey card
 is the only client surface this build adds.
 
@@ -532,6 +537,38 @@ a character's readings for a deposit.
 minimap fills on room-entry (general feature, mine rides it)"* — that
 feature does not exist and is **not** in this build. The card is the whole
 of the client work.
+
+### Light and the sensorium
+
+**Light follows the tier.** Spine rooms are lit by fixtures the co-op
+maintains; a Held working is lit if **you** install and maintain one (a
+placed `Durable`, the timber set's sibling); Provisional workings are
+**dark**. Lighting a working is part of making it yours.
+
+**Rejection's light is cultivated glowcap** — in the fixtures and jarred
+for carry. The archetype's `light` slot ships **with no default**, so this
+is the divergence point another mine answers with oil lamps. The consumable
+survives biologically: the fungus **dies and must be replaced**, bought
+from the mine's own fungus-farmer.
+
+⭐ **The fine/coarse split, from a shipped table.**
+`REQUIRED_BAND_FOR_DETAIL` requires `bright` for `fine` detail, and a hand
+lamp is not bright. So underground you get the coarse read (*green staining,
+a seam here*) and **not** the fine one — **judging grade by eye needs
+daylight or an instrument.** That is why samples go up, and why the Assay
+Shed is a surface room.
+
+⭐⭐ **Losing your light is disabling, not lethal** — a lamp is a tool, not
+life-support. In the dark you can walk, listen, smell and feel your way
+out; you cannot hew, read a face, or shore. Consistent with the safety
+model: ground cannot kill, air can.
+
+**And the mine is where the sensorium does real work.** The content bible's
+*"reading the signs"* list is already multi-modal — a draught is touch,
+drummy rock is hearing, foul air is smell before the canary. See
+[mining-slate § *Light, and the sensorium underground*](../slates/builds/mining-slate.md)
+and [instrumentation-slate](../slates/builds/instrumentation-slate.md)
+§ *Perceive vs interpret*.
 
 ### Natural chambers are their own zones
 

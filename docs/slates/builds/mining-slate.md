@@ -389,6 +389,96 @@ the larder: the Pan-kill *is* the resource.
 3). The fauna thin, warp, and stop; the wrong begins. *Life fades toward the wound
 — that fade is the descent's real horror, more than any single beast.*
 
+### ⭐⭐⭐ Light, and the sensorium underground **[DECIDED 2026-09-01]**
+
+Never discussed until the plan review, and it turns out to be where two
+other decisions pay off.
+
+#### Light follows the tier — the same rule as everything else
+
+| Tier | Lit by |
+|---|---|
+| **Spine** | **fixtures the co-op maintains** — the pithead, the adit, the Upper Galleries |
+| **Held** | fixtures **you** installed and maintain — a placed `Durable`, the timber set's sibling |
+| **Provisional** | **dark.** You bring your own. |
+
+⭐ So **lighting a working is part of making it yours**, exactly as shoring
+is. No new mechanism: a fixture is a maintained object on the shipped
+repair economy, and the tier already exists.
+
+#### ⭐⭐ Rejection's light is biological, and that is the archetype's whole point
+
+The mine archetype's `light` slot ships **with no default** — it is the
+divergence slot. **Rejection binds it with cultivated glowcap**, in the
+fixtures *and* jarred for carry. Another mine binds oil lamps.
+
+That makes the glowcap load-bearing three times over: it is the food web's
+**producer**, the venue's **lighting infrastructure**, and a **livelihood**
+(somebody tends it). And the consumable survives — **the fungus dies and
+must be replaced**, so the money sink the content bible wanted (*"lamp rack
+— rent/fill, buy oil… money sinks; the light dependency taught before
+descent"*) is there, just biological and bought from the mine's own
+fungus-farmer instead of imported.
+
+⭐ **And the two light economies differ tactically, both honestly.**
+Glowcap is **cold and dim**; a flame is **bright and hot**. Since whelps
+hunt by heat and lantern-moths are light-lured, *what you light your
+working with is a predator decision as well as a work decision* — the
+"your work makes you findable" rule, applied to light.
+
+⚠ Burn-time is not modelled today: `PortableLight`'s own docstring says
+*"fuel / burn-time is the combustion build's concern; here a light is
+simply on or off."* `Candle` (`Combustible + Reserved(wax)`) is the shipped
+pattern for a fuelled light if a flame-lit mine ever wants one. **Rejection
+needs neither** — a glowcap jar decays rather than burns.
+
+#### ⭐⭐ The fine/coarse split: why the assay shed is a room
+
+`REQUIRED_BAND_FOR_DETAIL` ships as
+`{shape: very-dim, figure: dim, detail: lit, fine: bright}`.
+
+> **`fine` needs `bright`, and a hand lamp is not bright.**
+
+So underground you get the **coarse** read — *there is green staining here,
+this is a seam* — and **not** the fine one. Judging grade by eye requires
+daylight or an instrument.
+
+⭐ That is why miners carried samples up, why the **assay scale is the
+underground substitute for daylight**, and why the Assay Shed sits on the
+surface as its own room. All of it falls out of a shipped table.
+
+#### The mine is where the sensorium stops being flavour
+
+Vision fails underground; the other four modalities are all you have. And
+the content bible's own *"reading the signs"* list is **already
+multi-modal**:
+
+| Sign | Route |
+|---|---|
+| a draught — a void ahead | **touch** (skin) |
+| damp — water | touch |
+| a change in the rock — a seam | vision + touch |
+| a **drummy** back — detached rock | **hearing** (sounding, with a bar) |
+| foul air | **smell**, before the canary and before symptoms |
+
+⭐⭐ So prospecting and safety are the **routes model** of
+[instrumentation-slate](./instrumentation-slate.md) § *Perceive vs
+interpret*, and **the mine is its best demonstration venue** — the one
+place where losing vision does not end the game, it changes which sense
+you play through.
+
+#### Losing your light is disabling, not lethal
+
+Consistent with the safety model (ground cannot kill, air can):
+
+> **A lamp is a tool, not life-support.** In the dark you can walk,
+> listen, smell and feel your way along a drift. You **cannot** hew, read
+> a face, or shore.
+
+So a lost light stops your *work* and sends you out — genuinely bad deep in
+unfamiliar workings, since there is no map and the way back is only what
+you remember, but never an instant death.
+
 ### ⭐⭐⭐ The ecology as built — instruments, emissions, and the v1 seven **[DECIDED 2026-08-31]**
 
 The roster above says *what lives there*. This says **what each kind of

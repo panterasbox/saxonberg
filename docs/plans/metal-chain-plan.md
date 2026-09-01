@@ -1065,7 +1065,24 @@ four type rows resolve and none is named by more than one scope; a carve
 against the real row produces a room of the right type for the ground;
 `lint:instanceable` passes with zero minted rows.
 
-### Wave R3 — the ecology
+### Wave R3 — the ecology and the lighting
+
+⭐ **The glowcap is the lighting infrastructure, not decoration** — it
+binds the archetype's defaultless `light` slot in the Spine fixtures and
+in a carried jar, and it decays rather than burns, so the money sink is
+biological and local (requirements § *Light and the sensorium*). A Held
+working's fixture is a placed `Durable` on M4's pattern; Provisional
+workings are dark. ⚠ No burn-time: `PortableLight` defers fuel to the
+combustion build, and Rejection needs no flame.
+
+**Light tests:** `REQUIRED_BAND_FOR_DETAIL` gates the fine read, so a
+character underground with a hand lamp reads *a seam* and **cannot** read
+grade, while the same sample at the surface or under the assay scale can —
+the reason the Assay Shed is a room. A character whose light fails can
+still walk, listen and smell their way out and **cannot** hew, read a face
+or shore.
+
+
 
 `rejection`'s own rows — crickets, delve-rats, the pale grazer, the
 cultivated **glowcap** — at the `/stuff/idea/species/…` commons path,
