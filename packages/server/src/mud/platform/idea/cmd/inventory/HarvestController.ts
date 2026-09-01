@@ -99,9 +99,9 @@ export default class HarvestController extends CommandController<HarvestModel> {
     if (MixinApi.isGrowing(named)) {
       plant = named;
     } else if (MixinApi.isCultivable(named)) {
-      const growing = named
-        .getPlants()
-        .filter((p): p is Stuff & Growing => MixinApi.isGrowing(p));
+      const growing = (named.getPlants() as Stuff[]).filter(
+        (p): p is Stuff & Growing => MixinApi.isGrowing(p),
+      );
       plant = growing.find((p) => p.isHarvestable()) ?? growing[0] ?? null;
       if (!plant) {
         MessageApi.scene(giver)
