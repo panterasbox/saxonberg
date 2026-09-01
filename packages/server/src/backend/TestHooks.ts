@@ -38,7 +38,6 @@ import { AppApi } from '../mud/api/app';
 import { AppSettingKeys } from '../mud/lib/config/AppSettings';
 import Avatar from '../mud/platform/agent/Avatar';
 import { Template } from '../mud/lib/stuff/Template';
-import { TemplateApi } from '../mud/api/template';
 import { SecurityApi } from '../mud/api/security';
 
 export class TestHooks {
