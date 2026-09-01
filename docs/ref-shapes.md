@@ -39,7 +39,7 @@ it:
 - An identity ref persists, because a `templatePath` is stable.
 - An instance ref **cannot** persist. Not by convention — there is
   nothing durable to write down. Persisting an instance *relationship*
-  is done **structurally** (containment capture / a `populates`
+  is done **structurally** (containment capture / a `props`
   manifest rebuilds it at hydrate), never by storing a reference.
 - Declaring a field both `instance` and `persistent` is therefore a
   build-time error, not a style violation.
@@ -183,7 +183,7 @@ The **public surface** — the entry in `persistentFields`, the YAML
 key authors write, the `getXxx` / `setXxx` method names — uses the
 **bare conceptual name** without a `Path` / `TemplatePath` suffix.
 
-Examples in current substrate: `container`, `populates`, `destination`,
+Examples in current substrate: `container`, `props`, `cast`, `destination`,
 `door`, `attachedHosts`. Not `containerPath`, not `attachedHostPaths`.
 
 Reasoning: the identity-ref type signature (`string`) plus the field's
@@ -730,7 +730,7 @@ static fieldMeta: FieldMeta = {
 
 Live refs are runtime-only. Persistence needs either an identity ref
 (store a path) or a higher-layer mixin that owns the persistent
-shape (e.g., a templated `populates` manifest that re-creates the
+shape (e.g., a templated `props` manifest that re-creates the
 relationship at hydrate).
 
 ### B.2 — Using a live ref for a cross-scope singleton

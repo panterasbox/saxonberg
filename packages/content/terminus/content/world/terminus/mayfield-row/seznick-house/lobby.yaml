@@ -20,7 +20,7 @@ data:
   exits:
     out:
       destination: /world/terminus/mayfield-row/street
-  populates:
+  cast:
     - /world/terminus/mayfield-row/agent/walter
   details:
     board:

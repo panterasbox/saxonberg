@@ -7,7 +7,7 @@
  * Drives the real `ElectricityApi.conduct` / `shockContact` through the room
  * class. The hazard fixtures (the brine-pooled Floor + the LiveWire) are
  * authored templates the room's seed places declaratively (`adornments:` /
- * `populates:`) at boot; this test stands the same fixtures up directly (the
+ * `props:`) at boot; this test stands the same fixtures up directly (the
  * seed clone pipeline needs a live world) so it exercises the room's real
  * `onEntered` → conduct behavior.
  */
@@ -54,7 +54,7 @@ function rubber(): Material {
 
 /**
  * Stand up the cell + its hazard fixtures the way the seed does declaratively
- * (`adornments:` a brine-pooled Floor, `populates:` a LiveWire) — done
+ * (`adornments:` a brine-pooled Floor, `props:` a LiveWire) — done
  * directly here since the faked-Mongo test has no clone pipeline.
  */
 async function makeCell(): Promise<FloodedCell> {

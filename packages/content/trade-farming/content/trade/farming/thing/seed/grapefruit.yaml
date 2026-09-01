@@ -1,0 +1,13 @@
+# A packet of grapefruit seed — same discrete-Thing shape as the carrot
+# seed (never Globbable): it names the plant it grows into and carries no
+# variation of its own (genetics is farming-slate phase 2).
+class: /platform/thing/Seed
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a packet of grapefruit seed
+  primaryKeyword: seed
+  keywords: [seed, seeds, "grapefruit seed", grapefruit, packet]
+  longDescription: |
+    A paper packet of grapefruit pips, big as beans.
+  growsIntoPath: /trade/farming/thing/plant/grapefruit
+  _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/sapindales/rutaceae/citrus/paradisi

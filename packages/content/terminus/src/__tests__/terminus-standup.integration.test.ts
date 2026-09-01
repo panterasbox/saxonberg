@@ -52,11 +52,17 @@ function loadSeeds(dir: string, rootLen: number): Doc[] {
         string,
         unknown
       >;
+      // Stand the rooms up WITHOUT their troupes: `cast:` is the transient
+      // NPC layer (heavy Phase-4 hydration, its own tests), and stripping
+      // it is exactly what cast-transience means — the set minus the
+      // actors.
+      const data = { ...((parsed.data as Record<string, unknown>) ?? {}) };
+      delete data.cast;
       out.push({
         path,
         class: parsed.class as string,
         hydratorClass: (parsed.hydratorClass as string) ?? PH,
-        data: (parsed.data as Record<string, unknown>) ?? {},
+        data,
       });
     }
   }
@@ -86,7 +92,7 @@ const ROOMS = [
  *
  * ⚠ A stub must now WIN over a real row. University Avenue used to be
  * another pack's, so `loadSeeds` never saw it; it is this pack's street
- * now, so the walk finds the real crossing — which `populates:` Gus, a
+ * now, so the walk finds the real crossing — which `cast:`s Gus, a
  * full NPC with dispositions — and the hub test would be booting the
  * avenue's whole cast to prove a terminal seats itself. The avenue has
  * its own stand-up suite (`crossing.integration.test.ts`); this one
@@ -107,10 +113,10 @@ const STUBS: Doc[] = [
     data: { seatIn: "/world/test/crossroads-room", keywords: ["crossroads"], directionality: "both", routes: [] },
   },
   { path: "/world/test/crossroads-room", class: "/platform/location/VoidLocation", hydratorClass: PH, data: { shortDescription: "the crossroads" } },
+  // The terminal office lists the clerk under props (a Prop stub keeps the
+  // cascade light); the registry office's registrar rides `cast:`, which
+  // the loader strips.
   { path: "/world/terminus/terminal/agent/clerk", class: "/platform/thing/Prop", hydratorClass: PH, data: { shortDescription: "the clerk" } },
-  // The registry office (cascaded via the arrival gate's east exit)
-  // populates the registrar — same heavy-NPC stub treatment.
-  { path: "/world/terminus/registry/clerk", class: "/platform/thing/Prop", hydratorClass: PH, data: { shortDescription: "the registrar" } },
   { path: "/world/terminus/university-avenue/location/crossing", class: "/platform/location/VoidLocation", hydratorClass: PH, data: { shortDescription: "University Avenue" } },
 ];
 
@@ -118,7 +124,7 @@ const STUBS: Doc[] = [
  * Boot the hub the way the real network does — from a SINGLE anchor. The
  * arrival terminal (in reality the lounge's route target) self-seats into the
  * arrival gate; the gate's `north`→hall exit + the hall's exits cascade the
- * rooms, and each gate room `populates:` its own departure terminal. Booting
+ * rooms, and each gate room `props:` its own departure terminal. Booting
  * only the arrival terminal must bring the whole hub up (no per-terminal
  * manifest entries) — the #4 lazy-load contract.
  */

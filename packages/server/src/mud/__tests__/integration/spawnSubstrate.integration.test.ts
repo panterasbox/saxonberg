@@ -1,10 +1,10 @@
 /**
  * Spawn-substrate integration test — exercises the
- * `populates:` / `container:` cascade end-to-end via lazy hydrate
+ * `props:` / `container:` cascade end-to-end via lazy hydrate
  * from `StuffApi.singleton`. The fixture mirrors the requirements
  * doc's acceptance criteria: a singleton Container, a singleton
  * Containable declaring `data.container`, a non-singleton
- * Containable, and a parent Container declaring `populates:`.
+ * Containable, and a parent Container declaring `props:`.
  */
 
 import "../../../test-bootstrap";
@@ -128,7 +128,7 @@ describe('spawn substrate integration', () => {
     HotReloadApi._clearAllForTest();
   });
 
-  it('library populates: dispatches singleton-vs-clone correctly', async () => {
+  it('library props: dispatches singleton-vs-clone correctly', async () => {
     installInMemoryStore([
       {
         path: PersistentHydrator.templatePath,
@@ -157,7 +157,7 @@ describe('spawn substrate integration', () => {
         path: '/test/library',
         class: '/platform/idea/SpawnLibrary',
         hydratorClass: PersistentHydrator.templatePath,
-        data: { populates: ['/test/sword', '/test/potion'] },
+        data: { props: ['/test/sword', '/test/potion'] },
       },
     ]);
 
@@ -168,7 +168,7 @@ describe('spawn substrate integration', () => {
     const sword = StuffApi.findByTemplatePath<SpawnSword>('/test/sword')!;
 
     // Sword is a singleton with data.container; its applyContainer
-    // placed it in /test/treasury. Library's applyPopulates skipped
+    // placed it in /test/treasury. Library's applyProps skipped
     // it (already elsewhere).
     expect(sword.getContainer()).toBe(treasury);
     expect(library.hasContainable(sword as never)).toBe(false);
@@ -185,7 +185,7 @@ describe('spawn substrate integration', () => {
   // ⭐ The go-live case, and the one that matters. `restoreFromTemplate`
   // is the CMS save go-live and the pack reconcile go-live; it re-runs
   // the FULL hydrate, which re-dispatches every instruction applier.
-  // Before the run-once guard, publishing an edit to a `populates:` row
+  // Before the run-once guard, publishing an edit to a `props:` row
   // minted a fresh set into every live instance — every crate in the
   // world gaining six more grapefruits. A content edit is not a faucet.
   it('a go-live re-hydrate does NOT mint a second set (populates runs once)', async () => {
@@ -205,7 +205,7 @@ describe('spawn substrate integration', () => {
         path: '/test/library',
         class: '/platform/idea/SpawnLibrary',
         hydratorClass: PersistentHydrator.templatePath,
-        data: { populates: ['/test/potion'] },
+        data: { props: ['/test/potion'] },
       },
     ]);
 
@@ -218,7 +218,7 @@ describe('spawn substrate integration', () => {
     expect(library.getContents().length).toBe(1);
 
     // And the applier itself is inert on a second call, however reached.
-    await library.applyPopulates(['/test/potion']);
+    await library.applyProps(['/test/potion']);
     expect(library.getContents().length).toBe(1);
   });
 

@@ -260,6 +260,72 @@ describe("Consignment — sell loop over real ownership", () => {
     expect(t2.getContainer()).toBe(alice); // the second stayed with Alice
   });
 
+  it("⭐ a shelf's authored cap OVERRIDES the global — and only that shelf's (farming A6)", async () => {
+    (AppSettings as unknown as { _cached: AppSettings | null })._cached =
+      new AppSettings();
+    AppSettings.getCached().setValue(AppSettingKeys.retailConsignmentListingCap, "1");
+
+    const loc = makeStuff(() => new Location());
+    // The market stall authors a generous cap (loose produce = dozens of
+    // listings per seller); the plain shelf beside it keeps the dial.
+    const stall = makeStuffAtPath(() => new ConsignmentShelf(), SHELF);
+    stall.setListingCapOverride(3);
+    ContainmentApi.move(stall as never, loc as never);
+    const alice = await fundedAvatar("/platform/agent/Avatar/alice", 0);
+    ContainmentApi.move(alice as never, loc as never);
+    const goods = ["torch", "lantern", "whetstone"].map((kw, i) => {
+      const t = makeStuffAtPath(() => {
+        const g = new Torch();
+        g.setKeywords([kw]);
+        return g;
+      }, `/obj/test/Cap-${i}`);
+      ContainmentApi.move(t as never, alice as never);
+      return t;
+    });
+    for (const g of goods) await asOwner(alice, () => ChattelApi.stamp(g, alice));
+
+    for (const kw of ["torch", "lantern", "whetstone"]) {
+      await asOwner(alice, () =>
+        makeStuff(() => new ConsignController()).execute(
+          { thing: kw, ask: "5" },
+          ctx(alice, loc, stall, "consign"),
+        ),
+      );
+    }
+    // All three took — the stall's authored 3 outranks the global 1.
+    expect(stall.activeListingCount("/platform/agent/Avatar/alice")).toBe(3);
+
+    // A sibling shelf with NO override still rides the global cap.
+    const plain = makeStuffAtPath(
+      () => new ConsignmentShelf(),
+      "/world/terminus/general-store/plain-shelf",
+    );
+    ContainmentApi.move(plain as never, loc as never);
+    const extra = makeStuffAtPath(() => {
+      const g = new Torch();
+      g.setKeywords(["candle"]);
+      return g;
+    }, "/obj/test/Cap-x");
+    const extra2 = makeStuffAtPath(() => {
+      const g = new Torch();
+      g.setKeywords(["taper"]);
+      return g;
+    }, "/obj/test/Cap-y");
+    ContainmentApi.move(extra as never, alice as never);
+    ContainmentApi.move(extra2 as never, alice as never);
+    await asOwner(alice, () => ChattelApi.stamp(extra, alice));
+    await asOwner(alice, () => ChattelApi.stamp(extra2, alice));
+    for (const kw of ["candle", "taper"]) {
+      await asOwner(alice, () =>
+        makeStuff(() => new ConsignController()).execute(
+          { thing: kw, ask: "5" },
+          ctx(alice, loc, plain, "consign"),
+        ),
+      );
+    }
+    expect(plain.activeListingCount("/platform/agent/Avatar/alice")).toBe(1);
+  });
+
   it("reclaim returns an unsold listing; ownership never changed", async () => {
     const loc = makeStuff(() => new Location());
     const shelf = makeStuffAtPath(() => new ConsignmentShelf(), SHELF);

@@ -11,6 +11,13 @@ full verticals to ship."*
 > **Status: design conversation, captured. Not requirements.** ⚠ Contains
 > **one proposed change to shipped code** (fungible consignment, Part 2) —
 > flagged as such, not yet a defect report.
+>
+> **⭐ Overtaken by farming Stage A (2026-09-01):** "the content is one
+> crop — carrot" is no longer true (ten grown families ship, with the
+> fruit cycle behind them), and Part 4's **rung 1 — the spot market — is
+> real** at the farmers market (consignment stalls off the
+> counting-houses, per-shelf caps). Rungs 2–4 (direct purchase,
+> contracts, the firm) and the fungible middle stay unbuilt.
 
 Related: [crafting.md](../../subsystems/crafting.md),
 [retail.md](../../subsystems/retail.md) (⭐ the correction in Part 2),

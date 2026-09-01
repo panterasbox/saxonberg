@@ -20,10 +20,15 @@ data:
     A high, cold hall that smells of sawdust and spilled spirit. Steel racking climbs the walls, cased and chalk-numbered; a long counter runs under a board of consignors' asks, and beyond a roller door somebody's dray is always half-unloaded. Nothing here is for the thirsty — it is where the thirsty's bartender comes.
   ambientIntensity: 30
   ambientColorTemperature: 4200
+  coords:
+    x: 0
+    y: 0
+    z: 0
   exits:
     north:
       destination: /world/terminus/counting-houses/avenue-block
-  populates:
+  props:
     - /trade/distilling/thing/racking
     - /trade/distilling/thing/counter
+  cast:
     - /trade/distilling/agent/clerk

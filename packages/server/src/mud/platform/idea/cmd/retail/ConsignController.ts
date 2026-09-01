@@ -150,7 +150,9 @@ export default class ConsignController extends CommandController<ConsignModel> {
     }
 
     // Per-consignor cap — the shared-shelf anti-grief guard (0 disables).
-    const cap = this.listingCap();
+    // The shelf's authored override wins (the market stall's generous
+    // cap); every other shelf rides the global dial.
+    const cap = shelf.getListingCapOverride() ?? this.listingCap();
     if (cap > 0 && shelf.activeListingCount(consignorKey) >= cap) {
       this.reject(
         giver,

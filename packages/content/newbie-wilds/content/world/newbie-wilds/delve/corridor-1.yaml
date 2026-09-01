@@ -39,6 +39,6 @@ data:
       destination: /world/newbie-wilds/delve/vestibule
   # The step-dart (cloned fresh at standup) + the concealed cache (a bonus,
   # with the obvious reward waiting in the vault).
-  populates:
+  props:
     - /stuff/thing/traps/step-dart
     - /world/newbie-wilds/delve/hidden-cache

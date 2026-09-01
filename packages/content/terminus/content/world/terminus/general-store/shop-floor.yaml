@@ -2,7 +2,7 @@
 # block (SOUTH back to the street; the avenue block declares NORTH back here),
 # on the new-player path between the Terminus arrival gate and the university
 # crossing. The counter (Stock), the consignment shelf, and the cast (clerk +
-# keeper) are `populates` (fresh clones each boot). Indoor room, no biome.
+# keeper) are `props` (fresh clones each boot). Indoor room, no biome.
 #
 # Its own zone (`/world/terminus/general-store`), but addressed under the
 # counting-houses Locality (`counting-houses/general-store`) — it sits on that
@@ -23,8 +23,9 @@ data:
   exits:
     south:
       destination: /world/terminus/counting-houses/avenue-block
-  populates:
+  props:
     - /world/terminus/general-store/counter
     - /world/terminus/general-store/consignment-shelf
+  cast:
     - /world/terminus/general-store/agent/clerk
     - /world/terminus/general-store/agent/keeper

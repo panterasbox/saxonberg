@@ -1,0 +1,13 @@
+# The Farmers Market — the produce square off the counting-houses (the
+# next /world/terminus/ area). A CartesianZone holding the square. "The
+# farmers market" rides the zone `name` + the room prose.
+#
+# Owned by the Terminus municipality — NOT declared here (the governing
+# security invariant); ownership rides the pack's own title claim
+# (`/world/terminus/market` → the managed `terminus` group). The market
+# owns its *Business* (commission attribution), not the ground.
+class: /platform/idea/location/CartesianZone
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: The Farmers Market
+  cellSize: 3.0

@@ -17,6 +17,11 @@ data:
     A packing shed open on one side: trestles, a scale, crates under wet sacking (the growing is the smallholding's; the floor stands at target through the sweep until a grower supplies it).
   ambientIntensity: 25
   ambientColorTemperature: 4200
-  populates:
+  coords:
+    x: 0
+    y: 0
+    z: 0
+  props:
     - /trade/farming/thing/farm-stock
+  cast:
     - /trade/farming/agent/farm-hand

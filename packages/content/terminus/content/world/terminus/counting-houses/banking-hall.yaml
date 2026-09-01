@@ -5,7 +5,7 @@
 # mechanical act (deposit/withdraw at the till) happens here.
 #
 # Indoor room (no biome). Cross-cell exits: EAST back to the avenue block,
-# NORTH into the Circle parlor. The counter + Wenna are `populates` (fresh
+# NORTH into the Circle parlor. The counter + Wenna are `props` (fresh
 # clones each boot); the Business stands up lazily off its operatingLocations.
 # The vault is glimpsed PROSE (a Detail), not a room — it becomes enterable the
 # day heists/safe-deposit exist, never a speculative empty room now.
@@ -52,6 +52,7 @@ data:
       keywords: [urn, coffee, chairs, chair]
       description: |
         A coffee urn kept hot on a side table, a stack of paper cups, deep chairs nobody made you buy anything to sit in. The hospitality is free and constant and just slightly more than you asked for.
-  populates:
+  props:
     - /world/terminus/counting-houses/bank-counter
+  cast:
     - /world/terminus/counting-houses/agent/teller

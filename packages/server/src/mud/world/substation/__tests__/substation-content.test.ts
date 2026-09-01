@@ -1,7 +1,7 @@
 /**
  * Content-integrity tests for the Drowned Substation seeds — the cheap
  * save-gate-parity discipline (the `bar-content.test` precedent): pure YAML
- * reads, no clone pipeline. A typo'd `adornments:` / `populates:` path, a
+ * reads, no clone pipeline. A typo'd `adornments:` / `props:` path, a
  * missing pool material, or a dropped `voltage` is caught here, not silently
  * at standup / traverse time. Proves the hazard fixtures are authored
  * templates wired declaratively — not imperatively constructed.
@@ -52,11 +52,11 @@ describe('The Drowned Substation — content integrity', () => {
   it("the cell's adornments + populates resolve to real templates", () => {
     const cell = seed('world/substation/flooded-cell');
     const adornments = (cell.data?.adornments ?? []) as string[];
-    const populates = (cell.data?.populates ?? []) as string[];
+    const props = (cell.data?.props ?? []) as string[];
     expect(adornments).toContain('/world/substation/flooded-floor');
-    expect(populates).toContain('/world/substation/live-wire');
-    expect(populates).toContain('/world/substation/stun-baton');
-    for (const path of [...adornments, ...populates]) {
+    expect(props).toContain('/world/substation/live-wire');
+    expect(props).toContain('/world/substation/stun-baton');
+    for (const path of [...adornments, ...props]) {
       expect(templateExists(path), path).toBe(true);
     }
   });

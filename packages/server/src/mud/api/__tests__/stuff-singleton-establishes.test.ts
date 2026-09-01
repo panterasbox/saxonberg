@@ -2,9 +2,9 @@
  * `StuffApi.singleton` is a persistable singleton's establishing context.
  *
  * A `FurnishableRoom` (a venue reached by an exit, or booted by a pack) and
- * a `Stock` counter (placed by a room's `populates:`) are persistable
+ * a `Stock` counter (placed by a room's `props:`) are persistable
  * hosts with ONE instance per template path. On a persistable host
- * `applyPopulates` only retains the specs; something has to decide
+ * `applyProps` only retains the specs; something has to decide
  * restore-vs-seed, and for a keyed multi-instance host that is its
  * provisioner (`DormWarren.admit`). For a singleton nothing did — the
  * libations live drive walked into a bare cash-and-carry, a bare sports

@@ -89,16 +89,13 @@ describe("Dave's Bar cast seeds", () => {
     expect(trees).toBeGreaterThan(0);
   });
 
-  it('the bar populates the five cast templates (alongside the crafting fixtures)', () => {
+  it('the bar casts the five cast templates (its `cast:` list)', () => {
     const bar = YAML.parse(readFileSync(BAR_YAML, 'utf8')) as {
-      data: { populates?: (string | { template: string })[] };
+      data: { cast?: string[] };
     };
-    // populates now carries the crafting fixtures (back-bar + bottles/
-    // tools `onto` it + the menu) as well as the cast; assert the cast is
-    // wired in, not that it's the whole list.
-    const paths = (bar.data.populates ?? []).map((e) =>
-      typeof e === 'string' ? e : e.template
-    );
+    // The crafting fixtures (back-bar + bottles/tools `onto` it + the
+    // menu) ride `props:`; the troupe is declared under `cast:`.
+    const paths = bar.data.cast ?? [];
     for (const npc of [
       '/world/lounge/agent/augie',
       '/world/lounge/agent/dave',

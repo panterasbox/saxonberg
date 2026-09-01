@@ -206,9 +206,12 @@ function emitDispatchResponse(ctx: CommandContext): void {
   // Its refusals are the developer's to see: "NPCs do their jobs" has to
   // fail out loud, or a hand that never consigns and a barkeep who never
   // hires look like patience. One line per declined forced command.
+  // `getInteractives()` can be undefined on an avatar mid-teardown or
+  // mid-relogin (observed live: 44 dispatch crashes across rapid
+  // session cycling) — an interactive-less moment reads as unread.
   const unread =
     !MixinApi.isHasInteractive(giverAsStuff) ||
-    giverAsStuff.getInteractives().size === 0;
+    (giverAsStuff.getInteractives()?.size ?? 0) === 0;
   const status = ctx.getStatus();
   if (unread && status !== 'ok') {
     const why = ctx

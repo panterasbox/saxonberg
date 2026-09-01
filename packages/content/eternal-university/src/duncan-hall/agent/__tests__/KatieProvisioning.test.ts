@@ -177,7 +177,7 @@ describe('Katie — the dorms-agent authorization boundary', () => {
   });
 
   it('composes PopulatesMixin so her master ring is an authored loadout, not self-issued', () => {
-    // The master ring is `populates`d in from npc/master-ring.yaml (an
+    // The master ring is `props`d in from npc/master-ring.yaml (an
     // owner-authored spawn loadout). That only works if Katie is a Populates
     // host — this pins the composition (the seed row's credential is proven a
     // working pin-tumbler master in lib/lock/__tests__/Lock.test.ts).

@@ -584,9 +584,9 @@ export class StuffApi {
         // one instance per template path, so its record is keyed by
         // the scope alone (the same keyless key a nested `{ ref }`
         // restore derives). Restore when a record exists, else lay down
-        // its born-with `populates:` and capture the first record — a
+        // its born-with `props:` and capture the first record — a
         // venue room reached by an exit or booted by a pack, a Stock
-        // counter placed by a room's populates. Multi-instance hosts
+        // counter placed by a room's props. Multi-instance hosts
         // (a dorm unit, a lot's yard, an Avatar) never come through
         // here: their provisioner clones and keys them itself.
         if (MixinApi.isPersistable(inst) && inst.getPersistenceKey() === null) {

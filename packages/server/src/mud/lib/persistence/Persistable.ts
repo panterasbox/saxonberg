@@ -10,7 +10,7 @@
  *
  * A host opts in by composing this mixin **outermost** (so its
  * `cleanupOnDestruct` fires before `Container`/`Slotted` evacuate, and its
- * `applyPopulates` override wraps `Populates`). The capability is thin: the
+ * `applyProps`/`applyCast` overrides wrap `Populates`). The capability is thin: the
  * capture/restore *logic* lives in the gated `PersistableApi` /
  * `PersistableLogic` pair, and per-mixin serialization is composed by the
  * framework walk (`MixinApi.getPersistenceContributors`). This mixin
@@ -22,11 +22,13 @@
  *      logout, autosave, reload) `await` a full capture; this is the
  *      non-sweep-destruct safety net.
  *   2. **Declarative born-with seed** — a host declares its starting contents
- *      as data (`populates:` in its template, the same field a non-persistent
- *      container uses), and the establishing context lays them down EXACTLY
- *      ONCE via {@link Persistable.seedBornWith} on the no-record branch, then
- *      captures. Thereafter the record is authoritative and the seed never
- *      re-runs. The `applyPopulates` hydration hook only *retains* the specs —
+ *      as data (`props:` and `cast:` in its template, the same fields a
+ *      non-persistent container uses), and the establishing context lays them
+ *      down EXACTLY ONCE via {@link Persistable.seedBornWith} on the no-record
+ *      branch, then captures. Thereafter the record is authoritative for the
+ *      props and the seed never re-runs (the cast is transient — conserved
+ *      and re-seeded on every restore via {@link Persistable.reseedCast}).
+ *      The `applyProps`/`applyCast` hydration hooks only *retain* the specs —
  *      a persistable host is a bare shell at hydration (its key isn't set yet,
  *      so a `hasRecord` gate can't tell seed from restore), so the keyed
  *      holder drives the seed after stamping the key. This keeps born-with
@@ -42,15 +44,20 @@ import type { MixinConstructor } from "../mixin";
 import type { Stuff, EvictionContext } from "../stuff/Stuff";
 import type { VetoResult } from "../errors";
 import type { PopulateSpec, Populates } from "../stuff/Populates";
-import { MixinApi } from "../../api/mixin";
+import type { Container } from "../spatial/Container";
+import type { Containable } from "../spatial/Containable";
+import { Mixins } from "../mixin";
+import { MixinApi, type AnyConstructor } from "../../api/mixin";
+import { StuffApi } from "../../api/stuff";
+import { ContainmentApi } from "../../api/containment";
 import { PersistableApi } from "../../api/persistable";
 
 /** Public shape provided by PersistableMixin. */
 export interface Persistable {
   /**
    * True once this host has been through its first
-   * materialize/seed-then-persist gate. Read by the `applyPopulates`
-   * override so a re-materialize never re-seeds.
+   * materialize/seed-then-persist gate. Read by the `applyProps` /
+   * `applyCast` overrides so a re-materialize never re-seeds.
    */
   isPersistenceHost(): boolean;
 
@@ -125,15 +132,30 @@ export interface Persistable {
 
   /**
    * Lay down the host's declared born-with contents (its template's
-   * `populates:` specs, retained at hydration) — cloning each into this host
-   * exactly once. The establishing context calls this on the **no-record
+   * `props:`/`cast:` specs, retained at hydration) — cloning each into this
+   * host exactly once. The establishing context calls this on the **no-record
    * branch only** (a fresh instance with no saved state), then captures the
    * first record; on the has-record branch it restores instead and never
-   * calls this. A no-op when the host declares no `populates:` (e.g. an
+   * calls this. A no-op when the host declares neither (e.g. an
    * Avatar, whose loadout is seeded imperatively). Replaces per-host bespoke
    * seed methods with author-editable data.
    */
   seedBornWith(): Promise<void>;
+
+  /**
+   * Re-seed this host's transient CAST. Capture skips `Behaved` occupants
+   * (`ContainerMixin.captureSlice`'s third skip): cast commutes between
+   * persistable rooms, so two rooms' records could each carry the same
+   * NPC and the next boot would restore it twice — `expected singleton,
+   * found 2`. A restored room therefore comes back troupe-less, and this
+   * is the establishing half that puts the cast back: for each retained
+   * `cast:` entry with **no live instance anywhere**, mint one and move
+   * it in. Live cast is conserved — an instance standing in any room
+   * (this one, the counter it commutes to) suppresses the re-mint.
+   * Called by the materialize path after a successful restore; a no-op
+   * when no `cast:` was declared.
+   */
+  reseedCast(): Promise<void>;
 }
 
 export function PersistableMixin<
@@ -153,12 +175,14 @@ export function PersistableMixin<
     protected _reverting = false;
 
     /**
-     * Born-with content specs retained from the `populates` hydration hook
-     * (transient — NOT persisted; re-populated on every clone/restore). Laid
-     * down once by {@link seedBornWith} on the no-record branch. Empty for a
-     * host that declares no `populates:`.
+     * Born-with specs retained from the `props`/`cast` hydration hooks
+     * (transient — NOT persisted; re-populated on every clone/restore).
+     * Props are laid down once by {@link seedBornWith} on the no-record
+     * branch; cast is re-seeded on every restore by {@link reseedCast}.
+     * Empty for a host that declares neither.
      */
-    protected _bornWithSpecs: PopulateSpec[] = [];
+    protected _bornWithProps: PopulateSpec[] = [];
+    protected _bornWithCast: string[] = [];
 
     isPersistenceHost(): boolean {
       return true;
@@ -212,29 +236,67 @@ export function PersistableMixin<
      * A persistable host does not seed at *hydration* — it is a bare shell
      * here (its per-instance key isn't set yet, so a `hasRecord` gate can't
      * tell a first seed from a restore, and seeding now would double-seed on
-     * every wake). So this override does NOT delegate to `PopulatesMixin`;
-     * instead it **retains** the declared specs so the establishing context
+     * every wake). So these overrides do NOT delegate to `PopulatesMixin`;
+     * instead they **retain** the declared specs so the establishing context
      * can lay them down exactly once, keyed, via {@link seedBornWith} on the
-     * no-record branch. The `populates:` field stays author-editable DATA;
-     * only *when* it runs moves to the keyed holder.
+     * no-record branch. The `props:`/`cast:` fields stay author-editable
+     * DATA; only *when* they run moves to the keyed holder.
      */
-    async applyPopulates(specs: PopulateSpec[]): Promise<void> {
-      this._bornWithSpecs = Array.isArray(specs) ? specs.slice() : [];
+    async applyProps(specs: PopulateSpec[]): Promise<void> {
+      this._bornWithProps = Array.isArray(specs) ? specs.slice() : [];
+    }
+
+    /** See {@link applyProps} — the cast half of the same retention. */
+    async applyCast(specs: string[]): Promise<void> {
+      this._bornWithCast = Array.isArray(specs) ? specs.slice() : [];
     }
 
     /**
      * Lay down the retained born-with specs — cloning each into this host —
-     * by delegating to the inner `PopulatesMixin` applier (`super`). Called by
-     * the establishing context on the no-record branch only. A no-op when no
-     * `populates:` was declared (empty specs → nothing to seed, and no
-     * `PopulatesMixin` need be composed).
+     * by delegating to the inner `PopulatesMixin` appliers (`super`). Called
+     * by the establishing context on the no-record branch only. A no-op when
+     * neither `props:` nor `cast:` was declared (empty specs → nothing to
+     * seed, and no `PopulatesMixin` need be composed).
      */
     async seedBornWith(): Promise<void> {
-      if (this._bornWithSpecs.length === 0) return;
-      // Present at runtime whenever specs were retained (specs only arrive via
-      // the Hydrator when `populates` is an instruction field, i.e. the host
-      // composes PopulatesMixin below). The `?.` guards the vacuous case.
-      await super.applyPopulates?.(this._bornWithSpecs);
+      // Present at runtime whenever specs were retained (specs only arrive
+      // via the Hydrator when `props`/`cast` are instruction fields, i.e.
+      // the host composes PopulatesMixin below). The `?.` guards the
+      // vacuous case.
+      if (this._bornWithProps.length > 0) {
+        await super.applyProps?.(this._bornWithProps);
+      }
+      if (this._bornWithCast.length > 0) {
+        await super.applyCast?.(this._bornWithCast);
+      }
+    }
+
+    /**
+     * See {@link Persistable.reseedCast}. The designation is declared
+     * (`cast:`), so there is nothing to resolve — walk the retained cast
+     * list, skip anything with a live instance anywhere (conserved), mint
+     * the rest.
+     */
+    async reseedCast(): Promise<void> {
+      if (this._bornWithCast.length === 0) return;
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isContainer(self)) return;
+      for (const path of this._bornWithCast) {
+        if (typeof path !== 'string' || path.length === 0) continue;
+        try {
+          // Live cast is conserved: an instance anywhere suppresses the
+          // re-mint — a hand captured mid-commute at the counter is still
+          // the one hand.
+          if (StuffApi.findAllByTemplatePath(path).length > 0) continue;
+          const npc = await StuffApi.clone<Stuff & Containable>(path);
+          ContainmentApi.move(npc, self as unknown as Stuff & Container);
+        } catch (err) {
+          console.warn(
+            `Persistable.reseedCast: could not re-seed '${path}':`,
+            err,
+          );
+        }
+      }
     }
 
     /**

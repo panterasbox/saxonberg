@@ -32,6 +32,8 @@ requires:
     - { extent: /world/terminus/terminal,        holder: { group: terminus }, landUse: civic }
     - { extent: /world/terminus/counting-houses, holder: { group: terminus }, landUse: commercial }
     - { extent: /world/terminus/general-store,   holder: { group: terminus }, landUse: commercial }
+    # The farmers market — the produce square off the counting-houses.
+    - { extent: /world/terminus/market,          holder: { group: terminus }, landUse: commercial }
     - { extent: /world/terminus/registry,        holder: { group: terminus }, landUse: civic }
     # University Avenue — the city street the campus gate fronts. Civic
     # like every other public street the municipality keeps.

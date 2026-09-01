@@ -164,7 +164,7 @@ Order is load-bearing. **Register fires before hydrate** so that anything
 resolving the in-flight object by `stuffId` during hydrate or
 `postRegister` (e.g., a self-referencing exit hydrator) finds it.
 
-## ⭐ Instruction appliers run ONCE — `populates` is initial furnishing
+## ⭐ Instruction appliers run ONCE — `props`/`cast` are initial furnishing
 
 ⚠ **Added 2026-08-30** (the libations review). `TemplateApi.restoreFromTemplate`
 — the **CMS save go-live** (`CmsLogic`) and the **pack reconcile go-live**
@@ -172,11 +172,14 @@ resolving the in-flight object by `stuffId` during hydrate or
 Phase-2 instruction applier. For a *value* field that is harmless: the
 field is re-assigned to the authored value, which is the point. For an
 applier that **mints objects** it is a faucet: before this,
-publishing an edit to a `populates:` row minted a fresh set into every
+publishing an edit to a `props:` row minted a fresh set into every
 live instance — every crate in the world gaining six more grapefruits,
 every non-singleton fixture in a plain room duplicated.
 
-`PopulatesMixin` therefore records `_populated` and no-ops once set.
+`PopulatesMixin` therefore records `_propsPopulated`/`_castPopulated`
+(one once-flag per list — `props:` the write-back set dressing, `cast:`
+the conserved troupe; see persistence.md § Props and cast) and each
+applier no-ops once its flag is set.
 Singletons were already safe (the applier skips one already placed);
 this covers the plain-clone branch. `PersistableMixin` hosts (every
 `FurnishableRoom`) were never exposed — that override only *retains*
@@ -277,7 +280,7 @@ Two distinct field shapes ride on the Hydrator's two-phase dispatch
     the current container's templatePath matches the declared path.
     Target must be singleton-shaped (validated at template-save
     time by `TemplateApi.validateSingletonContainerTarget`).
-  - `applyPopulates` on `PopulatesMixin` — iterates a list of
+  - `applyProps` on `PopulatesMixin` — iterates a list of
     entries, each either a bare templatePath or a
     `{template, onto}` object. Dispatches per-entry by
     source-template singleton-shape: singletons resolved via
@@ -519,22 +522,22 @@ per-instance Stuff (avatars, items, NPCs) that should multiply.
 
 ## Deferred / known limitations
 
-The declarative-content substrate (the `container:` field, `applyPopulates`,
+The declarative-content substrate (the `container:` field, `applyProps`,
 the structural field shapes) is shipped, but a few constraints are known and
 left for future work:
 
-- **Reset / respawn shares substrate with `populates:` (own slate).** A
+- **Reset / respawn shares substrate with `props:` (own slate).** A
   future "reset this game item — destroy the current one, respawn fresh"
-  feature needs three things `applyPopulates` doesn't yet provide: (a) a
+  feature needs three things `applyProps` doesn't yet provide: (a) a
   runtime ref from the Container back to the children it spawned, so it can
   destroy-and-respawn later — the ref must evaporate on a child's `onDestruct`
   so an already-gone child doesn't haunt the list; (b) an ownership
   distinction between "I spawned this and own it for reset purposes" and "a
   player put this here, leave it alone on reset"; (c) a declarative reset
   cadence on the entry (a richer entry form like `{ path, resetCadence }`).
-  `applyPopulates` v1 is fire-and-forget; it extends to track the ref and
+  `applyProps` v1 is fire-and-forget; it extends to track the ref and
   respect the policy when reset lands as its own slate. Flagged so the
-  populates entry shape doesn't get locked into something that fights reset
+  props entry shape doesn't get locked into something that fights reset
   later.
 
 - **`container:` can't target a multi-room facade (Lounge case).** A
@@ -547,12 +550,12 @@ left for future work:
   resolve-at-clone-time) isn't pre-baked. Cross this bridge when the Lounge
   ships.
 
-- **`container:` vs `populates:` conflict detection (linter / boot
+- **`container:` vs `props:` conflict detection (linter / boot
   validation).** The same Containable-belongs-in-Container relationship can be
-  declared from either side — `container:` on the occupant or `populates:` on
+  declared from either side — `container:` on the occupant or `props:` on
   the host. Consistent declarations coexist (first to fire moves the
   singleton, the second no-ops via the existing-container check). But
-  contradictory declarations (X says "I belong in A", yet A's `populates:`
+  contradictory declarations (X says "I belong in A", yet A's `props:`
   omits X while B's includes X) aren't caught today — they need linter-level
   or boot-time validation that walks the template collection and flags the
   conflict. Not required for runtime correctness (refs still resolve lazily);

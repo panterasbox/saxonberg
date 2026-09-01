@@ -13,7 +13,7 @@
 #  - agent of the dorms owner → she's a member of the `duncan-hall` group,
 #    authored in config/groups.yaml + seeded by GroupSeeder (the authority
 #    behind her `dispatch provision $player`).
-#  - master ring → `populates`d into her inventory below (npc/master-ring.yaml),
+#  - master ring → `props`d into her inventory below (npc/master-ring.yaml),
 #    a physical master key for every pin-tumbler dorm lock.
 class: /world/eternal/duncan-hall/agent/Katie
 hydratorClass: /platform/idea/persistence/PersistentHydrator
@@ -26,12 +26,13 @@ data:
   # Owner-authored spawn loadout: the super's master ring (a physical master
   # key for every pin-tumbler dorm lock), cloned into her inventory at
   # hydration. Conferred here, not self-issued in her class code.
-  populates:
-    - /world/eternal/duncan-hall/agent/master-ring
+  props:
     # The kit is what makes the `maintains` round below possible AT ALL
     # — take it off her and the dorm weathers. An owner-authored loadout,
     # exactly like the master ring: never a self-issued power.
     - /residence/thing/householders-kit
+  cast:
+    - /world/eternal/duncan-hall/agent/master-ring
   shortDescription: the live-in super, keys jangling at her belt
   longDescription: |
     Big and solid and never quite still — there's always a light to fix, a

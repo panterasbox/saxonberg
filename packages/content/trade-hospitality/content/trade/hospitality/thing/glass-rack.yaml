@@ -1,6 +1,6 @@
 # The glass rack — the pool's home: an open container (never sealed) the
 # gather walk descends into, so a clean glass in the rack is claimable.
-# `populates:` mints the venue's glassware once; from then on the pool
+# `props:` mints the venue's glassware once; from then on the pool
 # CYCLES (claim → serve → bus → wash → rack) and a broken glass is a
 # shortfall on the stock sheet, bought like anything else.
 class: /trade/hospitality/thing/GlassRack
@@ -11,7 +11,7 @@ data:
   primaryKeyword: rack
   keywords: [rack, glass-rack, glassware, glasses]
   mass: 15
-  populates:
+  props:
     - /trade/hospitality/thing/coupe
     - /trade/hospitality/thing/coupe
     - /trade/hospitality/thing/coupe

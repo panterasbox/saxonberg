@@ -1,5 +1,5 @@
 # Bed — a university-owned dorm fixture (invariant, respawned from template),
-# seeded into each DormRoom via its `populates:` data. A rest surface; generic
+# seeded into each DormRoom via its `props:` data. A rest surface; generic
 # label, no Named. Its personalized prose is captured/restored per-room by
 # the persistence spine (the theme overlay).
 #

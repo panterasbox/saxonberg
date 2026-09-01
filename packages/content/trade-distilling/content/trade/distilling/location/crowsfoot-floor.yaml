@@ -18,8 +18,9 @@ data:
     A small, tidy yard with a single pallet by the door and, through a hatch, the copper gleam of a still nobody runs for the public yet.
   ambientIntensity: 25
   ambientColorTemperature: 4200
-  populates:
+  props:
     - /trade/distilling/thing/racking
     - /trade/distilling/thing/crowsfoot-stock
-    - /trade/distilling/agent/crowsfoot-hand
     - /trade/distilling/thing/still
+  cast:
+    - /trade/distilling/agent/crowsfoot-hand

@@ -52,6 +52,17 @@ const GARDEN_LINES = [
   "/trade/farming/thing/pot/large",
   "/stuff/thing/vessel/soil-sack",
   "/trade/farming/thing/seed/snake-plant",
+  // The produce packets (farming A5) — the ten grown families' seeds.
+  "/trade/farming/thing/seed/lime",
+  "/trade/farming/thing/seed/lemon",
+  "/trade/farming/thing/seed/orange",
+  "/trade/farming/thing/seed/grapefruit",
+  "/trade/farming/thing/seed/cherry",
+  "/trade/farming/thing/seed/olive",
+  "/trade/farming/thing/seed/mint",
+  "/trade/farming/thing/seed/cranberry",
+  "/trade/farming/thing/seed/grape",
+  "/trade/farming/thing/seed/juniper",
 ] as const;
 
 /**
@@ -97,9 +108,9 @@ function objDoc(path: string): Doc {
   };
 }
 
-// The counter stocks nineteen lines to par on standup, each a real clone
-// through the actual pipeline — the gardening and furnishings lines pushed
-// that past the default 5s budget.
+// The counter stocks twenty-nine lines to par on standup, each a real
+// clone through the actual pipeline — the gardening, furnishings and
+// produce-seed lines pushed that past the default 5s budget.
 vi.setConfig({ testTimeout: 30_000 });
 
 describe("general-store standup (real seeds)", () => {

@@ -18,7 +18,8 @@ data:
     A hangar of a floor: column stills in a row behind a chain-link fence, forklifts, and pallets of grey-labelled Volk under sodium light. Everything is stencilled.
   ambientIntensity: 30
   ambientColorTemperature: 3800
-  populates:
+  props:
     - /trade/distilling/thing/racking
     - /trade/distilling/location/veshko-yard/thing/stock
+  cast:
     - /trade/distilling/location/veshko-yard/agent/hand

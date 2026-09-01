@@ -246,7 +246,7 @@ async function runSpawnSweep(): Promise<SpawnSweepReport> {
   // first, so a FRESH boot stands a floor at target before any instance
   // exists to copy. The AUTHORED half of D31 (a declared par on a
   // resettable holder) rides the reset sweep and is untouched here —
-  // `populates:` likewise stays a clone-time cascade for set dressing,
+  // `props:` likewise stays a clone-time cascade for set dressing,
   // never the injection path for economy-bearing items.
   const candidates = await collectSpawnCandidates();
   if (candidates.length === 0) return report;
@@ -298,7 +298,7 @@ async function runSpawnSweep(): Promise<SpawnSweepReport> {
         // cloning a wand, a crafter finishing one, a shop restocking a
         // consignment — none of them get a surprise curse, because none
         // of them come through here. Putting the roll in `clone` would
-        // have every test, every `populates:` cascade and every crafted
+        // have every test, every `props:` cascade and every crafted
         // output rolling dice.
         rollBlessing(minted, blessingOdds);
         report.placed++;

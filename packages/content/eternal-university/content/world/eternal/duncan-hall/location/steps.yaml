@@ -37,6 +37,6 @@ data:
   # Scuba proof gear: an air tank (wear it before descending into the
   # flooded cistern below) and a compressor to refill it. The cistern is
   # the gear-gated water spot — survivable only while the tank has air.
-  populates:
+  props:
     - /stuff/thing/gear/air-tank
     - /stuff/thing/gear/air-compressor

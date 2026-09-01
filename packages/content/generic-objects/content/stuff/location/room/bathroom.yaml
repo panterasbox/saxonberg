@@ -33,7 +33,7 @@ data:
     A small tiled room with a tub along one wall, a basin under a clouded mirror, and a window of frosted glass that lets in light and nothing else.
   ambientIntensity: 20
   ambientColorTemperature: 4000
-  populates:
+  props:
     - /stuff/thing/fixture/toilet
     - /stuff/thing/fixture/basin
     - /stuff/thing/fixture/tub

@@ -191,7 +191,7 @@ export default class FeedController extends CommandController<FeedModel> {
     if (applied > 0) {
       try {
         await AdvancementApi.recordDeed(giver, {
-          discipline: 'agriculture',
+          discipline: 'horticulture',
           difficulty: 'easy',
           outcome: 'success',
         });

@@ -20,7 +20,7 @@ data:
       capacityValue: 100
       currentValue: 100
       unit: "%"
-  populates:
+  props:
     - /stuff/thing/fixture/range
     - /stuff/thing/fixture/counter
     - /stuff/thing/fixture/larder

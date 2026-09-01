@@ -20,7 +20,11 @@ that shapes every slate.
 > the houseplant / growth model
 > ([husbandry.md](./subsystems/husbandry.md)) and Hinkley Hills — ground
 > you own, the garden bed, the harvest and land use
-> ([smallholding.md](./subsystems/smallholding.md)).
+> ([smallholding.md](./subsystems/smallholding.md)). **Farming Stage A
+> then rode phase 2's substrate (2026-09-01):** the fruit cycle /
+> perennial tap, the ten grown families, the farmers market, and the
+> first production brain (`farms`, shipped in trade-farming) — Stage B
+> (Heart's Delight) waits on the residences-grounded re-plan.
 
 ---
 

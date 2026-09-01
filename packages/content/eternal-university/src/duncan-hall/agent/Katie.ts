@@ -16,7 +16,7 @@
  *     `requires.groups`, applied by the content installer. She does NOT enroll herself; a member writing its own name
  *     into the ledger is circular and no real authority.
  *   - Her master ring (legitimate master access to every pin-tumbler dorm
- *     lock) is a physical `Key` `populates`d into her inventory from
+ *     lock) is a physical `Key` `props:`-seeded into her inventory from
  *     `npc/master-ring.yaml` — an owner-authored spawn loadout, not a
  *     self-issued credential.
  *

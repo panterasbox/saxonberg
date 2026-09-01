@@ -41,13 +41,13 @@ describe("FurnishableRoom", () => {
   it("composes every layer a room seed actually needs", () => {
     // The regression this test exists for: FurnishableRoom first shipped as
     // `Persistable(Reserved(Location))`, and EVERY OMISSION WAS SILENT — a
-    // seed's `populates:` never fired, its prose never landed, and nothing
+    // seed's `props:` never fired, its prose never landed, and nothing
     // could walk into it. The YAML-shape tests all passed, because a seed
     // row is only as real as the class that reads it.
     //
     // The stack mirrors the shipped DormRoom's, minus WarrenMember.
     for (const layer of [
-      Mixins.Populates, // `populates:` — without this, no fixture EVER lands
+      Mixins.Populates, // `props:` — without this, no fixture EVER lands
       Mixins.Visible, // shortDescription / longDescription
       Mixins.Detailed, // `details:`
       Mixins.Exitable, // you can walk into it
@@ -94,7 +94,7 @@ describe("FurnishableRoom", () => {
       "/stuff/thing/fixture/basin",
       "/stuff/thing/fixture/tub",
     ];
-    // A `domain` row per fixture — `applyPopulates` resolves each spec
+    // A `domain` row per fixture — `applyProps` resolves each spec
     // through `Template.findByPath` before cloning it.
     const rows = paths.map((path) => ({ _id: path, path, class: "/platform/thing/Prop" }));
     vi.spyOn(PersistenceManager, "get").mockReturnValue({
@@ -114,10 +114,10 @@ describe("FurnishableRoom", () => {
       return makeStuffAtPath(() => new Thing(), path);
     }) as unknown as typeof StuffApi.clone);
 
-    // On a persistable host `applyPopulates` RETAINS the specs and
+    // On a persistable host `applyProps` RETAINS the specs and
     // `seedBornWith` lays them down once (the no-record branch) — the
     // DormWarren.admit shape.
-    await room.applyPopulates(paths);
+    await room.applyProps(paths);
     await room.seedBornWith();
 
     expect(cloned).toEqual(paths);

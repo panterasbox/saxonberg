@@ -1,0 +1,13 @@
+# A packet of lime seed — same discrete-Thing shape as the carrot
+# seed (never Globbable): it names the plant it grows into and carries no
+# variation of its own (genetics is farming-slate phase 2).
+class: /platform/thing/Seed
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a packet of lime seed
+  primaryKeyword: seed
+  keywords: [seed, seeds, "lime seed", lime, packet]
+  longDescription: |
+    A paper packet of lime pips, each one slick as a watermelon seed.
+  growsIntoPath: /trade/farming/thing/plant/lime
+  _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/sapindales/rutaceae/citrus/latifolia

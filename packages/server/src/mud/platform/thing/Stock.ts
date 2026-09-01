@@ -8,7 +8,7 @@
  *
  * Stock is authored declaratively: `stockLines` names each line
  * (`itemTemplatePath` + `par` + optional `brandKey`), the shelf inventory is
- * `populates`-cloned into the container, and `prices` is keyed by the item
+ * `props`-cloned into the container, and `prices` is keyed by the item
  * template path (the offer key). A buy moves one shelf item to the buyer;
  * the reset sweep (see `ResettableMixin`) tops each line back to `par`.
  * A counter with NO `stockLines` is a pure brokerage — everything on it

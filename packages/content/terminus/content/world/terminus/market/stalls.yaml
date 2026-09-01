@@ -1,0 +1,27 @@
+# The produce stalls — the market's one fixture: a Stock counter with NO
+# stockLines (nothing here is cloned to par; `reset()` is a no-op) that
+# composes the consignment shelf, the cash-and-carry counter's shape.
+# Everything on it was CONSIGNED — by the farmer's own hand, by a
+# player-grower — and is bought where it sits.
+#
+# `listingCapOverride`: LOOSE produce means dozens of listings per
+# seller (a single pick is twelve limes), so the stall authors a
+# generous per-consignor cap while every other shelf keeps the global
+# `retail.consignment.listingCap`. An authored, per-venue fact — never a
+# global raise.
+class: /platform/thing/Stock
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the produce stalls
+  primaryKeyword: stall
+  keywords: [stall, stalls, produce, trestle, counter]
+  longDescription: |
+    A long trestle stall under canvas, its boards stained fruit-dark by years of trade. Whatever is in season is ranked in open flats — citrus in bright rows, mint in wet bundles, cherries by the scoop — each flat chalked with its grower's name and ask.
+  discipline: scrum
+  attendDurationMs: 0
+  staffingPolicy: self-service
+  serverPositionKeys: [clerk]
+  businessPath: /world/terminus/market/business
+  stockLines: []
+  prices: {}
+  listingCapOverride: 200

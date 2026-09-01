@@ -11,7 +11,7 @@
  * ⭐ **Nothing here is unavailable to a player.** The act is the literal
  * `maintain` verb through `CommandApi.forceCommand`, gated exactly as a
  * typed line is: the NPC must be carrying a householder's kit (an
- * owner-authored `populates:` loadout, not a self-issued power), must be
+ * owner-authored `props:` loadout, not a self-issued power), must be
  * standing in the holding, and gets the same refusals anyone gets. Take
  * the kit off Katie and the dorm weathers.
  *

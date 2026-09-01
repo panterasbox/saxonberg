@@ -27,7 +27,7 @@ data:
   # decorative): the public noticeboard — the labor market's discovery
   # surface (affords `job`; see docs/subsystems/contract.md). The
   # departures board stays a described detail.
-  populates:
+  props:
     - /world/terminus/terminal/thing/job-board
   exits:
     north:

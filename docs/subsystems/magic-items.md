@@ -609,7 +609,7 @@ unexercised.
 > intent. An author's `clone`, a crafted output, a restocked
 > consignment — none come through the spawn sweep, so none get a
 > surprise curse. Putting the roll in `clone` would have every test,
-> every `populates:` cascade and every crafted item rolling dice.
+> every `props:` cascade and every crafted item rolling dice.
 
 Neither side declaring is a **no-op**, which is what lets a deliberately
 cursed exemplar stay cursed instead of being re-rolled to ordinary by a
@@ -1010,7 +1010,7 @@ shells, which are harmless.
 The census binds **regionally**, never globally — a global one would let
 one author's hoard starve the world.
 
-`populates:` is deliberately **not** the injection mechanism. It stays
+`props:` is deliberately **not** the injection mechanism. It stays
 what it is: a clone-time cascade for set dressing.
 
 ---

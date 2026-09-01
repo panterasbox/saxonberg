@@ -39,6 +39,7 @@ data:
       destination: /world/newbie-wilds/crossroads/treeline
   # The sentry keeps the ground; the trap kit waits in the bracken. Both
   # cloned fresh at standup.
-  populates:
-    - /world/newbie-wilds/agent/sentry
+  props:
     - /stuff/thing/traps/trap-kit
+  cast:
+    - /world/newbie-wilds/agent/sentry

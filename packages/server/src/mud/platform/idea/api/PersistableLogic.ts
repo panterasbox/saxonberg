@@ -16,6 +16,7 @@ import { ChattelApi } from "../../../api/chattel";
 import { Mixins } from "../../../lib/mixin";
 import { ExecutionContextApi } from "../../../api/execution-context";
 import { PersistedRecord } from "../../../lib/persistence/PersistedRecord";
+import { Template } from "../../../lib/stuff/Template";
 import { Document } from "../../../lib/persistence/Document";
 import PersistentHydrator from "../persistence/PersistentHydrator";
 import type { Marshaller } from "../../../lib/persistence/Marshaller";
@@ -627,13 +628,13 @@ async function restoreState(
 
 /**
  * **The record is authoritative.** A non-host content item is restored by
- * re-cloning its template, and a clone re-runs the template's `populates:`
+ * re-cloning its template, and a clone re-runs the template's `props:`
  * — so a container that declares born-with contents (a stocked chest, a
  * pre-planted pot) arrives holding a fresh set of them, which then collides
  * with the recorded set: doubled contents, and a `Slotted` re-occupy that
  * throws because the born-with occupant already claimed the slot.
  *
- * A *host* never has this problem: `PersistableMixin.applyPopulates` only
+ * A *host* never has this problem: `PersistableMixin.applyProps` only
  * retains the specs, and `seedBornWith` runs on the no-record branch alone.
  * This is the same rule for the non-host case — clear what the clone seeded
  * before applying what the record says.
@@ -780,7 +781,14 @@ async function materializeImpl(host: Stuff, key?: string): Promise<void> {
   stashKey(host, owner, key !== undefined);
   assertUniqueKey(scope, owner, host);
   const record = await PersistedRecord.findByScopeAndOwner(scope, owner);
-  if (record) await restoreRecord(host, record);
+  if (record) {
+    await restoreRecord(host, record);
+    // The cast is transient (capture's third skip), so a restored room
+    // comes back without its troupe — re-seed any `cast:` entry that has
+    // no live instance. Walks the retained `_bornWithCast`, so it is a
+    // no-op for a host that declares no cast.
+    if (MixinApi.isPersistable(host)) await host.reseedCast();
+  }
 }
 
 /** Restore one record onto `host` under its owning principal (shared by the
@@ -1006,7 +1014,7 @@ async function restoreOrSeedImpl(host: Stuff, key: string): Promise<boolean> {
     await materializeImpl(host, key);
     return true;
   }
-  // No record: lay the declared `populates:` fixtures down ONCE, then
+  // No record: lay the declared `props:` fixtures down ONCE, then
   // capture them so the next standup restores rather than re-seeds.
   await host.seedBornWith();
   await captureImpl(host, key);

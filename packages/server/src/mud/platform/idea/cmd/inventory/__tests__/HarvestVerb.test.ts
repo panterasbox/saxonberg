@@ -419,21 +419,148 @@ describe('harvest <plant>', () => {
     expect(p.isDestroyed()).toBe(false);
   });
 
-  it('refuses something that is not a plant', async () => {
-    const { giver, room, bed } = scene();
+  it('refuses something that is not a plant (a bed now RESOLVES — see below)', async () => {
+    const { giver, room } = scene();
     const ctrl = makeStuff(() => new HarvestController());
     const ctx = makeContext(giver, room);
-    await ctrl.execute(model(one(bed, 'bed')), ctx);
+    await ctrl.execute(model(one(room, 'room')), ctx);
     expect(noteReasons(ctx)).toContain('not-a-plant');
   });
 
-  it('credits agriculture', async () => {
+  it('credits horticulture — the practised leaf', async () => {
     const { giver, room, bed } = scene();
     const plant = ripe(bed);
     const ctrl = makeStuff(() => new HarvestController());
     await ctrl.execute(model(one(plant, 'carrots')), makeContext(giver, room));
 
     expect(deeds).toHaveLength(1);
-    expect(deeds[0]!.discipline).toBe('agriculture');
+    expect(deeds[0]!.discipline).toBe('horticulture');
+  });
+
+  /* ───────────── the polycarp branch — `pick` (farming A3) ─────────── */
+
+  /** Seat a RIPE polycarp tree: mature, window open, fill 1. */
+  function ripeTree(bed: GardenBed, worst = 1): Plant {
+    const p = makeStuffAtPath(() => {
+      const t = new Plant();
+      t.setShortDescription('a cherry tree');
+      t.setMaterial(tissue());
+      t.setMass(Quantity.of(40, 'kg'));
+      t.setLastAmbientK(295);
+      t.setLifecycleState('alive');
+      t.setProfile({ ...carrotProfile(), fruitSetCount: 3, fruitFillDays: 20 });
+      t.setHarvestTemplatePath(CROP_PATH);
+      t.setNutrientDraw(15);
+      return t;
+    }, freshPath('/trade/farming/thing/plant/_tree'));
+    ContainmentApi.move(p, bed);
+    bed.occupy(p, PLANT_SLOT);
+    forceStage(p, 'mature');
+    forceWorst(p, worst);
+    (p as unknown as { _flowering: boolean })._flowering = true;
+    (p as unknown as { _seedSet: boolean })._seedSet = true;
+    (p as unknown as { _fruitFill: number })._fruitFill = 1;
+    return p;
+  }
+
+  it('⭐ pick mints the SET COUNT, each off the cycle window — and the tree survives', async () => {
+    const { giver, room, bed } = scene();
+    const tree = ripeTree(bed, 0.7); // a `fine` cycle
+    const ctrl = makeStuff(() => new HarvestController());
+    await ctrl.execute(model(one(tree, 'cherries')), makeContext(giver, room));
+
+    const crops = giver.getContents().filter((s) => s instanceof Crop);
+    expect(crops).toHaveLength(3);
+    for (const c of crops) expect(crafted(c).getGrade().getBand()).toBe('fine');
+    expect(tree.isDestroyed()).toBe(false);
+    expect(bed.occupiedSlotCount()).toBe(1); // it keeps its place
+    expect(tree.isHarvestable()).toBe(false); // the window closed
+    // A routine pick is honest labor, never a levelling mill.
+    expect(deeds[0]!.difficulty).toBe('easy');
+    expect(deeds[0]!.discipline).toBe('horticulture');
+  });
+
+  it('⭐ the second cycle REGRADES CLEAN — the poor one does not follow the tree', async () => {
+    const { giver, room, bed } = scene();
+    const tree = ripeTree(bed, 0.4); // a neglected first cycle
+    const ctrl = makeStuff(() => new HarvestController());
+    await ctrl.execute(model(one(tree, 'cherries')), makeContext(giver, room));
+    let crops = giver.getContents().filter((s) => s instanceof Crop);
+    expect(crafted(crops[0]).getGrade().getBand()).toBe('fair');
+
+    // The next window: set again, kept well this time. (The re-seed at
+    // the SET is Fruiting.test.ts's claim; here we assert the pick reads
+    // the fresh window rather than the tree's history.)
+    forceWorst(tree, 1);
+    (tree as unknown as { _flowering: boolean })._flowering = true;
+    (tree as unknown as { _seedSet: boolean })._seedSet = true;
+    (tree as unknown as { _fruitFill: number })._fruitFill = 1;
+    await ctrl.execute(model(one(tree, 'cherries')), makeContext(giver, room));
+    crops = giver.getContents().filter((s) => s instanceof Crop);
+    expect(crops).toHaveLength(6);
+    expect(crafted(crops[5]).getGrade().getBand()).toBe('masterful');
+  });
+
+  it('a pick draws the FULL authored nitrogen — one export per cycle', async () => {
+    const { giver, room, bed } = scene();
+    const tree = ripeTree(bed);
+    const ctrl = makeStuff(() => new HarvestController());
+    await ctrl.execute(model(one(tree, 'cherries')), makeContext(giver, room));
+    expect(bed.nutrientFraction()).toBe(0.85);
+  });
+
+  it('⭐ naming the GROUND picks its ripe occupant over a bare one', async () => {
+    const { giver, room, bed } = scene();
+    const seedling = makePlant();
+    ContainmentApi.move(seedling, bed);
+    bed.occupy(seedling, PLANT_SLOT);
+    forceStage(seedling, 'young');
+    const tree = ripeTree(bed);
+
+    const ctrl = makeStuff(() => new HarvestController());
+    await ctrl.execute(model(one(bed, 'bed')), makeContext(giver, room));
+
+    const crops = giver.getContents().filter((s) => s instanceof Crop);
+    expect(crops).toHaveLength(3); // the tree's set, not the seedling
+    expect(seedling.isDestroyed()).toBe(false);
+    expect(tree.isHarvestable()).toBe(false);
+  });
+
+  it('a bed with only an unready plant refuses NAMING the stage', async () => {
+    const { giver, room, bed } = scene();
+    const seedling = makePlant();
+    ContainmentApi.move(seedling, bed);
+    bed.occupy(seedling, PLANT_SLOT);
+    forceStage(seedling, 'young');
+
+    const ctrl = makeStuff(() => new HarvestController());
+    const ctx = makeContext(giver, room);
+    await ctrl.execute(model(one(bed, 'bed')), ctx);
+    expect(noteReasons(ctx)).toContain('not-mature');
+    const detail = ctx
+      .getNotes()
+      .map((n) => (n as { detail?: string }).detail ?? '')
+      .join(' ');
+    expect(detail).toContain('young');
+  });
+
+  it('an empty bed says nothing is growing', async () => {
+    const { giver, room, bed } = scene();
+    const ctrl = makeStuff(() => new HarvestController());
+    const ctx = makeContext(giver, room);
+    await ctrl.execute(model(one(bed, 'bed')), ctx);
+    expect(noteReasons(ctx)).toContain('nothing-growing');
+  });
+
+  it('an unripe polycarp refuses with nothing-ripe (mature is not enough)', async () => {
+    const { giver, room, bed } = scene();
+    const tree = ripeTree(bed);
+    (tree as unknown as { _fruitFill: number })._fruitFill = 0.4; // filling
+    const ctrl = makeStuff(() => new HarvestController());
+    const ctx = makeContext(giver, room);
+    await ctrl.execute(model(one(tree, 'cherries')), ctx);
+    expect(noteReasons(ctx)).toContain('nothing-ripe');
+    expect(tree.isDestroyed()).toBe(false);
+    expect(bed.nutrientFraction()).toBe(1); // nothing exported
   });
 });
