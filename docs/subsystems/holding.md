@@ -453,6 +453,55 @@ sit.
 
 ---
 
+## The decision index — what `(D…)` and `(P…)` mean in the source
+
+⭐ **This table is why the requirements and plan docs could retire.** The
+build's source carries **159 citations** of the form `(D17)`, `(P10)` —
+they are how a reader gets from a line of code to the argument that put
+it there, and retiring the artifacts they name would have turned every
+one of them into a dead reference. The titles live here now; the
+reasoning lives in the sections of this doc that the titles describe.
+
+`D` = a **requirements** decision (what the build must be true of).
+`P` = a **plan** decision (how it was built).
+
+| | requirements decision |
+|---|---|
+| **D1** | The ladder's three rungs are dorm → apartment → Hinkley house |
+| **D2** | The house is minted rooms behind a locked door |
+| **D3** | The apartment building is a Warren of units, landlord-owned |
+| **D4** | Condition is shell-weathering, reconciled on read |
+| **D5** | The obligation is shell upkeep, and WHO owes it is a tenure term |
+| **D6** | The ascent gate is a read at the acquisition chokepoints |
+| **D7** | Furniture retail at the general store; keys at the chokepoints |
+| **D8** | apartment-requirements.md is superseded and retires at sweep |
+| **D9** | The apartment building fronts its own residential side street |
+| **D10** | Elasticity: singleton institution, on-demand stock, runtime caps |
+| **D11** | Furnishing is the domestic face of the economy |
+| **D12** | The four-role uniform model; one institution, two tiers |
+| **D13** | The plat plan: layout is authored data, and branching ships |
+| **D14** | The realtor: one Terminus realty office fronts every plat book |
+| **D15** | An archetype is a satisfiable checklist, never a room class |
+| **D16** | Warren-of-warrens: the residential programme |
+| **D17** | The identity split: `templatePath` always resolves to a row |
+| **D18** | Packaging: three locality packs + the `residence` capability pack |
+
+| | plan decision |
+|---|---|
+| **P1** | D16 convergence depth: the dorm converges FULLY, in two steps, keeping its classes |
+| **P2** | D17 mechanics: `identityPath` becomes a stamped slot; `asTemplatePath` is retired, not renamed-in-place |
+| **P3** | Capacity dials ride AppSettings keys named by the institution row |
+| **P4** | Plan shapes: dorm = linear (floors), Hinkley = branched (the live exercise), static = pinned by a synthetic suite institution |
+| **P5** | Archetype satisfaction extends the SHIPPED archetype substrate, not a new one |
+| **P6** | The realtor fires the purchase AS THE BUYER via a prompt, not an NPC dispatch |
+| **P7** | Names (content is free to re-flavor prose, not paths) |
+| **P8** | Where the keyed rooms' rows live (the zone lesson, applied) |
+| **P9** | Mounted goods persist as owner-side placements with a `mounted` marker |
+| **P10** | Condition, terms, and the maintenance act |
+| **P11** | Packaging: the pack cut (D18) and the relocation map |
+
+---
+
 ## Cross-references
 
 - [residence.md](./residence.md) — the dorm rung end to end, and the
