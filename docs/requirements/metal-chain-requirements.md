@@ -563,6 +563,23 @@ life-support. In the dark you can walk, listen, smell and feel your way
 out; you cannot hew, read a face, or shore. Consistent with the safety
 model: ground cannot kill, air can.
 
+**The other senses carry real routes.** ⭐ **Smell and the canary are
+complementary, not redundant** — sour air announces itself, blackdamp and
+CO do not, which is the historical reason for the bird. **Heft** is a
+near-quantitative ore test with no instrument (`weigh` ships). **Knocking
+is localization, not communication** — it says *someone is here, that way*
+in a warren with no map. **Touch is the only sense that survives no light
+and no sound**, which is what makes a lost lamp disabling rather than
+lethal.
+
+⚠⚠ **The aether reaches underground.** Implant comms keep their shipped
+distance-free property; a dead room is at most a rare authored exception
+with a friction-free step back into coverage. **Isolation is never a
+difficulty mechanic** — the mine is hard through environment, economics and
+epistemics, never by cutting players off from their peers. ⭐ And this
+*strengthens* the deep-law's "answer the call": if you can always be
+reached, failing to come is a choice rather than ignorance.
+
 **And the mine is where the sensorium does real work.** The content bible's
 *"reading the signs"* list is already multi-modal — a draught is touch,
 drummy rock is hearing, foul air is smell before the canary. See

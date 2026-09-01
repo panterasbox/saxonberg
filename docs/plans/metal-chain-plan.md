@@ -869,9 +869,17 @@ Air is the build's only lethal hazard, riding shipped `respiration` and
 mortality's rescuable dying clock — with a free continuous warning, an
 obvious unilateral escape, and no rescue required.
 
+⭐ **The canary is not redundant with a nose.** Sour, sulfurous air
+announces itself; blackdamp and CO do not — the historical reason for the
+bird. Author the two classes distinctly so the nose warns on one and only
+the canary warns on the other. ⚠ **The aether reaches underground** —
+implant comms keep their shipped distance-free property, and nothing in
+this build gates or degrades them.
+
 **Tests:** a dead-end heading degrades and recovers when connected
 through; the canary's behaviour tracks the value and precedes the
-character's own symptoms; a character who ignores it can die and can
+character's own symptoms; **odourless bad air is caught by the canary and
+NOT by smell, while sour air is caught by both**; a character who ignores it can die and can
 always walk out; the pony's draft cost is measurably lower than a
 character's for the same load.
 

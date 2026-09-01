@@ -479,6 +479,102 @@ So a lost light stops your *work* and sends you out — genuinely bad deep in
 unfamiliar workings, since there is no map and the way back is only what
 you remember, but never an instant death.
 
+### ⭐⭐ The other senses — the descent is a sensory subtraction **[DECIDED 2026-09-01]**
+
+> **The mine is the only venue where you lose senses one at a time** —
+> light first, then air forces you out, then depth and silence take sound —
+> and each loss pushes you onto a different route. **The danger curve and
+> the perception model are the same gradient.**
+
+Body plans grant touch today (`biped`/`quadruped` both carry
+`{modality: touch, count: 1, position: circumferential}`), so the old
+`feel`/`taste` scar — a feature whose enabling data was missing, failing
+closed and silent — is healed and the mine can lean on it.
+
+#### Sound — carries where light does not
+
+The surface's long sense is vision; underground it is **hearing**. You hear
+a crew down a drift you cannot see, water running (flooding), a roof
+working before it sheds.
+
+⭐⭐ **Knocking is LOCALIZATION, not communication.** Aether messaging is
+*addressed* — you reach a **person**. Knocking is undirected and
+**positional** — it says *someone is here, that way*. In a 3D warren with
+no map you can call your partner and still not know where either of you
+is; knocking is how you converge. That is what trapped-miner knocking
+actually is, and it survives universal aether coverage untouched.
+
+**Silence is information twice**: the ambient band going quiet (something
+is coming), and the *mine* going quiet — a working level is noisy, so
+sudden silence means everyone stopped.
+
+#### ⭐⭐⭐ Smell — and it is what makes the canary earn its place
+
+> **Some bad air smells. The air that kills quietly does not.**
+
+Sour, sulfurous air announces itself — the content bible already gives the
+sulfide zone *"sour air & water."* **Blackdamp and carbon monoxide are
+odourless**, which is the real historical reason canaries existed.
+
+So **your nose and the bird are complementary, not redundant**: the nose
+covers the air that warns, the bird covers the air that does not. The
+canary stops being a mascot.
+
+⭐ Smell is also a **prospecting route** — the oxide→sulfide transition
+smells. Which is the **third job for the water table**: the mineral-zone
+boundary, the drainage-commons boundary, *and* the line where the air turns
+sour.
+
+#### Touch — a real assay, and the last resort
+
+- ⭐ **Heft.** Ore minerals are strikingly dense; hefting is a genuine
+  field test and `weigh` already ships. **Touch gives a near-quantitative
+  read with no instrument** — the poor prospector's assay.
+- **Texture identifies rock**: slate splits along its cleavage, granite
+  does not.
+- The **depth temperature gradient**, through shipped contact
+  thermoreception.
+- ⭐⭐ **Touch is the only sense that survives no light and no sound.**
+  Feeling along a drift wall is how you get out — which is what makes
+  *"losing your light is disabling, not lethal"* mechanically true rather
+  than a promise.
+
+#### Taste — the diagnostic that can kill you
+
+Minerals were genuinely tasted in the field. The mining slate already
+carries **arsenical ground** as a toxin hazard, and the bible calls deep
+water a *"sulfide → toxin gamble."*
+
+⭐ Same structure [discovery-slate](./discovery-slate.md) found in foraging
+— *"the drug and the poison are frequently the same plant, and telling them
+apart IS the skill."* **Identification and poisoning are one act.** High
+information, high risk, and the route a novice should not reach for.
+
+#### ⚠⚠ The aether reaches underground — isolation is never a difficulty mechanic
+
+**User ruling, and it is a product principle rather than a mining one:**
+*"aether has to work pretty much everywhere. maybe there's a case for a
+dead room here or there but even if we did such a thing exit back to
+coverage needs to be easy and friction free. I don't want players getting
+cut off from their peers."*
+
+So implant comms keep the **distance-free** property `comms.md` gives them.
+A dead room is a **rare authored exception** with a friction-free step back
+into coverage, never a region and never a gate.
+
+⭐⭐ **And this makes the deep-law's gravest clause stronger, not weaker.**
+I had it backwards: I assumed isolation gave *"answer the call"* its teeth.
+It does not — **coverage does.** If you can always be reached, then failing
+to come is a **choice** rather than ignorance. **Universal coverage removes
+the excuse**, which is exactly what a mutual-aid law needs to bite.
+
+The mine's difficulty comes from the environment, the economics and the
+epistemics — **never from taking away your friends.**
+
+⭐ The deep stays available as a *strangeness*, not a silence: where the
+strata approach the pre-Fallow wire, the aether should behave **oddly**
+rather than cut out (Stage C, with the Hush). Same rule, more interesting.
+
 ### ⭐⭐⭐ The ecology as built — instruments, emissions, and the v1 seven **[DECIDED 2026-08-31]**
 
 The roster above says *what lives there*. This says **what each kind of
