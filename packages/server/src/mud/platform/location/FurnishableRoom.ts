@@ -55,8 +55,13 @@
  * smoke and carbon monoxide, and self-smothers (D12).
  */
 
-import CartesianLocation from "./CartesianLocation";
+import Location from "../../lib/stuff/Location";
 import { PersistableMixin } from "../../lib/persistence/Persistable";
+import { PopulatesMixin } from "../../lib/stuff/Populates";
+import { VisibleMixin } from "../../lib/description/Visible";
+import { DetailedMixin } from "../../lib/description/Detailed";
+import { ExitableMixin } from "../../lib/boundary/Exitable";
+import { PostRegistrationMixin } from "../../lib/stuff/PostRegistration";
 import { ReservedMixin } from "../../lib/reserve";
 import { WarrenMemberMixin, type WarrenMember } from "../../lib/location/WarrenMember";
 import { MixinApi } from "../../api/mixin";
@@ -70,24 +75,43 @@ import type { FieldMeta } from "../../lib/mixin";
 /** The default posted designation — the room says nothing about who it is for. */
 export const UNRESTRICTED = "unrestricted";
 
-// ⭐ It extends one of the four location classes, and WHICH one is a
-// claim about what a furnished room IS.
+// ⭐⭐ **It is NOT one of the four Location classes, and that is a claim
+// about what a furnished room IS.**
 //
-// **Minted**: many live rooms per row, keyed per holding — three houses
-// on three lots are three halls from one `hall.yaml`. Never a singleton.
+// **Minted**, yes: many live rooms per row, keyed per holding — three
+// houses on three lots are three halls from one `hall.yaml`. Never a
+// singleton.
 //
-// **Cartesian**: a floorplan is a small grid, and the authored exits say
-// so in so many words — `{ to: kitchen, direction: east }`,
-// `{ to: bedroom, direction: north }`. A holding's rooms sit north and
-// east of each other, which is a coordinate system whether or not the
-// rows bother to write coordinates down.
+// **But not CARTESIAN**, and this is the part that is easy to get wrong,
+// because a floorplan looks like a small grid: the authored exits say
+// `{ to: kitchen, direction: east }`, rooms sit north and east of one
+// another, and it is tempting to conclude there is a coordinate system
+// underneath. There is not, and the give-away is that not one shipped
+// row authors `coords`.
 //
-// So: `CartesianLocation`, plus the three things a room somebody
-// FURNISHES needs and a bare cell does not — a record of its own
-// (`Persistable`), a warren to belong to (`WarrenMember`), and the
-// ability to author a finite `air` budget (`Reserved`).
+// ⚠ The cost of getting it wrong is not abstract. A `CartesianLocation`
+// derives its cell geometry from its ZONE — `getSizeScale()` is
+// `cellSize²` — and the light walk divides flux by that to get lux. A
+// furnished room on the cartesian base therefore reads
+// `cellSize²`-times dimmer the moment it is zoned: a Hinkley yard at 600
+// lumens of open sky came out at **16.7 lux**, under the light floor its
+// own crop needs, and every interior went the same way on its fixtures.
+// This class was cartesian for one commit and did exactly that. A lot is
+// not a grid cell of the street either — N lots cannot share one
+// coordinate.
+//
+// So: plain `Location` with the room mixins, plus the three things a
+// room somebody FURNISHES needs and a bare cell does not — a record of
+// its own (`Persistable`), a warren to belong to (`WarrenMember`), and
+// the ability to author a finite `air` budget (`Reserved`).
 const FurnishableRoomBase = PersistableMixin(
-  WarrenMemberMixin(ReservedMixin(CartesianLocation)),
+  WarrenMemberMixin(
+    PostRegistrationMixin(
+      ExitableMixin(
+        DetailedMixin(VisibleMixin(ReservedMixin(PopulatesMixin(Location)))),
+      ),
+    ),
+  ),
 );
 
 /** Structural view of the warren surface the population witness pokes. */

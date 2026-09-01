@@ -1,13 +1,17 @@
 # /world/terminus/hinkley-hills/lots — the ZONE the sold lots live in.
-# It exists because of a rule the cartesian grid enforces, and the rule
-# is right.
 #
-# Hinkley Lane is a CartesianLocation, so it is a grid, and a grid admits
-# a NON-CARDINAL exit only across a zone boundary. The gate into a lot is
-# non-cardinal by necessity — it is directioned `lot-1`, because `north`
-# collides the moment a second lot sells and no compass scheme survives
-# an arbitrary plat. And a lot genuinely is not a grid cell of the
-# street: N lots cannot share one coordinate.
+# ⭐ It no longer exists for the reason it was built for. A grid admits a
+# NON-CARDINAL exit only across a zone boundary, and the gate into a lot
+# used to be directioned by the lot leaf (`lot-1`) — not a direction at
+# all — so this zone was what made the edge legal. Gates are CARDINAL
+# now: a road runs along one axis and leaves the other six planar points
+# free, so a lot faces north or southwest and the ring assigns which.
+# The boundary is no longer load-bearing for that.
+#
+# It stays for the OTHER reason, which was always the better one: a lot
+# is not a grid cell of the street (N lots cannot share one coordinate),
+# and a yard that fell back into the district's zone would be measured by
+# the district's grid.
 #
 # One authored zone here puts every lot's minted room on the far side of
 # that boundary, with NO per-lot template row — a minted identity has no

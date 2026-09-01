@@ -30,6 +30,7 @@ import { BankingApi } from '@saxonberg/server/mud/api/banking';
 import { EmploymentApi } from '@saxonberg/server/mud/api/employment';
 import { CredentialApi } from '@saxonberg/server/mud/api/credential';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { ExecutionContextApi } from '@saxonberg/server/mud/api/execution-context';
 import { ParcelEvent } from '@saxonberg/server/mud/lib/parcel/ParcelEvent';
@@ -584,18 +585,27 @@ describe('title', () => {
     expect(owner?.kind).toBe('player');
   });
 
+  /**
+   * ⭐ The gate is CARDINAL — which side of the road the house is on.
+   * The lane runs west, so its ring is right/left/ahead-right/ahead-left
+   * of somebody walking it: north, south, northwest, southwest. lot-1
+   * faces north, lot-2 south, lot-3 northwest, lot-4 southwest.
+   */
   it('⭐ hangs a GATE on the lane for the lot, eager on the yard ROW (D17)', async () => {
     const street = seedStreet();
-    expect(street.getExit('lot-2')).toBeUndefined();
+    expect(street.getExit('south')).toBeUndefined();
 
     const room = registryRoom();
     await run(buyerIn(room), room, model('buy', 'lot 2'));
 
-    const gate = street.getExit('lot-2');
+    const gate = street.getExit('south');
     expect(gate).toBeDefined();
     // Eager on its face — the ENTRY ROOM'S REAL ROW, never a minted path.
     expect(gate!.getDestinationTemplatePath()).toBe(YARD_ROW);
-    expect(street.getExit('lot-3')).toBeUndefined();
+    // …and it is a real compass point, so it has a way back.
+    expect(NavigationApi.isCardinalDirection('south')).toBe(true);
+    expect(street.getExit('northwest')).toBeUndefined();
+    expect(street.getExit('lot-2')).toBeUndefined();
   });
 
   it('⭐ the house stands up KEYED on the extent — rooms are instances of real rows (D16/D17)', async () => {
@@ -626,10 +636,10 @@ describe('title', () => {
     const room = registryRoom();
     await run(buyerIn(room), room, model('buy', 'lot 2'));
     const holder = StuffApi.findByTemplatePath<PlatWarren>(HOLDER_PATH)!;
-    const first = street.getExit('lot-2');
+    const first = street.getExit('south');
     await holder.ensureGate(LOT2);
     await holder.ensureGate(LOT2);
-    expect(street.getExit('lot-2')).toBe(first);
+    expect(street.getExit('south')).toBe(first);
   });
 
   it('⭐ re-hangs every sold lot\'s gate at BOOT, materializing no houses', async () => {
@@ -647,9 +657,9 @@ describe('title', () => {
 
     await holder.postRegister();
 
-    expect(reborn.getExit('lot-2')).toBeDefined();
-    expect(reborn.getExit('lot-3')).toBeDefined();
-    expect(reborn.getExit('lot-4')).toBeUndefined();
+    expect(reborn.getExit('south')).toBeDefined(); // lot-2
+    expect(reborn.getExit('northwest')).toBeDefined(); // lot-3
+    expect(reborn.getExit('southwest')).toBeUndefined(); // lot-4, unsold
     // Deferred: nothing was materialized to answer the question.
     expect(holder.liveRoomFor(LOT2)).toBeNull();
   });
@@ -670,7 +680,10 @@ describe('title', () => {
       (reach as unknown as { getExit(d: string): unknown }).getExit('east'),
     ).toBeDefined();
     expect(
-      (reach as unknown as { getExit(d: string): unknown }).getExit('lot-5'),
+      // lot-5 is the first frontage of lane:2 — and lane:2 is where the
+      // court branches north, so north is off that reach's ring and the
+      // first lot on it faces south.
+      (reach as unknown as { getExit(d: string): unknown }).getExit('south'),
     ).toBeDefined();
     // The court (lot-57+ under this plan) is still unreachable.
     expect(holder.nodeReachable('court:1')).toBe(false);

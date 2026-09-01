@@ -342,8 +342,16 @@ find: **the room class cannot be a `CartesianLocation`.**
 N lots cannot share one coordinate, so a per-lot room was never a grid
 member — and the grid says so itself. `CartesianLocation.addExit`
 refuses a **non-cardinal** direction between two rooms in the same zone,
-which is exactly the `lot-1` gate off the lane (see *the gate*, below).
-The rule is right; the room was wrong.
+which was exactly the `lot-1` gate off the lane before the gate ring made
+it cardinal (see *the gate*, below). The rule is right; the room was
+wrong — and it is wrong for a second, independent reason that outlived
+the gate fix: a `CartesianLocation` derives `getSizeScale()` from its
+zone's `cellSize²` and the light walk divides flux by it, so a cartesian
+yard reads `cellSize²`-times dimmer. **This regressed once more**, when
+the location-class taxonomy put `FurnishableRoom` on the cartesian base:
+600 lumens of open sky came back out at 16.7 lux again. `FurnishableRoom`
+is plain `Location` with the room mixins, and a test beside the class
+pins `getSizeScale() === 1.0`.
 
 So a lot's room is a **`FurnishableRoom`** — the furnishing build's
 venue-generic persistable room ([furnishing.md](./furnishing.md)) — and
@@ -390,11 +398,28 @@ lots sell, and re-hung at boot from the title registry
 still get home after a restart. Deferred, so a lane with five sold lots
 materializes no yards until somebody walks in.
 
-**Direction is the lot's leaf** — `lot-1`, which is what is stencilled
-on the stake. `north` collides the moment a second lot sells, and no
-compass scheme survives an arbitrary plat. It is non-cardinal, which is
-what forces the separate lots zone above. `go lot-1`; bare `lot-1` is
-cardinal-only sugar.
+**Direction is the plat's GATE RING** — *which side of the road your
+house is on*. `go north`, and `south` brings you back out.
+
+It used to be the lot's leaf (`lot-1`, what is stencilled on the stake),
+on the reasoning that `north` collides the moment a second lot sells. It
+does — but only if you think a reach has one usable compass point. It
+has six: **a road runs along ONE axis and leaves the other six planar
+points free**, which is how a street actually works. So the ring is
+right, left, ahead-right, ahead-left, behind-right, behind-left of
+somebody walking the road in its heading (`PlatPlan.gateDirectionOfSlot`),
+minus any point a branch road already leaves by. The lane runs west, so
+its lots face north, south, northwest, southwest.
+
+Three things fall out. The gate is **cardinal**, so it no longer needs a
+zone boundary to be legal. It has a **known inverse**, which is what the
+grid rule exists to guarantee and what `lot-1` could never have. And
+**six frontages per reach is the ceiling** — five on a reach a road
+branches off — checked at parse, so an over-subscribed plat fails at
+install rather than running out of compass on a sale.
+
+The lot number does not vanish: `title buy` tells the buyer which side
+theirs is on, and the stake still says which lot it is.
 
 **Ungated, deliberately.** A yard behind a house is not locked from the
 lane; the house is. A gate that refused non-owners would put a property
@@ -595,7 +620,7 @@ minting a room per lot (`b0cf1df4`; the merge that preceded it is
 |---|---|
 | the lane had an exit north | it pointed at the **shared yard template**, which stood the template up as an unowned yard on nobody's lot — and then collided with the minted identities |
 | `TitledRoom` composed correctly | a per-lot room cannot be a `CartesianLocation` at all, and as one the yard read **16.7 lux** — under a carrot's light floor |
-| exits were added | a non-cardinal `lot-1` gate needs a *spatial, authored* zone the lots do not otherwise have |
+| exits were added | a non-cardinal `lot-1` gate needs a *spatial, authored* zone the lots do not otherwise have — **since superseded**: the gate ring made it cardinal, and the zone stays only for the grid-geometry reason |
 | `water` had a controller and a test | nothing in the yard **conferred** it — the can was missing |
 
 Three lessons worth keeping, none of them about farming:

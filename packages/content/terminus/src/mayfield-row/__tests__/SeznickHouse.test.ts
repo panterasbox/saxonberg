@@ -116,17 +116,17 @@ function seedDomain(): void {
     floorplan: [
       {
         leaf: 'hall',
-        room: `${HOUSE}/rooms/hall`,
+        room: `${HOUSE}/location/hall`,
         entry: true,
         exits: [{ to: 'main', direction: 'north', opposite: 'south' }],
       },
-      { leaf: 'main', room: `${HOUSE}/rooms/main` },
+      { leaf: 'main', room: `${HOUSE}/location/main` },
     ],
   });
-  add(`${HOUSE}/rooms/hall`, '/platform/location/FurnishableRoom', {
+  add(`${HOUSE}/location/hall`, '/platform/location/FurnishableRoom', {
     shortDescription: 'the entry hall',
   });
-  add(`${HOUSE}/rooms/main`, '/platform/location/FurnishableRoom', {
+  add(`${HOUSE}/location/main`, '/platform/location/FurnishableRoom', {
     shortDescription: 'the main room',
   });
   add(CORRIDOR, '/platform/location/FurnishableRoom', {
@@ -412,7 +412,7 @@ describe('Seznick House — the lease loop', () => {
     const lamp = await StuffApi.clone<Stuff>('/world/test/lamp');
     await ChattelApi.stamp(lamp as never, tenant as never);
     ContainmentApi.move(lamp as never, main);
-    await ChattelApi.setPlace(lamp as never, `${HOUSE}/rooms/main#${unit}/main`);
+    await ChattelApi.setPlace(lamp as never, `${HOUSE}/location/main#${unit}/main`);
 
     const ctx = await run(makeStuff(() => new UnleaseController()), walter, tenant, 'unlease');
     expect(reasons(ctx)).toEqual([]);
@@ -500,7 +500,7 @@ describe('Seznick House — the lease loop', () => {
     expect(w.nodeReachable('main:1')).toBe(true);
     const reborn = await w.admit(unit);
     expect(reborn.isDestroyed()).toBe(false);
-    expect(reborn.getTemplatePath()).toBe(`${HOUSE}/rooms/hall`);
+    expect(reborn.getTemplatePath()).toBe(`${HOUSE}/location/hall`);
   });
 
   /**

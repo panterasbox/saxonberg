@@ -30,8 +30,6 @@
  * a typo fails at install, not mid-provision.
  */
 
-import { NavigationApi } from '../../api/navigation';
-
 export type PlanShape = 'static' | 'linear' | 'branched';
 
 /** One road of a branched plan (parsed). */
@@ -39,6 +37,8 @@ interface PlanRoad {
   key: string;
   segments: number;
   frontagesPerSegment: number;
+  /** The planar cardinal the road RUNS in, away from the entrance. */
+  heading: string;
   branchesFrom: { road: string; segment: number; direction: string } | null;
   /** Authored circulation rooms by segment number (template paths). */
   authored: Map<number, string>;
@@ -52,6 +52,40 @@ interface StaticNode {
 }
 
 const LINEAR_ROAD = 'main';
+
+/** The four a road may run along. A lane on a diagonal is not a thing. */
+const PLANAR = ['north', 'south', 'east', 'west'] as const;
+
+/**
+ * ⭐ **The gate ring** — which way a lot's gate faces, per road heading.
+ *
+ * This is the answer to *why is a gate not just `north`?* A reach of
+ * lane carries several frontages, so one compass point cannot serve them
+ * all; the gate used to be directioned by the lot LEAF (`lot-7`, what is
+ * stencilled on the stake), which a grid refuses inside its own zone —
+ * which is why the lots zone had to exist.
+ *
+ * But a road runs along ONE axis, which leaves the other six planar
+ * points free, and that is how a street actually works: your house is on
+ * the north side of the lane. So the ring is, in order, **right, left,
+ * ahead-right, ahead-left, behind-right, behind-left** of somebody
+ * walking the road in its heading. Frontage 1 and 2 face each other
+ * across the road; 3 and 4 sit further up; 5 and 6 further back.
+ *
+ * Consequences worth knowing:
+ *   - a gate is CARDINAL, so it is legal inside one zone and has a known
+ *     inverse — `go north`, and `south` brings you back out;
+ *   - the axis itself is excluded, so a gate can never collide with the
+ *     road's own onward/back exits;
+ *   - **six frontages per reach is the ceiling**, and a reach that a road
+ *     branches off has one fewer. Both are checked at parse.
+ */
+const GATE_RING: Readonly<Record<string, readonly string[]>> = {
+  west: ['north', 'south', 'northwest', 'southwest', 'northeast', 'southeast'],
+  east: ['south', 'north', 'southeast', 'northeast', 'southwest', 'northwest'],
+  north: ['east', 'west', 'northeast', 'northwest', 'southeast', 'southwest'],
+  south: ['west', 'east', 'southwest', 'southeast', 'northwest', 'northeast'],
+};
 
 export class PlatPlan {
   private constructor(
@@ -121,8 +155,25 @@ export class PlatPlan {
             if (typeof path === 'string') authored.set(Number(seg), path);
           }
         }
+        const branchDir = branches
+          ? mustPlanar(
+              branches.direction === undefined
+                ? 'north'
+                : String(branches.direction),
+              `road ${String(o.key)} branchesFrom.direction`,
+            )
+          : null;
         return {
           key: o.key,
+          // A road runs the way it leaves its parent unless it says
+          // otherwise; the first road runs `west` (up the slope, the
+          // Hinkley convention) unless it says otherwise.
+          heading: mustPlanar(
+            o.heading === undefined
+              ? (branchDir ?? 'west')
+              : String(o.heading),
+            `road ${String(o.key)} heading`,
+          ),
           segments: mustPositive(num(o.segments, 1), `road ${o.key} segments`),
           frontagesPerSegment: mustPositive(
             num(o.frontagesPerSegment, 4),
@@ -140,12 +191,7 @@ export class PlatPlan {
                 // the first lot on a branch road threw as it was wired.
                 // Cardinal also means the edge has a known inverse, which
                 // is the whole point of the rule.
-                direction: mustCardinal(
-                  branches.direction === undefined
-                    ? 'north'
-                    : String(branches.direction),
-                  `road ${String(o.key)} branchesFrom.direction`,
-                ),
+                direction: branchDir!,
               }
             : null,
           authored,
@@ -161,7 +207,27 @@ export class PlatPlan {
         }
         seen.add(r.key);
       }
-      return new PlatPlan('branched', 0, roads, []);
+      // ⭐ The gate ring must actually FIT. A reach has six free points
+      // (the road's own axis is spoken for), one fewer for every road
+      // that branches off it — so a plat asking for more frontages than
+      // that is unbuildable, and says so at install rather than running
+      // out of compass on a sale.
+      const plan = new PlatPlan('branched', 0, roads, []);
+      for (const r of roads) {
+        for (let seg = 1; seg <= r.segments; seg++) {
+          const room = plan.ringFor(r, seg).length;
+          if (r.frontagesPerSegment > room) {
+            throw new Error(
+              `PlatPlan: road '${r.key}' segment ${seg} has ` +
+                `${r.frontagesPerSegment} frontages but only ${room} gate ` +
+                `direction(s) free (heading '${r.heading}'` +
+                (room < 6 ? ', less the road branching off it' : '') +
+                `); a reach holds at most 6`,
+            );
+          }
+        }
+      }
+      return plan;
     }
     throw new Error(`PlatPlan: unknown shape '${String(shape)}'`);
   }
@@ -342,11 +408,58 @@ export class PlatPlan {
    */
   onwardDirectionOf(nodeId: string): string {
     const { road, segment } = this.parseNode(nodeId);
-    if (segment === 1) {
-      const r = this.roads.find((x) => x.key === road);
-      if (r?.branchesFrom) return r.branchesFrom.direction;
+    const r = this.roads.find((x) => x.key === road);
+    if (segment === 1 && r?.branchesFrom) return r.branchesFrom.direction;
+    return r?.heading ?? 'west';
+  }
+
+  /**
+   * ⭐ The CARDINAL a lot's gate faces — *which side of the road your
+   * house is on*.
+   *
+   * Derived, never stored: the slot's road gives the heading, the
+   * heading gives the ring, the slot's position within its reach indexes
+   * it, and any road branching off that reach has its direction removed
+   * first (so a gate can never land on the mouth of the court). Pure
+   * function of the plan, so it is the same answer on every boot — which
+   * it has to be, because a sold lot's gate is re-hung from it at
+   * standup.
+   *
+   * `null` where the plan has no gate ring to speak of (linear + static
+   * name their own edges) or the leaf is not one of this plan's.
+   */
+  gateDirectionOfSlot(slotLeaf: string): string | null {
+    if (this.shape !== 'branched') return null;
+    const m = /^lot-(\d+)$/.exec(slotLeaf);
+    if (!m) return null;
+    let n = Number(m[1]);
+    for (const road of this.roads) {
+      const cap = road.segments * road.frontagesPerSegment;
+      if (n <= cap) {
+        const segment = Math.ceil(n / road.frontagesPerSegment);
+        const index = (n - 1) % road.frontagesPerSegment;
+        return this.ringFor(road, segment)[index] ?? null;
+      }
+      n -= cap;
     }
-    return 'west';
+    return null;
+  }
+
+  /** The ring for one reach: the heading's ring, less any branch mouth
+   *  that already leaves this node. */
+  private ringFor(road: PlanRoad, segment: number): readonly string[] {
+    const ring = GATE_RING[road.heading] ?? [];
+    const taken = new Set(
+      this.roads
+        .filter(
+          (r) =>
+            r.branchesFrom &&
+            r.branchesFrom.road === road.key &&
+            r.branchesFrom.segment === segment,
+        )
+        .map((r) => r.branchesFrom!.direction),
+    );
+    return taken.size === 0 ? ring : ring.filter((d) => !taken.has(d));
   }
 
   private parseNode(nodeId: string): { road: string; segment: number } {
@@ -361,14 +474,16 @@ function num(v: unknown, dflt: number): number {
 }
 
 /**
- * A branch direction must be one of the 10 canonical cardinals — the
- * grid refuses anything else into its own zone. Checked at PARSE so a
- * typo fails at install, not on the sale of the ninth lot.
+ * A road heading and a branch direction must be one of the four PLANAR
+ * cardinals. Cardinal because the grid refuses anything else into its
+ * own zone; planar because a road that runs `up`, or on a diagonal, has
+ * no coherent left and right and so no gate ring. Checked at PARSE, so a
+ * typo fails at install rather than on the sale of the ninth lot.
  */
-function mustCardinal(d: string, what: string): string {
-  if (!NavigationApi.isCardinalDirection(d)) {
+function mustPlanar(d: string, what: string): string {
+  if (!(PLANAR as readonly string[]).includes(d)) {
     throw new Error(
-      `PlatPlan: ${what} must be a cardinal direction (got '${d}')`,
+      `PlatPlan: ${what} must be one of ${PLANAR.join('/')} (got '${d}')`,
     );
   }
   return d;

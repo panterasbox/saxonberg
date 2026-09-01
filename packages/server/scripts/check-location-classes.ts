@@ -42,6 +42,10 @@ const CONTENT = join(HERE, "..", "..", "content");
 
 const FURNISHABLE = "/platform/location/FurnishableRoom";
 const MINTED = "/platform/location/CartesianLocation";
+const ZONES = [
+  "/platform/idea/location/CartesianZone",
+  "/platform/idea/location/SphericalZone",
+];
 
 /**
  * Every row on the PERMISSIVE `CartesianLocation` — a row that describes
@@ -138,12 +142,66 @@ function against(
   };
 }
 
+/** Every shipped `.yaml`, pack-relative — the directory census the
+ *  orphaned-zone check reads. */
+export function allYamlFiles(contentDir: string = CONTENT): string[] {
+  const out: string[] = [];
+  if (!existsSync(contentDir)) return out;
+  const walk = (dir: string): void => {
+    for (const name of readdirSync(dir)) {
+      if (name === "node_modules") continue;
+      const full = join(dir, name);
+      if (statSync(full).isDirectory()) walk(full);
+      else if (name.endsWith(".yaml")) out.push(full.slice(contentDir.length + 1));
+    }
+  };
+  walk(contentDir);
+  return out;
+}
+
 /** The findings: rows on `FurnishableRoom` that are not in the roster. */
 export function classify(rows: readonly Row[]): {
   unexpected: string[];
   missing: string[];
 } {
   return against(rows, FURNISHABLE, FURNISHED);
+}
+
+/**
+ * Zone rows that zone NOTHING.
+ *
+ * ⚠ `ZoneApi.resolveZoneForPath` walks TEMPLATE ancestry, so a zone row
+ * zones the sibling directory that shares its name: `lots.yaml` zones
+ * `lots/`. Rename or move that directory and the zone is still a
+ * perfectly valid row — it just governs an empty path, and every room
+ * that used to be inside it silently falls back to the enclosing zone.
+ *
+ * That is not cosmetic. These boundaries are what make a non-cardinal
+ * exit legal (`CartesianLocation.addExit` allows one only ACROSS a zone),
+ * so an orphaned zone re-arms a throw on a door that has worked for
+ * months — and it re-arms it in the world, not in a suite, because a
+ * fixture that omits zone rows skips the rule entirely. It has happened
+ * twice: `seznick-house/rooms.yaml` was left behind by the branch-
+ * directory sort while its rooms moved to `location/`.
+ */
+export function orphanedZones(rows: readonly Row[], files: readonly string[]): string[] {
+  // Every ANCESTOR directory, not just immediate parents: a zone governs
+  // its whole subtree, so `duncan-hall.yaml` is doing its job even when
+  // every room underneath sits in `duncan-hall/location/`.
+  const dirs = new Set<string>();
+  for (const f of files) {
+    let d = f.slice(0, f.lastIndexOf("/"));
+    while (d.includes("/")) {
+      dirs.add(d);
+      d = d.slice(0, d.lastIndexOf("/"));
+    }
+    if (d) dirs.add(d);
+  }
+  return rows
+    .filter((r) => ZONES.includes(r.cls))
+    .map((r) => r.file.replace(/\.yaml$/, ""))
+    .filter((stem) => !dirs.has(stem))
+    .sort();
 }
 
 /** The findings: rows on the permissive `CartesianLocation`. */
@@ -156,20 +214,34 @@ export function classifyMinted(rows: readonly Row[]): {
 
 function main(): void {
   const rows = shippedRows();
+  const orphans = orphanedZones(rows, allYamlFiles());
   const mint = classifyMinted(rows);
   const { unexpected, missing } = classify(rows);
   if (
     unexpected.length === 0 &&
     missing.length === 0 &&
     mint.unexpected.length === 0 &&
-    mint.missing.length === 0
+    mint.missing.length === 0 &&
+    orphans.length === 0
   ) {
     console.log(
       `check-location-classes: ok — ${FURNISHED.length} rows on ` +
         `FurnishableRoom, every one a room somebody furnishes; ` +
-        `${MINTED_ROWS.length} on CartesianLocation, every one a KIND.`,
+        `${MINTED_ROWS.length} on CartesianLocation, every one a KIND; ` +
+        `every zone row zones something.`,
     );
     return;
+  }
+  if (orphans.length > 0) {
+    console.error(
+      `\ncheck-location-classes: ${orphans.length} zone row(s) zone NOTHING ` +
+        `— no shipped row lives in the sibling directory they name. A zone ` +
+        `governs the directory that shares its name, so this one governs an ` +
+        `empty path and every room that used to be inside it has fallen ` +
+        `back to the enclosing zone. Rename the zone row to match the ` +
+        `directory, or delete it:`,
+    );
+    for (const f of orphans) console.error(`  ✗ ${f}.yaml`);
   }
   if (mint.unexpected.length > 0) {
     console.error(

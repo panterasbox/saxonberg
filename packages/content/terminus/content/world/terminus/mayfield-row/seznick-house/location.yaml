@@ -1,4 +1,4 @@
-# /world/terminus/mayfield-row/seznick-house/rooms — the ZONE the let
+# /world/terminus/mayfield-row/seznick-house/location — the ZONE the let
 # units' rooms live in. It exists for the same reason Hinkley's `lots`
 # zone does (residences P8), and the reason is a grid rule, not taste.
 #
@@ -10,9 +10,18 @@
 # say which way the stair goes.
 #
 # Without this boundary the door throws at `addExit`: the corridor and
-# `rooms/hall` would both resolve to the mayfield-row zone, and the
+# `location/hall` would both resolve to the mayfield-row zone, and the
 # cardinal-only-intra-zone invariant refuses. Hinkley did not hit it
 # because its gate already crossed into `lots`.
+#
+# ⚠⚠ **The filename is load-bearing.** `resolveZoneForPath` walks
+# TEMPLATE ancestry, so a zone row zones the directory that shares its
+# name — this file zones `location/` because it is called `location`. It
+# was called `rooms` while the rooms sat in `rooms/`; the branch-
+# directory sort moved them to `location/` and left the zone behind,
+# zoning an empty path, which put the corridor and the unit rooms back in
+# one zone and re-armed the throw. `pnpm lint:locations` now refuses a
+# zone row with nothing under it.
 #
 # ⚠ A test cannot be trusted to catch this on its own: the rule only
 # fires when BOTH paths resolve to a real zone row, and a fixture that

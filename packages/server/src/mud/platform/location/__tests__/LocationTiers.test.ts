@@ -49,6 +49,19 @@ beforeEach(() => {
  * still refused one. Type-checked, and every suite stayed green.
  */
 describe("the faces inherit the grid, they do not re-compose it", () => {
+  it("⭐⭐ a furnished room is NOT on the grid — it would go dark", () => {
+    // A CartesianLocation derives `getSizeScale()` from its zone's
+    // `cellSize²`, and the light walk divides flux by it. Putting the
+    // furnished interior on the cartesian base made every zoned room
+    // `cellSize²` dimmer — a Hinkley yard at 600 lumens of open sky read
+    // 16.7 lux, under its own crop's floor. It shipped that way for one
+    // commit. Not one furnished row authors `coords`; a floorplan is not
+    // a grid.
+    expect(FurnishableRoom.prototype instanceof LibCartesianLocation).toBe(false);
+    const room = makeStuffAtPath(() => new FurnishableRoom(), "/x/y/room");
+    expect(room.getSizeScale()).toBe(1.0);
+  });
+
   it("⭐ every cartesian face carries the cardinal-rule addExit", () => {
     // The rule lives on the lib class. A face that re-listed the mixins
     // would get `Exitable`'s plain addExit instead — same shape, no rule.
@@ -57,11 +70,7 @@ describe("the faces inherit the grid, they do not re-compose it", () => {
       "addExit",
     );
     expect(own, "the lib class owns the rule").toBeTruthy();
-    for (const cls of [
-      CartesianLocation,
-      SingletonCartesianLocation,
-      FurnishableRoom,
-    ]) {
+    for (const cls of [CartesianLocation, SingletonCartesianLocation]) {
       expect(
         cls.prototype instanceof LibCartesianLocation ||
           Object.getPrototypeOf(cls.prototype) === LibCartesianLocation.prototype,

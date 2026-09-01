@@ -211,6 +211,44 @@ the warren's cache — an empty keyway admits nobody), and
 
 Locked in, free out: you need the key to get IN, never to get out.
 
+### ⭐ Which way the gate faces — the gate ring
+
+An edge off a road into a holding needs a *direction*, and the obvious
+one is wrong. Naming it for the holding (`lot-7`, `unit-3` — what is
+stencilled on the stake or screwed to the door) is not a direction at
+all: `CartesianLocation.addExit` refuses a non-cardinal direction between
+two rooms of the same zone, so every such edge had to be pushed across a
+zone boundary before it was legal, and it never had an inverse.
+
+The plat answers it instead. **A road runs along ONE axis, which leaves
+the other six planar compass points free** — which is how a street
+actually works: your house is on the north side of the lane. So
+`PlatPlan.gateDirectionOfSlot` returns, in order, the **right, left,
+ahead-right, ahead-left, behind-right and behind-left** of somebody
+walking the road in its heading, less any point a road branching off that
+reach already leaves by. A road's heading is authored (`heading:`) and
+defaults to the direction it branched in, so a court that leaves its lane
+southward runs south rather than turning.
+
+It is a pure function of the plan, which it has to be: a sold lot's gate
+is re-derived and re-hung at every standup, so it must be the same answer
+on every boot.
+
+Consequences: the gate is **cardinal** (legal inside one zone, so the
+boundary stops being load-bearing), it has a **known inverse** (`go
+north`, `south` back out), it can never collide with the road's own
+onward/back exits (the axis is excluded), and **six frontages per reach
+is the ceiling** — five where a road branches off — checked at parse so
+an over-subscribed plat fails at install. `title buy` tells the buyer
+which side theirs is on, because a cardinal gate is otherwise a guessing
+game.
+
+⚠ **The let rung has not moved to this yet.** A landing's unit doors are
+still `unit-<n>` and still cross the `seznick-house/location` zone to be
+legal. The same ring applies (a corridor is a road with a heading), and
+it is the obvious next step — but a landing is not a street and the
+`right/left` framing wants a second look before it is copied over.
+
 ### The ascent gate
 
 At `title buy` and at `lease`, before the money moves: read the

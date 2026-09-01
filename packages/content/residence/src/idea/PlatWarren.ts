@@ -243,13 +243,37 @@ export default class PlatWarren extends PlatWarrenBase {
     );
   }
 
-  /** The lot's gate — a deferred `LotGateExit`, directioned by its
-   *  leaf, eager on the programme's ENTRY ROW (D17: a real row). */
+  /**
+   * The lot's gate — a deferred `LotGateExit`, eager on the programme's
+   * ENTRY ROW (D17: a real row).
+   *
+   * ⭐ Directioned by the plat's **gate ring**: which side of the road
+   * your house is on. It used to be directioned by the lot LEAF
+   * (`lot-7`, what is stencilled on the stake), which is not a
+   * direction — a grid refuses a non-cardinal exit into its own zone, so
+   * every yard had to be pushed into a zone of its own to make the edge
+   * legal at all. A road runs along one axis and leaves the other six
+   * planar points free, which is how a street actually works, so the
+   * gate is `north` and `south` brings you back out.
+   *
+   * The fallback to the leaf is for a plan with no ring (linear/static
+   * name their own edges); it is not reachable from a plat.
+   */
+  /**
+   * Which side of the road a lot's gate faces — the buyer's half of the
+   * gate ring. Derived from the plan, so it is the same answer before
+   * the gate is hung, after it is hung, and on every boot after that.
+   */
+  public gateDirectionFor(lotExtent: string): string | null {
+    return this.getPlatPlan().gateDirectionOfSlot(leafOf(lotExtent));
+  }
+
   protected async entryEdgeFor(
     key: string,
     circulation: ExitableContainer,
   ): Promise<Exit | null> {
-    const direction = leafOf(key);
+    const leaf = leafOf(key);
+    const direction = this.getPlatPlan().gateDirectionOfSlot(leaf) ?? leaf;
     const existing = circulation.getExit(direction);
     if (existing) return existing as unknown as Exit;
     const entryRow = await this.entryRowPath();

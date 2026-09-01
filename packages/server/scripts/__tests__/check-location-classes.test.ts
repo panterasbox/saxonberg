@@ -13,7 +13,12 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { classify, classifyMinted, type Row } from '../check-location-classes';
+import {
+  classify,
+  classifyMinted,
+  orphanedZones,
+  type Row,
+} from '../check-location-classes';
 
 const FURNISHABLE = '/platform/location/FurnishableRoom';
 const MINTED = '/platform/location/CartesianLocation';
@@ -84,5 +89,43 @@ describe('check-location-classes.classifyMinted (the cross-branch trap)', () => 
 
   it('a rostered KIND that moved off the class is stale', () => {
     expect(classifyMinted([r(A_MINTED, SINGLETON)]).missing).toContain(A_MINTED);
+  });
+});
+
+/**
+ * A zone governs the sibling directory that shares its name, because
+ * `resolveZoneForPath` walks template ancestry. Move that directory and
+ * the row survives as a perfectly valid zone over an empty path — while
+ * every room that was inside it silently falls back to the enclosing
+ * zone, re-arming the non-cardinal throw those boundaries exist to
+ * prevent. It happened to `seznick-house/rooms.yaml` when the branch
+ * sort moved its rooms to `location/`.
+ */
+describe('check-location-classes.orphanedZones', () => {
+  const ZONE = '/platform/idea/location/CartesianZone';
+  const ROOM = '/platform/location/FurnishableRoom';
+
+  it('a zone with rows under it is fine', () => {
+    const files = ['p/seznick-house/location.yaml', 'p/seznick-house/location/hall.yaml'];
+    const rows = [r('p/seznick-house/location.yaml', ZONE), r('p/seznick-house/location/hall.yaml', ROOM)];
+    expect(orphanedZones(rows, files)).toEqual([]);
+  });
+
+  it('⭐ a zone whose directory moved out from under it is caught', () => {
+    const files = ['p/seznick-house/rooms.yaml', 'p/seznick-house/location/hall.yaml'];
+    const rows = [r('p/seznick-house/rooms.yaml', ZONE), r('p/seznick-house/location/hall.yaml', ROOM)];
+    expect(orphanedZones(rows, files)).toEqual(['p/seznick-house/rooms']);
+  });
+
+  it('a zone governs its whole SUBTREE, not just direct children', () => {
+    // The locality zones are all like this after the branch sort: no
+    // .yaml sits directly in `duncan-hall/`, only in its branch dirs.
+    const files = ['p/w/duncan-hall.yaml', 'p/w/duncan-hall/location/lobby.yaml'];
+    const rows = [r('p/w/duncan-hall.yaml', ZONE), r('p/w/duncan-hall/location/lobby.yaml', ROOM)];
+    expect(orphanedZones(rows, files)).toEqual([]);
+  });
+
+  it('ignores rows that are not zones', () => {
+    expect(orphanedZones([r('p/x.yaml', ROOM)], ['p/x.yaml'])).toEqual([]);
   });
 });

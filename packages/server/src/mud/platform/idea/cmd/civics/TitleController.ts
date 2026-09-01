@@ -98,6 +98,10 @@ interface PlatBookShape extends Stuff {
 interface PlatWarrenShape extends Stuff {
   provision(lotExtent: string): Promise<{ room: Stuff; firstTime: boolean }>;
   ensureGate(lotExtent: string): Promise<void>;
+  /** Which side of the road the lot's gate is on — the buyer has to be
+   *  told, or a cardinal gate is a guessing game. Optional: a
+   *  provisioning model with no ring simply says nothing. */
+  gateDirectionFor?(lotExtent: string): string | null;
 }
 
 interface TitleModel extends CommandModel {
@@ -390,13 +394,18 @@ export default class TitleController extends CommandController<TitleModel> {
     }
     const leaf = extent.slice(extent.lastIndexOf('/') + 1);
     const where = book.getLabel();
+    // Which side of the road it is on. A gate used to be directioned by
+    // the lot leaf, so the deed named the way in by naming the lot; now
+    // the gate is a compass point and the deed has to say which.
+    const side = holder?.gateDirectionFor?.(extent) ?? null;
+    const gate = side ? ` The gate is on the ${side} side.` : '';
 
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(
         firstTime
-          ? Mml.compose`The registrar writes the row, blots it, and turns the book around for you to see. ${leaf} in ${where} is yours.`
-          : Mml.compose`The registrar writes the row and turns the book around. ${leaf} in ${where} is yours again.`,
+          ? Mml.compose`The registrar writes the row, blots it, and turns the book around for you to see. ${leaf} in ${where} is yours.${gate}`
+          : Mml.compose`The registrar writes the row and turns the book around. ${leaf} in ${where} is yours again.${gate}`,
       )
       .toPeers(Mml.compose`${Mml.actor(giver)} buys a lot in ${where}.`)
       .send();

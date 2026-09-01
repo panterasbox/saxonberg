@@ -182,10 +182,10 @@ describe('the fork direction', () => {
             branchesFrom: { road: 'lane', segment: 2, direction: 'court' } },
         ],
       }),
-    ).toThrow(/cardinal/);
+    ).toThrow(/north\/south\/east\/west/);
   });
 
-  it('only a road HEAD forks — later reaches of a branch still run in line', () => {
+  it('⭐ a branch road RUNS the way it left — it does not turn back', () => {
     const long = PlatPlan.parse({
       shape: 'branched',
       roads: [
@@ -194,7 +194,40 @@ describe('the fork direction', () => {
           branchesFrom: { road: 'lane', segment: 2, direction: 'south' } },
       ],
     });
+    // The court leaves the lane southward, so its own reaches carry on
+    // south. A road's heading defaults to the direction it branched in;
+    // saying `heading:` overrides that for a road that turns.
     expect(long.onwardDirectionOf('court:1')).toBe('south');
-    expect(long.onwardDirectionOf('court:2')).toBe('west');
+    expect(long.onwardDirectionOf('court:2')).toBe('south');
+    expect(long.onwardDirectionOf('lane:2')).toBe('west');
+  });
+
+  it('the gate ring puts lots on the sides of the road, never on its axis', () => {
+    // Lane runs west: right is north, left is south, then the two
+    // ahead-diagonals. Never east/west — those are the road itself.
+    expect(plan.gateDirectionOfSlot('lot-1')).toBe('north');
+    expect(plan.gateDirectionOfSlot('lot-2')).toBe('south');
+    expect(plan.gateDirectionOfSlot('lot-3')).toBe('northwest');
+    expect(plan.gateDirectionOfSlot('lot-4')).toBe('southwest');
+    for (let n = 1; n <= 12; n++) {
+      expect(['east', 'west']).not.toContain(plan.gateDirectionOfSlot(`lot-${n}`));
+    }
+  });
+
+  it('⭐ a reach a road branches off loses that point from its ring', () => {
+    // BRANCHED's court leaves lane:2 to the north, so no lot on lane:2
+    // may face north — the gate would land on the mouth of the court.
+    const onSeg2 = [5, 6, 7, 8].map((n) => plan.gateDirectionOfSlot(`lot-${n}`));
+    expect(onSeg2).not.toContain('north');
+    expect(onSeg2).toEqual(['south', 'northwest', 'southwest', 'northeast']);
+  });
+
+  it('a plat that cannot fit its gates fails at PARSE', () => {
+    expect(() =>
+      PlatPlan.parse({
+        shape: 'branched',
+        roads: [{ key: 'lane', segments: 1, frontagesPerSegment: 7 }],
+      }),
+    ).toThrow(/at most 6/);
   });
 });

@@ -2,10 +2,13 @@
 # suburb: you arrive, you walk up the lane, you turn in at your lot.
 #
 # There is NO authored exit into a lot. A gate is hung here per SOLD lot
-# by the PlatWarren (a deferred `LotGateExit`, directioned by the lot leaf
-# — `lot-1`), because the street cannot name one room: each lot's rooms
-# are KEYED instances of real rows under the lots zone (residences
-# D16/D17). This lane is the plat plan's AUTHORED segment (lane:1); the
+# by the PlatWarren (a deferred `LotGateExit`), because the street cannot
+# name one room: each lot's rooms are KEYED instances of real rows under
+# the lots zone (residences D16/D17). The gate is directioned by the
+# plat's GATE RING — which side of the road your house is on. The lane
+# runs west, so its lots face north, south, northwest and southwest, and
+# the way back out is the inverse. This lane is the plan's AUTHORED
+# segment (lane:1); the
 # reaches beyond it are minted road-segment clones that stand as their
 # frontage sells (`lots/road-segment.yaml`), and Hinkley Court branches
 # off the second reach.

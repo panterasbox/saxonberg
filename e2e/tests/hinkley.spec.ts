@@ -21,7 +21,9 @@ import {
  *      one coordinate) — and as one it read 16.7 lux, under a carrot's
  *      light floor;
  *   3. the lots needed a spatial zone of their own before the
- *      non-cardinal `lot-N` gate was admissible;
+ *      non-cardinal `lot-N` gate was admissible — since superseded: the
+ *      gate is CARDINAL now (the plat's gate ring puts a lot on a SIDE
+ *      of the road), so it is legal inside one zone and has a way back;
  *   4. the yard shipped a bed and a standpipe and no watering can, so
  *      `water` — a tool-conferred verb — was undispatchable on it.
  *
@@ -60,6 +62,11 @@ const LANE = '/world/terminus/hinkley-hills/location/lane';
  * so it can run against a live world forever.
  */
 const SOLD_LOT = 'lot-1';
+// ⭐ The gate is a compass point, not the lot leaf. The lane runs west,
+// so its ring is north, south, northwest, southwest — lot-1 faces north,
+// lot-2 south. `title buy` tells the buyer which side theirs is on.
+const SOLD_GATE = 'north';
+const UNSOLD_GATE = 'south';
 
 /** A lot nobody may take — nothing must ever open onto it. */
 const UNSOLD_LOT = 'lot-5';
@@ -152,7 +159,7 @@ test('⭐ an UNSOLD lot has no gate — the lane only opens what sold', async ({
     // Nothing in this suite buys, so every lot but SOLD_LOT is open ground.
     await sendUntil(
       page,
-      `go ${UNSOLD_LOT}`,
+      `go ${UNSOLD_GATE}`,
       page.getByText(/can't walk that way/i).first()
     );
   } finally {
@@ -172,12 +179,12 @@ test('⭐ WALK IN and WORK IT — the gate, populates, and the whole verb set', 
     wizard: true,
   });
   try {
-    // ⭐ The gate is hanging, named for the lot.
-    await sendUntil(page, 'look', page.getByText(new RegExp(SOLD_LOT, 'i')).first());
+    // ⭐ The gate is hanging, on the side of the road the ring gave it.
+    await sendUntil(page, 'look', page.getByText(new RegExp(SOLD_GATE, 'i')).first());
     // `go` is one-way, so it must NOT ride `sendUntil` (a re-send after a
     // successful move just bounces off a wall). Arrival prints movement
     // prose, not a room description — the `look` is what shows the yard.
-    await runCommand(page, `go ${SOLD_LOT}`);
+    await runCommand(page, `go ${SOLD_GATE}`);
     await page.waitForTimeout(3000);
     await sendUntil(page, 'look', page.getByText(/yard behind the house/i).first());
 
