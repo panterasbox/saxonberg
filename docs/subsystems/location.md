@@ -69,6 +69,16 @@ Concrete rooms layer Visible, Exitable, and a coordinate mixin on top:
   No restrictions on `addExit` direction labels — spherical zones
   have no implicit adjacency, so semantic labels are the only way to
   author exits.
+- **`PersistentCartesianLocation`** = `Persistable(CartesianLocation)` —
+  the durable singleton coordinate room: one row, one room, in a zone's
+  grid, whose `props:` write back to `holder_snapshots`
+  (`StuffApi.singleton` is its establishing context — restore-or-seed,
+  the venue-`Stock` seam; cast rides `cast:` as anywhere). For the
+  bespoke stateful venue: a hand-authored farm whose beds must keep
+  their soil state (`captureHostOf` walks to the nearest persistable
+  ancestor, and a plain `CartesianLocation` gives it none). The keyed
+  multi-instance interior unit remains `FurnishableRoom`; a spherical
+  twin is derived when a spherical venue first needs one.
 
 Both compose `VisibleMixin` so a `look` on the room returns its
 description; `NamedMixin` is opt-in for rooms that take proper names
