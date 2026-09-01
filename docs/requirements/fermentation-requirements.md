@@ -53,7 +53,8 @@ arriving together.
   transform's obvious second profile when whiskey arrives — deferred,
   not forgotten.
 - **Grain as a crop.** Stays with farming (locked here): this build
-  buys **malt as a floor generic** — a deliberate, honestly-labelled
+  buys **malt as a floor generic** (homed per D10 — the commons, until
+  a malting trade earns its pack) — a deliberate, honestly-labelled
   stub upstream inside a de-stubbed trade, exactly what "stub" already
   means in this repo.
 - **Cultured / pitched yeast.** v1 ferments wild (medieval doctrine);
@@ -171,6 +172,38 @@ leaves (the horticulture pattern — credit at the act, competence
 derived on read). Batches carry the maker's mark through the seam
 (D6), so a bottle is attributable and a reputation for `fine` is
 earned, portable, and readable on the rail.
+
+### D10 — Packaging: no trade-fermentation pack; siblings stay independent — LOCKED
+
+*(taxonomy · pack doctrine)* **Fermentation is a process, not a trade**,
+and the trades that ferment already have packs — so nothing new is
+minted for it:
+
+- **Kernel**: the transform mixin + profile type (`lib/` substrate —
+  packs cannot ship mixins), the D6 grade seam, the shared **vat**
+  concrete at `platform/thing/` (the `Crate`/`Bottle` precedent — one
+  class every trade's rows name), and `docs/subsystems/fermentation.md`.
+  The hydrometer row rides generic-objects beside the thermometer.
+- **The trade packs absorb production** on the capability rung:
+  trade-winemaking (press/vat rows, wine + vinegar materials and
+  profiles, the working winery, a cellar brain in `src/behavior/`),
+  trade-brewing (mash/wort, ale/lager profiles, its brain),
+  trade-distilling (the Still's recipes, the wash tun, juniper
+  compounding, and the Crowsfoot floor — the veshko-yard precedent).
+  One MR ships kernel + packs together.
+- **⭐ Sibling trades must not depend on each other.** Today
+  trade-brewing (and every producing trade) depends on trade-distilling
+  for exactly one reason: the consign target
+  `/trade/distilling/thing/counter` — the cash-and-carry, which is
+  **distribution infrastructure, not distilling**. This build removes
+  that coupling: the distributor venue moves to a neutral home
+  (recommended: a small `distribution` pack depending only on the
+  platform, so every trade and locality can point at it without cycles
+  — exact mechanics are the plan's). With it goes the malt question:
+  **shared inputs whose owning trade does not exist yet live in the
+  commons** — malt is base-library's until a malting trade earns its
+  pack (the vocations demand test), at which point it moves out, the
+  same direction of travel salt and coffee took.
 
 ## Constraints
 
