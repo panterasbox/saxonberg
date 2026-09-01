@@ -250,6 +250,30 @@ residues to exist — crushing grapes cannot output only must. The cut:
   rung's on-ramp (cultures are never a bought good); lees/tartrates;
   spent-wash economics (v1 pours it out); feints inert beside foreshots.
 
+### D13 — Yeast, and the microbe's place in the taxonomy — LOCKED
+
+*(taxonomy — a clarification, not a revision)* A species is a
+CLASSIFICATION (an Idea row), and its embodiment was never determined
+by species-hood — plants settled that (species rows + thing-branch
+instances). The doctrine, stated once: **the embodiment of a species
+follows its scale** — an animal is an agent, a plant is a thing, a
+**microbe is a material**, because the individual is below the
+simulation's resolution and a population of microbes IS bulk matter
+(divisible, mergeable, quantity-measured). The bridge ships already:
+materials carry `biologicalSource` pointing at a species row (the
+flesh precedent). The species tree grows a `fungi` kingdom beside
+`plantae` — pure data, when needed.
+
+v1 ships NO yeast entity: wild yeast stays a property of the process
+(D3's profile), exactly as acetobacter does. The cultures rung (fed by
+D12's harvested yeast) inherits this contract: species row for
+identity, a living MATERIAL for embodiment, **viability** as its
+aliveness — heat kills it (pitch hot and the culture dies; that is why
+wort is cooled, and pasteurization is the same fact used on purpose) —
+and strain as the profile-modifier seam genetics eventually reads.
+This stance pre-answers lactic cultures, the soil microbiome, and
+disease's pathogens without new branches.
+
 ## Constraints
 
 - **Uncertainty doctrine**: no resolutional randomness; seeded, not
