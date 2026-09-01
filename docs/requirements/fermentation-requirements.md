@@ -41,6 +41,9 @@ arriving together.
 - **The grade seam closes**: filling a receptacle from a batch carries
   the batch's band, so a player's `fine` gin is `fine` in the bottle and
   the bar's `minGrade` accepts it.
+- **Yeast is real, both ways**: wild starts where wild yeast lives;
+  cultures are harvested, kept alive, killed by heat, and required
+  where biology requires them (lager).
 - **Mastery is knowledge.** The craft's skill curve is learning real
   bands and timing — read the vat, time the rack, hit the seal — with
   exercised Disciplines and the maker's mark carrying earned reputation
@@ -57,9 +60,10 @@ arriving together.
   a malting trade earns its pack) — a deliberate, honestly-labelled
   stub upstream inside a de-stubbed trade, exactly what "stub" already
   means in this repo.
-- **Cultured / pitched yeast.** v1 ferments wild (medieval doctrine);
-  cultures are a later, historically honest tech rung on the discipline
-  ladder.
+- *(moved into scope 2026-09-01)* Cultured yeast was a deferred rung;
+  the user pulled it in — see D14. What stays out is industrial yeast
+  manufacture; every culture in the world descends from a harvested
+  batch.
 - **Heads/hearts/tails cuts.** v1 distillation is one honest
   separation (heat + the still + time cost the activity, so the
   abstraction is legitimate); the cut is a later refinement rung.
@@ -246,8 +250,9 @@ residues to exist — crushing grapes cannot output only must. The cut:
   room air-`Reserve` mechanism ships (the closed-kitchen rule) — a
   working cellar that authors an air reserve asphyxiates the careless,
   same mechanism, zero new substrate.
-- **Deferred with names**: excess-yeast harvesting IS the cultured-yeast
-  rung's on-ramp (cultures are never a bought good); lees/tartrates;
+- **Yeast harvesting SHIPS (D14)** — the lees poured to a jar ARE the
+  culture; cultures are never a bought good. **Deferred with names**:
+  lees/tartrates as products beyond the culture;
   spent-wash economics (v1 pours it out); feints inert beside foreshots.
 
 ### D13 — Yeast, and the microbe's place in the taxonomy — LOCKED
@@ -264,15 +269,44 @@ materials carry `biologicalSource` pointing at a species row (the
 flesh precedent). The species tree grows a `fungi` kingdom beside
 `plantae` — pure data, when needed.
 
-v1 ships NO yeast entity: wild yeast stays a property of the process
-(D3's profile), exactly as acetobacter does. The cultures rung (fed by
-D12's harvested yeast) inherits this contract: species row for
-identity, a living MATERIAL for embodiment, **viability** as its
-aliveness — heat kills it (pitch hot and the culture dies; that is why
-wort is cooled, and pasteurization is the same fact used on purpose) —
-and strain as the profile-modifier seam genetics eventually reads.
+THIS build ships the culture on this contract (D14): species rows for
+identity, a living MATERIAL embodiment, **viability** as its aliveness
+— heat kills it (pitch hot and the culture dies; that is why wort is
+cooled, and pasteurization is the same fact used on purpose) — and
+strain as the profile-modifier seam genetics eventually reads. Wild
+flora that never gets jarred (fruit-skin bloom, acetobacter) stays a
+property of the process, entity-free.
 This stance pre-answers lactic cultures, the soil microbiome, and
 disease's pathogens without new branches.
+
+### D14 — Yeast, wild and kept — LOCKED (scope pulled in by the user)
+
+*(pedagogy · the baking seam)* Both halves ship:
+
+- **Wild is refined to the real thing.** Fruit must self-starts (the
+  skin bloom); **boiled wort is sterile**, so a brewer pitches a
+  culture or leaves the vat OPEN for spontaneous inoculation — a
+  fixed, profile-authored lag with wild character (the lambic move).
+  D3 gains its second edge: open to catch yeast, open too long to
+  lose the batch. No rolls anywhere.
+- **A culture is a batch you keep alive** — the culture jar composes
+  the SAME transform mixin with a culture profile: viability is its
+  own reconcile (starves over game-time; feeding restores; the cool
+  cellar slows it — thermal's third consumer), and **heat kills it**
+  (the hot-pitch death; pasteurization as the same fact on purpose).
+  Harvest = D12's lees poured to a jar. Zero new verbs, zero new
+  mechanisms.
+- **Strain is the gameplay**: the culture carries its source batch's
+  strain; the batch's strain gates what profiles can run. Ale ferments
+  warm on wild-or-kept cerevisiae; **lager REQUIRES the cold strain
+  plus the cold cellar** — cultures matter because the biology says so.
+  Species rows (fungi kingdom) live in the commons; strain rows ship
+  with the trade that domesticates them (the species-with-the-trade
+  ruling).
+- **The baking seam**: a maintained culture IS a sourdough starter —
+  the future baking trade (separate from cooking, per the user)
+  inherits its leavening surface from this build without designing it
+  here.
 
 ## Constraints
 
@@ -328,6 +362,12 @@ disease's pathogens without new branches.
   atomically; before it, the floors stand as today.
 - Disciplines: fermenting/distilling leaves exist and credit at the
   act; a bottle displays band + maker's mark.
+- Yeast closes: a boiled wort left open starts after its authored lag;
+  a pitched wort starts at once; pitching above the kill temperature
+  dies (and the vat never starts); a culture unfed past its window
+  goes non-viable while one in the cold cellar outlasts it; lager
+  ferments ONLY with the cold strain in the cold band; a culture's jar
+  traces to the batch it was harvested from.
 - The loop closes: a crush yields pomace, a mash yields spent grain;
   feeding a bed with spent grain measurably restores nitrogen; pomace
   distils to grappa; an unsold residue persists in the world rather

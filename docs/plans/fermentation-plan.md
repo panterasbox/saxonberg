@@ -1,7 +1,7 @@
 # Fermentation — plan
 
 **Input:** [fermentation-requirements.md](../requirements/fermentation-requirements.md)
-(D1–D10 locked). One stage, eight waves, one MR. The lane: grown grapes
+(D1–D10 locked). One stage, nine waves, one MR. The lane: grown grapes
 → must → wine → spirit → vermouth → Dave's unmodified martini; beer at
 the process tier over bought malt; the distributor decoupled from
 distilling on the way.
@@ -124,12 +124,12 @@ makes v1 ale REAL ALE — cask-conditioned, naturally carbonated,
 medieval-exact. Carbonation remains a material-level fact the ferment
 produces; no kernel code may test "how it got fizzy," so the future
 bottling build's forced-carbonation route produces the same fact by
-different inputs. W4 ships the cask row; W7's drive pours a conditioned
+different inputs. W5 ships the cask row; W8's drive pours a conditioned
 pint.
 
 ### P10 — The still's hazards (D11)
 
-W5 authors **flammability on the spirit materials** (the shipped
+W6 authors **flammability on the spirit materials** (the shipped
 combustion substrate does the rest) with one test: an ignited spill
 burns. Profiles for fruit washes carry a `foreshot` character field —
 inert data in v1, the seam the cuts rung will read into metabolism's
@@ -150,6 +150,19 @@ respiration does the rest. Yeast harvesting deliberately does NOT ship
 — it is the cultured-yeast rung's on-ramp and is named in the ferment
 doc's deferred section.
 
+### P12 — The culture is a batch you keep alive (D14)
+
+No second mechanism: `FermentProfile` gains `strain` (what a batch
+carries; wild by default), `requiresStrain` (lager's gate), and a
+**culture profile kind** whose "conversion" is viability — starving
+down over game-time, restored by feeding, killed above `killK`, slowed
+by the cellar. The culture jar is a small Vat-family row holding lees;
+**pitching is `pour`** — the transfer seam (P3) carries strain the
+same way it carries band and mark. Spontaneous inoculation is an
+authored lag on the profile for a sterile must in an OPEN vessel.
+Species rows (fungi) land in base-library; ale/lager/wine strain rows
+land in their domesticating trades.
+
 ## Waves
 
 ### W0 — The grade seam
@@ -167,12 +180,20 @@ stall/resume; worst-stretch banding; finished+open → `turned` with the
 profile's `turnedMaterial`; finished+sealed holds; conservation (sugar
 in = ethanol fraction out); zero `Math.random` in the tree.
 
-### W2 — Distribution + malt
+### W2 — Yeast, wild and kept
+`strain`/`requiresStrain` on the profile + the culture profile kind +
+strain riding the P3 seam; the culture-jar row; fungi species rows +
+the three strain rows. Tests: sterile-open lag vs pitched immediate;
+hot pitch kills (and nothing starts); starve vs cellar-kept viability;
+lager refuses wild and warm; the jar's `biologicalSource` chain back
+to the harvested batch.
+
+### W3 — Distribution + malt
 The pack, the venue move, the eight repoints, the dependency swap, the
 malt material/sack/floor line. Full pack suites + lint battery green;
 the dependency graph shows no sibling-trade edge.
 
-### W3 — Winemaking produces
+### W4 — Winemaking produces
 Crush recipe + press fixture; profiles: red, white, the
 `sealedOnly` conditioning profile for sparkling, vinegar as every
 grape profile's `turnedMaterial`; the vintner floor becomes the
@@ -182,14 +203,16 @@ the `cellars` brain; vinegar consignable + a pantry par line for it
 cellar authors its air reserve — the CO₂ test (drain while active,
 recover on opening). Fixture-world brain test.
 
-### W4 — Brewing produces
+### W5 — Brewing produces
 Mash recipe + mash-tun fixture; wort; ale/lager profiles; the
 conditioning cask (P9 — real ale, naturally carbonated); the brewing
 floor reworked; the same `cellars` brain with brewing config; mash
 emits spent grain and feeding a bed with it restores nitrogen (the
-reverse-B2B loop test). A keg of ale carries its batch band.
+reverse-B2B loop test); the brewer's kept culture + the lager line
+(cold strain + cold cellar, the W2 gate exercised on real content).
+A keg of ale carries its batch band.
 
-### W5 — Distilling produces
+### W6 — Distilling produces
 Wash profile (malt wort → wash), distil recipe (wash → neutral
 spirit), gin compounding (spirit + juniper), brandy (wine → spirit —
 the grape lane's own spirit); **vermouth recipes in winemaking**
@@ -199,7 +222,7 @@ ledger test); spirit flammability + the ignited-spill test and the
 inert `foreshot` field (P10); the grappa recipe over pomace (P11).
 The martini's inputs now all exist from lane output.
 
-### W6 — Reads, disciplines, marks
+### W7 — Reads, disciplines, marks
 Vat sensory details; the hydrometer row + reading; the `fermenting`
 Discipline + act credits on crush/rack/distil; the maker's-mark
 surface on look (band + mark readable on the rail). The
@@ -207,7 +230,7 @@ author-expressiveness proof lands here as a test: **cider from rows
 alone** (apple exists? if not, the test authors a synthetic fruit +
 profile under `/test/**`) — zero kernel edits asserted by construction.
 
-### W7 — The switchover + checkpoint drive
+### W8 — The switchover + checkpoint drive
 Floor faucets for wine/beer replaced atomically by brain production.
 **Drive (the checkpoint):** compressed clock (≤6000×), live server —
 crush grapes, ferment, catch and seal the batch, bottle, distil the
@@ -220,7 +243,7 @@ trades + distribution; slate annotations.
 ## Risks
 
 - **The boot-warm recurrence** (reference Ideas inert at boot, 3×) —
-  named, tested in W1, not discovered in W7.
+  named, tested in W1, not discovered in W8.
 - **The venue move's blast radius** (~67 files) — mechanical, but the
   hunk-splice lesson from the !212 merge applies: audit key membership
   after any scripted edit, never trust the textual join.
@@ -229,4 +252,4 @@ trades + distribution; slate annotations.
   fit a ≤6000× drive window.
 - **Build coordination**: the wash draws water from shipped
   standpipe-shaped sources only; if build-2's water infra lands mid
-  build, W3+ rebases onto it rather than designing around it.
+  build, W4+ rebases onto it rather than designing around it.
