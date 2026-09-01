@@ -389,6 +389,95 @@ the larder: the Pan-kill *is* the resource.
 3). The fauna thin, warp, and stop; the wrong begins. *Life fades toward the wound
 — that fade is the descent's real horror, more than any single beast.*
 
+### ⭐⭐⭐ The ecology as built — instruments, emissions, and the v1 seven **[DECIDED 2026-08-31]**
+
+The roster above says *what lives there*. This says **what each kind of
+creature IS mechanically**, and how much of it ships first.
+
+#### The friendly ones are instruments that can die
+
+- **The pit pony is nearly free.** `HaulingCreature` is **shipped**
+  ([conveyance.md](../../subsystems/conveyance.md): *"Draft beasts use
+  `HaulingCreature`"*), with `hitch`/`unhitch`, `draftFactor` and the
+  encumbrance draft term already working. It costs a Species row and a
+  brain over a mechanic that runs.
+- ⭐⭐ **The canary is an instrument for `measure atmosphere` whose readout
+  is an animal's behaviour** — it goes quiet as the air turns. No new
+  mechanism: instrument-gated channels are the sextant pattern § *Surveying*
+  already adopts. And it carries what a tool cannot:
+
+> ⭐ **A lamp is a tool. A canary is a tool that dies of the thing it is
+> protecting you from.**
+
+Which is why *Delving 9's canary never dies* is the sharpest line in the
+mirror: there the instrument has been made comfortable, and **the reading
+is a lie**.
+
+#### The hostile ones are CONCEALMENT content, not combat content
+
+Mining is the non-combat risk vertical, so an encounter must not resolve as
+a fight. The roster is already organized the right way — **by which sense
+hunts you**: pale crawlers and the dirt dragon by **vibration**,
+lantern-moths by **light**, lattice-spiders by **ambush**, whelps by
+**heat**. Each pairs with the shipped concealment substrate: per-sense
+bands, `sneak`/`run`, the `wary` brain.
+
+And the rule that makes *this* place dangerous rather than any dark place:
+
+> ⭐⭐⭐ **Your work is what makes you findable.** Digging is vibration. You
+> need a lamp to see. Cutting makes you hot. **Every emission that gives
+> you away is one you cannot stop making, because it is your job.**
+
+That generalizes [rejection-slate](./rejection-slate.md)'s *"the industry
+is the dinner bell"* from the apex to the whole ecology — and it means v1
+mining is **genuinely non-combat**: these are *perception problems*, not
+encounters.
+
+#### The ambient ones are load-bearing, not decoration
+
+Beside friendly and hostile there is a third kind — crickets, bats, the
+things that are simply *there*. Their job is to be the **baseline against
+which change is legible**:
+
+> ⭐⭐ **If the crickets go quiet, something is coming. The ecology is an
+> instrument.**
+
+The canary is only the *domesticated* version of what the wild fauna does
+for free. That is the argument for shipping the ambient tier rather than
+treating it as flavour: **it is the mine's early-warning system**, and it
+is real animal behaviour.
+
+#### v1 scope — seven species, and they make a food web
+
+Eleven is a lot, and a monster list is not an ecology. The minimum that
+genuinely is one:
+
+| Role | Species | Rides |
+|---|---|---|
+| **producer** | **glowcap** — cultivated by the folk for light | ⭐ the `fungi` clade already ships, and husbandry's growth model just landed: **underground fungus farming is nearly free**, and a real livelihood |
+| **detritivore** | gallery-crickets | ambient — the silence sensor |
+| **pest** | delve-rats | breeding pressure; desperation meat |
+| **grazer** | pale grazer | herdable — husbandry again |
+| **predator** | pale crawler | the concealment game, by vibration |
+| **working** | pit pony | `HaulingCreature`, shipped |
+| **working** | canary | the atmosphere instrument |
+
+**Five of seven ride substrates that already exist.** Each costs a Species
+row, a BodyPlan (mostly reused), a template and a brain — and of the ~18
+shipped brain modules, `idles` · `patrols` · `reacts` cover most of it.
+
+#### The apex is deferred, for the cave-in reason
+
+> ⭐ **The dirt dragon is to the ecology what the collapse is to ground
+> support** — a big, rare, high-consequence event that wants a population
+> to be survivable and meaningful.
+
+Ship the web; let the thing at the bottom stay **a rumour the mute NPCs
+pass around**, which is what the town's rumour layer exists for
+([rejection-slate](./rejection-slate.md) § *The rule that makes muteness
+diegetic*). Its life cycle (whelps by heat, firedrakes by fire and the far
+band) lands with it.
+
 ## The Ordinance mirror — what Delving 9 gets **[DECIDED; bold bits flagged]**
 
 Same place, soul removed — every element above gets a hollow-perfect inversion:
