@@ -92,7 +92,8 @@ uncrafted `generic-objects` templates), no domestic metal, no stock forms
 
 **Adjacent parked mechanics.** No placer/panning, no coal or coke, no
 beneficiation past hand cobbing (crushing and washing want water
-infrastructure), no `Deposit` reuse across mines.
+infrastructure), no `Deposit` reuse across mines, and **no
+procedurally-minted chamber zones** (see § *Natural chambers*).
 
 **Not touched.** `packages/content/terminus/` and `lib/location/` are
 build-2's until residences merges; `lib/husbandry/`, `lib/retail/` and
@@ -253,6 +254,37 @@ A species row says what a thing *is*; the mine's depth-banded biome says
 what lives *there*. Species cannot ship with biomes because the same
 species occurs in many (rats are in the mine and the city).
 
+### Natural chambers are their own zones
+
+The grid is right for **excavation** and wrong for anything nobody cut. A
+cavern, a flooded stope, a gas pocket is not orthogonal, because no
+haulage or drainage requirement shaped it — so a 10 m cubic grid
+misrepresents it.
+
+> ⭐⭐ **The grid represents what labour cut. A cavern was not cut. The zone
+> boundary is exactly where the authorship of the space changes.**
+
+So a natural chamber is **its own zone**, which the mine's grid exits into
+and out of through an ordinary cross-zone exit pair (both sides explicit —
+the counting-houses precedent). Inside it, the chamber may take whatever
+geometry suits it: a `SphericalZone` of arbitrarily-placed volumes is the
+natural fit, which is what that zone type is for — *"arbitrarily-placed
+spheres with semantic exits."*
+
+⭐ This also settles the retracted spherical proposal properly rather than
+leaving it merely reversed: **the workings are Cartesian because labour is
+orthogonal; the caverns are spherical because water and geology are not.**
+The proposal was pointed at the wrong half of the underground.
+
+⚠ **Constraint: a zone is a template row, so a zone minted per
+procedurally-discovered chamber would be a rowless mint** — the thing D17
+forbids. Therefore **Stage A ships authored chambers only**: one hand-built
+cavern, reached by breaking into an authored feature pin, proving the
+boundary works end to end. **Procedural chamber zones are out of scope**;
+seeded pockets that are not authored stay grid cells with their own prose
+until a later build decides whether chamber zones can be keyed instances
+the way rooms are.
+
 ### Siting: its own locality pack, arrival by TPA
 
 Rejection ships as **`packages/content/rejection/`**, following the
@@ -349,6 +381,10 @@ never blocks a room, and no character can be trapped or killed by ground.
 recovers when connected through; the canary's behaviour tracks that value
 and is the only free reading of it; a pit pony hauls a cart at a measurably
 lower draft cost than a character carrying the same load.
+
+**The chamber seam.** Breaking into the authored feature pin lands the
+character in a separate chamber zone with its own geometry and returns them
+to the correct grid cell, with the exit pair explicit on both sides.
 
 **The faucet is closed.** No shipped content sells or spawns copper stock
 from nowhere; a test asserts it.
