@@ -85,7 +85,8 @@ rather than dodge three trees.**
    mineral claim depending on a *residence* pack is a smell worth
    resolving rather than accepting. (Precedent for the fix: !212 moved
    `survey` OUT of the pack to platform for exactly this reason.)
-3. ⚠⚠ **`survey` now ships as a PLATFORM verb** — *"take stock of the
+3. ✅ **RESOLVED — `survey` answers in the mine but is NOT the geological
+   read** (see P17). Was: **`survey` now ships as a PLATFORM verb** — *"take stock of the
    place you're standing in."* ⭐ Read as an **opportunity, not a
    collision**: a mine's ground reading *is* taking stock of where you
    stand, so `survey` may simply BE the geological read, removing
@@ -799,6 +800,50 @@ rightly), **fuel 1** (charcoal), **smelting 2** (smelt oxide copper,
 cast a bar). Roasting, bronze, bloomery iron and steel are the rungs
 Stage A does not reach; Wave B's arms and armor are out.
 
+### P17 — `survey` answers in the mine, and is NOT the geological read
+
+Residences shipped **`survey` as a platform verb** — *"take stock of the
+place you're standing in."* Two decisions, and they point opposite ways.
+
+**We do not fold the geological read into it.** Its own help states the
+contract: *"Nothing in the game is gated on any of this… the survey is a
+mirror, not a score."*
+
+> ⭐⭐ **`survey` is a MIRROR. The mine's read is a MEASUREMENT.**
+
+The geological read is instrument-mediated, competence-banded, and the
+thing a player pays for and acts on — the opposite of a read nothing is
+gated on. Two more reasons, both concrete: `survey` takes **no target and
+no channel** (parameterising it for strike, dip and grade re-creates
+exactly the subcommand accretion this build is already working around),
+and its archetype filter excludes us **by design** — *"room archetypes are
+the industry-less ones,"* and the mine archetype is an industry one.
+
+**But `survey` should work in a mine, and it is free.**
+`SurveyController` reads its holding half **duck-typed by shape** through
+the `WarrenMember` back-ref — *"never by import: the residential programme
+is a capability pack's class and the kernel does not import packs."*
+
+⭐ **That seam is open to us.** `MineWarren` answering the same shape gets
+`survey` reporting honestly in a working — *a stope, shored, on claim 3* —
+with **no kernel change, no platform edit and no residence dependency.**
+The mirror doing its job in a new venue is what it was built for.
+
+So the surface reads in three layers, matching
+[instrumentation-slate](../slates/builds/instrumentation-slate.md)'s own
+line:
+
+| | Verb | What it is |
+|---|---|---|
+| **the mirror** | `survey` — shipped, free, ungated | *what is this place* — a stope, shored, whose claim |
+| **the measurement** | `measure <channel>` | instrumented, banded, load-bearing |
+| **the interpretation** | `analyze ground` | route-gated synthesis with error bands |
+
+⭐ `analyze ground` is therefore clearly the **interpretive** read rather
+than a place-identity one, since `survey` covers that half for free. If the
+instrumentation retrofit lands before M7, `analyze ground` likely folds
+into the channel model and P1's platform edit drops to zero.
+
 ---
 
 ## Stage K — the kernel
@@ -876,7 +921,9 @@ Per P7 and P8. `src/idea/MineWarren.ts`: the five hooks, the carve chain,
 and the sparse `workedFaces` map, `claimBlocks` + `claimFor(cell)` +
 `holderOf(cell)`, `typeRows` policy, `promote(cell)` /
 `demote(cell)` (Provisional ↔ Held), `stabilityAt(cell)`,
-`airAt(cell)`, `facesOf(cell)` (the ten-direction model: each face
+`airAt(cell)`, **the duck-typed `WarrenMember` shape `survey` reads by
+(P17 — answer it and the shipped verb reports in a working for free)**,
+`facesOf(cell)` (the ten-direction model: each face
 Exit / Seam / Carve-face / Dead, computed off `Deposit.sampleAt` of the
 neighbour), and the `wireHubExit` override wiring orthogonal neighbours.
 Capture/restore through `PersistableApi`.
@@ -1196,8 +1243,10 @@ light, air and heat. The glowcap binds the archetype's `light` slot,
 which is the ⭐ demonstration made real: same slot, another mine's oil
 lamps.
 
-**Tests:** the ambient band is present in the upper workings and its
-silence tracks the air value; `measure light` in a glowcap-lit working
+**Tests:** ⭐ **`survey` in a carved working reports honestly** — the room
+type, whether it is shored, and whose claim — through the duck-typed seam,
+with no platform edit (P17); the ambient band is present in the upper
+workings and its silence tracks the air value; `measure light` in a glowcap-lit working
 clears the archetype's `lightLux` threshold and an unlit one does not.
 
 ### Wave R4 — title: the claim register, the office, the split estate

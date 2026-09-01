@@ -182,6 +182,24 @@ Stage A adds `measure strike`, `measure dip` and `analyze ground` as
 **subcommands on shipped verbs**, plus the instruments that gate them. No
 new verb, no new category, no new affordance surface.
 
+### `survey` is the mirror; the geological read is the measurement
+
+Residences ships **`survey`** as a platform verb — *"take stock of the
+place you're standing in"* — and its contract is explicit: *"the survey is
+a mirror, not a score."*
+
+⭐ **The mine answers it, for free.** `SurveyController` reads its holding
+half duck-typed by shape through the `WarrenMember` back-ref, so
+`MineWarren` answering that shape makes `survey` report honestly in a
+working — *a stope, shored, on claim 3* — with no kernel change and no
+platform edit.
+
+⚠ **But the geological read is not `survey`.** It is instrument-mediated,
+competence-banded and load-bearing — the opposite of a read nothing is
+gated on — and `survey` takes no target and no channel. Three layers, not
+one: **`survey`** the mirror · **`measure <channel>`** the measurement ·
+**`analyze ground`** the interpretation.
+
 ### Competence buys resolution, never outcome
 
 `assess` is the template — *"a novice reads only the gist… a practised eye
