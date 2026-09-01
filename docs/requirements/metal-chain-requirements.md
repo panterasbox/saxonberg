@@ -48,6 +48,10 @@ pattern the geology field instantiates).
   copper stock from nowhere once this lands.
 - **The venue functions as a place of work**: buy tools and lamp oil,
   record a claim, sell ore for money, recover between shifts.
+- **The chain is four businesses, and money circulates rather than
+  appearing.** A player earns by wage or by working a claim they hold; the
+  smelter buys ore out of ingot revenue; no new money is minted anywhere in
+  this build.
 - **Neglecting ground support costs you access to your ore, not your
   life.** An attentive player cannot be hurt.
 - **A heading you drive without through-ventilation goes bad.** Air is a
@@ -89,6 +93,11 @@ NPCs are functional only (registrar, buyer, storekeeper), canned.
 **Wave B and beyond of the demand side.** No arms or armor recipes (the 14
 uncrafted `generic-objects` templates), no domestic metal, no stock forms
 (bar, sheet, wire, nails).
+
+**The economic tail.** No **tribute** pitches and no setting-day auction
+(Stage B, with the shaft that makes a grant worth something); no price
+discovery — seeded starter prices only; no solvency or wage balancing; no
+CB lending tier, which this build removes the need for.
 
 **Adjacent parked mechanics.** No placer/panning, no coal or coke, no
 beneficiation past hand cobbing (crushing and washing want water
@@ -316,6 +325,66 @@ A species row says what a thing *is*; the mine's depth-banded biome says
 what lives *there*. Species cannot ship with biomes because the same
 species occurs in many (rats are in the mine and the city).
 
+### ⭐⭐ The business layer — who owns, who employs, who buys
+
+A chain with no institutions is a set of verbs. Stage A ships **four
+`Business` Ideas in a row**, which is what makes *"the seam between packs
+is a market"* an observable fact rather than a claim:
+
+| Business | Buys | Sells | Employs |
+|---|---|---|---|
+| **the Ferrow co-op** | timber, tools | ore | on **tutwork** |
+| **the fuel yard** | — (works its own coppice) | charcoal | a burner |
+| **the smelter** | ore + charcoal | copper ingots | a smelterman |
+| *(shipped)* the Hearthworks smithy | ingots | tools and gear | — |
+
+⭐⭐ **The loop closes inside Stage A**, and the miner is the last customer
+as well as the first producer: **mine → smelter → smith → miner**, because
+picks wear out. Nothing circular about it — it is a real cycle with a real
+sink (`Durable` condition).
+
+#### ⭐ No ore-buyer, no CB lending, no endowment
+
+`ferrow-delving.md` §9 funded the off-take buyer through **CB *lending***
+and flagged that it *"needs the deferred banking lending tier."* **That
+dependency is gone.** The seam existed only because smelting was the v1
+abstraction boundary — and this build removes that boundary by building
+the trade. **The smelter buys the ore**, out of revenue from ingots, which
+is ordinary circulation through the shipped banking engine.
+
+Conservation is therefore satisfied without argument: **no new money is
+minted anywhere in this build.** The mine makes new *matter*; the CB
+remains the only mint; wear is the matter sink.
+
+#### Two ways to earn, and the third is deferred
+
+- **Tutwork** — wage or piece-rate for development and cutting, straight
+  on the shipped employment engine (the co-op is the Business, you are on
+  the roster). Zero capital, steady, no title.
+- **Working your own claim** — parcel title through the Claims Office,
+  and ⭐ *in Stage A an independent needs the co-op for nothing*: with an
+  adit and no shaft there is no throat to pay a toll at, so you walk your
+  own ore out. Historically exact for adit-level workings, and it gives
+  Stage A a genuine second path without any of the political layer.
+- **Tribute** — a granted pitch for a share of ore value, and the
+  setting-day auction that prices it — is **Stage B**, with the shaft and
+  the commons that make the co-op's grant worth something.
+
+#### Where the rows live
+
+**The four Businesses are `rejection` content**, per the governing
+separation: *whose* mine and *whose* smelter is this venue's institutional
+fact. `trade-mining` ships no Business of its own.
+
+#### Pricing is parked
+
+Per the bible, *"pricing PARKED — the market onramp (price discovery from
+zero) is a platform-economy problem."* Stage A ships **seeded starter
+prices** on the offers and does not attempt discovery. Solvency tuning —
+whether a co-op can actually pay its wages out of ore revenue — is a
+**balance** question against a running game, not a requirement of this
+build.
+
 ### Natural chambers are their own zones
 
 The grid is right for **excavation** and wrong for anything nobody cut. A
@@ -466,6 +535,12 @@ never blocks a room, and no character can be trapped or killed by ground.
 recovers when connected through; the canary's behaviour tracks that value
 and is the only free reading of it; a pit pony hauls a cart at a measurably
 lower draft cost than a character carrying the same load.
+
+**The economy circulates.** Ore sold to the smelter, ingots sold to the
+smith, tools bought by a miner — with **no net money created**, asserted by
+a test that totals the ledger across the loop. A character with no capital
+can take tutwork and be paid; a character holding a claim can sell ore
+without the co-op's involvement.
 
 **The exemplar test.** A second mining town is demonstrably a locality
 pack plus a deposit row plus room rows — `requires` the three trades,
