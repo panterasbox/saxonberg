@@ -64,7 +64,8 @@ rather than dodge three trees.**
 
 ### What is stale, in severity order
 
-1. ⚠⚠ **`MineWarren extends Warren` will not compile.** Residences split
+1. ✅ **RESOLVED — `MineWarren extends InnerWarren`** (see P7). Was: a bare
+   `extends Warren` will not compile. Residences split
    the warren into `Warren` (abstract, and it now declares `occupantsOf`
    **abstract** "so the choice cannot be skipped") → **`InnerWarren`**
    (members are ROOMS) / **`OuterWarren`** (members are warrens), plus
@@ -75,7 +76,8 @@ rather than dodge three trees.**
    field rooms into a holding on"*. **Should the mine be a holding rather
    than a bare inner warren?** It has an extent, a programme of rooms, and
    a tenure. Decide before M2 — it may make P5's claim work smaller.
-2. ⚠⚠ **`PlatBook` has moved into the `residence` PACK**
+2. ✅ **RESOLVED — a claim is STAKED, not bought** (see P5). Was:
+   **`PlatBook` has moved into the `residence` PACK**
    (`packages/content/residence/src/idea/PlatBook.ts`); the kernel keeps
    `PlatPlan`. P5 builds the claim register on `PlatBook` + `title buy`.
    **Verify where `title` and the register class live post-!212, and
@@ -476,16 +478,24 @@ rock carries what metal already does.**
 The requirements' constraint is the whole design: cheapest answer that
 does not foreclose, and *do not invent coordinate-extent parcels*.
 
-**The title is a plain path parcel and nothing else.** `rejection` ships
-one `PlatBook` row — the claim register on the Claims Office counter —
-with `parentExtent: /world/rejection/ferrow`, `lotBranch: claims`,
-`landUse: industrial`, a seeded price, and **`holderPath: ""`**. The
-shipped `title list` / `title buy <lot>` path then does the whole job:
-settle → `ParcelApi.subdivide` → `ParcelApi.transfer` → *no
-provisioning*, because `TitleController.holderFor` returns null and skips
-it. A claim mints a **title, not a room**. Zero new title mechanism, and
-the security invariant holds untouched: parcels are written only by the
-gated `ParcelApi`, never declared in content.
+**A claim is STAKED, not bought** (revised 2026-09-01). `PlatBook` moved
+into the residence pack with the rest of the ladder — and we should not
+want it regardless:
+
+> ⭐⭐ **`title buy <lot>` is buying from a catalogue. Staking a claim is
+> a first-come registration.**
+
+`PlatBook` is *land-sales* machinery — lots for sale, prices, terms, and a
+provisioner that builds you a house. A mining claim has none of that. You
+find ground, you post a notice, the recorder writes it down.
+
+So **`trade-mining` ships a `stake` verb** (the name is free), afforded by
+the Claims Office counter, whose controller calls the gated `ParcelApi`
+directly: `subdivide` beneath the mine's extent, then `transfer` to the
+staker. **A pack calling a kernel Api is sanctioned**, no residence
+dependency exists, a claim mints a **title and no room**, and the security
+invariant is untouched — parcels stay written only by `ParcelApi`, never
+declared in content.
 
 **The mapping is declared on the warren, not derived from geometry.**
 `MineWarren` carries an authored, persistent `claimBlocks`:
@@ -549,13 +559,26 @@ a gate: `surfaceReadingAt` projects the plane's intersection with `z ≈ 0`,
 which contains no dip information. `measure dip` underground returns it.
 That is the push-your-luck decision arriving as a missing parameter.
 
-### P7 — `MineWarren` reuses `Warren` without changing it, and keeps its own carve chain
+### P7 — `MineWarren` extends the kernel `InnerWarren`, and keeps its own carve chain
+
+> ⭐ **RESOLVED 2026-09-01 — `InnerWarren`, and NOT a holding.** Residences
+> split the base and `Warren.occupantsOf` is now **abstract**, so a bare
+> `extends Warren` will not compile. `holding.md` states the tier
+> vocabulary applies to *"any warren, not just residential ones"*, and
+> `InnerWarren` (`lib/location/InnerWarren`) is **kernel** — the sanctioned
+> path for a non-residential warren whose members are rooms.
+>
+> ⚠ **Not `HoldingWarren`**, which lives in `packages/content/residence/`:
+> a trade pack must not depend on a residence pack, and the fit is wrong
+> anyway — **a holding sleeps and wakes WHOLE**, while the mine's whole
+> design is **per-cell tiering** (Spine live, Held persisted, Provisional
+> culled cold). Incompatible by construction, not merely different.
 
 `Warren` is build-2's tree and `createMember()` takes **no arguments**,
 while a mine carves a *keyed* member of one of *four* type rows. Both
 facts are load-bearing and neither needs a kernel edit.
 
-`MineWarren extends Warren` (pack source
+`MineWarren extends InnerWarren` (pack source
 `trade-mining/src/idea/MineWarren.ts`; a Warren is an `Idea`, so it sits
 under the `idea/` branch) and:
 
@@ -1179,12 +1202,14 @@ clears the archetype's `lightLux` threshold and an unlit one does not.
 
 ### Wave R4 — title: the claim register, the office, the split estate
 
-Per P5. The `PlatBook` claim register on the Claims Office counter
-(`holderPath: ""`), the registrar NPC affording `title`, the
-`claimBlocks` on the warren row, and the estate parcels.
+Per P5. The **`stake` verb** in `trade-mining`
+(`content/trade/mining/cmd/mining/stake.yaml` + its controller), afforded
+by the Claims Office counter; the registrar NPC; the `claimBlocks` on the
+warren row; and the estate parcels. **No `PlatBook`, no residence-pack
+dependency.**
 
-**Tests:** a claim is stakeable through `title buy` and transferable; it
-mints a title and **no room**; the mine's estate severs from the surface
+**Tests:** a claim is stakeable through `stake` and transferable; it
+mints a title and **no room**; staking already-claimed ground refuses; the mine's estate severs from the surface
 parcel and each resolves to its own owner; an unsevered mine resolves to
 the surface holder; ⭐ **a content edit cannot mint or alter a title** —
 asserted directly; `landUse` resolves `industrial`.
@@ -1402,14 +1427,13 @@ touched. *Resolves at:* the diff — if any wave's `git status` shows
 `packages/content/terminus/` or `packages/content/world-seed/`, the wave
 is wrong.
 
-**R9 — `PlatBook` with an empty `holderPath`.** P5 reads
-`TitleController.holderFor` as returning null and skipping provisioning,
-which makes a title-only claim free. *Resolves at:*
-`packages/server/src/mud/platform/idea/cmd/civics/TitleController.ts:108–115,
-300–310` and `platform/idea/PlatBook.ts:111,177`. Verify in R4 before
-authoring the register. If a holder is mandatory, `trade-mining` ships a
-two-method `ClaimStaker extends LotHolder` that provisions a claim post
-rather than a room — a pack class, no kernel change.
+**R9 — ~~`PlatBook` with an empty `holderPath`~~ — RETIRED.** P5 no longer
+uses `PlatBook` (it moved to the residence pack, and staking is not
+buying). The replacement risk is smaller: **`ParcelApi.subdivide` may
+require a parent parcel shape the mine has not minted yet.** *Resolves
+at:* `packages/server/src/mud/api/parcel.ts` and
+`lib/parcel/ParcelRegistry.ts` — read before R4, and mint the estate
+parcels in the same wave.
 
 **R10 — `stocks` is per-zone, so ecology cannot band by depth.** P11.
 Out of scope by the requirements (upper band only), recorded as the seam.

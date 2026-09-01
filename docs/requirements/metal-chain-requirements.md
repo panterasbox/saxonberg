@@ -442,14 +442,19 @@ Two different questions, two different homes:
 - **"Whose working is this?"** — the **carved-set ledger's `holder`**
   (`{cell, tier, holder}` on `MineWarren`).
 
-⚠ **The open the planner must resolve, and the constraint on the answer.**
-Parcels are titled over **paths**; a mining claim is a **region of a
-coordinate space**. Stage A's answer must be the cheapest one that does not
-foreclose: **authored claim parcels at adit level** — the Hinkley
-`PlatBook`/`LotHolder` precedent — with the cell↔claim mapping **declared
-on the claim rather than derived from geometry**. ⚠ **Do not invent
-coordinate-extent parcels**; that is a property-substrate build, not a
-mining one.
+⭐ **A claim is STAKED, not bought** (decided 2026-09-01). `title buy` is
+buying from a catalogue; **staking is a first-come registration** — you
+find ground, post a notice, and the recorder writes it down. So mining
+ships its own **`stake`** verb, afforded by the Claims Office counter,
+calling the gated `ParcelApi` to subdivide beneath the mine's extent and
+transfer to the staker. No `PlatBook` (it is residence-pack content now),
+**no residence-pack dependency**, and the security invariant is untouched.
+
+⚠ **The constraint on the cell↔claim mapping stands.** Parcels are titled
+over **paths**; a claim is a **region of coordinate space**. The mapping is
+**declared on the warren** rather than derived from geometry, and ⚠ **do
+not invent coordinate-extent parcels** — that is a property-substrate
+build, not a mining one.
 
 #### ⭐ Who owns the ore once it is cut
 
