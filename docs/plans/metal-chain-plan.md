@@ -55,12 +55,43 @@ moved, and both sibling builds now have open, mergeable MRs that change
 things this plan depends on.** Nothing below invalidates the design; all of
 it changes *what to write*.
 
-**Sibling state:** MR **!213** (build/farming, Stage A) and MR **!212**
-(build/residences, the ladder) are both **open, mergeable, blocking
-discussions resolved** — 9619/1 and 10 873/0 respectively. ⭐ **If both
-land before wave one, the concurrency fence in this plan's header
-dissolves and the right move is to re-ground once against a merged master
-rather than dodge three trees.**
+**Sibling state — and the decision: WE WAIT.** MR **!213**
+(build/farming, Stage A) and MR **!212** (build/residences, the ladder)
+are both **open, mergeable, blocking discussions resolved** — 9619/1 and
+10 873/0. **User's call 2026-09-01: this build waits for both to land.**
+
+⭐ **Consequences, all simplifying:**
+
+- **The concurrency fence in this plan's header dissolves.** It stays in
+  the document as a record of why the design avoided those trees, but the
+  build is no longer dodging anything — **re-ground once against a merged
+  master before wave one** and treat items 4–7 below as simply *the state
+  of master*, not as incoming change.
+- **Items 4–7 stop being risks and become facts to read.** `Archetype`'s
+  `satisfies()` + `rest` precedent, `Room` → `CartesianLocation`,
+  `lint:census`, and the keyword hazard are all just master.
+- ⭐⭐ **The holding graduation re-opens as a Stage A option** — see below.
+
+### ⭐ The one decision waiting re-opens: when does the holding graduate?
+
+P7 defers the `HoldingWarren` graduation to Stage B **because you cannot
+graduate a class that is not on master.** Once !212 lands, that reason is
+gone, and doing it in Stage A would mean `MineWarren extends
+HoldingWarren` from the first commit — **no base swap, no alignment
+gymnastics, and `MineWarren` itself gets SMALLER**, because the class
+already owns keyed identity, dormancy-as-a-unit, the tenure term,
+archetype aggregation and runtime-added members. Mining would write only
+carve policy, faces, geology consultation, stability and air.
+
+⚠ **The counter-argument, and it is the reason to still lean Stage B:**
+refactoring a subsystem **the week it lands** is how you collide with its
+author's own follow-up fixes. `HoldingWarren` will not have settled.
+
+**Decide at re-grounding, with the merged code in front of you** — that is
+what this section is for. If the holding code looks settled, graduate in
+Stage A and delete P7's base-swap hedging. If it still looks live, keep
+Stage A on `InnerWarren`; the `<claimExtent>/<cell>` key alignment already
+makes the later swap cheap either way.
 
 ### What is stale, in severity order
 
