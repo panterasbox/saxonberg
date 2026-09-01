@@ -2,7 +2,7 @@
 # stair up is installed at warm by the BuildingWarren (an UpstairsExit —
 # impassable while no unit is leased above, the dorm's honest-empty
 # rule); the way back out is the street door.
-class: /platform/location/Room
+class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: the Seznick House lobby

@@ -7,7 +7,7 @@
 # Cross-zone exit pair with Mayfield Row, both sides explicit (the street
 # declares `realty` in; this declares `row` back) — a non-cardinal name
 # across a zone boundary, the mayfield/avenue precedent.
-class: /platform/location/Room
+class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: Mayfield & Co., land agents

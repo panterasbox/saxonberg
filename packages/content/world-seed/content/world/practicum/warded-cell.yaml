@@ -3,7 +3,7 @@
 # read (dormant, not released — it re-lights outside); the brazier's
 # MUNDANE fire keeps burning — suppression drops what magic still holds
 # up, and can never un-happen an impulse. That contrast IS the lesson.
-class: /platform/location/Room
+class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: the warded cell

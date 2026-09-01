@@ -17,7 +17,7 @@
 # lobby on hydrate so the inspection card's contents list has
 # something to render — demonstrating the contents projection
 # end-to-end against real content.
-class: /platform/location/Room
+class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   _address: terminus/city/campus/duncan-hall

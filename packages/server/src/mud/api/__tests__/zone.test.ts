@@ -69,7 +69,7 @@ describe('ZoneApi.resolveZoneForPath', () => {
       },
       {
         path: '/narnia/castle/foyer',
-        class: '/platform/location/Room',
+        class: '/platform/location/SingletonCartesianLocation',
         data: {},
       },
     ]);
@@ -105,7 +105,7 @@ describe('ZoneApi.resolveZoneForPath', () => {
     installInMemoryStore([
       {
         path: '/orphan/leaf',
-        class: '/platform/location/Room',
+        class: '/platform/location/SingletonCartesianLocation',
         data: {},
       },
     ]);

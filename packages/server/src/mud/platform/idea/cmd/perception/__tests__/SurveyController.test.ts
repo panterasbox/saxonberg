@@ -26,7 +26,7 @@ import { join } from 'path';
 import { fileURLToPath } from 'url';
 import SurveyController from '../SurveyController';
 import ArchetypeCatalogue from '../../../ArchetypeCatalogue';
-import Room from '../../../../location/Room';
+import SingletonCartesianLocation from '../../../../location/SingletonCartesianLocation';
 import FurnishableRoom from '../../../../location/FurnishableRoom';
 import { InnerWarren } from '../../../../../lib/location/InnerWarren';
 import Chair from '../../../../thing/Chair';
@@ -211,8 +211,8 @@ describe('survey', () => {
   });
 
   it('reads the bare room against all four, and says no to each', async () => {
-    const room = makeStuff(() => new Room());
-    const actor = makeStuff(() => new Room()); // any Stuff will do as a giver
+    const room = makeStuff(() => new SingletonCartesianLocation());
+    const actor = makeStuff(() => new SingletonCartesianLocation()); // any Stuff will do as a giver
     await survey(actor, room);
     expect(captured).toContain('You take stock of the room');
     for (const label of ['a bedroom', 'a kitchen', 'a bathroom', 'a living room']) {
@@ -223,13 +223,13 @@ describe('survey', () => {
   });
 
   it('names what answered — the bed, by name', async () => {
-    const room = makeStuff(() => new Room());
+    const room = makeStuff(() => new SingletonCartesianLocation());
     const b = bed();
     ContainmentApi.move(
       b as unknown as Stuff & Containable,
       room as unknown as Stuff & Container,
     );
-    await survey(makeStuff(() => new Room()), room);
+    await survey(makeStuff(() => new SingletonCartesianLocation()), room);
     expect(captured).toContain('a bedroom: yes');
     expect(captured).toMatch(/sleeping \(.*bed.*\)/);
   });
@@ -248,7 +248,7 @@ describe('survey', () => {
     );
 
     // Standing in the HALL, which has nothing in it at all.
-    await survey(makeStuff(() => new Room()), hall);
+    await survey(makeStuff(() => new SingletonCartesianLocation()), hall);
     expect(captured).toContain('You take stock of the place as a whole');
     // The bedroom next door answers for the whole holding.
     expect(captured).toContain('a bedroom: yes');
@@ -262,14 +262,14 @@ describe('survey', () => {
   it('bands and words only — no number anywhere in the readout', async () => {
     const hall = makeStuff(() => new FurnishableRoom());
     holding([hall], 'sound', null);
-    await survey(makeStuff(() => new Room()), hall);
+    await survey(makeStuff(() => new SingletonCartesianLocation()), hall);
     // The one thing D4 forbids: a gauge. `0.87` or `87%` must never appear.
     expect(captured).not.toMatch(/\d+(\.\d+)?\s*%/);
     expect(captured).not.toMatch(/\b0\.\d+\b/);
   });
 
   it('is afforded actor-side, beside `look`', () => {
-    class Viewer extends PerceiverMixin(Room) {}
+    class Viewer extends PerceiverMixin(SingletonCartesianLocation) {}
     const verbs = CommandApi.collectSelfDefs(Viewer)
       .map((d) => d.verbs)
       .flat();

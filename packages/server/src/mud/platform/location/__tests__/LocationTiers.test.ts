@@ -21,9 +21,6 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
-import { fileURLToPath } from "node:url";
 import CartesianLocation from "../CartesianLocation";
 import SphericalLocation from "../SphericalLocation";
 import SingletonCartesianLocation from "../../../lib/location/SingletonCartesianLocation";
@@ -82,55 +79,11 @@ describe("the minted quadrant", () => {
   });
 });
 
-describe("the shipped rows pick the right location class", () => {
-  const PACKS = fileURLToPath(new URL("../../../../../../content/", import.meta.url));
-
-  function rows(): Array<{ file: string; cls: string }> {
-    const out: Array<{ file: string; cls: string }> = [];
-    const walk = (dir: string): void => {
-      for (const e of readdirSync(dir, { withFileTypes: true })) {
-        if (e.name === "node_modules") continue;
-        const full = join(dir, e.name);
-        if (e.isDirectory()) walk(full);
-        else if (e.name.endsWith(".yaml")) {
-          const m = /^class:\s*(\S+)\s*$/m.exec(readFileSync(full, "utf8"));
-          if (m) out.push({ file: full.slice(PACKS.length), cls: m[1]! });
-        }
-      }
-    };
-    walk(PACKS);
-    return out;
-  }
-
-  /**
-   * Rows a warren MINTS repeatedly from one row, plus the archetype
-   * scaffold. None is furnished by anybody and none is ever keyed, so
-   * none may carry a record.
-   */
-  const MINTED = [
-    "hinkley-hills/content/world/terminus/hinkley-hills/lots/road-segment.yaml",
-    "terminus/content/world/terminus/mayfield-row/seznick-house/corridor.yaml",
-    "platform/content/platform/location/venue.yaml",
-  ];
-
-  it("⭐ nothing minted-and-reaped carries a persistence record", () => {
-    const byFile = new Map(rows().map((r) => [r.file, r.cls]));
-    for (const f of MINTED) {
-      expect(byFile.get(f), `${f} must exist`).toBeDefined();
-      expect(
-        byFile.get(f),
-        `${f} is minted per node and reaped — it must not persist`,
-      ).toBe("/platform/location/CartesianLocation");
-    }
-  });
-
-  it("⚠ FurnishableRoom is the FURNISHING archetypes' base, not a default", () => {
-    // It drifted into being the generic room class because it was the only
-    // multi-instance location. Nothing minted may sit on it.
-    const furnishable = rows().filter(
-      (r) => r.cls === "/platform/location/FurnishableRoom",
-    );
-    expect(furnishable.length).toBeGreaterThan(0);
-    for (const r of furnishable) expect(MINTED).not.toContain(r.file);
-  });
-});
+/*
+ * The CONTENT half of this invariant — which shipped rows may sit on
+ * `FurnishableRoom` — is `pnpm lint:locations`
+ * (`scripts/check-location-classes.ts`), not a test here. It is a
+ * cross-pack content audit over an enumerated roster, which is the
+ * lint family's job (`check-untitled-paths`, `check-instanceable-placement`),
+ * and a kernel test may not name shipped content anyway.
+ */

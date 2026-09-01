@@ -22,7 +22,7 @@ import { EventApi } from '../event';
 import { ShadowApi } from '../shadow';
 import { MqlSubscriptionApi } from '../mql-subscription';
 import { ContainmentApi } from '../containment';
-import Room from '../../platform/location/Room';
+import SingletonCartesianLocation from '../../platform/location/SingletonCartesianLocation';
 import { makeHarness, makeContext } from './card-harness';
 
 describe('a card owns its subscription handle', () => {
@@ -36,7 +36,7 @@ describe('a card owns its subscription handle', () => {
 
   it('closing every card leaves ZERO orphan subscriptions', async () => {
     const h = await makeHarness();
-    const room = await StuffApi.create(() => new Room());
+    const room = await StuffApi.create(() => new SingletonCartesianLocation());
     room.setShortDescription('the lounge');
     ContainmentApi.move(h.avatar, room);
 
@@ -75,7 +75,7 @@ describe('a card owns its subscription handle', () => {
 
   it('the sweep tears the handle down too', async () => {
     const h = await makeHarness();
-    const room = await StuffApi.create(() => new Room());
+    const room = await StuffApi.create(() => new SingletonCartesianLocation());
     room.setShortDescription('the lounge');
     ContainmentApi.move(h.avatar, room);
 
@@ -97,7 +97,7 @@ describe('a card owns its subscription handle', () => {
 
   it('a rearrange tears down what it manages and leaves inspection alone', async () => {
     const h = await makeHarness();
-    const room = await StuffApi.create(() => new Room());
+    const room = await StuffApi.create(() => new SingletonCartesianLocation());
     room.setShortDescription('the lounge');
     ContainmentApi.move(h.avatar, room);
 
@@ -146,7 +146,7 @@ describe('a card owns its subscription handle', () => {
 
   it('disconnect drops the whole set and its handles, silently', async () => {
     const h = await makeHarness();
-    const room = await StuffApi.create(() => new Room());
+    const room = await StuffApi.create(() => new SingletonCartesianLocation());
     room.setShortDescription('the lounge');
     ContainmentApi.move(h.avatar, room);
 

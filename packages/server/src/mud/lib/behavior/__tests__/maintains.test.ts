@@ -30,7 +30,7 @@ import { InnerWarren } from '../../location/InnerWarren';
 import { CommandApi } from '../../../api/command';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
-import Room from '../../../platform/location/Room';
+import SingletonCartesianLocation from '../../../platform/location/SingletonCartesianLocation';
 import Avatar from '../../../platform/agent/Avatar';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
 import type { Stuff } from '../../stuff/Stuff';
@@ -74,7 +74,7 @@ function programme(key: string, band: string): HoldingWarren {
   const p = makeStuff(() => new HoldingWarren());
   p.key = key;
   p.band = band;
-  p.entry = makeStuff(() => new Room()) as unknown as Stuff;
+  p.entry = makeStuff(() => new SingletonCartesianLocation()) as unknown as Stuff;
   return p;
 }
 
@@ -99,7 +99,7 @@ let issued: Array<{ actor: Stuff; line: string }>;
 const maintains = (): Array<{ actor: Stuff; line: string }> =>
   issued.filter((c) => c.line === 'maintain');
 
-function keeper(desk: Room): Avatar {
+function keeper(desk: SingletonCartesianLocation): Avatar {
   const k = makeStuffAtPath(() => new Avatar(), '/platform/agent/Avatar/katie');
   ContainmentApi.move(
     k as unknown as Stuff & Containable,
@@ -128,7 +128,7 @@ describe('the maintains beat', () => {
   it('works the worn holdings in its extent, through the literal verb', async () => {
     programme(`${DORMS}/f1-r1`, 'worn');
     programme(`${DORMS}/f1-r2`, 'shabby');
-    const desk = makeStuff(() => new Room());
+    const desk = makeStuff(() => new SingletonCartesianLocation());
     const katie = keeper(desk);
 
     await brain.act(ctxFor(katie as unknown as Stuff, { extent: DORMS }));
@@ -145,21 +145,21 @@ describe('the maintains beat', () => {
 
   it('skips sound shells — a beat that finds nothing to do does nothing', async () => {
     programme(`${DORMS}/f1-r1`, 'sound');
-    const desk = makeStuff(() => new Room());
+    const desk = makeStuff(() => new SingletonCartesianLocation());
     await brain.act(ctxFor(keeper(desk) as unknown as Stuff, { extent: DORMS }));
     expect(maintains()).toHaveLength(0);
   });
 
   it('never wanders outside its own extent', async () => {
     programme(`${OTHER}/f1-u1`, 'dilapidated');
-    const desk = makeStuff(() => new Room());
+    const desk = makeStuff(() => new SingletonCartesianLocation());
     await brain.act(ctxFor(keeper(desk) as unknown as Stuff, { extent: DORMS }));
     expect(maintains()).toHaveLength(0);
   });
 
   it('bounds the round by `batch`, and comes back to the desk', async () => {
     for (let i = 1; i <= 5; i += 1) programme(`${DORMS}/f1-r${i}`, 'worn');
-    const desk = makeStuff(() => new Room());
+    const desk = makeStuff(() => new SingletonCartesianLocation());
     const katie = keeper(desk);
 
     await brain.act(ctxFor(katie as unknown as Stuff, { extent: DORMS, batch: 2 }));
@@ -172,7 +172,7 @@ describe('the maintains beat', () => {
 
   it('does nothing at all without an authored extent — a remit is authored, never inferred', async () => {
     programme(`${DORMS}/f1-r1`, 'worn');
-    const desk = makeStuff(() => new Room());
+    const desk = makeStuff(() => new SingletonCartesianLocation());
     await brain.act(ctxFor(keeper(desk) as unknown as Stuff, {}));
     expect(maintains()).toHaveLength(0);
   });

@@ -32,7 +32,7 @@ import {
 } from '../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import ArchetypeCatalogue from '../idea/ArchetypeCatalogue';
-import Room from '../location/Room';
+import SingletonCartesianLocation from '../location/SingletonCartesianLocation';
 import Chair from '../thing/Chair';
 import Oven from '../thing/Oven';
 import Prop from '../thing/Prop';
@@ -109,8 +109,8 @@ function parseArchetype(raw: string): StoredDocument {
 
 let catalogue: ArchetypeCatalogue;
 
-function room(): Room {
-  return makeStuff(() => new Room());
+function room(): SingletonCartesianLocation {
+  return makeStuff(() => new SingletonCartesianLocation());
 }
 function put(item: Stuff, where: Stuff): void {
   ContainmentApi.move(

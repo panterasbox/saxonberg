@@ -3,7 +3,7 @@
 # demonstrator: `north` leads into the trapped corridor; `south` climbs back
 # out to the treeline (the one cross-zone edge from inside this sphere — its
 # partner, the inbound `north`, is authored on the treeline seed).
-class: /platform/location/Room
+class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: the mouth of the delve

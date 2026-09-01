@@ -26,7 +26,7 @@ import { CirculatingMixin } from '../Circulating';
 import { BlessableMixin } from '../../magic/Blessable';
 import { ArcaneMixin } from '../../magic/Arcane';
 import Thing from '../../stuff/Thing';
-import Room from '../../../platform/location/Room';
+import SingletonCartesianLocation from '../../../platform/location/SingletonCartesianLocation';
 import type { Stuff } from '../../stuff/Stuff';
 import {
   makeStuff,
@@ -84,7 +84,7 @@ describe('the spawn sweep stamps a BUC band on what it mints', () => {
 
   /** A live room so the census has a region to count in. */
   function worldWithAWand(): void {
-    const room = makeStuff(() => new Room());
+    const room = makeStuff(() => new SingletonCartesianLocation());
     stampTemplatePathForTest(room, `/world/test/spawn-room-${seq++}`);
     const wand = seedCirculatingWand();
     ContainmentApi.move(wand as never, room as never);

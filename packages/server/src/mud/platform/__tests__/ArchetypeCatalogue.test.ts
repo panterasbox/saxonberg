@@ -19,7 +19,7 @@ import { makeStuff, makeStuffAtPath, stampTemplatePathForTest } from '../../lib/
 import { installV1QuantityMarshallers } from '../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import ArchetypeCatalogue from '../idea/ArchetypeCatalogue';
 import RecipeCatalogue from '../idea/RecipeCatalogue';
-import Room from '../location/Room';
+import SingletonCartesianLocation from '../location/SingletonCartesianLocation';
 import Thing from '../../lib/stuff/Thing';
 import { ToolMixin } from '../../lib/craft/Tooled';
 import { SurfacedMixin } from '../../lib/spatial/Surfaced';
@@ -113,7 +113,7 @@ describe('the venue archetype', () => {
       cloned.push(path);
       const s: Stuff =
         path === '/platform/location/venue'
-          ? (makeStuff(() => new Room()) as unknown as Stuff)
+          ? (makeStuff(() => new SingletonCartesianLocation()) as unknown as Stuff)
           : path.endsWith('bench')
             ? (makeStuff(() => new Bench()) as unknown as Stuff)
             : (makeStuff(() => new Tool()) as unknown as Stuff);

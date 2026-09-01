@@ -4,7 +4,7 @@
 # declares `mayfield` in) — non-cardinal names are admissible across a
 # zone boundary, and a street you turn INTO reads better named than
 # compassed (the lot-gate precedent).
-class: /platform/location/Room
+class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: Mayfield Row

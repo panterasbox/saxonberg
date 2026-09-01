@@ -56,7 +56,7 @@ describe("general-store content integrity", () => {
     expect(zone.class).toBe("/platform/idea/location/CartesianZone");
 
     const room = load(STORE_DIR, "shop-floor.yaml");
-    expect(room.class).toBe("/platform/location/Room");
+    expect(room.class).toBe("/platform/location/SingletonCartesianLocation");
     expect(room.data?.populates).toEqual([
       "/world/terminus/general-store/counter",
       "/world/terminus/general-store/consignment-shelf",

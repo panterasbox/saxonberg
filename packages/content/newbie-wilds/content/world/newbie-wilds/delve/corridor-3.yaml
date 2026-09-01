@@ -4,7 +4,7 @@
 # a careful walker notices it, a runner barrels into it — the care-speed
 # demonstrator's "run springs what walk avoids" case. It trips; it does not
 # block — pick yourself up and the vault is one step north.
-class: /platform/location/Room
+class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: the last span before the vault

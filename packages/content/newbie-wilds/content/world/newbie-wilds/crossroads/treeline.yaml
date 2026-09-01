@@ -5,7 +5,7 @@
 # by walking south back to the crossroads; deliberately no inbound exit
 # wired from the hub (keeps content-area standup clean). Carries the
 # Last-Counted-Mile locality address like the hub.
-class: /platform/location/Room
+class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: the treeline past the crossroads
