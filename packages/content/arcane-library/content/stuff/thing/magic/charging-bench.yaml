@@ -17,6 +17,9 @@ data:
     A slab of slate bedded on brass, with a sink of coiled pipe beneath
     it that stays cold to the touch no matter what has been done on top.
     The heat has to go somewhere, and somebody thought about where.
-  _materialPath: /stuff/idea/material/stone/slate
+  # ⚠ `stone/slate` never existed (the namespace is `rock/`), so this
+  # bench resolved no material at all. Nearest authored rock; the
+  # material vocabulary is closed by doctrine.
+  _materialPath: /stuff/idea/material/rock/granite
   mass: 60
   couplingEfficiency: 0.98
