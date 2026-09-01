@@ -41,6 +41,39 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const CONTENT = join(HERE, "..", "..", "content");
 
 const FURNISHABLE = "/platform/location/FurnishableRoom";
+const MINTED = "/platform/location/CartesianLocation";
+
+/**
+ * Every row on the PERMISSIVE `CartesianLocation` — a row that describes
+ * a KIND of place, minted many times.
+ *
+ * ⚠⚠ This roster exists because the name is a **semantic trap across
+ * branches**. `/platform/location/CartesianLocation` used to be
+ * `/platform/location/Room`, and it carried `SingletonMixin` — one row
+ * WAS one place, and a second `clone()` was refused. This build flipped
+ * the axis: the mixin SUBTRACTS (a class without it still backs a
+ * singleton template through `StuffApi.singleton()`; a class with it can
+ * back only singleton templates), so the unmarked name went to the
+ * permissive class and authored places moved to
+ * `SingletonCartesianLocation`.
+ *
+ * That means the SAME STRING names opposite things depending on which
+ * branch you came from, and a merge that resolves cleanly by text will
+ * silently strip the singleton guard off every authored place that
+ * arrives on the old meaning. Nothing else would notice: a permissive
+ * class serves a singleton row perfectly well right up until something
+ * clones it twice.
+ *
+ * So the minted set is enumerated too. Three rows, and each is a KIND:
+ * a venue archetype minted per venue, a corridor minted per floor, a
+ * road segment minted as frontage fills. An authored place — a hub, a
+ * hollow, a cookhouse — belongs on `SingletonCartesianLocation`.
+ */
+const MINTED_ROWS = [
+  "hinkley-hills/content/world/terminus/hinkley-hills/lots/road-segment.yaml",
+  "platform/content/platform/location/venue.yaml",
+  "terminus/content/world/terminus/mayfield-row/seznick-house/corridor.yaml",
+];
 
 /**
  * Every row on `FurnishableRoom`, and each is a room a PLAYER puts
@@ -91,27 +124,73 @@ export function shippedRows(contentDir: string = CONTENT): Row[] {
   return out;
 }
 
+/** Rows on `cls` that the `roster` does not list, and vice versa. */
+function against(
+  rows: readonly Row[],
+  cls: string,
+  roster: readonly string[],
+): { unexpected: string[]; missing: string[] } {
+  const on = rows.filter((r) => r.cls === cls).map((r) => r.file);
+  const listed = new Set(roster);
+  return {
+    unexpected: on.filter((f) => !listed.has(f)).sort(),
+    missing: roster.filter((f) => !on.includes(f)).sort(),
+  };
+}
+
 /** The findings: rows on `FurnishableRoom` that are not in the roster. */
 export function classify(rows: readonly Row[]): {
   unexpected: string[];
   missing: string[];
 } {
-  const on = rows.filter((r) => r.cls === FURNISHABLE).map((r) => r.file);
-  const roster = new Set(FURNISHED);
-  return {
-    unexpected: on.filter((f) => !roster.has(f)).sort(),
-    missing: FURNISHED.filter((f) => !on.includes(f)).sort(),
-  };
+  return against(rows, FURNISHABLE, FURNISHED);
+}
+
+/** The findings: rows on the permissive `CartesianLocation`. */
+export function classifyMinted(rows: readonly Row[]): {
+  unexpected: string[];
+  missing: string[];
+} {
+  return against(rows, MINTED, MINTED_ROWS);
 }
 
 function main(): void {
-  const { unexpected, missing } = classify(shippedRows());
-  if (unexpected.length === 0 && missing.length === 0) {
+  const rows = shippedRows();
+  const mint = classifyMinted(rows);
+  const { unexpected, missing } = classify(rows);
+  if (
+    unexpected.length === 0 &&
+    missing.length === 0 &&
+    mint.unexpected.length === 0 &&
+    mint.missing.length === 0
+  ) {
     console.log(
       `check-location-classes: ok — ${FURNISHED.length} rows on ` +
-        `FurnishableRoom, every one a room somebody furnishes.`,
+        `FurnishableRoom, every one a room somebody furnishes; ` +
+        `${MINTED_ROWS.length} on CartesianLocation, every one a KIND.`,
     );
     return;
+  }
+  if (mint.unexpected.length > 0) {
+    console.error(
+      `\ncheck-location-classes: ${mint.unexpected.length} row(s) use the ` +
+        `PERMISSIVE ${MINTED} without being a minted KIND.\n\n` +
+        `  ⚠ If these arrived from a branch where this class was named ` +
+        `Room and carried SingletonMixin, they are AUTHORED PLACES and ` +
+        `the merge has silently stripped their singleton guard. They ` +
+        `want /platform/location/SingletonCartesianLocation. Only a row ` +
+        `that describes a KIND of place, minted many times, belongs ` +
+        `here — and it goes in the roster in this file:`,
+    );
+    for (const f of mint.unexpected) console.error(`  ✗ ${f}`);
+  }
+  if (mint.missing.length > 0) {
+    console.error(
+      `\ncheck-location-classes: ${mint.missing.length} roster row(s) no ` +
+        `longer use ${MINTED}. If that is deliberate, drop them from the ` +
+        `roster in this file:`,
+    );
+    for (const f of mint.missing) console.error(`  ✗ ${f}`);
   }
   if (unexpected.length > 0) {
     console.error(
