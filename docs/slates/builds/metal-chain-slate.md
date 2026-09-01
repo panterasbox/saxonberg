@@ -1225,16 +1225,27 @@ scope rather than to content.
    See § *Who owns what*.
 2. ~~How the commons is funded~~ — **CLOSED**: toll the hoist (excludable)
    to fund the pump (not). See § *The commons*.
-3. **The per-heading cap** — farming caps a field at ~4 ha so one room
-   stays honest. Mining needs the equivalent: the maximum advance one
-   `drive` may cut. Probably a function of the crew and the ground.
-4. **Cave-in** — still the one hazard with no owned system
-   (mining-slate's residual open). Shoring is the counter and dead work
-   is the cost, so the design pressure now exists; the mechanic does not.
-5. **Where the vein geometry lives** — on the zone, on a deposit `Idea`,
-   or as a `ParcelRecord` annexe. *(rejection-slate Open 1b — whether the
-   Hinkley/Rejection pairing is a deliberate yes — is answered YES by
-   § The commons: the surface was granted, the minerals were claimed.)*
+3. ~~The per-heading cap~~ — **CLOSED: it dissolves.** `drive` mints
+   exactly one cell, so there is no distance to cap; `cellSize` leans ~10 m
+   (the distance over which geology meaningfully changes). The session cap
+   is the vitals stack; the **durable** cap is the timber market — *you can
+   only hold as much mine as you can timber.* See
+   [mining-slate § *The cell size*](./mining-slate.md).
+4. ~~Cave-in~~ — **CLOSED, split in two**: *prevention* ships (shoring as
+   maintained `Durable` objects, falls at **faces** not rooms, neglect
+   punished by **refusal**, the timberman funded off the hoist toll);
+   *collapse and rescue* are **deferred until the population can support a
+   collective rescue**. See [mining-slate § *Ground support*](./mining-slate.md).
+5. ~~Where the vein geometry lives~~ — **CLOSED**: the **model** is a
+   pure-data `Deposit` `Idea`; the **instantiation** is the mine zone's row
+   (the seed derives from its address, never authored); the **carved set**
+   is one ledger on the mine's holder, because a *shared* space needs one
+   where farming's disjoint fields do not. Title stays in `parcels`, never
+   the zone. See [mining-slate § *The `Deposit` Idea*](./mining-slate.md)
+   and [field-substrate-slate](./field-substrate-slate.md).
+   *(rejection-slate Open 1b — whether the Hinkley/Rejection pairing is a
+   deliberate yes — is answered YES by § The commons: the surface was
+   granted, the minerals were claimed.)*
 6. ~~Tin's home~~ — **CLOSED: the bottom of the Ferrow**, by zoned
    mineralization (Sn inner/deep → Cu → Fe distal). See § *The deposit is
    zoned*. The Weeping Moor is banked as the later stream-tin district

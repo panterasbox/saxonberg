@@ -1201,6 +1201,41 @@ Reckoning plus search catches patterns, and being caught costs regard,
 recognition, employment, access and notoriety. **Temptation scales with
 value** — deep silver is where high-grading bites.
 
+### The cell size, and why there is no per-heading cap **[DECIDED]**
+
+Farming caps a field at ~4 ha so one room stays honest. **Mining needs no
+equivalent, because `drive` mints exactly one cell** — there is no distance
+parameter to cap. The open dissolves into two smaller questions.
+
+**What is `cellSize`?** A mine cell is *a length of drift*. The constraint
+is this slate's own rule — *the generator may only emit rooms that DO
+something; no filler corridors, coarse galleries not 5-ft segments* — and
+the **ten-direction face model satisfies it by construction**: every cell
+carries up to ten faces, each a seam to hew or a face to drive, so no cell
+is filler. What is left to set the size is the only thing that makes cells
+*differ*: **the distance over which the geology meaningfully changes**,
+which for ore shoots and grade variation is metres to tens of metres.
+**Lean ~10 m** (Terminus is 3.0, Hinkley 6.0 for open ground). One cell is
+then several shifts of work, which makes `drive` a substantial engagement
+rather than a step.
+
+**What limits how much you can drive?** Nothing arbitrary, and nothing
+should:
+
+> ⭐ **The cap is your body, your clock and your lamp.** Carve cost is
+> hardness × cell, paid as an engagement in game time against reserve — so
+> the limit is the vitals stack, which is the whole thesis.
+
+And the **durable** limit — the one that bounds room count rather than
+session length — is the timber market:
+
+> ⭐⭐ **You can only hold as much mine as you can timber.** Provisional
+> rooms cost nothing and cull; **Held** rooms require shoring, and shoring
+> is timber off the same coppice that makes charcoal (§ *Ground support*).
+
+So the cap is **priced by a market rather than set by a dial** — which is
+the better answer, and it is the third consumer pulling on the wood supply.
+
 ### ⭐⭐⭐ Room identity — nothing mints a room template
 
 **Decided 2026-08-31**, against residences **D17**: *every `templatePath`
