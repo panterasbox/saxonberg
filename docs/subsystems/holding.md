@@ -449,3 +449,27 @@ Named, not stubbed — each is a clean attach point:
 - **the branch that a plan authors but no frontage has reached** — the
   court off Hinkley's segment 2 exists in the plan and materializes as
   frontage fills; deeper trees (a court off a court) are untested.
+
+### ⭐ The lift: `HoldingWarren` is one concern from kernel-general
+
+Worth naming before a second consumer arrives, because it will be
+cheaper to see coming than to discover. Of everything the pack's
+`HoldingWarren` owns — the keyed floorplan mint, whole-unit dormancy,
+wake/sleep, the front-door edge, revert — **only the shell clock is
+residential**, and even that is residential only in its *vocabulary*
+(`shellCondition`, `landlord-shell`, `residence.weather.daysToWorn`).
+The mechanism underneath is *a held thing weathers on the passage of
+days, and a term says who owes the upkeep*, which is not about houses.
+
+A mine's workings are a holding one level down in exactly the same
+sense: a shaft is minted against a plan, its rooms sleep and wake as a
+unit, the way in is gated, and somebody owes the timbering. The metal
+chain is the likely second consumer.
+
+**The lift is not mechanical, which is why it is deferred and not
+done.** Moving the class into `lib/location/` is the easy half; the
+hard half is deciding whether the condition axis stays one clock with a
+neutral name, or whether a holding's shell and a working's supports are
+two different things that merely rhyme. That is a design conversation
+with the second consumer in the room — **do not make it alone, and do
+not widen a residences MR to do it.**
