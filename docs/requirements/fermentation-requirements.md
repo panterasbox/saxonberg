@@ -205,6 +205,29 @@ minted for it:
   pack (the vocations demand test), at which point it moves out, the
   same direction of travel salt and coffee took.
 
+### D11 — The carbonation boundary, and the still's hazards — LOCKED
+
+*(pedagogy · never-half-grown)* **Carbonation is a fact about the
+liquid, never about who made it.** It stays a material-level fact (the
+shipped tag); vessel conditioning (this build's `sealedOnly` profile —
+sparkling wine, and cask-conditioned real ale) is the first honest
+PRODUCER of that fact, historically exact for the medieval rung. Forced
+carbonation (CO₂ injection, pressure, the bottling line) is a different
+process and stays trade-bottling's future de-stub — the sodas cannot
+honestly fizz until it lands. Kernel guard: nothing may assume
+producer == packager or carbonated == fermented-in-vessel; the
+distribution seam keeps the division of labor growable.
+
+**The still is hazardous the way it really is.** Fire ships now:
+high-proof spirit materials author flammability and ride the shipped
+combustion substrate — a spilled, ignited spirit burns. Methanol is the
+deferred cuts rung's stake: profiles record the wash's foreshot
+character now, and when cuts arrive, kept foreshots become a
+metabolism toxin dose while pouring off the first draw becomes the
+skill (still zero new verbs). Excise — the actual historical ban — is
+polity CONTENT, not mechanics: a locality licensing stills rides the
+civics/charter machinery when the fiction wants it.
+
 ## Constraints
 
 - **Uncertainty doctrine**: no resolutional randomness; seeded, not

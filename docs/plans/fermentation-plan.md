@@ -116,6 +116,26 @@ card** (the shipped hire-time deal; the purchase lands in
   the brains' production takes over; bottling and farming faucets
   untouched.
 
+### P9 — Conditioning generalizes to the cask; the carbonation guard
+
+The `sealedOnly` profile serves three rows over the one Vat family:
+the sparkling `conditioning-bottle`, and a **conditioning cask** that
+makes v1 ale REAL ALE — cask-conditioned, naturally carbonated,
+medieval-exact. Carbonation remains a material-level fact the ferment
+produces; no kernel code may test "how it got fizzy," so the future
+bottling build's forced-carbonation route produces the same fact by
+different inputs. W4 ships the cask row; W7's drive pours a conditioned
+pint.
+
+### P10 — The still's hazards (D11)
+
+W5 authors **flammability on the spirit materials** (the shipped
+combustion substrate does the rest) with one test: an ignited spill
+burns. Profiles for fruit washes carry a `foreshot` character field —
+inert data in v1, the seam the cuts rung will read into metabolism's
+toxin dose. Excise/licensing is deliberately absent: polity content
+for the civics machinery, owned by the legal-code slate's world.
+
 ## Waves
 
 ### W0 — The grade seam
@@ -147,7 +167,8 @@ the `cellars` brain; vinegar consignable + a pantry par line for it
 (the cook buys the failure path). Fixture-world brain test.
 
 ### W4 — Brewing produces
-Mash recipe + mash-tun fixture; wort; ale/lager profiles; the brewing
+Mash recipe + mash-tun fixture; wort; ale/lager profiles; the
+conditioning cask (P9 — real ale, naturally carbonated); the brewing
 floor reworked; the same `cellars` brain with brewing config. A keg of
 ale carries its batch band.
 
@@ -157,7 +178,9 @@ spirit), gin compounding (spirit + juniper), brandy (wine → spirit —
 the grape lane's own spirit); **vermouth recipes in winemaking**
 (wine + bought spirit + botanical + sugar for sweet); the Crowsfoot
 floor venue + `distills` brain; the vintner brain's buy step (the B2B
-ledger test). The martini's inputs now all exist from lane output.
+ledger test); spirit flammability + the ignited-spill test and the
+inert `foreshot` field (P10). The martini's inputs now all exist from
+lane output.
 
 ### W6 — Reads, disciplines, marks
 Vat sensory details; the hydrometer row + reading; the `fermenting`
