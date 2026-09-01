@@ -3,7 +3,7 @@
 # reaped top-down when empty; it is NOT a Warren member (the DormWarren keeps
 # corridors in its own map) and carries its own `canEvict → false`.
 #
-# No persistence, no `populates:`, no `exits:` — the stair exits (`down` to
+# No persistence, no `props:`, no `exits:` — the stair exits (`down` to
 # the floor below, `up` LazyFloorExit) and the per-unit DormDoors are wired
 # imperatively by the DormWarren. A plain non-coordinate Location; generic
 # label, no Named.

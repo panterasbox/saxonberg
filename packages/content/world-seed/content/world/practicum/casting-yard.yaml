@@ -12,6 +12,6 @@ data:
     x: 0
     y: 0
     z: 0
-  populates:
+  props:
     - /world/practicum/practice-dummy
     - /world/practicum/basin

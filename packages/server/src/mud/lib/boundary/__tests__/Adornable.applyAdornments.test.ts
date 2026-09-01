@@ -10,7 +10,7 @@ import { makeStuff } from "../../security/__tests__/test-setup";
 /**
  * AdornableMixin.applyAdornments — the declarative Phase-2 seam that
  * clones adornment templates and attaches them as fixtures (the
- * `applyExits` / `applyPopulates` precedent). The clone is stubbed so
+ * `applyExits` / `applyProps` precedent). The clone is stubbed so
  * the applier's own logic (clone -> guard -> addFixture) is exercised
  * without the Mongo template harness; the end-to-end seed path is
  * covered by the lounge integration tests.

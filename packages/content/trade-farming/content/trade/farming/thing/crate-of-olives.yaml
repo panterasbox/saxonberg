@@ -13,7 +13,7 @@ data:
   regionTarget: 4
   materialTags: [produce, olive]
   container: /trade/farming/thing/farm-stock
-  populates:
+  props:
     - /trade/farming/thing/olive
     - /trade/farming/thing/olive
     - /trade/farming/thing/olive

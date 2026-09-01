@@ -329,7 +329,7 @@ mirrors it):**
 | File | Role |
 |---|---|
 | `location/Lounge.ts` | The one room template every lounge instance clones from. |
-| `location/Bar.ts` | Singleton external-neighbor shell (Dave's Bar); self-stocks crafting content via `populates:` (the hospitality trade's back-bar + stations by reference, the venue's bottles `onto` it, plus Dave + the menu). |
+| `location/Bar.ts` | Singleton external-neighbor shell (Dave's Bar); self-stocks crafting content via `props:` (the hospitality trade's back-bar + stations by reference, the venue's bottles `onto` it, plus the menu) and its troupe via `cast:` (Dave and the lounge cast). |
 | `location/GlassAlley.ts` | The alley. |
 | `thing/LoungeTerminal.ts` | The TPA node (a `TpaTerminal`, a Thing) — the pack's boot entry. |
 | `idea/LoungeWarren.ts` | Concrete singleton Warren — the lounge *policy*. (The **second** Warren subclass, `DormWarren`, is an elastic *two-tier* consumer — keyed persistent members + runtime floor scaffold; see [residence.md](./residence.md).) |
@@ -346,7 +346,7 @@ mirroring its template namespace. The generic Warren substrate stays in
 Content rows: `saxonberg-lounge/content/world/lounge/{idea/warren,location/lounge,location/bar}.yaml`
 (templates at `/world/lounge/{idea/warren,location/lounge,location/bar}`,
 leaves under the `/world/lounge` FolderZone the same pack ships), plus
-the venue's stock the `Bar` self-stocks via `populates:` (the four
+the venue's stock the `Bar` self-stocks via `props:` (the four
 bottles, `bar-menu`, `dave` — venue rows; `back-bar`, `shaker`,
 `mixing-glass`, `cocktail-glass`, `tip-jar` — the hospitality trade's
 templates, populated by reference). See [crafting.md](./crafting.md).

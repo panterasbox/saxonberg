@@ -6,7 +6,7 @@
  * thermos he never opens.
  *
  * WHY A CLASS (and not pure seed data): there is no declarative seed path to
- * put gear on a creature. `populates:` is composed only on rooms
+ * put gear on a creature. `props:` is composed only on rooms
  * (`CartesianLocation`), not on `Creature`/`Character`/`NPC`, and worn/
  * wielded occupancy is deliberately runtime-only (never persisted, never
  * seedable — see `lib/slot/Slotted.ts`). So a fresh NPC clone always boots

@@ -18,7 +18,7 @@ data:
     z: 0
   adornments:
     - /world/hearthworks/thing/forge-floor
-  populates:
+  props:
     - /stuff/thing/Forge
     - /trade/smithing/thing/iron-ingot
     - /trade/smithing/thing/spare-ingot
@@ -28,4 +28,5 @@ data:
     - /stuff/thing/items/hide-stock
     - /trade/smithing/thing/whetstone
     - /world/hearthworks/thing/smithy-menu
+  cast:
     - /world/hearthworks/agent/smith

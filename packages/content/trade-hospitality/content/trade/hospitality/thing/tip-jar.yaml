@@ -2,7 +2,7 @@
 # cash tips in (`tip`); the on-shift bartender scoops it out (`collect`).
 # Off the books by construction (physical coin, no account). Starts empty and
 # fills as patrons tip — inspectable, so you can watch it fill. Populated onto
-# the bar's rail by the Bar seed's `populates` list.
+# the bar's rail by the Bar seed's `props` list.
 class: /platform/thing/TipJar
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:

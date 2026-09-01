@@ -44,18 +44,18 @@ the spine (`lib/persistence/Persistable.ts`, `platform/idea/api/PersistableLogic
   rooms never do. (This replaced the old eager `assertSingletonScope` +
   `multiInstance` relaxation with the real invariant.)
 - **Born-with content is declarative DATA, seeded once.** A persistable host
-  declares its starting contents as `populates:` in its template (the same
+  declares its starting contents as `props:` in its template (the same
   field a non-persistent container uses). At hydration the spine's
-  `applyPopulates` only **retains** the specs (it does NOT seed — the host is a
+  `applyProps` only **retains** the specs (it does NOT seed — the host is a
   bare shell whose key isn't set yet, so a `hasRecord` gate can't tell seed
   from restore, and seeding on every wake would double-seed). The establishing
   context lays them down exactly once via **`seedBornWith`** on the no-record
   branch, then captures; thereafter it restores. So a `DormRoom` declares its
-  bed/desk/footlocker as `populates:` data (`dormroom.yaml`) — a content author
+  bed/desk/footlocker as `props:` data (`dormroom.yaml`) — a content author
   edits the fixture set with no code change — and carries no imperative install
   method. (Avatar's loadout stays imperative in `installDefaultLoadout`: it
   attunes + hosts implant apps, which isn't a plain clone-into-inventory list;
-  `seedBornWith` no-ops when no `populates:` is declared.)
+  `seedBornWith` no-ops when no `props:` is declared.)
 - **`postRegister` no longer auto-drives persistence.** The mixin provides
   capture/restore; the establishing context decides *when* and *with what
   key*. Avatar drives an explicit self-keyed materialize/capture at login
@@ -142,7 +142,7 @@ unitKey)`** → wires the return leg → caches.
 
 > The restore-or-seed decision itself is **no longer dorm code**. It was
 > extracted to the spine in living-world phase 2 (`restoreOrSeed`: key the
-> host, then restore its record or lay the declared `populates:` fixtures
+> host, then restore its record or lay the declared `props:` fixtures
 > down and capture them) because a smallholding needed the same six lines
 > per titled lot. What still makes this a dorm is the Warren membership,
 > the hub-exit wiring and the cache. See
@@ -216,7 +216,7 @@ Document, so it rides the manifest, not a template row —
 [content-packs.md](./content-packs.md)). She does **not** enroll herself in her own class code —
 that would be circular (an agent "authorized" only because it wrote its own
 name into the ledger). The same rule governs her master ring (legitimate master
-access to every pin-tumbler dorm lock): it is a physical `Key` `populates`d
+access to every pin-tumbler dorm lock): it is a physical `Key` `props:`-cloned
 into her inventory from `npc/master-ring.yaml` (the serialized `key` credential
 carries `masterTechs: [pin-tumbler]`), an owner-authored spawn loadout — not a
 credential she issues herself. Her `Katie` class thus carries **no bespoke
@@ -292,8 +292,8 @@ pick.)
   captures — the record carries each fixture's personalized prose. On wake,
   the spine's `restoreItem` clones each fixture from its **current** template
   (function always current) then applies the captured prose. Fixtures are
-  seeded once from the room's declared `populates:` data (`seedBornWith` on the
-  no-record branch), never re-seeded (`applyPopulates` only retains the specs).
+  seeded once from the room's declared `props:` data (`seedBornWith` on the
+  no-record branch), never re-seeded (`applyProps` only retains the specs).
   No field double-owned.
 - **Deferred:** **custom prose** (writing your own room/item descriptions) —
   a light player input (a `PromptApi.text` box / a summoned panel), validated

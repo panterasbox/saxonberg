@@ -12,6 +12,7 @@ data:
     A bright tiled floor: a filling line stopped mid-run (the line is a later build), pallets of capped bottles, a chest freezer for the ice.
   ambientIntensity: 25
   ambientColorTemperature: 4200
-  populates:
+  props:
     - /trade/bottling/thing/bottling-stock
+  cast:
     - /trade/bottling/agent/bottling-hand

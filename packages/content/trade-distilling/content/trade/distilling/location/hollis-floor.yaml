@@ -10,7 +10,8 @@ data:
     A bright, cheap warehouse floor: a labelling line clacking away, grey Veshko cases stacked by the intake door and red Hollis cases by the dock. No still anywhere.
   ambientIntensity: 30
   ambientColorTemperature: 4500
-  populates:
+  props:
     - /trade/distilling/thing/racking
     - /trade/distilling/thing/hollis-stock
+  cast:
     - /trade/distilling/agent/hollis-hand

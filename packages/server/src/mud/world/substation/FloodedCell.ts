@@ -15,7 +15,7 @@
  * The **only** bespoke behavior is the hazard trigger — `onEntered` conducts
  * from the live source in the cell. Its fixtures are **authored templates
  * placed declaratively** by the room's seed: the salt-water-pooled `Floor`
- * via `adornments:`, the `LiveWire` via `populates:` (electricity has no
+ * via `adornments:`, the `LiveWire` via `props:` (electricity has no
  * declarative room-hazard field like the cistern's `_atmosphere: water`, so
  * the trigger stays code — but the content does not).
  *

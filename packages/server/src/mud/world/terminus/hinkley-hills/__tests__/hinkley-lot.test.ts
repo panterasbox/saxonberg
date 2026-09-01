@@ -33,7 +33,7 @@ const HINKLEY = "world/terminus/hinkley-hills";
 
 describe("the yard ships the kit that makes it workable", () => {
   const yard = read(`${HINKLEY}/yard.yaml`);
-  const populates = (yard.data?.populates ?? []) as string[];
+  const populates = (yard.data?.props ?? []) as string[];
 
   it("⭐ ships a WATERING CAN, because `water` is tool-conferred", () => {
     // Not decoration. `water` reaches a giver through the `watering`

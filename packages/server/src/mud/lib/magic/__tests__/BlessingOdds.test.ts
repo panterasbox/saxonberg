@@ -148,7 +148,7 @@ describe('the roll happens at the random mint, and NOWHERE else', () => {
 
   it('constructing an item does not roll — intent survives', () => {
     // The whole design line. If the roll lived in `clone`, every test,
-    // every `populates:` cascade, every crafted output and every shop
+    // every `props:` cascade, every crafted output and every shop
     // restock would be rolling dice — and an author cloning a wand to
     // look at it could be handed a cursed one.
     const t = makeStuff(() => new Trinket());

@@ -561,7 +561,7 @@ Persistence is a property of **hosts** — singletons keyed by `templatePath`
 `PersistableMixin` (`lib/persistence/Persistable.ts`, `_mixinName =
 'PersistableMixin'`), **outermost**, and carries three behaviors: a
 `postRegister` **materialize driver** (with a record → restore; without →
-capture the first record, the seed-then-persist gate), an `applyPopulates`
+capture the first record, the seed-then-persist gate), an `applyProps`
 override that skips the seed once a record exists (no duplication), and a
 `cleanupOnDestruct` **capture-on-destruct backstop**.
 
@@ -699,7 +699,7 @@ Two related rules fall out:
   stays load-bearing.
 - **The record is authoritative over born-with content.** A non-host content
   item is restored by re-cloning its template, and a clone re-runs the
-  template's `populates:` — so a container declaring born-with contents (a
+  template's `props:` — so a container declaring born-with contents (a
   stocked chest, a pre-planted pot) arrived holding a *fresh* set that then
   collided with the recorded set: doubled contents, and a `Slotted`
   re-occupy that threw because the born-with occupant had already claimed
@@ -707,7 +707,7 @@ Two related rules fall out:
   what the record says, scoped by the record (contents only when the state
   carries a container slice, slots only when it carries a slotted one). A
   *host* never had this problem —
-  `PersistableMixin.applyPopulates` only retains the specs and
+  `PersistableMixin.applyProps` only retains the specs and
   `seedBornWith` runs on the no-record branch alone — so this is the same
   rule for the non-host case.
 
@@ -850,7 +850,7 @@ the key resolved explicit → stashed → scope-derived, so a singleton is the
 degenerate case (key from scope) and a keyed room is the general one, with
 **no `multiInstance` marker/mode**. The single invariant `assertUniqueKey`
 (no two live instances share a `(scope, key)`) replaced the eager
-singleton-scope guard; `applyPopulates` is a uniform no-op (holders seed
+singleton-scope guard; `applyProps` is a uniform no-op (holders seed
 imperatively via their context); `postRegister` no longer auto-drives. First
 consumer: the leased dorm room (keyed on its unit parcel). See
 [residence.md](./residence.md).
@@ -1054,7 +1054,7 @@ Index creation is best-effort (logs and continues on failure).
   snapshot the sync-block invariant promises is frozen — now detached, and
   promoted to an [antipatterns.md](../antipatterns.md) entry because the trap
   generalizes past persistence); a restore-cloned **non-host container
-  re-ran its `populates:`**, doubling contents and throwing on the `Slotted`
+  re-ran its `props:`**, doubling contents and throwing on the `Slotted`
   re-occupy (the record is authoritative — `restoreItem` now clears what the
   clone seeded, the same rule `seedBornWith` already gives hosts); and a
   nested host captured its own `place`, fighting the referrer that actually
@@ -1092,29 +1092,45 @@ The **second persistence scope** landed: owned chattel persists with its
   good's composed state) and `placeIdOf` (a host's room identity — scope
   plus its per-instance key **only when explicit**).
 
-## History — the farming build (2026-08-31): the third skip
+## Props and cast — the two born-with designations (2026-09-01)
 
 **Cast is CAST, never a room's content.** A `Behaved` NPC commutes between
 persistable rooms — a hand's floor and the counter it consigns at — so each
 room's capture caught it wherever it happened to stand, BOTH records could
 carry it, and the next boot restored it twice: `expected singleton, found
-2`, boot dead. Verified live. Three touches close it:
+2`, boot dead. Verified live in the farming build (2026-08-31); the
+designation became **declared** the day after. A template authors its
+born-with content in the theatre vocabulary:
+
+- **`props:`** — the set dressing (fixtures, stock, furniture). Ordinary
+  content: captured into the host's record and written back; the record is
+  authoritative after the first seed.
+- **`cast:`** — the troupe (`Behaved` NPCs). Never captured, conserved
+  live, re-seeded on restore.
+
+The class is the check, not the designation: each `PopulatesMixin` applier
+resolves an entry's template class and gates on `Mixins.Behaved` **before**
+minting — a Behaved entry under `props:` (or a non-Behaved one under
+`cast:`) is an authoring error at hydrate, not a latent lifecycle bug.
+Two touches carry the lifecycle:
 
 - **Capture skips `Behaved` occupants** — the third skip in
   `ContainerMixin.captureSlice`'s single filter (beside `HasInteractive`
   and owner-persisted goods; the three must share one filter because the
-  Container and Slotted slices read one content ordering).
-- **Restore skips a legacy cast entry** — `PersistableLogic.restoreItem`
-  resolves a content entry's template class (`Template.findByPath` →
-  `StuffApi.loadClassByPath`) and drops a Behaved-resolving entry, so a
-  record written before the rule cannot re-mint cast beside the live one.
-- **`Persistable.reseedTransientCast()`** — the establishing half: after a
+  Container and Slotted slices read one content ordering). This keys on the
+  MIXIN, not the authored list — a wandering NPC standing here at capture
+  time is some other room's cast, and equally not our content. Capture is
+  the only record writer, so no record can carry a cast entry (the old
+  restore-side sniff was migration compat and is deleted).
+- **`Persistable.reseedCast()`** — the establishing half: after a
   successful restore, `materializeImpl` walks the host's retained
-  `_bornWithSpecs` (the `populates:` data the hydration hook keeps) and
-  re-mints any Behaved spec with **zero live instances**, moving it in.
-  Live cast is conserved — an instance standing anywhere (mid-commute at
-  the counter) suppresses the re-mint.
+  `_bornWithCast` (the `cast:` data the hydration hook keeps) and re-mints
+  any entry with **zero live instances**, moving it in. Live cast is
+  conserved — an instance standing anywhere (mid-commute at the counter)
+  suppresses the re-mint. No class resolution: the declaration already
+  said what is cast.
 
-The troupe's durable home is the authored `populates:` data, exactly like
-the born-with seed; only its *liveness* is transient. Proven in
-`lib/persistence/__tests__/CastReseed.test.ts`.
+The troupe's durable home is the authored `cast:` data, exactly like the
+born-with seed; only its *liveness* is transient. Proven in
+`lib/persistence/__tests__/CastReseed.test.ts` and the designation gate in
+`lib/stuff/__tests__/Populates.test.ts`.

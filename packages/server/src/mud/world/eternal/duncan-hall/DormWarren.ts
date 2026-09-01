@@ -100,7 +100,7 @@ export default class DormWarren extends DormWarrenBase {
    * The live room for `unitKey`, materialized if needed. Cached → clone the
    * `DormRoom` shell → `PersistableApi.restoreOrSeed` (the keyed-holder
    * ground pattern: key it, then restore its record or lay down the declared
-   * `populates:` fixtures and capture them) → wire the return leg to its
+   * `props:` fixtures and capture them) → wire the return leg to its
    * floor corridor → cache.
    *
    * The restore-or-seed decision itself is NOT dorm-specific and no longer

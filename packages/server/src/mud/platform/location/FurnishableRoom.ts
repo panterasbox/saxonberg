@@ -5,14 +5,14 @@
  *
  * The one class every room archetype is a template row over — bedroom,
  * kitchen, bathroom, living (D6). What distinguishes them is prose and their
- * `populates:` fixture set, both already declarative data, and that is the
+ * `props:` fixture set, both already declarative data, and that is the
  * whole difference: **an archetype is a conventional fixture set, not a
  * kind of thing.**
  *
  * ## Venue-generic on purpose (D15)
  *
  * Nothing here is residential. A bank's bathroom and a bar's kitchen are the
- * same class with different `populates:`; home-ness is supplied by the
+ * same class with different `props:`; home-ness is supplied by the
  * **parcel above the room** — title, land use, the lease — never by the room.
  * Every candidate for residence-specific behaviour failed at this tier: the
  * lease lifecycle is generic to tenancy, owner-based persistence wants the
@@ -28,7 +28,7 @@
  *                                          Adornable, AmbientLit, Atmospheric)
  *
  * Every layer is load-bearing and the omission of any of them is silent:
- * without `Populates` a seed's `populates:` is INERT and no fixture ever
+ * without `Populates` a seed's `props:` is INERT and no fixture ever
  * lands; without `Visible` its prose is inert; without `Exitable` you cannot
  * walk into it. `Reserved` is what lets a room AUTHOR a finite `air` budget.
  *

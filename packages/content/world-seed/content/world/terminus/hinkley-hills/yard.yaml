@@ -13,7 +13,7 @@
 # upgraded later instead of rebuilt. What phase 2 is about is the ground
 # behind it.
 #
-# `populates:` lays the bed down once, on first provisioning, through the
+# `props:` lays the bed down once, on first provisioning, through the
 # born-with path — after which the yard's own record carries it and the
 # specs sit unused (never double-seeded).
 # `/lib/location/FurnishableRoom`, and NOT a CartesianLocation — the
@@ -47,7 +47,7 @@ data:
   exits:
     south:
       destination: /world/terminus/hinkley-hills/lane
-  populates:
+  props:
     - /trade/farming/thing/bed/garden
     - /world/terminus/hinkley-hills/standpipe
     # The can is not decoration — `water` is a TOOL-conferred verb

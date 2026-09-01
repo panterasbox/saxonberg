@@ -1,6 +1,6 @@
 /**
  * Desk — a dorm's work surface. A university-owned in-room fixture
- * (invariant, respawned from template), seeded into each `DormRoom` via its `populates:` data (the spine's
+ * (invariant, respawned from template), seeded into each `DormRoom` via its `props:` data (the spine's
  * seed-once). A work surface; no `Named`.
  *
  *   Surfaced → Detailed → Thing

@@ -143,7 +143,7 @@ everything *up to* the closure and leaves the census lane running.
 Wave B4 is the atomic switchover: exemplar farm live → keeper
 re-pointed to the market → crate rows to `regionTarget: 0` → the old
 trade-farming island (the packing-shed floor, `farm-stock`, Wen and
-her `consigns` config, the crate `populates:`) **retires** in the same
+her `consigns` config, the crate `props:`) **retires** in the same
 wave. No interim half-state ships.
 
 ### P1 — The fruit cycle rides the flowering latch; cycle fields are the polycarp marker
@@ -515,7 +515,7 @@ never collides.
 Per P8 + P5: the pre-sold holding (fields seeded in data, established
 + ripe under model-consistency, asserted by test); the farmer NPC
 (proprietor + purchases position; the brain config; a basket, can,
-sacks via populates); the farm Business. **Drive (checkpoint B1):**
+sacks via `props:`); the farm Business. **Drive (checkpoint B1):**
 spawn at the farm — the farmer's beat waters/picks/sells at the
 market; buy a raw lot (Governor-funded, the hinkley e2e pattern),
 break ground, plant, water.
@@ -523,7 +523,7 @@ break ground, plant, water.
 ### Wave B4 — The switchover (atomic)
 
 Per P0: lounge produce par lines → the market business; crate rows
-`regionTarget: 0` + `populates`/`container` removed; the old
+`regionTarget: 0` + `props`/`container` removed; the old
 trade-farming island retires (floor, stock, Wen, her config; the
 libations-annexes spawn-shape expectations re-cut for farming's
 departure — the carve verified in the discarded branch). **Tests:**

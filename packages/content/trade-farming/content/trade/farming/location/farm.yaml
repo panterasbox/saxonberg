@@ -19,6 +19,7 @@ data:
     x: 0
     y: 0
     z: 0
-  populates:
+  props:
     - /trade/farming/thing/farm-stock
+  cast:
     - /trade/farming/agent/farm-hand

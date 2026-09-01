@@ -13,7 +13,7 @@ data:
   regionTarget: 4
   materialTags: [produce, orange]
   container: /trade/farming/thing/farm-stock
-  populates:
+  props:
     - /trade/farming/thing/orange
     - /trade/farming/thing/orange
     - /trade/farming/thing/orange

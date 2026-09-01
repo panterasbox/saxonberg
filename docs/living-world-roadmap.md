@@ -81,7 +81,7 @@ transfer.
 > have collapsed into one on restore. Nested refs now carry a per-instance
 > key — which is the same unlock **phase 5 needs for pets and livestock**.
 > Three further spine bugs surfaced and were fixed: by-reference field
-> capture, born-with `populates` re-running on a restore clone, and
+> capture, born-with `props` re-running on a restore clone, and
 > `fitsSlot` vetoing its own restore. See husbandry.md § Durability.
 >
 > It additionally **opened the Catalog's agricultural branch** —

@@ -2571,7 +2571,7 @@ this gap**, none of them visible to a green suite:
 
 | What was tested | What was broken |
 |---|---|
-| `FurnishableRoom`'s fields round-trip | the class composed no `PopulatesMixin`, so every seed's `populates:` was inert and **no fixture ever landed** |
+| `FurnishableRoom`'s fields round-trip | the class composed no `PopulatesMixin`, so every seed's `props:` was inert and **no fixture ever landed** |
 | the bed seed's YAML says `restQuality` | `SeederManager` is insert-only, so the live row **never updated** |
 | `SlotApi.occupyAll` puts a body in a bed | nothing contributed `posture/lie.yaml`, so **no player could issue `lie`** |
 | ...the same test | no actor composed `SlottableMixin`, so the verb **rejected everyone** |
@@ -3647,7 +3647,7 @@ Its two siblings, both of which cost real time here:
 
 `StuffApi.clone` → `Template.findByPath` → `PersistApi.find` goes to
 Mongo **every time**, and the hydration cascade recurses through `clone`
-for `hydratorClass` and `populates:`. Against Atlas at a measured 33 ms
+for `hydratorClass` and `props:`. Against Atlas at a measured 33 ms
 round trip, one shipped item costs about **13 serialized trips —
 448 ms** — and the boot spawn sweep clones 341 of them, one after
 another, for **152 seconds of a 5.7-minute boot**. A CPU profile of that
@@ -3745,7 +3745,7 @@ board: two real boards, one honest question.
 ### Finding them
 
 A sweep over every room's `details` keywords against the keywords of the
-rows its `populates`/`adornments` name, comparing by substring, found
+rows its `props`/`adornments` name, comparing by substring, found
 every instance in the shipped world in one pass. ⚠ It only sees the YAML
 half — a class that sets its keywords in a constructor (`Tap.ts`) is
 invisible to it, which is an argument for a real lint rather than a

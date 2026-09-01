@@ -108,7 +108,7 @@ shelf would drop it).
 
 ## The distributor — the cash-and-carry, and consignment BY a business (libations)
 
-The bar buys from a **distributor**, never from a `populates:` line.
+The bar buys from a **distributor**, never from a `props:` line.
 `trade-distilling` ships the cash-and-carry
 (`/trade/distilling/location/cash-and-carry`, a `FurnishableRoom`;
 `thing/counter` a `Stock` with no lines, `serverPositionKeys: [clerk]`;
@@ -141,7 +141,7 @@ Chattel — 0.75 L glass, liquid-tight; presets are ROWS: `keg`, `cask`,
 `SpiritBottle` extends it in code) and `/platform/thing/Crate`
 (`Circulating(Populates(Container(Detailed(Thing))))`, open and never
 Sealable so the crafting gather walk finds the limes; the fruit are
-`Provision` rows its `populates:` mints). A floor row authors `censusKey`,
+`Provision` rows its `props:` mints). A floor row authors `censusKey`,
 `regionTarget`, `container: <the outfit's Stock>`, `interiorMaterial`,
 `gradeBand`, `_brandKey`.
 
@@ -150,7 +150,7 @@ Sealable so the crafting gather walk finds the limes; the fruit are
 Authored off the counting-houses avenue block
 (`world-seed/content/world/terminus/general-store/`), NORTH from the street, on the
 arrival→campus path. Its own zone + parcel (terminus-titled), addressed
-under the counting-houses Locality. A shop floor `populates` the counter,
+under the counting-houses Locality. A shop floor `props` the counter,
 the consignment shelf, and the cast (Pemby the clerk on the roster, Odell
 Marrow the keeper/proprietor). Five **real** discrete staples — each backed
 by a shipped system, not a decorative prop: a **torch** + **lantern**

@@ -272,7 +272,7 @@ Persistable → PostRegistration → Exitable → Detailed → Visible
 ```
 
 Every layer is load-bearing and **every omission is silent**: without
-`Populates` a seed's `populates:` is inert and no fixture ever lands;
+`Populates` a seed's `props:` is inert and no fixture ever lands;
 without `Visible` its prose is inert; without `Exitable` you cannot walk
 in. The shipped dorm room already had exactly this stack, which is why it
 is mirrored rather than re-derived.
@@ -317,7 +317,7 @@ ladder should be visible from where you start.
 > than a refactor.
 
 It is **venue-generic**: a bank's bathroom and a bar's kitchen are the
-same class with a different `populates:`. Home-ness is supplied by the **parcel above
+same class with a different `props:`. Home-ness is supplied by the **parcel above
 the room** — title, land use, the lease — never by the room.
 
 Four archetypes ship, and they are four *different kinds of answer*:
@@ -333,7 +333,7 @@ They add **zero new classes, mixins or verbs** — a test enumerates the six
 shipped classes every fixture uses.
 
 **Three trade bundles** joined them in libations, each a `FurnishableRoom`
-row with a `populates:` of the trade's own fixtures: hospitality's
+row with a `props:` of the trade's own fixtures: hospitality's
 **`bar`** (`/trade/hospitality/location/bar` — back-bar, well, the tools,
 tap, ice bin, water tap, basin, the glass rack with its pool, seating,
 the house tablet) and **`cellar`** (racking, a keg, a cold store);
@@ -345,7 +345,7 @@ The lounge's `Bar` keeps its own class (a `SingletonMixin` room the
 Warren wires) and lists the bundle's fixtures by reference.
 
 > ⚠ **The archetypes need a provisioner, and this build does not ship one.**
-> On a persistable host `applyPopulates` only **retains** the specs;
+> On a persistable host `applyProps` only **retains** the specs;
 > `seedBornWith()` lays them down, driven by a provisioning flow
 > (`DormWarren.admit`'s shape: clone → key → `hasRecord ? materialize :
 > seedBornWith`). A bare `clone` never calls it — and cannot, having no unit

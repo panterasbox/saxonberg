@@ -678,7 +678,7 @@ cocktail Material is fixed per recipe; the instance variable is the
 ## Surface presentation: resting items aren't loose
 
 The back-bar's bottles + tools sit **on** a `Surfaced` fixture (placed
-via the bar's `populates: { onto }` — see [spatial.md](./spatial.md)),
+via the bar's `props: { onto }` — see [spatial.md](./spatial.md)),
 so they read "on the back-bar," reachable but **not loose room
 clutter**. The shared rule is `ContainmentApi.looseContents(items)`: it
 filters out any item whose `getRestingOn()` is itself in the set, and is

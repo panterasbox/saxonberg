@@ -8,7 +8,7 @@
  * partition in access.md).
  *
  * The transitive reference fields (`adornments[].template`,
- * `exits[].destination`, `populates[]`, `container`, …) are NOT listed
+ * `exits[].destination`, `props[]`, `cast[]`, `container`, …) are NOT listed
  * here: they name *another template*, which must itself have passed this
  * same gate on its own `class`, so they are closed by construction.
  *

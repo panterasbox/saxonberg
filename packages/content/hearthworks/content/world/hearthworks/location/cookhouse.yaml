@@ -14,7 +14,7 @@ data:
     x: 2
     y: 0
     z: 0
-  populates:
+  props:
     - /stuff/thing/Oven
     - /trade/hearth-cooking/thing/cook-pot
     - /world/hearthworks/thing/kitchen-menu
@@ -29,4 +29,5 @@ data:
     # reach (the served path clones its own; the by-hand path doesn't).
     - /stuff/thing/items/plated-dish
     - /stuff/thing/items/plated-dish
+  cast:
     - /world/hearthworks/agent/cook

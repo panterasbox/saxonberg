@@ -131,7 +131,7 @@ describe("the dorm fixtures earn their classes", () => {
 
   it("DormRoom composes the four layers whose omission is SILENT", () => {
     // The bug that bit FurnishableRoom in review: without Populates a
-    // seed's `populates:` is inert and no fixture ever lands; without
+    // seed's `props:` is inert and no fixture ever lands; without
     // Visible its prose is inert; without Exitable nothing can walk in.
     // Nothing fails loudly. Guarding the dorm against the same class of
     // mistake costs one test.

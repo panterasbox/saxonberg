@@ -2,7 +2,7 @@
 # visitor can actually see: one rented room, one counter, one registrar
 # who is also, by necessity, the acting Magistrate. Prose is the bulk
 # (room-spec three tiers); the clerk is the one full carve, stood up by
-# `populates`. Cross-zone exit pair with the terminal's arrival gate,
+# `props`. Cross-zone exit pair with the terminal's arrival gate,
 # declared explicitly on both sides (the gate lists `east`→here).
 class: /platform/location/CartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
@@ -18,7 +18,7 @@ data:
     x: 0
     y: 0
     z: 0
-  populates:
+  cast:
     - /world/terminus/registry/clerk
   exits:
     west:

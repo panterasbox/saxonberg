@@ -1,6 +1,6 @@
 /**
  * Bed — a dorm's sleeping surface. A university-owned in-room fixture
- * (invariant, respawned from template), seeded into each `DormRoom` via its `populates:` data (the spine's
+ * (invariant, respawned from template), seeded into each `DormRoom` via its `props:` data (the spine's
  * seed-once). A rest surface; no `Named` (a generic labelled thing).
  *
  *   Postured → Slotted → Surfaced → Detailed → Thing

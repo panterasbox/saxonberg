@@ -147,20 +147,6 @@ const MANIFEST: ReadonlyArray<{ site: string; classification: string }> = [
     site: "lib/stuff/Populates.ts::loadClassByPath",
     classification: "transitive-safe",
   },
-  // The cast reseed (farming A1): a retained `populates:` spec's template
-  // class is loaded ONLY to ask `hasMixin(Behaved)`; the re-mint itself
-  // rides the gated `StuffApi.clone`.
-  {
-    site: "lib/persistence/Persistable.ts::loadClassByPath",
-    classification: "validation-only",
-  },
-  // The symmetric restore skip (farming A1): a legacy record entry's
-  // template class is loaded only to ask `hasMixin(Behaved)` — a match
-  // DROPS the entry; nothing author-chosen runs.
-  {
-    site: "platform/idea/api/PersistableLogic.ts::loadClassByPath",
-    classification: "validation-only",
-  },
   // ⭐ Wiki component resolution. The tag name comes from
   // COMMUNITY-AUTHORED ARTICLE MARKUP — the weakest input in this
   // manifest, since any signed-in player can write `<foo/>` in a page

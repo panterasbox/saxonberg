@@ -169,7 +169,7 @@ describe('trade-farming — the ten grown families resolve end to end', () => {
     expect(stalls!.class).toBe('/platform/thing/Stock');
     expect(stalls!.data.stockLines).toEqual([]); // consignment-only, no par
     expect(Number(stalls!.data.listingCapOverride)).toBeGreaterThan(24);
-    expect((square!.data.populates as string[])).toContain(
+    expect((square!.data.props as string[])).toContain(
       '/world/terminus/market/stalls',
     );
 

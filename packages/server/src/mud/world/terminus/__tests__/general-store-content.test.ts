@@ -52,9 +52,12 @@ describe("general-store content integrity", () => {
 
     const room = load(STORE_DIR, "shop-floor.yaml");
     expect(room.class).toBe("/platform/location/CartesianLocation");
-    expect(room.data?.populates).toEqual([
+    expect(room.data?.props).toEqual([
       "/world/terminus/general-store/counter",
       "/world/terminus/general-store/consignment-shelf",
+    ]);
+    // The troupe is declared, not derived: the NPCs ride `cast:`.
+    expect(room.data?.cast).toEqual([
       "/world/terminus/general-store/npc/clerk",
       "/world/terminus/general-store/npc/keeper",
     ]);

@@ -92,8 +92,9 @@ data:
   #     his gear is NOT populated here (the `/platform/agent/Gus` class equips it at
   #     standup — no declarative seed path to wear/wield gear on a creature).
   # The thermos rides on Gus (his "won't open"), not loose here.
-  populates:
+  props:
     - /world/eternal/university-avenue/camp-chair
     - /world/eternal/university-avenue/beacon
     - /world/eternal/university-avenue/gutter-litter
+  cast:
     - /world/eternal/university-avenue/npc/gus

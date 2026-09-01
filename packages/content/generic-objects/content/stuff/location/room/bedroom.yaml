@@ -24,5 +24,5 @@ data:
     A quiet room with a bed against the far wall and a window that catches the last of the afternoon. There is space for more than this, if you have it.
   ambientIntensity: 25
   ambientColorTemperature: 5000
-  populates:
+  props:
     - /stuff/thing/fixture/bed

@@ -1,6 +1,6 @@
 # The downed live cable — the electrical source in the flooded cell. A
 # `LiveWire` (Thing + Energized + Switchable) held at a mains-ish potential,
-# lying in the pool (placed as a room content via the cell's `populates:`).
+# lying in the pool (placed as a room content via the cell's `props:`).
 # The conduction walk reads its `voltage`; switch it off (`switch off the
 # cable`) and the cell goes dead. Per-instance (cloned fresh each standup).
 class: /platform/thing/LiveWire

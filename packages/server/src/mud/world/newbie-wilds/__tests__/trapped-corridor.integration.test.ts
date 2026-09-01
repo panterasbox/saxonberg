@@ -130,7 +130,7 @@ function trapsStore(): Doc[] {
       join(WILDS, 'world', 'newbie-wilds', 'delve'),
       '/world/newbie-wilds/delve',
     ),
-    // The generic trap objects, cloned into the corridors via `populates`.
+    // The generic trap objects, cloned into the corridors via `props`.
     ...loadSeedDir(join(SEEDS, 'stuff', 'thing', 'traps'), '/stuff/thing/traps'),
     // The treeline the vestibule's back-out exit cascades — stubbed as a bare
     // void (the real treeline, with its wolf, is never stood up by a test).

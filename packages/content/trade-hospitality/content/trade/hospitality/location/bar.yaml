@@ -1,9 +1,9 @@
 # The `bar` bundle — what a bar-room is furnished with, as a FurnishableRoom
 # row a venue instances or copies by reference (template inheritance does
 # not exist: a venue with its own class — Dave's Bar — lists the same
-# fixtures in its own `populates:`). Every station the menu exposes, and
+# fixtures in its own `props:`). Every station the menu exposes, and
 # NO bottles: the rail is stocked by buying (the keeper's `restocks` beat
-# at the cash-and-carry), never by `populates` magic.
+# at the cash-and-carry), never by `props` magic.
 class: /platform/location/FurnishableRoom
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
@@ -11,7 +11,7 @@ data:
   description: |
     A narrow room with a long bar down one side, stools along it, the back-bar mirrored and lit from beneath. A brass tap handle stands over its drip tray; the ice bin and the well sit under the lip where the bartender works.
   keywords: [bar, barroom, taproom]
-  populates:
+  props:
     # The back-bar and the well: the Surfaced shelves the working bottles
     # rest ON once bought (`put gin on back-bar`). Listed before their
     # `onto` items.

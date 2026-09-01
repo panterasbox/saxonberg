@@ -3,7 +3,7 @@
 #
 # Same class and same soil volume as the small pot; the difference is
 # entirely template DATA: this one ships pre-filled with soil and carries
-# its own `populates:` bringing a peace lily into its slot. That is why a
+# its own `props:` bringing a peace lily into its slot. That is why a
 # starter and a bought pot are one class.
 #
 # 0.5 L of soil carries a peace lily to `young` and then binds — so the
@@ -47,7 +47,7 @@ data:
     planting:
       keywords: [soil, planting, hole, rim]
       description: Dark soil, damp near the surface, packed around a single stem.
-  # The pot's own born-with content. `applyPopulates` claims the plant slot
+  # The pot's own born-with content. `applyProps` claims the plant slot
   # after placing, so the lily is slotted and not merely sitting in the pot.
-  populates:
+  props:
     - /trade/farming/thing/plant/peace-lily

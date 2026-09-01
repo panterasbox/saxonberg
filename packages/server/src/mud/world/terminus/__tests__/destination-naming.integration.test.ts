@@ -44,11 +44,15 @@ function loadDir(dir: string, pathPrefixFrom: string): Doc[] {
         string,
         unknown
       >;
+      // Stand the rooms up WITHOUT their troupes (`cast:` stripped) — the
+      // transient NPC layer is heavy Phase-4 hydration with its own tests.
+      const data = { ...((parsed.data as Record<string, unknown>) ?? {}) };
+      delete data.cast;
       out.push({
         path: `/${path}`,
         class: parsed.class as string,
         hydratorClass: (parsed.hydratorClass as string) ?? PH,
-        data: (parsed.data as Record<string, unknown>) ?? {},
+        data,
       });
     }
   }
@@ -79,12 +83,10 @@ const STUBS: Doc[] = [
   },
   { path: "/world/test/lounge-room", class: "/platform/location/VoidLocation", hydratorClass: PH, data: { shortDescription: "the lounge" } },
   { path: "/world/eternal/university-avenue/crossing", class: "/platform/location/VoidLocation", hydratorClass: PH, data: { shortDescription: "University Avenue" } },
-  // The office populates the clerk (a full NPC, Phase 4) — stub it here so the
-  // cascade resolves without heavy NPC hydration.
+  // The terminal office lists the clerk under props (a Prop stub keeps the
+  // cascade light); the registry office's registrar rides `cast:`, which
+  // the loader strips.
   { path: "/world/terminus/terminal/clerk", class: "/platform/thing/Prop", hydratorClass: PH, data: { shortDescription: "the clerk" } },
-  // The registry office (cascaded off the arrival gate, civics) populates
-  // the registrar — same stub treatment.
-  { path: "/world/terminus/registry/clerk", class: "/platform/thing/Prop", hydratorClass: PH, data: { shortDescription: "the registrar" } },
 ];
 
 describe("destination naming + crossroads (real seeds)", () => {

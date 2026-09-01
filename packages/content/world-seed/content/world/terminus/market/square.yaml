@@ -4,7 +4,7 @@
 # their own ask, a keeper (or anyone hungry) buys, the split pays the
 # consignor and the market's commission.
 #
-# An ordinary Room (the shop-floor shape): the stall is `populates`
+# An ordinary Room (the shop-floor shape): the stall is `props`
 # (a fresh clone each boot), and durability lives where it belongs — on
 # the STALL, whose own persistable record carries the consigned goods
 # and listings (the general store's consignment-shelf pattern).
@@ -33,7 +33,7 @@ data:
   exits:
     northeast:
       destination: /world/terminus/counting-houses/avenue-block
-  populates:
+  props:
     - /world/terminus/market/stalls
   details:
     bunting:

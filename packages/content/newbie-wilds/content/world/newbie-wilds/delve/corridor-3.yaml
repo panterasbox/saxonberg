@@ -27,5 +27,5 @@ data:
       destination: /world/newbie-wilds/delve/vault
     south:
       destination: /world/newbie-wilds/delve/corridor-2
-  populates:
+  props:
     - /stuff/thing/traps/pressure-blade

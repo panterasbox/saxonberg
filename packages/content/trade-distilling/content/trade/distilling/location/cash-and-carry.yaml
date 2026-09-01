@@ -7,7 +7,7 @@
 # names the host; the avenue's return exit is world-seed's to declare).
 #
 # An ordinary Room (FurnishableRoom is the furnishing archetypes' base):
-# the fixtures are `populates` (fresh each boot) and durability lives on
+# the fixtures are `props` (fresh each boot) and durability lives on
 # the COUNTER's own persistable record — the consigned goods and their
 # listings ride the Stock, not the room.
 class: /platform/location/CartesianLocation
@@ -27,7 +27,8 @@ data:
   exits:
     north:
       destination: /world/terminus/counting-houses/avenue-block
-  populates:
+  props:
     - /trade/distilling/thing/racking
     - /trade/distilling/thing/counter
+  cast:
     - /trade/distilling/agent/clerk

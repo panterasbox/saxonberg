@@ -9,10 +9,8 @@
  *
  *   1. **Capture skips the cast** — a Behaved occupant never enters a
  *      container slice; ordinary content still does.
- *   2. **Restore skips a legacy cast entry** — a record written before
- *      the rule restores without re-minting the NPC.
- *   3. **`reseedTransientCast` re-seeds exactly once** — a restored room
- *      whose `populates:` declares cast gets its troupe back, and a live
+ *   2. **`reseedCast` re-seeds exactly once** — a restored room
+ *      whose `cast:` declares a troupe gets it back, and a live
  *      instance ANYWHERE (mid-commute at the counter) suppresses the
  *      re-mint: the cast is conserved.
  */
@@ -39,7 +37,7 @@ import { makeStuffAtPath } from "../../security/__tests__/test-setup";
 
 /* ─────────────────────────── fixtures ──────────────────────────────── */
 
-// A persistable room that declares born-with cast via `populates:`.
+// A persistable room that declares its born-with troupe via `cast:`.
 class CastRoom extends PersistableMixin(
   PopulatesMixin(ContainerMixin(PostRegistrationMixin(Idea))),
 ) {}
@@ -106,9 +104,9 @@ beforeEach(() => {
     ((path: string) => mockClone(path)) as unknown as typeof StuffApi.clone,
   );
 
-  // The cast template resolves to the Behaved class; the trinket to none
-  // (an ordinary row the real store would resolve — the restore-skip
-  // helper answers `false` for it either way).
+  // The cast template resolves to the Behaved class (unused by the
+  // declared-cast reseed, which never loads classes — kept so any
+  // stray resolution fails loudly rather than silently).
   vi.spyOn(Template, "findByPath").mockImplementation((async (path: string) =>
     path === HAND
       ? ({ class: HAND_CLASS } as unknown as Template)
@@ -179,19 +177,19 @@ describe("capture: the third skip", () => {
   });
 });
 
-describe("reseedTransientCast", () => {
+describe("reseedCast", () => {
   it("⭐ mints once — a second materialize does not double the troupe", async () => {
     const floor = makeStuffAtPath(() => new CastRoom(), FLOOR);
     await PersistableApi.capture(floor);
 
     evict(floor);
     const reborn = makeStuffAtPath(() => new CastRoom(), FLOOR);
-    await reborn.applyPopulates([HAND]);
+    await reborn.applyCast([HAND]);
     await PersistableApi.materialize(reborn);
     expect(StuffApi.findAllByTemplatePath(HAND)).toHaveLength(1);
 
     // Reseed again on the live room: the live hand suppresses the mint.
-    await reborn.reseedTransientCast();
+    await reborn.reseedCast();
     expect(StuffApi.findAllByTemplatePath(HAND)).toHaveLength(1);
   });
 
@@ -204,7 +202,7 @@ describe("reseedTransientCast", () => {
 
     evict(floor);
     const reborn = makeStuffAtPath(() => new CastRoom(), FLOOR);
-    await reborn.applyPopulates([HAND]);
+    await reborn.applyCast([HAND]);
     await PersistableApi.materialize(reborn);
 
     // No second hand: the one at the counter is THE hand.
@@ -212,12 +210,12 @@ describe("reseedTransientCast", () => {
     expect(hand.getContainer()).toBe(counter);
   });
 
-  it("a non-Behaved born-with spec is left to the record", async () => {
+  it("a props spec is left to the record — reseed walks only the cast", async () => {
     const floor = makeStuffAtPath(() => new CastRoom(), FLOOR);
     await PersistableApi.capture(floor);
     evict(floor);
     const reborn = makeStuffAtPath(() => new CastRoom(), FLOOR);
-    await reborn.applyPopulates([TRINKET]);
+    await reborn.applyProps([TRINKET]);
     await PersistableApi.materialize(reborn);
     // Not re-seeded: the trinket is ordinary content, the record owns it
     // (and this record has none — the room was captured empty).

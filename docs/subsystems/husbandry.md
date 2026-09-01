@@ -513,7 +513,7 @@ pot` as readily as `water the lily`.
 
 - **Acquisition.** Every dorm room is seeded with a soil-filled starter pot
   holding a peace lily on the desk, a watering can and a corner tap — all
-  `populates:` data. Nobody has to shop before meeting the growth model.
+  `props:` data. Nobody has to shop before meeting the growth model.
   The starter pot's 0.5 L carries a lily to `young` and then binds, so the
   free plant is also what teaches transplanting.
 - **Commerce.** The Terminus general store stocks a small pot, a large pot,

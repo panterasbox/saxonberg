@@ -195,7 +195,7 @@ The **trap taxonomy is authored data, not subclasses** — a spike pit, a
 poisoned dart, and a pressure-blade are all one `Trap` with different
 `delivery` / `trigger` / `traverseConsequence` field combinations. Three
 **generic trap objects** live in `/stuff/thing/traps/` (`spike-pit`, `step-dart`,
-`pressure-blade`) and are cloned into rooms via `populates`:
+`pressure-blade`) and are cloned into rooms via `props`:
 
 - **`spike-pit`** — `trigger: traversal`, `delivery: { channel: point }`,
   `traverseConsequence: drop` to an authored `pit-below`, `groundTriggered`
@@ -210,7 +210,7 @@ The **demonstrator is the "Sunken Delve"** — a **sub-area of the
 newbie-wilds locality** (`newbie-wilds/content/world/newbie-wilds/delve/`), its own
 `CartesianZone`, hung off the newbie-wilds treeline by a **single ordinary
 ground exit** (vestibule → trapped corridor → vault; the traps clone in via
-`populates`, plus a concealed shortcut `Exit` and a `hidden-cache` concealed
+`props`, plus a concealed shortcut `Exit` and a `hidden-cache` concealed
 `Thing`). Every secret has an obvious alternative — the far room is reachable
 by a plainly-visible path; traps wound/redirect but never hard-gate.
 

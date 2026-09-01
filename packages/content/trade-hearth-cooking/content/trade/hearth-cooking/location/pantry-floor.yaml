@@ -12,6 +12,7 @@ data:
     A dry storeroom with a scale by the door and sacks on pallets — the dry-goods floor the cookhouse and the bar both draw on.
   ambientIntensity: 25
   ambientColorTemperature: 4200
-  populates:
+  props:
     - /trade/hearth-cooking/thing/pantry-stock
+  cast:
     - /trade/hearth-cooking/agent/pantry-hand

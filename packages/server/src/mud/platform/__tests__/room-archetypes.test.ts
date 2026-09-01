@@ -58,7 +58,7 @@ describe("the four archetypes are template rows over ONE class (D6)", () => {
     const prose = seeds.map((s) => s.data?.longDescription);
     expect(new Set(prose).size).toBe(4);
 
-    const fixtures = seeds.map((s) => JSON.stringify(s.data?.populates ?? []));
+    const fixtures = seeds.map((s) => JSON.stringify(s.data?.props ?? []));
     expect(new Set(fixtures).size).toBe(4);
   });
 
@@ -106,7 +106,7 @@ describe("the bedroom — FUNCTION (D10)", () => {
 describe("the kitchen — BUNDLE (D12)", () => {
   it("collapses the errand: heat, water, a work surface, food in reach", () => {
     const kitchen = read("kitchen");
-    expect(kitchen.data?.populates).toEqual([
+    expect(kitchen.data?.props).toEqual([
       "/stuff/thing/fixture/range",
       "/stuff/thing/fixture/counter",
       "/stuff/thing/fixture/larder",
@@ -144,7 +144,7 @@ describe("the kitchen — BUNDLE (D12)", () => {
 
 describe("the bathroom — PRESENCE (D13)", () => {
   it("three fixtures at three rungs of the LOD ladder", () => {
-    expect(read("bathroom").data?.populates).toEqual([
+    expect(read("bathroom").data?.props).toEqual([
       "/stuff/thing/fixture/toilet",
       "/stuff/thing/fixture/basin",
       "/stuff/thing/fixture/tub",
@@ -183,7 +183,7 @@ describe("the living room — AUDIENCE (D16)", () => {
     // one comes with a floor and light, because filling it is the player's
     // only job here.
     const living = read("living");
-    expect(living.data?.populates).toBeUndefined();
+    expect(living.data?.props).toBeUndefined();
     expect(living.data?.ambientIntensity).toBeGreaterThan(0);
   });
 
@@ -192,7 +192,7 @@ describe("the living room — AUDIENCE (D16)", () => {
     expect(chair.class).toBe("/platform/thing/Chair");
     // ...and it is in no archetype's populates.
     for (const name of ARCHETYPES) {
-      const populates = (read(name).data?.populates ??
+      const populates = (read(name).data?.props ??
         []) as string[];
       expect(populates).not.toContain("/stuff/thing/fixture/armchair");
     }

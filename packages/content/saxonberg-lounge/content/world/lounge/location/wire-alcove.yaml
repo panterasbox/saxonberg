@@ -33,5 +33,5 @@ data:
   # leave the alcove dark for everyone after them.
   ambientIntensity: 40
   ambientColorTemperature: 4000
-  populates:
+  props:
     - /platform/thing/sandbox/wardrobe

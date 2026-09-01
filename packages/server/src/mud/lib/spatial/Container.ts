@@ -167,10 +167,12 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
       //    consigns at) stands in whichever one each room's capture
       //    happens to catch — so BOTH records can carry it, and the next
       //    boot restores it twice: `expected singleton, found 2`, boot
-      //    dead. The cast is authored `populates:` data; a room's
+      //    dead. The cast is authored `cast:` data; a room's
       //    materialize re-seeds a missing troupe via
-      //    `Persistable.reseedTransientCast`, so skipping it here loses
-      //    nothing.
+      //    `Persistable.reseedCast`, so skipping it here loses nothing.
+      //    (The skip keys on the MIXIN, not the authored list — a
+      //    wandering NPC standing here at capture time is some other
+      //    room's cast, and equally not our content.)
       //
       // The skipped goods are reported so `PersistableLogic` can flush them
       // into their owners' estates after this synchronous walk. Dropping

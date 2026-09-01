@@ -43,7 +43,7 @@ data:
       floorEffect: null
   # Order matters: the counter is populated before anything that could rest
   # on it (the dorm's desk-then-pot precedent).
-  populates:
+  props:
     - /stuff/thing/fixture/range
     - /stuff/thing/fixture/counter
     - /stuff/thing/fixture/larder

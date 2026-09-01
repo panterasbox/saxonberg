@@ -15,7 +15,7 @@ data:
     x: 0
     y: -1
     z: 0
-  populates:
+  props:
     - /world/terminus/terminal/departure-terminal-c
   exits:
     north:
