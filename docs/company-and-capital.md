@@ -364,6 +364,57 @@ mobile and goes where it is less constrained.** No charter fixes that.
 The only answer is the one the design already gives — **the constraint
 has to be the product.**
 
+## Would it actually hold up? The evidence, both directions
+
+The honest baseline first: **a constrained firm loses to an unconstrained
+firm whenever the constraint is not also the product.** In a commodity
+market, caring about a second thing is a handicap, and the co-operative
+movement's record in tech is mostly failure — Resonate, Diaspora, Ello.
+Any version of this thesis that skips that sentence is selling something.
+
+The exception is narrow and worth understanding exactly, because it is
+the whole bet:
+
+- ⭐⭐ **Vanguard** is the cleanest case in existence. It is owned by its
+  own funds — i.e. by its customers — which is why it can run at cost,
+  which is why it won the largest asset-management market on earth. **A
+  competitor structurally cannot copy it without dissolving itself.** The
+  ownership structure *was* the moat, not a constraint on one.
+- **Stocksy** — artist-owned photo co-operative, real revenue, works. The
+  small version of the same argument.
+- **Green Bay Packers** — community-owned for roughly a century.
+  Grandfathered and unrepeatable in its own league, but social proof that
+  the *shape* holds together over long time horizons.
+
+For us the "constraint is the product" case is at least arguable: we sell
+a governed world to people who want to be governed well, and a competitor
+who strips the Compact is selling a different, worse thing. That is the
+claim [positioning.md](./positioning.md) is careful to state as ambition
+rather than fact.
+
+### ⚠⚠ The failure mode is winning, not losing
+
+The historical pattern is not *constrained firm gets outcompeted*. It is
+**constrained firm succeeds and then converts** — every mutual insurer
+that demutualized, every co-operative bank that IPO'd, with Craigslist
+staying private as the conspicuous exception.
+
+The pressure never comes from competitors. It comes from inside, the
+moment someone can capture the accumulated value. **Which is the entire
+reason the ladder in Part 3 ends at a perpetual purpose trust**: not to
+make selling out unwise, but to make it impossible.
+
+### The literature, and one actionable note
+
+This has a name — **exit-to-community (E2C)** — and a body of work behind
+it, principally **Nathan Schneider's**. Worth reading before any of Part 3
+is acted on.
+
+⭐ Schneider is already on the parked manifesto-outreach list. *"I am
+building a thing and thinking about E2C structure"* is a materially
+better approach than a manifesto pitch, and it is the one question in
+this document where the right expert is already a known contact.
+
 ---
 
 ## Part 7 — Does the Compact hold when a chamber has a financial stake?
