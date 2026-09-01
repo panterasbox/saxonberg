@@ -257,7 +257,10 @@ because it is colder**, and a player could derive that from the data.
 | **steel** | carbon control | the barrier is knowledge |
 
 ⭐ **Four rungs, four different *kinds* of barrier** — observation, depth,
-technology, knowledge.
+technology, knowledge. And the copper rung is itself **two-stage**: the
+weathered oxide cap is gated by your eyes, the rich sulfide beneath it by
+a *process* (roasting). See § *The deposit is zoned* — that second gate is
+what the great house could never pass.
 
 ⚠ **A correction to an earlier draft of this slate**, recorded because it
 was load-bearing: it claimed cassiterite "almost never occurs with
