@@ -883,6 +883,99 @@ Reckoning plus search catches patterns, and being caught costs regard,
 recognition, employment, access and notoriety. **Temptation scales with
 value** — deep silver is where high-grading bites.
 
+### ⭐⭐⭐ Room identity — nothing mints a room template
+
+**Decided 2026-08-31**, against residences **D17**: *every `templatePath`
+resolves to a row in the content collection* (lint-gated), and its own
+clause for this exact case — ***"places (rooms per lot/unit) = keyed
+instances of real rows."*** A mine that minted a template row per carved
+cell would be the per-instance-row anti-pattern at industrial scale.
+
+Three tiers, and they do not overlap:
+
+| Tier | Identity | Persists |
+|---|---|---|
+| **Spine** — the 5 surface rooms + 3 Upper Galleries | **static singletons**: real rows, one instance each, hand-authored | always; never buds, never reaps |
+| **Workings** — every carved room | **keyed member**: `(scope = one of the four type rows` — `Face`/`Junction`/`Stope`/`Fall`*, key = the cell coordinate)* | **only when Held** |
+| **The geology** — hardness, grade, feature seeds | **no identity at all** — a seeded deterministic function of `(mine seed, x, y, z)` | nothing |
+
+> ⭐ **The key is the coordinate.** Unique by construction, stable,
+> derivable, never invented — and it is the *same string* § *Exit naming*
+> produces. **You number what you find** turns out to do double duty: the
+> player-facing address and the persistence key are one fact.
+
+So the three concerns stay separate and each is already shipped:
+**`CartesianZone` is the space · Warren bud/reap is the mutation layer ·
+`(scope, key)` is the identity** (`PersistableApi.restoreOrSeed`, one
+invariant: *no two live instances share a `(scope, key)`*).
+
+### What actually persists — three sparse things
+
+- **The carved set** — which cells are rooms, each one's tier, and who
+  holds the Held ones. This is farming's **field ledger** with a different
+  key: theirs is `{leaf, name, areaM2, focus, radius}` on the holding
+  programme; the mine's is `{cell, tier, holder}` on its own.
+- **Worked faces** — a sparse per-`(cell, direction)` record of ore
+  remaining, written only for faces somebody actually hewed. Everything
+  else is derive-on-read off the geology field.
+- **Held room contents** — snapshot-persisted through the keyed-member
+  spine. **Provisional rooms persist nothing**, which is exactly what makes
+  them cullable, and why walking away and returning regenerates the same
+  tunnel from the seed rather than restoring it from a record.
+
+⭐⭐ Which makes *"shoring is this mine's provisioning act"* literal:
+**shoring is what writes the record.** The persistence tier is not
+bookkeeping behind the fiction — it **is** the gameplay act, the same way
+an apartment's provisioning is.
+
+⭐ And it reveals what seal-and-reap is really for. Not only the map
+healing: **it is the ledger's garbage collector.** Sealing a dead subgraph
+deletes its entries, which is what keeps the carved set bounded in a mine
+worked for years. The per-heading cap bounds the *rate*; seal-and-reap
+bounds the *total*.
+
+### Addressing a working — build-2 already shipped the locator
+
+Warren members have no unique template path *by construction*, which is
+why residences grew the **keyed-member locator** (W2, `build/residences`):
+the `:members` chain element flat-maps any Warren to its **live** members,
+and two filter atoms complete it —
+
+| Atom | Is | For a working |
+|---|---|---|
+| `key` | the explicit **persistence key** (`getPersistenceKey()`) | the cell coordinate |
+| `address` | the declared **Locality address** — *"the human per-place identity"* (D17) | the **survey address**: `…/ferrow/400-level/north-drift` |
+
+Both read `undefined` off an unkeyed or unaddressed object, so a
+comparison never false-matches.
+
+```
+ferrow:members:[key = '-3,7,-12']
+world:[mixin.PersistableMixin][address = 'terminus/rejection/ferrow/400-north']
+```
+
+⭐ **So the survey address IS the Locality address**, and the exit-naming
+ruling, the persistence key and the query surface are three faces of one
+decision. **Mining needs no MQL work of its own** — build-2 built it for
+dorm rooms and lot yards, and a drift is the same shape.
+
+### The solo rungs never touch the Warren
+
+The farming parallel holds and extends one rung further down. A garden bed
+in a dorm room is a **singleton object in an authored room**; a
+broken-ground field is a **keyed member**. Mining has both, plus a rung
+beneath:
+
+| Rung | What it mints |
+|---|---|
+| **costean / test pit** on ground you hold | **an object.** No room, no member, no Warren. |
+| **adit + drift** | keyed members begin |
+| **shaft + levels** | the spine grows |
+
+⭐ The entire solo end of the ladder — prospect, stake, costean — **never
+touches the Warren at all**, so a lone prospector cannot inflate the
+world's room count.
+
 ### Two primitives the mine needs that are not mining-specific
 
 - **`LiftMixin`** (`lib/conveyance/`) — a called, capacity-limited, timed,
