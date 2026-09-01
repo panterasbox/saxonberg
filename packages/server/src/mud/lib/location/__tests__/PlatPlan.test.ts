@@ -15,7 +15,7 @@ const BRANCHED = {
       key: 'lane',
       segments: 3,
       frontagesPerSegment: 4,
-      authored: { 1: '/world/x/lane' },
+      authored: { 1: '/obj/_test/lane' },
     },
     {
       key: 'court',
@@ -95,7 +95,7 @@ describe('branched (roads, a court, an authored lane)', () => {
 
   it('the authored lane segment is authored; minted reaches are not', () => {
     expect(plan.isAuthored('lane:1')).toBe(true);
-    expect(plan.authoredPathOf('lane:1')).toBe('/world/x/lane');
+    expect(plan.authoredPathOf('lane:1')).toBe('/obj/_test/lane');
     expect(plan.isAuthored('lane:2')).toBe(false);
     expect(plan.predecessorOf('lane:2')).toBe('lane:1');
     expect(plan.predecessorOf('court:1')).toBe('lane:2');
@@ -107,8 +107,8 @@ describe('static (authored circulation, minted holdings)', () => {
   const plan = PlatPlan.parse({
     shape: 'static',
     nodes: [
-      { key: 'row', path: '/world/x/row', slots: ['lot-1', 'lot-2'] },
-      { key: 'close', path: '/world/x/close', slots: ['lot-3'] },
+      { key: 'row', path: '/obj/_test/row', slots: ['lot-1', 'lot-2'] },
+      { key: 'close', path: '/obj/_test/close', slots: ['lot-3'] },
     ],
   });
 

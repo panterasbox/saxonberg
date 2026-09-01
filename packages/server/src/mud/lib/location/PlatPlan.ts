@@ -57,6 +57,10 @@ export class PlatPlan {
     private readonly frontagesPerNode: number,
     private readonly roads: PlanRoad[],
     private readonly staticNodes: StaticNode[],
+    /** The linear slot grammar's middle letter — `r` (the dorm's
+     *  `f<n>-r<p>`) or `u` (a unit building's `f<n>-u<p>`; a distinct
+     *  leaf so dorm tooling never misreads a unit extent). */
+    private readonly frontageLeaf: string = 'r',
   ) {}
 
   // ── parsing ─────────────────────────────────────────────────────
@@ -74,7 +78,14 @@ export class PlatPlan {
     if (shape === 'linear') {
       const authored = num(data?.frontagesPerNode, 12);
       const frontages = opts.frontagesOverride ?? authored;
-      return new PlatPlan('linear', mustPositive(frontages, 'frontagesPerNode'), [], []);
+      const leaf = data?.frontageLeaf === 'u' ? 'u' : 'r';
+      return new PlatPlan(
+        'linear',
+        mustPositive(frontages, 'frontagesPerNode'),
+        [],
+        [],
+        leaf,
+      );
     }
     if (shape === 'static') {
       const raw = data?.nodes;
@@ -146,7 +157,9 @@ export class PlatPlan {
    */
   nodeOfSlot(slotLeaf: string): string | null {
     if (this.shape === 'linear') {
-      const m = /^f(\d+)-r(\d+)$/.exec(slotLeaf);
+      const m = new RegExp(`^f(\\d+)-${this.frontageLeaf}(\\d+)$`).exec(
+        slotLeaf,
+      );
       if (!m) return null;
       const pos = Number(m[2]);
       if (pos < 1 || pos > this.frontagesPerNode) return null;
@@ -184,7 +197,7 @@ export class PlatPlan {
         for (let pos = 1; pos <= this.frontagesPerNode; pos++) {
           if (count >= cap) return null;
           count += 1;
-          const leaf = `f${floor}-r${pos}`;
+          const leaf = `f${floor}-${this.frontageLeaf}${pos}`;
           if (!taken.has(leaf)) return leaf;
         }
       }

@@ -26,7 +26,6 @@ import { PostRegistrationMixin } from "@saxonberg/server/mud/lib/stuff/PostRegis
 import { StuffApi } from "@saxonberg/server/mud/api/stuff";
 import { MixinApi } from "@saxonberg/server/mud/api/mixin";
 import { PersistableApi } from "@saxonberg/server/mud/api/persistable";
-import { Template } from "@saxonberg/server/mud/lib/stuff/Template";
 import Exit from "@saxonberg/server/mud/lib/boundary/Exit";
 import LotGateExit from "./LotGateExit";
 import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
@@ -255,12 +254,8 @@ export default class LotHolder extends LotHolderBase {
 
   public async entryRowPath(): Promise<string> {
     if (this._entryRow) return this._entryRow;
-    const row = await Template.findByPath(this.programmePath);
-    const floorplan = (row?.data as { floorplan?: Array<Record<string, unknown>> })
-      ?.floorplan;
-    const entry =
-      floorplan?.find((r) => r.entry === true) ?? floorplan?.[0];
-    this._entryRow = String(entry?.room ?? this.programmePath);
+    const { default: HoldingProgramme } = await import('./HoldingProgramme');
+    this._entryRow = await HoldingProgramme.entryRowOf(this.programmePath);
     return this._entryRow;
   }
 

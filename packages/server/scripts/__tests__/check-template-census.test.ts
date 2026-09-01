@@ -28,33 +28,33 @@ describe('refsOf — the template-path field grammar', () => {
   it('reads exit destinations and doors', () => {
     const refs = refsOf({
       exits: {
-        south: { destination: '/world/x/steps', door: '/world/x/front-doors', bidirectional: true },
-        east: { destination: '/world/x/lane' },
+        south: { destination: '/obj/_test/steps', door: '/obj/_test/front-doors', bidirectional: true },
+        east: { destination: '/obj/_test/lane' },
       },
     });
     expect(refs.map((r) => `${r.field}=${r.path}`)).toEqual([
-      'exits.south.destination=/world/x/steps',
-      'exits.south.door=/world/x/front-doors',
-      'exits.east.destination=/world/x/lane',
+      'exits.south.destination=/obj/_test/steps',
+      'exits.south.door=/obj/_test/front-doors',
+      'exits.east.destination=/obj/_test/lane',
     ]);
   });
 
   it('reads adornments, stock lines, price keys and the scalar fields', () => {
     const refs = refsOf({
-      adornments: ['/world/x/thing/forge-floor'],
-      stockLines: [{ itemTemplatePath: '/world/x/goods/torch', par: 4 }],
-      prices: { '/world/x/goods/torch': 2 },
-      roomTemplate: '/world/x/yard',
-      holderPath: '/world/x/lot-holder',
-      streetPath: '/world/x/lane',
+      adornments: ['/obj/_test/thing/forge-floor'],
+      stockLines: [{ itemTemplatePath: '/obj/_test/goods/torch', par: 4 }],
+      prices: { '/obj/_test/goods/torch': 2 },
+      roomTemplate: '/obj/_test/yard',
+      holderPath: '/obj/_test/lot-holder',
+      streetPath: '/obj/_test/lane',
     });
     expect(refs.map((r) => r.path)).toEqual([
-      '/world/x/thing/forge-floor',
-      '/world/x/goods/torch',
-      '/world/x/goods/torch',
-      '/world/x/yard',
-      '/world/x/lot-holder',
-      '/world/x/lane',
+      '/obj/_test/thing/forge-floor',
+      '/obj/_test/goods/torch',
+      '/obj/_test/goods/torch',
+      '/obj/_test/yard',
+      '/obj/_test/lot-holder',
+      '/obj/_test/lane',
     ]);
   });
 
@@ -62,28 +62,28 @@ describe('refsOf — the template-path field grammar', () => {
     const refs = refsOf({
       floorplan: [
         { leaf: 'bedroom', room: '/stuff/location/room/bedroom' },
-        { leaf: 'hall', room: '/world/x/lots/hall', entry: true },
+        { leaf: 'hall', room: '/obj/_test/lots/hall', entry: true },
       ],
     });
     expect(refs.map((r) => r.path)).toEqual([
       '/stuff/location/room/bedroom',
-      '/world/x/lots/hall',
+      '/obj/_test/lots/hall',
     ]);
   });
 
   it('a rowless reference is exactly what the resolve step refuses', () => {
     // The clause-(b) decision in miniature: refs minus the row set.
-    const rows = new Set(['/world/x/lane']);
-    const refs = refsOf({ populates: ['/world/x/lane', '/world/x/ghost'] });
+    const rows = new Set(['/obj/_test/lane']);
+    const refs = refsOf({ populates: ['/obj/_test/lane', '/obj/_test/ghost'] });
     const unresolved = refs.filter((r) => !rows.has(r.path));
-    expect(unresolved).toEqual([{ field: 'populates', path: '/world/x/ghost' }]);
+    expect(unresolved).toEqual([{ field: 'populates', path: '/obj/_test/ghost' }]);
   });
 
   it('prose, non-slash strings and detail maps are never references', () => {
     expect(
       refsOf({
         shortDescription: 'a lane /with/ a slash in prose? no — no leading key',
-        details: { lots: { description: '/world/x/never-walked' } },
+        details: { lots: { description: '/obj/_test/never-walked' } },
         keywords: ['/not-a-field'],
       }),
     ).toEqual([]);

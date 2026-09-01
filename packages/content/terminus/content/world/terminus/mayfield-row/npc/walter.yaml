@@ -1,0 +1,64 @@
+# Walter — Seznick House's property manager: Mayfield Holdings' agent
+# (owner-conferred group membership in the pack manifest, never
+# self-enrolled), fronting lease and unlease so a tenant never types the
+# raw operator verb. The Katie pattern, one rung up the ladder; the
+# `maintains` cadence (the landlord-shell upkeep the term owes) joins
+# him in the condition wave.
+class: /platform/agent/NPC
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: Walter
+  pronouns: he
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  primaryKeyword: walter
+  shortDescription: the house manager, pencil behind his ear
+  longDescription: |
+    A spare, neat man in a cardigan the colour of weak tea, a pencil behind one ear and a ring of flat keys worn to brass on his belt loop. He keeps the letting board, the boiler, and his own counsel, in that order. The radio in his room has been mid-cricket-season since before you arrived.
+  dispositions:
+    - { disposition: diligence, valence: 70 }
+    - { disposition: constancy, valence: 65 }
+    - { disposition: candor, valence: -30 }
+  # The operator escape hatch is afforded BY WALTER (he is the front
+  # desk); both views carry requiresWizard so only an operator SEES the
+  # raw verbs, and the real owner-agency gate lives at execute().
+  commandContributions:
+    environment:
+      - world/terminus/mayfield-row/cmd/lease.yaml
+      - world/terminus/mayfield-row/cmd/unlease.yaml
+  behaviors:
+    - brain: /lib/behavior/introduces
+      trigger: arrival
+    - brain: /lib/behavior/tree-dialogue
+      trigger: engage
+      config:
+        entry:
+          - node: greet
+        nodes:
+          greet:
+            beat: "Afternoon. Walter — I keep Seznick House. Rooms by the floor, references taken as read if the Registry knows you. What'll it be?"
+            choices:
+              - line: "I'd like to rent a flat."
+                to: leased
+                effects:
+                  - { verb: dispatch, command: "lease $player" }
+              - line: "I'm giving my flat up."
+                to: unleased
+                effects:
+                  - { verb: dispatch, command: "unlease $player" }
+              - line: "Just looking around."
+                to: looking
+          leased:
+            beat: "He slides a tab on the letting board without looking at it and works a flat key off the ring. 'Up the stair, your door's the one your key fits. Rooms come empty — what goes in them is your business; the walls and the weather stay mine.'"
+            choices:
+              - { line: "Thanks.", to: end }
+          unleased:
+            beat: "'Right you are.' He says it evenly, the way he says everything. 'Anything of yours goes to the store-room downstairs — collect it when you've a new address. Leave the key on the board hook.'"
+            choices:
+              - { line: "Thanks.", to: end }
+          looking:
+            beat: "'Look as long as you like. The Row's quiet and means to stay that way.' The pencil comes down from his ear, taps the letting board once, and goes back up."
+            choices:
+              - { line: "Goodbye.", to: end }
+          end:
+            beat: "Walter nods once and goes back to the board."

@@ -178,6 +178,40 @@ export default class HoldingProgramme extends ProgrammeBase {
     this.addressBase = value;
   }
 
+  /**
+   * The entry room's ROW for a programme row — the eager face a
+   * FrontDoorExit / LotGateExit carries (D17: a real row). Shared by
+   * every institution that hangs doors on this programme.
+   */
+  public static async entryRowOf(programmePath: string): Promise<string> {
+    const { Template } = await import(
+      '@saxonberg/server/mud/lib/stuff/Template'
+    );
+    const row = await Template.findByPath(programmePath);
+    const floorplan = (
+      row?.data as { floorplan?: Array<Record<string, unknown>> }
+    )?.floorplan;
+    const entry = floorplan?.find((r) => r.entry === true) ?? floorplan?.[0];
+    return String(entry?.room ?? programmePath);
+  }
+
+  /** The floorplan LEAFS of a programme row (for revert bookkeeping
+   *  without waking the holding). */
+  public static async floorplanLeafsOf(
+    programmePath: string,
+  ): Promise<Array<string | undefined>> {
+    const { Template } = await import(
+      '@saxonberg/server/mud/lib/stuff/Template'
+    );
+    const row = await Template.findByPath(programmePath);
+    const floorplan = (
+      row?.data as { floorplan?: Array<Record<string, unknown>> }
+    )?.floorplan;
+    return (floorplan ?? []).map((r) =>
+      typeof r.leaf === 'string' ? (r.leaf as string) : undefined,
+    );
+  }
+
   // ── identity ────────────────────────────────────────────────────
 
   /** The holding's parcel extent — the programme's persistence key. */

@@ -12,9 +12,22 @@ requires:
   groups:
     - name: terminus
       purpose: the Terminus municipality
+    # The landlord's staff — Walter's membership is CONFERRED here by
+    # the owner (the Katie pattern; never self-enrolled). His row sits
+    # under the pack's own seznick-house claim, per the NPC-only fence.
+    - name: mayfield-holdings
+      purpose: the Mayfield Holdings letting staff
+      members:
+        - { id: /world/terminus/mayfield-row/npc/walter, role: member }
   title:
     # The Terminus municipality's ground.
     - { extent: /world/terminus/terminal,        holder: { group: terminus }, landUse: civic }
     - { extent: /world/terminus/counting-houses, holder: { group: terminus }, landUse: commercial }
     - { extent: /world/terminus/general-store,   holder: { group: terminus }, landUse: commercial }
     - { extent: /world/terminus/registry,        holder: { group: terminus }, landUse: civic }
+    # Mayfield Row (residences D9): the municipality holds the street;
+    # the private landlord holds the building the units subdivide under.
+    - { extent: /world/terminus/mayfield-row, holder: { group: terminus }, landUse: residential }
+    - { extent: /world/terminus/mayfield-row/seznick-house, parentParcel: /world/terminus/mayfield-row, holder: { group: mayfield-holdings }, landUse: residential }
+boot:
+  - { template: /world/terminus/mayfield-row/seznick-house/building, role: producer, reason: warms the unit caches from the durable slot set and installs the lobby stair at postRegister }

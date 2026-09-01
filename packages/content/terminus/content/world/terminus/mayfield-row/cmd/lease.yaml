@@ -1,0 +1,23 @@
+verbs: [lease]
+controller: /world/terminus/mayfield-row/idea/cmd/LeaseController
+description: "Lease a Seznick House unit to a player"
+help: |
+  Mint and lease a Seznick House unit to the named player. The unit takes
+  the lowest free slot (floors open as they fill), is titled under the
+  building's parcel, leased to the player, keyed fresh, and comes EMPTY —
+  built-ins only; the tenant furnishes it with owned goods.
+
+  Authorized for Mayfield Holdings' agents (Walter fronts this in the
+  world) or an operator. The ascent gate reads the condition of what the
+  player already holds.
+examples:
+  - cmd: lease alice
+    note: Lease Alice the next free unit
+validators:
+  - /lib/command/validators/requiresWizard
+args:
+  - name: player
+    type: object
+    required: true
+    scope: "online"
+    requires: class:Agent
