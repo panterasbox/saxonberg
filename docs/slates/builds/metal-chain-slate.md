@@ -252,20 +252,29 @@ because it is colder**, and a player could derive that from the data.
 | Rung | Gated by | The lesson |
 |---|---|---|
 | **copper** | your eyes — malachite (Cu₂CO₃(OH)₂) is *visibly green* | the first metal is the one you can see |
-| **bronze** | a **trade route** — copper here, tin (cassiterite, SnO₂) elsewhere | superior alloys can be a supply-chain problem, not a skill problem |
+| **bronze** | **depth** — tin (cassiterite, SnO₂) lies at the bottom of the zoned deposit | superior alloys can be a supply problem, not a skill problem |
 | **iron** | **fuel technology** — 1811 K needs charcoal and a bellows | the barrier is energy |
 | **steel** | carbon control | the barrier is knowledge |
 
-⭐ **Four rungs, four different *kinds* of barrier** — observation, trade,
-technology, knowledge. And the tin fact is a history lesson, not
-flavour: cassiterite is rare and almost never occurs with copper, so the
-Bronze Age ran on long-distance trade because **bronze cannot be made
-locally anywhere**. Iron ore is everywhere, which is why iron ended the
-palace economies and armed everyone.
+⭐ **Four rungs, four different *kinds* of barrier** — observation, depth,
+technology, knowledge.
 
-Consequence for the venue: **Rejection can end the copper import and
-never the tin one.** Finding a tin deposit becomes somebody's life goal,
-and gives Saxonberg (the second city) something to be for.
+⚠ **A correction to an earlier draft of this slate**, recorded because it
+was load-bearing: it claimed cassiterite "almost never occurs with
+copper," and therefore that bronze cannot be made locally anywhere. Too
+strong. The accurate version: the Bronze Age *civilizations* —
+Mesopotamia, Egypt, Anatolia, the Aegean — had copper and essentially no
+tin, so tin travelled thousands of kilometres (the Uluburun wreck carried
+~1 ton of tin to ~10 tons of copper, which is bronze's ratio). **But
+Cornwall had both**, zoned around its granite, and that is exactly why it
+spent two thousand years as the exporter. So the lesson is not "nobody
+has both" —
+
+> ***Almost nobody has both, and whoever does, rules the trade.***
+
+— which is what makes § *The deposit is zoned* legitimate rather than a
+convenience. Iron ore, by contrast, genuinely is everywhere, which is why
+iron ended the palace economies and armed everyone.
 
 ---
 
@@ -781,6 +790,78 @@ as a specific legislative act with a specific artifact at stake.
 
 ---
 
+## ⭐⭐⭐ The deposit is zoned — where tin lives **[DECIDED — closes Open 6]**
+
+**Tin's home is the bottom of the Ferrow.** One deposit, three metals,
+three depths — and the reason is textbook economic geology, not
+convenience.
+
+Around a granite intrusion, ore minerals sort themselves by the
+temperature of the fluids that deposited them: **tin innermost and
+hottest, then copper, then lead–zinc, then iron and manganese at the
+distal fringe.** Spatially, "innermost" means nearest the granite
+contact — which, under a hill, means *deeper*.
+
+| Depth | Metal | Ladder rung |
+|---|---|---|
+| shallow / outer | **iron** | the rung you cannot use yet |
+| middle | **copper** | rung one — malachite is green, so it is the one you can see |
+| deep, against the granite | **tin** | rung two, and the world's only source |
+
+The country rock is already shipped: `rock/granite` exists, with a
+comment inviting exactly the mineral templates this needs.
+
+### ⭐⭐ It inverts against the tech ladder, which is the point
+
+**You can dig iron on day one and be unable to smelt it** — your fuel
+will not reach 1811 K. The ore sits in the spoil heap until your
+technology catches up, and then one day it is wealth. **The resource
+never changed; you did.** That is the cleanest available statement of
+what a tech ladder actually is, and it costs nothing to author because
+the melting points are already in the material sheets.
+
+### ⭐ It explains the lapse, and gives prospecting something to find
+
+House Ferrow worked the **shallow iron** — what a medieval house would
+work — and the mine lapsed. **Nobody ever went deeper.** So the copper is
+a discovery and the tin is a *revelation*, and the deduction layer has
+real objects to find rather than more of the same seam. The venue's
+central secret is geological rather than authored.
+
+### What it costs, and where the lesson moves
+
+Bronze becomes locally makeable, so the *"you must import"* lesson
+relocates — to the demand side, where it is stronger: **Terminus depends
+on one tin source and the players are standing on it.** A strategic
+chokepoint the miners hold is better play than a dependency they suffer,
+and it hands the arc a real motive — **Veshko's buyout is not for "a
+mine," it is for the only tin.** Together with the shaft toll (§ *The
+commons*), that is two independent grips on the same venue.
+
+### The two rejected homes
+
+- **The Weeping Moor** — granite moorland under permanent storm, which is
+  almost too apt (stream tin is Dartmoor). But it is a **two-room weather
+  demonstrator** whose own docstring says it deliberately has no inbound
+  exit "keeps content-area standup clean," and alluvial tin needs
+  **placer**, which is parked. A repurposed test fixture plus a parked
+  mechanic plus a second locality.
+- **An off-map importer with a price** — ruled out on this slate's own
+  doctrine. *Every finished good is a faucet too*; closing the ingot
+  faucet while opening a tin faucet is the same anti-pattern one layer
+  sideways.
+
+### ⭐ But bank the moor as the monopoly-breaker
+
+Cornwall's tin monopoly ended when Malayan and Bolivian tin undercut it —
+which is what happens to resource chokepoints. So when placer ships, the
+moor becomes a **stream-tin district that breaks Rejection's grip**: a
+second venue that matters for what it does to the first one's *prices*,
+not because it is more mine. That is a better second mine than another
+hole, and it is the natural home for the parked placer mechanic.
+
+---
+
 ## ⭐⭐⭐ The demand side — what the metal is FOR **[DECIDED]**
 
 Audited 2026-08-31 against shipped content. The finding reframes the
@@ -921,9 +1002,10 @@ scope rather than to content.
    or as a `ParcelRecord` annexe. *(rejection-slate Open 1b — whether the
    Hinkley/Rejection pairing is a deliberate yes — is answered YES by
    § The commons: the surface was granted, the minerals were claimed.)*
-6. **Tin's home** — if bronze needs a trade route, some *other* locality
-   must hold cassiterite. Saxonberg is the obvious candidate and does not
-   exist yet; the interim is an importer with a price.
+6. ~~Tin's home~~ — **CLOSED: the bottom of the Ferrow**, by zoned
+   mineralization (Sn inner/deep → Cu → Fe distal). See § *The deposit is
+   zoned*. The Weeping Moor is banked as the later stream-tin district
+   that breaks the monopoly, and is the natural home for parked placer.
 7. ~~Beneficiation~~ — **CLOSED**: mechanical dressing is mining, roasting
    is smelting, the line is the furnace. See § *Beneficiation*.
 8. ~~District formed or forming~~ — **CLOSED: formed.** Forming is a
