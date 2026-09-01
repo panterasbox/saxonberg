@@ -46,6 +46,8 @@ Seeded by [water-design-pack](../slates/builds/water-design-pack.md),
   themselves.
 - A source's failure is legible through **one closed vocabulary** shared
   with every other utility.
+- **A locality declares its position on the water**, so the watershed is
+  a second, orthogonal hierarchy to the address tree.
 
 ## Non-goals
 
@@ -74,6 +76,9 @@ Seeded by [water-design-pack](../slates/builds/water-design-pack.md),
   not a plant with stages.
 - **Water as a navigable space.** Boats, swimming and diving are
   fishing's Regimes 2 and 3.
+- **Authoring Rejection or Heart's Delight.** Neither exists as content;
+  both belong to their own locality builds (D20). This build records the
+  basin geography and asks one declared field of them.
 
 ## Surface decisions
 
@@ -404,6 +409,97 @@ The **contaminant** field and the mechanism that carries it downstream.
 Salinity, turbidity and dissolved oxygen stay fishing's to add. Fishing
 then plugs into a river that is already alive.
 
+### D20 — The realm is THREE basins, and the third is over the ridge from Rejection
+
+**Q:** How do the localities sit on water?
+
+Settled against the four criteria (pedagogy decides; expressiveness
+breaks ties). **Three basins**, with the four towns at four positions
+that their own economies already imply:
+
+| Locality | Position | The water problem it has |
+|---|---|---|
+| **Rejection** (mining) | headwaters of the home basin — where the ore and the snowpack both are | it **fouls**, with the **persistent** kind that never decays, and it is upstream of everyone |
+| **Heart's Delight** (farming) | a tributary valley, alluvial flats | it **diverts volume** — the seniority fight |
+| **Terminus** (city) | the confluence, downstream of both | it drinks what is left, after Rejection has been in it |
+| **Hinkley Hills** | the slope above the city, basin edge | a **head** problem, not a rights problem — which is why it has a standpipe and not a main |
+
+Each town's industry *determines* which kind of water problem it has.
+That is not authored coincidence; it falls out of where an economy has
+to sit.
+
+**The second basin** is a neighbouring drainage. **The third** is high,
+clean and empty — and it is **over the ridge from Rejection**, so the
+city's aqueduct to it must run through or past the territory of the town
+the city cut out.
+
+⭐⭐ **That last clause is the decision.** A neutral third basin would
+let money simply exit the politics. Routing the pipe past Rejection
+means the city's attempt to buy its way out **re-entangles it with the
+same neighbours on worse terms** — the Owens Valley story, where the
+aqueduct was dynamited by the valley it drained. Capital becomes a move
+in the game rather than an escape from it.
+
+**What this teaches that one basin cannot:** the ladder is *live with
+it → treat it → move your intake → reach another basin*, and the last
+rung is affordable only to the city. **Rejection, Heart's Delight and
+Hinkley are still drinking it.** A city solving its own problem and
+abandoning the commons is the real political economy of water, and a
+harder lesson than "the parties negotiate."
+
+**Scope line.** This build authors the **watercourses**, Terminus's
+position on them, and the aqueduct. It does **not** author Rejection or
+Heart's Delight — neither exists as content, and both belong to their
+own locality builds. What the model asks of them is one declared field
+(D21).
+
+### D21 — Two hierarchies, deliberately unaligned; a Locality declares its water
+
+**Q:** How does the watershed relate to the address tree?
+
+They are **orthogonal, and their misalignment is the point.**
+
+- The **address tree** is *political* containment — `terminus` → `city`
+  → `campus`, with `_governmentKey` per locality.
+- The **watershed** is *hydrological* ordering — Rejection → Heart's
+  Delight → Terminus.
+
+Terminus governs its own streets and has no say over what Rejection puts
+in the water. That is the real-world condition, and it is why the river
+authority is the one institution that follows the **second** hierarchy
+while every other institution follows the first.
+
+Mechanically it is one field: **a Locality declares the watercourse it
+sits on and drains to.** That declaration is the catchment of D6 and the
+connective tissue between localities.
+
+⭐ **The corollary: the river is the road skeleton.** Roads follow
+rivers because rivers cut the only gradeable path, so the land route
+between two localities in one basin follows the water. That matters
+because fast travel is **reach-before-travel** — you walk somewhere once
+and `register` it — so the walk up the valley is how a player learns the
+watershed. Corridors get a reason instead of being arbitrary.
+
+### D22 — The flagship conduit is an inter-basin gravity aqueduct
+
+**Q:** What is the build's most ambitious piece of infrastructure?
+
+Not a municipal main. **A long aqueduct reaching past your own watershed
+into a higher, cleaner one** — gravity-fed the whole way, because that
+is why such a route is chosen, and generating power on the descent from
+the surplus head (`ρ·g·Δh·Q`, D3).
+
+This is the distinction the build turns on, and it is not the same as a
+tap: **the body you form around is not the source you drink from.** A
+settlement rings a water body for transport and flat land while drinking
+from somewhere else entirely. In this model that is exactly *your reach*
+(geography you did not choose) versus *your conduit's intake* (capital
+you did).
+
+⭐ It is also the first thing in the game a single player almost
+certainly cannot build alone. It wants a polity or a company — a
+cooperation gate that emerges from physics rather than from a lock.
+
 ## Constraints
 
 - **⚠⚠ An unresolved supply ref must read UNKNOWN, never ZERO.** The
@@ -428,6 +524,14 @@ then plugs into a river that is already alive.
 - **`coords.z` is not elevation** (D4).
 - Zone field reads go through `zone.lookupField<T>`, never
   `ZoneApi.resolveZoneField`.
+- ⚠ **Three Terminus localities are currently rootless** —
+  `university-avenue`, `counting-houses` and `last-counted-mile` carry
+  bare `_address` values and no `_governmentKey`, so they sit outside
+  every jurisdiction. Since D21 makes water position a second
+  declaration on the same object, these would be **nowhere twice**.
+  Re-homing them is a jurisdiction change with consequences (it puts
+  them under the Magistrate) and is the owner's call, not this build's —
+  but the build must not assume every locality resolves a government.
 
 ## Acceptance criteria
 
@@ -469,10 +573,16 @@ then plugs into a river that is already alive.
     holder's draw**.
 17. Hydro output at a control derives from `ρ·g·Δh·Q` and **rises and
     falls with flow**.
-18. **`pnpm lint:schema` reports no new collection.**
-19. A subsystem doc exists at `docs/subsystems/watershed.md` and is
+18. A **Locality declares its watercourse**, and two localities in the
+    same basin resolve an upstream/downstream relation while two in
+    different basins resolve **none**.
+19. An **inter-basin aqueduct** delivers from a reach in one basin to an
+    extent in another, gravity-fed end to end, and its surplus head
+    drives a generator.
+20. **`pnpm lint:schema` reports no new collection.**
+21. A subsystem doc exists at `docs/subsystems/watershed.md` and is
     reachable from CLAUDE.md's map by a one-line entry.
-20. Every new topic key resolves under an existing root
+22. Every new topic key resolves under an existing root
     (`pnpm lint:topics`).
 
 ## Cross-references

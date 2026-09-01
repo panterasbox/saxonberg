@@ -220,13 +220,20 @@ not; drinking fouled water doses; boiling prevents; an intake above an
 outfall is clean and below it is not — **derived from terrain, authored
 by nobody**.
 
-### W9 — The Terminus watershed, the drive, and the docs
-**Create:** the authored river through Terminus (the Confluence, the
-falls, Hinkley's supply), the works' owner (P8), `watershed.md`,
-CLAUDE.md's one-line map entry.
-**Proves:** the live drive — walk upstream, survey with an altimeter,
-find the outfall above the intake, and see the season turn the flow
-down.
+### W9 — The three basins, the aqueduct, the drive, and the docs
+**Create:** the home basin's watercourse through Terminus (the
+Confluence, the falls, Hinkley's supply on the slope), the neighbouring
+drainage, and the high empty third basin **over the ridge from
+Rejection** (D20); the inter-basin aqueduct (D22); the works' owner
+(P8); `watershed.md`; CLAUDE.md's one-line map entry.
+
+⚠ **Authors no towns.** Rejection and Heart's Delight do not exist as
+content and belong to their own locality builds — this wave lays the
+water they will sit on and asks one declared field of them (D21).
+**Proves:** the live drive — walk upstream (the valley IS the road,
+D21), survey with an altimeter, find the outfall above the intake, and
+see the season turn the flow down. Two localities in one basin resolve
+an upstream/downstream relation; two in different basins resolve none.
 
 ---
 
