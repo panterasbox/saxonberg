@@ -112,6 +112,15 @@ export interface EstateEntry {
   templatePath: string;
   state: Record<string, MixinSlice>;
   place: string;
+  /**
+   * Present iff the good is **mounted** on the place rather than standing
+   * in it — hung on the room's `Adornable` fixture map (residences D11).
+   * `slot` is the fixture slot name to re-attach under, so a wall lamp
+   * comes back on the wall and not on the floor. Absent for every good
+   * that simply sits somewhere, which is every good written before the
+   * marker existed.
+   */
+  mounted?: { slot: string };
 }
 
 /**

@@ -1,0 +1,30 @@
+# A wall sconce — the first light you HANG.
+#
+# `Adornment` over the portable-light composition: carried like any good
+# until it goes on a wall, then it lives in the room's `getFixtures()`
+# and lights the room fixture-side (the propagation walk reads
+# `getFixtureLightSources()`, which is how the corpo neon already lights
+# a bar). `hang sconce` puts it up; `get sconce` takes it down.
+#
+# It stays YOUR lamp on the wall: title is chattel, not the room's, so
+# it persists owner-side and comes off the wall with you when a lease
+# ends (residences D11).
+class: /generic-objects/thing/SconceLamp
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a brass wall sconce
+  primaryKeyword: sconce
+  keywords: [sconce, lamp, light, wall, brass]
+  longDescription: |
+    A small brass sconce with a scalloped backplate and a smoked glass shade, made to be screwed to a wall at head height. Lit, it throws a soft pool of light up the plaster and leaves the corners to themselves.
+  on: false
+  emittedIntensity: 160
+  emittedColorTemperature: 2400
+  mass: 3
+  details:
+    backplate:
+      keywords: [backplate, plate, brass, screws]
+      description: A scalloped brass backplate, drilled at top and bottom for screws.
+    shade:
+      keywords: [shade, glass, smoked]
+      description: A smoked glass shade, the colour of weak tea, that softens the light rather than hiding it.

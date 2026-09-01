@@ -9,6 +9,7 @@ import { MixinApi, type AnyConstructor } from "../../../api/mixin";
 import { SpeciesApi } from "../../../api/species";
 import { StuffApi } from "../../../api/stuff";
 import { ContainmentApi } from "../../../api/containment";
+import type { Adornment } from "../../../lib/boundary/Adornment";
 import { SlotApi } from "../../../api/slot";
 import { ParcelApi } from "../../../api/parcel";
 import { ChattelApi } from "../../../api/chattel";
@@ -397,11 +398,15 @@ async function flushSkippedOwnedGoods(goods: Iterable<Stuff>): Promise<void> {
     if (!chattelId) continue;
     const owner = await ChattelApi.ownerOf(good);
     if (owner?.kind !== "player") continue;
+    // A hung good keeps its wall: the mount slot rides the entry so the
+    // room's next overlay re-attaches it as a fixture (residences D11).
+    const mountSlot = MixinApi.isAdornment(good) ? good.getMountSlot() : null;
     const entry: EstateEntry = {
       chattelId,
       templatePath: good.getTemplatePath() ?? "",
       state: captureState(good),
       place: good.getPlace(),
+      ...(mountSlot ? { mounted: { slot: mountSlot } } : {}),
     };
     const live = StuffApi.findByTemplatePath<Stuff>(owner.templatePath);
     if (live && MixinApi.isEstate(live)) {
@@ -839,6 +844,15 @@ async function overlayOwnedGoods(host: Stuff): Promise<void> {
         return PersistableLogicRestoreDetached(entry, host, principal);
       },
     );
+    // A MOUNTED good goes back on the wall, not on the floor: out of the
+    // host's contents (the not-portable invariant forbids being in both)
+    // and into its fixture slot. Slot names for owned goods are minted
+    // `mounted:<chattelId>` by `hang`, so they can never collide with the
+    // synthetic `fixture:<n>` counter the authored adornments use.
+    if (good && entry.mounted && MixinApi.isAdornable(host)) {
+      if (MixinApi.isContainable(good)) ContainmentApi.move(good, null);
+      host.addFixture(good as Stuff & Adornment, entry.mounted.slot);
+    }
     if (good && ownerHost && MixinApi.isEstate(ownerHost)) {
       ownerHost._putEstateEntry(entry, good);
     }

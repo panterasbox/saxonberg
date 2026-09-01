@@ -52,6 +52,20 @@ const GARDEN_LINES = [
   "/trade/farming/thing/seed/snake-plant",
 ] as const;
 
+/**
+ * The furnishings line (residences D7/D11) — same rule as the gardening
+ * line: the store stocks the GENERIC `/stuff/thing/fixture/` rows rather
+ * than store-local copies, so there is one bed in the world and the shop
+ * sells it.
+ */
+const FURNISH_LINES = [
+  "/stuff/thing/fixture/bed",
+  "/stuff/thing/fixture/wardrobe",
+  "/stuff/thing/fixture/table",
+  "/stuff/thing/fixture/armchair",
+  "/stuff/thing/fixture/sconce-lamp",
+] as const;
+
 function seedDoc(rel: string): Doc {
   const parsed = YAML.parse(
     readFileSync(`${STORE_DIR}${rel}.yaml`, "utf-8"),
@@ -78,9 +92,9 @@ function objDoc(path: string): Doc {
   };
 }
 
-// The counter stocks fourteen lines to par on standup, each a real clone
-// through the actual pipeline — the gardening line pushed that past the
-// default 5s budget.
+// The counter stocks nineteen lines to par on standup, each a real clone
+// through the actual pipeline — the gardening and furnishings lines pushed
+// that past the default 5s budget.
 vi.setConfig({ testTimeout: 30_000 });
 
 describe("general-store standup (real seeds)", () => {
@@ -94,6 +108,7 @@ describe("general-store standup (real seeds)", () => {
       seedDoc("counter"),
       ...goods,
       ...GARDEN_LINES.map(objDoc),
+      ...FURNISH_LINES.map(objDoc),
     ]);
     installV1QuantityMarshallers();
     await AppSettings.warm();
@@ -159,6 +174,45 @@ describe("general-store standup (real seeds)", () => {
     const large = counter.priceFor("/trade/farming/thing/pot/large")!;
     expect(large).toBeGreaterThan(small);
     expect(large).toBeLessThan(20);
+  });
+
+  it("the furnishings line stocks to par, priced at the TOP of the ladder", async () => {
+    const counter = await StuffApi.singleton<Stock>(COUNTER);
+    for (const path of FURNISH_LINES) {
+      expect(counter.onHand(path), `${path} on hand`).toBeGreaterThan(0);
+      expect(counter.priceFor(path), `${path} priced`).toBeGreaterThan(0);
+    }
+    // A home is the first thing worth saving for: the bed is the dearest
+    // thing in the shop, and dearer than the sewing machine that used to be.
+    const bed = counter.priceFor("/stuff/thing/fixture/bed")!;
+    const machine = counter.priceFor(
+      "/world/terminus/general-store/goods/sewing-machine",
+    )!;
+    expect(bed).toBeGreaterThan(machine);
+    for (const path of FURNISH_LINES) {
+      if (path === "/stuff/thing/fixture/bed") continue;
+      expect(counter.priceFor(path)!, `${path} under the bed`).toBeLessThan(bed);
+    }
+  });
+
+  it("the sconce is a real light you can hang — Adornment ⊕ switchable flux", async () => {
+    const counter = await StuffApi.singleton<Stock>(COUNTER);
+    const sconce = counter.resolveBuy("sconce") as unknown as Stuff &
+      Switchable &
+      LightSource;
+    expect(sconce).not.toBeNull();
+    // The whole point: it goes on a WALL (fixtures), not on the floor.
+    expect(MixinApi.isAdornment(sconce)).toBe(true);
+    expect(sconce.getEmittedFlux().rawValue()).toBe(0); // unlit off the shelf
+    sconce.switchOn();
+    expect(sconce.getEmittedFlux().rawValue()).toBeGreaterThan(0);
+  });
+
+  it("the bed is the rest surface the bedroom archetype wants", async () => {
+    const counter = await StuffApi.singleton<Stock>(COUNTER);
+    const bed = counter.resolveBuy("bed")!;
+    expect(MixinApi.isSlotted(bed)).toBe(true);
+    expect(bed.getSlotNames()).toContain("lie:1");
   });
 
   it("the gardening goods are real — pots hold soil, the sack pours, the seed names a plant", async () => {

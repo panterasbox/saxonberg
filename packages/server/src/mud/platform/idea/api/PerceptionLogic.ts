@@ -319,6 +319,16 @@ export class PerceptionLogic extends ApiLogic {
         if (exit.getDoor()?.stuffId === id) return true;
       }
     }
+    // ⚠ ...and neither are fixtures. A hung sconce, a wall TV, a neon
+    // sign lives in `getFixtures()`, in no container — so the two
+    // containment scans above miss it exactly as they missed doors. The
+    // `here` scope offers them; reach must agree, or what you can name is
+    // not what you can touch.
+    if (location && MixinApi.isAdornable(location)) {
+      for (const f of location.getFixtures()) {
+        if (f.stuffId === id) return true;
+      }
+    }
     return false;
   }
 
@@ -375,6 +385,10 @@ export class PerceptionLogic extends ApiLogic {
         const door = exit.getDoor();
         if (door) ids.add(door.stuffId);
       }
+    }
+    // ...and fixtures ride the room's fixture map, likewise uncontained.
+    if (location && MixinApi.isAdornable(location)) {
+      for (const f of location.getFixtures()) ids.add(f.stuffId);
     }
     return candidates.filter((c) => ids.has(c.stuffId));
   }

@@ -25,6 +25,8 @@ import { Mml } from '../../../../api/mml';
 import { ConditionApi } from '../../../../api/condition';
 import { Touch } from '../../../../lib/perception/Touch';
 import { ChattelApi } from '../../../../api/chattel';
+import { AccessApi } from '../../../../api/access';
+import type { Adornment } from '../../../../lib/boundary/Adornment';
 import { PerceptionApi } from '../../../../api/perception';
 import { ProxyApi } from '../../../../api/proxy';
 
@@ -93,7 +95,7 @@ export default class GetController extends CommandController<GetModel> {
       candidates,
       quantity,
       async (operand, applied) => {
-        if (!this.pickUpOperand(operand, context)) {
+        if (!(await this.pickUpOperand(operand, context))) {
           // Lift gate declined this operand — the decline scene + note
           // already fired in `pickUpOperand`; report it as a non-applied
           // result so glob skips it.
@@ -107,12 +109,12 @@ export default class GetController extends CommandController<GetModel> {
     return this.renderResult(result, raw, context);
   }
 
-  private executeWholeSet(
+  private async executeWholeSet(
     targets: Stuff[],
     inventory: readonly Stuff[],
     raw: string,
     context: CommandContext
-  ): void {
+  ): Promise<void> {
     if (targets.length === 0) {
       MessageApi.scene(context.commandGiver)
         .topic('sense.survey')
@@ -131,11 +133,37 @@ export default class GetController extends CommandController<GetModel> {
     if (takeable.length === 0 && reachable.length > 0) {
       return this.declineAllFixed(reachable, raw, context);
     }
-    for (const target of takeable) {
+    // ⭐ `get all` must not shout at the wall. A fixture the actor may
+    // not take down is dropped from the sweep SILENTLY — the same
+    // courtesy `isFixed` gets — because the bar's four neon signs are
+    // not four refusals owed to somebody who typed `get all`. It is
+    // still refused *by name* below when it was the thing they asked
+    // for: an empty allowed-set with blocked fixtures in it says so.
+    const allowed: Stuff[] = [];
+    const blocked: Stuff[] = [];
+    for (const t of takeable) {
+      if (
+        MixinApi.isAdornment(t) &&
+        t.getAdornedTo() &&
+        !(await this.mayDismount(
+          t,
+          context.commandGiver,
+          t.getAdornedTo() as unknown as Stuff,
+        ))
+      ) {
+        blocked.push(t);
+      } else {
+        allowed.push(t);
+      }
+    }
+    if (allowed.length === 0 && blocked.length > 0) {
+      return this.declineFixture(blocked[0]!, raw, context);
+    }
+    for (const target of allowed) {
       if (inventory.some((item) => item.stuffId === target.stuffId)) {
         continue;
       }
-      if (this.pickUpOperand(target, context)) {
+      if (await this.pickUpOperand(target, context)) {
         pickedNames.push(target.getPresentation());
       }
     }
@@ -198,6 +226,28 @@ export default class GetController extends CommandController<GetModel> {
     });
   }
 
+  /**
+   * Refuse one fixture by name: it is up there on purpose and it is not
+   * the actor's to take down.
+   */
+  private declineFixture(
+    fixture: Stuff,
+    raw: string,
+    context: CommandContext,
+  ): void {
+    context.note({
+      kind: 'controller-rejected',
+      reason: 'not-yours-to-take-down',
+      detail: raw,
+    });
+    MessageApi.scene(context.commandGiver)
+      .topic('sense.survey')
+      .toSelf(
+        Mml.compose`${Mml.thing(fixture)} is fixed to the wall, and it isn't yours to take down.`,
+      )
+      .send();
+  }
+
   private renderResult(
     result: ApplyQuantityResult<GetPayload>,
     raw: string,
@@ -254,7 +304,10 @@ export default class GetController extends CommandController<GetModel> {
    * (it is simply left behind; lighter items in the same `get all`
    * still succeed).
    */
-  private pickUpOperand(operand: Stuff, context: CommandContext): boolean {
+  private async pickUpOperand(
+    operand: Stuff,
+    context: CommandContext,
+  ): Promise<boolean> {
     if (!MixinApi.isContainable(operand)) {
       throw new Error(
         `GetController: operand ${operand.stuffId} is not Containable`
@@ -349,11 +402,29 @@ export default class GetController extends CommandController<GetModel> {
       return false;
     }
 
+    // ⭐ TAKING IT DOWN. A hung fixture is reachable and nameable (it is
+    // in the room's `here` scope, beside its doors), so `get` is how it
+    // comes off the wall — no second verb. But a fixture is not loose
+    // clutter: the bar's neon sign and the wall TV are up there on
+    // purpose, and a tenant's sconce is the tenant's. So the mount is a
+    // gate: your own good comes down freely, anything else needs write
+    // authority over the room.
+    if (MixinApi.isAdornment(operand) && operand.getAdornedTo()) {
+      const host = operand.getAdornedTo()!;
+      if (!(await this.mayDismount(operand, giver, host as unknown as Stuff))) {
+        this.declineFixture(operand, operand.getPresentation(), context);
+        return false;
+      }
+      // Detach BEFORE the move: the not-portable invariant refuses to
+      // move an Adornment that is still attached.
+      host.removeFixture(operand as Stuff & Adornment);
+    }
+
     ContainmentApi.move(operand, giver);
     // Custody returns to a pair of hands; `place` follows to `inventory`.
     // Picking up a good you do not hold title to is theft — permitted and
     // recoverable — so this records, it does not refuse. (D8)
-    void ChattelApi.followCustody(operand);
+    await ChattelApi.followCustody(operand);
     MessageApi.scene(giver)
       .topic('sense.survey')
       .toSelf(Mml.compose`You pick up ${Mml.thing(operand)}.`)
@@ -361,6 +432,32 @@ export default class GetController extends CommandController<GetModel> {
       .send();
     this.burnOnGrab(operand, giver);
     return true;
+  }
+
+  /**
+   * May the actor take this fixture down? Two ways in, and only two:
+   * they hold title to the good itself (their lamp, on anyone's wall),
+   * or they hold write authority over what it is hung on (the venue
+   * keeper rearranging their own neon).
+   *
+   * `ChattelApi.ownerOf` answers for an unstamped authored fixture too
+   * — it resolves to the covering parcel's owner — so the neon sign
+   * never matches the title arm and falls to the authority arm, which
+   * is exactly the intent.
+   */
+  private async mayDismount(
+    operand: Stuff,
+    giver: Stuff,
+    host: Stuff,
+  ): Promise<boolean> {
+    const owner = await ChattelApi.ownerOf(operand);
+    if (
+      owner?.kind === 'player' &&
+      owner.templatePath === giver.getIdentityPath()
+    ) {
+      return true;
+    }
+    return AccessApi.can(giver, 'write', host);
   }
 
   /**

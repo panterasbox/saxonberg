@@ -16,7 +16,7 @@ data:
   primaryKeyword: counter
   keywords: [counter, shelf, shelves, goods, stock]
   longDescription: |
-    A long plank counter worn pale by decades of elbows, and behind it shelves stacked to the ceiling with the honest gear of getting by underground: torches and waterskins, ration packs and a tray of clasp knives, a row of tin lanterns catching the light. A chalk slate by the till lists the prices in a plain hand. Nothing here is fine; everything here works.
+    A long plank counter worn pale by decades of elbows, and behind it shelves stacked to the ceiling with the honest gear of getting by underground: torches and waterskins, ration packs and a tray of clasp knives, a row of tin lanterns catching the light. Along the back wall, where the ceiling gives them room, stand the furnishings — a bed frame on its end, a pine wardrobe, tables and chairs stacked two deep, and a card of brass sconces hung up like fish. A chalk slate by the till lists the prices in a plain hand. Nothing here is fine; everything here works.
   discipline: scrum
   attendDurationMs: 0
   staffingPolicy: self-service
@@ -41,6 +41,17 @@ data:
     - { itemTemplatePath: /trade/farming/thing/pot/large, par: 2 }
     - { itemTemplatePath: /stuff/thing/vessel/soil-sack, par: 4 }
     - { itemTemplatePath: /trade/farming/thing/seed/snake-plant, par: 3 }
+    # The furnishings line (residences D7/D11). These cite the GENERIC
+    # `/stuff/thing/fixture/` rows — the same reason the gardening line
+    # cites the farming pack's pots rather than copying them: one bed row,
+    # one armchair row, and a store that stocks what the world already has.
+    # Low par on purpose: a shop floor is not a warehouse, and the reset
+    # sweep tops it back up.
+    - { itemTemplatePath: /stuff/thing/fixture/bed, par: 1 }
+    - { itemTemplatePath: /stuff/thing/fixture/wardrobe, par: 1 }
+    - { itemTemplatePath: /stuff/thing/fixture/table, par: 2 }
+    - { itemTemplatePath: /stuff/thing/fixture/armchair, par: 2 }
+    - { itemTemplatePath: /stuff/thing/fixture/sconce-lamp, par: 3 }
   prices:
     /world/terminus/general-store/goods/torch: 2
     /world/terminus/general-store/goods/rations: 3
@@ -59,3 +70,13 @@ data:
     /trade/farming/thing/pot/large: 8
     /stuff/thing/vessel/soil-sack: 2
     /trade/farming/thing/seed/snake-plant: 5
+    # Furnishings sit at the TOP of the ladder — a home is the first thing
+    # in the game worth saving for. Against the anchors (stipend 20,
+    # sewing-machine 18, wages 4-6/hr): a sconce is an evening's wage, a
+    # bed is a week of them. The bed is dearest by design; it is also the
+    # one that pays back (`restQuality: 2.0` while you are away).
+    /stuff/thing/fixture/bed: 45
+    /stuff/thing/fixture/wardrobe: 34
+    /stuff/thing/fixture/armchair: 26
+    /stuff/thing/fixture/table: 22
+    /stuff/thing/fixture/sconce-lamp: 12

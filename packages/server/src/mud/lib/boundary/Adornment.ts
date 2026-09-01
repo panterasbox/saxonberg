@@ -23,6 +23,7 @@
  */
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
+import type { CommandContributions } from '../../api/command';
 import type { Stuff } from '../stuff/Stuff';
 import type { Adornable } from './Adornable';
 import { SlottableMixin } from '../slot/Slottable';
@@ -31,6 +32,7 @@ import { SlottableMixin } from '../slot/Slottable';
 export interface Adornment {
   getAdornedTo(): (Stuff & Adornable) | null;
   setAdornedTo(host: (Stuff & Adornable) | null): void;
+  getMountSlot(): string | null;
 }
 
 export function AdornmentMixin<TBase extends MixinConstructor<Stuff>>(
@@ -38,6 +40,18 @@ export function AdornmentMixin<TBase extends MixinConstructor<Stuff>>(
 ) {
   return class AdornmentMixin extends SlottableMixin(Base) {
     static _mixinName = 'AdornmentMixin';
+
+    /**
+     * A fixture in your hands affords `hang` — the `wield`/`throw`
+     * precedent: OUTWARD to whoever holds it. Taking one back DOWN
+     * needs no affordance of its own; that is `get`, which the room
+     * already affords, and the fixture is in the `peers` scope it binds.
+     */
+    static commandContributions: CommandContributions = {
+      self: [],
+      peers: [],
+      environment: ['platform/cmd/inventory/hang.yaml'],
+    };
 
     /**
      * Back-reference to the Adornable host. Maintained by
@@ -71,6 +85,19 @@ export function AdornmentMixin<TBase extends MixinConstructor<Stuff>>(
      */
     setAdornedTo(host: (Stuff & Adornable) | null): void {
       this.adornedTo = host;
+    }
+
+    /**
+     * The fixture slot this adornment currently occupies on its host, or
+     * null when it is unattached. The good's own answer to "where am I
+     * hung" — asked by the persistence spine, which records it on an
+     * owned good's estate entry so a bought lamp comes back on the wall
+     * (residences D11) rather than on the floor.
+     */
+    getMountSlot(): string | null {
+      const host = this.adornedTo;
+      if (!host) return null;
+      return host.slotOfFixture(this as unknown as Stuff & Adornment);
     }
   };
 }

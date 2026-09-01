@@ -1,0 +1,18 @@
+# A table — the second work surface, and the one a HOME wants.
+#
+# `/platform/thing/Surface` is the shipped generic (shelf, counter,
+# table): items placed on it via `placeOn` keep `container = the room`
+# and gain `restingOn = this`, so a meal set out on the table reads as
+# on the table rather than as clutter on the floor.
+#
+# Not a built-in — the kitchen archetype's `surface` need is satisfied
+# by the built-in counter; this is the good you buy to eat at.
+class: /platform/thing/Surface
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a plain deal table
+  primaryKeyword: table
+  keywords: [table, deal, top]
+  longDescription: |
+    A plain deal table with four square legs and a top scrubbed to the pale grey of old wood. Not fine, but flat, steady, and big enough for two to eat at.
+  mass: 40
