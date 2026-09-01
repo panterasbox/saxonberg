@@ -1,0 +1,30 @@
+# /world/terminus/mayfield-row/seznick-house/rooms — the ZONE the let
+# units' rooms live in. It exists for the same reason Hinkley's `lots`
+# zone does (residences P8), and the reason is a grid rule, not taste.
+#
+# A landing is a cartesian cell, so it is a grid, and a grid admits a
+# NON-CARDINAL exit only across a zone boundary. A unit's front door is
+# non-cardinal by necessity — it is directioned `unit-1`, `unit-2`,
+# because the door is identified by which unit it opens, and a landing
+# serving four units cannot spend four compass points on them and still
+# say which way the stair goes.
+#
+# Without this boundary the door throws at `addExit`: the corridor and
+# `rooms/hall` would both resolve to the mayfield-row zone, and the
+# cardinal-only-intra-zone invariant refuses. Hinkley did not hit it
+# because its gate already crossed into `lots`.
+#
+# ⚠ A test cannot be trusted to catch this on its own: the rule only
+# fires when BOTH paths resolve to a real zone row, and a fixture that
+# omits the zone rows silently skips it. The unit suites now install
+# them for exactly that reason.
+#
+# A CartesianZone rather than a FolderZone: only a SpatialZone can be a
+# room's zone (`resolveZoneForPath` skips folders), so a FolderZone here
+# would be walked straight past and every unit room would land back in
+# the street's zone — which is the failure this fixes.
+class: /platform/idea/location/CartesianZone
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: Seznick House units
+  cellSize: 3.0

@@ -20,19 +20,27 @@
  * lease-gated door is the *door*. So the room stays plain, and the next
  * venue that wants a bathroom writes a seed row.
  *
- * Composition — **DormRoom's stack** (the residences build added
- * `WarrenMember` + the population witness here: a holding programme
- * manages its rooms as warren members, and the back-ref is inert —
- * null — for every free-standing venue room):
+ * Composition — `CartesianLocation` plus the three layers a room
+ * somebody FURNISHES needs:
  *
- *   Persistable → WarrenMember → PostRegistration → Exitable → Detailed
- *     → Visible → Reserved → Populates → Location  (Location carries
- *     Container, Adornable, AmbientLit, Atmospheric)
+ *   Persistable → WarrenMember → Reserved → CartesianLocation
+ *     (which carries PostRegistration, Populates, Detailed, Perceptible,
+ *     Exitable, CartesianCoordinates, Visible, and Location's Container,
+ *     Adornable, AmbientLit, Atmospheric, Addressable)
+ *
+ * It sits in the location taxonomy rather than beside it — the axis is
+ * `{cartesian, spherical} × {authored, minted}`, and a furnished room is
+ * MINTED (many rooms per row, keyed per holding — three houses on three
+ * lots are three halls from one `hall.yaml`) and CARTESIAN (a floorplan
+ * is a grid, and its authored exits say so: `direction: east`,
+ * `direction: north`).
  *
  * Every layer is load-bearing and the omission of any of them is silent:
  * without `Populates` a seed's `populates:` is INERT and no fixture ever
  * lands; without `Visible` its prose is inert; without `Exitable` you cannot
  * walk into it. `Reserved` is what lets a room AUTHOR a finite `air` budget.
+ * `WarrenMember` is the back-ref a holding programme manages its rooms
+ * through — inert (null) for a free-standing venue room.
  *
  * That the shipped dorm room already had exactly this stack is the reason
  * to mirror it rather than re-derive: `DormRoom` IS a room archetype (a
@@ -47,13 +55,8 @@
  * smoke and carbon monoxide, and self-smothers (D12).
  */
 
-import Location from "../../lib/stuff/Location";
+import CartesianLocation from "./CartesianLocation";
 import { PersistableMixin } from "../../lib/persistence/Persistable";
-import { PopulatesMixin } from "../../lib/stuff/Populates";
-import { VisibleMixin } from "../../lib/description/Visible";
-import { DetailedMixin } from "../../lib/description/Detailed";
-import { ExitableMixin } from "../../lib/boundary/Exitable";
-import { PostRegistrationMixin } from "../../lib/stuff/PostRegistration";
 import { ReservedMixin } from "../../lib/reserve";
 import { WarrenMemberMixin, type WarrenMember } from "../../lib/location/WarrenMember";
 import { MixinApi } from "../../api/mixin";
@@ -67,14 +70,24 @@ import type { FieldMeta } from "../../lib/mixin";
 /** The default posted designation — the room says nothing about who it is for. */
 export const UNRESTRICTED = "unrestricted";
 
+// ⭐ It extends one of the four location classes, and WHICH one is a
+// claim about what a furnished room IS.
+//
+// **Minted**: many live rooms per row, keyed per holding — three houses
+// on three lots are three halls from one `hall.yaml`. Never a singleton.
+//
+// **Cartesian**: a floorplan is a small grid, and the authored exits say
+// so in so many words — `{ to: kitchen, direction: east }`,
+// `{ to: bedroom, direction: north }`. A holding's rooms sit north and
+// east of each other, which is a coordinate system whether or not the
+// rows bother to write coordinates down.
+//
+// So: `CartesianLocation`, plus the three things a room somebody
+// FURNISHES needs and a bare cell does not — a record of its own
+// (`Persistable`), a warren to belong to (`WarrenMember`), and the
+// ability to author a finite `air` budget (`Reserved`).
 const FurnishableRoomBase = PersistableMixin(
-  WarrenMemberMixin(
-    PostRegistrationMixin(
-      ExitableMixin(
-        DetailedMixin(VisibleMixin(ReservedMixin(PopulatesMixin(Location)))),
-      ),
-    ),
-  ),
+  WarrenMemberMixin(ReservedMixin(CartesianLocation)),
 );
 
 /** Structural view of the warren surface the population witness pokes. */

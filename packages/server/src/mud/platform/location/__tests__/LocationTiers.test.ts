@@ -6,7 +6,7 @@
  *
  *   - **authored** (`CartesianLocation` / `SphericalLocation`) — the row
  *     IS a place, unique by path, so both compose `SingletonMixin`;
- *   - **minted** (`MintedCartesianLocation` / `MintedSphericalLocation`)
+ *   - **minted** (`CartesianLocation` / `SphericalLocation`)
  *     — the row describes a KIND of place and the instances are the
  *     places, so identity moves onto the instance (D17).
  *
@@ -24,9 +24,9 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import MintedCartesianLocation from "../MintedCartesianLocation";
-import MintedSphericalLocation from "../MintedSphericalLocation";
-import CartesianLocation from "../../../lib/location/CartesianLocation";
+import CartesianLocation from "../CartesianLocation";
+import SphericalLocation from "../SphericalLocation";
+import SingletonCartesianLocation from "../../../lib/location/SingletonCartesianLocation";
 import FurnishableRoom from "../FurnishableRoom";
 import { StuffApi } from "../../../api/stuff";
 import { MixinApi } from "../../../api/mixin";
@@ -34,7 +34,7 @@ import { Mixins } from "../../../lib/mixin";
 import { PersistableApi } from "../../../api/persistable";
 import { makeStuffAtPath } from "../../../lib/security/__tests__/test-setup";
 
-const PATH = "/platform/location/MintedCartesianLocation";
+const PATH = "/platform/location/CartesianLocation";
 
 beforeEach(() => {
   StuffApi.clearAll();
@@ -42,14 +42,14 @@ beforeEach(() => {
 
 describe("the minted quadrant", () => {
   it("carries its coordinate system — it is a real grid cell", () => {
-    const room = makeStuffAtPath(() => new MintedCartesianLocation(), PATH);
+    const room = makeStuffAtPath(() => new CartesianLocation(), PATH);
     expect(MixinApi.isExitable(room)).toBe(true);
-    expect(MixinApi.hasMixin(MintedCartesianLocation, Mixins.Populates)).toBe(true);
+    expect(MixinApi.hasMixin(CartesianLocation, Mixins.Populates)).toBe(true);
     // The whole reason it exists: the authored classes are singletons
     // because one row IS one cell. A minted row is a KIND of cell.
-    expect(MixinApi.hasMixin(CartesianLocation, Mixins.Singleton)).toBe(true);
-    expect(MixinApi.hasMixin(MintedCartesianLocation, Mixins.Singleton)).toBe(false);
-    expect(MixinApi.hasMixin(MintedSphericalLocation, Mixins.Singleton)).toBe(false);
+    expect(MixinApi.hasMixin(SingletonCartesianLocation, Mixins.Singleton)).toBe(true);
+    expect(MixinApi.hasMixin(CartesianLocation, Mixins.Singleton)).toBe(false);
+    expect(MixinApi.hasMixin(SphericalLocation, Mixins.Singleton)).toBe(false);
   });
 
   it("⭐ keeps NO record, and writes nothing when it is reaped", async () => {
@@ -58,7 +58,7 @@ describe("the minted quadrant", () => {
     // `holder_snapshots` row — and every landing in a building clones ONE
     // row, so all of them shared ONE scope.
     const capture = vi.spyOn(PersistableApi, "capture");
-    const room = makeStuffAtPath(() => new MintedCartesianLocation(), PATH);
+    const room = makeStuffAtPath(() => new CartesianLocation(), PATH);
     expect(MixinApi.isPersistable(room)).toBe(false);
     await StuffApi.destruct(room);
     expect(capture).not.toHaveBeenCalled();
@@ -68,8 +68,8 @@ describe("the minted quadrant", () => {
   it("both coordinate systems have one, so neither side has to improvise", () => {
     // The empty quadrant is what got filled by the wrong class last time.
     expect(MixinApi.isPersistable(
-      makeStuffAtPath(() => new MintedSphericalLocation(),
-        "/platform/location/MintedSphericalLocation"),
+      makeStuffAtPath(() => new SphericalLocation(),
+        "/platform/location/SphericalLocation"),
     )).toBe(false);
   });
 
@@ -120,7 +120,7 @@ describe("the shipped rows pick the right location class", () => {
       expect(
         byFile.get(f),
         `${f} is minted per node and reaped — it must not persist`,
-      ).toBe("/platform/location/MintedCartesianLocation");
+      ).toBe("/platform/location/CartesianLocation");
     }
   });
 

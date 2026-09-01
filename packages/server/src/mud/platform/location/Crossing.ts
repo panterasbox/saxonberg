@@ -13,7 +13,7 @@
  * static base string is returned unchanged.
  */
 
-import CartesianLocation from '../../lib/location/CartesianLocation';
+import SingletonCartesianLocation from '../../lib/location/SingletonCartesianLocation';
 import { StuffApi } from '../../api/stuff';
 import { WorldClockApi } from '../../api/worldclock';
 import { DefaultCalendar } from '../../lib/time/DefaultCalendar';
@@ -22,7 +22,7 @@ import { TemplatePaths } from '../../lib/paths';
 import type { DetailId } from '../../lib/description/Detailed';
 import type { SenseChannel } from '../../lib/description/Perceiver';
 
-export default class Crossing extends CartesianLocation {
+export default class Crossing extends SingletonCartesianLocation {
   /**
    * The accurate civic time on the tower face — world-time-of-day
    * formatted `HH:MM`, or `null` when no world clock is running (a bare

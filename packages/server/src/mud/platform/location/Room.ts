@@ -11,6 +11,6 @@
  * See CLAUDE.md § Instanceable Lives in `obj/`.
  */
 
-import CartesianLocation from '../../lib/location/CartesianLocation';
+import SingletonCartesianLocation from '../../lib/location/SingletonCartesianLocation';
 
-export default class Room extends CartesianLocation {}
+export default class Room extends SingletonCartesianLocation {}

@@ -1,7 +1,7 @@
 # A Seznick House landing — the minted circulation row (one clone per
 # occupied floor; reaped outside-in when its units empty). Unit doors
 # hang here as FrontDoorExits (`unit-<pos>`), keyed to each lease.
-class: /platform/location/MintedCartesianLocation
+class: /platform/location/CartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a Seznick House landing
