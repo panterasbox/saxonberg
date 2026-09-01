@@ -32,31 +32,21 @@
  * chattel, which persists owner-side against the owner's estate.
  * `FurnishableRoom` — the interior somebody furnishes, whose contents
  * must survive — extends THIS and adds `Persistable` back.
+ *
+ * ⚠⚠ **It EXTENDS the lib class; it must never re-compose the mixin
+ * stack.** The two compositions are identical, which is exactly the
+ * trap: re-listing the mixins produces a class that looks right, type-
+ * checks, passes every test, and has silently dropped
+ * `CartesianLocation.addExit` — the cardinal-only-intra-zone rule. This
+ * class shipped that way briefly. The rule is what guarantees a grid
+ * exit has a known inverse, and it is load-bearing at Hinkley (the
+ * `lots` zone exists to satisfy it), so losing it on the MINTED road
+ * reaches while the AUTHORED lane still enforced it meant one street
+ * checked the invariant at one end and not the other. Same-name split
+ * (`NPC`, `Vessel`, `Exit`, `Material`, `Biome`): the lib class is the
+ * behaviour, this is the instanceable face, and the face adds nothing.
  */
 
-import { CartesianCoordinatesMixin } from "../../lib/location/CartesianCoordinates";
-import Location from "../../lib/stuff/Location";
-import { ExitableMixin } from "../../lib/boundary/Exitable";
-import { VisibleMixin } from "../../lib/description/Visible";
-import { PerceptibleMixin } from "../../lib/description/Perceptible";
-import { DetailedMixin } from "../../lib/description/Detailed";
-import { PostRegistrationMixin } from "../../lib/stuff/PostRegistration";
-import { PopulatesMixin } from "../../lib/stuff/Populates";
-import type { FieldMeta } from "../../lib/mixin";
+import CartesianLocationBase from "../../lib/location/CartesianLocation";
 
-const CartesianLocationBase = PostRegistrationMixin(
-  PopulatesMixin(
-    DetailedMixin(
-      PerceptibleMixin(
-        ExitableMixin(CartesianCoordinatesMixin(VisibleMixin(Location))),
-      ),
-    ),
-  ),
-);
-
-export default class CartesianLocation extends CartesianLocationBase {
-  static fieldMeta: FieldMeta = {
-    coords: { persistent: true },
-    extent: { persistent: true, authorable: true },
-  };
-}
+export default class CartesianLocation extends CartesianLocationBase {}

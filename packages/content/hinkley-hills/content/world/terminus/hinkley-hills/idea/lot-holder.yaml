@@ -32,4 +32,7 @@ data:
       - key: hinkley-court
         segments: 1
         frontagesPerSegment: 4
-        branchesFrom: { road: lane, segment: 2 }
+        # CARDINAL, and authored: the court leaves the lane to the
+        # north. The grid refuses a non-cardinal exit into its own zone,
+        # so a road key here is not a direction and never was.
+        branchesFrom: { road: lane, segment: 2, direction: north }

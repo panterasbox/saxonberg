@@ -141,3 +141,60 @@ describe('parse validation', () => {
     expect(() => PlatPlan.parse({ shape: 'nope' })).toThrow(/unknown shape/);
   });
 });
+
+/**
+ * ⚠ The branch direction is CARDINAL and AUTHORED, because a grid
+ * refuses a non-cardinal exit into its own zone and both reaches of a
+ * branch clone the same road row (so they resolve to the same zone).
+ * It used to be derived from the road KEY — `court`, which is not a
+ * direction — and the first lot sold on a branch road threw as its
+ * reach was wired.
+ */
+describe('the fork direction', () => {
+  const plan = PlatPlan.parse(BRANCHED);
+
+  it('runs in line along a road', () => {
+    expect(plan.onwardDirectionOf('lane:2')).toBe('west');
+    expect(plan.onwardDirectionOf('lane:3')).toBe('west');
+  });
+
+  it('⭐ takes the plat\'s authored cardinal at a fork', () => {
+    const north = PlatPlan.parse({
+      shape: 'branched',
+      roads: [
+        { key: 'lane', segments: 3, frontagesPerSegment: 4, authored: { 1: '/obj/_test/lane' } },
+        { key: 'court', segments: 1, frontagesPerSegment: 4,
+          branchesFrom: { road: 'lane', segment: 2, direction: 'north' } },
+      ],
+    });
+    expect(north.onwardDirectionOf('court:1')).toBe('north');
+    // Unauthored defaults to north rather than to the road key.
+    expect(plan.onwardDirectionOf('court:1')).toBe('north');
+  });
+
+  it('a non-cardinal branch direction fails at PARSE, not on the ninth sale', () => {
+    expect(() =>
+      PlatPlan.parse({
+        shape: 'branched',
+        roads: [
+          { key: 'lane', segments: 3, frontagesPerSegment: 4, authored: { 1: '/obj/_test/lane' } },
+          { key: 'court', segments: 1, frontagesPerSegment: 4,
+            branchesFrom: { road: 'lane', segment: 2, direction: 'court' } },
+        ],
+      }),
+    ).toThrow(/cardinal/);
+  });
+
+  it('only a road HEAD forks — later reaches of a branch still run in line', () => {
+    const long = PlatPlan.parse({
+      shape: 'branched',
+      roads: [
+        { key: 'lane', segments: 3, frontagesPerSegment: 4, authored: { 1: '/obj/_test/lane' } },
+        { key: 'court', segments: 3, frontagesPerSegment: 4,
+          branchesFrom: { road: 'lane', segment: 2, direction: 'south' } },
+      ],
+    });
+    expect(long.onwardDirectionOf('court:1')).toBe('south');
+    expect(long.onwardDirectionOf('court:2')).toBe('west');
+  });
+});

@@ -30,6 +30,8 @@
  * a typo fails at install, not mid-provision.
  */
 
+import { NavigationApi } from '../../api/navigation';
+
 export type PlanShape = 'static' | 'linear' | 'branched';
 
 /** One road of a branched plan (parsed). */
@@ -37,7 +39,7 @@ interface PlanRoad {
   key: string;
   segments: number;
   frontagesPerSegment: number;
-  branchesFrom: { road: string; segment: number } | null;
+  branchesFrom: { road: string; segment: number; direction: string } | null;
   /** Authored circulation rooms by segment number (template paths). */
   authored: Map<number, string>;
 }
@@ -127,7 +129,24 @@ export class PlatPlan {
             `road ${o.key} frontagesPerSegment`,
           ),
           branchesFrom: branches
-            ? { road: String(branches.road), segment: num(branches.segment, 1) }
+            ? {
+                road: String(branches.road),
+                segment: num(branches.segment, 1),
+                // ⭐ CARDINAL, and authored. A court hangs off a lane to
+                // the north or the south — that is a fact about the plat,
+                // so the plat says it. It used to be derived from the road
+                // KEY (`hinkley-court`), which is not a direction at all:
+                // a grid refuses a non-cardinal exit to its own zone, so
+                // the first lot on a branch road threw as it was wired.
+                // Cardinal also means the edge has a known inverse, which
+                // is the whole point of the rule.
+                direction: mustCardinal(
+                  branches.direction === undefined
+                    ? 'north'
+                    : String(branches.direction),
+                  `road ${String(o.key)} branchesFrom.direction`,
+                ),
+              }
             : null,
           authored,
         };
@@ -311,6 +330,25 @@ export class PlatPlan {
     return i > 0 ? route[i - 1]! : null;
   }
 
+  /**
+   * The CARDINAL direction a node hangs off its predecessor in, for
+   * wiring the edge between them.
+   *
+   * Along a road the reaches run in line — `west` onward, `east` back
+   * toward the entrance. At a FORK the direction is the plat's, authored
+   * on `branchesFrom.direction`: a court leaves its lane to the north or
+   * the south, and saying which is what makes the edge cardinal (and so
+   * legal inside one zone, and so reversible).
+   */
+  onwardDirectionOf(nodeId: string): string {
+    const { road, segment } = this.parseNode(nodeId);
+    if (segment === 1) {
+      const r = this.roads.find((x) => x.key === road);
+      if (r?.branchesFrom) return r.branchesFrom.direction;
+    }
+    return 'west';
+  }
+
   private parseNode(nodeId: string): { road: string; segment: number } {
     const i = nodeId.lastIndexOf(':');
     return { road: nodeId.slice(0, i), segment: Number(nodeId.slice(i + 1)) };
@@ -320,6 +358,20 @@ export class PlatPlan {
 function num(v: unknown, dflt: number): number {
   const n = typeof v === 'number' ? v : Number(v);
   return Number.isFinite(n) ? n : dflt;
+}
+
+/**
+ * A branch direction must be one of the 10 canonical cardinals — the
+ * grid refuses anything else into its own zone. Checked at PARSE so a
+ * typo fails at install, not on the sale of the ninth lot.
+ */
+function mustCardinal(d: string, what: string): string {
+  if (!NavigationApi.isCardinalDirection(d)) {
+    throw new Error(
+      `PlatPlan: ${what} must be a cardinal direction (got '${d}')`,
+    );
+  }
+  return d;
 }
 
 function mustPositive(n: number, what: string): number {

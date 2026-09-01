@@ -25,6 +25,7 @@ import { SingletonMixin } from "@saxonberg/server/mud/lib/stuff/Singleton";
 import { PostRegistrationMixin } from "@saxonberg/server/mud/lib/stuff/PostRegistration";
 import { StuffApi } from "@saxonberg/server/mud/api/stuff";
 import { MixinApi } from "@saxonberg/server/mud/api/mixin";
+import { NavigationApi } from "@saxonberg/server/mud/api/navigation";
 import { PersistableApi } from "@saxonberg/server/mud/api/persistable";
 import Exit from "@saxonberg/server/mud/lib/boundary/Exit";
 import LotGateExit from "./LotGateExit";
@@ -206,9 +207,20 @@ export default class PlatWarren extends PlatWarrenBase {
   }
 
   /**
-   * Wire a MINTED road reach to its predecessor on the route: `east`
-   * walks back toward the entrance, the onward direction is `west`
-   * along a road and the branch road's key at a fork.
+   * Wire a MINTED road reach to its predecessor on the route: along a
+   * road the reaches run in line (`west` onward, `east` back toward the
+   * entrance); at a FORK the onward direction is the plat's authored
+   * `branchesFrom.direction` and the way back is its inverse.
+   *
+   * ⚠ It used to use the branch ROAD'S KEY as the onward direction —
+   * `hinkley-court`, which is not a direction. A CartesianLocation
+   * refuses a non-cardinal exit into its own zone, and both reaches
+   * clone the same road row, so they resolve to the same zone: the first
+   * lot sold on a branch road threw as its reach was wired. Nothing
+   * caught it because the kernel warren tests stub
+   * `wireCirculationNode`, the pack tests build their street on plain
+   * `Location` (no grid, no rule), and a branch is only reached once
+   * every frontage before it has sold — the ninth lot at Hinkley.
    */
   protected async wireCirculationNode(
     nodeId: string,
@@ -220,14 +232,13 @@ export default class PlatWarren extends PlatWarrenBase {
     const predRoom = await this.ensureNode(pred);
     if (!predRoom || !MixinApi.isExitable(predRoom)) return;
     if (!MixinApi.isExitable(room)) return;
-    const sameRoad =
-      nodeId.slice(0, nodeId.lastIndexOf(":")) ===
-      pred.slice(0, pred.lastIndexOf(":"));
-    const onward = sameRoad ? "west" : nodeId.slice(0, nodeId.lastIndexOf(":")).split("/").pop()!;
+    const onward = plan.onwardDirectionOf(nodeId);
+    const back = NavigationApi.invertDirection(onward);
+    if (!back) return;
     if ((predRoom as ExitableContainer).getExit(onward)) return;
     await (room as ExitableContainer).addBidirectionalExit(
       predRoom as ExitableContainer,
-      "east",
+      back,
       { opposite: onward, keepLiveDestination: true },
     );
   }

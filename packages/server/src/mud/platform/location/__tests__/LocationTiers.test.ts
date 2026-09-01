@@ -22,6 +22,7 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import CartesianLocation from "../CartesianLocation";
+import LibCartesianLocation from "../../../lib/location/CartesianLocation";
 import SphericalLocation from "../SphericalLocation";
 import SingletonCartesianLocation from "../../../lib/location/SingletonCartesianLocation";
 import FurnishableRoom from "../FurnishableRoom";
@@ -35,6 +36,42 @@ const PATH = "/platform/location/CartesianLocation";
 
 beforeEach(() => {
   StuffApi.clearAll();
+});
+
+/**
+ * ⚠ The instanceable faces must INHERIT the grid's behaviour, not
+ * re-list its mixins. Two identical compositions produce two classes
+ * that differ only in what they OVERRIDE, and the override that matters
+ * is `CartesianLocation.addExit` — the cardinal-only-intra-zone rule.
+ * `platform/location/CartesianLocation` shipped re-composed for one
+ * commit and had silently dropped it, so a minted road reach accepted a
+ * non-cardinal exit into its own zone while the authored lane beside it
+ * still refused one. Type-checked, and every suite stayed green.
+ */
+describe("the faces inherit the grid, they do not re-compose it", () => {
+  it("⭐ every cartesian face carries the cardinal-rule addExit", () => {
+    // The rule lives on the lib class. A face that re-listed the mixins
+    // would get `Exitable`'s plain addExit instead — same shape, no rule.
+    const own = Object.getOwnPropertyDescriptor(
+      LibCartesianLocation.prototype,
+      "addExit",
+    );
+    expect(own, "the lib class owns the rule").toBeTruthy();
+    for (const cls of [
+      CartesianLocation,
+      SingletonCartesianLocation,
+      FurnishableRoom,
+    ]) {
+      expect(
+        cls.prototype instanceof LibCartesianLocation ||
+          Object.getPrototypeOf(cls.prototype) === LibCartesianLocation.prototype,
+        `${cls.name} must descend from lib CartesianLocation`,
+      ).toBe(true);
+      expect(cls.prototype.addExit, `${cls.name} lost the rule`).toBe(
+        own!.value,
+      );
+    }
+  });
 });
 
 describe("the minted quadrant", () => {
