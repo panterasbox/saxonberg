@@ -19,7 +19,7 @@ import { makeStuff, makeStuffAtPath, stampTemplatePathForTest } from '../../lib/
 import { installV1QuantityMarshallers } from '../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import ArchetypeCatalogue from '../idea/ArchetypeCatalogue';
 import RecipeCatalogue from '../idea/RecipeCatalogue';
-import Room from '../location/Room';
+import Room from '../location/CartesianLocation';
 import Thing from '../../lib/stuff/Thing';
 import { ToolMixin } from '../../lib/craft/Tooled';
 import { SurfacedMixin } from '../../lib/spatial/Surfaced';

@@ -35,7 +35,7 @@ import { Template } from '../../stuff/Template';
 import Thing from '../../stuff/Thing';
 import { Character } from '../../character/Character';
 import Species from '../../../platform/idea/species/Species';
-import Room from '../../../platform/location/Room';
+import CartesianLocation from '../../../platform/location/CartesianLocation';
 import { ArcaneMixin } from '../Arcane';
 import { ChargedMixin } from '../Charged';
 import { IdentifiableMixin } from '../../identification/Identifiable';
@@ -122,8 +122,8 @@ function makeWand(spellId: string, maker: string): TestWand {
   return wand;
 }
 
-function makeRoom(): Room {
-  const room = makeStuff(() => new Room());
+function makeRoom(): CartesianLocation {
+  const room = makeStuff(() => new CartesianLocation());
   stampTemplatePathForTest(room, `/obj/test/ctx-room-${seq++}`);
   return room;
 }

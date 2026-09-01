@@ -13,7 +13,7 @@
 # here — finished set-dressing that makes the district legible and defines
 # Goodkin by contrast — never enterable (the accepted-vs-refused contrast waits
 # for a real rival build; rivals-out per the requirements).
-class: /platform/location/Room
+class: /platform/location/CartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: Counting-House Row, University Avenue

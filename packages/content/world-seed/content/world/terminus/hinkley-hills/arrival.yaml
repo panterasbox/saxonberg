@@ -5,7 +5,7 @@
 # rather than a lamp's, and a crop needs a great deal more of it than a
 # houseplant does. Everything about the suburb's growing conditions comes
 # down to being out here instead of in there.
-class: /platform/location/Room
+class: /platform/location/CartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: the Hinkley Hills stop

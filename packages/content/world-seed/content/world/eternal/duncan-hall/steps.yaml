@@ -10,7 +10,7 @@
 # back-exit to the lobby is auto-installed by Exitable.applyExits
 # when the lobby's south exit hydrates (bidirectional default for
 # cardinals).
-class: /platform/location/Room
+class: /platform/location/CartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   _address: terminus/city/campus/duncan-hall

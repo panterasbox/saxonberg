@@ -31,7 +31,7 @@ import {
 } from "../../../../lib/security/__tests__/test-setup";
 import { PersistenceManager } from "../../../../../backend/PersistenceManager";
 
-const LEAF = "/platform/location/Room";
+const LEAF = "/platform/location/CartesianLocation";
 const OTHER_LEAF = "/platform/thing/Prop";
 const FOLDER = "/platform/idea/FolderZone";
 const HYDRATOR = "/platform/idea/persistence/PersistentHydrator";

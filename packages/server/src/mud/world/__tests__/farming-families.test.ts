@@ -152,13 +152,13 @@ describe('trade-farming — the ten grown families resolve end to end', () => {
     const square = byPath.get('/world/terminus/market/square');
     expect(square).toBeDefined();
     const exits = square!.data.exits as Record<string, { destination: string }>;
-    expect(exits.northeast.destination).toBe(
+    expect(exits.northeast?.destination).toBe(
       '/world/terminus/counting-houses/avenue-block',
     );
     // Both sides explicit (the cash-and-carry precedent).
     const avenue = byPath.get('/world/terminus/counting-houses/avenue-block')!;
     const avenueExits = avenue.data.exits as Record<string, { destination: string }>;
-    expect(avenueExits.southwest.destination).toBe('/world/terminus/market/square');
+    expect(avenueExits.southwest?.destination).toBe('/world/terminus/market/square');
     // The zone row is the sibling .yaml.
     expect(byPath.get('/world/terminus/market')!.class).toBe(
       '/platform/idea/location/CartesianZone',

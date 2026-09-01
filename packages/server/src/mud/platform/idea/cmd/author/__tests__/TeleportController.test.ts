@@ -9,7 +9,7 @@
 import '../../../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import TeleportController from '../TeleportController';
-import Room from '../../../../location/Room';
+import Room from '../../../../location/CartesianLocation';
 import Avatar from '../../../../agent/Avatar';
 import { AccessApi } from '../../../../../api/access';
 import { ContainmentApi } from '../../../../../api/containment';

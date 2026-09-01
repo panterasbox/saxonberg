@@ -10,7 +10,7 @@
 # the fixtures are `populates` (fresh each boot) and durability lives on
 # the COUNTER's own persistable record — the consigned goods and their
 # listings ride the Stock, not the room.
-class: /platform/location/Room
+class: /platform/location/CartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: the cash-and-carry

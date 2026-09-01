@@ -7,7 +7,7 @@
 # Its own zone (`/world/terminus/general-store`), but addressed under the
 # counting-houses Locality (`counting-houses/general-store`) — it sits on that
 # street, so no new address node is minted (the slim-roster discipline).
-class: /platform/location/Room
+class: /platform/location/CartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: the general store

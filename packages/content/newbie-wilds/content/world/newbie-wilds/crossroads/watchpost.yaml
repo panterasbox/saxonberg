@@ -13,7 +13,7 @@
 # pull into no standup / fast-travel cascade; the GlassAlley failure,
 # avoided by construction). It asserts no exit count, composes no
 # FastTravelMixin, and appears in no TPA manifest. Content-only.
-class: /platform/location/Room
+class: /platform/location/CartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a watchpost in the treeline

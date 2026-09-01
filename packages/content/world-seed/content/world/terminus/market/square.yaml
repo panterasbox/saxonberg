@@ -16,7 +16,7 @@
 #
 # NORTHEAST back up the lane to the avenue block (cross-zone, both sides
 # explicit — the block declares SOUTHWEST here).
-class: /platform/location/Room
+class: /platform/location/CartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: the farmers market square

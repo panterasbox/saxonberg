@@ -4,7 +4,7 @@
 # pit — but the pit-below has a climb back UP, so a fall wounds and delays,
 # it does not trap you: the way on (`north`) is still reachable after you
 # climb out (the pit is one-shot — once sprung it stays sprung).
-class: /platform/location/Room
+class: /platform/location/CartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a span of corridor over a false floor

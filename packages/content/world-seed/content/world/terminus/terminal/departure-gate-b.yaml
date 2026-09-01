@@ -2,7 +2,7 @@
 # gates: authored-static out-of-service content (D8). Its terminal shows a
 # grey status light and refuses travel. Generic room; connections declared
 # explicitly on both sides — the hall lies one cell east.
-class: /platform/location/Room
+class: /platform/location/CartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: Departure Gate B

@@ -13,7 +13,7 @@
 # families that got one — and prose tells it better than a hundred
 # identical rooms would, at a hundredth the cost. Room-spec rule: prose is
 # bulk, Stuff is few.
-class: /platform/location/Room
+class: /platform/location/CartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: Hinkley Lane

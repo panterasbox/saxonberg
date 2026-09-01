@@ -27,7 +27,7 @@ import { MqlSubscriptionApi } from '../../../api/mql-subscription';
 import EventRegistry from '../../../platform/idea/EventRegistry';
 import Interactive from '../../../platform/idea/Interactive';
 import Avatar from '../../../platform/agent/Avatar';
-import Room from '../../../platform/location/Room';
+import CartesianLocation from '../../../platform/location/CartesianLocation';
 import Tablet from '../../../platform/thing/Tablet';
 import Screen from '../../../platform/thing/Screen';
 import Remote from '../../../platform/thing/Remote';
@@ -64,7 +64,7 @@ interface Viewer {
 }
 
 let seq = 0;
-async function makeViewer(name: string, room: Room): Promise<Viewer> {
+async function makeViewer(name: string, room: CartesianLocation): Promise<Viewer> {
   seq += 1;
   const avatar = await StuffApi.create(() => new Avatar());
   avatar.setName(name);
@@ -138,8 +138,8 @@ function resolveScreenFor(actor: Stuff) {
 }
 
 describe('DisplayMixin — a display drives itself', () => {
-  let booth: Room;
-  let cellar: Room;
+  let booth: CartesianLocation;
+  let cellar: CartesianLocation;
 
   beforeEach(async () => {
     StuffApi.clearAll();
@@ -150,9 +150,9 @@ describe('DisplayMixin — a display drives itself', () => {
     const reg = await StuffApi.create(() => new EventRegistry());
     stampTemplatePathForTest(reg, '/platform/idea/EventRegistry');
     EventApi._setRegistryForTesting(reg);
-    booth = await StuffApi.create(() => new Room());
+    booth = await StuffApi.create(() => new CartesianLocation());
     booth.setShortDescription('the booth');
-    cellar = await StuffApi.create(() => new Room());
+    cellar = await StuffApi.create(() => new CartesianLocation());
     cellar.setShortDescription('the cellar');
   });
 

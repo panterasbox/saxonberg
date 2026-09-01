@@ -12,7 +12,7 @@
 # The wardrobe re-clones fresh each boot (populates), so its
 # `linkedSandboxPath` starts empty every run — links to the first
 # enterer, exactly the door's shipped first-enter rule.
-class: /platform/location/Room
+class: /platform/location/CartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: the wire alcove

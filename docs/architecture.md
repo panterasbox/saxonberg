@@ -133,7 +133,7 @@ adding.
   `Creature`, `Modality`). Overridable. When one of these is *also*
   being cloned generically, it splits: the base stays here and a thin
   concrete subclass in `platform/<branch>/` takes the clones (`Thing` →
-  `platform/thing/Prop`, `CartesianLocation` → `platform/location/Room`).
+  `platform/thing/Prop`, `CartesianLocation` → `platform/location/CartesianLocation`).
 - **Framework attachments** — objects that ride a Stuff, model nothing
   on their own, and are never template-backed. `lib/stuff/Shadow` is
   the exemplar and a **permanent** exception to "platform/ holds Stuff

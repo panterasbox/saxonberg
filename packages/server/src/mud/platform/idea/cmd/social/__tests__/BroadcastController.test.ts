@@ -12,7 +12,7 @@ import '../../../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import BroadcastController from '../BroadcastController';
 import Avatar from '../../../../agent/Avatar';
-import Room from '../../../../location/Room';
+import Room from '../../../../location/CartesianLocation';
 import { AccessApi } from '../../../../../api/access';
 import { ParcelApi } from '../../../../../api/parcel';
 import { MqlApi } from '../../../../../api/mql';

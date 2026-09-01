@@ -5,7 +5,7 @@
 # An ordinary Room (FurnishableRoom is the furnishing archetypes' base):
 # the floor's durability is the STOCK's — a persistable fixture — and
 # the sweep restocks the crates regardless.
-class: /platform/location/Room
+class: /platform/location/CartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: "the farm"

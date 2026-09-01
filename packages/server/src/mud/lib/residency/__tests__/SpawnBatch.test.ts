@@ -26,7 +26,7 @@ import { AppSettingKeys } from '../../config/AppSettings';
 import { Template } from '../../stuff/Template';
 import { CirculatingMixin } from '../Circulating';
 import Thing from '../../stuff/Thing';
-import Room from '../../../platform/location/Room';
+import CartesianLocation from '../../../platform/location/CartesianLocation';
 import type { Stuff } from '../../stuff/Stuff';
 import { makeStuff, stampTemplatePathForTest } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
@@ -37,7 +37,7 @@ const REGION = '/test/spawn/spawn-batch-zone';
 const STOCK = '/test/spawn/spawn-batch-zone/thing/stock';
 
 let seq = 0;
-let room: Room;
+let room: CartesianLocation;
 let settings: Record<string, string>;
 
 /** A floor row: authored key, target and home container, no live instance. */
@@ -61,7 +61,7 @@ describe('the spawn sweep — draw until the region declines', () => {
     vi.spyOn(AppApi, 'setting').mockImplementation((key: string) => settings[key] ?? '');
     // The "stock counter" the rows name — a live room the mints land in,
     // so the census counts them in the row's own region.
-    room = makeStuff(() => new Room());
+    room = makeStuff(() => new CartesianLocation());
     stampTemplatePathForTest(room, STOCK);
     vi.spyOn(ZoneApi, 'resolveZoneForPath').mockResolvedValue({
       getTemplatePath: () => REGION,
@@ -120,7 +120,7 @@ describe('the spawn sweep — draw until the region declines', () => {
   it('a row with a home is drawn only for that home’s region', async () => {
     // A second live region with nothing of its own: the rows must not
     // be drawn "for" it and land in the stock counter anyway.
-    const elsewhere = makeStuff(() => new Room());
+    const elsewhere = makeStuff(() => new CartesianLocation());
     stampTemplatePathForTest(elsewhere, `/test/other/room-${seq++}`);
     const stray = makeStuff(() => new TestGood());
     stampTemplatePathForTest(stray, '/test/other/thing/stray');
