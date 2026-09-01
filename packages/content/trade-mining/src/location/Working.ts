@@ -105,6 +105,11 @@ export interface Face {
   hardnessMPa: number;
   /** Ore still winnable at this face, in lumps. `null` where it is barren. */
   remaining: number | null;
+  /**
+   * Loose ground has run into this face and must be cleared before it can
+   * be worked. ⚠ The face, never the room — every exit stays open.
+   */
+  blocked: boolean;
 }
 
 /** How the ground is behaving here — a THRESHOLD, never a roll. */
@@ -131,6 +136,15 @@ const BAD_BELOW = 0.35;
 const WORKING_BELOW = 0.55;
 /** Hardness at which ground contributes its full share (granite). */
 const GROUND_REFERENCE_MPA = 200;
+/**
+ * What ANY competent rock is worth before hardness is considered.
+ *
+ * Without it a bare heading in soft rock reads as unquiet with nothing
+ * open around it, which is wrong: an untouched drift holds itself up.
+ * The floor is what says *rock is rock*; the hardness term above it is
+ * what says *and granite is better than slate*.
+ */
+const GROUND_FLOOR = 0.5;
 /**
  * What one open neighbour costs.
  *
@@ -166,6 +180,12 @@ export interface Working {
   /** The ore row a cut from this working mints — locality content. */
   getOreRow(): string;
   getWorkedFaces(): Readonly<Record<string, number>>;
+  /** Directions whose face is blocked by loose ground. */
+  getBlockedFaces(): readonly string[];
+  /** Loose ground has run into a face. Idempotent. */
+  blockFace(direction: string): void;
+  /** The face has been cleared. */
+  clearFace(direction: string): void;
   /** Record `lumps` won from `direction`. The only writer of the depletion. */
   recordWinning(direction: string, lumps: number): void;
   /** This working's grid cell. */
@@ -183,6 +203,8 @@ export interface Working {
   stabilityAt(): Promise<Stability>;
   /** Condition-weighted timber support standing in this room. */
   supportHere(): number;
+  /** The free warning, off the same threshold as the refusal. `null` when sound. */
+  groundTelegraph(): Promise<string | null>;
   /** 1 fresh … 0 unbreathable, by distance along the carved graph. */
   airAt(): Promise<number>;
 }
@@ -205,6 +227,10 @@ export function WorkingMixin<TBase extends MixinConstructor<Stuff & Container>>(
       // right. Nothing about it needs a warren.
       workedFaces: { persistent: true },
       oreRow: { persistent: true, authorable: true },
+      // ⭐ A fall blocks a FACE, never a room. Persistent because clearing
+      // one is work somebody did, and it should still be cleared after a
+      // restart.
+      blockedFaces: { persistent: true },
     };
 
     /** How the back reads here — one is drawn by the cell seed. */
@@ -226,6 +252,15 @@ export function WorkingMixin<TBase extends MixinConstructor<Stuff & Container>>(
      */
     protected oreRow: string = '';
 
+    /**
+     * Directions whose face has run and is blocked by loose ground.
+     *
+     * ⚠⚠ **A face, never a room.** Nothing cascades and nobody is buried:
+     * every exit stays open, so a character can always walk out, and the
+     * cost of neglect is ACCESS TO YOUR ORE rather than your life.
+     */
+    protected blockedFaces: string[] = [];
+
     public getBackPhrases(): readonly string[] { return this.backPhrases; }
     public setBackPhrases(v: string[]): void { this.backPhrases = v ?? []; }
     public getSeamPhrases(): readonly string[] { return this.seamPhrases; }
@@ -240,6 +275,21 @@ export function WorkingMixin<TBase extends MixinConstructor<Stuff & Container>>(
 
     public getWorkedFaces(): Readonly<Record<string, number>> { return this.workedFaces; }
     public setWorkedFaces(v: Record<string, number>): void { this.workedFaces = v ?? {}; }
+
+    public getBlockedFaces(): readonly string[] { return this.blockedFaces; }
+    public setBlockedFaces(v: string[]): void { this.blockedFaces = v ?? []; }
+
+    /** Loose ground has run into a face. Idempotent. */
+    public blockFace(direction: string): void {
+      if (!this.blockedFaces.includes(direction)) {
+        this.blockedFaces = [...this.blockedFaces, direction];
+      }
+    }
+
+    /** The face has been cleared. */
+    public clearFace(direction: string): void {
+      this.blockedFaces = this.blockedFaces.filter((d) => d !== direction);
+    }
 
     /** Record `lumps` won from `direction`. The only writer of the depletion. */
     public recordWinning(direction: string, lumps: number): void {
@@ -341,6 +391,7 @@ export function WorkingMixin<TBase extends MixinConstructor<Stuff & Container>>(
           grade: s.grade,
           hardnessMPa: s.hardnessMPa,
           remaining: ore ? Math.max(0, FACE_LUMPS - won) : null,
+          blocked: this.blockedFaces.includes(dir),
         });
       }
       return out;
@@ -377,7 +428,7 @@ export function WorkingMixin<TBase extends MixinConstructor<Stuff & Container>>(
       const support = this.supportHere();
 
       const value = clamp01(
-        Math.min(1, groundMPa / GROUND_REFERENCE_MPA) +
+        GROUND_FLOOR + (1 - GROUND_FLOOR) * Math.min(1, groundMPa / GROUND_REFERENCE_MPA) +
           Math.min(SUPPORT_CAP, SET_WORTH * support) -
           SPAN_COST * span -
           WATER_COST * water,
@@ -390,6 +441,29 @@ export function WorkingMixin<TBase extends MixinConstructor<Stuff & Container>>(
         support,
         water,
       };
+    }
+
+    /**
+     * ⭐ **The free telegraph**, and it is free on purpose: creaking
+     * timber, dust off the back, rock that sounds drummy. It rides the
+     * SAME threshold the refusal does, so a player who is paying
+     * attention is never surprised — the warning and the rule are one
+     * number, and cannot drift apart.
+     *
+     * `null` when the ground is sound and has nothing to say.
+     */
+    public async groundTelegraph(): Promise<string | null> {
+      const s = await this.stabilityAt();
+      if (s.state === 'sound') return null;
+      const bank = this.groundPhrases;
+      if (bank.length > 0) {
+        // Deterministic by cell, so one working always reads the same way.
+        const cell = this.getCell();
+        return bank[Math.abs(cell[0] * 31 + cell[1] * 17 + cell[2] * 7) % bank.length]!;
+      }
+      return s.state === 'bad'
+        ? 'The back is working here — dust sifts down where it should not.'
+        : 'A timber creaks somewhere behind you.';
     }
 
     /**

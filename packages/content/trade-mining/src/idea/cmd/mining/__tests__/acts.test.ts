@@ -333,9 +333,11 @@ describe('the mine’s four labour acts', () => {
 
   // ────────────────────── the shipped views ──────────────────────
 
-  it('⚠⚠ NONE of the four acts carries a deed gate — read off the shipped views', () => {
+  it('⚠⚠ NONE of the labour acts carries a deed gate — read off the shipped views', () => {
     const files = readdirSync(VIEWS).filter((f) => f.endsWith('.yaml'));
-    expect(files.sort()).toEqual(['drive.yaml', 'hew.yaml', 'raise.yaml', 'sink.yaml']);
+    expect(files.sort()).toEqual([
+      'drive.yaml', 'hew.yaml', 'raise.yaml', 'shore.yaml', 'sink.yaml',
+    ]);
     for (const f of files) {
       const yaml = readFileSync(join(VIEWS, f), 'utf8');
       const def = CommandDefinition.fromYaml(yaml, f);

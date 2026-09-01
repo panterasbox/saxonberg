@@ -33,6 +33,8 @@ import { ChattelApi } from '@saxonberg/server/mud/api/chattel';
 import { EmploymentApi } from '@saxonberg/server/mud/api/employment';
 import { AdvancementApi } from '@saxonberg/server/mud/api/advancement';
 import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { ConditionApi } from '@saxonberg/server/mud/api/condition';
 import type Ore from '../../../thing/Ore';
 import type { Face } from '../../../location/Working';
 
@@ -42,6 +44,12 @@ const HEW_MS = 9000;
 const HEW_COST = 4;
 /** Lumps one cut wins. */
 const HEW_LUMPS = 1;
+/**
+ * The energy a running face delivers, in joules — a bruise, and
+ * deliberately far below anything the harm system treats as serious.
+ * ⚠ Ground CANNOT kill in this build; air can, and only air.
+ */
+const BRUISE_J = 40;
 
 interface HewModel extends CommandModel {
   face?: string;
@@ -95,6 +103,25 @@ export default class HewController extends MiningActController<HewModel> {
     const stability = await working.stabilityAt();
     if (!this.groundPermits(context, stability, 'cut')) return;
 
+    // ⚠ A blocked face is cleared before it is worked — the same swing,
+    // spent on the wrong rock. Neglect costs you a shift, not a life.
+    if (chosen.blocked) {
+      this.engageAct(context, {
+        durationMs: this.paceForGround(HEW_MS, chosen.hardnessMPa),
+        cost: HEW_COST,
+        beginSelf: Mml.compose`You start barring the loose ground out of the ${chosen.direction} face.`,
+        beginPeers: Mml.compose`${Mml.actor(giver)} starts clearing a fall.`,
+        onComplete: () => {
+          working.clearFace(chosen.direction);
+          MessageApi.scene(giver)
+            .topic(MINING_TOPIC)
+            .toSelf(Mml.compose`The fall is barred down. The face is workable again.`)
+            .send();
+        },
+      });
+      return;
+    }
+
     const oreRow = working.getOreRow();
     if (oreRow.length === 0) {
       this.decline(
@@ -139,6 +166,7 @@ export default class HewController extends MiningActController<HewModel> {
     lump.setGrade(grade);
     ContainmentApi.move(lump as unknown as Stuff & Containable, room as never);
     working.recordWinning(face.direction, HEW_LUMPS);
+    await this.maybeRun(context, working, face);
 
     // ⭐ Who owns it. On tutwork the business keeps the ore; on your own
     // claim it is yours. Title is the parcel's answer, never the ledger's.
@@ -158,6 +186,48 @@ export default class HewController extends MiningActController<HewModel> {
       difficulty: face.hardnessMPa >= 250 ? 'hard' : face.hardnessMPa >= 150 ? 'standard' : 'easy',
       outcome: 'success',
     });
+  }
+
+  /**
+   * ⭐ **Loose falling, and it is a THRESHOLD rather than a roll.**
+   *
+   * A face runs when two things are both true, and both are things the
+   * player can see: the ground is already telling you it is working
+   * (the free telegraph, off the same number), and the face has been
+   * undercut past half its ore. An undercut face in unquiet ground is
+   * what runs, in a mine and here.
+   *
+   * ⚠⚠ **It blocks the FACE, never the room.** Every exit stays open,
+   * nothing cascades, nobody is buried. The cost is a shift's work and a
+   * bruise — *neglecting ground support costs you access to your ore,
+   * not your life* — and an attentive player is never hurt at all,
+   * because the telegraph fired first.
+   */
+  private async maybeRun(
+    context: CommandContext,
+    working: NonNullable<ReturnType<HewController['workingOf']>>,
+    face: Face,
+  ): Promise<void> {
+    const giver = context.commandGiver;
+    const stability = await working.stabilityAt();
+    if (stability.state === 'sound') return;
+    // The LAST cut off a face is the one that runs: by then it is
+    // undercut, which is the state that lets go in a mine and here.
+    if ((face.remaining ?? 0) > HEW_LUMPS) return;
+
+    working.blockFace(face.direction);
+    MessageApi.scene(giver)
+      .topic(MINING_TOPIC)
+      .toSelf(
+        Mml.compose`The undercut face lets go. Rock runs into the ${face.direction} heading and catches you across the shoulder — the way out is clear, but the face is not.`,
+      )
+      .toPeers(Mml.compose`A face runs where ${Mml.actor(giver)} was cutting.`)
+      .send();
+    if (MixinApi.isVitals(giver)) {
+      // A bruise, through the shipped harm system — the same channel a
+      // dropped rock uses anywhere else. Ground cannot kill.
+      ConditionApi.inflict(giver, { mechanism: 'blunt', site: 'body.torso', energy: BRUISE_J });
+    }
   }
 
   /**
