@@ -20,7 +20,7 @@ import "@saxonberg/server/test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
-import Realtor from "../npc/Realtor";
+import Realtor from "../agent/Realtor";
 import PlatBook from "@saxonberg/content-residence/src/idea/PlatBook";
 import Avatar from "@saxonberg/server/mud/platform/agent/Avatar";
 import { Idea } from "@saxonberg/server/mud/lib/stuff/Idea";
@@ -214,7 +214,7 @@ describe("Ricky", () => {
     const row = readFileSync(
       fileURLToPath(
         new URL(
-          "../../../content/world/terminus/realty/npc/ricky.yaml",
+          "../../../content/world/terminus/realty/agent/ricky.yaml",
           import.meta.url,
         ),
       ),

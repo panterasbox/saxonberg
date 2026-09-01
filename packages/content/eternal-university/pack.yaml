@@ -31,7 +31,7 @@ requires:
     - name: duncan-hall
       purpose: the landlord's staff
       members:
-        - { id: /world/eternal/duncan-hall/npc/katie, role: member }
+        - { id: /world/eternal/duncan-hall/agent/katie, role: member }
   title:
     # Duncan Hall: the landlord holds the building (so Katie's row is under
     # the pack's own claim) and the dorms wing the leased units subdivide under.

@@ -39,11 +39,11 @@ const PRODUCE_DIR = fileURLToPath(new URL("../../../trade-farming/content/trade/
 // The upkeep kit — the residence pack's, stocked cross-pack.
 const RESIDENCE_DIR = fileURLToPath(new URL("../../../residence/content/residence/", import.meta.url));
 const COUNTER = "/world/terminus/general-store/counter";
-const TORCH = "/world/terminus/general-store/goods/torch";
+const TORCH = "/world/terminus/general-store/thing/torch";
 
 /**
  * The gardening line (husbandry phase 1) — stocked straight from ordinary
- * `/obj/` templates rather than store-local `goods/` copies, because
+ * `/obj/` templates rather than store-local `thing/` copies, because
  * `itemTemplatePath` takes any path and duplicating them would mean two
  * pots (and two seeds growing the same plant) drifting apart.
  */
@@ -105,9 +105,9 @@ vi.setConfig({ testTimeout: 30_000 });
 describe("general-store standup (real seeds)", () => {
   beforeEach(async () => {
     StuffApi.clearAll();
-    const goods = readdirSync(`${STORE_DIR}goods/`)
+    const goods = readdirSync(`${STORE_DIR}thing/`)
       .filter((f) => f.endsWith(".yaml"))
-      .map((f) => seedDoc(`goods/${f.replace(/\.yaml$/, "")}`));
+      .map((f) => seedDoc(`thing/${f.replace(/\.yaml$/, "")}`));
     installStore([
       { path: PH, class: PH, data: {} },
       seedDoc("counter"),
@@ -191,7 +191,7 @@ describe("general-store standup (real seeds)", () => {
     // thing in the shop, and dearer than the sewing machine that used to be.
     const bed = counter.priceFor("/stuff/thing/fixture/bed")!;
     const machine = counter.priceFor(
-      "/world/terminus/general-store/goods/sewing-machine",
+      "/world/terminus/general-store/thing/sewing-machine",
     )!;
     expect(bed).toBeGreaterThan(machine);
     for (const path of FURNISH_LINES) {

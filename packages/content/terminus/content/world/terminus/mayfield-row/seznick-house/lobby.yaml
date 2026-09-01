@@ -21,7 +21,7 @@ data:
     out:
       destination: /world/terminus/mayfield-row/street
   populates:
-    - /world/terminus/mayfield-row/npc/walter
+    - /world/terminus/mayfield-row/agent/walter
   details:
     board:
       keywords: [board, letting, list]

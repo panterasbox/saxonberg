@@ -116,7 +116,7 @@ describe('the shipped Business seeds', () => {
 describe('`entity` — somebody owns it', () => {
   it.each([
     ['lounge', '/world/lounge/agent/dave'],
-    ['general-store', '/world/terminus/general-store/npc/keeper'],
+    ['general-store', '/world/terminus/general-store/agent/keeper'],
     ['hearthworks', '/world/hearthworks/agent/smith'],
   ])('%s names its proprietor', (fragment, path) => {
     expect(byPath(fragment).data.appointingAuthority).toEqual({

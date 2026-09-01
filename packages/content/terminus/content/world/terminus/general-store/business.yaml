@@ -13,7 +13,7 @@ data:
   # The keeper owns the shop: an ENTITY authority.
   appointingAuthority:
     kind: entity
-    path: /world/terminus/general-store/npc/keeper
+    path: /world/terminus/general-store/agent/keeper
   positions:
     - key: clerk
       label: working the general-store counter
@@ -21,7 +21,7 @@ data:
       confers: []
   rosterSlots:
     - positionKey: clerk
-      assignee: /world/terminus/general-store/npc/clerk
+      assignee: /world/terminus/general-store/agent/clerk
       schedule:
         - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 22] }
   # Where the store banks (authored custody — Terms/fees follow it).

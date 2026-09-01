@@ -40,5 +40,5 @@ data:
   # The sentry keeps the ground; the trap kit waits in the bracken. Both
   # cloned fresh at standup.
   populates:
-    - /world/newbie-wilds/npc/sentry
+    - /world/newbie-wilds/agent/sentry
     - /stuff/thing/traps/trap-kit

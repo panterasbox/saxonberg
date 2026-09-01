@@ -26,5 +26,5 @@ data:
   populates:
     - /world/terminus/general-store/counter
     - /world/terminus/general-store/consignment-shelf
-    - /world/terminus/general-store/npc/clerk
-    - /world/terminus/general-store/npc/keeper
+    - /world/terminus/general-store/agent/clerk
+    - /world/terminus/general-store/agent/keeper

@@ -37,4 +37,4 @@ data:
       description: |
         A small fire kept lit past any need for warmth, two armchairs angled toward it and toward each other. Everything in the room is arranged so that sitting down feels like the natural thing, and getting back up feels like leaving somewhere you belong.
   populates:
-    - /world/terminus/counting-houses/npc/officer
+    - /world/terminus/counting-houses/agent/officer

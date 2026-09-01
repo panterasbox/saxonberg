@@ -7,9 +7,11 @@
  */
 
 import '@saxonberg/server/test-bootstrap';
+import { existsSync, readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import LeaseController from '../idea/cmd/LeaseController';
-import Walter from '../npc/Walter';
+import Walter from '../agent/Walter';
 import UnleaseController from '../idea/cmd/UnleaseController';
 import type BuildingWarren from '@saxonberg/content-residence/src/idea/BuildingWarren';
 import ParcelRegistry from '@saxonberg/server/mud/platform/idea/ParcelRegistry';
@@ -64,10 +66,41 @@ function col(name: string): Doc[] {
   return arr;
 }
 
+/**
+ * The SHIPPED class for a row, read off disk.
+ *
+ * ⚠ The fixture used to hard-code these, and hard-coding is how a suite
+ * goes green against a world that does not exist: the corridor moved off
+ * `FurnishableRoom` (it is minted per floor and keeps no record) and the
+ * lobby onto `SingletonCartesianLocation`, and every one of these tests
+ * kept passing against the old classes. A fixture may stub what it does
+ * not want to boot — it may not invent a DIFFERENT world.
+ */
+function shippedClass(path: string): string | null {
+  const rel = path.replace('/world/terminus/mayfield-row/', '');
+  const file = fileURLToPath(
+    new URL(
+      `../../../content/world/terminus/mayfield-row/${rel}.yaml`,
+      import.meta.url,
+    ),
+  );
+  if (!existsSync(file)) return null;
+  const m = /^class:\s*(\S+)\s*$/m.exec(readFileSync(file, 'utf8'));
+  return m ? m[1]! : null;
+}
+
 function seedDomain(): void {
   const domain = col('content');
   const add = (path: string, cls: string, data: Record<string, unknown> = {}) =>
-    domain.push({ _id: `d-${++idCounter}`, path, class: cls, hydratorClass: PH, data });
+    domain.push({
+      _id: `d-${++idCounter}`,
+      path,
+      // The shipped class wins wherever the row really exists; `cls` is
+      // the fallback for the synthetic rows this fixture invents.
+      class: shippedClass(path) ?? cls,
+      hydratorClass: PH,
+      data,
+    });
   domain.push({ _id: `d-${++idCounter}`, path: PH, class: PH, data: {} });
   add(BUILDING, '/residence/idea/BuildingWarren', {
     programmePath: PROGRAMME,

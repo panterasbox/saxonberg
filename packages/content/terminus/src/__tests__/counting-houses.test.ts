@@ -124,7 +124,7 @@ describe("Goodkin seeds — the authored branch is well-formed", () => {
   });
 
   it("Halloran's enrollment tree passes the dialogue schema", () => {
-    const officer = seedData(`${CH}/npc/officer.yaml`) as {
+    const officer = seedData(`${CH}/agent/officer.yaml`) as {
       behaviors: { brain: string; config?: unknown }[];
     };
     const dlg = officer.behaviors.find((b) =>

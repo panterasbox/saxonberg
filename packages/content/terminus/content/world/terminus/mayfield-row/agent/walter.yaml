@@ -4,7 +4,7 @@
 # raw operator verb. The Katie pattern, one rung up the ladder; the
 # `maintains` cadence (the landlord-shell upkeep the term owes) joins
 # him in the condition wave.
-class: /world/terminus/mayfield-row/npc/Walter
+class: /world/terminus/mayfield-row/agent/Walter
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Walter

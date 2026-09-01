@@ -23,15 +23,15 @@ data:
   serverPositionKeys: [clerk]
   businessPath: /world/terminus/general-store/business
   stockLines:
-    - { itemTemplatePath: /world/terminus/general-store/goods/torch, par: 4 }
-    - { itemTemplatePath: /world/terminus/general-store/goods/rations, par: 5 }
-    - { itemTemplatePath: /world/terminus/general-store/goods/waterskin, par: 3 }
-    - { itemTemplatePath: /world/terminus/general-store/goods/clasp-knife, par: 2 }
-    - { itemTemplatePath: /world/terminus/general-store/goods/lantern, par: 2 }
-    - { itemTemplatePath: /world/terminus/general-store/goods/whetstone, par: 2 }
-    - { itemTemplatePath: /world/terminus/general-store/goods/iron-ingot, par: 3 }
-    - { itemTemplatePath: /world/terminus/general-store/goods/sewing-kit, par: 2 }
-    - { itemTemplatePath: /world/terminus/general-store/goods/sewing-machine, par: 1 }
+    - { itemTemplatePath: /world/terminus/general-store/thing/torch, par: 4 }
+    - { itemTemplatePath: /world/terminus/general-store/thing/rations, par: 5 }
+    - { itemTemplatePath: /world/terminus/general-store/thing/waterskin, par: 3 }
+    - { itemTemplatePath: /world/terminus/general-store/thing/clasp-knife, par: 2 }
+    - { itemTemplatePath: /world/terminus/general-store/thing/lantern, par: 2 }
+    - { itemTemplatePath: /world/terminus/general-store/thing/whetstone, par: 2 }
+    - { itemTemplatePath: /world/terminus/general-store/thing/iron-ingot, par: 3 }
+    - { itemTemplatePath: /world/terminus/general-store/thing/sewing-kit, par: 2 }
+    - { itemTemplatePath: /world/terminus/general-store/thing/sewing-machine, par: 1 }
     # The gardening line. These are ordinary `/obj/` templates, NOT
     # store-local `goods/` ones: `itemTemplatePath` takes any path, and
     # duplicating them here would mean two pots (and two seeds growing the
@@ -58,15 +58,15 @@ data:
     # one kit row in the world, and a shop that sells it.
     - { itemTemplatePath: /residence/thing/householders-kit, par: 3 }
   prices:
-    /world/terminus/general-store/goods/torch: 2
-    /world/terminus/general-store/goods/rations: 3
-    /world/terminus/general-store/goods/waterskin: 4
-    /world/terminus/general-store/goods/clasp-knife: 6
-    /world/terminus/general-store/goods/lantern: 10
-    /world/terminus/general-store/goods/whetstone: 3
-    /world/terminus/general-store/goods/iron-ingot: 5
-    /world/terminus/general-store/goods/sewing-kit: 5
-    /world/terminus/general-store/goods/sewing-machine: 18
+    /world/terminus/general-store/thing/torch: 2
+    /world/terminus/general-store/thing/rations: 3
+    /world/terminus/general-store/thing/waterskin: 4
+    /world/terminus/general-store/thing/clasp-knife: 6
+    /world/terminus/general-store/thing/lantern: 10
+    /world/terminus/general-store/thing/whetstone: 3
+    /world/terminus/general-store/thing/iron-ingot: 5
+    /world/terminus/general-store/thing/sewing-kit: 5
+    /world/terminus/general-store/thing/sewing-machine: 18
     # Against the shipped ladder (stipend 20; torch 2, rations 3, waterskin
     # 4, clasp-knife 6, lantern 10). The large pot is deliberately a real
     # but reachable purchase — it is the first thing a new player has a

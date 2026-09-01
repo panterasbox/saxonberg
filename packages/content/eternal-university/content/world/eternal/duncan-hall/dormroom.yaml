@@ -26,10 +26,10 @@ data:
   # Order matters: the desk must be populated BEFORE the pot that rests
   # `onto` it.
   populates:
-    - /world/eternal/duncan-hall/dorm-fixtures/bed
-    - /world/eternal/duncan-hall/dorm-fixtures/desk
-    - /world/eternal/duncan-hall/dorm-fixtures/footlocker
-    - /world/eternal/duncan-hall/dorm-fixtures/tap
+    - /world/eternal/duncan-hall/thing/bed
+    - /world/eternal/duncan-hall/thing/desk
+    - /world/eternal/duncan-hall/thing/footlocker
+    - /world/eternal/duncan-hall/thing/tap
     - /stuff/thing/vessel/watering-can
     - template: /trade/farming/thing/pot/starter
-      onto: /world/eternal/duncan-hall/dorm-fixtures/desk
+      onto: /world/eternal/duncan-hall/thing/desk

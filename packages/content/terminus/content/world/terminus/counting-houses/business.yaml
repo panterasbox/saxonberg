@@ -45,11 +45,11 @@ data:
       confers: []
   rosterSlots:
     - positionKey: teller
-      assignee: /world/terminus/counting-houses/npc/teller
+      assignee: /world/terminus/counting-houses/agent/teller
       schedule:
         - { days: [0, 1, 2, 3, 4, 5, 6], hours: [8, 18] }
     - positionKey: officer
-      assignee: /world/terminus/counting-houses/npc/officer
+      assignee: /world/terminus/counting-houses/agent/officer
       schedule:
         - { days: [0, 1, 2, 3, 4, 5, 6], hours: [8, 18] }
   # The bank banks at itself — Goodkin's own operating account is

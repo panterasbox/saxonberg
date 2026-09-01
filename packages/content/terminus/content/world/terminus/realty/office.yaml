@@ -24,7 +24,7 @@ data:
     A narrow shopfront with its name in gilt on the glass, back-to-front from in here: MAYFIELD & CO., LAND AGENTS. The whole city's unsold ground is on the walls — survey sheets pinned edge to edge, the Hinkley plat with its lane inked in by hand, the newer subdivisions still in pencil. A rail of chairs faces a broad desk; a kettle sits on a ring behind it, permanently just off the boil.
   populates:
     - /world/terminus/realty/desk
-    - /world/terminus/realty/npc/ricky
+    - /world/terminus/realty/agent/ricky
   exits:
     row:
       destination: /world/terminus/mayfield-row/street

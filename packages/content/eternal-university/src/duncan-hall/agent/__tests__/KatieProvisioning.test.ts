@@ -52,7 +52,7 @@ async function conferDormsStaff(): Promise<void> {
   ) as unknown as {
     ensureMember(ref: unknown, id: string, role: string): Promise<unknown>;
   };
-  await logic.ensureMember(ref, '/world/eternal/duncan-hall/npc/katie', 'member');
+  await logic.ensureMember(ref, '/world/eternal/duncan-hall/agent/katie', 'member');
 }
 import { Document } from '@saxonberg/server/mud/lib/persistence/Document';
 import { makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
@@ -172,7 +172,7 @@ describe('Katie — the dorms-agent authorization boundary', () => {
     const ref = await ParcelApi.resolveOwnerRef(DORMS_OWNER);
     expect(ref).not.toBeNull();
     expect(
-      await GroupApi.isMember('/world/eternal/duncan-hall/npc/katie', ref!),
+      await GroupApi.isMember('/world/eternal/duncan-hall/agent/katie', ref!),
     ).toBe(true);
   });
 
@@ -183,7 +183,7 @@ describe('Katie — the dorms-agent authorization boundary', () => {
     // working pin-tumbler master in lib/lock/__tests__/Lock.test.ts).
     const katie = makeStuffAtPath(
       () => new Katie(),
-      '/world/eternal/duncan-hall/npc/katie',
+      '/world/eternal/duncan-hall/agent/katie',
     );
     expect(MixinApi.hasMixin(katie, Mixins.Populates)).toBe(true);
   });
@@ -210,7 +210,7 @@ describe('Katie — the dorms-agent authorization boundary', () => {
 
     const katie = makeStuffAtPath(
       () => new Katie(),
-      '/world/eternal/duncan-hall/npc/katie',
+      '/world/eternal/duncan-hall/agent/katie',
     );
     // Membership is conferred by the owner's authored group data (the
     // pack's requires), not by Katie enrolling herself.

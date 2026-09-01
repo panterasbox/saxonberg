@@ -30,7 +30,7 @@ import type { Slottable } from "@saxonberg/server/mud/lib/slot/Slottable";
 
 class Body extends PosedMixin(SlottableMixin(Thing)) {}
 
-const BED_PATH = "/world/eternal/duncan-hall/dorm-fixtures/bed";
+const BED_PATH = "/world/eternal/duncan-hall/thing/bed";
 
 function makeBed(): Bed {
   const bed = makeStuffAtPath(() => new Bed(), BED_PATH);
@@ -115,7 +115,7 @@ describe("the dorm fixtures earn their classes", () => {
       readFileSync(
         fileURLToPath(
           new URL(
-            "../../../../eternal-university/content/world/eternal/duncan-hall/dorm-fixtures/tap.yaml",
+            "../../../../eternal-university/content/world/eternal/duncan-hall/thing/tap.yaml",
             import.meta.url,
           ),
         ),

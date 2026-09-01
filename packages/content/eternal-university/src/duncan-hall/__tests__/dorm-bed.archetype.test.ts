@@ -29,7 +29,7 @@ describe("the dorm bed against the bedroom archetype", () => {
     // dorm is the residence every player currently has. Leaving its bed a
     // prop you cannot lie on would have shipped the mechanic somewhere
     // nobody could reach it.
-    const dorm = read("world/eternal/duncan-hall/dorm-fixtures/bed.yaml");
+    const dorm = read("world/eternal/duncan-hall/thing/bed.yaml");
     const slots = dorm.data?.staticSlots as Array<{ postures?: string[] }>;
     expect(slots?.[0]?.postures).toContain("lie");
     expect(dorm.data?.restQuality).toBeGreaterThan(1);
@@ -38,7 +38,7 @@ describe("the dorm bed against the bedroom archetype", () => {
   it("...but it is the BOTTOM rung — a bed you bought is better", () => {
     // The ladder should be visible from where you start: a university-issue
     // single with a thin mattress, against a bed you chose and paid for.
-    const dorm = read("world/eternal/duncan-hall/dorm-fixtures/bed.yaml");
+    const dorm = read("world/eternal/duncan-hall/thing/bed.yaml");
     const owned = parse(readFileSync(join(OBJECTS, "stuff/thing/fixture/bed.yaml"), "utf8")) as Seed;
     expect(dorm.data?.restQuality as number).toBeLessThan(
       owned.data?.restQuality as number,
@@ -49,7 +49,7 @@ describe("the dorm bed against the bedroom archetype", () => {
     // Every live dorm room holds a record keyed by its unit parcel. The
     // capability landed on the class and the slot spec landed as DATA, so
     // the template row still names the same class it always did.
-    const dorm = read("world/eternal/duncan-hall/dorm-fixtures/bed.yaml");
+    const dorm = read("world/eternal/duncan-hall/thing/bed.yaml");
     expect(dorm.class).toBe("/world/eternal/duncan-hall/Bed");
   });
 });

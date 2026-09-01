@@ -12,7 +12,7 @@
 # He sells GROUND and nothing else — rentals are a landlord's act at his
 # own building (Walter, up the Row), and there is deliberately no beat
 # here that leads to one.
-class: /world/terminus/realty/npc/Realtor
+class: /world/terminus/realty/agent/Realtor
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Ricky

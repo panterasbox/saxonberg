@@ -51,9 +51,9 @@ const DORMS = DormWarren.DORMS_EXTENT;
 // The born-with fixtures a DormRoom seeds, declared as `populates:` data (the
 // same list the real dormroom.yaml carries) — no longer a class const.
 const FIXTURES = [
-  '/world/eternal/duncan-hall/dorm-fixtures/bed',
-  '/world/eternal/duncan-hall/dorm-fixtures/desk',
-  '/world/eternal/duncan-hall/dorm-fixtures/footlocker',
+  '/world/eternal/duncan-hall/thing/bed',
+  '/world/eternal/duncan-hall/thing/desk',
+  '/world/eternal/duncan-hall/thing/footlocker',
 ];
 
 let store: Map<string, Doc[]>;

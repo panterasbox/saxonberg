@@ -60,8 +60,8 @@ describe("general-store content integrity", () => {
     expect(room.data?.populates).toEqual([
       "/world/terminus/general-store/counter",
       "/world/terminus/general-store/consignment-shelf",
-      "/world/terminus/general-store/npc/clerk",
-      "/world/terminus/general-store/npc/keeper",
+      "/world/terminus/general-store/agent/clerk",
+      "/world/terminus/general-store/agent/keeper",
     ]);
 
     expect(load(STORE_DIR, "counter.yaml").class).toBe("/platform/thing/Stock");
@@ -71,8 +71,8 @@ describe("general-store content integrity", () => {
     expect(load(STORE_DIR, "business.yaml").class).toBe(
       "/platform/idea/Business",
     );
-    expect(load(STORE_DIR, "npc/clerk.yaml").class).toBe("/platform/agent/NPC");
-    expect(load(STORE_DIR, "npc/keeper.yaml").class).toBe("/platform/agent/NPC");
+    expect(load(STORE_DIR, "agent/clerk.yaml").class).toBe("/platform/agent/NPC");
+    expect(load(STORE_DIR, "agent/keeper.yaml").class).toBe("/platform/agent/NPC");
   });
 
   // The real, discrete item classes the store sells — each extends `Thing`
@@ -123,7 +123,7 @@ describe("general-store content integrity", () => {
 
     for (const line of lines) {
       // A stock line's `itemTemplatePath` takes ANY path: the store-local
-      // staples live under `goods/` because they are store-specific, while
+      // staples live under `thing/` because they are store-specific, while
       // the gardening line points straight at shared `/obj/` templates
       // (duplicating those would mean two pots, and two seeds growing the
       // same plant, drifting apart). Resolve either home.
@@ -160,22 +160,22 @@ describe("general-store content integrity", () => {
 
   it("the goods are backed by real systems (not decorative props)", () => {
     // The rations are genuinely edible — their material is a food material.
-    const rations = load(STORE_DIR, "goods/rations.yaml");
+    const rations = load(STORE_DIR, "thing/rations.yaml");
     expect(rations.class).toBe("/platform/thing/Prop");
     expect(String(rations.data?._materialPath)).toMatch(/^\/stuff\/idea\/material\/food\//);
     // The lights actually emit (authored flux + warmth), start unlit.
     for (const f of ["torch", "lantern"]) {
-      const light = load(STORE_DIR, `goods/${f}.yaml`);
+      const light = load(STORE_DIR, `thing/${f}.yaml`);
       expect(light.class).toBe("/platform/thing/equipment/PortableLight");
       expect(Number(light.data?.emittedIntensity)).toBeGreaterThan(0);
       expect(light.data?.on).toBe(false);
     }
     // The waterskin is a real fluid holder (a capacity to fill).
-    const skin = load(STORE_DIR, "goods/waterskin.yaml");
+    const skin = load(STORE_DIR, "thing/waterskin.yaml");
     expect(skin.class).toBe("/platform/thing/Receptacle");
     expect(Number(skin.data?.interiorCapacity)).toBeGreaterThan(0);
     // The knife is a real bladed weapon (delivers an edge, wieldable).
-    const knife = load(STORE_DIR, "goods/clasp-knife.yaml");
+    const knife = load(STORE_DIR, "thing/clasp-knife.yaml");
     expect(knife.class).toBe("/platform/thing/equipment/Weapon");
     expect(knife.data?.constructionForm).toBe("bladed");
   });
@@ -190,10 +190,10 @@ describe("general-store content integrity", () => {
     // the legacy spelling.)
     expect(biz.data?.appointingAuthority).toEqual({
       kind: "entity",
-      path: "/world/terminus/general-store/npc/keeper",
+      path: "/world/terminus/general-store/agent/keeper",
     });
     const roster = biz.data?.rosterSlots as { positionKey: string; assignee: string }[];
-    expect(roster[0]?.assignee).toBe("/world/terminus/general-store/npc/clerk");
+    expect(roster[0]?.assignee).toBe("/world/terminus/general-store/agent/clerk");
     // The counter's businessPath points back at the Business.
     expect(load(STORE_DIR, "counter.yaml").data?.businessPath).toBe(
       "/world/terminus/general-store/business",
@@ -224,12 +224,12 @@ describe("general-store content integrity", () => {
   });
 
   it("no shelf good uses an off-allowlist (Globbable-risking) class", () => {
-    const goods = readdirSync(`${STORE_DIR}goods/`).filter((f) =>
+    const goods = readdirSync(`${STORE_DIR}thing/`).filter((f) =>
       f.endsWith(".yaml"),
     );
     expect(goods.length).toBeGreaterThan(0);
     for (const f of goods) {
-      const good = load(STORE_DIR, `goods/${f}`);
+      const good = load(STORE_DIR, `thing/${f}`);
       expect(DISCRETE_ITEM_CLASSES.has(good.class ?? "")).toBe(true);
     }
   });

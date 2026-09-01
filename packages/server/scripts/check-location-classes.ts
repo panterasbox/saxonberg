@@ -54,9 +54,9 @@ const FURNISHED = [
   "hinkley-hills/content/world/terminus/hinkley-hills/lots/hall.yaml",
   "hinkley-hills/content/world/terminus/hinkley-hills/lots/kitchen.yaml",
   "hinkley-hills/content/world/terminus/hinkley-hills/lots/yard.yaml",
-  "terminus/content/world/terminus/mayfield-row/seznick-house/rooms/bedroom.yaml",
-  "terminus/content/world/terminus/mayfield-row/seznick-house/rooms/hall.yaml",
-  "terminus/content/world/terminus/mayfield-row/seznick-house/rooms/main.yaml",
+  "terminus/content/world/terminus/mayfield-row/seznick-house/location/bedroom.yaml",
+  "terminus/content/world/terminus/mayfield-row/seznick-house/location/hall.yaml",
+  "terminus/content/world/terminus/mayfield-row/seznick-house/location/main.yaml",
   // ⚠ The KITCHEN archetype, and its pack is misleading: it ships in
   // trade-hearth-cooking but it is one of the four D6 furnishing
   // archetypes — a HOME kitchen, whose whole point is the errand

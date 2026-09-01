@@ -44,7 +44,7 @@ import { installV1QuantityMarshallers } from "@saxonberg/server/mud/lib/persiste
 
 const SEED = fileURLToPath(
   new URL(
-    "../../../terminus/content/world/terminus/general-store/goods/sewing-machine.yaml",
+    "../../../terminus/content/world/terminus/general-store/thing/sewing-machine.yaml",
     import.meta.url,
   ),
 );

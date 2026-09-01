@@ -26,7 +26,7 @@ requires:
     - name: mayfield-holdings
       purpose: the Mayfield Holdings letting staff
       members:
-        - { id: /world/terminus/mayfield-row/npc/walter, role: member }
+        - { id: /world/terminus/mayfield-row/agent/walter, role: member }
   title:
     # The Terminus municipality's ground.
     - { extent: /world/terminus/terminal,        holder: { group: terminus }, landUse: civic }

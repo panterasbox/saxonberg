@@ -46,7 +46,7 @@ data:
   # challenger to arm themselves before they call him out. All cloned
   # fresh at standup.
   populates:
-    - /world/newbie-wilds/npc/duelist
+    - /world/newbie-wilds/agent/duelist
     - /stuff/thing/arms/steel-dagger
     - /stuff/thing/arms/steel-dagger
     # A rack of longer arms for the reach / shield demo — the spear

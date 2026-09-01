@@ -168,8 +168,8 @@ function seedDomain(): void {
   );
   for (const f of ['bed', 'desk', 'footlocker', 'tap']) {
     addSeed(
-      `/world/eternal/duncan-hall/dorm-fixtures/${f}`,
-      `${SEEDS}world/eternal/duncan-hall/dorm-fixtures/${f}.yaml`,
+      `/world/eternal/duncan-hall/thing/${f}`,
+      `${SEEDS}world/eternal/duncan-hall/thing/${f}.yaml`,
     );
   }
   // The gardening objects.

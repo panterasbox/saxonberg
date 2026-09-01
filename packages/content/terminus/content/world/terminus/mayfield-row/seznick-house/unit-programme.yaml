@@ -12,15 +12,15 @@ data:
   upkeepTerm: landlord-shell
   floorplan:
     - leaf: hall
-      room: /world/terminus/mayfield-row/seznick-house/rooms/hall
+      room: /world/terminus/mayfield-row/seznick-house/location/hall
       entry: true
       exits:
         - { to: main, direction: north, opposite: south }
         - { to: bedroom, direction: west, opposite: east }
     - leaf: main
-      room: /world/terminus/mayfield-row/seznick-house/rooms/main
+      room: /world/terminus/mayfield-row/seznick-house/location/main
     - leaf: bedroom
-      room: /world/terminus/mayfield-row/seznick-house/rooms/bedroom
+      room: /world/terminus/mayfield-row/seznick-house/location/bedroom
       exits:
         - { to: bathroom, direction: north, opposite: south }
     - leaf: bathroom

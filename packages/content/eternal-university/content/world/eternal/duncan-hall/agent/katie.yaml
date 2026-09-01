@@ -15,7 +15,7 @@
 #    behind her `dispatch provision $player`).
 #  - master ring → `populates`d into her inventory below (npc/master-ring.yaml),
 #    a physical master key for every pin-tumbler dorm lock.
-class: /world/eternal/duncan-hall/npc/Katie
+class: /world/eternal/duncan-hall/agent/Katie
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Katie
@@ -27,7 +27,7 @@ data:
   # key for every pin-tumbler dorm lock), cloned into her inventory at
   # hydration. Conferred here, not self-issued in her class code.
   populates:
-    - /world/eternal/duncan-hall/npc/master-ring
+    - /world/eternal/duncan-hall/agent/master-ring
     # The kit is what makes the `maintains` round below possible AT ALL
     # — take it off her and the dorm weathers. An owner-authored loadout,
     # exactly like the master ring: never a self-issued power.

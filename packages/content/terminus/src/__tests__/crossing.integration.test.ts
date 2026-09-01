@@ -79,7 +79,7 @@ const OBJECTS = [
 // declarative seed path to wear/wield gear on a creature). His equip needs a
 // resolvable species + body plan, so the test store carries a minimal human
 // Species pointing at the real biped body plan.
-const GUS = "/world/terminus/university-avenue/npc/gus";
+const GUS = "/world/terminus/university-avenue/agent/gus";
 const VEST = "/world/terminus/university-avenue/vest";
 const WHISTLE = "/world/terminus/university-avenue/whistle";
 const PADDLE = "/world/terminus/university-avenue/paddle";
@@ -108,7 +108,7 @@ function docs(): Doc[] {
     seed("world/terminus/university-avenue/beacon.yaml", OBJECTS[1]!),
     seed("world/terminus/university-avenue/gutter-litter.yaml", OBJECTS[2]!),
     // Gus + his gear templates + the anatomy his equip resolves against.
-    seed("world/terminus/university-avenue/npc/gus.yaml", GUS),
+    seed("world/terminus/university-avenue/agent/gus.yaml", GUS),
     seed("world/terminus/university-avenue/vest.yaml", VEST),
     seed("world/terminus/university-avenue/whistle.yaml", WHISTLE),
     seed("world/terminus/university-avenue/paddle.yaml", PADDLE),
@@ -328,7 +328,7 @@ describe("University Avenue crossing standup (real seeds)", () => {
     // greet graduated to the dedicated crossing-ritual — tally + performance;
     // the plain `greets` now carries only the courteous departure see-off.)
     const parsed = YAML.parse(
-      readFileSync(`${SEEDS}/world/terminus/university-avenue/npc/gus.yaml`, {
+      readFileSync(`${SEEDS}/world/terminus/university-avenue/agent/gus.yaml`, {
         encoding: "utf-8",
       }),
     ) as { data: { behaviors: Array<{ brain: string; trigger: string }> } };
