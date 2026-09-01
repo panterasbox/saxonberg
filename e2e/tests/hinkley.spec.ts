@@ -193,7 +193,7 @@ test('⭐ WALK IN and WORK IT — the gate, populates, and the whole verb set', 
     // So bring our own, the way the wizard brings the soil and the seed.
     await runCommand(page, 'clone /stuff/thing/vessel/watering-can');
     await runCommand(page, 'clone /stuff/thing/vessel/soil-sack');
-    await runCommand(page, 'clone /stuff/thing/seed/carrot');
+    await runCommand(page, 'clone /trade/farming/thing/seed/carrot');
     await sendUntil(page, 'inventory', page.getByText(/carrot seed/i).first());
 
     // ⭐ From here the assertions are about DISPATCH, not outcome, and
@@ -322,9 +322,9 @@ test('⭐ the land-use gate REFUSES a bed on the Registry floor', async ({
     wizard: true,
   });
   try {
-    await runCommand(page, 'clone /stuff/thing/bed/garden --here');
+    await runCommand(page, 'clone /trade/farming/thing/bed/garden --here');
     await runCommand(page, 'clone /stuff/thing/vessel/soil-sack');
-    await runCommand(page, 'clone /stuff/thing/seed/carrot');
+    await runCommand(page, 'clone /trade/farming/thing/seed/carrot');
     await sendUntil(page, 'look', page.getByText(/garden bed/i).first());
 
     // ⭐ Clear the slot BEFORE planting, not after. The lot is PRE-SOLD,
