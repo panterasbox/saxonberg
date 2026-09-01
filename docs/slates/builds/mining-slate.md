@@ -796,6 +796,195 @@ change in the rock means a seam — lets a geologist *predict* what is behind
 the wall before spending the labor. That is the discipline's
 derive-from-principles teeth.
 
+### The `Deposit` Idea — the geology field, concretely
+
+The field's authored half is **one row**. For the prototype mine, the whole
+thing:
+
+```yaml
+# /trade/mining/idea/Deposit/ferrow.yaml
+class: /platform/idea/Deposit
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: ferrow
+  displayName: the Ferrow lode
+
+  # Country rock — killas over a granite cupola (Cornwall's arrangement)
+  stratigraphy:
+    - { fromZ:    0, material: /stuff/idea/material/rock/slate }
+    - { fromZ: -220, material: /stuff/idea/material/rock/granite }
+
+  waterTable: -45        # ⭐ one number, two systems
+
+  lode:                  # the lode is a PLANE with extent
+    through:      [0, 0, -20]
+    strike:       40            # bearing, degrees
+    dip:          55            # from horizontal
+    thickness:    2.5           # metres
+    strikeExtent: 400
+    dipExtent:    300
+
+  zones:                 # supergene above the water table, primary below,
+    - toZ: -45           # magmatic tin against the granite
+      mineral: /stuff/idea/material/mineral/malachite
+      grade:   { mean: 0.06, spread: 0.03 }
+    - toZ: -220
+      mineral: /stuff/idea/material/mineral/chalcopyrite
+      grade:   { mean: 0.14, spread: 0.06 }
+      accessory: { mineral: /stuff/idea/material/mineral/argentite, mean: 0.004 }
+    - toZ: -400
+      mineral: /stuff/idea/material/mineral/cassiterite
+      grade:   { mean: 0.09, spread: 0.05 }
+
+  depletion:
+    - { aboveZ: -45, factor: 0.15 }   # what House Ferrow already took
+
+  features:
+    pins:
+      - { at: [3, -1, -12],   kind: old-working }   # the house's stope
+      - { at: [-8, 14, -352], kind: hush }          # the capstone
+    seeded:
+      - { kind: natural-chamber, perCells: 400 }
+      - { kind: water-pocket,    perCells: 250, belowZ: -60 }
+```
+
+**The read, per cell, storing nothing:**
+
+1. **host** — the stratigraphy band containing `z` → a `Material`.
+2. **inLode** — is the cell within `thickness/2` of the plane, and inside
+   the strike/dip extent?
+3. **mineral + grade** — the zone band containing `z`;
+   `grade = mean + spread × roll01(seed ^ hash(cell))`, times any depletion
+   factor. Outside the lode → barren country rock.
+4. **feature** — `pins[cell]`, else a seeded roll.
+
+Four steps of arithmetic over authored numbers plus one deterministic
+roll. ⭐ `waterTable` earns its keep twice exactly as
+[field-substrate-slate](./field-substrate-slate.md) predicted: it is the
+**oxide/sulfide boundary** *and* the depth below which **drainage becomes
+somebody's problem**.
+
+⚠ **Three gaps this exercise found:**
+
+- **`rock/granite` has no `hardness`.** Iron and steel carry
+  `hardness`/`toughness`; rock materials do not. **Carve-cost = hardness**,
+  so the field cannot price a `drive` until rock gets the field metals
+  already have.
+- **`rock/slate` does not exist** — `base-library` ships exactly one rock.
+  Slate plus four minerals (malachite, chalcopyrite, cassiterite,
+  argentite) are the first content the build needs.
+- **Per-lump grade is a field on the LUMP, not a composition.**
+  `Material` is **singleton-by-templatePath**, so you cannot mint a
+  material per grade. `Material.composition` fixes what a *kind* of ore is
+  (chalcopyrite is CuFeS₂); the lump's actual grade varies and lives on the
+  lump as a number. Not `GradedMixin` either — that is the quality band
+  `poor…masterful`, and ore grade is a fraction. See
+  [metal-chain-slate](./metal-chain-slate.md) § *Ore is already modelled*,
+  which this corrects.
+
+### ⭐⭐⭐ Surveying — zero new verbs
+
+The platform already ships the two acts, **and the instrument-gated
+channel is already a shipped pattern:**
+
+> **`measure`** — *"Read a single value off the world… one clean number
+> for a physical channel where you stand."* Channels: light · temperature ·
+> pressure · humidity · gravity · atmosphere · altitude · shadow.
+> ⭐ *"Some of the sky readings (altitude, shadow) **need an instrument**
+> such as a sextant or sundial."*
+>
+> **`analyze`** — *"breaks a channel down and shows you the working — which
+> sources contribute what, where a value comes from, the full provenance."*
+
+A miner's dial for `measure dip` is the sextant pattern exactly. **So
+mining contributes channels, not verbs.**
+
+#### One instrument per parameter of the plane
+
+The deposit spec's fields and the surveyor's kit line up one-to-one, which
+is the test that the model is honest:
+
+| Parameter | Instrument | Command |
+|---|---|---|
+| **strike** | the compass | `measure strike` |
+| **dip** | the **miner's dial** (Agricola's instrument) | `measure dip` |
+| **mineral identity** | hammer + hand lens — *break it; the weathered face lies* | `analyze chemistry <sample>` |
+| **grade** | the assay scale | `analyze chemistry` with the assay kit |
+| **the whole reading** | — | `analyze ground` |
+
+#### What it reads like
+
+```
+> look                          a green stain runs through the quartz here
+> measure strike                the lode runs 040 ± 15°        [dial]
+                                … walk the outcrop, measure at two more points
+> analyze ground
+    HOST      slate, hard
+    LODE      strike 041 ± 3°   (three points, solved)
+              dip    unknown — no subsurface observation
+    MINERAL   malachite — a copper carbonate, weathered
+    INFERENCE an oxide cap. Sulfides below the water table, if it holds.
+> analyze chemistry the sample   copper, 6% ± 3                 [assay scale]
+```
+
+> ⭐⭐ **You never find ore by rolling. You find it by measuring the same
+> plane three times.**
+
+**Strike falls out of three surface points** — the real **three-point
+problem**, which is what every field geologist actually does. **Dip does
+not**: it is not observable from the surface at all. You buy it with a
+costean, infer it from where float stops, or sink on a guess and find out
+what the guess cost. ⭐ **The push-your-luck decision arrives as a missing
+parameter rather than a dice roll.**
+
+The outcrop itself is **derived, never authored** — where the lode plane
+meets `z ≈ 0` is a *line*, so surface staining appears along it and
+following it is real work.
+
+#### ⭐⭐⭐ Where competence meets knowing where to dig
+
+The shipped rule is already named — ***"competence buys information, not
+outcomes"*** — and `assess` is the working template:
+
+> *"what you can tell depends on how skilled you are at medicine — a novice
+> reads only the gist ('bleeding badly'), while a practised eye reads the
+> site and severity."*
+
+Three mechanisms, each constrained by doctrine already shipped:
+
+1. **Competence sets the RESOLUTION, never the truth.** `040 ± 15°` for a
+   novice, `041 ± 3°` for a practised eye — the same rock, the same lode.
+   ⭐ **The error bar is the competence.** (Also Rhonda's design in
+   [rejection-slate](./rejection-slate.md): *"you give a reading and its
+   error, not a verdict."*)
+2. **Competence makes an INFERENCE available at all.** A novice records
+   three green rocks; a geologist records three *points on a plane* and
+   solves it. That is `known-of → can-make` applied to **methods** rather
+   than recipes — the trades' conferral ladder, pointed at technique.
+3. **Competence never touches the ground.** The grade is what the field
+   says. Farming already ruled that a check here *"would violate three
+   doctrines at once — uncertainty.md's resolutional ban; nothing gates on
+   a band; competence never multiplies yield."* **A better prospector does
+   not get more ore from the same rock. He knows where to point.**
+
+Credit runs the other way, per *advance by exercised disciplines*:
+**surveying is what earns `geology`**, at world-derived difficulty, never
+competence-derived.
+
+⭐ And because what you know is a **per-viewer belief** (the DISCOVERY
+realm), **a survey record is an asset you can sell** — which makes
+*"negative knowledge still sells"* literal, and is why Rhonda's instrument
+rows are private and load-bearing rather than flavour.
+
+#### What is actually new to build
+
+| | |
+|---|---|
+| **New controllers (5)** | the mining acts, in the pack: `hew` · `drive` · `sink` · `raise` · `shore` |
+| **New subcommands (3)** | `measure strike` · `measure dip` · `analyze ground`. Each subcommand names its own controller in the view YAML, so these slot into **existing** verbs — no new category, no new affordance surface, no new help tree |
+| **New content** | the instruments (dial, lens, hammer, assay kit) · the `Deposit` row · the missing `Material` rows · a `geology` Discipline |
+| **Reused untouched** | `look` · `search` · `analyze chemistry` · the belief store's DISCOVERY realm |
+
 ### ⭐⭐ Faces & dig-sites — the ten-direction model
 
 Not one dig site per room: **up to ten**, one per direction (eight compass

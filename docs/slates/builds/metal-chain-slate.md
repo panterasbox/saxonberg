@@ -171,6 +171,23 @@ with a composition, and every lump is different. That is what makes
 assaying real work, pricing real, and the deep-law's *"true weight, true
 grade"* a claim somebody can lie about.
 
+### ⚠ Correction — "no new primitive" was half right
+
+`Material` is **singleton-by-templatePath** (*"every
+`/stuff/idea/material/<…>` template resolves to the same instance"*), so
+**you cannot mint a material per grade.** The split:
+
+- **`Material.composition`** fixes what a *kind* of ore is — chalcopyrite
+  is CuFeS₂, and that chemistry never varies. This is the part that was
+  already shipped, and the yield arithmetic still runs off it.
+- **The lump's actual grade** varies per lump and must live **on the lump**
+  as a number — one small new field on the ore object.
+
+It is not `GradedMixin` either: that is the quality band
+`poor…masterful`, and ore grade is a fraction. See
+[mining-slate § *The `Deposit` Idea*](./mining-slate.md), where the field
+that emits it is specified.
+
 ### ⚠ A live inaccuracy this closes
 
 ```yaml
