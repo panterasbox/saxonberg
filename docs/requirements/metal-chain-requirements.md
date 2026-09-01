@@ -1,0 +1,390 @@
+# Metal chain, Stage A — the copper rung — requirements
+
+The mine, the fuel yard and the smelter that turn ground into a copper
+ingot, and the tools a player makes from it. This build exists to close
+the **metal-import era**: today `world-seed`'s
+`terminus/general-store/counter.yaml` stocks iron ingots from nowhere, and
+`trade-smithing` works from the ingot up with nothing beneath it.
+
+**Stage A is everything above the water table** — the oxide copper cap,
+worked from an adit. That boundary is not a project-management line: an
+adit drains by gravity, so there is no shaft, no hoist, no pump and
+therefore no drainage commons; and the oxide cap is *physically located*
+above the water table. Geology, engineering, the tech ladder and the
+economics all put the cut in the same place, at the deposit's
+`waterTable`.
+
+Seeded by [metal-chain-slate](../slates/builds/metal-chain-slate.md) (the
+chain and its chemistry), [mining-slate](../slates/builds/mining-slate.md)
+(the machinery), [rejection-slate](../slates/builds/rejection-slate.md)
+(the venue) and
+[field-substrate-slate](../slates/builds/field-substrate-slate.md) (the
+pattern the geology field instantiates).
+
+---
+
+## Goals
+
+- **A player can find copper by inference, not by luck.** The ore body is
+  a plane whose parameters exist before anyone looks; surface staining,
+  float and three-point measurement narrow it; and a survey that comes
+  back barren is a legitimate, informative outcome.
+- **The ground is a total, deterministic, unstored function.** Every cell
+  in the mine has hardness, mineral and grade whether or not anyone has
+  been there; the same cell always answers the same way; nothing is
+  persisted but mutation.
+- **A carved working persists if and only if it is shored.** Provisional
+  ground culls and regenerates identically from the seed; Held ground
+  survives logout and redeploy; shoring is the act that writes the record.
+- **Charcoal is a judgment craft with a real failure mode.** A burn is
+  watched over game time, airflow is the decision, and it can be lost.
+- **Copper comes out of the furnace in the quantity the lump actually
+  held.** Yield derives from the ore's grade, not from an authored recipe
+  constant, so a lean lump honestly makes less metal.
+- **A player-made copper tool exists, and the mine's own tools are among
+  them** — the chain closes on itself: the pick you swing is forged from
+  metal somebody dug.
+- **The copper import is closed.** Nothing in the shipped world mints
+  copper stock from nowhere once this lands.
+- **The venue functions as a place of work**: buy tools and lamp oil,
+  record a claim, sell ore for money, recover between shifts.
+- **Neglecting ground support costs you access to your ore, not your
+  life.** An attentive player cannot be hurt.
+- **A heading you drive without through-ventilation goes bad.** Air is a
+  function of the workings' own topology, so planning a connection is a
+  real decision and not only a convenience.
+- **The mine is inhabited.** Ore moves on a pit pony rather than only on
+  your back; a canary reads the air by behaving; and the upper workings
+  have a resident ambient life whose silence is itself a reading.
+- **Surveying is what earns the geology discipline**, at world-derived
+  difficulty.
+
+## Non-goals
+
+Each is deferred to a named stage or slate, not dropped.
+
+**Below the water table — all of Stage B.** No shaft, no hoist, no
+`LiftMixin`; no pump, drainage, free-rider problem, hoist toll, levy or
+district `Organization`; no `JobBoard`/`CrewBoard`. The adit makes every
+one of these unnecessary rather than merely postponed.
+
+**The rest of the metal ladder.** No sulfide ore and therefore **no
+roasting**; no iron, no bloomery, no steel, no bronze, no tin, no silver.
+Stage A ships the *easy* rung of the smelting ladder only.
+
+**Collapse.** Prevention ships; **entrapment, the rescue clock and
+"answer the call" do not** — deferred until the player population can
+support a collective rescue (user's ruling). No cascade, ever, in this
+build.
+
+**The deep and its cast.** No apex (dirt dragon) and no life cycle
+(whelps, firedrakes); no **middle or deep ecology band** — no pale
+crawler, lattice-spider, olm or lantern-moth; no aether-touched fauna; no
+the Hush. *The upper band and the working animals ARE in scope — see
+Goals.* No **Val, Earl or Rhonda** and no LLM-driven NPCs — the *Tremors*
+cast and its routines are a later build
+([llm-content-slate](../slates/builds/llm-content-slate.md)). Stage A's
+NPCs are functional only (registrar, buyer, storekeeper), canned.
+
+**Wave B and beyond of the demand side.** No arms or armor recipes (the 14
+uncrafted `generic-objects` templates), no domestic metal, no stock forms
+(bar, sheet, wire, nails).
+
+**Adjacent parked mechanics.** No placer/panning, no coal or coke, no
+beneficiation past hand cobbing (crushing and washing want water
+infrastructure), no `Deposit` reuse across mines.
+
+**Not touched.** `packages/content/terminus/` and `lib/location/` are
+build-2's until residences merges; `lib/husbandry/`, `lib/retail/` and
+`world-seed` are build-3's until farming merges.
+
+---
+
+## Surface decisions
+
+### The stage boundary is the water table
+
+Stage A works the oxide cap from an adit. Everything the deposit places
+below `waterTable` — sulfides, silver, tin, and the drainage that makes a
+commons — is Stage B or C. *Rationale:* the boundary is a fact about the
+ground, so the scope cut needs no defending and the later stages need no
+rework.
+
+### The mine is one 3D `CartesianZone`
+
+Coords `(x,y,z)`, z negative going down; atmosphere a continuous function
+of depth; "levels" an organizational convention. **A `SphericalZone` was
+proposed and retracted**: the vein dips but the *workings do not*, because
+level drifts and vertical winzes are what haulage and drainage require.
+The honest model is a continuous geology field under discrete orthogonal
+workings, and closing the gap between them is the craft. (Build-3's fields
+stay spherical; a field is a bounded area whose size you choose, a working
+is a cell you cut through rock.)
+
+### Room identity: keyed members, never minted templates
+
+Per residences **D17** — *every `templatePath` resolves to a row* — the
+authored spine is **static singletons**, every carved room is a **keyed
+member** `(scope = one of four type rows, key = the cell coordinate)`, and
+the geology has no identity at all. **The key is the coordinate**, which is
+also the survey address and the MQL `address` atom: one fact, three faces.
+Build-2's `:members` + `key`/`address` locator is reused as-is; **this
+build adds no MQL**.
+
+### Geology is a seeded field on an authored `Deposit`
+
+The **model** is a pure-data `Deposit` `Idea` (the `Biome`/`Material`
+shape); the **instantiation** is the mine zone naming it, with the seed
+derived from the zone's address rather than authored (the
+`WeatherLogic.localitySeed` precedent); the **values** are computed and
+never stored. Authored structure — the lode's strike, dip, thickness,
+extent, the zone depths, the depletion band, feature pins — over seeded
+per-cell detail.
+
+### Ore grade: composition for the kind, a field for the lump
+
+`Material.composition` fixes what a *kind* of ore is; because `Material`
+is **singleton-by-templatePath**, the varying per-lump grade is **one new
+field on the ore object** — a fraction, and explicitly *not* `GradedMixin`,
+which is the quality band `poor…masterful`.
+
+### Surveying contributes channels, not verbs
+
+`measure` already reads one number off a channel where you stand **and
+already gates channels on instruments** (*"altitude, shadow need a sextant
+or sundial"*); `analyze` already breaks a channel down with provenance. So
+Stage A adds `measure strike`, `measure dip` and `analyze ground` as
+**subcommands on shipped verbs**, plus the instruments that gate them. No
+new verb, no new category, no new affordance surface.
+
+### Competence buys resolution, never outcome
+
+`assess` is the template — *"a novice reads only the gist… a practised eye
+reads the site and severity."* The error bar on a reading **is** the
+competence (`040 ± 15°` vs `041 ± 3°`, same lode); competence also decides
+whether an inference is available at all (three green rocks vs three points
+on a plane); and competence **never touches the ground**. A better
+prospector does not get more ore from the same rock — he knows where to
+point.
+
+### Recipes: open canon, earned shorthand, and every one a rung
+
+Gating is already decided by `crafting.md` and is not re-opened: recipes
+are open information, reading or watching mints the known-of claim, and
+only a first faithful **by-hand** performance mints the can-make deed.
+**Nothing is secret and nothing is taught-gated.** A recipe ships iff (a)
+an act this build introduces demands the object and (b) it fills a
+difficulty rung the branch lacks — *the recipe tiers are the ladder a
+learner climbs*.
+
+⚠ **Mining's `hew`/`drive`/`shore` acquire no deed gate.** They are labour,
+not craft.
+
+### Ground support: prevention only, and failures land on faces
+
+Shoring is a **placed `Durable` object**, maintained on the shipped repair
+economy — not a flag. **Falls happen at faces, not rooms**: a face is
+blocked and cleared by an engagement, so nothing cascades and nobody is
+buried. Neglect is punished by **refusal** (bad ground stops work, and says
+why) plus loose falling (a blocked face, a broken lamp, a bruise).
+Stability is derive-on-read `f(span, ground, support, water)` — **a
+threshold, never a roll.**
+
+### The venue: as much town as the mine needs to work
+
+The pithead, and it is a settlement's worth of function without being a
+settlement: **Pithead Yard** (the hub) · **Claims Office** (record a claim
+— teaches title) · **Assay Shed** (sell ore; money enters the venue here)
+· **Provisioning** (tools, lamp oil — money leaves, and the light
+dependency is taught before descent) · **The Dry** (recover: reserve,
+thermal, a social beat). Underground: the adit and the three authored
+Upper Gallery rooms, then procedural workings. Separately sited, a short
+walk off: the **fuel yard with its coppice** and the **smelter beside it**
+— because you burn more mass of charcoal than you smelt of ore, so the
+smelter sits near the fuel. NPCs are functional (registrar, buyer,
+storekeeper) and canned.
+
+### Pack layout: three capability packs and one locality pack
+
+`content-pack-units.md:94` already ruled the split for mining — *"pack =
+materials · recipes · tools/stations · mine archetype; **venue = rooms +
+warren root + SEED field**, parcel = the mineral claim."*
+
+| Pack | Kind | Holds |
+|---|---|---|
+| **`trade-mining`** | capability (ships `src/`) | the act controllers (`hew`/`drive`/`shore`), the survey instruments, mining tool recipes, the `geology` Discipline, the seven species rows |
+| **`trade-fuel`** | capability | the coppice, the burn, charcoal |
+| **`trade-smelting`** | capability | the furnace acts, the smelt recipes |
+| **`rejection`** | locality | the two zones, the pithead's five rooms, the adit + three galleries, **the `Deposit` row**, the claim field, the fuel-yard and smelter sites, the functional NPCs, the cave biome's occurrence table |
+
+**`hearthworks` is the exact precedent** — a venue pack composing
+`trade-smithing` + `trade-hearth-cooking`. `rejection` composes the three
+new ones the same way, which is what makes a *second* mine a second
+locality pack over the same trades rather than a second build.
+
+⚠ **The deposit row is venue content, not trade content.** A deposit is a
+place, not a trade; `content-pack-units` assigns the seed field to the
+venue. The `Deposit` **class** is kernel; `trade-mining` ships no orebody.
+
+### Species: taxonomy is a commons PATH, ownership is a review unit
+
+Build-3 stated the rule in its own `pack.yaml` — *"a trade's domesticates
+ship in that trade's own pack, landing in the same `/stuff/idea/species`
+commons… the rows travel with the trade that domesticates them"* — and
+its crops sit at full Linnaean paths inside `trade-farming`.
+
+**All seven species ship in `trade-mining`, at the `/stuff/idea/species`
+commons path.** Mining is currently the only reason any of them exists in
+the world, and `species-and-names` — a pack whose organizing principle the
+user wants to revisit — does not grow.
+
+⭐ **This is safe because pack ownership ≠ path namespace.** Nothing
+references a pack; things reference `/stuff/idea/species/…`. Relocating
+rows later is a file move plus a title-claim edit, with no path changes
+and nothing to migrate. **A mining build must not quietly decide the
+content-architecture question**, which is: whether the commons keeps only
+the *skeleton* (clades, body plans) while every concrete species ships
+with the pack that gives it a reason to exist, and whether that skeleton
+belongs beside materials in `base-library`. Deferred, deliberately.
+
+**Occurrence is a biome fact, not a species fact** — *author the biome,
+override the exception* ([discovery-slate](../slates/builds/discovery-slate.md)).
+A species row says what a thing *is*; the mine's depth-banded biome says
+what lives *there*. Species cannot ship with biomes because the same
+species occurs in many (rats are in the mine and the city).
+
+### Siting: its own locality pack, arrival by TPA
+
+Rejection ships as **`packages/content/rejection/`**, following the
+locality-pack precedent residences established. **No inbound exit is
+wired** — arrival is by TPA, the moor/substation precedent that *"keeps
+content-area standup clean"* — so **no file in `packages/content/terminus/`
+is touched** and build-2 is not contended. The walked valley road lands
+when residences merges.
+
+### One MR, kernel waves first
+
+Per the standing agreement, this is **one MR reviewed once**, not a kernel
+MR followed by a pack MR. The kernel half (the `Deposit` class and field
+resolver, the carved-set ledger and three-state persistence, per-lump
+grade, stability) lands in the early waves; the capability packs and
+content follow in the same branch.
+
+---
+
+## Constraints
+
+- **`uncertainty.md`'s resolutional ban.** Nothing may roll to decide what
+  an action did. The geology is seeded from position; stability is a
+  deterministic threshold; a survey's uncertainty is **epistemic** — the
+  player cannot see the number, but the number was always there.
+- **Residences D17.** Every `templatePath` resolves to a row; no rowless
+  mints. Carved rooms are `(scope, key)` keyed members of type rows.
+- **Competence never multiplies yield, and nothing gates on a band**
+  (farming's ruling, `advancement`). Disciplines change what you *learn*,
+  never what the ground *gives*.
+- **No migrations, ever.** No compatibility shims, no legacy adapters — a
+  rename is a dropped database.
+- **Module categories and the import boundary.** `trade-mining` is a
+  capability pack shipping `src/`, importing the kernel only by package
+  specifier; nothing under `src/mud/` imports outside the tree except the
+  Api tier. **A pack must never require a kernel list edit** — group,
+  root and title-root derivation must absorb the new pack.
+- **Title claims.** `lint:untitled` requires every shipped template path
+  to lie under some pack's `requires.title` claim; the new pack claims its
+  roots.
+- **The carved-set ledger rides `holder_snapshots`** via
+  `PersistableApi`, so **no new Mongo collection** is introduced and
+  `lint:schema` needs no new doc.
+- **`requiresWizard` is TypeScript trust only** — never a stand-in for
+  venue or content authority. Claim-office permissions resolve through
+  `AccessApi` / parcel title.
+- **The one resolved read.** Consumers read the resolved geology value,
+  never a raw procedural branch, so an authored feature pin and a computed
+  cell are indistinguishable downstream (weather's spine invariant).
+- **Rock materials need `hardness`** before carve-cost can be priced;
+  `rock/granite` ships without it and `rock/slate` does not exist.
+- **`species-and-names` and `base-library` gain no new rows this build**
+  beyond the four material additions (slate + three minerals), which are
+  world-facts rather than trade facts.
+- **Concurrency.** `build/residences` owns `packages/content/terminus/`,
+  `lib/location/` and `api/mql/`; `build/farming` owns `lib/husbandry/`,
+  `lib/retail/` and `world-seed`. This build touches none of them.
+
+---
+
+## Acceptance criteria
+
+**The chain runs end to end, driven live.** A character walks to the
+diggings, surveys, drives a heading, hews ore, dresses it, carries it to
+the smelter, burns charcoal, smelts, and forges a copper tool — **in a
+running server, not only in tests**. The drive is recorded.
+
+**Determinism.** A cell's hardness, mineral and grade are identical across
+two boot cycles and across an eviction/regeneration round-trip; a
+Provisional room culled and re-entered regenerates the same tunnel.
+
+**Persistence.** A shored working survives restart with its contents; an
+unshored one does not and leaves no record. No template row is minted for
+any carved room, and `lint:instanceable` passes.
+
+**Grade is load-bearing end to end.** Two lumps of different grade yield
+measurably different metal from the same smelt, and the difference is
+visible through `analyze`.
+
+**Surveying is inference.** Three surface measurements narrow strike to a
+tighter error band than one does; dip is unobtainable from the surface
+alone; a barren survey returns an informative negative.
+
+**Competence changes readings, not the world.** The same cell assayed by
+two characters of different competence returns the same underlying value
+at different resolutions, verified by a test that asserts the *identity* of
+the underlying figure.
+
+**Support.** An unshored heading refuses further driving with a reason
+naming the state; shoring clears the refusal; a face fall blocks a face and
+never blocks a room, and no character can be trapped or killed by ground.
+
+**Air and inhabitants.** A dead-end heading degrades in air quality and
+recovers when connected through; the canary's behaviour tracks that value
+and is the only free reading of it; a pit pony hauls a cart at a measurably
+lower draft cost than a character carrying the same load.
+
+**The faucet is closed.** No shipped content sells or spawns copper stock
+from nowhere; a test asserts it.
+
+**Lints and suite.** `lint:instanceable`, `lint:untitled`, `lint:imports`,
+`lint:topics`, `lint:module-scope`, `lint:schema` and `lint:gates` pass;
+the pack's own suite passes; the full suite is run **once**, at finalize.
+
+**Docs.** A subsystem doc for the mining substrate exists under
+`docs/subsystems/`, the four seeding slates are updated or retired per the
+sweep rules, and `docs/vocations.md`'s miner / collier / smelter rows move
+off **GAP**.
+
+---
+
+## Cross-references
+
+**Seeding slates** — [metal-chain](../slates/builds/metal-chain-slate.md) ·
+[mining](../slates/builds/mining-slate.md) ·
+[rejection](../slates/builds/rejection-slate.md) ·
+[field-substrate](../slates/builds/field-substrate-slate.md)
+
+**Load-bearing subsystem docs** —
+[crafting](../subsystems/crafting.md) (the knowledge ladder, the repair
+economy) · [fire](../subsystems/fire.md) (`CombustibleMixin`,
+`FurnaceMixin`, melting and `Casting`) ·
+[weather](../subsystems/weather.md) (the field precedent and its seed
+derivation) · [zone](../subsystems/zone.md) ·
+[persistence](../subsystems/persistence.md) (`restoreOrSeed`, the
+`(scope, key)` spine) · [parcel](../subsystems/parcel.md) +
+[access](../subsystems/access.md) (claims and title) ·
+[advancement](../subsystems/advancement.md) ·
+[concealment](../subsystems/concealment.md) ·
+[content-packs](../subsystems/content-packs.md) (the capability rung) ·
+[uncertainty](../../docs/uncertainty.md)
+
+**In flight elsewhere** — `build/residences` (D17, the MQL keyed-member
+locator, the terminus pack) and `build/farming` (the growth model this
+build's coppice and glowcap reuse).

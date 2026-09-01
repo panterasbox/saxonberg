@@ -887,11 +887,14 @@ derive-from-principles teeth.
 
 ### The `Deposit` Idea — the geology field, concretely
 
-The field's authored half is **one row**. For the prototype mine, the whole
-thing:
+The field's authored half is **one row**, and it is **venue content, not
+trade content** — a deposit is a *place*, not a trade, and
+`content-pack-units.md:94` assigns the seed field to the venue. The
+`Deposit` **class** is kernel; the mining pack ships no orebody of its own.
+For the prototype mine, the whole thing:
 
 ```yaml
-# /trade/mining/idea/Deposit/ferrow.yaml
+# /world/terminus/rejection/idea/Deposit/ferrow.yaml   ← VENUE content, not trade
 class: /platform/idea/Deposit
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
