@@ -1059,6 +1059,104 @@ anything if the last link is a thing a player wanted.**
 
 ---
 
+### ⭐⭐⭐ Recipe scope — the ladder is the constraint, not the count **[DECIDED — closes Open 9]**
+
+#### The gating half was already decided, and not the way this slate first reached
+
+A first pass proposed *common knowledge vs. taught trade secrets*. The
+shipped design deliberately rejects that —
+[crafting.md](../../subsystems/crafting.md) § *The knowledge ladder,
+generalized (**open canon, earned shorthand**)*:
+
+> *"Recipes are **open information — readable in-world, wiki-equivalent by
+> design.**"*
+>
+> - **Claim (known-of)** — minted by *reading* a recipe source, **or by
+>   watching a maker perform**.
+> - **Deed (can-make)** — *"only your own first faithful **by-hand**
+>   performance… The book isn't enough — **the hands learn**."*
+> - The gate: `forge`/`cook`/`make` decline without the deed — *"work it by
+>   hand first"*; `order` is never gated.
+> - ⭐⭐ *"A spoiler wiki yields exactly what an in-world recipe card
+>   yields — **information buys optimization, never competence**"* —
+>   enforced by `knowledge-ladder.test.ts`.
+
+**Nothing is secret; nothing is taught-gated.** The only gate is having
+done it by hand once, and the by-hand route is always open — so cold start
+is a non-issue and there is no knowledge to hoard. Consistent with
+*everyone is an author*, and a better answer than trade secrets.
+
+#### So the question is not "how many" — it is "does the set form a ladder"
+
+crafting.md states the obligation:
+
+> *"The seeded rosters span a deliberate difficulty ladder per branch —
+> **the ZPD obligation: the recipe tiers ARE the ladder a learner
+> climbs.**"*
+
+**Count is cheap; a flat set is the failure.** Hence the rule:
+
+> ⭐ **A recipe ships iff (a) an act this build introduces demands the
+> object, and (b) it sits at a difficulty rung the branch does not already
+> have.**
+
+⚠ Clause (a) retires the "tools for every trade" framing from § *The
+demand side*. **Farming's acts — plant, water, feed, pick, break ground —
+require no tool today.** Minting a hoe would be *authoring tech ahead of
+demand*, which the trades doctrine forbids. The tool list is what **this
+build's own acts** require, and nothing else.
+
+#### Wave A — ≈18 recipes, each on a rung
+
+**Mining (9)** — *trivial:* timber set · pick haft. *easy:* shovel ·
+pinch-bar · billhook. *standard:* pick head · sledge · felling axe ·
+tongs.
+
+**Instruments (2, hard)** — the miner's dial and the assay kit. ⭐ The top
+rung of the branch, and rightly: **the things that make surveying possible
+are the hardest things to make.**
+
+**Fuel (1, standard)** — charcoal. It is the judgment craft with a real
+failure mode (§ *Fuel is the trade*), so it cannot be trivial. Coke stays
+parked with coal.
+
+**Smelting (6)** — where the recipe ladder and the metal ladder become the
+same object:
+
+| Rung | Recipe | Because |
+|---|---|---|
+| easy | smelt oxide copper | direct reduction — what the great house could do |
+| standard | roast sulfide → smelt | **the process gate that beat the house** |
+| standard | alloy bronze | needs tin: a supply problem, not a skill one |
+| hard | bloomery iron | 1811 K — the fuel-technology rung |
+| hard | steel, by carburizing | **the knowledge rung** |
+| hard | cast a bar | pouring is its own skill |
+
+⭐ The four-rung tech ladder (§ *The ladder: start at copper*) and the
+crafting difficulty ladder are **the same structure seen twice** — which is
+the check that neither was invented.
+
+#### Wave B — 14 recipes, and it is the cheap one
+
+The uncrafted arms and armor whose **templates already ship** in
+`generic-objects`. No design, no new content, just transform specs, and
+they slot onto the smithing branch's existing rungs (a dagger is not a mail
+hauberk).
+
+#### Two things ruled OUT of v1
+
+- **Stock forms** — bar, rod, sheet, wire, nails. Real smithing
+  intermediates that would let recipes compose, but under *every recipe is
+  a rung* they multiply the count **without adding rungs**. Defer until
+  something needs sheet specifically.
+- **Any new gating.** The deed gate is the only one, it is shipped, and
+  `requireDeed` is already the single shared gate on `forge`/`cook`/`make`.
+  ⚠ **Mining's `hew`/`drive` must not acquire one** — those are **labour,
+  not craft**, and gating labour on a deed is the band-gate doctrine
+  violation wearing a different hat.
+
+---
+
 ## ⭐⭐⭐ The build's shape — what must ship together **[DECIDED]**
 
 The scope statement this design implies, stated plainly because it is
@@ -1147,9 +1245,11 @@ scope rather than to content.
    one-shot that gates the whole chain on a collective-action problem in a
    thin population; the lesson is recovered better as a recurring
    maintenance burden. See § *Formed, not forming*.
-9. **Recipe scope for demand classes A and B** — how many tool and
-   arms/armor recipes ship in the first cut, and whether the smith's
-   known-of → can-make ladder gates them or they all ship known.
+9. ~~Recipe scope~~ — **CLOSED**: ≈18 in wave A (each demanded by an act
+   this build introduces AND filling a difficulty rung), 14 in wave B (the
+   arms/armor templates that already ship). Gating was already decided by
+   crafting.md's **open canon, earned shorthand** — nothing secret, the
+   only gate is having built it by hand once. See § *Recipe scope*.
 10. ~~Who owns the shaft~~ — **CLOSED: the co-op.** It is simultaneously
    the pump's funding instrument and its power over independents, so a
    buyout captures both at once — *Veshko need only buy the throat.*
