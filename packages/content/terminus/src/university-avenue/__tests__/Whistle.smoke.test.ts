@@ -21,6 +21,6 @@ describe('Whistle (composition)', () => {
     expect(MixinApi.hasMixin(w as never, Mixins.Detailed)).toBe(true);
     // A carried or worn whistle grants `blow` OUTWARD to its bearer —
     // the `environment` bucket under the directional model.
-    expect(Whistle.commandContributions.environment).toContain('world/eternal/university-avenue/cmd/blow.yaml');
+    expect(Whistle.commandContributions.environment).toContain('world/terminus/university-avenue/cmd/blow.yaml');
   });
 });

@@ -39,10 +39,10 @@ import {
   teardownBankingHarness,
 } from "@saxonberg/server/mud/lib/banking/__tests__/banking-test-harness";
 
-// The rows this branch reads span two locality packs (residences D18):
-// the counting-houses rows are this pack's, the avenue crossing is
-// eternal-university's.
-const ROOTS = ["terminus", "eternal-university"].map((p) =>
+// The counting-houses rows and the avenue crossing they connect to are
+// BOTH this pack's — University Avenue is a Terminus street, not the
+// university's (the campus is what sits behind its gate).
+const ROOTS = ["terminus"].map((p) =>
   fileURLToPath(new URL(`../../../${p}/content`, import.meta.url)),
 );
 function seedData(rel: string): Record<string, unknown> {
@@ -68,7 +68,7 @@ class TestAvatar extends ContainerMixin(ContainableMixin(PropertiedMixin(Idea)))
 describe("Goodkin seeds — the authored branch is well-formed", () => {
   it("the room exit chain walks crossing → avenue → hall ↔ parlor", () => {
     const crossing = seedData(
-      "world/eternal/university-avenue/crossing.yaml",
+      "world/terminus/university-avenue/crossing.yaml",
     ) as { exits: Record<string, { destination: string }> };
     expect(crossing.exits.west?.destination).toBe(
       "/world/terminus/counting-houses/avenue-block",
@@ -77,7 +77,7 @@ describe("Goodkin seeds — the authored branch is well-formed", () => {
       exits: Record<string, { destination: string }>;
     };
     expect(avenue.exits.east?.destination).toBe(
-      "/world/eternal/university-avenue/crossing",
+      "/world/terminus/university-avenue/crossing",
     );
     expect(avenue.exits.west?.destination).toBe(
       "/world/terminus/counting-houses/banking-hall",

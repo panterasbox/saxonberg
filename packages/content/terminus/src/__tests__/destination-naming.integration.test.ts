@@ -81,7 +81,7 @@ const STUBS: Doc[] = [
     data: { seatIn: "/world/test/lounge-room", shortDescription: "The Lounge", keywords: ["lounge"], directionality: "both", routes: [] },
   },
   { path: "/world/test/lounge-room", class: "/platform/location/VoidLocation", hydratorClass: PH, data: { shortDescription: "the lounge" } },
-  { path: "/world/eternal/university-avenue/crossing", class: "/platform/location/VoidLocation", hydratorClass: PH, data: { shortDescription: "University Avenue" } },
+  { path: "/world/terminus/university-avenue/crossing", class: "/platform/location/VoidLocation", hydratorClass: PH, data: { shortDescription: "University Avenue" } },
   // The office populates the clerk (a full NPC, Phase 4) — stub it here so the
   // cascade resolves without heavy NPC hydration.
   { path: "/world/terminus/terminal/clerk", class: "/platform/thing/Prop", hydratorClass: PH, data: { shortDescription: "the clerk" } },
@@ -93,6 +93,14 @@ const STUBS: Doc[] = [
 describe("destination naming + crossroads (real seeds)", () => {
   beforeEach(async () => {
     StuffApi.clearAll();
+    // ⚠ A stub must WIN over a real row. University Avenue used to be
+    // another pack's, so the walk below never saw it; it is this pack's
+    // street now, and the real crossing `populates:` Gus — a full NPC
+    // whose dispositions reach TraitLogic. This suite is about how a
+    // destination is NAMED from its covering Locality, not about who is
+    // standing in it, so the crossing stays a stub and the override is
+    // by path rather than by list order.
+    const stubbed = new Set(STUBS.map((d) => d.path as string));
     const docs = [
       { path: PH, class: PH, data: {} },
       { path: "/platform/idea/AddressRegistry", class: "/platform/idea/AddressRegistry", data: {} },
@@ -101,9 +109,8 @@ describe("destination naming + crossroads (real seeds)", () => {
       ...loadDir(join(WILDS, "world/newbie-wilds"), "world/newbie-wilds"),
       ...loadDir(join(SEEDS, "stuff/idea/Locality"), "stuff/idea/Locality"),
       ...loadDir(join(PLATFORM, "platform/idea/Locality"), "platform/idea/Locality"),
-      ...STUBS,
-    ];
-    installStore(docs);
+    ].filter((d) => !stubbed.has(d.path as string));
+    installStore([...docs, ...STUBS]);
     await AppSettings.warm();
     // Stand up the AddressRegistry — its postRegister eagerly clones + registers
     // every Locality under /stuff/idea/Locality/ (claiming their address prefixes).

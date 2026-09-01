@@ -41,7 +41,7 @@ data:
     south:
       destination: /world/terminus/terminal/hall
     north:
-      destination: /world/eternal/university-avenue/crossing
+      destination: /world/terminus/university-avenue/crossing
     # The city Registry — the young administration's rented annex off the
     # station frontage (cross-zone, declared on both sides; the registry
     # office lists its own `west` back here).

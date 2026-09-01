@@ -33,7 +33,12 @@ only *engine* change was the spine's **multi-instance-host** generalization
 (D1). This doc is the source of truth for that model, the elastic building,
 provisioning, and the theme overlay.
 
-Homed at `packages/server/src/mud/world/eternal/duncan-hall/`.
+Homed in the **`eternal-university`** pack
+(`packages/content/eternal-university/`) — content under
+`content/world/eternal/duncan-hall/`, classes under
+`src/duncan-hall/`. That pack is the CAMPUS: University Avenue, the
+street the campus gate opens onto, is a Terminus street and ships in the
+`terminus` pack (`/world/terminus/university-avenue`).
 
 ## D1 — the multi-instance persistence model
 

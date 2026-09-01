@@ -377,6 +377,18 @@ arcana's — *a capability pack holds what other packs' content names*:
 
 `world-seed` kept the four remaining localities and the commons.
 
+⚠ **A locality is not a path prefix.** The first cut homed University
+Avenue in `eternal-university` because it shared the `/world/eternal`
+path root with Duncan Hall — a fact about the filesystem, not about the
+world. The avenue is a **Terminus** street: it runs from the terminal
+mouth past the campus wall down to the Counting-Houses, its own prose is
+full of travellers off the Terminus trains, and the campus Locality row
+has said `_address: terminus/city/campus` all along — the campus is a
+district *inside* the city, and the gate is the boundary. It now ships
+in `terminus` at `/world/terminus/university-avenue`. When homing
+content, read what the room SAYS it is, not where its file happens to
+sit.
+
 ---
 
 ## Cross-references

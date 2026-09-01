@@ -1,4 +1,4 @@
-# Gus's crossing-log — `/world/eternal/university-avenue/CrossingLog` (Detailed). A clipboard where he
+# Gus's crossing-log — `/world/terminus/university-avenue/CrossingLog` (Detailed). A clipboard where he
 # tallies, by hand, every soul he walks across. Carried; equipped at standup
 # by Gus.equipLoadout. A REAL living ledger but a PASSIVE one: it subscribes
 # to nothing — Gus is the agent who perceives each crossing and marks it with
@@ -7,7 +7,7 @@
 # anonymous by necessity, because he cannot record a name he never keeps.
 # `startingCount` folds in the souls seen across before this page began.
 # Generic object: Visible.shortDescription, never Named.
-class: /world/eternal/university-avenue/CrossingLog
+class: /world/terminus/university-avenue/CrossingLog
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a crossing-log clipboard

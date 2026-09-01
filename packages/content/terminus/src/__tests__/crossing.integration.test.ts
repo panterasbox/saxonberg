@@ -38,8 +38,8 @@ const PH = PersistentHydrator.templatePath;
 // wave 3): the locality rows in the locality packs, the species in
 // species-and-names, the rest in the platform / generic-objects packs.
 const PACKS = fileURLToPath(new URL("../../../", import.meta.url));
-const SEEDS = `${PACKS}eternal-university/content`;
-const ROOTS = ["eternal-university", "terminus", "world-seed", "species-and-names", "generic-objects", "platform"].map(
+const SEEDS = `${PACKS}terminus/content`;
+const ROOTS = ["terminus", "world-seed", "species-and-names", "generic-objects", "platform"].map(
   (p) => `${PACKS}${p}/content`,
 );
 
@@ -56,22 +56,22 @@ function seed(relFromSeeds: string, path: string): Doc {
   };
 }
 
-const CROSSING = "/world/eternal/university-avenue/crossing";
+const CROSSING = "/world/terminus/university-avenue/crossing";
 const ARRIVAL_GATE = "/world/terminus/terminal/arrival-gate";
 const HALL = "/world/terminus/terminal/hall";
 const GATE_C = "/world/terminus/terminal/departure-gate-c";
 const AVENUE_BLOCK = "/world/terminus/counting-houses/avenue-block";
-const CAMPUS_GATE = "/world/eternal/university-avenue/campus-gate";
-const DOOR = "/world/eternal/university-avenue/campus-gate-door";
+const CAMPUS_GATE = "/world/terminus/university-avenue/campus-gate";
+const DOOR = "/world/terminus/university-avenue/campus-gate-door";
 
 // The curated realized set: only the flavorful touchables survive as Stuff
 // (the camp chair, the beacon, the gutter ticket-stub). The generic municipal
 // furniture (bench / lamppost / litter bin) is now room `details:` prose, not
 // populated objects — see crossing.yaml.
 const OBJECTS = [
-  "/world/eternal/university-avenue/camp-chair",
-  "/world/eternal/university-avenue/beacon",
-  "/world/eternal/university-avenue/gutter-litter",
+  "/world/terminus/university-avenue/camp-chair",
+  "/world/terminus/university-avenue/beacon",
+  "/world/terminus/university-avenue/gutter-litter",
 ];
 
 // Gus + his gear (Phase 4). Gus is a plain populate into the room; his gear
@@ -79,13 +79,13 @@ const OBJECTS = [
 // declarative seed path to wear/wield gear on a creature). His equip needs a
 // resolvable species + body plan, so the test store carries a minimal human
 // Species pointing at the real biped body plan.
-const GUS = "/world/eternal/university-avenue/npc/gus";
-const VEST = "/world/eternal/university-avenue/vest";
-const WHISTLE = "/world/eternal/university-avenue/whistle";
-const PADDLE = "/world/eternal/university-avenue/paddle";
-const WATCH = "/world/eternal/university-avenue/pocket-watch";
-const LOG = "/world/eternal/university-avenue/crossing-log";
-const THERMOS = "/world/eternal/university-avenue/thermos";
+const GUS = "/world/terminus/university-avenue/npc/gus";
+const VEST = "/world/terminus/university-avenue/vest";
+const WHISTLE = "/world/terminus/university-avenue/whistle";
+const PADDLE = "/world/terminus/university-avenue/paddle";
+const WATCH = "/world/terminus/university-avenue/pocket-watch";
+const LOG = "/world/terminus/university-avenue/crossing-log";
+const THERMOS = "/world/terminus/university-avenue/thermos";
 const HUMAN =
   "/stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens";
 const BIPED = "/stuff/idea/species/BodyPlan/biped";
@@ -96,25 +96,25 @@ function docs(): Doc[] {
     { path: PH, class: PH, data: {} },
     // The CartesianZones the rooms' coords resolve against.
     seed(
-      "world/eternal/university-avenue.yaml",
-      "/world/eternal/university-avenue",
+      "world/terminus/university-avenue.yaml",
+      "/world/terminus/university-avenue",
     ),
     seed("world/terminus/terminal.yaml", "/world/terminus/terminal"),
     // The crossing area.
-    seed("world/eternal/university-avenue/crossing.yaml", CROSSING),
-    seed("world/eternal/university-avenue/campus-gate.yaml", CAMPUS_GATE),
-    seed("world/eternal/university-avenue/campus-gate-door.yaml", DOOR),
-    seed("world/eternal/university-avenue/camp-chair.yaml", OBJECTS[0]!),
-    seed("world/eternal/university-avenue/beacon.yaml", OBJECTS[1]!),
-    seed("world/eternal/university-avenue/gutter-litter.yaml", OBJECTS[2]!),
+    seed("world/terminus/university-avenue/crossing.yaml", CROSSING),
+    seed("world/terminus/university-avenue/campus-gate.yaml", CAMPUS_GATE),
+    seed("world/terminus/university-avenue/campus-gate-door.yaml", DOOR),
+    seed("world/terminus/university-avenue/camp-chair.yaml", OBJECTS[0]!),
+    seed("world/terminus/university-avenue/beacon.yaml", OBJECTS[1]!),
+    seed("world/terminus/university-avenue/gutter-litter.yaml", OBJECTS[2]!),
     // Gus + his gear templates + the anatomy his equip resolves against.
-    seed("world/eternal/university-avenue/npc/gus.yaml", GUS),
-    seed("world/eternal/university-avenue/vest.yaml", VEST),
-    seed("world/eternal/university-avenue/whistle.yaml", WHISTLE),
-    seed("world/eternal/university-avenue/paddle.yaml", PADDLE),
-    seed("world/eternal/university-avenue/pocket-watch.yaml", WATCH),
-    seed("world/eternal/university-avenue/crossing-log.yaml", LOG),
-    seed("world/eternal/university-avenue/thermos.yaml", THERMOS),
+    seed("world/terminus/university-avenue/npc/gus.yaml", GUS),
+    seed("world/terminus/university-avenue/vest.yaml", VEST),
+    seed("world/terminus/university-avenue/whistle.yaml", WHISTLE),
+    seed("world/terminus/university-avenue/paddle.yaml", PADDLE),
+    seed("world/terminus/university-avenue/pocket-watch.yaml", WATCH),
+    seed("world/terminus/university-avenue/crossing-log.yaml", LOG),
+    seed("world/terminus/university-avenue/thermos.yaml", THERMOS),
     seed("stuff/idea/species/BodyPlan/biped.yaml", BIPED),
     // Minimal human species → the real biped body plan (the full species
     // tree is content-pack installed and out of scope for this seed test).
@@ -256,13 +256,13 @@ describe("University Avenue crossing standup (real seeds)", () => {
       s.getTemplatePath(),
     );
     expect(contentPaths).not.toContain(
-      "/world/eternal/university-avenue/bench",
+      "/world/terminus/university-avenue/bench",
     );
     expect(contentPaths).not.toContain(
-      "/world/eternal/university-avenue/lamp",
+      "/world/terminus/university-avenue/lamp",
     );
     expect(contentPaths).not.toContain(
-      "/world/eternal/university-avenue/litter-bin",
+      "/world/terminus/university-avenue/litter-bin",
     );
   });
 
@@ -328,7 +328,7 @@ describe("University Avenue crossing standup (real seeds)", () => {
     // greet graduated to the dedicated crossing-ritual — tally + performance;
     // the plain `greets` now carries only the courteous departure see-off.)
     const parsed = YAML.parse(
-      readFileSync(`${SEEDS}/world/eternal/university-avenue/npc/gus.yaml`, {
+      readFileSync(`${SEEDS}/world/terminus/university-avenue/npc/gus.yaml`, {
         encoding: "utf-8",
       }),
     ) as { data: { behaviors: Array<{ brain: string; trigger: string }> } };

@@ -34,7 +34,7 @@ export default class Whistle extends WhistleBase {
    */
   static commandContributions: CommandContributions = {
     self: [],
-    environment: ['world/eternal/university-avenue/cmd/blow.yaml'],
+    environment: ['world/terminus/university-avenue/cmd/blow.yaml'],
     peers: [],
   };
 }

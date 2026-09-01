@@ -48,8 +48,8 @@ data:
     west:
       destination: /world/terminus/counting-houses/avenue-block
     north:
-      destination: /world/eternal/university-avenue/campus-gate
-      door: /world/eternal/university-avenue/campus-gate-door
+      destination: /world/terminus/university-avenue/campus-gate
+      door: /world/terminus/university-avenue/campus-gate-door
   details:
     tower:
       keywords: [tower, clock, clocktower, time]
@@ -93,7 +93,7 @@ data:
   #     standup — no declarative seed path to wear/wield gear on a creature).
   # The thermos rides on Gus (his "won't open"), not loose here.
   populates:
-    - /world/eternal/university-avenue/camp-chair
-    - /world/eternal/university-avenue/beacon
-    - /world/eternal/university-avenue/gutter-litter
-    - /world/eternal/university-avenue/npc/gus
+    - /world/terminus/university-avenue/camp-chair
+    - /world/terminus/university-avenue/beacon
+    - /world/terminus/university-avenue/gutter-litter
+    - /world/terminus/university-avenue/npc/gus

@@ -78,7 +78,20 @@ const ROOMS = [
   "/world/terminus/terminal/office",
 ];
 
-/** Forward-ref stubs (lounge terminal, crossroads, clerk, plaza). */
+/**
+ * Forward-ref stubs (lounge terminal, crossroads, clerk, the avenue
+ * crossing). This suite is about the TPA HUB standing up from a single
+ * anchor; the rooms the hub's exits cascade into are stubbed so a heavy
+ * neighbour cannot drag its whole cast in.
+ *
+ * ⚠ A stub must now WIN over a real row. University Avenue used to be
+ * another pack's, so `loadSeeds` never saw it; it is this pack's street
+ * now, so the walk finds the real crossing — which `populates:` Gus, a
+ * full NPC with dispositions — and the hub test would be booting the
+ * avenue's whole cast to prove a terminal seats itself. The avenue has
+ * its own stand-up suite (`crossing.integration.test.ts`); this one
+ * overrides by path, which is order-independent.
+ */
 const STUBS: Doc[] = [
   {
     path: "/world/lounge/thing/terminal",
@@ -98,7 +111,7 @@ const STUBS: Doc[] = [
   // The registry office (cascaded via the arrival gate's east exit)
   // populates the registrar — same heavy-NPC stub treatment.
   { path: "/world/terminus/registry/clerk", class: "/platform/thing/Prop", hydratorClass: PH, data: { shortDescription: "the registrar" } },
-  { path: "/world/eternal/university-avenue/crossing", class: "/platform/location/VoidLocation", hydratorClass: PH, data: { shortDescription: "University Avenue" } },
+  { path: "/world/terminus/university-avenue/crossing", class: "/platform/location/VoidLocation", hydratorClass: PH, data: { shortDescription: "University Avenue" } },
 ];
 
 /**
@@ -116,7 +129,10 @@ async function boot(): Promise<void> {
 describe("Terminus content standup (real seeds)", () => {
   beforeEach(async () => {
     StuffApi.clearAll();
-    const seeds = loadSeeds(SEED_ROOT, SEED_ROOT.length);
+    const stubbed = new Set(STUBS.map((d) => d.path as string));
+    const seeds = loadSeeds(SEED_ROOT, SEED_ROOT.length).filter(
+      (d) => !stubbed.has(d.path as string),
+    );
     installStore([{ path: PH, class: PH, data: {} }, ...seeds, ...STUBS]);
     await AppSettings.warm();
   });
@@ -169,7 +185,7 @@ describe("Terminus content standup (real seeds)", () => {
       }
     ).getExits();
     const dests = [...exits.values()].map((e) => e.getDestinationTemplatePath());
-    expect(dests).toContain("/world/eternal/university-avenue/crossing");
+    expect(dests).toContain("/world/terminus/university-avenue/crossing");
     expect(dests).toContain("/world/terminus/terminal/hall");
   });
 

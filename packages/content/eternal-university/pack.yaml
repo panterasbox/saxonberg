@@ -2,11 +2,27 @@ id: eternal-university
 version: 0.1.0
 root: /world/eternal
 description: >-
-  Eternal University — the campus locality, homed whole out of the
-  transitional world-seed (residences D18): Duncan Hall (the dorm — the
-  ladder's first rung) and University Avenue, content and parked TS
-  together. A locality pack's src/ registers against its extent, so the
-  class paths (/world/eternal/…) are unchanged by the move.
+  Eternal University — the CAMPUS locality, homed whole out of the
+  transitional world-seed (residences D18): Duncan Hall, the dorm that is
+  the residence ladder's first rung. A locality pack's src/ registers
+  against its extent, so the class paths (/world/eternal/…) are unchanged
+  by the move.
+
+  ⚠ University Avenue is NOT here, and the boundary is the campus wall.
+  The avenue is a TERMINUS street — the city street the campus gate opens
+  onto, named after the university the way Lombard Street is named for
+  the Lombards — so it ships in the terminus pack at
+  /world/terminus/university-avenue. The first cut homed it here because
+  it shared the /world/eternal path root, which is a fact about the
+  filesystem rather than about the world; the crossing's own prose
+  (travellers spilling out of the Terminus terminal) and the campus's own
+  Locality row (`_address: terminus/city/campus` — a district INSIDE the
+  city) both said otherwise.
+
+  The gatehouse stub behind the gate went with the avenue deliberately:
+  it exists only so the crossing's north exit has a loadable destination,
+  so it belongs to the exit that needs it, and it dies when real campus
+  content lands here and the exit repoints.
 requires:
   groups:
     # The landlord's staff — Katie's membership is CONFERRED here by the
