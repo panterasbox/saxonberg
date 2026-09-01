@@ -104,14 +104,16 @@ function room(cell: Cell, host = SLATE): MineRoom {
   return r;
 }
 
+type Runnable = Stuff & { execute(model: never, ctx: CommandContext): unknown };
+
 async function run(
-  Controller: new () => { execute(model: never, ctx: CommandContext): unknown },
+  Controller: new () => Runnable,
   model: Record<string, unknown>,
   where: Stuff,
   text: string,
 ): Promise<CommandContext> {
   const ctx = makeContext(actor as unknown as Stuff, where, text);
-  await makeStuff(() => new Controller()).execute(model as never, ctx);
+  await makeStuff<Runnable>(() => new Controller()).execute(model as never, ctx);
   return ctx;
 }
 
@@ -182,7 +184,7 @@ describe('the mine’s four labour acts', () => {
   it('⭐ a cut lump’s grade is EXACTLY the deposit’s figure — competence never multiplies yield', async () => {
     const here = room([0, 0, -1]);
     ContainmentApi.move(actor as unknown as Stuff & Containable, here as unknown as Stuff & Container);
-    const ctx = await run(HewController, { face: 'east' }, here as unknown as Stuff, 'hew east');
+    const ctx = await run(HewController as never, { face: 'east' }, here as unknown as Stuff, 'hew east');
     expect(rejected(ctx)).toBeNull();
     await settle(60000);
 
@@ -199,7 +201,7 @@ describe('the mine’s four labour acts', () => {
     const here = room([0, 0, -1]);
     ContainmentApi.move(actor as unknown as Stuff & Containable, here as unknown as Stuff & Container);
     const before = actor.getReserve('endurance')!.current.rawValue();
-    await run(HewController, { face: 'east' }, here as unknown as Stuff, 'hew east');
+    await run(HewController as never, { face: 'east' }, here as unknown as Stuff, 'hew east');
     expect(actor.getReserve('endurance')!.current.rawValue()).toBeLessThan(before);
     // Nothing exists until the step completes — a barge-in leaves the
     // rock standing rather than half a lump.
@@ -215,7 +217,7 @@ describe('the mine’s four labour acts', () => {
   it('hewing barren country rock declines, and says it is barren', async () => {
     const here = room([0, 0, -1]);
     ContainmentApi.move(actor as unknown as Stuff & Containable, here as unknown as Stuff & Container);
-    const ctx = await run(HewController, { face: 'north' }, here as unknown as Stuff, 'hew north');
+    const ctx = await run(HewController as never, { face: 'north' }, here as unknown as Stuff, 'hew north');
     expect(rejected(ctx)).toBe('barren-face');
   });
 
@@ -225,14 +227,14 @@ describe('the mine’s four labour acts', () => {
     const faces = await here.facesOf();
     const east = faces.find((f) => f.direction === 'east')!;
     here.recordWinning('east', east.remaining!);
-    const ctx = await run(HewController, { face: 'east' }, here as unknown as Stuff, 'hew east');
+    const ctx = await run(HewController as never, { face: 'east' }, here as unknown as Stuff, 'hew east');
     expect(rejected(ctx)).toBe('face-worked-out');
   });
 
   it('hewing outside a working declines rather than throwing', async () => {
     const nowhere = makeStuff(() => new TestActor());
     ContainmentApi.move(actor as unknown as Stuff & Containable, nowhere as unknown as Stuff & Container);
-    const ctx = await run(HewController, {}, nowhere as unknown as Stuff, 'hew');
+    const ctx = await run(HewController as never, {}, nowhere as unknown as Stuff, 'hew');
     expect(rejected(ctx)).toBe('not-a-working');
   });
 
@@ -242,14 +244,14 @@ describe('the mine’s four labour acts', () => {
     const here = room([0, 0, -1]);
     warren.addMember(here as unknown as Stuff & Container);
     ContainmentApi.move(actor as unknown as Stuff & Containable, here as unknown as Stuff & Container);
-    const ctx = await run(DriveController, { direction: 'east' }, here as unknown as Stuff, 'drive east');
+    const ctx = await run(DriveController as never, { direction: 'east' }, here as unknown as Stuff, 'drive east');
     expect(rejected(ctx)).toBeNull();
     await settle(300000);
     expect(warren.isCarved([1, 0, -1])).toBe(true);
     // East is in the seam, so the new cell opens out as a stope.
     expect(warren.getCarved()['1,0,-1']!.type).toBe('stope');
     // North is country rock — an ordinary face.
-    const ctx2 = await run(DriveController, { direction: 'north' }, here as unknown as Stuff, 'drive north');
+    const ctx2 = await run(DriveController as never, { direction: 'north' }, here as unknown as Stuff, 'drive north');
     expect(rejected(ctx2)).toBeNull();
     await settle(300000);
     expect(warren.getCarved()['0,1,-1']!.type).toBe('face');
@@ -280,7 +282,7 @@ describe('the mine’s four labour acts', () => {
   it('⭐ a static mine cannot GROW, and says so honestly rather than crashing', async () => {
     const here = room([0, 0, -1]); // no warren
     ContainmentApi.move(actor as unknown as Stuff & Containable, here as unknown as Stuff & Container);
-    const ctx = await run(DriveController, { direction: 'east' }, here as unknown as Stuff, 'drive east');
+    const ctx = await run(DriveController as never, { direction: 'east' }, here as unknown as Stuff, 'drive east');
     expect(rejected(ctx)).toBe('no-warren');
   });
 
@@ -293,7 +295,7 @@ describe('the mine’s four labour acts', () => {
     }
     ContainmentApi.move(actor as unknown as Stuff & Containable, here as unknown as Stuff & Container);
     expect((await here.stabilityAt()).state).toBe('bad');
-    const ctx = await run(DriveController, { direction: 'up' }, here as unknown as Stuff, 'drive up');
+    const ctx = await run(DriveController as never, { direction: 'up' }, here as unknown as Stuff, 'drive up');
     expect(rejected(ctx)).toBe('bad-ground');
 
     // Timber it, and the same act goes through.
@@ -316,14 +318,14 @@ describe('the mine’s four labour acts', () => {
     warren.addMember(here as unknown as Stuff & Container);
     ContainmentApi.move(actor as unknown as Stuff & Containable, here as unknown as Stuff & Container);
 
-    await run(SinkController, {}, here as unknown as Stuff, 'sink');
+    await run(SinkController as never, {}, here as unknown as Stuff, 'sink');
     await settle(300000);
     expect(warren.isCarved([0, 0, -2])).toBe(true);
     const down = here.getExit('down');
     expect(down).toBeTruthy();
     expect(down!.getMedia()).toContain('vertical');
 
-    await run(RaiseController, {}, here as unknown as Stuff, 'raise');
+    await run(RaiseController as never, {}, here as unknown as Stuff, 'raise');
     await settle(300000);
     expect(warren.isCarved([0, 0, 0])).toBe(true);
     expect(here.getExit('up')!.getMedia()).toContain('vertical');
