@@ -604,3 +604,10 @@ compound nouns ambiguous (`pot` ⊂ "potting soil" ⊂ "plot" — MQL's
 ships capacity but no soil (the pour-the-soil flow is the true first
 act — its prose should stop claiming otherwise); and dev-preflight's
 kill-by-kind reaches across worktrees.
+
+**Post-checkpoint ruling (2026-09-01):** the producer brain does NOT
+stay kernel — it ships in the pack, at
+`packages/content/trade-farming/src/behavior/farms.ts`, addressed
+`/trade/farming/behavior/farms` (the first shipped pack brain on the
+capability rung; P5's kernel placement is superseded). Stage B's farmer
+rows must name that path, never `/lib/behavior/farms`.

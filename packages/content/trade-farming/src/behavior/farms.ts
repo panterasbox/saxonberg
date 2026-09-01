@@ -1,5 +1,6 @@
 /**
- * `farms` brain — the producer beat: a farmer works their own ground and
+ * `farms` brain (`/trade/farming/behavior/farms` — the trade ships its
+ * own brain; the first pack brain on the capability rung) — the producer beat: a farmer works their own ground and
  * brings the take to the farmers market, all through the literal verbs.
  *
  * The roadmap's production brain, and the `consigns` shape grown a
@@ -38,19 +39,19 @@
  * `drawAmount` minor units (default 20).
  */
 
-import { MixinApi } from '../../api/mixin';
-import { StuffApi } from '../../api/stuff';
-import { CommandApi } from '../../api/command';
-import { AppApi } from '../../api/app';
-import { EmploymentApi } from '../../api/employment';
-import { AppSettingKeys } from '../config/AppSettings';
-import type { CommandGiver } from '../command/CommandGiver';
-import type { Cultivable } from '../husbandry/Cultivable';
-import type { Stuff } from '../stuff/Stuff';
-import type { Mobile } from '../spatial/Mobile';
-import type { Containable } from '../spatial/Containable';
-import type { Container } from '../spatial/Container';
-import type { BrainContext, BrainStatics } from './brain';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import { CommandApi } from '@saxonberg/server/mud/api/command';
+import { AppApi } from '@saxonberg/server/mud/api/app';
+import { EmploymentApi } from '@saxonberg/server/mud/api/employment';
+import { AppSettingKeys } from '@saxonberg/server/mud/lib/config/AppSettings';
+import type { CommandGiver } from '@saxonberg/server/mud/lib/command/CommandGiver';
+import type { Cultivable } from '@saxonberg/server/mud/lib/husbandry/Cultivable';
+import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { Mobile } from '@saxonberg/server/mud/lib/spatial/Mobile';
+import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
+import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
+import type { BrainContext, BrainStatics } from '@saxonberg/server/mud/lib/behavior/brain';
 
 const DEFAULT_BATCH = 6;
 const DEFAULT_ASK = 5;

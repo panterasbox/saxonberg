@@ -12,65 +12,65 @@
  * controller-tests-skip-the-binder), and banking rides the harness.
  */
 
-import '../../../../test-bootstrap';
+import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { brain as farms } from '../farms';
-import type { BrainContext } from '../brain';
-import WaterController from '../../../platform/idea/cmd/bulk/WaterController';
-import HarvestController from '../../../platform/idea/cmd/inventory/HarvestController';
-import ConsignController from '../../../platform/idea/cmd/retail/ConsignController';
-import WalletController from '../../../platform/idea/cmd/banking/WalletController';
-import Stock from '../../../platform/thing/Stock';
-import Plant from '../../../platform/thing/Plant';
-import Provision from '../../../platform/thing/Provision';
-import GardenBed from '../../../platform/thing/GardenBed';
-import Bottle from '../../../platform/thing/Bottle';
-import Coin from '../../../platform/thing/Coin';
-import BankCounter from '../../../platform/thing/BankCounter';
-import PaymentCard from '../../../platform/thing/PaymentCard';
-import ChattelRegistry from '../../../platform/idea/ChattelRegistry';
-import BusinessEntity from '../../../platform/idea/Business';
-import Material from '../../../lib/material/Material';
-import { Reserve } from '../../../lib/reserve';
+import type { BrainContext } from '@saxonberg/server/mud/lib/behavior/brain';
+import WaterController from '@saxonberg/server/mud/platform/idea/cmd/bulk/WaterController';
+import HarvestController from '@saxonberg/server/mud/platform/idea/cmd/inventory/HarvestController';
+import ConsignController from '@saxonberg/server/mud/platform/idea/cmd/retail/ConsignController';
+import WalletController from '@saxonberg/server/mud/platform/idea/cmd/banking/WalletController';
+import Stock from '@saxonberg/server/mud/platform/thing/Stock';
+import Plant from '@saxonberg/server/mud/platform/thing/Plant';
+import Provision from '@saxonberg/server/mud/platform/thing/Provision';
+import GardenBed from '@saxonberg/server/mud/platform/thing/GardenBed';
+import Bottle from '@saxonberg/server/mud/platform/thing/Bottle';
+import Coin from '@saxonberg/server/mud/platform/thing/Coin';
+import BankCounter from '@saxonberg/server/mud/platform/thing/BankCounter';
+import PaymentCard from '@saxonberg/server/mud/platform/thing/PaymentCard';
+import ChattelRegistry from '@saxonberg/server/mud/platform/idea/ChattelRegistry';
+import BusinessEntity from '@saxonberg/server/mud/platform/idea/Business';
+import Material from '@saxonberg/server/mud/lib/material/Material';
+import { Reserve } from '@saxonberg/server/mud/lib/reserve';
 import {
   PLANT_SLOT,
   SOIL_MOISTURE_RESERVE_KEY,
   SOIL_NITROGEN_RESERVE_KEY,
-} from '../../husbandry/Cultivable';
-import type { GrowthProfileData } from '../../husbandry/Growing';
-import { EmploymentApi } from '../../../api/employment';
-import { BankingApi } from '../../../api/banking';
-import { ContainmentApi } from '../../../api/containment';
-import { StuffApi } from '../../../api/stuff';
-import { MixinApi } from '../../../api/mixin';
-import { ExecutionContextApi } from '../../../api/execution-context';
-import { WorldClockApi } from '../../../api/worldclock';
-import { AdvancementApi } from '../../../api/advancement';
-import { PersistableApi } from '../../../api/persistable';
-import { CommandApi, type CommandContext } from '../../../api/command';
-import { Quantity } from '../../../lib/quantity';
-import { Document } from '../../../lib/persistence/Document';
-import { CommandDefinition } from '../../../lib/command/CommandDefinition';
-import { CommandGiverMixin } from '../../../lib/command/CommandGiver';
-import { EmployedMixin } from '../../../lib/employment/Employed';
-import { SensorMixin } from '../../../lib/message/Sensor';
-import { ContainerMixin } from '../../../lib/spatial/Container';
-import { ContainableMixin } from '../../../lib/spatial/Containable';
-import { MobileMixin } from '../../../lib/spatial/Mobile';
-import { NamedMixin } from '../../../lib/description/Named';
-import { Idea } from '../../../lib/stuff/Idea';
-import Location from '../../../lib/stuff/Location';
-import type { Stuff } from '../../../lib/stuff/Stuff';
+} from '@saxonberg/server/mud/lib/husbandry/Cultivable';
+import type { GrowthProfileData } from '@saxonberg/server/mud/lib/husbandry/Growing';
+import { EmploymentApi } from '@saxonberg/server/mud/api/employment';
+import { BankingApi } from '@saxonberg/server/mud/api/banking';
+import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
+import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { ExecutionContextApi } from '@saxonberg/server/mud/api/execution-context';
+import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
+import { AdvancementApi } from '@saxonberg/server/mud/api/advancement';
+import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
+import { CommandApi, type CommandContext } from '@saxonberg/server/mud/api/command';
+import { Quantity } from '@saxonberg/server/mud/lib/quantity';
+import { Document } from '@saxonberg/server/mud/lib/persistence/Document';
+import { CommandDefinition } from '@saxonberg/server/mud/lib/command/CommandDefinition';
+import { CommandGiverMixin } from '@saxonberg/server/mud/lib/command/CommandGiver';
+import { EmployedMixin } from '@saxonberg/server/mud/lib/employment/Employed';
+import { SensorMixin } from '@saxonberg/server/mud/lib/message/Sensor';
+import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
+import { ContainableMixin } from '@saxonberg/server/mud/lib/spatial/Containable';
+import { MobileMixin } from '@saxonberg/server/mud/lib/spatial/Mobile';
+import { NamedMixin } from '@saxonberg/server/mud/lib/description/Named';
+import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
+import Location from '@saxonberg/server/mud/lib/stuff/Location';
+import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import {
   makeStuff,
   makeStuffAtPath,
   withRootContext,
-} from '../../../lib/security/__tests__/test-setup';
-import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
+} from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
+import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import {
   installBankingHarness,
   teardownBankingHarness,
-} from '../../../lib/banking/__tests__/banking-test-harness';
+} from '@saxonberg/server/mud/lib/banking/__tests__/banking-test-harness';
 
 const GROVE = '/trade/farming/location/test-grove';
 const STALL = '/test/farm/market/stalls';
@@ -296,7 +296,7 @@ describe('the farms beat — tend, pick, sell, home', () => {
     // The literal verbs, dispatched onto the real controllers.
     lines = [];
     vi.spyOn(CommandApi, 'forceCommand').mockImplementation(
-      async (giver, text) => {
+      async (giver: unknown, text: string) => {
         if (text === 'sense') return;
         lines.push(text);
         const who = giver as unknown as Farmer;
