@@ -1,0 +1,44 @@
+collection: player_frames
+owner: none
+subsystem: record-layer.md
+summary: >-
+  The record layer's rolling window: the frames each player was actually
+  delivered.
+purpose: |
+  What the server remembers telling you. One row per delivered frame,
+  bounded per player by a frame COUNT with oldest-first eviction, and
+  searchable — `recall` reads this as one of its three corpora.
+
+  ⚠ Deliberately NOT an archive. A frame's value decays fast and its volume
+  does not, so the retention rule is a window rather than the mailbox model
+  clips get.
+invariants:
+  - >-
+    Owner-only reads. A player's frames are readable by that player and
+    nobody else.
+  - >-
+    Bounded per owner by frame count; eviction is lazy and oldest-first.
+  - >-
+    PASS(mark) under the sandbox, not STAMP — a frame delivered inside a
+    circle was genuinely delivered and genuinely read, and reverting your
+    own scrollback out from under you is the one thing a record of what
+    you were told must never do.
+sandbox:
+  verb: "pass"
+  mark: true
+reset: wipe
+indexes:
+  - keys: { owner: 1, seq: -1 }
+    why: |
+      The load-bearing one. `{owner, seq}` serves the backfill read (newest
+      N for one owner), the `recall` scan, AND the eviction delete (`seq <=
+      high - window`) — which is why bounding the window costs one indexed
+      range delete rather than a count-and-scan.
+  - keys: { owner: 1, body: "text" }
+    text: true
+    why: |
+      ⚠ COMPOUND on `owner` first, deliberately. Mongo allows one text index
+      per collection, and an equality prefix is the only way a per-owner
+      text search uses it: a bare `{body:'text'}` would scan every player's
+      frames and filter afterwards, which on the highest-volume collection
+      in the system is the difference between a query and a crawl.

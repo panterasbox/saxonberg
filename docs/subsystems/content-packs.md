@@ -1195,10 +1195,13 @@ a manifest declares which, so the script still says).
 - `packages/server/scripts/check-untitled-paths.ts` — `lint:untitled`.
 - `e2e/playwright.platform.config.ts` +
   `e2e/tests-platform/platform-only.spec.ts` — the platform-only boot.
-- `backend/PersistenceManager.ts` — the kind-scoped `documents` indexes,
-  the `pack_installs` policy + index; `lib/persistence/Collections.ts` —
-  the names; `lib/persistence/ResetPolicy.ts` — the declared kinds
-  survive the night.
+- `backend/PersistenceManager.ts` — the kind-scoped `documents` indexes
+  (a derived loop over `DOCUMENT_KINDS`, not an authored list);
+  `packages/server/src/schema/pack_installs.yaml` — that collection's
+  policy, index and description; `src/schema/documents.yaml` — the
+  declared kinds survive the night. ⚠ `lib/persistence/Collections.ts`
+  and `ResetPolicy.ts` are **generated** from `src/schema/`; edit the
+  YAML.
 - `packages/server/scripts/check-test-content.ts` +
   `test-content-allowlist.txt` — `lint:test-content`, the shrinking
   allowlist of kernel tests that still name shipped content.

@@ -7,6 +7,11 @@ help: |
   verb available to you right now. `help <verb>` shows the full entry
   for one command — what it does, how to phrase it, and examples.
 
+  Naming something that isn't a verb still works: `help bank_ledger`
+  shows how the world stores money — what the collection is for, what
+  is always true of it, what each of its indexes is there to make
+  fast, and what happens to it overnight.
+
   `?` and `h` are shortcuts for `help`.
 fallthrough: true
 args:

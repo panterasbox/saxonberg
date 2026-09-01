@@ -27,6 +27,7 @@ const HELP_KINDS: ReadonlySet<string> = new Set([
   "api",
   "mixin",
   "type",
+  "collection",
 ]);
 
 /** Emit a uniform {@link HelpErrorBody}. */

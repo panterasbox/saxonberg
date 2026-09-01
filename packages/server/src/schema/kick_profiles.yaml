@@ -1,0 +1,31 @@
+collection: kick_profiles
+owner: KickProfile
+ownerModule: /lib/identity/KickProfile
+subsystem: streaming.md
+summary: >-
+  The Kick OAuth profile behind an account, and the KickProfile provider's
+  store.
+purpose: |
+  One row per Kick identity, the third login provider and the third
+  streaming transport. Kick's transport is webhook-inbound rather than
+  socket-outbound, so this row is also where the webhook's identity resolve
+  lands.
+
+  Same posture as the other two provider records: separate from `users`,
+  token-bearing, encrypted at rest.
+invariants:
+  - >-
+    `kickUserId` is the stable identifier and is unique across the
+    collection.
+  - >-
+    Token fields are encrypted at rest by the field marshaller.
+  - >-
+    REFUSE under the sandbox — identity, like every provider record.
+sandbox: refuse
+reset: wipe
+indexes:
+  - keys: { kickUserId: 1 }
+    unique: true
+    why: |
+      The unique login key. `kickUserId` is the stable identifier the
+      returning-login resolve keys on.

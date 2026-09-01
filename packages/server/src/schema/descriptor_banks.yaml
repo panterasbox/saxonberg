@@ -1,0 +1,39 @@
+collection: descriptor_banks
+owner: DescriptorBank
+ownerModule: /lib/identification/DescriptorBank
+subsystem: magic-items.md
+summary: >-
+  The pools an unidentified magic item draws its appearance from — one bank
+  per item class.
+purpose: |
+  Immutable authored reference data: for each class of magic item, the bank
+  of descriptors ('a tarnished band', 'a rod of pitted iron') that an
+  unidentified instance derives its appearance from. Installed by the
+  `arcana` content pack — the pack that ships the item classes ships their
+  banks.
+
+  The `lint:descriptors` build check proves every bank disjoint from the
+  materials vocabulary in BOTH directions, because a collision is a parser
+  ambiguity rather than a style wobble.
+invariants:
+  - >-
+    One bank per `key` (the item class) — enforced unique.
+  - >-
+    Immutable at runtime: installed by a pack, never written from play.
+    REFUSE under the sandbox, because a sandboxed write would change what
+    every unidentified item in the world looks like.
+  - >-
+    Disjoint from the materials vocabulary, enforced by `pnpm
+    lint:descriptors`.
+sandbox: refuse
+reset:
+  verb: keep
+  because: |
+    pack-installed unidentified-appearance pools
+indexes:
+  - keys: { key: 1 }
+    unique: true
+    why: |
+      The by-key warm the appearance resolver does at boot. Unique because a
+      class with two banks has no answer to 'what does an unidentified one
+      of these look like'.

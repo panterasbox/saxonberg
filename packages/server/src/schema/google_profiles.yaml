@@ -1,0 +1,36 @@
+collection: google_profiles
+owner: GoogleProfile
+ownerModule: /lib/identity/GoogleProfile
+subsystem: connection.md
+summary: >-
+  The Google OAuth profile behind an account, stored apart from it.
+purpose: |
+  One row per Google identity that has ever signed in. It is kept separate
+  from `users` for the reason every provider is: the account is the durable
+  thing and the provider record is a detail of one way of proving you are
+  it. A person who links a second provider gains a row here, not a second
+  account.
+
+  Token-bearing fields are encrypted at rest via the marshaller seam.
+invariants:
+  - >-
+    `googleId` is Google's stable subject identifier and is unique across
+    the collection.
+  - >-
+    Written only by the auth spine
+    (`Application.findOrCreateUserFromGoogle`); nothing in play reaches
+    it.
+  - >-
+    REFUSE under the sandbox — identity, like every provider record.
+sandbox: refuse
+reset: wipe
+indexes:
+  - keys: { googleId: 1 }
+    unique: true
+    why: |
+      The unique login key. `googleId` is Google's stable subject id, and
+      two rows claiming it would mean two accounts for one person.
+  - keys: { email: 1 }
+    why: |
+      Email lookup — the operator-side 'who is this' read. Deliberately not
+      unique: Google's email is mutable and its subject id is not.

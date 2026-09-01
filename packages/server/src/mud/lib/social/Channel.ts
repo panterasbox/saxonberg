@@ -28,6 +28,7 @@
 
 import { Document } from '../persistence/Document';
 import type { FieldMeta } from '../mixin';
+import { Collections } from '../persistence/Collections';
 
 export type ChannelKind = 'player-created' | 'open-join-standalone';
 
@@ -39,7 +40,7 @@ export type ChannelKind = 'player-created' | 'open-join-standalone';
 export type ChannelProcedure = 'open' | 'ordered';
 
 export class Channel extends Document {
-  static collectionName = 'channels';
+  static collectionName = Collections.Channels;
   static fieldMeta: FieldMeta = {
     name: { persistent: true },
     kind: { persistent: true },

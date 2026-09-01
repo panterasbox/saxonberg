@@ -1,0 +1,25 @@
+collection: producer
+owner: ProducerStanding
+ownerModule: /lib/standing/ProducerStanding
+subsystem: influence.md
+summary: >-
+  The materialized per-author producer standing — a rebuildable cache.
+purpose: |
+  The read-side aggregate over `producer_events`. The row's `subject` is the
+  author and `scope` is the Compact-wide `*`, which keeps the shape
+  identical to the renown and participation caches so the three roll up
+  through one seam.
+invariants:
+  - >-
+    Fully rebuildable from `producer_events`.
+  - >-
+    SHADOW(skip) under the sandbox.
+sandbox:
+  verb: "shadow"
+  mode: "skip"
+reset: wipe
+indexes:
+  - keys: { subject: 1, scope: 1 }
+    why: |
+      The upsert key and the `warm()` load shape — `subject` is the author
+      here, scope the Compact-wide `*`.

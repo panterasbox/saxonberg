@@ -139,6 +139,21 @@ export class HelpApi {
     )[0] ?? null;
   }
 
+  /** Resolve a collection topic by name (`bank_ledger`), or `null`. */
+  static collectionTopic(
+    name: string,
+    viewer: HelpViewer = FLOOR
+  ): HelpTopic | null {
+    const cat = catalogue();
+    if (!cat) return null;
+    const topic = cat.findCollectionTopic(name);
+    return HelpApi.applyFilter(
+      topic ? [topic] : [],
+      (t) => t.spoiler,
+      viewer
+    )[0] ?? null;
+  }
+
   /** Resolve an api/mixin/type topic by id / `Type.member` / bare name. */
   static apiTopic(
     target: string,

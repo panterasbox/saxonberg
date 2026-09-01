@@ -10,6 +10,7 @@
 import { Document } from '../persistence/Document';
 import type { GoogleProfile as IGoogleProfile } from '@saxonberg/types';
 import type { FieldMeta } from '../mixin';
+import { Collections } from '../persistence/Collections';
 
 /**
  * Google OAuth profile data (persistent). A Document — plain persisted
@@ -19,7 +20,7 @@ export class GoogleProfile extends Document implements IGoogleProfile {
   /**
    * MongoDB collection name.
    */
-  static collectionName = 'google_profiles';
+  static collectionName = Collections.GoogleProfiles;
 
   /**
    * Persistent fields for auto-sync.

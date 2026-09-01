@@ -1,0 +1,32 @@
+collection: twitch_profiles
+owner: TwitchProfile
+ownerModule: /lib/identity/TwitchProfile
+subsystem: connection.md
+summary: >-
+  The Twitch OAuth profile behind an account, and the relay's token store.
+purpose: |
+  One row per Twitch identity. Beyond login it carries the relay's
+  credentials — the scopes the EventSub reader spends — which is why it is a
+  token-bearing record and encrypted at rest.
+
+  Twitch is both a login provider and a streaming transport; the row serves
+  both, and the reauth flow rewrites it in place rather than minting a
+  second.
+invariants:
+  - >-
+    `twitchUserId` is the stable Helix identifier and is unique across the
+    collection.
+  - >-
+    Token fields are encrypted at rest by the field marshaller; a
+    plaintext token in this collection is a bug.
+  - >-
+    REFUSE under the sandbox — identity, like every provider record.
+sandbox: refuse
+reset: wipe
+indexes:
+  - keys: { twitchUserId: 1 }
+    unique: true
+    why: |
+      The unique login key. `twitchUserId` is the stable Helix identifier
+      the returning-login resolve keys on — the display name is not stable
+      and must never be the key.

@@ -42,6 +42,7 @@ import { MixinApi, type AnyConstructor } from '../../api/mixin';
 import type { BlueprintKind } from '@saxonberg/types';
 import type { FieldMeta } from '../mixin';
 import type { StoredDocument } from '../document/StoredDocument';
+import { Collections } from '../persistence/Collections';
 
 /** The curated document shape (`data` of a `kind: 'blueprint'` row). A type alias, not an interface, so it is assignable to the store's `Record<string, unknown>` data. */
 export type CuratedBlueprintData = {
@@ -57,7 +58,7 @@ export type CuratedBlueprintData = {
 };
 
 export class Blueprint extends Document {
-  static collectionName = 'blueprints';
+  static collectionName = Collections.Blueprints;
   static fieldMeta: FieldMeta = {
     blueprintId: { persistent: true },
     signature: { persistent: true },

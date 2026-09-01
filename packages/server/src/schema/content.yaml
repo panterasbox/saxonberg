@@ -1,0 +1,47 @@
+collection: content
+owner: Template
+ownerModule: /lib/stuff/Template
+subsystem: templates.md
+summary: >-
+  The template tree — every authored row the world is cloned from.
+purpose: |
+  The templates collection: one row per template path, holding the `class:`,
+  the `data:` block the Hydrator applies, and (for pack-installed rows) the
+  `sourcePack` stamp that tells the installer's three-way reconcile which
+  baseline to compare against.
+
+  ⚠ Unrelated to the `domain` command *category*. And a template ROW is a
+  hydration source for AUTHORED content only — a minted identity backs onto
+  `holder_snapshots`, a purpose Document, or nothing, never a per-instance
+  row here.
+invariants:
+  - >-
+    One document per `path` — enforced by a unique index, because the
+    boot-time clone pipeline assumes it.
+  - >-
+    Pack-installed rows carry `sourcePack`; CMS-authored rows do not, and
+    there is no other discriminator between them.
+  - >-
+    Writes go through the pack installer or the CMS save path; both run
+    under the folder/leaf invariant hook.
+  - >-
+    PASS under the sandbox: authored truth. A circle session that may edit
+    a room template edits the real template, and the parcel-title gate is
+    what governs that — not the circle.
+sandbox: pass
+reset:
+  verb: keep
+  because: |
+    the world itself; the seeder is insert-only and runs at boot
+indexes:
+  - keys: { path: 1 }
+    unique: true
+    why: |
+      Every Template carries a `path`, and the seeder plus the boot-time
+      clone pipeline both assume one document per path. Without this index,
+      concurrent `PackApi.install` invocations (two tsx-watch processes
+      racing in dev) double-insert, and `BootstrapManager.run` crashes with
+      a duplicate-templatePath error on the NEXT boot — a failure one
+      process away from where it was caused. An existing duplicate makes
+      this index creation throw E11000, which the outer catch logs without
+      crashing: loud, admin-fixable, and at the right moment.

@@ -1,0 +1,57 @@
+collection: documents
+owner: StoredDocument
+ownerModule: /lib/document/StoredDocument
+subsystem: document-store.md
+summary: >-
+  The third path-addressed tree: kind-tagged documents, from press releases
+  to command views.
+purpose: |
+  The document store — one row per path, each tagged with a kind from the
+  closed `DocumentKinds` vocabulary: `msh` scripts, `release` bulletins, and
+  the pack-installed kinds (`emote`, `recipe`, `name-bank`, `blueprint`,
+  `command-view`). Writes are gated by parcel title at the path
+  (`AccessApi.canAtPath`); the `command-view` kind additionally needs code-
+  trust.
+
+  Releases live here rather than in a collection of their own: they are
+  owner-scoped content with a place, and nobody queries them across
+  jurisdictions.
+invariants:
+  - >-
+    One document per path — enforced at the write (find-or-create), NOT by
+    a unique index. See the `path` index's note.
+  - >-
+    `kind` is always a member of the closed `DocumentKinds` vocabulary.
+  - >-
+    A write is authorized by parcel title over the path; there is no
+    author tier.
+  - >-
+    PASS under the sandbox, with `content`: authored truth, governed by
+    title rather than by scope.
+sandbox: pass
+reset:
+  verb: wipe-except
+  keep: declared-document-kinds
+  because: |
+    published press releases — the front door reads them without an account,
+    and the gazette design requires bulletins to outlive the night they were
+    published; and every DECLARED document kind (emotes, recipes, name
+    banks, blueprints, msh scripts, command views) — pack-installed world
+    content (the expression / generic-objects / species-and-names / platform
+    / saxonberg-lounge packs), reference data not player state; wiping it
+    would empty the soul vocabulary at 04:00 until a reboot re-installed it
+indexes:
+  - keys: { path: 1 }
+    why: |
+      `path` serves find-or-create and the prefix walk — the two shapes
+      every read of this tree takes.
+
+      ⚠ Deliberately NOT unique even though one document per path IS the
+      invariant: this collection predates the release move, and a unique
+      index that a live row violates fails at BOOT — the worst possible
+      moment and the hardest place to see why. The invariant is enforced at
+      the write instead, where a violation is visible and fixable.
+  - keys: { kind: 1 }
+    why: |
+      `kind` serves the warm-window rebuild that replaced the retired
+      `bulletins` scan, and every per-kind installer read.

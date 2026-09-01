@@ -85,7 +85,12 @@ const SURFACE: AuthorSurface = {
 
 async function warmed(): Promise<HelpCatalogue> {
   const cat = makeStuff(() => new HelpCatalogue());
-  await cat.warm({ commandDefs: COMMANDS, surface: SURFACE });
+  // `schema: []` — the collection projector has its own file; this one
+  // is about the command and api projectors, and loading 48 docs plus
+  // their owner classes here would be cost with no assertion. Empty
+  // rather than `null` so the degrade WARNING stays this file's other
+  // test's business.
+  await cat.warm({ commandDefs: COMMANDS, surface: SURFACE, schema: [] });
   return cat;
 }
 
@@ -198,7 +203,7 @@ describe("HelpCatalogue", () => {
   it("degrades when author-surface is absent (one warning, no api topics)", async () => {
     const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
     const cat = makeStuff(() => new HelpCatalogue());
-    await cat.warm({ commandDefs: COMMANDS, surface: null });
+    await cat.warm({ commandDefs: COMMANDS, surface: null, schema: [] });
 
     expect(cat.getTopic("command.look")).not.toBeNull(); // commands unaffected
     expect(cat.listByKind("mixin")).toEqual([]);

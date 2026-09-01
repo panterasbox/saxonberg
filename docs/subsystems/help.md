@@ -45,8 +45,8 @@ request/response DTOs (`HelpIndexResult` / `HelpKindListResult` /
 `/platform/idea/HelpCatalogue` is a singleton `Idea`+`PostRegistrationMixin`
 (bootstrap-manifest entry, no `dependsOn`), warming in `postRegister` —
 the `TopicCatalogue` / `RecipeCatalogue` precedent. The index is
-**harvested**: `warm()` *pulls* two projectors. No content-side hook ever
-pushes a topic in (the substrate-no-content-hooks rule).
+**harvested**: `warm()` *pulls* three projectors. No content-side hook
+ever pushes a topic in (the substrate-no-content-hooks rule).
 
 `warm(opts?)` is injectable so unit tests drive the projectors without
 disk or boot:
@@ -55,6 +55,8 @@ disk or boot:
   filename-keyed cache — a new Api accessor over `CommandLogic`).
 - `surface` `undefined` → load `author-surface.json` from disk; `null` →
   simulate absent (degrade); an object → use it.
+- `schema` follows the same three-state convention over the authored
+  schema docs in `src/schema/`.
 
 It holds `Map<id, HelpTopic>` plus a `byKind` index (kind → ids, sorted by
 title). The catalogue's read methods are **ungated** (help is
@@ -93,6 +95,45 @@ registry, emitting three graded kinds:
 
 Classification: a name is `mixin` iff `'<Name>Mixin'` ∈ the registry; `api`
 iff it ends in `Api` and lives under `mud/api/`; else `type`.
+
+### Collections projector — the persistence layer, readable
+
+One `HelpTopic` per authored schema doc (`src/schema/<collection>.yaml`,
+one per Mongo collection — see
+[persistence.md § Collections](./persistence.md)). `id =
+collection.<name>`, `kind = 'collection'`, `subdivision = 'persistence'`.
+
+The body is assembled from the doc's `purpose` and `invariants`, the
+**fields harvested from the owner class's `fieldMeta`**, every index with
+its authored `why`, and **both policies rendered in plain words**:
+
+> Inside a sandbox circle, a write here is STAMPED with the circle: it
+> happens for real while you are in there, field reads never see it, and
+> leaving the circle discards it.
+>
+> The nightly reset EMPTIES this collection.
+
+— never `{ verb: 'stamp' }`. The point of the whole build is that a
+person can read it.
+
+⭐ **The field list is harvested, never restated.** The schema doc carries
+no fields; the projector resolves the doc's `ownerModule` through
+`StuffApi.loadClassByPath` and reads `MixinApi.getAllFieldMeta` off the
+class. Adding a persistent field to `LedgerEntry` changes
+`help bank_ledger` with no edit to `bank_ledger.yaml`. A resolve that
+fails degrades to no field list rather than no topic — the purpose and
+the invariants are still worth reading.
+
+⚠ **Spoiler flag `false`** for every collection topic. How the world
+remembers things is not a secret, and the capability floor this cycle is
+anonymous.
+
+The `help` verb reaches these through the **bare fallthrough**, in the
+order command → collection → api: `help bank_ledger` works, and a verb
+wins over a collection of the same name (so `help wiki` is the verb;
+`help collection.wiki` is the collection). `help verb <name>` stays
+strict and does not fall through — asking for a verb by that name should
+say the verb does not exist, not wander off into the persistence layer.
 
 ## The enriched `author-surface.json` pipeline
 
@@ -144,6 +185,13 @@ not a flat see-also list. Each edge denormalizes its `targetTitle`:
   (`ContainableStuff`) rather than a bare mixin name, the edge simply
   doesn't fire; the topic still exists.
 - **see-also** — the catch-all: remaining same-module siblings.
+
+A collection topic gets one derived `see-also`: the **Api face of its
+owning subsystem**, computed from `subsystem: banking.md` →
+`api.BankingApi`, because a subsystem doc and its Api face are named for
+the same concept. The owner-class edge beside it is usually dormant — a
+`Document` subclass is not Stuff and not an Api, so it has no topic of
+its own to point at.
 
 ## The capability floor — a real seam, single chokepoint
 
@@ -236,7 +284,9 @@ built here.
 | DTOs | `packages/types/src/index.ts` (Help block) |
 | Enriched projection + signature renderer | `packages/server/scripts/project-author-surface.ts` |
 | Command roster accessor | `mud/api/command.ts` + `mud/platform/idea/api/CommandLogic.ts` (`allDefinitions`) |
-| Index singleton + two projectors | `mud/platform/idea/HelpCatalogue.ts` |
+| Index singleton + three projectors | `mud/platform/idea/HelpCatalogue.ts` |
+| Collection topics' source | `packages/server/src/schema/*.yaml` + `mud/lib/persistence/SchemaDoc.ts` (the parser) |
+| Directory read for them | `SourceTreeApi.listResource` + `readYamlResource` |
 | Read chokepoint + capability filter | `mud/api/help.ts` |
 | REST surface | `backend/HelpRoutes.ts` (mounted in `services/Server.ts`) |
 | Verb | `content/platform/cmd/system/help.yaml` + `mud/platform/idea/cmd/system/HelpController.ts` |
