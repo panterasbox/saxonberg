@@ -17,7 +17,8 @@ import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import MineWarren from '../MineWarren';
 import Deposit from '../Deposit';
-import Working from '../../location/Working';
+import MineRoom from '../../location/MineRoom';
+import type { Working } from '../../location/Working';
 import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
 import Material from '@saxonberg/server/mud/platform/idea/material/Material';
 import ToolItem from '@saxonberg/server/mud/platform/thing/ToolItem';
@@ -44,7 +45,7 @@ const ZONE = '/world/fx-mine/mine';
 const DEPOSIT = '/world/fx-mine/idea/deposit/fx';
 const WARREN = '/world/fx-mine/idea/fx-warren';
 const ADIT = '/world/fx-mine/location/adit';
-const WORKING_CLASS = '/trade/mining/location/Working';
+const WORKING_CLASS = '/trade/mining/location/MineRoom';
 const TYPE_ROWS = {
   face: '/world/fx-mine/location/face',
   junction: '/world/fx-mine/location/junction',
@@ -168,8 +169,8 @@ async function mine(): Promise<{ warren: MineWarren; zone: CartesianZone; deposi
 }
 
 /** A hand-authored working — ⭐ NO warren, and every read still answers. */
-function staticWorking(zone: CartesianZone, cell: Cell): Working {
-  const room = makeStuff(() => new Working());
+function staticWorking(zone: CartesianZone, cell: Cell): MineRoom {
+  const room = makeStuff(() => new MineRoom());
   zone.addLocation(room as unknown as never, cell[0], cell[1], cell[2]);
   return room;
 }
@@ -399,7 +400,7 @@ describe('the mine — reads on the space, mutation on the warren', () => {
     seedMaterials();
     const zone2 = makeStuffAtPath(() => new CartesianZone(), ZONE);
     zone2.setCellSize(10);
-    const revived = makeStuff(() => new Working());
+    const revived = makeStuff(() => new MineRoom());
     stampTemplatePathForTest(revived, TYPE_ROWS.face);
     zone2.addLocation(revived as unknown as never, 0, 1, -1);
     await PersistableApi.materialize(revived, key);

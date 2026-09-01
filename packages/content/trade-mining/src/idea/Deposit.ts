@@ -329,9 +329,20 @@ export default class Deposit extends Idea {
     }
     if (pin?.grade !== undefined) grade = clamp01(pin.grade);
 
+    // ⭐ Ore-bearing rock is SOFTER, and that is a real fact rather than a
+    // dial: malachite is Mohs 3.5–4 against slate's 3 and granite's 6, and
+    // a seam blends its own hardness into the host in proportion to grade.
+    // So cutting ore is cheaper than cutting barren country rock, which is
+    // exactly the incentive a miner should feel in his arms.
+    const hostHardness = hardnessOf(hostPath);
+    const hardnessMPa =
+      grade > 0 && mineralPath
+        ? hostHardness * (1 - grade) + hardnessOf(mineralPath) * grade
+        : hostHardness;
+
     return {
       hostPath,
-      hardnessMPa: hardnessOf(hostPath),
+      hardnessMPa,
       inLode: inLode || pin?.mineral !== undefined || (pin?.grade ?? 0) > 0,
       mineralPath: grade > 0 ? mineralPath : null,
       ganguePath: grade > 0 ? ganguePath : null,

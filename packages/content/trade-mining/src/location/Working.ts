@@ -54,9 +54,6 @@
  * `WorkingMixin` over a room class of its own.
  */
 
-import CartesianLocation from '@saxonberg/server/mud/platform/location/CartesianLocation';
-import { PersistableMixin } from '@saxonberg/server/mud/lib/persistence/Persistable';
-import { WarrenMemberMixin } from '@saxonberg/server/mud/lib/location/WarrenMember';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { AddressApi } from '@saxonberg/server/mud/api/address';
@@ -134,8 +131,15 @@ const BAD_BELOW = 0.35;
 const WORKING_BELOW = 0.55;
 /** Hardness at which ground contributes its full share (granite). */
 const GROUND_REFERENCE_MPA = 200;
-/** What one open neighbour costs. Eight open cells is a stope, and a stope wants timber. */
-const SPAN_COST = 0.11;
+/**
+ * What one open neighbour costs.
+ *
+ * Calibrated so the two rocks say different things: a through-drift in
+ * slate (two open sides) stands but is WORKING — the free telegraph — and
+ * a junction (four) refuses without timber, while the same junction in
+ * granite is sound. Competent rock holds itself up; soft rock does not.
+ */
+const SPAN_COST = 0.06;
 /** What one pristine timber set is worth. */
 const SET_WORTH = 0.3;
 /** The most support timber can contribute, however much you stack in. */
@@ -148,6 +152,40 @@ const AIR_REACH = 12;
 
 /** How many lumps a fresh face holds before it is worked out. */
 const FACE_LUMPS = 8;
+
+/**
+ * The public shape {@link WorkingMixin} provides — what a *working*
+ * affords, whether it was carved or hand-authored. Consumers narrow with
+ * `MixinApi.isActive(room, WORKING_MIXIN)` and speak this.
+ */
+export interface Working {
+  getBackPhrases(): readonly string[];
+  getSeamPhrases(): readonly string[];
+  getAirPhrases(): readonly string[];
+  getGroundPhrases(): readonly string[];
+  /** The ore row a cut from this working mints — locality content. */
+  getOreRow(): string;
+  getWorkedFaces(): Readonly<Record<string, number>>;
+  /** Record `lumps` won from `direction`. The only writer of the depletion. */
+  recordWinning(direction: string, lumps: number): void;
+  /** This working's grid cell. */
+  getCell(): Cell;
+  /** A cell converted to the deposit's metres, through the zone's `cellSize`. */
+  metresOf(cell: Cell): Point;
+  getDeposit(): Promise<Deposit | null>;
+  getGroundSeed(): Promise<number>;
+  sampleHere(): Promise<GroundSample | null>;
+  /** `spine` on a room with no warren — authored ground does not grow. */
+  getTier(): WorkingTier;
+  /** Every direction out, and what is behind it. */
+  facesOf(): Promise<Face[]>;
+  /** `f(span, ground, support, water)` — a threshold, never a roll. */
+  stabilityAt(): Promise<Stability>;
+  /** Condition-weighted timber support standing in this room. */
+  supportHere(): number;
+  /** 1 fresh … 0 unbreathable, by distance along the carved graph. */
+  airAt(): Promise<number>;
+}
 
 export function WorkingMixin<TBase extends MixinConstructor<Stuff & Container>>(Base: TBase) {
   return class WorkingMixin extends Base {
@@ -166,6 +204,7 @@ export function WorkingMixin<TBase extends MixinConstructor<Stuff & Container>>(
       // Provisional one loses them along with the room, which is exactly
       // right. Nothing about it needs a warren.
       workedFaces: { persistent: true },
+      oreRow: { persistent: true, authorable: true },
     };
 
     /** How the back reads here — one is drawn by the cell seed. */
@@ -180,6 +219,13 @@ export function WorkingMixin<TBase extends MixinConstructor<Stuff & Container>>(
     /** Direction → lumps already won from that face. */
     protected workedFaces: Record<string, number> = {};
 
+    /**
+     * The ore row a cut from this working mints. ⭐ LOCALITY content: what
+     * comes out of Rejection's ground is Rejection's fact, and a second
+     * mine names its own row without touching this pack.
+     */
+    protected oreRow: string = '';
+
     public getBackPhrases(): readonly string[] { return this.backPhrases; }
     public setBackPhrases(v: string[]): void { this.backPhrases = v ?? []; }
     public getSeamPhrases(): readonly string[] { return this.seamPhrases; }
@@ -188,6 +234,9 @@ export function WorkingMixin<TBase extends MixinConstructor<Stuff & Container>>(
     public setAirPhrases(v: string[]): void { this.airPhrases = v ?? []; }
     public getGroundPhrases(): readonly string[] { return this.groundPhrases; }
     public setGroundPhrases(v: string[]): void { this.groundPhrases = v ?? []; }
+
+    public getOreRow(): string { return this.oreRow; }
+    public setOreRow(v: string): void { this.oreRow = v; }
 
     public getWorkedFaces(): Readonly<Record<string, number>> { return this.workedFaces; }
     public setWorkedFaces(v: Record<string, number>): void { this.workedFaces = v ?? {}; }
@@ -391,21 +440,6 @@ export function WorkingMixin<TBase extends MixinConstructor<Stuff & Container>>(
       return 0;
     }
   };
-}
-
-/**
- * The concrete face the four type rows name. A locality supplies the
- * prose, the coordinates and the zone; the class supplies the reads.
- *
- * `PersistableMixin` composes **outermost** (the host rule) over
- * `WarrenMember` — a Held working must keep its contents across a
- * restart, and it does so under a per-instance key
- * (`<claimExtent>/<cell>`), never under the shared row scope.
- */
-const WorkingBase = PersistableMixin(WarrenMemberMixin(WorkingMixin(CartesianLocation)));
-
-export default class Working extends WorkingBase {
-  static fieldMeta: FieldMeta = {};
 }
 
 /** Does this room have a way OUT of the workings — or say it breathes? */

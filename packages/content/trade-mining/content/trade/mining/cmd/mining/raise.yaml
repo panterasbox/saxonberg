@@ -1,0 +1,13 @@
+verbs: [raise]
+controller: /trade/mining/idea/cmd/mining/RaiseController
+description: "Raise — drive a working upward"
+help: |
+  `raise` cuts the next working straight up: the cheap direction, because
+  the broken rock falls to you instead of being lifted.
+
+  ⭐ A raise that meets a level above it holes the workings through, and
+  that is the cheapest ventilation there is.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
