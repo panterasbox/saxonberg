@@ -202,6 +202,20 @@ taken** (P12).
 
 ### P1 — A pack CANNOT contribute a subcommand to a platform verb
 
+> ⚠ **REVISITED 2026-09-01 — the finding stands, the workaround may not
+> be needed.** The user reopened the `measure`/`analyze` model, and
+> [instrumentation-slate](../slates/builds/instrumentation-slate.md)
+> § *Session addendum* diagnoses the root cause this decision runs into:
+> **the unit of affordance is the VIEW and the unit of capability is the
+> SUBCOMMAND.** Under the model captured there — an instrument declares
+> its own channels and `measure` becomes one verb with a string
+> positional (the `cast <spell>` shape, no subcommands) — **mining ships
+> a dial and the platform pack is not touched at all.** That retires this
+> decision's wart and Risk R4 with it. **If the `analyze` retrofit lands
+> before wave M7, use it; the rest of this plan is unaffected either
+> way.** What follows remains correct as the answer *within* today's
+> subcommand model.
+
 **Resolved against the code; the answer is no, and the reason is
 structural rather than a missing feature.**
 
