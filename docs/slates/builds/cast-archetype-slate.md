@@ -9,6 +9,14 @@ an identity question:
 > functions the same', we want something like that but for the npc
 > personality/history/etc profile."**
 
+Two later turns folded in: the char-gen integration (which turned out to
+be the anchor, not an adjacency), and the deviation model —
+
+> **User: "one thing I think we might want to model is not just
+> archetypes, but then also like deviations from that archetype. so
+> everything can participate in the archetype game but then deviations
+> get modelled explicitly on top of that."**
+
 > **Status: design conversation, captured. Not requirements.**
 
 Related: [behavior.md](../../subsystems/behavior.md) (**the shipped
@@ -374,17 +382,18 @@ Two roles not written here (`counter`, `venue-staff`) plus these six cover
 not pure" case working as intended: the abstraction's job is to not be in
 the way.
 
-## ⭐ The finding this exercise produced: overrides must SUPPRESS
+## ⭐ The finding this exercise produced: a row must be able to SUPPRESS
 
 Bram Tull carries `sociability: 50` and **no diligence** — a cheerful
 hand, not a diligent one. So a row-level disposition must be able to
-*replace* an archetype's line, not merely add to it.
+*replace* an archetype's line, not merely add to it. Pure summing is not
+enough.
 
-**Pure summing is not enough.** This is the one mechanism the drafting
-exercise surfaced that the design had not identified, and it is the only
-place composition needs a rule.
-
----
+> ⭐⭐ **This is subsumed by deviations (below).** Bram is not "steady with
+> an override" — Bram is *a Hand, of the Steady kind, deviating: cheerful,
+> and without the usual grind.* Suppression is one direction of a
+> deviation, not a separate mechanism. Recorded here because it is what
+> made the deviation model necessary.
 
 # ⚠⚠ The deed-row hazard (a prerequisite, not a footnote)
 
@@ -447,26 +456,178 @@ Cheap to measure, and it reports early.
 
 ---
 
-# ⭐ The missing axis: kit
+# ⭐⭐⭐ Char-gen already built this, for one kind, and shipped it
 
-Gus is a TypeScript class for one reason, stated in his own header: **a
-character cannot be authored wearing anything.** `populates:` composes
-only on rooms, and worn/wielded occupancy is deliberately runtime-only.
-The supported pattern is `Avatar.installDefaultLoadout` — a `postRegister`
-hook, i.e. code.
+**The integration question answers itself: `aspiration` is an archetype.**
 
-So `kit` is a candidate third closed kind: a declarative
-"boots wearing/wielding/carrying these" bundle, expanded at `postRegister`
-through the same path the Avatar loadout already uses. It would retire at
-least one bespoke class, and a sentry-in-a-uniform is otherwise a class
-every time.
+```ts
+interface AspirationRosterEntry {
+  key: string;
+  label: string;
+  description: string;
+  bioSeed: string;
+  claimSeeds?: { text: string; order: number }[];
+  outfit: string[];
+  image?: string;
+}
+```
 
-**Not resolved here.** Two questions block it: whether kit is an archetype
-kind or a separate `populates:`-for-agents feature, and whether a *prop's*
-kit is re-minted per instance (probably yes — kit is runtime state, which
-is exactly why it is not persisted today).
+| aspiration (shipped) | this slate |
+|---|---|
+| `key` / `label` / `description` | the archetype row + `summary` |
+| `bioSeed` | `voice:` — the prose face |
+| `claimSeeds` | seeded claim evidence |
+| **`outfit`** | **`kit`** |
+
+Same structure. Different name, player-side, one kind.
+
+## ⚠⚠ The expander exists — and is already duplicated
+
+`EnrollController.commit` step 5 performs exactly an archetype expansion:
+clone each garment, `ContainmentApi.move`, `getSlotClaim`,
+`SlotApi.occupyAll`, skipping tolerantly on mismatch — then
+`ChronicleApi.seedClaims(avatar, aspiration.claimSeeds)`.
+
+**`Login.ts:298` does the same loop again** for the anonymous-guest path.
+
+Two copies of one sequence. ⭐ **Extracting it into a general expander is
+this build's first move, and it pays for itself before any NPC uses it.**
+
+## Which dissolves the kit problem
+
+Gus's header states *"there is no declarative seed path to put gear on a
+creature."* True from where he stands, false about the codebase —
+`outfit: string[]` **is** that path. It is trapped inside a char-gen
+controller and unreachable from a template row.
+
+So `kit` is not a new axis to design. It is an existing mechanism that
+needs a caller other than `enroll`.
+
+## ⭐⭐ And the procedural selector already ships
+
+`Login.ts:244`:
+
+```ts
+const aspiration = pickRandom(cfg.aspirations);
+```
+
+The anonymous-guest path **draws an archetype at random and applies it**,
+in production, today. So "procedural NPC generation" is the same expander
+with a different selector:
+
+| selector | who chooses | shipped? |
+|---|---|---|
+| **authored** | the NPC template's `archetypes: [...]` | this build |
+| **picked** | `enroll aspiration <key>` | ✅ |
+| **drawn** | `pickRandom` over the roster | ✅ (guests) |
+
+Three selectors, one expansion. The `NameBank` suggester is already the
+same story for names: Petra Volkova and Ilse Marrow read hand-picked, but
+a `hand` role could draw from a bank exactly as species do.
+
+## The distinction to keep
+
+Char-gen fields are a **superset** of archetype kinds. `species`, `sex`,
+`name`, `pronouns` are **atomic picks** — not archetypes, and they should
+not become them. Only `aspiration` is archetype-shaped.
+
+⭐ That tells you what adding `role` or `temperament` to char-gen costs:
+**one `FIELDS` table entry each.** The payload is projected from that
+table and the client holds no field list, so a new archetype kind reaches
+the player with zero client work. That property was built deliberately in
+the Arrival build; this is what it was built for.
+
+⚠ **Do not conflate the two ledgers.** Aspiration seeds **chronicle**
+claims (`ChronicleApi.seedClaims`); temperaments seed **trait** claims
+(`TraitApi.seedClaims`). Two ledgers, two seeders, one pattern. A unified
+expander fans into both and keeps them distinct.
+
+## It also makes lineage legible
+
+[lineage-slate](./lineage-slate.md) has species and aspiration demoting
+from *fields* to *filters*, a point budget appearing, and a gallery of
+households. In these terms: **a household is an archetype bundle**
+(origin + kit + starting claims), the gallery is an archetype picker, and
+the budget is a **cost on archetype selection**.
+
+So lineage is not a replacement for char-gen so much as char-gen with a
+richer archetype vocabulary and a constrained selector — a much smaller
+build than "replace intake."
 
 ---
+
+# ⭐⭐⭐ Deviations — everything participates, and the delta is the character
+
+Archetypes alone make everyone a type. The second half of the model is
+that **deviation from the archetype is modelled explicitly**, so
+everything can play the archetype game while still being someone.
+
+```yaml
+archetypes: [/stuff/role/hand, /stuff/temperament/steady]
+deviations:
+  - { disposition: sociability, valence:  50, note: "cheerful; not the usual grind" }
+  - { disposition: diligence,   suppress: true }
+```
+
+A deviation is a **declared delta with a reason**. It is not an override
+that happens to differ — it is the thing that says *this one is not like
+the others, and here is how.*
+
+## Why it is worth modelling rather than leaving implicit
+
+- **It is how people describe characters.** "A barkeep, but terrified of
+  the dark." The deviation is the hook; the archetype is the setup.
+- **It is what an LLM should lean into.** *"You are the Anchor, except
+  unusually curious"* prompts far better than a flat five-axis dump.
+- ⭐ **It subsumes suppression.** Additive and suppressive deviations are
+  one concept, so the Bram finding needs no separate mechanism.
+- ⭐⭐ **It gives procedural generation its dial.** *Generate a Hand with
+  one deviation* produces variety without a new archetype. 6 roles × 10
+  temperaments × a small deviation draw is enormous variety from a tiny
+  roster — which is the "few archetypes vs. many" tension resolved from
+  the other side. **You do not need many archetypes if archetypes can
+  deviate.**
+
+## ⭐⭐⭐ An authored deviation and an earned drift are the same quantity
+
+For **cast**, the archetype is a seed and play moves the character away
+from it. That distance is computable:
+
+> **deviation = current derived position − archetype baseline**
+
+An authored deviation is that delta *written at mint*; an earned drift is
+the same delta *accumulated by play*. They differ only in when they were
+written and by whom — the identical relationship archetypes have to
+char-gen (an author's prologue vs. a player's).
+
+Which yields the thesis for the player side: **your archetype is what you
+picked at intake; your deviation is who you actually became.** Readable,
+measurable, and exactly what `chronicle` / `score` want to show.
+
+Per rung:
+
+| | archetype | deviations | drift |
+|---|---|---|---|
+| **prop** | a lens | few or none — that is what makes it a prop | impossible (no key) |
+| **cast** | a seed | declared at mint | accumulates under play |
+| **player** | aspiration / household | — | the entire character arc |
+
+## ⚠⚠ The requirement this creates, cheap now and impossible later
+
+To compute *deviation from archetype*, a seeded row must record **which
+archetype minted it**. `DispositionEntry` today carries
+`kind: 'claim' | 'deed'` — enough to separate authored from earned, **not
+enough to separate archetype-claim from deviation-claim.**
+
+⭐ This is the same lesson as
+[company-and-capital.md](../../company-and-capital.md) § forward
+compatibility: *the only un-retrofittable property is provenance
+separability*. Seed archetype and deviation rows without distinguishing
+their source and the delta can never be recovered — you would be
+unwinding a sum with no seams.
+
+**Stamp the minting archetype on the row. It costs one field now and is
+unrecoverable later.**
 
 # Settled in conversation (kept so they are not re-proposed)
 
@@ -483,6 +644,14 @@ is exactly why it is not persisted today).
   not chosen per design.
 - **Archetypes are starting points, not categories.** A row may override
   anything. Purity is not a goal and Dave is the proof.
+- **`kit` is not a missing axis.** `AspirationRosterEntry.outfit` is the
+  declarative gear path Gus's header says does not exist; it needs a
+  caller other than `enroll`, not a design.
+- **Char-gen is not an adjacent system to integrate with.** It is the
+  shipped implementation of this design for one kind. Build against it;
+  do not build a parallel expander.
+- **Suppression is not its own mechanism.** It is one direction of a
+  deviation.
 
 ---
 
@@ -490,8 +659,14 @@ is exactly why it is not persisted today).
 
 1. **Where do archetype rows live?** A `DocumentKinds` entry (sibling of
    `emote`, `recipe`, `name-bank`, `blueprint`) is the closest existing
-   family — authored, pack-installable, not instanceable. Not decided.
-2. **Is `kit` a third kind, or its own feature?** (above)
+   family — authored, pack-installable, not instanceable. ⚠ Note the
+   aspiration roster is **not** there today: it is `CharGenConfig`, read
+   from a settings document. Unifying those two homes is part of the
+   question.
+2. **Do `role` and `temperament` become char-gen fields?** One `FIELDS`
+   entry each and the client needs no change — but whether a player
+   *should* pick a temperament directly, rather than earning one, is a
+   design question, not a plumbing one.
 3. **Are `station` and `origin` real kinds?** Proposed in conversation,
    but **no shipped row needs them** — every current NPC factors into role
    × temperament alone. Probably defer until content demands them; adding
@@ -502,8 +677,17 @@ is exactly why it is not persisted today).
 5. **Does a lens cost anything at scale?** A prop's temperament resolves
    per read. Probably trivial (pure arithmetic over ~5 in-memory entries),
    unmeasured.
-6. **What reads `voice:`?** Written here as the LLM/prose face. Nothing
-   consumes it today; it may belong with the LLM brain build instead.
+6. **What reads `voice:`?** Written here as the LLM/prose face. `bioSeed`
+   is its shipped counterpart and has exactly one consumer (`Persona.bio`
+   at commit). May belong with the LLM brain build.
+7. **Is a deviation budget a thing?** Lineage introduces a point budget
+   over archetype selection; the same currency could price deviations —
+   *one free, more cost you.* Speculative, and only worth it if lineage
+   lands first.
+8. **How is drift surfaced?** The deviation delta is computable for cast,
+   but nothing reads it. The `chronicle` / `score` surfaces are the
+   obvious homes; [narration-slate](./narration-slate.md) owns the
+   question of what tells you a trait moved.
 
 ---
 
@@ -519,8 +703,12 @@ is exactly why it is not persisted today).
   fixed for cast.
 - **The prop/cast mechanism.** Being built in build-3; this slate consumes
   the flag, does not define it.
-- **Parentage / lineage.** Raised as an archetype source in conversation;
-  see [lineage-slate](./lineage-slate.md). It would be an `origin`
-  producer if that kind survives question 3.
+- **Parentage / lineage.** See [lineage-slate](./lineage-slate.md). This
+  slate re-reads it — a household is an archetype bundle and the gallery
+  is an archetype picker — but does not design it.
+- **The build order past the first move.** Only the first move is
+  asserted: **extract the duplicated expander** out of
+  `EnrollController.commit` / `Login`, which stands on its own merits
+  before any NPC consumes it.
 - **Location archetypes.** Shipped, different subsystem, borrowed only as
   precedent.
