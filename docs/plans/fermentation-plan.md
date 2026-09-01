@@ -136,6 +136,20 @@ inert data in v1, the seam the cuts rung will read into metabolism's
 toxin dose. Excise/licensing is deliberately absent: polity content
 for the civics machinery, owned by the legal-code slate's world.
 
+### P11 — Byproducts (D12): residues ride the recipe outputs
+
+Recipes gain a **residue output** beside the main one (an
+`outputResidue` slot on the Recipe shape — crush emits pomace, mash
+emits spent grain, distillation of pomace is its own grappa recipe).
+Residues are feed-compatible sack items (the shipped `feed` path reads
+their nutrient value), consignable like anything else, and subject to
+no cleanup sweep — unsold residue stands where it was left (the
+ambient-burden rule). The cellar authors an air `Reserve` and active
+ferments drain it (the closed-kitchen mechanism, second consumer);
+respiration does the rest. Yeast harvesting deliberately does NOT ship
+— it is the cultured-yeast rung's on-ramp and is named in the ferment
+doc's deferred section.
+
 ## Waves
 
 ### W0 — The grade seam
@@ -164,13 +178,16 @@ Crush recipe + press fixture; profiles: red, white, the
 grape profile's `turnedMaterial`; the vintner floor becomes the
 working winery (vats, press, cellar room with authored thermal mass);
 the `cellars` brain; vinegar consignable + a pantry par line for it
-(the cook buys the failure path). Fixture-world brain test.
+(the cook buys the failure path); crush emits pomace (P11) and the
+cellar authors its air reserve — the CO₂ test (drain while active,
+recover on opening). Fixture-world brain test.
 
 ### W4 — Brewing produces
 Mash recipe + mash-tun fixture; wort; ale/lager profiles; the
 conditioning cask (P9 — real ale, naturally carbonated); the brewing
-floor reworked; the same `cellars` brain with brewing config. A keg of
-ale carries its batch band.
+floor reworked; the same `cellars` brain with brewing config; mash
+emits spent grain and feeding a bed with it restores nitrogen (the
+reverse-B2B loop test). A keg of ale carries its batch band.
 
 ### W5 — Distilling produces
 Wash profile (malt wort → wash), distil recipe (wash → neutral
@@ -179,8 +196,8 @@ the grape lane's own spirit); **vermouth recipes in winemaking**
 (wine + bought spirit + botanical + sugar for sweet); the Crowsfoot
 floor venue + `distills` brain; the vintner brain's buy step (the B2B
 ledger test); spirit flammability + the ignited-spill test and the
-inert `foreshot` field (P10). The martini's inputs now all exist from
-lane output.
+inert `foreshot` field (P10); the grappa recipe over pomace (P11).
+The martini's inputs now all exist from lane output.
 
 ### W6 — Reads, disciplines, marks
 Vat sensory details; the hydrometer row + reading; the `fermenting`

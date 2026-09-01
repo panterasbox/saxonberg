@@ -228,6 +228,28 @@ skill (still zero new verbs). Excise — the actual historical ban — is
 polity CONTENT, not mechanics: a locality licensing stills rides the
 civics/charter machinery when the fiction wants it.
 
+### D12 — Byproducts: conservation makes them, the economy consumes them — LOCKED
+
+*(pedagogy · everything-is-a-business)* D4's mass balance forces the
+residues to exist — crushing grapes cannot output only must. The cut:
+
+- **Pomace** (crush) and **spent grain** (mash) land as feed-compatible
+  residues — the consumer already ships (`feed <bed> with sack`
+  restores soil nitrogen), so the brewer sells spent grain BACK to the
+  growers: a reverse B2B, and real nutrient cycling.
+- **Grappa**: pomace distilled — one recipe row, the historically
+  honest byproduct spirit, a margin lesson for Crowsfoot.
+- **The salvage floor has a floor**: a byproduct nobody buys becomes an
+  ambient burden (it piles up and rots), never a silent vanish — the
+  aluminium-can doctrine applied here.
+- **The cellar's CO₂ is a hazard**: fermentation displaces air, and the
+  room air-`Reserve` mechanism ships (the closed-kitchen rule) — a
+  working cellar that authors an air reserve asphyxiates the careless,
+  same mechanism, zero new substrate.
+- **Deferred with names**: excess-yeast harvesting IS the cultured-yeast
+  rung's on-ramp (cultures are never a bought good); lees/tartrates;
+  spent-wash economics (v1 pours it out); feints inert beside foreshots.
+
 ## Constraints
 
 - **Uncertainty doctrine**: no resolutional randomness; seeded, not
@@ -282,6 +304,11 @@ civics/charter machinery when the fiction wants it.
   atomically; before it, the floors stand as today.
 - Disciplines: fermenting/distilling leaves exist and credit at the
   act; a bottle displays band + maker's mark.
+- The loop closes: a crush yields pomace, a mash yields spent grain;
+  feeding a bed with spent grain measurably restores nitrogen; pomace
+  distils to grappa; an unsold residue persists in the world rather
+  than vanishing; a sealed working cellar with an authored air reserve
+  becomes unbreathable and an opened door recovers it.
 - Docs: a new subsystem doc (`docs/subsystems/fermentation.md` or the
   planner's better name) owns the transform; content-packs rows for the
   de-stubbed trades refreshed; the supply-chain and libations slates'
