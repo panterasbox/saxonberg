@@ -725,6 +725,52 @@ miners believe about that vein** — the prospecting skill made liquid,
 over the shipped [contract](../../subsystems/contract.md) substrate and
 nothing else.
 
+### ⭐⭐ Formed, not forming **[DECIDED — closes Open 8]**
+
+The district exists and works on day one: claims recorded, a code
+adopted, a hoist charging its toll, a pump running. **Decided on the
+economic axis, and the pedagogy axis agrees once the lesson is looked at
+properly.**
+
+**Forming is a one-shot.** The first cohort founds the district; player
+fifty arrives at a formed one regardless. So *formed* ships eventually
+either way — the only question is whether the economy waits on a
+handful of early players to get there.
+
+**And it would wait on a collective-action problem being solved by a
+population that does not exist yet.** Forming means no recorded claims, a
+flooding level, and no ore until players coordinate. If they do not — and
+a thin population is exactly the condition under which they do not — the
+mine drowns, no ingots reach the smith, and the metal chain ships with
+its faucet shut. That is the failure this build exists to fix,
+reintroduced as a feature.
+
+**The lesson is not lost; it is upgraded.** Two recoveries:
+
+- **The founding lives in the record, not in prose.** The register is an
+  artifact you can *read* — claims in order, with dates, including the
+  ones that lapsed; the code with its amendments; the drainage levy with
+  an adoption date and a fight behind it. Append-only history is what
+  [chronicle](../../subsystems/chronicle.md) and
+  [provenance](../../subsystems/provenance.md) already do. The player
+  **reconstructs the founding from evidence** — the venue's own deduction
+  skill, pointed at institutions instead of rock.
+- ⭐⭐ **The commons problem is a maintenance burden, not an event.**
+  Free-riding does not end when the pump is built. It recurs: the
+  workings deepen and the pump needs a bigger engine; a claimholder
+  refuses the levy and must be struck off; someone sinks below the
+  current pump's reach and asks everyone to fund the next stage; a new
+  adit would drain a whole side cheaper but crosses three people's
+  claims.
+
+> **A formed district under live stress teaches the free-rider problem to
+> every player, continuously. A founding teaches it once, to whoever was
+> there.**
+
+It also gives the arc its grip: Veshko's offer is to buy the shaft and
+take the pump private — **solving the commons by abolishing it.** A
+buyout can only threaten something that exists.
+
 ### The arc
 
 Terminus later declares jurisdiction over the claim field and either
@@ -803,6 +849,39 @@ anything if the last link is a thing a player wanted.**
 
 ---
 
+## ⭐⭐⭐ The build's shape — what must ship together **[DECIDED]**
+
+The scope statement this design implies, stated plainly because it is
+easy to under-size:
+
+> **A mine without a smelter is a pile of rock. A smelter without recipes
+> is a pile of ingots.**
+
+For the economy to change at all, **four things ship together**:
+
+1. **`trade-mining`** — prospect, claim, drive, stope, dress.
+2. **`trade-fuel`** — coppice, pyrolysis, charcoal.
+3. **`trade-smelting`** — roast, charge, blow, tap.
+4. **Tool recipes** (demand class A) — so the ingot becomes something
+   somebody wanted.
+
+Plus one thing that is easy to forget and fatal to omit:
+
+- ⭐ **An NPC crew that works whether or not players log in.** Supply
+  cannot be zero on a quiet night, or the smith's inputs are a function
+  of concurrency. Build-3 shipped exactly this shape as **the farms
+  producer brain** (`feat(behavior): the farms producer brain`, farming
+  A7) — a mine producer brain is the same pattern over
+  [behavior](../../subsystems/behavior.md).
+
+⚠ **Anything less is scenery.** A mine alone moves the metal-import
+faucet from the general store's shelf to the mine's mouth without closing
+it; it does not make metal an economy. This is the same point as § *The
+demand side*'s "every finished good is a faucet too," applied to build
+scope rather than to content.
+
+---
+
 ## What this supersedes
 
 - **mining-slate § *Materials, metallurgy & money***: "metallurgy is a
@@ -847,10 +926,10 @@ anything if the last link is a thing a player wanted.**
    exist yet; the interim is an importer with a price.
 7. ~~Beneficiation~~ — **CLOSED**: mechanical dressing is mining, roasting
    is smelting, the line is the furnace. See § *Beneficiation*.
-8. **Does v1 ship the district formed or forming?** — do the miners have a
-   code and a recorder when you arrive, or do you arrive to unrecorded
-   claims and a flooding level, with founding it as the play? The second
-   is the richer lesson and the greater risk. **Still the user's call.**
+8. ~~District formed or forming~~ — **CLOSED: formed.** Forming is a
+   one-shot that gates the whole chain on a collective-action problem in a
+   thin population; the lesson is recovered better as a recurring
+   maintenance burden. See § *Formed, not forming*.
 9. **Recipe scope for demand classes A and B** — how many tool and
    arms/armor recipes ship in the first cut, and whether the smith's
    known-of → can-make ladder gates them or they all ship known.
