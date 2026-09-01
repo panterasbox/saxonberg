@@ -19,7 +19,9 @@ quantity of water in a real place.
 | precipitation is a **descriptor**, not a rate: `none` / `rain` / `storm` / `snow` | `WeatherLogic.ts:454,492` | **a rate per type must be authored** — W1's one new number |
 | `Cultivable.waterSoil(litres): number` — *"pour water in, returns litres actually absorbed (headroom-capped)"* | `lib/husbandry/Cultivable.ts:144` | the soil consumer already exists; the rain edge is a caller, not a model |
 | `getLandRequirementM2()` ships | same, `:124` | mm × m² = litres with no invented field |
-| ⚠ `Zone.lookupField<T>()` is **async**, with `lookupAncestorField` overridable | `lib/zone/Zone.ts:106` | **elevation cannot be read from a sync reconcile** — it is identity, cached once (P0) |
+| `Zone.lookupField<T>()` reads its **own value sync** and is async only on the ancestor-miss path | `lib/zone/Zone.ts:129` | not a constraint: elevation is never on a hot path (P0) |
+| `Cultivable` reads `self.lastAmbientK` — a cached scalar the thermal system writes | `lib/husbandry/Cultivable.ts:533` | the shipped pattern for a sync consumer needing chain-resolved data |
+| `WeatherApi.deviationFor` takes a **pre-resolved** `Locality` | `api/weather.ts` | the second shipped pattern — push the resolve to the async caller |
 | `BiomeLogic.resolvePressureFor` / `traceResolvePressureFor` | `platform/idea/api/BiomeLogic.ts:236,334` | the single site for D4's derive-from-elevation fallback |
 | gravity ships as `AtmosphericTrace<Quantity<'m/s²'>>`, authorable, per-detail overridable | `lib/biome/Atmospheric.ts:125,154` | `g` is a read, not a constant |
 | `DocumentApi.save` / `read` / `list(prefix)` / `listOfKind`, plus a bespoke `saveRelease` | `api/document.ts:71–139` | a water right is `save`; seniority is `list(prefix)` + sort; `saveRelease` is the precedent for a kind with its own validated save |
@@ -30,23 +32,38 @@ quantity of water in a real place.
 
 ## Plan-level decisions
 
-### P0 — Elevation is IDENTITY; everything downstream of it is STATE
+### P0 — Elevation is a COLD-PATH input, compiled into ordinals and constants
 
-The load-bearing consequence of `lookupField` being async. A consumer
-that reconciles on read (soil, flow) **may not await a zone walk**.
+The first draft of this plan said elevation had to be cached per
+consumer because `Zone.lookupField` is async and reconciles are sync.
+That over-generalized from one true fact to a build-wide constraint, and
+it was wrong. **Nothing needs elevation on a hot path.**
 
-So every consumer caches, once and asynchronously, the **identity** it
-needs — its covering locality, its zone's elevation, its reach — and
-then derives sync forever after. This is the supply pack's mechanism
-applied verbatim, and it is why the rain edge can integrate a
-three-day absence on the first read after login.
+| Consumer | Needs | Resolved at |
+|---|---|---|
+| reach ordering | elevation | **content load** — a one-time pass, already async |
+| conduit gravity-vs-pump | Δh | **construction / validation** — a build act, already async |
+| `measure altitude` | elevation | **a verb** — already async |
+| flow (the hot sync path) | the **ordinal** + declared catchment | — |
+| contamination decay | ordinals | — |
+| hydro output `ρ·g·Δh·Q` | Δh **fixed per structure** × live `Q` | Δh computed once at construction |
 
-⚠ **Each cached ref gets its OWN checkpoint**, separate from the
-consumer's reconcile stamp. Until the ref resolves, its stamp does not
-advance, so the first successful resolve integrates the full backlog
-rather than losing it. **Unresolved must never read as zero** — the
-requirements' non-negotiable, and the failure this codebase has taken
-three times.
+So elevation is *compiled* into two artifacts — **reach ordinals** and
+**per-structure Δh constants** — in contexts that are already
+asynchronous, and every runtime read is an integer compare or a scalar
+multiply. `lookupField` stays exactly as it is; no `lookupFieldSync`, no
+materialization stamp, and **no boot warming** (the pattern that has
+failed in this codebase three times: nothing warms the roster, it reads
+null forever, silently).
+
+⚠ **What the discipline still applies to: the rain edge.** `Cultivable`
+needs its covering **locality** on a sync reconcile. That is the supply
+pack's own case and it has two shipped precedents — `lastAmbientK` (a
+cached scalar another system writes) and `deviationFor` (a pre-resolved
+`Locality` passed in). Whichever W1 picks, the ref gets **its own
+checkpoint**: until it resolves, the stamp does not advance, so the
+first successful resolve integrates the full backlog. **Unresolved must
+never read as zero.**
 
 ### P1 — Kernel takes the physics; a `water` capability pack takes the works
 
@@ -140,9 +157,9 @@ owner in W8, and that choice is reversible content.
 ### W1 — The precipitation integral + rain reaches soil
 **Create:** `WeatherApi.precipitationBetween` + the authored rate table
 (`rain`, `storm` precipitate; `snow` accumulates; `none` zero).
-**Modify:** `Cultivable` gains the sky edge — cache the covering
-locality (identity, P0, own checkpoint), integrate on reconcile, call
-the shipped `waterSoil`.
+**Modify:** `Cultivable` gains the sky edge — resolve the covering
+locality on the shipped pattern (P0), integrate on reconcile, call the
+shipped `waterSoil`. The locality ref carries its **own checkpoint**.
 **Proves:** a bed fills from the sky; a replay over the same interval
 gives the same litres; a three-day absence integrates exactly; an
 unresolved locality reads **unknown**, not dry, and back-fills on first
@@ -215,7 +232,9 @@ down.
 
 ## Risks
 
-**1. ⚠⚠ The silent unresolved ref (P0).** Highest risk in the build.
+**1. ⚠⚠ The silent unresolved ref (P0), now scoped to the rain edge
+alone.** Still the highest risk in the build, but a much smaller
+surface than the first draft assumed.
 Its failure is invisible and its tests pass, because a test that
 hand-constructs the cached value never exercises the unresolved path.
 Mitigation: every cached ref gets an explicit *unresolved* state with a
