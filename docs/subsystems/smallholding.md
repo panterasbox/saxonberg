@@ -300,20 +300,37 @@ See [persistence.md](./persistence.md) and [residence.md](./residence.md).
 
 ### ⭐ A lot's room gets an IDENTITY, not a copy
 
-`LotHolder` mints each room at **`<lotExtent>/<leaf>`** through
-`StuffApi.clone`'s `asTemplatePath` channel — the identity doctrine's
-*minted instance with a scheme-derived key*. The shared template is the
-SOURCE; lot 2's yard is its own place.
+> ⚠⚠ **SUPERSEDED by the residences build (2026-08-31).** The mechanism
+> below is the right *idea* with the wrong *mechanism*, and the wrong one
+> shipped for one release. `LotHolder` minted each room at a
+> `<lotExtent>/<leaf>` path through `StuffApi.clone`'s `asTemplatePath`
+> channel — which made the room's `templatePath` resolve to **no row at
+> all**. A rowless path cannot be edited by an author, cannot resolve a
+> zone from its ancestry, and cannot be hydrated from content; it was
+> also the reason a bought yard had no addressable rooms behind it.
+>
+> The channel is **deleted**. A holding's rooms are now **keyed
+> instances of real rows** — `(scope = the room's template row, key =
+> <lotExtent>/<leaf>)` on the persistence spine — and the minted
+> identity, where one is genuinely needed, rides a separate stamped
+> `identityPath` slot (`getIdentityPath()`). `templatePath` ALWAYS
+> resolves to a row, and `pnpm lint:census` enforces it.
+>
+> Everything the table below claims is still true — land use and
+> placement both resolve per lot — it is now the persistence KEY that
+> carries it rather than a synthesized path. The provisioning itself
+> moved to `HoldingProgramme.wake()` behind the same `LotHolder.provision`
+> seam. See **[holding.md](./holding.md)**.
 
-Sharing one templatePath across N lots broke two things at once, and
-minting fixes both with no special case:
+The original reasoning, kept because the problem it names is the real
+one. Sharing one templatePath across N lots broke two things at once:
 
 | | shared template | minted identity |
 |---|---|---|
 | land use | resolved to the **district** — right only because every Hinkley lot is zoned alike | resolves per lot, from the path alone |
 | avatar placement | recorded the shared template — log out in your yard, log back into a fresh one | exact; the dorm needs a Warren for this, an identity gets it free |
 
-Title and durable state still share one identity, because the mint is
+Title and durable state still share one identity, because the key is
 derived FROM the parcel extent. Sell the lot and the garden goes with
 it.
 
@@ -444,6 +461,22 @@ between things, which is what makes a room out here read as a yard.
 
 ---
 
+
+### The plat book went generative (residences, 2026-08-31)
+
+The `lots:` roster on `PlatBook` is **retired**. A book now carries a
+`lotPrefix` and defers its capacity to the holder's operator dial
+(`hinkley-hills.lotCap`, default 40): `extentFor` accepts any `lot-<n>`
+up to the cap, and `lotExtents()` returns *sold ∪ the next free one* —
+the window a buyer actually reads. Lot 45 sells with no authored row
+anywhere, and raising the dial at runtime is the whole of "the
+subdivision got bigger".
+
+Where the lot GOES is authored data too, on the holder's `plan:` field —
+Hinkley runs a **branched** plan whose segment 1 IS the hand-written
+lane, with a court branching off segment 2 as frontage fills. Bespoke
+streets, minted homes, one institution. See
+[holding.md § PlatPlan](./holding.md#tier-1½--platplan-the-layout-as-authored-data).
 
 ### Known issue: the pre-sold lot cannot be re-driven
 
@@ -592,3 +625,6 @@ Three lessons worth keeping, none of them about farming:
 - [civics.md](./civics.md) — governments and jurisdiction
 - [crafting.md](./crafting.md) — `CraftedMixin`, `Grade`, the maker's mark
 - [banking.md](./banking.md) — the settle chokepoint the sale rides
+- **[holding.md](./holding.md)** — the residential ladder the holder half
+  converged onto (residences, 2026-08-31): the two-tier institution, the
+  authored plat plan, keyed rooms, condition and the capacity dials

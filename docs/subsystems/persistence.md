@@ -1087,3 +1087,50 @@ The **second persistence scope** landed: owned chattel persists with its
 - **New Api surface:** `captureDetached` / `restoreDetached` (one non-host
   good's composed state) and `placeIdOf` (a host's room identity — scope
   plus its per-instance key **only when explicit**).
+
+## History — the residences build (2026-08-31)
+
+The spine's keyed-host model was already here (the dorm's D1
+multi-instance change); the residential ladder made two things follow
+from it, and added one marker.
+
+### A placement can name a KEYED container
+
+`HostPlacement` gained `containerKey?`. A holding's rooms all share one
+template row and are separated only by their persistence key, so
+`{ container }` alone would collapse every tenant's yard into one; and
+the room is not standing when the placement restores, because the whole
+holding is dormant. So `capturePlacement` records the pair, and
+`restorePlacement` re-enters through `HoldingWarren.admitFor(key)` —
+which finds the institution whose parent extent prefixes the key, stands
+the holding back up, and returns the exact room.
+
+That is the **"log out in your own yard, log back into the same yard"**
+acceptance, and it is the general form of the dorm's Warren
+reconciliation rather than a second mechanism beside it.
+
+### An owned good can be MOUNTED
+
+`EstateEntry` gained `mounted?: { slot }`. A good hung on a wall lives in
+its room's `Adornable` fixture map rather than its contents; the marker
+is **derived** from the good's own live attachment (`getMountSlot()`) at
+capture time rather than passed in, so it can never disagree with the
+map, and the room overlay re-attaches instead of floor-placing.
+
+⚠ **`AdornableMixin` needed a capture pass of its own.** The container
+slice never sees a fixture, so a stamped good on a wall was reported by
+nobody: a room going dormant while its owner was offline took the lamp
+with it. The mixin now walks `getFixtures()` and reports stamped ones to
+`noteOwnedGood`, exactly as the container slice reports stamped contents.
+Its slice is deliberately empty — fixtures are runtime-only and an
+authored one is rebuilt from the row on every hydrate; the pass exists
+for the REPORT.
+
+### `_identityStampOf` peels, it does not unwrap once
+
+The D17 identity split reads a hard-private slot to key the registry
+index. One `ProxyApi.unwrap` of a proxy-of-a-proxy yields the inner
+PROXY, which carries no private slot and throws — which turned a
+deliberate `postRegister` failure into the wrong error on the unregister
+path. It now peels until the slot is present, which is correct at any
+wrapping depth.

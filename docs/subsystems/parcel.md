@@ -116,16 +116,36 @@ edit.
 
 ⚠ **The one-lease-per-holder assumption is load-bearing and undocumented
 elsewhere.** `heldUnitOf` returns the *first* matching row, which is correct
-only while a player holds at most one lease (true for the v1 dorm). Multi-
-residence — a player holding a dorm *and* a share of a house — breaks it, and
-[civics.md](./civics.md) separately defers **primary-home designation**. The
-two are the same gap seen from different ends, and together they are a
-prerequisite for any multi-holding residence work.
+only while a player holds at most one lease (true for the v1 dorm). The
+residences build **worked around rather than closed** this: `heldUnitsOf`
+is the plural read the ascent gate needs, and the dorm's already-housed
+check scopes to its own wing with `underExtent`. `heldUnitOf`'s singular
+answer is still first-match, and [civics.md](./civics.md) still defers
+**primary-home designation** — the two are the same gap seen from
+different ends.
 
-**Consumers today:** the Duncan Hall `provision` / `unprovision` pair (the
-dorm tenancy — see [residence.md](./residence.md)). Payment-coupled rent
-economics remain deferred; a grant-event log (the chain-of-title equivalent
-for leases, beside `parcel_events`) is still a seam.
+**Consumers today:** the Duncan Hall `provision` / `unprovision` pair, the
+Seznick House `lease` / `unlease` pair, and the ascent gate at `title buy`
+(see [holding.md](./holding.md)). Payment-coupled rent economics remain
+deferred; a grant-event log (the chain-of-title equivalent for leases,
+beside `parcel_events`) is still a seam.
+
+### Keys mint at the parcel, at three chokepoints
+
+A parcel carries the **keyway** its holding's door is gated on, and it is
+written at exactly three places — the sale (`title buy`), the grant
+(`lease`) and the dorm's `provision` — each doing the same three calls in
+the same order:
+
+```
+Lock.mintKeyway() → ParcelApi.setKeyway(extent) → CredentialApi.issueKey(holder, keyway, 'pin-tumbler')
+```
+
+Re-keying on release is what makes an ex-tenant's key dead metal rather
+than a standing hole in the building. The door reads the keyway through
+its institution's cache, synchronously — an empty keyway admits nobody.
+See [credential.md](./credential.md) and
+[holding.md](./holding.md#the-way-in--keys-doors-and-the-ascent-gate).
 
 ## Land use and area (living-world phase 2)
 

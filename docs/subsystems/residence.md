@@ -2,9 +2,26 @@
 
 The **residence** subsystem is the player's first home: a **leased,
 furnished, theme-personalizable, persistent** dorm room you **walk into**, in
-an **elastic building that grows on demand**. It is the *simple rung* of the
-residence ladder (the *rich rung* — apartments furnished with owned chattel —
-is a downstream build; see `docs/requirements/apartment-requirements.md`).
+an **elastic building that grows on demand**. It is the *bottom rung* of the
+residence ladder.
+
+> ⭐ **The rest of the ladder shipped in the residences build (2026-08-31),
+> and the dorm converged onto it.** A let unit at Seznick House and a bought
+> house at Hinkley Hills ride the same two-tier substrate this building's
+> machinery was lifted into — see **[holding.md](./holding.md)**, which is the
+> source of truth for `HoldingWarren`, `PlatPlan`, `HoldingProgramme`,
+> `FrontDoorExit`, the weathering clock, the tenure terms, the capacity dials
+> and the archetype read. This doc stays the source of truth for the DORM: its
+> D1 multi-instance persistence model (which the whole ladder now rides), its
+> theme overlay, its provisioning verbs and Katie.
+>
+> What converged, and what deliberately did not: `DormWarren` re-parented onto
+> `HoldingWarren` and each unit gained a degenerate one-room
+> `HoldingProgramme`, so the dorm's condition, term and archetype read answer
+> like every other rung. `DormWarren`, `DormRoom`, `DormDoor` and
+> `FloorStairExit` **kept their names, template paths, extent scheme
+> (`f<n>-r<p>`) and observable behavior** — the duncan-hall suite is the pin,
+> and it runs unchanged.
 
 The load-bearing realization: **a dorm needs almost no dorm-specific code.**
 There is **no residence subsystem in the module sense** — no `DormApi`, no
@@ -345,8 +362,11 @@ the floor corridor first (best-effort).
   an ex-tenant keeps their (dead) physical key rather than returning it.
 - **Reap grace period** — v1 reaps a room immediately on empty; the
   `LoungeWarren` `reapGraceMs` grace is deferred.
-- **`ROOMS_PER_FLOOR` as an AppSetting** — v1 is a `static readonly` const on
-  `DormWarren`; a `dorm.roomsPerFloor` tuning knob is deferred.
+- ~~**`ROOMS_PER_FLOOR` as an AppSetting**~~ — **shipped** (residences,
+  2026-08-31): `dorm.roomsPerFloor` is an `AppSettings` key read through
+  `DormWarren.roomsPerFloor()`, with the authored default on the row. The
+  capacity dial is the same mechanism for all three rungs — see
+  [holding.md § Capacity](./holding.md#capacity--the-operator-dial).
 - **Finer provisioning gate** — v1 is `requiresWizard`; the `AccessApi`
   dorms-parcel-owner gate lands once the dorms parcel carries a resolvable
   zone resource.
@@ -355,8 +375,10 @@ the floor corridor first (best-effort).
   independent of provisioned units.
 - **Katie / onboarding** — the diegetic move-in fronts `provision`
   (`docs/staging/eternal-university/npcs/property-manager.md`).
-- **Chattel / owned effects** — furnishing with owned goods (the Footlocker's
-  tenant-scoped contents); the apartment build, property 0b's back half.
+- ~~**Chattel / owned effects**~~ and ~~**multi-room apartments**~~ —
+  **shipped** (furnishing, then residences): owned goods persist owner-side
+  against a `place` ([furnishing.md](./furnishing.md)), and the let unit at
+  Seznick House is the multi-room rung ([holding.md](./holding.md)).
 - **Hand-authored custom prose**, **the roommate half**, **multi-room
   apartments**, **timed auto-revert on expiry**, **first-class keyed members
   in the base `Warren`**, **a real elevator** (a moving room / `Switchable`
@@ -370,10 +392,10 @@ the floor corridor first (best-effort).
 - [parcel.md](./parcel.md) — the `grants[]` lease + provisioning mint
 - [location.md](./location.md) — the `Warren` (the second elastic subclass)
 - [residency.md](./residency.md) — dorm-when-empty
-- The rich rung (downstream apartment build):
-  `docs/requirements/apartment-requirements.md` +
-  `docs/plans/apartment-plan.md`. (The dorm build's own requirements + plan
-  retired at merge — this doc is the live reference.)
+- **[holding.md](./holding.md)** — the ladder this converged onto: the
+  two-tier institution, the plat plan, the per-holding programme, condition,
+  terms and the capacity dials. (`docs/requirements/apartment-requirements.md`
+  is superseded by it.)
 </content>
 
 
