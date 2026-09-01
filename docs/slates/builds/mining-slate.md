@@ -698,6 +698,233 @@ cycle. The intersection, and the levers (ties to
   rate** (fiscal/design), **sink rates**, **Eternal-steel scarcity** — tuned
   against a running game **[OPEN]**, never pre-solved on paper.
 
+## The mine's machinery — graduated from the content bible **[DECIDED 2026-07-13]**
+
+> **Graduated 2026-08-31** out of `docs/staging/ferrow-delving.md` §§2, 6, 7,
+> 9 (now deleted, per the staging tree's own lifecycle). These are resolved
+> decisions, not proposals. The venue content — the authored spine, the
+> cast, the arcs — went to [rejection-slate](./rejection-slate.md); the
+> supply chain and its chemistry went to
+> [metal-chain-slate](./metal-chain-slate.md).
+
+### ⭐⭐ Coordinate architecture — ONE 3D `CartesianZone`
+
+**The mine is a single 3D `CartesianZone`, coords `(x,y,z)`, z negative
+going down** — *not* per-level zones. The zone enforces all three axes, so
+"dig down" is the native `z−1` neighbour and there is no cross-level
+registration to hand-maintain.
+
+- **Atmosphere is a function of depth** — light, air and heat worsen
+  continuously as `z` drops (biome/thermal keyed on elevation), not stepped
+  per level. The physically honest gradient *is* the charter's danger curve.
+- **Ore bodies are 3D** — a dipping seam plunges from one working depth to
+  the next at the same footprint; read it up top, sink a winze to catch it
+  below.
+- **"Levels" survive as an organizational convention** — the `z`-planes
+  crews drive horizontally from — not a technical boundary.
+
+Elastic membership (Warren bud/reap) rides *over* the coordinate zone: the
+Warren machinery is the **mutation** layer, the `CartesianZone` is the
+**space**.
+
+⚠ **This supersedes a `SphericalZone` proposal** made in the 2026-08-31
+metal-chain session, which argued that a grid stair-steps a dipping vein
+"into a lie." That was wrong, and §2g says why: **real mines chase a
+dipping seam with drift-and-winze stair-steps**, because you drive level
+drifts (for haulage and drainage) and sink vertical winzes — workings are
+orthogonal even when the orebody is not. The honest split is a
+**continuous geology field** (the truth) under **discrete orthogonal
+workings** (what labor can actually build), and *approximating the one
+with the other is the craft*. See [metal-chain-slate](./metal-chain-slate.md)
+§ *The mine's geometry* for the full retraction.
+
+### Persistence — three states, player-controlled
+
+| State | Meaning |
+|---|---|
+| **Spine** | authored, permanent — the Upper Galleries, the main shaft and winzes. Never reaped; the skeleton you can always navigate back along. |
+| **Held** | persistent *while invested* — a room a player has **shored and claimed**; a keyed, snapshot-persisted member (the DormWarren keyed-member precedent). Survives logout and redeploy. |
+| **Provisional** | soft, culls when cold — freshly-carved rooms and procedural galleries nobody has invested in. *The rock only loans them to you.* |
+
+Lifecycle: **carve** buds Provisional → **shore + claim** promotes to Held
+(shoring *is* this mine's provisioning act) → **neglect / lapse** demotes
+back (the peerage-reversion motif) → the seal sweep reaps cold
+Provisional. Held ground never auto-reaps. Who owns Held is set by the
+mine's model: the co-op holds it here, the staker holds it on the claim
+field — **the machinery is identical either way.**
+
+### Two acts — mine a vein vs carve a heading
+
+- **Mine a vein** (`hew`/`mine`) — extract ore from a face *in the room
+  you are in*. The room stays; the vein depletes. The everyday loop.
+- **Carve a heading** (`drive` horizontal · `sink` a winze down · `raise`
+  up) — excavate a *new* room; the mint act. Slower, costlier, wants
+  shoring.
+
+⭐ **Carving cost = rock hardness at the target, and ore is softer than
+barren rock.** So following a seam is cheap carving that pays as it goes,
+while driving speculatively toward a read feature is expensive and yields
+only the room. **Safe vein-chasing vs speculative prospecting is a real
+risk/reward axis, priced by geology.**
+
+### Seal-and-reap — the long-term-richness engine
+
+A depleted section sits through a grace period; then the **seal sweep** (a
+section-wise sibling of the residency eviction sweep) finds a dead
+subgraph hanging off the live mine by a single drift — an **articulation
+point** — checks it empty and cold, forms a **wall Boundary at the mouth**,
+and reaps everything behind it as one unit. Sealing at the one-edge
+chokepoint means the reap cannot orphan a player or dangle an exit. Only
+**Provisional commons** is ever sealed, never a Held claim.
+
+⭐ **An old seal can later be re-driven into freshly-seeded ground**, so the
+same tunnels yield new ore years on: the commons cycles, and the mine stays
+rich long-term without the seam ever refilling.
+
+### The geology field, and what is behind the wall
+
+The underground rides an invisible **authored geology field**: each cell
+carries **rock hardness, ore grade, and occasionally a feature seed**.
+Default carving mints a blank strata-seeded heading — but breaking into a
+feature cell reveals *something already there*: a **natural chamber**
+(cavern, flooded stope, gas pocket) or an **authored set-piece** (an old
+sealed working, a fossil bed, a pre-Fallow wired vault, an arc beat).
+
+⭐ **Authored content discovered by digging, not placed on a fixed map.**
+And reading the signs — a draft means a void ahead, damp means water, a
+change in the rock means a seam — lets a geologist *predict* what is behind
+the wall before spending the labor. That is the discipline's
+derive-from-principles teeth.
+
+### ⭐⭐ Faces & dig-sites — the ten-direction model
+
+Not one dig site per room: **up to ten**, one per direction (eight compass
+points plus up and down; the grid is 8-connected horizontally plus
+vertical). Each direction is a **face** — the boundary to the neighbour
+cell — in one of four states:
+
+| Face state | Neighbour is | Affordance |
+|---|---|---|
+| **Exit** | carved | walk through |
+| **Seam** | ore | `hew` → ore |
+| **Carve-face** | barren rock | `drive` through (cost = hardness) to mint that room |
+| **Dead / sealed** | nothing | — |
+
+**Faces are computed, not authored** — the NE face of `(x,y,z)` reflects
+the geology of `(x+1,y+1,z)`. Only a *worked* face needs state (ore
+remaining): a sparse per-`(cell, direction)` record; the rest is
+derive-on-read.
+
+⭐ **No sub-room geometry.** Faces are addressed by direction or descriptor
+(`hew the green seam` = `hew east`), the way exits already are, and you
+**engage** a face (the activity substrate) rather than *occupy* a
+sub-position — so many crews work many faces of one room, co-located, with
+zero contention. Engine-wise a face is the **Boundary** substrate with a
+mining aspect.
+
+The diagonals earn their keep from the geology: a seam's **strike** is a
+compass bearing, so you follow the lode with `drive NE` instead of
+zig-zagging, and **dip** is a stair-step of `drive SE` + `sink` — which is
+drift-and-winze, exactly how real mines chase a dipping seam.
+
+### Cave-ins — two tracks, neither fatal
+
+- **Sealing (routine, safe)** — the reap above. Not a hazard; the map
+  healing back toward the live workings. You return to find dead ground
+  already walled off.
+- **Collapse (rare, telegraphed, survivable)** — the danger event on a live
+  push. **It blocks, it never kills.** The room becomes a *Fall* you dig
+  out of, wait for rescue in, or route around. **Always announced first**
+  (creaking, dust, air pressure); always preventable by shoring; **no
+  instakills, ever.** In v1 collapse strikes unshored Provisional rock
+  only.
+
+*(This is the answer to mining-slate § Open's "cave-in — build it or skip
+it": build it, as a blocker, on the Provisional/shored axis.)*
+
+### ⭐ Barren is the default — failure has to be real
+
+A find means nothing if you cannot fail, so **the rich seam is the
+exception and a survey can honestly come back "no."** The four rules:
+
+- **Informative** — a dud teaches the ground (faulted / no roots /
+  played-out).
+- **Legible in hindsight** — you see *why*, so it reads fair and you catch
+  the sign earlier next time.
+- **Cost scales with the bet.**
+- **Negative knowledge still sells** — where the ore *isn't* is worth money
+  to the next prospector.
+
+Poker, not slots. **The mine is a graveyard of other people's failed bets**,
+and those bets are readable.
+
+### The byproduct stream
+
+Mining yields more than ore, from one conserved mass sorted: **spoil**
+(logistics burden + cheap building stone), **pigments** (the
+metal-dud-is-a-pigment-find twist), **the lucky pocket** (gems, native
+metal), **fossils** (the scholar's hook). Different byproducts route to
+different buyers and crafts. Vitriol-water chemistry and gas are deferred.
+
+### Operating rhythm — place 24/7, operation on shifts
+
+**The mine never locks a player out.** The co-op *operation* runs
+game-clock shifts — day is alive/employed/supported, graveyard is
+quiet/solo/unsupported — decoupled from real-world timezone, with an NPC
+floor off-hours. **Stoppages are content, not locks**: hazard (flood, gas,
+collapse), feast days, economic death (knacked, abandoned). A shutdown
+reshapes access; it never denies it.
+
+### Ore theft is possible, and diegetically enforced
+
+No hard wall. Skimming is theft of the co-op's ore or cut; **the only
+honest buyer is the co-op's window**, so you fence elsewhere at a discount.
+Reckoning plus search catches patterns, and being caught costs regard,
+recognition, employment, access and notoriety. **Temptation scales with
+value** — deep silver is where high-grading bites.
+
+### Two primitives the mine needs that are not mining-specific
+
+- **`LiftMixin`** (`lib/conveyance/`) — a called, capacity-limited, timed,
+  operated vertical conveyance over `ExitableVessel + Mobile + Container`.
+  **Dorms and the city want elevators too**, so it is a reusable primitive,
+  not a Ferrow one-off; `ShaftCage` is the concrete class. Refined
+  **cargo-agnostic** so one headframe hoists both the cage (people) and the
+  **skip** (ore, `LiftMixin` + `Bulkable`).
+- **`JobBoard`** (`lib/employment/`) — the first player-facing hiring
+  interface; a **stateless live projection** of a Business's hiring state
+  plus a sign-on affordance, **no roster stored**. `CrewBoard` is the
+  co-op's. Posting and management deferred.
+
+⚠ Both are **platform work a mining build may not be sizing.**
+
+### Archaeology — the scholar's twin of geology
+
+**Archaeology (ISCED-F 0222)** as the deep-history discipline: the
+humanities twin of geology, a hub with cross-field edges. Hieroglyphs lead
+to **decipherment** of a lost Eternal-age script — real method, a real
+knowledge ladder, and the payoff is the makers' words off the Hush.
+**Platform-wide** (it reads every ruin-layer), net-new, its own thread; the
+decipherment engine is deferred and v1 is a taste.
+
+### Resolved knobs and residual opens from the bible
+
+- **Vertical transit is a called lift, not an up-exit** — the man-cage is
+  the only way up for *people*; **bulk ore is decoupled** (tip at the
+  ore-pass → skip hoisted up the shaft → surface tipple). Carts are
+  level-bound: they never leave the level, only the ore travels.
+- **Hydration** — the water butt at the station is the *last safe water*;
+  deeper found-water is unreliable and foul (sulfide → toxin gamble), never
+  a refill.
+- **Life-gradient** — friendly working critters shallow (pit pony, canary,
+  rats), hostiles only deeper. **The environment is the primary
+  antagonist**; deep fauna are characterful, not a farm.
+- Still open from the bible: grace-period and seal-cadence tuning; chamber
+  frequency and the authored-vs-natural ratio; whether catastrophic events
+  ever threaten *Held* tunnel (deferred past v1).
+
+---
+
 ## Open (residual)
 
 - **Cave-in / structural collapse [OPEN]** — build the new structural-hazard

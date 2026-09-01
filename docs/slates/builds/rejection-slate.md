@@ -9,11 +9,12 @@
 > the **property teacher** (staked private claims), and the **content
 > exemplar for LLM-driven NPCs**.
 
-Mechanics: [mining-slate](./mining-slate.md) (the four play layers, the
-dangers, the deep ecology) + `docs/staging/ferrow-delving.md` (the content
-bible — the 3D zone, three-state persistence, vein-vs-heading, seal-and-reap;
-⚠ **staging is ephemeral**, so the mechanics it resolved need to graduate into
-this slate or the mining slate before that file is deleted).
+Mechanics: [mining-slate](./mining-slate.md) — the four play layers, the
+dangers, the deep ecology, and § *The mine's machinery* (the 3D zone,
+three-state persistence, vein-vs-heading, seal-and-reap, the ten-direction
+faces), **graduated 2026-08-31 out of the now-deleted content bible**.
+The supply chain that consumes what the mine raises:
+[metal-chain-slate](./metal-chain-slate.md).
 Architecture for the cast: [llm-content-slate](./llm-content-slate.md).
 Substrate: [parcel](../../subsystems/parcel.md) ·
 [hazard](../../subsystems/hazard.md) ·
@@ -45,12 +46,14 @@ Each name keeps the half it earned, and it sidesteps a live vocabulary
 collision — *"the delve"* is already shipped content (the newbie-wilds trap
 ruin), so nothing new should be called a Delving.
 
-**Two inherited contradictions still to settle** (both predate this merge):
-`content-pack-units.md:94` calls Ferrow *commons / deep-law* while the content
-bible §9 makes it a **company mine held by a co-op `Business`** on tutwork and
-tribute. And the co-op model has to be reconciled with the staked-claim field
-this slate adds — historically they coexist (a company operation with
-independents working the margins), which is probably the answer.
+~~**Two inherited contradictions still to settle**~~ — **both SETTLED
+2026-08-31**, see [metal-chain-slate § *Who owns what*](./metal-chain-slate.md).
+"Commons" was doing two jobs: `content-pack-units.md:94` meant the
+*not-corporate pole*, the bible denied *ownerless open access*, and both
+agree a co-op owns the developed mine. And the co-op coexists with the
+staked-claim field exactly as history does — **a company operation with
+independents working the margins** — which overrides the bible's
+"private staked claims are a different venue."
 
 ---
 
@@ -348,6 +351,184 @@ drift; Earl reads the timbering and refuses; Val's fare gap is $340 and the
 hazard contract pays $500. The player walks in on an argument that exists
 because **three goal-states and one sensor reading intersected** — and can
 settle it in any direction, including badly.
+
+## The venue — graduated from the content bible **[2026-07-13, still live]**
+
+> **Graduated 2026-08-31** out of `docs/staging/ferrow-delving.md` §§1, 3,
+> 4, 5, 6 (now deleted per the staging tree's lifecycle). The mine's
+> *machinery* went to [mining-slate](./mining-slate.md) § *The mine's
+> machinery*; the supply chain went to
+> [metal-chain-slate](./metal-chain-slate.md).
+> ⚠ **The full draft room prose for U1–U3** (about 150 lines, richer than
+> the summaries below) is preserved in git at
+> `docs/staging/ferrow-delving.md @ 714d3f9a7` — read it when authoring the
+> YAML rather than rewriting it.
+
+### The charter, and the history you dig down through
+
+*"A working delving run by an independent miners' cooperative, up where
+the fertile valleys climb toward frontier wild."* **Veshko** — heavy
+industry, *"results are the only morality"* — is the off-taker for the ore
+and is quietly circling to buy the claim outright. **Independents holding
+their ground against a corpo is the arc engine.**
+
+Depth is an archaeological section — three layers:
+
+1. **Geological deep-time** — the lode was emplaced by hot fluids aeons
+   ago, its cap weathered to oxide near-surface. What the *geologist*
+   reads.
+2. **The human layer** — the co-op did not dig virgin ground: **they
+   reopened a lapsed great-house mine.** A peerage house worked this lode
+   for coin and craft, then abandoned it at the **Widening** (as it
+   abandoned its manor); commoners of the lapsed countryside reopened it a
+   generation on, working the leavings and going deeper than the house
+   dared. Evidence on the ground: a weathered **house-mark** over the old
+   adit, finer dressed stone up top, a **played-out oxide zone**, a ruined
+   count-house on the surface.
+3. **The deep layer** — below the house-workings the strata approach the
+   **pre-Fallow wired aether**; the workings stop looking like anyone's
+   mining and become **the Hush**. The co-op, chasing silver down-dip, is
+   unknowingly digging *toward* it.
+
+> ⭐ **The ownership chain is the world's whole economic history in one
+> hole: house → abandoned at the Widening → reclaimed by the commons
+> (co-op) → Veshko now wants it corporate** — which is what makes the
+> buy-out arc quietly tragic.
+
+**What a newcomer learns, in the order the mine forces it on them:** the
+body under stress (dark → *light*; bad air → *respiration*; deeper is
+hotter → *thermal*; cutting spends you → *reserve*; ore is heavy →
+*encumbrance/haulage*) · extraction → economy (cut it, haul it, assay it,
+sell it) · teamwork and emergent roles (hewer, hauler, lamp-scout,
+timberer) · **a claim is a parcel** — *"mining is a sneaky-good teacher of
+ownership."*
+
+**Archetypes served:** prospector, geologist, survivalist, hauler.
+
+**The core state-change:** the push-your-luck descent. *One more cart, or
+climb out while I still can?* **The vertical shaft is the escape route
+whose length is the tension.**
+
+### The authored spine
+
+```
+SURFACE — The Pithead (authored, fixed, sky-exposed)
+  P1 Pithead Yard (hub)
+    N  → P2 Claims Office   (uphill, by the sealed old adit + house-mark)
+    E  → P3 Assay Shed      (the Veshko wagon loads here)
+    W  → P4 Provisioning
+    NW → P5 The Dry
+    S  → the valley road → TOWN (+ TPA marker at the gate)
+    ↓  → the cage → U1
+UNDERGROUND — one 3D CartesianZone, atmosphere by depth
+  z≈−1  Upper Galleries — authored spine (lit, good air)
+        U1 Cage Bottom — U2 Timbered Drift — U3 Winze Head
+                                                  ↓ (sink a winze)
+  z<−1  Deeper workings — carved, elastic, dark/foul/hot
+        Face · Junction · Stope · Fall
+                                                  ↓
+  deep  The Hush / Wire-Deep (deferred capstone)
+```
+
+**Surface (5 authored rooms).**
+
+| | What it is | What it teaches |
+|---|---|---|
+| **P1 · Pithead Yard** | the hub — headframe and winch over the shaft, ore carts on rails, the crew-board, the cage | arrival; the shape of the operation |
+| **P2 · Claims Office** | registrar's counter, the wall claims-map (titled vs open claims), the register | **parcel / title** |
+| **P3 · Assay Shed** | assay scale, sample bins, the buyer's window (Veshko off-take) | grade → money. **Money enters here** |
+| **P4 · Provisioning** | lamp rack (rent, fill, buy oil), tool wall (picks, shoring timber), a cart to hire | money sinks; **the light dependency, taught before descent** |
+| **P5 · The Dry** | changing shack + canteen — benches, a stove, water, simple food | recovery (reserve / metabolism / thermal); a social beat |
+
+**Upper Galleries (3 authored rooms, z≈−1)** — lit by fixed lamps, air
+still good: the safe rung where cutting is taught before the depth
+gradient bites.
+
+- **U1 · The Cage Bottom** — *the underground commons.* Not an airlock:
+  the lift, the water, the light and the animals are here, so it is where
+  people gather. The cage grounds onto a low chamber squared and propped
+  in heavy timber, dark grey-black **slate** splitting along its cleavage,
+  a **quartz lode** threading it stained rust-red and **malachite green**
+  where shallow copper has bled into the stone; rails down the middle to
+  the ore-pass, a drainage gutter to the sump, wet muck between. Stuff:
+  the cage · the **ore-pass + grizzly** (where your haul actually leaves) ·
+  the water butt (*the last safe water*) · the tool crib and timber stack ·
+  **the deep-law board** (chalked standing rules — *shore your headings,
+  log your claim, sing out before you blast* — the onboarding surface) ·
+  fixed wall-lamps · the muster benches · the pony's harness nook.
+  Ambient miners, the **onsetter**, the **pit pony**, the **canary**,
+  rats. *Beat:* the lit-and-safe vs black-drift contrast, the board, and
+  the canary as a living gauge; the lift-wait makes it social.
+- **U2 · The Timbered Drift** — the tutorial face: a soft hewable seam, a
+  waiting cart, timber sets to shore. **Teaches `mine` and `shore` on safe
+  ground** — *"cut your first cart."*
+- **U3 · The Winze Head** — the branch that stages the choice: a
+  ladder/winze down into the deeper workings, **the first real "go
+  deeper?" gate.** Teaches climb locomotion and the push-luck decision
+  explicitly.
+
+**Deeper (procedural room types, z < −1)** — carved on the geology field,
+never hand-placed: **Face** (a hewable seam, richer and riskier) ·
+**Junction** (connective; where crews split and regroup) · **Stope** (a
+worked-out void, may be flooded) · **Fall** (blocked by collapse — dig out
+or route around).
+
+**The Hush / Wire-Deep (deferred capstone)** — a small authored chamber
+near the wired reservoir, *discovered by digging*: the strata go strange,
+and the deepest cut is the **Ordinance mirror**, a delving so "solved" it
+has gone frictionless and dead. Thematic payload; built after the rest is
+real.
+
+### The cast
+
+Distinct from the three *speaking* characters (Val, Earl, Rhonda) in
+§ *The cast* above — these are the mine's own functional roster:
+
+- **The pit boss / claims registrar** — onboarding; hands you the loop.
+- **The old prospector** — mentor; reads rock, teaches push-luck wisdom.
+  (Lives down the west drift at the face.)
+- **The Veshko buyer** — the faultline; the *"sell your claim"* tension.
+- **The onsetter** — station-hand who loads the cage and rings it.
+- **The pit pony** — a `HaulingCreature`; trams carts on the long haul. A
+  friendly working animal and the haulage exemplar.
+- ⭐ **The canary** — a caged bird kept as a **living air-gauge**, going
+  quiet as the air turns. The portable respiration warning, and the gem
+  carve. *(Its mirror-image is Delving 9's canary that never dies.)*
+- **Deep fauna** — cave-adapted, stranger toward the wire; characterful
+  threats, not a spawn-farm. Mostly deferred.
+
+### The arcs
+
+1. **Tutorial** — *cut your first cart* → the loop.
+2. **The push-luck arc** — follow a seam deeper.
+3. **The faultline arc** — Veshko wants the delving: hold or sell?
+4. **The Hush** — what is in the wire-deep (capstone).
+
+### Objects still needing a scoping pass
+
+Big-mechanism threads: the **seam / mineable face**, the **tribute-pitch
+mechanism** (a share-contract over a pitch), the **readable inscription**
+(house-mark + deep-law board + deep glyphs → archaeology). Light and heat:
+lamp, fixed wall-lamps, stove. Tools: pick, shovel, pinch-bar, sledge;
+hand-drill + drill-steel + powder (deep tier); shoring timber. Haulage and
+water: ore cart, water butt and flask, drainage gutter and sump, the winze
+and windlass. Rock: the seam, the carve-face, ore.
+
+Materials to seed as real `Material`s: **slate, quartz, oxide-copper ore,
+sulfides** — hardness drives carve-cost and tool wear.
+
+### Two bible opens that are venue calls, not mechanics
+
+- **Arrival** — a TPA terminal at the Pithead, or a walked frontier-road
+  approach? *Leaning both: TPA for return trips, a road for the felt first
+  arrival.*
+- **Does the co-operative have a governance surface on-site** — deep-law
+  as a mini-Assembly — or is that flavour for v1? *Bible leaned flavour;*
+  ⚠ *the metal-chain session's commons ruling (the district as a voluntary
+  `Organization` with a register, and the pump levy) makes this a real
+  surface rather than flavour. Revisit.*
+
+---
 
 ## Open
 

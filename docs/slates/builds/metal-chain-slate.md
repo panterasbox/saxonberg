@@ -337,63 +337,70 @@ one, permanently.
 
 ---
 
-## ⭐⭐⭐ The mine's geometry: spherical, and the vein is an object
+## ⭐⭐⭐ The mine's geometry — a 3D grid, and the vein is a field beneath it
 
-### Strike and dip **are** theta and phi
+### ⚠⚠ RETRACTED: this section proposed a `SphericalZone`
 
-A lode is mineral filling a fracture. It has a **strike** (compass
-bearing) and a **dip** (angle down from horizontal), and those two
-numbers exist before anyone digs. `SphericalCoordinatesMixin` is
-`[rho, theta, phi] + radius`.
+The first pass argued that strike and dip *are* theta and phi, that a mine
+survey is a traverse of (bearing, inclination, distance) triples, and
+therefore that **"a Cartesian grid cannot express a vein dipping at 40°
+without stair-stepping it into a lie."**
 
-> **Driving a heading along a vein is incrementing rho at fixed angles.**
+That last clause is the error, and `ferrow-delving.md` §2g had already
+answered it:
 
-This is not an analogy. A mine survey *is* a traverse of
-(bearing, inclination, distance) triples — how every underground working
-on Earth is mapped. A Cartesian grid cannot express a vein dipping at 40°
-without stair-stepping it into a lie.
+> *"**dip** is a stair-step of `drive SE` + `sink` down the plunge —
+> **drift-and-winze, as real mines chase a dipping seam.**"*
 
-### The vein is a geometric object in the same zone
+**The vein dips. The workings do not.** Real underground workings are
+overwhelmingly orthogonal — you drive *level* drifts (for haulage and
+drainage) and sink *vertical* winzes — because that is what labor,
+water and ore carts require. Stair-stepping is not a grid artifact
+apologising for itself; **it is the actual geometry of mining.**
 
-A tabular body with strike, dip, thickness and grade. Then:
+### The model the bible resolved, and which stands
 
-> **A working's sphere intersected with the vein's plane is how much ore
-> you got.** Miss the plane and you moved waste rock at full cost.
+> **A continuous geology field (the truth) under discrete orthogonal
+> workings (what labor can build) — and approximating the one with the
+> other is the craft.**
 
-⭐ **The geometry is the mass accounting** — you cannot excavate a void
-without moving its volume of rock, and where that volume falls relative
-to the vein decides whether it was ore or spoil. No dice, real geology,
-and **the spoil is the loose ground** the mining slate wants dirt dragons
-to swim through: *the mine manufactures its own threat*.
+**One 3D `CartesianZone`, coords `(x,y,z)`, z negative going down.** The
+full machinery — three-state persistence, the ten-direction face model,
+carve-cost from hardness, seal-and-reap at articulation points, feature
+seeds — is graduated into
+[mining-slate § *The mine's machinery*](./mining-slate.md).
 
-### What this inherits from build-3 (farming), nearly whole
+⭐ It is also **better epistemics than the spherical version**, which is
+what decides it on this slate's governing rule. The orebody is continuous
+and hidden; your workings are discrete and yours; the gap between them is
+exactly the thing a prospector is paid to close. A room that could follow
+the vein *smoothly* would quietly hand the player the answer the whole
+deduction layer exists to make them earn.
 
-Their Stage-B plan (`docs/plans/farming-plan.md` § P7) landed:
+### What survives the retraction, unchanged
 
-- A field is **one sphere in a `SphericalZone`**, `radius = √(areaM2/π)`,
-  one room per field.
-- **Tangent packing** — first sphere tangent to the anchor, each later
-  one tangent to an existing sphere, spiralling out: *"no overlap and
-  connectivity both by construction."* Exits derive from the geometry.
-- A persistent **ledger** on the titled programme
-  (`{leaf, name, areaM2, focus, radius}`) — so overlap checking is ledger
-  arithmetic and wake re-wires exits deterministically.
-- **One zone per district, shared by all holdings** — a holding never
-  gets its own zone, because shared rows are what make region-level facts
-  resolve.
-- `break ground --area <n>`: title-gated, an engagement over game time,
-  appends the ledger, buds the room.
+- **Ore grade is a `composition` fraction** — now per *cell* in the
+  geology field rather than per sphere. Cleaner, not weaker.
+- **The geometry is the mass accounting** — carve a cell and you moved
+  that cell's rock; whether it was ore or spoil is what the geology field
+  says. **The spoil is the loose ground** dirt dragons need: *the mine
+  manufactures its own threat.*
+- **The exit-naming ruling** (§ *Exit naming*) — *you name what you make,
+  you number what you find*. It was argued from bearings-are-measurements,
+  and it holds on a grid whose cells are real 3D space at real spacing:
+  `drive NE` is a compass bearing, levels are `z`-planes, and the mine
+  still addresses itself. **The ruling relayed to build-3 is unaffected.**
 
-Mining is the same machinery with **one more degree of freedom**:
-`drive <bearing> <dip> <distance>` instead of `break ground <area>`, and
-packing in 3D along a vein instead of on a plane. **One `SphericalZone`
-per ore body**, all workings in it, exactly as all holdings share the
-district — which means your neighbour's drift can hole through into
-yours, and the vein you are following is the vein they are following from
-the other side.
+### And the difference from farming is principled, not a compromise
 
-⚠ This **supersedes** `docs/staging/ferrow-delving.md`'s "3D
-`CartesianZone` with negative z."
+Build-3's fields stay spherical (tangent packing, `radius = √(areaM2/π)`,
+a ledger on the titled programme, one zone per district). Mining goes on a
+grid. That is not two answers to one question:
+
+> **A field is a bounded area whose size you choose. A working is a cell
+> you cut through rock.** Fields pack on a plane by area; workings are
+> orthogonal excavations at fixed spacing. Different acts, different
+> geometry, one shared conclusion about how their exits are named.
 
 ---
 
@@ -476,11 +483,17 @@ mines are on slopes. A **shaft** needs hoisting and pumping forever.
 
 ## ⭐⭐ Exit naming in a spherical zone **[DECIDED]**
 
-The problem: spherical rooms have no cardinal grid, and **relative
-directions are rejected** — `forward` demands a facing on every actor and
-every object, and the moment one lacks it the scheme lies.
+The problem, as first posed: **spherical rooms have no cardinal grid**,
+and **relative directions are rejected** — `forward` demands a facing on
+every actor and every object, and the moment one lacks it the scheme
+lies.
 
-The engine's position is already compatible: `Exit.direction` is typed
+*(The mine has since gone back to a 3D grid — see § *The mine's
+geometry*. The ruling below was argued from bearings-are-measurements and
+survives on either substrate; it is also the ruling build-3's spherical
+fields adopt, so both halves still need it.)*
+
+The engine's position is compatible either way: `Exit.direction` is typed
 "cardinal long-form, **semantic label**, or …";
 [boundary.md](../../subsystems/boundary.md) says *"Non-cardinal exits are
 a ZONE boundary, not a naming choice"*; `SphericalZone` is documented as
@@ -1071,12 +1084,20 @@ scope rather than to content.
   everything about money, salt and gold stands.
 - **mining-slate § *Open* — "Seam model [OPEN, LEAN finite]"**:
   **CLOSED, finite.**
-- **`docs/staging/ferrow-delving.md`** — the "3D `CartesianZone` with
-  negative z" is superseded by the `SphericalZone`. ⚠ That file is
-  **ephemeral staging** and still holds unmigrated mechanics (three-state
-  Spine/Held/Provisional persistence, vein-vs-heading, seal-and-reap at
-  chokepoints) that must graduate before it is deleted — see
-  rejection-slate § Open item 3.
+- ⚠⚠ **`docs/staging/ferrow-delving.md` — GRADUATED AND DELETED
+  2026-08-31.** An earlier draft of this slate claimed to supersede its
+  "3D `CartesianZone` with negative z" in favour of a `SphericalZone`;
+  **that claim is retracted** — the bible was right and the grid stands
+  (§ *The mine's geometry*). Its machinery went to
+  [mining-slate § *The mine's machinery*](./mining-slate.md), its venue
+  content to [rejection-slate § *The venue*](./rejection-slate.md), and
+  its ownership/labour model is folded into § *Who owns what* here.
+- **`ferrow-delving.md` §7's "v1 abstraction seam = smelting"** — *"Veshko
+  turns ore→metal off-screen, conserving."* **Superseded**: this slate
+  builds `trade-smelting`, so the seam closes. What stands from §7 is the
+  conservation discipline itself — **a buyer is just another `Business`**,
+  seeded by CB *lending*, never a money faucet; the CB alone mints and
+  drains; the mine is the matter source and wear is the matter sink.
 
 ---
 
