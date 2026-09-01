@@ -23,7 +23,7 @@ import { ParcelApi } from '@saxonberg/server/mud/api/parcel';
 import { CredentialApi } from '@saxonberg/server/mud/api/credential';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { Lock } from '@saxonberg/server/mud/lib/lock/Lock';
-import { HoldingWarren } from '@saxonberg/server/mud/lib/location/HoldingWarren';
+import { OuterWarren } from '@saxonberg/server/mud/lib/location/OuterWarren';
 import { Character } from '@saxonberg/server/mud/lib/character/Character';
 import type { ParcelOwner } from '@saxonberg/server/mud/lib/parcel/ParcelRecord';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
@@ -40,7 +40,7 @@ interface LeaseModel extends CommandModel {
   player?: MqlOneResult;
 }
 
-/** The building surface this verb drives (the UnitBuilding row). */
+/** The building surface this verb drives (the BuildingWarren row). */
 interface BuildingView extends Stuff {
   capacity(): number;
   getPlatPlan(): { nextFreeSlot(taken: ReadonlySet<string>, cap: number): string | null };
@@ -172,7 +172,7 @@ export default class LeaseController extends CommandController<LeaseModel> {
       const extent = record.getExtent();
       let cond: { condition: number; band: string } | null = null;
       try {
-        cond = await HoldingWarren.conditionOf(extent);
+        cond = await OuterWarren.conditionOf(extent);
       } catch {
         cond = null;
       }

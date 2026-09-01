@@ -210,10 +210,10 @@ async function restorePlacement(
     // A keyed room: re-enter through the owning institution's admit
     // (the log-out-in-your-yard seam, residences D16) — exact room,
     // exact state, never a fresh clone of the shared row.
-    const { HoldingWarren } = await import(
-      '../../../lib/location/HoldingWarren'
+    const { OuterWarren } = await import(
+      '../../../lib/location/OuterWarren'
     );
-    const room = await HoldingWarren.admitFor(place.containerKey);
+    const room = await OuterWarren.admitFor(place.containerKey);
     if (room && MixinApi.isContainer(room)) {
       ContainmentApi.move(host as Stuff & Containable, room);
       return;

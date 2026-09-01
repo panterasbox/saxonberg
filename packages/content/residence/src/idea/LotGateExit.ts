@@ -1,7 +1,7 @@
 /**
  * LotGateExit — **the gate off the street into one lot**: a
  * `DeferredDestinationExit` whose destination is faulted in on
- * traversal via {@link LotHolder.provision}, so a road can carry a
+ * traversal via {@link PlatWarren.provision}, so a road can carry a
  * gate for every sold lot without a single yard materialized at boot.
  *
  * Eager on its face with the programme's ENTRY ROW (residences D17 —
@@ -15,7 +15,7 @@
 import DeferredDestinationExit from "@saxonberg/server/mud/lib/boundary/DeferredDestinationExit";
 import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
 import type { Container } from "@saxonberg/server/mud/lib/spatial/Container";
-import type LotHolder from "./LotHolder";
+import type PlatWarren from "./PlatWarren";
 
 export default class LotGateExit extends DeferredDestinationExit {
   /** The provisioner — held as a PATH (an identity ref), resolved on read. */
@@ -26,7 +26,7 @@ export default class LotGateExit extends DeferredDestinationExit {
 
   constructor(
     source: Stuff & Container,
-    holder: LotHolder,
+    holder: PlatWarren,
     lotExtent: string,
     direction: string,
     entryRowPath: string,
@@ -53,10 +53,10 @@ export default class LotGateExit extends DeferredDestinationExit {
   /** Materialize (or re-materialize) the lot's house; land in its entry. */
   protected override async computeDestination(): Promise<Stuff & Container> {
     const { StuffApi } = await import("@saxonberg/server/mud/api/stuff");
-    const holder = StuffApi.findByTemplatePath<LotHolder>(this.holderPath);
+    const holder = StuffApi.findByTemplatePath<PlatWarren>(this.holderPath);
     if (!holder) {
       throw new Error(
-        `LotGateExit: LotHolder '${this.holderPath}' is not registered.`,
+        `LotGateExit: PlatWarren '${this.holderPath}' is not registered.`,
       );
     }
     const { room } = await holder.provision(this.lotExtent);

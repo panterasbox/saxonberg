@@ -28,7 +28,7 @@ import SurveyController from '../SurveyController';
 import ArchetypeCatalogue from '../../../ArchetypeCatalogue';
 import Room from '../../../../location/Room';
 import FurnishableRoom from '../../../../location/FurnishableRoom';
-import { Warren } from '../../../../../lib/location/Warren';
+import { InnerWarren } from '../../../../../lib/location/InnerWarren';
 import Chair from '../../../../thing/Chair';
 import { DocumentApi } from '../../../../../api/document';
 import { MessageApi } from '../../../../../api/message';
@@ -135,7 +135,7 @@ function bed(): Chair {
  * the residential class — the point of the seam is that the kernel never
  * names it, and a stand-in with the right SHAPE proves exactly that.
  */
-class FakeProgramme extends Warren {
+class FakeProgramme extends InnerWarren {
   public band = 'sound';
   public cause: string | null = null;
   conditionBand(): string {

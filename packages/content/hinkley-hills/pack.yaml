@@ -6,7 +6,7 @@ description: >-
   lane, the plat and the lots. ~24 hectares held by the Improvement
   District until lots sell out of it; lot-1 is the one lot that was
   taken before you got here. The plat machinery its rows name (PlatBook,
-  LotHolder, LotGateExit) is the residence capability pack's.
+  PlatWarren, LotGateExit) is the residence capability pack's.
 requires:
   groups:
     # The Improvement District — empty of members: a government that

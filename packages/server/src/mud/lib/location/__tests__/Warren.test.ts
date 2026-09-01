@@ -7,7 +7,8 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
-import { Warren, type Attachment } from '../Warren';
+import { type Attachment } from '../Warren';
+import { InnerWarren } from '../InnerWarren';
 import { WarrenMemberMixin } from '../WarrenMember';
 import { ExitableMixin } from '../../boundary/Exitable';
 import { ContainableMixin } from '../../spatial/Containable';
@@ -30,7 +31,7 @@ class TestOccupant extends HasInteractiveMixin(ContainableMixin(Idea)) {}
 
 const CARDINALS = ['north', 'east', 'south', 'west'];
 
-class TestOverflowWarren extends Warren {
+class TestOverflowWarren extends InnerWarren {
   private _attachCount = 0;
 
   protected async createMember(): Promise<Stuff & Container> {

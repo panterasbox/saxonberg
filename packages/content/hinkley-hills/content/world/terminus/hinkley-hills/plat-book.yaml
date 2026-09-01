@@ -4,7 +4,7 @@
 # belonged. A lot exists to sell when its number fits under the
 # operator's capacity dial (`hinkley-hills.lotCap`, default 40); the
 # plat plan on the lot-holder says where each lands. What physically
-# appears when a lot sells is the LotHolder's programme
+# appears when a lot sells is the PlatWarren's programme
 # (house-programme.yaml).
 class: /residence/idea/PlatBook
 hydratorClass: /platform/idea/persistence/PersistentHydrator

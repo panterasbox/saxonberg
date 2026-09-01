@@ -37,7 +37,7 @@ import type { Durable } from "@saxonberg/server/mud/lib/material/Durable";
 import { MessageApi } from "@saxonberg/server/mud/api/message";
 import { MixinApi } from "@saxonberg/server/mud/api/mixin";
 import { Mml } from "@saxonberg/server/mud/api/mml";
-import HoldingProgramme from "../../HoldingProgramme";
+import HoldingWarren from "../../HoldingWarren";
 
 /** The capability a tool must offer to count as a householder's kit. */
 const UPKEEP = "upkeep";
@@ -115,11 +115,11 @@ export default class MaintainController extends CommandController {
   }
 
   /** The programme whose shell this room belongs to, or null. */
-  private holdingOf(room: Stuff | null | undefined): HoldingProgramme | null {
+  private holdingOf(room: Stuff | null | undefined): HoldingWarren | null {
     if (!room || !MixinApi.isWarrenMember(room)) return null;
     const warren = room.getWarren();
-    return warren instanceof HoldingProgramme
-      ? (warren as unknown as HoldingProgramme)
+    return warren instanceof HoldingWarren
+      ? (warren as unknown as HoldingWarren)
       : null;
   }
 

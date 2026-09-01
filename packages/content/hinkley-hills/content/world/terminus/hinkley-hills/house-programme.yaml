@@ -6,7 +6,7 @@
 # house door north of it is LOCKED to the lot's keyway (the key `title
 # buy` hands the buyer). `owner-all` (D5): a Hinkley owner owes the
 # whole shell.
-class: /residence/idea/HoldingProgramme
+class: /residence/idea/HoldingWarren
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   upkeepTerm: owner-all

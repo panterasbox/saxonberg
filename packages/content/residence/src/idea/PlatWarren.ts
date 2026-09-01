@@ -1,5 +1,5 @@
 /**
- * LotHolder — **how titled ground becomes a place**: the provisioning
+ * PlatWarren — **how titled ground becomes a place**: the provisioning
  * half of selling land, REWORKED onto the shared holdings +
  * circulation base (residences wave 5, through the very `@hook` swap
  * seam the smallholding build designed for a provisioning-model
@@ -7,7 +7,7 @@
  *
  * What changed (D16/D17): a sold lot no longer mints ONE rowless yard —
  * it stands up a keyed, multi-room house through the subdivision's
- * {@link HoldingProgramme} row (`programmePath`), every room a keyed
+ * {@link HoldingWarren} row (`programmePath`), every room a keyed
  * instance of a REAL row `(scope = the row, key = <lotExtent>/<leaf>)`.
  * The old `identityFor` mint and the `asIdentityPath` channel are GONE.
  * Circulation comes from the plat plan (D13): the authored lane is the
@@ -20,7 +20,7 @@
  * before — the designed swap seam, swapped.
  */
 
-import { HoldingWarren } from "@saxonberg/server/mud/lib/location/HoldingWarren";
+import { OuterWarren } from "@saxonberg/server/mud/lib/location/OuterWarren";
 import { SingletonMixin } from "@saxonberg/server/mud/lib/stuff/Singleton";
 import { PostRegistrationMixin } from "@saxonberg/server/mud/lib/stuff/PostRegistration";
 import { StuffApi } from "@saxonberg/server/mud/api/stuff";
@@ -37,17 +37,17 @@ import type { FieldMeta } from "@saxonberg/server/mud/lib/mixin";
 type MemberStuff = Stuff & Container;
 type ExitableContainer = Stuff & Container & Exitable;
 
-const LotHolderBase = SingletonMixin(PostRegistrationMixin(HoldingWarren));
+const PlatWarrenBase = SingletonMixin(PostRegistrationMixin(OuterWarren));
 
-export default class LotHolder extends LotHolderBase {
+export default class PlatWarren extends PlatWarrenBase {
   static fieldMeta: FieldMeta = {
-    ...HoldingWarren.fieldMeta,
+    ...OuterWarren.fieldMeta,
     programmePath: { persistent: true, authorable: true, authorPicker: 'Template' },
     roadTemplate: { persistent: true, authorable: true, authorPicker: 'Template' },
   };
 
   /**
-   * The {@link HoldingProgramme} row a sold lot's house is a keyed
+   * The {@link HoldingWarren} row a sold lot's house is a keyed
    * instance of — the floorplan, the tenure term, the shell clock.
    */
   public programmePath: string = "";
@@ -99,7 +99,7 @@ export default class LotHolder extends LotHolderBase {
       }
     } catch (err) {
       console.warn(
-        `LotHolder(${this.getTemplatePath()}): boot gate re-hang failed:`,
+        `PlatWarren(${this.getTemplatePath()}): boot gate re-hang failed:`,
         err,
       );
     }
@@ -138,7 +138,7 @@ export default class LotHolder extends LotHolderBase {
       // A lot that is already PROVISIONED (its parcel row exists) may
       // always re-enter; the cap gates NEW ground only.
       if (!cap.ok && !(await this.isProvisioned(lotExtent))) {
-        throw new Error(`LotHolder.provision refused — ${cap.reason}`);
+        throw new Error(`PlatWarren.provision refused — ${cap.reason}`);
       }
     }
     const firstTime = !(await PersistableApi.hasRecord(
@@ -165,13 +165,13 @@ export default class LotHolder extends LotHolderBase {
     if (!node) return;
     // Losing the way in is a smaller failure than losing the title: a
     // street that will not stand or wire is logged, never thrown into
-    // the sale (the shipped LotHolder doctrine, kept).
+    // the sale (the shipped PlatWarren doctrine, kept).
     try {
       await this.ensureNode(node);
       await this.ensureEntry(lotExtent);
     } catch (err) {
       console.warn(
-        `LotHolder(${this.getTemplatePath()}): gate for ${lotExtent} ` +
+        `PlatWarren(${this.getTemplatePath()}): gate for ${lotExtent} ` +
           `could not hang:`,
         err,
       );
@@ -184,13 +184,13 @@ export default class LotHolder extends LotHolderBase {
     return holding ? this.entryRoomOf(holding) : null;
   }
 
-  // ─────────────── HoldingWarren policy hooks ─────────────────────
+  // ─────────────── OuterWarren policy hooks ─────────────────────
 
   /** Stand one house up whole: the keyed programme, woken (D16). */
   protected async standUpHolding(key: string): Promise<MemberStuff> {
     if (!this.programmePath) {
       throw new Error(
-        `LotHolder(${this.getTemplatePath()}): no programmePath authored`,
+        `PlatWarren(${this.getTemplatePath()}): no programmePath authored`,
       );
     }
     const programme = await StuffApi.clone<MemberStuff>(this.programmePath);
@@ -254,8 +254,8 @@ export default class LotHolder extends LotHolderBase {
 
   public async entryRowPath(): Promise<string> {
     if (this._entryRow) return this._entryRow;
-    const { default: HoldingProgramme } = await import('./HoldingProgramme');
-    this._entryRow = await HoldingProgramme.entryRowOf(this.programmePath);
+    const { default: HoldingWarren } = await import('./HoldingWarren');
+    this._entryRow = await HoldingWarren.entryRowOf(this.programmePath);
     return this._entryRow;
   }
 
@@ -274,7 +274,7 @@ export default class LotHolder extends LotHolderBase {
       nodeRoom = await this.ensureNode(node);
     } catch (err) {
       console.warn(
-        `LotHolder(${this.getTemplatePath()}): way out for ${key} ` +
+        `PlatWarren(${this.getTemplatePath()}): way out for ${key} ` +
           `could not wire:`,
         err,
       );
@@ -299,7 +299,7 @@ export default class LotHolder extends LotHolderBase {
   // ─────────────── Warren policy hooks ────────────────────────────
 
   protected async createMember(): Promise<MemberStuff> {
-    throw new Error("LotHolder stands holdings up via provision/admit");
+    throw new Error("PlatWarren stands holdings up via provision/admit");
   }
 
   public async admitArrival(): Promise<void> {

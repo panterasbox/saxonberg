@@ -35,7 +35,7 @@
  * The verb is core; the subdivisions are content. Everything
  * locality-specific — which lots exist, what they cost, how big they are,
  * what stands on one, what use it is stamped with — is authored on a
- * `LotHolder` instance (the residence pack’s), and this controller enumerates the holders
+ * `PlatWarren` instance (the residence pack’s), and this controller enumerates the holders
  * rather than knowing any of them. A second subdivision anywhere in the
  * world is a seed file and no change here.
  *
@@ -68,14 +68,14 @@ import { MqlApi } from '../../../../api/mql';
 import { AppApi } from '../../../../api/app';
 import { CredentialApi } from '../../../../api/credential';
 import { Lock } from '../../../../lib/lock/Lock';
-import { HoldingWarren } from '../../../../lib/location/HoldingWarren';
+import { OuterWarren } from '../../../../lib/location/OuterWarren';
 import { Currency } from "../../../../lib/banking/Currency";
 
 const TOPIC = 'act.deed';
 
 /**
  * The catalogue / provisioner surfaces this verb consumes — STRUCTURAL,
- * because the concrete `PlatBook` / `LotHolder` classes ship in the
+ * because the concrete `PlatBook` / `PlatWarren` classes ship in the
  * `residence` capability pack and the kernel imports no pack code.
  * MQL's `[class.PlatBook]` filter selects by class-lineage NAME (the
  * `matchesClass` prototype walk), so the shapes below are the method
@@ -94,8 +94,8 @@ interface PlatBookShape extends Stuff {
   lotExtents(): Promise<string[]>;
 }
 
-/** The provisioning half a book names by path (`residence/idea/LotHolder`). */
-interface LotHolderShape extends Stuff {
+/** The provisioning half a book names by path (`residence/idea/PlatWarren`). */
+interface PlatWarrenShape extends Stuff {
   provision(lotExtent: string): Promise<{ room: Stuff; firstTime: boolean }>;
   ensureGate(lotExtent: string): Promise<void>;
 }
@@ -139,10 +139,10 @@ export default class TitleController extends CommandController<TitleModel> {
    * with nothing behind it is a content bug, and the sale says so rather
    * than taking the money).
    */
-  private holderFor(book: PlatBookShape): LotHolderShape | null {
+  private holderFor(book: PlatBookShape): PlatWarrenShape | null {
     const path = book.getHolderPath();
     if (!path) return null;
-    return StuffApi.findByTemplatePath<LotHolderShape>(path) ?? null;
+    return StuffApi.findByTemplatePath<PlatWarrenShape>(path) ?? null;
   }
 
   /** `title` — what ground do I hold, and what may I do on it. */
@@ -462,7 +462,7 @@ export default class TitleController extends CommandController<TitleModel> {
       const extent = record.getExtent();
       let cond: { condition: number; band: string } | null = null;
       try {
-        cond = await HoldingWarren.conditionOf(extent);
+        cond = await OuterWarren.conditionOf(extent);
       } catch {
         cond = null;
       }

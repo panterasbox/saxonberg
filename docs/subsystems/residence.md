@@ -9,15 +9,15 @@ residence ladder.
 > and the dorm converged onto it.** A let unit at Seznick House and a bought
 > house at Hinkley Hills ride the same two-tier substrate this building's
 > machinery was lifted into — see **[holding.md](./holding.md)**, which is the
-> source of truth for `HoldingWarren`, `PlatPlan`, `HoldingProgramme`,
+> source of truth for `OuterWarren`, `PlatPlan`, `HoldingWarren`,
 > `FrontDoorExit`, the weathering clock, the tenure terms, the capacity dials
 > and the archetype read. This doc stays the source of truth for the DORM: its
 > D1 multi-instance persistence model (which the whole ladder now rides), its
 > theme overlay, its provisioning verbs and Katie.
 >
 > What converged, and what deliberately did not: `DormWarren` re-parented onto
-> `HoldingWarren` and each unit gained a degenerate one-room
-> `HoldingProgramme`, so the dorm's condition, term and archetype read answer
+> `OuterWarren` and each unit gained a degenerate one-room
+> `HoldingWarren`, so the dorm's condition, term and archetype read answer
 > like every other rung. `DormWarren`, `DormRoom`, `DormDoor` and
 > `FloorStairExit` **kept their names, template paths, extent scheme
 > (`f<n>-r<p>`) and observable behavior** — the duncan-hall suite is the pin,

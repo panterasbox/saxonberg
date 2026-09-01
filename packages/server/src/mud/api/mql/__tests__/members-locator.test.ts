@@ -11,7 +11,8 @@ import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { MqlApi } from '../../mql';
 import { StuffApi } from '../../stuff';
-import { Warren, type Attachment } from '../../../lib/location/Warren';
+import { type Attachment } from '../../../lib/location/Warren';
+import { InnerWarren } from '../../../lib/location/InnerWarren';
 import { ContainerMixin, type Container } from '../../../lib/spatial/Container';
 import { PersistableMixin } from '../../../lib/persistence/Persistable';
 import { AddressableMixin } from '../../../lib/address/Addressable';
@@ -30,7 +31,7 @@ class KeyedRoom extends AddressableMixin(
 }
 
 /** A minimal concrete warren — policy hooks are no-ops. */
-class TestWarren extends Warren {
+class TestWarren extends InnerWarren {
   static _mixinName = 'MembersLocatorWarren';
   protected async createMember(): Promise<Stuff & Container> {
     throw new Error('not used');

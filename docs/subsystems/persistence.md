@@ -769,7 +769,7 @@ first provisioning from a re-entry and wire exits, announce or bill
 accordingly.
 
 Two consumers: **`DormWarren.admit`** (per leased unit) and
-**`LotHolder`** (per titled lot — see
+**`PlatWarren`** (per titled lot — see
 [smallholding.md](./smallholding.md)). It lives here rather than in either
 because hand-rolled, the same six lines invite three specific mistakes:
 capturing on the restore path, re-seeding a room that already has
@@ -1226,7 +1226,7 @@ template row and are separated only by their persistence key, so
 `{ container }` alone would collapse every tenant's yard into one; and
 the room is not standing when the placement restores, because the whole
 holding is dormant. So `capturePlacement` records the pair, and
-`restorePlacement` re-enters through `HoldingWarren.admitFor(key)` —
+`restorePlacement` re-enters through `OuterWarren.admitFor(key)` —
 which finds the institution whose parent extent prefixes the key, stands
 the holding back up, and returns the exact room.
 

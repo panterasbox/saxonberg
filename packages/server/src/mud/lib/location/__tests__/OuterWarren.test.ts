@@ -1,5 +1,5 @@
 /**
- * HoldingWarren — the shared two-tier holdings + circulation base
+ * OuterWarren — the shared two-tier holdings + circulation base
  * (residences D12/D16), over SYNTHETIC fixtures (lint:test-content:
  * kernel tests never name /world/): the reap invariant (outside-in,
  * never under a live holding), contiguity across an empty middle node,
@@ -9,7 +9,7 @@
 
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { HoldingWarren } from '../HoldingWarren';
+import { OuterWarren } from '../OuterWarren';
 import type { Attachment } from '../Warren';
 import Exit from '../../boundary/Exit';
 import { StuffApi } from '../../../api/stuff';
@@ -32,7 +32,7 @@ class CircRoom extends ContainerMixin(ExitableMixin(Location)) {
   static _mixinName = 'HWTestCirc';
 }
 
-class TestHolding extends HoldingWarren {
+class TestHolding extends OuterWarren {
   static _mixinName = 'HWTestWarren';
   public wired: string[] = [];
   protected async standUpHolding(): Promise<MemberStuff> {

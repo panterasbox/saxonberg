@@ -19,7 +19,7 @@
  * they are read through the `WarrenMember` back-ref by SHAPE, never by
  * import: the residential programme is a capability pack's class and the
  * kernel does not import packs. It is the same duck-typed seam
- * `HoldingWarren` already uses in the other direction.
+ * `OuterWarren` already uses in the other direction.
  *
  * Room archetypes are the industry-less ones — a bedroom derives from no
  * recipes, which is exactly what distinguishes it from a venue

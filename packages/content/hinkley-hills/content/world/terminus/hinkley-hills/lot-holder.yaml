@@ -4,7 +4,7 @@
 # grows by the plat plan (D13) — segment 1 IS the authored lane;
 # reaches beyond it are minted road-segment clones that stand as
 # frontage sells; Hinkley Court branches off segment 2.
-class: /residence/idea/LotHolder
+class: /residence/idea/PlatWarren
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   # The holding programme every sold lot is a keyed instance of (D16).

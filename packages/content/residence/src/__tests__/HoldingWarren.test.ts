@@ -1,5 +1,5 @@
 /**
- * HoldingProgramme — the holding as a warren one level down (residences
+ * HoldingWarren — the holding as a warren one level down (residences
  * D16 / wave 4): whole-holding wake over `(scope = row, key =
  * extent/leaf)` records, the locked front-door edge, whole-holding
  * dormancy (never room-by-room), the shell condition clock honest
@@ -11,11 +11,11 @@
 
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import HoldingProgramme from '../idea/HoldingProgramme';
+import HoldingWarren from '../idea/HoldingWarren';
 import HouseholdersKit from '../thing/HouseholdersKit';
 import MaintainController from '../idea/cmd/crafting/MaintainController';
 import FrontDoorExit from '../idea/FrontDoorExit';
-import { HoldingWarren } from '@saxonberg/server/mud/lib/location/HoldingWarren';
+import { OuterWarren } from '@saxonberg/server/mud/lib/location/OuterWarren';
 import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';
 import { PostRegistrationMixin } from '@saxonberg/server/mud/lib/stuff/PostRegistration';
 import FurnishableRoom from '@saxonberg/server/mud/platform/location/FurnishableRoom';
@@ -58,9 +58,9 @@ const ROOM_B = '/world/prog-test/bedroom';
 const STREET = '/world/prog-test/lane';
 const LOT1 = `${PARENT}/lot-1`;
 
-/** The generic institution the programme hangs off (a LotHolder stand-in). */
+/** The generic institution the programme hangs off (a PlatWarren stand-in). */
 class TestInstitution extends SingletonMixin(
-  PostRegistrationMixin(HoldingWarren),
+  PostRegistrationMixin(OuterWarren),
 ) {
   static _mixinName = 'ProgTestInstitution';
   protected async standUpHolding(key: string): Promise<MemberStuff> {
@@ -110,7 +110,7 @@ function seedDomain(): void {
     domain.push({ _id: `d-${++idCounter}`, path, class: cls, hydratorClass: PH, data });
   domain.push({ _id: `d-${++idCounter}`, path: PH, class: PH, data: {} });
   add(WARREN_PATH, WARREN_PATH.replace('/holder', '/TestInstitution'));
-  add(PROGRAMME, '/residence/idea/HoldingProgramme', {
+  add(PROGRAMME, '/residence/idea/HoldingWarren', {
     floorplan: [
       {
         leaf: 'hall',
@@ -270,7 +270,7 @@ describe('the residential programme (D16)', () => {
     // Wired: hall → bedroom, and back.
     const hallEx = entry as unknown as Exitable;
     expect(hallEx.getExit('north')).toBeDefined();
-    const holding = w.holdingFor(LOT1)! as unknown as HoldingProgramme;
+    const holding = w.holdingFor(LOT1)! as unknown as HoldingWarren;
     const bedroom = holding.roomForLeaf('bedroom')!;
     expect(bedroom.getTemplatePath()).toBe(ROOM_B);
     expect((bedroom as unknown as Exitable).getExit('south')).toBeDefined();
@@ -287,7 +287,7 @@ describe('the residential programme (D16)', () => {
     await bootRegistries();
     const w = await institution();
     const entry = await w.admit(LOT1);
-    const holding = w.holdingFor(LOT1)! as unknown as HoldingProgramme;
+    const holding = w.holdingFor(LOT1)! as unknown as HoldingWarren;
     const bedroom = holding.roomForLeaf('bedroom')!;
 
     const iris = makeStuffAtPath(() => new Avatar(), '/platform/agent/Avatar/iris');
@@ -356,7 +356,7 @@ describe('the residential programme (D16)', () => {
     await bootRegistries();
     const w = await institution();
     await w.admit(LOT1);
-    const holding = w.holdingFor(LOT1)! as unknown as HoldingProgramme;
+    const holding = w.holdingFor(LOT1)! as unknown as HoldingWarren;
 
     const base = WorldClockApi.getNow().rawValue();
     const clock = vi.spyOn(WorldClockApi, 'getNow');
@@ -375,7 +375,7 @@ describe('the residential programme (D16)', () => {
     await (w as unknown as { reconcile(): Promise<void> }).reconcile();
     const reborn = await w.admit(LOT1);
     void reborn;
-    const holding2 = w.holdingFor(LOT1)! as unknown as HoldingProgramme;
+    const holding2 = w.holdingFor(LOT1)! as unknown as HoldingWarren;
     expect(holding2.reconcileShell()).toBeLessThanOrEqual(0.51);
 
     // The maintenance restore (P10).
@@ -443,7 +443,7 @@ describe('the maintenance act (D4/D5)', () => {
 
   /** Wear a holding's shell down to `worn` and hand back the pieces. */
   async function wornHolding(): Promise<{
-    holding: HoldingProgramme;
+    holding: HoldingWarren;
     hall: MemberStuff;
     clock: ReturnType<typeof vi.spyOn>;
   }> {
@@ -451,7 +451,7 @@ describe('the maintenance act (D4/D5)', () => {
     await bootRegistries();
     const w = await institution();
     const hall = await w.admit(LOT1);
-    const holding = w.holdingFor(LOT1)! as unknown as HoldingProgramme;
+    const holding = w.holdingFor(LOT1)! as unknown as HoldingWarren;
     const base = WorldClockApi.getNow().rawValue();
     const clock = vi.spyOn(WorldClockApi, 'getNow');
     clock.mockReturnValue(Quantity.of(base, 's'));

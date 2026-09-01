@@ -18,16 +18,40 @@ three:
 
 The ladder as shipped:
 
-| Rung | Institution | Holding | Tenure | Upkeep term |
+| Rung | Institution (outer) | Holding (inner) | Tenure | Upkeep term |
 |---|---|---|---|---|
 | Granted | `DormWarren` (Duncan Hall) | one room | parcel grant (lease) | `institution-all` |
-| Let | `UnitBuilding` (Seznick House) | a multi-room unit | parcel grant (lease) | `landlord-shell` |
-| Owned | `LotHolder` (Hinkley Hills) | a house on a lot | parcel **title** | `owner-all` |
+| Let | `BuildingWarren` (Seznick House) | a multi-room unit | parcel grant (lease) | `landlord-shell` |
+| Owned | `PlatWarren` (Hinkley Hills) | a house on a lot | parcel **title** | `owner-all` |
 
 The dorm is documented end-to-end in [residence.md](./residence.md);
 this doc is what it converged ONTO.
 
 ---
+
+## Every warren is inner or outer, and the compiler asks
+
+Before the four roles, the vocabulary they sit in — because it applies
+to **any** warren, not just residential ones:
+
+| | members are | occupancy means | base |
+|---|---|---|---|
+| **`InnerWarren`** | ROOMS | who is standing in a member | `lib/location/InnerWarren` |
+| **`OuterWarren`** | WARRENS | who is anywhere inside a member's rooms | `lib/location/OuterWarren` |
+
+`Warren` declares `occupantsOf` **abstract**, so a new warren cannot be
+written without choosing. That is not ceremony: the leaf answer used to
+be the concrete default on `Warren` and the outer tier had to remember
+to override it — and a warren that forgot would read every holding as
+empty and **reap an occupied house**. The choice is now made once, by
+which base you extend, and the compiler will not let you skip it.
+
+An inner warren also refuses a warren member outright (`addMember`
+throws), so the tiers cannot quietly nest the wrong way round.
+
+The naming rule falls out: **every warren ends in `Warren`.**
+`DormWarren`, `BuildingWarren`, `PlatWarren` are outer; `HoldingWarren`
+and `LoungeWarren` are inner.
 
 ## The four roles
 
@@ -36,9 +60,9 @@ into the right one is almost always the whole design decision.
 
 | Role | Class | Question it answers |
 |---|---|---|
-| The institution | `lib/location/HoldingWarren` (kernel, abstract) | *Which holdings exist, and how do you get to them?* |
+| The institution | `lib/location/OuterWarren` (kernel, abstract) | *Which holdings exist, and how do you get to them?* |
 | The layout | `lib/location/PlatPlan` (kernel, value object) | *Where does the next holding GO?* |
-| The holding | `residence/idea/HoldingProgramme` (pack) | *What rooms is this one made of, and what shape is it in?* |
+| The holding | `residence/idea/HoldingWarren` (pack, an `InnerWarren`) | *What rooms is this one made of, and what shape is it in?* |
 | The way in | `residence/idea/FrontDoorExit` (pack) | *May you cross this threshold?* |
 
 Two of the four are kernel and two are a capability pack's, and the line
@@ -51,9 +75,9 @@ back-ref BY SHAPE, or through MQL by class NAME.
 
 ---
 
-## Tier 1 — `HoldingWarren`, the institution
+## Tier 1 — `OuterWarren`, the institution
 
-`abstract class HoldingWarren extends Warren`. Everything three
+`abstract class OuterWarren extends Warren`. Everything three
 institutions had in common, lifted out of `DormWarren`:
 
 - **the holdings map** (`_holdingsByKey`) — a holding per parcel extent,
@@ -95,8 +119,8 @@ protected entryEdgeFor(key: string): Promise<Exit | null>
 ```
 
 `DormWarren` stands a holding up as a programme over the `dormroom`
-row and hangs a `DormDoor`; `UnitBuilding` does the same with
-`FrontDoorExit` off a corridor; `LotHolder` does it with a
+row and hangs a `DormDoor`; `BuildingWarren` does the same with
+`FrontDoorExit` off a corridor; `PlatWarren` does it with a
 `LotGateExit` off a road segment. Nothing else differs.
 
 ---
@@ -126,7 +150,7 @@ should be written and lets the rest grow.
 
 ---
 
-## Tier 2 — `HoldingProgramme`, the holding
+## Tier 2 — `HoldingWarren`, the holding
 
 An instanceable `Warren` (`PersistableMixin(PostRegistrationMixin(
 Warren))`) — deliberately **not** a singleton, because there is one live
@@ -324,7 +348,7 @@ Two residences-era additions:
 - **the keyed place.** `placeIdOf(host)` is `scope#key` for a keyed
   host, so many rooms sharing one row keep distinct placements — and a
   captured placement records `{ container, containerKey }` so a
-  restoring host re-enters through `HoldingWarren.admitFor(key)`. That
+  restoring host re-enters through `OuterWarren.admitFor(key)`. That
   is the "log out in your own yard, log back into the same yard"
   acceptance.
 - **the mount marker.** A good hung on a wall (`hang`) records
@@ -357,7 +381,7 @@ The D17 split, shipped in this build and now an invariant the
   `asIdentityPath`. The lint proves the channel stays retired and that
   every template-path-valued field in every shipped row resolves.
 
-Rowless minted paths were how the old `LotHolder` conjured a yard, and
+Rowless minted paths were how the old `PlatWarren` conjured a yard, and
 they are why a bought lot's rooms could not be edited, addressed or
 resolved to a zone. Keyed instances of real rows replaced them.
 
@@ -369,8 +393,8 @@ Four packs were cut for this build (D18), and the membership test is
 arcana's — *a capability pack holds what other packs' content names*:
 
 - **`residence`** — the substrate classes and the substrate's own verbs,
-  settings and goods: `PlatBook`, `LotHolder`, `LotGateExit`,
-  `HoldingProgramme`, `UnitBuilding`, `FrontDoorExit`, `KeyedDoorExit`,
+  settings and goods: `PlatBook`, `PlatWarren`, `LotGateExit`,
+  `HoldingWarren`, `BuildingWarren`, `FrontDoorExit`, `KeyedDoorExit`,
   `DeedDesk`, `HouseholdersKit`, `maintain`.
 - **`eternal-university`**, **`terminus`**, **`hinkley-hills`** — the
   three localities, each homed whole (content + its own `src/`).

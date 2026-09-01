@@ -67,7 +67,7 @@ describe("the lane authors no exit into a lot", () => {
   it("⭐ nothing static points at the shared yard template", () => {
     // A static edge to a template that is cloned per lot stands the
     // TEMPLATE up as a place — an unowned yard on nobody's lot. Gates are
-    // installed per sale by `LotHolder`, deferred, named for the leaf.
+    // installed per sale by `PlatWarren`, deferred, named for the leaf.
     for (const [dir, spec] of Object.entries(exits)) {
       expect(
         spec.destination,

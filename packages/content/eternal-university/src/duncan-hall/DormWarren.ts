@@ -1,7 +1,7 @@
 /**
  * DormWarren — the elastic, two-tier room-collection manager for Duncan
  * Hall's dorms wing. A singleton content subclass of the shared
- * {@link HoldingWarren} base (residences D12/D16 — the two-tier
+ * {@link OuterWarren} base (residences D12/D16 — the two-tier
  * holdings + circulation machinery was lifted there; this class keeps
  * the dorm *policy*): rooms are keyed holdings (unit parcel extents),
  * floors are linear-plan circulation nodes (`main:<floor>`), doors are
@@ -17,7 +17,7 @@
  * `docs/subsystems/residence.md`.
  */
 
-import { HoldingWarren } from '@saxonberg/server/mud/lib/location/HoldingWarren';
+import { OuterWarren } from '@saxonberg/server/mud/lib/location/OuterWarren';
 import type { Attachment } from '@saxonberg/server/mud/lib/location/Warren';
 import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';
 import { PostRegistrationMixin } from '@saxonberg/server/mud/lib/stuff/PostRegistration';
@@ -39,7 +39,7 @@ import type { Persistable } from '@saxonberg/server/mud/lib/persistence/Persista
 type MemberStuff = Stuff & Container;
 type ExitableContainer = Stuff & Container & Exitable;
 
-const DormWarrenBase = SingletonMixin(PostRegistrationMixin(HoldingWarren));
+const DormWarrenBase = SingletonMixin(PostRegistrationMixin(OuterWarren));
 
 export default class DormWarren extends DormWarrenBase {
   /** Seeded Warren-definition path (the singleton). */
@@ -147,7 +147,7 @@ export default class DormWarren extends DormWarrenBase {
     return this.circulationForNode(`main:${slot.floor}`);
   }
 
-  /** Tear a unit down (end-lease). See {@link HoldingWarren.dropHolding}. */
+  /** Tear a unit down (end-lease). See {@link OuterWarren.dropHolding}. */
   public async dropUnit(
     unitKey: string,
     opts: { revert?: boolean } = {},
@@ -155,11 +155,11 @@ export default class DormWarren extends DormWarrenBase {
     return this.dropHolding(unitKey, opts);
   }
 
-  // ─────────────── HoldingWarren policy hooks ─────────────────────
+  // ─────────────── OuterWarren policy hooks ─────────────────────
 
   /**
    * Stand one unit up, whole — through the unit's keyed
-   * {@link HoldingProgramme} instance (D16 step 2, the degenerate
+   * {@link HoldingWarren} instance (D16 step 2, the degenerate
    * one-room floorplan): clone the programme row, restore-or-seed it
    * keyed on the unit extent, wake it (which stands the `DormRoom` up
    * keyed on the SAME extent — no leaf, so the D1 record shape is

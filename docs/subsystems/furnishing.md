@@ -367,7 +367,7 @@ The lounge's `Bar` keeps its own class (a `SingletonMixin` room the
 Warren wires) and lists the bundle's fixtures by reference.
 
 > ✅ **CLOSED by the residences build (2026-08-31).** The provisioner
-> shipped: `HoldingProgramme.wake()` stands every room of a holding up as
+> shipped: `HoldingWarren.wake()` stands every room of a holding up as
 > a keyed instance of its authored row and drives exactly the flow this
 > warning describes (`restoreOrSeed` → `seedBornWith` on the no-record
 > branch). Hinkley's houses instantiate the generic bedroom, living and

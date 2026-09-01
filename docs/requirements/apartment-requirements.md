@@ -2,7 +2,7 @@
 
 > ⚠⚠ **SUPERSEDED by the residences build (2026-08-31).** The rung this
 > document specifies **shipped**: Seznick House on Mayfield Row is a
-> `UnitBuilding` letting multi-room, empty-at-move-in units furnished with
+> `BuildingWarren` letting multi-room, empty-at-move-in units furnished with
 > real owned goods, with keys, whole-unit dormancy and evict-to-storage.
 > The live reference is **[holding.md](../subsystems/holding.md)**
 > (the substrate) and [furnishing.md](../subsystems/furnishing.md) (the

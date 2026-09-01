@@ -318,8 +318,18 @@ geometry classes documented above):**
 
 | File | Role |
 |---|---|
-| `Warren.ts` | Abstract base — the generic mechanism. |
+| `Warren.ts` | Abstract base — the generic mechanism. Declares `occupantsOf` **abstract**, so every warren must choose a tier. |
+| `InnerWarren.ts` | Abstract base — **members are ROOMS**; occupancy is who is standing in a member. Refuses a warren member. |
+| `OuterWarren.ts` | Abstract base — **members are WARRENS**; occupancy is who is anywhere inside a member's rooms. Carries the holdings + circulation machinery ([holding.md](./holding.md)). |
 | `WarrenMember.ts` | `WarrenMemberMixin` — optional member-side back-ref. |
+
+⭐ **Every warren ends in `Warren`, and picks one of the two tiers.**
+The tier is not decoration — it *is* what "who is in here" means, and
+the leaf answer used to be a concrete default on `Warren` that the outer
+tier had to remember to override. A warren that forgot read every
+holding as empty and would reap an occupied one. Abstract on the root
+means the compiler asks. See
+[holding.md](./holding.md#every-warren-is-inner-or-outer-and-the-compiler-asks).
 
 **Content — `world/lounge/` (the lounge area; class paths
 `/world/lounge/<branch>/*`, branch subdirs since content packs wave 4b —
@@ -332,7 +342,7 @@ mirrors it):**
 | `location/Bar.ts` | Singleton external-neighbor shell (Dave's Bar); self-stocks crafting content via `populates:` (the hospitality trade's back-bar + stations by reference, the venue's bottles `onto` it, plus Dave + the menu). |
 | `location/GlassAlley.ts` | The alley. |
 | `thing/LoungeTerminal.ts` | The TPA node (a `TpaTerminal`, a Thing) — the pack's boot entry. |
-| `idea/LoungeWarren.ts` | Concrete singleton Warren — the lounge *policy*. (The **second** Warren subclass, `DormWarren`, is an elastic *two-tier* consumer — keyed persistent members + runtime floor scaffold; see [residence.md](./residence.md).) |
+| `idea/LoungeWarren.ts` | Concrete singleton **`InnerWarren`** — the lounge *policy* (its members are rooms). The elastic *two-tier* consumers (`DormWarren`, `BuildingWarren`, `PlatWarren`) are `OuterWarren`s whose members are themselves warrens — see [holding.md](./holding.md). |
 | `LoungeMixin.ts` | `LoungeMixin` — lounge-room behavior + the home for future room functionality (a locality's mixin has no branch; it stays at the root, with `paths.ts`). |
 
 The composition-only classes the lounge used to carry (`Menu`,

@@ -1,5 +1,5 @@
 # The Seznick House lobby — the building's authored ground floor. The
-# stair up is installed at warm by the UnitBuilding (an UpstairsExit —
+# stair up is installed at warm by the BuildingWarren (an UpstairsExit —
 # impassable while no unit is leased above, the dorm's honest-empty
 # rule); the way back out is the street door.
 class: /platform/location/Room

@@ -1,8 +1,8 @@
 /**
- * UnitBuilding — **the generic elastic apartment building** (residences
+ * BuildingWarren — **the generic elastic apartment building** (residences
  * D3/D12): the shared holdings + circulation base one cardinality up
  * from the dorm — a Warren whose member is a multi-room UNIT (a keyed
- * {@link HoldingProgramme} instance), fully data-driven: the lobby, the
+ * {@link HoldingWarren} instance), fully data-driven: the lobby, the
  * corridor row, the unit programme, the linear plan and the capacity
  * dial are all authored fields, so a second building anywhere — or the
  * future SHOP unit under a `commercial` land use — is a row, never a
@@ -14,7 +14,7 @@
  * distinct `u` leaf so dorm tooling never misreads a unit extent).
  */
 
-import { HoldingWarren } from '@saxonberg/server/mud/lib/location/HoldingWarren';
+import { OuterWarren } from '@saxonberg/server/mud/lib/location/OuterWarren';
 import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';
 import { PostRegistrationMixin } from '@saxonberg/server/mud/lib/stuff/PostRegistration';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -23,7 +23,7 @@ import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
 import Exit from '@saxonberg/server/mud/lib/boundary/Exit';
 import FrontDoorExit from './FrontDoorExit';
 import UpstairsExit from './UpstairsExit';
-import HoldingProgramme from './HoldingProgramme';
+import HoldingWarren from './HoldingWarren';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Exitable } from '@saxonberg/server/mud/lib/boundary/Exitable';
@@ -33,11 +33,11 @@ import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 type MemberStuff = Stuff & Container;
 type ExitableContainer = Stuff & Container & Exitable;
 
-const UnitBuildingBase = SingletonMixin(PostRegistrationMixin(HoldingWarren));
+const BuildingWarrenBase = SingletonMixin(PostRegistrationMixin(OuterWarren));
 
-export default class UnitBuilding extends UnitBuildingBase {
+export default class BuildingWarren extends BuildingWarrenBase {
   static fieldMeta: FieldMeta = {
-    ...HoldingWarren.fieldMeta,
+    ...OuterWarren.fieldMeta,
     programmePath: { persistent: true, authorable: true, authorPicker: 'Template' },
     corridorTemplate: { persistent: true, authorable: true, authorPicker: 'Template' },
     lobbyPath: { persistent: true, authorable: true, authorPicker: 'Template' },
@@ -95,19 +95,19 @@ export default class UnitBuilding extends UnitBuildingBase {
       await this.installLobbyUpExit();
     } catch (err) {
       console.warn(
-        `UnitBuilding(${this.getTemplatePath()}): warm failed:`,
+        `BuildingWarren(${this.getTemplatePath()}): warm failed:`,
         err,
       );
     }
   }
 
-  // ─────────────── HoldingWarren policy hooks ─────────────────────
+  // ─────────────── OuterWarren policy hooks ─────────────────────
 
   /** Stand one unit up whole: the keyed programme, woken (D16). */
   protected async standUpHolding(key: string): Promise<MemberStuff> {
     if (!this.programmePath) {
       throw new Error(
-        `UnitBuilding(${this.getTemplatePath()}): no programmePath authored`,
+        `BuildingWarren(${this.getTemplatePath()}): no programmePath authored`,
       );
     }
     const programme = await StuffApi.clone<MemberStuff>(this.programmePath);
@@ -171,7 +171,7 @@ export default class UnitBuilding extends UnitBuildingBase {
     const dir = `unit-${m[2]}`;
     const existing = corridor.getExit(dir);
     if (existing) return existing as unknown as Exit;
-    const entryRow = await HoldingProgramme.entryRowOf(this.programmePath);
+    const entryRow = await HoldingWarren.entryRowOf(this.programmePath);
     const door = StuffApi.createSync(
       () => new FrontDoorExit(corridor, this, key, dir, entryRow),
     );
@@ -209,7 +209,7 @@ export default class UnitBuilding extends UnitBuildingBase {
   // ─────────────── Warren policy hooks ────────────────────────────
 
   protected async createMember(): Promise<MemberStuff> {
-    throw new Error('UnitBuilding stands holdings up via admit');
+    throw new Error('BuildingWarren stands holdings up via admit');
   }
 
   public async admitArrival(): Promise<void> {

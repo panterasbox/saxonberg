@@ -1,8 +1,18 @@
 /**
- * HoldingWarren — the shared **two-tier holdings + circulation** base
+ * OuterWarren — **a warren whose members are WARRENS**, and the shared
+ * **holdings + circulation** base
  * every residential institution consumes (residences D12/D16): the
- * dorm, the lot holder, the apartment building are the same machine
- * wearing different clothes.
+ * dorm, the plat, the apartment building are the same machine wearing
+ * different clothes.
+ *
+ * The tier is the load-bearing half of the name (see
+ * {@link InnerWarren}): an outer warren's members are themselves
+ * warrens, so "who is in here" means whoever is anywhere inside a
+ * member's own rooms — never merely who is standing in the member. A
+ * warren that got that backwards would read every holding as empty and
+ * reap an occupied house. `Warren` declares `occupantsOf` abstract so
+ * the choice of tier is made once, explicitly, by which base you
+ * extend.
  *
  * Lifted from `DormWarren` (whose suite pins the behavior): the base
  * owns the keyed-holdings map, the circulation-node map, the entry
@@ -54,7 +64,7 @@ export interface CapacityCheck {
   reason?: string;
 }
 
-export abstract class HoldingWarren extends Warren {
+export abstract class OuterWarren extends Warren {
   static fieldMeta: FieldMeta = {
     plan: { persistent: true, authorable: true },
     capacityKey: { persistent: true, authorable: true },
@@ -280,15 +290,17 @@ export abstract class HoldingWarren extends Warren {
    * whole-holding sleep witness — while a plain room counts its own
    * interactive occupants.
    */
-  protected override occupantsOf(m: MemberStuff): (Stuff & Container)[] {
+  protected occupantsOf(m: MemberStuff): (Stuff & Container)[] {
     if (m instanceof Warren) {
       const out: (Stuff & Container)[] = [];
       for (const room of (m as unknown as Warren).getMembers()) {
-        out.push(...super.occupantsOf(room as MemberStuff));
+        out.push(...this.leafOccupants(room as MemberStuff));
       }
       return out;
     }
-    return super.occupantsOf(m);
+    // A member that is NOT a warren is a bare room hanging off the
+    // institution directly (the degenerate one-room holding): leaf.
+    return this.leafOccupants(m);
   }
 
   /**
@@ -301,7 +313,7 @@ export abstract class HoldingWarren extends Warren {
   public static async conditionOf(
     extent: string,
   ): Promise<{ condition: number; band: string } | null> {
-    const room = await HoldingWarren.admitFor(extent);
+    const room = await OuterWarren.admitFor(extent);
     if (!room) return null;
     const programme = (
       room as unknown as { getWarren?: () => unknown }
@@ -332,12 +344,12 @@ export abstract class HoldingWarren extends Warren {
   public static async admitFor(
     key: string,
   ): Promise<MemberStuff | null> {
-    const warrens = MqlApi.resolveMany('world:[class.HoldingWarren]', {
+    const warrens = MqlApi.resolveMany('world:[class.OuterWarren]', {
       commandGiver: null,
       scope: 'world',
     }).stuff;
     for (const w of warrens) {
-      if (!(w instanceof HoldingWarren)) continue;
+      if (!(w instanceof OuterWarren)) continue;
       const parent = w.getParentExtent();
       if (!parent || !key.startsWith(parent + '/')) continue;
       const rest = key.slice(parent.length + 1);

@@ -2,7 +2,7 @@
 # suburb: you arrive, you walk up the lane, you turn in at your lot.
 #
 # There is NO authored exit into a lot. A gate is hung here per SOLD lot
-# by the LotHolder (a deferred `LotGateExit`, directioned by the lot leaf
+# by the PlatWarren (a deferred `LotGateExit`, directioned by the lot leaf
 # — `lot-1`), because the street cannot name one room: each lot's rooms
 # are KEYED instances of real rows under the lots zone (residences
 # D16/D17). This lane is the plat plan's AUTHORED segment (lane:1); the

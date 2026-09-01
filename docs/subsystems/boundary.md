@@ -165,7 +165,7 @@ The base owns the fault-in lifecycle; subclasses supply only
 a key check vs. a reachability check). Consumers: the dorm's `DormDoor`
 (a unit's room) and `FloorStairExit` (a floor's corridor) — see
 [residence.md](./residence.md) — and `obj/LotGateExit` (a sold lot's
-yard, hung on the street by `LotHolder`; see
+yard, hung on the street by `PlatWarren`; see
 [smallholding.md](./smallholding.md)).
 
 `LotGateExit` is the case where the eager path is **exact** rather than a

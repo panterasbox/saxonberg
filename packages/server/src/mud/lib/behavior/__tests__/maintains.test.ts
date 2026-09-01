@@ -26,7 +26,7 @@
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { brain } from '../maintains';
-import { Warren } from '../../location/Warren';
+import { InnerWarren } from '../../location/InnerWarren';
 import { CommandApi } from '../../../api/command';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
@@ -43,9 +43,9 @@ const OTHER = '/test/elsewhere/units';
 
 /**
  * A stand-in programme. The NAME is the contract — `world:[class.
- * HoldingProgramme]` matches on it — and so are the three methods.
+ * HoldingWarren]` matches on it — and so are the three methods.
  */
-class HoldingProgramme extends Warren {
+class HoldingWarren extends InnerWarren {
   public key = '';
   public band = 'sound';
   public entry: Stuff | null = null;
@@ -70,8 +70,8 @@ class HoldingProgramme extends Warren {
   protected async unwireHostFixtures(): Promise<void> {}
 }
 
-function programme(key: string, band: string): HoldingProgramme {
-  const p = makeStuff(() => new HoldingProgramme());
+function programme(key: string, band: string): HoldingWarren {
+  const p = makeStuff(() => new HoldingWarren());
   p.key = key;
   p.band = band;
   p.entry = makeStuff(() => new Room()) as unknown as Stuff;

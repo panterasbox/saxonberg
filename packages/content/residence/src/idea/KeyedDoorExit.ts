@@ -6,7 +6,7 @@
  * keychain entry — `CredentialApi.presentsKey`, the sync
  * reachable-wallet scan) and blocks everyone else; an empty keyway (an
  * unprovisioned / re-keyed holding) opens for no one. The keyway is a
- * sync read off the owning {@link HoldingProgramme}'s cache.
+ * sync read off the owning {@link HoldingWarren}'s cache.
  *
  * A plain `Exit` (not deferred): both rooms are live when the
  * programme wires its floorplan — the deferral seam is the
@@ -20,19 +20,19 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type { Exitable } from '@saxonberg/server/mud/lib/boundary/Exitable';
-import type HoldingProgramme from './HoldingProgramme';
+import type HoldingWarren from './HoldingWarren';
 
 type ExitableContainer = Stuff & Container & Exitable;
 
 export default class KeyedDoorExit extends Exit {
-  private programmeRef: HoldingProgramme;
+  private programmeRef: HoldingWarren;
   private lockTech: LockType;
 
   constructor(
     source: Stuff & Container,
     destination: ExitableContainer,
     direction: string,
-    programme: HoldingProgramme,
+    programme: HoldingWarren,
     opts: { oneWay?: boolean; lockTech?: LockType } = {},
   ) {
     super({

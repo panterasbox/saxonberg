@@ -76,7 +76,7 @@ function seedDomain(): void {
   domain.push({ _id: `d-${++idCounter}`, path: PH, class: PH, data: {} });
   add(DormWarren.WARREN_PATH, '/world/eternal/duncan-hall/DormWarren');
   // D16 step 2: the unit's degenerate one-room programme row.
-  add(DormWarren.PROGRAMME_PATH, '/residence/idea/HoldingProgramme', {
+  add(DormWarren.PROGRAMME_PATH, '/residence/idea/HoldingWarren', {
     floorplan: [{ room: DormRoom.SCOPE, entry: true }],
     upkeepTerm: 'institution-all',
   });

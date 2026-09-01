@@ -1,5 +1,6 @@
 /**
- * HoldingProgramme — **the holding as a warren one level down**
+ * HoldingWarren — **what ONE person holds**, and the holding as a warren
+ * one level down
  * (residences D16): a keyed instance of ONE programme row per holding,
  * whose members are the holding's rooms and which owns every
  * holding-level concern — the floorplan mint, intra-holding wiring +
@@ -9,7 +10,7 @@
  * aggregation point (D15), and lease revert.
  *
  * Identity is the keyed model: the programme row is authored content
- * (`class: /residence/idea/HoldingProgramme`), each holding gets a
+ * (`class: /residence/idea/HoldingWarren`), each holding gets a
  * keyed instance `(scope = the row, key = the holding's parcel
  * extent)`; each room is a keyed instance of a REAL room row
  * `(scope = the room row, key = <extent>/<leaf>)` — `templatePath`
@@ -23,7 +24,13 @@
  * whose records already ride the holding's extent.
  */
 
-import { Warren, type Attachment } from '@saxonberg/server/mud/lib/location/Warren';
+import { type Attachment } from '@saxonberg/server/mud/lib/location/Warren';
+// A holding's members are ROOMS, so it is an INNER warren — the tier
+// whose occupancy is who is standing in a member. Its institution (a
+// dorm, a building, a plat) is the OUTER one, whose members are
+// holdings like this. `Warren` declares `occupantsOf` abstract so the
+// tier is chosen explicitly, by which base you extend.
+import { InnerWarren } from '@saxonberg/server/mud/lib/location/InnerWarren';
 import { PersistableMixin } from '@saxonberg/server/mud/lib/persistence/Persistable';
 import { WarrenMemberMixin } from '@saxonberg/server/mud/lib/location/WarrenMember';
 import { PostRegistrationMixin } from '@saxonberg/server/mud/lib/stuff/PostRegistration';
@@ -85,11 +92,11 @@ const GAME_DAY_SECONDS = 86_400;
 
 const ProgrammeBase = PersistableMixin(
   WarrenMemberMixin(
-    PostRegistrationMixin(ContainerMixin(Warren)),
+    PostRegistrationMixin(ContainerMixin(InnerWarren)),
   ),
 );
 
-export default class HoldingProgramme extends ProgrammeBase {
+export default class HoldingWarren extends ProgrammeBase {
   static fieldMeta: FieldMeta = {
     floorplan: { persistent: true, authorable: true },
     upkeepTerm: { persistent: true, authorable: true },
@@ -130,7 +137,7 @@ export default class HoldingProgramme extends ProgrammeBase {
   public setUpkeepTerm(value: string): void {
     if (typeof value !== 'string' || !/^[a-z][a-z-]*$/.test(value)) {
       throw new Error(
-        `HoldingProgramme: upkeepTerm '${String(value)}' is not a ` +
+        `HoldingWarren: upkeepTerm '${String(value)}' is not a ` +
           `kebab-case term (shipped: ${UPKEEP_TERMS.join(', ')})`,
       );
     }
@@ -508,7 +515,7 @@ export default class HoldingProgramme extends ProgrammeBase {
   // ── Warren policy hooks ─────────────────────────────────────────
 
   protected async createMember(): Promise<MemberStuff> {
-    throw new Error('HoldingProgramme mints rooms via wake(), never buds');
+    throw new Error('HoldingWarren mints rooms via wake(), never buds');
   }
 
   public async admitArrival(): Promise<void> {

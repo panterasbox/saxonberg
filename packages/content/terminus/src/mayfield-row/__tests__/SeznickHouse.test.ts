@@ -11,7 +11,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import LeaseController from '../idea/cmd/LeaseController';
 import Walter from '../npc/Walter';
 import UnleaseController from '../idea/cmd/UnleaseController';
-import type UnitBuilding from '@saxonberg/content-residence/src/idea/UnitBuilding';
+import type BuildingWarren from '@saxonberg/content-residence/src/idea/BuildingWarren';
 import ParcelRegistry from '@saxonberg/server/mud/platform/idea/ParcelRegistry';
 import GroupRegistry from '@saxonberg/server/mud/platform/idea/GroupRegistry';
 import ChattelRegistry from '@saxonberg/server/mud/platform/idea/ChattelRegistry';
@@ -28,7 +28,7 @@ import { AccessApi } from '@saxonberg/server/mud/api/access';
 import { CommandApi, type CommandContext, type ModelData } from '@saxonberg/server/mud/api/command';
 import { CommandDefinition } from '@saxonberg/server/mud/lib/command/CommandDefinition';
 import { ExecutionContextApi } from '@saxonberg/server/mud/api/execution-context';
-import { HoldingWarren } from '@saxonberg/server/mud/lib/location/HoldingWarren';
+import { OuterWarren } from '@saxonberg/server/mud/lib/location/OuterWarren';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import { PersistenceManager } from '@saxonberg/server/mud/lib/persistence/__tests__/backend-store';
@@ -69,7 +69,7 @@ function seedDomain(): void {
   const add = (path: string, cls: string, data: Record<string, unknown> = {}) =>
     domain.push({ _id: `d-${++idCounter}`, path, class: cls, hydratorClass: PH, data });
   domain.push({ _id: `d-${++idCounter}`, path: PH, class: PH, data: {} });
-  add(BUILDING, '/residence/idea/UnitBuilding', {
+  add(BUILDING, '/residence/idea/BuildingWarren', {
     programmePath: PROGRAMME,
     corridorTemplate: CORRIDOR,
     lobbyPath: LOBBY,
@@ -78,7 +78,7 @@ function seedDomain(): void {
     defaultCapacity: 3,
     plan: { shape: 'linear', frontagesPerNode: 2, frontageLeaf: 'u' },
   });
-  add(PROGRAMME, '/residence/idea/HoldingProgramme', {
+  add(PROGRAMME, '/residence/idea/HoldingWarren', {
     upkeepTerm: 'landlord-shell',
     floorplan: [
       {
@@ -190,8 +190,8 @@ async function bootRegistries(): Promise<void> {
   await ParcelApi.rebuildCoverageIndex();
 }
 
-async function building(): Promise<UnitBuilding> {
-  return StuffApi.singleton<UnitBuilding>(BUILDING);
+async function building(): Promise<BuildingWarren> {
+  return StuffApi.singleton<BuildingWarren>(BUILDING);
 }
 
 /** Walter's authority: conferred membership in the owner group (the
@@ -426,7 +426,7 @@ describe('Seznick House — the lease loop', () => {
       null,
     );
     const cond = vi
-      .spyOn(HoldingWarren, 'conditionOf')
+      .spyOn(OuterWarren, 'conditionOf')
       .mockResolvedValue({ condition: 0.2, band: 'dilapidated' });
 
     const ctx = await run(makeStuff(() => new LeaseController()), walter, tenant, 'lease');

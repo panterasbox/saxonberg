@@ -14,7 +14,7 @@ their own packs.
 | class | backs |
 |---|---|
 | `idea/PlatBook` | what a subdivision has for sale, and on what terms |
-| `idea/LotHolder` | how titled ground becomes a place (the provisioning `@hook` seam) |
+| `idea/PlatWarren` | how titled ground becomes a place (the provisioning `@hook` seam) |
 | `idea/LotGateExit` | the deferred gate off the street into one lot |
 
 Moved from `mud/platform/idea/` in the residences build (wave 0), class

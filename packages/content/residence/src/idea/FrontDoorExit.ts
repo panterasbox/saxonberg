@@ -19,7 +19,7 @@ import { type TraversalGuard } from '@saxonberg/server/mud/lib/boundary/Exit';
 import { CredentialApi } from '@saxonberg/server/mud/api/credential';
 import { Lock, type LockType } from '@saxonberg/server/mud/lib/lock/Lock';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
-import type { HoldingWarren } from '@saxonberg/server/mud/lib/location/HoldingWarren';
+import type { OuterWarren } from '@saxonberg/server/mud/lib/location/OuterWarren';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
@@ -34,7 +34,7 @@ export default class FrontDoorExit extends DeferredDestinationExit {
 
   constructor(
     source: Stuff & Container,
-    warren: HoldingWarren,
+    warren: OuterWarren,
     holdingKey: string,
     direction: string,
     entryRowPath: string,
@@ -58,9 +58,9 @@ export default class FrontDoorExit extends DeferredDestinationExit {
     return this.holdingKey;
   }
 
-  private warren(): HoldingWarren | null {
+  private warren(): OuterWarren | null {
     return (
-      StuffApi.findByTemplatePath<HoldingWarren>(this.warrenPath) ?? null
+      StuffApi.findByTemplatePath<OuterWarren>(this.warrenPath) ?? null
     );
   }
 

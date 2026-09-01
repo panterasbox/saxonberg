@@ -4,7 +4,7 @@ root: /residence
 description: >-
   Residence — the capability pack for title becoming a place (D18). It
   ships the substrate classes the locality packs' residential rows name:
-  the plat machinery (PlatBook the catalogue, LotHolder the provisioner,
+  the plat machinery (PlatBook the catalogue, PlatWarren the provisioner,
   LotGateExit the way in), moved out of the kernel platform tree with
   their class paths repointed /platform/idea/… → /residence/idea/….
   The residences build adds the holding programme, the generic front

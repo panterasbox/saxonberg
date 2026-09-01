@@ -251,13 +251,13 @@ residential lot ceiling — a district is what lots are subdivided *out of*.
 restore its `(scope, key)` record or lay down its born-with fixtures and
 capture them. Returns `true` on restore, `false` on a fresh seed.
 
-`DormWarren.admit` and `LotHolder` are its two consumers, and the
+`DormWarren.admit` and `PlatWarren` are its two consumers, and the
 extraction earns itself on the branch it gets right: hand-rolled, the six
 lines invite capturing on the restore path, re-seeding a room that already
 has contents, or skipping the key stash so the next keyless capture writes
 a second record.
 
-`LotHolder` keys on the **parcel extent**, so title and durable state share
+`PlatWarren` keys on the **parcel extent**, so title and durable state share
 one identity — sell the lot and the garden goes with it, because there is
 nothing else it could do. It is content, so it is **not** boundary-exempt,
 and should not be (`DormWarren` likewise is not).
@@ -270,7 +270,7 @@ general (`/platform/… + /stuff/`) and each subdivision seeds **instances** —
 `SingletonMixin` is one-instance-per-templatePath, so one of each per
 subdivision is exactly what composing it means.
 
-| | `PlatBook` | `LotHolder` |
+| | `PlatBook` | `PlatWarren` |
 |---|---|---|
 | answers | *what is for sale, on what terms* | *how titled ground becomes a place* |
 | data | `label`, `parentExtent`, `lots`, `priceMinor`, `areaM2`, `landUse`, `holderPath` | `roomTemplate` |
@@ -280,11 +280,11 @@ subdivision is exactly what composing it means.
 current provisioning model clones one shared room template per lot and
 tells the clones apart with a persistence key; the likely successor mints
 a template *per residence*, at which point the template path becomes the
-identity and no key is needed at all. Separated, that is **a `LotHolder`
+identity and no key is needed at all. Separated, that is **a `PlatWarren`
 subclass and a one-line edit to a book's `holderPath`** — nothing in the
 catalogue, the `title` verb or the parcel layer moves. Fused, the same
 change would reach into the object that also owns pricing.
-`LotHolder.provision` is the `@hook` that swap overrides, and there is a
+`PlatWarren.provision` is the `@hook` that swap overrides, and there is a
 test that swaps it.
 
 A second subdivision anywhere in the world is therefore **a seed file and
@@ -302,7 +302,7 @@ See [persistence.md](./persistence.md) and [residence.md](./residence.md).
 
 > ⚠⚠ **SUPERSEDED by the residences build (2026-08-31).** The mechanism
 > below is the right *idea* with the wrong *mechanism*, and the wrong one
-> shipped for one release. `LotHolder` minted each room at a
+> shipped for one release. `PlatWarren` minted each room at a
 > `<lotExtent>/<leaf>` path through `StuffApi.clone`'s `asTemplatePath`
 > channel — which made the room's `templatePath` resolve to **no row at
 > all**. A rowless path cannot be edited by an author, cannot resolve a
@@ -319,7 +319,7 @@ See [persistence.md](./persistence.md) and [residence.md](./residence.md).
 > Everything the table below claims is still true — land use and
 > placement both resolve per lot — it is now the persistence KEY that
 > carries it rather than a synthesized path. The provisioning itself
-> moved to `HoldingProgramme.wake()` behind the same `LotHolder.provision`
+> moved to `HoldingWarren.wake()` behind the same `PlatWarren.provision`
 > seam. See **[holding.md](./holding.md)**.
 
 The original reasoning, kept because the problem it names is the real
@@ -384,9 +384,9 @@ ways, none of which a unit test could see:
 
 So the street's exits are **installed by the provisioner**:
 `LotGateExit`, a `DeferredDestinationExit` (the `DormDoor` shape) whose
-`computeDestination` calls `LotHolder.provision(lotExtent)`. Hung as
+`computeDestination` calls `PlatWarren.provision(lotExtent)`. Hung as
 lots sell, and re-hung at boot from the title registry
-(`LotHolder.postRegister` → `ParcelApi.childParcelsOf`) so an owner can
+(`PlatWarren.postRegister` → `ParcelApi.childParcelsOf`) so an owner can
 still get home after a restart. Deferred, so a lane with five sold lots
 materializes no yards until somebody walks in.
 

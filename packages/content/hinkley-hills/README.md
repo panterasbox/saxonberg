@@ -7,7 +7,7 @@ plat and the lots — *The 'Burbs* by name. Package
 longest-prefix resolution keeps the two apart).
 
 - `content/world/terminus/hinkley-hills/**` — the suburb's rows; the
-  plat machinery they name (PlatBook, LotHolder, LotGateExit) ships in
+  plat machinery they name (PlatBook, PlatWarren, LotGateExit) ships in
   the `residence` capability pack.
 - `pack.yaml` — the Improvement District group, the district claim
   (~24 ha, residential) and the pre-sold lot-1, and the plat-book +

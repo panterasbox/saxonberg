@@ -6,7 +6,7 @@
  * operator's capacity dial; the plat plan (on the holder) says where it
  * lands.
  *
- * The catalogue half of selling land; {@link LotHolder} is the
+ * The catalogue half of selling land; {@link PlatWarren} is the
  * provisioning half, named here by path. Who actually holds a lot stays
  * the `parcels` collection's business, read through `ParcelApi`.
  */
@@ -67,7 +67,7 @@ export default class PlatBook extends PlatBookBase {
   /** The land use a sold lot is stamped with (validated on set). */
   public landUse: LandUse = "residential";
 
-  /** The {@link LotHolder} that stands ground up when a lot sells (an
+  /** The {@link PlatWarren} that stands ground up when a lot sells (an
    *  identity path — the book is reference data). */
   public holderPath: string = "";
 

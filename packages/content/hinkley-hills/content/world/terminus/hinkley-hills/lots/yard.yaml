@@ -1,6 +1,6 @@
 # The yard behind the house on lot-1 — the KEYED entry room of every
 # Hinkley holding (residences D16/D17): cloned per lot by the lot's
-# HoldingProgramme and keyed `(this row, <lotExtent>/yard)`, so title and
+# HoldingWarren and keyed `(this row, <lotExtent>/yard)`, so title and
 # durable state share one identity and `templatePath` always resolves to
 # THIS row. It lives under the `lots` zone (P8): a clone's zone resolves
 # from the ROW's ancestry, and the yard is reached by the lane's

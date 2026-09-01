@@ -2741,7 +2741,7 @@ exits:
 ### GOOD (the provisioner installs one deferred edge per instance)
 
 ```typescript
-// LotHolder.ensureGate — hung as lots sell, re-hung at boot from the
+// PlatWarren.ensureGate — hung as lots sell, re-hung at boot from the
 // title registry, directioned by the lot's own leaf.
 const gate = StuffApi.createSync(
   () => new LotGateExit(street, this, lotExtent, direction),

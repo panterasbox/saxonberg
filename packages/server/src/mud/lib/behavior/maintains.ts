@@ -113,7 +113,7 @@ function holdingsUnder(extent: string): HoldingShape[] {
   const out: HoldingShape[] = [];
   let found: Stuff[] = [];
   try {
-    found = MqlApi.resolveMany('world:[class.HoldingProgramme]', {
+    found = MqlApi.resolveMany('world:[class.HoldingWarren]', {
       commandGiver: null,
       scope: 'world',
     }).stuff;

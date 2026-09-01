@@ -20,10 +20,10 @@ import "@saxonberg/server/test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import TitleController from '@saxonberg/server/mud/platform/idea/cmd/civics/TitleController';
 import ParcelRegistry from '@saxonberg/server/mud/platform/idea/ParcelRegistry';
-import LotHolder from '../idea/LotHolder';
+import PlatWarren from '../idea/PlatWarren';
 import PlatBook from '../idea/PlatBook';
 import DeedDesk from '../thing/DeedDesk';
-import HoldingProgramme from '../idea/HoldingProgramme';
+import HoldingWarren from '../idea/HoldingWarren';
 import GroupRegistry from '@saxonberg/server/mud/platform/idea/GroupRegistry';
 import { ParcelApi } from '@saxonberg/server/mud/api/parcel';
 import { BankingApi } from '@saxonberg/server/mud/api/banking';
@@ -34,7 +34,7 @@ import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { ExecutionContextApi } from '@saxonberg/server/mud/api/execution-context';
 import { ParcelEvent } from '@saxonberg/server/mud/lib/parcel/ParcelEvent';
 import { Document } from '@saxonberg/server/mud/lib/persistence/Document';
-import { HoldingWarren } from '@saxonberg/server/mud/lib/location/HoldingWarren';
+import { OuterWarren } from '@saxonberg/server/mud/lib/location/OuterWarren';
 import { QuantityMarshaller } from '@saxonberg/server/mud/platform/idea/persistence/QuantityMarshaller';
 import { CommandGiverMixin } from '@saxonberg/server/mud/lib/command/CommandGiver';
 import { NamedMixin } from '@saxonberg/server/mud/lib/description/Named';
@@ -148,7 +148,7 @@ function installStore(): void {
   const add = (path: string, cls: string, data: Record<string, unknown> = {}) =>
     domain.push({ _id: `d-${++idCounter}`, path, class: cls, hydratorClass: PH, data });
   domain.push({ _id: `d-${++idCounter}`, path: PH, class: PH, data: {} });
-  add(PROGRAMME, '/residence/idea/HoldingProgramme', {
+  add(PROGRAMME, '/residence/idea/HoldingWarren', {
     floorplan: [{ leaf: 'yard', room: YARD_ROW, entry: true }],
     upkeepTerm: 'owner-all',
   });
@@ -191,8 +191,8 @@ function seedSuburb(): void {
  */
 function seedSubdivision(): void {
   const holder =
-    StuffApi.findByTemplatePath<LotHolder>(HOLDER_PATH) ??
-    makeStuffAtPath(() => new LotHolder(), HOLDER_PATH);
+    StuffApi.findByTemplatePath<PlatWarren>(HOLDER_PATH) ??
+    makeStuffAtPath(() => new PlatWarren(), HOLDER_PATH);
   holder.setProgrammePath(PROGRAMME);
   holder.setRoadTemplate(ROAD_ROW);
   holder.setParentExtent(SUBURB);
@@ -500,7 +500,7 @@ describe('title', () => {
       null,
     );
     const cond = vi
-      .spyOn(HoldingWarren, 'conditionOf')
+      .spyOn(OuterWarren, 'conditionOf')
       .mockResolvedValue({ condition: 0.2, band: 'dilapidated' });
 
     const ctx = await run(buyer, room, model('buy', 'lot 2'));
@@ -535,7 +535,7 @@ describe('title', () => {
   });
 
   it('⭐ the provisioner is SWAPPABLE without touching the catalogue', async () => {
-    class MintingHolder extends LotHolder {
+    class MintingHolder extends PlatWarren {
       static _mixinName = 'TitleMintingHolder';
       public minted: string[] = [];
       public override async provision(
@@ -604,7 +604,7 @@ describe('title', () => {
     const room = registryRoom();
     await run(buyerIn(room), room, model('buy', 'lot 2'));
 
-    const holder = StuffApi.findByTemplatePath<LotHolder>(HOLDER_PATH)!;
+    const holder = StuffApi.findByTemplatePath<PlatWarren>(HOLDER_PATH)!;
     const yard = holder.liveRoomFor(LOT2)!;
     expect(yard).not.toBeNull();
     // The lineage is the ROW; the instance identity is the (scope, key).
@@ -613,8 +613,8 @@ describe('title', () => {
       (yard as unknown as { getPersistenceKey(): string }).getPersistenceKey(),
     ).toBe(`${LOT2}/yard`);
     // The holding is the keyed programme, carrying the tenure term (D5).
-    const holding = holder.holdingFor(LOT2)! as unknown as HoldingProgramme;
-    expect(holding).toBeInstanceOf(HoldingProgramme);
+    const holding = holder.holdingFor(LOT2)! as unknown as HoldingWarren;
+    expect(holding).toBeInstanceOf(HoldingWarren);
     expect(holding.getUpkeepTerm()).toBe('owner-all');
     expect(
       (holding as unknown as { getPersistenceKey(): string }).getPersistenceKey(),
@@ -625,7 +625,7 @@ describe('title', () => {
     const street = seedStreet();
     const room = registryRoom();
     await run(buyerIn(room), room, model('buy', 'lot 2'));
-    const holder = StuffApi.findByTemplatePath<LotHolder>(HOLDER_PATH)!;
+    const holder = StuffApi.findByTemplatePath<PlatWarren>(HOLDER_PATH)!;
     const first = street.getExit('lot-2');
     await holder.ensureGate(LOT2);
     await holder.ensureGate(LOT2);
@@ -640,7 +640,7 @@ describe('title', () => {
     await run(buyerIn(room), room, model('buy', 'lot 3'));
 
     // Simulate the restart: tear the institution down, fresh street.
-    const holder = StuffApi.findByTemplatePath<LotHolder>(HOLDER_PATH)!;
+    const holder = StuffApi.findByTemplatePath<PlatWarren>(HOLDER_PATH)!;
     holder.teardown();
     StuffApi.destruct(StuffApi.findByTemplatePath<StreetRoom>(STREET_PATH)!);
     const reborn = seedStreet();
@@ -661,7 +661,7 @@ describe('title', () => {
 
     // lot-5 sits on lane:2 — the first minted reach past the made road.
     await run(buyerIn(room), room, model('buy', 'lot 5'));
-    const holder = StuffApi.findByTemplatePath<LotHolder>(HOLDER_PATH)!;
+    const holder = StuffApi.findByTemplatePath<PlatWarren>(HOLDER_PATH)!;
     expect(holder.nodeReachable('lane:2')).toBe(true);
     const reach = holder.circulationForNode('lane:2');
     expect(reach).not.toBeNull();
