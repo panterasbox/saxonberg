@@ -1,6 +1,6 @@
 # Farming — implementation plan
 
-**Input:** [farming-requirements.md](../requirements/farming-requirements.md)
+**Input:** farming-requirements.md (retired at the Stage-A sweep — its Stage-B material lives in § Stage B below)
 (D0–D9 locked with the user; this plan is the HOW). Read alongside:
 [husbandry.md](../subsystems/husbandry.md),
 [smallholding.md](../subsystems/smallholding.md),

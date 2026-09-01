@@ -159,7 +159,7 @@ behavior. Read the relevant doc before editing in its area.
   - [contract.md](./docs/subsystems/contract.md) — the work-contract (gig) substrate: clauses over verifiable conditions, escrow, the board, the custodian rule
   - [collections.md](./docs/subsystems/collections.md) — canonical surfaces for collection-shaped mixins, naming axes
   - [hot-reload.md](./docs/subsystems/hot-reload.md) — HotReloadApi state machine, clone integration, controller dispatch
-  - [content-packs.md](./docs/subsystems/content-packs.md) — versioned content packages: the PackApi reconcile installer, the contribution kinds (domain / document over `DocumentKinds` / settings / subject / wiki / command-view) and their policies, `sourcePack` stamps, the manifest's `requires` (groups + title claims) / `boot` / `maintainers`, the boot union, `SAXONBERG_PACKS`, the **capability rung** (a pack ships `src/`; the class-source table, `resolveClassFile`, the server's `exports` map as the pack import profile, the deployment manifest, the rung check), the twenty-five shipped packs (the platform is pack zero; arcana, trade-distilling and trade-hospitality the capability packs; brains in packs via `src/behavior/`; the `archetype` kind; the stub trades; no seeders)
+  - [content-packs.md](./docs/subsystems/content-packs.md) — versioned content packages: the PackApi reconcile installer, the contribution kinds (domain / document over `DocumentKinds` / settings / subject / wiki / command-view) and their policies, `sourcePack` stamps, the manifest's `requires` (groups + title claims) / `boot` / `maintainers`, the boot union, `SAXONBERG_PACKS`, the **capability rung** (a pack ships `src/`; the class-source table, `resolveClassFile`, the server's `exports` map as the pack import profile, the deployment manifest, the rung check), the twenty-nine shipped packs (the platform is pack zero; arcana, trade-distilling and trade-hospitality the capability packs; brains in packs via `src/behavior/`; the `archetype` kind; the stub trades; no seeders)
   - [race.md](./docs/subsystems/race.md) — Material substrate, Clade scope, BodyPlan + Species templates, OrganismMixin, animacy gating
   - [vitals.md](./docs/subsystems/vitals.md) — body-state substrate: the Agent/Creature/Character split, VitalsMixin, BodyPlan anatomy, death seams
   - [harm.md](./docs/subsystems/harm.md) — the injury driver: `ConditionApi.inflict`, five trauma behaviors, reconcile-on-read wounds, the medic vertical
@@ -726,7 +726,8 @@ reason.
   `wind`/`adjust`/`switch`/`fold`/`unfold`/`disarm`/`pump`; `lock`/`unlock`
   stay under `boundary`). The concealment build added `search` (perception),
   `sneak`/`run` (movement), and `disarm` (device); `examine` is now a
-  `look` alias, not its own verb. ⭐ **A verb lives with the pack whose content
+  `look` alias, not its own verb; the farming build made `pick` a
+  `harvest` alias (inventory). ⭐ **A verb lives with the pack whose content
   affords it**: platform keeps the verbs any trade's instrument confers
   (`pour`/`stir`/`heat`/`repair`/`salvage`/`wash`/`make`) and
   `retail/menu`+`order`; a trade's own steps ship in its capability pack

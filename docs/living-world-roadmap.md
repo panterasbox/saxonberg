@@ -279,9 +279,10 @@ gets an owner (no doc owns it today, though two cite it).
 **Lands:** **piece-rate as an authorable term** (`settlePiecework` is built and
 unconsumed) · seasonal postings (`WorldClockApi.cron` has a `month` field over a
 calendar whose 12×30 months align exactly to the four 90-day seasons) · **the
-public-works floor** · and ⚠ **a production brain**, because **no NPC produces
-anything today** — the whole brain roster makes nothing, so a hired hand draws
-wages and harvests nothing.
+public-works floor** · and ⚠ **a production brain** *(⭐ shipped early —
+farming Stage A's `farms` brain tends, picks and consigns, so an NPC now
+produces; the rest of this phase stands)* — before it, **no NPC produced
+anything** and a hired hand drew wages and harvested nothing.
 
 **The cheapest seam in the substrate lives here:** `EmploymentLogic.runTick`
 already decomposes the date and **throws the month away**.
@@ -350,7 +351,7 @@ natural home above:
 | the time-parameterised weather resolve | **phase 4** |
 | quarantine as a power | **phase 6–7** |
 | the diagnosis surface | **phase 7** |
-| a production brain | **phase 8** |
+| a production brain | **phase 8** — ⭐ shipped early (farming Stage A: `/trade/farming/behavior/farms`) |
 | the allowance meter | **phase 9** |
 | durable movable hosts (keyed nested `{ref, key}`) | **phase 1** — pets/livestock inherit it |
 | durable owned *ground* (the keyed-holder pattern) | **phase 2**, used again in **phase 4** |

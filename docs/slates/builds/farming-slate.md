@@ -1,5 +1,17 @@
 # Farming slate (working doc)
 
+> **⭐⭐ STAGE A SHIPPED (2026-09-01, the farming build)** — the
+> perennial/orchard tap is real: the **fruit cycle** (polycarpy rides the
+> flowering latch → [husbandry.md § The fruit
+> cycle](../../subsystems/husbandry.md)), `pick` off the living plant,
+> matter-not-mark produce, the **ten grown families**, the **farmers
+> market** (per-shelf consignment caps), and the first **production
+> brain** (`/trade/farming/behavior/farms`, shipped in the pack).
+> Strike *perennials/orchards* from the unbuilt list below. Stage B —
+> Heart's Delight, the field-room, the grower's own ground at scale —
+> waits on the residences-grounded re-plan
+> ([farming-plan.md](../../plans/farming-plan.md) § Stage B).
+>
 > **⭐ PARTLY SHIPPED (2026-08-01) — do not re-plan the first two phases.**
 > Living-world phases 1 and 2 took the on-ramp and the first real ground
 > out of this slate and built them:
@@ -15,7 +27,7 @@
 > subsystem docs are right where they disagree: soil reserves landed as
 > **two** (moisture + nitrogen) rather than six, and water is held by the
 > **ground**, not the plant. What remains here is genuinely unbuilt and
-> is why the slate stays: **winter**, **perennials/orchards**, the
+> is why the slate stays: **winter**, the
 > **field-room** and grazing, the **environment-control axis**
 > (greenhouse → hydroponics), **genetics**, sun→ambient light, and the
 > spoilage dependency.
