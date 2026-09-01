@@ -12,6 +12,8 @@
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import HoldingProgramme from '../idea/HoldingProgramme';
+import HouseholdersKit from '../thing/HouseholdersKit';
+import MaintainController from '../idea/cmd/crafting/MaintainController';
 import FrontDoorExit from '../idea/FrontDoorExit';
 import { HoldingWarren } from '@saxonberg/server/mud/lib/location/HoldingWarren';
 import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';
@@ -29,6 +31,10 @@ import { ParcelApi } from '@saxonberg/server/mud/api/parcel';
 import { CredentialApi } from '@saxonberg/server/mud/api/credential';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { CommandApi, type CommandContext, type CommandModel } from '@saxonberg/server/mud/api/command';
+import { CommandDefinition } from '@saxonberg/server/mud/lib/command/CommandDefinition';
+import ToolItem from '@saxonberg/server/mud/platform/thing/ToolItem';
+import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Exitable } from '@saxonberg/server/mud/lib/boundary/Exitable';
@@ -416,5 +422,190 @@ describe('the residential programme (D16)', () => {
     expect(
       await ParcelApi.heldUnitOf('/platform/agent/Avatar/iris', '/world/elsewhere'),
     ).toBeNull();
+  });
+});
+
+/**
+ * The maintenance act (residences D4/D5) — the other half of the
+ * weathering clock.
+ *
+ * A shell decays on game time with no scheduler; `maintain` is what
+ * reverses it, and it costs a tool, some wear on the tool, and
+ * somebody's attention. The tenure TERM says who owes it; the verb
+ * refuses nobody, which is the deliberate split.
+ */
+describe('the maintenance act (D4/D5)', () => {
+  beforeEach(() => {
+    reset();
+    installStore();
+  });
+  afterEach(reset);
+
+  /** Wear a holding's shell down to `worn` and hand back the pieces. */
+  async function wornHolding(): Promise<{
+    holding: HoldingProgramme;
+    hall: MemberStuff;
+    clock: ReturnType<typeof vi.spyOn>;
+  }> {
+    seedLot();
+    await bootRegistries();
+    const w = await institution();
+    const hall = await w.admit(LOT1);
+    const holding = w.holdingFor(LOT1)! as unknown as HoldingProgramme;
+    const base = WorldClockApi.getNow().rawValue();
+    const clock = vi.spyOn(WorldClockApi, 'getNow');
+    clock.mockReturnValue(Quantity.of(base, 's'));
+    holding.reconcileShell();
+    clock.mockReturnValue(Quantity.of(base + 45 * 86_400, 's'));
+    expect(holding.conditionBand()).toBe('worn');
+    return { holding, hall, clock };
+  }
+
+  function kit(): HouseholdersKit {
+    const k = makeStuffAtPath(
+      () => new HouseholdersKit(),
+      '/residence/thing/householders-kit',
+    );
+    k.setCapabilities([{ kind: 'upkeep', rate: 1 }]);
+    return k;
+  }
+
+  async function maintain(
+    actor: Stuff,
+    room: Stuff | null,
+  ): Promise<CommandContext> {
+    const ctx = CommandApi.createCommandContext({
+      commandGiver: actor as never,
+      location: room as never,
+      commandText: 'maintain',
+      executionId: 'test',
+      commandId: 'test',
+      verb: 'maintain',
+      command: CommandDefinition.fromYaml(
+        'verbs: [maintain]\ncontroller: NoopController\ndescription: stub\n',
+        '<test>',
+      ),
+    });
+    const controller = makeStuffAtPath(
+      () => new MaintainController(),
+      '/residence/idea/cmd/crafting/MaintainController',
+    );
+    await controller.execute({} as CommandModel, ctx);
+    return ctx;
+  }
+
+  const reasons = (ctx: CommandContext): string[] =>
+    ctx
+      .getNotes()
+      .filter((n) => n.kind === 'controller-rejected')
+      .map((n) => (n as { reason: string }).reason);
+
+  it('⭐ restores a worn shell to sound, and wears the kit doing it', async () => {
+    const { holding, hall } = await wornHolding();
+    const iris = makeStuffAtPath(() => new Avatar(), '/platform/agent/Avatar/iris');
+    ContainmentApi.move(iris as unknown as Stuff & Containable, hall);
+    const k = kit();
+    ContainmentApi.move(
+      k as unknown as Stuff & Containable,
+      iris as unknown as Stuff & Container,
+    );
+    const before = k.getCondition();
+
+    const ctx = await maintain(iris as unknown as Stuff, hall as unknown as Stuff);
+    expect(reasons(ctx)).toEqual([]);
+    expect(holding.conditionBand()).toBe('sound');
+    // Law 2: the tool wears with USE. That is the recurring cost of
+    // upkeep, and the whole economic content of the act.
+    expect(k.getCondition()).toBeLessThan(before);
+  });
+
+  it('refuses without a kit — the shell is untouched', async () => {
+    const { holding, hall } = await wornHolding();
+    const iris = makeStuffAtPath(() => new Avatar(), '/platform/agent/Avatar/iris');
+    ContainmentApi.move(iris as unknown as Stuff & Containable, hall);
+
+    const ctx = await maintain(iris as unknown as Stuff, hall as unknown as Stuff);
+    expect(reasons(ctx)).toContain('no-upkeep-tool');
+    expect(holding.conditionBand()).toBe('worn');
+  });
+
+  it('refuses where there is no holding to keep', async () => {
+    seedLot();
+    await bootRegistries();
+    await institution();
+    const street = await StuffApi.clone<MemberStuff>(STREET);
+    const iris = makeStuffAtPath(() => new Avatar(), '/platform/agent/Avatar/iris');
+    ContainmentApi.move(iris as unknown as Stuff & Containable, street);
+    ContainmentApi.move(
+      kit() as unknown as Stuff & Containable,
+      iris as unknown as Stuff & Container,
+    );
+
+    const ctx = await maintain(iris as unknown as Stuff, street as unknown as Stuff);
+    expect(reasons(ctx)).toContain('nothing-to-maintain');
+  });
+
+  it('spares the kit when there is nothing to do', async () => {
+    seedLot();
+    await bootRegistries();
+    const w = await institution();
+    const hall = await w.admit(LOT1);
+    const iris = makeStuffAtPath(() => new Avatar(), '/platform/agent/Avatar/iris');
+    ContainmentApi.move(iris as unknown as Stuff & Containable, hall);
+    const k = kit();
+    ContainmentApi.move(
+      k as unknown as Stuff & Containable,
+      iris as unknown as Stuff & Container,
+    );
+
+    const ctx = await maintain(iris as unknown as Stuff, hall as unknown as Stuff);
+    expect(reasons(ctx)).toContain('already-sound');
+    expect(k.getCondition()).toBe(1);
+  });
+
+  it('⭐ ANYBODY may do it — the term says who OWES, not who MAY', async () => {
+    // The owner of record is iris; a passing stranger with a kit puts
+    // her window frames right, and the world lets them. Refusing would
+    // be modelling permission where the world models work.
+    const { holding, hall } = await wornHolding();
+    const stranger = makeStuffAtPath(
+      () => new Avatar(),
+      '/platform/agent/Avatar/passerby',
+    );
+    ContainmentApi.move(stranger as unknown as Stuff & Containable, hall);
+    ContainmentApi.move(
+      kit() as unknown as Stuff & Containable,
+      stranger as unknown as Stuff & Container,
+    );
+
+    const ctx = await maintain(stranger as unknown as Stuff, hall as unknown as Stuff);
+    expect(reasons(ctx)).toEqual([]);
+    expect(holding.conditionBand()).toBe('sound');
+  });
+
+  it('⭐ interior goods show ZERO clock-wear over the same elapsed time (Law 2)', async () => {
+    // The regression that keeps the two clocks apart: a SHELL weathers
+    // on the passage of days; a GOOD wears only when you use it. If a
+    // durable in the room ever loses condition to the calendar, the
+    // economy's second law is broken and everything a player owns rots.
+    const { holding, hall, clock } = await wornHolding();
+    const tool = makeStuffAtPath(() => new ToolItem(), '/world/prog-test/spanner');
+    ContainmentApi.move(tool as unknown as Stuff & Containable, hall);
+    const before = tool.getCondition();
+
+    const base = WorldClockApi.getNow().rawValue();
+    clock.mockReturnValue(Quantity.of(base + 365 * 86_400, 's'));
+    holding.reconcileShell();
+
+    expect(holding.conditionBand()).toBe('dilapidated');
+    expect(tool.getCondition()).toBe(before);
+    clock.mockRestore();
+  });
+
+  it('the kit confers the verb — outward, to whoever holds it', () => {
+    const verbs = CommandApi.collectContributions(HouseholdersKit, 'environment')
+      .map((d) => d.verbs)
+      .flat();
+    expect(verbs).toContain('maintain');
   });
 });

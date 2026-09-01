@@ -1,0 +1,26 @@
+verbs: [maintain]
+controller: /residence/idea/cmd/crafting/MaintainController
+description: "Keep the fabric of a place sound"
+help: |
+  Buildings weather. Left alone, a house goes from sound to weathered
+  to worn to shabby to dilapidated, on the ordinary passage of days —
+  `survey` tells you where yours stands and what the weather has been
+  at. `maintain` is the other half: a morning's work with a
+  householder's kit puts the place back to sound.
+
+  You need the kit in your hands; that is also what makes this verb
+  appear. It wears a little each time, and a worn-out kit is a trip to
+  the store.
+
+  Anybody may do this, anywhere it can be done. Who OWES the upkeep is
+  a separate question — a dorm's is the university's, a let unit's
+  shell is the landlord's, a house you own is yours — and `survey`
+  answers it. Nothing stops a tenant putting putty in their landlord's
+  window frames, or a neighbour doing it for you.
+examples:
+  - cmd: maintain
+    note: Work over the place you're standing in
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied

@@ -25,6 +25,11 @@ const OBJ_DIR = fileURLToPath(
 const PRODUCE_DIR = fileURLToPath(
   new URL("../../../trade-farming/content/trade/farming/", import.meta.url),
 );
+// The upkeep kit is the residence pack's (residences D18) — the store
+// stocks it cross-pack, the same way it stocks the farming pots.
+const RESIDENCE_DIR = fileURLToPath(
+  new URL("../../../residence/content/residence/", import.meta.url),
+);
 const CH_DIR = fileURLToPath(
   new URL("../../../terminus/content/world/terminus/counting-houses/", import.meta.url),
 );
@@ -104,6 +109,10 @@ describe("general-store content integrity", () => {
     "/platform/thing/Surface",
     "/platform/thing/Chest",
     "/generic-objects/thing/SconceLamp",
+    // The householder's kit — a `ToolItem` subclass in the residence
+    // pack, because the verb it confers is a static on a class and a
+    // row cannot carry one.
+    "/residence/thing/HouseholdersKit",
   ]);
 
   it("every priced/stocked good is a real, discrete item (never Globbable)", () => {
@@ -122,12 +131,21 @@ describe("general-store content integrity", () => {
         "/world/terminus/general-store/",
       );
       const produce = line.itemTemplatePath.startsWith("/trade/farming/");
-      const dir = local ? STORE_DIR : produce ? PRODUCE_DIR : OBJ_DIR;
+      const residence = line.itemTemplatePath.startsWith("/residence/");
+      const dir = local
+        ? STORE_DIR
+        : produce
+          ? PRODUCE_DIR
+          : residence
+            ? RESIDENCE_DIR
+            : OBJ_DIR;
       const rel = local
         ? line.itemTemplatePath.replace("/world/terminus/general-store/", "")
         : produce
           ? line.itemTemplatePath.replace("/trade/farming/", "")
-          : line.itemTemplatePath.replace("/stuff/", "");
+          : residence
+            ? line.itemTemplatePath.replace("/residence/", "")
+            : line.itemTemplatePath.replace("/stuff/", "");
       expect(existsSync(`${dir}${rel}.yaml`), line.itemTemplatePath).toBe(true);
       const good = load(dir, `${rel}.yaml`);
       // A real, discrete item class (backed by a shipped system, not a prop).

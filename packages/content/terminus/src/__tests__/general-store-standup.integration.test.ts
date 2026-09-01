@@ -36,6 +36,8 @@ const STORE_DIR = fileURLToPath(
 const OBJ_DIR = fileURLToPath(new URL("../../../generic-objects/content/stuff/", import.meta.url));
 // The growing cluster (pots, seeds, plants) is the produce trade's (libations drain).
 const PRODUCE_DIR = fileURLToPath(new URL("../../../trade-farming/content/trade/farming/", import.meta.url));
+// The upkeep kit — the residence pack's, stocked cross-pack.
+const RESIDENCE_DIR = fileURLToPath(new URL("../../../residence/content/residence/", import.meta.url));
 const COUNTER = "/world/terminus/general-store/counter";
 const TORCH = "/world/terminus/general-store/goods/torch";
 
@@ -59,6 +61,7 @@ const GARDEN_LINES = [
  * sells it.
  */
 const FURNISH_LINES = [
+  "/residence/thing/householders-kit",
   "/stuff/thing/fixture/bed",
   "/stuff/thing/fixture/wardrobe",
   "/stuff/thing/fixture/table",
@@ -82,7 +85,9 @@ function seedDoc(rel: string): Doc {
 function objDoc(path: string): Doc {
   const file = path.startsWith("/trade/farming/")
     ? `${PRODUCE_DIR}${path.replace("/trade/farming/", "")}.yaml`
-    : `${OBJ_DIR}${path.replace("/stuff/", "")}.yaml`;
+    : path.startsWith("/residence/")
+      ? `${RESIDENCE_DIR}${path.replace("/residence/", "")}.yaml`
+      : `${OBJ_DIR}${path.replace("/stuff/", "")}.yaml`;
   const parsed = YAML.parse(readFileSync(file, "utf-8")) as Record<string, unknown>;
   return {
     path,
@@ -210,8 +215,9 @@ describe("general-store standup (real seeds)", () => {
 
   it("the bed is the rest surface the bedroom archetype wants", async () => {
     const counter = await StuffApi.singleton<Stock>(COUNTER);
-    const bed = counter.resolveBuy("bed")!;
+    const bed = counter.resolveBuy("bed")! as unknown as Stuff;
     expect(MixinApi.isSlotted(bed)).toBe(true);
+    if (!MixinApi.isSlotted(bed)) return;
     expect(bed.getSlotNames()).toContain("lie:1");
   });
 

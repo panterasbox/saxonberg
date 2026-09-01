@@ -28,6 +28,10 @@ data:
   # hydration. Conferred here, not self-issued in her class code.
   populates:
     - /world/eternal/duncan-hall/npc/master-ring
+    # The kit is what makes the `maintains` round below possible AT ALL
+    # — take it off her and the dorm weathers. An owner-authored loadout,
+    # exactly like the master ring: never a self-issued power.
+    - /residence/thing/householders-kit
   shortDescription: the live-in super, keys jangling at her belt
   longDescription: |
     Big and solid and never quite still — there's always a light to fix, a
@@ -48,6 +52,15 @@ data:
     - { disposition: fairness, valence: -55 }
     - { disposition: honesty, valence: 45 }
   behaviors:
+    # The upkeep round. The dorm's term is `institution-all` — the
+    # university keeps its rooms, inside and out — and this is the
+    # agency that makes that claim true instead of decorative
+    # (residences D5). She walks her extent, works over anything that
+    # has slipped below sound, and comes back to the desk.
+    - brain: /lib/behavior/maintains
+      trigger: cadence:17m
+      config:
+        extent: /world/eternal/duncan-hall/dorms
     # Auto-introduce: she names herself to newcomers (she greets every
     # arrival — it's the whole job).
     - brain: /lib/behavior/introduces
