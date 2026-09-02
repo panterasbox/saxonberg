@@ -27,6 +27,7 @@ import MineRoom from '../../../../location/MineRoom';
 import Ore from '../../../../thing/Ore';
 import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
 import Material from '@saxonberg/server/mud/platform/idea/material/Material';
+import PersistentHydrator from '@saxonberg/server/mud/platform/idea/persistence/PersistentHydrator';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { ChattelApi } from '@saxonberg/server/mud/api/chattel';
@@ -144,6 +145,24 @@ describe('ground support', () => {
     warren.setTypeRows(TYPE_ROWS);
     warren.setZonePath(ZONE);
     warren.setMineExtent('/world/fx-mine');
+
+    /*
+     * ⚠⚠ **The real hydrator, standing in the index before the mock
+     * below can answer for it.**
+     *
+     * `shore` promotes a cell and writes its record, and the persistence
+     * spine reaches `StuffApi.singleton(PersistentHydrator.templatePath)`
+     * on the way. `singleton` falls through to `clone` on a miss — and
+     * the clone mock answers for EVERY path, so it handed back a
+     * `MineRoom`, and `hydrator.hydrate is not a function` escaped as an
+     * unhandled rejection AFTER the test's assertions had already
+     * passed. The suite went green and the package exited 1.
+     *
+     * ⭐ Registering the real one is the honest fix: it puts the
+     * promotion through the actual hydrator rather than mocking the
+     * spine out from under the act this file exists to prove.
+     */
+    makeStuffAtPath(() => new PersistentHydrator(), PersistentHydrator.templatePath);
 
     vi.spyOn(StuffApi, 'clone').mockImplementation((async (path: string) => {
       if (path === ORE_ROW) return makeStuff(() => new Ore()) as unknown as Stuff;
