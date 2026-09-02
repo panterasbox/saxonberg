@@ -1,0 +1,23 @@
+# The weapons-check rack — the lounge's coat-check for arms. The lounge is
+# combat-free by mechanism (the sanctuary), so the rack stands on the
+# LOUNGE side of the doorway to Dave's Bar: you check your weapon here,
+# before you go next door where fists (and worse) are fair game. Parking
+# the checked arsenal inside the combat-free room means nobody can fight
+# over the rack itself.
+#
+# `seatIn` names the lounge Warren (the terminal precedent): the rack seats
+# ITSELF into the elastic host on postRegister and re-seats on host
+# migration (FixtureMixin), so it always stands in whichever room currently
+# holds the north exit to the bar. PersistableMixin keeps checked weapons
+# (and their owner-stamps) across a relog / server bounce.
+class: /platform/thing/CheckRack
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  seatIn: /world/lounge/idea/warren
+  shortDescription: a weapons-check rack
+  keywords: [rack, "check rack", coat-check]
+  longDescription: >-
+    A sturdy oak rack by the door, its pegs and cubbies made for coats and
+    canes — and, a small brass plate notes, for anything with an edge.
+    House rule: the lounge is for talk. Check your steel here; take it up
+    again on your way out.

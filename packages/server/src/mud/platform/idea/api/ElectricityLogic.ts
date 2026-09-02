@@ -8,6 +8,9 @@ import type { Stuff } from '../../../lib/stuff/Stuff';
 import { MixinApi } from '../../../api/mixin';
 import { MaterialApi } from '../../../api/material';
 import { ConditionApi } from '../../../api/condition';
+import { StuffApi } from '../../../api/stuff';
+import { WorldClockApi } from '../../../api/worldclock';
+import { TemplatePaths } from '../../../lib/paths';
 import { AppApi } from '../../../api/app';
 import { AppSettingKeys } from '../../../lib/config/AppSettings';
 import { Quantity } from '../../../lib/quantity';
@@ -508,6 +511,12 @@ function maybeSustain(
   if (!MixinApi.isVitals(victim)) return;
   const tetanic = dial(AppSettingKeys.electricityTetanicAmps, 0.02);
   const tetany = amps >= tetanic;
+  // The after-grip window: a discrete contact (a baton tap) breaks its own
+  // circuit at once, so tetany can't self-sustain off the circuit re-probe
+  // — this bounds it. A live circuit re-probes as closed and holds tetany
+  // regardless, but we still refresh the stamp so the grip lingers a beat
+  // past the moment the victim is pulled free. Absent clock → no window.
+  const tetanyUntil = tetany ? tetanyReleaseAt() : undefined;
 
   const existing = victim.getConditions().find(
     (c): c is SustainedShock =>
@@ -515,7 +524,10 @@ function maybeSustain(
   );
   if (existing) {
     existing.current = amps;
-    if (tetany) existing.tetany = true;
+    if (tetany) {
+      existing.tetany = true;
+      if (tetanyUntil !== undefined) existing.tetanyUntil = tetanyUntil;
+    }
     if (!existing.sites.includes(site)) existing.sites.push(site);
     return;
   }
@@ -525,6 +537,21 @@ function maybeSustain(
     source: sourcePath,
     sites: [site],
   };
-  if (tetany) record.tetany = true;
+  if (tetany) {
+    record.tetany = true;
+    if (tetanyUntil !== undefined) record.tetanyUntil = tetanyUntil;
+  }
   victim.afflict(record);
+}
+
+/** The game-time at which a freshly-latched tetany's after-grip releases,
+ * or undefined when no world clock is running (a pre-boot / unit context
+ * that never advances — the record then rides the circuit re-probe alone,
+ * the pre-window behaviour). */
+function tetanyReleaseAt(): number | undefined {
+  if (!StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)) {
+    return undefined;
+  }
+  const nowS = WorldClockApi.getNow().rawValue();
+  return nowS + dial(AppSettingKeys.electricityTetanyPulseSeconds, 6);
 }

@@ -20,3 +20,4 @@ requires:
 boot:
   - { template: /world/lounge/thing/terminal, role: producer, reason: "the TPA network's eager root; nothing else instantiates the cascade" }
   - { template: /world/lounge/idea/business, role: producer, reason: "the bar's Business — the roster tick, Dave's appointing authority and the keeper's house account read it live; nothing else instantiates it" }
+  - { template: /world/lounge/thing/check-rack, role: producer, reason: "the weapons-check rack self-seats into the Warren host on postRegister (FixtureMixin); nothing else instantiates it" }

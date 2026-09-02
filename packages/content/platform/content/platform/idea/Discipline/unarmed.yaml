@@ -1,0 +1,17 @@
+# Unarmed — the brawler's command of the body as a weapon (the fist, the
+# grapple), a specialization of melee-combat. Combat additionally credits
+# this Discipline on any exchange delivered with an innate instrument (no
+# wielded weapon), so a brawler's transcript diverges from a swordsman's
+# over time. The fisticuffs sibling of blades.
+class: /platform/idea/Discipline
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: unarmed
+  channel: skill
+  label: Unarmed
+  iscedf: "1014"
+  specializes:
+    - melee-combat
+  description: >-
+    The body as a weapon — the fist, the grapple, the honest brawl, where
+    timing and mass decide the exchange in place of steel.

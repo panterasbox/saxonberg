@@ -297,3 +297,18 @@ settings:
   # (wolves ~40 kg, humanoids ~70-90 kg — the unarmed gym pin proves it).
   - key: combat.natural.largeBodyMassKg
     value: "150"
+
+  # The reference body mass (kg) at which a `massScaled` natural attack
+  # (the humanoid fist — the fisticuffs build) inflicts neutral energy
+  # (×1). Sapiens at the biped baseMass of 70 sits exactly here; a heavier
+  # striker's fist hits harder, a lighter one softer, clamped to
+  # [energyScaleMin, energyScaleMax]. No shipped beast opts in, so every
+  # existing innate is byte-identical.
+  - key: combat.natural.energyRefMassKg
+    value: "70"
+
+  - key: combat.natural.energyScaleMin
+    value: "0.5"
+
+  - key: combat.natural.energyScaleMax
+    value: "2.5"

@@ -1,0 +1,18 @@
+verbs: [check]
+controller: /platform/idea/cmd/retail/CheckController
+description: "Check a weapon at a house's check rack"
+help: |
+  Hand a weapon to the house's check rack — `check knife`. Custody passes
+  to the house and you get a claim ticket, but the weapon stays YOURS: no
+  one can buy it off the rack, and you take it back any time with
+  `reclaim`. Only weapons can be checked (a shield is armor, not a
+  weapon), and the rack has to be here — you'll find one at the door of a
+  house that doesn't allow arms inside.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: thing
+    type: string
+    required: true

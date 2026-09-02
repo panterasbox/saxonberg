@@ -122,7 +122,7 @@ import type { Globbable } from '../lib/stuff/Globbable';
 import type { Chattel } from '../lib/chattel/Chattel';
 import type { Estate } from '../lib/chattel/Estate';
 import type { Resettable } from '../lib/residency/Resettable';
-import type { ConsignmentShelf } from '../lib/retail/Consignment';
+import type { ConsignmentShelf, HeldGoodsShelf } from '../lib/retail/Consignment';
 import type { Bulkable } from '../lib/bulk/Bulkable';
 import type { Engaged } from '../lib/activity/Engaged';
 import type { Behaved } from '../lib/behavior/Behaved';
@@ -1143,7 +1143,16 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.Resettable);
   }
 
-  /** The store's brokerage shelf (holds consigned goods + listings). */
+  /** A held-goods fixture — the custody base (a coat check OR a
+   * consignment shelf): holds player-owned goods, hands them back to their
+   * owner. `reclaim` narrows on this so it serves both. */
+  public static isHeldGoodsShelf(
+    obj: Stuff,
+  ): obj is Stuff & HeldGoodsShelf {
+    return this.hasMixin(obj, Mixins.HeldGoodsShelf);
+  }
+
+  /** The store's brokerage shelf (held goods + the sale layer). */
   public static isConsignmentShelf(
     obj: Stuff,
   ): obj is Stuff & ConsignmentShelf {

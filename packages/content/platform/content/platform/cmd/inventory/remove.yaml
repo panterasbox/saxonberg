@@ -10,6 +10,7 @@ help: |
   weapon you're holding, use `unwield` instead. `doff` is an alias.
 validators:
   - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
   - /lib/command/validators/requiresSlotted
   - /lib/command/validators/requiresEmbodied
 args:

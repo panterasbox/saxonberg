@@ -651,6 +651,12 @@ export const AppSettingKeys = {
   /** Electricity — tetanic current (A): sustained whole-muscle contraction
    * (~0.02 A). */
   electricityTetanicAmps: "electricity.tetanicAmps",
+  /** Electricity — the discrete-pulse tetany window (game-seconds): how
+   * long a broken-circuit contact (a stun-baton tap) holds a body rigid
+   * after the current stops. A live circuit ignores this (it re-probes as
+   * closed and self-sustains); the window only governs the after-grip of a
+   * one-shot contact. The taser's control payoff. */
+  electricityTetanyPulseSeconds: "electricity.tetanyPulseSeconds",
   /** Electricity — fibrillation current (A): disrupts heart rhythm → arrest
    * (~0.1 A = 100 mA), the electrocution death threshold. */
   electricityFibrillationAmps: "electricity.fibrillationAmps",
@@ -860,6 +866,17 @@ export const AppSettingKeys = {
    * band every currently-seeded body sits in; a body seed crossing this
    * changes its combat feel by design. */
   combatNaturalLargeBodyMassKg: "combat.natural.largeBodyMassKg",
+  /** The species combat vocabulary — the reference body mass (kg) at
+   * which a `massScaled` natural attack's inflict energy is neutral (×1);
+   * a heavier striker's fist hits harder, a lighter one softer, clamped
+   * to [energyScaleMin, energyScaleMax]. Only attacks that opt in
+   * (`massScaled: true`, the humanoid fist) read it — no shipped beast
+   * does, so every existing innate is byte-identical. */
+  combatNaturalEnergyRefMassKg: "combat.natural.energyRefMassKg",
+  /** The lower clamp on a `massScaled` attack's mass-energy factor. */
+  combatNaturalEnergyScaleMin: "combat.natural.energyScaleMin",
+  /** The upper clamp on a `massScaled` attack's mass-energy factor. */
+  combatNaturalEnergyScaleMax: "combat.natural.energyScaleMax",
 
   /* ───────────────────────── concealment ───────────────────────── */
   /**

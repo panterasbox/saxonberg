@@ -46,6 +46,28 @@ data:
     - brain: /lib/behavior/covers
       trigger: cadence:30s
       config: {}
+    # Dave keeps his own house. On a slow cadence he watches the floor:
+    # a fight gets the shout, then his hands (subdue the one he believes
+    # started it), and — only under real threat — the office taser; a
+    # patron who walks in armed gets a warning, then the 86 and the door.
+    # Kernel-commons `enforces` brain (any barkeep reuses it); config binds
+    # it to this house's geography and records.
+    - brain: /lib/behavior/enforces
+      trigger: cadence:20s
+      config:
+        alertness: 5
+        shoutLine: "Hey! Break it up — not in my house."
+        warnLine: "No steel in my bar. Check it at the rack by the door, or step outside."
+        orderLine: "That's it — you're eighty-sixed. Out."
+        ejectDirection: south
+        officeDirection: north
+        officeReturn: south
+        taserKeyword: taser
+        # The 86 list lives in the bar's OWN records subtree — under the
+        # bar's operating location, so the venue-records carve-out
+        # (canWriteVenueRecord) authorizes Dave (the proprietor) to write
+        # it, while the wizard `lounge` group keeps the whole parcel.
+        recordsPath: /world/lounge/location/bar/records/eighty-six
     - brain: /lib/behavior/idles
       trigger: cadence:15s
       config:

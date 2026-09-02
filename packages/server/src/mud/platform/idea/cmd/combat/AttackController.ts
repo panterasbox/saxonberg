@@ -78,6 +78,15 @@ export default class AttackController extends CommandController<AttackModel> {
       if (result.reason === "cancelled") {
         return this.fail(context, "The challenge goes unanswered.", "cancelled");
       }
+      // A sanctuary refusal carries its own house prose (the lounge:
+      // "Not in here. The lounge is for talk — take it next door.").
+      if (result.reason === "sanctuary") {
+        return this.fail(
+          context,
+          result.refusal ?? "Not here — this is no place for a fight.",
+          "sanctuary",
+        );
+      }
       return this.fail(
         context,
         "You can't start that fight.",
