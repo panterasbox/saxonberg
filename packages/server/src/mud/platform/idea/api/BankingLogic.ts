@@ -430,7 +430,7 @@ async function takeCoins(
         dispose(item as unknown as Stuff & Containable);
         need -= have;
       } else {
-        const piece = await GlobbableApi.split(item, need);
+        const piece = await item.split(need);
         dispose(piece as unknown as Stuff & Containable);
         need = 0;
       }

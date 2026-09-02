@@ -43,6 +43,7 @@ import {
   withRootContext,
 } from "../../../../../lib/security/__tests__/test-setup";
 import { installV1QuantityMarshallers } from "../../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers";
+import type { Chattel } from '../../../../../lib/chattel/Chattel';
 import {
   installBankingHarness,
   teardownBankingHarness,
@@ -230,7 +231,7 @@ describe("BuyController — buy that stamps", () => {
     );
 
     expect(torch.getContainer()).toBe(giver);
-    const owner = await ChattelApi.ownerOf(torch);
+    const owner = await torch.chattelOwner();
     expect(owner).toEqual({ kind: "player", templatePath: "/platform/agent/Avatar/pat" });
     expect(BankingApi.balanceOf(storeAcct).minor).toBe(5);
     expect(stock.onHand(TORCH)).toBe(0);
@@ -260,7 +261,7 @@ describe("BuyController — buy that stamps", () => {
     );
 
     expect(torch.getContainer()).toBe(giver);
-    expect(await ChattelApi.ownerOf(torch)).toEqual({
+    expect(await torch.chattelOwner()).toEqual({
       kind: "player",
       templatePath: "/platform/agent/Avatar/cash",
     });
@@ -301,7 +302,7 @@ describe("BuyController — buy that stamps", () => {
     );
 
     expect(pot.getContainer()).toBe(giver);
-    const owner = await ChattelApi.ownerOf(pot as never);
+    const owner = await (pot as unknown as Stuff & Chattel).chattelOwner();
     expect(owner).toEqual({ kind: "player", templatePath: "/platform/agent/Avatar/gardener" });
     expect(BankingApi.balanceOf(storeAcct).minor).toBe(8);
     expect(stock.onHand(POT)).toBe(0);
@@ -328,7 +329,7 @@ describe("BuyController — buy that stamps", () => {
     );
 
     expect(torch.getContainer()).toBe(stock); // still on the shelf
-    expect(await ChattelApi.ownerOf(torch)).toBeNull(); // unstamped, unauthored
+    expect(await torch.chattelOwner()).toBeNull(); // unstamped, unauthored
     expect(stock.onHand(TORCH)).toBe(1);
   });
 });

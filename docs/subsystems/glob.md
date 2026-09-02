@@ -136,10 +136,10 @@ binding re-validates against the new chain).
 
 ---
 
-## `GlobbableApi.split`
+## `stack.split(n)`
 
 ```ts
-GlobbableApi.split(source, n): Promise<Stuff & Globbable>
+source.split(n): Promise<Stuff & Globbable>
 ```
 
 - Validates `n` is a positive integer ≤ `source.getQuantity()`.
@@ -170,10 +170,10 @@ doesn't constitute "arrival." That's what `placeDirect` ensures.
 
 ---
 
-## `GlobbableApi.merge`
+## `survivor.absorb(absorbed)`
 
 ```ts
-GlobbableApi.merge(survivor, absorbed): void
+survivor.absorb(absorbed): void
 ```
 
 - Validates both are Globbable and that `survivor.canMergeWith(absorbed)`
@@ -477,7 +477,7 @@ Trade-offs and deferred work documented for future maintainers:
   then the contract is "don't seed two mergeable stacks in the same
   container"; content-authoring tools should warn (separate work).
 - **Sibling visibility during the split-active transient.** Between
-  `GlobbableApi.split` and the action's downstream `move`, the
+  `split` and the action's downstream `move`, the
   source's environment momentarily contains two mergeable siblings.
   Event-driven subscribers don't observe this — split bypasses
   arrival witnesses by design. *Static* observers (anyone querying

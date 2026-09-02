@@ -202,12 +202,12 @@ describe("The Practicum — the magic demonstrators", () => {
     const dummy = dummyIn(yard);
     const caster = casterIn(yard);
 
-    expect(FireApi.isBurning(dummy)).toBe(false);
+    expect(dummy.isBurning()).toBe(false);
     const out = await MagicApi.resolveCast(caster, "firebolt", dummy);
     expect(out.ok).toBe(true);
     // 900 kJ into 1 kg of oak: ΔT = Q/C = 450 K → past the 570 K
     // autoignition point → REAL fire (spread/char are fire's job now).
-    expect(FireApi.isBurning(dummy)).toBe(true);
+    expect(dummy.isBurning()).toBe(true);
   });
 
   it("the conductive gallery: spark through the brine shocks the wading caster", async () => {
@@ -241,8 +241,8 @@ describe("The Practicum — the magic demonstrators", () => {
 
     // the brazier: a mundane fire lit the mundane way
     const brazier = dummyIn(cell);
-    FireApi.ignite(brazier);
-    expect(FireApi.isBurning(brazier)).toBe(true);
+    brazier.ignite();
+    expect(brazier.isBurning()).toBe(true);
 
     const caster = casterIn(yard);
     vi.spyOn(StuffApi, "clone").mockImplementation(async () =>
@@ -266,7 +266,7 @@ describe("The Practicum — the magic demonstrators", () => {
     caster.getVitalSign("heartRate");
     expect(orb.getEmittedFlux().rawValue()).toBe(0);
     // …while the impulse-real fire keeps burning — nothing to un-happen
-    expect(FireApi.isBurning(brazier)).toBe(true);
+    expect(brazier.isBurning()).toBe(true);
 
     // step out — the working re-lights
     ContainmentApi.move(caster as never, yard as never);

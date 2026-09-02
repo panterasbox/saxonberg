@@ -39,6 +39,7 @@ import type { Containable } from "../../../../lib/spatial/Containable";
 import { EmploymentApi } from "../../../../api/employment";
 import type { Organization } from "../../../../lib/employment/Organization";
 import { StuffApi } from "../../../../api/stuff";
+import type { Chattel } from '../../../../lib/chattel/Chattel';
 
 const TOPIC = "act.deed";
 
@@ -101,7 +102,9 @@ export default class ConsignController extends CommandController<ConsignModel> {
     // An unstamped good in your hands that resolves to you (or to nobody)
     // is stamped to the principal below — a hand consigning the house's
     // floor stock titles it to the house, never to themselves.
-    const owner = await ChattelApi.ownerOf(item);
+    const owner = MixinApi.isChattel(item)
+      ? await item.chattelOwner()
+      : null;
     const ownedBy = (key: string | null): boolean =>
       (owner?.kind === "player" || owner?.kind === "organization") &&
       owner.templatePath === key;
@@ -165,7 +168,9 @@ export default class ConsignController extends CommandController<ConsignModel> {
 
     // Establish the title if the good is unstamped (author-owned) — a
     // consignment needs a durable chattel id to key the listing on.
-    if (!item.getChattelId()) await ChattelApi.stamp(item, principal);
+    if (!item.getChattelId()) {
+      await (item as unknown as Stuff & Chattel).stampChattel(principal);
+    }
 
     // Custody → the shop's shelf; the owner-stamp stays put.
     ContainmentApi.move(item, shelf as unknown as Stuff & Container);

@@ -136,56 +136,6 @@ function logic(): GlobbableLogic {
 
 export class GlobbableApi {
   /**
-   * Split `n` units off `source` into a new Stuff. Semantics:
-   *
-   *   - Validates `n` is a positive integer ≤ `source.getQuantity()`.
-   *     Programmatic-contract violation throws.
-   *   - Runs `source.canSplit(n)` (shadow seam). Veto throws.
-   *   - **Whole-stack short circuit**: when `n === source.getQuantity()`
-   *     returns `source` itself. The caller is going to move the
-   *     whole stack; a no-op split avoids the clone churn and
-   *     matches the slate's "destruct-on-zero" rule (no orphan
-   *     splitoff to clean up).
-   *   - Otherwise: clones a fresh Stuff at `source.getTemplatePath()`,
-   *     copies every `globIdentityFields` value over, sets quantities
-   *     (splitoff = n, source = M - n), `placeDirect`s the splitoff
-   *     into source's environment (no arrival witnesses), and fires
-   *     `source.onSplit(splitoff)`.
-   *
-   * `placeDirect` is what makes split silent on movement events —
-   * subdividing matter already in the room is not the same as
-   * matter arriving there. See
-   * [`docs/subsystems/glob.md § GlobbableApi.split`](../../../docs/subsystems/glob.md).
-   */
-  @CallSecurity(SecurityPolicies.ApiOnly)
-  static async split(
-    source: GlobbableStuff,
-    n: number
-  ): Promise<GlobbableStuff> {
-    return logic().split(source, n);
-  }
-
-  /**
-   * Fold `absorbed` into `survivor`. Validates both are Globbable and
-   * that `survivor.canMergeWith(absorbed)` returns true. Increments
-   * the survivor's quantity, destructs the absorbed Stuff (which
-   * fires its own `onDestruct` chain — that's where "this Stuff is
-   * going away" subscribers belong), then fires
-   * `survivor.onMerged(absorbed)`.
-   *
-   * `merge` itself emits no movement events. Used by:
-   *   - The merge-on-arrival ripple in `ContainmentApi.move` (after
-   *     the arrival's `onContainableAdded` has fired, so subscribers
-   *     see the arrival before the destruct).
-   *   - The reglob path inside `applyQuantity` when an action
-   *     returns `{ ok: false }` after a split.
-   */
-  @CallSecurity(SecurityPolicies.ApiOnly)
-  static merge(survivor: GlobbableStuff, absorbed: GlobbableStuff): void {
-    logic().merge(survivor, absorbed);
-  }
-
-  /**
    * Walk `candidates` in scored order, distributing `quantity` across
    * matches. Non-globbable matches contribute 1 unit each; globbable
    * matches contribute up to their full `getQuantity()`. The
@@ -262,7 +212,7 @@ export class GlobbableApi {
         // exist by invariant; if they do (initial-state seed, an edge
         // case the slate's "PostRegistration sweep" defers), absorbing
         // into the first one is the conservative pick.
-        GlobbableApi.merge(sibling, moved);
+        sibling.absorb(moved);
         return;
       }
     });

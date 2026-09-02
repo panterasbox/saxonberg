@@ -39,7 +39,6 @@ import ToolItem from '@saxonberg/server/mud/platform/thing/ToolItem';
 import { CommandDefinition } from '@saxonberg/server/mud/lib/command/CommandDefinition';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
-import { ChattelApi } from '@saxonberg/server/mud/api/chattel';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { Reserve, ReservedMixin } from '@saxonberg/server/mud/lib/reserve';
 import { makeStuff, makeStuffAtPath, stampTemplatePathForTest } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
@@ -134,7 +133,6 @@ describe('the mine’s four labour acts', () => {
     seedMaterials();
     vi.spyOn(console, 'warn').mockImplementation(() => {});
     Document.setMarshallerResolver(() => undefined, async () => undefined);
-    vi.spyOn(ChattelApi, 'stamp').mockResolvedValue({} as never);
 
     zone = makeStuffAtPath(() => new CartesianZone(), ZONE);
     zone.setCellSize(10);

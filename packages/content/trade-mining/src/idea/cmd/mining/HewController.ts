@@ -36,6 +36,7 @@ import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { ConditionApi } from '@saxonberg/server/mud/api/condition';
 import type Ore from '../../../thing/Ore';
 import type { Face, Working } from '../../../location/Working';
+import type { Chattel } from '@saxonberg/server/mud/lib/chattel/Chattel';
 
 /** Reference time for one cut, in game ms, at reference hardness. */
 const HEW_MS = 9000;
@@ -197,7 +198,9 @@ async function winOre(
     // ⭐ Who owns it. On tutwork the business keeps the ore; on your own
     // claim it is yours. Title is the parcel's answer, never the ledger's.
   const owner = await ownerFor(giver, working);
-    if (owner) await ChattelApi.stamp(lump as unknown as Stuff, owner);
+    if (owner && MixinApi.isChattel(lump as unknown as Stuff)) {
+      await (lump as unknown as Stuff & Chattel).stampChattel(owner);
+    }
 
     MessageApi.scene(giver)
       .topic(MINING_TOPIC)

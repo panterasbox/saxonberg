@@ -40,6 +40,7 @@ import {
   withRootContext,
 } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
+import type { Chattel } from '@saxonberg/server/mud/lib/chattel/Chattel';
 
 type MemberStuff = Stuff & Container;
 
@@ -410,9 +411,11 @@ describe('Seznick House — the lease loop', () => {
 
     // A bought good, chattel-stamped to the tenant, placed in the room.
     const lamp = await StuffApi.clone<Stuff>('/world/test/lamp');
-    await ChattelApi.stamp(lamp as never, tenant as never);
+    await (lamp as unknown as Stuff & Chattel).stampChattel(tenant as never);
     ContainmentApi.move(lamp as never, main);
-    await ChattelApi.setPlace(lamp as never, `${HOUSE}/location/main#${unit}/main`);
+    await (lamp as unknown as Stuff & Chattel).setChattelPlace(
+      `${HOUSE}/location/main#${unit}/main`,
+    );
 
     const ctx = await run(makeStuff(() => new UnleaseController()), walter, tenant, 'unlease');
     expect(reasons(ctx)).toEqual([]);

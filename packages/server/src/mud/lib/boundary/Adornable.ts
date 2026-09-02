@@ -138,7 +138,9 @@ export function AdornableMixin<TBase extends MixinConstructor<Stuff & Container>
     static captureSlice(host: Stuff, ctx: CaptureContext): FieldsSlice {
       const adornable = host as Stuff & Adornable;
       for (const f of adornable.getFixtures()) {
-        if (ChattelApi.isOwnerPersisted(f)) ctx.noteOwnedGood(f);
+        if (MixinApi.isChattel(f) && f.isOwnerPersisted()) {
+          ctx.noteOwnedGood(f);
+        }
       }
       return { fields: {} };
     }

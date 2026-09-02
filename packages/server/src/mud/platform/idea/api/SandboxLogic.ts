@@ -535,7 +535,7 @@ async function seedCopyImpl(actor: Avatar, target: Stuff): Promise<Stuff> {
     async () => {
       let owned = false;
       if (MixinApi.isChattel(target) && target.getChattelId()) {
-        const owner = await ChattelApi.ownerOf(target).catch(() => null);
+        const owner = await target.chattelOwner().catch(() => null);
         owned = owner?.kind === 'player' && owner.templatePath === identity;
       }
       if (!owned && MixinApi.isContainable(target)) {

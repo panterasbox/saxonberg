@@ -372,7 +372,7 @@ export default class LookController extends CommandController<LookModel> {
     // reads "Dave's Bar's", the one bought for yourself reads yours. A
     // title-derived owner (a group's, nobody's in particular) says nothing.
     if (MixinApi.isChattel(target) && target.getChattelId()) {
-      const owner = await ChattelApi.ownerOf(target);
+      const owner = await target.chattelOwner();
       const holder =
         owner?.kind === 'organization' || owner?.kind === 'player'
           ? StuffApi.findByTemplatePath(owner.templatePath)

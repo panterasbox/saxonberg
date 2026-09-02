@@ -128,7 +128,7 @@ describe("CheckRack — custody-not-title over the consignment substrate", () =>
       ),
     );
     expect(knife.getContainer()).toBe(rack); // custody → the house
-    expect(await ChattelApi.ownerOf(knife)).toEqual({
+    expect(await knife.chattelOwner()).toEqual({
       kind: "player",
       templatePath: "/platform/agent/Avatar/patron",
     }); // ownership stays with the patron
@@ -205,7 +205,7 @@ describe("CheckRack — custody-not-title over the consignment substrate", () =>
       ),
     );
     expect(knife.getContainer()).toBe(patron);
-    expect(await ChattelApi.ownerOf(knife)).toEqual({
+    expect(await knife.chattelOwner()).toEqual({
       kind: "player",
       templatePath: "/platform/agent/Avatar/patron",
     });

@@ -677,7 +677,7 @@ function absorbWasteHeat(ctx: EffectContext, spell: SpellDescriptor): void {
   if (wasteJ <= 0) return;
   try {
     if (MixinApi.isThermal(endpoint)) endpoint.depositHeat(wasteJ);
-    FireApi.tryAutoignite(endpoint);
+    if (MixinApi.isCombustible(endpoint)) endpoint.tryAutoignite();
     if (MixinApi.isThermal(endpoint)) endpoint.reconcilePhase();
   } catch {
     // A shell with no thermal surface simply has nowhere to put it.
@@ -1097,7 +1097,7 @@ function execInjectChannel(
     });
   }
   if (MixinApi.isThermal(target)) target.depositHeat((e.joules ?? 0) * potency);
-  const lit = FireApi.tryAutoignite(target);
+  const lit = MixinApi.isCombustible(target) && target.tryAutoignite();
   if (MixinApi.isThermal(target)) target.reconcilePhase();
   return lit
     ? 'It catches — real flame, and it will spread as real flame does.'

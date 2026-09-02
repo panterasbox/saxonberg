@@ -217,7 +217,7 @@ export default class DropController extends CommandController<DropModel> {
     // a dropped good persists on ITS OWNER'S record naming this room —
     // "I left my book at a friend's" — rather than becoming part of the
     // room. A no-op for anything unowned. (D8)
-    void ChattelApi.followCustody(operand);
+    if (MixinApi.isChattel(operand)) void operand.followCustody();
     MessageApi.scene(context.commandGiver)
       .topic('sense.survey')
       .toSelf(Mml.compose`You drop ${Mml.thing(operand)}.`)

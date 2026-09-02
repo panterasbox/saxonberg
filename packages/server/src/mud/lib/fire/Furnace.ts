@@ -29,6 +29,14 @@ import { StuffApi } from '../../api/stuff';
 import { WorldClockApi } from '../../api/worldclock';
 import { TemplatePaths } from '../paths';
 import { CallSecurity, Final, Unshadowable } from '../security/decorators';
+// eslint-disable-next-line no-restricted-imports -- the F1 object face: a Furnace's ignite()/douse()/advanceBurn() forward into the fire logic singleton exactly as the api/fire facade does (the Combustible/Energized precedent)
+import { FireLogic } from '../../platform/idea/api/FireLogic';
+import type { IgniteOutcome } from '../../api/fire';
+
+/** Resolve the HMR-able FireLogic singleton (the combustion driver). */
+function furnaceFireLogic(): FireLogic {
+  return StuffApi.singletonSync('/platform/idea/api/fire', () => new FireLogic());
+}
 import { SecurityPolicies } from '../security/SecurityPolicies';
 
 /** Furnace defaults (playtest-tuned, not plan decisions). */
@@ -59,6 +67,14 @@ export interface Furnace {
   getBellowsMultiplier(): number;
   /** Reconcile the fuel drain over elapsed game-time (reconcile-on-read). */
   reconcileFurnaceFuel(): void;
+
+  // The combustion face (F1) — forwards into the FireLogic driver.
+  /** Light the furnace; `{lit:false, reason}` on refusal (no fuel / lit). */
+  ignite(): IgniteOutcome;
+  /** Put the furnace out (and wet it); returns whether it was lit. */
+  douse(): boolean;
+  /** Advance one burning tick (fuel drain; self-extinguish at empty). */
+  advanceBurn(): void;
   /** Heat the Meltables in the furnace's scope toward the held temperature and
    * reconcile their phase — the forge-melts-an-ingot driver. */
   heatContents(): void;
@@ -226,6 +242,30 @@ export function FurnaceMixin<TBase extends MixinConstructor<Stuff>>(
     @Unshadowable
     public _setLit(value: boolean): void {
       this.lit = value === true;
+    }
+
+    // -------- the combustion face (forwards into FireLogic) --------
+
+    /** Light the furnace (the `ignite` verb's appliance arm). Sealed —
+     * the combustion driver is the one writer of lit state. */
+    @Final
+    @Unshadowable
+    public ignite(): IgniteOutcome {
+      return furnaceFireLogic().ignite(this as unknown as Stuff);
+    }
+
+    /** Put the furnace out (and wet it). */
+    @Final
+    @Unshadowable
+    public douse(): boolean {
+      return furnaceFireLogic().douse(this as unknown as Stuff);
+    }
+
+    /** Advance one burning tick (fuel drain; self-extinguish at empty). */
+    @Final
+    @Unshadowable
+    public advanceBurn(): void {
+      furnaceFireLogic().advance(this as unknown as Stuff);
     }
   }
 

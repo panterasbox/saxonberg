@@ -39,6 +39,18 @@ import type { Stuff } from "../../../lib/stuff/Stuff";
 const REGISTRY_PATH = TemplatePaths.chattelRegistry;
 
 const ChattelApiCallers = SecurityPolicies.FromModule("/api/chattel#ChattelApi");
+/** The F1 object face: a chattel-bearing good forwards its own title ops. */
+const ChattelCallers = SecurityPolicies.AnyOf(
+  ChattelApiCallers,
+  SecurityPolicies.FromMixin("ChattelMixin", {
+    // Compare by stuffId — the caller may surface as the raw target
+    // while the argument is the proxy (or vice versa).
+    where: (caller, _target, _method, args) =>
+      (caller as { stuffId?: string }).stuffId !== undefined &&
+      (caller as { stuffId?: string }).stuffId ===
+        (args[0] as { stuffId?: string } | undefined)?.stuffId,
+  }),
+);
 
 const GLOB_REFUSAL =
   "fungible stacks are owned by possession, not stamped";
@@ -60,7 +72,7 @@ export class ChattelLogic extends ApiLogic {
    * index (never the parcel or author rungs, which go to the store). Null
    * for an unstamped good, or when no registry is live.
    */
-  @CallSecurity(ChattelApiCallers)
+  @CallSecurity(ChattelCallers)
   public stampedOwnerOf(item: Stuff): ChattelOwner | null {
     if (!MixinApi.isChattel(item)) return null;
     const id = item.getChattelId();
@@ -68,7 +80,7 @@ export class ChattelLogic extends ApiLogic {
     return lookupRegistry()?.ownerOf(id) ?? null;
   }
 
-  @CallSecurity(ChattelApiCallers)
+  @CallSecurity(ChattelCallers)
   public async ownerOf(item: Stuff): Promise<ChattelOwner | null> {
     return this.resolveOwner(item);
   }
@@ -126,7 +138,7 @@ export class ChattelLogic extends ApiLogic {
    * Also keeps the owner's **estate** current when the owner is live, so a
    * placement survives the owner's next capture without a store round-trip.
    */
-  @CallSecurity(ChattelApiCallers)
+  @CallSecurity(ChattelCallers)
   public async setPlace(item: Stuff, place: string): Promise<void> {
     return this.applyPlace(item, place);
   }
@@ -142,7 +154,7 @@ export class ChattelLogic extends ApiLogic {
    * is theft — permitted and recoverable — so this deliberately does NOT
    * check who is acting; it only records where the thing ended up.
    */
-  @CallSecurity(ChattelApiCallers)
+  @CallSecurity(ChattelCallers)
   public async followCustody(item: Stuff): Promise<void> {
     if (MixinApi.isGlobbable(item) || !MixinApi.isChattel(item)) return;
     const good = item as Stuff & Chattel;
@@ -277,7 +289,7 @@ export class ChattelLogic extends ApiLogic {
   }
 
   /** See {@link ChattelApi.stamp}. */
-  @CallSecurity(ChattelApiCallers)
+  @CallSecurity(ChattelCallers)
   public async stamp(
     item: Stuff,
     owner: ChattelOwner,
@@ -294,7 +306,7 @@ export class ChattelLogic extends ApiLogic {
   }
 
   /** See {@link ChattelApi.transfer}. */
-  @CallSecurity(ChattelApiCallers)
+  @CallSecurity(ChattelCallers)
   public async transfer(
     item: Stuff,
     newOwner: ChattelOwner,

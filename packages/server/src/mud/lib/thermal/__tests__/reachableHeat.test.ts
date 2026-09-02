@@ -58,7 +58,7 @@ describe('reachableHeatK — the inert crafting seam', () => {
 
     // An unlit forge does not count.
     const f = forge(1500);
-    FireApi.douse(f);
+    f.douse();
     ContainmentApi.move(f, room);
     expect(maker.reachableHeatK()).toBe(0);
   });

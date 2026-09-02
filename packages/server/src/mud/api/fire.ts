@@ -56,51 +56,6 @@ function logic(): FireLogic {
 
 export class FireApi {
   /**
-   * Deliberate ignition (the `ignite` verb): a hand-flame lights a flammable,
-   * dry-enough object. Returns `{lit:true}` on success, or `{lit:false,
-   * reason}` — `'not-flammable'`, `'already-burning'`, or `'too-wet'` (the
-   * water penalty exceeds what a sustained hand-flame can dry through).
-   */
-  public static ignite(stuff: Stuff): IgniteOutcome {
-    return logic().ignite(stuff);
-  }
-
-  /**
-   * Heat-threshold autoignition — ignites `stuff` iff its temperature has
-   * crossed its (wetness-adjusted) autoignition point (and it has fuel). The
-   * derivable energy balance the spread check drives: the caller delivered the
-   * heat, this decides whether the threshold was reached. Returns whether it
-   * lit.
-   */
-  public static tryAutoignite(stuff: Stuff): boolean {
-    return logic().tryAutoignite(stuff);
-  }
-
-  /**
-   * Douse `stuff` — the water/wet extinguisher: puts the fire out and wets the
-   * object so it resists re-ignition until dried. Returns whether anything was
-   * doused (false on a non-burning / non-combustible target).
-   */
-  public static douse(stuff: Stuff): boolean {
-    return logic().douse(stuff);
-  }
-
-  /**
-   * Advance one burning object one tick — drain its fuel (self-extinguishing +
-   * charring / destructing at exhaustion). The presence-gated fire tick fans
-   * this out over occupied scopes; a lone object also reconciles-on-read for
-   * `analyze` freshness.
-   */
-  public static advance(stuff: Stuff): void {
-    logic().advance(stuff);
-  }
-
-  /** Is `stuff` a Combustible that is currently on fire? */
-  public static isBurning(stuff: Stuff): boolean {
-    return logic().isBurning(stuff);
-  }
-
-  /**
    * The presence-gated fire tick — advance and spread every fire in an
    * **occupied** scope (the weather-boundary / storm-strike precedent). Armed
    * by `WorldClockRegistry` on the game clock; an unwatched fire freezes.

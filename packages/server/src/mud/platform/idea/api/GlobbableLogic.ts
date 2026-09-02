@@ -49,6 +49,18 @@ const GlobbableApiCallers = SecurityPolicies.AnyOf(
   SecurityPolicies.FromModule('/api/glob#GlobbableApi'),
   SecurityPolicies.SelfOnly
 );
+/** The F1 object face: a Globbable host forwards its own split/absorb. */
+const GlobCallers = SecurityPolicies.AnyOf(
+  GlobbableApiCallers,
+  SecurityPolicies.FromMixin('GlobbableMixin', {
+    // Compare by stuffId — the caller may surface as the raw target
+    // while the argument is the proxy (or vice versa).
+    where: (caller, _target, _method, args) =>
+      (caller as { stuffId?: string }).stuffId !== undefined &&
+      (caller as { stuffId?: string }).stuffId ===
+        (args[0] as { stuffId?: string } | undefined)?.stuffId,
+  }),
+);
 
 /**
  * GlobbableLogic — the hot-reloadable logic singleton behind
@@ -81,7 +93,7 @@ const GlobbableApiCallers = SecurityPolicies.AnyOf(
 @Unshadowable
 export class GlobbableLogic extends ApiLogic {
   /** See {@link GlobbableApi.split}. */
-  @CallSecurity(GlobbableApiCallers)
+  @CallSecurity(GlobCallers)
   public async split(
     source: GlobbableStuff,
     n: number
@@ -157,7 +169,7 @@ export class GlobbableLogic extends ApiLogic {
   }
 
   /** See {@link GlobbableApi.merge}. */
-  @CallSecurity(GlobbableApiCallers)
+  @CallSecurity(GlobCallers)
   public merge(survivor: GlobbableStuff, absorbed: GlobbableStuff): void {
     if (!MixinApi.isGlobbable(survivor) || !MixinApi.isGlobbable(absorbed)) {
       throw new Error(

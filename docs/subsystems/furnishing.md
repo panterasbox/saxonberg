@@ -76,7 +76,7 @@ lives in one; *where the owner keeps it* is not a relation between two
 principals — it is one value, always present, changing on the same acts
 that move custody.
 
-**Writes go through one gate.** `ChattelApi.setPlace` is the single write
+**Writes go through one gate.** `item.setChattelPlace` is the single write
 path, and it writes three things in one call:
 
 1. the good's own `_place` field — what round-trips *with the good*;
@@ -90,7 +90,7 @@ path, and it writes three things in one call:
 > them from diverging. The duplication is real and is stated here rather
 > than hidden.
 
-`ChattelApi.followCustody(item)` re-derives the placement from where a good
+`item.followCustody()` re-derives the placement from where a good
 now *is* — the one call a custody verb makes after moving something.
 
 ## The skip rule
@@ -113,7 +113,7 @@ goods a business consigns onto its own counter, or buys for its own rail,
 are stamped `{ kind: 'organization' }` and live in that counter's, that
 rail's, record like any fixture — skipping them captured them by *nobody*
 (the libations live drive watched a dev restart empty the cash-and-carry
-counter and the bar). `ChattelApi.isOwnerPersisted` is the synchronous
+counter and the bar). `item.isOwnerPersisted()` is the synchronous
 predicate (the registry's in-memory title index; `isStamped` is the
 weaker "has a title at all"), because a capture walk **cannot await**.
 
@@ -190,7 +190,7 @@ room — the bar's neon stays on the bar's wall.
 | a room identity | deferred to that room's materialize (mounted goods re-attach as fixtures) |
 
 Storage is what makes "move house" work: it is the *absence* of a
-placement, not a place. `ChattelApi.evictToStorage(prefix)` is the
+placement, not a place. `ChattelApi.evictToStorage(prefix)` (key-based, still Api) is the
 lease-end sweep — intact, titled, recoverable, **never destructed**.
 
 ## `ownerOf` — three rungs

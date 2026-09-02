@@ -218,8 +218,8 @@ describe('the spirit burns (P10)', () => {
     spill.setMass(Quantity.of(0.8, 'kg'));
     spill.lastAmbientK = 700; // the dropped lamp
     spill.stampedTemperatureK = 700;
-    const caught = FireApi.tryAutoignite(spill);
+    const caught = spill.tryAutoignite();
     expect(caught).toBe(true);
-    expect(FireApi.isBurning(spill)).toBe(true);
+    expect(spill.isBurning()).toBe(true);
   });
 });

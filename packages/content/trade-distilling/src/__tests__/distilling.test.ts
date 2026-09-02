@@ -562,7 +562,7 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
     expect(gin.getContainer()).toBe(counter);
     expect(counter.listingFor(gin.getChattelId())?.consignorKey).toBe(OUTFIT);
     expect(counter.listingFor(vodka.getChattelId())?.askMinor).toBe(10);
-    expect(await ChattelApi.ownerOf(gin)).toEqual({ kind: 'organization', templatePath: OUTFIT });
+    expect(await gin.chattelOwner()).toEqual({ kind: 'organization', templatePath: OUTFIT });
     // The hand went home.
     expect(hand.getContainer()).toBe(floorRoom);
     // A second beat with the floor empty does nothing.
@@ -586,7 +586,7 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
     await asPrincipal(buyer, () => makeStuff(() => new BuyController()).execute({ thing: 'gin' }, c));
     expect(rejections(c)).toEqual([]);
     expect(gin.getContainer()).toBe(buyer);
-    expect(await ChattelApi.ownerOf(gin)).toEqual({ kind: 'player', templatePath: '/platform/agent/Avatar/pat' });
+    expect(await gin.chattelOwner()).toEqual({ kind: 'player', templatePath: '/platform/agent/Avatar/pat' });
     const commission = Math.round(14 * 0.15);
     expect(BankingApi.balanceOf(outfitAccount).minor - before).toBe(14 - commission);
     expect(BankingApi.balanceOf(hostAccount).minor).toBeGreaterThan(0);

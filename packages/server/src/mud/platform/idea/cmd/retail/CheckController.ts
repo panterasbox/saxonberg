@@ -34,6 +34,7 @@ import { CombatApi } from "../../../../api/combat";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
 import type { Container } from "../../../../lib/spatial/Container";
 import type { Containable } from "../../../../lib/spatial/Containable";
+import type { Chattel } from '../../../../lib/chattel/Chattel';
 
 const TOPIC = "act.deed";
 
@@ -84,7 +85,7 @@ export default class CheckController extends CommandController<CheckModel> {
     }
 
     // Establish the owner-stamp if unstamped — reclaim authorizes on it.
-    if (!item.getChattelId()) await ChattelApi.stamp(item, giver);
+    if (!item.getChattelId()) await (item as unknown as Stuff & Chattel).stampChattel(giver);
     const consignorKey = giver.getIdentityPath() ?? "";
 
     // Custody → the rack; the owner-stamp stays put. It's a plain

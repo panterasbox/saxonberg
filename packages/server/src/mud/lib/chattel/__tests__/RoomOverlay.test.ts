@@ -50,6 +50,7 @@ import type { Containable } from "../../spatial/Containable";
 import type { Slotted } from "../../slot/Slotted";
 import type { Slottable } from "../../slot/Slottable";
 import type { FieldMeta } from "../../mixin";
+import type { Chattel } from '../Chattel';
 
 const CHAIR_PATH = "/obj/test/Chair";
 const ROOM_PATH = "/world/test/Room";
@@ -159,7 +160,7 @@ async function place(item: Stuff, host: Stuff): Promise<void> {
     item as unknown as Stuff & Containable,
     host as unknown as Stuff & Container,
   );
-  await ChattelApi.setPlace(item, PersistableApi.placeIdOf(host));
+  await (item as unknown as Stuff & Chattel).setChattelPlace(PersistableApi.placeIdOf(host));
 }
 
 beforeEach(async () => {
@@ -176,7 +177,7 @@ describe("the room overlay", () => {
     const alice = person(ALICE_PATH);
     const r = room();
     const c = chair();
-    await ChattelApi.stamp(c, alice);
+    await c.stampChattel(alice);
     await place(c, r);
     const id = c.getChattelId();
 
@@ -194,7 +195,7 @@ describe("the room overlay", () => {
     expect(contents.length).toBe(1);
     expect((contents[0] as unknown as { getChattelId(): string }).getChattelId()).toBe(id);
     // Still Alice's — custody moved, title never did.
-    expect(await ChattelApi.ownerOf(contents[0] as Stuff)).toEqual({
+    expect(await (contents[0] as unknown as Stuff & Chattel).chattelOwner()).toEqual({
       kind: "player",
       templatePath: ALICE_PATH,
     });
@@ -204,7 +205,7 @@ describe("the room overlay", () => {
     const bob = person(BOB_PATH); // the visitor
     const r = room(); // somebody else's room
     const book = chair();
-    await ChattelApi.stamp(book, bob);
+    await book.stampChattel(bob);
     await place(book, r);
     const id = book.getChattelId();
 
@@ -230,7 +231,7 @@ describe("the room overlay", () => {
     await PersistableApi.materialize(reborn);
     const found = (reborn as unknown as Container).getContents()[0];
     expect(found).toBeDefined();
-    expect(await ChattelApi.ownerOf(found as Stuff)).toEqual({
+    expect(await (found as unknown as Stuff & Chattel).chattelOwner()).toEqual({
       kind: "player",
       templatePath: BOB_PATH,
     });
@@ -247,7 +248,7 @@ describe("the room overlay", () => {
       r as unknown as Stuff & Container,
     );
     const owned = chair();
-    await ChattelApi.stamp(owned, alice);
+    await owned.stampChattel(alice);
     await place(owned, r);
 
     await PersistableApi.capture(r);
@@ -270,7 +271,7 @@ describe("the room overlay", () => {
     const alice = person(ALICE_PATH);
     const r = room();
     const c = chair();
-    await ChattelApi.stamp(c, alice);
+    await c.stampChattel(alice);
     await place(c, r);
 
     await PersistableApi.capture(r);

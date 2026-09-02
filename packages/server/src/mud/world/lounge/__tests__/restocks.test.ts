@@ -60,6 +60,7 @@ import {
   withRootContext,
 } from '../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
+import type { Chattel } from '../../../lib/chattel/Chattel';
 import {
   installBankingHarness,
   teardownBankingHarness,
@@ -345,7 +346,7 @@ describe("the keeper's back loop — Mara restocks Dave's Bar from the cash-and-
     const onShelf = shelf.getContents().filter((b) => bottles.includes(b as Bottle));
     expect(onShelf.length).toBe(2);
     for (const b of onShelf) {
-      expect(await ChattelApi.ownerOf(b)).toEqual({ kind: 'organization', templatePath: BAR_BIZ });
+      expect(await (b as unknown as Stuff & Chattel).chattelOwner()).toEqual({ kind: 'organization', templatePath: BAR_BIZ });
     }
     expect(counter.getContents().filter((b) => bottles.includes(b as Bottle)).length).toBe(1);
     // The house paid; the outfit was paid (less the distributor's cut).

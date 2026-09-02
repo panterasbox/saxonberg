@@ -396,7 +396,7 @@ async function flushSkippedOwnedGoods(goods: Iterable<Stuff>): Promise<void> {
     if (good.isDestroyed() || !MixinApi.isChattel(good)) continue;
     const chattelId = good.getChattelId();
     if (!chattelId) continue;
-    const owner = await ChattelApi.ownerOf(good);
+    const owner = await good.chattelOwner();
     if (owner?.kind !== "player") continue;
     // A hung good keeps its wall: the mount slot rides the entry so the
     // room's next overlay re-attaches it as a fixture (residences D11).
@@ -455,7 +455,8 @@ function captureState(host: Stuff): Record<string, MixinSlice> {
         .getContents()
         .filter(
           (item) =>
-            !MixinApi.isHasInteractive(item) && !ChattelApi.isOwnerPersisted(item),
+            !MixinApi.isHasInteractive(item) &&
+            !(MixinApi.isChattel(item) && item.isOwnerPersisted()),
         )
     : [];
   const indexMap = new Map<Stuff, number>();

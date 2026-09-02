@@ -688,7 +688,7 @@ async function finishGlass(
     for (const g of garnish) {
       let piece: Stuff = g.stuff;
       if (g.glob && MixinApi.isGlobbable(g.stuff) && g.stuff.getQuantity() > g.count) {
-        piece = await GlobbableApi.split(g.stuff, g.count);
+        piece = await g.stuff.split(g.count);
       }
       if (MixinApi.isContainable(piece)) ContainmentApi.move(piece, output);
     }

@@ -67,8 +67,8 @@ Dials: `response.heat.*`.
   thermal capacity, so a soaked log resists regardless of size — the
   wet-firewood, now derived). Reaching the threshold is the energy balance
   (`depositHeat` gates the rise by thermal inertia — a match can't out-heat a
-  beam); the ignition itself is the threshold cross. `FireApi.tryAutoignite`
-  is the heat-threshold path (spread + tests); `FireApi.ignite` is the
+  beam); the ignition itself is the threshold cross. `tryAutoignite()`
+  is the heat-threshold path (spread + tests); `ignite()` is the
   deliberate `ignite`-verb path (a hand-flame; the wetness penalty must be
   below the manual-drying headroom, else "too wet to catch").
 - **Consumption end-state (D4).** Fuel drains → the material transforms to its
@@ -126,7 +126,8 @@ Dials: `response.heat.*`.
   temperature. **`Campfire` is refactored onto it byte-identically** (pin 800
   K, guarded by its own suite). `Forge`/`Kiln`/`Oven` compose it with different
   fuel + bellows dials — **smelting heat (iron's 1811 K) reachable only with the
-  bellows**. `FireApi.ignite`/`douse` light/extinguish a furnace.
+  bellows**. `ignite()`/`douse()` light/extinguish a furnace (the same face rides
+  `FurnaceMixin`).
 - **The Candle** — the convergence fixture: `LightSource + Combustible +
   Thermal + Reserved(wax)` over a `Thing`'s `Wet` wick. A dry wick lights (the
   wet-wick gate refuses a soaked one, keyed on the wick material's water

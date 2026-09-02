@@ -128,7 +128,7 @@ describe("Coin — split / merge", () => {
     const env = makeStuff(() => new TestContainer());
     ContainmentApi.move(stack, env);
 
-    const splitoff = await asApiCaller(() => GlobbableApi.split(stack, 30));
+    const splitoff = await asApiCaller(() => stack.split(30));
     expect((splitoff as Coin).getQuantity()).toBe(30);
     expect(stack.getQuantity()).toBe(70);
     expect((splitoff as Coin).getDenomination()).toBe(25);

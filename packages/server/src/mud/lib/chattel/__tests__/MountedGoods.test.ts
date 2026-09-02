@@ -49,6 +49,7 @@ import type { Containable } from "../../spatial/Containable";
 import type { Adornable } from "../../boundary/Adornable";
 import type { Adornment } from "../../boundary/Adornment";
 import type { FieldMeta } from "../../mixin";
+import type { Chattel } from '../Chattel';
 
 const SCONCE_PATH = "/stuff/thing/fixture/sconce-lamp";
 const ROOM_PATH = "/test/Parlour";
@@ -150,7 +151,7 @@ async function hang(item: Sconce, host: Room, slot: string): Promise<void> {
     item as unknown as Stuff & Adornment,
     slot,
   );
-  await ChattelApi.followCustody(item as unknown as Stuff);
+  await (item as unknown as Stuff & Chattel).followCustody();
 }
 
 function estateEntries(scope: string): Array<{
@@ -179,7 +180,7 @@ describe("a hung good", () => {
     const alice = person(ALICE_PATH);
     const r = room();
     const lamp = sconce();
-    await ChattelApi.stamp(lamp as unknown as Stuff, alice);
+    await (lamp as unknown as Stuff & Chattel).stampChattel(alice);
     await hang(lamp, r, "mounted:one");
     const id = lamp.getChattelId();
 
@@ -201,7 +202,7 @@ describe("a hung good", () => {
     const alice = person(ALICE_PATH);
     const r = room();
     const lamp = sconce();
-    await ChattelApi.stamp(lamp as unknown as Stuff, alice);
+    await (lamp as unknown as Stuff & Chattel).stampChattel(alice);
     await hang(lamp, r, "mounted:one");
     const id = lamp.getChattelId();
 
@@ -224,7 +225,7 @@ describe("a hung good", () => {
       (fixtures[0] as unknown as { getChattelId(): string }).getChattelId(),
     ).toBe(id);
     // Still Alice's — hanging it in a room never moved title.
-    expect(await ChattelApi.ownerOf(fixtures[0] as unknown as Stuff)).toEqual({
+    expect(await (fixtures[0] as unknown as Stuff & Chattel).chattelOwner()).toEqual({
       kind: "player",
       templatePath: ALICE_PATH,
     });
@@ -234,7 +235,7 @@ describe("a hung good", () => {
     const alice = person(ALICE_PATH);
     const r = room();
     const lamp = sconce();
-    await ChattelApi.stamp(lamp as unknown as Stuff, alice);
+    await (lamp as unknown as Stuff & Chattel).stampChattel(alice);
     // Alice has a record, and in it the lamp is still in her hands.
     await PersistableApi.capture(alice);
     await hang(lamp, r, "mounted:one");
@@ -262,7 +263,7 @@ describe("a hung good", () => {
     const alice = person(ALICE_PATH);
     const r = room();
     const lamp = sconce();
-    await ChattelApi.stamp(lamp as unknown as Stuff, alice);
+    await (lamp as unknown as Stuff & Chattel).stampChattel(alice);
     await hang(lamp, r, "mounted:one");
     const id = lamp.getChattelId();
 
@@ -274,7 +275,7 @@ describe("a hung good", () => {
       lamp as unknown as Stuff & Containable,
       alice as unknown as Stuff & Container,
     );
-    await ChattelApi.followCustody(lamp as unknown as Stuff);
+    await (lamp as unknown as Stuff & Chattel).followCustody();
 
     await PersistableApi.capture(alice);
     const entry = estateEntries(ALICE_PATH).find((e) => e.chattelId === id);
@@ -287,7 +288,7 @@ describe("a hung good", () => {
     const r = room();
     for (let i = 0; i < 12; i++) {
       const lamp = sconce();
-      await ChattelApi.stamp(lamp as unknown as Stuff, alice);
+      await (lamp as unknown as Stuff & Chattel).stampChattel(alice);
       await hang(lamp, r, `mounted:${i}`);
     }
     expect((r as unknown as Stuff & Adornable).getFixtures().length).toBe(12);

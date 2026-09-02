@@ -181,7 +181,7 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
       const contents = container.getContents().filter((item) => {
         if (MixinApi.isHasInteractive(item)) return false;
         if (MixinApi.isBehaved(item)) return false;
-        if (ChattelApi.isOwnerPersisted(item)) {
+        if (MixinApi.isChattel(item) && item.isOwnerPersisted()) {
           ctx.noteOwnedGood(item);
           return false;
         }

@@ -33,6 +33,7 @@ import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
 import { ChattelApi } from '../../../../api/chattel';
+import type { Chattel } from '../../../../lib/chattel/Chattel';
 
 interface PutModel extends CommandModel {
   item: MqlOneResult;
@@ -171,7 +172,9 @@ export default class PutController extends CommandController<PutModel> {
     // Either way custody moved and title did not — re-derive the placement
     // so an owned good persists on its owner's record naming where it now
     // sits. A no-op for anything unowned. (D8)
-    void ChattelApi.followCustody(item as Stuff);
+    if (MixinApi.isChattel(item as Stuff)) {
+      void (item as Stuff & Chattel).followCustody();
+    }
 
     // `mode` is narrowed to 'in' | 'on' at this point; use it as the
     // preposition verbatim.

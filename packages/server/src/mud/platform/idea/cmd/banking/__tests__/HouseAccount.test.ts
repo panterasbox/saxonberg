@@ -282,7 +282,7 @@ describe("the house account in the wallet (D6)", () => {
     expect(rejections(c)).toEqual([]);
 
     expect(torch.getContainer()).toBe(mara);
-    expect(await ChattelApi.ownerOf(torch)).toEqual({
+    expect(await torch.chattelOwner()).toEqual({
       kind: "organization",
       templatePath: BAR_BIZ,
     });
@@ -303,7 +303,7 @@ describe("the house account in the wallet (D6)", () => {
     await walletUse(mara, loc, "goodkin"); // back to her own
     const c = await buy(mara, loc, stock, "torch");
     expect(rejections(c)).toEqual([]);
-    expect(await ChattelApi.ownerOf(torch)).toEqual({
+    expect(await torch.chattelOwner()).toEqual({
       kind: "player",
       templatePath: "/platform/agent/Avatar/mara",
     });
@@ -328,7 +328,7 @@ describe("the house account in the wallet (D6)", () => {
 
     const c = await buy(mara, loc, stock, "torch");
     expect(rejections(c)).toEqual([]);
-    expect(await ChattelApi.ownerOf(torch)).toEqual({
+    expect(await torch.chattelOwner()).toEqual({
       kind: "player",
       templatePath: "/platform/agent/Avatar/mara",
     });
@@ -357,7 +357,7 @@ describe("the house account in the wallet (D6)", () => {
       makeStuff(() => new ConsignController()).execute({ thing: "torch", ask: "20" }, c),
     );
     expect(rejections(c)).toEqual([]);
-    expect(await ChattelApi.ownerOf(torch)).toEqual({ kind: "organization", templatePath: BAR_BIZ });
+    expect(await torch.chattelOwner()).toEqual({ kind: "organization", templatePath: BAR_BIZ });
     expect(shelf.listingFor(torch.getChattelId())?.consignorKey).toBe(BAR_BIZ);
 
     // A stranger buys it: commission to the store, the rest to the bar.
@@ -366,7 +366,7 @@ describe("the house account in the wallet (D6)", () => {
     const b = ctx(pat, loc, shelf, "buy torch");
     await asOwner(pat, () => makeStuff(() => new BuyController()).execute({ thing: "torch" }, b));
     expect(rejections(b)).toEqual([]);
-    expect(await ChattelApi.ownerOf(torch)).toEqual({ kind: "player", templatePath: "/platform/agent/Avatar/pat" });
+    expect(await torch.chattelOwner()).toEqual({ kind: "player", templatePath: "/platform/agent/Avatar/pat" });
     expect(BankingApi.balanceOf(account).minor).toBe(17); // 20 − 15% commission
     expect(BankingApi.balanceOf(storeAcct).minor).toBe(3);
     expect(BankingApi.reconcile(Currency.compact()).balanced).toBe(true);
