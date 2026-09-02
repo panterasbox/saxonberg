@@ -3,6 +3,18 @@
 class: /platform/location/FurnishableRoom
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
+  # ⭐⭐ **The sandbox's door, and it is in your BEDROOM because a
+  # sandbox belongs to your home.** `linkForEnterer`'s *owned* case: a
+  # crossing standing in a space you hold links YOUR circle, and a guest
+  # in your hall cannot re-point it at theirs.
+  #
+  # ⚠ It was a fixture in a commons (a doorless alcove, then briefly the
+  # bar and the lounge) — the *unowned* case, which the class supports as
+  # "a phone booth, not a claim". But a lounge is neither a home nor a
+  # studio, and a public holodeck door in a pub reads as scenery nobody
+  # can explain. A circle is yours; its door is at your place.
+  props:
+    - /platform/thing/sandbox/wardrobe
   shortDescription: the bedroom
   primaryKeyword: bedroom
   ambientIntensity: 25

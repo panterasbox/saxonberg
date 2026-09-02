@@ -1,0 +1,14 @@
+# ⭐ Tools make tools: you cannot smelt without something to hold the hot
+# thing with, and the something is forged.
+recipeId: tongs
+name: Tongs
+keywords: [tongs]
+inputSlots:
+  - { slot: stock, category: ferrous, minGrade: fair, kind: item, count: 1 }
+toolCapabilities: [striking, anvil]
+outputTemplate: /trade/mining/thing/tongs
+outputMaterial: ''
+outputApplication: tangible
+requiresHeatK: 1200
+difficulty: standard
+discipline: mining

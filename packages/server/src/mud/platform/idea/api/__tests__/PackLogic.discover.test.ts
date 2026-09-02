@@ -57,9 +57,9 @@ describe('discovery', () => {
 });
 
 describe('the shipped packs (real discovery, no install)', () => {
-  it('thirty-one ship; the trade packs order after generic-objects (wave 4a); the venues after their trades (wave 4b); the localities after residence (residences D18); every consigner after distribution (fermentation D10); the localities after water (watershed W9)', () => {
+  it('thirty-five ship; the trade packs order after generic-objects (wave 4a); the venues after their trades (wave 4b); the localities after residence (residences D18); every consigner after distribution (fermentation D10); the localities after water (watershed W9); the metal chain after ITS trades', () => {
     const ids = PackApi.contentRoots().map((root) => root.split('/').slice(-2)[0]!);
-    expect(ids).toHaveLength(31);
+    expect(ids).toHaveLength(35);
     expect(ids[0]).toBe('platform');
     for (const trade of ['trade-smithing', 'trade-hearth-cooking', 'trade-hospitality', 'trade-distilling']) {
       expect(ids.indexOf(trade)).toBeGreaterThan(ids.indexOf('generic-objects'));
@@ -74,6 +74,15 @@ describe('the shipped packs (real discovery, no install)', () => {
       expect(ids.indexOf(locality)).toBeGreaterThan(ids.indexOf('residence'));
     }
     expect(ids.indexOf('hinkley-hills')).toBeGreaterThan(ids.indexOf('terminus'));
+    // The metal chain: three capability packs, one venue over all three.
+    // ⭐ `rejection` ships no `src/` at all — the exemplar claim is that a
+    // second mining town is a locality pack over the same trades, and the
+    // ordering here is what makes that installable.
+    for (const trade of ['trade-mining', 'trade-fuel', 'trade-smelting']) {
+      expect(ids.indexOf('rejection')).toBeGreaterThan(ids.indexOf(trade));
+    }
+    expect(ids.indexOf('trade-smelting')).toBeGreaterThan(ids.indexOf('trade-mining'));
+    expect(ids.indexOf('trade-smelting')).toBeGreaterThan(ids.indexOf('trade-fuel'));
     // The D10 decoupling: every trade that consigns (and every venue
     // that buys) orders after distribution, and no producing sibling
     // depends on trade-distilling any more.

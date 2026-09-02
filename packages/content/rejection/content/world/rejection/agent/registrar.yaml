@@ -1,0 +1,24 @@
+# The recorder — functional cast, canned. ⚠ He does not adjudicate
+# anything: first come is the whole rule, and `stake` enforces it against
+# the register rather than against his judgment. That is the point of a
+# register.
+class: /platform/agent/NPC
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sensitivus
+  lifecycleState: alive
+  primaryKeyword: recorder
+  keywords: [recorder, registrar, clerk]
+  shortDescription: the claims recorder
+  longDescription: >-
+    A dry, unhurried man behind the counter with ink to the second
+    knuckle and a pair of spectacles pushed up into his hair. He does not
+    look up until you say something, and then he looks up completely.
+  behaviors:
+    - brain: /lib/behavior/idles
+      trigger: cadence:40s
+      config:
+        pool:
+          - { kind: free, value: "turns a page of the register and squares it with two fingers." }
+          - { kind: free, value: "trims a pen with a small knife, without looking at it." }
+          - { kind: free, value: "says, to nobody: \"First come. That is the whole of it.\"" }

@@ -1,0 +1,13 @@
+# A shovel — for the half of mining that is moving what you broke.
+class: /platform/thing/ToolItem
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  primaryKeyword: shovel
+  keywords: ["shovel", "spade"]
+  shortDescription: a short-handled shovel
+  longDescription: >-
+    A worn steel blade on a short handle — short because a long one has
+    nowhere to go in a drift.
+  mass: 2.2
+  capabilities: ["digging"]
+  _materialPath: /stuff/idea/material/element/iron

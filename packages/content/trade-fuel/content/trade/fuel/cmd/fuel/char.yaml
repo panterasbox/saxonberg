@@ -1,0 +1,23 @@
+verbs: [char]
+controller: /trade/fuel/idea/cmd/fuel/CharController
+description: "Run a charcoal burn, and set the draught it runs at"
+help: |
+  `char` starts a burn in the clamp you are standing at; `char 0.45` sets
+  the draught first. It runs over game time and you can come back to it —
+  `char` again while it is running re-sets the draught, which is the whole
+  of the craft.
+
+  ⭐ Airflow is the decision. Too much air and the charge burns all the
+  way through and you open a clamp full of ash; too little and the middle
+  never chars and you draw half-burnt brands. Between them is charcoal,
+  and dead centre is the best burn there is.
+
+  ⚠ You can lose the lot. That is not a bug in the burn — it is what the
+  three days of watching are for.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  - name: draught
+    type: number
+    required: false

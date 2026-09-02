@@ -1,0 +1,20 @@
+# ⭐ The rung, not the mechanism. The SMELT itself is `smelt` — a furnace
+# act over game time whose yield is arithmetic on the charge — and this
+# row exists so it sits on the ladder where a learner can find it and the
+# discipline can derive its floor from it.
+#
+# ⚠ `outputTemplate` names the bar, but the MASS of the bar a real smelt
+# produces is stamped from the charge and is never this row's business.
+recipeId: smelt-copper
+name: Smelt Copper
+keywords: [smelt, copper]
+inputSlots:
+  - { slot: ore, category: ore, minGrade: poor, kind: item, count: 1 }
+  - { slot: fuel, category: fuel, minGrade: poor, kind: item, count: 2 }
+toolCapabilities: []
+outputTemplate: /trade/smelting/thing/copper-ingot
+outputMaterial: ''
+outputApplication: tangible
+requiresHeatK: 1358
+difficulty: standard
+discipline: smelting

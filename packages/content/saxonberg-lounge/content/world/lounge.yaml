@@ -1,11 +1,25 @@
-# /world/lounge — the lounge content area (a FolderZone holding the bar,
-# terminal, cast, and fixtures beneath it). Ownership (`/world/lounge` → the
-# managed `lounge` group) lives in the gated `parcels` collection (see
-# mud/config/parcels.yaml), never on this editable zone template — the
-# governing security invariant. The leaf content lives under
-# seeds/world/lounge/ — folder-seed-alongside-dir, the /lib/address.yaml
-# precedent.
-class: /platform/idea/FolderZone
+# /world/lounge — the lounge, and ⭐⭐ **a GRID, not a folder.**
+#
+# It was a `FolderZone` — an organizational node with no spatial topology
+# — from when `/world/lounge` was a content directory. That made the
+# whole venue unplottable: `Bar` and `Lounge` were plain `Location`s, the
+# `office` and the alcove claimed a cartesian class they could never use
+# (a `FolderZone` cannot cover a grid, so `setCoords` had nothing to
+# resolve), and `bar --north--> office` was a cardinal exit pair with no
+# geometry under it at all.
+#
+# ⭐ **Every location plots on some coordinate system.** That is the
+# rule, and the star topology the Warren already uses was spatial the
+# whole time — `attachmentFor` reserves a compass direction off the host
+# — it simply never stamped a cell. Now it does, so a satellite budded at
+# runtime has real coordinates like every authored room.
+#
+# Ownership (`/world/lounge` → the managed `lounge` group) lives in the
+# gated `parcels` collection, never on this editable zone template — the
+# governing security invariant.
+class: /platform/idea/location/CartesianZone
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: lounge
+  # 4 m cells — a bar and its side rooms are ordinary interior spans.
+  cellSize: 4.0

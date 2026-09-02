@@ -1,0 +1,29 @@
+# ⭐ A STOPE — the void left where ore WAS. The most valuable rock in the
+# mine is the rock that is no longer here, and a stope is what that looks
+# like: a big open room, well over the span the ground wants, standing on
+# whatever the last crew left in it.
+class: /trade/mining/location/MineRoom
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a worked stope
+  primaryKeyword: stope
+  keywords: [stope, void, chamber]
+  longDescription: |
+    A high, irregular void where a body of ore used to be, its walls following the shape of what was taken.
+  oreRow: /world/rejection/thing/copper-ore
+  backPhrases:
+    - "The back goes up out of the lamplight and you cannot see where it stops."
+    - "The walls follow the shape of what was taken, which is not any shape a person would cut."
+    - "It is a room made by subtraction, and it shows."
+  seamPhrases:
+    - "What is left of the seam runs up the far wall, out of reach."
+    - "There is green in the roof of the stope, which is a problem and an opportunity."
+    - "The seam pinches out here — this is where the last crew stopped, and why."
+  airPhrases:
+    - "The space is big enough that the air in it feels like weather."
+    - "Cold air pools in the bottom of the stope and does not leave."
+    - "The air here is heavy and old. Your lamp does not like it."
+  groundPhrases:
+    - "Loose rock is stacked against the low wall where somebody barred it down and did not clear it."
+    - "There is a rib standing in the middle of the stope that nobody had the nerve to take."
+    - "Something the size of a door has come off the back since the last shift. It is on the floor."

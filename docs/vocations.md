@@ -106,11 +106,11 @@ Per entry: **what gates it**, **who pays**, **which subsystem it rides**.
 
 | Vocation | Status | Gate | Paid by |
 |---|---|---|---|
-| miner | designed ([mining](./slates/builds/mining-slate.md)) | skill + tools | ore buyers |
+| **miner** | **shipped** ([mining](./subsystems/mining.md)) | skill + tools | the smelter, through the assay shed — ⭐ *or nobody: with an adit and no shaft, a claim-holder walks their own ore out and owes the co-op nothing* |
 | farmer | **in build** | land + skill | produce buyers |
 | rancher | **in build** | land + stock | livestock buyers |
 | fisher | designed ([fishing](./slates/builds/fishing-slate.md)) | tackle + skill | market |
-| **prospector** | **GAP** | **assay** (instrument + competence) | speculative / grubstake |
+| **prospector** | **shipped** ([mining](./subsystems/mining.md)) | **assay** (instrument + competence) | speculative — ⭐⭐ *and the survey record itself is the asset: a per-viewer DISCOVERY belief you can trade, which is why negative knowledge still sells* |
 
 ### Secondary — process
 
@@ -122,7 +122,8 @@ Per entry: **what gates it**, **who pays**, **which subsystem it rides**.
 | **victualler** (preserving) | designed ([preservation](./slates/builds/preservation-slate.md) · [hearth & larder](./slates/builds/hearth-and-larder-design-pack.md)) | premises + competence | trade — ⚠ *the vocation the icebox eventually devalues; that is the point* |
 | **mana refiner** | designed ([mana economy](./slates/builds/mana-economy-design-pack.md)) | premises (industrial zoning) + cheap power | trade — ⭐ *concentration, never creation; needs the energy economy as its input* |
 | **salvager** | designed | **assay** + yard | materials buyers |
-| miller / smelter / tanner | **GAP** | premises (industrial zoning) | trade |
+| **smelter** | **shipped** ([mining](./subsystems/mining.md)) | premises (industrial zoning) + charcoal | ingot buyers — ⭐ *buys its ore out of REVENUE, which is what removed the deferred CB-lending dependency* |
+| miller / tanner | **GAP** | premises (industrial zoning) | trade |
 
 ### Tertiary — move, store, sell
 
@@ -253,8 +254,8 @@ right per row is most of the civic design.
 | **cooper** | **GAP** | Discipline | barrels — the bulk-goods container |
 | **stevedore / docker** | **GAP** | employment | ⭐ **Wharfside already has a dockers' hall**; the labour half of the depot |
 | **icehouse keeper / ice cutter** | **GAP** | premises + thermal read | ⭐⭐ **THIS IS THERMAL'S MISSING VOCATION** — and it is what makes the refrigeration arc possible before machines |
-| miller · smelter · tanner | **GAP** | premises (industrial zoning) | the classic nuisance trades |
-| **charcoal burner / collier** | **GAP** | skill | fuel for everything above |
+| miller · tanner | **GAP** | premises (industrial zoning) | the classic nuisance trades (⭐ the smelter SHIPPED — see § Secondary) |
+| **charcoal burner / collier** | **shipped** ([mining](./subsystems/mining.md)) | skill | ⭐⭐ *a judgment craft with a real downside — too much air and the charge goes to ash, too little and you draw half-burnt brands, and you can lose a whole burn.* Fuel for everything above, and the mine's timber comes off the same stand |
 | **gunsmith · powder maker** | designed ([ranged](./slates/tails/ranged-slate.md)) | licence | credential-gated |
 | **shipwright · ship-breaker** | **GAP** | premises | the breaker is a LULU |
 | **quarrier** | **GAP** | land + tools | mining's sibling |

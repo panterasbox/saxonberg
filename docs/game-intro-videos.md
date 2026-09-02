@@ -36,7 +36,8 @@ complement to the long-form manifesto video.
 4. **The world you dig** (the mine) — read the rock, chase a seam, the
    workings heal, the loop feeds itself. *Slice:* world authored by play
    + honest geology + real economy. (Fully designed — see
-   `staging/ferrow-delving.md`.)
+   `slates/builds/mining-slate.md` § *The mine's machinery* +
+   `slates/builds/rejection-slate.md` § *The venue*.)
 5. **A fight is a chemistry set** (combat) — materials and physics decide
    outcomes, not an HP race. *Slice:* emergence from honest materials.
 6. **Your commands become programs** (scripting) — the same strings you

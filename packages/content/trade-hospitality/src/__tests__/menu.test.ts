@@ -211,9 +211,26 @@ beforeAll(async () => {
     'orange-liqueur', 'bitter-liqueur', 'aperitivo', 'bitters',
   ]) await stock(`/trade/distilling/thing/${p}`);
   await stock('/trade/distilling/thing/gin'); // the well's second gin
-  await stock('/trade/brewing/thing/keg-ale');
+  /*
+   * ⚠⚠ **Filled vessels, not product rows.** Fermentation's W8 retired
+   * `keg-ale`, `keg-lager` and the five wine rows: a wine is now a
+   * MATERIAL that a generic `wine-bottle` carries, made by the trade
+   * rather than shipped as a stub. This test still named the retired
+   * rows and failed with `Template not found` — the downstream half of
+   * that switchover, missed because `trade-hospitality` was never
+   * touched by the commit that deleted them.
+   *
+   * ⭐ Substituting the EMPTY vessels is not enough and the failure says
+   * so precisely (`insufficient-input: dry-vermouth`): a bottle with no
+   * wine in it is not wine. The file's own `fill` helper is the answer.
+   */
+  await fill('/trade/brewing/thing/keg', '/trade/brewing/idea/material/ale', 30);
   for (const p of ['red', 'white', 'sparkling', 'dry-vermouth', 'sweet-vermouth']) {
-    await stock(`/trade/winemaking/thing/${p}`);
+    await fill(
+      '/trade/winemaking/thing/wine-bottle',
+      `/trade/winemaking/idea/material/${p}`,
+      0.75,
+    );
   }
   for (const p of ['soda-water', 'tonic', 'ginger-beer', 'cola', 'grapefruit-soda', 'cranberry-juice', 'orange-juice', 'ice-bag']) {
     await stock(`/trade/bottling/thing/${p}`);

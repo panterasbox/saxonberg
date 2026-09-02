@@ -139,14 +139,19 @@ shelf would drop it).
 ## The distributor — the cash-and-carry, and consignment BY a business (libations)
 
 The bar buys from a **distributor**, never from a `props:` line.
-The **`distribution` pack** ships the cash-and-carry (fermentation D10
-moved it out of trade-distilling so sibling trades share no edges):
-`/trade/distribution/location/cash-and-carry` (an ordinary
-`SingletonCartesianLocation` — a trade floor's durability lives on its
-fixtures, never the room); `thing/counter` a `Stock` whose ONE stocked
-line is the malt sack (the imported-input faucet) atop the consignment
-shelf, `serverPositionKeys: [clerk]`; `idea/business` with `clerk` and
-`keeper` (`purchases: true`). Everything
+The **`distribution` pack** ships the distributor's MECHANISM
+(fermentation D10 moved it out of trade-distilling so sibling trades
+share no edges): `thing/counter` a `Stock` whose ONE stocked line is the
+malt sack (the imported-input faucet) atop the consignment shelf,
+`serverPositionKeys: [clerk]`; `idea/business` with `clerk` and `keeper`
+(`purchases: true`); `agent/clerk` and `thing/racking`.
+
+⭐ The **ROOM** is the locality's — `/world/terminus/counting-houses/cash-and-carry`,
+a showroom with a roller door onto the avenue, described in that avenue's
+own prose. Trade is mechanism and locality is expression, and the split
+is what lets the room sit in a real grid: it plots at `(0,-1,0)` in The
+Counting-Houses, one cell south of the block, which is also what makes
+that cardinal exit pair legal. Everything
 on the counter is **consigned by an authored consignor**: every producer
 pack ships an *outfit* — a Business, a `Stock` its floor product stands
 in, and a hand NPC running the kernel **`consigns`** brain whose config

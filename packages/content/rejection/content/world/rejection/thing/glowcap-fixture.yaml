@@ -1,0 +1,42 @@
+# ⭐⭐ A glowcap bed in a wall niche — **the lighting infrastructure, and
+# the archetype's `light` slot bound.**
+#
+# The archetype names no source. Rejection answers with a fungus: it emits
+# continuously and it needs no fuel, which is the whole divergence — no
+# flame, no oil, no supply chain.
+#
+# ⚠⚠ **It does not grow and it does not die, and nothing here should say
+# it does.** An earlier cut of this file promised a living fixture on a
+# biological replacement cycle — *"it dies"*, *"somebody has been trimming
+# the dead ones out"* — and none of it was implemented: this is a
+# `PortableLight`, not a `Plant`, and the fungus-farmer that prose implied
+# does not exist. Making it real needs `LightSourceMixin(Plant)` in a
+# fungiculture trade pack, and that is a build (see
+# `docs/slates/builds/authored-vs-procedural-slate.md`). Until then the
+# honest thing is a light that works, described as a light that works.
+#
+# ⚠ It is a `PortableLight` and not a `Lamp`: `Lamp` is the street
+# lamppost with a dusk/dawn schedule, and a mine has no dusk. A niche of
+# fungus is simply a light source that is on — and it is technically
+# carryable, which is correct and funny: you can absolutely pull a bed of
+# glowcap out of the wall and take it with you, and it will die faster.
+#
+# 40 lumens over a 10 m cell is a soft green working light — enough to
+# clear the archetype's 20 lux threshold and see what you are doing;
+# ⚠ nowhere near `bright`, which is why you cannot judge grade by eye
+# down here and why the Assay Shed is a surface room.
+class: /platform/thing/equipment/PortableLight
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a bed of glowcap in a niche
+  primaryKeyword: glowcap
+  keywords: [glowcap, niche, fungus, light]
+  longDescription: >-
+    A shallow niche cut into the wall and packed with damp rotted wood,
+    out of which grows a close crop of pale mushrooms. They give off a
+    steady green light, cold as a moon, bright enough to work by and not
+    much more.
+  mass: 3
+  emittedIntensity: 40
+  emittedColorTemperature: 5200
+  on: true

@@ -1,0 +1,18 @@
+# An assay kit — a balance, a set of weights and a little cupel furnace.
+# ⭐ The top rung of the mining ladder, and rightly: it is the instrument
+# that turns a lump into a NUMBER, and a number is what the scale pays
+# against.
+class: /platform/thing/ToolItem
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  primaryKeyword: assay
+  keywords: ["assay", "assay-kit", "balance", "scale"]
+  shortDescription: an assayer's kit
+  longDescription: >-
+    A folding balance in a fitted case, a nest of brass weights, a
+    handful of bone-ash cupels and a small furnace with a bellows the
+    size of a purse. Everything needed to say what a lot is worth, and
+    nothing that could be mistaken for anything else.
+  mass: 4.5
+  capabilities: ["assay-scale"]
+  _materialPath: /stuff/idea/material/element/iron

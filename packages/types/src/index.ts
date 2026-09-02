@@ -936,7 +936,8 @@ export type CardId =
   | "cms"
   | "git"
   | "studio"
-  | "stock";
+  | "stock"
+  | "survey";
 
 /** Every {@link CardId}. The server validates against this; the client picks from it. */
 export const CARD_IDS: readonly CardId[] = [
@@ -950,6 +951,7 @@ export const CARD_IDS: readonly CardId[] = [
   "git",
   "studio",
   "stock",
+  "survey",
 ];
 
 /**
@@ -1133,7 +1135,52 @@ export type CardPayload =
   | { kind: 'roster'; rows: RosterRow[] }
   | { kind: 'releases'; rows: ReleaseRow[] }
   | { kind: 'wikiPage'; page: WikiPageFrame }
-  | { kind: 'helpTopic'; topic: HelpTopic };
+  | { kind: 'helpTopic'; topic: HelpTopic }
+  | { kind: 'survey'; survey: SurveyFrame };
+
+/**
+ * One measurement a character has taken and remembers.
+ *
+ * ⚠ **This is a projection of a BELIEF, not a UI cache.** What
+ * `measure strike` learns is written to the belief store's DISCOVERY
+ * realm keyed on the observation point, so two characters standing on
+ * one outcrop hold different records and a survey record is a tradeable
+ * asset. The card shows what the character knows; nothing accumulates
+ * in it.
+ */
+export interface SurveyPoint {
+  /** Where the reading was taken, as the player would say it. */
+  where: string;
+  /** Which channel — `strike`, `dip`, `grade`. */
+  channel: string;
+  /** The figure this observer actually read. */
+  reading: string;
+  /** The half-width their competence gives it, or `null` when exact. */
+  error: string | null;
+}
+
+/**
+ * The survey card's body — a character's readings for one deposit, plus
+ * the parameters their competence lets them INFER from those readings.
+ *
+ * ⭐ The three-point problem is played across three places, so it needs a
+ * readable surface or it is trigonometry on scrollback. ⚠ Deliberately
+ * not a map and not a minimap: the card is a LEDGER of what you have
+ * measured, which is the thing a real prospector carried.
+ */
+export interface SurveyFrame {
+  /** The deposit these readings are about, named as the player knows it. */
+  deposit: string;
+  points: SurveyPoint[];
+  /**
+   * What the readings ADD UP TO, where the reader's competence makes the
+   * inference available at all. Empty is a legitimate, informative
+   * answer: three green rocks under a novice are three green rocks.
+   */
+  solved: Array<{ parameter: string; value: string; from: number }>;
+  /** Why an inference is unavailable, when it is. Never a bare blank. */
+  note: string | null;
+}
 
 /**
  * A card opened (or re-opened after being closed). **Every** card

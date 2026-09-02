@@ -33,9 +33,11 @@ import type { Container } from '../spatial/Container';
 import type RecipeCatalogue from '../../platform/idea/RecipeCatalogue';
 import type { Postured } from '../slot/Postured';
 import type { BulkAffordance } from '../bulk/Bulkable';
+import type { Quantity } from '../quantity';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
 import { ContainmentApi } from '../../api/containment';
+import { PerceptionApi } from '../../api/perception';
 
 const RECIPES_PATH = '/platform/idea/RecipeCatalogue';
 /** The platform's bare venue row {@link Archetype.materialize} clones. */
@@ -105,6 +107,13 @@ export interface Satisfaction {
  *   bathroom: a toilet is prose-LOD, it affords nothing the kernel
  *   checks, and claiming otherwise would be inventing a mechanic to
  *   make a checklist tidy.
+ * - `lightLux` — the space is illuminated to at least `n` lux. The
+ *   `coldStorage` shape: a property of the SPACE, satisfied by whatever
+ *   lights it. ⭐ The divergence slot — an archetype says *you need
+ *   light underground*; one venue answers with cultivated glowcap and
+ *   another with oil lamps, and neither is named here. The read is
+ *   `vision.signalAt(space).intensity`, which is what `measure light`
+ *   reads, so the archetype and the instrument agree by construction.
  * - `vesselKind` — a bulk holder of the named vessel kind (`category`
  *   on `BulkableMixin` — the term bulk.md, `outputVesselKind` and the
  *   `vessel:` census prefix already use): the vat a ferment needs, a
@@ -123,6 +132,7 @@ export type CapabilityNeed =
   | { coldStorage: true }
   | { rest: number }
   | { presence: string }
+  | { lightLux: number }
   | { vesselKind: string };
 
 export interface CapabilitySlot {
@@ -158,6 +168,7 @@ const NEED_KEYS = [
   'coldStorage',
   'rest',
   'presence',
+  'lightLux',
   'vesselKind',
 ] as const;
 
@@ -184,6 +195,7 @@ function needOf(archetypeId: string, key: string, raw: unknown): CapabilityNeed 
     case 'heatK':
     case 'seating':
     case 'rest':
+    case 'lightLux':
       if (typeof v !== 'number' || !Number.isFinite(v) || v <= 0) fail(archetypeId, `capability '${key}': \`${k}\` must be a positive number`);
       return { [k]: v } as CapabilityNeed;
     case 'surface':
@@ -249,6 +261,7 @@ export class Archetype {
     if ('seating' in need) return 'seating';
     if ('rest' in need) return 'rest';
     if ('presence' in need) return `presence:${need.presence}`;
+    if ('lightLux' in need) return 'lightLux';
     if ('vesselKind' in need) return `vesselKind:${need.vesselKind}`;
     return 'coldStorage';
   }
@@ -424,6 +437,18 @@ function satisfyingItem(
   if ('presence' in need) {
     const hit = pool.find((i) => answersTo(i, need.presence));
     return hit ? hit.getPresentation() : null;
+  }
+  if ('lightLux' in need) {
+    // A property of the SPACE, like coldStorage. Whatever lights it
+    // answers — a glowcap bed, a sconce, a shaft of daylight — and the
+    // report names the space, because the illuminance is the space's.
+    const want = need.lightLux;
+    const vision = PerceptionApi.modalityByName('vision');
+    for (const sp of spaces) {
+      const light = vision.signalAt(sp) as { intensity: Quantity<'lux'> } | null;
+      if (light && light.intensity.rawValue() >= want) return sp.getPresentation();
+    }
+    return null;
   }
   if ('vesselKind' in need) {
     // The vessel kind, empty or full — the capability is the vessel.

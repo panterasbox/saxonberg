@@ -1,0 +1,48 @@
+# The provisioning counter — ⭐ where money LEAVES, and where the light
+# dependency is taught before the descent rather than after it.
+#
+# It stocks itself to par on the reset sweep, so a mine that has been quiet
+# for a week still has picks and timber in it when somebody arrives.
+# Prices are SEEDED starter figures against the shipped anchors (stipend
+# 20, wages 4–6 per game-hour): ⚠ pricing is PARKED for this build — no
+# discovery, no market. Solvency tuning is a balance question against a
+# running game, not a requirement of this one.
+class: /platform/thing/Stock
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the provisioning counter
+  primaryKeyword: counter
+  keywords: [counter, till, stores, goods]
+  longDescription: |
+    A plank counter worn hollow in two places where hands go, a till with no lock on it, and a slate of prices rubbed out and rewritten more times than it has been read. Behind it: the tool wall, the timber stack, and a rank of stoppered jars with a soft green light in them.
+  discipline: scrum
+  attendDurationMs: 0
+  staffingPolicy: self-service
+  serverPositionKeys: [storekeeper]
+  businessPath: /world/rejection/idea/provisioning-business
+  stockLines:
+    - { itemTemplatePath: /trade/mining/thing/pick, par: 3 }
+    - { itemTemplatePath: /trade/mining/thing/pinch-bar, par: 3 }
+    - { itemTemplatePath: /trade/mining/thing/shovel, par: 3 }
+    - { itemTemplatePath: /trade/mining/thing/timber-set, par: 8 }
+    - { itemTemplatePath: /trade/mining/thing/compass, par: 1 }
+    - { itemTemplatePath: /world/rejection/thing/glowcap-jar, par: 6 }
+  # ⚠ The field is `prices:` — a path→figure MAP, not an `offers:` list.
+  # It was authored as a list first and every `buy` answered *"isn't for
+  # sale"*: a `Stock` with stock lines and no prices holds the goods and
+  # prices none of them, which is a shop with an empty slate. Found by
+  # driving.
+  #
+  # Seeded starter figures against the shipped ladder (stipend 20; wages
+  # 4–6 per game-hour). ⚠ Pricing is PARKED — no discovery, no market —
+  # and solvency tuning is a balance question against a running game.
+  prices:
+    /trade/mining/thing/pick: 26
+    /trade/mining/thing/pinch-bar: 14
+    /trade/mining/thing/shovel: 12
+    /trade/mining/thing/timber-set: 6
+    /trade/mining/thing/compass: 60
+    # ⭐ The number the whole light lesson rests on: a jar is CHEAP, and it
+    # dies in a month. A small recurring cost rather than a gate — which
+    # is what makes losing your light disabling rather than ruinous.
+    /world/rejection/thing/glowcap-jar: 4

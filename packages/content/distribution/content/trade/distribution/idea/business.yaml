@@ -29,5 +29,11 @@ data:
         - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 22] }
   banksAt: goodkin
   operatingLocations:
+    # ⭐ The MECHANISM is distribution's; the ROOM is the locality's.
+    # Fermentation cut the distributor out into its own pack (D10) so no
+    # producing sibling depends on trade-distilling — that decoupling is
+    # kept whole. What moved is only the room: a showroom with a roller
+    # door on the Counting-Houses avenue, described in that avenue's own
+    # prose, is a PLACE.
     - /trade/distribution/thing/counter
-    - /trade/distribution/location/cash-and-carry
+    - /world/terminus/counting-houses/cash-and-carry

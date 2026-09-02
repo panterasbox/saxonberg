@@ -1,0 +1,25 @@
+verbs: [shore]
+controller: /trade/mining/idea/cmd/mining/ShoreController
+description: "Set timber in a working"
+help: |
+  `shore` sets a timber set in the working you are standing in. It is the
+  answer to bad ground: the back stops working, the refusal clears, and
+  you can cut on.
+
+  ⭐ It is also this mine's PROVISIONING act. A working you have not
+  shored is provisional ground — the commons you are cutting into — and
+  it reverts when you walk away from it. Shoring is what admits a cell to
+  your holding, so what you shore is what survives.
+
+  A set is a thing, not a flag. It decays, `analyze` reads its condition,
+  and `repair` puts it right.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: timber
+    type: object
+    required: false
+    scope: "reachable"
+    requires: ToolMixin

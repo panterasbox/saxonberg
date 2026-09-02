@@ -4,17 +4,25 @@
  * LoungeWarren assigns; there is no separate class for either. Every live
  * lounge room — the commons and every satellite — is a clone of this.
  *
- * A plain (non-coordinate, zone-less) `Location` — a social pocket, not a
- * grid cell — composing the member-side mixins plus the usual
- * description/exit surface:
- *   WarrenMember → Lounge(Mixin) → Visible → Detailed → Exitable → PostRegistration
+ * ⭐⭐ **A grid cell, because every location plots on some coordinate
+ * system.** This was authored as a deliberately non-coordinate,
+ * zone-less social pocket — but the Warren's star topology was spatial
+ * all along (`attachmentFor` reserves a compass direction off the host),
+ * so the rooms had positions and simply never stamped them. A satellite
+ * budded at runtime is now placed in `/world/lounge`'s grid at the
+ * host's cell plus that direction's offset, which is exactly the
+ * warren-manages-them-dynamically case: the ROW declares no coords
+ * because the warren assigns them.
  *
- * The Warren coordinates these instances; the room itself stays an
- * ordinary containment root. No `SingletonMixin` (repeated clones are the
- * whole point), no coordinate mixin, no zone stamp.
+ * Composition — the member-side mixins plus coordinates and the usual
+ * description/exit surface:
+ *   WarrenMember → Lounge(Mixin) → Visible → Detailed → Cartesian → Exitable → PostRegistration
+ *
+ * Still no `SingletonMixin`: repeated clones are the whole point.
  */
 
 import Location from '../../../lib/stuff/Location';
+import { CartesianCoordinatesMixin } from '../../../lib/location/CartesianCoordinates';
 import { WarrenMemberMixin } from '../../../lib/location/WarrenMember';
 import { LoungeMixin } from '../LoungeMixin';
 import { VisibleMixin } from '../../../lib/description/Visible';
@@ -25,7 +33,9 @@ import type { FieldMeta } from '../../../lib/mixin';
 
 const LoungeBase = PostRegistrationMixin(
   ExitableMixin(
-    DetailedMixin(VisibleMixin(LoungeMixin(WarrenMemberMixin(Location)))),
+    CartesianCoordinatesMixin(
+      DetailedMixin(VisibleMixin(LoungeMixin(WarrenMemberMixin(Location)))),
+    ),
   ),
 );
 

@@ -57,6 +57,7 @@ export const CARD_LABEL: Readonly<Record<CardId, string>> = {
   git: "version control",
   studio: "the composer",
   stock: "the stock sheet",
+  survey: "the survey",
 };
 
 /**

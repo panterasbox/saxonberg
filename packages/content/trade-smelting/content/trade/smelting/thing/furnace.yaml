@@ -1,0 +1,34 @@
+# A smelting furnace — a shaft of clay and stone with a tuyère at the
+# bottom and a bellows on it.
+#
+# ⚠ The numbers are the whole design. Charcoal alone holds ~1420 K, which
+# melts copper (1358 K) — so an oxide copper smelt is reachable by the
+# EASY rung. The bellows multiplier takes it to ~2130 K, which is iron's
+# territory and Stage C's. Nothing here is a dial chosen for pacing: the
+# melting points are the materials' own, and the ladder falls out of
+# them.
+class: /platform/thing/Forge
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a stone smelting furnace
+  primaryKeyword: furnace
+  keywords: [furnace, smelter, shaft, bellows]
+  longDescription: >-
+    A squat shaft of stone lined with clay, taller than a man and open at
+    the top, with a clay tuyère low on one side and a great leather
+    bellows lashed to it. The slag scar down the front is a different
+    colour from the stone.
+  mass: 2400
+  burnTemperatureK: 1420
+  bellowsMultiplier: 1.5
+  fuelBurnRatePerMin: 0.4
+  lit: false
+  reserves:
+    fuel:
+      capacityValue: 100
+      currentValue: 100
+      unit: "%"
+      theme: combustion
+      floorEffect: null
+  emittedIntensity: 120
+  emittedColorTemperature: 2000

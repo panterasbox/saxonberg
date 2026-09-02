@@ -13,6 +13,7 @@
  */
 
 import Location from '../../../lib/stuff/Location';
+import { CartesianCoordinatesMixin } from '../../../lib/location/CartesianCoordinates';
 import { VisibleMixin } from '../../../lib/description/Visible';
 import { DetailedMixin } from '../../../lib/description/Detailed';
 import { ExitableMixin } from '../../../lib/boundary/Exitable';
@@ -31,9 +32,20 @@ import type { FieldMeta } from '../../../lib/mixin';
 // receives pay-as-you-go through its account + the priced Menu; no tab (the
 // soft-credit `TabMixin` was retired — zero credit until it is designed for
 // real, see docs/subsystems/banking.md).
+/*
+ * ⭐⭐ **Cartesian, because every location plots on some coordinate
+ * system.** The bar was a plain `Location` in a `FolderZone`, so
+ * `bar --north--> office` was a cardinal exit pair with no geometry
+ * under it — the door named a direction the world could not check.
+ * `/world/lounge` is a `CartesianZone` now and the bar is its origin.
+ */
 const BarBase = SingletonMixin(
   PostRegistrationMixin(
-    PopulatesMixin(ExitableMixin(DetailedMixin(VisibleMixin(Location)))),
+    PopulatesMixin(
+      CartesianCoordinatesMixin(
+        ExitableMixin(DetailedMixin(VisibleMixin(Location))),
+      ),
+    ),
   ),
 );
 

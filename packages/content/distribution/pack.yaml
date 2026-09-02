@@ -25,5 +25,7 @@ requires:
   title:
     - { extent: /trade/distribution, holder: { group: distribution } }
 boot:
-  - { template: /trade/distribution/location/cash-and-carry, role: producer, reason: "the distributor's counter must be resident for the producers' hands to consign onto it and for the boot spawn sweep to have a census" }
+  # ⚠ The ROOM's boot entry lives in `terminus`, with the room. A
+  # showroom on a named avenue is a place; the counter, the clerk and the
+  # racking in it are still this pack's.
   - { template: /trade/distribution/idea/business, role: producer, reason: "the distributor's Business must be live so its clerk is rostered before the first buy" }

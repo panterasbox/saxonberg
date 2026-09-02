@@ -1,0 +1,46 @@
+# Rejection — the region zone, and ⭐ **the reason it is the region and
+# not the mine that carries `deposit:`.**
+#
+# `Zone.lookupField` walks OUTWARD, so a field declared here is inherited
+# by every zone under it. The surface pithead and the workings must
+# resolve the SAME orebody — the outcrop, the float and the three-point
+# problem are all played above ground, and a deposit declared only on the
+# mine zone would leave a prospector standing on the stain with nothing
+# to measure.
+#
+# That inheritance is also what makes a second mine's zone pair a pure
+# content copy: two zones, one `deposit:` line on the parent, done.
+#
+# ⭐⭐ **A plain `CartesianZone`, because a town is not a mine.**
+#
+# This briefly had to be a `MineZone` — a `trade-mining` subclass whose
+# whole body was one `deposit` field — because a pack cannot add a field
+# to a kernel class and the failure is silent (`fieldMeta` is what the
+# hydrator reflects through; an undeclared `deposit:` was discarded, the
+# zone came up with no orebody, and `hew` said *"you can't cut that
+# here"* in a room with a seam visibly in the face — found by driving).
+#
+# ⚠ But that made the zone covering a whole TOWN a `MineZone`, which
+# says *Rejection is a mine*. It is not. **Rejection** is the town, **the
+# Ferrow** is the orebody, and **the Ferrow diggings** are the workings
+# cut on it — three names, and nothing calls this place "the Rejection
+# mine". `deposit` now lives on `SpatialZone` beside the other
+# ground/region fields, the subclass is deleted, and a region that
+# declares what is under it is just a region.
+#
+# `address:` is what makes every room here — including the ones the
+# warren MINTS at runtime, which can declare nothing for themselves —
+# resolve the Locality at `terminus/rejection`. Without it
+# `Working.getGroundSeed()` resolved no locality and seeded the whole
+# orebody off the EMPTY STRING, under a doc comment promising an
+# address-derived one.
+#
+# The name is the town's, and the town is named for what the ground did
+# to the people who came here first.
+class: /platform/idea/location/CartesianZone
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: Rejection
+  cellSize: 10.0
+  address: terminus/rejection
+  deposit: /world/rejection/idea/deposit/ferrow

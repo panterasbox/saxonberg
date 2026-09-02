@@ -1,0 +1,15 @@
+# A billhook — the coppicer's tool, and it is in the MINING pack because
+# the mine is the coppice's other customer: the same stand that makes
+# charcoal makes the timber a working is shored with.
+class: /platform/thing/ToolItem
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  primaryKeyword: billhook
+  keywords: ["billhook", "bill", "hook"]
+  shortDescription: a heavy billhook
+  longDescription: >-
+    A curved blade on a short handle, ground on the inside of the hook.
+    One stroke takes a stool of hazel off at the ankle.
+  mass: 1.1
+  capabilities: ["cutting"]
+  _materialPath: /stuff/idea/material/element/iron

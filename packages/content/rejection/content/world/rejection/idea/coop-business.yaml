@@ -1,0 +1,43 @@
+# ⭐ The Ferrow co-op — the first of four businesses, and the one that
+# makes TUTWORK a real thing rather than a word.
+#
+# Tutwork is wage or piece-rate for development and cutting: you are on
+# the roster, the co-op keeps the ground and the ore, and you are paid in
+# coin. Zero capital, steady, no title — which is the entry path for a
+# character who arrives with nothing.
+#
+# ⚠ The OTHER path needs none of this: with an adit and no shaft there is
+# no throat to pay a toll at, so a character holding their own claim walks
+# their own ore out and owes the co-op nothing. Stage A has a genuine
+# second path without any of the political layer, and that is historically
+# exact for adit-level working.
+class: /platform/idea/Business
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  appointingAuthority:
+    kind: entity
+    path: /world/rejection/agent/onsetter
+  positions:
+    - key: miner
+      label: on tutwork at the face
+      wageRate: 5
+    - key: onsetter
+      label: keeping the tally at the adit
+      wageRate: 4
+  rosterSlots:
+    - positionKey: onsetter
+      assignee: /world/rejection/agent/onsetter
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [0, 24] }
+    # ⭐ The hewer is ON THE ROSTER, which is what makes his cut TUTWORK:
+    # the co-op keeps the ground and the ore, and `hew` stamps the lump to
+    # the business rather than to him. That is not a special case in the
+    # brain — it is `ChattelApi.stamp`'s ordinary rule reading his shift.
+    - positionKey: miner
+      assignee: /world/rejection/agent/hewer
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [0, 24] }
+  banksAt: goodkin
+  operatingLocations:
+    - /world/rejection/location/adit
+    - /world/rejection/ferrow/timbered-drift

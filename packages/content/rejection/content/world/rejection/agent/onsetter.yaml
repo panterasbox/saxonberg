@@ -1,0 +1,28 @@
+# The onsetter at the adit mouth — the person who used to work the cage
+# and now works the door.
+#
+# ⚠ He is the one who says the safety model out loud, because it is a
+# design promise and a player should be told it: ground will stop you
+# working and will not kill you; air will kill you and will warn you
+# first. Everything else follows from those two sentences.
+class: /platform/agent/NPC
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sensitivus
+  lifecycleState: alive
+  primaryKeyword: onsetter
+  keywords: [onsetter, banksman]
+  shortDescription: the onsetter
+  longDescription: >-
+    An old man on a stool at the adit mouth with a tally board on his knee
+    and a jar of glowcap hooked to his belt. He counts people in and he
+    counts people out, and the second number is the one he cares about.
+  behaviors:
+    - brain: /lib/behavior/idles
+      trigger: cadence:50s
+      config:
+        pool:
+          - { kind: free, value: "makes a mark on the tally board without looking at it." }
+          - { kind: free, value: "says, \"Rock'll stop you working. Air'll stop you. Know the difference.\"" }
+          - { kind: free, value: "watches the draught coming out of the adit move the flame in his jar. It does not." }
+          - { kind: free, value: "says, \"If the bird goes quiet, you go out. Not after. Then.\"" }

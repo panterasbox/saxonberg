@@ -46,6 +46,7 @@ import type {
   StuffDetailRecord,
   StuffKind,
   StuffRefRecord,
+  SurveyFrame,
   WikiPageFrame,
 } from "@saxonberg/types";
 import { useStore } from "../../store/index";
@@ -1051,8 +1052,110 @@ function PayloadBody(props: CardBodyProps): React.ReactElement {
       );
     case 'helpTopic':
       return <HelpTopicBody topic={payload.topic} />;
+    case 'survey':
+      return <SurveyBody survey={payload.survey} />;
   }
 }
+
+/**
+ * ⭐ **The prospector's book.** A character's readings for one deposit,
+ * and what they add up to.
+ *
+ * ⚠ **Not a map and not a minimap** — the three-point problem is played
+ * across three places, and what makes it playable is a legible ledger of
+ * what you measured and where, not a picture of the answer. Drawing the
+ * plane would hand over the inference the player is supposed to make.
+ *
+ * ⚠⚠ **Nothing accumulates HERE.** The rows are a projection of the
+ * character's DISCOVERY-realm beliefs — per-viewer, so two people on one
+ * outcrop see different books — and the card is re-projected each time
+ * `analyze ground` runs. Holding readings in client state would make the
+ * card a second, drifting copy of a thing the server already knows.
+ *
+ * An empty `solved` with a `note` is the honest and common case: three
+ * green rocks under a novice are three green rocks.
+ */
+function SurveyBody({ survey }: { survey: SurveyFrame }): React.ReactElement {
+  return (
+    <div data-testid="card-survey">
+      <Label>{survey.deposit}</Label>
+      {survey.points.length === 0 ? (
+        <Prose>Nothing measured yet.</Prose>
+      ) : (
+        <SurveyTable>
+          <tbody>
+            {survey.points.map((p, i) => (
+              <tr key={`${p.where}-${p.channel}-${i}`}>
+                <SurveyWhere>{p.where}</SurveyWhere>
+                <SurveyChannel>{p.channel}</SurveyChannel>
+                <SurveyReading>
+                  {p.reading}
+                  {p.error ? <SurveyError> ± {p.error}</SurveyError> : null}
+                </SurveyReading>
+              </tr>
+            ))}
+          </tbody>
+        </SurveyTable>
+      )}
+      {survey.solved.length > 0 && (
+        <>
+          <Label>Solved</Label>
+          <SurveyTable>
+            <tbody>
+              {survey.solved.map((row) => (
+                <tr key={row.parameter}>
+                  <SurveyWhere>{row.parameter}</SurveyWhere>
+                  <SurveyReading>{row.value}</SurveyReading>
+                  <SurveyChannel>from {row.from}</SurveyChannel>
+                </tr>
+              ))}
+            </tbody>
+          </SurveyTable>
+        </>
+      )}
+      {survey.note ? <Prose>{survey.note}</Prose> : null}
+    </div>
+  );
+}
+
+/*
+ * ⚠ The right column is narrow, so the book is a three-column table with
+ * the figure hard right — a prospector reads down the numbers, not
+ * across the sentences.
+ */
+const SurveyTable = styled.table`
+  width: 100%;
+  border-collapse: collapse;
+  font-size: ${tokens.font.body};
+`;
+
+const SurveyWhere = styled.td`
+  font-family: ${tokens.font.serif};
+  color: ${tokens.color.fgDim};
+  padding: 1px 0;
+  overflow-wrap: anywhere;
+`;
+
+const SurveyChannel = styled.td`
+  font-family: ${tokens.font.engraved};
+  font-size: ${tokens.font.label};
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: ${tokens.color.sectionLabel};
+  padding: 1px ${tokens.space.sm};
+  white-space: nowrap;
+`;
+
+const SurveyReading = styled.td`
+  font-family: ${tokens.font.mono};
+  text-align: right;
+  white-space: nowrap;
+  padding: 1px 0;
+`;
+
+const SurveyError = styled.span`
+  color: ${tokens.color.fgDim};
+`;
 
 /**
  * ⚠ A prompt card has **no body here**. The client already holds one

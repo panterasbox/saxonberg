@@ -1,0 +1,21 @@
+# The smelterman — the last hand in the chain.
+class: /platform/agent/NPC
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sensitivus
+  lifecycleState: alive
+  primaryKeyword: smelterman
+  keywords: [smelterman, smelter, founder]
+  shortDescription: the smelterman
+  longDescription: >-
+    A tall, deliberate man with no eyebrows and burn scars on both
+    forearms in the same place. He watches the colour in the shaft the way
+    other people watch a clock.
+  behaviors:
+    - brain: /lib/behavior/idles
+      trigger: cadence:42s
+      config:
+        pool:
+          - { kind: free, value: "leans on the bellows and lets it go three times, listening." }
+          - { kind: free, value: "reads the colour at the top of the shaft and says nothing." }
+          - { kind: free, value: "says, \"What comes out is what was in it. That is the whole trade.\"" }

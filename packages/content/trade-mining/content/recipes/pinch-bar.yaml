@@ -1,0 +1,15 @@
+# ⚠ The tool that makes ground non-lethal: you bar the loose down before
+# you work under it. Its rung is deliberately LOW — safety equipment a
+# beginner cannot make is safety equipment nobody has.
+recipeId: pinch-bar
+name: Pinch Bar
+keywords: [bar, pinch-bar]
+inputSlots:
+  - { slot: stock, category: ferrous, minGrade: fair, kind: item, count: 1 }
+toolCapabilities: [striking, anvil]
+outputTemplate: /trade/mining/thing/pinch-bar
+outputMaterial: ''
+outputApplication: tangible
+requiresHeatK: 1100
+difficulty: easy
+discipline: mining

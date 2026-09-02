@@ -1,0 +1,26 @@
+# The smelter — ⭐ where the chain becomes metal, and the last room in it.
+#
+# The furnace, the tongs, and the heap of slag that is the honest record
+# of how much of a rock is not ore. A bar comes out of here, goes to a
+# smith, comes back as a pick head, and gets swung at the ground it came
+# out of — with a real sink at the end, because picks wear out.
+class: /platform/location/SingletonCartesianLocation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the smelter
+  primaryKeyword: smelter
+  keywords: [smelter, furnace, works]
+  longDescription: |
+    A stone shaft taller than a man under an open-sided roof, a bellows lashed to its flank and a bed of sand raked flat in front of it for the pour. The slag heap outside the door is bigger than the building and glitters black-green where it has broken.
+
+    Everything here is either very hot or covered in something that used to be.
+  coords: { x: 2, y: 1, z: 0 }
+  exits:
+    west:
+      destination: /world/rejection/location/fuel-yard
+  props:
+    - /trade/smelting/thing/furnace
+    - /trade/mining/thing/tongs
+    - /trade/smelting/thing/slag
+  cast:
+    - /world/rejection/agent/smelterman

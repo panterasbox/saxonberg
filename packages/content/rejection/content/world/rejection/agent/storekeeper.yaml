@@ -1,0 +1,22 @@
+# The storekeeper at Provisioning — where money leaves, and where the
+# light dependency gets taught out loud.
+class: /platform/agent/NPC
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sensitivus
+  lifecycleState: alive
+  primaryKeyword: storekeeper
+  keywords: [storekeeper, keeper, shopkeeper]
+  shortDescription: the storekeeper
+  longDescription: >-
+    A small, cheerful, entirely unsentimental person who has sold the same
+    six things to the same kind of people for twenty years and has never
+    once been surprised.
+  behaviors:
+    - brain: /lib/behavior/idles
+      trigger: cadence:35s
+      config:
+        pool:
+          - { kind: free, value: "turns a jar of glowcap so the good side faces out." }
+          - { kind: free, value: "asks, without looking up, \"Got a light on you?\"" }
+          - { kind: free, value: "re-hangs a pick on the wall by its eye." }
