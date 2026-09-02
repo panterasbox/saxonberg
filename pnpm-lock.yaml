@@ -787,6 +787,9 @@ importers:
 
   packages/content/water:
     dependencies:
+      '@saxonberg/content-base-library':
+        specifier: workspace:*
+        version: link:../base-library
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform

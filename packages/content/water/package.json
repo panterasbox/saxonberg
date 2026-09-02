@@ -2,7 +2,7 @@
   "name": "@saxonberg/content-water",
   "version": "0.1.0",
   "private": true,
-  "description": "Water — the watershed pack: Watercourse, Conduit, ControlStructure, StorageNode, the water-right validated save, and the verbs that operate them.",
+  "description": "Water \u2014 the watershed pack: Watercourse, Conduit, ControlStructure, StorageNode, the water-right validated save, and the verbs that operate them.",
   "type": "module",
   "scripts": {
     "build": "tsc",
@@ -10,6 +10,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@saxonberg/content-base-library": "workspace:*",
     "@saxonberg/content-platform": "workspace:*",
     "@saxonberg/server": "workspace:*",
     "@saxonberg/types": "workspace:*"
