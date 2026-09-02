@@ -278,6 +278,27 @@ it). Fetching it is a real round trip (`go north` … `go south`) while
 the fight runs unattended — the escalation cost is geometry, not a
 timer.
 
+### P14 — The summons: the on-shift bartender is the tripwire
+
+Dave lives in the office; the floor is the bartender's. A small
+kernel-commons **`alerts`** brain (the `wary` shape: presence-gated
+scan + witness triggers) rides Mara/Remy/Sloane's yamls with config
+`{ warnProse, callPhrase, enforcer }`: on spotting visible arms
+(`CombatApi.visibleArms`, the bartender's own alertness vs
+concealment) it voices the house warning — speech, not enforcement —
+and on a breaking fight or an ignored warning it **calls for Dave**.
+The call is acoustic; **verify at build whether Audible reach crosses
+the bar→office doorway** — if not, the brain steps to the office door
+and calls through it via literal verbs, paying the floor absence
+honestly. Dave's `enforces` brain gains a **speech witness trigger**
+on his callPhrase → emerge (`go south`) → run the ladder from the
+floor (the warned/ordered phase picks up from the bartender's warning
+when the subject matches). When no bartender is rostered, Dave covers
+the floor (the shipped `covers` behavior) and his own cadence scan is
+the tripwire — coverage total by construction. Consequence: Dave
+usually arrives mid-scene, so P11's read-the-room inference is the
+*common* case — the wrong-guy risk is structural, per the design.
+
 ## Waves
 
 ### W0 — Fisticuffs (world-wide) + the `unarmed` Discipline
@@ -380,7 +401,8 @@ collection, no new Api pair); `CombatApi.visibleArms`; the
 `enforces` brain's house-rule half (scan → warn naming the rack → grace
 → 86 + ordered out → eject via W3's rush); dave.yaml gains the
 `enforces` cadence spec with config (business, rack path, grace, eject
-direction `south`); brandishing (a newly-wielded weapon) skips the
+direction `south`) plus the callPhrase speech trigger; the `alerts`
+brain (P14) + its specs on the three bartender yamls; brandishing (a newly-wielded weapon) skips the
 grace; an already-86'd arrival goes straight to ordered-out.
 **Tests:** house-records document round-trip (the 86 write lands in the
 document, survives a simulated reboot, and derives back as "86'd
@@ -392,7 +414,10 @@ steps out, checks, returns → welcome, no sanction anywhere; patron
 lingers past grace → the 86 entry exists in the house-records document
 (venue-scoped, not in Dave's BeliefStore), ordered out; still present →
 Dave attacks, subdues, rushes south; drawing a weapon skips the grace
-entirely; a *concealed* blade above Dave's alertness draws nothing.
+entirely; a *concealed* blade above the watcher's alertness draws
+nothing. Summons: armed patron with Dave in the office and a
+bartender on shift → the bartender warns and calls, Dave emerges,
+and the ladder proceeds on the floor.
 **Tripwires:** document-store suite (a new document kind, if minted,
 rides the kind-vocabulary totality checks); cast-content.test.ts (dave.yaml behaviors list assertions); the
 codeNamingDriftGuard is untouched (`behaviors[].brain` is already a
@@ -421,6 +446,7 @@ initiator (per the ledger's `opened` row) is arranged to be *losing*
 when Dave walks in; Dave's fallback belief names the winner; he tases
 the party the ledger does not name — belief-not-ledger, proven.
 **Tripwires:** behavior suite (`_parseTrigger` alias table pins);
+bartender cast tests (three yamls grow an `alerts` spec);
 bar-office-reveal.integration.test.ts (office row grows props — check
 its content assertions); Behaved witness-dispatch tests.
 

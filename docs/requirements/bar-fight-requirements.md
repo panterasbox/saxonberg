@@ -90,6 +90,16 @@ recognition). Load-bearing subsystem docs:
   degrading, a weapon out, a third party piling in). The taser lives
   in the office: fetching it means leaving the fight unattended, so
   escalation costs time by construction.
+- **The summons.** Dave spends most of his time in the back office —
+  so the on-shift bartender is the house's tripwire: they spot the
+  visible weapon or the breaking fight (perception vs concealment,
+  same rules), voice the house warning, and **call for Dave** when
+  it's ignored or when fists fly. Dave emerges and runs the ladder.
+  When no bartender is rostered, Dave covers the floor himself (the
+  shipped covers behavior) and is his own alerter — coverage by
+  construction. A consequence worth wanting: Dave usually arrives
+  mid-scene, so the read-the-room aggressor inference is the
+  *common* case, not the edge.
 - **The witnessed aggressor call.** Dave's decision about who
   started it runs on what he saw — witness triggers into his own
   belief, never a read of the accountability ledger (that is the
@@ -115,8 +125,11 @@ is strictly dominant. Bar norms from mechanism, not decree.
   irritants) is the ranged tail's W3.
 - **No weapon rules in the lounge proper.** Combat-free makes
   carrying harmless there; the check applies at the bar.
-- **No shift-bartender enforcement.** Dave only, v1. Mara/Remy/Sloane
-  reacting (fetching Dave, refusing service) is follow-on texture.
+- **No shift-bartender *enforcement*.** The 86 call, the ejection,
+  and the taser are Dave's alone, v1. Bartenders are not out of the
+  build, though: the on-shift bartender is the house's eyes — they
+  spot, warn, and summon (see the summons decision) precisely
+  *because* enforcement is not theirs.
 - **No courts/grievance consumer.** The wrong-guy tase writes honest
   accountability rows; what reads them later (grievance, standing,
   courts) is other builds' work.
@@ -186,6 +199,17 @@ gap between the two is content: Dave can be wrong, the wronged patron
 has a legitimate grievance, and the ledger can vindicate them later.
 This is enforcement-on-imperfect-information at fist scale — the same
 lesson the polity layer teaches.
+
+### The bartender is the tripwire; Dave is the response
+
+The floor is watched by whoever tends it: the on-shift bartender
+spots and summons — an acoustic call for Dave (if sound does not
+cross the office doorway today, the bartender steps to the door and
+calls through it, paying the floor absence honestly) — and may voice
+the warning, because warning is speech, not enforcement. The sanction
+chain (the 86, the ejection, the taser) remains Dave's. His brain
+answers the summons as witnessed speech and comes out front; the
+alert costs real beats, so a fast brawl can outrun it — also honest.
 
 ### Honest damage, honest taser
 
@@ -270,6 +294,11 @@ ticket is a carried Thing, the shipped `Ticket` shape.
   a control win relocates the patron through the bar's exit into the
   lounge host room. The primitive is general (any control winner, any
   exit), not Dave-specific.
+- **The summons**: with Dave in the office and a bartender on shift,
+  an armed patron (or a breaking fight) draws the bartender's warning
+  and a call for Dave; Dave emerges and runs the ladder from the
+  floor. With nobody rostered, Dave's own floor coverage spots it
+  directly.
 - **The ladder**: in a staged brawl, Dave joins hands-first
   (subdue); when the threat threshold trips he travels to the office,
   retrieves the taser, returns, and tases the patron *he believes* is
