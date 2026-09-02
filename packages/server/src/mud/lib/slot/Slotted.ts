@@ -146,6 +146,10 @@ export interface Slotted {
    * the candidate or null if it wasn't present. Throws on unknown slot.
    */
   vacate(slot: string, candidate: Stuff & Slottable): (Stuff & Slottable) | null;
+  vacateAll(
+    candidate: Stuff & Slottable,
+    slots: readonly string[]
+  ): readonly ((Stuff & Slottable) | null)[];
 
   /**
    * Convenience for single-capacity slots — vacates the sole occupant.
@@ -410,6 +414,18 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
         }
       }
       return candidate;
+    }
+
+    /**
+     * Vacate `candidate` from each of `slots`, returning the per-slot
+     * results in order (the D5 vanguard of the Slot OO sweep — was
+     * `SlotApi.vacateAll`; the host owns its slots).
+     */
+    public vacateAll(
+      candidate: Stuff & Slottable,
+      slots: readonly string[]
+    ): readonly ((Stuff & Slottable) | null)[] {
+      return slots.map((slot) => this.vacate(slot, candidate));
     }
 
     public tryReleaseFromSlots(

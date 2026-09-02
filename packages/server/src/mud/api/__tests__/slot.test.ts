@@ -49,7 +49,7 @@ describe('SlotApi', () => {
     it('vacateAll removes from every named slot', () => {
       const o = makeStuff(() => new Occ());
       SlotApi.occupyAll(host, o, ['a', 'b']);
-      const result = SlotApi.vacateAll(host, o, ['a', 'b']);
+      const result = host.vacateAll(o, ['a', 'b']);
       expect(result).toEqual([o, o]);
       expect(host.isSlotOccupied('a')).toBe(false);
       expect(host.isSlotOccupied('b')).toBe(false);

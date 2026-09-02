@@ -108,11 +108,11 @@ describe('the combustion driver — ignition energy balance', () => {
   it('a small flame cannot out-heat a high-thermal-inertia object', () => {
     // A big log at ambient. A tiny heat deposit barely moves it.
     const beam = firewood({ massKg: 50, stampedK: 295 });
-    ThermalApi.depositHeat(beam, 1000); // C = 50×2000 = 1e5 J/K → ΔT = 0.01 K
+    beam.depositHeat(1000); // C = 50×2000 = 1e5 J/K → ΔT = 0.01 K
     expect(FireApi.tryAutoignite(beam)).toBe(false);
 
     // A large enough deposit crosses the threshold → it catches.
-    ThermalApi.depositHeat(beam, 50_000_000); // ΔT = 500 K → ~795 K > 570
+    beam.depositHeat(50_000_000); // ΔT = 500 K → ~795 K > 570
     expect(FireApi.tryAutoignite(beam)).toBe(true);
   });
 });

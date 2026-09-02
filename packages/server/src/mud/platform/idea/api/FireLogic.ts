@@ -310,14 +310,16 @@ function advanceFireInRoom(room: Stuff & Container): void {
   const crossFraction = dial(AppSettingKeys.fireCrossBoundaryFraction, 0.4);
   for (const c of liveCombustiblesIn(room)) {
     if (c.isBurning()) continue;
-    ThermalApi.depositHeat(c as unknown as Stuff, radiant);
-    tryAutoigniteImpl(c as unknown as Stuff);
+    const cs = c as unknown as Stuff;
+    if (MixinApi.isThermal(cs)) cs.depositHeat(radiant);
+    tryAutoigniteImpl(cs);
   }
   for (const dest of openNeighboursOf(room)) {
     for (const c of liveCombustiblesIn(dest)) {
       if (c.isBurning()) continue;
-      ThermalApi.depositHeat(c as unknown as Stuff, radiant * crossFraction);
-      tryAutoigniteImpl(c as unknown as Stuff);
+      const cs = c as unknown as Stuff;
+      if (MixinApi.isThermal(cs)) cs.depositHeat(radiant * crossFraction);
+      tryAutoigniteImpl(cs);
     }
   }
 }

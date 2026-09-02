@@ -105,25 +105,25 @@ describe('GlobbableApi.canMerge', () => {
   it('true for two same-template same-identity stacks', () => {
     const a = makeCoinAt(COIN_PATH, 3, 'gold');
     const b = makeCoinAt(COIN_PATH, 5, 'gold');
-    expect(GlobbableApi.canMerge(a, b)).toBe(true);
-    expect(GlobbableApi.canMerge(b, a)).toBe(true);
+    expect(a.canMergeWith(b) && b.canMergeWith(a)).toBe(true);
+    expect(b.canMergeWith(a) && a.canMergeWith(b)).toBe(true);
   });
 
   it('false when one side is non-Globbable', () => {
     const a = makeCoinAt(COIN_PATH, 3);
     const p = makeStuff(() => new PlainItem());
-    expect(GlobbableApi.canMerge(a, p)).toBe(false);
+    expect(a.canMergeWith(p)).toBe(false);
   });
 
   it('false against self', () => {
     const a = makeCoinAt(COIN_PATH, 3);
-    expect(GlobbableApi.canMerge(a, a)).toBe(false);
+    expect(a.canMergeWith(a)).toBe(false);
   });
 
   it('false when identity fields differ', () => {
     const a = makeCoinAt(COIN_PATH, 3, 'gold');
     const b = makeCoinAt(COIN_PATH, 5, 'silver');
-    expect(GlobbableApi.canMerge(a, b)).toBe(false);
+    expect(a.canMergeWith(b) && b.canMergeWith(a)).toBe(false);
   });
 });
 
@@ -689,25 +689,32 @@ describe('GlobbableLogic singleton encapsulation', () => {
     StuffApi.clearAll();
   });
 
-  it('lives at /platform/idea/api/glob once the facade has materialized it', () => {
-    // A facade call lazily creates the logic singleton. canMerge over
-    // two non-globbable Ideas returns false without side effects.
-    const a = makeStuff(() => new Idea());
-    const b = makeStuff(() => new Idea());
-    GlobbableApi.canMerge(a, b);
+  it('lives at /platform/idea/api/glob once the facade has materialized it', async () => {
+    // A facade call lazily creates the logic singleton. An empty
+    // applyQuantity walk has no side effects.
+    await GlobbableApi.applyQuantity(
+      [],
+      { kind: 'all' } as never,
+      async () => ({ ok: true, value: undefined }) as never,
+      { field: 'quantity' },
+    ).catch(() => undefined);
     const logic = StuffApi.findByTemplatePath('/platform/idea/api/glob');
     expect(logic).toBeDefined();
     expect(StuffApi.findByPathGlob('/platform/idea/api/*')).toContain(logic);
   });
 
-  it('denies a direct logic-method call from a non-GlobbableApi caller', () => {
+  it('denies a direct logic-method call from a non-GlobbableApi caller', async () => {
     const a = makeStuff(() => new Idea());
-    const b = makeStuff(() => new Idea());
-    GlobbableApi.canMerge(a, b);
+    await GlobbableApi.applyQuantity(
+      [],
+      { kind: 'all' } as never,
+      async () => ({ ok: true, value: undefined }) as never,
+      { field: 'quantity' },
+    ).catch(() => undefined);
     const logic = StuffApi.findByTemplatePath<GlobbableLogic>('/platform/idea/api/glob');
     expect(logic).toBeDefined();
     // The test module is neither `mud/api/glob#GlobbableApi` (FromModule)
     // nor the singleton itself (SelfOnly), so the gate denies the call.
-    expect(() => logic!.canMerge(a, b)).toThrow(SecurityError);
+    expect(() => logic!.split(a as never, 1)).toThrow(SecurityError);
   });
 });

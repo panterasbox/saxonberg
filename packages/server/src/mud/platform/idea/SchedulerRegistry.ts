@@ -599,10 +599,7 @@ export default class SchedulerRegistry extends Idea {
       kind: 'engagement-completed',
       engagementId: e.engagementId,
     };
-    MessageApi.sendEnvelope(
-      e.actor,
-      buildActivityUpdate(e.engagementId, note),
-    );
+    e.actor.onEnvelope(buildActivityUpdate(e.engagementId, note));
   }
 
   private sendCancelledEnvelope(e: Engagement, reason: AbortReason): void {
@@ -612,10 +609,7 @@ export default class SchedulerRegistry extends Idea {
       engagementId: e.engagementId,
       reason,
     };
-    MessageApi.sendEnvelope(
-      e.actor,
-      buildActivityUpdate(e.engagementId, note),
-    );
+    e.actor.onEnvelope(buildActivityUpdate(e.engagementId, note));
   }
 }
 

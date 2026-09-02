@@ -58,7 +58,7 @@ export interface ExecuteCommandOpts {
   bodyFields?: Record<string, unknown>;
 
   /**
-   * Set by {@link CommandApi.forceCommand} when the runtime fires a
+   * Set by the giver's `forceCommand` when the runtime fires a
    * command on behalf of the player (auto-look on arrival, NPC
    * scripts, scheduled triggers). The flag rides through to the
    * Command frame's metadata so hooks can ask "am I executing inside
@@ -1871,32 +1871,6 @@ export class CommandApi {
     payload: CommandSchemaPayload | { verb: string } | CommandSchemaPayload[]
   ): void {
     logic().emitSchemaDelta(recipient, kind, payload);
-  }
-
-  /**
-   * Programmatic command invocation — fire `text` on `giver` exactly
-   * as if the player had typed it, but stamp `forced: true` on the
-   * resulting Command frame so hooks can tell the two apart.
-   *
-   * Used by:
-   *   - The auto-look-on-arrival hook (`look` after a successful
-   *     traversal), so the dispatcher's normal `updates_focus` path
-   *     re-anchors the focus chain for the new room.
-   *   - Future system-fired commands (event-triggered actions, NPC
-   *     scripts, scheduled tasks).
-   *
-   * Player-typed commands continue to flow through `executeCommand`
-   * directly with `forced` defaulting to `false`. Hooks that need to
-   * distinguish (e.g., a cinematic-locked NPC blocking auto-look)
-   * walk the stack via {@link ExecutionContextApi.getCommandStack}
-   * and look for forced ancestors.
-   */
-  static forceCommand(
-    giver: Stuff & CommandGiver,
-    text: string,
-    opts: ExecuteCommandOpts = {}
-  ): Promise<void> {
-    return logic().forceCommand(giver, text, opts);
   }
 
   /**

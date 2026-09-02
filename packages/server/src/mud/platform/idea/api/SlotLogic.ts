@@ -70,16 +70,6 @@ export class SlotLogic extends ApiLogic {
     }
   }
 
-  /** See {@link SlotApi.vacateAll}. */
-  @CallSecurity(SlotApiCallers)
-  public vacateAll(
-    host: Stuff & Slotted,
-    candidate: Stuff & Slottable,
-    slots: readonly string[]
-  ): readonly ((Stuff & Slottable) | null)[] {
-    return slots.map(s => host.vacate(s, candidate));
-  }
-
   /** See {@link SlotApi.findOpenSlotFor}. */
   @CallSecurity(SlotApiCallers)
   public findOpenSlotFor(

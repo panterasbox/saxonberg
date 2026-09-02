@@ -198,7 +198,7 @@ export default class Realtor extends PopulatesMixin(NPC) {
       // command runs with the player's own affordances, validators,
       // money and ascent gate, and refuses to THEM if it refuses.
       if (!MixinApi.isCommandGiver(player)) return;
-      await CommandApi.forceCommand(player, `title buy ${offer.leaf}`);
+      await player.forceCommand(`title buy ${offer.leaf}`);
     },
   };
 }

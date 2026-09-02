@@ -71,19 +71,6 @@ export class SlotApi {
   }
 
   /**
-   * Vacate the candidate from every named slot on the host. Returns
-   * the array of vacated candidates (same length as `slots`; entries
-   * are null for slots the candidate wasn't in).
-   */
-  public static vacateAll(
-    host: Stuff & Slotted,
-    candidate: Stuff & Slottable,
-    slots: readonly string[]
-  ): readonly ((Stuff & Slottable) | null)[] {
-    return logic().vacateAll(host, candidate, slots);
-  }
-
-  /**
    * Find an empty slot on the host that the candidate fits. Returns
    * null if no slot works. Single-slot only — multi-slot Wearable/
    * Wieldable claims consult `getSlotClaim()` and call `occupyAll`.

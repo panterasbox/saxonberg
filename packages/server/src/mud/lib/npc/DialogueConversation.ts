@@ -430,7 +430,7 @@ export class DialogueConversation implements SustainedEngagement {
     // "a human" to it — `appoint alice …` from Dave found "no such
     // person" the first time the live drive took his job.
     const text = command.replaceAll("$player", `#${this.player.stuffId}`);
-    await CommandApi.forceCommand(npc, text);
+    await npc.forceCommand(text);
   }
 
   private async npcEmote(verb: string): Promise<void> {

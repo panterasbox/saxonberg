@@ -246,8 +246,12 @@ describe('the cellars beat — rack, cork, consign, home', () => {
 
     // The literal verbs → the real seams.
     lines = [];
-    vi.spyOn(CommandApi, 'forceCommand').mockImplementation(
-      async (giver: unknown, text: string) => {
+    vi.spyOn(
+      hand as unknown as { forceCommand(text: string): Promise<void> },
+      'forceCommand',
+    ).mockImplementation(async (text: string) => {
+      const giver = hand;
+      void giver;
         lines.push(text);
         const who = giver as unknown as Hand;
         const here = who.getContainer() as Location;

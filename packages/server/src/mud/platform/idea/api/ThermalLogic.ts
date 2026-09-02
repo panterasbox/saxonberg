@@ -42,13 +42,6 @@ const ThermalApiCallers = SecurityPolicies.FromModule(
  */
 @Unshadowable
 export class ThermalLogic extends ApiLogic {
-  /** See {@link ThermalApi.depositHeat}. */
-  @CallSecurity(ThermalApiCallers)
-  public depositHeat(stuff: Stuff, joules: number): void {
-    if (!MixinApi.isThermal(stuff)) return;
-    stuff.depositHeat(joules);
-  }
-
   /** See {@link ThermalApi.reconcilePhase}. */
   @CallSecurity(ThermalApiCallers)
   public reconcilePhase(stuff: Stuff): void {

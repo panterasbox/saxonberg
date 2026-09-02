@@ -72,7 +72,7 @@ describe('the delves beat is bounded and literal', () => {
     // which declines for it exactly as it would for a person with no
     // timber.
     expect(SRC).toContain('await working.stabilityAt()');
-    expect(SRC).toMatch(/ground\.state !== 'sound'[\s\S]*?forceCommand\(hand, 'shore'\)/);
+    expect(SRC).toMatch(/ground\.state !== 'sound'[\s\S]*?hand\.forceCommand\('shore'\)/);
   });
 
   it('runs UNWATCHED and off the ambient budget — its timing is load-bearing', () => {

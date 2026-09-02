@@ -9,7 +9,7 @@
  * house that cannot pay stops at the first decline. The bussing beat
  * collects, washes and racks a soiled glass.
  *
- * The brain drives the literal verbs through `CommandApi.forceCommand`;
+ * The brain drives the literal verbs through `forceCommand` (the giver's own method since the OO sweep);
  * here that seam is a dispatcher onto the REAL `wallet` / `buy` / `consign`
  * controllers (the distilling pack's harness), with the physical verbs
  * (`get` / `put` / `wash`) as their containment effect. `shiftStateOf` is
@@ -273,7 +273,12 @@ describe("the keeper's back loop — Mara restocks Dave's Bar from the cash-and-
   /** The literal verbs, dispatched onto the real controllers as the keeper. */
   function installDispatcher(): string[] {
     const lines: string[] = [];
-    vi.spyOn(CommandApi, 'forceCommand').mockImplementation(async (giver, text) => {
+    vi.spyOn(
+      mara as unknown as { forceCommand(text: string): Promise<void> },
+      'forceCommand',
+    ).mockImplementation(async (text: string) => {
+      const giver = mara;
+      void giver;
       if (text === 'sense') return; // the teleport's own arrival sense
       lines.push(text);
       const who = giver as unknown as Hand;

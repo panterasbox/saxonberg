@@ -209,12 +209,6 @@ export class WorldClockLogic extends ApiLogic {
     return resolveRegistry().every(interval, cb, opts);
   }
 
-  /** See {@link WorldClockApi.cancel}. Doesn't touch the registry. */
-  @CallSecurity(WorldClockApiCallers)
-  public cancel(handle: ClockHandle): void {
-    handle.cancel();
-  }
-
   /** See {@link WorldClockApi.cancelByTag}. */
   @CallSecurity(WorldClockApiCallers)
   public cancelByTag(tag: string, host?: Stuff): number {

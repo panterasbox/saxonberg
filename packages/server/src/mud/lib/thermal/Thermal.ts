@@ -33,6 +33,7 @@
  * `docs/subsystems/thermal.md`.
  */
 
+import { Final, Unshadowable } from '../security/decorators';
 import type { MixinConstructor, FieldMeta } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
 import type { Tangible } from "../material/Tangible";
@@ -179,7 +180,9 @@ function assertFiniteNonNeg(value: number, what: string): void {
 }
 
 export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
-  return class ThermalMixin extends Base implements Thermal {
+  // Declared-then-returned (the Meltable shape) so method decorators are
+  // legal — a class EXPRESSION cannot carry them.
+  class ThermalMixin extends Base implements Thermal {
     static _mixinName = "ThermalMixin";
 
     static fieldMeta: FieldMeta = {
@@ -333,6 +336,8 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
      * with no heat capacity (massless / material-less) re-equilibrates to
      * ambient instantly, so a deposit is a no-op there.
      */
+    @Final
+    @Unshadowable
     public depositHeat(joules: number): void {
       if (typeof joules !== "number" || !Number.isFinite(joules)) {
         throw new RangeError(
@@ -517,5 +522,6 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
       return WorldClockApi.getNow().rawValue();
     }
-  };
+  }
+  return ThermalMixin;
 }

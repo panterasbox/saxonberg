@@ -7,7 +7,7 @@
  *
  * Magic is a new *trigger*, never a new *mechanism* — every effect
  * executor is a thin wrapper over a shipped gated Api (`ConditionApi.
- * inflict`, `ThermalApi.depositHeat` + `FireApi.tryAutoignite`,
+ * inflict`, `Thermal.depositHeat` + `FireApi.tryAutoignite`,
  * `ElectricityApi.conduct`, `Vitals.afflict/relieve`, `StuffApi.clone`,
  * `BulkableApi.transfer`, `Disguisable.setDisguise`, …), so magic can do
  * exactly what the world already can, from a new door — and the caster

@@ -504,7 +504,7 @@ export class ExecutionContextApi {
    *
    *   - **in-game (command) path** — the command-frame stack's giver, but
    *     only when the chain is *non-forced* and a *single, consistent*
-   *     giver. A forced dispatch (`CommandApi.forceCommand`) or a
+   *     giver. A forced dispatch (`forceCommand` (the giver's own method since the OO sweep)) or a
    *     cross-actor cascade (A's command triggering B) fails closed →
    *     `null`. This is "look at the giver AND the stack around it": the
    *     bare top giver is not trusted on its own.
@@ -570,7 +570,7 @@ export class ExecutionContextApi {
    * Command frame's contextual data. The returned tuples carry the
    * frame's `CommandContext` (already includes `commandId` and
    * `executionId`) plus the `forced` flag — `true` for system-fired
-   * commands invoked through `CommandApi.forceCommand`, `false` (or
+   * commands invoked through `forceCommand` (the giver's own method since the OO sweep), `false` (or
    * absent) for player-typed input.
    *
    * Use this for "is the current command nested inside a forced

@@ -158,7 +158,7 @@ class InteractiveReactionSink implements ReactionSink {
   emitDelta(env: Omit<ReactionDeltaEnvelope, 'frameId'>): void {
     const viewer = this.viewer;
     if (!viewer) return;
-    MessageApi.sendEnvelope(viewer, env);
+    viewer.onEnvelope(env);
   }
 }
 
@@ -406,7 +406,7 @@ export default class ReactionRegistry extends Idea {
       commandId: req.commandId,
       reactors,
     };
-    MessageApi.sendEnvelope(viewer, template);
+    viewer.onEnvelope(template);
   }
 
   @CallSecurity(ReactionApiCallers)

@@ -19,6 +19,7 @@ import { ForumsApi } from '../../api/forums';
 import ForumSubscriptionRegistry from '../idea/ForumSubscriptionRegistry';
 import SubjectCatalogue from '../idea/SubjectCatalogue';
 import { Idea } from '../../lib/stuff/Idea';
+import { SensorMixin } from '../../lib/message/Sensor';
 import {
   makeStuff,
   makeStuffAtPath,
@@ -27,7 +28,7 @@ import { PersistenceManager, Collections } from '../../../backend/PersistenceMan
 import { StuffApi } from '../../api/stuff';
 import { PlayerApi } from '../../api/player';
 import { EventApi } from '../../api/event';
-import { MessageApi } from '../../api/message';
+
 import { MixinApi } from '../../api/mixin';
 import { ForumEventFired } from '../../lib/forum/ForumEvent';
 import type { Stuff } from '../../lib/stuff/Stuff';
@@ -49,12 +50,18 @@ function col(name: string): Map<string, Record<string, unknown>> {
   return c;
 }
 
-class Actor extends Idea {}
+class Actor extends SensorMixin(Idea) {
+  // Envelope capture: delivery is `viewer.onEnvelope(tpl)` since the
+  // OO sweep, so the viewer is the capture seam.
+  override handleEnvelope(tpl: unknown): void {
+    envelopes.push(tpl as { type: string });
+  }
+}
 function makeActor(): Stuff {
   return makeStuff(() => new Actor());
 }
 
-/** A fake Interactive whose holder is a (mock-Sensor) viewer. */
+/** A fake Interactive whose holder is a Sensor viewer (envelope-capturing). */
 function fakeInteractive(): Interactive {
   const holder = makeStuff(() => new Actor());
   return { getHolder: () => holder } as unknown as Interactive;
@@ -69,6 +76,9 @@ function interactiveWithCircle(playerIds: string[]): Interactive {
   const holder = {
     allContacts: () =>
       playerIds.map((id) => ({ kind: 'avatar', playerId: id, label: 'friends' })),
+    onEnvelope: (tpl: unknown) => {
+      envelopes.push(tpl as { type: string });
+    },
   };
   return { getHolder: () => holder } as unknown as Interactive;
 }
@@ -105,9 +115,6 @@ beforeEach(() => {
 
   vi.spyOn(PlayerApi, 'isAvatarStuff').mockReturnValue(false as never);
   vi.spyOn(MixinApi, 'isSensor').mockReturnValue(true as never);
-  vi.spyOn(MessageApi, 'sendEnvelope').mockImplementation((_viewer, tpl) => {
-    envelopes.push(tpl as unknown as { type: string });
-  });
   // Capture the registry's single EventApi.on handler...
   vi.spyOn(EventApi, 'on').mockImplementation(((_kind: string, handler: unknown) => {
     busHandler = handler as (payload: unknown) => void;

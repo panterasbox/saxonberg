@@ -14,7 +14,7 @@
  * is collected, washed and racked.
  *
  * ⭐ **Nothing here is unavailable to a player.** Every act is a literal
- * verb through `CommandApi.forceCommand` — `wallet use house`, `buy`,
+ * verb through `forceCommand` (the giver's own method since the OO sweep) — `wallet use house`, `buy`,
  * `put … on`, `pour … into`, `get`, `wash` — gated exactly as a typed
  * line is: the seat is the authority, the wallet's active account is the
  * principal, and a `buy` the house cannot afford declines the way it
@@ -103,7 +103,7 @@ export const brain = class {
       keeper.teleport(counterRoom as Stuff & Container);
       try {
         if (!ctx.state.house) {
-          await CommandApi.forceCommand(keeper, 'wallet use house');
+          await keeper.forceCommand('wallet use house');
           ctx.state.house = true;
         }
         const got = await buyLines(keeper, lines, budget);
@@ -124,11 +124,11 @@ export const brain = class {
       const kw = keywordOf(item);
       if (!kw) continue;
       if (isIce(item) && binKw) {
-        await CommandApi.forceCommand(keeper, `pour ${kw} into ${binKw}`);
+        await keeper.forceCommand(`pour ${kw} into ${binKw}`);
       } else if (isGlass(item) && rackKw) {
-        await CommandApi.forceCommand(keeper, `put ${kw} in ${rackKw}`);
+        await keeper.forceCommand(`put ${kw} in ${rackKw}`);
       } else if (shelfKw) {
-        await CommandApi.forceCommand(keeper, `put ${kw} on ${shelfKw}`);
+        await keeper.forceCommand(`put ${kw} on ${shelfKw}`);
       }
     }
 
@@ -139,10 +139,10 @@ export const brain = class {
         if (!isGlass(item) || !isSoiledEmpty(item) || !MixinApi.isContainable(item)) continue;
         const kw = keywordOf(item);
         if (!kw) continue;
-        await CommandApi.forceCommand(keeper, `get ${kw}`);
+        await keeper.forceCommand(`get ${kw}`);
         if (item.getContainer() !== keeper) continue;
-        await CommandApi.forceCommand(keeper, `wash ${kw}`);
-        await CommandApi.forceCommand(keeper, `put ${kw} in ${rackKw}`);
+        await keeper.forceCommand(`wash ${kw}`);
+        await keeper.forceCommand(`put ${kw} in ${rackKw}`);
       }
     }
   }
@@ -199,7 +199,7 @@ async function buyLines(
       if (need <= 0 || items.length >= budget) break;
       const kw = keywordOf(good);
       if (!kw) continue;
-      await CommandApi.forceCommand(keeper, `buy ${kw}`);
+      await keeper.forceCommand(`buy ${kw}`);
       if (good.getContainer() !== keeper) return { items, declined: true };
       items.push(good);
       need -= unitsOf(good, line.unit);

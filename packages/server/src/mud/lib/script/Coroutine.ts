@@ -308,7 +308,7 @@ export class Coroutine {
 
   private clearPending(): void {
     if (this.pending !== null) {
-      WorldClockApi.cancel(this.pending);
+      this.pending.cancel();
       this.pending = null;
     }
   }

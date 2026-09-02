@@ -217,7 +217,7 @@ export function FurnaceMixin<TBase extends MixinConstructor<Stuff>>(
         if (c <= 0) c = 4186;
         const joules =
           (held - temp) * massKg * c * FURNACE_DEFAULTS.HEAT_TRANSFER_FRACTION;
-        ThermalApi.depositHeat(s, joules);
+        s.depositHeat(joules);
         ThermalApi.reconcilePhase(s);
       }
     }

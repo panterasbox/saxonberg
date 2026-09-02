@@ -295,8 +295,12 @@ describe('the farms beat — tend, pick, sell, home', () => {
 
     // The literal verbs, dispatched onto the real controllers.
     lines = [];
-    vi.spyOn(CommandApi, 'forceCommand').mockImplementation(
-      async (giver: unknown, text: string) => {
+    vi.spyOn(
+      farmer as unknown as { forceCommand(text: string): Promise<void> },
+      'forceCommand',
+    ).mockImplementation(async (text: string) => {
+        const giver = farmer;
+        void giver;
         if (text === 'sense') return;
         lines.push(text);
         const who = giver as unknown as Farmer;

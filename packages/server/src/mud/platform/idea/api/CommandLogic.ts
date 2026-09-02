@@ -1568,17 +1568,7 @@ export class CommandLogic extends ApiLogic {
       meta,
       payload,
     };
-    MessageApi.sendMessage(recipient as Stuff & Sensor, frame);
-  }
-
-  /** See {@link CommandApi.forceCommand}. */
-  @CallSecurity(CommandApiCallers)
-  public forceCommand(
-    giver: Stuff & CommandGiver,
-    text: string,
-    opts: ExecuteCommandOpts = {}
-  ): Promise<void> {
-    return giver.executeCommand(text, { ...opts, forced: true });
+    (recipient as Stuff & Sensor).onMessage(frame);
   }
 
   /** See {@link CommandApi.getCommandSchemaPayload}. */

@@ -678,7 +678,7 @@ function absorbWasteHeat(ctx: EffectContext, spell: SpellDescriptor): void {
     committedJ * dial(AppSettingKeys.magicWasteHeatFraction, 0.1);
   if (wasteJ <= 0) return;
   try {
-    ThermalApi.depositHeat(endpoint, wasteJ);
+    if (MixinApi.isThermal(endpoint)) endpoint.depositHeat(wasteJ);
     FireApi.tryAutoignite(endpoint);
     ThermalApi.reconcilePhase(endpoint);
   } catch {
@@ -1095,7 +1095,7 @@ function execInjectChannel(
       };
     });
   }
-  ThermalApi.depositHeat(target, (e.joules ?? 0) * potency);
+  if (MixinApi.isThermal(target)) target.depositHeat((e.joules ?? 0) * potency);
   const lit = FireApi.tryAutoignite(target);
   ThermalApi.reconcilePhase(target);
   return lit
@@ -1638,7 +1638,7 @@ async function execScript(caster: Stuff, source: string): Promise<string> {
   if (!MixinApi.isCommandGiver(caster)) return 'No voice to speak it with.';
   for (const line of source.split(/[;\n]/)) {
     const text = line.trim();
-    if (text.length > 0) await CommandApi.forceCommand(caster, text);
+    if (text.length > 0) await caster.forceCommand(text);
   }
   return 'The scripted working runs.';
 }

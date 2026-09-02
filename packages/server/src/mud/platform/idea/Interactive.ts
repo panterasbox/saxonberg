@@ -106,7 +106,7 @@ export default class Interactive extends Idea {
    * client `ip` and the derived `country` display name. **In-memory only**
    * — an Interactive is never persisted, so the IP's lifetime is bounded
    * to the live connection (the PII posture: country may surface broadly;
-   * the IP stays here). `null` until `ConnectionApi.recordOrigin` runs (or
+   * the IP stays here). `null` until `recordOrigin` runs (or
    * when geo can't resolve). Set/read through the Api, not directly.
    */
   protected origin: { ip?: string; country?: string } | null = null;
@@ -115,6 +115,19 @@ export default class Interactive extends Idea {
   }
   public setOrigin(value: { ip?: string; country?: string } | null): void {
     this.origin = value;
+  }
+
+  /**
+   * Record the connection's transient origin (the B2 vanguard of the
+   * Interactive method surface). Ungated: the caller is the backend
+   * connection layer, which carries no module stamp (every FromX
+   * policy would fail closed on it) — and which is also the layer that
+   * owns the raw request, so the country is derived THERE and handed
+   * in. No-op without an ip.
+   */
+  public recordOrigin(ip: string | undefined, country?: string): void {
+    if (!ip) return;
+    this.origin = { ip, country };
   }
 
   constructor(socketId: string, sessionId: string, user: User) {

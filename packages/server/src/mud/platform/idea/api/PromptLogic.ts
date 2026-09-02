@@ -147,7 +147,7 @@ function push<T>(
       // about what it does.
       outcome: { notes: [{ ...note, ...currentAsker() }] },
     };
-    MessageApi.sendEnvelope(holder, template);
+    holder.onEnvelope(template);
 
     /*
      * ⭐⭐ **The card that says a question is still waiting.**
@@ -321,7 +321,7 @@ function emitValidationFailed(record: ResolverRecord, message: string): void {
     promptId: record.promptId,
     outcome: { notes: [{ kind: 'prompt-validation-failed', message }] },
   };
-  MessageApi.sendEnvelope(holder, template);
+  holder.onEnvelope(template);
 }
 
 function emitDismissed(
@@ -335,7 +335,7 @@ function emitDismissed(
     promptId: record.promptId,
     outcome: { notes: [{ kind: 'prompt-dismissed', reason }] },
   };
-  MessageApi.sendEnvelope(holder, template);
+  holder.onEnvelope(template);
 }
 
 /**

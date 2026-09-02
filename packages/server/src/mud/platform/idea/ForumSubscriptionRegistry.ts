@@ -184,7 +184,7 @@ export default class ForumSubscriptionRegistry extends Idea {
       scope: canonical,
       records,
     };
-    MessageApi.sendEnvelope(viewer, template);
+    viewer.onEnvelope(template);
   }
 
   /**
@@ -539,7 +539,7 @@ export default class ForumSubscriptionRegistry extends Idea {
       subscriptionId: state.subscriptionId,
       changes,
     };
-    MessageApi.sendEnvelope(viewer, template);
+    viewer.onEnvelope(template);
   }
 
   private teardown(state: ForumSubState): void {
@@ -561,7 +561,7 @@ export default class ForumSubscriptionRegistry extends Idea {
       reason,
       ...(detail ? { detail } : {}),
     };
-    MessageApi.sendEnvelope(viewer, template);
+    viewer.onEnvelope(template);
   }
 }
 

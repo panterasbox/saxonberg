@@ -136,17 +136,6 @@ function logic(): GlobbableLogic {
 
 export class GlobbableApi {
   /**
-   * Symmetric kind-equality check used by both the merge-on-arrival
-   * ripple in `ContainmentApi.move` and the explicit
-   * `GlobbableApi.merge` happy path. Defers to the host's
-   * `canMergeWith` (the shadow-friendly seam); falls through to
-   * `false` for non-Globbable peers.
-   */
-  static canMerge(a: Stuff, b: Stuff): boolean {
-    return logic().canMerge(a, b);
-  }
-
-  /**
    * Split `n` units off `source` into a new Stuff. Semantics:
    *
    *   - Validates `n` is a positive integer ≤ `source.getQuantity()`.
@@ -264,7 +253,10 @@ export class GlobbableApi {
       for (const sibling of to.getContents()) {
         if (sibling === (moved as unknown as Stuff)) continue;
         if (!MixinApi.isGlobbable(sibling)) continue;
-        if (!GlobbableApi.canMerge(sibling, moved)) continue;
+        // Mutual mergeability (a subclass canMergeWith may veto
+        // asymmetrically — the Ore transition-window probe).
+        if (!sibling.canMergeWith(moved) || !moved.canMergeWith(sibling))
+          continue;
         // Resident absorbs the arrival. First mergeable sibling wins —
         // multiple mergeable globs in the same container should never
         // exist by invariant; if they do (initial-state seed, an edge

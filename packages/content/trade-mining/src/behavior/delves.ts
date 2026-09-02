@@ -9,7 +9,7 @@
  * chain a running thing rather than a thing a player has to run.
  *
  * ⭐⭐ **Nothing here is unavailable to a player.** Every act is a forced
- * LITERAL verb through `CommandApi.forceCommand`, so the hand is subject
+ * LITERAL verb through `forceCommand` (the giver's own method since the OO sweep), so the hand is subject
  * to exactly the rules a person is: bad ground refuses it, a worked-out
  * face refuses it, foul air will kill it. It inherits `consigns`' guards
  * line for line — bounded loops, never a bare `get <keyword>`, and home
@@ -86,7 +86,7 @@ export const brain = class {
     // `shore` declines and the beat moves on, exactly as a person's would.
     const ground = await working.stabilityAt();
     if (ground.state !== 'sound') {
-      await CommandApi.forceCommand(hand, 'shore');
+      await hand.forceCommand('shore');
     }
 
     // ── win what this face will give ──
@@ -105,7 +105,7 @@ export const brain = class {
       // Bounded twice: by the batch, and by a no-progress guard — a hew
       // that declines (bad ground, a blocked face) must not grind.
       const before = working.getWorkedFaces()[face.direction] ?? 0;
-      await CommandApi.forceCommand(hand, `hew ${face.direction}`);
+      await hand.forceCommand(`hew ${face.direction}`);
       cut += 1;
       if ((working.getWorkedFaces()[face.direction] ?? 0) <= before) break;
     }
@@ -118,7 +118,7 @@ export const brain = class {
     const lying = (home.getContents() as Stuff[]).filter((c) => isOre(c)).slice(0, batch);
     for (const lump of lying) {
       const kw = keywordOf(lump);
-      if (kw) await CommandApi.forceCommand(hand, `get ${kw}`);
+      if (kw) await hand.forceCommand(`get ${kw}`);
     }
 
     const carried = (hand.getContents() as Stuff[]).filter((c) => isOre(c));
@@ -149,12 +149,12 @@ export const brain = class {
     );
     hand.teleport(counterRoom as Stuff & Container);
     try {
-      await CommandApi.forceCommand(hand, 'wallet use house');
+      await hand.forceCommand('wallet use house');
       const ask = positiveInt(ctx.config.ask, DEFAULT_ASK);
       for (const lot of lots) {
         const kw = keywordOf(lot);
         if (!kw) continue;
-        await CommandApi.forceCommand(hand, `consign ${kw} --ask ${ask}`);
+        await hand.forceCommand(`consign ${kw} --ask ${ask}`);
       }
     } finally {
       // ⚠ ALWAYS. A beat that dies at the scale must not strand the

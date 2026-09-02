@@ -6,12 +6,11 @@
  * *active* side — delivering heat into an object so its temperature RISES
  * (the reconcile alone only cools toward ambient).
  *
- * `depositHeat` is the keystone: `ΔT = Q / C` on the shipped sync model, with
- * thermal inertia (`C = mass × specificHeat`) gating the rise — the same
- * joules barely warm a heavy log but shove a small flame hot. Ignition,
- * fire spread, and (later) the phase-change reconcile + the inert
- * crafting-reachability read all drive through this door, never a bespoke
- * temperature poke.
+ * `Thermal.depositHeat` (a method ON the mixin since the OO sweep — the
+ * caller holds the object) is the keystone: `ΔT = Q / C` on the shipped
+ * sync model, with thermal inertia (`C = mass × specificHeat`) gating
+ * the rise. This Api keeps the phase-change reconcile + the inert
+ * crafting-reachability read.
  *
  * The logic lives in the gated, hot-reloadable {@link ThermalLogic} singleton
  * at `/platform/idea/api/thermal`; this Api is the thin forwarding shell. `dest
@@ -45,21 +44,6 @@ function logic(): ThermalLogic {
 }
 
 export class ThermalApi {
-  /**
-   * Deposit `joules` of heat into `stuff`, raising its temperature by
-   * `ΔT = Q / C` (heat capacity `C = mass × specificHeat`) and re-anchoring
-   * its drift clock. The single heat-DELIVERY primitive — ignition, spread,
-   * and phase change all drive through it. Thermal inertia gates the rise, so
-   * a match's joules barely warm a beam but shove a shaving hot; that gate is
-   * exactly what makes ignition ("did the delivered heat cross autoignition?")
-   * a real, derivable energy balance. A negative `joules` removes heat (a
-   * douse). No-op on a non-Thermal `stuff` or a host with no heat capacity
-   * (massless — it re-equilibrates to ambient instantly). The read stays SYNC.
-   */
-  public static depositHeat(stuff: Stuff, joules: number): void {
-    logic().depositHeat(stuff, joules);
-  }
-
   /**
    * Reconcile `stuff`'s phase against its temperature — the bidirectional
    * phase-change pass, driven by any heat source (a hearth, the sun, a fire).

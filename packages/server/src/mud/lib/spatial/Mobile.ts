@@ -627,10 +627,7 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
       if (!MixinApi.isCommandGiver(self)) return;
       if (MixinApi.isFocused(self)) self.clearFocus();
       try {
-        await CommandApi.forceCommand(
-          self as Stuff & CommandGiver,
-          'sense',
-        );
+        await self.forceCommand('sense');
       } catch {
         // Swallow — see jsdoc.
       }

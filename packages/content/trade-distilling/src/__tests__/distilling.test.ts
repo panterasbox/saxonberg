@@ -8,7 +8,7 @@
  * floor stock to the cash-and-carry and lists it AS the outfit — a buyer
  * at the counter then splits to the outfit's operating account.
  *
- * The brain drives the literal verbs through `CommandApi.forceCommand`;
+ * The brain drives the literal verbs through `forceCommand` (the giver's own method since the OO sweep);
  * here that seam is a dispatcher onto the REAL controllers (`wallet use
  * house` → WalletController, `consign … --ask` → ConsignController, `get`
  * → the containment move the verb performs), the `HouseAccount` harness
@@ -394,7 +394,13 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
   /** The literal verbs, dispatched onto the real controllers as the hand. */
   function installDispatcher(hand: TestHand): string[] {
     const lines: string[] = [];
-    vi.spyOn(CommandApi, 'forceCommand').mockImplementation(async (giver, text) => {
+    // Dispatch is `hand.forceCommand(text)` since the OO sweep, so the
+    // hand is the interception seam.
+    vi.spyOn(
+      hand as unknown as { forceCommand(text: string): Promise<void> },
+      'forceCommand',
+    ).mockImplementation(async (text: string) => {
+      const giver = hand;
       // A teleport auto-senses on arrival (Mobile's own forced `sense`) —
       // not the brain's line; dropped from the record.
       if (text === 'sense') return;
@@ -474,7 +480,10 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
     ContainmentApi.move(vodka as never, floorStock as never);
     const lines: string[] = [];
     // `get gin` declines (too-heavy-to-lift): the bottle stays on the floor.
-    vi.spyOn(CommandApi, 'forceCommand').mockImplementation(async (_giver, text) => {
+    vi.spyOn(
+      hand as unknown as { forceCommand(text: string): Promise<void> },
+      'forceCommand',
+    ).mockImplementation(async (text: string) => {
       if (text === 'sense') return;
       lines.push(text);
       if (text === 'get vodka') ContainmentApi.move(vodka as never, hand as never);

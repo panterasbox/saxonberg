@@ -80,14 +80,6 @@ const GlobbableApiCallers = SecurityPolicies.AnyOf(
  */
 @Unshadowable
 export class GlobbableLogic extends ApiLogic {
-  /** See {@link GlobbableApi.canMerge}. */
-  @CallSecurity(GlobbableApiCallers)
-  public canMerge(a: Stuff, b: Stuff): boolean {
-    if (a === b) return false;
-    if (!MixinApi.isGlobbable(a) || !MixinApi.isGlobbable(b)) return false;
-    return a.canMergeWith(b) && b.canMergeWith(a);
-  }
-
   /** See {@link GlobbableApi.split}. */
   @CallSecurity(GlobbableApiCallers)
   public async split(

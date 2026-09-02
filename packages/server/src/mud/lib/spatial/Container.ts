@@ -61,6 +61,7 @@ import {
  * about; absence is treated as "no opinion."
  */
 export interface Container {
+  hasContainable(item: Stuff): boolean;
   addContainable(item: Stuff & Containable): void;
   removeContainable(item: Stuff & Containable): boolean;
   hasContainable(item: Stuff & Containable): boolean;

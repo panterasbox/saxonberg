@@ -43,6 +43,7 @@ import { CombatApi } from '../../api/combat';
 import { CommandApi } from '../../api/command';
 import { DocumentApi } from '../../api/document';
 import type { Stuff } from '../stuff/Stuff';
+import type { CommandGiver } from '../command/CommandGiver';
 import type { BrainContext } from './brain';
 
 const BAND_ORDER = [
@@ -204,18 +205,18 @@ async function breakUpFight(
     // (the office round trip; the fight runs unattended while he's gone).
     const toOffice = str(cfg.officeDirection, 'north');
     const back = str(cfg.officeReturn, 'south');
-    await CommandApi.forceCommand(host as never, `go ${toOffice}`);
-    await CommandApi.forceCommand(host as never, `get ${taserKw}`);
-    await CommandApi.forceCommand(host as never, `wield ${taserKw}`);
-    await CommandApi.forceCommand(host as never, `switch on ${taserKw}`);
-    await CommandApi.forceCommand(host as never, `go ${back}`);
+    await (host as unknown as CommandGiver).forceCommand(`go ${toOffice}`);
+    await (host as unknown as CommandGiver).forceCommand(`get ${taserKw}`);
+    await (host as unknown as CommandGiver).forceCommand(`wield ${taserKw}`);
+    await (host as unknown as CommandGiver).forceCommand(`switch on ${taserKw}`);
+    await (host as unknown as CommandGiver).forceCommand(`go ${back}`);
   }
   // Wade in on the believed aggressor — hands-first (a subdue) when
   // unarmed, or a taser blow when he came back armed (the baton's shock
   // rides its own augment on the strike).
   if (aggressorKw) {
-    await CommandApi.forceCommand(host as never, `attack ${aggressorKw}`);
-    await CommandApi.forceCommand(host as never, `fight subdue`);
+    await (host as unknown as CommandGiver).forceCommand(`attack ${aggressorKw}`);
+    await (host as unknown as CommandGiver).forceCommand(`fight subdue`);
   }
 }
 
@@ -240,11 +241,9 @@ async function enforceHouseRule(
     ctx.say(str(cfg.orderLine, "You're eighty-sixed. Out — now."));
     // Eject: subdue and throw them through the door (the bum's rush).
     if (patronKw) {
-      await CommandApi.forceCommand(host as never, `attack ${patronKw}`);
-      await CommandApi.forceCommand(host as never, `fight subdue`);
-      await CommandApi.forceCommand(
-        host as never,
-        `fight rush ${str(cfg.ejectDirection, 'south')}`,
+      await (host as unknown as CommandGiver).forceCommand(`attack ${patronKw}`);
+      await (host as unknown as CommandGiver).forceCommand(`fight subdue`);
+      await (host as unknown as CommandGiver).forceCommand(`fight rush ${str(cfg.ejectDirection, 'south')}`,
       );
     }
     return;

@@ -11,7 +11,6 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { brain as enforces } from "../enforces";
 import { MixinApi } from "../../../api/mixin";
 import { CombatApi } from "../../../api/combat";
-import { CommandApi } from "../../../api/command";
 import { DocumentApi } from "../../../api/document";
 import type { Stuff } from "../../stuff/Stuff";
 import type { BrainContext } from "../brain";
@@ -96,12 +95,13 @@ beforeEach(() => {
     const f = occ.find((o) => o.stuffId === id);
     return ((f?.arms.length ?? 0) > 0 ? [{}] : []) as never;
   });
-  vi.spyOn(CommandApi, "forceCommand").mockImplementation((async (
-    _g: unknown,
-    text: string,
-  ) => {
+  // Dispatch is `host.forceCommand(text)` since the OO sweep — the
+  // fake host is the interception seam.
+  (
+    HOST as unknown as { forceCommand: (text: string) => Promise<void> }
+  ).forceCommand = async (text: string) => {
     forced.push(text);
-  }) as never);
+  };
   vi.spyOn(DocumentApi, "read").mockResolvedValue(null);
   vi.spyOn(DocumentApi, "save").mockResolvedValue(undefined as never);
 });

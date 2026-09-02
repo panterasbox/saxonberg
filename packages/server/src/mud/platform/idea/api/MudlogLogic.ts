@@ -76,7 +76,7 @@ function emit(
       meta: { ...meta },
     };
     if (opts?.payload !== undefined) frame.payload = opts.payload;
-    MessageApi.sendMessage(recipient, frame);
+    recipient.onMessage(frame);
   }
 }
 

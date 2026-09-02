@@ -198,12 +198,6 @@ export class LocomotionLogic extends ApiLogic {
     return required.includes(posture);
   }
 
-  /** See {@link LocomotionApi.exitAllowsMode}. */
-  @CallSecurity(LocomotionApiCallers)
-  public exitAllowsMode(exit: Exit, mode: LocomotionMode): boolean {
-    return exit.allowsMode(mode.getName());
-  }
-
   /** See {@link LocomotionApi.canEngage}. */
   @CallSecurity(LocomotionApiCallers)
   public canEngage(actor: Stuff, mode: LocomotionMode): boolean {
@@ -275,7 +269,7 @@ export class LocomotionLogic extends ApiLogic {
 
     const passage = hauledCart.getPassageMode();
     const passable =
-      passage !== null && this.exitAllowsMode(exit, passage);
+      passage !== null && exit.allowsMode(passage.getName());
     if (!passable || !exit.isWheelPassable()) {
       return {
         ok: false,

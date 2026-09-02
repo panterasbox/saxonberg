@@ -183,10 +183,6 @@ export class LocomotionApi {
     return logic().postureAllows(actor, mode);
   }
 
-  public static exitAllowsMode(exit: Exit, mode: LocomotionMode): boolean {
-    return logic().exitAllowsMode(exit, mode);
-  }
-
   /**
    * Bare body-plan + posture predicate. Doesn't consult exit /
    * enablement / conveyance — those live in `canTraverseExit`.

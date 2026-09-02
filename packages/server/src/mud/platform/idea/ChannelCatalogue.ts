@@ -367,7 +367,7 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
         continue;
       }
       if (!MixinApi.isSensor(a)) continue;
-      MessageApi.sendMessage(a, {
+      a.onMessage({
         id: SecurityApi.uuid(),
         topic: 'speech.channel',
         tags: ['audience:witness'],

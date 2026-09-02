@@ -58,7 +58,7 @@ export const handleAffordanceResolve: InboundHandler = async (ctx, message) => {
       stuffId: payload.stuffId,
       reason: 'unresolvable',
     };
-    MessageApi.sendEnvelope(viewer, error);
+    viewer.onEnvelope(error);
     return;
   }
 
@@ -73,5 +73,5 @@ export const handleAffordanceResolve: InboundHandler = async (ctx, message) => {
     // one object two different things.
     kind: RecognitionApi.kindOf(viewer, target as Stuff),
   };
-  MessageApi.sendEnvelope(viewer, template);
+  viewer.onEnvelope(template);
 };

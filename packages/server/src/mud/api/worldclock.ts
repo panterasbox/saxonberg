@@ -188,10 +188,6 @@ export class WorldClockApi {
     return logic().every(interval, cb, opts);
   }
 
-  public static cancel(handle: ClockHandle): void {
-    logic().cancel(handle);
-  }
-
   /** Cancel every schedule with `tag`; if `host` given, AND on host identity. */
   public static cancelByTag(tag: string, host?: Stuff): number {
     return logic().cancelByTag(tag, host);

@@ -88,7 +88,7 @@ describe('phase change — melt (solid → molten pool)', () => {
     expect(MixinApi.isMeltable(ingot)).toBe(true);
     let melted = false;
     for (let i = 0; i < 10; i++) {
-      ThermalApi.depositHeat(ingot, 6000); // ΔT well above the melting point
+      ingot.depositHeat(6000); // ΔT well above the melting point
       ThermalApi.reconcilePhase(ingot);
       if (ingot.isDestroyed()) {
         melted = true;

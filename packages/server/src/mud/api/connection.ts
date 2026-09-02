@@ -171,20 +171,6 @@ export class ConnectionApi {
   }
 
   /**
-   * Record an Interactive's connection origin from its handshake IP: the
-   * raw IP is stored transiently on the Interactive (in-memory only — the
-   * PII posture) and resolved to a country display name via the offline
-   * geo dataset. Called once at connect by the connection layer. A
-   * missing / unresolvable IP is a safe no-op.
-   */
-  public static recordOrigin(
-    interactive: Interactive,
-    ip: string | undefined
-  ): void {
-    return logic().recordOrigin(interactive, ip);
-  }
-
-  /**
    * The connecting player's origin, by playerId. Returns **country only**
    * (a display name, broadly readable) — the raw IP never leaves the
    * connection layer (the developer-gated IP read is deferred). Empty

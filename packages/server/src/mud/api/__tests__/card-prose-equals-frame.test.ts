@@ -14,7 +14,7 @@
  */
 
 import '../../../test-bootstrap';
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { CardApi } from '../card';
 import { StuffApi } from '../stuff';
 import { EventApi } from '../event';
@@ -38,19 +38,16 @@ describe('the card and the terminal are one payload, rendered once', () => {
   it('⭐ `frame.body === card.prose`, literally', async () => {
     const h = await makeHarness();
     const frames: { topic: string; body: string }[] = [];
-    const originalSend = MessageApi.sendMessage;
     // Capture the frame the composer actually built — not a
-    // reconstruction of it.
-    (MessageApi as unknown as Record<string, unknown>).sendMessage = ((
-      recipient: unknown,
-      frame: { topic: string; body: string },
-    ) => {
-      frames.push({ topic: frame.topic, body: frame.body });
-      return (originalSend as unknown as (...a: unknown[]) => unknown)(
-        recipient,
-        frame,
-      );
-    }) as unknown as typeof MessageApi.sendMessage;
+    // reconstruction of it. Delivery is `recipient.onMessage(frame)`
+    // since the OO sweep (the send chokepoint lives on the Sensor), so
+    // the capture seam is the recipient (the harness's onEnvelope spy
+    // shape).
+    vi.spyOn(h.avatar, 'onMessage').mockImplementation(
+      (frame: { topic: string; body: string }) => {
+        frames.push({ topic: frame.topic, body: frame.body });
+      },
+    );
 
     try {
       const ctx = makeContext(h, {
@@ -76,8 +73,7 @@ describe('the card and the terminal are one payload, rendered once', () => {
        */
       expect(card.prose).toBe(resultFrame!.body);
     } finally {
-      (MessageApi as unknown as Record<string, unknown>).sendMessage =
-        originalSend;
+      vi.restoreAllMocks();
     }
   });
 

@@ -459,7 +459,7 @@ export default class CardRegistry extends CardRegistryBase {
       ...(state.payload ? { payload: state.payload } : {}),
       ...(state.subjectKind ? { subjectKind: state.subjectKind } : {}),
     };
-    MessageApi.sendEnvelope(holder, template);
+    holder.onEnvelope(template);
     return state.instanceId;
   }
 
@@ -543,7 +543,7 @@ export default class CardRegistry extends CardRegistryBase {
         instanceId: state.instanceId,
         pinned: next,
       };
-      MessageApi.sendEnvelope(holder, template);
+      holder.onEnvelope(template);
     }
     return true;
   }
@@ -569,7 +569,7 @@ export default class CardRegistry extends CardRegistryBase {
         instanceId,
         reason,
       };
-      MessageApi.sendEnvelope(holder, template);
+      holder.onEnvelope(template);
     }
     return true;
   }
@@ -798,7 +798,7 @@ export default class CardRegistry extends CardRegistryBase {
         takenAt: state.takenAt,
         live: false,
       };
-      MessageApi.sendEnvelope(holder, template);
+      holder.onEnvelope(template);
     }
   }
 
@@ -892,7 +892,7 @@ export default class CardRegistry extends CardRegistryBase {
       ...(carriesBody && state.records ? { result: state.records } : {}),
       ...(carriesBody && state.payload ? { payload: state.payload } : {}),
     };
-    MessageApi.sendEnvelope(holder, template);
+    holder.onEnvelope(template);
   }
 
   /**
