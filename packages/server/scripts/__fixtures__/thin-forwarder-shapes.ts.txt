@@ -1,0 +1,55 @@
+// Fixture for check-thin-forwarder.test.ts — every shape the lint must
+// FIRE on, plus the shapes it must NOT flag. Stored as .ts.txt so the
+// build never compiles it.
+import type { Stuff } from "../src/mud/lib/stuff/Stuff";
+
+declare function isThermal(s: unknown): boolean;
+declare function logic(): { depositHeat(s: Stuff, j: number): void };
+
+export class FixtureApi {
+  // FIRE: bare return forward
+  public bareReturn(stuff: Stuff & { m(): number }): number {
+    return stuff.m();
+  }
+
+  // FIRE: bare void forward
+  public bareVoid(stuff: Stuff & { m(): void }): void {
+    stuff.m();
+  }
+
+  // FIRE: narrow-then-forward-else-default (return shape)
+  public guardedReturn(stuff: Stuff & { m(): number }): number | null {
+    if (!isThermal(stuff)) return null;
+    return stuff.m();
+  }
+
+  // FIRE: the VOID-GUARD shape (the hardened addition) —
+  // `if (!isX) return; p.m(...)`
+  public guardedVoid(stuff: Stuff & { depositHeat(j: number): void }, joules: number): void {
+    if (!isThermal(stuff)) return;
+    stuff.depositHeat(joules);
+  }
+
+  // NOT flagged: the sanctioned facade forward (target is a call)
+  public facade(stuff: Stuff, joules: number): void {
+    logic().depositHeat(stuff, joules);
+  }
+
+  // NOT flagged: transforms its arguments (adds behavior)
+  public transforms(stuff: Stuff & { m(x: number): void }, joules: number): void {
+    stuff.m(joules * 2);
+  }
+
+  // NOT flagged: substantive non-trivial guard arm
+  public substantiveGuard(stuff: Stuff & { m(): number }): number {
+    if (!isThermal(stuff)) return 42;
+    return stuff.m();
+  }
+}
+
+export class FixturePlain {
+  // NOT flagged: class name is not *Api / *Logic
+  public bareReturn(stuff: Stuff & { m(): number }): number {
+    return stuff.m();
+  }
+}
