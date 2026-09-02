@@ -326,7 +326,7 @@ export default class Material extends SingletonMixin(
   // `autoignitionTemperature` + `heatOfCombustion` feed the combustion
   // driver (`FireApi`); `meltingPoint`/`latentHeatOfFusion` +
   // `boilingPoint`/`latentHeatOfVaporization` feed the phase-change layer
-  // (`ThermalApi.reconcilePhase`). Zero means "does not participate" (an
+  // (the host's `reconcilePhase`). Zero means "does not participate" (an
   // unauthored material never ignites, never melts).
 
   /**
@@ -373,7 +373,7 @@ export default class Material extends SingletonMixin(
 
   /**
    * Melting point (`K`) — the solid↔liquid transition temperature (iron
-   * 1811, wax ≈ 330, water 273). `ThermalApi.reconcilePhase` holds
+   * 1811, wax ≈ 330, water 273). the host's `reconcilePhase` holds
    * temperature at this plateau while `latentHeatOfFusion` is absorbed,
    * then flows the mass to a `Bulkable` liquid. `0` = does not melt in the
    * modelled range.
@@ -415,7 +415,7 @@ export default class Material extends SingletonMixin(
 
   /**
    * Boiling point (`K`) — the liquid↔gas transition temperature (water
-   * 373, iron ≈ 3134). `ThermalApi.reconcilePhase` boils a liquid past it
+   * 373, iron ≈ 3134). the host's `reconcilePhase` boils a liquid past it
    * to a gas emission (steam). `0` = does not boil in the modelled range.
    */
   private _boilingPoint: Quantity<'K'> = Quantity.of(0, 'K');

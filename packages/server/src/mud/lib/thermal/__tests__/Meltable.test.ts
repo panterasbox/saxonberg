@@ -17,7 +17,6 @@ import Flask from '../../../platform/thing/Flask';
 import Casting from '../../../platform/thing/Casting';
 import { ThermalMixin } from '../Thermal';
 import { MeltableMixin } from '../Meltable';
-import { ThermalApi } from '../../../api/thermal';
 import { MixinApi } from '../../../api/mixin';
 import { ContainmentApi } from '../../../api/containment';
 import { StuffApi } from '../../../api/stuff';
@@ -89,7 +88,7 @@ describe('phase change — melt (solid → molten pool)', () => {
     let melted = false;
     for (let i = 0; i < 10; i++) {
       ingot.depositHeat(6000); // ΔT well above the melting point
-      ThermalApi.reconcilePhase(ingot);
+      if (MixinApi.isThermal(ingot)) ingot.reconcilePhase();
       if (ingot.isDestroyed()) {
         melted = true;
         break;
@@ -112,7 +111,7 @@ describe('phase change — melt (solid → molten pool)', () => {
     ContainmentApi.move(ingot, room);
     ingot.setStampedTemperatureK(1000); // well below 1811
     ingot.setLastAmbientK(1000);
-    ThermalApi.reconcilePhase(ingot);
+    if (MixinApi.isThermal(ingot)) ingot.reconcilePhase();
     expect(ingot.isDestroyed()).toBe(false);
     expect(ingot.getMeltPhase()).toBe('solid');
   });
@@ -137,7 +136,7 @@ describe('phase change — boil + freeze (ice → water → steam)', () => {
 
   it('boils a liquid to gas above its boiling point (steam)', () => {
     const { flask } = waterFlask(400); // > 373 K
-    ThermalApi.reconcilePhase(flask);
+    if (MixinApi.isThermal(flask)) flask.reconcilePhase();
     expect(flask.getBulkAmount('interior').rawValue()).toBe(0); // flashed to steam
   });
 
@@ -151,7 +150,7 @@ describe('phase change — boil + freeze (ice → water → steam)', () => {
         makeStuff(() => new Casting())) as unknown as typeof StuffApi.clone);
     try {
       const { flask, room } = waterFlask(260); // < 273 K → ice
-      ThermalApi.reconcilePhase(flask);
+      if (MixinApi.isThermal(flask)) flask.reconcilePhase();
       expect(flask.getBulkAmount('interior').rawValue()).toBe(0);
       await flush();
       await flush();
@@ -170,7 +169,7 @@ describe('phase change — boil + freeze (ice → water → steam)', () => {
 
   it('a liquid between its melting and boiling points is stable', () => {
     const { flask } = waterFlask(300); // room-ish — neither boils nor freezes
-    ThermalApi.reconcilePhase(flask);
+    if (MixinApi.isThermal(flask)) flask.reconcilePhase();
     expect(flask.getBulkAmount('interior').rawValue()).toBe(1);
   });
 });

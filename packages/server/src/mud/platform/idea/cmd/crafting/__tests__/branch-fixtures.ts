@@ -8,6 +8,7 @@
  */
 
 import { vi } from 'vitest';
+import { ThermalMixin } from '../../../../../lib/thermal/Thermal';
 import { AdvancementMixin } from '../../../../../lib/advancement/Advancement';
 import { PersonaMixin } from '../../../../../lib/character/Persona';
 import { CommandApi } from '../../../../../api/command';
@@ -51,10 +52,12 @@ export const DISH_T = '/stuff/thing/items/plated-dish';
 
 // Persona + Advancement composed since the OO sweep: the knowledge
 // ladder's claims/deeds and the transcript credits run ON the actor.
-export class TestActor extends AdvancementMixin(
-  PersonaMixin(
-    CommandGiverMixin(
-      SensorMixin(EngagedMixin(ContainerMixin(ContainableMixin(Idea)))),
+export class TestActor extends ThermalMixin(
+  AdvancementMixin(
+    PersonaMixin(
+      CommandGiverMixin(
+        SensorMixin(EngagedMixin(ContainerMixin(ContainableMixin(Idea)))),
+      ),
     ),
   ),
 ) {

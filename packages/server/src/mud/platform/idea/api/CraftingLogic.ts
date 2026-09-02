@@ -9,7 +9,6 @@ import { CorpoApi } from '../../../api/corpo';
 import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
 import { BulkableApi } from '../../../api/bulk';
-import { ThermalApi } from '../../../api/thermal';
 import { ExecutionContextApi } from '../../../api/execution-context';
 import { WorldClockApi } from '../../../api/worldclock';
 import { Quantity } from '../../../lib/quantity';
@@ -1342,7 +1341,7 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
   // recipe requiring heat declines when the hottest reachable furnace
   // doesn't clear it — a cold forge is a diegetic decline, not a flag.
   const requiresHeatK = recipe.getRequiresHeatK();
-  if (requiresHeatK > 0 && ThermalApi.reachableHeatFor(maker) < requiresHeatK) {
+  if (requiresHeatK > 0 && (MixinApi.isThermal(maker) ? maker.reachableHeatK() : 0) < requiresHeatK) {
     return {
       ok: false,
       reason: 'insufficient-heat',
@@ -1527,7 +1526,7 @@ async function repairImpl(req: RepairRequest): Promise<RepairOutcome> {
   let instrument: (Stuff & Tooled) | null = null;
   if (metal) {
     const heatK = dial(AppSettingKeys.craftingRepairMetalHeatK, 900);
-    if (ThermalApi.reachableHeatFor(maker) < heatK) {
+    if ((MixinApi.isThermal(maker) ? maker.reachableHeatK() : 0) < heatK) {
       return { ok: false, reason: 'insufficient-heat', detail: `${heatK}` };
     }
     instrument = tools.find((t) => t.hasCapability('anvil')) ?? null;

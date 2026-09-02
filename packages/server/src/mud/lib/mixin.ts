@@ -401,7 +401,7 @@ export const Mixins = {
   Combustible: 'CombustibleMixin',
   // Phase change — "I can melt": a solid whose material melts past its
   // meltingPoint (a latent-heat plateau), flowing to a Bulkable liquid.
-  // Driven by heat (ThermalApi.reconcilePhase), not fire-specific.
+  // Driven by heat (the host reconcilePhase), not fire-specific.
   Meltable: 'MeltableMixin',
   // Furnace — a Combustible-fuelled sustained heat source (forge/kiln/oven/
   // campfire): pinned hot while lit + fuelled, bellows-boosted, heats the

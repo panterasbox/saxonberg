@@ -1,6 +1,6 @@
 /**
  * Casting — the solid a molten `Bulkable` pool leaves behind when it cools
- * below its material's melting point (`ThermalApi.reconcilePhase`): a cast lump
+ * below its material's melting point (the host's `reconcilePhase`): a cast lump
  * of whatever froze (metal run into a mould, wax, ice). Composes `Meltable +
  * Thermal` over a `Thing`, so a casting is **re-meltable** — heat it again and
  * it flows back to a pool (the bidirectional phase change, honestly). Its

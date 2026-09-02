@@ -25,7 +25,6 @@ import type { Reserved } from '../reserve';
 import type { Container } from '../spatial/Container';
 import { Quantity } from '../quantity';
 import { MixinApi } from '../../api/mixin';
-import { ThermalApi } from '../../api/thermal';
 import { StuffApi } from '../../api/stuff';
 import { WorldClockApi } from '../../api/worldclock';
 import { TemplatePaths } from '../paths';
@@ -218,7 +217,7 @@ export function FurnaceMixin<TBase extends MixinConstructor<Stuff>>(
         const joules =
           (held - temp) * massKg * c * FURNACE_DEFAULTS.HEAT_TRANSFER_FRACTION;
         s.depositHeat(joules);
-        ThermalApi.reconcilePhase(s);
+        if (MixinApi.isThermal(s)) s.reconcilePhase();
       }
     }
 

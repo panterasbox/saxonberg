@@ -49,7 +49,6 @@ import { MixinApi } from '../../../api/mixin';
 import { MqlApi } from '../../../api/mql';
 import { Mixins } from '../../../lib/mixin';
 import { ConditionApi } from '../../../api/condition';
-import { ThermalApi } from '../../../api/thermal';
 import { FireApi } from '../../../api/fire';
 import { ElectricityApi } from '../../../api/electricity';
 import { BulkableApi } from '../../../api/bulk';
@@ -665,7 +664,7 @@ async function dischargeImpl(
  * wand *safer* than the equivalent cast — the wand is in the circuit and
  * the user is not.
  *
- * Routed through the shipped `ThermalApi` + `FireApi.tryAutoignite`
+ * Routed through the shipped the thermal mixin + `FireApi.tryAutoignite`
  * path, so whether it cracks or catches is a **materials-response read**
  * rather than a rule magic invented. That is the governing invariant
  * doing its job: magic is a new trigger, never a new mechanism.
@@ -681,7 +680,7 @@ function absorbWasteHeat(ctx: EffectContext, spell: SpellDescriptor): void {
   try {
     if (MixinApi.isThermal(endpoint)) endpoint.depositHeat(wasteJ);
     FireApi.tryAutoignite(endpoint);
-    ThermalApi.reconcilePhase(endpoint);
+    if (MixinApi.isThermal(endpoint)) endpoint.reconcilePhase();
   } catch {
     // A shell with no thermal surface simply has nowhere to put it.
     // Not an error — an item that cannot be heated cannot crack.
@@ -1101,7 +1100,7 @@ function execInjectChannel(
   }
   if (MixinApi.isThermal(target)) target.depositHeat((e.joules ?? 0) * potency);
   const lit = FireApi.tryAutoignite(target);
-  ThermalApi.reconcilePhase(target);
+  if (MixinApi.isThermal(target)) target.reconcilePhase();
   return lit
     ? 'It catches — real flame, and it will spread as real flame does.'
     : 'It heats under the working.';

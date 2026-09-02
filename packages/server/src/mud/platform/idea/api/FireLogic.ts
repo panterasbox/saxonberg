@@ -11,7 +11,6 @@ import type { Reserved } from '../../../lib/reserve';
 import type { Atmospheric } from '../../../lib/biome/Atmospheric';
 import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
-import { ThermalApi } from '../../../api/thermal';
 import { BiomeApi } from '../../../api/biome';
 import { ConnectionApi } from '../../../api/connection';
 import { WorldClockApi } from '../../../api/worldclock';
