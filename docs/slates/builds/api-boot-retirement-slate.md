@@ -4,6 +4,10 @@
 first conversion — `FermentApi.boot` → `FermentProfileCatalogue` —
 shipped with that MR as the exemplar).
 
+⭐ **Scoped 2026-09-02 — this lands as PHASE A of the OO sweep, not as
+its own build. The inventory below is UNDERSTATED (16 `boot()`s, not
+6) — see the foot of this file.**
+
 ## The complaint, and why it is right
 
 Apis are the surface CONTENT DEVELOPERS consume — `callable == visible
@@ -73,3 +77,46 @@ either stay on their subsystem Apis — Material/Condition have real
 consumer mandates — or, where an Api exists ONLY for its boot, the
 queries fold onto the owning class as statics, the FermentProfile
 precedent).
+
+---
+
+## Scoped 2026-09-02 — lands as Phase A of the OO sweep
+
+Decided with the user: this slate is **not a standalone build**. It is
+**Phase A** of [oo-calling-conventions-slate](./oo-calling-conventions-slate.md)
+— one branch, one MR, one review, one full-suite run. It goes first
+because it is mechanical and because it deletes Logic singletons the
+OO waves would otherwise have to touch twice.
+
+### ⚠ The inventory above is understated — it is 16, not 6
+
+Re-counted against master `0c1a29285`. `static boot()` on an Api:
+
+`WorldClockApi` · `MaterialApi` · `ConditionApi` · `RenownApi` ·
+`ConsumerApi` · `ProducerApi` · `ResidencyApi` · `CardApi` ·
+`SandboxApi` · `BankingApi` · `EmploymentApi` · `AttendantApi` ·
+`SocialApi` · `PartyApi` · `PressApi` · `RecordApi`
+
+...plus the hand-ordered singleton warms interleaved between them in
+`AppBootstrap`: `AppSettings.warm` · `RenownStanding.warm` ·
+`ParticipationStanding.warm` · `ProducerStanding.warm` ·
+`AccountBalance.warm` · `SupplyAggregate.warm`, and the three relay
+readers' own `boot()` (`Twitch`/`Youtube`/`Kick` — those are transport
+lifecycle under mandate (c) and **stay**, but the `*Api.boot()` line
+next to them should stop being their call-site symmetry argument).
+
+So the sequencer is **~26 ordered lines**, not six. Every ordering it
+encodes has to become an explicit `dependsOn` edge on the platform
+pack's `boot:` entries — the migration's real cost, and the reason
+this phase goes first while the tree is otherwise untouched.
+
+The three named risks stand unchanged: **ordering**, the
+**`AppSettings.warm()`-runs-after-`BootstrapManager.run()`** keystone,
+and the inert-at-boot recurrence (a fresh-DB boot must still stand
+every roster — that guarantee must not regress in the move).
+
+### Acceptance (unchanged, restated)
+
+`AppBootstrap`'s sequencer contains **zero** `Api.boot()` lines; the
+consumer doc projection shows no `boot()` anywhere; a fresh-DB boot
+stands every roster.

@@ -5,6 +5,10 @@ session as [api-boot-retirement-slate](./api-boot-retirement-slate.md)
 — the two are siblings: both shrink the Api tier's mandate back to
 what only it can do).
 
+⭐ **Scoped 2026-09-02 — read "Decided 2026-09-02" at the foot of this
+file first.** Both slates land as ONE build; all four line-drawing
+questions below are ANSWERED there.
+
 ## The doctrine, stated once
 
 We have types for a reason. A verb between typed objects belongs ON
@@ -135,3 +139,110 @@ resolve family) — re-litigating them is not this sweep; the
 `MixinApi`'s 140 narrowing predicates (the sanctioned surface); and
 everything in [api-boot-retirement-slate](./api-boot-retirement-slate.md),
 which should land first or together (both shrink the same tier).
+
+---
+
+## Decided 2026-09-02 — the build's shape
+
+The user took the maximal option on all four line-drawing questions.
+This section supersedes the open questions above; the census below
+supersedes the 2026-09-01 numbers.
+
+### The four answers
+
+1. **Scope: one build, both slates.** The `Api.boot()` retirement lands
+   FIRST (small, mechanical, and it deletes Logic singletons the OO
+   waves would otherwise touch twice), then the OO waves. One MR, one
+   review, one full-suite run.
+2. **Ledger writes are SUBJECTS.** `owner.recordDeed(…)` on a
+   ledger-face mixin, for the whole family — Chronicle, Advancement,
+   Trait, Regard, BeliefStore, Record. The banking-by-account-id
+   reading is rejected: the owner is a typed object, not a key. Cost
+   accepted: six new/extended mixins, and the append chokepoint becomes
+   a sealed host method (`@Final @Unshadowable`) rather than a static.
+   This retires Chronicle / Regard / Trait / BeliefStore outright.
+3. **Depth: all of it, Combat last.** No stopping at the small Apis.
+   The acceptance bar is the census re-run reporting ~0 mutating
+   object-verbs outside the four mandates.
+4. **The `Interactive` family gets real methods.** Connection, Card,
+   Prompt and Reaction's ~25 subject-first methods move onto
+   `Interactive` — it is a typed object like any other. It is NOT
+   exempted as boundary-adjacent. (The transports themselves — the
+   actual wire — stay under mandate (c).)
+
+### The refreshed census (2026-09-02, master `0c1a29285`)
+
+**1,348 statics across 103 Api classes**, plus 87 Logic singletons.
+533 take a Stuff-shaped first parameter. Removing `MixinApi`'s 144
+sanctioned narrowing predicates and the doctrine-exempt Apis
+(Containment, Locomotion, Condition, Scheduler, Schedule, Persistable,
+Shadow, Stuff, Sandbox, Prompt, Security, Proxy, Module,
+ExecutionContext, Event, SourceTree, Persist, Git, Script, HotReload,
+Template, Pack) leaves **188 subject-first methods across ~50 Apis**.
+Roughly 110 of those are true mutating verbs; the balance is the
+read/query tail the sweep converts opportunistically (§3 above).
+
+⭐ **Ten Apis take a subject on EVERY method** — the whole-Api
+retirement candidates, ordered by production caller files (the wave
+order, smallest blast radius first):
+
+| Api | methods (verbs/reads) | prod caller files |
+|---|---|---|
+| `BeliefStoreApi` | 4 / 0 | 3 |
+| `PostureApi` | 2 / 1 | 6 |
+| `CredentialApi` | 3 / 2 | 6 |
+| `RegardApi` | 4 / 1 | 8 |
+| `TraitApi` | 5 / 4 | 8 |
+| `ChronicleApi` | 4 / 1 | 10 |
+| `ThermalApi` | 2 / 1 | 13 |
+| `ElectricityApi` | 3 / 2 | 18 |
+| `SlotApi` | 4 / 4 | 20 |
+| `RecognitionApi` | 4 / 4 | 26 |
+
+The remaining volume, by verb count: `CombatApi` 15 (20 files),
+`PartyApi` 14 (11), `ForumsApi` 8 (5), `MagicApi` 7, `BulkableApi` 6,
+`EmploymentApi` 6 (38 files — the widest), `SocialApi` 6,
+`AdvancementApi` 5 (36 files), `BankingApi` 5, `ChatApi` 5,
+`MaterialApi` 5, then the ≤4 tail (Chattel, Fire, Group, Slot,
+Message, Subject, Weather, WorldClock, Conviction, Government,
+Perception, Record, and ~15 singletons).
+
+**Wave 0 re-verified.** `check-thin-forwarder.ts` handles
+`if (c) return <trivial>; return p.m(…)` but NOT the void shape
+`if (!isX) return; p.m(…)` — the ten already-illegal wrappers still
+pass. `ThermalLogic.depositHeat` is confirmed a literal duplicate of
+`Thermal.depositHeat` (`lib/thermal/Thermal.ts`); the Logic method is
+a `MixinApi.isThermal` guard and a forward, nothing else.
+
+### Sequencing
+
+- **Phase A — the boot retirement** (the sibling slate, whose inventory
+  is understated: **16** `static boot()`, not 6). Lands first.
+- **Phase B — wave 0**, the lint hardening + the ten already-illegal
+  wrappers.
+- **Phase C — the ledger family**, together, since (2) is one answer
+  for all six: the ledger-face mixin is designed once and composed six
+  times. Retires four Apis.
+- **Phase D — the remaining fully-subject Apis** in the table order.
+- **Phase E — `Interactive`**, per (4).
+- **Phase F — the mid-size Apis** (Fire, Glob, Chattel, Subject, Chat,
+  Magic, Social, Employment, Bulk, Forums, Party).
+- **Phase G — Combat**, alone, last.
+
+Requirements phase re-opens the wave boundaries; the phase ORDER is
+decided.
+
+### The acceptance instrument
+
+"The census re-run reports ~0" needs the census to be a **script in the
+tree**, not a one-off. Phase B ships it alongside the
+`check-thin-forwarder` hardening: a `scripts/check-object-verbs.ts`
+that walks `api/**`, resolves each static's first parameter type
+against the file's `lib/`+`platform/` imports, and reports
+subject-first methods outside the four mandates — with the exempt Api
+list ENUMERATED in the script (a deliberate edit to widen, the
+`lint:boundary` precedent) rather than inferred. Advisory at first, so
+the waves can watch the number fall; CI-gating at the end of Phase G.
+The scoping run (2026-09-02) used a throwaway of exactly this shape —
+its numbers are the table above, and it is the thing to re-derive
+properly, not to copy.
