@@ -15,7 +15,7 @@
  * ⚠ STOPGAP — superseded by the real lock model in the dorm/apartment
  * branch (`feature/dorm-apartment-residence`, `lib/lock/`): a `Lock`
  * value-object (`{ keyway, technology }`, re-keyable) that a door carries,
- * plus `Key` riding `CredentialWalletMixin` and `CredentialApi` — "the
+ * plus `Key` riding `CredentialWalletMixin` and the `Lock` key surface — "the
  * door checks a key, not identity." This boolean was built blind to that
  * work (MR !134 predates its merge) and is a degenerate special case of
  * it (a lock nobody holds a key for). **At merge, reconcile toward

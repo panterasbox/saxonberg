@@ -22,7 +22,6 @@ import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { ParcelApi } from '@saxonberg/server/mud/api/parcel';
-import { CredentialApi } from '@saxonberg/server/mud/api/credential';
 import { Lock } from '@saxonberg/server/mud/lib/lock/Lock';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { ExecutionContextApi } from '@saxonberg/server/mud/api/execution-context';
@@ -355,7 +354,7 @@ describe('DormWarren — the DormDoor key gate', () => {
     // bob holds no key and is blocked. Possession, not identity.
     await ParcelApi.setKeyway(k1, 'kw-1');
     await w.refreshProvisioned();
-    await CredentialApi.issueKey(iris, 'kw-1', 'pin-tumbler');
+    await Lock.issueKey(iris, 'kw-1', 'pin-tumbler');
     expect(w.keywayOf(k1)).toBe('kw-1');
     expect(door.canTraverse(iris as unknown as never).ok).toBe(true);
     expect(door.canTraverse(bob as unknown as never).ok).toBe(false);
@@ -378,7 +377,7 @@ describe('DormWarren — the DormDoor key gate', () => {
     const sam = makeStuffAtPath(() => new Avatar(), '/platform/agent/Avatar/sam');
     sam.setPlayerId('sam');
     // No unit key, but a pin-tumbler master → opens regardless of the keyway.
-    await CredentialApi.issueMasterKey(sam, 'pin-tumbler');
+    await Lock.issueMasterKey(sam, 'pin-tumbler');
     expect(door.canTraverse(sam as unknown as never).ok).toBe(true);
   });
 });

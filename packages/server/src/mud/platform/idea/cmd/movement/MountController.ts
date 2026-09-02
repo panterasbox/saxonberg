@@ -22,7 +22,6 @@ import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
 import { SlotApi } from '../../../../api/slot';
-import { PostureApi } from '../../../../api/posture';
 import { Postures } from '../../../../lib/slot/Postured';
 
 interface MountModel extends CommandModel {
@@ -87,7 +86,7 @@ export default class MountController extends CommandController<MountModel> {
       return;
     }
 
-    const from = PostureApi.findCurrentPostureBearingSlot(giver);
+    const from = giver.currentPostureBearingSlot();
 
     // SlotApi.transferOccupancy may throw on race or shape
     // violations; dispatcher's outer catch emits controller-error

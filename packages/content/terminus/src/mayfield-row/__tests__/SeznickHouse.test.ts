@@ -24,7 +24,7 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { ParcelApi } from '@saxonberg/server/mud/api/parcel';
 import { GroupApi } from '@saxonberg/server/mud/api/group';
-import { CredentialApi } from '@saxonberg/server/mud/api/credential';
+import { Lock } from '@saxonberg/server/mud/lib/lock/Lock';
 import { ChattelApi } from '@saxonberg/server/mud/api/chattel';
 import { AccessApi } from '@saxonberg/server/mud/api/access';
 import { CommandApi, type CommandContext, type ModelData } from '@saxonberg/server/mud/api/command';
@@ -313,12 +313,12 @@ describe('Seznick House — the lease loop', () => {
     const w = await building();
     const tenant = makeAvatar('iris');
     const issued: string[] = [];
-    vi.spyOn(CredentialApi, 'issueKey').mockImplementation((async (
+    vi.spyOn(Lock, 'issueKey').mockImplementation((async (
       _who: Stuff,
       keyway: string,
     ) => {
       issued.push(keyway);
-    }) as unknown as typeof CredentialApi.issueKey);
+    }) as unknown as typeof Lock.issueKey);
 
     const ctx = await run(makeStuff(() => new LeaseController()), walter, tenant, 'lease');
     expect(reasons(ctx)).toEqual([]);
