@@ -101,7 +101,7 @@ export default class AnalyzeWaterController extends CommandController<AnalyzeWat
       return;
     }
 
-    const drainage = this.drainage();
+    const drainage = await this.drainage();
     const flow =
       drainage?.flowAt === undefined
         ? null
@@ -160,11 +160,27 @@ export default class AnalyzeWaterController extends CommandController<AnalyzeWat
       .send();
   }
 
-  /** The drainage catalogue, if this realm ships one. */
-  private drainage(): DrainageView | null {
-    return (
-      (StuffApi.findByTemplatePath(CATALOGUE_PATH) as unknown as DrainageView) ??
-      null
-    );
+  /**
+   * The drainage catalogue, if this realm ships one.
+   *
+   * ⚠⚠ `singleton`, **not** `findByTemplatePath`. The non-creating
+   * lookup only finds the catalogue if something else happened to have
+   * cloned it first — so on a realm where nobody had yet asked a
+   * conduit anything, `analyze water` would have reported "nothing here
+   * knows about water" *forever*, and the test for it would have passed
+   * because the fixture cloned one by hand. That is the roster-nothing-
+   * warms failure this codebase has paid for three times, in a new hat.
+   *
+   * `singleton` lazily clones from the row the pack ships, so the first
+   * caller is the one that makes it exist. A realm with no water pack
+   * has no row, `singleton` throws, and the honest "nothing here knows
+   * about water" is then TRUE rather than an artifact.
+   */
+  private async drainage(): Promise<DrainageView | null> {
+    try {
+      return (await StuffApi.singleton(CATALOGUE_PATH)) as unknown as DrainageView;
+    } catch {
+      return null;
+    }
   }
 }

@@ -207,6 +207,7 @@ behavior. Read the relevant doc before editing in its area.
   - [time.md](./docs/subsystems/time.md) — game-time: WorldClockApi, SchedulerApi, CelestialApi, the calendar; the Timekeeping display seam
   - [app-settings.md](./docs/subsystems/app-settings.md) — the AppSettings singleton + key vocabulary, yaml seeding, AppApi reads, the `config` verb
   - [help.md](./docs/subsystems/help.md) — the in-game rulebook: the HelpTopic schema, the harvested catalogue, the REST help API, the `help` verb
+  - [watershed.md](./docs/subsystems/watershed.md) — water that gets somewhere: zone elevation (and why `coords.z` is not it), the exact precipitation integral shared by soil and river, `Watercourse` (topology authored · direction derived · a compiled reachability set), flow + snowpack + derived navigability, the `Conduit` ladder (a sewer is the same object reversed) over the six-word `SupplyState`, storage as the build's one piece of state, rights (prior appropriation records · riparian derives), contamination by kind, and the three basins
   - [wiki.md](./docs/subsystems/wiki.md) — the community encyclopedia: typed subjects, the frozen render pipeline, the two-axis reveal model (capability DELETES / appetite TAGS) and its one gate, snippets vs components, sticky anchors, the `wiki` verb
 
 ## ⚠ Worktrees — read before committing

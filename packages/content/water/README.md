@@ -14,11 +14,19 @@ edit shipped subsystems. Everything a *content author names* is here.
 
 | class | backs |
 |---|---|
-| `idea/Watercourse` | the river as an authored data `Idea`: nodes, connections, control-point elevations, catchment. Direction is derived from elevation; an author never writes an arrow. |
-| `idea/WatercourseCatalogue` | resolve-on-read registry over the authored rows; `reachOf`, `compare`, flow |
-| `thing/Conduit` | intake reach → delivery extent, capacity, owner, state. A sewer is the same object reversed. |
-| `thing/ControlStructure` | dam · headgate · weir — a setting that redistributes flow in time or in space |
-| `thing/StorageNode` | reservoir · tower · cistern — the build's one genuinely stateful thing |
+| `idea/Watercourse` | the river as an authored data `Idea`: nodes, control-point elevations, wild catchment. Direction is derived from elevation; an author never writes an arrow. |
+| `idea/WatercourseCatalogue` | the compile: reach ordinals, a reachability **set** (`compare` is one `Set.has`), flow, snowpack, navigability, contamination, and the one world scan |
+| `idea/WaterRightRegistry` | filing, transfer, seniority allocation, the per-window quota — and the riparian derivation that needs no record |
+| `thing/Conduit` | intake reach → delivery extent, capacity, owner, state. **A sewer is the same object reversed.** |
+| `thing/ControlStructure` | dam · headgate · weir — a setting that redistributes flow in **time** or in **space**, plus `ρ·g·Δh·Q·η` |
+| `thing/StorageNode` | reservoir · tower · cistern — the build's **one genuinely stateful thing** |
+
+The pack ships **no controllers and no verbs**. Everything a player
+types is a kernel verb: `analyze water` reads a supply over a *shape*
+(`SupplyReporting`), `switch` opens and closes a conduit's valve, and
+`boil` is `crafting`'s, afforded by the fire. That is the split working:
+the pack holds what other packs' content *names*, and the kernel holds
+what a player *does*.
 
 Source mirrors path: `src/idea/Watercourse.ts` backs
 `/water/idea/Watercourse`. The pack imports the kernel **only by package
@@ -29,7 +37,12 @@ specifier** (`@saxonberg/server/mud/lib/…`) through the server's
 
 - **The `water-right` document kind itself.** A pack cannot declare a
   `DocumentKind` — *"editing this file is a platform act"*. The kind is
-  kernel; its validated save is this pack's.
+  kernel; the validated save that decides what a legitimate right looks
+  like is this pack's.
+- **A mixin.** A pack's module categories are branches, controllers and
+  tests — there is no `lib/`. That is why the catalogue finds
+  withdrawals and outfalls by **shape** rather than by an MQL mixin
+  selector, and why `check-world-scan` names the one file that does it.
 - **Any particular river.** The Kestrel, the Confluence, the aqueduct and
   Wharfside are Terminus's and world-seed's content. A second realm needs
   zero code from here.

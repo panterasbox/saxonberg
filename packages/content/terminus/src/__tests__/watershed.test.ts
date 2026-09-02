@@ -32,6 +32,7 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { WeatherApi } from '@saxonberg/server/mud/api/weather';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import Biome from '@saxonberg/server/mud/lib/biome/Biome';
+import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import {
   makeStuff,
   makeStuffAtPath,
@@ -130,7 +131,11 @@ const catalogue = (): WatercourseCatalogue =>
 
 /** Build a live pack object from its own authored row. */
 let seq = 0;
-function fromRow<T>(rel: string, make: () => T, apply: (o: T, d: Record<string, unknown>) => void): T {
+function fromRow<T extends Stuff>(
+  rel: string,
+  make: () => T,
+  apply: (o: T, d: Record<string, unknown>) => void,
+): T {
   seq += 1;
   const d = data(rel);
   return makeStuffAtPath(() => {

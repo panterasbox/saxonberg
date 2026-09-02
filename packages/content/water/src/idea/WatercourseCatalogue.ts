@@ -253,6 +253,14 @@ export interface FlowReading {
   navigable: boolean;
 }
 
+/** What one walk of the world found. */
+interface WorldScan {
+  /** Withdrawals in force, in m³/s, keyed by the reach taken from. */
+  draws: Map<ReachRef, number>;
+  /** Outfalls in force, with what they are putting in and where. */
+  discharges: Array<{ at: ReachRef; load: number; kind: ContaminantKind }>;
+}
+
 interface CompiledIndex {
   reaches: Map<ReachRef, CompiledReach>;
   /** For each reach, every reach downstream of it. */
@@ -274,9 +282,6 @@ export default class WatercourseCatalogue extends Idea {
   >();
   private flowCacheSegment = -1;
 
-  /** Per-segment memo of the live withdrawal scan — see {@link liveDraws}. */
-  private drawCache: DrawLedger | null = null;
-  private drawCacheSegment = -1;
 
   /**
    * Residency veto — a load-bearing process-lifetime singleton is never
@@ -301,8 +306,6 @@ export default class WatercourseCatalogue extends Idea {
     this.loading = null;
     this.flowCache.clear();
     this.flowCacheSegment = -1;
-    this.drawCache = null;
-    this.drawCacheSegment = -1;
   }
 
   // ---------- reads ----------
@@ -459,41 +462,11 @@ export default class WatercourseCatalogue extends Idea {
   }
 
   /**
-   * Every withdrawal currently in force, discovered by walking the
-   * resident objects and asking each one whether it takes water.
-   *
-   * ⚠ **Derive-on-read, not a registry.** A registry that objects join
-   * at `postRegister` would need an ordering, an eviction hook and a
-   * re-registration on materialize, and every one of those is a way for
-   * the roster to go quietly stale — a failure this codebase has paid
-   * for three times. A scan cannot go stale. It costs one walk of the
-   * resident set, memoised on the same weather-segment key as flow, so
-   * it runs at most once per six game-hours.
+   * Every withdrawal currently in force. One `Set`-shaped answer out of
+   * {@link worldScan}'s single walk.
    */
   public async liveDraws(nowS: number): Promise<DrawLedger> {
-    const segment = Math.floor(nowS / WEATHER_DEFAULTS.SEGMENT_LENGTH_S);
-    if (segment !== this.drawCacheSegment || this.drawCache === null) {
-      this.drawCache = await this.scanDraws(nowS);
-      this.drawCacheSegment = segment;
-    }
-    return this.drawCache;
-  }
-
-  private async scanDraws(nowS: number): Promise<DrawLedger> {
-    const index = await this.index();
-    const out = new Map<ReachRef, number>();
-    for (const obj of StuffApi.getAllObjects()) {
-      const w = obj as unknown as Withdrawing;
-      if (typeof w.withdrawalM3S !== 'function') continue;
-      const ref = typeof w.getReachRef === 'function' ? w.getReachRef() : '';
-      const reach = index.reaches.get(ref);
-      if (reach === undefined) continue;
-      const natural = this.naturalFlowOf(reach, nowS).total;
-      const taken = w.withdrawalM3S.call(obj, natural);
-      if (!Number.isFinite(taken) || taken <= 0) continue;
-      out.set(ref, (out.get(ref) ?? 0) + taken);
-    }
-    return out;
+    return (await this.worldScan(nowS)).draws;
   }
 
   /**
@@ -505,11 +478,8 @@ export default class WatercourseCatalogue extends Idea {
    * sits above or below an outfall is already a fact about the terrain,
    * derived from elevation and **authored by nobody**; all this method
    * does is read that fact back. An intake above the outfall is clean;
-   * the same intake a mile down is not; and moving it is free, which is
-   * historically the first real answer anybody found.
-   *
-   * The scan is the {@link liveDraws} shape and the same per-segment
-   * memo, for the same reasons.
+   * the same intake a reach down is not; and moving it is free, which
+   * is historically the first real answer anybody found.
    */
   public async contaminationAt(
     ref: ReachRef,
@@ -525,29 +495,18 @@ export default class WatercourseCatalogue extends Idea {
       nutrient: 0,
     };
 
-    for (const obj of StuffApi.getAllObjects()) {
-      const d = obj as unknown as Discharging;
-      if (typeof d.dischargeLoad !== 'function') continue;
-      const at =
-        typeof d.getDischargeReach === 'function' ? d.getDischargeReach() : '';
-      if (at === '') continue;
-
-      // An outfall BELOW you is not your problem, and one on another
+    for (const { at, load, kind } of (await this.worldScan(nowS)).discharges) {
+      // An outfall BELOW you is not your problem, and one in another
       // basin is not anybody's — `hops` answers both by being null.
       const hops = at === ref ? 0 : await this.hopsDownstream(at, ref);
       if (hops === null) continue;
-
-      const { load, kind } = d.dischargeLoad.call(obj);
-      if (!Number.isFinite(load) || load <= 0) continue;
       const survival = CONTAMINANT_SURVIVAL_PER_HOP[kind] ?? 1;
       byKind[kind] += load * Math.pow(survival, hops);
     }
 
     const total =
       byKind.organic + byKind.persistent + byKind.sediment + byKind.nutrient;
-    if (total <= 0) {
-      return { reachRef: ref, level: 0, byKind };
-    }
+    if (total <= 0) return { reachRef: ref, level: 0, byKind };
 
     // Dilution. A floor on the divisor so a reach that has run dry
     // reports "filthy", not "infinite" — which is both truer and the
@@ -565,6 +524,78 @@ export default class WatercourseCatalogue extends Idea {
         nutrient: byKind.nutrient * scale,
       },
     };
+  }
+
+  /**
+   * ⚠ **The build's one enumeration of the world, and it answers BOTH
+   * questions in a single walk.**
+   *
+   * Who is taking water out and who is putting dirt in are the same
+   * question asked of the same objects, so they share one pass.
+   *
+   * ⚠ **Deliberately NOT memoised**, unlike natural flow. The walk
+   * itself is a `typeof` check per resident object and costs
+   * microseconds; the expensive part is the snowpack integral it calls
+   * per withdrawer, and that is *already* memoised per reach per
+   * weather segment. Caching the walk on top bought nothing and cost
+   * correctness: a player who shut a sluice would have watched the
+   * river stay dirty for up to six game-hours, because the closed
+   * outfall was still sitting in a cache keyed on the weather. Cache
+   * the expensive derivation, never the enumeration.
+   *
+   * **Why a scan and not a registry.** A registry that objects joined
+   * at `postRegister` would need an ordering, an eviction hook and a
+   * re-registration on materialize, and every one of those is a way for
+   * the roster to go quietly stale — a failure this codebase has paid
+   * for three times. A scan cannot go stale.
+   *
+   * **Why not MQL**, which is normally how you search: MQL selects by
+   * MIXIN, and a capability pack cannot ship a mixin (its module
+   * categories are branches, controllers and tests — no `lib/`). Its
+   * `class.X` filter matches by class NAME, and three unrelated things
+   * in this codebase are called `Conduit`. So a shape scan is the
+   * honest mechanism available here — and `check-world-scan` names this
+   * file, so the choice is a diff a reviewer sees rather than a hole in
+   * a gate.
+   */
+  private async worldScan(nowS: number): Promise<WorldScan> {
+    const index = await this.index();
+    const draws = new Map<ReachRef, number>();
+    const discharges: Array<{
+      at: ReachRef;
+      load: number;
+      kind: ContaminantKind;
+    }> = [];
+
+    for (const obj of StuffApi.getAllObjects()) {
+      const w = obj as unknown as Withdrawing & Discharging;
+
+      if (typeof w.withdrawalM3S === 'function') {
+        const ref = typeof w.getReachRef === 'function' ? w.getReachRef() : '';
+        const reach = index.reaches.get(ref);
+        if (reach !== undefined) {
+          const natural = this.naturalFlowOf(reach, nowS).total;
+          const taken = w.withdrawalM3S.call(obj, natural);
+          if (Number.isFinite(taken) && taken > 0) {
+            draws.set(ref, (draws.get(ref) ?? 0) + taken);
+          }
+        }
+      }
+
+      if (typeof w.dischargeLoad === 'function') {
+        const at =
+          typeof w.getDischargeReach === 'function'
+            ? w.getDischargeReach()
+            : '';
+        if (at !== '' && index.reaches.has(at)) {
+          const { load, kind } = w.dischargeLoad.call(obj);
+          if (Number.isFinite(load) && load > 0) {
+            discharges.push({ at, load, kind });
+          }
+        }
+      }
+    }
+    return { draws, discharges };
   }
 
   /**

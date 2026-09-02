@@ -453,8 +453,17 @@ export default class Conduit extends ConduitBase {
         lines: ['No drainage is loaded, so nothing can be said about it.'],
       };
     }
-    const reading = await this.readingFor(catalogue, nowS, this.capacityM3S);
-    const flow = await catalogue.flowAt(this.reachRef, nowS);
+    // ⚠ Against the LIVE draws, not against nature. A report that
+    // ignored every other intake on the river would tell a player their
+    // main is fine on exactly the August day it is not.
+    const draws = await catalogue.liveDraws(nowS);
+    const reading = await this.readingFor(
+      catalogue,
+      nowS,
+      this.capacityM3S,
+      draws,
+    );
+    const flow = await catalogue.flowAt(this.reachRef, nowS, draws);
     const lines: string[] = [];
 
     lines.push(

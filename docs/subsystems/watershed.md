@@ -1,9 +1,8 @@
 # Watershed
 
-> **Skeleton (W0).** Each wave fills in its own section as it lands; the
-> doc is complete at W10. Built from
-> [water-requirements.md](../requirements/water-requirements.md) and
-> [water-plan.md](../plans/water-plan.md).
+Built from the water requirements (D1–D27). The kernel takes the
+physics; the [`water` capability pack](../../packages/content/water/)
+takes the works.
 
 The subsystem that makes water **get somewhere**. Water already had
 physics everywhere and weather nowhere: it is bulk matter you can fill,
@@ -829,17 +828,6 @@ The arg is declared `requires: any` deliberately: a waterworks is
 recognised by the shape it answers, not by a mixin, because there is no
 kernel mixin here to name.
 
-## Contents
-
-- Elevation — the zone field, and why `coords.z` is not it
-- `Watercourse` — topology authored, direction derived
-- Flow, snowpack and navigability
-- `Conduit` — the conveyance ladder
-- Storage and control structures
-- Rights
-- Contamination and the counterplay ladder
-- The three basins
-
 ## The realm on the water (W9)
 
 ### Three basins, and the third one is the decision
@@ -969,9 +957,45 @@ watershed.
 
 | | |
 |---|---|
-| **kernel — the physics** | zone elevation (`lib/zone/Zone.ts`), the precipitation integral (`api/weather.ts` + `platform/idea/api/WeatherLogic.ts`), the pressure fallback (`platform/idea/api/BiomeLogic.ts`), the rain→soil edge (`lib/husbandry/Cultivable.ts`), the `water-right` document kind (`lib/document/DocumentKinds.ts`) |
-| **`water` pack — the works** | `packages/content/water/src/` |
-| **content** | the basins and Terminus's works — `world-seed`, `terminus`, `hinkley-hills` |
+| **kernel — the physics** | zone elevation (`lib/zone/Zone.ts` + `ZoneApi.elevationFor`) · the precipitation integral and the segment walk (`api/weather.ts` + `platform/idea/api/WeatherLogic.ts`) · the pressure fallback (`platform/idea/api/BiomeLogic.ts`) · the rain→soil edge (`lib/husbandry/Cultivable.ts`) · the supply vocabulary (`lib/supply/SupplyState.ts`) · the `water-right` kind (`lib/document/DocumentKinds.ts`) · `ParcelRecord.reach` · `Material.purifiedByBoiling` · `analyze water` + `boil` |
+| **`water` pack — the works** | `Watercourse`, `WatercourseCatalogue`, `Conduit`, `ControlStructure`, `StorageNode`, `WaterRightRegistry` — `packages/content/water/src/` |
+| **content** | the basins and Terminus's works — `world-seed` (the watercourses + the localities' declarations), `terminus` (Wharfside, the valley road, the aqueduct), `hinkley-hills` (the District tank) |
 
 The split follows arcana's membership test: **a capability pack holds
-what other packs' content names.**
+what other packs' content names.** The kernel never imports the pack —
+where it must read one of these objects it goes by **shape**
+(`SupplyReporting`) or by template path, the `HoldingView` seam the
+residences build established.
+
+## Dials
+
+Everything tunable lives in **one** authored file,
+`packages/content/water/content/settings/water.yaml`, because the
+numbers only make sense read against each other: how hard it rains
+decides how much a bed gets, which decides how much a reach carries,
+which decides whether a right binds.
+
+⚠ Every key has a **seeded literal at its call site**, so the kernel
+behaves correctly with the `water` pack absent and the dials only ever
+*retune* what already works. A dial that only works when a pack is
+installed is a dial that fails silently.
+
+## What this build deliberately did NOT do
+
+- **Domestic metering.** The mains stay effectively unlimited at the
+  household tap; rivalry lives at agricultural and industrial scale,
+  where it belongs.
+- **Mass conservation at watershed scale.** The sky supplies and the sea
+  absorbs. Conservation applies to water in a **vessel**, which is where
+  a player can count it.
+- **Pipe segments and within-district networks.** *A conduit has two
+  ends.* The review test for anything proposed here: **does this add a
+  node between an intake and a delivery?** If yes, it is out of scope.
+- **Treatment as a modelled process.** It is an attribute of a conduit,
+  not a plant with stages.
+- **Boats, swimming, on-water rooms.** Navigation is a *claim*; the
+  vessel is fishing's and freight's. When that wave lands it will read a
+  river that already knows where it is navigable, and knows that changes
+  with the season.
+- **A new civics jurisdiction tier.** A river authority is a **firm**.
+- **Any new collection.** `pnpm lint:schema` still reports 48.
