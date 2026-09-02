@@ -211,9 +211,9 @@ describe('trade-distilling — the floor rows', () => {
       expect(stocks.has(r.data.container as string), `${r.file} container`).toBe(true);
       expect(materials.has(r.data.interiorMaterial as string), `${r.file} material`).toBe(true);
     }
-    // The counter is a pure brokerage: no lines, so reset() is a no-op.
-    const counter = rows('thing').find((r) => r.file === 'counter.yaml')!;
-    expect(counter.data.stockLines).toEqual([]);
+    // (The counter itself moved to the `distribution` pack —
+    // fermentation D10; its brokerage shape is asserted there-adjacent
+    // in the kernel's restocks/annex suites.)
   });
 
   it('every hand names the COUNTER as its host shelf and its own stock (the annex names the host)', () => {
@@ -222,7 +222,7 @@ describe('trade-distilling — the floor rows', () => {
         (b) => b.brain === '/lib/behavior/consigns',
       );
       expect(spec, hand.file).toBeDefined();
-      expect(spec!.config.shelf).toBe(`${ROOT}/thing/counter`);
+      expect(spec!.config.shelf).toBe('/trade/distribution/thing/counter');
       expect(String(spec!.config.stock).startsWith(`${ROOT}/thing/`)).toBe(true);
       // Every floor row homed in this hand's stock has an ask.
       const asks = spec!.config.ask as Record<string, number>;

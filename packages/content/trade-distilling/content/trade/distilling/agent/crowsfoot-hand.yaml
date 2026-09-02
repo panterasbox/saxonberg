@@ -24,7 +24,7 @@ data:
       trigger: cadence:90s
       config:
         stock: /trade/distilling/thing/crowsfoot-stock
-        shelf: /trade/distilling/thing/counter
+        shelf: /trade/distribution/thing/counter
         batch: 6
         ask:
           spirit:crowsfoot-gin: 40

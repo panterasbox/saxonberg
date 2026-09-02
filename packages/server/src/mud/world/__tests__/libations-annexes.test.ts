@@ -49,7 +49,7 @@ const isYardRow = (path: string, data?: Record<string, unknown>): boolean =>
   data?.container === VESHKO_STOCK ||
   data?.container === HOLLIS_STOCK;
 const YARDS = ['veshko', 'hollis'];
-const COUNTER = '/trade/distilling/thing/counter';
+const COUNTER = '/trade/distribution/thing/counter';
 
 interface Row {
   pack: string;

@@ -1,7 +1,7 @@
-# The cash-and-carry counter — the distributor's Stock fixture with NO
-# `stockLines`: nothing here is cloned to par, and `reset()` is a no-op. It
-# composes the consignment shelf (one counter is both), so everything on it
-# was CONSIGNED — by a producer's floor hand trading as its outfit (the
+# The cash-and-carry counter — the distributor's Stock fixture with ONE
+# stocked line (the malt sack — the imported-input faucet, topped to par
+# on the reset sweep; fermentation D10) atop the consignment shelf it
+# composes (one counter is both). Everything else on it was CONSIGNED — by a producer's floor hand trading as its outfit (the
 # `consigns` brain), by a corpo's, by a player. A venue's keeper buys here
 # (`wallet use house`, `buy gin`), and each sale splits to the consignor's
 # operating account. Self-service and instant, like the general store's.
@@ -17,6 +17,11 @@ data:
   attendDurationMs: 0
   staffingPolicy: self-service
   serverPositionKeys: [clerk]
-  businessPath: /trade/distilling/idea/business
-  stockLines: []
-  prices: {}
+  businessPath: /trade/distribution/idea/business
+  stockLines:
+    - { itemTemplatePath: /trade/distribution/thing/malt-sack, par: 6 }
+  prices:
+    # Against the shipped ladder (stipend 20; soil-sack 2, small pot 3):
+    # a brew day's grain, reachable on the stipend with change left for
+    # the carboy.
+    /trade/distribution/thing/malt-sack: 5

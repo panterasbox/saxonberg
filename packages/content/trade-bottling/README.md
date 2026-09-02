@@ -10,7 +10,7 @@ Ships: seven mixer + juice materials (the carbonated ones tagged
 `latentHeatOfFusion`, so it melts by the same arithmetic a drink's ice
 does), the `can` and `mixer-bottle` vessels, the floor rows incl. the
 `ice-bag` and `can-of-cola`, the bottling outfit consigning onto
-`/trade/distilling/thing/counter`, and the `soft-drink` serving recipe
+`/trade/distribution/thing/counter`, and the `soft-drink` serving recipe
 (a glass of soda for the patron who isn't drinking — `mixer` is the
 category tag the cocktails draw on, not a recipe).
 

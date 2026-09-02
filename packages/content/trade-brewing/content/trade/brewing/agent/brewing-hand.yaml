@@ -22,7 +22,7 @@ data:
       trigger: cadence:90s
       config:
         stock: /trade/brewing/thing/brewing-stock
-        shelf: /trade/distilling/thing/counter
+        shelf: /trade/distribution/thing/counter
         batch: 6
         ask:
           keg:ale: 60

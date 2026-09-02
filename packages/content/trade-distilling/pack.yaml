@@ -8,8 +8,11 @@ description: >-
   rums, tequila, the liqueurs, aperitivo, bitters), the stock vessel every
   floor product is a row over (`SpiritBottle`), the still (the distillery
   build's tool, waiting), the `distilling` discipline its recipes will
-  derive, and the CASH-AND-CARRY — the distributor every venue buys its
-  rail from. Nothing here is `props`-magic: the floor product stands
+  derive. (The cash-and-carry moved OUT to the
+  `distribution` pack — fermentation D10: a distributor is distribution
+  infrastructure, and while it lived here every sibling trade depended
+  on distilling for exactly that one path.) Nothing here is
+  `props`-magic: the floor product stands
   at target through the spawn sweep (the sanctioned faucet), and a
   producer's own outfit consigns it onto the distributor's counter with
   the `consigns` brain. The two corpo-owned producers live HERE too —
@@ -17,7 +20,7 @@ description: >-
   bottling floor (the flat `hollis-*` rows) — because a bottle of Volk is a product of
   the distilling PROCESS; the corpo pack supplies the capital and the
   mark, and each yard's `parentOrganization` points up at it. The trade
-  names nobody downstream; the stub trades name the counter.
+  names nobody downstream; every producer names distribution's counter.
 requires:
   groups:
     - name: distilling
@@ -29,7 +32,6 @@ boot:
   # The producers' floors: nothing else ever instantiates a producer's yard, and
   # the hands that run the consigns brain must be resident for the beat to
   # fire (a room populates its cast).
-  - { template: /trade/distilling/location/cash-and-carry, role: producer, reason: "the distributor's counter must be resident for the annexes' hands to consign onto it and for the boot spawn sweep to have a census" }
   - { template: /trade/distilling/location/crowsfoot-floor, role: producer, reason: "the Crowsfoot outfit's yard — same shape as the floor's, one small-batch label" }
   - { template: /trade/distilling/location/veshko-yard/location/distillery, role: producer, reason: "Veshko's yard — its Stock is the home container the Volk and unbranded rows spawn into (the zone's stocks: sets the counts), and its hand runs the consigns brain" }
   - { template: /trade/distilling/location/hollis-floor, role: producer, reason: "Hollis's bottling floor — its Stock is the home container the private-label rows spawn into, and its hand runs the consigns brain" }
@@ -37,7 +39,6 @@ boot:
   # purchasing positions (and deals each its house card) only over a LIVE
   # business — a lazily stood-up one would leave the first beat trading as
   # nobody.
-  - { template: /trade/distilling/idea/business, role: producer, reason: "the distributor's Business must be live so its clerk is rostered before the first buy" }
   - { template: /trade/distilling/idea/crowsfoot-outfit, role: producer, reason: "the Crowsfoot hand's `purchases` position likewise" }
   - { template: /trade/distilling/location/veshko-yard/idea/outfit, role: producer, reason: "Veshko Distilling (parentOrganization /corpo/veshko) — the hand's purchases position is materialized over a live business; the consigns beat trades as it" }
   - { template: /trade/distilling/idea/hollis-outfit, role: producer, reason: "Hollis Bottling (parentOrganization /corpo/hollis) — likewise" }

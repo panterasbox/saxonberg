@@ -24,10 +24,10 @@ data:
       purchases: true
   rosterSlots:
     - positionKey: clerk
-      assignee: /trade/distilling/agent/clerk
+      assignee: /trade/distribution/agent/clerk
       schedule:
         - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 22] }
   banksAt: goodkin
   operatingLocations:
-    - /trade/distilling/thing/counter
-    - /trade/distilling/location/cash-and-carry
+    - /trade/distribution/thing/counter
+    - /trade/distribution/location/cash-and-carry

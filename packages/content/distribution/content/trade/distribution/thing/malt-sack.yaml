@@ -1,0 +1,21 @@
+# A sack of malt — the imported-input faucet (fermentation D10): the
+# one STOCKED line on an otherwise consignment-only counter, topped to
+# par on the reset sweep. Honestly labelled a stub upstream: nobody in
+# the world malts barley yet, so the sacks simply arrive — the same
+# kind of faucet the stub floors ran on, one tier further up, and the
+# first thing a malting trade replaces.
+#
+# 25 L of malt at 600 g/L ≈ 15 kg — a brew day's worth. The mash tun
+# takes it by `pour`; the measure grammar cuts it down for the carboy.
+class: /platform/thing/Receptacle
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a sack of malt
+  primaryKeyword: malt
+  keywords: [malt, sack, grain, "malt sack", barley]
+  longDescription: |
+    A stitched jute sack stencilled MALT, heavy and faintly sweet. The grain inside is pale, dry, and crunches underfoot where a seam has leaked.
+  interiorBulk: true
+  interiorCapacity: 25
+  interiorMaterial: /stuff/idea/material/food/malt
+  interiorAmount: 25

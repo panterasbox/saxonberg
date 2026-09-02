@@ -37,10 +37,10 @@ data:
     north:
       destination: /world/terminus/general-store/shop-floor
     # SOUTH into the cash-and-carry — the district's drinks distributor
-    # (trade-distilling's showroom; the bar's keeper buys here). Cross-zone
+    # (the distribution pack's showroom; the bar's keeper buys here). Cross-zone
     # cardinal exit, both sides explicit — the hall declares NORTH back.
     south:
-      destination: /trade/distilling/location/cash-and-carry
+      destination: /trade/distribution/location/cash-and-carry
     # SOUTHWEST down the side lane to the farmers market square — the
     # produce end of the district, deliberately off the money block
     # (demand-side placement: the buyers are already here). Cross-zone,

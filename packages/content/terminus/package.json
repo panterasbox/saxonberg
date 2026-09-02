@@ -10,13 +10,13 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@saxonberg/content-distribution": "workspace:*",
     "@saxonberg/content-corpo-goodkin": "workspace:*",
     "@saxonberg/content-corpo-vionne": "workspace:*",
     "@saxonberg/content-generic-objects": "workspace:*",
     "@saxonberg/content-platform": "workspace:*",
     "@saxonberg/content-residence": "workspace:*",
     "@saxonberg/content-saxonberg-lounge": "workspace:*",
-    "@saxonberg/content-trade-distilling": "workspace:*",
     "@saxonberg/content-trade-farming": "workspace:*",
     "@saxonberg/content-trade-smithing": "workspace:*",
     "@saxonberg/server": "workspace:*",

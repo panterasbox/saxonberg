@@ -28,7 +28,7 @@ data:
     north:
       destination: /world/terminus/counting-houses/avenue-block
   props:
-    - /trade/distilling/thing/racking
-    - /trade/distilling/thing/counter
+    - /trade/distribution/thing/racking
+    - /trade/distribution/thing/counter
   cast:
-    - /trade/distilling/agent/clerk
+    - /trade/distribution/agent/clerk

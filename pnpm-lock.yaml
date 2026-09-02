@@ -32,6 +32,9 @@ importers:
       '@saxonberg/content-corpo-vionne':
         specifier: workspace:*
         version: link:packages/content/corpo-vionne
+      '@saxonberg/content-distribution':
+        specifier: workspace:*
+        version: link:packages/content/distribution
       '@saxonberg/content-eternal-university':
         specifier: workspace:*
         version: link:packages/content/eternal-university
@@ -307,6 +310,21 @@ importers:
         specifier: workspace:*
         version: link:../../types
 
+  packages/content/distribution:
+    dependencies:
+      '@saxonberg/content-base-library':
+        specifier: workspace:*
+        version: link:../base-library
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:../platform
+      '@saxonberg/server':
+        specifier: workspace:*
+        version: link:../../server
+      '@saxonberg/types':
+        specifier: workspace:*
+        version: link:../../types
+
   packages/content/eternal-university:
     dependencies:
       '@saxonberg/content-generic-objects':
@@ -484,12 +502,12 @@ importers:
       '@saxonberg/content-corpo-vionne':
         specifier: workspace:*
         version: link:../corpo-vionne
+      '@saxonberg/content-distribution':
+        specifier: workspace:*
+        version: link:../distribution
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform
-      '@saxonberg/content-trade-distilling':
-        specifier: workspace:*
-        version: link:../trade-distilling
       '@saxonberg/content-trade-hospitality':
         specifier: workspace:*
         version: link:../trade-hospitality
@@ -520,6 +538,9 @@ importers:
       '@saxonberg/content-corpo-vionne':
         specifier: workspace:*
         version: link:../corpo-vionne
+      '@saxonberg/content-distribution':
+        specifier: workspace:*
+        version: link:../distribution
       '@saxonberg/content-generic-objects':
         specifier: workspace:*
         version: link:../generic-objects
@@ -532,9 +553,6 @@ importers:
       '@saxonberg/content-saxonberg-lounge':
         specifier: workspace:*
         version: link:../saxonberg-lounge
-      '@saxonberg/content-trade-distilling':
-        specifier: workspace:*
-        version: link:../trade-distilling
       '@saxonberg/content-trade-farming':
         specifier: workspace:*
         version: link:../trade-farming
@@ -563,12 +581,12 @@ importers:
       '@saxonberg/content-base-library':
         specifier: workspace:*
         version: link:../base-library
+      '@saxonberg/content-distribution':
+        specifier: workspace:*
+        version: link:../distribution
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform
-      '@saxonberg/content-trade-distilling':
-        specifier: workspace:*
-        version: link:../trade-distilling
       '@saxonberg/server':
         specifier: workspace:*
         version: link:../../server
@@ -581,12 +599,12 @@ importers:
       '@saxonberg/content-base-library':
         specifier: workspace:*
         version: link:../base-library
+      '@saxonberg/content-distribution':
+        specifier: workspace:*
+        version: link:../distribution
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform
-      '@saxonberg/content-trade-distilling':
-        specifier: workspace:*
-        version: link:../trade-distilling
       '@saxonberg/server':
         specifier: workspace:*
         version: link:../../server
@@ -605,6 +623,9 @@ importers:
       '@saxonberg/content-corpo-veshko':
         specifier: workspace:*
         version: link:../corpo-veshko
+      '@saxonberg/content-distribution':
+        specifier: workspace:*
+        version: link:../distribution
       '@saxonberg/content-generic-objects':
         specifier: workspace:*
         version: link:../generic-objects
@@ -633,12 +654,12 @@ importers:
       '@saxonberg/content-base-library':
         specifier: workspace:*
         version: link:../base-library
+      '@saxonberg/content-distribution':
+        specifier: workspace:*
+        version: link:../distribution
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform
-      '@saxonberg/content-trade-distilling':
-        specifier: workspace:*
-        version: link:../trade-distilling
       '@saxonberg/server':
         specifier: workspace:*
         version: link:../../server
@@ -658,15 +679,15 @@ importers:
       '@saxonberg/content-base-library':
         specifier: workspace:*
         version: link:../base-library
+      '@saxonberg/content-distribution':
+        specifier: workspace:*
+        version: link:../distribution
       '@saxonberg/content-generic-objects':
         specifier: workspace:*
         version: link:../generic-objects
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform
-      '@saxonberg/content-trade-distilling':
-        specifier: workspace:*
-        version: link:../trade-distilling
       '@saxonberg/server':
         specifier: workspace:*
         version: link:../../server
@@ -763,12 +784,12 @@ importers:
       '@saxonberg/content-base-library':
         specifier: workspace:*
         version: link:../base-library
+      '@saxonberg/content-distribution':
+        specifier: workspace:*
+        version: link:../distribution
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform
-      '@saxonberg/content-trade-distilling':
-        specifier: workspace:*
-        version: link:../trade-distilling
       '@saxonberg/server':
         specifier: workspace:*
         version: link:../../server

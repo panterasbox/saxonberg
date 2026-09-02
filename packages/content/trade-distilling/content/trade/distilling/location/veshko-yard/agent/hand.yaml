@@ -20,7 +20,7 @@ data:
       trigger: cadence:90s
       config:
         stock: /trade/distilling/location/veshko-yard/thing/stock
-        shelf: /trade/distilling/thing/counter
+        shelf: /trade/distribution/thing/counter
         batch: 6
         ask:
           # Volk carries the mark and a premium over the same liquid
