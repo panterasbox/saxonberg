@@ -69,6 +69,57 @@ export default class FermentProfile extends SingletonMixin(Idea) {
    */
   public sealedOnly = false;
 
+  // ── yeast, wild and kept (D14/P12) ──
+
+  /**
+   * The profile KIND: an ordinary `ferment` converts sugar; a
+   * `culture` is a batch you keep alive — its "conversion" is
+   * viability (starves over game-time, restored by feeding, killed
+   * above `killK`, slowed by the cellar).
+   */
+  public kind: 'ferment' | 'culture' = 'ferment';
+  /** Culture profiles: the strain this culture IS (what a pitch carries). */
+  public strain = '';
+  /**
+   * Ferment profiles: the strain the batch MUST carry to convert
+   * (lager's gate). `''` = any strain converts.
+   */
+  public requiresStrain = '';
+  /** The strain a wild start yields (fruit-skin bloom, the lambic lag). */
+  public wildStrain = 'wild';
+  /**
+   * Game-days an OPEN sterile must waits before wild flora take it
+   * (the lambic move). `0` = the must self-starts at fill (fruit skin
+   * bloom). A SEALED sterile must never starts — D3's second edge.
+   */
+  public spontaneousLagDays = 0;
+  /**
+   * Above this (K) the yeast dies — a hot pitch kills and nothing
+   * starts; a batch run this hot goes sterile again (stuck ferment).
+   * For a culture profile: viability drops to zero. `null` = no kill
+   * modelled.
+   */
+  public killK: number | null = null;
+  /**
+   * Above this (K) conversion stops entirely (authored dormancy —
+   * lager's warm refusal). Distinct from `damageAboveK`, which
+   * degrades the grade while still converting. `null` = none.
+   */
+  public stallAboveK: number | null = null;
+  /**
+   * Fraction of the batch volume left behind as lees at `finished` —
+   * the rack floor (`pour` draws product down to it), and the culture
+   * harvest (what remains IS `leesMaterial`). `0` = no lees.
+   */
+  public leesFraction = 0;
+  /** Template path of the lees material the residual becomes. */
+  public leesMaterial = '';
+  /**
+   * Culture profiles: unfed game-days (in the happy band) for
+   * viability to starve 1 → 0. The cellar slows it; heat speeds it.
+   */
+  public starveDays = 14;
+
   static fieldMeta: FieldMeta = {
     key: { persistent: true, authorable: true },
     inputCategory: { persistent: true, authorable: true },
@@ -80,6 +131,16 @@ export default class FermentProfile extends SingletonMixin(Idea) {
     turnedMaterial: { persistent: true, authorable: true },
     turnDays: { persistent: true, authorable: true },
     sealedOnly: { persistent: true, authorable: true },
+    kind: { persistent: true, authorable: true },
+    strain: { persistent: true, authorable: true },
+    requiresStrain: { persistent: true, authorable: true },
+    wildStrain: { persistent: true, authorable: true },
+    spontaneousLagDays: { persistent: true, authorable: true },
+    killK: { persistent: true, authorable: true },
+    stallAboveK: { persistent: true, authorable: true },
+    leesFraction: { persistent: true, authorable: true },
+    leesMaterial: { persistent: true, authorable: true },
+    starveDays: { persistent: true, authorable: true },
   };
 
   // ── the inter-Stuff contract (methods, never fields) ──
@@ -170,6 +231,97 @@ export default class FermentProfile extends SingletonMixin(Idea) {
   }
   setSealedOnly(value: boolean): void {
     this.sealedOnly = value;
+  }
+
+  getKind(): 'ferment' | 'culture' {
+    return this.kind;
+  }
+  setKind(value: string): void {
+    if (value !== 'ferment' && value !== 'culture') {
+      throw new RangeError(
+        `FermentProfile.setKind: expected 'ferment' | 'culture', got '${value}'`,
+      );
+    }
+    this.kind = value;
+  }
+
+  getStrain(): string {
+    return this.strain;
+  }
+  setStrain(value: string): void {
+    this.strain = value;
+  }
+
+  getRequiresStrain(): string {
+    return this.requiresStrain;
+  }
+  setRequiresStrain(value: string): void {
+    this.requiresStrain = value;
+  }
+
+  getWildStrain(): string {
+    return this.wildStrain;
+  }
+  setWildStrain(value: string): void {
+    this.wildStrain = value;
+  }
+
+  getSpontaneousLagDays(): number {
+    return this.spontaneousLagDays;
+  }
+  setSpontaneousLagDays(value: number): void {
+    if (!Number.isFinite(value) || value < 0) {
+      throw new RangeError(
+        `FermentProfile.setSpontaneousLagDays: days must be >= 0, got ${value}`,
+      );
+    }
+    this.spontaneousLagDays = value;
+  }
+
+  getKillK(): number | null {
+    return this.killK;
+  }
+  setKillK(value: number | null): void {
+    this.killK = value === null ? null : requireFiniteK('setKillK', value);
+  }
+
+  getStallAboveK(): number | null {
+    return this.stallAboveK;
+  }
+  setStallAboveK(value: number | null): void {
+    this.stallAboveK =
+      value === null ? null : requireFiniteK('setStallAboveK', value);
+  }
+
+  getLeesFraction(): number {
+    return this.leesFraction;
+  }
+  setLeesFraction(value: number): void {
+    if (!Number.isFinite(value) || value < 0 || value >= 1) {
+      throw new RangeError(
+        `FermentProfile.setLeesFraction: expected [0, 1), got ${value}`,
+      );
+    }
+    this.leesFraction = value;
+  }
+
+  getLeesMaterial(): string {
+    return this.leesMaterial;
+  }
+  setLeesMaterial(value: string): void {
+    this.leesMaterial = value;
+  }
+
+  getStarveDays(): number {
+    return this.starveDays;
+  }
+  setStarveDays(value: number): void {
+    if (!Number.isFinite(value) || value <= 0) {
+      throw new RangeError(
+        `FermentProfile.setStarveDays: days must be positive, got ${value}`,
+      );
+    }
+    this.starveDays = value;
   }
 }
 

@@ -101,6 +101,15 @@ export const GRAVITY_PER_SUGAR_G_PER_L = 0.0004;
 /** Ambient assumed for a non-Thermal host (never true of `Vat`). */
 const DEFAULT_ROOM_K = 295;
 
+/** Viability a feed restores (a living culture only). */
+const FEED_RESTORE = 0.5;
+/** Starve-rate multiplier below the band — the cellar slows a culture. */
+const CULTURE_COLD_FACTOR = 0.25;
+/** Starve-rate multiplier above the damage line — a kitchen shelf. */
+const CULTURE_HOT_FACTOR = 3;
+/** Pitch kill ceiling when the strain has no culture profile (K). */
+const DEFAULT_PITCH_KILL_K = 313;
+
 /**
  * Worst-stretch satisfaction → grade band. The husbandry harvest
  * thresholds, second consumer: a batch never run hot grades
@@ -121,6 +130,8 @@ function clamp01(x: number): number {
 
 /** Conversion rate (fraction/day) at `tempK` under `profile`. */
 function rateAt(profile: FermentProfile, tempK: number): number {
+  const above = profile.getStallAboveK();
+  if (above !== null && tempK > above) return 0;
   const stall = profile.getStallBelowK();
   const happy = profile.getHappyK();
   if (tempK <= stall) return 0;
@@ -160,6 +171,19 @@ export interface Fermenting {
   getFermentProfileKey(): string;
   /** The matched profile row, or `null`. */
   getFermentProfile(): FermentProfile | null;
+  /** The strain the batch carries; `''` = sterile (reconciles first). */
+  getBatchStrain(): string;
+  /** Culture batches: aliveness 0..1 (reconciles first). */
+  getViability(): number;
+  /** Litres of lees under the rack floor (reconciles first). */
+  getLeesVolumeL(): number;
+  /** Classify a cross-material pour: pitch, feed, or a plain mismatch. */
+  classifyForeignPour(
+    material: Material,
+    strain: string,
+  ): 'pitch' | 'feed' | null;
+  /** Apply a classified foreign pour (the transfer seam calls this). */
+  applyForeignPour(kind: 'pitch' | 'feed', strain: string, litres: number): void;
 }
 
 export function FermentingMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -185,6 +209,10 @@ export function FermentingMixin<TBase extends MixinConstructor>(Base: TBase) {
       fractionConverted: { persistent: true, runtimeState: true },
       _worstStretch: { persistent: true, runtimeState: true },
       turnedDays: { persistent: true, runtimeState: true },
+      batchStrain: { persistent: true, runtimeState: true },
+      wildLagDays: { persistent: true, runtimeState: true },
+      viability: { persistent: true, runtimeState: true },
+      leesVolumeL: { persistent: true, runtimeState: true },
     };
 
     /** Game-seconds stamp of the last reconcile; `0` = never touched. */
@@ -203,6 +231,14 @@ export function FermentingMixin<TBase extends MixinConstructor>(Base: TBase) {
     public _worstStretch = 1;
     /** Open game-days accrued past `finished` (the turn clock). */
     public turnedDays = 0;
+    /** The strain the batch carries; `''` = sterile / none yet (D14). */
+    public batchStrain = '';
+    /** Open game-days accrued toward a wild start (the lambic lag). */
+    public wildLagDays = 0;
+    /** Culture batches: aliveness, 0..1 (starves; feeding restores). */
+    public viability = 1;
+    /** Litres of lees under the rack floor (set at `finished`). */
+    public leesVolumeL = 0;
 
     /** Reentry guard (TS-private; proxy-safe — never `#`). */
     private _reconcilingFerment = false;
@@ -234,6 +270,35 @@ export function FermentingMixin<TBase extends MixinConstructor>(Base: TBase) {
           return;
         }
 
+        // The lees split (P12) is AMOUNT-triggered, never
+        // time-integrated: the rack that drew a finished batch down to
+        // the floor converts the residual at the very next read —
+        // elapsed or not. The swap re-keys at once, so the same read
+        // that ends the wine batch starts the culture batch (strain
+        // from the lees material's culture profile; the Crafted mark
+        // untouched — the trace back to the harvested batch).
+        if (
+          (this.fermentPhase === 'finished' ||
+            this.fermentPhase === 'turned') &&
+          this.leesVolumeL > 0 &&
+          amount <= this.leesVolumeL + 1e-9
+        ) {
+          const leesPath =
+            FermentApi.profileByKey(this.fermentProfileKey)?.getLeesMaterial() ??
+            '';
+          if (leesPath !== '') {
+            const lees = StuffApi.findByTemplatePath<Material>(leesPath);
+            if (lees) {
+              const bulkSelf = self as Stuff & {
+                setBulkMaterial(a: 'interior', m: Material): void;
+              };
+              bulkSelf.setBulkMaterial('interior', lees);
+              this.startBatch(leesPath, nowS);
+              return;
+            }
+          }
+        }
+
         if (this.fermentClockStamp === 0) {
           this.fermentClockStamp = nowS;
           return;
@@ -260,21 +325,56 @@ export function FermentingMixin<TBase extends MixinConstructor>(Base: TBase) {
         const open = MixinApi.isSealable(self) ? self.isOpen() : true;
 
         if (this.fermentPhase === 'active') {
-          // Heat hurts the wash whether or not it is converting; cold
-          // merely stalls (forgiving, D3).
-          const sat = damageSat(profile, tempK);
-          if (sat < this._worstStretch) this._worstStretch = sat;
-          const converting = profile.getSealedOnly() ? !open : true;
-          if (converting) {
-            this.fractionConverted = Math.min(
-              1,
-              this.fractionConverted + rateAt(profile, tempK) * days,
-            );
-          }
-          this.applyBatchGrade();
-          if (this.fractionConverted >= 1) {
-            this.fermentPhase = 'finished';
-            this.ensureInteriorMaterial(profile.getProductMaterial());
+          if (profile.getKind() === 'culture') {
+            this.reconcileCultureWindow(profile, tempK, days);
+          } else {
+            // Heat hurts the wash whether or not it is converting; cold
+            // merely stalls (forgiving, D3).
+            const sat = damageSat(profile, tempK);
+            if (sat < this._worstStretch) this._worstStretch = sat;
+            // Yeast death in the vat: past killK the batch goes sterile
+            // again (the stuck ferment) until re-pitched.
+            const killK = profile.getKillK();
+            if (killK !== null && tempK > killK) {
+              this.batchStrain = '';
+              this.wildLagDays = 0;
+            }
+            // Wild acquisition: an OPEN sterile must accrues toward the
+            // authored lag; when it lands, wild flora take the batch
+            // (the lambic move). A sealed sterile must never starts —
+            // D3's second edge: open to catch yeast, open too long past
+            // finished to lose the batch.
+            if (
+              this.batchStrain === '' &&
+              profile.getSpontaneousLagDays() > 0 &&
+              open
+            ) {
+              this.wildLagDays += days;
+              if (this.wildLagDays >= profile.getSpontaneousLagDays()) {
+                this.batchStrain = profile.getWildStrain();
+              }
+            }
+            // The strain gate (lager's rule): a requiring profile
+            // converts only on its strain; any other converts on any.
+            const required = profile.getRequiresStrain();
+            const strainOk =
+              required !== ''
+                ? this.batchStrain === required
+                : this.batchStrain !== '';
+            const converting =
+              strainOk && (profile.getSealedOnly() ? !open : true);
+            if (converting) {
+              this.fractionConverted = Math.min(
+                1,
+                this.fractionConverted + rateAt(profile, tempK) * days,
+              );
+            }
+            this.applyBatchGrade();
+            if (this.fractionConverted >= 1) {
+              this.fermentPhase = 'finished';
+              this.leesVolumeL = amount * profile.getLeesFraction();
+              this.ensureInteriorMaterial(profile.getProductMaterial());
+            }
           }
         } else if (this.fermentPhase === 'finished') {
           // Retry a product swap that couldn't land (material not live).
@@ -351,6 +451,10 @@ export function FermentingMixin<TBase extends MixinConstructor>(Base: TBase) {
       this.fractionConverted = 0;
       this._worstStretch = 1;
       this.turnedDays = 0;
+      this.batchStrain = '';
+      this.wildLagDays = 0;
+      this.viability = 1;
+      this.leesVolumeL = 0;
       this.fermentClockStamp = nowS;
       const material = StuffApi.findByTemplatePath<Material>(materialPath);
       if (!material) {
@@ -364,9 +468,24 @@ export function FermentingMixin<TBase extends MixinConstructor>(Base: TBase) {
       const profile = FermentApi.profileFor(material);
       this.fermentProfileKey = profile?.getKey() ?? '';
       this.startingSugarGPerL = material.getNutrientAmounts()['sugar'] ?? 0;
+      if (profile !== null && profile.getKind() === 'culture') {
+        // A culture batch is alive from the fill (harvested lees): its
+        // strain is the profile's, its "conversion" is viability, and
+        // the mark carried in by the W0 seam is the TRACE back to the
+        // harvested batch — deliberately not re-stamped.
+        this.fermentPhase = 'active';
+        this.batchStrain = profile.getStrain();
+        this.viability = 1;
+        return;
+      }
       this.fermentPhase =
         profile !== null && this.startingSugarGPerL > 0 ? 'active' : 'idle';
       if (this.fermentPhase === 'active' && profile !== null) {
+        // Lag 0 = the must self-starts wild at the fill (skin bloom);
+        // a lagged (sterile) must waits for a pitch or the wild lag.
+        if (profile.getSpontaneousLagDays() === 0) {
+          this.batchStrain = profile.getWildStrain();
+        }
         this.stampBatchMark(profile, nowS);
       }
     }
@@ -379,6 +498,10 @@ export function FermentingMixin<TBase extends MixinConstructor>(Base: TBase) {
       this.fractionConverted = 0;
       this._worstStretch = 1;
       this.turnedDays = 0;
+      this.batchStrain = '';
+      this.wildLagDays = 0;
+      this.viability = 1;
+      this.leesVolumeL = 0;
     }
 
     /**
@@ -431,6 +554,137 @@ export function FermentingMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (!material) return;
       self.setBulkMaterial('interior', material);
       this.batchMaterialPath = path;
+    }
+
+    // ---------- yeast, wild and kept (D14/P12) ----------
+
+    public getBatchStrain(): string {
+      this.reconcileFerment();
+      return this.batchStrain;
+    }
+
+    public getViability(): number {
+      this.reconcileFerment();
+      return clamp01(this.viability);
+    }
+
+    public getLeesVolumeL(): number {
+      this.reconcileFerment();
+      return this.leesVolumeL;
+    }
+
+    /**
+     * The rack floor: past `finished`, the lees stay behind — a pour
+     * draws product only down to them (P12's derived split; no second
+     * bulk slot). Shadows the Bulkable base read the transfer clamps
+     * against (the UnboundedSource precedent).
+     */
+    public getBulkAvailable(affordance: 'interior' | 'surface'): number {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isBulkable(self)) return 0;
+      const amount = self.getBulkAmount(affordance).rawValue();
+      if (affordance !== 'interior') return amount;
+      this.reconcileFerment();
+      if (
+        this.fermentPhase === 'finished' ||
+        this.fermentPhase === 'turned'
+      ) {
+        return Math.max(0, amount - this.leesVolumeL);
+      }
+      return amount;
+    }
+
+    /**
+     * Classify a cross-material pour into this vessel (called by the
+     * transfer seam BEFORE the material-mismatch decline): a culture
+     * batch accepts sugar as FEED; a sterile fermentable batch accepts
+     * a strain-bearing pour as PITCH; anything else stays a mismatch.
+     */
+    public classifyForeignPour(
+      material: Material,
+      strain: string,
+    ): 'pitch' | 'feed' | null {
+      this.reconcileFerment();
+      const profile = FermentApi.profileByKey(this.fermentProfileKey);
+      if (!profile) return null;
+      if (profile.getKind() === 'culture') {
+        const sugary =
+          (material.getNutrientAmounts()['sugar'] ?? 0) > 0 ||
+          material.getNutrients().includes('sugar');
+        return sugary ? 'feed' : null;
+      }
+      if (
+        this.fermentPhase === 'active' &&
+        this.batchStrain === '' &&
+        strain !== ''
+      ) {
+        return 'pitch';
+      }
+      return null;
+    }
+
+    /**
+     * Apply a classified foreign pour. A PITCH above the strain's kill
+     * temperature dies silently — the culture is spent and nothing
+     * starts (the hot-pitch death; why wort is cooled). A FEED restores
+     * a living culture's viability; a dead culture stays dead.
+     */
+    public applyForeignPour(
+      kind: 'pitch' | 'feed',
+      strain: string,
+      _litres: number,
+    ): void {
+      this.reconcileFerment();
+      if (kind === 'feed') {
+        if (this.viability > 0) {
+          this.viability = Math.min(1, this.viability + FEED_RESTORE);
+        }
+        return;
+      }
+      if (strain === '') return;
+      const self = this as unknown as Stuff;
+      const tempK = MixinApi.isThermal(self)
+        ? self.getTemperature().rawValue()
+        : DEFAULT_ROOM_K;
+      if (tempK > this.cultureKillKFor(strain)) return; // hot pitch kills
+      if (this.batchStrain === '') {
+        this.batchStrain = strain;
+        this.wildLagDays = 0;
+      }
+    }
+
+    /** A culture batch's window: viability, not conversion (D14). */
+    private reconcileCultureWindow(
+      profile: FermentProfile,
+      tempK: number,
+      days: number,
+    ): void {
+      if (this.viability <= 0) return;
+      const killK = profile.getKillK();
+      if (killK !== null && tempK > killK) {
+        this.viability = 0;
+        this.batchStrain = '';
+        return;
+      }
+      const factor =
+        tempK <= profile.getStallBelowK()
+          ? CULTURE_COLD_FACTOR
+          : tempK > profile.getDamageAboveK()
+            ? CULTURE_HOT_FACTOR
+            : 1;
+      this.viability = Math.max(
+        0,
+        this.viability - (days / profile.getStarveDays()) * factor,
+      );
+      if (this.viability <= 0) this.batchStrain = '';
+    }
+
+    /** The kill ceiling of `strain`'s culture profile (pitch check). */
+    private cultureKillKFor(strain: string): number {
+      const culture = FermentApi.profiles().find(
+        (p) => p.getKind() === 'culture' && p.getStrain() === strain,
+      );
+      return culture?.getKillK() ?? DEFAULT_PITCH_KILL_K;
     }
 
     /** Game-seconds now, or `null` when no world clock is running. */

@@ -224,10 +224,17 @@ export class BulkableLogic extends ApiLogic {
       return { applied: 0, status: 'declined', notes };
     }
 
-    // 2. Material compatibility on the destination.
+    // 2. Material compatibility on the destination. Before declining a
+    // mismatch, offer it to a Fermenting destination as an INOCULATION
+    // (fermentation D14/P12): a strain-bearing pour into a sterile
+    // batch is a PITCH, sugar into a culture jar is a FEED — the same
+    // seam that carries band and mark carries strain. Anything else
+    // declines exactly as before.
     if (to !== null && !to.isEmpty()) {
       const toPath = to.getMaterialPath();
       if (toPath !== null && toPath !== from.getMaterialPath()) {
+        const inoculated = tryInoculate(from, to, amount, notes);
+        if (inoculated !== null) return inoculated;
         notes.push({
           kind: 'target-declined',
           target: MessageApi.refOf(to.getHolder()),
@@ -398,6 +405,48 @@ export class BulkableLogic extends ApiLogic {
  * - Anything else is a no-op — an ungraded source or an unmarkable
  *   target leaves the transfer exactly as before.
  */
+/**
+ * The inoculation branch of the transfer seam (fermentation D14): a
+ * cross-material pour into a Fermenting interior may be a PITCH (a
+ * strain-bearing source into a sterile batch) or a FEED (sugar into a
+ * culture). The poured volume joins the destination's batch — the
+ * material identity stays the batch's — and the classified effect is
+ * applied by the vessel itself. Returns `null` when the pour is a
+ * plain mismatch (the caller declines as before).
+ */
+function tryInoculate(
+  from: BulkSlot,
+  to: BulkSlot,
+  amount: TransferAmount,
+  notes: BulkNote[],
+): TransferResult | null {
+  if (to.affordance !== 'interior') return null;
+  const toHolder = to.getHolder();
+  if (!MixinApi.isFermenting(toHolder)) return null;
+  const material = from.getMaterial();
+  if (material === null) return null;
+  const fromHolder = from.getHolder();
+  const strain = MixinApi.isFermenting(fromHolder)
+    ? fromHolder.getBatchStrain()
+    : strainTagOf(material);
+  const kind = toHolder.classifyForeignPour(material, strain);
+  if (kind === null) return null;
+  const applied = computeApplied(from, to, amount, notes);
+  if (applied <= 0) return { applied: 0, status: 'declined', notes };
+  from.debit(applied);
+  to.setAmount(to.getAmount().add(Quantity.of(applied, 'L')));
+  toHolder.applyForeignPour(kind, strain, applied);
+  return { applied, notes };
+}
+
+/** A material's authored strain (`strain:<x>` tag), or `''`. */
+function strainTagOf(material: Material): string {
+  for (const tag of material.getTags()) {
+    if (tag.startsWith('strain:')) return tag.slice('strain:'.length);
+  }
+  return '';
+}
+
 function carryBatchIdentity(
   fromHolder: Stuff,
   toHolder: Stuff | null,
