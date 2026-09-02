@@ -36,3 +36,63 @@ settings:
   # release is the spring rise.
   - key: water.rate.snow
     value: "0.25"
+
+  # ── flow ──────────────────────────────────────────────────────────
+  # The fraction of precipitation that reaches a channel rather than
+  # evaporating or soaking away. The remainder is simply not modelled —
+  # mass conservation at watershed scale is an explicit non-goal: the sky
+  # supplies and the sea absorbs, and conservation applies to water in a
+  # VESSEL, which is where a player can actually count it.
+  - key: water.runoffCoefficient
+    value: "0.35"
+
+  # The catchment's response window, in game-days. Flow is the MEAN
+  # precipitation over it — which is what gives a river a lagged, damped
+  # hydrograph instead of a channel that empties during a dry week and
+  # floods the instant it rains. Real catchments store water; this number
+  # is how long this one holds it.
+  - key: water.baseflowWindowDays
+    value: "30"
+
+  # ── snowpack ──────────────────────────────────────────────────────
+  # How far back the snowpack integral looks. It has to see a whole
+  # winter to know what is sitting on the mountain, so it is deliberately
+  # far longer than the flow window — and it is the most expensive read
+  # in the build, which is why flow is memoised per weather segment.
+  - key: water.snow.windowDays
+    value: "180"
+
+  # The atmospheric lapse rate. This one number is what makes ALTITUDE
+  # the thing that banks snow: the same storm rains on the city and
+  # snows on the headwaters, and the headwaters are where the ore is.
+  - key: water.snow.lapseRateKPerKm
+    value: "6.5"
+
+  # Degree-day melt: millimetres of water-equivalent released per Kelvin
+  # above freezing per game-day. The oldest and most robust snowmelt
+  # model there is, and the right level of abstraction for a river you
+  # look at rather than forecast.
+  - key: water.snow.meltMmPerKPerDay
+    value: "4"
+
+  # ⚠ Mean SEA-LEVEL air temperature by season. This table exists
+  # because a REACH has no room to resolve a biome from — it is a
+  # position on a river, not a place you stand — so the catchment needs
+  # a temperature model of its own. The lapse rate above does the rest.
+  - key: water.season.meanK.spring
+    value: "285"
+  - key: water.season.meanK.summer
+    value: "295"
+  - key: water.season.meanK.fall
+    value: "283"
+  - key: water.season.meanK.winter
+    value: "272"
+
+  # ── navigability ──────────────────────────────────────────────────
+  # BOTH conditions hold. A torrent through a gorge is not navigable and
+  # neither is a wide trickle, so nobody authors a navigable stretch:
+  # a dry August closes one, and curtailing a junior right reopens it.
+  - key: water.navigable.minFlowM3S
+    value: "3"
+  - key: water.navigable.minWidthM
+    value: "12"

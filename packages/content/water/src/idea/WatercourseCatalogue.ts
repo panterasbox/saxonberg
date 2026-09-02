@@ -47,6 +47,18 @@
 
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import { Template } from '@saxonberg/server/mud/lib/stuff/Template';
+import { AppApi } from '@saxonberg/server/mud/api/app';
+import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import type Locality from '@saxonberg/server/mud/platform/idea/Locality';
+import { AppSettingKeys } from '@saxonberg/server/mud/lib/config/AppSettings';
+import { WeatherApi } from '@saxonberg/server/mud/api/weather';
+import { Quantity } from '@saxonberg/server/mud/lib/quantity';
+import {
+  WEATHER_PROFILES,
+  WEATHER_DEFAULTS,
+  PRECIPITATION_RATES_MM_PER_HOUR,
+} from '@saxonberg/server/mud/lib/weather/WeatherType';
+import type { Season } from '@saxonberg/server/mud/lib/time/CelestialProfile';
 import type { EvictionContext } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
 import {
@@ -54,6 +66,9 @@ import {
   type WatercourseDescriptor,
   type WatercourseNode,
 } from './Watercourse';
+
+/** Where the kernel's `Locality` reference rows live. */
+const LOCALITY_PATH_PREFIX = '/stuff/idea/Locality';
 
 /** A reach citation, `"<courseKey>:<nodeName>"`. */
 export type ReachRef = string;
@@ -87,6 +102,53 @@ export interface CompiledReach {
   channelWidthM: number | null;
   /** Minimum hops to a sea outlet — a monotone downstream distance. */
   depthToSea: number;
+  /**
+   * Square kilometres draining to this reach — its own contributing
+   * localities plus everything upstream of it. Accumulated at load.
+   */
+  catchmentKm2: number;
+  /**
+   * The template path of the locality whose weather stands in for this
+   * catchment's — the largest contributor draining to it — or `null`.
+   *
+   * ⭐ Without this, the realm would have one weather and Rejection's
+   * valley could not be snowier than the city it sits above, which is
+   * the entire premise of the headwaters town. A reach is a position on
+   * a river rather than a place you stand, so it cannot resolve a
+   * covering locality of its own; the biggest contributor is the honest
+   * proxy, and an unresolved one falls back to the global field rather
+   * than to no weather at all.
+   */
+  climateLocalityPath: string | null;
+}
+
+/**
+ * Withdrawals in force, in m³/s, keyed by the reach they are taken at.
+ *
+ * ⚠ Flow is a **takeable volume**, not a scalar you read: every intake
+ * subtracts from everything below it, and capacity and seniority are
+ * meaningless otherwise. The ledger is passed IN rather than discovered,
+ * so this catalogue never has to know that conduits exist — the water
+ * pack's own `Conduit` supplies it, and a test supplies a literal.
+ */
+export type DrawLedger = ReadonlyMap<ReachRef, number>;
+
+/** Everything a flow query worked out, for `analyze` and for tests. */
+export interface FlowReading {
+  /** The reach it describes. */
+  ref: ReachRef;
+  /** Cubic metres per second actually passing, after withdrawals. */
+  m3s: number;
+  /** What the catchment would deliver with nobody drawing. */
+  naturalM3S: number;
+  /** The share of it that is snowmelt right now (the spring rise). */
+  meltM3S: number;
+  /** Total upstream withdrawal, in m³/s. */
+  drawnM3S: number;
+  /** Water-equivalent millimetres still banked as snow on the catchment. */
+  snowpackMm: number;
+  /** Whether a boat gets through — derived, never authored. */
+  navigable: boolean;
 }
 
 interface CompiledIndex {
@@ -102,6 +164,13 @@ interface CompiledIndex {
 export default class WatercourseCatalogue extends Idea {
   /** `null` until the first read; the load promise once one is running. */
   private loading: Promise<CompiledIndex> | null = null;
+
+  /** Per-segment flow memo — see {@link naturalFlowOf}. */
+  private flowCache = new Map<
+    ReachRef,
+    { total: number; melt: number; snowpackMm: number }
+  >();
+  private flowCacheSegment = -1;
 
   /**
    * Residency veto — a load-bearing process-lifetime singleton is never
@@ -124,6 +193,8 @@ export default class WatercourseCatalogue extends Idea {
   /** Drop the compiled drainage; the next read rebuilds. Fired by HMR. */
   public invalidateCache(): void {
     this.loading = null;
+    this.flowCache.clear();
+    this.flowCacheSegment = -1;
   }
 
   // ---------- reads ----------
@@ -193,6 +264,104 @@ export default class WatercourseCatalogue extends Idea {
     const from = index.reaches.get(a)!;
     const to = index.reaches.get(b)!;
     return from.depthToSea - to.depthToSea;
+  }
+
+  // ---------- flow, snowpack, navigability ----------
+
+  /**
+   * Everything about the water passing a reach right now.
+   *
+   * ⭐ **The second consumer of the precipitation integral.** A bed
+   * multiplies the millimetres by its land area to get litres of soil
+   * moisture; a reach multiplies the same millimetres by its catchment
+   * area to get cubic metres of river. One walk, two scales — that is
+   * the whole spine of this build, and this method is the half of it
+   * that makes a diversion matter.
+   *
+   * `nowS` is game-seconds; `draws` is every withdrawal in force. A
+   * withdrawal at or upstream of this reach is subtracted, because flow
+   * is a **takeable volume**: capacity and seniority mean nothing
+   * against a number nobody can reduce.
+   */
+  public async flowAt(
+    ref: ReachRef,
+    nowS: number,
+    draws: DrawLedger = new Map(),
+  ): Promise<FlowReading | null> {
+    const index = await this.index();
+    const reach = index.reaches.get(ref);
+    if (reach === undefined) return null;
+
+    const natural = this.naturalFlowOf(reach, nowS);
+
+    // Every draw at or upstream of here has already been taken out of
+    // the water by the time it gets here. A draw BELOW is somebody
+    // else's problem and must not reduce this reading.
+    let drawn = 0;
+    for (const [at, m3s] of draws) {
+      if (m3s <= 0) continue;
+      if (at === ref) {
+        drawn += m3s;
+        continue;
+      }
+      if (index.downstream.get(at)?.has(ref) === true) drawn += m3s;
+    }
+
+    const m3s = Math.max(0, natural.total - drawn);
+    return {
+      ref,
+      m3s,
+      naturalM3S: natural.total,
+      meltM3S: natural.melt,
+      drawnM3S: drawn,
+      snowpackMm: natural.snowpackMm,
+      navigable:
+        m3s >= dial(AppSettingKeys.waterNavigableMinFlowM3S, 8) &&
+        (reach.channelWidthM ?? 0) >=
+          dial(AppSettingKeys.waterNavigableMinWidthM, 12),
+    };
+  }
+
+  /**
+   * Whether a boat gets through — **derived, never authored**.
+   *
+   * Nobody writes down a navigable stretch: a dry August closes one and
+   * curtailing a junior right reopens it. Both conditions hold, because
+   * a torrent through a gorge is not navigable and neither is a wide
+   * trickle.
+   */
+  public async isNavigableAt(
+    ref: ReachRef,
+    nowS: number,
+    draws: DrawLedger = new Map(),
+  ): Promise<boolean> {
+    return (await this.flowAt(ref, nowS, draws))?.navigable ?? false;
+  }
+
+  /**
+   * Natural flow, memoised per weather **segment**.
+   *
+   * Weather is piecewise-constant over six-hour segments, so flow only
+   * changes when the segment does — which makes the segment index a
+   * cache key whose invalidation is **by construction** rather than
+   * enumerated. The snowpack walk looks back half a game year and is by
+   * far the most expensive read in the build; without this it would run
+   * on every navigability question.
+   */
+  private naturalFlowOf(
+    reach: CompiledReach,
+    nowS: number,
+  ): { total: number; melt: number; snowpackMm: number } {
+    const segment = Math.floor(nowS / WEATHER_DEFAULTS.SEGMENT_LENGTH_S);
+    if (segment !== this.flowCacheSegment) {
+      this.flowCache.clear();
+      this.flowCacheSegment = segment;
+    }
+    const hit = this.flowCache.get(reach.ref);
+    if (hit !== undefined) return hit;
+    const computed = computeNaturalFlow(reach, nowS);
+    this.flowCache.set(reach.ref, computed);
+    return computed;
   }
 
   // ---------- the load ----------
@@ -269,6 +438,8 @@ async function loadIndex(): Promise<CompiledIndex> {
         elevation: node.elevation ?? 0,
         channelWidthM: node.channelWidthM ?? null,
         depthToSea: 0, // filled below
+        catchmentKm2: 0, // filled below
+        climateLocalityPath: null, // filled below
       });
     });
     byCourse.set(course.key, refs);
@@ -285,6 +456,7 @@ async function loadIndex(): Promise<CompiledIndex> {
 
   const downstream = compileDownstream(reaches, successors);
   assignDepths(reaches, successors);
+  await accumulateCatchments(reaches, downstream);
   return { reaches, downstream, successors, byCourse };
 }
 
@@ -461,6 +633,52 @@ function compileDownstream(
   return out;
 }
 
+/**
+ * Fold every locality's declared catchment onto the reach it drains to,
+ * then onto every reach downstream of that one.
+ *
+ * ⭐ **This is where the second hierarchy actually joins the first.** A
+ * locality declares one string; the drainage turns it into "how much
+ * ground is above this point", which is the number the precipitation
+ * integral is multiplied by to make a river.
+ *
+ * A locality that declares no reach — or a reach that no longer exists —
+ * contributes to nothing and is silently skipped. That is deliberate:
+ * being off the watershed is a normal state of the world, and three
+ * localities ship rootless today. It is not an error, and it must not
+ * become one.
+ */
+async function accumulateCatchments(
+  reaches: Map<ReachRef, CompiledReach>,
+  downstream: Map<ReachRef, Set<ReachRef>>,
+): Promise<void> {
+  const localities = await Template.findDescendants(LOCALITY_PATH_PREFIX);
+  /** Reach → the largest single contribution seen, for the climate proxy. */
+  const biggest = new Map<ReachRef, number>();
+  for (const tpl of localities) {
+    const data = tpl.data as Record<string, unknown>;
+    const ref = str(data._reach);
+    const km2 = typeof data._catchmentKm2 === 'number' ? data._catchmentKm2 : 0;
+    if (ref === '' || km2 <= 0) continue;
+    const own = reaches.get(ref);
+    if (own === undefined) continue;
+    const path = tpl.path;
+    const credit = (r: CompiledReach): void => {
+      r.catchmentKm2 += km2;
+      const best = biggest.get(r.ref) ?? 0;
+      if (km2 > best) {
+        biggest.set(r.ref, km2);
+        r.climateLocalityPath = path;
+      }
+    };
+    credit(own);
+    for (const below of downstream.get(ref) ?? []) {
+      const r = reaches.get(below);
+      if (r !== undefined) credit(r);
+    }
+  }
+}
+
 /** Minimum hops to a sea outlet — the monotone downstream distance. */
 function assignDepths(
   reaches: Map<ReachRef, CompiledReach>,
@@ -482,6 +700,181 @@ function assignDepths(
     return d;
   };
   for (const [ref, reach] of reaches) reach.depthToSea = depth(ref, new Set());
+}
+
+/* ─────────────────────── flow and snowpack ─────────────────────── */
+
+const SECONDS_PER_DAY = 86_400;
+const FREEZING_K = 273.15;
+
+/** Numeric AppSetting read with a seeded-literal fallback. */
+function dial(key: string, fallback: number): number {
+  try {
+    const raw = AppApi.setting(key);
+    if (raw === '' || raw == null) return fallback;
+    const n = Number.parseFloat(raw);
+    return Number.isFinite(n) ? n : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+/**
+ * The mm/h a segment delivers — the operator dial in front of the
+ * kernel's authored table, so the river and the soil never disagree
+ * about how hard it is raining.
+ */
+function precipitationRateOf(type: keyof typeof PRECIPITATION_RATES_MM_PER_HOUR): number {
+  const authored = PRECIPITATION_RATES_MM_PER_HOUR[type];
+  switch (type) {
+    case 'rain':
+      return dial(AppSettingKeys.waterRainRateMmPerHour, authored);
+    case 'storm':
+      return dial(AppSettingKeys.waterStormRateMmPerHour, authored);
+    case 'snow':
+      return dial(AppSettingKeys.waterSnowRateMmPerHour, authored);
+    default:
+      return authored;
+  }
+}
+
+/**
+ * The locality whose weather stands in for a catchment's, resolved live
+ * and sync. `null` — no declared contributor, or a process where the
+ * localities are not resident — falls back to the global weather field,
+ * which is a weaker answer but never a wrong one.
+ */
+function climateOf(reach: CompiledReach): Locality | null {
+  if (reach.climateLocalityPath === null) return null;
+  return (
+    (StuffApi.findByTemplatePath(reach.climateLocalityPath) as Locality | null) ??
+    null
+  );
+}
+
+/** Mean sea-level air temperature (K) for a season. */
+function seasonMeanK(season: Season): number {
+  switch (season) {
+    case 'spring':
+      return dial(AppSettingKeys.waterSeasonMeanKSpring, 285);
+    case 'summer':
+      return dial(AppSettingKeys.waterSeasonMeanKSummer, 295);
+    case 'fall':
+      return dial(AppSettingKeys.waterSeasonMeanKFall, 283);
+    case 'winter':
+      return dial(AppSettingKeys.waterSeasonMeanKWinter, 272);
+  }
+}
+
+/**
+ * Natural flow at a reach: **what the catchment delivers, plus what the
+ * mountain is releasing**.
+ *
+ * Two terms, and the second one is the reason seasonality is in scope
+ * at all:
+ *
+ *  1. **Runoff.** The mean liquid precipitation over the catchment's
+ *     response window, times its area, times the runoff coefficient. A
+ *     mean rather than an instantaneous rate because a real catchment
+ *     stores water — without the window a river would empty in a dry
+ *     week and flood the moment it rained.
+ *  2. **Snowmelt.** Water banked at altitude and released when the air
+ *     there rises above freezing. This is what produces the **spring
+ *     rise and the late-summer low**, and that low is *why senior
+ *     rights matter*: without it, seniority never binds and the whole
+ *     allocation layer is decoration.
+ *
+ * ⚠ The temperature model is the catchment's own, because a **reach has
+ * no room to resolve a biome from** — it is a position on a river, not
+ * a place you stand. So a seasonal sea-level mean is authored and the
+ * atmospheric **lapse rate** does the rest. That one number is what
+ * makes altitude the thing that banks snow: the same storm rains on the
+ * city and snows on the headwaters.
+ */
+function computeNaturalFlow(
+  reach: CompiledReach,
+  nowS: number,
+): { total: number; melt: number; snowpackMm: number } {
+  const areaM2 = reach.catchmentKm2 * 1_000_000;
+  if (areaM2 <= 0) return { total: 0, melt: 0, snowpackMm: 0 };
+
+  const runoff = dial(AppSettingKeys.waterRunoffCoefficient, 0.35);
+  const windowDays = Math.max(
+    1,
+    dial(AppSettingKeys.waterBaseflowWindowDays, 30),
+  );
+  const windowS = windowDays * SECONDS_PER_DAY;
+
+  const fell = WeatherApi.precipitationBetween(
+    Quantity.of(nowS - windowS, 's'),
+    Quantity.of(nowS, 's'),
+    climateOf(reach),
+  );
+  const covered = fell.coveredS > 0 ? fell.coveredS : windowS;
+  // mm over the window → metres per second over the catchment.
+  const runoffM3S =
+    ((fell.liquid.rawValue() / 1000) / covered) * areaM2 * runoff;
+
+  const snow = snowpackOf(reach, nowS);
+  const meltM3S = ((snow.meltMm / 1000) / snow.overS) * areaM2 * runoff;
+
+  return {
+    total: runoffM3S + meltM3S,
+    melt: meltM3S,
+    snowpackMm: snow.packMm,
+  };
+}
+
+/**
+ * Walk the snow year: accumulate what fell as snow at this catchment's
+ * altitude, melt it back on a degree-day model, and report both what is
+ * still lying and what came off during the flow window.
+ *
+ * The oldest and most robust snowmelt model there is, and the right
+ * level of abstraction for a river you look at rather than forecast.
+ */
+function snowpackOf(
+  reach: CompiledReach,
+  nowS: number,
+): { packMm: number; meltMm: number; overS: number } {
+  const windowDays = Math.max(1, dial(AppSettingKeys.waterSnowWindowDays, 180));
+  const lapseKPerM = dial(AppSettingKeys.waterSnowLapseRateKPerKm, 6.5) / 1000;
+  const meltFactor = dial(AppSettingKeys.waterSnowMeltMmPerKPerDay, 4);
+  const flowWindowS =
+    Math.max(1, dial(AppSettingKeys.waterBaseflowWindowDays, 30)) *
+    SECONDS_PER_DAY;
+
+  const segments = WeatherApi.segmentsBetween(
+    Quantity.of(nowS - windowDays * SECONDS_PER_DAY, 's'),
+    Quantity.of(nowS, 's'),
+    climateOf(reach),
+    Math.ceil(
+      (windowDays * SECONDS_PER_DAY) / WEATHER_DEFAULTS.SEGMENT_LENGTH_S,
+    ),
+  );
+
+  let packMm = 0;
+  let meltInFlowWindowMm = 0;
+  const flowWindowStart = nowS - flowWindowS;
+
+  for (const seg of segments) {
+    const hours = seg.overlapS / 3600;
+    const days = seg.overlapS / SECONDS_PER_DAY;
+    const airK =
+      seasonMeanK(seg.season) +
+      WEATHER_PROFILES[seg.type].deviation.temperature.rawValue() -
+      lapseKPerM * reach.elevation;
+
+    if (WEATHER_PROFILES[seg.type].precipitation === 'snow') {
+      packMm += precipitationRateOf(seg.type) * hours;
+    }
+    if (airK > FREEZING_K && packMm > 0) {
+      const released = Math.min(packMm, meltFactor * (airK - FREEZING_K) * days);
+      packMm -= released;
+      if (seg.startsAtS >= flowWindowStart) meltInFlowWindowMm += released;
+    }
+  }
+  return { packMm, meltMm: meltInFlowWindowMm, overS: flowWindowS };
 }
 
 /* ─────────────────────────── parsing ─────────────────────────── */

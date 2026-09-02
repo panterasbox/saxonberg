@@ -1352,6 +1352,42 @@ export const AppSettingKeys = {
   waterStormRateMmPerHour: "water.rate.storm",
   /** Water — mm/h water-equivalent a `snow` segment banks as pack. */
   waterSnowRateMmPerHour: "water.rate.snow",
+
+  /** Water — fraction of precipitation that reaches a channel rather
+   * than evaporating or soaking away. The rest is not modelled: this
+   * build's non-goal is mass conservation at watershed scale — the sky
+   * supplies and the sea absorbs. */
+  waterRunoffCoefficient: "water.runoffCoefficient",
+  /** Water — the catchment's response window, in game-days. Flow is the
+   * MEAN precipitation over it, which is what gives a river a lagged,
+   * damped hydrograph instead of a channel that empties in a dry week. */
+  waterBaseflowWindowDays: "water.baseflowWindowDays",
+
+  /** Water — how far back the snowpack integral looks, in game-days. It
+   * has to see a whole winter to know what is sitting on the mountain,
+   * so this is deliberately far longer than the flow window. */
+  waterSnowWindowDays: "water.snow.windowDays",
+  /** Water — atmospheric lapse rate (K per kilometre of altitude). What
+   * makes ALTITUDE the thing that banks snow. */
+  waterSnowLapseRateKPerKm: "water.snow.lapseRateKPerKm",
+  /** Water — degree-day melt factor: mm of water-equivalent released
+   * per Kelvin above freezing per game-day. */
+  waterSnowMeltMmPerKPerDay: "water.snow.meltMmPerKPerDay",
+  /** Water — mean sea-level air temperature (K) in spring. */
+  waterSeasonMeanKSpring: "water.season.meanK.spring",
+  /** Water — mean sea-level air temperature (K) in summer. */
+  waterSeasonMeanKSummer: "water.season.meanK.summer",
+  /** Water — mean sea-level air temperature (K) in fall. */
+  waterSeasonMeanKFall: "water.season.meanK.fall",
+  /** Water — mean sea-level air temperature (K) in winter. */
+  waterSeasonMeanKWinter: "water.season.meanK.winter",
+
+  /** Water — flow (m³/s) at or above which a reach carries a boat. */
+  waterNavigableMinFlowM3S: "water.navigable.minFlowM3S",
+  /** Water — channel width (m) at or above which a reach carries a
+   * boat. BOTH conditions hold: a torrent through a gorge is not
+   * navigable, and neither is a wide trickle. */
+  waterNavigableMinWidthM: "water.navigable.minWidthM",
 } as const;
 
 export type AppSettingKey =

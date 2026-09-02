@@ -222,6 +222,30 @@ export const PRECIPITATION_RATES_MM_PER_HOUR: Record<WeatherType, number> = {
  * melt, which is the mechanism behind the spring rise and the
  * late-summer low.
  */
+/**
+ * One segment's share of a window — the general form of the walk the
+ * precipitation integral does.
+ *
+ * Weather owns *what the weather was, segment by segment*; a consumer
+ * owns what that does to it. The watershed's snowpack, for instance,
+ * needs the segment's **season** and **type** to decide whether snow
+ * fell and whether it is melting at a catchment's altitude — a question
+ * weather has no business answering, since it involves a lapse rate and
+ * a degree-day model that belong to hydrology.
+ */
+export interface WeatherSegment {
+  /** The segment's index in the global segmentation. */
+  segmentIndex: number;
+  /** The type governing it (an authored locality pin forces this). */
+  type: WeatherType;
+  /** The season at its start. */
+  season: Season;
+  /** Game-second the segment begins at. */
+  startsAtS: number;
+  /** Game-seconds of it that lie inside the requested window. */
+  overlapS: number;
+}
+
 export interface PrecipitationIntegral {
   /** Liquid water that reached the ground over the window. */
   liquid: Quantity<'mm'>;

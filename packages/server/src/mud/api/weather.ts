@@ -38,6 +38,7 @@ import { fileURLToPath } from 'url';
 // Re-export the call-shape types so callers import them from the Api face.
 export type {
   PrecipitationIntegral,
+  WeatherSegment,
   WeatherType,
   WeatherField,
   WeatherFieldUnit,
@@ -56,6 +57,7 @@ export type {
 
 import type {
   PrecipitationIntegral,
+  WeatherSegment,
   WeatherField,
   WeatherFieldUnit,
   WeatherSample,
@@ -132,6 +134,34 @@ export class WeatherApi {
     locality: Locality | null,
   ): PrecipitationIntegral {
     return logic().precipitationBetween(t0, t1, locality);
+  }
+
+  /**
+   * The segments a window touches, materialised — type, season, and how
+   * much of each lies inside `[t0, t1)`.
+   *
+   * The general form of {@link precipitationBetween}'s walk, for
+   * consumers that need more than "how many millimetres". The watershed
+   * builds its **snowpack** on this: whether snow accumulates or melts
+   * depends on the segment's season and the catchment's altitude through
+   * a lapse rate and a degree-day model — hydrology's business, not
+   * weather's. Weather answers *what the weather was, segment by
+   * segment*; what that does to a snowfield is somebody else's model.
+   *
+   * `maxSegments` overrides the default cap for a caller that genuinely
+   * needs a longer look back (a snowpack has to see a whole winter to
+   * know what is sitting on the mountain). It is a bound, not a licence:
+   * the walk still keeps the TAIL of the window.
+   *
+   * Sync and pure, like the integral.
+   */
+  public static segmentsBetween(
+    t0: Quantity<'s'>,
+    t1: Quantity<'s'>,
+    locality: Locality | null,
+    maxSegments?: number,
+  ): WeatherSegment[] {
+    return logic().segmentsBetween(t0, t1, locality, maxSegments);
   }
 
   /* ──────────────── the biome seam (cheap, SYNC) ──────────────── */

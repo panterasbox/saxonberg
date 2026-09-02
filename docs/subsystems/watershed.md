@@ -334,6 +334,100 @@ precipitation integral into a river.
 The kernel carries both as opaque strings and numbers — **it never
 imports the pack**, and interpreting the citation is the pack's job.
 
+## Flow, snowpack and navigability (W4)
+
+### Flow is the integral's SECOND consumer
+
+A bed multiplies the millimetres by its land area to get litres of soil
+moisture; a reach multiplies the **same** millimetres by its catchment
+area to get cubic metres of river. That is the whole spine of the build.
+
+`WatercourseCatalogue.flowAt(reach, nowS, draws)` returns a
+`FlowReading`: what is passing, what nature would deliver, how much of
+it is melt, how much has been drawn, how much snow is still lying, and
+whether a boat gets through.
+
+Two terms make the natural flow:
+
+1. **Runoff** — the mean liquid precipitation over the catchment's
+   response window (30 game-days by default) × its area × a runoff
+   coefficient. A *mean* rather than an instantaneous rate because a real
+   catchment stores water: without the window a river would empty in a
+   dry week and flood the moment it rained.
+2. **Snowmelt** — water banked at altitude, released when the air there
+   rises above freezing.
+
+Mass conservation at watershed scale is an explicit non-goal: the sky
+supplies and the sea absorbs, and the runoff coefficient is where the
+rest of the water goes. Conservation applies to water in a **vessel**,
+which is where a player can actually count it.
+
+### Catchment: where the two hierarchies join
+
+Each locality declares `_catchmentKm2` and `_reach`. The load folds that
+area onto the reach and onto **every reach downstream of it**. A locality
+that declares no reach contributes to nothing and is silently skipped —
+being off the watershed is a normal state of the world, three localities
+ship rootless, and it must never become an error.
+
+The largest single contributor also becomes the reach's **climate
+proxy**. Without it the realm would have one weather and Rejection's
+valley could not be snowier than the city below it, which is the entire
+premise of a headwaters town. A reach cannot resolve a covering locality
+of its own — it is a position on a river, not a place you stand — so the
+biggest contributor is the honest stand-in, and an unresolved one falls
+back to the global field rather than to no weather at all.
+
+### Flow is a TAKEABLE volume
+
+`draws` is a ledger of withdrawals in m³/s keyed by reach. A draw at or
+**upstream** of the reach being read is subtracted; one below it is not,
+because that water already went past. Flow floors at zero — an
+over-drawn reach runs dry, never negative.
+
+The ledger is passed **in** rather than discovered, so the catalogue
+never has to know conduits exist: `Conduit` supplies it (W5) and a test
+supplies a literal.
+
+### ⭐ Snowpack, and why altitude is the mechanism
+
+`WeatherApi.segmentsBetween` gives the walk its season and type per
+segment; the pack model is the **watershed's**, not weather's. For each
+segment,
+
+```
+T_air = seasonalSeaLevelMean(season) + typeDeviation − lapseRate × elevation
+```
+
+snow accumulates below freezing and releases on a **degree-day** model
+above it — the oldest and most robust snowmelt model there is, and the
+right level of abstraction for a river you look at rather than forecast.
+
+⚠ The seasonal sea-level temperature table is authored because **a reach
+has no room to resolve a biome from**. The lapse rate then does the real
+work: one number makes altitude the thing that banks snow, so the same
+storm rains on the city and snows on the headwaters — and the headwaters
+are where the ore is.
+
+The result is a genuine hydrograph: a **spring rise** as the pack comes
+off, and a **late-summer low**. That low is *why senior rights bind at
+all* — without it, seniority never binds and the whole allocation layer
+is decoration.
+
+The snowpack walk looks back half a game year and is the most expensive
+read in the build, so natural flow is **memoised per weather segment**.
+Weather is piecewise-constant over six-hour segments, so the segment
+index is a cache key whose invalidation is *by construction* rather than
+enumerated.
+
+### Navigability is derived, never authored
+
+Flow **and** channel width, both. A torrent through a gorge is not
+navigable, and neither is a wide trickle. Nobody writes down a navigable
+stretch: a dry August closes one, and curtailing a junior right reopens
+it. When the boat wave lands it reads a river that already knows where
+it is navigable and knows that changes with the season.
+
 ## Contents
 
 - Elevation — the zone field, and why `coords.z` is not it
