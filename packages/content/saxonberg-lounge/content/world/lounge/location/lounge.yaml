@@ -15,31 +15,11 @@
 class: /world/lounge/location/Lounge
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  # ⭐⭐ **The wardrobe — the sandbox's door, and it lives HERE because
-  # this is where a new player arrives.** `defaultStartLocation` is the
-  # lounge warren, so a freshly-minted avatar is seated in a lounge room;
-  # the door to your own circle should be in the room you wake up in.
-  #
-  # ⚠ It briefly sat in Dave's Bar, which made no sense — nobody keeps a
-  # wardrobe in a pub. It fits here exactly: this room is *"furnished by
-  # whoever passed through and left something behind"*, and a tall
-  # lacquered wardrobe with no back is precisely the sort of inherited
-  # oddity that ends up in a shared lounge.
-  #
-  # ⭐ Every lounge room is a clone of this one, so every satellite the
-  # warren buds has a wardrobe — which is the honest reading of *any
-  # wardrobe anywhere opens onto your own circle until a host links it*.
-  # You can reach your circle from the commons wherever you were seated,
-  # and there is no one magic room.
-  props:
-    - /platform/thing/sandbox/wardrobe
   warren: /world/lounge/idea/warren
   shortDescription: the lounge
   primaryKeyword: lounge
   illustration: location/lounge.png
   longDescription: |
     A low-ceilinged room that has clearly been furnished by whoever passed through and left something behind. Mismatched armchairs and a sagging couch cluster around a rug worn pale down the middle. A coffee machine ticks to itself on a side table; someone has taped a hand-lettered sign above it that just reads BE NICE.
-
-    Against one wall stands a tall wardrobe of dark lacquered wood, doors slightly ajar — nobody remembers who left it, and nobody has moved it since.
 
     A doorway north opens onto the warm light of Dave's Bar.

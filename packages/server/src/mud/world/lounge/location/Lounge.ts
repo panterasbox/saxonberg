@@ -28,23 +28,13 @@ import { LoungeMixin } from '../LoungeMixin';
 import { VisibleMixin } from '../../../lib/description/Visible';
 import { DetailedMixin } from '../../../lib/description/Detailed';
 import { ExitableMixin } from '../../../lib/boundary/Exitable';
-import { PopulatesMixin } from '../../../lib/stuff/Populates';
 import { PostRegistrationMixin } from '../../../lib/stuff/PostRegistration';
 import type { FieldMeta } from '../../../lib/mixin';
 
-/*
- * ⭐ `PopulatesMixin` so the room can carry `props:` — the wardrobe, the
- * sandbox's door. Every lounge room is a clone of the one template, so
- * every satellite the warren buds gets one, which is the honest reading
- * of *any wardrobe anywhere opens onto your own circle*: reachable from
- * the commons wherever you were seated, with no one magic room.
- */
 const LoungeBase = PostRegistrationMixin(
-  PopulatesMixin(
-    ExitableMixin(
-      CartesianCoordinatesMixin(
-        DetailedMixin(VisibleMixin(LoungeMixin(WarrenMemberMixin(Location)))),
-      ),
+  ExitableMixin(
+    CartesianCoordinatesMixin(
+      DetailedMixin(VisibleMixin(LoungeMixin(WarrenMemberMixin(Location)))),
     ),
   ),
 );
