@@ -232,6 +232,22 @@ export class CombatApi {
     return logic().isWeapon(item);
   }
 
+  /**
+   * The weapons a `viewer` can SEE on a `subject`: wielded weapons always
+   * (drawn steel is obvious); sheathed / carried ones only when the viewer
+   * perceives them at the given attention. The doorman's read for the
+   * weapons-check house rule — a concealed blade that beats the watcher's
+   * alertness is legitimately missed (`search` is the counterplay). No
+   * frisk verb: this reads, it doesn't strip-search.
+   */
+  public static visibleArms(
+    viewer: Stuff,
+    subject: Stuff,
+    attention?: number,
+  ): Stuff[] {
+    return logic().visibleArms(viewer, subject, attention);
+  }
+
   public static offerBreak(actor: Stuff): {
     ok: boolean;
     reason?: string;

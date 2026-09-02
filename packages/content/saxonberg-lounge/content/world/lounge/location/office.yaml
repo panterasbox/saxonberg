@@ -41,6 +41,11 @@ data:
       keywords: [bottle, drink, glass, good, stuff]
       description: |
         The good stuff — no corpo mark, no label at all, just a hand-blown bottle and two glasses kept clean. It doesn't go on the rail and it isn't for sale. It comes down for old friends and for whoever's earned the back room, which amounts to the same thing in here.
+  # The one concession to trouble: a stun baton kept within reach of the
+  # desk. Dave fetches it only under real threat — the office round trip
+  # costs him the floor. A venue prop by placement, not a player weapon.
+  props:
+    - /world/lounge/thing/office-taser
   # One-way declared (bidirectional: false) so it does NOT auto-install a
   # second `north` on the bar that would collide with the bar's own
   # hidden north. The pair is wired explicitly: bar -> hidden north ->

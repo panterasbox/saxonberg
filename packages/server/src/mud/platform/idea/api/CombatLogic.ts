@@ -275,6 +275,15 @@ export class CombatLogic extends ApiLogic {
   }
 
   @CallSecurity(CombatApiCallers)
+  public visibleArms(
+    viewer: Stuff,
+    subject: Stuff,
+    attention?: number,
+  ): Stuff[] {
+    return visibleArmsImpl(viewer, subject, attention);
+  }
+
+  @CallSecurity(CombatApiCallers)
   public offerBreak(
     actor: Stuff,
   ): { ok: boolean; reason?: string; broke: boolean } {
@@ -3725,6 +3734,49 @@ function completeSwitch(state: CombatantState): void {
   state.flags.remove("disarmed");
   state.weaponSwitch = null;
   reDeriveTempo(state);
+}
+
+/**
+ * The weapons a `viewer` can SEE on a `subject`: wielded weapons always
+ * (drawn steel is obvious), sheathed/carried ones only when the viewer
+ * actually perceives them (`PerceptionApi.perceives` at the given
+ * attention) — so a well-concealed blade that beats the watcher's
+ * alertness got in, legitimately, and `search` is the counterplay. The
+ * doorman's read for the weapons-check house rule; no frisk verb.
+ */
+function visibleArmsImpl(
+  viewer: Stuff,
+  subject: Stuff,
+  attention?: number,
+): Stuff[] {
+  const seen = new Set<Stuff>();
+  const out: Stuff[] = [];
+  const add = (w: Stuff): void => {
+    if (!seen.has(w)) {
+      seen.add(w);
+      out.push(w);
+    }
+  };
+  // Wielded weapons — no perception check, drawn steel is plain.
+  for (const w of allWieldedWeapons(subject)) add(w);
+  if (MixinApi.isSlotted(subject)) {
+    for (const occ of subject.getOccupants("sidearm")) {
+      if (isWeaponItem(occ) && PerceptionApi.perceives(viewer, occ, attention)) {
+        add(occ as Stuff);
+      }
+    }
+  }
+  if (MixinApi.isContainer(subject)) {
+    for (const item of subject.getContents()) {
+      if (
+        isWeaponItem(item) &&
+        PerceptionApi.perceives(viewer, item, attention)
+      ) {
+        add(item as Stuff);
+      }
+    }
+  }
+  return out;
 }
 
 /** A backup weapon the actor can draw — a dedicated `sidearm` sheath slot
