@@ -22,9 +22,9 @@ data:
     # off the board, pitches the house barm, kegs finished ale and
     # consigns it; alternate mash beats run the LAGER LEG — the cold
     # mash carried down and pitched with the cold strain. The cold-store
-    # beat kegs finished lager (it never mashes or buys). The consigns
-    # beat below keeps carrying the FAUCET's kegs until the W8
-    # switchover retires them.
+    # beat kegs finished lager (it never mashes or buys). The W8
+    # switchover retired the keg faucet: every keg on the counter is
+    # now a batch these beats brewed.
     - brain: /lib/behavior/cellars
       trigger: cadence:120s
       config:
@@ -56,15 +56,6 @@ data:
         batch: 3
         asks:
           lager: 13
-    - brain: /lib/behavior/consigns
-      trigger: cadence:90s
-      config:
-        stock: /trade/brewing/thing/brewing-stock
-        shelf: /trade/distribution/thing/counter
-        batch: 6
-        ask:
-          keg:ale: 60
-          keg:lager: 60
     - brain: /lib/behavior/idles
       trigger: cadence:41s
       config:

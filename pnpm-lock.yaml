@@ -553,12 +553,21 @@ importers:
       '@saxonberg/content-saxonberg-lounge':
         specifier: workspace:*
         version: link:../saxonberg-lounge
+      '@saxonberg/content-trade-brewing':
+        specifier: workspace:*
+        version: link:../trade-brewing
+      '@saxonberg/content-trade-distilling':
+        specifier: workspace:*
+        version: link:../trade-distilling
       '@saxonberg/content-trade-farming':
         specifier: workspace:*
         version: link:../trade-farming
       '@saxonberg/content-trade-smithing':
         specifier: workspace:*
         version: link:../trade-smithing
+      '@saxonberg/content-trade-winemaking':
+        specifier: workspace:*
+        version: link:../trade-winemaking
       '@saxonberg/server':
         specifier: workspace:*
         version: link:../../server

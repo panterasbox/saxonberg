@@ -2,12 +2,16 @@ id: trade-winemaking
 version: 0.1.0          # reserved; nothing reads/enforces it (non-goal: version machinery)
 root: /trade/winemaking
 description: >-
-  The winemaking trade — a STUB (libations): the wines (red, white,
-  sparkling) and the fortified wines (dry and sweet vermouth —
-  winemaking's, made with distilling's spirit), the wine-bottle preset
-  over the platform Bottle, five floor bottles at target in the vintner
-  outfit's stock, the outfit that consigns them onto the cash-and-carry,
-  and three pours. The crush and the ferment are the distillery build's.
+  The winemaking trade — de-stubbed by the fermentation build (W4/W8):
+  the WORKING WINERY (285 K cellar with its air reserve, the basket
+  press, two vats, conditioning bottles, the cellar book) over the
+  kernel transform; the crush recipes with pomace as conservation's
+  residue; the wine/must/vinegar/lees materials and the red, white,
+  sparkling-conditioning and wine-culture ferment profiles; the
+  fortifications (dry and sweet vermouth — made with the distiller's
+  BOUGHT spirit, the B2B leg); the wine-bottle vessel faucet (empties
+  at target — the floor-bottle faucet is retired, every bottle is a
+  batch the cellars beat made); and three pours.
 requires:
   groups:
     - name: winemaking

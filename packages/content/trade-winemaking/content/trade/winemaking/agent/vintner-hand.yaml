@@ -19,9 +19,9 @@ data:
     - { disposition: diligence, valence: 60 }
   behaviors:
     # The producing beat (fermentation W4): work the press off the
-    # cellar book, tend the vats, bottle and consign the take. The
-    # consigns beat below keeps carrying the FAUCET's floor bottles
-    # until the W8 switchover retires them.
+    # cellar book, tend the vats, bottle and consign the take. The W8
+    # switchover retired the floor-bottle faucet: every bottle on the
+    # counter is now a batch this beat made.
     - brain: /lib/behavior/cellars
       trigger: cadence:120s
       config:
@@ -45,18 +45,6 @@ data:
           vinegar: 4
           dry-vermouth: 12
           sweet-vermouth: 12
-    - brain: /lib/behavior/consigns
-      trigger: cadence:90s
-      config:
-        stock: /trade/winemaking/thing/vintner-stock
-        shelf: /trade/distribution/thing/counter
-        batch: 6
-        ask:
-          wine:red: 11
-          wine:white: 10
-          wine:sparkling: 16
-          wine:dry-vermouth: 12
-          wine:sweet-vermouth: 12
     - brain: /lib/behavior/idles
       trigger: cadence:41s
       config:
