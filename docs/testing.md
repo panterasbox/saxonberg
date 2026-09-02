@@ -67,6 +67,28 @@ The post-review and sweep runs are where the duplication is.
 the full lint/test/build runs once before merge; re-running it locally
 for a docs-only change is doing CI's job by hand.
 
+### ⭐⭐ The exemption that keeps getting invented
+
+The table above has been in this doc for a while and the full suite
+still got run **five times** in one build (water, 2026-09-02). Every
+extra run had its own excuse, and they are all the same excuse:
+
+> *"This isn't a review comment — it's structural."*
+
+— a restructured verb, a merge from master, a 149-reference namespace
+rename. **Size is not the trigger. The moment in the cycle is.** A big
+change is still a post-review change, and the thing that actually
+catches a big structural break is the **lint family** (`lint:gates`,
+`lint:census`, `lint:untitled`, `lint:instanceable`, `lint:imports`,
+`lint:arg-kinds`) plus the touched packs' own suites — none of which
+takes twenty minutes, and all of which are more targeted at that class
+of break than re-running the client's React tests.
+
+⚠ **Never start the full suite in the background "while waiting."** It
+cannot be seen starting, so it cannot be caught and stopped; a
+background run wastes the same wall-clock with none of the visibility.
+*"It's impossible for me to catch it every time."*
+
 ### ⚠⚠ A full run stays valid until SOURCE changes — check, don't re-run
 
 The most common waste is not a second run someone decided to do; it is

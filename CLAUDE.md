@@ -323,9 +323,26 @@ pnpm gen:schema       # regenerate Collections / the two policy tables
                       #   from packages/server/src/schema/*.yaml
 ```
 
-⚠⚠ **`pnpm test` costs ~15 minutes, and a green run stays valid until a
-SOURCE file changes.** Before starting one, check — do not assume that
-"about to commit" is a reason:
+⚠⚠ **`pnpm test` runs at exactly TWO moments in a build cycle:**
+
+1. **before the MR opens** — the build is done, prove the tree once;
+2. **at `/finalize`** — the pre-merge sweep.
+
+Everything in between — every review round, every merge from master,
+every restructure **however large** — is gated by `pnpm test:near` +
+every touched pack's own vitest + the lint family. ⭐ The exemption that
+keeps getting invented is *"but this change is big / structural / a
+merge"*. **Size is not the trigger; the moment in the cycle is.** A
+149-reference namespace rename is still a review-round change, and the
+lints are what actually catch a namespace break — not a twenty-minute
+rerun of the client suite.
+
+⚠ **Never start it in the background "while waiting."** It cannot be
+seen starting and cannot be caught every time; a background run is worse
+than a foreground one, not better.
+
+⚠⚠ **And a green run stays valid until a SOURCE file changes.** Before
+starting one, check — do not assume that "about to commit" is a reason:
 
 ```bash
 git status --short | grep -vE '^.. (docs/|CLAUDE\.md|.*\.md$|packages/content/)'

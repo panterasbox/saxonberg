@@ -38,7 +38,7 @@ const OBJ_DIR = fileURLToPath(new URL("../../../generic-objects/content/stuff/",
 // The growing cluster (pots, seeds, plants) is the produce trade's (libations drain).
 const PRODUCE_DIR = fileURLToPath(new URL("../../../trade-farming/content/trade/farming/", import.meta.url));
 // The upkeep kit — the residence pack's, stocked cross-pack.
-const RESIDENCE_DIR = fileURLToPath(new URL("../../../residence/content/residence/", import.meta.url));
+const RESIDENCE_DIR = fileURLToPath(new URL("../../../residence/content/system/residence/", import.meta.url));
 // The homebrew kit's trade rows (fermentation D15).
 const WINE_DIR = fileURLToPath(new URL("../../../trade-winemaking/content/trade/winemaking/", import.meta.url));
 const BREW_DIR = fileURLToPath(new URL("../../../trade-brewing/content/trade/brewing/", import.meta.url));
@@ -116,8 +116,8 @@ function seedDoc(rel: string): Doc {
 function objDoc(path: string): Doc {
   const file = path.startsWith("/trade/farming/")
     ? `${PRODUCE_DIR}${path.replace("/trade/farming/", "")}.yaml`
-    : path.startsWith("/residence/")
-      ? `${RESIDENCE_DIR}${path.replace("/residence/", "")}.yaml`
+    : path.startsWith("/system/residence/")
+      ? `${RESIDENCE_DIR}${path.replace("/system/residence/", "")}.yaml`
       : path.startsWith("/trade/winemaking/")
         ? `${WINE_DIR}${path.replace("/trade/winemaking/", "")}.yaml`
         : path.startsWith("/trade/brewing/")

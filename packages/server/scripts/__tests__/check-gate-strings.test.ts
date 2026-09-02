@@ -14,7 +14,7 @@ const ARCANA: PackSource = {
   id: 'arcana',
   packDir: '/proj/packages/content/arcana',
   srcDir: '/proj/packages/content/arcana/src',
-  roots: ['/arcana'],
+  roots: ['/system/arcana'],
 };
 const MUD = '/proj/packages/server/src/mud';
 
