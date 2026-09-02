@@ -39,3 +39,16 @@ data:
   elevationM: 145
   servesExtent: /world/terminus/hinkley-hills
   fixedInPlace: true
+  details:
+    lettering:
+      keywords: [lettering, letters, sign, name, paint]
+      description: |
+        HINKLEY HILLS IMPROVEMENT DISTRICT, in a serif somebody chose carefully, on a tank that is the only thing the District has ever built.
+    frame:
+      keywords: [frame, legs, timber, trestle, ladder]
+      description: |
+        Creosoted timber, cross-braced, with a ladder up one leg and a platform at the top nobody is supposed to stand on. The fifteen metres it holds the tank up ARE the pressure at the standpipe.
+    gauge:
+      keywords: [gauge, glass, float, level]
+      description: |
+        A glass tube up the side with a cork float in it. It is lower in the evening than in the morning, every single day, which is the whole of what the District has to manage.

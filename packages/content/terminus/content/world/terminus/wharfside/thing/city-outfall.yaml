@@ -28,3 +28,12 @@ data:
   dischargeKind: organic
   ownerRef: "group:terminus"
   fixedInPlace: true
+  details:
+    arch:
+      keywords: [arch, brick, brickwork, mouth]
+      description: |
+        Brick laid in a half-round a man could stand up in, green to the springline and black below it. Whoever built it expected it to be looked at from a distance, if at all.
+    flow:
+      keywords: [flow, discharge, water, current]
+      description: |
+        Steady, and steadiest in the driest month — which is exactly when the river has least to thin it with. Nobody designed that; it is just what a city does.

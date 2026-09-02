@@ -26,3 +26,12 @@ data:
   generates: true
   ownerRef: "group:terminus"
   fixedInPlace: true
+  details:
+    wheel:
+      keywords: [wheel, turbine, runner]
+      description: |
+        An iron wheel in a stone throat, turning at a speed that does not look like much until you notice it never varies. The water goes on afterwards, no less water for the work.
+    hum:
+      keywords: [hum, sound, noise, vibration]
+      description: |
+        Felt through the soles before it is heard. It rises a little in spring, when the fell lets go of its snow.

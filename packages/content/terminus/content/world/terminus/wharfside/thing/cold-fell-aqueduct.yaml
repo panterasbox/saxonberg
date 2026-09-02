@@ -45,3 +45,16 @@ data:
   treatmentFactor: 0.9
   ownerRef: "group:terminus"
   fixedInPlace: true
+  details:
+    channel:
+      keywords: [channel, trough, conduit, water]
+      description: |
+        A stone trough the width of a cart, running so nearly level that the water in it looks still until you drop something in. It falls about a foot every quarter mile, the whole way from the fell.
+    piers:
+      keywords: [piers, pier, arches, arch, piles]
+      description: |
+        Arches on piers, stepping down the slope and out across the valleys. Where the ground rises the channel goes into it instead, and comes out the other side.
+    inscription:
+      keywords: [inscription, stone, plaque, lettering]
+      description: |
+        Cut into the last pier, in letters the city paid for: TERMINUS BRINGS ITS OWN WATER. It does not say from whose valley.

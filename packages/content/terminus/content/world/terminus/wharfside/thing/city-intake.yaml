@@ -28,3 +28,20 @@ data:
   treatmentFactor: 0
   ownerRef: "group:terminus"
   fixedInPlace: true
+  details:
+    screen:
+      keywords: [screen, mouth, grate, grille]
+      description: |
+        A riveted iron grille across the mouth, coarse enough to pass a fish and fine enough to stop a log. Somebody rakes it. You can tell because of what is piled beside it.
+    pump:
+      keywords: [pump, housing, engine, shed]
+      description: |
+        A brick housing on the bank with a shaft turning inside it, and the sound of a thing that has not stopped since it was built. The river is below the city, so this runs or the city is dry.
+    walkway:
+      keywords: [walkway, planks, plank, gangway]
+      description: |
+        Four planks and a handrail out to the pillar, bouncing underfoot. In spring the water comes up over them and nobody goes out.
+    pillar:
+      keywords: [pillar, footing, stone, pier]
+      description: |
+        Cut stone set into the riverbed, with a hundred years of waterline on it in bands. The highest band is well above your head.
