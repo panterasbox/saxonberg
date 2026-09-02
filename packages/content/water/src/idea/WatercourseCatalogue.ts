@@ -141,6 +141,28 @@ export interface CompiledReach {
  */
 export type DrawLedger = ReadonlyMap<ReachRef, number>;
 
+/**
+ * Anything that takes water out of a reach — a conduit's intake, a
+ * headgate's diversion.
+ *
+ * Met over a **shape**, not an interface implementation, so the
+ * catalogue never has to import the things that draw from it and a
+ * future withdrawer needs no edit here.
+ */
+export interface Withdrawing {
+  /** The reach it takes from, or `''`. */
+  getReachRef?: () => string;
+  /**
+   * Cubic metres per second it is taking, given the natural flow
+   * arriving at its reach.
+   *
+   * ⚠ **Natural** flow, deliberately: sizing a withdrawal against the
+   * already-drawn flow would make this recursive, and the honest rule
+   * is that a headgate is sized by what the river brings it.
+   */
+  withdrawalM3S?: (naturalM3S: number) => number;
+}
+
 /** Everything a flow query worked out, for `analyze` and for tests. */
 export interface FlowReading {
   /** The reach it describes. */
@@ -180,6 +202,10 @@ export default class WatercourseCatalogue extends Idea {
   >();
   private flowCacheSegment = -1;
 
+  /** Per-segment memo of the live withdrawal scan — see {@link liveDraws}. */
+  private drawCache: DrawLedger | null = null;
+  private drawCacheSegment = -1;
+
   /**
    * Residency veto — a load-bearing process-lifetime singleton is never
    * culled by the self-eviction sweep.
@@ -203,6 +229,8 @@ export default class WatercourseCatalogue extends Idea {
     this.loading = null;
     this.flowCache.clear();
     this.flowCacheSegment = -1;
+    this.drawCache = null;
+    this.drawCacheSegment = -1;
   }
 
   // ---------- reads ----------
@@ -356,6 +384,44 @@ export default class WatercourseCatalogue extends Idea {
     const seg = sample[sample.length - 1];
     if (seg === undefined) return null;
     return airTemperatureK(seg.season, seg.type, reach.elevation);
+  }
+
+  /**
+   * Every withdrawal currently in force, discovered by walking the
+   * resident objects and asking each one whether it takes water.
+   *
+   * ⚠ **Derive-on-read, not a registry.** A registry that objects join
+   * at `postRegister` would need an ordering, an eviction hook and a
+   * re-registration on materialize, and every one of those is a way for
+   * the roster to go quietly stale — a failure this codebase has paid
+   * for three times. A scan cannot go stale. It costs one walk of the
+   * resident set, memoised on the same weather-segment key as flow, so
+   * it runs at most once per six game-hours.
+   */
+  public async liveDraws(nowS: number): Promise<DrawLedger> {
+    const segment = Math.floor(nowS / WEATHER_DEFAULTS.SEGMENT_LENGTH_S);
+    if (segment !== this.drawCacheSegment || this.drawCache === null) {
+      this.drawCache = await this.scanDraws(nowS);
+      this.drawCacheSegment = segment;
+    }
+    return this.drawCache;
+  }
+
+  private async scanDraws(nowS: number): Promise<DrawLedger> {
+    const index = await this.index();
+    const out = new Map<ReachRef, number>();
+    for (const obj of StuffApi.getAllObjects()) {
+      const w = obj as unknown as Withdrawing;
+      if (typeof w.withdrawalM3S !== 'function') continue;
+      const ref = typeof w.getReachRef === 'function' ? w.getReachRef() : '';
+      const reach = index.reaches.get(ref);
+      if (reach === undefined) continue;
+      const natural = this.naturalFlowOf(reach, nowS).total;
+      const taken = w.withdrawalM3S.call(obj, natural);
+      if (!Number.isFinite(taken) || taken <= 0) continue;
+      out.set(ref, (out.get(ref) ?? 0) + taken);
+    }
+    return out;
   }
 
   /**

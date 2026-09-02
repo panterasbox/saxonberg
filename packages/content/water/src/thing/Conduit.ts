@@ -431,6 +431,26 @@ export default class Conduit extends ConduitBase {
   }
 
   /**
+   * What this conduit is taking out of its reach right now.
+   *
+   * ⚠ **A supply conduit draws its capacity, not its demand.** Domestic
+   * metering is an explicit non-goal — the mains stay effectively
+   * unlimited at the household tap — so there is no demand model to
+   * ask, and a main that is on is a main that is running. Rivalry lives
+   * at the scale where it belongs: the capacity is the diversion, and
+   * an over-subscribed main in a dry August is what gives the rights
+   * layer something to bind against.
+   *
+   * A **disposal** conduit takes nothing from the river; it puts things
+   * into it.
+   */
+  public withdrawalM3S(naturalM3S: number): number {
+    if (this.direction !== 'supply') return 0;
+    if (this.cut || !this.isOn()) return 0;
+    return Math.min(this.capacityM3S, Math.max(0, naturalM3S));
+  }
+
+  /**
    * What arrives after treatment — the contaminant level at the intake
    * reduced by this conduit's treatment factor.
    *

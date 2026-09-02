@@ -529,6 +529,107 @@ off a river, and you can close a valve on your aqueduct. So the river
 gets **rights** and the conduit gets an **owner** — a consequence of
 physics rather than a declaration.
 
+## Storage and control (W6)
+
+### `StorageNode` — a reservoir at a built or found elevation
+
+A reservoir, a water tower and a cistern are the same object with
+different numbers. What distinguishes a tower is that its elevation was
+**built** rather than found — and that is a field, not a type.
+`storageKind` is presentation only, and **no behaviour reads it**: a
+tower behaves like a tower because its elevation is above the ground it
+serves. The moment a rule branches on that field, elevation has stopped
+being the mechanism.
+
+Storage is not primarily for volume. It is for:
+
+- **head** — a tank above you gives every tap below it pressure with no
+  pump running, which is ⭐ **how a flat city gets a gravity conduit**,
+  and Terminus is flat by construction;
+- **buffer** — it decouples a steady supply from a peaky demand.
+
+⭐ A tower is why water still runs during a power cut, for a few hours.
+**The buffer size is the outage tolerance** — `outageToleranceS(draw)`
+is that sentence as a method, and it is the number a town actually
+argues about when deciding how big to build.
+
+Filling costs `ρ·g·Δh·V / η` exactly when the source is **below** the
+tank, and nothing when it is above — the whole economic argument for
+gravity, and the third appearance of one equation. A full tank refuses
+the surplus; a run-down store delivers what it has.
+
+Roof-catchment harvesting falls out with no new machinery: catchment
+area × precipitation, which is the soil edge's expression pointed at a
+roof.
+
+### ⚠ The level is the build's ONE piece of state
+
+Everything else derives — flow from the weather, direction from
+elevation, contamination from distance. A **level cannot**, because
+outflow depends on what players drew and no function of time knows that.
+So it is state plus a stamp on a `Persistable` host, and it is the one
+place a restart could lose something. `Storage.test.ts` proves the round
+trip through the spine itself: capture, lose the live value the way a
+restart loses it, materialize, and the level comes back.
+
+It is persistent but deliberately **not authorable**: a level is a fact
+about the world, and a template that set one would be asserting how much
+water is in a tank it has never seen.
+
+### `ControlStructure` — the axis is CONTROLLED, not man-made
+
+A dam, a headgate, a weir and a sluice are one thing: a structure on a
+reach with a **setting** that decides how much water passes. That is
+what actually distinguishes a canal from a creek and a reservoir from a
+lake — not who dug it.
+
+⭐ It is the most consequential object in the subsystem, for two
+reasons: it converts flow **variability** into flow **reliability**,
+which is the most consequential fact about water infrastructure in
+history; and it makes the watershed **political**, because whoever holds
+the dam holds everyone below. It also makes hydro dispatchable.
+
+Two axes, one field. `passFraction` redistributes flow in **time** —
+hold the freshet in May, let it down in August. `divertsTo`
+redistributes it in **space** — send the held share into a canal. Both
+are the same arithmetic; what differs is where the water ends up. A
+canal is *a watercourse with a control at its head*.
+
+What origin changes is **legal, not physical**: a natural course is a
+commons allocated by law, a built work is sunk capital allocated by its
+builder, and where the users collectively own the works that is an
+irrigation district. None is a different object.
+
+### Hydro: `ρ·g·Δh·Q·η`, and it rises and falls with flow
+
+The paying direction of the same equation. Generation reads the
+**arriving** flow rather than the passed share, because the water goes
+through the machine whichever way it leaves — and a dam that generated
+less when it diverted more would make the two axes of control interfere
+for no physical reason.
+
+`headM` is **fixed per structure, at construction** (P0), so the runtime
+read is one multiply.
+
+### Live withdrawals: a scan, not a registry
+
+`WatercourseCatalogue.liveDraws(nowS)` walks the resident objects and
+asks each one whether it takes water (the `Withdrawing` shape). ⚠
+**Derive-on-read, not a registry.** A registry that objects joined at
+`postRegister` would need an ordering, an eviction hook and a
+re-registration on materialize, and every one of those is a way for the
+roster to go quietly stale — a failure this codebase has paid for three
+times. A scan cannot go stale, and it is memoised on the same
+weather-segment key as flow, so it runs at most once per six game-hours.
+
+A withdrawal is sized against the **natural** (undrawn) flow, because
+sizing it against the already-drawn flow would be recursive and because
+the honest rule is that a headgate is sized by what the river brings it.
+A supply conduit draws its **capacity** rather than a demand: domestic
+metering is an explicit non-goal, so there is no demand model to ask,
+and an over-subscribed main in a dry August is exactly what gives the
+rights layer something to bind against.
+
 ## Verbs: the check ran, and the answer was mostly "no new verb"
 
 Every act in this build is *operating a built mechanism*, which is the
