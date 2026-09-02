@@ -35,7 +35,6 @@ import { ContainmentApi } from "../../../../../api/containment";
 import { StuffApi } from "../../../../../api/stuff";
 import { SchedulerApi } from "../../../../../api/scheduler";
 import { PromptApi } from "../../../../../api/prompt";
-import { RegardApi } from "../../../../../api/regard";
 import { EventApi } from "../../../../../api/event";
 import EventRegistry from "../../../EventRegistry";
 import { Stuff } from "../../../../../lib/stuff/Stuff";
@@ -148,8 +147,8 @@ beforeEach(async () => {
     () => new Promise<string>(() => {}),
   );
   vi.spyOn(PromptApi, "cancelAll").mockReturnValue(0);
-  vi.spyOn(RegardApi, "getRegard").mockReturnValue(0);
-  vi.spyOn(RegardApi, "adjustRegard").mockReturnValue(undefined);
+  // Regard runs real against the npc's own belief store since the OO
+  // sweep (a fresh npc holds no records — neutral by construction).
 });
 
 afterEach(() => {

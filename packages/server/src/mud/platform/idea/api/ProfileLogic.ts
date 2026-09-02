@@ -15,7 +15,6 @@ import { RenownApi } from '../../../api/renown';
 import { InfluenceApi } from '../../../api/influence';
 import { AdvancementApi } from '../../../api/advancement';
 import { TraitApi } from '../../../api/trait';
-import { RegardApi } from '../../../api/regard';
 import { ChronicleApi } from '../../../api/chronicle';
 import { ShellApi } from '../../../api/shell';
 import { SocialApi } from '../../../api/social';
@@ -218,7 +217,9 @@ export class ProfileLogic extends ApiLogic {
     } else {
       const contact = contactEntryFor(viewer, target);
       if (contact) card.yourLabel = contact.label;
-      const word = regardWord(RegardApi.getRegard(viewer, target));
+      const word = regardWord(
+        MixinApi.isBeliefStore(viewer) ? viewer.regardFor(target) : 0,
+      );
       if (word) card.yourRegard = word;
     }
     return card;

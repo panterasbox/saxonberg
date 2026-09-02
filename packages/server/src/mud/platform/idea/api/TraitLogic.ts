@@ -23,9 +23,9 @@ import { WorldClockApi } from "../../../api/worldclock";
 import { PersistApi } from "../../../api/persist";
 import { AppApi } from "../../../api/app";
 import { AppSettingKeys } from "../../../lib/config/AppSettings";
-import { RegardApi } from "../../../api/regard";
 import type { RecordOptions, ClaimSeed } from "../../../api/trait";
 import { EventApi } from '../../../api/event';
+import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
 
 const TraitApiCallers = SecurityPolicies.FromModule("/api/trait#TraitApi");
@@ -190,8 +190,12 @@ async function regardBaselineImpl(
   subject: Stuff
 ): Promise<number> {
   const subjectKey = subject.getIdentityPath();
-  if (subjectKey && RegardApi.regardsHeldBy(viewer).has(subjectKey)) {
-    return RegardApi.getRegard(viewer, subject);
+  if (
+    subjectKey &&
+    MixinApi.isBeliefStore(viewer) &&
+    viewer.regardsHeld().has(subjectKey)
+  ) {
+    return viewer.regardFor(subject);
   }
   return compatibilityImpl(viewer, subject);
 }

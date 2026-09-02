@@ -12,7 +12,6 @@ import "../../../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import IntroduceController from '../IntroduceController';
 import { RecognitionApi } from '../../../../../api/recognition';
-import { RegardApi } from '../../../../../api/regard';
 import { RECOGNITION, REGARD } from '../../../../../lib/belief/BeliefStore';
 import { BeliefStoreMixin } from '../../../../../lib/belief/BeliefStore';
 import { PerceptionMixin } from '../../../../../lib/perception/Perception';
@@ -185,7 +184,7 @@ describe('IntroduceController', () => {
     await controller.execute(model(), context(mara, room));
 
     // Listener's regard toward Mara ticked up (the demo bump).
-    expect(RegardApi.getRegard(listener, mara)).toBeGreaterThan(0);
+    expect(listener.regardFor(mara)).toBeGreaterThan(0);
     // The introducee holds no self-regard (skipped in the loop).
     expect(mara.recall(REGARD, mara.getTemplatePath()!)).toBeNull();
   });

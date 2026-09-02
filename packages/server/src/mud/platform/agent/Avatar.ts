@@ -16,7 +16,6 @@ import { SandboxApi } from "../../api/sandbox";
 import { ConnectionApi } from "../../api/connection";
 import { EventApi } from "../../api/event";
 import { StuffApi } from "../../api/stuff";
-import { BeliefStoreApi } from "../../api/belief";
 import { ChronicleApi } from "../../api/chronicle";
 import { ContainmentApi } from "../../api/containment";
 import { MixinApi } from "../../api/mixin";
@@ -830,7 +829,7 @@ export default class Avatar extends AvatarBase {
     // Lazy-hydrate this avatar's identity memory (recognition /
     // identification) into its in-memory belief store. Serves the naming
     // path from memory thereafter — no Mongo read on look/listing.
-    await BeliefStoreApi.hydrate(this);
+    await this.hydrateBeliefs();
 
     // First-arrival deed — minted once, ever. Called unconditionally
     // (not gated on `opts.firstArrival`): the greeting flag only selects
@@ -1334,7 +1333,7 @@ export default class Avatar extends AvatarBase {
 
     // Final-flush + evict the identity-memory working set (fire-and-
     // forget, mirroring the save above — `onDestruct` is synchronous).
-    void BeliefStoreApi.evictAndFlush(this).catch((err) => {
+    void this.evictAndFlushBeliefs().catch((err) => {
       console.error(
         `Avatar.onDestruct: belief flush failed for playerId=${this.playerId}:`,
         err,

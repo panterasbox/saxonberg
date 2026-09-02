@@ -31,7 +31,6 @@ import type { CommandContext, CommandModel } from '../../../../api/command';
 import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { RecognitionApi } from '../../../../api/recognition';
-import { RegardApi } from '../../../../api/regard';
 import { ChronicleApi } from '../../../../api/chronicle';
 import { RECOGNITION } from '../../../../lib/belief/BeliefStore';
 import type { MqlOneResult } from '../../../../api/mql';
@@ -137,7 +136,9 @@ export default class IntroduceController extends CommandController<IntroduceMode
         if (listener.stuffId === introducee.stuffId) continue;
         RecognitionApi.learnIdentity(listener, introducee, name);
         // Demo regard seam: warm each recipient to the introducee.
-        RegardApi.adjustRegard(listener, introducee, REGARD_INTRODUCE_BUMP);
+        if (MixinApi.isBeliefStore(listener)) {
+          listener.adjustRegard(introducee, REGARD_INTRODUCE_BUMP);
+        }
       }
     }
 

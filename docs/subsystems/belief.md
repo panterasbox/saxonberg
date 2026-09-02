@@ -270,15 +270,16 @@ polity Sybil keystone.
   flags, but for `regard` it **overwrites** the scalar — the read-modify-
   write delta arithmetic and the normative clamp live in the consumer,
   never in the dumb store.
-- **`RegardApi` / `RegardLogic` — the gated arithmetic seam.** `api/regard.ts`
-  is a thin forwarding shell to the hot-reloadable `RegardLogic` singleton
-  at `/platform/idea/api/regard` (`StuffApi.singletonSync`; methods gated
-  `FromModule('/api/regard#RegardApi')`), mirroring
-  `RecognitionApi`→`RecognitionLogic`. Surface: `getRegard` (absent → 0),
-  `adjustRegard` (the clamped accumulator), `setRegard`, `clearRegard`
-  (`forgetField`), `regardsHeldBy` (a `recallRealm(REGARD)` projection).
-  The clamp + the eventual read-time decay (off `lastSeen`) live here; the
-  store stays dumb CRUD.
+- **The regard face lives ON the viewer** (the Api OO sweep retired
+  `RegardApi`/`RegardLogic`): `viewer.regardFor(subject)` (absent → 0),
+  `viewer.adjustRegard(subject, delta)` (the clamped accumulator, sealed
+  `@Final @Unshadowable`), `viewer.setRegard`, `viewer.clearRegard`
+  (`forgetField`), `viewer.regardsHeld()` (a `recallRealm(REGARD)`
+  projection). The clamp + the eventual read-time decay (off `lastSeen`)
+  live in `lib/belief/BeliefStore.ts` beside the store; callers narrow
+  with `MixinApi.isBeliefStore`. The writers are ungated (parity with
+  the retired Public statics — the trusted-relationship set spans
+  principals no FromX policy can name); the seal owns the clamp.
 - **Kind-agnostic edges.** The substrate stores no player/NPC marker and
   the same path serves player↔player, player↔NPC, NPC↔player, NPC↔NPC.
   The player/NPC distinction (trust-weighting, susceptibility) is a
@@ -324,9 +325,14 @@ trap — not room familiarity, still distinct). Added by the concealment build
 - Per-viewer isolation, no-inherit, and persistence (`beliefs` collection)
   are inherited from the store unchanged.
 
-## Persistence — lazily-hydrated working set (`api/belief.ts`)
+## Persistence — lazily-hydrated working set (mixin-internal)
 
-`BeliefStoreApi` over `BeliefDocument extends Document` — a dedicated
+Module-private write-through in `lib/belief/BeliefStore.ts` (the Api OO
+sweep retired `BeliefStoreApi`/`BeliefStoreLogic`; the mixin's own
+`know`/`forget` drive it, and the session lifecycle is
+`viewer.hydrateBeliefs()` / `viewer.evictAndFlushBeliefs()` — both
+`SelfOnly`, called from Avatar's own enter/destruct) over
+`BeliefDocument extends Document` — a dedicated
 **`beliefs`** collection, one document per `{viewerId, realm, referent}`,
 indexed on `viewerId` **and** on `{realm, referent}` (both declared
 centrally in `PersistenceManager.createIndexes`). The `viewerId` index

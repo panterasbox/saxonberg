@@ -14,7 +14,6 @@
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { TraitApi } from "../trait";
-import { RegardApi } from "../regard";
 import { BeliefStoreMixin } from "../../lib/belief/BeliefStore";
 import { Idea } from "../../lib/stuff/Idea";
 import { StuffApi } from "../stuff";
@@ -112,9 +111,9 @@ describe("TraitApi.regardBaseline", () => {
     const b = viewer();
     await TraitApi.recordDeed(a, { disposition: "sociability", valence: 70 });
     await TraitApi.recordDeed(b, { disposition: "sociability", valence: 70 });
-    RegardApi.setRegard(a, b, 12);
+    a.setRegard(b, 12);
     expect(await TraitApi.regardBaseline(a, b)).toBe(12);
-    RegardApi.setRegard(a, b, 0);
+    a.setRegard(b, 0);
     expect(await TraitApi.regardBaseline(a, b)).toBe(0);
   });
 
@@ -124,6 +123,6 @@ describe("TraitApi.regardBaseline", () => {
     await TraitApi.recordDeed(a, { disposition: "honesty", valence: 40 });
     await TraitApi.recordDeed(b, { disposition: "honesty", valence: 40 });
     await TraitApi.regardBaseline(a, b);
-    expect(RegardApi.regardsHeldBy(a).size).toBe(0);
+    expect(a.regardsHeld().size).toBe(0);
   });
 });

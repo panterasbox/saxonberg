@@ -24,7 +24,6 @@ import { EmploymentApi } from "../../../api/employment";
 import { ExecutionContextApi } from "../../../api/execution-context";
 import { WorldClockApi } from "../../../api/worldclock";
 import { PersistApi } from "../../../api/persist";
-import { RegardApi } from "../../../api/regard";
 import { SecurityApi } from "../../../api/security";
 import { AppApi } from "../../../api/app";
 import { AppSettingKeys } from "../../../lib/config/AppSettings";
@@ -185,7 +184,7 @@ function presenterAtDestination(presenter: Stuff, dest: Stuff): boolean {
 /**
  * Resolve the issuer's *person* (the regard holder): the issuer itself
  * for a player, the proprietor for a business. Null when not live (lazy
- * NPC standup) — the nudge no-ops then (RegardApi's documented degrade);
+ * NPC standup) — the nudge no-ops then (the regard face's documented degrade);
  * the durable `breached` row stays the authoritative record.
  */
 function issuerPersonOf(record: ContractRecord): Stuff | null {
@@ -232,11 +231,12 @@ async function breachClaim(
   const issuerPerson = issuerPersonOf(record);
   const contractor = claimant ? StuffApi.findByTemplatePath(claimant) : null;
   if (issuerPerson && contractor) {
-    RegardApi.adjustRegard(
-      issuerPerson,
-      contractor,
-      -dial(AppSettingKeys.contractBreachRegardPenalty, 15),
-    );
+    if (MixinApi.isBeliefStore(issuerPerson)) {
+      issuerPerson.adjustRegard(
+        contractor,
+        -dial(AppSettingKeys.contractBreachRegardPenalty, 15),
+      );
+    }
   }
   record.claimant = "";
   record.claimedAt = 0;

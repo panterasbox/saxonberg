@@ -18,7 +18,6 @@ import { AppApi } from "../../../api/app";
 import { SpeciesApi } from "../../../api/species";
 import { PartyApi } from "../../../api/party";
 import { ChronicleApi } from "../../../api/chronicle";
-import { RegardApi } from "../../../api/regard";
 import { AdvancementApi } from "../../../api/advancement";
 import { PerceptionApi } from "../../../api/perception";
 import { ContainmentApi } from "../../../api/containment";
@@ -4768,7 +4767,7 @@ function runResolutionConsumers(
     : dial(AppSettingKeys.combatRegardDuelWin, 2);
   for (const w of roomBelievers(victor, [victor, vanquished])) {
     try {
-      RegardApi.adjustRegard(w, victor, delta);
+      if (MixinApi.isBeliefStore(w)) w.adjustRegard(victor, delta);
     } catch {
       /* skip a witness that can't hold regard */
     }

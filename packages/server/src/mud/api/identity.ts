@@ -27,7 +27,7 @@
  * class stays the unit of security; this is the unit of *discovery*.
  *
  * The underlying classes keep their direct exports (`RecognitionApi`,
- * `BeliefStoreApi`) during migration — this barrel is purely additive.
+ * `RecognitionApi`) during migration — this barrel is purely additive.
  * Member names drop the `Api`/`Store` suffix (implied by the
  * namespace); the bare concept noun is the word you'd search for.
  *
@@ -35,13 +35,13 @@
  * barrel when the chronicle build landed its `ChronicleApi`.
  */
 
-import { BeliefStoreApi } from "./belief";
 import { ChronicleApi } from "./chronicle";
 import { RecognitionApi } from "./recognition";
 
 export const Identity = Object.freeze({
-  /** Per-viewer identity memory + its cache lifecycle (the dumb store). */
-  Belief: BeliefStoreApi, // hydrate · writeRecord · deleteRecord · evictAndFlush
+  // (Belief retired by the Api OO sweep — the viewer face lives ON
+  // BeliefStoreMixin: hydrateBeliefs · evictAndFlushBeliefs · the
+  // regard face. The store's write-through is mixin-internal.)
   /** Viewer×target naming — the compose seam over the belief store. */
   Recognition: RecognitionApi, // describe · learnIdentity · salientFeatures · perceivedKeywords
   /** Append-only identity ledger — the owner-indexed deed record. */

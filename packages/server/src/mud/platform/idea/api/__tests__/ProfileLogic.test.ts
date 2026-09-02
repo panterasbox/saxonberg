@@ -23,7 +23,6 @@ import { RenownApi } from '../../../../api/renown';
 import { InfluenceApi } from '../../../../api/influence';
 import { AdvancementApi } from '../../../../api/advancement';
 import { TraitApi } from '../../../../api/trait';
-import { RegardApi } from '../../../../api/regard';
 import { ChronicleApi } from '../../../../api/chronicle';
 import { ConnectionApi } from '../../../../api/connection';
 import { ShellApi } from '../../../../api/shell';
@@ -94,7 +93,6 @@ function stubSubstrate(recognized: boolean): void {
   );
   vi.spyOn(AdvancementApi, 'bandsFor').mockResolvedValue([]);
   vi.spyOn(TraitApi, 'pronouncedFor').mockResolvedValue([]);
-  vi.spyOn(RegardApi, 'getRegard').mockReturnValue(0);
   vi.spyOn(ChronicleApi, 'entriesFor').mockResolvedValue([]);
 }
 

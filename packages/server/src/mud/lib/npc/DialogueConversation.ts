@@ -39,7 +39,6 @@ import { ScheduleApi } from "../../api/schedule";
 import type { AbortReason } from "@saxonberg/types";
 import type Interactive from "../../platform/idea/Interactive";
 import { PromptApi, PromptCancelledError } from "../../api/prompt";
-import { RegardApi } from "../../api/regard";
 import { TraitApi } from "../../api/trait";
 import { WorldClockApi } from "../../api/worldclock";
 import { SoulApi } from "../../api/soul";
@@ -341,7 +340,11 @@ export class DialogueConversation implements SustainedEngagement {
   private async readFact(
     fact: string,
   ): Promise<string | number | boolean | undefined> {
-    if (fact === "regard") return RegardApi.getRegard(this.npc, this.player);
+    if (fact === "regard") {
+      return MixinApi.isBeliefStore(this.npc)
+        ? this.npc.regardFor(this.player)
+        : 0;
+    }
     const colon = fact.indexOf(":");
     if (colon <= 0) return undefined;
     const ns = fact.slice(0, colon);
@@ -379,7 +382,9 @@ export class DialogueConversation implements SustainedEngagement {
           this.scratch[effect.key] = effect.value;
           break;
         case "regard":
-          RegardApi.adjustRegard(this.npc, this.player, effect.delta);
+          if (MixinApi.isBeliefStore(this.npc)) {
+            this.npc.adjustRegard(this.player, effect.delta);
+          }
           break;
         case "say":
           this.speak(this.npc, effect.line, this.player);

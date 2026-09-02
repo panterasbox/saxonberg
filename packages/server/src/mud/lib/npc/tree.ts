@@ -81,7 +81,7 @@ export const GUARD_OPS = [
 
 /**
  * The fixed guard fact namespace:
- *   - `regard`       → `RegardApi.getRegard(npc, player)`        (signed −100..100)
+ *   - `regard`       → `npc.regardFor(player)`        (signed −100..100)
  *   - `trait:<axis>` → `TraitApi.positionFor(npc, axis).position` (signed −100..100)
  *   - `time:hour`    → world hour-of-day (0..23)
  *   - `state:<key>`  → ephemeral conversation scratch (this conversation only)

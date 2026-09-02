@@ -21,19 +21,19 @@ import {
   beforeEach,
   afterEach,
 } from "vitest";
-import { makeStuff } from "../../security/__tests__/test-setup";
+import { makeStuff, makeStuffAtPath } from "../../security/__tests__/test-setup";
 import { Idea } from "../../stuff/Idea";
 import { ContainerMixin } from "../../spatial/Container";
 import { ContainableMixin } from "../../spatial/Containable";
 import { SensorMixin } from "../../message/Sensor";
 import { VocalMixin } from "../../message/Vocal";
+import { BeliefStoreMixin } from "../../belief/BeliefStore";
 import { SoulMixin } from "../../social/Soul";
 import { EngagedMixin } from "../../activity/Engaged";
 import { ContainmentApi } from "../../../api/containment";
 import { StuffApi } from "../../../api/stuff";
 import { SchedulerApi } from "../../../api/scheduler";
 import { PromptApi, PromptCancelledError } from "../../../api/prompt";
-import { RegardApi } from "../../../api/regard";
 import { TraitApi } from "../../../api/trait";
 import { EventApi } from "../../../api/event";
 import EventRegistry from "../../../platform/idea/EventRegistry";
@@ -48,8 +48,8 @@ import {
 import type { DialogueTree } from "../tree";
 
 class TestRoom extends ContainerMixin(Idea) {}
-class TestNPC extends EngagedMixin(
-  SoulMixin(VocalMixin(SensorMixin(ContainableMixin(Idea)))),
+class TestNPC extends BeliefStoreMixin(
+  EngagedMixin(SoulMixin(VocalMixin(SensorMixin(ContainableMixin(Idea))))),
 ) {}
 class TestPlayer extends EngagedMixin(
   VocalMixin(SensorMixin(ContainableMixin(Idea))),
@@ -99,10 +99,16 @@ const flush = async (): Promise<void> => {
   }
 };
 
+let worldSeq = 0;
 function makeWorld(): World {
   const room = makeStuff(() => new TestRoom());
   const npc = makeStuff(() => new TestNPC());
-  const player = makeStuff(() => new TestPlayer());
+  // The player needs a durable identity: regard records key on the
+  // subject's identityPath (a keyless subject is a no-op write).
+  const player = makeStuffAtPath(
+    () => new TestPlayer(),
+    `/platform/agent/Avatar/dlg-player-${worldSeq++}`,
+  );
   ContainmentApi.move(npc as never, room as never);
   ContainmentApi.move(player as never, room as never);
 
@@ -169,8 +175,9 @@ beforeEach(async () => {
   StuffApi.clearAll();
   SchedulerApi._clearAllForTesting();
   await bootRegistry();
-  vi.spyOn(RegardApi, "getRegard").mockReturnValue(0);
-  vi.spyOn(RegardApi, "adjustRegard").mockReturnValue(undefined);
+  // Regard reads/writes run REAL against the npc's own belief store
+  // since the OO sweep (regardFor/adjustRegard are mixin methods); a
+  // fresh TestNPC holds no records, so the neutral default is genuine.
   vi.spyOn(TraitApi, "positionFor").mockResolvedValue({
     disposition: "sociability",
     position: 0,
@@ -288,21 +295,19 @@ describe("DialogueConversation — guards", () => {
 
   it("selects a warmer entry node at high regard (AC#6)", async () => {
     const w = makeWorld();
-    (RegardApi.getRegard as ReturnType<typeof vi.fn>).mockReturnValue(50);
+    vi.spyOn(w.npc, "regardFor").mockReturnValue(50);
     await openWith(w, regardEntryTree());
     expect(w.sayNpc).toHaveBeenCalledWith("Good to see you again!", w.player);
   });
 
   it("falls back to the neutral entry at low regard (AC#6)", async () => {
     const w = makeWorld();
-    (RegardApi.getRegard as ReturnType<typeof vi.fn>).mockReturnValue(0);
     await openWith(w, regardEntryTree());
     expect(w.sayNpc).toHaveBeenCalledWith("What'll it be?", w.player);
   });
 
   it("hides a choice whose guard fails (AC#6)", async () => {
     const w = makeWorld();
-    (RegardApi.getRegard as ReturnType<typeof vi.fn>).mockReturnValue(0);
     const tree: DialogueTree = {
       entry: [{ node: "root" }],
       nodes: {
@@ -343,7 +348,8 @@ describe("DialogueConversation — effects", () => {
     };
     await openWith(w, tree);
     await w.pick(0);
-    expect(RegardApi.adjustRegard).toHaveBeenCalledWith(w.npc, w.player, 5);
+    // The effect wrote through the npc's own sealed regard face.
+    expect(w.npc.regardFor(w.player)).toBe(5);
   });
 
   it("ephemeral scratch is gone on re-open (AC#7)", async () => {
