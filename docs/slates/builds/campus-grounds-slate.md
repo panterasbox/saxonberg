@@ -524,15 +524,101 @@ Do not quietly resolve them into confident values.
 
 ---
 
-## Part 9 — The rest of the grounds
+## Part 9 — ⭐⭐ The eatery, and the production/consumption asymmetry
+
+**Provenance:**
+
+> **User: "there should be an eatery on campus. we haven't built one of
+> those yet."**
+
+Verified: **no eatery, restaurant, cafe, refectory, canteen, tavern or
+inn exists anywhere in shipped content.** (Two `cafeteria` rows exist but
+they are *indoor biome* definitions, not venues.) So this is the first —
+which makes it archetype-defining rather than campus decoration.
+
+### ⭐ The finding: every trade shipped production, none shipped consumption
+
+| trade | ships | missing |
+|---|---|---|
+| hospitality | `bar`, `cellar` | — (the exception, below) |
+| **hearth-cooking** | **`kitchen`**, `pantry-floor` | ⚠ **nowhere to eat** |
+| brewing | `brewing-floor` | — |
+| winemaking | `vintner-floor` | — |
+
+⭐ **The bar is the exception, and that is why hospitality feels
+finished** — a bar *collapses production and consumption into one room*.
+You make the drink and hand it across the same counter.
+
+Food does not work that way; kitchens are back-of-house. So
+hearth-cooking is a shipped trade with **a production floor and no dining
+room** — structurally the same gap as Part 7's six homeless combat
+disciplines. **The eatery is the missing half of a trade already built**,
+not a new one.
+
+> Consequence for authors: an eatery is **two rooms** — a front-of-house
+> dining archetype bound to the shipped `kitchen` — where a bar is one.
+
+### ⭐⭐⭐ On campus it closes a second teaching chain
+
+Part 5 gave the grounds a teaching-scale **mining** chain: *adit →
+sample → assay lab.* The **food** chain is already two-thirds built:
+
+> **agronomy grounds + greenhouse (grow) → `kitchen` (cook) → ??? (eat)**
+
+The refectory completes it, giving the campus **a whole supply chain in
+walking distance** — grow it, cook it, eat it. The Part 5 pattern
+("the campus field site teaches the loop; the world charges for it")
+applied to a second trade, and a student can run the entire thing between
+classes.
+
+### ⭐ Room and board
+
+Duncan Hall already makes enrollment grant **a room**. A refectory makes
+it **room *and* board** — the classic pair, and it costs no new
+mechanism: another benefit clause in the Part 3 enrollment contract.
+
+It also sharpens Part 3's central loop. The miner enrolls for the assay
+bench and gets **a bed and meals thrown in** — so the self-interested
+path is *more* rational, and the education-by-side-effect consequence is
+therefore stronger.
+
+### Mealtimes are soft congregation
+
+[metabolism.md](../../subsystems/metabolism.md) ships — digestion buffer,
+meal chemistry, condition cascades. **Hunger is real and on a clock.** So
+the refectory gathers people *because they are hungry*, not because
+anything scheduled them: a congregation point with **no enforcement**,
+riding metabolism + `WorldClockApi`.
+
+⭐ For a multiplayer game whose campus is the first place players land, a
+room where everyone predictably ends up twice a day is worth more than
+most mechanics.
+
+### It is cheap
+
+The verbs largely exist: `menu` / `order` are **platform**; `cook` /
+`plate` ship with **trade-hearth-cooking**. No new verb is obviously
+required.
+
+⚠ **One placement question:** `serve` currently lives in
+**trade-hospitality**. Whether an eatery pulls that pack in, or
+hearth-cooking's `plate` is its own service verb, decides whether the two
+trades stay independent — and it is a **pack-placement** call
+([content-packs.md](../../subsystems/content-packs.md); CLAUDE.md's rule
+is *"a verb lives with the pack whose content affords it"*), not a
+content one.
+
+---
+
+## Part 10 — The rest of the grounds
 
 - **The Chancellor seat** — the Government row is explicitly waiting on
   it, and Part 3 gives it its first real decision (admissions,
   revocation, and whether measurement is withheld).
 - **Lab staff** — technicians; and the assayer question of Part 3.
 - **Athletic grounds** — the `sports` discipline's only possible home.
-- **A refectory** — cooking + metabolism, and the one campus building
-  whose entire point is that people are in it together.
+- **A refectory** — ⭐ promoted to its own **Part 9**; it turned out to be
+  a finding about the trades, not a campus bullet.
 - **Lecture hall / exam hall / office hours** — already specified by the
   college slate; this slate does not redesign them.
 
@@ -592,6 +678,16 @@ architectural.
     college slate's model is "scheduled, many-to-one." An empty hall the
     rest of the time is either fine (a real building) or dead space
     (a room that is only ever a cutscene venue).
+15. ⚠ **Where does `serve` live** once a second trade needs it (Part 9)?
+    Pulling trade-hospitality into every eatery couples two trades that
+    should probably stay independent.
+16. **Is board free with enrollment, or priced?** Part 9 argues room-and-
+    board as a contract benefit; a priced refectory is a small business
+    instead, and the two produce different campuses.
+17. **Does the refectory cook the campus's own produce?** Closing the Part
+    9 chain literally (greenhouse → kitchen → refectory) is lovely, but
+    it makes the eatery's supply depend on the teaching plot's yield —
+    which open question 8 says should be negligible.
 
 ---
 
