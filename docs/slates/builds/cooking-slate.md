@@ -240,7 +240,23 @@ sinks):
    then: it still costs the fire, the pot, the inputs, and the
    knowledge. When tending lands, braising becomes the thing that costs
    you the afternoon — that's when it differentiates.
-5. **Disease** inherits the W0 growth term whenever its build comes,
+5. **The antitoxin** — the ptomaine Condition seed declares
+   `resolution: { by: antitoxin }`, and `ResolutionSpec` is explicitly
+   shape-only v1: **a declared mechanism token with no consumer — no
+   antitoxin item exists anywhere.** Today the only plays are `vomit`
+   inside the absorption window or ride out the slow clearance. That is
+   exactly the unmet-demand shape the vocations register wants, and
+   this build is what wakes it: routine ptomaine exposure (every larder
+   can now produce a dose) creates the customers the
+   apothecary / medic vertical then serves. The antitoxin ships with
+   that build, against live demand — not here.
+
+   ⚠ The same wake obliges a **calibration pass on the ptomaine bands**
+   (2/6/12, `clearanceRate: 0.02`): thresholds tuned for one authored
+   trap ration may be too punishing or too soft once spoilage makes
+   exposure common. A W3 drive item, and a named check for the
+   requirements cycle.
+6. **Disease** inherits the W0 growth term whenever its build comes,
    already proven in production.
 
 ---
