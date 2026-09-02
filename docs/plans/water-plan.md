@@ -1,7 +1,7 @@
 # Water — implementation plan
 
 Builds [water-requirements.md](../requirements/water-requirements.md)
-(D1–D19). Nine waves, kernel and one capability pack.
+(D1–D25). Eleven waves (W0–W10), kernel and one capability pack.
 
 The build's spine is one edge repeated at two scales: **precipitation
 integrates into a place**. Once for soil (a bed fills from the sky) and
@@ -26,6 +26,8 @@ quantity of water in a real place.
 | gravity ships as `AtmosphericTrace<Quantity<'m/s²'>>`, authorable, per-detail overridable | `lib/biome/Atmospheric.ts:125,154` | `g` is a read, not a constant |
 | `DocumentApi.save` / `read` / `list(prefix)` / `listOfKind`, plus a bespoke `saveRelease` | `api/document.ts:71–139` | a water right is `save`; seniority is `list(prefix)` + sort; `saveRelease` is the precedent for a kind with its own validated save |
 | `lint:census` clause (d) fails on a new path-valued `data` field | `scripts/check-template-census.ts` | **every new content field this build adds must be censused in the same commit** (P7) |
+| ⚠ **a pack CANNOT declare a `DocumentKind`** — *"editing this file is a platform act"* | `lib/document/DocumentKinds.ts:12` | the `water-right` **kind** is kernel; only its validated save is the pack's (P1) |
+| ⚠ a **`pump` verb already ships** — view + `PumpController` | `content/platform/cmd/device/pump.yaml` | W5 **extends** it; it does not invent a verb |
 | two proprietor-absent public-infrastructure `Business` seeds ship | `fasttravel.md:204`, `employment.md:343` | the river authority needs no new institution type |
 
 ---
@@ -144,6 +146,24 @@ The build supports three ownership forms (office · concession ·
 cooperative) and ships none as canon. Terminus's works get an authored
 owner in W8, and that choice is reversible content.
 
+### P9 — Verbs: extend before inventing, and every new one is `device`
+
+The build's acts are **operating built mechanisms**, which is the
+`device` category's own definition (*"operating a built object or
+mechanism"* — `wind`/`adjust`/`switch`/`pump`).
+
+⚠ **`pump` already ships** — a view and a `PumpController`. W5 extends
+it rather than minting a second pumping verb, and the same check runs
+before anything else here gets a new verb: `switch`, `adjust` and `open`
+plausibly already cover a headgate, a sluice and a stopcock.
+
+The one act with no plausible existing home is **`boil`** (D13), which
+is `crafting` — it transforms matter with heat, like the shipped
+`heat`.
+
+Nothing here belongs in a new category, and a verb that only makes sense
+at one authored place is domain-local, not platform.
+
 ---
 
 ## Waves
@@ -173,8 +193,12 @@ falls back to deriving from it, authored value still winning.
 contribute (the stairwell-is-not-a-waterfall test).
 
 ### W3 — `Watercourse`: topology authored, direction derived
-**Create:** `Watercourse` (pack `Idea`) + the reach ordinal + catchment
-declaration; `reachOf(place)`.
+**Create:** `Watercourse` (pack `Idea`) + the reach ordinal;
+`reachOf(place)`. **A `Locality` declares the watercourse it sits on and
+drains to** (D21) — the one field that is the connective tissue between
+localities, and the catchment declaration of D6.
+⚠ It must tolerate a locality that declares nothing: three ship rootless
+today (requirements § Constraints).
 **Proves:** upstream/downstream agrees with elevation; a mouth above its
 source fails at parse naming the control points; a lake is one node; a
 terminus has nothing downstream; a distributary and a tributary use one
@@ -183,9 +207,12 @@ structure.
 ### W4 — Flow: the second consumer of the integral, plus snowpack
 **Create:** flow at a reach = catchment integral − upstream draw +
 snowmelt.
+Navigability derives here too — a reach reports navigable or not from
+flow and channel (D25).
 **Proves:** an upstream intake reduces flow below it; a full game year
 produces a **spring rise and a late-summer low**; snow below freezing
-accumulates and releases on melt.
+accumulates and releases on melt; a reach's navigability **changes with
+the season** without anyone authoring a navigable stretch.
 
 ### W5 — `Conduit`: the conveyance ladder
 **Create:** `Conduit` (intake reach → delivery extent, capacity, owner,
@@ -205,11 +232,14 @@ is a watercourse with a control at its head.
 ### W7 — Rights
 **Create:** the `water-right` document kind + a validated save;
 allocation by seniority; the per-window quota on the right.
+**Navigation is a claimable use** carrying a minimum-flow requirement
+(D25) — the claimant who is not a farmer.
 **Proves:** prior appropriation records, dated and transferable;
 riparian derives from parcel ownership with **no record**; both answer
 one allocation query; an over-subscribed reach serves in seniority
 order and the junior goes short; a quota refusal exposes no other
-holder's draw.
+holder's draw; **a diversion strands a navigation claim and curtailing
+the junior right restores it.**
 
 ### W8 — Contamination + the counterplay ladder
 **Create:** contaminant level + kind on a water body; decay by kind;
@@ -220,12 +250,12 @@ not; drinking fouled water doses; boiling prevents; an intake above an
 outfall is clean and below it is not — **derived from terrain, authored
 by nobody**.
 
-### W9 — The three basins, the aqueduct, the drive, and the docs
+### W9 — The three basins, the aqueduct, the road, the riverfront
 **Create:** the home basin's watercourse through Terminus (the
 Confluence, the falls, Hinkley's supply on the slope), the neighbouring
 drainage, and the high empty third basin **over the ridge from
 Rejection** (D20); the inter-basin aqueduct (D22); the works' owner
-(P8); `watershed.md`; CLAUDE.md's one-line map entry.
+(P8).
 
 **Also W9:** the **Terminus → Hinkley valley road** (D23 — which fixes a
 live reachability gap: Hinkley has no foot route in today and its travel
@@ -236,10 +266,20 @@ its outfall; not the district).
 ⚠ **Authors no towns.** Rejection and Heart's Delight do not exist as
 content and belong to their own locality builds — this wave lays the
 water they will sit on and asks one declared field of them (D21).
-**Proves:** the live drive — walk upstream (the valley IS the road,
-D21), survey with an altimeter, find the outfall above the intake, and
-see the season turn the flow down. Two localities in one basin resolve
-an upstream/downstream relation; two in different basins resolve none.
+**Proves:** two localities in one basin resolve an upstream/downstream
+relation and two in different basins resolve none; the aqueduct delivers
+across basins gravity-fed end to end; **a player walks Terminus →
+Hinkley and registers its terminal with no wizard powers anywhere in the
+path.**
+
+### W10 — The live drive, the verbs' final pass, and the docs
+**Create:** `docs/subsystems/watershed.md`; CLAUDE.md's one-line map
+entry; the settings keys the build accumulated (rain rates by type,
+decay rates by contaminant kind, the segment cap, capacity defaults)
+gathered into one authored `water.yaml` rather than scattered.
+**Proves:** the live drive — walk up the valley, survey with an
+altimeter, find the outfall above the intake, and see the season turn
+the flow down. Every new topic key resolves under an existing root.
 
 ---
 
