@@ -108,9 +108,16 @@ cap and the recipe declare the chemistry it needs.
 **Where each word lives** (mostly: places that already exist):
 
 - **Temperature** — shipped (`ThermalApi`, the fire build).
-- **Medium** — the vessel's bulk contents, which the bulk substrate
-  already tracks. Water in the pot = wet; rendered fat = fat method; a
-  bare spit or rack = dry. No new state, no new mixin.
+- **Medium** — what's actually carrying the heat, read per path. ⚠
+  *Corrected 2026-09-02 (the prior-art audit)*: `CookPot` is **not
+  `Bulkable`** — a build vessel banks transient `BuildContribution`s,
+  not a bulk slot — so "the vessel's bulk contents" was imprecise. The
+  honest read: **by-hand**, the water/fat among the build's banked
+  contributions; **craft-resolve**, a matched input slot — a wet
+  recipe requires water as an input like any other, a fat recipe
+  requires tallow/oil. Cleaner anyway (the stew honestly *contains*
+  its water), but note stew recipes gain a water slot they don't have
+  today. Still no new state, no new mixin.
 - **Chemistry thresholds** — Maillard / caramelization as platform
   constants; **smoke point as a `Material` field** beside
   `boilingPoint`/`meltingPoint`.
@@ -129,6 +136,37 @@ method fails closed and silent without a rendered-fat/oil row carrying a
 smoke point (the libations lesson — `feel`/`taste` never ran because no
 body plan granted touch). A fat Material is a deliverable, not an
 assumption.
+
+### Prior art: technique is the act layer; method composes with it
+
+*(From the 2026-09-02 prior-art audit — the design rejects nothing
+shipped.)* The crafting branch already carries an open **technique**
+vocabulary (`shaken` · `stirred` · `muddled` · `boiled` —
+instrument-owned kebab words recorded on the manual build;
+`BuildMethod = Technique`). It is not a competing method model — the
+two are layers:
+
+- **Technique records what you DID** — the act log on the by-hand
+  build, owned by the instrument that performed it.
+- **Method is what the physics WAS** — medium × temperature, the
+  derived reading above.
+
+`boiled` the act and wet-method the state are different facts, and a
+future braise legitimately involves both. Requirements must keep the
+vocabularies from blurring: `BoilController`'s comment sketches a
+recipe-side `method: boiled` field (not yet in `Recipe.ts`) — when it
+lands it is a **technique requirement**, distinct from the `medium`
+physics gate.
+
+⭐ `boil` itself is the exemplar to follow, not merely tolerate: its
+first cut was a hardcoded water-purifier, **rejected in review**
+because a `CookPot` couldn't use it and a second consequence meant a
+kernel edit per trade. It re-shipped as an *act, not an outcome* —
+latches the heat reached, records `boiled`, purification demoted to
+Material data (`purifiedByBoiling`). Derive-don't-declare, built one
+build before this slate named it. And the technique record is the
+natural **carrier for Part 3's deferred process memory** when tending
+and free cooking arrive — that seam already ships.
 
 ### Recipe-gate v1; the free-cooking horizon (settled fork)
 
@@ -163,7 +201,9 @@ Five candidate axes, and the interesting decision is the one we *refuse*:
    `browned: true` on the payload is a second copy of a fact the recipe
    id carries (the two-copies failure). Process memory becomes *real
    information* exactly when outcomes vary within a recipe (tending /
-   doneness — did *you* scorch it?) or without one (free cooking).
+   doneness — did *you* scorch it?) or without one (free cooking) —
+   and when it does, the shipped **technique record** (§ Part 2 prior
+   art) is its natural carrier.
    Sensory rendering meanwhile derives from recipe + grade, which is
    what `outputAppearance` already does.
 
