@@ -61,7 +61,21 @@ distinction between the two vocations:
 Different process (dough chemistry: gluten, leavening, enclosed even
 heat), different upstream (grain → mill → flour, which farming Stage B
 wants to feed) — the metal-chain precedent of cutting packs by chain
-position applies. **The baker gets its own pack, later.** Two notes held
+position applies. **The baker gets its own pack, later.**
+
+**Confectionery clusters with the baker, by the same test.** Candy
+sells **stock** — it travels, shelves, and keeps, and it keeps for the
+terms-not-methods reason: high sugar is low water activity, so sweets
+are self-preserving goods. That's the baker's economics (matching the
+historical confectioner/patissier shared shop), so `confectionery`
+lands as a sibling specialization beside `baking`
+(`specializes: cooking`) **in the baker's pack when it comes**. The
+sugar-work rungs meanwhile grow in cooking's roster where
+`simple-syrup` already lives (§ Part 2 — the candy ladder derives from
+boiling-point elevation) and migrate title with the pack. Boundary
+check: **jam stays the victualler's** — sugar as *preservation intent*
+(the a_w lever applied to fruit); candy is sugar as *the product* —
+same physics term, different trade purpose, no new rule. Two notes held
 for that pack: leavening is literally a ferment, so a proofing dough
 rides `FermentingMixin` (cultures, strains — all shipped, a reuse not a
 mechanism); and an oven is just the dry method with low variance, so the
@@ -94,7 +108,7 @@ and the hard temperature cap that medium imposes:
 | method | medium | temp reality | chemistry unlocked |
 |---|---|---|---|
 | **dry** | air / radiant | whatever the fire gives | Maillard ≥ ~415 K, caramelization ~430 K |
-| **wet** | water | **hard-capped at 373 K, always** | collagen → gelatin over time; browning *never* |
+| **wet** | water | **hard-capped at the medium's `boilingPoint`** (373 K for water) | collagen → gelatin over time; browning *never* |
 | **fat** | rendered fat / oil | capped at the fat's **smoke point** (~450–480 K) | Maillard yes, and fast |
 | *(combination)* | sequenced | sear-then-stew = braise | not a primitive — a sequence of the three (deferred, § horizons) |
 
@@ -104,6 +118,16 @@ pot of stew. That falls straight out of physics the engine already has
 (`ThermalApi.reachableHeatFor`, real Kelvin, phase change, Materials with
 `boilingPoint`); we don't enforce a method, we let the medium impose its
 cap and the recipe declare the chemistry it needs.
+
+⭐ *Amended 2026-09-02 (the sweets question)*: the cap was never "373" —
+it was always **the medium's `boilingPoint`**, and water just happens to
+be the common medium. The payoff is **sugar work**: boiling-point
+elevation means concentrated syrup boils higher the more sugar it
+carries, which is *why a candy thermometer reads concentration* — the
+candy ladder (soft-ball ~385 K · hard-crack ~423 K · caramel ~430 K)
+**derives** from a per-Material field that already exists. `simple-syrup`
+(340 K, easy) is the trivial rung of that ladder; caramel and toffee are
+its continuations whenever the roster wants them, zero new physics.
 
 **Where each word lives** (mostly: places that already exist):
 
@@ -307,7 +331,13 @@ lands against demand this one creates — seed backwards from shipped
 sinks):
 
 1. **Cold storage** (fridge pack, icebox tier first) — lands against
-   players already losing food; the icehouse keeper wakes with customers.
+   players already losing food; the icehouse keeper wakes with
+   customers. **Cold-set desserts ride behind it** (custards, jellies,
+   ice cream — *make hot, set cold*): the making is ordinary wet
+   method, the setting is the thermal substrate running the direction
+   it already runs, and ice cream wants the cold chain plus the
+   ice-and-salt endothermy rung (freezing-point depression) for the
+   pre-icebox era. Deferred by dependency, not taxonomy.
 2. **Preservation / the victualler** — the seasons-scale answer arriving
    when the days-scale answer has taught everyone the problem; salt gets
    its demand, the trade geography wakes.
