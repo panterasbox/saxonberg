@@ -41,6 +41,18 @@ const EmploymentApiCallers = SecurityPolicies.FromModule(
   '/api/employment#EmploymentApi',
 );
 
+/**
+ * The roster-schedule install is also callable by the self-warming
+ * `EmploymentEngine` singleton (the boot()-retirement shape). The
+ * IMMEDIATE boot-time roster pass is the sequencer's
+ * `EmploymentApi.tickRoster()` line (P2 — it must see every pack's
+ * manifest entries stood).
+ */
+const EmploymentBootCallers = SecurityPolicies.AnyOf(
+  EmploymentApiCallers,
+  SecurityPolicies.FromTemplate('/platform/idea/EmploymentEngine'),
+);
+
 /** A Business as a live Stuff — the enumerable seeded entity. */
 type BusinessStuff = Stuff & Business;
 /** Any organization as a live Stuff — a Business, a ministry, a publisher. */
@@ -889,7 +901,8 @@ export class EmploymentLogic extends ApiLogic {
   }
 
   /** Self-register the recurring game-time roster tick (idempotent). */
-  private installRosterSchedule(): void {
+  @CallSecurity(EmploymentBootCallers)
+  public installRosterSchedule(): void {
     if (this.rosterHandle) return;
     this.rosterHandle = WorldClockApi.every(
       Quantity.of(ONE_GAME_HOUR_S, 's'),
@@ -1151,15 +1164,4 @@ export class EmploymentLogic extends ApiLogic {
     );
   }
 
-  /**
-   * See {@link EmploymentApi.boot}. Run one immediate roster pass (so
-   * on-shift state is correct at boot) then self-register the recurring
-   * game-time tick. Idempotent via the retained handle. The game-time
-   * schedule freezes with a paused world, so accrual freezes too.
-   */
-  @CallSecurity(EmploymentApiCallers)
-  public boot(): void {
-    this.runTick();
-    this.installRosterSchedule();
-  }
 }

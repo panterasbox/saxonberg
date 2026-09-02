@@ -35,6 +35,15 @@ import type Interactive from '../Interactive';
 const SandboxApiCallers = SecurityPolicies.FromModule('/api/sandbox#SandboxApi');
 
 /**
+ * The sweeper install is also callable by the self-warming
+ * `SandboxWarden` singleton (the boot()-retirement shape).
+ */
+const SandboxBootCallers = SecurityPolicies.AnyOf(
+  SandboxApiCallers,
+  SecurityPolicies.FromTemplate('/platform/idea/SandboxWarden'),
+);
+
+/**
  * One live circle session — RUNTIME state only (never persisted; a
  * restart makes every scope sessionless by construction, and the first
  * sweep discards the orphaned rows — the discard doctrine).
@@ -692,8 +701,8 @@ export class SandboxLogic extends ApiLogic {
   /** The recurring orphan-sweep handle — retained so re-install no-ops. */
   private sweeperHandle: ScheduleHandle | null = null;
 
-  /** See {@link SandboxApi.boot}. Install the orphan sweeper (idempotent). */
-  @CallSecurity(SandboxApiCallers)
+  /** Install the orphan sweeper (idempotent) — armed by `SandboxWarden.warm`. */
+  @CallSecurity(SandboxBootCallers)
   public installSweeper(): void {
     if (this.sweeperHandle) return;
     this.sweeperHandle = ScheduleApi.recurring(

@@ -1,0 +1,5 @@
+# AttendantWarden — the singleton whose postRegister arms the storefront-attention guards: lease idle-eviction + linkdead release
+# (the self-warming shape; eager via this pack's boot list, not an
+# AppBootstrap sequencer line).
+class: /platform/idea/AttendantWarden
+data: {}

@@ -50,6 +50,17 @@ const ResidencyApiCallers = SecurityPolicies.FromModule(
   '/api/residency#ResidencyApi',
 );
 
+/**
+ * The sweep-install seam is also callable by the self-warming
+ * `ResidencyWarden` singleton (the boot()-retirement shape): the
+ * handle state stays HERE (hot-reload re-assertion), the manifest home
+ * arms it at postRegister.
+ */
+const ResidencyBootCallers = SecurityPolicies.AnyOf(
+  ResidencyApiCallers,
+  SecurityPolicies.FromTemplate('/platform/idea/ResidencyWarden'),
+);
+
 /** Fallbacks used when AppSettings isn't warmed yet (tests / pre-boot). */
 const DEFAULT_EVICTION_INTERVAL_MS = 60_000;
 const DEFAULT_IDLE_MS = 1_800_000;
@@ -652,7 +663,7 @@ export class ResidencyLogic extends ApiLogic {
   private evictionHandle: ScheduleHandle | null = null;
 
   /** Install the real-time cold-tail eviction sweep (idempotent). */
-  @CallSecurity(ResidencyApiCallers)
+  @CallSecurity(ResidencyBootCallers)
   public installEvictionSweep(): void {
     if (this.evictionHandle) return;
     this.evictionHandle = ScheduleApi.recurring(
@@ -681,7 +692,7 @@ export class ResidencyLogic extends ApiLogic {
   private resetHandle: ClockHandle | null = null;
 
   /** Install the game-time reset (repop) sweep (idempotent). */
-  @CallSecurity(ResidencyApiCallers)
+  @CallSecurity(ResidencyBootCallers)
   public installResetSweep(): void {
     if (this.resetHandle) return;
     this.resetHandle = WorldClockApi.every(
@@ -719,7 +730,7 @@ export class ResidencyLogic extends ApiLogic {
    * enumeration, so if the census ever needs to become sweep-cached the
    * move is local rather than an allowlist edit.
    */
-  @CallSecurity(ResidencyApiCallers)
+  @CallSecurity(ResidencyBootCallers)
   public installSpawnSweep(): void {
     if (this.spawnHandle) return;
     this.spawnHandle = WorldClockApi.every(

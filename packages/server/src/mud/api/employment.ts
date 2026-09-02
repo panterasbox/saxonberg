@@ -376,14 +376,6 @@ export class EmploymentApi {
     return logic().settleShiftWage(business, employeeKey, employment);
   }
 
-  /**
-   * Boot the engine: run one immediate roster pass then self-register the
-   * recurring game-time tick. Called from `AppBootstrap` after
-   * `BankingApi.boot()`.
-   */
-  public static boot(): void {
-    return logic().boot();
-  }
 }
 
 SecurityApi.decorateApiClass(EmploymentApi);

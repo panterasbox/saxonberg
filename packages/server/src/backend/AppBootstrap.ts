@@ -33,10 +33,7 @@ import { RecordApi } from '../mud/api/record';
 import { CompileWatcher } from './CompileWatcher';
 import { fileURLToPath } from 'url';
 import { ResidencyApi } from '../mud/api/residency';
-import { CardApi } from '../mud/api/card';
-import { SandboxApi } from '../mud/api/sandbox';
 import { EmploymentApi } from '../mud/api/employment';
-import { AttendantApi } from '../mud/api/attendant';
 import { SocialApi } from '../mud/api/social';
 import { PartyApi } from '../mud/api/party';
 import { PressApi } from '../mud/api/press';
@@ -216,49 +213,27 @@ export class AppBootstrap {
     installOnlineHoldersProvider();
     await BootstrapManager.run();
 
-    // Residency (self-eviction) — install the real-time cold-tail sweep.
-    // No warm step (nothing materialized); it reads AppSettings each sweep
-    // and enumerates the live registry (populated by the manifest clones
-    // above). Ships in observe mode, so booting culls nothing until an
-    // operator flips `residency.mode` to `enforce`.
-    ResidencyApi.boot();
     // The boot-time SPAWN sweep — the world stands at target on a fresh
     // boot, not a game-day later: every producer's floor row (a template
     // with an authored `censusKey` + home `container:`) is drawn until
     // its region declines. Enforce is the platform default; an operator
     // who flips `residency.spawn.mode` to observe gets a report only.
+    // A deliberate POST-MANIFEST sequencer line (not a boot entry, P2):
+    // it counts the live population the manifest just cloned, and the
+    // manifest cannot express "after everything".
     const spawned = await ResidencyApi.spawnNow();
     console.info(
       `ResidencyApi: boot spawn sweep — ${spawned.placed} placed, ` +
         `${spawned.declined} region(s) at target of ${spawned.regions}`,
     );
 
-    // The card surface — install the relevance-window sweep. ONE
-    // recurring callback for the whole card set, never a timer per card:
-    // a card's lifetime is a fact about time, and there is exactly one
-    // clock for it (the client's own husk interval is gone).
-    CardApi.boot();
-
-    // Sandbox (the holodeck) — install the orphan sweeper. Sessions are
-    // runtime state, so after a restart every circle scope is
-    // sessionless and the first sweep discards all scoped rows (the
-    // discard doctrine). Ordered after PM connect (above) and before
-    // players can enter (the WS listener starts after bootstrap).
-    SandboxApi.boot();
-
-    // Employment engine — run one immediate roster pass (so on-shift state
-    // is correct at boot) then self-register the recurring game-time tick
-    // that maintains each assignee's shift status and settles shift-end
-    // wages. Booted AFTER banking (the wage settlement calls BankingApi) and
-    // after the bootstrap manifest stood up the Business + cast.
-    EmploymentApi.boot();
-
-    // Attendant — install the storefront-attention anti-grief guards: the
-    // real-time lease idle-eviction sweep + the linkdead release. Booted after
-    // employment (server resolution reads on-shift state). Activation = the
-    // AttendantLogic singleton's presence; the sweep no-ops until a venue
-    // grants a lease.
-    AttendantApi.boot();
+    // The IMMEDIATE employment roster pass — on-shift state must be
+    // correct at boot. A deliberate POST-MANIFEST sequencer line (not a
+    // boot entry, P2): the Businesses it walks are other packs' manifest
+    // entries, which platform dependsOn edges cannot name without
+    // coupling to optional packs. The RECURRING tick is the
+    // EmploymentEngine singleton's (manifest-booted).
+    EmploymentApi.tickRoster();
 
     // Social graph (Wave 3) — install the presence relay: the net-new
     // consumer that fans the four in-world-gated presence transitions
@@ -300,15 +275,6 @@ export class AppBootstrap {
     // listener (a runtime diagnostic notifies the content's author). Safe
     // and cheap in every environment; nothing fires it if no producer runs.
     DiagnosticApi.startRouter();
-
-    // The nightly reset — ⚠⚠ destructive, and OFF unless the operator
-    // armed it. `world.reset.mode` absent means nothing is installed at
-    // all; `dry-run` logs what it would remove; only `enforce` deletes.
-    // It also refuses to arm enforcing while `world.resetPolicy` is
-    // unset, because a server that wipes without printing the notice is
-    // a server whose front page lies. Booted last: it must see every
-    // registry it may have to re-seed afterwards.
-    RecordApi.boot();
 
     // ⭐ …and the world opens HERE, with every subsystem above booted, so
     // the first beat any brain runs meets a complete world.

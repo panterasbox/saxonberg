@@ -14,6 +14,7 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { AttendantApi } from "../../../api/attendant";
+import AttendantWarden from "../../../platform/idea/AttendantWarden";
 import AttendancePoint from "../../../platform/thing/AttendancePoint";
 import Ticket from "../../../platform/thing/Ticket";
 import { AppApi } from "../../../api/app";
@@ -82,14 +83,21 @@ describe("Attendant — instant vs durative service", () => {
     StuffApi.clearAll();
   });
 
-  it("boot() installs the sweep without a self-call gate error (regression)", () => {
-    // AttendantLogic.boot() calls the sweep-install internally; a gated method
-    // self-calling another gated method throws SecurityError (the self-caller
-    // isn't the AttendantApi module) — which crashed server boot. boot() must
-    // succeed and be idempotent.
-    act(() => {
-      AttendantApi.boot();
-      AttendantApi.boot(); // idempotent — no throw on the second call
+  it("the warden warm installs the guards without a gate error, idempotently (regression)", async () => {
+    // AttendantLogic.installGuards() is gated; the AttendantWarden's
+    // template stamp is what the widened gate admits (the boot()-
+    // retirement shape). Must succeed and be idempotent.
+    const warden =
+      StuffApi.findByTemplatePath<AttendantWarden>(
+        "/platform/idea/AttendantWarden",
+      ) ??
+      makeStuffAtPath(
+        () => new AttendantWarden(),
+        "/platform/idea/AttendantWarden",
+      );
+    await act(async () => {
+      await warden.warm();
+      await warden.warm(); // idempotent — no throw on the second call
     });
   });
 

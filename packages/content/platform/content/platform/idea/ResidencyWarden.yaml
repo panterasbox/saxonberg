@@ -1,0 +1,5 @@
+# ResidencyWarden — the singleton whose postRegister arms the residency sweeps: cold-tail self-eviction, the game-time reset (repop) sweep, and the census spawn sweep
+# (the self-warming shape; eager via this pack's boot list, not an
+# AppBootstrap sequencer line).
+class: /platform/idea/ResidencyWarden
+data: {}

@@ -24,6 +24,7 @@
 
 import type { CardCloseReason, CardId } from '@saxonberg/types';
 import type Interactive from '../platform/idea/Interactive';
+import type CardRegistry from '../platform/idea/CardRegistry';
 import type { CardOpenOptions } from '../platform/idea/CardRegistry';
 import type { CommandContext } from './command';
 import { SecurityApi } from './security';
@@ -52,32 +53,13 @@ const LOGIC_CLASS_FILE = fileURLToPath(
   new URL('../platform/idea/api/CardLogic', import.meta.url),
 );
 
-/**
- * The sweep's FALLBACK window, in ms — reached only for a holder that
- * carries no settings schema at all.
- *
- * ⭐ The window itself is the **`cards.window` setting** (600 s), read
- * per player inside the sweep. One number, one home: a constant that
- * could disagree with the setting would be the one the player cannot
- * see, quietly in force.
- *
- * ⚠ **The cadence is not the window.** A coarse sweep with a fine window
- * is the residency shape: the sweep is how often we look, the window is
- * how long a card stays relevant, and conflating them means changing one
- * silently changes the other.
- */
-const DEFAULT_WINDOW_MS = 10 * 60_000;
-
-/** How often the sweep looks. See the note on {@link DEFAULT_WINDOW_MS}. */
-const SWEEP_INTERVAL_MS = 30_000;
-
-/**
- * The one recurring sweep handle. Module-level rather than on the logic
- * singleton so it survives an HMR reload of the logic — reinstalling on
- * every `dest` would be a second clock, which is the exact failure this
- * sweep exists to avoid.
- */
-let sweepHandle: ScheduleHandle | null = null;
+/** The registry, when the manifest (or a lazy card op) has stood it up. */
+function registryOrNull(): CardRegistry | null {
+  return (
+    StuffApi.findByTemplatePath<CardRegistry>('/platform/idea/CardRegistry') ??
+    null
+  );
+}
 
 /** Resolve the HMR-able CardLogic singleton (sync). */
 function logic(): CardLogic {
@@ -93,28 +75,6 @@ function logic(): CardLogic {
 
 export class CardApi {
   private constructor() {}
-
-  /**
-   * Boot seam (idempotent): install the relevance-window sweep. One
-   * recurring callback for the whole card set — never a timer per card.
-   */
-  public static boot(): void {
-    if (sweepHandle) return;
-    /*
-     * ⚠ **The sweep runs as the logic singleton, explicitly re-planted.**
-     * A scheduled callback fires long after the frame that installed it,
-     * so the execution context has no target and the registry's own gate
-     * would deny every tick — silently, because a scheduled callback has
-     * nobody to report to. `runRoot` puts the principal back, which is
-     * the same thing the MQL drain does for circle scope.
-     */
-    const principal = logic();
-    sweepHandle = ScheduleApi.recurring(SWEEP_INTERVAL_MS, () => {
-      ExecutionContextApi.runRoot(principal, 'card.sweep', () => {
-        principal.sweepNow(DEFAULT_WINDOW_MS);
-      });
-    });
-  }
 
   /**
    * ⭐⭐ **Open a card from a running command, or touch the one that
@@ -305,18 +265,19 @@ export class CardApi {
 
   /**
    * The AC-8 seam: how many recurring handles the sweep owns. One for
-   * the whole set, or none — never one per card.
+   * the whole set, or none — never one per card. (The handle lives on
+   * the CardRegistry since the boot() retirement; a not-yet-seeded
+   * registry owns none.)
    */
   public static _sweepHandleCountForTesting(): number {
     SecurityApi.assertTestOnly('_sweepHandleCountForTesting');
-    return sweepHandle ? 1 : 0;
+    return registryOrNull()?._sweepHandleCountForTesting() ?? 0;
   }
 
   /** Drop the sweep handle so a test can assert the install path again. */
   public static _resetSweepForTesting(): void {
     SecurityApi.assertTestOnly('_resetSweepForTesting');
-    if (sweepHandle) ScheduleApi.cancel(sweepHandle);
-    sweepHandle = null;
+    registryOrNull()?._resetSweepForTesting();
   }
 }
 

@@ -55,7 +55,13 @@ function resolveRegistry(): CardRegistry {
         "'../CardRegistry' so its module-load side effect registers the class.",
     );
   }
-  const reg = StuffApi.createSync<CardRegistry>(() => new registryClass!());
+  const reg = StuffApi.createSync<CardRegistry>(
+    () => new registryClass!(),
+    // The manifest clone is the production path (postRegister = the
+    // sweep install). A lazily-built harness registry starts with no
+    // sweep; the test that needs one drives postRegister().
+    { deferPostRegister: true },
+  );
   reg.setTemplatePath(REGISTRY_PATH);
   return reg;
 }
@@ -200,7 +206,7 @@ export class CardLogic extends ApiLogic {
   /**
    * Run one sweep. The Api's scheduled callback re-plants this singleton
    * as the principal and calls straight in, so the policy admits
-   * `SelfOnly` alongside the Api face — see {@link CardApi.boot}.
+   * `SelfOnly` alongside the Api face (the registry self-sweeps since the boot() retirement).
    */
   @CallSecurity(
     SecurityPolicies.AnyOf(CardApiCallers, SecurityPolicies.SelfOnly),
