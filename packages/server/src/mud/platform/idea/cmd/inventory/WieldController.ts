@@ -15,7 +15,6 @@ import type { MqlOneResult } from '../../../../api/mql';
 import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
-import { SlotApi } from '../../../../api/slot';
 import { SpeciesApi } from '../../../../api/species';
 
 interface WieldModel extends CommandModel {
@@ -103,9 +102,9 @@ export default class WieldController extends CommandController<WieldModel> {
         return;
       }
     }
-    // SlotApi.occupyAll may throw on race or shape violations;
+    // occupyAll may throw on race or shape violations;
     // dispatcher's outer catch emits controller-error uniformly.
-    SlotApi.occupyAll(giver, target, [...slots]);
+    giver.occupyAll(target, [...slots]);
     MessageApi.scene(giver)
       .topic('sense.survey')
       .toSelf(Mml.compose`You wield ${Mml.thing(target)}.`)

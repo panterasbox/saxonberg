@@ -23,6 +23,7 @@
  */
 
 import type { MixinConstructor, MixinName, FieldMeta } from '../mixin';
+import { Final, Unshadowable } from '../security/decorators';
 import { Mixins } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Slottable } from './Slottable';
@@ -86,6 +87,9 @@ export type SlotReleaseResult =
   | { readonly released: true; readonly vacated: number }
   | { readonly released: false; readonly dumpedKJ: number };
 
+/** Slot resolution query — by Detail keyword or by accepted-mixin. */
+export type SlotResolutionQuery = { detail: string } | { accepts: string };
+
 export interface Slotted {
   // Slot universe — overridable. Default reads `staticSlots`.
   getSlotNames(): readonly string[];
@@ -146,6 +150,16 @@ export interface Slotted {
    * the candidate or null if it wasn't present. Throws on unknown slot.
    */
   vacate(slot: string, candidate: Stuff & Slottable): (Stuff & Slottable) | null;
+  occupyAll(candidate: Stuff & Slottable, slots: readonly string[]): void;
+  findOpenSlotFor(candidate: Stuff & Slottable): string | null;
+  resolveSlot(by: SlotResolutionQuery): string | null;
+  walkOccupants(
+    visit: (
+      host: Stuff & Slotted,
+      slot: string,
+      occupant: Stuff & Slottable,
+    ) => void,
+  ): void;
   vacateAll(
     candidate: Stuff & Slottable,
     slots: readonly string[]
@@ -204,7 +218,9 @@ function validateSlotSpecs(specs: SlotSpec[]): void {
 export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
   Base: TBase
 ) {
-  return class SlottedMixin extends Base {
+  // Declared-then-returned (the Meltable shape) so method decorators
+  // are legal — a class EXPRESSION cannot carry them.
+  class SlottedMixin extends Base {
     static _mixinName = 'SlottedMixin';
     static fieldMeta: FieldMeta = {
       staticSlots: { persistent: true, authorable: true },
@@ -428,6 +444,111 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
       return slots.map((slot) => this.vacate(slot, candidate));
     }
 
+    /**
+     * Multi-slot claim (transactional; was `SlotApi.occupyAll` — the
+     * OO sweep). Either every slot is claimed or none — no partial
+     * occupancy. Throws on validation failure identifying which slot
+     * blocked it, rolling back partial occupancies first. Sealed —
+     * the method owns the atomicity invariant. Ungated: the callers
+     * are the embodiment/conveyance verbs and mixin cleanup paths —
+     * a trusted relationship.
+     */
+    @Final
+    @Unshadowable
+    public occupyAll(
+      candidate: Stuff & Slottable,
+      slots: readonly string[],
+    ): void {
+      const claimed: string[] = [];
+      try {
+        for (const slot of slots) {
+          this.occupy(candidate, slot);
+          claimed.push(slot);
+        }
+      } catch (err) {
+        // Rollback in reverse order.
+        for (let i = claimed.length - 1; i >= 0; i--) {
+          try {
+            const sl = claimed[i];
+            if (sl) this.vacate(sl, candidate);
+          } catch {
+            // Swallow rollback failures — the original error is the
+            // one the caller cares about.
+          }
+        }
+        throw err;
+      }
+    }
+
+    /**
+     * Find an empty slot on this host that the candidate fits, or
+     * null. Single-slot only — multi-slot Wearable/Wieldable claims
+     * consult `getSlotClaim()` and call `occupyAll`.
+     */
+    public findOpenSlotFor(candidate: Stuff & Slottable): string | null {
+      for (const name of this.getSlotNames()) {
+        if (this.isSlotFull(name)) continue;
+        if (this.canOccupy(candidate, name)) return name;
+      }
+      return null;
+    }
+
+    /**
+     * Slot resolution by Detail keyword OR by accepted-mixin. Used by
+     * every slot-bearing verb (mount, sit X, wield X, …) to map an MQL
+     * resolution to a slot.
+     */
+    public resolveSlot(by: SlotResolutionQuery): string | null {
+      if ('detail' in by) {
+        const detail = by.detail;
+        for (const name of this.getSlotNames()) {
+          const spec = this.getSlotSpec(name);
+          if (spec?.userFacingDetail === detail) return name;
+        }
+        return null;
+      }
+      const accepts = by.accepts;
+      for (const name of this.getSlotNames()) {
+        const spec = this.getSlotSpec(name);
+        if (spec?.accepts === accepts) return name;
+      }
+      return null;
+    }
+
+    /**
+     * Walk this host's slot map and recurse into any Slotted occupant.
+     * Visitor fires **once per unique occupant**. Depth-first; a cycle
+     * guard skips re-walked hosts. Used by Mobile.traverse for the
+     * conveyance ripple.
+     */
+    public walkOccupants(
+      visit: (
+        host: Stuff & Slotted,
+        slot: string,
+        occupant: Stuff & Slottable,
+      ) => void,
+    ): void {
+      const visitedHosts = new Set<Stuff & Slotted>();
+      const visitedOccupants = new Set<Stuff & Slottable>();
+      const walk = (host: Stuff & Slotted): void => {
+        if (visitedHosts.has(host)) return;
+        visitedHosts.add(host);
+        for (const [slotName, occupants] of host
+          .getAllOccupants()
+          .entries()) {
+          for (const occupant of occupants) {
+            if (visitedOccupants.has(occupant)) continue;
+            visitedOccupants.add(occupant);
+            visit(host, slotName, occupant);
+            if (MixinApi.isSlotted(occupant)) {
+              walk(occupant);
+            }
+          }
+        }
+      };
+      walk(this as unknown as Stuff & Slotted);
+    }
+
     public tryReleaseFromSlots(
       item: Stuff & Slottable,
     ): SlotReleaseResult {
@@ -569,7 +690,8 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
         }
       }
     }
-  };
+  }
+  return SlottedMixin;
 }
 
 const EMPTY_SET: ReadonlySet<Stuff & Slottable> = new Set();

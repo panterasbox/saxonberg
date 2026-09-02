@@ -45,7 +45,6 @@ import type { Container } from "../../spatial/Container";
 import { ContainableMixin } from "../../spatial/Containable";
 import { PosedMixin } from "../../character/Posed";
 import { SlottableMixin } from "../../slot/Slottable";
-import { SlotApi } from "../../../api/slot";
 import PosturedChair from "../../../platform/thing/Chair";
 import type { Containable } from "../../spatial/Containable";
 import type { Slotted } from "../../slot/Slotted";
@@ -304,8 +303,7 @@ describe("sleep-as-logout — you wake where you slept (D10)", () => {
       sleeper as unknown as Stuff & Containable,
       r as unknown as Stuff & Container,
     );
-    SlotApi.occupyAll(
-      bed as unknown as Stuff & Slotted,
+    (bed as unknown as Stuff & Slotted).occupyAll(
       sleeper as unknown as Stuff & Slottable,
       ["lie:1"],
     );

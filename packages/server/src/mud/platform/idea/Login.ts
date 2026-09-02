@@ -37,7 +37,6 @@ import { Mml } from "../../api/mml";
 import { ContainmentApi } from "../../api/containment";
 import { MixinApi } from "../../api/mixin";
 import { InfluenceApi } from "../../api/influence";
-import { SlotApi } from "../../api/slot";
 import { Template } from "../../lib/stuff/Template";
 import { NameBank } from "../../lib/species/NameBank";
 import { HasInteractiveMixin } from "../../lib/connection/HasInteractive";
@@ -304,7 +303,7 @@ export default class Login extends LoginBase {
           ContainmentApi.move(garment, avatar);
           if (bodyPlanPath && MixinApi.isWearable(garment)) {
             const slots = garment.getSlotClaim(bodyPlanPath);
-            if (slots.length) SlotApi.occupyAll(avatar, garment, slots);
+            if (slots.length) avatar.occupyAll(garment, slots);
           }
         } catch {
           /* skip this garment */

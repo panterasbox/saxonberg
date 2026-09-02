@@ -29,7 +29,6 @@ import {
 import { PersistableApi } from "../../../api/persistable";
 import { StuffApi } from "../../../api/stuff";
 import { ContainmentApi } from "../../../api/containment";
-import { SlotApi } from "../../../api/slot";
 import { ParcelApi } from "../../../api/parcel";
 import { MixinApi } from "../../../api/mixin";
 import PersistentHydrator from "../../../platform/idea/persistence/PersistentHydrator";
@@ -749,7 +748,7 @@ describe("avatar-shaped host (Avatar migration end-to-end)", () => {
     coat.setTag("greatcoat");
     ContainmentApi.move(pack, av); // carried
     ContainmentApi.move(coat, av); // carried...
-    SlotApi.occupyAll(av, coat, ["torso"]); // ...and worn
+    av.occupyAll(coat, ["torso"]); // ...and worn
     ContainmentApi.move(av, room); // standing in the lounge
 
     await PersistableApi.capture(av);
@@ -1052,7 +1051,7 @@ describe("worn gear — Slotted custom slice (AC #2 / #3 substrate)", () => {
     const garment = makeStuffAtPath(() => new Garment(), "/world/garment");
     garment.setTag("cloak");
     ContainmentApi.move(garment, wearer); // in inventory
-    SlotApi.occupyAll(wearer, garment, ["torso"]); // worn
+    wearer.occupyAll(garment, ["torso"]); // worn
 
     await PersistableApi.capture(wearer);
     const state = snapshots[0]!.state as Record<string, unknown>;

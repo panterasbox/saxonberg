@@ -39,7 +39,6 @@ import { TemplateApi } from '../../../../../api/template';
 import { Template } from '../../../../../lib/stuff/Template';
 import { ConnectionApi } from '../../../../../api/connection';
 import { ContainmentApi } from '../../../../../api/containment';
-import { SlotApi } from '../../../../../api/slot';
 import { MessageApi } from '../../../../../api/message';
 import { WorldClockApi } from '../../../../../api/worldclock';
 import { PersistenceManager } from '../../../../../../backend/PersistenceManager';
@@ -134,7 +133,7 @@ describe('EnrollController.commit → chronicle seeding', () => {
       return makeStuff(() => new Idea()) as never;
     });
     vi.spyOn(ContainmentApi, 'move').mockReturnValue(undefined as never);
-    vi.spyOn(SlotApi, 'occupyAll').mockReturnValue(undefined as never);
+    
     vi.spyOn(ConnectionApi, 'transfer').mockReturnValue(undefined as never);
     vi.spyOn(StuffApi, 'destruct').mockReturnValue(undefined as never);
     vi.spyOn(MessageApi, 'scene').mockImplementation(() => {

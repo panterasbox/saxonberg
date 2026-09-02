@@ -22,7 +22,6 @@ import type { Stuff } from '../stuff/Stuff';
 import type { Slotted } from '../slot/Slotted';
 import type { Slottable } from '../slot/Slottable';
 import { MixinApi } from '../../api/mixin';
-import { SlotApi } from '../../api/slot';
 import type { CommandContributions } from '../../api/command';
 import { CallSecurity, Final, Unshadowable } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
@@ -31,7 +30,7 @@ import { SecurityPolicies } from '../security/SecurityPolicies';
  * The transfer's discriminated result (moved with the verbs):
  * `'no-posture-slot'` when the target accepts no slot for this posture,
  * `'occupied'` when every candidate slot is full, `'transfer-failed'`
- * when the underlying `SlotApi.transferOccupancy` throws.
+ * when the underlying `transferOccupancy` throws.
  */
 export type PostureTransferResult =
   | { ok: true; host: Stuff & Slotted; slot: string }
@@ -61,7 +60,7 @@ const PostureVerbCallers = SecurityPolicies.AnyOf(
 function findPostureBearingSlot(
   candidate: Stuff & Slottable,
 ): { host: Stuff & Slotted; slot: string } | null {
-  const occupied = SlotApi.findOccupiedSlots(candidate);
+  const occupied = candidate.occupiedSlots();
   for (const [host, slotNames] of occupied.entries()) {
     for (const slotName of slotNames) {
       const spec = host.getSlotSpec(slotName);
@@ -260,7 +259,7 @@ export function PosedMixin<TBase extends MixinConstructor>(Base: TBase) {
       const from = findPostureBearingSlot(actor);
 
       try {
-        SlotApi.transferOccupancy(actor, from, { host: target, slot: chosen });
+        actor.transferOccupancy(from, { host: target, slot: chosen });
       } catch (err) {
         return {
           ok: false,
@@ -285,7 +284,7 @@ export function PosedMixin<TBase extends MixinConstructor>(Base: TBase) {
     public vacatePostureBearingSlots(): number {
       const actor = this as unknown as Stuff;
       if (!MixinApi.isSlottable(actor)) return 0;
-      const occupied = SlotApi.findOccupiedSlots(actor);
+      const occupied = actor.occupiedSlots();
       let vacated = 0;
       for (const [host, slotNames] of occupied.entries()) {
         for (const slotName of slotNames) {

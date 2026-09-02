@@ -1,18 +1,15 @@
-import "../../../test-bootstrap";
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { SlottedMixin, UNBOUNDED_CAPACITY } from '../../lib/slot/Slotted';
-import { SlottableMixin } from '../../lib/slot/Slottable';
-import { Idea } from '../../lib/stuff/Idea';
-import { SlotApi } from '../slot';
-import { SlotLogic } from '../../platform/idea/api/SlotLogic';
-import { SecurityError } from '../../lib/security/errors';
-import { StuffApi } from '../stuff';
-import { makeStuff } from '../../lib/security/__tests__/test-setup';
+import { SlottedMixin, UNBOUNDED_CAPACITY } from '../../slot/Slotted';
+import { SlottableMixin } from '../../slot/Slottable';
+import { Idea } from '../../stuff/Idea';
+import { StuffApi } from '../../../api/stuff';
+import { makeStuff } from '../../security/__tests__/test-setup';
 
 class Host extends SlottedMixin(Idea) {}
 class Occ extends SlottableMixin(Idea) {}
 
-describe('SlotApi', () => {
+describe('the slot object surface', () => {
   let host: Host;
 
   beforeEach(() => {
@@ -30,7 +27,7 @@ describe('SlotApi', () => {
 
     it('occupies every slot atomically', () => {
       const o = makeStuff(() => new Occ());
-      SlotApi.occupyAll(host, o, ['a', 'b']);
+      host.occupyAll(o, ['a', 'b']);
       expect(host.getOccupant('a')).toBe(o);
       expect(host.getOccupant('b')).toBe(o);
     });
@@ -39,7 +36,7 @@ describe('SlotApi', () => {
       const o = makeStuff(() => new Occ());
       const blocker = makeStuff(() => new Occ());
       host.occupy(blocker, 'b');
-      expect(() => SlotApi.occupyAll(host, o, ['a', 'b'])).toThrow();
+      expect(() => host.occupyAll(o, ['a', 'b'])).toThrow();
       // 'a' should have been rolled back.
       expect(host.isSlotOccupied('a')).toBe(false);
       // 'b' is still the blocker.
@@ -48,7 +45,7 @@ describe('SlotApi', () => {
 
     it('vacateAll removes from every named slot', () => {
       const o = makeStuff(() => new Occ());
-      SlotApi.occupyAll(host, o, ['a', 'b']);
+      host.occupyAll(o, ['a', 'b']);
       const result = host.vacateAll(o, ['a', 'b']);
       expect(result).toEqual([o, o]);
       expect(host.isSlotOccupied('a')).toBe(false);
@@ -63,7 +60,7 @@ describe('SlotApi', () => {
         { name: 'b', accepts: 'SlottableMixin' },
       ]);
       const o = makeStuff(() => new Occ());
-      expect(SlotApi.findOpenSlotFor(host, o)).toBe('a');
+      expect(host.findOpenSlotFor(o)).toBe('a');
     });
 
     it('skips full slots', () => {
@@ -74,7 +71,7 @@ describe('SlotApi', () => {
       const blocker = makeStuff(() => new Occ());
       host.occupy(blocker, 'a');
       const o = makeStuff(() => new Occ());
-      expect(SlotApi.findOpenSlotFor(host, o)).toBe('b');
+      expect(host.findOpenSlotFor(o)).toBe('b');
     });
 
     it('returns null when no slot fits', () => {
@@ -82,21 +79,21 @@ describe('SlotApi', () => {
         { name: 'a', accepts: 'WearableMixin' },
       ]);
       const o = makeStuff(() => new Occ());
-      expect(SlotApi.findOpenSlotFor(host, o)).toBeNull();
+      expect(host.findOpenSlotFor(o)).toBeNull();
     });
   });
 
   describe('findOccupiedHost / findOccupiedSlots', () => {
     it('returns null when not slotted', () => {
       const o = makeStuff(() => new Occ());
-      expect(SlotApi.findOccupiedHost(o)).toBeNull();
+      expect(o.getOccupiedHost()).toBeNull();
     });
 
     it('returns the single host when in one slot', () => {
       host.setStaticSlots([{ name: 'a', accepts: 'SlottableMixin' }]);
       const o = makeStuff(() => new Occ());
       host.occupy(o, 'a');
-      expect(SlotApi.findOccupiedHost(o)).toBe(host);
+      expect(o.getOccupiedHost()).toBe(host);
     });
 
     it('returns the same host when in multiple slots on it', () => {
@@ -107,7 +104,7 @@ describe('SlotApi', () => {
       const o = makeStuff(() => new Occ());
       host.occupy(o, 'a');
       host.occupy(o, 'b');
-      expect(SlotApi.findOccupiedHost(o)).toBe(host);
+      expect(o.getOccupiedHost()).toBe(host);
     });
 
     it('throws when in slots on multiple hosts', () => {
@@ -118,7 +115,7 @@ describe('SlotApi', () => {
       const o = makeStuff(() => new Occ());
       a.occupy(o, 's');
       b.occupy(o, 's');
-      expect(() => SlotApi.findOccupiedHost(o)).toThrow(
+      expect(() => o.getOccupiedHost()).toThrow(
         /multiple|distinct hosts/i
       );
     });
@@ -133,15 +130,15 @@ describe('SlotApi', () => {
     });
 
     it('resolves by detail keyword', () => {
-      expect(SlotApi.resolveSlot(host, { detail: 'seat' })).toBe('sit:1');
+      expect(host.resolveSlot({ detail: 'seat' })).toBe('sit:1');
     });
 
     it('returns null when detail keyword has no match', () => {
-      expect(SlotApi.resolveSlot(host, { detail: 'nope' })).toBeNull();
+      expect(host.resolveSlot({ detail: 'nope' })).toBeNull();
     });
 
     it('resolves first slot by accepts mixin name', () => {
-      expect(SlotApi.resolveSlot(host, { accepts: 'SlottableMixin' })).toBe(
+      expect(host.resolveSlot({ accepts: 'SlottableMixin' })).toBe(
         'sit:1'
       );
     });
@@ -157,7 +154,7 @@ describe('SlotApi', () => {
       host.occupy(o, 'a');
       host.occupy(o, 'b');
       const visits: Array<[string, string]> = [];
-      SlotApi.walkOccupants(host, (h, slot, occupant) => {
+      host.walkOccupants((h, slot, occupant) => {
         visits.push([slot, occupant.stuffId]);
       });
       expect(visits.length).toBe(1);
@@ -176,7 +173,7 @@ describe('SlotApi', () => {
       nest.occupy(innerOcc, 'inner');
       host.occupy(nest, 'outer');
       const visited: string[] = [];
-      SlotApi.walkOccupants(host, (_h, _slot, occ) => {
+      host.walkOccupants((_h, _slot, occ) => {
         visited.push(occ.stuffId);
       });
       expect(visited.length).toBe(2);
@@ -199,15 +196,13 @@ describe('SlotApi', () => {
     });
 
     it('plain occupy when from is null', () => {
-      SlotApi.transferOccupancy(o, null, { host: to, slot: 'b' });
+      o.transferOccupancy(null, { host: to, slot: 'b' });
       expect(to.getOccupant('b')).toBe(o);
     });
 
     it('vacate-then-occupy succeeds', () => {
       from.occupy(o, 'a');
-      SlotApi.transferOccupancy(
-        o,
-        { host: from, slot: 'a' },
+      o.transferOccupancy({ host: from, slot: 'a' },
         { host: to, slot: 'b' }
       );
       expect(from.isSlotOccupied('a')).toBe(false);
@@ -220,9 +215,7 @@ describe('SlotApi', () => {
       const blocker = makeStuff(() => new Occ());
       to.occupy(blocker, 'b');
       expect(() =>
-        SlotApi.transferOccupancy(
-          o,
-          { host: from, slot: 'a' },
+        o.transferOccupancy({ host: from, slot: 'a' },
           { host: to, slot: 'b' }
         )
       ).toThrow();
@@ -232,9 +225,7 @@ describe('SlotApi', () => {
 
     it('same slot is a no-op', () => {
       from.occupy(o, 'a');
-      SlotApi.transferOccupancy(
-        o,
-        { host: from, slot: 'a' },
+      o.transferOccupancy({ host: from, slot: 'a' },
         { host: from, slot: 'a' }
       );
       expect(from.getOccupant('a')).toBe(o);
@@ -259,27 +250,4 @@ describe('SlotApi', () => {
   });
 });
 
-describe('SlotLogic singleton encapsulation', () => {
-  afterEach(() => {
-    StuffApi.clearAll();
-  });
 
-  it('lives at /platform/idea/api/slot once the facade has materialized it', () => {
-    // A facade call lazily creates the logic singleton.
-    const occ = makeStuff(() => new Occ());
-    SlotApi.findOccupiedSlots(occ);
-    const logic = StuffApi.findByTemplatePath('/platform/idea/api/slot');
-    expect(logic).toBeDefined();
-    expect(StuffApi.findByPathGlob('/platform/idea/api/*')).toContain(logic);
-  });
-
-  it('denies a direct logic-method call from a non-SlotApi caller', () => {
-    const occ = makeStuff(() => new Occ());
-    SlotApi.findOccupiedSlots(occ);
-    const logic = StuffApi.findByTemplatePath<SlotLogic>('/platform/idea/api/slot');
-    expect(logic).toBeDefined();
-    // The test module is not `mud/api/slot#SlotApi`, so the FromModule
-    // gate on the logic's own methods denies the call.
-    expect(() => logic!.findOccupiedSlots(occ)).toThrow(SecurityError);
-  });
-});

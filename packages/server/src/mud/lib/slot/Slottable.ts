@@ -16,7 +16,9 @@
 import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Slotted } from './Slotted';
-import { SlotApi } from '../../api/slot';
+import { MqlApi } from '../../api/mql';
+import { MixinApi } from '../../api/mixin';
+import { Final, Unshadowable } from '../security/decorators';
 
 /**
  * Public shape provided by SlottableMixin.
@@ -33,6 +35,11 @@ import { SlotApi } from '../../api/slot';
  * field" duck-type check.
  */
 export interface Slottable {
+  occupiedSlots(): ReadonlyMap<Stuff & Slotted, readonly string[]>;
+  transferOccupancy(
+    from: { host: Stuff & Slotted; slot: string } | null,
+    to: { host: Stuff & Slotted; slot: string },
+  ): void;
   /**
    * Inverse lookup convenience: "what host am I currently in a slot
    * of?" Returns the single host or null. Throws if the Slottable is
@@ -64,7 +71,7 @@ export interface Slottable {
    * Optional synchronous witness — this candidate has just been placed in
    * `host`'s `slotName`. The symmetric twin of {@link onSlotReleased},
    * firing from the same `Slotted.occupy` chokepoint (so every arming path
-   * reaches it: `SlotApi.occupyAll`, combat's grip swap, persistence
+   * reaches it: the host's `occupyAll`, combat's grip swap, persistence
    * restore). v1 consumer: `PosedMixin` records which host's posture slot a
    * body occupies, so an avatar wakes where it slept.
    *
@@ -76,7 +83,9 @@ export interface Slottable {
 export function SlottableMixin<TBase extends MixinConstructor<Stuff>>(
   Base: TBase
 ) {
-  return class SlottableMixin extends Base {
+  // Declared-then-returned (the Meltable shape) so method decorators
+  // are legal — a class EXPRESSION cannot carry them.
+  class SlottableMixin extends Base {
     static _mixinName = 'SlottableMixin';
 
     /**
@@ -93,7 +102,7 @@ export function SlottableMixin<TBase extends MixinConstructor<Stuff>>(
      */
     static cleanupOnDestruct(stuff: Stuff): void {
       const candidate = stuff as Stuff & Slottable;
-      const occupied = SlotApi.findOccupiedSlots(candidate);
+      const occupied = candidate.occupiedSlots();
       for (const [host, slotNames] of occupied.entries()) {
         for (const slotName of slotNames) {
           try {
@@ -110,7 +119,16 @@ export function SlottableMixin<TBase extends MixinConstructor<Stuff>>(
     }
 
     public getOccupiedHost(): (Stuff & Slotted) | null {
-      return SlotApi.findOccupiedHost(this as unknown as Stuff & Slottable);
+      const occupied = this.occupiedSlots();
+      if (occupied.size === 0) return null;
+      if (occupied.size > 1) {
+        throw new Error(
+          `Slottable.getOccupiedHost: candidate occupies slots on ` +
+            `${occupied.size} distinct hosts; use occupiedSlots() ` +
+            `for the full breakdown`,
+        );
+      }
+      return occupied.keys().next().value as Stuff & Slotted;
     }
 
     public fitsSlot(_host: Stuff & Slotted, _slot: string): boolean {
@@ -118,5 +136,65 @@ export function SlottableMixin<TBase extends MixinConstructor<Stuff>>(
       void _slot;
       return true;
     }
-  };
+    /**
+     * Every host-slot this candidate currently occupies (was
+     * `SlotApi.findOccupiedSlots` — the OO sweep). O(N) over an MQL
+     * system enumeration (null giver — slot bookkeeping must see every
+     * host regardless of any viewer's fog); the inner occupancy test
+     * is a reverse-relational read MQL has no predicate for. Promote
+     * to an inverse index if profiling demands.
+     */
+    public occupiedSlots(): ReadonlyMap<Stuff & Slotted, readonly string[]> {
+      const candidate = this as unknown as Stuff & Slottable;
+      const hosts = MqlApi.resolveMany('world:[mixin.SlottedMixin]', {
+        commandGiver: null,
+        scope: 'world',
+      });
+      const out = new Map<Stuff & Slotted, string[]>();
+      for (const obj of hosts.stuff) {
+        if (!MixinApi.isSlotted(obj)) continue;
+        const slotNames: string[] = [];
+        for (const [name, occupants] of obj.getAllOccupants().entries()) {
+          if (occupants.has(candidate)) slotNames.push(name);
+        }
+        if (slotNames.length > 0) out.set(obj, slotNames);
+      }
+      return out;
+    }
+
+    /**
+     * Atomic vacate-then-occupy with rollback (was
+     * `SlotApi.transferOccupancy`). Used by every posture verb to swap
+     * the actor's posture-bearing slot atomically. If `from` is null,
+     * just occupies `to`; a same-(host,slot) transfer is a no-op.
+     * Sealed — owns the atomicity invariant.
+     */
+    @Final
+    @Unshadowable
+    public transferOccupancy(
+      from: { host: Stuff & Slotted; slot: string } | null,
+      to: { host: Stuff & Slotted; slot: string },
+    ): void {
+      const candidate = this as unknown as Stuff & Slottable;
+      if (from && from.host === to.host && from.slot === to.slot) {
+        return;
+      }
+      const vacated = from ? from.host.vacate(from.slot, candidate) : null;
+      try {
+        to.host.occupy(candidate, to.slot);
+      } catch (err) {
+        // Rollback — re-occupy `from`.
+        if (from && vacated) {
+          try {
+            from.host.occupy(candidate, from.slot);
+          } catch {
+            // Rollback failure — surface the original error.
+          }
+        }
+        throw err;
+      }
+    }
+
+  }
+  return SlottableMixin;
 }

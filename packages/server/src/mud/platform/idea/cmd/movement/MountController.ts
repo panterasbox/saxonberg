@@ -1,9 +1,9 @@
 /**
  * MountController — occupy the target's mount slot, set posture to
- * Mounted. Atomic vacate-then-occupy via SlotApi.transferOccupancy.
+ * Mounted. Atomic vacate-then-occupy via the actor's transferOccupancy.
  *
  * Detail-keyword targeting (`mount back`) routes via MQL → Detail →
- * SlotApi.resolveSlot pathway when the target is a Stuff with a
+ * host resolveSlot pathway when the target is a Stuff with a
  * detail-decorated slot. The MQL resolver hands us the host (e.g.,
  * the horse); we resolve the matching slot here.
  *
@@ -21,7 +21,6 @@ import type { MqlOneResult } from '../../../../api/mql';
 import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
-import { SlotApi } from '../../../../api/slot';
 import { Postures } from '../../../../lib/slot/Postured';
 
 interface MountModel extends CommandModel {
@@ -88,12 +87,10 @@ export default class MountController extends CommandController<MountModel> {
 
     const from = giver.currentPostureBearingSlot();
 
-    // SlotApi.transferOccupancy may throw on race or shape
+    // transferOccupancy may throw on race or shape
     // violations; dispatcher's outer catch emits controller-error
     // uniformly.
-    SlotApi.transferOccupancy(
-      giver,
-      from,
+    giver.transferOccupancy(from,
       { host: target, slot: mountSlot }
     );
     giver.setPosture(Postures.Mounted);

@@ -24,7 +24,6 @@ import { AppApi } from '../../../../../api/app';
 import { Template } from '../../../../../lib/stuff/Template';
 import { ConnectionApi } from '../../../../../api/connection';
 import { ContainmentApi } from '../../../../../api/containment';
-import { SlotApi } from '../../../../../api/slot';
 import { MessageApi } from '../../../../../api/message';
 import { BankingApi, Money } from '../../../../../api/banking';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
@@ -51,6 +50,7 @@ describe('EnrollController.commit', () => {
       seedChronicleClaims: ReturnType<typeof vi.fn>;
     recordDeed: ReturnType<typeof vi.fn>;
     recordChronicleOnce: ReturnType<typeof vi.fn>;
+    occupyAll: ReturnType<typeof vi.fn>;
   };
   let transfer: ReturnType<typeof vi.fn>;
   let destruct: ReturnType<typeof vi.fn>;
@@ -123,6 +123,8 @@ describe('EnrollController.commit', () => {
       seedChronicleClaims: vi.fn().mockResolvedValue(undefined),
       recordDeed: vi.fn().mockResolvedValue(undefined),
       recordChronicleOnce: vi.fn().mockResolvedValue(undefined),
+      // The dressing loop claims slots ON the avatar since the OO sweep.
+      occupyAll: vi.fn(),
     };
     dressed = [];
     const garment = makeStuff(() => new TestGarment());
@@ -148,7 +150,7 @@ describe('EnrollController.commit', () => {
       },
     );
     vi.spyOn(ContainmentApi, 'move').mockReturnValue(undefined as never);
-    vi.spyOn(SlotApi, 'occupyAll').mockReturnValue(undefined as never);
+    
     transfer = vi.spyOn(ConnectionApi, 'transfer').mockReturnValue(undefined as never) as never;
     destruct = vi.spyOn(StuffApi, 'destruct').mockReturnValue(undefined as never) as never;
 
@@ -208,7 +210,7 @@ describe('EnrollController.commit', () => {
     expect(avatar.setSex).toHaveBeenCalledWith('female');
     // Healer outfit garments cloned + worn (tolerant loop).
     expect(dressed.length).toBeGreaterThan(0);
-    expect(SlotApi.occupyAll).toHaveBeenCalled();
+    expect(avatar.occupyAll).toHaveBeenCalled();
     expect(transfer).toHaveBeenCalled();
     expect(avatar.enter).toHaveBeenCalledTimes(1);
     expect(destruct).toHaveBeenCalledWith(login);

@@ -30,7 +30,6 @@ import { Currency, BankingApi, Money } from "../../../../api/banking";
 import { ConnectionApi } from "../../../../api/connection";
 import { ContainmentApi } from "../../../../api/containment";
 import { MixinApi } from "../../../../api/mixin";
-import { SlotApi } from "../../../../api/slot";
 import { Template } from "../../../../lib/stuff/Template";
 import Avatar from "../../../agent/Avatar";
 import Login from "../../Login";
@@ -734,7 +733,7 @@ export default class EnrollController extends CommandController<EnrollModel> {
           ContainmentApi.move(garment, avatar);
           if (bodyPlanPath && MixinApi.isWearable(garment)) {
             const slots = garment.getSlotClaim(bodyPlanPath);
-            if (slots.length) SlotApi.occupyAll(avatar, garment, slots);
+            if (slots.length) avatar.occupyAll(garment, slots);
           }
         } catch {
           /* skip this garment */

@@ -65,7 +65,6 @@ import { MagicApi } from '../../api/magic';
 import { MixinApi } from '../../api/mixin';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
-import { SlotApi } from '../../api/slot';
 import { AppSettingKeys } from '../config/AppSettings';
 import { Quantity } from '../quantity';
 import { Reserve, type Reserved } from '../reserve';
@@ -356,7 +355,9 @@ export function ChargedMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (!this.alwaysOn) return;
       // Only when no other slot of the same host still holds this item
       // (a two-slot claim releases both before the effect lets go).
-      const stillOn = SlotApi.findOccupiedSlots(this as unknown as Stuff & Slottable).get(host);
+      const stillOn = (this as unknown as Stuff & Slottable)
+        .occupiedSlots()
+        .get(host);
       if (stillOn && stillOn.length > 0) return;
       this.releaseHeld(host as unknown as Stuff);
     }
