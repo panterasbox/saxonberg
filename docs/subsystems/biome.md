@@ -235,6 +235,25 @@ For any `(scope, detailKey?)` pair where `scope` is the innermost
 First override at any layer terminates the walk. Pure-container
 ancestors (Box, Backpack, …) are skipped entirely.
 
+⭐ **Pressure has a fourth step, and it resolves a circularity** (water
+build). `measure altitude` used to compute `(P_sea − P_local)/(ρ·g)` from
+a pressure an author had typed — an instrument reading back the number
+that was invented to make it read. Now the walk runs to completion as
+above, and **only if it fell all the way through to the root biome** does
+`pressureFromElevation` replace that answer: it takes
+`ZoneApi.elevationFor(scope)` and returns `P = P_sea − ρ·g·h`, tagged
+`source: 'elevation'`, so the barometer reads a **cause**. An authored
+pressure at *any* layer still wins — and the test for "nothing was
+authored" is `sourcePath === ROOT_BIOME_PATH`, *not* the source tag,
+because an outdoor room's biome ancestry reaches the universe row and
+reports `biome-ancestor`. Three cases derive nothing and keep the root
+value: no elevation in the chain, an elevation of exactly **0** (sea
+level *is* the reference, so deriving would be a no-op that only costs a
+walk), and a medium with no tabulated density (a vacuum has no barometric
+anything). The weather deviation still rides on top of whichever
+base won, which is also why a barometric altimeter is fooled by weather
+in real life. See [watershed.md](./watershed.md).
+
 ### Worked traces
 
 ```

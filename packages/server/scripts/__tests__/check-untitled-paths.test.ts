@@ -21,7 +21,7 @@ describe('check-untitled-paths.classify', () => {
   });
 
   it('the title roots are derived from the claims; a template row is a place regardless, a document only under a claimed root', () => {
-    expect(titleRootsOf(['/platform', '/stuff/thing/gear', '/trade/x', '/arcana'])).toEqual(['/platform', '/stuff', '/trade', '/arcana']);
+    expect(titleRootsOf(['/platform', '/stuff/thing/gear', '/trade/x', '/system/arcana'])).toEqual(['/platform', '/stuff', '/trade', '/system']);
     // A document under a root NO pack claims is a place no title reaches: not reported.
     expect(classify([{ pack: 'x', path: '/nowhere/emotes/y' }], ['/platform'])).toEqual([]);
     // A TEMPLATE row anywhere is a place: reported wherever nobody claims it.

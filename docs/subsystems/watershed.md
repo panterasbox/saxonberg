@@ -213,7 +213,7 @@ water pack's (`/system/water/idea/Watercourse`); the **rows** live in the
 commons at `/stuff/idea/Watercourse/<key>`, exactly where `Locality` and
 `Government` reference rows live and for the same reason: a river is a
 fact about somebody's realm, and the realm's own pack has to be able to
-edit it. A row under `/water` would be titled to the water group, and
+edit it. A row under `/system/water` would be titled to the water group, and
 world-seed could not touch the river it authored.
 
 ### A reach is not an object
@@ -1044,3 +1044,44 @@ installed is a dial that fails silently.
   with the season.
 - **A new civics jurisdiction tier.** A river authority is a **firm**.
 - **Any new collection.** `pnpm lint:schema` still reports 48.
+
+## History
+
+The build landed as eleven waves (W0–W10) on `build/water`
+(`681cb2d9a..` through the pre-merge sweep), against
+`docs/plans/water-plan.md` D1–D27 — both the plan and the requirements
+doc retired at the sweep, per [workflow.md](../workflow.md).
+
+Four shifts between design and implementation are worth knowing, because
+each one is a rule rather than a detail:
+
+- **`boil` shipped as an OUTCOME and was rewritten as an ACT, in review.**
+  Its argument required `BulkableMixin`, and a `CookPot` is
+  `ManualBuild + Tool + Durable` and *not* `Bulkable` — so `boil pot`
+  refused outright. It recorded nothing, so no recipe could ever have
+  required "boiled", and its one consequence was hardcoded, so a second
+  would have meant **a kernel edit per trade**. ⭐ The general rule: *a
+  verb names what you DO; what it accomplishes is a property of what you
+  did it to.*
+- **The pack moved from `/water` to `/system/water`**, taking `/arcana`
+  and `/residence` with it, once the question *"what class of thing does
+  water belong to?"* was asked. The five-axis namespace taxonomy in
+  CLAUDE.md is the answer, and its test is that **a system is true
+  whether or not anyone is participating in it**.
+- **The world scan is deliberately UNCACHED.** Memoising it meant a
+  player who shut a sluice watched the river stay dirty for six
+  game-hours. ⭐ Cache the expensive *derivation*; never the
+  *enumeration*.
+- **`ParcelRecord.reach` is a citation because the address tree does not
+  mirror the content tree** — checked rather than assumed. The market
+  square lives at `/world/terminus/market/square` and is addressed
+  `terminus/city/counting-houses/market-square`.
+
+⚠ **Still open after the build**: acceptance 20's live half (walk
+Terminus → Hinkley Hills and `register` the terminal) is proven as
+content and asserted in both directions with no wizard in it, but has
+never been driven in a session — blocked by two boot failures in packs
+this build does not touch. And `wiki-spoiler-fields.snapshot` walks only
+the kernel tree, so a capability pack's `authorable` fields are still
+invisible to acceptance 28's reveal audit — the same blind spot
+`check-world-scan` had until this build widened it.

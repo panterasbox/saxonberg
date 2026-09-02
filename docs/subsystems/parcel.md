@@ -44,8 +44,24 @@ class ParcelRecord extends Document {
   landUse: LandUse | null;      // what may be done here; null = inherit
   area: number;                 // declared ground area, m²; 0 = undeclared
   storeys: number;              // how many floors stand on it (default 1)
+  reach: string;                // the reach this land fronts; '' = not on water
 }
 ```
+
+⭐ **`reach` is a citation, not a derivation** (water build). Riparian
+right belongs to land that *fronts* water, and the obvious way to find
+that — walk the address tree and see what the parcel sits under — does
+not work here, because **the address tree does not mirror the content
+tree**: the market square lives at `/world/terminus/market/square` and is
+addressed `terminus/city/counting-houses/market-square`. So a parcel
+names its reach directly — a `<watercourse>:<reach>` citation like
+`kestrel:confluence` — and the riparian holders of a reach are exactly
+the owners of the parcels citing it, their shares equal by construction,
+so a drought shrinks every glass rather than emptying the junior ones.
+`''` is the ordinary case: most land fronts nothing. Prior appropriation is
+the *recorded* doctrine (a `water-right` document); riparian **derives**
+over these citations, so which doctrine a polity runs is a choice rather
+than a rebuild. See [watershed.md](./watershed.md).
 
 `ParcelOwner` is a **typed, discriminated principal** — the access layer
 dispatches on its kind:

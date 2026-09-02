@@ -309,7 +309,7 @@ measures the doing.
 | Stewardship Discipline | — | 🔲 **designed**, pure data | trivially cheap; ships with the vanilla discipline pack |
 | Ranching / pets / farming | 2 | 🔲 **designed** | principled (wait on land use — now shipped — and spoilage) |
 | **The multi-occupant household** | — | 🔲 **designed** ([household pack](./slates/builds/household-design-pack.md)) | new 2026-08-11 — condition is a **commons** once a holding has two occupants |
-| **Rain → soil moisture** | **2** | 🔲 **designed** ([water pack](./slates/builds/water-design-pack.md)) | ⭐ **unblocked** — drought is fully implemented and cannot happen, because nothing connects the sky to the ground |
+| **Rain → soil moisture** | **2** | ✅ **SHIPPED 2026-09-02** ([watershed.md](./subsystems/watershed.md); [water pack](./slates/builds/water-design-pack.md)) | ⭐ **drought is now possible for the first time** — `satWater` was always a limiting factor and could never bind; `CultivableMixin` integrates `WeatherApi.precipitationBetween × area` for a sky-exposed bed |
 | **The hearth (room ambient)** | **1** | 🔲 **designed** ([hearth & larder](./slates/builds/hearth-and-larder-design-pack.md)) | ⭐ **unblocked**; scoped by thermal's non-goals to one room, no airflow |
 | **Compost** | **2** | 🔲 **designed** (same pack) | ⭐ its **consumer already ships** (`feed` + `COMPOST_TAG`); only the producer is missing |
 | ⭐ **Patina — the improving axis** | **1** | 🔲 **designed** ([patina pack](./slates/builds/patina-design-pack.md)) | ⭐⭐ **unblocked, and the only loop in the family where care makes a thing BETTER rather than merely un-worse** |
@@ -373,7 +373,7 @@ domino**, ahead of any new producer.
 > | Unblocked now | Needs | Why it is free |
 > |---|---|---|
 > | ⭐ **Patina** ([pack](./slates/builds/patina-design-pack.md)) | nothing | `Durable`/`Keen`/`Graded`/glob/chattel all ship; **no new verbs** |
-> | ⭐ **The rain edge** ([water pack](./slates/builds/water-design-pack.md)) | nothing | weather + smallholding both ship; one edge between them |
+> | ~~⭐ **The rain edge**~~ ([water pack](./slates/builds/water-design-pack.md)) | — | ✅ **BUILT 2026-09-02** — it was free exactly as predicted (weather + smallholding both shipped; one edge between them), and the build that took it went well past the edge → [watershed.md](./subsystems/watershed.md) |
 > | ⭐ **The hearth** ([hearth & larder](./slates/builds/hearth-and-larder-design-pack.md)) | nothing | thermal's own named Wave-2 follow-on |
 >
 > **Patina is the one I would put first if the goal is to change how the

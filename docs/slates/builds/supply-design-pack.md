@@ -1,6 +1,13 @@
 # Supply design pack — one model for every source, water and power alike
 
 > **Status: design, planner-ready, captured 2026-08-11. Not requirements.**
+> **⭐ PARTLY SHIPPED 2026-09-02** — the water build took the **failure
+> vocabulary** whole (Part 3's six words are now
+> `lib/supply/SupplyState.ts` in the kernel, precedence order included,
+> with `Conduit` the first reporter) and the sync/async blocker below is
+> **resolved** (a promise-coalesced restamp on `CultivableMixin`, not a
+> new seam). The unified source model, the rivalry axis and the power
+> half are unbuilt; this pack stays the reference for them.
 > Asks one question: **do a tap, a well, a standpipe, a rain cloud, a
 > substation and a socket ride the same model and present the same
 > experience?** Today they do not — there are two source mechanisms, three

@@ -26,9 +26,18 @@ subclasses stay under `lib/spatial/`.
 
 ## ⚠ What belongs on `Zone` itself
 
-`Zone` declares exactly two fields — `name` and `wire` — and both are
-about what a zone *is*. Subsystem concerns go on the subclass that can
-mean something by them.
+`Zone` declares exactly three fields — `name`, `wire` and `elevation` —
+and all three are about what a zone *is*. Subsystem concerns go on the
+subclass that can mean something by them.
+
+⭐ **`elevation` (metres, signed, optional) is on the base deliberately**,
+and it is the one case that cuts the other way from the spawn fields
+below. Height above datum is a fact about a **region of the map**, and the
+regions that carry it are often namespace roots rather than rooms —
+`/world/terminus` is a `FolderZone` at 35 m, and every location under it
+inherits that unless a narrower zone says otherwise. Putting it on
+`SpatialZone` would have made the outermost, cheapest place to state it
+the one place unable to.
 
 Two precedents, one old and one recent. Ownership/access fields
 (`ownerGroup` / `accessGroups`) were **removed** from `Zone` in property
@@ -88,7 +97,7 @@ CartesianZone  SphericalZone
 
 ## ZoneApi
 
-`api/zone.ts` owns two concerns:
+`api/zone.ts` owns three concerns:
 
 - **`resolveZoneForPath(templatePath)`** — walks template ancestry to
   find the nearest *spatial* zone; clones lazily via `StuffApi.singleton`.
@@ -102,6 +111,20 @@ CartesianZone  SphericalZone
   check (extends `Zone`); `isSpatialZoneClass` is the narrow one
   (extends `SpatialZone`). The former gates the folder/leaf
   template invariant; the latter gates `Stuff.zone` stamping.
+- **`elevationFor(scope)`** — metres above datum for any Stuff, by
+  walking *outward* to the outermost container and then up that
+  location's zone chain via `lookupField`. ⭐ **The outward walk is not an
+  optimization, it is the correctness condition**: the zone stamped on an
+  object is resolved from that object's own *template* path, so a garden
+  bed's stamp names the **farming trade's** zone, which has no opinion
+  about where the bed is standing. Only the enclosing place's zone knows
+  that — the same reason the biome chain has its own step 5. Returns `null` when nothing in
+  the chain declares one, which callers read as "unknown", never as
+  "sea level". ⚠ This is **not** `coords.z`: `z` is a cell index inside
+  one zone's local grid and says nothing about datum, so two rooms with
+  the same `z` in different zones are at different heights. Cold path by
+  construction — pressure, head and flow all read it, none on a hot
+  loop. See [watershed.md](./watershed.md).
 
 ## Field inheritance: `Zone.lookupField`
 
