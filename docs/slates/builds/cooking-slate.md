@@ -293,6 +293,50 @@ outputs edibles" and becomes a trade with stakes:
   kill step, the temperature term); the victualler buys *seasons* (water
   activity — salt, drying). Different physics term, different trade.
 
+### Seasoning & spices (settled)
+
+Four different things wearing one word:
+
+1. **As an ingredient — works today.** Salt, sugar, mint, juniper all
+   ship; a recipe that wants seasoning names a slot, weakest-link
+   grade applies (stale herbs drag the stew). Better: **the by-hand
+   path can already season freely** — the discrete-ingredient branch
+   banks anything you `add` to the build; a pinch of salt in the pot
+   is a shipped act. Only craft-resolve can't vary, which is
+   recipe-gate v1 being itself.
+2. ⭐ **As flavor — prose and reputation, never a stat.** The no-gauge
+   doctrine bans a flavor gauge, and none is needed: *"delicious"
+   already has a mechanical carrier, and it's social* — the dish
+   carries the grade verdict and honest macros, the diner reacts
+   (shipped), reception signals feed **renown** — and the cook's trade
+   identity is *sells a name*. Taste lives where it lives in life: in
+   what eaters say and whether they come back. Sensory texture rides
+   the descriptor-bank pattern (magic-items' derived appearance)
+   whenever content wants richer plates.
+3. **"Season to taste" — per-attempt variance, so the tending
+   horizon.** Under recipe-gate v1 every hearty-stew is seasoned
+   identically by construction — the process-memory redundancy
+   argument again. Your salt judgment is the skill seam + tending
+   wave's territory, the technique record its carrier. Nothing new;
+   it joins the same horizon everything per-attempt lives on.
+4. **As economy — the biggest role, pure content.**
+   - **Salt's dual life needs no rule**: cooking's demand is
+     small-dose and steady (a slot in half the roster), the
+     victualler's is bulk (the a_w lever), and the
+     [mining slate](./mining-slate.md) already crowned salt the
+     keystone commodity. One material, two trades' demand curves —
+     the design working, not a conflict.
+   - **Spices are the classic freight good, and terms-not-methods
+     explains why**: dried spices are low water activity, so they
+     keep essentially forever — *the historical reason* they could
+     cross continents carrying value dense in weight. High value, low
+     mass, no clock: the von Thünen long-haul good the
+     [freight slate](./freight-slate.md) wants. Pepper and cinnamon
+     are farming-or-import content rows plus commodity pricing, zero
+     mechanism. (Spices-as-antimicrobial-hurdle is a lovely wiki
+     fact, deliberately **not** mechanized — the hurdle term is the
+     victualler's and the effect is marginal.)
+
 ---
 
 ## Part 4 — Build shape & sequencing (settled)
