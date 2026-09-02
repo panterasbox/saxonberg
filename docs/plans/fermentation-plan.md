@@ -163,6 +163,16 @@ authored lag on the profile for a sterile must in an OPEN vessel.
 Species rows (fungi) land in base-library; ale/lager/wine strain rows
 land in their domesticating trades.
 
+### P13 — The homebrew kit (D15)
+
+Content only: the general-store gardening line grows a homebrew
+sibling — carboy + small press + small mash-tun + culture jar + the
+small pot still, par lines and stipend-honest prices (the farming A5
+store pattern). No capability, recipe, or mixin may name a venue; the
+kit rows land beside the venues they miniaturize (press/mash-tun with
+their trades, carboy/jar with the platform vat family, the small still
+with trade-distilling). W8's drive gains the home leg.
+
 ## Waves
 
 ### W0 — The grade seam
@@ -236,7 +246,9 @@ Floor faucets for wine/beer replaced atomically by brain production.
 crush grapes, ferment, catch and seal the batch, bottle, distil the
 wash, compound the gin, fortify the vermouth, `order martini` at
 Dave's and watch it settle; one batch deliberately left open past
-finished and its vinegar sold to the pantry. Docs:
+finished and its vinegar sold to the pantry; and the HOME leg (D15):
+the whole kit bought at the store on the stipend, a batch brewed in a
+rented room, consigned at the market. Docs:
 `docs/subsystems/fermentation.md`; content-packs rows for the three
 trades + distribution; slate annotations.
 

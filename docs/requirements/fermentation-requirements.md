@@ -308,6 +308,23 @@ disease's pathogens without new branches.
   inherits its leavening surface from this build without designing it
   here.
 
+### D15 — The home brewer is first-class, by inheritance — LOCKED
+
+*(gamification · the D0 lineage)* Two standing doctrines make this
+nearly free, and this decision spends the little that remains: **verbs
+ride the instrument, never the venue** (the reachable-bed precedent —
+nothing in this build may check where you stand), and **the
+suburban-garden invariant** (farming D0) extends one trade over. The
+delta is content: a **homebrew kit line at the general store**
+(carboy, small press, small mash-tun, culture jar, **and a small pot
+still** — sold openly; D11's fire is the honest deterrent and excise
+is the fiction's future, not a mechanic), priced on the stipend.
+The frictions are physics being fair, not rules: a warm room brews ale
+and wine but never lager (no cold cellar — W2's gate is also the
+amateur's ceiling); a kitchen culture starves faster than a cellared
+one; and home output carries the same band and maker's mark, so a
+talented amateur can out-brew a corpo on Dave's rail.
+
 ## Constraints
 
 - **Uncertainty doctrine**: no resolutional randomness; seeded, not
@@ -362,6 +379,9 @@ disease's pathogens without new branches.
   atomically; before it, the floors stand as today.
 - Disciplines: fermenting/distilling leaves exist and credit at the
   act; a bottle displays band + maker's mark.
+- The home path drives live (the D0 analog): buy the kit at the
+  store on the stipend, crush or mash at home, ferment in the room,
+  bottle, and consign at the market — no venue ever consulted.
 - Yeast closes: a boiled wort left open starts after its authored lag;
   a pitched wort starts at once; pitching above the kill temperature
   dies (and the vat never starts); a culture unfed past its window
