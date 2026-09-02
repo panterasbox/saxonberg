@@ -8,9 +8,11 @@
 # gets, which decides how much a reach carries, which decides whether a
 # right binds. See docs/subsystems/watershed.md.
 #
-# ⚠ Every key here has a seeded literal at its call site. The kernel
-# behaves correctly with the `water` pack absent; a dial that only works
-# when a pack is installed is a dial that fails silently.
+# ⚠ Every key here has a seeded literal at its call site — the authored
+# `PRECIPITATION_RATES_MM_PER_HOUR` table in the kernel. So the kernel
+# rains correctly with this pack absent, and these keys only ever RETUNE
+# what already works. A dial that only works when a pack is installed is
+# a dial that fails silently.
 settings:
   # Precipitation rates, in millimetres of liquid water equivalent per
   # HOUR. These are six-hour SEGMENT AVERAGES, not instantaneous

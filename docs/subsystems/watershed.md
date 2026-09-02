@@ -206,6 +206,134 @@ read is an integer compare or a scalar multiply. There is no
 the pattern that has failed in this codebase three times, where nothing
 warms the roster and it reads null forever, silently.
 
+## `Watercourse` — topology authored, direction derived (W3)
+
+A watercourse is a data `Idea` in a catalogue, resolve-on-read — the
+`Biome` / `Government` / `Corpo` / `Material` shape. The **class** is the
+water pack's (`/water/idea/Watercourse`); the **rows** live in the
+commons at `/stuff/idea/Watercourse/<key>`, exactly where `Locality` and
+`Government` reference rows live and for the same reason: a river is a
+fact about somebody's realm, and the realm's own pack has to be able to
+edit it. A row under `/water` would be titled to the water group, and
+world-seed could not touch the river it authored.
+
+### A reach is not an object
+
+A **reach** is a node identity on a course — `kestrel:confluence` — the
+way a room already cites `_biomePath` and `_address`. Rights,
+contamination and flow all key on it. A reach becomes a real object only
+where content puts a **structure** on it: a dam, an intake, a weir.
+
+Most of a watercourse runs through country nobody will ever stand in,
+and Hinkley Lane settled the principle — *the unbuilt lots are prose,
+not nine empty rooms.* It is also the wrong containment: a mill
+**beside** the river is not **in** it, and a diversion right attaches to
+a position that may never have a room at all.
+
+⚠ Reaches are cited by **name**, ordered by **index**. The requirements
+sketch a reach as `kestrel:4`; a positional citation would silently
+re-point every right, intake and outfall the moment an author inserted a
+node above it, so the durable half of the identity is the name and the
+index stays an internal ordinal.
+
+### Direction is derived; an author never writes an arrow
+
+Nodes are declared source-first. Elevation is authored at **control
+points** (source, falls, confluence, mouth) and **interpolated** linearly
+between them, so an uphill reach is *unrepresentable* rather than caught
+by a lint — there is no way to write one down. The source and the mouth
+are control points by definition (there is nothing outside them to
+interpolate from) and must both be authored.
+
+Where elevation ties — a flat reach — the ordering falls back to the
+authored node order, which is honest: a canal across a flat *is*
+directed by how it was dug.
+
+The parse refuses, naming names, when: a mouth is above its source; an
+interior control point is above the one upstream of it; a source or
+mouth authors no elevation; a course declares no basin or no nodes; two
+courses claim one key; a branch names a reach that does not exist, or
+one in another basin; or the drainage contains a loop. A failed parse
+does not **stick** — the promise is dropped so the next read retries and
+re-reports, rather than inheriting a rejection forever.
+
+### One `branchesFrom`, two behaviours
+
+A course names one parent node. **Which end of it attaches there is
+derived from elevation**: whichever of the branch's own endpoints sits
+closest to the junction's height is the junction. A branch attached by
+its **last** node is a tributary joining; one attached by its **first**
+node is a distributary leaving. One authored structure, both behaviours,
+and no arrow anywhere.
+
+### The compile: a reachability SET, not a graph walk
+
+`WatercourseCatalogue` compiles, for each reach, the **set of reaches
+downstream of it**. `compare(a, b)` is then one `Set.has` —
+realm-wide, no walk, which is what the requirements ask for because
+upstream/downstream is asked on hot paths (allocation, contamination,
+navigability). A basin has tens of reaches, so the whole structure is a
+few thousand strings.
+
+A **set**, rather than the nested-set interval labels a tree would
+allow, because *a delta is not a tree*: a distributary gives one reach
+two downstream neighbours, and interval labels cannot express that. The
+set is exact for any DAG and costs the same to read.
+
+`compare` returns four answers, and the fourth is load-bearing:
+
+| | |
+|---|---|
+| `upstream` / `downstream` | water at one reaches the other |
+| `same` | one reach |
+| `unrelated` | **different basins, sibling tributaries that only meet further down, or a citation naming no reach** |
+
+⚠ "Not upstream" and "unrelated" are different. An allocation query that
+conflated them would let a diversion in one valley curtail a right in
+another.
+
+### ⚠ Lazy, never warmed
+
+Every public read is **async and self-loading**. This codebase has been
+bitten three times by a reference roster that nothing warms reading
+empty forever while hand-constructed tests stayed green, so there is
+deliberately no "warmed vs cold" state to get wrong: the first caller
+loads, everyone after hits the cache, and `invalidateCache()` drops it
+for HMR. A `boot:` manifest entry would be an optimisation, never a
+correctness requirement.
+
+## A Locality declares its water (D21)
+
+Two fields on `Locality`, and the first is the whole of what the
+watershed asks of a place:
+
+| field | |
+|---|---|
+| `_reach` | the reach citation this locality sits on and drains to, or `null` |
+| `_catchmentKm2` | square kilometres draining to it, or `null` |
+
+The address tree and the watershed are **two hierarchies, and their
+misalignment is the point**. The address tree is *political* containment
+— `terminus` → `city` → `campus`, with `_governmentKey` per locality.
+The watershed is *hydrological* ordering — Rejection → Heart's Delight →
+Terminus. Terminus governs its own streets and has no say over what
+Rejection puts in the water. That is why a river authority is the one
+institution that follows the second hierarchy while every other one
+follows the first.
+
+⚠ `null` is a normal state of the world, exactly as no government is. A
+locality that declares no reach is off the watershed: it resolves no
+relation with anybody, which is a different answer from "downstream of
+everything". Three localities ship rootless today.
+
+Catchment is **declared** per locality rather than derived per place:
+deriving it would mean integrating an area over a world made of rooms,
+most of which are indoors. The declaration is what turns the
+precipitation integral into a river.
+
+The kernel carries both as opaque strings and numbers — **it never
+imports the pack**, and interpreting the citation is the pack's job.
+
 ## Contents
 
 - Elevation — the zone field, and why `coords.z` is not it

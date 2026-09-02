@@ -81,12 +81,54 @@ export default class Locality extends PostRegistrationMixin(Idea) {
    */
   protected _governmentKey: string | null = null;
 
+  /**
+   * ⭐ **The reach this locality sits on and drains to** — a citation
+   * like `kestrel:confluence`, or `null`.
+   *
+   * The **one** field that is the connective tissue between localities,
+   * and the whole of what the watershed asks of a place.
+   *
+   * The address tree and the watershed are two hierarchies, and
+   * **their misalignment is the point.** The address tree is *political*
+   * containment — `terminus` → `city` → `campus`, with `_governmentKey`
+   * per locality. The watershed is *hydrological* ordering — Rejection
+   * → Heart's Delight → Terminus. Terminus governs its own streets and
+   * has no say over what Rejection puts in the water, which is the real
+   * condition, and it is why a river authority is the one institution
+   * that follows the second hierarchy while every other one follows the
+   * first.
+   *
+   * ⚠ `null` is a normal state of the world, exactly as no government
+   * is. A locality that declares no reach is off the watershed: it
+   * resolves no upstream/downstream relation with anybody, which is a
+   * different answer from "downstream of everything". Three localities
+   * ship rootless today.
+   *
+   * Interpreting the citation is the `water` pack's job; the kernel just
+   * carries the string, so the kernel never imports the pack.
+   *
+   * See [docs/subsystems/watershed.md].
+   */
+  protected _reach: string | null = null;
+
+  /**
+   * Square kilometres of ground draining to {@link _reach}, or `null`.
+   *
+   * Catchment is **declared per locality** rather than derived per
+   * place: deriving it would mean integrating an area over a world made
+   * of rooms, most of which are indoors. The declaration is what turns
+   * the precipitation integral into a river.
+   */
+  protected _catchmentKm2: number | null = null;
+
   static fieldMeta: FieldMeta = {
     name: { persistent: true },
     _address: { persistent: true },
     _weatherPin: { persistent: true },
     _climateLean: { persistent: true },
     _governmentKey: { persistent: true },
+    _reach: { persistent: true, authorable: true },
+    _catchmentKm2: { persistent: true, authorable: true },
   };
 
   // ---------- name ----------
@@ -136,6 +178,29 @@ export default class Locality extends PostRegistrationMixin(Idea) {
     }
     const trimmed = value?.trim() ?? '';
     this._governmentKey = trimmed.length > 0 ? trimmed : null;
+  }
+
+  // ---------- the watershed declaration (D21) ----------
+
+  /** The reach citation this locality drains to, or `null`. */
+  public getReach(): string | null {
+    return this._reach;
+  }
+  public setReach(value: string | null): void {
+    if (value !== null && typeof value !== 'string') {
+      throw new TypeError('Locality._reach must be a string or null');
+    }
+    const trimmed = value?.trim() ?? '';
+    this._reach = trimmed.length > 0 ? trimmed : null;
+  }
+
+  /** Square kilometres draining to {@link getReach}, or `null`. */
+  public getCatchmentKm2(): number | null {
+    return this._catchmentKm2;
+  }
+  public setCatchmentKm2(value: number | null): void {
+    this._catchmentKm2 =
+      value === null || !Number.isFinite(value) || value < 0 ? null : value;
   }
 
   // ---------- coverage-index lifecycle ----------
