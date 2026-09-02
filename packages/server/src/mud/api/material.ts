@@ -323,18 +323,6 @@ export class MaterialApi {
   ): TraumaResolution | null {
     return logic().resolveShock(current);
   }
-
-  /**
-   * Boot-time roster warm: stand up every authored `/stuff/idea/material/**`
-   * Material as a live singleton so the sync resolve-on-read seams
-   * (`Tangible.getMaterial`, bulk slot materials, autoignition,
-   * composition expansion) hit from the first frame of live play —
-   * nothing else ever stood materials up in a running server. Called
-   * once from `AppBootstrap.run` after the seeders. Returns the count.
-   */
-  public static boot(): Promise<number> {
-    return logic().boot();
-  }
 }
 
 SecurityApi.decorateApiClass(MaterialApi);

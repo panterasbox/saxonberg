@@ -1,50 +1,43 @@
 /**
- * `ConditionApi.boot` — the roster warm that makes authored `Condition`
- * behavior reachable at all.
+ * ConditionCatalogue — the self-warming condition roster (the boot()-
+ * retirement shape, FermentProfileCatalogue precedent).
  *
- * ## The bug this closes, and why it survived
+ * ## The bug the warm closes, and why it survived
  *
  * Condition seeds are inserted as template ROWS and **nothing cloned
  * them into Ideas**, so `StuffApi.findByTemplatePath` answered `null`
  * for every condition in a running world. Signs, names, progression and
- * `toxinBehavior` were read off an object that was not there.
+ * `toxinBehavior` were read off an object that was not there. It failed
+ * **silently** (`Metabolic.resolveToxinBehavior` returns `null`; its
+ * caller does `if (!behavior) continue`), so a toxin never cleared.
  *
- * It failed **silently**. The one hot reader —
- * `Metabolic.resolveToxinBehavior` — returns `null`, and its caller
- * does `if (!behavior) continue`. So a toxin never cleared: no throw,
- * no log, no red test. Alcohol accumulated forever.
- *
- * ⚠ **And the tests could not have caught it**, which is the part worth
- * fixing rather than just noting. Every toxin suite hand-constructs its
- * own `Condition` at the path it expects — the same masking
- * `MaterialLogic.bootImpl` already recorded for materials (*"tests
- * hand-construct theirs"*). A fabricated fixture passes whether or not
- * production ever stands the real seed up, **and passes even if the
- * path it fabricates is one no seed uses.**
- *
- * So the load-bearing test here is not the mechanics one — it is
- * {@link the real-seed coverage} below, which drives off the seed files
- * on disk. Add a condition seed that boot would not stand up, or rename
- * one out from under a fixture, and it goes red.
+ * ⚠ **And the tests could not have caught it**: every toxin suite
+ * hand-constructs its own `Condition` at the path it expects. So the
+ * load-bearing test here is the real-seed coverage below, which drives
+ * off the seed files on disk. Add a condition seed the warm would not
+ * stand up, or rename one out from under a fixture, and it goes red.
  */
 
-import "../../../../../test-bootstrap";
+import "../../../test-bootstrap";
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { readFileSync, readdirSync, statSync } from 'fs';
 import { join } from 'path';
 import { fileURLToPath } from 'url';
 import YAML from 'yaml';
-import { ConditionApi } from '../../../../api/condition';
-import { StuffApi } from '../../../../api/stuff';
-import { Template } from '../../../../lib/stuff/Template';
-import { TemplatePathPrefixes } from '../../../../lib/paths';
-import Condition from '../../Condition';
-import { makeStuff } from '../../../../lib/security/__tests__/test-setup';
+import ConditionCatalogue from '../idea/ConditionCatalogue';
+import { StuffApi } from '../../api/stuff';
+import { Template } from '../../lib/stuff/Template';
+import { TemplatePathPrefixes } from '../../lib/paths';
+import Condition from '../idea/Condition';
+import { makeStuff } from '../../lib/security/__tests__/test-setup';
 
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => {
+  vi.restoreAllMocks();
+  StuffApi.clearAll();
+});
 
 const SEEDS_ROOT = join(
-  fileURLToPath(new URL('../../../../../../../content/platform/content/platform/idea/Condition', import.meta.url)),
+  fileURLToPath(new URL('../../../../../content/platform/content/platform/idea/Condition', import.meta.url)),
 );
 
 /** Every authored condition seed, as `(templatePath, class)`. */
@@ -70,8 +63,8 @@ function authoredConditionSeeds(): { path: string; cls: string }[] {
   return out;
 }
 
-describe('ConditionApi.boot — the roster warm', () => {
-  it('stands up Condition rows and skips folder rows', async () => {
+describe('the roster warm', () => {
+  it('postRegister stands up Condition rows and skips folder rows', async () => {
     vi.spyOn(Template, 'findDescendants').mockResolvedValue([
       { path: '/platform/idea/Condition/metabolism', class: '/platform/idea/FolderZone' },
       { path: '/platform/idea/Condition/metabolism/alcohol', class: '/platform/idea/Condition' },
@@ -83,14 +76,15 @@ describe('ConditionApi.boot — the roster warm', () => {
       return makeStuff(() => new Condition()) as never;
     });
 
-    expect(await ConditionApi.boot()).toBe(2);
+    const catalogue = makeStuff(() => new ConditionCatalogue());
+    await catalogue.postRegister();
     expect(stood).toEqual([
       '/platform/idea/Condition/metabolism/alcohol',
       '/platform/idea/Condition/thermal/hypothermia',
     ]);
   });
 
-  it('tolerates one failed standup and continues (the MaterialApi.boot shape)', async () => {
+  it('tolerates one failed standup and continues (the MaterialCatalogue shape)', async () => {
     vi.spyOn(Template, 'findDescendants').mockResolvedValue([
       { path: '/platform/idea/Condition/metabolism/bad', class: '/platform/idea/Condition' },
       { path: '/platform/idea/Condition/metabolism/good', class: '/platform/idea/Condition' },
@@ -100,7 +94,21 @@ describe('ConditionApi.boot — the roster warm', () => {
       if (path.endsWith('bad')) throw new Error('boom');
       return makeStuff(() => new Condition()) as never;
     });
-    expect(await ConditionApi.boot()).toBe(1);
+    const catalogue = makeStuff(() => new ConditionCatalogue());
+    expect(await catalogue.warm()).toBe(1);
+  });
+
+  it('the platform pack boots it eagerly, after materials (the wiring assert)', () => {
+    const src = readFileSync(
+      fileURLToPath(
+        new URL('../../../../../content/platform/pack.yaml', import.meta.url),
+      ),
+      'utf-8',
+    );
+    expect(src).toMatch(/template: \/platform\/idea\/ConditionCatalogue/);
+    expect(src).toMatch(
+      /ConditionCatalogue.*dependsOn: \[\/platform\/idea\/MaterialCatalogue\]/,
+    );
   });
 });
 
@@ -109,15 +117,16 @@ describe('⭐ the real-seed coverage — driven off the seed files, not a mock',
     expect(authoredConditionSeeds().length).toBeGreaterThan(5);
   });
 
-  it('EVERY authored condition seed is one boot would stand up', () => {
+  it('EVERY authored condition seed is one the warm would stand up', () => {
     // The assertion that would have caught the original bug, and that
-    // catches the next condition added under a class boot filters out.
+    // catches the next condition added under a class the warm filters
+    // out.
     const missed = authoredConditionSeeds().filter(
       (s) => s.cls !== '/platform/idea/Condition',
     );
     expect(
       missed.map((s) => `${s.path} (class: ${s.cls || 'none'})`),
-      'condition seeds boot would silently skip',
+      'condition seeds the warm would silently skip',
     ).toEqual([]);
   });
 

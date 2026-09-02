@@ -193,7 +193,7 @@ beforeAll(async () => {
   await makeStuffAtPath(() => new ArchetypeCatalogue(), '/platform/idea/ArchetypeCatalogue').warm();
   await makeStuffAtPath(() => new RecipeCatalogue(), '/platform/idea/RecipeCatalogue').warm();
 
-  // What MaterialLogic.boot does live: every material row resident, so a
+  // What the MaterialCatalogue warm does live: every material row resident, so a
   // Provision's `getMaterial()` (a sync read) resolves its singleton.
   for (const r of contentRows().filter((r) => r.path.includes('/idea/material/'))) {
     await StuffApi.singleton(r.path);

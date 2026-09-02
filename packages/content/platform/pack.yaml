@@ -69,7 +69,9 @@ boot:
   - { template: /platform/idea/OfficeRegistry, role: sync-read, reason: every holdsOffice read resolves it; warms the founder credential at postRegister }
   - { template: /platform/idea/AddressRegistry, role: producer, reason: warms the Locality roster and the address coverage trie at postRegister }
   - { template: /platform/idea/EventSubscriptions, role: sync-read, reason: the live listener registry the EventApi bus dispatches through, dependsOn: [/platform/idea/EventRegistry] }
-  - { template: /platform/idea/WorldClockRegistry, role: sync-read, reason: game-time anchor and the schedule registry WorldClockApi.boot binds, dependsOn: [/platform/idea/EventSubscriptions] }
+  - { template: /platform/idea/MaterialCatalogue, role: sync-read, reason: "stands the authored material roster up for the sync resolve-on-read seams (getMaterial / bulk slots / autoignition; self-warming — no Api.boot)" }
+  - { template: /platform/idea/ConditionCatalogue, role: sync-read, reason: "stands the authored condition roster up for the sync resolve-on-read seams (toxin behavior / signs / progression; after materials — signs can name tissue materials)", dependsOn: [/platform/idea/MaterialCatalogue] }
+  - { template: /platform/idea/WorldClockRegistry, role: sync-read, reason: "game-time anchor and the schedule registry; postRegister restores the persisted anchor and arms the backstop + system schedules (self-warming — no Api.boot)", dependsOn: [/platform/idea/EventSubscriptions] }
   - { template: /platform/idea/SchedulerRegistry, role: sync-read, reason: the engagement index and its timers, dependsOn: [/platform/idea/WorldClockRegistry, /platform/idea/EventSubscriptions] }
   - { template: /platform/idea/MqlSubscriptionRegistry, role: sync-read, reason: the live-MQL dependency index and dirty queue, dependsOn: [/platform/idea/EventSubscriptions] }
   - { template: /platform/idea/CardRegistry, role: sync-read, reason: the per-Interactive card set; a live card owns an MQL subscription, dependsOn: [/platform/idea/MqlSubscriptionRegistry] }

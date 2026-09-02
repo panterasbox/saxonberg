@@ -17,8 +17,6 @@
  */
 
 import { PersistenceManager } from './PersistenceManager';
-import { ConditionApi } from '../mud/api/condition';
-import { MaterialApi } from '../mud/api/material';
 import { TwitchRelayReader } from './TwitchRelayReader';
 import { YoutubeRelayReader } from './YoutubeRelayReader';
 import { KickRelayReader } from './KickRelayReader';
@@ -196,6 +194,21 @@ export class AppBootstrap {
       }
     }
 
+    // App settings — warm the synchronous read cache from the
+    // `app_settings` row at STEP ZERO of the warm order, immediately after
+    // `PackApi.install()` (the `platform` pack merged the defaults above —
+    // its `settings` kind is merge-missing, so an operator's `config`
+    // value is never clobbered). Nothing between install and here feeds
+    // it, and warming FIRST is what lets every boot-manifest
+    // `postRegister` — including the self-warming catalogues — read
+    // dials (`getCached` throws loudly when unwarmed; the seeded-literal
+    // `dial()` fallbacks in the Logics are test-mode discipline only).
+    // Warm-only — the values come from the pack's content/settings/*.yaml.
+    // Awaits the Document directly — no boot method on AppApi (runtime
+    // ops only), and not a manifest entry: it is a Document warm with no
+    // template-backed row to ride.
+    await AppSettings.warm();
+
     await PersistenceManager.get().loadHooks();
     // (The starter wiki pages are the `wiki-starter` pack's `wiki` kind,
     // submitted by `PackApi.install` above THROUGH the registry's own
@@ -213,37 +226,6 @@ export class AppBootstrap {
 
     installOnlineHoldersProvider();
     await BootstrapManager.run();
-
-    // App settings — warm the synchronous read cache from the
-    // `app_settings` row (the `platform` pack merged the defaults above —
-    // its `settings` kind is merge-missing, so an operator's `config`
-    // value is never clobbered) before any consumer reads a setting; the
-    // evac path in Container.cleanupOnDestruct cannot await. Warm-only —
-    // the values come from the pack's content/settings/*.yaml. Awaits the
-    // Document directly — no boot method on AppApi (runtime ops only).
-    await AppSettings.warm();
-
-    // World clock — restore the persisted game-time anchor (or seed a
-    // zero clock on a fresh DB) and start its backstop. A sequencer
-    // step like the others, with the lifecycle owned by the Api.
-    // (It can't live inside BootstrapManager: that manager clones
-    // Stuff from the manifest, and the clock state is a Document, not
-    // a clonable template.)
-    await WorldClockApi.boot();
-
-
-    // Materials — stand the authored roster up as live singletons so the
-    // sync resolve-on-read seams (getMaterial / bulk slots / autoignition)
-    // hit from the first frame (nothing else stands materials up live).
-    await MaterialApi.boot();
-
-    // Conditions — the same gap one subsystem over: seeds are template
-    // rows and nothing cloned them into Ideas, so every condition read
-    // null in a running world and authored `toxinBehavior` / signs /
-    // progression were inert. Silent, because the one hot reader skips
-    // on null rather than throwing. After materials: a condition's
-    // signs can name tissue materials.
-    await ConditionApi.boot();
 
     // Renown — warm the standing read-cache from the materialized
     // aggregate, then install the reaction ingestion tap + self-register

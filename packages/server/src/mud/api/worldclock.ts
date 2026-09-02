@@ -16,7 +16,7 @@
  * narrow-entry pattern holds: state has one home, and one
  * structurally-enforced path between callers and it.
  *
- * `boot()` / `shutdown()` keep their `SystemRoot` gate on this
+ * `shutdown()` keeps its `SystemRoot` gate on this
  * forwarder so the null-caller process-boundary requirement is
  * unchanged.
  */
@@ -147,26 +147,15 @@ export class WorldClockApi {
   }
 
   /**
-   * Boot the clock: restore the persisted game-time anchor (or seed a
-   * zero clock on a fresh DB), start the crash backstop, and register
-   * any system-scope schedules. Called once from `AppBootstrap.run`
-   * after the bootstrap manifest.
-   *
-   * `SystemRoot`-gated: only the empty-stack process-boundary caller
-   * (the `AppBootstrap.run` sequence) has a `null` caller. Every game,
-   * eval, scheduled-callback, and network context runs under a frame
-   * (non-null caller) and is denied — nothing in-world can re-anchor
-   * the clock or restart its backstop.
-   */
-  @CallSecurity(SecurityPolicies.SystemRoot)
-  public static async boot(): Promise<void> {
-    await logic().boot();
-  }
-
-  /**
    * Shut the clock down gracefully: pause game-time and persist the
    * elapsed-game-time anchor so the next boot resumes continuously.
-   * `SystemRoot`-gated for the same reason as `boot()`.
+   *
+   * `SystemRoot`-gated: only the empty-stack process-boundary caller
+   * (the `AppBootstrap.shutdown` sequence) has a `null` caller. Every
+   * game, eval, scheduled-callback, and network context runs under a
+   * frame (non-null caller) and is denied — nothing in-world can
+   * freeze world-time. (The boot itself is the Registry's own
+   * `postRegister` — self-warming via the boot manifest.)
    */
   @CallSecurity(SecurityPolicies.SystemRoot)
   public static async shutdown(): Promise<void> {

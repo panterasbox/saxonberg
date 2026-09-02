@@ -8,9 +8,7 @@
  *
  * **Runtime operations only.** Seeding (the platform pack's `settings` kind) and the boot
  * cache-warm (`AppSettings.warm`) are backend startup infrastructure, NOT
- * methods here — deliberately unlike `WorldClockApi.boot()`, because the
- * clock's boot starts a running subsystem whereas app settings have nothing
- * to start.
+ * methods here — deliberately: app settings have nothing to start.
  *
  * Distinct from the backend `Application` class (`packages/server/src/backend/
  * Application.ts`), which is server/OAuth/signup orchestration a layer down.

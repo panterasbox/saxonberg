@@ -1,24 +1,30 @@
 /**
- * MaterialApi.boot — the boot-time roster warm that closes the live
- * materials gap: every authored `/stuff/idea/material/**` Material stands up as
- * a live singleton (folder rows — FolderZones — are the zone substrate's,
- * skipped), so the sync resolve-on-read seams hit from the first frame.
- * Plus the residency veto: a culled material would be a null read until
- * the next process, so it is never culled.
+ * MaterialCatalogue — the self-warming material roster (the boot()-
+ * retirement shape, FermentProfileCatalogue precedent): postRegister
+ * stands up every `Material` row and skips the FolderZone folders, and
+ * the platform pack's boot manifest is what makes it EAGER (asserted
+ * on the pack.yaml — the wiring is the part that silently rots).
+ * Plus the residency veto: a culled material would be a null read
+ * until the next process, so it is never culled.
  */
 
-import "../../../../../test-bootstrap";
+import "../../../test-bootstrap";
 import { describe, it, expect, afterEach, vi } from "vitest";
-import { MaterialApi } from "../../../../api/material";
-import { StuffApi } from "../../../../api/stuff";
-import { Template } from "../../../../lib/stuff/Template";
-import Material from "../../../../lib/material/Material";
-import { makeStuff } from "../../../../lib/security/__tests__/test-setup";
+import { readFileSync } from "fs";
+import { fileURLToPath } from "url";
+import MaterialCatalogue from "../idea/MaterialCatalogue";
+import { StuffApi } from "../../api/stuff";
+import { Template } from "../../lib/stuff/Template";
+import Material from "../../lib/material/Material";
+import { makeStuff } from "../../lib/security/__tests__/test-setup";
 
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => {
+  vi.restoreAllMocks();
+  StuffApi.clearAll();
+});
 
-describe("MaterialApi.boot — the roster warm", () => {
-  it("stands up Material rows and skips the FolderZone folders", async () => {
+describe("the roster warm", () => {
+  it("postRegister stands up Material rows and skips the FolderZone folders", async () => {
     vi.spyOn(Template, "findByPathInfix").mockResolvedValue([
       { path: "/stuff/idea/material/wood", class: "/platform/idea/FolderZone" },
       { path: "/stuff/idea/material/wood/oak", class: "/platform/idea/material/Material" },
@@ -30,12 +36,13 @@ describe("MaterialApi.boot — the roster warm", () => {
       return makeStuff(() => new Material()) as never;
     });
 
-    const count = await MaterialApi.boot();
-    expect(count).toBe(2);
+    const catalogue = makeStuff(() => new MaterialCatalogue());
+    await catalogue.postRegister();
     expect(stood).toEqual([
       "/stuff/idea/material/wood/oak",
       "/stuff/idea/material/element/uranium",
     ]);
+    expect(Template.findByPathInfix).toHaveBeenCalledWith("/idea/material/");
   });
 
   it("tolerates a single failed standup and continues (the preloadAnatomy shape)", async () => {
@@ -48,7 +55,18 @@ describe("MaterialApi.boot — the roster warm", () => {
       if (path.endsWith("bad")) throw new Error("boom");
       return makeStuff(() => new Material()) as never;
     });
-    expect(await MaterialApi.boot()).toBe(1);
+    const catalogue = makeStuff(() => new MaterialCatalogue());
+    expect(await catalogue.warm()).toBe(1);
+  });
+
+  it("the platform pack boots it eagerly (the wiring assert)", () => {
+    const src = readFileSync(
+      fileURLToPath(
+        new URL("../../../../../content/platform/pack.yaml", import.meta.url),
+      ),
+      "utf-8",
+    );
+    expect(src).toMatch(/template: \/platform\/idea\/MaterialCatalogue/);
   });
 });
 

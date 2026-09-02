@@ -697,8 +697,19 @@ export class StuffApi {
    * has no async setup" — silently skipping `postRegister()` would
    * yield a half-initialised object. The throw forces such classes
    * to use the async `create()` path instead.
+   *
+   * `opts.deferPostRegister` is the one sanctioned bypass, for the
+   * lazy registry resolvers (`resolveRegistry` in the Logic
+   * singletons): the boot manifest is the production path (clone runs
+   * `postRegister` there), and a lazily-built harness registry
+   * DELIBERATELY starts unwarmed — the test that needs the warm
+   * drives `postRegister()` itself. Skipping stays explicit, never
+   * silent.
    */
-  public static createSync<T extends Stuff>(factory: () => T): T {
+  public static createSync<T extends Stuff>(
+    factory: () => T,
+    opts?: { deferPostRegister?: boolean }
+  ): T {
     const prevSentinel = Stuff._beginConstruction();
     let raw: T;
     try {
@@ -711,7 +722,7 @@ export class StuffApi {
       raw,
       MixinApi.getWeakRefFields(raw.constructor as AnyConstructor)
     );
-    if (MixinApi.isPostRegistration(proxy)) {
+    if (!opts?.deferPostRegister && MixinApi.isPostRegistration(proxy)) {
       // Don't even register — fail before the half-initialised object
       // can leak into the registry.
       throw new Error(

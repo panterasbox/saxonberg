@@ -118,7 +118,7 @@ export default class Material extends SingletonMixin(
   /**
    * Residency veto — a Material is reference data resolved by SYNC
    * reads (`Tangible.getMaterial`, bulk slots, autoignition); the only
-   * standup is the `MaterialApi.boot` roster warm, so a culled material
+   * standup is the `MaterialCatalogue` roster warm, so a culled material
    * would stay a null read until the next process. Never culled.
    */
   public canEvict(_context: EvictionContext): VetoResult {
