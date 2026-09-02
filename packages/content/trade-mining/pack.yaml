@@ -1,0 +1,23 @@
+id: trade-mining
+version: 0.1.0
+root: /trade/mining
+description: >-
+  The mining trade — everything that answers "how does a mine WORK",
+  and nothing that answers "what is it like here". The five acts (hew,
+  drive, sink, raise, shore) and stake; MineWarren, the Warren subclass
+  that carves rooms, and WorkingMixin, which every read a mine needs
+  derives from — so a hand-authored mine with no warren at all behaves
+  identically. The Deposit class (the geology field's model, never an
+  orebody), the ore lump and its grade, the survey instruments and their
+  three channels, the tool recipes, the geology Discipline, the mine
+  archetype, and the two FUNCTIONAL species any mine needs — the pit
+  pony that hauls and the canary that reads air.
+  A venue supplies the orebody, the room prose and the ecology; that is
+  the falsifiable line — a second mining town needs ZERO pack code.
+requires:
+  groups:
+    - name: mining
+      purpose: the mining trade's own body
+      owner: { office: prime-minister }
+  title:
+    - { extent: /trade/mining, holder: { group: mining } }

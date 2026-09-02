@@ -1,0 +1,22 @@
+# The collier — the fuel yard's one hand, and the person who has not had a
+# full night's sleep in a decade.
+class: /platform/agent/NPC
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sensitivus
+  lifecycleState: alive
+  primaryKeyword: collier
+  keywords: [collier, burner]
+  shortDescription: the collier
+  longDescription: >-
+    Black to the elbow and grey in the face, with a long iron bar she uses
+    to stop and open vents and which she is never more than an arm's
+    length from. She listens to the clamp more than she looks at it.
+  behaviors:
+    - brain: /lib/behavior/idles
+      trigger: cadence:38s
+      config:
+        pool:
+          - { kind: free, value: "puts an ear to the turf, moves three feet along, and does it again." }
+          - { kind: free, value: "stops a vent with a sod, then thinks better of it and opens it a finger." }
+          - { kind: free, value: "says, \"Too much air and you get ash. Too little and you get firewood. There is no third mistake.\"" }

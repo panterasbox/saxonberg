@@ -1,0 +1,5 @@
+# /stuff/idea/biome/underground — the folder for the cave tier.
+class: /platform/idea/FolderZone
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: underground

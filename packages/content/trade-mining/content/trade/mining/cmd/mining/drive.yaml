@@ -1,0 +1,28 @@
+# ⚠ `drive` collides with the shipped vehicle verb
+# (`platform/cmd/movement/drive.yaml`), which takes the same arity.
+# `requires:` does not discriminate at shape, so the two are separated by
+# affordance order alone. Nothing in the repo affords the movement view
+# today (`DrivableMixin` carries no `commandContributions`), and the two
+# shipped `pour` views prove coexistence is intended — but `drift` is
+# declared as a full alias so a miner always has an unambiguous word.
+verbs: [drive, drift]
+controller: /trade/mining/idea/cmd/mining/DriveController
+description: "Drive a heading in a direction"
+help: |
+  `drive north` (or `drift north`) cuts a new working in that direction.
+  What it costs is the ground: hardness times the volume you are moving,
+  so a slate heading is cheap and a granite one is not.
+
+  ⚠ It refuses on bad ground, and says which state it is refusing on. Set
+  timber with `shore` and it will let you on.
+
+  A heading you drive without through-ventilation goes bad. Plan the
+  connection.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: direction
+    type: string
+    required: true

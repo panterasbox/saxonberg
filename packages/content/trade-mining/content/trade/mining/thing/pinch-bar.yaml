@@ -1,0 +1,16 @@
+# A pinch bar — the lever that takes down loose ground before it takes
+# itself down. ⚠ The tool an attentive miner uses so nothing ever falls
+# on them.
+class: /platform/thing/ToolItem
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  primaryKeyword: bar
+  keywords: ["bar", "pinch-bar", "crowbar"]
+  shortDescription: a steel pinch bar
+  longDescription: >-
+    A metre of round steel, one end drawn to a chisel and the other bent
+    to a claw. You bar down the loose before you work under it, and you
+    do it from where the loose is not going to land.
+  mass: 5.4
+  capabilities: ["prying"]
+  _materialPath: /stuff/idea/material/element/iron

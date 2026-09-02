@@ -1,0 +1,39 @@
+# ⭐⭐ A FACE — a working with rock still in front of it. One of the four
+# procedural room type rows, and **they are LOCALITY content on purpose.**
+#
+# If these lived in `trade-mining`, every mine's workings in the world
+# would read identically — mechanism leaking into aesthetic. A second
+# mine supplies sandstone galleries or ice caves and the machinery does
+# not care, because `MineWarren` takes the four rows as POLICY off its
+# own authored field.
+#
+# The prose banks are plain authored data, drawn deterministically by the
+# cell seed. ⚠ NOT the `descriptor-bank` document kind: `lint:descriptors`
+# enforces *descriptor ∩ material keywords = ∅*, and mining prose has to
+# be able to say slate and quartz and malachite. The idea transfers; the
+# document kind does not.
+class: /trade/mining/location/MineRoom
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a working face
+  primaryKeyword: face
+  keywords: [face, working, heading]
+  longDescription: |
+    A cut end, square to the rock, with the marks of the last shift still on it.
+  oreRow: /world/rejection/thing/copper-ore
+  backPhrases:
+    - "The back is close overhead and sound, and the rock rings when you knock it."
+    - "The back runs flat here, following the bedding."
+    - "The back is close, and you take your hat off out of habit rather than need."
+  seamPhrases:
+    - "Green runs across the face at a slant, a hand's breadth of it."
+    - "The seam comes into the face and turns, going away from you into the rock."
+    - "There is green in the rock here, bright as verdigris and about as thick as your thumb."
+  airPhrases:
+    - "The air is clean and moves a little."
+    - "The air has gone still and tastes of nothing at all."
+    - "The air is dead here, and your lamp flame stands up straight and small."
+  groundPhrases:
+    - "A timber creaks somewhere behind you, once."
+    - "Dust sifts down out of the back where it should not."
+    - "The rock overhead sounds drummy under the bar. That is the sound to leave on."

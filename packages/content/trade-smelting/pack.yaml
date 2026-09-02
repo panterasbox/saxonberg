@@ -1,0 +1,18 @@
+id: trade-smelting
+version: 0.1.0
+root: /trade/smelting
+description: >-
+  The smelting trade — ground into metal. The furnace, the smelt act,
+  and the cast. ⭐ Yield is CHEMISTRY, never a recipe constant: metal out
+  is the charge's mass times each lump's grade times the mineral's metal
+  fraction by formula and molar mass, so a lean lump honestly makes less
+  copper and the gangue fluxes off as slag. Stage A ships the easy rung
+  — oxide copper — and the ladder above it (roasting, bronze, the
+  bloomery, steel) is later stages.
+requires:
+  groups:
+    - name: smelting
+      purpose: the smelting trade's own body
+      owner: { office: prime-minister }
+  title:
+    - { extent: /trade/smelting, holder: { group: smelting } }

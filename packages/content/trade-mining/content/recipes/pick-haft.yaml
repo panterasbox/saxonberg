@@ -1,0 +1,14 @@
+# The bottom rung: one stick of wood, by hand, no heat and no station.
+# ⭐ The first thing a learner makes, and the reason the ladder starts
+# where it does — a recipe tier IS the rung a learner climbs.
+recipeId: pick-haft
+name: Pick Haft
+keywords: [haft, pick-haft]
+inputSlots:
+  - { slot: stock, category: wood, minGrade: poor, kind: item, count: 1 }
+toolCapabilities: [cutting]
+outputTemplate: /trade/mining/thing/pick-haft
+outputMaterial: ''
+outputApplication: tangible
+difficulty: easy
+discipline: mining

@@ -8,7 +8,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { refsOf } from '../check-template-census';
+import { castRefsOf, refsOf } from '../check-template-census';
 
 describe('refsOf — the template-path field grammar', () => {
   it('reads plain and {template, onto} props/cast', () => {
@@ -71,6 +71,26 @@ describe('refsOf — the template-path field grammar', () => {
     ]);
   });
 
+  it('⭐ walks composition[].materialPath — a blend names its constituents', () => {
+    // ⚠⚠ This was missing, and `bronze` was the proof: it named copper
+    // alone and left 12% as nothing, so nothing checked the tin row it
+    // claimed in its tags — because nothing checked composition at all.
+    const refs = refsOf({
+      composition: [
+        { materialPath: '/stuff/idea/material/element/copper', fraction: 0.88 },
+        { materialPath: '/stuff/idea/material/element/tin', fraction: 0.12 },
+      ],
+    });
+    expect(refs).toEqual([
+      { field: 'composition.materialPath', path: '/stuff/idea/material/element/copper' },
+      { field: 'composition.materialPath', path: '/stuff/idea/material/element/tin' },
+    ]);
+  });
+
+  it('an empty composition (a pure element) yields no references', () => {
+    expect(refsOf({ composition: [] })).toEqual([]);
+  });
+
   it('a rowless reference is exactly what the resolve step refuses', () => {
     // The clause-(b) decision in miniature: refs minus the row set.
     const rows = new Set(['/obj/_test/lane']);
@@ -116,5 +136,90 @@ describe('refsOf reads the fields content actually uses', () => {
       '_materialPath',
       '_speciesPath',
     ]);
+  });
+});
+
+/**
+ * The mine's citations, added when the water build's clause (d) — the
+ * meta-gate that flags a path-shaped field `refsOf` does not read —
+ * caught eleven of them on the merge. ⭐ That is the gate working
+ * exactly as designed on a build that had never met it.
+ */
+describe('refsOf reads the mining and deposit citations', () => {
+  it('the deposit is references all the way down', () => {
+    const refs = refsOf({
+      stratigraphy: [{ toZ: -60, host: '/stuff/idea/material/rock/slate' }],
+      zones: [{ toZ: -45, mineral: '/stuff/idea/material/mineral/malachite' }],
+      lode: { strike: 41, gangue: '/stuff/idea/material/mineral/quartz' },
+    });
+    expect(refs.map((r) => r.field).sort()).toEqual([
+      'lode.gangue',
+      'stratigraphy.host',
+      'zones.mineral',
+    ]);
+  });
+
+  it('the warren names its grid, its adit and the type it clones per cell', () => {
+    const refs = refsOf({
+      zonePath: '/obj/_test/diggings',
+      aditPath: '/obj/_test/adit',
+      typeRows: { face: '/obj/_test/face', stope: '/obj/_test/stope' },
+    });
+    expect(refs.map((r) => r.field).sort()).toEqual([
+      'aditPath',
+      'typeRows.face',
+      'typeRows.stope',
+      'zonePath',
+    ]);
+  });
+
+  it('⭐ but a claim BLOCK is not a row — it is title over ground', () => {
+    // Staking mints *a title and no room*, which is the difference
+    // between `stake` and `title buy`. Reading it as a citation reported
+    // the mine's own claim ring as a dangling reference.
+    expect(refsOf({ claimBlocks: [{ parcelExtent: '/obj/_test/claims/1' }] })).toEqual([]);
+  });
+});
+
+/**
+ * ⚠⚠ **The clause-(d) reader, asserted to FIRE.**
+ *
+ * A gate that can only be seen passing is not a gate. This one shipped
+ * broken: the block was sliced with a lookahead ending in `\Z`, which
+ * JS does not have, so the match failed outright on any row whose
+ * `cast:` was the LAST key — and the census reported clean over rows it
+ * had never read. The first case below is exactly that shape.
+ */
+describe('castRefsOf — the cast list, including the one at end-of-file', () => {
+  it('⭐ reads a `cast:` that is the LAST key in the row (the \\Z bug)', () => {
+    const row = [
+      'class: /trade/mining/location/MineRoom',
+      'data:',
+      '  shortDescription: a drift',
+      '  cast:',
+      '    - /trade/mining/agent/canary',
+      '    - /trade/mining/agent/pit-pony',
+      '',
+    ].join('\n');
+    expect(castRefsOf(row)).toEqual([
+      '/trade/mining/agent/canary',
+      '/trade/mining/agent/pit-pony',
+    ]);
+  });
+
+  it('stops at the next key, and never swallows the props list below it', () => {
+    const row = [
+      'data:',
+      '  cast:',
+      '    - /trade/mining/agent/canary',
+      '  props:',
+      '    - /trade/mining/thing/timber-set',
+      '  shortDescription: a drift',
+    ].join('\n');
+    expect(castRefsOf(row)).toEqual(['/trade/mining/agent/canary']);
+  });
+
+  it('a row with no cast reads as no cast, not as an error', () => {
+    expect(castRefsOf('class: /stuff/thing/Prop\ndata:\n  props:\n    - /a/b\n')).toEqual([]);
   });
 });

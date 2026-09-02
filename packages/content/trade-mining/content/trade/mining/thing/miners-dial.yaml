@@ -1,0 +1,22 @@
+# A miner's dial — the underground survey instrument: a compass in
+# gimbals with a clinometer under it, so it reads a bearing and a fall on
+# ground that is neither flat nor still.
+#
+# ⚠ Its keywords are authored DEFENSIVELY. Keyword matching is substring,
+# and a mine is dense in near-identical nouns — dial/drift, ore/ore-pass,
+# pick/pick-head, face/carve-face. `dial` is the primary and `miners-dial`
+# the compound; nothing here answers to a bare fragment another object in
+# the same room would also answer to.
+class: /trade/mining/thing/instrument/SurveyInstrument
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  primaryKeyword: dial
+  keywords: ["dial", "miners-dial", "theodolite"]
+  shortDescription: a miner's dial in a leather case
+  longDescription: >-
+    A compass slung in brass gimbals over a clinometer arc, the whole
+    thing screwed to a tripod head. It reads a bearing and a fall at once,
+    which is the only way to survey ground that runs downhill in the
+    dark. The case smells of oil and candle smoke.
+  mass: 2.1
+  capabilities: ["surveying"]

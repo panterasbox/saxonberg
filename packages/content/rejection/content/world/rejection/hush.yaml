@@ -1,0 +1,20 @@
+# ⭐⭐ The Hush — a natural chamber, and **its own zone.**
+#
+# > **The grid represents what LABOUR CUT. A cavern was not cut. The zone
+# > boundary is exactly where the authorship of the space changes.**
+#
+# The workings are Cartesian because labour is orthogonal — level drifts
+# and vertical winzes are what haulage and drainage require. A cavern had
+# no such requirement shaping it, because nobody shaped it: water did.
+# A 10 m cubic grid would misrepresent it, so it gets a `SphericalZone` of
+# arbitrarily-placed volumes, which is what that zone type is FOR.
+#
+# ⚠ **Authored chambers only.** A zone is a template row, so a zone minted
+# per procedurally-discovered chamber would be the rowless mint D17
+# forbids. Seeded pockets that are not authored stay grid cells with their
+# own prose. Whether chamber zones can be keyed instances the way rooms
+# are is a later build's question.
+class: /platform/idea/location/SphericalZone
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: the Hush

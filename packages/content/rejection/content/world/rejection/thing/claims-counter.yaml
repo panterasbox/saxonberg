@@ -1,0 +1,24 @@
+# The register on the claims-office counter — ⭐ the fixture that AFFORDS
+# `stake`, and the pointer that tells it which diggings it records for.
+#
+# ⚠ It holds no claims. Title lives in `ParcelRecord`, written only by the
+# gated `ParcelApi`, which is precisely why a content edit cannot forge
+# one. A claims field in an editable collection is the attack the parcel
+# layer exists to refuse.
+class: /trade/mining/thing/ClaimsRegister
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the claims register
+  primaryKeyword: register
+  keywords: [register, ledger, book, counter]
+  longDescription: >-
+    A ledger the size of a paving slab, chained to the counter through an
+    iron eye let into the boards. Ruled columns: block, date, name, mark.
+    Some of the marks are crosses.
+  mass: 22
+  warrenPath: /world/rejection/idea/ferrow-warren
+  details:
+    marks:
+      keywords: [marks, mark, crosses, signature]
+      description: |
+        Most of the register is signed with a cross. The recorder writes the name above it in a neat hand and the holder puts the cross beneath, and that is a title — as good as any other in the world, and enforceable in exactly the same way.

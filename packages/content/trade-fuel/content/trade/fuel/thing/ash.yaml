@@ -1,0 +1,15 @@
+# Ash — ⭐ the OTHER failure, and the total one. A clamp that took too
+# much air burns its charge all the way through and leaves nothing at all.
+# You can lose an entire burn, and this is what losing it looks like.
+class: /platform/thing/Provision
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a drift of pale ash
+  primaryKeyword: ash
+  keywords: [ash, ashes]
+  longDescription: >-
+    Fine pale ash, still warm, lifting in any draught. A week's cutting
+    and three days' watching, gone up the chimney of a hole in the ground.
+  _materialPath: /stuff/idea/material/organic/ash
+  gradeBand: poor
+  mass: 0.6

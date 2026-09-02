@@ -1,0 +1,13 @@
+recipeId: felling-axe
+name: Felling Axe
+keywords: [axe, felling-axe]
+inputSlots:
+  - { slot: stock, category: ferrous, minGrade: fair, kind: item, count: 1 }
+  - { slot: haft, category: wood, minGrade: poor, kind: item, count: 1 }
+toolCapabilities: [striking, anvil]
+outputTemplate: /trade/mining/thing/felling-axe
+outputMaterial: ''
+outputApplication: tangible
+requiresHeatK: 1300
+difficulty: hard
+discipline: mining

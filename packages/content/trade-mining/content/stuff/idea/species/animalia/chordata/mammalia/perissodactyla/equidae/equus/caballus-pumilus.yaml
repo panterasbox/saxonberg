@@ -1,0 +1,41 @@
+# Equus caballus pumilus — the pit pony. A small, stocky, phlegmatic
+# draft horse bred short enough to work a level drift.
+#
+# ⭐ **Haulage needs no new mechanism whatever.** Carry capacity derives
+# from body mass in the shipped encumbrance substrate, so a 320 kg pony
+# bears a loaded cart's draft at a fraction of the load ratio a 75 kg
+# person does. The pony is *better at hauling* because it is *heavier*,
+# which is the actual reason, and the engine already knew it.
+#
+# It ships in the mining trade rather than the species commons because
+# haulage is a need EVERY mine has — the functional half of the ecology
+# split. This place's own crickets and delve-rats belong to the venue.
+class: /platform/idea/species/Species
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  binomial: Equus caballus pumilus
+  commonNames: ["pit pony", "pony", "horse"]
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/quadruped
+  _parentCladePath: /stuff/idea/species/animalia
+  _defaultMaterialPath: /stuff/idea/material/tissue/flesh
+  vitalProfile:
+    coreTemperature: { baseline: 310, survivableMin: 300, survivableMax: 316 }
+    heartRate: { baseline: 40, survivableMin: 18, survivableMax: 120 }
+    respiratoryRate: { baseline: 14, survivableMin: 5, survivableMax: 60 }
+    bloodPressureSystolic: { baseline: 120, survivableMin: 65, survivableMax: 180 }
+    bloodPressureDiastolic: { baseline: 75, survivableMin: 40, survivableMax: 120 }
+    spo2: { baseline: 97, survivableMin: 50, survivableMax: 100 }
+    bloodVolume: { baseline: 26, survivableMin: 16, survivableMax: 26 }
+  lifecycleStates: ["alive", "dead"]
+  sexDeterminationSystem: xy
+  reproductiveMode: sexual
+  lifespanMin: 0
+  lifespanMax: 30
+  circadianBand: diurnal
+  diet: herbivore
+  visionProfile:
+    # A pit pony works in lamplight for a living; its night vision is the
+    # reason it can. Not a bonus — a fact about horses.
+    scotopicMin: very-dim
+    photopicMax: bright
+    bandShift: 1

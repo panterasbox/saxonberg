@@ -17,6 +17,10 @@ import {
   classify,
   classifyMinted,
   orphanedZones,
+  sameZoneNamedExits,
+  unplottedLocations,
+  WARREN_PLACED,
+  unzonedCoords,
   type Row,
 } from '../check-location-classes';
 
@@ -28,7 +32,12 @@ const SINGLETON = '/platform/location/SingletonCartesianLocation';
 const A_FURNISHED = 'generic-objects/content/stuff/location/room/bedroom.yaml';
 const A_MINTED = 'platform/content/platform/location/venue.yaml';
 
-const r = (file: string, cls: string): Row => ({ file, cls });
+const r = (file: string, cls: string): Row => ({
+  file,
+  cls,
+  coords: false,
+  exits: [],
+});
 
 describe('check-location-classes.classify (FurnishableRoom)', () => {
   it('a rostered row passes', () => {
@@ -131,5 +140,175 @@ describe('check-location-classes.orphanedZones', () => {
 
   it('ignores rows that are not zones', () => {
     expect(orphanedZones([r('p/x.yaml', ROOM)], ['p/x.yaml'])).toEqual([]);
+  });
+});
+
+/**
+ * ⭐⭐ The two gates the metal-chain drive added, and — more importantly —
+ * **the derivation underneath them.**
+ *
+ * ⚠⚠ Both checks shipped BROKEN in their first cut, in three separate
+ * ways, and every one of them failed the same direction: **silently
+ * passing.** A gate that never fires reads exactly like a gate that
+ * passes, which is why these tests assert that each one FIRES on a
+ * known-bad shape rather than only that a clean tree is clean.
+ *
+ *   1. the class filters matched on the NAME `CartesianLocation`, so
+ *      every pack room was invisible;
+ *   2. the extends walk read the first identifier after `extends`, which
+ *      for `class X extends WorkingMixin(Base)` is the MIXIN;
+ *   3. zones were keyed by pack-relative file stem and rooms by template
+ *      path — two path spaces that never meet, so the answer was always
+ *      "no zone anywhere".
+ */
+describe('the coords/named-door gates, and the ancestry they derive', () => {
+  const ZONE = { file: 'p/content/test/x.yaml', cls: '/platform/idea/location/CartesianZone', coords: false, exits: [] as Array<[string, string]> };
+
+  it('⚠ a cartesian row with coords and NO covering zone is caught', () => {
+    expect(
+      unzonedCoords([
+        { file: 'p/content/trade/t/location/floor.yaml', cls: '/platform/location/SingletonCartesianLocation', coords: true, exits: [] },
+      ]),
+    ).toEqual(['p/content/trade/t/location/floor.yaml']);
+  });
+
+  it('…and the same row IS fine once a zone covers it', () => {
+    expect(
+      unzonedCoords([
+        { file: 'p/content/trade/t/location.yaml', cls: '/platform/idea/location/CartesianZone', coords: false, exits: [] },
+        { file: 'p/content/trade/t/location/floor.yaml', cls: '/platform/location/SingletonCartesianLocation', coords: true, exits: [] },
+      ]),
+    ).toEqual([]);
+  });
+
+  it('⚠ a NON-CARDINAL exit between two rows one zone covers is caught', () => {
+    const rows = [
+      ZONE,
+      { file: 'p/content/test/x/a.yaml', cls: '/platform/location/SingletonCartesianLocation', coords: false, exits: [['out', '/test/x/b']] as Array<[string, string]> },
+      { file: 'p/content/test/x/b.yaml', cls: '/platform/location/SingletonCartesianLocation', coords: false, exits: [] as Array<[string, string]> },
+    ];
+    expect(sameZoneNamedExits(rows)).toHaveLength(1);
+    expect(sameZoneNamedExits(rows)[0]).toContain("'out'");
+  });
+
+  it('…and a CARDINAL one between the same two is fine', () => {
+    expect(
+      sameZoneNamedExits([
+        ZONE,
+        { file: 'p/content/test/x/a.yaml', cls: '/platform/location/SingletonCartesianLocation', coords: false, exits: [['north', '/test/x/b']] },
+        { file: 'p/content/test/x/b.yaml', cls: '/platform/location/SingletonCartesianLocation', coords: false, exits: [] },
+      ]),
+    ).toEqual([]);
+  });
+
+  it('⭐⭐ a PACK room class is seen — the derivation walks THROUGH the mixin call', () => {
+    // `AuthoredWorking extends WorkingMixin(SingletonCartesianLocation)`.
+    // Reading the first identifier after `extends` yields `WorkingMixin`
+    // and the row goes uninspected; every candidate in the clause has to
+    // be resolved.
+    const rows = [
+      ZONE,
+      { file: 'p/content/test/x/a.yaml', cls: '/trade/mining/location/AuthoredWorking', coords: false, exits: [['out', '/test/x/b']] as Array<[string, string]> },
+      { file: 'p/content/test/x/b.yaml', cls: '/trade/mining/location/MineRoom', coords: false, exits: [] as Array<[string, string]> },
+    ];
+    expect(sameZoneNamedExits(rows)).toHaveLength(1);
+  });
+
+  it("⭐⭐ a PACK class is seen too — a pack must never need a kernel list edit", () => {
+    /*
+     * ⚠ This used to demonstrate the rule with `trade-mining`'s
+     * `MineZone`, a pack ZONE class that existed only to carry a
+     * `deposit:` field a pack could not add to a kernel one. `deposit`
+     * moved onto `SpatialZone` and that class is deleted — so the
+     * example is now a pack ROOM, which exercises exactly the same
+     * derivation (resolve the class file into the pack's `src/`, read
+     * what it extends, walk through the mixin call).
+     *
+     * ⭐ The rule is unchanged and still load-bearing: an enumerated
+     * class list would go quiet over the next pack class the moment one
+     * ships, and a gate that never fires reads exactly like a gate that
+     * passes.
+     */
+    expect(
+      sameZoneNamedExits([
+        { file: 'p/content/test/x.yaml', cls: '/platform/idea/location/CartesianZone', coords: false, exits: [] },
+        { file: 'p/content/test/x/a.yaml', cls: '/trade/mining/location/AuthoredWorking', coords: false, exits: [['out', '/test/x/b']] },
+        { file: 'p/content/test/x/b.yaml', cls: '/trade/mining/location/MineRoom', coords: false, exits: [] },
+      ]),
+    ).toHaveLength(1);
+  });
+});
+
+/**
+ * ⭐⭐⭐ **Every location plots on some coordinate system** — a hard
+ * rule, so it gets a gate, and the gate gets tests that watch it FIRE.
+ */
+describe('check-location-classes.unplottedLocations', () => {
+  const ZONE = {
+    file: 'p/content/test/x.yaml',
+    cls: '/platform/idea/location/CartesianZone',
+    coords: false,
+    exits: [] as Array<[string, string]>,
+  };
+
+  it('⭐ a cartesian room with no coords does not plot', () => {
+    const rows = [
+      ZONE,
+      { file: 'p/content/test/x/a.yaml', cls: '/platform/location/SingletonCartesianLocation', coords: false, exits: [] as Array<[string, string]> },
+    ];
+    expect(unplottedLocations(rows)).toEqual(['p/content/test/x/a.yaml']);
+  });
+
+  it('⚠ coords with NO covering zone does not plot either — it is not a grid', () => {
+    const rows = [
+      { file: 'p/content/test/lone.yaml', cls: '/platform/location/SingletonCartesianLocation', coords: true, exits: [] as Array<[string, string]> },
+    ];
+    expect(unplottedLocations(rows)).toEqual(['p/content/test/lone.yaml']);
+  });
+
+  it('coords under a covering zone is the passing shape', () => {
+    const rows = [
+      ZONE,
+      { file: 'p/content/test/x/a.yaml', cls: '/platform/location/SingletonCartesianLocation', coords: true, exits: [] as Array<[string, string]> },
+    ];
+    expect(unplottedLocations(rows)).toEqual([]);
+  });
+
+  it('⭐ a WARREN-PLACED row is exempt — the one exception, and it is a list a reviewer sees', () => {
+    /*
+     * ⚠ Read off the real roster rather than repeating its paths: a
+     * kernel test must not name shipped content (`lint:test-content`),
+     * and hardcoding the list would also let it drift from the list the
+     * gate actually consults.
+     */
+    expect(WARREN_PLACED.length).toBeGreaterThan(0);
+    const rows = WARREN_PLACED.map((file) => ({
+      file,
+      cls: '/trade/mining/location/MineRoom',
+      coords: false,
+      exits: [] as Array<[string, string]>,
+    }));
+    expect(unplottedLocations(rows)).toEqual([]);
+
+    // …and a row NOT on it, of the same class, is still caught.
+    expect(
+      unplottedLocations([
+        ...rows,
+        { file: 'p/content/test/x/unlisted.yaml', cls: '/trade/mining/location/MineRoom', coords: false, exits: [] },
+      ]),
+    ).toEqual(['p/content/test/x/unlisted.yaml']);
+  });
+
+  it('⚠⚠ INLINE coords count — the detector is not anchored to end-of-line', () => {
+    // The regex that feeds `Row.coords` used `/^  coords:\s*$/m`, which
+    // sees `coords:\n    x: 0` and MISSES `coords: { x: 0, y: 0, z: 0 }`.
+    // Every Rejection room is authored inline, so the whole venue read as
+    // unplotted while `unzonedCoords` had been skipping inline rows since
+    // it was written. This pins the shape at the row level.
+    const rows = [
+      ZONE,
+      { file: 'p/content/test/x/inline.yaml', cls: '/platform/location/SingletonCartesianLocation', coords: true, exits: [] as Array<[string, string]> },
+    ];
+    expect(unplottedLocations(rows)).toEqual([]);
   });
 });

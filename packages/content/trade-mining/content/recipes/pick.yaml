@@ -1,0 +1,14 @@
+# Head and haft, married. No heat: this is assembly, and it is the rung
+# that teaches that a made thing can be made of made things.
+recipeId: pick
+name: Miner's Pick
+keywords: [pick]
+inputSlots:
+  - { slot: head, category: metal, minGrade: fair, kind: item, count: 1 }
+  - { slot: haft, category: wood, minGrade: poor, kind: item, count: 1 }
+toolCapabilities: [striking]
+outputTemplate: /trade/mining/thing/pick
+outputMaterial: ''
+outputApplication: tangible
+difficulty: standard
+discipline: mining

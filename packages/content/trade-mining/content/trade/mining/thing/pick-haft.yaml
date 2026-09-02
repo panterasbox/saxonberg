@@ -1,0 +1,14 @@
+# A pick haft — the hickory half. The bottom rung of the mining ladder
+# and the first thing a learner makes: one stick of wood, by hand.
+class: /platform/thing/ToolItem
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  primaryKeyword: haft
+  keywords: ["haft", "pick-haft", "handle"]
+  shortDescription: a shaped pick haft
+  longDescription: >-
+    A length of close-grained wood, shaved oval and swelled at the butt
+    so a wet hand does not lose it.
+  mass: 0.8
+  capabilities: []
+  _materialPath: /stuff/idea/material/wood/oak

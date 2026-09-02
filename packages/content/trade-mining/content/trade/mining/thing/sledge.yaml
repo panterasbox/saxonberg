@@ -1,0 +1,14 @@
+# A sledge — two hands and a long swing, for breaking what the pick will
+# not.
+class: /platform/thing/ToolItem
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  primaryKeyword: sledge
+  keywords: ["sledge", "sledgehammer", "maul"]
+  shortDescription: a long-hafted sledge
+  longDescription: >-
+    A heavy square head on a haft long enough to need both hands and
+    most of the room.
+  mass: 6.0
+  capabilities: ["striking"]
+  _materialPath: /stuff/idea/material/element/iron

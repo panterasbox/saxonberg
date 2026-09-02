@@ -1,0 +1,17 @@
+# The survey instrument, and ⭐ the TOP rung of the mining ladder — a
+# compass in gimbals over a clinometer is the most exacting thing the
+# trade makes, and it is exacting because a survey that is wrong sends a
+# heading into the wrong ground.
+recipeId: miners-dial
+name: Miner's Dial
+keywords: [dial, miners-dial]
+inputSlots:
+  - { slot: body, category: metal, minGrade: good, kind: item, count: 1 }
+  - { slot: case, category: wood, minGrade: fair, kind: item, count: 1 }
+toolCapabilities: [striking, anvil]
+outputTemplate: /trade/mining/thing/miners-dial
+outputMaterial: ''
+outputApplication: tangible
+requiresHeatK: 1100
+difficulty: formidable
+discipline: mining

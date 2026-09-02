@@ -18,6 +18,7 @@ import { ContainmentApi } from '../../api/containment';
 import { makeStuff, makeStuffAtPath, stampTemplatePathForTest } from '../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import ArchetypeCatalogue from '../idea/ArchetypeCatalogue';
+import { Archetype } from '../../lib/archetype/Archetype';
 import RecipeCatalogue from '../idea/RecipeCatalogue';
 import SingletonCartesianLocation from '../location/SingletonCartesianLocation';
 import Thing from '../../lib/stuff/Thing';
@@ -124,5 +125,79 @@ describe('the venue archetype', () => {
     const venue = await catalogue.getArchetype('hospitality')!.materialize();
     expect(cloned).toEqual(['/platform/location/venue', '/fx/thing/bench', '/fx/thing/tap']);
     expect(venue.getContents().length).toBe(2);
+  });
+
+  /**
+   * ⭐ The `lightLux` need (metal chain K1) — the divergence slot.
+   *
+   * An archetype says *you need light here*; one venue answers with
+   * cultivated glowcap and another with oil lamps, and neither is named in
+   * the vocabulary. It is the `coldStorage`/`heatK` shape — a property of
+   * the SPACE, read through the same `vision.signalAt` the `measure light`
+   * instrument reads, so the archetype and the instrument agree by
+   * construction rather than by two tables kept in step.
+   */
+  describe('the lightLux need', () => {
+    it('round-trips through fromData → toData', () => {
+      const a = Archetype.fromData({
+        archetypeId: 'mining',
+        label: 'a working mine',
+        industry: null,
+        capabilities: [{ key: 'light', needs: { lightLux: 20 } }],
+      });
+      expect(a.toData().capabilities).toEqual([
+        { key: 'light', needs: { lightLux: 20 }, default: null },
+      ]);
+    });
+
+    it('refuses a zero or negative lightLux, and names the archetype', () => {
+      for (const bad of [0, -1]) {
+        expect(() =>
+          Archetype.fromData({
+            archetypeId: 'mining',
+            capabilities: [{ key: 'light', needs: { lightLux: bad } }],
+          }),
+        ).toThrow(/archetype 'mining'.*lightLux.*positive/);
+      }
+    });
+
+    it('needKey merges two lightLux slots — the need is the space, not the source', () => {
+      expect(Archetype.needKey({ lightLux: 20 })).toBe(
+        Archetype.needKey({ lightLux: 400 }),
+      );
+      // …and stays distinct from every other need's identity.
+      expect(Archetype.needKey({ lightLux: 20 })).not.toBe(
+        Archetype.needKey({ heatK: 20 }),
+      );
+    });
+
+    it('is reported by describe() alongside the derived rows', () => {
+      const a = Archetype.fromData({
+        archetypeId: 'mining',
+        label: 'a working mine',
+        industry: null,
+        // ⭐ No default: the archetype's own honesty about the slot it
+        // will not fill for you.
+        capabilities: [{ key: 'light', needs: { lightLux: 20 } }],
+      });
+      expect(a.describe().rows).toEqual([
+        { key: 'light', needs: { lightLux: 20 }, default: null, derivedFrom: [] },
+      ]);
+    });
+
+    it('the shipped hospitality archetype describes identically — the no-regression pin', () => {
+      const d = catalogue.getArchetype('hospitality')!.describe();
+      expect(d.rows.map((r) => r.key)).toEqual([
+        'surface',
+        'dispensing',
+        'seating',
+        'cold',
+        'tool:mixing-glass',
+        'tool:strainer',
+        'tool:pot',
+        'heatK',
+      ]);
+      expect(d.rows.some((r) => 'lightLux' in r.needs)).toBe(false);
+    });
   });
 });

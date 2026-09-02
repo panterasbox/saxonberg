@@ -1,0 +1,21 @@
+# ⭐ The ore a Ferrow face yields — malachite in a slate host.
+#
+# ⚠ Its `grade` is authored at zero and that is CORRECT: `hew` stamps the
+# real figure from the deposit at the moment the lump comes out of the
+# face. A row that authored a grade would be a second source of truth for
+# a number the ground already knows.
+class: /trade/mining/thing/Ore
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a lump of green-stained rock
+  primaryKeyword: ore
+  keywords: [ore, rock, lump, malachite]
+  longDescription: >-
+    Grey slate shot through with green, heavier than it looks and
+    breaking with a dull edge. How much of it is copper is a question for
+    the scale.
+  _materialPath: /stuff/idea/material/mineral/malachite
+  gangueMaterialPath: /stuff/idea/material/mineral/quartz
+  grade: 0
+  quantity: 1
+  mass: 1.4

@@ -5,7 +5,14 @@ import { openWorldAs, runCommand, sendUntil, enterWorld } from './helpers';
  * Sandbox (the holodeck) — the player-visible crossing, end to end
  * through the real client.
  *
- * Every test spawns in `/world/lounge/location/wire-alcove`: a singleton
+ * Every test spawns through the lounge warren — the ORDINARY landing,
+ * the same `defaultStartLocation` a real new avatar gets — and the
+ * wardrobe (the sandbox's door) is a prop of the lounge room, so it is
+ * simply there. ⚠ It used to be a `wire-alcove`: a doorless room nothing
+ * linked to, which existed so this suite had somewhere to stand. A room
+ * that exists for a test is a fixture wearing a room's clothes, and
+ * pinning the suite to the real landing is stronger than pinning it to a
+ * bespoke one. Originally: a singleton
  * side-room whose `populates:` puts a public, UNOWNED wardrobe in it
  * each boot. An ordinary avatar standing next to that door is the whole
  * setup — character creation IS the circle grant (`selfHomeOwnerOf`),
@@ -29,13 +36,13 @@ import { openWorldAs, runCommand, sendUntil, enterWorld } from './helpers';
  * See docs/subsystems/sandbox.md.
  */
 
-const ALCOVE = '/world/lounge/location/wire-alcove';
+const ALCOVE = '/world/lounge/idea/warren';
 
 /** The location pane's heading — where the player IS, right now. */
 function whereHeading(page: import('@playwright/test').Page, name: RegExp) {
   return page.getByRole('heading', { name });
 }
-const ALCOVE_HEADING = /wire alcove/i;
+const ALCOVE_HEADING = /the lounge/i;
 
 /** The most recent `who` header count, or null if none is on screen. */
 async function onlineCount(

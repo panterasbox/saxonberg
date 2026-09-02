@@ -1,0 +1,37 @@
+# Charcoal — wood with the volatiles cooked out of it, and ⭐ **the reason
+# a metal age is possible at all.**
+#
+# Wood burns at around 1200 K, which will not melt copper (1358 K) let
+# alone reduce an ore. Charcoal is nearly pure carbon: it burns hotter,
+# it burns cleaner, and — the part that matters chemically — the carbon
+# is what STRIPS THE OXYGEN off a copper carbonate. It is fuel and
+# reagent at once, which is why the smelt takes a charge of it rather
+# than merely a fire under it.
+#
+# ⚠ It ships in the FUEL trade rather than in `base-library`: it is not a
+# world-fact like slate or copper, it is a thing a trade MAKES. The
+# commons path is still the commons path — pack ownership is a review
+# unit, not a namespace.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: charcoal
+  # Light: the volatiles and most of the mass left as smoke.
+  density: 350
+  specificHeat: 1000
+  thermalConductivity: 0.08
+  electricalConductivity: 1.0e2
+  # Porous, and it drinks — which is exactly why a burn that gets rained
+  # on is a burn you have lost.
+  waterAbsorptionCapacity: 30
+  # Autoignition well below wood's: charcoal catches from an ember where
+  # a log wants a flame.
+  autoignitionPoint: 620
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["organic", "carbon", "fuel", "flammable", "porous"]
+  composition:
+    - { materialPath: /stuff/idea/material/element/carbon, fraction: 0.9 }
+  chemistry: null
+  biologicalSource: null

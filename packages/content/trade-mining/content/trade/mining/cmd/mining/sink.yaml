@@ -1,0 +1,14 @@
+verbs: [sink]
+controller: /trade/mining/idea/cmd/mining/SinkController
+description: "Sink a winze — drive a working downward"
+help: |
+  `sink` cuts the next working straight down. A winze is climbed, not
+  walked: the pair of exits it leaves carries the climbing mode.
+
+  The same ground rules apply as to `drive`, and one more that is not a
+  rule but a fact — the deeper you go the wetter it gets, and below the
+  water table an adit cannot drain you.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied

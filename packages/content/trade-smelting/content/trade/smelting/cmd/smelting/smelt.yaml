@@ -1,0 +1,21 @@
+verbs: [smelt]
+controller: /trade/smelting/idea/cmd/smelting/SmeltController
+description: "Reduce a charge of ore to metal"
+help: |
+  `smelt` runs the charge in the furnace you are standing at. You need
+  ore in it, charcoal in it, and the furnace lit and hot enough for the
+  metal you are after.
+
+  ⭐ What comes out is what the rock actually held. Metal out is the
+  charge's mass times each lot's grade times the mineral's own metal
+  fraction — chemistry, not a recipe constant — so a lean lot honestly
+  makes a lighter bar and you can see the difference through `analyze`.
+  The gangue fluxes off as slag, and there is always more slag than
+  metal.
+
+  ⚠ A charge below the furnace's reachable temperature refuses, and says
+  what it would take. Work the bellows.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied

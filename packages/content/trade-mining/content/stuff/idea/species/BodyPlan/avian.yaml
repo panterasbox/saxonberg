@@ -1,0 +1,74 @@
+# Avian — a small perching bird. Two legs, two wings, and the reason it
+# exists in a MINING pack: the canary.
+#
+# ⭐ It ships here rather than in the species commons because a pack owns
+# the rows it has a reason for, and nothing in the world needed a bird
+# until a mine needed something that stops singing. The path is still the
+# commons path — pack ownership is a review unit, not a namespace — so a
+# later build that gives the skeleton a permanent home moves the file and
+# edits one title claim, with no path changes and nothing to migrate.
+#
+# ⚠ `respiring: true` and the species' own high blood-oxygen floor are
+# what make the canary the instrument it is. A bird's air sacs give it a
+# far more efficient exchange than a mammal's tidal lungs — which is why
+# it takes up a bad atmosphere sooner, not because anything here treats
+# it as special.
+class: /platform/idea/species/BodyPlan
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: avian
+  slots:
+    - { name: 'perch:1', accepts: SlottableMixin, userFacingDetail: perch }
+  locomotionModes:
+    - walk
+    - fly
+  defaultLocomotionMode: walk
+  sensoryPorts:
+    - { modality: vision, count: 2, position: lateral }
+    - { modality: hearing, count: 2, position: lateral }
+    - { modality: touch, count: 1, position: circumferential }
+  bodyParts:
+    - key: body.torso
+      parent: null
+      tissues:
+        - { tissuePath: /stuff/idea/material/tissue/bone, mass: 0.004 }
+        - { tissuePath: /stuff/idea/material/tissue/muscle, mass: 0.008 }
+        - { tissuePath: /stuff/idea/material/tissue/flesh, mass: 0.006 }
+    - key: body.head
+      parent: body.torso
+      severable: true
+      tissues:
+        - { tissuePath: /stuff/idea/material/tissue/bone, mass: 0.001 }
+        - { tissuePath: /stuff/idea/material/tissue/flesh, mass: 0.002 }
+    - key: body.wing.left
+      parent: body.torso
+      severable: true
+      tissues:
+        - { tissuePath: /stuff/idea/material/tissue/bone, mass: 0.001 }
+        - { tissuePath: /stuff/idea/material/tissue/muscle, mass: 0.002 }
+    - key: body.wing.right
+      parent: body.torso
+      severable: true
+      tissues:
+        - { tissuePath: /stuff/idea/material/tissue/bone, mass: 0.001 }
+        - { tissuePath: /stuff/idea/material/tissue/muscle, mass: 0.002 }
+    - key: body.leg.left
+      parent: body.torso
+      severable: true
+      tissues:
+        - { tissuePath: /stuff/idea/material/tissue/bone, mass: 0.0008 }
+    - key: body.leg.right
+      parent: body.torso
+      severable: true
+      tissues:
+        - { tissuePath: /stuff/idea/material/tissue/bone, mass: 0.0008 }
+    - key: body.torso.heart
+      parent: body.torso
+      governsVital: heartRate
+      tissues:
+        - { tissuePath: /stuff/idea/material/tissue/muscle, mass: 0.0004 }
+    - key: body.torso.lungs
+      parent: body.torso
+      governsVital: respiratoryRate
+      tissues:
+        - { tissuePath: /stuff/idea/material/tissue/flesh, mass: 0.0006 }

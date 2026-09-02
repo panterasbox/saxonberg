@@ -70,7 +70,10 @@ const BAR = '/world/lounge/location/bar';
 const BAR_BIZ = '/world/lounge/idea/business';
 const SHELF = '/trade/hospitality/thing/back-bar';
 const RACK = '/trade/hospitality/thing/glass-rack';
-const CASH_AND_CARRY = '/trade/distribution/location/cash-and-carry';
+// ⭐ The ROOM is the locality's and the MECHANISM is distribution's —
+// fermentation's D10 decoupling kept whole, with the showroom where its
+// door is (a roller door on the Counting-Houses avenue).
+const CASH_AND_CARRY = '/world/terminus/counting-houses/cash-and-carry';
 const COUNTER = '/trade/distribution/thing/counter';
 const DISTRIBUTION = '/trade/distribution/idea/business';
 const OUTFIT = '/trade/distilling/location/veshko-yard/idea/outfit';

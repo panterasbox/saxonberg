@@ -159,7 +159,7 @@ behavior. Read the relevant doc before editing in its area.
   - [contract.md](./docs/subsystems/contract.md) — the work-contract (gig) substrate: clauses over verifiable conditions, escrow, the board, the custodian rule
   - [collections.md](./docs/subsystems/collections.md) — canonical surfaces for collection-shaped mixins, naming axes
   - [hot-reload.md](./docs/subsystems/hot-reload.md) — HotReloadApi state machine, clone integration, controller dispatch
-  - [content-packs.md](./docs/subsystems/content-packs.md) — versioned content packages: the PackApi reconcile installer, the contribution kinds (domain / document over `DocumentKinds` / settings / subject / wiki / command-view) and their policies, `sourcePack` stamps, the manifest's `requires` (groups + title claims) / `boot` / `maintainers`, the boot union, `SAXONBERG_PACKS`, the **capability rung** (a pack ships `src/`; the class-source table, `resolveClassFile`, the server's `exports` map as the pack import profile, the deployment manifest, the rung check), the thirty-one shipped packs (the platform is pack zero; arcana, trade-distilling and trade-hospitality the capability packs; distribution the decoupler; brains in packs via `src/behavior/`; the `archetype` kind; the stub trades; no seeders)
+  - [content-packs.md](./docs/subsystems/content-packs.md) — versioned content packages: the PackApi reconcile installer, the contribution kinds (domain / document over `DocumentKinds` / settings / subject / wiki / command-view) and their policies, `sourcePack` stamps, the manifest's `requires` (groups + title claims) / `boot` / `maintainers`, the boot union, `SAXONBERG_PACKS`, the **capability rung** (a pack ships `src/`; the class-source table, `resolveClassFile`, the server's `exports` map as the pack import profile, the deployment manifest, the rung check), the thirty-five shipped packs (the platform is pack zero; arcana, trade-distilling and trade-hospitality the capability packs; distribution the decoupler; the metal chain's trade-mining/trade-fuel/trade-smelting over rejection, a venue pack with no `src/` at all; brains in packs via `src/behavior/`; the `archetype` kind; the stub trades; no seeders)
   - [race.md](./docs/subsystems/race.md) — Material substrate, Clade scope, BodyPlan + Species templates, OrganismMixin, animacy gating
   - [vitals.md](./docs/subsystems/vitals.md) — body-state substrate: the Agent/Creature/Character split, VitalsMixin, BodyPlan anatomy, death seams
   - [harm.md](./docs/subsystems/harm.md) — the injury driver: `ConditionApi.inflict`, five trauma behaviors, reconcile-on-read wounds, the medic vertical
@@ -180,6 +180,7 @@ behavior. Read the relevant doc before editing in its area.
   - [metabolism.md](./docs/subsystems/metabolism.md) — the intake/chemistry driver: digestion buffer, reconcile-on-read, condition cascades, meal chemistry, toxins
   - [husbandry.md](./docs/subsystems/husbandry.md) — the growth model: GrowingMixin reconcile-on-read (no far-past guard), min-of-four limiting factor, the pot-as-N=1-bed object shape, the houseplant
   - [smallholding.md](./docs/subsystems/smallholding.md) — ground you own: CultivableMixin (a pot is a bed with one slot), soil's own checkpoint, land use's closed six, weakest-link harvest grade, `title`, PlatBook/PlatWarren/LotGateExit, Hinkley Hills
+  - [mining.md](./docs/subsystems/mining.md) — ground you cut: the Deposit field (seeded, never drawn), WorkingMixin's four reads, MineWarren carve/shore/promote, the damps + the canary, grade end-to-end to the smelt
   - [thermal.md](./docs/subsystems/thermal.md) — heat exchange: ThermalMixin Newton cooling, the thermos/campfire, ThermalRegulation
   - [respiration.md](./docs/subsystems/respiration.md) — air exchange + asphyxiation: the crisis engagement drain, `breathableMedia`, AirTank
   - [shell-workspace.md](./docs/subsystems/shell-workspace.md) — WorkspaceMixin cwd state, `workspace.tree`, read/write verb suite, SourceTreeApi
@@ -743,7 +744,9 @@ reason.
   labor market — `job`/`fulfill`), employment (`appoint`/`quit`/`tip`/`collect`), retail (`buy`/`consign`/`reclaim`), device
   ("operating a built object or mechanism" —
   `wind`/`adjust`/`switch`/`fold`/`unfold`/`disarm`/`pump`; `lock`/`unlock`
-  stay under `boundary`). The concealment build added `search` (perception),
+  stay under `boundary`), mining (the metal chain's cutting acts —
+  `hew`/`drive`/`sink`/`raise`/`shore`/`stake`), fuel (`char`), smelting
+  (`smelt`). The concealment build added `search` (perception),
   `sneak`/`run` (movement), and `disarm` (device); `examine` is now a
   `look` alias, not its own verb; the farming build made `pick` a
   `harvest` alias (inventory). ⭐ **A verb lives with the pack whose content
@@ -752,10 +755,16 @@ reason.
   `retail/menu`+`order`; a trade's own steps ship in its capability pack
   (`trade-hospitality`: `muddle`/`strain`/`garnish`/`mix`/`serve`;
   `trade-hearth-cooking`: `cook`/`plate`; `trade-smithing`:
-  `forge`/`hammer`/`quench`/`sharpen`) under `content/<root>/cmd/` +
+  `forge`/`hammer`/`quench`/`sharpen`; `trade-mining`:
+  `hew`/`drive`(`drift`)/`sink`/`raise`/`shore`/`stake`; `trade-fuel`:
+  `char`; `trade-smelting`: `smelt`) under `content/<root>/cmd/` +
   `src/idea/cmd/`. The libations build added `wash`/`muddle`
   (crafting), `quit` (employment), `house par`/`house stock` (banking) and
-  `watch … on <screen>` (stream).
+  `watch … on <screen>` (stream). ⚠ The metal chain's acts are a `mining`
+  CATEGORY of their own, and its two survey channels are stanzas on the
+  platform's shipped `measure`/`analyze` views (`measure strike`/`dip`,
+  `analyze ground`) whose controllers live in the trade — the
+  instrumentation split, not a new verb.
 - **Command controllers**: in `mud/platform/idea/cmd/<category>/`, e.g.
   `perception/LookController.ts`, `movement/GoController.ts` (content
   controllers live under `world/<sphere>/<locality>/idea/cmd/`, above).

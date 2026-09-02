@@ -1,0 +1,34 @@
+# Malachite — Cu2CO3(OH)2. The visibly green copper carbonate of an
+# oxide cap, and the reason Stage A's ore can be found by LOOKING: it
+# stains the outcrop a colour nothing else in the country rock is.
+#
+# ⭐ The metal fraction is CHEMISTRY, not a dial: two copper atoms out of
+# a 221.1 g/mol formula unit is 0.5748 by mass, and the smelt derives its
+# yield from that times the lump's grade. Nobody authors "how much copper
+# comes out"; the formula already said.
+#
+# It reduces with charcoal at a temperature a bellows-fed pit reaches,
+# which is why oxide copper is the FIRST rung of the smelting ladder and
+# the sulfides below the water table are a later stage.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: malachite
+  density: 4000
+  specificHeat: 800
+  thermalConductivity: 1.2
+  electricalConductivity: 1.0e-9
+  waterAbsorptionCapacity: 0.5
+  # Mohs 3.5-4 — soft; it cobs off the gangue under a hammer, which is
+  # what hand cobbing IS.
+  hardness: 200
+  toughness: 8
+  edibility: false
+  nutrients: ["copper"]
+  toxicity: [{ type: copper-poisoning, amount: 0 }]
+  tags: ["mineral", "carbonate", "ore", "copper", "oxide-zone", "green"]
+  composition:
+    - { materialPath: /stuff/idea/material/element/copper, fraction: 0.5748 }
+  formula: Cu2CO3(OH)2
+  molarMass: 221.114
+  biologicalSource: null

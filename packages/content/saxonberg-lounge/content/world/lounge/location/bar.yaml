@@ -16,6 +16,12 @@
 class: /world/lounge/location/Bar
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
+  # ⚠ `coords:` is the MEMBERSHIP operation — `setCoords` is the only way
+  # an authored row joins a zone. The bar is the lounge grid's origin; the office is one cell north of it, which is what the door has always said.
+  coords:
+    x: 0
+    y: 0
+    z: 0
   shortDescription: Dave's Bar
   primaryKeyword: bar
   illustration: location/bar.png

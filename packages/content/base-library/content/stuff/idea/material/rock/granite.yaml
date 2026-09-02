@@ -19,6 +19,11 @@ data:
   electricalConductivity: 1.0e-5
   # Water absorption capacity (% of dry mass, ASTM D570): dense stone, near-nil porosity.
   waterAbsorptionCapacity: 0.3
+  # Mechanical response (materials-response): MPa. Authored here because
+  # carve cost cannot be priced until rock carries what metal already
+  # does — a granite heading is roughly twice a slate one.
+  hardness: 200
+  toughness: 35
   edibility: false
   nutrients: []
   toxicity: []

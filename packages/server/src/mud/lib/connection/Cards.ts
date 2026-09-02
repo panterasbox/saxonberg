@@ -108,7 +108,12 @@ export type CardSource =
     };
 
 /** The `payload`-source producers. Mirrors `CardPayload`'s `kind`. */
-export type CardPayloadKind = 'roster' | 'releases' | 'wikiPage' | 'helpTopic';
+export type CardPayloadKind =
+  | 'roster'
+  | 'releases'
+  | 'wikiPage'
+  | 'helpTopic'
+  | 'survey';
 
 /** Everything the server needs to open one named card. */
 export interface CardDefinition {
@@ -345,6 +350,32 @@ export const CARDS: Readonly<Record<CardId, CardDefinition>> = {
     pinnedByDefault: false,
     live: true,
     command: 'house stock',
+  },
+
+  /**
+   * ⭐ **The prospector's book — what this character has measured, and
+   * what it adds up to.**
+   *
+   * The three-point problem is played across three measurement points in
+   * three places, so without a readable surface it is trigonometry on
+   * scrollback. ⚠ Deliberately **not a map and not a minimap**: it is a
+   * LEDGER of readings, which is the thing a real prospector carried.
+   *
+   * **PINNED**, because the whole point is that it accumulates across a
+   * walk over an outcrop, and unpinning it after each reading would
+   * defeat the instrument. Not live: it is a projection of the
+   * character's DISCOVERY beliefs, and those change only when they
+   * measure again — at which point `analyze ground` re-projects and the
+   * strike row tightens. Nothing accumulates in the card; the card shows
+   * what the character knows.
+   */
+  survey: {
+    label: 'the survey',
+    source: { kind: 'payload', producer: 'survey' },
+    pinnedByDefault: true,
+    live: false,
+    command: 'analyze ground',
+    singleton: true,
   },
 };
 

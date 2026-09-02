@@ -3856,3 +3856,107 @@ Decided 2026-09-01 (the fermentation MR review). The surviving
 is slated for the same conversion:
 [api-boot-retirement-slate](./slates/builds/api-boot-retirement-slate.md).
 Never add a new one.
+
+---
+
+## A completion that calls back into its controller
+
+A controller is **one ephemeral clone per execution**, destructed the
+moment `execute` returns. An engaged act completes long after that, so a
+scheduled callback that reaches `this.<method>` runs on a destroyed
+Stuff — and the proxy answers with a **silent no-op**.
+
+### BAD
+
+```ts
+this.engageAct(context, {
+  onComplete: () => { void this.win(context, working, face); },
+});
+```
+
+The swing lands, the prose prints, and no ore ever appears. The only
+trace is a debug line nobody is reading: `[inert] win() called on
+destroyed Stuff`.
+
+### GOOD (a module function, closed over what it needs)
+
+```ts
+this.engageAct(context, {
+  onComplete: () => { void winOre(context, working, room, face, oreRow, grade); },
+});
+
+async function winOre(/* … */): Promise<void> { /* … */ }
+```
+
+⚠ And the completion is the one place in a controller where **the actor
+is not guaranteed**: a player can log out mid-act, and `Mml.actor()` on a
+departed avatar renders `undefined`, which throws an unhandled rejection
+that takes the process down. Guard with `isDestroyed()` — and note the
+right answer differs by act. An interrupted cut leaves the rock standing,
+so `hew` returns; but a charcoal clamp still OPENS and a furnace is still
+TAPPED, because the fire did not need watching to finish. **Only the
+telling needs a listener.**
+
+Found by driving (metal chain, 2026-09-01). `lint:does-nothing` cannot
+see it — the method exists and the call is well-typed.
+
+---
+
+## A pack subclass for a field the kernel already models
+
+A pack **cannot add a field to a kernel class**, and the failure is
+silent: `fieldMeta` is what the Hydrator reflects through, so an
+undeclared key in `data:` is discarded and the object comes up as though
+the author had written nothing. The reflex is to ship a subclass.
+
+### BAD
+
+```ts
+// trade-mining/src/idea/MineZone.ts — a CartesianZone that carries `deposit`
+export default class MineZone extends CartesianZone { /* one field */ }
+```
+
+That works, and then the zone covering a whole TOWN has to be classed
+`MineZone` — asserting *this town is a mine*, when Rejection is the town,
+the Ferrow is the orebody and the diggings are the workings on it.
+
+### GOOD (a kernel field holding an opaque citation)
+
+```ts
+// lib/zone/SpatialZone.ts
+static fieldMeta = { /* … */ deposit: { persistent: true, authorable: true } };
+```
+
+⭐ **Ask what the field is a fact ABOUT.** A deposit is a property of the
+ground, exactly as `elevation` is; the kernel carries the citation string
+and never interprets it, so it never imports the pack — the same contract
+`Locality._reach` uses for a watercourse. Ship the subclass only when the
+CLASS is genuinely yours.
+
+Decided 2026-09-02 (the metal chain sweep), after `build/water` settled
+the same shape twice.
+
+---
+
+## A cartesian location that authors no `coords`
+
+`CartesianLocation.setCoords` is the **only** path by which an authored
+row joins a zone. A cartesian row with no `coords:` is therefore not
+sitting at the origin — **it is in no grid at all**, and it silently
+inherits nothing a zone carries: no `address` and so no Locality, no
+`atmosphere.*` override, no celestial profile, no `stocks`, no `deposit`.
+
+Nothing throws. Nothing logs. Sixteen rooms shipped that way — every
+trade floor in the repo — and all of them read as fine, because nothing
+they had lost had been asked for yet.
+
+> **Every location plots on some coordinate system.** The only exemption
+> is a position a warren or floorplan assigns at runtime.
+
+⚠ And the fix is a zone, never fewer coords. An earlier revision of
+`lint:locations`' own failure message advised *"delete the coords rather
+than inventing a zone for one room"*; that advice was taken and it was
+backwards — deleting them does not unbreak the room, it un-houses it.
+
+Enforced by `pnpm lint:locations` (`unplottedLocations`), whose exemption
+list is the two rosters a reviewer already reads.

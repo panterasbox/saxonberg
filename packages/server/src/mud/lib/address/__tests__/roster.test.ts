@@ -132,6 +132,12 @@ describe('Address roster — slim demonstrative inventory', () => {
       // a child of it: `terminus/hinkley-hills`, with a government of its
       // own. Two jurisdictions a short walk apart is the point.
       'hinkley-hills.yaml',
+      // Rejection (the metal chain) — the mining town, a SIBLING of the
+      // city like Hinkley: `terminus/rejection`. ⚠ It shipped with no
+      // Locality at all, which left `Working.getGroundSeed()` resolving
+      // none and seeding the orebody off the EMPTY STRING — a constant,
+      // under a doc comment promising an address-derived one.
+      'rejection.yaml',
     ]);
     const actual = new Set(ROOTS.flatMap((r) => listYamlsRelative(r)));
     expect(actual).toEqual(expected);

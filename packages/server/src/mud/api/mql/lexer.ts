@@ -224,7 +224,26 @@ export function lex(input: string): Token[] {
 
     if (ch === '#') {
       const next = input[i + 1];
-      if (next === undefined || (!isDigit(next) && !isLetter(next) && next !== '_')) {
+      /*
+       * ⚠⚠ **A LEADING `-` is a legal id, and this guard used to refuse
+       * it.** `stuffId`s are nanoids over `A-Za-z0-9_-`, so ONE IN
+       * SIXTY-FOUR of them begins with a hyphen — measured at 1.56%.
+       * The body scan below already knew ids carry hyphens; only the
+       * first character was still being tested against the narrow
+       * word-char set, so `#-Xk3…` threw *"bare '#' at position 0"* and
+       * the whole command died.
+       *
+       * ⚠ It is reached from the disambiguation loop, which stores
+       * `#<stuffId>` as the focus after a prompt — so roughly one pick
+       * in sixty-four left the player with a focus that could not be
+       * re-resolved. Found by a full-suite run, where a rare seed is
+       * eventually drawn.
+       */
+      const startsId =
+        next !== undefined &&
+        (isWordChar(next) ||
+          (next === '-' && i + 2 < n && isWordChar(input[i + 2]!)));
+      if (!startsId) {
         throw new MqlLexError(
           `bare '#' at position ${i} — expected '#<int>' or '#<id>'`,
           i
@@ -233,7 +252,7 @@ export function lex(input: string): Token[] {
       /*
        * Scan the identifier body; classify by shape.
        *
-       * ⚠⚠ **Internal `-` is part of the id.** `stuffId`s are nanoids
+       * ⚠⚠ **Internal and leading `-` are part of the id.** `stuffId`s are nanoids
        * over `A-Za-z0-9_-`, so roughly half of them contain a hyphen —
        * and a plain word-char scan stopped at the first one, quietly
        * yielding a TRUNCATED id that then resolved to nothing (or, far
@@ -256,8 +275,9 @@ export function lex(input: string): Token[] {
           c === '-' &&
           j + 1 < n &&
           isWordChar(input[j + 1]!) &&
-          j > i + 1 &&
-          isWordChar(input[j - 1]!)
+          // Leading (`#-abc`) or between word chars (`#ab-cd`) — a
+          // TRAILING dash still falls through to the operator.
+          (j === i + 1 || isWordChar(input[j - 1]!))
         ) {
           j += 1;
           continue;

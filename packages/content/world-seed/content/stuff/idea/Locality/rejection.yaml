@@ -1,0 +1,63 @@
+# Rejection — the mining town, and ⭐ **the town is the PLACE; the mine is
+# a thing in it.**
+#
+# Three names, and they are not interchangeable:
+#
+#   - **Rejection** — the town. This row.
+#   - **the Ferrow** — the orebody. `/world/rejection/idea/deposit/ferrow`.
+#   - **the Ferrow diggings** — the workings cut on it.
+#
+# Nothing calls it "the Rejection mine", and nothing should: a lode and
+# the mine on it share a name, and the settlement has its own. The town
+# is named for what the ground did to the people who came here first.
+#
+# ⚠⚠ **Rejection shipped with no Locality at all** — the only venue of its
+# scale without one, while Hinkley Hills, University Avenue, the Moor and
+# the campus all had theirs. It was a zone tree with no address, which
+# broke something concrete: `Working.getGroundSeed()` documents itself as
+# *"derived from the covering Locality's claimed address — rename the mine
+# and its ore moves"*, calls `AddressApi.resolveLocalityFor`, got `null`,
+# and seeded from the EMPTY STRING. A constant. This row is what makes
+# that sentence true.
+#
+# A LOCALITY tier under the realm, beside the city: `terminus/rejection`,
+# not `terminus/city/rejection`. ⭐ `terminus` names the REALM and
+# `terminus/city` names the city — every other town is a sibling of the
+# city, not a district inside it. A mining town is remote by economic
+# logic (you go where the ore is, not where the people are), and arrival
+# is by TPA with no inbound exit wired, which is the geography saying so.
+#
+# ⚠ It declares no `_governmentKey`: who governs Rejection is a live
+# question the town's own build should answer, and `null` is a normal
+# state of the world rather than a gap.
+#
+# ⭐⭐ **And it declares its water** — the watershed's D21, *a Locality
+# declares the watercourse it sits on and drains to*. This was written
+# deferred, because `_reach` existed only on `build/water`; that build has
+# landed, so it is authored now rather than left as a note.
+#
+# The position is the water build's own decision (D20), not this one's:
+# Rejection sits at the **headwaters of the Kestrel**, where the ore and
+# the snowpack both are. Its water problem follows from its industry — it
+# FOULS, with the persistent kind, and it is upstream of everyone. That is
+# also why the city's aqueduct to Cold Fell has to run past the town it
+# cut out.
+#
+# ⚠ The two hierarchies are deliberately unaligned: the address tree is
+# POLITICAL containment (`terminus/rejection`), the watershed is
+# HYDROLOGICAL ordering (Rejection → Heart's Delight → Terminus). Terminus
+# governs its own streets and has no say over what Rejection puts in the
+# water, which is the real condition and the reason a river authority is
+# the one institution that follows the second hierarchy.
+class: /platform/idea/Locality
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: Rejection
+  _address: terminus/rejection
+  # ── the watershed (D21) ───────────────────────────────────────────
+  _reach: kestrel:headwaters
+  # ⚠ The locality's OWN catchment, not the reach's: the Kestrel's
+  # headwaters node already declares 380 km² of wild ground draining to
+  # it. This is the worked ground the town itself sheds — a pithead, a
+  # spoil bank and a few streets on a steep hillside.
+  _catchmentKm2: 30

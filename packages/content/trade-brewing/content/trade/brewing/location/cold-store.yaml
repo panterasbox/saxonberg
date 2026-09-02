@@ -5,6 +5,16 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
+  # ⚠ `coords:` is the MEMBERSHIP operation — `setCoords` is the only way
+  # an authored row joins a zone. ⭐ This room arrived with the
+  # fermentation merge and the plot gate caught it: a CELLAR wants its
+  # zone more than most rooms do, because `coldStorage` reads the SPACE
+  # and a room in no grid inherits no `atmosphere.*` override to be cold
+  # from. Below the brewing floor, which is what a deep stone cellar is.
+  coords:
+    x: 0
+    y: 0
+    z: -1
   shortDescription: "the cold store"
   primaryKeyword: store
   keywords: ["store", "cold store", "cellar", "lagering cellar"]

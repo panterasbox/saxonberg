@@ -1,0 +1,14 @@
+# Tongs — for holding what is too hot to hold. The rung that makes
+# smelting possible at all.
+class: /platform/thing/ToolItem
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  primaryKeyword: tongs
+  keywords: ["tongs"]
+  shortDescription: a pair of long tongs
+  longDescription: >-
+    Long-jawed iron tongs, the reins sprung so they hold themselves shut
+    on whatever you have gripped.
+  mass: 1.4
+  capabilities: ["gripping"]
+  _materialPath: /stuff/idea/material/element/iron

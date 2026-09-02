@@ -48,3 +48,7 @@ requires:
     - { extent: /world/terminus/realty, holder: { group: terminus }, landUse: commercial }
 boot:
   - { template: /world/terminus/mayfield-row/seznick-house/building, role: producer, reason: warms the unit caches from the durable slot set and installs the lobby stair at postRegister }
+  # ⚠ Moved here with the room from `trade-distilling`: a showroom on the
+  # avenue is a PLACE, so the locality holds it. Everything IN it is
+  # still the distilling trade's — the racking, the counter, the clerk.
+  - { template: /world/terminus/counting-houses/cash-and-carry, role: producer, reason: "the distributor's counter must be resident for the trades' hands to consign onto it and for the boot spawn sweep to have a census" }

@@ -1,0 +1,13 @@
+recipeId: shovel
+name: Shovel
+keywords: [shovel, spade]
+inputSlots:
+  - { slot: stock, category: ferrous, minGrade: fair, kind: item, count: 1 }
+  - { slot: haft, category: wood, minGrade: poor, kind: item, count: 1 }
+toolCapabilities: [striking, anvil]
+outputTemplate: /trade/mining/thing/shovel
+outputMaterial: ''
+outputApplication: tangible
+requiresHeatK: 1100
+difficulty: standard
+discipline: mining
