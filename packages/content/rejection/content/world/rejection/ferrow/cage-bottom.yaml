@@ -5,11 +5,12 @@
 # shaft was abandoned and the adit took over, which is how mining
 # vocabulary works: the word outlives the machine. A called,
 # capacity-limited lift is a later stage's, and an adit needs none.
-class: /platform/location/SingletonCartesianLocation
+class: /trade/mining/location/AuthoredWorking
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: the cage bottom
   primaryKeyword: bottom
+  oreRow: /world/rejection/thing/copper-ore
   keywords: [bottom, "cage bottom", cage, junction]
   longDescription: |
     A wide place where four ways meet, the roof high enough to stand a cart on end. The old shaft comes down into it and is boarded over, the boards grey and the nails weeping rust. Somebody has chalked a level number on the boarding and somebody else has corrected it.

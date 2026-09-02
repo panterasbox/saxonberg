@@ -197,19 +197,29 @@ describe('⭐⭐ a second mining town needs zero pack code', () => {
 });
 
 describe('the venue itself', () => {
-  it('the pithead is five rooms of function, and the spine is eight singletons', () => {
-    const spine = [
+  it('the SURFACE spine is authored singletons; the UNDERGROUND spine is authored WORKINGS', () => {
+    // ⭐ `SingletonCartesianLocation` — *one row IS one place*, and the
+    // mixin SUBTRACTS, so a second `clone()` is refused. The four TYPE
+    // rows take the permissive class instead, because they are minted
+    // many times.
+    for (const n of [
       'pithead-yard', 'claims-office', 'assay-shed', 'provisioning', 'the-dry', 'adit',
-    ].map((n) => `content/world/rejection/location/${n}.yaml`);
-    const galleries = ['cage-bottom', 'timbered-drift', 'winze-head'].map(
-      (n) => `content/world/rejection/ferrow/${n}.yaml`,
-    );
-    for (const rel of [...spine, ...galleries]) {
-      // ⭐ `SingletonCartesianLocation` — *one row IS one place*, and the
-      // mixin SUBTRACTS, so a second `clone()` is refused. The four TYPE
-      // rows take the permissive class instead, because they are minted
-      // many times.
-      expect(row(rel).class).toBe('/platform/location/SingletonCartesianLocation');
+    ]) {
+      expect(row(`content/world/rejection/location/${n}.yaml`).class).toBe(
+        '/platform/location/SingletonCartesianLocation',
+      );
+    }
+    // ⚠⚠ …and the galleries are NOT plain singletons, which is the fix
+    // for the drive's biggest finding: they are hand-cut MINE rooms, so
+    // they compose the reads and afford the acts. The tutorial drift's
+    // entire job is teaching `hew` and `shore`, and for one wave it had
+    // neither — a plain room in a mine is a room in a mine, not a
+    // working. ⭐ `AuthoredWorking` is also the class that makes *a
+    // bespoke mine works with no warren* a thing an author can DO.
+    for (const n of ['cage-bottom', 'timbered-drift', 'winze-head', 'hush-mouth']) {
+      expect(row(`content/world/rejection/ferrow/${n}.yaml`).class).toBe(
+        '/trade/mining/location/AuthoredWorking',
+      );
     }
   });
 

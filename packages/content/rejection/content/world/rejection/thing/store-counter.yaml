@@ -27,14 +27,22 @@ data:
     - { itemTemplatePath: /trade/mining/thing/timber-set, par: 8 }
     - { itemTemplatePath: /trade/mining/thing/compass, par: 1 }
     - { itemTemplatePath: /world/rejection/thing/glowcap-jar, par: 6 }
-  offers:
-    - { itemTemplatePath: /trade/mining/thing/pick, price: 26 }
-    - { itemTemplatePath: /trade/mining/thing/pinch-bar, price: 14 }
-    - { itemTemplatePath: /trade/mining/thing/shovel, price: 12 }
-    - { itemTemplatePath: /trade/mining/thing/timber-set, price: 6 }
-    - { itemTemplatePath: /trade/mining/thing/compass, price: 60 }
-    # ⭐ The number the whole light lesson rests on: a jar is cheap, and
-    # it dies in a month. That is a small recurring cost rather than a
-    # gate, which is what makes losing your light disabling rather than
-    # ruinous.
-    - { itemTemplatePath: /world/rejection/thing/glowcap-jar, price: 4 }
+  # ⚠ The field is `prices:` — a path→figure MAP, not an `offers:` list.
+  # It was authored as a list first and every `buy` answered *"isn't for
+  # sale"*: a `Stock` with stock lines and no prices holds the goods and
+  # prices none of them, which is a shop with an empty slate. Found by
+  # driving.
+  #
+  # Seeded starter figures against the shipped ladder (stipend 20; wages
+  # 4–6 per game-hour). ⚠ Pricing is PARKED — no discovery, no market —
+  # and solvency tuning is a balance question against a running game.
+  prices:
+    /trade/mining/thing/pick: 26
+    /trade/mining/thing/pinch-bar: 14
+    /trade/mining/thing/shovel: 12
+    /trade/mining/thing/timber-set: 6
+    /trade/mining/thing/compass: 60
+    # ⭐ The number the whole light lesson rests on: a jar is CHEAP, and it
+    # dies in a month. A small recurring cost rather than a gate — which
+    # is what makes losing your light disabling rather than ruinous.
+    /world/rejection/thing/glowcap-jar: 4

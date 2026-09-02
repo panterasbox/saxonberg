@@ -5,11 +5,12 @@
 # adit is two rooms away. `hew`, `shore` and `drive` are all learnable in
 # a room where the consequences of getting them wrong are visible and
 # survivable — which is what a tutorial face IS, historically and here.
-class: /platform/location/SingletonCartesianLocation
+class: /trade/mining/location/AuthoredWorking
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: the timbered drift
   primaryKeyword: drift
+  oreRow: /world/rejection/thing/copper-ore
   keywords: [drift, "timbered drift"]
   longDescription: |
     A level way west, close-timbered the whole length — legs and caps set every four feet, the wood old and grey and sound. At the far end the face has been worked square and there is green in it, a hand's breadth of it running away into the rock at an angle.

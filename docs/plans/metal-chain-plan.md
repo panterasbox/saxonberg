@@ -1602,3 +1602,86 @@ Out of scope by the requirements (upper band only), recorded as the seam.
    changes. Default: **10.0.**
 5. **Names.** The co-op, the registrar, the buyer and the storekeeper
    are yours when R5 nears; the plan will not invent them.
+
+---
+
+## ✅ Checkpoint — the live drive (Z1), 2026-09-01
+
+**What ran.** The server was booted against a real database
+(`saxonberg_build1`) with all thirty-three packs, and the world was
+driven headlessly over the WebSocket through the test-auth seam. The
+client surface is covered by its own suite; what needed driving was the
+WORLD, and a browser would only have added latency to that.
+
+⭐ **The drive's whole value was in what would not start.** Everything
+below is a defect the suites could not have caught, because a unit test
+builds the fixture it needs and a boot builds everything.
+
+### Defects found, and every one of them fixed here
+
+**Five were PRE-EXISTING on master** — merge fallout from the residences
+and farming builds, latent until something booted, and all fatal rather
+than degraded because the rows sit in a pack's `boot:` chain:
+
+| # | Defect | Shape |
+|---|---|---|
+| 1 | `trade-distilling` cash-and-carry: `coords:` with no covering zone | a dead block came alive |
+| 2 | `trade-farming` packing floor: the same | " |
+| 3 | Seznick House lobby: `out:`/`house:` non-cardinal inside one zone | a missing zone boundary |
+| 4 | Registry deed desk on `cast:` | a prop on the people list |
+| 5 | Katie's master ring on `cast:` | " |
+
+⚠ **1 and 2 are one root cause worth naming**: `FurnishableRoom` is
+deliberately NOT cartesian, so a `coords:` block on one is data nobody
+reads. Residences moved three trade floors onto
+`SingletonCartesianLocation` — and the inert blocks became LIVE, in
+directories no zone covers. Nothing notices until a boot.
+
+**Three were this build's own:**
+
+| # | Defect | What it taught |
+|---|---|---|
+| 6 | the pit pony under `cast:` with no brain | ⭐ **`cast:` means things with a brain.** The shipped `HaulingCreature` composes no `BehavedMixin`, so the room would not stand up and the player could not log in. Fixed by letting the pony behave (`PitPony = BehavedMixin(HaulingCreature)`) rather than demoting a living creature to `props:`. |
+| 7 | the provisioning room propped the GOODS as well as the counter | A `Stock` prices what IT holds, so `buy pick` found the room's copy, found no offer, and said *"a miner's pick isn't for sale"* — true, and useless. |
+| 8 | the counter used `offers:` (a list) instead of `prices:` (a map) | A shop with stock and no prices. Every `buy` declined with the same sentence, which is why 7 and 8 read identically and had to be peeled apart one boot at a time. |
+
+### Three gates, so none of these can recur quietly
+
+- `lint:locations` — *a cartesian row with `coords:` and no covering
+  zone*, and *a non-cardinal exit between two rows one zone covers*.
+- `lint:census` — *a `cast:` entry whose class is not on an agent
+  branch*; and ⚠ **the real find: `props:` and `cast:` were not
+  census-walked at all.** `populates:` retired in favour of them and the
+  walk was never widened, so for a whole build every born-with content
+  ref shipped unchecked. Field refs go 170 → 548.
+
+⚠ **The census gate is BRANCH-shaped and did not catch defect 6** — the
+pony was on an agent branch and still not `Behaved`. Its docstring says
+so; composition is the runtime's check, and the runtime's check is loud.
+
+### What the drive confirmed working
+
+The pithead stands up and reads; the outcrop is a detail you can look at
+before you own an instrument; `measure strike` with no instrument refuses
+and **names the instrument**; movement between the five surface rooms;
+the storekeeper, the counter and the stocked tool wall.
+
+### What is left for the next session at the keyboard
+
+The rest of the leg — buy, three bearings, `analyze ground` and the card,
+descend, `drive`, `shore`, `hew`, `consign`, burn, smelt — is scripted in
+`e2e/tests/drive-metal-chain.spec.ts` and wants a browser and a
+compressed clock (`world_state` scale ~6000×; above ~10000× the
+schedulers starve the event loop — build-3's measured finding). The
+restart-persistence pass (the shored working survives with its contents,
+the unshored one is gone and left no record) rides the same spec.
+
+### Seams surfaced for the slates
+
+- ⚠ The installer's *"dead code in a pack is a review finding"* advisory
+  does not know about **brains**: `reads-air` IS named, by the canary's
+  `behaviors[].brain`. `trade-farming` gets the same false positive for
+  `farms`, and `residence` and `eternal-university` get it for their
+  abstract exit classes. Four packs, one gap in one check.
+- ⚠ A `Stock` with stock lines and no `prices` is silently a shop that
+  sells nothing. Worth a gate; not this build's.

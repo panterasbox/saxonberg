@@ -5,11 +5,12 @@
 # ship, so the vertical needed no new locomotion — only an edge that
 # declares what it is. Going down is deeper ore, worse air, and further
 # from the adit; the room says all three without saying any of them.
-class: /platform/location/SingletonCartesianLocation
+class: /trade/mining/location/AuthoredWorking
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: the winze head
   primaryKeyword: winze
+  oreRow: /world/rejection/thing/copper-ore
   keywords: [winze, head, "winze head", ladder]
   longDescription: |
     The drift ends, and the floor does. A square hole goes down out of the lamplight with a ladder in it, spiked to the timber at the top and disappearing at about the fourth rung. There is a windlass over it that nobody has used in years and a coil of rope that would not take anybody's weight.

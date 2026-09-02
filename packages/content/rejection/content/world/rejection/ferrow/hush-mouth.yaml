@@ -6,11 +6,12 @@
 # stable path to name. The deposit's `features.pins` entry at
 # `-30,20,-30` is what makes the ground here say *hush-mouth*; this room
 # is what a player finds when they break into it.
-class: /platform/location/SingletonCartesianLocation
+class: /trade/mining/location/AuthoredWorking
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a break in the rock
   primaryKeyword: break
+  oreRow: /world/rejection/thing/copper-ore
   keywords: [break, hole, mouth]
   longDescription: |
     A heading that stops because the rock did. The face has gone through into a void — a ragged hole a person could get through, with a draught coming out of it that is colder than the drift and smells of nothing whatsoever.

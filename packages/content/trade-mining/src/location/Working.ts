@@ -229,6 +229,44 @@ export function WorkingMixin<TBase extends MixinConstructor<Stuff & Container>>(
   return class WorkingMixin extends Base {
     static _mixinName = WORKING_MIXIN;
 
+    /**
+     * ⭐⭐ **The acts are afforded by the PLACE, and this is the only
+     * thing that makes them exist.**
+     *
+     * ⚠ A row's `commandContributions:` is dead silently — the affordance
+     * is a STATIC ON A CLASS. Without this block `hew`, `drive`, `sink`,
+     * `raise` and `shore` parse as nothing at all: *"I don't understand
+     * 'hew'."* Found by driving, in the tutorial drift, where every one
+     * of them was supposed to be taught.
+     *
+     * `self` and `environment` rather than `peers`: the acts belong to
+     * the working you are STANDING IN. A room affords them outward to its
+     * contents (`environment` walks a thing's container chain), so
+     * walking into a face lights up the verbs and walking out puts them
+     * away — which is also the honest answer to *"why can't I hew in the
+     * street"*.
+     *
+     * ⭐ Content affords the verbs; no core mixin does. That is the rule,
+     * and it is what lets a second mine ship the same acts by naming this
+     * class and nothing else.
+     */
+    static commandContributions = {
+      self: [
+        'trade/mining/cmd/mining/hew.yaml',
+        'trade/mining/cmd/mining/drive.yaml',
+        'trade/mining/cmd/mining/sink.yaml',
+        'trade/mining/cmd/mining/raise.yaml',
+        'trade/mining/cmd/mining/shore.yaml',
+      ],
+      inventory: [
+        'trade/mining/cmd/mining/hew.yaml',
+        'trade/mining/cmd/mining/drive.yaml',
+        'trade/mining/cmd/mining/sink.yaml',
+        'trade/mining/cmd/mining/raise.yaml',
+        'trade/mining/cmd/mining/shore.yaml',
+      ],
+    };
+
     static fieldMeta: FieldMeta = {
       // Locality prose, authored on the type row. Not spoilered: how a
       // back READS is the description itself, and withholding it would

@@ -168,7 +168,14 @@ async function mine(): Promise<{ warren: MineWarren; zone: CartesianZone; deposi
   return { warren, zone, deposit };
 }
 
-/** A hand-authored working — ⭐ NO warren, and every read still answers. */
+/**
+ * A hand-authored working — ⭐ NO warren, and every read still answers.
+ *
+ * ⚠ The world's authored galleries take {@link AuthoredWorking} (the
+ * SINGLETON face: one row IS one place); the fixture uses the minted one
+ * because it stands up a dozen of them. Both compose `WorkingMixin`, and
+ * that is the point — nothing in the reads knows which.
+ */
 function staticWorking(zone: CartesianZone, cell: Cell): MineRoom {
   const room = makeStuff(() => new MineRoom());
   zone.addLocation(room as unknown as never, cell[0], cell[1], cell[2]);
