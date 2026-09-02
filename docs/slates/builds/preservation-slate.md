@@ -192,6 +192,61 @@ available: `outputApplication: 'tangible'` **flows the input's Material and mass
 onto the cloned output**, which is exactly the *fresh → cured* material swap a
 curing recipe wants.
 
+### ⭐ Terms, not methods — the completeness doctrine
+
+*(Captured 2026-09-02 from the [cooking-slate](./cooking-slate.md)
+conversation, where the same move settled the cooking-method vocabulary:
+derive, don't declare.)*
+
+The table above stops one rung short of its own conclusion. "Every real
+preservation method is a rate reducer" means **nobody designs the set of
+methods — you design the set of TERMS in the growth law, and methods
+derive.** The law is `μ = μ_max · f_T(T) · f_aw(a_w)` plus the load `N`
+a kill step resets, and the whole zoo of real-world methods collapses
+onto about four levers:
+
+| lever | real methods that are "just" this lever | ships in |
+|---|---|---|
+| **temperature** (`f_T`) | cold storage, cellaring, freezing (the floor) | the spoilage core (cooking build W0) |
+| **water activity** (`f_aw`) | salting, curing, drying, jerky, **sugar preserves/jam, honey** | the spoilage core — one term carries all of these |
+| **load reset** (kill `N`) | cooking's kill step; sterilization | the cooking build |
+| **acidity** (`f_pH`) | pickling, vinegar, lacto-fermented anything | ⭐ the one genuinely missing term — **this build's** |
+
+The composites need **no new term**: **smoking** = drying + a surface
+antimicrobial hurdle (the shipped `smoke` atmosphere tag); **canning** =
+kill step + sealed vessel — a *combination* of levers that both already
+exist; **confit** = kill step + fat as an air seal; **alcohol** lumps
+with acidity as chemistry the microbes hate.
+
+Two consequences:
+
+1. **Acidity's carrier already ships.** Pickling and lacto-fermentation
+   are durative transforms in a vessel — literally `FermentingMixin`
+   ([fermentation.md](../../subsystems/fermentation.md)): profiles,
+   cultures, strains, the cellar. The pickling branch is a
+   `FermentProfile` row plus an acidity read feeding `f_pH`, not a new
+   subsystem.
+2. **Sealing stays binary on purpose.** Honest oxygen means splitting
+   the flora into aerobes and anaerobes, and anaerobic sealed-jar
+   failure is *botulism* — a second toxicity model. When a consumer
+   demands sealing physics it lands as a hurdle multiplier, never a
+   flora model.
+
+**Completeness, concretely: the term set is small and finishes in two
+builds** — `f_T` + `f_aw` in the spoilage core, the kill step with
+cooking, `f_pH` here. After that any method anyone names — authored or
+player-invented — is *checkable against the equation* rather than
+needing design work; when free-form play arrives, "I smoke the fish
+over the campfire" has an honest answer because the levers compose, not
+because somebody enumerated smoking.
+
+And the term framing sharpens the trade identity rather than
+threatening it: cooking owns the kill step, fermentation owns the
+vessel, but the victualler's craft is **hurdle stacking** — salt cod is
+drying + salting; a proper cure is salt + smoke + time. Stacking is
+what a trade practices; a term is what an engine models. The
+trade=mechanism / locality=expression split, one level down.
+
 ---
 
 ## The agricultural year falls out **[the best consequence]**

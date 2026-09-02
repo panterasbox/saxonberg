@@ -9,7 +9,9 @@
 See also: [spoilage-design-pack](./spoilage-design-pack.md) (⭐ **wave 0 of
 this build** — the mixin, the honest microbiology, the interop, all settled
 there) · [preservation-slate](./preservation-slate.md) (⚠ **the victualler's
-territory — this build does not annex it**; § boundaries) ·
+territory — this build does not annex it**; its § *terms, not methods*
+is the completeness doctrine for the whole family: preservation methods
+DERIVE from the growth law's terms, the same move as Part 2 here) ·
 [hearth-and-larder-design-pack](./hearth-and-larder-design-pack.md) (the
 domestic room; the "one build, not three" principle this slate reuses) ·
 [fridge-design-pack](./fridge-design-pack.md) (the cold-storage follow-on;
