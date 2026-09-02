@@ -1,0 +1,19 @@
+# Distil — the wash through the still (W6). 351 K is ethanol's boiling
+# point: the number IS the lesson (P4). One honest separation — the
+# cut (heads/hearts/tails) is a later refinement rung.
+recipeId: distil
+name: Distil
+keywords: [distil, run]
+discipline: distilling
+difficulty: moderate
+inputSlots:
+- slot: wash
+  category: wash
+  minGrade: poor
+  measureL: 6
+toolCapabilities: [still]
+requiresHeatK: 351
+outputApplication: bulk
+outputTemplate: /trade/distilling/thing/spirit-bottle
+outputMaterial: /trade/distilling/idea/material/neutral-spirit
+outputAppearance: a run of water-clear spirit

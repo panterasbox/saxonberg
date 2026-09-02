@@ -17,3 +17,7 @@ data:
   tags: [liquid, beverage, drinkable, alcoholic, spirit, gin]
   composition: []
   biologicalSource: null
+  # Flammable (P10): the combustion substrate reads these off the
+  # material — a spilled, ignited spirit burns.
+  autoignitionTemperature: 638
+  heatOfCombustion: 22

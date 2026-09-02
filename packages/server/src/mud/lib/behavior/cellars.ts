@@ -30,9 +30,12 @@
  * config: `{ home: string, counterRoom: string, asks: Record<string,
  * number>, defaultAsk?: number, batch?: number, buyEvery?: number
  * (0 = never buy), buyCount?: number, buyKeyword?: string,
- * inputKeyword?: string, inputMin?: number, crushes?: string[],
+ * buys?: { keyword: string, count?: number }[], inputKeyword?: string,
+ * inputMin?: number, crushes?: string[], compounds?: string[],
  * vesselCategory?: string, vesselKeyword?: string, pitchJar?: boolean,
- * lagerLeg?: { recipe: string, room: string } }`
+ * lagerLeg?: { recipe: string, room: string },
+ * distills?: { recipe: string, runs?: number, igniteKeyword?: string,
+ * compounds?: string[] } }`
  */
 
 import type { BrainContext, BrainStatics } from './brain';
@@ -149,7 +152,14 @@ export const brain = class {
       return bulk.getBulkAvailable('interior') > 0.7;
     });
     if (ready) {
-      await this.bottleAndConsign(ctx, hand, home, counterRoomPath);
+      const distills = ctx.config.distills as
+        | { recipe?: string; runs?: number; igniteKeyword?: string; compounds?: string[] }
+        | undefined;
+      if (distills?.recipe) {
+        await this.distilAndConsign(ctx, hand, home, counterRoomPath, distills as { recipe: string; runs?: number; igniteKeyword?: string; compounds?: string[] });
+      } else {
+        await this.bottleAndConsign(ctx, hand, home, counterRoomPath);
+      }
       return;
     }
 
@@ -184,6 +194,15 @@ export const brain = class {
         }
       }
       return;
+    }
+
+    // ── the compounding leg: board work over bought inputs ──
+    const compounds = Array.isArray(ctx.config.compounds)
+      ? (ctx.config.compounds as string[])
+      : [];
+    if (compounds.length > 0) {
+      const did = await this.compoundAndConsign(ctx, hand, home, counterRoomPath, compounds);
+      if (did) return;
     }
 
     // ── the buying leg: inputs from the distributor, on the house ──
@@ -261,6 +280,75 @@ export const brain = class {
     }
   }
 
+  /**
+   * The still leg (W6): light the still (its own furnace — 351 K is
+   * the recipe's lesson), run the finished wash through it, compound
+   * off the board, and consign the take — spirit included, the
+   * intermediate good the vintner's fortification buys (the B2B leg).
+   */
+  private static async distilAndConsign(
+    ctx: BrainContext,
+    hand: Hand,
+    home: Stuff & Container,
+    counterRoomPath: string,
+    distills: { recipe: string; runs?: number; igniteKeyword?: string; compounds?: string[] },
+  ): Promise<void> {
+    if (distills.igniteKeyword) {
+      await CommandApi.forceCommand(hand, `ignite ${distills.igniteKeyword}`);
+    }
+    const runs = positiveInt(distills.runs, 2);
+    for (let i = 0; i < runs; i++) {
+      await CommandApi.forceCommand(hand, `order ${distills.recipe}`);
+    }
+    for (const c of distills.compounds ?? []) {
+      await CommandApi.forceCommand(hand, `order ${c}`);
+    }
+    await this.consignHeld(ctx, hand, home, counterRoomPath);
+  }
+
+  /** The compounding leg: order each board line once, consign the take. */
+  private static async compoundAndConsign(
+    ctx: BrainContext,
+    hand: Hand,
+    home: Stuff & Container,
+    counterRoomPath: string,
+    compounds: string[],
+  ): Promise<boolean> {
+    for (const c of compounds) {
+      await CommandApi.forceCommand(hand, `order ${c}`);
+    }
+    return this.consignHeld(ctx, hand, home, counterRoomPath);
+  }
+
+  /** Consign every filled vessel in hand at the counter; true if any. */
+  private static async consignHeld(
+    ctx: BrainContext,
+    hand: Hand,
+    home: Stuff & Container,
+    counterRoomPath: string,
+  ): Promise<boolean> {
+    const vk = str(ctx.config.vesselKeyword, 'bottle');
+    const batch = positiveInt(ctx.config.batch, DEFAULT_BATCH);
+    const filled = hand
+      .getContents()
+      .filter((c) => MixinApi.isBulkable(c) && !c.isBulkEmpty('interior'))
+      .slice(0, batch);
+    if (filled.length === 0) return false;
+    const counterRoom = StuffApi.findByTemplatePath(counterRoomPath);
+    if (!counterRoom || !MixinApi.isContainer(counterRoom)) return false;
+    hand.teleport(counterRoom as Stuff & Container);
+    try {
+      await CommandApi.forceCommand(hand, 'wallet use house');
+      for (const vessel of filled) {
+        const ask = askFor(ctx.config, vessel);
+        await CommandApi.forceCommand(hand, `consign ${vk} --ask ${ask}`);
+      }
+    } finally {
+      hand.teleport(home);
+    }
+    return true;
+  }
+
   /** Buy inputs at the distributor and carry them home. */
   private static async buyInputs(
     ctx: BrainContext,
@@ -270,21 +358,36 @@ export const brain = class {
   ): Promise<void> {
     const counterRoom = StuffApi.findByTemplatePath(counterRoomPath);
     if (!counterRoom || !MixinApi.isContainer(counterRoom)) return;
-    const buyCount = positiveInt(ctx.config.buyCount, DEFAULT_BUY_COUNT);
-    const buyKeyword = str(ctx.config.buyKeyword, 'grapes');
+    const buys = Array.isArray(ctx.config.buys)
+      ? (ctx.config.buys as { keyword?: string; count?: number }[])
+      : [
+          {
+            keyword: str(ctx.config.buyKeyword, 'grapes'),
+            count: positiveInt(ctx.config.buyCount, DEFAULT_BUY_COUNT),
+          },
+        ];
+    const keywords = buys
+      .map((b) => str(b.keyword))
+      .filter((k) => k.length > 0);
     hand.teleport(counterRoom as Stuff & Container);
     try {
       await CommandApi.forceCommand(hand, 'wallet use house');
-      for (let i = 0; i < buyCount; i++) {
-        await CommandApi.forceCommand(hand, `buy ${buyKeyword}`);
-        await CommandApi.forceCommand(hand, `get ${buyKeyword}`);
+      for (const b of buys) {
+        const kw = str(b.keyword);
+        if (!kw) continue;
+        const count = positiveInt(b.count, DEFAULT_BUY_COUNT);
+        for (let i = 0; i < count; i++) {
+          await CommandApi.forceCommand(hand, `buy ${kw}`);
+          await CommandApi.forceCommand(hand, `get ${kw}`);
+        }
       }
     } finally {
       hand.teleport(home);
       // Set the goods down where the work can reach them.
       for (const c of [...hand.getContents()]) {
-        if (keywordOf(c) === buyKeyword) {
-          await CommandApi.forceCommand(hand, `drop ${buyKeyword}`);
+        const kw = keywordOf(c);
+        if (kw !== null && keywords.includes(kw)) {
+          await CommandApi.forceCommand(hand, `drop ${kw}`);
         }
       }
     }

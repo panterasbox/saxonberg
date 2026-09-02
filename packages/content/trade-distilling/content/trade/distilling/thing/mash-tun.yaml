@@ -1,0 +1,12 @@
+# The still-house mash tun — the wash's capital (content is copied;
+# the brewer's row, the distiller's copy).
+class: /platform/thing/ToolItem
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a scarred mash tun
+  primaryKeyword: tun
+  keywords: [tun, "mash tun"]
+  longDescription: A scarred wooden tun with an iron paddle chained to its rim.
+  capabilities:
+    - { kind: mash-tun }
+  mass: 50

@@ -28,7 +28,13 @@ data:
         home: /trade/winemaking/location/vintner-floor
         counterRoom: /trade/distribution/location/cash-and-carry
         crushes: [crush, white-crush]
-        buyKeyword: grapes
+        compounds: [dry-vermouth, sweet-vermouth]
+        buys:
+          - { keyword: grapes, count: 2 }
+          - { keyword: spirit, count: 1 }
+          - { keyword: juniper, count: 1 }
+          - { keyword: sugar, count: 1 }
+        inputKeyword: grapes
         inputMin: 6
         batch: 4
         buyEvery: 6
@@ -37,6 +43,8 @@ data:
           white: 10
           sparkling: 16
           vinegar: 4
+          dry-vermouth: 12
+          sweet-vermouth: 12
     - brain: /lib/behavior/consigns
       trigger: cadence:90s
       config:

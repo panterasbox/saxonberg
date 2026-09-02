@@ -25,7 +25,9 @@ describe('the cellars brain — bounded, literal, home in finally', () => {
       '`order ${which}`',
       '`pour bucket into vat`',
       '`pour jar into vat`',
-      '`buy ${buyKeyword}`',
+      '`buy ${kw}`',
+      '`ignite ${distills.igniteKeyword}`',
+      '`order ${distills.recipe}`',
     ]) {
       expect(SRC).toContain(verb);
     }
@@ -37,14 +39,14 @@ describe('the cellars brain — bounded, literal, home in finally', () => {
   it('every leg is bounded', () => {
     expect(SRC).toContain('.slice(0, batch)');
     expect(SRC).toContain('i < CRUSHES_PER_BEAT');
-    expect(SRC).toContain('i < buyCount');
+    expect(SRC).toContain('i < count');
     expect(SRC).toContain('if (!held) break;');
     expect(SRC).toContain('if (inputsInReach(home, inputKeyword) < inputMin) break;');
   });
 
   it('the hand comes home in finally, from both away legs', () => {
     const matches = SRC.match(/finally \{\s*\n\s*hand\.teleport\(home/g);
-    expect(matches?.length).toBe(3); // consign, cold-store, buy
+    expect(matches?.length).toBe(4); // bottle, cold-store, consignHeld, buy
   });
 
   it('home is the authored floor, never wherever the hand is', () => {

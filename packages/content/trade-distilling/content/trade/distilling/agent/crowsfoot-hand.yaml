@@ -20,6 +20,39 @@ data:
     - { disposition: diligence, valence: 70 }
     - { disposition: sociability, valence: -40 }
   behaviors:
+    # The producing beat (fermentation W6): mash bought malt off the
+    # still book, ferment the wash, RUN THE STILL when a back finishes
+    # (351 K — the still is its own furnace), compound the gin, and
+    # consign spirit AND gin — the neutral spirit is the intermediate
+    # good the vintner's fortification buys (the B2B leg). The consigns
+    # beat below keeps carrying the FAUCET's cases until the W8
+    # switchover.
+    - brain: /lib/behavior/cellars
+      trigger: cadence:120s
+      config:
+        home: /trade/distilling/location/crowsfoot-floor
+        counterRoom: /trade/distribution/location/cash-and-carry
+        crushes: [wash-mash]
+        buys:
+          - { keyword: malt, count: 2 }
+          - { keyword: juniper, count: 1 }
+        inputKeyword: malt
+        inputMin: 1
+        vesselCategory: spirit-bottle
+        vesselKeyword: bottle
+        batch: 3
+        buyEvery: 5
+        distills:
+          recipe: distil
+          runs: 3
+          igniteKeyword: still
+          compounds: [compound-gin, grappa]
+        asks:
+          spirit: 9
+          "house gin": 12
+          gin: 12
+          grappa: 11
+          brandy: 14
     - brain: /lib/behavior/consigns
       trigger: cadence:90s
       config:

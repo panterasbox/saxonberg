@@ -34,6 +34,7 @@ data:
           produce:olive: 5
           produce:cranberry: 5
           produce:grape: 5
+          produce:juniper: 5
     - brain: /lib/behavior/idles
       trigger: cadence:41s
       config:

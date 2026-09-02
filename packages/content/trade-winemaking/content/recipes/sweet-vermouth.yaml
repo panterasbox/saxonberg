@@ -1,0 +1,29 @@
+# Sweet vermouth — the red-leaning, sugared fortification (W6).
+recipeId: sweet-vermouth
+name: Sweet vermouth
+keywords: [sweet-vermouth, vermouth]
+discipline: fermenting
+difficulty: moderate
+inputSlots:
+- slot: wine
+  category: red
+  minGrade: fair
+  measureL: 0.55
+- slot: spirit
+  category: neutral-spirit
+  minGrade: fair
+  measureL: 0.12
+- slot: botanical
+  kind: item
+  category: juniper
+  minGrade: poor
+  count: 1
+- slot: sugar
+  category: sugar
+  minGrade: poor
+  measureL: 0.1
+toolCapabilities: []
+outputApplication: bulk
+outputTemplate: /trade/winemaking/thing/wine-bottle
+outputMaterial: /trade/winemaking/idea/material/sweet-vermouth
+outputAppearance: a dark, bittersweet vermouth

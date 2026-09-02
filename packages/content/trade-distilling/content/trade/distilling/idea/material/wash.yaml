@@ -1,0 +1,20 @@
+# The wash — fermented distiller's wort, the still's charge (~8% and
+# rough). Flammable only once distilled; the still concentrates the
+# fire along with the spirit (P10).
+class: /platform/idea/material/ConsumableMaterial
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: wash
+  primaryKeyword: wash
+  appearance: "a turbid, sour-sweet wash"
+  keywords: ["wash"]
+  density: 1010
+  thermalConductivity: 0.5
+  specificHeat: 3900
+  edibility: true
+  toxicity:
+    - { type: alcohol, amount: 8 }
+  nutrients: ["water"]
+  tags: ["liquid", "wash"]
+  composition: []
+  biologicalSource: null

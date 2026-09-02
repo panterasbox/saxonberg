@@ -11,4 +11,4 @@ data:
   keywords: [book, "cellar book", board, ledger]
   longDescription: |
     A fat ledger chained to the press rail, the day's crush chalked across the open page.
-  offeredRecipes: [crush, white-crush]
+  offeredRecipes: [crush, white-crush, dry-vermouth, sweet-vermouth]
