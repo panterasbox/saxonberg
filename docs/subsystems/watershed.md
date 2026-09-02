@@ -840,6 +840,131 @@ kernel mixin here to name.
 - Contamination and the counterplay ladder
 - The three basins
 
+## The realm on the water (W9)
+
+### Three basins, and the third one is the decision
+
+| watercourse | basin | what it is |
+|---|---|---|
+| **the Kestrel** | `kestrel` | the home trunk: headwaters 1400 m → falls 500 → **confluence 30** → estuary 0 |
+| **the Delight** | `kestrel` | the farming valley, joining at the confluence |
+| **the Holloway** | `holloway` | the neighbouring drainage; the moor sits on it |
+| **Cold Fell** | `cold-fell` | high, clean and **empty** — the aqueduct's source |
+
+Read the Kestrel downwards and it is the realm's political economy in
+five nodes. The ore and the snowpack are **both** at the headwaters,
+which is why the mining town sits there and why what it puts in the
+water is upstream of everybody. The farming valley joins at the
+confluence and argues about volume. **Terminus is the confluence**, and
+drinks last.
+
+⭐⭐ **Cold Fell is over the ridge from Rejection, and that is the whole
+decision.** A neutral third basin would let money simply exit the
+politics. Routing the aqueduct past the town the city already fouled
+means its attempt to escape **re-entangles it with the same neighbours
+on worse terms** — the Owens Valley story. Capital becomes a move in the
+game rather than an exit from it, and Rejection, Heart's Delight and
+Hinkley are all still drinking the Kestrel.
+
+⚠ **This wave authors no towns.** Rejection and Heart's Delight do not
+exist as content and belong to their own locality builds; what lands
+here is the water they will sit on, and the model asks them for one
+declared field.
+
+### Wild catchment, and why a node declares one
+
+`WatercourseNode.catchmentKm2` is the **unclaimed** ground draining to a
+reach — the fell nobody's locality covers. A locality declares the
+ground it sits on (D21) and the two add. Without it, a realm with three
+villages would have a river the size of a gutter and the seasonal
+hydrograph the entire rights layer depends on would be unobservable. It
+is a *declaration* for the same reason a locality's is: integrating an
+area over a world made of rooms, most of them indoors, cannot be done
+honestly.
+
+### The numbers that are load-bearing
+
+| | |
+|---|---|
+| `/world/terminus` zone | **35 m** — the city is FLAT by construction |
+| `kestrel:confluence` | **30 m** — five below the bank, which is what makes a bank a bank |
+| `/world/terminus/hinkley-hills` | **130 m** — a hundred above its own river |
+| `cold-fell:cascade` | **1150 m** — 1115 m of head over the city |
+
+`/world/terminus` is a new `FolderZone` carrying nothing but the city's
+elevation: say it once, and Hinkley overrides it where it is false. That
+is the inheritance walk doing its job.
+
+### Wharfside — the city finally meets its river
+
+The build authors **the water's edge**, not the district: the bank at
+the confluence, the **intake** and the **outfall**. The dockers' hall,
+the chophouse and the west bank belong to the city track, zoning and
+freight.
+
+⭐ Both works sit on the same reach a hundred paces apart, and the
+intake is above the outfall — so the water the city draws is clean and
+the water below the arch is not, **derived from terrain and authored by
+nobody**. Standing at Wharfside and seeing both without turning your
+head is what makes *the map is the argument* something a player can look
+at rather than infer.
+
+⚠ The city's intake **needs a pump, forever**: the river is at 30 m and
+the city at 35, five metres the wrong way. That is not a flaw in the
+content — it is the reason a tower and an aqueduct are both worth
+building, and `analyze water the intake` says how many kilowatts.
+
+### The Cold Fell aqueduct
+
+1115 metres of head, **gravity-fed end to end**, costing nothing to run,
+with a **weir and a turbine** on the last drop taking the energy out of
+water that was going past anyway (`ρ·g·Δh·Q·η` — the third appearance of
+one equation, in the direction that pays). It is **treated**, unlike the
+Wharfside intake: capital once, then nothing.
+
+⭐ It is the distinction the build turns on: **the body you form around
+is not the source you drink from.** Your reach is geography you did not
+choose; your conduit's intake is capital you did. It is also the first
+thing in the game a single player almost certainly cannot build alone —
+a cooperation gate that emerges from physics rather than from a lock.
+
+### Hinkley's is a head problem, and the District's first real job
+
+The suburb is a hundred metres above its own river, so a main would be
+pumped forever. It stores instead: the **District tank** at 145 m, giving
+the standpipe fifteen metres of head and no pump at all.
+
+⭐⭐ **The works are the Hinkley Hills Improvement District's** (D27),
+and the reason is a story the content already set up: the District ships
+as a shell — charter `""`, treasury `""`, no departments, no seats,
+described as having *"never once been asked to do anything else."*
+**Water scarcity giving a paper institution its first real job** is a
+better story than chartering a new authority. It also keeps the
+aqueduct out of reach: a district of smallholders cannot fund one, so
+the aqueduct stays the city's move and the District stays the
+counterparty that cannot follow.
+
+### ⚠ The valley road exists because of a live gap
+
+Nothing in shipped content had an exit **into** Hinkley Hills except the
+Teleport Authority route; the arrival room's only exit ran further in;
+and nothing granted Hinkley's travel node. Fast travel is
+**reach-before-travel** and Hinkley is not among the three a character is
+born with — so a player had to walk there, and there was nowhere to walk
+from. The e2e reached it with `wizard: true`, **which is the tell: a
+wizard stand-in is a missing player path.**
+
+    market square → the bank → the towpath → the narrows
+                  → the shoulder → the Hinkley Hills stop
+
+Five ordinary rooms, walkable both ways, no gate and no wizard check
+anywhere on it. ⭐ It is also the working demonstration of D21: roads
+follow rivers because rivers cut the only gradeable path, so the land
+route between two places in one basin **is** the water route. Corridors
+get a reason instead of being arbitrary, and the walk up the valley —
+35 m at the towpath, 130 m at the stop — is how a player learns the
+watershed.
+
 ## Where the code lives
 
 | | |

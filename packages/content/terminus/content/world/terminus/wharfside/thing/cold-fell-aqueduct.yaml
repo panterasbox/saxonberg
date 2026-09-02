@@ -1,0 +1,47 @@
+# The Cold Fell aqueduct — the build's most ambitious piece of
+# infrastructure, and the city's attempt to buy its way out of its own
+# river.
+#
+# ⭐⭐ **Not a municipal main. A long conduit reaching PAST its own
+# watershed into a higher, cleaner one** — gravity-fed the whole way,
+# because that is why such a route is chosen at all, and generating on
+# the descent out of the surplus head.
+#
+# The distinction this build turns on is right here: **the body you form
+# around is not the source you drink from.** A settlement rings a water
+# body for transport and flat land while drinking from somewhere else
+# entirely. In this model that is exactly *your reach* — geography you
+# did not choose — versus *your conduit's intake* — capital you did.
+#
+# 1150 m at the cascade, 35 m at the city: 1115 metres of head in its
+# favour, so it costs nothing at all to run. Compare the intake at
+# Wharfside, five metres the wrong way, whose pump never stops.
+#
+# ⚠ And it runs **over the ridge from Rejection**, which is the whole
+# decision. A neutral third basin would let money simply exit the
+# politics; this route re-entangles the city with the same neighbours on
+# worse terms. Rejection, Heart's Delight and Hinkley are still drinking
+# the Kestrel.
+#
+# It is also the first thing in the game a single player almost
+# certainly cannot build alone — a cooperation gate that emerges from
+# physics rather than from a lock.
+class: /water/thing/Conduit
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the Cold Fell aqueduct
+  primaryKeyword: aqueduct
+  keywords: [aqueduct, conduit, channel, coldfell, cold-fell]
+  longDescription: |
+    A stone channel on piers, running out of the north-west in a line so nearly level that the water in it looks still. It comes off the fell above Rejection, crosses two valleys on arches, and enters the city here without a pump anywhere on it. At the last drop before the reservoir there is a house with a wheel in it.
+  conduitKey: cold-fell-aqueduct
+  direction: supply
+  reachRef: cold-fell:cascade
+  extent: /world/terminus
+  capacityM3S: 0.8
+  # ⭐ TREATED, unlike the Wharfside intake. That is the point of it:
+  # the water is cleaner because of where it comes from AND because the
+  # city paid once for the works. Capital, systemic, permanent.
+  treatmentFactor: 0.9
+  ownerRef: "group:terminus"
+  fixedInPlace: true

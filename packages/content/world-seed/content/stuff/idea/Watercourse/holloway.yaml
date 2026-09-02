@@ -1,0 +1,18 @@
+# The Holloway — the SECOND basin, a neighbouring drainage over the
+# northern watershed.
+#
+# ⭐ Its whole job is to be UNRELATED. Two places on the Kestrel resolve
+# an upstream/downstream relation; a place here and a place there resolve
+# none at all, which is a different answer from "downstream" and the one
+# that stops a diversion in one valley curtailing a right in another.
+# The moor sits on it.
+class: /water/idea/Watercourse
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: holloway
+  name: the Holloway
+  basin: holloway
+  nodes:
+    - { name: head, elevation: 1100, catchmentKm2: 300 }
+    - { name: vale, elevation: 300, channelWidthM: 14, catchmentKm2: 180 }
+    - { name: mouth, elevation: 0, channelWidthM: 70 }

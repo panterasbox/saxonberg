@@ -33,6 +33,10 @@ data:
   exits:
     northeast:
       destination: /world/terminus/counting-houses/avenue-block
+    # ⭐ South to the water. Terminus is built on a confluence and until
+    # this build there was nowhere in it you could stand and see one.
+    south:
+      destination: /world/terminus/wharfside/bank
   props:
     - /world/terminus/market/stalls
   details:

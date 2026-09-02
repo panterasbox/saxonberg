@@ -1,0 +1,26 @@
+# The valley road — Terminus to Hinkley Hills, up the Kestrel.
+#
+# ⚠ **This exists because of a live gap, not because a road is nice to
+# have.** Nothing in shipped content had an exit INTO Hinkley Hills
+# except the Teleport Authority route; the arrival room's only exit ran
+# further in; and nothing granted Hinkley's travel node. Fast travel is
+# **reach-before-travel** — you walk somewhere once and `register` it —
+# and Hinkley is not among the three a character is born with. So a
+# player had to walk there, and there was nowhere to walk from. The e2e
+# reached it with `wizard: true`, which is the tell: **a wizard stand-in
+# is a missing player path.**
+#
+# ⭐ It is also the working demonstration of D21. Roads follow rivers
+# because rivers cut the only gradeable path, so the land route between
+# two places in one basin *is* the water route. Corridors get a reason
+# instead of being arbitrary, and the walk up the valley is how a player
+# learns the watershed — with an altimeter, if they have one.
+#
+# Three rooms, and the climb is the whole content: 35 m at the towpath,
+# 130 m at the stop. Everything the suburb's water problem consists of
+# is in that hundred metres.
+class: /platform/idea/location/CartesianZone
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: The Valley Road
+  cellSize: 6.0

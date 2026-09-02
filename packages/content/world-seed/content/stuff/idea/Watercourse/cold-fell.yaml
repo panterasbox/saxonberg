@@ -1,0 +1,36 @@
+# Cold Fell — the THIRD basin. High, clean, and empty.
+#
+# ⭐⭐ **And it is over the ridge from Rejection, which is the whole
+# decision.**
+#
+# A neutral third basin would let money simply exit the politics: the
+# city buys its way to clean water and the story ends. Routing the
+# aqueduct past the town it already fouled means the city's attempt to
+# escape **re-entangles it with the same neighbours on worse terms** —
+# the Owens Valley story, where the aqueduct was dynamited by the valley
+# it drained. Capital becomes a move in the game rather than an exit
+# from it.
+#
+# What this teaches that one basin cannot: the ladder is *live with it →
+# treat it → move your intake → reach another basin*, and the last rung
+# is affordable only to the city. Rejection, Heart's Delight and Hinkley
+# are still drinking the Kestrel.
+#
+# Nothing lives here. It ships as water and geography, with no
+# settlement, because the point of it is that it is empty.
+class: /water/idea/Watercourse
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: cold-fell
+  name: Cold Fell
+  basin: cold-fell
+  nodes:
+    # A tarn under the ridge — snowmelt and rain, and nobody upstream of
+    # it at all, which is exactly what makes it worth an aqueduct.
+    - { name: tarn, elevation: 1650, catchmentKm2: 60 }
+    # Where the city's intake sits. 1150 m of head over Terminus is why
+    # the whole run can be gravity-fed AND generate on the descent.
+    - { name: cascade, elevation: 1150, channelWidthM: 8, catchmentKm2: 55 }
+    # It sinks into the fell and goes wherever water goes; the build does
+    # not model an outlet it has no use for.
+    - { name: sink, elevation: 800 }

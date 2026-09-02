@@ -1,0 +1,34 @@
+# The narrows — the middle of the climb, where the road is the only
+# gradeable line and you can see why.
+class: /platform/location/SingletonCartesianLocation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the narrows
+  primaryKeyword: narrows
+  alternateNames: [road, valley]
+  _address: terminus/city/wharfside/narrows
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  ambientIntensity: 550
+  ambientColorTemperature: 5800
+  longDescription: |
+    The valley closes in and the road is pinned between the water and the rock, climbing steadily. There is exactly one line a cart can take through here, and it is the one the river cut before anybody thought about carts.
+
+    Below and behind, the city is already smaller than it was. Above and ahead, the ground opens out onto the shoulder of the hills.
+  coords:
+    x: -2
+    y: 0
+    z: 0
+  exits:
+    east:
+      destination: /world/terminus/valley-road/towpath
+    west:
+      destination: /world/terminus/valley-road/the-shoulder
+  details:
+    rock:
+      keywords: [rock, cut, cliff, wall]
+      description: |
+        Cut stone on one side, water on the other, and a road-width between them. Nobody chose this route. The river chose it and everybody since has agreed.
+    city:
+      keywords: [city, terminus, below]
+      description: |
+        Terminus on its flat, down there, with the two rivers coming together at the edge of it. From up here you can see that it drinks and discharges into the same water, a hundred paces apart.

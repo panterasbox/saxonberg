@@ -195,6 +195,15 @@ const IGNORED_PATH_FIELDS: readonly string[] = [
   '_address',
   // A behaviour names a brain MODULE, not a content row.
   'behaviors',
+  // A conduit's / a store's served EXTENT is a coverage prefix resolved
+  // longest-prefix, exactly like `_address` — not a citation of a row.
+  // A served extent very often names ground no single template backs
+  // (`/world/terminus` covers a city, not a thing), and an extent that
+  // resolves to nothing serves NOTHING rather than everything, so an
+  // unresolvable one fails closed and is not the silent hazard this
+  // clause exists to catch. See docs/subsystems/watershed.md.
+  'extent',
+  'servesExtent',
 ];
 
 /**

@@ -1,0 +1,25 @@
+# The Delight — the farming valley's water, joining the Kestrel at the
+# confluence.
+#
+# It branches from `kestrel:confluence` and NOTHING says which way. The
+# junction end is derived: its `mouth` sits at 35 m, five from the
+# confluence's 30, while its spring is seven hundred metres away — so
+# the mouth is the end that touches, and this is a tributary JOINING
+# rather than a distributary leaving. The same one-line structure would express a delta
+# arm if its source were the end at that height.
+#
+# Heart's Delight does not exist as content and is not authored here —
+# this wave lays the water its own build will sit on. What the model
+# asks of that build is a single declared field.
+class: /water/idea/Watercourse
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: delight
+  name: the Delight
+  basin: kestrel
+  branchesFrom: kestrel:confluence
+  nodes:
+    - { name: spring, elevation: 720, catchmentKm2: 190 }
+    # The alluvial flats — the diversion fight, when it comes, is here.
+    - { name: flats, elevation: 180, channelWidthM: 22, catchmentKm2: 240 }
+    - { name: mouth, elevation: 35, channelWidthM: 30 }

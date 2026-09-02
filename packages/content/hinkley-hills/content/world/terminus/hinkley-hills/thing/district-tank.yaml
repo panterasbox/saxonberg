@@ -1,0 +1,41 @@
+# The District tank — the Hinkley Hills Improvement District's first
+# real job.
+#
+# ⭐⭐ **The works are the District's** (D27), and the reason is a story
+# the content already set up: the District ships as a shell — charter
+# `""`, treasury `""`, no departments, no seats, described as having
+# *"never once been asked to do anything else."* An improvement district
+# is historically the vehicle for exactly this, and **water scarcity
+# giving a paper institution its first real job** is a better story than
+# chartering a new authority for it.
+#
+# It also keeps the Cold Fell aqueduct genuinely out of reach: a
+# district of smallholders cannot fund one. The aqueduct stays the
+# city's move, and the District stays the counterparty that cannot
+# follow.
+#
+# ## Why a tank and not a main
+#
+# Hinkley sits at 130 m and its river is at 30. A main from the Kestrel
+# would have to be pumped a hundred metres, forever. So the Hills store
+# instead: a tank on the highest ground, filled slowly, drawn on
+# quickly. **The buffer size is the outage tolerance** — 400 m³ against
+# a suburb's draw is days rather than hours, and that number is the
+# whole of what the District is actually deciding when it decides how
+# big to build.
+class: /water/thing/StorageNode
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the District tank
+  primaryKeyword: tank
+  alternateNames: [cistern, reservoir, standtank]
+  keywords: [tank, cistern, reservoir, district, water]
+  longDescription: |
+    A riveted iron tank on a timber frame at the top of the lane, painted a green that has mostly gone, with HINKLEY HILLS IMPROVEMENT DISTRICT on the side of it in letters that were expensive. A ladder up one leg. It fills at night and empties in the evening, and the standpipe below runs because it is up here.
+  storageKind: tower
+  capacityM3: 400
+  # 145 m: the tank stands fifteen metres above the ground it serves, and
+  # those fifteen metres ARE the pressure at the standpipe. No pump.
+  elevationM: 145
+  servesExtent: /world/terminus/hinkley-hills
+  fixedInPlace: true

@@ -683,7 +683,9 @@ async function loadIndex(): Promise<CompiledIndex> {
         elevation: node.elevation ?? 0,
         channelWidthM: node.channelWidthM ?? null,
         depthToSea: 0, // filled below
-        catchmentKm2: 0, // filled below
+        // The wild ground the author declared on the node itself;
+        // localities add theirs in `accumulateCatchments`.
+        catchmentKm2: node.catchmentKm2 ?? 0,
         climateLocalityPath: null, // filled below
       });
     });
@@ -691,6 +693,11 @@ async function loadIndex(): Promise<CompiledIndex> {
   }
 
   const successors = buildSuccessors(courses, byCourse, reaches, problems);
+
+  // The wild catchment declared on a node drains downstream exactly as a
+  // locality's does — the fell above the town is above the city too.
+  // Done here rather than in the node loop because it needs the
+  // downstream sets, which need the successors.
 
   if (problems.length > 0) {
     throw new Error(
@@ -701,6 +708,7 @@ async function loadIndex(): Promise<CompiledIndex> {
 
   const downstream = compileDownstream(reaches, successors);
   assignDepths(reaches, successors);
+  cascadeWildCatchments(reaches, downstream);
   await accumulateCatchments(reaches, downstream);
   return { reaches, downstream, successors, byCourse };
 }
@@ -876,6 +884,26 @@ function compileDownstream(
 
   for (const ref of reaches.keys()) resolve(ref);
   return out;
+}
+
+/**
+ * Push each reach's own declared wild catchment down onto everything
+ * below it. Read from a snapshot so a reach's own contribution is not
+ * counted again as it cascades past the next one.
+ */
+function cascadeWildCatchments(
+  reaches: Map<ReachRef, CompiledReach>,
+  downstream: Map<ReachRef, Set<ReachRef>>,
+): void {
+  const own = new Map<ReachRef, number>();
+  for (const [ref, reach] of reaches) own.set(ref, reach.catchmentKm2);
+  for (const [ref, km2] of own) {
+    if (km2 <= 0) continue;
+    for (const below of downstream.get(ref) ?? []) {
+      const r = reaches.get(below);
+      if (r !== undefined) r.catchmentKm2 += km2;
+    }
+  }
 }
 
 /**
@@ -1163,6 +1191,13 @@ function nodesOf(value: unknown): WatercourseNode[] {
       Number.isFinite(r.channelWidthM)
     ) {
       node.channelWidthM = r.channelWidthM;
+    }
+    // ⚠ Every authored key needs a line HERE. A field added to
+    // `WatercourseNode` and not copied through this parser is silently
+    // discarded — which is the orphaned-`data` failure the content
+    // lints exist to catch, wearing a different hat.
+    if (typeof r.catchmentKm2 === 'number' && Number.isFinite(r.catchmentKm2)) {
+      node.catchmentKm2 = r.catchmentKm2;
     }
     out.push(node);
   }

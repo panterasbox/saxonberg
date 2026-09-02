@@ -1,0 +1,17 @@
+# Wharfside — the city's water's edge, and the first place in Terminus
+# you can stand and see the river it is named for.
+#
+# ⚠ **The district is not this build's.** The dockers' hall, the
+# chophouse and the proto-industrial west bank are the city track's,
+# zoning's and freight's, and they belong to those builds. What lands
+# here is the WATER'S EDGE — the bank, the intake and the outfall —
+# because those are the objects the watershed needs made visible.
+#
+# ⭐ Standing here and seeing where the city drinks and where it
+# discharges is what makes *the map is the argument* something a player
+# can look at rather than infer.
+class: /platform/idea/location/CartesianZone
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: Wharfside
+  cellSize: 4.0

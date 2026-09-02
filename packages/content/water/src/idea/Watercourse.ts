@@ -83,6 +83,22 @@ export interface WatercourseNode {
    * is computed.
    */
   channelWidthM?: number;
+  /**
+   * Square kilometres of **unclaimed** ground draining to this reach —
+   * the mountainside nobody's locality covers.
+   *
+   * ⭐ Most of a catchment is not anybody's town. A locality declares
+   * the ground it sits on (D21); this declares the fell above it. They
+   * add, and without the second one a realm with three villages would
+   * have a river the size of a gutter — which would make the whole
+   * seasonal hydrograph, and therefore the whole rights layer,
+   * unobservable.
+   *
+   * It is a *declaration* for exactly the reason a locality's is:
+   * deriving an area over a world made of rooms, most of them indoors,
+   * is not a thing that can be done honestly.
+   */
+  catchmentKm2?: number;
 }
 
 /** The authored shape of a watercourse row's `data` block. */

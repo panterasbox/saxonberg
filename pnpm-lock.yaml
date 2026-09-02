@@ -413,6 +413,9 @@ importers:
       '@saxonberg/content-trade-farming':
         specifier: workspace:*
         version: link:../trade-farming
+      '@saxonberg/content-water':
+        specifier: workspace:*
+        version: link:../water
       '@saxonberg/server':
         specifier: workspace:*
         version: link:../../server
@@ -544,6 +547,9 @@ importers:
       '@saxonberg/content-trade-smithing':
         specifier: workspace:*
         version: link:../trade-smithing
+      '@saxonberg/content-water':
+        specifier: workspace:*
+        version: link:../water
       '@saxonberg/server':
         specifier: workspace:*
         version: link:../../server
@@ -818,6 +824,9 @@ importers:
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform
+      '@saxonberg/content-water':
+        specifier: workspace:*
+        version: link:../water
       '@saxonberg/server':
         specifier: workspace:*
         version: link:../../server

@@ -10,3 +10,8 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: University Avenue
   _address: terminus/city/university-avenue
+  # ── the watershed (D21) ───────────────────────────────────────────
+  # City ground: it drains to the confluence like the rest of Terminus.
+  _reach: kestrel:confluence
+  _catchmentKm2: 20
+

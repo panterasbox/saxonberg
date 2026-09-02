@@ -10,3 +10,12 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Hinkley Hills
   cellSize: 6.0
+  # ⭐ 130 m, and the whole of the suburb's water problem is in that
+  # number. It is a hundred metres above the city on the basin's edge,
+  # which means it is a HEAD problem rather than a rights problem: the
+  # river is below it, not above it, so a main from the Kestrel would
+  # have to be pumped up here forever. That is why it has a standpipe.
+  #
+  # It overrides the city's 35 m through the ordinary zone inheritance
+  # walk — say it once at `/world/terminus`, override where it is false.
+  elevation: 130

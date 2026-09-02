@@ -1,0 +1,30 @@
+# The city intake — where Terminus drinks.
+#
+# ⭐ It sits on `kestrel:confluence`, and so does the outfall a hundred
+# paces downstream. The whole counterplay ladder is visible from one
+# room: this intake could be moved upstream (free), the water it
+# delivers can be boiled (per use), or the conduit could be given a
+# treatment factor (capital). The build ships it UNTREATED on purpose —
+# treatment is what a town decides to buy, not what it wakes up with.
+#
+# Gravity-fed: the river at 30 m, the city at 35... which is FIVE METRES
+# THE WRONG WAY. Terminus is flat, its river is below it, and the pump
+# on this intake runs forever. That is not a flaw in the content; it is
+# the reason a water tower and an aqueduct are both worth building, and
+# `analyze water the intake` will tell you the kilowatts.
+class: /water/thing/Conduit
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the city intake
+  primaryKeyword: intake
+  keywords: [intake, mouth, screen, pillar, waterworks]
+  longDescription: |
+    A screened mouth of riveted iron on a stone pillar out in the current, with a plank walkway to it and a housing on the bank where the pump lives. The pump is running. The pump is always running.
+  conduitKey: terminus-intake
+  direction: supply
+  reachRef: kestrel:confluence
+  extent: /world/terminus
+  capacityM3S: 1.2
+  treatmentFactor: 0
+  ownerRef: "group:terminus"
+  fixedInPlace: true

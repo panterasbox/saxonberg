@@ -1,0 +1,28 @@
+# The aqueduct house — a turbine on the last drop, and the third
+# appearance of one equation.
+#
+# ⭐ `ρ·g·Δh·Q·η`. A pump reads it as a bill, a water tower reads it as a
+# deferred bill, and this reads it as income. **Water falling makes
+# power; water rising costs it** — and the surplus head of a gravity
+# aqueduct is free money the moment somebody puts a wheel in it.
+#
+# `passFraction: 1` — it is a WEIR, not a dam. It decides nothing about
+# who gets water; it only takes the energy out of water that was going
+# past anyway. A structure that held anything back would be a political
+# object, and this one deliberately is not.
+class: /water/thing/ControlStructure
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the aqueduct house
+  primaryKeyword: house
+  alternateNames: [wheelhouse, turbine]
+  keywords: [house, wheel, turbine, generator, aqueduct]
+  longDescription: |
+    A squat stone building where the channel makes its last drop into the reservoir, with a wheel inside it turning steadily and a hum you feel through the floor. The water goes on into the city afterwards, no less water for having done some work on the way.
+  controlKind: weir
+  reachRef: cold-fell:cascade
+  passFraction: 1
+  headM: 60
+  generates: true
+  ownerRef: "group:terminus"
+  fixedInPlace: true
