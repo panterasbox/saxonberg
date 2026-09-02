@@ -39,6 +39,7 @@ import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { BrainContext, BrainStatics } from '@saxonberg/server/mud/lib/behavior/brain';
 import type { Working, Face } from '../location/Working';
 import { WORKING_MIXIN } from '../location/Working';
+import type { Employed } from '@saxonberg/server/mud/lib/employment/Employed';
 
 /** Cuts per beat — a bound, like every loop here. */
 const DEFAULT_BATCH = 4;
@@ -130,7 +131,7 @@ export const brain = class {
     if (!shelf || !MixinApi.isConsignmentShelf(shelf) || !MixinApi.isContainable(shelf)) {
       return;
     }
-    const outfit = (await EmploymentApi.buysFor(hand))[0];
+    const outfit = (await (hand as unknown as Stuff & Employed).buysFor())[0];
     if (!outfit) return;
     // ⭐ The shelf's own authored cap when present — a per-shelf cap is
     // right for ore lots, and it is farming's answer to the same problem.

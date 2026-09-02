@@ -216,7 +216,7 @@ describe("BuyController — buy that stamps", () => {
     const cash = await asOwner(giver, () =>
       BankingApi.issueCash(giver as never, Money.of(300, Currency.compact())),
     );
-    await asOwner(giver, () => BankingApi.deposit(bank, cash as never));
+    await asOwner(giver, () => bank.deposit(cash as never));
     const storeAcct = await makeStoreBusiness();
 
     const { stock, torch } = makeStore({
@@ -289,7 +289,7 @@ describe("BuyController — buy that stamps", () => {
     const cash = await asOwner(giver, () =>
       BankingApi.issueCash(giver as never, Money.of(300, Currency.compact())),
     );
-    await asOwner(giver, () => BankingApi.deposit(bank, cash as never));
+    await asOwner(giver, () => bank.deposit(cash as never));
     const storeAcct = await makeStoreBusiness();
 
     // The shipped price of `/trade/farming/thing/pot/large` — a real but reachable purchase

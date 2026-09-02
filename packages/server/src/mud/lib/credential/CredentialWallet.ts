@@ -24,6 +24,7 @@
 
 import type { MixinConstructor, FieldMeta } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
+import { StuffApi } from '../../api/stuff';
 import {
   Credential,
   type CredentialKind,
@@ -42,6 +43,7 @@ export interface CredentialByKind {
 
 /** Public shape provided by {@link CredentialWalletMixin}. */
 export interface CredentialWallet {
+
   /** The held credential of `kind`, or undefined if the wallet has none. */
   getCredential<K extends CredentialKind>(
     kind: K,
@@ -128,3 +130,4 @@ export function CredentialWalletMixin<TBase extends MixinConstructor<Stuff>>(
     }
   };
 }
+

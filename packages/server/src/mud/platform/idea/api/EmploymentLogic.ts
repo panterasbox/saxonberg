@@ -40,6 +40,42 @@ const TERMINAL: readonly EmploymentStatus[] = ['quit', 'fired'];
 const EmploymentApiCallers = SecurityPolicies.FromModule(
   '/api/employment#EmploymentApi',
 );
+/** The F4 org face (Organization hosts) forwards here as the org. */
+const OrgCallers = SecurityPolicies.AnyOf(
+  EmploymentApiCallers,
+  SecurityPolicies.FromMixin('OrganizationMixin', {
+    // Compare by stuffId — the caller may surface as the raw target
+    // while the argument is the proxy (or vice versa).
+    where: (caller, _target, _method, args) =>
+      (caller as { stuffId?: string }).stuffId !== undefined &&
+      (caller as { stuffId?: string }).stuffId ===
+        (args[0] as { stuffId?: string } | undefined)?.stuffId,
+  }),
+);
+/** Org-face methods whose ORG is the second argument. */
+const OrgArg1Callers = SecurityPolicies.AnyOf(
+  EmploymentApiCallers,
+  SecurityPolicies.FromMixin('OrganizationMixin', {
+    // Compare by stuffId — the caller may surface as the raw target
+    // while the argument is the proxy (or vice versa).
+    where: (caller, _target, _method, args) =>
+      (caller as { stuffId?: string }).stuffId !== undefined &&
+      (caller as { stuffId?: string }).stuffId ===
+        (args[1] as { stuffId?: string } | undefined)?.stuffId,
+  }),
+);
+/** The F4 actor face (Employed hosts) forwards here as the actor. */
+const EmployedCallers = SecurityPolicies.AnyOf(
+  EmploymentApiCallers,
+  SecurityPolicies.FromMixin('EmployedMixin', {
+    // Compare by stuffId — the caller may surface as the raw target
+    // while the argument is the proxy (or vice versa).
+    where: (caller, _target, _method, args) =>
+      (caller as { stuffId?: string }).stuffId !== undefined &&
+      (caller as { stuffId?: string }).stuffId ===
+        (args[0] as { stuffId?: string } | undefined)?.stuffId,
+  }),
+);
 
 /**
  * The roster-schedule install is also callable by the self-warming
@@ -917,7 +953,7 @@ export class EmploymentLogic extends ApiLogic {
   }
 
   /** See {@link EmploymentApi.isProprietorOf}. */
-  @CallSecurity(EmploymentApiCallers)
+  @CallSecurity(OrgArg1Callers)
   public async isProprietorOf(
     subject: Stuff,
     organization: OrganizationStuff,
@@ -935,7 +971,7 @@ export class EmploymentLogic extends ApiLogic {
   }
 
   /** See {@link EmploymentApi.organizationChainOf}. */
-  @CallSecurity(EmploymentApiCallers)
+  @CallSecurity(OrgCallers)
   public organizationChainOf(
     organization: OrganizationStuff,
   ): OrganizationStuff[] {
@@ -943,7 +979,7 @@ export class EmploymentLogic extends ApiLogic {
   }
 
   /** See {@link EmploymentApi.mayPublishAs}. */
-  @CallSecurity(EmploymentApiCallers)
+  @CallSecurity(OrgArg1Callers)
   public mayPublishAs(
     principal: Stuff | null,
     publisher: OrganizationStuff,
@@ -952,7 +988,7 @@ export class EmploymentLogic extends ApiLogic {
   }
 
   /** See {@link EmploymentApi.holdsPosition}. */
-  @CallSecurity(EmploymentApiCallers)
+  @CallSecurity(OrgArg1Callers)
   public holdsPosition(
     principal: Stuff | null,
     organization: OrganizationStuff,
@@ -961,7 +997,7 @@ export class EmploymentLogic extends ApiLogic {
   }
 
   /** See {@link EmploymentApi.holdersOf}. */
-  @CallSecurity(EmploymentApiCallers)
+  @CallSecurity(OrgCallers)
   public holdersOf(
     organization: OrganizationStuff,
     positionKey: string,
@@ -970,7 +1006,7 @@ export class EmploymentLogic extends ApiLogic {
   }
 
   /** See {@link EmploymentApi.hire}. */
-  @CallSecurity(EmploymentApiCallers)
+  @CallSecurity(OrgCallers)
   public async hire(
     organization: OrganizationStuff,
     actor: Stuff,
@@ -980,7 +1016,7 @@ export class EmploymentLogic extends ApiLogic {
   }
 
   /** See {@link EmploymentApi.fire}. */
-  @CallSecurity(EmploymentApiCallers)
+  @CallSecurity(OrgCallers)
   public fire(organization: OrganizationStuff, actor: Stuff): Promise<void> {
     return endEmploymentImpl(
       actor,
@@ -990,19 +1026,19 @@ export class EmploymentLogic extends ApiLogic {
   }
 
   /** See {@link EmploymentApi.quit}. */
-  @CallSecurity(EmploymentApiCallers)
+  @CallSecurity(EmployedCallers)
   public quit(actor: Stuff, organizationPath: string): Promise<void> {
     return endEmploymentImpl(actor, organizationPath, 'quit');
   }
 
   /** See {@link EmploymentApi.buysFor}. */
-  @CallSecurity(EmploymentApiCallers)
+  @CallSecurity(EmployedCallers)
   public buysFor(actor: Stuff): Promise<BusinessStuff[]> {
     return buysForImpl(actor);
   }
 
   /** See {@link EmploymentApi.stockSheetFor}. */
-  @CallSecurity(EmploymentApiCallers)
+  @CallSecurity(OrgArg1Callers)
   public stockSheetFor(
     viewer: Stuff,
     business: BusinessStuff,
@@ -1017,7 +1053,7 @@ export class EmploymentLogic extends ApiLogic {
   }
 
   /** See {@link EmploymentApi.beginCover}. */
-  @CallSecurity(EmploymentApiCallers)
+  @CallSecurity(EmployedCallers)
   public beginCover(
     self: Stuff,
     business: OrganizationStuff,
@@ -1026,7 +1062,7 @@ export class EmploymentLogic extends ApiLogic {
   }
 
   /** See {@link EmploymentApi.endCover}. */
-  @CallSecurity(EmploymentApiCallers)
+  @CallSecurity(EmployedCallers)
   public endCover(self: Stuff, business: OrganizationStuff): void {
     endCoverImpl(self, business);
   }
@@ -1116,7 +1152,7 @@ export class EmploymentLogic extends ApiLogic {
   }
 
   /** See {@link EmploymentApi.shiftStateOf}. */
-  @CallSecurity(EmploymentApiCallers)
+  @CallSecurity(EmployedCallers)
   public shiftStateOf(actor: Stuff): 'on-shift' | 'off-shift' {
     return MixinApi.isEmployed(actor) &&
       (actor as EmployedActor).isOnShift()

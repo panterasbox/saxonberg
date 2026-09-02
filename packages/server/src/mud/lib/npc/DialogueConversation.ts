@@ -358,7 +358,7 @@ export class DialogueConversation implements SustainedEngagement {
       case "position": {
         const organization = StuffApi.findByTemplatePath(key);
         if (!organization || !MixinApi.isOrganization(organization)) return false;
-        return EmploymentApi.holdsPosition(this.player, organization);
+        return organization.employs(this.player);
       }
       default:
         return undefined;

@@ -122,7 +122,7 @@ export default class ConsignController extends CommandController<ConsignModel> {
     // held by /corpo/veshko; the yard's parentOrganization) is the
     // house's to put up.
     const chain = house
-      ? EmploymentApi.organizationChainOf(house as Stuff & Organization).map(
+      ? (house as Stuff & Organization).organizationChain().map(
           (o) => o.getTemplatePath(),
         )
       : [];
@@ -196,7 +196,7 @@ export default class ConsignController extends CommandController<ConsignModel> {
     if (!ownerKey || ownerKey === giver.getIdentityPath()) return null;
     const live = StuffApi.findByTemplatePath(ownerKey);
     if (!live || !MixinApi.isBusiness(live)) return null;
-    const mine = await EmploymentApi.buysFor(giver);
+    const mine = MixinApi.isEmployed(giver) ? await giver.buysFor() : [];
     return mine.includes(live) ? live : null;
   }
 

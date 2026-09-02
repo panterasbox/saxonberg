@@ -69,12 +69,12 @@ export abstract class BankingControllerBase<
     const here = herePath ? EmploymentApi.businessAt(herePath) : null;
     if (
       here &&
-      (EmploymentApi.holdsPosition(giver, here) ||
-        (await EmploymentApi.isProprietorOf(giver, here)))
+      (here.employs(giver) ||
+        (await here.hasProprietor(giver)))
     ) {
       return here;
     }
-    const mine = await EmploymentApi.buysFor(giver);
+    const mine = MixinApi.isEmployed(giver) ? await giver.buysFor() : [];
     return mine[0] ?? null;
   }
 

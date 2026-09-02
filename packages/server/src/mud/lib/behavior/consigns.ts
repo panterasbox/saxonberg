@@ -44,6 +44,7 @@ import type { Mobile } from '../spatial/Mobile';
 import type { Container } from '../spatial/Container';
 import type { Containable } from '../spatial/Containable';
 import type { BrainContext, BrainStatics } from './brain';
+import type { Employed } from '../employment/Employed';
 
 const DEFAULT_BATCH = 6;
 const DEFAULT_ASK = 10;
@@ -85,7 +86,7 @@ export const brain = class {
     // (`retail.consignment.listingCap`) is the outfit's headroom — an NPC
     // executes the rule, it never runs at a decline. Nothing is lifted
     // off the floor that could not go up this beat.
-    const outfits = await EmploymentApi.buysFor(hand);
+    const outfits = await (hand as unknown as Stuff & Employed).buysFor();
     const outfit = outfits[0];
     if (!outfit) return;
     const cap = listingCap();

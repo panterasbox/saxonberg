@@ -211,7 +211,7 @@ export default class HouseController extends BankingControllerBase<HouseModel> {
       signedIn && MixinApi.isBusiness(signedIn) ? signedIn : await this.house(context);
     if (!house) return;
     if (!screen) return void (await this.screen(context));
-    const sheet = EmploymentApi.stockSheetFor(giver, house);
+    const sheet = house.stockSheetFor(giver);
     const body = HouseController.renderSheet(house.getPresentation(), sheet);
     const prose = Mml.compose`${body}`;
     if (screen.mode === "mind") {

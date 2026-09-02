@@ -72,9 +72,9 @@ const LOGIC_CLASS_FILE = fileURLToPath(
 );
 
 /** A Business as a live Stuff. */
-type BusinessStuff = Stuff & Business;
+export type BusinessStuff = Stuff & Business;
 /** Any organization as a live Stuff — a Business, a ministry, a publisher. */
-type OrganizationStuff = Stuff & Organization;
+export type OrganizationStuff = Stuff & Organization;
 
 /** Resolve the HMR-able EmploymentLogic singleton (sync). */
 function logic(): EmploymentLogic {
@@ -110,164 +110,12 @@ export class EmploymentApi {
   }
 
   /**
-   * Does `subject` hold **any non-exited position** at `organization` —
-   * the staff test, the positionless twin of `mayPublishAs` (which filters
-   * on `publishingPositions`). Reads the one holder-resolution path, so an
-   * explicit exit is never resurrected by the roster. Never consults the
-   * appointing authority — the head is `holdsAuthority`, not staff.
-   */
-  public static holdsPosition(
-    subject: Stuff | null,
-    organization: OrganizationStuff,
-  ): boolean {
-    return logic().holdsPosition(subject, organization);
-  }
-
-  /**
-   * Whether `subject` may act as the proprietor of `organization` — its
-   * appointing authority, or the Prime Minister's seat (the operator override).
-   * The override rides on top of an authority and is never one itself.
-   */
-  public static isProprietorOf(
-    subject: Stuff,
-    organization: OrganizationStuff,
-  ): Promise<boolean> {
-    return logic().isProprietorOf(subject, organization);
-  }
-
-  /**
-   * ⭐ May `principal` publish as `publisher`? Exactly *does the principal
-   * hold a non-exited position at this organization whose key is in its
-   * `publishingPositions`* — an empty list meaning **any position**.
-   *
-   * ⚠ **It never consults the appointing authority.** The committee that
-   * fills the press office's positions cannot publish through it by virtue
-   * of being the committee; a member holding no publishing position is
-   * refused. Appointment and exercise are different powers.
-   *
-   * Fails closed on an organization that does not publish, an unresolvable
-   * one, and a principal with no durable identity.
-   */
-  public static mayPublishAs(
-    principal: Stuff | null,
-    publisher: OrganizationStuff,
-  ): boolean {
-    return logic().mayPublishAs(principal, publisher);
-  }
-
-  /**
-   * Every actor holding `positionKey` at `organization` — the uniform
-   * *who-holds-P-in-O?* read (durable templatePaths). Unions live
-   * non-terminal `Employment` records with the authored roster, so a
-   * never-ticked organization's holder is still provable; an explicit exit
-   * suppresses the roster entry rather than being resurrected by it. Its
-   * inverse — *what does actor A hold, anywhere?* — is the actor's own
-   * `getActiveEmployments()`.
-   */
-  public static holdersOf(
-    organization: OrganizationStuff,
-    positionKey: string,
-  ): string[] {
-    return logic().holdersOf(organization, positionKey);
-  }
-
-  /**
-   * The organization chain above `organization`, nearest parent first —
-   * a department inside a ministry, a desk inside a paper. A parent that
-   * does not resolve ends the chain; a **cycle throws** rather than
-   * returning a truncated one. The position-level twin is the
-   * organization's own `getReportingChain(positionKey)`.
-   */
-  public static organizationChainOf(
-    organization: OrganizationStuff,
-  ): OrganizationStuff[] {
-    return logic().organizationChainOf(organization);
-  }
-
-  /**
-   * Hire `actor` into `organization`'s `positionKey`. Returns the record.
-   * A non-Avatar hired into a `purchases` position is dealt the house
-   * card (a `PaymentCard` on the operating account) — the NPC shape of
-   * the wallet conferral.
-   */
-  public static hire(
-    organization: OrganizationStuff,
-    actor: Stuff,
-    positionKey: string,
-  ): Promise<Employment | null> {
-    return logic().hire(organization, actor, positionKey);
-  }
-
-  /**
-   * Fire `actor` from `organization` (status → fired; history preserved).
-   * Leaving a position takes the business's operating account out of the
-   * actor's wallet if `wallet use house` had put it there.
-   */
-  public static fire(
-    organization: OrganizationStuff,
-    actor: Stuff,
-  ): Promise<void> {
-    return logic().fire(organization, actor);
-  }
-
-  /**
-   * `actor` quits `organizationPath` (status → quit; history preserved).
-   * The `quit` verb's one call; unlinks the house account like `fire`.
-   */
-  public static quit(actor: Stuff, organizationPath: string): Promise<void> {
-    return logic().quit(actor, organizationPath);
-  }
-
-  /**
-   * ⭐ Every Business `actor` **buys for** — where the actor holds a
-   * non-exited position authored `purchases: true`, plus the one they
-   * proprietor. The read behind `wallet use house`, the house-stamping
-   * `buy`, consigning as the business, and the `house` app's gate.
-   * Authority is the position's, never a carried screen's.
-   */
-  public static buysFor(actor: Stuff): Promise<BusinessStuff[]> {
-    return logic().buysFor(actor);
-  }
-
-  /**
-   * The live stock sheet: each of `business`'s par lines against what
-   * `viewer` **perceives** from where they stand (open containers
-   * descended, sealed ones not). Perception-scoped by construction —
-   * the aether is a modem, not a sense organ. Shared by `house stock`
-   * and the keeper's `restocks` brain, so an NPC reads exactly the sheet
-   * a player would.
-   */
-  public static stockSheetFor(
-    viewer: Stuff,
-    business: BusinessStuff,
-  ): StockSheetLine[] {
-    return logic().stockSheetFor(viewer, business);
-  }
-
-  /**
    * The goods `viewer` perceives that count against a par `category` —
    * the sheet's own matcher returned as items, so a buyer at a counter
    * can name what to `buy`.
    */
   public static goodsFor(viewer: Stuff, category: string): Stuff[] {
     return logic().goodsFor(viewer, category);
-  }
-
-  /**
-   * Begin a proprietor covering their own bar — a transient on-shift
-   * Employment against the first position, conferring its capability
-   * (`MakerMixin`). Unpaid by construction. Returns the cover record.
-   */
-  public static beginCover(
-    self: Stuff,
-    business: OrganizationStuff,
-  ): Employment | null {
-    return logic().beginCover(self, business);
-  }
-
-  /** End a proprietor's cover — drop the transient cover Employment. */
-  public static endCover(self: Stuff, business: OrganizationStuff): void {
-    return logic().endCover(self, business);
   }
 
   /**
@@ -312,11 +160,6 @@ export class EmploymentApi {
    */
   public static tickRoster(): void {
     return logic().tickRoster();
-  }
-
-  /** Sync shift-state read for `actor` — the `shifts` brain's input. */
-  public static shiftStateOf(actor: Stuff): 'on-shift' | 'off-shift' {
-    return logic().shiftStateOf(actor);
   }
 
   /**

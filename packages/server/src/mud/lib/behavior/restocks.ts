@@ -71,7 +71,8 @@ export const brain = class {
       return;
     }
     const keeper = host as Keeper;
-    if (EmploymentApi.shiftStateOf(keeper) !== 'on-shift') return;
+    if (!MixinApi.isEmployed(keeper) || keeper.shiftState() !== 'on-shift')
+      return;
     const home = keeper.getContainer();
     if (!home || !MixinApi.isContainer(home)) return;
 
@@ -84,7 +85,7 @@ export const brain = class {
     const batch = positiveInt(ctx.config.batch, DEFAULT_BATCH);
 
     // The sheet, read from the rail — what she can see is what is on hand.
-    const short = EmploymentApi.stockSheetFor(keeper, business).filter(
+    const short = business.stockSheetFor(keeper).filter(
       (l) => l.shortfall > 0 && l.line.supplier,
     );
     const bySupplier = new Map<string, StockSheetLine[]>();
@@ -153,7 +154,8 @@ async function businessHere(
   keeper: Stuff,
   room: Stuff,
 ): Promise<(Stuff & Business) | null> {
-  const buysFor = await EmploymentApi.buysFor(keeper);
+  if (!MixinApi.isEmployed(keeper)) return null;
+  const buysFor = await keeper.buysFor();
   if (buysFor.length === 0) return null;
   const herePath = room.getTemplatePath() ?? '';
   return (

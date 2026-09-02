@@ -248,8 +248,8 @@ export function DisplayMixin<TBase extends MixinConstructor<Stuff>>(
             ? StuffApi.findByTemplatePath(this.principal)
             : null;
           if (!business || !MixinApi.isOrganization(business)) return false;
-          if (EmploymentApi.holdsPosition(actor, business)) return true;
-          return EmploymentApi.isProprietorOf(actor, business);
+          if (business.employs(actor)) return true;
+          return business.hasProprietor(actor);
         }
         case 'open':
           return PerceptionApi.canReach(actor, this as unknown as Stuff);

@@ -175,7 +175,7 @@ describe('the farms beat — tend, pick, sell, home', () => {
       c.setMass(Quantity.of(0.008, 'kg'));
       return c;
     }) as unknown as typeof StuffApi.clone);
-    vi.spyOn(EmploymentApi, 'shiftStateOf').mockReturnValue('on-shift');
+    vi.spyOn(Farmer.prototype, 'shiftState').mockReturnValue('on-shift');
     const reg = makeStuffAtPath(
       () => new ChattelRegistry(),
       '/platform/idea/ChattelRegistry',
@@ -271,7 +271,7 @@ describe('the farms beat — tend, pick, sell, home', () => {
     farmer = makeStuffAtPath(() => new Farmer(), `/trade/farming/agent/_farmer-${seq++}`);
     farmer.setName('Old Pol');
     ContainmentApi.move(farmer as never, grove as never);
-    await EmploymentApi.hire(farmBiz, farmer, 'hand');
+    await farmBiz.appoint(farmer, 'hand');
 
     // A vessel of water in hand — `water` pours from what you carry.
     const water = makeStuffAtPath(() => {

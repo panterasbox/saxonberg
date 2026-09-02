@@ -83,6 +83,12 @@ const NON_SUBJECT_TYPES = new Set<string>([
   "Subject",
   "Board",
   "Entry",
+  // Value/vocabulary types — not world objects (F4): a Charge is the
+  // settlement value object (the sealed money chokepoint's input), a
+  // Channel/Grade are closed vocabulary strings.
+  "Charge",
+  "Channel",
+  "Grade",
   // context plumbing
   "CommandContext",
   "ExecutionContext",

@@ -116,33 +116,6 @@ export class MaterialApi {
   // `stuff.getMaterial(detailKey)` directly.
 
   /**
-   * Recursively expand `material`'s composition. `direct` is one
-   * level; `flat` aggregates leaf-element weight fractions. Pure
-   * elements with a `chemistry.symbol` contribute their full mass to
-   * their own symbol (so iron returns `{ Fe: 1 }`); mixtures
-   * recursively expand.
-   *
-   * Cycle-guarded: a composition reference back to an ancestor
-   * truncates the walk at that node (defensive — well-formed content
-   * shouldn't produce cycles).
-   */
-  public static compositionOf(material: Material): MaterialComposition {
-    return logic().compositionOf(material);
-  }
-
-  /**
-   * Does `material` contain `elementSymbol` anywhere in its
-   * recursive composition? Walks the same expansion as
-   * `compositionOf` and consults the leaf elements' `chemistry.symbol`.
-   */
-  public static containsElement(
-    material: Material,
-    elementSymbol: string
-  ): boolean {
-    return logic().containsElement(material, elementSymbol);
-  }
-
-  /**
    * Every registered Material that carries `tag`. Tag matching is
    * exact-string. The result reflects the runtime singleton index;
    * Materials that haven't been cloned yet aren't there.

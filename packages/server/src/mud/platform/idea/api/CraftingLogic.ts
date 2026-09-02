@@ -1644,7 +1644,7 @@ async function salvageImpl(req: SalvageRequest): Promise<SalvageOutcome> {
   const rate = dial(AppSettingKeys.craftingSalvageRate, 0.5);
 
   // The flattened constituents — a pure material is its own whole.
-  const comp = MaterialApi.compositionOf(material);
+  const comp = material.elementalComposition();
   const constituents: { material: Material; fraction: number }[] = [];
   if (comp.direct.length === 0) {
     constituents.push({ material, fraction: 1 });

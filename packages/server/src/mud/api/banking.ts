@@ -217,41 +217,21 @@ export class BankingApi {
   }
 
   /**
-   * Link `accountId` into `actor`'s reachable payment credential — the
-   * `autoLinkToWallet` seam for an account the actor does **not** own
-   * (`wallet use house` puts the business's operating account in a
-   * purchasing holder's wallet). Returns false when the actor carries no
-   * credential. Settlement never checks ownership of the routing account,
-   * so this link IS the conferral; the caller checks the position.
+   * Link `accountId` into `actor`'s REACHABLE payment credential (an
+   * implant or carried card — the actor composes no wallet mixin, so
+   * this stays an actor-relative Api walk; the `wallet use house`
+   * conferral seam). Returns false when the actor carries no credential.
    */
   public static linkAccount(actor: Stuff, accountId: string): boolean {
     return logic().linkAccount(actor, accountId);
   }
 
   /**
-   * The inverse: take `accountId` out of the actor's reachable credential
-   * (active pointer falls back to the first remaining link). Best-effort;
-   * a missing credential is a no-op. What leaving a purchasing position
-   * does.
+   * The inverse: take `accountId` out of the actor's reachable
+   * credential. Best-effort; a missing credential is a no-op.
    */
   public static unlinkAccount(actor: Stuff, accountId: string): void {
     return logic().unlinkAccount(actor, accountId);
-  }
-
-  /** Deposit a coin stack: coin → vault, balance credited 1:1 (custodial). */
-  public static async deposit(
-    bank: Stuff & Bank,
-    coinStack: Stuff & Globbable,
-  ): Promise<void> {
-    return logic().deposit(bank, coinStack);
-  }
-
-  /** Withdraw cash: balance → coin, bounded by the branch till liquidity. */
-  public static async withdraw(
-    bank: Stuff & Bank,
-    amount: Money,
-  ): Promise<void> {
-    return logic().withdraw(bank, amount);
   }
 
   /** Transfer balance → balance (conserving); only from your own account. */

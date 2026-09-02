@@ -52,6 +52,7 @@ import type { Mobile } from '@saxonberg/server/mud/lib/spatial/Mobile';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { BrainContext, BrainStatics } from '@saxonberg/server/mud/lib/behavior/brain';
+import type { Employed } from '@saxonberg/server/mud/lib/employment/Employed';
 
 const DEFAULT_BATCH = 6;
 const DEFAULT_ASK = 5;
@@ -152,7 +153,7 @@ export const brain = class {
       ) {
         return;
       }
-      const outfits = await EmploymentApi.buysFor(hand);
+      const outfits = await (hand as unknown as Stuff & Employed).buysFor();
       const outfit = outfits[0];
       if (!outfit) return;
       // The stall's authored cap when present (A6), else the global dial

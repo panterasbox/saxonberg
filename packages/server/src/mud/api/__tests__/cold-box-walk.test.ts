@@ -300,8 +300,8 @@ describe('⭐⭐ the cold-box walk', () => {
     );
     // Nobody holds the position, so nobody can publish yet — which is the
     // designed empty state, not a fault.
-    expect(EmploymentApi.holdersOf(org, DIRECTOR)).toEqual([]);
-    expect(EmploymentApi.mayPublishAs(founder, org)).toBe(false);
+    expect(org.holdersOf(DIRECTOR)).toEqual([]);
+    expect(org.allowsPublishingBy(founder)).toBe(false);
     await expect(pressGate(founder)).resolves.toMatch(
       /no publishing position/,
     );
@@ -317,14 +317,14 @@ describe('⭐⭐ the cold-box walk', () => {
     expect(ctx.getNotes().some((n) => n.kind === 'controller-rejected')).toBe(
       false,
     );
-    expect(EmploymentApi.holdersOf(org, DIRECTOR)).toEqual([
+    expect(org.holdersOf(DIRECTOR)).toEqual([
       '/platform/agent/Avatar/founder',
     ]);
 
     // ── Publishing: earned by holding the position, not by being the
     //    authority ───────────────────────────────────────────────────
     await expect(pressGate(founder)).resolves.toBeUndefined();
-    expect(EmploymentApi.mayPublishAs(founder, org)).toBe(true);
+    expect(org.allowsPublishingBy(founder)).toBe(true);
 
     const release = await withRootContext(null, 'cold-box', () => {
       ExecutionContextApi.tagActingAuthor(founder);
@@ -360,8 +360,8 @@ describe('⭐⭐ the cold-box walk', () => {
 
     // Nothing downstream of the refusal happened: no position filled, no
     // publishing right, no release, nothing on the front page.
-    expect(EmploymentApi.holdersOf(org, DIRECTOR)).toEqual([]);
-    expect(EmploymentApi.mayPublishAs(stranger, org)).toBe(false);
+    expect(org.holdersOf(DIRECTOR)).toEqual([]);
+    expect(org.allowsPublishingBy(stranger)).toBe(false);
     await expect(pressGate(stranger)).resolves.toMatch(
       /no publishing position/,
     );

@@ -123,7 +123,7 @@ async function fundedAvatar(path: string, minor: number): Promise<TestGiver> {
     const cash = await asOwner(av, () =>
       BankingApi.issueCash(av as never, Money.of(minor, Currency.compact())),
     );
-    await asOwner(av, () => BankingApi.deposit(bank, cash as never));
+    await asOwner(av, () => bank.deposit(cash as never));
   }
   return av;
 }

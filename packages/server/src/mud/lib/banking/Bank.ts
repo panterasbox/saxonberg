@@ -37,6 +37,10 @@ import { Money } from "./Money";
 import { Terms } from "./Terms";
 import type { TermsData } from "./Terms";
 import { Currency } from "./Currency";
+import { StuffApi } from "../../api/stuff";
+import type { Globbable } from "../stuff/Globbable";
+// eslint-disable-next-line no-restricted-imports -- the F4 branch face: a bank's deposit()/withdraw() forward into the banking logic singleton exactly as the api/banking facade does (the Combustible/Energized precedent)
+import { BankingLogic } from "../../platform/idea/api/BankingLogic";
 
 /**
  * The banking subsystem's own gate — admits the `BankingApi` face and the
@@ -53,6 +57,12 @@ const FromBankingApi = SecurityPolicies.AnyOf(
 
 /** Public shape added by BankMixin. */
 export interface Bank {
+  // The branch face (F4) — forwards into BankingLogic.
+  /** Deposit a coin stack: coin → vault, balance credited 1:1. */
+  deposit(coinStack: Stuff & Globbable): Promise<void>;
+  /** Withdraw cash: balance → coin, bounded by the till. */
+  withdraw(amount: Money): Promise<void>;
+
   /** The bank's corpo affiliation key (resolved via {@link CorpoApi}). */
   getCorpoKey(): string;
   setCorpoKey(value: string): void;
@@ -212,6 +222,33 @@ export function BankMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       }
       return { ok: true };
     }
+    // ------- the branch face (F4) — forwards into BankingLogic -------
+
+    /**
+     * Deposit a coin stack: coin → vault, balance credited 1:1
+     * (custodial). Sealed — the conservation chokepoint lives in the
+     * logic; the branch only fronts it.
+     */
+    @Final
+    @Unshadowable
+    public deposit(coinStack: Stuff & Globbable): Promise<void> {
+      return bankBankingLogic().deposit(this as unknown as Stuff & Bank, coinStack);
+    }
+
+    /** Withdraw cash: balance → coin, bounded by the till. Sealed. */
+    @Final
+    @Unshadowable
+    public withdraw(amount: Money): Promise<void> {
+      return bankBankingLogic().withdraw(this as unknown as Stuff & Bank, amount);
+    }
   }
   return BankMixin;
+}
+
+/** Resolve the HMR-able BankingLogic singleton (the money chokepoint). */
+function bankBankingLogic(): BankingLogic {
+  return StuffApi.singletonSync(
+    "/platform/idea/api/banking",
+    () => new BankingLogic(),
+  );
 }

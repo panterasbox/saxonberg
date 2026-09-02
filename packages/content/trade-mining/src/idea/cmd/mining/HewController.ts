@@ -277,7 +277,11 @@ async function maybeRun(
  */
 async function ownerFor(giver: Stuff, working: Working): Promise<Stuff | null> {
     const warren = (working as unknown as { getWarren?(): Stuff | null }).getWarren?.() ?? null;
-    if (warren && EmploymentApi.shiftStateOf(giver) === 'on-shift') {
+    if (
+      warren &&
+      MixinApi.isEmployed(giver) &&
+      giver.shiftState() === 'on-shift'
+    ) {
       const business = EmploymentApi.businessAt(
         (working as unknown as Stuff).getTemplatePath() ?? '',
       );

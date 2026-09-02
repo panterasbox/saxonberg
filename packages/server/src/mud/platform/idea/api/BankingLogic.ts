@@ -55,6 +55,18 @@ import { Currency } from "../../../lib/banking/Currency";
 
 const BankingApiCallers = SecurityPolicies.FromModule("/api/banking#BankingApi",
 );
+/** The F4 bank face (Bank hosts) forwards here as the branch. */
+const BankCallers = SecurityPolicies.AnyOf(
+  BankingApiCallers,
+  SecurityPolicies.FromMixin("BankMixin", {
+    // Compare by stuffId — the caller may surface as the raw target
+    // while the argument is the proxy (or vice versa).
+    where: (caller, _target, _method, args) =>
+      (caller as { stuffId?: string }).stuffId !== undefined &&
+      (caller as { stuffId?: string }).stuffId ===
+        (args[0] as { stuffId?: string } | undefined)?.stuffId,
+  }),
+);
 
 /**
  * The custodian-restamp seam is also callable by the `CentralBank`
@@ -1917,7 +1929,7 @@ export class BankingLogic extends ApiLogic {
   }
 
   /** See {@link BankingApi.deposit}. Coin → vault, balance credited (1:1). */
-  @CallSecurity(BankingApiCallers)
+  @CallSecurity(BankCallers)
   public async deposit(
     bank: Stuff & Bank,
     coinStack: Stuff & Globbable,
@@ -1954,7 +1966,7 @@ export class BankingLogic extends ApiLogic {
   }
 
   /** See {@link BankingApi.withdraw}. Balance → cash, bounded by the till. */
-  @CallSecurity(BankingApiCallers)
+  @CallSecurity(BankCallers)
   public async withdraw(bank: Stuff & Bank, amount: Money): Promise<void> {
     const owner = actingActorKey();
     const account = await accountAtImpl(owner, bank.getBank());

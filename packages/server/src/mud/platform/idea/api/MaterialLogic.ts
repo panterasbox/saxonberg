@@ -28,6 +28,13 @@ import type { TraumaType } from '../Condition';
 
 const MaterialApiCallers = SecurityPolicies.FromModule('/api/material#MaterialApi'
 );
+/** The F4 material face: a Material instance forwards its own reads. */
+const MaterialSelfCallers = SecurityPolicies.AnyOf(
+  MaterialApiCallers,
+  SecurityPolicies.FromModule('/lib/material/Material', {
+    includeSubclasses: true,
+  }),
+);
 
 /**
  * MaterialLogic — the hot-reloadable logic singleton behind
@@ -58,13 +65,13 @@ const MaterialApiCallers = SecurityPolicies.FromModule('/api/material#MaterialAp
 @Unshadowable
 export class MaterialLogic extends ApiLogic {
   /** See {@link MaterialApi.compositionOf}. */
-  @CallSecurity(MaterialApiCallers)
+  @CallSecurity(MaterialSelfCallers)
   public compositionOf(material: Material): MaterialComposition {
     return computeComposition(material);
   }
 
   /** See {@link MaterialApi.containsElement}. */
-  @CallSecurity(MaterialApiCallers)
+  @CallSecurity(MaterialSelfCallers)
   public containsElement(material: Material, elementSymbol: string): boolean {
     return containsElementOf(material, elementSymbol);
   }

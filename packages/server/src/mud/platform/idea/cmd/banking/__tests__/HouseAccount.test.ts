@@ -184,7 +184,7 @@ async function fundedGiver(path: string, minor: number): Promise<TestGiver> {
     const cash = await asOwner(g, () =>
       BankingApi.issueCash(g as never, Money.of(minor, Currency.compact())),
     );
-    await asOwner(g, () => BankingApi.deposit(bank, cash as never));
+    await asOwner(g, () => bank.deposit(cash as never));
   }
   return g;
 }
@@ -241,19 +241,19 @@ describe("the house account in the wallet (D6)", () => {
     const mara = await fundedGiver("/platform/agent/Avatar/mara", 0);
     const augie = await fundedGiver("/platform/agent/Avatar/augie", 0);
     const { biz } = await makeBarBusiness(dave.getTemplatePath()!, 0);
-    EmploymentApi.hire(biz, mara, "keeper");
-    EmploymentApi.hire(biz, augie, "bartender");
+    biz.appoint(mara, "keeper");
+    biz.appoint(augie, "bartender");
 
-    expect(await EmploymentApi.buysFor(dave)).toEqual([biz]);
-    expect(await EmploymentApi.buysFor(mara)).toEqual([biz]);
-    expect(await EmploymentApi.buysFor(augie)).toEqual([]);
+    expect(await dave.buysFor()).toEqual([biz]);
+    expect(await mara.buysFor()).toEqual([biz]);
+    expect(await augie.buysFor()).toEqual([]);
   });
 
   it("wallet use house links + activates the operating account; a non-holder is refused", async () => {
     const mara = await fundedGiver("/platform/agent/Avatar/mara", 0);
     const pat = await fundedGiver("/platform/agent/Avatar/pat", 0);
     const { biz, account } = await makeBarBusiness("", 0);
-    EmploymentApi.hire(biz, mara, "keeper");
+    biz.appoint(mara, "keeper");
     ContainmentApi.move(mara as never, loc as never);
     ContainmentApi.move(pat as never, loc as never);
 
@@ -273,7 +273,7 @@ describe("the house account in the wallet (D6)", () => {
     const mara = await fundedGiver("/platform/agent/Avatar/mara", 0);
     ContainmentApi.move(mara as never, loc as never);
     const { biz, account } = await makeBarBusiness("", 100);
-    EmploymentApi.hire(biz, mara, "keeper");
+    biz.appoint(mara, "keeper");
     const storeAcct = await makeStoreBusiness();
     const { stock, torch } = makeStore(5);
 
@@ -295,7 +295,7 @@ describe("the house account in the wallet (D6)", () => {
     const mara = await fundedGiver("/platform/agent/Avatar/mara", 50);
     ContainmentApi.move(mara as never, loc as never);
     const { biz, account } = await makeBarBusiness("", 100);
-    EmploymentApi.hire(biz, mara, "keeper");
+    biz.appoint(mara, "keeper");
     await makeStoreBusiness();
     const { stock, torch } = makeStore(5);
 
@@ -314,7 +314,7 @@ describe("the house account in the wallet (D6)", () => {
     const mara = await fundedGiver("/platform/agent/Avatar/mara", 50);
     ContainmentApi.move(mara as never, loc as never);
     const { biz, account } = await makeBarBusiness("", 100);
-    EmploymentApi.hire(biz, mara, "keeper");
+    biz.appoint(mara, "keeper");
     await makeStoreBusiness();
     const { stock, torch } = makeStore(5);
 
@@ -341,7 +341,7 @@ describe("the house account in the wallet (D6)", () => {
     const hand = await fundedGiver("/platform/agent/Avatar/hand", 0);
     ContainmentApi.move(hand as never, loc as never);
     const { biz, account } = await makeBarBusiness("", 0);
-    EmploymentApi.hire(biz, hand, "keeper");
+    biz.appoint(hand, "keeper");
     const storeAcct = await makeStoreBusiness();
     const shelf = makeStuffAtPath(() => new ConsignmentShelf(), SHELF);
     const torch = makeStuffAtPath(() => {

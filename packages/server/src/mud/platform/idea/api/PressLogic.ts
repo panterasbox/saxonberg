@@ -176,7 +176,7 @@ function holdsAnyPublishingPositionImpl(principal: Stuff | null): boolean {
   }).stuff;
   for (const organization of publishers) {
     if (!MixinApi.isOrganization(organization)) continue;
-    if (EmploymentApi.mayPublishAs(principal, organization)) return true;
+    if (organization.allowsPublishingBy(principal)) return true;
   }
   return false;
 }
@@ -211,7 +211,7 @@ async function publishImpl(req: PublishRequest): Promise<Release> {
   // cannot publish through it by virtue of being the committee.
   if (
     !MixinApi.isOrganization(publisher) ||
-    !EmploymentApi.mayPublishAs(acting, publisher)
+    !publisher.allowsPublishingBy(acting)
   ) {
     throw new Error(
       `PressApi.publish: you hold no publishing position at ${req.publisher}`

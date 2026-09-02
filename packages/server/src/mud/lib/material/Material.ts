@@ -60,6 +60,10 @@ import type { ToxinTag } from '../metabolism/Metabolic';
 import type { VetoResult } from '../errors';
 import type { EvictionContext } from '../stuff/Stuff';
 import type { FieldMeta } from '../mixin';
+import { StuffApi } from '../../api/stuff';
+import type { MaterialComposition } from '../../api/material';
+// eslint-disable-next-line no-restricted-imports -- the F4 material face: a material's composition()/containsElement() forward into the material logic singleton exactly as the api/material facade does (the Combustible/Energized precedent)
+import { MaterialLogic } from '../../platform/idea/api/MaterialLogic';
 
 /**
  * One constituent in a mixture / alloy. `materialPath` is the
@@ -952,4 +956,28 @@ export default class Material extends SingletonMixin(
   public setBiologicalSource(value: BiologicalSource | null): void {
     this.biologicalSource = value;
   }
+
+  // ------- the composition face (F4) — forwards into MaterialLogic -------
+
+  /**
+   * This material's recursive ELEMENTAL composition (leaf-element
+   * weight fractions; cycle-guarded).
+   */
+  public elementalComposition(): MaterialComposition {
+    return materialLogic().compositionOf(this as unknown as never);
+  }
+
+  /** Does this material contain `elementSymbol` anywhere in its
+   * recursive composition? */
+  public containsElement(elementSymbol: string): boolean {
+    return materialLogic().containsElement(this as unknown as never, elementSymbol);
+  }
+}
+
+/** Resolve the HMR-able MaterialLogic singleton (the substrate reads). */
+function materialLogic(): MaterialLogic {
+  return StuffApi.singletonSync(
+    '/platform/idea/api/material',
+    () => new MaterialLogic(),
+  );
 }
