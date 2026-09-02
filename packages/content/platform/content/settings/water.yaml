@@ -1,0 +1,36 @@
+# water — the watershed's dials (the `settings` kind: merge-missing — a
+# key the app_settings singleton lacks is merged in; a value the operator
+# changed via `config` is never touched).
+#
+# ONE file for the whole build rather than dials scattered across
+# weather / husbandry / conduit, because these numbers only make sense
+# read against each other: how hard it rains decides how much a bed
+# gets, which decides how much a reach carries, which decides whether a
+# right binds. See docs/subsystems/watershed.md.
+#
+# ⚠ Every key here has a seeded literal at its call site. The kernel
+# behaves correctly with the `water` pack absent; a dial that only works
+# when a pack is installed is a dial that fails silently.
+settings:
+  # Precipitation rates, in millimetres of liquid water equivalent per
+  # HOUR. These are six-hour SEGMENT AVERAGES, not instantaneous
+  # intensities: our weather is piecewise-constant, so a `rain` segment
+  # rains for six hours straight. Real moderate rain is ~2.5 mm/h but
+  # never for six hours together, so the figures below are the averages
+  # that reproduce a plausible annual total under the shipped transition
+  # grammar — a wet temperate valley, not a desert and not a rainforest.
+  # `WeatherType.test.ts` pins that total.
+  - key: water.rate.rain
+    value: "0.3"
+
+  # A storm is four times a shower and shares its `rain` descriptor —
+  # which is exactly why the rate table keys on the weather TYPE rather
+  # than on what falls out of it.
+  - key: water.rate.storm
+    value: "1.2"
+
+  # Snow's figure is its WATER EQUIVALENT — what melts out of it, not
+  # how deep the drift is. It banks rather than running off; the
+  # release is the spring rise.
+  - key: water.rate.snow
+    value: "0.25"

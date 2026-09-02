@@ -1332,6 +1332,26 @@ export const AppSettingKeys = {
   wikiRenderComponentTimeoutMs: "wiki.render.componentTimeoutMs",
   /** Wiki — the emitted-body ceiling, in characters (expansion bombs). */
   wikiRenderMaxOutputChars: "wiki.render.maxOutputChars",
+
+  /*
+   * Water — the watershed (docs/subsystems/watershed.md).
+   *
+   * One authored file, `water.yaml`, rather than dials scattered across
+   * weather / husbandry / conduit files, because the numbers only make
+   * sense read against each other: how hard it rains decides how much a
+   * bed gets, which decides how much a reach carries, which decides
+   * whether a right binds.
+   *
+   * ⚠ Every key here has a seeded literal at its call site, so the
+   * kernel behaves correctly with the `water` pack absent. A dial that
+   * only works when a pack is installed is a dial that fails silently.
+   */
+  /** Water — mm/h of liquid water a `rain` segment delivers. */
+  waterRainRateMmPerHour: "water.rate.rain",
+  /** Water — mm/h a `storm` segment delivers. */
+  waterStormRateMmPerHour: "water.rate.storm",
+  /** Water — mm/h water-equivalent a `snow` segment banks as pack. */
+  waterSnowRateMmPerHour: "water.rate.snow",
 } as const;
 
 export type AppSettingKey =

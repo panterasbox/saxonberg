@@ -44,6 +44,8 @@ import {
   type ResolvedWeather,
   type CloudForm,
   type SkyRead,
+  PRECIPITATION_RATES_MM_PER_HOUR,
+  type PrecipitationIntegral,
 } from '../../../lib/weather/WeatherType';
 import type { Atmospheric } from '../../../lib/biome/Atmospheric';
 
@@ -336,6 +338,124 @@ function resolveWeatherPin(
     cursor = stepOutwardForPin(cursor);
   }
   return locality?.getWeatherPin() ?? null;
+}
+
+/* ─────────────────────── the precipitation integral ─────────────────────── */
+
+/**
+ * Sum precipitation over `[t0S, t1S)` for one locality — the exact
+ * segment walk behind {@link WeatherApi.precipitationBetween}.
+ *
+ * ⭐ **This is the build's spine, and it is designed once for two
+ * consumers.** A bed multiplies the liquid figure by its land area to
+ * get litres into soil; a reach multiplies it by its catchment area to
+ * get inflow. Writing it around one of them and generalising later is
+ * exactly the trap the requirements exist to avoid, so the walk knows
+ * about neither: it answers "how much fell here, between then and now",
+ * in millimetres, and hands back the frozen half separately.
+ *
+ * **Why it can be exact.** `weatherAt` is a pure function of
+ * `(time, locality)` — no stored state, no tick — so the type of every
+ * six-hour segment between two instants is computable now. The window is
+ * therefore not sampled or approximated: each segment contributes its
+ * own rate times its own overlap with the window, and the same window
+ * integrated twice gives the same answer to the last millimetre. That
+ * property is what lets a place integrate an absence of arbitrary length
+ * on its first read back.
+ *
+ * **The author's pin wins.** A locality carrying a `WeatherPin` is
+ * *always* that weather, so every segment in the walk is the pinned
+ * type — a weeping valley rains through the year, and a pinned drought
+ * never rains at all. Both pin modes force the type; `alive` only
+ * animates a magnitude the integral does not read.
+ *
+ * ⚠ A **scope-tier** pin (one room in an otherwise-modelled locality) is
+ * NOT visible here: this walk is keyed by locality, and a per-scope pin
+ * would need a per-scope walk. That is a deliberate boundary, not an
+ * oversight — see `docs/subsystems/watershed.md`.
+ */
+/**
+ * The mm/h a segment of this type delivers — the authored table
+ * ({@link PRECIPITATION_RATES_MM_PER_HOUR}) with an operator dial in
+ * front of it. The table is the fallback rather than the other way
+ * round, so the kernel rains correctly with the `water` pack absent.
+ */
+function precipitationRateOf(type: WeatherType): number {
+  const authored = PRECIPITATION_RATES_MM_PER_HOUR[type];
+  switch (type) {
+    case 'rain':
+      return dial(AppSettingKeys.waterRainRateMmPerHour, authored);
+    case 'storm':
+      return dial(AppSettingKeys.waterStormRateMmPerHour, authored);
+    case 'snow':
+      return dial(AppSettingKeys.waterSnowRateMmPerHour, authored);
+    default:
+      return authored;
+  }
+}
+
+function integratePrecipitation(
+  t0S: number,
+  t1S: number,
+  locality: Locality | null,
+): PrecipitationIntegral {
+  const none: PrecipitationIntegral = {
+    liquid: Quantity.of(0, 'mm'),
+    frozen: Quantity.of(0, 'mm'),
+    coveredS: 0,
+  };
+  if (!Number.isFinite(t0S) || !Number.isFinite(t1S) || t1S <= t0S) return none;
+
+  const L = WEATHER_DEFAULTS.SEGMENT_LENGTH_S;
+  // The window is half-open `[t0, t1)`, so a `t1` landing exactly on a
+  // boundary belongs to the segment BEFORE it. `ceil(t1/L) - 1` says
+  // that; `segmentIndexAt(t1 - ε)` does not, because at game-times of
+  // any real size `t1 - Number.EPSILON === t1` in floating point and
+  // the walk silently gains a zero-width segment — which is invisible
+  // in the sum and off-by-one in the CAP.
+  const lastSeg = Math.ceil(t1S / L) - 1;
+  let firstSeg = segmentIndexAt(t0S);
+  let from = t0S;
+
+  // The cap (Risk 2): keep the TAIL of the window, never the head — a
+  // place coming back after a year wants the last month of weather, not
+  // the first. `coveredS` reports what was actually walked, so a caller
+  // that cares can tell a capped window from a complete one.
+  const cap = WEATHER_DEFAULTS.PRECIPITATION_MAX_SEGMENTS;
+  if (lastSeg - firstSeg + 1 > cap) {
+    firstSeg = lastSeg - cap + 1;
+    from = firstSeg * L;
+  }
+
+  // Pinned localities force one type across the whole walk; unpinned
+  // ones resolve per segment through the procgen grammar.
+  const pin = locality?.getWeatherPin() ?? null;
+  const seed = localitySeed(locality);
+  const lean = leanOf(locality);
+
+  let liquidMm = 0;
+  let frozenMm = 0;
+  for (let seg = firstSeg; seg <= lastSeg; seg++) {
+    const segStart = seg * L;
+    const overlapS = Math.min(t1S, segStart + L) - Math.max(from, segStart);
+    if (overlapS <= 0) continue;
+    const type = pin !== null ? pin.type : typeForSegment(seg, seed, lean);
+    const rate = precipitationRateOf(type);
+    if (rate <= 0) continue;
+    const mm = rate * (overlapS / 3600);
+    // Where it goes is the DESCRIPTOR's call: `snow` banks, everything
+    // else runs off. The temperature gate lives in the weather grammar
+    // (snow is zeroed in summer, heavy in winter), so the integral does
+    // not need a second, disagreeing one.
+    if (WEATHER_PROFILES[type].precipitation === 'snow') frozenMm += mm;
+    else liquidMm += mm;
+  }
+
+  return {
+    liquid: Quantity.of(liquidMm, 'mm'),
+    frozen: Quantity.of(frozenMm, 'mm'),
+    coveredS: t1S - from,
+  };
 }
 
 /**
@@ -964,6 +1084,16 @@ export class WeatherLogic extends ApiLogic {
   public async sampleFor(scope: Stuff & Container): Promise<WeatherSample> {
     const locality = await AddressApi.resolveLocalityFor(scope);
     return computeSample(WorldClockApi.getNow().rawValue(), locality);
+  }
+
+  /** See {@link WeatherApi.precipitationBetween}. */
+  @CallSecurity(WeatherApiCallers)
+  public precipitationBetween(
+    t0: Quantity<'s'>,
+    t1: Quantity<'s'>,
+    locality: Locality | null,
+  ): PrecipitationIntegral {
+    return integratePrecipitation(t0.rawValue(), t1.rawValue(), locality);
   }
 
   /** See {@link WeatherApi.nextBoundaryAfter}. */
