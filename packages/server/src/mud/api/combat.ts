@@ -220,6 +220,18 @@ export class CombatApi {
    * victor, no defeat — unlike `yieldFight`, which concedes and records a
    * loss). `broke` is true when this call dissolved at least one edge.
    */
+  /**
+   * Is this item a **weapon** — a wieldable carrying a weapon-domain
+   * construction (bladed/pointed/hafted/flail/whip)? A shield is a
+   * wielded *armor* construction and is correctly excluded. The predicate
+   * the weapons-check rack gates on, and the combat vocabulary's own
+   * "is this a weapon" test — a legitimate cross-cutting read (combat
+   * vocabulary × the item), so it lives on the Api.
+   */
+  public static isWeapon(item: Stuff): boolean {
+    return logic().isWeapon(item);
+  }
+
   public static offerBreak(actor: Stuff): {
     ok: boolean;
     reason?: string;

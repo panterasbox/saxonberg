@@ -270,6 +270,11 @@ export class CombatLogic extends ApiLogic {
   }
 
   @CallSecurity(CombatApiCallers)
+  public isWeapon(item: Stuff): boolean {
+    return isWeaponItem(item);
+  }
+
+  @CallSecurity(CombatApiCallers)
   public offerBreak(
     actor: Stuff,
   ): { ok: boolean; reason?: string; broke: boolean } {

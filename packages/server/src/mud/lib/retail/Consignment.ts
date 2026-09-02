@@ -30,6 +30,14 @@ export interface ConsignmentListing {
   consignorKey: string;
   /** The asking price, in minor units. */
   askMinor: number;
+  /**
+   * A **custody-only** listing — checked, not for sale (the weapons-check
+   * rack, the bar-fight build). Custody moved to the shelf and the
+   * owner-stamp stayed put exactly as a consignment, but `buy` refuses it:
+   * it's held for its owner to reclaim, never brokered. Absent = an
+   * ordinary for-sale listing.
+   */
+  heldOnly?: boolean;
 }
 
 /** The listing-registry surface the consignment shelf exposes. */
@@ -47,6 +55,7 @@ export interface ConsignmentShelf {
     itemChattelId: string,
     consignorKey: string,
     askMinor: number,
+    heldOnly?: boolean,
   ): ConsignmentListing;
   removeListing(itemChattelId: string): void;
   listingFor(itemChattelId: string): ConsignmentListing | null;
@@ -89,6 +98,7 @@ export function ConsignmentShelfMixin<TBase extends MixinConstructor<Stuff>>(
       itemChattelId: string,
       consignorKey: string,
       askMinor: number,
+      heldOnly?: boolean,
     ): ConsignmentListing {
       const listing: ConsignmentListing = {
         listingId: `cl-${SecurityApi.uuid()}`,
@@ -96,6 +106,7 @@ export function ConsignmentShelfMixin<TBase extends MixinConstructor<Stuff>>(
         consignorKey,
         askMinor,
       };
+      if (heldOnly) listing.heldOnly = true;
       this.consignmentListings.push(listing);
       return listing;
     }
