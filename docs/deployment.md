@@ -114,18 +114,23 @@ SSH relay by a handful of trusted shell users. It was the old app
 server, borrowed as a jumphost. Because EC2 meters compute + EBS +
 IPv4 separately, it costs ~$25/mo — an expensive way to run a relay.
 
-Plan: fold the jumphost onto the **dev** Lightsail box (the always-on
-mutable one; trusted users make co-hosting acceptable) and retire the
-`t2.small`. The game server runs as its **own dedicated OS user** with
+> ✅ **DONE 2026-09-01 — the `t2.small` is terminated.** See the teardown
+> record below. `shell.panterasbox.net` / `.com` now resolve to the
+> Lightsail box; the shell users live there.
+
+The plan was: fold the jumphost onto the **dev** Lightsail box (the
+always-on mutable one; trusted users make co-hosting acceptable) and
+retire the `t2.small`. The game server runs as its **own dedicated OS user** with
 `chmod 700` on its working dir; secrets live in a `chmod 600`
 `.env` owned by that user and loaded via systemd `EnvironmentFile`
 (not world-readable), so a co-hosted shell user can't read the game's
 credentials.
 
-> Caution: the `t2.small`'s public IP is auto-assigned, not an EIP —
-> stopping it changes the IP and breaks `shell.*`. Snapshot its EBS
-> (5 years of shell-user home dirs/keys) before terminating, and the
-> old box dies **last**, only after the new one answers SSH.
+> Caution (**satisfied 2026-09-01**): the `t2.small`'s public IP was
+> auto-assigned, not an EIP — stopping it would change the IP and break
+> `shell.*`. The order followed was DNS first, then snapshot, then
+> terminate: `shell.*` was already pointing at Lightsail, the EBS was
+> snapshotted (`snap-0afbf77eb589d026d`), and the old box died last.
 
 ## The Mongo environment policy — four databases, ever
 
@@ -183,6 +188,58 @@ and deleted the `panterasbot` CloudWatch log group. The jumphost box,
 its `shell.*` DNS, and the `pblive` secret were left intact. This took
 the bill from ~$57 toward ~$30; folding the jumphost onto Lightsail and
 retiring the `t2.small` is what gets it to ~$11.
+
+> ⚠ **Correction (2026-09-01):** this sweep was **region-scoped and
+> missed `us-west-1` entirely.** A `panterasbot` CloudWatch log group,
+> two CodeDeploy log groups, a 30 GB 2021 AMI + snapshot, and two
+> CodeDeploy applications all survived there. When auditing AWS
+> residue, **enumerate every region** — `us-west-1` held panterasbot
+> resources that no current infrastructure uses.
+
+### Teardown performed 2026-09-01 — the jumphost, and the last of panterasbot
+
+The `t2.small` jumphost (`i-0ce9b6011d0f369e9`, running since
+2021-06-15) was **terminated**, completing the fold-onto-Lightsail plan
+above.
+
+**Cutover verification before termination** (the shell user `guido` was
+the only non-owner account):
+
+- `shell.panterasbox.net` / `.com` already resolved to the Lightsail box;
+  **no DNS record in any zone pointed at the old IP.** (`panterasbox.com`
+  is on register.com nameservers, not Route 53 — check it separately.)
+- guido's home directory was **byte-identical** across both boxes
+  (md5 over the whole tree), same uid, same two SSH keys by fingerprint,
+  `/bin/zsh` present and in `/etc/shells`, account unexpiring, lock state
+  matching the working `ubuntu` account.
+- The old box's `wtmp` (unrotated back to 2023-05) showed **no login by
+  anyone since 2026-07-13**.
+- ⚠ guido had **never logged into the new box** — but he stopped using
+  the old one three weeks *before* his new account was created, so this
+  was absence, not breakage. Accepted as a known gap rather than proof.
+
+**EBS snapshot `snap-0afbf77eb589d026d`** (30 GB, tagged
+`panterasbox-jumphost-final`) was taken and confirmed `completed` before
+terminating — it is the only remaining copy of five years of shell-user
+home dirs. The root volume had `DeleteOnTermination: true`.
+
+**Also deleted, the last of the dead `panterasbot` stack:**
+
+| resource | region | note |
+|---|---|---|
+| `ami-0aaf3d80f2caa7836` + `snap-0b9107cb53ad7c1e9` | us-west-1 | 30 GB, 2021-06-15 — the image the jumphost itself was launched from |
+| `ami-038bacff45d104d46` + `snap-03606c315754433f4` | us-west-2 | the cross-region copy |
+| `codedeploy-agent-log` | us-west-1 | **1.34 GB, no retention, still being written** — six years of an agent logging that it had nothing to do |
+| `codedeploy-deployments-log`, `panterasbot` | us-west-1 | dead since 2025-03 / 2021-03, no retention |
+| CodeDeploy apps `panterasbot`, `sandbox-web`, `sandbox`, `pbbanner` | both | |
+
+⭐ **Every log group had `retention: NEVER EXPIRES`** — the default. A
+log group nobody set retention on grows forever; the agent one reached
+1.34 GB unnoticed. Set retention on anything new.
+
+Post-teardown the account holds **one** EC2 snapshot (the jumphost
+backup), **zero** self-owned AMIs, and **zero** CloudWatch log groups.
+This is the state the ~$11/mo figure assumes.
 
 ## CI/CD pipeline
 
