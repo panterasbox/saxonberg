@@ -171,7 +171,7 @@ discovery registers its `src/` against every namespace root it holds
 (the manifest `root` + each `requires.title` extent) in the class-source
 table (`ModuleApi.registerPackSource`) before anything imports —
 `PackApi.registerSources()` is that half alone, which `test-bootstrap`
-runs so a test resolves `/arcana/…` without an install. Packs are then
+runs so a test resolves `/system/arcana/…` without an install. Packs are then
 ordered by the derived `dependsOn` (a stable topological sort; throws on
 a cycle; an unknown id is ignored).
 
@@ -517,7 +517,7 @@ rung).
 `packages/content/<pkg>/src/<rel>.ts` backs `<root>/<rel>` for every
 namespace root the pack holds — source mirrors path, inside a pack as in
 the kernel — so `packages/content/arcana/src/thing/Wand.ts` IS
-`/arcana/thing/Wand`, and a pack controller's `FromModule` gate reads the
+`/system/arcana/thing/Wand`, and a pack controller's `FromModule` gate reads the
 same string as its template path.
 
 **The loader.** `StuffApi.resolveClassFile(classPath)` is the one place
@@ -528,7 +528,7 @@ pack registered resolves into that pack's `src/` (longest root first,
 kernel tree as before. The clone pipeline, `loadClassByPath` and the
 brain resolver (`resolveExport`) import the file by absolute `file://`
 URL — the shape `HotReloadApi` already used — so Node's cache and the
-`?hmr=` override both hold, and `reload /arcana/thing/Wand` reloads the
+`?hmr=` override both hold, and `reload /system/arcana/thing/Wand` reloads the
 pack file. Prod and dev are both `tsx` from source; the server's
 `tsconfig.json` `include`s `../content/*/src/**/*` so tsx applies
 `experimentalDecorators` to pack files (tsx honours a tsconfig only for
@@ -607,7 +607,7 @@ lint family walks pack `src/` throughout (`scripts/pack-roots.ts` is the
 scripts' shared table): `instanceable` (invariant 3 through the table,
 invariant 8 — no `lib/`, every module under a branch), `gates`,
 `imports`, `module-scope`, `field-meta`, `blessed-bands`, `arg-kinds`
-(every `cmd/` under a pack's content), `untitled` (`/arcana` is a title
+(every `cmd/` under a pack's content), `untitled` (`/system/arcana` is a title
 root because arcana claims it — the roots derive from the claims).
 
 ## The two entry points
@@ -635,8 +635,8 @@ skipped (extent sold)], boot: A sync-read + B producer, staffed|UNSTAFFED`
 
 A pack's plan needs the rows THAT pack stamped, and the natural query
 says exactly that: `{ sourcePack, ...stampedQuery }`, one round trip per
-(pack, kind). On the shipped world that is **thirty packs times
-eight document kinds = 240 queries** against a collection of a few
+(pack, kind). On the shipped world that is **thirty-one packs times
+eight document kinds = 248 queries** against a collection of a few
 hundred rows, plus a per-pack read of `content`, `forum_subjects` and
 `descriptor_banks`. With the template cache in
 ([persistence.md](./persistence.md)), it was the largest remaining cost
@@ -995,7 +995,7 @@ the installer's walk mirrored in a script; zero is green).
 | **platform** | — | organization `/compact/executive` | `/platform`, `/stuff`, `/blueprints`, `/compact`, `/studio`, `/home`, `/world`; `/wiki` → group `wiki-editors` | `wiki-editors`; `soul` (PM-owned — the soul committee) | 32 entries: the registries + catalogues (sync-read), the two organizations, `/platform/idea/PressBoard`, `/platform/location/void`, `/platform/idea/BlueprintCatalogue`, `/platform/idea/HelpCatalogue`, `/platform/idea/AddressRegistry` (producer) |
 | **base-library** | platform | `base-library-maintainers` (default) | — (rides `/obj`) | — | — |
 | **species-and-names** | platform | default | — (rides `/obj`) | — | — |
-| **arcana** (CAPABILITY — magic's substrate) | platform | default | `/arcana` → group `arcana` (PM-owned): `src/` ships Wand, Scroll, Spellbook, Conduit, Ring, Amulet, Potion, PotionMaterial and the five casting controllers; rows: the 18 `magic-*` disciplines, the five controller templates, the five views, `settings/magic.yaml`, the six descriptor banks | `arcana` | — |
+| **arcana** (CAPABILITY — magic's substrate) | platform | default | `/system/arcana` → group `arcana` (PM-owned): `src/` ships Wand, Scroll, Spellbook, Conduit, Ring, Amulet, Potion, PotionMaterial and the five casting controllers; rows: the 18 `magic-*` disciplines, the five controller templates, the five views, `settings/magic.yaml`, the six descriptor banks | `arcana` | — |
 | **arcane-library** (CAPABILITY — magic's catalog) | platform, arcana | default | — (rides `/stuff`): the 12 spells, the 13 items at `/stuff/thing/magic/` (wands, scrolls, books, a conduit, the bench, three potions, a ring, an amulet), the two loci `glowlight-mote`/`spark-locus` whose classes `src/` ships, the three draughts | — | — |
 | **generic-objects** | platform | default | twelve `/stuff/<branch>/<cluster>` branches (the magic items left for the arcane library): `items`, `arms`, `armor`, `clothes`, `gear`, `vessel`, `fixture`, `instrument`, `traps`, `surface`, `exits`, `room` (wave 4a: the hearthworks commons — cuts, roots, rations, hide, logs — moved into `/stuff/thing/items`; wave 4b: it ships **no recipes** — every recipe is a trade's) | — | — |
 | **trade-smithing** (CAPABILITY — libations) | platform, generic-objects, trade-hearth-cooking (the cook-pot recipe's output row) | default | `/trade/smithing` → group `smithing` (PM-owned); `src/idea/cmd/crafting/` ships `forge`/`hammer`/`quench`/`sharpen` (views under `content/trade/smithing/cmd/crafting/`); the anvil and whetstone rows author the verbs they confer | `smithing` | — |
@@ -1018,10 +1018,11 @@ the installer's walk mirrored in a script; zero is green).
 | **terminus** (the CORE CITY locality, residences D18) | platform, saxonberg-lounge, residence, trade-farming, corpo-goodkin | default | `/world/terminus` homed whole out of world-seed: University Avenue, the terminal, Counting-House Row, the general store, the Registry, Mayfield Row + the city budget, the farmers market — content and parked `src/` together; municipal parcels + land uses | `terminus`, `mayfield-holdings` | Seznick House's building (producer) |
 | **eternal-university** (the CAMPUS locality, residences D18) | platform, residence | default | `/world/eternal` homed whole: Duncan Hall (the residence ladder's first rung), Katie + her kit, the dorm rows; parked `src/` registers against the extent so `/world/eternal/…` class paths are unchanged | `duncan-hall` (enrols Katie) | the dorm-warren (producer) |
 | **hinkley-hills** (the SUBURB locality, residences D18) | platform, residence, trade-farming | default | `/world/terminus/hinkley-hills`: the stop, the lane, the plat and the lots (~24 ha held by the Improvement District until lots sell); lot-1 pre-taken | `hinkley-hills` | the plat-book, the lot-holder (producer) |
-| **residence** (CAPABILITY — title becomes a place, D18) | platform | default | `/residence`: the substrate classes the locality packs' residential rows name — PlatBook, PlatWarren, LotGateExit, HoldingWarren, the householder's kit — moved out of the kernel platform tree | — | — |
+| **residence** (CAPABILITY — title becomes a place, D18) | platform | default | `/system/residence`: the substrate classes the locality packs' residential rows name — PlatBook, PlatWarren, LotGateExit, HoldingWarren, the householder's kit — moved out of the kernel platform tree | — | — |
+| **water** (CAPABILITY — the watershed's WORKS, D1–D27) | platform | default | `/system/water` → group `water` (PM-owned): `src/` ships `Watercourse` + `WatercourseCatalogue` (topology authored, direction **derived**, compiled to a reachability set), `WaterRightRegistry` (prior appropriation recorded, riparian derived over the same records) and the three works — `Conduit` (the conveyance ladder, a sewer being the same object reversed), `ControlStructure`, `StorageNode`; rows: the two singletons, `settings/water.yaml`, and `fouled-water` in the commons. ⭐ The classes are the MECHANISM and are the pack's; a **river** is the realm's, so every reach ships at `/stuff/idea/Watercourse/<name>` in world-seed | `water` | — |
 
-Twenty-five (`arcane-descriptors` folded into `arcana` — the pack that
-ships the class ships the bank; libations added trade-distilling,
+Twenty-eight rows over thirty-one packs (`arcane-descriptors` folded into
+`arcana` — the pack that ships the class ships the bank; libations added trade-distilling,
 trade-brewing, trade-winemaking, trade-bottling, trade-farming and made
 hospitality a capability pack). **A stub trade** ships everything
 downstream of production and nothing of production — materials, vessel
@@ -1126,8 +1127,8 @@ a manifest declares which, so the script still says).
 - `packages/content/arcana/` — the first capability pack: `src/thing/`
   (Wand, Scroll, Spellbook, Conduit, Ring, Amulet, Potion),
   `src/idea/material/PotionMaterial.ts`, `src/idea/cmd/magic/` (the five
-  casting controllers), `content/arcana/idea/Discipline/` (the 18
-  `magic-*` rows), `content/arcana/cmd/magic/` (the views),
+  casting controllers), `content/system/arcana/idea/Discipline/` (the 18
+  `magic-*` rows), `content/system/arcana/cmd/magic/` (the views),
   `content/settings/magic.yaml`, `content/descriptor-banks/`.
 - `packages/content/arcane-library/` — `src/thing/{GlowlightMote,SparkLocus}.ts`,
   `content/stuff/idea/magic/Spell/**`, `content/stuff/thing/magic/**`

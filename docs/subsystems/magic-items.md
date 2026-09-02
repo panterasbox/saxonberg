@@ -100,7 +100,7 @@ never copies it; a bespoke item *declares*.
 
 The concrete classes ship in the **arcana** pack (capability packs,
 2026-08): `Wand`, `Scroll`, `Spellbook`, `Conduit`, **`Ring`**,
-**`Amulet`**, **`Potion`** and `PotionMaterial` at `/arcana/<branch>/…`.
+**`Amulet`**, **`Potion`** and `PotionMaterial` at `/system/arcana/<branch>/…`.
 `Ring` and `Amulet` are `Wand`'s composition with `Wieldable` replaced by
 `Wearable` (a finger, the neck) — two classes because the descriptor
 banks, the census keys and the slot claims are per kind and a player

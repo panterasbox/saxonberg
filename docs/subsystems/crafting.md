@@ -340,6 +340,7 @@ used to be a single list copied verbatim onto two rows:
 | hospitality `mix`, `serve`, `garnish` | the STATION — whole-drink acts at the bar | `/trade/hospitality/thing/BarStation` (back-bar, well) |
 | hospitality `muddle` | the MUDDLER | `/trade/hospitality/thing/Muddler` |
 | hearth-cooking `cook`, `plate`, platform `heat` | the POT | `/trade/hearth-cooking/thing/CookPot` |
+| platform `boil` | the FURNACE — you cannot boil without a heat source | `FurnaceMixin` (oven, kiln, forge) |
 | smithing `hammer`, `quench`, `forge` + platform `repair`, `salvage` | the ANVIL | `/trade/smithing/thing/Anvil` |
 | platform `repair`, `salvage` | mending capital | `/platform/thing/MendingTool` (sewing kit, sewing machine) |
 | smithing `sharpen` | the STONE, **carried only** | `/trade/smithing/thing/Whetstone` |
@@ -367,9 +368,9 @@ not making; camp cooking works because reachable heat + a pot IS a
 kitchen).
 
 **Where a crafting verb lives** — with the pack whose content affords
-it: `make`, `heat`, `pour`, `stir`/`shake`, `repair`, `salvage`, `wash`
-are platform (a pot and a shaker both pour and stir; a furnace heats; a
-basin washes; mending is any trade's); `menu`/`order` are platform
+it: `make`, `heat`, `boil`, `pour`, `stir`/`shake`, `repair`, `salvage`,
+`wash` are platform (a pot and a shaker both pour and stir; a furnace
+heats and boils; a basin washes; mending is any trade's); `menu`/`order` are platform
 **retail** (a menu is commerce, any venue); `muddle`, `strain`,
 `garnish`, `mix`, `serve` are `trade-hospitality`'s; `cook`, `plate`
 are `trade-hearth-cooking`'s; `forge`, `hammer`, `quench`, `sharpen`
@@ -904,7 +905,12 @@ appraisal + congener→hangover.
   [provenance](./provenance.md) (the authorship ledger this instance-mark
   sits beside), [command-routing](./command-routing.md) /
   [command-spec](./command-spec.md), [mixins](./mixins.md),
-  [call-security](./call-security.md).
+  [call-security](./call-security.md), [watershed](./watershed.md) (`boil`
+  — an **act**, not an outcome: what boiling *does* is decided by what you
+  boiled, so a build latches `noteHeat` + the method `boiled` while a
+  vessel whose contents declare `purifiedByBoiling` gets the swap. The
+  method vocabulary is open, so a cooking pack gets boiling by authoring
+  `{ requiresHeatK: 373, method: boiled }` and changing no kernel code).
 - **Seeding slates:** `docs/slates/tails/crafting-slate.md`,
   `docs/slates/builds/daves-bar-slate.md`; parent
   `docs/slates/builds/economy-slate.md`.

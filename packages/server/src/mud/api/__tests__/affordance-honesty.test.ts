@@ -239,7 +239,7 @@ describe('the verb menu stops lying', () => {
    * "fix" it.
    */
   it('leaves cast kind-unconstrained, deliberately', () => {
-    const cast = CommandApi.getCommand('arcana/cmd/magic/cast.yaml');
+    const cast = CommandApi.getCommand('system/arcana/cmd/magic/cast.yaml');
     const target = cast?.args.find((a) => a.name === 'target');
     expect(target?.requires).toBe('any');
   });

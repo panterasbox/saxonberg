@@ -57,6 +57,7 @@ export abstract class Zone extends Idea {
   static fieldMeta: FieldMeta = {
     name: { persistent: true },
     wire: { persistent: true },
+    elevation: { persistent: true, authorable: true },
   };
 
   // ⚠ Region/spawn fields (`stocks` / `favours` / `blessingOdds`) are NOT
@@ -97,6 +98,51 @@ export abstract class Zone extends Idea {
    * `null` = not declared here (walk further); field zones never set it.
    */
   protected wire: boolean | null = null;
+
+  /**
+   * **Height above sea level, in metres** — the watershed's organising
+   * input, and the one field water's whole behaviour is derived from.
+   *
+   * Inherited through the ordinary `lookupField` walk, so a district
+   * declares its own and a room inside it needs say nothing; an authored
+   * value anywhere in the chain wins over anything above it. `null` =
+   * not declared here (walk further).
+   *
+   * ## Why the ZONE, and not the biome
+   *
+   * The zone already owns spatial geometry (`cellSize` drives volume,
+   * light-scale and extent) and already does field inheritance. Biome
+   * owns properties of the **air**; elevation is a property of the
+   * **ground**.
+   *
+   * ⭐ But the decisive reason is a **circularity**. `measure altitude`
+   * computes `(P_sea − P_local) / (ρ·g)` from the biome chain's authored
+   * `_pressure` — so before this field, altitude was back-computed from
+   * a number an author typed, and putting elevation on the biome too
+   * would have given one physical fact two sources of truth. Elevation
+   * on the zone makes pressure the *consequence* (see
+   * `BiomeLogic`'s derive-from-elevation fallback) and the altimeter an
+   * honest instrument: it reads a cause rather than its own input.
+   *
+   * ## ⚠ `coords.z` is NOT elevation
+   *
+   * `z` is local, and measured in zone **cells** — which floor of a
+   * building you are on. A place's height above the ground is
+   * `zone elevation + z × cellSize`; **hydrology reads the zone**, so a
+   * third-floor flat and the lobby are the same point on the watershed.
+   * A stairwell is not a waterfall. Terrain variation *within* a
+   * district is obtained by zoning finer, which is what zones are for.
+   *
+   * See [docs/subsystems/watershed.md].
+   */
+  protected elevation: number | null = null;
+
+  /** Metres above sea level declared HERE (no ancestor walk). */
+  public getElevation(): number | null { return this.elevation; }
+
+  public setElevation(value: number | null): void {
+    this.elevation = value === null || Number.isFinite(value) ? value : null;
+  }
 
   public getWire(): boolean | null { return this.wire; }
   public setWire(value: boolean): void { this.wire = value; }

@@ -9,4 +9,8 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Eternal University Campus
   _address: terminus/city/campus
+  # ── the watershed (D21) ───────────────────────────────────────────
+  _reach: kestrel:confluence
+  _catchmentKm2: 25
+
   _governmentKey: eternal-university

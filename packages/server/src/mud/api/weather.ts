@@ -37,6 +37,8 @@ import { fileURLToPath } from 'url';
 
 // Re-export the call-shape types so callers import them from the Api face.
 export type {
+  PrecipitationIntegral,
+  WeatherSegment,
   WeatherType,
   WeatherField,
   WeatherFieldUnit,
@@ -54,6 +56,8 @@ export type {
 } from '../lib/weather/WeatherType';
 
 import type {
+  PrecipitationIntegral,
+  WeatherSegment,
   WeatherField,
   WeatherFieldUnit,
   WeatherSample,
@@ -94,6 +98,70 @@ export class WeatherApi {
     locality: Locality | null,
   ): WeatherSample {
     return logic().weatherAt(timeS, locality);
+  }
+
+  /**
+   * Total precipitation over `[t0, t1)` at a locality — an **exact**
+   * segment walk, in millimetres, with the frozen half reported
+   * separately.
+   *
+   * ⭐ The watershed build's spine. Weather is a pure function of time,
+   * so the window is summed rather than sampled: each six-hour segment
+   * contributes its own rate times its own overlap, and integrating the
+   * same window twice gives the same answer. That is what lets a place
+   * that nobody has looked at for three days integrate the whole absence
+   * on its first read back, exactly.
+   *
+   * **One walk, two consumers** (plan § P2): soil multiplies
+   * `liquid` by a bed's land area for litres into the ground; a
+   * watershed multiplies it by a catchment's area for inflow to a reach.
+   * `frozen` is water banked as snow, which melts back in later — the
+   * spring rise and the late-summer low.
+   *
+   * Sync and pure (a hash per segment, at most
+   * `WEATHER_DEFAULTS.PRECIPITATION_MAX_SEGMENTS` of them), so a
+   * reconcile-on-read consumer can call it without awaiting. The caller
+   * pre-resolves the `Locality | null` — the `deviationFor` contract,
+   * for the same reason: no I/O inside a sync read.
+   *
+   * ⚠ **Sky exposure is the CALLER's gate.** This answers what fell on
+   * the locality; whether it reached a particular bed is that bed's
+   * business, and a mixin under a roof must not credit it.
+   */
+  public static precipitationBetween(
+    t0: Quantity<'s'>,
+    t1: Quantity<'s'>,
+    locality: Locality | null,
+  ): PrecipitationIntegral {
+    return logic().precipitationBetween(t0, t1, locality);
+  }
+
+  /**
+   * The segments a window touches, materialised — type, season, and how
+   * much of each lies inside `[t0, t1)`.
+   *
+   * The general form of {@link precipitationBetween}'s walk, for
+   * consumers that need more than "how many millimetres". The watershed
+   * builds its **snowpack** on this: whether snow accumulates or melts
+   * depends on the segment's season and the catchment's altitude through
+   * a lapse rate and a degree-day model — hydrology's business, not
+   * weather's. Weather answers *what the weather was, segment by
+   * segment*; what that does to a snowfield is somebody else's model.
+   *
+   * `maxSegments` overrides the default cap for a caller that genuinely
+   * needs a longer look back (a snowpack has to see a whole winter to
+   * know what is sitting on the mountain). It is a bound, not a licence:
+   * the walk still keeps the TAIL of the window.
+   *
+   * Sync and pure, like the integral.
+   */
+  public static segmentsBetween(
+    t0: Quantity<'s'>,
+    t1: Quantity<'s'>,
+    locality: Locality | null,
+    maxSegments?: number,
+  ): WeatherSegment[] {
+    return logic().segmentsBetween(t0, t1, locality, maxSegments);
   }
 
   /* ──────────────── the biome seam (cheap, SYNC) ──────────────── */

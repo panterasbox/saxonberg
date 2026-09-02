@@ -8,7 +8,7 @@
  *       `src/` or any pack's `src/` — the channel is RETIRED; minted
  *       instance identity rides `asIdentityPath` (the identity axis).
  *   (b) Every template-path-valued FIELD in every pack's domain rows
- *       resolves to a real row: `populates:` entries (plain and
+ *       resolves to a real row: `props:`/`cast:` entries (plain and
  *       `{template, onto}`), `exits.<dir>.destination` +
  *       `exits.<dir>.door`, `adornments`, `stockLines[].itemTemplatePath`,
  *       `prices` keys, `roomTemplate`, `holderPath`, `streetPath`,
@@ -106,32 +106,38 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
   const push = (field: string, v: unknown): void => {
     if (isPath(v)) out.push({ field, path: v });
   };
-  const populates = data.populates;
-  if (Array.isArray(populates)) {
-    for (const entry of populates) {
-      if (isPath(entry)) push('populates', entry);
-      else if (entry && typeof entry === 'object') {
-        push('populates.template', (entry as Record<string, unknown>).template);
-        push('populates.onto', (entry as Record<string, unknown>).onto);
-      }
-    }
+  // Reference-Idea citations: each names a real row (a biome, a species,
+  // a material, a body plan) that the hydrator resolves. They are plain
+  // path strings, and censusing them is the whole point of clause (b).
+  for (const f of [
+    '_biomePath', '_extendsBiomePath', '_speciesPath', '_bodyPlanPath',
+    '_parentCladePath', '_materialPath', '_defaultMaterialPath',
+  ] as const) {
+    push(f, data[f]);
   }
-  // ⚠⚠ `props:` and `cast:` — and their ABSENCE here was a real gap.
-  // `populates:` retired in favour of the two designated lists, and this
-  // walk was never widened, so for a whole build every born-with content
-  // ref shipped uncensused: a `props:` naming a row that does not exist
-  // was a silent no-op, and nothing checked a `cast:` at all.
-  for (const list of ['props', 'cast'] as const) {
-    const entries = data[list];
+
+  // ⚠ `props:` and `cast:` — the born-with fields. They were ONE field
+  // (`populates:`) until the farming build split them by designation,
+  // and this census kept reading the retired name: it went on reporting
+  // green while 322 of its 462 field refs quietly stopped being checked,
+  // because the field it looked for no longer existed anywhere. A gate
+  // that passes by not looking is worse than no gate. If these are ever
+  // renamed again, this list is what has to move with them.
+  for (const field of ['props', 'cast'] as const) {
+    const entries = data[field];
     if (!Array.isArray(entries)) continue;
     for (const entry of entries) {
-      if (isPath(entry)) push(list, entry);
+      if (isPath(entry)) push(field, entry);
       else if (entry && typeof entry === 'object') {
-        push(`${list}.template`, (entry as Record<string, unknown>).template);
-        push(`${list}.onto`, (entry as Record<string, unknown>).onto);
+        push(`${field}.template`, (entry as Record<string, unknown>).template);
+        push(`${field}.onto`, (entry as Record<string, unknown>).onto);
       }
     }
   }
+  // ⭐ Both this build and the water build found that gap independently
+  // and widened this walk in the same commit-week; the merge left two
+  // identical loops and this is the survivor. Two walks would have
+  // double-counted every born-with ref in the census total.
   /*
    * ⚠⚠ `composition[].materialPath` — the same gap as `props:`/`cast:`
    * above, found the same way. A blend names its constituents by
@@ -147,6 +153,47 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
       if (part && typeof part === 'object') {
         push('composition.materialPath', (part as Record<string, unknown>).materialPath);
       }
+    }
+  }
+  /*
+   * ⭐ The deposit's MATERIAL citations. A `Deposit` is a pure-data Idea
+   * whose whole content is references: each stratum names its host rock,
+   * each zone its ore mineral, and the lode its gangue. They are the
+   * numbers `hew` and `analyze ground` resolve, so a rowless one is a
+   * face that reads as barren for a reason no author could find.
+   */
+  const strata = data.stratigraphy;
+  if (Array.isArray(strata)) {
+    for (const layer of strata) {
+      if (layer && typeof layer === 'object') {
+        push('stratigraphy.host', (layer as Record<string, unknown>).host);
+      }
+    }
+  }
+  const oreZones = data.zones;
+  if (Array.isArray(oreZones)) {
+    for (const z of oreZones) {
+      if (z && typeof z === 'object') {
+        push('zones.mineral', (z as Record<string, unknown>).mineral);
+      }
+    }
+  }
+  const lode = data.lode;
+  if (lode && typeof lode === 'object') {
+    push('lode.gangue', (lode as Record<string, unknown>).gangue);
+  }
+  /*
+   * The warren's own citation: the working TYPE it clones per cell.
+   *
+   * ⚠ `typeRows` is a plain map of kind → path, which clause (d)'s
+   * detector does not flag — it looks at scalars and at arrays of
+   * objects. Reading it anyway is free, and a type row that resolves to
+   * nothing is a `carve` that mints a room from no template.
+   */
+  const typeRows = data.typeRows;
+  if (typeRows && typeof typeRows === 'object' && !Array.isArray(typeRows)) {
+    for (const [kind, v] of Object.entries(typeRows as Record<string, unknown>)) {
+      push(`typeRows.${kind}`, v);
     }
   }
   const exits = data.exits;
@@ -174,7 +221,26 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
       if (key.startsWith('/')) out.push({ field: 'prices', path: key });
     }
   }
-  for (const scalar of ['roomTemplate', 'holderPath', 'streetPath', 'corridorTemplate', 'programmePath'] as const) {
+  // ⭐ `leesMaterial` / `productMaterial` / `turnedMaterial` arrived with
+  // the fermentation build, on a master that had no clause (d) to notice
+  // them — so this is the clause's first contact with content it did not
+  // grow up beside, and the honest disposition is to READ them rather
+  // than ignore them. All three name a real material row (what a ferment
+  // becomes, what it throws, and what it becomes if it turns), which is
+  // precisely what clause (b) exists to check.
+  for (const scalar of [
+    'roomTemplate', 'holderPath', 'streetPath', 'corridorTemplate',
+    'programmePath', 'purifiedByBoiling',
+    'productMaterial', 'leesMaterial', 'turnedMaterial',
+    // The mine: the ore row a face yields, the warren that carves, the
+    // grid it carves into, and the parcel extent the claim ring covers.
+    // ⭐ Flagged by clause (d) on the water merge — the meta-gate doing
+    // exactly its job on a build that had not met it yet.
+    'oreRow', 'warrenPath', 'zonePath', 'mineExtent', 'aditPath',
+    // The zone's ground model, and the collier's three outcomes.
+    'deposit', 'charcoalTemplate', 'brandsTemplate', 'ashTemplate',
+    'gangueMaterialPath',
+  ] as const) {
     push(scalar, data[scalar]);
   }
   const floorplan = data.floorplan;
@@ -186,6 +252,124 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     }
   }
   return out;
+}
+
+/**
+ * ⭐⭐ **Clause (d): the gate on the gate.**
+ *
+ * Every `data` key in shipped content whose value is path-shaped must be
+ * either READ by `refsOf` or listed here as deliberately ignored.
+ *
+ * ⚠ This clause exists because clause (b) went blind and stayed green.
+ * `populates:` split into `props:`/`cast:` in another build; `refsOf`
+ * kept reading the retired name, and the census went on passing while
+ * 322 of its 462 field refs quietly stopped being checked — the count
+ * was the only symptom, and nothing was watching it. A gate that passes
+ * by not looking is worse than no gate at all.
+ *
+ * So a renamed or newly-introduced path-valued field now FAILS here
+ * until somebody decides which it is. Enumerate, never infer.
+ */
+const IGNORED_PATH_FIELDS: readonly string[] = [
+  // Addresses resolve by AddressApi's longest-prefix walk, not by
+  // template lookup.
+  '_address',
+  // A behaviour names a brain MODULE, not a content row.
+  'behaviors',
+  // A conduit's / a store's served EXTENT is a coverage prefix resolved
+  // longest-prefix, exactly like `_address` — not a citation of a row.
+  // A served extent very often names ground no single template backs
+  // (`/world/terminus` covers a city, not a thing), and an extent that
+  // resolves to nothing serves NOTHING rather than everything, so an
+  // unresolvable one fails closed and is not the silent hazard this
+  // clause exists to catch. See docs/subsystems/watershed.md.
+  'extent',
+  'servesExtent',
+  // ⭐ A mining claim's block names a parcel EXTENT — ground somebody
+  // holds title to — and staking one deliberately mints *a title and no
+  // room*. That is the whole difference between `stake` and `title buy`:
+  // one is a first-come registration over ground, the other is choosing
+  // from a catalogue of lots somebody already laid out. So a claim
+  // extent naming no row is the NORMAL case, not a dangling reference,
+  // and it resolves through `ParcelApi.ownerOf`'s longest-prefix walk
+  // exactly like `_address` and `servesExtent` above.
+  'claimBlocks',
+];
+
+/**
+ * Path-valued fields `refsOf` does NOT yet read — the pre-existing tail,
+ * listed so that a NEW one fails while these only warn.
+ *
+ * The `lint:test-content` discipline: **the list only shrinks.** A
+ * listed field warns; an unlisted one fails; a listed field that has
+ * since become read (or vanished) is stale and fails too. Working an
+ * entry off this list means teaching `refsOf` to read it — each is a
+ * real template path nothing currently proves resolves.
+ */
+const UNREAD_PATH_FIELDS: readonly string[] = [
+  'businessPath', 'carriedSpellPath', 'charMaterialPath', 'charter',
+  'container', 'departments', 'dropDestination', 'effects',
+  'feedPath', 'growsIntoPath', 'harvestTemplatePath', 'interiorMaterial',
+  'lobbyPath', 'makerId', 'material', 'operatingLocations', 'parLines',
+  'parentExtent', 'parentOrganization', 'principal', 'roadTemplate',
+  'rosterSlots', 'routes', 'seatIn', 'seats', 'seedTemplatePath',
+  'surfaceMaterial', 'teachesSpellPath', 'trapTemplate', 'treasury',
+  'warren',
+];
+
+function checkPathFieldCoverage(rows: Map<string, string>): void {
+  const read = new Set<string>();
+  const seen = new Set<string>();
+  for (const [, file] of rows) {
+    let parsed: Record<string, unknown> | null;
+    try { parsed = YAML.parse(readFileSync(file, 'utf8')) as Record<string, unknown> | null; }
+    catch { continue; }
+    const data = parsed?.data;
+    if (!data || typeof data !== 'object') continue;
+    const d = data as Record<string, unknown>;
+    for (const { field } of refsOf(d)) read.add(field.split('.')[0]!);
+    for (const [k, v] of Object.entries(d)) {
+      const pathish =
+        isPath(v) ||
+        (Array.isArray(v) && v.some((e) => isPath(e) ||
+          (e && typeof e === 'object' && Object.values(e as object).some(isPath))));
+      if (pathish) seen.add(k);
+    }
+  }
+  const unread: string[] = [];
+  for (const k of [...seen].sort()) {
+    if (read.has(k) || IGNORED_PATH_FIELDS.includes(k)) continue;
+    if (UNREAD_PATH_FIELDS.includes(k)) { unread.push(k); continue; }
+    findings.push({
+      clause: 'd', file: '(content)',
+      detail:
+        `data.${k} holds template-path-shaped values but refsOf() does ` +
+        `not read it. Either teach refsOf to read it, or list it in ` +
+        `IGNORED_PATH_FIELDS with the reason. ⚠ If this is a RENAME of a ` +
+        `field refsOf used to read, the census has just gone blind on ` +
+        `every ref it carried — which is exactly how populates: → ` +
+        `props:/cast: cost this gate 322 of its 462 refs while still ` +
+        `reporting green.`,
+    });
+  }
+  // Stale entries: listed as unread but now read (or gone from content).
+  for (const k of UNREAD_PATH_FIELDS) {
+    if (!seen.has(k) || read.has(k)) {
+      findings.push({
+        clause: 'd', file: '(content)',
+        detail:
+          `data.${k} is listed in UNREAD_PATH_FIELDS but is now read (or ` +
+          `no longer appears in content). Drop it — the list only shrinks.`,
+      });
+    }
+  }
+  if (unread.length > 0) {
+    console.warn(
+      `check-template-census: ${unread.length} path-valued field(s) are ` +
+        `not yet censused (warn-only; the list only shrinks): ` +
+        `${unread.join(', ')}`,
+    );
+  }
 }
 
 function checkFieldRefs(rows: Map<string, string>): number {
@@ -306,6 +490,7 @@ function main(): void {
   const rows = templateRows();
   checkRetiredChannel();
   const fieldRefs = checkFieldRefs(rows);
+  checkPathFieldCoverage(rows);
   const constants = checkTemplatePathConstants(rows);
   const castRefs = checkCastAreAgents(rows);
 

@@ -6,7 +6,7 @@
 # plat plan on the lot-holder says where each lands. What physically
 # appears when a lot sells is the PlatWarren's programme
 # (house-programme.yaml).
-class: /residence/idea/PlatBook
+class: /system/residence/idea/PlatBook
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   label: Hinkley Hills

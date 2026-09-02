@@ -12,7 +12,7 @@ import { StuffApi } from "../../api/stuff";
 import { ShadowApi } from "../../api/shadow";
 import { Template } from "../../lib/stuff/Template";
 import { makeStuff } from "../../lib/security/__tests__/test-setup";
-const DISCIPLINE_PATH_PREFIX = '/arcana/idea/Discipline/';
+const DISCIPLINE_PATH_PREFIX = '/system/arcana/idea/Discipline/';
 const DISCIPLINE_CLASS = '/platform/idea/Discipline';
 
 type Loose = Record<string, unknown>;

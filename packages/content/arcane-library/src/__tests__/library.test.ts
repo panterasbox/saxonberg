@@ -48,8 +48,8 @@ describe('the arcane library — every row installs', () => {
       if (row.class!.startsWith('/arcane-library/')) {
         expect(res.origin, file).toMatchObject({ root: '/arcane-library' });
         expect(res.file.startsWith(SRC), file).toBe(true);
-      } else if (row.class!.startsWith('/arcana/')) {
-        expect(res.origin, file).toMatchObject({ root: '/arcana' });
+      } else if (row.class!.startsWith('/system/arcana/')) {
+        expect(res.origin, file).toMatchObject({ root: '/system/arcana' });
       } else {
         expect(res.origin, file).toBe('kernel');
       }

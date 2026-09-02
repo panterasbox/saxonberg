@@ -1,0 +1,5 @@
+# The `boil` controller's seed — the second rung of the counterplay
+# ladder. Without this row, dispatch throws "Template not found" on a
+# fresh DB, which is what `controller-seeds.integrity` exists to catch.
+class: /platform/idea/cmd/crafting/BoilController
+data: {}

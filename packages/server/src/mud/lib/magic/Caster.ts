@@ -66,7 +66,7 @@ const SPELL_CATALOGUE_PATH = '/platform/idea/SpellCatalogue';
 // document path, `Caster` rides kernel agents, and the affordance belongs
 // where the capability is declared (D23). Without arcana installed the
 // store lacks the view and `CommandLogic` tolerates the miss.
-const CASTING_VERB_YAMLS = ['arcana/cmd/magic/cast.yaml', 'arcana/cmd/magic/spells.yaml'] as const;
+const CASTING_VERB_YAMLS = ['system/arcana/cmd/magic/cast.yaml', 'system/arcana/cmd/magic/spells.yaml'] as const;
 
 /** The banded, numbers-free self-view (`spells` speaks this). */
 export interface FacultyView {

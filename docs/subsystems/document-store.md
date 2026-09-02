@@ -29,6 +29,16 @@ world content, not player state. `release` is press-owned; `wiki` is
 deliberately not a document kind (a page has a revision log and a CAS
 edit path of its own).
 
+⭐ **`water-right` is the worked example of why the vocabulary is closed**
+(water build). A prior-appropriation right is a *record* — dated,
+transferable, and meaningless if it can be quietly lost — so it is
+path-keyed (`naturalKey: null`, `contentDir: 'water-rights'`,
+`ext: 'yaml'`) and, critically, `onVanish: 'keep'`: a right survives the
+pack that seeded it going away, because the whole point of recording an
+appropriation is that it outlives the paperwork. A capability pack
+**cannot** declare a kind — adding this one was a platform edit, and that
+is the gate working, not friction to route around.
+
 ## What a record is
 
 `StoredDocument` (`lib/document/StoredDocument.ts`, collection `documents`):
@@ -37,7 +47,7 @@ edit path of its own).
 |---|---|
 | `path`  | canonical key; owner/scope encoded in the path — see the namespace taxonomy below |
 | `owner` | the owner's durable `templatePath` (set from context, never the caller) |
-| `kind`  | **what kind of object lives here** — `'msh'` (a script), `'emote'`, `'recipe'`, `'name-bank'`, `'blueprint'`, `'command-view'`, `'release'`, later `'dorm'`, … |
+| `kind`  | **what kind of object lives here** — `'msh'` (a script), `'emote'`, `'recipe'`, `'name-bank'`, `'blueprint'`, `'command-view'`, `'release'`, `'water-right'`, later `'dorm'`, … |
 | `data`  | the arbitrary JSON payload |
 
 The store is **kind-agnostic**: it persists and serves `{path, owner,

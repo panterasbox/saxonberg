@@ -15,7 +15,7 @@ data:
   shortDescription: the Goodkin banking hall
   primaryKeyword: hall
   alternateNames: [bank, goodkin, floor]
-  _address: counting-houses/goodkin-hall
+  _address: terminus/city/counting-houses/goodkin-hall
   longDescription: |
     Inside, Goodkin is as warm as its front promised. The banking hall is panelled in honey-coloured wood and lit soft and gold, a long teller counter running down one side under a brass rail, a row of deep chairs and a coffee urn set out for anyone waiting. A rate board by the door is lettered like a friendly note rather than a warning. Pamphlets fan across a side table — GOODKIN HOMES, THE GOODKIN CLINIC, JOIN THE CIRCLE — each with the same smiling family on the cover. Through a brass grille behind the counter the vault door shows, a great sunrise engraved on its face. A carpeted doorway to the north leads back to a quieter room where, a small sign says, they'll get you set up.
   coords:

@@ -8,7 +8,7 @@
 # `regionTarget: 2` against identify's 4 — recourse should be findable
 # but not stocked like stationery. It is the item a player goes looking
 # for once, having learned the hard way what a cursed ring is.
-class: /arcana/thing/Scroll
+class: /system/arcana/thing/Scroll
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a scroll of remove curse

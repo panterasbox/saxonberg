@@ -6,7 +6,7 @@
 # Holdings owes the shell — the term rent will later pay for — and the
 # tenant owes walls-in. The bathroom is the generic archetype row
 # directly (it is all built-ins).
-class: /residence/idea/HoldingWarren
+class: /system/residence/idea/HoldingWarren
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   upkeepTerm: landlord-shell

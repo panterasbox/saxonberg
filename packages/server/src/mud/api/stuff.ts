@@ -211,7 +211,7 @@ export class StuffApi {
    * came from — the ONE place a class-namespace path becomes a file.
    *
    * A path whose namespace root a capability pack has registered
-   * (`/arcana/thing/Wand`) resolves into that pack's `src/`
+   * (`/system/arcana/thing/Wand`) resolves into that pack's `src/`
    * (`<srcRoot>/thing/Wand.ts`), longest root first; it is an error,
    * naming the pack, when the file is missing — a pack namespace never
    * falls back to the kernel tree. Every other path resolves from the
@@ -221,7 +221,7 @@ export class StuffApi {
    *
    * Public because three things share it: the clone pipeline and the
    * brain resolver here, `HotReloadApi`-facing verbs (`reload
-   * /arcana/thing/Wand`), and the installer's rung check (which records
+   * /system/arcana/thing/Wand`), and the installer's rung check (which records
    * the origin of every class a pack names).
    */
   public static resolveClassFile(classPath: string): ClassResolution {

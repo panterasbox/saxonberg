@@ -23,7 +23,7 @@ data:
   primaryKeyword: square
   alternateNames: [market, "farmers market", stalls]
   _biomePath: /stuff/idea/biome/outdoor/baseline
-  _address: counting-houses/market-square
+  _address: terminus/city/counting-houses/market-square
   longDescription: |
     A cobbled square opening off a side lane of the counting-houses, strung with bunting somebody rehangs every season and nobody remembers hanging first. Trestle stalls stand in a rough ring under canvas, crates-turned-tables stacked with whatever came in this morning; the chalkboard over the long produce stall lists growers' asks in a dozen hands. It smells of bruised mint and orange peel, and argues pleasantly with itself from open to close.
   coords:
@@ -33,6 +33,10 @@ data:
   exits:
     northeast:
       destination: /world/terminus/counting-houses/avenue-block
+    # ⭐ South to the water. Terminus is built on a confluence and until
+    # this build there was nowhere in it you could stand and see one.
+    south:
+      destination: /world/terminus/wharfside/bank
   props:
     - /world/terminus/market/stalls
   details:

@@ -1332,6 +1332,78 @@ export const AppSettingKeys = {
   wikiRenderComponentTimeoutMs: "wiki.render.componentTimeoutMs",
   /** Wiki — the emitted-body ceiling, in characters (expansion bombs). */
   wikiRenderMaxOutputChars: "wiki.render.maxOutputChars",
+
+  /*
+   * Water — the watershed (docs/subsystems/watershed.md).
+   *
+   * One authored file, `water.yaml`, rather than dials scattered across
+   * weather / husbandry / conduit files, because the numbers only make
+   * sense read against each other: how hard it rains decides how much a
+   * bed gets, which decides how much a reach carries, which decides
+   * whether a right binds.
+   *
+   * ⚠ Every key here has a seeded literal at its call site, so the
+   * kernel behaves correctly with the `water` pack absent. A dial that
+   * only works when a pack is installed is a dial that fails silently.
+   */
+  /** Water — mm/h of liquid water a `rain` segment delivers. */
+  waterRainRateMmPerHour: "water.rate.rain",
+  /** Water — mm/h a `storm` segment delivers. */
+  waterStormRateMmPerHour: "water.rate.storm",
+  /** Water — mm/h water-equivalent a `snow` segment banks as pack. */
+  waterSnowRateMmPerHour: "water.rate.snow",
+
+  /** Water — fraction of precipitation that reaches a channel rather
+   * than evaporating or soaking away. The rest is not modelled: this
+   * build's non-goal is mass conservation at watershed scale — the sky
+   * supplies and the sea absorbs. */
+  waterRunoffCoefficient: "water.runoffCoefficient",
+  /** Water — the catchment's response window, in game-days. Flow is the
+   * MEAN precipitation over it, which is what gives a river a lagged,
+   * damped hydrograph instead of a channel that empties in a dry week. */
+  waterBaseflowWindowDays: "water.baseflowWindowDays",
+
+  /** Water — how far back the snowpack integral looks, in game-days. It
+   * has to see a whole winter to know what is sitting on the mountain,
+   * so this is deliberately far longer than the flow window. */
+  waterSnowWindowDays: "water.snow.windowDays",
+  /** Water — atmospheric lapse rate (K per kilometre of altitude). What
+   * makes ALTITUDE the thing that banks snow. */
+  waterSnowLapseRateKPerKm: "water.snow.lapseRateKPerKm",
+  /** Water — degree-day melt factor: mm of water-equivalent released
+   * per Kelvin above freezing per game-day. */
+  waterSnowMeltMmPerKPerDay: "water.snow.meltMmPerKPerDay",
+  /** Water — mean sea-level air temperature (K) in spring. */
+  waterSeasonMeanKSpring: "water.season.meanK.spring",
+  /** Water — mean sea-level air temperature (K) in summer. */
+  waterSeasonMeanKSummer: "water.season.meanK.summer",
+  /** Water — mean sea-level air temperature (K) in fall. */
+  waterSeasonMeanKFall: "water.season.meanK.fall",
+  /** Water — mean sea-level air temperature (K) in winter. */
+  waterSeasonMeanKWinter: "water.season.meanK.winter",
+
+  /** Water — flow (m³/s) at or above which a reach carries a boat. */
+  waterNavigableMinFlowM3S: "water.navigable.minFlowM3S",
+  /** Water — channel width (m) at or above which a reach carries a
+   * boat. BOTH conditions hold: a torrent through a gorge is not
+   * navigable, and neither is a wide trickle. */
+  waterNavigableMinWidthM: "water.navigable.minWidthM",
+
+  /** Water — pump efficiency (0..1): the fraction of the electrical
+   * draw that becomes lift. `ρ·g·Δh·Q / η` is the pump's bill, and it
+   * is hydro generation's own equation read the other way. */
+  waterPumpEfficiency: "water.pumpEfficiency",
+  /** Water — turbine efficiency (0..1) for `ρ·g·Δh·Q` at a control. */
+  waterTurbineEfficiency: "water.turbineEfficiency",
+  /** Water — the temperature (K) at or below which a line reads
+   * `frozen`. Its own key rather than a shared freezing point, because
+   * a buried main survives an air temperature a puddle does not. */
+  waterFreezeK: "water.freezeK",
+  /** Water — the arriving contaminant concentration at or above which a
+   * supply reads `fouled`. Measured AFTER the conduit's own treatment,
+   * so investing in treatment moves the threshold rather than the
+   * river. */
+  waterFouledAt: "water.fouledAt",
 } as const;
 
 export type AppSettingKey =

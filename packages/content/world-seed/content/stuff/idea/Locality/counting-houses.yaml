@@ -9,4 +9,10 @@ class: /platform/idea/Locality
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: The Counting-Houses
-  _address: counting-houses
+  _address: terminus/city/counting-houses
+  # ── the watershed (D21) ───────────────────────────────────────────
+  # The city drinks at the confluence — downstream of the mining town AND the
+  # farming valley, which is the whole of its water politics.
+  _reach: kestrel:confluence
+  _catchmentKm2: 30
+

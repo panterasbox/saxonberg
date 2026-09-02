@@ -269,7 +269,7 @@ right per row is most of the civic design.
 |---|---|---|---|
 | roadmender | designed | on-shift capability | the turnpike trust (**wage**) |
 | linesman | designed ([power-utility](./slates/builds/power-utility-slate.md)) | competence | the utility (**wage**) |
-| **water / sewer worker** | **GAP** | competence | the utility (**wage**) |
+| **water / sewer worker** | **GAP — substrate now shipped** ([watershed.md](./subsystems/watershed.md)) | competence | the utility (**wage**) |
 | gatekeeper | designed | employment | the trust (**wage**) |
 | **scavenger** | designed ([sanitation](./slates/builds/sanitation-slate.md)) | **none — the entry-level vocation** | scrap buyers (**trade**) |
 | municipal collector | designed | licence | the locality (**treasury**) |

@@ -9,7 +9,7 @@
 #
 # `gradeBand: fair`: this is a trade manual, not a treasure. It should
 # be the cheapest book on the shelf and the one every working mage owns.
-class: /arcana/thing/Spellbook
+class: /system/arcana/thing/Spellbook
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a stitched trade manual

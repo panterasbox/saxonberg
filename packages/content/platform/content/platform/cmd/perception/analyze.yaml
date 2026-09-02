@@ -162,6 +162,40 @@ subcommands:
         default: "here"
         scope: ["reachable"]
         requires: ContainerMixin
+  water:
+    description: "Read the water where you stand — the reach, what is passing, how much is snowmelt, what is still lying as snow — or a waterworks' whole working"
+    help: |
+      Read the water. Bare, it reports the ground you are standing on:
+      the reach the place drains to, how many cubic metres a second are
+      passing there, how much of that is snowmelt coming off the
+      mountain, how much snow is still lying above you, and whether a
+      boat would get through.
+
+      Point it at a waterworks — an intake, an aqueduct, an outfall —
+      and it reports that instead: its two ends, its capacity, how many
+      metres of head it has in its favour, whether it runs on gravity or
+      on a pump and what the pump draws, and, if it is not delivering,
+      which of the six a supply can fail in it is in.
+
+      Ground that drains nowhere says so. That is a normal state of the
+      world, not an error.
+    examples:
+      - cmd: analyze water
+        note: Read the river the place you are standing drains to
+      - cmd: analyze water the city intake
+        note: Read a waterworks' head, capacity and state
+    controller: /platform/idea/cmd/perception/AnalyzeWaterController
+    args:
+      - name: target
+        type: object
+        required: false
+        scope: ["reachable"]
+        # `any`, deliberately: a waterworks is recognised by the SHAPE it
+        # answers (`supplyReport`), not by a mixin — the kernel does not
+        # import the water pack, so there is no mixin here to name. The
+        # controller refuses in its own words when the target carries no
+        # water anywhere.
+        requires: any
   weather:
     description: "Report the current weather type, per-field deviations, the covering Locality, and a short forecast"
     help: |

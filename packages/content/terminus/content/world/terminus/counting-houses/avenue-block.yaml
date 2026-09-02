@@ -20,7 +20,7 @@ data:
   primaryKeyword: row
   alternateNames: [avenue, block, street, downtown]
   _biomePath: /stuff/idea/biome/outdoor/baseline
-  _address: counting-houses/row
+  _address: terminus/city/counting-houses/row
   longDescription: |
     Down the avenue from the crossing the street changes character: the swept-and-empty passage gives way to a canyon of banking halls, close-set and grand, their stone fronts carved with the marks of the five great corpo houses. This is the Counting-Houses, where Terminus keeps its money. Grey slab façades stand shoulder to shoulder — a Hollis branch loud with a painted FREE! and a jingle leaking from its doors, the hushed gold-on-black frontage of a Vionne private bank with no price in the window and no welcome either, an aevex terminal lobby all glass and no human behind it, a Veshko house like a bunker with nothing on its front but its name. And set among the grey slabs, one frontage in warm sunrise stone with its doors propped open and a mascot in the window: Goodkin, west. Across the row, south, a roller door stands half up over a cold hall of racked cases — the cash-and-carry, where the district's bartenders come to buy. Between two bank fronts a quieter turning slips away toward Mayfield Row, where the district's clerks walk home.
   coords:

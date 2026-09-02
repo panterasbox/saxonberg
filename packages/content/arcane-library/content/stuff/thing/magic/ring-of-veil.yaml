@@ -1,6 +1,6 @@
 # A ring of veil — the worn-host exemplar (capability packs D5).
 #
-# `class: /arcana/thing/Ring`: Wand's composition with Wearable, so it
+# `class: /system/arcana/thing/Ring`: Wand's composition with Wearable, so it
 # claims a finger rather than a hand. `alwaysOn: true` is what makes it
 # a ring rather than a wand you wear: worn, it discharges `veil` as a
 # sustained Condition on the wearer (a disguise every OTHER eye sees) and
@@ -11,7 +11,7 @@
 # Cursed (blessingOdds) it will not come off, and keeps drawing; the
 # veil's cursed branch is a figure every eye is DRAWN to. `remove curse`
 # is the recourse.
-class: /arcana/thing/Ring
+class: /system/arcana/thing/Ring
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a thin silver ring

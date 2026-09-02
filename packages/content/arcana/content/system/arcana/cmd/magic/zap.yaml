@@ -1,0 +1,33 @@
+verbs: [zap]
+controller: /system/arcana/idea/cmd/magic/ZapController
+description: "Fire the working bound into a charged item"
+help: |
+  Point a charged item and let it go. What fires is whatever was
+  bound into it at manufacture — you are spending the maker's
+  stored labour, not your own competence, which is why a wand can
+  do a working you could never cast.
+
+  Every wand affords `zap`, and only `zap`. There is no separate
+  verb for a fire wand and a lightning wand: if there were, the
+  verb list would tell you what you were holding.
+
+  A flat wand still answers to `zap` for the same reason — it just
+  clicks. If it went quiet in your affordance list when it ran dry,
+  the list would be a free charge meter, and reading a charge is
+  supposed to need an instrument.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: item
+    type: object
+    required: true
+    scope: "reachable"
+    requires: [VisibleMixin, ChargedMixin]
+  - name: target
+    type: object
+    required: false
+    scope: "reachable"
+    prepositions: [at, on]
+    requires: any

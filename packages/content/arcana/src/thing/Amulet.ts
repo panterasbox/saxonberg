@@ -5,7 +5,7 @@
  * — see Ring.ts for the wear wiring, which is `Charged`'s and not
  * either class's.
  *
- * Ships in the arcana pack (`/arcana/thing/Amulet`); the exemplar row
+ * Ships in the arcana pack (`/system/arcana/thing/Amulet`); the exemplar row
  * is the arcane library's `amulet-of-glowlight`.
  */
 

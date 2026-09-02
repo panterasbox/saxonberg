@@ -18,7 +18,7 @@ their own packs.
 | `idea/LotGateExit` | the deferred gate off the street into one lot |
 
 Moved from `mud/platform/idea/` in the residences build (wave 0), class
-paths repointed `/platform/idea/…` → `/residence/idea/…`; every citing
+paths repointed `/platform/idea/…` → `/system/residence/idea/…`; every citing
 row moved in the same cut (DB drop, no migration).
 
 See `docs/subsystems/content-packs.md` § The capability rung,

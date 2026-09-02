@@ -30,7 +30,7 @@ data:
     # The kit is what makes the `maintains` round below possible AT ALL
     # — take it off her and the dorm weathers. An owner-authored loadout,
     # exactly like the master ring: never a self-issued power.
-    - /residence/thing/householders-kit
+    - /system/residence/thing/householders-kit
     # ⚠⚠ The master ring is a KEY, and it was on the `cast:` list.
     # `props:`/`cast:` is a DECLARED DESIGNATION with a `Behaved` gate in
     # both directions, so a key under `cast:` throws at hydrate — and

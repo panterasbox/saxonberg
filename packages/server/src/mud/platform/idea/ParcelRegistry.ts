@@ -330,11 +330,30 @@ export default class ParcelRegistry extends ParcelRegistryBase {
     record.owner = claim.holder;
     record.parentParcel = claim.parentParcel ?? null;
     record.setLandUse(claim.landUse ?? null);
+    record.setReach(claim.reach ?? "");
     record.area = typeof claim.areaM2 === "number" ? claim.areaM2 : 0;
     await record.save();
     await this.appendEvent("grant", claim.extent, null, claim.holder);
     this.reindex(claim.extent, record);
     return { outcome: "granted", holder: claim.holder };
+  }
+
+  /** See {@link ParcelApi.citeReach}. */
+  @CallSecurity(ParcelApiCallers)
+  public async citeReach(
+    extent: string,
+    reach: string,
+  ): Promise<ParcelRecord | null> {
+    SecurityApi.assertFieldMutation(this, 'citeReach');
+    let record = this.coverage.exact(extent)[0] ?? null;
+    if (!record) {
+      record = await ParcelRecord.findByExtent(extent);
+      if (!record) return null;
+      this.reindex(extent, record);
+    }
+    record.setReach(reach);
+    await record.save();
+    return record;
   }
 
   /** The shape checks `ParcelSeeder` used to run, now at the seam. */

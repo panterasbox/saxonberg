@@ -37,10 +37,10 @@ describe('arcana — the worn hosts', () => {
     expect(MixinApi.isWearable(wand)).toBe(false);
   });
 
-  it('the pack\'s classes are stamped with their /arcana module ids (the loader reaches the pack src/)', () => {
-    expect(ModuleApi.lookup(Ring)).toBe('/arcana/thing/Ring');
-    expect(ModuleApi.lookup(Wand)).toBe('/arcana/thing/Wand');
-    expect(StuffApi.resolveClassFile('/arcana/thing/Ring').origin).toMatchObject({ root: '/arcana' });
+  it('the pack\'s classes are stamped with their /system/arcana module ids (the loader reaches the pack src/)', () => {
+    expect(ModuleApi.lookup(Ring)).toBe('/system/arcana/thing/Ring');
+    expect(ModuleApi.lookup(Wand)).toBe('/system/arcana/thing/Wand');
+    expect(StuffApi.resolveClassFile('/system/arcana/thing/Ring').origin).toMatchObject({ root: '/system/arcana' });
   });
 });
 

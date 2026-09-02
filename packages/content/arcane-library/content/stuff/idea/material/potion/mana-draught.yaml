@@ -12,7 +12,7 @@
 # No `carriedSpellPath` and no `adjust-reserve: mana` — a positive
 # adjust-reserve on mana is refused at authoring (the catalogue drops
 # the row), so no effect anywhere can add mana without paying for it.
-class: /arcana/idea/material/PotionMaterial
+class: /system/arcana/idea/material/PotionMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: mana draught

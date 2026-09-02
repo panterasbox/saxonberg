@@ -225,6 +225,10 @@ deviationFor(locality, field, timeS): Quantity<WeatherFieldUnit>
 forecastFor(scope, segments?): Promise<WeatherForecast>
 sampleFor(scope): Promise<WeatherSample>
 
+// the precipitation integral (water build) — EXACT, not sampled
+precipitationBetween(t0, t1, locality): PrecipitationIntegral
+segmentsBetween(t0, t1, locality): WeatherSegment[]   // the general form
+
 // activation / boundary
 isActive(): boolean                       // non-creating presence check
 nextBoundaryAfter(timeS): Quantity<'s'>   // boot arms the schedule with this
@@ -238,6 +242,40 @@ cloudFormFor(current, upcoming): CloudForm // pure genus derivation
 onStormTick(): void                       // the weather:strike schedule callback
 strikeIntervalSeconds(): number           // boot arms the strike schedule with this
 ```
+
+⭐ **`precipitationBetween` is a sum, not a sample, and that is the whole
+point** (water build). Weather is already a pure function of time, so a
+window can be *integrated* rather than polled: the walk visits each
+whole weather segment the window covers, prorates the two partial
+segments at the ends, and multiplies each segment's type by
+`PRECIPITATION_RATES_MM_PER_HOUR` (rain 0.3, storm 1.2, snow 0.25). It
+returns a `PrecipitationIntegral` of `{liquid, frozen, coveredS}` — the
+liquid/frozen split is what lets snow accumulate rather than soak in.
+
+Two consumers, one definition, and neither is in it: a **soil bed**
+multiplies the millimetres by its own area, a **river reach** by its
+catchment area. Replay any window and you get the same answer to the last
+millimetre, which is what lets a place that has not been read for a
+season integrate the whole absence on its first read back. The walk is
+capped at `PRECIPITATION_MAX_SEGMENTS` (120) so an unbounded gap costs
+bounded work; when the cap bites it walks the window's **tail** and says
+so in `coveredS`, which is never silently zero — an inverted or empty
+window reports `0` covered beside zero quantities, and that is a
+different statement from *"it did not rain"*.
+
+`segmentsBetween` is the same walk without the summing, for a consumer
+that needs more than millimetres: the watershed builds its **snowpack**
+on it, because whether snow accumulates or melts depends on the segment's
+season and the catchment's altitude through a lapse rate and a degree-day
+model. ⭐ Weather answers *what the weather was, segment by segment*;
+what that does to a snowfield is hydrology's model, not weather's.
+
+⚠ **The segment boundary is exclusive by arithmetic, not by epsilon.**
+The obvious `segmentIndexAt(t1S - Number.EPSILON)` does *not* exclude a
+`t1` that lands exactly on a boundary — at real game-times
+`t1 - EPSILON === t1` — so the walk gained a zero-width segment: invisible
+in the sum, off-by-one against the cap. The last index is
+`Math.ceil(t1S / L) - 1`.
 
 The three-tier shape mirrors biome/address: `WeatherApi` (thin) →
 `WeatherLogic` (`/platform/idea/api/weather`, stateless, gated
