@@ -1613,9 +1613,10 @@ driven headlessly over the WebSocket through the test-auth seam. The
 client surface is covered by its own suite; what needed driving was the
 WORLD, and a browser would only have added latency to that.
 
-⭐ **The drive's whole value was in what would not start.** Everything
-below is a defect the suites could not have caught, because a unit test
-builds the fixture it needs and a boot builds everything.
+⭐ **The drive's whole value was in what would not start, and then in
+what started and did nothing.** Twelve defects, none of which a suite
+could have caught: a unit test builds the fixture it needs, and a boot
+builds everything.
 
 ### Defects found, and every one of them fixed here
 
@@ -1637,13 +1638,17 @@ reads. Residences moved three trade floors onto
 `SingletonCartesianLocation` — and the inert blocks became LIVE, in
 directories no zone covers. Nothing notices until a boot.
 
-**Three were this build's own:**
+**Seven were this build's own**, and each taught something:
 
 | # | Defect | What it taught |
 |---|---|---|
 | 6 | the pit pony under `cast:` with no brain | ⭐ **`cast:` means things with a brain.** The shipped `HaulingCreature` composes no `BehavedMixin`, so the room would not stand up and the player could not log in. Fixed by letting the pony behave (`PitPony = BehavedMixin(HaulingCreature)`) rather than demoting a living creature to `props:`. |
 | 7 | the provisioning room propped the GOODS as well as the counter | A `Stock` prices what IT holds, so `buy pick` found the room's copy, found no offer, and said *"a miner's pick isn't for sale"* — true, and useless. |
 | 8 | the counter used `offers:` (a list) instead of `prices:` (a map) | A shop with stock and no prices. Every `buy` declined with the same sentence, which is why 7 and 8 read identically and had to be peeled apart one boot at a time. |
+| 9 | the acts were not afforded, AND the authored galleries were not workings | ⚠⚠ Two halves of one hole, in the room whose entire job is teaching `hew` and `shore`. A row's `commandContributions:` is dead silently — the affordance is a STATIC ON A CLASS. And nothing composed `WorkingMixin` over a singleton base, so **the P18 claim was false for a wave and no unit test noticed**, because every fixture reached for the minted class. Hence `AuthoredWorking`. |
+| 10 | `deposit:` on a plain `CartesianZone` was silently discarded | ⚠⚠ **A pack cannot add a field to a kernel class** — `fieldMeta` is what the hydrator reflects through. `facesOf()` returned nothing and `hew` blamed the player's direction, in a room whose own prose says there is green in the face. Hence `MineZone`. |
+| 11 | nothing warmed the `Deposit` row | ⚠⚠ The reference-Idea trap, for the **fourth** time in this codebase: `findByTemplatePath` reads `null` forever because nothing instantiates the singleton. Fixed with get-or-create at the point of use, never a boot list. |
+| 12 | an engaged completion called `this.<method>` | ⚠⚠ **The controller is EPHEMERAL and the engagement is not.** `[inert] win() called on destroyed Stuff` — the swing landed, the prose printed, and no ore appeared. ⭐ It also killed the vertical pair's hook: *a subclass that has to be consulted AFTER the act is a subclass that cannot be consulted at all.* |
 
 ### Three gates, so none of these can recur quietly
 
@@ -1661,15 +1666,34 @@ so; composition is the runtime's check, and the runtime's check is loud.
 
 ### What the drive confirmed working
 
-The pithead stands up and reads; the outcrop is a detail you can look at
-before you own an instrument; `measure strike` with no instrument refuses
-and **names the instrument**; movement between the five surface rooms;
-the storekeeper, the counter and the stocked tool wall.
+- The pithead stands up and reads; the outcrop is a detail you can look
+  at before you own an instrument; movement between the five surface
+  rooms.
+- ⚠ `measure strike` with no instrument refuses and **names the
+  instrument** — a refusal a player can act on.
+- The provisioning counter stocks itself to par and reads
+  *pick (26) · bar (14) · shovel (12) · timber (6) · compass (60) ·
+  glowcap-jar (4)*; `buy` declines honestly when you cannot cover it.
+  ⓘ A `withCharacter` test character has no bank account — a harness
+  fact, not a venue one, and the general store answers identically.
+- The drift is **inhabited**: *a hewer on tutwork, a canary in a wicker
+  cage, and a stocky pit pony*.
+- ⭐ **The canary sings.** *"sings, steady and bright, and turns its head
+  at nothing"* — the air read and the brain both fire, unwatched.
+- `shore` sets timber: *"You wrestle a set of mine timber into place
+  under the back."*
+- ⭐⭐ **`hew` reads the ground.** `hew west` → *"That way is already
+  driven — there is no face there, only a way on."*; `hew south` →
+  *"Nothing but country rock that way — you can drive it, but there is
+  no ore in it."*; `hew north` → *"You set the pick to the north face and
+  start cutting."*; and bare `hew` picks the richest face on its own.
+  Three different refusals, each naming a different true fact about the
+  rock.
 
 ### What is left for the next session at the keyboard
 
-The rest of the leg — buy, three bearings, `analyze ground` and the card,
-descend, `drive`, `shore`, `hew`, `consign`, burn, smelt — is scripted in
+The rest of the leg — three bearings, `analyze ground` and the card,
+`consign`, the burn, the smelt — is scripted in
 `e2e/tests/drive-metal-chain.spec.ts` and wants a browser and a
 compressed clock (`world_state` scale ~6000×; above ~10000× the
 schedulers starve the event loop — build-3's measured finding). The
