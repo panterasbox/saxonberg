@@ -30,4 +30,4 @@ data:
   banksAt: goodkin
   operatingLocations:
     - /trade/distilling/thing/counter
-    - /trade/distilling/location/cash-and-carry
+    - /world/terminus/counting-houses/cash-and-carry

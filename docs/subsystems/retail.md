@@ -110,7 +110,8 @@ shelf would drop it).
 
 The bar buys from a **distributor**, never from a `props:` line.
 `trade-distilling` ships the cash-and-carry
-(`/trade/distilling/location/cash-and-carry`, a `FurnishableRoom`;
+(`/world/terminus/counting-houses/cash-and-carry` — the ROOM is the
+locality's, everything in it the trade's;
 `thing/counter` a `Stock` with no lines, `serverPositionKeys: [clerk]`;
 `idea/business` with `clerk` and `keeper` (`purchases: true`)). Everything
 on the counter is **consigned by an authored consignor**: every producer

@@ -18,6 +18,11 @@ description: >-
   the distilling PROCESS; the corpo pack supplies the capital and the
   mark, and each yard's `parentOrganization` points up at it. The trade
   names nobody downstream; the stub trades name the counter.
+  ⚠ The cash-and-carry ROOM moved to the `terminus` pack — a showroom on
+  the Counting-Houses avenue is a PLACE, and trade is mechanism while
+  locality is expression. Everything IN it is still the trade's: the
+  racking, the counter, the clerk and the spirits are all
+  `/trade/distilling/...` rows that room merely places.
 requires:
   groups:
     - name: distilling
@@ -29,7 +34,6 @@ boot:
   # The producers' floors: nothing else ever instantiates a producer's yard, and
   # the hands that run the consigns brain must be resident for the beat to
   # fire (a room populates its cast).
-  - { template: /trade/distilling/location/cash-and-carry, role: producer, reason: "the distributor's counter must be resident for the annexes' hands to consign onto it and for the boot spawn sweep to have a census" }
   - { template: /trade/distilling/location/crowsfoot-floor, role: producer, reason: "the Crowsfoot outfit's yard — same shape as the floor's, one small-batch label" }
   - { template: /trade/distilling/location/veshko-yard/location/distillery, role: producer, reason: "Veshko's yard — its Stock is the home container the Volk and unbranded rows spawn into (the zone's stocks: sets the counts), and its hand runs the consigns brain" }
   - { template: /trade/distilling/location/hollis-floor, role: producer, reason: "Hollis's bottling floor — its Stock is the home container the private-label rows spawn into, and its hand runs the consigns brain" }

@@ -34,7 +34,7 @@ import { Zone } from '../Zone';
 import { SpatialZone } from '../SpatialZone';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
-import type { AnyConstructor } from '../../mixin';
+import type { AnyConstructor } from '../../../api/mixin';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const CONTENT = join(HERE, '..', '..', '..', '..', '..', '..', 'content');

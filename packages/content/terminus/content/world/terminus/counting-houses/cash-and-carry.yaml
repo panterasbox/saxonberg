@@ -1,0 +1,50 @@
+# The cash-and-carry — the distributor's showroom, where every venue buys
+# its rail. A `warehouse` instance (the racking) plus the counter and the
+# clerk. Trade-facing: a keeper walks in, `wallet use house`, `buy gin` —
+# the good is stamped to the house and the consignor's account rises.
+#
+# ⭐⭐ **It lives in TERMINUS, not in the distilling trade, because it is
+# a PLACE.** A roller door on the Counting-Houses avenue, one cell south
+# of the block, described in that block's own prose — *"Across the row,
+# south, a roller door stands half up over a cold hall of racked cases"*.
+# Trade is mechanism and locality is expression; a showroom on a named
+# street is expression. The trade still owns everything IN it — the
+# racking, the counter, the clerk and the spirits are all
+# `/trade/distilling/...` rows this room merely places.
+#
+# ⚠⚠ **And it authors `coords`, which is the whole point of the move.**
+# `coords:` is not decoration — `setCoords` is the ONLY way an authored
+# row joins a zone, so a cartesian room without it is not at the origin,
+# it is in no grid at all and silently inherits nothing: no address, no
+# locality, no atmosphere override, no celestial profile, no `stocks`.
+# This row previously sat at `/trade/distilling/location/`, where no zone
+# covers anything, so its `coords: {0,0,0}` threw at boot and the block
+# was deleted to get the server up. That was the wrong direction: the
+# room needed a grid, not less position.
+#
+# South of the avenue block at `(0,-1,0)` in The Counting-Houses, which
+# also makes the cardinal exit pair honest — `CartesianLocation.addExit`
+# wants cardinal exits INTRA-zone, and until now one end of this door was
+# in no zone at all.
+class: /platform/location/SingletonCartesianLocation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  coords:
+    x: 0
+    y: -1
+    z: 0
+  shortDescription: the cash-and-carry
+  primaryKeyword: cash-and-carry
+  keywords: [cash-and-carry, distributor, warehouse, showroom]
+  longDescription: |
+    A high, cold hall that smells of sawdust and spilled spirit. Steel racking climbs the walls, cased and chalk-numbered; a long counter runs under a board of consignors' asks, and beyond a roller door somebody's dray is always half-unloaded. Nothing here is for the thirsty — it is where the thirsty's bartender comes.
+  ambientIntensity: 30
+  ambientColorTemperature: 4200
+  exits:
+    north:
+      destination: /world/terminus/counting-houses/avenue-block
+  props:
+    - /trade/distilling/thing/racking
+    - /trade/distilling/thing/counter
+  cast:
+    - /trade/distilling/agent/clerk
