@@ -236,6 +236,11 @@ describe('the venue itself', () => {
   it('⭐ the region zone carries the deposit, so the SURFACE can be surveyed', () => {
     const region = row('content/world/rejection.yaml');
     expect(region.data!.deposit).toBe('/world/rejection/idea/deposit/ferrow');
+    // ⚠⚠ …and it is a `MineZone`, because **a pack cannot add a field to
+    // a kernel class**: `fieldMeta` is what the hydrator reflects
+    // through, so `deposit:` on a plain `CartesianZone` is SILENTLY
+    // DISCARDED. The trade ships the class; the venue authors the row.
+    expect(region.class).toBe('/trade/mining/idea/MineZone');
     // ⚠ It is on the REGION and not on the mine: `lookupField` walks
     // outward, so the pithead inherits it and `measure strike` works
     // standing in the yard. A deposit declared only on the mine zone
@@ -286,11 +291,14 @@ describe('the venue itself', () => {
       (row(rel).class ?? '').includes('/location/SphericalZone'),
     );
     expect(zones.sort()).toEqual([
-      'content/world/rejection.yaml',
       'content/world/rejection/ferrow.yaml',
       'content/world/rejection/hush.yaml',
       'content/world/rejection/location.yaml',
     ]);
+    // …plus the region, which is the trade's `MineZone` — a zone all the
+    // same, and the reason it is listed apart is that it carries the
+    // deposit the other two inherit.
+    expect(row('content/world/rejection.yaml').class).toBe('/trade/mining/idea/MineZone');
   });
 
   it('⭐ FOUR businesses, and the smelter buys out of REVENUE — no new money anywhere', () => {

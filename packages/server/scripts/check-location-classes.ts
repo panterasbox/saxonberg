@@ -36,16 +36,138 @@
 import { readFileSync, readdirSync, statSync, existsSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
+import { classFileOf, packSources } from "./pack-roots";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const CONTENT = join(HERE, "..", "..", "content");
 
 const FURNISHABLE = "/platform/location/FurnishableRoom";
 const MINTED = "/platform/location/CartesianLocation";
-const ZONES = [
+/** The kernel's own spatial-zone classes — the roots of the walk below. */
+const ZONE_ROOTS = [
   "/platform/idea/location/CartesianZone",
   "/platform/idea/location/SphericalZone",
 ];
+
+/**
+ * ⚠⚠ **Which classes are ZONES is DERIVED, never listed.**
+ *
+ * A pack ships zone classes of its own — `trade-mining`'s `MineZone`
+ * carries the `deposit:` field, because **a pack cannot add a field to a
+ * kernel class** and `fieldMeta` is what the hydrator reflects through.
+ * An enumerated list here would have quietly stopped seeing that zone:
+ * the orphan check, the unzoned-coords check and the named-door check
+ * would all have skipped it, and each of those exists because a missing
+ * zone is a boot error.
+ *
+ * "A pack must never require a kernel list edit" is the rule, and this is
+ * what honouring it looks like in a gate: resolve the class file (the
+ * pack's `src/` when the path is under a pack root, else the kernel
+ * tree), read what it extends, and walk. Bounded, and the answer is a
+ * fact about the code rather than a fact about this file.
+ */
+/**
+ * The kernel's cartesian-room classes. A pack's own room class —
+ * `trade-mining`'s `AuthoredWorking` and `MineRoom` — extends one of
+ * these, and the same derivation finds them: a check that matched on the
+ * NAME `CartesianLocation` skipped every pack room silently, which is
+ * how a gate becomes a gate-shaped comment.
+ */
+const CARTESIAN_ROOTS = [
+  "/platform/location/CartesianLocation",
+  "/platform/location/SingletonCartesianLocation",
+  "/platform/location/PersistentCartesianLocation",
+  "/platform/location/FurnishableRoom",
+  "/lib/location/CartesianLocation",
+];
+
+const ancestryCache = new Map<string, boolean>();
+
+/**
+ * Does `classPath` extend — transitively, and THROUGH MIXIN CALLS — any
+ * of `roots`?
+ *
+ * ⚠⚠ The mixin call is the whole difficulty and the reason a naive
+ * `extends (\w+)` is useless here: a room class is
+ * `class AuthoredWorking extends WorkingMixin(SingletonCartesianLocation)`,
+ * and the first identifier after `extends` is the MIXIN. Reading it as
+ * the base made every pack room invisible to these checks — a gate that
+ * never fires reads exactly like a gate that passes.
+ *
+ * So every identifier in the extends clause is a candidate, and each is
+ * resolved through its own import. `A(B(C))` answers on `C`.
+ */
+function extendsAny(classPath: string, roots: readonly string[], depth = 0): boolean {
+  if (roots.includes(classPath)) return true;
+  if (depth > 6) return false;
+  const key = roots.join("|") + "  " + classPath;
+  const cached = ancestryCache.get(key);
+  if (cached !== undefined) return cached;
+  ancestryCache.set(key, false); // cycle guard
+  let src: string;
+  try {
+    src = readFileSync(classFileOf(classPath, packSources()), "utf8");
+  } catch {
+    return false;
+  }
+  // The LAST `class X extends …` wins: a module that builds a stack into
+  // a `const Base` and then exports `class X extends Base` names the
+  // composition, and the export is what a row resolves to.
+  const clauses = [...src.matchAll(/class\s+\w+\s+extends\s+([^{]+?)\s*\{/g)];
+  const clause = clauses[clauses.length - 1]?.[1];
+  const consts = [...src.matchAll(/const\s+(\w+)\s*=\s*([^;]+);/g)];
+  const candidates: string[] = [];
+  const collect = (text: string, seen = new Set<string>()): void => {
+    for (const id of text.match(/[A-Za-z_$][\w$]*/g) ?? []) {
+      if (seen.has(id)) continue;
+      seen.add(id);
+      candidates.push(id);
+      // A local `const Base = Mixin(Real)` is one more hop to unwrap.
+      const local = consts.find((c) => c[1] === id);
+      if (local) collect(local[2]!, seen);
+    }
+  };
+  if (clause) collect(clause);
+  for (const name of candidates) {
+    const imp = new RegExp(
+      `import\\s+(?:type\\s+)?(?:${name}\\b|\\{[^}]*\\b${name}\\b[^}]*\\})[^;]*?from\\s+['"]([^'"]+)['"]`,
+    ).exec(src);
+    if (!imp) continue;
+    const spec = imp[1]!;
+    const asMudPath = spec.startsWith("@saxonberg/server/mud/")
+      ? "/" + spec.slice("@saxonberg/server/mud/".length)
+      : spec.startsWith(".")
+        ? classPath.slice(0, classPath.lastIndexOf("/")) + "/" + spec
+        : null;
+    if (asMudPath === null) continue;
+    if (extendsAny(normalizePath(asMudPath), roots, depth + 1)) {
+      ancestryCache.set(key, true);
+      return true;
+    }
+  }
+  return false;
+}
+
+/** A spatial zone — kernel or a pack's own. */
+function isZoneClass(classPath: string): boolean {
+  return extendsAny(classPath, ZONE_ROOTS);
+}
+
+/** A cartesian room — kernel or a pack's own. */
+function isCartesianClass(classPath: string): boolean {
+  return extendsAny(classPath, CARTESIAN_ROOTS);
+}
+
+/** Collapse `a/b/../c` and a trailing `./`. */
+function normalizePath(p: string): string {
+  const out: string[] = [];
+  for (const seg of p.split("/")) {
+    if (seg === "" || seg === ".") continue;
+    if (seg === "..") out.pop();
+    else out.push(seg);
+  }
+  return "/" + out.join("/");
+}
 
 /**
  * Every row on the PERMISSIVE `CartesianLocation` — a row that describes
@@ -126,13 +248,18 @@ export function shippedRows(contentDir: string = CONTENT): Row[] {
         const text = readFileSync(full, "utf8");
         const m = /^class:\s*(\S+)\s*$/m.exec(text);
         if (!m) continue;
+        // ⚠ Matched over the WHOLE file rather than a sliced `exits:`
+        // block. A block regex has to say where the block ENDS, and JS
+        // has no `\Z` — so a lookahead for the next top-level key
+        // silently dropped every exit set that was the LAST field in its
+        // row. `hush-mouth` parsed as having no exits at all, which is
+        // exactly the row whose cross-zone pair this gate exists to
+        // check. The shape below (four-space key, `destination:` on the
+        // next line) is unambiguous on its own.
         const exits: Array<[string, string]> = [];
-        const block = /^  exits:\s*$([\s\S]*?)(?=^  \S|\Z)/m.exec(text);
-        if (block) {
-          const re = /^    ([A-Za-z0-9_-]+):\s*$\s*\n\s*destination:\s*(\S+)\s*$/gm;
-          let hit: RegExpExecArray | null;
-          while ((hit = re.exec(block[1]!)) !== null) exits.push([hit[1]!, hit[2]!]);
-        }
+        const re = /^ {4}([A-Za-z0-9_-]+):[^\S\n]*\n[^\S\n]+destination:[^\S\n]*(\S+)/gm;
+        let hit: RegExpExecArray | null;
+        while ((hit = re.exec(text)) !== null) exits.push([hit[1]!, hit[2]!]);
         out.push({
           file: full.slice(contentDir.length + 1),
           cls: m[1]!,
@@ -216,7 +343,7 @@ export function orphanedZones(rows: readonly Row[], files: readonly string[]): s
     if (d) dirs.add(d);
   }
   return rows
-    .filter((r) => ZONES.includes(r.cls))
+    .filter((r) => isZoneClass(r.cls))
     .map((r) => r.file.replace(/\.yaml$/, ""))
     .filter((stem) => !dirs.has(stem))
     .sort();
@@ -248,10 +375,10 @@ export function orphanedZones(rows: readonly Row[], files: readonly string[]): s
  */
 export function unzonedCoords(rows: readonly Row[]): string[] {
   const zones = new Set(
-    rows.filter((r) => ZONES.includes(r.cls)).map((r) => stemOf(r.file)),
+    rows.filter((r) => isZoneClass(r.cls)).map((r) => stemOf(r.file)),
   );
   return rows
-    .filter((r) => r.cls.includes("CartesianLocation") && r.coords)
+    .filter((r) => isCartesianClass(r.cls) && r.coords)
     .filter((r) => !ancestorsOf(stemOf(r.file)).some((a) => zones.has(a)))
     .map((r) => r.file)
     .sort();
@@ -274,22 +401,27 @@ export function unzonedCoords(rows: readonly Row[]): string[] {
  * as a compass point it does not mean.
  */
 export function sameZoneNamedExits(rows: readonly Row[]): string[] {
+  // ⚠ Zones keyed by TEMPLATE path, not by the pack-relative file stem —
+  // the two differ by the `<pack>/content` prefix, and comparing one
+  // against the other made this check answer "no zone anywhere" for
+  // every row in the repo. A gate that never fires reads exactly like a
+  // gate that passes.
   const zones = new Set(
-    rows.filter((r) => ZONES.includes(r.cls)).map((r) => stemOf(r.file)),
+    rows.filter((r) => isZoneClass(r.cls)).map((r) => templatePathOf(r.file)),
   );
   const byPath = new Map<string, Row>();
   for (const r of rows) byPath.set(templatePathOf(r.file), r);
   const zoneOf = (templatePath: string): string | null =>
-    ancestorsOf(templatePath).find((a) => zones.has(a.slice(1))) ?? null;
+    ancestorsOf(templatePath).find((a) => zones.has(a)) ?? null;
   const out: string[] = [];
   for (const r of rows) {
-    if (!r.cls.includes("CartesianLocation")) continue;
+    if (!isCartesianClass(r.cls)) continue;
     const here = zoneOf(templatePathOf(r.file));
     if (here === null) continue;
     for (const [dir, dest] of r.exits) {
       if (CARDINALS.has(dir)) continue;
       const target = byPath.get(dest);
-      if (!target || !target.cls.includes("CartesianLocation")) continue;
+      if (!target || !isCartesianClass(target.cls)) continue;
       if (zoneOf(dest) === here) {
         out.push(`${r.file}  '${dir}' → ${dest}  (both in ${here})`);
       }

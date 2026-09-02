@@ -11,9 +11,16 @@
 # That inheritance is also what makes a second mine's zone pair a pure
 # content copy: two zones, one `deposit:` line on the parent, done.
 #
+# ⚠⚠ It is a `MineZone` and not a plain `CartesianZone`, and that is not
+# cosmetic: **a pack cannot add a field to a kernel class.** `fieldMeta`
+# is what the hydrator reflects through, so a `deposit:` on a plain zone
+# is SILENTLY DISCARDED — the zone comes up with no orebody, `facesOf()`
+# returns nothing, and `hew` says *"you can't cut that here"* in a room
+# with a seam running through the face. Found by driving.
+#
 # The name is the town's, and the town is named for what the ground did
 # to the people who came here first.
-class: /platform/idea/location/CartesianZone
+class: /trade/mining/idea/MineZone
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Rejection

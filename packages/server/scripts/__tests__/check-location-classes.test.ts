@@ -17,6 +17,8 @@ import {
   classify,
   classifyMinted,
   orphanedZones,
+  sameZoneNamedExits,
+  unzonedCoords,
   type Row,
 } from '../check-location-classes';
 
@@ -28,7 +30,12 @@ const SINGLETON = '/platform/location/SingletonCartesianLocation';
 const A_FURNISHED = 'generic-objects/content/stuff/location/room/bedroom.yaml';
 const A_MINTED = 'platform/content/platform/location/venue.yaml';
 
-const r = (file: string, cls: string): Row => ({ file, cls });
+const r = (file: string, cls: string): Row => ({
+  file,
+  cls,
+  coords: false,
+  exits: [],
+});
 
 describe('check-location-classes.classify (FurnishableRoom)', () => {
   it('a rostered row passes', () => {
@@ -131,5 +138,91 @@ describe('check-location-classes.orphanedZones', () => {
 
   it('ignores rows that are not zones', () => {
     expect(orphanedZones([r('p/x.yaml', ROOM)], ['p/x.yaml'])).toEqual([]);
+  });
+});
+
+/**
+ * ⭐⭐ The two gates the metal-chain drive added, and — more importantly —
+ * **the derivation underneath them.**
+ *
+ * ⚠⚠ Both checks shipped BROKEN in their first cut, in three separate
+ * ways, and every one of them failed the same direction: **silently
+ * passing.** A gate that never fires reads exactly like a gate that
+ * passes, which is why these tests assert that each one FIRES on a
+ * known-bad shape rather than only that a clean tree is clean.
+ *
+ *   1. the class filters matched on the NAME `CartesianLocation`, so
+ *      every pack room was invisible;
+ *   2. the extends walk read the first identifier after `extends`, which
+ *      for `class X extends WorkingMixin(Base)` is the MIXIN;
+ *   3. zones were keyed by pack-relative file stem and rooms by template
+ *      path — two path spaces that never meet, so the answer was always
+ *      "no zone anywhere".
+ */
+describe('the coords/named-door gates, and the ancestry they derive', () => {
+  const ZONE = { file: 'p/content/world/x.yaml', cls: '/platform/idea/location/CartesianZone', coords: false, exits: [] as Array<[string, string]> };
+
+  it('⚠ a cartesian row with coords and NO covering zone is caught', () => {
+    expect(
+      unzonedCoords([
+        { file: 'p/content/trade/t/location/floor.yaml', cls: '/platform/location/SingletonCartesianLocation', coords: true, exits: [] },
+      ]),
+    ).toEqual(['p/content/trade/t/location/floor.yaml']);
+  });
+
+  it('…and the same row IS fine once a zone covers it', () => {
+    expect(
+      unzonedCoords([
+        { file: 'p/content/trade/t/location.yaml', cls: '/platform/idea/location/CartesianZone', coords: false, exits: [] },
+        { file: 'p/content/trade/t/location/floor.yaml', cls: '/platform/location/SingletonCartesianLocation', coords: true, exits: [] },
+      ]),
+    ).toEqual([]);
+  });
+
+  it('⚠ a NON-CARDINAL exit between two rows one zone covers is caught', () => {
+    const rows = [
+      ZONE,
+      { file: 'p/content/world/x/a.yaml', cls: '/platform/location/SingletonCartesianLocation', coords: false, exits: [['out', '/world/x/b']] as Array<[string, string]> },
+      { file: 'p/content/world/x/b.yaml', cls: '/platform/location/SingletonCartesianLocation', coords: false, exits: [] as Array<[string, string]> },
+    ];
+    expect(sameZoneNamedExits(rows)).toHaveLength(1);
+    expect(sameZoneNamedExits(rows)[0]).toContain("'out'");
+  });
+
+  it('…and a CARDINAL one between the same two is fine', () => {
+    expect(
+      sameZoneNamedExits([
+        ZONE,
+        { file: 'p/content/world/x/a.yaml', cls: '/platform/location/SingletonCartesianLocation', coords: false, exits: [['north', '/world/x/b']] },
+        { file: 'p/content/world/x/b.yaml', cls: '/platform/location/SingletonCartesianLocation', coords: false, exits: [] },
+      ]),
+    ).toEqual([]);
+  });
+
+  it('⭐⭐ a PACK room class is seen — the derivation walks THROUGH the mixin call', () => {
+    // `AuthoredWorking extends WorkingMixin(SingletonCartesianLocation)`.
+    // Reading the first identifier after `extends` yields `WorkingMixin`
+    // and the row goes uninspected; every candidate in the clause has to
+    // be resolved.
+    const rows = [
+      ZONE,
+      { file: 'p/content/world/x/a.yaml', cls: '/trade/mining/location/AuthoredWorking', coords: false, exits: [['out', '/world/x/b']] as Array<[string, string]> },
+      { file: 'p/content/world/x/b.yaml', cls: '/trade/mining/location/MineRoom', coords: false, exits: [] as Array<[string, string]> },
+    ];
+    expect(sameZoneNamedExits(rows)).toHaveLength(1);
+  });
+
+  it("⭐⭐ a PACK zone class is seen too — a pack must never need a kernel list edit", () => {
+    // `trade-mining`'s `MineZone` carries the `deposit:` field, because a
+    // pack cannot add a field to a kernel class. An enumerated ZONES list
+    // would have stopped seeing it, and every check here would have gone
+    // quiet over the mine.
+    expect(
+      sameZoneNamedExits([
+        { file: 'p/content/world/x.yaml', cls: '/trade/mining/idea/MineZone', coords: false, exits: [] },
+        { file: 'p/content/world/x/a.yaml', cls: '/platform/location/SingletonCartesianLocation', coords: false, exits: [['out', '/world/x/b']] },
+        { file: 'p/content/world/x/b.yaml', cls: '/platform/location/SingletonCartesianLocation', coords: false, exits: [] },
+      ]),
+    ).toHaveLength(1);
   });
 });
