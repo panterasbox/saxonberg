@@ -170,19 +170,54 @@ describe('⭐ the copper faucet is closed', () => {
     ]);
   });
 
-  it('⚠ base-library’s bronze lie is RECORDED, not fixed — it wants tin, and tin is a later stage', () => {
+  it('⭐ bronze is copper AND TIN, and the fractions sum to one', () => {
     const bronze = YAML.parse(
       readFileSync(
         `${CONTENT}base-library/content/stuff/idea/material/alloy/bronze.yaml`,
         'utf8',
       ),
-    ) as { data: { composition: Array<{ fraction: number }> } };
-    const total = bronze.data.composition.reduce((a, c) => a + c.fraction, 0);
-    // 88% copper and 12% nothing. Fixing it needs a tin row and a tin
-    // ore, which is out of Stage A's scope; the shortfall is asserted so
-    // the next stage inherits a failing expectation rather than a
-    // forgotten note.
-    expect(total).toBeCloseTo(0.88, 6);
-    expect(total).toBeLessThan(1);
+    ) as { data: { tags: string[]; composition: Array<{ materialPath: string; fraction: number }> } };
+
+    /*
+     * ⚠⚠ It used to be 88% copper and 12% NOTHING — the tags said
+     * "tin" and the composition named only copper, so every read that
+     * walks composition (`analyze chemistry`, `containsElementOf`, the
+     * flat element map) was quietly wrong about what bronze is. The
+     * census now walks `composition[].materialPath`, so a blend naming a
+     * row that does not exist fails the build; this pins the arithmetic
+     * the census cannot see.
+     */
+    const byPath = Object.fromEntries(
+      bronze.data.composition.map((c) => [c.materialPath, c.fraction]),
+    );
+    expect(byPath['/stuff/idea/material/element/copper']).toBeCloseTo(0.88, 6);
+    expect(byPath['/stuff/idea/material/element/tin']).toBeCloseTo(0.12, 6);
+    expect(
+      bronze.data.composition.reduce((a, c) => a + c.fraction, 0),
+    ).toBeCloseTo(1, 6);
+    // …and the tags no longer promise an element the composition omits.
+    for (const tag of ['copper', 'tin']) expect(bronze.data.tags).toContain(tag);
+  });
+
+  it('⭐⭐ alloying is not averaging — bronze is harder than EITHER constituent', () => {
+    const read = (f: string): { hardness: number; meltingPoint?: number } =>
+      (YAML.parse(readFileSync(`${CONTENT}base-library/content/stuff/idea/material/${f}`, 'utf8')) as
+        { data: { hardness: number; meltingPoint?: number } }).data;
+    const bronze = read('alloy/bronze.yaml');
+    const tin = read('element/tin.yaml');
+
+    /*
+     * ⭐ The whole reason the metal chain ends in an alloy rather than a
+     * pure metal. Tin on its own is the softest thing in the library —
+     * you cannot make an edge out of it — and a twelfth part of it makes
+     * copper into the best tool metal there was for two thousand years.
+     * A player who reads the three rows can see that; nothing has to
+     * tell them.
+     */
+    expect(tin.hardness).toBeLessThan(bronze.hardness);
+    expect(tin.hardness).toBeLessThan(160); // softer than aluminium, too
+    // ⚠ And tin melts in a hearth (505 K), which is why it was worked
+    // long before anything smelted iron.
+    expect(tin.meltingPoint).toBeLessThan(1000);
   });
 });

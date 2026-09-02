@@ -19,7 +19,14 @@ data:
   nutrients: []
   toxicity: []
   tags: ["alloy", "metal", "copper", "tin"]
+  # ⭐ 88/12 copper–tin, and the fractions SUM TO ONE. It used to name
+  # copper alone and leave 12% as nothing, which made every read that
+  # walks composition — `analyze chemistry`, `containsElementOf` — quietly
+  # wrong about what bronze is. The alloy is the point of both elements:
+  # the mixture (hardness 250) is harder than copper and far harder than
+  # tin (30). Alloying is not averaging.
   composition:
     - { materialPath: /stuff/idea/material/element/copper, fraction: 0.88 }
+    - { materialPath: /stuff/idea/material/element/tin, fraction: 0.12 }
   chemistry: null
   biologicalSource: null

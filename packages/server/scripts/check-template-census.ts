@@ -132,6 +132,23 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
       }
     }
   }
+  /*
+   * ⚠⚠ `composition[].materialPath` — the same gap as `props:`/`cast:`
+   * above, found the same way. A blend names its constituents by
+   * template path and NOTHING checked that they resolve, so `bronze`
+   * could name a tin row that did not exist (it named none at all, and
+   * silently summed to 0.88). Every read that walks composition —
+   * `analyze chemistry`, `containsElementOf`, the flat element map —
+   * would have been quietly wrong about what the material IS.
+   */
+  const composition = data.composition;
+  if (Array.isArray(composition)) {
+    for (const part of composition) {
+      if (part && typeof part === 'object') {
+        push('composition.materialPath', (part as Record<string, unknown>).materialPath);
+      }
+    }
+  }
   const exits = data.exits;
   if (exits && typeof exits === 'object') {
     for (const [dir, spec] of Object.entries(exits as Record<string, unknown>)) {

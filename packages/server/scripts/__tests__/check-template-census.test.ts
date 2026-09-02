@@ -71,6 +71,26 @@ describe('refsOf — the template-path field grammar', () => {
     ]);
   });
 
+  it('⭐ walks composition[].materialPath — a blend names its constituents', () => {
+    // ⚠⚠ This was missing, and `bronze` was the proof: it named copper
+    // alone and left 12% as nothing, so nothing checked the tin row it
+    // claimed in its tags — because nothing checked composition at all.
+    const refs = refsOf({
+      composition: [
+        { materialPath: '/stuff/idea/material/element/copper', fraction: 0.88 },
+        { materialPath: '/stuff/idea/material/element/tin', fraction: 0.12 },
+      ],
+    });
+    expect(refs).toEqual([
+      { field: 'composition.materialPath', path: '/stuff/idea/material/element/copper' },
+      { field: 'composition.materialPath', path: '/stuff/idea/material/element/tin' },
+    ]);
+  });
+
+  it('an empty composition (a pure element) yields no references', () => {
+    expect(refsOf({ composition: [] })).toEqual([]);
+  });
+
   it('a rowless reference is exactly what the resolve step refuses', () => {
     // The clause-(b) decision in miniature: refs minus the row set.
     const rows = new Set(['/obj/_test/lane']);
