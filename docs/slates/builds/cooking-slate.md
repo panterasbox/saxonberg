@@ -403,6 +403,46 @@ rather than the glass, because a syrup bottle and a juice bottle are
   the vocation this wakes, and par shortfalls at every kitchen and
   tavern are its unmet demand.
 
+### Cutlery & utensils (settled)
+
+Two things wearing one word, split along the existing seams:
+
+- **Kitchen utensils (the making side) — no new abstraction.** A whisk,
+  ladle, or kitchen knife is the tool-capability model as shipped: a
+  recipe names a bare kind in `toolCapabilities` (the `strainer` /
+  `juicer` pattern), `rate`/`control` as row data where it matters.
+  The only discipline is **restraint in the roster** — every kind
+  named is a thing every kitchen must stock, so W2 introduces them
+  sparingly (clear broth already wants `strainer`; the cutlet
+  plausibly wants `knife` — and the belt-knife is a shipped smithing
+  recipe, so that demand line exists the moment a recipe names it).
+- **Table cutlery (the eating side) — ⭐ never a gate, always a
+  read.** Requiring a spoon to eat stew is universal-demand-meets-
+  universal-self-service — hands work, so a hard gate is a chore.
+  Instead, the derive-don't-gate move again:
+  - Cutlery joins this part's loop as **serviceware without
+    contents**: utensil categories (`spoon` · `fork` · `table-knife`)
+    in the vessel-kind vocabulary, `soiled` on use, washed at the
+    basin, bussed, counted on the par sheet.
+  - **`eat` auto-uses from reach** — a clean reachable utensil is
+    claimed, soiled, and narrated ("with a horn spoon"); none → you
+    eat with your hands, which *works fine* and *is observable*. The
+    act always succeeds; what changes is how it reads.
+  - The read is the eventual payoff: hands-eating is a visible sign
+    like `nauseous` — material for the social/etiquette layer
+    whenever it arrives, never touching the success path. Fine dining
+    is a *presentation* fact, squarely the cook's sells-a-name
+    identity.
+- **Deliberately not designed**: dish-category → utensil pairing rules
+  (bowl implies spoon) — an authored mapping the loop doesn't need;
+  any clean reachable utensil suffices, pairing can arrive as texture
+  later. And no grade/`control` effects on eating — control floors
+  are for making, not consuming.
+- **The demand line widens**: one dinner table wakes three making
+  trades — the ⭐potter (dishes), the **smith** (table knives, forks —
+  real demand for a shipped trade), and a carver (spoons — wood/horn,
+  a roster gap in the ⭐ceramics family).
+
 ⚠ Build-freeze note: captured during the client-rebuild design-only
 phase. This slate is the input to a `/requirements` cycle when the
 freeze lifts.
