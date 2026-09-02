@@ -123,7 +123,7 @@ afterEach(() => {
 describe("enforces — the house rule (armed patron)", () => {
   it("warns first, no record, no violence", async () => {
     occ = [fake({ stuffId: "rowdy", arms: ["knife"] })];
-    const c = ctx({ recordsPath: "/world/lounge/records/86" });
+    const c = ctx({ recordsPath: "/test/lounge/records/86" });
     await enforces.act(c);
     expect(c.say).toHaveBeenCalledTimes(1);
     expect(String(c.say.mock.calls[0]![0]).toLowerCase()).toContain("check it");
@@ -135,12 +135,12 @@ describe("enforces — the house rule (armed patron)", () => {
     occ = [fake({ stuffId: "rowdy", arms: ["knife"] })];
     const state = { warned: { "/id/rowdy": true } };
     const c = ctx(
-      { recordsPath: "/world/lounge/records/86", ejectDirection: "south" },
+      { recordsPath: "/test/lounge/records/86", ejectDirection: "south" },
       state,
     );
     await enforces.act(c);
     expect(DocumentApi.save).toHaveBeenCalledWith(
-      "/world/lounge/records/86",
+      "/test/lounge/records/86",
       "venue-eighty-six",
       expect.objectContaining({ subjects: expect.arrayContaining(["/id/rowdy"]) }),
     );
@@ -152,7 +152,7 @@ describe("enforces — the house rule (armed patron)", () => {
     vi.mocked(DocumentApi.read).mockResolvedValue({
       getData: () => ({ subjects: ["/id/banned"] }),
     } as never);
-    const c = ctx({ recordsPath: "/world/lounge/records/86" });
+    const c = ctx({ recordsPath: "/test/lounge/records/86" });
     await enforces.act(c);
     expect(forced[0]).toBe("attack banned"); // straight to the door
   });

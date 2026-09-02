@@ -123,7 +123,10 @@ export abstract class LocomotionControllerBase extends CommandController<Locomot
     // (a focus-fire pin can veto the break; foes still locked on get a
     // parting shot). On a successful break the actor has left the fight and
     // the traverse proceeds under the chosen mode.
-    const broke = ((actor) as unknown as Stuff & Combatant).disengage();
+    // A mover with no combatant face was never fighting — break trivially.
+    const broke = MixinApi.isCombatant(actor)
+      ? actor.disengage()
+      : { ok: true as const };
     if (!broke.ok) {
       MessageApi.scene(actor)
         .topic('shell.result')

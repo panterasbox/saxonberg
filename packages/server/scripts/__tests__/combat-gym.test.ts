@@ -57,6 +57,8 @@ import StunBaton from "../../src/mud/platform/thing/equipment/StunBaton";
 import { CombatReactiveMixin } from "../../src/mud/lib/combat/CombatReactive";
 import type { CombatHookContext } from "../../src/mud/lib/combat/CombatHookContext";
 import type { InflictSpec } from "../../src/mud/api/condition";
+import type { Combatant } from '../../src/mud/lib/combat/Combatant';
+import type { Stuff } from '../../src/mud/lib/stuff/Stuff';
 
 class TestRoom extends ContainerMixin(Idea) {}
 class GymFighter extends Character {}
@@ -602,7 +604,7 @@ describe("combat-gym — the species vocabulary (combat-hooks Phase 7)", () => {
 });
 
 describe("combat-gym — the influence bridge (fixed-beat injection)", () => {
-  it("a fixed-beat CombatApi.influence stagger is reproducible and differs from the uninfluenced pin", () => {
+  it("a fixed-beat influenceCombat stagger is reproducible and differs from the uninfluenced pin", () => {
     // The pinned brain-vs-brain@competent cell (A in 21 beats), with one
     // deterministic variation: at beat 5 the A side ALSO issues a heavy
     // stagger at its foe through the external bridge. Zero randomness —
@@ -612,7 +614,7 @@ describe("combat-gym — the influence bridge (fixed-beat injection)", () => {
       if (session.getBeat() === 5) {
         for (const s of session.getStates()) {
           if ((s.combatant as unknown) !== (self as unknown) && !s.down) {
-            CombatApi.influence(s.combatant, {
+            (s.combatant as unknown as Stuff & Combatant).influenceCombat({
               kind: "stagger",
               intensity: "heavy",
             });

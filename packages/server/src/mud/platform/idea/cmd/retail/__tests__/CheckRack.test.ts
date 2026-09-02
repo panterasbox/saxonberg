@@ -43,7 +43,7 @@ import {
   teardownBankingHarness,
 } from "../../../../../lib/banking/__tests__/banking-test-harness";
 
-const RACK = "/world/lounge/thing/check-rack";
+const RACK = "/test/lounge/thing/check-rack";
 
 class TestGiver extends SensorMixin(
   CommandGiverMixin(ContainerMixin(ContainableMixin(NamedMixin(Idea)))),
