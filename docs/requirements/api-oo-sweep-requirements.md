@@ -205,11 +205,15 @@ established the recipe.
   `/finalize`. Every wave in between is gated by `pnpm test:near`, the
   touched packs' own vitest, and the lint family. Size is not an
   exemption; a large structural wave is still a between-moments change.
-- **The census will have moved.** The bar-fight merge adds `isWeapon`,
-  `visibleArms`, `offerBreak` and `bumRush` to `CombatApi` and
-  `isHeldGoodsShelf` to `MixinApi`. Step zero of the build is re-running
-  the census against post-merge master; the slate's table is a scoping
-  estimate, not the baseline.
+- **The baseline is post-merge master, re-measured 2026-09-02** (after
+  bar-fight landed as `ecbafb9a0`): **1,353 statics**, 538 taking a
+  Stuff-shaped first parameter, **190 subject-first methods outside the
+  four mandates** (up 2 from the slate's scoping figure — `CombatApi`
+  went 29 → 33 methods and 15 → 17 verbs, gaining `offerBreak`,
+  `bumRush`, `visibleArms` and `isWeapon`; `MixinApi` gained
+  `isHeldGoodsShelf`). The ten fully-subject Apis are **unchanged**, as
+  are the 16 `Api.boot()` statics and the 29 `FromTemplate` globs. This
+  is the number the sweep drives to zero.
 
 ## Acceptance criteria
 
