@@ -241,6 +241,78 @@ sinks):
 5. **Disease** inherits the W0 growth term whenever its build comes,
    already proven in production.
 
+---
+
+## Part 5 — The W2 recipe roster (sketch)
+
+The shipped five already fill five cells of the method × difficulty grid
+once their media are named — wet is well covered, dry has its ends, fat
+has nothing (consistent with the missing fat Material). The roster fills
+the rest. Difficulty rungs are the advancement vocabulary
+(`trivial → easy → standard → hard → formidable`).
+
+**The spine is one ingredient, four outcomes.** The root vegetable
+appears boiled, mashed, roasted, and fried — the method vocabulary made
+playable: same input, different medium, visibly different dish. The
+boiled/roasted pair *is* the Maillard lesson.
+
+| | **wet** (373 K cap) | **dry** (fire-limited) | **fat** (smoke-point cap) |
+|---|---|---|---|
+| **trivial** | ⭐ boiled roots — 373 K | ✅ toasted-ration — 450 K | ⭐ **render tallow** — 373 K (§ the bootstrap) |
+| **easy** | ✅ root-mash · ✅ simple-syrup (340 K) · ⭐ stewed orchard fruit — 373 K | ⭐ roasted roots — 430 K | ⭐ press olive oil — **no heat**, `juicer` kind |
+| **standard** | ✅ hearty-stew — 373 K | ⭐ hearth roast — 450 K, fair meat | ⭐ pan-fried roots — ~440 K |
+| **hard** | ⭐ clear broth — 373 K + `strainer` | ✅ fine-roast — 500 K, fine meat | ⭐ crisp-fried cutlet — ~455 K |
+| **formidable** | — reserved: braise | — reserved: doneness | — reserved: confit |
+
+**What each new rung teaches** (the ZPD obligation — every recipe earns
+its cell with one lesson):
+
+- **boiled roots** — the floor: you cannot ruin it, and it never browns.
+- **stewed orchard fruit** — farming's produce (cherry, orange, grape —
+  all shipped Materials) enters the kitchen; and eaten-now vs. preserved
+  is the victualler boundary *in play* (jam is sugar as water-activity —
+  theirs; compote eaten warm — ours).
+- **clear broth** — grade made visible: clarity is the skill read, and it
+  consumes the shipped `strainer` bare kind.
+- **roasted roots** — ⭐ the Maillard pair with boiled roots: same
+  input, 430 K > the 415 K threshold, browner and better.
+- **hearth roast** — the everyman's roast (fair meat, 450 K) under the
+  shipped fine-roast, closing the dry ladder's gap.
+- **render tallow** — ⭐ **the bootstrap**: the fat method's enabling
+  material is itself a trivial recipe (stew meat in, tallow out). The
+  trade unlocks its own third method by cooking.
+- **press olive oil** — fat without fire (the olive is a shipped farming
+  Material; the `juicer` kind is the shipped press). Plant fat vs.
+  animal fat = two smoke points, which is the fat method's whole cap
+  mechanic taught by comparison.
+- **pan-fried roots** — fat carries heat past water's 373 K cap: the
+  third rendering of the same root.
+- **crisp-fried cutlet** — the margin narrows: ~455 K against olive
+  oil's ~464 K smoke point vs. tallow's ~477 K — your fat choice is the
+  difficulty.
+
+**The formidable row is deliberately empty** — those are the dishes that
+cost you the afternoon (braise, doneness, confit), and they arrive with
+the tending wave, where the abstraction law says they belong.
+
+**Bills and limits:**
+
+- **New Materials: two** — `tallow` and `olive-oil`, each with
+  `smokePoint` + `fat` nutrient amounts (the `fat` routing already
+  ships in `Metabolic.ts`). ⚠ Verify real smoke points before seeding
+  (the ISCED-code precedent — the values above are from knowledge, not
+  a source).
+- **New instruments: zero.** The pot carries all three media — its
+  *contents* are the method (a dry pot is a roasting vessel); oil rides
+  the shipped `juicer`. Spit/griddle/skillet are texture for later.
+- **New output templates: small** — a tallow crock and an oil bottle
+  (the `juice-bottle` shape); everything else plates onto the shipped
+  `plated-dish`.
+- **No dish-as-ingredient in v1.** Craft-resolve's gather step matches
+  raw-matter candidates only, so fritters-of-mash and stock-into-soup
+  chains are out of scope until that seam is designed — noted, not
+  smuggled in.
+
 ⚠ Build-freeze note: captured during the client-rebuild design-only
 phase. This slate is the input to a `/requirements` cycle when the
 freeze lifts.
