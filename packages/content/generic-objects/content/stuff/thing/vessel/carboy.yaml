@@ -1,0 +1,17 @@
+# Carboy — the homebrew fermenter (fermentation D15/P13): a small vat
+# of the platform Vat family, sized for a rented room. Same transform,
+# same profiles, same physics being fair — a warm room brews ale and
+# wine but never lager, and home output carries the same band and
+# maker's mark, so a talented amateur can out-brew a corpo on the rail.
+class: /platform/thing/Vat
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a glass carboy
+  primaryKeyword: carboy
+  keywords: [carboy, demijohn, "glass carboy"]
+  longDescription: |
+    A shouldered glass carboy in a wicker skirt, its neck sized for a thumb-worn bung.
+  category: vat
+  interiorBulk: true
+  interiorCapacity: 25
+  mass: 6

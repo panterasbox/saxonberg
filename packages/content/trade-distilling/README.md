@@ -38,7 +38,7 @@ The distilling trade — a **capability** pack (it ships `src/`).
 A corpo pack supplies capital + the mark; a corpo-owned producer is a
 product of the trade and lives here, pointing UP at its owner. The trade
 names nobody downstream. Every stub trade names
-`/trade/distilling/thing/counter` in its hand's `consigns` config.
+`/trade/distribution/thing/counter` in its hand's `consigns` config.
 
 ## ⭐ The roster — who makes what, and why it is legible
 

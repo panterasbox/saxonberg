@@ -5,9 +5,9 @@
   "description": "The bottling trade — a STUB (libations): the mixers (soda water, tonic, ginger beer, cola, grapefruit soda — carbonated), the juices, and ICE as a material, the can and mixer-bottle presets over the platform Bottle, the floor bottles and the 5 kg ice bag at target in the bottling stock, the outfit that consigns them onto the cash-and-carry, and the mixer pour.",
   "type": "module",
   "dependencies": {
+    "@saxonberg/content-distribution": "workspace:*",
     "@saxonberg/content-base-library": "workspace:*",
     "@saxonberg/content-platform": "workspace:*",
-    "@saxonberg/content-trade-distilling": "workspace:*",
     "@saxonberg/server": "workspace:*",
     "@saxonberg/types": "workspace:*"
   }

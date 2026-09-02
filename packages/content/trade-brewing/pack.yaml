@@ -2,12 +2,16 @@ id: trade-brewing
 version: 0.1.0          # reserved; nothing reads/enforces it (non-goal: version machinery)
 root: /trade/brewing
 description: >-
-  The brewing trade — a STUB (libations): everything downstream of
-  production and nothing of production. The beer materials (ale, lager),
-  the keg and cask presets as rows over the platform Bottle, the floor
-  kegs the spawn sweep stands at target in the brewery outfit's stock, the
-  outfit that consigns them onto the distilling trade's cash-and-carry
-  counter, and the pint. The ferment itself is the distillery build's.
+  The brewing trade — de-stubbed by the fermentation build (W5): the
+  working brewhouse (mash tun, standpipe, work board, warm vats, the
+  house barm) over the kernel transform, the COLD STORE below it (the
+  lager line: the cold strain plus the cold cellar, D14), the mash and
+  lager-mash recipes with spent grain as conservation's residue (P11 —
+  sold back to the growers), the cask as a Vat-family conditioning
+  vessel (real ale, P9), the ale/lager ferment + culture profiles, and
+  the cellars beats that mash, pitch, keg and consign onto the
+  distribution counter. The floor-keg faucet stands until the W8
+  switchover.
 requires:
   groups:
     - name: brewing
@@ -18,3 +22,4 @@ requires:
 boot:
   - { template: /trade/brewing/location/brewing-floor, role: producer, reason: "the outfit's yard — its Stock is the home container the floor kegs spawn into, and its hand runs the consigns brain" }
   - { template: /trade/brewing/idea/brewing-outfit, role: producer, reason: "the hand's `purchases` position is materialized by the roster tick over a live business; the consigns beat trades as it" }
+  - { template: /trade/brewing/location/cold-store, role: producer, reason: "the lager line lives here — the cold vats, the cold culture, and the cellars beat that kegs it" }

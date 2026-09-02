@@ -1,0 +1,17 @@
+# Grappa — pomace through the still (P11): the byproduct spirit.
+recipeId: grappa
+name: Grappa
+keywords: [grappa]
+discipline: distilling
+difficulty: moderate
+inputSlots:
+- slot: pomace
+  category: pomace
+  minGrade: poor
+  measureL: 4
+toolCapabilities: [still]
+requiresHeatK: 351
+outputApplication: bulk
+outputTemplate: /trade/distilling/thing/spirit-bottle
+outputMaterial: /trade/distilling/idea/material/grappa
+outputAppearance: a sharp clear grappa

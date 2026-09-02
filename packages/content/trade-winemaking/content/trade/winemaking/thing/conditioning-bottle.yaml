@@ -1,0 +1,17 @@
+# The conditioning bottle — sparkling, honestly (P5): a heavy bottle of
+# the VAT family (FermentingMixin), so white wine sealed in it
+# referments its residual sugar where it stands. When the second
+# ferment finishes, what you hold IS sparkling wine — consign it as it
+# is. No mixin on Bottle, no second mechanism.
+class: /platform/thing/Vat
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a heavy conditioning bottle
+  primaryKeyword: bottle
+  keywords: [bottle, "conditioning bottle", fizz]
+  longDescription: |
+    A thick-walled green bottle with a wired cork, built to hold pressure.
+  category: wine-bottle
+  interiorBulk: true
+  interiorCapacity: 0.75
+  mass: 0.9

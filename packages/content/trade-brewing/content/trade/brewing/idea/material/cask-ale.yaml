@@ -1,0 +1,21 @@
+# Cask ale — REAL ALE (P9): ale conditioned sealed in the cask,
+# naturally carbonated, medieval-exact. Carbonation is a material-level
+# fact the ferment produced (D11: no kernel code may test how it got
+# fizzy); the `ale` tag keeps every ale recipe serving it.
+class: /platform/idea/material/ConsumableMaterial
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: cask ale
+  primaryKeyword: ale
+  appearance: "a soft-glowing amber ale with a live, fine bead"
+  keywords: ["ale", "cask ale", "beer"]
+  density: 1010
+  thermalConductivity: 0.5
+  specificHeat: 3900
+  edibility: true
+  nutrients: ["water"]
+  toxicity:
+    - { type: alcohol, amount: 4 }
+  tags: ["liquid", "beverage", "drinkable", "alcoholic", "beer", "ale", "carbonated"]
+  composition: []
+  biologicalSource: null

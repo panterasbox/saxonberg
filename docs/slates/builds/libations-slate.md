@@ -215,6 +215,14 @@ Alcohol *is* a drug; what differs between libations and pharma is the
 
 ### ⭐ The three libation trades, and what a stub is
 
+> ✅ **PARTLY OVERTAKEN — the fermentation build (2026-09-01, MR !215)
+> de-stubbed winemaking, brewing and distilling's production**: the
+> working winery/brewhouse/still-house produce by brain over the
+> kernel ferment; their floor faucets are retired (the switchover).
+> Bottling stays the stub (carbonation is its own physics), and the
+> cash-and-carry moved to the `distribution` pack (D10 — sibling
+> trades share no edges). See docs/subsystems/fermentation.md.
+
 > **User: "I kinda wanna stub the winemaking and maybe even brewery trades
 > if we're planning on stocking beer and wine in the bar."**
 

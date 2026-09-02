@@ -16,7 +16,7 @@ data:
     - key: hand
       label: running the vintner outfit's floor
       wageRate: 3
-      confers: []
+      confers: [MakerMixin]
       purchases: true
   rosterSlots:
     - positionKey: hand

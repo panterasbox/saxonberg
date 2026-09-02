@@ -1,0 +1,28 @@
+# Dry vermouth — white wine fortified with the distiller's own spirit
+# and a botanical (W6): fortification takes neutral spirit as a REAL
+# input, so the vintner buys from the distiller — the B2B relationship
+# falls out of the chemistry, never authored (D7).
+recipeId: dry-vermouth
+name: Dry vermouth
+keywords: [dry-vermouth, vermouth]
+discipline: fermenting
+difficulty: moderate
+inputSlots:
+- slot: wine
+  category: white
+  minGrade: fair
+  measureL: 0.6
+- slot: spirit
+  category: neutral-spirit
+  minGrade: fair
+  measureL: 0.12
+- slot: botanical
+  kind: item
+  category: juniper
+  minGrade: poor
+  count: 1
+toolCapabilities: []
+outputApplication: bulk
+outputTemplate: /trade/winemaking/thing/wine-bottle
+outputMaterial: /trade/winemaking/idea/material/dry-vermouth
+outputAppearance: a pale, herbal dry vermouth

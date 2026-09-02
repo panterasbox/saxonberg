@@ -1,0 +1,20 @@
+# Lager wort — the cold-run mash: paler, cleaner, and its own ferment
+# category (the lager process differs from the grist up — the
+# distinction is honest, not administrative).
+class: /platform/idea/material/ConsumableMaterial
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: lager wort
+  primaryKeyword: wort
+  appearance: "a pale, clear wort"
+  keywords: ["wort", "lager"]
+  density: 1038
+  thermalConductivity: 0.5
+  specificHeat: 3900
+  edibility: true
+  nutrients: ["water", "sugar"]
+  nutrientAmounts:
+    sugar: 85
+  tags: ["liquid", "lager-wort"]
+  composition: []
+  biologicalSource: null

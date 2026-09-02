@@ -340,6 +340,9 @@ export const Mixins = {
   // A thing that can be put in the ground and grows into something —
   // a seed, and equally a cutting / tuber / bulb once those exist.
   Plantable: 'PlantableMixin',
+  // The durative ferment — a VESSEL whose contents convert over
+  // game-time (growth accretes, fermentation converts).
+  Fermenting: 'FermentingMixin',
   Behaved: 'BehavedMixin',
   Graded: 'GradedMixin',
   // A physical thing that wears out with use (the condition/wear gauge).
@@ -523,6 +526,8 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
 
   // Boundaries & mechanisms.
   SealableMixin: "{} doesn't open and close",
+  BulkableMixin: "{} doesn't hold liquid to read",
+  AdornmentMixin: "{} doesn't hang or mount there",
   LockableMixin: "{} doesn't lock",
   SwitchableMixin: "{} doesn't switch on and off",
   FoldableMixin: "{} doesn't fold",

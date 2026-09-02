@@ -1,0 +1,16 @@
+# The wine culture — lees in a jar, kept alive (D14): viability starves
+# over ~12 unfed days at room temperature, slower in the cellar, faster
+# on a warm shelf; feeding (a pour of must) restores it; above 310 K it
+# dies — the hot-pitch death, and why pasteurization works.
+class: /platform/idea/ferment/FermentProfile
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: wine-culture
+  kind: culture
+  strain: wine-yeast
+  inputCategory: wine-lees
+  stallBelowK: 283
+  happyK: 293
+  damageAboveK: 299
+  killK: 310
+  starveDays: 12

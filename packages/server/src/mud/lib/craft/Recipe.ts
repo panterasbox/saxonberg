@@ -69,6 +69,21 @@ export interface RecipeInputSlot {
 export type OutputApplication = 'bulk' | 'tangible' | 'edible';
 
 /**
+ * A residue output beside the main one (fermentation P11/D12):
+ * conservation makes byproducts exist — a crush cannot output only
+ * must — and the economy consumes them (pomace and spent grain are
+ * feed; pomace distils to grappa). Cloned at resolve and landed in
+ * the maker's location; unsold residue stands where it was left (the
+ * ambient-burden rule, never a silent vanish).
+ */
+export interface RecipeResidue {
+  /** Template path of the residue item. */
+  template: string;
+  /** Instances minted per resolve (default 1). */
+  count?: number;
+}
+
+/**
  * The garnish a drink is finished with: a reachable item whose Material
  * carries `category` (an olive, a lime wedge), `count` of them (default
  * 1), moved INTO the glass at the fill — a thing in the drink, not a
@@ -118,6 +133,7 @@ export class Recipe {
     outputMaterial: { persistent: true, spoiler: 1, spoilerName: 0 },
     baseGradeBand: { persistent: true, spoiler: 1, spoilerName: 0 },
     requiresHeatK: { persistent: true, spoiler: 1, spoilerName: 0 },
+    outputResidue: { persistent: true, spoiler: 1, spoilerName: 0 },
     outputApplication: { persistent: true, spoiler: 1, spoilerName: 0 },
     outputPortionL: { persistent: true, spoiler: 1, spoilerName: 0 },
     outputAppearance: { persistent: true, spoiler: 1, spoilerName: 0 },
@@ -155,6 +171,8 @@ export class Recipe {
 
   /** Minimum reachable heat (K) to resolve; 0 = no heat gate. */
   requiresHeatK: number = 0;
+  /** The residue output beside the main one, or null (P11). */
+  outputResidue: RecipeResidue | null = null;
 
   /** Output-application kind word; empty = `'bulk'` (the bar's default). */
   outputApplication: string = '';
@@ -230,7 +248,29 @@ export class Recipe {
     r.discipline = str(data.discipline);
     r.garnish = Recipe.garnishFrom(data.garnish, r.recipeId);
     r.ice = Recipe.iceFrom(data.ice, r.recipeId);
+    r.outputResidue = Recipe.residueFrom(data.outputResidue, r.recipeId);
     return r;
+  }
+
+  /** Validate an authored `outputResidue` block (`{ template, count? }`). */
+  private static residueFrom(v: unknown, id: string): RecipeResidue | null {
+    if (v == null) return null;
+    if (typeof v !== 'object' || Array.isArray(v)) {
+      throw new Error(
+        `Recipe '${id}': 'outputResidue' must be { template, count? }`,
+      );
+    }
+    const r = v as Record<string, unknown>;
+    if (typeof r.template !== 'string' || r.template.length === 0) {
+      throw new Error(
+        `Recipe '${id}': 'outputResidue.template' must be a template path`,
+      );
+    }
+    const count =
+      typeof r.count === 'number' && Number.isFinite(r.count)
+        ? Math.max(1, Math.floor(r.count))
+        : 1;
+    return { template: r.template, count };
   }
 
   /** Validate an authored `garnish` block (`{ category, count? }`). */
@@ -305,6 +345,9 @@ export class Recipe {
   }
   getRequiresHeatK(): number {
     return this.requiresHeatK;
+  }
+  getOutputResidue(): RecipeResidue | null {
+    return this.outputResidue;
   }
   /** The output-application kind (empty stored value ⇒ `'bulk'`). */
   getOutputApplication(): OutputApplication {

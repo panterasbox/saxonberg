@@ -1,0 +1,21 @@
+# A crate of grapes — the winery's input, on the same floor unit as
+# every other produce (fermentation W4: the vintner buys grapes at the
+# distributor; the B2B falls out of the chemistry, never authored).
+class: /platform/thing/Crate
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a crate of grapes
+  primaryKeyword: grapes
+  keywords: [crate, grapes, grape, produce]
+  longDescription: A slatted wooden crate of dusty wine grapes, packed tight.
+  censusKey: produce:grape
+  regionTarget: 4
+  materialTags: [produce, grape]
+  container: /trade/farming/thing/farm-stock
+  props:
+    - /trade/farming/thing/grape
+    - /trade/farming/thing/grape
+    - /trade/farming/thing/grape
+    - /trade/farming/thing/grape
+    - /trade/farming/thing/grape
+    - /trade/farming/thing/grape

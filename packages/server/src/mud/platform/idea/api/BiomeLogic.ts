@@ -43,6 +43,9 @@ const ATMOSPHERE_DENSITIES: Record<string, Quantity<'kg/m³'>> = {
   // Smoke — combustion products (the fire driver's incomplete-burn output).
   // Slightly hotter/less dense than air; carries carbon monoxide.
   smoke: Quantity.of(1.1, 'kg/m³'),
+  // Carbon dioxide — a working ferment's output (the cellar hazard,
+  // fermentation P11). Denser than air: it pools where it is made.
+  'carbon-dioxide': Quantity.of(1.98, 'kg/m³'),
 };
 
 /**
@@ -59,6 +62,7 @@ const ATMOSPHERE_CONDUCTIVITIES: Record<string, Quantity<'W/(m·K)'>> = {
   water: Quantity.of(0.6, 'W/(m·K)'),
   vacuum: Quantity.of(1e-4, 'W/(m·K)'),
   smoke: Quantity.of(0.03, 'W/(m·K)'),
+  'carbon-dioxide': Quantity.of(0.0166, 'W/(m·K)'),
 };
 
 /**
@@ -75,6 +79,9 @@ const ATMOSPHERE_BREATHABLE: Record<string, boolean> = {
   // respiration medium crisis fires), the fire-driver's "kills by CO, not
   // flame" seam.
   smoke: false,
+  // CO₂ displaces breathable air the same way — the ferment cellar's
+  // hazard (asphyxia, not poison: no contaminant tag).
+  'carbon-dioxide': false,
 };
 
 /**
@@ -90,6 +97,7 @@ const ATMOSPHERE_CONTAMINANT: Record<string, string | null> = {
   water: null,
   vacuum: null,
   smoke: 'carbonMonoxide',
+  'carbon-dioxide': null,
 };
 
 /**

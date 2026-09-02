@@ -1,0 +1,17 @@
+# Sparkling — bottle conditioning (P5): white wine sealed in a
+# conditioning bottle referments its residual sugar IN the bottle,
+# which is what sparkling IS. `sealedOnly` — an open vessel does
+# nothing; carbonation is a material-level fact the ferment produces
+# (D11: no kernel code may test how it got fizzy).
+class: /platform/idea/ferment/FermentProfile
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: sparkling-conditioning
+  inputCategory: white
+  sealedOnly: true
+  stallBelowK: 281
+  happyK: 288
+  damageAboveK: 297
+  killK: 310
+  ratePerDay: 0.25
+  productMaterial: /trade/winemaking/idea/material/sparkling

@@ -1,0 +1,25 @@
+# Neutral spirit — the still's honest output and the trade's
+# intermediate good: the vintner's fortification buys it (the B2B leg)
+# and the compounder's gin starts from it. FLAMMABLE (P10): the
+# combustion substrate reads autoignition + heat of combustion off the
+# material — an ignited spill burns, which is what a still-house
+# respects.
+class: /platform/idea/material/ConsumableMaterial
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: neutral spirit
+  primaryKeyword: spirit
+  appearance: "a water-clear spirit with a hot, empty nose"
+  keywords: ["spirit", "neutral spirit"]
+  density: 940
+  thermalConductivity: 0.17
+  specificHeat: 2400
+  edibility: true
+  toxicity:
+    - { type: alcohol, amount: 45 }
+  nutrients: []
+  tags: ["liquid", "beverage", "drinkable", "alcoholic", "spirit", "neutral-spirit"]
+  composition: []
+  biologicalSource: null
+  autoignitionTemperature: 636
+  heatOfCombustion: 27

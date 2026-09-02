@@ -1,0 +1,20 @@
+# Distiller's wort — the still-house's own rough grist, mashed from
+# bought malt (D7: gin opens at the process tier over bought malt).
+# Its own category so the wash profile, not the ale's, takes it.
+class: /platform/idea/material/ConsumableMaterial
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: distiller's wort
+  primaryKeyword: wort
+  appearance: "a rough, grey-amber wort"
+  keywords: ["wort"]
+  density: 1042
+  thermalConductivity: 0.5
+  specificHeat: 3900
+  edibility: true
+  nutrients: ["water", "sugar"]
+  nutrientAmounts:
+    sugar: 95
+  tags: ["liquid", "distillers-wort"]
+  composition: []
+  biologicalSource: null

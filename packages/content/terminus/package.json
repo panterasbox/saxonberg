@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Terminus — the core city locality, homed whole out of the transitional world-seed: the terminal, Counting-House Row, the general store, the Registry and the city budget.",
+  "description": "Terminus \u2014 the core city locality, homed whole out of the transitional world-seed: the terminal, Counting-House Row, the general store, the Registry and the city budget.",
   "scripts": {
     "build": "tsc",
     "test": "vitest run --passWithNoTests",
@@ -12,13 +12,16 @@
   "dependencies": {
     "@saxonberg/content-corpo-goodkin": "workspace:*",
     "@saxonberg/content-corpo-vionne": "workspace:*",
+    "@saxonberg/content-distribution": "workspace:*",
     "@saxonberg/content-generic-objects": "workspace:*",
     "@saxonberg/content-platform": "workspace:*",
     "@saxonberg/content-residence": "workspace:*",
     "@saxonberg/content-saxonberg-lounge": "workspace:*",
+    "@saxonberg/content-trade-brewing": "workspace:*",
     "@saxonberg/content-trade-distilling": "workspace:*",
     "@saxonberg/content-trade-farming": "workspace:*",
     "@saxonberg/content-trade-smithing": "workspace:*",
+    "@saxonberg/content-trade-winemaking": "workspace:*",
     "@saxonberg/server": "workspace:*",
     "@saxonberg/types": "workspace:*"
   },

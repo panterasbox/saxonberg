@@ -49,7 +49,7 @@ const isYardRow = (path: string, data?: Record<string, unknown>): boolean =>
   data?.container === VESHKO_STOCK ||
   data?.container === HOLLIS_STOCK;
 const YARDS = ['veshko', 'hollis'];
-const COUNTER = '/trade/distilling/thing/counter';
+const COUNTER = '/trade/distribution/thing/counter';
 
 interface Row {
   pack: string;
@@ -88,12 +88,27 @@ function allRows(): Row[] {
 const rows = allRows();
 const byPath = new Map(rows.map((r) => [r.path, r]));
 const annexRows = rows.filter((r) => ANNEXES.includes(r.pack) || isYardRow(r.path, r.data));
-const floorRows = annexRows.filter((r) => typeof r.data.censusKey === 'string');
+// A `vessel:` census key is a VESSEL faucet (empty glass at target —
+// an empty is never product); the product assertions below apply to
+// the goods rows only.
+const floorRows = annexRows.filter(
+  (r) =>
+    typeof r.data.censusKey === 'string' &&
+    !(r.data.censusKey as string).startsWith('vessel:'),
+);
 
 describe('libations annexes — the floor rows fit the faucet', () => {
-  it('the five stubs and the two corpo yards each ship floor product; no corpo pack ships any', () => {
-    for (const pack of ANNEXES) {
+  it('the faucet stubs and the two corpo yards each ship floor product; no corpo pack ships any', () => {
+    // Winemaking and brewing DE-STUBBED (fermentation W8): their floor
+    // faucets are retired — every bottle and keg is brain-made now —
+    // so only the remaining faucet trades must ship floor product.
+    for (const pack of ANNEXES.filter(
+      (a) => a !== 'trade-winemaking' && a !== 'trade-brewing',
+    )) {
       expect(floorRows.filter((r) => r.pack === pack).length, pack).toBeGreaterThan(0);
+    }
+    for (const pack of ['trade-winemaking', 'trade-brewing']) {
+      expect(floorRows.filter((r) => r.pack === pack).length, pack).toBe(0);
     }
     // ⭐ A producer is counted by the Stock its rows spawn INTO, not by
     // their path. The unbranded rail lives at the TRADE's paths — it
@@ -111,7 +126,10 @@ describe('libations annexes — the floor rows fit the faucet', () => {
     // bottling ships 9: seven mixers + the ice bag + the can of cola (the
     // 330 mL can is its own price point, not a smaller bottle).
     // hearth-cooking: three sacks + the syrup bottle (the bar's syrup line is bought, not cooked)
-    expect(floorRows.length).toBe(2 + 5 + 9 + 8 + 4 + 7 + 2);
+    // farming 10: the eight bar-fruit crates + the grape and juniper
+    // crates. Winemaking and brewing: 0 — the switchover (their goods
+    // are brain-made from empties now).
+    expect(floorRows.length).toBe(0 + 0 + 9 + 10 + 4 + 7 + 2);
   });
 
   it('every floor row has a target and a home container that is a Stock the SAME pack ships', () => {
@@ -184,8 +202,11 @@ describe('libations annexes — the hands name the host', () => {
     (r.data.behaviors as Array<{ brain: string }>).some((b) => b.brain === '/lib/behavior/consigns'),
   );
 
-  it('one consigning hand per annex; each names the distilling counter and asks for every key homed in its stock', () => {
-    expect(hands.length).toBe(ANNEXES.length + YARDS.length);
+  it('one consigning hand per faucet annex; each names the distribution counter and asks for every key homed in its stock', () => {
+    // Winemaking and brewing retired their consigns beats with their
+    // faucets (the W8 switchover — the cellars beats consign what they
+    // MAKE); the faucet annexes and the yards still run them.
+    expect(hands.length).toBe(ANNEXES.length - 2 + YARDS.length);
     for (const hand of hands) {
       const spec = (hand.data.behaviors as Array<{ brain: string; config: Record<string, unknown> }>).find(
         (b) => b.brain === '/lib/behavior/consigns',
@@ -221,7 +242,7 @@ describe('libations annexes — the serving recipes and the zone', () => {
     const files = ANNEXES.flatMap((p) => {
       const dir = join(PACKS, p, 'content', 'recipes');
       return existsSync(dir) ? walk(dir) : [];
-    }).filter((f) => !/(toasted-ration|root-mash|fine-roast|hearty-stew)\.yaml$/.test(f));
+    }).filter((f) => !/(toasted-ration|root-mash|fine-roast|hearty-stew|crush|white-crush|mash|dry-vermouth|sweet-vermouth)\.yaml$/.test(f));
     expect(files.length).toBe(1 + 3 + 1 + 1);
     for (const f of files) {
       const r = Recipe.fromData(parse(readFileSync(f, 'utf8')) as Record<string, unknown>);

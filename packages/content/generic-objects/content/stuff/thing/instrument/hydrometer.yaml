@@ -1,0 +1,10 @@
+# Hydrometer — handheld specific-gravity instrument that grants the
+# `measure density` verb to its carrier. The cellar's own glass
+# (fermentation D5): what a batch's remaining sugar reads back as.
+class: /platform/thing/instrument/Hydrometer
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a glass hydrometer
+  primaryKeyword: hydrometer
+  keywords: [hydrometer, glass, float]
+  long: A slim weighted glass float in a leather tube, its paper scale marked in thousandths. Float it in a working batch and read the sugar the ferment hasn't eaten yet.

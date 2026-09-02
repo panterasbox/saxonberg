@@ -14,6 +14,8 @@ import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
 import { BulkableApi } from '../../../../api/bulk';
+import { MixinApi } from '../../../../api/mixin';
+import { AdvancementApi } from '../../../../api/advancement';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 
@@ -29,7 +31,7 @@ interface PourModel extends CommandModel {
 }
 
 export default class PourController extends CommandController<PourModel> {
-  execute(model: PourModel, context: CommandContext): void {
+  async execute(model: PourModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     const source = model.source.stuff;
     const target = model.target.stuff;
@@ -85,6 +87,24 @@ export default class PourController extends CommandController<PourModel> {
     );
     const result = BulkableApi.transfer(fromSlot, toSlot, amount);
     for (const note of result.notes) context.note(note);
+
+    // The rack credit (fermentation W7/D9): drawing off a FINISHED
+    // batch is the craft's timing act — credit `fermenting` at the
+    // deed (the WaterController shape; no credit for an idle pour).
+    if (result.applied > 0 && MixinApi.isFermenting(source)) {
+      const phase = source.getFermentPhase();
+      if (phase === 'finished' || phase === 'turned') {
+        try {
+          await AdvancementApi.recordDeed(giver, {
+            discipline: 'fermenting',
+            difficulty: 'easy',
+            outcome: 'success',
+          });
+        } catch (err) {
+          console.warn('PourController: recording the deed failed:', err);
+        }
+      }
+    }
 
     // Drain-through: an open destination didn't retain the liquid.
     if (result.status === 'drained') {

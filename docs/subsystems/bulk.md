@@ -44,6 +44,16 @@ Authored on **both** the vessel row and every product row over it. A
 holder that declares none falls back to its primary keyword, which is
 right for a fixture whose interior is permanent (a plant pot's soil).
 
+### ⚠ OPEN — the word "vessel" is squatted by the enterable class
+
+The vocabulary this section defines is called the **vessel kind**
+everywhere (`outputVesselKind`, the `vessel:` census prefix, the
+archetype `vesselKind` need) — but the bare class name `Vessel` is the
+ENTERABLE container (a boat, a wagon; conveyance-domain), which is
+arguably the squatter on the word. A nothing-is-legacy rename of that
+class (to something conveyance-flavored) would free the term; parked
+here so it isn't lost (surfaced in the fermentation MR review).
+
 ### ⚠ OPEN — `category` has no home a `Crate` can reach
 
 `category` lives on **`BulkableMixin`**, so only bulk holders carry it.
@@ -191,7 +201,13 @@ capacity, `sip`, `pour 2 cups`). Pipeline:
 5. **Apply** — debit the source (skipped for an unbounded source; a
    bounded slot that hits zero clears its material), credit the
    destination (adopting the material when it was empty); a `null` sink
-   just discards.
+   just discards. A fresh fill (empty destination) also carries the
+   **batch's identity** — a Graded source holder stamps the
+   destination's grade band, and a Crafted source stamps the maker's
+   mark (maker/recipe/craftedAt) too. The rule mirrors the payload
+   rule exactly: identity rides into an *empty* destination only; a
+   top-up keeps the destination's own identity (the fermentation grade
+   seam, D6).
 
 Verb-facing helpers on the same Api:
 

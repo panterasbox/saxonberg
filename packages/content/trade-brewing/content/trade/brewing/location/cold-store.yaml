@@ -1,0 +1,29 @@
+# The cold store — the brewery's lagering cellar (fermentation W5): a
+# deep room held at 279 K, where the lager vats work and the cold
+# strain keeps. The cold band is a PLACE, never a rule (the husbandry
+# clock doctrine); a working cellar authors its air (P11).
+class: /platform/location/SingletonCartesianLocation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: "the cold store"
+  primaryKeyword: store
+  keywords: ["store", "cold store", "cellar", "lagering cellar"]
+  longDescription: |
+    A deep stone cellar, breath-frosting cold, kegs and two working vats sweating against the wall. A wired jar of pale sediment sits in the coldest corner.
+  ambientIntensity: 15
+  ambientColorTemperature: 4200
+  _temperature: 279
+  reserves:
+    air:
+      capacityValue: 100
+      currentValue: 100
+      unit: "%"
+  props:
+    - /trade/brewing/thing/vat
+    - /trade/brewing/thing/vat
+    - /trade/brewing/thing/jar-of-lager-culture
+    - /trade/brewing/thing/keg
+    - /trade/brewing/thing/keg
+    - /trade/brewing/thing/keg
+    - /trade/brewing/thing/keg
+  cast: []

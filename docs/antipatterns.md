@@ -3820,3 +3820,39 @@ every instance in the shipped world in one pass. ⚠ It only sees the YAML
 half — a class that sets its keywords in a constructor (`Tap.ts`) is
 invisible to it, which is an argument for a real lint rather than a
 one-off script.
+
+## `Api.boot()` — an Operator Act on the Consumer Surface
+
+Apis are the surface content developers consume (`callable == visible
+== cared-about`); `boot()` is a run-once operator act. Homing a roster
+warm on an Api pollutes the author docs and grows a hand-ordered
+`await XApi.boot()` sequencer in AppBootstrap. The root cause is that
+the template-less `*Logic` tier cannot self-warm — so home the warm on
+something TEMPLATE-BACKED instead.
+
+### BAD (the warm on the consumer surface + a sequencer line)
+
+```ts
+// api/ferment.ts
+public static boot(): Promise<number> { return logic().boot(); }
+// backend/AppBootstrap.ts
+await FermentApi.boot();
+```
+
+### GOOD (a self-warming catalogue, eager via the boot manifest)
+
+```ts
+// platform/idea/FermentProfileCatalogue.ts
+public override async postRegister(): Promise<void> { await this.warm(); }
+```
+
+```yaml
+# packages/content/platform/pack.yaml
+- { template: /platform/idea/FermentProfileCatalogue, role: sync-read, reason: "…" }
+```
+
+Decided 2026-09-01 (the fermentation MR review). The surviving
+`Api.boot()` family (Material, Condition, WorldClock, Renown, Record)
+is slated for the same conversion:
+[api-boot-retirement-slate](./slates/builds/api-boot-retirement-slate.md).
+Never add a new one.

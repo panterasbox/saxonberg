@@ -1,0 +1,13 @@
+{
+  "name": "@saxonberg/content-distribution",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Distribution — the cash-and-carry distributor (the counter every producing trade consigns onto and every venue buys from), cut out of trade-distilling so sibling trades share no edges; plus the malt line, the commons' imported-input faucet.",
+  "type": "module",
+  "dependencies": {
+    "@saxonberg/content-base-library": "workspace:*",
+    "@saxonberg/content-platform": "workspace:*",
+    "@saxonberg/server": "workspace:*",
+    "@saxonberg/types": "workspace:*"
+  }
+}

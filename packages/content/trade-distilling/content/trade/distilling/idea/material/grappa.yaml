@@ -1,0 +1,21 @@
+# Grappa — pomace through the still (P11): the historically honest
+# byproduct spirit, a margin lesson for a small house.
+class: /platform/idea/material/ConsumableMaterial
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: grappa
+  primaryKeyword: grappa
+  appearance: "a sharp, grassy clear spirit"
+  keywords: ["grappa"]
+  density: 945
+  thermalConductivity: 0.17
+  specificHeat: 2450
+  edibility: true
+  toxicity:
+    - { type: alcohol, amount: 42 }
+  nutrients: []
+  tags: ["liquid", "beverage", "drinkable", "alcoholic", "spirit", "grappa"]
+  composition: []
+  biologicalSource: null
+  autoignitionTemperature: 638
+  heatOfCombustion: 26

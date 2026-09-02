@@ -234,7 +234,12 @@ export class BulkableApi {
    *      to.remaining())`; strict shortfall rejects, lenient clamps.
    *   5. Apply: debit the source (skipped for an unbounded source),
    *      credit the destination (adopting the material when it was
-   *      empty); a `null` sink just discards.
+   *      empty); a `null` sink just discards. A fresh fill (empty
+   *      destination) also carries the batch's identity: a Graded
+   *      source stamps the destination's grade band, and a Crafted
+   *      source stamps the maker's mark too (the fermentation grade
+   *      seam — a bottle filled from a `fine` batch is `fine`, and
+   *      attributable).
    */
   static transfer(
     from: BulkSlot,
