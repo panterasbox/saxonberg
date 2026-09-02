@@ -84,10 +84,25 @@ recognition). Load-bearing subsystem docs:
   the loser through an exit — the forced-relocation outcome both the
   ejection and the fight-breakup ladder end with. No such primitive
   exists today.
+- **The truce.** Two fighters can both stand down: `fight break`
+  offers a mutual stand-down in place of your beat (you cover up —
+  defend-shaped, so offering while they keep swinging is a real
+  risk), visibly, for a short window; a reciprocated offer dissolves
+  the edge and the fight ends with **no victor, no defeat, no
+  yield-loser** — the opened/harm rows stand, but nobody records a
+  loss. Backing down without losing is possible, which is what makes
+  backing down chooseable. Generalizes per-edge on the multi-party
+  graph. Pre-fight needs no mechanic (no session exists until an
+  attack opens one); fleeing ends a fight through the existing chase
+  tether, and re-entering the bar is mechanically fresh — what
+  follows you back is the house's memory, not the session.
 - **Dave's escalation ladder.** Dave breaks up fights himself: assess
   → hands first (subdue — fittingly, the one gambit that needs no
   instrument) → taser only under real threat (his own poise/vitals
-  degrading, a weapon out, a third party piling in). The taser lives
+  degrading, a weapon out, a third party piling in) — and before any
+  of it, the shout: "break it up!", one beat of grace in which the
+  fighters can `fight break` and end it themselves, no 86, no taser.
+  The taser lives
   in the office: fetching it means leaving the fight unattended, so
   escalation costs time by construction.
 - **The summons.** Dave spends most of his time in the back office —
@@ -211,6 +226,17 @@ chain (the 86, the ejection, the taser) remains Dave's. His brain
 answers the summons as witnessed speech and comes out front; the
 alert costs real beats, so a fast brawl can outrun it — also honest.
 
+### Backing down, before and during
+
+Before: no mechanic — a session doesn't exist until an attack opens
+one, so pre-fight de-escalation is just behavior. During: the truce
+(`fight break`) — reciprocal, visible, defend-shaped offers; ending a
+fight this way records no defeat for anyone, which is exactly why it
+is chooseable (yield concedes; break doesn't). After fleeing:
+re-entry is mechanically fresh (the tether ended the session), and
+whatever rung of the house's ladder you earned persists — an 86
+follows you back through the door, a session never does.
+
 ### Honest damage, honest taser
 
 Fists do real blunt harm (modest, mass-scaled); a brawl can bloody
@@ -294,6 +320,12 @@ ticket is a carried Thing, the shipped `Ticket` shape.
   a control win relocates the patron through the bar's exit into the
   lounge host room. The primitive is general (any control winner, any
   exit), not Dave-specific.
+- **The truce**: mid-fight, one party's `fight break` narrates the
+  offer and resolves their beat as defend; the opponent breaking
+  within the window ends the session with no victor and no defeat
+  rows (opened/harm rows stand); the opponent striking instead lapses
+  the offer and the fight continues. Dave's arrival shout gives one
+  beat in which a mutual break ends the incident with no 86.
 - **The summons**: with Dave in the office and a bartender on shift,
   an armed patron (or a breaking fight) draws the bartender's warning
   and a call for Dave; Dave emerges and runs the ladder from the

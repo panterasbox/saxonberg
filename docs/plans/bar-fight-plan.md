@@ -299,6 +299,30 @@ the tripwire — coverage total by construction. Consequence: Dave
 usually arrives mid-scene, so P11's read-the-room inference is the
 *common* case — the wrong-guy risk is structural, per the design.
 
+### P15 — The truce is `fight break`: reciprocal stand-down offers on the graph
+
+A `break` case in `FightController`'s subcommand dispatch (the same
+machinery as `rush` — they ship together in W3). `breakImpl`: queue a
+`break` intent that resolves the actor's exchange as the existing
+**defend** branch (cover up — offering under fire is honestly risky)
+and marks a standing offer on each of the actor's threat edges,
+narrated to the room ("X steps back, hands raised"). An edge whose
+**both** endpoints hold standing offers dissolves; a combatant whose
+last edge dissolves leaves the session; a session whose edges are all
+dissolved resolves as `mutual-break` — **no victor, no defeat, no
+yield path touched** (the `opened` and harm ledger rows stand; no
+defeat deed mints). An offer stands for the current + next exchange,
+then lapses (re-offerable). Distinct from `yield` by design: yield
+concedes and records a loss; break is how you back down *without*
+losing, which is what makes backing down chooseable. Dave's ladder
+gains **rung zero**: on arrival he `say`s the break-it-up shout and
+holds one beat before joining — fighters who break on the shout end
+the incident themselves (no 86, no taser; the deterrence payoff made
+concrete). Flee/re-enter needs no new mechanism and is *documented*
+instead: the tether decay ends the session, re-entry is mechanically
+fresh, and the house's ladder state (an earned 86 included) is what
+persists — W5's already-86'd arrival branch covers the return.
+
 ## Waves
 
 ### W0 — Fisticuffs (world-wide) + the `unarmed` Discipline
@@ -363,17 +387,25 @@ tests (initiate result shape widened — additive optional field).
 **User checkpoint:** the refusal prose — read it in a live lounge before
 moving on.
 
-### W3 — The bum's rush
-**Changes:** `bumRushImpl` + `CombatApi.bumRush`; the `rush` case in
-`FightController`; the two-room narration; prone landing; the fight.yaml
-view gains the subcommand token if the view enumerates them.
+### W3 — The bum's rush + the truce
+**Changes:** `bumRushImpl` + `CombatApi.bumRush`; `breakImpl` + the
+offer bookkeeping on threat edges + the `mutual-break` resolution
+(P15); the `rush` and `break` cases in `FightController`; the
+narrations (thrown-out two-scene, prone landing; the hands-raised
+offer, the mutual break); the fight.yaml view gains the subcommand
+tokens if the view enumerates them.
 **Tests:** control winner (synthetic A subdues B → `grappled`) rushes B
 through an authored exit — B lands in the destination, prone, out of the
 session; session resolves when the side empties; refusals: no grapple
 (`no-hold`), bad direction (`no-exit`), not-in-combat; the primitive
-works for any combatant (no Dave anywhere).
+works for any combatant (no Dave anywhere). Truce: one break resolves
+as defend + a narrated standing offer; reciprocation within the window
+ends the session with no victor/defeat rows (opened/harm rows stand);
+a strike instead lapses the offer; three-party — A↔B break while A↔C
+fights on, A stays in session until the last edge dissolves.
 **Tripwires:** FightController subcommand tests; combat narration
-snapshot tests if any pin the fight verb surface.
+snapshot tests if any pin the fight verb surface; session-resolution
+suites that assume every resolution names a victor.
 
 ### W4 — The check rack + ticket
 **Changes:** `ConsignmentListing.heldOnly` + the BuyController refusal;
@@ -428,15 +460,17 @@ new module-resolving call site appears in the brain).
 ### W6 — The escalation ladder + the office taser + the wrong guy
 **Changes:** the `combat` witness alias (brain.ts `WITNESS_TOPIC` +
 `WitnessKind` + the Behaved dispatch case); the `WITNESS` belief realm
-const; the `enforces` brain's fight-breakup half (join hands-first with
+const; the `enforces` brain's fight-breakup half (rung zero: the break-it-up shout + one beat's grace, then join
+hands-first with
 `attack`/`fight subdue`; threat threshold = own condition band
 degrading ∨ a weapon out among participants (`visibleArms`) ∨ a third
 party piling in; on trip: office round-trip via literal verbs, tase the
 *believed* aggressor); the office-door discovery seed; office.yaml gains
 `props: [/world/lounge/thing/office-taser]` + the taser row; dave.yaml
 gains the `combat` witness spec.
-**Tests:** staged brawl with Dave present → he joins hands-first
-(subdue), never opens with the taser; threshold trip → he leaves,
+**Tests:** staged brawl with Dave present → he shouts first and holds
+a beat (a mutual break on the shout ends the incident with no 86 and
+no join), then joins hands-first (subdue), never opens with the taser; threshold trip → he leaves,
 fetches, returns armed+switched-on, tases — and the fight ran beats
 unattended during the fetch; the tase writes honest accountability rows
 attributed to Dave (`consented: false` imposed terms — **no staff
@@ -514,6 +548,7 @@ dave.yaml, not world dials — per-venue personality.)
 | Tetany (window, verb refusals with prose, expiry, fibrillation reachable, `isTetanized` call sites) | W1 |
 | Sanctuary (lounge refuses with prose; bar + office open normally) | W2 |
 | Bum's rush (general control-win relocation through an exit) | W3 |
+| The truce (defend-shaped offer, reciprocal end with no victor/defeat, lapse on strike, Dave's shout beat) | W3 + W6 |
 | The check (lounge-side rack, ticket, relog survival, reclaim, `ownerOf` throughout, shield excluded) | W4 |
 | Warning then 86 (no-record grace, comply-and-return clean, institutional persistent record, brandishing skips grace) | W5 |
 | The ladder (hands-first, threshold, office fetch, unattended fight) + the wrong guy (belief-not-ledger, no staff exemption) | W6 |
