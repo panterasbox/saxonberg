@@ -57,8 +57,10 @@ recognition). Load-bearing subsystem docs:
   such gate exists anywhere today), with the lounge warren as its
   first consumer and a player-facing prose refusal. The bar and the
   office are explicitly **not** covered.
-- **The weapons check.** A check fixture by the bar door takes custody
-  of a patron's arms against a claim ticket. Custody, never title —
+- **The weapons check.** A check fixture **in the lounge, directly
+  adjacent to the bar's entrance** (the lounge side of the doorway —
+  you check *before* you enter) takes custody of a patron's arms
+  against a claim ticket. Custody, never title —
   the owner-stamp stays on the item, the held goods survive relog,
   reclaim returns them. Detection of "is this a weapon" uses the
   existing construction-domain predicate (shields excluded).
@@ -140,8 +142,12 @@ normal rejection path, never as a thrown containment error.
 
 `Bar.ts` documents "no venue mixin — the bar is emergent from the
 matter and the maker in it," and this build honors that stance: the
-check is a fixture Thing by the door (a Location's own
-`commandContributions` can't reach occupants anyway — attendant.md),
+check is a fixture Thing **on the lounge side of the doorway** — in
+whichever lounge room carries the north exit to the bar (a Location's
+own `commandContributions` can't reach occupants anyway —
+attendant.md). Placing the rack in the lounge proper also parks the
+checked arsenal inside the combat-free room: nobody can fight over
+the rack,
 the enforcement is Dave's brain, the 86 list is a venue record. The
 only kernel touches are the ones that must be kernel: fisticuffs
 data-plumbing, the tetany gate, the sanctuary seam, the bum's rush.
@@ -230,7 +236,9 @@ ticket is a carried Thing, the shipped `Ticket` shape.
   warren room is refused with player-readable prose and no session
   opens; the identical pair one room north (the bar) opens a session
   normally; the office is likewise ungated.
-- **The check**: checking a weapon at the rack yields a claim ticket;
+- **The check**: the rack stands in the lounge room adjacent to the
+  bar entrance, not in the bar; checking a weapon there yields a
+  claim ticket;
   the rack's holdings survive a relog; reclaim returns the weapon;
   `ownerOf` answers the patron throughout; a shield is not treated as
   a weapon by the spotting predicate.
