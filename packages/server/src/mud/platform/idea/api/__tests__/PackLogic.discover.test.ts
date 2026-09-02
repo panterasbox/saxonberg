@@ -57,9 +57,9 @@ describe('discovery', () => {
 });
 
 describe('the shipped packs (real discovery, no install)', () => {
-  it('twenty-nine ship; the trade packs order after generic-objects (wave 4a); the venues after their trades (wave 4b); the localities after residence (residences D18)', () => {
+  it('thirty ship; the trade packs order after generic-objects (wave 4a); the venues after their trades (wave 4b); the localities after residence (residences D18); the localities after water (watershed W9)', () => {
     const ids = PackApi.contentRoots().map((root) => root.split('/').slice(-2)[0]!);
-    expect(ids).toHaveLength(29);
+    expect(ids).toHaveLength(30);
     expect(ids[0]).toBe('platform');
     for (const trade of ['trade-smithing', 'trade-hearth-cooking', 'trade-hospitality', 'trade-distilling']) {
       expect(ids.indexOf(trade)).toBeGreaterThan(ids.indexOf('generic-objects'));
@@ -74,5 +74,11 @@ describe('the shipped packs (real discovery, no install)', () => {
       expect(ids.indexOf(locality)).toBeGreaterThan(ids.indexOf('residence'));
     }
     expect(ids.indexOf('hinkley-hills')).toBeGreaterThan(ids.indexOf('terminus'));
+    // The watershed cut: the three packs whose content names the water
+    // pack's classes (`/water/thing/Conduit`, `StorageNode`) or its
+    // `Watercourse` rows must install after it.
+    for (const namer of ['world-seed', 'terminus', 'hinkley-hills']) {
+      expect(ids.indexOf(namer)).toBeGreaterThan(ids.indexOf('water'));
+    }
   });
 });

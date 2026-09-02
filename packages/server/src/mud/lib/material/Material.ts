@@ -620,7 +620,20 @@ export default class Material extends SingletonMixin(
     nutrients: { persistent: true, spoiler: 1, spoilerName: 0 },
     nutrientAmounts: { persistent: true, spoiler: 1, spoilerName: 0 },
     toxicity: { persistent: true, spoiler: 1, spoilerName: 0 },
-    purifiedByBoiling: { persistent: true, authorable: true },
+    // ⭐ `spoiler: 1`, matching `toxicity` — they are the same fact seen
+    // from two sides. "This water poisons you" and "boiling fixes it"
+    // are the two halves of the John Snow lesson, and shipping the
+    // answer public while the problem is a spoiler would be
+    // inconsistent AND would hand a player the last rung of the
+    // counterplay ladder before they had reason to look for it.
+    // `spoilerName: 0` — that the field EXISTS is public; what it names
+    // is not.
+    purifiedByBoiling: {
+      persistent: true,
+      authorable: true,
+      spoiler: 1,
+      spoilerName: 0,
+    },
   };
 
   public getName(): string { return this.name; }
