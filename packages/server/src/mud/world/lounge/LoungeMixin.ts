@@ -51,6 +51,9 @@ export interface Lounge {
    * and self-registers via the Warren-owned `addMember`.
    */
   applyWarren(warrenPath: string): Promise<void>;
+  /** Sanctuary veto: the lounge refuses combat (the combat engine
+   * presence-dispatches this at session-open). Returns the house prose. */
+  combatSanctuaryRefusal(): string;
 }
 
 /** Structural view of the lounge Warren surface this mixin consults. */
@@ -153,6 +156,19 @@ export function LoungeMixin<
             );
           });
       }
+    }
+
+    /**
+     * Sanctuary veto — the lounge is combat-free by mechanism (the one
+     * legitimate hard ban: the social commons). Presence-dispatched by the
+     * combat engine at `openSessionImpl`'s top; returning prose refuses
+     * the fight before any session is built. Rides the class, so it covers
+     * the host AND every satellite (all clones of the one Lounge template);
+     * the Bar and the office are other classes and stay fair game — the
+     * anti-lounge split. See docs/subsystems/combat.md, location.md.
+     */
+    combatSanctuaryRefusal(): string {
+      return "Not in here. The lounge is for talk — take it next door.";
     }
 
     /** Population witness — an occupant left this room. */

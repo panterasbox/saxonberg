@@ -153,8 +153,41 @@ export default class AccessRegistry extends AccessRegistryBase {
     const memberKey = this.memberKeyOf(subject);
     if (memberKey === null) return false;
     const owner = await ParcelApi.ownerOf(path);
-    if (owner === null) return false;
-    return this.subjectIsOwnerMember(subject, memberKey, owner);
+    if (
+      owner !== null &&
+      (await this.subjectIsOwnerMember(subject, memberKey, owner))
+    ) {
+      return true;
+    }
+    // A narrow, ADDITIVE carve-out: a venue's Business staff may write the
+    // venue's OWN records subtree without holding the parcel title. See
+    // `canWriteVenueRecord`.
+    return this.canWriteVenueRecord(subject, path);
+  }
+
+  /**
+   * The venue-records carve-out (bar-fight P9): a venue's Business
+   * proprietor or an on-roster position-holder may write documents under
+   * the venue's own `records/` subtree — `<operatingLocation>/records/…`
+   * — and **nothing else**. Deliberately narrow: it scopes to the
+   * `records/` namespace of a location the Business actually operates, so
+   * a bar can keep its house book (the 86 list) but cannot touch the rest
+   * of the parcel. Purely additive — the parcel's title-holder (the
+   * wizard-managed group over the whole lounge) keeps full authority; this
+   * only widens for the venue's own institutional records.
+   */
+  private async canWriteVenueRecord(
+    subject: Stuff,
+    path: string,
+  ): Promise<boolean> {
+    const marker = '/records/';
+    const idx = path.indexOf(marker);
+    if (idx <= 0) return false;
+    const operatingLocation = path.slice(0, idx);
+    const business = EmploymentApi.businessAt(operatingLocation);
+    if (!business) return false;
+    if (EmploymentApi.holdsPosition(subject, business)) return true;
+    return EmploymentApi.isProprietorOf(subject, business);
   }
 
   /**

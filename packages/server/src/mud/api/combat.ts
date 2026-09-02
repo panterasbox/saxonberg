@@ -47,7 +47,12 @@ import { SecurityApi } from './security';
 /** Result of opening a session. */
 export type OpenSessionResult =
   | { ok: true; session: CombatSession }
-  | { ok: false; reason: "busy" | "not-engageable" };
+  | {
+      ok: false;
+      reason: "busy" | "not-engageable" | "sanctuary";
+      /** Player-readable prose when a sanctuary refused the fight. */
+      refusal?: string;
+    };
 
 /**
  * Optional inputs the caller snapshots at open/join. `competenceBands` maps
@@ -126,7 +131,8 @@ export interface GambitEligibility {
     | "target-unarmed"
     | "wrong-band"
     | "wrong-weapon"
-    | "no-shield";
+    | "no-shield"
+    | "tetanized";
 }
 
 const LOGIC_PATH = "/platform/idea/api/combat";
@@ -205,6 +211,62 @@ export class CombatApi {
   /** The actor yields — resolves the fight in the opponent's favour. */
   public static yieldFight(actor: Stuff): boolean {
     return logic().yieldFight(actor);
+  }
+
+  /**
+   * `fight break` — offer a mutual stand-down. Resolves the actor's beat
+   * as a cover-up and posts an offer; a reciprocated fresh offer dissolves
+   * the threat edge, and a fully edgeless session ends as a draw (no
+   * victor, no defeat — unlike `yieldFight`, which concedes and records a
+   * loss). `broke` is true when this call dissolved at least one edge.
+   */
+  /**
+   * Is this item a **weapon** — a wieldable carrying a weapon-domain
+   * construction (bladed/pointed/hafted/flail/whip)? A shield is a
+   * wielded *armor* construction and is correctly excluded. The predicate
+   * the weapons-check rack gates on, and the combat vocabulary's own
+   * "is this a weapon" test — a legitimate cross-cutting read (combat
+   * vocabulary × the item), so it lives on the Api.
+   */
+  public static isWeapon(item: Stuff): boolean {
+    return logic().isWeapon(item);
+  }
+
+  /**
+   * The weapons a `viewer` can SEE on a `subject`: wielded weapons always
+   * (drawn steel is obvious); sheathed / carried ones only when the viewer
+   * perceives them at the given attention. The doorman's read for the
+   * weapons-check house rule — a concealed blade that beats the watcher's
+   * alertness is legitimately missed (`search` is the counterplay). No
+   * frisk verb: this reads, it doesn't strip-search.
+   */
+  public static visibleArms(
+    viewer: Stuff,
+    subject: Stuff,
+    attention?: number,
+  ): Stuff[] {
+    return logic().visibleArms(viewer, subject, attention);
+  }
+
+  public static offerBreak(actor: Stuff): {
+    ok: boolean;
+    reason?: string;
+    broke: boolean;
+  } {
+    return logic().offerBreak(actor);
+  }
+
+  /**
+   * `fight rush <direction>` — the bum's rush: throw a **grappled** foe
+   * out through the named exit. A general control-win outcome (any winner,
+   * any exit). The loser leaves the fight, is relocated teleport-style, and
+   * lands sprawled. Async: the destination may fault in its zone.
+   */
+  public static bumRush(
+    actor: Stuff,
+    direction: string,
+  ): Promise<{ ok: boolean; reason?: string }> {
+    return logic().bumRush(actor, direction);
   }
 
   /**

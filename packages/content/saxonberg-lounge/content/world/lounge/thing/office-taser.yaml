@@ -1,0 +1,31 @@
+# Dave's office taser — a stun baton kept in the back room, within reach of
+# the desk. A venue prop by PLACEMENT (behind the concealed door, in the
+# sanctum), not by any special mechanism: it's the shipped StunBaton, safed
+# (`on: false`). Dave fetches it only under real threat (a weapon drawn, or
+# three-plus in the scrum) — the office round trip costs him the floor while
+# the fight runs on. Low-lethal: a contact-stun that sits in the tetany band
+# (a disarm), never fibrillation — and he doesn't want to use it, which is
+# the whole point.
+#
+# Not a player-facing weapon: no census key, no store line. The less-lethal
+# family (a real taser) is the ranged tail's business, not this.
+class: /platform/thing/equipment/StunBaton
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a stun baton
+  primaryKeyword: taser
+  keywords: [taser, baton, stun]
+  longDescription: >
+    A rubber-gripped baton with two blunt electrodes at the tip and a
+    thumb-switch on the haft — the one concession to trouble Dave keeps back
+    here. Dead weight until it's armed; then the gap between the electrodes
+    spits and crackles.
+  _materialPath: /stuff/idea/material/alloy/steel
+  constructionForm: hafted
+  gradeBand: fine
+  mass: 0.6
+  balanceFactor: 1.4
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": ["hand:right"]
+  voltage: 5000
+  on: false

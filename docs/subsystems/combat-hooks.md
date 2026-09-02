@@ -82,6 +82,18 @@ The base `Location` is untouched; a hook-less room (a gym
 A reactive venue is a Location subclass (or future mixin) overriding
 them — the gate-barring arena, the crowd-reacting colosseum.
 
+**`CombatSanctuary` — the veto, a deliberate sibling (bar-fight build).**
+A room that can *refuse* a fight from opening is a **separate**
+interface, `CombatSanctuary.combatSanctuaryRefusal(initiator,
+defender)`, declared beside `CombatVenue` and **never a member of it**:
+the reactive venue hooks witness a fight and may punish one, but can
+never veto — a sanctuary is the one place a fight cannot start. It is
+presence-dispatched at the very top of `openSessionImpl`, before any
+state is built, so a non-null return is a clean refusal (surfaced as
+`reason: "sanctuary"` + prose), not a torn-down session. First
+implementer: the lounge's `LoungeMixin` (combat-free by mechanism). See
+[combat.md](./combat.md) § the sanctuary gate.
+
 ## `CombatHookContext` — read freely, consequence through the queue
 
 Every ctx-taking hook receives one **`CombatHookContext`**

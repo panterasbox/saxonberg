@@ -66,6 +66,16 @@ export interface NaturalAttackSpec {
   massKg?: number;
   /** Effective striking length (m) — rides the weapon reach bands. */
   lengthM?: number;
+  /**
+   * Scale this attack's inflict **energy** by the striker's body mass
+   * (`clamp(baseMass / combat.natural.energyRefMassKg, min, max)`) — the
+   * fist a heavy body throws hits harder. Read in `commitInflict`'s
+   * energy fold, NOT here (this is a delivery-energy concern, orthogonal
+   * to the strike *profile* the reach/balance derivation shapes). No
+   * shipped beast row carries it, so every existing innate is
+   * byte-identical by construction. Default false.
+   */
+  massScaled?: boolean;
 }
 
 /** The four numbers the engine multiplies in at the unarmed seams — the
@@ -235,6 +245,15 @@ export class NaturalAttack {
           );
         }
       }
+      if (
+        spec.massScaled !== undefined &&
+        typeof spec.massScaled !== "boolean"
+      ) {
+        throw new TypeError(
+          `NaturalAttack.validateSpecs: entry ${i} ('${spec.key}') ` +
+            `massScaled must be a boolean, got ${String(spec.massScaled)}`,
+        );
+      }
       const cleaned: NaturalAttackSpec = {
         key: spec.key.trim(),
         channel: spec.channel,
@@ -242,6 +261,7 @@ export class NaturalAttack {
       if (spec.reach !== undefined) cleaned.reach = spec.reach;
       if (spec.massKg !== undefined) cleaned.massKg = spec.massKg;
       if (spec.lengthM !== undefined) cleaned.lengthM = spec.lengthM;
+      if (spec.massScaled !== undefined) cleaned.massScaled = spec.massScaled;
       return cleaned;
     });
   }

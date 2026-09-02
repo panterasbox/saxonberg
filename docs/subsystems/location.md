@@ -316,6 +316,18 @@ is a **`Warren`** — an incorporeal `Idea` (identity + state, no physical
 presence). v1 ships the substrate plus a rudimentary **lounge** (the
 universal login landing) over it.
 
+**The lounge is the social commons — combat-free by mechanism** (the
+bar-fight build): its member class `LoungeMixin` implements
+`CombatSanctuary.combatSanctuaryRefusal`, so no fight can open in the
+lounge or any of its satellites (all clones of the one `Lounge`
+template) — the one place a hard combat ban is legitimate. **Dave's Bar,
+one exit north, is the anti-lounge** — a different class, no sanctuary,
+peace kept only by norms and Dave (see [combat.md](./combat.md) sanctuary
+gate, [behavior.md](./behavior.md) the `enforces` brain). The weapons-check
+rack (retail.md) rides `FixtureMixin` `seatIn` into the Warren host, so it
+stands on the lounge side of the doorway: you check your steel in the
+combat-free room before you go next door.
+
 Promoted from `docs/slates/builds/multilocation-slate.md` +
 `docs/slates/builds/lounge-slate.md` via
 `docs/requirements/multilocation-lounge-requirements.md` and

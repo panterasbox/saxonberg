@@ -59,6 +59,10 @@ import { CombatFormation } from "../../CombatFormation";
 import type { Channel } from "../../../../lib/material/Channel";
 import EventRegistry from "../../EventRegistry";
 import { EventApi } from "../../../../api/event";
+import Exit from "../../../../lib/boundary/Exit";
+import CartesianLocation from "../../../../lib/location/CartesianLocation";
+import CartesianZone from "../../location/CartesianZone";
+import { Postures } from "../../../../lib/slot/Postured";
 
 class TestRoom extends ContainerMixin(Idea) {}
 class TestFighter extends Character {}
@@ -2196,5 +2200,346 @@ describe("CombatLogic — the species combat vocabulary (DECISION L)", () => {
     const elig = CombatApi.eligibilityFor(beast, "sweep");
     expect(elig.ok).toBe(false);
     expect(elig.reason).toBe("wrong-weapon");
+  });
+});
+
+describe("CombatLogic — fisticuffs (the bar-fight build)", () => {
+  /** A defenceless target that can never strike back (no instrument), so
+   * every `inflict` the session produces is the striker's — the clean
+   * seam for reading a single strike's energy. */
+  function bag(room: TestRoom): TestFighter {
+    return makeFighter(room);
+  }
+
+  /** Open striker-vs-bag and return the energy of the FIRST landed
+   * inflict. Beat 1 targets a fresh-poise bag, so `energyFor(band)` is
+   * identical across runs and the only variable is the mass scale. */
+  function firstStrikeEnergy(wire: (f: TestFighter) => void): number {
+    const room = makeStuff(() => new TestRoom());
+    const striker = makeFighter(room);
+    wire(striker);
+    const target = bag(room);
+    const spy = vi.spyOn(ConditionApi, "inflict");
+    try {
+      const session = open(striker, target, nonLethal);
+      for (let i = 0; i < 8 && spy.mock.calls.length === 0; i++) {
+        CombatApi.advance(session);
+      }
+      const call = spy.mock.calls[0];
+      if (!call) throw new Error("no inflict landed");
+      return (call[1] as { energy: number }).energy;
+    } finally {
+      spy.mockRestore();
+    }
+  }
+
+  const fistScaled = (kg: number) => (f: TestFighter) => {
+    f.getSpecies()!.getBodyPlan()!.setBaseMass(kg);
+    f.getSpecies()!
+      .setNaturalAttacks([{ key: "fist", channel: "blunt", massScaled: true }]);
+  };
+  const fistPlain = (kg: number) => (f: TestFighter) => {
+    f.getSpecies()!.getBodyPlan()!.setBaseMass(kg);
+    f.getSpecies()!.setNaturalAttacks([{ key: "fist", channel: "blunt" }]);
+  };
+
+  it("a massScaled fist scales inflict energy with body mass", () => {
+    const light = firstStrikeEnergy(fistScaled(50));
+    const heavy = firstStrikeEnergy(fistScaled(100));
+    // Both bodies sit inside the [0.5, 2.5] clamp band (50/70, 100/70), so
+    // the ratio is the raw mass ratio — the heavier fist hits harder.
+    expect(heavy).toBeGreaterThan(light);
+    expect(heavy / light).toBeCloseTo(100 / 50, 5);
+  });
+
+  it("the flag gates the mass-energy factor and clamps it at both ends", () => {
+    // Same body mass on/off → identical reach/balance profile and poise
+    // dynamics, so the ONLY variable is the flag: the ratio IS the factor.
+    // (A live large-body reach mechanic makes cross-mass reads unclean —
+    // holding mass fixed and toggling the flag isolates this change.)
+    const onHeavy = firstStrikeEnergy(fistScaled(200)); // 200/70 ≫ 2.5 → 2.5
+    const offHeavy = firstStrikeEnergy(fistPlain(200)); // factor 1.0
+    expect(onHeavy / offHeavy).toBeCloseTo(2.5, 5);
+    const onTiny = firstStrikeEnergy(fistScaled(5)); // 5/70 < 0.5 → 0.5
+    const offTiny = firstStrikeEnergy(fistPlain(5)); // factor 1.0
+    expect(onTiny / offTiny).toBeCloseTo(0.5, 5);
+  });
+
+  it("a NON-massScaled innate is invariant to body mass (beast byte-parity)", () => {
+    // Both bodies stay below combat.natural.largeBodyMassKg (150), so the
+    // reach/balance profile is neutral for each — the only thing that
+    // could move energy is the mass scale, which a flag-less attack never
+    // reads. A shipped beast is therefore byte-identical to before.
+    const plain = (kg: number) => (f: TestFighter) => {
+      f.getSpecies()!.getBodyPlan()!.setBaseMass(kg);
+      f.getSpecies()!.setNaturalAttacks([{ key: "paw", channel: "blunt" }]);
+    };
+    expect(firstStrikeEnergy(plain(40))).toBe(firstStrikeEnergy(plain(100)));
+    // And the legacy channel fallback is likewise mass-invariant.
+    const legacy = (kg: number) => (f: TestFighter) => {
+      f.getSpecies()!.getBodyPlan()!.setBaseMass(kg);
+      f.naturalAttackChannel = "blunt";
+    };
+    expect(firstStrikeEnergy(legacy(40))).toBe(firstStrikeEnergy(legacy(100)));
+  });
+
+  it("an unarmed exchange credits `unarmed` + `melee-combat`, never `blades`", () => {
+    const subs: Array<{ discipline: string }> = [];
+    const spy = vi
+      .spyOn(AdvancementApi, "recordSignature")
+      .mockImplementation(async (_owner, sig) => {
+        for (const s of (sig as { discipline: Array<{ discipline: string }> })
+          .discipline) {
+          subs.push(s);
+        }
+      });
+    try {
+      const room = makeStuff(() => new TestRoom());
+      const brawler = makeFighter(room);
+      brawler.getSpecies()!
+        .setNaturalAttacks([{ key: "fist", channel: "blunt" }]);
+      const target = bag(room);
+      const session = open(brawler, target, nonLethal);
+      // player-driven so the transcript mints (brains bank nothing)
+      (session.getState(brawler) as unknown as { brainPath: string | null })
+        .brainPath = null;
+      const targetState = session.getState(target)!;
+      for (let i = 0; i < 8 && !targetState.down; i++) {
+        CombatApi.queueGambit(brawler, "strike");
+        CombatApi.advance(session);
+      }
+      const disc = subs.map((s) => s.discipline);
+      expect(disc).toContain("unarmed");
+      expect(disc).toContain("melee-combat");
+      expect(disc).not.toContain("blades");
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
+  it("an armed exchange credits `blades`, never `unarmed`", () => {
+    const subs: Array<{ discipline: string }> = [];
+    const spy = vi
+      .spyOn(AdvancementApi, "recordSignature")
+      .mockImplementation(async (_owner, sig) => {
+        for (const s of (sig as { discipline: Array<{ discipline: string }> })
+          .discipline) {
+          subs.push(s);
+        }
+      });
+    try {
+      const room = makeStuff(() => new TestRoom());
+      const swordsman = makeFighter(room, { weaponForm: "bladed" });
+      const target = bag(room);
+      const session = open(swordsman, target, nonLethal);
+      (session.getState(swordsman) as unknown as { brainPath: string | null })
+        .brainPath = null;
+      const targetState = session.getState(target)!;
+      for (let i = 0; i < 8 && !targetState.down; i++) {
+        CombatApi.queueGambit(swordsman, "strike");
+        CombatApi.advance(session);
+      }
+      const disc = subs.map((s) => s.discipline);
+      expect(disc).toContain("blades");
+      expect(disc).toContain("melee-combat");
+      expect(disc).not.toContain("unarmed");
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
+  it("two unarmed humans resolve a brawl to a downed loser (end-to-end fists)", () => {
+    const room = makeStuff(() => new TestRoom());
+    const a = makeFighter(room);
+    const b = makeFighter(room);
+    for (const f of [a, b]) {
+      f.getSpecies()!.getBodyPlan()!.setBaseMass(70);
+      f.getSpecies()!
+        .setNaturalAttacks([{ key: "fist", channel: "blunt", massScaled: true }]);
+    }
+    const session = open(a, b, nonLethal);
+    const bState = session.getState(b)!;
+    for (let i = 0; i < 40 && !bState.down && session.isActive(); i++) {
+      CombatApi.queueGambit(a, "strike");
+      CombatApi.advance(session);
+    }
+    expect(bState.down).toBe(true);
+  });
+});
+
+describe("CombatLogic — the sanctuary gate (the bar-fight build)", () => {
+  // A room that refuses combat, the CombatSanctuary shape (presence-
+  // dispatched; the base TestRoom has no such method and stays fair game).
+  class SanctuaryRoom extends ContainerMixin(Idea) {
+    combatSanctuaryRefusal(): string {
+      return "Not in here. Take it next door.";
+    }
+  }
+  // A reactive-only venue: it witnesses (onCombatOpened) but has no
+  // sanctuary method — the witness tier can never veto a fight.
+  class WitnessRoom extends ContainerMixin(Idea) {
+    public opened = 0;
+    onCombatOpened(): void {
+      this.opened++;
+    }
+  }
+
+  it("refuses a fresh session with the room's prose — no session opens", () => {
+    const room = makeStuff(() => new SanctuaryRoom());
+    const a = makeFighter(room as unknown as TestRoom);
+    const b = makeFighter(room as unknown as TestRoom);
+    const terms = CombatTerms.agreed(
+      a.getTemplatePath() ?? "a",
+      nonLethal,
+      true,
+    );
+    const res = CombatApi.openSession(a as never, b as never, terms);
+    expect(res.ok).toBe(false);
+    if (!res.ok) {
+      expect(res.reason).toBe("sanctuary");
+      expect(res.refusal).toContain("next door");
+    }
+    // No session, no holds — the refusal is clean, not a torn-down fight.
+    expect(CombatApi.sessionFor(a as never)).toBeUndefined();
+    expect(CombatApi.sessionFor(b as never)).toBeUndefined();
+  });
+
+  it("a hook-less room opens a session normally (byte-parity)", () => {
+    const room = makeStuff(() => new TestRoom());
+    const a = makeFighter(room);
+    const b = makeFighter(room);
+    const session = open(a, b, nonLethal); // throws if it refused
+    expect(session.isActive()).toBe(true);
+  });
+
+  it("the reactive witness tier cannot veto — the fight opens and it fires", () => {
+    const room = makeStuff(() => new WitnessRoom());
+    const a = makeFighter(room as unknown as TestRoom);
+    const b = makeFighter(room as unknown as TestRoom);
+    const terms = CombatTerms.agreed(
+      a.getTemplatePath() ?? "a",
+      nonLethal,
+      true,
+    );
+    const res = CombatApi.openSession(a as never, b as never, terms);
+    expect(res.ok).toBe(true); // a witness never refuses
+    if (res.ok) openSessions.push(res.session);
+    expect(room.opened).toBe(1); // …and it did witness the open
+  });
+});
+
+describe("CombatLogic — the bum's rush + the truce (the bar-fight build)", () => {
+  // Two coordinate rooms joined by a south exit — the arena the rush
+  // throws a foe out of.
+  async function roomPair(): Promise<{
+    src: CartesianLocation;
+    dst: CartesianLocation;
+  }> {
+    const zone = makeStuff(() => new CartesianZone());
+    stampTemplatePathForTest(zone, `/test/zone-${seq++}`);
+    const src = makeStuff(() => new CartesianLocation());
+    const dst = makeStuff(() => new CartesianLocation());
+    stampTemplatePathForTest(src, `/test/room-src-${seq++}`);
+    stampTemplatePathForTest(dst, `/test/room-dst-${seq++}`);
+    zone.addLocation(src, 0, 0, 0);
+    zone.addLocation(dst, 0, 1, 0);
+    const exit = makeStuff(
+      () => new Exit({ direction: "south", source: src, destination: dst }),
+    );
+    stampTemplatePathForTest(exit, `/test/exit-${seq++}`);
+    await src.addExit(exit);
+    return { src, dst };
+  }
+
+  it("a control winner rushes a grappled foe out through an exit", async () => {
+    const { src, dst } = await roomPair();
+    const a = makeFighter(src as unknown as TestRoom);
+    const b = makeFighter(src as unknown as TestRoom);
+    const session = open(a, b, nonLethal);
+    // Lock B up (the subdue outcome) — set the flag directly to isolate the
+    // rush primitive from the stochastic grapple.
+    session.getState(b)!.flags.add("grappled");
+
+    const res = await CombatApi.bumRush(a as never, "south");
+    expect(res.ok).toBe(true);
+    // B is out of the fight, sprawled in the destination room.
+    expect(CombatApi.sessionFor(b as never)).toBeUndefined();
+    expect(b.getContainer()).toBe(dst);
+    expect(b.getPosture()).toBe(Postures.Lie);
+  });
+
+  it("rush refuses without a grapple, without an exit, and out of combat", async () => {
+    const { src } = await roomPair();
+    const a = makeFighter(src as unknown as TestRoom);
+    const b = makeFighter(src as unknown as TestRoom);
+    const session = open(a, b, nonLethal);
+
+    // No hold yet.
+    expect((await CombatApi.bumRush(a as never, "south")).reason).toBe(
+      "no-hold",
+    );
+    // Held, but no exit that way.
+    session.getState(b)!.flags.add("grappled");
+    expect((await CombatApi.bumRush(a as never, "west")).reason).toBe(
+      "no-exit",
+    );
+    // Not in a fight at all.
+    const loner = makeFighter(src as unknown as TestRoom);
+    expect((await CombatApi.bumRush(loner as never, "south")).reason).toBe(
+      "not-in-combat",
+    );
+  });
+
+  it("a reciprocated break ends the fight with no victor (a draw)", () => {
+    const room = makeStuff(() => new TestRoom());
+    const a = makeFighter(room);
+    const b = makeFighter(room);
+    const session = open(a, b, nonLethal);
+
+    const first = CombatApi.offerBreak(a as never);
+    expect(first.ok).toBe(true);
+    expect(first.broke).toBe(false); // A offers first — nobody to reciprocate
+    expect(session.isActive()).toBe(true);
+
+    const second = CombatApi.offerBreak(b as never);
+    expect(second.broke).toBe(true); // B reciprocates → the edge dissolves
+    expect(session.isActive()).toBe(false); // …and the fight is over
+    expect(session.getResolution()).toBe("draw"); // no victor, no defeat
+  });
+
+  it("an offer lapses if the opponent doesn't reciprocate in the window", () => {
+    const room = makeStuff(() => new TestRoom());
+    const a = makeFighter(room);
+    const b = makeFighter(room);
+    const session = open(a, b, nonLethal);
+
+    CombatApi.offerBreak(a as never); // A offers at beat 0
+    // Beats pass without B answering (A's offer goes stale > 1 beat).
+    session.advanceBeat();
+    session.advanceBeat();
+    session.advanceBeat();
+    const late = CombatApi.offerBreak(b as never); // B offers far too late
+    expect(late.broke).toBe(false); // A's offer lapsed — no dissolve
+    expect(session.isActive()).toBe(true);
+  });
+
+  it("three-party: A↔B break while A↔C fights on", () => {
+    const room = makeStuff(() => new TestRoom());
+    const a = makeFighter(room);
+    const b = makeFighter(room);
+    const c = makeFighter(room);
+    const session = open(a, b, nonLethal);
+    CombatApi.join(c as never, a as never, session.getTerms());
+
+    // A and B stand down toward each other; C is still on A.
+    CombatApi.offerBreak(a as never);
+    const broke = CombatApi.offerBreak(b as never);
+    expect(broke.broke).toBe(true);
+    // The fight continues — A still has C's edge.
+    expect(session.isActive()).toBe(true);
+    expect(CombatApi.sessionFor(a as never)).toBe(session);
+    expect(CombatApi.sessionFor(c as never)).toBe(session);
+    // B left the fight (its only edge dissolved).
+    expect(CombatApi.sessionFor(b as never)).toBeUndefined();
   });
 });

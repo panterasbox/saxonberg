@@ -98,7 +98,37 @@ consignment needs no bespoke ownership pointer:
   online — payout rides `primaryAccountIdOf`, a pure DB read.
   `commission = ask × retail.consignment.commissionRate`.
 - **`reclaim <thing>`** returns custody of an unsold listing — **no
-  chattel op** (ownership never left you).
+  chattel op** (ownership never left you). It authorizes on
+  `ChattelApi.ownerOf`, not on possessing any ticket — so a non-owner
+  reclaiming someone else's goods is refused (custody without title is
+  theft).
+
+### The custody base — `HeldGoodsMixin` (consignment ⊃ coat check)
+
+The custody half of consignment is factored out as **`HeldGoodsMixin`**
+(the shared base): move a good into a fixture's custody (owner-stamp
+stays put), know whose it is (`recordHolding`/`holdingFor`/`holdingsOf`/
+`countHeld`/`removeHolding`), and hand it back to its owner
+(`resolveHeld`). *That is the coat check, whole.* `ConsignmentShelfMixin
+extends HeldGoodsMixin` and adds the **sale** layer on top — the ask, the
+per-consignor cap, `buy` — so a `ConsignmentListing extends HeldGood`
+with an `askMinor`. The `ConsignmentShelf` public surface is unchanged;
+the sale controllers don't know the base exists.
+
+**The check rack (`check` — the bar-fight build)** composes **only the
+base**. `CheckRack` (`platform/thing/CheckRack.ts`) = `Persistable +
+HeldGoodsMixin + FixtureMixin`, affording `check` + `reclaim`, never
+`consign`/`buy` — a checked weapon is a plain held good (no ask, no
+listing), so there was never a "not-for-sale" flag to add: a coat check
+is the base without the marketplace. `check <weapon>` (gated on
+`CombatApi.isWeapon` — a shield is armor, refused) records a holding and
+mints a diegetic `Ticket` (the owner-stamp, not the ticket, is the
+reclaim authority — a lost ticket never traps your weapon). `buy` finds
+no consignment shelf at a rack, so a checked weapon simply isn't
+buyable; `reclaim` narrows on `HeldGoodsShelf`, so it serves both a store
+shelf and a check rack. The lounge's rack rides `FixtureMixin`'s `seatIn`
+self-seat into the Warren host (the TPA-terminal precedent), so it stands
+on the combat-free lounge side of the door to Dave's Bar.
 
 The `ConsignmentShelf` (`lib/retail/ConsignmentShelf.ts`) composes
 `Persistable`, which is **load-bearing, not incidental**: it captures the

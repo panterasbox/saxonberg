@@ -185,13 +185,49 @@ an impaired slot is *rejected when attempted* (`Vitals.isSlotImpairedByTrauma`
 → the wielding grip's `bodyPart`), and `disarm` is rejected when the
 opponent is unarmed. This is the "injury edits the menu" behaviour — the
 visible menu-greying is a client-card concern, deferred with the card; the
-terminal build needs only the reject. Humanoids declare **no** innate attack
-(fisticuffs deferred), so a disarmed or fractured-grip humanoid genuinely
-loses `strike`, while a natural-weapon beast keeps it.
+terminal build needs only the reject. **Fisticuffs shipped (the bar-fight
+build):** every humanoid (`homo/*` clade) species row declares a
+mass-scaled blunt **fist** on `naturalAttacks` (`massScaled: true`), so a
+disarmed or bare-handed humanoid still `strike`s/`shove`s/`subdue`s — a
+heavier build hitting harder (`commitInflict` scales inflict energy by
+`clamp(baseMass / combat.natural.energyRefMassKg, min, max)`, the flag no
+shipped beast carries, so beasts are byte-identical). An unarmed exchange
+additionally credits the **`unarmed`** Discipline (the `blades` pattern —
+`melee-combat` always, `unarmed` on an innate instrument, `blades` on an
+edge/point one).
 
 `lib/combat/CombatFlags.ts` — the session-scoped flag set (`disarmed` /
 `prone` / `grappled` / `inspired`), set by control gambits, gone at session
 end.
+
+**The sanctuary gate (the bar-fight build).** A room may forbid a fight
+from opening in it — the `CombatSanctuary` interface
+(`lib/combat/CombatHookContext.ts`), deliberately a *sibling* of
+`CombatVenue`, never a member: the reactive venue hooks witness a fight
+(and may punish one) but can never veto it; a sanctuary is the one place
+a fight cannot open at all. `combatSanctuaryRefusal(initiator, defender)`
+is presence-dispatched at the very top of `openSessionImpl`, before any
+state is built, so a non-null return is a clean refusal (no session, no
+holds, no ledger) surfaced as `reason: "sanctuary"` + `refusal` prose
+through the initiate result to `AttackController`. Every fight-starter
+funnels through `initiate → openSessionImpl`, so one consultation covers
+the attack verb, ambush brains, thrown attacks, and forced NPC commands;
+`join`/`merge` need no gate. First implementer: the lounge's `LoungeMixin`
+(combat-free by mechanism — the social commons; the Bar and office are
+other classes and stay fair game).
+
+**Backing down + the bum's rush (`fight break` / `fight rush`).** `fight
+break` offers a mutual stand-down: it resolves the actor's beat as a
+`defend` (offering under fire is a real risk) and posts an offer good for
+the current + next beat (`CombatantState.breakOfferedBeat`); when both
+ends of a threat edge hold a fresh offer the edge dissolves, and a fully
+edgeless session resolves as a **draw** — no victor, no defeat, no yield
+loser (yield concedes and records a loss; break does not — which is what
+makes backing down chooseable). Multi-party: a partial break drops only
+the now-edgeless combatants. `fight rush <direction>` is the bum's rush —
+a control winner throws a `grappled` foe out through an exit (leaves the
+session, relocated teleport-style via `ContainmentApi.move`, lands
+`Postures.Lie`); a general control-win outcome, not a Dave feature.
 
 **Reactive dispatch (X)** — the session consults a defender's reactive
 affordances at `parried` / `whiff` / `grab`. "Reactive" is a net-new

@@ -1,14 +1,17 @@
 /**
  * ReclaimController — `reclaim <thing>`.
  *
- * Take back an unsold good you consigned: custody returns to you. There is
- * **no chattel op** — you owned it the whole time (the stamp never left).
- * Authority is `ChattelApi.ownerOf`, not the listing.
+ * Take back a good held in a shop's or house's custody — an unsold
+ * consignment OR a checked weapon: custody returns to you. There is **no
+ * chattel op** — you owned it the whole time (the stamp never left).
+ * Authority is `ChattelApi.ownerOf`, not the holding. Serves any
+ * `HeldGoodsShelf` (the shared custody base).
  */
 
 import { CommandController } from "../../../../lib/command/CommandController";
 import type { CommandContext, CommandModel } from "../../../../api/command";
 import ConsignmentShelf from "../../../thing/ConsignmentShelf";
+import CheckRack from "../../../thing/CheckRack";
 import { ContainmentApi } from "../../../../api/containment";
 import { MixinApi } from "../../../../api/mixin";
 import { MessageApi } from "../../../../api/message";
@@ -25,7 +28,10 @@ interface ReclaimModel extends CommandModel {
 export default class ReclaimController extends CommandController<ReclaimModel> {
   async execute(model: ReclaimModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
-    const shelf = ConsignmentShelf.resolveIn(context);
+    // Reclaim serves any held-goods fixture — a store's consignment
+    // shelf or a house's check rack — over the shared custody surface.
+    const shelf =
+      ConsignmentShelf.resolveIn(context) ?? CheckRack.resolveIn(context);
     if (!shelf) {
       this.reject(giver, context, Mml.compose`There's nowhere to reclaim from here.`, {
         kind: "empty-result",
@@ -35,7 +41,7 @@ export default class ReclaimController extends CommandController<ReclaimModel> {
       return;
     }
 
-    const item = shelf.resolveConsigned(model.thing);
+    const item = shelf.resolveHeld(model.thing);
     if (!item) {
       this.reject(giver, context, Mml.compose`There's no "${model.thing}" of yours on the shelf.`, {
         kind: "controller-rejected",
@@ -63,7 +69,7 @@ export default class ReclaimController extends CommandController<ReclaimModel> {
     if (MixinApi.isContainer(giver)) {
       ContainmentApi.move(item, giver); // narrowed to Stuff & Container
     }
-    if (MixinApi.isChattel(item)) shelf.removeListing(item.getChattelId());
+    if (MixinApi.isChattel(item)) shelf.removeHolding(item.getChattelId());
 
     MessageApi.scene(giver)
       .topic(TOPIC)
