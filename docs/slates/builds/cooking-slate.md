@@ -282,6 +282,52 @@ sinks):
    then: it still costs the fire, the pot, the inputs, and the
    knowledge. When tending lands, braising becomes the thing that costs
    you the afternoon — that's when it differentiates.
+
+   **The tending wave's kernel seam bill** *(audited 2026-09-02 — two
+   real seams, one decision, one dependency; everything else is
+   consumers of proven patterns)*:
+
+   - **S1 — the pot-on-the-fire thermal couple** (real, small).
+     `ThermalMixin` Newton-cools toward a cached ambient re-anchored on
+     every discontinuity; `FurnaceMixin` holds `burnTemperatureK ×
+     bellows` while lit — but `heatContents` targets **Meltables**
+     (the smelting path), so nothing today makes a `Thermal` pot on a
+     lit range drift toward 500 K instead of room temperature. Either
+     generalize scope-heating to any `Thermal` occupant, or stamp a
+     vessel's cached ambient on placement on/in a lit furnace (the
+     existing re-anchor, one more trigger). The hard parts — τ = R·C,
+     the held furnace temp, the re-anchor discipline — all ship.
+   - **S2 — the thermal-dose integral: one gauge, three consumers**
+     (real, and the elegant one). Doneness, scorch, and the microbial
+     kill are one mathematical object — **∫f(T)dt**, food science's
+     D/F-values. W0's `FreshnessMixin` builds the pattern (a
+     reconcile-on-read accumulator rate-gated on temperature); tending
+     adds the same-shaped cook-progress accumulator on the build's
+     contents. Bonus: the kill step stops being a crude ">60 °C once"
+     threshold and becomes honest **pasteurization units** — the same
+     integral as freshness, opposite sign — so S2 partially
+     *retro-feeds W0* rather than being pure new cost.
+   - **S4 — where sequencing lives** (a decision, not a build). Braise
+     is ordered stages; `Recipe` is one-shot slots-and-gates and should
+     stay so. The sequencing engine exists: the demonstration capture
+     records ordered command sources and transcribes **personal
+     recipe-scripts**, and scripting has game-time Coroutines. Lean:
+     *the script IS the sequence* — a staged dish is a recipe-script
+     over one-shot stanzas, no `Recipe` schema fork. Settle at that
+     wave's requirements.
+   - **S5 — the skill seam** (declared elsewhere, consumed here).
+     Crafting-wide "control unfixed" is already the declared next
+     crafting wave. Tending is its natural first customer — tending
+     *creates the window skill lives in* (the gap between done and
+     scorched). Sequencing awareness only: tending without the skill
+     seam is windows nobody's skill widens.
+   - **Explicitly not seams** — consumed as-is: scorched = another
+     off-spec terminal beside the shipped pot-luck mint; free cooking
+     = the off-spec path + blend derivation + the technique record;
+     engagement/interruption = `EngagedMixin` + `AbortReason`;
+     stir-resets-the-clock = a timestamp the reconcile reads; process
+     memory = additive `BulkPayload` fields carried by the technique
+     record.
 5. **The antitoxin** — the ptomaine Condition seed declares
    `resolution: { by: antitoxin }`, and `ResolutionSpec` is explicitly
    shape-only v1: **a declared mechanism token with no consumer — no
