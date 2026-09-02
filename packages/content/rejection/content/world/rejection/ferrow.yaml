@@ -18,6 +18,21 @@
 # depth-banded ecology is not expressible here — the upper band is all
 # Stage A reaches, so one table is exactly enough, and the seam is
 # recorded rather than worked around.
+#
+# ⚠⚠ **INERT AS SHIPPED, and it fails SILENTLY.** `ResidencyLogic` reads
+# this table by the CANDIDATE's `censusKey` — it iterates spawn
+# candidates and asks whether the zone declared a count for each. Stage A
+# ships the three species as *taxonomy only* (`Gryllus tenebrarum`,
+# `Rattus fodinae`, `Subterracavia pallida`) with **no creature rows and
+# no `censusKey`**, so no candidate ever carries these keys and the three
+# lines below are never read by anything. Nothing warns; a stocks entry
+# matching no candidate is not an error, it is just absent.
+#
+# ⭐ The table is kept rather than deleted because it is the honest
+# statement of what lives here, and it is one census key away from being
+# true. What it is NOT is a claim that the ecology is alive — see
+# [authored-vs-procedural-slate](../../../../../../docs/slates/builds/authored-vs-procedural-slate.md),
+# which this and the glowcap together forced.
 class: /platform/idea/location/CartesianZone
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:

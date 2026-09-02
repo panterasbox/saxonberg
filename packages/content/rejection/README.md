@@ -8,7 +8,7 @@ The Dry), the adit and three authored galleries, the two zones, the
 prose banks, the claim register, the four businesses that make the chain
 circulate, the fuel yard with its coppice and the smelter beside it, this
 place's own ecology (crickets, delve-rats, the pale grazer, the
-cultivated glowcap that lights it), and the functional cast.
+glowcap that lights it), and the functional cast.
 
 ## ⭐ The exemplar note — a second mining town needs zero pack code
 
@@ -29,7 +29,7 @@ expression**. Concretely, what a second mine copies and diverges from:
 |---|---|
 | its own **deposit row** | a deposit is a PLACE, not a trade |
 | its own **four room type rows** + prose banks | else every mine's workings read identically |
-| its own **ecology** and **light** | ⭐ the archetype's `light` slot ships with no default: Rejection answers with cultivated glowcap, another mine answers with oil lamps |
+| its own **ecology** and **light** | ⭐ the archetype's `light` slot ships with no default: Rejection answers with glowcap, another mine answers with oil lamps. ⚠ It is a light, not a crop — nothing grows or cultivates it (see the authored-vs-procedural slate) |
 | its own **businesses** and **cast** | whose mine this is, is an institutional fact |
 
 Arrival is by **TPA** — no inbound exit is wired, and no file in another

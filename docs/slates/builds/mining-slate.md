@@ -438,6 +438,14 @@ repair economy, and the tier already exists.
 
 #### ⭐⭐ Rejection's light is biological, and that is the archetype's whole point
 
+> ⚠⚠ **NOT SHIPPED (Stage A, 2026-09-02).** The light binds and the
+> divergence demonstration holds, but the *biology* below is design, not
+> code: the shipped fixture and jar are `PortableLight`s that never grow,
+> never die and cultivate nothing. The claims were briefly written into
+> the content as though true and have been removed. The forcing question
+> turned out to be bigger than the fungus — see
+> [authored-vs-procedural-slate](./authored-vs-procedural-slate.md).
+
 The mine archetype's `light` slot ships **with no default** — it is the
 divergence slot. **Rejection binds it with cultivated glowcap**, in the
 fixtures *and* jarred for carry. Another mine binds oil lamps.

@@ -272,9 +272,24 @@ find packages/content/rejection -name '*.ts' | wc -l   # 0
 
 ⭐ **The demonstration is the archetype's `light` slot, which ships with
 NO DEFAULT.** The trade says *you need light underground* and names
-nothing; Rejection answers with cultivated glowcap, another mine answers
-with oil lamps. `bulkSource: lamp-oil` would bind the oil and refuse the
-fungus; `tool: lamp` would make a bed of mushrooms a tool.
+nothing; Rejection answers with glowcap, another mine answers with oil
+lamps. `bulkSource: lamp-oil` would bind the oil and refuse the fungus;
+`tool: lamp` would make a bed of mushrooms a tool.
+
+⚠⚠ **The glowcap is a light, not a crop, and the word *cultivated* has
+been removed everywhere it appeared.** The fixture and the jar are
+`PortableLight`s: they do not grow, do not die and do not compose
+`GrowingMixin`, and the fungus-farmer that earlier prose implied does not
+exist. The `light` slot is genuinely satisfied — 40 lux clears the
+archetype's 20 — so the divergence demonstration holds; what was fiction
+was the *money sink*.
+
+⭐ It is the forcing case for the next build, and the question is bigger
+than mushrooms: the Ferrow zone's `stocks:` table distributes three fauna
+procedurally, while the glowcap is a hand-placed fixture with no table
+entry at all, and **nothing says how those two layers relate when an
+author bypasses the procedural one on purpose.** See
+[authored-vs-procedural-slate](../slates/builds/authored-vs-procedural-slate.md).
 
 ### The kernel footprint, in full
 

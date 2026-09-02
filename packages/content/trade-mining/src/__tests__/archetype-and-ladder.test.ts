@@ -3,7 +3,7 @@
  *
  * ⭐⭐ **The one falsifiable claim the archetype has to carry**: *the
  * archetype says you need light underground; Rejection answers with
- * cultivated glowcap, another mine answers with oil lamps.* Same slot,
+ * glowcap, another mine answers with oil lamps.* Same slot,
  * different world — which is only true if the slot ships with NO
  * DEFAULT, and that is asserted here rather than assumed.
  *

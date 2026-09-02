@@ -1,12 +1,19 @@
 # ⭐⭐ A glowcap bed in a wall niche — **the lighting infrastructure, and
 # the archetype's `light` slot bound.**
 #
-# The archetype names no source. Rejection answers with a cultivated
-# fungus: it emits continuously, it needs no fuel, and ⚠ **it dies** — a
-# fixture is a placed living thing somebody keeps, on exactly the pattern
-# a timber set is. That makes the money sink biological and LOCAL: the
-# mine's own fungus-farmer, rather than an oil supply chain nobody here
-# owns.
+# The archetype names no source. Rejection answers with a fungus: it emits
+# continuously and it needs no fuel, which is the whole divergence — no
+# flame, no oil, no supply chain.
+#
+# ⚠⚠ **It does not grow and it does not die, and nothing here should say
+# it does.** An earlier cut of this file promised a living fixture on a
+# biological replacement cycle — *"it dies"*, *"somebody has been trimming
+# the dead ones out"* — and none of it was implemented: this is a
+# `PortableLight`, not a `Plant`, and the fungus-farmer that prose implied
+# does not exist. Making it real needs `LightSourceMixin(Plant)` in a
+# fungiculture trade pack, and that is a build (see
+# `docs/slates/builds/authored-vs-procedural-slate.md`). Until then the
+# honest thing is a light that works, described as a light that works.
 #
 # ⚠ It is a `PortableLight` and not a `Lamp`: `Lamp` is the street
 # lamppost with a dusk/dawn schedule, and a mine has no dusk. A niche of
@@ -28,7 +35,7 @@ data:
     A shallow niche cut into the wall and packed with damp rotted wood,
     out of which grows a close crop of pale mushrooms. They give off a
     steady green light, cold as a moon, bright enough to work by and not
-    much more. Somebody has been trimming the dead ones out.
+    much more.
   mass: 3
   emittedIntensity: 40
   emittedColorTemperature: 5200
