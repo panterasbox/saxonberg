@@ -139,6 +139,73 @@ ref is resolved when it returns.
 a test that hand-constructs the resolved value never exercises the path
 that fails.
 
+## Elevation (W2)
+
+**`Zone.elevation`** — metres above sea level, inherited through the
+ordinary `lookupField` ancestor walk, an authored value anywhere in the
+chain winning over anything above it. `ZoneApi.elevationFor(scope)`
+resolves it for a place.
+
+### Why the zone, and not the biome
+
+The zone already owns spatial geometry (`cellSize` drives volume,
+light-scale and extent) and already does field inheritance. Biome owns
+properties of the **air**; elevation is a property of the **ground**.
+
+⭐ But the decisive reason is a **circularity**. `measure altitude`
+computes `(P_sea − P_local) / (ρ·g)` from the biome chain's authored
+`_pressure` — so altitude was back-computed from a number an author
+typed, and putting elevation on the biome too would have given one
+physical fact two sources of truth.
+
+So **`_pressure` gained a derive-from-elevation fallback**:
+
+```
+P_local = P_sea − ρ · g · h
+```
+
+the linear hydrostatic form, chosen precisely because it is the
+altimeter's own expression solved the other way. The instrument now
+reads back the zone's height exactly. Pressure is the *consequence*, the
+altimeter is honest, and `analyze atmosphere` reports the new
+provenance `derived from elevation (<zone>)`.
+
+**An authored value still wins.** The derivation fires only when the
+chain walk fell all the way through to the **root universe biome** —
+`sourcePath === /stuff/idea/biome/universe`, reached as `biome`,
+`biome-ancestor` or the terminal `universe` step. That is exactly the
+case where the 101 325 Pa in hand is the sea-level *reference* rather
+than anything an author said about this place. A detail, room, biome,
+biome ancestor or zone that names a pressure short-circuits first.
+
+The weather deviation still rides on top, so a storm reads low over
+whatever base the elevation step settled — which is also why a real
+barometric altimeter is fooled by weather.
+
+It returns to the reference untouched when there is no elevation, when
+the elevation is zero (sea level *is* the reference), or when the medium
+has no tabulated density — a vacuum has no barometric anything.
+
+### ⚠ `coords.z` is not elevation
+
+`z` is local and measured in zone **cells** — which floor of a building
+you are on. A place's height is `zone elevation + z × cellSize`;
+**hydrology reads the zone**, so a third-floor flat and the lobby are
+the same point on the watershed, to the pascal. A stairwell is not a
+waterfall. Terrain variation *within* a district comes from zoning
+finer, which is what zones are for.
+
+### Elevation is a COLD-PATH input (plan § P0)
+
+`lookupField` is async, and nothing in this build reads elevation on a
+hot path. It is *compiled* into two artifacts in contexts that are
+already asynchronous — **reach ordinals** (at content load) and
+**per-structure Δh constants** (at construction) — and every runtime
+read is an integer compare or a scalar multiply. There is no
+`lookupFieldSync`, no materialization stamp, and **no boot warming** —
+the pattern that has failed in this codebase three times, where nothing
+warms the roster and it reads null forever, silently.
+
 ## Contents
 
 - Elevation — the zone field, and why `coords.z` is not it

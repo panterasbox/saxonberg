@@ -16,6 +16,7 @@ import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
 import { TemplatePaths } from '../../../lib/paths';
 import type { AtmosphericTrace } from '../../../api/biome';
+import { ZoneApi } from '../../../api/zone';
 import { WeatherApi } from '../../../api/weather';
 import { AddressApi } from '../../../api/address';
 import { WorldClockApi } from '../../../api/worldclock';
@@ -237,14 +238,22 @@ export class BiomeLogic extends ApiLogic {
     scope: Stuff & Container,
     detailKey?: string
   ): Promise<Quantity<'Pa'>> {
-    return resolveQuantityFor<'Pa'>(
-      scope,
-      detailKey,
-      'pressure',
-      (b) => b.getDefaultPressure(),
-      (a, k) => readDetailMap<Quantity<'Pa'>>(a._detailPressures, k),
-      (a) => a._pressure,
-    );
+    const base = (await pressureTraceFor(scope, detailKey)).value;
+    // The weather deviation rides on top exactly as it does for every
+    // other deviated field — a storm still reads low on the barometer,
+    // over whatever base the elevation step settled. (Which is also why
+    // a barometric altimeter is fooled by weather in real life.)
+    if (WeatherApi.isActive() && skyExposedWalk(scope)) {
+      const locality = await AddressApi.resolveLocalityFor(scope);
+      const dev = WeatherApi.deviatedFieldFor(
+        scope,
+        locality,
+        'pressure',
+        WorldClockApi.getNow(),
+      );
+      return base.add(dev as unknown as Quantity<'Pa'>);
+    }
+    return base;
   }
 
   /** See {@link BiomeApi.resolveHumidityFor}. */
@@ -335,14 +344,7 @@ export class BiomeLogic extends ApiLogic {
     scope: Stuff & Container,
     detailKey?: string
   ): Promise<AtmosphericTrace<Quantity<'Pa'>>> {
-    return traceResolveQuantityFor<'Pa'>(
-      scope,
-      detailKey,
-      'pressure',
-      (b) => b.getDefaultPressure(),
-      (a, k) => readDetailMap<Quantity<'Pa'>>(a._detailPressures, k),
-      (a) => a._pressure,
-    );
+    return pressureTraceFor(scope, detailKey);
   }
 
   /** See {@link BiomeApi.traceResolveHumidityFor}. */
@@ -583,6 +585,115 @@ function walkBiomeAncestry<V>(
  * chain exhausts to the root biome without finding a value (boot-
  * time invariant).
  */
+/**
+ * ⭐ **Pressure derived from elevation** — the watershed build's D4.
+ *
+ * `measure altitude` computes `(P_sea − P_local) / (ρ·g)`. Before
+ * elevation existed as a zone field, that made altitude a back-computation
+ * from a number an author typed into a biome, which is a circularity
+ * dressed as an instrument. This function is the inverse — the *linear*
+ * hydrostatic form `P = P_sea − ρ·g·h`, chosen precisely because it is
+ * the altimeter's own expression solved the other way, so the instrument
+ * reads back the zone's elevation exactly. Pressure becomes the
+ * consequence, the altimeter becomes honest, and one physical fact has
+ * one source of truth.
+ *
+ * **An authored value still wins.** This runs only when the chain walk
+ * fell all the way through to the ROOT universe biome — i.e. when
+ * nothing between the scope and the top of the world declared a pressure
+ * of its own, and the 101325 Pa the walk came back with is the sea-level
+ * REFERENCE rather than a local reading. Any detail, room, biome, biome
+ * ancestor or zone that names a pressure short-circuits before this.
+ *
+ * Returns `null` when there is no elevation to derive from, when it is
+ * zero (sea level IS the reference — deriving would be a no-op that only
+ * costs a walk), or when the medium has no density (a vacuum has no
+ * barometric anything).
+ */
+async function pressureFromElevation(
+  scope: Stuff & Container,
+  seaLevel: Quantity<'Pa'>,
+): Promise<{ value: Quantity<'Pa'>; zonePath: string | null } | null> {
+  const elevation = await ZoneApi.elevationFor(scope);
+  if (elevation === null || !Number.isFinite(elevation) || elevation === 0) {
+    return null;
+  }
+  const atmosphere = await resolveStringFor(
+    scope,
+    undefined,
+    'atmosphere',
+    (b) => b.getDefaultAtmosphere(),
+    (a, k) => readDetailMap<string>(a._detailAtmospheres, k),
+    (a) => a._atmosphere,
+  );
+  const density = ATMOSPHERE_DENSITIES[atmosphere];
+  // An atmosphere with no tabulated density derives nothing; a vacuum
+  // has no barometric anything (the altimeter says so in prose, and
+  // this is the same statement on the causal side).
+  if (density === undefined || density.rawValue() === 0) return null;
+  const gravity = await resolveQuantityFor<'m/s²'>(
+    scope,
+    undefined,
+    'gravity',
+    (b) => b.getDefaultGravity(),
+    (a, k) => readDetailMap<Quantity<'m/s²'>>(a._detailGravities, k),
+    (a) => a._gravity,
+  );
+  const local =
+    seaLevel.rawValue() - density.rawValue() * gravity.rawValue() * elevation;
+  const zone = outermostZonePathOf(scope);
+  return { value: Quantity.of(local, 'Pa'), zonePath: zone };
+}
+
+/** The outermost container's zone path, for provenance reporting. */
+function outermostZonePathOf(scope: Stuff & Container): string | null {
+  let cursor: (Stuff & Container) | null = scope;
+  let outermost: Stuff & Container = scope;
+  let depth = CONTAINMENT_DEPTH_CAP;
+  while (cursor !== null && depth-- > 0) {
+    outermost = cursor;
+    cursor = stepOutward(cursor);
+  }
+  return outermost.getZone()?.getTemplatePath() ?? null;
+}
+
+/**
+ * The pressure chain walk, with the derive-from-elevation step folded in
+ * (D4). Shared by `resolvePressureFor` and `traceResolvePressureFor`, so
+ * the reported provenance and the returned number can never disagree.
+ *
+ * The elevation step fires **only** when the walk fell all the way
+ * through to the ROOT universe biome — reached as `biome`,
+ * `biome-ancestor` or the terminal `universe` step, all of which report
+ * `sourcePath === ROOT_BIOME_PATH`. That is precisely the case where the
+ * 101325 Pa in hand is the sea-level *reference* rather than anything an
+ * author said about this place, so substituting a derived local pressure
+ * takes nothing away from anybody. Any authored value anywhere in the
+ * chain short-circuits earlier and wins.
+ */
+async function pressureTraceFor(
+  scope: Stuff & Container,
+  detailKey: string | undefined,
+): Promise<AtmosphericTrace<Quantity<'Pa'>>> {
+  const trace = await runChainWalk<Quantity<'Pa'>>(
+    scope,
+    detailKey,
+    'pressure',
+    (b) => b.getDefaultPressure(),
+    (a, k) => readDetailMap<Quantity<'Pa'>>(a._detailPressures, k),
+    (a) => a._pressure,
+  );
+  if (trace.sourcePath !== ROOT_BIOME_PATH) return trace;
+  const derived = await pressureFromElevation(scope, trace.value);
+  if (derived === null) return trace;
+  return {
+    value: derived.value,
+    source: 'elevation',
+    sourcePath: derived.zonePath,
+    ancestorChain: trace.ancestorChain,
+  };
+}
+
 async function resolveQuantityFor<U extends Unit>(
   scope: Stuff & Container,
   detailKey: string | undefined,
