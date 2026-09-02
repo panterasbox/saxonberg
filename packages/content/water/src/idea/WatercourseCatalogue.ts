@@ -57,6 +57,7 @@ import {
   WEATHER_PROFILES,
   WEATHER_DEFAULTS,
   PRECIPITATION_RATES_MM_PER_HOUR,
+  type WeatherType,
 } from '@saxonberg/server/mud/lib/weather/WeatherType';
 import type { Season } from '@saxonberg/server/mud/lib/time/CelestialProfile';
 import type { EvictionContext } from '@saxonberg/server/mud/lib/stuff/Stuff';
@@ -66,6 +67,13 @@ import {
   type WatercourseDescriptor,
   type WatercourseNode,
 } from './Watercourse';
+
+/**
+ * The catalogue singleton's own template path. Its row ships with this
+ * pack, so `StuffApi.singleton` can lazily clone it wherever a conduit
+ * or a verb needs the drainage.
+ */
+export const WATERCOURSE_CATALOGUE_PATH = '/water/idea/WatercourseCatalogue';
 
 /** Where the kernel's `Locality` reference rows live. */
 const LOCALITY_PATH_PREFIX = '/stuff/idea/Locality';
@@ -320,6 +328,34 @@ export default class WatercourseCatalogue extends Idea {
         (reach.channelWidthM ?? 0) >=
           dial(AppSettingKeys.waterNavigableMinWidthM, 12),
     };
+  }
+
+  /**
+   * The air temperature (K) over a reach's catchment right now — the
+   * same lapse-rate model the snowpack runs on, exposed because a
+   * conduit needs it to know whether it is frozen.
+   *
+   * ⚠ Not the same question as "how warm is the room by the river".
+   * This is the CATCHMENT's air, derived from season and altitude,
+   * because a reach is a position on a river rather than a place you
+   * stand and has no biome chain to walk.
+   */
+  public async airTemperatureKAt(
+    ref: ReachRef,
+    nowS: number,
+  ): Promise<number | null> {
+    const index = await this.index();
+    const reach = index.reaches.get(ref);
+    if (reach === undefined) return null;
+    const sample = WeatherApi.segmentsBetween(
+      Quantity.of(nowS - WEATHER_DEFAULTS.SEGMENT_LENGTH_S, 's'),
+      Quantity.of(nowS, 's'),
+      climateOf(reach),
+      1,
+    );
+    const seg = sample[sample.length - 1];
+    if (seg === undefined) return null;
+    return airTemperatureK(seg.season, seg.type, reach.elevation);
   }
 
   /**
@@ -752,6 +788,28 @@ function climateOf(reach: CompiledReach): Locality | null {
   );
 }
 
+/**
+ * Air temperature over a catchment: the seasonal sea-level mean, the
+ * weather type's own deviation, and the **lapse rate** acting on
+ * altitude.
+ *
+ * ⭐ That last term is the whole of why a headwaters town has a
+ * different water problem from the city below it: the same storm rains
+ * on one and snows on the other.
+ */
+function airTemperatureK(
+  season: Season,
+  type: WeatherType,
+  elevationM: number,
+): number {
+  const lapseKPerM = dial(AppSettingKeys.waterSnowLapseRateKPerKm, 6.5) / 1000;
+  return (
+    seasonMeanK(season) +
+    WEATHER_PROFILES[type].deviation.temperature.rawValue() -
+    lapseKPerM * elevationM
+  );
+}
+
 /** Mean sea-level air temperature (K) for a season. */
 function seasonMeanK(season: Season): number {
   switch (season) {
@@ -838,7 +896,6 @@ function snowpackOf(
   nowS: number,
 ): { packMm: number; meltMm: number; overS: number } {
   const windowDays = Math.max(1, dial(AppSettingKeys.waterSnowWindowDays, 180));
-  const lapseKPerM = dial(AppSettingKeys.waterSnowLapseRateKPerKm, 6.5) / 1000;
   const meltFactor = dial(AppSettingKeys.waterSnowMeltMmPerKPerDay, 4);
   const flowWindowS =
     Math.max(1, dial(AppSettingKeys.waterBaseflowWindowDays, 30)) *
@@ -860,10 +917,7 @@ function snowpackOf(
   for (const seg of segments) {
     const hours = seg.overlapS / 3600;
     const days = seg.overlapS / SECONDS_PER_DAY;
-    const airK =
-      seasonMeanK(seg.season) +
-      WEATHER_PROFILES[seg.type].deviation.temperature.rawValue() -
-      lapseKPerM * reach.elevation;
+    const airK = airTemperatureK(seg.season, seg.type, reach.elevation);
 
     if (WEATHER_PROFILES[seg.type].precipitation === 'snow') {
       packMm += precipitationRateOf(seg.type) * hours;

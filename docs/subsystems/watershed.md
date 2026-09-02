@@ -428,6 +428,139 @@ stretch: a dry August closes one, and curtailing a junior right reopens
 it. When the boat wave lands it reads a river that already knows where
 it is navigable and knows that changes with the season.
 
+## `Conduit` — the conveyance ladder (W5)
+
+Getting water from a source to a place is **not a topology**. It is a
+question terrain asks of every place, with three answers:
+
+| mode | requires | costs |
+|---|---|---|
+| **haul** | nothing | labour and encumbrance — *ships already* |
+| **gravity conduit** | the source above the destination | capital only |
+| **pumped conduit** | power | capital **and** energy, forever |
+
+The last two are the same object; which one you have is the sign of
+`headM`, and nobody declares it.
+
+⛔ **Nothing inside the delivered extent is modelled** — no pipe
+segments, no street network, no `Street.ts`. *Coverage is legal,
+connection is physical.* A conduit has two ends, and the review test for
+anything proposed here is **does this add a node between an intake and a
+delivery?** If yes, it is out of scope.
+
+⚠ Three unrelated things in this codebase are called `Conduit`: the
+kernel's sensory pass-through interfaces (`lib/boundary/Conduit`),
+arcana's magical coupling item, and this. They are told apart by
+namespace. Player-facing content gives its rows real names — *the city
+intake*, *the Kestrel aqueduct*, *the Wharfside outfall* — so nobody in
+the world meets the word twice.
+
+### ⭐ A sewer is the same object reversed
+
+`direction` is the only difference. **Supply** takes from a reach and
+delivers to an extent; **disposal** takes from an extent and outfalls
+into a reach. Storm drains likewise. The head expression is read the
+other way and everything else — capacity, failure vocabulary, pump — is
+shared, which is how *an outfall above an intake* becomes a fact about
+terrain that nobody authored.
+
+### Head is resolved once, at construction
+
+`resolveHead()` is the P0 discipline in one method: elevation resolution
+is an async ancestor walk and a conduit is asked for its state on hot
+paths, so the walk happens where it is already asynchronous — a build
+act — and every runtime read is a scalar comparison. `headM === null`
+means **unknown**, and unknown is not "flat": both `isGravityFed()` and
+`requiresPump()` answer `false`, and a caller that needs to tell the
+difference asks for the head.
+
+It uses `resolveEnclosingZoneForPath`, not the spatial variant: the
+extent is a served area and very often a zone in its own right, and the
+spatial variant deliberately returns `null` for a path that *is* a zone.
+
+### The pump is hydro's equation, read backwards
+
+`ρ · g · Δh · Q / η`. ρ and g are **reads, not constants** — gravity
+ships as an authorable atmospheric trace and water's density as a
+tabulated medium — so a world with different physics gets a different
+pump bill without anybody editing the expression. ⭐ Water falling makes
+power; water rising costs it. Water and power meet at one equation.
+
+### Delivery: longest-prefix extent
+
+The extent is a **template-path prefix**, resolved the way
+`ParcelRegistry` resolves title. So *"am I on the main?"* is the same
+question as *"who owns this?"*, asked of a different registry. ⚠ An
+empty extent serves **nothing** — never everything, which is the
+direction that would be catastrophic.
+
+### The six-word failure vocabulary
+
+`lib/supply/SupplyState.ts` — **kernel**, deliberately, even though the
+water pack is its only speaker today: two packs that must agree on the
+same six strings are an entangled namespace, and the alternative would
+make a future power pack depend on the water pack for a word.
+
+| | |
+|---|---|
+| `dry` | the **source** has nothing to give |
+| `cut` | the **line** is physically broken |
+| `frozen` | the line or the source is below freezing |
+| `fouled` | what arrives is unfit — past what treatment removes |
+| `off` | somebody **closed** it, and somebody can open it again |
+| `overdrawn` | more is asked of it than its **capacity** carries |
+
+Success is **not** in the list: a working supply reports `null`, so a
+caller cannot treat "fine" as one more failure mode.
+
+Only `cut` and `off` are **stored**. The rest are derived on read from
+the river, the season and the demand — which is why a drought closes a
+main without anybody running a job.
+
+⭐ **Precedence** (`SUPPLY_STATE_PRECEDENCE`): `cut · off · dry · frozen
+· fouled · overdrawn`. A supply can be in several at once, and the rule
+is *the one furthest from being fixed by the person asking*. Reporting
+`overdrawn` on a severed pipe would be true and useless.
+
+### Excludability is why this is a business and a river is a law
+
+A river is non-excludable and a conduit is not: you cannot keep someone
+off a river, and you can close a valve on your aqueduct. So the river
+gets **rights** and the conduit gets an **owner** — a consequence of
+physics rather than a declaration.
+
+## Verbs: the check ran, and the answer was mostly "no new verb"
+
+Every act in this build is *operating a built mechanism*, which is the
+`device` category's own definition. Running the extend-before-inventing
+check:
+
+- **`pump` already ships** — a bellows verb on a furnace. A pumped
+  conduit is powered machinery, not a hand crank, so the build needs no
+  pumping verb at all and `pump` is left alone.
+- **`switch`** covers a conduit's valve: `Conduit` composes
+  `SwitchableMixin` and that is the whole of its on/off surface.
+- **`analyze`** gained a `water` subcommand rather than a new verb.
+
+### `analyze water`, and how the kernel reads a pack object
+
+Bare, it reports the ground you stand on — the reach the covering
+locality declares, what is passing, how much is snowmelt, how much snow
+is still lying above you, whether a boat gets through. Pointed at a
+waterworks, it reports that instead.
+
+⚠ **The kernel does not import the water pack.** Both readings go over
+shapes: a supply answers `supplyReport` (`SupplyReporting` in
+`lib/supply/SupplyState.ts`), and the drainage catalogue is reached by
+template path rather than by module — the `HoldingView` seam the
+residences build established. A realm with no water pack installed gets
+an honest "nothing here knows about water", never a crash. Ground that
+drains nowhere says so, and that is a normal state of the world.
+
+The arg is declared `requires: any` deliberately: a waterworks is
+recognised by the shape it answers, not by a mixin, because there is no
+kernel mixin here to name.
+
 ## Contents
 
 - Elevation — the zone field, and why `coords.z` is not it

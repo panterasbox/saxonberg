@@ -96,3 +96,19 @@ settings:
     value: "3"
   - key: water.navigable.minWidthM
     value: "12"
+
+  # ── the pump, and the turbine ─────────────────────────────────────
+  # ⭐ Water and power meet at ONE equation read in two directions:
+  # `ρ·g·Δh·Q` is what a falling river generates and what a rising one
+  # costs. These two numbers are the only difference between them.
+  - key: water.pumpEfficiency
+    value: "0.6"
+  - key: water.turbineEfficiency
+    value: "0.85"
+
+  # The temperature at or below which a line reads `frozen`. Its OWN key
+  # rather than a shared freezing point, because a buried main survives
+  # an air temperature that freezes a puddle, and the day somebody
+  # authors a buried main this is the number they will reach for.
+  - key: water.freezeK
+    value: "271"

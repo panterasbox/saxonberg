@@ -1388,6 +1388,17 @@ export const AppSettingKeys = {
    * boat. BOTH conditions hold: a torrent through a gorge is not
    * navigable, and neither is a wide trickle. */
   waterNavigableMinWidthM: "water.navigable.minWidthM",
+
+  /** Water — pump efficiency (0..1): the fraction of the electrical
+   * draw that becomes lift. `ρ·g·Δh·Q / η` is the pump's bill, and it
+   * is hydro generation's own equation read the other way. */
+  waterPumpEfficiency: "water.pumpEfficiency",
+  /** Water — turbine efficiency (0..1) for `ρ·g·Δh·Q` at a control. */
+  waterTurbineEfficiency: "water.turbineEfficiency",
+  /** Water — the temperature (K) at or below which a line reads
+   * `frozen`. Its own key rather than a shared freezing point, because
+   * a buried main survives an air temperature a puddle does not. */
+  waterFreezeK: "water.freezeK",
 } as const;
 
 export type AppSettingKey =
