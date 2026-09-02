@@ -161,8 +161,14 @@ export class StuffApi {
     new WeakMap();
 
   /**
-   * Generate a unique ID using nanoid.
-   * Uses base58-encoded nanoid for short, URL-safe IDs.
+   * Generate a unique ID.
+   *
+   * ⭐ Base58 — short, URL-safe, and free of the characters that mean
+   * something to a reader (`-`, `_`) or to a human eye (`0`/`O`,
+   * `I`/`l`). ⚠ This comment said "base58" long before it was true: the
+   * source was `nanoid`'s default `A-Za-z0-9_-` alphabet, so one id in
+   * sixty-four began with a hyphen and MQL's `#<id>` seed threw on it.
+   * See {@link SecurityApi.uuid}.
    */
   public static generateId(): string {
     return SecurityApi.uuid();
