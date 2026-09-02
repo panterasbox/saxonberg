@@ -896,7 +896,21 @@ arm may ride along for the owning logic's janitorial cases (stale
 state with no live participant to act).
 
 New object-owned mutators should reach for a participant contract
-first; `ApiOnly` on an object method is the legacy shape. The planned
+first; `ApiOnly` on an object method is the legacy shape. Since the Api
+OO sweep this is the DEFAULT posture for a moved verb — see the
+three-way gate rule in
+[antipatterns.md § A subject-first Api static](../antipatterns.md):
+participant contract, else the logic-side
+`FromMixin(<host>, where caller === subject)` widen, else
+ungated + sealed when the writers span packs.
+
+> ⚠ **The identity-path rule** (recorded for a future `FromIdentity`
+> policy): a policy that trusts an object's *identity path* must read
+> the raw `#identity` stamp (`Stuff._identityStampOf`-style seam),
+> **never** the overridable `getIdentityPath()` method — a subclass or
+> shadow overriding the method must not be able to impersonate an
+> identity to a gate. The same reasoning that keeps `FromTemplate` on
+> the hard-private `#templatePath` slot. The planned
 expansion is **trust-layer policies** (ownership via `ParcelApi`,
 authorship via `ProvenanceApi`, group membership via `GroupApi`) as
 sibling policies of the same shape — `allows` is already

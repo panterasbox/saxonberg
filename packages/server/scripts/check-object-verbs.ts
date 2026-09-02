@@ -22,9 +22,9 @@
  * `Interactive` IS a subject type — Phase E is measured by the same
  * instrument.
  *
- * Advisory by default (exit 0, print the count); `--gate` makes a
- * non-zero census a failure (flipped on in Phase G, wired into CI
- * beside `lint:thin-forwarder`).
+ * CI-GATING since Phase G (the sweep's exit): a non-zero census is a
+ * failure. `--advisory` restores the count-only mode for local
+ * burn-down work.
  *
  * Standalone script (the `check-gate-strings` precedent — ESLint 8
  * legacy config can't load a local rule without `--rulesdir`).
@@ -158,6 +158,13 @@ const EXEMPT_APIS = new Set<string>([
   // the field-projection seam + wire handlers (the Interactive tier
   // moved in F5)
   "MqlSubscriptionApi",
+  // the surviving session tier (G1): openSession/join/advance/merge/
+  // sessionFor are the SESSION lifecycle (CombatSession is a lib value
+  // class, not Stuff — mandate (b)); standingTermsOf/arenaMaxBandFor
+  // fold settings × room extent for possibly-non-combatant subjects;
+  // bandBetween is subject-NEUTRAL geometry (a wand origin measures
+  // from itself). The combatant face moved onto CombatantMixin in G1.
+  "CombatApi",
 ]);
 
 /**
@@ -368,7 +375,7 @@ function mentionsSubject(
 }
 
 function main(): void {
-  const gate = process.argv.includes("--gate");
+  const gate = !process.argv.includes("--advisory");
   const files: string[] = [];
   walk(API_ROOT, files);
 
@@ -401,7 +408,7 @@ function main(): void {
   );
   if (gate && census.length > 0) {
     console.error(
-      "check-object-verbs: --gate set and the census is non-zero — a verb " +
+      "check-object-verbs: the census is non-zero — a verb " +
         "whose subject is a typed world object lives ON the object."
     );
     process.exit(1);

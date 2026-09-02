@@ -29,6 +29,7 @@ import type { Stuff } from "../../../../lib/stuff/Stuff";
 import { CombatApi, type GambitEligibility } from "../../../../api/combat";
 import type { CombatantState } from "../../../../lib/combat/CombatSession";
 import type { MqlOneResult } from "../../../../api/mql";
+import type { Combatant } from '../../../../lib/combat/Combatant';
 
 const TOPIC = "act.deed";
 const GAMBITS = new Set([
@@ -111,7 +112,7 @@ export default class FightController extends CommandController<FightModel> {
     if (!CombatApi.sessionFor(giver)) {
       return this.fail(context, "You're not in a fight.", "not-in-combat");
     }
-    const result = CombatApi.offerBreak(giver);
+    const result = ((giver) as unknown as Stuff & Combatant).offerBreak();
     if (!result.ok) {
       return this.fail(
         context,
@@ -147,7 +148,7 @@ export default class FightController extends CommandController<FightModel> {
         "no-direction",
       );
     }
-    const result = await CombatApi.bumRush(giver, dir);
+    const result = await ((giver) as unknown as Stuff & Combatant).bumRush(dir);
     if (!result.ok) {
       const detail =
         result.reason === "no-hold"
@@ -168,7 +169,7 @@ export default class FightController extends CommandController<FightModel> {
    * recorded fact (command responsibility rides the death row). */
   private doFinish(context: CommandContext): void {
     const giver = context.commandGiver;
-    const result = CombatApi.orderCoup(giver);
+    const result = ((giver) as unknown as Stuff & Combatant).orderCoup();
     if (!result.ok) {
       const detail =
         result.reason === "not-the-captain"
@@ -199,7 +200,7 @@ export default class FightController extends CommandController<FightModel> {
         "no-target",
       );
     }
-    const result = CombatApi.beginSwitch(giver, target.stuff as Stuff);
+    const result = ((giver) as unknown as Stuff & Combatant).beginWeaponSwitch(target.stuff as Stuff);
     if (!result.ok) {
       return this.fail(
         context,
@@ -222,7 +223,7 @@ export default class FightController extends CommandController<FightModel> {
     if (!CombatApi.sessionFor(giver)) {
       return this.fail(context, "You're not in a fight.", "not-in-combat");
     }
-    const result = CombatApi.drawSidearm(giver);
+    const result = ((giver) as unknown as Stuff & Combatant).drawSidearm();
     if (!result.ok) {
       return this.fail(
         context,
@@ -243,7 +244,7 @@ export default class FightController extends CommandController<FightModel> {
     if (!CombatApi.sessionFor(giver)) {
       return this.fail(context, "You're not in a fight.", "not-in-combat");
     }
-    const result = CombatApi.queueGambit(giver, verb);
+    const result = ((giver) as unknown as Stuff & Combatant).queueGambit(verb);
     if (!result.ok) {
       return this.fail(
         context,
@@ -280,7 +281,7 @@ export default class FightController extends CommandController<FightModel> {
       .toSelf(Mml.fromMarkup("You yield."))
       .toPeers(Mml.compose`${Mml.actor(giver)} yields.`)
       .send();
-    CombatApi.yieldFight(giver);
+    ((giver) as unknown as Stuff & Combatant).yieldFight();
   }
 
   /** bare `fight` / `fight status` — the at-a-glance read (bands only). */
@@ -302,7 +303,7 @@ export default class FightController extends CommandController<FightModel> {
     lines.push(`Poise: ${me.poise.band()}`);
     // Your OWN side's formation + role (total — a solo fighter reads the
     // default). The enemy's formation stays unread (the fog non-goal).
-    const standing = CombatApi.formationStandingOf(giver);
+    const standing = ((giver) as unknown as Stuff & Combatant).formationStanding();
     lines.push(`Formation: ${standing.formation}`);
     if (standing.role) lines.push(`Role: ${standing.role}`);
     lines.push(`Flags: ${flagsWord(me)}`);
@@ -316,7 +317,7 @@ export default class FightController extends CommandController<FightModel> {
       // The opponent's poise is a FOGGED read — hedged by your own sharpness
       // (a dull reader under-reads it and can be shown a feint as an
       // opening; a sharp reader sees the tell). Free (unlike `assess`).
-      const read = CombatApi.perceive(giver);
+      const read = ((giver) as unknown as Stuff & Combatant).perceiveCombat();
       const oppBand = read.ok && read.poiseBand ? read.poiseBand : opp.poise.band();
       lines.push("");
       lines.push(`Opponent — ${name}`);
@@ -325,7 +326,7 @@ export default class FightController extends CommandController<FightModel> {
       );
       lines.push(`  Bearing: ${conditionBand(opp.combatant)}`);
       lines.push(`  Flags: ${flagsWord(opp)}`);
-      const rs = CombatApi.rangeStanding(giver);
+      const rs = ((giver) as unknown as Stuff & Combatant).rangeStanding();
       if (rs) {
         const reachWord =
           rs.reachDelta > 0

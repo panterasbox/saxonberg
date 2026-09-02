@@ -14,6 +14,7 @@ import { CombatApi } from "../../../api/combat";
 import { DocumentApi } from "../../../api/document";
 import type { Stuff } from "../../stuff/Stuff";
 import type { BrainContext } from "../brain";
+import { CombatLogic } from '../../../platform/idea/api/CombatLogic';
 
 interface FakeOcc {
   stuffId: string;
@@ -42,10 +43,19 @@ function asStuff(o: FakeOcc): Stuff {
     hasKeyword: (k: string) => k === o.keyword || o.arms.includes(k),
     getIdentityPath: () => o.identity,
     getTemplatePath: () => o.identity,
+    // The G1 combatant face — a fake forwards like the real mixin does.
+    visibleArmsFor: () => ((o.arms.length ?? 0) > 0 ? [{}] : []),
   } as unknown as Stuff;
 }
 
-const HOST = { stuffId: "dave" } as unknown as Stuff;
+const HOST = {
+  stuffId: "dave",
+  visibleArmsFor: () => {
+    const hk = (HOST as unknown as { hasKeyword?: (k: string) => boolean })
+      .hasKeyword;
+    return hk?.("taser") ? [{}] : [];
+  },
+} as unknown as Stuff;
 
 function ctx(
   config: Record<string, unknown> = {},
@@ -85,7 +95,7 @@ beforeEach(() => {
     const f = occ.find((o) => o.stuffId === (s as { stuffId: string }).stuffId);
     return (f?.fighting ? ({} as never) : undefined) as never;
   });
-  vi.spyOn(CombatApi, "visibleArms").mockImplementation((_v, subject) => {
+  vi.spyOn(CombatLogic.prototype, "visibleArms").mockImplementation((_v, subject) => {
     const id = (subject as { stuffId: string }).stuffId;
     if (id === "dave") {
       const hk = (HOST as unknown as { hasKeyword: (k: string) => boolean })

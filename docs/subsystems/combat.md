@@ -151,7 +151,7 @@ downed, defeated, defeated-foe, coup begun), and **venue** (optional
 points of the beat lifecycle, with consequences funneled through the
 engine-drained `CombatHookContext` queue and the whole engine lint-locked
 against per-dynamic carve-outs (`check-combat-dynamics`). The gated
-**`CombatApi.influence`** bridge (stagger/expose/steady) is the external
+**`combatant.influenceCombat`** bridge (stagger/expose/steady) is the external
 state-instruction surface. The seams exist here; the **choreography, the
 determinism contract, the enchantment-via-shadows boundary, and the
 species combat vocabulary live in
@@ -180,7 +180,7 @@ fallback; the natural profile derives from the body, and a species can
 afford existing gambits bodily — see
 [combat-hooks.md](./combat-hooks.md) § the species vocabulary).
 
-**Attempt-time cross-gating** (`CombatApi.eligibilityFor`): a gambit needing
+**Attempt-time cross-gating** (`combatant.gambitEligibility`): a gambit needing
 an impaired slot is *rejected when attempted* (`Vitals.isSlotImpairedByTrauma`
 → the wielding grip's `bodyPart`), and `disarm` is rejected when the
 opponent is unarmed. This is the "injury edits the menu" behaviour — the
@@ -284,7 +284,7 @@ at its decision points by hand-building a minimal `BrainContext` and calling
 `act` (bypassing `_runAct`'s slot-contention / presence machinery —
 acceptable, the session owns its own concurrency). Asymmetric by design: the
 full directed-autocombat loop is player-side; the enemy is brain-driven and
-simply *picks a gambit* through `CombatApi.queueGambit`, holding fire when
+simply *picks a gambit* through `combatant.queueGambit`, holding fire when
 overextended so the engine's defend-and-recover default takes over. A
 non-player combatant (no live `Interactive`) is auto-detected as
 brain-driven.
@@ -467,7 +467,7 @@ side's** own `ActSignature` (self-credit; difficulty from the target's
 poise band, outcome from the exchange result; `blades` additionally
 credited on an edge/point instrument) via `AdvancementApi.recordSignature`,
 fire-and-forget. The existing **`assess`** verb (`AssessController`) gains a
-mid-fight branch: assessing your opponent delegates to `CombatApi.assess` —
+mid-fight branch: assessing your opponent delegates to `actor.assessCombat` —
 a **costed** read (it spends your next exchange, `queuedGambit = 'assess'`)
 that mints a combat signature and returns the opponent's banded tactical
 state (poise / flags / armed / condition). Bands, never numbers.
@@ -527,10 +527,10 @@ seam (see [party.md](./party.md)).
 - **The `defend` family** — one canonical `defend` verb over three
   cardinalities: `defend` (cover up = the self gambit), `defend <fallen>`
   (stay a coup = the old `intervene`/`stay`, kept as aliases), `defend
-  <ally>` (interpose — `CombatApi.defendAlly` joins if needed and
+  <ally>` (interpose — `interposer.defendAlly` joins if needed and
   `CombatGraph.redirect`s a foe's edge off the ally onto the interposer).
 - **Fleeing** — combat's resolution of a **locomotion attempt made while
-  engaged** (not a verb, not a mode). `CombatApi.disengage`, called at the
+  engaged** (not a verb, not a mode). `actor.disengage()`, called at the
   movement controller's pre-traverse gate, is a no-op when not fighting
   else an **opposed-lite** break: a focus-fire pin vetoes it, foes still
   locked on get a **parting shot** (same materials-response inflict, at
@@ -581,7 +581,7 @@ beats blind aggression, aggression beats a feinter.
 (no RNG): a dull reader under-reads (band shifts one step toward `steady`)
 and **mistakes a feint for a real opening** (`open`); a sharp reader sees the
 true band and the feint's **tell**. Two surfaces carry the fogged read:
-the **free** `fight` status opponent line (`CombatApi.perceive` — no cost,
+the **free** `fight` status opponent line (`actor.perceiveCombat` — no cost,
 no side-effects), and the **costed** `assess` verb (`CombatApi.assess`
 wraps `perceive` and adds the beat cost + the melee-read `ActSignature`).
 The **same** `CombatFog.reads(sharpness)` gate decides both the fog's tell

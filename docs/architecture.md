@@ -205,6 +205,21 @@ adding.
 
 ### The Api ↔ logic-singleton split
 
+> **The post-sweep Api-tier mandate (the Api OO sweep, 2026-09).** An
+> Api's public statics are limited to the four mandates: key/string
+> resolvers, lifecycle (create/destroy/mint), wire/boundary plumbing,
+> and cross-object orchestration. **A verb whose first parameter is the
+> one Stuff it acts on lives ON that Stuff** — the owner mixin (or
+> class) carries the method and forwards into the same logic singleton
+> the facade reaches (the host object is a face, resolved via
+> `StuffApi.singletonSync` — the `Energized`/`Combustible` pattern),
+> with the logic's per-method gate widened
+> `AnyOf(<api>, FromMixin(<host>, { where: caller === args[subject] }))`.
+> Enforced by `pnpm lint:object-verbs` (CI-gating, zero census); the
+> `EXEMPT_APIS` table in `scripts/check-object-verbs.ts` names every
+> surviving Api with its mandate reason. See
+> [antipatterns.md § A subject-first Api static](./antipatterns.md).
+
 An `Api` carries identity three ways an unsettled organizational layer
 shouldn't — it holds the logic, it anchors the generated docs, and it's
 where types live. The surface-architecture refactor relocates all three

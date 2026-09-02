@@ -36,6 +36,7 @@ import { CombatApi } from "../../../../api/combat";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
 import type Material from "../../../../lib/material/Material";
 import type { TermsProposal } from "../../../../lib/combat/CombatTerms";
+import type { Combatant } from '../../../../lib/combat/Combatant';
 
 const TOPIC = "act.deed";
 
@@ -79,8 +80,8 @@ export default class ThrowController extends CommandController<ThrowModel> {
     }
 
     // ── Everyone this would touch, and whether that is allowed. ──
-    const splash = CombatApi.splashSetFor(target);
-    const verdict = CombatApi.mayDeliverTo(giver, target, splash);
+    const splash = ((target) as unknown as Stuff & Combatant).splashSet();
+    const verdict = ((giver) as unknown as Stuff & Combatant).mayDeliverTo(target, splash);
     if (!verdict.ok) {
       // Refused BEFORE anything commits: nothing thrown, no poise spent,
       // no session opened. Area delivery must not be a cheaper route to a
@@ -94,12 +95,7 @@ export default class ThrowController extends CommandController<ThrowModel> {
 
     // ── Throwing at a person is starting a fight. Same door as `attack`. ──
     if (MixinApi.isVitals(target) && MixinApi.isEngaged(target)) {
-      const opened = await CombatApi.initiate(
-        giver,
-        target,
-        {},
-        (t, mine) => this.resolveConflict(t, mine),
-      );
+      const opened = await ((giver) as unknown as Stuff & Combatant).initiateCombat(target, {}, (t, mine) => this.resolveConflict(t, mine));
       if (!opened.ok) {
         if (opened.reason === "cancelled") {
           return this.fail(context, "The moment passes.", "cancelled");
@@ -145,17 +141,12 @@ export default class ThrowController extends CommandController<ThrowModel> {
     const litres = slot?.getAmount().rawValue() ?? 0;
 
     const itemMaterial = this.materialOf(item);
-    const plan = CombatApi.resolveThrown(
-      giver,
-      target,
-      {
+    const plan = ((giver) as unknown as Stuff & Combatant).resolveThrown(target, {
         litres,
         massKg: this.massOf(item),
         toughness: itemMaterial?.getToughness().rawValue(),
         hardness: itemMaterial?.getHardness().rawValue(),
-      },
-      splash,
-    );
+      }, splash);
 
     // ⚠ `toTarget` requires a Sensor — and you can throw things at
     // OBJECTS, not just at people. A terminal has nothing to be told.

@@ -118,6 +118,42 @@ import type {
 } from "../../../api/combat";
 
 const CombatApiCallers = SecurityPolicies.FromModule("/api/combat#CombatApi");
+/** The G1 combatant face forwards here as the acting instance. */
+const CombatantCallers = SecurityPolicies.AnyOf(
+  CombatApiCallers,
+  SecurityPolicies.FromMixin("CombatantMixin", {
+    // Compare by stuffId — the caller may surface as the raw target
+    // while the argument is the proxy (or vice versa).
+    where: (caller, _target, _method, args) =>
+      (caller as { stuffId?: string }).stuffId !== undefined &&
+      (caller as { stuffId?: string }).stuffId ===
+        (args[0] as { stuffId?: string } | undefined)?.stuffId,
+  }),
+);
+/** Combatant-face methods whose SUBJECT is the second argument. */
+const CombatantArg1Callers = SecurityPolicies.AnyOf(
+  CombatApiCallers,
+  SecurityPolicies.FromMixin("CombatantMixin", {
+    // Compare by stuffId — the caller may surface as the raw target
+    // while the argument is the proxy (or vice versa).
+    where: (caller, _target, _method, args) =>
+      (caller as { stuffId?: string }).stuffId !== undefined &&
+      (caller as { stuffId?: string }).stuffId ===
+        (args[1] as { stuffId?: string } | undefined)?.stuffId,
+  }),
+);
+/** The G1 weapon face (Wieldable hosts) forwards here as the item. */
+const WieldableCallers = SecurityPolicies.AnyOf(
+  CombatApiCallers,
+  SecurityPolicies.FromMixin("WieldableMixin", {
+    // Compare by stuffId — the caller may surface as the raw target
+    // while the argument is the proxy (or vice versa).
+    where: (caller, _target, _method, args) =>
+      (caller as { stuffId?: string }).stuffId !== undefined &&
+      (caller as { stuffId?: string }).stuffId ===
+        (args[0] as { stuffId?: string } | undefined)?.stuffId,
+  }),
+);
 
 /** Default combat brain for a non-player combatant. */
 const DEFAULT_COMBAT_BRAIN = "/lib/behavior/combatant";
@@ -173,7 +209,7 @@ export class CombatLogic extends ApiLogic {
     mergeImpl(a, b);
   }
 
-  @CallSecurity(CombatApiCallers)
+  @CallSecurity(CombatantCallers)
   public queueGambit(actor: Stuff, gambitKey: string): GambitEligibility {
     const session = sessionForImpl(actor);
     if (!session) return { ok: false, reason: "not-in-combat" };
@@ -184,7 +220,7 @@ export class CombatLogic extends ApiLogic {
     return { ok: true };
   }
 
-  @CallSecurity(CombatApiCallers)
+  @CallSecurity(CombatantCallers)
   public eligibilityFor(actor: Stuff, gambitKey: string): GambitEligibility {
     return eligibilityImpl(actor, gambitKey);
   }
@@ -194,7 +230,7 @@ export class CombatLogic extends ApiLogic {
     return sessionForImpl(combatant);
   }
 
-  @CallSecurity(CombatApiCallers)
+  @CallSecurity(CombatantCallers)
   public async initiate(
     initiator: Stuff,
     target: Stuff,
@@ -216,7 +252,7 @@ export class CombatLogic extends ApiLogic {
     return standingTermsImpl(combatant, lethal, to);
   }
 
-  @CallSecurity(CombatApiCallers)
+  @CallSecurity(CombatantCallers)
   public resolveThrown(
     thrower: Stuff,
     target: Stuff,
@@ -231,12 +267,12 @@ export class CombatLogic extends ApiLogic {
     return resolveThrownImpl(thrower, target, contents, splash);
   }
 
-  @CallSecurity(CombatApiCallers)
+  @CallSecurity(CombatantCallers)
   public splashSetFor(target: Stuff): Stuff[] {
     return splashSetForImpl(target);
   }
 
-  @CallSecurity(CombatApiCallers)
+  @CallSecurity(CombatantCallers)
   public mayDeliverTo(
     thrower: Stuff,
     primary: Stuff,
@@ -250,12 +286,12 @@ export class CombatLogic extends ApiLogic {
     return arenaMaxBandFor(who);
   }
 
-  @CallSecurity(CombatApiCallers)
+  @CallSecurity(CombatantCallers)
   public bandBetween(a: Stuff, b: Stuff): RangeState | null {
     return bandBetweenImpl(a, b);
   }
 
-  @CallSecurity(CombatApiCallers)
+  @CallSecurity(CombatantCallers)
   public yieldFight(actor: Stuff): boolean {
     const session = sessionForImpl(actor);
     if (!session) return false;
@@ -266,12 +302,12 @@ export class CombatLogic extends ApiLogic {
     return true;
   }
 
-  @CallSecurity(CombatApiCallers)
+  @CallSecurity(WieldableCallers)
   public isWeapon(item: Stuff): boolean {
     return isWeaponItem(item);
   }
 
-  @CallSecurity(CombatApiCallers)
+  @CallSecurity(CombatantArg1Callers)
   public visibleArms(
     viewer: Stuff,
     subject: Stuff,
@@ -280,14 +316,14 @@ export class CombatLogic extends ApiLogic {
     return visibleArmsImpl(viewer, subject, attention);
   }
 
-  @CallSecurity(CombatApiCallers)
+  @CallSecurity(CombatantCallers)
   public offerBreak(
     actor: Stuff,
   ): { ok: boolean; reason?: string; broke: boolean } {
     return offerBreakImpl(actor);
   }
 
-  @CallSecurity(CombatApiCallers)
+  @CallSecurity(CombatantCallers)
   public async bumRush(
     actor: Stuff,
     direction: string,
@@ -307,17 +343,17 @@ export class CombatLogic extends ApiLogic {
     return AccountabilityApi.eventsForSession(sessionId);
   }
 
-  @CallSecurity(CombatApiCallers)
+  @CallSecurity(CombatantCallers)
   public intervene(actor: Stuff, target: Stuff): boolean {
     return interveneImpl(actor, target);
   }
 
-  @CallSecurity(CombatApiCallers)
+  @CallSecurity(CombatantCallers)
   public orderCoup(captain: Stuff): { ok: boolean; reason?: string } {
     return orderCoupImpl(captain);
   }
 
-  @CallSecurity(CombatApiCallers)
+  @CallSecurity(CombatantCallers)
   public defendAlly(
     interposer: Stuff,
     ally: Stuff,
@@ -325,37 +361,37 @@ export class CombatLogic extends ApiLogic {
     return defendAllyImpl(interposer, ally);
   }
 
-  @CallSecurity(CombatApiCallers)
+  @CallSecurity(CombatantCallers)
   public disengage(actor: Stuff): { ok: boolean; message?: string } {
     return disengageImpl(actor);
   }
 
-  @CallSecurity(CombatApiCallers)
+  @CallSecurity(CombatantCallers)
   public assess(actor: Stuff, target: Stuff): CombatAssessResult {
     return assessImpl(actor, target);
   }
 
-  @CallSecurity(CombatApiCallers)
+  @CallSecurity(WieldableCallers)
   public weaponProfileOf(weapon: Stuff): WeaponProfile | null {
     return weaponProfileOfImpl(weapon);
   }
 
-  @CallSecurity(CombatApiCallers)
+  @CallSecurity(CombatantCallers)
   public perceive(actor: Stuff): CombatAssessResult {
     return perceiveImpl(actor);
   }
 
-  @CallSecurity(CombatApiCallers)
+  @CallSecurity(CombatantCallers)
   public rangeStanding(actor: Stuff): RangeStanding | null {
     return rangeStandingImpl(actor);
   }
 
-  @CallSecurity(CombatApiCallers)
+  @CallSecurity(CombatantCallers)
   public formationStandingOf(actor: Stuff): FormationStanding {
     return formationStandingOfImpl(actor);
   }
 
-  @CallSecurity(CombatApiCallers)
+  @CallSecurity(CombatantCallers)
   public beginSwitch(
     actor: Stuff,
     target: Stuff,
@@ -363,12 +399,12 @@ export class CombatLogic extends ApiLogic {
     return beginSwitchImpl(actor, target, false);
   }
 
-  @CallSecurity(CombatApiCallers)
+  @CallSecurity(CombatantCallers)
   public drawSidearm(actor: Stuff): { ok: boolean; reason?: string } {
     return drawSidearmImpl(actor);
   }
 
-  @CallSecurity(CombatApiCallers)
+  @CallSecurity(CombatantCallers)
   public influence(
     combatant: Stuff,
     instruction: CombatInfluence,

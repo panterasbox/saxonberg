@@ -101,6 +101,7 @@ import UnboundedReceptacle from '../../thing/UnboundedReceptacle';
 import type { FacultyView } from '../../../lib/magic/Caster';
 import { MANA_RESERVE_KEY, OVERCHANNEL_STRAIN_PATH } from '../../../lib/magic/Caster';
 import type { Reserved } from '../../../lib/reserve';
+import type { Combatant } from '../../../lib/combat/Combatant';
 
 const MagicApiCallers = SecurityPolicies.FromModule('/api/magic#MagicApi');
 /** The F3 object faces forward here as the subject instance. */

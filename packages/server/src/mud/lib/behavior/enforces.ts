@@ -45,6 +45,7 @@ import { DocumentApi } from '../../api/document';
 import type { Stuff } from '../stuff/Stuff';
 import type { CommandGiver } from '../command/CommandGiver';
 import type { BrainContext } from './brain';
+import type { Combatant } from '../combat/Combatant';
 
 const BAND_ORDER = [
   'healthy',
@@ -102,14 +103,14 @@ function threatTripped(
   if (fighters.length >= 3) return true;
   if (bandRank(host) >= 1) return true;
   for (const f of fighters) {
-    if (CombatApi.visibleArms(host, f, alertness).length > 0) return true;
+    if (((f) as unknown as Stuff & Combatant).visibleArmsFor(host, alertness).length > 0) return true;
   }
   return false;
 }
 
 /** Is the host wielding the (switched-on) office taser right now? */
 function hasTaser(host: Stuff, keyword: string): boolean {
-  return CombatApi.visibleArms(host, host).some(
+  return ((host) as unknown as Stuff & Combatant).visibleArmsFor(host).some(
     (w) => MixinApi.isPerceptible(w) && w.hasKeyword(keyword),
   );
 }
@@ -173,7 +174,7 @@ export const brain = class {
 
     // The house rule: a visibly-armed patron.
     const armed = occupants.filter(
-      (o) => CombatApi.visibleArms(host, o, alertness).length > 0,
+      (o) => ((o) as unknown as Stuff & Combatant).visibleArmsFor(host, alertness).length > 0,
     );
     if (armed.length > 0) await enforceHouseRule(ctx, host, armed[0]!);
   }

@@ -24,6 +24,7 @@ import { TRAUMA_BEHAVIOR } from '../../Condition';
 import type { Trauma } from '../../Condition';
 import type Condition from '../../Condition';
 import { StuffApi } from '../../../../api/stuff';
+import type { Combatant } from '../../../../lib/combat/Combatant';
 
 const TOPIC = 'act.deed';
 
@@ -78,7 +79,9 @@ export default class AssessController extends CommandController<AssessModel> {
       const session = CombatApi.sessionFor(giver);
       const opp = session?.opponentState(giver)?.combatant;
       if (opp && (opp as Stuff) === (target as Stuff)) {
-        const read = CombatApi.assess(giver as Stuff, target);
+        const read = (giver as unknown as Stuff & Combatant).assessCombat(
+          target,
+        );
         if (read.ok) return this.renderCombatAssess(giver, target, read);
       }
     }

@@ -192,8 +192,8 @@ function landOneStrike(
   const session = open(a, b);
   session.getState(b)!.poise.erode(0.6, 0);
   const spy = vi.spyOn(ConditionApi, "inflict");
-  CombatApi.queueGambit(a, "strike");
-  CombatApi.queueGambit(b, "defend");
+  a.queueGambit("strike");
+  b.queueGambit("defend");
   CombatApi.advance(session);
   const spec = spy.mock.calls[0]![1] as EnergyInflictSpec;
   spy.mockRestore();
@@ -292,8 +292,8 @@ describe("CombatReactive × shadows — enchantment (DECISION I)", () => {
         "shockContact",
       )
       .mockImplementation(() => undefined as never);
-    CombatApi.queueGambit(a, "strike");
-    CombatApi.queueGambit(b, "defend");
+    a.queueGambit("strike");
+    b.queueGambit("defend");
     CombatApi.advance(session);
 
     expect(shockSpy).toHaveBeenCalledTimes(1);

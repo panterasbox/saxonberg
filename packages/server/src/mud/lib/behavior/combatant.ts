@@ -25,6 +25,8 @@ import type { EngagementSlot } from "../activity/Engaged";
 import type { BrainContext, BrainStatics } from "./brain";
 import { CombatApi } from "../../api/combat";
 import { PartyApi } from "../../api/party";
+import type { Combatant } from '../combat/Combatant';
+import type { Stuff } from '../stuff/Stuff';
 
 export const brain = class {
   static label = "combatant";
@@ -40,7 +42,7 @@ export const brain = class {
     // Disarmed? Draw a sidearm — losing your weapon is a tempo setback, not
     // the end of the fight (the fast draw re-arms after a couple of beats).
     if (state.flags.has("disarmed")) {
-      if (CombatApi.drawSidearm(host).ok) return;
+      if (((host) as unknown as Stuff & Combatant).drawSidearm().ok) return;
     }
 
     // Side-aware: act only while a live foe remains — someone in the fight
@@ -68,19 +70,19 @@ export const brain = class {
     // Reach tier: if a longer weapon is holding us at bay (we're at `reach`
     // and out-reached), close the gap first — a shorter weapon owns the
     // clinch, so turning the tables beats trading at a disadvantage.
-    const rs = CombatApi.rangeStanding(host);
+    const rs = ((host) as unknown as Stuff & Combatant).rangeStanding();
     if (
       rs &&
       rs.range === "reach" &&
       rs.reachDelta < 0 &&
-      CombatApi.eligibilityFor(host, "close").ok
+      ((host) as unknown as Stuff & Combatant).gambitEligibility("close").ok
     ) {
-      CombatApi.queueGambit(host, "close");
+      ((host) as unknown as Stuff & Combatant).queueGambit("close");
       return;
     }
 
-    if (band === "reeling" && CombatApi.eligibilityFor(host, "disarm").ok) {
-      CombatApi.queueGambit(host, "disarm");
+    if (band === "reeling" && ((host) as unknown as Stuff & Combatant).gambitEligibility("disarm").ok) {
+      ((host) as unknown as Stuff & Combatant).queueGambit("disarm");
       return;
     }
 
@@ -98,17 +100,17 @@ export const brain = class {
     // the protector little and feeds the ward much.
     const foe = foes[0];
     const foeSteady = (foe && session.getState(foe)?.poise.band()) === "steady";
-    const foeArmed = CombatApi.eligibilityFor(host, "disarm").ok;
-    const protector = CombatApi.formationStandingOf(host).protector;
+    const foeArmed = ((host) as unknown as Stuff & Combatant).gambitEligibility("disarm").ok;
+    const protector = ((host) as unknown as Stuff & Combatant).formationStanding().protector;
     if (
       foeSteady &&
       foeArmed &&
       (protector || session.getBeat() % 2 === 0) &&
-      CombatApi.eligibilityFor(host, "feint").ok
+      ((host) as unknown as Stuff & Combatant).gambitEligibility("feint").ok
     ) {
-      CombatApi.queueGambit(host, "feint");
+      ((host) as unknown as Stuff & Combatant).queueGambit("feint");
       return;
     }
-    CombatApi.queueGambit(host, "strike");
+    ((host) as unknown as Stuff & Combatant).queueGambit("strike");
   }
 } satisfies BrainStatics;

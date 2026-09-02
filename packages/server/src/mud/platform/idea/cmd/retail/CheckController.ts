@@ -35,6 +35,7 @@ import type { Stuff } from "../../../../lib/stuff/Stuff";
 import type { Container } from "../../../../lib/spatial/Container";
 import type { Containable } from "../../../../lib/spatial/Containable";
 import type { Chattel } from '../../../../lib/chattel/Chattel';
+import type { Wieldable } from '../../../../lib/slot/Wieldable';
 
 const TOPIC = "act.deed";
 
@@ -67,7 +68,7 @@ export default class CheckController extends CommandController<CheckModel> {
 
     // A weapon, and a discrete one — a shield is armor (refused), a
     // fungible stack is owned-by-possession (never checked).
-    if (!CombatApi.isWeapon(item)) {
+    if (!((item) as unknown as Stuff & Wieldable).isWeapon()) {
       return this.reject(
         giver,
         context,
