@@ -1,0 +1,17 @@
+# A copper ingot — ⭐ **the thing this whole build exists to make.**
+#
+# ⚠ Its MASS is stamped per smelt from the charge's chemistry, never
+# authored: a lean lot honestly makes a lighter bar. The figure here is
+# only the row's default for a bar that arrives from nowhere, which after
+# this build nothing does.
+class: /platform/thing/Ingot
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a copper ingot
+  primaryKeyword: ingot
+  keywords: [ingot, copper, bar, billet]
+  longDescription: >-
+    A rough bar of red metal, still carrying the shape of the sand it was
+    poured into and a bloom of black scale down one face.
+  _materialPath: /stuff/idea/material/element/copper
+  mass: 0.5
