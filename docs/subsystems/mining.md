@@ -289,6 +289,39 @@ Three files, and all three are **vocabulary widenings**:
 Plus `packages/types` + `packages/client` for the `survey` card, which is
 the whole of the client work.
 
+### ⚠⚠ Three things a pack author has to know, all learned the hard way
+
+**1. A pack cannot add a field to a kernel class.** `fieldMeta` is what
+the hydrator reflects through, so an undeclared key in `data:` is
+*silently discarded*. `deposit:` on a plain `CartesianZone` came up
+missing and `hew` refused in a room with a seam visibly in the face.
+Ship the class in the trade — that is what `MineZone` is.
+
+**2. A reference `Idea` needs warming, and nothing does it for you.**
+`Material` and `Biome` have boot rosters; `Deposit` does not, so
+`findByTemplatePath` reads `null` forever on a fresh process. Resolve
+with `StuffApi.singleton` (get-or-create) at the point of use rather
+than adding to a boot list somebody has to remember.
+
+**3. A command affordance is a STATIC ON A CLASS.** A row's
+`commandContributions:` is dead silently. `WorkingMixin` carries the
+five acts on `self` + `inventory`, so they belong to the working you are
+standing in.
+
+### ⚠⚠ And one about engaged acts
+
+**A controller is EPHEMERAL and an engagement is not.** One clone per
+execution, destructed the moment `execute` returns — so a completion
+that calls `this.<method>` runs on a destroyed Stuff and the proxy
+answers with a silent no-op, and one that narrates to a logged-out actor
+throws an unhandled rejection that takes the process down.
+
+Completion bodies are module functions over captured locals, and each
+begins by checking whether the actor is still there. ⭐ A subclass that
+has to be consulted AFTER the act is a subclass that cannot be consulted
+at all — which is why the vertical pair passes a VALUE (`edgeMedium()`,
+read at dispatch) rather than overriding a hook.
+
 ---
 
 ## Cross-references
