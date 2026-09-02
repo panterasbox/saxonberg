@@ -142,7 +142,7 @@ collection. So the rule, from that day:
 
 | Database | Who | Notes |
 |---|---|---|
-| `saxonberg_demo` | the AWS demo box | wiped nightly; **never touched by hand** — it changes only through a deploy. Set in SSM `/saxonberg/dev/MONGODB_DATABASE` (was `saxonberg_eu` until 2026-08-25; the old name lives on until the next deploy lands, then gets dropped). |
+| `saxonberg_demo` | the AWS demo box | wiped nightly; **never touched by hand** — it changes only through a deploy. Set in SSM `/saxonberg/dev/MONGODB_DATABASE`. ✅ **Rename complete 2026-09-02**: SSM was changed 2026-08-25 but auto-deploy is off, so the box ran on the old `saxonberg_eu` for 15 days until a manual deploy materialized the new `.env`; `saxonberg_eu` was then dropped (46 collections reclaimed). |
 | `saxonberg_build1` | the `build-1` worktree | `packages/server/.env` → `MONGODB_DATABASE` |
 | `saxonberg_build2` | the `build-2` worktree | same |
 | `saxonberg_build3` | the `build-3` worktree | same |
@@ -163,6 +163,19 @@ this table stays four rows.
 
 CI's e2e job is exempt: it runs against its own `mongo:7` service
 container (`saxonberg_e2e`), never Atlas.
+
+> ⚠⚠ **An SSM change is not a config change until a deploy lands.**
+> Config is **materialized at deploy time** (§ Configuration & secrets),
+> and **auto-deploy is off** — so editing a parameter changes nothing on
+> the box until someone deploys. The 2026-08-25 rename sat unapplied for
+> **15 days** while the box kept writing to the old database, and the
+> drop that was the whole point of the exercise could not happen until
+> it did. **Verify a config change on the box, not in SSM.**
+
+⚠ **The table is the audit.** It says four rows; on 2026-09-02 Atlas held
+**six** (`saxonberg_eu` orphaned, plus a stray `test`) — the same drift
+that caused the original cap incident. Count the databases, not the
+intentions.
 
 ## Cost
 
