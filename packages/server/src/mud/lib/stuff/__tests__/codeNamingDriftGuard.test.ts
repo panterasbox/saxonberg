@@ -118,6 +118,9 @@ const MANIFEST: ReadonlyArray<{ site: string; classification: string }> = [
   // `MaterialLogic.boot` keeps a row by `instanceof Material` — resolving
   // the class wherever it lives (a capability pack's src/ included).
   { site: "platform/idea/api/MaterialLogic.ts::loadClassByPath", classification: "gated-direct" },
+  // `FermentApi.boot` keeps a row by `instanceof FermentProfile` (the
+  // MaterialLogic precedent, one subsystem over — fermentation W1).
+  { site: "platform/idea/api/FermentLogic.ts::loadClassByPath", classification: "gated-direct" },
   // The spawn sweep's `isCirculatingClass` (the MaterialLogic precedent):
   // a template row's `class:` (already gate-validated content) is loaded
   // only to ask whether it composes `CirculatingMixin`.
