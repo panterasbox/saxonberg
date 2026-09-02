@@ -239,10 +239,10 @@ describe('the venue itself', () => {
   it('⭐ the chamber seam is EXPLICIT ON BOTH SIDES, and the pin agrees with the room', () => {
     const mouth = row('content/world/rejection/ferrow/hush-mouth.yaml');
     const chamber = row('content/world/rejection/hush/gallery.yaml');
-    expect((mouth.data!.exits as Record<string, { destination: string }>).in.destination).toBe(
+    expect((mouth.data!.exits as Record<string, { destination: string }>)['in']!.destination).toBe(
       '/world/rejection/hush/gallery',
     );
-    expect((chamber.data!.exits as Record<string, { destination: string }>).out.destination).toBe(
+    expect((chamber.data!.exits as Record<string, { destination: string }>)['out']!.destination).toBe(
       '/world/rejection/ferrow/hush-mouth',
     );
     // ⭐ Cartesian workings, spherical cavern: the grid represents what

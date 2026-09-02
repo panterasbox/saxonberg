@@ -337,6 +337,7 @@ describe('the mine’s four labour acts', () => {
     const files = readdirSync(VIEWS).filter((f) => f.endsWith('.yaml'));
     expect(files.sort()).toEqual([
       'drive.yaml', 'hew.yaml', 'raise.yaml', 'shore.yaml', 'sink.yaml',
+      'stake.yaml',
     ]);
     for (const f of files) {
       const yaml = readFileSync(join(VIEWS, f), 'utf8');

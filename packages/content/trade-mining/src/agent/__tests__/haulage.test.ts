@@ -44,9 +44,13 @@ describe('the two functional species', () => {
     // nothing in this pack computed it.
     expect(data.mass).toBe(320);
     expect((data.mass as number) / 75).toBeGreaterThan(4);
-    // …and it is a HaulingCreature, the shipped class: `Hauler` (the
-    // hitch) comes from `Character`, `Mountable` from this class.
-    expect(pony.class).toBe('/platform/agent/HaulingCreature');
+    // …and its class adds NO haulage code: `Hauler` (the hitch) comes
+    // from `Character` and `Mountable` from the shipped
+    // `HaulingCreature`. ⚠ The one thing `PitPony` adds is a BRAIN —
+    // `cast:` means things with a brain, and an animal that cannot idle
+    // reads as furniture.
+    expect(pony.class).toBe('/trade/mining/agent/PitPony');
+    expect(Array.isArray(data.behaviors)).toBe(true);
   });
 
   it('the canary’s instrument is a NUMBER IN CONTENT, not a special case in code', () => {

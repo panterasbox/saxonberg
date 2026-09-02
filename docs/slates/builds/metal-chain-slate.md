@@ -11,6 +11,36 @@
 > [rejection-slate](./rejection-slate.md) owns the venue and the cast.
 > Read all three; they do not overlap, and where this one **supersedes**
 > the mining slate it says so explicitly (§ *What this supersedes*).
+>
+> ---
+>
+> ## ⭐ STAGE A SHIPPED (metal chain, 2026-09-01) — read [mining](../../subsystems/mining.md) first
+>
+> **What landed**, and it is the whole upper half: the `Deposit` field and
+> its one resolved read; `WorkingMixin`/`MineWarren` (⭐⭐ **the warren
+> creates rooms, it does not interpret them** — every read derives from
+> the room and its zone, so a hand-authored static mine behaves
+> identically); the five acts; ground support as a placed `Durable` with
+> refusal, the free telegraph and face-only falls; air as topology, the
+> canary and the pit pony; ore, grade and pooling; the three survey
+> channels, the instruments, the `geology` Discipline and the survey card;
+> the mine archetype and twelve recipes; the `delves` producer beat; and
+> `rejection` — the first mining town, shipping **no TypeScript at all**.
+>
+> **What this slate still holds that Stage A did not reach**: everything
+> below the water table. No shaft, hoist, pump, drainage commons, hoist
+> toll or district; no sulfides and therefore no roasting; no collapse
+> entrapment, rescue clock or cascade; no deep ecology, no apex, no Hush
+> cast; no tribute pitches or setting-day auction; no high-grading as an
+> OFFENCE (the pooling and the honest assay shipped; detection and
+> sanction want an adjudicator).
+>
+> ⚠ **Where this slate and the shipped code disagree, the code wins.**
+> Four corrections worth naming: `MineWarren` extends the KERNEL
+> `InnerWarren` (not a bespoke base); the deposit speaks METRES, not grid
+> cells; the four procedural room type rows are LOCALITY content, taken as
+> policy; and per-face depletion rides the ROOM, not the warren's ledger —
+> which is the only way a static mine has it.
 
 Substrate: [crafting](../../subsystems/crafting.md) ·
 [fire](../../subsystems/fire.md) ·
