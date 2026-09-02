@@ -1,0 +1,24 @@
+# Lager mash — the cold-run grist: same tun, its own wort (the lager
+# process differs from the mash up), bound for the cold store.
+recipeId: lager-mash
+name: Lager mash
+keywords: [lager-mash, "cold mash"]
+discipline: fermenting
+difficulty: moderate
+inputSlots:
+- slot: malt
+  category: malt
+  minGrade: poor
+  measureL: 4
+- slot: water
+  category: water
+  minGrade: poor
+  measureL: 16
+toolCapabilities: [mash-tun]
+outputApplication: bulk
+outputTemplate: /trade/brewing/thing/wort-bucket
+outputMaterial: /trade/brewing/idea/material/lager-wort
+outputAppearance: pale clear wort
+outputResidue:
+  template: /trade/brewing/thing/spent-grain
+  count: 1

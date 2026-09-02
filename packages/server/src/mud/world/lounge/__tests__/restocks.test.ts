@@ -70,9 +70,12 @@ const BAR = '/world/lounge/location/bar';
 const BAR_BIZ = '/world/lounge/idea/business';
 const SHELF = '/trade/hospitality/thing/back-bar';
 const RACK = '/trade/hospitality/thing/glass-rack';
+// ⭐ The ROOM is the locality's and the MECHANISM is distribution's —
+// fermentation's D10 decoupling kept whole, with the showroom where its
+// door is (a roller door on the Counting-Houses avenue).
 const CASH_AND_CARRY = '/world/terminus/counting-houses/cash-and-carry';
-const COUNTER = '/trade/distilling/thing/counter';
-const DISTILLING = '/trade/distilling/idea/business';
+const COUNTER = '/trade/distribution/thing/counter';
+const DISTRIBUTION = '/trade/distribution/idea/business';
 const OUTFIT = '/trade/distilling/location/veshko-yard/idea/outfit';
 const FLOOR = '/trade/distilling/location/veshko-yard/location/distillery';
 const GIN = '/trade/distilling/idea/material/gin';
@@ -221,7 +224,7 @@ describe("the keeper's back loop — Mara restocks Dave's Bar from the cash-and-
     floorStock = stock('/trade/distilling/location/veshko-yard/thing/stock', 'stock');
     ContainmentApi.move(floorStock as never, floor as never);
 
-    business(DISTILLING, [{ key: 'clerk', label: 'clerking', wageRate: 5, confers: [] }], [CASH_AND_CARRY, COUNTER]);
+    business(DISTRIBUTION, [{ key: 'clerk', label: 'clerking', wageRate: 5, confers: [] }], [CASH_AND_CARRY, COUNTER]);
     outfit = business(OUTFIT, [{ key: 'hand', label: 'running the floor', wageRate: 3, confers: [], purchases: true }], [FLOOR]);
     outfitAccount = await EmploymentApi.operatingAccountOf(outfit);
     barBiz = business(
@@ -232,7 +235,7 @@ describe("the keeper's back loop — Mara restocks Dave's Bar from the cash-and-
       ],
       [BAR],
     );
-    barBiz.setParLine({ category: 'gin', level: 1.5, unit: 'L', supplier: DISTILLING });
+    barBiz.setParLine({ category: 'gin', level: 1.5, unit: 'L', supplier: DISTRIBUTION });
     barBiz.setParLine({ category: 'coupe', level: 2, unit: 'count' });
     barAccount = await EmploymentApi.operatingAccountOf(barBiz);
 

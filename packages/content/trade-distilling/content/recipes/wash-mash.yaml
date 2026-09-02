@@ -1,0 +1,24 @@
+# Wash mash — bought malt and liquor to the still-house's rough wort
+# (fermentation W6; the brewer's shape, the distiller's grist).
+recipeId: wash-mash
+name: Wash mash
+keywords: [wash-mash]
+discipline: fermenting
+difficulty: easy
+inputSlots:
+- slot: malt
+  category: malt
+  minGrade: poor
+  measureL: 4
+- slot: water
+  category: water
+  minGrade: poor
+  measureL: 16
+toolCapabilities: [mash-tun]
+outputApplication: bulk
+outputTemplate: /trade/distilling/thing/wash-bucket
+outputMaterial: /trade/distilling/idea/material/distillers-wort
+outputAppearance: rough grey-amber wort
+outputResidue:
+  template: /trade/distilling/thing/spent-grain
+  count: 1

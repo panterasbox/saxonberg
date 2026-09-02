@@ -1,0 +1,17 @@
+# The fermenting vat — the winery's working vessel: a 100 L oak vat
+# over the platform Vat concrete (FermentingMixin — it ferments what
+# its interior holds, drifts to the cellar's temperature, keeps or
+# turns by its bung, and carries the batch's band + mark for the
+# transfer seam). `open`/`close` work the bung; `pour` racks.
+class: /platform/thing/Vat
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: an oak fermenting vat
+  primaryKeyword: vat
+  keywords: [vat, "fermenting vat", tun]
+  longDescription: |
+    A waist-high oak vat, staves dark with old must, a bung at the shoulder and a scrawl of chalk tallies on the head.
+  category: vat
+  interiorBulk: true
+  interiorCapacity: 100
+  mass: 80

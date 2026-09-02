@@ -4,6 +4,7 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: sweet vermouth
   appearance: "ruby-red, bittersweet vermouth"
+  primaryKeyword: sweet-vermouth
   keywords: ["vermouth", "sweet"]
   density: 1010
   thermalConductivity: 0.5

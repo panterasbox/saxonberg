@@ -10,6 +10,7 @@
     "@saxonberg/content-corpo-hollis": "workspace:*",
     "@saxonberg/content-corpo-veshko": "workspace:*",
     "@saxonberg/content-corpo-vionne": "workspace:*",
+    "@saxonberg/content-distribution": "workspace:*",
     "@saxonberg/content-eternal-university": "workspace:*",
     "@saxonberg/content-expression": "workspace:*",
     "@saxonberg/content-generic-objects": "workspace:*",

@@ -1,0 +1,16 @@
+# The STILL-HOUSE archetype (fermentation W8+): what a distillery
+# NEEDS. `industry` null (the `distilling` discipline derives the still
+# + 351 K cleanly, but the wash's mash rides `fermenting` — half a
+# derive is worse than honest residue). The still book (a Menu) is
+# deliberately not a need; see the winery archetype's note.
+archetypeId: still-house
+label: a still-house
+capabilities:
+  - { key: mash, needs: { tool: mash-tun }, default: /trade/distilling/thing/mash-tun }
+  - { key: liquor, needs: { bulkSource: water }, default: /trade/distilling/thing/standpipe }
+  - { key: ferment, needs: { vesselKind: vat }, default: /trade/distilling/thing/vat }
+  - { key: still, needs: { tool: still }, default: /trade/distilling/thing/still }
+  # 351 K — ethanol's boiling point (the number IS the lesson). The
+  # still is its own furnace, so one fixture answers both rows: the
+  # volcano-vent rule, distilled.
+  - { key: heat, needs: { heatK: 351 }, default: /trade/distilling/thing/still }

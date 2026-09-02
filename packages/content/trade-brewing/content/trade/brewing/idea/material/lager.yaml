@@ -4,6 +4,7 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: lager
   appearance: "a pale, bright lager"
+  primaryKeyword: lager
   keywords: ["lager", "beer", "brew"]
   density: 1008
   thermalConductivity: 0.5

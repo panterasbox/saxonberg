@@ -3,14 +3,19 @@
 # clerk. Trade-facing: a keeper walks in, `wallet use house`, `buy gin` —
 # the good is stamped to the house and the consignor's account rises.
 #
-# ⭐⭐ **It lives in TERMINUS, not in the distilling trade, because it is
-# a PLACE.** A roller door on the Counting-Houses avenue, one cell south
+# ⭐⭐ **It lives in TERMINUS, not in the distributor's trade pack,
+# because it is a PLACE.** A roller door on the Counting-Houses avenue, one cell south
 # of the block, described in that block's own prose — *"Across the row,
 # south, a roller door stands half up over a cold hall of racked cases"*.
 # Trade is mechanism and locality is expression; a showroom on a named
 # street is expression. The trade still owns everything IN it — the
-# racking, the counter, the clerk and the spirits are all
-# `/trade/distilling/...` rows this room merely places.
+# racking, the counter, the clerk and the goods are all
+# `/trade/distribution/...` rows this room merely places.
+#
+# ⚠ Fermentation (D10) cut the distributor out of `trade-distilling` into
+# its own `distribution` pack so no producing sibling depends on a
+# competitor — that decoupling is kept whole, and this is the other half
+# of it: the mechanism is the trade's, the room is the locality's.
 #
 # ⚠⚠ **And it authors `coords`, which is the whole point of the move.**
 # `coords:` is not decoration — `setCoords` is the ONLY way an authored
@@ -44,7 +49,7 @@ data:
     north:
       destination: /world/terminus/counting-houses/avenue-block
   props:
-    - /trade/distilling/thing/racking
-    - /trade/distilling/thing/counter
+    - /trade/distribution/thing/racking
+    - /trade/distribution/thing/counter
   cast:
-    - /trade/distilling/agent/clerk
+    - /trade/distribution/agent/clerk

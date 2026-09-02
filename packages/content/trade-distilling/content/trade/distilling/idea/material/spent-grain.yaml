@@ -1,0 +1,17 @@
+# Spent grain — the wash mash's residue (P11): tag `compost` is the
+# feed verb's gate; the still-house sells it back to the growers.
+class: /platform/idea/material/ConsumableMaterial
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: spent grain
+  appearance: "wet, sweet-smelling spent grain"
+  keywords: ["grain", "draff"]
+  density: 800
+  thermalConductivity: 0.4
+  specificHeat: 3000
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["solid", "compost", "spent-grain"]
+  composition: []
+  biologicalSource: null

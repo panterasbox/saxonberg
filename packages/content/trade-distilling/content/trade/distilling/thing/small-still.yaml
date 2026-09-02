@@ -1,0 +1,12 @@
+# The small pot still — the kit's run (D15), sold openly: D11's fire is
+# the honest deterrent, and excise is the fiction's future, not a
+# mechanic. The Still class is its own furnace, so `ignite` and 351 K
+# work at a kitchen hearth's scale.
+class: /trade/distilling/thing/Still
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a small pot still
+  primaryKeyword: still
+  keywords: [still, "pot still", alembic]
+  longDescription: A knee-high copper alembic with a coiled worm, bright with polishing.
+  mass: 14

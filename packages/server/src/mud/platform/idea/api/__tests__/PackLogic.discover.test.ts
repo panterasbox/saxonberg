@@ -57,9 +57,9 @@ describe('discovery', () => {
 });
 
 describe('the shipped packs (real discovery, no install)', () => {
-  it('thirty-three ship; the trade packs order after generic-objects (wave 4a); the venues after their trades (wave 4b); the localities after residence (residences D18); the metal chain after ITS trades', () => {
+  it('thirty-four ship; the trade packs order after generic-objects (wave 4a); the venues after their trades (wave 4b); the localities after residence (residences D18); every consigner after distribution (fermentation D10); the metal chain after ITS trades', () => {
     const ids = PackApi.contentRoots().map((root) => root.split('/').slice(-2)[0]!);
-    expect(ids).toHaveLength(33);
+    expect(ids).toHaveLength(34);
     expect(ids[0]).toBe('platform');
     for (const trade of ['trade-smithing', 'trade-hearth-cooking', 'trade-hospitality', 'trade-distilling']) {
       expect(ids.indexOf(trade)).toBeGreaterThan(ids.indexOf('generic-objects'));
@@ -83,5 +83,11 @@ describe('the shipped packs (real discovery, no install)', () => {
     }
     expect(ids.indexOf('trade-smelting')).toBeGreaterThan(ids.indexOf('trade-mining'));
     expect(ids.indexOf('trade-smelting')).toBeGreaterThan(ids.indexOf('trade-fuel'));
+    // The D10 decoupling: every trade that consigns (and every venue
+    // that buys) orders after distribution, and no producing sibling
+    // depends on trade-distilling any more.
+    for (const consigner of ['trade-brewing', 'trade-winemaking', 'trade-bottling', 'trade-farming', 'trade-hearth-cooking', 'trade-distilling', 'terminus', 'saxonberg-lounge']) {
+      expect(ids.indexOf(consigner)).toBeGreaterThan(ids.indexOf('distribution'));
+    }
   });
 });

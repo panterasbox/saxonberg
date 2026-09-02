@@ -340,6 +340,9 @@ export const Mixins = {
   // A thing that can be put in the ground and grows into something —
   // a seed, and equally a cutting / tuber / bulb once those exist.
   Plantable: 'PlantableMixin',
+  // The durative ferment — a VESSEL whose contents convert over
+  // game-time (growth accretes, fermentation converts).
+  Fermenting: 'FermentingMixin',
   Behaved: 'BehavedMixin',
   Graded: 'GradedMixin',
   // A physical thing that wears out with use (the condition/wear gauge).
@@ -523,6 +526,8 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
 
   // Boundaries & mechanisms.
   SealableMixin: "{} doesn't open and close",
+  BulkableMixin: "{} doesn't hold liquid to read",
+  AdornmentMixin: "{} doesn't hang or mount there",
   LockableMixin: "{} doesn't lock",
   SwitchableMixin: "{} doesn't switch on and off",
   FoldableMixin: "{} doesn't fold",
@@ -548,13 +553,16 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
 
   // Making & wear.
   //
-  // ⚠ `ToolMixin` and `AdornmentMixin` were BOTH missing, and the gate
-  // was right to ask: `hang` has required an Adornment since it shipped,
-  // and `shore` requires a Tool — so two live refusals were falling
-  // through to the generic sentence, which is a dead end a player cannot
-  // act on. The phrases say what the object would have to BE, which is
-  // the only thing that tells somebody what to go and find.
-  AdornmentMixin: "{} isn't something you can hang",
+  // ⚠ `ToolMixin` was missing and the gate was right to ask: `shore`
+  // requires a Tool, so a live refusal was falling through to the
+  // generic sentence — a dead end a player cannot act on. The phrase
+  // says what the object would have to BE, which is the only thing that
+  // tells somebody what to go and find.
+  //
+  // ⚠ `AdornmentMixin` was added on both sides of the fermentation merge
+  // and lives up under *Boundaries & mechanisms*, which is the right
+  // home: an adornment hangs on a boundary (a sign on a door), not on a
+  // body.
   ToolMixin: "{} isn't a tool",
   ManualBuildMixin: "{} isn't a vessel you can work in",
   CraftedMixin: "{} isn't a made thing",

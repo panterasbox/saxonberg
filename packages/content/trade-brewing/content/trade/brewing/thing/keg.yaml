@@ -1,5 +1,5 @@
-# The keg — the EMPTY vessel; the standard a brewed product is built
-# against (see `keg-ale.yaml`). `sealed` because a keg is pressurised —
+# The keg — the EMPTY vessel the cellars beats fill (the floor-keg
+# faucet retired at the W8 switchover). `sealed` because a keg is pressurised —
 # that is the whole point of the coupler.
 class: /platform/thing/Bottle
 hydratorClass: /platform/idea/persistence/PersistentHydrator
@@ -16,3 +16,9 @@ data:
   interiorCapacity: 30
   closure: sealed
   open: true
+  # The vessel faucet (fermentation W5): empties at target in the
+  # brewery's stock — an empty is never product — for the cellars
+  # brain to fill, cap and consign.
+  censusKey: vessel:keg
+  regionTarget: 8
+  container: /trade/brewing/thing/brewing-stock

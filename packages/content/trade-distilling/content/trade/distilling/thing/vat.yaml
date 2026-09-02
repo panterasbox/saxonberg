@@ -1,0 +1,14 @@
+# The wash vat — the still-house's fermenting vessel (content is
+# copied; the winery's row, the still-house's copy).
+class: /platform/thing/Vat
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: an oak wash vat
+  primaryKeyword: vat
+  keywords: [vat, "wash vat", back]
+  longDescription: |
+    A waist-high oak vat crusted at the tide line, a bung at the shoulder.
+  category: vat
+  interiorBulk: true
+  interiorCapacity: 100
+  mass: 80

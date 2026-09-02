@@ -62,6 +62,19 @@ subcommands:
       - name: detail
         type: string
         required: false
+  density:
+    controller: /platform/idea/cmd/perception/MeasureDensityController
+    description: "Float a hydrometer in a vessel and read its specific gravity"
+    help: |
+      Needs a hydrometer in hand. A fermenting batch reads back the
+      sugar the ferment has not eaten yet — two vats at two
+      temperatures, read over days, and the curve is yours.
+    args:
+      - name: target
+        type: object
+        required: true
+        scope: "reachable"
+        requires: BulkableMixin
   gravity:
     description: "Measure gravitational acceleration (m/s²) at your immediate scope"
     help: |

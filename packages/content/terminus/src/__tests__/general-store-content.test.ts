@@ -21,6 +21,17 @@ const STORE_DIR = fileURLToPath(
 const OBJ_DIR = fileURLToPath(
   new URL("../../../generic-objects/content/stuff/", import.meta.url),
 );
+// The homebrew kit lines (fermentation D15) live with the trades they
+// miniaturize; the carboy + culture jar ride OBJ_DIR (the commons).
+const WINE_DIR = fileURLToPath(
+  new URL("../../../trade-winemaking/content/trade/winemaking/", import.meta.url),
+);
+const BREW_DIR = fileURLToPath(
+  new URL("../../../trade-brewing/content/trade/brewing/", import.meta.url),
+);
+const DIST_DIR = fileURLToPath(
+  new URL("../../../trade-distilling/content/trade/distilling/", import.meta.url),
+);
 // The growing cluster (pots, seeds, plants) is the produce trade's (libations drain).
 const PRODUCE_DIR = fileURLToPath(
   new URL("../../../trade-farming/content/trade/farming/", import.meta.url),
@@ -102,6 +113,11 @@ describe("general-store content integrity", () => {
     // plant it grows into. Both stocked from ordinary `/obj/` templates.
     "/platform/thing/PlantPot",
     "/platform/thing/Seed",
+    // The homebrew line (fermentation D15): the carboy and culture jar
+    // are Vat-family vessels (the transform rides the vessel), the
+    // small still the distilling pack's furnace-tool — all discrete.
+    "/platform/thing/Vat",
+    "/trade/distilling/thing/Still",
     // The furnishings line (residences D7/D11), likewise stocked from the
     // shared `/stuff/thing/fixture/` rows: `Chair` is the reusable
     // posture-bearing class (a bed and an armchair differ only in their
@@ -135,20 +151,37 @@ describe("general-store content integrity", () => {
       );
       const produce = line.itemTemplatePath.startsWith("/trade/farming/");
       const residence = line.itemTemplatePath.startsWith("/residence/");
+      // The homebrew line (fermentation D15): the kit rows live with
+      // the trades they miniaturize; carboy + jar in the commons.
+      const wine = line.itemTemplatePath.startsWith("/trade/winemaking/");
+      const brew = line.itemTemplatePath.startsWith("/trade/brewing/");
+      const dist = line.itemTemplatePath.startsWith("/trade/distilling/");
       const dir = local
         ? STORE_DIR
         : produce
           ? PRODUCE_DIR
           : residence
             ? RESIDENCE_DIR
-            : OBJ_DIR;
+            : wine
+              ? WINE_DIR
+              : brew
+                ? BREW_DIR
+                : dist
+                  ? DIST_DIR
+                  : OBJ_DIR;
       const rel = local
         ? line.itemTemplatePath.replace("/world/terminus/general-store/", "")
         : produce
           ? line.itemTemplatePath.replace("/trade/farming/", "")
           : residence
             ? line.itemTemplatePath.replace("/residence/", "")
-            : line.itemTemplatePath.replace("/stuff/", "");
+            : wine
+              ? line.itemTemplatePath.replace("/trade/winemaking/", "")
+              : brew
+                ? line.itemTemplatePath.replace("/trade/brewing/", "")
+                : dist
+                  ? line.itemTemplatePath.replace("/trade/distilling/", "")
+                  : line.itemTemplatePath.replace("/stuff/", "");
       expect(existsSync(`${dir}${rel}.yaml`), line.itemTemplatePath).toBe(true);
       const good = load(dir, `${rel}.yaml`);
       // A real, discrete item class (backed by a shipped system, not a prop).

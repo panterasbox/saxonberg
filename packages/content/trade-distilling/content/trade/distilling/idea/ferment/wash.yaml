@@ -1,0 +1,17 @@
+# The wash ferment — rough, fast, wild (a still-house does not chase
+# wild character out; the still leaves it behind). The foreshot
+# character is INERT authored prose (P10): the seam the deferred cuts
+# rung reads into metabolism's toxin dose.
+class: /platform/idea/ferment/FermentProfile
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: wash
+  inputCategory: distillers-wort
+  stallBelowK: 283
+  happyK: 290
+  damageAboveK: 303
+  killK: 310
+  ratePerDay: 0.3
+  productMaterial: /trade/distilling/idea/material/wash
+  turnDays: 6
+  foreshotCharacter: harsh and acetone-edged off the grey grist

@@ -1,0 +1,21 @@
+# Lager — the cold bottom ferment (D14's gate on real content): it
+# REQUIRES the lager strain (wild flora ferment nothing here), and it
+# refuses to work warm at all (authored dormancy above 287 K) — the
+# cold strain plus the cold cellar, because the biology says so. Slow.
+class: /platform/idea/ferment/FermentProfile
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: lager
+  inputCategory: lager-wort
+  requiresStrain: lager-yeast
+  spontaneousLagDays: 4
+  stallBelowK: 274
+  happyK: 279
+  damageAboveK: 285
+  stallAboveK: 287
+  killK: 308
+  ratePerDay: 0.08
+  productMaterial: /trade/brewing/idea/material/lager
+  turnDays: 4
+  leesFraction: 0.04
+  leesMaterial: /trade/brewing/idea/material/lager-lees

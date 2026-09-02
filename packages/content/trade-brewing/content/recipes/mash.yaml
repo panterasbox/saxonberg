@@ -1,0 +1,26 @@
+# Mash — malt and hot liquor to wort (fermentation W5; the crush's
+# sibling): the mash tun is the gate, the bucket is the landing vessel,
+# the spent grain is conservation's residue (P11) — feed, sellable back
+# to the growers.
+recipeId: mash
+name: Mash
+keywords: [mash, wort]
+discipline: fermenting
+difficulty: easy
+inputSlots:
+- slot: malt
+  category: malt
+  minGrade: poor
+  measureL: 4
+- slot: water
+  category: water
+  minGrade: poor
+  measureL: 16
+toolCapabilities: [mash-tun]
+outputApplication: bulk
+outputTemplate: /trade/brewing/thing/wort-bucket
+outputMaterial: /trade/brewing/idea/material/wort
+outputAppearance: sweet amber wort
+outputResidue:
+  template: /trade/brewing/thing/spent-grain
+  count: 1

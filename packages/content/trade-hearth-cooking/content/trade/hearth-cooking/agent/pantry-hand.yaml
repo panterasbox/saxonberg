@@ -22,7 +22,7 @@ data:
       trigger: cadence:90s
       config:
         stock: /trade/hearth-cooking/thing/pantry-stock
-        shelf: /trade/distilling/thing/counter
+        shelf: /trade/distribution/thing/counter
         batch: 6
         ask:
           pantry:sugar: 8

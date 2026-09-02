@@ -1,0 +1,16 @@
+# The wine press — the crush's capital (the anvil precedent: a fixture
+# by encumbrance, not by flag; the recipe gate is emergent reachability:
+# grapes + press, wherever they are). Capability `press` is what the
+# crush recipes demand; the homebrew kit's small press is the same row
+# idea at carry weight.
+class: /platform/thing/ToolItem
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a basket wine press
+  primaryKeyword: press
+  keywords: [press, "wine press", basket]
+  longDescription: |
+    A slatted basket press with a greased iron screw, stained purple to the waist. The drip channel is worn glassy.
+  capabilities:
+    - { kind: press }
+  mass: 45

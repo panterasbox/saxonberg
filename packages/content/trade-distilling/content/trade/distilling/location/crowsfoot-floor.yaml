@@ -22,12 +22,25 @@ data:
   primaryKeyword: floor
   keywords: [floor, yard, warehouse, crowsfoot]
   longDescription: |
-    A small, tidy yard with a single pallet by the door and, through a hatch, the copper gleam of a still nobody runs for the public yet.
+    A small, tidy yard, and a working one now: the copper still gleams over its firebox, the scarred tun steams by the standpipe, two wash vats stand crusted at the tide line, and the still book hangs on its chain. Cases and empty square bottles queue on the pallet.
   ambientIntensity: 25
   ambientColorTemperature: 4200
+  # A working still-house: the wash's happy middle.
+  _temperature: 289
+  # It displaces its own air while the backs work (P11).
+  reserves:
+    air:
+      capacityValue: 100
+      currentValue: 100
+      unit: "%"
   props:
     - /trade/distilling/thing/racking
     - /trade/distilling/thing/crowsfoot-stock
     - /trade/distilling/thing/still
+    - /trade/distilling/thing/mash-tun
+    - /trade/distilling/thing/standpipe
+    - /trade/distilling/thing/still-book
+    - /trade/distilling/thing/vat
+    - /trade/distilling/thing/vat
   cast:
     - /trade/distilling/agent/crowsfoot-hand

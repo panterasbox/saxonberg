@@ -1,0 +1,22 @@
+# White crush — the same press, the juice drawn off the skins at once:
+# white wine is a PROCESS fact, and the recipe is where it lives.
+recipeId: white-crush
+name: White crush
+keywords: [white-crush, "white must"]
+discipline: fermenting
+difficulty: easy
+inputSlots:
+- slot: grapes
+  kind: item
+  category: grape
+  minGrade: poor
+  count: 6
+toolCapabilities: [press]
+outputApplication: bulk
+outputTemplate: /trade/winemaking/thing/must-bucket
+outputMaterial: /trade/winemaking/idea/material/white-must
+outputPortionL: 2.2
+outputAppearance: pale pressed juice, green-gold
+outputResidue:
+  template: /trade/winemaking/thing/pomace
+  count: 1

@@ -1,0 +1,21 @@
+# Culture jar — a small vessel of the Vat family (fermentation D14/P12):
+# the SAME transform mixin with a culture profile. Pour a finished
+# batch's lees into it and what you hold is a living culture — viability
+# its aliveness, starving over game-time, restored by feeding, killed by
+# heat, slowed by the cellar. Pitching from it is `pour` (the transfer
+# seam carries the strain). Zero new verbs, zero new mechanisms.
+#
+# Ships in the commons beside the other vessels: the jar is homebrew
+# kit and cellar furniture alike (D15 — verbs ride the instrument,
+# never the venue).
+class: /platform/thing/Vat
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a glass culture jar
+  primaryKeyword: jar
+  keywords: [jar, "culture jar", crock]
+  longDescription: |
+    A squat glass jar with a wired lid, the kind a cellar keeps its yeast alive in. A pale sediment settles at the bottom of whatever it holds.
+  interiorBulk: true
+  interiorCapacity: 2
+  # liquidTight (the class default), lid workable with `open`/`close`.

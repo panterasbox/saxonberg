@@ -55,6 +55,15 @@ data:
     - { itemTemplatePath: /trade/farming/thing/seed/cranberry, par: 2 }
     - { itemTemplatePath: /trade/farming/thing/seed/grape, par: 2 }
     - { itemTemplatePath: /trade/farming/thing/seed/juniper, par: 2 }
+    # The homebrew line (fermentation D15/P13): the whole kit on the
+    # stipend — carboy, small press, small mash tun, culture jar, and
+    # the small pot still, sold openly (D11's fire is the deterrent;
+    # excise is the fiction's future). Malt is the distributor's line.
+    - { itemTemplatePath: /stuff/thing/vessel/carboy, par: 2 }
+    - { itemTemplatePath: /stuff/thing/vessel/culture-jar, par: 2 }
+    - { itemTemplatePath: /trade/winemaking/thing/small-press, par: 1 }
+    - { itemTemplatePath: /trade/brewing/thing/small-mash-tun, par: 1 }
+    - { itemTemplatePath: /trade/distilling/thing/small-still, par: 1 }
     # The furnishings line (residences D7/D11). These cite the GENERIC
     # `/stuff/thing/fixture/` rows — the same reason the gardening line
     # cites the farming pack's pots rather than copying them: one bed row,
@@ -99,6 +108,13 @@ data:
     /trade/farming/thing/seed/cranberry: 5
     /trade/farming/thing/seed/grape: 6
     /trade/farming/thing/seed/juniper: 5
+    # The homebrew kit: all of it reachable on the stipend across a
+    # week's wages (D15) — the still the dearest thing on the shelf.
+    /stuff/thing/vessel/carboy: 7
+    /stuff/thing/vessel/culture-jar: 4
+    /trade/winemaking/thing/small-press: 8
+    /trade/brewing/thing/small-mash-tun: 8
+    /trade/distilling/thing/small-still: 12
     # Furnishings sit at the TOP of the ladder — a home is the first thing
     # in the game worth saving for. Against the anchors (stipend 20,
     # sewing-machine 18, wages 4-6/hr): a sconce is an evening's wage, a

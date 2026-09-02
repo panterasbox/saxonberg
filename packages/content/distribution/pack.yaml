@@ -1,0 +1,31 @@
+id: distribution
+version: 0.1.0          # reserved; nothing reads/enforces it (non-goal: version machinery)
+root: /trade/distribution
+description: >-
+  Distribution — the cash-and-carry, cut OUT of trade-distilling
+  (fermentation D10): the distributor every producing trade consigns
+  onto and every venue buys its rail from is distribution
+  INFRASTRUCTURE, not distilling, and while it lived in the distilling
+  pack every sibling trade depended on distilling for exactly that one
+  path. This pack depends on the platform alone, so every trade and
+  locality can point at it without cycles, and the sibling trades end
+  the wave with no edges between them. Ships the showroom (the hall,
+  the racking, the counter — a consignment shelf with ONE stocked
+  line), the clerk, the independent Business, and the MALT LINE: malt
+  is the commons' material (a shared input whose owning trade does not
+  exist yet — the salt/coffee direction of travel), and the sack at par
+  on the counter is the honestly-labelled imported-input faucet the
+  brewer's mash and the distiller's wash draw from until a malting
+  trade earns its pack (the vocations demand test).
+requires:
+  groups:
+    - name: distribution
+      purpose: the distribution trade's own body
+      owner: { office: prime-minister }
+  title:
+    - { extent: /trade/distribution, holder: { group: distribution } }
+boot:
+  # ⚠ The ROOM's boot entry lives in `terminus`, with the room. A
+  # showroom on a named avenue is a place; the counter, the clerk and the
+  # racking in it are still this pack's.
+  - { template: /trade/distribution/idea/business, role: producer, reason: "the distributor's Business must be live so its clerk is rostered before the first buy" }

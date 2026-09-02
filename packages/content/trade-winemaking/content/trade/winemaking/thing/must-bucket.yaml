@@ -1,0 +1,15 @@
+# The must bucket — the crush's landing vessel (a CraftVessel: claimed
+# empty from the room by the crush recipe, stamped with the crusher's
+# mark, carried to the vat and poured — the W0 seam hands the mark on).
+# Portable by design: the recipe output must land in someone's arms,
+# never mint into the vat directly.
+class: /platform/thing/CraftVessel
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a must bucket
+  primaryKeyword: bucket
+  keywords: [bucket, tub, "must bucket"]
+  longDescription: A deep wooden bucket, purple to the rim.
+  category: must-bucket
+  interiorBulk: true
+  interiorCapacity: 12

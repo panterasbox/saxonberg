@@ -52,6 +52,9 @@ const ATMOSPHERE_DENSITIES: Record<string, Quantity<'kg/m³'>> = {
   // the other one.
   blackdamp: Quantity.of(1.29, 'kg/m³'),
   stinkdamp: Quantity.of(1.36, 'kg/m³'),
+  // Carbon dioxide — a working ferment's output (the cellar hazard,
+  // fermentation P11). Denser than air: it pools where it is made.
+  'carbon-dioxide': Quantity.of(1.98, 'kg/m³'),
 };
 
 /**
@@ -70,6 +73,7 @@ const ATMOSPHERE_CONDUCTIVITIES: Record<string, Quantity<'W/(m·K)'>> = {
   smoke: Quantity.of(0.03, 'W/(m·K)'),
   blackdamp: Quantity.of(0.025, 'W/(m·K)'),
   stinkdamp: Quantity.of(0.014, 'W/(m·K)'),
+  'carbon-dioxide': Quantity.of(0.0166, 'W/(m·K)'),
 };
 
 /**
@@ -94,6 +98,9 @@ const ATMOSPHERE_BREATHABLE: Record<string, boolean> = {
   // are COMPLEMENTARY rather than redundant.
   blackdamp: false,
   stinkdamp: false,
+  // CO₂ displaces breathable air the same way — the ferment cellar's
+  // hazard (asphyxia, not poison: no contaminant tag).
+  'carbon-dioxide': false,
 };
 
 /**
@@ -113,6 +120,7 @@ const ATMOSPHERE_CONTAMINANT: Record<string, string | null> = {
   // to breathe, which is what makes it so quiet a killer.
   blackdamp: null,
   stinkdamp: 'hydrogenSulfide',
+  'carbon-dioxide': null,
 };
 
 /**

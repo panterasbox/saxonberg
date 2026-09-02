@@ -1,0 +1,20 @@
+# Lager lees — the cold strain's sediment; biologicalSource bridges to
+# S. pastorianus. The jar of this IS the lager line (D14): without the
+# cold strain — and the cold cellar — no lager ferments.
+class: /platform/idea/material/ConsumableMaterial
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: lager lees
+  appearance: "a pale, dense cold sediment"
+  keywords: ["lees"]
+  density: 1060
+  thermalConductivity: 0.5
+  specificHeat: 3700
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["liquid", "lager-lees"]
+  composition: []
+  biologicalSource:
+    speciesPath: /stuff/idea/species/fungi/saccharomycetaceae/saccharomyces/pastorianus
+    tissueType: culture

@@ -1,0 +1,7 @@
+# FermentProfileCatalogue — the singleton whose postRegister stands the
+# ferment-profile roster up as live singletons (the self-warming
+# catalogue shape; eager via this pack's boot list, not an AppBootstrap
+# sequencer line). No field state; the queries are statics on
+# FermentProfile over the live population.
+class: /platform/idea/FermentProfileCatalogue
+data: {}

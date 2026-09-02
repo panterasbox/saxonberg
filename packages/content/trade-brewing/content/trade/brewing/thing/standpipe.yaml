@@ -1,0 +1,10 @@
+# The brewhouse standpipe — plumbed liquor for the mash (the shipped
+# WaterFixture: inexhaustible water in reach; the constraint that v1
+# draws from standpipe-shaped sources only, build coordination).
+class: /platform/thing/WaterFixture
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a brass standpipe
+  primaryKeyword: standpipe
+  keywords: [standpipe, tap, pipe]
+  longDescription: A brass standpipe over a drain grate, its handle polished bright.

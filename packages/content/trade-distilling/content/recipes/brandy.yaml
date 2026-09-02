@@ -1,0 +1,17 @@
+# Brandy — wine through the still: the grape lane's own spirit (W6).
+recipeId: brandy
+name: Brandy
+keywords: [brandy]
+discipline: distilling
+difficulty: moderate
+inputSlots:
+- slot: wine
+  category: wine
+  minGrade: fair
+  measureL: 3
+toolCapabilities: [still]
+requiresHeatK: 351
+outputApplication: bulk
+outputTemplate: /trade/distilling/thing/spirit-bottle
+outputMaterial: /trade/distilling/idea/material/brandy
+outputAppearance: a warm amber brandy

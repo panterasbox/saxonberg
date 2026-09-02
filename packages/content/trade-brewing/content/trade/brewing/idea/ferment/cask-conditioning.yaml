@@ -1,0 +1,15 @@
+# Cask conditioning — REAL ALE (P9): ale racked into the cask with its
+# residual sugar referments SEALED where it stands; what comes off the
+# tap is naturally carbonated. `sealedOnly`: an open cask just breathes.
+class: /platform/idea/ferment/FermentProfile
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: cask-conditioning
+  inputCategory: ale
+  sealedOnly: true
+  stallBelowK: 281
+  happyK: 286
+  damageAboveK: 297
+  killK: 310
+  ratePerDay: 0.3
+  productMaterial: /trade/brewing/idea/material/cask-ale

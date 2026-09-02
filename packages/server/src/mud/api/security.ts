@@ -774,6 +774,7 @@ export class SecurityApi {
       '/platform/idea/RecipeCatalogue',
       '/platform/idea/BlueprintCatalogue',
       '/platform/idea/DisciplineCatalogue',
+      '/platform/idea/FermentProfileCatalogue',
       '/platform/idea/GovernmentCatalogue',
     ]);
 

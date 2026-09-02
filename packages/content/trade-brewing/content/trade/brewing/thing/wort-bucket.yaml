@@ -1,0 +1,13 @@
+# The wort bucket — the mash's landing vessel (the must bucket's
+# sibling): claimed empty, stamped with the masher's mark, carried to
+# the vat and poured.
+class: /platform/thing/CraftVessel
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a wort bucket
+  primaryKeyword: bucket
+  keywords: [bucket, pail, "wort bucket"]
+  longDescription: A deep steel pail, sticky at the rim.
+  category: wort-bucket
+  interiorBulk: true
+  interiorCapacity: 25
