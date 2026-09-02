@@ -3288,6 +3288,12 @@ function eligibilityImpl(actor: Stuff, gambitKey: string): GambitEligibility {
   const state = session.getState(actor);
   if (!state) return { ok: false, reason: "not-in-combat" };
   if (state.down) return { ok: false, reason: "downed" };
+  // Tetany seizes the muscles: a shocked fighter cannot queue a gambit.
+  // The command validators don't run inside `fight` subcommand dispatch,
+  // so the gate lives here too (the bar-fight build's stun-baton window).
+  if (MixinApi.isVitals(actor) && actor.isTetanized()) {
+    return { ok: false, reason: "tetanized" };
+  }
 
   if (spec.needsInstrument && resolveInstrument(state) === null) {
     return { ok: false, reason: "no-instrument" };

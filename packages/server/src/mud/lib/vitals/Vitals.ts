@@ -968,9 +968,23 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
             continue;
           }
           s.tickedAt = nowS;
-          // Re-verify the circuit is still closed (tetany holds it shut).
-          if (!this.shockCircuitClosed(s)) {
+          // A live circuit (a flooded cell, a downed line) re-probes as
+          // current-carrying and self-sustains; a discrete contact (a
+          // baton tap) breaks its circuit at once and holds the body rigid
+          // only for the after-grip window `tetanyUntil`.
+          const live = this.shockCircuitLive(s);
+          const windowHeld =
+            s.tetanyUntil !== undefined && nowS < s.tetanyUntil;
+          if (!live && !windowHeld) {
+            // Circuit physically open and any after-grip elapsed — relieve
+            // (this also clears the `tetany` flag the volition gate reads).
             this.relieve(s);
+            continue;
+          }
+          if (!live) {
+            // Pulse window only: the body is still rigid but NO current
+            // flows, so no burn accrues and the heart is not driven — the
+            // honest less-lethal after-grip, less-lethal never non-lethal.
             continue;
           }
           this.accrueShockBurn(s, elapsed);
@@ -1226,8 +1240,13 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       this.relieve(s);
     }
 
-    private shockCircuitClosed(s: SustainedShock): boolean {
-      if (s.tetany) return true;
+    /** Whether a genuinely LIVE circuit is still carrying current through
+     * this body (an energized source in reach, current > 0). Does NOT
+     * short-circuit on the `tetany` flag — tetany self-sustaining the
+     * circuit was the permanent-tetany trap (a single baton tap could
+     * never release). Tetany now holds via the live circuit here OR the
+     * bounded `tetanyUntil` window, checked by the reconcile caller. */
+    private shockCircuitLive(s: SustainedShock): boolean {
       if (!s.source) return false;
       const source = StuffApi.findByTemplatePath(s.source);
       if (!source || !MixinApi.isEnergized(source)) return false;
@@ -1273,13 +1292,19 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
     /** Is the body held fast by a shock's tetany ("can't let go")? The
      * volition gate release / drop / move verbs consult. */
     public isTetanized(): boolean {
+      // Reconcile-on-read (the getConditions idiom): an elapsed after-grip
+      // window is relieved here, so the flag read below is authoritative —
+      // the volition gate never over-refuses a body whose tetany has worn
+      // off but whose record the reconcile has not yet swept.
+      this.reconcileConditions();
       return this.conditions.some(
         (c) => c.kind === 'shock' && c.tetany === true,
       );
     }
 
-    /** Is a being-shocked circuit currently closed on this body? */
+    /** Is a being-shocked circuit currently active on this body? */
     public isBeingShocked(): boolean {
+      this.reconcileConditions();
       return this.conditions.some((c) => c.kind === 'shock');
     }
 

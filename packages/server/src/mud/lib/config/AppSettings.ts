@@ -651,6 +651,12 @@ export const AppSettingKeys = {
   /** Electricity — tetanic current (A): sustained whole-muscle contraction
    * (~0.02 A). */
   electricityTetanicAmps: "electricity.tetanicAmps",
+  /** Electricity — the discrete-pulse tetany window (game-seconds): how
+   * long a broken-circuit contact (a stun-baton tap) holds a body rigid
+   * after the current stops. A live circuit ignores this (it re-probes as
+   * closed and self-sustains); the window only governs the after-grip of a
+   * one-shot contact. The taser's control payoff. */
+  electricityTetanyPulseSeconds: "electricity.tetanyPulseSeconds",
   /** Electricity — fibrillation current (A): disrupts heart rhythm → arrest
    * (~0.1 A = 100 mA), the electrocution death threshold. */
   electricityFibrillationAmps: "electricity.fibrillationAmps",

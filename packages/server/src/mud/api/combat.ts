@@ -126,7 +126,8 @@ export interface GambitEligibility {
     | "target-unarmed"
     | "wrong-band"
     | "wrong-weapon"
-    | "no-shield";
+    | "no-shield"
+    | "tetanized";
 }
 
 const LOGIC_PATH = "/platform/idea/api/combat";
