@@ -40,7 +40,6 @@ import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { MixinApi } from './mixin';
 import { EventApi } from './event';
-import { RecognitionApi } from './recognition';
 import {
   FieldChangedEvent,
   type FieldChangedPayload,
@@ -313,14 +312,14 @@ export class MqlSubscriptionApi {
       // the client-data projection seam — its descriptor `read` stays
       // viewer-blind so the perception/belief dependency never enters
       // the root `Stuff` module (cycle avoidance). Same
-      // `RecognitionApi.describe` routine the prose path uses, so the
+      // `describeFor` routine the prose path uses, so the
       // card and the scrollback can't show different *names*. The
       // activity-status affix is a presence decoration (not identity), so
       // it rides `describeWithStatus` in the prose occupant-listing only,
       // never this general identity field.
       const value =
         name === 'displayName'
-          ? RecognitionApi.describe(viewer, stuff)
+          ? stuff.describeFor(viewer)
           : d.read(stuff, viewer);
       if (value === undefined) continue;
       out[name] = value;

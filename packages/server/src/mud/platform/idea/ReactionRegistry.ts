@@ -42,7 +42,6 @@ import { MessageApi } from '../../api/message';
 import { EventApi } from '../../api/event';
 import { AppApi } from '../../api/app';
 import { StuffApi } from '../../api/stuff';
-import { RecognitionApi } from '../../api/recognition';
 import { ShellApi } from '../../api/shell';
 import { ScheduleApi, type ScheduleHandle } from '../../api/schedule';
 import { AppSettingKeys } from '../../lib/config/AppSettings';
@@ -576,7 +575,7 @@ export default class ReactionRegistry extends Idea {
           names.push(
             id === vid
               ? reactor.getPresentation()
-              : RecognitionApi.describe(viewer, reactor),
+              : reactor.describeFor(viewer),
           );
         }
         if (names.length > 0) b.reactors = names;
@@ -611,7 +610,7 @@ export default class ReactionRegistry extends Idea {
    * Build named sample entries for `viewer`. When `familiarOnly`, only
    * reactors the viewer recognizes / has in contacts surface (strangers
    * stay in the count, unnamed); expand passes `false` for the full set.
-   * Names come from `RecognitionApi.describe` — the same late-binding
+   * Names come from `describeFor` — the same late-binding
    * the prose path uses, so the card and scrollback can't disagree.
    */
   private entriesFor(
@@ -633,7 +632,7 @@ export default class ReactionRegistry extends Idea {
       }
       out.push({
         reactorId: r.reactorId,
-        reactorName: RecognitionApi.describe(viewer, reactor),
+        reactorName: reactor.describeFor(viewer),
         emote: r.emote,
         ...(r.emoji !== undefined ? { emoji: r.emoji } : {}),
         ...(r.customText !== undefined ? { customText: r.customText } : {}),

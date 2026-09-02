@@ -41,7 +41,6 @@ import type Interactive from "../../platform/idea/Interactive";
 import { PromptApi, PromptCancelledError } from "../../api/prompt";
 import { WorldClockApi } from "../../api/worldclock";
 import { SoulApi } from "../../api/soul";
-import { RecognitionApi } from "../../api/recognition";
 import { MixinApi } from "../../api/mixin";
 import { StuffApi } from "../../api/stuff";
 import { EmploymentApi } from "../../api/employment";
@@ -246,7 +245,7 @@ export class DialogueConversation implements SustainedEngagement {
         // beside the choices since the spoken copy in the feed scrolls
         // away. Falls back to the generic ask for a beatless node.
         const promptLabel = node.beat
-          ? `${RecognitionApi.describe(this.player, this.npc)}: ${node.beat}`
+          ? `${this.npc.describeFor(this.player)}: ${node.beat}`
           : PROMPT_LABEL;
         let picked: string;
         try {

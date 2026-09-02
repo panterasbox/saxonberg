@@ -62,15 +62,23 @@ NPC carries it). Pure CRUD; all per-realm intelligence lives in consumers.
 - `_beliefs` is **not** a persistent field of the host — records are their
   own Documents (see Persistence).
 
-## The compose seam — `RecognitionApi.describe(viewer, target)` (`api/recognition.ts`)
+## The compose seam — `target.describeFor(viewer)` (the recognition face)
 
-The viewer-aware naming step: `(viewer, target) → string`. The
-consumer-intelligence layer over the dumb store.
+The viewer-aware naming step: `(viewer, target) → string`, called as an
+instance method **on the target**. The consumer-intelligence layer over
+the dumb store.
 
-> **Home note.** The requirements fix that this is **not** homed on
-> `PerceptionApi` (it consults perception for its visibility gate but is
-> its own concern — identity, not sensory channels). It lives on
-> `RecognitionApi`, which also hosts the `learnIdentity` write-sink.
+> **Home note.** The Api OO sweep retired `RecognitionApi` — the read
+> surface (`describeFor` / `describeWithStatusFor` / `salientFeatures` /
+> `perceivedKeywordsFor` / `kindFor`) now lives on the **`Stuff` base**
+> (every thing can be asked what a viewer calls it; the no-face fallback
+> is `getPresentation()`), forwarding to a **registered recognition
+> face** — the ungated `RecognitionLogic` singleton at
+> `/platform/idea/api/recognition`, wired by
+> `BootstrapManager.installFrameworkWiring` via
+> `Stuff._registerRecognitionFace` (a lazy resolver, so the root `Stuff`
+> module never imports perception). The write-sink (`learnIdentityOf`)
+> lives on `BeliefStoreMixin` — the viewer's own memory.
 
 Algorithm (per target):
 
@@ -102,23 +110,24 @@ repeat-perception write fires on the perceive *controller* path, not here.
 
 ### Visibility gate — cycle avoidance
 
-`describe` resolves `VisionModality.canSee` **lazily** via the registered
-vision singleton's constructor (`StuffApi.findByTemplatePath` →
-`.constructor`). A *static* import of any perception module into
-`recognition.ts` would drag the `Modality → Idea` subsystem into eval
-before `Idea` is ready (recognition is reachable from the root
-`Stuff`/`Idea` graph via `Mml` and the MQL projection), crashing boot. So
-`recognition.ts` carries **zero static perception imports**.
+`describeFor` resolves `VisionModality.canSee` **lazily** via the
+registered vision singleton's constructor (`StuffApi.findByTemplatePath`
+→ `.constructor`), and the face itself is registered as a lazy resolver.
+A *static* import of any perception module into the `Stuff` base would
+drag the `Modality → Idea` subsystem into eval before `Idea` is ready
+(recognition is reachable from the root `Stuff`/`Idea` graph via `Mml`
+and the MQL projection), crashing boot. So `Stuff.ts` carries **zero
+static perception imports** — the face arrives at wiring time.
 
 ## The prose path — one central `Mml` hook
 
 `Mml.actor/thing/player/npc/location(stuff)` produce a **viewer-aware
 lazy fragment** (`{ kind: 'ref' }`) whose display text is bound *late* at
-`toString(viewer)` time, calling `RecognitionApi.describe(viewer, stuff)`
+`toString(viewer)` time, calling `stuff.describeFor(viewer)`
 — falling back to `getPresentation()` when no viewer (logs, `refOf`).
 
 ⭐ **`Mml.actor` binds its TAG late at the same seam**, through
-`RecognitionApi.kindOf`, so a disguise hides not just a name but the
+`stuff.kindFor(viewer)`, so a disguise hides not just a name but the
 fact that a person is behind the figure. See
 [messaging.md § The identity tags](./messaging.md).
 Because `Scene.send` already materializes each frame body against its
@@ -132,8 +141,8 @@ can't diverge.
 
 ## Recognition triggers — `introduce` + auto-introduce + repeat-perception
 
-`RecognitionApi.learnIdentity(viewer, subject, name)` is the single
-identity-learning sink (non-null name = introduction; null = a bare
+`viewer.learnIdentityOf(subject, name)` (`BeliefStoreMixin`) is the
+single identity-learning sink (non-null name = introduction; null = a bare
 sighting). All triggers funnel through it.
 
 - **`introduce`** (`cmd/social/introduce.yaml` +
@@ -149,7 +158,7 @@ sighting). All triggers funnel through it.
 - **Auto-introduce** (the dialogue build's ambient trigger): the shared
   `SoulMixin.introduceSelf()` runs the same introduce act (scene +
   `learnIdentity` to all in range), gated by
-  `RecognitionApi.recognizes(viewer, subject)` so it doesn't re-introduce
+  `viewer.recognizes(subject)` so it doesn't re-introduce
   to someone who already knows the actor. Fired on arrival by the
   `introduces` NPC brain (intrinsic — social NPCs name themselves to
   newcomers) and by `Mobile.autoIntroduceOnArrival` for players who set
@@ -180,8 +189,8 @@ sighting). All triggers funnel through it.
 ## Viewer-relative targeting — the name-leak gate (`api/mql/scope-walk.ts`)
 
 Keyword resolution shares the naming step's source. `pushDirect` builds
-each candidate's `name` from `RecognitionApi.describe(viewer, stuff)` and
-its `keywords` from `RecognitionApi.perceivedKeywords(viewer, stuff)`
+each candidate's `name` from `stuff.describeFor(viewer)` and
+its `keywords` from `stuff.perceivedKeywordsFor(viewer)`
 (tokens of the *perceived* name — `knownAs` if recognized, salient
 features if not, the disguise's descriptors if masked; items keep their
 ordinary keywords). The true name is never a keyword unless revealed, so
@@ -204,7 +213,7 @@ Per-field invariant on the setter (collapse whitespace, reject over-long).
 
 **A presence affix, not identity.** The status is *not* woven into
 `getPresentation()` or `describe` (those are pure identity). It rides
-`RecognitionApi.describeWithStatus(viewer, target)` — the presence-scan
+`target.describeWithStatusFor(viewer)` — the presence-scan
 variant used only by the room occupant roll-call ("a crossing guard,
 watching the empty road"), never by act-subject naming ("a crossing guard
 says …") or the look-at header. That split is what keeps the status from
@@ -245,7 +254,7 @@ contradicting the act in flight; see [message-rendering.md] /
   > to CLEAR a planted name. Guarded, a curse would be permanent, and
   > finding out is the whole of how a holder recovers.
 
-  > ⚠ It also gates the **prose**, via `RecognitionApi.knowsTrueType`: a
+  > ⚠ It also gates the **prose**, via `viewer.knowsTrueTypeOf(target)`: a
   > misidentified item keeps its class's generic long description rather
   > than revealing the authored one, which would contradict the planted
   > name in the very next line. See
@@ -317,7 +326,7 @@ trap — not room familiarity, still distinct). Added by the concealment build
 - Written only through `PerceptionApi.recordDiscovery` (`know(DISCOVERY,
   referent, { found: true })`) and read through `hasDiscovered`
   (`recall(...).payload.found`) — the presence face owns the sink, not
-  `RecognitionApi` (the identity face).
+  the recognition face (the identity axis).
 - **GC-exempt.** The lazy liveness-GC that reaps records whose referent is a
   dead Stuff is bypassed for `DISCOVERY` — its referent can be an `Exit`'s
   synthetic key with no live Stuff to resolve, so reaping it would forget a
@@ -388,15 +397,15 @@ holds; sequential single-viewer commands keep the race benign).
 > **Stale doc to correct (perception.md):** the `RecognitionShadow`
 > example in `perception.md` (and the recognition-slate's
 > `getPresentedIdentity`-shadow design) is superseded. Recognition is NOT a
-> Shadow — it's the explicit `RecognitionApi.describe` entry point;
+> Shadow — it's the explicit `describeFor` entry point;
 > disguise is NOT a shadow on the synthesizer — it's `getPresentation`
 > deferring to `getDisguise`.
 
 ## Naming across the sandbox boundary
 
-`RecognitionApi.describe` / `describeWithStatus` / `perceivedKeywords`
+`describeFor` / `describeWithStatusFor` / `perceivedKeywordsFor`
 / `salientFeatures` route through `SecurityApi.projectAcross` (see
-[call-security.md](./call-security.md)). `describe` is the one place
+[call-security.md](./call-security.md)). `describeFor` is the one place
 the engine answers "what does THIS viewer call THAT thing", and both
 halves routinely sit on opposite sides of a circle: a channel post from
 the field renders for a recipient inside one; `who` from inside renders

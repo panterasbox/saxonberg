@@ -27,7 +27,6 @@ import { ExecutionContextApi } from '../../../api/execution-context';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { WorldClockApi } from '../../../api/worldclock';
-import { RecognitionApi } from '../../../api/recognition';
 import '../../../platform/idea/WorldClockRegistry';
 import SpellCatalogue from '../../../platform/idea/SpellCatalogue';
 import Spell from '../../../platform/idea/magic/Spell';
@@ -468,9 +467,9 @@ describe('Wave 2 — consumables', () => {
     expect(
       reader.recall(IDENTIFICATION, vial.getTemplatePath()!)?.payload.typeKnown,
     ).toBe(true);
-    expect(RecognitionApi.describe(reader, vial)).toBe('a potion of healing');
+    expect(vial.describeFor(reader)).toBe('a potion of healing');
     // …and it stays unidentified to everyone else.
-    expect(RecognitionApi.describe(other, vial)).toBe('a blue potion');
+    expect(vial.describeFor(other)).toBe('a blue potion');
   });
 
   it('D24 — identifying a VESSEL reaches the substance inside it', async () => {

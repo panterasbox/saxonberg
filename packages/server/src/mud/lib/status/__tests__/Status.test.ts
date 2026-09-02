@@ -5,14 +5,13 @@
  * Covers: the three sources (verb-style setStatus / authored default /
  * clearing); the setter invariant; and that the status is a *presence*
  * decoration — absent from the pure-identity `getPresentation()` /
- * `RecognitionApi.describe`, present in `RecognitionApi.describeWithStatus`
+ * `describeFor`, present in `describeWithStatusFor`
  * (both the recognized and unknown branches), without double-decorating.
  */
 
 import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { StatusMixin } from '../Status';
-import { RecognitionApi } from '../../../api/recognition';
 import { RECOGNITION } from '../../belief/BeliefStore';
 import { BeliefStoreMixin } from '../../belief/BeliefStore';
 import { PerceptionMixin } from '../../perception/Perception';
@@ -86,9 +85,9 @@ describe('StatusMixin', () => {
     g.setStatus('watching the road');
     viewer.know(RECOGNITION, g.getTemplatePath()!, { knownAs: 'Gus' });
     // The act-subject path (describe) shows the bare identity.
-    expect(RecognitionApi.describe(viewer, g)).toBe('Gus');
+    expect(g.describeFor(viewer)).toBe('Gus');
     // The presence-scan path weaves the status in (no double-decoration).
-    expect(RecognitionApi.describeWithStatus(viewer, g)).toBe(
+    expect(g.describeWithStatusFor(viewer)).toBe(
       'Gus, watching the road',
     );
   });
@@ -97,8 +96,8 @@ describe('StatusMixin', () => {
     const viewer = makeStuff(() => new Viewer());
     const g = makeGus();
     g.setStatus('watching the road');
-    expect(RecognitionApi.describe(viewer, g)).toBe('a stout man');
-    expect(RecognitionApi.describeWithStatus(viewer, g)).toBe(
+    expect(g.describeFor(viewer)).toBe('a stout man');
+    expect(g.describeWithStatusFor(viewer)).toBe(
       'a stout man, watching the road',
     );
   });

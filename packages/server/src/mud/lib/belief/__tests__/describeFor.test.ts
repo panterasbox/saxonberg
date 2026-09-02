@@ -13,29 +13,28 @@
  * materialization, not a direct `describe` call.
  */
 
-import "../../../test-bootstrap";
+import "../../../../test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
-import { RecognitionApi } from '../recognition';
-import { MessageApi } from '../message';
-import { Mml } from '../mml';
-import { RECOGNITION } from '../../lib/belief/BeliefStore';
-import { BeliefStoreMixin } from '../../lib/belief/BeliefStore';
-import { PerceptionMixin } from '../../lib/perception/Perception';
-import { SensorMixin } from '../../lib/message/Sensor';
-import { ContainableMixin } from '../../lib/spatial/Containable';
-import { ContainerMixin } from '../../lib/spatial/Container';
-import { NamedMixin } from '../../lib/description/Named';
-import { VisibleMixin } from '../../lib/description/Visible';
-import { OrganismMixin } from '../../lib/species/Organism';
-import { Idea } from '../../lib/stuff/Idea';
-import { StuffApi } from '../stuff';
-import { ContainmentApi } from '../containment';
+import { MessageApi } from '../../../api/message';
+import { Mml } from '../../../api/mml';
+import { RECOGNITION } from '../BeliefStore';
+import { BeliefStoreMixin } from '../BeliefStore';
+import { PerceptionMixin } from '../../perception/Perception';
+import { SensorMixin } from '../../message/Sensor';
+import { ContainableMixin } from '../../spatial/Containable';
+import { ContainerMixin } from '../../spatial/Container';
+import { NamedMixin } from '../../description/Named';
+import { VisibleMixin } from '../../description/Visible';
+import { OrganismMixin } from '../../species/Organism';
+import { Idea } from '../../stuff/Idea';
+import { StuffApi } from '../../../api/stuff';
+import { ContainmentApi } from '../../../api/containment';
 import {
   makeStuff,
   makeStuffAtPath,
-} from '../../lib/security/__tests__/test-setup';
-import { buildModality } from '../../lib/perception/modalities/__tests__/test-helpers';
-import { installV1QuantityTagTables } from '../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
+} from '../../security/__tests__/test-setup';
+import { buildModality } from '../../perception/modalities/__tests__/test-helpers';
+import { installV1QuantityTagTables } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import type { MessageFrame } from '@saxonberg/types';
 
 // A viewer: perceives + holds identity memory. Captures received frames
@@ -83,7 +82,7 @@ describe('RecognitionApi.describe', () => {
     const viewer = makeStuff(() => new Viewer());
     const bob = makeBeing('Bob', 'a tall stranger');
     viewer.know(RECOGNITION, bob.getTemplatePath()!, { knownAs: 'Bob' });
-    expect(RecognitionApi.describe(viewer, bob)).toBe('Bob');
+    expect(bob.describeFor(viewer)).toBe('Bob');
   });
 
   it('renders the bare stem (not the true name) for an unknown being', () => {
@@ -92,7 +91,7 @@ describe('RecognitionApi.describe', () => {
     // and no status (that's `describeWithStatus`, the presence roll-call).
     const viewer = makeStuff(() => new Viewer());
     const bob = makeBeing('Bob', 'a tall stranger');
-    const rendered = RecognitionApi.describe(viewer, bob);
+    const rendered = bob.describeFor(viewer);
     expect(rendered).toBe('a tall stranger');
     expect(rendered).not.toContain('Bob');
   });
@@ -102,7 +101,7 @@ describe('RecognitionApi.describe', () => {
     // contexts get the baseline `getPresentation()`.
     const nonPerceiver = makeStuff(() => new Idea());
     const bob = makeBeing('Bob', 'a tall stranger');
-    expect(RecognitionApi.describe(nonPerceiver, bob)).toBe('Bob');
+    expect(bob.describeFor(nonPerceiver)).toBe('Bob');
   });
 
   it('returns the baseline for a non-organism (identification placeholder)', () => {
@@ -111,7 +110,7 @@ describe('RecognitionApi.describe', () => {
     rock.setShortDescription('a blue rock');
     // No Named name → baseline is the shortDescription; the type axis is
     // a no-op until Wave 7.
-    expect(RecognitionApi.describe(viewer, rock)).toBe('a blue rock');
+    expect(rock.describeFor(viewer)).toBe('a blue rock');
   });
 
   it('obscures a target the viewer cannot see, even a recognized one', () => {
@@ -125,7 +124,7 @@ describe('RecognitionApi.describe', () => {
     const darkRoom = makeStuff(() => new Room());
     ContainmentApi.move(bob, darkRoom);
 
-    const rendered = RecognitionApi.describe(viewer, bob);
+    const rendered = bob.describeFor(viewer);
     expect(rendered).toBe('someone');
     expect(rendered).not.toContain('Bob');
   });
@@ -134,7 +133,7 @@ describe('RecognitionApi.describe', () => {
 describe('RecognitionApi.salientFeatures', () => {
   it('uses the authored appearance when present', () => {
     const bob = makeBeing('Bob', 'a tall stranger');
-    expect(RecognitionApi.salientFeatures(bob)).toBe('a tall stranger');
+    expect(bob.salientFeatures()).toBe('a tall stranger');
   });
 
   it('falls back to "someone" with no appearance or species', () => {
@@ -143,7 +142,7 @@ describe('RecognitionApi.salientFeatures', () => {
       `/obj/npc/featureless-${beingCounter++}`,
     );
     b.setName('Nemo');
-    expect(RecognitionApi.salientFeatures(b)).toBe('someone');
+    expect(b.salientFeatures()).toBe('someone');
   });
 });
 

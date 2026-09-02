@@ -14,11 +14,12 @@
  */
 
 import "../../../../../test-bootstrap";
+
+let recognizedNow = false;
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { SocialApi } from '../../../../api/social';
 import { MixinApi } from '../../../../api/mixin';
 import { PlayerApi } from '../../../../api/player';
-import { RecognitionApi } from '../../../../api/recognition';
 import { RenownApi } from '../../../../api/renown';
 import { InfluenceApi } from '../../../../api/influence';
 import { ConnectionApi } from '../../../../api/connection';
@@ -26,7 +27,7 @@ import { ShellApi } from '../../../../api/shell';
 import { Band } from '../../../../lib/standing/Band';
 import { InfluenceStanding } from '../../../../lib/standing/InfluenceStanding';
 import { StuffApi } from '../../../../api/stuff';
-import type { Stuff } from '../../../../lib/stuff/Stuff';
+import { Stuff } from '../../../../lib/stuff/Stuff';
 
 /** A target with the full identity getter surface. */
 function makeTarget(): Stuff {
@@ -47,6 +48,12 @@ function makeTarget(): Stuff {
     getStatus: () => 'watching the road',
     getAspiration: () => 'healer',
     getBio: () => 'A wandering healer.',
+    // The viewer-aware naming face (base Stuff methods) — the fakes
+    // mirror the registered face.
+    describeFor: () => (recognizedNow ? 'Mara' : 'a tall human woman'),
+    describeWithStatusFor: () =>
+      recognizedNow ? 'Mara' : 'a tall human woman',
+    kindFor: () => 'npc',
     // The chronicle owner face (the OO sweep): the composer reads the
     // ledger off the target itself.
     chronicleEntries: async () => [],
@@ -56,6 +63,8 @@ function makeTarget(): Stuff {
 function makeViewer(): Stuff {
   return {
     stuffId: 'v1',
+    recognizes: () => recognizedNow,
+    regardFor: () => 0,
     allContacts: () => [],
   } as unknown as Stuff;
 }
@@ -74,10 +83,18 @@ function stubSubstrate(recognized: boolean): void {
   // Not an Avatar in this unit — country / newness / presence status are
   // exercised separately; keeps this test to the identity-redaction core.
   vi.spyOn(PlayerApi, 'isAvatarStuff').mockReturnValue(false);
-  vi.spyOn(RecognitionApi, 'recognizes').mockReturnValue(recognized);
-  vi.spyOn(RecognitionApi, 'describe').mockReturnValue(
-    recognized ? 'Mara' : 'a tall human woman'
-  );
+  // Recognition rides the viewer's belief realm + the target face
+  // since the OO sweep.
+  vi.spyOn(MixinApi, 'isBeliefStore').mockReturnValue(true);
+  recognizedNow = recognized;
+  Stuff._registerRecognitionFace(() => ({
+    describe: () => (recognizedNow ? 'Mara' : 'a tall human woman'),
+    describeWithStatus: () => (recognizedNow ? 'Mara' : 'a tall human woman'),
+    salientFeaturesOf: () => 'a tall human woman',
+    perceivedKeywords: () => [],
+    kindOf: () => 'npc' as const,
+    knowsTrueType: () => false,
+  }));
   // Standing — empty / dormant without a DB; the composer must still
   // surface renown + competence outward.
   vi.spyOn(RenownApi, 'renownOf').mockReturnValue(0);
@@ -157,6 +174,9 @@ describe('ProfileLogic.composeRow — country always, status gated', () => {
       getTemplatePath: () => '/platform/agent/Avatar/t1',
       getIdentityPath: () => '/platform/agent/Avatar/t1',
       getPresentation: () => 'Mara',
+      describeFor: () => 'Mara',
+      describeWithStatusFor: () => 'Mara',
+      kindFor: () => 'player',
       getPlayerId: () => 'p-mara',
       allContacts: () => [], // viewer is not a contact of the target
     } as unknown as Stuff;
@@ -173,8 +193,7 @@ describe('ProfileLogic.composeRow — country always, status gated', () => {
   function stubRow(status: string, showStatus: string): void {
     vi.spyOn(PlayerApi, 'isAvatarStuff').mockReturnValue(true);
     vi.spyOn(MixinApi, 'isContacts').mockReturnValue(true);
-    vi.spyOn(RecognitionApi, 'recognizes').mockReturnValue(true);
-    vi.spyOn(RecognitionApi, 'describe').mockReturnValue('Mara');
+    recognizedNow = true;
     vi.spyOn(ConnectionApi, 'originOf').mockReturnValue({ country: 'Brazil' });
     vi.spyOn(SocialApi, 'statusOf').mockReturnValue(status as never);
     vi.spyOn(ShellApi, 'resolveSetting').mockReturnValue(showStatus as never);

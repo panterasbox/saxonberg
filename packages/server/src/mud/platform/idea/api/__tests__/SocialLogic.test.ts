@@ -12,10 +12,11 @@
  */
 
 import "../../../../../test-bootstrap";
+import type { Stuff } from "../../../../lib/stuff/Stuff";
+import { BeliefStoreMixin } from "../../../../lib/belief/BeliefStore";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { SocialApi } from "../../../../api/social";
 import { GroupApi } from "../../../../api/group";
-import { RecognitionApi } from "../../../../api/recognition";
 import { PlayerApi } from "../../../../api/player";
 import { StuffApi } from "../../../../api/stuff";
 import { Idea } from "../../../../lib/stuff/Idea";
@@ -26,7 +27,14 @@ import {
   makeStuffAtPath,
 } from "../../../../lib/security/__tests__/test-setup";
 
-class NotifyHost extends NotifyPolicyMixin(Idea) {
+// Recognition is the viewer's own belief realm since the OO sweep; the
+// module `recognizedDefault` pins it per test.
+let recognizedDefault = true;
+class NotifyHost extends BeliefStoreMixin(NotifyPolicyMixin(Idea)) {
+  override recognizes(_subject: Stuff): boolean {
+    return recognizedDefault;
+  }
+
   getPlayerId(): string {
     return "viewer";
   }
@@ -59,7 +67,7 @@ beforeEach(() => {
   );
   // Default: everyone is recognized (so an unmatched person falls to
   // `everyone-else`, not `strangers`). Overridden per-test.
-  vi.spyOn(RecognitionApi, "recognizes").mockReturnValue(true);
+  recognizedDefault = true;
 });
 
 afterEach(() => {
@@ -121,7 +129,7 @@ describe("SocialApi.ruleFor — strict ordered first-match", () => {
   it("resolves an unrecognized person to the strangers baseline", async () => {
     const v = makeViewer();
     const p = makePerson("/platform/agent/Avatar/stranger");
-    vi.spyOn(RecognitionApi, "recognizes").mockReturnValue(false);
+    recognizedDefault = false;
     const r = await SocialApi.ruleFor(v, p);
     expect(r.groupRef).toBe(RESERVED.strangers);
     expect(r.reserved).toBe(true);

@@ -21,7 +21,6 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import YAML from 'yaml';
 import { ExecutionContextApi } from '../../../api/execution-context';
-import { RecognitionApi } from '../../../api/recognition';
 import { WorldClockApi } from '../../../api/worldclock';
 import { MessageApi } from '../../../api/message';
 import '../../../platform/idea/WorldClockRegistry';
@@ -156,7 +155,7 @@ describe('Charged — wearing sustains, releasing releases', () => {
     expect(held!.kind === 'sustained' && held!.sustainedBy).toBe(ring.getTemplatePath());
     expect(held!.kind === 'sustained' && held!.realizes).toBe('cloak');
     wearer.getVitalSign('heartRate'); // realize by pull
-    expect(RecognitionApi.describe(other, wearer)).toContain('a veiled, indistinct figure');
+    expect(wearer.describeFor(other)).toContain('a veiled, indistinct figure');
     expect(ring.isDrawActive()).toBe(true);
   });
 

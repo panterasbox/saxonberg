@@ -13,10 +13,10 @@
  */
 
 import "../../../../../test-bootstrap";
+import { Stuff } from "../../../../lib/stuff/Stuff";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { SocialApi } from "../../../../api/social";
 import { GroupApi } from "../../../../api/group";
-import { RecognitionApi } from "../../../../api/recognition";
 import { PlayerApi } from "../../../../api/player";
 import { MixinApi } from "../../../../api/mixin";
 import { ShellApi } from "../../../../api/shell";
@@ -29,6 +29,12 @@ import {
 } from "../../../../lib/security/__tests__/test-setup";
 
 class NotifyHost extends NotifyPolicyMixin(Idea) {
+  // The viewer's recognition realm (the OO sweep): a stub occupant's
+  // `recognized` field is the answer; anything else is recognized.
+  recognizes(subject: unknown): boolean {
+    return subject instanceof Occupant ? subject.recognized : true;
+  }
+
   getPlayerId(): string {
     return "viewer";
   }
@@ -99,28 +105,28 @@ beforeEach(() => {
       return occ instanceof Occupant ? occ.groups.has(ref) : false;
     },
   );
-  vi.spyOn(RecognitionApi, "recognizes").mockImplementation(
-    (_v: unknown, subject: unknown) =>
-      subject instanceof Occupant ? subject.recognized : true,
-  );
-  vi.spyOn(RecognitionApi, "describe").mockImplementation(
-    (_v: unknown, t: unknown) =>
+  // Recognition rides the viewer's belief realm + the target-side face
+  // since the OO sweep. isBeliefStore is mocked true so the composer
+  // reaches the viewer's `recognizes`; the fake face covers the
+  // describe family.
+  vi.spyOn(MixinApi, "isBeliefStore").mockReturnValue(true);
+  Stuff._registerRecognitionFace(() => ({
+    describe: (_v: Stuff, t: Stuff) =>
       t instanceof Occupant ? t.display : "someone",
-  );
-  // The occupant roll-call renders through `describeWithStatus` (presence
-  // decoration). These stub occupants carry no `StatusMixin`, so it mirrors
-  // `describe` — the display name with no status affix.
-  vi.spyOn(RecognitionApi, "describeWithStatus").mockImplementation(
-    (_v: unknown, t: unknown) =>
+    // The occupant roll-call renders through `describeWithStatus`
+    // (presence decoration). These stub occupants carry no
+    // `StatusMixin`, so it mirrors `describe`.
+    describeWithStatus: (_v: Stuff, t: Stuff) =>
       t instanceof Occupant ? t.display : "someone",
-  );
-  vi.spyOn(RecognitionApi, "salientFeatures").mockImplementation(
-    (t: unknown) => {
+    salientFeaturesOf: (t: Stuff) => {
       if (!(t instanceof Occupant)) return "someone";
       const stem = t.speciesName ? `a ${t.speciesName}` : "someone";
       return t.feature ? `${stem} wearing ${t.feature}` : stem;
     },
-  );
+    perceivedKeywords: () => [],
+    kindOf: () => "npc" as const,
+    knowsTrueType: () => false,
+  }));
   vi.spyOn(ShellApi, "resolveSetting").mockImplementation(
     (_h: unknown, key: string) =>
       key === "social.verbosity"

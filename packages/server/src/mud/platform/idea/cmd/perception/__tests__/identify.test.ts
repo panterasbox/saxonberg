@@ -17,7 +17,6 @@
 
 import "../../../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
-import { RecognitionApi } from '../../../../../api/recognition';
 import { IDENTIFICATION, RECOGNITION } from '../../../../../lib/belief/BeliefStore';
 import { BeliefStoreMixin } from '../../../../../lib/belief/BeliefStore';
 import { PerceptionMixin } from '../../../../../lib/perception/Perception';
@@ -59,7 +58,7 @@ describe('identification — the type axis', () => {
   it('renders the unidentified appearance until identified', () => {
     const viewer = makeStuff(() => new Viewer());
     const vial = makeVial();
-    expect(RecognitionApi.describe(viewer, vial)).toBe('a blue potion');
+    expect(vial.describeFor(viewer)).toBe('a blue potion');
   });
 
   it('a type record makes the vial read as its type to that viewer only', () => {
@@ -72,10 +71,10 @@ describe('identification — the type axis', () => {
     expect(
       reader.recall(IDENTIFICATION, vial.getTemplatePath()!)?.payload.typeKnown,
     ).toBe(true);
-    expect(RecognitionApi.describe(reader, vial)).toBe('a potion of healing');
+    expect(vial.describeFor(reader)).toBe('a potion of healing');
     // …but it stays unidentified to everyone else. Identification is
     // per-viewer memory, never a world fact.
-    expect(RecognitionApi.describe(other, vial)).toBe('a blue potion');
+    expect(vial.describeFor(other)).toBe('a blue potion');
   });
 
   it('the two axes compose: a recognized AND type-identified actor renders with both', () => {
@@ -86,15 +85,15 @@ describe('identification — the type axis', () => {
     guard.setIdentifiedName('a city guard');
 
     // Unknown + unidentified → salient features.
-    expect(RecognitionApi.describe(viewer, guard)).toBe('a tall figure');
+    expect(guard.describeFor(viewer)).toBe('a tall figure');
 
     // Identify the type only → "a city guard" (dissociated: identified,
     // not recognized).
     viewer.know(IDENTIFICATION, guard.getTemplatePath()!, { typeKnown: true });
-    expect(RecognitionApi.describe(viewer, guard)).toBe('a city guard');
+    expect(guard.describeFor(viewer)).toBe('a city guard');
 
     // Now recognize the instance too → both woven.
     viewer.know(RECOGNITION, guard.getTemplatePath()!, { knownAs: 'Bob' });
-    expect(RecognitionApi.describe(viewer, guard)).toBe('Bob, a city guard');
+    expect(guard.describeFor(viewer)).toBe('Bob, a city guard');
   });
 });

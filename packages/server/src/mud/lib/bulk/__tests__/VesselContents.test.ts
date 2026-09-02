@@ -17,7 +17,6 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { MixinApi } from '../../../api/mixin';
-import { RecognitionApi } from '../../../api/recognition';
 import { StuffApi } from '../../../api/stuff';
 import { ShadowApi } from '../../../api/shadow';
 import { WorldClockApi } from '../../../api/worldclock';
@@ -183,14 +182,14 @@ describe('getContentsDescriptionFor — the identifiable path', () => {
     );
   });
 
-  it('agrees with RecognitionApi.describe on the material', () => {
+  it('agrees with describeFor on the material', () => {
     const draught = makeDraught();
     const flask = makeVessel(draught);
     const viewer = makeStuff(() => new Viewer());
     // Not a parallel rendering path — the SAME one, reached through the
     // vessel. A second implementation here is how the two drift.
     expect(flask.getContentsDescriptionFor(viewer)).toBe(
-      RecognitionApi.describe(viewer, draught as unknown as Stuff),
+      (draught as unknown as Stuff).describeFor(viewer),
     );
   });
 });

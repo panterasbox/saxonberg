@@ -54,6 +54,7 @@
 
 import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
+import { Stuff as StuffBase } from '../stuff/Stuff';
 import { StuffApi } from '../../api/stuff';
 import { PersistApi } from '../../api/persist';
 import BeliefDocument from './BeliefDocument';
@@ -272,6 +273,9 @@ export interface BeliefStore {
   setRegard(subject: Stuff, value: number): void;
   clearRegard(subject: Stuff): void;
   regardsHeld(): ReadonlyMap<string, number>;
+  learnIdentityOf(subject: Stuff, name: string | null): void;
+  recognizes(subject: Stuff): boolean;
+  knowsTrueTypeOf(target: Stuff): boolean;
   /**
    * Install a hydrated record directly (the persistence hydrate path).
    * Bypasses the upsert/coalesce logic AND the write-through — the record
@@ -553,6 +557,47 @@ export function BeliefStoreMixin<TBase extends MixinConstructor>(Base: TBase) {
         }
       }
       this.clearBeliefs();
+    }
+
+    /* ────────── the recognition face (the first realm) ────────── */
+
+    /**
+     * Learn (or overwrite) who `subject` IS to this viewer (was
+     * `RecognitionApi.learnIdentity` — the OO sweep). `name = null`
+     * records a sighting without a name. Sealed; ungated (P5 parity —
+     * the writers span introduce, dialogue auto-introduce and content
+     * effects, principals no FromX policy can enumerate).
+     */
+    @Final
+    @Unshadowable
+    public learnIdentityOf(subject: Stuff, name: string | null): void {
+      const referent = subject.getIdentityPath();
+      if (!referent) return;
+      this.know(RECOGNITION, referent, { knownAs: name });
+    }
+
+    /** Does this viewer recognize `subject` (a named RECOGNITION record)? */
+    public recognizes(subject: Stuff): boolean {
+      const referent = subject.getIdentityPath();
+      if (!referent) return false;
+      const record = this.recall(RECOGNITION, referent) as
+        | { knownAs?: string | null }
+        | undefined;
+      return !!record?.knownAs;
+    }
+
+    /**
+     * Does this viewer actually KNOW what `target` is (a current-
+     * generation identification with no believed-name override)? The
+     * gate on revealing an item's authored long description.
+     */
+    public knowsTrueTypeOf(target: Stuff): boolean {
+      return (
+        StuffBase._recognitionFace()?.knowsTrueType(
+          this as unknown as Stuff,
+          target,
+        ) ?? false
+      );
     }
 
     /* ────────── the regard face (the third realm) ────────── */

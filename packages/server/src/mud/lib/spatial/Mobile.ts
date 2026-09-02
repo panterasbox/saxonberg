@@ -42,7 +42,6 @@ import { MixinApi } from '../../api/mixin';
 import { PerceptionApi } from '../../api/perception';
 import { ContainmentApi, ContainmentError } from '../../api/containment';
 import { MessageApi } from '../../api/message';
-import { RecognitionApi } from '../../api/recognition';
 import type { Soul } from '../social/Soul';
 import { Mml } from '../../api/mml';
 import { ProseApi } from '../../api/prose';
@@ -655,12 +654,20 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
         ShellApi.resolveSetting<boolean>(s, 'social.autoIntroduce') === true;
       try {
         // Mover introduces to the room (if anyone here doesn't know them).
-        if (wants(self) && others.some((o) => !RecognitionApi.recognizes(o, self))) {
+        if (
+          wants(self) &&
+          others.some(
+            (o) => !(MixinApi.isBeliefStore(o) && o.recognizes(self)),
+          )
+        ) {
           self.introduceSelf();
         }
         // Opted-in occupants introduce themselves to the newcomer.
         for (const o of others) {
-          if (wants(o) && !RecognitionApi.recognizes(self, o)) {
+          if (
+            wants(o) &&
+            !(MixinApi.isBeliefStore(self) && self.recognizes(o))
+          ) {
             o.introduceSelf();
           }
         }

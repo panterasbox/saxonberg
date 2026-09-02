@@ -11,7 +11,6 @@
 import "../../../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import IntroduceController from '../IntroduceController';
-import { RecognitionApi } from '../../../../../api/recognition';
 import { RECOGNITION, REGARD } from '../../../../../lib/belief/BeliefStore';
 import { BeliefStoreMixin } from '../../../../../lib/belief/BeliefStore';
 import { PerceptionMixin } from '../../../../../lib/perception/Perception';
@@ -101,7 +100,7 @@ describe('IntroduceController', () => {
 
     const rec = listener.recall(RECOGNITION, mara.getTemplatePath()!);
     expect(rec?.knownAs).toBe('Mara');
-    expect(RecognitionApi.describe(listener, mara)).toBe('Mara');
+    expect(mara.describeFor(listener)).toBe('Mara');
   });
 
   it('a listener who never heard the intro still sees salient features', () => {
@@ -116,7 +115,7 @@ describe('IntroduceController', () => {
     controller.execute(model(), context(mara, room));
 
     expect(absent.recall(RECOGNITION, mara.getTemplatePath()!)).toBeNull();
-    expect(RecognitionApi.describe(absent, mara)).toBe('a tall stranger');
+    expect(mara.describeFor(absent)).toBe('a tall stranger');
   });
 
   it('third-party introduce by someone who knows the subject upgrades listeners', () => {
@@ -137,7 +136,7 @@ describe('IntroduceController', () => {
     expect(listener.recall(RECOGNITION, bob.getTemplatePath()!)?.knownAs).toBe(
       'Bob',
     );
-    expect(RecognitionApi.describe(listener, bob)).toBe('Bob');
+    expect(bob.describeFor(listener)).toBe('Bob');
   });
 
   it('third-party introduce is rejected when the speaker does not know the subject', () => {
@@ -163,14 +162,14 @@ describe('IntroduceController', () => {
     ContainmentApi.move(watcher, room);
     ContainmentApi.move(subject, room);
 
-    RecognitionApi.learnIdentity(watcher, subject, null);
-    RecognitionApi.learnIdentity(watcher, subject, null);
+    watcher.learnIdentityOf(subject, null);
+    watcher.learnIdentityOf(subject, null);
 
     expect(watcher.recallRealm(RECOGNITION).size).toBe(1);
     const rec = watcher.recall(RECOGNITION, subject.getTemplatePath()!);
     expect(rec?.knownAs).toBeNull(); // stranger, name not learned
     // Still renders salient features, not a record-less crash.
-    expect(RecognitionApi.describe(watcher, subject)).toBe('a tall stranger');
+    expect(subject.describeFor(watcher)).toBe('a tall stranger');
   });
 
   it('demo regard seam: a self-introduce warms in-earshot listeners toward the speaker', async () => {
@@ -197,7 +196,7 @@ describe('IntroduceController', () => {
     ContainmentApi.move(listener, room);
 
     // Listener has seen Mara around (stranger record) before the intro.
-    RecognitionApi.learnIdentity(listener, mara, null);
+    listener.learnIdentityOf(mara, null);
     expect(listener.recall(RECOGNITION, mara.getTemplatePath()!)?.knownAs).toBeNull();
 
     const controller = makeStuff(() => new IntroduceController());

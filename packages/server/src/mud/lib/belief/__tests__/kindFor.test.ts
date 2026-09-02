@@ -15,21 +15,20 @@
  * withheld, which leaks the same fact one level up.
  */
 
-import "../../../test-bootstrap";
+import "../../../../test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
-import { RecognitionApi } from '../recognition';
-import { Mml } from '../mml';
-import { PerceptionMixin } from '../../lib/perception/Perception';
-import { SensorMixin } from '../../lib/message/Sensor';
-import { ContainableMixin } from '../../lib/spatial/Containable';
-import { NamedMixin } from '../../lib/description/Named';
-import { VisibleMixin } from '../../lib/description/Visible';
-import { OrganismMixin } from '../../lib/species/Organism';
-import { HasInteractiveMixin } from '../../lib/connection/HasInteractive';
-import { DisguisableMixin } from '../../lib/disguise/Disguisable';
-import { Idea } from '../../lib/stuff/Idea';
-import { StuffApi } from '../stuff';
-import { makeStuff } from '../../lib/security/__tests__/test-setup';
+import { Mml } from '../../../api/mml';
+import { PerceptionMixin } from '../../perception/Perception';
+import { SensorMixin } from '../../message/Sensor';
+import { ContainableMixin } from '../../spatial/Containable';
+import { NamedMixin } from '../../description/Named';
+import { VisibleMixin } from '../../description/Visible';
+import { OrganismMixin } from '../../species/Organism';
+import { HasInteractiveMixin } from '../../connection/HasInteractive';
+import { DisguisableMixin } from '../../disguise/Disguisable';
+import { Idea } from '../../stuff/Idea';
+import { StuffApi } from '../../../api/stuff';
+import { makeStuff } from '../../security/__tests__/test-setup';
 
 /** A viewer that can actually run perception queries. */
 class Viewer extends PerceptionMixin(
@@ -62,21 +61,21 @@ describe('RecognitionApi.kindOf — the three answers', () => {
     const viewer = makeStuff(() => new Viewer());
     const rock = makeStuff(() => new Rock());
     rock.setName('a blue rock');
-    expect(RecognitionApi.kindOf(viewer, rock)).toBe('thing');
+    expect(rock.kindFor(viewer)).toBe('thing');
   });
 
   it('a living thing nobody is driving is `npc`', () => {
     const viewer = makeStuff(() => new Viewer());
     const guard = makeStuff(() => new Npc());
     guard.setName('a guard');
-    expect(RecognitionApi.kindOf(viewer, guard)).toBe('npc');
+    expect(guard.kindFor(viewer)).toBe('npc');
   });
 
   it('a living thing that can hold a connection is `player`', () => {
     const viewer = makeStuff(() => new Viewer());
     const alice = makeStuff(() => new PlayerBody());
     alice.setName('Alice');
-    expect(RecognitionApi.kindOf(viewer, alice)).toBe('player');
+    expect(alice.kindFor(viewer)).toBe('player');
   });
 });
 
@@ -85,7 +84,7 @@ describe('⚠ kindOf does not out a disguised player', () => {
     const viewer = makeStuff(() => new Viewer());
     const alice = makeStuff(() => new PlayerBody());
     alice.setName('Alice');
-    expect(RecognitionApi.kindOf(viewer, alice)).toBe('player');
+    expect(alice.kindFor(viewer)).toBe('player');
 
     alice.setDisguise({
       appearsAs: 'a hooded figure',
@@ -95,7 +94,7 @@ describe('⚠ kindOf does not out a disguised player', () => {
 
     // The whole point: the viewer now sees a hooded figure, and
     // nothing on the wire says a human is inside it.
-    expect(RecognitionApi.kindOf(viewer, alice)).toBe('npc');
+    expect(alice.kindFor(viewer)).toBe('npc');
   });
 
   it('a mask that does NOT claim to hide identity changes nothing', () => {
@@ -108,7 +107,7 @@ describe('⚠ kindOf does not out a disguised player', () => {
       covers: [],
       masksIdentity: false,
     });
-    expect(RecognitionApi.kindOf(viewer, alice)).toBe('player');
+    expect(alice.kindFor(viewer)).toBe('player');
   });
 
   it('with no viewer at all, the object\'s own truth is reported', () => {
@@ -121,7 +120,7 @@ describe('⚠ kindOf does not out a disguised player', () => {
       covers: ['face'],
       masksIdentity: true,
     });
-    expect(RecognitionApi.kindOf(undefined, alice)).toBe('player');
+    expect(alice.kindFor(undefined)).toBe('player');
   });
 });
 

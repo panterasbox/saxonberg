@@ -21,10 +21,10 @@
  */
 
 import "../../../../../test-bootstrap";
+import { MixinApi } from "../../../../api/mixin";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { SocialApi } from "../../../../api/social";
 import { GroupApi } from "../../../../api/group";
-import { RecognitionApi } from "../../../../api/recognition";
 import { PlayerApi } from "../../../../api/player";
 import { EventApi } from "../../../../api/event";
 import { Events } from "../../../../lib/events";
@@ -50,6 +50,12 @@ import type { MessageFrame } from "@saxonberg/types";
  * skipped.
  */
 class Viewer extends SensorMixin(NotifyPolicyMixin(Idea)) {
+  // Everyone recognized (isBeliefStore is mocked true so the notify
+  // resolver reaches this).
+  recognizes(_subject: unknown): boolean {
+    return true;
+  }
+
   public received: MessageFrame[] = [];
   public connected = true;
   constructor(private pid: string) {
@@ -136,9 +142,18 @@ beforeEach(async () => {
     async (pid: string, ref: string) => membership.has(`${pid}|${ref}`),
   );
   // Default: everyone recognized (so an unmatched person falls to
-  // `everyone-else`, not `strangers`).
-  vi.spyOn(RecognitionApi, "recognizes").mockReturnValue(true);
-  vi.spyOn(RecognitionApi, "describe").mockReturnValue("the actor");
+  // `everyone-else`, not `strangers`). Recognition is the viewer's own
+  // belief realm since the OO sweep; the fake face covers the
+  // target-side describe.
+  vi.spyOn(MixinApi, "isBeliefStore").mockReturnValue(true);
+  Stuff._registerRecognitionFace(() => ({
+    describe: () => "the actor",
+    describeWithStatus: () => "the actor",
+    salientFeaturesOf: () => "the actor",
+    perceivedKeywords: () => [],
+    kindOf: () => "npc" as const,
+    knowsTrueType: () => false,
+  }));
 
   await makeRegistry();
 });

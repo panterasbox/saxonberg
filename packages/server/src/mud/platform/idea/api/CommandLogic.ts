@@ -51,7 +51,6 @@ import {
 import { MixinApi } from '../../../api/mixin';
 import { Mixins, MixinRefusals, type MixinName } from '../../../lib/mixin';
 import { PerceptionApi } from '../../../api/perception';
-import { RecognitionApi } from '../../../api/recognition';
 import { MessageApi } from '../../../api/message';
 import { AccessApi } from '../../../api/access';
 import { GroupApi } from '../../../api/group';
@@ -1725,7 +1724,7 @@ async function resolveAffordancesImpl(
   // Your own verbs still apply — `get` and `look` are facts about you.
   const identified =
     !MixinApi.isIdentifiable(target) ||
-    RecognitionApi.knowsTrueType(viewer, target);
+    (MixinApi.isBeliefStore(viewer) && viewer.knowsTrueTypeOf(target));
 
   // ⚠ Deduped: a mixin composed at two points in the chain is returned
   // twice by `getActiveMixins`, and the live drive showed

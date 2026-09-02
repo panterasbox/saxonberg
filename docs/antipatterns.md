@@ -922,7 +922,7 @@ identity keys on must be a field.
 The upshot: a "data-only" mixin is usually still a mixin.
 `LabelledMixin` is three accessors and no logic, yet it carries a
 setter invariant the Hydrator routes through, contributes the `label`
-verb, is narrowed on by `RecognitionApi`, vetoes stack merges, and is
+verb, is narrowed on by the recognition face, vetoes stack merges, and is
 authorable. **A mixin is a TYPE; a prop is a VALUE.**
 
 Props handle the dynamic, per-instance, possibly-protected,
@@ -2969,7 +2969,7 @@ a player to one viewer and a hooded stranger to another, and
 player-ness is the single fact a disguise exists to hide.
 
 `Mml.actor` is the face for this: the emitter says *a person acting*
-and stops; `RecognitionApi.kindOf(viewer, target)` resolves
+and stops; `target.kindFor(viewer)` resolves
 `player | npc | thing` at `toString(viewer)`, beside the naming step,
 because it is the same question asked about kind instead of name.
 

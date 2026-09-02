@@ -49,7 +49,6 @@ import { Quantity } from '../quantity';
 import { QuantityMarshaller } from '../../platform/idea/persistence/QuantityMarshaller';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
-import { RecognitionApi } from '../../api/recognition';
 import { MqlSubscriptionApi } from '../../api/mql-subscription';
 import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
 import type { MarkupAugmenter } from '../../api/mml';
@@ -586,10 +585,7 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
       if (!material) return null;
 
       if (MixinApi.isIdentifiable(material)) {
-        const described = RecognitionApi.describe(
-          viewer,
-          material as unknown as Stuff,
-        );
+        const described = (material as unknown as Stuff).describeFor(viewer);
         if (described) return described;
       }
       return slot.getPayload()?.appearance ?? material.getAppearance() ?? null;

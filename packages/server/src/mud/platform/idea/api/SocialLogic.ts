@@ -7,7 +7,6 @@ import { SecurityPolicies } from "../../../lib/security/SecurityPolicies";
 import type { Stuff } from "../../../lib/stuff/Stuff";
 import { MixinApi } from "../../../api/mixin";
 import { GroupApi } from "../../../api/group";
-import { RecognitionApi } from "../../../api/recognition";
 import { PlayerApi } from "../../../api/player";
 import { SandboxApi } from "../../../api/sandbox";
 import { ShellApi } from "../../../api/shell";
@@ -295,7 +294,7 @@ async function matchesRule(
 ): Promise<boolean> {
   const ref = rule.groupRef;
   if (ref === RESERVED.strangers) {
-    return !RecognitionApi.recognizes(viewer, person);
+    return !(MixinApi.isBeliefStore(viewer) && viewer.recognizes(person));
   }
   if (ref === RESERVED.everyoneElse) return true;
   if (!personId) return false;
@@ -476,7 +475,7 @@ function speciesNameOf(occ: Stuff): string | null {
  * the shipped salient-features primitive rather than re-deriving it.
  */
 function wornFeatureOf(occ: Stuff): string | null {
-  const salient = RecognitionApi.salientFeatures(occ);
+  const salient = occ.salientFeatures();
   const marker = " wearing ";
   const idx = salient.lastIndexOf(marker);
   if (idx < 0) return null;
@@ -486,7 +485,7 @@ function wornFeatureOf(occ: Stuff): string | null {
 
 /**
  * Build an eager `<name>` fragment for one occupant. The display text is
- * resolved **now** through `RecognitionApi.describeWithStatus(viewer, occ)`
+ * resolved **now** through `occ.describeWithStatusFor(viewer)`
  * (compose *through* describe, never re-implement naming) because the
  * occupant block is resolved eagerly for a single known viewer (see
  * `composeOccupantsImpl`); a boosted occupant carries its rule's palette
@@ -495,14 +494,14 @@ function wornFeatureOf(occ: Stuff): string | null {
  * ("…, watching the empty road").
  */
 function nameMml(viewer: Stuff, occ: Stuff, color?: PaletteToken): Mml {
-  const display = RecognitionApi.describeWithStatus(viewer, occ);
+  const display = occ.describeWithStatusFor(viewer);
   const colorAttr = color ? ` color="${Mml.escape(color)}"` : "";
   // Hand-built rather than `Mml.actor` because of the `color` attribute
   // — so the kind resolution has to be asked for explicitly. ⚠ It must
   // be: the occupant list is the one surface where a hooded figure is
   // read carefully, so it is the last place that should quietly admit
   // a real person is under the hood.
-  const tag = RecognitionApi.kindOf(viewer, occ);
+  const tag = occ.kindFor(viewer);
   return Mml.fromMarkup(
     `<${tag} stuff-id="${Mml.escape(occ.stuffId)}"${colorAttr}>` +
       `${Mml.escape(display)}</${tag}>`,

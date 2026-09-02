@@ -22,7 +22,6 @@ import { dirname, join } from 'path';
 import YAML from 'yaml';
 import StudyController from '../StudyController';
 import { SpellKnowledge } from '@saxonberg/server/mud/lib/magic/SpellKnowledge';
-import { RecognitionApi } from '@saxonberg/server/mud/api/recognition';
 import { SchedulerApi } from '@saxonberg/server/mud/api/scheduler';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { CommandApi } from '@saxonberg/server/mud/api/command';
@@ -289,7 +288,7 @@ describe('StudyController — claim, never deed', () => {
     // Books are identified items on the same axis as potions (D29), so
     // an uncatalogued one reads as its derived look — which puts a
     // library's product where it belongs: the CATALOG, not the books.
-    const shown = RecognitionApi.describe(reader, book);
+    const shown = book.describeFor(reader);
     expect(shown).not.toContain('primer of glowlight');
     expect(shown).toMatch(/spellbook/);
   });

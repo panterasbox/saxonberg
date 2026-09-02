@@ -9,7 +9,6 @@ import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import { PlayerApi } from '../../../api/player';
 import { MixinApi } from '../../../api/mixin';
-import { RecognitionApi } from '../../../api/recognition';
 import { ConnectionApi } from '../../../api/connection';
 import { RenownApi } from '../../../api/renown';
 import { InfluenceApi } from '../../../api/influence';
@@ -98,10 +97,11 @@ export class ProfileLogic extends ApiLogic {
   @CallSecurity(SocialApiCallers)
   public async composeRow(viewer: Stuff, target: Stuff): Promise<RosterRow> {
     const self = viewer.stuffId === target.stuffId;
-    const recognized = self || RecognitionApi.recognizes(viewer, target);
+    const recognized =
+      self || (MixinApi.isBeliefStore(viewer) && viewer.recognizes(target));
     const row: RosterRow = {
       handle: handleOf(target),
-      header: self ? target.getPresentation() : RecognitionApi.describe(viewer, target),
+      header: self ? target.getPresentation() : target.describeFor(viewer),
       recognized,
     };
     if (PlayerApi.isAvatarStuff(target)) {
@@ -119,12 +119,13 @@ export class ProfileLogic extends ApiLogic {
   @CallSecurity(SocialApiCallers)
   public async composeCard(viewer: Stuff, target: Stuff): Promise<ProfileCard> {
     const self = viewer.stuffId === target.stuffId;
-    const recognized = self || RecognitionApi.recognizes(viewer, target);
+    const recognized =
+      self || (MixinApi.isBeliefStore(viewer) && viewer.recognizes(target));
     const card: ProfileCard = {
       handle: handleOf(target),
       header: self
         ? target.getPresentation()
-        : RecognitionApi.describe(viewer, target),
+        : target.describeFor(viewer),
       isSelf: self,
       recognized,
     };

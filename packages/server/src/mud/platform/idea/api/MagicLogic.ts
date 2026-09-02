@@ -91,7 +91,6 @@ import { EffectContexts } from '../../../lib/magic/EffectContext';
 import type { EffectContext } from '../../../lib/magic/EffectContext';
 import { ExecutionContextApi } from '../../../api/execution-context';
 import { Resists } from '../../../lib/magic/Resist';
-import { RecognitionApi } from '../../../api/recognition';
 import { IDENTIFICATION } from '../../../lib/belief/BeliefStore';
 import { Appearance } from '../../../lib/identification/Appearance';
 import { Suppressions, type MagicSuppression } from '../../../lib/magic/Suppression';
@@ -1369,7 +1368,7 @@ function execIdentify(ctx: EffectContext, target: Stuff | undefined): string {
     return 'The knowing finds nowhere to settle.';
   }
   learnClassOf(learner, subject, signature);
-  return `The letters crawl, and you know it: ${RecognitionApi.describe(learner, subject)}.`;
+  return `The letters crawl, and you know it: ${subject.describeFor(learner)}.`;
 }
 
 /**

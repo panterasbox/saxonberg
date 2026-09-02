@@ -34,14 +34,15 @@
  * Pilot for the broader Api-namespace sweep.
  */
 
-import { RecognitionApi } from "./recognition";
 
 export const Identity = Object.freeze({
   // (Belief retired by the Api OO sweep — the viewer face lives ON
   // BeliefStoreMixin: hydrateBeliefs · evictAndFlushBeliefs · the
   // regard face. The store's write-through is mixin-internal.)
-  /** Viewer×target naming — the compose seam over the belief store. */
-  Recognition: RecognitionApi, // describe · learnIdentity · salientFeatures · perceivedKeywords
+  // (Recognition retired by the Api OO sweep — the target face lives ON
+  // the Stuff base: describeFor · describeWithStatusFor ·
+  // salientFeatures · perceivedKeywordsFor · kindFor; the viewer face
+  // on BeliefStoreMixin: learnIdentityOf · recognizes · knowsTrueTypeOf.)
   // (Chronicle retired by the Api OO sweep — the owner face lives ON
   // PersonaMixin: recordClaim · recordDeed · recordChronicleOnce ·
   // chronicleEntries · seedChronicleClaims.)

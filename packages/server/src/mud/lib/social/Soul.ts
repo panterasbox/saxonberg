@@ -25,7 +25,6 @@ import { MessageApi } from '../../api/message';
 import { MixinApi } from '../../api/mixin';
 import { Mml } from '../../api/mml';
 import { ReactionApi } from '../../api/reaction';
-import { RecognitionApi } from '../../api/recognition';
 import { ExecutionContextApi } from '../../api/execution-context';
 import type {
   CommandContributions,
@@ -239,7 +238,9 @@ export function SoulMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (env) {
         for (const listener of MessageApi.getSensors(env)) {
           if (listener.stuffId === actor.stuffId) continue;
-          RecognitionApi.learnIdentity(listener, actor, name);
+          if (MixinApi.isBeliefStore(listener)) {
+            listener.learnIdentityOf(actor, name);
+          }
         }
       }
       return true;

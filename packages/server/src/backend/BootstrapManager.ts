@@ -19,7 +19,8 @@
  */
 
 import { StuffApi } from '../mud/api/stuff';
-import type { Stuff } from '../mud/lib/stuff/Stuff';
+import { RecognitionLogic } from '../mud/platform/idea/api/RecognitionLogic';
+import { Stuff } from '../mud/lib/stuff/Stuff';
 import { Template } from '../mud/lib/stuff/Template';
 import { PackApi } from '../mud/api/pack';
 import { EventApi } from '../mud/api/event';
@@ -117,6 +118,16 @@ export class BootstrapManager {
     registerWorldClockRegistryClass(WorldClockRegistry);
     registerMqlSubscriptionRegistryClass(MqlSubscriptionRegistry);
     registerCardRegistryClass(CardRegistry);
+    // The recognition engine's face on the Stuff base (describeFor and
+    // friends): registered here because RecognitionLogic extends Idea
+    // extends Stuff — a static import in Stuff.ts would be a load-order
+    // cycle (the registry-class-handoff rationale).
+    Stuff._registerRecognitionFace(() =>
+      StuffApi.singletonSync<RecognitionLogic>(
+        '/platform/idea/api/recognition',
+        () => new RecognitionLogic()
+      )
+    );
     SecurityApi._registerShadowApi(ShadowApi);
     CommandApi.installShadowBridge();
     GlobbableApi.installMergeOnArrival();

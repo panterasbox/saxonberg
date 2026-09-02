@@ -29,6 +29,7 @@ import RecipeCatalogue from '../../RecipeCatalogue';
 import { Reserve } from '../../../../lib/reserve';
 import { Idea } from '../../../../lib/stuff/Idea';
 import { ContainerMixin } from '../../../../lib/spatial/Container';
+import { ThermalMixin } from '../../../../lib/thermal/Thermal';
 import { ContainableMixin } from '../../../../lib/spatial/Containable';
 import { SealableMixin } from '../../../../lib/spatial/Sealable';
 import { NamedMixin } from '../../../../lib/description/Named';
@@ -44,7 +45,7 @@ class TestRoom extends ContainerMixin(Idea) {
   static _mixinName = 'TestRoomBranches';
 }
 /** A maker with an inventory (Container) — the carried-kit gather rung. */
-class TestSmith extends ContainerMixin(NamedMixin(ContainableMixin(Idea))) {
+class TestSmith extends ThermalMixin(ContainerMixin(NamedMixin(ContainableMixin(Idea)))) {
   static _mixinName = 'TestSmithBranches';
 }
 /** The smithing output form — a Crafted Tangible (Thing composes Tangible). */

@@ -31,7 +31,6 @@ import { dirname, join } from 'path';
 import YAML from 'yaml';
 import { WorldClockApi } from '../../../api/worldclock';
 import '../../../platform/idea/WorldClockRegistry';
-import { RecognitionApi } from '../../../api/recognition';
 import { Appearance } from '../Appearance';
 import { DescriptorBank } from '../DescriptorBank';
 import { IdentifiableMixin } from '../Identifiable';
@@ -127,7 +126,7 @@ describe('the unidentified long description', () => {
     expect(longFor(viewer as unknown as Stuff, wand)).toBe(AUTHORED_LONG);
     // …and the name reveals in the same breath, which is the invariant
     // that matters: the two halves cannot disagree.
-    expect(RecognitionApi.describe(viewer as unknown as Stuff, wand)).toBe(
+    expect(wand.describeFor(viewer as unknown as Stuff)).toBe(
       'a wand of firebolt',
     );
   });
@@ -172,13 +171,11 @@ describe('the unidentified long description', () => {
       typeKnown: true,
       believedName: 'a wand of light',
     });
-    expect(RecognitionApi.describe(viewer as unknown as Stuff, wand)).toBe(
+    expect(wand.describeFor(viewer as unknown as Stuff)).toBe(
       'a wand of light',
     );
     expect(longFor(viewer as unknown as Stuff, wand)).not.toBe(AUTHORED_LONG);
-    expect(RecognitionApi.knowsTrueType(viewer as unknown as Stuff, wand)).toBe(
-      false,
-    );
+    expect(viewer.knowsTrueTypeOf(wand as unknown as Stuff)).toBe(false);
   });
 
   it('⚠ a PRIOR-generation record keeps the class prose — it hedges, so must the prose', () => {
@@ -189,9 +186,7 @@ describe('the unidentified long description', () => {
       typeKnown: true,
       learnedGeneration: generation - 5,
     });
-    expect(RecognitionApi.knowsTrueType(viewer as unknown as Stuff, wand)).toBe(
-      false,
-    );
+    expect(viewer.knowsTrueTypeOf(wand as unknown as Stuff)).toBe(false);
     expect(longFor(viewer as unknown as Stuff, wand)).not.toBe(AUTHORED_LONG);
   });
 

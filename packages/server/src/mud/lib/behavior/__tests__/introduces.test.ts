@@ -2,13 +2,12 @@
  * introduces brain — arrival-witness auto-introduce. Introduces the host
  * to a newcomer who doesn't yet recognize it; skips when they already do
  * or when the host can't introduce (not Soul). `MixinApi.isSoul` and
- * `RecognitionApi.recognizes` are stubbed; `introduceSelf` is spied.
+ * the arriver's own `recognizes` is stubbed; `introduceSelf` is spied.
  */
 
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { brain as introduces } from "../introduces";
 import { MixinApi } from "../../../api/mixin";
-import { RecognitionApi } from "../../../api/recognition";
 import type { BrainContext } from "../brain";
 import type { Stuff } from "../../stuff/Stuff";
 
@@ -38,16 +37,16 @@ describe("introduces brain", () => {
   it("introduces to a newcomer who doesn't yet recognize the host", () => {
     const host = { introduceSelf: vi.fn() };
     vi.spyOn(MixinApi, "isSoul").mockReturnValue(true);
-    vi.spyOn(RecognitionApi, "recognizes").mockReturnValue(false);
-    introduces.act(ctx(host, { stuffId: "a" }));
+    vi.spyOn(MixinApi, "isBeliefStore").mockReturnValue(true);
+    introduces.act(ctx(host, { stuffId: "a", recognizes: () => false }));
     expect(host.introduceSelf).toHaveBeenCalledTimes(1);
   });
 
   it("skips when the newcomer already recognizes the host", () => {
     const host = { introduceSelf: vi.fn() };
     vi.spyOn(MixinApi, "isSoul").mockReturnValue(true);
-    vi.spyOn(RecognitionApi, "recognizes").mockReturnValue(true);
-    introduces.act(ctx(host, { stuffId: "a" }));
+    vi.spyOn(MixinApi, "isBeliefStore").mockReturnValue(true);
+    introduces.act(ctx(host, { stuffId: "a", recognizes: () => true }));
     expect(host.introduceSelf).not.toHaveBeenCalled();
   });
 
