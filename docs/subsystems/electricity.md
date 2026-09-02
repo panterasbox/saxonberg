@@ -49,7 +49,7 @@ the response-fn home), [harm](./harm.md) / [vitals](./vitals.md) (the
   stay byte-identical. `InflictSpec` is a discriminated union:
   `EnergyInflictSpec` (magnitude = `energy`) vs `ShockInflictSpec`
   (magnitude = `current: Quantity<'A'>`).
-- **The conduction walk** is the gated `ElectricityApi` / `ElectricityLogic`
+- **The conduction walk** lives behind the SOURCE's own methods since the Api OO sweep (`source.conduct()` / `source.currentThrough(victim)` / `source.shockContact(victim)` on `EnergizedMixin`, sealed; the Ohm's-law core stays in `ElectricityLogic`, its gate a source-participant contract — the caller must compose Energized and BE the source). The surviving thin `ElectricityApi` keeps only the ground reads (`pathToGround` / `groundNodeFor` — walks over arbitrary nodes)
   pair (`/platform/idea/api/electricity`). `conduct(source)` builds the conductive
   contact graph of the source's location, resolves per-body potentials
   (live contact + ground path), divides current toward the ground sink by
@@ -134,7 +134,7 @@ presence-frozen), reusing `VitalsMixin.reconcileConditions`'s
 first-touch / linkdead / far-past machinery verbatim. It accrues a contact
 burn, re-verifies the circuit each read (a cheap `currentThrough` probe),
 and is relieved the moment the circuit breaks — **unless tetany holds it
-closed**. `ElectricityApi.conduct` mints/upserts it; `isBeingShocked()` /
+closed**. The source's `conduct()` mints/upserts it; `isBeingShocked()` /
 `isTetanized()` are the predicates.
 
 **Tetany** (`SustainedShock.tetany`, latched at/above the tetanic band)
@@ -185,7 +185,7 @@ metal armor does NOT protect against a shock).
   Substation* (`/world/substation`), electricity's own home (and where the
   deferred power-grid content grows), so it never pollutes another themed
   area. Provisions a salt-water-pooled `Floor` + a `LiveWire` at standup;
-  `onEntered` → `ElectricityApi.conduct`. Teaches the whole model with no
+  `onEntered` → the wire's own `conduct()`. Teaches the whole model with no
   magic — barefoot → shocked, rubber boots / dry step → unharmed, two allies →
   both shocked. **Reachability**: seeded with coords in its zone + an
   end-to-end integration test; no cross-area inbound exit is wired this cycle
@@ -194,7 +194,7 @@ metal armor does NOT protect against a shock).
 - **`StunBaton`** (`lib/electricity/StunBaton.ts`, authored as a template at
   `/world/substation/stun-baton` and `props:`-placed in the cell) — a
   `Weapon` + `Energized` + `Switchable` (the combat toe-hold). A landed hit
-  routes through **`ElectricityApi.shockContact`** — a **direct two-terminal
+  routes through **the source's `shockContact(victim)`** — a **direct two-terminal
   contact** (a taser/baton completes its own circuit through its electrodes,
   so it needs no ground path and no conductive medium) into the same
   `ConditionApi.inflict({mechanism:'shock'})` door, never the mechanical fold.

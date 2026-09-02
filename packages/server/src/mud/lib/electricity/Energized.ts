@@ -36,6 +36,17 @@
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import { Quantity } from '../quantity';
+import { StuffApi } from '../../api/stuff';
+import { ElectricityLogic } from '../../platform/idea/api/ElectricityLogic';
+
+/** One body reached by a conduction event: who, and the current through it. */
+export interface ConductionOutcome {
+  /** The bridged body the current passed through. */
+  victim: Stuff;
+  /** The current that actually passed through this body (A). */
+  currentThrough: Quantity<'A'>;
+}
+import { Final, Unshadowable } from '../security/decorators';
 import { QuantityMarshaller } from '../../platform/idea/persistence/QuantityMarshaller';
 import { CombatReactiveMixin } from '../combat/CombatReactive';
 import type { CombatHookContext } from '../combat/CombatHookContext';
@@ -47,6 +58,22 @@ export interface Energized {
   getVoltage(): Quantity<'V'>;
   /** Set the potential this source is held at. Strict on `Quantity<'V'>`. */
   setVoltage(value: Quantity<'V'>): void;
+  conduct(): ConductionOutcome[];
+  currentThrough(victim: Stuff): Quantity<'A'>;
+  shockContact(victim: Stuff): ConductionOutcome[];
+}
+
+/**
+ * Resolve the electricity logic singleton (the Ohm's-law core + the
+ * conduction walk stay THERE — one home for the physics; these mixin
+ * methods are the OO face, admitted by the Logic's widened
+ * source-participant gate).
+ */
+function electricityLogic(): ElectricityLogic {
+  return StuffApi.singletonSync(
+    '/platform/idea/api/electricity',
+    () => new ElectricityLogic(),
+  );
 }
 
 const VOLTAGE_MARSHALLER = QuantityMarshaller.pathFor('V');
@@ -55,7 +82,9 @@ export function EnergizedMixin<TBase extends MixinConstructor>(Base: TBase) {
   // The nested factory (combat-hooks DECISION H): every Energized source
   // is CombatReactive, so the `hasMixin` per-level `_mixinName` walk
   // narrows a composition as both.
-  return class EnergizedMixin
+  // Declared-then-returned (the Meltable shape) so method decorators
+  // are legal — a class EXPRESSION cannot carry them.
+  class EnergizedMixin
     extends CombatReactiveMixin(Base)
     implements Energized
   {
@@ -93,7 +122,7 @@ export function EnergizedMixin<TBase extends MixinConstructor>(Base: TBase) {
      * The instrument seam: an energized wielded weapon ALSO delivers a
      * direct two-terminal shock on every blow. The delivery is
      * **queued**, never called — the engine drains it through
-     * `ElectricityApi.shockContact(this, target)` immediately after the
+     * `this.shockContact(target)` immediately after the
      * mechanical inflict (the exact sequence position the retired
      * `commitInflict` branch held). No switch check here: the
      * `effectiveVoltage ≤ 0` guard inside the conduction walk already
@@ -112,5 +141,50 @@ export function EnergizedMixin<TBase extends MixinConstructor>(Base: TBase) {
       ctx.deliverShock(this as unknown as Stuff & Energized);
       return super.augmentInflict(spec, ctx);
     }
-  };
+    /**
+     * The conduction **event** (was `ElectricityApi.conduct` — the OO
+     * sweep): walk the conductive-contact graph of this source's
+     * location, compute the current through every body bridged between
+     * this potential and ground, and inflict each via
+     * `ConditionApi.inflict({mechanism:'shock'})`. Faction-blind.
+     * Sealed; ungated — the callers are physics drivers (LiveWire,
+     * weather lightning, magic loci, FloodedCell) in a trusted
+     * physical relationship.
+     */
+    @Final
+    @Unshadowable
+    public conduct(): ConductionOutcome[] {
+      return electricityLogic().conduct(
+        this as unknown as Stuff & Energized,
+      );
+    }
+
+    /**
+     * The probe — the current that would pass through `victim` from
+     * this source right now, WITHOUT inflicting anything (the
+     * multimeter / analyze / test seam). `0 A` when not bridged.
+     */
+    public currentThrough(victim: Stuff): Quantity<'A'> {
+      return electricityLogic().currentThrough(
+        this as unknown as Stuff & Energized,
+        victim,
+      );
+    }
+
+    /**
+     * A **direct two-terminal contact shock** — a stun baton / taser:
+     * `I = V / R_body` straight through the contact, no ground path
+     * needed. The combat toe-hold. Sealed.
+     */
+    @Final
+    @Unshadowable
+    public shockContact(victim: Stuff): ConductionOutcome[] {
+      return electricityLogic().shockContact(
+        this as unknown as Stuff & Energized,
+        victim,
+      );
+    }
+
+  }
+  return EnergizedMixin;
 }

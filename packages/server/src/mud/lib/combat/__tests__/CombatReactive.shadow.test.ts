@@ -39,7 +39,6 @@ import { StuffApi } from "../../../api/stuff";
 import { SchedulerApi } from "../../../api/scheduler";
 import { ConditionApi } from "../../../api/condition";
 import type { EnergyInflictSpec, InflictSpec } from "../../../api/condition";
-import { ElectricityApi } from "../../../api/electricity";
 import { ShadowApi } from "../../../api/shadow";
 import { Shadow } from "../../stuff/Shadow";
 import { Shadowing } from "../../security/decorators";
@@ -285,15 +284,19 @@ describe("CombatReactive × shadows — enchantment (DECISION I)", () => {
     const session = open(a, b);
     session.getState(b)!.poise.erode(0.6, 0);
     const inflictSpy = vi.spyOn(ConditionApi, "inflict");
+    // The shock routes through the SOURCE's own shockContact since the
+    // OO sweep — the shocker instance is the spy seam.
     const shockSpy = vi
-      .spyOn(ElectricityApi, "shockContact")
+      .spyOn(
+        shocker as unknown as { shockContact(v: unknown): unknown },
+        "shockContact",
+      )
       .mockImplementation(() => undefined as never);
     CombatApi.queueGambit(a, "strike");
     CombatApi.queueGambit(b, "defend");
     CombatApi.advance(session);
 
     expect(shockSpy).toHaveBeenCalledTimes(1);
-    expect(shockSpy.mock.calls[0]![0]).toBe(shocker);
     expect(shockSpy.mock.invocationCallOrder[0]!).toBeGreaterThan(
       inflictSpy.mock.invocationCallOrder[0]!,
     );

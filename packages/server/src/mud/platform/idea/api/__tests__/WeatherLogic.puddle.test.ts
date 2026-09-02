@@ -218,11 +218,11 @@ describe('Weather → Floor puddle (Phase D)', () => {
     const body = makeStuff(() => new Thing());
     await ContainmentApi.move(body, room);
 
-    const outcomes = ElectricityApi.conduct(wire);
+    const outcomes = wire.conduct();
     // The loop lit up: at least one conduction outcome resolved in the pool.
     expect(Array.isArray(outcomes)).toBe(true);
     expect(
-      ElectricityApi.currentThrough(wire, body).rawValue(),
+      wire.currentThrough(body).rawValue(),
     ).toBeGreaterThan(0);
   });
 });

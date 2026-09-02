@@ -2624,7 +2624,7 @@ function applyConsequence(
       return {
         consequence: c,
         shock: ctx.target
-          ? ElectricityApi.shockContact(c.source, ctx.target)
+          ? c.source.shockContact(ctx.target)
           : [],
       };
     case "flavor": {

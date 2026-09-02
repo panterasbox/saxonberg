@@ -10,7 +10,7 @@
  * `augmentInflict` queues `ctx.deliverShock(this)` — the combat engine
  * drains the queue right after the mechanical inflict, delivering a
  * **direct two-terminal contact** through
- * `ElectricityApi.shockContact(baton, target)` (the device completes its
+ * `baton.shockContact(target)` (the device completes its
  * own circuit, no ground path needed), inflicting through the shipped
  * `ConditionApi.inflict({mechanism:'shock'})` door, NOT the mechanical
  * covering fold. A switched-off baton truthfully delivers nothing (the

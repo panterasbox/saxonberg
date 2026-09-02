@@ -50,7 +50,6 @@ import { MqlApi } from '../../../api/mql';
 import { Mixins } from '../../../lib/mixin';
 import { ConditionApi } from '../../../api/condition';
 import { FireApi } from '../../../api/fire';
-import { ElectricityApi } from '../../../api/electricity';
 import { BulkableApi } from '../../../api/bulk';
 import { ContainmentApi } from '../../../api/containment';
 import { AccountabilityApi } from '../../../api/accountability';
@@ -1059,7 +1058,7 @@ function execInjectChannel(
         ContainmentApi.move(locus, scene);
       }
       locus.setVoltage(Quantity.of((e.voltage ?? 240) * potency, 'V'));
-      const outcomes = ElectricityApi.conduct(locus);
+      const outcomes = locus.conduct();
       StuffApi.destruct(locus);
       const shocked = outcomes.length > 0;
       return {

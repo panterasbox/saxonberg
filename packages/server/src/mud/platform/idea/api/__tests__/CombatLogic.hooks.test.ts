@@ -32,7 +32,6 @@ import { StuffApi } from "../../../../api/stuff";
 import { SchedulerApi } from "../../../../api/scheduler";
 import { ConditionApi } from "../../../../api/condition";
 import type { EnergyInflictSpec, InflictSpec } from "../../../../api/condition";
-import { ElectricityApi } from "../../../../api/electricity";
 import type { ConductionOutcome } from "../../../../api/electricity";
 import { MaterialApi } from "../../../../api/material";
 import { Quantity } from "../../../../lib/quantity";
@@ -744,7 +743,7 @@ describe("CombatLogic hooks — the consequence drain", () => {
     expect(rust2.hookLog.some((e) => e.startsWith("exchange:"))).toBe(true);
   });
 
-  it("deliverShock routes through ElectricityApi.shockContact AFTER the primary inflict", () => {
+  it("deliverShock routes through the source's shockContact AFTER the primary inflict", () => {
     const room = makeStuff(() => new TestRoom());
     const shocker = makeStuff(() => new TestShocker());
     shocker.setVoltage(Quantity.of(50, "V"));
@@ -760,13 +759,15 @@ describe("CombatLogic hooks — the consequence drain", () => {
 
     const inflictSpy = vi.spyOn(ConditionApi, "inflict");
     const shockSpy = vi
-      .spyOn(ElectricityApi, "shockContact")
+      .spyOn(
+        shocker as unknown as { shockContact(v: unknown): unknown },
+        "shockContact",
+      )
       .mockImplementation(() => undefined as never);
     strikeBeat(session, a, b);
 
     expect(shockSpy).toHaveBeenCalledTimes(1);
-    expect(shockSpy.mock.calls[0]![0]).toBe(shocker);
-    expect(shockSpy.mock.calls[0]![1]).toBe(b);
+    expect(shockSpy.mock.calls[0]![0]).toBe(b);
     expect(shockSpy.mock.invocationCallOrder[0]!).toBeGreaterThan(
       inflictSpy.mock.invocationCallOrder[0]!,
     );
@@ -775,7 +776,7 @@ describe("CombatLogic hooks — the consequence drain", () => {
   it("a landed energized hit: the mechanical inflict precedes shockContact, once each (the stun-baton ordering)", () => {
     // The Phase-3 migration's ordering fixture: a real armed StunBaton
     // lands a blow — the mechanical `ConditionApi.inflict` fires first,
-    // then `ElectricityApi.shockContact(baton, target)`, exactly once
+    // then `baton.shockContact(target)`, exactly once
     // each. Green against the pre-migration `isEnergized` branch AND
     // the instrument-seam drain that replaces it (same sequence
     // position — DECISION D-4).
@@ -792,7 +793,10 @@ describe("CombatLogic hooks — the consequence drain", () => {
 
     const inflictSpy = vi.spyOn(ConditionApi, "inflict");
     const shockSpy = vi
-      .spyOn(ElectricityApi, "shockContact")
+      .spyOn(
+        baton as unknown as { shockContact(v: unknown): unknown },
+        "shockContact",
+      )
       .mockImplementation(() => []);
     strikeBeat(session, a, b);
 
@@ -802,8 +806,7 @@ describe("CombatLogic hooks — the consequence drain", () => {
     expect(primary.mechanism).toBe("blunt");
     // …then the two-terminal shock, after it.
     expect(shockSpy).toHaveBeenCalledTimes(1);
-    expect(shockSpy.mock.calls[0]![0]).toBe(baton);
-    expect(shockSpy.mock.calls[0]![1]).toBe(b);
+    expect(shockSpy.mock.calls[0]![0]).toBe(b);
     expect(shockSpy.mock.invocationCallOrder[0]!).toBeGreaterThan(
       inflictSpy.mock.invocationCallOrder[0]!,
     );
@@ -1362,15 +1365,17 @@ describe("CombatLogic — non-mechanical innates (DECISION K)", () => {
     session.getState(b)!.poise.erode(0.6, 0);
 
     const inflictSpy = vi.spyOn(ConditionApi, "inflict");
-    const shockSpy = vi.spyOn(ElectricityApi, "shockContact");
+    const shockSpy = vi.spyOn(
+      eel as unknown as { shockContact(v: unknown): unknown },
+      "shockContact",
+    );
     const narrateSpy = vi.spyOn(CombatNarration, "narrate");
     strikeBeat(session, eel as unknown as Character, b);
 
     // The single-fire proof: the drain is the ONE deliverer — the split
     // never also calls shockContact directly (the forbidden double-fire).
     expect(shockSpy).toHaveBeenCalledTimes(1);
-    expect(shockSpy.mock.calls[0]![0]).toBe(eel);
-    expect(shockSpy.mock.calls[0]![1]).toBe(b);
+    expect(shockSpy.mock.calls[0]![0]).toBe(b);
     // No mechanical primary: every inflict that fired is the shock
     // door's own (inside shockContactImpl), never an energy spec.
     const mechanisms = inflictSpy.mock.calls.map(
@@ -1429,12 +1434,18 @@ describe("CombatLogic — non-mechanical innates (DECISION K)", () => {
     session.getState(b)!.poise.erode(0.6, 0);
 
     const inflictSpy = vi.spyOn(ConditionApi, "inflict");
-    const shockSpy = vi.spyOn(ElectricityApi, "shockContact");
     const narrateSpy = vi.spyOn(CombatNarration, "narrate");
     strikeBeat(session, sparkless, b);
 
     // Nothing delivered: no carrier → no shock, no primary, no blood.
-    expect(shockSpy).not.toHaveBeenCalled();
+    // (Delivery is the source's own shockContact since the OO sweep; a
+    // sparkless fighter has no source, so absence shows as no shock
+    // inflict at all.)
+    expect(
+      inflictSpy.mock.calls.some(
+        (c) => (c[1] as { mechanism?: string }).mechanism === "shock",
+      ),
+    ).toBe(false);
     expect(inflictSpy).not.toHaveBeenCalled();
     expect(session.hasDrawnBlood()).toBe(false);
     expect(session.getState(b)!.lastStruckBy ?? null).toBeNull();
@@ -1455,10 +1466,13 @@ describe("CombatLogic — non-mechanical innates (DECISION K)", () => {
     session.getState(b)!.poise.erode(0.6, 0);
 
     const inflictSpy = vi.spyOn(ConditionApi, "inflict");
-    const shockSpy = vi.spyOn(ElectricityApi, "shockContact");
     strikeBeat(session, wolf, b);
 
-    expect(shockSpy).not.toHaveBeenCalled();
+    expect(
+      inflictSpy.mock.calls.some(
+        (c) => (c[1] as { mechanism?: string }).mechanism === "shock",
+      ),
+    ).toBe(false);
     expect(inflictSpy).toHaveBeenCalledTimes(1);
     const primary = inflictSpy.mock.calls[0]![1] as EnergyInflictSpec;
     expect(primary.mechanism).toBe("point");

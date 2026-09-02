@@ -169,10 +169,9 @@ describe('FloodedCell — the electricity demonstrator', () => {
 
     const cell = await makeCell();
     const target = makeBody(cell);
-    const out = ElectricityApi.shockContact(
-      baton as unknown as never,
-      target as unknown as Stuff,
-    );
+    const out = (
+      baton as unknown as { shockContact(v: Stuff): unknown[] }
+    ).shockContact(target as unknown as Stuff);
     expect(out.length).toBe(1);
     expect(shocked(target)).toBe(true);
   });
