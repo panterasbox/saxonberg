@@ -7,8 +7,14 @@ working institution.
 
 ⭐ **The grounds resolve into three layers**, and the layering is the
 design: **the labs measure · the archive remembers · the field sites are
-where you get something worth measuring.** The combat facilities sit
-alongside as the practicum for a different set of disciplines.
+where you get something worth measuring.**
+
+⭐⭐ **The teaching rooms are not a fourth layer — they are what routes
+you through the three.** Magic 101's chapters map onto them exactly
+(theory in the hall, Ch 6 in the lab, Ch 7 in the archive), which is
+Part 8's finding and the strongest corroboration this design has. The
+combat facilities sit alongside as the practicum for a different set of
+disciplines.
 
 > **Status: design conversation, captured. Not requirements.**
 
@@ -27,7 +33,9 @@ academic apparatus — courses, assessment, enrollment-as-contract; ⚠
 [sampling-and-labs-slate](./sampling-and-labs-slate.md) (the field/bench
 split that makes labs matter — **this closes two of its open
 questions**), [instrumentation-slate](./instrumentation-slate.md),
-[civics.md](../../subsystems/civics.md) (the university's own
+[magic-101-course.md](../../magic-101-course.md) (**752 lines of
+authored curriculum — Part 8; it independently corroborates Parts 1 and
+6**), [civics.md](../../subsystems/civics.md) (the university's own
 government), [contract.md](../../subsystems/contract.md) (the substrate
 enrollment rides), [advancement.md](../../subsystems/advancement.md).
 
@@ -428,7 +436,95 @@ layer has a reason to exist outside a real fight.
 
 ---
 
-## Part 8 — The rest of the grounds
+## Part 8 — ⭐⭐⭐ The teaching rooms, and the curriculum that already specifies them
+
+**Provenance:**
+
+> **User: "we'll want at least one lecture hall and a couple class rooms
+> on campus as well. not sure what we're gonna do with em yet, but we do
+> have our magic cirriculum to teach."**
+
+They are not a blank. **`docs/magic-101-course.md` is 752 lines of fully
+authored curriculum** — eight chapters, LO coding, study.com item format,
+worked generated items — and its structure maps onto the buildings this
+slate derived independently.
+
+### The room roster falls out of the chapter list
+
+| chapters | room | assessed by |
+|---|---|---|
+| **1–5** — the one impossible thing · energy accounting · the price list · heat & phase change · momentum & recoil | **lecture hall** | lesson quizzes |
+| **6 — Measurement & modelling** | ⭐ **the lab** (Part 1) | the *Reeve-line Practical* |
+| **7 — Reading the literature** | ⭐ **the archive** (Part 6) | essay / oral viva on a shelf paper |
+| **8 — Ethics of a measured intercept** | **a seminar room** — discussion-shaped, not practical | essay |
+
+So: **one lecture hall, sited lab-adjacent, plus two classrooms** (a
+seminar room for Ch 8 and one spare) is precisely the course's shape.
+
+### ⭐ It completes a designed-but-unbuildable sequence
+
+[college-slate](./college-slate.md) already specified the mechanic, and
+flagged that it costs nothing:
+
+> *"**The video card is free.** The client already has a watch embed for
+> streams. A study.com video lesson plays there while the player sits in
+> the hall; **then they walk down the corridor to the lab and do it.**
+> That is a complete demo sequence with no new client work."*
+
+⚠ **That sequence has been undeliverable because there were no labs on
+campus.** Part 1 supplies the other half — so siting the lecture hall
+adjacent to the assay/fermentation benches makes the whole demo
+literally walkable. **This is the cheapest high-value thing on the
+grounds**, and it is the study.com demo.
+
+### ⭐⭐⭐ Three curriculum findings that corroborate this slate
+
+Magic 101 was authored **2026-08-07**, before any of this design pass,
+and independently specifies things Parts 1–6 derived. **Cite these; do
+not re-derive them.**
+
+**1. LO.6.5 is the field/bench split, under other names.**
+
+> *"Classify an instrument as **primary** (value from first principles,
+> e.g. the calorimeter) or **secondary** (fast, convenient, meaningless
+> until calibrated); explain traceability."*
+
+A *secondary* instrument is [sampling-and-labs](./sampling-and-labs-slate.md)'s
+portable hand tool; a *primary* one is the bench. The three-tier ladder
+was already in the curriculum. (**LO.6.6** likewise names *"survey meter
+→ spatial-sampling artifacts"* — representative sampling, already
+taught.)
+
+**2. LO.7.5 gives the archive a reliability gradient, for free.**
+
+> *"**The cost of checking** — classify a claim by how expensive it is to
+> verify, and explain the design rule that **wrong papers live where
+> checking is dear**."*
+
+⭐⭐ The archive mechanic (Part 6) stated from the other end — and it
+hands the design something it did not have: **error concentrates at
+distance.** Records about the campus adit are cheap to verify, so they
+stay sound; records about the far mine are expensive to verify, so *that
+is where the wrong ones survive.* A reliability gradient that tracks the
+Part 5 field-site ramp, emerging rather than authored — and it is where
+salting hides.
+
+**3. LO.7.2 is an authoring instruction for seeding the archive.**
+
+> *"a shelf that is all-traps mistrains (distrust) as badly as one that
+> is all-solid (credulity); the honest ratio is **≈5 solid : 2 flawed : 1
+> wrong**."*
+
+Not a design question any more — a **specified ratio** for what the
+archive's shelves contain.
+
+⚠ **Preserve the `[re-verify]` markers.** Several of the course's figures
+carry them; the author flagged their own uncertain numbers deliberately.
+Do not quietly resolve them into confident values.
+
+---
+
+## Part 9 — The rest of the grounds
 
 - **The Chancellor seat** — the Government row is explicitly waiting on
   it, and Part 3 gives it its first real decision (admissions,
@@ -488,6 +584,14 @@ architectural.
     ladder says yes by default — but "the University teaches magic
     fundamentals to **everyone**" (guild slate) may argue the low-band
     shelf is open to the public, like letters.
+13. **Is Magic 101 the *first* course to build, or the exemplar?** It is
+    the only fully authored curriculum, which argues first. But it is
+    also the one whose Ch 6/7 practicals need the lab and archive
+    *finished*, which argues it should follow them.
+14. **What does a lecture hall do when no lecture is scheduled?** The
+    college slate's model is "scheduled, many-to-one." An empty hall the
+    rest of the time is either fine (a real building) or dead space
+    (a room that is only ever a cutscene venue).
 
 ---
 
