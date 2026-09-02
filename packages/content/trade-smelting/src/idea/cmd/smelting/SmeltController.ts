@@ -103,8 +103,15 @@ export default class SmeltController extends CommandController<CommandModel> {
       return;
     }
 
+    // ⚠⚠ A free function, never `this.<method>`: a controller is one
+    // ephemeral clone per execution, destructed the moment `execute`
+    // returns, and a run holds the furnace at heat for hours of game
+    // time. A completion calling back into it would run on a destroyed
+    // Stuff and the proxy would answer with a silent no-op — the charge
+    // would go in and no metal would ever come out. The mining acts
+    // shipped that bug and a live drive found it; this never did.
     this.engage(context, () => {
-      void this.run(context, furnace as Stuff & Container, ore, fuel.slice(0, CHARCOAL_PER_RUN));
+      void runCharge(context, furnace as Stuff & Container, ore, fuel.slice(0, CHARCOAL_PER_RUN));
     });
   }
 
@@ -132,16 +139,29 @@ export default class SmeltController extends CommandController<CommandModel> {
       .send();
   }
 
-  /**
-   * The run. ⭐ Every number below comes from something else's knowledge:
-   * nothing in this method decides how much metal there is.
-   */
-  private async run(
+  private decline(
     context: CommandContext,
-    furnace: Stuff & Container,
-    ore: Stuff[],
-    fuel: Stuff[],
-  ): Promise<void> {
+    prose: ReturnType<typeof Mml.compose>,
+    reason: string,
+  ): void {
+    MessageApi.scene(context.commandGiver).topic(TOPIC).toSelf(prose).send();
+    context.note({ kind: 'controller-rejected', reason, detail: reason });
+  }
+}
+
+/**
+ * The run. ⭐ Every number below comes from something else's knowledge:
+ * nothing here decides how much metal there is.
+ *
+ * ⚠⚠ A module function: the controller is long gone by the time the
+ * furnace is tapped.
+ */
+async function runCharge(
+  context: CommandContext,
+  furnace: Stuff & Container,
+  ore: Stuff[],
+  fuel: Stuff[],
+): Promise<void> {
     const giver = context.commandGiver;
 
     let metalKg = 0;
@@ -162,7 +182,7 @@ export default class SmeltController extends CommandController<CommandModel> {
     if (metalKg <= 0) {
       // ⚠ An honest nothing. A charge of barren rock runs to slag, and
       // saying so is better than inventing a token bar.
-      await this.pour(furnace, SLAG_ROW, Math.max(chargeKg, 1));
+      await pour(furnace, SLAG_ROW, Math.max(chargeKg, 1));
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(
@@ -175,8 +195,8 @@ export default class SmeltController extends CommandController<CommandModel> {
       return;
     }
 
-    const bar = await this.pour(furnace, INGOT_ROW, metalKg);
-    await this.pour(furnace, SLAG_ROW, Math.max(chargeKg - metalKg, 0));
+    const bar = await pour(furnace, INGOT_ROW, metalKg);
+    await pour(furnace, SLAG_ROW, Math.max(chargeKg - metalKg, 0));
 
     MessageApi.scene(giver)
       .topic(TOPIC)
@@ -192,8 +212,8 @@ export default class SmeltController extends CommandController<CommandModel> {
     });
   }
 
-  /** Clone one product into the furnace and stamp its real mass. */
-  private async pour(furnace: Stuff & Container, row: string, kg: number): Promise<Stuff | null> {
+/** Clone one product into the furnace and stamp its real mass. */
+async function pour(furnace: Stuff & Container, row: string, kg: number): Promise<Stuff | null> {
     if (kg <= 0) return null;
     const item = await StuffApi.clone<Stuff>(row);
     const massed = item as unknown as { setMass?(q: Quantity<'kg'>): void };
@@ -201,16 +221,6 @@ export default class SmeltController extends CommandController<CommandModel> {
     ContainmentApi.move(item as unknown as Stuff & Containable, furnace as never);
     return item;
   }
-
-  private decline(
-    context: CommandContext,
-    prose: ReturnType<typeof Mml.compose>,
-    reason: string,
-  ): void {
-    MessageApi.scene(context.commandGiver).topic(TOPIC).toSelf(prose).send();
-    context.note({ kind: 'controller-rejected', reason, detail: reason });
-  }
-}
 
 /** An ore lot: anything that can say what fraction of it is a given metal. */
 function isOre(item: Stuff): boolean {

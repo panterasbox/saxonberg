@@ -32,6 +32,7 @@ import { Mml } from '@saxonberg/server/mud/api/mml';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
 import type MineWarren from '../../MineWarren';
+import type { Working } from '../../../location/Working';
 
 /** Reference time to set one timber, in game ms. */
 const SHORE_MS = 20000;
@@ -66,19 +67,38 @@ export default class ShoreController extends MiningActController<ShoreModel> {
       cost: SHORE_COST,
       beginSelf: Mml.compose`You wrestle ${Mml.thing(set)} into place under the back.`,
       beginPeers: Mml.compose`${Mml.actor(giver)} starts setting timber.`,
+      // ⚠⚠ A free function, never `this.<method>`: a controller is one
+      // ephemeral clone per execution, destructed the moment `execute`
+      // returns, and an engaged act completes long after. A completion
+      // calling back into it ran on a destroyed Stuff and the proxy
+      // answered with a silent no-op — the timber went in, the prose
+      // printed, and the cell was never promoted. Found by driving.
       onComplete: () => {
-        void this.set(context, working, room, set);
+        void standTimber(context, working, room, set);
       },
     });
   }
 
-  /** Stand the timber, promote the cell, and say what changed. */
-  private async set(
-    context: CommandContext,
-    working: NonNullable<ReturnType<ShoreController['workingOf']>>,
-    room: Stuff & Container,
-    set: Stuff,
-  ): Promise<void> {
+  /** The named set, else the first `timber-set` tool the actor is carrying. */
+  private findTimber(giver: Stuff, named: Stuff | null): Stuff | null {
+    if (named) return isTimberSet(named) ? named : null;
+    if (!MixinApi.isContainer(giver)) return null;
+    return giver.getContents().find((i) => isTimberSet(i)) ?? null;
+  }
+}
+
+/**
+ * Stand the timber, promote the cell, and say what changed.
+ *
+ * ⚠⚠ A module function rather than a method — by the time it runs the
+ * controller that scheduled it has been destructed.
+ */
+async function standTimber(
+  context: CommandContext,
+  working: Working,
+  room: Stuff & Container,
+  set: Stuff,
+): Promise<void> {
     const giver = context.commandGiver;
     if ((set as unknown as Containable).getContainer() !== room) {
       ContainmentApi.move(set as unknown as Stuff & Containable, room as never);
@@ -114,14 +134,6 @@ export default class ShoreController extends MiningActController<ShoreModel> {
       .toPeers(Mml.compose`${Mml.actor(giver)} sets timber under the back.`)
       .send();
   }
-
-  /** The named set, else the first `timber-set` tool the actor is carrying. */
-  private findTimber(giver: Stuff, named: Stuff | null): Stuff | null {
-    if (named) return isTimberSet(named) ? named : null;
-    if (!MixinApi.isContainer(giver)) return null;
-    return giver.getContents().find((i) => isTimberSet(i)) ?? null;
-  }
-}
 
 /** A timber set is whatever affords the `timber-set` tool capability. */
 function isTimberSet(item: Stuff): boolean {

@@ -83,8 +83,15 @@ export default class CharController extends CommandController<CharModel> {
     }
 
     const lengths = charge.length;
+    // ⚠⚠ A free function, never `this.<method>`: a controller is one
+    // ephemeral clone per execution, destructed the moment `execute`
+    // returns — and this act runs for three days of game time. A
+    // completion calling back into it would run on a destroyed Stuff and
+    // the proxy would answer with a silent no-op: the clamp would never
+    // open. Found by driving, in the mining acts, and fixed here before
+    // it could bite.
     this.engage(context, pit, () => {
-      void this.open(context, pit, charge, lengths);
+      void openClamp(context, pit, charge, lengths);
     });
   }
 
@@ -117,16 +124,28 @@ export default class CharController extends CommandController<CharModel> {
       .send();
   }
 
-  /**
-   * Open the clamp. ⭐ The draught read HERE — at completion — is what
-   * decides, so an adjustment made on day two is the one that counts.
-   */
-  private async open(
+  private decline(
     context: CommandContext,
-    pit: CharcoalPit,
-    charge: Stuff[],
-    lengths: number,
-  ): Promise<void> {
+    prose: ReturnType<typeof Mml.compose>,
+    reason: string,
+  ): void {
+    MessageApi.scene(context.commandGiver).topic(TOPIC).toSelf(prose).send();
+    context.note({ kind: 'controller-rejected', reason, detail: reason });
+  }
+}
+
+/**
+ * Open the clamp. ⭐ The draught read HERE — at completion — is what
+ * decides, so an adjustment made on day two is the one that counts.
+ *
+ * ⚠⚠ A module function: the controller is long gone by then.
+ */
+async function openClamp(
+  context: CommandContext,
+  pit: CharcoalPit,
+  charge: Stuff[],
+  lengths: number,
+): Promise<void> {
     const giver = context.commandGiver;
     const outcome = pit.outcomeFor();
     for (const wood of charge) StuffApi.destruct(wood);
@@ -168,16 +187,6 @@ export default class CharController extends CommandController<CharModel> {
       outcome: outcome === 'charcoal' ? 'success' : 'failure',
     });
   }
-
-  private decline(
-    context: CommandContext,
-    prose: ReturnType<typeof Mml.compose>,
-    reason: string,
-  ): void {
-    MessageApi.scene(context.commandGiver).topic(TOPIC).toSelf(prose).send();
-    context.note({ kind: 'controller-rejected', reason, detail: reason });
-  }
-}
 
 /** Cordwood: a wooden provision, which is what a clamp is charged with. */
 function isCordwood(item: Stuff): boolean {

@@ -25,6 +25,7 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import type MineWarren from '../../MineWarren';
 import type { WorkingType } from '../../MineWarren';
 import type { Cell, Face } from '../../../location/Working';
@@ -95,61 +96,46 @@ export default class DriveController extends MiningActController<DriveModel> {
     const stability = await working.stabilityAt();
     if (!this.groundPermits(context, stability, 'drive')) return;
 
+    // Resolved at DISPATCH time, while the controller is alive.
     const cell = face.cell;
+    const type = this.typeFor(face);
+    const medium = this.edgeMedium();
     this.engageAct(context, {
       durationMs: this.paceForGround(DRIVE_MS, face.hardnessMPa),
       cost: DRIVE_COST,
       beginSelf: Mml.compose`You start driving a heading ${direction}.`,
       beginPeers: Mml.compose`${Mml.actor(giver)} starts driving a heading ${direction}.`,
+      // ⚠⚠ **Nothing in here touches `this`.** The controller is
+      // ephemeral — one clone per execution, destructed the moment
+      // `execute` returns — and an engaged act completes long after
+      // that, so a completion reaching back into it runs on a DESTROYED
+      // Stuff and the proxy answers with a silent no-op: the swing
+      // lands, the prose prints, and nothing happens. Found by driving.
+      //
+      // ⭐ Which is also why the vertical pair passes a VALUE rather than
+      // overriding a hook the completion would have to call: `medium`
+      // was `afterCut()`, and a bound method is still a method on a
+      // corpse. A subclass that has to be consulted AFTER the act is a
+      // subclass that cannot be consulted at all.
       onComplete: () => {
-        void this.cut(context, warren, cell, face, direction);
+        void cutHeading(context, warren, cell, face, direction, type, medium);
       },
     });
   }
 
-  /** Carve the cell at completion, and say what the new ground is like. */
-  private async cut(
-    context: CommandContext,
-    warren: MineWarren,
-    cell: Cell,
-    face: Face,
-    direction: string,
-  ): Promise<void> {
-    const giver = context.commandGiver;
-    const type = this.typeFor(face);
-    const room = await warren.carve(cell, type, ownerKeyOf(giver));
-    if (!room) {
-      this.decline(context, Mml.compose`The ground will not take a heading there.`, 'carve-failed');
-      return;
-    }
-    MessageApi.scene(giver)
-      .topic(MINING_TOPIC)
-      .toSelf(
-        face.kind === 'seam'
-          ? Mml.compose`The heading breaks through into ore — the seam runs on ${direction}.`
-          : Mml.compose`The heading is through. Country rock, and no sign of a seam.`,
-      )
-      .toPeers(Mml.compose`${Mml.actor(giver)} breaks a heading through ${direction}.`)
-      .send();
-    // ⚠ Provisional: nothing is HELD until it is shored. `shore` is this
-    // mine's provisioning act, and it is what writes the record.
-    await this.afterCut(room, cell, direction);
-  }
-
   /**
-   * A hook the vertical pair overrides: a winze is CLIMBED, not walked,
-   * so `sink` and `raise` widen the fresh exit pair's `media` to admit
-   * the vertical medium. A level drive leaves it alone — an ordinary
-   * heading is ground.
+   * The locomotion medium the fresh exit pair admits, or `null` for an
+   * ordinary ground heading.
    *
-   * @hook Override to adjust the fresh working's edges.
+   * ⭐ The vertical pair overrides this to `'vertical'` — a winze is
+   * CLIMBED, not walked. It is a VALUE and it is read at dispatch time
+   * on purpose: a hook the completion had to call back into would be a
+   * call on a destroyed controller.
+   *
+   * @hook Override to say what the fresh edges admit.
    */
-  protected async afterCut(
-    _room: Stuff,
-    _cell: Cell,
-    _direction: string,
-  ): Promise<void> {
-    /* a level heading needs nothing further. */
+  protected edgeMedium(): string | null {
+    return null;
   }
 
   /**
@@ -159,6 +145,55 @@ export default class DriveController extends MiningActController<DriveModel> {
    */
   protected typeFor(face: Face): WorkingType {
     return face.kind === 'seam' ? 'stope' : 'face';
+  }
+}
+
+/** Carve the cell at completion, and say what the new ground is like. */
+async function cutHeading(
+  context: CommandContext,
+  warren: MineWarren,
+  cell: Cell,
+  face: Face,
+  direction: string,
+  type: WorkingType,
+  medium: string | null,
+): Promise<void> {
+  const giver = context.commandGiver;
+  const room = await warren.carve(cell, type, ownerKeyOf(giver));
+  if (!room) {
+    MessageApi.scene(giver)
+      .topic(MINING_TOPIC)
+      .toSelf(Mml.compose`The ground will not take a heading there.`)
+      .send();
+    return;
+  }
+    MessageApi.scene(giver)
+      .topic(MINING_TOPIC)
+      .toSelf(
+        face.kind === 'seam'
+          ? Mml.compose`The heading breaks through into ore — the seam runs on ${direction}.`
+          : Mml.compose`The heading is through. Country rock, and no sign of a seam.`,
+      )
+      .toPeers(Mml.compose`${Mml.actor(giver)} breaks a heading through ${direction}.`)
+      .send();
+  // ⭐ A winze is climbed. `climb` and `ClimbableMixin` already ship, so
+  // the vertical needed no new locomotion — only an edge that declares
+  // what it is, on BOTH sides of the pair.
+  if (medium !== null) widenEdge(room as unknown as Stuff, direction, medium);
+}
+
+/** Let the fresh exit pair admit `medium`, both sides. */
+function widenEdge(room: Stuff, direction: string, medium: string): void {
+  if (!MixinApi.isExitable(room)) return;
+  const back = NavigationApi.invertDirection(direction);
+  for (const [dir, exit] of room.getExits()) {
+    if (dir !== back) continue;
+    exit.setMedia([...new Set([...exit.getMedia(), medium])]);
+    const other = exit.getDestination();
+    if (other && MixinApi.isExitable(other)) {
+      const inverse = other.getExit(direction);
+      if (inverse) inverse.setMedia([...new Set([...inverse.getMedia(), medium])]);
+    }
   }
 }
 

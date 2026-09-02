@@ -386,3 +386,42 @@ describe('the mine’s four labour acts', () => {
     ).not.toMatch(/commandContributions/);
   });
 });
+
+/**
+ * ⚠⚠ **The controller is EPHEMERAL and the engagement is not.**
+ *
+ * One clone per execution, destructed the moment `execute` returns — and
+ * an engaged act completes long afterwards. A completion that calls
+ * `this.<method>` therefore runs on a DESTROYED Stuff, and the call
+ * security proxy answers with a silent no-op: the swing lands, the prose
+ * prints, and nothing happens. Found by driving (`[inert] win() called
+ * on destroyed Stuff`), which is the only place it is visible — a test
+ * that holds its own controller reference never destructs it.
+ *
+ * Asserted on the SOURCE, because the failure is a shape rather than a
+ * value, and because the shipped `HammerController` closes over locals
+ * for exactly this reason.
+ */
+describe('an engaged completion never reaches back into the controller', () => {
+  const DIR = fileURLToPath(new URL('../', import.meta.url));
+
+  it('no `onComplete` closure calls a method on `this`', () => {
+    for (const f of readdirSync(DIR).filter((n) => n.endsWith('Controller.ts'))) {
+      const src = readFileSync(join(DIR, f), 'utf8');
+      for (const m of src.matchAll(/onComplete:\s*\(\)\s*=>\s*\{([\s\S]*?)\n\s{6}\}/g)) {
+        // `this.<x>(` inside a completion body is the bug. Property reads
+        // are fine; it is the CALL that lands on the corpse.
+        expect(m[1]!.replace(/\/\/[^\n]*/g, '')).not.toMatch(/\bthis\.\w+\s*\(/);
+      }
+    }
+  });
+
+  it('…and the completion bodies exist as module functions instead', () => {
+    const hew = readFileSync(join(DIR, 'HewController.ts'), 'utf8');
+    expect(hew).toMatch(/^async function winOre\(/m);
+    const drive = readFileSync(join(DIR, 'DriveController.ts'), 'utf8');
+    expect(drive).toMatch(/^async function cutHeading\(/m);
+    const shore = readFileSync(join(DIR, 'ShoreController.ts'), 'utf8');
+    expect(shore).toMatch(/^async function standTimber\(/m);
+  });
+});

@@ -30,6 +30,15 @@ function bump() {
 function next() {
   if (i >= script.length) { ws.close(); return; }
   const cmd = script[i++];
+  // `wait <ms>` is the harness's own, not the game's: an engaged act runs
+  // over game time and the socket has to stay open for it.
+  const w = /^wait (\d+)$/.exec(cmd);
+  if (w) {
+    out.push(`\n… waiting ${w[1]}ms`);
+    clearTimeout(idle);
+    idle = setTimeout(next, Number(w[1]));
+    return;
+  }
   out.push(`\n$ ${cmd}`);
   ws.send(JSON.stringify({ type: 'command', payload: { text: cmd, barId: 'main' } }));
   bump();
