@@ -18,9 +18,9 @@ archetypeId: winery
 label: a winery
 capabilities:
   - { key: crush, needs: { tool: press }, default: /trade/winemaking/thing/press }
-  - { key: ferment, needs: { vessel: vat }, default: /trade/winemaking/thing/vat }
+  - { key: ferment, needs: { vesselKind: vat }, default: /trade/winemaking/thing/vat }
   # Bottle conditioning (P5): sparkling happens in the heavy bottle.
-  - { key: conditioning, needs: { vessel: wine-bottle }, default: /trade/winemaking/thing/conditioning-bottle }
+  - { key: conditioning, needs: { vesselKind: wine-bottle }, default: /trade/winemaking/thing/conditioning-bottle }
   # The cellar is a PLACE (no default: you cannot clone a room into a
   # room) — it holds the band, slows the culture, and keeps the batch.
   - { key: cold, needs: { coldStorage: true } }

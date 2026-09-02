@@ -10,11 +10,11 @@ capabilities:
   # The liquor: the mash recipes draw real water (v1: standpipe-shaped
   # sources only — the build-coordination constraint).
   - { key: liquor, needs: { bulkSource: water }, default: /trade/brewing/thing/standpipe }
-  - { key: ferment, needs: { vessel: vat }, default: /trade/brewing/thing/vat }
+  - { key: ferment, needs: { vesselKind: vat }, default: /trade/brewing/thing/vat }
   # The package: kegs to rack into…
-  - { key: racking, needs: { vessel: keg }, default: /trade/brewing/thing/keg }
+  - { key: racking, needs: { vesselKind: keg }, default: /trade/brewing/thing/keg }
   # …and the cask that conditions REAL ALE where it stands (P9).
-  - { key: conditioning, needs: { vessel: cask }, default: /trade/brewing/thing/cask }
+  - { key: conditioning, needs: { vesselKind: cask }, default: /trade/brewing/thing/cask }
   # The cold store is a PLACE: the lager line exists exactly as far as
   # somewhere holds the cold band (D14 — no default; rooms don't clone).
   - { key: cold, needs: { coldStorage: true } }

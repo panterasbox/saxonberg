@@ -44,6 +44,16 @@ Authored on **both** the vessel row and every product row over it. A
 holder that declares none falls back to its primary keyword, which is
 right for a fixture whose interior is permanent (a plant pot's soil).
 
+### ⚠ OPEN — the word "vessel" is squatted by the enterable class
+
+The vocabulary this section defines is called the **vessel kind**
+everywhere (`outputVesselKind`, the `vessel:` census prefix, the
+archetype `vesselKind` need) — but the bare class name `Vessel` is the
+ENTERABLE container (a boat, a wagon; conveyance-domain), which is
+arguably the squatter on the word. A nothing-is-legacy rename of that
+class (to something conveyance-flavored) would free the term; parked
+here so it isn't lost (surfaced in the fermentation MR review).
+
 ### ⚠ OPEN — `category` has no home a `Crate` can reach
 
 `category` lives on **`BulkableMixin`**, so only bulk holders carry it.

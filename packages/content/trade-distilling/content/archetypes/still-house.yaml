@@ -8,7 +8,7 @@ label: a still-house
 capabilities:
   - { key: mash, needs: { tool: mash-tun }, default: /trade/distilling/thing/mash-tun }
   - { key: liquor, needs: { bulkSource: water }, default: /trade/distilling/thing/standpipe }
-  - { key: ferment, needs: { vessel: vat }, default: /trade/distilling/thing/vat }
+  - { key: ferment, needs: { vesselKind: vat }, default: /trade/distilling/thing/vat }
   - { key: still, needs: { tool: still }, default: /trade/distilling/thing/still }
   # 351 K — ethanol's boiling point (the number IS the lesson). The
   # still is its own furnace, so one fixture answers both rows: the

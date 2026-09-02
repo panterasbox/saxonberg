@@ -148,9 +148,10 @@ instrument, never the venue — the same profiles, physics being fair.
 
 **The venue archetypes** (`content/archetypes/` — winery, brewhouse,
 still-house): each trade's needs as capability slots, the hospitality
-shape, over a new `vessel` need kind (the vat is capital that is
+shape, over a new `vesselKind` need (the vat is capital that is
 neither a tool nor a bulk source; the need reads the kernel's own
-vessel-kind `category`, empty or full). `industry` stays null — the
+vessel-kind `category`, empty or full — `vesselKind`, not `vessel`,
+since bare `Vessel` is the enterable-container class). `industry` stays null — the
 shared `fermenting` discipline would cross-derive the sibling trade's
 tools, so the floors are authored residue; the work boards (Menus) are
 deliberately not needs (the bathroom rule). Reported by `survey`,

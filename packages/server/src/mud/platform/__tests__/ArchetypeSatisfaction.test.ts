@@ -338,7 +338,7 @@ describe('archetype satisfaction', () => {
 
 /**
  * The fermentation VENUE archetypes (W8+): the three de-stubbed trades
- * state their needs the hospitality way — and the `vessel` need kind
+ * state their needs the hospitality way — and the `vesselKind` need
  * (the vat is capital that is neither a tool nor a bulk source) reads
  * the kernel's own vessel-kind vocabulary (`category`), empty or full.
  */
@@ -369,11 +369,11 @@ describe('the fermentation venue archetypes', () => {
     }
   });
 
-  it('a vessel need reads the vessel KIND — an empty vat satisfies it; the wrong kind does not', () => {
+  it('a vesselKind need reads the vessel kind — an empty vat satisfies it; the wrong kind does not', () => {
     const archetype = Archetype.fromData({
       archetypeId: 'vessel-probe',
       label: 'a probe',
-      capabilities: [{ key: 'ferment', needs: { vessel: 'vat' } }],
+      capabilities: [{ key: 'ferment', needs: { vesselKind: 'vat' } }],
     });
     const room = makeStuff(() => new SingletonCartesianLocation());
     const bare = archetype.satisfies(room);

@@ -105,11 +105,14 @@ export interface Satisfaction {
  *   bathroom: a toilet is prose-LOD, it affords nothing the kernel
  *   checks, and claiming otherwise would be inventing a mechanic to
  *   make a checklist tidy.
- * - `vessel` — a bulk holder of the vessel KIND (`category`): the vat a
- *   ferment needs, a cooper's cask. An EMPTY one counts — the
- *   capability is the vessel, never its contents (fermentation W8: the
- *   defining capital of a winery is not a tool and not a bulk source,
- *   and `category` is the kernel's own vessel-kind vocabulary).
+ * - `vesselKind` — a bulk holder of the named vessel kind (`category`
+ *   on `BulkableMixin` — the term bulk.md, `outputVesselKind` and the
+ *   `vessel:` census prefix already use): the vat a ferment needs, a
+ *   cooper's cask. An EMPTY one counts — the capability is the vessel,
+ *   never its contents (fermentation W8: the defining capital of a
+ *   winery is not a tool and not a bulk source). Named `vesselKind`,
+ *   not `vessel`, because bare `Vessel` is the enterable-container
+ *   CLASS (a boat) — a different thing entirely.
  */
 export type CapabilityNeed =
   | { tool: string }
@@ -120,7 +123,7 @@ export type CapabilityNeed =
   | { coldStorage: true }
   | { rest: number }
   | { presence: string }
-  | { vessel: string };
+  | { vesselKind: string };
 
 export interface CapabilitySlot {
   /** The slot's name in the archetype (`water`, `dispensing`, `cold`). */
@@ -155,7 +158,7 @@ const NEED_KEYS = [
   'coldStorage',
   'rest',
   'presence',
-  'vessel',
+  'vesselKind',
 ] as const;
 
 function fail(archetypeId: string, msg: string): never {
@@ -175,7 +178,7 @@ function needOf(archetypeId: string, key: string, raw: unknown): CapabilityNeed 
     case 'tool':
     case 'bulkSource':
     case 'presence':
-    case 'vessel':
+    case 'vesselKind':
       if (typeof v !== 'string' || v.length === 0) fail(archetypeId, `capability '${key}': \`${k}\` must be a non-empty string`);
       return { [k]: v } as CapabilityNeed;
     case 'heatK':
@@ -246,7 +249,7 @@ export class Archetype {
     if ('seating' in need) return 'seating';
     if ('rest' in need) return 'rest';
     if ('presence' in need) return `presence:${need.presence}`;
-    if ('vessel' in need) return `vessel:${need.vessel}`;
+    if ('vesselKind' in need) return `vesselKind:${need.vesselKind}`;
     return 'coldStorage';
   }
 
@@ -422,10 +425,10 @@ function satisfyingItem(
     const hit = pool.find((i) => answersTo(i, need.presence));
     return hit ? hit.getPresentation() : null;
   }
-  if ('vessel' in need) {
-    // The vessel KIND, empty or full — the capability is the vessel.
+  if ('vesselKind' in need) {
+    // The vessel kind, empty or full — the capability is the vessel.
     const hit = pool.find(
-      (i) => MixinApi.isBulkable(i) && i.getCategory() === need.vessel,
+      (i) => MixinApi.isBulkable(i) && i.getCategory() === need.vesselKind,
     );
     return hit ? hit.getPresentation() : null;
   }
