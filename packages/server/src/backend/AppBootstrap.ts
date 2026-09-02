@@ -26,17 +26,8 @@ import { PackApi } from '../mud/api/pack';
 import { WorldClockApi } from '../mud/api/worldclock';
 import { AppApi } from '../mud/api/app';
 import { AppSettings } from '../mud/lib/config/AppSettings';
-import { RenownApi } from '../mud/api/renown';
-import RenownStanding from '../mud/lib/standing/RenownStanding';
-import { ConsumerApi } from '../mud/api/consumer';
-import ParticipationStanding from '../mud/lib/standing/ParticipationStanding';
-import { ProducerApi } from '../mud/api/producer';
 import { MixinApi } from '../mud/api/mixin';
 import { PersistableApi } from '../mud/api/persistable';
-import ProducerStanding from '../mud/lib/standing/ProducerStanding';
-import { BankingApi } from '../mud/api/banking';
-// Loaded for its side effect: registers banking's `bank-circle` dialogue
-// effect into the generic DialogueEffectRegistry (consumer → substrate).
 import { DiagnosticApi } from '../mud/api/diagnostics';
 import { RecordApi } from '../mud/api/record';
 import { CompileWatcher } from './CompileWatcher';
@@ -49,8 +40,6 @@ import { AttendantApi } from '../mud/api/attendant';
 import { SocialApi } from '../mud/api/social';
 import { PartyApi } from '../mud/api/party';
 import { PressApi } from '../mud/api/press';
-import AccountBalance from '../mud/lib/banking/AccountBalance';
-import SupplyAggregate from '../mud/lib/banking/SupplyAggregate';
 import { Document } from '../mud/lib/persistence/Document';
 import { StuffApi } from '../mud/api/stuff';
 import type { Marshaller } from '../mud/lib/persistence/Marshaller';
@@ -227,31 +216,6 @@ export class AppBootstrap {
     installOnlineHoldersProvider();
     await BootstrapManager.run();
 
-    // Renown — warm the standing read-cache from the materialized
-    // aggregate, then install the reaction ingestion tap + self-register
-    // the real-time recompute schedule. Warm before boot so the first
-    // `renownOf` reads are populated. Activation = the singleton's
-    // presence; no consumer is wired this build.
-    await RenownStanding.warm();
-    RenownApi.boot();
-
-    // Participation (the consumer-influence quantity faucet) — warm the
-    // standing read-cache from the materialized aggregate, then install the
-    // command-dispatch tap + self-register the recompute schedule. Warm
-    // before boot so the first `participationOf` / consumer-standing reads
-    // are populated. Reads renown (already booted above) for the projection.
-    await ParticipationStanding.warm();
-    ConsumerApi.boot();
-
-    // Producer (the make faucet — the third influence stock) — warm the
-    // standing read-cache, then install the command-dispatch engagement tap
-    // (it reuses the consumer's signal; both taps assert the same
-    // consumer+producer restrictSubscribe allowlist) + self-register the
-    // recompute schedule. Engagement-only (reads no renown). Booted AFTER the
-    // consumer so the shared signal's allowlist is asserted in a stable order.
-    await ProducerStanding.warm();
-    ProducerApi.boot();
-
     // Residency (self-eviction) — install the real-time cold-tail sweep.
     // No warm step (nothing materialized); it reads AppSettings each sweep
     // and enumerates the live registry (populated by the manifest clones
@@ -281,15 +245,6 @@ export class AppBootstrap {
     // discard doctrine). Ordered after PM connect (above) and before
     // players can enter (the WS listener starts after bootstrap).
     SandboxApi.boot();
-
-    // Banking (the monetary substrate) — warm the account-balance read cache
-    // and the single-row supply headline from their materialized rows, then
-    // boot the logic singleton (the stable activation seam). Warm before boot
-    // so the first `balanceOf` / `moneySupply` reads are populated; the
-    // CentralBank singleton is cloned by the bootstrap manifest above.
-    await AccountBalance.warm();
-    await SupplyAggregate.warm();
-    await BankingApi.boot();
 
     // Employment engine — run one immediate roster pass (so on-shift state
     // is correct at boot) then self-register the recurring game-time tick

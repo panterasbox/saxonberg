@@ -56,6 +56,17 @@ import { Currency } from "../../../lib/banking/Currency";
 const BankingApiCallers = SecurityPolicies.FromModule("/api/banking#BankingApi",
 );
 
+/**
+ * The custodian-restamp seam is also callable by the `CentralBank`
+ * singleton's postRegister (the boot()-retirement shape): the restamp
+ * logic stays HERE (entangled with the module's account internals),
+ * the manifest home runs it after warming the two read caches.
+ */
+const BankingBootCallers = SecurityPolicies.AnyOf(
+  BankingApiCallers,
+  SecurityPolicies.FromTemplate("/platform/idea/CentralBank"),
+);
+
 /** Persistence is a no-op unless Mongo is connected (tests, pre-boot). */
 function active(): boolean {
   return PersistApi.isConnected();
@@ -1737,13 +1748,12 @@ async function recomputeSupplyImpl(): Promise<void> {
 @Unshadowable
 export class BankingLogic extends ApiLogic {
   /**
-   * See {@link BankingApi.boot}. Idempotent. Runs the custodian restamp
-   * pass (a cache-field fill over legacy `bank_accounts` rows — no money
-   * moves); the warm caches are loaded by AppBootstrap
-   * (AccountBalance.warm / SupplyAggregate.warm) before this.
+   * The custodian restamp, run from `CentralBank.postRegister` after
+   * the two cache warms. Idempotent — a cache-field fill over legacy
+   * `bank_accounts` rows; no money moves.
    */
-  @CallSecurity(BankingApiCallers)
-  public async boot(): Promise<void> {
+  @CallSecurity(BankingBootCallers)
+  public async restampCustodians(): Promise<void> {
     await restampCustodiansImpl();
   }
 

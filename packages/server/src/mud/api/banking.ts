@@ -95,17 +95,6 @@ function logic(): BankingLogic {
 
 export class BankingApi {
   /**
-   * Boot seam (idempotent). Runs the custodian restamp pass over legacy
-   * `bank_accounts` rows (the every-account-names-a-real-custodian rule —
-   * a cache-field fill, no money moves). The warm caches are loaded
-   * separately by `AccountBalance.warm()` / `SupplyAggregate.warm()`
-   * (awaited in `AppBootstrap` before this).
-   */
-  public static async boot(): Promise<void> {
-    return logic().boot();
-  }
-
-  /**
    * Mint money into an account — the central-bank faucet. Supply grows by
    * `amount`; one logged `mint` row from the issuance sentinel to the
    * target. Developer-gated at the verb layer; the actor is the

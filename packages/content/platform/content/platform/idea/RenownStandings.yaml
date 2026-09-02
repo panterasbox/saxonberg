@@ -1,0 +1,6 @@
+# RenownStandings — the singleton whose postRegister warms the renown
+# aggregate read-cache and arms the reaction/reception ingestion taps +
+# the real-time recompute schedule (the self-warming shape; eager via
+# this pack's boot list, not an AppBootstrap sequencer line).
+class: /platform/idea/RenownStandings
+data: {}

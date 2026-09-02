@@ -16,6 +16,9 @@ import { Money } from "../Money";
 import { Account } from "../Account";
 import AccountBalance from "../AccountBalance";
 import BankCounter from "../../../platform/thing/BankCounter";
+import CentralBank from "../../../platform/idea/CentralBank";
+import SupplyAggregate from "../SupplyAggregate";
+import { StuffApi } from "../../../api/stuff";
 import { makeStuffAtPath } from "../../security/__tests__/test-setup";
 import { AppApi } from "../../../api/app";
 import { AppSettingKeys } from "../../config/AppSettings";
@@ -127,6 +130,24 @@ describe("ensureVenueAccount — the custodian gate (institution keys)", () => {
   });
 });
 
+
+/**
+ * Drive the boot restamp the way production does since the boot()
+ * retirement: `CentralBank.postRegister` (warms the two caches, then
+ * runs the gate-widened `BankingLogic.restampCustodians`).
+ */
+async function runBootRestamp(): Promise<void> {
+  // This suite targets the RESTAMP pass over deliberately-legacy
+  // fixture rows (no currency); the two cache warms would refuse such
+  // rows and have their own suites, so stub them out of the drive.
+  vi.spyOn(AccountBalance, "warm").mockResolvedValue(undefined as never);
+  vi.spyOn(SupplyAggregate, "warm").mockResolvedValue(undefined as never);
+  const cb =
+    StuffApi.findByTemplatePath<CentralBank>("/platform/idea/CentralBank") ??
+    makeStuffAtPath(() => new CentralBank(), "/platform/idea/CentralBank");
+  await cb.postRegister();
+}
+
 describe("the boot restamp pass (legacy → institution keys)", () => {
   beforeEach(() => installBankingHarness());
   afterEach(() => {
@@ -149,7 +170,7 @@ describe("the boot restamp pass (legacy → institution keys)", () => {
     await BankingApi.drain("acct-sink", Money.of(735, Currency.compact()));
     const supplyBefore = BankingApi.moneySupply(Currency.compact()).minor;
 
-    await BankingApi.boot();
+    await runBootRestamp();
 
     expect(storedRow("treasury")?.bank).toBe(Account.CENTRAL_BANK_INSTITUTION);
     expect(storedRow("acct-venue")?.bank).toBe(custodian);
@@ -166,7 +187,7 @@ describe("the boot restamp pass (legacy → institution keys)", () => {
     expect(BankingApi.moneySupply(Currency.compact()).minor).toBe(supplyBefore);
 
     // Idempotent — a second boot changes nothing.
-    await BankingApi.boot();
+    await runBootRestamp();
     expect(storedRow("treasury")?.bank).toBe(Account.CENTRAL_BANK_INSTITUTION);
     expect(storedRow("acct-venue")?.bank).toBe(custodian);
   });
@@ -179,7 +200,7 @@ describe("the boot restamp pass (legacy → institution keys)", () => {
       return "";
     });
     await seedRow({ accountId: "tpa", owner: "", balance: 30 });
-    await BankingApi.boot();
+    await runBootRestamp();
     const row = storedRow("tpa");
     expect(row?.owner).toBe(TPA_BIZ);
     expect(row?.bank).toBe(BankingApi.defaultCustodianBank());
