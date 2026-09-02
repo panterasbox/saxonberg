@@ -214,7 +214,9 @@ others matter.*
 - **W1 — the trade**: the `/trade/cooking` rename; the `medium` recipe
   gate; the platform chemistry constants + `smokePoint` Material field;
   the fat/oil Material row (the named gap); the toxin-kill write in
-  `applyEdibleOutput`.
+  `applyEdibleOutput`; **the dinnerware unification** (Part 6 —
+  `Dish extends CraftVessel`, the edible branch claims from the dish
+  pool instead of cloning).
 - **W2 — content**: the recipe roster widened across all three methods
   (the ZPD ladder obligation — trivial → hard rungs per method), pantry
   stock to match, the kitchen bundle refreshed.
@@ -330,6 +332,76 @@ the tending wave, where the abstraction law says they belong.
   raw-matter candidates only, so fritters-of-mash and stock-into-soup
   chains are out of scope until that seam is designed — noted, not
   smuggled in.
+
+---
+
+## Part 6 — Dinnerware: one vessel abstraction, one reuse loop (settled)
+
+**The requirement**: one abstraction for *food/drink goes on/in a
+container, gets consumed, container gets reused for future meals* —
+glassware and dinnerware as the same relationship.
+
+**It already exists — the bar built it**, and
+[crafting.md](../../subsystems/crafting.md) § the glass pool names
+cooking's plate as its declared next customer (*"`tangible`/`edible`
+outputs keep cloning — smithing's transform and **cooking's plate are
+the next pools**"*). The finished loop, as shipped for glassware:
+claim the first reachable **clean, empty vessel of the output's kind**
+(`category`-matched, never path-matched — a washed-out vessel and a
+factory-fresh one are the same input to a fill, the returns-loop
+lesson) → diegetic decline `no-glass` when none → `soiled` at fill →
+`wash` at a `WaterFixture` (`vessel.wash()`) → back in the pool.
+Bussing is `get`/`put in rack` (any open container — the pool scan
+descends them); breakage is `throw`/destruct + the par-sheet
+shortfall.
+
+**Cooking's two paths against that loop today:**
+
+- by-hand `plate <pot> into <dish>` fills a *supplied* dish — reuse
+  implicit, but `Dish` can't cycle: no `soiled`, no `category`, no
+  wash affordance, no `Thermal`, no `Container`.
+- craft-resolve `cook` **clones a fresh plated-dish per meal** —
+  crockery ex nihilo: ~0.5 kg of ceramic minted from nothing every
+  dinner. A Law-2 conservation leak and a garbage problem.
+
+`Dish`'s own doc comment is the tell — *"the `CraftVessel` shape
+generalized to food"* — a parallel implementation of the thing
+`CraftVessel` was deliberately named to cover (*"named for the vessel
+rather than the glass, because a syrup bottle and a juice bottle are
+`CraftVessel`s too"*).
+
+**The unification (W1 work):**
+
+1. **`Dish extends CraftVessel`**, keeping only the food face
+   (`NutritionLabelMixin` + the quality-verdict `getLong`). Inherited
+   for free: `soiled` + `wash` (a kitchen basin is a `WaterFixture` —
+   the affordance ships), `Thermal` (soup goes cold on the table),
+   `Container` (the garnish sprig leaves with the plate, exactly why
+   the olive leaves with the martini). **Subclass, don't dissolve** —
+   the food face is real, so retiring `Dish` for bare `CraftVessel`
+   rows was considered and rejected.
+2. **Dinnerware joins the vessel-kind vocabulary** — `plate` · `bowl`
+   · `mug` · `platter` beside `coupe` and `rocks`. The recipe's output
+   row declares its category: stew → bowl, roast → plate.
+3. **The `edible` branch stops cloning and claims**, exactly like the
+   bulk branch — first reachable clean empty vessel of the output's
+   kind, decline `no-dish` ("no clean bowl"). By-hand `plate` keeps
+   explicit vessel choice — the `strain` vs `order` relationship.
+4. **Zero new code downstream**: cupboards and dish racks are open
+   containers; dinnerware categories ride `house par`/`house stock`;
+   breakage already works.
+
+**Two payoffs beyond tidiness:**
+
+- **Leftovers become possible at all.** The W3 drive's half-eaten dish
+  sitting out overnight can only exist as a persistent, reusable
+  vessel holding a residue — the clone-per-meal dish could never be
+  that object. Part 3's spoilage story quietly depends on this part.
+- **Dinnerware becomes an economy.** Once dishes stop being minted per
+  meal they have to come from somewhere — the ⭐potter and the
+  ⭐ceramics gap in the [trade-roster](./trade-roster-slate.md) are
+  the vocation this wakes, and par shortfalls at every kitchen and
+  tavern are its unmet demand.
 
 ⚠ Build-freeze note: captured during the client-rebuild design-only
 phase. This slate is the input to a `/requirements` cycle when the
