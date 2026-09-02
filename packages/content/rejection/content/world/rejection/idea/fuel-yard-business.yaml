@@ -1,0 +1,25 @@
+# ⭐ The fuel yard — works its OWN coppice and sells charcoal. It buys
+# nothing, which is what makes it the one business in the chain with no
+# upstream: the wood is a renewable crop on a seven-year rotation and the
+# only input is labour.
+#
+# ⚠ Its stand is also the MINE's timber supply. Two consumers, one supply
+# — the wood contest, and the reason this is a business rather than a prop.
+class: /platform/idea/Business
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  appointingAuthority:
+    kind: entity
+    path: /world/rejection/agent/collier
+  positions:
+    - key: collier
+      label: watching the clamp
+      wageRate: 5
+  rosterSlots:
+    - positionKey: collier
+      assignee: /world/rejection/agent/collier
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [0, 24] }
+  banksAt: goodkin
+  operatingLocations:
+    - /world/rejection/location/fuel-yard

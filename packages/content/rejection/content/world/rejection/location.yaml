@@ -1,0 +1,12 @@
+# The pithead — the SURFACE zone: sky above, the outcrop underfoot, and
+# five rooms of function.
+#
+# ⭐ It inherits `deposit:` from the region zone above it, which is what
+# lets `measure strike` work standing in the yard. Its cells are 10 m,
+# the same grid the workings are cut on, so a bearing taken at the surface
+# and a heading driven below are in one coordinate system.
+class: /platform/idea/location/CartesianZone
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: the pithead
+  cellSize: 10.0

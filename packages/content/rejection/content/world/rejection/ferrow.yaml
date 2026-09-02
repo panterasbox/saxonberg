@@ -1,0 +1,29 @@
+# The Ferrow diggings — the WORKINGS zone: one 3D grid, z negative going
+# down, cut through the ground the region zone's deposit describes.
+#
+# ⭐ **Cartesian because labour is orthogonal.** The lode dips and the
+# workings do not: level drifts and vertical winzes are what haulage and
+# drainage require, and closing the gap between a continuous geology field
+# and discrete orthogonal workings IS the craft. (A cavern is another
+# matter — see the Hush chamber, which is spherical because water and
+# geology are not.)
+#
+# ⚠ `cellSize: 10.0` — chosen because ten metres is the distance over
+# which grade meaningfully changes. It is also the conversion between the
+# grid a mine is cut on and the metres the deposit speaks.
+#
+# `stocks:` is the ecology's occurrence table (discovery-slate's *author
+# the biome, override the exception*, in the shipped expression the
+# `SpatialZone.stocks` field already gives us). ⚠ It is per-ZONE, so
+# depth-banded ecology is not expressible here — the upper band is all
+# Stage A reaches, so one table is exactly enough, and the seam is
+# recorded rather than worked around.
+class: /platform/idea/location/CartesianZone
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: the Ferrow diggings
+  cellSize: 10.0
+  stocks:
+    cricket: 40
+    delve-rat: 12
+    pale-grazer: 3

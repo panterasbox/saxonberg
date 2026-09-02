@@ -1,0 +1,30 @@
+# U3 · The Winze Head — ⭐ the push-your-luck decision, staged as a hole
+# in the floor.
+#
+# The winze is CLIMBED, not walked: `climb` and `ClimbableMixin` already
+# ship, so the vertical needed no new locomotion — only an edge that
+# declares what it is. Going down is deeper ore, worse air, and further
+# from the adit; the room says all three without saying any of them.
+class: /platform/location/SingletonCartesianLocation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the winze head
+  primaryKeyword: winze
+  keywords: [winze, head, "winze head", ladder]
+  longDescription: |
+    The drift ends, and the floor does. A square hole goes down out of the lamplight with a ladder in it, spiked to the timber at the top and disappearing at about the fourth rung. There is a windlass over it that nobody has used in years and a coil of rope that would not take anybody's weight.
+
+    Air comes up the hole. It is not the same air as up here.
+  coords: { x: -2, y: -1, z: -1 }
+  exits:
+    east:
+      destination: /world/rejection/ferrow/timbered-drift
+    west:
+      destination: /world/rejection/ferrow/hush-mouth
+  props:
+    - /world/rejection/thing/glowcap-fixture
+  details:
+    hole:
+      keywords: [hole, winze, ladder, shaft]
+      description: |
+        Cut square, about a fathom on a side, and going straight down. The ladder is sound for as far as you can see it. Below that is a question.

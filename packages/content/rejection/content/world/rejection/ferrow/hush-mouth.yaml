@@ -1,0 +1,24 @@
+# The mouth of the Hush — ⭐ the grid cell that the authored feature pin
+# sits in, and the near side of the chamber seam.
+#
+# ⚠ It is an AUTHORED singleton, not a carved member, precisely because
+# the crossing must be explicit on both sides and a keyed member has no
+# stable path to name. The deposit's `features.pins` entry at
+# `-30,20,-30` is what makes the ground here say *hush-mouth*; this room
+# is what a player finds when they break into it.
+class: /platform/location/SingletonCartesianLocation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a break in the rock
+  primaryKeyword: break
+  keywords: [break, hole, mouth]
+  longDescription: |
+    A heading that stops because the rock did. The face has gone through into a void — a ragged hole a person could get through, with a draught coming out of it that is colder than the drift and smells of nothing whatsoever.
+
+    Green runs right up to the edge of the break and stops.
+  coords: { x: -3, y: -1, z: -1 }
+  exits:
+    in:
+      destination: /world/rejection/hush/gallery
+    east:
+      destination: /world/rejection/ferrow/winze-head

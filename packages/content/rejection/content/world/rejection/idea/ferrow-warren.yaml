@@ -1,0 +1,38 @@
+# The Ferrow warren — ⭐ the MUTATION half of the mine, and the row that
+# supplies its policy.
+#
+# ⭐⭐ `typeRows` is the falsifiable test made concrete: the machinery
+# never names a room row, so a second mining town gives it four rows of
+# its own and the trade code does not change. Everything below is a fact
+# about THIS place.
+#
+# ⚠ `claimBlocks` is the declared cell↔claim mapping, authored rather
+# than derived from geometry. Parcels are titled over PATHS and a claim is
+# a region of coordinate space; *do not invent coordinate-extent parcels*
+# is the constraint, and a property-substrate build can replace this scan
+# later without touching a single title.
+#
+# ⭐ A STATIC mine does not need `claimBlocks` at all — authored rooms
+# have real paths and `ParcelApi`'s longest-prefix resolution answers
+# *whose claim is this* directly. The mapping is the workaround for keyed
+# members not having distinct paths, and it is honest to say so.
+class: /trade/mining/idea/MineWarren
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the Ferrow diggings
+  typeRows:
+    face: /world/rejection/ferrow/face
+    junction: /world/rejection/ferrow/junction
+    stope: /world/rejection/ferrow/stope
+    fall: /world/rejection/ferrow/fall
+  zonePath: /world/rejection/ferrow
+  aditPath: /world/rejection/location/adit
+  mineExtent: /world/rejection/ferrow
+  # Two blocks are recorded from the start: the co-op's ground off the
+  # Timbered Drift, and one open claim somebody staked and walked away
+  # from. The rest of the diggings is unclaimed, which is what makes
+  # `stake` a thing to do rather than a thing to read about.
+  claimBlocks:
+    - parcelExtent: /world/rejection/ferrow/claims/1
+      from: [-4, -4, -3]
+      to: [0, 0, -1]

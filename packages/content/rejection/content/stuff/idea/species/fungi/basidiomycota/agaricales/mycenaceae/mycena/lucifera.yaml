@@ -1,0 +1,32 @@
+# Mycena lucifera — the glowcap, and ⭐⭐ **Rejection's answer to the
+# archetype's defaultless `light` slot.**
+#
+# The mine archetype says *you need light underground* and names nothing.
+# This place answers with a cultivated bioluminescent fungus; another mine
+# answers with oil lamps; a third answers with something nobody has
+# written. Same slot, different world — and that is the demonstration the
+# whole trade/locality split exists to make.
+#
+# ⚠ **It DIES and must be replaced.** The consumable is biological rather
+# than combustible, which means the money sink is a fungus-farmer in this
+# town rather than an oil supply chain — and it means `PortableLight`'s
+# deferred burn-time economy is not needed here at all.
+#
+# Foxfire is real: several *Mycena* species genuinely glow, continuously
+# and coldly, from luciferin oxidation. The invention is the brightness,
+# not the mechanism.
+class: /platform/idea/species/Species
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  binomial: Mycena lucifera
+  commonNames: ["glowcap", "foxfire", "lamp fungus"]
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/sessile
+  _parentCladePath: /stuff/idea/species/fungi
+  _defaultMaterialPath: /stuff/idea/material/tissue/plant-tissue
+  lifecycleStates: ["alive", "dead"]
+  sexDeterminationSystem: none
+  reproductiveMode: asexual
+  lifespanMin: 0
+  lifespanMax: 1
+  circadianBand: cathemeral
+  diet: saprotrophic

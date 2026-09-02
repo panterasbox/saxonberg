@@ -1,0 +1,24 @@
+# The assay-shed counter — ⭐ where ore is CONSIGNED, and where the delay
+# is the feature.
+#
+# A miner is paid through the shipped consignment path — zero new
+# mechanism — and historically exact: you were paid after the assay, not
+# on the spot. The wait is not friction to be smoothed; it is what makes
+# the assay an event, and it is why the sample goes up with you and the
+# money comes back down later.
+#
+# ⚠ `listingCapOverride` is set higher than the global dial because ore
+# arrives in LOTS: a shift's cutting is a dozen lumps, and a cap sized for
+# somebody's spare lantern would have a miner throwing ore away.
+class: /platform/thing/ConsignmentShelf
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the assay counter
+  primaryKeyword: counter
+  keywords: [counter, bins, scale, assay]
+  longDescription: |
+    A long bench under the north window with the scale at the end of it under a glass dome, and a rank of numbered sample bins along the front. Slates above each bin, chalked with a name and a weight and, when the assay is back, a figure.
+
+    Nobody is paid at this counter. You are paid at it three days later.
+  mass: 180
+  listingCapOverride: 24

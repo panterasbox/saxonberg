@@ -1,0 +1,93 @@
+# ⭐⭐ The Ferrow orebody — **and it is a PLACE, not a trade fact.**
+#
+# `trade-mining` ships the `Deposit` CLASS and no ore. A deposit is a
+# thing about somewhere, so it belongs to the venue, and a second mining
+# town writes its own numbers here and touches no code at all.
+#
+# ## What is authored and what is not
+#
+# Everything below is STRUCTURE: the stratigraphy, the water table, the
+# lode's plane, the grade bands, the depletion lean, the feature pins.
+# The per-cell detail — is there ore in THIS ten metres of rock, and how
+# much — is computed from position and stored nowhere, seeded from this
+# locality's own address. ⚠ There is no seed field here on purpose:
+# rename the mine and its ore moves, and no author manages a magic
+# number.
+#
+# ## The numbers, in METRES
+#
+# ⚠ Metres, not grid cells. A deposit is a fact about the rock, and the
+# rock does not know what cell size somebody chose for the workings cut
+# through it; `Working.metresOf` is the single conversion and reads the
+# zone's `cellSize` (10 m here).
+#
+# **The water table at −45 m is the whole of Stage A's scope boundary.**
+# An adit drains by gravity, and the oxide cap is physically located above
+# that line — so geology, engineering, the tech ladder and the economics
+# all put the cut in one place and the scope needs no defending.
+class: /trade/mining/idea/Deposit
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: ferrow
+  # Slate over granite. ⭐ The band is not decoration: a heading in slate
+  # costs about half what the same heading costs in granite, because
+  # carve cost is `hardness × volume` and the two rows genuinely differ.
+  # A miner who learns to keep above −60 m is learning real economics.
+  stratigraphy:
+    - { toZ: -60, host: /stuff/idea/material/rock/slate }
+    - { toZ: -400, host: /stuff/idea/material/rock/granite }
+  waterTable: -45
+  # The lode: one plane, striking 041 and dipping 62 to the southeast,
+  # twelve metres thick, running 180 m along strike and 90 m down dip
+  # from a point 20 m below the yard.
+  #
+  # ⭐ `strike` and `dip` ARE theta and phi. That is why the survey can
+  # solve the body from three points, and why a player doing it is doing
+  # real geometry rather than opening a chest.
+  lode:
+    through: [0, 0, -20]
+    strike: 41
+    dip: 62
+    thickness: 12
+    strikeExtent: 180
+    dipExtent: 90
+    gangue: /stuff/idea/material/mineral/quartz
+  # ⭐ The oxide cap above the water table, and the sulfides below it.
+  #
+  # ⚠ The chalcopyrite band is authored and Stage A CANNOT REACH IT: a
+  # sulfide wants roasting before reduction, and the ground it sits in
+  # wants a pump. It is here so the survey's honest inference —
+  # *"sulfides below, if it holds"* — has a real referent rather than a
+  # promise in the prose. The grade is higher, which is exactly the pull
+  # a later stage needs.
+  zones:
+    - { toZ: -45, mineral: /stuff/idea/material/mineral/malachite, meanGrade: 0.07, spread: 0.05 }
+    - { toZ: -400, mineral: /stuff/idea/material/mineral/chalcopyrite, meanGrade: 0.11, spread: 0.04 }
+  # ⭐ The old men's workings. Everything within reach of the adit has
+  # been picked over once already — the lean SCALES the computed grade
+  # rather than replacing it, so the ground under the yard is still the
+  # same ground, just poorer than it was. It is also why a prospector who
+  # walks further does better, which is the whole economics of a played-
+  # out cap in one authored box.
+  depletion:
+    - from: [-60, -60, -30]
+      to: [60, 60, 0]
+      scale: 0.55
+      reason: "the old men had this ground first, and they were not stupid"
+  features:
+    # ⚠ An authored PIN, and it is indistinguishable downstream from a
+    # computed cell — the spine invariant. This one is the mouth of the
+    # natural chamber (R6): breaking into it lands you in a zone with its
+    # own geometry, because a cavern was not cut and a cubic grid
+    # misrepresents it.
+    pins:
+      "-30,-10,-10":
+        feature: hush-mouth
+        mineral: /stuff/idea/material/mineral/malachite
+        grade: 0.24
+    # Seeded pockets: vugs, crystal-lined and worth stopping for. The
+    # roll is `roll01(seed, cell)`, so the pocket was ALWAYS there and
+    # nothing rolls to decide what your pick did.
+    seeded:
+      - { feature: vug, chance: 0.04, inLodeOnly: true }
+      - { feature: seep, chance: 0.06 }

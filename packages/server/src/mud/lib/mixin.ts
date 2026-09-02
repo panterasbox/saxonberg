@@ -547,6 +547,15 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   PlantableMixin: "{} isn't something you can plant",
 
   // Making & wear.
+  //
+  // ⚠ `ToolMixin` and `AdornmentMixin` were BOTH missing, and the gate
+  // was right to ask: `hang` has required an Adornment since it shipped,
+  // and `shore` requires a Tool — so two live refusals were falling
+  // through to the generic sentence, which is a dead end a player cannot
+  // act on. The phrases say what the object would have to BE, which is
+  // the only thing that tells somebody what to go and find.
+  AdornmentMixin: "{} isn't something you can hang",
+  ToolMixin: "{} isn't a tool",
   ManualBuildMixin: "{} isn't a vessel you can work in",
   CraftedMixin: "{} isn't a made thing",
   DurableMixin: "{} doesn't wear out",

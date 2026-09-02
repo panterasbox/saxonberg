@@ -1,0 +1,25 @@
+# Gryllus tenebrarum — the delve cricket. ⭐ **Its SILENCE is a reading.**
+#
+# Crickets stridulate constantly in good air and stop when it goes. They
+# are not an instrument anybody installed — they are simply there, and a
+# miner who has worked a level for a year notices the quiet before they
+# notice anything else.
+#
+# ⭐ That makes the ambient band a SECOND free warning alongside the
+# canary, on a different sense: the bird you have to look at, the
+# crickets you cannot help hearing. Neither is a spare.
+class: /platform/idea/species/Species
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  binomial: Gryllus tenebrarum
+  commonNames: ["delve cricket", "cricket"]
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/sessile
+  _parentCladePath: /stuff/idea/species/animalia
+  _defaultMaterialPath: /stuff/idea/material/tissue/flesh
+  lifecycleStates: ["alive", "dead"]
+  sexDeterminationSystem: xy
+  reproductiveMode: sexual
+  lifespanMin: 0
+  lifespanMax: 1
+  circadianBand: cathemeral
+  diet: detritivore

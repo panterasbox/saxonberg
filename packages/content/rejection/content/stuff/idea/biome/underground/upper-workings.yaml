@@ -1,0 +1,27 @@
+# The upper workings — the atmosphere of a shallow, adit-drained level.
+#
+# ⭐ **Depth-banded atmosphere works for free**, because the biome chain
+# already resolves outward. Cool, damp, still and dark: 285 K (about
+# 12 °C, the year-round temperature of shallow rock anywhere in a
+# temperate country), 95% humidity because the walls are wet, and no
+# wind, which is exactly why ventilation has to be a topology problem
+# rather than a weather one.
+#
+# ⚠ The atmosphere is plain `air`. Foul air is NOT a biome fact — it is a
+# consequence of the workings' own shape, memoed onto the room by
+# `Working.airAt` — so this row is the good case and the room overrides
+# it when the shape goes wrong. A biome that authored blackdamp would
+# make the whole level bad regardless of what anybody dug.
+class: /platform/idea/Biome
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: upper-workings
+  _extendsBiomePath: /stuff/idea/biome/universe
+  _defaultTemperature: { value: 285, unit: K }
+  _defaultHumidity:    { value: 95, unit: "%" }
+  _defaultGravity:     { value: 9.81, unit: "m/s²" }
+  _defaultWind:        { value: 0.1, unit: "m/s" }
+  _defaultAtmosphere:  air
+  _defaultAmbientSoundLevel: { value: 22, unit: dB }
+  _ambientSoundMml: "<markup>water finding its way down rock, and crickets</markup>"
+  _ambientSmellMml: "<markup>wet stone, cold iron, and old smoke</markup>"

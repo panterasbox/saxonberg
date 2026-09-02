@@ -1,0 +1,27 @@
+# A jar of glowcap — the carried light, and the thing Provisioning sells.
+#
+# ⭐⭐ **Losing your light is DISABLING, not lethal.** A lamp is a tool,
+# not life-support: in the dark you can walk, listen, smell and feel your
+# way out, and you cannot hew, read a face or shore. That is consistent
+# with the safety model — ground cannot kill, air can — and it is why the
+# jar is a purchase rather than a life-or-death dependency.
+#
+# ⚠ It goes out biologically rather than burning out. `PortableLight`
+# defers fuel economy to the combustion build, and Rejection needs no
+# flame at all — which is precisely the divergence the archetype's
+# defaultless slot exists to permit.
+class: /platform/thing/equipment/PortableLight
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a stoppered jar of glowcap
+  primaryKeyword: jar
+  keywords: [jar, glowcap, lamp, light]
+  longDescription: >-
+    A wide-mouthed jar packed with rotted wood and a crop of pale
+    mushrooms, stoppered with waxed cloth punched through for air. It
+    gives a soft green light, does not go out, does not set anything on
+    fire, and will be dead in a month.
+  mass: 0.9
+  emittedIntensity: 25
+  emittedColorTemperature: 5200
+  on: true

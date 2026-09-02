@@ -1,0 +1,37 @@
+# The adit — ⭐⭐ **the whole of Stage A's scope boundary, as a room.**
+#
+# An adit drains by gravity. That single fact is why there is no shaft, no
+# hoist, no pump, no drainage commons and no toll to pay at a throat — and
+# it is why an independent working their own claim needs the co-op for
+# nothing in Stage A. The oxide cap is *physically located* above the
+# water table, so geology, engineering, the tech ladder and the economics
+# all put the cut in the same place.
+#
+# ⚠ It is a SURFACE room (z = 0, in the pithead zone) and that is
+# load-bearing: `Working.airAt` walks the exit graph to a room that
+# breathes, and "breathes" means *has a way out of the workings' own
+# zone*. The adit IS that way out. Every heading's air is measured from
+# here.
+class: /platform/location/SingletonCartesianLocation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the adit mouth
+  primaryKeyword: adit
+  keywords: [adit, mouth, entrance, tunnel]
+  longDescription: |
+    A squared hole in the hillside, timbered at the mouth and running level into the dark. Water comes out of it along a channel cut in the floor — a steady, unremarkable trickle that has been doing that for as long as anybody has worked here, and which is the reason nobody here owns a pump.
+
+    A draught comes out with the water, cool and smelling of wet rock.
+  coords: { x: 0, y: -1, z: 0 }
+  exits:
+    north:
+      destination: /world/rejection/location/pithead-yard
+    south:
+      destination: /world/rejection/ferrow/cage-bottom
+  cast:
+    - /world/rejection/agent/onsetter
+  details:
+    channel:
+      keywords: [channel, water, trickle, drain]
+      description: |
+        A groove cut in the floor along one wall, carrying an inch of clear water out into the light. Level ground, downhill all the way. It is the cheapest drainage engineering there is and it works because somebody sited the mouth correctly a very long time ago.

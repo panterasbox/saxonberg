@@ -1,0 +1,35 @@
+# ⭐⭐ A glowcap bed in a wall niche — **the lighting infrastructure, and
+# the archetype's `light` slot bound.**
+#
+# The archetype names no source. Rejection answers with a cultivated
+# fungus: it emits continuously, it needs no fuel, and ⚠ **it dies** — a
+# fixture is a placed living thing somebody keeps, on exactly the pattern
+# a timber set is. That makes the money sink biological and LOCAL: the
+# mine's own fungus-farmer, rather than an oil supply chain nobody here
+# owns.
+#
+# ⚠ It is a `PortableLight` and not a `Lamp`: `Lamp` is the street
+# lamppost with a dusk/dawn schedule, and a mine has no dusk. A niche of
+# fungus is simply a light source that is on — and it is technically
+# carryable, which is correct and funny: you can absolutely pull a bed of
+# glowcap out of the wall and take it with you, and it will die faster.
+#
+# 40 lumens over a 10 m cell is a soft green working light — enough to
+# clear the archetype's 20 lux threshold and see what you are doing;
+# ⚠ nowhere near `bright`, which is why you cannot judge grade by eye
+# down here and why the Assay Shed is a surface room.
+class: /platform/thing/equipment/PortableLight
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a bed of glowcap in a niche
+  primaryKeyword: glowcap
+  keywords: [glowcap, niche, fungus, light]
+  longDescription: >-
+    A shallow niche cut into the wall and packed with damp rotted wood,
+    out of which grows a close crop of pale mushrooms. They give off a
+    steady green light, cold as a moon, bright enough to work by and not
+    much more. Somebody has been trimming the dead ones out.
+  mass: 3
+  emittedIntensity: 40
+  emittedColorTemperature: 5200
+  on: true

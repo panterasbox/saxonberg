@@ -1,0 +1,22 @@
+verbs: [stake]
+controller: /trade/mining/idea/cmd/mining/StakeController
+description: "Stake a mining claim on the ground you are standing over"
+help: |
+  `stake` records a claim on the block of ground beneath you, at the
+  claims office counter.
+
+  ⭐ A claim is STAKED, not bought. `title buy` is choosing from a
+  catalogue of lots somebody laid out; staking is a first-come
+  registration — you find ground, you post a notice, and the recorder
+  writes it down. There is no price list and there is no provisioner: it
+  mints a **title and no room**, which is exactly what a mining claim is.
+
+  ⚠ Ground somebody already holds refuses, and says who holds it. That
+  is the register doing its job.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  - name: block
+    type: string
+    required: false
