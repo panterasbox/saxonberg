@@ -153,7 +153,10 @@ sale"*) — the one retail-kernel edit. Then:
 
 - **`check <weapon>`** — ONE new verb, category retail
   (`platform/.../cmd/retail/check.yaml` + `CheckController`), afforded
-  **only by the CheckRack fixture's `commandContributions`** (verbs-on-
+  **only by a `static commandContributions` on the CheckRack class**
+  (⚠ the residences lesson: a row-level `commandContributions:` is
+  silently dead — the affordance is a class static, and
+  `ConsignmentShelf.ts:56` is the live precedent) (verbs-on-
   objects; no core mixin — the verb exists only where a rack stands,
   honoring the constraint's spirit). Gates: the item passes the weapon
   predicate (P10; shields excluded by `Construction.isWeapon()`), you
@@ -180,7 +183,10 @@ seam that wires the bar exit) via `StuffApi.singleton` +
 `ContainmentApi.move` into the host, and moved by host migration
 (`unwireHostFixtures` leaves it to be re-wired). Being a Persistable
 singleton keyed on its own templatePath, its holdings survive relog and
-reboot regardless of which clone it stands in. Bonus the requirements
+reboot regardless of which clone it stands in. Never-reclaimed
+weapons accumulate on the rack indefinitely — accepted for v1 (the
+owner-stamp keeps them reclaimable forever; an abandonment policy is
+future house content, not substrate). Bonus the requirements
 call out: the checked arsenal sits inside the combat-free room — nobody
 can fight over the rack.
 
@@ -297,8 +303,15 @@ the bar→office doorway** — if not, the brain steps to the office door
 and calls through it via literal verbs, paying the floor absence
 honestly. Dave's `enforces` brain gains a **speech witness trigger**
 on his callPhrase → emerge (`go south`) → run the ladder from the
-floor (the warned/ordered phase picks up from the bartender's warning
-when the subject matches). When no bartender is rostered, Dave covers
+floor. Cross-brain state is not shared (brains are stateless; Mara's
+`ctx.state` is hers): **Dave re-derives on arrival from his own
+perception** — the summons carries urgency, not state. A visibly
+armed patron he arrives to has, by the fact of the summons, already
+ignored the house warning → he enters at the ordered rung; a fight
+he arrives to gets the shout rung. This is also doctrine: Dave acts
+on what he sees. If the walk-to-door fallback is used, seed the
+bartenders' discovery of the office door alongside Dave's (they work
+here). When no bartender is rostered, Dave covers
 the floor (the shipped `covers` behavior) and his own cadence scan is
 the tripwire — coverage total by construction. Consequence: Dave
 usually arrives mid-scene, so P11's read-the-room inference is the
@@ -571,6 +584,7 @@ dave.yaml, not world dials — per-venue personality.)
 | The truce (defend-shaped offer, reciprocal end with no victor/defeat, lapse on strike, Dave's shout beat) | W3 + W6 |
 | The check (lounge-side rack, ticket, relog survival, reclaim, `ownerOf` throughout, shield excluded) | W4 |
 | Warning then 86 (no-record grace, comply-and-return clean, institutional persistent record, brandishing skips grace) | W5 |
+| The summons (bartender warns + calls, Dave emerges and runs the ladder; empty roster = Dave covers) | W5 |
 | The ladder (hands-first, threshold, office fetch, unattended fight) + the wrong guy (belief-not-ledger, no staff exemption) | W6 |
 | Docs + lint family + one full suite | W7 |
 
