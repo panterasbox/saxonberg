@@ -189,6 +189,24 @@ export class ParcelApi {
   }
 
   /**
+   * Cite the reach this ground fronts (or `''` to take it off the
+   * water). Returns the updated row, or `null` when no parcel claims
+   * `extent`.
+   *
+   * ⭐ The citation is what makes a **riparian** right derivable with no
+   * record at all: the bank-holders of a reach are the owners of the
+   * parcels that cite it. It lives on the parcel rather than being
+   * derived from the address tree because the two do not correspond —
+   * a room's content path and its `_address` are independent by design.
+   */
+  public static async citeReach(
+    extent: string,
+    reach: string,
+  ): Promise<ParcelRecord | null> {
+    return logic().citeReach(extent, reach);
+  }
+
+  /**
    * ⭐ Apply a declared title claim — the content installer's seam
    * (content-packs wave 3; `PackLogic.applyRequires` is the one caller).
    * Absent → `granted` (row + `grant` event); same holder → `kept`;

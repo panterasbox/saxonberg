@@ -630,6 +630,84 @@ metering is an explicit non-goal, so there is no demand model to ask,
 and an over-subscribed main in a dry August is exactly what gives the
 rights layer something to bind against.
 
+## Rights (W7)
+
+A water right is **a volume per window plus a priority date**. Without a
+volume it cannot be over-subscribed; without a date it cannot be senior.
+
+### Two doctrines, one mechanism
+
+| | how it exists | who has one |
+|---|---|---|
+| **prior appropriation** | an explicit, dated, transferable **record** | whoever filed — first in time, first in right |
+| **riparian** | **derived**, with no record at all | whoever owns land on the bank, in equal share |
+
+The substrate ships the **record** form because it is the superset;
+riparian is a *derivation rule over the same shape*. A polity's doctrine
+is therefore a **choice** (`allocate(..., { riparian: true })`), not a
+second implementation, and both answer one query.
+
+⭐ Riparian being record-free is not a shortcut, it is the doctrine: you
+have a right because of where your land is, and nobody wrote anything
+down. It also means the riparian path needs **no filing authority, no
+gate and no verb** — which is why it is the one a player has on day one.
+
+Every riparian right has priority date `0` — **simultaneous by
+construction**. A drought shrinks every glass rather than emptying the
+junior ones, which is exactly what "equal share" means.
+
+### The parcel's reach citation
+
+`ParcelRecord.reach` is the field riparian derivation reads. It lives on
+the **parcel** rather than being derived from the address tree because
+⚠ **the two do not correspond**: a room's content path and its
+`_address` are independent by design — the market square sits at
+`/world/terminus/market/square` and is addressed
+`terminus/city/counting-houses/market-square`. A citation on the land is
+the only honest link between a title and a river. `ParcelApi.citeReach`
+sets it; a pack's `requires.title` claim can declare it.
+
+### The `water-right` document kind
+
+⚠ **A pack cannot declare a `DocumentKind`** — the kind's consumer is
+code and the installer needs its go-live hook, so *editing that file is
+a platform act*. The **kind** is the platform's; the **validated save**
+that decides what a legitimate right looks like is the water pack's.
+That is the whole of P1's split, in one feature.
+
+Path-keyed at `/water/rights/<course>/<node>/<id>`, because seniority is
+`list(prefix)` plus a sort — which wants the reach in the path rather
+than in an index. `onVanish: 'keep'`, **not** `'delete'`: a right is a
+record of something that happened, and no absent file should erase one.
+
+### Allocation
+
+Filed rights sort by priority date, oldest first, and are served in full
+until the water runs out. ⭐ **The junior is the one that goes short** —
+in a dry August the newest claim gets nothing while the oldest gets
+everything, and that asymmetry is why a senior right is worth money. Ties
+break on the id so an allocation never reorders between reads.
+
+### The quota rides the RIGHT, not the source
+
+A per-window counter against the holder's own record. ⚠ The refusal
+**exposes no other holder's draw**, and that is a property of the
+*shape* rather than of what a caller prints: `quotaRemainingM3(right,
+drawn)` is pure over its two arguments and consults no register at all.
+There is nothing for it to look up, therefore nothing to leak, and no
+leaderboard can ever be built from it. *Aggregate, never report.*
+
+### ⭐ Navigation is a claimant who is not a farmer
+
+`navigation` is a use in the vocabulary carrying a **minimum flow**
+rather than a volume. It takes **nothing** — it is a condition on what
+survives everybody else — and a claim whose minimum is not met is
+**stranded**. One entry in a vocabulary buys the classic water fight
+(navigation versus irrigation — the Missouri, the Colorado) out of
+quantities the build already computes, and it is why an upstream
+diversion can strand a river and curtailing a junior right un-strands
+it.
+
 ## Verbs: the check ran, and the answer was mostly "no new verb"
 
 Every act in this build is *operating a built mechanism*, which is the

@@ -62,6 +62,27 @@ export const DOCUMENT_KINDS = {
   'command-view': { kind: 'command-view', naturalKey: null, contentDir: 'cmd', ext: 'yaml', onVanish: 'delete' },
   /** The venue archetype — an industry's floor in capabilities (content-packs A13/A14). */
   archetype: { kind: 'archetype', naturalKey: 'archetypeId', contentDir: 'archetypes', ext: 'yaml', onVanish: 'delete' },
+  /**
+   * A **water right** — a volume per window plus a priority date.
+   *
+   * ⚠ Runtime-written, like `release`: rights are filed by claimants
+   * over the life of a world, not shipped by a pack. Path-keyed
+   * (`/water/rights/<course>/<node>/<id>`) because seniority is
+   * `list(prefix)` plus a sort on the priority date, which wants the
+   * reach in the path rather than in an index.
+   *
+   * `onVanish: 'keep'` and NOT `'delete'`: a right is a record of
+   * something that happened, and no absent file should be able to erase
+   * one. `release`'s `delete` is safe only because nothing files a
+   * release from a pack either; here the stakes of getting it wrong are
+   * somebody's water.
+   *
+   * The KIND is the platform's (a pack cannot declare one — the kind's
+   * consumer is code and the installer needs its go-live hook); the
+   * validated save that decides what a legitimate right looks like is
+   * the water pack's.
+   */
+  'water-right': { kind: 'water-right', naturalKey: null, contentDir: 'water-rights', ext: 'yaml', onVanish: 'keep' },
 } as const satisfies Record<string, DocumentKindSpec>;
 
 export type DeclaredDocumentKind = keyof typeof DOCUMENT_KINDS;

@@ -144,6 +144,16 @@ export class ParcelLogic extends ApiLogic {
     return reg ? reg.transfer(extent, newOwner) : null;
   }
 
+  /** See {@link ParcelApi.citeReach}. */
+  @CallSecurity(ParcelApiCallers)
+  public async citeReach(
+    extent: string,
+    reach: string,
+  ): Promise<ParcelRecord | null> {
+    const reg = lookupRegistry();
+    return reg ? reg.citeReach(extent, reach) : null;
+  }
+
   /** See {@link ParcelApi.grantUse}. */
   @CallSecurity(ParcelApiCallers)
   public async grantUse(
