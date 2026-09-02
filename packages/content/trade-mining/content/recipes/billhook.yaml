@@ -1,0 +1,13 @@
+recipeId: billhook
+name: Billhook
+keywords: [billhook, bill]
+inputSlots:
+  - { slot: stock, category: ferrous, minGrade: fair, kind: item, count: 1 }
+  - { slot: handle, category: wood, minGrade: poor, kind: item, count: 1 }
+toolCapabilities: [striking, anvil]
+outputTemplate: /trade/mining/thing/billhook
+outputMaterial: ''
+outputApplication: tangible
+requiresHeatK: 1200
+difficulty: standard
+discipline: mining

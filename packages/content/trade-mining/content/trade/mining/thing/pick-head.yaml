@@ -1,0 +1,15 @@
+# A pick head — the forged half, before it is hafted. ⭐ The chain closes
+# HERE: this is what a smith makes from copper somebody dug, and what a
+# miner buys to swing at the ground it came out of.
+class: /platform/thing/ToolItem
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  primaryKeyword: pick-head
+  keywords: ["pick-head", "head"]
+  shortDescription: a forged pick head
+  longDescription: >-
+    A drawn-out head with an eye through the middle, one point and one
+    chisel edge, still carrying the hammer marks. It wants a haft.
+  mass: 1.8
+  capabilities: []
+  _materialPath: /stuff/idea/material/element/copper

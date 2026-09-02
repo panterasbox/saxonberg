@@ -1,0 +1,18 @@
+# A timber set — two legs and a cap, and the thing that holds a working
+# up. ⭐ It is a PLACED OBJECT and not a flag, which is what puts ground
+# support on the shipped repair economy: it decays, `analyze` reads its
+# condition, `repair` restores it, and a mine that runs out has a supply
+# problem.
+class: /trade/mining/thing/TimberSet
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  primaryKeyword: timber
+  keywords: ["timber", "set", "prop", "stull"]
+  shortDescription: a set of mine timber
+  longDescription: >-
+    Two legs and a cap, notched to each other and cut a shade long so
+    they have to be driven home. Squared, but not finely — a set that
+    takes a week to make is a set nobody sets.
+  mass: 40
+  capabilities: ["timber-set"]
+  _materialPath: /stuff/idea/material/wood/oak

@@ -1,0 +1,14 @@
+# Two legs and a cap. Trivial to describe, and the thing a mine consumes
+# faster than anything else it owns — which is what makes the coppice a
+# real business rather than scenery.
+recipeId: timber-set
+name: Timber Set
+keywords: [timber, set, prop]
+inputSlots:
+  - { slot: stock, category: wood, minGrade: poor, kind: item, count: 2 }
+toolCapabilities: [cutting]
+outputTemplate: /trade/mining/thing/timber-set
+outputMaterial: ''
+outputApplication: tangible
+difficulty: easy
+discipline: mining
