@@ -137,6 +137,44 @@ smoke point (the libations lesson — `feel`/`taste` never ran because no
 body plan granted touch). A fat Material is a deliverable, not an
 assumption.
 
+### Hot drinks: the wet method at authored temperatures (settled)
+
+Tea, coffee, and tisanes are **cooking's method territory — no new
+trade, no new machinery.** Infusion/decoction is water-medium
+extraction, and the temperatures are the pedagogy: coffee ~365 K,
+green tea ~350 K, full boil genuinely ruins delicate leaves. A brew
+recipe is `medium: water` + a sub-boil `requiresHeatK` + a `mug`
+vessel kind — every piece already designed.
+
+- **The shipped state is a bar SKU, not a brewed thing**: hospitality's
+  coffee recipe is "from the urn into a mug" (`discipline:
+  bartending`, no heat gate) because the `coffee` Material IS
+  pre-brewed liquid, stocked like a syrup. Nothing anywhere brews; tea
+  doesn't exist.
+- **The trade split holds without new rules**: the *making* is
+  cooking-method (a kettle is a pot row; domestic-same-verbs at your
+  own hearth); the *serving* stays hospitality's — the café sells
+  service, and the urn path is honest bar fulfillment.
+- **Chain depth is an authoring choice** behind the unitasker-style
+  restraint: green beans → roast (a *dry*-method recipe — real
+  Maillard on the bean) → grind → brew whenever content wants it; v1
+  starts at grounds → brew.
+- **Spoilage retro-fixes the urn**: pre-brewed coffee sitting all day
+  goes on the freshness clock — stale-urn vs fresh-brewed becomes a
+  real quality distinction for free.
+- ⚠ **Caffeine is present-but-inert** — the coffee Material declares
+  `nutrients: ["caffeine", "water"]` but `NUTRIENT_ROUTING` has no
+  `caffeine` entry: tagged, routed nowhere, silently (the
+  fails-closed-and-silent shape, named). The honest model when
+  metabolism wants it: **the second alcohol, not the second ptomaine**
+  — a stimulant with a pleasant low band (alertness) and an unpleasant
+  high one (jitters), riding the shipped `ToxinBehavior` + banded
+  Condition substrate alcohol already exercises. A seed row + a
+  routing entry, not a build. Deferred.
+- Content: no tea plant ships (farming's `sinensis` is *Citrus* — the
+  orange), but **mint does** — a mint tisane is brewable day-one
+  content; proper tea is a one-species farming add later.
+
 ### Prior art: technique is the act layer; method composes with it
 
 *(From the 2026-09-02 prior-art audit — the design rejects nothing
@@ -306,7 +344,10 @@ sinks):
      contents. Bonus: the kill step stops being a crude ">60 °C once"
      threshold and becomes honest **pasteurization units** — the same
      integral as freshness, opposite sign — so S2 partially
-     *retro-feeds W0* rather than being pure new cost.
+     *retro-feeds W0* rather than being pure new cost. And the scorch
+     ceiling (`maxHeatK`) was never just about scorching — **scalded
+     green tea is the same field** (§ Part 2 hot drinks): the tending
+     wave arrives with a second customer already waiting.
    - **S4 — where sequencing lives** (a decision, not a build). Braise
      is ordered stages; `Recipe` is one-shot slots-and-gates and should
      stay so. The sequencing engine exists: the demonstration capture
