@@ -122,6 +122,28 @@ describe('MQL lexer', () => {
       expect(t[0]).toMatchObject({ kind: 'hashId', value: '1abc' });
     });
 
+    /**
+     * ⚠⚠ **One `stuffId` in sixty-four begins with a hyphen.**
+     *
+     * `nanoid()`'s alphabet is `A-Za-z0-9_-`, so a leading `-` turns up
+     * at a measured 1.56% — and the `#` guard tested only the narrow
+     * word-char set, so `#-Xk3…` threw *"bare '#'"* and killed the
+     * command. The disambiguation loop stores `#<stuffId>` as the
+     * focus, so roughly one pick in sixty-four left a focus that could
+     * not be re-resolved. It surfaced as an intermittent full-suite
+     * failure that passed every time it was run alone.
+     */
+    it('⭐ leading-dash body → hashId (a nanoid may start with `-`)', () => {
+      const t = tokens('#-Xk3f_1a');
+      expect(t).toHaveLength(1);
+      expect(t[0]).toMatchObject({ kind: 'hashId', value: '-Xk3f_1a' });
+    });
+
+    it('a dash-only body is still a bare #, not an id', () => {
+      expect(() => lex('#-')).toThrow(/bare '#'/);
+      expect(() => lex('#- ')).toThrow(/bare '#'/);
+    });
+
     it('rejects bare # at end of input', () => {
       expect(() => lex('#')).toThrow(/bare '#'/);
     });
