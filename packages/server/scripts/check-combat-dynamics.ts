@@ -55,6 +55,14 @@ export const COMBAT_DYNAMICS_ALLOWLIST: ReadonlySet<string> = new Set([
   "isConstructed",
   "isContainable",
   "isContainer",
+  // The bum's rush (`fight rush`) — a control-win OUTCOME, not a blow —
+  // throws a grappled body through an exit and leaves it sprawled: it
+  // resolves the exit off the room (`isExitable`) and reposes the loser
+  // (`isPosed`). Combat already moves bodies (isContainable/isContainer);
+  // relocating one through a door and dropping it prone is the same
+  // rationale, not a new blood-and-poise dynamic.
+  "isExitable",
+  "isPosed",
   "isDurable",
   "isGraded",
   "isKeen",
