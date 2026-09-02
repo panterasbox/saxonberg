@@ -230,7 +230,7 @@ describe('libations annexes — the serving recipes and the zone', () => {
     const files = ANNEXES.flatMap((p) => {
       const dir = join(PACKS, p, 'content', 'recipes');
       return existsSync(dir) ? walk(dir) : [];
-    }).filter((f) => !/(toasted-ration|root-mash|fine-roast|hearty-stew|crush|white-crush)\.yaml$/.test(f));
+    }).filter((f) => !/(toasted-ration|root-mash|fine-roast|hearty-stew|crush|white-crush|mash)\.yaml$/.test(f));
     expect(files.length).toBe(1 + 3 + 1 + 1);
     for (const f of files) {
       const r = Recipe.fromData(parse(readFileSync(f, 'utf8')) as Record<string, unknown>);

@@ -4,6 +4,7 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: white wine
   appearance: "a pale, cold white wine"
+  primaryKeyword: white
   keywords: ["white", "wine"]
   density: 992
   thermalConductivity: 0.5

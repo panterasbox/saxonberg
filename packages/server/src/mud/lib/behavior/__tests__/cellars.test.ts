@@ -13,56 +13,56 @@
  * seams their controllers drive. The binder is not under test.
  */
 
-import '@saxonberg/server/test-bootstrap';
+import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { brain as cellars } from '../cellars';
-import type { BrainContext } from '@saxonberg/server/mud/lib/behavior/brain';
-import ConsignController from '@saxonberg/server/mud/platform/idea/cmd/retail/ConsignController';
-import WalletController from '@saxonberg/server/mud/platform/idea/cmd/banking/WalletController';
-import Stock from '@saxonberg/server/mud/platform/thing/Stock';
-import Vat from '@saxonberg/server/mud/platform/thing/Vat';
-import Bottle from '@saxonberg/server/mud/platform/thing/Bottle';
-import BankCounter from '@saxonberg/server/mud/platform/thing/BankCounter';
-import PaymentCard from '@saxonberg/server/mud/platform/thing/PaymentCard';
-import ChattelRegistry from '@saxonberg/server/mud/platform/idea/ChattelRegistry';
-import BusinessEntity from '@saxonberg/server/mud/platform/idea/Business';
-import FermentProfile from '@saxonberg/server/mud/platform/idea/ferment/FermentProfile';
-import Material from '@saxonberg/server/mud/lib/material/Material';
-import type { Crafted } from '@saxonberg/server/mud/lib/craft/Crafted';
-import { EmploymentApi } from '@saxonberg/server/mud/api/employment';
-import { BankingApi } from '@saxonberg/server/mud/api/banking';
-import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
-import { StuffApi } from '@saxonberg/server/mud/api/stuff';
-import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import { BulkableApi } from '@saxonberg/server/mud/api/bulk';
-import { ExecutionContextApi } from '@saxonberg/server/mud/api/execution-context';
-import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
-import { CommandApi, type CommandContext } from '@saxonberg/server/mud/api/command';
-import { Quantity } from '@saxonberg/server/mud/lib/quantity';
-import { Document } from '@saxonberg/server/mud/lib/persistence/Document';
-import { CommandDefinition } from '@saxonberg/server/mud/lib/command/CommandDefinition';
-import { CommandGiverMixin } from '@saxonberg/server/mud/lib/command/CommandGiver';
-import { EmployedMixin } from '@saxonberg/server/mud/lib/employment/Employed';
-import { SensorMixin } from '@saxonberg/server/mud/lib/message/Sensor';
-import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
-import { ContainableMixin } from '@saxonberg/server/mud/lib/spatial/Containable';
-import { MobileMixin } from '@saxonberg/server/mud/lib/spatial/Mobile';
-import { NamedMixin } from '@saxonberg/server/mud/lib/description/Named';
-import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
-import Location from '@saxonberg/server/mud/lib/stuff/Location';
-import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { BrainContext } from '../brain';
+import ConsignController from '../../../platform/idea/cmd/retail/ConsignController';
+import WalletController from '../../../platform/idea/cmd/banking/WalletController';
+import Stock from '../../../platform/thing/Stock';
+import Vat from '../../../platform/thing/Vat';
+import Bottle from '../../../platform/thing/Bottle';
+import BankCounter from '../../../platform/thing/BankCounter';
+import PaymentCard from '../../../platform/thing/PaymentCard';
+import ChattelRegistry from '../../../platform/idea/ChattelRegistry';
+import BusinessEntity from '../../../platform/idea/Business';
+import FermentProfile from '../../../platform/idea/ferment/FermentProfile';
+import Material from '../../material/Material';
+import type { Crafted } from '../../craft/Crafted';
+import { EmploymentApi } from '../../../api/employment';
+import { BankingApi } from '../../../api/banking';
+import { ContainmentApi } from '../../../api/containment';
+import { StuffApi } from '../../../api/stuff';
+import { MixinApi } from '../../../api/mixin';
+import { BulkableApi } from '../../../api/bulk';
+import { ExecutionContextApi } from '../../../api/execution-context';
+import { WorldClockApi } from '../../../api/worldclock';
+import { CommandApi, type CommandContext } from '../../../api/command';
+import { Quantity } from '../../quantity';
+import { Document } from '../../persistence/Document';
+import { CommandDefinition } from '../../command/CommandDefinition';
+import { CommandGiverMixin } from '../../command/CommandGiver';
+import { EmployedMixin } from '../../employment/Employed';
+import { SensorMixin } from '../../message/Sensor';
+import { ContainerMixin } from '../../spatial/Container';
+import { ContainableMixin } from '../../spatial/Containable';
+import { MobileMixin } from '../../spatial/Mobile';
+import { NamedMixin } from '../../description/Named';
+import { Idea } from '../../stuff/Idea';
+import Location from '../../stuff/Location';
+import type { Stuff } from '../../stuff/Stuff';
 import {
   makeStuff,
   makeStuffAtPath,
   withRootContext,
-} from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
-import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
+} from '../../security/__tests__/test-setup';
+import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import {
   installBankingHarness,
   teardownBankingHarness,
-} from '@saxonberg/server/mud/lib/banking/__tests__/banking-test-harness';
-import WorldClockRegistry from '@saxonberg/server/mud/platform/idea/WorldClockRegistry';
-import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
+} from '../../banking/__tests__/banking-test-harness';
+import WorldClockRegistry from '../../../platform/idea/WorldClockRegistry';
+import { TemplatePaths } from '../../paths';
 
 const FLOOR = '/trade/winemaking/location/_cellars-test-floor';
 const COUNTER_ROOM = '/trade/distribution/location/_cellars-test-counter';

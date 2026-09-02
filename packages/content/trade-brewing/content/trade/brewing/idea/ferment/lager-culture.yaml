@@ -1,0 +1,14 @@
+# The lager culture — the cold strain, kept COLD: its band sits a
+# cellar lower than the ale's, and it starves fast on a warm shelf.
+class: /platform/idea/ferment/FermentProfile
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: lager-culture
+  kind: culture
+  strain: lager-yeast
+  inputCategory: lager-lees
+  stallBelowK: 275
+  happyK: 283
+  damageAboveK: 291
+  killK: 308
+  starveDays: 10

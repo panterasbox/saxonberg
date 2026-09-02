@@ -7,6 +7,7 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: wine vinegar
   appearance: "a sharp, cloudy red-brown vinegar"
+  primaryKeyword: vinegar
   keywords: ["vinegar"]
   density: 1010
   thermalConductivity: 0.5

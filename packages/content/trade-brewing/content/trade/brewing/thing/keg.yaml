@@ -16,3 +16,9 @@ data:
   interiorCapacity: 30
   closure: sealed
   open: true
+  # The vessel faucet (fermentation W5): empties at target in the
+  # brewery's stock — an empty is never product — for the cellars
+  # brain to fill, cap and consign.
+  censusKey: vessel:keg
+  regionTarget: 8
+  container: /trade/brewing/thing/brewing-stock

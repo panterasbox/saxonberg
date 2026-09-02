@@ -18,6 +18,44 @@ data:
   dispositions:
     - { disposition: diligence, valence: 60 }
   behaviors:
+    # The producing beats (fermentation W5). The brewhouse beat mashes
+    # off the board, pitches the house barm, kegs finished ale and
+    # consigns it; alternate mash beats run the LAGER LEG — the cold
+    # mash carried down and pitched with the cold strain. The cold-store
+    # beat kegs finished lager (it never mashes or buys). The consigns
+    # beat below keeps carrying the FAUCET's kegs until the W8
+    # switchover retires them.
+    - brain: /lib/behavior/cellars
+      trigger: cadence:120s
+      config:
+        home: /trade/brewing/location/brewing-floor
+        counterRoom: /trade/distribution/location/cash-and-carry
+        crushes: [mash]
+        pitchJar: true
+        lagerLeg:
+          recipe: lager-mash
+          room: /trade/brewing/location/cold-store
+        buyKeyword: malt
+        inputMin: 1
+        vesselCategory: keg
+        vesselKeyword: keg
+        batch: 3
+        buyEvery: 5
+        asks:
+          ale: 12
+          "cask ale": 14
+    - brain: /lib/behavior/cellars
+      trigger: cadence:150s
+      config:
+        home: /trade/brewing/location/cold-store
+        counterRoom: /trade/distribution/location/cash-and-carry
+        crushes: []
+        buyEvery: 0
+        vesselCategory: keg
+        vesselKeyword: keg
+        batch: 3
+        asks:
+          lager: 13
     - brain: /lib/behavior/consigns
       trigger: cadence:90s
       config:

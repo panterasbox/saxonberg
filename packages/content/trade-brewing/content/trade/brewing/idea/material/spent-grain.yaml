@@ -1,0 +1,19 @@
+# Spent grain — the mash's residue (P11/D12): sugars gone, protein and
+# fibre left. Tag `compost` is the `feed` verb's gate — the brewer
+# sells it BACK to the growers (the reverse B2B), and a bed fed with
+# it measurably recovers nitrogen. Real nutrient cycling.
+class: /platform/idea/material/ConsumableMaterial
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: spent grain
+  appearance: "wet, sweet-smelling spent grain"
+  keywords: ["grain", "draff"]
+  density: 800
+  thermalConductivity: 0.4
+  specificHeat: 3000
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["solid", "compost", "spent-grain"]
+  composition: []
+  biologicalSource: null

@@ -33,5 +33,8 @@ data:
     - /trade/winemaking/thing/vat
     - /trade/winemaking/thing/vat
     - /trade/winemaking/thing/cellar-book
+    - /trade/winemaking/thing/conditioning-bottle
+    - /trade/winemaking/thing/conditioning-bottle
+    - /trade/winemaking/thing/conditioning-bottle
   cast:
     - /trade/winemaking/agent/vintner-hand

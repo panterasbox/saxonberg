@@ -15,6 +15,3 @@ data:
   interiorBulk: true
   interiorCapacity: 0.75
   mass: 0.9
-  censusKey: vessel:conditioning-bottle
-  regionTarget: 6
-  container: /trade/winemaking/thing/vintner-stock

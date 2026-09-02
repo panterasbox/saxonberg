@@ -4,16 +4,20 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: ale
   appearance: "a foamy amber ale"
+  primaryKeyword: ale
   keywords: ["ale", "beer", "brew"]
   density: 1010
   thermalConductivity: 0.5
   specificHeat: 3800
   edibility: true
-  nutrients: ["carb", "water"]
+  nutrients: ["carb", "water", "sugar"]
   toxicity:
     - { type: alcohol, amount: 14 }
   tags: ["liquid", "beverage", "drinkable", "alcoholic", "beer", "ale"]
   nutrientAmounts:
     carb: 13000
+    # Residual sugar (g/L) — what cask conditioning referments into
+    # the sparkle (P9).
+    sugar: 8
   composition: []
   biologicalSource: null

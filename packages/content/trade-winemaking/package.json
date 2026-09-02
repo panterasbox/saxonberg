@@ -10,15 +10,5 @@
     "@saxonberg/content-platform": "workspace:*",
     "@saxonberg/server": "workspace:*",
     "@saxonberg/types": "workspace:*"
-  },
-  "scripts": {
-    "build": "tsc",
-    "test": "vitest run",
-    "test:watch": "vitest"
-  },
-  "devDependencies": {
-    "typescript": "^5.4.0",
-    "vitest": "^2.0.0",
-    "yaml": "^2.8.2"
   }
 }

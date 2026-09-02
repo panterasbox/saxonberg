@@ -17,19 +17,21 @@ const SRC = readFileSync(
 describe('the cellars brain — bounded, literal, home in finally', () => {
   it('acts only through literal player verbs', () => {
     for (const verb of [
-      "'get bottle'",
-      "'fill bottle from vat'",
-      "'close bottle'",
+      '`get ${vk}`',
+      '`fill ${vk} from vat`',
+      '`close ${vk}`',
       "'wallet use house'",
-      '`consign bottle --ask ${ask}`',
+      '`consign ${vk} --ask ${ask}`',
       '`order ${which}`',
       '`pour bucket into vat`',
-      "'buy grapes'",
+      '`pour jar into vat`',
+      '`buy ${buyKeyword}`',
     ]) {
       expect(SRC).toContain(verb);
     }
-    // No template-literal command smuggles an object getter into a verb.
-    expect(SRC).not.toMatch(/forceCommand\([^)]*`get /);
+    // Config-authored keywords may ride a template literal; a LIVE
+    // object read may not — no command is built from world state.
+    expect(SRC).not.toMatch(/forceCommand\([^)]*\$\{keywordOf/);
   });
 
   it('every leg is bounded', () => {
@@ -37,12 +39,12 @@ describe('the cellars brain — bounded, literal, home in finally', () => {
     expect(SRC).toContain('i < CRUSHES_PER_BEAT');
     expect(SRC).toContain('i < buyCount');
     expect(SRC).toContain('if (!held) break;');
-    expect(SRC).toContain('if (grapesInReach(home) < 6) break;');
+    expect(SRC).toContain('if (inputsInReach(home, inputKeyword) < inputMin) break;');
   });
 
   it('the hand comes home in finally, from both away legs', () => {
     const matches = SRC.match(/finally \{\s*\n\s*hand\.teleport\(home/g);
-    expect(matches?.length).toBe(2);
+    expect(matches?.length).toBe(3); // consign, cold-store, buy
   });
 
   it('home is the authored floor, never wherever the hand is', () => {

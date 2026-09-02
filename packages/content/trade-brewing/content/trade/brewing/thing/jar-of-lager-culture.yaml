@@ -1,0 +1,14 @@
+# The lager culture jar — the cold strain, kept in the cold store
+# (D14): the lager line exists exactly as long as this stays alive.
+class: /platform/thing/Vat
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a jar of lager culture
+  primaryKeyword: jar
+  keywords: [jar, culture, "lager culture"]
+  longDescription: A wired glass jar of pale sediment, beaded with cellar damp.
+  category: culture-jar
+  interiorBulk: true
+  interiorCapacity: 2
+  interiorMaterial: /trade/brewing/idea/material/lager-lees
+  interiorAmount: 1

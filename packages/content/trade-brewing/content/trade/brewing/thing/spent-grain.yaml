@@ -1,0 +1,14 @@
+# A sack of spent grain — the mash's residue output (P11), feed-shaped:
+# `feed <bed> with grain` restores nitrogen (the compost tag's verb).
+# Unsold sacks stand where they were left — the ambient-burden rule.
+class: /platform/thing/Receptacle
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a sack of spent grain
+  primaryKeyword: grain
+  keywords: [grain, sack, draff, "spent grain"]
+  longDescription: A dripping sack of spent grain, warm and sweet-sour.
+  interiorBulk: true
+  interiorCapacity: 8
+  interiorMaterial: /trade/brewing/idea/material/spent-grain
+  interiorAmount: 8
