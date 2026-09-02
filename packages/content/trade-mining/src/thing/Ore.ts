@@ -56,6 +56,17 @@ export default class Ore extends OreBase {
   /** What comes up with it and is worth nothing. */
   protected gangueMaterialPath: string | null = null;
 
+  /**
+   * The lot this stack is about to absorb, captured in `canMergeWith`
+   * because `onMerged` fires after the absorbed stack is destructed.
+   * Transient by construction — never persisted, never read twice.
+   *
+   * TypeScript `private` rather than `#`: every Stuff dispatches through
+   * the call-security proxy, and a `#` slot is unreachable from `this`
+   * inside a method called through it.
+   */
+  private _absorbing: { stuffId: string; quantity: number; grade: number } | null = null;
+
   public getGrade(): number { return this.grade; }
   public setGrade(value: number): void {
     this.grade = value < 0 ? 0 : value > 1 ? 1 : value;
@@ -91,15 +102,63 @@ export default class Ore extends OreBase {
    * why this is the delta form and not the textbook one.
    */
   public override onMerged(absorbed: Stuff): void {
-    const other = absorbed as unknown as Ore;
+    const stashed = this._absorbing;
+    this._absorbing = null;
     const total = this.getQuantity();
-    const absorbedCount = typeof other.getQuantity === 'function' ? other.getQuantity() : 0;
-    const absorbedGrade = typeof other.getGrade === 'function' ? other.getGrade() : 0;
-    if (total > 0 && absorbedCount > 0 && absorbedCount <= total) {
+    if (
+      stashed !== null &&
+      stashed.stuffId === absorbed.stuffId &&
+      total > 0 &&
+      stashed.quantity > 0 &&
+      stashed.quantity <= total
+    ) {
       this.setGrade(
-        (this.grade * (total - absorbedCount) + absorbedGrade * absorbedCount) / total,
+        (this.grade * (total - stashed.quantity) + stashed.grade * stashed.quantity) / total,
       );
     }
     super.onMerged(absorbed);
+  }
+
+  /**
+   * ⭐ **A sample off a pooled lot assays as the lot.** The split-off is
+   * a fresh clone of the ore ROW, so it starts at the row's authored
+   * grade — which is zero — and would silently make cutting a sample a
+   * way to destroy value. Carrying the grade across is what makes
+   * *"assay is per-lot"* mean anything: you can take a sample to the
+   * scale and learn about the pile it came from.
+   */
+  public override onSplit(splitoff: Stuff): void {
+    const cut = splitoff as unknown as Ore;
+    if (typeof cut.setGrade === 'function') cut.setGrade(this.grade);
+    if (typeof cut.setGangueMaterialPath === 'function') {
+      cut.setGangueMaterialPath(this.gangueMaterialPath);
+    }
+    super.onSplit(splitoff);
+  }
+
+  /**
+   * ⚠⚠ **The absorbed lot is read HERE, before it is destructed**, and
+   * that is not a stylistic choice.
+   *
+   * `GlobbableLogic.merge` runs, in order:
+   * `canMergeWith` → `setQuantity(total)` → `destruct(absorbed)` →
+   * `onMerged(absorbed)`. A destructed Stuff's accessors return
+   * `undefined` — verified by test, because the plan flagged it as the
+   * one genuine unknown — so by the time the hook fires there is nothing
+   * left to weight the average WITH. The pre-hook is the only place the
+   * two figures still exist.
+   *
+   * The stash is keyed on the candidate's `stuffId` and cleared on use,
+   * so a speculative `GlobbableApi.canMerge` probe that never proceeds
+   * to a merge cannot leak into the next real one.
+   */
+  public override canMergeWith(other: Stuff): boolean {
+    const ok = super.canMergeWith(other);
+    const lot = other as unknown as Ore;
+    this._absorbing =
+      ok && typeof lot.getGrade === 'function' && typeof lot.getQuantity === 'function'
+        ? { stuffId: other.stuffId, quantity: lot.getQuantity(), grade: lot.getGrade() }
+        : null;
+    return ok;
   }
 }
