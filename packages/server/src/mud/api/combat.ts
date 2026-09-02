@@ -47,7 +47,12 @@ import { SecurityApi } from './security';
 /** Result of opening a session. */
 export type OpenSessionResult =
   | { ok: true; session: CombatSession }
-  | { ok: false; reason: "busy" | "not-engageable" };
+  | {
+      ok: false;
+      reason: "busy" | "not-engageable" | "sanctuary";
+      /** Player-readable prose when a sanctuary refused the fight. */
+      refusal?: string;
+    };
 
 /**
  * Optional inputs the caller snapshots at open/join. `competenceBands` maps

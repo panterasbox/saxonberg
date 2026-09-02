@@ -2362,3 +2362,64 @@ describe("CombatLogic — fisticuffs (the bar-fight build)", () => {
     expect(bState.down).toBe(true);
   });
 });
+
+describe("CombatLogic — the sanctuary gate (the bar-fight build)", () => {
+  // A room that refuses combat, the CombatSanctuary shape (presence-
+  // dispatched; the base TestRoom has no such method and stays fair game).
+  class SanctuaryRoom extends ContainerMixin(Idea) {
+    combatSanctuaryRefusal(): string {
+      return "Not in here. Take it next door.";
+    }
+  }
+  // A reactive-only venue: it witnesses (onCombatOpened) but has no
+  // sanctuary method — the witness tier can never veto a fight.
+  class WitnessRoom extends ContainerMixin(Idea) {
+    public opened = 0;
+    onCombatOpened(): void {
+      this.opened++;
+    }
+  }
+
+  it("refuses a fresh session with the room's prose — no session opens", () => {
+    const room = makeStuff(() => new SanctuaryRoom());
+    const a = makeFighter(room as unknown as TestRoom);
+    const b = makeFighter(room as unknown as TestRoom);
+    const terms = CombatTerms.agreed(
+      a.getTemplatePath() ?? "a",
+      nonLethal,
+      true,
+    );
+    const res = CombatApi.openSession(a as never, b as never, terms);
+    expect(res.ok).toBe(false);
+    if (!res.ok) {
+      expect(res.reason).toBe("sanctuary");
+      expect(res.refusal).toContain("next door");
+    }
+    // No session, no holds — the refusal is clean, not a torn-down fight.
+    expect(CombatApi.sessionFor(a as never)).toBeUndefined();
+    expect(CombatApi.sessionFor(b as never)).toBeUndefined();
+  });
+
+  it("a hook-less room opens a session normally (byte-parity)", () => {
+    const room = makeStuff(() => new TestRoom());
+    const a = makeFighter(room);
+    const b = makeFighter(room);
+    const session = open(a, b, nonLethal); // throws if it refused
+    expect(session.isActive()).toBe(true);
+  });
+
+  it("the reactive witness tier cannot veto — the fight opens and it fires", () => {
+    const room = makeStuff(() => new WitnessRoom());
+    const a = makeFighter(room as unknown as TestRoom);
+    const b = makeFighter(room as unknown as TestRoom);
+    const terms = CombatTerms.agreed(
+      a.getTemplatePath() ?? "a",
+      nonLethal,
+      true,
+    );
+    const res = CombatApi.openSession(a as never, b as never, terms);
+    expect(res.ok).toBe(true); // a witness never refuses
+    if (res.ok) openSessions.push(res.session);
+    expect(room.opened).toBe(1); // …and it did witness the open
+  });
+});

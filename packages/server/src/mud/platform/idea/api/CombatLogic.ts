@@ -56,6 +56,7 @@ import {
   CombatHookContext,
   type CombatConsequence,
   type CombatVenue,
+  type CombatSanctuary,
   type ExchangeOutcomeKind,
 } from "../../../lib/combat/CombatHookContext";
 import type { CombatReactive } from "../../../lib/combat/CombatReactive";
@@ -951,6 +952,19 @@ function openSessionImpl(
 ): OpenSessionResult {
   if (!MixinApi.isEngaged(initiator) || !MixinApi.isEngaged(defender)) {
     return { ok: false, reason: "not-engageable" };
+  }
+  // Sanctuary: a room may refuse a fight from starting (the lounge, the
+  // social commons). Consulted before ANY state is built, so a refusal is
+  // clean — no session, no holds, no ledger rows. Every fight-starter
+  // funnels here, so this one gate covers the attack verb, ambush brains,
+  // thrown attacks, and forced NPC commands alike.
+  const sanctuaryRefusal = sanctuaryRefusalFor(
+    venueOf(initiator),
+    initiator,
+    defender,
+  );
+  if (sanctuaryRefusal !== null) {
+    return { ok: false, reason: "sanctuary", refusal: sanctuaryRefusal };
   }
   // A combatant already engaged in a fight can't open a fresh session
   // (a second attacker joins the existing one — cycle-2 Phase 4).
@@ -2437,6 +2451,34 @@ function callVenueHook(
   );
 }
 
+/**
+ * Presence-dispatch the sanctuary veto (the `callVenueHook` shape, but it
+ * RETURNS): a room implementing {@link CombatSanctuary.combatSanctuaryRefusal}
+ * may return refusal prose to forbid a fight; absent hook, or a null
+ * return, allows it. A null room (unplaced initiator) never refuses. A
+ * hook that throws is treated as "no refusal" (fail-open — a broken venue
+ * never traps a player in an un-startable fight), logged via guardedHook.
+ */
+function sanctuaryRefusalFor(
+  room: Stuff | null,
+  initiator: Stuff,
+  defender: Stuff,
+): string | null {
+  if (!room) return null;
+  const fn = (room as unknown as Record<string, unknown>)
+    .combatSanctuaryRefusal;
+  if (typeof fn !== "function") return null;
+  let refusal: string | null = null;
+  guardedHook("combatSanctuaryRefusal", () => {
+    refusal =
+      (fn as CombatSanctuary["combatSanctuaryRefusal"])!.apply(room, [
+        initiator,
+        defender,
+      ]) ?? null;
+  });
+  return refusal;
+}
+
 /** Flavor lines queued by hooks (`ctx.attachFlavor`), buffered so they
  * emit AFTER the exchange's own narration beat, in queue order. */
 const pendingFlavor: Array<{ anchor: Stuff; line: string }> = [];
@@ -3605,6 +3647,9 @@ export interface InitiateResult {
   reason?: string;
   terms?: CombatTerms;
   consented?: boolean;
+  /** Player-readable prose when a sanctuary refused the fight
+   * (`reason === "sanctuary"`); the controller renders it verbatim. */
+  refusal?: string;
 }
 
 /**
@@ -3869,7 +3914,7 @@ async function initiateImpl(
   // otherwise a fresh session opens.
   const initiatorSession = sessionForImpl(initiator);
   const targetSession = sessionForImpl(target);
-  let result: { ok: boolean; reason?: string };
+  let result: { ok: boolean; reason?: string; refusal?: string };
   if (
     initiatorSession &&
     targetSession &&
@@ -3883,9 +3928,17 @@ async function initiateImpl(
     result = joinImpl(target, initiator, terms, opts);
   } else {
     const opened = openSessionImpl(initiator, target, terms, opts);
-    result = opened.ok ? { ok: true } : { ok: false, reason: opened.reason };
+    result = opened.ok
+      ? { ok: true }
+      : { ok: false, reason: opened.reason, refusal: opened.refusal };
   }
-  if (!result.ok) return { ok: false, reason: result.reason ?? "failed" };
+  if (!result.ok) {
+    return {
+      ok: false,
+      reason: result.reason ?? "failed",
+      refusal: result.refusal,
+    };
+  }
   return { ok: true, terms, consented };
 }
 
