@@ -1,0 +1,23 @@
+# The canary in its cage — the mine's air instrument.
+#
+# ⚠ Its silence is the reading, and it can die. That is the point: air is
+# the ONE lethal hazard in this build, and it is lethal because it comes
+# with a free continuous warning, an obvious unilateral escape (walk out
+# — every exit stays open) and no rescue requirement.
+class: /platform/agent/NPC
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  _speciesPath: /stuff/idea/species/animalia/chordata/aves/passeriformes/fringillidae/serinus/canaria
+  lifecycleState: alive
+  primaryKeyword: canary
+  keywords: ["canary", "bird", "cage"]
+  shortDescription: a canary in a wicker cage
+  longDescription: >-
+    A small yellow bird in a wicker cage, hung from a nail or carried on
+    a hook. It watches you sideways with a bright black eye. Miners do
+    not keep it for company.
+  mass: 0.02
+  behaviors:
+    - brain: /trade/mining/behavior/reads-air
+      trigger: cadence:20s
+      config: {}

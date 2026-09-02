@@ -3,11 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "The mining trade — the acts, the warren, the geology field's model, the ore lump, the instruments, the archetype.",
+  "description": "The mining trade \u2014 the acts, the warren, the geology field's model, the ore lump, the instruments, the archetype.",
   "dependencies": {
     "@saxonberg/content-base-library": "workspace:*",
     "@saxonberg/content-generic-objects": "workspace:*",
     "@saxonberg/content-platform": "workspace:*",
+    "@saxonberg/content-species-and-names": "workspace:*",
     "@saxonberg/server": "workspace:*",
     "@saxonberg/types": "workspace:*"
   },

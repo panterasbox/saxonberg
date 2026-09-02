@@ -164,6 +164,20 @@ const WATER_COST = 0.25;
 /** Steps along the carved graph at which the air is entirely spent. */
 const AIR_REACH = 12;
 
+/**
+ * Below this the working's atmosphere is no longer air.
+ *
+ * ⭐ **Air is the build's ONE lethal hazard, and deliberately so.** It
+ * carries a free continuous warning (the bird, the crickets going quiet),
+ * an obvious unilateral escape (walk out — every exit stays open), and it
+ * needs **no rescue**, so unlike collapse it does not wait for other
+ * players to exist. Ground cannot kill; air can.
+ */
+const FOUL_BELOW = 0.34;
+
+/** The atmosphere a spent working holds — odourless, and only the bird reads it. */
+const FOUL_ATMOSPHERE = 'blackdamp';
+
 /** How many lumps a fresh face holds before it is worked out. */
 const FACE_LUMPS = 8;
 
@@ -207,6 +221,8 @@ export interface Working {
   groundTelegraph(): Promise<string | null>;
   /** 1 fresh … 0 unbreathable, by distance along the carved graph. */
   airAt(): Promise<number>;
+  /** Re-settle the air here and everywhere the change could have reached. */
+  refreshAir(): Promise<void>;
 }
 
 export function WorkingMixin<TBase extends MixinConstructor<Stuff & Container>>(Base: TBase) {
@@ -294,6 +310,27 @@ export function WorkingMixin<TBase extends MixinConstructor<Stuff & Container>>(
     /** Record `lumps` won from `direction`. The only writer of the depletion. */
     public recordWinning(direction: string, lumps: number): void {
       this.workedFaces[direction] = (this.workedFaces[direction] ?? 0) + lumps;
+    }
+
+    /**
+     * Settle this working's air once the room is standing.
+     *
+     * ⭐ **This is what makes a hand-authored static mine hold foul air.**
+     * The warren re-settles after every carve because it knows when the
+     * shape changed; a static mine's shape never changes, so it settles
+     * once, here, and stays right forever. Without it a bespoke mine
+     * would read as fresh air everywhere — the exemplar claim quietly
+     * false in the one place nobody would test.
+     *
+     * @hook Chained from `PostRegistrationMixin`.
+     */
+    public async postRegister(context?: unknown): Promise<void> {
+      // The `Persistable` chain shape: reach the base's own hook off the
+      // prototype, because a mixin's `super` is not a class.
+      const sup = (Base.prototype as { postRegister?(c?: unknown): Promise<void> | void })
+        .postRegister;
+      if (typeof sup === 'function') await sup.call(this, context);
+      await this.airAt();
     }
 
     // ───────────────────── the place, resolved ─────────────────────
@@ -502,7 +539,7 @@ export function WorkingMixin<TBase extends MixinConstructor<Stuff & Container>>(
       for (let depth = 0; depth <= AIR_REACH && frontier.length > 0; depth++) {
         const next: (Stuff & Container)[] = [];
         for (const room of frontier) {
-          if (breathes(room)) return clamp01(1 - depth / AIR_REACH);
+          if (breathes(room)) return this.settleAir(clamp01(1 - depth / AIR_REACH));
           for (const neighbour of neighboursOf(room)) {
             if (seen.has(neighbour.stuffId)) continue;
             seen.add(neighbour.stuffId);
@@ -511,7 +548,54 @@ export function WorkingMixin<TBase extends MixinConstructor<Stuff & Container>>(
         }
         frontier = next;
       }
-      return 0;
+      return this.settleAir(0);
+    }
+
+    /**
+     * Memo the derived air value into the room's own `_atmosphere`
+     * override, which is the field the respiration driver's chain walk
+     * reads.
+     *
+     * ⭐ **Derive-on-read for TRUTH, write-through for CONSEQUENCE.** The
+     * value itself is always a fresh function of the topology; this write
+     * is what lets a body suffocate on it without the respiration driver
+     * knowing anything about mines. Nothing else in the engine learns a
+     * new concept — the working simply reports a different atmosphere,
+     * and every shipped consequence (the crisis, the rescuable dying
+     * clock, the recovery when you walk out) follows for free.
+     */
+    private settleAir(value: number): number {
+      const want = value < FOUL_BELOW ? FOUL_ATMOSPHERE : null;
+      const self = this as unknown as { _atmosphere: string | null };
+      // `null` falls back through the biome chain, which is what a room
+      // with good air should do — never a hardcoded 'air'.
+      if (self._atmosphere !== want) self._atmosphere = want;
+      return value;
+    }
+
+    /**
+     * Re-settle the air here and in every working within reach along the
+     * exit graph. Called after the topology CHANGES (a carve, an abandon,
+     * a hole-through), which is the only time it can change — the shape
+     * of the workings is the whole of the model.
+     */
+    public async refreshAir(): Promise<void> {
+      const start = this as unknown as Stuff & Container;
+      const seen = new Set<string>([start.stuffId]);
+      let frontier: (Stuff & Container)[] = [start];
+      for (let d = 0; d <= AIR_REACH * 2 && frontier.length > 0; d++) {
+        const next: (Stuff & Container)[] = [];
+        for (const room of frontier) {
+          const w = room as unknown as { airAt?(): Promise<number> };
+          if (typeof w.airAt === 'function') await w.airAt();
+          for (const n of neighboursOf(room)) {
+            if (seen.has(n.stuffId)) continue;
+            seen.add(n.stuffId);
+            next.push(n);
+          }
+        }
+        frontier = next;
+      }
     }
   };
 }
@@ -520,11 +604,8 @@ export function WorkingMixin<TBase extends MixinConstructor<Stuff & Container>>(
 function breathes(room: Stuff & Container): boolean {
   const declared = (room as unknown as { getVentilated?(): boolean }).getVentilated?.();
   if (declared === true) return true;
-  if (!MixinApi.isExitable(room)) return false;
   const myZone = (room as unknown as { getZone?(): unknown }).getZone?.() ?? null;
-  for (const [, exit] of room.getExits()) {
-    const dest = exit.getDestination();
-    if (!dest) continue;
+  for (const dest of destinationsOf(room)) {
     const theirZone = (dest as unknown as { getZone?(): unknown }).getZone?.() ?? null;
     // A way out of the workings' own zone is a way to the air. The adit
     // is the canonical one; a shaft would be another.
@@ -535,11 +616,31 @@ function breathes(room: Stuff & Container): boolean {
 
 /** The rooms one step along the exit graph. */
 function neighboursOf(room: Stuff & Container): (Stuff & Container)[] {
+  return destinationsOf(room);
+}
+
+/**
+ * Every live room an exit of `room` leads to.
+ *
+ * ⚠ An exit whose destination has been reaped throws rather than
+ * answering null (a blocked edge is a real state, not a missing one), so
+ * the walk is guarded: a graph read during a teardown must degrade to
+ * *"that way leads nowhere any more"* rather than take the reap down
+ * with it.
+ */
+function destinationsOf(room: Stuff & Container): (Stuff & Container)[] {
   if (!MixinApi.isExitable(room)) return [];
   const out: (Stuff & Container)[] = [];
   for (const [, exit] of room.getExits()) {
-    const dest = exit.getDestination();
-    if (dest && MixinApi.isContainer(dest)) out.push(dest as Stuff & Container);
+    let dest: Stuff | null = null;
+    try {
+      dest = exit.getDestination() as unknown as Stuff | null;
+    } catch {
+      continue;
+    }
+    if (dest && !dest.isDestroyed() && MixinApi.isContainer(dest)) {
+      out.push(dest as Stuff & Container);
+    }
   }
   return out;
 }

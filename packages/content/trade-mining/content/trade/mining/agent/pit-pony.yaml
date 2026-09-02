@@ -1,0 +1,19 @@
+# The pit pony — haulage, and no new mechanism at all.
+#
+# ⭐ Carry capacity derives from body MASS in the shipped encumbrance
+# substrate, so hitching the cart to 320 kg of pony instead of carrying
+# it yourself is a measurably lower load ratio. The pony is better at
+# hauling because it is heavier, which is the real reason.
+class: /platform/agent/HaulingCreature
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/perissodactyla/equidae/equus/caballus-pumilus
+  lifecycleState: alive
+  primaryKeyword: pony
+  keywords: ["pony", "pit-pony", "horse"]
+  shortDescription: a stocky pit pony
+  longDescription: >-
+    A short, barrel-chested pony with a clipped mane and the patient,
+    unbothered look of an animal that has done this a great many times.
+    Its harness is worn smooth where the traces run.
+  mass: 320

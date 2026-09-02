@@ -300,6 +300,10 @@ export default class MineWarren extends MineWarrenBase {
     await PersistableApi.restoreOrSeed(room, key);
     this.carved[keyOf(cell)] = { cell: keyOf(cell), tier: 'provisional', holder, type };
     await this.wireHubExit(room);
+    // ⭐ The topology changed, so the air did. Driving a heading makes the
+    // far end worse; holing it through makes it better — and both are the
+    // same call, because both are the same fact.
+    await refreshAirAround(room);
     return room;
   }
 
@@ -340,9 +344,11 @@ export default class MineWarren extends MineWarrenBase {
       } else if (MixinApi.isPersistable(room)) {
         room.markForRevert();
       }
+      const neighbours = liveNeighboursOf(room);
       this.unwireHubExit(room);
       this.removeMember(room);
       StuffApi.destruct(room as unknown as Stuff);
+      for (const n of neighbours) await refreshAirAround(n);
     }
     if (entry && entry.tier !== 'held') delete this.carved[key];
   }
@@ -468,6 +474,34 @@ export default class MineWarren extends MineWarrenBase {
     if (c && c[0] === cell[0] && c[1] === cell[1] && c[2] === cell[2]) return adit;
     return null;
   }
+}
+
+/**
+ * Re-settle the air across the workings this room can reach. The read
+ * itself lives on the room ({@link Working.refreshAir}); the warren only
+ * knows WHEN the shape changed.
+ */
+async function refreshAirAround(room: MemberStuff): Promise<void> {
+  const w = room as unknown as { refreshAir?(): Promise<void> };
+  if (typeof w.refreshAir === 'function') await w.refreshAir();
+}
+
+/** The live rooms one step away, before this one goes. */
+function liveNeighboursOf(room: MemberStuff): MemberStuff[] {
+  if (!MixinApi.isExitable(room)) return [];
+  const out: MemberStuff[] = [];
+  for (const [, exit] of room.getExits()) {
+    let dest: Stuff | null = null;
+    try {
+      dest = exit.getDestination() as unknown as Stuff | null;
+    } catch {
+      continue; // a reaped neighbour — that way leads nowhere any more
+    }
+    if (dest && !dest.isDestroyed() && MixinApi.isContainer(dest)) {
+      out.push(dest as MemberStuff);
+    }
+  }
+  return out;
 }
 
 /** The canonical cell key. Also the survey address and the MQL atom. */

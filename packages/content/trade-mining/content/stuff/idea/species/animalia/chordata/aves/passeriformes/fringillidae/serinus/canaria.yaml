@@ -1,0 +1,45 @@
+# Serinus canaria — the domestic canary, and ⭐⭐ **the only free reading
+# of the one hazard in this build that can kill you.**
+#
+# The bird is an INSTRUMENT that happens to be alive. It sings in good
+# air, goes quiet as it thins, and stops entirely well before a person
+# feels anything — the `reads-air` brain reports that, and its silence is
+# the reading.
+#
+# ⚠ **Nothing here makes it die specially.** It breathes the same
+# atmosphere everybody else does through the shipped respiration driver;
+# it succumbs first because `spo2.survivableMin` is 82 against a
+# person's 50. A bird's air sacs are a one-way flow-through exchange, so
+# it takes up whatever is in the air far faster than tidal mammal lungs
+# — the mechanism is a number in content, not a special case in code,
+# which is why a second mine can use a different animal by writing a
+# different row.
+class: /platform/idea/species/Species
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  binomial: Serinus canaria
+  commonNames: ["canary", "bird"]
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/avian
+  _parentCladePath: /stuff/idea/species/animalia
+  _defaultMaterialPath: /stuff/idea/material/tissue/flesh
+  vitalProfile:
+    coreTemperature: { baseline: 314, survivableMin: 305, survivableMax: 320 }
+    heartRate: { baseline: 800, survivableMin: 200, survivableMax: 1100 }
+    respiratoryRate: { baseline: 90, survivableMin: 30, survivableMax: 200 }
+    bloodPressureSystolic: { baseline: 130, survivableMin: 70, survivableMax: 180 }
+    bloodPressureDiastolic: { baseline: 90, survivableMin: 45, survivableMax: 130 }
+    # ⭐ The number the whole instrument rests on. A person is in trouble
+    # below 50; the bird is already dead there.
+    spo2: { baseline: 97, survivableMin: 82, survivableMax: 100 }
+    bloodVolume: { baseline: 0.002, survivableMin: 0.0012, survivableMax: 0.002 }
+  lifecycleStates: ["alive", "dead"]
+  sexDeterminationSystem: zw
+  reproductiveMode: sexual
+  lifespanMin: 0
+  lifespanMax: 10
+  circadianBand: diurnal
+  diet: herbivore
+  visionProfile:
+    scotopicMin: dim
+    photopicMax: blinding
+    bandShift: 0
