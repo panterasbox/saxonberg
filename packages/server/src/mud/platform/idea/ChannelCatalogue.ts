@@ -413,16 +413,11 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
 
   /**
    * Read a player's chat subscription for a channel. Resolves through the
-   * channel's Subject (`free-chat` surface), porting any legacy
-   * `chat.subscription.<channelId>` key on first read.
+   * channel's Subject (`free-chat` surface).
    */
   public getSubscription(avatar: Avatar, channel: Channel): ChannelSubscription {
     if (!channel.subject) return { ...DEFAULT_SUBSCRIPTION };
     const subjects = this.subjectsSync();
-    const legacy = readLegacyChannelSub(avatar, channel._id ?? channel.name);
-    if (legacy) {
-      subjects.migrateLegacySubscription(avatar, channel.subject, legacy);
-    }
     const sub = subjects.getSubscription(avatar, channel.subject);
     return {
       tunedIn: sub.followed,
@@ -708,46 +703,6 @@ const RESERVED_NAMES: ReadonlySet<string> = new Set([
   'history',
   'promote',
 ]);
-
-/**
- * Read a legacy per-channel `chat.subscription.<channelId>` value, if any,
- * for one-time migration onto the per-subject store. Returns null when no
- * legacy key is set.
- */
-function readLegacyChannelSub(
-  avatar: Avatar,
-  channelId: string,
-): { tunedIn: boolean; muted: boolean } | null {
-  if (!MixinApi.isPropertied(avatar)) return null;
-  let raw: PropValue | undefined;
-  try {
-    raw = avatar.getProp(
-      Property.of<PropValue>(`chat.subscription.${channelId}`),
-    );
-  } catch {
-    // The sandbox boundary denies `getProp` across scopes, and delivery
-    // walks every recipient — so a speaker standing inside a circle hits
-    // this on the first FIELD-scoped subscriber and the whole `chat`
-    // command dies with a raw SecurityError, after the line has already
-    // been composed and echoed to the sender.
-    //
-    // Degrading is right rather than exempting `getProp` at the boundary:
-    // this read is a best-effort ONE-TIME port of a legacy key onto the
-    // per-subject store, not something delivery depends on. Treating an
-    // unreadable value as "no legacy key" is exactly what this function
-    // already promises for an absent one. Exempting `getProp` would open
-    // arbitrary cross-scope domain reads — the thing the boundary exists
-    // to stop. Same reasoning as `isParked` in the exempt-method list,
-    // reached from the other side.
-    return null;
-  }
-  if (!raw || typeof raw !== 'object') return null;
-  const r = raw as { tunedIn?: boolean; muted?: boolean };
-  return {
-    tunedIn: typeof r.tunedIn === 'boolean' ? r.tunedIn : true,
-    muted: typeof r.muted === 'boolean' ? r.muted : false,
-  };
-}
 
 function avatarPlayerIdOf(s: Stuff): string {
   if (PlayerApi.isAvatarStuff(s)) return s.getPlayerId();

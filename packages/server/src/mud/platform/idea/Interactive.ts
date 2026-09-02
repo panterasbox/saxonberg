@@ -25,7 +25,6 @@ import { Idea } from '../../lib/stuff/Idea';
 import type { VetoResult } from '../../lib/errors';
 import type { EvictionContext } from '../../lib/stuff/Stuff';
 import { MqlSubscriptionApi } from '../../api/mql-subscription';
-import { ForumsApi } from '../../api/forums';
 import { StuffApi } from '../../api/stuff';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { User } from '../../lib/identity/User';
@@ -49,6 +48,7 @@ import { ConnectionLogic } from './api/ConnectionLogic';
 import { CardLogic } from './api/CardLogic';
 import { PromptLogic } from './api/PromptLogic';
 import ReactionRegistry from './ReactionRegistry';
+import ForumSubscriptionRegistry from './ForumSubscriptionRegistry';
 import { Final, Unshadowable } from '../../lib/security/decorators';
 import { TemplatePaths } from '../../lib/paths';
 
@@ -75,6 +75,14 @@ function promptLogic(): PromptLogic {
     () => new PromptLogic(),
   );
 }
+/** The forum-subscription registry (lazy-created in tests; manifest in prod). */
+function forumSubscriptions(): ForumSubscriptionRegistry {
+  return StuffApi.singletonSync<ForumSubscriptionRegistry>(
+    TemplatePaths.forumSubscriptionRegistry,
+    () => new ForumSubscriptionRegistry(),
+  );
+}
+
 /** The reaction state singleton (lazy-created in tests; manifest in prod). */
 function reactionRegistry(): ReactionRegistry {
   return StuffApi.singletonSync<ReactionRegistry>(
@@ -413,6 +421,18 @@ export default class Interactive extends Idea {
     return promptLogic().isPending(this, promptId);
   }
 
+  /* ─────────────── the forum-subscription surface ────────────── */
+
+  /** Cancel one live forum subscription (the `forum-unsubscribe` wire). */
+  public cancelForumSubscription(subscriptionId: string): void {
+    forumSubscriptions().handleUnsubscribe(this, subscriptionId);
+  }
+
+  /** Drop every live forum subscription (disconnect). */
+  public cancelAllForumSubscriptions(): void {
+    forumSubscriptions().cancelAllForInteractive(this);
+  }
+
   /* ─────────────────── the reaction surface ──────────────────── */
 
   /** Register the normal per-player reaction sink (on connect). */
@@ -460,7 +480,7 @@ export default class Interactive extends Idea {
   public teardownSubstrateState(): void {
     MqlSubscriptionApi.cancelAllForInteractive(this);
     this.cancelAllCards();
-    ForumsApi.cancelAllForInteractive(this);
+    this.cancelAllForumSubscriptions();
     this.cancelAllReactions();
     this.cancelPrompts('host-disconnected');
   }

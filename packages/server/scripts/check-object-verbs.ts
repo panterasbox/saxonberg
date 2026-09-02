@@ -76,6 +76,13 @@ const EXEMPT_APIS = new Set<string>([
  * is not a verb on a thing.
  */
 const NON_SUBJECT_TYPES = new Set<string>([
+  // Documents are DATA ROWS, not objects with behavior — the OO
+  // convention ("verbs on the objects") applies to Stuff; a Document's
+  // behavior lives in its catalogue behind the Api (F2 decision:
+  // Subject/Board/Entry stay catalogue-operated).
+  "Subject",
+  "Board",
+  "Entry",
   // context plumbing
   "CommandContext",
   "ExecutionContext",

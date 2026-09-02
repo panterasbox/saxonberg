@@ -26,6 +26,10 @@ import { StuffApi } from '../stuff';
 import { PlayerApi } from '../player';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type Entry from '../../lib/forum/Entry';
+import {
+  SubjectSubscriberMixin,
+  type SubjectSubscriber,
+} from '../../lib/forum/SubjectSubscriber';
 
 let store: Map<string, Map<string, Record<string, unknown>>>;
 let idCounter = 0;
@@ -39,9 +43,9 @@ function col(name: string): Map<string, Record<string, unknown>> {
   return c;
 }
 
-class Actor extends Idea {}
-function makeActor(): Stuff {
-  return makeStuff(() => new Actor());
+class Actor extends SubjectSubscriberMixin(Idea) {}
+function makeActor(): Stuff & SubjectSubscriber {
+  return makeStuff(() => new Actor()) as unknown as Stuff & SubjectSubscriber;
 }
 
 beforeEach(() => {
@@ -82,16 +86,14 @@ async function buildMap() {
     open: true,
     organizer: 'ordered',
   });
-  const spine = await ForumsApi.postThread(
-    creator,
+  const spine = await creator.postThread(
     board,
     'RCV',
     'Adopt ranked-choice voting.',
   );
-  const pro = await ForumsApi.attachClaim(creator, spine, 'supports', 'Reduces spoilers.');
-  const con = await ForumsApi.attachClaim(creator, spine, 'objects-to', 'Harder to count.');
-  const question = await ForumsApi.attachClaim(
-    creator,
+  const pro = await creator.attachClaim(spine, 'supports', 'Reduces spoilers.');
+  const con = await creator.attachClaim(spine, 'objects-to', 'Harder to count.');
+  const question = await creator.attachClaim(
     spine,
     'responds-to',
     'What is RCV?',
@@ -137,7 +139,7 @@ describe('the neutral default lens', () => {
     expect(flagOf(lens, question)).toBe(false);
 
     // Answer it — attach ANY child to the objection.
-    await ForumsApi.attachClaim(creator, con, 'objects-to', 'Software counts fine.');
+    await creator.attachClaim(con, 'objects-to', 'Software counts fine.');
     lens = await ForumsApi.readArgumentLens(board);
     expect(flagOf(lens, con)).toBe(false); // answered → no longer open
   });

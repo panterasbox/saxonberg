@@ -36,6 +36,18 @@ import {
 } from "../../../lib/social/NotifyRule";
 
 const SocialApiCallers = SecurityPolicies.FromModule("/api/social#SocialApi");
+/** The F2 viewer face (NotifyPolicy hosts) forwards here as the viewer. */
+const SocialViewerCallers = SecurityPolicies.AnyOf(
+  SocialApiCallers,
+  SecurityPolicies.FromMixin("NotifyPolicyMixin", {
+    // Compare by stuffId — the caller may surface as the raw target
+    // while the argument is the proxy (or vice versa).
+    where: (caller, _target, _method, args) =>
+      (caller as { stuffId?: string }).stuffId !== undefined &&
+      (caller as { stuffId?: string }).stuffId ===
+        (args[0] as { stuffId?: string } | undefined)?.stuffId,
+  }),
+);
 
 /**
  * The tap install is also callable by the self-warming `PresenceRelay`
@@ -803,7 +815,7 @@ async function styleMessageForImpl(
  * recipient `Scene`) would require a broader comms/messaging refactor to
  * late-bind the per-viewer restyle, deferred rather than forced here. A
  * future consumer (a `filterMessage`-shadow or a late-bound producer-side
- * wrapper) calls `SocialApi.styleMessageFor(viewer, speaker, body)` at the
+ * wrapper) calls `viewer.styleMessageFrom(speaker, body)` at the
  * compose seam. `summary` currently renders like `full` (no clean
  * per-recipient aggregation hook yet).
  *
@@ -874,7 +886,7 @@ export class SocialLogic extends ApiLogic {
   }
 
   /** See {@link SocialApi.styleMessageFor}. */
-  @CallSecurity(SocialApiCallers)
+  @CallSecurity(SocialViewerCallers)
   public styleMessageFor(
     viewer: Stuff,
     speaker: Stuff,
@@ -884,7 +896,7 @@ export class SocialLogic extends ApiLogic {
   }
 
   /** See {@link SocialApi.ruleFor}. */
-  @CallSecurity(SocialApiCallers)
+  @CallSecurity(SocialViewerCallers)
   public async ruleFor(
     viewer: Stuff,
     person: Stuff,
@@ -894,13 +906,13 @@ export class SocialLogic extends ApiLogic {
   }
 
   /** See {@link SocialApi.listRules}. */
-  @CallSecurity(SocialApiCallers)
+  @CallSecurity(SocialViewerCallers)
   public listRules(viewer: Stuff): NotifyRule[] {
     return listRulesImpl(viewer);
   }
 
   /** See {@link SocialApi.setRule}. */
-  @CallSecurity(SocialApiCallers)
+  @CallSecurity(SocialViewerCallers)
   public setRule(
     viewer: Stuff,
     ref: GroupRef,
@@ -910,13 +922,13 @@ export class SocialLogic extends ApiLogic {
   }
 
   /** See {@link SocialApi.removeRule}. */
-  @CallSecurity(SocialApiCallers)
+  @CallSecurity(SocialViewerCallers)
   public removeRule(viewer: Stuff, ref: GroupRef): boolean {
     return removeRuleImpl(viewer, ref);
   }
 
   /** See {@link SocialApi.composeOccupants}. */
-  @CallSecurity(SocialApiCallers)
+  @CallSecurity(SocialViewerCallers)
   public composeOccupants(
     viewer: Stuff,
     occupants: Stuff[],
@@ -926,7 +938,7 @@ export class SocialLogic extends ApiLogic {
   }
 
   /** See {@link SocialApi.reorderRule}. */
-  @CallSecurity(SocialApiCallers)
+  @CallSecurity(SocialViewerCallers)
   public reorderRule(
     viewer: Stuff,
     ref: GroupRef,

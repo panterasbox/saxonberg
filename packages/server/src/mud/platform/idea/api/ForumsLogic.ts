@@ -20,6 +20,7 @@ import ForumEvent, {
 } from '../../../lib/forum/ForumEvent';
 import type Subject from '../../../lib/forum/Subject';
 import type { Stuff } from '../../../lib/stuff/Stuff';
+import { MixinApi } from '../../../api/mixin';
 import type {
   EntrySort,
   VoteState,
@@ -31,6 +32,18 @@ import type {
 } from '../../../api/forums';
 
 const ForumsApiCallers = SecurityPolicies.FromModule('/api/forums#ForumsApi');
+/** The F2 actor face (SubjectSubscriber hosts) forwards here as the actor. */
+const ForumsActorCallers = SecurityPolicies.AnyOf(
+  ForumsApiCallers,
+  SecurityPolicies.FromMixin('SubjectSubscriberMixin', {
+    // Compare by stuffId — the caller may surface as the raw target
+    // while the argument is the proxy (or vice versa).
+    where: (caller, _target, _method, args) =>
+      (caller as { stuffId?: string }).stuffId !== undefined &&
+      (caller as { stuffId?: string }).stuffId ===
+        (args[0] as { stuffId?: string } | undefined)?.stuffId,
+  }),
+);
 
 /**
  * ⭐ A forum post is **long-form authored prose**, so it parses the
@@ -120,9 +133,11 @@ export class ForumsLogic extends ApiLogic {
   }
 
   /** See {@link ForumsApi.listBoards}. */
-  @CallSecurity(ForumsApiCallers)
+  @CallSecurity(ForumsActorCallers)
   public async listBoards(actor: Stuff): Promise<BoardView[]> {
-    const subjects = await SubjectApi.visibleSubjects(actor);
+    const subjects = MixinApi.isSubjectSubscriber(actor)
+      ? await actor.visibleSubjects()
+      : [];
     const out: BoardView[] = [];
     for (const subject of subjects) {
       const ref =
@@ -138,7 +153,7 @@ export class ForumsLogic extends ApiLogic {
   // --- Entry lifecycle ----------------------------------------------
 
   /** See {@link ForumsApi.postThread}. */
-  @CallSecurity(ForumsApiCallers)
+  @CallSecurity(ForumsActorCallers)
   public async postThread(
     actor: Stuff,
     board: Board,
@@ -172,7 +187,7 @@ export class ForumsLogic extends ApiLogic {
   }
 
   /** See {@link ForumsApi.reply}. */
-  @CallSecurity(ForumsApiCallers)
+  @CallSecurity(ForumsActorCallers)
   public async reply(
     actor: Stuff,
     parent: Entry,
@@ -212,7 +227,7 @@ export class ForumsLogic extends ApiLogic {
   }
 
   /** See {@link ForumsApi.attachClaim}. */
-  @CallSecurity(ForumsApiCallers)
+  @CallSecurity(ForumsActorCallers)
   public async attachClaim(
     actor: Stuff,
     parent: Entry,
@@ -257,7 +272,7 @@ export class ForumsLogic extends ApiLogic {
   }
 
   /** See {@link ForumsApi.editBody}. */
-  @CallSecurity(ForumsApiCallers)
+  @CallSecurity(ForumsActorCallers)
   public async editBody(
     actor: Stuff,
     entry: Entry,
@@ -285,7 +300,7 @@ export class ForumsLogic extends ApiLogic {
   // --- Voting -------------------------------------------------------
 
   /** See {@link ForumsApi.castVote}. */
-  @CallSecurity(ForumsApiCallers)
+  @CallSecurity(ForumsActorCallers)
   public async castVote(
     actor: Stuff,
     entry: Entry,
@@ -413,7 +428,7 @@ export class ForumsLogic extends ApiLogic {
   // --- Thread promotion ---------------------------------------------
 
   /** See {@link ForumsApi.promoteThread}. */
-  @CallSecurity(ForumsApiCallers)
+  @CallSecurity(ForumsActorCallers)
   public async promoteThread(
     actor: Stuff,
     thread: Entry,
@@ -452,7 +467,7 @@ export class ForumsLogic extends ApiLogic {
   // --- The mature → vote seam ---------------------------------------
 
   /** See {@link ForumsApi.matureArgument}. */
-  @CallSecurity(ForumsApiCallers)
+  @CallSecurity(ForumsActorCallers)
   public async matureArgument(actor: Stuff, board: Board): Promise<void> {
     // The decoupled handoff: emit a `mature` event and bind NOTHING. The
     // vote / measure / docket consumer is the deferred governance layer;

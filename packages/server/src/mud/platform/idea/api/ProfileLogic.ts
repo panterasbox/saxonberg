@@ -16,6 +16,7 @@ import { ShellApi } from '../../../api/shell';
 import { SocialApi } from '../../../api/social';
 import type { PresenceStatus } from '@saxonberg/types';
 import { Band } from '../../../lib/standing/Band';
+import { SecurityApi } from '../../../api/security';
 import type {
   ProfileCard,
   ProfileDigest,
@@ -27,6 +28,18 @@ import type {
 // SocialApi (one navigable surface); this logic singleton stays separate
 // for file size + HMR but is @internal.
 const SocialApiCallers = SecurityPolicies.FromModule('/api/social#SocialApi'
+);
+/** The F2 viewer face (NotifyPolicy hosts) forwards here as the viewer. */
+const ProfileViewerCallers = SecurityPolicies.AnyOf(
+  SocialApiCallers,
+  SecurityPolicies.FromMixin('NotifyPolicyMixin', {
+    // Compare by stuffId — the caller may surface as the raw target
+    // while the argument is the proxy (or vice versa).
+    where: (caller, _target, _method, args) =>
+      (caller as { stuffId?: string }).stuffId !== undefined &&
+      (caller as { stuffId?: string }).stuffId ===
+        (args[0] as { stuffId?: string } | undefined)?.stuffId,
+  }),
 );
 
 /** A connected account younger than this reads as a "new arrival". */
@@ -94,8 +107,19 @@ function contactEntryFor(
 @Unshadowable
 export class ProfileLogic extends ApiLogic {
   /** See {@link SocialApi.composeRow}. */
-  @CallSecurity(SocialApiCallers)
+  @CallSecurity(ProfileViewerCallers)
   public async composeRow(viewer: Stuff, target: Stuff): Promise<RosterRow> {
+    // The roster row IS the per-viewer projection of a person — the
+    // same category as naming, and the same read aperture.
+    return SecurityApi.projectAcross(viewer, target, () =>
+      this.composeRowImpl(viewer, target),
+    this);
+  }
+
+  private async composeRowImpl(
+    viewer: Stuff,
+    target: Stuff,
+  ): Promise<RosterRow> {
     const self = viewer.stuffId === target.stuffId;
     const recognized =
       self || (MixinApi.isBeliefStore(viewer) && viewer.recognizes(target));
@@ -116,7 +140,7 @@ export class ProfileLogic extends ApiLogic {
   }
 
   /** See {@link SocialApi.composeCard}. */
-  @CallSecurity(SocialApiCallers)
+  @CallSecurity(ProfileViewerCallers)
   public async composeCard(viewer: Stuff, target: Stuff): Promise<ProfileCard> {
     const self = viewer.stuffId === target.stuffId;
     const recognized =
@@ -236,7 +260,7 @@ export class ProfileLogic extends ApiLogic {
     target: Stuff
   ): PresenceStatus | undefined {
     if (!PlayerApi.isAvatarStuff(target)) return undefined;
-    const status = SocialApi.statusOf(target);
+    const status = target.presenceStatus();
     if (viewer.stuffId === target.stuffId) return status;
     const pref =
       ShellApi.resolveSetting<string>(target, 'privacy.showStatus') ?? 'anyone';

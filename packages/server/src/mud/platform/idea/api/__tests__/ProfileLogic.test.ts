@@ -16,8 +16,8 @@
 import "../../../../../test-bootstrap";
 
 let recognizedNow = false;
+let statusNow = 'active';
 import { describe, it, expect, afterEach, vi } from 'vitest';
-import { SocialApi } from '../../../../api/social';
 import { MixinApi } from '../../../../api/mixin';
 import { PlayerApi } from '../../../../api/player';
 import { RenownApi } from '../../../../api/renown';
@@ -27,7 +27,24 @@ import { ShellApi } from '../../../../api/shell';
 import { Band } from '../../../../lib/standing/Band';
 import { InfluenceStanding } from '../../../../lib/standing/InfluenceStanding';
 import { StuffApi } from '../../../../api/stuff';
+import { ProxyApi } from '../../../../api/proxy';
 import { Stuff } from '../../../../lib/stuff/Stuff';
+import { ProfileLogic } from '../ProfileLogic';
+
+/**
+ * White-box: the RAW (unproxied) logic instance — the fakes here are not
+ * Stuff, so the compose entry is called directly (no gate; both fakes
+ * carry no circle scope so the read aperture is the identity branch).
+ * `Stuff.RAW_TARGET` is the sanctioned raw-state test seam.
+ */
+function composerRaw(): ProfileLogic {
+  const proxy = StuffApi.createSync(() => new ProfileLogic());
+  return (proxy as never as Record<symbol, ProfileLogic>)[ProxyApi.RAW_TARGET]!;
+}
+const composer = { 
+  composeCard: (v: Stuff, t: Stuff) => composerRaw().composeCard(v, t),
+  composeRow: (v: Stuff, t: Stuff) => composerRaw().composeRow(v, t),
+};
 
 /** A target with the full identity getter surface. */
 function makeTarget(): Stuff {
@@ -118,7 +135,7 @@ afterEach(() => {
 describe('ProfileLogic.composeCard redaction', () => {
   it('withholds the persona from a stranger but shows physicality + renown', async () => {
     stubSubstrate(false);
-    const card = await SocialApi.composeCard(makeViewer(), makeTarget());
+    const card = await composer.composeCard(makeViewer(), makeTarget());
 
     expect(card.recognized).toBe(false);
     // Persona hidden.
@@ -141,7 +158,7 @@ describe('ProfileLogic.composeCard redaction', () => {
 
   it('unlocks the persona once recognized', async () => {
     stubSubstrate(true);
-    const card = await SocialApi.composeCard(makeViewer(), makeTarget());
+    const card = await composer.composeCard(makeViewer(), makeTarget());
 
     expect(card.recognized).toBe(true);
     expect(card.nameSurface?.name).toBe('Mara');
@@ -153,7 +170,7 @@ describe('ProfileLogic.composeCard redaction', () => {
   it('gives the self-card everything plus the standing digest, no annotations', async () => {
     stubSubstrate(true);
     const me = makeTarget();
-    const card = await SocialApi.composeCard(me, me);
+    const card = await composer.composeCard(me, me);
 
     expect(card.isSelf).toBe(true);
     expect(card.nameSurface?.name).toBe('Mara');
@@ -178,6 +195,7 @@ describe('ProfileLogic.composeRow — country always, status gated', () => {
       describeWithStatusFor: () => 'Mara',
       kindFor: () => 'player',
       getPlayerId: () => 'p-mara',
+      presenceStatus: () => statusNow,
       allContacts: () => [], // viewer is not a contact of the target
     } as unknown as Stuff;
   }
@@ -195,27 +213,27 @@ describe('ProfileLogic.composeRow — country always, status gated', () => {
     vi.spyOn(MixinApi, 'isContacts').mockReturnValue(true);
     recognizedNow = true;
     vi.spyOn(ConnectionApi, 'originOf').mockReturnValue({ country: 'Brazil' });
-    vi.spyOn(SocialApi, 'statusOf').mockReturnValue(status as never);
+    statusNow = status;
     vi.spyOn(ShellApi, 'resolveSetting').mockReturnValue(showStatus as never);
   }
 
   it('always shows country and a notable status under `anyone`', async () => {
     stubRow('idle', 'anyone');
-    const row = await SocialApi.composeRow(viewer(), makeAvatarTarget());
+    const row = await composer.composeRow(viewer(), makeAvatarTarget());
     expect(row.country).toBe('Brazil');
     expect(row.status).toBe('idle');
   });
 
   it('withholds the granular status from a non-contact under `contacts+`', async () => {
     stubRow('idle', 'contacts+');
-    const row = await SocialApi.composeRow(viewer(), makeAvatarTarget());
+    const row = await composer.composeRow(viewer(), makeAvatarTarget());
     expect(row.country).toBe('Brazil'); // country is unconditional
     expect(row.status).toBeUndefined(); // bare online — status withheld
   });
 
   it('omits the unremarkable active default from a row', async () => {
     stubRow('active', 'anyone');
-    const row = await SocialApi.composeRow(viewer(), makeAvatarTarget());
+    const row = await composer.composeRow(viewer(), makeAvatarTarget());
     expect(row.status).toBeUndefined();
   });
 });

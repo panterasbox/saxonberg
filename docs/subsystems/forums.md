@@ -272,7 +272,7 @@ State + flow:
 - A scope is **delivered to the Interactive but projected through the
   holder Avatar** — `viewerOf(interactive)` resolves the holder and
   requires it compose `Sensor`; `projectScope` re-reads the docs and runs
-  them through `ForumsApi.listBoards` / `readBoard` / `readThread`, which
+  them through `actor.forumBoards()` / `ForumsApi.readBoard` / `readThread`, which
   apply the viewer's audience filter. Re-resolved live each flush, so a
   subscription always reflects the current perception/access view.
 - `normalizeScope` canonicalizes a board scope's `id` (which the GUI may

@@ -50,5 +50,5 @@ export const handleForumSubscribe: InboundHandler = (ctx, message) => {
 export const handleForumUnsubscribe: InboundHandler = (ctx, message) => {
   const payload = message.payload as ForumUnsubscribeMessage | undefined;
   if (!payload || typeof payload.subscriptionId !== 'string') return;
-  ForumsApi.handleUnsubscribe(ctx.interactive, payload.subscriptionId);
+  ctx.interactive.cancelForumSubscription(payload.subscriptionId);
 };

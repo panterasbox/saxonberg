@@ -856,6 +856,10 @@ export class SecurityApi {
     // etc.) lives on the VIEWER and is deliberately NOT here.
     'describeFor',
     'describeWithStatusFor',
+    // Session-liveness is the same class of projection (a display
+    // string about a person, composed for far viewers); the interior
+    // engagement read rides the presence logic's own aperture.
+    'presenceStatus',
     'salientFeatures',
     'perceivedKeywordsFor',
     'kindFor',

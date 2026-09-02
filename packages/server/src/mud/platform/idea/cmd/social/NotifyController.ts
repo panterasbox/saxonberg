@@ -102,7 +102,7 @@ export default class NotifyController extends CommandController<NotifyModel> {
   }
 
   private executeList(host: NotifyHost, context: CommandContext): void {
-    const rules = SocialApi.listRules(host);
+    const rules = host.effectiveNotifyRules();
     if (rules.length === 0) {
       this.send(context, Mml.fromMarkup(`\nNo notify rules.\n`));
       return;
@@ -122,7 +122,7 @@ export default class NotifyController extends CommandController<NotifyModel> {
     context: CommandContext,
   ): void {
     const ref = normalizeRef(vid, rawRef);
-    const rule = SocialApi.listRules(host).find((r) => r.groupRef === ref);
+    const rule = host.effectiveNotifyRules().find((r) => r.groupRef === ref);
     if (!rule) {
       this.send(context, Mml.fromMarkup(`\nNo rule for ${ref}.\n`));
       return;
@@ -154,7 +154,7 @@ export default class NotifyController extends CommandController<NotifyModel> {
       );
     }
 
-    const result = SocialApi.setRule(host, ref, parsed);
+    const result = host.setNotifyRule(ref, parsed);
     const verb = result.created ? "Set" : "Updated";
     this.send(
       context,
@@ -183,7 +183,7 @@ export default class NotifyController extends CommandController<NotifyModel> {
     if (ref === anchor) {
       return this.fail(context, "A rule can't be reordered against itself.", "self-anchor");
     }
-    const ok = SocialApi.reorderRule(host, ref, anchor, where);
+    const ok = host.moveNotifyRule(ref, anchor, where);
     if (!ok) {
       return this.fail(context, `Couldn't reorder ${ref}.`, "reorder-failed");
     }
@@ -200,7 +200,7 @@ export default class NotifyController extends CommandController<NotifyModel> {
     const trimmed = rawRef.trim();
     if (!trimmed) return this.fail(context, "Remove which rule?", "ref-required");
     const ref = normalizeRef(vid, trimmed);
-    const removed = SocialApi.removeRule(host, ref);
+    const removed = host.clearNotifyRule(ref);
     if (!removed) {
       this.send(context, Mml.fromMarkup(`\nNo rule for ${ref}.\n`));
       return;
@@ -342,7 +342,7 @@ function buildPatch(model: NotifyModel): Partial<NotifyRule> | string {
  */
 function buildRulesProjection(host: NotifyHost): SocialRuleProjection[] {
   const stored = new Set(host.notifyRules().map((r) => r.groupRef));
-  return SocialApi.listRules(host).map((r) => ({
+  return host.effectiveNotifyRules().map((r) => ({
     groupRef: r.groupRef,
     label: labelFor(r.groupRef),
     nameRendering: r.nameRendering,

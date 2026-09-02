@@ -16,7 +16,8 @@ halves, over one shared resolution primitive:
    limited, and delivered as an **ordinary inline message frame** (no
    separate notification surface — see "Presence frames" below).
 
-Both halves call **one** `SocialApi.ruleFor(viewer, person)` primitive.
+Both halves call **one** `viewer.resolveNotifyRule(person)` primitive
+(the F2 viewer face on `NotifyPolicyMixin`).
 The store is a `NotifyPolicyMixin` per-character rule list — the
 structural sibling of `_contacts`. The player surface is one dedicated
 verb, `notify`, plus a thin client settings card over it.
@@ -132,7 +133,7 @@ resolves to `strangers` and a recognized one falls to `everyone-else`.
 ## The shared primitive — `ruleFor`, strict ordered first-match
 
 ```ts
-SocialApi.ruleFor(viewer, person, { excludeMql? }): Promise<ResolvedRule>
+viewer.resolveNotifyRule(person, { excludeMql? }): Promise<ResolvedRule>
 ```
 
 Walks the effective list top-to-bottom and returns the **first** rule
@@ -155,7 +156,7 @@ consumers" contract is the spine of the build.
 
 ## Display lensing — the per-viewer occupant block
 
-`SocialApi.composeOccupants(viewer, occupants, roomSize): Promise<Mml>`
+`viewer.composeOccupants(occupants, roomSize): Promise<Mml>`
 is the formatter — a sibling of `RecognitionApi.describe` *one
 cardinality up*: `describe` names one target viewer-aware; the formatter
 orders / groups / collapses a *collection* and composes **through**
@@ -358,7 +359,7 @@ departures); `--message` takes `full|summary|silent`; `--render` takes
 the boolean flag pair; `--color` takes a palette token. It then enforces
 the **50-rule soft cap** at set-time with a friendly rejection, and
 dispatches
-to `SocialApi.{setRule,removeRule,reorderRule,listRules}`. A `silent`
+to `viewer.{setNotifyRule,clearNotifyRule,moveNotifyRule,effectiveNotifyRules}`. A `silent`
 surface *is* the mute, so allow and deny share the verb. The global
 verbosity dial stays the settings verb
 (`settings set social.verbosity standard|minimal|verbose`).
@@ -443,7 +444,7 @@ country" remain deferred to the slate.
 ## A flagged deferral
 
 1. **Message-restyle live wiring (Phase 3b).**
-   `SocialApi.styleMessageFor(viewer, speaker, body)` is implemented and
+   `viewer.styleMessageFrom(speaker, body)` is implemented and
    unit-tested — it applies the first-match `onMessage` surface (`full` /
    `summary` → highlight in the rule color, `silent` → notification
    suppression only, **never** feed-filtering) and is late-bound
@@ -553,7 +554,7 @@ who is actively working and alert one who has walked away.
 
 ## Roster rows across the sandbox boundary
 
-`SocialApi.statusOf` and `SocialApi.composeRow` route through
+`target.presenceStatus()` and `viewer.composeRosterRow(target)` route through
 `SecurityApi.projectAcross` (see
 [call-security.md](./call-security.md)). A roster row IS the per-viewer
 projection of a person — the same category as naming — and `who` from

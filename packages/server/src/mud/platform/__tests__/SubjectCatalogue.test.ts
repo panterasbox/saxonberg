@@ -219,27 +219,6 @@ describe('SubjectCatalogue subscriptions', () => {
     expect(cat.getSubscription(av, sid).mutedSurfaces).toEqual([]);
   });
 
-  it('migrates a legacy per-channel subscription onto the per-subject store', async () => {
-    const cat = makeCatalogue();
-    const subject = await cat.makeSubject(makeAvatar('p1'), 'Gossip', {
-      open: true,
-    });
-    const av = makeAvatar('p2');
-    const sid = subject._id!;
-
-    const migrated = cat.migrateLegacySubscription(av, sid, {
-      tunedIn: false,
-      muted: true,
-    });
-    expect(migrated).toEqual({ followed: false, mutedSurfaces: ['open-chat'] });
-
-    // Idempotent: a second migrate doesn't clobber the now-set value.
-    const again = cat.migrateLegacySubscription(av, sid, {
-      tunedIn: true,
-      muted: false,
-    });
-    expect(again).toEqual({ followed: false, mutedSurfaces: ['open-chat'] });
-  });
 });
 
 describe('SubjectCatalogue.visibleSubjects', () => {

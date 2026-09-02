@@ -181,7 +181,7 @@ async function bootPresence(): Promise<void> {
 describe("SocialLogic presence relay", () => {
   it("notifies a viewer who policied a managed guild (no contacts entry)", async () => {
     const v = makeViewer("v1");
-    SocialApi.setRule(v, "managed:fighter-guild", { onConnect: "show" });
+    v.setNotifyRule("managed:fighter-guild", { onConnect: "show" });
     membership.add(`/platform/agent/Avatar/actor|managed:fighter-guild`);
 
     await bootPresence();
@@ -208,7 +208,7 @@ describe("SocialLogic presence relay", () => {
     vi.spyOn(ConnectionApi, "originOf").mockReturnValue({ country: "Germany" });
 
     const v = makeViewer("v1");
-    SocialApi.setRule(v, "managed:fighter-guild", { onConnect: "show" });
+    v.setNotifyRule("managed:fighter-guild", { onConnect: "show" });
     membership.add(`/platform/agent/Avatar/actor|managed:fighter-guild`);
 
     await bootPresence();
@@ -225,7 +225,7 @@ describe("SocialLogic presence relay", () => {
     const v = makeViewer("v1");
     // A rule that doesn't contain the actor, and the actor is recognized
     // (so falls to everyone-else → silent).
-    SocialApi.setRule(v, "managed:other", { onConnect: "show" });
+    v.setNotifyRule("managed:other", { onConnect: "show" });
 
     await bootPresence();
     EventApi.emit(Events.PlayerLoggedIn, { playerId: "actor", userId: "u" });
@@ -238,7 +238,7 @@ describe("SocialLogic presence relay", () => {
     const v = makeViewer("v1");
     // The ONLY non-silent match is an MQL ref → excluded → falls to
     // everyone-else (silent) → no frame.
-    SocialApi.setRule(v, "mql:species:khazadicus", { onConnect: "show" });
+    v.setNotifyRule("mql:species:khazadicus", { onConnect: "show" });
     membership.add(`/platform/agent/Avatar/actor|mql:species:khazadicus`);
 
     await bootPresence();
@@ -250,7 +250,7 @@ describe("SocialLogic presence relay", () => {
 
   it("relays a logout symmetrically", async () => {
     const v = makeViewer("v1");
-    SocialApi.setRule(v, "managed:fighter-guild", { onDisconnect: "show" });
+    v.setNotifyRule("managed:fighter-guild", { onDisconnect: "show" });
     membership.add(`/platform/agent/Avatar/actor|managed:fighter-guild`);
 
     await bootPresence();
@@ -265,7 +265,7 @@ describe("SocialLogic presence relay", () => {
 
   it("rate-limits a second emit inside the window", async () => {
     const v = makeViewer("v1");
-    SocialApi.setRule(v, "managed:fighter-guild", { onConnect: "show" });
+    v.setNotifyRule("managed:fighter-guild", { onConnect: "show" });
     membership.add(`/platform/agent/Avatar/actor|managed:fighter-guild`);
 
     await bootPresence();
@@ -280,7 +280,7 @@ describe("SocialLogic presence relay", () => {
 
   it("a non-login event produces no presence frame (movement non-goal)", async () => {
     const v = makeViewer("v1");
-    SocialApi.setRule(v, "managed:fighter-guild", { onConnect: "show" });
+    v.setNotifyRule("managed:fighter-guild", { onConnect: "show" });
     membership.add(`/platform/agent/Avatar/actor|managed:fighter-guild`);
 
     await bootPresence();
@@ -294,8 +294,8 @@ describe("SocialLogic presence relay", () => {
 
   it("never leaks the viewer's rule list in the pushed frame (privacy)", async () => {
     const v = makeViewer("v1");
-    SocialApi.setRule(v, "managed:fighter-guild", { onConnect: "show" });
-    SocialApi.setRule(v, "managed:secret-cabal", { onConnect: "silent" });
+    v.setNotifyRule("managed:fighter-guild", { onConnect: "show" });
+    v.setNotifyRule("managed:secret-cabal", { onConnect: "silent" });
     membership.add(`/platform/agent/Avatar/actor|managed:fighter-guild`);
 
     await bootPresence();
@@ -317,7 +317,7 @@ describe("SocialLogic presence relay", () => {
   it("skips a linkdead viewer (scans online viewers only)", async () => {
     const v = makeViewer("v1");
     v.connected = false; // linkdead — no live Interactive to push to
-    SocialApi.setRule(v, "managed:fighter-guild", { onConnect: "show" });
+    v.setNotifyRule("managed:fighter-guild", { onConnect: "show" });
     membership.add(`/platform/agent/Avatar/actor|managed:fighter-guild`);
 
     await bootPresence();
@@ -337,7 +337,7 @@ describe("SocialLogic presence relay", () => {
     vi.spyOn(PlayerApi, "findAvatarByPlayerId").mockImplementation(
       (pid: string) => (pid === "actor" ? (selfHost as never) : undefined),
     );
-    SocialApi.setRule(selfHost, "managed:fighter-guild", { onConnect: "show" });
+    selfHost.setNotifyRule("managed:fighter-guild", { onConnect: "show" });
     membership.add(`/platform/agent/Avatar/actor|managed:fighter-guild`);
 
     await bootPresence();
@@ -355,8 +355,7 @@ describe("SocialLogic.styleMessageFor", () => {
     // `friends` baseline: onMessage=full, color=amber. Speaker ∈ friends.
     membership.add(`/platform/agent/Avatar/sp|contacts:v1:${RESERVED.friends}`);
 
-    const styled = await SocialApi.styleMessageFor(
-      v,
+    const styled = await v.styleMessageFrom(
       speaker as Stuff,
       Mml.fromMarkup("<speech>hi</speech>"),
     );
@@ -372,7 +371,7 @@ describe("SocialLogic.styleMessageFor", () => {
     membership.add(`sp|contacts:v1:${RESERVED.foes}`);
 
     const body = Mml.fromMarkup("<speech>hi</speech>");
-    const styled = await SocialApi.styleMessageFor(v, speaker as Stuff, body);
+    const styled = await v.styleMessageFrom(speaker as Stuff, body);
     // Body unchanged — the message still renders, no highlight wrap.
     expect(styled.toString()).toBe("<speech>hi</speech>");
   });

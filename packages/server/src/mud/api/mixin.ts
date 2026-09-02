@@ -133,6 +133,7 @@ import type { Addressable } from '../lib/address/Addressable';
 import type { SkyExposed } from '../lib/biome/SkyExposed';
 import type { Contacts } from '../lib/social/Contacts';
 import type { NotifyPolicy } from '../lib/social/NotifyPolicy';
+import type { SubjectSubscriber } from '../lib/forum/SubjectSubscriber';
 import type { Soul } from '../lib/social/Soul';
 import type { WarrenMember } from '../lib/location/WarrenMember';
 import type { Offstage } from '../lib/employment/Offstage';
@@ -899,6 +900,12 @@ export class MixinApi {
 
   public static isNotifyPolicy(obj: Stuff): obj is Stuff & NotifyPolicy {
     return this.hasMixin(obj, Mixins.NotifyPolicy);
+  }
+
+  public static isSubjectSubscriber(
+    obj: Stuff,
+  ): obj is Stuff & SubjectSubscriber {
+    return this.hasMixin(obj, Mixins.SubjectSubscriber);
   }
 
   public static isSoul(obj: Stuff): obj is Stuff & Soul {

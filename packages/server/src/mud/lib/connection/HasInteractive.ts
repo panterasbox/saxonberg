@@ -33,6 +33,10 @@ import type { CommandContributions } from '../../api/command';
 import { ShellApi } from '../../api/shell';
 import { MixinApi } from '../../api/mixin';
 import { MqlApi } from '../../api/mql';
+import { StuffApi } from '../../api/stuff';
+import type { PresenceStatus } from '@saxonberg/types';
+// eslint-disable-next-line no-restricted-imports -- the F2 object face: a session holder's presenceStatus() forwards into the presence logic singleton exactly as the api/social facade does (the Combustible/Energized precedent)
+import { PresenceLogic } from '../../platform/idea/api/PresenceLogic';
 import { GoogleProfile } from '../identity/GoogleProfile';
 import {
   LAYOUT_NAMES,
@@ -1141,5 +1145,24 @@ export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase)
       };
       return out;
     }
+    /**
+     * Derived session-liveness for this holder, in display-precedence
+     * order (`reconnecting` > `engaged` > `idle` > `active`) — computed
+     * on read against the `social.idleAfter` AppSetting; no stored idle
+     * state (the F2 object face). Boundary-exempt: a roster row is
+     * composed for viewers across circle boundaries, and the interior
+     * read rides the logic's own aperture.
+     */
+    public presenceStatus(): PresenceStatus {
+      return hasInteractivePresenceLogic().statusOf(this as never);
+    }
   };
+}
+
+/** Resolve the HMR-able PresenceLogic singleton (the liveness derive). */
+function hasInteractivePresenceLogic(): PresenceLogic {
+  return StuffApi.singletonSync(
+    '/platform/idea/api/presence',
+    () => new PresenceLogic(),
+  );
 }

@@ -23,6 +23,42 @@ import {
 } from "../shell/Environment";
 import type { GroupRef } from "./GroupProvider";
 import { PRESENCE_FORMAT_DEFAULT, type NotifyRule } from "./NotifyRule";
+import type { Stuff } from "../stuff/Stuff";
+import type { Mml } from "../../api/mml";
+import type {
+  ResolvedRule,
+  RuleForOptions,
+  SetResult,
+  ProfileCard,
+  RosterRow,
+} from "../../api/social";
+import { StuffApi } from "../../api/stuff";
+// eslint-disable-next-line no-restricted-imports -- the F2 viewer face: a NotifyPolicy host's rule resolution + display-lens composes forward into the social logic singletons exactly as the api/social facade does (the Combustible/Energized precedent)
+import { SocialLogic } from "../../platform/idea/api/SocialLogic";
+// eslint-disable-next-line no-restricted-imports -- same seam, the presence half
+import { PresenceLogic } from "../../platform/idea/api/PresenceLogic";
+// eslint-disable-next-line no-restricted-imports -- same seam, the profile half
+import { ProfileLogic } from "../../platform/idea/api/ProfileLogic";
+
+/** Resolve the HMR-able social logic singletons (sync). */
+function socialLogic(): SocialLogic {
+  return StuffApi.singletonSync(
+    "/platform/idea/api/social",
+    () => new SocialLogic(),
+  );
+}
+function presenceLogic(): PresenceLogic {
+  return StuffApi.singletonSync(
+    "/platform/idea/api/presence",
+    () => new PresenceLogic(),
+  );
+}
+function profileLogic(): ProfileLogic {
+  return StuffApi.singletonSync(
+    "/platform/idea/api/profile",
+    () => new ProfileLogic(),
+  );
+}
 
 /**
  * Public method surface — methods only, per the inter-stuff contract.
@@ -57,6 +93,29 @@ export interface NotifyPolicy {
     anchor: GroupRef,
     where: "above" | "below",
   ): boolean;
+
+  // The viewer face (F2) — policy resolution + display lensing,
+  // forwarding into the social logic singletons.
+  /** First-matching effective rule for `person` (virtual baseline + tail). */
+  resolveNotifyRule(person: Stuff, opts?: RuleForOptions): Promise<ResolvedRule>;
+  /** The effective ordered rule list (stored spliced into the baseline). */
+  effectiveNotifyRules(): NotifyRule[];
+  /** Policy upsert on `ref`, merging `patch` (the `notify` verb's write). */
+  setNotifyRule(ref: GroupRef, patch: Partial<NotifyRule>): SetResult;
+  /** Policy drop of the rule keyed on `ref` (falls to the baseline tail). */
+  clearNotifyRule(ref: GroupRef): boolean;
+  /** Policy reorder of `ref` directly above/below `anchor`. */
+  moveNotifyRule(ref: GroupRef, anchor: GroupRef, where: "above" | "below"): boolean;
+  /** Restyle a speaker's buffered message per this viewer's first match. */
+  styleMessageFrom(speaker: Stuff, body: Mml): Promise<Mml>;
+  /** The per-viewer room-occupant block (density-collapsed, boosted). */
+  composeOccupants(occupants: Stuff[], roomSize: number): Promise<Mml>;
+  /** The full inspection card for `target`, viewer-redacted. */
+  composeProfileCard(target: Stuff): Promise<ProfileCard>;
+  /** The one viewer-lensed roster row for `target` (`who` / live card). */
+  composeRosterRow(target: Stuff): Promise<RosterRow>;
+  /** Push a full viewer-lensed roster snapshot to this viewer's session. */
+  snapshotRoster(): void;
 }
 
 export function NotifyPolicyMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -179,6 +238,61 @@ export function NotifyPolicyMixin<TBase extends MixinConstructor>(Base: TBase) {
       without.splice(insertAt, 0, moving);
       this._notifyRules = without;
       return true;
+    }
+    // ---- the viewer face (F2) — forwards into the logic singletons ----
+
+    public resolveNotifyRule(
+      person: Stuff,
+      opts?: RuleForOptions,
+    ): Promise<ResolvedRule> {
+      return socialLogic().ruleFor(this as unknown as Stuff, person, opts ?? {});
+    }
+
+    public effectiveNotifyRules(): NotifyRule[] {
+      return socialLogic().listRules(this as unknown as Stuff);
+    }
+
+    public setNotifyRule(ref: GroupRef, patch: Partial<NotifyRule>): SetResult {
+      return socialLogic().setRule(this as unknown as Stuff, ref, patch);
+    }
+
+    public clearNotifyRule(ref: GroupRef): boolean {
+      return socialLogic().removeRule(this as unknown as Stuff, ref);
+    }
+
+    public moveNotifyRule(
+      ref: GroupRef,
+      anchor: GroupRef,
+      where: "above" | "below",
+    ): boolean {
+      return socialLogic().reorderRule(this as unknown as Stuff, ref, anchor, where);
+    }
+
+    public styleMessageFrom(speaker: Stuff, body: Mml): Promise<Mml> {
+      return socialLogic().styleMessageFor(this as unknown as Stuff, speaker, body);
+    }
+
+    public composeOccupants(
+      occupants: Stuff[],
+      roomSize: number,
+    ): Promise<Mml> {
+      return socialLogic().composeOccupants(
+        this as unknown as Stuff,
+        occupants,
+        roomSize,
+      );
+    }
+
+    public composeProfileCard(target: Stuff): Promise<ProfileCard> {
+      return profileLogic().composeCard(this as unknown as Stuff, target);
+    }
+
+    public composeRosterRow(target: Stuff): Promise<RosterRow> {
+      return profileLogic().composeRow(this as unknown as Stuff, target);
+    }
+
+    public snapshotRoster(): void {
+      void presenceLogic().snapshotFor(this as never);
     }
   };
 }

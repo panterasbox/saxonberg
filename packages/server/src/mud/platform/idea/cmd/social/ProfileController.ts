@@ -17,6 +17,7 @@ import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 import { SocialApi, type ProfileCard } from '../../../../api/social';
 import type { MqlOneResult } from '../../../../api/mql';
+import { MixinApi } from '../../../../api/mixin';
 
 const TOPIC = 'act.deed';
 
@@ -29,7 +30,8 @@ export default class ProfileController extends CommandController<ProfileModel> {
   async execute(model: ProfileModel, context: CommandContext): Promise<void> {
     const viewer = context.commandGiver;
     const target = model.target?.stuff ?? viewer;
-    const card = await SocialApi.composeCard(viewer, target);
+    if (!MixinApi.isNotifyPolicy(viewer)) return;
+    const card = await viewer.composeProfileCard(target);
     MessageApi.scene(viewer).topic(TOPIC).toSelf(this.render(card)).send();
   }
 

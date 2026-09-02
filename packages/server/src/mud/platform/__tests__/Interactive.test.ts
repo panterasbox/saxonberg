@@ -202,7 +202,7 @@ describe('Interactive', () => {
         .spyOn(MqlSubscriptionApi, 'cancelAllForInteractive')
         .mockImplementation(() => {});
       const forum = vi
-        .spyOn(ForumsApi, 'cancelAllForInteractive')
+        .spyOn(interactive, 'cancelAllForumSubscriptions')
         .mockImplementation(() => {});
       const reaction = vi
         .spyOn(interactive, 'cancelAllReactions')
@@ -216,7 +216,7 @@ describe('Interactive', () => {
       // Each cancellation receives this Interactive (the proxy identity
       // used as the subscription/registry key).
       expect(mql).toHaveBeenCalledWith(interactive);
-      expect(forum).toHaveBeenCalledWith(interactive);
+      expect(forum).toHaveBeenCalledTimes(1);
       expect(reaction).toHaveBeenCalledTimes(1);
       expect(prompt).toHaveBeenCalledWith('host-disconnected');
 

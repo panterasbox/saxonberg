@@ -15,6 +15,7 @@ import { StuffApi } from '../../../../../api/stuff';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
 import type { CommandContext } from '../../../../../api/command';
+import { MixinApi } from '../../../../../api/mixin';
 
 let captured: string;
 
@@ -70,13 +71,15 @@ describe('WhoController', () => {
       person('mara'),
       person('stranger'),
     ] as never);
-    vi.spyOn(SocialApi, 'composeRow').mockImplementation(
-      async (_v, t) => ROWS[(t as { stuffId: keyof typeof ROWS }).stuffId]!
-    );
+    vi.spyOn(MixinApi, 'isNotifyPolicy').mockReturnValue(true);
   });
 
   it('lists every online person, lensed, with country and a notable status', async () => {
-    const viewer = { stuffId: 'v1' } as unknown as Stuff;
+    const viewer = {
+      stuffId: 'v1',
+      composeRosterRow: async (t: { stuffId: string }) =>
+        ROWS[t.stuffId as keyof typeof ROWS]!,
+    } as unknown as Stuff;
     await makeStuff(() => new WhoController()).execute({} as never, ctxFor(viewer));
     expect(captured).toContain('Online — 2');
     expect(captured).toContain('Mara');
@@ -87,7 +90,11 @@ describe('WhoController', () => {
   });
 
   it('--country narrows on the already-public country field', async () => {
-    const viewer = { stuffId: 'v1' } as unknown as Stuff;
+    const viewer = {
+      stuffId: 'v1',
+      composeRosterRow: async (t: { stuffId: string }) =>
+        ROWS[t.stuffId as keyof typeof ROWS]!,
+    } as unknown as Stuff;
     await makeStuff(() => new WhoController()).execute(
       { country: 'brazil' } as never,
       ctxFor(viewer)

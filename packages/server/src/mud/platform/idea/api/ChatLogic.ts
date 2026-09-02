@@ -18,6 +18,18 @@ import { TemplatePaths } from '../../../lib/paths';
 const CATALOGUE_PATH = TemplatePaths.channelCatalogue;
 
 const ChatApiCallers = SecurityPolicies.FromModule('/api/chat#ChatApi');
+/** The F2 actor face (SubjectSubscriber hosts) forwards here as the actor. */
+const ChatActorCallers = SecurityPolicies.AnyOf(
+  ChatApiCallers,
+  SecurityPolicies.FromMixin('SubjectSubscriberMixin', {
+    // Compare by stuffId — the caller may surface as the raw target
+    // while the argument is the proxy (or vice versa).
+    where: (caller, _target, _method, args) =>
+      (caller as { stuffId?: string }).stuffId !== undefined &&
+      (caller as { stuffId?: string }).stuffId ===
+        (args[0] as { stuffId?: string } | undefined)?.stuffId,
+  }),
+);
 
 /**
  * ChatLogic — the hot-reloadable logic singleton behind {@link ChatApi}.
@@ -48,7 +60,7 @@ export class ChatLogic extends ApiLogic {
   }
 
   /** See {@link ChatApi.resolveHandleForActor}. */
-  @CallSecurity(ChatApiCallers)
+  @CallSecurity(ChatActorCallers)
   public async resolveHandleForActor(
     actor: Stuff,
     handle: string
@@ -57,7 +69,7 @@ export class ChatLogic extends ApiLogic {
   }
 
   /** See {@link ChatApi.openAdHoc}. */
-  @CallSecurity(ChatApiCallers)
+  @CallSecurity(ChatActorCallers)
   public async openAdHoc(
     creator: Stuff,
     members: Iterable<Stuff>
@@ -66,7 +78,7 @@ export class ChatLogic extends ApiLogic {
   }
 
   /** See {@link ChatApi.postToChannel}. */
-  @CallSecurity(ChatApiCallers)
+  @CallSecurity(ChatActorCallers)
   public async postToChannel(
     speaker: Stuff,
     channel: Channel,
@@ -127,7 +139,7 @@ export class ChatLogic extends ApiLogic {
   }
 
   /** See {@link ChatApi.visibleChannels}. */
-  @CallSecurity(ChatApiCallers)
+  @CallSecurity(ChatActorCallers)
   public async visibleChannels(
     actor: Stuff
   ): Promise<{ persistent: Channel[]; adHoc: AdHocChannel[] }> {
@@ -135,7 +147,7 @@ export class ChatLogic extends ApiLogic {
   }
 
   /** See {@link ChatApi.getSubscription}. */
-  @CallSecurity(ChatApiCallers)
+  @CallSecurity(ChatActorCallers)
   public async getSubscription(
     avatar: Parameters<ChannelCatalogue['getSubscription']>[0],
     channel: Channel
@@ -144,7 +156,7 @@ export class ChatLogic extends ApiLogic {
   }
 
   /** See {@link ChatApi.setSubscription}. */
-  @CallSecurity(ChatApiCallers)
+  @CallSecurity(ChatActorCallers)
   public async setSubscription(
     avatar: Parameters<ChannelCatalogue['setSubscription']>[0],
     channel: Channel,

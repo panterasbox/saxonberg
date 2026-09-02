@@ -59,6 +59,11 @@ import type {
 
 const ForumSubscriptionApiCallers = SecurityPolicies.FromModule('/api/forums#ForumsApi',
 );
+/** The Interactive teardown surface (Phase F2) calls in as the instance. */
+const ForumSubscriptionCallers = SecurityPolicies.AnyOf(
+  ForumSubscriptionApiCallers,
+  SecurityPolicies.FromModule('/platform/idea/Interactive'),
+);
 
 /**
  * What a scope projects to. Discriminated by the scope's own `kind`, not
@@ -220,7 +225,7 @@ export default class ForumSubscriptionRegistry extends Idea {
   }
 
   /** See {@link ForumsApi.handleUnsubscribe}. */
-  @CallSecurity(ForumSubscriptionApiCallers)
+  @CallSecurity(ForumSubscriptionCallers)
   public handleUnsubscribe(interactive: Interactive, subscriptionId: string): void {
     const bucket = this.registry.get(interactive);
     const state = bucket?.get(subscriptionId);
@@ -231,7 +236,7 @@ export default class ForumSubscriptionRegistry extends Idea {
   }
 
   /** See {@link ForumsApi.cancelAllForInteractive}. */
-  @CallSecurity(ForumSubscriptionApiCallers)
+  @CallSecurity(ForumSubscriptionCallers)
   public cancelAllForInteractive(interactive: Interactive): void {
     const bucket = this.registry.get(interactive);
     if (!bucket) return;
@@ -264,7 +269,9 @@ export default class ForumSubscriptionRegistry extends Idea {
       // The forum landing: the boards this viewer can see, each projected
       // as a record whose `id` is the board's flat title handle (so the
       // client opens it with `forum <handle>`).
-      const boards = await ForumsApi.listBoards(viewer);
+      const boards = MixinApi.isSubjectSubscriber(viewer)
+        ? await viewer.forumBoards()
+        : [];
       return boards.map((v) => projectBoard(v.board, v.subject));
     }
     if (scope.kind === 'board') {
@@ -310,7 +317,9 @@ export default class ForumSubscriptionRegistry extends Idea {
   private async projectSubjects(
     viewer: Stuff & Sensor,
   ): Promise<ForumSubjectRecord[]> {
-    const subjects = await SubjectApi.visibleSubjects(viewer);
+    const subjects = MixinApi.isSubjectSubscriber(viewer)
+      ? await viewer.visibleSubjects()
+      : [];
     const backing = await SubjectApi.getBackingGroupIds();
     const out: ForumSubjectRecord[] = [];
     for (const s of subjects) {

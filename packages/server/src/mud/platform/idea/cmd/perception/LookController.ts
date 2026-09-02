@@ -259,7 +259,9 @@ export default class LookController extends CommandController<LookModel> {
         const segments: Mml[] = [];
         if (occupants.length > 0) {
           segments.push(
-            await SocialApi.composeOccupants(actor, occupants, occupants.length),
+            MixinApi.isNotifyPolicy(actor)
+              ? await actor.composeOccupants(occupants, occupants.length)
+              : Mml.list(occupants.map((o) => Mml.actor(o))),
           );
         }
         if (items.length > 0) {
