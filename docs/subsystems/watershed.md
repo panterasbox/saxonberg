@@ -781,7 +781,7 @@ outfall simply stops answering the discharge scan.
 Only a **supply** can be `fouled`: a sewer carrying filth is a sewer
 working.
 
-### `boil` — the one new verb in the build
+### `boil` — the one new verb in the build, and it is an ACT
 
 The extend-before-inventing check found a home for everything else;
 `boil` had none, and it is `crafting` — it transforms matter with heat,
@@ -789,21 +789,47 @@ like the shipped `heat`. The **fire affords it** (`FurnaceMixin`'s
 contributions), because you cannot boil without one and there is no
 separate kettle to own.
 
-It is a change of **material** — from whatever the vessel holds to
-whatever that material declares it becomes (`Material.purifiedByBoiling`)
-— and not a mutation, because a `Material` is a **shared reference
-Idea**: one row backs every litre of that stuff in the world, so
-purifying by editing the material would clean every river at once. The
-closed-material doctrine says the same thing from the other side:
-*materials are a fixed set and blends derive*, so the way to say "this
+⭐ **What boiling does is decided by what you boiled, never by the
+controller.** Two consequences, neither privileged, and a target may
+earn both:
+
+| if the target is… | boiling… |
+|---|---|
+| a **build** (`Builds` — a cook pot) | latches the heat it reached and records the method `boiled`, which a recipe's reverse-match reads |
+| a **vessel** (`Bulkable`) whose contents declare `purifiedByBoiling` | swaps the material for what that names |
+
+⚠ **The first cut of this verb was a purifier, and that was a defect.**
+Its arg required `BulkableMixin`, it recorded nothing, and its single
+consequence was hardcoded — so a `CookPot`, which is
+`ManualBuild + Tool + Durable` and *not* `Bulkable`, was refused
+outright; no recipe could ever have required "boiled"; and a second
+consequence would have meant a **kernel edit per trade**, which the pack
+doctrine forbids. The cooking trade would have had to fight this verb
+rather than extend it.
+
+It now follows the shape the crafting branch already uses twice — `heat`
+latches `noteHeat` on any `Builds` host, `stir` records a method, and
+the **recipes** decide what those mean. `Technique` is an open
+vocabulary by construction, so `boiled` costs no kernel list, and a
+cooking pack gets boiling by authoring
+`{ requiresHeatK: 373, method: boiled }` and changing nothing in the
+kernel.
+
+Purification is therefore a property of the **material**
+(`Material.purifiedByBoiling`), not the definition of the verb. It is a
+change of material rather than a mutation, because a `Material` is a
+**shared reference Idea**: one row backs every litre of that stuff in
+the world, so purifying by editing the material would clean every river
+at once. The closed-material doctrine says the same from the other side
+— *materials are a fixed set and blends derive*, so the way to say "this
 water is different now" is to name a different material.
 
-⭐ **The most important behaviour is the one where boiling does
+⭐ **The most important behaviour is still the one where boiling does
 nothing.** A material that declares no counterpart just gets hot — the
 command is not refused, because you really did boil it — so boiling a
 lead-fouled river gives you hot lead-fouled river, and the player learns
 the difference between organic and persistent contamination the way it
-is actually learned. The threshold is the material's **own** boiling
+is actually learned. The threshold is the contents' **own** boiling
 point, not a dial.
 
 ### The toxin route needs no new machinery

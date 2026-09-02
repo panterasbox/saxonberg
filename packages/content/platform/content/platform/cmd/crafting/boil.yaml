@@ -1,33 +1,48 @@
 verbs: [boil]
 controller: /platform/idea/cmd/crafting/BoilController
-description: "Bring a vessel to a rolling boil — the personal, per-use answer to bad water"
+description: "Hold something at a rolling boil — a build step, and the answer to bad water"
 help: |
-  Hold a vessel at a rolling boil over a fire — `boil the pot`. What
-  comes off is fit to drink, if boiling is the sort of thing that would
-  help.
+  Set something over a fire and hold it at a rolling boil — `boil the
+  pot`, or bare `boil` for the build you are working.
 
-  It is the second of three answers to bad water, and the middle one on
-  purpose. Moving your intake upstream of whatever is fouling the river
-  is free and permanent. Boiling costs fuel and time EVERY time you do
-  it. Treatment — plumbed into the conduit itself — costs money once and
-  then costs nothing, which is why a town that can afford it stops
-  boiling.
+  What boiling DOES depends on what you boiled, not on the verb:
+
+  - a **build** — a cook pot with something in it — remembers the heat
+    it reached and that it was boiled, and a recipe can require both;
+  - a **vessel of something** that boiling improves comes off fit to
+    drink.
+
+  A target can be both, and then boiling does both.
 
   ⚠ It does not fix everything. A river fouled with sewage recovers over
   a few miles and boils clean in a pot; a river fouled by a smelter does
-  neither. Boil that and you get hot poison.
+  neither. Boil that and you get hot poison — the command is not
+  refused, because you really did boil it.
 
-  Needs a fire hot enough to reach the boiling point of whatever is in
-  the vessel.
+  Boiling is the middle of three answers to bad water, and the middle one
+  on purpose. Moving your intake upstream of whatever is fouling the
+  river is free and permanent. Boiling costs fuel and time EVERY time.
+  Treatment — plumbed into the conduit itself — costs money once and then
+  costs nothing, which is why a town that can afford it stops boiling.
+
+  Needs a fire hot enough to reach the boiling point of whatever you are
+  boiling.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
   - /lib/command/validators/requiresEmbodied
 args:
-  - name: vessel
+  - name: target
     type: object
-    required: true
+    required: false
     scope: "reachable"
-    requires: BulkableMixin
+    # `any`, deliberately: boiling accepts EITHER a manual-build host (a
+    # cook pot, which is `ManualBuild + Tool + Durable` and NOT Bulkable)
+    # or a vessel of bulk matter, and a target may be both. Naming one
+    # mixin here is precisely the mistake the first cut of this verb made
+    # — it required `BulkableMixin`, which locked the cooking trade's own
+    # pot out of its own verb. The controller narrows and refuses in its
+    # own words.
+    requires: any
     validators:
       - /lib/command/validators/canReach
