@@ -179,29 +179,39 @@ reboot regardless of which clone it stands in. Bonus the requirements
 call out: the checked arsenal sits inside the combat-free room — nobody
 can fight over the rack.
 
-### P9 — The 86 is a `venue_records` Document behind a small gated pair
+### P9 — The 86 is a document in the bar's slice of the document tree
 
-Rejected homes: a runtime field on the Business Idea (BusinessEntity is
-a seeded singleton, not Persistable — the record would die at reboot);
+**No new Mongo collection** (user ruling 2026-09-01: collection-minting
+is essentially done — the systems that need collections are built, and
+the path-addressed document tree is the *default* mechanism for exactly
+this kind of persistence). Rejected homes: a new `venue_records`
+collection (the ruling above — a global engine ledger for what is venue
+content); a runtime field on the Business Idea (BusinessEntity is a
+seeded singleton, not Persistable — the record would die at reboot);
 Dave's BeliefStore (personal, non-transferable — the requirement is
 *institutional*, outliving Dave's memory); the accountability ledger
 (the court's view, explicitly off-limits); a per-instance domain row
-(the ref-shapes identity anti-pattern). Chosen: a new **`venue_records`**
-collection — `VenueRecord` Document (`lib/venue/VenueRecord.ts`):
-`{ venue, subject, kind, recordedBy, note, at }`, `kind` a closed
-vocabulary of one (`'86'`), keyed on durable templatePaths, indexed on
-`{venue, subject}` — plus the mandatory gated pair `VenueRecordApi`
-(api/venue-record.ts) ↔ `VenueRecordLogic`
-(platform/idea/api/VenueRecordLogic.ts at `/platform/idea/api/venue-record`):
-`record(venue, subject, kind, note)` (authority: the context-derived
-actor is the venue Business's proprietor or a position-holder, via
-`EmploymentApi`; fire-and-forget write), `standingFor(venue, subject)`
-(derive-on-read), `recordsFor(venue)`. New collection ⇒ one schema doc
-at `packages/server/src/schema/venue_records.yaml` + `pnpm gen:schema`
-(`lint:schema` gates all four links). The warning, by design, writes
-**nothing** here — the grace window is transient brain scratch
-(`ctx.state`), which is exactly the "no record, no hard feelings"
-semantics.
+(the ref-shapes identity anti-pattern).
+
+Chosen: the 86 list is a Dave's Bar concern, local to the bar's parcel
+— so it lives as a **house-records `StoredDocument`** at a path under
+the venue in the document tree
+([document-store.md](../subsystems/document-store.md); exact path and
+`DocumentKinds` kind decided at build — the vocabulary is closed, so
+reuse a fitting kind or make the one-kind vocabulary edit
+deliberately). Read/written through **`DocumentApi`** — no new Api
+pair, no new Logic singleton, no schema ceremony. Authority is the
+**parcel-title gate (`canAtPath`)** that already guards every document
+write: whoever holds writes over the bar's path holds the house book,
+and it transfers with the title — which IS the "institutional,
+outlives Dave's memory" semantics, inherited rather than built. Verify
+early that Dave (the brain's principal) holds write standing over the
+venue's path (lounge-group membership / the business arrangement); if
+NPC standing is awkward, resolve it as content, not as a gate bypass.
+"Is X 86'd here" is a derive-on-read of the document. The warning, by
+design, writes **nothing** — the grace window is transient brain
+scratch (`ctx.state`), which is exactly the "no record, no hard
+feelings" semantics.
 
 ### P10 — The weapon-spotting surface: `CombatApi.isWeapon` + `CombatApi.visibleArms`
 
@@ -252,9 +262,9 @@ poller), phase machine in `ctx.state`
 literal player verb via `CommandApi.forceCommand`** (`say`, `attack`,
 `fight subdue`, `fight rush south`, `go north`, `get taser`,
 `switch on taser`, `wield taser`, `fight strike`) — no god-mode. The one
-Api write it performs is `VenueRecordApi.record` (the 86) and a one-time
-idempotent `PerceptionApi.recordDiscovery` of his own office door (Dave
-knows his own back room). Wired on dave.yaml as two specs: the cadence
+Api write it performs is the `DocumentApi` house-records write (the 86,
+per P9) and a one-time idempotent `PerceptionApi.recordDiscovery` of
+his own office door (Dave knows his own back room). Wired on dave.yaml as two specs: the cadence
 scan/ladder driver and the `combat` witness trigger.
 
 ### P13 — The office taser is a second stun-baton row; escalation costs time by construction
@@ -364,24 +374,27 @@ host room — any room-content count pins); retail suite (listing shape
 widened — additive optional).
 
 ### W5 — The 86 record + the warning flow
-**Changes:** `VenueRecord` + `venue_records` schema doc + `gen:schema`;
-`VenueRecordApi`/`VenueRecordLogic` pair; `CombatApi.visibleArms`; the
+**Changes:** the house-records document (kind + path under the venue's
+parcel per P9; `DocumentApi` read/write; `canAtPath` authority — no new
+collection, no new Api pair); `CombatApi.visibleArms`; the
 `enforces` brain's house-rule half (scan → warn naming the rack → grace
 → 86 + ordered out → eject via W3's rush); dave.yaml gains the
 `enforces` cadence spec with config (business, rack path, grace, eject
 direction `south`); brandishing (a newly-wielded weapon) skips the
 grace; an already-86'd arrival goes straight to ordered-out.
-**Tests:** VenueRecord unit (record/standingFor/authority refusal for a
-non-staff actor; persistence across a simulated reboot). Brain
+**Tests:** house-records document round-trip (the 86 write lands in the
+document, survives a simulated reboot, and derives back as "86'd
+here"; a write by an actor without title standing over the venue's
+path is refused by `canAtPath`). Brain
 fixture-world (the wary/cellars test shape): armed patron enters with
 Dave present → warning prose names the rack, **no record**; patron
 steps out, checks, returns → welcome, no sanction anywhere; patron
-lingers past grace → 86 row exists (venue-scoped, readable via
-`standingFor`, not in Dave's BeliefStore), ordered out; still present →
+lingers past grace → the 86 entry exists in the house-records document
+(venue-scoped, not in Dave's BeliefStore), ordered out; still present →
 Dave attacks, subdues, rushes south; drawing a weapon skips the grace
 entirely; a *concealed* blade above Dave's alertness draws nothing.
-**Tripwires:** `lint:schema` (the new collection's four-way link);
-cast-content.test.ts (dave.yaml behaviors list assertions); the
+**Tripwires:** document-store suite (a new document kind, if minted,
+rides the kind-vocabulary totality checks); cast-content.test.ts (dave.yaml behaviors list assertions); the
 codeNamingDriftGuard is untouched (`behaviors[].brain` is already a
 classified field and Behaved is the existing resolve site — assert no
 new module-resolving call site appears in the brain).
@@ -461,9 +474,11 @@ dave.yaml, not world dials — per-venue personality.)
 - **Witness-subject recovery** (W6) — `actInfo` resolves only dramatic
   beats; if a staged test fight never roars before Dave must decide, the
   fallback heuristic carries the test — write it that way.
-- **New collection ceremony** (W5) — schema doc + `gen:schema` +
-  `lint:schema` are all CI-gating; do them in the same commit as the
-  Document class.
+- **Document-kind + write standing** (W5) — `DocumentKinds` is a
+  closed vocabulary (choosing vs minting a kind is a deliberate edit
+  with its own totality gates), and Dave's write authority over the
+  venue's path (`canAtPath`) needs verifying as content before the
+  brain can record an 86 — resolve both at the top of the wave.
 
 ## Acceptance criteria → waves
 
