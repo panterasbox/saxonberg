@@ -49,10 +49,26 @@ data:
   # buys treatment instead.
   purifiedByBoiling: /stuff/idea/material/bulk/water
   # ⚠ It keeps the `water` IDENTITY tag, unlike `salt-water`, because it
-  # genuinely IS water — anything that asks for water will accept it,
-  # and the consequence is the dose rather than a refusal. That is the
-  # honest model: nothing about fouled water announces itself, which is
-  # the entire reason the intake's POSITION is the thing that matters.
+  # genuinely IS water. Nothing about fouled water announces itself,
+  # which is the entire reason the intake's POSITION is the thing that
+  # matters.
+  #
+  # ⚠⚠ That does NOT mean "everything that asks for water accepts it",
+  # and the split is worth knowing before somebody relies on either
+  # half. The codebase asks for water two ways:
+  #
+  #   - **by tag** (`material.hasTag('water')` — `wash`, the craft
+  #     matcher, `feed`): fouled water PASSES. You can rinse a glass in
+  #     sewage, and the dose is the consequence rather than a refusal.
+  #   - **by material path LEAF** (`Archetype.holdsBulkOf`, which the
+  #     `bulkSource: water` capability slot uses): fouled water FAILS,
+  #     because the leaf is `fouled-water`, not `water`.
+  #
+  # So a kitchen whose basin held this would survey as short of its
+  # water slot. That is defensible — a kitchen wants potable water, and
+  # naming the gap is what the survey is for — but it is a real design
+  # call rather than an accident, and it is currently LATENT: nothing in
+  # shipped content fills a vessel from a fouled reach yet.
   tags: [liquid, water, beverage, drinkable]
   composition: []
   biologicalSource: null
