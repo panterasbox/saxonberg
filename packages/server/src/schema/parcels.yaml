@@ -12,6 +12,13 @@ purpose: |
   ⚠⚠ Stored SEPARATELY from the `content` rows it gates. That is the
   governing security invariant: if title lived beside the thing it governs,
   editing the thing could edit who may edit it.
+
+  A row also carries `reach` — the watercourse reach this ground fronts,
+  or `''`. It is what makes a **riparian** water right derivable with no
+  record at all (the bank-holders of a reach are the owners of the
+  parcels citing it), and it lives here rather than being derived from
+  the address tree because a room's content path and its `_address` are
+  independent by design. See docs/subsystems/watershed.md.
 invariants:
   - >-
     Title is stored apart from the content it gates — never in the same

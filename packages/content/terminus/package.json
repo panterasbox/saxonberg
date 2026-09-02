@@ -22,6 +22,7 @@
     "@saxonberg/content-trade-farming": "workspace:*",
     "@saxonberg/content-trade-smithing": "workspace:*",
     "@saxonberg/content-trade-winemaking": "workspace:*",
+    "@saxonberg/content-water": "workspace:*",
     "@saxonberg/server": "workspace:*",
     "@saxonberg/types": "workspace:*"
   },

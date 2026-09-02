@@ -203,8 +203,8 @@ export function ChargedMixin<TBase extends MixinConstructor>(Base: TBase) {
     // wherever the view lives (see `Caster.CASTING_VERB_YAMLS`).
     static commandContributions: CommandContributions = {
       self: [],
-      peers: ['arcana/cmd/magic/zap.yaml', 'arcana/cmd/magic/recharge.yaml'],
-      environment: ['arcana/cmd/magic/zap.yaml', 'arcana/cmd/magic/recharge.yaml'],
+      peers: ['system/arcana/cmd/magic/zap.yaml', 'system/arcana/cmd/magic/recharge.yaml'],
+      environment: ['system/arcana/cmd/magic/zap.yaml', 'system/arcana/cmd/magic/recharge.yaml'],
     };
 
     static fieldMeta: FieldMeta = {

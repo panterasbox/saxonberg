@@ -620,6 +620,20 @@ export default class Material extends SingletonMixin(
     nutrients: { persistent: true, spoiler: 1, spoilerName: 0 },
     nutrientAmounts: { persistent: true, spoiler: 1, spoilerName: 0 },
     toxicity: { persistent: true, spoiler: 1, spoilerName: 0 },
+    // ⭐ `spoiler: 1`, matching `toxicity` — they are the same fact seen
+    // from two sides. "This water poisons you" and "boiling fixes it"
+    // are the two halves of the John Snow lesson, and shipping the
+    // answer public while the problem is a spoiler would be
+    // inconsistent AND would hand a player the last rung of the
+    // counterplay ladder before they had reason to look for it.
+    // `spoilerName: 0` — that the field EXISTS is public; what it names
+    // is not.
+    purifiedByBoiling: {
+      persistent: true,
+      authorable: true,
+      spoiler: 1,
+      spoilerName: 0,
+    },
   };
 
   public getName(): string { return this.name; }
@@ -792,6 +806,42 @@ export default class Material extends SingletonMixin(
   /** Set latent heat of fusion. Strict on `Quantity<'J/kg'>`. */
   public setLatentHeatOfFusion(value: Quantity<'J/kg'>): void {
     this.latentHeatOfFusion = value;
+  }
+
+  /**
+   * ⭐ **What this becomes when it is boiled** — a material template
+   * path, or `''` for a material boiling does not improve.
+   *
+   * The actionable half of the John Snow lesson, and the second rung of
+   * the counterplay ladder (*move your intake · boil · treat*). Boiling
+   * is **personal and per-use**: it costs fuel and time every single
+   * time, which is exactly why a town eventually pays for treatment
+   * instead.
+   *
+   * It is an arrow between two authored materials rather than a
+   * mutation, because a `Material` is a **shared reference Idea** — one
+   * row backs every litre of that stuff in the world, so boiling a pot
+   * by editing the material would purify every river at once. The
+   * closed-material doctrine says the same thing from the other side:
+   * *materials are a fixed set and blends derive*, so the way to say
+   * "this water is different now" is to name a different material.
+   *
+   * ⚠ It says nothing about **persistent** contamination, and that
+   * silence is the point: boiling a lead-fouled river gives you hot
+   * lead-fouled river. A persistent contaminant's material simply
+   * declares no counterpart.
+   *
+   * See [docs/subsystems/watershed.md].
+   */
+  protected purifiedByBoiling: string = '';
+
+  /** The material this becomes when boiled, or `''`. */
+  public getPurifiedByBoiling(): string {
+    return this.purifiedByBoiling;
+  }
+
+  public setPurifiedByBoiling(value: string): void {
+    this.purifiedByBoiling = typeof value === 'string' ? value.trim() : '';
   }
 
   /** Read boiling point (`Quantity<'K'>`; `0` = does not boil). */

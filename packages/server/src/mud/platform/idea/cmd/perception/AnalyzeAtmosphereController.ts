@@ -37,6 +37,10 @@ function describeSource(trace: AtmosphericTrace<unknown>): string {
       return `biome ancestor (${trace.sourcePath})`;
     case 'zone':
       return `spatial zone`;
+    case 'elevation':
+      // Pressure DERIVED from the zone's height above sea level (D4) —
+      // the reading whose cause the altimeter is actually measuring.
+      return `derived from elevation (${trace.sourcePath})`;
     case 'universe':
       return `universe default`;
   }

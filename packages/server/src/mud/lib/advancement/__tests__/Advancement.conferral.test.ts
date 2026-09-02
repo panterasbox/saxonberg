@@ -26,7 +26,7 @@ import { ShadowApi } from "../../../api/shadow";
 import { Template } from "../../stuff/Template";
 import { PersistenceManager } from "../../../../backend/PersistenceManager";
 import { makeStuffAtPath } from "../../security/__tests__/test-setup";
-const DISCIPLINE_PATH_PREFIX = '/arcana/idea/Discipline/';
+const DISCIPLINE_PATH_PREFIX = '/system/arcana/idea/Discipline/';
 const DISCIPLINE_CLASS = '/platform/idea/Discipline';
 
 const TestGiverBase = AdvancementMixin(

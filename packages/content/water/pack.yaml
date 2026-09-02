@@ -1,0 +1,21 @@
+id: water
+version: 0.1.0          # reserved; nothing reads/enforces it (non-goal: version machinery)
+root: /system/water
+description: >-
+  Water — the watershed pack: the works, as distinct from the physics.
+  The kernel owns what every pack's content is already subject to (zone
+  elevation, the precipitation integral, the pressure fallback, rain
+  reaching soil); this pack owns what other packs' content NAMES — the
+  `Watercourse` a Locality declares itself on, the `Conduit` that carries
+  water from a reach to an extent, the `ControlStructure` that decides how
+  much passes, the `StorageNode` that banks it, the validated save behind
+  the `water-right` document kind, and the verbs that operate all four.
+  Nothing here is specific to one river: a class or row that exists for
+  the Kestrel alone belongs to Terminus.
+requires:
+  groups:
+    - name: water
+      purpose: the water pack's own body — the watershed's works
+      owner: { office: prime-minister }
+  title:
+    - { extent: /system/water, holder: { group: water } }

@@ -30,7 +30,7 @@ data:
     # The kit is what makes the `maintains` round below possible AT ALL
     # — take it off her and the dorm weathers. An owner-authored loadout,
     # exactly like the master ring: never a self-issued power.
-    - /residence/thing/householders-kit
+    - /system/residence/thing/householders-kit
   cast:
     - /world/eternal/duncan-hall/agent/master-ring
   shortDescription: the live-in super, keys jangling at her belt

@@ -149,7 +149,7 @@ function installStore(): void {
   const add = (path: string, cls: string, data: Record<string, unknown> = {}) =>
     domain.push({ _id: `d-${++idCounter}`, path, class: cls, hydratorClass: PH, data });
   domain.push({ _id: `d-${++idCounter}`, path: PH, class: PH, data: {} });
-  add(PROGRAMME, '/residence/idea/HoldingWarren', {
+  add(PROGRAMME, '/system/residence/idea/HoldingWarren', {
     floorplan: [{ leaf: 'yard', room: YARD_ROW, entry: true }],
     upkeepTerm: 'owner-all',
   });

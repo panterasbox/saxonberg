@@ -11,9 +11,9 @@ import { describe, it, expect } from 'vitest';
 import { refsOf } from '../check-template-census';
 
 describe('refsOf — the template-path field grammar', () => {
-  it('reads plain and {template, onto} populates', () => {
+  it('reads plain and {template, onto} props/cast', () => {
     const refs = refsOf({
-      populates: [
+      props: [
         '/stuff/thing/fixture/bed',
         { template: '/trade/hospitality/thing/shaker', onto: '/trade/hospitality/thing/well' },
       ],
@@ -74,9 +74,9 @@ describe('refsOf — the template-path field grammar', () => {
   it('a rowless reference is exactly what the resolve step refuses', () => {
     // The clause-(b) decision in miniature: refs minus the row set.
     const rows = new Set(['/obj/_test/lane']);
-    const refs = refsOf({ populates: ['/obj/_test/lane', '/obj/_test/ghost'] });
+    const refs = refsOf({ props: ['/obj/_test/lane', '/obj/_test/ghost'] });
     const unresolved = refs.filter((r) => !rows.has(r.path));
-    expect(unresolved).toEqual([{ field: 'populates', path: '/obj/_test/ghost' }]);
+    expect(unresolved).toEqual([{ field: 'props', path: '/obj/_test/ghost' }]);
   });
 
   it('prose, non-slash strings and detail maps are never references', () => {
@@ -87,5 +87,34 @@ describe('refsOf — the template-path field grammar', () => {
         keywords: ['/not-a-field'],
       }),
     ).toEqual([]);
+  });
+});
+
+/**
+ * ⚠ The regression this file failed to catch. `populates:` split into
+ * `props:`/`cast:` in another build; `refsOf` went on reading the retired
+ * name and the census stayed green while 322 of its 462 refs stopped
+ * being checked. These pin the CURRENT field names so the next rename
+ * fails here rather than going quiet.
+ */
+describe('refsOf reads the fields content actually uses', () => {
+  it('reads cast as well as props', () => {
+    const refs = refsOf({ cast: ['/obj/_test/gus'] });
+    expect(refs).toEqual([{ field: 'cast', path: '/obj/_test/gus' }]);
+  });
+
+  it('⭐ does NOT read the retired populates:', () => {
+    expect(refsOf({ populates: ['/obj/_test/lane'] })).toEqual([]);
+  });
+
+  it('censuses the reference-Idea citations', () => {
+    const refs = refsOf({
+      _materialPath: '/stuff/idea/material/alloy/bronze',
+      _speciesPath: '/stuff/idea/species/human',
+    });
+    expect(refs.map((r) => r.field).sort()).toEqual([
+      '_materialPath',
+      '_speciesPath',
+    ]);
   });
 });

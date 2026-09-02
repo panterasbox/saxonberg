@@ -172,6 +172,95 @@ export const WEATHER_PROFILES: Record<WeatherType, WeatherTypeProfile> = {
   },
 };
 
+/* ─────────────────────────── the precipitation integral ─────────────────────────── */
+
+/**
+ * How hard each weather type precipitates, in **millimetres of liquid
+ * water equivalent per hour**. The one new number the watershed build
+ * asks of weather.
+ *
+ * ⚠ `WeatherTypeProfile.precipitation` is a **descriptor** (`none` /
+ * `rain` / `snow`) — it says *what falls*, never *how much*. The
+ * integral needs a rate, and a rate has to be authored: there is no
+ * honest way to derive "how much rain" from "it is raining". This table
+ * is that authorship, and `storm` is the reason it keys on the
+ * {@link WeatherType} rather than on the descriptor — a storm and a
+ * shower share the descriptor `rain` and differ by a factor of four.
+ *
+ * **Scale.** These are *segment-average* intensities, not instantaneous
+ * ones: our weather is piecewise-constant over six-hour segments, so a
+ * `rain` segment rains for the whole six hours. Real moderate rain falls
+ * at ~2.5 mm/h but not for six hours together, so the authored figures
+ * are the six-hour averages that reproduce a plausible ANNUAL total
+ * under the shipped transition grammar — a wet temperate valley.
+ * `WeatherType.test.ts` pins that total, so a dial change that would
+ * make the realm a desert or a rainforest fails rather than passing
+ * quietly.
+ *
+ * Snow's figure is its **water equivalent** — what melts out of it, not
+ * how deep the drift is. Where it goes (run-off now, or a pack that
+ * releases later) is the integral's business, not this table's.
+ */
+export const PRECIPITATION_RATES_MM_PER_HOUR: Record<WeatherType, number> = {
+  clear: 0,
+  overcast: 0,
+  fog: 0,
+  rain: 0.3,
+  storm: 1.2,
+  snow: 0.25,
+};
+
+/**
+ * The result of integrating precipitation over a window: what fell as
+ * liquid, what fell as snow, and how much of the window was actually
+ * walked.
+ *
+ * **Two figures, not one**, because the two consumers of the walk want
+ * different halves of it and a build that returned only the sum would
+ * have to walk twice. Liquid reaches the ground now — into a bed, into
+ * a reach. Frozen is water *banked at altitude*, and it releases on
+ * melt, which is the mechanism behind the spring rise and the
+ * late-summer low.
+ */
+/**
+ * One segment's share of a window — the general form of the walk the
+ * precipitation integral does.
+ *
+ * Weather owns *what the weather was, segment by segment*; a consumer
+ * owns what that does to it. The watershed's snowpack, for instance,
+ * needs the segment's **season** and **type** to decide whether snow
+ * fell and whether it is melting at a catchment's altitude — a question
+ * weather has no business answering, since it involves a lapse rate and
+ * a degree-day model that belong to hydrology.
+ */
+export interface WeatherSegment {
+  /** The segment's index in the global segmentation. */
+  segmentIndex: number;
+  /** The type governing it (an authored locality pin forces this). */
+  type: WeatherType;
+  /** The season at its start. */
+  season: Season;
+  /** Game-second the segment begins at. */
+  startsAtS: number;
+  /** Game-seconds of it that lie inside the requested window. */
+  overlapS: number;
+}
+
+export interface PrecipitationIntegral {
+  /** Liquid water that reached the ground over the window. */
+  liquid: Quantity<'mm'>;
+  /** Water-equivalent that fell as snow — banked, not run off. */
+  frozen: Quantity<'mm'>;
+  /**
+   * Game-seconds actually integrated. Equal to the requested window
+   * unless the segment cap bit, in which case it is the tail of the
+   * window that was walked. **Never silently zero:** a caller that hands
+   * in an inverted or empty window gets `0` here alongside zero
+   * quantities, which is a different statement from "it did not rain".
+   */
+  coveredS: number;
+}
+
 /* ─────────────────────────── grammar tables ─────────────────────────── */
 
 /** One weighted transition candidate. */
@@ -287,6 +376,22 @@ export const WEATHER_DEFAULTS = {
    * exact formula is a playtest dial; the type-forcing is the invariant.
    */
   ALIVE_ANIM_MIN: 0.6,
+  /**
+   * The precipitation integral's segment cap — the most segments one
+   * `precipitationBetween` walk will ever sum, counted back from the END
+   * of the window.
+   *
+   * ⚠ **The cap is part of the integral, not a later optimisation.**
+   * The walk is exact over an arbitrary absence, and "arbitrary"
+   * includes a place nobody has touched since the epoch: uncapped, a
+   * first read after a long dormancy replays every segment since
+   * `t = 0`. 120 segments is thirty game-days, which is far longer than
+   * any bounded sink in the build takes to saturate — a soil reserve
+   * fills many times over inside it — so the cap costs no observable
+   * water while bounding the work. A caller that needs to know it bit
+   * reads {@link PrecipitationIntegral.coveredS}.
+   */
+  PRECIPITATION_MAX_SEGMENTS: 120,
 } as const;
 
 /* ─────────────────────────── Wave-2 coexistence resolve ─────────────────────────── */

@@ -22,7 +22,7 @@ data:
   props:
     # The landlord-shell term says the walls and the weather are his.
     # The kit is what lets him mean it.
-    - /residence/thing/householders-kit
+    - /system/residence/thing/householders-kit
   behaviors:
     # The shell round (residences D5). `landlord-shell` is a claim about
     # who is responsible; this is the agency that performs it. What a

@@ -1,0 +1,49 @@
+# The Kestrel — the home basin's trunk, and the reason Terminus is
+# where it is.
+#
+# ⭐ Read it downwards and it is the realm's political economy in six
+# nodes. The ore and the snowpack are BOTH at the headwaters, which is
+# why the mining town sits there and why what it puts in the water is
+# upstream of everybody. The farming valley joins at the confluence and
+# argues about volume. The city drinks last, at Wharfside, after both of
+# them have been in it.
+#
+# Nobody wrote an arrow. Elevation is authored at the CONTROL POINTS —
+# source, falls, confluence, mouth — and the reaches between them
+# interpolate, so an uphill stretch is not merely illegal, it is
+# unwriteable. Direction, upstream/downstream, navigability and which
+# way contamination travels all fall out of these numbers.
+class: /system/water/idea/Watercourse
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  # `catchmentKm2` on a node is the WILD ground draining to it — the
+  # fell nobody's locality covers. A locality declares the ground it
+  # sits on (D21) and the two add; without this the realm's three
+  # villages would give the Kestrel a flow the size of a gutter, and the
+  # seasonal hydrograph the whole rights layer depends on would be
+  # invisible.
+  key: kestrel
+  name: the Kestrel
+  basin: kestrel
+  nodes:
+    # Rejection's ground. High, cold, and where the ore is — so this is
+    # simultaneously the realm's snowpack and its worst pollution risk.
+    - { name: headwaters, elevation: 1400, catchmentKm2: 380 }
+    # Interpolated: a gorge nobody has built in and nobody needs a room
+    # for. Steep enough that no boat has ever been up it.
+    - { name: gorge, catchmentKm2: 210 }
+    # The falls — a control point because the drop is real, and the
+    # obvious place to put a wheel or a dam.
+    - { name: falls, elevation: 500, channelWidthM: 18, catchmentKm2: 260 }
+    # ⭐ The confluence — where the Delight comes in out of the farming
+    # valley, and WHERE TERMINUS IS. A city whose entire geographic
+    # premise is a confluence: it drinks last, after the mining town and
+    # the farming valley have both been in the water. Wide enough for a
+    # boat most of the year, and the build authors no boats — the fact
+    # simply sits here waiting for the wave that wants it.
+    #
+    # 30 m, five below the city's own ground at 35, which is what makes
+    # a bank a bank rather than a flood.
+    - { name: confluence, elevation: 30, channelWidthM: 90, catchmentKm2: 160 }
+    # The sea, and the global minimum: downstream of everything.
+    - { name: estuary, elevation: 0, channelWidthM: 160 }

@@ -39,7 +39,7 @@ const PRODUCE_DIR = fileURLToPath(
 // The upkeep kit is the residence pack's (residences D18) — the store
 // stocks it cross-pack, the same way it stocks the farming pots.
 const RESIDENCE_DIR = fileURLToPath(
-  new URL("../../../residence/content/residence/", import.meta.url),
+  new URL("../../../residence/content/system/residence/", import.meta.url),
 );
 const CH_DIR = fileURLToPath(
   new URL("../../../terminus/content/world/terminus/counting-houses/", import.meta.url),
@@ -131,7 +131,7 @@ describe("general-store content integrity", () => {
     // The householder's kit — a `ToolItem` subclass in the residence
     // pack, because the verb it confers is a static on a class and a
     // row cannot carry one.
-    "/residence/thing/HouseholdersKit",
+    "/system/residence/thing/HouseholdersKit",
   ]);
 
   it("every priced/stocked good is a real, discrete item (never Globbable)", () => {
@@ -150,7 +150,7 @@ describe("general-store content integrity", () => {
         "/world/terminus/general-store/",
       );
       const produce = line.itemTemplatePath.startsWith("/trade/farming/");
-      const residence = line.itemTemplatePath.startsWith("/residence/");
+      const residence = line.itemTemplatePath.startsWith("/system/residence/");
       // The homebrew line (fermentation D15): the kit rows live with
       // the trades they miniaturize; carboy + jar in the commons.
       const wine = line.itemTemplatePath.startsWith("/trade/winemaking/");
@@ -174,7 +174,7 @@ describe("general-store content integrity", () => {
         : produce
           ? line.itemTemplatePath.replace("/trade/farming/", "")
           : residence
-            ? line.itemTemplatePath.replace("/residence/", "")
+            ? line.itemTemplatePath.replace("/system/residence/", "")
             : wine
               ? line.itemTemplatePath.replace("/trade/winemaking/", "")
               : brew

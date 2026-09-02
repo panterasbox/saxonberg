@@ -21,7 +21,7 @@
 # It shares `wand-of-firebolt`'s census key on purpose: it is the same
 # kind of thing for stock purposes, and a separate bucket would let a
 # player read BUC off the census.
-class: /arcana/thing/Wand
+class: /system/arcana/thing/Wand
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a slender ashwood wand

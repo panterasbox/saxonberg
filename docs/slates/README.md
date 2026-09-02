@@ -513,7 +513,7 @@ behind spoilage.
 - [residence-ladder-design-pack](./builds/residence-ladder-design-pack.md) — the progression spine. Money is necessary; **the binding gate is the condition of what you already hold.** Anti-hoarding falls out for free. **⭐ PARTLY SHIPPED (2026-09-01)** — the ladder, the condition read, the tenure term and the ascent gate landed with the residences build ([holding.md](../subsystems/holding.md)). **Retained, and not close to retirement**: Part 4's **Stewardship `Discipline`** (care as capability) and Part 5's **consequence ladder of a neglected home** are both unbuilt, and all five open questions are live — including ⭐ *where a locality's revenue comes from once holding tax is banned*, which lands on the civics/fiscal build.
 - [disease-design-pack](./builds/disease-design-pack.md) — contagion and hygiene, inheriting spoilage's growth term. *Good husbandry is immunity*, pointed at bodies, herds, crops and homes.
 - [household-design-pack](./builds/household-design-pack.md) — the multi-occupant case. ⭐⭐ **With one holder property condition is a mirror; with two it is a commons.** Needs no new primitive: a household is two derived reads (tenure ∪ domicile). Condition collective, competence individual, **exit always cheap**.
-- [water-design-pack](./builds/water-design-pack.md) — ⭐ water has **physics everywhere and weather nowhere**. Drought is fully implemented and cannot happen. **Connect the rain to the soil, leave the tap alone** — the billing half of a water utility is declined on purpose.
+- [water-design-pack](./builds/water-design-pack.md) — ⭐ water has **physics everywhere and weather nowhere**. Drought is fully implemented and cannot happen. **Connect the rain to the soil, leave the tap alone** — the billing half of a water utility is declined on purpose. **⭐⭐ SHIPPED (2026-09-02)** — the rain edge, the watershed, conveyance, storage, rights and contamination all landed with the water build ([watershed.md](../subsystems/watershed.md)); the metering refusal held. **Retained for a short tail**: open questions **2** (does rain wet things other than soil?) and **3** (the windowsill pot — neither indoors nor `SkyExposed`, and the houseplant is the game's most-owned growing thing) are still live rulings.
 - [hearth-and-larder-design-pack](./builds/hearth-and-larder-design-pack.md) — the domestic integrating vertical: a room that answers to its fire, the preserving crafts, and ⭐ **the compost heap, whose consumer already ships and whose producer does not.** Closes the food→soil→food loop and stops spoilage reading as pure loss.
 - [tenancy-design-pack](./builds/tenancy-design-pack.md) — stewardship of what you **don't own**, closing a hole inside the ladder's own rented rungs. ⭐ Nearly free: room-condition's actor attribution *is* the mechanism, and the structure/contents split already exists in the persistence model (the room is the landlord's, the estate slice is the tenant's). Eviction is legitimate and stripping is not — **you can be put out, never stripped.**
 - [patina-design-pack](./builds/patina-design-pack.md) — ⭐⭐ **the only loop where care makes a thing BETTER**, not merely un-worse. Patina accrues from the *cycle* (use → care), never from either alone; it removes failure modes rather than adding power; and `globIdentity` makes a seasoned object un-mergeable with a shop copy. **Unblocked — nothing it needs is unbuilt.**
@@ -521,7 +521,11 @@ behind spoilage.
 **Adjacent, filed here because the family drove them:**
 [supply-design-pack](./builds/supply-design-pack.md) — one model for every
 source (water, power, mana): **cache the source's identity, derive its
-state**, plus a closed six-entry failure vocabulary · and
+state**, plus a closed six-entry failure vocabulary — **⭐ the vocabulary
+SHIPPED 2026-09-02** as `lib/supply/SupplyState.ts` (the water build's
+`Conduit` is its first consumer), and the sync/async seam it was designed
+to unblock is resolved; the unified source model and the power half are
+still unbuilt · and
 [mana-economy-design-pack](./builds/mana-economy-design-pack.md) — mana as
 its own conserved quantity coupled one-way to energy, which
 [arcane-science.md](../arcane-science.md) now reflects.

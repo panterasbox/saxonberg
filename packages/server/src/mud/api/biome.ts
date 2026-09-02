@@ -61,11 +61,13 @@ export interface AtmosphericTrace<V> {
     | 'biome'
     | 'biome-ancestor'
     | 'zone'
+    | 'elevation'
     | 'universe';
   /**
    * Path of the source — ancestor template path for detail / room,
    * biome template path for biome / biome-ancestor, zone path for
-   * zone, `'/stuff/idea/biome/universe'` for universe.
+   * zone AND for `elevation` (the zone that declared the height),
+   * `'/stuff/idea/biome/universe'` for universe.
    */
   sourcePath: string | null;
   /** Containment ancestor template paths traversed during the walk. */

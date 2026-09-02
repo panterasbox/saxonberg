@@ -1,0 +1,74 @@
+# Fouled water — river water below an outfall, and the thing the
+# counterplay ladder is a ladder about.
+#
+# ⭐ It is a **material**, not a state on a vessel, because a `Material`
+# is a shared reference Idea and that is exactly the right shape here:
+# one row backs every litre of the stuff in the world, and the way to
+# say "this water is different now" is to name a **different material**
+# (the closed-material doctrine — materials are a fixed set and blends
+# derive).
+#
+# ## Two fields do all the work, and neither is new machinery
+#
+# `toxicity` is the SHIPPED metabolism path: a `ToxinTag` on a material
+# doses whoever drinks it, clears on the body's own schedule, and needed
+# nothing from this build. Water's own row carries `toxicity: []`; this
+# one carries a dose.
+#
+# `purifiedByBoiling` points back at plain water, which is what makes
+# `boil` an actual answer rather than a gesture. ⚠ **A persistent
+# contaminant would author no counterpart** — boiling a lead-fouled
+# river gives you hot lead-fouled river, and that silence is how a
+# player learns the difference between organic and persistent
+# contamination.
+#
+# Everything else is water's own row: it is the same substance, dirtier.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: fouled-water
+  appearance: brown, cloudy water
+  keywords: [water, fouled, dirty]
+  density: 1000
+  thermalConductivity: 0.6
+  specificHeat: 4186
+  electricalConductivity: 0.02
+  meltingPoint: 273
+  latentHeatOfFusion: 334000
+  boilingPoint: 373
+  latentHeatOfVaporization: 2260000
+  edibility: true
+  nutrients: [water]
+  # The shipped toxin route, keyed on the `dysentery` Condition. It is
+  # ORGANIC contamination — which is why boiling answers it, and why the
+  # river below the town recovers on its own over a few reaches.
+  toxicity:
+    - { type: dysentery, amount: 12 }
+  # ⭐ Boil it and you have water. Personal, per-use, costing fuel and
+  # time every single time — which is precisely why a town eventually
+  # buys treatment instead.
+  purifiedByBoiling: /stuff/idea/material/bulk/water
+  # ⚠ It keeps the `water` IDENTITY tag, unlike `salt-water`, because it
+  # genuinely IS water. Nothing about fouled water announces itself,
+  # which is the entire reason the intake's POSITION is the thing that
+  # matters.
+  #
+  # ⚠⚠ That does NOT mean "everything that asks for water accepts it",
+  # and the split is worth knowing before somebody relies on either
+  # half. The codebase asks for water two ways:
+  #
+  #   - **by tag** (`material.hasTag('water')` — `wash`, the craft
+  #     matcher, `feed`): fouled water PASSES. You can rinse a glass in
+  #     sewage, and the dose is the consequence rather than a refusal.
+  #   - **by material path LEAF** (`Archetype.holdsBulkOf`, which the
+  #     `bulkSource: water` capability slot uses): fouled water FAILS,
+  #     because the leaf is `fouled-water`, not `water`.
+  #
+  # So a kitchen whose basin held this would survey as short of its
+  # water slot. That is defensible — a kitchen wants potable water, and
+  # naming the gap is what the survey is for — but it is a real design
+  # call rather than an accident, and it is currently LATENT: nothing in
+  # shipped content fills a vessel from a fouled reach yet.
+  tags: [liquid, water, beverage, drinkable]
+  composition: []
+  biologicalSource: null

@@ -10,6 +10,10 @@ import { Template } from '../../../lib/stuff/Template';
 import { Zone } from '../../../lib/zone/Zone';
 import type { SpatialZone } from '../../../lib/zone/SpatialZone';
 import { SecurityApi } from '../../../api/security';
+import { MixinApi } from '../../../api/mixin';
+import type { Stuff } from '../../../lib/stuff/Stuff';
+import type { Container } from '../../../lib/spatial/Container';
+import type { Containable } from '../../../lib/spatial/Containable';
 
 /**
  * Cache of `classPath → prototype instanceof Zone` results. The check
@@ -22,6 +26,22 @@ const spatialZoneClassCache = new Map<string, boolean>();
 
 interface ClassWithPrototype {
   prototype: object;
+}
+
+/**
+ * Containment-walk depth cap — the biome chain's number, for the same
+ * reason: a cycle in containment must bound rather than hang.
+ */
+const CONTAINMENT_DEPTH_CAP = 32;
+
+/** One step outward through containment, or `null` at the top. */
+function stepOutward(
+  cursor: Stuff & Container,
+): (Stuff & Container) | null {
+  if (!MixinApi.isContainable(cursor)) return null;
+  const next = (cursor as Stuff & Containable).getContainer();
+  if (next === null || !MixinApi.isContainer(next)) return null;
+  return next as Stuff & Container;
 }
 
 function hasPrototype(value: unknown): value is ClassWithPrototype {
@@ -114,6 +134,27 @@ export class ZoneLogic extends ApiLogic {
       return await StuffApi.singleton<Zone>(ancestor);
     }
     return null;
+  }
+
+  /** See {@link ZoneApi.elevationFor}. */
+  @CallSecurity(ZoneApiCallers)
+  public async elevationFor(scope: Stuff & Container): Promise<number | null> {
+    // Walk OUT to the outermost container first. The zone stamped on an
+    // object is resolved from its own TEMPLATE path — a garden bed's
+    // stamp names the farming trade's zone, which has no opinion about
+    // where the bed is standing. Only the enclosing place's zone knows
+    // that, and it is the outermost containment step that finds it (the
+    // biome chain's step 5, for the same reason).
+    let cursor: (Stuff & Container) | null = scope;
+    let outermost: Stuff & Container = scope;
+    let depth = CONTAINMENT_DEPTH_CAP;
+    while (cursor !== null && depth-- > 0) {
+      outermost = cursor;
+      cursor = stepOutward(cursor);
+    }
+    const zone = outermost.getZone();
+    if (zone === null) return null;
+    return zone.lookupField<number>('elevation');
   }
 
   /** See {@link ZoneApi._clearClassCaches}. */

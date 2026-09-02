@@ -120,7 +120,7 @@ export class ModuleApi {
    * (`/arcana`). Consulted BEFORE `SOURCE_ROOT_HINTS` by the URL
    * normaliser, longest directory first, so a pack file
    * `…/packages/content/arcana/src/thing/Wand.ts` normalises to
-   * `/arcana/thing/Wand` — the same string as its template path, which
+   * `/system/arcana/thing/Wand` — the same string as its template path, which
    * is what keeps `FromModule` gates on pack controllers readable.
    * Populated by pack discovery (`PackApi.registerSources`); a pack
    * with several claims registers its one `src/` once per root.
@@ -157,7 +157,7 @@ export class ModuleApi {
   /**
    * The module-id a file URL (or absolute path) stamps as — the same
    * normalisation `stamp` applies: a registered pack `src/` first
-   * (`/arcana/thing/Wand`), then the kernel roots (`/lib/…`, `/api/…`).
+   * (`/system/arcana/thing/Wand`), then the kernel roots (`/lib/…`, `/api/…`).
    * A file under neither returns its extension-stripped path, which
    * matches no policy glob.
    */

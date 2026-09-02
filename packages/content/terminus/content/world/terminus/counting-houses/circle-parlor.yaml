@@ -13,7 +13,7 @@ data:
   shortDescription: the Goodkin Circle parlor
   primaryKeyword: parlor
   alternateNames: [parlour, circle, office, back]
-  _address: counting-houses/goodkin-parlor
+  _address: terminus/city/counting-houses/goodkin-parlor
   longDescription: |
     The parlor is small and deliberately warm: a carpet you sink into, two armchairs drawn up by a fire that's always lit, a low table with — of course — more coffee. The walls are hung with framed photographs of the Goodkin "family," a hundred smiling faces at picnics and ribbon-cuttings, and pride of place goes to a desk of dark wood where accounts are opened and, the little brass plate says, MEMBERS ARE WELCOMED. It is the most comfortable room in the district, and something about how comfortable it is makes you want to check where the door is. The door back to the hall is south.
   coords:

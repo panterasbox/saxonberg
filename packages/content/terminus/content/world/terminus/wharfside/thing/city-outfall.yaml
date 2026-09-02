@@ -1,0 +1,39 @@
+# The city outfall — the other end of the same city.
+#
+# ⭐⭐ **The same class as the intake, with its ends swapped.** A sewer
+# is a conduit reversed: it takes from an extent and discharges into a
+# reach. One primitive serves supply and disposal, which is why the fact
+# that an outfall is downstream of an intake is a fact about TERRAIN
+# rather than a rule somebody wrote.
+#
+# `organic`, deliberately: this is a city's sewage, and a river recovers
+# from sewage over a few reaches. The estuary below it is measurably
+# cleaner than the water at the arch. The mine that will one day
+# discharge `persistent` at the headwaters is a different lesson, and it
+# ships with Rejection.
+class: /system/water/thing/Conduit
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the outfall
+  primaryKeyword: outfall
+  keywords: [outfall, sewer, arch, discharge, drain]
+  longDescription: |
+    A brick arch set into the embankment at the waterline, running steadily whatever the weather, and running hardest in the driest month — which is when the river has least to dilute it with.
+  conduitKey: terminus-outfall
+  direction: disposal
+  reachRef: kestrel:confluence
+  extent: /world/terminus
+  capacityM3S: 0.9
+  dischargeLoadPerSecond: 0.6
+  dischargeKind: organic
+  ownerRef: "group:terminus"
+  fixedInPlace: true
+  details:
+    arch:
+      keywords: [arch, brick, brickwork, mouth]
+      description: |
+        Brick laid in a half-round a man could stand up in, green to the springline and black below it. Whoever built it expected it to be looked at from a distance, if at all.
+    flow:
+      keywords: [flow, discharge, water, current]
+      description: |
+        Steady, and steadiest in the driest month — which is exactly when the river has least to thin it with. Nobody designed that; it is just what a city does.

@@ -10,7 +10,7 @@
 # fixtures (the shipped status quo, now readable as a term, D5). No
 # front-door change: `DormDoor` stays the unit's edge (P1); the generic
 # FrontDoorExit is for the two new rungs.
-class: /residence/idea/HoldingWarren
+class: /system/residence/idea/HoldingWarren
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   floorplan:

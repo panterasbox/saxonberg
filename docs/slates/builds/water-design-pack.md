@@ -1,6 +1,15 @@
 # Water design pack — physics everywhere, weather nowhere
 
-> **Status: design, planner-ready, captured 2026-08-11. Not requirements.**
+> **Status: ⭐⭐ SHIPPED 2026-09-02** (captured 2026-08-11 as design). The
+> build took Parts 0–5 whole — the rain→soil edge, the watershed, the
+> conveyance ladder, storage, rights, contamination and `boil` — and held
+> Part 1's refusal of metering. **[watershed.md](../../subsystems/watershed.md)
+> is now the live reference; read it first.** This pack is retained for
+> its **tail**: open questions 2 and 3 below are still unanswered rulings,
+> and Part 1's declined billing half stays declined on the record here.
+> ⚠ Open question 1's *"snow credits zero for v1"* is **superseded** — the
+> shipped integral returns a `{liquid, frozen}` split and snow accumulates
+> as snowpack rather than being discarded.
 > Water was assumed to be a thin, unmodelled substance. **It is not** — it is
 > one of the best-modelled substances in the game (Part 0). What it lacks is
 > not physics but a **connection to the sky**, and the design call that follows
