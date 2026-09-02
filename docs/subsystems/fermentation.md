@@ -157,6 +157,48 @@ tools, so the floors are authored residue; the work boards (Menus) are
 deliberately not needs (the bathroom rule). Reported by `survey`,
 never enforced; a second winery anywhere satisfies from any rows.
 
+## Generalization notes — bread, yogurt, cheese (parked 2026-09-01)
+
+Assessed against the shipped model so the coming food trades inherit
+the analysis instead of rediscovering it:
+
+- **Yogurt — rows only.** Milk's lactose IS `nutrientAmounts.sugar`
+  (~50 g/L, honest); a profile with `requiresStrain` + a ~316 K happy
+  band (its culture authors the higher `killK`); pitched by `pour`.
+  Backslopping falls out: a culture-kind profile over the yogurt
+  MATERIAL itself makes a kept jar the culture. Needs one taxonomy row
+  D13 pre-answered: a `bacteria` kingdom clade beside `fungi` for the
+  Lactobacillus/Streptococcus species rows.
+- **Bread — designed for (D14's baking seam).** The starter is a kept
+  culture over a levain material, fed by a flour-water pour — works
+  verbatim. The rise is a proofing-bowl row (Vat family) + a dough
+  profile, and D3's machinery hands over-proofing over for free
+  (finished + open + fractional `turnDays` → collapsed dough as the
+  turned material). The exit from bulk is CRAFTING's: the bake is a
+  recipe (dough bulk + oven heat → a tangible loaf), grade flowing
+  weakest-link. The lactic family will eventually want an ACIDITY read
+  (the hydrometer pattern, a different number) — the SG/ABV reads mean
+  little for dough.
+- **Cheese — fresh yes, aged is the gap.** ⭐ The lees split IS a
+  curd/whey split: cultured milk sets, the whey pours off down to a
+  residual fraction (`leesFraction`, proportions inverted) and the
+  residual swaps to curd — no new mechanism; whey rides the P11
+  byproduct economy (ricotta over it, feed); pressing a wheel is a
+  recipe. **The gap: ripening a DISCRETE thing.** A wheel is a Crafted
+  Thing, and `FermentingMixin` requires a Bulkable interior — months in
+  a cave has no mechanism (note whiskey does NOT share this gap: it
+  ages as bulk in a Vat-family cask, a future aging profile). Aged
+  cheese + cured meats are the follow-on build's question.
+- **Two coarsenesses to design with, not around:** (1) one profile per
+  input material (the double-match rule) — strain-dependent FORKS from
+  one input (raw milk → yogurt vs clabber) take process-differentiated
+  input materials, the lager-wort move, usually honest anyway; (2) the
+  transfer seam's domain branches (thermal blend · grade/mark carry ·
+  inoculation) are explicit, narrow-gated steps in `BulkableLogic` —
+  fine at three; if a FOURTH domain wants in (whey handling, dyeing,
+  poisons), that is the moment to generalize to a host-side participant
+  hook rather than a fourth branch.
+
 ## File map
 
 - `lib/ferment/Fermenting.ts` — the mixin: reconcile, batch detection,
