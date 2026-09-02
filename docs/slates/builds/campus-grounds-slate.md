@@ -1,8 +1,14 @@
-# Campus labs slate — the university's labs, and enrollment as the door
+# Campus grounds slate — the labs, the archive, the field sites, and enrollment as the door
 
-**Captured 2026-09-01.** What labs go on the Eternal University campus,
-who may use them, and why that single access decision turns a thin
-government into a working institution.
+**Captured 2026-09-01.** What goes on the Eternal University grounds —
+labs, an archive, teaching field sites, and the combat facilities — who
+may use them, and why one access decision turns a thin government into a
+working institution.
+
+⭐ **The grounds resolve into three layers**, and the layering is the
+design: **the labs measure · the archive remembers · the field sites are
+where you get something worth measuring.** The combat facilities sit
+alongside as the practicum for a different set of disciplines.
 
 > **Status: design conversation, captured. Not requirements.**
 
@@ -204,22 +210,240 @@ option the user rejected.
 
 ---
 
-## Part 5 — What else the grounds want
+## Part 5 — ⭐⭐⭐ The teaching field sites (the missing tier)
 
-Beyond the labs, and mostly already named by
-[eternal-university-slate](./eternal-university-slate.md) /
-[college-slate](./college-slate.md):
+**Provenance — lived examples, taken as the spec:**
+
+> **User: "UC berkeley has an old mine shaft on campus that leads to the
+> steam tunnels. cal poly had horticulture on campus and I think davis
+> does too. my high school even had a small fenced in 'nature reserve'
+> sorta thing that was local flora and fauna and a water source."**
+
+All three have one thing in common: **they are working field sites *on*
+campus.** Not classrooms, not labs — *the field, brought to the school.*
+Berkeley's adit is a teaching mine; Cal Poly's orchard is a teaching
+plot; a fenced reserve is a curated sample of the local biome with water
+in it.
+
+> ⭐⭐ **This is the missing tier of
+> [sampling-and-labs](./sampling-and-labs-slate.md).** That design hangs
+> on a field↔bench round-trip that costs time. A teaching site *on
+> campus* makes that cost ~zero.
+
+### The difficulty ramp falls out of siting, for free
+
+A student learns the whole loop — field read → choose a sample → carry →
+bench → result — with the round-trip dialed to two minutes. Then the real
+mine is an hour away and **the identical loop suddenly has a price**.
+
+**The campus field site teaches the loop; the world charges for it.** No
+new mechanic, no tutorial text, no difficulty setting — it is purely
+*where things are*. And since the campus is the first content a player
+walks into ([eternal-university-slate](./eternal-university-slate.md)),
+every field skill gets learned adjacent to safety before the stakes turn
+on.
+
+### The three sites
+
+| site | rides | teaches |
+|---|---|---|
+| **The adit** — a short teaching mine into the hillside | seams, ore composition, the assay loop ([mining-slate](./mining-slate.md)) | prospecting: field read, sample selection, provenance |
+| **Horticulture grounds + greenhouse** | smallholding, husbandry, **thermal** (a greenhouse is a *controlled environment*, genuinely instrument-rich) | growing, soil, the limiting-factor model |
+| **The reserve** — fenced, local flora and fauna, a water source | [biome](../../subsystems/biome.md), weather, species, the field substrate | observation, water chemistry, identification |
+
+⭐ **The steam tunnels past the adit earn their place precisely because
+they are not academic.** Campus utility tunnels are lore, trespassing and
+low-stakes transgression — the thing every real campus has and no course
+catalogue mentions. They also give campus *infrastructure* a physical
+existence, which is a hook for the power/utility side later.
+
+---
+
+## Part 6 — ⭐⭐ The archive (and why a campus library is not the town's)
+
+A town public library will exist. A campus library needs a reason not to
+be a duplicate, and the standing doctrine forces one:
+
+> **If the aether is the textbook, general reference is already free to
+> everyone, everywhere.** So no library justifies itself by holding
+> general knowledge.
+
+Which splits them cleanly:
+
+| | holds | for |
+|---|---|---|
+| **Public library** | general, current | anyone — it is *access* |
+| **Campus library** | ⭐ **the record of what has already been measured** | the institution — it is *the archive* |
+
+Decades of students have assayed samples, surveyed seams, logged the
+reserve's water chemistry. The campus library holds **that** — primary
+records, prior surveys, old field notebooks. Not what the aether has
+(never published); not what the public library has (specialist and
+institutional).
+
+### ⭐⭐⭐ The mechanic: checking the literature substitutes for fieldwork
+
+Before riding out to assay a seam, you look up whether someone already
+did — and if they did, **you skip the trip.** That is real research
+skill, it is literally how science works, and it makes *the lab makes
+measurements, the archive remembers them* a working pair rather than a
+metaphor.
+
+And it runs in the other direction: **your assays go into it.** Student
+fieldwork accumulates into an institutional record later students read —
+so the University **becomes more valuable over time from play**, which is
+a rare and good property for authored content to have.
+
+⚠ It also gives salting ([sampling-and-labs](./sampling-and-labs-slate.md)
+Part 3) a second victim: a falsified provenance that reaches the archive
+poisons everyone who trusts it afterwards. Which is another reason
+certification exists.
+
+### ⭐⭐ Spellbooks: the organizing principle, and why arcana is the University's noun
+
+**Provenance:**
+
+> **User: "one thing the library will have … is spellbooks. I dunno maybe
+> different books in different libraries tho I dunno what the organising
+> principle would be there … I think that the magic disciplines are going
+> to need a guild. not the nouns, those disciplines can go in the trades
+> where they're exercised, but the verbs are kinda just 'magic as magic'
+> they dont connect to anything."**
+
+#### ⚠ The guild question, resolved against a mages guild — twice over
+
+[guild-slate § No magic guild](./guild-slate.md) already argues this, and
+the argument holds:
+
+> *"A 'mage's college' would be the genre-guild mistake wearing robes: an
+> institution formed around a **branch of the map** instead of a
+> vocation… Where do pure mages go? — **nowhere, correctly.** Magic as a
+> subject of study belongs to the scholars' vocation (a researcher of
+> magic is a real vocation; 'mage' is not). **The University teaches
+> magic fundamentals to everyone as feeder material, like letters.**"*
+
+⭐ **And the mechanism already delivers the verb-training the observation
+was reaching for.** `MagicLogic` credits **both** grid axes on every cast
+— its own comment reads *"Credit BOTH grid axes on the Transcript (one
+act, two subchecks)"*, recording `magic-<verb>` **and** `magic-<noun>` at
+the same difficulty.
+
+So a verb is never trained alone and **never needs to be**: a smith
+working fire/create and a healer working body/create raise the *same*
+`magic-create`. A guild for the verbs would be an institution built
+around a score that already accrues from everyone's ordinary work.
+
+> ⭐⭐ **The good consequence: the verb is what transfers between
+> trades.** A smith who ground `magic-create` at the forge picks up
+> create/light far faster than someone starting cold — cross-trade
+> mobility, earned rather than granted.
+
+**Verdict: no magic guild. Unchanged.**
+
+#### Where each grid piece lives
+
+| grid piece | home | why |
+|---|---|---|
+| **nouns with a trade** — fire, plant, beast, body, earth, water, lightning | the trade | smithing, horticulture, husbandry, medicine, delving — a guild's **mystery tier** |
+| **nouns without one** — ⭐ **arcana**, mind, sense, storm | the University / the scholars | `Grid.ts` defines arcana as *"the machinery of magic itself"* — magic's reflexive noun, with **no possible trade**, and precisely what a *scholar* studies |
+| **all five verbs** | everywhere, + University fundamentals | credited on every cast; taught "like letters" |
+
+⭐ **So the thing a "mages guild" was reaching for exists — it is the
+arcane college — and it is a *school* rather than a guild because it
+teaches everyone rather than gatekeeping a vocation.** Which is exactly
+where Part 1 already sites the Practicum.
+
+#### The spellbook principle
+
+Spell distribution is **not** arbitrary and needs no new vocabulary — it
+follows the same three-way split as everything else on these grounds:
+
+| shelf | holds | axis |
+|---|---|---|
+| **Town public library** | published, general, low-band — what anyone may know | *access* |
+| **Campus archive** | fundamentals, the verbs, and **arcana** — the theory | *institution* |
+| **A guild's inner hall** | its craft's high-band verb×noun pairs — the smiths' fire/create, the healers' body/perceive | *the mysteries* |
+
+> **A spellbook sits wherever its cell's institution sits.**
+
+⚠ And the slate's **institutionally homeless** magic (mind, arcana
+residue — *"the hedge-witch corner of the map, where the tapped-and-secret
+institutions recruit"*) is what gives you **illicit spellbooks with a
+reason to be illicit**: not contraband by fiat, but by having no lawful
+shelf to sit on.
+
+⭐ This also answers the campus-vs-town library worry directly: they hold
+**different shelves of the same subject**, so neither is a duplicate.
+
+---
+
+## Part 7 — The combat facilities (the practicum for a different set)
+
+⚠ **First, a correction:** combat.md's *"gym"* is
+`scripts/combat-gym.ts`, a **balance bench** — a dev harness proving no
+loadout dominates. It is **not** an in-world place, and **there is no
+training or sparring mechanic at all**; the shipped verbs are `attack`,
+`defend`, `fight`, `intervene`.
+
+### The derivation: which Disciplines have no home?
+
+Running Part 0's method on facilities rather than labs — most disciplines
+already have a venue somewhere in the world (bartending → the bar;
+cooking → the shipped `kitchen` archetype; magic → the Practicum;
+agriculture → fields; darts → a bar game). That leaves exactly six with
+nowhere to be:
+
+> **`blades` · `melee-combat` · `sports` · `command` · `awareness` ·
+> `stealth`**
+
+So the combat facilities are not a flourish — they are the only home
+several shipped disciplines have.
+
+### What they can actually be, with no training mechanic
+
+1. **Bounded combat** — a salle/ring where the harm outcome is *capped*:
+   consent-scoped, non-lethal, no accountability consequence. Rides
+   shipped consent + the harm-consent ledger. ⭐ **The world currently
+   has nowhere you can fight someone safely**, and a place fills that gap
+   with no new mechanic.
+2. **An audience** — ⭐⭐ the more interesting half. A public bout before
+   spectators is the purest **renown** generator available; reaction and
+   reception signals are already the substrate. *An arena is a reputation
+   facility, not a training one.*
+3. ⚠ **Not a competence grind.** Do not build a room where you farm
+   `blades` by hitting a dummy. That is the anti-pattern, and it is what
+   "arena" usually degenerates into.
+
+⭐ **The framing that keeps the campus coherent: the salle is the
+practicum for combat** — learn by doing, under supervision, stakes
+bounded. Identical in shape to the lab, so the combat buildings are
+*consistent* with the academic ones rather than a genre bolted on. The
+same enrollment logic then applies: a fencing team, an intramural league,
+a boxing club — campus life that makes enrollment worth more than bench
+access alone.
+
+**`command` gets a drill ground**, which is where
+[combat-formations](../../subsystems/combat-formations.md)' party-strategy
+layer has a reason to exist outside a real fight.
+
+---
+
+## Part 8 — The rest of the grounds
 
 - **The Chancellor seat** — the Government row is explicitly waiting on
   it, and Part 3 gives it its first real decision (admissions,
   revocation, and whether measurement is withheld).
 - **Lab staff** — technicians; and the assayer question of Part 3.
-- **The library** — ⭐ the *aether-is-the-textbook* counterpart to the
-  lab's *instrument-is-the-lab*. The two together are the whole
-  epistemology of the instrumentation slate, standing on opposite sides
-  of the Quad.
+- **Athletic grounds** — the `sports` discipline's only possible home.
+- **A refectory** — cooking + metabolism, and the one campus building
+  whose entire point is that people are in it together.
 - **Lecture hall / exam hall / office hours** — already specified by the
   college slate; this slate does not redesign them.
+
+⭐ **The library and the labs stand on opposite sides of the Quad** — the
+*aether-is-the-textbook* building facing the *instrument-is-the-lab*
+building. That is the instrumentation slate's entire epistemology, made
+architectural.
 
 ---
 
@@ -240,6 +464,30 @@ Beyond the labs, and mostly already named by
    waiting on it.
 6. **Where does the Practicum physically sit** once it is bound — its own
    building, or a room inside the arcane college?
+7. ⚠ **Does the arena have stakes?** A salle with capped harm is safe,
+   cheap and clearly right. An arena with **purses, betting and real
+   injury** is a far better renown engine and a better story — but it
+   needs accountability and banking wired in, and it turns a campus
+   facility into a business. **Bounded-and-safe, or
+   real-stakes-with-an-audience?** Unresolved.
+8. **Do the teaching field sites yield real goods?** If the adit produces
+   sellable ore, students farm it and it stops being a teaching site. The
+   likely answer is *real data, negligible yield* — but that is a dial
+   somebody has to set deliberately.
+9. **Is the archive writable by students, or curated?** Auto-deposit
+   makes the University compound in value; curation makes it trustworthy.
+   Salting (Part 6) argues for at least a review step.
+10. **Who runs the reserve?** A groundskeeper is a vocation, and a fenced
+    reserve with a water source is a natural home for the husbandry and
+    biome systems to be *observed* rather than exploited.
+11. **Is a spellbook readable in place, or borrowable?** The archive
+    principle (Part 6) says the shelf is institutional; whether learning
+    requires *being there* is the difference between a library that is a
+    place and one that is an inventory.
+12. **Does the arcane college's shelf gate on enrollment too?** Part 3's
+    ladder says yes by default — but "the University teaches magic
+    fundamentals to **everyone**" (guild slate) may argue the low-band
+    shelf is open to the public, like letters.
 
 ---
 
@@ -256,3 +504,9 @@ Beyond the labs, and mostly already named by
   [instrumentation-slate](./instrumentation-slate.md).
 - **Duncan Hall / the dorm** — shipped, and its Katie-fronted intake is
   the pattern an enrollment flow should copy rather than reinvent.
+- **The combat system itself** — [combat.md](../../subsystems/combat.md)
+  owns sessions, poise, gambits; Part 7 only sites it and notes that no
+  training mechanic exists to site.
+- **The town's public library** — Part 6 only argues why the campus
+  archive is not a duplicate of it.
+- **The power/utility system** the steam tunnels gesture at.
