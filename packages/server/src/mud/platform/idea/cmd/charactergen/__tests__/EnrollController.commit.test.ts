@@ -48,6 +48,9 @@ describe('EnrollController.commit', () => {
     setSex: ReturnType<typeof vi.fn>;
     enter: ReturnType<typeof vi.fn>;
     getIsGuest: ReturnType<typeof vi.fn>;
+      seedChronicleClaims: ReturnType<typeof vi.fn>;
+    recordDeed: ReturnType<typeof vi.fn>;
+    recordChronicleOnce: ReturnType<typeof vi.fn>;
   };
   let transfer: ReturnType<typeof vi.fn>;
   let destruct: ReturnType<typeof vi.fn>;
@@ -115,6 +118,11 @@ describe('EnrollController.commit', () => {
       setSex: vi.fn(),
       enter: vi.fn().mockResolvedValue(undefined),
       getIsGuest: vi.fn().mockReturnValue(false),
+      // The chronicle owner face (the OO sweep): commit seeds claims and
+      // mints the founding deed ON the avatar.
+      seedChronicleClaims: vi.fn().mockResolvedValue(undefined),
+      recordDeed: vi.fn().mockResolvedValue(undefined),
+      recordChronicleOnce: vi.fn().mockResolvedValue(undefined),
     };
     dressed = [];
     const garment = makeStuff(() => new TestGarment());

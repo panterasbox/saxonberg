@@ -15,7 +15,6 @@ import { RenownApi } from '../../../api/renown';
 import { InfluenceApi } from '../../../api/influence';
 import { AdvancementApi } from '../../../api/advancement';
 import { TraitApi } from '../../../api/trait';
-import { ChronicleApi } from '../../../api/chronicle';
 import { ShellApi } from '../../../api/shell';
 import { SocialApi } from '../../../api/social';
 import type { PresenceStatus } from '@saxonberg/types';
@@ -250,7 +249,8 @@ export class ProfileLogic extends ApiLogic {
   private async chronicleFor(
     target: Stuff
   ): Promise<{ prologue?: string; deeds: string[] } | undefined> {
-    const entries = await ChronicleApi.entriesFor(target);
+    if (!MixinApi.isPersona(target)) return undefined;
+    const entries = await target.chronicleEntries();
     if (!entries.length) return undefined;
     const claims = entries.filter((e) => e.kind === 'claim');
     const deeds = entries.filter((e) => e.kind === 'deed');

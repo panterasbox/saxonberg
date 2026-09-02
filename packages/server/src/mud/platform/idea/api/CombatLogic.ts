@@ -17,7 +17,6 @@ import { StuffApi } from "../../../api/stuff";
 import { AppApi } from "../../../api/app";
 import { SpeciesApi } from "../../../api/species";
 import { PartyApi } from "../../../api/party";
-import { ChronicleApi } from "../../../api/chronicle";
 import { AdvancementApi } from "../../../api/advancement";
 import { PerceptionApi } from "../../../api/perception";
 import { ContainmentApi } from "../../../api/containment";
@@ -4758,7 +4757,9 @@ function runResolutionConsumers(
       : `Bested ${vName} in a duel.`;
     const tags = ["combat", killed ? "kill" : "victory"];
     if (crime) tags.push("crime");
-    void ChronicleApi.recordDeed(victor, { text, tags }).catch(() => {});
+    if (MixinApi.isPersona(victor)) {
+      void victor.recordDeed({ text, tags }).catch(() => {});
+    }
   } catch {
     /* chronicle is best-effort */
   }

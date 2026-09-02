@@ -31,7 +31,6 @@ import { ConnectionApi } from "../../../../api/connection";
 import { ContainmentApi } from "../../../../api/containment";
 import { MixinApi } from "../../../../api/mixin";
 import { SlotApi } from "../../../../api/slot";
-import { ChronicleApi } from "../../../../api/chronicle";
 import { Template } from "../../../../lib/stuff/Template";
 import Avatar from "../../../agent/Avatar";
 import Login from "../../Login";
@@ -750,8 +749,8 @@ export default class EnrollController extends CommandController<EnrollModel> {
     //     registered (step 3), so `getTemplatePath()` resolves. The
     //     founding deed is event-singular by trigger (enroll fires once
     //     per character by construction), so it needs no dedup `key`.
-    await ChronicleApi.seedClaims(avatar, aspiration?.claimSeeds ?? []);
-    await ChronicleApi.recordDeed(avatar, {
+    await avatar.seedChronicleClaims(aspiration?.claimSeeds ?? []);
+    await avatar.recordDeed({
       template: "Enrolled as {{ name }}, {{ aspirationLabel }}.",
       vars: {
         name: draft.name,

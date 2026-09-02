@@ -25,7 +25,17 @@
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { CommandContributions } from '../../api/command';
+import type { Stuff } from '../stuff/Stuff';
 import { SettingTypes, type SettingsSchemaEntry } from '../shell/Environment';
+import ChronicleEntry from '../chronicle/ChronicleEntry';
+import type {
+  ChronicleEntryFields,
+  ChronicleClaimSeed,
+} from '../chronicle/ChronicleEntry';
+import { ProseApi } from '../../api/prose';
+import { WorldClockApi } from '../../api/worldclock';
+import { PersistApi } from '../../api/persist';
+import { Final, Unshadowable } from '../security/decorators';
 
 /** Public shape provided by PersonaMixin. */
 export interface Persona {
@@ -33,10 +43,77 @@ export interface Persona {
   setBio(value: string): void;
   getAspiration(): string | null;
   setAspiration(value: string | null): void;
+  recordClaim(fields: ChronicleEntryFields): Promise<void>;
+  recordDeed(fields: ChronicleEntryFields): Promise<void>;
+  recordChronicleOnce(
+    key: string,
+    fields: ChronicleEntryFields,
+  ): Promise<void>;
+  chronicleEntries(): Promise<ChronicleEntry[]>;
+  seedChronicleClaims(seeds: ChronicleClaimSeed[]): Promise<void>;
+}
+
+/* ────────── the chronicle mint path (module-private) ──────────
+ * Moved in whole from the retired ChronicleLogic (the ledger owner
+ * face of the Api OO sweep): the single build seam and its helpers.
+ */
+
+/** Persistence is a no-op unless Mongo is connected (tests, pre-boot). */
+function chronicleActive(): boolean {
+  return PersistApi.isConnected();
+}
+
+/** The durable owner key, or `null` for a session-ephemeral owner. */
+function ownerKey(owner: Stuff): string | null {
+  return owner.getIdentityPath();
+}
+
+/**
+ * The single build seam: resolve fields into one persisted
+ * {@link ChronicleEntry}. Renders prose when a `template` is given (the
+ * one "deed text via ProseApi" point), and stamps the game-time witness
+ * onto a deed when `when` is omitted (the one "timestamp is the
+ * witness" point). A claim forces `when = null` and keeps `order`; a
+ * deed forces `order = null`.
+ */
+async function buildAndSave(
+  ownerId: string,
+  fields: ChronicleEntryFields,
+): Promise<void> {
+  const entry = new ChronicleEntry();
+  entry.owner = ownerId;
+  entry.kind = fields.kind ?? 'deed';
+  entry.text =
+    fields.template !== undefined
+      ? ProseApi.format(fields.template, fields.vars ?? {}).toString()
+      : (fields.text ?? '');
+  entry.when =
+    entry.kind === 'deed'
+      ? (fields.when ?? WorldClockApi.getNow().rawValue())
+      : null;
+  entry.order = entry.kind === 'claim' ? (fields.order ?? null) : null;
+  entry.where = fields.where ?? null;
+  entry.who = fields.who ?? [];
+  entry.tags = fields.tags ?? [];
+  entry.key = fields.key ?? null;
+  await entry.save();
+}
+
+/** Shared mint path — no-ops without a durable owner key / connection. */
+async function recordImpl(
+  owner: Stuff,
+  fields: ChronicleEntryFields,
+): Promise<void> {
+  if (!chronicleActive()) return;
+  const ownerId = ownerKey(owner);
+  if (!ownerId) return;
+  await buildAndSave(ownerId, fields);
 }
 
 export function PersonaMixin<TBase extends MixinConstructor>(Base: TBase) {
-  return class PersonaMixin extends Base {
+  // Declared-then-returned (the Meltable shape) so method decorators
+  // are legal — a class EXPRESSION cannot carry them.
+  class PersonaMixin extends Base {
     static _mixinName = 'PersonaMixin';
     static fieldMeta: FieldMeta = {
       bio: { persistent: true, authorable: true },
@@ -148,5 +225,91 @@ export function PersonaMixin<TBase extends MixinConstructor>(Base: TBase) {
     public setAspiration(value: string | null): void {
       this.aspiration = value === null ? null : value.trim();
     }
-  };
+
+    /* ────────── the chronicle owner face (the OO sweep) ──────────
+     *
+     * ⚠ Gate note, recorded: the plan called for a witness-gated
+     * `recordDeed` (a closed FromController/FromClass arm list) and a
+     * self-callable `recordClaim`. Grounding found the writer set OPEN
+     * BY DESIGN: content packs mint claims and deeds as a normal
+     * authoring act (arcana's StudyController, the retail menu, the
+     * script interpreter's can-make deed), and a kernel gate cannot
+     * enumerate optional packs without coupling the kernel to them —
+     * the exact anti-pattern the pack system forbids. So the mutators
+     * are UNGATED (P5 parity with the retired Public statics) and
+     * SEALED — the append-only invariant and the single build seam are
+     * the enforced properties; who may witness what remains a review
+     * concern, as it was.
+     */
+
+    /**
+     * Mint a **claim** — the self-authored, contestable narrative kind
+     * (`when = null`; `order` kept).
+     */
+    @Final
+    @Unshadowable
+    public async recordClaim(fields: ChronicleEntryFields): Promise<void> {
+      return recordImpl(this as unknown as Stuff, {
+        ...fields,
+        kind: 'claim',
+      });
+    }
+
+    /**
+     * Mint a **deed** — the witnessed kind; the game-time witness is
+     * stamped when `when` is omitted. `recordDeed` unqualified belongs
+     * to the chronicle — the subsystem whose doc owns the word (P4).
+     */
+    @Final
+    @Unshadowable
+    public async recordDeed(fields: ChronicleEntryFields): Promise<void> {
+      return recordImpl(this as unknown as Stuff, { ...fields, kind: 'deed' });
+    }
+
+    /**
+     * Category-first idempotent mint: the first entry under `key` (for
+     * this owner) wins; later calls no-op. The find-then-save is on the
+     * WRITE path only (the belief upsert's argument).
+     */
+    @Final
+    @Unshadowable
+    public async recordChronicleOnce(
+      key: string,
+      fields: ChronicleEntryFields,
+    ): Promise<void> {
+      if (!chronicleActive()) return;
+      const ownerId = ownerKey(this as unknown as Stuff);
+      if (!ownerId) return;
+      const [existing] = await ChronicleEntry.find({ owner: ownerId, key });
+      if (existing) return;
+      await buildAndSave(ownerId, { ...fields, key });
+    }
+
+    /** The owner's full ledger — the public, contestable record (ungated read). */
+    public async chronicleEntries(): Promise<ChronicleEntry[]> {
+      if (!chronicleActive()) return [];
+      const ownerId = ownerKey(this as unknown as Stuff);
+      if (!ownerId) return [];
+      return ChronicleEntry.find({ owner: ownerId });
+    }
+
+    /** Seed the char-gen claim prologue (each `kind: 'claim'`, ordered). */
+    @Final
+    @Unshadowable
+    public async seedChronicleClaims(
+      seeds: ChronicleClaimSeed[],
+    ): Promise<void> {
+      if (!chronicleActive()) return;
+      const ownerId = ownerKey(this as unknown as Stuff);
+      if (!ownerId) return;
+      for (const seed of seeds) {
+        await buildAndSave(ownerId, {
+          kind: 'claim',
+          text: seed.text,
+          order: seed.order,
+        });
+      }
+    }
+  }
+  return PersonaMixin;
 }

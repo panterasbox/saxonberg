@@ -22,7 +22,6 @@ import { SandboxApi } from '../../../api/sandbox';
 import { ConnectionApi } from '../../../api/connection';
 import { PersistableApi } from '../../../api/persistable';
 import { PlayerApi } from '../../../api/player';
-import { ChronicleApi } from '../../../api/chronicle';
 import { AccountabilityApi } from '../../../api/accountability';
 import { SpeciesApi } from '../../../api/species';
 import { SecurityApi } from '../../../api/security';
@@ -731,7 +730,8 @@ async function reembodyImpl(shade: Stuff): Promise<Stuff> {
 /** The other half of the death deed — the chronicle records both edges. */
 async function recordReturnDeed(host: Stuff): Promise<void> {
   try {
-    await ChronicleApi.recordDeed(host, {
+    if (!MixinApi.isPersona(host)) return;
+    await host.recordDeed({
       template: '{{ who | name }} returned to the world.',
       vars: { who: host },
       tags: ['death', 'passage'],
@@ -777,7 +777,8 @@ async function ejectFromCircle(
 /** The chronicle deed. No-ops without a durable owner key / connection. */
 async function recordDeathDeed(host: Stuff, cause: string): Promise<void> {
   try {
-    await ChronicleApi.recordDeed(host, {
+    if (!MixinApi.isPersona(host)) return;
+    await host.recordDeed({
       template: '{{ who | name }} died of {{ cause }}.',
       vars: { who: host, cause },
       where: MixinApi.isContainable(host)

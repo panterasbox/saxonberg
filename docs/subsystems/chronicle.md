@@ -68,36 +68,36 @@ runtime difference:
   seed from `char-gen.yaml`. `when` is `null` (a claim is backstory, not
   a timestamped event).
 
-## `ChronicleApi` / `ChronicleLogic` — the gated mint/read seam
+## The owner face on `PersonaMixin` — the mint/read surface
 
-The mint/read surface follows the platform's Api ↔ logic-singleton
-split. `api/chronicle.ts` (`ChronicleApi`) is a **thin forwarding
-shell**; the logic lives in the hot-reloadable `ChronicleLogic`
-singleton at `/platform/idea/api/chronicle` (`platform/idea/api/ChronicleLogic.ts`), reached
-synchronously via `StuffApi.singletonSync` — exactly as
-`BeliefStoreApi` forwards to `BeliefStoreLogic`. `dest /platform/idea/api/chronicle`
-reloads it.
+The Api OO sweep retired `ChronicleApi`/`ChronicleLogic` whole: the
+owner face lives ON `PersonaMixin` (`lib/character/Persona.ts` — the
+mixin that already affords the `chronicle` verb), its mint path
+module-private beside it. The generic any-kind `record` primitive did
+NOT survive — every caller declares claim or deed (P4: `recordDeed`
+unqualified belongs to the chronicle, the subsystem whose doc owns the
+word). Every method no-ops without a durable owner key
+(`owner.getIdentityPath()`) or an active Mongo connection.
 
-Like belief, the logic's internal helpers (`active()`, `ownerKey()`, the
-shared mint path) are **module-private free functions**, not
-intra-singleton `this.x()` calls — a self-call would trip the
-`FromModule('/api/chronicle#ChronicleApi')` gate (the caller would be
-`ChronicleLogic`, not the allowed `ChronicleApi`). Every public method
-no-ops without a durable owner key (`owner.getTemplatePath()`) or an
-active Mongo connection (`PersistenceManager.get().isConnected()`).
-
-| method | role |
+| method (on the owner) | role |
 |---|---|
-| `record(owner, fields)` | the always-append primitive — build one entry and save it |
-| `recordDeed(owner, fields)` | convenience: forces `kind: 'deed'`, so `text` renders from `template` via `ProseApi` and `when` defaults to `WorldClockApi.getNow()` when omitted |
-| `recordOnce(owner, key, fields)` | category-first idempotent: the first entry under `key` (for this owner) wins; later calls no-op |
-| `entriesFor(owner)` | the owner-scoped reader — **the only reader v1 ships** (no MQL provider); `[]` when keyless/disconnected |
-| `seedClaims(owner, seeds)` | char-gen helper: mint `kind: 'claim'` prologue entries with `order` + authored `text` |
+| `recordClaim(fields)` | mint a claim (`when = null`, `order` kept) |
+| `recordDeed(fields)` | mint a deed: `text` renders from `template` via `ProseApi` and `when` defaults to `WorldClockApi.getNow()` when omitted |
+| `recordChronicleOnce(key, fields)` | category-first idempotent: the first entry under `key` (for this owner) wins; later calls no-op |
+| `chronicleEntries()` | the owner-scoped reader — **the only reader v1 ships** (no MQL provider); `[]` when keyless/disconnected |
+| `seedChronicleClaims(seeds)` | char-gen helper: mint `kind: 'claim'` prologue entries with `order` + authored `text` |
 
-There is a **single build seam** inside the logic: it renders prose when
-a `template` is given (the one "deed text via `ProseApi`" point) and
-stamps the game-clock witness onto a deed when `when` is omitted (the one
-"timestamp is the witness" point), so callers never re-derive game-time.
+The mutators are sealed `@Final @Unshadowable` (the append-only
+invariant) and **ungated** — the writer set is open by design (content
+packs mint claims and deeds as a normal authoring act: arcana's study
+claim, the retail menu's known-of, the script interpreter's can-make
+deed), so a closed FromX arm list would couple the kernel to optional
+packs. There is a **single build seam** (module-private in Persona.ts):
+it renders prose when a `template` is given (the one "deed text via
+`ProseApi`" point) and stamps the game-clock witness onto a deed when
+`when` is omitted (the one "timestamp is the witness" point), so
+callers never re-derive game-time. Callers narrow with
+`MixinApi.isPersona`.
 A claim forces `when = null` and keeps `order`; a deed forces `order =
 null`.
 
@@ -159,7 +159,7 @@ Each aspiration in `mud/config/char-gen.yaml` carries a `claimSeeds: [{
 text, order }]` array (the prologue), **distinct from `bioSeed`** — both
 read the same aspiration, neither touches the other. At
 `EnrollController.commit`, after the avatar is cloned and registered (so
-`getTemplatePath()` resolves), `ChronicleApi.seedClaims(avatar,
+`getTemplatePath()` resolves), `avatar.seedChronicleClaims(
 aspiration?.claimSeeds ?? [])` mints the `claim` entries.
 
 ## The `chronicle` verb — the self-view
@@ -176,7 +176,7 @@ The verb is afforded by **`PersonaMixin`** (via a mixin-level
 `PerceiverMixin`'s self verbs) — Persona is its conceptual home because
 it already owns the `bio` / `aspiration` the view reads.
 
-The controller reads `ChronicleApi.entriesFor(actor)` and renders, in a
+The controller reads `actor.chronicleEntries()` and renders, in a
 fixed order and **never interleaved**:
 
 1. **bio** — the Persona-owned claimed self-narrative (escaped: it is

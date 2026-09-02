@@ -16,7 +16,6 @@ import { SandboxApi } from "../../api/sandbox";
 import { ConnectionApi } from "../../api/connection";
 import { EventApi } from "../../api/event";
 import { StuffApi } from "../../api/stuff";
-import { ChronicleApi } from "../../api/chronicle";
 import { ContainmentApi } from "../../api/containment";
 import { MixinApi } from "../../api/mixin";
 import type { Containable } from "../../lib/spatial/Containable";
@@ -701,7 +700,7 @@ export default class Avatar extends AvatarBase {
       this.relieve(condition);
     }
 
-    await ChronicleApi.recordDeed(this, {
+    await this.recordDeed({
       template: "{{ who | name }} returned to the world.",
       vars: { who: this },
       tags: ["death", "recovery"],
@@ -836,7 +835,7 @@ export default class Avatar extends AvatarBase {
     // prose, while the `recordOnce` key is the dedup authority, so the
     // first ever arrival mints and every re-login `enter` no-ops.
     // `startingLocation` is non-null here (the throw above guarantees it).
-    await ChronicleApi.recordOnce(this, "first-arrival", {
+    await this.recordChronicleOnce("first-arrival", {
       kind: "deed",
       template: "Arrived at {{ place | location }}.",
       vars: { place: startingLocation },

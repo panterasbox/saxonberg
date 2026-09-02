@@ -21,7 +21,7 @@ import { dirname, join } from 'path';
 import YAML from 'yaml';
 import StudyController from '../StudyController';
 import { AdvancementApi } from '@saxonberg/server/mud/api/advancement';
-import { ChronicleApi } from '@saxonberg/server/mud/api/chronicle';
+import { SpellKnowledge } from '@saxonberg/server/mud/lib/magic/SpellKnowledge';
 import { RecognitionApi } from '@saxonberg/server/mud/api/recognition';
 import { SchedulerApi } from '@saxonberg/server/mud/api/scheduler';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
@@ -177,8 +177,10 @@ describe('StudyController — claim, never deed', () => {
     const credit = vi
       .spyOn(AdvancementApi, 'recordSignature')
       .mockResolvedValue(undefined);
+    // The claim seam is SpellKnowledge.noteKnown since the OO sweep
+    // (the mint itself is the owner's sealed recordChronicleOnce).
     const claim = vi
-      .spyOn(ChronicleApi, 'recordOnce')
+      .spyOn(SpellKnowledge, 'noteKnown')
       .mockResolvedValue(undefined as never);
     // Resolve the activity immediately so the completion body runs.
     vi.spyOn(SchedulerApi, 'start').mockImplementation((activity) => {
@@ -192,12 +194,11 @@ describe('StudyController — claim, never deed', () => {
 
     // The claim was minted…
     expect(claim).toHaveBeenCalled();
-    const [, key, entry] = claim.mock.calls[0]!;
+    const [, spellPath] = claim.mock.calls[0]!;
     // The claim keys on the PATH, not the short name — a chronicle entry
     // is a durable identity record, and "I know a working called
     // firebolt" is exactly the ambiguity the path exists to remove.
-    expect(key).toBe('spell-known:/stuff/idea/magic/Spell/glowlight');
-    expect((entry as { kind: string }).kind).toBe('claim');
+    expect(spellPath).toBe('/stuff/idea/magic/Spell/glowlight');
 
     // …and competence was NOT touched. A book that granted skill would
     // have to write evidence of practice that never happened.
@@ -209,7 +210,7 @@ describe('StudyController — claim, never deed', () => {
     vi.spyOn(AdvancementApi, 'bandFor').mockResolvedValue('competent');
     vi.spyOn(AdvancementApi, 'recordSignature').mockResolvedValue(undefined);
     const claim = vi
-      .spyOn(ChronicleApi, 'recordOnce')
+      .spyOn(SpellKnowledge, 'noteKnown')
       .mockResolvedValue(undefined as never);
     vi.spyOn(SchedulerApi, 'start').mockImplementation((activity) => {
       (activity as unknown as { onComplete(): void }).onComplete();
@@ -221,10 +222,11 @@ describe('StudyController — claim, never deed', () => {
     await controller().execute(model(book) as never, context(reader));
     await controller().execute(model(book) as never, context(reader));
 
-    // Both go through `recordOnce`, which dedups on {owner, key} — the
-    // ledger stays honest without the controller tracking anything.
+    // Both go through noteKnown → recordChronicleOnce, which dedups on
+    // {owner, key} — the ledger stays honest without the controller
+    // tracking anything.
     for (const call of claim.mock.calls) {
-      expect(call[1]).toBe('spell-known:/stuff/idea/magic/Spell/glowlight');
+      expect(call[1]).toBe('/stuff/idea/magic/Spell/glowlight');
     }
   });
 
@@ -232,7 +234,7 @@ describe('StudyController — claim, never deed', () => {
     // Untrained reader, book with a `competent` floor.
     vi.spyOn(AdvancementApi, 'bandFor').mockResolvedValue('untrained');
     vi.spyOn(AdvancementApi, 'recordSignature').mockResolvedValue(undefined);
-    vi.spyOn(ChronicleApi, 'recordOnce').mockResolvedValue(undefined as never);
+    vi.spyOn(SpellKnowledge, 'noteKnown').mockResolvedValue(undefined as never);
     vi.spyOn(SchedulerApi, 'start').mockImplementation((activity) => {
       (activity as unknown as { onComplete(): void }).onComplete();
       return { ok: true } as never;
@@ -256,7 +258,7 @@ describe('StudyController — claim, never deed', () => {
   it('AC27 — ABOVE the floor the copy is clean', async () => {
     vi.spyOn(AdvancementApi, 'bandFor').mockResolvedValue('competent');
     vi.spyOn(AdvancementApi, 'recordSignature').mockResolvedValue(undefined);
-    vi.spyOn(ChronicleApi, 'recordOnce').mockResolvedValue(undefined as never);
+    vi.spyOn(SpellKnowledge, 'noteKnown').mockResolvedValue(undefined as never);
     vi.spyOn(SchedulerApi, 'start').mockImplementation((activity) => {
       (activity as unknown as { onComplete(): void }).onComplete();
       return { ok: true } as never;
@@ -285,7 +287,7 @@ describe('StudyController — claim, never deed', () => {
   it('AC31 — the study is an ACTIVITY, and its duration falls as sharpness rises', async () => {
     vi.spyOn(AdvancementApi, 'bandFor').mockResolvedValue('competent');
     vi.spyOn(AdvancementApi, 'recordSignature').mockResolvedValue(undefined);
-    vi.spyOn(ChronicleApi, 'recordOnce').mockResolvedValue(undefined as never);
+    vi.spyOn(SpellKnowledge, 'noteKnown').mockResolvedValue(undefined as never);
     const durations: number[] = [];
     vi.spyOn(SchedulerApi, 'start').mockImplementation((activity) => {
       durations.push((activity as unknown as { duration: number }).duration);
@@ -310,7 +312,7 @@ describe('StudyController — claim, never deed', () => {
     vi.spyOn(AdvancementApi, 'bandFor').mockResolvedValue('competent');
     vi.spyOn(AdvancementApi, 'recordSignature').mockResolvedValue(undefined);
     const claim = vi
-      .spyOn(ChronicleApi, 'recordOnce')
+      .spyOn(SpellKnowledge, 'noteKnown')
       .mockResolvedValue(undefined as never);
     vi.spyOn(SchedulerApi, 'start').mockImplementation((activity) => {
       (activity as unknown as { onAbort(r: string): void }).onAbort('interrupted');

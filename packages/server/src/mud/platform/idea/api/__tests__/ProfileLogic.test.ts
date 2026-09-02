@@ -23,7 +23,6 @@ import { RenownApi } from '../../../../api/renown';
 import { InfluenceApi } from '../../../../api/influence';
 import { AdvancementApi } from '../../../../api/advancement';
 import { TraitApi } from '../../../../api/trait';
-import { ChronicleApi } from '../../../../api/chronicle';
 import { ConnectionApi } from '../../../../api/connection';
 import { ShellApi } from '../../../../api/shell';
 import { Band } from '../../../../lib/standing/Band';
@@ -50,6 +49,9 @@ function makeTarget(): Stuff {
     getStatus: () => 'watching the road',
     getAspiration: () => 'healer',
     getBio: () => 'A wandering healer.',
+    // The chronicle owner face (the OO sweep): the composer reads the
+    // ledger off the target itself.
+    chronicleEntries: async () => [],
   } as unknown as Stuff;
 }
 
@@ -93,7 +95,6 @@ function stubSubstrate(recognized: boolean): void {
   );
   vi.spyOn(AdvancementApi, 'bandsFor').mockResolvedValue([]);
   vi.spyOn(TraitApi, 'pronouncedFor').mockResolvedValue([]);
-  vi.spyOn(ChronicleApi, 'entriesFor').mockResolvedValue([]);
 }
 
 afterEach(() => {

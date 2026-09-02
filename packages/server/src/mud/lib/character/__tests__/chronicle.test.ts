@@ -1,33 +1,40 @@
 /**
- * ChronicleApi — the gated mint/read surface over the append-only
- * ledger. Covers: plain `record` always appends; `recordOnce` is
- * category-first idempotent (and owner-scoped); `recordDeed` renders
- * `text` via ProseApi and stamps `when` from the game-clock; `tags`/`who`
- * round-trip via the owner-scoped `entriesFor`; disconnected / keyless
- * owners no-op.
+ * The chronicle owner face ON PersonaMixin (retired ChronicleApi /
+ * ChronicleLogic — the Api OO sweep). Covers: recordDeed/recordClaim
+ * always append; `recordChronicleOnce` is category-first idempotent
+ * (and owner-scoped); `recordDeed` renders `text` via ProseApi and
+ * stamps `when` from the game-clock; `tags`/`who` round-trip via the
+ * owner-scoped `chronicleEntries`; disconnected / keyless owners
+ * no-op. The generic any-kind `record` did NOT survive the sweep —
+ * every caller declares claim or deed.
  *
  * Mongo is faked with an in-memory collection (the belief-store harness):
  * we stub PM's friendly surface (find / save / delete) — the same wrapper
  * methods `ChronicleEntry` uses.
  */
 
-import "../../../test-bootstrap";
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { ChronicleApi } from '../chronicle';
-import { Idea } from '../../lib/stuff/Idea';
-import { WorldClockApi } from '../worldclock';
-import { PersistenceManager } from '../../../backend/PersistenceManager';
+import { Idea } from '../../stuff/Idea';
+import { PersonaMixin } from '../Persona';
+import { WorldClockApi } from '../../../api/worldclock';
+import { PersistenceManager } from '../../../../backend/PersistenceManager';
 import {
   makeStuff,
   makeStuffAtPath,
-} from '../../lib/security/__tests__/test-setup';
+} from '../../security/__tests__/test-setup';
 
 let store: Map<string, Record<string, unknown>>;
 let idCounter = 0;
 let counter = 0;
 
-function makeOwnerAt(): Idea {
-  return makeStuffAtPath(() => new Idea(), `/platform/agent/Avatar/p${counter++}`);
+class StoriedIdea extends PersonaMixin(Idea) {}
+
+function makeOwnerAt(): StoriedIdea {
+  return makeStuffAtPath(
+    () => new StoriedIdea(),
+    `/platform/agent/Avatar/p${counter++}`,
+  );
 }
 
 beforeEach(() => {
@@ -60,20 +67,20 @@ afterEach(() => {
   WorldClockApi._resetForTesting();
 });
 
-describe('ChronicleApi mint + read', () => {
+describe('the chronicle owner face — mint + read', () => {
   it('record always appends — twice yields two entries', async () => {
     const owner = makeOwnerAt();
-    await ChronicleApi.record(owner, { kind: 'deed', text: 'one' });
-    await ChronicleApi.record(owner, { kind: 'deed', text: 'two' });
-    const entries = await ChronicleApi.entriesFor(owner);
+    await owner.recordDeed({ text: 'one' });
+    await owner.recordDeed({ text: 'two' });
+    const entries = await owner.chronicleEntries();
     expect(entries).toHaveLength(2);
   });
 
   it('recordOnce is category-first idempotent per owner', async () => {
     const owner = makeOwnerAt();
-    await ChronicleApi.recordOnce(owner, 'k', { kind: 'deed', text: 'first' });
-    await ChronicleApi.recordOnce(owner, 'k', { kind: 'deed', text: 'second' });
-    const entries = await ChronicleApi.entriesFor(owner);
+    await owner.recordChronicleOnce('k', { kind: 'deed', text: 'first' });
+    await owner.recordChronicleOnce('k', { kind: 'deed', text: 'second' });
+    const entries = await owner.chronicleEntries();
     expect(entries).toHaveLength(1);
     expect(entries[0]!.text).toBe('first');
     expect(entries[0]!.key).toBe('k');
@@ -82,20 +89,20 @@ describe('ChronicleApi mint + read', () => {
   it('recordOnce is owner-scoped — same key, different owner, two entries', async () => {
     const a = makeOwnerAt();
     const b = makeOwnerAt();
-    await ChronicleApi.recordOnce(a, 'shared', { kind: 'deed', text: 'a' });
-    await ChronicleApi.recordOnce(b, 'shared', { kind: 'deed', text: 'b' });
-    expect(await ChronicleApi.entriesFor(a)).toHaveLength(1);
-    expect(await ChronicleApi.entriesFor(b)).toHaveLength(1);
+    await a.recordChronicleOnce('shared', { kind: 'deed', text: 'a' });
+    await b.recordChronicleOnce('shared', { kind: 'deed', text: 'b' });
+    expect(await a.chronicleEntries()).toHaveLength(1);
+    expect(await b.chronicleEntries()).toHaveLength(1);
   });
 
   it('recordDeed renders text via ProseApi and stamps when from the clock', async () => {
     const owner = makeOwnerAt();
-    await ChronicleApi.recordDeed(owner, {
+    await owner.recordDeed({
       template: 'Arrived in {{ place }}.',
       vars: { place: 'the lounge' },
       tags: ['arrival'],
     });
-    const [entry] = await ChronicleApi.entriesFor(owner);
+    const [entry] = await owner.chronicleEntries();
     expect(entry!.kind).toBe('deed');
     expect(entry!.text).toContain('Arrived in the lounge.');
     expect(entry!.when).toBe(WorldClockApi.getNow().rawValue());
@@ -104,31 +111,30 @@ describe('ChronicleApi mint + read', () => {
 
   it('recordDeed honors an explicit when over the clock default', async () => {
     const owner = makeOwnerAt();
-    await ChronicleApi.recordDeed(owner, { text: 'fixed', when: 500 });
-    const [entry] = await ChronicleApi.entriesFor(owner);
+    await owner.recordDeed({ text: 'fixed', when: 500 });
+    const [entry] = await owner.chronicleEntries();
     expect(entry!.when).toBe(500);
   });
 
   it('persists tags/who and retrieves them owner-scoped', async () => {
     const owner = makeOwnerAt();
-    await ChronicleApi.record(owner, {
-      kind: 'deed',
+    await owner.recordDeed({
       text: 'met someone',
       tags: ['social'],
       who: ['/obj/npc/mara'],
     });
-    const [entry] = await ChronicleApi.entriesFor(owner);
+    const [entry] = await owner.chronicleEntries();
     expect(entry!.tags).toEqual(['social']);
     expect(entry!.who).toEqual(['/obj/npc/mara']);
   });
 
   it('seedClaims mints kind=claim entries with order and null when', async () => {
     const owner = makeOwnerAt();
-    await ChronicleApi.seedClaims(owner, [
+    await owner.seedChronicleClaims([
       { text: 'born somewhere', order: 1 },
       { text: 'came here', order: 2 },
     ]);
-    const entries = await ChronicleApi.entriesFor(owner);
+    const entries = await owner.chronicleEntries();
     expect(entries).toHaveLength(2);
     for (const e of entries) {
       expect(e.kind).toBe('claim');
@@ -139,17 +145,17 @@ describe('ChronicleApi mint + read', () => {
 
   it('no-ops without a durable owner key', async () => {
     // An owner with no templatePath (registered, but never path-stamped).
-    const keyless = makeStuff(() => new Idea());
-    await ChronicleApi.record(keyless, { kind: 'deed', text: 'lost' });
+    const keyless = makeStuff(() => new StoriedIdea());
+    await keyless.recordDeed({ text: 'lost' });
     expect(store.size).toBe(0);
-    expect(await ChronicleApi.entriesFor(keyless)).toEqual([]);
+    expect(await keyless.chronicleEntries()).toEqual([]);
   });
 
   it('no-ops when disconnected', async () => {
     const owner = makeOwnerAt();
     vi.spyOn(PersistenceManager.get(), 'isConnected').mockReturnValue(false);
-    await ChronicleApi.record(owner, { kind: 'deed', text: 'offline' });
+    await owner.recordDeed({ text: 'offline' });
     expect(store.size).toBe(0);
-    expect(await ChronicleApi.entriesFor(owner)).toEqual([]);
+    expect(await owner.chronicleEntries()).toEqual([]);
   });
 });

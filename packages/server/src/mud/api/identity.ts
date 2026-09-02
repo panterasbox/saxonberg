@@ -31,11 +31,9 @@
  * Member names drop the `Api`/`Store` suffix (implied by the
  * namespace); the bare concept noun is the word you'd search for.
  *
- * Pilot for the broader Api-namespace sweep. `Chronicle` joined this
- * barrel when the chronicle build landed its `ChronicleApi`.
+ * Pilot for the broader Api-namespace sweep.
  */
 
-import { ChronicleApi } from "./chronicle";
 import { RecognitionApi } from "./recognition";
 
 export const Identity = Object.freeze({
@@ -44,6 +42,7 @@ export const Identity = Object.freeze({
   // regard face. The store's write-through is mixin-internal.)
   /** Viewer×target naming — the compose seam over the belief store. */
   Recognition: RecognitionApi, // describe · learnIdentity · salientFeatures · perceivedKeywords
-  /** Append-only identity ledger — the owner-indexed deed record. */
-  Chronicle: ChronicleApi, // record · recordDeed · recordOnce · entriesFor · seedClaims
+  // (Chronicle retired by the Api OO sweep — the owner face lives ON
+  // PersonaMixin: recordClaim · recordDeed · recordChronicleOnce ·
+  // chronicleEntries · seedChronicleClaims.)
 });

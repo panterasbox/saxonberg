@@ -31,7 +31,6 @@ import type { CommandContext, CommandModel } from '../../../../api/command';
 import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { RecognitionApi } from '../../../../api/recognition';
-import { ChronicleApi } from '../../../../api/chronicle';
 import { RECOGNITION } from '../../../../lib/belief/BeliefStore';
 import type { MqlOneResult } from '../../../../api/mql';
 import { Mml } from '../../../../api/mml';
@@ -146,7 +145,8 @@ export default class IntroduceController extends CommandController<IntroduceMode
     // `introduce`s don't duplicate. (A future "met <specific NPC>" deed
     // would instead be event-singular off recognition's first-encounter —
     // no key. Not built here.)
-    await ChronicleApi.recordOnce(actor, 'first-introduce', {
+    if (!MixinApi.isPersona(actor)) return;
+    await actor.recordChronicleOnce('first-introduce', {
       kind: 'deed',
       template: 'Made your first introduction.',
       tags: ['social', 'introduce'],
