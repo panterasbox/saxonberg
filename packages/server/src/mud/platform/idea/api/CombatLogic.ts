@@ -2045,6 +2045,30 @@ function instrumentDeliveryScale(
 }
 
 /**
+ * The mass-energy factor for a `massScaled` natural attack (the fisticuffs
+ * build): `clamp(baseMass / energyRefMassKg, min, max)` — a heavier body's
+ * fist hits harder. Neutral (1) for a wielded weapon, a non-mass-scaled
+ * innate (every shipped beast), or a striker with no body read — so this
+ * is byte-identical everywhere the flag is absent. Orthogonal to the
+ * reach/balance strike profile (that shapes the poise contest; this
+ * scales the delivered energy).
+ */
+function naturalMassScale(
+  attacker: Stuff,
+  spec: NaturalAttackSpec | null,
+): number {
+  if (!spec?.massScaled) return 1;
+  const bodyMass = MixinApi.isOrganism(attacker)
+    ? (attacker.getSpecies()?.getBodyPlan()?.getBaseMass() ?? 0)
+    : 0;
+  const ref = dial(AppSettingKeys.combatNaturalEnergyRefMassKg, 70);
+  if (!(bodyMass > 0) || !(ref > 0)) return 1;
+  const min = dial(AppSettingKeys.combatNaturalEnergyScaleMin, 0.5);
+  const max = dial(AppSettingKeys.combatNaturalEnergyScaleMax, 2.5);
+  return Math.min(max, Math.max(min, bodyMass / ref));
+}
+
+/**
  * Wear-on-use for a landed weapon strike (Law 2: use, never the clock):
  * the weapon's structural condition wears per strike, and an edge/point
  * delivery also dulls the working surface (the fast-cycling keenness
@@ -2076,6 +2100,7 @@ function commitInflict(
   const instrument = resolveInstrument(actorState);
   const weapon = instrument?.weapon ?? null;
   let channel: Channel = instrument?.channel ?? "blunt";
+  let innateSpec: NaturalAttackSpec | null = null;
   // The species rotation (DECISION L): an innate striker cycles its
   // natural attacks by SESSION BEAT (`rotationIndex` — deterministic;
   // two strikes in one beat use the same attack). A single-entry list
@@ -2085,7 +2110,10 @@ function commitInflict(
   if (instrument && !weapon) {
     const attacks = naturalAttacksFor(attacker);
     const rotated = attacks[rotationIndex(session, attacks.length)];
-    if (rotated) channel = rotated.channel;
+    if (rotated) {
+      channel = rotated.channel;
+      innateSpec = rotated;
+    }
   }
   const site = siteFor(target, bandForEnergy === "open");
 
@@ -2113,7 +2141,8 @@ function commitInflict(
   const energy =
     energyFor(bandForEnergy) *
     (energyScale > 0 ? energyScale : 1) *
-    instrumentDeliveryScale(weapon, channel);
+    instrumentDeliveryScale(weapon, channel) *
+    naturalMassScale(attacker, innateSpec);
   let spec: EnergyInflictSpec = {
     mechanism: channel,
     site,
@@ -3535,6 +3564,7 @@ function clamp01(n: number): number {
 /** The combat Disciplines credit accrues to (seeded as data). */
 const MELEE_DISCIPLINE = "melee-combat";
 const BLADES_DISCIPLINE = "blades";
+const UNARMED_DISCIPLINE = "unarmed";
 const COMMAND_DISCIPLINE = "command";
 
 /* ───────────────────────── blame ledger ───────────────────────── */
@@ -4495,6 +4525,13 @@ function mintExchangeSignature(
   const instr = resolveInstrument(actorState);
   if (instr && (instr.channel === "edge" || instr.channel === "point")) {
     subs.push({ discipline: BLADES_DISCIPLINE, difficulty, outcome: result });
+  }
+  // The fisticuffs sibling of the blades credit: an innate-instrument
+  // exchange (no wielded weapon) additionally credits `unarmed`, so the
+  // brawler's and swordsman's transcripts diverge. An armed exchange
+  // never does.
+  if (instr && !instr.weapon) {
+    subs.push({ discipline: UNARMED_DISCIPLINE, difficulty, outcome: result });
   }
   void AdvancementApi.recordSignature(actor, { discipline: subs }).catch(
     () => {},

@@ -2198,3 +2198,167 @@ describe("CombatLogic — the species combat vocabulary (DECISION L)", () => {
     expect(elig.reason).toBe("wrong-weapon");
   });
 });
+
+describe("CombatLogic — fisticuffs (the bar-fight build)", () => {
+  /** A defenceless target that can never strike back (no instrument), so
+   * every `inflict` the session produces is the striker's — the clean
+   * seam for reading a single strike's energy. */
+  function bag(room: TestRoom): TestFighter {
+    return makeFighter(room);
+  }
+
+  /** Open striker-vs-bag and return the energy of the FIRST landed
+   * inflict. Beat 1 targets a fresh-poise bag, so `energyFor(band)` is
+   * identical across runs and the only variable is the mass scale. */
+  function firstStrikeEnergy(wire: (f: TestFighter) => void): number {
+    const room = makeStuff(() => new TestRoom());
+    const striker = makeFighter(room);
+    wire(striker);
+    const target = bag(room);
+    const spy = vi.spyOn(ConditionApi, "inflict");
+    try {
+      const session = open(striker, target, nonLethal);
+      for (let i = 0; i < 8 && spy.mock.calls.length === 0; i++) {
+        CombatApi.advance(session);
+      }
+      const call = spy.mock.calls[0];
+      if (!call) throw new Error("no inflict landed");
+      return (call[1] as { energy: number }).energy;
+    } finally {
+      spy.mockRestore();
+    }
+  }
+
+  const fistScaled = (kg: number) => (f: TestFighter) => {
+    f.getSpecies()!.getBodyPlan()!.setBaseMass(kg);
+    f.getSpecies()!
+      .setNaturalAttacks([{ key: "fist", channel: "blunt", massScaled: true }]);
+  };
+  const fistPlain = (kg: number) => (f: TestFighter) => {
+    f.getSpecies()!.getBodyPlan()!.setBaseMass(kg);
+    f.getSpecies()!.setNaturalAttacks([{ key: "fist", channel: "blunt" }]);
+  };
+
+  it("a massScaled fist scales inflict energy with body mass", () => {
+    const light = firstStrikeEnergy(fistScaled(50));
+    const heavy = firstStrikeEnergy(fistScaled(100));
+    // Both bodies sit inside the [0.5, 2.5] clamp band (50/70, 100/70), so
+    // the ratio is the raw mass ratio — the heavier fist hits harder.
+    expect(heavy).toBeGreaterThan(light);
+    expect(heavy / light).toBeCloseTo(100 / 50, 5);
+  });
+
+  it("the flag gates the mass-energy factor and clamps it at both ends", () => {
+    // Same body mass on/off → identical reach/balance profile and poise
+    // dynamics, so the ONLY variable is the flag: the ratio IS the factor.
+    // (A live large-body reach mechanic makes cross-mass reads unclean —
+    // holding mass fixed and toggling the flag isolates this change.)
+    const onHeavy = firstStrikeEnergy(fistScaled(200)); // 200/70 ≫ 2.5 → 2.5
+    const offHeavy = firstStrikeEnergy(fistPlain(200)); // factor 1.0
+    expect(onHeavy / offHeavy).toBeCloseTo(2.5, 5);
+    const onTiny = firstStrikeEnergy(fistScaled(5)); // 5/70 < 0.5 → 0.5
+    const offTiny = firstStrikeEnergy(fistPlain(5)); // factor 1.0
+    expect(onTiny / offTiny).toBeCloseTo(0.5, 5);
+  });
+
+  it("a NON-massScaled innate is invariant to body mass (beast byte-parity)", () => {
+    // Both bodies stay below combat.natural.largeBodyMassKg (150), so the
+    // reach/balance profile is neutral for each — the only thing that
+    // could move energy is the mass scale, which a flag-less attack never
+    // reads. A shipped beast is therefore byte-identical to before.
+    const plain = (kg: number) => (f: TestFighter) => {
+      f.getSpecies()!.getBodyPlan()!.setBaseMass(kg);
+      f.getSpecies()!.setNaturalAttacks([{ key: "paw", channel: "blunt" }]);
+    };
+    expect(firstStrikeEnergy(plain(40))).toBe(firstStrikeEnergy(plain(100)));
+    // And the legacy channel fallback is likewise mass-invariant.
+    const legacy = (kg: number) => (f: TestFighter) => {
+      f.getSpecies()!.getBodyPlan()!.setBaseMass(kg);
+      f.naturalAttackChannel = "blunt";
+    };
+    expect(firstStrikeEnergy(legacy(40))).toBe(firstStrikeEnergy(legacy(100)));
+  });
+
+  it("an unarmed exchange credits `unarmed` + `melee-combat`, never `blades`", () => {
+    const subs: Array<{ discipline: string }> = [];
+    const spy = vi
+      .spyOn(AdvancementApi, "recordSignature")
+      .mockImplementation(async (_owner, sig) => {
+        for (const s of (sig as { discipline: Array<{ discipline: string }> })
+          .discipline) {
+          subs.push(s);
+        }
+      });
+    try {
+      const room = makeStuff(() => new TestRoom());
+      const brawler = makeFighter(room);
+      brawler.getSpecies()!
+        .setNaturalAttacks([{ key: "fist", channel: "blunt" }]);
+      const target = bag(room);
+      const session = open(brawler, target, nonLethal);
+      // player-driven so the transcript mints (brains bank nothing)
+      (session.getState(brawler) as unknown as { brainPath: string | null })
+        .brainPath = null;
+      const targetState = session.getState(target)!;
+      for (let i = 0; i < 8 && !targetState.down; i++) {
+        CombatApi.queueGambit(brawler, "strike");
+        CombatApi.advance(session);
+      }
+      const disc = subs.map((s) => s.discipline);
+      expect(disc).toContain("unarmed");
+      expect(disc).toContain("melee-combat");
+      expect(disc).not.toContain("blades");
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
+  it("an armed exchange credits `blades`, never `unarmed`", () => {
+    const subs: Array<{ discipline: string }> = [];
+    const spy = vi
+      .spyOn(AdvancementApi, "recordSignature")
+      .mockImplementation(async (_owner, sig) => {
+        for (const s of (sig as { discipline: Array<{ discipline: string }> })
+          .discipline) {
+          subs.push(s);
+        }
+      });
+    try {
+      const room = makeStuff(() => new TestRoom());
+      const swordsman = makeFighter(room, { weaponForm: "bladed" });
+      const target = bag(room);
+      const session = open(swordsman, target, nonLethal);
+      (session.getState(swordsman) as unknown as { brainPath: string | null })
+        .brainPath = null;
+      const targetState = session.getState(target)!;
+      for (let i = 0; i < 8 && !targetState.down; i++) {
+        CombatApi.queueGambit(swordsman, "strike");
+        CombatApi.advance(session);
+      }
+      const disc = subs.map((s) => s.discipline);
+      expect(disc).toContain("blades");
+      expect(disc).toContain("melee-combat");
+      expect(disc).not.toContain("unarmed");
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
+  it("two unarmed humans resolve a brawl to a downed loser (end-to-end fists)", () => {
+    const room = makeStuff(() => new TestRoom());
+    const a = makeFighter(room);
+    const b = makeFighter(room);
+    for (const f of [a, b]) {
+      f.getSpecies()!.getBodyPlan()!.setBaseMass(70);
+      f.getSpecies()!
+        .setNaturalAttacks([{ key: "fist", channel: "blunt", massScaled: true }]);
+    }
+    const session = open(a, b, nonLethal);
+    const bState = session.getState(b)!;
+    for (let i = 0; i < 40 && !bState.down && session.isActive(); i++) {
+      CombatApi.queueGambit(a, "strike");
+      CombatApi.advance(session);
+    }
+    expect(bState.down).toBe(true);
+  });
+});

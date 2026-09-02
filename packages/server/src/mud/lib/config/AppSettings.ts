@@ -860,6 +860,17 @@ export const AppSettingKeys = {
    * band every currently-seeded body sits in; a body seed crossing this
    * changes its combat feel by design. */
   combatNaturalLargeBodyMassKg: "combat.natural.largeBodyMassKg",
+  /** The species combat vocabulary — the reference body mass (kg) at
+   * which a `massScaled` natural attack's inflict energy is neutral (×1);
+   * a heavier striker's fist hits harder, a lighter one softer, clamped
+   * to [energyScaleMin, energyScaleMax]. Only attacks that opt in
+   * (`massScaled: true`, the humanoid fist) read it — no shipped beast
+   * does, so every existing innate is byte-identical. */
+  combatNaturalEnergyRefMassKg: "combat.natural.energyRefMassKg",
+  /** The lower clamp on a `massScaled` attack's mass-energy factor. */
+  combatNaturalEnergyScaleMin: "combat.natural.energyScaleMin",
+  /** The upper clamp on a `massScaled` attack's mass-energy factor. */
+  combatNaturalEnergyScaleMax: "combat.natural.energyScaleMax",
 
   /* ───────────────────────── concealment ───────────────────────── */
   /**

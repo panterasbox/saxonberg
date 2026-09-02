@@ -12,6 +12,14 @@ data:
   sentient: true
   commonNames: ["sensitive", "attuned-born"]
   _bodyPlanPath: /stuff/idea/species/BodyPlan/biped
+  # Fisticuffs (the bar-fight build): the humanoid innate — a
+  # mass-scaled blunt fist, so a disarmed or unarmed person can still
+  # brawl and a heavier build hits harder. Rides the same
+  # materials-response funnel as any blunt blow.
+  naturalAttacks:
+    - key: fist
+      channel: blunt
+      massScaled: true
   _parentCladePath: /stuff/idea/species/animalia
   _defaultMaterialPath: /stuff/idea/material/tissue/flesh
   innateMixins: ["AetherMixin", "CasterMixin"]
