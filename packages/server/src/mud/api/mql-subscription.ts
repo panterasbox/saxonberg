@@ -345,26 +345,6 @@ export class MqlSubscriptionApi {
     logic().handleQuery(req);
   }
 
-  public static handleUnsubscribe(
-    interactive: Interactive,
-    subscriptionId: string,
-  ): void {
-    logic().handleUnsubscribe(interactive, subscriptionId);
-  }
-
-  public static cancelAllForInteractive(interactive: Interactive): void {
-    logic().cancelAllForInteractive(interactive);
-  }
-
-  /**
-   * Re-resolve every subscription this Interactive holds — the seam the
-   * sandbox crossing calls after moving a socket between bodies, so the
-   * client's cards re-render for the body it now drives. @internal
-   */
-  public static refreshForInteractive(interactive: Interactive): void {
-    logic().refreshForInteractive(interactive);
-  }
-
   /**
    * Cancel every subscription registered from `scope`'s circle context —
    * the sandbox reap seam (a circle's live queries die with its

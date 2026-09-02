@@ -24,7 +24,6 @@
 import { Idea } from '../../lib/stuff/Idea';
 import type { VetoResult } from '../../lib/errors';
 import type { EvictionContext } from '../../lib/stuff/Stuff';
-import { MqlSubscriptionApi } from '../../api/mql-subscription';
 import { StuffApi } from '../../api/stuff';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { User } from '../../lib/identity/User';
@@ -45,6 +44,7 @@ import type {
   TextPromptOpts,
 } from '../../api/prompt';
 import { ConnectionLogic } from './api/ConnectionLogic';
+import { MqlSubscriptionLogic } from './api/MqlSubscriptionLogic';
 import { CardLogic } from './api/CardLogic';
 import { PromptLogic } from './api/PromptLogic';
 import ReactionRegistry from './ReactionRegistry';
@@ -64,6 +64,12 @@ function connectionLogic(): ConnectionLogic {
   return StuffApi.singletonSync(
     '/platform/idea/api/connection',
     () => new ConnectionLogic(),
+  );
+}
+function mqlSubscriptionLogic(): MqlSubscriptionLogic {
+  return StuffApi.singletonSync(
+    '/platform/idea/api/mql-subscription',
+    () => new MqlSubscriptionLogic(),
   );
 }
 function cardLogic(): CardLogic {
@@ -421,6 +427,27 @@ export default class Interactive extends Idea {
     return promptLogic().isPending(this, promptId);
   }
 
+  /* ──────────────── the MQL-subscription surface ─────────────── */
+
+  /** Cancel one live MQL subscription (the `mql-unsubscribe` wire). */
+  public cancelMqlSubscription(subscriptionId: string): void {
+    mqlSubscriptionLogic().handleUnsubscribe(this, subscriptionId);
+  }
+
+  /** Drop every live MQL subscription (disconnect). */
+  public cancelAllMqlSubscriptions(): void {
+    mqlSubscriptionLogic().cancelAllForInteractive(this);
+  }
+
+  /**
+   * Re-resolve every subscription this Interactive holds — the sandbox
+   * crossing calls this after moving a socket between bodies, so the
+   * client's cards re-render for the body it now drives.
+   */
+  public refreshMqlSubscriptions(): void {
+    mqlSubscriptionLogic().refreshForInteractive(this);
+  }
+
   /* ─────────────── the forum-subscription surface ────────────── */
 
   /** Cancel one live forum subscription (the `forum-unsubscribe` wire). */
@@ -478,7 +505,7 @@ export default class Interactive extends Idea {
    * still around.
    */
   public teardownSubstrateState(): void {
-    MqlSubscriptionApi.cancelAllForInteractive(this);
+    this.cancelAllMqlSubscriptions();
     this.cancelAllCards();
     this.cancelAllForumSubscriptions();
     this.cancelAllReactions();

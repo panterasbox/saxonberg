@@ -68,6 +68,96 @@ const EXEMPT_APIS = new Set<string>([
   "MixinApi",
   // the request-object shape, left undisturbed by decision
   "CraftingApi",
+  /* ── the F5 disposition — each surveyed against the four mandates;
+   *    the sweep converted every clean object home (waves B–F4) and
+   *    what remains on each of these is mandate-covered. Surfaced in
+   *    the MR by design — a widening here is a visible diff. ── */
+  // viewer-relative sensory queries across the Shadow/boundary seam —
+  // (viewer, target) pairs where neither side owns the answer
+  "PerceptionApi",
+  // place-keyed sky/field reads (the subject is WHERE the observer
+  // stands, resolved by containment walk — the field pattern)
+  "CelestialApi",
+  "WeatherApi",
+  // two-object transfer orchestration + vocabulary-keyed physics reads
+  "BulkableApi",
+  // nullable-principal authority checks, fail-closed on null
+  "AccessApi",
+  "CompactApi",
+  // dispatch/wire plumbing over the running session
+  "CommandApi",
+  "StreamApi",
+  "RecordApi",
+  // the combat seam — reads total over NON-members (solo refs); the
+  // member verbs moved onto PartyMemberMixin in F3
+  "PartyApi",
+  // anatomy resolution with non-Organism fallbacks (subject-polymorphic)
+  "SpeciesApi",
+  // containment-walk resolvers + Locality registration (lifecycle)
+  "AddressApi",
+  // the scene-composer factory + sensor-set routing (cross-object
+  // dispatch — the messaging substrate's one entry)
+  "MessageApi",
+  // nullable-principal registry inverses + the settlement statics; the
+  // org/actor faces moved onto Organization/Employed in F4
+  "EmploymentApi",
+  // derive-on-read jurisdiction/residency walks (nullable results)
+  "GovernmentApi",
+  // prose rendering over ANY Stuff (presentation vocabulary, not
+  // object behavior)
+  "GrammarApi",
+  // reachable-credential walks (the credential is an implant/carried
+  // item, not a mixin on the actor) + the cash mint faucet; the branch
+  // face moved onto BankMixin in F4
+  "BankingApi",
+  // nullable-material response-grid physics; the composition reads
+  // moved onto the Material base in F4
+  "MaterialApi",
+  // the session registry (register/unregister = lifecycle)
+  "PlayerApi",
+  // channel/subject/board minting (lifecycle); the actor faces moved
+  // onto SubjectSubscriberMixin in F2
+  "ChatApi",
+  "SubjectApi",
+  "ForumsApi",
+  // Stock-keyed conviction tallies (value-object subject)
+  "ConvictionApi",
+  // resolve-on-read mark resolution (nullable results over any Stuff)
+  "CorpoApi",
+  // the conduction-graph walk pair (kept thin by D3's decision)
+  "ElectricityApi",
+  // nullable-place suppression walks (the cast faces moved in F3)
+  "MagicApi",
+  // nullable-principal entitlement + Release row projection
+  "PressApi",
+  // interpreter lifecycle (the abort vocabulary)
+  "ScriptApi",
+  // the settings lookup chain over any host (shell-environment.md)
+  "ShellApi",
+  // schedule bookkeeping (host-keyed sweep) + the calendar
+  "WorldClockApi",
+  // zone-graph walks (the instance surface is zone.lookupField)
+  "ZoneApi",
+  // exit destruct = lifecycle (the StuffApi.destruct sibling)
+  "BoundaryApi",
+  // the publisher-gated path-addressed document write
+  "DocumentApi",
+  // applyQuantity is a LIST-first dispatch helper (split/absorb moved
+  // onto Globbable in F1)
+  "GlobbableApi",
+  // group-ref ownership resolution (refs are typed strings)
+  "GroupApi",
+  // the standing derive for host roll-ups (the account seam)
+  "InfluenceApi",
+  // ParcelOwner ref resolution (a value object)
+  "ParcelApi",
+  // audience-scope key derivation (the Interactive tier moved in E)
+  "ReactionApi",
+  // template re-hydration = lifecycle (the clone pipeline's sibling)
+  "TemplateApi",
+  // the field-projection seam + wire handlers (the Interactive tier
+  // moved in F5)
+  "MqlSubscriptionApi",
 ]);
 
 /**

@@ -88,7 +88,7 @@ describe('MqlSubscriptionApi — integration loop', () => {
       fields: { displayName: 'Bob' },
     });
 
-    MqlSubscriptionApi.handleUnsubscribe(interactive, 's1');
+    interactive.cancelMqlSubscription('s1');
     expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(0);
     expect(MqlSubscriptionApi._getDependencyIndexEntryCountForTesting()).toBe(0);
   });
@@ -110,7 +110,7 @@ describe('MqlSubscriptionApi — integration loop', () => {
     });
     expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(2);
 
-    MqlSubscriptionApi.cancelAllForInteractive(interactive);
+    interactive.cancelAllMqlSubscriptions();
 
     expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(0);
     expect(MqlSubscriptionApi._getDependencyIndexEntryCountForTesting()).toBe(0);

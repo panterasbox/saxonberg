@@ -18,7 +18,6 @@ import { StuffApi } from '../../api/stuff';
 import { ProxyApi } from '../../api/proxy';
 import { ConnectionApi } from '../../api/connection';
 import { PlayerApi } from '../../api/player';
-import { MqlSubscriptionApi } from '../../api/mql-subscription';
 import { ForumsApi } from '../../api/forums';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 
@@ -199,7 +198,7 @@ describe('Interactive', () => {
 
     it('cancels MQL + forum subscriptions, reactions, then prompts', () => {
       const mql = vi
-        .spyOn(MqlSubscriptionApi, 'cancelAllForInteractive')
+        .spyOn(interactive, 'cancelAllMqlSubscriptions')
         .mockImplementation(() => {});
       const forum = vi
         .spyOn(interactive, 'cancelAllForumSubscriptions')
@@ -215,7 +214,7 @@ describe('Interactive', () => {
 
       // Each cancellation receives this Interactive (the proxy identity
       // used as the subscription/registry key).
-      expect(mql).toHaveBeenCalledWith(interactive);
+      expect(mql).toHaveBeenCalledTimes(1);
       expect(forum).toHaveBeenCalledTimes(1);
       expect(reaction).toHaveBeenCalledTimes(1);
       expect(prompt).toHaveBeenCalledWith('host-disconnected');

@@ -138,7 +138,7 @@ describe('durable-subject witness', () => {
 
   it('a torn-down subscription stops receiving pokes', async () => {
     const interactive = await subscribedInteractive(SUBJECT);
-    MqlSubscriptionApi.handleUnsubscribe(interactive, 's1');
+    interactive.cancelMqlSubscription('s1');
     const spy = vi.spyOn(MqlApi, 'resolveOne');
 
     MqlSubscriptionApi.notifyDurableSubject(SUBJECT);

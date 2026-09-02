@@ -786,7 +786,7 @@ export default class CardRegistry extends CardRegistryBase {
     for (const state of bucket.values()) {
       if (state.cardId !== cardId) continue;
       if (state.demoted === true) continue; // already demoted
-      MqlSubscriptionApi.handleUnsubscribe(interactive, state.instanceId);
+      interactive.cancelMqlSubscription(state.instanceId);
       state.demoted = true;
       state.takenAt = Date.now();
       if (!holder) continue;
@@ -965,7 +965,7 @@ export default class CardRegistry extends CardRegistryBase {
     if (!CARDS[state.cardId].live) return;
     // ⚠ A demoted card already gave its handle up.
     if (state.demoted === true) return;
-    MqlSubscriptionApi.handleUnsubscribe(state.interactive, state.instanceId);
+    state.interactive.cancelMqlSubscription(state.instanceId);
   }
 
   /**

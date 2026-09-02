@@ -404,7 +404,7 @@ async function enterImpl(
       { circleScope: scope }
     );
     // The socket now drives a different body — re-render its cards.
-    MqlSubscriptionApi.refreshForInteractive(interactive);
+    interactive.refreshMqlSubscriptions();
   }
 
   state.occupants.add(wireBody.stuffId);
@@ -470,7 +470,7 @@ async function exitImpl(wireBody: Avatar): Promise<void> {
       () => avatar!.enter(interactive),
       'swallow'
     );
-    MqlSubscriptionApi.refreshForInteractive(interactive);
+    interactive.refreshMqlSubscriptions();
   }
   // Unpark under an omni root. `exit` is reached from the wire body's
   // own `go out`, so the ambient context is the CIRCLE — and the

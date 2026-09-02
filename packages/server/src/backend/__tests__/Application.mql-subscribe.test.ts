@@ -76,20 +76,20 @@ describe('Application — MQL subscription routes', () => {
     spy.mockRestore();
   });
 
-  it('mql-unsubscribe route reaches MqlSubscriptionApi.handleUnsubscribe', () => {
+  it('mql-unsubscribe route reaches interactive.cancelMqlSubscription', () => {
     const interactive = makeFakeInteractive('sock-1');
+    const spy = vi.fn();
+    (interactive as never as Record<string, unknown>).cancelMqlSubscription =
+      spy;
     vi.spyOn(ConnectionManager.get(), 'getInteractive').mockReturnValue(
       interactive,
     );
-    const spy = vi
-      .spyOn(MqlSubscriptionApi, 'handleUnsubscribe')
-      .mockImplementation(() => null);
     app.processUserMessage('sock-1', {
       type: 'mql-unsubscribe',
       payload: { type: 'mql-unsubscribe', subscriptionId: 's1' },
     });
     expect(spy).toHaveBeenCalledTimes(1);
-    expect(spy).toHaveBeenCalledWith(interactive, 's1');
+    expect(spy).toHaveBeenCalledWith('s1');
     spy.mockRestore();
   });
 

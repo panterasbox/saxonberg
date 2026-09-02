@@ -144,7 +144,7 @@ describe('MqlSubscriptionApi — focusDependent flag', () => {
     expect(
       MqlSubscriptionApi._getDependencyIndexEntryCountForTesting(),
     ).toBeGreaterThan(0);
-    MqlSubscriptionApi.handleUnsubscribe(interactive, 's1');
+    interactive.cancelMqlSubscription('s1');
     expect(
       MqlSubscriptionApi._getDependencyIndexEntryCountForTesting(),
     ).toBe(0);

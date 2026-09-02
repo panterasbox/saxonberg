@@ -91,9 +91,9 @@ describe('MqlSubscriptionApi — registry surface', () => {
       cardinality: 'one',
     });
     expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(1);
-    MqlSubscriptionApi.handleUnsubscribe(interactive, 's-nope');
+    interactive.cancelMqlSubscription('s-nope');
     expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(1);
-    MqlSubscriptionApi.handleUnsubscribe(interactive, 's1');
+    interactive.cancelMqlSubscription('s1');
     expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(0);
     expect(MqlSubscriptionApi._getDependencyIndexEntryCountForTesting()).toBe(0);
   });
@@ -114,7 +114,7 @@ describe('MqlSubscriptionApi — registry surface', () => {
       cardinality: 'one',
     });
     expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(2);
-    MqlSubscriptionApi.cancelAllForInteractive(interactive);
+    interactive.cancelAllMqlSubscriptions();
     expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(0);
     expect(MqlSubscriptionApi._getDependencyIndexEntryCountForTesting()).toBe(0);
   });
