@@ -1,0 +1,47 @@
+# Rejection — the mining town, and ⭐ **the town is the PLACE; the mine is
+# a thing in it.**
+#
+# Three names, and they are not interchangeable:
+#
+#   - **Rejection** — the town. This row.
+#   - **the Ferrow** — the orebody. `/world/rejection/idea/deposit/ferrow`.
+#   - **the Ferrow diggings** — the workings cut on it.
+#
+# Nothing calls it "the Rejection mine", and nothing should: a lode and
+# the mine on it share a name, and the settlement has its own. The town
+# is named for what the ground did to the people who came here first.
+#
+# ⚠⚠ **Rejection shipped with no Locality at all** — the only venue of its
+# scale without one, while Hinkley Hills, University Avenue, the Moor and
+# the campus all had theirs. It was a zone tree with no address, which
+# broke something concrete: `Working.getGroundSeed()` documents itself as
+# *"derived from the covering Locality's claimed address — rename the mine
+# and its ore moves"*, calls `AddressApi.resolveLocalityFor`, got `null`,
+# and seeded from the EMPTY STRING. A constant. This row is what makes
+# that sentence true.
+#
+# A LOCALITY tier under the realm, beside the city: `terminus/rejection`,
+# not `terminus/city/rejection`. ⭐ `terminus` names the REALM and
+# `terminus/city` names the city — every other town is a sibling of the
+# city, not a district inside it. A mining town is remote by economic
+# logic (you go where the ore is, not where the people are), and arrival
+# is by TPA with no inbound exit wired, which is the geography saying so.
+#
+# ⚠ It declares no `_governmentKey`: who governs Rejection is a live
+# question the town's own build should answer, and `null` is a normal
+# state of the world rather than a gap.
+#
+# ⏳ **Deferred, and deliberately not authored here:** `_reach` and
+# `_catchmentKm2` (the watershed's D21 — *a Locality declares the
+# watercourse it sits on and drains to*). `build/water` places Rejection
+# at the **headwaters of the Kestrel** at 1400 m, where the ore and the
+# snowpack both are, fouling persistently and upstream of everyone — so
+# the value wants to be `kestrel:headwaters`. **The fields do not exist on
+# this branch**, and an authored key with no `fieldMeta` behind it is
+# SILENTLY DISCARDED by the hydrator (the same failure that made
+# `deposit:` on a plain `CartesianZone` inert). It lands when water does.
+class: /platform/idea/Locality
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: Rejection
+  _address: terminus/rejection
