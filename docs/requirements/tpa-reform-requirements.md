@@ -233,17 +233,56 @@ receipt. The thing you cannot self-supply is the survey. The thing you can
 is the mana — **so the "discount" is simply not being billed for what you
 did not consume.**
 
-**You supply your own mana by feeding the terminal a charged cell**, or —
-if you can cast — from your own pool. The cell route matters: `CasterMixin`
-is composed on every `Character` but *activated* by species or augment, so a
-caster-only discount would reach almost nobody, and a cell turns mana into
-a consumer good with a daily use.
+⚠ **Powering a terminal is not casting.** The terminal is the caster; the
+traveller supplies **fuel**. No faculty, band or spell knowledge is needed
+to feed one — which is the whole reason the network can serve people who
+cannot cast at all.
 
-The mana charge is paid in **money**, at the terminal's authored rate per τ
-— the terminal resells what it bought. ⭐ Shape the rate so it can later
-track real supply cost: cell-mana is dearer than line-mana, so *the frontier
-becomes expensive to reach because its mana is dearer*, not because a
-designer said so. v1 authors the rate; the derivation is a later dial.
+**Two ways to supply your own**, and they are deliberately different acts:
+
+- **A charged cell**, which anyone may feed the terminal. `ManaCell` is a
+  consumer good; buying well is cheaper per τ than the meter.
+- **Your own pool**, if you can cast. ⚠ `installArcaneReserve()` returns
+  early on `!isCastingCapable()`, so a **non-caster holds no mana at all** —
+  not a small reserve, none. Paying from the body is a caster's move, and
+  that asymmetry is kept on purpose (D8a).
+
+### D8a — The mana rate is DERIVED from supply mode, and that is where the interest lives
+
+**Q.** Should the mana charge be a flat authored number per terminal?
+
+**A.** No — **derive it from how that terminal is supplied.** Mains-fed
+mana is abundant and cheap; cell-fed mana is scarce and dear. The terminal
+resells what it bought, so its rate is its cost basis, and the fare stops
+being a designer's number.
+
+| | supply | mana charge | what a traveller does |
+|---|---|---|---|
+| **city terminal** | `ManaMain` | low | shrug, pay it, keep your pool |
+| **frontier terminal** | cells | high | real pressure to bring your own |
+
+⭐⭐ **For a caster the decision is three-sided, and the substrate already
+makes it bite.** Mana recovery is *not* on its own clock: it is a consumer
+of **metabolism's coupled-recovery keystone**, at a **serenity-banded
+rate**, spending satiation and hydration per point recovered — the code's
+own comment puts full recovery at *"roughly one substantial meal's worth of
+work"*, and **a starved caster stops refilling**. So the choice is:
+
+> **pay coin · arrive depleted · or eat and drink your way back**
+
+⭐⭐⭐ **And the pressure is highest exactly where it hurts most.** The
+frontier is where mana is dearest *and* where a traveller is likeliest to
+be arriving into danger wanting a full pool. Two independently-motivated
+facts — cell-mana costs more per τ, frontiers are dangerous — point the
+same way, so the dilemma sharpens with the stakes **with nothing tuned**.
+In the safe city it correctly does not matter.
+
+For a **non-caster** the same choice is money against money — the meter
+versus a cell they bought — an optimization rather than a dilemma. That is
+honest rather than a shortfall: a non-caster's mana has no other use, so
+there is nothing for the decision to trade *against*. It also gives casters
+a distinctive relationship with the network, which is the right shape for a
+utility whose whole business is selling a capability its customers lack.
 
 The existing money model — route `fee`, destination `surcharge`, the
 base+rate network fee, the two-budget split, tender-agnostic settlement —
@@ -386,11 +425,22 @@ where it has been parked since before content packs existed.
   the fiction does not want one either.
 - **Reuse `SupplyState` verbatim.** Do not fork or extend the six words.
   A new failure mode is a design conversation, not a list edit.
-- **⚠ `Conduit` is already taken twice.** Arcana's `Conduit` is a
-  *coupling apparatus* (the charging bench is one); the water build's
-  `Conduit` is a *pipe from a source to an extent*. A mana **line** is the
-  water shape and needs its own word — two Conduits meaning opposite things
-  one root apart is a trap for every future author.
+- **The mana line is `ManaMain` — "the mains".** ⚠ `Conduit` is already
+  taken twice (arcana's is a *coupling apparatus*, the charging bench being
+  one; the water build's is a *pipe from a source to an extent*), and two
+  Conduits meaning opposite things one root apart is a trap for every
+  future author. `ManaMain` names the **relationship** rather than the
+  object — you are on the network or you are not — so it cannot be confused
+  with either. ⭐ And it puts the whole supply decision in one sentence a
+  player can say: *"is it on the mains, or running off a cell?"*
+
+  ⚠⚠ **Electrical nouns are banned here even though they are free.**
+  `Wire`, `Cable` and `Circuit` are all unclaimed and all wrong: the game
+  ships a real electrical system ([electricity.md](../subsystems/electricity.md)
+  — the shock channel, Ohm's law, conduction spread), and mana is a
+  **separate conserved quantity** that merely relates to energy the way
+  charge does. An electrical noun would be wrong in the fiction, not merely
+  confusing in the code.
 - **⚠ Fixtures sit in no container.** The residences build was burned by
   exactly this: scope, reach and validators all missed fixtures. A battery
   bay on a terminal is a fixture slot, and `swap cell` will hit it. Plan
@@ -439,40 +489,44 @@ where it has been parked since before content packs existed.
 11. A traveller who **feeds the terminal a cell** pays the service fee and
     **no mana charge**; the same ride without one pays both.
 12. A **casting** traveller may supply from their own pool with the same
-    result.
-13. `register` **costs nothing**, at every node, asserted.
-14. The **departures board renders for an unregistered traveller**, showing
+    result, and a **non-caster cannot** — asserted, since they hold no
+    reserve.
+13. A terminal's mana rate is **derived from its supply mode**: an
+    otherwise-identical mains-fed and cell-fed terminal quote **different**
+    mana charges for the same ride.
+14. `register` **costs nothing**, at every node, asserted.
+15. The **departures board renders for an unregistered traveller**, showing
     destinations they have not unlocked — closing the "nobody sees the
     board" defect.
-15. Off-network `teleport` resolves its destination **through MQL**, and an
+16. Off-network `teleport` resolves its destination **through MQL**, and an
     **ambiguous query is refused as a failed specification**, not as a
     disambiguation prompt.
-16. Destination resolution is **anchored** — held extents, registered
+17. Destination resolution is **anchored** — held extents, registered
     nodes, or current scope — and the teleport path issues **no `world:`
     query**, asserted against the resolver.
-17. Off-network teleport **charges the caster's own mana** and refuses when
+18. Off-network teleport **charges the caster's own mana** and refuses when
     the pool is short.
-18. Movement inside an extent the actor holds **authorial authority** over
+19. Movement inside an extent the actor holds **authorial authority** over
     is **free** and needs no registration — resolved through `AccessApi`.
-19. A **use-grant holder does not** get free movement in the extent they
+20. A **use-grant holder does not** get free movement in the extent they
     lease.
-20. The Teleport Authority is an **`Organization`** whose board positions
+21. The Teleport Authority is an **`Organization`** whose board positions
     name `{kind: 'seat'}` appointing authorities in member localities'
     governments, and `holdsSeat` resolves them.
-21. No content path for a teleport node appears anywhere in
+22. No content path for a teleport node appears anywhere in
     `packages/server/src/mud/lib/` — `BORN_WITH_TRAVEL_NODES` is authored
     data.
-22. `TpaTerminal` no longer lives under `packages/server/src/mud/world/`.
-23. `/system/tpa` ships **no class that a non-teleport device would want** —
+23. `TpaTerminal` no longer lives under `packages/server/src/mud/world/`.
+24. `/system/tpa` ships **no class that a non-teleport device would want** —
     reviewed against arcana's category, and stated in the pack README.
-24. `ChargedMixin`'s surface is denominated in **τ**, with no shipped
+25. `ChargedMixin`'s surface is denominated in **τ**, with no shipped
     number changed.
-25. **`pnpm lint:schema` reports no new collection** (48).
-26. A subsystem doc exists at `docs/subsystems/fasttravel.md`, rewritten
+26. **`pnpm lint:schema` reports no new collection** (48).
+27. A subsystem doc exists at `docs/subsystems/fasttravel.md`, rewritten
     for the reform, and `magic-items.md` / `magic.md` are updated where the
     build changed their truth.
-27. `fasttravel.md` no longer says *"Eternal City"*.
-28. Every new topic key resolves under an existing root
+28. `fasttravel.md` no longer says *"Eternal City"*.
+29. Every new topic key resolves under an existing root
     (`pnpm lint:topics`), and the whole lint family passes.
 
 ---
