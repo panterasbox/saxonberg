@@ -1,0 +1,18 @@
+# Pomace — skins, stems and pips off the press (P11: conservation makes
+# it; the economy consumes it). Tag `compost` is the `feed` verb's gate:
+# the growers buy it back for the nitrogen — and grappa distils from it.
+class: /platform/idea/material/ConsumableMaterial
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: pomace
+  appearance: "a pressed cake of grape skins and stems"
+  keywords: ["pomace", "marc"]
+  density: 900
+  thermalConductivity: 0.4
+  specificHeat: 3000
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["solid", "compost", "pomace"]
+  composition: []
+  biologicalSource: null

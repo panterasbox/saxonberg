@@ -1,0 +1,22 @@
+# Saccharomyces cerevisiae — brewer's and vintner's yeast. D13: a
+# species is a CLASSIFICATION; the embodiment of a microbe follows its
+# scale — a population of microbes IS bulk matter, so the living thing
+# in the world is the culture MATERIAL (wine-lees, ale-lees), whose
+# `biologicalSource` bridges back to this row. Shallow clade link, the
+# plantae precedent (the directory carries the taxonomy). The body plan
+# is the least-wrong sessile — a yeast has no body the simulation
+# resolves.
+class: /platform/idea/species/Species
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  binomial: Saccharomyces cerevisiae
+  commonNames: ["yeast", "wine yeast", "ale yeast", "brewer's yeast"]
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/sessile
+  _parentCladePath: /stuff/idea/species/fungi
+  _defaultMaterialPath: null
+  lifecycleStates: ["alive", "dead"]
+  reproductiveMode: asexual
+  lifespanMin: 0
+  lifespanMax: 1
+  circadianBand: aperiodic
+  diet: saprotrophy

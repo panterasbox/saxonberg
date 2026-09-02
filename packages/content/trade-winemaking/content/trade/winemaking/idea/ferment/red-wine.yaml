@@ -1,0 +1,21 @@
+# Red wine — the primary grape ferment (fermentation W4). Fruit must
+# self-starts (lag 0 — the skin bloom carries wild flora, D14); too
+# cold stalls, past 303 K the batch takes grade damage, past 310 K the
+# yeast dies (the stuck ferment). An OPEN finished batch turns to
+# vinegar over three days; racked to the floor, the residual is lees —
+# the culture (P12).
+class: /platform/idea/ferment/FermentProfile
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: red-wine
+  inputCategory: red-must
+  stallBelowK: 283
+  happyK: 291
+  damageAboveK: 303
+  killK: 310
+  ratePerDay: 0.12
+  productMaterial: /trade/winemaking/idea/material/red
+  turnedMaterial: /trade/winemaking/idea/material/wine-vinegar
+  turnDays: 3
+  leesFraction: 0.04
+  leesMaterial: /trade/winemaking/idea/material/wine-lees

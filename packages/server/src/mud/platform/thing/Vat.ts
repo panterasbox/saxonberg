@@ -44,6 +44,7 @@ export default class Vat extends VatBase {
     // the hydrator: a carboy authors a smaller capacity, a conditioning
     // cask its own closure.
     this.interiorBulk = true;
+    this.category = 'vat'; // the vessel KIND; rows depart (carboy, cask)
     this.setInteriorCapacity(Quantity.of(100, 'L'));
     this.setClosure('liquidTight');
     this.setKeywords(['vat']);

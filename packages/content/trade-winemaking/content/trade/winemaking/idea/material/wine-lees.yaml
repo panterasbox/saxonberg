@@ -1,0 +1,22 @@
+# Wine lees — the settled yeast a racked batch leaves under the rack
+# floor. A LIVING material (D13: a microbe is a material — a population
+# of microbes IS bulk matter): `biologicalSource` bridges to the
+# Saccharomyces cerevisiae species row, and the wine-culture ferment
+# profile makes a jar of this a culture you keep alive (D14).
+class: /platform/idea/material/ConsumableMaterial
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: wine lees
+  appearance: "a pale, dense sediment smelling of bread and wine"
+  keywords: ["lees", "sediment"]
+  density: 1060
+  thermalConductivity: 0.5
+  specificHeat: 3700
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["liquid", "wine-lees"]
+  composition: []
+  biologicalSource:
+    speciesPath: /stuff/idea/species/fungi/saccharomycetaceae/saccharomyces/cerevisiae
+    tissueType: culture

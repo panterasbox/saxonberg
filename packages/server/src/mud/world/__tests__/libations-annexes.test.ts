@@ -88,7 +88,14 @@ function allRows(): Row[] {
 const rows = allRows();
 const byPath = new Map(rows.map((r) => [r.path, r]));
 const annexRows = rows.filter((r) => ANNEXES.includes(r.pack) || isYardRow(r.path, r.data));
-const floorRows = annexRows.filter((r) => typeof r.data.censusKey === 'string');
+// A `vessel:` census key is a VESSEL faucet (empty glass at target —
+// an empty is never product); the product assertions below apply to
+// the goods rows only.
+const floorRows = annexRows.filter(
+  (r) =>
+    typeof r.data.censusKey === 'string' &&
+    !(r.data.censusKey as string).startsWith('vessel:'),
+);
 
 describe('libations annexes — the floor rows fit the faucet', () => {
   it('the five stubs and the two corpo yards each ship floor product; no corpo pack ships any', () => {
@@ -111,7 +118,9 @@ describe('libations annexes — the floor rows fit the faucet', () => {
     // bottling ships 9: seven mixers + the ice bag + the can of cola (the
     // 330 mL can is its own price point, not a smaller bottle).
     // hearth-cooking: three sacks + the syrup bottle (the bar's syrup line is bought, not cooked)
-    expect(floorRows.length).toBe(2 + 5 + 9 + 8 + 4 + 7 + 2);
+    // farming 9: the eight bar-fruit crates + the grape crate (the
+    // winery's input, fermentation W4).
+    expect(floorRows.length).toBe(2 + 5 + 9 + 9 + 4 + 7 + 2);
   });
 
   it('every floor row has a target and a home container that is a Stock the SAME pack ships', () => {
@@ -221,7 +230,7 @@ describe('libations annexes — the serving recipes and the zone', () => {
     const files = ANNEXES.flatMap((p) => {
       const dir = join(PACKS, p, 'content', 'recipes');
       return existsSync(dir) ? walk(dir) : [];
-    }).filter((f) => !/(toasted-ration|root-mash|fine-roast|hearty-stew)\.yaml$/.test(f));
+    }).filter((f) => !/(toasted-ration|root-mash|fine-roast|hearty-stew|crush|white-crush)\.yaml$/.test(f));
     expect(files.length).toBe(1 + 3 + 1 + 1);
     for (const f of files) {
       const r = Recipe.fromData(parse(readFileSync(f, 'utf8')) as Record<string, unknown>);

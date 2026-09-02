@@ -9,7 +9,11 @@ data:
   thermalConductivity: 0.5
   specificHeat: 3800
   edibility: true
-  nutrients: ["water"]
+  nutrients: ["water", "sugar"]
+  # Residual sugar (g/L, demi-sec) — what bottle conditioning converts
+  # into the sparkle (fermentation P5).
+  nutrientAmounts:
+    sugar: 20
   toxicity:
     - { type: alcohol, amount: 13 }
   tags: ["liquid", "beverage", "drinkable", "alcoholic", "wine", "white"]

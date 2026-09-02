@@ -69,6 +69,8 @@ import { StuffApi } from '../../api/stuff';
 import { WorldClockApi } from '../../api/worldclock';
 import { ExecutionContextApi } from '../../api/execution-context';
 import { FermentApi } from '../../api/ferment';
+import { BiomeApi } from '../../api/biome';
+import { Quantity } from '../quantity';
 import { TemplatePaths } from '../paths';
 
 /** The batch phases, in lifecycle order. */
@@ -109,6 +111,73 @@ const CULTURE_COLD_FACTOR = 0.25;
 const CULTURE_HOT_FACTOR = 3;
 /** Pitch kill ceiling when the strain has no culture profile (K). */
 const DEFAULT_PITCH_KILL_K = 313;
+
+// ── the cellar CO₂ (P11/D12): a working ferment displaces air ──
+/** Air-reserve percentage points a converting batch displaces per day. */
+const CO2_AIR_DRAIN_PCT_PER_DAY = 30;
+/** Percentage points a ventilated room recovers per day. */
+const CO2_AIR_RECOVER_PCT_PER_DAY = 400;
+/** Below this air %, the room's atmosphere flips to carbon dioxide. */
+const CO2_UNBREATHABLE_AT_PCT = 40;
+
+/**
+ * The cellar's CO₂ (P11): a converting batch displaces the room's
+ * authored air reserve (the closed-kitchen mechanism, second consumer —
+ * a room that authors no `air` reserve is open air and skips all of
+ * this); a VENTILATED room (sky-exposed, or any unblocked exit whose
+ * door stands open) recovers fast. Below the threshold the room's
+ * atmosphere flips to `carbon-dioxide` (unbreathable — respiration's
+ * medium crisis does the rest); recovery flips it back. Only ever
+ * overlays a default (null) atmosphere and only clears its own — the
+ * fire driver's idempotence rules.
+ */
+function reconcileCellarAir(
+  vessel: Stuff,
+  days: number,
+  producing: boolean,
+): void {
+  if (!MixinApi.isContainable(vessel)) return;
+  const room = vessel.getContainer();
+  if (room === null || !MixinApi.isContainer(room)) return;
+  if (!MixinApi.isReserved(room) || !room.hasReserve('air')) return;
+  const ventilated = roomVentilated(room);
+  const deltaPct =
+    (ventilated ? CO2_AIR_RECOVER_PCT_PER_DAY : 0) * days -
+    (producing ? CO2_AIR_DRAIN_PCT_PER_DAY * days : 0);
+  if (deltaPct !== 0) {
+    room.adjustReserve('air', Quantity.of(deltaPct, '%'));
+  }
+  const reserve = room.getReserve('air');
+  if (!reserve) return;
+  const capacity = reserve.capacity.rawValue();
+  if (capacity <= 0) return;
+  const pct = (reserve.current.rawValue() / capacity) * 100;
+  if (!MixinApi.isAtmospheric(room)) return;
+  if (pct <= CO2_UNBREATHABLE_AT_PCT) {
+    if (room._atmosphere === null) room.setAtmosphere('carbon-dioxide');
+  } else if (room._atmosphere === 'carbon-dioxide') {
+    room.setAtmosphere(null);
+  }
+}
+
+/**
+ * Is `room` ventilated — sky-exposed, or any unblocked exit whose door
+ * (if any) stands open? The fire driver's ventilation rule, applied at
+ * the ferment's own read (the fire tick only runs where fires burn).
+ */
+function roomVentilated(room: Stuff): boolean {
+  if (MixinApi.isContainer(room) && BiomeApi.isSkyExposed(room)) return true;
+  if (!MixinApi.isExitable(room)) return false;
+  for (const exit of room.getExits().values()) {
+    if (exit.isBlocked()) continue;
+    const door = exit.getDoor();
+    if (door !== null && MixinApi.isSealable(door) && !door.isOpen()) {
+      continue;
+    }
+    return true;
+  }
+  return false;
+}
 
 /**
  * Worst-stretch satisfaction → grade band. The husbandry harvest
@@ -368,6 +437,7 @@ export function FermentingMixin<TBase extends MixinConstructor>(Base: TBase) {
                 1,
                 this.fractionConverted + rateAt(profile, tempK) * days,
               );
+              reconcileCellarAir(self, days, rateAt(profile, tempK) > 0);
             }
             this.applyBatchGrade();
             if (this.fractionConverted >= 1) {

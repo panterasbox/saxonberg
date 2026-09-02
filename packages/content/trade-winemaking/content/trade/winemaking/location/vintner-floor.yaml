@@ -12,12 +12,26 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: "the vintner floor"
   primaryKeyword: floor
-  keywords: ["floor", "cellar", "vintner"]
+  keywords: ["floor", "cellar", "vintner", "winery"]
   longDescription: |
-    A cool cellar floor under a trapdoor: racked cases, a hand-press in the corner (the crush is the distillery build's; the floor stands at target through the sweep until then).
+    A cool cellar under a trapdoor, and a working one: two oak vats stand chalk-tallied against the wall, the basket press drips into its channel, and the cellar book hangs chained to the rail. Racked cases and empty green bottles wait their turn.
   ambientIntensity: 25
   ambientColorTemperature: 4200
+  # The cellar IS the cold storage (the hospitality-cellar precedent):
+  # 285 K holds the ferment in the happy band and slows a kept culture.
+  _temperature: 285
+  # A working cellar displaces its own air (P11): the reserve is what
+  # the active ferments drain; the trapdoor is the recovery.
+  reserves:
+    air:
+      capacityValue: 100
+      currentValue: 100
+      unit: "%"
   props:
     - /trade/winemaking/thing/vintner-stock
+    - /trade/winemaking/thing/press
+    - /trade/winemaking/thing/vat
+    - /trade/winemaking/thing/vat
+    - /trade/winemaking/thing/cellar-book
   cast:
     - /trade/winemaking/agent/vintner-hand

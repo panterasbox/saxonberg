@@ -1,0 +1,19 @@
+# Wine vinegar — D3's lesson made a product: an OPEN finished batch
+# converts ethanol to acetic acid, and the failure path still feeds
+# someone (the cook buys it — everything is a business). Homed in
+# winemaking because the process that makes it lives here.
+class: /platform/idea/material/ConsumableMaterial
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: wine vinegar
+  appearance: "a sharp, cloudy red-brown vinegar"
+  keywords: ["vinegar"]
+  density: 1010
+  thermalConductivity: 0.5
+  specificHeat: 3900
+  edibility: true
+  nutrients: ["water"]
+  toxicity: []
+  tags: ["liquid", "vinegar", "condiment"]
+  composition: []
+  biologicalSource: null

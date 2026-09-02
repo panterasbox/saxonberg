@@ -13,6 +13,6 @@ data:
   nutrients: ["water", "sugar"]
   toxicity:
     []
-  tags: ["solid", "food", "produce", "grape", "fruit"]
+  tags: ["solid", "food", "produce", "grape", "grapes", "fruit"]
   composition: []
   biologicalSource: null

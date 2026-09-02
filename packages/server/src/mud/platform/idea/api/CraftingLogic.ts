@@ -1442,6 +1442,26 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
 
   consumeBulkInputs(matched);
   consumeItemInputs(matchedItems);
+
+  // The residue output (fermentation P11/D12): conservation's other
+  // half, landed beside the maker — the pomace cake by the press, the
+  // spent-grain sack by the tun. Never silently vanished; if nobody
+  // buys it, it piles up (the ambient-burden rule).
+  const residue = recipe.getOutputResidue();
+  if (residue && residue.template) {
+    const count = Math.max(1, Math.floor(residue.count ?? 1));
+    const here = MixinApi.isContainable(maker) ? maker.getContainer() : null;
+    for (let i = 0; i < count; i++) {
+      const cake = await StuffApi.clone<Stuff>(residue.template);
+      if (
+        here !== null &&
+        MixinApi.isContainer(here) &&
+        MixinApi.isContainable(cake)
+      ) {
+        ContainmentApi.move(cake, here);
+      }
+    }
+  }
   // Tools wear on use — the durable-good half (a ToolItem composes
   // DurableMixin alongside ToolMixin).
   for (const t of usedTools) if (MixinApi.isDurable(t)) t.wear();

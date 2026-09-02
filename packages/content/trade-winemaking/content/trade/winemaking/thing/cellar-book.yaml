@@ -1,0 +1,14 @@
+# The cellar book — the winery's work board (the kitchen-menu
+# precedent, fermentation W4): its presence lights `order`, and the
+# crush recipes are unpriced, so working the press is free at the
+# venue. Zero new verbs: the hand's beat and a visiting player use the
+# same shipped `order crush`.
+class: /platform/thing/Menu
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the cellar book
+  primaryKeyword: book
+  keywords: [book, "cellar book", board, ledger]
+  longDescription: |
+    A fat ledger chained to the press rail, the day's crush chalked across the open page.
+  offeredRecipes: [crush, white-crush]

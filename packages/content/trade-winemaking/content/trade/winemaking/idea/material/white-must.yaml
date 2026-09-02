@@ -1,0 +1,18 @@
+# White must — juice pressed clear off the skins at the crush (white
+# wine is a PROCESS fact: no skin contact). Its own profile category.
+class: /platform/idea/material/ConsumableMaterial
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: white must
+  appearance: "cloudy pale grape juice, green-gold"
+  keywords: ["must", "juice"]
+  density: 1080
+  thermalConductivity: 0.5
+  specificHeat: 3700
+  edibility: true
+  nutrients: ["water", "sugar"]
+  nutrientAmounts:
+    sugar: 200
+  tags: ["liquid", "must", "white-must"]
+  composition: []
+  biologicalSource: null

@@ -125,6 +125,7 @@ data:
     - { category: sugar, unit: L, level: 2, supplier: /trade/distribution/idea/business }
     - { category: coffee, unit: L, level: 1, supplier: /trade/distribution/idea/business }
     - { category: syrup, unit: L, level: 0.5, supplier: /trade/distribution/idea/business }
+    - { category: vinegar, unit: L, level: 0.5, supplier: /trade/distribution/idea/business }
     - { category: ice, unit: kg, level: 5, supplier: /trade/distribution/idea/business }
     - { category: coupe, unit: count, level: 12 }
     - { category: rocks, unit: count, level: 8 }
