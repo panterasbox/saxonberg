@@ -1,7 +1,7 @@
 # Fermentation — plan
 
 **Input:** [fermentation-requirements.md](../requirements/fermentation-requirements.md)
-(D1–D10 locked). One stage, nine waves, one MR. The lane: grown grapes
+(D1–D15 locked). One stage, nine waves, one MR. The lane: grown grapes
 → must → wine → spirit → vermouth → Dave's unmodified martini; beer at
 the process tier over bought malt; the distributor decoupled from
 distilling on the way.
@@ -146,9 +146,8 @@ their nutrient value), consignable like anything else, and subject to
 no cleanup sweep — unsold residue stands where it was left (the
 ambient-burden rule). The cellar authors an air `Reserve` and active
 ferments drain it (the closed-kitchen mechanism, second consumer);
-respiration does the rest. Yeast harvesting deliberately does NOT ship
-— it is the cultured-yeast rung's on-ramp and is named in the ferment
-doc's deferred section.
+respiration does the rest. The lees are the residue that DOES get
+harvested — they are the culture (P12/D14).
 
 ### P12 — The culture is a batch you keep alive (D14)
 
@@ -156,9 +155,15 @@ No second mechanism: `FermentProfile` gains `strain` (what a batch
 carries; wild by default), `requiresStrain` (lager's gate), and a
 **culture profile kind** whose "conversion" is viability — starving
 down over game-time, restored by feeding, killed above `killK`, slowed
-by the cellar. The culture jar is a small Vat-family row holding lees;
-**pitching is `pour`** — the transfer seam (P3) carries strain the
-same way it carries band and mark. Spontaneous inoculation is an
+by the cellar. The culture jar is a small Vat-family row holding lees.
+**The lees split at the rack** — one vessel holds one bulk material,
+so the batch tracks a residual `leesFraction`; racking (pour) draws
+product until only that fraction remains, and what is left IS lees
+material (a derived split at the pour boundary, not a second bulk
+slot — the one place this build stretches the bulk model, resolved by
+derivation rather than new structure). **Pitching is `pour`** — the
+transfer seam (P3) carries strain the same way it carries band and
+mark. Spontaneous inoculation is an
 authored lag on the profile for a sterile must in an OPEN vessel.
 Species rows (fungi) land in base-library; ale/lager/wine strain rows
 land in their domesticating trades.
@@ -227,7 +232,9 @@ Wash profile (malt wort → wash), distil recipe (wash → neutral
 spirit), gin compounding (spirit + juniper), brandy (wine → spirit —
 the grape lane's own spirit); **vermouth recipes in winemaking**
 (wine + bought spirit + botanical + sugar for sweet); the Crowsfoot
-floor venue + `distills` brain; the vintner brain's buy step (the B2B
+floor venue + `distills` brain — which consigns NEUTRAL SPIRIT to the
+distributor floor as well as gin (the intermediate good the vintner's
+buy step depends on); the vintner brain's buy step (the B2B
 ledger test); spirit flammability + the ignited-spill test and the
 inert `foreshot` field (P10); the grappa recipe over pomace (P11).
 The martini's inputs now all exist from lane output.
@@ -237,8 +244,8 @@ Vat sensory details; the hydrometer row + reading; the `fermenting`
 Discipline + act credits on crush/rack/distil; the maker's-mark
 surface on look (band + mark readable on the rail). The
 author-expressiveness proof lands here as a test: **cider from rows
-alone** (apple exists? if not, the test authors a synthetic fruit +
-profile under `/test/**`) — zero kernel edits asserted by construction.
+alone** — no apple ships, so the test authors a synthetic fruit +
+profile under `/test/**`; zero kernel edits asserted by construction.
 
 ### W8 — The switchover + checkpoint drive
 Floor faucets for wine/beer replaced atomically by brain production.

@@ -333,13 +333,14 @@ talented amateur can out-brew a corpo on Dave's rail.
   hides the measurement ([measurement.md](../measurement.md)); check
   the instrumentation slate before designing any new read.
 - **Medieval-tech doctrine**: everything here ships at the medieval
-  rung; refinements (cultures, cuts, the ice machine) are later
+  rung; refinements (cuts, the ice machine) are later
   conferral-gated rungs, never authored ahead of demand.
 - **Verbs are physical acts; operations are apps on displays** —
   crush/rack/seal/bottle are verbs; a cellar ledger is a display.
-- **Materials are a closed set**; new materials (vinegar, malt, wort,
-  must, neutral spirit if distinct) are authored rows in their owning
-  trade packs; blends derive.
+- **Materials are a closed set**; the new rows (must, wort, wash, the
+  wines, ale/lager, neutral spirit, gin, the vermouths, vinegar, malt,
+  pomace, spent grain, lees/culture, grappa) are authored in their
+  owning packs per D10/D12/D14; blends derive.
 - **Module taxonomy**: pack classes ride the capability rung; a pack
   needing an Api needs a kernel MR — surface it in the plan, don't
   improvise. No new module categories, no free helpers.
