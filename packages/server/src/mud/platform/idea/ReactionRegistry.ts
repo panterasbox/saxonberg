@@ -59,6 +59,11 @@ const ReactionApiCallers = SecurityPolicies.AnyOf(
   SecurityPolicies.FromModule('/api/reaction#ReactionApi'),
   SecurityPolicies.SelfOnly,
 );
+/** The Interactive reaction surface (Phase E) calls in as the proxied instance. */
+const ReactionCallers = SecurityPolicies.AnyOf(
+  ReactionApiCallers,
+  SecurityPolicies.FromModule('/platform/idea/Interactive'),
+);
 
 /** One reactor's reaction to one act. */
 interface ReactorReaction {
@@ -339,7 +344,7 @@ export default class ReactionRegistry extends Idea {
     return act ? { subjectId: act.subjectId, scope: act.scope } : null;
   }
 
-  @CallSecurity(ReactionApiCallers)
+  @CallSecurity(ReactionCallers)
   public noteDeliveredFrame(
     interactive: Interactive,
     frameId: number,
@@ -354,7 +359,7 @@ export default class ReactionRegistry extends Idea {
     if (ring.length > DEFAULTS.gutterRing) ring.shift();
   }
 
-  @CallSecurity(ReactionApiCallers)
+  @CallSecurity(ReactionCallers)
   public resolveGutter(
     interactive: Interactive,
     frameId: number,
@@ -373,7 +378,7 @@ export default class ReactionRegistry extends Idea {
   }
 
   /** The most-recent reactable act delivered to this Interactive. */
-  @CallSecurity(ReactionApiCallers)
+  @CallSecurity(ReactionCallers)
   public lastDeliveredActFor(interactive: Interactive): string | null {
     const ring = this.gutter.get(interactive);
     if (!ring || ring.length === 0) return null;
@@ -408,7 +413,7 @@ export default class ReactionRegistry extends Idea {
     viewer.onEnvelope(template);
   }
 
-  @CallSecurity(ReactionApiCallers)
+  @CallSecurity(ReactionCallers)
   public registerInteractive(interactive: Interactive): void {
     if (this.interactiveSinks.has(interactive)) return;
     this.interactiveSinks.set(
@@ -417,7 +422,7 @@ export default class ReactionRegistry extends Idea {
     );
   }
 
-  @CallSecurity(ReactionApiCallers)
+  @CallSecurity(ReactionCallers)
   public cancelAllForInteractive(interactive: Interactive): void {
     this.interactiveSinks.delete(interactive);
     this.gutter.delete(interactive);

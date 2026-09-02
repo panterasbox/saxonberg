@@ -31,7 +31,6 @@ import { Stuff } from '../../lib/stuff/Stuff';
 import EventRegistry from '../../platform/idea/EventRegistry';
 import Interactive from '../../platform/idea/Interactive';
 import Avatar from '../../platform/agent/Avatar';
-import { ConnectionApi } from '../connection';
 import Thing from '../../lib/stuff/Thing';
 import Location from '../../lib/stuff/Location';
 // The legacy `_MqlAdminFlag` test seam was retired with
@@ -71,7 +70,7 @@ async function setup(): Promise<{
   const interactive = await StuffApi.create(
     () => new Interactive('sock-1', 'sess-1', { _id: 'u1' } as never),
   );
-  ConnectionApi.transfer(interactive, avatar);
+  interactive.transferTo(avatar);
   const envelopes: CapturedEnvelope[] = [];
   vi.spyOn(avatar, 'onEnvelope').mockImplementation((tpl) => {
     envelopes.push(tpl as unknown as CapturedEnvelope);

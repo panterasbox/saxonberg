@@ -13,7 +13,6 @@
  */
 
 import { CommandApi } from '../../mud/api/command';
-import { MessageApi } from '../../mud/api/message';
 import { MixinApi } from '../../mud/api/mixin';
 import { StuffApi } from '../../mud/api/stuff';
 import type { Stuff } from '../../mud/lib/stuff/Stuff';

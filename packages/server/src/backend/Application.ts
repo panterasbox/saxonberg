@@ -33,7 +33,6 @@ import { setClientStateUpdatePush } from '../mud/lib/connection/HasInteractive';
 import type Interactive from '../mud/platform/idea/Interactive';
 import Login from '../mud/platform/idea/Login';
 import { ReactionApi } from '../mud/api/reaction';
-import { ConnectionApi } from '../mud/api/connection';
 import { User } from '../mud/lib/identity/User';
 import { TwitchProfile } from '../mud/lib/identity/TwitchProfile';
 import { KickProfile } from '../mud/lib/identity/KickProfile';
@@ -179,8 +178,8 @@ export class Application {
       ReactionApi.isReactableTopic(frame.topic) &&
       ReactionApi.isReactableAct(commandId)
     ) {
-      ReactionApi.registerInteractive(interactive);
-      ReactionApi.noteDeliveredFrame(interactive, frameId, commandId);
+      interactive.registerReactions();
+      interactive.noteDeliveredFrame(frameId, commandId);
     }
   }
 

@@ -12,7 +12,6 @@ import { vi } from 'vitest';
 import { StuffApi } from '../stuff';
 import { EventApi } from '../event';
 import { CommandApi } from '../command';
-import { ConnectionApi } from '../connection';
 import { stampTemplatePathForTest } from '../../lib/security/__tests__/test-setup';
 import EventRegistry from '../../platform/idea/EventRegistry';
 import Interactive from '../../platform/idea/Interactive';
@@ -63,7 +62,7 @@ export async function makeHarness(name = 'Alice'): Promise<Harness> {
   const interactive = await StuffApi.create(
     () => new Interactive('sock-1', 'sess-1', { _id: 'u1' } as never),
   );
-  ConnectionApi.transfer(interactive, avatar);
+  interactive.transferTo(avatar);
   const envelopes: CapturedEnvelope[] = [];
   vi.spyOn(avatar, 'onEnvelope').mockImplementation((tpl) => {
     envelopes.push(tpl as unknown as CapturedEnvelope);

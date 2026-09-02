@@ -169,8 +169,7 @@ export default class Realtor extends PopulatesMixin(NPC) {
         return;
       }
 
-      const picked = await PromptApi.choice(
-        interactive,
+      const picked = await interactive.promptChoice(
         "Which lot?",
         offers
           .map((o) => ({ label: Realtor.describe(o), response: o.extent }))
@@ -181,8 +180,7 @@ export default class Realtor extends PopulatesMixin(NPC) {
       if (!offer) return;
 
       const price = Money.of(offer.priceMinor, Currency.compact()).render();
-      const yes = await PromptApi.confirm(
-        interactive,
+      const yes = await interactive.promptConfirm(
         `Buy ${offer.book} ${offer.leaf} for ${price}?`,
         "no",
       );

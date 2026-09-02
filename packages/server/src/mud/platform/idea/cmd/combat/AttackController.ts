@@ -21,7 +21,7 @@ import type { CommandContext, CommandModel } from "../../../../api/command";
 import type { MqlOneResult } from "../../../../api/mql";
 import { MessageApi } from "../../../../api/message";
 import { MixinApi } from "../../../../api/mixin";
-import { PromptApi, PromptCancelledError } from "../../../../api/prompt";
+import { PromptCancelledError } from "../../../../api/prompt";
 import { Mml } from "../../../../api/mml";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
 import { CombatApi } from "../../../../api/combat";
@@ -115,8 +115,7 @@ export default class AttackController extends CommandController<AttackModel> {
     const interactive = [...target.getInteractives()][0];
     if (!interactive) return null;
     try {
-      const picked = await PromptApi.choice(
-        interactive,
+      const picked = await interactive.promptChoice(
         `You are challenged to a ${mine.lethality} fight (to ${mine.stopCondition}). Accept?`,
         [
           { label: "Accept", response: "accept" },

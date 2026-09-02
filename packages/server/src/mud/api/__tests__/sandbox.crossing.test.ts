@@ -13,7 +13,6 @@ import { ConditionApi } from '../condition';
 import { StuffApi } from '../stuff';
 import { ShadowApi } from '../shadow';
 import { EventApi } from '../event';
-import { ConnectionApi } from '../connection';
 import { PlayerApi } from '../player';
 import { Stuff } from '../../lib/stuff/Stuff';
 import { ExecutionContextApi } from '../execution-context';
@@ -83,7 +82,7 @@ async function makeRig(): Promise<{ avatar: Avatar; interactive: Interactive }> 
         _id: 'u1',
       } as never)
   );
-  ConnectionApi.transfer(interactive, avatar);
+  interactive.transferTo(avatar);
   return { avatar, interactive };
 }
 
@@ -201,7 +200,7 @@ describe('sandbox crossing', () => {
     const second = await StuffApi.create(
       () => new Interactive('sock-x2', 'sess-x2', { _id: 'u1' } as never)
     );
-    ConnectionApi.transfer(second, avatar);
+    second.transferTo(avatar);
 
     await SandboxApi.enter(avatar);
     const wireBody = SandboxApi.activeBodyFor(PLAYER)!;
@@ -281,7 +280,7 @@ describe('sandbox crossing', () => {
 
     // Simulate the drop: the socket detaches; the wire body goes
     // connectionless and the grace machinery arms.
-    ConnectionApi.detach(interactive);
+    interactive.detach();
     expect(wireBody.isConnected()).toBe(false);
     expect(SandboxApi.liveSessionForPlayer(PLAYER)).not.toBeNull();
 

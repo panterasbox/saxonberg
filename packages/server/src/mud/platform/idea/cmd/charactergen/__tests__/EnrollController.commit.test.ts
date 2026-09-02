@@ -22,7 +22,6 @@ import { Idea } from '../../../../../lib/stuff/Idea';
 import { StuffApi } from '../../../../../api/stuff';
 import { AppApi } from '../../../../../api/app';
 import { Template } from '../../../../../lib/stuff/Template';
-import { ConnectionApi } from '../../../../../api/connection';
 import { ContainmentApi } from '../../../../../api/containment';
 import { MessageApi } from '../../../../../api/message';
 import { BankingApi, Money } from '../../../../../api/banking';
@@ -151,7 +150,7 @@ describe('EnrollController.commit', () => {
     );
     vi.spyOn(ContainmentApi, 'move').mockReturnValue(undefined as never);
     
-    transfer = vi.spyOn(ConnectionApi, 'transfer').mockReturnValue(undefined as never) as never;
+    transfer = vi.spyOn(interactive, 'transferTo').mockReturnValue(undefined as never) as never;
     destruct = vi.spyOn(StuffApi, 'destruct').mockReturnValue(undefined as never) as never;
 
     // Scene emit (welcome/narration) → no-op chainable.

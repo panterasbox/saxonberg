@@ -10,6 +10,7 @@ import type { Perception } from '../../../lib/perception/Perception';
 import { MixinApi } from '../../../api/mixin';
 import type { RefKind } from '../../../lib/stuff/Stuff';
 import { StuffApi } from '../../../api/stuff';
+import { SecurityApi } from '../../../api/security';
 import { GrammarApi } from '../../../api/grammar';
 import { TemplatePathPrefixes } from '../../../lib/paths';
 // Type-only — the value is resolved lazily at call time via the
@@ -439,14 +440,27 @@ function recognizesImpl(viewer: Stuff, subject: Stuff): boolean {
  */
 @Unshadowable
 export class RecognitionLogic extends ApiLogic {
-  /** The `describe` face — see the object surface (Stuff/BeliefStore). */
+  /**
+   * The `describe` face — see the object surface (Stuff/BeliefStore).
+   *
+   * Wrapped in `SecurityApi.projectAcross` (the read aperture): naming
+   * is a *projection of a person*, and the interior walk (perception,
+   * light, disguise, belief) reads the far object — the aperture runs
+   * it omni only when viewer and target sit on opposite sides of a
+   * circle boundary. The outer `describeFor` hop is admitted by the
+   * boundary's exempt-method set.
+   */
   public describe(viewer: Stuff, target: Stuff): string {
-    return describeImpl(viewer, target);
+    return SecurityApi.projectAcross(viewer, target, () =>
+      describeImpl(viewer, target),
+    this);
   }
 
-  /** The `describeWithStatus` face — see the object surface (Stuff/BeliefStore). */
+  /** The `describeWithStatus` face — same aperture as `describe`. */
   public describeWithStatus(viewer: Stuff, target: Stuff): string {
-    return describeWithStatusImpl(viewer, target);
+    return SecurityApi.projectAcross(viewer, target, () =>
+      describeWithStatusImpl(viewer, target),
+    this);
   }
 
   /** The `learnIdentity` face — see the object surface (Stuff/BeliefStore). */
@@ -463,12 +477,18 @@ export class RecognitionLogic extends ApiLogic {
     return recognizesImpl(viewer, subject);
   }
 
-  /** The `salientFeatures` face — see the object surface (Stuff/BeliefStore). */
+  /**
+   * The `salientFeatures` face — single-subject form of the same
+   * aperture (the worn-feature walk is a chain; the projection is the
+   * unit, not the hop).
+   */
   public salientFeaturesOf(
     target: Stuff,
     covered: ReadonlySet<string> = EMPTY_COVERAGE
   ): string {
-    return salientFeaturesImpl(target, covered);
+    return SecurityApi.projectAcross(target, undefined, () =>
+      salientFeaturesImpl(target, covered),
+    this);
   }
 
   /** The `knowsTrueType` face — see the object surface (Stuff/BeliefStore). */
@@ -476,9 +496,11 @@ export class RecognitionLogic extends ApiLogic {
     return knowsTrueTypeImpl(viewer, target);
   }
 
-  /** The `perceivedKeywords` face — see the object surface (Stuff/BeliefStore). */
+  /** The `perceivedKeywords` face — same aperture (the targeting half). */
   public perceivedKeywords(viewer: Stuff, target: Stuff): string[] {
-    return perceivedKeywordsImpl(viewer, target);
+    return SecurityApi.projectAcross(viewer, target, () =>
+      perceivedKeywordsImpl(viewer, target),
+    this);
   }
 
   /** The `kindOf` face — see the object surface (Stuff/BeliefStore). */

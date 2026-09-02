@@ -1941,37 +1941,34 @@ describe("CombatLogic — command mints (the teaching payoff)", () => {
   it("an interception mints `command` for a player-driven interceptor only", () => {
     const deeds = mintedDeeds;
     deeds.length = 0;
-    try {
-      // Brain-driven front: no mint.
-      {
-        const room = makeStuff(() => new TestRoom());
-        const front = knifeFighter(room) as TestPartyFighter;
-        const back = knifeFighter(room) as TestPartyFighter;
-        const foe = knifeFighter(room, false);
-        seedFormationParty([front, back], "vanguard", { 0: "front", 1: "back" });
-        const session = open(foe, back, nonLethal);
-        CombatApi.join(front as never, foe as never, session.getTerms());
-        CombatApi.advance(session);
-        expect(deeds.filter((d) => d.discipline === "command")).toHaveLength(0);
-      }
-      // Player-driven front: the interception mints.
-      {
-        StuffApi.clearAll();
-        SchedulerApi._clearAllForTesting();
-        const room = makeStuff(() => new TestRoom());
-        const front = knifeFighter(room) as TestPartyFighter;
-        const back = knifeFighter(room) as TestPartyFighter;
-        const foe = knifeFighter(room, false);
-        seedFormationParty([front, back], "vanguard", { 0: "front", 1: "back" });
-        const session = open(foe, back, nonLethal);
-        CombatApi.join(front as never, foe as never, session.getTerms());
-        markPlayerDriven(session, front);
-        CombatApi.advance(session);
-        expect(
-          deeds.filter((d) => d.discipline === "command").length,
-        ).toBeGreaterThan(0);
-      }
-    } finally {
+    // Brain-driven front: no mint.
+    {
+      const room = makeStuff(() => new TestRoom());
+      const front = knifeFighter(room) as TestPartyFighter;
+      const back = knifeFighter(room) as TestPartyFighter;
+      const foe = knifeFighter(room, false);
+      seedFormationParty([front, back], "vanguard", { 0: "front", 1: "back" });
+      const session = open(foe, back, nonLethal);
+      CombatApi.join(front as never, foe as never, session.getTerms());
+      CombatApi.advance(session);
+      expect(deeds.filter((d) => d.discipline === "command")).toHaveLength(0);
+    }
+    // Player-driven front: the interception mints.
+    {
+      StuffApi.clearAll();
+      SchedulerApi._clearAllForTesting();
+      const room = makeStuff(() => new TestRoom());
+      const front = knifeFighter(room) as TestPartyFighter;
+      const back = knifeFighter(room) as TestPartyFighter;
+      const foe = knifeFighter(room, false);
+      seedFormationParty([front, back], "vanguard", { 0: "front", 1: "back" });
+      const session = open(foe, back, nonLethal);
+      CombatApi.join(front as never, foe as never, session.getTerms());
+      markPlayerDriven(session, front);
+      CombatApi.advance(session);
+      expect(
+        deeds.filter((d) => d.discipline === "command").length,
+      ).toBeGreaterThan(0);
     }
   });
 
@@ -1979,66 +1976,60 @@ describe("CombatLogic — command mints (the teaching payoff)", () => {
     const deeds = mintedDeeds;
     deeds.length = 0;
     mintedSubs.length = 0;
-    try {
-      const room = makeStuff(() => new TestRoom());
-      const master = knifeFighter(room) as TestPartyFighter;
-      const apprentice = knifeFighter(room) as TestPartyFighter;
-      const foe = knifeFighter(room, false);
-      seedFormationParty(
-        [master, apprentice],
-        "master-apprentice",
-        { 0: "master", 1: "apprentice" },
-      );
-      const session = open(master, foe, nonLethal);
-      CombatApi.join(apprentice as never, foe as never, session.getTerms());
-      markPlayerDriven(session, master);
-      const foeState = session.getState(foe)!;
-      foeState.sharpness = 0.2;
+    const room = makeStuff(() => new TestRoom());
+    const master = knifeFighter(room) as TestPartyFighter;
+    const apprentice = knifeFighter(room) as TestPartyFighter;
+    const foe = knifeFighter(room, false);
+    seedFormationParty(
+      [master, apprentice],
+      "master-apprentice",
+      { 0: "master", 1: "apprentice" },
+    );
+    const session = open(master, foe, nonLethal);
+    CombatApi.join(apprentice as never, foe as never, session.getTerms());
+    markPlayerDriven(session, master);
+    const foeState = session.getState(foe)!;
+    foeState.sharpness = 0.2;
 
-      // The master feints; the foe bites — the master ARMED the window.
-      CombatApi.queueGambit(master, "feint");
-      CombatApi.queueGambit(apprentice, "defend");
-      for (let i = 0; i < 6 && !foeState.poise.isOpen(); i++) {
-        CombatApi.advance(session);
-        if (!foeState.poise.isOpen()) {
-          CombatApi.queueGambit(master, "feint");
-          CombatApi.queueGambit(apprentice, "defend");
-        }
+    // The master feints; the foe bites — the master ARMED the window.
+    CombatApi.queueGambit(master, "feint");
+    CombatApi.queueGambit(apprentice, "defend");
+    for (let i = 0; i < 6 && !foeState.poise.isOpen(); i++) {
+      CombatApi.advance(session);
+      if (!foeState.poise.isOpen()) {
+        CombatApi.queueGambit(master, "feint");
+        CombatApi.queueGambit(apprentice, "defend");
       }
-      expect(foeState.poise.isOpen()).toBe(true);
-      const before = deeds.filter((d) => d.discipline === "command").length;
-
-      // The APPRENTICE cashes it — the exploit mints the ARMER (master).
-      CombatApi.queueGambit(master, "defend");
-      CombatApi.queueGambit(apprentice, "strike");
-      for (let i = 0; i < 4 && !foeState.down; i++) {
-        CombatApi.advance(session);
-        if (!foeState.down) {
-          CombatApi.queueGambit(master, "defend");
-          CombatApi.queueGambit(apprentice, "strike");
-        }
-      }
-      expect(foeState.down).toBe(true);
-      expect(
-        deeds.filter((d) => d.discipline === "command").length,
-      ).toBeGreaterThan(before);
-    } finally {
     }
+    expect(foeState.poise.isOpen()).toBe(true);
+    const before = deeds.filter((d) => d.discipline === "command").length;
+
+    // The APPRENTICE cashes it — the exploit mints the ARMER (master).
+    CombatApi.queueGambit(master, "defend");
+    CombatApi.queueGambit(apprentice, "strike");
+    for (let i = 0; i < 4 && !foeState.down; i++) {
+      CombatApi.advance(session);
+      if (!foeState.down) {
+        CombatApi.queueGambit(master, "defend");
+        CombatApi.queueGambit(apprentice, "strike");
+      }
+    }
+    expect(foeState.down).toBe(true);
+    expect(
+      deeds.filter((d) => d.discipline === "command").length,
+    ).toBeGreaterThan(before);
   });
 
   it("the default preset mints no command deeds (parity)", () => {
     const deeds = mintedDeeds;
     deeds.length = 0;
-    try {
-      const room = makeStuff(() => new TestRoom());
-      const a = knifeFighter(room, false);
-      const b = knifeFighter(room, false);
-      const session = open(a, b, nonLethal);
-      markPlayerDriven(session, a);
-      for (let i = 0; i < 5; i++) CombatApi.advance(session);
-      expect(deeds.filter((d) => d.discipline === "command")).toHaveLength(0);
-    } finally {
-    }
+    const room = makeStuff(() => new TestRoom());
+    const a = knifeFighter(room, false);
+    const b = knifeFighter(room, false);
+    const session = open(a, b, nonLethal);
+    markPlayerDriven(session, a);
+    for (let i = 0; i < 5; i++) CombatApi.advance(session);
+    expect(deeds.filter((d) => d.discipline === "command")).toHaveLength(0);
   });
 });
 
@@ -2294,50 +2285,44 @@ describe("CombatLogic — fisticuffs (the bar-fight build)", () => {
   it("an unarmed exchange credits `unarmed` + `melee-combat`, never `blades`", () => {
     const subs = mintedSubs;
     subs.length = 0;
-    try {
-      const room = makeStuff(() => new TestRoom());
-      const brawler = makeFighter(room);
-      brawler.getSpecies()!
-        .setNaturalAttacks([{ key: "fist", channel: "blunt" }]);
-      const target = bag(room);
-      const session = open(brawler, target, nonLethal);
-      // player-driven so the transcript mints (brains bank nothing)
-      (session.getState(brawler) as unknown as { brainPath: string | null })
-        .brainPath = null;
-      const targetState = session.getState(target)!;
-      for (let i = 0; i < 8 && !targetState.down; i++) {
-        CombatApi.queueGambit(brawler, "strike");
-        CombatApi.advance(session);
-      }
-      const disc = subs.map((s) => s.discipline);
-      expect(disc).toContain("unarmed");
-      expect(disc).toContain("melee-combat");
-      expect(disc).not.toContain("blades");
-    } finally {
+    const room = makeStuff(() => new TestRoom());
+    const brawler = makeFighter(room);
+    brawler.getSpecies()!
+      .setNaturalAttacks([{ key: "fist", channel: "blunt" }]);
+    const target = bag(room);
+    const session = open(brawler, target, nonLethal);
+    // player-driven so the transcript mints (brains bank nothing)
+    (session.getState(brawler) as unknown as { brainPath: string | null })
+      .brainPath = null;
+    const targetState = session.getState(target)!;
+    for (let i = 0; i < 8 && !targetState.down; i++) {
+      CombatApi.queueGambit(brawler, "strike");
+      CombatApi.advance(session);
     }
+    const disc = subs.map((s) => s.discipline);
+    expect(disc).toContain("unarmed");
+    expect(disc).toContain("melee-combat");
+    expect(disc).not.toContain("blades");
   });
 
   it("an armed exchange credits `blades`, never `unarmed`", () => {
     const subs = mintedSubs;
     subs.length = 0;
-    try {
-      const room = makeStuff(() => new TestRoom());
-      const swordsman = makeFighter(room, { weaponForm: "bladed" });
-      const target = bag(room);
-      const session = open(swordsman, target, nonLethal);
-      (session.getState(swordsman) as unknown as { brainPath: string | null })
-        .brainPath = null;
-      const targetState = session.getState(target)!;
-      for (let i = 0; i < 8 && !targetState.down; i++) {
-        CombatApi.queueGambit(swordsman, "strike");
-        CombatApi.advance(session);
-      }
-      const disc = subs.map((s) => s.discipline);
-      expect(disc).toContain("blades");
-      expect(disc).toContain("melee-combat");
-      expect(disc).not.toContain("unarmed");
-    } finally {
+    const room = makeStuff(() => new TestRoom());
+    const swordsman = makeFighter(room, { weaponForm: "bladed" });
+    const target = bag(room);
+    const session = open(swordsman, target, nonLethal);
+    (session.getState(swordsman) as unknown as { brainPath: string | null })
+      .brainPath = null;
+    const targetState = session.getState(target)!;
+    for (let i = 0; i < 8 && !targetState.down; i++) {
+      CombatApi.queueGambit(swordsman, "strike");
+      CombatApi.advance(session);
     }
+    const disc = subs.map((s) => s.discipline);
+    expect(disc).toContain("blades");
+    expect(disc).toContain("melee-combat");
+    expect(disc).not.toContain("unarmed");
   });
 
   it("two unarmed humans resolve a brawl to a downed loser (end-to-end fists)", () => {

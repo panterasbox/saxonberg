@@ -19,7 +19,6 @@ import { CommandApi } from '../../../api/command';
 import { CommandDefinition } from '../../command/CommandDefinition';
 import LookController from '../../../platform/idea/cmd/perception/LookController';
 import { Mml } from '../../../api/mml';
-import { ConnectionApi } from '../../../api/connection';
 import { ContainmentApi } from '../../../api/containment';
 import { EmploymentApi } from '../../../api/employment';
 import { BankingApi } from '../../../api/banking';
@@ -73,7 +72,7 @@ async function makeViewer(name: string, room: SingletonCartesianLocation): Promi
   const interactive = await StuffApi.create(
     () => new Interactive(`sock-${seq}`, `sess-${seq}`, { _id: `u${seq}` } as never),
   );
-  ConnectionApi.transfer(interactive, avatar);
+  interactive.transferTo(avatar);
   const envelopes: { type: string; [k: string]: unknown }[] = [];
   vi.spyOn(avatar, 'onEnvelope').mockImplementation((tpl) => {
     envelopes.push(tpl as never);

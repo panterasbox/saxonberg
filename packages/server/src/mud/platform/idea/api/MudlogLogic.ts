@@ -9,7 +9,6 @@ import type { Sensor } from '../../../lib/message/Sensor';
 import type { LogLevel, MessageFrame } from '@saxonberg/types';
 import { SecurityApi } from '../../../api/security';
 import { ExecutionContextApi } from '../../../api/execution-context';
-import { MessageApi } from '../../../api/message';
 import { MixinApi } from '../../../api/mixin';
 import { Mml } from '../../../api/mml';
 import type { MudlogOptions } from '../../../api/mudlog';

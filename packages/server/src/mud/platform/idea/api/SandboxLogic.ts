@@ -19,7 +19,6 @@ import { WorldClockApi } from '../../../api/worldclock';
 import { MqlSubscriptionApi } from '../../../api/mql-subscription';
 import { BankingApi } from '../../../api/banking';
 import { PersistableApi } from '../../../api/persistable';
-import { ConnectionApi } from '../../../api/connection';
 import { PlayerApi } from '../../../api/player';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
@@ -383,7 +382,7 @@ async function enterImpl(
     'sandbox.transfer',
     () => {
       for (const interactive of [...actor.getInteractives()]) {
-        ConnectionApi.transfer(interactive as Interactive, wireBody);
+        (interactive as Interactive).transferTo(wireBody);
         moved.push(interactive as Interactive);
       }
     },
@@ -440,7 +439,7 @@ async function exitImpl(wireBody: Avatar): Promise<void> {
     async () => {
       if (avatar) {
         for (const interactive of [...wireBody.getInteractives()]) {
-          ConnectionApi.transfer(interactive as Interactive, avatar);
+          (interactive as Interactive).transferTo(avatar);
           returned.push(interactive as Interactive);
         }
         // Merge: epistemic only (the consumer's allowlist).
@@ -615,7 +614,7 @@ async function reconnectImpl(
     null,
     'sandbox.reconnect',
     () => {
-      ConnectionApi.transfer(interactive, wireBody);
+      interactive.transferTo(wireBody);
     },
     { circleScope: OMNI_SCOPE }
   );

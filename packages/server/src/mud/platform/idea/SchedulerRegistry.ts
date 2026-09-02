@@ -51,7 +51,6 @@ import {
   OMNI_SCOPE,
 } from '../../api/execution-context';
 import { HotReloadApi } from '../../api/hot-reload';
-import { MessageApi } from '../../api/message';
 import { MixinApi } from '../../api/mixin';
 import { ModuleApi } from '../../api/module';
 import { WorldClockApi, type ClockHandle } from '../../api/worldclock';

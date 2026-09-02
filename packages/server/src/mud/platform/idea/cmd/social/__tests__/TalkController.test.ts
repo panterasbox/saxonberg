@@ -7,7 +7,7 @@
  * spec); and the 1:1 busy decline for a second driver. The full
  * tree-walk loop is covered by DialogueConversation.test; here we test
  * the controller's narrowing, spec lookup, brain resolution, and decline
- * branches. PromptApi.choice is mocked (never resolves) so an opened
+ * branches. The dummy interactive's promptChoice never resolves, so an opened
  * conversation simply parks on its first wheel.
  */
 
@@ -34,7 +34,6 @@ import { BehavedMixin } from "../../../../../lib/behavior/Behaved";
 import { ContainmentApi } from "../../../../../api/containment";
 import { StuffApi } from "../../../../../api/stuff";
 import { SchedulerApi } from "../../../../../api/scheduler";
-import { PromptApi } from "../../../../../api/prompt";
 import { EventApi } from "../../../../../api/event";
 import EventRegistry from "../../../EventRegistry";
 import { Stuff } from "../../../../../lib/stuff/Stuff";
@@ -110,7 +109,13 @@ function context(giver: Stuff, room: Room): CommandContext {
     commandId: "test",
     verb: "talk",
     command: stubCommand(),
-    interactive: { id: `iact-${dummyInteractiveCounter++}` } as never,
+    interactive: {
+      id: `iact-${dummyInteractiveCounter++}`,
+      // Park every opened conversation on its first (never-resolved)
+      // wheel; teardown's wholesale cancel is a no-op count.
+      promptChoice: () => new Promise<string>(() => {}),
+      cancelPrompts: () => 0,
+    } as never,
   });
 }
 
@@ -143,10 +148,7 @@ beforeEach(async () => {
   SchedulerApi._clearAllForTesting();
   await bootRegistry();
   // Park every opened conversation on its first (never-resolved) wheel.
-  vi.spyOn(PromptApi, "choice").mockImplementation(
-    () => new Promise<string>(() => {}),
-  );
-  vi.spyOn(PromptApi, "cancelAll").mockReturnValue(0);
+  // (The prompt surface lives on the dummy interactive itself now.)
   // Regard runs real against the npc's own belief store since the OO
   // sweep (a fresh npc holds no records — neutral by construction).
 });

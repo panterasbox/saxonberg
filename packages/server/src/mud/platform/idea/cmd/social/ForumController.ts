@@ -38,7 +38,6 @@ import { MqlApi } from '../../../../api/mql';
 import { ForumsApi } from '../../../../api/forums';
 import { SubjectApi } from '../../../../api/subject';
 import { PlayerApi } from '../../../../api/player';
-import { PromptApi } from '../../../../api/prompt';
 import type { Forums } from '../../../../lib/forum/Forums';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type Subject from '../../../../lib/forum/Subject';
@@ -466,7 +465,7 @@ export default class ForumController extends CommandController<ForumModel> {
     if (inline) return inline;
     if (context.interactive) {
       try {
-        const composed = await PromptApi.compose(context.interactive, label, {
+        const composed = await context.interactive.promptCompose(label, {
           placeholder: 'Markdown — ⌘/Ctrl+Enter to submit',
           allowEditorEscalation: true,
         });

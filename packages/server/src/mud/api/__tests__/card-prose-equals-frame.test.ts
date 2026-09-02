@@ -101,7 +101,7 @@ describe('the card and the terminal are one payload, rendered once', () => {
 
     // A `noProse` card discards prose even when a caller supplies it,
     // so the declaration cannot be defeated by a careless call site.
-    CardApi.push(h.interactive, 'cms', {
+    h.interactive.pushCard('cms', {
       prose: Mml.fromMarkup('should not appear'),
     });
     expect(h.ofType('card-opened')[0]!.prose).toBeUndefined();

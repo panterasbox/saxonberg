@@ -5,6 +5,7 @@ import { ApiLogic } from '../../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../../lib/stuff/Stuff';
+import type Interactive from '../../../platform/idea/Interactive';
 import { MixinApi } from '../../../api/mixin';
 import { MaterialApi } from '../../../api/material';
 import { ExecutionContextApi } from '../../../api/execution-context';
@@ -19,7 +20,6 @@ import type { Vitals } from '../../../lib/vitals/Vitals';
 import type { MortalArc } from '../../../lib/mortality/MortalArc';
 import { ContainmentApi } from '../../../api/containment';
 import { SandboxApi } from '../../../api/sandbox';
-import { ConnectionApi } from '../../../api/connection';
 import { PersistableApi } from '../../../api/persistable';
 import { PlayerApi } from '../../../api/player';
 import { AccountabilityApi } from '../../../api/accountability';
@@ -492,7 +492,7 @@ async function divideBody(avatar: PlayerBody, cause: string): Promise<void> {
       ContainmentApi.move(shade, fell);
     }
     for (const interactive of held) {
-      ConnectionApi.transfer(interactive as never, shade as never);
+      (interactive as unknown as Interactive).transferTo(shade as never);
     }
     for (const interactive of held) {
       await (shade as unknown as PlayerBody).enter(interactive as never);
@@ -719,7 +719,7 @@ async function reembodyImpl(shade: Stuff): Promise<Stuff> {
   await recordReturnDeed(stuff);
 
   for (const interactive of held) {
-    ConnectionApi.transfer(interactive as never, stuff as never);
+    (interactive as unknown as Interactive).transferTo(stuff as never);
   }
   for (const interactive of held) {
     await body.enter(interactive as never);

@@ -144,23 +144,6 @@ export class CardApi {
   }
 
   /**
-   * Push a card with no running command — the arrangement resolver at a
-   * mode switch or at login, and the prompt substrate.
-   *
-   * ⚠ No `opens_card` gate here, because there is no command view to
-   * carry one. The caller is server code by construction: `push` is
-   * unreachable from a controller's own dispatch, which is where a
-   * client-influenced call could come from.
-   */
-  public static push(
-    interactive: Interactive,
-    cardId: CardId,
-    opts: CardOpenOptions = {},
-  ): string | null {
-    return logic().open(interactive, cardId, opts);
-  }
-
-  /**
    * The normalized command this context would key a card on — the dedup
    * identity. Exposed so a controller can compute the key once and reuse
    * it (`touch` takes a key, not a context).
@@ -168,77 +151,6 @@ export class CardApi {
   public static keyFor(context: CommandContext, cardId: CardId): string {
     const normalized = logic().normalizeKey(context);
     return normalized || CARDS[cardId].command;
-  }
-
-  /** Bring a card forward and reset its window; re-resolve if static. */
-  public static touch(
-    interactive: Interactive,
-    key: string,
-    opts: CardOpenOptions = {},
-  ): boolean {
-    return logic().touchCard(interactive, key, opts);
-  }
-
-  /**
-   * Pin / unpin, resolving `cardRef` by catalogue name first and
-   * instance id second. `null` hands the decision back to the
-   * catalogue's own default.
-   */
-  public static setPinned(
-    interactive: Interactive,
-    cardRef: string,
-    pinned: boolean | null,
-  ): boolean {
-    return logic().setPinned(interactive, cardRef, pinned);
-  }
-
-  /** Close one card, stating the reason. */
-  public static close(
-    interactive: Interactive,
-    instanceId: string,
-    reason: CardCloseReason,
-  ): boolean {
-    return logic().close(interactive, instanceId, reason);
-  }
-
-  /** The open cards for one interactive — `cockpit card list`'s report. */
-  public static list(interactive: Interactive): {
-    instanceId: string;
-    cardId: CardId;
-    key: string;
-    pinned: boolean;
-    live: boolean;
-  }[] {
-    return logic().list(interactive);
-  }
-
-  /**
-   * ⭐⭐ Open exactly the cards an arrangement names — the SERVER
-   * resolving a workspace, not the client replaying it. Returns the
-   * (opened, closed) counts for the verb's report.
-   */
-  public static applyArrangement(
-    interactive: Interactive,
-    cards: readonly CardId[],
-  ): { opened: number; closed: number } {
-    return logic().applyArrangement(interactive, cards);
-  }
-
-  /**
-   * ⭐ A prompt settled — close the card waiting on it, with reason
-   * `answered`. This is where the retired `unanswered` hold's guarantee
-   * lives: a prompt card opens pinned, so nothing else can end it.
-   */
-  public static notifyPromptSettled(
-    interactive: Interactive,
-    promptId: string,
-  ): void {
-    logic().notifyPromptSettled(interactive, promptId);
-  }
-
-  /** Drop every card for an interactive (disconnect). No envelopes. */
-  public static cancelAllForInteractive(interactive: Interactive): void {
-    logic().cancelAllForInteractive(interactive);
   }
 
   /** Whether the catalogue declares this card live. */

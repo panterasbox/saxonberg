@@ -165,7 +165,7 @@ export class DialogueConversation implements SustainedEngagement {
     // Reject any pending choice for this driver (disconnect already did
     // this; explicit cancels and presence-loss need it here). The driver
     // is mid-conversation, so its foreground prompt is this wheel.
-    PromptApi.cancelAll(this.interactive, "cancelled");
+    this.interactive.cancelPrompts("cancelled");
     if (this.partner) SchedulerApi.cancel(this.partner, "cancelled");
   }
 
@@ -249,8 +249,7 @@ export class DialogueConversation implements SustainedEngagement {
           : PROMPT_LABEL;
         let picked: string;
         try {
-          picked = await PromptApi.choice(
-            this.interactive,
+          picked = await this.interactive.promptChoice(
             promptLabel,
             promptChoices,
           );

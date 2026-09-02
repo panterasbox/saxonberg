@@ -17,6 +17,15 @@ import type { ConnectionOrigin } from '../../../api/connection';
 
 const ConnectionApiCallers = SecurityPolicies.FromModule('/api/connection#ConnectionApi'
 );
+/**
+ * The Interactive method surface (Phase E) forwards here as the
+ * proxied `Interactive` instance, so the four methods it owns admit
+ * that class alongside the Api face.
+ */
+const ConnectionCallers = SecurityPolicies.AnyOf(
+  ConnectionApiCallers,
+  SecurityPolicies.FromModule('/platform/idea/Interactive'),
+);
 
 /** ISO-3166 alpha-2 → English region display name (e.g. `DE` → `Germany`). */
 
@@ -176,8 +185,8 @@ export class ConnectionLogic extends ApiLogic {
     return ConnectionManager.get().getSocketIds();
   }
 
-  /** See {@link ConnectionApi.transfer}. */
-  @CallSecurity(ConnectionApiCallers)
+  /** See {@link Interactive.transferTo}. */
+  @CallSecurity(ConnectionCallers)
   public transfer(
     interactive: Interactive,
     target: HasInteractive & Stuff
@@ -216,8 +225,8 @@ export class ConnectionLogic extends ApiLogic {
     });
   }
 
-  /** See {@link ConnectionApi.detach}. */
-  @CallSecurity(ConnectionApiCallers)
+  /** See {@link Interactive.detach}. */
+  @CallSecurity(ConnectionCallers)
   public detach(interactive: Interactive): void {
     const previous = interactive.getHolder();
     if (!previous) return;
@@ -231,14 +240,14 @@ export class ConnectionLogic extends ApiLogic {
     }
   }
 
-  /** See {@link ConnectionApi.sendMessage}. */
-  @CallSecurity(ConnectionApiCallers)
+  /** See {@link Interactive.sendMessage}. */
+  @CallSecurity(ConnectionCallers)
   public sendMessage(interactive: Interactive, frame: MessageFrame): void {
     Application.get().sendMessageToInteractive(interactive, frame);
   }
 
-  /** See {@link ConnectionApi.sendEnvelope}. */
-  @CallSecurity(ConnectionApiCallers)
+  /** See {@link Interactive.sendEnvelope}. */
+  @CallSecurity(ConnectionCallers)
   public sendEnvelope(
     interactive: Interactive,
     template: EnvelopeTemplate

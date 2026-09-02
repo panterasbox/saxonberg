@@ -37,7 +37,6 @@ import { StuffApi } from '../../../../../api/stuff';
 import { AppApi } from '../../../../../api/app';
 import { TemplateApi } from '../../../../../api/template';
 import { Template } from '../../../../../lib/stuff/Template';
-import { ConnectionApi } from '../../../../../api/connection';
 import { ContainmentApi } from '../../../../../api/containment';
 import { MessageApi } from '../../../../../api/message';
 import { WorldClockApi } from '../../../../../api/worldclock';
@@ -134,7 +133,7 @@ describe('EnrollController.commit → chronicle seeding', () => {
     });
     vi.spyOn(ContainmentApi, 'move').mockReturnValue(undefined as never);
     
-    vi.spyOn(ConnectionApi, 'transfer').mockReturnValue(undefined as never);
+    vi.spyOn(interactive, 'transferTo').mockReturnValue(undefined as never);
     vi.spyOn(StuffApi, 'destruct').mockReturnValue(undefined as never);
     vi.spyOn(MessageApi, 'scene').mockImplementation(() => {
       const b: Record<string, unknown> = {};

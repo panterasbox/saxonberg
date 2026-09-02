@@ -146,7 +146,7 @@ export default class Login extends LoginBase {
    */
   public async enter(): Promise<void> {
     const { interactive } = this;
-    ConnectionApi.transfer(interactive, this);
+    interactive.transferTo(this);
 
     // Anonymous session → mint a throwaway guest avatar and drop straight
     // into the lounge (no roster, no char-gen). This is the ONE place the
@@ -181,7 +181,7 @@ export default class Login extends LoginBase {
   public async enterAsGuest(): Promise<void> {
     const { interactive } = this;
     const avatar = await Login.mintRandomGuestAvatar(interactive.getUser());
-    ConnectionApi.transfer(interactive, avatar);
+    interactive.transferTo(avatar);
     console.info(`Login: Guest connected - ${avatar.getFullName()}`);
     await avatar.enter(interactive, { firstArrival: true });
     StuffApi.destruct(this);
@@ -366,7 +366,7 @@ export default class Login extends LoginBase {
     const avatar = (await ConditionApi.embodyForSession(
       restored,
     )) as typeof restored;
-    ConnectionApi.transfer(this.interactive, avatar);
+    this.interactive.transferTo(avatar);
     console.info(`Login: User connected - ${avatar.getFullName()}`);
     await avatar.enter(this.interactive);
     StuffApi.destruct(this);
@@ -519,13 +519,13 @@ export default class Login extends LoginBase {
   /** SensorMixin delivery — multiplex frames to the connected Interactive(s). */
   protected override handleMessage(frame: MessageFrame): void {
     for (const interactive of this.interactives) {
-      ConnectionApi.sendMessage(interactive, frame);
+      interactive.sendMessage(frame);
     }
   }
 
   protected override handleEnvelope(envelope: EnvelopeTemplate): void {
     for (const interactive of this.interactives) {
-      ConnectionApi.sendEnvelope(interactive, envelope);
+      interactive.sendEnvelope(envelope);
     }
   }
 }

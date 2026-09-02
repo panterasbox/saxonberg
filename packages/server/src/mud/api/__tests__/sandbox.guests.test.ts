@@ -15,7 +15,6 @@ import { SandboxApi } from '../sandbox';
 import { StuffApi } from '../stuff';
 import { ShadowApi } from '../shadow';
 import { EventApi } from '../event';
-import { ConnectionApi } from '../connection';
 import { Stuff } from '../../lib/stuff/Stuff';
 import { ExecutionContextApi } from '../execution-context';
 import EventRegistry from '../../platform/idea/EventRegistry';
@@ -72,7 +71,7 @@ async function makePlayer(playerId: string): Promise<Avatar> {
         _id: 'u1',
       } as never)
   );
-  ConnectionApi.transfer(interactive, avatar);
+  interactive.transferTo(avatar);
   return avatar;
 }
 

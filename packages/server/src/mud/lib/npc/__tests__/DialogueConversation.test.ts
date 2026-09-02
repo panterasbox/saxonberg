@@ -4,7 +4,7 @@
  *
  * The interior/exterior contract is asserted structurally: the NPC's
  * beats and the player's picked lines go through `say` (spied), while the
- * choice wheel goes through `PromptApi.choice` to the driver's
+ * choice wheel goes through the driver interactive's `promptChoice` to the driver's
  * Interactive (mocked + captured). Guard/effect reads (`RegardApi` /
  * traits) are neutral by construction — their persistence is covered
  * by their own suites; here we test the dialogue wiring. Slots are held
@@ -33,7 +33,7 @@ import { EngagedMixin } from "../../activity/Engaged";
 import { ContainmentApi } from "../../../api/containment";
 import { StuffApi } from "../../../api/stuff";
 import { SchedulerApi } from "../../../api/scheduler";
-import { PromptApi, PromptCancelledError } from "../../../api/prompt";
+import { PromptCancelledError } from "../../../api/prompt";
 import { EventApi } from "../../../api/event";
 import EventRegistry from "../../../platform/idea/EventRegistry";
 import { Stuff } from "../../stuff/Stuff";
@@ -115,15 +115,14 @@ function makeWorld(): World {
   const sayPlayer = vi.spyOn(player, "say").mockImplementation(() => {});
 
   const pending: PendingChoice[] = [];
-  vi.spyOn(PromptApi, "choice").mockImplementation(
-    (interactive, _label, choices) =>
+  const interactive = {
+    id: "iact-1",
+    promptChoice: (_label: unknown, choices: unknown) =>
       new Promise<string>((resolve, reject) => {
-        pending.push({ interactive, choices, resolve, reject });
+        pending.push({ interactive, choices, resolve, reject } as never);
       }),
-  );
-  vi.spyOn(PromptApi, "cancelAll").mockReturnValue(0);
-
-  const interactive = { id: "iact-1" } as unknown as Interactive;
+    cancelPrompts: () => 0,
+  } as unknown as Interactive;
 
   return {
     room,

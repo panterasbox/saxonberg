@@ -52,15 +52,15 @@ describe('ConnectionApi', () => {
     it('attaches an unowned Interactive to a holder', () => {
       expect(interactive.getHolder()).toBeNull();
 
-      ConnectionApi.transfer(interactive, avatarA);
+      interactive.transferTo(avatarA);
 
       expect(interactive.getHolder()).toBe(avatarA);
       expect(avatarA.getInteractives().has(interactive)).toBe(true);
     });
 
     it('moves an Interactive from one holder to another', () => {
-      ConnectionApi.transfer(interactive, avatarA);
-      ConnectionApi.transfer(interactive, avatarB);
+      interactive.transferTo(avatarA);
+      interactive.transferTo(avatarB);
 
       expect(interactive.getHolder()).toBe(avatarB);
       expect(avatarA.getInteractives().has(interactive)).toBe(false);
@@ -68,8 +68,8 @@ describe('ConnectionApi', () => {
     });
 
     it('is idempotent on the same target', () => {
-      ConnectionApi.transfer(interactive, avatarA);
-      ConnectionApi.transfer(interactive, avatarA);
+      interactive.transferTo(avatarA);
+      interactive.transferTo(avatarA);
 
       expect(interactive.getHolder()).toBe(avatarA);
       expect(avatarA.getInteractives().size).toBe(1);
@@ -79,9 +79,9 @@ describe('ConnectionApi', () => {
 
   describe('detach', () => {
     it('removes an Interactive from its current holder', () => {
-      ConnectionApi.transfer(interactive, avatarA);
+      interactive.transferTo(avatarA);
 
-      ConnectionApi.detach(interactive);
+      interactive.detach();
 
       expect(interactive.getHolder()).toBeNull();
       expect(avatarA.getInteractives().has(interactive)).toBe(false);
@@ -90,7 +90,7 @@ describe('ConnectionApi', () => {
     it('is a no-op when there is no current holder', () => {
       expect(interactive.getHolder()).toBeNull();
 
-      expect(() => ConnectionApi.detach(interactive)).not.toThrow();
+      expect(() => interactive.detach()).not.toThrow();
 
       expect(interactive.getHolder()).toBeNull();
     });

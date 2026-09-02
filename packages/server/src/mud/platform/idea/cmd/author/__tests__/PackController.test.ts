@@ -11,7 +11,6 @@ import '../../../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import PackController from '../PackController';
 import { PackApi } from '../../../../../api/pack';
-import { PromptApi } from '../../../../../api/prompt';
 import Avatar from '../../../../agent/Avatar';
 import type Interactive from '../../../Interactive';
 import { MessageApi } from '../../../../../api/message';
@@ -59,6 +58,7 @@ const OK: PackReconcileResult = {
 
 let note: ReturnType<typeof vi.fn>;
 let told: string[];
+let promptTextFn: ReturnType<typeof vi.fn>;
 
 function ctxFor(actor: Idea): CommandContext {
   note = vi.fn();
@@ -69,7 +69,10 @@ function ctxFor(actor: Idea): CommandContext {
 async function runAs(model: PackArgs): Promise<void> {
   const actor = makeStuffAtPath(() => new Avatar(), '/platform/agent/Avatar/dev');
   actor.setPlayerId('dev');
-  const interactive = { id: 'i' } as unknown as Interactive;
+  const interactive = {
+    id: 'i',
+    promptText: promptTextFn,
+  } as unknown as Interactive;
   actor.addInteractive(interactive);
   const ctrl = makeStuff(() => new PackController());
   await ctrl.execute(model, ctxFor(actor as unknown as Idea));
@@ -84,6 +87,7 @@ async function run(model: PackArgs): Promise<void> {
 beforeEach(() => {
   vi.restoreAllMocks();
   told = [];
+  promptTextFn = vi.fn().mockResolvedValue('');
   vi.spyOn(PackApi, 'orphans').mockResolvedValue([]);
   vi.spyOn(MessageApi, 'scene').mockImplementation(() => {
     const b: Record<string, unknown> = {};
@@ -115,11 +119,11 @@ describe('PackController routing', () => {
   it('sync of an UNSTAFFED pack prompts the installer to staff it (enter = you); a staffed pack does not prompt', async () => {
     vi.spyOn(PackApi, 'orphans').mockResolvedValue([]);
     const sync = vi.spyOn(PackApi, 'sync').mockResolvedValue({ ...OK, staffed: false });
-    const text = vi.spyOn(PromptApi, 'text').mockResolvedValue('');
+    const text = promptTextFn;
     const staff = vi.spyOn(PackApi, 'staff').mockResolvedValue(true);
     await runAs({ subcommand: 'sync', packId: 'world-seed' });
     expect(sync).toHaveBeenCalledWith('world-seed');
-    expect(text).toHaveBeenCalledWith(expect.anything(), expect.stringMatching(/no maintainers/));
+    expect(text).toHaveBeenCalledWith(expect.stringMatching(/no maintainers/));
     expect(staff).toHaveBeenCalledWith('world-seed', '/platform/agent/Avatar/dev');
     expect(told.join('\n')).toContain("/platform/agent/Avatar/dev now maintains pack 'world-seed'");
 

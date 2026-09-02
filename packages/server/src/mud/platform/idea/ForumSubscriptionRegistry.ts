@@ -32,7 +32,6 @@ import type { EvictionContext } from '../../lib/stuff/Stuff';
 import { CallSecurity } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { EventApi } from '../../api/event';
-import { MessageApi } from '../../api/message';
 import { MixinApi } from '../../api/mixin';
 import { ForumsApi } from '../../api/forums';
 import { PlayerApi } from '../../api/player';

@@ -26,7 +26,6 @@ import Avatar from "@saxonberg/server/mud/platform/agent/Avatar";
 import { Idea } from "@saxonberg/server/mud/lib/stuff/Idea";
 import { StuffApi } from "@saxonberg/server/mud/api/stuff";
 import { ParcelApi } from "@saxonberg/server/mud/api/parcel";
-import { PromptApi } from "@saxonberg/server/mud/api/prompt";
 import { DialogueEffectRegistry } from "@saxonberg/server/mud/lib/npc/DialogueEffects";
 import { makeStuffAtPath } from "@saxonberg/server/mud/lib/security/__tests__/test-setup";
 import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
@@ -69,8 +68,15 @@ function buyer(id = "iris"): Avatar {
 }
 
 /** A buyer with a client attached — what a prompt needs to reach anyone. */
+let choiceFn: ReturnType<typeof vi.fn>;
+let confirmFn: ReturnType<typeof vi.fn>;
+
 function withClient(a: Avatar): Avatar {
-  const interactive = { id: "sess-1" };
+  const interactive = {
+    id: "sess-1",
+    promptChoice: (...args: unknown[]) => choiceFn(...args),
+    promptConfirm: (...args: unknown[]) => confirmFn(...args),
+  };
   (a as unknown as { getInteractives(): Set<unknown> }).getInteractives = () =>
     new Set([interactive]);
   return a;
@@ -82,6 +88,8 @@ beforeEach(() => {
   StuffApi.clearAll();
   sold = [];
   issued = [];
+  choiceFn = vi.fn();
+  confirmFn = vi.fn();
   vi.spyOn(ParcelApi, "childParcelsOf").mockImplementation((async (
     parent: string,
   ) =>
@@ -142,10 +150,8 @@ describe("the purchase", () => {
     const iris = withClient(buyer());
     captureCommands(iris);
     const ricky = makeStuffAtPath(() => new Realtor(), "/world/fx/realty/ricky");
-    vi.spyOn(PromptApi, "choice").mockResolvedValue(
-      "/world/fx/hinkley/lots/lot-7" as never,
-    );
-    const confirm = vi.spyOn(PromptApi, "confirm").mockResolvedValue(true);
+    choiceFn.mockResolvedValue("/world/fx/hinkley/lots/lot-7" as never);
+    const confirm = confirmFn.mockResolvedValue(true);
 
     await Realtor.BUY_EFFECT.apply({
       npc: ricky as unknown as Stuff,
@@ -154,7 +160,7 @@ describe("the purchase", () => {
     });
 
     // The price was shown before the yes was taken.
-    expect(confirm.mock.calls[0]![1]).toMatch(/Hinkley Hills lot-7/);
+    expect(confirm.mock.calls[0]![0]).toMatch(/Hinkley Hills lot-7/);
     // And the command ran as IRIS — never as Ricky.
     expect(issued).toEqual([
       { actor: iris as unknown as Stuff, line: "title buy lot-7" },
@@ -166,10 +172,8 @@ describe("the purchase", () => {
     const iris = withClient(buyer());
     captureCommands(iris);
     const ricky = makeStuffAtPath(() => new Realtor(), "/world/fx/realty/ricky");
-    vi.spyOn(PromptApi, "choice").mockResolvedValue(
-      "/world/fx/hinkley/lots/lot-7" as never,
-    );
-    vi.spyOn(PromptApi, "confirm").mockResolvedValue(false);
+    choiceFn.mockResolvedValue("/world/fx/hinkley/lots/lot-7" as never);
+    confirmFn.mockResolvedValue(false);
 
     await Realtor.BUY_EFFECT.apply({
       npc: ricky as unknown as Stuff,
@@ -196,7 +200,7 @@ describe("the purchase", () => {
     const iris = withClient(buyer());
     captureCommands(iris);
     const ricky = makeStuffAtPath(() => new Realtor(), "/world/fx/realty/ricky");
-    const choice = vi.spyOn(PromptApi, "choice");
+    const choice = choiceFn;
 
     await Realtor.BUY_EFFECT.apply({
       npc: ricky as unknown as Stuff,

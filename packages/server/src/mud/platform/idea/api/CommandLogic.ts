@@ -51,7 +51,6 @@ import {
 import { MixinApi } from '../../../api/mixin';
 import { Mixins, MixinRefusals, type MixinName } from '../../../lib/mixin';
 import { PerceptionApi } from '../../../api/perception';
-import { MessageApi } from '../../../api/message';
 import { AccessApi } from '../../../api/access';
 import { GroupApi } from '../../../api/group';
 import { ExecutionContextApi } from '../../../api/execution-context';
@@ -991,8 +990,7 @@ export class CommandLogic extends ApiLogic {
         });
         return null;
       }
-      const picked = await PromptApi.mqlObject(
-        context.interactive,
+      const picked = await context.interactive.promptMqlObject(
         `which ${fname}?`,
         stuff,
       );
@@ -1040,8 +1038,7 @@ export class CommandLogic extends ApiLogic {
         });
         return null;
       }
-      const picks = await PromptApi.mqlMany(
-        context.interactive,
+      const picks = await context.interactive.promptMqlMany(
         `pick ${min}-${max} ${fname}`,
         stuff,
         { min, max: Number.isFinite(max) ? max : undefined },

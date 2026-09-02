@@ -15,7 +15,6 @@ import ProvisionController from '../idea/cmd/ProvisionController';
 import UnprovisionController from '../idea/cmd/UnprovisionController';
 import RemodelController from '../idea/cmd/RemodelController';
 import DormThemes from '../DormThemes';
-import { PromptApi } from '@saxonberg/server/mud/api/prompt';
 import type Interactive from '@saxonberg/server/mud/platform/idea/Interactive';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
@@ -250,8 +249,12 @@ function ctxFor(
 
 /** A context carrying a stub Interactive — for the `remodel` prompt (the
  *  choice itself is mocked; the controller only needs a non-null viewer). */
+let choiceFn: ReturnType<typeof vi.fn>;
+
 function ctxWithInteractive(giver: Stuff, verb: string): CommandContext {
-  return ctxFor(giver, verb, {} as unknown as Interactive);
+  return ctxFor(giver, verb, {
+    promptChoice: (...args: unknown[]) => choiceFn(...args),
+  } as unknown as Interactive);
 }
 
 function rejectionReason(ctx: CommandContext): string | null {
@@ -325,7 +328,7 @@ describe('shell personalization — move-in theme + local remodel', () => {
     ContainmentApi.move(iris, room); // standing in their room
 
     // The choice wheel resolves to 'nautical' (the player's pick).
-    vi.spyOn(PromptApi, 'choice').mockResolvedValue('nautical' as never);
+    choiceFn = vi.fn().mockResolvedValue('nautical' as never);
     const ctx = ctxWithInteractive(iris, 'remodel');
     await run(makeStuff(() => new RemodelController()), iris, {} as CommandModel, ctx);
     expect(rejectionReason(ctx)).toBeNull();
@@ -364,7 +367,7 @@ describe('shell personalization — move-in theme + local remodel', () => {
     DormThemes.themesSource =
       'themes:\n  hack:\n    room:\n      shortDescription: nice\n      class: /obj/evil/Backdoor\n';
 
-    vi.spyOn(PromptApi, 'choice').mockResolvedValue('hack' as never);
+    choiceFn = vi.fn().mockResolvedValue('hack' as never);
     const ctx = ctxWithInteractive(iris, 'remodel');
     await run(makeStuff(() => new RemodelController()), iris, {} as CommandModel, ctx);
     expect(rejectionReason(ctx)).toBe('theme-error');

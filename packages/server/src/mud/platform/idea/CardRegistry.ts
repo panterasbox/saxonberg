@@ -59,7 +59,6 @@ import type { Sensor } from '../../lib/message/Sensor';
 import type { CommandGiver } from '../../lib/command/CommandGiver';
 import type Interactive from './Interactive';
 import { MixinApi } from '../../api/mixin';
-import { MessageApi } from '../../api/message';
 import { SecurityApi } from '../../api/security';
 import { StuffApi } from '../../api/stuff';
 import { ScheduleApi, type ScheduleHandle } from '../../api/schedule';

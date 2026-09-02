@@ -242,7 +242,7 @@ describe('HasInteractive Witness hooks (ConnectionApi)', () => {
     const interactive = await StuffApi.create(
       () => new Interactive('sock-1', 'sess-1', { _id: 'u1' } as never)
     );
-    ConnectionApi.transfer(interactive, holder);
+    interactive.transferTo(holder);
     expect(holder.attaches).toEqual([interactive]);
     expect(holder.restored).toBe(1);
     expect(holder.linkdead).toBe(0);
@@ -253,8 +253,8 @@ describe('HasInteractive Witness hooks (ConnectionApi)', () => {
     const interactive = await StuffApi.create(
       () => new Interactive('sock-1', 'sess-1', { _id: 'u1' } as never)
     );
-    ConnectionApi.transfer(interactive, holder);
-    ConnectionApi.detach(interactive);
+    interactive.transferTo(holder);
+    interactive.detach();
     expect(holder.detaches).toBe(1);
     expect(holder.linkdead).toBe(1);
   });

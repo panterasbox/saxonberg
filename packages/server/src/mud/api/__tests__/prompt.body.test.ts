@@ -18,7 +18,6 @@ import { Stuff } from '../../lib/stuff/Stuff';
 import EventRegistry from '../../platform/idea/EventRegistry';
 import Interactive from '../../platform/idea/Interactive';
 import Avatar from '../../platform/agent/Avatar';
-import { ConnectionApi } from '../connection';
 import { Mml } from '../mml';
 
 async function bootRegistry(): Promise<void> {
@@ -41,7 +40,7 @@ async function makeAvatarInteractive(): Promise<{
   const interactive = await StuffApi.create(
     () => new Interactive('sock-1', 'sess-1', { _id: 'u1' } as never),
   );
-  ConnectionApi.transfer(interactive, avatar);
+  interactive.transferTo(avatar);
   return { interactive, avatar };
 }
 
@@ -78,7 +77,7 @@ describe('PromptApi — body MessageFrame correlation', () => {
       });
     });
 
-    const p = PromptApi.text(interactive, 'Name?', {
+    const p = interactive.promptText('Name?', {
       body: 'Please enter the name you want for your character.',
     });
 
@@ -120,12 +119,12 @@ describe('PromptApi — body MessageFrame correlation', () => {
     });
     vi.spyOn(avatar, 'onEnvelope').mockImplementation(() => {});
 
-    const p = PromptApi.text(interactive, 'Name?', {
+    const p = interactive.promptText('Name?', {
       body: Mml.compose`Please ${Mml.compose`enter`} your name.`,
     });
 
     expect(frames).toHaveLength(1);
-    PromptApi.cancelAll(interactive, 'cancelled');
+    interactive.cancelPrompts('cancelled');
     await expect(p).rejects.toThrow();
   });
 
@@ -142,13 +141,13 @@ describe('PromptApi — body MessageFrame correlation', () => {
       envelopes.push(tpl);
     });
 
-    const p = PromptApi.text(interactive, 'Name?');
+    const p = interactive.promptText('Name?');
     expect(frames).toHaveLength(0);
     // The prompt envelope, and the prompt CARD the substrate pushes.
     expect(
       (envelopes as { type: string }[]).map((e) => e.type),
     ).toEqual(['prompt', 'card-opened']);
-    PromptApi.cancelAll(interactive, 'cancelled');
+    interactive.cancelPrompts('cancelled');
     await expect(p).rejects.toThrow();
   });
 });

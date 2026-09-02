@@ -356,7 +356,7 @@ export function DisplayMixin<TBase extends MixinConstructor<Stuff>>(
         }
         case 'card': {
           for (const interactive of viewer.getInteractives()) {
-            CardApi.push(interactive, source.cardId, {
+            interactive.pushCard(source.cardId, {
               key: source.key,
               subjectId: source.subjectId,
               prose: source.prose,

@@ -974,8 +974,7 @@ export default class Avatar extends AvatarBase {
      */
     try {
       const mode = this.getCockpitMode();
-      CardApi.applyArrangement(
-        interactive,
+      interactive.applyCardArrangement(
         this.arrangementCards(mode, this.getCockpitArrangement(mode)),
       );
     } catch (err) {
@@ -1272,7 +1271,7 @@ export default class Avatar extends AvatarBase {
       },
     };
     for (const interactive of forwardingTargets(this)) {
-      ConnectionApi.sendMessage(interactive, routed);
+      interactive.sendMessage(routed);
     }
   }
 
@@ -1304,7 +1303,7 @@ export default class Avatar extends AvatarBase {
    */
   protected override handleEnvelope(envelope: EnvelopeTemplate): void {
     for (const interactive of forwardingTargets(this)) {
-      ConnectionApi.sendEnvelope(interactive, envelope);
+      interactive.sendEnvelope(envelope);
     }
   }
 
@@ -1343,7 +1342,7 @@ export default class Avatar extends AvatarBase {
     PlayerApi.unregisterAvatar(this);
     // Snapshot — detach() mutates the underlying set via removeInteractive.
     for (const interactive of [...this.interactives]) {
-      ConnectionApi.detach(interactive);
+      interactive.detach();
     }
   }
 

@@ -82,7 +82,7 @@ describe('the normalized command is what a card re-issues', () => {
     const second = CardApi.open(ctx, 'who');
     expect(first).not.toBeNull();
     expect(second).not.toBe(first);
-    expect(CardApi.list(h.interactive).length).toBe(2);
+    expect(h.interactive.listCards().length).toBe(2);
     // Two opens on the wire, and nothing touched.
     expect(h.ofType('card-opened').length).toBe(2);
     expect(h.ofType('card-touched').length).toBe(0);
@@ -104,7 +104,7 @@ describe('the normalized command is what a card re-issues', () => {
     const first = CardApi.open(ctx, 'cms');
     const second = CardApi.open(ctx, 'cms');
     expect(second).toBe(first);
-    expect(CardApi.list(h.interactive).length).toBe(1);
+    expect(h.interactive.listCards().length).toBe(1);
     expect(h.ofType('card-touched').length).toBe(1);
   });
 
@@ -122,7 +122,7 @@ describe('the normalized command is what a card re-issues', () => {
       }),
       'who',
     );
-    const open = CardApi.list(h.interactive);
+    const open = h.interactive.listCards();
     expect(open.length).toBe(2);
     expect(new Set(open.map((c) => c.key)).size).toBe(2);
   });
@@ -143,7 +143,7 @@ describe('the normalized command is what a card re-issues', () => {
     const a2 = look('look a');
 
     expect(new Set([a1, b, a2]).size).toBe(3);
-    expect(CardApi.list(h.interactive).length).toBe(3);
+    expect(h.interactive.listCards().length).toBe(3);
     /*
      * ⚠ Nothing is touched as a DEDUP — stacking cards never merge.
      * The touches that do arrive are the two DEMOTIONS: each new
@@ -156,7 +156,7 @@ describe('the normalized command is what a card re-issues', () => {
     expect(touches.every((t) => t.live === false)).toBe(true);
     expect(touches.every((t) => t.result === undefined)).toBe(true);
     // …and the re-looked card carries the same refresh command.
-    const keys = CardApi.list(h.interactive).map((c) => c.key);
+    const keys = h.interactive.listCards().map((c) => c.key);
     expect(keys.filter((k) => k === 'look a').length).toBe(2);
   });
 
@@ -180,7 +180,7 @@ describe('the normalized command is what a card re-issues', () => {
     );
     // Two cards (the log), one refresh command (the canonicalisation).
     expect(second).not.toBe(first);
-    const keys = CardApi.list(h.interactive).map((c) => c.key);
+    const keys = h.interactive.listCards().map((c) => c.key);
     expect(keys).toEqual(['look a', 'look a']);
   });
 
@@ -197,7 +197,7 @@ describe('the normalized command is what a card re-issues', () => {
       );
     look('look lamp');
     look('look brass lamp');
-    expect(CardApi.list(h.interactive).length).toBe(2);
+    expect(h.interactive.listCards().length).toBe(2);
   });
 
   /**
@@ -261,7 +261,7 @@ describe('the room card', () => {
     const second = lookRoom("look dave's bar");
 
     expect(second).not.toBe(first);
-    const cards = CardApi.list(h.interactive).filter(
+    const cards = h.interactive.listCards().filter(
       (c) => c.cardId === 'subject',
     );
     expect(cards.length).toBe(2);

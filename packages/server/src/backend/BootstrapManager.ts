@@ -19,6 +19,7 @@
  */
 
 import { StuffApi } from '../mud/api/stuff';
+// eslint-disable-next-line no-restricted-imports -- the D4b face registration: installFrameworkWiring hands Stuff a lazy resolver for the recognition-face singleton (the registry-class-handoff cycle-avoidance seam); the backend wiring layer is the one place that may name the class
 import { RecognitionLogic } from '../mud/platform/idea/api/RecognitionLogic';
 import { Stuff } from '../mud/lib/stuff/Stuff';
 import { Template } from '../mud/lib/stuff/Template';

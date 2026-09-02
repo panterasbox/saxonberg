@@ -54,7 +54,6 @@ import { MqlApi, MqlPermissionError } from '../../api/mql';
 import { StuffApi } from '../../api/stuff';
 import { PerceptionApi } from '../../api/perception';
 import { EventApi } from '../../api/event';
-import { MessageApi } from '../../api/message';
 import { ShellApi } from '../../api/shell';
 import { FieldChangedEvent } from '../../lib/events/FieldChangedEvent';
 import {

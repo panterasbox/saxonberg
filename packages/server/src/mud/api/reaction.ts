@@ -206,35 +206,9 @@ export class ReactionApi {
     return resolveRegistry().actInfo(commandId);
   }
 
-  /**
-   * Record that a reactable-act frame was delivered to an Interactive,
-   * keying its gutter `frameId` → the act's `commandId` so `react
-   * --msg <n>` resolves server-side. Bounded ring.
-   */
-  public static noteDeliveredFrame(
-    interactive: Interactive,
-    frameId: number,
-    commandId: string,
-  ): void {
-    resolveRegistry().noteDeliveredFrame(interactive, frameId, commandId);
-  }
-
-  /** Resolve a gutter number to a `commandId` for one Interactive. */
-  public static resolveGutter(
-    interactive: Interactive,
-    frameId: number,
-  ): string | null {
-    return resolveRegistry().resolveGutter(interactive, frameId);
-  }
-
   /** The subject's most-recent reactable act (for `react --to <person>`). */
   public static lastReactableActBy(subjectId: string): string | null {
     return resolveRegistry().lastReactableActBy(subjectId);
-  }
-
-  /** The most-recent reactable act delivered to this Interactive (default selector). */
-  public static lastDeliveredActFor(interactive: Interactive): string | null {
-    return resolveRegistry().lastDeliveredActFor(interactive);
   }
 
   /** Is `commandId` a known reactable act? (controller pre-gate). */
@@ -250,16 +224,6 @@ export class ReactionApi {
   /** Wire-facing expand pull (routed from `Application`). */
   public static handleExpand(req: ExpandRequest): void {
     resolveRegistry().handleExpand(req);
-  }
-
-  /** Register the normal per-player sink for an Interactive (on connect). */
-  public static registerInteractive(interactive: Interactive): void {
-    resolveRegistry().registerInteractive(interactive);
-  }
-
-  /** Disconnect cleanup (mirrors `MqlSubscriptionApi`). */
-  public static cancelAllForInteractive(interactive: Interactive): void {
-    resolveRegistry().cancelAllForInteractive(interactive);
   }
 
   /** Overlay-ready: subscribe a scope-keyed read-only sink. */

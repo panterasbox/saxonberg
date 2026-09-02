@@ -773,7 +773,7 @@ export default class EnrollController extends CommandController<EnrollModel> {
     }
 
     // 6. Hand off to the avatar's session, then destruct Login.
-    ConnectionApi.transfer(interactive, avatar);
+    interactive.transferTo(avatar);
     await avatar.enter(interactive, { firstArrival: true });
     StuffApi.destruct(login);
   }

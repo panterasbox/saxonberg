@@ -16,6 +16,11 @@ import type { CommandContext } from '../../../api/command';
 import { CARDS } from '../../../lib/connection/Cards';
 
 const CardApiCallers = SecurityPolicies.FromModule('/api/card#CardApi');
+/** The Interactive card surface (Phase E) calls in as the proxied instance. */
+const CardCallers = SecurityPolicies.AnyOf(
+  CardApiCallers,
+  SecurityPolicies.FromModule('/platform/idea/Interactive'),
+);
 
 /* ─────────────────────── registry resolution ─────────────────────── */
 // Module-level so it survives the logic singleton's destruct/recreate
@@ -125,7 +130,7 @@ export class CardLogic extends ApiLogic {
   /* ─── forwards ─── */
 
   /** See {@link CardApi.open}. */
-  @CallSecurity(CardApiCallers)
+  @CallSecurity(CardCallers)
   public open(
     interactive: Interactive,
     cardId: CardId,
@@ -134,8 +139,8 @@ export class CardLogic extends ApiLogic {
     return resolveRegistry().open(interactive, cardId, opts);
   }
 
-  /** See {@link CardApi.touch}. */
-  @CallSecurity(CardApiCallers)
+  /** See {@link Interactive.touchCard}. */
+  @CallSecurity(CardCallers)
   public touchCard(
     interactive: Interactive,
     key: string,
@@ -144,8 +149,8 @@ export class CardLogic extends ApiLogic {
     return resolveRegistry().touchCard(interactive, key, opts);
   }
 
-  /** See {@link CardApi.setPinned}. */
-  @CallSecurity(CardApiCallers)
+  /** See {@link Interactive.setCardPinned}. */
+  @CallSecurity(CardCallers)
   public setPinned(
     interactive: Interactive,
     cardRef: string,
@@ -154,8 +159,8 @@ export class CardLogic extends ApiLogic {
     return resolveRegistry().setPinned(interactive, cardRef, pinned);
   }
 
-  /** See {@link CardApi.close}. */
-  @CallSecurity(CardApiCallers)
+  /** See {@link Interactive.closeCard}. */
+  @CallSecurity(CardCallers)
   public close(
     interactive: Interactive,
     instanceId: string,
@@ -164,8 +169,8 @@ export class CardLogic extends ApiLogic {
     return resolveRegistry().close(interactive, instanceId, reason);
   }
 
-  /** See {@link CardApi.list}. */
-  @CallSecurity(CardApiCallers)
+  /** See {@link Interactive.listCards}. */
+  @CallSecurity(CardCallers)
   public list(interactive: Interactive): {
     instanceId: string;
     cardId: CardId;
@@ -176,8 +181,8 @@ export class CardLogic extends ApiLogic {
     return resolveRegistry().list(interactive);
   }
 
-  /** See {@link CardApi.applyArrangement}. */
-  @CallSecurity(CardApiCallers)
+  /** See {@link Interactive.applyCardArrangement}. */
+  @CallSecurity(CardCallers)
   public applyArrangement(
     interactive: Interactive,
     cards: readonly CardId[],
@@ -185,8 +190,8 @@ export class CardLogic extends ApiLogic {
     return resolveRegistry().applyArrangement(interactive, cards);
   }
 
-  /** See {@link CardApi.notifyPromptSettled}. */
-  @CallSecurity(CardApiCallers)
+  /** See {@link Interactive.notifyPromptSettled}. */
+  @CallSecurity(CardCallers)
   public notifyPromptSettled(
     interactive: Interactive,
     promptId: string,
@@ -194,8 +199,8 @@ export class CardLogic extends ApiLogic {
     resolveRegistry().notifyPromptSettled(interactive, promptId);
   }
 
-  /** See {@link CardApi.cancelAllForInteractive}. */
-  @CallSecurity(CardApiCallers)
+  /** See {@link Interactive.cancelAllCards}. */
+  @CallSecurity(CardCallers)
   public cancelAllForInteractive(interactive: Interactive): void {
     const reg = lookupRegistry();
     if (reg) reg.cancelAllForInteractive(interactive);
