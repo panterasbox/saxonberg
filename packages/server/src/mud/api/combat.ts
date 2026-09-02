@@ -214,6 +214,34 @@ export class CombatApi {
   }
 
   /**
+   * `fight break` — offer a mutual stand-down. Resolves the actor's beat
+   * as a cover-up and posts an offer; a reciprocated fresh offer dissolves
+   * the threat edge, and a fully edgeless session ends as a draw (no
+   * victor, no defeat — unlike `yieldFight`, which concedes and records a
+   * loss). `broke` is true when this call dissolved at least one edge.
+   */
+  public static offerBreak(actor: Stuff): {
+    ok: boolean;
+    reason?: string;
+    broke: boolean;
+  } {
+    return logic().offerBreak(actor);
+  }
+
+  /**
+   * `fight rush <direction>` — the bum's rush: throw a **grappled** foe
+   * out through the named exit. A general control-win outcome (any winner,
+   * any exit). The loser leaves the fight, is relocated teleport-style, and
+   * lands sprawled. Async: the destination may fault in its zone.
+   */
+  public static bumRush(
+    actor: Stuff,
+    direction: string,
+  ): Promise<{ ok: boolean; reason?: string }> {
+    return logic().bumRush(actor, direction);
+  }
+
+  /**
    * The blame verdict for a victim's death, derived on read by replaying
    * the append-only attribution ledger. `null` if the victim has no
    * attributed combat death. `victimId` is the durable `templatePath`.

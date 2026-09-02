@@ -83,6 +83,14 @@ export interface CombatantState {
   /** The gambit verb the combatant intends next exchange (player intent). */
   queuedGambit: string | null;
   /**
+   * The session beat at which this combatant last offered a truce
+   * (`fight break`), or null. A standing offer counts toward dissolving a
+   * threat edge only while fresh (current + next beat); an opponent's
+   * reciprocated fresh offer dissolves the edge between them. Transient,
+   * like every other field here. See docs/subsystems/combat.md.
+   */
+  breakOfferedBeat: number | null;
+  /**
    * An in-progress armament change (the hand-slot economy): while set and
    * not ready, the combatant's instrument resolves to nothing (guard down,
    * can't strike). The session advances it each beat and performs the grip

@@ -21,6 +21,10 @@ import { ChronicleApi } from "../../../api/chronicle";
 import { RegardApi } from "../../../api/regard";
 import { AdvancementApi } from "../../../api/advancement";
 import { PerceptionApi } from "../../../api/perception";
+import { ContainmentApi } from "../../../api/containment";
+import { Postures } from "../../../lib/slot/Postured";
+import type { Container } from "../../../lib/spatial/Container";
+import type { Containable } from "../../../lib/spatial/Containable";
 import { ShellApi } from "../../../api/shell";
 import { AppSettingKeys } from "../../../lib/config/AppSettings";
 import { AccountabilityApi } from "../../../api/accountability";
@@ -263,6 +267,21 @@ export class CombatLogic extends ApiLogic {
     endWith(session, "yield", actor, opp);
     if (opp) runResolutionConsumers(session, opp, actor, false, false);
     return true;
+  }
+
+  @CallSecurity(CombatApiCallers)
+  public offerBreak(
+    actor: Stuff,
+  ): { ok: boolean; reason?: string; broke: boolean } {
+    return offerBreakImpl(actor);
+  }
+
+  @CallSecurity(CombatApiCallers)
+  public async bumRush(
+    actor: Stuff,
+    direction: string,
+  ): Promise<{ ok: boolean; reason?: string }> {
+    return bumRushImpl(actor, direction);
   }
 
   @CallSecurity(CombatApiCallers)
@@ -1125,6 +1144,7 @@ function deriveState(combatant: Stuff & Engaged): CombatantState {
     tempo,
     flags: new CombatFlags(),
     queuedGambit: null,
+    breakOfferedBeat: null,
     weaponSwitch: null,
     brainPath: brainPathFor(combatant),
     brainConfig: {},
@@ -3081,6 +3101,166 @@ function checkFirstBlood(session: CombatSession, report: InflictReport): void {
   if (session.getTerms().stopCondition === "first-blood") {
     endWith(session, "first-blood", report.target, report.attacker);
   }
+}
+
+/* ───────────────────────── the truce + the bum's rush ───────────────────────── */
+
+/** Does a threat edge run between these two in either direction? */
+function edgedBetween(
+  session: CombatSession,
+  a: Stuff,
+  b: Stuff,
+): boolean {
+  const g = session.getGraph();
+  return !!(g.edgeBetween(a, b) ?? g.edgeBetween(b, a));
+}
+
+/** Does this combatant still have any threat edge to anyone? */
+function hasAnyThreatEdge(session: CombatSession, who: Stuff): boolean {
+  for (const s of session.getStates()) {
+    if (s.combatant === who) continue;
+    if (edgedBetween(session, who, s.combatant)) return true;
+  }
+  return false;
+}
+
+/** Are there NO threat edges left anywhere in the session? */
+function sessionHasNoThreatEdges(session: CombatSession): boolean {
+  const states = session.getStates();
+  for (let i = 0; i < states.length; i++) {
+    for (let j = i + 1; j < states.length; j++) {
+      const a = states[i]!.combatant;
+      const b = states[j]!.combatant;
+      if (edgedBetween(session, a, b)) return false;
+    }
+  }
+  return true;
+}
+
+/**
+ * `fight break` — offer a mutual stand-down. The offer resolves the
+ * actor's beat as a **defend** (cover up — offering while they keep
+ * swinging is a real risk) and stands for the current + next beat. When
+ * BOTH ends of a threat edge hold a fresh offer, the edge dissolves; a
+ * combatant whose last edge dissolves leaves the fight; a session with no
+ * edges left resolves as a **draw** — no victor, no defeat, no yield loser
+ * (yield concedes and records a loss; break does not — which is what makes
+ * backing down chooseable). Distinct from yield by that alone.
+ */
+function offerBreakImpl(
+  actor: Stuff,
+): { ok: boolean; reason?: string; broke: boolean } {
+  const session = sessionForImpl(actor);
+  if (!session) return { ok: false, reason: "not-in-combat", broke: false };
+  const state = session.getState(actor);
+  if (!state || state.down) {
+    return { ok: false, reason: "not-in-combat", broke: false };
+  }
+  const beat = session.getBeat();
+  // Cover up this beat and post the offer.
+  state.queuedGambit = "defend";
+  state.breakOfferedBeat = beat;
+
+  const graph = session.getGraph();
+  // Reciprocated fresh offers dissolve the edge (collect first, then act —
+  // removeParticipant mutates the state set).
+  const toDrop: Array<Stuff> = [];
+  for (const opp of session.getStates()) {
+    if (opp.combatant === actor) continue;
+    if (!edgedBetween(session, actor, opp.combatant)) continue;
+    const fresh =
+      opp.breakOfferedBeat !== null && beat - opp.breakOfferedBeat <= 1;
+    if (fresh) toDrop.push(opp.combatant);
+  }
+  for (const opp of toDrop) {
+    graph.removeEdge(actor, opp);
+    graph.removeEdge(opp, actor);
+  }
+  const broke = toDrop.length > 0;
+  if (broke && session.isActive()) {
+    if (sessionHasNoThreatEdges(session)) {
+      // The whole fight stood down — a mutual break: end with no victor.
+      // (Resolve BEFORE any removeParticipant, whose empty-side auto-
+      // dissolve would otherwise pre-empt the draw resolution.)
+      endWith(session, "draw");
+    } else {
+      // A partial break in a multi-party fight: anyone now edgeless walks
+      // away, and the fight continues for the rest. Snapshot first —
+      // removeParticipant mutates the state set.
+      const leaving = session
+        .getStates()
+        .map((s) => s.combatant)
+        .filter((c) => !hasAnyThreatEdge(session, c));
+      for (const c of leaving) session.removeParticipant(c);
+    }
+  }
+  return { ok: true, broke };
+}
+
+/**
+ * `fight rush <direction>` — the bum's rush: a control winner throws a
+ * **grappled** foe out through an exit. A general combat outcome, not a
+ * Dave feature — any control winner, any exit. The loser leaves the
+ * session (dissolving it if a side empties) and is relocated
+ * teleport-style (`ContainmentApi.move`, not `traverse` — the loser isn't
+ * *acting*; the containment witnesses still fire) and lands sprawled
+ * (`Postures.Lie`). Rushing spends the actor's beat.
+ */
+async function bumRushImpl(
+  actor: Stuff,
+  direction: string,
+): Promise<{ ok: boolean; reason?: string }> {
+  const session = sessionForImpl(actor);
+  if (!session) return { ok: false, reason: "not-in-combat" };
+  const graph = session.getGraph();
+  // A grappled foe on an edge FROM the actor (subdue's flagOnLand).
+  let target: Stuff | null = null;
+  for (const opp of session.getStates()) {
+    if (opp.combatant === actor) continue;
+    if (!graph.edgeBetween(actor, opp.combatant)) continue;
+    if (opp.flags.has("grappled")) {
+      target = opp.combatant;
+      break;
+    }
+  }
+  if (!target) return { ok: false, reason: "no-hold" };
+
+  const room = venueOf(actor);
+  const exit =
+    room && MixinApi.isExitable(room) ? room.getExit(direction) : undefined;
+  if (!exit) return { ok: false, reason: "no-exit" };
+  let dest: Stuff & Container;
+  try {
+    dest = await exit.resolveDestination();
+  } catch {
+    return { ok: false, reason: "no-exit" };
+  }
+  if (!MixinApi.isContainable(target)) {
+    return { ok: false, reason: "no-exit" };
+  }
+
+  const actorState = session.getState(actor);
+  if (actorState) actorState.queuedGambit = null; // the rush spends the beat
+
+  // Narrate before the move (both rooms hear it). `room` is non-null here
+  // (the exit came from it), but narrow explicitly for the compiler.
+  const rushedName = presentationOf(target);
+  const rusherName = presentationOf(actor);
+  if (room) {
+    CombatNarration.narrateFlavor(
+      room,
+      `${rusherName} hurls ${rushedName} out through the ${direction} exit.`,
+    );
+  }
+
+  session.removeParticipant(target); // leaves the fight (dissolves if empty)
+  ContainmentApi.move(target as Stuff & Containable, dest as Stuff & Container);
+  if (MixinApi.isPosed(target)) target.setPosture(Postures.Lie);
+  CombatNarration.narrateFlavor(
+    dest as Stuff,
+    `${rushedName} comes sprawling in, thrown clear of a fight.`,
+  );
+  return { ok: true };
 }
 
 /**

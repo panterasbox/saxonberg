@@ -49,6 +49,8 @@ const GAMBITS = new Set([
 interface FightModel extends CommandModel {
   subcommand?: string;
   target?: MqlOneResult;
+  /** `fight rush <direction>` — the exit to throw a grappled foe through. */
+  direction?: string;
 }
 
 /** Turn an eligibility reason into a player-facing sentence. */
@@ -88,15 +90,77 @@ function flagsWord(state: CombatantState): string {
 }
 
 export default class FightController extends CommandController<FightModel> {
-  execute(model: FightModel, context: CommandContext): void {
+  async execute(model: FightModel, context: CommandContext): Promise<void> {
     const sub = model.subcommand;
     if (sub === "yield") return this.doYield(context);
+    if (sub === "break") return this.doBreak(context);
+    if (sub === "rush") return this.doRush(model, context);
     if (sub === "switch") return this.doSwitch(model, context);
     if (sub === "draw") return this.doDraw(context);
     if (sub === "finish") return this.doFinish(context);
     if (sub && GAMBITS.has(sub)) return this.doGambit(sub, context);
     // Bare `fight` or `fight status` → the read.
     return this.doStatus(context);
+  }
+
+  /** `fight break` — offer a mutual stand-down (cover up + post the
+   * offer). A reciprocated fresh offer ends the fight with no victor and
+   * no defeat — the way to back down without losing. */
+  private doBreak(context: CommandContext): void {
+    const giver = context.commandGiver;
+    if (!CombatApi.sessionFor(giver)) {
+      return this.fail(context, "You're not in a fight.", "not-in-combat");
+    }
+    const result = CombatApi.offerBreak(giver);
+    if (!result.ok) {
+      return this.fail(
+        context,
+        "You're not in a fight.",
+        result.reason ?? "ineligible",
+      );
+    }
+    const line = result.broke
+      ? Mml.fromMarkup("You lower your fists — and so do they. It's over.")
+      : Mml.fromMarkup("You step back, hands raised, and offer to end it.");
+    MessageApi.scene(giver)
+      .topic(TOPIC)
+      .toSelf(line)
+      .toPeers(Mml.compose`${Mml.actor(giver)} steps back, hands raised.`)
+      .send();
+  }
+
+  /** `fight rush <direction>` — the bum's rush: throw a grappled foe out
+   * through an exit (a control-win outcome). */
+  private async doRush(
+    model: FightModel,
+    context: CommandContext,
+  ): Promise<void> {
+    const giver = context.commandGiver;
+    if (!CombatApi.sessionFor(giver)) {
+      return this.fail(context, "You're not in a fight.", "not-in-combat");
+    }
+    const dir = model.direction;
+    if (!dir) {
+      return this.fail(
+        context,
+        "Which way? Try `fight rush <direction>`.",
+        "no-direction",
+      );
+    }
+    const result = await CombatApi.bumRush(giver, dir);
+    if (!result.ok) {
+      const detail =
+        result.reason === "no-hold"
+          ? "You've no one locked up to throw — subdue them first."
+          : result.reason === "no-exit"
+            ? `There's no way ${dir} to throw them.`
+            : "You can't do that right now.";
+      return this.fail(context, detail, result.reason ?? "ineligible");
+    }
+    MessageApi.scene(giver)
+      .topic(TOPIC)
+      .toSelf(Mml.compose`You haul your foe to the ${dir} and hurl them out.`)
+      .send();
   }
 
   /** `fight finish` — the captain's execution directive: release a coup

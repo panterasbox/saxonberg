@@ -59,6 +59,10 @@ import { CombatFormation } from "../../CombatFormation";
 import type { Channel } from "../../../../lib/material/Channel";
 import EventRegistry from "../../EventRegistry";
 import { EventApi } from "../../../../api/event";
+import Exit from "../../../../lib/boundary/Exit";
+import CartesianLocation from "../../../../lib/location/CartesianLocation";
+import CartesianZone from "../../location/CartesianZone";
+import { Postures } from "../../../../lib/slot/Postured";
 
 class TestRoom extends ContainerMixin(Idea) {}
 class TestFighter extends Character {}
@@ -2421,5 +2425,121 @@ describe("CombatLogic — the sanctuary gate (the bar-fight build)", () => {
     expect(res.ok).toBe(true); // a witness never refuses
     if (res.ok) openSessions.push(res.session);
     expect(room.opened).toBe(1); // …and it did witness the open
+  });
+});
+
+describe("CombatLogic — the bum's rush + the truce (the bar-fight build)", () => {
+  // Two coordinate rooms joined by a south exit — the arena the rush
+  // throws a foe out of.
+  async function roomPair(): Promise<{
+    src: CartesianLocation;
+    dst: CartesianLocation;
+  }> {
+    const zone = makeStuff(() => new CartesianZone());
+    stampTemplatePathForTest(zone, `/test/zone-${seq++}`);
+    const src = makeStuff(() => new CartesianLocation());
+    const dst = makeStuff(() => new CartesianLocation());
+    stampTemplatePathForTest(src, `/test/room-src-${seq++}`);
+    stampTemplatePathForTest(dst, `/test/room-dst-${seq++}`);
+    zone.addLocation(src, 0, 0, 0);
+    zone.addLocation(dst, 0, 1, 0);
+    const exit = makeStuff(
+      () => new Exit({ direction: "south", source: src, destination: dst }),
+    );
+    stampTemplatePathForTest(exit, `/test/exit-${seq++}`);
+    await src.addExit(exit);
+    return { src, dst };
+  }
+
+  it("a control winner rushes a grappled foe out through an exit", async () => {
+    const { src, dst } = await roomPair();
+    const a = makeFighter(src as unknown as TestRoom);
+    const b = makeFighter(src as unknown as TestRoom);
+    const session = open(a, b, nonLethal);
+    // Lock B up (the subdue outcome) — set the flag directly to isolate the
+    // rush primitive from the stochastic grapple.
+    session.getState(b)!.flags.add("grappled");
+
+    const res = await CombatApi.bumRush(a as never, "south");
+    expect(res.ok).toBe(true);
+    // B is out of the fight, sprawled in the destination room.
+    expect(CombatApi.sessionFor(b as never)).toBeUndefined();
+    expect(b.getContainer()).toBe(dst);
+    expect(b.getPosture()).toBe(Postures.Lie);
+  });
+
+  it("rush refuses without a grapple, without an exit, and out of combat", async () => {
+    const { src } = await roomPair();
+    const a = makeFighter(src as unknown as TestRoom);
+    const b = makeFighter(src as unknown as TestRoom);
+    const session = open(a, b, nonLethal);
+
+    // No hold yet.
+    expect((await CombatApi.bumRush(a as never, "south")).reason).toBe(
+      "no-hold",
+    );
+    // Held, but no exit that way.
+    session.getState(b)!.flags.add("grappled");
+    expect((await CombatApi.bumRush(a as never, "west")).reason).toBe(
+      "no-exit",
+    );
+    // Not in a fight at all.
+    const loner = makeFighter(src as unknown as TestRoom);
+    expect((await CombatApi.bumRush(loner as never, "south")).reason).toBe(
+      "not-in-combat",
+    );
+  });
+
+  it("a reciprocated break ends the fight with no victor (a draw)", () => {
+    const room = makeStuff(() => new TestRoom());
+    const a = makeFighter(room);
+    const b = makeFighter(room);
+    const session = open(a, b, nonLethal);
+
+    const first = CombatApi.offerBreak(a as never);
+    expect(first.ok).toBe(true);
+    expect(first.broke).toBe(false); // A offers first — nobody to reciprocate
+    expect(session.isActive()).toBe(true);
+
+    const second = CombatApi.offerBreak(b as never);
+    expect(second.broke).toBe(true); // B reciprocates → the edge dissolves
+    expect(session.isActive()).toBe(false); // …and the fight is over
+    expect(session.getResolution()).toBe("draw"); // no victor, no defeat
+  });
+
+  it("an offer lapses if the opponent doesn't reciprocate in the window", () => {
+    const room = makeStuff(() => new TestRoom());
+    const a = makeFighter(room);
+    const b = makeFighter(room);
+    const session = open(a, b, nonLethal);
+
+    CombatApi.offerBreak(a as never); // A offers at beat 0
+    // Beats pass without B answering (A's offer goes stale > 1 beat).
+    session.advanceBeat();
+    session.advanceBeat();
+    session.advanceBeat();
+    const late = CombatApi.offerBreak(b as never); // B offers far too late
+    expect(late.broke).toBe(false); // A's offer lapsed — no dissolve
+    expect(session.isActive()).toBe(true);
+  });
+
+  it("three-party: A↔B break while A↔C fights on", () => {
+    const room = makeStuff(() => new TestRoom());
+    const a = makeFighter(room);
+    const b = makeFighter(room);
+    const c = makeFighter(room);
+    const session = open(a, b, nonLethal);
+    CombatApi.join(c as never, a as never, session.getTerms());
+
+    // A and B stand down toward each other; C is still on A.
+    CombatApi.offerBreak(a as never);
+    const broke = CombatApi.offerBreak(b as never);
+    expect(broke.broke).toBe(true);
+    // The fight continues — A still has C's edge.
+    expect(session.isActive()).toBe(true);
+    expect(CombatApi.sessionFor(a as never)).toBe(session);
+    expect(CombatApi.sessionFor(c as never)).toBe(session);
+    // B left the fight (its only edge dissolved).
+    expect(CombatApi.sessionFor(b as never)).toBeUndefined();
   });
 });
