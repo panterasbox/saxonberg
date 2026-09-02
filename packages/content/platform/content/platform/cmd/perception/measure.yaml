@@ -8,8 +8,10 @@ help: |
 
   Pick a channel as a subcommand: `light`, `temperature`,
   `pressure`, `humidity`, `gravity`, `atmosphere`, `altitude`,
-  or `shadow`. Some of the sky readings (`altitude`, `shadow`)
-  need an instrument such as a sextant or sundial.
+  `shadow`, `strike`, or `dip`. Some readings need an instrument:
+  the sky ones (`altitude`, `shadow`) want a sextant or sundial,
+  and the geological ones (`strike`, `dip`) want a surveyor's
+  compass or a miner's dial.
 subcommands:
   light:
     description: "Measure light intensity at a location (lux)"
@@ -105,6 +107,60 @@ subcommands:
       shadow — an old way to tell the time and direction outdoors.
       Needs a sundial to hand and a sun in the sky.
     controller: /platform/idea/cmd/perception/MeasureShadowController
+    args:
+      - name: detail
+        type: string
+        required: false
+  # ⚠⚠ The two GEOLOGICAL channels, and their controllers live in the
+  # `trade-mining` pack rather than in `platform/idea/cmd/perception/`.
+  #
+  # `CommandDefinition.resolveController` takes a `/`-leading mud path
+  # verbatim, so a platform view may name a pack's controller — and it
+  # SHOULD here, under this repo's own rule that nothing content-specific
+  # belongs in a core tree. These are content-specific three times over:
+  # they gate on a mining instrument, they band by the `geology`
+  # Discipline, and they speak mining prose. The alternative — generic
+  # kernel controllers over a `lib/zone` geology interface — is a new
+  # kernel substrate module and a kernel-named method contract across the
+  # pack boundary, for three stanzas whose only consumer is one pack.
+  #
+  # ⚠ In an install WITHOUT `trade-mining`, these are advertised in
+  # `measure`'s help and die on dispatch with a legible `controller-error`
+  # note — never a crash. The help text below says what they need, so the
+  # failure reads as "you have no instrument" rather than as a bug.
+  strike:
+    description: "Read the strike of an ore body from its surface trace (needs a surveyor's instrument)"
+    help: |
+      Take a bearing on the line an orebody makes where it reaches the
+      surface. Needs a surveyor's compass or a miner's dial in hand, and
+      a deposit under the ground you are standing on.
+
+      One reading is a guess with an error bar on it; three readings from
+      three places narrow that bar, and `analyze ground` is what adds
+      them up. How tight the bar is depends on your eye — competence buys
+      resolution, never a different number.
+
+      ⚠ The surface trace carries strike and NOTHING ELSE. For the other
+      half of the plane you have to go underground and read `measure dip`
+      off an exposed vein.
+    examples:
+      - cmd: measure strike
+        note: Take a bearing on the outcrop where you stand
+    controller: /trade/mining/idea/cmd/perception/MeasureStrikeController
+    args:
+      - name: detail
+        type: string
+        required: false
+  dip:
+    description: "Read how steeply an ore body falls, off an exposed vein (needs a surveyor's instrument)"
+    help: |
+      Read the angle a seam falls at, off a face where the vein is
+      actually showing. Needs a surveyor's compass or a miner's dial.
+
+      ⚠ It cannot be read at the surface, and not because anything forbids
+      it: the trace where an orebody meets the ground is a LINE, and a
+      line has no fall in it. Dip is why you drive a heading.
+    controller: /trade/mining/idea/cmd/perception/MeasureDipController
     args:
       - name: detail
         type: string

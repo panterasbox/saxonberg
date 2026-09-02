@@ -408,13 +408,23 @@ export default class Deposit extends Idea {
   }
 
   /**
-   * The dip, read off an exposed face underground. ⭐ `null` unless the
-   * cell is actually IN the lode — you measure dip on the vein, and the
-   * surface has none to offer.
+   * The dip, read off an exposed face underground.
+   *
+   * ⭐ `null` unless the point is **in the lode AND below the surface**,
+   * and the second condition is the interesting one. A lode that reaches
+   * daylight gives you a STAIN — the trace in plan, seen from above —
+   * and a trace is a line. Reading how steeply the plane falls needs the
+   * vein in SECTION: a face cut across it, which is exactly what driving
+   * a heading produces.
+   *
+   * ⚠ So dip is unobtainable at the surface by geometry rather than by a
+   * gate, which is the point: the missing parameter IS the reason to
+   * cut, and the push-your-luck decision arrives as an absence rather
+   * than as a paywall.
    */
   public dipReadingAt(at: Point, errorDeg: number, seed: number): { dipDeg: number; readingDeg: number; errorDeg: number } | null {
     const lode = this.lode;
-    if (lode === null || !this.isInLode(at)) return null;
+    if (lode === null || at[2] >= 0 || !this.isInLode(at)) return null;
     const dipDeg = lode.dip;
     const offset = (2 * roll01(seed, hashString(`dip:${pointKey(at)}`)) - 1) * errorDeg;
     return { dipDeg, readingDeg: clampDip(dipDeg + offset), errorDeg };
