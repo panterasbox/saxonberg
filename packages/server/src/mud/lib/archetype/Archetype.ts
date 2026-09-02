@@ -105,6 +105,11 @@ export interface Satisfaction {
  *   bathroom: a toilet is prose-LOD, it affords nothing the kernel
  *   checks, and claiming otherwise would be inventing a mechanic to
  *   make a checklist tidy.
+ * - `vessel` — a bulk holder of the vessel KIND (`category`): the vat a
+ *   ferment needs, a cooper's cask. An EMPTY one counts — the
+ *   capability is the vessel, never its contents (fermentation W8: the
+ *   defining capital of a winery is not a tool and not a bulk source,
+ *   and `category` is the kernel's own vessel-kind vocabulary).
  */
 export type CapabilityNeed =
   | { tool: string }
@@ -114,7 +119,8 @@ export type CapabilityNeed =
   | { seating: number }
   | { coldStorage: true }
   | { rest: number }
-  | { presence: string };
+  | { presence: string }
+  | { vessel: string };
 
 export interface CapabilitySlot {
   /** The slot's name in the archetype (`water`, `dispensing`, `cold`). */
@@ -149,6 +155,7 @@ const NEED_KEYS = [
   'coldStorage',
   'rest',
   'presence',
+  'vessel',
 ] as const;
 
 function fail(archetypeId: string, msg: string): never {
@@ -168,6 +175,7 @@ function needOf(archetypeId: string, key: string, raw: unknown): CapabilityNeed 
     case 'tool':
     case 'bulkSource':
     case 'presence':
+    case 'vessel':
       if (typeof v !== 'string' || v.length === 0) fail(archetypeId, `capability '${key}': \`${k}\` must be a non-empty string`);
       return { [k]: v } as CapabilityNeed;
     case 'heatK':
@@ -238,6 +246,7 @@ export class Archetype {
     if ('seating' in need) return 'seating';
     if ('rest' in need) return 'rest';
     if ('presence' in need) return `presence:${need.presence}`;
+    if ('vessel' in need) return `vessel:${need.vessel}`;
     return 'coldStorage';
   }
 
@@ -411,6 +420,13 @@ function satisfyingItem(
   }
   if ('presence' in need) {
     const hit = pool.find((i) => answersTo(i, need.presence));
+    return hit ? hit.getPresentation() : null;
+  }
+  if ('vessel' in need) {
+    // The vessel KIND, empty or full — the capability is the vessel.
+    const hit = pool.find(
+      (i) => MixinApi.isBulkable(i) && i.getCategory() === need.vessel,
+    );
     return hit ? hit.getPresentation() : null;
   }
   // coldStorage — a property of a SPACE first (a cellar, a walk-in), and

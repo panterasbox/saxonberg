@@ -1,0 +1,20 @@
+# The BREWHOUSE archetype (fermentation W8+): what a brewery NEEDS.
+# `industry` null for the same reason as the winery's: the shared
+# `fermenting` discipline would cross-derive the vintner's press.
+# The brewhouse board (a Menu — the `order` surface) is deliberately
+# not a need; see the winery archetype's note.
+archetypeId: brewhouse
+label: a brewhouse
+capabilities:
+  - { key: mash, needs: { tool: mash-tun }, default: /trade/brewing/thing/mash-tun }
+  # The liquor: the mash recipes draw real water (v1: standpipe-shaped
+  # sources only — the build-coordination constraint).
+  - { key: liquor, needs: { bulkSource: water }, default: /trade/brewing/thing/standpipe }
+  - { key: ferment, needs: { vessel: vat }, default: /trade/brewing/thing/vat }
+  # The package: kegs to rack into…
+  - { key: racking, needs: { vessel: keg }, default: /trade/brewing/thing/keg }
+  # …and the cask that conditions REAL ALE where it stands (P9).
+  - { key: conditioning, needs: { vessel: cask }, default: /trade/brewing/thing/cask }
+  # The cold store is a PLACE: the lager line exists exactly as far as
+  # somewhere holds the cold band (D14 — no default; rooms don't clone).
+  - { key: cold, needs: { coldStorage: true } }
