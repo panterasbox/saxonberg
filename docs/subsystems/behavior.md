@@ -122,7 +122,7 @@ per brain) and checks the brain shape on those files (sole export
 types by package specifier (`@saxonberg/server/mud/lib/behavior/brain`).
 
 **The class rule:** *a brain lives in the pack whose content is the only
-thing that names it.* A generic economy brain (`restocks`, `consigns`,
+thing that names it.* A generic economy brain (`restocks`, `consigns`, `cellars`,
 `shifts`, `covers`) is kernel; the first shipped pack brain is
 trade-farming's `farms` (`/trade/farming/behavior/farms` — its tends,
 picks and consigns are named only by that pack's grounds and stalls),
@@ -330,6 +330,7 @@ the seen-set) is runtime-only and re-installed from the persisted
 | `tree-dialogue` | `engage` | `voice,attention` | — | none — reached via `open`, opens a `DialogueConversation` ([npc-dialogue.md](./npc-dialogue.md)) | the dialogue tree |
 | `introduces` | `arrival` | `attention` | — | introduces the host to a newcomer (`learnIdentity`) unless already known | — |
 | `consigns` | cadence (not ambient, not presence-gated) | — | — | a producer's hand carries floor stock to the host shelf and consigns it **as the business** — literal verbs via `forceCommand` (`get`, `wallet use house`, `consign … --ask`), `teleport` between floor and counter | `{ stock, shelf, ask: {censusKey: minor}, defaultAsk?, batch? }` |
+| `cellars` | cadence (not ambient, not presence-gated) | — | — | a fermenting trade's producing beat (fermentation P7; kernel commons because winemaking AND brewing bind it): bottle-and-consign a finished vat (the W0 seam stamps band + mark), `order` a crush/mash off the floor's unpriced work board and pour the bucket (pitching the house jar; the lager leg carries the cold mash to the cold store), the distills leg ignites the still and consigns spirit + gin, compound legs, a buys LIST on the house card — bounded, literal verbs, home in `finally` | `{ home, counterRoom, asks, crushes?, compounds?, distills?, lagerLeg?, buys?, vesselCategory?, vesselKeyword?, pitchJar?, inputKeyword?, inputMin?, batch?, buyEvery? }` |
 | `restocks` | cadence (not ambient, not presence-gated) | — | — | the keeper reads `EmploymentApi.stockSheetFor` (perception-scoped), groups shortfall by each par line's supplier, `wallet use house` / `buy` a unit at a time / `put … on` / `pour … into`, then busses (`get`, `wash`, `put … in rack`); stops at the first `insufficient-funds` | `{ shelf, rack?, bin?, batch? }` — fixtures only; the supplier comes from the par line |
 
 (The trait-aware `converses` brain — cadence, claims `voice` — is documented

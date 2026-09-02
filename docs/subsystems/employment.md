@@ -458,8 +458,11 @@ and the `restocks` brain. `goodsFor(viewer, category)` returns the
 matching items so a buyer can name what to `buy`.
 
 `Business.parLines` (persistent + authorable; `getParLines` /
-`setParLine` / `removeParLine`). The lounge's `business.yaml` authors 45
-lines, every bought line `supplier: /trade/distilling/idea/business`;
+`setParLine` / `removeParLine`). The lounge's `business.yaml` authors 46
+lines (the vinegar line joined with the fermentation build — the cook
+buys the failure path), every bought line
+`supplier: /trade/distribution/idea/business` (the distributor's own
+pack since fermentation D10);
 glassware lines carry no supplier (nobody consigns glasses yet, so
 breakage shows as shortfall the brain cannot buy back).
 
