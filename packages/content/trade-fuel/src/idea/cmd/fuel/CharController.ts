@@ -146,8 +146,15 @@ async function openClamp(
   charge: Stuff[],
   lengths: number,
 ): Promise<void> {
-    const giver = context.commandGiver;
-    const outcome = pit.outcomeFor();
+  const giver = context.commandGiver;
+  // ⚠⚠ The collier may be GONE — a burn runs for three days of game time
+  // and a player can log out inside it. Narrating to a departed actor
+  // renders `undefined` into the scene composer and throws an unhandled
+  // rejection that takes the process down. ⭐ The clamp still OPENS,
+  // because the fire did not need watching to finish; only the telling
+  // of it needs somebody there.
+  const watching = !giver.isDestroyed();
+  const outcome = pit.outcomeFor();
     for (const wood of charge) StuffApi.destruct(wood);
 
     const row =

@@ -56,7 +56,14 @@ export const brain = class {
     const working = room as unknown as { airAt?(): Promise<number> };
     if (typeof working.airAt !== 'function') return;
 
+    // ⚠ The bird may have been reaped between the cadence firing and the
+    // read landing — the room's own reap, a hot reload, a rebuild. A
+    // scene composed on a destroyed Stuff renders `undefined` and throws
+    // an unhandled rejection; the same hazard the acts' completions
+    // carry, one beat shorter.
+    if (bird.isDestroyed()) return;
     const air = await working.airAt();
+    if (bird.isDestroyed()) return;
     const band = BANDS.find((b) => air < b.below) ?? BANDS[BANDS.length - 1]!;
     MessageApi.scene(bird)
       .topic('sense.ambient')

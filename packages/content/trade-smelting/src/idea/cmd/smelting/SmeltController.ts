@@ -162,9 +162,16 @@ async function runCharge(
   ore: Stuff[],
   fuel: Stuff[],
 ): Promise<void> {
-    const giver = context.commandGiver;
+  const giver = context.commandGiver;
+  // ⚠⚠ The smelterman may be GONE — a run holds the furnace at heat for
+  // hours of game time, and a player can log out inside it. Narrating to
+  // a departed actor renders `undefined` into the scene composer and
+  // throws an unhandled rejection that takes the process down. ⭐ The
+  // furnace is still TAPPED, because the charge does not stop reducing
+  // because somebody left; only the telling of it needs a listener.
+  const watching = !giver.isDestroyed();
 
-    let metalKg = 0;
+  let metalKg = 0;
     let chargeKg = 0;
     for (const lot of ore) {
       const lump = lot as unknown as {
@@ -182,8 +189,9 @@ async function runCharge(
     if (metalKg <= 0) {
       // ⚠ An honest nothing. A charge of barren rock runs to slag, and
       // saying so is better than inventing a token bar.
-      await pour(furnace, SLAG_ROW, Math.max(chargeKg, 1));
-      MessageApi.scene(giver)
+    await pour(furnace, SLAG_ROW, Math.max(chargeKg, 1));
+    if (!watching) return;
+    MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(
           Mml.compose`You tap the furnace and get slag — nothing but slag. Whatever was in that rock, it was not copper.`,
@@ -206,10 +214,11 @@ async function runCharge(
       .toPeers(Mml.compose`${Mml.actor(giver)} taps the furnace, and metal runs.`)
       .send();
 
-    void bar;
-    await AdvancementApi.recordDeed(giver, {
-      discipline: SMELTING, difficulty: 'standard', outcome: 'success',
-    });
+  void bar;
+  if (!watching) return;
+  await AdvancementApi.recordDeed(giver, {
+    discipline: SMELTING, difficulty: 'standard', outcome: 'success',
+  });
   }
 
 /** Clone one product into the furnace and stamp its real mass. */

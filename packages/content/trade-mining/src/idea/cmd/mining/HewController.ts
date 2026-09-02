@@ -113,6 +113,9 @@ export default class HewController extends MiningActController<HewModel> {
         beginPeers: Mml.compose`${Mml.actor(giver)} starts clearing a fall.`,
         onComplete: () => {
           working.clearFace(chosen.direction);
+          // ⚠ The actor may be gone; the fall is still cleared, because
+          // the rock does not care who barred it down.
+          if (giver.isDestroyed()) return;
           MessageApi.scene(giver)
             .topic(MINING_TOPIC)
             .toSelf(Mml.compose`The fall is barred down. The face is workable again.`)
@@ -174,6 +177,17 @@ async function winOre(
   oreRow: string,
   grade: number,
 ): Promise<void> {
+  // ⚠⚠ **The actor may be GONE.** An engaged act completes long after
+  // dispatch, and a player can log out mid-swing — at which point
+  // `Mml.actor(giver)` renders `undefined` and the scene composer throws
+  // an UNHANDLED REJECTION that takes the process down. (It did.) A
+  // completion is the one place in a controller where the actor is not
+  // guaranteed, so it is the one place that has to check.
+  //
+  // ⭐ Returning is the honest answer, not narrating to nobody: the
+  // engagement was the actor's, and *a barge-in leaves the rock
+  // standing* is already the rule for an interrupted cut.
+  if (context.commandGiver.isDestroyed()) return;
     const giver = context.commandGiver;
   const lump = (await StuffApi.clone(oreRow)) as unknown as Ore;
     lump.setGrade(grade);
@@ -221,6 +235,17 @@ async function maybeRun(
   working: Working,
   face: Face,
 ): Promise<void> {
+  // ⚠⚠ **The actor may be GONE.** An engaged act completes long after
+  // dispatch, and a player can log out mid-swing — at which point
+  // `Mml.actor(giver)` renders `undefined` and the scene composer throws
+  // an UNHANDLED REJECTION that takes the process down. (It did.) A
+  // completion is the one place in a controller where the actor is not
+  // guaranteed, so it is the one place that has to check.
+  //
+  // ⭐ Returning is the honest answer, not narrating to nobody: the
+  // engagement was the actor's, and *a barge-in leaves the rock
+  // standing* is already the rule for an interrupted cut.
+  if (context.commandGiver.isDestroyed()) return;
     const giver = context.commandGiver;
     const stability = await working.stabilityAt();
     if (stability.state === 'sound') return;

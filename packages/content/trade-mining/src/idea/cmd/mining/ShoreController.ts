@@ -99,6 +99,17 @@ async function standTimber(
   room: Stuff & Container,
   set: Stuff,
 ): Promise<void> {
+  // ⚠⚠ **The actor may be GONE.** An engaged act completes long after
+  // dispatch, and a player can log out mid-swing — at which point
+  // `Mml.actor(giver)` renders `undefined` and the scene composer throws
+  // an UNHANDLED REJECTION that takes the process down. (It did.) A
+  // completion is the one place in a controller where the actor is not
+  // guaranteed, so it is the one place that has to check.
+  //
+  // ⭐ Returning is the honest answer, not narrating to nobody: the
+  // engagement was the actor's, and *a barge-in leaves the rock
+  // standing* is already the rule for an interrupted cut.
+  if (context.commandGiver.isDestroyed()) return;
     const giver = context.commandGiver;
     if ((set as unknown as Containable).getContainer() !== room) {
       ContainmentApi.move(set as unknown as Stuff & Containable, room as never);
