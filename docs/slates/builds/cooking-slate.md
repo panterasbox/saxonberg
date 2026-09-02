@@ -471,8 +471,16 @@ rather than the glass, because a syrup bottle and a juice bottle are
    row declares its category: stew → bowl, roast → plate.
 3. **The `edible` branch stops cloning and claims**, exactly like the
    bulk branch — first reachable clean empty vessel of the output's
-   kind, decline `no-dish` ("no clean bowl"). By-hand `plate` keeps
-   explicit vessel choice — the `strain` vs `order` relationship.
+   kind. By-hand `plate` keeps explicit vessel choice — the `strain`
+   vs `order` relationship. ⭐ **But `no-dish` never blocks dinner —
+   the pot is the dish of last resort** *(amended 2026-09-02: the
+   field-cooking audit)*: no clean dish in reach → the meal stays in
+   the cook vessel and you eat from the pot (spoon optional, hands
+   observable — the cutlery rule). Plating is *service* —
+   presentation the professional sells — never the license to eat. The
+   bar's hard `no-glass` decline stays hard (a drink needs a glass);
+   the kitchen's soft fallback is the deliberate asymmetry, and it is
+   what keeps camp cooking working.
 4. **Zero new code downstream**: cupboards and dish racks are open
    containers; dinnerware categories ride `house par`/`house stock`;
    breakage already works.
@@ -528,6 +536,59 @@ Two things wearing one word, split along the existing seams:
   trades — the ⭐potter (dishes), the **smith** (table knives, forks —
   real demand for a shipped trade), and a carver (spoons — wood/horn,
   a roster gap in the ⭐ceramics family).
+
+### Gadgetry: the unitasker test (settled)
+
+The gadget question — how baroque does kitchen outfitting get — splits
+on the engine's existing function/stuff axes, and the doctrine is
+literally Alton Brown canon (the only unitasker allowed in his kitchen
+was the fire extinguisher):
+
+- **The KIND axis grows reluctantly — a new kind must pass the
+  unitasker test**: *does some recipe genuinely need a gate no
+  existing kind provides?* Every `toolCapabilities` kind a recipe
+  names is a thing every kitchen on the server must stock — that is a
+  kind's real cost. The strainer passed (broth cannot clarify without
+  it); a garlic press does not (it is a `knife` application).
+- **The ROW axis is unbounded and cheap** — capability entries are
+  parameterized (`{kind, rate, control, technique}`), so ten knives
+  are one kind: carbon-steel chef's knife (high `control`), rusty
+  paring knife (low), mezzaluna (a `knife` with a `technique` stamp).
+  Content authors go as crazy as they like here; no kernel or recipe
+  ever notices.
+- ⭐ **"One good chef's knife is all you need" is mechanically true**:
+  `control` lives in the capital and floors the outcome grade, so one
+  fine knife carries ~90% of the roster and the gadget drawer adds
+  nothing to any resolve. The engine models the claim.
+- **Pure-roleplay gadgets are props and furnishing** (the
+  FurnishableRoom kitchen, the estate slice) — and the gadget drawer
+  is honest **vanity demand** for the smith/potter/carver: a real
+  market for functionally redundant goods. Allowed, sold, displayed;
+  never required.
+
+### The field: no travel category (settled)
+
+- **Camp cooking already works by doctrine** — crafting.md: *"camp
+  cooking works because reachable heat + a pot IS a kitchen."*
+  Campfire (pins 800 K) + carried pot + packed inputs resolves
+  `hearty-stew` in the wilderness; `toasted-ration` was authored as
+  field food from day one.
+- **"Travel versions" are rows, not a category.** Carried-vs-reachable
+  ships (the whetstone precedent) and encumbrance ships, so the
+  tradeoff is *emergent*: the copper pot is heavy with a high control
+  floor, the tin camp pot light with a low one — the burden ladder
+  prices the choice. A mess kit is a content bundle. No parallel tool
+  tree.
+- **The convergence demo**: river water (watershed) + `boil`
+  (`purifiedByBoiling` — built for the *move your intake · boil ·
+  treat* ladder) + campfire + pot = field cooking as four shipped
+  systems meeting. A W3 drive candidate.
+- **Travel FOOD is the victualler's product line**, not cooking's —
+  the field is where the spoilage clock bites hardest (no cold
+  store), so jerky/hardtack/salt pork are their trade's answer.
+  Another clean boundary.
+- The pot-as-dish-of-last-resort rule (step 3 above) is what keeps all
+  of this gate-free at the campfire.
 
 ⚠ Build-freeze note: captured during the client-rebuild design-only
 phase. This slate is the input to a `/requirements` cycle when the
