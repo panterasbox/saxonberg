@@ -28,7 +28,7 @@ import { readFileSync, readdirSync, statSync, existsSync } from 'fs';
 import { join, dirname, relative, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import YAML from 'yaml';
-import { packSources, packSrcFiles } from './pack-roots';
+import { packSources } from './pack-roots';
 
 const EXIT_ON_FINDINGS = true;
 
@@ -237,6 +237,27 @@ function checkTemplatePathConstants(rows: Map<string, string>): number {
  * class (things on the people list) with no class loading, and a genuine
  * `Behaved` non-agent would be a design conversation rather than a typo.
  */
+/**
+ * The `/paths` listed under a row's `cast:` key.
+ *
+ * ⚠⚠ **This consumes the list ITEMS rather than slicing a block.** The
+ * first cut wrote the end of the block as a lookahead `(?=^  \S|\Z)` —
+ * and JS has no `\Z`, so `\Z` matched a literal `Z`, the lookahead
+ * never fired at end-of-file, and the whole regex FAILED rather than
+ * matching short. Every row whose `cast:` was its LAST key went
+ * unchecked and the gate passed silently. `check-location-classes` had
+ * the identical bug in its exits scan; the fix is the same both times —
+ * match a shape that terminates on its own, so there is no end-of-block
+ * to get wrong.
+ */
+export function castRefsOf(text: string): string[] {
+  const block = /^ {2}cast:[^\S\n]*\n((?:[^\S\n]+-[^\S\n]*\S+[^\S\n]*\n?)*)/m.exec(
+    text,
+  );
+  if (!block) return [];
+  return [...block[1]!.matchAll(/^\s*-\s*(\/\S+)\s*$/gm)].map((m) => m[1]!);
+}
+
 function checkCastAreAgents(rows: Map<string, string>): number {
   const classOf = new Map<string, string>();
   for (const [path, file] of rows) {
@@ -246,10 +267,7 @@ function checkCastAreAgents(rows: Map<string, string>): number {
   let checked = 0;
   for (const [, file] of rows) {
     const text = readFileSync(file, 'utf8');
-    const block = /^  cast:\s*$([\s\S]*?)(?=^  \S|\Z)/m.exec(text);
-    if (!block) continue;
-    for (const ref of block[1]!.matchAll(/^\s*-\s*(\/\S+)\s*$/gm)) {
-      const target = ref[1]!;
+    for (const target of castRefsOf(text)) {
       const cls = classOf.get(target);
       if (cls === undefined) continue; // clause (b) already reports it
       checked += 1;

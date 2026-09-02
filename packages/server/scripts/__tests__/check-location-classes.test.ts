@@ -160,7 +160,7 @@ describe('check-location-classes.orphanedZones', () => {
  *      "no zone anywhere".
  */
 describe('the coords/named-door gates, and the ancestry they derive', () => {
-  const ZONE = { file: 'p/content/world/x.yaml', cls: '/platform/idea/location/CartesianZone', coords: false, exits: [] as Array<[string, string]> };
+  const ZONE = { file: 'p/content/test/x.yaml', cls: '/platform/idea/location/CartesianZone', coords: false, exits: [] as Array<[string, string]> };
 
   it('⚠ a cartesian row with coords and NO covering zone is caught', () => {
     expect(
@@ -182,8 +182,8 @@ describe('the coords/named-door gates, and the ancestry they derive', () => {
   it('⚠ a NON-CARDINAL exit between two rows one zone covers is caught', () => {
     const rows = [
       ZONE,
-      { file: 'p/content/world/x/a.yaml', cls: '/platform/location/SingletonCartesianLocation', coords: false, exits: [['out', '/world/x/b']] as Array<[string, string]> },
-      { file: 'p/content/world/x/b.yaml', cls: '/platform/location/SingletonCartesianLocation', coords: false, exits: [] as Array<[string, string]> },
+      { file: 'p/content/test/x/a.yaml', cls: '/platform/location/SingletonCartesianLocation', coords: false, exits: [['out', '/test/x/b']] as Array<[string, string]> },
+      { file: 'p/content/test/x/b.yaml', cls: '/platform/location/SingletonCartesianLocation', coords: false, exits: [] as Array<[string, string]> },
     ];
     expect(sameZoneNamedExits(rows)).toHaveLength(1);
     expect(sameZoneNamedExits(rows)[0]).toContain("'out'");
@@ -193,8 +193,8 @@ describe('the coords/named-door gates, and the ancestry they derive', () => {
     expect(
       sameZoneNamedExits([
         ZONE,
-        { file: 'p/content/world/x/a.yaml', cls: '/platform/location/SingletonCartesianLocation', coords: false, exits: [['north', '/world/x/b']] },
-        { file: 'p/content/world/x/b.yaml', cls: '/platform/location/SingletonCartesianLocation', coords: false, exits: [] },
+        { file: 'p/content/test/x/a.yaml', cls: '/platform/location/SingletonCartesianLocation', coords: false, exits: [['north', '/test/x/b']] },
+        { file: 'p/content/test/x/b.yaml', cls: '/platform/location/SingletonCartesianLocation', coords: false, exits: [] },
       ]),
     ).toEqual([]);
   });
@@ -206,8 +206,8 @@ describe('the coords/named-door gates, and the ancestry they derive', () => {
     // be resolved.
     const rows = [
       ZONE,
-      { file: 'p/content/world/x/a.yaml', cls: '/trade/mining/location/AuthoredWorking', coords: false, exits: [['out', '/world/x/b']] as Array<[string, string]> },
-      { file: 'p/content/world/x/b.yaml', cls: '/trade/mining/location/MineRoom', coords: false, exits: [] as Array<[string, string]> },
+      { file: 'p/content/test/x/a.yaml', cls: '/trade/mining/location/AuthoredWorking', coords: false, exits: [['out', '/test/x/b']] as Array<[string, string]> },
+      { file: 'p/content/test/x/b.yaml', cls: '/trade/mining/location/MineRoom', coords: false, exits: [] as Array<[string, string]> },
     ];
     expect(sameZoneNamedExits(rows)).toHaveLength(1);
   });
@@ -219,9 +219,9 @@ describe('the coords/named-door gates, and the ancestry they derive', () => {
     // quiet over the mine.
     expect(
       sameZoneNamedExits([
-        { file: 'p/content/world/x.yaml', cls: '/trade/mining/idea/MineZone', coords: false, exits: [] },
-        { file: 'p/content/world/x/a.yaml', cls: '/platform/location/SingletonCartesianLocation', coords: false, exits: [['out', '/world/x/b']] },
-        { file: 'p/content/world/x/b.yaml', cls: '/platform/location/SingletonCartesianLocation', coords: false, exits: [] },
+        { file: 'p/content/test/x.yaml', cls: '/trade/mining/idea/MineZone', coords: false, exits: [] },
+        { file: 'p/content/test/x/a.yaml', cls: '/platform/location/SingletonCartesianLocation', coords: false, exits: [['out', '/test/x/b']] },
+        { file: 'p/content/test/x/b.yaml', cls: '/platform/location/SingletonCartesianLocation', coords: false, exits: [] },
       ]),
     ).toHaveLength(1);
   });

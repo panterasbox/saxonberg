@@ -8,7 +8,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { refsOf } from '../check-template-census';
+import { castRefsOf, refsOf } from '../check-template-census';
 
 describe('refsOf — the template-path field grammar', () => {
   it('reads plain and {template, onto} populates', () => {
@@ -87,5 +87,48 @@ describe('refsOf — the template-path field grammar', () => {
         keywords: ['/not-a-field'],
       }),
     ).toEqual([]);
+  });
+});
+
+/**
+ * ⚠⚠ **The clause-(d) reader, asserted to FIRE.**
+ *
+ * A gate that can only be seen passing is not a gate. This one shipped
+ * broken: the block was sliced with a lookahead ending in `\Z`, which
+ * JS does not have, so the match failed outright on any row whose
+ * `cast:` was the LAST key — and the census reported clean over rows it
+ * had never read. The first case below is exactly that shape.
+ */
+describe('castRefsOf — the cast list, including the one at end-of-file', () => {
+  it('⭐ reads a `cast:` that is the LAST key in the row (the \\Z bug)', () => {
+    const row = [
+      'class: /trade/mining/location/MineRoom',
+      'data:',
+      '  shortDescription: a drift',
+      '  cast:',
+      '    - /trade/mining/agent/canary',
+      '    - /trade/mining/agent/pit-pony',
+      '',
+    ].join('\n');
+    expect(castRefsOf(row)).toEqual([
+      '/trade/mining/agent/canary',
+      '/trade/mining/agent/pit-pony',
+    ]);
+  });
+
+  it('stops at the next key, and never swallows the props list below it', () => {
+    const row = [
+      'data:',
+      '  cast:',
+      '    - /trade/mining/agent/canary',
+      '  props:',
+      '    - /trade/mining/thing/timber-set',
+      '  shortDescription: a drift',
+    ].join('\n');
+    expect(castRefsOf(row)).toEqual(['/trade/mining/agent/canary']);
+  });
+
+  it('a row with no cast reads as no cast, not as an error', () => {
+    expect(castRefsOf('class: /stuff/thing/Prop\ndata:\n  props:\n    - /a/b\n')).toEqual([]);
   });
 });

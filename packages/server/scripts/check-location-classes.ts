@@ -263,7 +263,7 @@ export function shippedRows(contentDir: string = CONTENT): Row[] {
         out.push({
           file: full.slice(contentDir.length + 1),
           cls: m[1]!,
-          coords: /^  coords:\s*$/m.test(text),
+          coords: /^ {2}coords:\s*$/m.test(text),
           exits,
         });
       }
