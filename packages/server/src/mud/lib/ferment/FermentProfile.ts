@@ -16,7 +16,7 @@
  * is what sparkling and real ale ARE, P5/P9).
  *
  * Reference data, the Material/Species shape: a singleton Idea per row,
- * stood up whole at boot by `FermentApi.boot` (the roster warm that
+ * stood up whole at boot by `FermentProfileCatalogue.postRegister` (the roster warm that
  * closes the reference-Ideas-inert-at-boot gap), read by SYNC seams.
  * Rows live under any root's `idea/ferment/` subtree — the kernel keeps
  * no list of roots.
@@ -24,6 +24,8 @@
 
 import { Idea } from '../stuff/Idea';
 import { SingletonMixin } from '../stuff/Singleton';
+import { StuffApi } from '../../api/stuff';
+import type Material from '../material/Material';
 import type { FieldMeta } from '../mixin';
 import type { VetoResult } from '../errors';
 import type { EvictionContext } from '../stuff/Stuff';
@@ -32,9 +34,49 @@ export default class FermentProfile extends SingletonMixin(Idea) {
   /** The class every profile row names — what the boot warm filters by. */
   static readonly CLASS_PATH = '/platform/idea/ferment/FermentProfile';
 
+  // ── the roster queries (statics on the owning class — no Api: a
+  // stateless glob over the live population needs no gate, no logic
+  // singleton, and no cache to invalidate; `FermentProfileCatalogue`'s
+  // postRegister is what stands the population up at boot) ──
+
+  /** Every live profile, sorted by key — found by the branch segment. */
+  static all(): FermentProfile[] {
+    return StuffApi.findByPathGlob<FermentProfile>('/**/idea/ferment/**')
+      .filter((p): p is FermentProfile => p instanceof FermentProfile)
+      .sort((a, b) => a.getKey().localeCompare(b.getKey()));
+  }
+
+  /** The live profile with `key`, or `null`. */
+  static byKey(key: string): FermentProfile | null {
+    if (!key) return null;
+    return FermentProfile.all().find((p) => p.getKey() === key) ?? null;
+  }
+
+  /**
+   * The profile matching `material` — matched by the must's TAGS
+   * against each profile's `inputCategory`. Two matching profiles is
+   * an AUTHORING error, surfaced as a warning and resolved
+   * deterministically (lowest key wins) — never a roll. `null` when
+   * nothing matches (the vat stays idle).
+   */
+  static forMaterial(material: Material): FermentProfile | null {
+    const matches = FermentProfile.all().filter((p) => {
+      const category = p.getInputCategory();
+      return category.length > 0 && material.hasTag(category);
+    });
+    if (matches.length > 1) {
+      console.warn(
+        `FermentProfile.forMaterial: material '${material.getTemplatePath()}' matches ` +
+          `${matches.length} profiles (${matches.map((p) => p.getKey()).join(', ')}) — ` +
+          `authoring error; using '${matches[0]!.getKey()}'`,
+      );
+    }
+    return matches[0] ?? null;
+  }
+
   /**
    * Residency veto — profile reference data resolved by SYNC reads
-   * (the ferment reconcile); the only standup is the `FermentApi.boot`
+   * (the ferment reconcile); the only standup is the `FermentProfileCatalogue.postRegister`
    * roster warm, so a culled profile would stall every batch silently.
    */
   public canEvict(_context: EvictionContext): VetoResult {

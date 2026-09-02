@@ -992,7 +992,7 @@ the installer's walk mirrored in a script; zero is green).
 
 | Pack | `dependsOn` | Maintainers | Claims (`requires.title`) | Groups | `boot` |
 |---|---|---|---|---|---|
-| **platform** | — | organization `/compact/executive` | `/platform`, `/stuff`, `/blueprints`, `/compact`, `/studio`, `/home`, `/world`; `/wiki` → group `wiki-editors` | `wiki-editors`; `soul` (PM-owned — the soul committee) | 31 entries: the registries + catalogues (sync-read), the two organizations, `/platform/idea/PressBoard`, `/platform/location/void`, `/platform/idea/BlueprintCatalogue`, `/platform/idea/HelpCatalogue`, `/platform/idea/AddressRegistry` (producer) |
+| **platform** | — | organization `/compact/executive` | `/platform`, `/stuff`, `/blueprints`, `/compact`, `/studio`, `/home`, `/world`; `/wiki` → group `wiki-editors` | `wiki-editors`; `soul` (PM-owned — the soul committee) | 32 entries: the registries + catalogues (sync-read), the two organizations, `/platform/idea/PressBoard`, `/platform/location/void`, `/platform/idea/BlueprintCatalogue`, `/platform/idea/HelpCatalogue`, `/platform/idea/AddressRegistry` (producer) |
 | **base-library** | platform | `base-library-maintainers` (default) | — (rides `/obj`) | — | — |
 | **species-and-names** | platform | default | — (rides `/obj`) | — | — |
 | **arcana** (CAPABILITY — magic's substrate) | platform | default | `/arcana` → group `arcana` (PM-owned): `src/` ships Wand, Scroll, Spellbook, Conduit, Ring, Amulet, Potion, PotionMaterial and the five casting controllers; rows: the 18 `magic-*` disciplines, the five controller templates, the five views, `settings/magic.yaml`, the six descriptor banks | `arcana` | — |

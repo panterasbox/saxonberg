@@ -69,7 +69,7 @@ import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { WorldClockApi } from '../../api/worldclock';
 import { ExecutionContextApi } from '../../api/execution-context';
-import { FermentApi } from '../../api/ferment';
+import FermentProfileRef from './FermentProfile';
 import { BiomeApi } from '../../api/biome';
 import { Quantity } from '../quantity';
 import { TemplatePaths } from '../paths';
@@ -393,7 +393,7 @@ export function FermentingMixin<TBase extends MixinConstructor>(Base: TBase) {
           amount <= this.leesVolumeL + 1e-9
         ) {
           const leesPath =
-            FermentApi.profileByKey(this.fermentProfileKey)?.getLeesMaterial() ??
+            FermentProfileRef.byKey(this.fermentProfileKey)?.getLeesMaterial() ??
             '';
           if (leesPath !== '') {
             const lees = StuffApi.findByTemplatePath<Material>(leesPath);
@@ -421,7 +421,7 @@ export function FermentingMixin<TBase extends MixinConstructor>(Base: TBase) {
           this.fermentClockStamp = nowS;
           return;
         }
-        const profile = FermentApi.profileByKey(this.fermentProfileKey);
+        const profile = FermentProfileRef.byKey(this.fermentProfileKey);
         if (!profile) {
           this.fermentClockStamp = nowS;
           return;
@@ -547,7 +547,7 @@ export function FermentingMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     public getFermentProfile(): FermentProfile | null {
-      return FermentApi.profileByKey(this.fermentProfileKey);
+      return FermentProfileRef.byKey(this.fermentProfileKey);
     }
 
     // ---------- batch lifecycle (host-internal) ----------
@@ -575,7 +575,7 @@ export function FermentingMixin<TBase extends MixinConstructor>(Base: TBase) {
         return;
       }
       this.batchMaterialPath = materialPath;
-      const profile = FermentApi.profileFor(material);
+      const profile = FermentProfileRef.forMaterial(material);
       this.fermentProfileKey = profile?.getKey() ?? '';
       this.startingSugarGPerL = material.getNutrientAmounts()['sugar'] ?? 0;
       if (profile !== null && profile.getKind() === 'culture') {
@@ -715,7 +715,7 @@ export function FermentingMixin<TBase extends MixinConstructor>(Base: TBase) {
       strain: string,
     ): 'pitch' | 'feed' | null {
       this.reconcileFerment();
-      const profile = FermentApi.profileByKey(this.fermentProfileKey);
+      const profile = FermentProfileRef.byKey(this.fermentProfileKey);
       if (!profile) return null;
       if (profile.getKind() === 'culture') {
         const sugary =
@@ -791,7 +791,7 @@ export function FermentingMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /** The kill ceiling of `strain`'s culture profile (pitch check). */
     private cultureKillKFor(strain: string): number {
-      const culture = FermentApi.profiles().find(
+      const culture = FermentProfileRef.all().find(
         (p) => p.getKind() === 'culture' && p.getStrain() === strain,
       );
       return culture?.getKillK() ?? DEFAULT_PITCH_KILL_K;

@@ -9,8 +9,10 @@ equation: the mass is already present and what changes is what it IS.
 Kernel: `lib/ferment/` (`Fermenting.ts`, `FermentProfile.ts`),
 `platform/idea/ferment/FermentProfile` (the instanceable concrete —
 the Material split), `platform/thing/Vat` (the one concrete every
-trade's vessel rows name), `api/ferment.ts` + `FermentLogic` at
-`/platform/idea/api/ferment`. Zero new verbs: crush/mash/distil are
+trade's vessel rows name), `platform/idea/FermentProfileCatalogue`
+(the self-warming roster — **no FermentApi**: the queries are statics
+on the owning class, and an operator-shaped warm does not belong on a
+consumer Api). Zero new verbs: crush/mash/distil are
 recipes `order`ed off unpriced work boards (the kitchen-menu shape);
 rack = `pour`, seal = `close`, bottle = `fill`, pitch/feed = `pour`.
 
@@ -47,10 +49,13 @@ and the INERT `foreshotCharacter` (P10 — the deferred cuts rung's
 seam). **A new drink is rows alone** — proven by the cider test
 (`world/__tests__/fermentation-cider.test.ts`).
 
-`FermentApi.boot()` (AppBootstrap, after materials) stands the roster
-up — the reference-Ideas-inert-at-boot rule's third application;
-`profileFor`/`profileByKey` read the live population (the
-`everyMaterial` shape, no cache).
+`FermentProfileCatalogue.postRegister` stands the roster up, eager via
+the platform pack's `boot:` manifest (`sync-read`) — the
+reference-Ideas-inert-at-boot rule, self-warming (the
+Discipline/Recipe catalogue shape rather than an `Api.boot()`
+sequencer line). `FermentProfile.forMaterial`/`.byKey`/`.all` read the
+live population (the `everyMaterial` shape, no cache — statics on the
+owning class, no Api).
 
 ## The numbers are derived and discoverable (D4)
 
@@ -155,9 +160,10 @@ never enforced; a second winery anywhere satisfies from any rows.
 
 - `lib/ferment/Fermenting.ts` — the mixin: reconcile, batch detection,
   strain/culture/lees, the cellar air, the sensory augmenter
-- `lib/ferment/FermentProfile.ts` → `platform/idea/ferment/FermentProfile`
-- `api/ferment.ts` ↔ `platform/idea/api/FermentLogic.ts` (boot warm,
-  profile match)
+- `lib/ferment/FermentProfile.ts` (+ the query statics) →
+  `platform/idea/ferment/FermentProfile`
+- `platform/idea/FermentProfileCatalogue.ts` (the roster's
+  self-warming boot home; platform pack row + `boot:` entry)
 - `platform/thing/Vat.ts` — the concrete; seal/move window events
 - `platform/idea/api/BulkableLogic.ts` — `carryBatchIdentity` +
   `tryInoculate` on the transfer

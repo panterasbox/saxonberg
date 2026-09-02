@@ -19,7 +19,6 @@
 import { PersistenceManager } from './PersistenceManager';
 import { ConditionApi } from '../mud/api/condition';
 import { MaterialApi } from '../mud/api/material';
-import { FermentApi } from '../mud/api/ferment';
 import { TwitchRelayReader } from './TwitchRelayReader';
 import { YoutubeRelayReader } from './YoutubeRelayReader';
 import { KickRelayReader } from './KickRelayReader';
@@ -245,14 +244,6 @@ export class AppBootstrap {
     // on null rather than throwing. After materials: a condition's
     // signs can name tissue materials.
     await ConditionApi.boot();
-
-    // Ferment profiles — the same roster-warm rule a third time over:
-    // profile rows are reference Ideas read by SYNC seams (the vat's
-    // reconcile matches a must to its profile with `findByPathGlob`
-    // over live instances), and nothing else stands them up. After
-    // materials: a profile's product/turned materials are material
-    // rows the swap resolves live.
-    await FermentApi.boot();
 
     // Renown — warm the standing read-cache from the materialized
     // aggregate, then install the reaction ingestion tap + self-register
