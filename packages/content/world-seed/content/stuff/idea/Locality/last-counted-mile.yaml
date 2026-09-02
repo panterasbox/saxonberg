@@ -1,6 +1,14 @@
 # The Last Counted Mile — the newbie-wilds frontier-crossroads Locality.
 # Names the crossroads node on departures boards (D13). The crossroads hub
 # room carries an address under this prefix (`last-counted-mile/...`).
+#
+# ⭐ **Deliberately off-grid, and not a gap.** It claims a ROOT prefix and
+# declares no `_governmentKey`, so no government's coverage walk reaches it —
+# which is correct: the frontier crossroads is wilderness until somebody
+# charters it. `GovernmentApi` returns `[]`/`null` off-grid by design ("no
+# government is a normal state of the world"). University Avenue and the
+# Counting-Houses moved under `terminus/city` because they ARE the city; this
+# one stays out until it is authored otherwise. Do not "fix" it.
 class: /platform/idea/Locality
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:

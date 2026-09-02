@@ -602,14 +602,58 @@ closes them, and curtailing a junior right reopens them.
 - **`coords.z` is not elevation** (D4).
 - Zone field reads go through `zone.lookupField<T>`, never
   `ZoneApi.resolveZoneField`.
-- ⚠ **Three Terminus localities are currently rootless** —
-  `university-avenue`, `counting-houses` and `last-counted-mile` carry
-  bare `_address` values and no `_governmentKey`, so they sit outside
-  every jurisdiction. Since D21 makes water position a second
-  declaration on the same object, these would be **nowhere twice**.
-  Re-homing them is a jurisdiction change with consequences (it puts
-  them under the Magistrate) and is the owner's call, not this build's —
-  but the build must not assume every locality resolves a government.
+- ⚠ **A locality may legitimately resolve NO government**, and the
+  build must not assume otherwise. `GovernmentApi` returns
+  `[]`/`null`/`false` off-grid by design — *"no government is a normal
+  state of the world"* — and **The Last Counted Mile is deliberately
+  off-grid** (frontier wilderness until somebody charters it; its row
+  says so, so nobody "fixes" it).
+
+### D26 — University Avenue and the Counting-Houses are the city; the frontier is not
+
+**Q:** Three localities claimed root address prefixes and resolved no
+government. Which belong to Terminus?
+
+Two of them, and they are now re-homed:
+
+| Locality | was | now |
+|---|---|---|
+| University Avenue | `university-avenue` | `terminus/city/university-avenue` |
+| The Counting-Houses | `counting-houses` | `terminus/city/counting-houses` |
+| The Last Counted Mile | `last-counted-mile` | **unchanged — wilderness** |
+
+Neither of the two declares a `_governmentKey`: jurisdiction derives as
+**a chain over the address coverage walk**, so being at
+`terminus/city/…` makes them subject to the city and the realm without
+restating either. That is the model working as designed.
+
+⚠ **Six room addresses moved with the two localities** — the crossing,
+the market square, Goodkin's hall and parlor, the avenue row, and the
+general store's floor. A Locality claims a prefix; changing it without
+moving the rooms underneath would have orphaned every one of them from
+its weather node and its jurisdiction, silently.
+
+### D27 — Hinkley is reached by the road, and the works are the District's
+
+**Q:** Two forks left open by D18 and D23.
+
+**The travel node is NOT granted at `title buy`.** The valley road
+(D23) is the whole fix: you walk there, you `register` it, and
+reach-before-travel means what it says. Granting the node on purchase
+would let a player own a place they have never been, which is a worse
+fiction than buying sight-unseen is a good one.
+
+**The works are held by the Hinkley Hills Improvement District** — the
+cooperative form of D18. It is the right answer for a reason the content
+already set up: the District ships as a shell (charter `""`, treasury
+`""`, no departments, no seats) described as having *"never once been
+asked to do anything else."* An improvement district is historically the
+vehicle for exactly this, and water scarcity giving a paper institution
+its first real job is a better story than chartering a new authority.
+
+⭐ It also keeps D22's inter-basin aqueduct genuinely out of reach: a
+district of smallholders cannot fund one. The aqueduct stays the city's
+move, and the District stays the counterparty that cannot follow.
 
 ## Acceptance criteria
 

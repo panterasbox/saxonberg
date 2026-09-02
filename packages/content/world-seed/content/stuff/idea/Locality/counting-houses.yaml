@@ -9,4 +9,4 @@ class: /platform/idea/Locality
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: The Counting-Houses
-  _address: counting-houses
+  _address: terminus/city/counting-houses
