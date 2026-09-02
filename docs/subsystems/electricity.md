@@ -138,10 +138,21 @@ closed**. `ElectricityApi.conduct` mints/upserts it; `isBeingShocked()` /
 `isTetanized()` are the predicates.
 
 **Tetany** (`SustainedShock.tetany`, latched at/above the tetanic band)
-holds the circuit closed regardless of volition ("can't let go") — the
-sustain keeps accruing even after the body would otherwise let go. The
-volition-verb gate (block `release`/`drop`/`move` while tetanized) is
-exposed via `isTetanized()`; wiring it into every verb is a light follow-up.
+holds a body rigid ("can't let go"). It holds one of two ways: a **live
+circuit** re-probes as current-carrying and self-sustains (a flooded cell,
+a downed line — the sustain keeps accruing until the circuit *physically*
+breaks, i.e. the source dies, the medium drains, or someone drags the
+victim clear), or a **discrete contact** (a stun-baton tap breaks its own
+circuit at once) holds for a bounded after-grip window
+(`SustainedShock.tetanyUntil` = now + `electricity.tetanyPulseSeconds`),
+then releases with no current accrued — less-lethal, never non-lethal.
+⭐ The bar-fight build corrected a latent trap: tetany no longer
+self-sustains a *dead* circuit off the flag alone (`shockCircuitLive`
+re-probes current, no tetany short-circuit), so a rescue always works and
+a single baton tap can't tetanize you to death. The **volition-verb gate**
+(`release`/`drop`/`move`/exertion refused while tetanized) is now wired:
+`isTetanized()` (reconcile-on-read) is read by `requiresConscious` (+ the
+six release verbs) and combat's `eligibilityImpl`.
 
 ## The vitals coupling — the electrocution death seam
 

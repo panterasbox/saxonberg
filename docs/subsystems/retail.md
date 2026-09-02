@@ -98,7 +98,24 @@ consignment needs no bespoke ownership pointer:
   online — payout rides `primaryAccountIdOf`, a pure DB read.
   `commission = ask × retail.consignment.commissionRate`.
 - **`reclaim <thing>`** returns custody of an unsold listing — **no
-  chattel op** (ownership never left you).
+  chattel op** (ownership never left you). It authorizes on
+  `ChattelApi.ownerOf`, not on possessing any ticket — so a non-owner
+  reclaiming someone else's goods is refused (custody without title is
+  theft).
+
+**The check rack (`check` / `heldOnly` — the bar-fight build).** The
+same custody machinery, run as a coat-check for arms rather than a
+sale. `CheckRack` (`platform/thing/CheckRack.ts`) is a sibling of
+`ConsignmentShelf` (Persistable + `ConsignmentShelfMixin` + `FixtureMixin`)
+affording `check` + `reclaim`, never `consign`/`buy`. `check <weapon>`
+(gated on `CombatApi.isWeapon` — a shield is armor and refused) moves the
+weapon into custody as a `ConsignmentListing` flagged **`heldOnly`** (ask
+0) and mints a diegetic `Ticket` (the owner-stamp, not the ticket, is the
+reclaim authority — a lost ticket never traps your weapon). `buy` refuses
+a `heldOnly` listing ("checked, not for sale"); `reclaim` is reused
+verbatim. The lounge's rack rides `FixtureMixin`'s `seatIn` self-seat
+into the Warren host (the TPA-terminal precedent), so it stands on the
+combat-free lounge side of the door to Dave's Bar.
 
 The `ConsignmentShelf` (`lib/retail/ConsignmentShelf.ts`) composes
 `Persistable`, which is **load-bearing, not incidental**: it captures the

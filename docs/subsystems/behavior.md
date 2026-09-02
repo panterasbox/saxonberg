@@ -123,7 +123,7 @@ types by package specifier (`@saxonberg/server/mud/lib/behavior/brain`).
 
 **The class rule:** *a brain lives in the pack whose content is the only
 thing that names it.* A generic economy brain (`restocks`, `consigns`, `cellars`,
-`shifts`, `covers`) is kernel; the first shipped pack brain is
+`shifts`, `covers`, `enforces`) is kernel; the first shipped pack brain is
 trade-farming's `farms` (`/trade/farming/behavior/farms` — its tends,
 picks and consigns are named only by that pack's grounds and stalls),
 whose suite travels with it under `src/behavior/__tests__/`. Substrate
@@ -327,6 +327,7 @@ the seen-set) is runtime-only and re-installed from the persisted
 | `reacts` | `emote` | `attention` | — | emote/speak back at the perceived actor | `{ reactions: {to?,emote?,respond?}[] }` |
 | `shifts` | cadence | — | — | migrate by employment shift state (teleport) | `{ behindBar, offstage, railStool? }` |
 | `covers` | cadence | — | — | proprietor covers when no on-shift maker is present (`beginCover`/`endCover`) | `{}` |
+| `enforces` | cadence (not ambient, not presence-gated) | — | — | the house's own peace, kept by hand (bar-fight build; kernel commons — any barkeep reuses it): a fight gets the shout, then hands-first (`subdue` the **believed** aggressor — the read-the-room heuristic, the one *winning*, never the ledger — so he can be wrong), then the office taser only under real threat (a weapon out, or 3+ parties; a real fetch round-trip); a visibly-armed patron (`CombatApi.visibleArms`) gets a warning, then the 86 (a `DocumentApi` record in the venue's document-tree slice) + ordered out + bum-rushed. The cadence scan IS the witnessing; the belief lives in `ctx.state` for the episode | `{ alertness?, shoutLine?, warnLine?, orderLine?, ejectDirection?, officeDirection?, officeReturn?, taserKeyword?, recordsPath? }` |
 | `tree-dialogue` | `engage` | `voice,attention` | — | none — reached via `open`, opens a `DialogueConversation` ([npc-dialogue.md](./npc-dialogue.md)) | the dialogue tree |
 | `introduces` | `arrival` | `attention` | — | introduces the host to a newcomer (`learnIdentity`) unless already known | — |
 | `consigns` | cadence (not ambient, not presence-gated) | — | — | a producer's hand carries floor stock to the host shelf and consigns it **as the business** — literal verbs via `forceCommand` (`get`, `wallet use house`, `consign … --ask`), `teleport` between floor and counter | `{ stock, shelf, ask: {censusKey: minor}, defaultAsk?, batch? }` |
@@ -420,7 +421,7 @@ dangling brain path is caught at author time, not silently at spawn.
 | `BehavedMixin` + `Behaved` | `lib/behavior/Behaved.ts` | Reads `behaviors:`, wires triggers, re-resolves brains, runs slot contention |
 | `BehaviorSpec` / `BrainContext` / `BrainStatics` / `parseTrigger` vocab | `lib/behavior/brain.ts` | The brain category contract + trigger alias table |
 | `BehaviorBeat` | `lib/behavior/BehaviorBeat.ts` | Generic short `DurativeActivity` that holds a slot for the contention window |
-| The canned brains | `lib/behavior/{idles,random-chatter,wanders,patrols,greets,reacts,shifts,covers}.ts` | Path-resolved strategy modules (`covers` = the proprietor cover-driver; see [employment.md](./employment.md)) |
+| The canned brains | `lib/behavior/{idles,random-chatter,wanders,patrols,greets,reacts,shifts,covers,enforces}.ts` | Path-resolved strategy modules (`covers` = the proprietor cover-driver; see [employment.md](./employment.md)) |
 | `NPC` | `lib/npc/NPC.ts` | `Character` + `Behaved` archetype |
 | `StuffApi.resolveExport` / `resolveExportSync` | `api/stuff.ts` | Path → fs → hot-reload registry brain-export seam |
 | `validateBehaviorPaths` | `platform/idea/api/CmsLogic.ts` | Save-gate brain-path validation |
