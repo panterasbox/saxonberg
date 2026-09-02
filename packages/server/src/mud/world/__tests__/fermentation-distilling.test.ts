@@ -209,7 +209,7 @@ describe('the spirit burns (P10)', () => {
       // The fuel is the spilled spirit itself (Combustible reads the
       // 'fuel' reserve; the material lends the ignition point).
       b.setReserve(
-        new Reserve('fuel', Quantity.of(1, 'kg'), Quantity.of(1, 'kg'), 'fire'),
+        new Reserve('fuel', Quantity.of(1, 'kg'), Quantity.of(1, 'kg'), 'fire', 'spent'),
       );
       return b;
     });

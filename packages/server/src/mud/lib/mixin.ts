@@ -526,6 +526,8 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
 
   // Boundaries & mechanisms.
   SealableMixin: "{} doesn't open and close",
+  BulkableMixin: "{} doesn't hold liquid to read",
+  AdornmentMixin: "{} doesn't hang or mount there",
   LockableMixin: "{} doesn't lock",
   SwitchableMixin: "{} doesn't switch on and off",
   FoldableMixin: "{} doesn't fold",

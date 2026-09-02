@@ -59,6 +59,7 @@
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import { Mixins } from '../mixin';
 import type { AnyConstructor } from '../../api/mixin';
+import type { MarkupAugmenter } from '../../api/mml';
 import type { Stuff } from '../stuff/Stuff';
 import type Material from '../material/Material';
 import type FermentProfile from './FermentProfile';
@@ -255,9 +256,48 @@ export interface Fermenting {
   applyForeignPour(kind: 'pitch' | 'feed', strain: string, litres: number): void;
 }
 
+/**
+ * `MarkupAugmenter` for the batch's sensory face (D5 — senses first,
+ * instruments for numbers): heard (bubbling = active, still = done),
+ * smelled (the sharpening edge of a batch turning; the creaming lees).
+ * State-derived prose through the reconcile-on-read getters, so an
+ * absent owner's vat reads truthfully — and never a number.
+ */
+function fermentAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
+  if (!MixinApi.isFermenting(host)) return text;
+  const phase = host.getFermentPhase();
+  let line: string | null = null;
+  if (phase === 'active') {
+    const profile = host.getFermentProfile();
+    if (profile?.getKind() === 'culture') {
+      const v = host.getViability();
+      line =
+        v <= 0
+          ? 'The sediment lies grey and dead-still.'
+          : v < 0.4
+            ? 'The culture looks thin and hungry, barely creaming.'
+            : 'A pale sediment stirs and creams against the glass.';
+    } else if (host.getBatchStrain() === '') {
+      line = 'It sits sweet and silent — nothing is working it yet.';
+    } else if (host.getFractionConverted() > 0) {
+      line = 'It bubbles steadily, a yeasty breath rising off it.';
+    } else {
+      line = 'A first few beads track up through it.';
+    }
+  } else if (phase === 'finished') {
+    line = 'It lies still — the work is done, and the air over it is clean.';
+  } else if (phase === 'turned') {
+    line = 'A sharp vinegar edge cuts the air over it.';
+  }
+  if (!line) return text;
+  return text && text.length > 0 ? `${text}\n\n${line}` : line;
+}
+
 export function FermentingMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class FermentingMixin extends Base implements Fermenting {
     static _mixinName = 'FermentingMixin';
+
+    static markupAugmenters: MarkupAugmenter[] = [fermentAugmenter];
 
     static __validateComposition__(ctor: AnyConstructor): void {
       const name = (ctor as { name?: string }).name ?? 'class';
