@@ -69,11 +69,17 @@ recognition). Load-bearing subsystem docs:
   the owner-stamp stays on the item, the held goods survive relog,
   reclaim returns them. Detection of "is this a weapon" uses the
   existing construction-domain predicate (shields excluded).
-- **The 86 rule.** Walking in visibly armed gets you 86'd on the
-  spot: the bar records it institutionally (a record that outlives
-  Dave's memory and transfers to whoever tends bar), Dave orders you
-  out, and if you don't leave voluntarily he removes you. That may
-  mean a fight — the rule's teeth are Dave, not a door flag.
+- **The warning, then the 86.** Walking in visibly armed draws a
+  warning first, not aggression: Dave calls it out and you get a
+  grace window to back out and check the weapon (or just leave) —
+  comply and you're welcome back, no record, no hard feelings. The
+  86 attaches on refusal: linger armed past the warning (or order
+  while armed) and you're 86'd — the bar records it institutionally
+  (a record that outlives Dave's memory and transfers to whoever
+  tends bar), Dave orders you out, and if you don't leave voluntarily
+  he removes you. That may mean a fight — the rule's teeth are Dave,
+  not a door flag. One exception: **drawing** a weapon gets no grace;
+  brandishing is not an accident.
 - **The bum's rush.** Winning a control grapple lets the winner move
   the loser through an exit — the forced-relocation outcome both the
   ejection and the fight-breakup ladder end with. No such primitive
@@ -157,16 +163,19 @@ the enforcement is Dave's brain, the 86 list is a venue record. The
 only kernel touches are the ones that must be kernel: fisticuffs
 data-plumbing, the tetany gate, the sanctuary seam, the bum's rush.
 
-### 86'd on sight, ejection for refusal
+### The warning, the grace window, then the 86
 
-The user's ruling, verbatim in spirit: walk in visibly armed → 86'd
-immediately; Dave forces you out if you don't leave voluntarily; that
-may mean a fight. The chain is: spot (perception vs concealment) →
-86 recorded + ordered out → comply (check the weapon or leave; an
-86 can stand regardless) → or refuse → Dave ejects you by grapple →
-which can become a real fight → the escalation ladder applies. There
-is no service refusal *mechanic* needed on top: being 86'd and
-physically removed **is** the sanction.
+An accidental carry-in gets an off-ramp before any aggression
+starts. The chain is: spot (perception vs concealment) → **warning**
+(Dave names the rule and the rack) → **grace window** (back out,
+check the weapon, return welcome — no record) → refusal (still armed
+past the warning, or ordering while armed) → **86 recorded + ordered
+out** → still won't leave → Dave ejects you by grapple → which can
+become a real fight → the escalation ladder applies. Brandishing
+skips the grace — drawing a weapon is aggression, not an accident,
+and jumps straight to the ordered-out rung (and, plausibly, the
+ladder). There is no service-refusal *mechanic* on top: the warning,
+the 86, and physical removal **are** the sanction, in that order.
 
 ### Dave only knows what he saw
 
@@ -249,10 +258,14 @@ ticket is a carried Thing, the shipped `Ticket` shape.
   the rack's holdings survive a relog; reclaim returns the weapon;
   `ownerOf` answers the patron throughout; a shield is not treated as
   a weapon by the spotting predicate.
-- **The 86 rule**: entering the bar visibly armed while Dave is
-  present produces the 86 record and an order to leave; the record is
-  readable by the venue (institutionally, not via Dave's personal
-  belief store) and persists.
+- **The warning and the 86**: entering the bar visibly armed while
+  Dave is present produces a warning with prose naming the rack — and
+  **no record**; stepping out, checking, and returning unarmed leads
+  to normal service with no sanction anywhere. Lingering armed past
+  the grace window produces the 86 record and an order to leave; the
+  record is readable by the venue (institutionally, not via Dave's
+  personal belief store) and persists. Drawing a weapon in the bar
+  skips the warning entirely.
 - **The bum's rush**: on refusing to leave, Dave initiates a grapple;
   a control win relocates the patron through the bar's exit into the
   lounge host room. The primitive is general (any control winner, any
