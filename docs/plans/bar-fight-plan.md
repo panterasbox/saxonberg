@@ -111,7 +111,10 @@ existing reason-mapped `fail` path). Because *every* fight-starter
 funnels through `initiate → openSessionImpl` (the attack verb, the
 `wary` brain, ambush, Dave's `forceCommand`), one consultation covers
 all. `join`/`merge` need no gate — no session can exist in a gated room
-to join, and combat sessions never relocate. First implementer:
+to join, and combat sessions never relocate. Scope honesty: the gate
+refuses **sessions**, not harm — a planted trap, a thrown object, a
+direct affliction are not session machinery and are not gated;
+"combat-free" means fight-free, and the docs say so plainly. First implementer:
 `LoungeMixin` (world/lounge/LoungeMixin.ts) returns the house prose
 (*"Not in here. The lounge is for talk — take it next door."*), which
 covers the host **and every satellite** (all clones of the one Lounge
@@ -134,7 +137,9 @@ door; destination: arrives sprawling), and the loser lands `prone`
 posture. Rushing spends the actor's beat (clear queued gambit). Surface:
 a `rush` case in `FightController`'s subcommand dispatch — a `fight`
 subcommand, not a new verb. Any control winner, any exit: the test
-proves it with two synthetic combatants, no Dave.
+proves it with two synthetic combatants, no Dave. Emergent and
+desirable: rushing someone out of the bar lands them in the lounge —
+ejected *into sanctuary*, where the fight cannot follow.
 
 ### P7 — The check rack rides the consignment substrate with a `heldOnly` listing
 
@@ -363,7 +368,13 @@ on the release-family command YAMLs; `tetanized` refusal in
 again (reconcile-on-read, no tick); a switched-off baton does nothing;
 a sustained closed circuit still integrates to fibrillation/arrest
 (existing test extended); `isTetanized()` has real call sites (the
-validator test IS the proof).
+validator test IS the proof). ⚠ The gate is world-wide: audit the
+shipped electrical hazards (FloodedCell, storm lightning, live pools)
+for counterplay — a rescue path (pulled free by another) must exist
+or low-current cases must sit below the tetanic band; a solo player
+must not be uncounterably self-sustained to death. Run `pnpm
+test:gym` after this wave too — the baton's free-hit window is a
+combat-power change for any wielder, not just Dave.
 **Tripwires:** existing electricity/vitals reconcile suites (the arm's
 relieve semantics change for broken-circuit records — pin the sustained
 case first); any command YAML snapshot tests for the edited verbs.
@@ -402,7 +413,10 @@ works for any combatant (no Dave anywhere). Truce: one break resolves
 as defend + a narrated standing offer; reciprocation within the window
 ends the session with no victor/defeat rows (opened/harm rows stand);
 a strike instead lapses the offer; three-party — A↔B break while A↔C
-fights on, A stays in session until the last edge dissolves.
+fights on, A stays in session until the last edge dissolves. A
+formation-preset session handles a rushed and a broken participant
+through the ordinary departure path (presets re-target, no dangling
+edge).
 **Tripwires:** FightController subcommand tests; combat narration
 snapshot tests if any pin the fight verb surface; session-resolution
 suites that assume every resolution names a victor.
@@ -474,7 +488,9 @@ no join), then joins hands-first (subdue), never opens with the taser; threshold
 fetches, returns armed+switched-on, tases — and the fight ran beats
 unattended during the fetch; the tase writes honest accountability rows
 attributed to Dave (`consented: false` imposed terms — **no staff
-exemption**: assert `blameFor`/rows treat him as any actor). **The
+exemption**: assert `blameFor`/rows treat him as any actor). Partied brawlers: when the two fighters share a party, Dave's
+subdue of one makes both hostile (`sideOf`) and the third-party
+threshold trips — the formations seam feeds the ladder. **The
 wrong-guy test:** fight begins while Dave is in the office; the true
 initiator (per the ledger's `opened` row) is arranged to be *losing*
 when Dave walks in; Dave's fallback belief names the winner; he tases
@@ -521,6 +537,10 @@ dave.yaml, not world dials — per-venue personality.)
 
 ## Risks
 
+- **Tetany is world-wide** (W1) — every electrical hazard inherits
+  the self-sustaining loop the electricity slate intended; the W1
+  hazard-counterplay audit is a ship-blocker for the wave, and the
+  gym runs after W1 as well as W0.
 - **The reconcile shock arm's relieve semantics** (W1) — the exact
   broken-circuit path is the one place this plan alters shipped
   reconcile behavior; pin the sustained-circuit case *before* editing.
