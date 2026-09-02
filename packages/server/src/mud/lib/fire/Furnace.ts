@@ -94,6 +94,10 @@ export function FurnaceMixin<TBase extends MixinConstructor<Stuff>>(
         'platform/cmd/device/douse.yaml',
         'platform/cmd/device/pump.yaml',
         'platform/cmd/crafting/heat.yaml',
+        // ⭐ The fire is what affords boiling — you cannot boil without
+        // one, and there is no separate "kettle" to own. The whole
+        // counterplay ladder's middle rung hangs off this one line.
+        'platform/cmd/crafting/boil.yaml',
       ],
       environment: [],
     };

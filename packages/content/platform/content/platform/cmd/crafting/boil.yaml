@@ -1,0 +1,33 @@
+verbs: [boil]
+controller: /platform/idea/cmd/crafting/BoilController
+description: "Bring a vessel to a rolling boil — the personal, per-use answer to bad water"
+help: |
+  Hold a vessel at a rolling boil over a fire — `boil the pot`. What
+  comes off is fit to drink, if boiling is the sort of thing that would
+  help.
+
+  It is the second of three answers to bad water, and the middle one on
+  purpose. Moving your intake upstream of whatever is fouling the river
+  is free and permanent. Boiling costs fuel and time EVERY time you do
+  it. Treatment — plumbed into the conduit itself — costs money once and
+  then costs nothing, which is why a town that can afford it stops
+  boiling.
+
+  ⚠ It does not fix everything. A river fouled with sewage recovers over
+  a few miles and boils clean in a pot; a river fouled by a smelter does
+  neither. Boil that and you get hot poison.
+
+  Needs a fire hot enough to reach the boiling point of whatever is in
+  the vessel.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: vessel
+    type: object
+    required: true
+    scope: "reachable"
+    requires: BulkableMixin
+    validators:
+      - /lib/command/validators/canReach

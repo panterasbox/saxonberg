@@ -112,3 +112,11 @@ settings:
   # authors a buried main this is the number they will reach for.
   - key: water.freezeK
     value: "271"
+
+  # ── contamination ─────────────────────────────────────────────────
+  # The arriving concentration at or above which a supply reads
+  # `fouled`. Measured AFTER the conduit's own treatment factor, so
+  # investing in treatment moves the threshold rather than the river —
+  # which is the third rung of the counterplay ladder doing its job.
+  - key: water.fouledAt
+    value: "0.35"

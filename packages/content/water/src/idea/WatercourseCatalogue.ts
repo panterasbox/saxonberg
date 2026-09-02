@@ -142,6 +142,78 @@ export interface CompiledReach {
 export type DrawLedger = ReadonlyMap<ReachRef, number>;
 
 /**
+ * ⭐ **What kind of dirt it is, because that decides whether the river
+ * recovers.**
+ *
+ * A single contamination *level* is not enough, and the reason is the
+ * most important fact about water pollution: **self-purification**. A
+ * river cleans itself of sewage over a few miles and never cleans
+ * itself of lead. A model with one number would make the smelter and
+ * the outhouse the same problem, and they are not remotely the same
+ * problem.
+ */
+export type ContaminantKind =
+  /** Decays with distance — the river recovers below the town. */
+  | 'organic'
+  /** Does not decay — the river never recovers below the smelter. */
+  | 'persistent'
+  /** Settles out fastest; raises turbidity while it is suspended. */
+  | 'sediment'
+  /** Does not decay; accumulates where residence time is long. */
+  | 'nutrient';
+
+/** Validation array for {@link ContaminantKind}. */
+export const CONTAMINANT_KINDS: readonly ContaminantKind[] = [
+  'organic',
+  'persistent',
+  'sediment',
+  'nutrient',
+] as const;
+
+/**
+ * The fraction of a load that survives **one reach** downstream.
+ *
+ * ⚠ Per hop rather than per metre, because a reach is the unit the
+ * whole subsystem reasons in and a per-metre rate would demand a
+ * channel length nobody has authored. The numbers are dials; the
+ * ORDERING is the model, and it is not negotiable: organic recovers,
+ * sediment settles faster still, persistent and nutrient do not
+ * recover at all.
+ */
+export const CONTAMINANT_SURVIVAL_PER_HOP: Record<ContaminantKind, number> = {
+  organic: 0.55,
+  sediment: 0.4,
+  persistent: 1,
+  nutrient: 1,
+};
+
+/** What a reach is carrying, and where it came from. */
+export interface ContaminationReading {
+  reachRef: ReachRef;
+  /**
+   * Total concentration, in load-units per m³/s of flow. `0` is clean.
+   *
+   * ⚠ A **concentration**, not a load: the same outfall fouls a summer
+   * trickle far worse than a spring freshet, which is why the dirty
+   * month and the dry month are the same month.
+   */
+  level: number;
+  /** The same figure split by kind — what recovers and what does not. */
+  byKind: Record<ContaminantKind, number>;
+}
+
+/**
+ * Anything that puts something into a reach. Met over a shape, like
+ * {@link Withdrawing}.
+ */
+export interface Discharging {
+  /** The reach it outfalls into, or `''`. */
+  getDischargeReach?: () => string;
+  /** Load units per second, and what kind of dirt they are. */
+  dischargeLoad?: () => { load: number; kind: ContaminantKind };
+}
+
+/**
  * Anything that takes water out of a reach — a conduit's intake, a
  * headgate's diversion.
  *
@@ -422,6 +494,77 @@ export default class WatercourseCatalogue extends Idea {
       out.set(ref, (out.get(ref) ?? 0) + taken);
     }
     return out;
+  }
+
+  /**
+   * ⭐ **What is in the water at a reach** — summed over every outfall
+   * upstream, attenuated by distance according to what kind of dirt it
+   * is, and divided by the flow that is diluting it.
+   *
+   * This is where *the map becomes the argument*. Whether an intake
+   * sits above or below an outfall is already a fact about the terrain,
+   * derived from elevation and **authored by nobody**; all this method
+   * does is read that fact back. An intake above the outfall is clean;
+   * the same intake a mile down is not; and moving it is free, which is
+   * historically the first real answer anybody found.
+   *
+   * The scan is the {@link liveDraws} shape and the same per-segment
+   * memo, for the same reasons.
+   */
+  public async contaminationAt(
+    ref: ReachRef,
+    nowS: number,
+  ): Promise<ContaminationReading | null> {
+    const index = await this.index();
+    if (!index.reaches.has(ref)) return null;
+
+    const byKind: Record<ContaminantKind, number> = {
+      organic: 0,
+      persistent: 0,
+      sediment: 0,
+      nutrient: 0,
+    };
+
+    for (const obj of StuffApi.getAllObjects()) {
+      const d = obj as unknown as Discharging;
+      if (typeof d.dischargeLoad !== 'function') continue;
+      const at =
+        typeof d.getDischargeReach === 'function' ? d.getDischargeReach() : '';
+      if (at === '') continue;
+
+      // An outfall BELOW you is not your problem, and one on another
+      // basin is not anybody's — `hops` answers both by being null.
+      const hops = at === ref ? 0 : await this.hopsDownstream(at, ref);
+      if (hops === null) continue;
+
+      const { load, kind } = d.dischargeLoad.call(obj);
+      if (!Number.isFinite(load) || load <= 0) continue;
+      const survival = CONTAMINANT_SURVIVAL_PER_HOP[kind] ?? 1;
+      byKind[kind] += load * Math.pow(survival, hops);
+    }
+
+    const total =
+      byKind.organic + byKind.persistent + byKind.sediment + byKind.nutrient;
+    if (total <= 0) {
+      return { reachRef: ref, level: 0, byKind };
+    }
+
+    // Dilution. A floor on the divisor so a reach that has run dry
+    // reports "filthy", not "infinite" — which is both truer and the
+    // only answer a caller can do arithmetic with.
+    const flow = await this.flowAt(ref, nowS, await this.liveDraws(nowS));
+    const diluting = Math.max(0.01, flow?.m3s ?? 0);
+    const scale = 1 / diluting;
+    return {
+      reachRef: ref,
+      level: total * scale,
+      byKind: {
+        organic: byKind.organic * scale,
+        persistent: byKind.persistent * scale,
+        sediment: byKind.sediment * scale,
+        nutrient: byKind.nutrient * scale,
+      },
+    };
   }
 
   /**

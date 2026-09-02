@@ -1399,6 +1399,11 @@ export const AppSettingKeys = {
    * `frozen`. Its own key rather than a shared freezing point, because
    * a buried main survives an air temperature a puddle does not. */
   waterFreezeK: "water.freezeK",
+  /** Water — the arriving contaminant concentration at or above which a
+   * supply reads `fouled`. Measured AFTER the conduit's own treatment,
+   * so investing in treatment moves the threshold rather than the
+   * river. */
+  waterFouledAt: "water.fouledAt",
 } as const;
 
 export type AppSettingKey =

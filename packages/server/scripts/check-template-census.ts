@@ -159,7 +159,7 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
       if (key.startsWith('/')) out.push({ field: 'prices', path: key });
     }
   }
-  for (const scalar of ['roomTemplate', 'holderPath', 'streetPath', 'corridorTemplate', 'programmePath'] as const) {
+  for (const scalar of ['roomTemplate', 'holderPath', 'streetPath', 'corridorTemplate', 'programmePath', 'purifiedByBoiling'] as const) {
     push(scalar, data[scalar]);
   }
   const floorplan = data.floorplan;

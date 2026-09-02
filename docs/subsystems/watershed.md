@@ -708,6 +708,93 @@ quantities the build already computes, and it is why an upstream
 diversion can strand a river and curtailing a junior right un-strands
 it.
 
+## Contamination and the counterplay ladder (W8)
+
+### One substance, a LEVEL, and a KIND
+
+A single contamination number is not enough, and the reason is the most
+important fact about water pollution: **self-purification**. A river
+cleans itself of sewage over a few miles and never cleans itself of
+lead. One number would make the smelter and the outhouse the same
+problem.
+
+| kind | downstream |
+|---|---|
+| `organic` | **decays with distance** — the river recovers below the town |
+| `persistent` | **does not decay** — the river never recovers below the smelter |
+| `sediment` | settles, faster than sewage; raises turbidity while suspended |
+| `nutrient` | does not decay; accumulates where residence time is long |
+
+Survival is authored **per hop**, not per metre, because a reach is the
+unit the whole subsystem reasons in and a per-metre rate would demand a
+channel length nobody has authored. The numbers are dials; **the
+ordering is the model**.
+
+### It is a CONCENTRATION, so a dry month is a dirty month
+
+`contaminationAt(reach, now)` sums every upstream outfall's load,
+attenuated by distance according to its kind, and **divides by the
+flow**. The same outfall fouls a summer trickle far worse than a spring
+freshet — which is how the seasonal hydrograph reaches the health of the
+water without anybody wiring the two together. A reach that has run dry
+reports "filthy" rather than "infinite", which is both truer and the
+only answer a caller can do arithmetic with.
+
+### ⭐ The map is the argument
+
+Whether an intake sits above or below an outfall is **already a fact
+about the terrain**, derived from elevation and **authored by nobody**.
+`contaminationAt` only reads that fact back. An intake above the outfall
+is clean; the same intake a reach down is not; and moving it is free,
+which is historically the first real answer anybody found. Shutting a
+sewer's gate cleans the river below it with no rule saying so — the
+outfall simply stops answering the discharge scan.
+
+### The counterplay ladder
+
+1. **Move your intake** upstream of the outfall — free, permanent, and
+   the thing the map already tells you to do.
+2. **Boil** — personal, per-use, costing fuel and time *every single
+   time*, which is exactly why a town eventually pays for
+3. **Treatment** — an attribute of a conduit: capital once, then
+   nothing. `foulingOf` applies it to what arrives, so investing in
+   treatment moves the `fouled` threshold rather than the river.
+
+Only a **supply** can be `fouled`: a sewer carrying filth is a sewer
+working.
+
+### `boil` — the one new verb in the build
+
+The extend-before-inventing check found a home for everything else;
+`boil` had none, and it is `crafting` — it transforms matter with heat,
+like the shipped `heat`. The **fire affords it** (`FurnaceMixin`'s
+contributions), because you cannot boil without one and there is no
+separate kettle to own.
+
+It is a change of **material** — from whatever the vessel holds to
+whatever that material declares it becomes (`Material.purifiedByBoiling`)
+— and not a mutation, because a `Material` is a **shared reference
+Idea**: one row backs every litre of that stuff in the world, so
+purifying by editing the material would clean every river at once. The
+closed-material doctrine says the same thing from the other side:
+*materials are a fixed set and blends derive*, so the way to say "this
+water is different now" is to name a different material.
+
+⭐ **The most important behaviour is the one where boiling does
+nothing.** A material that declares no counterpart just gets hot — the
+command is not refused, because you really did boil it — so boiling a
+lead-fouled river gives you hot lead-fouled river, and the player learns
+the difference between organic and persistent contamination the way it
+is actually learned. The threshold is the material's **own** boiling
+point, not a dial.
+
+### The toxin route needs no new machinery
+
+`Material.toxicity` and the metabolism clearance path already ship.
+Fouled water is a material carrying a `ToxinTag`; drinking it doses
+through the same route as everything else, and the water it boils into
+carries none. The build adds one field and no mechanism.
+
 ## Verbs: the check ran, and the answer was mostly "no new verb"
 
 Every act in this build is *operating a built mechanism*, which is the
@@ -720,6 +807,8 @@ check:
 - **`switch`** covers a conduit's valve: `Conduit` composes
   `SwitchableMixin` and that is the whole of its on/off surface.
 - **`analyze`** gained a `water` subcommand rather than a new verb.
+- **`boil`** is the one act with no plausible existing home (W8), and it
+  is `crafting`, afforded by the fire.
 
 ### `analyze water`, and how the kernel reads a pack object
 

@@ -69,8 +69,12 @@ import {
 } from '@saxonberg/server/mud/lib/supply/SupplyState';
 import WatercourseCatalogue, {
   WATERCOURSE_CATALOGUE_PATH,
+  CONTAMINANT_KINDS,
 } from '../idea/WatercourseCatalogue';
-import type { DrawLedger } from '../idea/WatercourseCatalogue';
+import type {
+  DrawLedger,
+  ContaminantKind,
+} from '../idea/WatercourseCatalogue';
 
 /** Which way the water runs through it. */
 export type ConduitDirection = 'supply' | 'disposal';
@@ -99,6 +103,8 @@ export default class Conduit extends ConduitBase {
     direction: { persistent: true, authorable: true },
     capacityM3S: { persistent: true, authorable: true },
     treatmentFactor: { persistent: true, authorable: true },
+    dischargeLoadPerSecond: { persistent: true, authorable: true },
+    dischargeKind: { persistent: true, authorable: true },
     ownerRef: { persistent: true, authorable: true },
     headM: { persistent: true },
     cut: { persistent: true },
@@ -138,6 +144,24 @@ export default class Conduit extends ConduitBase {
    * treat) and the one a town invests in rather than a person.
    */
   public treatmentFactor = 0;
+
+  /**
+   * Load units per second this conduit puts into its reach.
+   *
+   * ⭐ Meaningful only for a **disposal** conduit, which is exactly
+   * right: an outfall is the same object as an intake with its ends
+   * swapped, so the thing that fouls a river and the thing that drinks
+   * from it are one class. Zero for a supply main, and for a sewer
+   * discharging nothing worth modelling.
+   */
+  public dischargeLoadPerSecond = 0;
+
+  /**
+   * What kind of dirt it discharges — and therefore whether the river
+   * recovers below it. `organic` decays over a few reaches; `persistent`
+   * never does.
+   */
+  public dischargeKind: ContaminantKind = 'organic';
 
   /** Who holds it — a group / business / office ref. Opaque here. */
   public ownerRef = '';
@@ -201,6 +225,39 @@ export default class Conduit extends ConduitBase {
   public setTreatmentFactor(value: number): void {
     this.treatmentFactor =
       !Number.isFinite(value) || value <= 0 ? 0 : Math.min(1, value);
+  }
+
+  public getDischargeLoadPerSecond(): number {
+    return this.dischargeLoadPerSecond;
+  }
+  public setDischargeLoadPerSecond(value: number): void {
+    this.dischargeLoadPerSecond =
+      Number.isFinite(value) && value > 0 ? value : 0;
+  }
+
+  public getDischargeKind(): ContaminantKind {
+    return this.dischargeKind;
+  }
+  public setDischargeKind(value: ContaminantKind): void {
+    this.dischargeKind = CONTAMINANT_KINDS.includes(value) ? value : 'organic';
+  }
+
+  /**
+   * The `Discharging` shape the catalogue's contamination scan reads.
+   *
+   * A **supply** conduit discharges nothing, and a **closed or severed**
+   * one discharges nothing either — which is the small, satisfying
+   * consequence that shutting a sewer's gate really does clean the
+   * river below it, with no rule saying so.
+   */
+  public getDischargeReach(): string {
+    if (this.direction !== 'disposal') return '';
+    if (this.cut || !this.isOn()) return '';
+    return this.reachRef;
+  }
+
+  public dischargeLoad(): { load: number; kind: ContaminantKind } {
+    return { load: this.dischargeLoadPerSecond, kind: this.dischargeKind };
   }
 
   public getOwnerRef(): string {
@@ -353,9 +410,17 @@ export default class Conduit extends ConduitBase {
       troubles.add('frozen');
     }
 
-    // `fouled` is wired in W8, when a reach carries a contaminant level.
-    // Until then the seam is {@link foulingOf}, which already applies
-    // this conduit's treatment factor.
+    // `fouled` — what ARRIVES, after this conduit's own treatment. A
+    // supply main below an outfall is fouled; the same main moved above
+    // it is not; and a treated one may be neither. Only a supply can be
+    // fouled: a sewer carrying filth is a sewer working.
+    if (this.direction === 'supply') {
+      const dirt = await catalogue.contaminationAt(this.reachRef, nowS);
+      const arriving = this.foulingOf(dirt?.level ?? 0);
+      if (arriving > dial(AppSettingKeys.waterFouledAt, 0.35)) {
+        troubles.add('fouled');
+      }
+    }
 
     const state =
       SUPPLY_STATE_PRECEDENCE.find((s) => troubles.has(s)) ?? null;
