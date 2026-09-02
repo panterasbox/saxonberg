@@ -109,7 +109,10 @@ Two obstacles, both real:
 
 1. **A growing light needs `LightSourceMixin` AND `GrowingMixin`, and
    `Plant` is a kernel class** — a pack cannot add a mixin to it (the
-   `MineZone` lesson). It wants a class like `LightSourceMixin(Plant)`.
+   `MineZone` lesson — though note that one resolved the other way:
+   `deposit` became a kernel `SpatialZone` field and the subclass was
+   deleted, because the ground is something the kernel already models. A
+   growing LIGHT is not). It wants a class like `LightSourceMixin(Plant)`.
 2. **Which pack owns it.** Apply the second-venue test: a mine lit by oil
    lamps needs no fungiculture, and a surface mushroom farm needs
    fungiculture and no mine. They are separable, so it is **not mining's

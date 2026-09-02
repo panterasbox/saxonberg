@@ -52,13 +52,18 @@ const ZONE_ROOTS = [
 /**
  * ⚠⚠ **Which classes are ZONES is DERIVED, never listed.**
  *
- * A pack ships zone classes of its own — `trade-mining`'s `MineZone`
- * carries the `deposit:` field, because **a pack cannot add a field to a
- * kernel class** and `fieldMeta` is what the hydrator reflects through.
- * An enumerated list here would have quietly stopped seeing that zone:
- * the orphan check, the unzoned-coords check and the named-door check
- * would all have skipped it, and each of those exists because a missing
- * zone is a boot error.
+ * A pack ships classes of its own — `trade-mining`'s `AuthoredWorking`
+ * and `MineRoom` are rooms, and a pack may ship a ZONE just as easily.
+ * An enumerated list here would quietly stop seeing them: the orphan
+ * check, the unzoned-coords check and the named-door check would all
+ * skip them, and each of those exists because a missing zone is a boot
+ * error.
+ *
+ * ⚠ It was a pack zone that first proved this — `MineZone`, which
+ * existed only because a pack cannot add a field to a kernel class.
+ * `deposit` has since moved onto `SpatialZone` and that class is gone;
+ * the derivation stays, because the next pack class is not going to
+ * announce itself here either.
  *
  * "A pack must never require a kernel list edit" is the rule, and this is
  * what honouring it looks like in a gate: resolve the class file (the

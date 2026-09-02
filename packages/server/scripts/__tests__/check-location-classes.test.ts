@@ -212,16 +212,26 @@ describe('the coords/named-door gates, and the ancestry they derive', () => {
     expect(sameZoneNamedExits(rows)).toHaveLength(1);
   });
 
-  it("⭐⭐ a PACK zone class is seen too — a pack must never need a kernel list edit", () => {
-    // `trade-mining`'s `MineZone` carries the `deposit:` field, because a
-    // pack cannot add a field to a kernel class. An enumerated ZONES list
-    // would have stopped seeing it, and every check here would have gone
-    // quiet over the mine.
+  it("⭐⭐ a PACK class is seen too — a pack must never need a kernel list edit", () => {
+    /*
+     * ⚠ This used to demonstrate the rule with `trade-mining`'s
+     * `MineZone`, a pack ZONE class that existed only to carry a
+     * `deposit:` field a pack could not add to a kernel one. `deposit`
+     * moved onto `SpatialZone` and that class is deleted — so the
+     * example is now a pack ROOM, which exercises exactly the same
+     * derivation (resolve the class file into the pack's `src/`, read
+     * what it extends, walk through the mixin call).
+     *
+     * ⭐ The rule is unchanged and still load-bearing: an enumerated
+     * class list would go quiet over the next pack class the moment one
+     * ships, and a gate that never fires reads exactly like a gate that
+     * passes.
+     */
     expect(
       sameZoneNamedExits([
-        { file: 'p/content/test/x.yaml', cls: '/trade/mining/idea/MineZone', coords: false, exits: [] },
-        { file: 'p/content/test/x/a.yaml', cls: '/platform/location/SingletonCartesianLocation', coords: false, exits: [['out', '/test/x/b']] },
-        { file: 'p/content/test/x/b.yaml', cls: '/platform/location/SingletonCartesianLocation', coords: false, exits: [] },
+        { file: 'p/content/test/x.yaml', cls: '/platform/idea/location/CartesianZone', coords: false, exits: [] },
+        { file: 'p/content/test/x/a.yaml', cls: '/trade/mining/location/AuthoredWorking', coords: false, exits: [['out', '/test/x/b']] },
+        { file: 'p/content/test/x/b.yaml', cls: '/trade/mining/location/MineRoom', coords: false, exits: [] },
       ]),
     ).toHaveLength(1);
   });

@@ -236,11 +236,25 @@ describe('the venue itself', () => {
   it('⭐ the region zone carries the deposit, so the SURFACE can be surveyed', () => {
     const region = row('content/world/rejection.yaml');
     expect(region.data!.deposit).toBe('/world/rejection/idea/deposit/ferrow');
-    // ⚠⚠ …and it is a `MineZone`, because **a pack cannot add a field to
-    // a kernel class**: `fieldMeta` is what the hydrator reflects
-    // through, so `deposit:` on a plain `CartesianZone` is SILENTLY
-    // DISCARDED. The trade ships the class; the venue authors the row.
-    expect(region.class).toBe('/trade/mining/idea/MineZone');
+    /*
+     * ⭐⭐ …on a PLAIN `CartesianZone`, because **a town is not a mine.**
+     *
+     * `deposit` briefly needed a `trade-mining` zone subclass, since a
+     * pack cannot add a field to a kernel class and the failure is
+     * silent. But that made the zone covering a whole town a `MineZone`.
+     * The field now lives on `SpatialZone` beside the other ground and
+     * region fields, and the subclass is deleted: a region that declares
+     * what is under it is just a region.
+     */
+    expect(region.class).toBe('/platform/idea/location/CartesianZone');
+    /*
+     * ⭐ And the region declares the ADDRESS, which is what lets every
+     * room here — including the ones the warren mints at runtime, which
+     * can declare nothing for themselves — resolve the Locality. Without
+     * it `getGroundSeed()` resolved none and seeded the orebody off the
+     * empty string.
+     */
+    expect(region.data!.address).toBe('terminus/rejection');
     // ⚠ It is on the REGION and not on the mine: `lookupField` walks
     // outward, so the pithead inherits it and `measure strike` works
     // standing in the yard. A deposit declared only on the mine zone
@@ -290,15 +304,19 @@ describe('the venue itself', () => {
       (row(rel).class ?? '').includes('/location/CartesianZone') ||
       (row(rel).class ?? '').includes('/location/SphericalZone'),
     );
+    /*
+     * ⭐ FOUR, and the region is now one of them. It used to be listed
+     * separately because it was a `MineZone` and this filter did not
+     * match it — which is a small demonstration of the cost of the
+     * subclass: the town's own zone did not read as a zone to a check
+     * looking for zones.
+     */
     expect(zones.sort()).toEqual([
+      'content/world/rejection.yaml',
       'content/world/rejection/ferrow.yaml',
       'content/world/rejection/hush.yaml',
       'content/world/rejection/location.yaml',
     ]);
-    // …plus the region, which is the trade's `MineZone` — a zone all the
-    // same, and the reason it is listed apart is that it carries the
-    // deposit the other two inherit.
-    expect(row('content/world/rejection.yaml').class).toBe('/trade/mining/idea/MineZone');
   });
 
   it('⭐ FOUR businesses, and the smelter buys out of REVENUE — no new money anywhere', () => {

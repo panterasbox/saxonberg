@@ -309,8 +309,30 @@ the whole of the client work.
 **1. A pack cannot add a field to a kernel class.** `fieldMeta` is what
 the hydrator reflects through, so an undeclared key in `data:` is
 *silently discarded*. `deposit:` on a plain `CartesianZone` came up
-missing and `hew` refused in a room with a seam visibly in the face.
-Ship the class in the trade — that is what `MineZone` is.
+missing and `hew` refused in a room with a seam visibly in the face. The
+first fix was a `MineZone` subclass shipped by the trade.
+
+⚠ **That fix was wrong, and the reason is worth more than the rule.** It
+made the zone covering a whole TOWN a `MineZone` — asserting *Rejection
+is a mine*, when Rejection is the town, the Ferrow is the orebody and the
+diggings are the workings cut on it. `deposit` is a fact about the
+**ground**, exactly as elevation is, so it now lives on `SpatialZone`
+beside the other region fields and the subclass is deleted. The kernel
+carries the citation string and never interprets it — the same contract
+`Locality._reach` uses for a watercourse.
+
+⭐ So the rule has two halves: *a pack cannot add a field to a kernel
+class*, and **if the field is a fact about something the kernel already
+models, the answer is a kernel field, not a subclass.** Ship the subclass
+only when the CLASS is genuinely yours.
+
+⚠⚠ The failure is now caught at test time for zones —
+`SpatialZone.authoredFields.test.ts` reads every shipped zone row and
+checks each key against the field meta of the class the row itself names.
+It found two on its first run: `deposit`, and `address` — which had been
+`AddressLogic`'s documented step-2 fallthrough with **no zone class ever
+declaring it**, so `source: 'zone'` was an unreachable branch of a
+shipped enum.
 
 **2. A reference `Idea` needs warming, and nothing does it for you.**
 `Material` and `Biome` have boot rosters; `Deposit` does not, so
