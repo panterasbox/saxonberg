@@ -43,7 +43,12 @@ recognition). Load-bearing subsystem docs:
   lucky head blow can genuinely KO through the existing consciousness
   ladder; a fractured grip still costs you the gambits it should.
   This is a **world-wide change** by design — every humanoid
-  everywhere can punch after this, not just bar patrons.
+  everywhere can punch after this, not just bar patrons. An
+  **`unarmed` Discipline** ships beside `blades` (the same
+  specializes-`melee-combat` pattern, credited additionally when the
+  exchange's instrument is innate) — the brawler and the swordsman
+  stop being the same transcript, and Dave's hands-first ladder is
+  its first consumer.
 - **The nonlethal shock band.** The stun baton's documented tetany
   effect actually fires: a tetanized agent cannot act, move, or
   release what they hold (the volition gate electricity.md already
@@ -225,7 +230,9 @@ ticket is a carried Thing, the shipped `Ticket` shape.
   `strike`/`shove`/`subdue`; blows land honest blunt trauma; damage
   scales with attacker mass; a head-window strike at sufficient
   severity knocks the target out through the existing consciousness
-  ladder; a natural-weapon beast's behavior is unchanged. Tests
+  ladder; a natural-weapon beast's behavior is unchanged. An unarmed
+  exchange credits `unarmed` in addition to `melee-combat` (the
+  `blades` crediting pattern mirrored); an armed one does not. Tests
   colocated with combat's.
 - **Tetany**: a switched-on stun baton hit produces a tetanized
   window during which the target's volitional verbs are refused with
