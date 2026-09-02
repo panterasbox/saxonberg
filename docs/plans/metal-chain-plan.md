@@ -1613,9 +1613,9 @@ driven headlessly over the WebSocket through the test-auth seam. The
 client surface is covered by its own suite; what needed driving was the
 WORLD, and a browser would only have added latency to that.
 
-⭐ **The drive's whole value was in what would not start, and then in
-what started and did nothing.** Twelve defects, none of which a suite
-could have caught: a unit test builds the fixture it needs, and a boot
+⭐ **The drive's whole value was in what would not start, then in what
+started and did nothing, and finally in what did something and killed the
+server.** Thirteen defects, none of which a suite could have caught: a unit test builds the fixture it needs, and a boot
 builds everything.
 
 ### Defects found, and every one of them fixed here
@@ -1638,7 +1638,7 @@ reads. Residences moved three trade floors onto
 `SingletonCartesianLocation` — and the inert blocks became LIVE, in
 directories no zone covers. Nothing notices until a boot.
 
-**Seven were this build's own**, and each taught something:
+**Eight were this build's own**, and each taught something:
 
 | # | Defect | What it taught |
 |---|---|---|
@@ -1649,6 +1649,7 @@ directories no zone covers. Nothing notices until a boot.
 | 10 | `deposit:` on a plain `CartesianZone` was silently discarded | ⚠⚠ **A pack cannot add a field to a kernel class** — `fieldMeta` is what the hydrator reflects through. `facesOf()` returned nothing and `hew` blamed the player's direction, in a room whose own prose says there is green in the face. Hence `MineZone`. |
 | 11 | nothing warmed the `Deposit` row | ⚠⚠ The reference-Idea trap, for the **fourth** time in this codebase: `findByTemplatePath` reads `null` forever because nothing instantiates the singleton. Fixed with get-or-create at the point of use, never a boot list. |
 | 12 | an engaged completion called `this.<method>` | ⚠⚠ **The controller is EPHEMERAL and the engagement is not.** `[inert] win() called on destroyed Stuff` — the swing landed, the prose printed, and no ore appeared. ⭐ It also killed the vertical pair's hook: *a subclass that has to be consulted AFTER the act is a subclass that cannot be consulted at all.* |
+| 13 | a completion narrating to a DEPARTED actor | ⚠⚠ **This one killed the process.** `Mml.actor()` on a logged-out avatar renders `undefined`, `escapeText` throws, and the scene composer's rejection is unhandled. ⭐ A completion is the one place in a controller where the actor is not guaranteed — and the right answer differs by act: `hew` returns (*a barge-in leaves the rock standing*), while the clamp still OPENS and the furnace is still TAPPED, because only the telling needs a listener. |
 
 ### Three gates, so none of these can recur quietly
 
