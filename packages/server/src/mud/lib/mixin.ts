@@ -276,8 +276,13 @@ export const Mixins = {
   // Residency — the game-time reset (repop) sweep's consumer marker: an
   // object that restores itself on the sweep (the shop's Stock tops up).
   Resettable: 'ResettableMixin',
-  // Consignment — the store's brokerage shelf: holds player-owned goods in
-  // custody (ownership stays with the consignor) + the listing registry.
+  // Held goods — the custody base (the coat check, whole): holds
+  // player-owned goods in custody (owner-stamp stays put) + the reclaim
+  // surface. A ConsignmentShelf is this plus a sale layer; a CheckRack is
+  // just this.
+  HeldGoodsShelf: 'HeldGoodsMixin',
+  // Consignment — the store's brokerage shelf: the held-goods base plus the
+  // sale layer (ask + listing cap + buy).
   ConsignmentShelf: 'ConsignmentShelfMixin',
   Workspace: 'WorkspaceMixin',
   Author: 'AuthorMixin',

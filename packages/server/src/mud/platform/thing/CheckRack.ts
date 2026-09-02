@@ -4,15 +4,15 @@
  * against a claim ticket, and hands them back on `reclaim`. Custody, never
  * title — the bar-fight build's coat-check-with-teeth.
  *
- * The sibling of {@link ConsignmentShelf}: it rides the SAME
- * `ConsignmentShelfMixin` custody + listing machinery and the SAME
- * load-bearing `PersistableMixin` (so checked weapons survive a relog /
- * server bounce while in the house's custody). It differs only in what it
- * affords — `check` (custody-in) + `reclaim` (custody-out), never
- * `consign`/`buy`: a checked weapon is `heldOnly`, held for its owner, not
- * brokered. `reclaim` is reused verbatim (it resolves any
- * `ConsignmentShelfMixin` fixture and authorizes on `ChattelApi.ownerOf`,
- * not the listing), so taking someone else's checked piece stays theft.
+ * It composes the shared **`HeldGoodsMixin`** — the custody base (the coat
+ * check, whole) — NOT `ConsignmentShelfMixin`: a checked weapon is held for
+ * its owner to reclaim, never brokered, so the rack carries none of the
+ * sale layer (no ask, no listing cap, no `buy`). `reclaim` narrows on the
+ * shared `HeldGoodsShelf` surface (so it serves this and the store shelf
+ * alike) and authorizes on `ChattelApi.ownerOf`, not on possessing the
+ * ticket — so taking someone else's checked piece stays theft. The
+ * consignment shelf is the same base plus a sale layer; a coat check is
+ * just the base.
  */
 
 import { Vessel } from "../../lib/stuff/Vessel";
@@ -20,16 +20,24 @@ import { DetailedMixin } from "../../lib/description/Detailed";
 import { PersistableMixin } from "../../lib/persistence/Persistable";
 import { PostRegistrationMixin } from "../../lib/stuff/PostRegistration";
 import { FixtureMixin } from "../../lib/stuff/Fixture";
-import { ConsignmentShelfMixin } from "../../lib/retail/Consignment";
-import type { CommandContributions } from "../../api/command";
+import { HeldGoodsMixin } from "../../lib/retail/Consignment";
+import { MqlApi } from "../../api/mql";
+import { MixinApi } from "../../api/mixin";
+import type { CommandContext, CommandContributions } from "../../api/command";
 import type { FieldMeta } from "../../lib/mixin";
+import type { Stuff } from "../../lib/stuff/Stuff";
+import type { Container } from "../../lib/spatial/Container";
+import type { HeldGoodsShelf } from "../../lib/retail/Consignment";
+
+/** A pure custody rack (the coat check) — the held-goods base, no sale. */
+export type RackStuff = Stuff & Container & HeldGoodsShelf;
 
 // `FixtureMixin` lets a rack declare `seatIn: <warren>` and follow an
 // elastic host (the lounge's rack rides the Warren host the way the TPA
 // terminal does — re-seated on host migration). A fixed-room rack just
 // leaves `seatIn` unset and is placed by ordinary containment.
 const CheckRackBase = PersistableMixin(
-  ConsignmentShelfMixin(
+  HeldGoodsMixin(
     PostRegistrationMixin(FixtureMixin(DetailedMixin(Vessel))),
   ),
 );
@@ -42,6 +50,23 @@ export default class CheckRack extends CheckRackBase {
   async postRegister(): Promise<void> {
     await super.postRegister();
     await this.seatSelf();
+  }
+
+  /**
+   * Resolve the check rack a `check` works off — a **pure custody** rack
+   * (a `HeldGoodsShelf` that is not a sale shelf), by the command source
+   * first (the fixture that afforded the verb), else a reachable peer.
+   */
+  static resolveIn(context: CommandContext): RackStuff | null {
+    const isRack = (s: Stuff): boolean =>
+      MixinApi.isHeldGoodsShelf(s) && !MixinApi.isConsignmentShelf(s);
+    const source = context.commandSource;
+    if (source && isRack(source)) return source as RackStuff;
+    const peers = MqlApi.resolveMany("peers", {
+      commandGiver: context.commandGiver,
+      scope: "reachable",
+    });
+    return (peers.stuff.find(isRack) as RackStuff | undefined) ?? null;
   }
 
   static commandContributions: CommandContributions = {

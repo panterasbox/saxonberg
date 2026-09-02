@@ -20,28 +20,112 @@ import type { Containable } from "../spatial/Containable";
 import { MixinApi } from "../../api/mixin";
 import { SecurityApi } from "../../api/security";
 
-/** A brokerage record — a good on the shelf for sale on its owner's behalf. */
-export interface ConsignmentListing {
-  /** This listing's durable id. */
-  listingId: string;
-  /** The consigned good's chattel id (the ownership join key). */
+/**
+ * A good held in a shop's custody — the owner-stamp stays with the
+ * consignor; this record is just the join that says "X is held here for
+ * Y". The shared base of a consignment listing AND a checked weapon (the
+ * coat-check rack): custody without a sale.
+ */
+export interface HeldGood {
+  /** This holding's durable id. */
+  holdingId: string;
+  /** The held good's chattel id (the ownership join key). */
   itemChattelId: string;
-  /** The consignor's durable key at consign time (payout + cap grouping). */
+  /** Whose it is (the reclaim / payout / cap key). */
   consignorKey: string;
-  /** The asking price, in minor units. */
-  askMinor: number;
-  /**
-   * A **custody-only** listing — checked, not for sale (the weapons-check
-   * rack, the bar-fight build). Custody moved to the shelf and the
-   * owner-stamp stayed put exactly as a consignment, but `buy` refuses it:
-   * it's held for its owner to reclaim, never brokered. Absent = an
-   * ordinary for-sale listing.
-   */
-  heldOnly?: boolean;
 }
 
-/** The listing-registry surface the consignment shelf exposes. */
-export interface ConsignmentShelf {
+/**
+ * The custody-registry surface — **the coat check, whole**: move a good
+ * into custody (owner-stamp stays put), know whose it is, hand it back to
+ * its owner. A {@link ConsignmentShelf} is this plus a sale layer.
+ */
+export interface HeldGoodsShelf {
+  recordHolding(itemChattelId: string, consignorKey: string): HeldGood;
+  removeHolding(itemChattelId: string): void;
+  holdingFor(itemChattelId: string): HeldGood | null;
+  holdingsOf(consignorKey: string): HeldGood[];
+  countHeld(consignorKey: string): number;
+  /** A held good on this fixture, matched by keyword. */
+  resolveHeld(keyword: string): (Stuff & Containable) | null;
+}
+
+export function HeldGoodsMixin<TBase extends MixinConstructor<Stuff>>(
+  Base: TBase,
+) {
+  class HeldGoodsMixin extends Base implements HeldGoodsShelf {
+    static _mixinName = "HeldGoodsMixin";
+
+    static fieldMeta: FieldMeta = {
+      heldGoods: { persistent: true, runtimeState: true },
+    };
+
+    /** The goods held in this fixture's custody (owner-stamps stay put). */
+    public heldGoods: HeldGood[] = [];
+
+    public recordHolding(
+      itemChattelId: string,
+      consignorKey: string,
+    ): HeldGood {
+      const holding: HeldGood = {
+        holdingId: `hg-${SecurityApi.uuid()}`,
+        itemChattelId,
+        consignorKey,
+      };
+      this.heldGoods.push(holding);
+      return holding;
+    }
+
+    public removeHolding(itemChattelId: string): void {
+      this.heldGoods = this.heldGoods.filter(
+        (h) => h.itemChattelId !== itemChattelId,
+      );
+    }
+
+    public holdingFor(itemChattelId: string): HeldGood | null {
+      return (
+        this.heldGoods.find((h) => h.itemChattelId === itemChattelId) ?? null
+      );
+    }
+
+    public holdingsOf(consignorKey: string): HeldGood[] {
+      return this.heldGoods.filter((h) => h.consignorKey === consignorKey);
+    }
+
+    public countHeld(consignorKey: string): number {
+      return this.holdingsOf(consignorKey).length;
+    }
+
+    public resolveHeld(keyword: string): (Stuff & Containable) | null {
+      const contents = (this as unknown as Stuff & Container).getContents();
+      for (const item of contents) {
+        if (
+          MixinApi.isPerceptible(item) &&
+          item.hasKeyword(keyword) &&
+          MixinApi.isChattel(item) &&
+          this.holdingFor(item.getChattelId())
+        ) {
+          return item;
+        }
+      }
+      return null;
+    }
+  }
+  return HeldGoodsMixin;
+}
+
+/** A consignment listing — a held good offered for **sale** at a price. */
+export interface ConsignmentListing extends HeldGood {
+  /** The asking price, in minor units. */
+  askMinor: number;
+}
+
+/**
+ * The listing-registry surface — the held-goods base plus the **sale**
+ * layer (the ask + the per-consignor cap). A coat-check rack composes only
+ * {@link HeldGoodsShelf}; a store shelf composes this.
+ */
+export interface ConsignmentShelf extends HeldGoodsShelf {
   /**
    * The authored per-shelf listing cap, or null to ride the global
    * `retail.consignment.listingCap`. A market stall selling LOOSE
@@ -55,7 +139,6 @@ export interface ConsignmentShelf {
     itemChattelId: string,
     consignorKey: string,
     askMinor: number,
-    heldOnly?: boolean,
   ): ConsignmentListing;
   removeListing(itemChattelId: string): void;
   listingFor(itemChattelId: string): ConsignmentListing | null;
@@ -68,16 +151,27 @@ export interface ConsignmentShelf {
 export function ConsignmentShelfMixin<TBase extends MixinConstructor<Stuff>>(
   Base: TBase,
 ) {
-  class ConsignmentShelfMixin extends Base implements ConsignmentShelf {
+  class ConsignmentShelfMixin
+    extends HeldGoodsMixin(Base)
+    implements ConsignmentShelf
+  {
     static _mixinName = "ConsignmentShelfMixin";
 
     static fieldMeta: FieldMeta = {
-      consignmentListings: { persistent: true, runtimeState: true },
       listingCapOverride: { persistent: true, authorable: true },
     };
 
-    /** The active brokerage listings on this shelf. */
-    public consignmentListings: ConsignmentListing[] = [];
+    // Re-surface the inherited HeldGoodsShelf members for TS — a
+    // mixin-extends-mixin composition doesn't propagate the base instance
+    // type through the generic. `declare` emits no runtime code; the real
+    // members come from `HeldGoodsMixin` at runtime.
+    declare heldGoods: HeldGood[];
+    declare recordHolding: HeldGoodsShelf["recordHolding"];
+    declare removeHolding: HeldGoodsShelf["removeHolding"];
+    declare holdingFor: HeldGoodsShelf["holdingFor"];
+    declare holdingsOf: HeldGoodsShelf["holdingsOf"];
+    declare countHeld: HeldGoodsShelf["countHeld"];
+    declare resolveHeld: HeldGoodsShelf["resolveHeld"];
 
     /** Authored per-shelf cap; null = the global dial. See the getter. */
     public listingCapOverride: number | null = null;
@@ -93,61 +187,39 @@ export function ConsignmentShelfMixin<TBase extends MixinConstructor<Stuff>>(
           : null;
     }
 
-    /** Mint + record a listing (fresh, collision-resistant id). */
+    /** Record a holding and offer it for sale at `askMinor` — a listing
+     * is a held good with an ask (the sale layer over custody). */
     public recordListing(
       itemChattelId: string,
       consignorKey: string,
       askMinor: number,
-      heldOnly?: boolean,
     ): ConsignmentListing {
-      const listing: ConsignmentListing = {
-        listingId: `cl-${SecurityApi.uuid()}`,
+      const listing = this.recordHolding(
         itemChattelId,
         consignorKey,
-        askMinor,
-      };
-      if (heldOnly) listing.heldOnly = true;
-      this.consignmentListings.push(listing);
+      ) as ConsignmentListing;
+      listing.askMinor = askMinor;
       return listing;
     }
 
     public removeListing(itemChattelId: string): void {
-      this.consignmentListings = this.consignmentListings.filter(
-        (l) => l.itemChattelId !== itemChattelId,
-      );
+      this.removeHolding(itemChattelId);
     }
 
     public listingFor(itemChattelId: string): ConsignmentListing | null {
-      return (
-        this.consignmentListings.find(
-          (l) => l.itemChattelId === itemChattelId,
-        ) ?? null
-      );
+      return this.holdingFor(itemChattelId) as ConsignmentListing | null;
     }
 
     public listingsOf(consignorKey: string): ConsignmentListing[] {
-      return this.consignmentListings.filter(
-        (l) => l.consignorKey === consignorKey,
-      );
+      return this.holdingsOf(consignorKey) as ConsignmentListing[];
     }
 
     public activeListingCount(consignorKey: string): number {
-      return this.listingsOf(consignorKey).length;
+      return this.countHeld(consignorKey);
     }
 
     public resolveConsigned(keyword: string): (Stuff & Containable) | null {
-      const contents = (this as unknown as Stuff & Container).getContents();
-      for (const item of contents) {
-        if (
-          MixinApi.isPerceptible(item) &&
-          item.hasKeyword(keyword) &&
-          MixinApi.isChattel(item) &&
-          this.listingFor(item.getChattelId())
-        ) {
-          return item;
-        }
-      }
-      return null;
+      return this.resolveHeld(keyword);
     }
   }
   return ConsignmentShelfMixin;

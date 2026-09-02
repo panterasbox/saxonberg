@@ -175,16 +175,6 @@ export default class BuyController extends CommandController<BuyModel> {
       });
       return;
     }
-    // A custody-only listing (a checked weapon) is held for its owner to
-    // reclaim, never brokered — buy refuses it (the weapons-check rack).
-    if (listing.heldOnly) {
-      this.reject(giver, context, Mml.compose`${Mml.thing(item)} is checked, not for sale.`, {
-        kind: "controller-rejected",
-        reason: "held-only",
-        detail: model.thing,
-      });
-      return;
-    }
     // Pay the authoritative current owner (the consignor — the stamp never
     // moved during consignment); refuse if they've since closed their account.
     // Only a `player` owner names a payable account; a good resolving to a

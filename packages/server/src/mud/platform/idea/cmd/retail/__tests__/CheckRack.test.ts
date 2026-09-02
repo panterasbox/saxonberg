@@ -139,12 +139,13 @@ describe("CheckRack — custody-not-title over the consignment substrate", () =>
       .find((c) => c instanceof Ticket) as Ticket | undefined;
     expect(ticket).toBeDefined();
     expect(ticket!.getPointPath()).toBe(RACK);
-    // The listing is custody-only.
-    const listing = rack.listingFor(knife.getChattelId());
-    expect(listing?.heldOnly).toBe(true);
+    // It's a plain custody holding (no listing, no ask — a coat check).
+    const holding = rack.holdingFor(knife.getChattelId());
+    expect(holding).toBeTruthy();
+    expect(holding).not.toHaveProperty("askMinor");
   });
 
-  it("buy refuses a checked (heldOnly) weapon", async () => {
+  it("a checked weapon can't be bought — a rack is no sale shelf", async () => {
     const { loc, rack, patron } = scene();
     const knife = weapon(patron);
     await asOwner(patron, () =>
@@ -153,7 +154,9 @@ describe("CheckRack — custody-not-title over the consignment substrate", () =>
         ctx(patron, loc, rack, "check"),
       ),
     );
-    // A second person tries to buy it off the rack.
+    // A second person tries to buy it off the rack. The rack composes only
+    // the custody base (HeldGoodsMixin), not the sale layer, so `buy` finds
+    // no consignment shelf here at all — nothing to buy.
     const buyer = makeStuffAtPath(
       () => new TestGiver(),
       "/platform/agent/Avatar/buyer",
@@ -166,9 +169,10 @@ describe("CheckRack — custody-not-title over the consignment substrate", () =>
       makeStuff(() => new BuyController()).execute({ thing: "knife" }, c),
     );
     expect(knife.getContainer()).toBe(rack); // still checked — not sold
-    expect(note).toHaveBeenCalledWith(
-      expect.objectContaining({ reason: "held-only" }),
-    );
+    expect(note).toHaveBeenCalled(); // a rejection, not a sale
+    // The rack is not a consignment shelf.
+    expect(MixinApi.isConsignmentShelf(rack as never)).toBe(false);
+    expect(MixinApi.isHeldGoodsShelf(rack as never)).toBe(true);
   });
 
   it("reclaim returns the weapon to its owner; a non-owner is refused", async () => {

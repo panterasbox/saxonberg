@@ -3,9 +3,10 @@
  *
  * Hand a weapon to the house's check rack: custody moves to the rack, but
  * your owner-stamp stays with you (custody ≠ ownership — the chattel
- * core), and you get a claim ticket. It's a `heldOnly` consignment
- * listing — the same custody machinery, but `buy` refuses it: it's held
- * for you to `reclaim`, never brokered.
+ * core), and you get a claim ticket. It rides the shared HELD-GOODS
+ * custody base (`HeldGoodsMixin`) — NOT the consignment/sale layer — so a
+ * checked weapon is simply held for you to `reclaim`, never brokered (a
+ * coat check, not a marketplace).
  *
  * Gates: there must be a rack here; you must be carrying the thing; it
  * must be a WEAPON (the combat construction-domain predicate — a shield
@@ -21,7 +22,7 @@
 
 import { CommandController } from "../../../../lib/command/CommandController";
 import type { CommandContext, CommandModel } from "../../../../api/command";
-import ConsignmentShelf from "../../../thing/ConsignmentShelf";
+import CheckRack from "../../../thing/CheckRack";
 import Ticket from "../../../thing/Ticket";
 import { ContainmentApi } from "../../../../api/containment";
 import { StuffApi } from "../../../../api/stuff";
@@ -43,7 +44,7 @@ interface CheckModel extends CommandModel {
 export default class CheckController extends CommandController<CheckModel> {
   async execute(model: CheckModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
-    const rack = ConsignmentShelf.resolveIn(context);
+    const rack = CheckRack.resolveIn(context);
     if (!rack) {
       return this.reject(
         giver,
@@ -86,17 +87,17 @@ export default class CheckController extends CommandController<CheckModel> {
     if (!item.getChattelId()) await ChattelApi.stamp(item, giver);
     const consignorKey = giver.getIdentityPath() ?? "";
 
-    // Custody → the rack; the owner-stamp stays put. `heldOnly` marks it
-    // checked-not-for-sale (buy refuses it).
+    // Custody → the rack; the owner-stamp stays put. It's a plain
+    // holding (no ask, no listing) — nothing to buy, only to reclaim.
     ContainmentApi.move(item, rack as unknown as Stuff & Container);
-    rack.recordListing(item.getChattelId(), consignorKey, 0, true);
+    rack.recordHolding(item.getChattelId(), consignorKey);
 
     // The diegetic claim: a carried ticket stamped with the rack. The
     // AUTHORITY to reclaim is the owner-stamp, not the ticket — so a lost
     // ticket never traps your weapon (it's flavor, not the key).
     const ticket = await StuffApi.create(() => new Ticket());
     ticket.pointPath = rack.getTemplatePath() ?? "";
-    ticket.number = rack.activeListingCount(consignorKey);
+    ticket.number = rack.countHeld(consignorKey);
     ticket.setShortDescription("a coat-check ticket");
     ContainmentApi.move(ticket as unknown as Stuff & Containable, giver as unknown as Stuff & Container);
 
