@@ -1,0 +1,30 @@
+# Corylus avellana — hazel, and the coppice species.
+#
+# ⭐ It ships in the FUEL trade because coppicing is what the fuel trade
+# IS: a hazel cut to the ground does not die, it throws a dozen new poles
+# from the stool and is cuttable again in seven years. That is the whole
+# economics of charcoal before coal — a renewable crop of wood on a
+# rotation, worked by people who never planted a tree.
+#
+# ⚠ Stage A's stand is authored ALREADY GROWN with a long `daysToStage`,
+# and harvested through the shipped `harvest`/`pick` path. A genuine
+# cut-and-regrow ROTATION — the stool that survives the cut and regrows
+# from the same root — is a growth-model change `lib/husbandry/` does not
+# have, and inventing one here would be a mining build quietly rewriting
+# farming's substrate. The seam is named and left for whoever lands
+# coppicing properly.
+class: /platform/idea/species/Species
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  binomial: Corylus avellana
+  commonNames: ["hazel", "coppice hazel", "nut tree"]
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/sessile
+  _parentCladePath: /stuff/idea/species/plantae
+  _defaultMaterialPath: /stuff/idea/material/tissue/plant-tissue
+  lifecycleStates: ["alive", "dead"]
+  sexDeterminationSystem: none
+  reproductiveMode: sexual
+  lifespanMin: 0
+  lifespanMax: 80
+  circadianBand: diurnal
+  diet: photosynthetic

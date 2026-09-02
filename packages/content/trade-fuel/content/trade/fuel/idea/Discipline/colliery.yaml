@@ -1,0 +1,18 @@
+# Colliery — the collier's discipline: knowing where the band is.
+#
+# ⚠ A lost burn is EVIDENCE, and the controller records the deed either
+# way. Recording only successes would make the transcript a scoreboard
+# rather than a record of practice — and learning where the draught band
+# ends is precisely what a burnt clamp teaches.
+class: /platform/idea/Discipline
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: colliery
+  channel: skill
+  label: Colliery
+  iscedf: "0722"  # ISCED-F 2013: materials (glass, paper, plastic and wood)
+  description: >-
+    Charring wood. Stacking a clamp, sealing it, and holding the draught
+    between burning it to ash and never charring it at all. Improves by
+    doing, and a lost burn teaches as much as a good one.
+  requires: []

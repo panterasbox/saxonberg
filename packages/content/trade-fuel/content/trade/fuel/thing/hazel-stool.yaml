@@ -1,0 +1,40 @@
+# A hazel stool — the unit of a worked coppice: one root, many poles, cut
+# on a rotation and cut again seven years later.
+#
+# ⚠ Authored ALREADY GROWN under the model-consistency rule: the state
+# here is one the reconcile could genuinely have produced, and the long
+# `daysToStage` is what says so. The rotation itself is the seam named on
+# the species row.
+class: /platform/thing/Plant
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a hazel stool
+  primaryKeyword: stool
+  keywords: [stool, hazel, coppice]
+  longDescription: |
+    A low knuckle of old root with a dozen straight poles standing out of it, all of an age. Cut it to the ground and it will do the same again.
+  _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/fagales/betulaceae/corylus/avellana
+  material: /stuff/idea/material/tissue/plant-tissue
+  lifecycleState: alive
+  harvestTemplatePath: /trade/fuel/thing/cordwood
+  nutrientDraw: 6
+  profile:
+    moistureHappyAt: 0.2
+    moistureWiltAt: 0.03
+    litresPerGameDay: 0.15
+    luxHappyAt: 100
+    luxDarkAt: 10
+    rootDemand:
+      seedling: 0.4
+      young: 2
+      established: 6
+      mature: 14
+    # ⭐ Seven years, which is the real rotation. It is also why a
+    # coppice is a CAPITAL asset rather than a crop: nobody who plants
+    # one cuts it for the first time.
+    daysToStage:
+      young: 200
+      established: 900
+      mature: 2500
+    fruitSetCount: 8
+    fruitFillDays: 120

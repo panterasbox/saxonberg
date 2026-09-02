@@ -1,0 +1,19 @@
+# ⚠ Charcoal is NOT made by `make`. It is made by `char`, over three days,
+# in a clamp — and that is the point: it is a judgment craft with a real
+# failure mode, not an assembly step with an input list.
+#
+# This row exists so charcoal is on the LADDER — a rung the collier's
+# discipline derives its floor from, and a thing `help` can find — while
+# the act itself stays where it belongs.
+recipeId: charcoal
+name: Charcoal
+keywords: [charcoal, char]
+inputSlots:
+  - { slot: charge, category: wood, minGrade: poor, kind: item, count: 8 }
+toolCapabilities: []
+outputTemplate: /trade/fuel/thing/charcoal
+outputMaterial: ''
+outputApplication: tangible
+requiresHeatK: 700
+difficulty: hard
+discipline: colliery

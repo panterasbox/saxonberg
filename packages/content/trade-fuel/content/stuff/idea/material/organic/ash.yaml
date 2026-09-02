@@ -1,0 +1,18 @@
+# Wood ash — the mineral residue when a burn goes all the way through.
+# Worth something to a farmer (potash) and nothing to a smelter.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: ash
+  density: 600
+  specificHeat: 840
+  thermalConductivity: 0.1
+  electricalConductivity: 1.0e-3
+  waterAbsorptionCapacity: 40
+  edibility: false
+  nutrients: ["potassium"]
+  toxicity: []
+  tags: ["organic", "mineral", "residue"]
+  composition: []
+  chemistry: null
+  biologicalSource: null
