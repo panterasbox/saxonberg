@@ -61,13 +61,6 @@ function logic(): PartyLogic {
 export class PartyApi {
   private constructor() {}
 
-  /** Boot: register the `party:` grouping provider + re-materialize
-   * durable parties into live Ideas. Called from `AppBootstrap` after
-   * `GroupRegistry` stands up. */
-  public static boot(): Promise<void> {
-    return logic().boot();
-  }
-
   /* ───────────────── the combat seam ───────────────── */
 
   /**

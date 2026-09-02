@@ -85,7 +85,7 @@ function resolveAuthorImpl(): string | null {
  * lensing), so the caller composes the payload exactly once. Per-viewer
  * isolation: a bad recipient never aborts the scan. The `sendRosterImpl`
  * precedent, on the `publication.press` topic. Unlike the roster (which
- * taps externally-emitted presence events in `SocialApi.boot()`), the
+ * taps externally-emitted presence events via `PresenceRelay`), the
  * release trigger originates inside the mutators below, so this fan is
  * called inline (no event tap).
  */
@@ -475,14 +475,4 @@ export class PressLogic extends ApiLogic {
     return archiveImpl(query);
   }
 
-  /**
-   * See {@link PressApi.boot}. Idempotent warm/activation seam. The
-   * board warms via its manifest `postRegister`; the frame fan-out is
-   * inline (added Phase 3), so there is no event tap to install here. Kept
-   * for call-site symmetry with the other `*Api.boot()` seams.
-   */
-  @CallSecurity(PressApiCallers)
-  public boot(): void {
-    // Nothing to install yet (see the doc comment).
-  }
 }

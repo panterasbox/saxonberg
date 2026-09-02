@@ -149,17 +149,6 @@ function profileLogic(): ProfileLogic {
 }
 
 export class SocialApi {
-  /**
-   * Boot seam (idempotent). Installs both social-graph presence consumers:
-   * the notify-gated login/logout **notification** relay and the
-   * presence-PUBLIC **roster** delta tap (feeding the "Who's Online" card).
-   * Both ride the same four presence events. Wired from `AppBootstrap.run()`.
-   */
-  public static boot(): void {
-    logic().installPresenceTap();
-    presenceLogic().installRosterTap();
-  }
-
   // --- Inspection reads (the `who` / `profile` / `score` surface) ---
 
   /**

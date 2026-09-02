@@ -19,6 +19,17 @@ import type { PartyOpResult, PartySimpleResult } from "../../../api/party";
 
 const PartyApiCallers = SecurityPolicies.FromModule("/api/party#PartyApi");
 
+/**
+ * The roster materialization is also callable by the self-warming
+ * `PartyRoster` singleton (the boot()-retirement shape): the provider
+ * + record machinery stays module-private HERE, the manifest home
+ * drives it at postRegister.
+ */
+const PartyBootCallers = SecurityPolicies.AnyOf(
+  PartyApiCallers,
+  SecurityPolicies.FromTemplate("/platform/idea/PartyRoster"),
+);
+
 /** The party: grouping provider, module-level so it survives a logic-
  * singleton recreation (fireChange reaches the same instance registered
  * with GroupRegistry). */
@@ -49,8 +60,13 @@ let partyProvider: PartyGroupProvider | null = null;
 export class PartyLogic extends ApiLogic {
   /** Boot: register the `party:` provider + re-materialize durable parties
    * into live Ideas. Called from `AppBootstrap` after `GroupRegistry`. */
-  @CallSecurity(PartyApiCallers)
-  public async boot(): Promise<void> {
+  /**
+   * Register the `party:` grouping provider + re-materialize durable
+   * parties into live Ideas. Idempotent. Driven by `PartyRoster.warm`
+   * (the manifest postRegister).
+   */
+  @CallSecurity(PartyBootCallers)
+  public async materializeRoster(): Promise<void> {
     return bootImpl();
   }
 

@@ -29,6 +29,15 @@ import type { Subscription } from '../../../api/event';
 const SocialApiCallers = SecurityPolicies.FromModule('/api/social#SocialApi'
 );
 
+/**
+ * The tap install is also callable by the self-warming `PresenceRelay`
+ * singleton (the boot()-retirement shape).
+ */
+const SocialBootCallers = SecurityPolicies.AnyOf(
+  SocialApiCallers,
+  SecurityPolicies.FromTemplate('/platform/idea/PresenceRelay'),
+);
+
 /** The roster wire topic — a presence-PUBLIC channel, distinct from the
  *  notify-rule-gated `session.presence` notification surface. */
 const ROSTER_TOPIC = 'self.group';
@@ -200,8 +209,8 @@ export class PresenceLogic extends ApiLogic {
     return snapshotForImpl(viewer);
   }
 
-  /** See {@link SocialApi.boot}. Idempotent. */
-  @CallSecurity(SocialApiCallers)
+  /** Armed by `PresenceRelay.warm` (the manifest postRegister). Idempotent. */
+  @CallSecurity(SocialBootCallers)
   public installRosterTap(): void {
     if (this.loginSub) return;
     const present = (p: { playerId: string }) =>

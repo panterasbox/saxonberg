@@ -30,6 +30,7 @@ import { EventApi } from "../../../../api/event";
 import { Events } from "../../../../lib/events";
 import EventRegistry from "../../EventRegistry";
 import { StuffApi } from "../../../../api/stuff";
+import PresenceRelay from "../../PresenceRelay";
 import { Stuff } from "../../../../lib/stuff/Stuff";
 import { Idea } from "../../../../lib/stuff/Idea";
 import { Mml } from "../../../../api/mml";
@@ -61,7 +62,7 @@ class Viewer extends SensorMixin(NotifyPolicyMixin(Idea)) {
     return this.connected;
   }
   protected override handleMessage(frame: unknown): void {
-    // This file tests the presence-NOTIFICATION relay. `SocialApi.boot()`
+    // This file tests the presence-NOTIFICATION relay. the relay warm
     // also wires the presence-public roster delta tap (Who's Online), so a
     // login/logout legitimately also produces a `self.group`
     // frame on a different topic. Scope capture to the presence topic so
@@ -147,13 +148,28 @@ afterEach(() => {
   StuffApi.clearAll();
 });
 
+
+/**
+ * Arm both presence taps the way production does since the boot()
+ * retirement: the PresenceRelay singleton's warm (its template stamp
+ * is what the widened Logic gates admit).
+ */
+async function bootPresence(): Promise<void> {
+  const relay =
+    StuffApi.findByTemplatePath<PresenceRelay>(
+      "/platform/idea/PresenceRelay",
+    ) ??
+    makeStuffAtPath(() => new PresenceRelay(), "/platform/idea/PresenceRelay");
+  await relay.warm();
+}
+
 describe("SocialLogic presence relay", () => {
   it("notifies a viewer who policied a managed guild (no contacts entry)", async () => {
     const v = makeViewer("v1");
     SocialApi.setRule(v, "managed:fighter-guild", { onConnect: "show" });
     membership.add(`/platform/agent/Avatar/actor|managed:fighter-guild`);
 
-    SocialApi.boot();
+    await bootPresence();
     EventApi.emit(Events.PlayerLoggedIn, { playerId: "actor", userId: "u" });
     await flush();
 
@@ -180,7 +196,7 @@ describe("SocialLogic presence relay", () => {
     SocialApi.setRule(v, "managed:fighter-guild", { onConnect: "show" });
     membership.add(`/platform/agent/Avatar/actor|managed:fighter-guild`);
 
-    SocialApi.boot();
+    await bootPresence();
     EventApi.emit(Events.PlayerLoggedIn, { playerId: "actor", userId: "u" });
     await flush();
 
@@ -196,7 +212,7 @@ describe("SocialLogic presence relay", () => {
     // (so falls to everyone-else → silent).
     SocialApi.setRule(v, "managed:other", { onConnect: "show" });
 
-    SocialApi.boot();
+    await bootPresence();
     EventApi.emit(Events.PlayerLoggedIn, { playerId: "actor", userId: "u" });
     await flush();
 
@@ -210,7 +226,7 @@ describe("SocialLogic presence relay", () => {
     SocialApi.setRule(v, "mql:species:khazadicus", { onConnect: "show" });
     membership.add(`/platform/agent/Avatar/actor|mql:species:khazadicus`);
 
-    SocialApi.boot();
+    await bootPresence();
     EventApi.emit(Events.PlayerLoggedIn, { playerId: "actor", userId: "u" });
     await flush();
 
@@ -222,7 +238,7 @@ describe("SocialLogic presence relay", () => {
     SocialApi.setRule(v, "managed:fighter-guild", { onDisconnect: "show" });
     membership.add(`/platform/agent/Avatar/actor|managed:fighter-guild`);
 
-    SocialApi.boot();
+    await bootPresence();
     EventApi.emit(Events.PlayerLoggedOut, { playerId: "actor" });
     await flush();
 
@@ -237,7 +253,7 @@ describe("SocialLogic presence relay", () => {
     SocialApi.setRule(v, "managed:fighter-guild", { onConnect: "show" });
     membership.add(`/platform/agent/Avatar/actor|managed:fighter-guild`);
 
-    SocialApi.boot();
+    await bootPresence();
     EventApi.emit(Events.PlayerLoggedIn, { playerId: "actor", userId: "u" });
     await flush();
     EventApi.emit(Events.PlayerLoggedIn, { playerId: "actor", userId: "u" });
@@ -252,7 +268,7 @@ describe("SocialLogic presence relay", () => {
     SocialApi.setRule(v, "managed:fighter-guild", { onConnect: "show" });
     membership.add(`/platform/agent/Avatar/actor|managed:fighter-guild`);
 
-    SocialApi.boot();
+    await bootPresence();
     // The relay subscribes only to login/logout — an arbitrary
     // movement-style event never reaches it.
     EventApi.emit("world.movement.entered", { playerId: "actor" });
@@ -267,7 +283,7 @@ describe("SocialLogic presence relay", () => {
     SocialApi.setRule(v, "managed:secret-cabal", { onConnect: "silent" });
     membership.add(`/platform/agent/Avatar/actor|managed:fighter-guild`);
 
-    SocialApi.boot();
+    await bootPresence();
     EventApi.emit(Events.PlayerLoggedIn, { playerId: "actor", userId: "u" });
     await flush();
 
@@ -289,7 +305,7 @@ describe("SocialLogic presence relay", () => {
     SocialApi.setRule(v, "managed:fighter-guild", { onConnect: "show" });
     membership.add(`/platform/agent/Avatar/actor|managed:fighter-guild`);
 
-    SocialApi.boot();
+    await bootPresence();
     EventApi.emit(Events.PlayerLoggedIn, { playerId: "actor", userId: "u" });
     await flush();
 
@@ -309,7 +325,7 @@ describe("SocialLogic presence relay", () => {
     SocialApi.setRule(selfHost, "managed:fighter-guild", { onConnect: "show" });
     membership.add(`/platform/agent/Avatar/actor|managed:fighter-guild`);
 
-    SocialApi.boot();
+    await bootPresence();
     EventApi.emit(Events.PlayerLoggedIn, { playerId: "actor", userId: "u" });
     await flush();
 

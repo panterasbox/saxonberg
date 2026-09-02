@@ -34,9 +34,6 @@ import { CompileWatcher } from './CompileWatcher';
 import { fileURLToPath } from 'url';
 import { ResidencyApi } from '../mud/api/residency';
 import { EmploymentApi } from '../mud/api/employment';
-import { SocialApi } from '../mud/api/social';
-import { PartyApi } from '../mud/api/party';
-import { PressApi } from '../mud/api/press';
 import { Document } from '../mud/lib/persistence/Document';
 import { StuffApi } from '../mud/api/stuff';
 import type { Marshaller } from '../mud/lib/persistence/Marshaller';
@@ -234,29 +231,6 @@ export class AppBootstrap {
     // coupling to optional packs. The RECURRING tick is the
     // EmploymentEngine singleton's (manifest-booted).
     EmploymentApi.tickRoster();
-
-    // Social graph (Wave 3) — install the presence relay: the net-new
-    // consumer that fans the four in-world-gated presence transitions
-    // (login / reconnect / disconnect / logout) out to online viewers
-    // whose first-matching rule for the acting player is non-silent.
-    // In-memory, nothing persisted; no warm step (the rule store rides
-    // each Avatar's own persistence).
-    // SocialApi.boot() installs BOTH the notify-gated presence relay and
-    // the presence-PUBLIC roster-delta tap (feeding the "Who's Online"
-    // card) — same four presence events, two consumers. In-memory.
-    SocialApi.boot();
-
-    // Party operational core — register the `party:` grouping provider with
-    // the (already-warmed) GroupRegistry and re-materialize durable parties
-    // from their `parties` records into live Party Ideas. After SocialApi so
-    // the grouping facade is fully warmed.
-    await PartyApi.boot();
-
-    // Press (news ticker) — a thin warm/activation seam. The board warms
-    // via its manifest postRegister; the staff→player feed fan-out is inline
-    // in PressLogic (Phase 3), so there is no event tap. Kept here for
-    // call-site symmetry with the other *Api.boot() seams.
-    PressApi.boot();
 
     // Twitch relay — install the outbound DI port + wire the presence-gated
     // EventSub reader. Inert until a channel is seeded AND a player tunes

@@ -116,16 +116,6 @@ export class PressApi {
   private constructor() {}
 
   /**
-   * Boot seam (idempotent). A thin warm/activation mirror of the other
-   * `*Api.boot()` call sites — the board itself warms via its manifest
-   * `postRegister`, and the frame fan-out is inline (Phase 3), so there is
-   * no event tap to install. Wired from `AppBootstrap.run()`.
-   */
-  public static boot(): void {
-    logic().boot();
-  }
-
-  /**
    * ⭐ Does `principal` hold **any** publishing position, anywhere? The
    * affordance-level read behind `requiresPublisher`.
    *

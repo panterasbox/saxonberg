@@ -39,6 +39,15 @@ import {
 const SocialApiCallers = SecurityPolicies.FromModule("/api/social#SocialApi");
 
 /**
+ * The tap install is also callable by the self-warming `PresenceRelay`
+ * singleton (the boot()-retirement shape).
+ */
+const SocialBootCallers = SecurityPolicies.AnyOf(
+  SocialApiCallers,
+  SecurityPolicies.FromTemplate("/platform/idea/PresenceRelay"),
+);
+
+/**
  * Code-side baseline fallback — used only when AppSettings isn't warmed
  * (pre-boot / unit fixtures). The live defaults are seeded from
  * `social.baselineRules` in the platform pack's `content/settings/social.yaml` (the renown
@@ -830,7 +839,7 @@ export class SocialLogic extends ApiLogic {
    * Install the presence relay (idempotent). Subscribes to
    * `PlayerLoggedIn` / `PlayerLoggedOut` and fans each out to the online
    * viewers whose first-matching rule for the acting player is non-silent.
-   * Called once at boot (`SocialApi.boot`).
+   * Armed by `PresenceRelay.warm` (the manifest postRegister).
    *
    * Unlike the renown reaction/reception taps, this does NOT
    * `restrictSubscribe`: login/logout is *public presence* (already an
@@ -838,7 +847,7 @@ export class SocialLogic extends ApiLogic {
    * cadence side-channel — locking subscribe would wrongly bar other
    * legitimate future presence consumers.
    */
-  @CallSecurity(SocialApiCallers)
+  @CallSecurity(SocialBootCallers)
   public installPresenceTap(): void {
     if (this.loginSub) return;
     const limiter = this.presenceSeen;
