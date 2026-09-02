@@ -31,7 +31,13 @@ data:
     # — take it off her and the dorm weathers. An owner-authored loadout,
     # exactly like the master ring: never a self-issued power.
     - /residence/thing/householders-kit
-  cast:
+    # ⚠⚠ The master ring is a KEY, and it was on the `cast:` list.
+    # `props:`/`cast:` is a DECLARED DESIGNATION with a `Behaved` gate in
+    # both directions, so a key under `cast:` throws at hydrate — and
+    # Katie is cloned by the dorm warren's own boot, which made it a
+    # fatal boot error. The comment two lines up already called it a
+    # loadout "exactly like the master ring"; the list disagreed. Found
+    # by booting the metal-chain build against a real database.
     - /world/eternal/duncan-hall/agent/master-ring
   shortDescription: the live-in super, keys jangling at her belt
   longDescription: |

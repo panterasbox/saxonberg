@@ -1,0 +1,32 @@
+# /world/terminus/mayfield-row/seznick-house — the ZONE over the
+# building's own ground floor.
+#
+# ⚠⚠ **It was missing, and the omission was fatal at boot.** The lobby
+# declares `out:` to the street and the street declares `house:` back —
+# both NON-CARDINAL, because a door is identified by what it opens onto
+# and not by a compass point. `CartesianLocation.addExit` admits a
+# non-cardinal exit only ACROSS a zone boundary, and without this row the
+# lobby and the street both resolved to `/world/terminus/mayfield-row`,
+# so the pair threw.
+#
+# This is the same rule, and the same fix, that `seznick-house/location`
+# already documents for the units' front doors one floor up: *a landing
+# serving four units cannot spend four compass points on them.* A
+# building's street door is the same problem at the other end of the
+# stair, and it wants the same boundary.
+#
+# ⚠ A `CartesianZone`, not a `FolderZone`: only a `SpatialZone` can be a
+# room's zone (`resolveZoneForPath` skips folders), so a folder here
+# would be walked straight past and the lobby would land back in the
+# street's zone — which is the failure this fixes.
+#
+# `cellSize` matches the row it sits in, so nothing's light or geometry
+# moves: `getSizeScale()` is `cellSize²` and the lighting walk divides
+# flux by it.
+#
+# Found by booting the metal-chain build against a real database.
+class: /platform/idea/location/CartesianZone
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: Seznick House
+  cellSize: 3.0

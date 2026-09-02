@@ -10,6 +10,23 @@
 # persistable fixtures (the Stock, the racking, the counter) — the
 # consigned goods and their listings ride those, never the room; the
 # `populates` set below is the placement and respawns each boot.
+#
+# ⚠⚠ **It authors no `coords`, and that is a FIX rather than an
+# omission.** This row carried `coords: {0,0,0}` while it was a
+# `FurnishableRoom` — a class that is deliberately NOT cartesian, so the
+# block was inert data nobody read. Moving it to
+# `SingletonCartesianLocation` (residences: *FurnishableRoom is down to
+# the ten rooms somebody furnishes*) made that dead block LIVE, and
+# `setCoords` needs a covering `CartesianZone` in its template ancestry.
+# There is none over `/trade/distilling/location` — the only zone in this
+# pack is `veshko-yard`, and this room is its sibling, not its child — so
+# the boot died on the row's own `boot:` entry.
+#
+# The showroom is a standalone floor reached by a cross-zone exit from
+# the counting-houses avenue. It is in no grid, `0,0,0` meant nothing,
+# and a zone over the directory would be the wrong shape (the other three
+# floors here author no coords either). Deleting the block is the honest
+# fix. Found by booting the metal-chain build against a real database.
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
@@ -20,10 +37,6 @@ data:
     A high, cold hall that smells of sawdust and spilled spirit. Steel racking climbs the walls, cased and chalk-numbered; a long counter runs under a board of consignors' asks, and beyond a roller door somebody's dray is always half-unloaded. Nothing here is for the thirsty — it is where the thirsty's bartender comes.
   ambientIntensity: 30
   ambientColorTemperature: 4200
-  coords:
-    x: 0
-    y: 0
-    z: 0
   exits:
     north:
       destination: /world/terminus/counting-houses/avenue-block

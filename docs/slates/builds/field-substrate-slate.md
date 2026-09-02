@@ -253,7 +253,7 @@ one shared one.
 |---|---|---|
 | **Weather** | seeded | **shipped** — the reference implementation |
 | **Foraging stock** | derived | **designed** ([discovery-slate](./discovery-slate.md)) |
-| **Mine geology** — hardness, grade, features | seeded | **designed** ([mining-slate](./mining-slate.md)) |
+| **Mine geology** — hardness, grade, features | seeded | ⭐ **SHIPPED** ([mining](../../subsystems/mining.md)) — the `Deposit` Idea, one resolved read, seed derived from the covering Locality's address |
 | **Soil quality** | seeded (probably) | **deferred** — farming's six-reserve soil "derives from **place**"; their district ground-character seam is the placeholder |
 | **The water table** | seeded | **needed** — it is the adit-level boundary that decides where the drainage commons begins, *and* the oxide/sulfide boundary. ⭐ One field, two systems. |
 | **Air at depth** | seeded (degenerate — a function of `z` alone) | **designed**, just not called a field |
@@ -269,12 +269,28 @@ one shared one.
    a build — rather than like a slate, which retires when it promotes.
    Left as a slate for now because a top-level doc is a permanent claim on
    the repo's structure and a `CLAUDE.md` index line. **User's call.**
-2. **Is there a shared implementation, or just a shared shape?**
-   `WeatherLogic` is 1015 lines of grammar specific to weather; the mine's
-   generator will share the *hash/mix/roll* trio and the pin-walk and
-   almost nothing else. ⚠ Resist a premature `FieldApi` — two instances is
-   where a pattern is *named*, not where it is factored.
-3. **Where does the pin walk live?** Weather's `stepOutwardForPin` is a
+2. ~~**Is there a shared implementation, or just a shared shape?**~~ —
+   **ANSWERED by the metal chain: a shared SHAPE, not shared code, and
+   the duplication was resisted on purpose.**
+   `Deposit` re-implements the *hash/mix/roll* trio and the
+   address-derived seed rather than importing weather's, and the total is
+   about thirty lines. What it does NOT share is everything that matters:
+   weather's grammar is 1015 lines of segments, seasons and fronts;
+   `Deposit`'s is a plane, three bands and a pin table. A `FieldApi`
+   factoring the thirty lines would have bought nothing and coupled a
+   trade pack to the weather spine.
+   ⭐ The thing that DID transfer is the **invariant**, not the code: one
+   resolved read, folding pin over lean over procedural, so an authored
+   pocket and a computed cell are indistinguishable downstream. That is
+   worth restating in every instance; the arithmetic is not worth
+   sharing. *Two instances is where a pattern is named, not where it is
+   factored* — and the third instance is where to look again.
+3. **Where does the pin walk live?** ⚠ *Still open, and mining did not
+   settle it*: `Deposit`'s pins are a flat `Record<cellKey, …>` lookup
+   rather than a containment walk, because a coordinate IS the key. A
+   third copy of weather's `stepOutwardForPin` remains the trigger.
+   Original note follows.
+   **Where does the pin walk live?** Weather's `stepOutwardForPin` is a
    containment walk with a depth cap, and biome has its own. A third
    copy in mining would be the point at which the walk itself wants a
    home.

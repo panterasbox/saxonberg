@@ -24,3 +24,12 @@ data:
   props:
     - /world/rejection/thing/glowcap-fixture
     - /trade/mining/thing/timber-set
+  # ⭐ The archetype's `haulage` and `air` slots, BOUND — and both are
+  # `presence` needs, so what satisfies them is simply a thing of that
+  # kind standing here. The bird's silence is the only free reading of
+  # the one hazard that can kill you; the pony is why ore moves on
+  # something other than your back.
+  cast:
+    - /world/rejection/agent/hewer
+    - /trade/mining/agent/canary
+    - /trade/mining/agent/pit-pony

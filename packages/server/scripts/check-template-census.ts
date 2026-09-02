@@ -116,6 +116,22 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
       }
     }
   }
+  // ⚠⚠ `props:` and `cast:` — and their ABSENCE here was a real gap.
+  // `populates:` retired in favour of the two designated lists, and this
+  // walk was never widened, so for a whole build every born-with content
+  // ref shipped uncensused: a `props:` naming a row that does not exist
+  // was a silent no-op, and nothing checked a `cast:` at all.
+  for (const list of ['props', 'cast'] as const) {
+    const entries = data[list];
+    if (!Array.isArray(entries)) continue;
+    for (const entry of entries) {
+      if (isPath(entry)) push(list, entry);
+      else if (entry && typeof entry === 'object') {
+        push(`${list}.template`, (entry as Record<string, unknown>).template);
+        push(`${list}.onto`, (entry as Record<string, unknown>).onto);
+      }
+    }
+  }
   const exits = data.exits;
   if (exits && typeof exits === 'object') {
     for (const [dir, spec] of Object.entries(exits as Record<string, unknown>)) {
@@ -200,11 +216,63 @@ function checkTemplatePathConstants(rows: Map<string, string>): number {
   return checked;
 }
 
+/**
+ * ── clause (d): a `cast:` entry names an AGENT ────────────────────────
+ *
+ * ⚠⚠ **`props:`/`cast:` is a DECLARED DESIGNATION with a gate in both
+ * directions.** `PopulatesMixin.applyCast` refuses a row that does not
+ * resolve to a `Behaved` class — *that is a prop, not cast* — and throws
+ * at HYDRATE. When the row carrying the list is in a pack's `boot:`
+ * chain, that is a FATAL boot error rather than a warning.
+ *
+ * Two shipped rows were on the wrong list and the metal-chain build found
+ * them by booting: the Registry's deed desk (a counter) and Katie's
+ * master ring (a key). Both had comments beside them calling them props;
+ * only the YAML disagreed.
+ *
+ * The check is BRANCH-shaped rather than mixin-shaped, because a script
+ * does not import the mudlib: a cast member's class must live on an
+ * `agent/` branch. That is not the same predicate `applyCast` uses — a
+ * `Behaved` composition is — but it catches the whole observed failure
+ * class (things on the people list) with no class loading, and a genuine
+ * `Behaved` non-agent would be a design conversation rather than a typo.
+ */
+function checkCastAreAgents(rows: Map<string, string>): number {
+  const classOf = new Map<string, string>();
+  for (const [path, file] of rows) {
+    const m = /^class:\s*(\S+)\s*$/m.exec(readFileSync(file, 'utf8'));
+    if (m) classOf.set(path, m[1]!);
+  }
+  let checked = 0;
+  for (const [, file] of rows) {
+    const text = readFileSync(file, 'utf8');
+    const block = /^  cast:\s*$([\s\S]*?)(?=^  \S|\Z)/m.exec(text);
+    if (!block) continue;
+    for (const ref of block[1]!.matchAll(/^\s*-\s*(\/\S+)\s*$/gm)) {
+      const target = ref[1]!;
+      const cls = classOf.get(target);
+      if (cls === undefined) continue; // clause (b) already reports it
+      checked += 1;
+      if (!/\/agent\//.test(cls)) {
+        findings.push({
+          clause: 'd', file,
+          detail:
+            `\`cast:\` names ${target}, whose class ${cls} is not on an ` +
+            `agent branch — that is a PROP, not cast. It throws at hydrate ` +
+            `(\`PopulatesMixin.applyCast\`); list it under \`props:\`.`,
+        });
+      }
+    }
+  }
+  return checked;
+}
+
 function main(): void {
   const rows = templateRows();
   checkRetiredChannel();
   const fieldRefs = checkFieldRefs(rows);
   const constants = checkTemplatePathConstants(rows);
+  const castRefs = checkCastAreAgents(rows);
 
   if (findings.length > 0) {
     console.error(`\n[check-template-census — ERROR] ${findings.length} finding(s):\n`);
@@ -215,8 +283,8 @@ function main(): void {
   } else {
     console.log(
       `check-template-census: every templatePath resolves to a row ` +
-        `(${rows.size} rows; ${fieldRefs} field refs, ${constants} singleton constants; ` +
-        `asTemplatePath retired).`,
+        `(${rows.size} rows; ${fieldRefs} field refs, ${constants} singleton constants, ` +
+        `${castRefs} cast member(s) on agent branches; asTemplatePath retired).`,
     );
   }
 }

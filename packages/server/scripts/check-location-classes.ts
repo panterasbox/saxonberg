@@ -107,6 +107,10 @@ const FURNISHED = [
 export interface Row {
   file: string;
   cls: string;
+  /** Does the row author a `coords:` block? */
+  coords: boolean;
+  /** `[direction, destination]` for every authored exit. */
+  exits: Array<[string, string]>;
 }
 
 /** Every shipped row's `class:`, keyed by its pack-relative path. */
@@ -119,8 +123,22 @@ export function shippedRows(contentDir: string = CONTENT): Row[] {
       const full = join(dir, name);
       if (statSync(full).isDirectory()) walk(full);
       else if (name.endsWith(".yaml")) {
-        const m = /^class:\s*(\S+)\s*$/m.exec(readFileSync(full, "utf8"));
-        if (m) out.push({ file: full.slice(contentDir.length + 1), cls: m[1]! });
+        const text = readFileSync(full, "utf8");
+        const m = /^class:\s*(\S+)\s*$/m.exec(text);
+        if (!m) continue;
+        const exits: Array<[string, string]> = [];
+        const block = /^  exits:\s*$([\s\S]*?)(?=^  \S|\Z)/m.exec(text);
+        if (block) {
+          const re = /^    ([A-Za-z0-9_-]+):\s*$\s*\n\s*destination:\s*(\S+)\s*$/gm;
+          let hit: RegExpExecArray | null;
+          while ((hit = re.exec(block[1]!)) !== null) exits.push([hit[1]!, hit[2]!]);
+        }
+        out.push({
+          file: full.slice(contentDir.length + 1),
+          cls: m[1]!,
+          coords: /^  coords:\s*$/m.test(text),
+          exits,
+        });
       }
     }
   };
@@ -204,6 +222,111 @@ export function orphanedZones(rows: readonly Row[], files: readonly string[]): s
     .sort();
 }
 
+/**
+ * ⚠⚠ **A cartesian row with `coords:` and no `CartesianZone` over it.**
+ *
+ * `CartesianLocation.setCoords` calls `zone.addLocation`, so a row that
+ * authors coordinates in a directory no spatial zone covers throws at
+ * HYDRATE — and if the row is in a pack's `boot:` list, that is a FATAL
+ * boot error rather than a warning.
+ *
+ * It is a merge hazard, not a typo, which is why it is worth a gate:
+ * `FurnishableRoom` is deliberately NOT cartesian, so a `coords:` block
+ * on one is inert data nobody reads. Move that row to
+ * `SingletonCartesianLocation` — as the residences build did for three
+ * trade floors — and the dead block becomes LIVE, in a directory that
+ * never needed a zone before. Nothing else notices until a boot.
+ *
+ * Three rows shipped in exactly that state and the metal-chain build
+ * found them by booting: `trade-distilling`'s cash-and-carry,
+ * `trade-farming`'s packing floor, and (by the sibling rule below) the
+ * Seznick House lobby.
+ *
+ * The fix is usually to DELETE the coords — a standalone floor reached
+ * by a cross-zone exit is in no grid, and `{0,0,0}` meant nothing — not
+ * to invent a zone for one room.
+ */
+export function unzonedCoords(rows: readonly Row[]): string[] {
+  const zones = new Set(
+    rows.filter((r) => ZONES.includes(r.cls)).map((r) => stemOf(r.file)),
+  );
+  return rows
+    .filter((r) => r.cls.includes("CartesianLocation") && r.coords)
+    .filter((r) => !ancestorsOf(stemOf(r.file)).some((a) => zones.has(a)))
+    .map((r) => r.file)
+    .sort();
+}
+
+/**
+ * ⚠⚠ **A NON-CARDINAL exit between two rows in the same zone.**
+ *
+ * `CartesianLocation.addExit` admits a non-cardinal direction only
+ * ACROSS a zone boundary — the rule that guarantees a grid exit has a
+ * known inverse. A named door (`out`, `house`, `unit-3`) between two
+ * rooms the same zone covers therefore THROWS at hydrate, and again a
+ * `boot:` entry turns that into a fatal boot error.
+ *
+ * The same merge shape produces it: a row moves onto a cartesian class,
+ * or a zone row is renamed away from the directory it governed, and a
+ * named door that was legal yesterday is not today. The fix is a zone
+ * boundary where the authorship of the space genuinely changes (a
+ * building's ground floor is not the street), never re-spelling the door
+ * as a compass point it does not mean.
+ */
+export function sameZoneNamedExits(rows: readonly Row[]): string[] {
+  const zones = new Set(
+    rows.filter((r) => ZONES.includes(r.cls)).map((r) => stemOf(r.file)),
+  );
+  const byPath = new Map<string, Row>();
+  for (const r of rows) byPath.set(templatePathOf(r.file), r);
+  const zoneOf = (templatePath: string): string | null =>
+    ancestorsOf(templatePath).find((a) => zones.has(a.slice(1))) ?? null;
+  const out: string[] = [];
+  for (const r of rows) {
+    if (!r.cls.includes("CartesianLocation")) continue;
+    const here = zoneOf(templatePathOf(r.file));
+    if (here === null) continue;
+    for (const [dir, dest] of r.exits) {
+      if (CARDINALS.has(dir)) continue;
+      const target = byPath.get(dest);
+      if (!target || !target.cls.includes("CartesianLocation")) continue;
+      if (zoneOf(dest) === here) {
+        out.push(`${r.file}  '${dir}' → ${dest}  (both in ${here})`);
+      }
+    }
+  }
+  return out.sort();
+}
+
+/** The ten canonical cardinals, mirrored from `NavigationApi` (a script does not import the mudlib). */
+const CARDINALS = new Set([
+  "north", "south", "east", "west",
+  "northeast", "northwest", "southeast", "southwest",
+  "up", "down",
+]);
+
+/** `pack/content/world/x/y.yaml` → `pack/content/world/x/y`. */
+function stemOf(file: string): string {
+  return file.replace(/\.yaml$/, "");
+}
+
+/** `pack/content/world/x/y.yaml` → `/world/x/y` (the template path). */
+function templatePathOf(file: string): string {
+  const i = file.indexOf("/content/");
+  return i < 0 ? "/" + stemOf(file) : stemOf(file.slice(i + "/content".length));
+}
+
+/** Every ancestor stem of a path, nearest first. */
+function ancestorsOf(path: string): string[] {
+  const out: string[] = [];
+  let p = path;
+  while (p.includes("/")) {
+    p = p.slice(0, p.lastIndexOf("/"));
+    if (p) out.push(p);
+  }
+  return out;
+}
+
 /** The findings: rows on the permissive `CartesianLocation`. */
 export function classifyMinted(rows: readonly Row[]): {
   unexpected: string[];
@@ -215,6 +338,8 @@ export function classifyMinted(rows: readonly Row[]): {
 function main(): void {
   const rows = shippedRows();
   const orphans = orphanedZones(rows, allYamlFiles());
+  const unzoned = unzonedCoords(rows);
+  const namedSameZone = sameZoneNamedExits(rows);
   const mint = classifyMinted(rows);
   const { unexpected, missing } = classify(rows);
   if (
@@ -222,15 +347,46 @@ function main(): void {
     missing.length === 0 &&
     mint.unexpected.length === 0 &&
     mint.missing.length === 0 &&
-    orphans.length === 0
+    orphans.length === 0 &&
+    unzoned.length === 0 &&
+    namedSameZone.length === 0
   ) {
     console.log(
       `check-location-classes: ok — ${FURNISHED.length} rows on ` +
         `FurnishableRoom, every one a room somebody furnishes; ` +
         `${MINTED_ROWS.length} on CartesianLocation, every one a KIND; ` +
-        `every zone row zones something.`,
+        `every zone row zones something; every cartesian row's coords ` +
+        `and named doors are legal.`,
     );
     return;
+  }
+  if (unzoned.length > 0) {
+    console.error(
+      `\ncheck-location-classes: ${unzoned.length} cartesian row(s) author ` +
+        `\`coords:\` with NO CartesianZone over them. \`setCoords\` calls ` +
+        `\`zone.addLocation\`, so these throw at hydrate — and a row in a ` +
+        `pack's \`boot:\` list turns that into a FATAL boot error.\n\n` +
+        `  ⚠ Usually the block is dead data that came alive: ` +
+        `\`FurnishableRoom\` is deliberately NOT cartesian, so \`coords:\` ` +
+        `on one is ignored — and moving the row to ` +
+        `SingletonCartesianLocation makes it live. Delete the coords ` +
+        `(a standalone floor reached by a cross-zone exit is in no grid) ` +
+        `rather than inventing a zone for one room:`,
+    );
+    for (const f of unzoned) console.error(`  ✗ ${f}`);
+  }
+  if (namedSameZone.length > 0) {
+    console.error(
+      `\ncheck-location-classes: ${namedSameZone.length} NON-CARDINAL ` +
+        `exit(s) between rows the SAME zone covers. ` +
+        `\`CartesianLocation.addExit\` admits a named direction only ` +
+        `ACROSS a zone boundary — the rule that guarantees a grid exit ` +
+        `has a known inverse — so these throw at hydrate.\n\n` +
+        `  ⚠ Add a zone where the authorship of the space genuinely ` +
+        `changes (a building's ground floor is not the street). Do NOT ` +
+        `re-spell the door as a compass point it does not mean:`,
+    );
+    for (const f of namedSameZone) console.error(`  ✗ ${f}`);
   }
   if (orphans.length > 0) {
     console.error(

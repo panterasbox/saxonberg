@@ -7,6 +7,15 @@
 # persistable fixtures (the Stock, the racking, the counter) — the
 # consigned goods and their listings ride those, never the room; the
 # `populates` set below is the placement and respawns each boot.
+#
+# ⚠⚠ **It authors no `coords`, and that is a FIX.** The block was inert
+# `{0,0,0}` here — a `SingletonCartesianLocation` in a directory with no
+# `CartesianZone` over it — and `setCoords` throws without one. The
+# packing floor is a standalone room reached by a cross-zone exit, in no
+# grid; a zone over `/trade/farming/location` would be the wrong shape
+# for a single room. Same defect as `trade-distilling`'s cash-and-carry,
+# and the same fix. Found by booting the metal-chain build against a real
+# database.
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
@@ -17,10 +26,6 @@ data:
     A packing shed open on one side: trestles, a scale, crates under wet sacking (the growing is the smallholding's; the floor stands at target through the sweep until a grower supplies it).
   ambientIntensity: 25
   ambientColorTemperature: 4200
-  coords:
-    x: 0
-    y: 0
-    z: 0
   props:
     - /trade/farming/thing/farm-stock
   cast:

@@ -20,7 +20,14 @@ data:
     z: 0
   cast:
     - /world/terminus/registry/clerk
-    # The deed desk — the `title` verb's venue predicate (residences P6).
+  # ⚠⚠ The deed desk is a PROP, not cast, and it was on the wrong list.
+  # `props:`/`cast:` is a DECLARED DESIGNATION with a `Behaved` gate in
+  # both directions, so a fixture under `cast:` throws at hydrate — and
+  # this row's own `boot:` entry made that a fatal boot error rather than
+  # a warning. The desk is the `title` verb's venue predicate (residences
+  # P6); a counter has no brain and never did. Found by booting the
+  # metal-chain build against a real database.
+  props:
     - /world/terminus/registry/desk
   exits:
     west:
