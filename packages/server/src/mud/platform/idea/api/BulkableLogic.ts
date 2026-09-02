@@ -300,6 +300,13 @@ export class BulkableLogic extends ApiLogic {
         // Same-material pours into a non-empty vessel keep the
         // destination's payload — blend merging is out of scope.
         if (fromPayload) to.setPayload(fromPayload);
+        // The grade seam (fermentation D6/W0): a fresh fill from a
+        // graded batch carries the batch's identity — band, and the
+        // maker's mark when both sides can hold one. Same rule as the
+        // payload: identity rides into an EMPTY destination only; a
+        // top-up keeps the destination's own identity (blend identity
+        // is out of scope, like blend merging above).
+        carryBatchIdentity(fromHolder, toHolder);
       }
       to.setAmount(to.getAmount().add(Quantity.of(applied, 'L')));
     }
@@ -377,6 +384,34 @@ export class BulkableLogic extends ApiLogic {
  * Returns 0 (with a `quantity-clamped-rejected` note) on a strict
  * shortfall. `to === null` is the discard sink (no remaining cap).
  */
+/**
+ * Carry a graded batch's identity across a fresh fill (the fermentation
+ * grade seam, D6). Module-private free function beside `computeApplied`
+ * for the same reason: pure glue on already-narrowed holders, not
+ * external surface.
+ *
+ * - Band: source Graded + target Graded → the target adopts the
+ *   source's grade.
+ * - Maker's mark: source Crafted + target Crafted → maker, recipe and
+ *   craftedAt ride along too (Crafted extends Graded, so the band case
+ *   above already fired).
+ * - Anything else is a no-op — an ungraded source or an unmarkable
+ *   target leaves the transfer exactly as before.
+ */
+function carryBatchIdentity(
+  fromHolder: Stuff,
+  toHolder: Stuff | null,
+): void {
+  if (toHolder === null) return;
+  if (!MixinApi.isGraded(fromHolder) || !MixinApi.isGraded(toHolder)) return;
+  toHolder.setGrade(fromHolder.getGrade());
+  if (MixinApi.isCrafted(fromHolder) && MixinApi.isCrafted(toHolder)) {
+    toHolder.setMaker(fromHolder.getMaker());
+    toHolder.setRecipe(fromHolder.getRecipe());
+    toHolder.setCraftedAt(fromHolder.getCraftedAt());
+  }
+}
+
 function computeApplied(
   from: BulkSlot,
   to: BulkSlot | null,

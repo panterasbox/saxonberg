@@ -191,7 +191,13 @@ capacity, `sip`, `pour 2 cups`). Pipeline:
 5. **Apply** — debit the source (skipped for an unbounded source; a
    bounded slot that hits zero clears its material), credit the
    destination (adopting the material when it was empty); a `null` sink
-   just discards.
+   just discards. A fresh fill (empty destination) also carries the
+   **batch's identity** — a Graded source holder stamps the
+   destination's grade band, and a Crafted source stamps the maker's
+   mark (maker/recipe/craftedAt) too. The rule mirrors the payload
+   rule exactly: identity rides into an *empty* destination only; a
+   top-up keeps the destination's own identity (the fermentation grade
+   seam, D6).
 
 Verb-facing helpers on the same Api:
 
