@@ -424,9 +424,10 @@ still reads ±15°.
 
 ## ⚠ Why this is blocking a build today
 
-The metal-chain plan (`docs/plans/metal-chain-plan.md` § P1) hit the
-mismatch head-on and had to work around it. Its finding is correct and
-worth keeping — **a pack cannot contribute a subcommand**, because a
+The metal chain hit the mismatch head-on and had to work around it (its
+plan's § P1 — the plan is retired; the shipped shape is recorded in
+[mining.md](../../subsystems/mining.md) § *The trade/locality line*). The
+finding is correct and worth keeping — **a pack cannot contribute a subcommand**, because a
 command view is one document per file with no verb-level merge, the schema
 forbids extension, and an `unknown-subcommand` **stops the chain** rather
 than falling through. Its workaround is to edit the platform view and have

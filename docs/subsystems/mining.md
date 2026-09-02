@@ -361,6 +361,40 @@ read at dispatch) rather than overriding a hook.
 
 ---
 
+## What Stage A does NOT cover, and what the next stage inherits
+
+Salvaged from the build plan at its retirement, because these are the two
+places Stage A deliberately shaped itself for a later one:
+
+- ⭐ **`MineWarren` is shaped for a BASE SWAP, not a redesign.** When
+  `HoldingWarren` graduates to the kernel — with mining as its second
+  consumer, which is what the two-consumers rule asks for — adopting it
+  is `extends InnerWarren` → `extends HoldingWarren`. The only genuinely
+  residential residue to leave behind or make optional is the shell
+  condition and its weathering clock; the keyed-member convention, the
+  tenure/promotion split and the reconcile are already the shared shape.
+- ⚠ **High-grading ships as pooling and an honest assay; the OFFENCE
+  does not.** A miner can already pool a rich lump with lean ones and the
+  scale reads the pooled figure — so the lie has moved from physics to
+  declaration, which is where an offence can be defined. What is missing
+  is an adjudicator, and that is not a mining problem.
+
+⏳ And the boundary of the whole stage is a fact about the ground rather
+than a project line: **an adit drains by gravity and the oxide cap sits
+above the water table**, so there is no shaft, hoist, pump or drainage
+commons, no sulfides and therefore no roasting. Iron wants the bellows.
+Tin has chemistry (`/stuff/idea/material/element/tin`) but no ore, which
+is exactly what keeps bronze a later stage rather than a missing row.
+
+⚠ **One acceptance criterion is only partly met**, recorded here rather
+than quietly dropped: the requirements ask for *"no net money created,
+asserted by a test that totals the ledger across the loop"* (ore →
+smelter → smith → miner). What ships is the structural half — the kernel
+chokepoint's own conservation test (`lib/banking/__tests__/money-integrity`),
+and a content assertion that none of the four businesses carries an
+endowment, float or credit line. The dynamic four-business loop test is
+not written.
+
 ## Cross-references
 
 [field-substrate](../slates/builds/field-substrate-slate.md) ·

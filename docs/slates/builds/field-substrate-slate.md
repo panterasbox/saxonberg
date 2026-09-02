@@ -1,5 +1,25 @@
 # Field substrate slate — negative space, and the world that is there before you look
 
+> ## ⭐ STAGE A SHIPPED (metal chain, 2026-09-02) — the first real field
+>
+> `trade-mining`'s `Deposit` is this pattern's first production instance,
+> and it holds: a **total function under a sparse graph** (every cell has
+> a hardness, a mineral and a grade; a handful are authored pins), the
+> **seeded-not-drawn** rule (`Deposit.seedFor(address)` — FNV-1a over the
+> covering Locality's address, stored nowhere, so the same cell answers
+> the same across boots and across an eviction round-trip), and one
+> resolved read folding **pin over lean over procedural**.
+>
+> ⭐ The slate's own *"the price of a sample decides scenery-vs-career"*
+> is what the survey channels became: a bearing costs an instrument and a
+> walk, dip is unobtainable from the surface at all, and competence sets
+> the ERROR BAND and never the number.
+>
+> **Kept, not retired.** The pattern is general and this is one consumer;
+> weather is another, and the slate's unbuilt space (fields that are not
+> geological, and the discovery-slate seam it names) is untouched. See
+> [mining.md](../../subsystems/mining.md).
+
 > **Captured 2026-08-31**, out of the metal-chain design session, when the
 > user noticed the mine was *"modelling content on negative space — the
 > space in between rooms actually has properties, and those properties
