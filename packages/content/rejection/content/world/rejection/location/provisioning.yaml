@@ -20,13 +20,14 @@ data:
   exits:
     east:
       destination: /world/rejection/location/pithead-yard
+  # ⚠⚠ The room props the COUNTER, not the goods — and the difference is
+  # not tidiness. A `Stock` fixture stocks itself to par and PRICES what
+  # it holds (`PricedOffer` — worth on the offer, never on the good), so a
+  # pick standing in the room as a prop is a pick with no price: `buy
+  # pick` finds it, finds no offer, and says *"a miner's pick isn't for
+  # sale."* Which is true, and useless. Found by driving; the general
+  # store's shop floor props exactly two things and both are fixtures.
   props:
-    - /trade/mining/thing/pick
-    - /trade/mining/thing/pinch-bar
-    - /trade/mining/thing/shovel
-    - /trade/mining/thing/timber-set
-    - /trade/mining/thing/compass
-    - /world/rejection/thing/glowcap-jar
     - /world/rejection/thing/store-counter
   cast:
     - /world/rejection/agent/storekeeper
