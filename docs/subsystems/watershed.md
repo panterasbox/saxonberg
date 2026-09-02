@@ -209,7 +209,7 @@ warms the roster and it reads null forever, silently.
 
 A watercourse is a data `Idea` in a catalogue, resolve-on-read — the
 `Biome` / `Government` / `Corpo` / `Material` shape. The **class** is the
-water pack's (`/water/idea/Watercourse`); the **rows** live in the
+water pack's (`/system/water/idea/Watercourse`); the **rows** live in the
 commons at `/stuff/idea/Watercourse/<key>`, exactly where `Locality` and
 `Government` reference rows live and for the same reason: a river is a
 fact about somebody's realm, and the realm's own pack has to be able to
@@ -693,7 +693,7 @@ a platform act*. The **kind** is the platform's; the **validated save**
 that decides what a legitimate right looks like is the water pack's.
 That is the whole of P1's split, in one feature.
 
-Path-keyed at `/water/rights/<course>/<node>/<id>`, because seniority is
+Path-keyed at `/system/water/rights/<course>/<node>/<id>`, because seniority is
 `list(prefix)` plus a sort — which wants the reach in the path rather
 than in an index. `onVanish: 'keep'`, **not** `'delete'`: a right is a
 record of something that happened, and no absent file should erase one.
@@ -1003,7 +1003,7 @@ watershed.
 | | |
 |---|---|
 | **kernel — the physics** | zone elevation (`lib/zone/Zone.ts` + `ZoneApi.elevationFor`) · the precipitation integral and the segment walk (`api/weather.ts` + `platform/idea/api/WeatherLogic.ts`) · the pressure fallback (`platform/idea/api/BiomeLogic.ts`) · the rain→soil edge (`lib/husbandry/Cultivable.ts`) · the supply vocabulary (`lib/supply/SupplyState.ts`) · the `water-right` kind (`lib/document/DocumentKinds.ts`) · `ParcelRecord.reach` · `Material.purifiedByBoiling` · `analyze water` + `boil` |
-| **`water` pack — the works** | `Watercourse`, `WatercourseCatalogue`, `Conduit`, `ControlStructure`, `StorageNode`, `WaterRightRegistry` — `packages/content/water/src/` |
+| **`water` pack — the works** | `Watercourse`, `WatercourseCatalogue`, `Conduit`, `ControlStructure`, `StorageNode`, `WaterRightRegistry` at **`/system/water/<branch>/`** — `packages/content/water/src/` |
 | **content** | the basins and Terminus's works — `world-seed` (the watercourses + the localities' declarations), `terminus` (Wharfside, the valley road, the aqueduct), `hinkley-hills` (the District tank) |
 
 The split follows arcana's membership test: **a capability pack holds

@@ -10,7 +10,7 @@
  * aggregation point (D15), and lease revert.
  *
  * Identity is the keyed model: the programme row is authored content
- * (`class: /residence/idea/HoldingWarren`), each holding gets a
+ * (`class: /system/residence/idea/HoldingWarren`), each holding gets a
  * keyed instance `(scope = the row, key = the holding's parcel
  * extent)`; each room is a keyed instance of a REAL room row
  * `(scope = the room row, key = <extent>/<leaf>)` — `templatePath`

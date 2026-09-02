@@ -17,7 +17,7 @@
 # reading an unidentified one is a gamble against your own comprehension
 # floor. Which puts a library's product where it belongs — the CATALOG,
 # not the books.
-class: /arcana/thing/Spellbook
+class: /system/arcana/thing/Spellbook
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a slim grey primer

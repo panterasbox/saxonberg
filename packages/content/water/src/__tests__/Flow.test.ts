@@ -63,7 +63,7 @@ function installValley(): void {
   installRows([
     {
       path: '/stuff/idea/Watercourse/kestrel',
-      class: '/water/idea/Watercourse',
+      class: '/system/water/idea/Watercourse',
       data: {
         key: 'kestrel',
         name: 'the Kestrel',
@@ -196,7 +196,7 @@ describe('flow is a takeable volume', () => {
     installRows([
       {
         path: '/stuff/idea/Watercourse/dry',
-        class: '/water/idea/Watercourse',
+        class: '/system/water/idea/Watercourse',
         data: {
           key: 'dry',
           name: 'dry',
@@ -234,7 +234,7 @@ describe('⭐ snowpack: the spring rise and the late-summer low', () => {
     installRows([
       {
         path: '/stuff/idea/Watercourse/step',
-        class: '/water/idea/Watercourse',
+        class: '/system/water/idea/Watercourse',
         data: {
           key: 'step',
           name: 'step',

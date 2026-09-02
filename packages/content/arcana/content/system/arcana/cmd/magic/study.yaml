@@ -1,5 +1,5 @@
 verbs: [study]
-controller: /arcana/idea/cmd/magic/StudyController
+controller: /system/arcana/idea/cmd/magic/StudyController
 description: "Take a working on board from a spellbook, or sharpen one you hold"
 help: |
   Sit with a book until its working is in your head.

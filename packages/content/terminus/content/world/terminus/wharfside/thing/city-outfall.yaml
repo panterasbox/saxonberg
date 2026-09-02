@@ -11,7 +11,7 @@
 # cleaner than the water at the arch. The mine that will one day
 # discharge `persistent` at the headwaters is a different lesson, and it
 # ships with Rejection.
-class: /water/thing/Conduit
+class: /system/water/thing/Conduit
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: the outfall

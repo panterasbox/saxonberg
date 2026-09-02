@@ -11,7 +11,7 @@
 # Heart's Delight does not exist as content and is not authored here —
 # this wave lays the water its own build will sit on. What the model
 # asks of that build is a single declared field.
-class: /water/idea/Watercourse
+class: /system/water/idea/Watercourse
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: delight

@@ -10,7 +10,7 @@
 # Store-stocked (the general store's furnishings line cites this row
 # cross-pack), and carried by the property managers whose term owes the
 # shell — Katie for the dorm, Walter for Seznick House.
-class: /residence/thing/HouseholdersKit
+class: /system/residence/thing/HouseholdersKit
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a householder's kit

@@ -56,7 +56,7 @@ interface DrainageView {
   } | null>;
 }
 
-const CATALOGUE_PATH = '/water/idea/WatercourseCatalogue';
+const CATALOGUE_PATH = '/system/water/idea/WatercourseCatalogue';
 
 export default class AnalyzeWaterController extends CommandController<AnalyzeWaterModel> {
   async execute(

@@ -80,7 +80,7 @@ const GARDEN_LINES = [
  * sells it.
  */
 const FURNISH_LINES = [
-  "/residence/thing/householders-kit",
+  "/system/residence/thing/householders-kit",
   "/stuff/thing/fixture/bed",
   "/stuff/thing/fixture/wardrobe",
   "/stuff/thing/fixture/table",

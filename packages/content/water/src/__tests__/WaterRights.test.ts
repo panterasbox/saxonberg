@@ -110,7 +110,7 @@ describe('prior appropriation: recorded, dated, transferable', () => {
   it('a filed right round-trips, keyed under its own reach', async () => {
     const reg = registry();
     const path = await reg.file(right({ rightId: 'ditch-1' }));
-    expect(path).toBe('/water/rights/kestrel/confluence/ditch-1');
+    expect(path).toBe('/system/water/rights/kestrel/confluence/ditch-1');
 
     const filed = await reg.filedRightsOn(REACH);
     expect(filed).toHaveLength(1);
@@ -297,7 +297,7 @@ describe('⭐ navigation: a claimant who is not a farmer', () => {
     ]);
 
     // Curtail the junior right — and the river comes back.
-    docs.delete('/water/rights/kestrel/confluence/big-ditch');
+    docs.delete('/system/water/rights/kestrel/confluence/big-ditch');
     const restored = await reg.allocate(REACH, 10);
     expect(restored.remainingM3S).toBe(10);
     expect(restored.strandedNavigation).toEqual([]);
@@ -353,7 +353,7 @@ describe('⚠ the quota rides the RIGHT, and exposes nobody else', () => {
     // is nothing for it to look up, so there is nothing for it to leak
     // — and no leaderboard can ever be built from it.
     const unfiled = right({ rightId: 'never-filed', quotaM3: 10 });
-    expect(docs.has('/water/rights/kestrel/confluence/never-filed')).toBe(false);
+    expect(docs.has('/system/water/rights/kestrel/confluence/never-filed')).toBe(false);
     expect(reg.quotaRemainingM3(unfiled, 3)).toBe(7);
   });
 });

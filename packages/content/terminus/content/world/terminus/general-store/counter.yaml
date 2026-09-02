@@ -79,7 +79,7 @@ data:
     # thing that confers the verb. A cross-pack line (the residence pack
     # ships the substrate's own goods); the same rule as the others —
     # one kit row in the world, and a shop that sells it.
-    - { itemTemplatePath: /residence/thing/householders-kit, par: 3 }
+    - { itemTemplatePath: /system/residence/thing/householders-kit, par: 3 }
   prices:
     /world/terminus/general-store/thing/torch: 2
     /world/terminus/general-store/thing/rations: 3
@@ -128,4 +128,4 @@ data:
     # Cheap on purpose: upkeep must never be the thing you cannot afford
     # to do. It wears with use, so the recurring cost is real without the
     # first one being a barrier — a couple of hours' wages.
-    /residence/thing/householders-kit: 9
+    /system/residence/thing/householders-kit: 9

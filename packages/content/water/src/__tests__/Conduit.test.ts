@@ -55,7 +55,7 @@ const WORLD: Row[] = [
   },
   {
     path: '/stuff/idea/Watercourse/kestrel',
-    class: '/water/idea/Watercourse',
+    class: '/system/water/idea/Watercourse',
     data: {
       key: 'kestrel',
       name: 'the Kestrel',
@@ -149,7 +149,7 @@ function makeConduit(spec: {
     c.setTreatmentFactor(spec.treatment ?? 0);
     c.switchOn();
     return c;
-  }, `/water/thing/Conduit/_test-${seq}`) as Conduit;
+  }, `/system/water/thing/Conduit/_test-${seq}`) as Conduit;
 }
 
 beforeEach(() => {

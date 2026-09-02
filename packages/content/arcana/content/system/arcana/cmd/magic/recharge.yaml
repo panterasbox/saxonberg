@@ -1,5 +1,5 @@
 verbs: [recharge]
-controller: /arcana/idea/cmd/magic/RechargeController
+controller: /system/arcana/idea/cmd/magic/RechargeController
 description: "Move energy from your own reserve into an item"
 help: |
   Move your own reserve into a charged item. Three things have to be

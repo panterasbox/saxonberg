@@ -13,7 +13,7 @@
 # interpolate, so an uphill stretch is not merely illegal, it is
 # unwriteable. Direction, upstream/downstream, navigability and which
 # way contamination travels all fall out of these numbers.
-class: /water/idea/Watercourse
+class: /system/water/idea/Watercourse
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   # `catchmentKm2` on a node is the WILD ground draining to it — the

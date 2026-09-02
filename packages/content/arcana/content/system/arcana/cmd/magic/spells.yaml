@@ -1,5 +1,5 @@
 verbs: [spells]
-controller: /arcana/idea/cmd/magic/SpellsController
+controller: /system/arcana/idea/cmd/magic/SpellsController
 description: "Review the workings you can shape"
 help: |
   `spells` lists the workings you know of, by grid cell (operation ·

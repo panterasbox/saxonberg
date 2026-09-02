@@ -73,7 +73,7 @@ import {
  * pack, so `StuffApi.singleton` can lazily clone it wherever a conduit
  * or a verb needs the drainage.
  */
-export const WATERCOURSE_CATALOGUE_PATH = '/water/idea/WatercourseCatalogue';
+export const WATERCOURSE_CATALOGUE_PATH = '/system/water/idea/WatercourseCatalogue';
 
 /** Where the kernel's `Locality` reference rows live. */
 const LOCALITY_PATH_PREFIX = '/stuff/idea/Locality';

@@ -44,7 +44,7 @@ const YEAR = 365 * 86_400;
 const WORLD = [
   {
     path: '/stuff/idea/Watercourse/kestrel',
-    class: '/water/idea/Watercourse',
+    class: '/system/water/idea/Watercourse',
     data: {
       key: 'kestrel',
       name: 'the Kestrel',
@@ -113,7 +113,7 @@ function makeOutfall(
     c.setDischargeKind(kind);
     c.switchOn();
     return c;
-  }, `/water/thing/Conduit/_outfall-${seq}`) as Conduit;
+  }, `/system/water/thing/Conduit/_outfall-${seq}`) as Conduit;
 }
 
 /** An intake: a supply conduit drawing from `reach`. */
@@ -129,7 +129,7 @@ function makeIntake(reach: string, treatment = 0): Conduit {
     c.setTreatmentFactor(treatment);
     c.switchOn();
     return c;
-  }, `/water/thing/Conduit/_intake-${seq}`) as Conduit;
+  }, `/system/water/thing/Conduit/_intake-${seq}`) as Conduit;
 }
 
 const catalogue = (): WatercourseCatalogue =>

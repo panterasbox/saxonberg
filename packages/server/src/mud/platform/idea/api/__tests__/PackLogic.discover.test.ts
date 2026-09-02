@@ -81,7 +81,7 @@ describe('the shipped packs (real discovery, no install)', () => {
       expect(ids.indexOf(consigner)).toBeGreaterThan(ids.indexOf('distribution'));
     }
     // The watershed cut: the three packs whose content names the water
-    // pack's classes (`/water/thing/Conduit`, `StorageNode`) or its
+    // pack's classes (`/system/water/thing/Conduit`, `StorageNode`) or its
     // `Watercourse` rows must install after it.
     for (const namer of ['world-seed', 'terminus', 'hinkley-hills']) {
       expect(ids.indexOf(namer)).toBeGreaterThan(ids.indexOf('water'));

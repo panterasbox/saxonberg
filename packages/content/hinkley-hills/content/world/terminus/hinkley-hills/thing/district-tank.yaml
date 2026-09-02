@@ -23,7 +23,7 @@
 # a suburb's draw is days rather than hours, and that number is the
 # whole of what the District is actually deciding when it decides how
 # big to build.
-class: /water/thing/StorageNode
+class: /system/water/thing/StorageNode
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: the District tank

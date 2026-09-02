@@ -23,7 +23,7 @@ const __filename = fileURLToPath(import.meta.url);
 // are arcana's. The roster under test is the union.
 const SEEDS_DIRS = [
   join(dirname(__filename), "../../../../../../content/platform/content/platform/idea/Discipline"),
-  join(dirname(__filename), "../../../../../../content/arcana/content/arcana/idea/Discipline"),
+  join(dirname(__filename), "../../../../../../content/arcana/content/system/arcana/idea/Discipline"),
 ];
 // The engine verbs are the platform pack's content (content-packs wave 2).
 const CMD_DIR = join(dirname(__filename), "../../../../../../content/platform/content/platform/cmd");

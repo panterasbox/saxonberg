@@ -777,7 +777,8 @@ where the `.ts` file sits, and where its templates live:
 > attachments. Template rows follow the same pattern under a ROOT the
 > pack decides: the platform pack's rows at `/platform/<branch>/…`,
 > every other pack's at `/stuff/<branch>/…` (the commons), an industry's
-> at `/trade/<industry>/<branch>/…`. A controller is an `Idea` at
+> at `/trade/<industry>/<branch>/…`, and a **system**'s at
+> `/system/<system>/<branch>/…`. A controller is an `Idea` at
 > `<root>/idea/cmd/<category>/<Name>Controller`; its view is the document
 > at `<root>/cmd/<category>/<verb>` (a `cmd` dir is views unless its
 > parent is `idea`).
@@ -785,6 +786,38 @@ where the `.ts` file sits, and where its templates live:
 The invariant, and it is literal: **nothing instances `/lib/`.** No
 template's `class:` may name a `/lib/` module, and no template path may
 start `/lib/`. Enforced by `pnpm lint:instanceable`, not by convention.
+
+### ⭐ The five namespace axes — which root a pack takes
+
+Every top-level root answers exactly one question, and a pack's root is
+decided by which question it answers:
+
+| axis | root | what it holds |
+|---|---|---|
+| the engine itself | `/platform` | the kernel's own classes + rows |
+| **what things are** | `/stuff` | the commons — materials, ideas, objects |
+| **where** | `/world/<place>` | localities and their rooms |
+| **who makes · who owns** | `/trade/<industry>` · `/corpo/<firm>` | industries and firms |
+| **how the world works** | **`/system/<system>`** | a named system other packs' content sits on |
+| what is written down | `/home` `/studio` `/wiki` `/compact` `/blueprints` `/expression` | document trees; **no classes** |
+
+⭐ **The test for `/system/`** is that *a system is true whether or not
+anyone is participating in it*. A trade is practised by somebody and can
+be quit; a place can be walked to; a thing can be picked up. But rivers
+flow with nobody employed by them, magic obeys its laws with nobody
+casting, and tenure exists with nobody renting. Members today:
+`/system/arcana` · `/system/residence` · `/system/water`.
+
+⚠ **A system's classes are the pack's; its instances are the realm's.**
+`/system/water/idea/Watercourse` is the mechanism and belongs to the
+water pack; `/stuff/idea/Watercourse/kestrel` is a river in somebody's
+world and belongs to the commons, where the realm's own pack can edit
+it. Same split as `Locality` and `Government`.
+
+A capability pack **must** hold a namespace root of its own — this is
+structural, not stylistic: `classFileOf` resolves a class path into the
+owning pack's `src/` by longest prefix, so a class at `/stuff/idea/X`
+would resolve to the **kernel** tree instead.
 
 Inheritance alone does NOT pull a class into `lib/` — `platform/thing/Chair →
 platform/thing/FoldingChair` is ordinary OO and correct. Only classes that are

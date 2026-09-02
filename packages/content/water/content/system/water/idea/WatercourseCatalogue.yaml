@@ -1,4 +1,4 @@
-# /water/idea/WatercourseCatalogue — the singleton that compiles the
+# /system/water/idea/WatercourseCatalogue — the singleton that compiles the
 # realm's drainage.
 #
 # Pure data: it holds no authored state, because everything it knows it
@@ -9,5 +9,5 @@
 # No `hydratorClass`: there is no `data` to apply, and declaring one
 # with nothing to hydrate is what `lint:instanceable` invariant 5 exists
 # to catch.
-class: /water/idea/WatercourseCatalogue
+class: /system/water/idea/WatercourseCatalogue
 data: {}

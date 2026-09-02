@@ -17,7 +17,7 @@
  * and a player learns *ring* and *amulet* as distinct classes of thing
  * — the identification model keys on class.
  *
- * Ships in the arcana pack (`/arcana/thing/Ring`); the exemplar row is
+ * Ships in the arcana pack (`/system/arcana/thing/Ring`); the exemplar row is
  * the arcane library's `ring-of-veil`.
  */
 

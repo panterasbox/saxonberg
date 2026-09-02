@@ -51,7 +51,7 @@ import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
  * ⚠ In the **commons** (`/stuff`), not under the pack's own `/water`
  * root — exactly where `Locality` and `Government` reference rows live,
  * and for the same reason. The pack ships the CLASS
- * (`/water/idea/Watercourse`); a river is a fact about somebody's realm,
+ * (`/system/water/idea/Watercourse`); a river is a fact about somebody's realm,
  * and the realm's own pack has to be able to author and edit it. A row
  * under `/water` would be titled to the water group, so world-seed could
  * not touch the Kestrel it authored.

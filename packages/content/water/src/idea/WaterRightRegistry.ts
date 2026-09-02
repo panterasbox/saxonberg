@@ -51,7 +51,7 @@ import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
 import type { ParcelOwner } from '@saxonberg/server/mud/lib/parcel/ParcelRecord';
 
 /** Where the register lives in the path-addressed document tree. */
-export const WATER_RIGHTS_PREFIX = '/water/rights';
+export const WATER_RIGHTS_PREFIX = '/system/water/rights';
 
 /** The document kind the platform declares for a filed right. */
 export const WATER_RIGHT_KIND = 'water-right';
@@ -383,13 +383,13 @@ export default class WaterRightRegistry extends Idea {
 
 /* ─────────────────────────── paths + parsing ─────────────────────────── */
 
-/** `/water/rights/<course>/<node>` — the reach's own branch. */
+/** `/system/water/rights/<course>/<node>` — the reach's own branch. */
 function prefixOf(reachRef: string): string {
   const [course, node] = reachRef.split(':');
   return `${WATER_RIGHTS_PREFIX}/${course ?? ''}/${node ?? ''}`;
 }
 
-/** `/water/rights/<course>/<node>/<rightId>`. */
+/** `/system/water/rights/<course>/<node>/<rightId>`. */
 function pathOf(reachRef: string, rightId: string): string {
   return `${prefixOf(reachRef)}/${rightId}`;
 }

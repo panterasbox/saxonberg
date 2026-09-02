@@ -1,6 +1,6 @@
 id: water
 version: 0.1.0          # reserved; nothing reads/enforces it (non-goal: version machinery)
-root: /water
+root: /system/water
 description: >-
   Water — the watershed pack: the works, as distinct from the physics.
   The kernel owns what every pack's content is already subject to (zone
@@ -18,4 +18,4 @@ requires:
       purpose: the water pack's own body — the watershed's works
       owner: { office: prime-minister }
   title:
-    - { extent: /water, holder: { group: water } }
+    - { extent: /system/water, holder: { group: water } }

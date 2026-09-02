@@ -118,7 +118,7 @@ describe('pointed at a thing, it goes over the SHAPE', () => {
   it('a supply answers, and the kernel never imported its class', async () => {
     const supply = makeStuffAtPath(
       () => new FakeSupply(),
-      '/water/thing/Conduit/_analyze-test',
+      '/system/water/thing/Conduit/_analyze-test',
     ) as FakeSupply;
     await ContainmentApi.move(supply as never, room as never);
 
@@ -168,7 +168,7 @@ describe('⚠⚠ the catalogue is resolved CREATINGLY — nothing pre-warms it',
     // it. `findByTemplatePath` would never appear here.
     expect(
       singleton.mock.calls.some(
-        (call) => call[0] === '/water/idea/WatercourseCatalogue',
+        (call) => call[0] === '/system/water/idea/WatercourseCatalogue',
       ),
     ).toBe(true);
   });

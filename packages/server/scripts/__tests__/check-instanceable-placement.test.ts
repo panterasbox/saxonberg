@@ -33,11 +33,11 @@ describe('check-instanceable-placement.tradePlacementOk', () => {
 
 describe('check-instanceable-placement over a capability pack', () => {
   it("invariant 7 admits a pack's own root as a rooted tree", () => {
-    expect(tradePlacementOk('/arcana/thing/Wand', true, ['/arcana'])).toBe(true);
-    expect(tradePlacementOk('/arcana/idea/cmd/magic/CastController', true, ['/arcana'])).toBe(true);
-    expect(tradePlacementOk('/arcana/Wand', true, ['/arcana'])).toBe(false);
+    expect(tradePlacementOk('/system/arcana/thing/Wand', true, ['/arcana'])).toBe(true);
+    expect(tradePlacementOk('/system/arcana/idea/cmd/magic/CastController', true, ['/arcana'])).toBe(true);
+    expect(tradePlacementOk('/system/arcana/Wand', true, ['/arcana'])).toBe(false);
     // An unregistered root is still nobody's business.
-    expect(tradePlacementOk('/arcana/Wand', true, [])).toBe(true);
+    expect(tradePlacementOk('/system/arcana/Wand', true, [])).toBe(true);
   });
 
   it('invariant 8: a pack src/ has no lib/ and nothing outside a branch', () => {

@@ -48,7 +48,7 @@ function installCourses(specs: CourseSpec[]): void {
   const store = specs.map((spec, i) => ({
     _id: String(i + 1),
     path: `/stuff/idea/Watercourse/${spec.key}`,
-    class: '/water/idea/Watercourse',
+    class: '/system/water/idea/Watercourse',
     data: {
       key: spec.key,
       name: spec.key,

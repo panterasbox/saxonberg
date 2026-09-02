@@ -1,6 +1,6 @@
 id: arcana
 version: 0.1.0          # reserved; nothing reads/enforces it (non-goal: version machinery)
-root: /arcana
+root: /system/arcana
 description: >-
   Arcana — magic's substrate pack, and the first CAPABILITY pack: it ships
   classes. The item classes every catalogue of magic items is made from
@@ -17,4 +17,4 @@ requires:
       purpose: the arcana pack's own body — magic's substrate
       owner: { office: prime-minister }
   title:
-    - { extent: /arcana, holder: { group: arcana } }
+    - { extent: /system/arcana, holder: { group: arcana } }

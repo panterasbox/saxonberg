@@ -61,7 +61,7 @@ const WORLD: Row[] = [
   },
   {
     path: '/stuff/idea/Watercourse/kestrel',
-    class: '/water/idea/Watercourse',
+    class: '/system/water/idea/Watercourse',
     data: {
       key: 'kestrel',
       name: 'the Kestrel',
@@ -164,7 +164,7 @@ function makeTower(spec: {
     t.setServesExtent(spec.extent ?? '/world/flatcity');
     t.setLevelM3(spec.level ?? 0);
     return t;
-  }, `/water/thing/StorageNode/_test-${seq}`) as StorageNode;
+  }, `/system/water/thing/StorageNode/_test-${seq}`) as StorageNode;
 }
 
 function makeControl(spec: {
@@ -184,7 +184,7 @@ function makeControl(spec: {
     c.setHeadM(spec.head ?? 0);
     c.setGenerates(spec.generates ?? false);
     return c;
-  }, `/water/thing/ControlStructure/_test-${seq}`) as ControlStructure;
+  }, `/system/water/thing/ControlStructure/_test-${seq}`) as ControlStructure;
 }
 
 const catalogue = (): WatercourseCatalogue =>

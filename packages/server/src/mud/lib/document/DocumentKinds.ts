@@ -67,7 +67,7 @@ export const DOCUMENT_KINDS = {
    *
    * ⚠ Runtime-written, like `release`: rights are filed by claimants
    * over the life of a world, not shipped by a pack. Path-keyed
-   * (`/water/rights/<course>/<node>/<id>`) because seniority is
+   * (`/system/water/rights/<course>/<node>/<id>`) because seniority is
    * `list(prefix)` plus a sort on the priority date, which wants the
    * reach in the path rather than in an index.
    *

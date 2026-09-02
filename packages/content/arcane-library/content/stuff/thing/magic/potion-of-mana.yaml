@@ -5,7 +5,7 @@
 # is the arcana pack's preset Receptacle; the potion is the LIQUID —
 # `mana-draught`, a PotionMaterial with NO spell, whose meal chemistry
 # feeds the coupled recovery a caster's reserve already refills through.
-class: /arcana/thing/Potion
+class: /system/arcana/thing/Potion
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a stoppered glass flask

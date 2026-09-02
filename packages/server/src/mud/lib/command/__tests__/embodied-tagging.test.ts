@@ -74,7 +74,7 @@ const READ_ONLY_IN_MATERIAL = new Set([
   'platform/cmd/banking/reserve.yaml',
   'platform/cmd/retail/menu.yaml',
   'platform/cmd/inventory/inventory.yaml',
-  'arcana/cmd/magic/spells.yaml',
+  'system/arcana/cmd/magic/spells.yaml',
 ]);
 
 function viewsIn(category: string): string[] {
@@ -118,10 +118,14 @@ describe('requiresEmbodied tagging', () => {
 
   it('the read-only exceptions really are untagged', () => {
     for (const rel of READ_ONLY_IN_MATERIAL) {
-      // A view's key is its document path; the first segment names the
-      // pack root that ships it (`platform/…` the platform pack,
-      // `arcana/…` the arcana pack — the casting verbs moved with it).
-      const pack = rel.split('/')[0]!;
+      // A view's key is its document PATH, and a path's first segment is
+      // its namespace root — which is not the same thing as the pack
+      // DIRECTORY that ships it. `/system/arcana/…` is shipped by the
+      // `arcana` pack, exactly as `/trade/hospitality/…` is shipped by
+      // `trade-hospitality`. So the directory is the LAST segment of the
+      // root, not the first: `system/arcana/cmd/…` → `arcana`.
+      const segs = rel.split('/');
+      const pack = segs[0] === 'system' ? segs[1]! : segs[0]!;
       const root = pack === 'platform' ? CMD_ROOT : join(CMD_ROOT, '..', '..', pack, 'content');
       const yaml = readFileSync(join(root, rel), 'utf8');
       expect(yaml.includes(TAG), `${rel} should be untagged`).toBe(false);

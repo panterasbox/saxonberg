@@ -26,7 +26,7 @@
 # It is also the first thing in the game a single player almost
 # certainly cannot build alone — a cooperation gate that emerges from
 # physics rather than from a lock.
-class: /water/thing/Conduit
+class: /system/water/thing/Conduit
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: the Cold Fell aqueduct

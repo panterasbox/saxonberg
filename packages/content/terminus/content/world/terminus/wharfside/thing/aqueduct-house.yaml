@@ -10,7 +10,7 @@
 # who gets water; it only takes the energy out of water that was going
 # past anyway. A structure that held anything back would be a political
 # object, and this one deliberately is not.
-class: /water/thing/ControlStructure
+class: /system/water/thing/ControlStructure
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: the aqueduct house

@@ -2,7 +2,7 @@
 
 The watershed pack — a **capability pack** (it ships classes in `src/`
 alongside content in `content/`). Package `@saxonberg/content-water`;
-namespace root `/water`.
+namespace root **`/system/water`** — the *how the world works* axis, beside `/system/arcana` and `/system/residence`. A system is true whether or not anyone is participating in it: rivers flow with nobody employed by them.
 
 The membership test, from `docs/plans/water-plan.md` § P1: **the kernel
 takes the physics, this pack takes the works.** Zone elevation, the
@@ -10,7 +10,7 @@ precipitation integral, the pressure fallback and the rain→soil edge are
 kernel, because every pack's content is already subject to them and they
 edit shipped subsystems. Everything a *content author names* is here.
 
-## `src/` — the classes (`/water/<branch>/…`)
+## `src/` — the classes (`/system/water/<branch>/…`)
 
 | class | backs |
 |---|---|
@@ -29,7 +29,7 @@ the pack holds what other packs' content *names*, and the kernel holds
 what a player *does*.
 
 Source mirrors path: `src/idea/Watercourse.ts` backs
-`/water/idea/Watercourse`. The pack imports the kernel **only by package
+`/system/water/idea/Watercourse`. The pack imports the kernel **only by package
 specifier** (`@saxonberg/server/mud/lib/…`) through the server's
 `exports` map, and writes **absolute** `FromModule` gates.
 

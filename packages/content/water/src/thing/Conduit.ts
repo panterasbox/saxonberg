@@ -4,7 +4,7 @@
  *
  * ⚠ **Three unrelated things in this codebase are called `Conduit`** —
  * the kernel's sensory pass-through interfaces (`lib/boundary/Conduit`),
- * arcana's magical coupling item (`/arcana/thing/Conduit`), and this.
+ * arcana's magical coupling item (`/system/arcana/thing/Conduit`), and this.
  * They are told apart by namespace, which is what namespaces are for,
  * and the codebase already does this deliberately elsewhere
  * (`platform/agent/NPC`, `platform/thing/Vessel`). Player-facing content

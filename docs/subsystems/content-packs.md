@@ -517,7 +517,7 @@ rung).
 `packages/content/<pkg>/src/<rel>.ts` backs `<root>/<rel>` for every
 namespace root the pack holds — source mirrors path, inside a pack as in
 the kernel — so `packages/content/arcana/src/thing/Wand.ts` IS
-`/arcana/thing/Wand`, and a pack controller's `FromModule` gate reads the
+`/system/arcana/thing/Wand`, and a pack controller's `FromModule` gate reads the
 same string as its template path.
 
 **The loader.** `StuffApi.resolveClassFile(classPath)` is the one place
@@ -528,7 +528,7 @@ pack registered resolves into that pack's `src/` (longest root first,
 kernel tree as before. The clone pipeline, `loadClassByPath` and the
 brain resolver (`resolveExport`) import the file by absolute `file://`
 URL — the shape `HotReloadApi` already used — so Node's cache and the
-`?hmr=` override both hold, and `reload /arcana/thing/Wand` reloads the
+`?hmr=` override both hold, and `reload /system/arcana/thing/Wand` reloads the
 pack file. Prod and dev are both `tsx` from source; the server's
 `tsconfig.json` `include`s `../content/*/src/**/*` so tsx applies
 `experimentalDecorators` to pack files (tsx honours a tsconfig only for
@@ -1126,8 +1126,8 @@ a manifest declares which, so the script still says).
 - `packages/content/arcana/` — the first capability pack: `src/thing/`
   (Wand, Scroll, Spellbook, Conduit, Ring, Amulet, Potion),
   `src/idea/material/PotionMaterial.ts`, `src/idea/cmd/magic/` (the five
-  casting controllers), `content/arcana/idea/Discipline/` (the 18
-  `magic-*` rows), `content/arcana/cmd/magic/` (the views),
+  casting controllers), `content/system/arcana/idea/Discipline/` (the 18
+  `magic-*` rows), `content/system/arcana/cmd/magic/` (the views),
   `content/settings/magic.yaml`, `content/descriptor-banks/`.
 - `packages/content/arcane-library/` — `src/thing/{GlowlightMote,SparkLocus}.ts`,
   `content/stuff/idea/magic/Spell/**`, `content/stuff/thing/magic/**`

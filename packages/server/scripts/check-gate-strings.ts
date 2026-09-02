@@ -86,7 +86,7 @@ function exportsName(source: string, name: string | null): boolean {
  * — except in a capability pack's file, where the transform leaves it
  * alone, so a relative gate there is unresolvable by rule: pack code
  * writes absolute gates. An absolute module id under a registered pack
- * root (`/arcana/idea/cmd/…`) resolves into that pack's `src/`; any
+ * root (`/system/arcana/idea/cmd/…`) resolves into that pack's `src/`; any
  * other is `mud`-rooted, leading-slash (`/platform/…`) — drop the slash
  * and resolve under src/mud/. Exported for the test beside this script.
  */
@@ -150,7 +150,7 @@ function main(): void {
   const files: string[] = [];
   walk(MUD_ROOT, files);
   const sources = packSources();
-  // A capability pack's src/ carries gates too (`/arcana/idea/cmd/…`).
+  // A capability pack's src/ carries gates too (`/system/arcana/idea/cmd/…`).
   for (const pack of sources) walk(pack.srcDir, files);
 
   const findings: Finding[] = [];

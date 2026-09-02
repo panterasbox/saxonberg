@@ -131,7 +131,7 @@ describe("general-store content integrity", () => {
     // The householder's kit — a `ToolItem` subclass in the residence
     // pack, because the verb it confers is a static on a class and a
     // row cannot carry one.
-    "/residence/thing/HouseholdersKit",
+    "/system/residence/thing/HouseholdersKit",
   ]);
 
   it("every priced/stocked good is a real, discrete item (never Globbable)", () => {

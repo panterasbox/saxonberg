@@ -1,5 +1,5 @@
 verbs: [cast]
-controller: /arcana/idea/cmd/magic/CastController
+controller: /system/arcana/idea/cmd/magic/CastController
 description: "Shape a magical working"
 help: |
   `cast <spell> [<target>]` shapes a working you command. Casting takes

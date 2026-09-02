@@ -1,5 +1,5 @@
 verbs: [maintain]
-controller: /residence/idea/cmd/crafting/MaintainController
+controller: /system/residence/idea/cmd/crafting/MaintainController
 description: "Keep the fabric of a place sound"
 help: |
   Buildings weather. Left alone, a house goes from sound to weathered
