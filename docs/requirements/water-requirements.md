@@ -48,6 +48,8 @@ Seeded by [water-design-pack](../slates/builds/water-design-pack.md),
   with every other utility.
 - **A locality declares its position on the water**, so the watershed is
   a second, orthogonal hierarchy to the address tree.
+- **A reach knows whether it is navigable**, and navigation competes for
+  flow with every other use.
 
 ## Non-goals
 
@@ -74,8 +76,11 @@ Seeded by [water-design-pack](../slates/builds/water-design-pack.md),
 - **A new civics jurisdiction tier.** A river authority is a *firm*.
 - **Treatment as a modelled process.** It is an attribute of a conduit,
   not a plant with stages.
-- **Water as a navigable space.** Boats, swimming and diving are
-  fishing's Regimes 2 and 3.
+- **Water as a navigable space.** Boats, swimming, diving and on-water
+  rooms are fishing's Regimes 2 and 3 (D25); river freight is
+  [freight-slate](../slates/builds/freight-slate.md)'s.
+- **The Wharfside district.** The build authors the water's edge, not
+  the dockers' hall, the chophouse or the west bank's industry (D24).
 - **Authoring Rejection or Heart's Delight.** Neither exists as content;
   both belong to their own locality builds (D20). This build records the
   basin geography and asks one declared field of them.
@@ -500,6 +505,79 @@ you did).
 certainly cannot build alone. It wants a polity or a company — a
 cooperation gate that emerges from physics rather than from a lock.
 
+### D23 — The build ships ONE road: the valley route to Hinkley Hills
+
+**Q:** Does this build make the corridors D21 talks about?
+
+One of them, and only because its endpoints both exist.
+
+⚠ **It also fixes a live gap.** Nothing in shipped content has an exit
+*into* Hinkley Hills except the TPA route on
+`departure-terminal-a`; the arrival room's only exit runs further in;
+and nothing grants Hinkley's travel node. Since fast travel is
+**reach-before-travel** and Hinkley is not among the born-with three, a
+player must walk there to register it — and there is nowhere to walk
+from. The e2e reaches it with `wizard: true`, which is the tell: **a
+wizard stand-in is a missing player path.**
+
+So the build ships the **Terminus → Hinkley valley road**: up the slope,
+following the water, with the standpipe at the end explaining itself.
+It is the working demonstration of D21 — the route exists *because* the
+river cut a gradeable path — and the altimeter survey along it is the
+first thing that makes elevation legible to a player.
+
+**Roads to Rejection and Heart's Delight are out**, because there is
+nothing to connect to. They ship with their localities (D20).
+
+### D24 — Wharfside: the city finally meets its river
+
+**Q:** Where does Terminus touch the water it is built on?
+
+Nowhere, today. **Wharfside appears in ten design documents and zero
+content files**, and no authored Terminus room mentions a river at all.
+A city whose entire geographic premise is a confluence has never had a
+place to stand beside the water.
+
+The build authors **the riverfront itself** — the bank at the
+confluence, the city's **intake**, and its **outfall** — because those
+are the objects the watershed needs made visible. Standing at Wharfside
+and seeing where the city drinks and where it discharges is what makes
+D13's *the map is the argument* something a player can look at rather
+than infer.
+
+**Out of scope: the district.** The dockers' hall, the chophouse and
+the proto-industrial west bank are already characterized by the city
+track, [zoning](../slates/builds/zoning-slate.md) and
+[freight](../slates/builds/freight-slate.md), and they belong to those
+builds. This build lays the water's edge; the neighbourhood grows on it.
+
+### D25 — Navigation is a claimable use; boats are not this build
+
+**Q:** Does water transport belong here?
+
+The **claim** does; the **vessel** does not.
+
+**In:** navigability **derived** from a reach's flow and channel, and
+**navigation as a claimable use** carrying a minimum-flow requirement —
+so an upstream diversion can strand it.
+
+⭐ The reason is not boats. **Navigation is a competing claim on the
+same flow**, and navigation-versus-irrigation is the classic water
+fight — the Missouri, the Colorado. It gives the seniority system a
+claimant who is not a farmer, for the cost of one entry in the use
+vocabulary, out of quantities the build already computes.
+
+**Out:** boats, the liquid warren, on-water rooms. [The fishing
+slate](../slates/builds/fishing-slate.md) already owns that ground — its
+Regime 2 is explicitly *"the boat wave"* and it names the river as *"the
+one plausible Warren."* River freight belongs to
+[freight](../slates/builds/freight-slate.md).
+
+The payoff of leaving it this way: when the boat wave lands it reads a
+river that **already knows where it is navigable, and knows that changes
+with the season.** Nobody authors navigable stretches — a dry August
+closes them, and curtailing a junior right reopens them.
+
 ## Constraints
 
 - **⚠⚠ An unresolved supply ref must read UNKNOWN, never ZERO.** The
@@ -579,10 +657,15 @@ cooperation gate that emerges from physics rather than from a lock.
 19. An **inter-basin aqueduct** delivers from a reach in one basin to an
     extent in another, gravity-fed end to end, and its surplus head
     drives a generator.
-20. **`pnpm lint:schema` reports no new collection.**
-21. A subsystem doc exists at `docs/subsystems/watershed.md` and is
+20. A player can **walk from Terminus to Hinkley Hills** and `register`
+    its terminal, with no wizard powers anywhere in the path.
+21. A reach reports **navigable or not**, derived from flow; an upstream
+    diversion that drops flow below a navigation claim's minimum
+    **strands it**, and curtailing the junior right restores it.
+22. **`pnpm lint:schema` reports no new collection.**
+23. A subsystem doc exists at `docs/subsystems/watershed.md` and is
     reachable from CLAUDE.md's map by a one-line entry.
-22. Every new topic key resolves under an existing root
+24. Every new topic key resolves under an existing root
     (`pnpm lint:topics`).
 
 ## Cross-references

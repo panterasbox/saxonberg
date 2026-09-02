@@ -227,6 +227,12 @@ drainage, and the high empty third basin **over the ridge from
 Rejection** (D20); the inter-basin aqueduct (D22); the works' owner
 (P8); `watershed.md`; CLAUDE.md's one-line map entry.
 
+**Also W9:** the **Terminus → Hinkley valley road** (D23 — which fixes a
+live reachability gap: Hinkley has no foot route in today and its travel
+node is ungranted, so only a wizard can reach it), and **Wharfside's
+water's edge** (D24 — the bank at the confluence, the city's intake and
+its outfall; not the district).
+
 ⚠ **Authors no towns.** Rejection and Heart's Delight do not exist as
 content and belong to their own locality builds — this wave lays the
 water they will sit on and asks one declared field of them (D21).
