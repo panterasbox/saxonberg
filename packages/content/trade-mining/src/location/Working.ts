@@ -402,7 +402,7 @@ export function WorkingMixin<TBase extends MixinConstructor<Stuff & Container>>(
       if (!zone) return null;
       const path = await zone.lookupField<string>('deposit');
       if (!path) return null;
-      return StuffApi.findByTemplatePath<Deposit>(path) ?? null;
+      return resolveDeposit(path);
     }
 
     /**
@@ -636,6 +636,36 @@ export function WorkingMixin<TBase extends MixinConstructor<Stuff & Container>>(
       }
     }
   };
+}
+
+/**
+ * Resolve the deposit row, ⚠⚠ **cloning it if nothing has yet.**
+ *
+ * `Deposit` is a reference `Idea` like `Material` or `Biome`, and unlike
+ * those two **nothing boots a roster of them**. `findByTemplatePath`
+ * alone therefore answers `null` forever on a fresh process: the zone
+ * names the row, the row exists in the store, and the singleton has
+ * simply never been instantiated. `hew` then refused in a room with a
+ * seam visibly running through the face, and the message blamed the
+ * player's direction.
+ *
+ * ⚠ This is the FOURTH time this shape has bitten this codebase — a
+ * reference Idea that reads `null` forever because nothing warms it. The
+ * fix is get-or-create at the point of use rather than a boot list
+ * somebody has to remember to add to: `StuffApi.singleton` IS the
+ * establishing context for a keyless reference row, and the cheap
+ * synchronous hit covers every read after the first.
+ */
+async function resolveDeposit(path: string): Promise<Deposit | null> {
+  const resident = StuffApi.findByTemplatePath<Deposit>(path);
+  if (resident) return resident;
+  try {
+    return await StuffApi.singleton<Deposit>(path);
+  } catch {
+    // A zone naming a deposit row that does not exist is an authoring
+    // error, and barren ground is the honest reading of it.
+    return null;
+  }
 }
 
 /** Does this room have a way OUT of the workings — or say it breathes? */

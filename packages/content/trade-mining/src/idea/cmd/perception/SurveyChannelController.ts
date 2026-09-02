@@ -134,7 +134,16 @@ export abstract class SurveyChannelController<
     if (!zone) return null;
     const path = await zone.lookupField<string>('deposit');
     if (!path) return null;
-    return StuffApi.findByTemplatePath<Deposit>(path) ?? null;
+    // ⚠ Get-or-create: `Deposit` is a reference Idea and nothing boots a
+    // roster of them, so a bare `findByTemplatePath` reads null forever
+    // on a fresh process. See `Working`'s `resolveDeposit`.
+    const resident = StuffApi.findByTemplatePath<Deposit>(path);
+    if (resident) return resident;
+    try {
+      return await StuffApi.singleton<Deposit>(path);
+    } catch {
+      return null;
+    }
   }
 
   /** The deposit's seed — the covering Locality's address, and nothing stored. */
