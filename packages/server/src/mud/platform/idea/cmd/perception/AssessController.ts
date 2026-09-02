@@ -16,7 +16,6 @@ import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
 import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
-import { AdvancementApi } from '../../../../api/advancement';
 import { CombatApi, type CombatAssessResult } from '../../../../api/combat';
 import { Mml } from '../../../../api/mml';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
@@ -95,7 +94,11 @@ export default class AssessController extends CommandController<AssessModel> {
     // gates the detail. (The perception/recognition layer gates *whether*
     // you can see the target at all via the visibility validators; the
     // detail *sharpening* is the competence axis.)
-    const medBand = isSelf ? 'expert' : await AdvancementApi.bandFor(giver, 'medicine');
+    const medBand = isSelf
+      ? 'expert'
+      : MixinApi.isAdvancing(giver)
+        ? await giver.competenceBandFor('medicine')
+        : 'untrained';
     const precise =
       isSelf || medBand === 'proficient' || medBand === 'expert';
 

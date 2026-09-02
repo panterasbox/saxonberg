@@ -20,10 +20,10 @@
  */
 
 import { SurveyChannelController, READING_TOPIC, GEOLOGY } from './SurveyChannelController';
+import { MixinApi } from "@saxonberg/server/mud/api/mixin";
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
-import { AdvancementApi } from '@saxonberg/server/mud/api/advancement';
 
 export default class MeasureStrikeController extends SurveyChannelController {
   async execute(_model: CommandModel, context: CommandContext): Promise<void> {
@@ -73,7 +73,8 @@ export default class MeasureStrikeController extends SurveyChannelController {
         )
         .send();
       context.note({ kind: 'empty-result', field: 'strike', query: 'strike' });
-      await AdvancementApi.recordDeed(giver, {
+      if (MixinApi.isAdvancing(giver))
+        await giver.creditDeed({
         discipline: GEOLOGY,
         difficulty: 'standard',
         outcome: 'partial',
@@ -95,7 +96,8 @@ export default class MeasureStrikeController extends SurveyChannelController {
 
     // World-derived difficulty: a faint trace is a harder read than a
     // stained one, and the ground decides which this was.
-    await AdvancementApi.recordDeed(giver, {
+    if (MixinApi.isAdvancing(giver))
+      await giver.creditDeed({
       discipline: GEOLOGY,
       difficulty: reading.staining > 0.5 ? 'easy' : 'hard',
       outcome: 'success',

@@ -40,7 +40,6 @@ import {
 } from '../../lib/security/__tests__/test-setup';
 import { collectSubscribableFields } from '../../api/mql-subscription';
 import NPC from '../agent/NPC';
-import { AdvancementApi } from '../../api/advancement';
 import { InfluenceApi, STOCK_LEVEL } from '../../api/influence';
 import RenownStanding, {
   COMPACT_WIDE,
@@ -365,9 +364,9 @@ describe('standing splits by level', () => {
      * value until the fold has completed. So prime it first.
      */
     async function primeDigest(host: Stuff): Promise<void> {
-      AdvancementApi.competenceDigestCached(host); // kick the async fold
+      (host as unknown as { competenceDigestCached(): unknown }).competenceDigestCached(); // kick the async fold
       for (let i = 0; i < 20; i++) {
-        if (AdvancementApi.competenceDigestCached(host) !== undefined) return;
+        if ((host as unknown as { competenceDigestCached(): unknown }).competenceDigestCached() !== undefined) return;
         await new Promise((r) => setTimeout(r, 10));
       }
       throw new Error('digest fold never landed');

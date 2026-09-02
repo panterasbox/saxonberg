@@ -17,7 +17,6 @@ import { StuffApi } from "../../../api/stuff";
 import { AppApi } from "../../../api/app";
 import { SpeciesApi } from "../../../api/species";
 import { PartyApi } from "../../../api/party";
-import { AdvancementApi } from "../../../api/advancement";
 import { PerceptionApi } from "../../../api/perception";
 import { ContainmentApi } from "../../../api/containment";
 import { Postures } from "../../../lib/slot/Postured";
@@ -1176,7 +1175,7 @@ function deriveState(combatant: Stuff & Engaged): CombatantState {
  * The competence band the caller snapshotted for this combatant (keyed by
  * durable `templatePath`), or `untrained` when no controller resolved it
  * (bare/test/gym/NPC-vs-NPC paths). Synchronous by construction — the async
- * `AdvancementApi.bandFor` is awaited by the controller *before* open, never
+ * the combatant's `competenceBandFor` is awaited by the controller *before* open, never
  * mid-beat, so a single session stays deterministic.
  */
 function bandFromOpts(
@@ -3953,7 +3952,9 @@ async function snapshotBandsImpl(
     try {
       competenceBands.set(
         key,
-        await AdvancementApi.bandFor(c, MELEE_COMBAT_DISCIPLINE),
+        MixinApi.isAdvancing(c)
+          ? await c.competenceBandFor(MELEE_COMBAT_DISCIPLINE)
+          : CompetenceBand.FLOOR,
       );
     } catch {
       // Unresolved → the combatant defaults to `untrained` sharpness.
@@ -4496,7 +4497,8 @@ function orderCoupImpl(captain: Stuff): { ok: boolean; reason?: string } {
     if (!coupEligible(pending.executioner, victim)) {
       return { ok: false, reason: "moment-passed" };
     }
-    void AdvancementApi.recordDeed(captain, {
+    if (MixinApi.isAdvancing(captain))
+      void captain.creditDeed({
       discipline: COMMAND_DISCIPLINE,
       difficulty: "standard",
       outcome: "success",
@@ -4829,7 +4831,8 @@ function mintExchangeSignature(
   if (instr && !instr.weapon) {
     subs.push({ discipline: UNARMED_DISCIPLINE, difficulty, outcome: result });
   }
-  void AdvancementApi.recordSignature(actor, { discipline: subs }).catch(
+  if (MixinApi.isAdvancing(actor))
+    void actor.creditSignature({ discipline: subs }).catch(
     () => {},
   );
 }
@@ -4871,7 +4874,8 @@ function outcomeToResult(outcome: OutcomeKind): Outcome {
  */
 function mintCommandDeed(state: CombatantState, difficulty: Difficulty): void {
   if (state.brainPath) return;
-  void AdvancementApi.recordDeed(state.combatant, {
+  if (MixinApi.isAdvancing(state.combatant))
+    void state.combatant.creditDeed({
     discipline: COMMAND_DISCIPLINE,
     difficulty,
     outcome: "success",
@@ -4879,7 +4883,8 @@ function mintCommandDeed(state: CombatantState, difficulty: Difficulty): void {
 }
 
 function mintAssessSignature(actor: Stuff): void {
-  void AdvancementApi.recordDeed(actor, {
+  if (MixinApi.isAdvancing(actor))
+    void actor.creditDeed({
     discipline: MELEE_DISCIPLINE,
     difficulty: "standard",
     outcome: "success",

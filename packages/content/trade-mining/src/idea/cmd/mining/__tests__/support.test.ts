@@ -31,7 +31,6 @@ import PersistentHydrator from '@saxonberg/server/mud/platform/idea/persistence/
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { ChattelApi } from '@saxonberg/server/mud/api/chattel';
-import { AdvancementApi } from '@saxonberg/server/mud/api/advancement';
 import { ConditionApi } from '@saxonberg/server/mud/api/condition';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
@@ -125,7 +124,6 @@ describe('ground support', () => {
       (m as unknown as { hardness: Quantity<'MPa'> }).hardness = Quantity.of(mpa, 'MPa');
     }
     vi.spyOn(console, 'warn').mockImplementation(() => {});
-    vi.spyOn(AdvancementApi, 'recordDeed').mockResolvedValue(undefined);
     vi.spyOn(ChattelApi, 'stamp').mockResolvedValue({} as never);
 
     zone = makeStuffAtPath(() => new CartesianZone(), ZONE);

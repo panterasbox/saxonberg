@@ -6,16 +6,28 @@
  */
 
 import { describe, it, expect, vi, afterEach } from "vitest";
+import { MixinApi } from "../../../api/mixin";
 import { brain as converses } from "../converses";
-import { TraitApi } from "../../../api/trait";
 import type { BrainContext } from "../brain";
 import type { Stuff } from "../../stuff/Stuff";
 import type { AxisEstimate } from "../../trait/TraitPosition";
 
+let stubbedPosition = 0;
+
 function fakeCtx(config: Record<string, unknown>): BrainContext & {
   say: ReturnType<typeof vi.fn>;
 } {
-  const host = { stuffId: "host-1" } as unknown as Stuff;
+  // The brain reads the host's own traitPosition since the OO sweep;
+  // the fake host carries the seam (isDispositioned is mocked true).
+  const host = {
+    stuffId: "host-1",
+    traitPosition: async () => ({
+      disposition: "sociability",
+      position: stubbedPosition,
+      mass: Math.abs(stubbedPosition),
+      band: "defined",
+    }),
+  } as unknown as Stuff;
   return {
     host,
     config,
@@ -28,12 +40,8 @@ function fakeCtx(config: Record<string, unknown>): BrainContext & {
 }
 
 function stubPosition(position: number): void {
-  vi.spyOn(TraitApi, "positionFor").mockResolvedValue({
-    disposition: "sociability",
-    position,
-    mass: Math.abs(position),
-    band: "defined",
-  } as AxisEstimate);
+  stubbedPosition = position;
+  vi.spyOn(MixinApi, "isDispositioned").mockReturnValue(true);
 }
 
 afterEach(() => vi.restoreAllMocks());

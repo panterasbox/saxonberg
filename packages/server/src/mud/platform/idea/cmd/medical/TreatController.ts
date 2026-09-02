@@ -17,13 +17,13 @@
  */
 
 import { CommandController } from '../../../../lib/command/CommandController';
+import { CompetenceBand } from '../../../../lib/advancement/CompetenceBand';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import { MqlApi } from '../../../../api/mql';
 import type { MqlOneResult } from '../../../../api/mql';
 import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { StuffApi } from '../../../../api/stuff';
-import { AdvancementApi } from '../../../../api/advancement';
 import { Mml } from '../../../../api/mml';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Vitals } from '../../../../lib/vitals/Vitals';
@@ -148,7 +148,9 @@ export default class TreatController extends CommandController<TreatModel> {
       );
     }
 
-    const band = await AdvancementApi.bandFor(giver, 'medicine');
+    const band = MixinApi.isAdvancing(giver)
+      ? await giver.competenceBandFor('medicine')
+      : CompetenceBand.FLOOR;
     // Pulling someone back from the edge is the hardest thing this verb
     // does, whatever the wound looks like.
     const difficulty: Difficulty = dying
@@ -171,7 +173,8 @@ export default class TreatController extends CommandController<TreatModel> {
     await StuffApi.destruct(dressing);
 
     // Mint the graded deed into the treater's Transcript (the ActSignature).
-    await AdvancementApi.recordDeed(giver, {
+    if (MixinApi.isAdvancing(giver))
+      await giver.creditDeed({
       discipline: 'medicine',
       difficulty,
       outcome,

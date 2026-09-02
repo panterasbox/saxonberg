@@ -44,7 +44,6 @@ import { StuffApi } from '../../../../api/stuff';
 import { AppApi } from '../../../../api/app';
 import { ContainmentApi } from '../../../../api/containment';
 import { PersistableApi } from '../../../../api/persistable';
-import { AdvancementApi } from '../../../../api/advancement';
 import { WorldClockApi } from '../../../../api/worldclock';
 import { ExecutionContextApi } from '../../../../api/execution-context';
 import { AppSettingKeys } from '../../../../lib/config/AppSettings';
@@ -251,7 +250,8 @@ export default class HarvestController extends CommandController<HarvestModel> {
     }
 
     try {
-      await AdvancementApi.recordDeed(giver, {
+      if (MixinApi.isAdvancing(giver))
+        await giver.creditDeed({
         discipline: 'horticulture',
         difficulty,
         outcome: 'success',

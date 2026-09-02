@@ -15,10 +15,10 @@
  */
 
 import "../../../../../../test-bootstrap";
+import { AdvancementMixin } from '../../../../../lib/advancement/Advancement';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import SearchController from '../SearchController';
 import { PerceptionApi } from '../../../../../api/perception';
-import { AdvancementApi } from '../../../../../api/advancement';
 import { MessageApi } from '../../../../../api/message';
 import { SchedulerApi } from '../../../../../api/scheduler';
 import { WorldClockApi } from '../../../../../api/worldclock';
@@ -50,7 +50,9 @@ import {
 } from '../../../../../lib/security/__tests__/test-setup';
 
 // A plain seeker for the pure `resolveSearch` layer (belief store only).
-class Seeker extends BeliefStoreMixin(Idea) {}
+// The awareness-band read runs ON the seeker since the OO sweep; the
+// per-instance spy in the competence test pins high vs low.
+class Seeker extends AdvancementMixin(BeliefStoreMixin(Idea)) {}
 
 // A concealable perceivable.
 class Item extends ConcealableMixin(
@@ -117,10 +119,10 @@ describe('PerceptionApi.resolveSearch — the pure resolver', () => {
     const deepHigh = makeItem('deep'); // req 7
 
     // Warm bands: low = untrained (rank 0), high = competent (rank 2).
-    vi.spyOn(AdvancementApi, 'bandFor').mockImplementation(
-      async (owner: Stuff) =>
-        (owner as Stuff).stuffId === high.stuffId ? 'competent' : 'untrained',
-    );
+    vi.spyOn(
+      high as unknown as { competenceBandFor(d: string): Promise<string> },
+      'competenceBandFor',
+    ).mockResolvedValue('competent');
     await PerceptionApi.preloadForSenseGate(low as never);
     await PerceptionApi.preloadForSenseGate(high as never);
 

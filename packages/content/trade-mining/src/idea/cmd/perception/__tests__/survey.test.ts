@@ -22,6 +22,7 @@
  */
 
 import '@saxonberg/server/test-bootstrap';
+import { AdvancementMixin } from '@saxonberg/server/mud/lib/advancement/Advancement';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { readFileSync, existsSync } from 'fs';
 import { fileURLToPath } from 'url';
@@ -37,7 +38,6 @@ import Material from '@saxonberg/server/mud/platform/idea/material/Material';
 import { CommandDefinition } from '@saxonberg/server/mud/lib/command/CommandDefinition';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
-import { AdvancementApi } from '@saxonberg/server/mud/api/advancement';
 import { CardApi } from '@saxonberg/server/mud/api/card';
 import { BeliefStoreMixin, DISCOVERY } from '@saxonberg/server/mud/lib/belief/BeliefStore';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
@@ -63,7 +63,13 @@ const MALACHITE = '/stuff/idea/material/mineral/malachite';
 const QUARTZ = '/stuff/idea/material/mineral/quartz';
 
 /** A prospector: the harness actor with a field book. */
-class Prospector extends BeliefStoreMixin(TestActor) {}
+// The competence read runs ON the prospector since the OO sweep;
+// pinned by the module `band` var (credits no-op — PM disconnected).
+class Prospector extends AdvancementMixin(BeliefStoreMixin(TestActor)) {
+  override async competenceBandFor(): Promise<CompetenceBandName> {
+    return band;
+  }
+}
 type Runnable = Stuff & { execute(model: never, ctx: CommandContext): unknown };
 
 let surface: CartesianZone;
@@ -124,8 +130,6 @@ describe('surveying', () => {
     installV1QuantityMarshallers();
     vi.spyOn(console, 'warn').mockImplementation(() => {});
     band = 'competent';
-    vi.spyOn(AdvancementApi, 'bandFor').mockImplementation(async () => band);
-    vi.spyOn(AdvancementApi, 'recordDeed').mockResolvedValue(undefined);
 
     const m = makeStuffAtPath(() => new Material(), SLATE);
     (m as unknown as { hardness: Quantity<'MPa'> }).hardness = Quantity.of(90, 'MPa');

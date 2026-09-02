@@ -21,8 +21,6 @@ import { PlayerApi } from '../../../../api/player';
 import { RecognitionApi } from '../../../../api/recognition';
 import { RenownApi } from '../../../../api/renown';
 import { InfluenceApi } from '../../../../api/influence';
-import { AdvancementApi } from '../../../../api/advancement';
-import { TraitApi } from '../../../../api/trait';
 import { ConnectionApi } from '../../../../api/connection';
 import { ShellApi } from '../../../../api/shell';
 import { Band } from '../../../../lib/standing/Band';
@@ -93,8 +91,6 @@ function stubSubstrate(recognized: boolean): void {
   vi.spyOn(InfluenceApi, 'standingForHost').mockReturnValue(
     new InfluenceStanding('acct', 'producer', 0, Band.of('dormant'))
   );
-  vi.spyOn(AdvancementApi, 'bandsFor').mockResolvedValue([]);
-  vi.spyOn(TraitApi, 'pronouncedFor').mockResolvedValue([]);
 }
 
 afterEach(() => {

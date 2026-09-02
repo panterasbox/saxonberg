@@ -13,6 +13,7 @@
  */
 
 import "../../../../test-bootstrap";
+import type { CompetenceBandName } from "../../../lib/advancement/CompetenceBand";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { readFileSync, readdirSync } from "fs";
 import { fileURLToPath } from "url";
@@ -34,7 +35,6 @@ import SpellCatalogue from "../../../platform/idea/SpellCatalogue";
 import Spell from "../../../platform/idea/magic/Spell";
 import { Template } from "../../../lib/stuff/Template";
 import { MagicApi } from "../../../api/magic";
-import { AdvancementApi } from "../../../api/advancement";
 import { FireApi } from "../../../api/fire";
 import { ContainmentApi } from "../../../api/containment";
 import { StuffApi } from "../../../api/stuff";
@@ -57,6 +57,12 @@ const SPELL_PATH_PREFIX = '/stuff/idea/magic/Spell/';
 const SPELL_CLASS = '/platform/idea/magic/Spell';
 
 class MagicTester extends HasInteractiveMixin(Character) {
+  // The band gate reads the caster's own competenceBandFor since the
+  // OO sweep; the practicum pins every tester at competent.
+  override async competenceBandFor(): Promise<CompetenceBandName> {
+    return "competent";
+  }
+
   static _mixinName = "MagicTesterPracticum";
 }
 
@@ -183,8 +189,6 @@ describe("The Practicum — the magic demonstrators", () => {
     real = 100000;
     WorldClockApi._setNowProviderForTesting(() => real);
     await installCatalogue();
-    vi.spyOn(AdvancementApi, "bandFor").mockResolvedValue("competent");
-    vi.spyOn(AdvancementApi, "recordSignature").mockResolvedValue(undefined);
   });
   afterEach(() => {
     WorldClockApi._resetForTesting();

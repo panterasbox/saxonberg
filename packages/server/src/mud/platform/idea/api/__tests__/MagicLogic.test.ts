@@ -2,7 +2,7 @@
  * MagicLogic — the cast pipeline (gates → spend → effects → provenance →
  * Transcript) and the per-primitive executors, each proven against its
  * backing Api. The catalogue is warmed from the REAL authored roster
- * seeds; competence bands are stubbed at the AdvancementApi seam so the
+ * seeds; competence bands are stubbed on the caster class so the
  * band gate is exercised without grinding BKT evidence.
  *
  * The heavy scene physics (firebolt igniting a dummy, spark through the
@@ -18,7 +18,6 @@ import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 import YAML from "yaml";
 import { MagicApi } from "../../../../api/magic";
-import { AdvancementApi } from "../../../../api/advancement";
 import { AppApi } from "../../../../api/app";
 import { AppSettingKeys } from "../../../../lib/config/AppSettings";
 import { ContainmentApi } from "../../../../api/containment";
@@ -49,7 +48,14 @@ class GlowlightOrb extends LightSourceMixin(Thing) {}
 const SPELL_PATH_PREFIX = '/stuff/idea/magic/Spell/';
 const SPELL_CLASS = '/platform/idea/magic/Spell';
 
-class TestCharacter extends Character {}
+// The band gate reads the caster's own competenceBandFor since the
+// OO sweep; pinned by the module `testBand` var.
+let testBand: CompetenceBandName = "untrained";
+class TestCharacter extends Character {
+  override async competenceBandFor(): Promise<CompetenceBandName> {
+    return testBand;
+  }
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const SPELL_SEEDS_DIR = join(
@@ -96,7 +102,7 @@ async function installCatalogue(): Promise<void> {
 
 /** Stub the competence bands (the band gate's read seam). */
 function stubBands(band: CompetenceBandName): void {
-  vi.spyOn(AdvancementApi, "bandFor").mockResolvedValue(band);
+  testBand = band;
 }
 
 function makeCaster(): TestCharacter {
@@ -147,8 +153,8 @@ describe("MagicLogic — the cast pipeline", () => {
     real = 100000;
     WorldClockApi._setNowProviderForTesting(() => real);
     await installCatalogue();
-    // Default-stub the Mongo-touching seams; tests re-spy to assert.
-    vi.spyOn(AdvancementApi, "recordSignature").mockResolvedValue(undefined);
+    // (The transcript credit no-ops with PM disconnected; tests that
+    // assert it spy the caster instance.)
     vi.spyOn(StuffApi, "clone").mockImplementation(async () =>
       makeStuff(() => new GlowlightOrb()),
     );
@@ -201,13 +207,18 @@ describe("MagicLogic — the cast pipeline", () => {
 
   it("credits BOTH grid axes on the Transcript per cast", async () => {
     stubBands("competent");
-    const record = vi
-      .spyOn(AdvancementApi, "recordSignature")
-      .mockResolvedValue(undefined);
     const caster = makeCaster();
+    const record = vi
+      .spyOn(
+        caster as unknown as { creditSignature(sig: unknown): Promise<void> },
+        "creditSignature",
+      )
+      .mockResolvedValue(undefined);
     await MagicApi.resolveCast(caster, "glowlight");
     expect(record).toHaveBeenCalledTimes(1);
-    const signature = record.mock.calls[0]![1];
+    const signature = record.mock.calls[0]![0] as {
+      discipline: Array<{ discipline: string }>;
+    };
     expect(signature.discipline.map((s) => s.discipline).sort()).toEqual([
       "magic-create",
       "magic-light",

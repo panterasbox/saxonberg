@@ -37,7 +37,6 @@ import { Mml } from '@saxonberg/server/mud/api/mml';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { SchedulerApi } from '@saxonberg/server/mud/api/scheduler';
-import { AdvancementApi } from '@saxonberg/server/mud/api/advancement';
 import { ManualBuildStep } from '@saxonberg/server/mud/lib/craft/ManualBuildStep';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 
@@ -197,7 +196,8 @@ async function runCharge(
           Mml.compose`You tap the furnace and get slag — nothing but slag. Whatever was in that rock, it was not copper.`,
         )
         .send();
-      await AdvancementApi.recordDeed(giver, {
+      if (MixinApi.isAdvancing(giver))
+        await giver.creditDeed({
         discipline: SMELTING, difficulty: 'standard', outcome: 'failure',
       });
       return;
@@ -216,7 +216,8 @@ async function runCharge(
 
   void bar;
   if (!watching) return;
-  await AdvancementApi.recordDeed(giver, {
+  if (MixinApi.isAdvancing(giver))
+    await giver.creditDeed({
     discipline: SMELTING, difficulty: 'standard', outcome: 'success',
   });
   }

@@ -8,16 +8,18 @@
  */
 
 import "../../../../test-bootstrap";
+import { DispositionedMixin } from "../../trait/Dispositioned";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { makeStuffAtPath } from "../../security/__tests__/test-setup";
 import { Idea } from "../../stuff/Idea";
 import { BehavedMixin } from "../Behaved";
-import { TraitApi } from "../../../api/trait";
 import { StuffApi } from "../../../api/stuff";
 import { WorldClockApi } from "../../../api/worldclock";
 import { PersistenceManager } from "../../../../backend/PersistenceManager";
 
-class TestNPC extends BehavedMixin(Idea) {}
+// DispositionedMixin composed: the seeding + ledger reads live ON the
+// host since the OO sweep (Behaved narrows with isDispositioned).
+class TestNPC extends DispositionedMixin(BehavedMixin(Idea)) {}
 type Host = TestNPC & {
   postRegister(c?: unknown): Promise<void>;
   dispositions: { disposition: string; valence: number }[];
@@ -71,11 +73,11 @@ describe("BehavedMixin disposition seeding", () => {
     ];
     await host.postRegister();
 
-    const rows = await TraitApi.entriesFor(host);
+    const rows = await host.dispositionEntries();
     expect(rows).toHaveLength(2);
     expect(rows.every((r) => r.kind === "claim")).toBe(true);
 
-    const pronounced = await TraitApi.pronouncedFor(host);
+    const pronounced = await host.pronouncedTraits();
     const byAxis = new Map(pronounced.map((e) => [e.disposition, e]));
     // Reserved (Shy end) + Temperate, the seeded character.
     expect(byAxis.get("sociability")!.position).toBeLessThan(0);
@@ -87,12 +89,12 @@ describe("BehavedMixin disposition seeding", () => {
     host.dispositions = [{ disposition: "generosity", valence: 70 }];
     await host.postRegister();
     await host.postRegister();
-    expect(await TraitApi.entriesFor(host)).toHaveLength(1);
+    expect(await host.dispositionEntries()).toHaveLength(1);
   });
 
   it("no-ops for a host with no dispositions", async () => {
     const host = makeHost();
     await host.postRegister();
-    expect(await TraitApi.entriesFor(host)).toHaveLength(0);
+    expect(await host.dispositionEntries()).toHaveLength(0);
   });
 });

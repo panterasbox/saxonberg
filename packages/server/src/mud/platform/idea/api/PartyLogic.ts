@@ -10,7 +10,6 @@ import { PlayerApi } from "../../../api/player";
 import { GroupApi } from "../../../api/group";
 import { ChatApi } from "../../../api/chat";
 import { StuffApi } from "../../../api/stuff";
-import { AdvancementApi } from "../../../api/advancement";
 import { SecurityApi } from "../../../api/security";
 import { Party, DEFAULT_FORMATION_PATH } from "../Party";
 import { PartyRecord } from "../../../lib/party/PartyRecord";
@@ -562,7 +561,8 @@ async function setFormationImpl(
   // The formation shift is a leadership act — the captain banks a
   // `command` deed (fire-and-forget; a failed mint never blocks the
   // switch). Advancement never imports party — the dep is one-way.
-  void AdvancementApi.recordDeed(captain, {
+  if (MixinApi.isAdvancing(captain))
+    void captain.creditDeed({
     discipline: "command",
     difficulty: "standard",
     outcome: "success",

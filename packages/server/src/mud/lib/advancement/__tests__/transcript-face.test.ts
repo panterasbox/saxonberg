@@ -1,32 +1,39 @@
 /**
- * AdvancementApi — the gated Transcript append/read surface. Covers:
- * recordSignature explodes one act into per-Discipline rows sharing a
- * single timestamp; the disposition channel is ignored; recordDeed forces
- * a single deed row; the reader is owner-scoped + per-Discipline; claim
- * provenance round-trips; disconnected / keyless owners no-op.
+ * The transcript owner face ON AdvancementMixin (retired
+ * AdvancementApi/AdvancementLogic — the Api OO sweep). Covers:
+ * creditSignature explodes one act into per-Discipline rows sharing a
+ * single timestamp; the disposition channel is ignored; creditDeed
+ * forces a single deed row; the reader is owner-scoped +
+ * per-Discipline; claim provenance round-trips; disconnected / keyless
+ * owners no-op.
  *
  * Mongo is faked with an in-memory collection (the chronicle harness): we
  * stub PM's find / save surface — the same wrappers `TranscriptEntry` uses.
  */
 
-import "../../../test-bootstrap";
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { AdvancementApi } from "../advancement";
-import type { ActSignature } from "../../lib/advancement/ActSignature";
-import { Idea } from "../../lib/stuff/Idea";
-import { WorldClockApi } from "../worldclock";
-import { PersistenceManager } from "../../../backend/PersistenceManager";
+import type { ActSignature } from "../ActSignature";
+import { Idea } from "../../stuff/Idea";
+import { AdvancementMixin } from "../Advancement";
+import { WorldClockApi } from "../../../api/worldclock";
+import { PersistenceManager } from "../../../../backend/PersistenceManager";
 import {
   makeStuff,
   makeStuffAtPath,
-} from "../../lib/security/__tests__/test-setup";
+} from "../../security/__tests__/test-setup";
 
 let store: Map<string, Record<string, unknown>>;
 let idCounter = 0;
 let counter = 0;
 
-function makeOwnerAt(): Idea {
-  return makeStuffAtPath(() => new Idea(), `/platform/agent/Avatar/p${counter++}`);
+class AdvancingIdea extends AdvancementMixin(Idea) {}
+
+function makeOwnerAt(): AdvancingIdea {
+  return makeStuffAtPath(
+    () => new AdvancingIdea(),
+    `/platform/agent/Avatar/p${counter++}`,
+  );
 }
 
 beforeEach(() => {
@@ -55,7 +62,7 @@ afterEach(() => {
   WorldClockApi._resetForTesting();
 });
 
-describe("AdvancementApi Transcript append + read", () => {
+describe("the transcript owner face — append + read", () => {
   it("recordSignature explodes one act into per-Discipline rows", async () => {
     const owner = makeOwnerAt();
     const sig: ActSignature = {
@@ -64,8 +71,8 @@ describe("AdvancementApi Transcript append + read", () => {
         { discipline: "mixology", difficulty: "standard", outcome: "failure" },
       ],
     };
-    await AdvancementApi.recordSignature(owner, sig);
-    const rows = await AdvancementApi.entriesFor(owner);
+    await owner.creditSignature(sig);
+    const rows = await owner.transcriptEntries();
     expect(rows).toHaveLength(2);
     const byDisc = new Map(rows.map((r) => [r.discipline, r]));
     expect(byDisc.get("appraisal")!.outcome).toBe("success");
@@ -80,8 +87,8 @@ describe("AdvancementApi Transcript append + read", () => {
         { discipline: "b", difficulty: "easy", outcome: "success" },
       ],
     };
-    await AdvancementApi.recordSignature(owner, sig, { when: 999 });
-    const rows = await AdvancementApi.entriesFor(owner);
+    await owner.creditSignature(sig, { when: 999 });
+    const rows = await owner.transcriptEntries();
     expect(rows.map((r) => r.when)).toEqual([999, 999]);
   });
 
@@ -93,8 +100,8 @@ describe("AdvancementApi Transcript append + read", () => {
       ],
       dispositionValence: [{ disposition: "honesty", valence: -1 }],
     };
-    await AdvancementApi.recordSignature(owner, sig);
-    const rows = await AdvancementApi.entriesFor(owner);
+    await owner.creditSignature(sig);
+    const rows = await owner.transcriptEntries();
     expect(rows).toHaveLength(1);
     expect(rows[0]!.discipline).toBe("mixology");
     // No disposition leaked into the persisted row shape.
@@ -103,12 +110,12 @@ describe("AdvancementApi Transcript append + read", () => {
 
   it("recordDeed writes a single deed row and stamps the clock", async () => {
     const owner = makeOwnerAt();
-    await AdvancementApi.recordDeed(owner, {
+    await owner.creditDeed({
       discipline: "darts",
       difficulty: "standard",
       outcome: "critical",
     });
-    const [row] = await AdvancementApi.entriesFor(owner);
+    const [row] = await owner.transcriptEntries();
     expect(row!.kind).toBe("deed");
     expect(row!.discipline).toBe("darts");
     expect(row!.outcome).toBe("critical");
@@ -118,64 +125,62 @@ describe("AdvancementApi Transcript append + read", () => {
 
   it("reads owner-scoped and per-Discipline", async () => {
     const owner = makeOwnerAt();
-    await AdvancementApi.recordDeed(owner, {
+    await owner.creditDeed({
       discipline: "mixology",
       difficulty: "standard",
       outcome: "success",
     });
-    await AdvancementApi.recordDeed(owner, {
+    await owner.creditDeed({
       discipline: "darts",
       difficulty: "easy",
       outcome: "failure",
     });
-    expect(await AdvancementApi.entriesFor(owner)).toHaveLength(2);
-    const mix = await AdvancementApi.entriesFor(owner, "mixology");
+    expect(await owner.transcriptEntries()).toHaveLength(2);
+    const mix = await owner.transcriptEntries("mixology");
     expect(mix).toHaveLength(1);
     expect(mix[0]!.discipline).toBe("mixology");
   });
 
   it("records claim provenance when asked", async () => {
     const owner = makeOwnerAt();
-    await AdvancementApi.recordSignature(
-      owner,
-      {
+    await owner.creditSignature({
         discipline: [
           { discipline: "recipe-knowledge", difficulty: "easy", outcome: "success" },
         ],
       },
       { kind: "claim" }
     );
-    const [row] = await AdvancementApi.entriesFor(owner);
+    const [row] = await owner.transcriptEntries();
     expect(row!.kind).toBe("claim");
   });
 
   it("keeps owners separate (durable templatePath keying)", async () => {
     const a = makeOwnerAt();
     const b = makeOwnerAt();
-    await AdvancementApi.recordDeed(a, {
+    await a.creditDeed({
       discipline: "mixology",
       difficulty: "standard",
       outcome: "success",
     });
-    expect(await AdvancementApi.entriesFor(a)).toHaveLength(1);
-    expect(await AdvancementApi.entriesFor(b)).toHaveLength(0);
+    expect(await a.transcriptEntries()).toHaveLength(1);
+    expect(await b.transcriptEntries()).toHaveLength(0);
   });
 
   it("no-ops without a durable owner key", async () => {
-    const keyless = makeStuff(() => new Idea());
-    await AdvancementApi.recordDeed(keyless, {
+    const keyless = makeStuff(() => new AdvancingIdea());
+    await keyless.creditDeed({
       discipline: "mixology",
       difficulty: "standard",
       outcome: "success",
     });
     expect(store.size).toBe(0);
-    expect(await AdvancementApi.entriesFor(keyless)).toEqual([]);
+    expect(await keyless.transcriptEntries()).toEqual([]);
   });
 
   it("no-ops when disconnected", async () => {
     const owner = makeOwnerAt();
     vi.spyOn(PersistenceManager.get(), "isConnected").mockReturnValue(false);
-    await AdvancementApi.recordDeed(owner, {
+    await owner.creditDeed({
       discipline: "mixology",
       difficulty: "standard",
       outcome: "success",
@@ -184,68 +189,68 @@ describe("AdvancementApi Transcript append + read", () => {
   });
 });
 
-describe("AdvancementApi Competence derive-on-read", () => {
+describe("Competence derive-on-read", () => {
   it("bandFor derives a band from the Transcript", async () => {
     const owner = makeOwnerAt();
-    expect(await AdvancementApi.bandFor(owner, "mixology")).toBe("untrained");
+    expect(await owner.competenceBandFor("mixology")).toBe("untrained");
     for (let i = 0; i < 3; i++) {
-      await AdvancementApi.recordDeed(owner, {
+      await owner.creditDeed({
         discipline: "mixology",
         difficulty: "hard",
         outcome: "success",
       });
     }
-    const band = await AdvancementApi.bandFor(owner, "mixology");
+    const band = await owner.competenceBandFor("mixology");
     expect(band).not.toBe("untrained");
   });
 
   it("bandFor never surfaces a number (the honesty firewall)", async () => {
     const owner = makeOwnerAt();
-    await AdvancementApi.recordDeed(owner, {
+    await owner.creditDeed({
       discipline: "mixology",
       difficulty: "hard",
       outcome: "success",
     });
-    const band = await AdvancementApi.bandFor(owner, "mixology");
+    const band = await owner.competenceBandFor("mixology");
     expect(typeof band).toBe("string");
     expect(Number.isNaN(Number(band))).toBe(true);
   });
 
   it("derive-on-read persists nothing — reads never write a row", async () => {
     const owner = makeOwnerAt();
-    await AdvancementApi.recordDeed(owner, {
+    await owner.creditDeed({
       discipline: "darts",
       difficulty: "standard",
       outcome: "success",
     });
     const sizeAfterWrite = store.size;
     const saveSpy = vi.spyOn(PersistenceManager.get(), "save");
-    await AdvancementApi.bandFor(owner, "darts");
-    await AdvancementApi.bandsFor(owner);
-    await AdvancementApi.bandFor(owner, "darts");
+    await owner.competenceBandFor("darts");
+    await owner.competenceBands();
+    await owner.competenceBandFor("darts");
     expect(saveSpy).not.toHaveBeenCalled();
     expect(store.size).toBe(sizeAfterWrite);
   });
 
   it("bandsFor reports one band per Discipline with evidence", async () => {
     const owner = makeOwnerAt();
-    await AdvancementApi.recordDeed(owner, {
+    await owner.creditDeed({
       discipline: "mixology",
       difficulty: "standard",
       outcome: "success",
     });
-    await AdvancementApi.recordDeed(owner, {
+    await owner.creditDeed({
       discipline: "darts",
       difficulty: "easy",
       outcome: "failure",
     });
-    const bands = await AdvancementApi.bandsFor(owner);
+    const bands = await owner.competenceBands();
     expect(bands.map((b) => b.discipline)).toEqual(["darts", "mixology"]);
     for (const b of bands) expect(typeof b.band).toBe("string");
   });
 
   it("bandsFor is empty for a character with no evidence", async () => {
     const owner = makeOwnerAt();
-    expect(await AdvancementApi.bandsFor(owner)).toEqual([]);
+    expect(await owner.competenceBands()).toEqual([]);
   });
 });

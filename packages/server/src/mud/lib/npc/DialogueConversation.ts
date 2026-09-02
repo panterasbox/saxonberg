@@ -39,7 +39,6 @@ import { ScheduleApi } from "../../api/schedule";
 import type { AbortReason } from "@saxonberg/types";
 import type Interactive from "../../platform/idea/Interactive";
 import { PromptApi, PromptCancelledError } from "../../api/prompt";
-import { TraitApi } from "../../api/trait";
 import { WorldClockApi } from "../../api/worldclock";
 import { SoulApi } from "../../api/soul";
 import { RecognitionApi } from "../../api/recognition";
@@ -351,7 +350,9 @@ export class DialogueConversation implements SustainedEngagement {
     const key = fact.slice(colon + 1);
     switch (ns) {
       case "trait":
-        return (await TraitApi.positionFor(this.npc, key)).position;
+        return MixinApi.isDispositioned(this.npc)
+          ? (await this.npc.traitPosition(key)).position
+          : 0;
       case "time":
         return key === "hour" ? this.worldHour() : undefined;
       case "state":

@@ -14,13 +14,13 @@
  */
 
 import '../../../../test-bootstrap';
+import type { CompetenceBandName } from '../../advancement/CompetenceBand';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { readFileSync, readdirSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import YAML from 'yaml';
 import { ExecutionContextApi } from '../../../api/execution-context';
-import { AdvancementApi } from '../../../api/advancement';
 import { RecognitionApi } from '../../../api/recognition';
 import { WorldClockApi } from '../../../api/worldclock';
 import { MessageApi } from '../../../api/message';
@@ -50,8 +50,15 @@ const SPELL_SEEDS_DIR = join(
   '../../../../../../content/arcane-library/content/stuff/idea/magic/Spell',
 );
 
+// The competence read runs ON the caster since the OO sweep; pinned
+// per test (credits no-op — PM is disconnected here).
+let testBand: CompetenceBandName = 'competent';
+
 /** A wearer: a Character with one finger, declared statically (no body plan in this fixture). */
 class Wearer extends Character {
+  override async competenceBandFor(): Promise<CompetenceBandName> {
+    return testBand;
+  }
   override getSlotNames(): readonly string[] {
     return ['finger:left', 'finger:right'];
   }
@@ -129,8 +136,7 @@ describe('Charged — wearing sustains, releasing releases', () => {
     now = 100000;
     WorldClockApi._setNowProviderForTesting(() => now);
     await installCatalogue();
-    vi.spyOn(AdvancementApi, 'recordSignature').mockResolvedValue(undefined);
-    vi.spyOn(AdvancementApi, 'bandFor').mockResolvedValue('competent');
+    testBand = 'competent';
     vi.spyOn(MessageApi, 'scene').mockReturnValue({
       topic: () => ({ toSelf: () => ({ send: () => undefined }) }),
     } as never);

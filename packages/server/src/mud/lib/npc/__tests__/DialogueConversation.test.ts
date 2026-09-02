@@ -6,7 +6,7 @@
  * beats and the player's picked lines go through `say` (spied), while the
  * choice wheel goes through `PromptApi.choice` to the driver's
  * Interactive (mocked + captured). Guard/effect reads (`RegardApi` /
- * `TraitApi`) are stubbed for determinism — their persistence is covered
+ * traits) are neutral by construction — their persistence is covered
  * by their own suites; here we test the dialogue wiring. Slots are held
  * via the real `SchedulerApi`, so the both-sides-free assertions are real.
  */
@@ -34,7 +34,6 @@ import { ContainmentApi } from "../../../api/containment";
 import { StuffApi } from "../../../api/stuff";
 import { SchedulerApi } from "../../../api/scheduler";
 import { PromptApi, PromptCancelledError } from "../../../api/prompt";
-import { TraitApi } from "../../../api/trait";
 import { EventApi } from "../../../api/event";
 import EventRegistry from "../../../platform/idea/EventRegistry";
 import { Stuff } from "../../stuff/Stuff";
@@ -178,12 +177,9 @@ beforeEach(async () => {
   // Regard reads/writes run REAL against the npc's own belief store
   // since the OO sweep (regardFor/adjustRegard are mixin methods); a
   // fresh TestNPC holds no records, so the neutral default is genuine.
-  vi.spyOn(TraitApi, "positionFor").mockResolvedValue({
-    disposition: "sociability",
-    position: 0,
-    mass: 0,
-    band: "nascent",
-  } as never);
+  // Trait reads run real via the npc's own traitPosition since the OO
+  // sweep; the TestNPC composes no DispositionedMixin, so guard reads
+  // resolve to the neutral floor — the same 0 the old stub returned.
 });
 
 afterEach(() => {

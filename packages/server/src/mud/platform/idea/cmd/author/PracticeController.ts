@@ -6,16 +6,16 @@
  *
  * `practice <discipline> [difficulty] [outcome]`. Records a single
  * `{discipline, difficulty, outcome}` deed on the actor's own Transcript
- * via `AdvancementApi.recordDeed` (which re-evaluates conferrals), then
+ * via the actor's `creditDeed` (which re-evaluates conferrals), then
  * echoes the resulting competence band. Developer-gated (the yaml's
  * `requiresWizard` validator) on top of the AuthorMixin visibility.
  */
 
 import { CommandController } from "../../../../lib/command/CommandController";
+import { MixinApi } from '../../../../api/mixin';
 import type { CommandContext, CommandModel } from "../../../../api/command";
 import { MessageApi } from "../../../../api/message";
 import { Mml } from "../../../../api/mml";
-import { AdvancementApi } from "../../../../api/advancement";
 import {
   DIFFICULTIES,
   OUTCOMES,
@@ -58,8 +58,9 @@ export default class PracticeController extends CommandController<PracticeModel>
       );
     }
 
-    await AdvancementApi.recordDeed(actor, { discipline, difficulty, outcome });
-    const band = await AdvancementApi.bandFor(actor, discipline);
+    if (!MixinApi.isAdvancing(actor)) return;
+    await actor.creditDeed({ discipline, difficulty, outcome });
+    const band = await actor.competenceBandFor(discipline);
 
     const body = Mml.fromMarkup(
       `You practice ${Mml.escape(discipline)} ` +

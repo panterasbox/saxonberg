@@ -45,7 +45,6 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { ExecutionContextApi } from '@saxonberg/server/mud/api/execution-context';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
-import { AdvancementApi } from '@saxonberg/server/mud/api/advancement';
 import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
 import { CommandApi, type CommandContext } from '@saxonberg/server/mud/api/command';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
@@ -153,9 +152,6 @@ describe('the farms beat — tend, pick, sell, home', () => {
     WorldClockApi._setNowProviderForTesting(() => 1_000_000);
     vi.spyOn(PersistableApi, 'captureHostOf').mockImplementation(
       (async () => {}) as unknown as typeof PersistableApi.captureHostOf,
-    );
-    vi.spyOn(AdvancementApi, 'recordDeed').mockImplementation(
-      (async () => {}) as unknown as typeof AdvancementApi.recordDeed,
     );
     let cropSeq = 0;
     vi.spyOn(StuffApi, 'clone').mockImplementation((async (path: string) => {

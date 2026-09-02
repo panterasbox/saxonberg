@@ -17,6 +17,7 @@
  */
 
 import "../../../test-bootstrap";
+import { DerivedStandingCache } from '../../lib/standing/DerivedStandingCache';
 import { describe, it, expect, beforeEach } from 'vitest';
 import Avatar from '../agent/Avatar';
 import { MqlSubscriptionApi, collectSubscribableFields } from '../../api/mql-subscription';
@@ -29,7 +30,6 @@ import {
   makeStuff,
 } from '../../lib/security/__tests__/test-setup';
 import type { Sensor } from '../../lib/message/Sensor';
-import { AdvancementApi } from '../../api/advancement';
 import RenownStanding, {
   COMPACT_WIDE,
 } from '../../lib/standing/RenownStanding';
@@ -148,7 +148,7 @@ describe('Avatar standing figures — projection', () => {
   beforeEach(() => {
     StuffApi.clearAll();
     ShadowApi._clearAllForTesting();
-    AdvancementApi._clearDerivedCacheForTesting();
+    DerivedStandingCache._clearAllForTesting();
     RenownStanding._resetForTesting();
   });
 

@@ -50,7 +50,6 @@ import {
   CombatSession,
 } from "../../../../lib/combat/CombatSession";
 import { PartyApi } from "../../../../api/party";
-import { AdvancementApi } from "../../../../api/advancement";
 import { AccountabilityApi } from "../../../../api/accountability";
 import { COMBAT_COUP_TYPE } from "../../../../lib/combat/Coup";
 import { PartyMemberMixin } from "../../../../lib/party/PartyMember";
@@ -101,6 +100,32 @@ interface FighterOpts {
   /** A second weapon in the off-hand (dual-wield). */
   offWeaponForm?: string;
   ctor?: new () => TestFighter;
+}
+
+/**
+ * Since the OO sweep, credits land on the actor's own creditDeed /
+ * creditSignature (sealed instance methods). The factory installs
+ * capture spies on every fighter so tests observe minting without a
+ * class-static seam; the arrays are cleared at each using test.
+ */
+const mintedDeeds: Array<Record<string, unknown>> = [];
+const mintedSubs: Array<{ discipline: string }> = [];
+function installCreditCapture(f: TestFighter): void {
+  vi.spyOn(
+    f as unknown as { creditDeed(sub: unknown): Promise<void> },
+    "creditDeed",
+  ).mockImplementation(async (sub: unknown) => {
+    mintedDeeds.push(sub as Record<string, unknown>);
+  });
+  vi.spyOn(
+    f as unknown as { creditSignature(sig: unknown): Promise<void> },
+    "creditSignature",
+  ).mockImplementation(async (sig: unknown) => {
+    for (const sc of (sig as { discipline: Array<{ discipline: string }> })
+      .discipline ?? []) {
+      mintedSubs.push(sc);
+    }
+  });
 }
 
 function makeFighter(room: TestRoom, opts: FighterOpts = {}): TestFighter {
@@ -170,6 +195,7 @@ function makeFighter(room: TestRoom, opts: FighterOpts = {}): TestFighter {
     ow.setSlotClaim(planPathOf(f), ["offgrip"]);
     (f as unknown as { occupy(x: unknown, s: string): void }).occupy(ow, "offgrip");
   }
+  installCreditCapture(f);
   return f;
 }
 
@@ -1913,12 +1939,8 @@ describe("CombatLogic — command mints (the teaching payoff)", () => {
   }
 
   it("an interception mints `command` for a player-driven interceptor only", () => {
-    const deeds: Array<Record<string, unknown>> = [];
-    const spy = vi
-      .spyOn(AdvancementApi, "recordDeed")
-      .mockImplementation(async (_owner, sub) => {
-        deeds.push(sub as unknown as Record<string, unknown>);
-      });
+    const deeds = mintedDeeds;
+    deeds.length = 0;
     try {
       // Brain-driven front: no mint.
       {
@@ -1950,20 +1972,13 @@ describe("CombatLogic — command mints (the teaching payoff)", () => {
         ).toBeGreaterThan(0);
       }
     } finally {
-      spy.mockRestore();
     }
   });
 
   it("an armed opening cashed by an ALLY mints the armer's command deed", () => {
-    const deeds: Array<Record<string, unknown>> = [];
-    const spy = vi
-      .spyOn(AdvancementApi, "recordDeed")
-      .mockImplementation(async (_owner, sub) => {
-        deeds.push(sub as unknown as Record<string, unknown>);
-      });
-    const sigSpy = vi
-      .spyOn(AdvancementApi, "recordSignature")
-      .mockImplementation(async () => {});
+    const deeds = mintedDeeds;
+    deeds.length = 0;
+    mintedSubs.length = 0;
     try {
       const room = makeStuff(() => new TestRoom());
       const master = knifeFighter(room) as TestPartyFighter;
@@ -2008,18 +2023,12 @@ describe("CombatLogic — command mints (the teaching payoff)", () => {
         deeds.filter((d) => d.discipline === "command").length,
       ).toBeGreaterThan(before);
     } finally {
-      spy.mockRestore();
-      sigSpy.mockRestore();
     }
   });
 
   it("the default preset mints no command deeds (parity)", () => {
-    const deeds: Array<Record<string, unknown>> = [];
-    const spy = vi
-      .spyOn(AdvancementApi, "recordDeed")
-      .mockImplementation(async (_owner, sub) => {
-        deeds.push(sub as unknown as Record<string, unknown>);
-      });
+    const deeds = mintedDeeds;
+    deeds.length = 0;
     try {
       const room = makeStuff(() => new TestRoom());
       const a = knifeFighter(room, false);
@@ -2029,7 +2038,6 @@ describe("CombatLogic — command mints (the teaching payoff)", () => {
       for (let i = 0; i < 5; i++) CombatApi.advance(session);
       expect(deeds.filter((d) => d.discipline === "command")).toHaveLength(0);
     } finally {
-      spy.mockRestore();
     }
   });
 });
@@ -2284,15 +2292,8 @@ describe("CombatLogic — fisticuffs (the bar-fight build)", () => {
   });
 
   it("an unarmed exchange credits `unarmed` + `melee-combat`, never `blades`", () => {
-    const subs: Array<{ discipline: string }> = [];
-    const spy = vi
-      .spyOn(AdvancementApi, "recordSignature")
-      .mockImplementation(async (_owner, sig) => {
-        for (const s of (sig as { discipline: Array<{ discipline: string }> })
-          .discipline) {
-          subs.push(s);
-        }
-      });
+    const subs = mintedSubs;
+    subs.length = 0;
     try {
       const room = makeStuff(() => new TestRoom());
       const brawler = makeFighter(room);
@@ -2313,20 +2314,12 @@ describe("CombatLogic — fisticuffs (the bar-fight build)", () => {
       expect(disc).toContain("melee-combat");
       expect(disc).not.toContain("blades");
     } finally {
-      spy.mockRestore();
     }
   });
 
   it("an armed exchange credits `blades`, never `unarmed`", () => {
-    const subs: Array<{ discipline: string }> = [];
-    const spy = vi
-      .spyOn(AdvancementApi, "recordSignature")
-      .mockImplementation(async (_owner, sig) => {
-        for (const s of (sig as { discipline: Array<{ discipline: string }> })
-          .discipline) {
-          subs.push(s);
-        }
-      });
+    const subs = mintedSubs;
+    subs.length = 0;
     try {
       const room = makeStuff(() => new TestRoom());
       const swordsman = makeFighter(room, { weaponForm: "bladed" });
@@ -2344,7 +2337,6 @@ describe("CombatLogic — fisticuffs (the bar-fight build)", () => {
       expect(disc).toContain("melee-combat");
       expect(disc).not.toContain("unarmed");
     } finally {
-      spy.mockRestore();
     }
   });
 

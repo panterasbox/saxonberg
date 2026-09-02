@@ -14,13 +14,13 @@
  */
 
 import "../../../../test-bootstrap";
+import type { CompetenceBandName } from '../../advancement/CompetenceBand';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { readFileSync, readdirSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import YAML from 'yaml';
 import { MagicApi } from '../../../api/magic';
-import { AdvancementApi } from '../../../api/advancement';
 import { CommandApi } from '../../../api/command';
 import type { CommandDefinition } from '../../command/CommandDefinition';
 import { ExecutionContextApi } from '../../../api/execution-context';
@@ -62,7 +62,14 @@ class GlowlightOrb extends LightSourceMixin(Thing) {}
 const SPELL_PATH_PREFIX = '/stuff/idea/magic/Spell/';
 const SPELL_CLASS = '/platform/idea/magic/Spell';
 
-class TestCharacter extends Character {}
+// The competence read runs ON the caster since the OO sweep; this
+// pins the band per test (credits no-op — PM is disconnected here).
+let testBand: CompetenceBandName = 'competent';
+class TestCharacter extends Character {
+  override async competenceBandFor(): Promise<CompetenceBandName> {
+    return testBand;
+  }
+}
 /** An identifiable item with no proper name — the unknown-flask shape. */
 class Vial extends IdentifiableMixin(VisibleMixin(ContainableMixin(Idea))) {}
 /** A bare marked thing: no working, just text. */
@@ -183,8 +190,7 @@ describe('Wave 2 — consumables', () => {
     WorldClockApi._resetForTesting();
     WorldClockApi._setNowProviderForTesting(() => 100000);
     await installCatalogue();
-    vi.spyOn(AdvancementApi, 'recordSignature').mockResolvedValue(undefined);
-    vi.spyOn(AdvancementApi, 'bandFor').mockResolvedValue('competent');
+    testBand = 'competent';
     vi.spyOn(StuffApi, 'clone').mockImplementation(async () =>
       makeStuff(() => new GlowlightOrb()),
     );

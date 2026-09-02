@@ -24,7 +24,6 @@ import { Mml } from '@saxonberg/server/mud/api/mml';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { SchedulerApi } from '@saxonberg/server/mud/api/scheduler';
-import { AdvancementApi } from '@saxonberg/server/mud/api/advancement';
 import { ManualBuildStep } from '@saxonberg/server/mud/lib/craft/ManualBuildStep';
 import CharcoalPit from '../../../thing/CharcoalPit';
 
@@ -188,7 +187,8 @@ async function openClamp(
     // ⚠ The DEED is recorded either way. A lost burn is evidence of
     // practice — it is how a collier learns where the band is, and
     // recording only successes would make the ledger a scoreboard.
-    await AdvancementApi.recordDeed(giver, {
+    if (MixinApi.isAdvancing(giver))
+      await giver.creditDeed({
       discipline: COLLIERY,
       difficulty: 'standard',
       outcome: outcome === 'charcoal' ? 'success' : 'failure',

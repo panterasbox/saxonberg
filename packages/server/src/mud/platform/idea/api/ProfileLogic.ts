@@ -13,8 +13,6 @@ import { RecognitionApi } from '../../../api/recognition';
 import { ConnectionApi } from '../../../api/connection';
 import { RenownApi } from '../../../api/renown';
 import { InfluenceApi } from '../../../api/influence';
-import { AdvancementApi } from '../../../api/advancement';
-import { TraitApi } from '../../../api/trait';
 import { ShellApi } from '../../../api/shell';
 import { SocialApi } from '../../../api/social';
 import type { PresenceStatus } from '@saxonberg/types';
@@ -202,7 +200,9 @@ export class ProfileLogic extends ApiLogic {
     // --- Always-outward standing (renown + competence) ---
     const subjectId = subjectIdOf(target);
     card.renownBand = Band.fromScalar(RenownApi.renownOf(subjectId)).name;
-    const competence = await AdvancementApi.bandsFor(target);
+    const competence = MixinApi.isAdvancing(target)
+      ? await target.competenceBands()
+      : [];
     if (competence.length) {
       card.competenceBands = competence.map((b) => ({
         discipline: b.discipline,
@@ -280,14 +280,18 @@ export class ProfileLogic extends ApiLogic {
         ...(make ? { make: make.band.name } : {}),
       },
     };
-    const competence = await AdvancementApi.bandsFor(target);
+    const competence = MixinApi.isAdvancing(target)
+      ? await target.competenceBands()
+      : [];
     if (competence.length) {
       digest.competence = competence.map((b) => ({
         discipline: b.discipline,
         band: b.band,
       }));
     }
-    const traits = await TraitApi.pronouncedFor(target);
+    const traits = MixinApi.isDispositioned(target)
+      ? await target.pronouncedTraits()
+      : [];
     if (traits.length) {
       digest.traits = traits.map((t) => ({
         axis: t.disposition,

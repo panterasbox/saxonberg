@@ -40,6 +40,18 @@
  */
 
 export class DerivedStandingCache<T> {
+  /**
+   * Every constructed cache, for the test/HMR clear seam. The class is
+   * the natural registry: instances live at module scope of their
+   * owning ledger file, so nothing else can enumerate them.
+   */
+  private static readonly instances = new Set<DerivedStandingCache<unknown>>();
+
+  /** Test/HMR seam — drop every cache's derived fold state. */
+  public static _clearAllForTesting(): void {
+    for (const c of DerivedStandingCache.instances) c.clear();
+  }
+
   /** Folded values, keyed by durable subject id. */
   private readonly values = new Map<string, T>();
 
@@ -54,7 +66,9 @@ export class DerivedStandingCache<T> {
   constructor(
     private readonly fold: (subject: string) => Promise<T>,
     private readonly onWarm: (subject: string) => void
-  ) {}
+  ) {
+    DerivedStandingCache.instances.add(this as DerivedStandingCache<unknown>);
+  }
 
   /**
    * The sync read. Returns `undefined` on a miss and schedules the

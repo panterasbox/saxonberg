@@ -10,10 +10,13 @@
 import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import PracticeController from "../PracticeController";
-import { AdvancementApi } from "../../../../../api/advancement";
 import { MessageApi } from "../../../../../api/message";
 import { Mml } from "../../../../../api/mml";
 import { Idea } from "../../../../../lib/stuff/Idea";
+import { AdvancementMixin } from "../../../../../lib/advancement/Advancement";
+
+// The transcript face lives ON the actor since the OO sweep.
+class AdvancingIdea extends AdvancementMixin(Idea) {}
 import { StuffApi } from "../../../../../api/stuff";
 import { WorldClockApi } from "../../../../../api/worldclock";
 import { PersistenceManager } from "../../../../../../backend/PersistenceManager";
@@ -87,14 +90,14 @@ interface PracticeArgs extends CommandModel {
 
 describe("PracticeController", () => {
   it("records a deed and echoes the resulting band", async () => {
-    const actor = makeStuffAtPath(() => new Idea(), "/platform/agent/Avatar/prac");
+    const actor = makeStuffAtPath(() => new AdvancingIdea(), "/platform/agent/Avatar/prac");
     const ctrl = makeStuff(() => new PracticeController());
     await ctrl.execute(
       { discipline: "mixology", difficulty: "hard", outcome: "critical" } as PracticeArgs,
       ctxFor(actor)
     );
 
-    const rows = await AdvancementApi.entriesFor(actor, "mixology");
+    const rows = await actor.transcriptEntries("mixology");
     expect(rows).toHaveLength(1);
     expect(rows[0]!.kind).toBe("deed");
     expect(rows[0]!.difficulty).toBe("hard");
@@ -102,17 +105,17 @@ describe("PracticeController", () => {
   });
 
   it("defaults difficulty to standard and outcome to success", async () => {
-    const actor = makeStuffAtPath(() => new Idea(), "/platform/agent/Avatar/prac-default");
+    const actor = makeStuffAtPath(() => new AdvancingIdea(), "/platform/agent/Avatar/prac-default");
     const ctrl = makeStuff(() => new PracticeController());
     await ctrl.execute({ discipline: "darts" } as PracticeArgs, ctxFor(actor));
 
-    const [row] = await AdvancementApi.entriesFor(actor, "darts");
+    const [row] = await actor.transcriptEntries("darts");
     expect(row!.difficulty).toBe("standard");
     expect(row!.outcome).toBe("success");
   });
 
   it("rejects a bad difficulty without writing a row", async () => {
-    const actor = makeStuffAtPath(() => new Idea(), "/platform/agent/Avatar/prac-bad");
+    const actor = makeStuffAtPath(() => new AdvancingIdea(), "/platform/agent/Avatar/prac-bad");
     const ctrl = makeStuff(() => new PracticeController());
     await ctrl.execute(
       { discipline: "mixology", difficulty: "ludicrous" } as PracticeArgs,
@@ -126,7 +129,7 @@ describe("PracticeController", () => {
   });
 
   it("rejects a missing discipline", async () => {
-    const actor = makeStuffAtPath(() => new Idea(), "/platform/agent/Avatar/prac-none");
+    const actor = makeStuffAtPath(() => new AdvancingIdea(), "/platform/agent/Avatar/prac-none");
     const ctrl = makeStuff(() => new PracticeController());
     await ctrl.execute({} as PracticeArgs, ctxFor(actor));
 

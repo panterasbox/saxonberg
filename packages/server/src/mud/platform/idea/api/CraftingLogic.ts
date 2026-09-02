@@ -10,7 +10,6 @@ import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
 import { BulkableApi } from '../../../api/bulk';
 import { ThermalApi } from '../../../api/thermal';
-import { AdvancementApi } from '../../../api/advancement';
 import { ExecutionContextApi } from '../../../api/execution-context';
 import { WorldClockApi } from '../../../api/worldclock';
 import { Quantity } from '../../../lib/quantity';
@@ -1003,7 +1002,8 @@ async function recordCraftEvidence(
   )
     ? (recipe.getDifficulty() as Difficulty)
     : 'easy';
-  await AdvancementApi.recordDeed(maker, {
+  if (MixinApi.isAdvancing(maker))
+    await maker.creditDeed({
     discipline,
     difficulty,
     outcome: 'success',

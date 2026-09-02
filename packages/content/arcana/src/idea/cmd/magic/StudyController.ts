@@ -26,7 +26,6 @@ import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { MagicApi } from '@saxonberg/server/mud/api/magic';
-import { AdvancementApi } from '@saxonberg/server/mud/api/advancement';
 import { SchedulerApi } from '@saxonberg/server/mud/api/scheduler';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { StudyActivity } from '@saxonberg/server/mud/lib/magic/StudyActivity';
@@ -110,9 +109,12 @@ export default class StudyController extends CommandController<StudyModel> {
     // Set BELOW the casting floor, so the gap is a read-ahead window: a
     // band where you can take a working on board and not yet execute it,
     // which gives practice a visible target.
+    const adv = MixinApi.isAdvancing(actor) ? actor : null;
     const [verbBand, nounBand] = await Promise.all([
-      AdvancementApi.bandFor(actor, MagicGrid.verbDisciplineKey(spell.verb)),
-      AdvancementApi.bandFor(actor, MagicGrid.nounDisciplineKey(spell.noun)),
+      adv?.competenceBandFor(MagicGrid.verbDisciplineKey(spell.verb)) ??
+        CompetenceBand.FLOOR,
+      adv?.competenceBandFor(MagicGrid.nounDisciplineKey(spell.noun)) ??
+        CompetenceBand.FLOOR,
     ]);
     const limiting =
       CompetenceBand.rank(verbBand) <= CompetenceBand.rank(nounBand)

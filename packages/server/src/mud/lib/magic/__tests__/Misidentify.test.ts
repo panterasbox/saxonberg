@@ -20,13 +20,13 @@
  */
 
 import "../../../../test-bootstrap";
+import type { CompetenceBandName } from '../../advancement/CompetenceBand';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { readFileSync, readdirSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import YAML from 'yaml';
 import { MagicApi } from '../../../api/magic';
-import { AdvancementApi } from '../../../api/advancement';
 import { ExecutionContextApi } from '../../../api/execution-context';
 import { StuffApi } from '../../../api/stuff';
 import { ShadowApi } from '../../../api/shadow';
@@ -55,7 +55,14 @@ const SPELL_SEEDS_DIR = join(
   '../../../../../../content/arcane-library/content/stuff/idea/magic/Spell',
 );
 
-class TestCharacter extends Character {}
+// The competence read runs ON the caster since the OO sweep; this
+// pins the band per test (credits no-op — PM is disconnected here).
+let testBand: CompetenceBandName = 'competent';
+class TestCharacter extends Character {
+  override async competenceBandFor(): Promise<CompetenceBandName> {
+    return testBand;
+  }
+}
 
 let seq = 0;
 let catalogueSingleton: SpellCatalogue | null = null;
@@ -128,8 +135,7 @@ describe('misidentify — the decoy is borrowed from the world', () => {
     WorldClockApi._resetForTesting();
     WorldClockApi._setNowProviderForTesting(() => 100000);
     await installCatalogue();
-    vi.spyOn(AdvancementApi, 'recordSignature').mockResolvedValue(undefined);
-    vi.spyOn(AdvancementApi, 'bandFor').mockResolvedValue('competent');
+    testBand = 'competent';
   });
   afterEach(() => {
     WorldClockApi._resetForTesting();

@@ -15,13 +15,13 @@
  */
 
 import "../../../../test-bootstrap";
+import type { CompetenceBandName } from '../../advancement/CompetenceBand';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { readFileSync, readdirSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import YAML from 'yaml';
 import { MagicApi } from '../../../api/magic';
-import { AdvancementApi } from '../../../api/advancement';
 import { AccountabilityApi } from '../../../api/accountability';
 import { ExecutionContextApi } from '../../../api/execution-context';
 import { StuffApi } from '../../../api/stuff';
@@ -59,7 +59,14 @@ const SPELL_CLASS = '/platform/idea/magic/Spell';
 class TestWand extends IdentifiableMixin(
   ChargedMixin(ReservedMixin(ArcaneMixin(Thing))),
 ) {}
-class TestCharacter extends Character {}
+// The competence read runs ON the caster since the OO sweep; this
+// pins the band per test (credits no-op — PM is disconnected here).
+let testBand: CompetenceBandName = 'competent';
+class TestCharacter extends Character {
+  override async competenceBandFor(): Promise<CompetenceBandName> {
+    return testBand;
+  }
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const SPELL_SEEDS_DIR = join(
@@ -142,8 +149,7 @@ describe('EffectContext — the four separated jobs', () => {
     WorldClockApi._resetForTesting();
     WorldClockApi._setNowProviderForTesting(() => 100000);
     await installCatalogue();
-    vi.spyOn(AdvancementApi, 'recordSignature').mockResolvedValue(undefined);
-    vi.spyOn(AdvancementApi, 'bandFor').mockResolvedValue('competent');
+    testBand = 'competent';
     vi.spyOn(StuffApi, 'clone').mockImplementation(async () =>
       makeStuff(() => new GlowlightOrb()),
     );
@@ -371,7 +377,7 @@ describe('EffectContext — the four separated jobs', () => {
     ContainmentApi.move(user, room);
     ContainmentApi.move(wand, room);
     // The user cannot cast it at all…
-    vi.spyOn(AdvancementApi, 'bandFor').mockResolvedValue('untrained');
+    testBand = 'untrained';
     const refused = await MagicApi.prepareCast(user, 'dispel');
     expect(refused.ok).toBe(false);
     expect(refused.refusal).toMatch(/beyond your/);
@@ -385,12 +391,10 @@ describe('EffectContext — the four separated jobs', () => {
   it('AC3 — firing an item credits no Transcript deed', async () => {
     const room = makeRoom();
     const user = makeActor();
+    const credit = vi.spyOn(user, 'creditSignature');
     const wand = makeWand('glowlight', '/obj/test/grand-artificer');
     ContainmentApi.move(user, room);
     ContainmentApi.move(wand, room);
-    const credit = vi
-      .spyOn(AdvancementApi, 'recordSignature')
-      .mockResolvedValue(undefined);
     actingAs(user);
 
     await MagicApi.discharge(wand);

@@ -54,7 +54,6 @@ import { FireApi } from '../../../api/fire';
 import { ElectricityApi } from '../../../api/electricity';
 import { BulkableApi } from '../../../api/bulk';
 import { ContainmentApi } from '../../../api/containment';
-import { AdvancementApi } from '../../../api/advancement';
 import { AccountabilityApi } from '../../../api/accountability';
 import { CombatApi } from '../../../api/combat';
 import {
@@ -365,9 +364,10 @@ async function prepareCastImpl(
   // per-spell conferral; see docs/subsystems/magic.md).
   const verbKey = MagicGrid.verbDisciplineKey(spell.verb);
   const nounKey = MagicGrid.nounDisciplineKey(spell.noun);
+  const advCaster = MixinApi.isAdvancing(caster) ? caster : null;
   const [verbBand, nounBand] = await Promise.all([
-    AdvancementApi.bandFor(caster, verbKey),
-    AdvancementApi.bandFor(caster, nounKey),
+    advCaster?.competenceBandFor(verbKey) ?? CompetenceBand.FLOOR,
+    advCaster?.competenceBandFor(nounKey) ?? CompetenceBand.FLOOR,
   ]);
   if (!CompetenceBand.atOrAbove(verbBand, spell.castingProfile.requiredBand)) {
     return {
@@ -492,7 +492,8 @@ async function resolveCastImpl(
   // A CAST is a deed; an item discharge deliberately is not — see
   // `dischargeImpl`.
   const difficulty = difficultyOf(spell.castingProfile.requiredBand);
-  void AdvancementApi.recordSignature(caster, {
+  if (MixinApi.isAdvancing(caster))
+    void caster.creditSignature({
     discipline: [
       {
         discipline: MagicGrid.verbDisciplineKey(spell.verb),
@@ -691,9 +692,12 @@ async function spellsViewImpl(caster: Stuff): Promise<SpellsView> {
   const casterView = (caster as unknown as Caster).getFacultyView();
   const rows: SpellCellRow[] = [];
   for (const spell of catalogue()?.allSpells() ?? []) {
+    const advc = MixinApi.isAdvancing(caster) ? caster : null;
     const [verbBand, nounBand] = await Promise.all([
-      AdvancementApi.bandFor(caster, MagicGrid.verbDisciplineKey(spell.verb)),
-      AdvancementApi.bandFor(caster, MagicGrid.nounDisciplineKey(spell.noun)),
+      advc?.competenceBandFor(MagicGrid.verbDisciplineKey(spell.verb)) ??
+        CompetenceBand.FLOOR,
+      advc?.competenceBandFor(MagicGrid.nounDisciplineKey(spell.noun)) ??
+        CompetenceBand.FLOOR,
     ]);
     const limiting =
       CompetenceBand.rank(verbBand) <= CompetenceBand.rank(nounBand)
@@ -1768,9 +1772,12 @@ async function potencyFactor(
   caster: Stuff,
   spell: SpellDescriptor,
 ): Promise<number> {
+  const advCaster2 = MixinApi.isAdvancing(caster) ? caster : null;
   const [verbBand, nounBand] = await Promise.all([
-    AdvancementApi.bandFor(caster, MagicGrid.verbDisciplineKey(spell.verb)),
-    AdvancementApi.bandFor(caster, MagicGrid.nounDisciplineKey(spell.noun)),
+    advCaster2?.competenceBandFor(MagicGrid.verbDisciplineKey(spell.verb)) ??
+      CompetenceBand.FLOOR,
+    advCaster2?.competenceBandFor(MagicGrid.nounDisciplineKey(spell.noun)) ??
+      CompetenceBand.FLOOR,
   ]);
   const minRank = Math.min(
     CompetenceBand.rank(verbBand),
@@ -1890,9 +1897,12 @@ function bestConduitFor(
  * would let a good caster deliver more than they spent.
  */
 async function competenceEfficiency(actor: Stuff): Promise<number> {
+  const advActor = MixinApi.isAdvancing(actor) ? actor : null;
   const [verbBand, nounBand] = await Promise.all([
-    AdvancementApi.bandFor(actor, MagicGrid.verbDisciplineKey('control')),
-    AdvancementApi.bandFor(actor, MagicGrid.nounDisciplineKey('arcana')),
+    advActor?.competenceBandFor(MagicGrid.verbDisciplineKey('control')) ??
+      CompetenceBand.FLOOR,
+    advActor?.competenceBandFor(MagicGrid.nounDisciplineKey('arcana')) ??
+      CompetenceBand.FLOOR,
   ]);
   const rank = Math.min(
     CompetenceBand.rank(verbBand),

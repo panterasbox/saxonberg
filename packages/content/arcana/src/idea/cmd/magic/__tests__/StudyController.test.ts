@@ -14,13 +14,13 @@
  */
 
 import "@saxonberg/server/test-bootstrap";
+import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { readFileSync, readdirSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import YAML from 'yaml';
 import StudyController from '../StudyController';
-import { AdvancementApi } from '@saxonberg/server/mud/api/advancement';
 import { SpellKnowledge } from '@saxonberg/server/mud/lib/magic/SpellKnowledge';
 import { RecognitionApi } from '@saxonberg/server/mud/api/recognition';
 import { SchedulerApi } from '@saxonberg/server/mud/api/scheduler';
@@ -47,7 +47,15 @@ import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persiste
 const SPELL_PATH_PREFIX = '/stuff/idea/magic/Spell/';
 const SPELL_CLASS = '/platform/idea/magic/Spell';
 
-class TestCharacter extends Character {}
+// The competence read runs ON the reader since the OO sweep; pinned
+// per test. creditSignature is captured per instance in makeReader.
+let testBand: CompetenceBandName = 'untrained';
+const creditCalls: unknown[] = [];
+class TestCharacter extends Character {
+  override async competenceBandFor(): Promise<CompetenceBandName> {
+    return testBand;
+  }
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const SPELL_SEEDS_DIR = join(
@@ -117,6 +125,12 @@ function makeReader(): TestCharacter {
   const actor = makeStuff(() => new TestCharacter());
   actor.setSpecies(species);
   stampTemplatePathForTest(actor, `/obj/test/study-reader-${n}`);
+  vi.spyOn(
+    actor as unknown as { creditSignature(sig: unknown): Promise<void> },
+    'creditSignature',
+  ).mockImplementation(async (sig: unknown) => {
+    creditCalls.push(sig);
+  });
   return actor;
 }
 
@@ -173,10 +187,9 @@ describe('StudyController — claim, never deed', () => {
   });
 
   it('AC26 — studying mints a CLAIM and writes NO Transcript entry', async () => {
-    vi.spyOn(AdvancementApi, 'bandFor').mockResolvedValue('competent');
-    const credit = vi
-      .spyOn(AdvancementApi, 'recordSignature')
-      .mockResolvedValue(undefined);
+    testBand = 'competent';
+    const credit = creditCalls;
+    credit.length = 0;
     // The claim seam is SpellKnowledge.noteKnown since the OO sweep
     // (the mint itself is the owner's sealed recordChronicleOnce).
     const claim = vi
@@ -202,14 +215,13 @@ describe('StudyController — claim, never deed', () => {
 
     // …and competence was NOT touched. A book that granted skill would
     // have to write evidence of practice that never happened.
-    expect(credit).not.toHaveBeenCalled();
+    expect(credit).toHaveLength(0);
     expect(reader.holdsSpell('/stuff/idea/magic/Spell/glowlight')).toBe(true);
   });
 
   it('AC26 — the claim is idempotent (recordOnce, distinct key)', async () => {
-    vi.spyOn(AdvancementApi, 'bandFor').mockResolvedValue('competent');
-    vi.spyOn(AdvancementApi, 'recordSignature').mockResolvedValue(undefined);
-    const claim = vi
+    testBand = 'competent';
+        const claim = vi
       .spyOn(SpellKnowledge, 'noteKnown')
       .mockResolvedValue(undefined as never);
     vi.spyOn(SchedulerApi, 'start').mockImplementation((activity) => {
@@ -232,9 +244,8 @@ describe('StudyController — claim, never deed', () => {
 
   it('AC27/28 — BELOW the comprehension floor you get a defective copy, not a refusal', async () => {
     // Untrained reader, book with a `competent` floor.
-    vi.spyOn(AdvancementApi, 'bandFor').mockResolvedValue('untrained');
-    vi.spyOn(AdvancementApi, 'recordSignature').mockResolvedValue(undefined);
-    vi.spyOn(SpellKnowledge, 'noteKnown').mockResolvedValue(undefined as never);
+    testBand = 'untrained';
+        vi.spyOn(SpellKnowledge, 'noteKnown').mockResolvedValue(undefined as never);
     vi.spyOn(SchedulerApi, 'start').mockImplementation((activity) => {
       (activity as unknown as { onComplete(): void }).onComplete();
       return { ok: true } as never;
@@ -256,9 +267,8 @@ describe('StudyController — claim, never deed', () => {
   });
 
   it('AC27 — ABOVE the floor the copy is clean', async () => {
-    vi.spyOn(AdvancementApi, 'bandFor').mockResolvedValue('competent');
-    vi.spyOn(AdvancementApi, 'recordSignature').mockResolvedValue(undefined);
-    vi.spyOn(SpellKnowledge, 'noteKnown').mockResolvedValue(undefined as never);
+    testBand = 'competent';
+        vi.spyOn(SpellKnowledge, 'noteKnown').mockResolvedValue(undefined as never);
     vi.spyOn(SchedulerApi, 'start').mockImplementation((activity) => {
       (activity as unknown as { onComplete(): void }).onComplete();
       return { ok: true } as never;
@@ -285,9 +295,8 @@ describe('StudyController — claim, never deed', () => {
   });
 
   it('AC31 — the study is an ACTIVITY, and its duration falls as sharpness rises', async () => {
-    vi.spyOn(AdvancementApi, 'bandFor').mockResolvedValue('competent');
-    vi.spyOn(AdvancementApi, 'recordSignature').mockResolvedValue(undefined);
-    vi.spyOn(SpellKnowledge, 'noteKnown').mockResolvedValue(undefined as never);
+    testBand = 'competent';
+        vi.spyOn(SpellKnowledge, 'noteKnown').mockResolvedValue(undefined as never);
     const durations: number[] = [];
     vi.spyOn(SchedulerApi, 'start').mockImplementation((activity) => {
       durations.push((activity as unknown as { duration: number }).duration);
@@ -309,9 +318,8 @@ describe('StudyController — claim, never deed', () => {
   });
 
   it('AC31 — an INTERRUPTED study learns nothing', async () => {
-    vi.spyOn(AdvancementApi, 'bandFor').mockResolvedValue('competent');
-    vi.spyOn(AdvancementApi, 'recordSignature').mockResolvedValue(undefined);
-    const claim = vi
+    testBand = 'competent';
+        const claim = vi
       .spyOn(SpellKnowledge, 'noteKnown')
       .mockResolvedValue(undefined as never);
     vi.spyOn(SchedulerApi, 'start').mockImplementation((activity) => {

@@ -182,6 +182,7 @@ export const Mixins = {
   Named: 'NamedMixin',
   Gendered: 'GenderedMixin',
   Persona: 'PersonaMixin',
+  Dispositioned: 'DispositionedMixin',
   Advancement: 'AdvancementMixin',
   Container: 'ContainerMixin',
   Containable: 'ContainableMixin',

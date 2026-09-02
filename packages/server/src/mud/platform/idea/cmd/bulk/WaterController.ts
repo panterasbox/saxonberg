@@ -28,7 +28,6 @@ import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
 import { PersistableApi } from '../../../../api/persistable';
-import { AdvancementApi } from '../../../../api/advancement';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Growing } from '../../../../lib/husbandry/Growing';
 import {
@@ -191,7 +190,8 @@ export default class WaterController extends CommandController<WaterModel> {
     // so there is no credit for going through the motions.
     if (absorbed > 0) {
       try {
-        await AdvancementApi.recordDeed(giver, {
+        if (MixinApi.isAdvancing(giver))
+          await giver.creditDeed({
           discipline: 'horticulture',
           difficulty,
           outcome: 'success',

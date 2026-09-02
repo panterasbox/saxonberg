@@ -37,7 +37,6 @@ import { Mml } from "../../api/mml";
 import { ContainmentApi } from "../../api/containment";
 import { MixinApi } from "../../api/mixin";
 import { InfluenceApi } from "../../api/influence";
-import { AdvancementApi } from "../../api/advancement";
 import { SlotApi } from "../../api/slot";
 import { Template } from "../../lib/stuff/Template";
 import { NameBank } from "../../lib/species/NameBank";
@@ -479,7 +478,7 @@ export default class Login extends LoginBase {
 
       // The practice record — the same derive-on-read digest the
       // in-session `competenceDigest` field ships.
-      const bands = AdvancementApi.competenceDigestCached(a);
+      const bands = a.competenceDigestCached();
       if (bands !== undefined && bands.length > 0) {
         out.practice = bands.map((b) => ({
           discipline: b.discipline,

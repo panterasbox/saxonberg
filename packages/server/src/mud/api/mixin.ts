@@ -36,6 +36,8 @@ import type { Forums } from '../lib/forum/Forums';
 import type { Named } from '../lib/description/Named';
 import type { Gendered } from '../lib/character/Gendered';
 import type { Persona } from '../lib/character/Persona';
+import type { Dispositioned } from '../lib/trait/Dispositioned';
+import type { Advancing } from '../lib/advancement/Advancement';
 import type { Visible } from '../lib/description/Visible';
 import type { Perceptible } from '../lib/description/Perceptible';
 import type { Detailed } from '../lib/description/Detailed';
@@ -766,6 +768,14 @@ export class MixinApi {
 
   public static isPersona(obj: Stuff): obj is Stuff & Persona {
     return this.hasMixin(obj, Mixins.Persona);
+  }
+
+  public static isDispositioned(obj: Stuff): obj is Stuff & Dispositioned {
+    return this.hasMixin(obj, Mixins.Dispositioned);
+  }
+
+  public static isAdvancing(obj: Stuff): obj is Stuff & Advancing {
+    return this.hasMixin(obj, Mixins.Advancement);
   }
 
   public static isVisible(obj: Stuff): obj is Stuff & Visible {

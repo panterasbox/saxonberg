@@ -31,7 +31,6 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { ChattelApi } from '@saxonberg/server/mud/api/chattel';
 import { EmploymentApi } from '@saxonberg/server/mud/api/employment';
-import { AdvancementApi } from '@saxonberg/server/mud/api/advancement';
 import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { ConditionApi } from '@saxonberg/server/mud/api/condition';
@@ -208,7 +207,8 @@ async function winOre(
 
     // World-derived difficulty: the rock decides how hard the cut was,
     // not the verb. Nothing gates on the band.
-    await AdvancementApi.recordDeed(giver, {
+    if (MixinApi.isAdvancing(giver))
+      await giver.creditDeed({
       discipline: 'geology',
       difficulty: face.hardnessMPa >= 250 ? 'hard' : face.hardnessMPa >= 150 ? 'standard' : 'easy',
       outcome: 'success',

@@ -19,12 +19,14 @@ import { PartyApi, DEFAULT_FORMATION_PATH } from "../../../../api/party";
 import { ChatApi } from "../../../../api/chat";
 import { CombatFormation } from "../../CombatFormation";
 import { PartyMemberMixin } from "../../../../lib/party/PartyMember";
+import { AdvancementMixin } from '../../../../lib/advancement/Advancement';
 import { Party } from "../../Party";
 import { ProxyApi } from "../../../../api/proxy";
-import { AdvancementApi } from "../../../../api/advancement";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
 
-class TestMember extends PartyMemberMixin(Idea) {}
+// AdvancementMixin composed so the captain's own creditDeed exists —
+// the command-deed mint lands on the actor since the OO sweep.
+class TestMember extends AdvancementMixin(PartyMemberMixin(Idea)) {}
 
 let seq = 0;
 
@@ -311,11 +313,15 @@ describe("PartyApi — the adopt mint (leadership deed)", () => {
     const cap = member();
     await seedParty(cap);
 
+    // Credits land on the captain's own creditDeed since the OO sweep.
     const deeds: Array<Record<string, unknown>> = [];
     const spy = vi
-      .spyOn(AdvancementApi, "recordDeed")
-      .mockImplementation(async (_owner, sub) => {
-        deeds.push(sub as unknown as Record<string, unknown>);
+      .spyOn(
+        cap as unknown as { creditDeed(sub: unknown): Promise<void> },
+        "creditDeed",
+      )
+      .mockImplementation(async (sub: unknown) => {
+        deeds.push(sub as Record<string, unknown>);
       });
     try {
       const res = await PartyApi.setFormation(cap as Stuff, "vanguard");
@@ -328,7 +334,10 @@ describe("PartyApi — the adopt mint (leadership deed)", () => {
     // A rejecting mint never blocks the switch.
     residentFormation("focus", []);
     const failing = vi
-      .spyOn(AdvancementApi, "recordDeed")
+      .spyOn(
+        cap as unknown as { creditDeed(sub: unknown): Promise<void> },
+        "creditDeed",
+      )
       .mockRejectedValue(new Error("no transcript store in unit test"));
     try {
       const res2 = await PartyApi.setFormation(cap as Stuff, "focus");

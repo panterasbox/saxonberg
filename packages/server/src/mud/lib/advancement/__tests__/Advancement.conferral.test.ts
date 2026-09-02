@@ -2,7 +2,7 @@
  * AdvancementMixin conferral integration — the knowing→doing seam.
  *
  * A minimal AdvancementMixin + CommandGiver host practices a Discipline
- * through `AdvancementApi.recordDeed` (which triggers a conferral refresh),
+ * through the giver's own `creditDeed` (which triggers a conferral refresh),
  * and we assert the band-gated verb appears in `getAffordances()` with the
  * catalogue as its source — and is absent below the band. Proves
  * "advancement = the door opens" end-to-end on this branch.
@@ -18,7 +18,7 @@ import { ContainableMixin } from "../../spatial/Containable";
 import { AdvancementMixin } from "../Advancement";
 import DisciplineCatalogue from "../../../platform/idea/DisciplineCatalogue";
 import Discipline from "../../../platform/idea/Discipline";
-import { AdvancementApi } from "../../../api/advancement";
+
 import { CommandApi } from "../../../api/command";
 import { WorldClockApi } from "../../../api/worldclock";
 import { StuffApi } from "../../../api/stuff";
@@ -118,7 +118,7 @@ describe("AdvancementMixin conferral", () => {
   it("does not afford the conferred verb before the band is reached", async () => {
     const giver = makeGiver();
     // An easy success leaves Mixology below 'competent'.
-    await AdvancementApi.recordDeed(giver, {
+    await giver.creditDeed({
       discipline: "mixology",
       difficulty: "easy",
       outcome: "success",
@@ -130,7 +130,7 @@ describe("AdvancementMixin conferral", () => {
     const giver = makeGiver();
     // A hard, decisive (critical) attempt crosses into 'competent',
     // conferring flourish.
-    await AdvancementApi.recordDeed(giver, {
+    await giver.creditDeed({
       discipline: "mixology",
       difficulty: "hard",
       outcome: "critical",
@@ -140,7 +140,7 @@ describe("AdvancementMixin conferral", () => {
 
   it("attributes the conferred verb to the catalogue (your competence)", async () => {
     const giver = makeGiver();
-    await AdvancementApi.recordDeed(giver, {
+    await giver.creditDeed({
       discipline: "mixology",
       difficulty: "hard",
       outcome: "critical",
@@ -154,7 +154,7 @@ describe("AdvancementMixin conferral", () => {
 
   it("does not confer from a Discipline with no conferral rules", async () => {
     const giver = makeGiver();
-    await AdvancementApi.recordDeed(giver, {
+    await giver.creditDeed({
       discipline: "darts",
       difficulty: "hard",
       outcome: "critical",
@@ -164,12 +164,12 @@ describe("AdvancementMixin conferral", () => {
 
   it("re-evaluating is idempotent — the verb is not duplicated", async () => {
     const giver = makeGiver();
-    await AdvancementApi.recordDeed(giver, {
+    await giver.creditDeed({
       discipline: "mixology",
       difficulty: "hard",
       outcome: "success",
     });
-    await AdvancementApi.recordDeed(giver, {
+    await giver.creditDeed({
       discipline: "mixology",
       difficulty: "hard",
       outcome: "success",
