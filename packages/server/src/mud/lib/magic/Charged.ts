@@ -74,6 +74,15 @@ import type { Slotted } from '../slot/Slotted';
 import type { Slottable } from '../slot/Slottable';
 import { EffectContexts } from './EffectContext';
 import { Charge } from './Charge';
+import { Final, Unshadowable } from '../security/decorators';
+import type {
+  CastOutcome,
+  DischargeOptions,
+  ChargeTransfer,
+} from '../../api/magic';
+// eslint-disable-next-line no-restricted-imports -- the F3 object face: a shell's chargeFrom()/dischargeAt() forward into the magic logic singleton exactly as the api/magic facade does (the Combustible/Energized precedent)
+import { MagicLogic } from '../../platform/idea/api/MagicLogic';
+import type { Arcane } from './Arcane';
 
 /** The topic a worn host narrates its own wake/dry-click on (self-only, like a potion). */
 const WORN_TOPIC = 'act.deed';
@@ -175,6 +184,10 @@ export interface Charged {
   /** Release every sustained effect this host holds up on `host`, and stop drawing. */
   releaseHeld(host: Stuff): void;
 
+  // The charge face (F3) — forwards into MagicLogic.
+  /** Receive charge from `actor`'s reserve into this shell. */
+  chargeFrom(actor: Stuff, committedPt: number): Promise<ChargeTransfer>;
+
   // ---------- storage (public for the Hydrator) ----------
   capacityKJ: number;
   alwaysOn: boolean;
@@ -183,7 +196,7 @@ export interface Charged {
 }
 
 export function ChargedMixin<TBase extends MixinConstructor>(Base: TBase) {
-  return class ChargedMixin extends Base implements Charged {
+  class ChargedMixin extends Base implements Charged {
     static _mixinName = 'ChargedMixin';
 
     /**
@@ -331,8 +344,9 @@ export function ChargedMixin<TBase extends MixinConstructor>(Base: TBase) {
       // reads the actor from the execution context (the wearer IS the
       // command giver inside `wear`) and stamps `sustainedBy` with this
       // host because it is the effect's source.
-      void MagicApi.discharge(this as unknown as Stuff, host as unknown as Stuff).then(
-        (out) => {
+      void (this as unknown as Stuff & Arcane)
+        .dischargeAt(host as unknown as Stuff)
+        .then((out: CastOutcome) => {
           if (out.ok) {
             this.setDrawActive(true);
             return;
@@ -473,5 +487,37 @@ export function ChargedMixin<TBase extends MixinConstructor>(Base: TBase) {
       this.reconcileCharge();
       this.drawActive = value === true;
     }
-  };
+    // ------- the charge face (F3) — forwards into MagicLogic -------
+
+    /**
+     * Receive charge from `actor`'s reserve into this shell — the
+     * single implementation behind `recharge` and any charge-reaching
+     * effect. What arrives is `committed × coupling × competence`; the
+     * actor is debited for the loss too. Sealed — the charge economy is
+     * one conservation pair with the drain.
+     */
+    @Final
+    @Unshadowable
+    public chargeFrom(
+      actor: Stuff,
+      committedPt: number,
+    ): Promise<ChargeTransfer> {
+      return chargedMagicLogic().transferCharge(
+        actor,
+        this as unknown as Stuff,
+        committedPt,
+      );
+    }
+
+  }
+
+  return ChargedMixin;
+}
+
+/** Resolve the HMR-able MagicLogic singleton (the working pipeline). */
+function chargedMagicLogic(): MagicLogic {
+  return StuffApi.singletonSync(
+    '/platform/idea/api/magic',
+    () => new MagicLogic(),
+  );
 }

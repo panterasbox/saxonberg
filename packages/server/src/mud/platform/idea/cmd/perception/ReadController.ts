@@ -39,6 +39,8 @@ import { MessageApi } from '../../../../api/message';
 import { PerceptionApi } from '../../../../api/perception';
 import { MagicApi } from '../../../../api/magic';
 import { Mml } from '../../../../api/mml';
+import type { Arcane } from '../../../../lib/magic/Arcane';
+import type { Charged } from '../../../../lib/magic/Charged';
 
 const TOPIC = 'sense.survey';
 
@@ -185,7 +187,7 @@ export default class ReadController extends CommandController<ReadModel> {
     // working wants a mark, ASK; a scroll is never spent on a question
     // that went unanswered.
     let mark: Stuff | undefined;
-    if (MagicApi.requiresMark(target)) {
+    if (target.requiresMark()) {
       const picked = await this.promptForObject(
         context,
         'What do you want to use it on?',
@@ -208,7 +210,7 @@ export default class ReadController extends CommandController<ReadModel> {
       mark = picked;
     }
 
-    const outcome = await MagicApi.discharge(target, mark, {
+    const outcome = await (target as Stuff & Arcane).dischargeAt(mark, {
       source: giver,
     });
     const prose = outcome.ok

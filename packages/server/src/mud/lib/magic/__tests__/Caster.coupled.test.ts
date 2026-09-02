@@ -247,7 +247,7 @@ describe('AC7 — the endpoint takes the reaction', () => {
     caster.setPosture(Postures.Stand);
     mark.setPosture(Postures.Stand);
 
-    return MagicApi.resolveCast(caster, 'shove', mark).then((out) => {
+    return caster.resolveCast('shove', mark).then((out) => {
       expect(out.ok).toBe(true);
       // The mark goes down…
       expect(mark.getPosture()).toBe(Postures.Lie);
@@ -273,7 +273,7 @@ describe('AC7 — the endpoint takes the reaction', () => {
     ContainmentApi.move(wand, user);
     actingAs(user);
 
-    const out = await MagicApi.discharge(wand, mark);
+    const out = await wand.dischargeAt(mark);
     expect(out.ok).toBe(true);
     expect(mark.getPosture()).toBe(Postures.Lie);
     // The wand absorbed it. This is the whole of D6, and it is why
@@ -297,13 +297,13 @@ describe('AC7 — the endpoint takes the reaction', () => {
     actingAs(user);
 
     const before = wand.getStoredKJ();
-    const first = await MagicApi.discharge(wand);
+    const first = await wand.dischargeAt();
     expect(first.ok).toBe(true);
     expect(wand.getStoredKJ()).toBeLessThan(before);
 
     // Drain it flat, then fire again.
-    await MagicApi.discharge(wand);
-    const flat = await MagicApi.discharge(wand);
+    await wand.dischargeAt();
+    const flat = await wand.dischargeAt();
     expect(flat.ok).toBe(false);
     // Fails AUDIBLY — never silently, and never by ceasing to afford
     // the verb (D34: that would make the affordance list a charge meter).

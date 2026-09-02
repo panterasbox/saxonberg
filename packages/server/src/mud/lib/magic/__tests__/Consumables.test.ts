@@ -243,13 +243,11 @@ describe('Wave 2 — consumables', () => {
     scroll.setDeliveryEfficiency(2);
     ContainmentApi.move(scroll, room);
     actingAs(drinker);
-    const spy = vi.spyOn(MagicApi, 'discharge');
-    await MagicApi.discharge(scroll, drinker, { potencyScale: 0.5 });
-    expect(spy).toHaveBeenCalled();
+    await scroll.dischargeAt(drinker, { potencyScale: 0.5 });
     // The multiplication itself is asserted through the context builder
     // in EffectContext.test.ts; here we pin that the option is honoured
     // at all rather than silently dropped.
-    const out = await MagicApi.discharge(scroll, drinker, {
+    const out = await scroll.dischargeAt(drinker, {
       potencyScale: 0,
     });
     expect(out.ok).toBe(true);
@@ -459,7 +457,7 @@ describe('Wave 2 — consumables', () => {
     ContainmentApi.move(scroll, room);
     actingAs(reader);
 
-    const out = await MagicApi.discharge(scroll, vial);
+    const out = await scroll.dischargeAt(vial);
     expect(out.ok).toBe(true);
 
     // A WRITE, not a message: the reader now knows the class, so every
@@ -507,7 +505,7 @@ describe('Wave 2 — consumables', () => {
     ContainmentApi.move(scroll, room);
     actingAs(reader);
 
-    const out = await MagicApi.discharge(scroll, flask as unknown as never);
+    const out = await scroll.dischargeAt(flask as unknown as never);
     expect(out.ok).toBe(true);
     // The record lands on the MATERIAL's path, which is what makes one
     // reading cover every flask of that draught — and what makes
@@ -537,7 +535,7 @@ describe('Wave 2 — consumables', () => {
     ContainmentApi.move(scroll, room);
     actingAs(reader);
 
-    const out = await MagicApi.discharge(scroll, empty as unknown as never);
+    const out = await scroll.dischargeAt(empty as unknown as never);
     expect(out.reports.join(' ')).toContain('nothing hidden to learn');
   });
 });

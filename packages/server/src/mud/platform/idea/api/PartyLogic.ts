@@ -17,6 +17,18 @@ import { PartyGroupProvider } from "../../../lib/party/PartyGroupProvider";
 import type { PartyOpResult, PartySimpleResult } from "../../../api/party";
 
 const PartyApiCallers = SecurityPolicies.FromModule("/api/party#PartyApi");
+/** The F3 member face (PartyMember hosts) forwards here as the member. */
+const PartyMemberCallers = SecurityPolicies.AnyOf(
+  PartyApiCallers,
+  SecurityPolicies.FromMixin("PartyMemberMixin", {
+    // Compare by stuffId — the caller may surface as the raw target
+    // while the argument is the proxy (or vice versa).
+    where: (caller, _target, _method, args) =>
+      (caller as { stuffId?: string }).stuffId !== undefined &&
+      (caller as { stuffId?: string }).stuffId ===
+        (args[0] as { stuffId?: string } | undefined)?.stuffId,
+  }),
+);
 
 /**
  * The roster materialization is also callable by the self-warming
@@ -108,7 +120,7 @@ export class PartyLogic extends ApiLogic {
 
   /* ───────────────── lifecycle (async) ───────────────── */
 
-  @CallSecurity(PartyApiCallers)
+  @CallSecurity(PartyMemberCallers)
   public async form(
     founder: Stuff,
     name: string,
@@ -117,37 +129,37 @@ export class PartyLogic extends ApiLogic {
     return formImpl(founder, name, durable);
   }
 
-  @CallSecurity(PartyApiCallers)
+  @CallSecurity(PartyMemberCallers)
   public async invite(inviter: Stuff, invitee: Stuff): Promise<PartyOpResult> {
     return inviteImpl(inviter, invitee);
   }
 
-  @CallSecurity(PartyApiCallers)
+  @CallSecurity(PartyMemberCallers)
   public async accept(invitee: Stuff): Promise<PartyOpResult> {
     return acceptImpl(invitee);
   }
 
-  @CallSecurity(PartyApiCallers)
+  @CallSecurity(PartyMemberCallers)
   public async enlist(hirer: Stuff, hiree: Stuff): Promise<PartySimpleResult> {
     return enlistImpl(hirer, hiree);
   }
 
-  @CallSecurity(PartyApiCallers)
+  @CallSecurity(PartyMemberCallers)
   public async leave(member: Stuff): Promise<PartySimpleResult> {
     return leaveImpl(member);
   }
 
-  @CallSecurity(PartyApiCallers)
+  @CallSecurity(PartyMemberCallers)
   public async kick(captain: Stuff, targetId: string): Promise<PartySimpleResult> {
     return kickImpl(captain, targetId);
   }
 
-  @CallSecurity(PartyApiCallers)
+  @CallSecurity(PartyMemberCallers)
   public async disband(captain: Stuff): Promise<PartySimpleResult> {
     return disbandImpl(captain);
   }
 
-  @CallSecurity(PartyApiCallers)
+  @CallSecurity(PartyMemberCallers)
   public async transfer(
     captain: Stuff,
     newCaptainId: string,
@@ -155,12 +167,12 @@ export class PartyLogic extends ApiLogic {
     return transferImpl(captain, newCaptainId);
   }
 
-  @CallSecurity(PartyApiCallers)
+  @CallSecurity(PartyMemberCallers)
   public async setSide(captain: Stuff, side: string): Promise<PartySimpleResult> {
     return setSideImpl(captain, side);
   }
 
-  @CallSecurity(PartyApiCallers)
+  @CallSecurity(PartyMemberCallers)
   public async setFormation(
     captain: Stuff,
     name: string,
@@ -168,7 +180,7 @@ export class PartyLogic extends ApiLogic {
     return setFormationImpl(captain, name);
   }
 
-  @CallSecurity(PartyApiCallers)
+  @CallSecurity(PartyMemberCallers)
   public async assignRole(
     captain: Stuff,
     role: string,
@@ -177,12 +189,12 @@ export class PartyLogic extends ApiLogic {
     return assignRoleImpl(captain, role, targetId);
   }
 
-  @CallSecurity(PartyApiCallers)
+  @CallSecurity(PartyMemberCallers)
   public async muster(member: Stuff, name: string): Promise<PartyOpResult> {
     return musterImpl(member, name);
   }
 
-  @CallSecurity(PartyApiCallers)
+  @CallSecurity(PartyMemberCallers)
   public async standDown(member: Stuff): Promise<PartySimpleResult> {
     return standDownImpl(member);
   }

@@ -232,7 +232,7 @@ describe('remove-curse — control·arcana over an item', () => {
     actingAs(reader);
 
     expect(wand.getBlessing().isCursed()).toBe(true);
-    const out = await MagicApi.discharge(scroll, wand, { source: reader });
+    const out = await scroll.dischargeAt(wand, { source: reader });
     expect(out.ok).toBe(true);
     expect(wand.getBlessingBand()).toBe('uncursed');
     expect(wand.getBlessing().isCursed()).toBe(false);
@@ -253,7 +253,7 @@ describe('remove-curse — control·arcana over an item', () => {
     ContainmentApi.move(scroll, room);
     actingAs(reader);
 
-    const out = await MagicApi.discharge(scroll, wand, { source: reader });
+    const out = await scroll.dischargeAt(wand, { source: reader });
     expect(out.ok).toBe(true);
     expect(wand.isBlessingKnown()).toBe(true);
     expect(wand.getBlessingBucket()).toBe('uncursed');
@@ -277,7 +277,7 @@ describe('remove-curse — control·arcana over an item', () => {
     ContainmentApi.move(scroll, room);
     actingAs(reader);
 
-    await MagicApi.discharge(scroll, wand, { source: reader });
+    await scroll.dischargeAt(wand, { source: reader });
     expect(wand.getBlessingBand()).toBe('uncursed');
   });
 
@@ -295,7 +295,7 @@ describe('remove-curse — control·arcana over an item', () => {
     // would drag a blessed wand DOWN to ordinary. A cure must never
     // move something backwards — undoing a blessing is a different
     // working, and this one is not it.
-    await MagicApi.discharge(scroll, wand, { source: reader });
+    await scroll.dischargeAt(wand, { source: reader });
     expect(wand.getBlessingBand()).toBe('blessed');
   });
 
@@ -315,7 +315,7 @@ describe('remove-curse — control·arcana over an item', () => {
     ContainmentApi.move(scroll, room);
     actingAs(reader);
 
-    const out = await MagicApi.discharge(scroll, rock, { source: reader });
+    const out = await scroll.dischargeAt(rock, { source: reader });
     expect(out.reports.join(' ')).toMatch(/no working in it to shift/);
   });
 });

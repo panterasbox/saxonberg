@@ -41,15 +41,15 @@ function member(): TestMember {
  * party's mutation surface is participant/subsystem-gated now, so the
  * test drives the same path production does. */
 async function seedParty(captain: TestMember, side = ""): Promise<Party> {
-  const res = await PartyApi.form(captain as Stuff, `party-${seq++}`, false);
+  const res = await captain.formParty(`party-${seq++}`, false);
   if (!res.ok) throw new Error(`seedParty: ${res.reason}`);
-  if (side) await PartyApi.setSide(captain as Stuff, side);
+  if (side) await captain.setPartySide(side);
   return res.party;
 }
 
 /** Grow a seeded party by one member via the no-handshake hire path. */
 async function seedJoin(captain: TestMember, joiner: TestMember): Promise<void> {
-  const res = await PartyApi.enlist(captain as Stuff, joiner as Stuff);
+  const res = await captain.enlist(joiner as Stuff);
   if (!res.ok) throw new Error(`seedJoin: ${res.reason}`);
 }
 
@@ -98,9 +98,9 @@ describe("PartyApi — lifecycle", () => {
     const joiner = member();
     const party = await seedParty(cap);
 
-    const inv = await PartyApi.invite(cap as Stuff, joiner as Stuff);
+    const inv = await cap.inviteToParty(joiner as Stuff);
     expect(inv.ok).toBe(true);
-    const acc = await PartyApi.accept(joiner as Stuff);
+    const acc = await joiner.acceptPartyInvite();
     expect(acc.ok).toBe(true);
     expect(party.isMember(joiner.getTemplatePath()!)).toBe(true);
     expect(joiner.getActivePartyPath()).toBe(party.getTemplatePath());
@@ -110,7 +110,7 @@ describe("PartyApi — lifecycle", () => {
   it("rejects a second active party (one-active-party)", async () => {
     const cap = member();
     await seedParty(cap);
-    const res = await PartyApi.form(cap as Stuff, "Second", false);
+    const res = await cap.formParty("Second", false);
     expect(res.ok).toBe(false);
     if (!res.ok) expect(res.reason).toBe("already-in-a-party");
   });
@@ -122,7 +122,7 @@ describe("PartyApi — lifecycle", () => {
     await seedJoin(cap, grunt);
 
     const outsider = member();
-    const res = await PartyApi.invite(grunt as Stuff, outsider as Stuff);
+    const res = await grunt.inviteToParty(outsider as Stuff);
     expect(res.ok).toBe(false);
     if (!res.ok) expect(res.reason).toBe("not-the-captain");
   });
@@ -135,19 +135,19 @@ describe("PartyApi — lifecycle", () => {
     await seedJoin(cap, heir);
 
     // Captain leaves → heir promoted.
-    await PartyApi.leave(cap as Stuff);
+    await cap.leaveParty();
     expect(party.getCaptainId()).toBe(heir.getTemplatePath());
     expect(party.isMember(cap.getTemplatePath()!)).toBe(false);
     expect(cap.getActivePartyPath()).toBe("");
 
     // Heir leaves → empty ad-hoc party is destructed from the graph.
-    await PartyApi.leave(heir as Stuff);
+    await heir.leaveParty();
     expect(StuffApi.findByTemplatePath(path)).toBeUndefined();
   });
 
   it("forms an ad-hoc party as an Idea in the graph, founder active + captain", async () => {
     const founder = member();
-    const res = await PartyApi.form(founder as Stuff, "Vanguard", false);
+    const res = await founder.formParty("Vanguard", false);
     expect(res.ok).toBe(true);
     if (res.ok) {
       const path = res.party.getTemplatePath()!;
@@ -193,7 +193,7 @@ describe("PartyApi — formation resolution (the total chain)", () => {
     residentFormation("vanguard", ["front", "back"]);
     const cap = member();
     await seedParty(cap);
-    const res = await PartyApi.setFormation(cap as Stuff, "vanguard");
+    const res = await cap.setPartyFormation("vanguard");
     expect(res.ok).toBe(true);
     expect(PartyApi.formationPathOf(cap as Stuff)).toBe(
       "/platform/idea/CombatFormation/vanguard",
@@ -208,36 +208,20 @@ describe("PartyApi — formation resolution (the total chain)", () => {
     await seedJoin(cap, grunt);
 
     // Non-captain can neither adopt nor assign.
-    const adoptDenied = await PartyApi.setFormation(grunt as Stuff, "vanguard");
+    const adoptDenied = await grunt.setPartyFormation("vanguard");
     expect(adoptDenied).toEqual({ ok: false, reason: "not-the-captain" });
     // Assign before any formation is chosen → no role vocabulary yet.
-    const early = await PartyApi.assignRole(
-      cap as Stuff,
-      "front",
-      grunt.getTemplatePath()!,
-    );
+    const early = await cap.assignPartyRole("front", grunt.getTemplatePath()!);
     expect(early).toEqual({ ok: false, reason: "no-formation" });
 
-    await PartyApi.setFormation(cap as Stuff, "vanguard");
-    const assignDenied = await PartyApi.assignRole(
-      grunt as Stuff,
-      "front",
-      cap.getTemplatePath()!,
-    );
+    await cap.setPartyFormation("vanguard");
+    const assignDenied = await grunt.assignPartyRole("front", cap.getTemplatePath()!);
     expect(assignDenied).toEqual({ ok: false, reason: "not-the-captain" });
 
     // Unknown role rejected; a real role sticks and reads back via roleOf.
-    const unknown = await PartyApi.assignRole(
-      cap as Stuff,
-      "flanker",
-      grunt.getTemplatePath()!,
-    );
+    const unknown = await cap.assignPartyRole("flanker", grunt.getTemplatePath()!);
     expect(unknown).toEqual({ ok: false, reason: "unknown-role" });
-    const ok = await PartyApi.assignRole(
-      cap as Stuff,
-      "front",
-      grunt.getTemplatePath()!,
-    );
+    const ok = await cap.assignPartyRole("front", grunt.getTemplatePath()!);
     expect(ok).toEqual({ ok: true });
     expect(PartyApi.roleOf(grunt as Stuff)).toBe("front");
     expect(PartyApi.roleOf(cap as Stuff)).toBe("");
@@ -246,7 +230,7 @@ describe("PartyApi — formation resolution (the total chain)", () => {
   it("adopting an unknown formation is rejected", async () => {
     const cap = member();
     await seedParty(cap);
-    const res = await PartyApi.setFormation(cap as Stuff, "phalanx");
+    const res = await cap.setPartyFormation("phalanx");
     expect(res).toEqual({ ok: false, reason: "unknown-formation" });
   });
 
@@ -258,9 +242,9 @@ describe("PartyApi — formation resolution (the total chain)", () => {
     await seedParty(cap);
     await seedJoin(cap, a);
     await seedJoin(cap, b);
-    await PartyApi.setFormation(cap as Stuff, "vanguard");
-    await PartyApi.assignRole(cap as Stuff, "front", a.getTemplatePath()!);
-    await PartyApi.assignRole(cap as Stuff, "front", b.getTemplatePath()!);
+    await cap.setPartyFormation("vanguard");
+    await cap.assignPartyRole("front", a.getTemplatePath()!);
+    await cap.assignPartyRole("front", b.getTemplatePath()!);
     expect(PartyApi.roleOf(a as Stuff)).toBe("front");
     expect(PartyApi.roleOf(b as Stuff)).toBe("front");
   });
@@ -271,9 +255,9 @@ describe("PartyApi — formation resolution (the total chain)", () => {
     const grunt = member();
     const party = await seedParty(cap);
     await seedJoin(cap, grunt);
-    await PartyApi.setFormation(cap as Stuff, "vanguard");
-    await PartyApi.assignRole(cap as Stuff, "front", grunt.getTemplatePath()!);
-    await PartyApi.leave(grunt as Stuff);
+    await cap.setPartyFormation("vanguard");
+    await cap.assignPartyRole("front", grunt.getTemplatePath()!);
+    await grunt.leaveParty();
     expect(party.roleOfMember(grunt.getTemplatePath()!)).toBe("");
   });
 
@@ -324,7 +308,7 @@ describe("PartyApi — the adopt mint (leadership deed)", () => {
         deeds.push(sub as Record<string, unknown>);
       });
     try {
-      const res = await PartyApi.setFormation(cap as Stuff, "vanguard");
+      const res = await cap.setPartyFormation("vanguard");
       expect(res.ok).toBe(true);
       expect(deeds.some((d) => d.discipline === "command")).toBe(true);
     } finally {
@@ -340,7 +324,7 @@ describe("PartyApi — the adopt mint (leadership deed)", () => {
       )
       .mockRejectedValue(new Error("no transcript store in unit test"));
     try {
-      const res2 = await PartyApi.setFormation(cap as Stuff, "focus");
+      const res2 = await cap.setPartyFormation("focus");
       expect(res2.ok).toBe(true);
     } finally {
       failing.mockRestore();

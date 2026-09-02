@@ -160,7 +160,7 @@ export default class RechargeController extends CommandController<RechargeModel>
       return;
     }
 
-    const moved = await MagicApi.transferCharge(actor, target, asked);
+    const moved = await target.chargeFrom(actor, asked);
     if (moved.refusal) {
       MessageApi.scene(actor).topic(TOPIC).toSelf(Mml.text(moved.refusal)).send();
       context.note({

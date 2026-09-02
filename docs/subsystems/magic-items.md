@@ -333,7 +333,7 @@ through the ladder rather than as a cliff.
 > `transfer` authored `delta: 20` against `cost: 4` and was generating
 > 16 kJ a cast, straight past the coupling. `adjust-reserve` now routes
 > **any** positive delta on a `charge` reserve through the one
-> implementation (`MagicApi.transferCharge`), so *no effect can add
+> implementation (`shell.chargeFrom`), so *no effect can add
 > charge without a coupling* — not just the one that did. The
 > `recharge` controller calls the same method: one mechanism, two
 > triggers, which is this subsystem's own rule applied to itself.
@@ -1110,7 +1110,7 @@ a bug), and the reader-side "which systems do you know?" lookup slots
 into `decode` without disturbing `perceive`.
 
 **A working that needs a mark ASKS for one.** `read scroll` is the only
-form; when `MagicApi.requiresMark` says the working demands a target,
+form; when `item.requiresMark()` says the working demands a target,
 the controller raises a `PromptApi.mqlObject` over reachable candidates
 and spends nothing until one comes back.
 

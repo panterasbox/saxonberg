@@ -103,6 +103,39 @@ import { MANA_RESERVE_KEY, OVERCHANNEL_STRAIN_PATH } from '../../../lib/magic/Ca
 import type { Reserved } from '../../../lib/reserve';
 
 const MagicApiCallers = SecurityPolicies.FromModule('/api/magic#MagicApi');
+/** The F3 object faces forward here as the subject instance. */
+const CasterCallers = SecurityPolicies.AnyOf(
+  MagicApiCallers,
+  SecurityPolicies.FromMixin('CasterMixin', {
+    // Compare by stuffId — the caller may surface as the raw target
+    // while the argument is the proxy (or vice versa).
+    where: (caller, _target, _method, args) =>
+      (caller as { stuffId?: string }).stuffId !== undefined &&
+      (caller as { stuffId?: string }).stuffId ===
+        (args[0] as { stuffId?: string } | undefined)?.stuffId,
+  }),
+);
+const ArcaneItemCallers = SecurityPolicies.AnyOf(
+  MagicApiCallers,
+  SecurityPolicies.FromMixin('ArcaneMixin', {
+    // Compare by stuffId — the caller may surface as the raw target
+    // while the argument is the proxy (or vice versa).
+    where: (caller, _target, _method, args) =>
+      (caller as { stuffId?: string }).stuffId !== undefined &&
+      (caller as { stuffId?: string }).stuffId ===
+        (args[0] as { stuffId?: string } | undefined)?.stuffId,
+  }),
+);
+/** `transferCharge(actor, shell, pt)` — the SHELL hosts the face (arg 1). */
+const ChargeShellCallers = SecurityPolicies.AnyOf(
+  MagicApiCallers,
+  SecurityPolicies.FromMixin('ChargedMixin', {
+    where: (caller, _target, _method, args) =>
+      (caller as { stuffId?: string }).stuffId !== undefined &&
+      (caller as { stuffId?: string }).stuffId ===
+        (args[1] as { stuffId?: string } | undefined)?.stuffId,
+  }),
+);
 
 /** The prepare-phase result — gates only, nothing spent. */
 export interface PrepareOutcome {
@@ -238,7 +271,7 @@ function dial(key: string, fallback: number): number {
 @Unshadowable
 export class MagicLogic extends ApiLogic {
   /** See {@link MagicApi.prepareCast}. */
-  @CallSecurity(MagicApiCallers)
+  @CallSecurity(CasterCallers)
   public prepareCast(
     caster: Stuff,
     spellId: string,
@@ -248,7 +281,7 @@ export class MagicLogic extends ApiLogic {
   }
 
   /** See {@link MagicApi.resolveCast}. */
-  @CallSecurity(MagicApiCallers)
+  @CallSecurity(CasterCallers)
   public resolveCast(
     caster: Stuff,
     spellId: string,
@@ -260,7 +293,7 @@ export class MagicLogic extends ApiLogic {
   /** See {@link MagicApi.discharge}. */
   @CallSecurity(MagicApiCallers)
   /** See {@link MagicApi.requiresMark}. */
-  @CallSecurity(MagicApiCallers)
+  @CallSecurity(ArcaneItemCallers)
   public requiresMark(item: Stuff): boolean {
     if (!MixinApi.isArcane(item)) return false;
     const path = item.getCarriedSpellPath();
@@ -274,7 +307,7 @@ export class MagicLogic extends ApiLogic {
   }
 
   /** See {@link MagicApi.transferCharge}. */
-  @CallSecurity(MagicApiCallers)
+  @CallSecurity(ChargeShellCallers)
   public transferCharge(
     actor: Stuff,
     shell: Stuff,
@@ -298,7 +331,7 @@ export class MagicLogic extends ApiLogic {
   }
 
   /** See {@link MagicApi.spellsView}. */
-  @CallSecurity(MagicApiCallers)
+  @CallSecurity(CasterCallers)
   public spellsView(caster: Stuff): Promise<SpellsView> {
     return spellsViewImpl(caster);
   }

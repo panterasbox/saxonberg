@@ -59,9 +59,9 @@ gated** at execution.
 
 ## The cast pipeline
 
-`MagicApi.prepareCast` (gates, spends nothing) → `CastActivity`
+`caster.prepareCast` (gates, spends nothing) → `CastActivity`
 (hands+voice for the strain-slowed cast time) → at **completion**
-`MagicApi.resolveCast`: re-validate → spend → execute effects → stamp
+`caster.resolveCast`: re-validate → spend → execute effects → stamp
 provenance → credit the Transcript. An aborted cast spends nothing and
 fires nothing (`magic.abortCostFraction` reserved at 0). **This is the
 active gate**: interruption IS the shipped combat/engagement model —

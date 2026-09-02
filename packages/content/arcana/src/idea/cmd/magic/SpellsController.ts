@@ -14,6 +14,9 @@ import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/com
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { MagicApi } from '@saxonberg/server/mud/api/magic';
 import { Mml } from '@saxonberg/server/mud/api/mml';
+import type { Caster } from '@saxonberg/server/mud/lib/magic/Caster';
+import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { CommandGiver } from '@saxonberg/server/mud/lib/command/CommandGiver';
 
 const TOPIC = 'shell.result';
 
@@ -27,7 +30,7 @@ const MANA_PROSE: Record<string, string> = {
 export default class SpellsController extends CommandController<CommandModel> {
   async execute(_model: CommandModel, context: CommandContext): Promise<void> {
     const actor = context.commandGiver;
-    const view = await MagicApi.spellsView(actor);
+    const view = await (actor as Stuff & CommandGiver & Caster).spellsView();
 
     const rows = view.spells.map((s) => {
       const status = s.castable

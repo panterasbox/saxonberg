@@ -167,15 +167,15 @@ describe("MagicLogic — the cast pipeline", () => {
   it("gates: no faculty / unknown spell / band too low", async () => {
     stubBands("untrained");
     const beast = makeBystander(false);
-    expect((await MagicApi.prepareCast(beast, "firebolt")).refusal).toMatch(
+    expect((await beast.prepareCast("firebolt")).refusal).toMatch(
       /no gift/,
     );
     const caster = makeCaster();
     expect(
-      (await MagicApi.prepareCast(caster, "no-such-spell")).refusal,
+      (await caster.prepareCast("no-such-spell")).refusal,
     ).toMatch(/know no working/);
     // untrained on both axes refuses a novice-floor spell — competence IS access
-    const refused = await MagicApi.prepareCast(caster, "glowlight");
+    const refused = await caster.prepareCast("glowlight");
     expect(refused.ok).toBe(false);
     expect(refused.refusal).toMatch(/beyond your/);
   });
@@ -184,13 +184,13 @@ describe("MagicLogic — the cast pipeline", () => {
     stubBands("competent");
     const caster = makeCaster();
     const before = mana(caster); // 120 (mid depth)
-    const out = await MagicApi.resolveCast(caster, "glowlight");
+    const out = await caster.resolveCast("glowlight");
     expect(out.ok).toBe(true);
     expect(mana(caster)).toBe(before - 10); // glowlight costs 10
 
     // drain to nearly nothing, then overchannel
     caster.adjustReserve(MANA_RESERVE_KEY, Quantity.of(-(mana(caster) - 3), "pt"));
-    const over = await MagicApi.resolveCast(caster, "dispel"); // costs 20 > 3
+    const over = await caster.resolveCast("dispel"); // costs 20 > 3
     expect(over.ok).toBe(true);
     expect(over.overchanneled).toBe(true);
     expect(mana(caster)).toBe(0);
@@ -201,7 +201,7 @@ describe("MagicLogic — the cast pipeline", () => {
       ),
     ).toBe(true);
     // strain slows the next cast
-    const slowed = await MagicApi.prepareCast(caster, "glowlight");
+    const slowed = await caster.prepareCast("glowlight");
     expect(slowed.castSeconds!).toBeGreaterThan(2);
   });
 
@@ -214,7 +214,7 @@ describe("MagicLogic — the cast pipeline", () => {
         "creditSignature",
       )
       .mockResolvedValue(undefined);
-    await MagicApi.resolveCast(caster, "glowlight");
+    await caster.resolveCast("glowlight");
     expect(record).toHaveBeenCalledTimes(1);
     const signature = record.mock.calls[0]![0] as {
       discipline: Array<{ discipline: string }>;
@@ -231,7 +231,7 @@ describe("MagicLogic — the cast pipeline", () => {
       .spyOn(StuffApi, "clone")
       .mockImplementation(async () => makeStuff(() => new GlowlightOrb()));
     const caster = makeCaster();
-    const out = await MagicApi.resolveCast(caster, "glowlight");
+    const out = await caster.resolveCast("glowlight");
     expect(out.ok).toBe(true);
     expect(clone).toHaveBeenCalledWith("/stuff/thing/magic/glowlight-mote");
     const sustained = caster
@@ -267,8 +267,8 @@ describe("MagicLogic — the cast pipeline", () => {
     );
     installDreadSeed();
 
-    await MagicApi.resolveCast(caster, "dread", rested);
-    await MagicApi.resolveCast(caster, "dread", drained);
+    await caster.resolveCast("dread", rested);
+    await caster.resolveCast("dread", drained);
     const stageOf = (t: TestCharacter): number =>
       (
         t
@@ -289,7 +289,7 @@ describe("MagicLogic — the cast pipeline", () => {
       elapsed: 0,
     });
     // nothing magical yet — dispel refuses
-    const nothing = await MagicApi.resolveCast(caster, "dispel", target);
+    const nothing = await caster.resolveCast("dispel", target);
     expect(nothing.reports.join(" ")).toMatch(/nothing magical/i);
 
     target.afflict({
@@ -305,7 +305,7 @@ describe("MagicLogic — the cast pipeline", () => {
         firedBy: "/obj/test/other",
       },
     });
-    const out = await MagicApi.resolveCast(caster, "dispel", target);
+    const out = await caster.resolveCast("dispel", target);
     expect(out.reports.join(" ")).toMatch(/unravel/);
     expect(
       target.hasCondition(
@@ -329,7 +329,7 @@ describe("MagicLogic — the cast pipeline", () => {
     const victim = makeBystander(true);
     installDreadSeed();
 
-    await MagicApi.resolveCast(caster, "dread", victim);
+    await caster.resolveCast("dread", victim);
     expect(record).toHaveBeenCalledTimes(1);
     expect(record.mock.calls[0]![0]).toMatchObject({
       kind: "harm",
@@ -344,10 +344,10 @@ describe("MagicLogic — the cast pipeline", () => {
     stubBands("competent");
     const caster = makeCaster();
     const target = makeBystander(true);
-    await MagicApi.resolveCast(caster, "shove", target);
+    await caster.resolveCast("shove", target);
     expect(target.getPosture()).toBe("lie");
 
-    await MagicApi.resolveCast(caster, "veil");
+    await caster.resolveCast("veil");
     const disguise = caster.getDisguise();
     expect(disguise?.appearsAs).toMatch(/veiled/);
     // held up by a sustained effect — dispellable
@@ -371,9 +371,9 @@ describe("MagicLogic — the cast pipeline", () => {
         firedBy: "/obj/test/other",
       },
     });
-    const out = await MagicApi.resolveCast(caster, "arcane-sight", target);
+    const out = await caster.resolveCast("arcane-sight", target);
     expect(out.reports.join(" ")).toMatch(/destroy·mind/);
-    const clean = await MagicApi.resolveCast(caster, "arcane-sight", caster);
+    const clean = await caster.resolveCast("arcane-sight", caster);
     expect(clean.reports.join(" ")).toMatch(/no workings/i);
   });
 
@@ -387,16 +387,16 @@ describe("MagicLogic — the cast pipeline", () => {
     ContainmentApi.move(caster as never, warded as never);
 
     // 'no ·fire here' blocks firebolt…
-    const fire = await MagicApi.prepareCast(caster, "firebolt", caster);
+    const fire = await caster.prepareCast("firebolt", caster);
     expect(fire.ok).toBe(false);
     expect(fire.refusal).toMatch(/suppresses/);
     // …but admits glowlight (create·light)
-    const light = await MagicApi.prepareCast(caster, "glowlight");
+    const light = await caster.prepareCast("glowlight");
     expect(light.ok).toBe(true);
 
     // the blanket ward blocks everything
     warded.setSuppressesMagic({ all: true });
-    expect((await MagicApi.prepareCast(caster, "glowlight")).ok).toBe(false);
+    expect((await caster.prepareCast("glowlight")).ok).toBe(false);
   });
 
   /**
@@ -430,7 +430,7 @@ describe("MagicLogic — the cast pipeline", () => {
           ? "close"
           : (undefined as never),
       );
-    const near = await MagicApi.resolveCast(caster, "dread", victim);
+    const near = await caster.resolveCast("dread", victim);
     expect(near.reports.join(" ")).toMatch(/too far off/i);
 
     // …and the seeded default reaches anywhere in the scene, which is
@@ -440,14 +440,14 @@ describe("MagicLogic — the cast pipeline", () => {
         ? "far"
         : (undefined as never),
     );
-    const far = await MagicApi.resolveCast(caster, "dread", victim);
+    const far = await caster.resolveCast("dread", victim);
     expect(far.reports.join(" ")).not.toMatch(/too far off/i);
   });
 
   it("the spells view speaks bands, never numbers", async () => {
     stubBands("novice");
     const caster = makeCaster();
-    const view = await MagicApi.spellsView(caster);
+    const view = await caster.spellsView();
     expect(view.faculty.capable).toBe(true);
     expect(view.faculty.mana).toBe("brimming");
     expect(view.spells.length).toBeGreaterThanOrEqual(9);

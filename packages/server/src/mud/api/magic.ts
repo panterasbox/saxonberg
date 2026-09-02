@@ -38,6 +38,7 @@ import type {
 import type { MagicSuppression } from '../lib/magic/Suppression';
 import type { SpellDescriptor } from '../platform/idea/magic/Spell';
 import { fileURLToPath } from 'url';
+export type { ChargeTransfer } from '../platform/idea/api/MagicLogic';
 import type { ChargeTransfer } from '../platform/idea/api/MagicLogic';
 import { SecurityApi } from './security';
 
@@ -63,98 +64,6 @@ function logic(): MagicLogic {
 
 export class MagicApi {
   /**
-   * Run every gate a cast must pass **before** its activity is
-   * scheduled — faculty active, spell known to the catalogue, band gate
-   * on both grid axes (competence IS access), casting-hand impairment,
-   * targeting shape, the anti-magic field. Returns the effective cast
-   * time (overchannel strain slows it) on success, or a legible
-   * player-facing refusal. Spends nothing.
-   */
-  public static prepareCast(
-    caster: Stuff,
-    spellId: string,
-    target?: Stuff,
-  ): Promise<PrepareOutcome> {
-    return logic().prepareCast(caster, spellId, target);
-  }
-
-  /**
-   * The cast's resolution body — runs at the cast activity's
-   * *completion* (an aborted cast never reaches here): re-validates,
-   * spends the reserve (overchanneling past empty afflicts strain),
-   * executes the effect list through the backing Apis, stamps the
-   * provenance tag, credits both grid Disciplines on the Transcript.
-   */
-  public static resolveCast(
-    caster: Stuff,
-    spellId: string,
-    target?: Stuff,
-  ): Promise<CastOutcome> {
-    return logic().resolveCast(caster, spellId, target);
-  }
-
-  /**
-   * **The item trigger** — fire the working bound into `item` at an
-   * optional `target`, through the same executors a cast runs.
-   *
-   * The one entry point every item class uses: a wand's `zap`, a
-   * scroll's `read`, a quaffed potion. What differs between the classes
-   * is *who pays and what happens to the item afterwards* — and that is
-   * the caller's business, not this method's. `discharge` fires; the
-   * capability mixin that called it has already spent the charge,
-   * drained the reader's reserve, or consumed the flask.
-   *
-   * It runs **no band gate and no cast time** (an item ignores the
-   * spell's casting profile wholesale — requirements D3), and it
-   * **credits no Transcript** (firing a wand teaches nothing; competence
-   * derives from deeds). Potency comes from the item's maker-fixed
-   * delivery efficiency rather than the user's competence, which is why
-   * a novice with a master's wand outperforms that novice casting.
-   *
-   * **The actor is derived from the execution context**, never passed —
-   * the `ProvenanceApi.recordAuthoring` precedent. The effect context of
-   * D1 is internal plumbing beneath this gate.
-   */
-  /**
-   * **Would firing this item's working demand a mark?** True only when
-   * *every* effect needs one — a working that still does something
-   * useful untargeted is allowed to fire untargeted.
-   *
-   * The question a door asks *before* spending anything, so it can ask
-   * the player which mark rather than refusing at them.
-   */
-  public static requiresMark(item: Stuff): boolean {
-    return logic().requiresMark(item);
-  }
-
-  /**
-   * **Move a caster's reserve into a shell** — the single
-   * implementation behind both doors (`recharge`, and any effect that
-   * reaches for a `charge` reserve).
-   *
-   * `committedPt` is what the caster puts in; what arrives is
-   * `committed × coupling × competence`, both factors below 1. The
-   * caster is debited for the loss as well: that energy left them
-   * whether or not it arrived. Refuses (with `refusal` set, nothing
-   * moved) when there is no faculty, no coupling, or nothing to give.
-   */
-  public static transferCharge(
-    actor: Stuff,
-    shell: Stuff,
-    committedPt: number
-  ): Promise<ChargeTransfer> {
-    return logic().transferCharge(actor, shell, committedPt);
-  }
-
-  public static discharge(
-    item: Stuff,
-    target?: Stuff,
-    opts?: DischargeOptions,
-  ): Promise<CastOutcome> {
-    return logic().discharge(item, target, opts);
-  }
-
-  /**
    * One authored spell descriptor by id, or `null`. The read a
    * *consumer of a spell* needs — a spellbook resolving what it teaches,
    * an item resolving what it carries — as opposed to the caster-facing
@@ -162,14 +71,6 @@ export class MagicApi {
    */
   public static spellAt(path: string): SpellDescriptor | null {
     return logic().spellAt(path);
-  }
-
-  /**
-   * The `spells` self-view model — the roster with per-cell band status
-   * plus the faculty view. **Bands and prose only, never numbers.**
-   */
-  public static spellsView(caster: Stuff): Promise<SpellsView> {
-    return logic().spellsView(caster);
   }
 
   /**

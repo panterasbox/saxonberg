@@ -161,7 +161,7 @@ describe('misidentify — the decoy is borrowed from the world', () => {
 
     // Fire the CURSED branch — `identify.yaml` authors
     // `sense: [misidentify, identify-item, identify-item]`.
-    const out = await MagicApi.discharge(scroll, subject, {
+    const out = await scroll.dischargeAt(subject, {
       source: reader,
       band: 'cursed',
     });
@@ -192,7 +192,7 @@ describe('misidentify — the decoy is borrowed from the world', () => {
       reader,
     );
 
-    await MagicApi.discharge(scroll, subject, {
+    await scroll.dischargeAt(subject, {
       source: reader,
       band: 'cursed',
     });

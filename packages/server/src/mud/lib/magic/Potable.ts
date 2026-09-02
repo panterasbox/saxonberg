@@ -46,6 +46,8 @@ import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { Dose } from './Dose';
 import type { DoseSpec } from './Dose';
+import type { Arcane } from './Arcane';
+import type { Charged } from './Charged';
 
 /** Where a working's own prose rides. */
 const POTION_TOPIC = 'act.deed';
@@ -159,7 +161,7 @@ export function PotableMixin<TBase extends MixinConstructor<Stuff>>(
       // contact payload acts at the point of impact. A caller that
       // delivered this across a gap passes the victim as the origin;
       // absent that, behaviour is byte-identical to before.
-      const out = await MagicApi.discharge(self, drinker, {
+      const out = await (self as Stuff & Arcane).dischargeAt(drinker, {
         potencyScale: scale,
         origin: opts?.origin,
       });

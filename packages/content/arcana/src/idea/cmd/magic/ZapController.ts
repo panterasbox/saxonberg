@@ -59,7 +59,7 @@ export default class ZapController extends CommandController<ZapModel> {
     // when the working simply needs to know what at: that is a question,
     // and the prompt substrate is how a command asks one.
     let target = model.target?.stuff ?? undefined;
-    if (!target && MagicApi.requiresMark(item)) {
+    if (!target && item.requiresMark()) {
       const picked = await this.promptForObject(
         context,
         'What do you want to point it at?',
@@ -82,7 +82,7 @@ export default class ZapController extends CommandController<ZapModel> {
       target = picked;
     }
 
-    const outcome = await MagicApi.discharge(item, target);
+    const outcome = await item.dischargeAt(target);
 
     if (!outcome.ok) {
       // The refusal IS the prose — including the flat-wand click.
