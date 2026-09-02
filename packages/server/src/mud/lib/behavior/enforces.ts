@@ -126,18 +126,16 @@ async function recordEightySix(path: string, subjectKey: string): Promise<void> 
   if (subjects.has(subjectKey)) return;
   subjects.add(subjectKey);
   // Owner is derived from the acting author (the host) — the write is
-  // gated by `canAtPath` over the venue path, the institutional authority
-  // that transfers with the title. `kind` is an opaque discriminator (the
-  // store never validates it against the pack-installable vocabulary).
-  //
-  // ⚠ OPEN (bar-fight P9): whether an NPC proprietor holds `canAtPath`
-  // write standing over the venue path is a venue-records authority
-  // decision (the parcel is titled to a wizard-managed group today, not
-  // the bar's Business). Until that's resolved, a denied write must not
-  // break enforcement — the warning, the order-out, and the ejection all
-  // still land; only the DURABLE 86 record waits on the standing. So we
-  // swallow a denial here (the record is institutional memory, not the
-  // sanction itself).
+  // gated by `canAtPath`. The venue-records carve-out
+  // (`AccessRegistry.canWriteVenueRecord`) authorizes the venue's Business
+  // proprietor/staff to write the venue's OWN records subtree
+  // (`<operatingLocation>/records/…`, which the config `recordsPath`
+  // names), while the parcel's title-holder (the wizard group over the
+  // whole lounge) keeps full authority. `kind` is an opaque discriminator
+  // (the store never validates it against the pack-installable
+  // vocabulary). A denial is still swallowed so a mis-scoped `recordsPath`
+  // never breaks enforcement — the sanction is the order-out + ejection;
+  // the record is institutional memory riding on top.
   try {
     await DocumentApi.save(path, 'venue-eighty-six', {
       subjects: [...subjects],

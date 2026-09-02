@@ -63,7 +63,11 @@ data:
         officeDirection: north
         officeReturn: south
         taserKeyword: taser
-        recordsPath: /world/lounge/records/eighty-six
+        # The 86 list lives in the bar's OWN records subtree — under the
+        # bar's operating location, so the venue-records carve-out
+        # (canWriteVenueRecord) authorizes Dave (the proprietor) to write
+        # it, while the wizard `lounge` group keeps the whole parcel.
+        recordsPath: /world/lounge/location/bar/records/eighty-six
     - brain: /lib/behavior/idles
       trigger: cadence:15s
       config:
