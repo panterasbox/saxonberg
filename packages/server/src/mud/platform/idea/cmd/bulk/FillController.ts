@@ -12,6 +12,8 @@ import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
 import { BulkableApi, type TransferAmount } from '../../../../api/bulk';
+import { MixinApi } from '../../../../api/mixin';
+import { AdvancementApi } from '../../../../api/advancement';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 
@@ -23,7 +25,7 @@ interface FillModel extends CommandModel {
 }
 
 export default class FillController extends CommandController<FillModel> {
-  execute(model: FillModel, context: CommandContext): void {
+  async execute(model: FillModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     const target = model.target.stuff;
     const source = model.source.stuff;
@@ -78,6 +80,24 @@ export default class FillController extends CommandController<FillModel> {
       : { kind: 'all' };
     const result = BulkableApi.transfer(fromSlot, toSlot, amount);
     for (const note of result.notes) context.note(note);
+
+    // The bottling credit (fermentation W7/D9): drawing a FINISHED
+    // batch into glass is the craft's timing act — credit `fermenting`
+    // at the deed (the rack rule, on the fill side).
+    if (result.applied > 0 && MixinApi.isFermenting(source)) {
+      const phase = source.getFermentPhase();
+      if (phase === 'finished' || phase === 'turned') {
+        try {
+          await AdvancementApi.recordDeed(giver, {
+            discipline: 'fermenting',
+            difficulty: 'easy',
+            outcome: 'success',
+          });
+        } catch (err) {
+          console.warn('FillController: recording the deed failed:', err);
+        }
+      }
+    }
 
     if (result.applied <= 0) {
       MessageApi.scene(giver)

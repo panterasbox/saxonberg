@@ -48,6 +48,8 @@ const KNIFE_ROW = {
   outputApplication: 'tangible',
   difficulty: 'standard',
   discipline: 'smithing',
+  // The residue output (fermentation P11) — the newest additive field.
+  outputResidue: { template: '/stuff/thing/items/slag', count: 1 },
 };
 
 /** A cooking row exercising the edible output shape. */
@@ -121,6 +123,7 @@ describe('Recipe schema round-trip', () => {
     expect(r.getOutputPortionL()).toBe(0);
     expect(r.getDifficulty()).toBe('');
     expect(r.getDiscipline()).toBe('');
+    expect(r.getOutputResidue()).toBeNull();
     for (const slot of r.getInputSlots()) {
       expect(Recipe.isItemSlot(slot)).toBe(false);
     }
@@ -133,6 +136,10 @@ describe('Recipe schema round-trip', () => {
     expect(r.getOutputApplication()).toBe('tangible');
     expect(r.getDifficulty()).toBe('standard');
     expect(r.getDiscipline()).toBe('smithing');
+    expect(r.getOutputResidue()).toEqual({
+      template: '/stuff/thing/items/slag',
+      count: 1,
+    });
     const slots = r.getInputSlots();
     expect(slots).toHaveLength(1);
     expect(Recipe.isItemSlot(slots[0]!)).toBe(true);

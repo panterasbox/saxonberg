@@ -1,0 +1,15 @@
+# Fermenting — the shared discipline of the liquid leg (fermentation
+# D9): winemaking and brewing both credit it (the horticulture
+# practised-leaf pattern), so it lives in the commons rather than
+# either trade's pack. Credits at the act — the crush, the rack, the
+# pitch; competence derives on read.
+class: /platform/idea/Discipline
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: fermenting
+  channel: skill
+  label: Fermenting
+  iscedf: "0721"  # ISCED-F 2013: food processing
+  description: Reading a batch — must and wort, the bands a ferment likes, the moment to rack and seal, what a culture needs to stay alive. Improves by doing, wherever something bubbles.
+  requires:
+    - recipe-knowledge

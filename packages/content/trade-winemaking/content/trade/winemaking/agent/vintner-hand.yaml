@@ -18,18 +18,33 @@ data:
   dispositions:
     - { disposition: diligence, valence: 60 }
   behaviors:
-    - brain: /lib/behavior/consigns
-      trigger: cadence:90s
+    # The producing beat (fermentation W4): work the press off the
+    # cellar book, tend the vats, bottle and consign the take. The W8
+    # switchover retired the floor-bottle faucet: every bottle on the
+    # counter is now a batch this beat made.
+    - brain: /lib/behavior/cellars
+      trigger: cadence:120s
       config:
-        stock: /trade/winemaking/thing/vintner-stock
-        shelf: /trade/distilling/thing/counter
-        batch: 6
-        ask:
-          wine:red: 11
-          wine:white: 10
-          wine:sparkling: 16
-          wine:dry-vermouth: 12
-          wine:sweet-vermouth: 12
+        home: /trade/winemaking/location/vintner-floor
+        counterRoom: /trade/distribution/location/cash-and-carry
+        crushes: [crush, white-crush]
+        compounds: [dry-vermouth, sweet-vermouth]
+        buys:
+          - { keyword: grapes, count: 2 }
+          - { keyword: spirit, count: 1 }
+          - { keyword: juniper, count: 1 }
+          - { keyword: sugar, count: 1 }
+        inputKeyword: grapes
+        inputMin: 6
+        batch: 4
+        buyEvery: 6
+        asks:
+          red: 11
+          white: 10
+          sparkling: 16
+          vinegar: 4
+          dry-vermouth: 12
+          sweet-vermouth: 12
     - brain: /lib/behavior/idles
       trigger: cadence:41s
       config:

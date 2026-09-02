@@ -1,0 +1,15 @@
+# The mash tun — the mash's capital (the press's sibling; the anvil
+# precedent: a fixture by encumbrance, the recipe gate emergent
+# reachability). The homebrew kit's small tun is the same idea at
+# carry weight (D15).
+class: /platform/thing/ToolItem
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a copper mash tun
+  primaryKeyword: tun
+  keywords: [tun, "mash tun", copper]
+  longDescription: |
+    A squat copper tun with a perforated false bottom and a long mash paddle worn smooth.
+  capabilities:
+    - { kind: mash-tun }
+  mass: 50

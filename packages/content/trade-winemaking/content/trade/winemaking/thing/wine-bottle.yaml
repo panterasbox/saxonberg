@@ -15,3 +15,11 @@ data:
   interiorCapacity: 0.75
   closure: sealed
   open: true
+  # The vessel faucet (fermentation W4): empties stand at target in the
+  # winery's stock — an empty is never product, it counts under its
+  # vessel kind — and the cellars brain fills, corks and consigns them.
+  # The glass keeps arriving by sweep until a glassworks trade earns
+  # the demand test.
+  censusKey: vessel:wine-bottle
+  regionTarget: 10
+  container: /trade/winemaking/thing/vintner-stock

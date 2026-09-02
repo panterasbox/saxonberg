@@ -15,7 +15,7 @@ data:
     - key: hand
       label: running the Crowsfoot outfit's floor
       wageRate: 3
-      confers: []
+      confers: [MakerMixin]
       purchases: true
   rosterSlots:
     - positionKey: hand

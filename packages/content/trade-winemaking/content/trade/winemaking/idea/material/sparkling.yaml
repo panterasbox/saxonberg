@@ -4,6 +4,7 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: sparkling wine
   appearance: "a pale sparkling wine, beading in the glass"
+  primaryKeyword: sparkling
   keywords: ["sparkling", "wine", "fizz"]
   density: 995
   thermalConductivity: 0.5

@@ -1,0 +1,24 @@
+# Malt — barley steeped, sprouted and kiln-dried: the brewer's and the
+# distiller's fermentable starch. A SHARED input whose owning trade
+# does not exist yet, so it lives in the commons (the salt/coffee
+# direction of travel — fermentation D10): when a malting trade earns
+# its pack (the vocations demand test), the material moves out with it.
+# The mash recipes match the `malt` tag; the sack that carries it at
+# the distributor is `/trade/distribution/thing/malt-sack`.
+class: /platform/idea/material/ConsumableMaterial
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: malt
+  appearance: pale malted barley, dusty and sweet-smelling
+  keywords: [malt, "malted barley", grain]
+  density: 600
+  thermalConductivity: 0.4
+  specificHeat: 1800
+  edibility: true
+  nutrients: [carb, sugar]
+  nutrientAmounts:
+    carb: 14000
+    sugar: 80
+  tags: [solid, food, grain, malt]
+  composition: []
+  biologicalSource: null

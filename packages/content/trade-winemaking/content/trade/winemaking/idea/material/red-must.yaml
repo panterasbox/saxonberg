@@ -1,0 +1,19 @@
+# Red must — crushed grapes, skins and all (the crush recipe's output).
+# `red-must` is the ferment-profile category; sugar is the mass balance
+# (g/L — what the hydrometer sees and the ferment converts, D4).
+class: /platform/idea/material/ConsumableMaterial
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: red must
+  appearance: "dark crushed must, skins riding the surface"
+  keywords: ["must"]
+  density: 1090
+  thermalConductivity: 0.5
+  specificHeat: 3700
+  edibility: true
+  nutrients: ["water", "sugar"]
+  nutrientAmounts:
+    sugar: 220
+  tags: ["liquid", "must", "red-must"]
+  composition: []
+  biologicalSource: null

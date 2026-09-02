@@ -1,10 +1,11 @@
-# The pot still — the distiller's station. Nothing runs it yet (no recipe
-# names `still`); the distillery build's. Ships so the trade's tool exists
-# as a row and the class has a name.
+# The pot still — the distiller's station, run daily since the
+# fermentation build (W6): the distil/compound recipes name its `still`
+# capability, and the Still class is its own furnace (ignite it and
+# 351 K is in reach).
 class: /trade/distilling/thing/Still
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a copper pot still
-  longDescription: A squat copper pot still, its swan neck green at the joints, the firebox cold.
+  longDescription: A squat copper pot still, its swan neck green at the joints, the firebox swept and ready.
   keywords: [still, pot-still, copper]
   capabilities: [still]

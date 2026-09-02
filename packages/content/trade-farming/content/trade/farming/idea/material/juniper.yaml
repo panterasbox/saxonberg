@@ -13,6 +13,6 @@ data:
   nutrients: ["water"]
   toxicity:
     []
-  tags: ["solid", "food", "produce", "juniper", "berry"]
+  tags: ["solid", "food", "produce", "juniper", "berry", "berries"]
   composition: []
   biologicalSource: null

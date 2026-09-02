@@ -159,7 +159,18 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
       if (key.startsWith('/')) out.push({ field: 'prices', path: key });
     }
   }
-  for (const scalar of ['roomTemplate', 'holderPath', 'streetPath', 'corridorTemplate', 'programmePath', 'purifiedByBoiling'] as const) {
+  // ⭐ `leesMaterial` / `productMaterial` / `turnedMaterial` arrived with
+  // the fermentation build, on a master that had no clause (d) to notice
+  // them — so this is the clause's first contact with content it did not
+  // grow up beside, and the honest disposition is to READ them rather
+  // than ignore them. All three name a real material row (what a ferment
+  // becomes, what it throws, and what it becomes if it turns), which is
+  // precisely what clause (b) exists to check.
+  for (const scalar of [
+    'roomTemplate', 'holderPath', 'streetPath', 'corridorTemplate',
+    'programmePath', 'purifiedByBoiling',
+    'productMaterial', 'leesMaterial', 'turnedMaterial',
+  ] as const) {
     push(scalar, data[scalar]);
   }
   const floorplan = data.floorplan;

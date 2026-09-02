@@ -1,7 +1,9 @@
-# The cask — the EMPTY conditioning vessel the ferment build will fill.
-# `liquidTight`, NOT `sealed`, and that is not an oversight: a cask
-# breathes through the oak. Breathing is what a cask is for.
-class: /platform/thing/Bottle
+# The cask — the conditioning vessel (fermentation P9): a row of the
+# VAT family, so ale racked into it referments its residual sugar
+# SEALED where it stands — real ale, naturally carbonated. `liquidTight`,
+# NOT `sealed`, and that is not an oversight: a cask breathes through
+# the oak; bung it (`close`) and the conditioning profile takes over.
+class: /platform/thing/Vat
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: "a cask"

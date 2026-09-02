@@ -5,9 +5,9 @@
   "description": "The brewing trade — a STUB (libations): everything downstream of production and nothing of production.",
   "type": "module",
   "dependencies": {
+    "@saxonberg/content-distribution": "workspace:*",
     "@saxonberg/content-base-library": "workspace:*",
     "@saxonberg/content-platform": "workspace:*",
-    "@saxonberg/content-trade-distilling": "workspace:*",
     "@saxonberg/server": "workspace:*",
     "@saxonberg/types": "workspace:*"
   }

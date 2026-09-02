@@ -1,0 +1,16 @@
+# A cake of pomace — the crush's residue output (P11), a feed-compatible
+# sack-shape: `feed <bed> with pomace` restores nitrogen (the compost
+# path, second supplier). Unsold cakes stand where they were left —
+# the ambient-burden rule, never a silent vanish.
+class: /platform/thing/Receptacle
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a cake of pomace
+  primaryKeyword: pomace
+  keywords: [pomace, cake, marc, skins]
+  longDescription: |
+    A dense pressed cake of grape skins and stems, still weeping pink at the edges.
+  interiorBulk: true
+  interiorCapacity: 6
+  interiorMaterial: /trade/winemaking/idea/material/pomace
+  interiorAmount: 6

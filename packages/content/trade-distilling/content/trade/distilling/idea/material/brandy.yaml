@@ -1,0 +1,20 @@
+# Brandy — wine through the still: the grape lane's own spirit (W6).
+class: /platform/idea/material/ConsumableMaterial
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: brandy
+  primaryKeyword: brandy
+  appearance: "a warm amber brandy"
+  keywords: ["brandy"]
+  density: 950
+  thermalConductivity: 0.17
+  specificHeat: 2500
+  edibility: true
+  toxicity:
+    - { type: alcohol, amount: 38 }
+  nutrients: []
+  tags: ["liquid", "beverage", "drinkable", "alcoholic", "spirit", "brandy"]
+  composition: []
+  biologicalSource: null
+  autoignitionTemperature: 640
+  heatOfCombustion: 24

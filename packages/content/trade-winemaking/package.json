@@ -2,12 +2,12 @@
   "name": "@saxonberg/content-trade-winemaking",
   "version": "0.1.0",
   "private": true,
-  "description": "The winemaking trade — a STUB (libations): the wines (red, white, sparkling) and the fortified wines (dry and sweet vermouth — winemaking's, made with distilling's spirit), the wine-bottle preset over the platform Bottle, five floor bottles at target in the vintner outfit's stock, the outfit that consigns them onto the cash-and-carry, and three pours.",
+  "description": "The winemaking trade \u2014 a STUB (libations): the wines (red, white, sparkling) and the fortified wines (dry and sweet vermouth \u2014 winemaking's, made with distilling's spirit), the wine-bottle preset over the platform Bottle, five floor bottles at target in the vintner outfit's stock, the outfit that consigns them onto the cash-and-carry, and three pours.",
   "type": "module",
   "dependencies": {
+    "@saxonberg/content-distribution": "workspace:*",
     "@saxonberg/content-base-library": "workspace:*",
     "@saxonberg/content-platform": "workspace:*",
-    "@saxonberg/content-trade-distilling": "workspace:*",
     "@saxonberg/server": "workspace:*",
     "@saxonberg/types": "workspace:*"
   }

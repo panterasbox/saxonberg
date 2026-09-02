@@ -17,3 +17,7 @@ data:
   tags: [liquid, beverage, drinkable, alcoholic, spirit, whiskey]
   composition: []
   biologicalSource: null
+  # Flammable (P10): the combustion substrate reads these off the
+  # material — a spilled, ignited spirit burns.
+  autoignitionTemperature: 640
+  heatOfCombustion: 24

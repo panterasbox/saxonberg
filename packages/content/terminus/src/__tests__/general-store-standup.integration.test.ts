@@ -16,6 +16,7 @@ import { readFileSync, readdirSync } from "fs";
 import { fileURLToPath } from "url";
 import YAML from "yaml";
 import { StuffApi } from "@saxonberg/server/mud/api/stuff";
+import { ModuleApi } from "@saxonberg/server/mud/api/module";
 import { MixinApi } from "@saxonberg/server/mud/api/mixin";
 import { AppSettings } from "@saxonberg/server/mud/lib/config/AppSettings";
 import PersistentHydrator from "@saxonberg/server/mud/platform/idea/persistence/PersistentHydrator";
@@ -38,6 +39,13 @@ const OBJ_DIR = fileURLToPath(new URL("../../../generic-objects/content/stuff/",
 const PRODUCE_DIR = fileURLToPath(new URL("../../../trade-farming/content/trade/farming/", import.meta.url));
 // The upkeep kit — the residence pack's, stocked cross-pack.
 const RESIDENCE_DIR = fileURLToPath(new URL("../../../residence/content/residence/", import.meta.url));
+// The homebrew kit's trade rows (fermentation D15).
+const WINE_DIR = fileURLToPath(new URL("../../../trade-winemaking/content/trade/winemaking/", import.meta.url));
+const BREW_DIR = fileURLToPath(new URL("../../../trade-brewing/content/trade/brewing/", import.meta.url));
+const DIST_DIR = fileURLToPath(new URL("../../../trade-distilling/content/trade/distilling/", import.meta.url));
+// The small still's CLASS ships in the distilling pack's src/ — the
+// menu.test precedent: register the pack source so the clone resolves.
+const DIST_SRC = fileURLToPath(new URL("../../../trade-distilling/src", import.meta.url));
 const COUNTER = "/world/terminus/general-store/counter";
 const TORCH = "/world/terminus/general-store/thing/torch";
 
@@ -80,6 +88,18 @@ const FURNISH_LINES = [
   "/stuff/thing/fixture/sconce-lamp",
 ] as const;
 
+/**
+ * The homebrew line (fermentation D15/P13) — the kit rows live with the
+ * trades they miniaturize; the carboy and culture jar in the commons.
+ */
+const HOMEBREW_LINES = [
+  "/stuff/thing/vessel/carboy",
+  "/stuff/thing/vessel/culture-jar",
+  "/trade/winemaking/thing/small-press",
+  "/trade/brewing/thing/small-mash-tun",
+  "/trade/distilling/thing/small-still",
+] as const;
+
 function seedDoc(rel: string): Doc {
   const parsed = YAML.parse(
     readFileSync(`${STORE_DIR}${rel}.yaml`, "utf-8"),
@@ -98,7 +118,13 @@ function objDoc(path: string): Doc {
     ? `${PRODUCE_DIR}${path.replace("/trade/farming/", "")}.yaml`
     : path.startsWith("/residence/")
       ? `${RESIDENCE_DIR}${path.replace("/residence/", "")}.yaml`
-      : `${OBJ_DIR}${path.replace("/stuff/", "")}.yaml`;
+      : path.startsWith("/trade/winemaking/")
+        ? `${WINE_DIR}${path.replace("/trade/winemaking/", "")}.yaml`
+        : path.startsWith("/trade/brewing/")
+          ? `${BREW_DIR}${path.replace("/trade/brewing/", "")}.yaml`
+          : path.startsWith("/trade/distilling/")
+            ? `${DIST_DIR}${path.replace("/trade/distilling/", "")}.yaml`
+            : `${OBJ_DIR}${path.replace("/stuff/", "")}.yaml`;
   const parsed = YAML.parse(readFileSync(file, "utf-8")) as Record<string, unknown>;
   return {
     path,
@@ -108,7 +134,7 @@ function objDoc(path: string): Doc {
   };
 }
 
-// The counter stocks twenty-nine lines to par on standup, each a real
+// The counter stocks thirty-four lines to par on standup, each a real
 // clone through the actual pipeline — the gardening, furnishings and
 // produce-seed lines pushed that past the default 5s budget.
 vi.setConfig({ testTimeout: 30_000 });
@@ -125,7 +151,9 @@ describe("general-store standup (real seeds)", () => {
       ...goods,
       ...GARDEN_LINES.map(objDoc),
       ...FURNISH_LINES.map(objDoc),
+      ...HOMEBREW_LINES.map(objDoc),
     ]);
+    ModuleApi.registerPackSource(DIST_SRC, "/trade/distilling");
     installV1QuantityMarshallers();
     await AppSettings.warm();
   });

@@ -32,6 +32,9 @@ import {
 } from '../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import ArchetypeCatalogue from '../idea/ArchetypeCatalogue';
+import { Archetype } from '../../lib/archetype/Archetype';
+import Vat from '../thing/Vat';
+import YAML from 'yaml';
 import SingletonCartesianLocation from '../location/SingletonCartesianLocation';
 import Chair from '../thing/Chair';
 import Oven from '../thing/Oven';
@@ -330,5 +333,62 @@ describe('archetype satisfaction', () => {
       'platform/__tests__/ArchetypeSatisfaction.test.ts',
       'platform/idea/cmd/perception/SurveyController.ts',
     ]);
+  });
+});
+
+/**
+ * The fermentation VENUE archetypes (W8+): the three de-stubbed trades
+ * state their needs the hospitality way — and the `vesselKind` need
+ * (the vat is capital that is neither a tool nor a bulk source) reads
+ * the kernel's own vessel-kind vocabulary (`category`), empty or full.
+ */
+describe('the fermentation venue archetypes', () => {
+  const PACKS = fileURLToPath(new URL('../../../../../content/', import.meta.url));
+  const VENUES = [
+    ['trade-winemaking', 'winery', '/trade/winemaking/', 'content/trade/winemaking/'],
+    ['trade-brewing', 'brewhouse', '/trade/brewing/', 'content/trade/brewing/'],
+    ['trade-distilling', 'still-house', '/trade/distilling/', 'content/trade/distilling/'],
+  ] as const;
+
+  it('the three archetype files validate, and every default names a shipped row', () => {
+    for (const [pack, id, root, contentRel] of VENUES) {
+      const raw = YAML.parse(
+        readFileSync(join(PACKS, pack, 'content', 'archetypes', `${id}.yaml`), 'utf8'),
+      ) as Record<string, unknown>;
+      const archetype = Archetype.fromData(raw);
+      expect(archetype.getArchetypeId()).toBe(id);
+      // industry stays null — the shared `fermenting` discipline would
+      // cross-derive the sibling trade's tools (the authored-residue rule).
+      expect(archetype.getIndustry()).toBeNull();
+      for (const slot of archetype.getCapabilities()) {
+        if (!slot.default) continue;
+        expect(slot.default.startsWith(root), `${id}:${slot.key}`).toBe(true);
+        const file = join(PACKS, pack, contentRel, `${slot.default.replace(root, '')}.yaml`);
+        expect(readFileSync(file, 'utf8').length, `${id}:${slot.key} → ${slot.default}`).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  it('a vesselKind need reads the vessel kind — an empty vat satisfies it; the wrong kind does not', () => {
+    const archetype = Archetype.fromData({
+      archetypeId: 'vessel-probe',
+      label: 'a probe',
+      capabilities: [{ key: 'ferment', needs: { vesselKind: 'vat' } }],
+    });
+    const room = makeStuff(() => new SingletonCartesianLocation());
+    const bare = archetype.satisfies(room);
+    expect(bare.satisfied).toBe(false);
+
+    const vat = makeStuff(() => new Vat()); // category defaults 'vat', EMPTY
+    ContainmentApi.move(vat as never, room as never);
+    const withVat = archetype.satisfies(room);
+    expect(withVat.satisfied).toBe(true);
+    expect(withVat.rows[0]!.by).not.toBeNull();
+
+    const room2 = makeStuff(() => new SingletonCartesianLocation());
+    const bottle = makeStuff(() => new Vat());
+    (bottle as unknown as { category: string }).category = 'wine-bottle';
+    ContainmentApi.move(bottle as never, room2 as never);
+    expect(archetype.satisfies(room2).satisfied).toBe(false);
   });
 });

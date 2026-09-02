@@ -1,0 +1,22 @@
+# Compound gin — neutral spirit over juniper (W6): the process tier's
+# gin, and the martini's base. The lane closes here.
+recipeId: compound-gin
+name: Compound gin
+keywords: [gin, compound-gin]
+discipline: distilling
+difficulty: moderate
+inputSlots:
+- slot: spirit
+  category: neutral-spirit
+  minGrade: fair
+  measureL: 0.6
+- slot: juniper
+  kind: item
+  category: juniper
+  minGrade: poor
+  count: 1
+toolCapabilities: [still]
+outputApplication: bulk
+outputTemplate: /trade/distilling/thing/spirit-bottle
+outputMaterial: /trade/distilling/idea/material/gin
+outputAppearance: clear, juniper-scented gin

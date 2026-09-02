@@ -81,8 +81,7 @@ data:
     - /world/lounge/location/bar
 
   # The par manifest — what the house means to keep on hand, and where it
-  # buys it. Every line is bought from the one distributor (the distilling
-  # trade's cash-and-carry, where every producer outfit consigns). Spirits,
+  # buys it. Every line is bought from the one distributor (distribution's cash-and-carry, where every producer outfit consigns). Spirits,
   # liqueurs, vermouths, wine, mixers and syrup in litres; kegs in litres;
   # produce, glassware in count; ice in kilos. A category is a material TAG
   # (a bottle of gin carries `gin`) or a glass row's own `category`. What
@@ -91,42 +90,43 @@ data:
   # supplier yet (nobody sells glasses at the counter): the lines still
   # show breakage as a shortfall.
   parLines:
-    - { category: gin, unit: L, level: 3, supplier: /trade/distilling/idea/business }
-    - { category: vodka, unit: L, level: 3, supplier: /trade/distilling/idea/business }
-    - { category: whiskey, unit: L, level: 3, supplier: /trade/distilling/idea/business }
-    - { category: light-rum, unit: L, level: 1.5, supplier: /trade/distilling/idea/business }
-    - { category: dark-rum, unit: L, level: 1.5, supplier: /trade/distilling/idea/business }
-    - { category: tequila, unit: L, level: 1.5, supplier: /trade/distilling/idea/business }
-    - { category: orange-liqueur, unit: L, level: 0.75, supplier: /trade/distilling/idea/business }
-    - { category: bitter-liqueur, unit: L, level: 0.75, supplier: /trade/distilling/idea/business }
-    - { category: aperitivo, unit: L, level: 0.75, supplier: /trade/distilling/idea/business }
-    - { category: bitters, unit: L, level: 0.2, supplier: /trade/distilling/idea/business }
-    - { category: dry-vermouth, unit: L, level: 0.75, supplier: /trade/distilling/idea/business }
-    - { category: sweet-vermouth, unit: L, level: 0.75, supplier: /trade/distilling/idea/business }
-    - { category: red, unit: L, level: 1.5, supplier: /trade/distilling/idea/business }
-    - { category: white, unit: L, level: 1.5, supplier: /trade/distilling/idea/business }
-    - { category: sparkling, unit: L, level: 1.5, supplier: /trade/distilling/idea/business }
-    - { category: ale, unit: L, level: 30, supplier: /trade/distilling/idea/business }
-    - { category: lager, unit: L, level: 30, supplier: /trade/distilling/idea/business }
-    - { category: soda-water, unit: L, level: 3, supplier: /trade/distilling/idea/business }
-    - { category: tonic, unit: L, level: 3, supplier: /trade/distilling/idea/business }
-    - { category: ginger-beer, unit: L, level: 2, supplier: /trade/distilling/idea/business }
-    - { category: cola, unit: L, level: 2, supplier: /trade/distilling/idea/business }
-    - { category: grapefruit-soda, unit: L, level: 1, supplier: /trade/distilling/idea/business }
-    - { category: cranberry-juice, unit: L, level: 1, supplier: /trade/distilling/idea/business }
-    - { category: orange-juice, unit: L, level: 1, supplier: /trade/distilling/idea/business }
-    - { category: lime, unit: count, level: 24, supplier: /trade/distilling/idea/business }
-    - { category: lemon, unit: count, level: 12, supplier: /trade/distilling/idea/business }
-    - { category: orange, unit: count, level: 6, supplier: /trade/distilling/idea/business }
-    - { category: grapefruit, unit: count, level: 6, supplier: /trade/distilling/idea/business }
-    - { category: mint, unit: count, level: 12, supplier: /trade/distilling/idea/business }
-    - { category: cherry, unit: count, level: 12, supplier: /trade/distilling/idea/business }
-    - { category: olive, unit: count, level: 24, supplier: /trade/distilling/idea/business }
-    - { category: cranberry, unit: count, level: 12, supplier: /trade/distilling/idea/business }
-    - { category: sugar, unit: L, level: 2, supplier: /trade/distilling/idea/business }
-    - { category: coffee, unit: L, level: 1, supplier: /trade/distilling/idea/business }
-    - { category: syrup, unit: L, level: 0.5, supplier: /trade/distilling/idea/business }
-    - { category: ice, unit: kg, level: 5, supplier: /trade/distilling/idea/business }
+    - { category: gin, unit: L, level: 3, supplier: /trade/distribution/idea/business }
+    - { category: vodka, unit: L, level: 3, supplier: /trade/distribution/idea/business }
+    - { category: whiskey, unit: L, level: 3, supplier: /trade/distribution/idea/business }
+    - { category: light-rum, unit: L, level: 1.5, supplier: /trade/distribution/idea/business }
+    - { category: dark-rum, unit: L, level: 1.5, supplier: /trade/distribution/idea/business }
+    - { category: tequila, unit: L, level: 1.5, supplier: /trade/distribution/idea/business }
+    - { category: orange-liqueur, unit: L, level: 0.75, supplier: /trade/distribution/idea/business }
+    - { category: bitter-liqueur, unit: L, level: 0.75, supplier: /trade/distribution/idea/business }
+    - { category: aperitivo, unit: L, level: 0.75, supplier: /trade/distribution/idea/business }
+    - { category: bitters, unit: L, level: 0.2, supplier: /trade/distribution/idea/business }
+    - { category: dry-vermouth, unit: L, level: 0.75, supplier: /trade/distribution/idea/business }
+    - { category: sweet-vermouth, unit: L, level: 0.75, supplier: /trade/distribution/idea/business }
+    - { category: red, unit: L, level: 1.5, supplier: /trade/distribution/idea/business }
+    - { category: white, unit: L, level: 1.5, supplier: /trade/distribution/idea/business }
+    - { category: sparkling, unit: L, level: 1.5, supplier: /trade/distribution/idea/business }
+    - { category: ale, unit: L, level: 30, supplier: /trade/distribution/idea/business }
+    - { category: lager, unit: L, level: 30, supplier: /trade/distribution/idea/business }
+    - { category: soda-water, unit: L, level: 3, supplier: /trade/distribution/idea/business }
+    - { category: tonic, unit: L, level: 3, supplier: /trade/distribution/idea/business }
+    - { category: ginger-beer, unit: L, level: 2, supplier: /trade/distribution/idea/business }
+    - { category: cola, unit: L, level: 2, supplier: /trade/distribution/idea/business }
+    - { category: grapefruit-soda, unit: L, level: 1, supplier: /trade/distribution/idea/business }
+    - { category: cranberry-juice, unit: L, level: 1, supplier: /trade/distribution/idea/business }
+    - { category: orange-juice, unit: L, level: 1, supplier: /trade/distribution/idea/business }
+    - { category: lime, unit: count, level: 24, supplier: /trade/distribution/idea/business }
+    - { category: lemon, unit: count, level: 12, supplier: /trade/distribution/idea/business }
+    - { category: orange, unit: count, level: 6, supplier: /trade/distribution/idea/business }
+    - { category: grapefruit, unit: count, level: 6, supplier: /trade/distribution/idea/business }
+    - { category: mint, unit: count, level: 12, supplier: /trade/distribution/idea/business }
+    - { category: cherry, unit: count, level: 12, supplier: /trade/distribution/idea/business }
+    - { category: olive, unit: count, level: 24, supplier: /trade/distribution/idea/business }
+    - { category: cranberry, unit: count, level: 12, supplier: /trade/distribution/idea/business }
+    - { category: sugar, unit: L, level: 2, supplier: /trade/distribution/idea/business }
+    - { category: coffee, unit: L, level: 1, supplier: /trade/distribution/idea/business }
+    - { category: syrup, unit: L, level: 0.5, supplier: /trade/distribution/idea/business }
+    - { category: vinegar, unit: L, level: 0.5, supplier: /trade/distribution/idea/business }
+    - { category: ice, unit: kg, level: 5, supplier: /trade/distribution/idea/business }
     - { category: coupe, unit: count, level: 12 }
     - { category: rocks, unit: count, level: 8 }
     - { category: highball, unit: count, level: 12 }

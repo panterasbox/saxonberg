@@ -22,7 +22,7 @@ data:
       trigger: cadence:90s
       config:
         stock: /trade/farming/thing/farm-stock
-        shelf: /trade/distilling/thing/counter
+        shelf: /trade/distribution/thing/counter
         batch: 6
         ask:
           produce:lime: 6
@@ -33,6 +33,8 @@ data:
           produce:cherry: 5
           produce:olive: 5
           produce:cranberry: 5
+          produce:grape: 5
+          produce:juniper: 5
     - brain: /lib/behavior/idles
       trigger: cadence:41s
       config:

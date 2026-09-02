@@ -1,0 +1,14 @@
+# The fermenting vat — the brewery's working vessel (the winery's row,
+# copied: code is shared, content is copied).
+class: /platform/thing/Vat
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: an oak fermenting vat
+  primaryKeyword: vat
+  keywords: [vat, "fermenting vat", tun]
+  longDescription: |
+    A waist-high oak vat, staves dark with old wort, a bung at the shoulder and chalk tallies on the head.
+  category: vat
+  interiorBulk: true
+  interiorCapacity: 100
+  mass: 80

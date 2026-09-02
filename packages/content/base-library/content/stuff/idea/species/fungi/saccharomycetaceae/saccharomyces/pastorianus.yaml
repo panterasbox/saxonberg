@@ -1,0 +1,20 @@
+# Saccharomyces pastorianus — lager yeast: the cold-fermenting hybrid
+# domesticated in cold cellars. The reason lager REQUIRES the cold
+# strain plus the cold cellar (fermentation D14): its culture profile
+# gates the lager ferment, and warmth it never adapted to shuts it
+# down. Same embodiment contract as cerevisiae (D13): the living thing
+# in the world is the lees material; this row is the classification.
+class: /platform/idea/species/Species
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  binomial: Saccharomyces pastorianus
+  commonNames: ["lager yeast", "cold yeast"]
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/sessile
+  _parentCladePath: /stuff/idea/species/fungi
+  _defaultMaterialPath: null
+  lifecycleStates: ["alive", "dead"]
+  reproductiveMode: asexual
+  lifespanMin: 0
+  lifespanMax: 1
+  circadianBand: aperiodic
+  diet: saprotrophy

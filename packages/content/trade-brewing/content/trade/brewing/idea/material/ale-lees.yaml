@@ -1,0 +1,20 @@
+# Ale lees — the yeast an ale batch drops under the rack floor. A
+# LIVING material (D13): biologicalSource bridges to S. cerevisiae;
+# the ale-culture profile makes a jar of this a kept culture (D14).
+class: /platform/idea/material/ConsumableMaterial
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: ale lees
+  appearance: "a tan, bready sediment"
+  keywords: ["lees", "barm"]
+  density: 1060
+  thermalConductivity: 0.5
+  specificHeat: 3700
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["liquid", "ale-lees"]
+  composition: []
+  biologicalSource:
+    speciesPath: /stuff/idea/species/fungi/saccharomycetaceae/saccharomyces/cerevisiae
+    tissueType: culture

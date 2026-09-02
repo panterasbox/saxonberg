@@ -1,0 +1,12 @@
+# The still book — the still-house's work board (the cellar book's
+# sibling): mash, run, compound — unpriced, `order`-lit. Zero new
+# verbs.
+class: /platform/thing/Menu
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the still book
+  primaryKeyword: book
+  keywords: [book, "still book", board, ledger]
+  longDescription: |
+    A scorched ledger on a chain, the day's runs written in a crabbed hand — grist, charge, take.
+  offeredRecipes: [wash-mash, distil, compound-gin, brandy, grappa]

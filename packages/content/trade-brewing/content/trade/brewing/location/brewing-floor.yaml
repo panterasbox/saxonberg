@@ -12,12 +12,27 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: "the brewery floor"
   primaryKeyword: floor
-  keywords: ["floor", "brewery", "yard"]
+  keywords: ["floor", "brewery", "brewhouse", "yard"]
   longDescription: |
-    A wet stone floor under a roller door: stacked kegs, a hose, the sweet-sour smell of the mash room beyond (the ferment is the distillery build's; the floor stands at target through the sweep until then).
+    A wet stone floor under a roller door, and a working one: the copper tun steams by the standpipe, two oak vats stand chalk-tallied against the wall, the brewhouse board hangs over the paddle rack, and a wired jar of barm sits shoulder-high out of the draught. Stacked kegs wait by the door; the cold store is below.
   ambientIntensity: 25
   ambientColorTemperature: 4200
+  # A warm brewhouse: the ale band's happy middle (the cold store is
+  # the lager's — the band is a PLACE, never a rule).
+  _temperature: 288
+  # A working brewhouse displaces its own air (P11).
+  reserves:
+    air:
+      capacityValue: 100
+      currentValue: 100
+      unit: "%"
   props:
     - /trade/brewing/thing/brewing-stock
+    - /trade/brewing/thing/mash-tun
+    - /trade/brewing/thing/standpipe
+    - /trade/brewing/thing/brewhouse-board
+    - /trade/brewing/thing/vat
+    - /trade/brewing/thing/vat
+    - /trade/brewing/thing/jar-of-barm
   cast:
     - /trade/brewing/agent/brewing-hand

@@ -10,6 +10,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@saxonberg/content-distribution": "workspace:*",
     "@saxonberg/content-base-library": "workspace:*",
     "@saxonberg/content-corpo-hollis": "workspace:*",
     "@saxonberg/content-corpo-veshko": "workspace:*",

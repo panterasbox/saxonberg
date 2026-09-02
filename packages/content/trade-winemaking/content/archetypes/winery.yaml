@@ -1,0 +1,26 @@
+# The WINERY archetype (fermentation W8+): what a winery NEEDS, as
+# capability slots — the hospitality precedent, one trade over. A
+# second winery anywhere satisfies this from ANY rows (D8: trade =
+# mechanism, locality = expression); reported by `survey`, never
+# enforced.
+#
+# `industry` is deliberately null: winemaking shares the `fermenting`
+# discipline with brewing (the practised-leaf ruling), so deriving the
+# floor from the discipline's recipes would drag the brewer's mash tun
+# into the winery. The tools are authored as residue instead (the
+# room-archetype precedent).
+#
+# Not expressible, on purpose: the cellar book. A work board is a Menu
+# — the `order` surface, not a capability the kernel checks over
+# contents — and inventing a need kind for it would make a checklist
+# tidy at the price of a fake mechanic (the bathroom rule).
+archetypeId: winery
+label: a winery
+capabilities:
+  - { key: crush, needs: { tool: press }, default: /trade/winemaking/thing/press }
+  - { key: ferment, needs: { vesselKind: vat }, default: /trade/winemaking/thing/vat }
+  # Bottle conditioning (P5): sparkling happens in the heavy bottle.
+  - { key: conditioning, needs: { vesselKind: wine-bottle }, default: /trade/winemaking/thing/conditioning-bottle }
+  # The cellar is a PLACE (no default: you cannot clone a room into a
+  # room) — it holds the band, slows the culture, and keeps the batch.
+  - { key: cold, needs: { coldStorage: true } }

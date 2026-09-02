@@ -4,6 +4,7 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: dry vermouth
   appearance: "pale straw-gold vermouth"
+  primaryKeyword: dry-vermouth
   keywords: ["vermouth", "dry"]
   density: 990
   thermalConductivity: 0.5

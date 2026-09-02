@@ -16,7 +16,7 @@ halves, the way `trade-distilling` owns the still and the bottle.
   platform `Crate`; a crate of each at target in the farm's stock; and
   the farm hand running the pack's own `farms` brain
   (`/trade/farming/behavior/farms` — tends, picks, consigns onto
-  `/trade/distilling/thing/counter`).
+  `/trade/distribution/thing/counter`).
 
 **Horticulture is farming too.** The ornamentals — peace lily, snake
 plant — are grown here rather than filed under food, and they are the

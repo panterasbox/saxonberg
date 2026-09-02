@@ -109,10 +109,14 @@ shelf would drop it).
 ## The distributor — the cash-and-carry, and consignment BY a business (libations)
 
 The bar buys from a **distributor**, never from a `props:` line.
-`trade-distilling` ships the cash-and-carry
-(`/trade/distilling/location/cash-and-carry`, a `FurnishableRoom`;
-`thing/counter` a `Stock` with no lines, `serverPositionKeys: [clerk]`;
-`idea/business` with `clerk` and `keeper` (`purchases: true`)). Everything
+The **`distribution` pack** ships the cash-and-carry (fermentation D10
+moved it out of trade-distilling so sibling trades share no edges):
+`/trade/distribution/location/cash-and-carry` (an ordinary
+`SingletonCartesianLocation` — a trade floor's durability lives on its
+fixtures, never the room); `thing/counter` a `Stock` whose ONE stocked
+line is the malt sack (the imported-input faucet) atop the consignment
+shelf, `serverPositionKeys: [clerk]`; `idea/business` with `clerk` and
+`keeper` (`purchases: true`). Everything
 on the counter is **consigned by an authored consignor**: every producer
 pack ships an *outfit* — a Business, a `Stock` its floor product stands
 in, and a hand NPC running the kernel **`consigns`** brain whose config

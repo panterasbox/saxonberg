@@ -1,0 +1,21 @@
+# A crate of juniper berries — the compounder's botanical (fermentation
+# W6: the distiller buys juniper at the distributor; gin is spirit +
+# juniper, and the chain from the bush to the martini is real).
+class: /platform/thing/Crate
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a crate of juniper berries
+  primaryKeyword: juniper
+  keywords: [crate, juniper, berries, produce]
+  longDescription: A small slatted crate of blue-black juniper berries, resin-sharp.
+  censusKey: produce:juniper
+  regionTarget: 3
+  materialTags: [produce, juniper]
+  container: /trade/farming/thing/farm-stock
+  props:
+    - /trade/farming/thing/juniper-berries
+    - /trade/farming/thing/juniper-berries
+    - /trade/farming/thing/juniper-berries
+    - /trade/farming/thing/juniper-berries
+    - /trade/farming/thing/juniper-berries
+    - /trade/farming/thing/juniper-berries
