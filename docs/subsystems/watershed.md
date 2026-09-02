@@ -610,16 +610,35 @@ for no physical reason.
 `headM` is **fixed per structure, at construction** (P0), so the runtime
 read is one multiply.
 
-### Live withdrawals: a scan, not a registry
+### Live withdrawals and outfalls: ONE scan, not a registry
 
-`WatercourseCatalogue.liveDraws(nowS)` walks the resident objects and
-asks each one whether it takes water (the `Withdrawing` shape). ⚠
-**Derive-on-read, not a registry.** A registry that objects joined at
+`WatercourseCatalogue` walks the resident objects once and asks each of
+them two questions — *do you take water* (the `Withdrawing` shape) and
+*do you put anything in it* (`Discharging`). They are the same question
+asked of the same objects, so they share one pass.
+
+⚠ **Derive-on-read, not a registry.** A registry that objects joined at
 `postRegister` would need an ordering, an eviction hook and a
 re-registration on materialize, and every one of those is a way for the
 roster to go quietly stale — a failure this codebase has paid for three
-times. A scan cannot go stale, and it is memoised on the same
-weather-segment key as flow, so it runs at most once per six game-hours.
+times. A scan cannot go stale.
+
+⚠⚠ **And the scan is deliberately NOT memoised**, unlike natural flow.
+Caching it looked free and was a correctness bug in waiting: a player
+who shut a sluice would have watched the river stay dirty for up to six
+game-hours, because the closed outfall was still sitting in a cache
+keyed on the *weather*. The walk is a `typeof` per resident object and
+costs microseconds; the expensive part is the snowpack integral it calls
+per withdrawer, and that is already memoised per reach per segment.
+**Cache the expensive derivation, never the enumeration.**
+
+⚠ **Why not MQL**, which is normally how you search: MQL selects by
+**mixin**, and a capability pack cannot ship one (its module categories
+are branches, controllers and tests — no `lib/`). Its `class.X` filter
+matches by class *name*, and three unrelated things in this codebase are
+called `Conduit`. So a shape scan is the honest mechanism available to a
+pack — and `check-world-scan` was extended to walk packs' `src/` so the
+choice is a diff a reviewer sees rather than a hole in a gate.
 
 A withdrawal is sized against the **natural** (undrawn) flow, because
 sizing it against the already-drawn flow would be recursive and because
