@@ -286,7 +286,9 @@ adaptation isn't a field of study). The slice is illustrative, **not
 exhaustive** — the full ISCED-F is content authored over time.
 
 Later builds seed their own leaves the same way (pure data, zero code): the
-combat build's `melee-combat` / `blades`, and the concealment build's
+combat build's `melee-combat` / `blades` (the bar-fight build adds
+**`unarmed`**, the fisticuffs sibling of `blades` — credited on an
+innate-instrument exchange), and the concealment build's
 **`awareness`** (`channel: skill`, `iscedf: "0288"`) — the perception /
 attention Discipline that grades a viewer's effective perception (the
 `capacity` term), the reach of an active `search` / `examine`, and `disarm`.

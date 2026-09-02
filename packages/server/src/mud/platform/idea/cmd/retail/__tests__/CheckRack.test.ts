@@ -19,7 +19,6 @@ import { Construction } from "../../../../../lib/material/Construction";
 import ChattelRegistry from "../../../ChattelRegistry";
 import { ChattelApi } from "../../../../../api/chattel";
 import { ContainmentApi } from "../../../../../api/containment";
-import { StuffApi } from "../../../../../api/stuff";
 import { ExecutionContextApi } from "../../../../../api/execution-context";
 import { MixinApi } from "../../../../../api/mixin";
 import { Document } from "../../../../../lib/persistence/Document";

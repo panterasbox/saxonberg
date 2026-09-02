@@ -89,7 +89,7 @@ export default class CheckController extends CommandController<CheckModel> {
 
     // Custody → the rack; the owner-stamp stays put. It's a plain
     // holding (no ask, no listing) — nothing to buy, only to reclaim.
-    ContainmentApi.move(item, rack as unknown as Stuff & Container);
+    ContainmentApi.move(item, rack);
     rack.recordHolding(item.getChattelId(), consignorKey);
 
     // The diegetic claim: a carried ticket stamped with the rack. The
