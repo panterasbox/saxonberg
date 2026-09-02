@@ -34,8 +34,10 @@ import { ContainmentApi } from '../../../api/containment';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 import { ScheduleApi, type ScheduleHandle } from '../../../api/schedule';
+import { NavigationApi } from '../../../api/navigation';
 
 type MemberStuff = Stuff & Container;
+type Cell = [number, number, number];
 type ExitableContainer = Stuff & Container & Exitable;
 
 export default class LoungeWarren extends SingletonMixin(InnerWarren) {
@@ -45,6 +47,9 @@ export default class LoungeWarren extends SingletonMixin(InnerWarren) {
   static readonly LOUNGE_TEMPLATE = '/world/lounge/location/lounge';
   /** Dave's Bar — the singleton external-neighbor shell. */
   static readonly BAR_PATH = '/world/lounge/location/bar';
+  /** The venue's grid. ⚠ A `CartesianZone` since the coords sweep — it
+   *  was a `FolderZone`, which cannot hold a cell. */
+  static readonly ZONE_PATH = '/world/lounge';
 
   /** Direction host→Dave's (cardinal; auto-inverse 'south'). */
   static readonly BAR_DIRECTION = 'north';
@@ -80,6 +85,9 @@ export default class LoungeWarren extends SingletonMixin(InnerWarren) {
   // Reserve a hub direction per member so satellites don't collide on
   // the host's exit map. Cleared lazily as members leave.
   private _starIndex = 0;
+  /** Direction handed to each member by `attachmentFor` — its cell offset
+   *  from the host. `Warren` keeps its own attachment map private. */
+  private _dirOf: Map<MemberStuff, string> = new Map();
 
   public getBudThreshold(): number {
     return this.budThreshold;
@@ -138,12 +146,66 @@ export default class LoungeWarren extends SingletonMixin(InnerWarren) {
     ContainmentApi.move(actor as unknown as Stuff & Containable, target);
   }
 
-  /** Star topology: reserve the next free direction off the host. */
-  protected attachmentFor(_m: MemberStuff): Attachment {
+  /**
+   * Star topology: reserve the next free direction off the host.
+   *
+   * ⭐ The direction is also the member's PLACE. It is remembered here
+   * because `Warren` keeps its attachment map private, and `wireHubExit`
+   * below turns it into a cell once the exit is wired.
+   */
+  protected attachmentFor(m: MemberStuff): Attachment {
     const pool = LoungeWarren.STAR_DIRECTIONS;
     const dir = pool[this._starIndex % pool.length]!;
     this._starIndex += 1;
+    this._dirOf.set(m, dir);
     return { direction: dir };
+  }
+
+  /**
+   * ⭐⭐ **Wire the exit, then plot the room.**
+   *
+   * *Every location plots on some coordinate system* — and for a
+   * warren-minted room that means the WARREN assigns the cell, which is
+   * the whole of the exception to "a row declares its own coords".
+   * Nothing here is new geometry: the star topology already reserved a
+   * compass direction off the host, so a satellite has always had a
+   * position; it simply never stamped one, and the lounge sat in a
+   * `FolderZone` that could not have held it anyway.
+   */
+  protected override async wireHubExit(m: MemberStuff): Promise<void> {
+    await super.wireHubExit(m);
+    const dir = this._dirOf.get(m);
+    const host = this.getCurrentHost();
+    if (!dir || !host || host === m) return;
+    const cell = this.cellOf(host);
+    const off = NavigationApi.directionOffset(dir);
+    if (!cell || !off) return;
+    this.placeInGrid(m, [cell[0] + off[0], cell[1] + off[1], cell[2] + off[2]]);
+  }
+
+  /** The grid cell a member currently occupies, or `null`. */
+  private cellOf(m: MemberStuff): [number, number, number] | null {
+    const c = (m as unknown as { getCoordinates?(): [number, number, number] | null })
+      .getCoordinates?.();
+    return c ?? null;
+  }
+
+  /**
+   * Stamp a member into `/world/lounge`'s grid. The zone's `addLocation`
+   * sets both the coordinates and the zone back-ref, which is what makes
+   * the room resolvable by every zone-carried field afterwards.
+   */
+  private placeInGrid(m: MemberStuff, cell: [number, number, number]): void {
+    const zone = StuffApi.findByTemplatePath<Stuff>(LoungeWarren.ZONE_PATH);
+    const place = (zone as unknown as {
+      addLocation?(l: unknown, x: number, y: number, z: number): void;
+    } | null)?.addLocation;
+    if (zone && typeof place === 'function') {
+      place.call(zone, m, cell[0], cell[1], cell[2]);
+      return;
+    }
+    (m as unknown as { setCoordinates?(v: [number, number, number]): void })
+      .setCoordinates?.(cell);
   }
 
   /**
@@ -196,6 +258,22 @@ export default class LoungeWarren extends SingletonMixin(InnerWarren) {
       opposite: LoungeWarren.BAR_OPPOSITE,
       keepLiveDestination: true,
     });
+    /*
+     * ⭐ Plot the host, DERIVED from the bar rather than authored: the
+     * host sits one cell along `BAR_OPPOSITE` from Dave's, which is the
+     * same fact the exit pair above already states. Move the bar in its
+     * row and the lounge follows it, because nothing here repeats the
+     * bar's coordinates.
+     */
+    const barCell = this.cellOf(bar as unknown as MemberStuff);
+    const back = NavigationApi.directionOffset(LoungeWarren.BAR_OPPOSITE);
+    if (barCell && back) {
+      this.placeInGrid(host, [
+        barCell[0] + back[0],
+        barCell[1] + back[1],
+        barCell[2] + back[2],
+      ]);
+    }
     // The lounge's TPA terminal seats ITSELF into the host: it declares
     // `seatIn: <this warren>` and registers with the base Warren on
     // `postRegister`, which re-seats it on host migration. See FixtureMixin

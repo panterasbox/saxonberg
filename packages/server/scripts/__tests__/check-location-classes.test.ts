@@ -18,6 +18,8 @@ import {
   classifyMinted,
   orphanedZones,
   sameZoneNamedExits,
+  unplottedLocations,
+  WARREN_PLACED,
   unzonedCoords,
   type Row,
 } from '../check-location-classes';
@@ -234,5 +236,79 @@ describe('the coords/named-door gates, and the ancestry they derive', () => {
         { file: 'p/content/test/x/b.yaml', cls: '/trade/mining/location/MineRoom', coords: false, exits: [] },
       ]),
     ).toHaveLength(1);
+  });
+});
+
+/**
+ * ⭐⭐⭐ **Every location plots on some coordinate system** — a hard
+ * rule, so it gets a gate, and the gate gets tests that watch it FIRE.
+ */
+describe('check-location-classes.unplottedLocations', () => {
+  const ZONE = {
+    file: 'p/content/test/x.yaml',
+    cls: '/platform/idea/location/CartesianZone',
+    coords: false,
+    exits: [] as Array<[string, string]>,
+  };
+
+  it('⭐ a cartesian room with no coords does not plot', () => {
+    const rows = [
+      ZONE,
+      { file: 'p/content/test/x/a.yaml', cls: '/platform/location/SingletonCartesianLocation', coords: false, exits: [] as Array<[string, string]> },
+    ];
+    expect(unplottedLocations(rows)).toEqual(['p/content/test/x/a.yaml']);
+  });
+
+  it('⚠ coords with NO covering zone does not plot either — it is not a grid', () => {
+    const rows = [
+      { file: 'p/content/test/lone.yaml', cls: '/platform/location/SingletonCartesianLocation', coords: true, exits: [] as Array<[string, string]> },
+    ];
+    expect(unplottedLocations(rows)).toEqual(['p/content/test/lone.yaml']);
+  });
+
+  it('coords under a covering zone is the passing shape', () => {
+    const rows = [
+      ZONE,
+      { file: 'p/content/test/x/a.yaml', cls: '/platform/location/SingletonCartesianLocation', coords: true, exits: [] as Array<[string, string]> },
+    ];
+    expect(unplottedLocations(rows)).toEqual([]);
+  });
+
+  it('⭐ a WARREN-PLACED row is exempt — the one exception, and it is a list a reviewer sees', () => {
+    /*
+     * ⚠ Read off the real roster rather than repeating its paths: a
+     * kernel test must not name shipped content (`lint:test-content`),
+     * and hardcoding the list would also let it drift from the list the
+     * gate actually consults.
+     */
+    expect(WARREN_PLACED.length).toBeGreaterThan(0);
+    const rows = WARREN_PLACED.map((file) => ({
+      file,
+      cls: '/trade/mining/location/MineRoom',
+      coords: false,
+      exits: [] as Array<[string, string]>,
+    }));
+    expect(unplottedLocations(rows)).toEqual([]);
+
+    // …and a row NOT on it, of the same class, is still caught.
+    expect(
+      unplottedLocations([
+        ...rows,
+        { file: 'p/content/test/x/unlisted.yaml', cls: '/trade/mining/location/MineRoom', coords: false, exits: [] },
+      ]),
+    ).toEqual(['p/content/test/x/unlisted.yaml']);
+  });
+
+  it('⚠⚠ INLINE coords count — the detector is not anchored to end-of-line', () => {
+    // The regex that feeds `Row.coords` used `/^  coords:\s*$/m`, which
+    // sees `coords:\n    x: 0` and MISSES `coords: { x: 0, y: 0, z: 0 }`.
+    // Every Rejection room is authored inline, so the whole venue read as
+    // unplotted while `unzonedCoords` had been skipping inline rows since
+    // it was written. This pins the shape at the row level.
+    const rows = [
+      ZONE,
+      { file: 'p/content/test/x/inline.yaml', cls: '/platform/location/SingletonCartesianLocation', coords: true, exits: [] as Array<[string, string]> },
+    ];
+    expect(unplottedLocations(rows)).toEqual([]);
   });
 });

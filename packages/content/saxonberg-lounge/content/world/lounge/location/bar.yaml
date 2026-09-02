@@ -16,6 +16,12 @@
 class: /world/lounge/location/Bar
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
+  # ⚠ `coords:` is the MEMBERSHIP operation — `setCoords` is the only way
+  # an authored row joins a zone. The bar is the lounge grid's origin; the office is one cell north of it, which is what the door has always said.
+  coords:
+    x: 0
+    y: 0
+    z: 0
   shortDescription: Dave's Bar
   primaryKeyword: bar
   illustration: location/bar.png
@@ -104,6 +110,15 @@ data:
   # stays, the rest step out back. The staff are `Crafter`s (MakerMixin
   # NPCs) so the present bartender fulfills an `order`.
   props:
+    # ⭐⭐ **The sandbox's door, moved here from the wire alcove.** The
+    # wardrobe is real content — it is how a player reaches their circle
+    # (sandbox.md) — but the alcove around it was not: a doorless
+    # singleton nothing linked to, unreachable except by `goto` and a
+    # test's `startLocation`, sitting in no grid. A room that exists so
+    # the E2E suite has somewhere to stand is a fixture wearing a room's
+    # clothes. The wardrobe belongs in the social room anyway: the
+    # holodeck door where everyone can see it.
+    - /platform/thing/sandbox/wardrobe
     # The bar bundle by reference (`/trade/hospitality/location/bar` —
     # template inheritance does not exist, so the same list is spelled
     # here): the shelves, the tools on the well, the stations, the seats.

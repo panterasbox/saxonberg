@@ -268,7 +268,17 @@ export function shippedRows(contentDir: string = CONTENT): Row[] {
         out.push({
           file: full.slice(contentDir.length + 1),
           cls: m[1]!,
-          coords: /^ {2}coords:\s*$/m.test(text),
+          /*
+           * ⚠⚠ NO `$` anchor. `coords:` is authored BOTH ways — block
+           * (`coords:\n    x: 0`) and inline (`coords: { x: 0, y: 0, z: 0 }`)
+           * — and an end-of-line anchor sees only the first. Every
+           * Rejection room is inline, so this check reported the whole
+           * venue as unplotted while `unzonedCoords` had been silently
+           * skipping every inline row since it was written. A detector
+           * that matches one of two authored spellings is a detector
+           * that is wrong half the time and never says so.
+           */
+          coords: /^ {2}coords:/m.test(text),
           exits,
         });
       }
@@ -390,6 +400,69 @@ export function unzonedCoords(rows: readonly Row[]): string[] {
 }
 
 /**
+ * ⭐⭐⭐ **EVERY LOCATION PLOTS ON SOME COORDINATE SYSTEM.**
+ *
+ * A hard rule, stated by the user and enforced here rather than
+ * remembered. A cartesian row must declare `coords:` under a covering
+ * spatial zone — **and the only exception is a location whose position a
+ * warren or floorplan assigns dynamically.**
+ *
+ * ⚠⚠ The reason it needs a gate is that the failure is INVISIBLE.
+ * `CartesianLocation.setCoords` is the only path by which an authored
+ * row joins a zone, so a row with no coords is not sitting at the
+ * origin — it is in no grid at all, and it silently inherits nothing a
+ * zone carries: no `address` and therefore no Locality, no
+ * `atmosphere.*` override, no celestial profile, no `suppressesMagic`,
+ * no `stocks`/`favours`/`blessingOdds`, no `deposit`. Nothing throws.
+ * Nothing logs. Sixteen rooms were in that state — every trade floor in
+ * the repo, plus a showroom with a door onto a named avenue — and all of
+ * them read as fine, because nothing they had lost had been asked for
+ * yet.
+ *
+ * ⭐ The exception set is NOT a new list: it is `MINTED_ROWS` +
+ * `FURNISHED`, both already enumerated above and both already meaning
+ * *"a programme stamps this row's position, not an author"*. A row that
+ * wants an exemption has to argue its way onto one of those, where the
+ * question asked is the design question — *is this a KIND of place?* /
+ * *does a player furnish this?* — and not *is the linter complaining?*
+ */
+/**
+ * Rows a WARREN places at runtime — the plot rule's own exemption list.
+ *
+ * ⚠ It is separate from `MINTED_ROWS` on purpose: that roster answers a
+ * different question (*which rows are on plain `CartesianLocation`*) and
+ * is asserted to be exactly those, so a row on any other class cannot
+ * join it. This one answers *who stamps the cell* and is class-agnostic.
+ *
+ * The four here are the mine's working TYPES — a face, a fall, a
+ * junction, a stope. `MineWarren.carve()` clones one per cell and
+ * `placeInGrid` stamps the coordinates, which is precisely the
+ * warren-manages-them-dynamically case.
+ */
+export const WARREN_PLACED = [
+  "rejection/content/world/rejection/ferrow/face.yaml",
+  "rejection/content/world/rejection/ferrow/fall.yaml",
+  "rejection/content/world/rejection/ferrow/junction.yaml",
+  "rejection/content/world/rejection/ferrow/stope.yaml",
+];
+
+export function unplottedLocations(rows: readonly Row[]): string[] {
+  const exempt = new Set<string>([...MINTED_ROWS, ...FURNISHED, ...WARREN_PLACED]);
+  const zones = new Set(
+    rows.filter((r) => isZoneClass(r.cls)).map((r) => stemOf(r.file)),
+  );
+  return rows
+    .filter((r) => isCartesianClass(r.cls) && !exempt.has(r.file))
+    .filter(
+      (r) =>
+        !r.coords ||
+        !ancestorsOf(stemOf(r.file)).some((a) => zones.has(a)),
+    )
+    .map((r) => r.file)
+    .sort();
+}
+
+/**
  * ⚠⚠ **A NON-CARDINAL exit between two rows in the same zone.**
  *
  * `CartesianLocation.addExit` admits a non-cardinal direction only
@@ -476,6 +549,7 @@ function main(): void {
   const rows = shippedRows();
   const orphans = orphanedZones(rows, allYamlFiles());
   const unzoned = unzonedCoords(rows);
+  const unplotted = unplottedLocations(rows);
   const namedSameZone = sameZoneNamedExits(rows);
   const mint = classifyMinted(rows);
   const { unexpected, missing } = classify(rows);
@@ -486,14 +560,15 @@ function main(): void {
     mint.missing.length === 0 &&
     orphans.length === 0 &&
     unzoned.length === 0 &&
+    unplotted.length === 0 &&
     namedSameZone.length === 0
   ) {
     console.log(
       `check-location-classes: ok — ${FURNISHED.length} rows on ` +
         `FurnishableRoom, every one a room somebody furnishes; ` +
         `${MINTED_ROWS.length} on CartesianLocation, every one a KIND; ` +
-        `every zone row zones something; every cartesian row's coords ` +
-        `and named doors are legal.`,
+        `every zone row zones something; every cartesian row PLOTS on a ` +
+        `coordinate system; every row's coords and named doors are legal.`,
     );
     return;
   }
@@ -506,11 +581,33 @@ function main(): void {
         `  ⚠ Usually the block is dead data that came alive: ` +
         `\`FurnishableRoom\` is deliberately NOT cartesian, so \`coords:\` ` +
         `on one is ignored — and moving the row to ` +
-        `SingletonCartesianLocation makes it live. Delete the coords ` +
-        `(a standalone floor reached by a cross-zone exit is in no grid) ` +
-        `rather than inventing a zone for one room:`,
+        `SingletonCartesianLocation makes it live.\n\n` +
+        `  ⚠⚠ GIVE IT A ZONE. An earlier revision of this message said to ` +
+        `delete the coords instead, and that advice was taken and was ` +
+        `WRONG: coords are the MEMBERSHIP operation, so deleting them ` +
+        `does not unbreak the room, it un-houses it — out of the grid and ` +
+        `out of every zone-carried field. Every location plots on some ` +
+        `coordinate system:`,
     );
     for (const f of unzoned) console.error(`  ✗ ${f}`);
+  }
+  if (unplotted.length > 0) {
+    console.error(
+      `\ncheck-location-classes: ${unplotted.length} location row(s) do NOT ` +
+        `PLOT — no \`coords:\`, or no CartesianZone covering them.\n\n` +
+        `  ⭐ Every location plots on some coordinate system. ` +
+        `\`setCoords\` is the only way an authored row joins a zone, so a ` +
+        `row without coords is not at the origin — it is in NO GRID, and ` +
+        `it silently inherits nothing a zone carries: no address and so ` +
+        `no Locality, no atmosphere override, no celestial profile, no ` +
+        `stocks, no deposit. Nothing throws and nothing logs.\n\n` +
+        `  ⚠ The ONLY exemption is a position a warren or floorplan ` +
+        `assigns at runtime, and that is not a flag on the row — add it ` +
+        `to MINTED_ROWS or FURNISHED in this file, where the question ` +
+        `asked is "is this a KIND of place?" / "does a player furnish ` +
+        `this?" and a reviewer sees the diff:`,
+    );
+    for (const f of unplotted) console.error(`  ✗ ${f}`);
   }
   if (namedSameZone.length > 0) {
     console.error(

@@ -7,7 +7,7 @@ packs wave 4b). Root `/world/lounge`; the `lounge` group holds title over
 | where | what |
 |---|---|
 | `content/world/lounge.yaml` | the `/world/lounge` FolderZone |
-| `content/world/lounge/location/` | `lounge` (the Room every warren instance clones), `bar`, `office`, `offstage`, `wire-alcove` |
+| `content/world/lounge/location/` | `lounge` (the Room every warren instance clones), `bar`, `office`, `offstage` — ⚠ the `wire-alcove` was deleted: a doorless room nothing linked to, which existed so the E2E suite had a spawn point. Its wardrobe (the sandbox door) moved to the bar. |
 | `content/world/lounge/thing/` | `terminal` (the TPA node — the pack's boot entry), `bar-menu`, `back-bar`, `bar-counter`, the four bottles, `cocktail-glass`, `mixing-glass`, `shaker`, `tip-jar`, the two neons, `bandage` |
 | `content/world/lounge/idea/` | `warren`, `business` |
 | `content/world/lounge/agent/` | the cast: `augie`, `dave`, `mara`, `remy`, `sloane` |
