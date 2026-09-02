@@ -110,7 +110,7 @@ function seedDomain(): void {
     domain.push({ _id: `d-${++idCounter}`, path, class: cls, hydratorClass: PH, data });
   domain.push({ _id: `d-${++idCounter}`, path: PH, class: PH, data: {} });
   add(WARREN_PATH, WARREN_PATH.replace('/holder', '/TestInstitution'));
-  add(PROGRAMME, '/residence/idea/HoldingWarren', {
+  add(PROGRAMME, '/system/residence/idea/HoldingWarren', {
     floorplan: [
       {
         leaf: 'hall',
@@ -464,7 +464,7 @@ describe('the maintenance act (D4/D5)', () => {
   function kit(): HouseholdersKit {
     const k = makeStuffAtPath(
       () => new HouseholdersKit(),
-      '/residence/thing/householders-kit',
+      '/system/residence/thing/householders-kit',
     );
     k.setCapabilities([{ kind: 'upkeep', rate: 1 }]);
     return k;
@@ -488,7 +488,7 @@ describe('the maintenance act (D4/D5)', () => {
     });
     const controller = makeStuffAtPath(
       () => new MaintainController(),
-      '/residence/idea/cmd/crafting/MaintainController',
+      '/system/residence/idea/cmd/crafting/MaintainController',
     );
     await controller.execute({} as CommandModel, ctx);
     return ctx;

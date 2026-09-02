@@ -30,6 +30,7 @@
     "@saxonberg/content-trade-hospitality": "workspace:*",
     "@saxonberg/content-trade-smithing": "workspace:*",
     "@saxonberg/content-trade-winemaking": "workspace:*",
+    "@saxonberg/content-water": "workspace:*",
     "@saxonberg/content-wiki-starter": "workspace:*",
     "@saxonberg/content-world-seed": "workspace:*"
   },

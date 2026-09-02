@@ -686,7 +686,7 @@ async function bootImpl(): Promise<number> {
   for (const tpl of templates) {
     // A Material is whatever `extends Material`, wherever it lives — the
     // kernel's `/platform/idea/material/*` or a pack's
-    // (`/arcana/idea/material/PotionMaterial`) — never an allowlist of
+    // (`/system/arcana/idea/material/PotionMaterial`) — never an allowlist of
     // roots. Memoised per class path for the boot loop.
     if (!isMaterial.has(tpl.class)) isMaterial.set(tpl.class, await isMaterialClass(tpl.class));
     if (!isMaterial.get(tpl.class)) continue;

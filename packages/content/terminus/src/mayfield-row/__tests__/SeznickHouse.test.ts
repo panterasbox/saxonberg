@@ -102,7 +102,7 @@ function seedDomain(): void {
       data,
     });
   domain.push({ _id: `d-${++idCounter}`, path: PH, class: PH, data: {} });
-  add(BUILDING, '/residence/idea/BuildingWarren', {
+  add(BUILDING, '/system/residence/idea/BuildingWarren', {
     programmePath: PROGRAMME,
     corridorTemplate: CORRIDOR,
     lobbyPath: LOBBY,
@@ -111,7 +111,7 @@ function seedDomain(): void {
     defaultCapacity: 3,
     plan: { shape: 'linear', frontagesPerNode: 2, frontageLeaf: 'u' },
   });
-  add(PROGRAMME, '/residence/idea/HoldingWarren', {
+  add(PROGRAMME, '/system/residence/idea/HoldingWarren', {
     upkeepTerm: 'landlord-shell',
     floorplan: [
       {

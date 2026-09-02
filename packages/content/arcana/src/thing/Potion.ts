@@ -16,7 +16,7 @@
  * `/stuff/thing/magic/potion-of-mana` a thing a player clones and
  * recognizes as a potion.
  *
- * Ships in the arcana pack (`/arcana/thing/Potion`).
+ * Ships in the arcana pack (`/system/arcana/thing/Potion`).
  */
 
 import Receptacle from '@saxonberg/server/mud/platform/thing/Receptacle';

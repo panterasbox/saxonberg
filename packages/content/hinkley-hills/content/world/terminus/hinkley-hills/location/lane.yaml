@@ -39,6 +39,8 @@ data:
   exits:
     east:
       destination: /world/terminus/hinkley-hills/location/arrival
+  props:
+    - /world/terminus/hinkley-hills/thing/district-tank
   details:
     lots:
       keywords: [lots, lot, stakes, string, survey, grass]

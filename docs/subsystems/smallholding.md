@@ -540,9 +540,22 @@ rule that landed while it was in flight.
 
 ## Deferred seams
 
-- **Nothing fills the bed's moisture from the sky.** Rain and real
-  evapotranspiration are phase 4's; the reserve is now a *working* one
-  rather than an inert seam, which is strictly better for it.
+- ~~**Nothing fills the bed's moisture from the sky.**~~ **CLOSED by the
+  water build.** `CultivableMixin` now carries a rain edge: a
+  `rainClockStamp` beside the soil's own checkpoint, and
+  `integrateRainfall()` crediting the moisture reserve on the next read
+  with `precipitationBetween(stamp, now, locality).liquid ×
+  getLandRequirementM2()` litres (1 mm over 1 m² is 1 L, so no field had
+  to be invented) — but only for a bed whose locality is **sky-exposed**,
+  so a greenhouse bed stays the gardener's problem. ⚠ **Liquid only**:
+  snow banks at altitude and releases on melt, which is the watershed's
+  integral, not the soil's. Because the integral is *summed* rather than sampled, a bed
+  absorbs an absence of arbitrary length correctly on its first read
+  back. ⭐ **Drought became possible for the first time**: `satWater` was
+  always a first-class limiting factor and could never bind, because the
+  standpipe is infinite and rain did not exist as far as the soil was
+  concerned. Real evapotranspiration is still phase 4's. See
+  [watershed.md](./watershed.md).
 - **`landUse` answers `field`** and nothing implements a field. Phase 4.
 - **`_worstLimiting` is the quality substrate.** Phase 4's per-stage
   sensitivities (drought at flowering costs *count*; at filling costs

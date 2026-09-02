@@ -1,6 +1,6 @@
 # An amulet of glowlight — the worn-host exemplar at the neck.
 #
-# `class: /arcana/thing/Amulet`: the Ring composition, a different kind
+# `class: /system/arcana/thing/Amulet`: the Ring composition, a different kind
 # of thing (its own descriptor bank, census key and slot claim). Worn,
 # it holds a glowlight up around its wearer — the mote is the arcane
 # library's own `glowlight-mote`, named by the spell row — and pays for
@@ -8,7 +8,7 @@
 #
 # Cursed, it is a light that gnaws: the glowlight's cursed branch
 # afflicts the wearer with dread, and the amulet will not come off.
-class: /arcana/thing/Amulet
+class: /system/arcana/thing/Amulet
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a dull brass amulet on a cord

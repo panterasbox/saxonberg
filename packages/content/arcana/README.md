@@ -22,7 +22,7 @@ for one spell is the arcane library's.
 | `idea/material/PotionMaterial` | the potion LIQUID: `Potable` + `Arcane` + `Identifiable` over `ConsumableMaterial` |
 | `idea/cmd/magic/{Cast,Spells,Study,Zap,Recharge}Controller` | the five casting verbs' controllers |
 
-Source mirrors path: `src/thing/Wand.ts` backs `/arcana/thing/Wand`. The
+Source mirrors path: `src/thing/Wand.ts` backs `/system/arcana/thing/Wand`. The
 pack imports the kernel **only by package specifier**
 (`@saxonberg/server/mud/lib/…`) through the server's `exports` map —
 never by a relative path into the monorepo — so it is repo-portable.

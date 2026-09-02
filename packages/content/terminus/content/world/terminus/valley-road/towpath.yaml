@@ -1,0 +1,36 @@
+# The towpath — where the road leaves the city and starts up the river.
+#
+# Still at the city's elevation (35 m, inherited from `/world/terminus`).
+# The climb has not begun.
+class: /platform/location/SingletonCartesianLocation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the towpath
+  primaryKeyword: towpath
+  alternateNames: [path, road]
+  _address: terminus/city/wharfside/towpath
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  ambientIntensity: 600
+  ambientColorTemperature: 5800
+  longDescription: |
+    A made path of rammed gravel running upstream along the water, with the last of the city's back walls on one side and the Kestrel on the other. Carts have worn two channels into it. It is flat here, and it will not be flat for long.
+
+    Ahead the valley narrows and the ground begins to lift.
+  coords:
+    x: -1
+    y: 0
+    z: 0
+  exits:
+    east:
+      destination: /world/terminus/wharfside/bank
+    west:
+      destination: /world/terminus/valley-road/the-narrows
+  details:
+    channels:
+      keywords: [channels, ruts, gravel, carts]
+      description: |
+        Two worn grooves the width of a cart axle, and between them a raised spine of gravel that has been walked flat. Everything Hinkley Hills has was carried up this way.
+    river:
+      keywords: [river, kestrel, water]
+      description: |
+        Running the other way, and audibly. It is doing what you are about to do, downhill.

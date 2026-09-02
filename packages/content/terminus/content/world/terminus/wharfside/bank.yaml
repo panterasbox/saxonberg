@@ -1,0 +1,46 @@
+# The bank at the confluence — where Terminus finally meets its river.
+#
+# Two objects stand here and the whole watershed argument is in the
+# distance between them: the city's INTAKE, upstream, and its OUTFALL,
+# downstream. Which is which is not a label — it is where they are.
+class: /platform/location/SingletonCartesianLocation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the bank at the confluence
+  primaryKeyword: bank
+  alternateNames: [wharfside, waterfront, riverside]
+  _address: terminus/city/wharfside
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  ambientIntensity: 600
+  ambientColorTemperature: 5800
+  longDescription: |
+    The Kestrel comes down out of the gorge and the Delight comes in from the south, and they meet here in a wide brown sheet of water that the city has turned its back on for a hundred years. There is a stone embankment, a set of steps going down into the river, and a smell.
+
+    Upstream, on a stone footing set out into the current, stands the intake — a screened mouth on a pillar, with a walkway to it. A hundred paces downstream, past the steps, a brick arch in the embankment discharges the other end of the same city, continuously.
+
+    You can see both from here without turning your head. That is the whole argument.
+  coords:
+    x: 0
+    y: 0
+    z: 0
+  exits:
+    north:
+      destination: /world/terminus/market/square
+    west:
+      destination: /world/terminus/valley-road/towpath
+  props:
+    - /world/terminus/wharfside/thing/city-intake
+    - /world/terminus/wharfside/thing/city-outfall
+  details:
+    river:
+      keywords: [river, kestrel, water, confluence, delight]
+      description: |
+        Brown, wide and moving faster than it looks. In spring it comes up the steps and over the third one; in August you can see the gravel out in the middle of it. Everything anybody upstream has done to it is in here somewhere, thinned out.
+    steps:
+      keywords: [steps, stair, stairs, embankment]
+      description: |
+        Worn stone going down into the water, green below the summer line and black below the spring one. People have drawn water from these steps for as long as there has been a city, which is the arrangement the intake was built to replace.
+    arch:
+      keywords: [arch, brick, discharge]
+      description: |
+        A brick arch a man could stand up in, running steadily whatever the weather. Nobody built it to be looked at.

@@ -90,8 +90,8 @@ export default class Spellbook extends SpellbookBase {
    */
   static commandContributions: CommandContributions = {
     self: [],
-    peers: ['arcana/cmd/magic/study.yaml'],
-    environment: ['arcana/cmd/magic/study.yaml'],
+    peers: ['system/arcana/cmd/magic/study.yaml'],
+    environment: ['system/arcana/cmd/magic/study.yaml'],
   };
 
   /** Which working this volume sets out. */

@@ -22,7 +22,7 @@ data:
   longDescription: |
     A concrete apron at the end of the line, one bench, and a sign on a post reading HINKLEY HILLS in letters that were confident about it. The rails stop here because the survey did.
 
-    West the ground rises into the lots — a grid of stakes and string over grass nobody has cut since it was drawn, with a made road running up the middle of it and nothing at all on either side yet. Behind you the city sits low and close on the flat, near enough to walk back to and far enough that nobody there can see what you plant.
+    East, a made road drops off the shoulder and runs down the valley beside the water, all the way into town. West the ground rises into the lots — a grid of stakes and string over grass nobody has cut since it was drawn, with a made road running up the middle of it and nothing at all on either side yet. Behind you the city sits low and close on the flat, near enough to walk back to and far enough that nobody there can see what you plant.
   coords:
     x: 0
     y: 0
@@ -30,6 +30,14 @@ data:
   exits:
     west:
       destination: /world/terminus/hinkley-hills/location/lane
+    # ⚠ The valley road down into town — the fix for a live gap. Before
+    # this, NOTHING in shipped content had an exit into Hinkley Hills
+    # except the TPA route, and fast travel is reach-before-travel: a
+    # player had to walk here to register the node, and there was
+    # nowhere to walk from. The e2e reached it with `wizard: true`,
+    # which is the tell — a wizard stand-in is a missing player path.
+    east:
+      destination: /world/terminus/valley-road/the-shoulder
   details:
     sign:
       keywords: [sign, post, letters]

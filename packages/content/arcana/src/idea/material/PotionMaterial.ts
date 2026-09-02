@@ -1,6 +1,6 @@
 /**
  * PotionMaterial — the `Material` subclass a **potion liquid** authors
- * as (`class: /arcana/idea/material/PotionMaterial`).
+ * as (`class: /system/arcana/idea/material/PotionMaterial`).
  *
  * The `RadioactiveMaterial` capability-subclass pattern, composing the
  * two mixins a potion needs: `PotableMixin` (route + dose + the

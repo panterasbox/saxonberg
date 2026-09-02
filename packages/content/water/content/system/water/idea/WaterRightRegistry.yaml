@@ -1,0 +1,8 @@
+# /system/water/idea/WaterRightRegistry — the register of filed water rights,
+# and the derivation rule that gives bank-holders theirs without one.
+#
+# Pure data: everything it knows is in the `water-right` documents and
+# the `parcels` rows, so it holds no authored state. Lazily cloned on
+# first use — no boot step to forget.
+class: /system/water/idea/WaterRightRegistry
+data: {}

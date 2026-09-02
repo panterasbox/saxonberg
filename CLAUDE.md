@@ -159,7 +159,7 @@ behavior. Read the relevant doc before editing in its area.
   - [contract.md](./docs/subsystems/contract.md) — the work-contract (gig) substrate: clauses over verifiable conditions, escrow, the board, the custodian rule
   - [collections.md](./docs/subsystems/collections.md) — canonical surfaces for collection-shaped mixins, naming axes
   - [hot-reload.md](./docs/subsystems/hot-reload.md) — HotReloadApi state machine, clone integration, controller dispatch
-  - [content-packs.md](./docs/subsystems/content-packs.md) — versioned content packages: the PackApi reconcile installer, the contribution kinds (domain / document over `DocumentKinds` / settings / subject / wiki / command-view) and their policies, `sourcePack` stamps, the manifest's `requires` (groups + title claims) / `boot` / `maintainers`, the boot union, `SAXONBERG_PACKS`, the **capability rung** (a pack ships `src/`; the class-source table, `resolveClassFile`, the server's `exports` map as the pack import profile, the deployment manifest, the rung check), the thirty shipped packs (the platform is pack zero; arcana, trade-distilling and trade-hospitality the capability packs; distribution the decoupler; brains in packs via `src/behavior/`; the `archetype` kind; the stub trades; no seeders)
+  - [content-packs.md](./docs/subsystems/content-packs.md) — versioned content packages: the PackApi reconcile installer, the contribution kinds (domain / document over `DocumentKinds` / settings / subject / wiki / command-view) and their policies, `sourcePack` stamps, the manifest's `requires` (groups + title claims) / `boot` / `maintainers`, the boot union, `SAXONBERG_PACKS`, the **capability rung** (a pack ships `src/`; the class-source table, `resolveClassFile`, the server's `exports` map as the pack import profile, the deployment manifest, the rung check), the thirty-one shipped packs (the platform is pack zero; arcana, trade-distilling and trade-hospitality the capability packs; distribution the decoupler; brains in packs via `src/behavior/`; the `archetype` kind; the stub trades; no seeders)
   - [race.md](./docs/subsystems/race.md) — Material substrate, Clade scope, BodyPlan + Species templates, OrganismMixin, animacy gating
   - [vitals.md](./docs/subsystems/vitals.md) — body-state substrate: the Agent/Creature/Character split, VitalsMixin, BodyPlan anatomy, death seams
   - [harm.md](./docs/subsystems/harm.md) — the injury driver: `ConditionApi.inflict`, five trauma behaviors, reconcile-on-read wounds, the medic vertical
@@ -208,6 +208,7 @@ behavior. Read the relevant doc before editing in its area.
   - [time.md](./docs/subsystems/time.md) — game-time: WorldClockApi, SchedulerApi, CelestialApi, the calendar; the Timekeeping display seam
   - [app-settings.md](./docs/subsystems/app-settings.md) — the AppSettings singleton + key vocabulary, yaml seeding, AppApi reads, the `config` verb
   - [help.md](./docs/subsystems/help.md) — the in-game rulebook: the HelpTopic schema, the harvested catalogue, the REST help API, the `help` verb
+  - [watershed.md](./docs/subsystems/watershed.md) — water that gets somewhere: zone elevation (and why `coords.z` is not it), the exact precipitation integral shared by soil and river, `Watercourse` (topology authored · direction derived · a compiled reachability set), flow + snowpack + derived navigability, the `Conduit` ladder (a sewer is the same object reversed) over the six-word `SupplyState`, storage as the build's one piece of state, rights (prior appropriation records · riparian derives), contamination by kind, and the three basins
   - [wiki.md](./docs/subsystems/wiki.md) — the community encyclopedia: typed subjects, the frozen render pipeline, the two-axis reveal model (capability DELETES / appetite TAGS) and its one gate, snippets vs components, sticky anchors, the `wiki` verb
 
 ## ⚠ Worktrees — read before committing
@@ -322,9 +323,26 @@ pnpm gen:schema       # regenerate Collections / the two policy tables
                       #   from packages/server/src/schema/*.yaml
 ```
 
-⚠⚠ **`pnpm test` costs ~15 minutes, and a green run stays valid until a
-SOURCE file changes.** Before starting one, check — do not assume that
-"about to commit" is a reason:
+⚠⚠ **`pnpm test` runs at exactly TWO moments in a build cycle:**
+
+1. **before the MR opens** — the build is done, prove the tree once;
+2. **at `/finalize`** — the pre-merge sweep.
+
+Everything in between — every review round, every merge from master,
+every restructure **however large** — is gated by `pnpm test:near` +
+every touched pack's own vitest + the lint family. ⭐ The exemption that
+keeps getting invented is *"but this change is big / structural / a
+merge"*. **Size is not the trigger; the moment in the cycle is.** A
+149-reference namespace rename is still a review-round change, and the
+lints are what actually catch a namespace break — not a twenty-minute
+rerun of the client suite.
+
+⚠ **Never start it in the background "while waiting."** It cannot be
+seen starting and cannot be caught every time; a background run is worse
+than a foreground one, not better.
+
+⚠⚠ **And a green run stays valid until a SOURCE file changes.** Before
+starting one, check — do not assume that "about to commit" is a reason:
 
 ```bash
 git status --short | grep -vE '^.. (docs/|CLAUDE\.md|.*\.md$|packages/content/)'
@@ -776,7 +794,8 @@ where the `.ts` file sits, and where its templates live:
 > attachments. Template rows follow the same pattern under a ROOT the
 > pack decides: the platform pack's rows at `/platform/<branch>/…`,
 > every other pack's at `/stuff/<branch>/…` (the commons), an industry's
-> at `/trade/<industry>/<branch>/…`. A controller is an `Idea` at
+> at `/trade/<industry>/<branch>/…`, and a **system**'s at
+> `/system/<system>/<branch>/…`. A controller is an `Idea` at
 > `<root>/idea/cmd/<category>/<Name>Controller`; its view is the document
 > at `<root>/cmd/<category>/<verb>` (a `cmd` dir is views unless its
 > parent is `idea`).
@@ -784,6 +803,38 @@ where the `.ts` file sits, and where its templates live:
 The invariant, and it is literal: **nothing instances `/lib/`.** No
 template's `class:` may name a `/lib/` module, and no template path may
 start `/lib/`. Enforced by `pnpm lint:instanceable`, not by convention.
+
+### ⭐ The five namespace axes — which root a pack takes
+
+Every top-level root answers exactly one question, and a pack's root is
+decided by which question it answers:
+
+| axis | root | what it holds |
+|---|---|---|
+| the engine itself | `/platform` | the kernel's own classes + rows |
+| **what things are** | `/stuff` | the commons — materials, ideas, objects |
+| **where** | `/world/<place>` | localities and their rooms |
+| **who makes · who owns** | `/trade/<industry>` · `/corpo/<firm>` | industries and firms |
+| **how the world works** | **`/system/<system>`** | a named system other packs' content sits on |
+| what is written down | `/home` `/studio` `/wiki` `/compact` `/blueprints` `/expression` | document trees; **no classes** |
+
+⭐ **The test for `/system/`** is that *a system is true whether or not
+anyone is participating in it*. A trade is practised by somebody and can
+be quit; a place can be walked to; a thing can be picked up. But rivers
+flow with nobody employed by them, magic obeys its laws with nobody
+casting, and tenure exists with nobody renting. Members today:
+`/system/arcana` · `/system/residence` · `/system/water`.
+
+⚠ **A system's classes are the pack's; its instances are the realm's.**
+`/system/water/idea/Watercourse` is the mechanism and belongs to the
+water pack; `/stuff/idea/Watercourse/kestrel` is a river in somebody's
+world and belongs to the commons, where the realm's own pack can edit
+it. Same split as `Locality` and `Government`.
+
+A capability pack **must** hold a namespace root of its own — this is
+structural, not stylistic: `classFileOf` resolves a class path into the
+owning pack's `src/` by longest prefix, so a class at `/stuff/idea/X`
+would resolve to the **kernel** tree instead.
 
 Inheritance alone does NOT pull a class into `lib/` — `platform/thing/Chair →
 platform/thing/FoldingChair` is ordinary OO and correct. Only classes that are

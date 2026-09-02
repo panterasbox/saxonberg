@@ -72,6 +72,8 @@ export interface TitleClaim {
   parentParcel?: string;
   landUse?: LandUse;
   areaM2?: number;
+  /** The reach this ground fronts — see {@link ParcelRecord.reach}. */
+  reach?: string;
 }
 
 /**
@@ -137,6 +139,7 @@ export class ParcelRecord extends Document {
     allowance: { persistent: true },
     keyway: { persistent: true },
     landUse: { persistent: true },
+    reach: { persistent: true },
   };
 
   /** The path this parcel claims — the coverage-index key (longest-prefix). */
@@ -204,8 +207,40 @@ export class ParcelRecord extends Document {
    */
   landUse: LandUse | null = null;
 
+  /**
+   * **The reach this ground fronts** — a citation like
+   * `kestrel:confluence`, or `''` for land that is not on the water.
+   *
+   * ⭐ The parcel's own reach citation is what makes a **riparian**
+   * right derivable *with no record at all*: the bank-holders of a
+   * reach are the owners of the parcels that cite it, and their share
+   * is equal by construction. Prior appropriation records a right
+   * explicitly, dated and transferable; riparian does not, and this one
+   * field is the whole difference.
+   *
+   * It lives here rather than being derived from the address tree
+   * because the two do **not** correspond: a room's content path and
+   * its `_address` are independent by design (the market square sits at
+   * `/world/terminus/market/square` and is addressed
+   * `terminus/city/counting-houses/market-square`). A citation on the
+   * land is the only honest link between a title and a river.
+   *
+   * See [docs/subsystems/watershed.md].
+   */
+  reach: string = "";
+
   getExtent(): string {
     return this.extent;
+  }
+
+  /** The reach this ground fronts, or `''`. */
+  getReach(): string {
+    return this.reach;
+  }
+
+  /** Cite a reach for this ground; `''` takes it off the water. */
+  setReach(value: string): void {
+    this.reach = typeof value === "string" ? value.trim() : "";
   }
 
   /** This parcel's OWN declared use, or null when it inherits. */

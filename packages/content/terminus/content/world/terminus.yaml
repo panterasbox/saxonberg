@@ -1,0 +1,26 @@
+# Terminus — the city's own zone, and the inheritance node its districts
+# hang off.
+#
+# A FolderZone rather than a spatial one: it holds no rooms of its own
+# (every room is in a district below it) and exists to carry the fields
+# the whole city shares. Today that is exactly one — its **elevation**.
+#
+# ⭐ 35 metres, and the number is load-bearing. Terminus is FLAT by
+# construction, which is why:
+#
+#   - the Kestrel runs past Wharfside at 30 m, five metres below the
+#     bank you stand on;
+#   - a main from the falls (500 m) is gravity-fed and free to run,
+#     while one from anywhere in the city needs a pump forever;
+#   - and a water tower is the only way to give a city tap any pressure
+#     at all, because there is no hill inside the walls to put a tank on.
+#
+# A district that is genuinely somewhere else — Hinkley Hills, up on the
+# slope — declares its own and the walk stops there. That is the
+# inheritance rule doing its job: say it once, override where it is
+# false.
+class: /platform/idea/FolderZone
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: Terminus
+  elevation: 35

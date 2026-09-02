@@ -9,7 +9,7 @@
 #
 # 0.25 L is the reference dose (the material's `dose` block), so a full
 # flask is exactly one dose and drinking half of it is half.
-class: /arcana/thing/Potion
+class: /system/arcana/thing/Potion
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a stoppered glass flask

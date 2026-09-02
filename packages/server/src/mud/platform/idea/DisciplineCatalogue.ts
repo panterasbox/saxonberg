@@ -137,7 +137,7 @@ export default class DisciplineCatalogue extends DisciplineCatalogueBase {
   /**
    * Read every Discipline template — BY CLASS, wherever a pack shipped
    * it (the platform's trade disciplines under `/platform/idea/Discipline/`,
-   * arcana's under `/arcana/idea/Discipline/`) — directly from the
+   * arcana's under `/system/arcana/idea/Discipline/`) — directly from the
    * `content` collection and populate the cache, keyed by the authored
    * `key`. Skips the runtime Stuff layer entirely.
    */

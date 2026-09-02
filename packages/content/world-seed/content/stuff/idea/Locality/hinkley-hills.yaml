@@ -23,4 +23,11 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Hinkley Hills
   _address: terminus/hinkley-hills
+  # ── the watershed (D21) ───────────────────────────────────────────
+  # The slope above the city, on the basin's edge. It drains INTO the
+  # Kestrel at the confluence — but its problem is not a rights problem,
+  # it is a HEAD problem, which is why it has a standpipe and not a main.
+  _reach: kestrel:confluence
+  _catchmentKm2: 45
+
   _governmentKey: hinkley-hills

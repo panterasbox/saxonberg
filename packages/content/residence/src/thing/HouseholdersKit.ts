@@ -23,6 +23,6 @@ export default class HouseholdersKit extends ToolItem {
   static commandContributions: CommandContributions = {
     self: [],
     peers: [],
-    environment: ["residence/cmd/crafting/maintain.yaml"],
+    environment: ["system/residence/cmd/crafting/maintain.yaml"],
   };
 }

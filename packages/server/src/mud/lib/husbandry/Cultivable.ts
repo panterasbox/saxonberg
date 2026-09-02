@@ -51,6 +51,9 @@ import { MixinApi } from "../../api/mixin";
 import { StuffApi } from "../../api/stuff";
 import { WorldClockApi } from "../../api/worldclock";
 import { AppApi } from "../../api/app";
+import { AddressApi } from "../../api/address";
+import { BiomeApi } from "../../api/biome";
+import { WeatherApi } from "../../api/weather";
 import { AppSettingKeys } from "../config/AppSettings";
 import { TemplatePaths } from "../paths";
 import { Quantity } from "../quantity";
@@ -60,6 +63,7 @@ import type { Slottable } from "../slot/Slottable";
 import type { Bulkable } from "../bulk/Bulkable";
 import type { Stuff } from "../stuff/Stuff";
 import type { Container } from "../spatial/Container";
+import type Locality from "../../platform/idea/Locality";
 
 const SECONDS_PER_GAME_DAY = 86_400;
 
@@ -142,6 +146,20 @@ export interface Cultivable {
   nutrientFraction(): number | null;
   /** Pour water in. Returns the litres actually absorbed (headroom-capped). */
   waterSoil(litres: number): number;
+  // ---------- the sky edge (its own checkpoint) ----------
+  /**
+   * Resolve the covering locality + sky exposure this ground integrates
+   * rain against. Async, and the ONLY async step in the rain edge.
+   */
+  restampWatershed(): Promise<void>;
+  /**
+   * Litres of rain this ground has absorbed since it was placed. `null`
+   * while the covering locality is **unresolved** — which is NOT the
+   * same statement as "no rain has fallen".
+   */
+  rainfallAbsorbedLitres(): number | null;
+  /** Whether the sky edge has resolved its locality + exposure yet. */
+  isWatershedResolved(): boolean;
   /** Feed the soil. Returns the fraction actually absorbed. */
   feedSoil(fraction: number): number;
   /** Draw nutrient out — what a harvested crop exports. */
@@ -195,6 +213,15 @@ export function CultivableMixin<
       _soilMeanMoisture: { persistent: true },
       fixedGround: { persistent: true, authorable: true },
       landRequirementM2: { persistent: true, authorable: true },
+      // The sky edge's own checkpoint + the identity it integrates
+      // against. All four persist: an unresolved ref that came back
+      // resolved must not forget it across a restart, and the stamp is
+      // the thing that makes the back-fill exact.
+      rainClockStamp: { persistent: true },
+      _rainLocalityPath: { persistent: true, runtimeState: true },
+      _rainSkyExposed: { persistent: true, runtimeState: true },
+      _rainResolved: { persistent: true, runtimeState: true },
+      _rainAbsorbedLitres: { persistent: true },
     };
 
     /**
@@ -394,6 +421,13 @@ export function CultivableMixin<
         return;
       }
 
+      // The sky pours in BEFORE the window drains, because that is the
+      // order it physically happened in: rain fell across the window the
+      // plants were drinking through. It runs on its OWN stamp, so it is
+      // unaffected by every early return below — a bed whose soil window
+      // is empty may still have a month of rain to credit.
+      this.integrateRainfall(nowS);
+
       // First touch: seed the stamp, integrate nothing.
       if (this.soilClockStamp === 0) {
         this.soilClockStamp = nowS;
@@ -447,6 +481,188 @@ export function CultivableMixin<
       } finally {
         this._reconcilingSoil = false;
       }
+    }
+
+    // ---------- the sky edge: rain reaches soil ----------
+
+    /**
+     * Game-seconds stamp of the last rainfall integration; `0` = never.
+     *
+     * ⭐⭐ **The rain edge has a checkpoint of its OWN, and that is the
+     * whole safety property.** Resolving which locality covers this
+     * ground is asynchronous (an address walk); the reconcile that wants
+     * the answer is synchronous. So there is a window — sometimes a long
+     * one, across a restart — in which the ground genuinely does not
+     * know where it is.
+     *
+     * ⚠⚠ **Unresolved must never read as zero.** The requirements name
+     * this the build's highest risk, and this codebase has been bitten
+     * three times by a cache nothing warms reading null forever while
+     * hand-constructed tests stayed green. So: while
+     * {@link _rainResolved} is false this stamp does **not advance**,
+     * and the first successful resolve therefore integrates the entire
+     * backlog. "Not yet resolved" and "resolved to nothing" are
+     * different values, and only the second one credits zero rain.
+     */
+    public rainClockStamp = 0;
+
+    /**
+     * Template path of the covering `Locality`, or `null` for ground
+     * that resolves none. The **identity** is cached (async, once); the
+     * **state** — how much fell — is derived live from it on every read.
+     */
+    public _rainLocalityPath: string | null = null;
+
+    /** Whether the resolve found this ground under open sky. */
+    public _rainSkyExposed = false;
+
+    /**
+     * Whether {@link restampWatershed} has ever completed. The tri-state
+     * lives here rather than in `_rainLocalityPath === null`, because a
+     * bed in a cellar legitimately resolves NO locality and must be
+     * distinguishable from a bed that has not looked yet.
+     */
+    public _rainResolved = false;
+
+    /** Running total of litres of rain absorbed — a legibility figure. */
+    public _rainAbsorbedLitres = 0;
+
+    /**
+     * The in-flight resolve, or `null`. Holding the **promise** rather
+     * than a boolean is what makes a second caller *coalesce* onto the
+     * first instead of returning early from a walk that has not finished
+     * — `await bed.restampWatershed()` has to mean the ref is resolved
+     * when it returns, whichever call actually did the work.
+     */
+    private _rainResolvePromise: Promise<void> | null = null;
+
+    /**
+     * Resolve the covering locality and sky exposure, then let the next
+     * reconcile integrate everything since the last stamp.
+     *
+     * The one `await` in the rain edge, kept off the read path — the
+     * shape `ThermalMixin.restamp` established for `lastAmbientK`, for
+     * the same reason: a reconcile-on-read consumer must not await a
+     * walk. Triggered on placement ({@link onMoved}) and kicked lazily
+     * from the reconcile when the ref is still unresolved, so a bed
+     * restored from a snapshot into a room it never "moved" into heals
+     * itself on the next read rather than staying blind forever.
+     */
+    public restampWatershed(): Promise<void> {
+      const inFlight = this._rainResolvePromise;
+      if (inFlight !== null) return inFlight;
+      const started = this.resolveWatershedRef();
+      this._rainResolvePromise = started;
+      return started;
+    }
+
+    /** The walk itself; {@link restampWatershed} owns the coalescing. */
+    private async resolveWatershedRef(): Promise<void> {
+      try {
+        const host = this as unknown as Stuff & {
+          getContainer?: () => unknown;
+        };
+        const container = host.getContainer?.() ?? null;
+        if (container === null || !MixinApi.isContainer(container as Stuff)) {
+          // Not anywhere yet. Leave the ref UNRESOLVED — an unplaced bed
+          // has no sky, and resolving it to "nothing" here would swallow
+          // the rain it catches once it IS put down.
+          return;
+        }
+        const scope = container as Stuff & Container;
+        const locality = await AddressApi.resolveLocalityFor(scope);
+        this._rainLocalityPath = locality?.getTemplatePath() ?? null;
+        this._rainSkyExposed = BiomeApi.isSkyExposed(scope);
+        this._rainResolved = true;
+      } catch {
+        // A failed walk leaves the ref UNRESOLVED rather than resolving
+        // it to nothing: the stamp stays put and the backlog survives.
+      } finally {
+        this._rainResolvePromise = null;
+      }
+    }
+
+    /** See {@link Cultivable.isWatershedResolved}. */
+    public isWatershedResolved(): boolean {
+      return this._rainResolved;
+    }
+
+    /** See {@link Cultivable.rainfallAbsorbedLitres}. */
+    public rainfallAbsorbedLitres(): number | null {
+      if (!this._rainResolved) return null;
+      this.reconcileSoil();
+      return this._rainAbsorbedLitres;
+    }
+
+    /**
+     * Integrate rainfall over this ground's own window and pour it in.
+     *
+     * `mm × m² = litres`, with no invented field on either side: the
+     * millimetres come from {@link WeatherApi.precipitationBetween} and
+     * the square metres from the bed's authored
+     * {@link getLandRequirementM2}, which is already the footprint land
+     * use charges it for.
+     *
+     * ⭐ **A pot therefore catches nothing, and that is correct.** A pot
+     * draws zero land because a houseplant is furniture rather than
+     * production — so it is watered by hand, exactly as it ships. Ground
+     * that *is* production is ground the sky can find.
+     */
+    private integrateRainfall(nowS: number): void {
+      // First touch: open the window and integrate nothing. This runs
+      // BEFORE the resolved check on purpose — the window has to START
+      // at the earliest honest moment (the ground exists and the clock
+      // is running), or an unresolved ref would have no backlog to
+      // back-fill and the whole checkpoint would be decoration.
+      if (this.rainClockStamp === 0) {
+        this.rainClockStamp = nowS;
+        if (!this._rainResolved) void this.restampWatershed();
+        return;
+      }
+
+      // ⚠⚠ UNRESOLVED: the stamp does **not** advance. The window stays
+      // open, the backlog accrues, and the first successful resolve
+      // integrates all of it. Reading zero here instead would be the
+      // silent failure this build's highest-risk item is named after —
+      // it looks exactly like a dry month.
+      if (!this._rainResolved) {
+        void this.restampWatershed();
+        return;
+      }
+
+      const from = this.rainClockStamp;
+      if (nowS <= from) {
+        this.rainClockStamp = nowS;
+        return;
+      }
+      this.rainClockStamp = nowS;
+
+      // Resolved, but under a roof or with no land: the window closes
+      // with zero rain, which is an ANSWER rather than an absence.
+      if (!this._rainSkyExposed) return;
+      const areaM2 = this.getLandRequirementM2();
+      if (areaM2 <= 0) return;
+
+      const locality = this._rainLocalityPath === null
+        ? null
+        : (StuffApi.findByTemplatePath(
+            this._rainLocalityPath,
+          ) as Locality | null);
+
+      const fell = WeatherApi.precipitationBetween(
+        Quantity.of(from, "s"),
+        Quantity.of(nowS, "s"),
+        locality,
+      );
+      // Liquid only. Snow banks at altitude and releases on melt — that
+      // is the watershed's integral, not the soil's.
+      const litres = fell.liquid.rawValue() * areaM2;
+      if (litres <= 0) return;
+      this._rainAbsorbedLitres += this.creditReserve(
+        SOIL_MOISTURE_RESERVE_KEY,
+        litres,
+        "L",
+      );
     }
 
     /** Root-zone moisture `[0, 1]`, reconciled; null when unauthored. */
@@ -631,6 +847,11 @@ export function CultivableMixin<
       // they should long since have drunk. Placement is guaranteed: even a
       // template's `container:` self-placement goes through containment.
       this.reconcileSoil();
+      // Being put down is also where the ground learns WHERE it is: the
+      // sky edge's covering locality + exposure re-resolve here, exactly
+      // as thermal's cached ambient does. Fire-and-forget — the read
+      // path never awaits, and until it lands the rain stamp holds.
+      void this.restampWatershed();
       for (const plant of this.getPlants()) {
         if (MixinApi.isGrowing(plant)) plant.noteEnvironmentChanged();
       }

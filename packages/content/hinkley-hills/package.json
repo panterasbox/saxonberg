@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Hinkley Hills — the suburb locality: the lane, the plat, the lots and the homes the residences build stands on them.",
+  "description": "Hinkley Hills \u2014 the suburb locality: the lane, the plat, the lots and the homes the residences build stands on them.",
   "scripts": {
     "build": "tsc",
     "test": "vitest run --passWithNoTests",
@@ -15,6 +15,7 @@
     "@saxonberg/content-residence": "workspace:*",
     "@saxonberg/content-terminus": "workspace:*",
     "@saxonberg/content-trade-farming": "workspace:*",
+    "@saxonberg/content-water": "workspace:*",
     "@saxonberg/server": "workspace:*",
     "@saxonberg/types": "workspace:*"
   },

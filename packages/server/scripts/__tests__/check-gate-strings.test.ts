@@ -14,13 +14,13 @@ const ARCANA: PackSource = {
   id: 'arcana',
   packDir: '/proj/packages/content/arcana',
   srcDir: '/proj/packages/content/arcana/src',
-  roots: ['/arcana'],
+  roots: ['/system/arcana'],
 };
 const MUD = '/proj/packages/server/src/mud';
 
 describe('check-gate-strings.gateFileOf', () => {
   it('a pack-root gate resolves into the pack src/', () => {
-    const r = gateFileOf('/arcana/idea/cmd/magic/CastController', `${MUD}/lib/magic/Caster.ts`, [ARCANA], MUD);
+    const r = gateFileOf('/system/arcana/idea/cmd/magic/CastController', `${MUD}/lib/magic/Caster.ts`, [ARCANA], MUD);
     expect(r).toEqual({ base: '/proj/packages/content/arcana/src/idea/cmd/magic/CastController' });
   });
 

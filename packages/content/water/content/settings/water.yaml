@@ -1,0 +1,122 @@
+# water — the watershed's dials (the `settings` kind: merge-missing — a
+# key the app_settings singleton lacks is merged in; a value the operator
+# changed via `config` is never touched).
+#
+# ONE file for the whole build rather than dials scattered across
+# weather / husbandry / conduit, because these numbers only make sense
+# read against each other: how hard it rains decides how much a bed
+# gets, which decides how much a reach carries, which decides whether a
+# right binds. See docs/subsystems/watershed.md.
+#
+# ⚠ Every key here has a seeded literal at its call site — the authored
+# `PRECIPITATION_RATES_MM_PER_HOUR` table in the kernel. So the kernel
+# rains correctly with this pack absent, and these keys only ever RETUNE
+# what already works. A dial that only works when a pack is installed is
+# a dial that fails silently.
+settings:
+  # Precipitation rates, in millimetres of liquid water equivalent per
+  # HOUR. These are six-hour SEGMENT AVERAGES, not instantaneous
+  # intensities: our weather is piecewise-constant, so a `rain` segment
+  # rains for six hours straight. Real moderate rain is ~2.5 mm/h but
+  # never for six hours together, so the figures below are the averages
+  # that reproduce a plausible annual total under the shipped transition
+  # grammar — a wet temperate valley, not a desert and not a rainforest.
+  # `WeatherType.test.ts` pins that total.
+  - key: water.rate.rain
+    value: "0.3"
+
+  # A storm is four times a shower and shares its `rain` descriptor —
+  # which is exactly why the rate table keys on the weather TYPE rather
+  # than on what falls out of it.
+  - key: water.rate.storm
+    value: "1.2"
+
+  # Snow's figure is its WATER EQUIVALENT — what melts out of it, not
+  # how deep the drift is. It banks rather than running off; the
+  # release is the spring rise.
+  - key: water.rate.snow
+    value: "0.25"
+
+  # ── flow ──────────────────────────────────────────────────────────
+  # The fraction of precipitation that reaches a channel rather than
+  # evaporating or soaking away. The remainder is simply not modelled —
+  # mass conservation at watershed scale is an explicit non-goal: the sky
+  # supplies and the sea absorbs, and conservation applies to water in a
+  # VESSEL, which is where a player can actually count it.
+  - key: water.runoffCoefficient
+    value: "0.35"
+
+  # The catchment's response window, in game-days. Flow is the MEAN
+  # precipitation over it — which is what gives a river a lagged, damped
+  # hydrograph instead of a channel that empties during a dry week and
+  # floods the instant it rains. Real catchments store water; this number
+  # is how long this one holds it.
+  - key: water.baseflowWindowDays
+    value: "30"
+
+  # ── snowpack ──────────────────────────────────────────────────────
+  # How far back the snowpack integral looks. It has to see a whole
+  # winter to know what is sitting on the mountain, so it is deliberately
+  # far longer than the flow window — and it is the most expensive read
+  # in the build, which is why flow is memoised per weather segment.
+  - key: water.snow.windowDays
+    value: "180"
+
+  # The atmospheric lapse rate. This one number is what makes ALTITUDE
+  # the thing that banks snow: the same storm rains on the city and
+  # snows on the headwaters, and the headwaters are where the ore is.
+  - key: water.snow.lapseRateKPerKm
+    value: "6.5"
+
+  # Degree-day melt: millimetres of water-equivalent released per Kelvin
+  # above freezing per game-day. The oldest and most robust snowmelt
+  # model there is, and the right level of abstraction for a river you
+  # look at rather than forecast.
+  - key: water.snow.meltMmPerKPerDay
+    value: "4"
+
+  # ⚠ Mean SEA-LEVEL air temperature by season. This table exists
+  # because a REACH has no room to resolve a biome from — it is a
+  # position on a river, not a place you stand — so the catchment needs
+  # a temperature model of its own. The lapse rate above does the rest.
+  - key: water.season.meanK.spring
+    value: "285"
+  - key: water.season.meanK.summer
+    value: "295"
+  - key: water.season.meanK.fall
+    value: "283"
+  - key: water.season.meanK.winter
+    value: "272"
+
+  # ── navigability ──────────────────────────────────────────────────
+  # BOTH conditions hold. A torrent through a gorge is not navigable and
+  # neither is a wide trickle, so nobody authors a navigable stretch:
+  # a dry August closes one, and curtailing a junior right reopens it.
+  - key: water.navigable.minFlowM3S
+    value: "3"
+  - key: water.navigable.minWidthM
+    value: "12"
+
+  # ── the pump, and the turbine ─────────────────────────────────────
+  # ⭐ Water and power meet at ONE equation read in two directions:
+  # `ρ·g·Δh·Q` is what a falling river generates and what a rising one
+  # costs. These two numbers are the only difference between them.
+  - key: water.pumpEfficiency
+    value: "0.6"
+  - key: water.turbineEfficiency
+    value: "0.85"
+
+  # The temperature at or below which a line reads `frozen`. Its OWN key
+  # rather than a shared freezing point, because a buried main survives
+  # an air temperature that freezes a puddle, and the day somebody
+  # authors a buried main this is the number they will reach for.
+  - key: water.freezeK
+    value: "271"
+
+  # ── contamination ─────────────────────────────────────────────────
+  # The arriving concentration at or above which a supply reads
+  # `fouled`. Measured AFTER the conduit's own treatment factor, so
+  # investing in treatment moves the threshold rather than the river —
+  # which is the third rung of the counterplay ladder doing its job.
+  - key: water.fouledAt
+    value: "0.35"

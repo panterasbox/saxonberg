@@ -13,6 +13,14 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: The Weeping Moor
   _address: moor
+  # ── the watershed (D21) ───────────────────────────────────────────
+  # ⭐ The moor is in the OTHER basin, and that is its job here: a place
+  # on the Holloway and a place on the Kestrel resolve NO relation at
+  # all — which is a different answer from "downstream", and the one
+  # that stops a diversion in one valley curtailing a right in another.
+  _reach: holloway:vale
+  _catchmentKm2: 260
+
   _weatherPin:
     type: storm
     mode: alive

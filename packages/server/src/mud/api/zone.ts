@@ -30,6 +30,8 @@
 
 import { StuffApi } from './stuff';
 import type { Zone } from '../lib/zone/Zone';
+import type { Stuff } from '../lib/stuff/Stuff';
+import type { Container } from '../lib/spatial/Container';
 import type { SpatialZone } from '../lib/zone/SpatialZone';
 import { HotReloadApi } from './hot-reload';
 import { ZoneLogic } from '../platform/idea/api/ZoneLogic';
@@ -93,6 +95,35 @@ export class ZoneApi {
    */
   public static async getEnclosingZone(zone: Zone): Promise<Zone | null> {
     return logic().getEnclosingZone(zone);
+  }
+
+  /**
+   * **Metres above sea level at a place** — the watershed's one input,
+   * resolved through the zone chain with an authored value anywhere in
+   * the chain winning over anything above it. `null` when nothing in the
+   * chain declares one.
+   *
+   * Walks OUT to the outermost container before reading a zone: the zone
+   * stamped on an object comes from its own *template* path (a garden
+   * bed's names the farming trade's zone), and only the enclosing
+   * place's zone knows where the thing is standing.
+   *
+   * ⚠ **`coords.z` does not contribute.** `z` is which floor of a
+   * building you are on, measured in zone cells; hydrology reads the
+   * zone, so a third-floor flat and the lobby are the same point on the
+   * watershed. A stairwell is not a waterfall. Terrain variation inside
+   * a district comes from zoning finer.
+   *
+   * Async (the ancestor walk), and deliberately never on a hot path —
+   * every runtime consumer compiles it into an ordinal or a fixed Δh in
+   * a context that is already asynchronous (plan § P0).
+   *
+   * See [docs/subsystems/watershed.md].
+   */
+  public static async elevationFor(
+    scope: Stuff & Container,
+  ): Promise<number | null> {
+    return logic().elevationFor(scope);
   }
 
   /**

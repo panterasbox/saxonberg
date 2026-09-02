@@ -5,7 +5,7 @@
 # that loses about a seventh of what you commit as heat in the metal.
 # The bench beats it and always will, which is what makes recharging a
 # thing you go somewhere to have done properly.
-class: /arcana/thing/Conduit
+class: /system/arcana/thing/Conduit
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a brass conduit
@@ -16,6 +16,11 @@ data:
     unpleasantly hot anywhere else after use. It stores nothing and does
     nothing on its own; it is a road, and roads are judged by how much
     arrives at the far end.
-  _materialPath: /stuff/idea/material/metal/brass
+  # ⚠ `metal/brass` never existed — this row cited a path with no row
+  # for its whole life, so the conduit resolved NO material and every
+  # material-derived response silently fell back. The vocabulary is a
+  # closed set (blends derive), so this repoints to the nearest real
+  # copper alloy rather than authoring brass. Prose still says brass.
+  _materialPath: /stuff/idea/material/alloy/bronze
   mass: 0.4
   couplingEfficiency: 0.85

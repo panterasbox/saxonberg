@@ -1,0 +1,39 @@
+# The shoulder — the top of the climb, and the basin's edge.
+#
+# ⭐ This room declares its own elevation zone (the valley-road zone
+# inherits the city's 35 m, which is true at the towpath and false
+# here). Rather than split the zone, the SHOULDER is where the road
+# meets Hinkley's own zone through its exit — walk one more step west
+# and you are at 130 m, on ground that has to fetch its own water.
+class: /platform/location/SingletonCartesianLocation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the shoulder
+  primaryKeyword: shoulder
+  alternateNames: [road, crest, top]
+  _address: terminus/city/wharfside/shoulder
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  ambientIntensity: 650
+  ambientColorTemperature: 5800
+  longDescription: |
+    The valley lets go. The road crests onto open grass with the wind on it, and the river is suddenly a long way below and off to the left, going down through the trees without you.
+
+    ⁠West, past a milepost, the ground flattens into surveyed lots and a concrete apron at the end of a rail line.
+  coords:
+    x: -3
+    y: 0
+    z: 0
+  exits:
+    east:
+      destination: /world/terminus/valley-road/the-narrows
+    west:
+      destination: /world/terminus/hinkley-hills/location/arrival
+  details:
+    milepost:
+      keywords: [milepost, post, stone, marker]
+      description: |
+        A squat stone with TERMINUS 3 cut into one face and, on the other, HINKLEY HILLS in letters somebody added later and less carefully.
+    river:
+      keywords: [river, kestrel, valley, below]
+      description: |
+        Down there now, and staying down there. Which is the entire difference between Hinkley Hills and the city: the city has a river it can pump from, and the Hills have a view of one.
