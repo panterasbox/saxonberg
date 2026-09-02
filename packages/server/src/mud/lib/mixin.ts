@@ -340,6 +340,9 @@ export const Mixins = {
   // A thing that can be put in the ground and grows into something —
   // a seed, and equally a cutting / tuber / bulb once those exist.
   Plantable: 'PlantableMixin',
+  // The durative ferment — a VESSEL whose contents convert over
+  // game-time (growth accretes, fermentation converts).
+  Fermenting: 'FermentingMixin',
   Behaved: 'BehavedMixin',
   Graded: 'GradedMixin',
   // A physical thing that wears out with use (the condition/wear gauge).
