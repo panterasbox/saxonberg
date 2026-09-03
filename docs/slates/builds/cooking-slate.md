@@ -63,6 +63,41 @@ heat), different upstream (grain → mill → flour, which farming Stage B
 wants to feed) — the metal-chain precedent of cutting packs by chain
 position applies. **The baker gets its own pack, later.**
 
+**Butchery is its own trade, upstream — and its transform is an act,
+not a recipe.** The roster already decided the shape: `butchery` is a
+sibling Discipline (0721, beside `baking`/`brewing` — *not*
+`specializes: cooking`), the butcher its own vocation selling stock.
+Chain position mirrors the mill: husbandry → butchery → cooking, cut
+by the metal-chain precedent. Cooking's only stake is the boundary,
+which **already works** — cooking consumes cuts via the `meat`
+category tag (`stew-meat` ships). Findings stashed for the butchery
+pack's designer:
+
+- **The input precedes livestock**: combat produces corpses today
+  (`Corpse`, the forensic Creature), so a hunt-driven butchery trade
+  needs no ⭐animal-husbandry. Yield knowledge lives on **species
+  rows** (meat Materials already carry `biologicalSource`); authored
+  yield fractions per species is the honest model.
+- ⭐ **Corpse → goods cannot be a recipe**, structurally:
+  `gatherMatter` matches Material-bearing *Tangibles* only (an
+  agent-branch corpse is never a candidate), and a recipe mints ONE
+  output while a carcass is inherently **multi-output** (cuts + hide
+  + bone + trimmings). So the pack ships a `butcher`/`dress` verb —
+  instrument-afforded (block, hook, knife) — transforming a corpse
+  into its species-authored yield set, mass-conserving. The rejected
+  shortcut: corpses as ordinary craft inputs (a stew recipe eating a
+  whole squirrel) — skips the trade, breaks multi-output.
+- **W0 makes the meat chain a relay race**: the corpse's freshness
+  clock starts *at death* — kill → butcher fast → cuts inherit the
+  clock → the cook's kill step resets it. "Butcher-fresh" becomes a
+  real quality claim; grade-from-freshness falls out.
+- **The outputs fan into three trades**: hide → leatherwork, bone,
+  and fat trimmings → **the `render tallow` bootstrap** (§ Part 5) —
+  the butcher is the fat method's upstream supplier.
+- **The domestic rule holds**: field dressing small game at a
+  campfire is the same verbs, knowledge-gated — the hunter's trivial
+  rung of the butcher's discipline. No venue axis.
+
 **Confectionery clusters with the baker, by the same test.** Candy
 sells **stock** — it travels, shelves, and keeps, and it keeps for the
 terms-not-methods reason: high sugar is low water activity, so sweets
