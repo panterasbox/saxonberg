@@ -1138,6 +1138,98 @@ professional one**: you go to a tailor to be measured, but you recolour
 your own coat at home. That asymmetry is deliberate — it is what makes
 "recolour often" actually often.
 
+### P20 — The dye chemistry, the colour model, and the living vat
+
+*(Decided with the user 2026-09-02, continuing the dyeing beats.)*
+
+#### What each mordant does
+
+| mordant | effect | madder | weld |
+|---|---|---|---|
+| **alum** | brightens — the "true" colour | clear red | bright yellow |
+| **iron** | **saddens** — darkens and dulls | maroon / purple-brown | olive, khaki |
+| **tannin** | the cellulose enabler (below) | soft brick | soft gold |
+| **none** | ⚠ **the failure** — washes straight out (P19) | — | — |
+
+Eight real outcomes from two dyestuffs, and *iron saddens* is one of
+those facts that reads like a discovered secret the first time it is
+used.
+
+#### ⭐⭐⭐ Linen is hard to dye — which retires the "degenerate axis" worry
+
+P17 flagged that one fibre makes `f(…, fibre)` degenerate. **The
+chemistry says otherwise:**
+
+> **Cellulose does not hold metal ions.** Protein fibres — wool, silk —
+> take alum directly. Cotton and linen need a **tannin pre-mordant** to
+> give the metal something to bind to.
+
+Which is exactly why linen was historically worn undyed or bleached and
+**wool was the coloured fabric**. So flax-only does not make dyeing
+degenerate — **it makes dyeing the hard case**, and that is honest.
+Three consequences, all good:
+
+- **Tannin is not one option of four, it is the workhorse.** With linen
+  you cannot skip it. ⭐ *The tannin step is the linen dyer's craft* — and
+  it becomes optional when wool arrives.
+- **Wool's arrival is a genuine unlock**, not merely a second fibre.
+  Saturated colour turns on.
+- The trade is **harder now and easier later** — backwards from the usual
+  game shape, and far more interesting.
+
+⚠ **Accepted with eyes open (user, 2026-09-02): the launch palette is
+MUTED.** Linen + tannin + alum + madder is a real red, just softer, and a
+world of heathery, chalky, sun-faded colour is a coherent look rather
+than a deficient one. **Saturation is a thing wool brings.** Do not
+"fix" the muted palette by fudging cellulose chemistry.
+
+#### The colour model — ride `ColorTag`, derive everything
+
+⭐ **`lib/perception/Light.ts` already reserves the seam:** `ColorTag` is
+*"reserved for the abstraction layer above color temperature… new
+abstract-color concepts plug in here."* Its only user today is
+`Window.colorTint` (stained glass). **Dye is the second user of a seam
+already cut for exactly this** — no colour model is invented.
+
+- A dyed thing stores its **application stack** —
+  `[{dyestuff, mordant, strength}]` — never a colour word.
+- Each `(dyestuff, mordant)` resolves to a **position in a small colour
+  space** (hue angle + saturation), authored on the dye rows.
+- The displayed `ColorTag` **derives**: combine the stack subtractively,
+  then name it by nearest neighbour against a small palette.
+
+Three things fall out free: **overdyeing is arithmetic** (blue over
+yellow *is* green, not a table row); **fading is desaturation** (fastness
+decay lowers strength, and a weak stack derives back toward the undyed
+word); and **authors author dyes, not colours** — the palette is only a
+lookup for prose.
+
+#### The woad vat is a different machine, and ⭐⭐ it is ALIVE
+
+Woad does not dissolve. It is chemically **reduced** in an alkaline,
+oxygen-poor vat, and then:
+
+```
+> dye shirt in the woad vat
+  You draw the linen out yellow-green. As the air takes it,
+  the colour walks up through jade to a deep, even blue.
+```
+
+The change in air is real, it is the most striking moment in the chain,
+and it is **free** — it is simply what indigo does.
+
+⭐⭐ **The vat is fermentation-shaped, so `FermentingMixin` models it —
+and the honest version is therefore a LIVING thing** (user, 2026-09-02).
+It is kept by feeding it, killed by too much oxygen or the wrong pH, and
+takes days to bring back. **The dyer's most valuable possession, and the
+thing that punishes neglect.** ⚠ Note this is a harsher failure than
+anything else in the chain — neglect destroys capital, not just a batch.
+That is deliberate.
+
+⭐ **And the symmetry worth authoring toward: mordant dyes EXHAUST
+(first dip deep, second paler), vat dyes ACCUMULATE (each dip builds
+depth).** Two chemistries, two opposite bath behaviours, one verb.
+
 ---
 
 ## Stage A — the kernel half
