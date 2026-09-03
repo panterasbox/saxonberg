@@ -36,6 +36,7 @@ import { PerceptibleMixin } from '../description/Perceptible';
 import { VisibleMixin } from '../description/Visible';
 import { ConcealableMixin } from '../concealment/Concealable';
 import { WetMixin } from '../wetness/Wet';
+import { FreshnessMixin } from '../material/Freshness';
 import { ChattelMixin } from '../chattel/Chattel';
 import type { FieldMeta } from '../mixin';
 
@@ -45,12 +46,16 @@ import type { FieldMeta } from '../mixin';
 // ConcealableMixin (default `obvious`) lets any Thing carry a concealment
 // level — a hidden cache, a dropped-and-buried item — resolved per-viewer by
 // the detection gate (inert until authored). WetMixin gives every Thing a
-// material-driven wetness gauge (inert until wetted). All three are additive
-// attribute mixins; composition order is moot.
+// material-driven wetness gauge (inert until wetted). FreshnessMixin gives
+// every Thing a material-driven spoilage gauge (inert until its Material
+// tabulates a spoilage activation energy — an anvil does not rot). All four
+// are additive attribute mixins; composition order is moot.
 const ThingBase = ChattelMixin(
   ConcealableMixin(
-    WetMixin(
-      VisibleMixin(PerceptibleMixin(TangibleMixin(ContainableMixin(Stuff)))),
+    FreshnessMixin(
+      WetMixin(
+        VisibleMixin(PerceptibleMixin(TangibleMixin(ContainableMixin(Stuff)))),
+      ),
     ),
   ),
 );

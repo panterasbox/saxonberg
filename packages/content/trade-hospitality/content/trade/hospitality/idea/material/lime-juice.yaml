@@ -10,6 +10,15 @@ data:
   thermalConductivity: 0.58
   specificHeat: 3900
   edibility: true
+  # ⭐ Spoilage (docs/subsystems/spoilage.md): the microbial growth rate is
+  # `μ_max · f_T(T) · f_aw(a_w)`. `spoilActivationEnergy` (J/mol) is how
+  # steeply this food answers to warmth; `waterActivity` is how much of its
+  # water a microbe can actually use. Under the 0.60 floor nothing grows.
+  # ⭐ Fresh juice is the shortest-lived stock in the house — pressed high
+  # a_w with the skin's protection gone. This is why the day's juice is
+  # the day's juice.
+  spoilActivationEnergy: 70000
+  waterActivity: 0.99
   nutrients: [water, sugar, vitamin-c]
   toxicity: []
   tags: [liquid, beverage, drinkable, juice, citrus, fresh, lime-juice]

@@ -57,7 +57,9 @@ export default class DrinkController extends CommandController<DrinkModel> {
     // Capture the material BEFORE the transfer empties (and clears) the
     // slot, for the ingest hand-off and the prose.
     const material = fromSlot.getMaterial();
-    const payload = fromSlot.getPayload();
+    // ⭐ The INGEST payload, not the stored one: whatever the matter
+    // has spoiled into rides along with it (see `Freshness.withDose`).
+    const payload = fromSlot.getIngestPayload();
     // …and, for an IDENTIFIABLE substance, capture how it looked to this
     // drinker before they swallowed it. Taken here on purpose:
     // swallowing an unidentified draught may teach you what it was

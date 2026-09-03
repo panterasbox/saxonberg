@@ -20,6 +20,7 @@ import { MixinApi } from "../../../../api/mixin";
 import { StuffApi } from "../../../../api/stuff";
 import { Mml } from "../../../../api/mml";
 import { METABOLIC_DEFAULTS } from "../../../../lib/metabolism/Metabolic";
+import { Freshness } from "../../../../lib/material/Freshness";
 
 const TOPIC = "act.deed";
 
@@ -60,7 +61,14 @@ export default class EatController extends CommandController<EatModel> {
     }
 
     const portion = METABOLIC_DEFAULTS.EAT_PORTION_LITRES;
-    const accepted = BulkableApi.ingestSolid(giver, material, portion);
+    // ⭐ The discrete half of the spoilage reach: a solid item carries its
+    // gauge on its own `FreshnessMixin` fields rather than on a blend
+    // payload, so the dose is folded into a TRANSIENT payload here — the
+    // same `withDose` the bulk slot's `getIngestPayload` uses, so a bowl
+    // of stew and the roast it came from poison by identical arithmetic.
+    const load = MixinApi.isFresh(target) ? target.getMicrobialLoad() : 0;
+    const payload = Freshness.withDose(null, material, load);
+    const accepted = BulkableApi.ingestSolid(giver, material, portion, payload);
 
     // Discrete item is all-or-nothing: only a full portion consumes it.
     if (accepted < portion - 1e-9) {

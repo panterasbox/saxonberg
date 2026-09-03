@@ -338,6 +338,9 @@ export const Mixins = {
   Respiration: 'RespirationMixin',
   // The cross-cutting wetness gauge — any Thing / body can be wet.
   Wet: 'WetMixin',
+  // The cross-cutting spoilage gauge — any Thing can go off (inert until
+  // its Material tabulates a spoilage activation energy).
+  Fresh: 'FreshnessMixin',
   // The living-world growth model — a cultivated thing that grows.
   Growing: 'GrowingMixin',
   // Ground that holds plants: soil + N plant slots. A pot is this at N = 1;

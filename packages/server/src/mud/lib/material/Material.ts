@@ -456,6 +456,75 @@ export default class Material extends SingletonMixin(
     this._latentHeatOfVaporization = value;
   }
 
+  /**
+   * ⭐ **Smoke point** (`K`) — the temperature at which a fat breaks down
+   * and starts smoking, and therefore the ceiling a fat cooking medium can
+   * carry heat to. Tallow ≈ 480, olive oil ≈ 463, butter ≈ 450. `0` = not
+   * a cooking fat.
+   *
+   * The dry-side twin of {@link boilingPoint}: water pins a wet method at
+   * 373 K no matter how hard the fire roars, and a fat pins a fried one
+   * here. That one pair of tabulated numbers is why boiling cannot brown
+   * and frying can — no method table, no `canBrown` flag.
+   */
+  private _smokePoint: Quantity<'K'> = Quantity.of(0, 'K');
+
+  protected get smokePoint(): Quantity<'K'> {
+    return this._smokePoint;
+  }
+  protected set smokePoint(value: Quantity<'K'>) {
+    if (!(value instanceof Quantity) || value.unit !== 'K') {
+      throw new TypeError(
+        `Material.smokePoint must be a Quantity<'K'>; got ${value instanceof Quantity ? `Quantity<'${value.unit}'>` : typeof value}`
+      );
+    }
+    this._smokePoint = value;
+  }
+
+  /**
+   * ⭐ **Spoilage activation energy** (`J/mol`) — the Arrhenius constant in
+   * the microbial growth rate `μ = μ_max · f_T · f_aw`: how steeply *this*
+   * food's spoilage answers to temperature. Real values sit around
+   * 50–130 kJ/mol; a higher one means a food whose shelf life collapses
+   * faster when it gets warm.
+   *
+   * ⚠ **`0` (the default) means the material does not spoil at all** —
+   * iron, stone, glass, and every non-food in the library. That is the
+   * whole inertness rule: the gauge composes onto every `Thing`, and a
+   * host whose material tabulates nothing here never advances past zero.
+   * There is no `perishable: true` flag to forget to set.
+   */
+  private _spoilActivationEnergy: Quantity<'J/mol'> = Quantity.of(0, 'J/mol');
+
+  protected get spoilActivationEnergy(): Quantity<'J/mol'> {
+    return this._spoilActivationEnergy;
+  }
+  protected set spoilActivationEnergy(value: Quantity<'J/mol'>) {
+    if (!(value instanceof Quantity) || value.unit !== 'J/mol') {
+      throw new TypeError(
+        `Material.spoilActivationEnergy must be a Quantity<'J/mol'>; got ${value instanceof Quantity ? `Quantity<'${value.unit}'>` : typeof value}`
+      );
+    }
+    this._spoilActivationEnergy = value;
+  }
+
+  /**
+   * ⭐ **Water activity** (`a_w`, a bare `0–1` ratio) — how much of this
+   * material's water is actually *available* to a microbe, as against
+   * merely present. Fresh meat ≈ 0.99, bread ≈ 0.95, jam ≈ 0.80, honey ≈
+   * 0.60, dried salt ≈ 0.20.
+   *
+   * This is the number that makes preservation science rather than a flag:
+   * salt, sugar, honey and spirits keep because they sit under the growth
+   * floor (`freshness.awFloor`), not because anybody authored
+   * `shelfStable: true`. `0` ⇒ the perishable default is assumed.
+   *
+   * ⚠ It is the material's OWN water activity, not the object's wetness.
+   * A rain-soaked biscuit spoiling faster is a real effect and a
+   * deliberate deferral — see [docs/subsystems/spoilage.md].
+   */
+  protected waterActivity: number = 0;
+
   /** Whether this material can be eaten. v1 has no consumer. */
   protected edibility: boolean = false;
 
@@ -618,6 +687,9 @@ export default class Material extends SingletonMixin(
     latentHeatOfFusion: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('J/kg') },
     boilingPoint: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('K') },
     latentHeatOfVaporization: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('J/kg') },
+    smokePoint: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('K') },
+    spoilActivationEnergy: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('J/mol') },
+    waterActivity: { persistent: true, spoiler: 1, spoilerName: 0 },
 
     // ── What it does to you. The most worth finding out. ──
     edibility: { persistent: true, spoiler: 1, spoilerName: 0 },
@@ -864,6 +936,38 @@ export default class Material extends SingletonMixin(
   /** Set latent heat of vaporization. Strict on `Quantity<'J/kg'>`. */
   public setLatentHeatOfVaporization(value: Quantity<'J/kg'>): void {
     this.latentHeatOfVaporization = value;
+  }
+
+  /** Read smoke point (`Quantity<'K'>`; `0` = not a cooking fat). */
+  public getSmokePoint(): Quantity<'K'> {
+    return this._smokePoint;
+  }
+  /** Set smoke point. Strict on `Quantity<'K'>`. */
+  public setSmokePoint(value: Quantity<'K'>): void {
+    this.smokePoint = value;
+  }
+
+  /** Read the spoilage activation energy (`Quantity<'J/mol'>`; `0` = inert). */
+  public getSpoilActivationEnergy(): Quantity<'J/mol'> {
+    return this._spoilActivationEnergy;
+  }
+  /** Set the spoilage activation energy. Strict on `Quantity<'J/mol'>`. */
+  public setSpoilActivationEnergy(value: Quantity<'J/mol'>): void {
+    this.spoilActivationEnergy = value;
+  }
+
+  /** Read water activity (`a_w`, `0–1`; `0` = unauthored). */
+  public getWaterActivity(): number {
+    return this.waterActivity;
+  }
+  /** Set water activity. Clamped into `[0, 1]`. */
+  public setWaterActivity(value: number): void {
+    if (!Number.isFinite(value)) {
+      throw new TypeError(
+        `Material.waterActivity must be a finite number; got ${typeof value}`
+      );
+    }
+    this.waterActivity = value < 0 ? 0 : value > 1 ? 1 : value;
   }
 
   public getTags(): readonly string[] { return this.tags; }

@@ -44,6 +44,7 @@
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
+import { Freshness } from '../material/Freshness';
 import type { CommandContributions } from '../../api/command';
 import { Quantity } from '../quantity';
 import { QuantityMarshaller } from '../../platform/idea/persistence/QuantityMarshaller';
@@ -128,6 +129,20 @@ export interface BulkPayload {
    * derived nothing.
    */
   tags?: string[];
+  /**
+   * ⭐ The blend's **spoilage gauge** — the bulk twin of
+   * `FreshnessMixin`'s two fields, stored on the payload because the
+   * matter is what goes off, not the vessel: pour a spoiling stew into a
+   * clean bowl and the spoilage travels with it.
+   *
+   * Absent on an inert blend (nothing whose material tabulates a spoilage
+   * activation energy ever writes one), so a bar's drinks carry no extra
+   * bytes. Reconciled through the HOLDER — the vessel is the Thermal host
+   * — by {@link BulkSlot.getFreshnessLoad}, using the same {@link
+   * Freshness} arithmetic a discrete item uses, so the two can never
+   * drift.
+   */
+  freshness?: { load: number; stamp: number };
 }
 
 
@@ -243,6 +258,84 @@ export class BulkSlot {
   /** Overwrite the slot's amount (canonical-unit `Quantity<'L'>`). */
   setAmount(amount: Quantity<'L'>): void {
     this.host.setBulkAmount(this.affordance, amount);
+  }
+
+  // ---------- the spoilage gauge on the matter ----------
+
+  /**
+   * The blend's microbial load, **reconciled on read** against the
+   * holder's temperature — the bulk half of the spoilage gauge.
+   *
+   * `0` for a slot holding nothing, holding an inert substance, or
+   * holding a payload-less material — a payload is written only once
+   * something perishable is actually in there. The write-back is why this
+   * is a read that mutates: the gauge is lazy exactly like the discrete
+   * one, and a stew nobody looks at for a week integrates the whole week
+   * the moment somebody does.
+   */
+  getFreshnessLoad(): number {
+    const payload = this.getPayload();
+    const gauge = payload?.freshness;
+    if (!gauge) {
+      // ⭐ Lazy seed: a slot holding matter that CAN spoil gets a gauge the
+      // first time anybody asks. Nothing else does — a keg of ale, a tap of
+      // water and an empty glass stay two flat fields, which is the whole
+      // sparse-storage rule. The shadow payload written here mirrors the
+      // Material field for field (`Freshness.materialShadow`), so every
+      // `payload ?? material` reader is unaffected by its arrival.
+      if (this.isEmpty()) return 0;
+      const mat = this.getMaterial();
+      if (!Freshness.isPerishable(mat)) return 0;
+      const seedAt = Freshness.nowSeconds();
+      if (seedAt === null) return 0;
+      this.setPayload({
+        ...(payload ?? Freshness.materialShadow(mat)),
+        freshness: { load: 0, stamp: seedAt },
+      });
+      return 0;
+    }
+    const nowS = Freshness.nowSeconds();
+    if (nowS === null) return gauge.load;
+    if (gauge.stamp === 0 || nowS <= gauge.stamp) {
+      this.setPayload({ ...payload, freshness: { ...gauge, stamp: nowS } });
+      return gauge.load;
+    }
+    const load = Freshness.advance(
+      gauge.load,
+      nowS - gauge.stamp,
+      this.getMaterial(),
+      Freshness.hostTemperatureK(this.host),
+    );
+    this.setPayload({ ...payload, freshness: { load, stamp: nowS } });
+    return load;
+  }
+
+  /**
+   * The payload an ingest from this slot should carry — the stored one
+   * with the spoilage dose its (reconciled) load has earned folded in.
+   * The one seam `drink` / `sip` read, so a spoiled pot poisons through
+   * every route into a mouth without any of them knowing the word.
+   */
+  getIngestPayload(): BulkPayload | null {
+    // ⚠ The load FIRST: reading it reconciles (and may seed) the payload,
+    // so reading the payload before it would hand back a stale copy.
+    const load = this.getFreshnessLoad();
+    return Freshness.withDose(this.getPayload(), this.getMaterial(), load);
+  }
+
+  /**
+   * Stamp the blend's microbial load outright — the cook's kill step and
+   * the pour's blend. Writes the shadow payload if the slot had none, so a
+   * fill can say "this came out of the pot sterile" in one call. A slot
+   * holding nothing has no matter to be a gauge OF, so that is a no-op.
+   */
+  setFreshnessLoad(load: number): void {
+    const material = this.getMaterial();
+    if (material === null) return;
+    const payload = this.getPayload() ?? Freshness.materialShadow(material);
+    const nowS = Freshness.nowSeconds() ?? 0;
+    const clamped = load < 0 ? 0 : load > 1 ? 1 : load;
+    this.setPayload({ ...payload, freshness: { load: clamped, stamp: nowS } });
   }
 }
 

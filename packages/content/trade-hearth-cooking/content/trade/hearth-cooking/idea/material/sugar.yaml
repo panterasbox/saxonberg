@@ -9,6 +9,14 @@ data:
   thermalConductivity: 0.3
   specificHeat: 1250
   edibility: true
+  # ⭐ Spoilage (docs/subsystems/spoilage.md): the microbial growth rate is
+  # `μ_max · f_T(T) · f_aw(a_w)`. `spoilActivationEnergy` (J/mol) is how
+  # steeply this food answers to warmth; `waterActivity` is how much of its
+  # water a microbe can actually use. Under the 0.60 floor nothing grows.
+  # Dry sugar, like salt, is under the floor — the second half of the
+  # preservation lesson (salt, sugar, drying, smoking are one mechanism).
+  spoilActivationEnergy: 55000
+  waterActivity: 0.3
   nutrients: ["sugar"]
   toxicity:
     []

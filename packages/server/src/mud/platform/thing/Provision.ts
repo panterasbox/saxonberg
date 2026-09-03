@@ -14,10 +14,13 @@
 
 import Thing from '../../lib/stuff/Thing';
 import { DetailedMixin } from '../../lib/description/Detailed';
+import { ThermalMixin } from '../../lib/thermal/Thermal';
 import { CraftedMixin } from '../../lib/craft/Crafted';
 import type { Crafted } from '../../lib/craft/Crafted';
 
-const ProvisionBase = CraftedMixin(DetailedMixin(Thing));
+// Thermal for the same reason `Prop` carries it: a Provision IS food by
+// construction, and the spoilage gauge reads its host's temperature.
+const ProvisionBase = CraftedMixin(ThermalMixin(DetailedMixin(Thing)));
 
 /**
  * ⚠ TS drops an inner mixin's surface through a nested generic mixin:

@@ -14,5 +14,12 @@ data:
   hardness: 2
   toughness: 3
   edibility: true
+  # ⭐ Spoilage (docs/subsystems/spoilage.md): the microbial growth rate is
+  # `μ_max · f_T(T) · f_aw(a_w)`. `spoilActivationEnergy` (J/mol) is how
+  # steeply this food answers to warmth; `waterActivity` is how much of its
+  # water a microbe can actually use. Under the 0.60 floor nothing grows.
+  # As flesh — muscle is meat before anybody butchers it.
+  spoilActivationEnergy: 80000
+  waterActivity: 0.99
   nutrients: ["protein", "water"]
   tags: ["tissue", "animal", "muscle", "organic", "living", "edible"]

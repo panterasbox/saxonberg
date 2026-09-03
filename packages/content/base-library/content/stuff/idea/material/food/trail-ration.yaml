@@ -13,6 +13,16 @@ data:
   thermalConductivity: 0.3
   specificHeat: 2500
   edibility: true
+  # ⭐ Spoilage (docs/subsystems/spoilage.md): the microbial growth rate is
+  # `μ_max · f_T(T) · f_aw(a_w)`. `spoilActivationEnergy` (J/mol) is how
+  # steeply this food answers to warmth; `waterActivity` is how much of its
+  # water a microbe can actually use. Under the 0.60 floor nothing grows.
+  # ⭐ A ration is preserved food sitting JUST over the growth floor —
+  # hard-dried and salted down to a_w ≈ 0.64, so it spoils perhaps a
+  # tenth as fast as fresh meat. That margin is the whole craft of
+  # provisioning, and it is one number.
+  spoilActivationEnergy: 55000
+  waterActivity: 0.64
   nutrients: [carb]
   nutrientAmounts:
     carb: 40000

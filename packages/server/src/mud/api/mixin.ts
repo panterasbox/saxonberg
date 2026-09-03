@@ -88,6 +88,7 @@ import type { LoadBearing } from '../lib/encumbrance/LoadBearing';
 import type { Metabolic } from '../lib/metabolism/Metabolic';
 import type { Thermal } from '../lib/thermal/Thermal';
 import type { Wet } from '../lib/wetness/Wet';
+import type { Fresh } from '../lib/material/Freshness';
 import type { Growing } from '../lib/husbandry/Growing';
 import type { Fermenting } from '../lib/ferment/Fermenting';
 import type { Plantable } from '../lib/husbandry/Plantable';
@@ -1026,6 +1027,16 @@ export class MixinApi {
 
   public static isWet(obj: Stuff): obj is Stuff & Wet {
     return this.hasMixin(obj, Mixins.Wet);
+  }
+
+  /**
+   * A host carrying the spoilage gauge. Composed on every `Thing`, so the
+   * predicate is nearly always true — what actually decides whether a
+   * thing rots is its Material's tabulated activation energy
+   * (`isPerishable()`), not this.
+   */
+  public static isFresh(obj: Stuff): obj is Stuff & Fresh {
+    return this.hasMixin(obj, Mixins.Fresh);
   }
 
   public static isGrowing(obj: Stuff): obj is Stuff & Growing {

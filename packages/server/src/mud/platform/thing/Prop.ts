@@ -13,5 +13,16 @@
  */
 
 import Thing from '../../lib/stuff/Thing';
+import { ThermalMixin } from '../../lib/thermal/Thermal';
 
-export default class Prop extends Thing {}
+/**
+ * ⭐ **Thermal, because a prop is often food.** The stew-meat, root-
+ * vegetable and ration-stock rows are all `Prop`s, and a food's spoilage
+ * gauge asks its host what temperature it is — a cold larder and a warm
+ * windowsill have to be different answers or preservation is not a
+ * subject. Thermal is reconcile-on-read and costs nothing until something
+ * reads it, so the anvil and the toilet carry it unharmed.
+ */
+const PropBase = ThermalMixin(Thing);
+
+export default class Prop extends PropBase {}

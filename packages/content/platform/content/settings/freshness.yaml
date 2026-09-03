@@ -1,0 +1,61 @@
+# freshness — application settings shipped by the platform pack (the
+# `settings` kind: merge-missing — a key the app_settings singleton lacks is
+# merged in; a value the operator changed via `config` is never touched).
+settings:
+  # Spoilage — the per-object microbial-load gauge (0..1). Growth is
+  # logistic from an inoculum, reconcile-on-read over game-time, with the
+  # rate μ = μ_max · f_T(T) · f_aw(a_w). The per-material half of that law
+  # (activation energy, water activity) is tabulated on the Material, not
+  # here. See docs/subsystems/spoilage.md.
+  - key: freshness.muMaxPerHour
+    value: "0.35"
+
+  - key: freshness.referenceK
+    value: "303"
+
+  # 273 K — below freezing the water is ice and growth pauses. A thawed
+  # thing resumes where it left off; freezing is not a reset.
+  - key: freshness.freezingK
+    value: "273"
+
+  # 333 K (60 °C) — the pasteurization floor, where the flora starts dying
+  # faster than it grows. This is the temperature cooking has to reach.
+  - key: freshness.killK
+    value: "333"
+
+  - key: freshness.killRatePerHour
+    value: "6"
+
+  # 0.60 a_w — the classical floor for microbial growth. Honey, dried
+  # salt, sugar and spirits all sit under it, which is why they keep.
+  - key: freshness.awFloor
+    value: "0.6"
+
+  - key: freshness.awDefault
+    value: "0.97"
+
+  - key: freshness.inoculum
+    value: "0.002"
+
+  - key: freshness.ambientK
+    value: "293"
+
+  - key: freshness.band.taintedAt
+    value: "0.25"
+
+  - key: freshness.band.spoiledAt
+    value: "0.6"
+
+  - key: freshness.band.rottenAt
+    value: "0.85"
+
+  # Nothing under this load carries a dose at all — a barely-turned ration
+  # is unpleasant, not poisonous.
+  - key: freshness.dose.onsetLoad
+    value: "0.3"
+
+  # mg of ptomaine a FULLY rotten serving carries; the curve from the
+  # onset to here is superlinear. Compare the authored spoiled-ration row
+  # (700 mg), which sits deliberately below a fully rotten dose.
+  - key: freshness.dose.scaleMg
+    value: "900"

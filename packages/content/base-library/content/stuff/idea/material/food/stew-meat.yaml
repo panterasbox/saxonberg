@@ -11,6 +11,14 @@ data:
   thermalConductivity: 0.45
   specificHeat: 3200
   edibility: true
+  # ⭐ Spoilage (docs/subsystems/spoilage.md): the microbial growth rate is
+  # `μ_max · f_T(T) · f_aw(a_w)`. `spoilActivationEnergy` (J/mol) is how
+  # steeply this food answers to warmth; `waterActivity` is how much of its
+  # water a microbe can actually use. Under the 0.60 floor nothing grows.
+  # Raw meat: the fastest-spoiling thing in the library. a_w ≈ 0.99 —
+  # nothing is bound, everything is available.
+  spoilActivationEnergy: 80000
+  waterActivity: 0.99
   nutrients: [protein]
   nutrientAmounts:
     protein: 26000
