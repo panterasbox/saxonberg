@@ -787,9 +787,9 @@ All three ship `src/`, so each holds its own namespace root
 
 | pack | root | `src/` | verbs (category) | Discipline |
 |---|---|---|---|---|
-| `trade-textiles` | `/trade/textiles` | `src/idea/cmd/textiles/{Scutch,Spin,Weave,Full}Controller.ts`, `src/thing/{DropSpindle,SpinningWheel,Loom,RettingPit}.ts` | `scutch` `spin` `weave` `full` (`textiles`) | `/trade/textiles/idea/Discipline/textiles` |
-| `trade-dyeing` | `/trade/dyeing` | `src/idea/cmd/dyeing/DyeController.ts`, `src/thing/DyeVat.ts` | `dye` (`dyeing`) | `/trade/dyeing/idea/Discipline/dyeing` |
-| `trade-tailoring` | `/trade/tailoring` | `src/idea/cmd/tailoring/{Cut,Sew}Controller.ts`, `src/thing/CuttingTable.ts`, `src/behavior/tailors.ts` | `cut` `sew` (`tailoring`) | `/trade/tailoring/idea/Discipline/tailoring` |
+| `trade-textiles` | `/trade/textiles` | `src/idea/cmd/textiles/{Scutch,Spin,Weave}Controller.ts`, `src/thing/{DropSpindle,SpinningWheel,Loom,RettingPit,BleachingGreen}.ts` | `scutch` `spin` `weave` (`textiles`) | `/trade/textiles/idea/Discipline/textiles` |
+| `trade-dyeing` | `/trade/dyeing` | `src/idea/cmd/dyeing/{Mordant,Dye}Controller.ts`, `src/thing/{DyeVat,WoadVat,HouseholdVat}.ts` | `mordant` `dye` (`dyeing`) | `/trade/dyeing/idea/Discipline/dyeing` |
+| `trade-tailoring` | `/trade/tailoring` | `src/idea/cmd/tailoring/{Cut,Sew,Alter,Measure}Controller.ts`, `src/thing/{CuttingTable,TailorCounter}.ts`, `src/behavior/tailors.ts` | `cut` `sew` `alter` + the `measure` stanza (`tailoring`) | `/trade/tailoring/idea/Discipline/tailoring` |
 
 Layout mirrors `trade-smelting` exactly. Root additions: `package.json`'s
 dependency block, `pnpm-workspace.yaml` if it does not glob, the
@@ -1230,6 +1230,77 @@ That is deliberate.
 (first dip deep, second paler), vat dyes ACCUMULATE (each dip builds
 depth).** Two chemistries, two opposite bath behaviours, one verb.
 
+### P21 — Textiles: `full` is wool's, cloth is a Glob, and dye lots fall out
+
+*(Decided with the user 2026-09-02, in the textiles beats.)*
+
+#### ⚠⚠ `full` does not ship — fulling and felting are both WOOL-only
+
+Fulling works because **wool scales interlock** under heat, agitation and
+moisture. **Linen cannot be fulled**, and the same scales are why **plant
+fibres do not felt at all.** So at launch, with flax:
+
+- `full` has nothing to act on — **it does not ship**
+- the **`felted` fabric form is unreachable** (the row still ships, the
+  `chalcopyrite` precedent: a form wool will reach, present so the
+  vocabulary is honest rather than a promise in prose)
+- linen's finishing is **bleaching** — sun, lye and damp, over days
+
+⭐ **Bleaching is retting-shaped: ZERO verbs.** You lay the cloth out and
+the world does it. Which makes it a genuine **weather consumer** and
+**place-based** — a *bleaching green* is land dedicated to the purpose,
+which is exactly what they were.
+
+⭐⭐ **So the stage is `finish`, and bleaching is linen's instance while
+fulling is wool's** — P15 seam 1 applied a second time. ⚠ No controller,
+recipe id, category, doc heading or test name may treat "fulling" as the
+name of the stage.
+
+⭐ **The launch story that falls out: flax gives you woven cloth; wool
+gives you everything else** — felt, fulling, knitting, saturated colour
+(P20). Narrow and deep, and wool's arrival becomes a real event rather
+than a second row.
+
+**Textiles therefore ships THREE verbs** — `scutch`, `spin`, `weave`.
+
+#### ⭐⭐ Cloth is a Glob — and dye lots fall out of the merge predicate
+
+`GlobbableMixin.canMergeWith` requires the same `templatePath`, no
+shadows and no adornments — **and it is overridable.** Cloth narrows it
+to also require matching **grade**, **fabric form**, and **dye
+application stack** (P20).
+
+> **Two bolts from different dye lots do not merge.**
+
+That is the real-world dye-lot problem, it falls straight out of the
+predicate, and ⭐⭐⭐ **it makes the `dyeing` Discipline's *repeatability*
+(P16) mechanically real in the best possible way:**
+
+**A master dyer's batches merge. A novice's do not.**
+
+Competence becomes visible **in the inventory** — a good dyer's stock
+consolidates into clean bolts, a bad one's fragments into a dozen
+almost-matching piles. **No gauge, no number, no readout.** This is the
+strongest expression of a competence anywhere in the build, and it was
+not designed — it fell out of `canMergeWith` meeting the application
+stack.
+
+`split` is the other half: `cut` (B4) takes *n* units off a bolt through
+the operation `Globbable` already ships.
+
+#### The roster, and the one-fibre decision
+
+- ✅ **One fibre at launch** (user, 2026-09-02). A second *cellulose*
+  fibre (nettle, hemp) adds rows without adding a lesson — same
+  chemistry, same limits. **What is actually missing is wool**, and it is
+  blocked on ranching, which is the honest answer.
+- **2–3 named cloths**, marking points on a continuum rather than a list:
+  the variation is **weave density** (open and coarse vs fine and close)
+  × **grade** (staple length carried from the field) × **colour**, all
+  derived. Comparable packs ship 2–12 recipes; textiles sits at the low
+  end **because its variety is derived rather than authored**, which is
+  the correct reason to be there.
+
 ---
 
 ## Stage A — the kernel half
@@ -1474,14 +1545,23 @@ Content only, existing packs.
 - **Four verbs, four decisions:** `scutch` (purity vs staple length —
   ⭐ **yielding tow and shive**, P17), `spin` (**yarn count** — fine vs
   fast; ⚠ overreaching **wastes stock**), `weave` (density → yield vs
-  windproofing and wear; a bad run yields a **flawed bolt**), `full` (the
-  felting/finishing pass — one mechanism, two inputs).
+  windproofing and wear; a bad run yields a **flawed bolt**). ⚠ **`full`
+  does NOT ship** — fulling is wool's (P21).
 - ⭐⭐ **`spin` holds `hands` and leaves `voice` free** (the `search`
   precedent). The bottleneck is the verb players repeat most, and
   spinning was historically the *social* act — this is what stops the
   build's best lesson being its worst chore (P17).
 - **The `textiles` Discipline** (P16): competence buys **how fine you can
   go before it breaks**, never more yarn from the same sheaf.
+- ⭐ **Finishing is passive and place-based**: a **bleaching green** —
+  cloth laid out, sun + damp over days, retrieved when done. **Zero
+  verbs**, retting's shape applied to weather instead of a vessel, and a
+  genuine weather consumer (P21).
+- **Cloth is a `Globbable`** whose `canMergeWith` narrows on grade, form
+  and dye stack — ⭐⭐ **so two dye lots do not merge** (P21). `split` is
+  what `cut` uses to take units off a bolt.
+- **2–3 named cloths**; the variation is derived (weave density × grade ×
+  colour), not authored (P21).
 - ⚠ **Siting matters** — a retting pond fouls water and stank enough to
   be banned upstream of towns. Contamination-by-kind already ships.
 - **The tool ladder:** drop spindle → spinning wheel
@@ -1653,7 +1733,7 @@ fight):
 | 8 | `worn` in `DETAIL_FIELDS`; card renders worn and carried separately | **A1** (P1) |
 | 9 | Impression augmenter summarizes in aggregate, names no garment | **A1** (P2) |
 | 10 | `wear <set>` in one command; **no new verb** | **A7** (P12) |
-| 11 | Flax grown, retted (with over-ret failure), scutched, spun, woven, fulled — end to end | **B1** + **B2** (P13) |
+| 11 | Flax grown, retted (with over-ret failure), scutched, spun, woven, **bleached** — end to end | **B1** + **B2** (P13, P21) |
 | 12 | Staple-length grade propagates harvest → bolt | **B1** + **B2** (the shipped weakest-link) |
 | 13 | Bench shows the spinning bottleneck and the wheel moving it; **or the finding is documented** | **B2** (the three-legged bench; leg (c) is the escape clause) |
 | 14 | `dye` produces hue + fastness over 3 × 4; washing decays; poor mordant fades faster | **B3** (the fade half seams in **A8**) |
@@ -1737,14 +1817,11 @@ not "write a new one."**
    for a nuisance trade), the tailor's shop off University Avenue or on
    Mayfield Row. Names and prose are the build agent's pen.
 3. ✅ **RESOLVED — the ten-species table is in P8** (2026-09-02).
-4. ⚠ **Does a second fibre ship?** One fibre makes `f(…, fibre)`
-   degenerate at launch (P17). A wild bast fibre — **nettle or hemp**,
-   gathered rather than farmed — needs no ranching and barely any new
-   crop work, and would make the dye axis real on day one. Against it:
-   more content, and the doctrine of not authoring ahead of demand.
-5. ⚠ **What is a hue?** Dyeing needs a colour vocabulary an author can
-   write against, and a way for a dyed garment to describe itself
-   (P17). The `DescriptorBank` shape is the likely precedent.
+4. ✅ **RESOLVED — one fibre** (P21). And P20 retired the premise: linen
+   is genuinely the hard case, not a degenerate one. A second *cellulose*
+   fibre adds rows without a lesson; **what is missing is wool**.
+5. ✅ **RESOLVED — `ColorTag`** (P20): dye is the second user of a seam
+   `Light.ts` already reserved for exactly this.
 6. ✅ **RESOLVED — `/stuff/idea/fabric/`** (user, 2026-09-02). Neither
    `covering` nor `construction` read well; `fabric` is the trade's own
    term for this exact classification and the namespace can only ever

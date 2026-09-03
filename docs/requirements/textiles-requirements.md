@@ -65,6 +65,9 @@ textiles input; cosmetics is a second customer* — and discharges the
   *and* a fastness that decays with washing.
 - Cloth is **cut and sewn** into garments, and the jerkin recipe leaves
   `trade-smithing` for the trade that owns it.
+- **Cloth is fungible within a lot** — same fibre, form, grade and dye
+  stack — so ⭐ **two dye lots do not merge**, and a dyer's competence is
+  visible in whether their stock consolidates.
 - **Spinning is the felt bottleneck**, and buying the wheel measurably
   moves the constraint downstream to the loom.
 - A **maker's authored prose ships with the garment they made** — you buy
@@ -546,8 +549,10 @@ puts real pressure on.
 **The chain**
 
 11. Flax is grown in Hinkley Hills, retted in water over game-time with
-    an over-ret failure, scutched, spun, woven and fulled — an end-to-end
-    test walks seed to cloth.
+    an over-ret failure, scutched, spun, woven and **bleached** — an
+    end-to-end test walks seed to cloth. ⚠ **`full` does not ship**:
+    fulling and felting are both wool-only, so linen's finish is passive
+    sun-bleaching (plan § P21).
 12. Staple-length grade propagates from harvest to the finished bolt.
 13. A bench demonstrates the spinning bottleneck and that the wheel moves
     it to the loom. **If the ratio is not felt at bed scale, the finding
