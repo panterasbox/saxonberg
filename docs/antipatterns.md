@@ -3902,6 +3902,63 @@ see it — the method exists and the call is well-typed.
 
 ---
 
+## Moving a whole VERB to a pack when only the network is the pack's
+
+The pack cut asks *what is content?* — and a verb that only a pack's
+content can service looks like an easy answer. It usually is. The trap is
+a verb with **several forks, only some of which the pack services**.
+
+### BAD
+
+```
+packages/content/tpa/src/idea/cmd/movement/TeleportController.ts
+packages/content/tpa/content/system/tpa/cmd/movement/teleport.yaml
+```
+
+`teleport` had four forks. Two were the *network's* (the departures
+board, the fare-and-clearance ride). Two were the **kernel's**: free
+movement inside an extent you hold authorial title over, and the anchored
+spell any caster can pay for. Moving the file moved all four — so on a
+platform-only boot nobody could teleport at all, including the people
+whose entitlement had nothing to do with the Teleport Authority. *You
+must not need the TPA to teleport.*
+
+⭐ **The tell is a kernel file naming a pack path.** `AuthorMixin` was
+left contributing `system/tpa/cmd/movement/teleport.yaml` — a kernel
+mixin pointing at a view that does not exist unless a pack is installed.
+`lint:gates` does not catch it (a view path is not a gate string) and
+nothing else did either; the shipped kernel simply lost a capability. If
+the kernel has to name your pack to keep working, the cut is wrong.
+
+### GOOD (the verb stays; the pack answers a declared shape)
+
+```ts
+// lib/travel/TravelNode.ts — the kernel declares what it will talk to
+export interface TravelNode {
+  renderDepartures(viewer: Stuff & Sensor): Promise<string>;
+  ride(traveller: Stuff, spec: TravelRideSpec): Promise<TravelRideOutcome>;
+}
+```
+
+The verb keeps the forks that are the kernel's and delegates the two that
+are the network's to whatever answers `TravelNode` — found structurally
+(`TravelNodes.of`), so neither side imports the other. A refusal of
+`route-not-found` **falls through** to the spell: a terminal is a
+convenience, not a permission.
+
+⭐⭐ **The test: delete the pack and the verb must still do something
+CORRECT**, not merely fail politely. If it must, the *capability* is the
+kernel's and only an *implementation* is the pack's. When the capability
+itself is the pack's — `hew`, `smelt`, `garnish` — the verb goes with it,
+and that remains the ordinary case.
+
+Decided 2026-09-03 (the TPA reform sweep), after the build shipped the
+wrong cut and it was caught in review. See
+[content-packs.md](./subsystems/content-packs.md) § How a kernel VERB
+reaches pack behaviour.
+
+---
+
 ## A pack subclass for a field the kernel already models
 
 A pack **cannot add a field to a kernel class**, and the failure is

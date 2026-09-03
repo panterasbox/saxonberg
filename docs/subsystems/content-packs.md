@@ -534,6 +534,44 @@ tpa's terminal do — tpa depends on arcana anyway, it is magic — so
 `ManaPoweredMixin` is arcana's. A third pack wanting mana-powered devices
 *without* depending on arcana is the signal to promote it, and that is a
 review question, not a lint.
+
+### ⭐⭐ How a kernel VERB reaches pack behaviour — the declared shape
+
+> **A kernel verb may not import a pack. It may declare the SHAPE it
+> will talk to, and let whatever answers that shape answer.**
+
+The import boundary runs one way (`lint:imports`, and `classFileOf`
+resolves a pack root into that pack's `src/` and *never* falls back to
+the kernel), so a kernel controller cannot name a pack class. But a verb
+often needs to *reach* one: `analyze water` needs the water pack's
+conduit, `teleport` needs the tpa pack's terminal. The answer is a
+kernel-side interface plus a one-method holder that tests for it
+structurally:
+
+| shape | declared in | who answers it | the verb |
+|---|---|---|---|
+| `SupplyReporting` (`supplyReport()`) | the water pack's own substrate, read structurally | any conduit-like host | `analyze water` |
+| `TravelNode` (`ride()` + `renderDepartures()`) | `lib/travel/TravelNode.ts` (kernel) | `FastTravelMixin` (the `tpa` pack) | `teleport` |
+
+`TravelNodes.of(stuff)` is the whole mechanism: a duck-type probe
+returning `Stuff & TravelNode` or `null`. The kernel imports nothing; the
+pack implements a shape it never imports either — it just has the two
+methods. Both sides are checkable, because the shape is a real
+`interface` and the pack's tests assert against `ride()`.
+
+⭐ **The forks are the design, not the plumbing.** `teleport` keeps the
+forks that are the *kernel's* — free movement inside an extent you hold,
+and the anchored spell — and delegates only the forks that are the
+*network's* (the timetable, the fare, the clearance, the mana leg). That
+split is the test for whether a shape seam is honest: **remove the pack
+and the verb must still do something correct**, not merely fail politely.
+The `tpa`-less kernel still teleports the people entitled to.
+
+⚠ A shape seam is NOT the general answer to "the kernel needs a pack
+thing". It works here because the *capability* is the kernel's (movement)
+and only an *implementation* is the pack's. When the capability itself
+belongs to the pack, the verb belongs to the pack too — that is the
+ordinary case, and `content/<root>/cmd/` is where it goes.
 `packages/content/<pkg>/src/<rel>.ts` backs `<root>/<rel>` for every
 namespace root the pack holds — source mirrors path, inside a pack as in
 the kernel — so `packages/content/arcana/src/thing/Wand.ts` IS

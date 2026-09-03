@@ -174,6 +174,28 @@ describe('⭐ `committee` — a city department', () => {
     }
   });
 
+  it('⭐ AC21 — the Teleport Authority is appointed by its OWN committee', () => {
+    // The positive half of the exclusion noted above, asserted rather
+    // than left to a comment. A network that crosses every locality it
+    // serves cannot be staffed by any one of them, so the Authority's
+    // authority is the committee over its own pack root — and that root
+    // has to be genuinely titled, or the `committee` kind falls through
+    // to the state default and the OPERATOR silently staffs it.
+    const tpa = byPath('tpa/idea/teleport-authority');
+    expect(tpa.data.appointingAuthority).toEqual({
+      kind: 'committee',
+      parcel: '/system/tpa',
+    });
+    const title = coveringTitle('/system/tpa');
+    expect(title, '/system/tpa has no claimed title').toBeDefined();
+
+    // …and NEGATIVELY (AC21's second half): no Terminus authority names
+    // it. A committee over a Terminus parcel would put the city in the
+    // Authority's appointment chain by the back door.
+    const ref = tpa.data.appointingAuthority as { parcel: string };
+    expect(ref.parcel.startsWith('/world/')).toBe(false);
+  });
+
   it('⚠ the Registry stays a BUSINESS — it sells land titles', () => {
     // `TitleController` settles land purchases into its operating account
     // via `ensureOperatorAt` → `operatingAccountOf`. A registry that takes

@@ -93,12 +93,13 @@ export default class TeleportController extends CommandController<TeleportModel>
     // 2/3 · A travel node standing here, found BY SHAPE. `teleport` is
     //       not node-afforded, so this looks for what the actor can
     //       reach rather than reading `commandSource`.
-    const node = TravelNodes.of(
+    const node =
       MqlApi.resolveMany('reachable', {
         commandGiver: context.commandGiver,
         scope: 'reachable',
-      }).stuff.find((s) => TravelNodes.of(s) !== null) ?? null,
-    );
+      })
+        .stuff.map((s) => TravelNodes.of(s))
+        .find((n) => n !== null) ?? null;
     const raw = model.destination?.raw;
 
     if (node && !raw) {

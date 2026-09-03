@@ -130,11 +130,24 @@ objects). Each also needs its unhook separated from surrounding policy:
 `owned` audit's own step 4.
 
 **`ref: 'identity'` is declared nowhere yet**, and that is expected
-rather than an omission: the framework attaches no behaviour to the
-identity axis — a path resolved on read cannot dangle, so there is
-nothing to enforce. The declaration is documentation-only there today.
-It IS validated (`identity` + any `lifetime` throws), so declaring one
-is safe whenever the documentation value is wanted.
+rather than an omission: the framework attaches no *runtime* behaviour to
+the identity axis — a path resolved on read cannot dangle into freed
+memory, so there is nothing for the proxy or the destruct slot to
+enforce. The declaration is documentation-only there today. It IS
+validated (`identity` + any `lifetime` throws), so declaring one is safe
+whenever the documentation value is wanted.
+
+⚠ **It does not follow that an identity ref cannot be wrong.** A path
+naming no row resolves to `null` forever, and the failure is *silent* —
+the TPA reform's `mainsRef` is the exemplar: a gate wired to a
+mistyped line reports no supply, for a reason no author could find by
+looking at the gate. **The enforcement is build-time, not runtime:
+`pnpm lint:census` walks every template-path-valued field in every
+shipped row and fails on one that resolves to nothing.** ⚠ Its field
+list (`refsOf` in `scripts/check-template-census.ts`) is **enumerated by
+hand**, so a new identity-ref field is not covered until it is added
+there — one line, and the gate is the only thing standing between a typo
+and a device that quietly does nothing.
 
 ---
 

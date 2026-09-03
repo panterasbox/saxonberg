@@ -455,7 +455,7 @@ describe('the release gate — cursed sticks, and the phantom occupant', () => {
     // A caller that checked the veto and forgot the discharge would give
     // a curse that sticks but never bites — a silent, plausible bug that
     // no test of either half alone would catch. Hence one call.
-    expect(result.released === false && result.dumpedKJ).toBeGreaterThan(0);
+    expect(result.released === false && result.dumpedTau).toBeGreaterThan(0);
     expect(wand.getStoredTau()).toBeLessThan(before);
   });
 });

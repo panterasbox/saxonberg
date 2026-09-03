@@ -71,7 +71,7 @@ export default class RemoveController extends CommandController<RemoveModel> {
       MessageApi.scene(giver)
         .topic('sense.survey')
         .toSelf(
-          release.dumpedKJ > 0
+          release.dumpedTau > 0
             ? Mml.compose`${Mml.thing(target)} will not come away — and it is running hot against your skin.`
             : Mml.compose`${Mml.thing(target)} will not come away. It has no intention of letting go.`,
         )

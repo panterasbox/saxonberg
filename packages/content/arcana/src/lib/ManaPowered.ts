@@ -351,8 +351,7 @@ export function ManaPoweredMixin<
       if (!this.mainsRef) return null;
       const main = StuffApi.findByTemplatePath<Stuff>(this.mainsRef);
       if (!main || !MixinApi.isCharged(main)) return null;
-      const state = (main as unknown as { supplyState?: () => SupplyState | null })
-        .supplyState?.();
+      const state = ManaPoweredMixin.reportedState(main);
       if (state === 'cut' || state === 'off') return null;
       return ManaPoweredMixin.chargedSupply(
         main as unknown as Stuff & Charged,
@@ -400,8 +399,7 @@ export function ManaPoweredMixin<
       const candidates: SupplyState[] = [];
       if (this.mainsRef) {
         const main = StuffApi.findByTemplatePath<Stuff>(this.mainsRef);
-        const s = (main as unknown as { supplyState?: () => SupplyState | null })
-          ?.supplyState?.();
+        const s = ManaPoweredMixin.reportedState(main);
         if (s) candidates.push(s);
       }
       if (!this.isArmed()) candidates.push('dry');
@@ -446,6 +444,21 @@ export function ManaPoweredMixin<
         },
         supplyState: () => (shell.getStoredTau() > 0 ? state : 'dry'),
       };
+    }
+
+    /**
+     * **The one place that knows the upstream's shape.** A supply is
+     * whatever answers `supplyState()` — the `TravelNode` / water
+     * `SupplyReporting` pattern, so a mains can be any pack's class and
+     * this file imports none of them. Read in two places (the resolve,
+     * which discards a `cut`/`off` line, and the condition report, which
+     * must SHOW it), which is exactly why the probe is named once.
+     */
+    private static reportedState(main: Stuff | null): SupplyState | null {
+      return (
+        (main as unknown as { supplyState?: () => SupplyState | null } | null)
+          ?.supplyState?.() ?? null
+      );
     }
 
     /**

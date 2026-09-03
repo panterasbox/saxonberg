@@ -701,9 +701,10 @@ Two things found by driving the Hinkley Hills commute route
 
 - ~~**Nobody actually sees a departures board.**~~ ✅ **Fixed by the TPA
   reform.** The board now renders whenever no keyword was typed, before
-  any clearance read, for everyone — and `teleport` is afforded by the
-  NODE rather than only by `AuthorMixin`, so the unprivileged ride the
-  controller always documented is finally reachable by the unprivileged.
+  any clearance read, for everyone — and `teleport` is afforded by
+  `MobileMixin` rather than by `AuthorMixin`, so the unprivileged ride
+  the controller always documented is finally reachable by the
+  unprivileged.
   The design question the old note declined to answer is answered:
   **a timetable is public; a ticket is not.**
 

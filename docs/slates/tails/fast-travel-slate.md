@@ -5,14 +5,29 @@
 > slate is now a TAIL holding the deferred surface.**
 > A directed network of public **terminals** you teleport between, gated
 > by a **scan-to-register** credential. v1 (network + credential +
-> on-demand travel + the lounge→campus hop) shipped and graduated; the
-> **living-infrastructure** wave (terminals break down / get disrupted,
-> the Authority wear-maintenance loop, the inert `status` seam) +
-> cross-restart credential durability remain deferred. The design record
-> below is retained for that tail.
+> on-demand travel + the lounge→campus hop) shipped and graduated. Still
+> deferred and the reason this tail exists: **scheduled mode +
+> wayfinding** (published schedules, route maps, transport hubs),
+> terminals that **wear** rather than merely run out, the disruption /
+> rerouting / sabotage loop, and cross-restart credential durability.
+> The design record below is retained for that tail.
+>
+> ⚠⚠ **Two "settled: deferred" rows below are now WRONG — read them as
+> history, not as the state of the world.** The **TPA reform**
+> (2026-09-02) shipped: (a) **fares**, so "free/comped v1" is false, and
+> a ride now costs a service fee *plus* a mana leg; (b) **half the
+> maintenance loop** — a gate's `status` DERIVES from its supply, it
+> drains to `dry` with no traffic, and reports `cut` / `overdrawn`
+> against its line, so the "inert `status` seam" is closed and only
+> *wear* is left; and (c) the split that makes the network optional —
+> the `teleport` VERB is the kernel's, only the network is the `tpa`
+> pack's. The Authority also became **self-governing** and ships
+> `positions: []`, so the maintenance ROUND is this tail's first real
+> job. See [fasttravel.md](../../subsystems/fasttravel.md).
 
 Working slate for **fast travel** — the *Eternal City Teleport Authority*
-network. Teleport-based transit across the world, distinct from the
+network (the *Eternal City* naming is historical — the pack is
+realm-neutral `/system/tpa`). Teleport-based transit across the world, distinct from the
 **locomotion** subsystem (physical room-to-room movement). The lounge-
 exit and home-routing (char-gen/onboarding) ride this.
 

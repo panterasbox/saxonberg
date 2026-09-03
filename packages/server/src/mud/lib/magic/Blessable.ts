@@ -37,16 +37,16 @@ import type { BlessingBand, BlessingBucket, BlessingOdds } from './Blessing';
 
 /** Fraction of remaining charge a cursed item dumps per discharge beat. */
 const CURSED_DISCHARGE_FRACTION = 0.05;
-/** Trauma severity per kilojoule dumped. *Calibrate at launch.* */
-const CURSED_SEVERITY_PER_KJ = 0.02;
+/** Trauma severity per τ dumped. *Calibrate at launch.* */
+const CURSED_SEVERITY_PER_TAU = 0.02;
 
 /**
  * Why a release did not happen — the return of {@link
- * Blessable.tryRelease}. `dumpedKJ` is what the refusal cost the holder,
+ * Blessable.tryRelease}. `dumpedTau` is what the refusal cost the holder,
  * and is 0 for a curse with no charge behind it.
  */
 export interface ReleaseRefusal {
-  readonly dumpedKJ: number;
+  readonly dumpedTau: number;
 }
 
 export interface Blessable {
@@ -99,7 +99,7 @@ export interface Blessable {
    * **Ask to take it off** — the whole release decision in one call.
    *
    * `null` ⇒ it comes away; a {@link ReleaseRefusal} ⇒ it does not, and
-   * `dumpedKJ` is what it cost you to find out (0 for an uncharged
+   * `dumpedTau` is what it cost you to find out (0 for an uncharged
    * curse).
    *
    * The pairing exists because {@link refusesRelease} and
@@ -118,7 +118,7 @@ export interface Blessable {
   /**
    * **The cursed discharge** (D11). A cursed *charged* item is not
    * merely stuck — it is emptying itself into whoever is wearing it.
-   * Returns the kilojoules it dumped, so the caller can narrate; 0 when
+   * Returns the τ it dumped, so the caller can narrate; 0 when
    * the item is not cursed, not charged, or already flat.
    *
    * One method rather than two, because "it will not come off" and "and
@@ -258,7 +258,7 @@ export function BlessableMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     public tryRelease(holder: Stuff): ReleaseRefusal | null {
       if (!this.refusesRelease()) return null;
-      return { dumpedKJ: this.dischargeIntoHolder(holder) };
+      return { dumpedTau: this.dischargeIntoHolder(holder) };
     }
 
     public dischargeIntoHolder(holder: Stuff): number {
@@ -283,7 +283,7 @@ export function BlessableMixin<TBase extends MixinConstructor>(Base: TBase) {
           kind: 'trauma',
           type: 'burn',
           site: 'body.torso',
-          severity: dumped * CURSED_SEVERITY_PER_KJ,
+          severity: dumped * CURSED_SEVERITY_PER_TAU,
           mechanism: 'heat',
         });
       }

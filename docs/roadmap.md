@@ -73,7 +73,9 @@ The substrate is in place. Major shipped surfaces:
 - **Shell** — `EnvironmentMixin` (settings keyspace),
   `WorkspaceMixin` (`pwd`/`cd`/`ls`/`cat`/`grep`/`write`/
   `mkdir`/`rm`/`cp`/`mv`), `AuthorMixin` (`clone`/`reload`/
-  `destruct`/`eval`/`teleport`), `PerceiverMixin` (`look` /
+  `destruct`/`eval`/`goto` — `teleport` moved to `MobileMixin` in the
+  TPA reform: it is a movement verb, not an authorial one),
+  `PerceiverMixin` (`look` /
   `scry` / `locate`), prose / liquid templating.
 - **Communications** — `Sensor` / `Vocal` / `Mobile` mixins;
   `say` / `tell` controllers; messaging subsystem (MML, scene
@@ -560,7 +562,11 @@ onboarding → dorm + authoring), each thin-engine / content-heavy:
 >   city/TPA/destination — see [fasttravel.md](./subsystems/fasttravel.md).)
 > - **Object condition / maintenance** — the "living infrastructure"
 >   seam (terminals break down, need upkeep); illustrative in
->   fast-travel, not built.
+>   fast-travel, not built. (**The mana half now ships** — a terminal
+>   holds a standing draw, drains to `dry` with no traffic, reports
+>   `cut`/`overdrawn` against its line, and takes a swapped cell; see
+>   [fasttravel.md](./subsystems/fasttravel.md). Mechanical breakdown
+>   and repair are still the deferred part.)
 > - **Crafting** — player-set *functional* stats within a balanced
 >   envelope; scoped authoring touches no functional stats — those
 >   come from vetted catalogs. (**The crafting substrate now ships** —
