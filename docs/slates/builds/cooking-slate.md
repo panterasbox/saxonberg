@@ -1064,6 +1064,128 @@ holds the heat; what goes in an oven is the sheet or dish.
 - The pot-as-dish-of-last-resort rule (step 3 above) is what keeps all
   of this gate-free at the campfire.
 
+---
+
+## Part 7 — The kitchen as place & technology (settled)
+
+**None of this changes W0–W3.** It records why the design spans
+prehistory to modern gastronomy, what it asks of the utilities build,
+and the archetype palette the venue system already supports.
+
+### Fuel technology is invisible to the design — by a shipped decision
+
+The `kitchen` archetype already states **needs, not things** — its own
+comment: *"the volcano-vent rule, domestic: nothing here knows what a
+range is."* It asks `heatK: 373` + a surface + water, so a hearth, a
+wood range, a gas hob, an induction hob and a volcano vent satisfy it
+identically. The ladder is **row data on the heat source**:
+
+| tech | the real difference | engine term |
+|---|---|---|
+| wood/charcoal | fuel-tending, slow, smoke | `Combustible` + `FurnaceMixin` (ships) |
+| gas | instant, precise | high `rate`, no fuel step |
+| electric coil | the pan lags the dial | large thermal lag in the S1 couple |
+| induction | fast, and **heats the vessel not the air** | S1 couples to the pot directly — a kitchen that stays cool |
+
+⭐ Induction's real signature falls out of *where the S1 couple
+attaches*, with no induction-specific code; gas-vs-coil response is
+the source's τ, one number. Two ladder notes: gas needs a fuel
+*supply* (§ utilities), and **smoke/CO is a property of combustion
+tech only** — modernizing genuinely retires a hazard, honest history
+rather than a balance dial. The counterweight is real too: **the gas
+kitchen is helpless in an outage; the hearth needs no
+infrastructure.**
+
+### Utilities: cooking is the residential demand case that slate lacks
+
+The [power-utility slate](./power-utility-slate.md) is all *industrial*
+(substations, Foundry Row, the electrician's round, storm contracts);
+its middle tier is a **supply reference** — an `Energized` fixture
+declares its source, the source's state gates dependents. Cooking
+supplies what's missing:
+
+- **The domestic meter**: an electric range is the household's first
+  utility dependency that *hurts* when it fails. An outage darkening a
+  lamp is atmosphere; an outage meaning no dinner is a consequence.
+- **Gas is a second utility of the same shape** — the supply-reference
+  tier is fuel-agnostic, and the watershed's `Conduit` ladder ("a
+  sewer is the same object reversed") **is literally the pipe**: a gas
+  main is a conduit carrying a combustible, for free.
+- **Water is already the third** — the archetype asks `bulkSource:
+  water`; the watershed's `SupplyState` ships. A dry tap is a kitchen
+  that stops working.
+- ⭐ **The ask for that build's requirements**: treat **the kitchen as
+  the canonical residential consumer**, and make the supply-reference
+  tier **commodity-generic** (power · gas · water) rather than
+  electricity-shaped.
+
+### Prehistory → modern gastronomy: the model spans it because it is physics
+
+- **Prehistoric** — ember cooking (an item in the campfire's scope),
+  hot-stone boiling (thermal transfer between objects — works today),
+  the earth oven.
+- **Medieval** — the shipped rung.
+- **Industrial** — range, icebox, canning (kill + seal, both levers
+  exist).
+- ⭐ **Modern gastronomy** — **sous-vide is precise temperature over
+  long time: literally the S2 dose integral with a tight `maxHeatK`**,
+  the model's purest expression. Pressure cooking is the
+  `boilingPoint` cap under pressure. Spherification and foams are
+  hydrocolloid Material rows. Modern cuisine needs no new mechanism —
+  it is the same four variables controlled harder, so it needs the
+  *tending wave* plus authored materials.
+- The one span-limit is the **no-hot-side** rule (Part 6, accepted
+  permanently) — and it costs the same wok technique in 2020 as in
+  1200.
+
+### The archetype palette: `kitchen` is too few, and the grammar already stretches
+
+The capability grammar (`needs`: tool · heatK · bulkSource · surface ·
+seating · coldStorage) describes far more than the one domestic row.
+What's missing is **scale and constraint**:
+
+- **`galley`** (ship, narrow-boat) — a kitchen that must *secure*
+  things: heat surviving motion, no open flame in a swell.
+- **`mess` / `field-kitchen`** — *scale without permanence*: feeding
+  many from portable capital; where the field rules and the
+  professional rules meet (reachable heat + a pot, but with a roster
+  and shifts).
+- **`commissary`** — the production kitchen with no diners, cooking
+  for a venue elsewhere; what makes food *travel*, and distribution's
+  hook.
+- **`pushcart`** — ⭐ **the minimum viable kitchen** (one heat source,
+  one surface, no water, no cold), and the row that proves the grammar
+  honest: the archetype should **report unmet needs, not pretend**.
+- **Food trucks** are the pushcart up the ladder: same archetype, a
+  `Drivable` host, plus utilities-in-a-box (a gas bottle, a generator
+  — the supply-reference tier, self-contained).
+
+⭐ **The claim that makes all of these cheap: an archetype is a set of
+NEEDS; a venue is where those needs are MET — so mobility, scale and
+permanence are properties of the HOST, not the archetype.** A pushcart
+needs a new archetype row and a mobile host (the conveyance substrate
+ships: hitch/unhitch, haulage), never new mechanism. The
+trade-is-mechanism / locality-is-expression rule, one level down.
+
+### Real estate: a kitchen sells property here too
+
+- **Improvements transfer with title**: furnishing is owner-based and
+  persistent (the estate slice, the room overlay); parcels carry
+  chain-of-title. A fitted kitchen is an improvement attached to the
+  parcel — already how the system works.
+- **Value is legible without a valuation model**: the archetype's own
+  `describe()` reports which capabilities are met and by what. A
+  parcel meeting heat+surface+water+cold is objectively better-equipped
+  than one meeting two — a listing, not a hidden stat (the no-gauge
+  doctrine satisfied).
+- **The market forces ship**: the residence ladder (dorm → holding),
+  tenure terms, the D/P decision index. "Rent the room with the range
+  or the cheaper one without" is a real decision the moment cooking
+  has stakes.
+- ⭐ **The punchline: a commercial kitchen is CAPITAL, not decor.** A
+  venue with a fitted kitchen can employ a cook; one without cannot —
+  the economy slate's productive-capital thesis rendered in a room.
+
 ⚠ Build-freeze note: captured during the client-rebuild design-only
 phase. This slate is the input to a `/requirements` cycle when the
 freeze lifts.
