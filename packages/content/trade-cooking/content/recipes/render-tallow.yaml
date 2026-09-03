@@ -1,0 +1,32 @@
+# ⭐ **The fat bootstrap.** Everything the fried half of the grid can do
+# depends on somebody having made a fat first, and this is the cheaper of
+# the two ways: trimmings held at a gentle heat until the fat runs out of
+# them, into a crock.
+#
+# ⚠ **Rendered DRY, and deliberately.** Wet rendering is real — you can
+# render in water to stop the fat browning — but a recipe declaring
+# `medium: water` sums its bulk draw into the output volume, so half a
+# litre of water in would come out as half a litre of extra tallow. That
+# is a conservation lie for a nicety, so the shipped recipe renders the
+# way a cook with one pot actually does it: low and dry.
+recipeId: render-tallow
+name: Render Tallow
+keywords:
+- render-tallow
+- render
+- tallow
+inputSlots:
+- slot: trimmings
+  category: meat
+  minGrade: poor
+  kind: item
+  count: 2
+toolCapabilities:
+- pot
+outputTemplate: /trade/cooking/thing/tallow-crock
+outputMaterial: /trade/cooking/idea/material/tallow
+outputApplication: bulk
+outputPortionL: 0.4
+requiresHeatK: 373
+difficulty: easy
+discipline: cooking

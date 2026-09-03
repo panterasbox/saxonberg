@@ -1,0 +1,31 @@
+# A clear broth — the wet method plus a STRAINER, which is the first time a
+# cooking recipe asks for an instrument beyond the pot. Straining is what
+# makes it clear; without a sieve you have soup, which is a different thing
+# somebody else's recipe makes.
+recipeId: clear-broth
+name: Clear Broth
+keywords:
+- broth
+- clear-broth
+inputSlots:
+- slot: water
+  category: water
+  minGrade: fair
+  kind: bulk
+  measureL: 0.6
+- slot: meat
+  category: meat
+  minGrade: fair
+  kind: item
+  count: 1
+toolCapabilities:
+- pot
+- strainer
+outputTemplate: /stuff/thing/items/bowl
+outputAppearance: a clear amber broth with a slick of fat on top
+outputApplication: edible
+outputPortionL: 0.4
+requiresHeatK: 373
+medium: water
+difficulty: standard
+discipline: cooking

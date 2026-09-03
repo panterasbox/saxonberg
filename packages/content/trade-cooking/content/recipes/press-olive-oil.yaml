@@ -1,0 +1,25 @@
+# ⭐ The OTHER fat, and the only recipe in the roster that needs no heat at
+# all. A press, a basket of olives, and patience — which is why an olive
+# grove is worth planting and why the two fats are not interchangeable:
+# this one smokes fifteen kelvin lower than tallow, and there are dishes
+# that difference decides.
+recipeId: press-olive-oil
+name: Press Olive Oil
+keywords:
+- press-olive-oil
+- olive-oil
+- pressing
+inputSlots:
+- slot: olives
+  category: olive
+  minGrade: fair
+  kind: item
+  count: 3
+toolCapabilities:
+- juicer
+outputTemplate: /trade/cooking/thing/oil-bottle
+outputMaterial: /trade/cooking/idea/material/olive-oil
+outputApplication: bulk
+outputPortionL: 0.3
+difficulty: standard
+discipline: cooking

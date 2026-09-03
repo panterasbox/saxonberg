@@ -5,10 +5,11 @@
   "description": "The cooking trade \u2014 what cooking at a hearth introduces: its recipes (toasted-ration, root-mash, fine-roast, hearty-stew, simple-syrup).",
   "type": "module",
   "dependencies": {
-    "@saxonberg/content-distribution": "workspace:*",
     "@saxonberg/content-base-library": "workspace:*",
+    "@saxonberg/content-distribution": "workspace:*",
     "@saxonberg/content-generic-objects": "workspace:*",
     "@saxonberg/content-platform": "workspace:*",
+    "@saxonberg/content-trade-farming": "workspace:*",
     "@saxonberg/server": "workspace:*",
     "@saxonberg/types": "workspace:*"
   },

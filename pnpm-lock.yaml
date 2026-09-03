@@ -680,6 +680,9 @@ importers:
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform
+      '@saxonberg/content-trade-farming':
+        specifier: workspace:*
+        version: link:../trade-farming
       '@saxonberg/server':
         specifier: workspace:*
         version: link:../../server

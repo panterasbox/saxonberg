@@ -543,11 +543,21 @@ function findMediumMaterial(
   return null;
 }
 
+/** Whether a medium candidate's phase ceiling clears the recipe's demand. */
+function capClears(
+  floor: { medium: RecipeMedium; minK: number },
+  material: Material,
+): boolean {
+  const cap = mediumCapK(floor.medium, material);
+  return cap === 0 || cap >= floor.minK;
+}
+
 function pickCandidate(
   inSlot: RecipeInputSlot,
   bottles: BottleCandidate[],
   claimed: Map<Stuff, number>,
   brandKey: string | null,
+  mediumFloor: { medium: RecipeMedium; minK: number } | null = null,
 ): BottleCandidate | null {
   const minGrade = Grade.of(inSlot.minGrade);
   const need = inSlot.measureL ?? 0;
@@ -556,7 +566,17 @@ function pickCandidate(
       b.material !== null &&
       b.material.hasTag(inSlot.category) &&
       b.grade.compareTo(minGrade) >= 0 &&
-      b.slot.available() - (claimed.get(b.stuff) ?? 0) >= need - EPS,
+      b.slot.available() - (claimed.get(b.stuff) ?? 0) >= need - EPS &&
+      // ⭐ **A cook reaches for a fat that will take the heat.** Without
+      // this the rail rule below (take the cheapest sufficient) picks the
+      // first liquid carrying the medium's tag, and a bottle of olive oil
+      // standing beside a crock of tallow makes a 470 K cutlet decline —
+      // saying "not hot enough" about a fire that was, and a fat that
+      // would have been. A medium that cannot carry the recipe's heat is
+      // not a cheaper option; it is not an option.
+      (mediumFloor === null ||
+        !b.material.hasTag(mediumFloor.medium) ||
+        capClears(mediumFloor, b.material)),
   );
   if (eligible.length === 0) return null;
   eligible.sort((x, y) => {
@@ -1552,6 +1572,12 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
   const matched: MatchedInput[] = [];
   const matchedItems: MatchedItemInput[] = [];
   const grades: Grade[] = [];
+  // The medium a bulk slot may satisfy this recipe with: one that can
+  // actually carry the heat the recipe asks for (see `pickCandidate`).
+  const recipeMedium = recipe.getMedium();
+  const mediumFloor = recipeMedium
+    ? { medium: recipeMedium, minK: recipe.getRequiresHeatK() }
+    : null;
   for (const inSlot of recipe.getInputSlots()) {
     if (Recipe.isItemSlot(inSlot)) {
       const picks = pickItemInputs(inSlot, items, claimedUnits, brandKey);
@@ -1562,7 +1588,16 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
       for (const p of picks) grades.push(p.grade);
       continue;
     }
-    const cand = pickCandidate(inSlot, bottles, claimed, brandKey);
+    // ⭐ Two passes, and the second is what makes the DECLINE honest.
+    // First look for a medium that can actually carry the recipe's heat —
+    // a cook reaches past the olive oil for the tallow. If none can, take
+    // the best there is anyway, so the heat gate below says
+    // `insufficient-heat` ("that oil will not take it") rather than
+    // `insufficient-input` ("you have no fat"), which would be a lie told
+    // over a full bottle.
+    const cand =
+      pickCandidate(inSlot, bottles, claimed, brandKey, mediumFloor) ??
+      pickCandidate(inSlot, bottles, claimed, brandKey);
     if (!cand) {
       return { ok: false, reason: 'insufficient-input', detail: inSlot.category };
     }
@@ -1589,7 +1624,7 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
   // recipe demanding 450 K declines at a roaring forge because the water
   // stops at 373. Boiling cannot brown, and no table anywhere says so.
   let effectiveHeatK = MixinApi.isThermal(maker) ? maker.reachableHeatK() : 0;
-  const medium = recipe.getMedium();
+  const medium = recipeMedium;
   if (medium) {
     const mediumMaterial = findMediumMaterial(medium, matched, matchedItems);
     if (!mediumMaterial) {

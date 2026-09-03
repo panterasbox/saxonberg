@@ -1,0 +1,14 @@
+# A kitchen sieve — the `strainer` capability at the hearth. ⚠ The bar
+# ships its own hawthorne strainer with the same capability word, and that
+# is correct: code is shared, CONTENT IS COPIED. A cook straining a broth
+# is not reaching across the yard for the bartender's tool.
+class: /platform/thing/ToolItem
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a kitchen sieve
+  longDescription: A wide horsehair sieve on a turned wooden hoop, stained brown from a hundred stocks.
+  primaryKeyword: sieve
+  keywords: [sieve, strainer, sifter]
+  capabilities: [strainer]
+  _materialPath: /stuff/idea/material/element/iron
+  mass: 0.4

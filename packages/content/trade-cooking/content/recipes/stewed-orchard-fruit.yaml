@@ -1,0 +1,29 @@
+# Orchard fruit stewed down with a little water — the wet method applied to
+# something other than roots, and the cooking trade's one real customer for
+# the farming pack's fruit outside a bar.
+recipeId: stewed-orchard-fruit
+name: Stewed Orchard Fruit
+keywords:
+- stewed-fruit
+- compote
+inputSlots:
+- slot: water
+  category: water
+  minGrade: fair
+  kind: bulk
+  measureL: 0.2
+- slot: fruit
+  category: fruit
+  minGrade: fair
+  kind: item
+  count: 2
+toolCapabilities:
+- pot
+outputTemplate: /stuff/thing/items/bowl
+outputAppearance: dark stewed fruit collapsed into its own syrup
+outputApplication: edible
+outputPortionL: 0.35
+requiresHeatK: 373
+medium: water
+difficulty: easy
+discipline: cooking

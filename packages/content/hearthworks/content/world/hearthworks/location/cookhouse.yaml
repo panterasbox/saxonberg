@@ -46,5 +46,12 @@ data:
     - /stuff/thing/cutlery/horn-spoon
     - /stuff/thing/cutlery/horn-spoon
     - /stuff/thing/cutlery/table-knife
+    # The roster's instruments beyond the pot: a sieve makes a broth clear,
+    # a press makes the oil, and the crock and bottle are what rendering
+    # and pressing FILL (claimed from the pool like every other vessel).
+    - /trade/cooking/thing/kitchen-sieve
+    - /trade/cooking/thing/fruit-press
+    - /trade/cooking/thing/tallow-crock
+    - /trade/cooking/thing/oil-bottle
   cast:
     - /world/hearthworks/agent/cook
