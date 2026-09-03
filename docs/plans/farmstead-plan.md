@@ -230,17 +230,56 @@ flesh"** is stockman's language for precisely this, and it sits beside
 every living body, vitals, metabolism and the floor effects. It gets **its own
 wave (W7)** with its own tests, and must not ride inside the livestock wave.
 
-### P8 — ⚠ band vocabularies are CONTENT, and need a home
+### P8 — bands follow the SHIPPED split; there is no new authoring surface
 
-D86 and AC 50 make ~10 band vocabularies a first-class deliverable, and nothing
-in the repo has a home for "a percept-shaped phrase per band". Candidates:
-`AppSettings` keys (wrong — these are prose, not dials), a new `DocumentKinds`
-member (a real but heavyweight option), or **authored rows in the platform pack
-beside the topic descriptors**.
+**Decided 2026-09-03.** I flagged this as "the one genuinely new authoring
+surface in the build" and offered three homes. All three were wrong: the pattern
+already ships, in `lib/husbandry/Growing.ts` and `lib/craft/Grade.ts`.
 
-**Recommendation: authored content rows**, one per banded quantity, harvested the
-way help topics are. ⚠ Sign-off, because it is the one genuinely new *authoring*
-surface in the build.
+**Three parts, and they live in three different places on purpose:**
+
+| Part | Where | Why |
+|---|---|---|
+| **the vocabulary** | a typed `const` array in code (`GRADE_BANDS`) | closed, ordinal, part of the type surface |
+| **the phrases** | an **exhaustive** `Record<Band, string>` in code (`CONDITION_PHRASE`, `STAGE_PHRASE`, `CAUSE_PHRASE`) | interface contract, like any verb's output |
+| **the thresholds** | `AppSettings` dials (`husbandry.band.thrivingAt`) | *where* a band starts is a balance dial, and balance is content |
+
+> **The number where a band begins is content. The word is code.**
+
+⭐ **The exhaustive `Record` is a compile-time completeness guarantee.** You
+cannot add a band without writing its phrase, so **AC 50's coverage half is
+enforced by the compiler** — no lint needed, and no separate authoring pass to
+forget.
+
+⭐⭐ **And D86's percept rule is already implemented.** `CAUSE_PHRASE` is *"the
+plain-language cause line per limiting factor"* — `water: 'The soil is dry.'` —
+and husbandry.md's own heading is *"Legibility — size, condition, and the cause
+read separately."* So the shipped shape is:
+
+> **a state band says what it looks like; a cause line says why; they read
+> separately.**
+
+**Every band this build adds copies that shape**, which is what stops a band
+being a number in words. Adopt it verbatim rather than inventing a percept
+convention.
+
+⚠ **What is NOT automated, and stays a review obligation.** The compiler
+guarantees every band *has* a phrase. It cannot guarantee adjacent bands are
+**distinguishable**, which is the half of AC 50 that actually matters — two bands
+that read alike collapse the honest-opacity model silently. The reviewer's test,
+stated so it is checkable:
+
+> **Can a reader who does not know the underlying number tell this band from the
+> one on either side of it?**
+
+That is a human read at MR time, on ~10 vocabularies, and it is the item most
+likely to be skimped (risk 5).
+
+**Pack-local bands** ship their phrases in the pack's own source, the same way
+the trade packs already carry their own vocabulary. **Species-specific reads**
+(does a sheep in poor flesh read differently from a cow?) are a **seam, not
+scope** — one phrase set per quantity in this build, with the `Record` keyed so a
+per-species override could layer later without changing callers.
 
 ### P9 — the pack cut, restated as file moves
 
@@ -427,8 +466,8 @@ and do not gate this MR.** Two carry unusual weight:
 
 ## Risks & opens
 
-1. ⚠ **P8 (where bands are authored) and P3 (kernel placement) want sign-off
-   before W2.** *(P4 and P7 are settled — see their entries.)*
+1. ⚠ **P3 (kernel placement) is the last decision wanting sign-off before W2.**
+   *(P4, P7 and P8 are settled — see their entries.)*
 2. ⚠ **P4's read-side prefix check is load-bearing and easy to skip.** A herd
    read that trusts the `kind` tag reopens the forgery the path titling closes.
    It belongs in W8's tests, not in a later hardening pass.
