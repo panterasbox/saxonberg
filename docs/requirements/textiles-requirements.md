@@ -74,9 +74,9 @@ textiles input; cosmetics is a second customer* — and discharges the
 
 - Worn coverings **contribute to their wearer's concealment**, and a
   conspicuity band exists below `obvious`.
-- Garment-soiling acts **emit the room-condition pack's producer event**,
-  and the covering stack routes a deposit to the outermost layer covering
-  the affected part.
+- The covering stack **answers which layer takes a deposit** — the
+  outermost one covering the affected part — so the apron works the
+  moment a soiling driver exists.
 
 ---
 
@@ -109,10 +109,13 @@ textiles input; cosmetics is a second customer* — and discharges the
 - **`SoilableMixin` itself**, its bands and its attributed event log —
   owned by
   [room-condition-design-pack](../slates/builds/room-condition-design-pack.md).
-  This build ships the routing and the pre-registered producer event
-  only, because those events are *"required at build time, not
-  retrofittable"* and a second gauge would be a third parallel
-  representation of one idea.
+  This build ships **the routing only** (`outermostAt`) — a second gauge
+  would be a third parallel representation of one idea. ⚠ **And no
+  `EventApi` event either** (corrected 2026-09-02): room-condition's
+  "attributed events" are **ledger records**, not broadcast, and nothing
+  in this build soils anything, so an emit would have no producer, no
+  consumer, and no connection to the log it was meant to feed. **The seam
+  is a method the future build calls, not a signal it listens for.**
 - **The viewer-side detection equipment term** (lenses, rings, goggles,
   ocular augments), **terrain-matched camouflage**, and **spawn-hidden
   distribution** — [search-slate](../slates/builds/search-slate.md).
@@ -286,10 +289,11 @@ changes**. Textiles must not need re-opening when lineage lands.
 ships **the seam, not the mechanism** — the pattern build-3 established
 for cooking's kitchen:
 
-- **In:** the covering stack routes a deposit to the outermost layer
-  covering the affected part; garment-soiling acts emit the
-  pre-registered producer event.
-- **Out:** the gauge, its bands, its attributed event log.
+- **In:** `outermostAt` — the covering stack answers which layer takes a
+  deposit over a given body part. That is the layering model, and it is
+  genuinely textiles' business.
+- **Out:** the gauge, its bands, its attributed deposit log — **and any
+  `soil.*` event**. A local interaction is a call, not a broadcast.
 
 ⚠ **Dirt is act-deposited and freezes in absence** — a coat in a wardrobe
 does not get dirty. Soiling is **not** time-integrated; do not model it
@@ -553,8 +557,9 @@ puts real pressure on.
     raises detectability.
 19. A conspicuity band exists below `obvious`, and every authored
     concealment row in shipped content still resolves.
-20. Garment-soiling acts emit the room-condition producer event; **no
-    `SoilableMixin` ships from this build.**
+20. `outermostAt` answers which layer takes a deposit over a given body
+    part; **no `SoilableMixin` and no `soil.*` event ship from this
+    build.**
 21. A test asserts a mundane attention-reducing hood lowers the standing
     cost of a veil binding.
 

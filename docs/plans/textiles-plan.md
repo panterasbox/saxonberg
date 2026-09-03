@@ -101,8 +101,10 @@ ever ships.
   wheel is shipped, tested machinery.**
 - **`FermentProfile`** rows carry `turnDays` + `turnedMaterial` — **that
   is the over-ret failure**, zero kernel change, zero new verb.
-- **`Events`** is an open registry; a pre-registered producer event is one
-  entry + one payload shape.
+- **`Events`** is an open registry — but ⚠ **`EventApi` is for
+  subjectless cross-cutting dispatch only** (session lifecycle, the
+  mud→backend boundary, framework plumbing). It is *not* the ledger
+  mechanism, and this build emits nothing (P9).
 - ⚠⚠ **A pack `src/` may hold only branches, controllers and tests** —
   *"no `lib/`, no Api, no helpers."* **Therefore every mixin, value
   object, Api and logic singleton this build needs is kernel, by
@@ -627,11 +629,33 @@ wants. Do not "balance" it away.
 - **The routing** — genuinely textiles' business, because it is the
   layering model: `outermostAt` answers *which layer takes the
   stain*. One method already needed by P6, with a second consumer.
-- **The event** — `Events.SoilDeposited = 'soil.deposited'`, payload
-  `{ actorId, targetId, partKey, extent }` (**`(actor, target, extent)` is
-  the room-condition pack's stated, non-negotiable shape**), with a
-  comment naming that pack as the gauge's owner. **No listener ships.**
-  Cooking's kitchen pattern verbatim.
+- ⚠⚠ **NO EVENT. Corrected 2026-09-02.** The returned plan added
+  `Events.SoilDeposited = 'soil.deposited'` via `EventApi`. That is wrong
+  three times over:
+
+  1. **It conflates two meanings of "event".** Room-condition's own open
+     question 6 asks *"where the attributed deposit/clear events **land**
+     — candidates: … `participation_events`, or a producer-local log."*
+     Those are **ledger records** (the `accountability_events` family).
+     `EventApi` is a broadcast bus. An emit would not feed that log at all.
+  2. **It would have zero emitters.** ⭐ **Nothing in this build soils
+     anything** — wetness is its own gauge, combat wears via `Durable`,
+     and the apron is explicitly inert until room-condition lands. There
+     is no soiling act here to instrument. Cooking's pre-registration
+     works because cooking genuinely *has* acts that mess up a kitchen
+     today; textiles has no analogue.
+  3. **And zero listeners**, by design.
+
+  ⚠ `EventApi` is for **subjectless cross-cutting dispatch** — session
+  lifecycle, the mud→backend boundary, framework plumbing. A soiling
+  deposit has an actor, a target garment and a body part. It is a local
+  interaction, and **a local interaction is a call, not a broadcast**.
+
+⭐ **The seam is a METHOD the future build calls, not a signal it listens
+for.** Textiles ships `wearer.outermostAt(partKey)` — which P6 needs
+anyway — and `textiles.md` documents the contract: *when room-condition's
+deposit driver lands, it asks the wearer which layer takes the stain.*
+Nothing to pre-register, nothing inert, nothing to retrofit.
 - ⚠ **`CraftVessel.soiled` is not touched.** Different concept, same word.
 - **The apron** is content only (B4): cheap, outermost band, wide
   `slotClaims`. It routes deposits away from the shirt the moment
@@ -997,15 +1021,15 @@ Per P12.
 
 Per P9.
 
-- **Kernel:** `lib/events.ts` (`SoilDeposited` + payload); new
-  `lib/material/Dyed.ts`; `Garment` composes it; `WashController` gains
-  the launder branch; `outermostAt` gets its second consumer.
-- **Tests:** a deposit routes to the outermost layer over the affected
-  part, and to the *shirt* when no outer layer covers it; the event fires
-  with `(actor, target, extent)`; washing decays fastness and a poor
-  mordant fades faster; ⚠ **a negative test asserting no `SoilableMixin`
-  exists and `CraftVessel.soiled` is untouched.** Pins: the bar and
-  Hearthworks vessel-wash suites.
+- **Kernel:** new `lib/material/Dyed.ts`; `Garment` composes it;
+  `WashController` gains the launder branch; `outermostAt` gets its
+  second consumer. ⚠ **No `lib/events.ts` edit** — P9.
+- **Tests:** `outermostAt` answers the outermost layer over an affected
+  part, and the *shirt* when no outer layer covers it; washing decays
+  fastness and a poor mordant fades faster; ⚠ **a negative test asserting
+  no `SoilableMixin` exists, `CraftVessel.soiled` is untouched, and this
+  build registers no `soil.*` event.** Pins: the bar and Hearthworks
+  vessel-wash suites.
 - **Docs:** `crafting.md` § the wash branch; `textiles.md` § the soiling
   seam — what is in, what is out, and who owns the gauge.
 
@@ -1220,7 +1244,7 @@ fight):
 | 17 | Three packs install and boot from a cold DB, each holding its own root | **B5** (scaffolds in B2/B3/B4) |
 | 18 | `getConcealment()` derives; camo lowers, conspicuous raises | **A9** (P10) |
 | 19 | A band below `obvious`; every authored concealment row still resolves | **A9** (the content-walk test) |
-| 20 | Soiling acts emit the producer event; **no `SoilableMixin` ships** | **A8** (including the negative test) |
+| 20 | `outermostAt` answers which layer takes a deposit; **no `SoilableMixin` and no `EventApi` event ship** | **A8** (including the negative test) |
 | 21 | A mundane attention-reducing hood lowers a veil's standing cost | **A9** (P11) |
 | 22 | `docs/subsystems/textiles.md` exists, linked from `CLAUDE.md` | **A10** + **B5**; the `CLAUDE.md` line lands at the sweep |
 | 23 | `materials-response.md` / `embodiment.md` / `slot.md` / `card-surface.md` updated | **A1, A2, A5, A6, A10** |
@@ -1241,8 +1265,8 @@ not "write a new one."**
 
 - `wear <set>` is a **stanza**; `dress` stays unclaimed (A7 ships a
   source-shape test that asserts it).
-- **No `SoilableMixin`** — routing plus one pre-registered event, nothing
-  resembling a gauge.
+- **No `SoilableMixin`, and no `EventApi` event either** (P9) — just the
+  routing method. A local interaction is a call, not a broadcast.
 - **No authored `clo`** on any row, shipped or fixture.
 - A pack never needs a kernel list edit; a capability pack holds its own
   root.
