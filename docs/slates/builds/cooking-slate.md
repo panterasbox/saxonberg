@@ -129,6 +129,39 @@ Cooking's stake:
   three slates) — cooking touches it only as an ingredient that needs
   soaking, which is just a recipe.
 
+**Eggs & dairy: the ranching standing tap upstream; the technique tier
+gated behind it.** The [ranching slate](./ranching-slate.md) already
+models milk/eggs/wool as the **standing tap** — renewable products
+from kept animals, with honest energy partitioning (a cold snap raises
+maintenance so milk drops; a pregnant animal partitions to the fetus)
+— the *recurring-yield* counterpart to butchery's terminal act. Not
+cooking's to build. Cooking's stake once the tap flows:
+
+- **Eggs are the technique workhorse** — emulsions (mayonnaise,
+  lecithin), foams (meringue), custards (already gated in the
+  cold-desserts line), enriched doughs. All recipes against the
+  shipped vocabulary, none authorable until the Materials exist — **no
+  eggs in W2** (the enabling-data rule).
+- **Milk is the second-fastest clock and the literal home of S2's
+  name**: *pasteurization units* were invented for it. Ranching
+  landing against our shipped W0 makes raw-vs-pasteurized an honest
+  day-one distinction.
+- **Butter is the third fat** — churning is over-stirring cream until
+  the emulsion inverts (plausibly a `stir` technique, not a new kind;
+  the unitasker test decides in the dairy era), with *clarified*
+  butter/ghee as the honest science of raising the smoke point by
+  removing the milk solids that burn.
+- **Cheese and yogurt are ferments** — cultures, strains, cellar
+  aging: `FermentingMixin`, the third time this design reaches for
+  it. Cheese IS preservation (milk you can keep — acidity + a_w +
+  cultures, hurdle stacking), so cheesemaking sits at the
+  **fermentation/victualler junction**; cooking consumes it as an
+  ingredient, full stop.
+- ⭐ **The baker decouples from ranching**: lean bread (flour, water,
+  salt, leaven) needs no dairy — honest medieval baking — so the
+  baker pack can ship before the standing tap exists, with enriched
+  doughs and pastry as its dairy-era second wave.
+
 **Confectionery clusters with the baker, by the same test.** Candy
 sells **stock** — it travels, shelves, and keeps, and it keeps for the
 terms-not-methods reason: high sugar is low water activity, so sweets
