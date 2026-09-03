@@ -8,3 +8,8 @@ data:
     of chalk and old books. It wants to stand at the front of a room.
   slotClaims:
     "/stuff/idea/species/BodyPlan/biped": [torso]
+  # Tweed is wool woven heavy — warm because wool conducts badly, not because it is thick.
+  _materialPath: /stuff/idea/material/textile/wool
+  constructionForm: woven
+  gradeBand: fine
+  mass: 1.1

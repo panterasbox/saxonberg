@@ -21,7 +21,7 @@ import { Character } from "../../../../lib/character/Character";
 import Species from "../../species/Species";
 import BodyPlan from "../../species/BodyPlan";
 import Weapon from "../../../thing/equipment/Weapon";
-import Armor from "../../../thing/equipment/Armor";
+import Garment from "../../../thing/equipment/Garment";
 import Shield from "../../../thing/equipment/Shield";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
 import Material from "../../../../lib/material/Material";
@@ -156,7 +156,7 @@ class ReactiveTestBlade extends CombatReactiveMixin(Weapon) {
 }
 
 /** Reactive worn armor — records `onStruck` (thorn mail plugs a body). */
-class ReactivePlate extends CombatReactiveMixin(Armor) {
+class ReactivePlate extends CombatReactiveMixin(Garment) {
   public fires: string[] = [];
   public onStruckEffect: ((ctx: CombatHookContext) => void) | null = null;
   onStruck(ctx: CombatHookContext): void {
@@ -300,7 +300,7 @@ function reactiveBlade(form = "bladed", material?: Material): ReactiveTestBlade 
 /** Worn armor helper. */
 function wearArmor(
   fighter: Character,
-  armor: Armor,
+  armor: Garment,
   form: string,
   material: Material,
 ): void {
@@ -582,7 +582,7 @@ describe("CombatLogic hooks — the consequence drain", () => {
     };
     const a = makeFighter(room, { weapon: blade });
     const b = makeFighter(room, { weaponForm: "bladed" });
-    const plate = makeStuff(() => new Armor());
+    const plate = makeStuff(() => new Garment());
     wearArmor(b, plate, "plate", steel());
     const session = open(a, b, nonLethal);
     const bState = session.getState(b)!;

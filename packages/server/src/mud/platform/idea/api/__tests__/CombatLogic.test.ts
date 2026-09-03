@@ -30,7 +30,7 @@ import { Character } from "../../../../lib/character/Character";
 import Species from "../../species/Species";
 import BodyPlan from "../../species/BodyPlan";
 import Weapon from "../../../thing/equipment/Weapon";
-import Armor from "../../../thing/equipment/Armor";
+import Garment from "../../../thing/equipment/Garment";
 import Shield from "../../../thing/equipment/Shield";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
 import type { CompetenceBandName } from "../../../../lib/advancement/CompetenceBand";
@@ -440,7 +440,7 @@ describe("CombatLogic — the exchange writes consequence", () => {
     const room2 = makeStuff(() => new TestRoom());
     const atkr2 = makeFighter(room2, { weaponForm: "bladed", weaponMaterial: steel() });
     const armored = makeFighter(room2, { weaponForm: "bladed" });
-    const plate = makeStuff(() => new Armor());
+    const plate = makeStuff(() => new Garment());
     plate.setMaterial(steel());
     plate.setConstruction(Construction.of("plate"));
     plate.setSlotClaim(planPathOf(armored), ["torso"]);

@@ -5,7 +5,10 @@ class: /platform/idea/material/Material
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: wool
-  appearance: thick woven wool
+  # ⚠ A material must not assert a CONSTRUCTION — `woven` is a form a
+  # garment carries, not something wool IS. Wool is also felted, knitted
+  # and fulled, and the row said none of those were possible.
+  appearance: soft springy wool
   keywords: [wool]
   density: 1310
   thermalConductivity: 0.04
@@ -20,7 +23,10 @@ data:
   edibility: false
   nutrients: []
   toxicity: []
-  tags: ["textile", "fibre", "organic", "insulating", "once-living"]
+  # ⚠ `protein` is load-bearing, not decoration: a protein fibre takes a
+  # metal mordant DIRECTLY, where cellulose needs a tannin pre-mordant
+  # first. It is why wool was the coloured cloth and linen was not.
+  tags: ["textile", "fibre", "organic", "protein", "insulating", "once-living"]
   composition: []
   chemistry: null
   biologicalSource: null

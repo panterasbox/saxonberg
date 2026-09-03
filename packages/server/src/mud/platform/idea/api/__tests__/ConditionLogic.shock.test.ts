@@ -14,7 +14,7 @@ import { MaterialApi } from '../../../../api/material';
 import { Creature } from '../../../../lib/creature/Creature';
 import Species from '../../species/Species';
 import BodyPlan from '../../species/BodyPlan';
-import Armor from '../../../thing/equipment/Armor';
+import Garment from '../../../thing/equipment/Garment';
 import Material from '../../../../lib/material/Material';
 import { Construction } from '../../../../lib/material/Construction';
 import { StuffApi } from '../../../../api/stuff';
@@ -69,8 +69,8 @@ function planPathOf(c: Creature): string {
   return c.getSpecies()!.getBodyPlan()!.getTemplatePath()!;
 }
 
-function wearPlate(c: Creature): Armor {
-  const a = makeStuff(() => new Armor());
+function wearPlate(c: Creature): Garment {
+  const a = makeStuff(() => new Garment());
   a.setMaterial(steel());
   a.setConstruction(Construction.of('plate'));
   a.setSlotClaim(planPathOf(c), ['torso']);

@@ -19,7 +19,7 @@ import LiveWire from '../../../platform/thing/LiveWire';
 import Floor from '../../../platform/thing/Floor';
 import StunBaton from '../../../platform/thing/equipment/StunBaton';
 import { Construction } from '../../../lib/material/Construction';
-import Armor from '../../../platform/thing/equipment/Armor';
+import Garment from '../../../platform/thing/equipment/Garment';
 import { Creature } from '../../../lib/creature/Creature';
 import Species from '../../../platform/idea/species/Species';
 import BodyPlan from '../../../platform/idea/species/BodyPlan';
@@ -115,7 +115,7 @@ function makeBody(cell: FloodedCell): Creature {
 }
 
 function bootUp(c: Creature, material: Material): void {
-  const boots = makeStuff(() => new Armor());
+  const boots = makeStuff(() => new Garment());
   boots.setMaterial(material);
   boots.setSlotClaim(c.getSpecies()!.getBodyPlan()!.getTemplatePath()!, [
     'feet',

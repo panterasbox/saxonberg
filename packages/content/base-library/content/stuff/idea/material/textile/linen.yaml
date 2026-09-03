@@ -1,0 +1,52 @@
+# Linen — the bast fibre of flax (Linum usitatissimum), retted from the
+# stem, scutched clean, spun and woven. The launch fibre of the textile
+# chain, and the one everything else is measured against.
+#
+# ⭐ Cool rather than warm, and that is arithmetic, not flavour: it
+# conducts ~25% better than wool and lies flat in a plain weave, so the
+# same mass of it insulates less. What it has instead is strength wet,
+# and a smoothness that made it the shirt against the skin for four
+# thousand years.
+#
+# ⚠ `cellulose` is a load-bearing TAG, not decoration. Cellulose does
+# not hold metal ions, so a cellulose fibre needs a tannin pre-mordant
+# before a metal mordant will bind at all — which is exactly why linen
+# was historically worn undyed or bleached and wool was the coloured
+# cloth. The dyeing trade reads this tag; nothing else distinguishes a
+# plant fibre from a protein one.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: linen
+  # ⚠ A material must not assert a CONSTRUCTION. Linen is the fibre;
+  # `woven` / `knit` are forms a garment carries, not something the
+  # substance is.
+  appearance: cool smooth linen
+  keywords: [linen, flax]
+  density: 1500
+  # Higher than wool's 0.04 — the whole reason a wool coat beats a linen
+  # one of equal mass, with nothing special-cased.
+  thermalConductivity: 0.05
+  # Mechanical response (materials-response): MPa / MJ·m⁻³, marshalled.
+  # Stiffer than wool and less springy; it creases rather than recovers.
+  hardness: 5
+  toughness: 3
+  specificHeat: 1360
+  # Electrical conductivity (S/m) — dry plant fibre insulates.
+  electricalConductivity: 1.0e-11
+  # Water absorption capacity (% of dry mass, ASTM D570). ⭐ Lower than
+  # wool's 33: linen wets through faster and, once wet, has less lofted
+  # air left to lose — which is why wet wool still beats wet linen.
+  waterAbsorptionCapacity: 20
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["textile", "fibre", "organic", "plant", "cellulose", "once-living"]
+  # No constituent rows: a natural polymer is not a mixture of other
+  # shipped materials. The chemistry below is cellulose's REPEAT UNIT,
+  # which is the honest thing to state about a polymer.
+  composition: []
+  chemistry:
+    formula: C6H10O5
+    molarMass: 162.14
+  biologicalSource: null

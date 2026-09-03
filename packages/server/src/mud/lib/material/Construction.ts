@@ -275,7 +275,7 @@ const LAYER_DEPTH: Record<KernelCoveringForm, number> = {
 };
 
 /**
- * Armor-resistance tokens that provide **zero** mitigation — a construction
+ * Covering-resistance tokens that provide **zero** mitigation — a construction
  * whose every channel resolves to one of these does nothing to anyone (the
  * does-nothing lint's smell). `fail` is the only genuinely-inert token
  * (`transmit` still attenuates a little). Kept beside the profile tables so

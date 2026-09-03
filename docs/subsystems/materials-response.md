@@ -206,13 +206,25 @@ sweep: a culled material would be a null read until the next process.
 
 There is **no `ArmorMixin`** (Settled-4). A piece of armor is an *emergent
 composition*: a `Wearable` `Thing` carrying a `Material` (via `Tangible`), a
-`Construction` (its resist form, via the new `ConstructedMixin`), a `Grade`,
+`Construction` (its resist form, via `ConstructedMixin`), a `Grade`,
 and a wear-on-use `condition` (`DurableMixin` — the durable-good half split
 out of `ToolMixin`, so armor wears out without being a "tool").
-`lib/equipment/Armor`
-and `lib/equipment/Weapon` are thin compose-and-name classes (siblings of
-`Garment`); their "armor-ness"/"weapon-ness" is purely the composition,
-nothing narrows on an `isArmor`.
+
+⭐⭐ **And there is no `Armor` CLASS either, since the textiles build.**
+`Armor` was a sibling of `Garment` composing exactly those four extra
+mixins and adding no behavior; once `Garment` composes them the two
+stacks are byte-identical, and the surviving class was asserting
+something the model does not believe. **Armor-ness is material +
+construction form.** A steel breastplate is a
+`platform/thing/equipment/Garment` whose material is steel and whose
+form is `plate`; a linen shirt is one whose material is linen and whose
+form is `woven`. The covering walk asks the material and the form and
+**never asks what class they are**, so both resolve through one path.
+
+⚠ The `armor/` **content directory keeps its name** — it is a content
+namespace, not a class, and renaming it would churn `lint:census` for
+nothing. `platform/thing/equipment/Weapon` remains the wielded sibling;
+its "weapon-ness" is likewise purely the composition.
 
 `ConstructedMixin` (`lib/material/Constructed.ts`) is the **form axis** — the
 sibling of `TangibleMixin`'s material axis: a durable `constructionForm`

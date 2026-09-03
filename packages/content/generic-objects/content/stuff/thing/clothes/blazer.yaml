@@ -8,3 +8,8 @@ data:
     wearer clearly intends to be taken seriously, and soon.
   slotClaims:
     "/stuff/idea/species/BodyPlan/biped": [torso]
+  # Cut close from a fine worsted — the cost is in the cloth and the cutting.
+  _materialPath: /stuff/idea/material/textile/wool
+  constructionForm: woven
+  gradeBand: fine
+  mass: 0.9

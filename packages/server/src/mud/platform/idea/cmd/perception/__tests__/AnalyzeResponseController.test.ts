@@ -1,7 +1,7 @@
 import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import AnalyzeResponseController from '../AnalyzeResponseController';
-import Armor from '../../../../thing/equipment/Armor';
+import Garment from '../../../../thing/equipment/Garment';
 import Weapon from '../../../../thing/equipment/Weapon';
 import Material from '../../../../../lib/material/Material';
 import Thing from '../../../../../lib/stuff/Thing';
@@ -114,7 +114,7 @@ describe('AnalyzeResponseController', () => {
 
   it('previews an armor piece — how it turns each channel', async () => {
     const { loc, me } = await room();
-    const plate = makeStuff(() => new Armor());
+    const plate = makeStuff(() => new Garment());
     plate.setMaterial(steel());
     plate.setConstruction(Construction.of('plate'));
     ContainmentApi.move(plate, loc);

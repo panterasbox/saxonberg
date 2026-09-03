@@ -22,7 +22,7 @@ import Thing from '../../../../lib/stuff/Thing';
 import Scrap from '../../../thing/Scrap';
 import Forge from '../../../thing/Forge';
 import Weapon from '../../../thing/equipment/Weapon';
-import Armor from '../../../thing/equipment/Armor';
+import Garment from '../../../thing/equipment/Garment';
 import ToolItem from '../../../thing/ToolItem';
 import RecipeCatalogue from '../../RecipeCatalogue';
 import { Reserve } from '../../../../lib/reserve';
@@ -163,7 +163,7 @@ describe('CraftingLogic.repair', () => {
   });
 
   it('soft goods want a mending tool + same-tag stock (a whole donor within 2×)', async () => {
-    const jerkin = makeStuff(() => new Armor());
+    const jerkin = makeStuff(() => new Garment());
     jerkin.setMaterial(mat(LEATHER));
     jerkin.setMass(Quantity.of(4, 'kg'));
     jerkin.setCondition(0.5);
@@ -197,7 +197,7 @@ describe('CraftingLogic.repair', () => {
     ContainmentApi.move(hide, room);
 
     // A shabby jerkin comes out floored at the machine's band.
-    const jerkin = makeStuff(() => new Armor());
+    const jerkin = makeStuff(() => new Garment());
     jerkin.setMaterial(mat(LEATHER));
     jerkin.setMass(Quantity.of(4, 'kg'));
     jerkin.setCondition(0.5);
@@ -207,7 +207,7 @@ describe('CraftingLogic.repair', () => {
     expect(graded(jerkin).getGradeBand()).toBe('fine');
 
     // A masterful piece is never lowered by a fine machine.
-    const heirloom = makeStuff(() => new Armor());
+    const heirloom = makeStuff(() => new Garment());
     heirloom.setMaterial(mat(LEATHER));
     heirloom.setMass(Quantity.of(4, 'kg'));
     heirloom.setCondition(0.5);
@@ -229,7 +229,7 @@ describe('CraftingLogic.repair', () => {
     hide.setMaterial(mat(LEATHER));
     hide.setMass(Quantity.of(2, 'kg'));
     ContainmentApi.move(hide, room);
-    const jerkin = makeStuff(() => new Armor());
+    const jerkin = makeStuff(() => new Garment());
     jerkin.setMaterial(mat(LEATHER));
     jerkin.setMass(Quantity.of(4, 'kg'));
     jerkin.setCondition(0.5);

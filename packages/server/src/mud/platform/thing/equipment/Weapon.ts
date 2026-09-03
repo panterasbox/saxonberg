@@ -1,7 +1,7 @@
 /**
  * Weapon — a melee implement (delivery half + the derived playstyle).
  *
- * The symmetric dual of {@link Armor}: a `Thing` carrying a `Material` (on
+ * The symmetric dual of {@link Garment}: a `Thing` carrying a `Material` (on
  * `Thing`'s `Tangible`), a `Construction` (its weapon-delivery form), a
  * `Grade`, and a wear-on-use `condition`. It *derives* which channel(s) it
  * delivers from its form via `MaterialApi.deliverableChannels` — a dagger

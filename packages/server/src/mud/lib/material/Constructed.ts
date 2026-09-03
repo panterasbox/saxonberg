@@ -4,7 +4,7 @@
  * The sibling of {@link TangibleMixin}'s material axis: a `Tangible` says
  * "made of steel"; a `Constructed` says "worked into plate". Composing this
  * mixin declares that a Stuff carries a {@link Construction} — a material
- * worked into a form with a per-channel response profile. Armor composes it
+ * worked into a form with a per-channel response profile. A covering composes it
  * (its resist profile) and so do weapons (their delivery profile); later,
  * structures will (their crush profile).
  *
@@ -90,7 +90,7 @@ function pipBar(intensity: number): string {
 
 /**
  * Append the derived per-channel response profile to a Constructed host's
- * long description. Armor renders **protection** pips (how well it turns
+ * long description. A covering renders **protection** pips (how well it turns
  * each channel — turned ●●●● … bites-deep ●○○○); a weapon renders
  * **delivery** pips (the threat it presents on each channel — none ○○○○ …
  * bites-deep ●●●●). Non-Constructed / formless hosts pass through unchanged.
