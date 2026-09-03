@@ -32,6 +32,11 @@ Substrate: [watershed](../../subsystems/watershed.md) ·
 [retail](../../subsystems/retail.md) ·
 [civics](../../subsystems/civics.md)
 
+**Content for all three towns is staged under `docs/staging/`** — the
+cast rosters, routines, room maps, culture and per-town build hooks. Those
+are drafting docs and are deleted once they graduate into YAML; the design
+rationale stays here.
+
 Siblings: [freight](./freight-slate.md) · [delivery](./delivery-slate.md) ·
 [cooperative](./cooperative-slate.md) ·
 [campus-grounds](./campus-grounds-slate.md) ·
