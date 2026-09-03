@@ -106,7 +106,8 @@ compose. They do, by multiplication:
 
 - **Seeded character** — texture, drainage, aspect, depth, stoniness, native pH.
   A pure function of address + seed, exactly like `Deposit`. Always was true,
-  never changes, cold-starts fully specified.
+  cold-starts fully specified. ⚠ *"Never changes"* is true **of ground** and
+  false of a bed — D65 draws the line, and pH is offsettable everywhere (D66).
 - **Derived state** — the reserves. A function of recorded history.
 
 Character sets the curve; state is the position on it. The same manure on sand
@@ -784,6 +785,90 @@ intact. Hunting itself belongs to the Wardens and to
 [hunting-slate](../slates/builds/hunting-slate.md), **not to this build** — what
 farmstead owes is the seam.
 
+### Materials, and what soil can actually be changed into
+
+*(D65–D68, added after the materials pass.)*
+
+**D65 — ⭐ The scale rule: you cannot change a field's texture, but a bed's is
+whatever you carried there.** Farthest Frontier lets a player amend soil with
+sand and clay. We must not copy it, because **it is the one soil amendment that
+does not work**: shifting a texture class needs well over half the volume in
+sand, and in the quantities anyone would actually spread, sand into clay makes
+something closer to concrete. Correcting that misconception is worth more than
+reproducing it.
+
+The honest version is a **scale distinction, and the codebase already encodes
+it**: `CultivableMixin` is documented as *"ground that holds plants: **a bulk
+interior of soil**"*, and `fixedGround` exists precisely to separate *"soil in
+the earth"* from *"a container of soil you can pour."*
+
+> **A field's texture is fixed because it is the earth. A bed's is free because
+> it is imported.** You are not amending a bed; you are filling it.
+
+Which finally gives the pot → bed → field ladder a meaning beyond size, and
+makes a raised bed the correct answer to bad ground rather than a smaller
+version of the same thing.
+
+**D66 — What is amendable, and with what.**
+
+| Property | On ground | What changes it |
+|---|---|---|
+| **texture** | **fixed** (free in a bed) | imported mix — bed only (D65) |
+| **pH** | seeded base, **offsettable** | lime up; sulfur and organic acids down |
+| **organic matter** | derived | manure, compost, residues, green manure |
+| **nutrients** | derived | manure, ash, bone meal, legumes (D15) |
+| **structure** | derived | rest and roots build it; poaching destroys it (D17) |
+| **drainage** | seeded, **physically alterable** | ditches and field drains — you do not change the soil, you change where the water goes |
+
+**And the one amendment that genuinely does what Farthest Frontier's clay
+does: marl.** Digging calcareous clay from a pit and spreading it on light land
+was *the* land improvement of its era, and marl pits are still visible in field
+corners. It carries lime and clay together, it is brutally labour-intensive, and
+it lands exactly on D55 — **ground quality is the cost of improvement.** Marl is
+how a player buys their way up the seeded-character ladder, by digging.
+
+**D67 — ⭐⭐ Turnips ship, and the Norfolk four-course becomes derivable.** With
+turnips added to barley (D31) and clover (D43), the build contains the whole
+historical rotation — wheat → **turnips** → **barley** → **clover** ley — and
+every term of it is already a mechanic:
+
+- clover **fixes nitrogen** (D15, D43);
+- the ley is **grazed and returns fertility in place** (D7);
+- turnips are **folded** — sheep penned on the turnip field, eating it where it
+  stands and manuring as they go, which is *literally* D7's `graze` row applied
+  to a root crop and needs **no new mechanism at all**;
+- and the rotation needs **no fallow year**, which is the entire point of it.
+
+So a player who understands the nitrogen ledger can **rediscover the
+agricultural revolution from the mechanics** rather than read about it. That is
+the highest form of what this platform claims to do, and it costs one crop row.
+
+⚠ **Author it honestly**, the same way the flowers slate handles tulip mania:
+the four-course was developed more gradually and by more hands than the "Turnip
+Townshend" story suggests. The mechanism is real; the great-man framing is not.
+
+Turnips also earn their place independently as **winter fodder**, which is what
+D13's feeding sequence otherwise has to buy in.
+
+**D68 — The materials are mostly other systems' byproducts, and that is the
+point.** Sorted by where each comes from, almost nothing here is net-new
+substance:
+
+| Origin | Materials |
+|---|---|
+| **Livestock** | manure (the return leg, D14); **bone → bone meal** for phosphorus, which closes D28's completeness ethic *into the soil*; hide, tallow, horn, sinew |
+| **Barley** | ⭐ **straw** — the sleeper. It is **bedding**, and bedding plus dung is what farmyard manure actually is; and it is **thatch** for the barn |
+| **The fuel chain** | wood ash, for potash |
+| **Clearing** | stone — the wall (D56) and rubble for drains |
+| **Mining** | **limestone**, burnt in a kiln for lime. `Kiln` ships as a class and the metal chain ships the digging, so soil amendment **couples to the mining chain** instead of inventing a source |
+| **Textiles, already shipped** | `tannin.yaml` in `trade-dyeing` — **hide → leather has its reagent waiting** |
+| **Genuinely new** | marl, lime, turnips, and silage if wanted (a ferment the shipped substrate supports, whose hazard is D47's silo gas) |
+
+**The straw loop deserves its own line**, because it is the one most designs
+miss: barley makes grain *and* straw; straw becomes bedding; bedding plus dung
+becomes the manure that fertilises the barley. The nitrogen ledger's return leg
+runs through a byproduct nobody planned for.
+
 ---
 
 ## Constraints
@@ -897,6 +982,16 @@ farmstead owes is the seam.
     firewood demand rises across the locality when the season turns.
 31. A landholder with a predator problem can hire it solved through the shipped
     work-contract substrate rather than only solving it personally.
+32. A bed's soil composition can be set by what is put in it; a field's texture
+    cannot be changed by any amendment, and attempting it is refused with the
+    reason named.
+33. Lime measurably moves a field's pH off its seeded base, and marl improves
+    light ground at a labour cost proportionate to the improvement.
+34. Sheep folded on a standing turnip crop consume it in place and return
+    fertility to that field, using the same path as grazing a sward.
+35. A four-course rotation of wheat, turnips, barley and clover sustains yield
+    across repeated cycles **without a fallow year**, and a player can verify
+    that from the nitrogen ledger alone.
 
 ## Slate revisions this cycle makes
 
