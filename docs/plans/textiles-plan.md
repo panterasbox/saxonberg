@@ -371,34 +371,64 @@ the outermost layer's contribution to the convective coefficient. **No
 `shell` role word** — the dense oiled thing simply is one.
 
 Per-garment arithmetic is `WearableMixin.getClo()` (one object's own read
-— no thin Api wrapper). **Stack** arithmetic is `CoveringLogic` (P6),
+— no thin Api wrapper). **Stack** arithmetic is `SlottedMixin` (P6),
 because that is cross-object orchestration.
 
 ⚠ `Quantity<'clo'>` and its marshaller stay; only the *field* goes.
 `lint:field-meta` will flag the removal — that is the intended tripwire.
 
-### P6 — One `CoveringApi`/`CoveringLogic`, and three hand-rolled walks collapse into it
+### P6 — The covering stack lives ON the wearer. ⚠⚠ NO new Api.
 
-⚠ `ConditionLogic:109–150`, `CombatLogic:2746–2780` and
-`ElectricityLogic:247` each independently walk `getSlotsCovering(part)` →
-occupants → `isConstructed` → sort by `getLayerDepth`. Adding a fourth
-copy for thermal, a fifth for soiling and a sixth for concealment is not
-acceptable. The build ships `api/covering.ts` +
-`platform/idea/api/CoveringLogic.ts` (the mandatory `XApi`↔`XLogic`
-split) as the single home for *"what is over this part, outermost-in."*
+*(Corrected 2026-09-02 by the user. The plan as returned proposed a
+the covering-stack methods pair whose every method took `wearer` as
+its first parameter. **That is the exact shape the Api OO sweep
+eliminated**, and it would have failed CI on the first run.)*
+
+⚠⚠ **`check-object-verbs` is CI-gating and its census must stay zero.**
+It counts every public static method on an exported `*Api` under
+`src/mud/api/` whose **first parameter is typed as a world object**, and
+the four mandates it still allows are: subjectless services · framework
+lifecycle around a least-trusted host · the import/exterior boundary ·
+subjectless cross-cutting dispatch. A covering-stack read is **none of
+them** — it is one host answering about its own slots. Eight such methods
+would have taken the census 0 → 8.
+
+**The surface, on the two objects that own it:**
+
+*On `SlottedMixin`* (the wearer — guarded to hosts that resolve a body
+plan, the same guard the impression augmenter uses; a weapon rack answers
+empty/zero):
 
 ```
-CoveringApi.stackAt(wearer, partKey): CoveringLayer[]   // outermost-first
-CoveringApi.outermostAt(wearer, partKey): Stuff | null
-CoveringApi.cloAt(wearer, partKey): Quantity<'clo'>
-CoveringApi.bodyInsulation(wearer): Quantity<'clo'>     // surface-weighted
-CoveringApi.attentionFactor(wearer): number             // P10/P11
-CoveringApi.concealmentOffset(wearer): number           // P10
-CoveringApi.fitOf(garment, wearer): FitReading          // P7
-CoveringApi.wouldViolateLadder(wearer, candidate): boolean
+wearer.coveringAt(partKey): CoveringLayer[]      // outermost-first
+wearer.outermostAt(partKey): Stuff | null
+wearer.insulationAt(partKey): Quantity<'clo'>
+wearer.bodyInsulation(): Quantity<'clo'>         // surface-weighted
+wearer.attentionFactor(): number                 // P11
+wearer.concealmentOffset(): number               // P10
+wearer.wouldLayerViolate(candidate): boolean
 ```
 
-**The ordering rule** (AC 5), one comparator in one place:
+*On `WearableMixin`* (the garment):
+
+```
+garment.getClo(): Quantity<'clo'>                // P5, derived
+garment.fitOn(wearer): FitReading                // P7
+```
+
+⭐ **`fitOn` sits on the garment, not the wearer** — the garment carries
+`cutTo` and is the thing that fits or does not. The wearer is the
+argument.
+
+⭐⭐ **The dedup survives intact, and improves.** The three hand-rolled
+walks in `ConditionLogic:109–150`, `CombatLogic:2746–2780` and
+`ElectricityLogic:247` still collapse into one implementation — they call
+`host.coveringAt(part)`. **Better than the Api version**, because each of
+those logic singletons already holds the host, so the call *drops* a
+parameter instead of adding an Api hop.
+
+**The ordering rule** (AC 5), one comparator, in one place —
+`SlottedMixin`'s private sort:
 
 > **form sets the band; wear-order breaks ties inside a band.**
 
@@ -408,24 +438,31 @@ preserves it and `PersistableMixin`'s slot slice restores it
 (`Slotted.ts:648` re-wears via `occupyAll`), **so the order is durable
 with no new field.**
 
-**The ladder refusal:** `WearController` asks `wouldViolateLadder` before
-`occupyAll` — true iff the candidate's band is strictly below something
-already occupying a claimed slot. A `controller-rejected` note, reason
-`layer-order`, with a diegetic line. ⚠ **Shirt-vs-coat is NOT refused** —
-that is the player's call and its consequence is cold.
+**The ladder refusal:** `WearController` asks
+`giver.wouldLayerViolate(target)` before `occupyAll` — true iff the
+candidate's band is strictly below something already occupying a claimed
+slot. A `controller-rejected` note, reason `layer-order`, with a diegetic
+line. ⚠ **Shirt-vs-coat is NOT refused** — that is the player's call and
+its consequence is cold.
 
 **Per-part surface weighting** (AC 4). `BodyPlan` gains derived
 `getPartSurfaceFraction(partKey)` — **Meeh's law over the shipped tissue
 masses**, `m_part^(2/3) / Σ m^(2/3)`. No new authored field; `biped.yaml`
 already carries every tissue mass. Then
-`bodyInsulation = Σ_parts surfaceFraction(part) × cloAt(part)`, and
-`wornInsulationKelvin()` calls that instead of its flat sum. **A bare hand
-costs exactly its surface share; a cloak beats a shirt because it covers
-more parts.**
+`bodyInsulation() = Σ_parts surfaceFraction(part) × insulationAt(part)`,
+and `ThermalRegulation.wornInsulationKelvin()` calls
+`self.bodyInsulation()` instead of its flat sum. **A bare hand costs
+exactly its surface share; a cloak beats a shirt because it covers more
+parts.**
 
 ⚠ **`ElectricityLogic`, `ConditionLogic` and `CombatLogic` are re-pointed
-at `CoveringApi.stackAt` in A5 and their local walks deleted.** This is
+at `host.coveringAt(...)` in A5 and their local walks deleted.** This is
 the riskiest refactor in the build.
+
+⚠ **If some later wave believes it needs an Api here, that is a design
+error, not a shortfall.** Read `docs/antipatterns.md` § *Thin Api
+Wrappers over Object Methods* and the four mandates in
+`check-object-verbs` before reaching for one.
 
 ### P7 — Fit is two derived numbers and one stamp
 
@@ -523,7 +560,7 @@ wants. Do not "balance" it away.
 ### P9 — Soiling: routing + one pre-registered event, and nothing resembling a gauge
 
 - **The routing** — genuinely textiles' business, because it is the
-  layering model: `CoveringApi.outermostAt` answers *which layer takes the
+  layering model: `outermostAt` answers *which layer takes the
   stain*. One method already needed by P6, with a second consumer.
 - **The event** — `Events.SoilDeposited = 'soil.deposited'`, payload
   `{ actorId, targetId, partKey, extent }` (**`(actor, target, extent)` is
@@ -563,7 +600,7 @@ isConcealed(l) = rankOf(l) > rankOf('obvious')     // was `l !== 'obvious'`
   thing already always resolves. **This is the honest finding and it goes
   into `concealment.md` rather than being papered over.**
 - **`hideLevelForImpl` gains one term:**
-  `+ CoveringApi.concealmentOffset(actor) × dial(stealthHideCoveringWeight)`,
+  `+ actor.concealmentOffset() × dial(stealthHideCoveringWeight)`,
   and its terminal `return 'obvious'` becomes a conspicuous floor below a
   threshold. ⭐ **A person in a hi-vis vest who hides gets a worse floor
   than a person in grey** — that is AC 18, mechanically.
@@ -583,7 +620,7 @@ isConcealed(l) = rankOf(l) > rankOf('obvious')     // was `l !== 'obvious'`
 per-wearer term. One multiplication:
 
 ```
-standbyWatts_effective = dial(magicChargeStandbyWatts) × CoveringApi.attentionFactor(wearer)
+standbyWatts_effective = dial(magicChargeStandbyWatts) × wearer.attentionFactor()
 ```
 
 `attentionFactor ∈ [floor, 1]` derives from the same worn read — a deep
@@ -671,7 +708,7 @@ deployment manifest. Each imports the kernel **only by package specifier**
 and writes absolute `FromModule` gates.
 
 ⚠ **A pack ships no mixin, no Api, no `lib/`.** `DyedMixin`,
-`CoveringForm`, `CoveringApi`/`CoveringLogic` and `WardrobeMixin` are all
+`CoveringForm`, the covering-stack methods and `WardrobeMixin` are all
 **kernel**, all in Stage A; Stage B consumes them.
 
 ### P15 — The chain must span the tech ladder, and three seams decide whether it can
@@ -828,17 +865,17 @@ Per P8. ⚠ **Moves live numbers. Its own commit, its own message.**
 - **Proves it:** a halfling and a dragonborn no longer carry the same
   weight, punch with the same energy, or cool at the same rate.
 
-### Wave A5 — the covering stack: `CoveringApi`/`CoveringLogic`, derived `clo`, per-part thermal
+### Wave A5 — the covering stack: the covering-stack methods, derived `clo`, per-part thermal
 
 Per P5 + P6. **The largest and riskiest kernel wave.**
 
-- **Kernel:** new `api/covering.ts` + `platform/idea/api/CoveringLogic.ts`;
+- **Kernel:** the covering-stack methods on `Slotted.ts`;
   `Wearable.ts` (delete the `clo` field, derive `getClo()`); `BodyPlan.ts`
   (`getPartSurfaceFraction`); `ThermalRegulation.ts` (the surface-weighted
   per-part sum + the windproofing term); `Tangible`/`Wet` (wet mass);
   `WearController.ts` (the ladder refusal).
 - **Refactor:** `ConditionLogic:109–150`, `CombatLogic:2746–2780`,
-  `ElectricityLogic:247` re-pointed at `CoveringApi.stackAt`; the three
+  `ElectricityLogic:247` re-pointed at `host.coveringAt(part)`; the three
   local walks deleted.
 - **Settings:** the clo dials (`ABS_REF`, the looseness coefficient, the
   windproofing weight).
@@ -860,7 +897,7 @@ Per P5 + P6. **The largest and riskiest kernel wave.**
 Per P7. Depends on A4 (stature) and A5 (clo).
 
 - **Kernel:** `Wearable.ts` (`cutTo`, the stock fallback);
-  `CoveringLogic.fitOf` + the clo/burden/wear consequences;
+  `WearableMixin.fitOn` + the clo/burden/wear consequences;
   `WearController` (the impossible-fit refusal); `LoadBearing.ts` (the
   tightness burden term).
 - **Tests:** bespoke out-performs stock on the same body (AC 7); a
@@ -894,7 +931,7 @@ Per P9.
 
 - **Kernel:** `lib/events.ts` (`SoilDeposited` + payload); new
   `lib/material/Dyed.ts`; `Garment` composes it; `WashController` gains
-  the launder branch; `CoveringApi.outermostAt` gets its second consumer.
+  the launder branch; `outermostAt` gets its second consumer.
 - **Tests:** a deposit routes to the outermost layer over the affected
   part, and to the *shirt* when no outer layer covers it; the event fires
   with `(actor, target, extent)`; washing decays fastness and a poor
@@ -911,7 +948,7 @@ Per P10 + P11.
 - **Kernel:** `ConcealmentLevel.ts` (the band, `isConcealed`, the dial);
   `Concealable.ts` (derive-on-read); `PerceptionLogic.hideLevelForImpl`
   (the covering term + the conspicuous floor); `lib/magic/Charged.ts` (the
-  attention factor); `CoveringLogic` (`concealmentOffset`,
+  attention factor); `SlottedMixin` (`concealmentOffset`,
   `attentionFactor`).
 - **Settings:** `concealment.level.conspicuous`,
   `stealth.hide.coveringWeight`, the attention floor.
@@ -1146,7 +1183,7 @@ not "write a new one."**
 - "Outfit" is a `Business`. The word is **livery**.
 - ⚠⚠ **A pack `src/` cannot hold a mixin, an Api or a `lib/`** — which is
   why `DyedMixin`, `CoveringForm`, `WardrobeMixin` and
-  `CoveringApi`/`CoveringLogic` are all kernel and all in Stage A.
+  the covering-stack methods are all kernel and all in Stage A.
 - ⚠ `hood.yaml`'s `covers: [face]` is `DisguiseBearingMixin`'s field, not
   `SlotSpec.covers`. `face` is not a body-plan part key.
 - ⚠ `Construction.ts` must stay import-pure — two build-time lint scripts

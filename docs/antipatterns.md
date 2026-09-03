@@ -38,6 +38,51 @@ existence by *orchestrating* (e.g. `ContainmentApi.move`,
 `materialOf`/`conditionsOf`/`afflict`/`relieve`/lifecycle predicates/…);
 don't reintroduce it. Enforced by `pnpm lint:thin-forwarder` (CI-gating).
 
+### ⚠⚠ The FAT variant — a new Api whose methods take the host first
+
+**The thin-forwarder lint does not catch this, and the section title
+undersells it.** `check-thin-forwarder` only flags a body that is *purely*
+`return param.method(...)`. An Api method that does real work — a walk, a
+sort, an aggregation — passes that lint while committing the same sin, if
+its **subject is a world object it takes as a parameter**.
+
+```typescript
+// BAD — every method's subject is the wearer, so this is XApi.verb(host, …)
+CoveringApi.stackAt(wearer, partKey)
+CoveringApi.bodyInsulation(wearer)
+CoveringApi.wouldViolateLadder(wearer, candidate)
+```
+```typescript
+// GOOD — the wearer answers about its own slots
+wearer.coveringAt(partKey)
+wearer.bodyInsulation()
+wearer.wouldLayerViolate(candidate)
+```
+
+⚠ **"But it deduplicates three callers" is not a reason to mint an Api.**
+It is a reason to put the method on the object all three callers already
+hold — which drops a parameter instead of adding a hop.
+
+**The test, before you write a new `*Api`:** does it fall under one of the
+**four mandates** enumerated in `scripts/check-object-verbs.ts`?
+
+1. a **subjectless service**,
+2. **framework lifecycle** around a least-trusted host,
+3. the **import / exterior boundary**,
+4. **subjectless cross-cutting dispatch**.
+
+If the answer is "none of those, but it's convenient" — it is an
+antipattern, and `pnpm lint:object-verbs` will fail the build. That lint
+counts every public static on an exported `*Api` under `src/mud/api/`
+whose **first parameter is typed as a world object**, and has been
+**CI-gating with a required census of zero** since the Api OO sweep's exit
+(Phase G). The sweep took ~100 such methods across ~20 Apis to zero;
+adding one back is a regression, not a new feature.
+
+⭐ Note the split that survives all of this: the **`XApi` ↔ `XLogic`
+tier** is mandatory *for an Api that should exist* (§ Collapsing the Api ↔
+Logic Split). This section is about whether it should exist at all.
+
 ## `ApiOnly` as a Substitute for a Real Security Contract
 
 **ANTIPATTERN**: Gating a privileged object mutator `ApiOnly` (any
