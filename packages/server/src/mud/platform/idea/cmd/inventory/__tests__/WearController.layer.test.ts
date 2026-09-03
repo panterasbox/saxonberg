@@ -12,6 +12,7 @@ import { describe, it, expect, afterEach } from 'vitest';
 import WearController from '../WearController';
 import { WearableMixin } from '../../../../../lib/slot/Wearable';
 import { SlottableMixin } from '../../../../../lib/slot/Slottable';
+import { WardrobeMixin } from '../../../../../lib/slot/Wardrobe';
 import { ConstructedMixin } from '../../../../../lib/material/Constructed';
 import { ContainableMixin } from '../../../../../lib/spatial/Containable';
 import { CommandGiverMixin } from '../../../../../lib/command/CommandGiver';
@@ -41,7 +42,9 @@ class TestGarment extends WearableMixin(
 ) {}
 
 /** A body with a real covering slot the ladder can be tested on. */
-class Wearer extends SensorMixin(CommandGiverMixin(Character)) {}
+class Wearer extends WardrobeMixin(
+  SensorMixin(CommandGiverMixin(Character)),
+) {}
 
 let seq = 0;
 
@@ -242,5 +245,123 @@ describe('the impossible fit', () => {
       | undefined;
     expect(rejection?.reason).toBe('fit-impossible');
     expect(big.getOccupants('torso').has(coat)).toBe(false);
+  });
+});
+
+describe('the wardrobe stanza — getting dressed is one command', () => {
+  afterEach(() => {
+    Construction.clearFabrics();
+    StuffApi.clearAll();
+  });
+
+  function dressed(): {
+    body: Wearer;
+    planPath: string;
+    location: Location;
+    shirt: TestGarment;
+    coat: TestGarment;
+  } {
+    installV1QuantityMarshallers();
+    Construction.registerFabric({
+      key: 'woven',
+      layerBand: 0,
+      loft: 0.1,
+      weaveDensity: 0.75,
+      drape: 0.6,
+    });
+    const { body, planPath } = bodyAndPlanPath();
+    const location = makeStuff(() => new Location());
+    ContainmentApi.move(body, location);
+    const shirt = garment(planPath, 'woven', 'shirt');
+    const coat = garment(planPath, 'woven', 'coat');
+    ContainmentApi.move(shirt, body);
+    ContainmentApi.move(coat, body);
+    return { body, planPath, location, shirt, coat };
+  }
+
+  function run(
+    body: Wearer,
+    location: Location,
+    model: Record<string, unknown>,
+  ): ReturnType<typeof context> {
+    const ctx = context(body, location);
+    makeStuff(() => new WearController()).execute(
+      model as never,
+      ctx,
+    );
+    return ctx;
+  }
+
+  it('⭐ `--save` captures the worn stack in WEAR ORDER (innermost first)', () => {
+    const { body, location, shirt, coat } = dressed();
+    body.occupyAll(shirt, ['torso']);
+    body.occupyAll(coat, ['torso']);
+
+    run(body, location, { subcommand: 'set', name: 'daily', save: true });
+    // Worn shirt-then-coat, so the saved order is shirt-then-coat —
+    // which is exactly the order a replay must dress in.
+    expect(body.getWardrobe('daily')).toEqual(['shirt', 'coat']);
+  });
+
+  it('replays the set in one command, innermost-first', () => {
+    const { body, location, shirt, coat } = dressed();
+    body.setWardrobe('daily', ['shirt', 'coat']);
+
+    run(body, location, { subcommand: 'set', name: 'daily' });
+    expect(body.getOccupants('torso').has(shirt)).toBe(true);
+    expect(body.getOccupants('torso').has(coat)).toBe(true);
+    // …and the ladder is satisfied: the coat went on second, so it is
+    // outer, which is what wear order means.
+    expect(body.coveringAt('body.torso')[0]).toBe(coat);
+  });
+
+  it('⚠ a missing keyword is SKIPPED readably and the rest still land', () => {
+    // A dressing mistake has to be survivable and readable, and that
+    // starts here: failures are per-item and non-fatal.
+    const { body, location, shirt } = dressed();
+    body.setWardrobe('daily', ['shirt', 'hat-i-sold', 'coat']);
+
+    const ctx = run(body, location, { subcommand: 'set', name: 'daily' });
+    expect(body.getOccupants('torso').has(shirt)).toBe(true);
+    // No rejection note — a partial dress is a success with a caveat.
+    expect(
+      ctx.getNotes().some((n) => n.kind === 'controller-rejected'),
+    ).toBe(false);
+  });
+
+  it('an unknown set is refused by name', () => {
+    const { body, location } = dressed();
+    const ctx = run(body, location, { subcommand: 'set', name: 'nope' });
+    const rejection = ctx
+      .getNotes()
+      .find((n) => n.kind === 'controller-rejected') as
+      | { reason?: string }
+      | undefined;
+    expect(rejection?.reason).toBe('unknown-set');
+  });
+
+  it('`--save` with nothing on refuses rather than saving an empty set', () => {
+    const { body, location } = dressed();
+    const ctx = run(body, location, {
+      subcommand: 'set',
+      name: 'empty',
+      save: true,
+    });
+    const rejection = ctx
+      .getNotes()
+      .find((n) => n.kind === 'controller-rejected') as
+      | { reason?: string }
+      | undefined;
+    expect(rejection?.reason).toBe('nothing-worn');
+    expect(body.getWardrobeNames()).toEqual([]);
+  });
+
+  it('`wear sets` lists what is saved', () => {
+    const { body, location } = dressed();
+    body.setWardrobe('daily', ['shirt', 'coat']);
+    const ctx = run(body, location, { subcommand: 'sets' });
+    expect(
+      ctx.getNotes().some((n) => n.kind === 'controller-rejected'),
+    ).toBe(false);
   });
 });

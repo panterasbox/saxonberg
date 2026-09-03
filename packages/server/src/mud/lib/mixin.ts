@@ -292,6 +292,7 @@ export const Mixins = {
   Slotted: 'SlottedMixin',
   Slottable: 'SlottableMixin',
   Wearable: 'WearableMixin',
+  Wardrobe: 'WardrobeMixin',
   Wieldable: 'WieldableMixin',
   Postured: 'PosturedMixin',
   Posed: 'PosedMixin',

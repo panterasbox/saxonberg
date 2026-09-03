@@ -111,6 +111,7 @@ import type {
 } from '../lib/persistence/PersistenceSlice';
 import type { Slottable } from '../lib/slot/Slottable';
 import type { Wearable } from '../lib/slot/Wearable';
+import type { Wardrobe } from '../lib/slot/Wardrobe';
 import type { Wieldable } from '../lib/slot/Wieldable';
 import type { Postured } from '../lib/slot/Postured';
 import type { Posed } from '../lib/character/Posed';
@@ -1103,6 +1104,10 @@ export class MixinApi {
 
   public static isWearable(obj: Stuff): obj is Stuff & Wearable {
     return this.hasMixin(obj, Mixins.Wearable);
+  }
+
+  public static isWardrobe(obj: Stuff): obj is Stuff & Wardrobe {
+    return this.hasMixin(obj, Mixins.Wardrobe);
   }
 
   public static isWieldable(obj: Stuff): obj is Stuff & Wieldable {

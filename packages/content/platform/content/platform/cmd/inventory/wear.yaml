@@ -7,8 +7,15 @@ help: |
   until you take it off.
 
   The item has to be in your inventory and has to be something that
-  can actually be worn. If the body slot it needs is already taken,
-  take off what's there first with `remove`.
+  can actually be worn. You can layer — a coat over a shirt is fine,
+  and which of them goes on first is your call — but a light thing
+  will not go on OVER a heavy one, and a garment cut for a body
+  unlike yours will not go on at all.
+
+  Getting dressed is one command. `wear set <name> --save` remembers
+  what you have on right now under that name; `wear set <name>` puts
+  it back on, innermost first, skipping anything you no longer have.
+  `wear sets` lists what you have saved.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresSlotted
@@ -21,3 +28,22 @@ args:
     requires: WearableMixin
     validators:
       - /lib/command/validators/mustBeInInventory
+# ⭐ `set` / `sets` are STANZAS on this shipped view, not verbs — zero
+# new verbs ship for the wardrobe, and `dress` stays unclaimed
+# (reserved for the butchery pack, settled with build-3). `fallthrough`
+# is what keeps bare `wear <item>` working: an unrecognised first token
+# is not an error, it binds against `args:` above.
+fallthrough: true
+subcommands:
+  set:
+    description: "Put on a saved outfit (`--save` to remember what you have on)"
+    args:
+      - name: name
+        type: string
+        required: true
+    options:
+      save:
+        type: boolean
+        description: "Save what you are wearing right now under <name>"
+  sets:
+    description: "List your saved outfits"

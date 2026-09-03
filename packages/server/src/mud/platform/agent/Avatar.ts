@@ -46,6 +46,7 @@ import { PersistableApi } from "../../api/persistable";
 import { HasInteractiveMixin } from "../../lib/connection/HasInteractive";
 import { AetherMixin } from "../../lib/message/Aether";
 import { ContactsMixin } from "../../lib/social/Contacts";
+import { WardrobeMixin } from "../../lib/slot/Wardrobe";
 import { NotifyPolicyMixin } from "../../lib/social/NotifyPolicy";
 import { SubjectSubscriberMixin } from "../../lib/forum/SubjectSubscriber";
 import { PartyMemberMixin } from "../../lib/party/PartyMember";
@@ -164,7 +165,13 @@ const AvatarBase = PersistableMixin(
           AetherMixin(
             NotifyPolicyMixin(
               ContactsMixin(
-                PartyMemberMixin(SubjectSubscriberMixin(ShelledCharacter)),
+                // ⭐ The wardrobe rides the `holder_snapshots` capture
+                // this composition already performs — named outfits are
+                // a `Record<string, string[]>` field, so they need no
+                // collection and no marshaller of their own.
+                WardrobeMixin(
+                  PartyMemberMixin(SubjectSubscriberMixin(ShelledCharacter)),
+                ),
               ),
             ),
           ),

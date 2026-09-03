@@ -142,6 +142,49 @@ the `Chair`/`sit` posture-slot side this gates.
 `isSlotFull(slot)` returns `count >= capacity`. `isSlotOccupied`
 returns `count > 0`.
 
+## ⭐ The wardrobe — `wear set`, and zero new verbs
+
+`WardrobeMixin` (`lib/slot/Wardrobe.ts`, composed by `Avatar`) holds
+named outfits as `wardrobes: Record<string, string[]>` — a set name to
+an ordered **keyword** list, innermost-first.
+
+**Why a mixin field**, stated because each alternative is wrong for a
+different reason: not a Mongo collection (forbidden, and it rides the
+Avatar's existing `holder_snapshots` capture for free); not a
+`Property` (a prop is for a slot whose *key* is computed at runtime,
+and this field is narrowed on and Hydrator-reflected); not an
+`EnvironmentMixin` setting (fixed keyspace — wardrobes are whatever the
+player calls them). It is byte-identical in shape to
+`Wearable.slotClaims`, and it is the persistent-fields doctrine's named
+**variable-key** escape hatch — the exact contrast to the fit stamp's
+three fixed scalars.
+
+⭐ **Keywords, not instance refs.** A saved set survives buying a
+replacement shirt (the new one answers to the same word), a keyword
+resolving to nothing is **skipped with a readable line** rather than
+dangling, and there is no lifetime relationship to maintain.
+
+**Replay** dresses in the saved order, which is wear order, which is
+innermost-first — so a saved set never trips the covering ladder's
+refusal. ⚠ **Failures are per-item and non-fatal**: a dressing mistake
+has to be survivable and readable, and that starts here.
+
+### ⚠ It is a STANZA, not a verb
+
+`wear set <name>` (with `--save`) and `wear sets` are `subcommands:` on
+the shipped `cmd/inventory/wear.yaml`, alongside its existing `args:` —
+the `measure strike` precedent, second instance. `fallthrough: true` is
+what keeps bare `wear <item>` working once the verb has subcommands: an
+unrecognised first token binds against `args:` instead of erroring.
+
+⚠ **The requirement said *"`dress` is not taken"* and that premise was
+stale.** `medical/treat.yaml` has shipped `verbs: [treat, bind, dress]`
+since the medic build, where it means *dressing a wound*. So "unclaimed"
+was already false and the constraint as written is unsatisfiable. What
+it protects is checkable and is what the source-shape test asserts:
+**this build adds no verb**, so `dress` still resolves to exactly one
+view and that view is medical's.
+
 ## Mutation surface
 
 - `occupy(candidate, slot)` — throws on unknown slot, full slot,
