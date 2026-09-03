@@ -46,6 +46,9 @@ reality forced. The seeding design is
   residue.
 - **Tasting reads composition, filtered by the taster's competence** —
   the same act tells a novice and a master different things.
+- **You eat with tools** — cutlery exists, joins the same reuse loop as
+  the dishes, and `eat` uses it when it can. Eating with your hands
+  still works and is observable.
 - **The trade is `cooking` everywhere**, with no dangling dependents in
   sibling packs, the kernel, or the docs.
 - **The roster teaches the method vocabulary** across a difficulty
@@ -87,9 +90,14 @@ Each names where it lands instead.
   the clearance.
 - **Nutrient deficiency wiring** (scurvy), **prep acts and scrap
   objects**, **kitchen-mess room condition**, **utilities**, **magic
-  food**, **cutlery auto-use on `eat`**. Each is designed in the slate
-  and deliberately unscheduled; cutlery in particular would change a
-  core verb for texture, which this build does not spend.
+  food**. Each is designed in the slate and deliberately unscheduled.
+- ⚠ **The tableware toxin vector** (pewter and lead-glaze leaching into
+  acidic food) — *designed, and blocked on a term we deferred on
+  purpose*: leaching needs **acidity**, acidity is `f_pH`, and
+  terms-not-methods assigns `f_pH` to the victualler build. Lead also
+  ships as a toxin type with *chronic content deferred*, so the arc is
+  months long and not drivable in W3. When `f_pH` lands, the vector
+  lights up for pewter plates and lead-glazed pottery together.
 
 ## Surface decisions
 
@@ -183,6 +191,28 @@ Materials (meat, roots, the cooked blends). This *generalises* the
 pack's scope rather than narrowing it, and leaves fishing's own
 perishability driver already satisfied when that build arrives.
 
+### Cutlery is in, because objects and use are inseparable
+
+Added on review (2026-09-03) after being cut. Both halves of the
+original non-goal were weak: **smithing already mints small metal
+goods** (`belt-knife` is a shipped recipe), so a table knife is
+authorable today and the missing carver blocks only *wooden* spoons;
+and the "changes a core verb" worry is answered by the design itself —
+**never a gate, always a read**.
+
+The structural argument that settles it: **cutlery-as-objects and
+cutlery-in-use cannot be split.** If utensils exist and join the wash
+loop, something must dirty them, and that something is eating. Half-in
+is incoherent, so it is both halves or neither.
+
+In scope: utensil categories (`spoon` · `fork` · `table-knife`) join
+the vessel-kind vocabulary — the same edit already being made for
+`plate`/`bowl`/`mug`; metal rows minted by smithing plus a wood/horn
+spoon row; and **`eat` claims a clean reachable utensil, soils it, and
+narrates it** — none reachable → you eat with your hands, which works
+fine and is *observable*. The act always succeeds; only the reading
+changes.
+
 ### The rename is its own work item with a dependents checklist
 
 `/trade/hearth-cooking` → `/trade/cooking` touches **49 files**, and
@@ -274,6 +304,9 @@ build must not reopen it. Food **feeds**; it does not heal.
     crockery.
 11. `taste` on a dish returns its composition, and the reading differs
     by the taster's competence band.
+11a. Utensil categories exist; `eat` soils a claimed utensil when one is
+    reachable and **succeeds bare-handed when none is**, with the
+    difference visible in the scene — proven both ways by test.
 
 **W2 — content**
 
