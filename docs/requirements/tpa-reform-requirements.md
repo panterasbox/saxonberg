@@ -190,7 +190,18 @@ per second and needs a standing supply. A teleport terminal is an impulse
 device; a ward is a binding one. Nothing else has to be decided."* A field
 that decides a policy is not a class split.
 
-Surface: `canDraw(τ)` / `draw(τ)` / `supplyReport()`.
+Surface: `canDraw(τ)` / `draw(τ)` / `supplyState()`.
+
+⚠ **No `supplyReport()`, and dropping it is deliberate** (2026-09-02). An
+earlier revision had the mixin implement the water build's structural
+`SupplyReporting` shape, which would have made `analyze water <terminal>`
+accidentally work. **Nothing needs it**: a traveller learns the terminal's
+condition from the status light and, in words, from its long description,
+and learns the price from the departures board. A method whose only
+consumer is a verb this build is not adding is dead surface — the
+`lint:does-nothing` case. ⭐ **The `SupplyState` vocabulary is reused; the
+reporting interface is not.** The six words are what the light and the
+refusal say, and that is the real reuse.
 
 ### D5 — Three supply sources, one `SupplyState` report
 
@@ -552,7 +563,7 @@ where it has been parked since before content packs existed.
   whose **first parameter is a typed world object** is a build failure —
   a verb whose subject is an object lives ON the object. This build must
   add **no** `XApi.verb(host, …)`: the whole mana surface (`canDraw`,
-  `draw`, `supplyReport`) is mixin methods, and the terminal's reads are
+  `draw`, `supplyState`) is mixin methods, and the terminal's reads are
   the terminal's. What was already doctrine
   ([oo calling conventions](../antipatterns.md)) is now a gate.
 - **⚠ `ThermalApi` and `SlotApi` were retired by that sweep.** The slot
@@ -612,7 +623,7 @@ where it has been parked since before content packs existed.
 7. A `ManaCell` is `Charged + Slottable`, fits a declared bay, and can be
    swapped through the shipped `device` verbs.
 8. A device supplied by a **cell**, a **line**, and a **person in contact**
-   all report through one `supplyReport()`, and the device holds no branch
+   all resolve through one `resolveSupply()`, and the device holds no branch
    on which answered.
 9. An exhausted terminal reports **`dry`**, shows grey, and refuses the
    ride — with no TPA-specific breakdown code in the path.

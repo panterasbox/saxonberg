@@ -149,8 +149,10 @@ source, not taken from a doc.**
 - `lib/supply/SupplyState.ts`: six words, `SUPPLY_STATE_PRECEDENCE`,
   `SUPPLY_STATE_GLOSS`, and the **structural**
   `SupplyReporting { supplyReport?(nowS): Promise<SupplyReport> }`.
-  `AnalyzeWaterController:139` reads it **by shape**, so anything answering
-  `supplyReport` is already analyzable.
+  `AnalyzeWaterController:139` reads it **by shape** — ⚠ which is precisely
+  why `ManaPoweredMixin` must **not** implement that shape (P8): it would
+  make `analyze water <terminal>` accidentally work, and no consumer wants
+  it. The **vocabulary** is reused; the reporting interface is not.
 - `AccessRegistry.heldExtents` walks `ParcelApi.allRecords()` and admits on
   `record.getOwner()` — **title only**. Use-grants (`grants[]`) are structurally
   excluded, so AC20 is nearly free. `/home/<key>` is unioned in for Avatars.
@@ -504,7 +506,7 @@ const TpaTerminalBase =
           FixtureMixin(
             DetailedMixin(
               FastTravelMixin(     // the node: routes, board, timetable
-                ManaPoweredMixin(  // canDraw / draw / supplyReport / drawMode
+                ManaPoweredMixin(  // canDraw / draw / supplyState / drawMode
                   SlottedMixin(    // the battery bay
                     ChargedMixin(  // the impulse device's stored charge
                       ReservedMixin(
@@ -569,8 +571,6 @@ export interface ManaPowered {
   canDraw(tau: number): Promise<boolean>;
   /** All-or-nothing, the shipped `spendCharge` contract. */
   draw(tau: number): Promise<boolean>;
-  /** The six-word report, verbatim vocabulary. */
-  supplyReport(nowS: number): Promise<SupplyReport>;
   /** SYNC, precedence-ordered, `null` when working — what `getStatus()` reads. */
   supplyState(): SupplyState | null;
   /** Which of the three answered — for the FARE, never for the draw. */
@@ -594,18 +594,22 @@ answered"* is satisfied honestly. Ordered:
 
 `draw(tau)`: reconcile → if the reservoir already covers `tau`,
 `spendCharge(tau)` and return; else `resolveSupply()?.feed(this, deficit)` →
-re-check → `spendCharge` or refuse. `supplyReport` composes
-`{label, state, lines}` from the reservoir fraction and the supply's own state,
-ordering multiple troubles by `SUPPLY_STATE_PRECEDENCE` and glossing with
+re-check → `spendCharge` or refuse. The condition surfaces as **one of the six
+words**, ordered by `SUPPLY_STATE_PRECEDENCE` and glossed with
 `SUPPLY_STATE_GLOSS` — **the vocabulary is imported and never extended.**
 
-⭐ **`supplyState()` is sync and `supplyReport()` is async, and the split is not
-cosmetic.** `FastTravelMixin.getStatus()` is synchronous and is read from
-`getPresentationMml` on every room listing; making it async would ripple into
-the render path. Every mana read *is* synchronous (`getStoredTau`,
-`reconcileCharge`) — water's `supplyReport` is async only because it walks a
-river graph. So the grey light rides the sync read, and `analyze` rides the
-async one.
+⭐ **`supplyState()` is sync, and that is load-bearing.**
+`FastTravelMixin.getStatus()` is synchronous and is read from
+`getPresentationMml` on **every room listing**; an async condition read would
+ripple into the render path. Every mana read *is* synchronous (`getStoredTau`,
+`reconcileCharge`), so nothing forces a promise here — water's `supplyReport`
+is async only because it walks a river graph.
+
+⚠ **And the mixin deliberately does not implement `SupplyReporting`.** Doing so
+would make `analyze water <terminal>` work by accident, and no consumer wants
+it: the light carries the condition, the long description carries it in words,
+and the board carries the price. A method whose only consumer is a verb this
+build is not adding is dead surface.
 
 **`packages/content/arcana/src/thing/ManaCell.ts`** —
 `SlottableMixin(ChargedMixin(ReservedMixin(DetailedMixin(Thing))))`,
