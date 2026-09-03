@@ -12,6 +12,25 @@ data:
   primaryKeyword: smithy
   longDescription: |
     A soot-blackened smithy, an anvil squat on its stump and a great stone forge banked along the wall. A leather bellows hangs ready at its side, a workbench under racked stock along the other wall, and a slate of chalked prices by the door.
+  # ⚠⚠ **An interior with no authored ambient and nothing lit inside it
+  # is PITCH BLACK, and only its contents go nameless.** Every `Location`
+  # composes `AmbientLitMixin`, whose `ambientIntensity` defaults to 0;
+  # `VisionModality.signalAt` then sums only what is actually emitting,
+  # so an unlit room falls under the band `canSee` needs for a figure and
+  # `RecognitionLogic.obscured()` renders every object as "something".
+  # The room's own prose still reads normally, which is what makes it so
+  # quiet a failure.
+  #
+  # ⭐ The trap this closes is circular: the cookhouse's only light was
+  # the hearth, and the hearth is UNLIT until somebody lights it — so a
+  # cook walked into a dark room whose one fix was an object they could
+  # not see to name. A banked fire, a lamp on a hook, an open shed side:
+  # every one of these rooms has a reason to be dim rather than blind,
+  # and the shipped kitchen archetype (35 lux) and a dozen Terminus rooms
+  # already author exactly this.
+  # Here: forge-light and a high window: enough to judge steel by.
+  ambientIntensity: 40
+  ambientColorTemperature: 3000
   coords:
     x: 1
     y: 0

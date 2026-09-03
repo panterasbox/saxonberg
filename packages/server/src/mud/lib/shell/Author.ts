@@ -124,6 +124,22 @@ export function AuthorMixin<TBase extends MixinConstructor>(Base: TBase) {
         // her staff, never wizardness), so an author who is not on the
         // executive sees the verb but can't run it.
         'platform/cmd/author/pack.yaml',
+        // The app-settings surface — `config [key [value]]`, the dials
+        // that tune the running world. ⚠ It carries `requiresWizard`
+        // (it retunes the world for everybody, not a personal
+        // preference — `settings`/`var` are the per-character ones), and
+        // like the rest of this suite it is AFFORDED here and
+        // AUTHORIZED there.
+        //
+        // ⚠⚠ It was afforded NOWHERE until a live drive tried to type
+        // it: view shipped, controller shipped, `ConfigController.test`
+        // green — and green because it loads `config.yaml` by path and
+        // calls the controller directly, so it never asked the binder
+        // whether anyone could reach the verb. Same shape as `eat` and
+        // `vomit` in this same build, and `feel`/`taste` before them:
+        // **missing enabling data fails CLOSED and SILENT**, and only a
+        // drive types the word.
+        'platform/cmd/system/config.yaml',
         // Author-diagnostics reader — `errors list/raw/clear` over the
         // diagnostics store (compile / runtime / console). Afforded here;
         // what you see is what you hold (`DiagnosticApi.list` filters to
