@@ -401,10 +401,23 @@ loop** — you buy rarely and recolour often — not a third-listed customer.
 
 - **Its own `dyeing` Discipline**, not riding `apothecary`. It is the
   customization core loop and deserves its own competence ladder.
-- **Three dyestuffs × four mordants** — madder · weld · woad, against
-  alum · iron · tannin · none. Twelve outcomes from seven authored rows;
-  **the multiplicative shape is the lesson, not the count.**
-- `fibre` is the third axis, real once wool lands beside flax.
+- ⚠⚠ **CORRECTED 2026-09-02 — a uniform 3 × 4 grid teaches wrong
+  chemistry.** Madder (alizarin) and weld (luteolin) are **mordant
+  dyes**: they need a metal ion to bind. **Woad (indigotin) is a vat
+  dye** — insoluble, chemically *reduced* in an alkaline vat to be
+  absorbed, then **oxidised in air to turn blue**, and it takes **no
+  mordant at all**. Shipping all three through one grid would assert that
+  every dye works one way.
+
+  ⭐ **So: two mordant dyes × four mordants, plus woad as the deliberate
+  exception** — the dye that needs a *vat* instead. Eight outcomes plus
+  one, rather than a false twelve, and it teaches that **dyeing is two
+  chemistries, not one**. The reduction vat is fermentation-shaped, which
+  the engine already models.
+- **The dye bath exhausts.** First dip deep, second lighter, third
+  lighter still — a real resource decision.
+- **Overdyeing composes.** Blue over yellow is how green was made.
+- `fibre` is the third axis, real once a second fibre exists.
 
 ### 14. Content placement
 
@@ -539,9 +552,11 @@ puts real pressure on.
 13. A bench demonstrates the spinning bottleneck and that the wheel moves
     it to the loom. **If the ratio is not felt at bed scale, the finding
     is documented rather than the number faked.**
-14. `dye` produces a hue and a fastness from `f(dyestuff, mordant)`, over
-    three dyestuffs and four mordants; a test asserts washing decays
-    fastness and that a poor mordant fades faster.
+14. `dye` produces a hue and a fastness from `f(dyestuff, mordant, fibre)`
+    over **two mordant dyes × four mordants**, and **woad resolves
+    through a vat with no mordant**; a test asserts washing decays
+    fastness, that a poor mordant fades faster, and that **a mordant
+    applied to woad is refused rather than silently ignored**.
 15. `cut` and `sew` produce a garment from cloth; the jerkin recipe no
     longer lives in `trade-smithing`.
 16. A maker's authored prose persists on the instance and renders when

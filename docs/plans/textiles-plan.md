@@ -857,6 +857,132 @@ Pre-textile clothing is largely hide, and leatherwork is deferred because
 nothing produces hide. Felting and twining are reachable now; hide
 clothing is not.
 
+### P16 — What competence buys in each trade (the Discipline design)
+
+*(Added 2026-09-02. Stage B named three `Discipline` rows and set nothing
+on them. `Discipline` has **eight** authored fields — `key · channel ·
+label · description · iscedf · requires[] · specializes[] · synergizes[]
+· conferrals[]` — and **conferrals are the tech ladder**: crossing a
+competence band confers verb yaml-paths.)*
+
+⭐⭐ **Every shipped trade Discipline answers one question in its doc
+comment, and Stage B never asked it:** *what does competence buy, given
+it must not buy yield?* `smelting` — *"it changes nothing about the
+YIELD… competence buys knowing, never getting."* `geology` — *"a better
+prospector does not get more ore from the same rock; he knows where to
+point."*
+
+**The three answers, each on a mechanism this build already has** (which
+is the test that they are real, not decoration):
+
+| Discipline | competence buys | why it is not "getting" |
+|---|---|---|
+| **`textiles`** | **how fine you can go before it breaks** — a master spins a finer, evener yarn from the same fibre; a novice reaching for a fine count **wastes stock** | the flax is unchanged. Competence buys the *top of the decision range*, never more yarn from the same sheaf |
+| **`dyeing`** | **fastness and repeatability** — how many washes the colour survives, and whether you can match last month's lot | hue comes from the dyestuff; **durability comes from the craft**. Competence never brightens a colour. ⭐ This is also why `dyeing` earns its own row rather than riding `apothecary`: extraction is apothecary's, but **fastness is nobody else's** |
+| **`tailoring`** | **fit precision** — how tightly `cutTo` matches the measured body | it consumes P7 on day one, and it is *why* a master tailor beats a novice one rather than merely being faster |
+
+**The relational fields, set rather than defaulted:**
+
+```
+textiles   requires: [recipe-knowledge]   synergizes: [appraisal]
+dyeing     requires: [recipe-knowledge]   synergizes: [apothecary, appraisal]
+tailoring  requires: [recipe-knowledge]   synergizes: [textiles, appraisal]
+```
+
+⚠ `specializes` stays empty for all three — none is a narrowing of a
+parent (the cooking slate's butchery ruling: a sibling trade is a
+sibling, not a specialization). ⚠ **`conferrals` stay empty this build**
+— no verb is band-gated, because *competence grades, it does not gate*
+(the `awareness` precedent). The field is the tech ladder's seam, and
+authoring it ahead of demand is the thing the trades doctrine forbids.
+
+**Existing Disciplines the chain exercises**, named so they are not
+silently re-invented: `horticulture` / `agriculture` (the crops, in
+farming's B1), `appraisal` (judging a bolt or a garment before buying),
+`recipe-knowledge` (the shared prerequisite).
+
+⚠ **ISCED-F codes are required** and must be real: `0723` textiles
+(clothes and footwear) for `textiles` and `tailoring`; `0711` chemical
+engineering *or* `0723` for `dyeing` — the build agent picks and cites
+the 2013 table, as every shipped row does.
+
+### P17 — The Stage-B lens findings (pedagogy · expression · RP · gamification)
+
+*(Added 2026-09-02. The four lenses were run on the kernel design but
+never on the trades. Findings that change the build, not just its
+documentation.)*
+
+**⭐⭐ Cross-cutting 1 — nothing produces byproducts, and the engine
+already models them** (`spent-grain`, `pomace`, `lees`, `ash`). Four
+leaks, each both a conservation hole and a lost lesson, because
+**byproducts are what make a trade economic**:
+
+| act | byproduct | what it is good for |
+|---|---|---|
+| `scutch` | **tow** (short fibre) + **shive** (woody boon) | coarse yarn, rope, stuffing · fuel, litter |
+| `dye` | an **exhausted bath** | a second, paler dip — see below |
+| `cut` | **offcuts** | patchwork, **quilting** (a covering form this build adds), rag stock |
+
+**⭐⭐ Cross-cutting 2 — the textile chain IS the nuisance-trade chain.**
+Retting ponds stank badly enough to be banned upstream of towns;
+dyehouses stank (urine was the classic woad vat); the tannery is Stage
+C's and stank worst. That is a coherent identity rather than three
+coincidences, and **siting becomes a real decision** — it connects to
+[zoning-slate](../slates/builds/zoning-slate.md) and to the water pack's
+shipped **contamination-by-kind**. It is also what makes these read as
+*industry* rather than as crafting stations.
+
+**⚠ Cross-cutting 3 — failure modes exist in exactly one place**
+(over-retting). Spinning too fine must waste stock; weaving badly must
+yield a flawed bolt; a mordant on woad must be refused. **Without failure
+competence is invisible**, and every P16 answer above depends on there
+being something to be bad at.
+
+**⚠ Cross-cutting 4 — alteration and repair are unmodelled**, though
+`mending` already ships. See the tailoring finding below.
+
+#### Per trade
+
+**Textiles.** ⭐⭐ **Spinning holds `hands` and leaves `voice` free** —
+the `search` precedent exactly. Spinning is the bottleneck, so players
+will do it *a lot*, and a verb repeated thirty times is tedium; but
+**spinning was historically the social act**, done in company while
+talking. This turns the build's largest tedium risk into its best social
+surface, and costs one slot decision. ⚠ Also: `spin`'s decision needs its
+real unit — **yarn count** — or "how fine" stays a vibe. And **one fibre
+makes the `f(…, fibre)` axis degenerate**; a wild bast fibre (nettle or
+hemp), gatherable and needing no ranching, would make it real on day one.
+Flagged as an open, not decided.
+
+**Dyeing.** ⚠⚠ **The uniform 3 × 4 grid was wrong chemistry and is
+corrected** (requirements § 13): madder and weld are **mordant dyes**;
+**woad is a vat dye** — insoluble, reduced in an alkaline vat, oxidised
+in air to blue, taking **no mordant at all**. Ships as **2 × 4 plus woad
+as the deliberate exception**, which teaches that *dyeing is two
+chemistries, not one*. Plus **exhaust dyeing** (first dip deep, second
+paler) and **overdyeing** (blue over yellow is how green was made — a
+free compositional axis). ⚠ And **there is no colour vocabulary yet**: an
+author writing "madder + alum" needs a hue namespace, and a dyed garment
+needs to describe itself.
+
+**Tailoring.** ⭐ **The missing lesson: a pattern is a 2D solution to a 3D
+problem, and cloth is expensive.** Cutting is **optimisation under
+waste**, which makes `cut`'s decision concrete — cut tight (less waste,
+no room to alter) vs cut generous (more waste, seam allowance for later).
+That is also where offcuts come from.
+
+⭐⭐ **And the best gamification finding in the pass: `getMass()` moves
+with metabolism, so YOUR CLOTHES STOP FITTING WHEN YOUR BODY CHANGES.**
+It falls out of P7 with **zero new mechanism**, and it converts tailoring
+from a one-time purchase into a **recurring service** — alteration,
+letting out, taking in — which is what a real tailor's repeat business
+actually is. It is the retention loop for tailoring the way recolouring
+is for dyeing.
+
+⭐ **RP: the fitting is the beat.** Being measured is an interaction with
+another character, and it is *mechanically necessary* because `cutTo`
+needs a subject. Neither of the other two trades has a scene like it.
+
 ---
 
 ## Stage A — the kernel half
@@ -1098,9 +1224,19 @@ Content only, existing packs.
   `productMaterial: …/flax`, `ratePerDay`, `stallBelowK`/`damageAboveK`
   (cold water rets slower — real, and it makes season matter), **`turnDays`
   + `turnedMaterial: …/rotted-flax` as the over-ret failure.**
-- **Four verbs, four decisions:** `scutch` (purity vs staple length),
-  `spin` (fine vs fast), `weave` (density → yield vs windproofing and
-  wear), `full` (the felting/finishing pass — one mechanism, two inputs).
+- **Four verbs, four decisions:** `scutch` (purity vs staple length —
+  ⭐ **yielding tow and shive**, P17), `spin` (**yarn count** — fine vs
+  fast; ⚠ overreaching **wastes stock**), `weave` (density → yield vs
+  windproofing and wear; a bad run yields a **flawed bolt**), `full` (the
+  felting/finishing pass — one mechanism, two inputs).
+- ⭐⭐ **`spin` holds `hands` and leaves `voice` free** (the `search`
+  precedent). The bottleneck is the verb players repeat most, and
+  spinning was historically the *social* act — this is what stops the
+  build's best lesson being its worst chore (P17).
+- **The `textiles` Discipline** (P16): competence buys **how fine you can
+  go before it breaks**, never more yarn from the same sheaf.
+- ⚠ **Siting matters** — a retting pond fouls water and stank enough to
+  be banned upstream of towns. Contamination-by-kind already ships.
 - **The tool ladder:** drop spindle → spinning wheel
   (`{kind: spinning, rate: 3}` — the `sewing-kit`/`sewing-machine` shape
   verbatim); hand loom → broad loom. **The wheel unlocks nothing.**
@@ -1146,12 +1282,20 @@ fight):
 ### Wave B3 — the `trade-dyeing` pack ⭐⭐ (the customization core loop)
 
 - **Pack scaffold**; the `dyeing` Discipline.
-- **Three dyestuffs × four mordants** — madder · weld · woad against alum
-  · iron · tannin · none. ⭐ **Seven authored rows, twelve outcomes:** the
-  controller resolves `f(dyestuff, mordant, fibre)` → `(hue, fastness)`
-  from a **derived** product, never a twelve-row lookup table. **The
-  multiplicative shape is the lesson, not the count** — and it is what
-  makes wool's arrival a third axis rather than a rewrite.
+- ⚠⚠ **Two chemistries, not one** (P17, requirements § 13). **Madder and
+  weld are mordant dyes** — `f(dyestuff, mordant, fibre)` → `(hue,
+  fastness)`, derived, never a lookup table: 2 × 4 = eight outcomes from
+  six rows. **Woad is a VAT dye** — insoluble, reduced in an alkaline vat,
+  **oxidised in air to blue**, taking **no mordant**; a mordant applied to
+  woad is **refused**, not silently ignored. The reduction vat is
+  fermentation-shaped.
+- **The bath exhausts** — first dip deep, second paler, third paler still.
+  A real resource decision, and the dye pack's byproduct.
+- **Overdyeing composes** — blue over yellow is how green was made.
+- ⚠ **A colour vocabulary is needed**: a hue namespace an author can write
+  against, and a way for a dyed garment to describe itself.
+- **The `dyeing` Discipline** (P16): competence buys **fastness and
+  repeatability** — matching last month's lot — never a brighter hue.
 - The dyehouse in Terminus; the vat as a class in `src/thing/`.
 - **Tests:** twelve pairs each produce a hue and a fastness (AC 14); iron
   saddens and alum brightens the same dyestuff; **washing decays fastness
@@ -1167,6 +1311,21 @@ fight):
   diamond's other input, seamed now and unused), takes a **subject**
   (yourself, a customer, or nobody = stock), and **stamps `cutTo`** (P7).
   **A pattern is a Recipe.**
+  ⭐ **Its decision is optimisation under waste** (P17): cut tight (less
+  cloth, no seam allowance to alter later) vs cut generous (more cloth,
+  room to let out). **Offcuts are the byproduct** — patchwork, quilting,
+  rag stock.
+  ⭐ **The fitting is a scene.** Taking a subject's measurements is an
+  interaction with another character, and it is mechanically necessary
+  because `cutTo` needs one.
+- ⭐⭐ **`alter`** — the retention loop, and it costs almost nothing:
+  `getMass()` moves with metabolism, so **a garment cut for you last
+  season stops fitting**. Letting out and taking in re-stamps `cutTo`
+  toward the current body, spending seam allowance the original `cut`
+  decided to leave. This is what makes tailoring a **recurring service**
+  rather than a one-time purchase (P17).
+- **The `tailoring` Discipline** (P16): competence buys **fit
+  precision** — how tightly `cutTo` matches the measured body.
 - **`sew`** — assembly. Output is a `Garment` with a real material, form,
   mass, grade and maker's mark.
 - **The jerkin moves:** `trade-smithing/content/recipes/leather-jerkin.yaml`
@@ -1319,7 +1478,15 @@ not "write a new one."**
    for a nuisance trade), the tailor's shop off University Avenue or on
    Mayfield Row. Names and prose are the build agent's pen.
 3. ✅ **RESOLVED — the ten-species table is in P8** (2026-09-02).
-4. ✅ **RESOLVED — `/stuff/idea/fabric/`** (user, 2026-09-02). Neither
+4. ⚠ **Does a second fibre ship?** One fibre makes `f(…, fibre)`
+   degenerate at launch (P17). A wild bast fibre — **nettle or hemp**,
+   gathered rather than farmed — needs no ranching and barely any new
+   crop work, and would make the dye axis real on day one. Against it:
+   more content, and the doctrine of not authoring ahead of demand.
+5. ⚠ **What is a hue?** Dyeing needs a colour vocabulary an author can
+   write against, and a way for a dyed garment to describe itself
+   (P17). The `DescriptorBank` shape is the likely precedent.
+6. ✅ **RESOLVED — `/stuff/idea/fabric/`** (user, 2026-09-02). Neither
    `covering` nor `construction` read well; `fabric` is the trade's own
    term for this exact classification and the namespace can only ever
    hold fabrics.
