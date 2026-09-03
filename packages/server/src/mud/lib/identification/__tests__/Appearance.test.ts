@@ -25,7 +25,6 @@ import { dirname, join } from 'path';
 import YAML from 'yaml';
 import { WorldClockApi } from '../../../api/worldclock';
 import '../../../platform/idea/WorldClockRegistry';
-import { RecognitionApi } from '../../../api/recognition';
 import { Appearance, GENERATION_DEFAULTS } from '../Appearance';
 import { DescriptorBank } from '../DescriptorBank';
 import { IdentifiableMixin } from '../Identifiable';
@@ -290,9 +289,9 @@ describe('Identification — per-viewer, per-class', () => {
     knower.know(IDENTIFICATION, one.getTemplatePath()!, { typeKnown: true });
     // Keyed on templatePath, so knowing one flask knows every flask of
     // that class — two flasks of the same draught are ONE fact.
-    expect(RecognitionApi.describe(knower, two)).toBe('a veiling draught');
+    expect(two.describeFor(knower)).toBe('a veiling draught');
     // …and it teaches the stranger nothing.
-    expect(RecognitionApi.describe(stranger, two)).not.toBe(
+    expect(two.describeFor(stranger)).not.toBe(
       'a veiling draught',
     );
   });
@@ -306,7 +305,7 @@ describe('Identification — per-viewer, per-class', () => {
       learnedGeneration: now - 2,
     });
 
-    const shown = RecognitionApi.describe(viewer, flask);
+    const shown = flask.describeFor(viewer);
     // Never *"a veiling draught"* flatly — the descriptor it learned may
     // now mean something else entirely. Knowledge is not invalidated;
     // only its applicability fades.
@@ -321,7 +320,7 @@ describe('Identification — per-viewer, per-class', () => {
       typeKnown: true,
       learnedGeneration: Appearance.currentGeneration().generation,
     });
-    const shown = RecognitionApi.describe(viewer, flask);
+    const shown = flask.describeFor(viewer);
     expect(shown).toBe('a veiling draught');
     expect(shown).not.toMatch(/you once knew/);
   });
@@ -329,7 +328,7 @@ describe('Identification — per-viewer, per-class', () => {
   it('AC18 — NO record shows the derived look, not the authored stub', () => {
     const viewer = makeStuff(() => new Viewer());
     const flask = makeFlask(`/obj/test/flask-unknown-${seq++}`);
-    const shown = RecognitionApi.describe(viewer, flask);
+    const shown = flask.describeFor(viewer);
     expect(shown).toMatch(/potion/);
     expect(shown).not.toContain('veiling draught');
   });
@@ -339,12 +338,12 @@ describe('Identification — per-viewer, per-class', () => {
     const flask = makeFlask(`/obj/test/flask-label-${seq++}`);
     flask.setLabel('the good stuff');
 
-    expect(RecognitionApi.describe(viewer, flask)).toBe('the good stuff');
+    expect(flask.describeFor(viewer)).toBe('the good stuff');
     // Roll the world forward a whole generation: what the WORLD calls
     // the thing rotates; what YOU call it does not. That asymmetry is
     // the entire point of the feature.
     real += (GENERATION_DEFAULTS.LENGTH_GAME_SEC / SCALE) * 1000;
-    expect(RecognitionApi.describe(viewer, flask)).toBe('the good stuff');
+    expect(flask.describeFor(viewer)).toBe('the good stuff');
   });
 
   it('AC19 — a label is trimmed and capped, never refused', () => {

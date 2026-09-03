@@ -200,7 +200,7 @@ command category plus `assess` in `perception`.
   dressing's `dressingQuality`
   × the treater's `medicine` competence band; difficulty is derived from
   the wound (a world-measurement, not a tag). A graded outcome mints an
-  `ActSignature` (`AdvancementApi.recordDeed`) into the treater's
+  `ActSignature` (`creditDeed`) into the treater's
   Transcript — consuming the advancement API, reshaping nothing in it.
 - **`undress`** (a distinct verb from the wearable-slot `remove`) is the
   clot gate's other half: calls `reopen` (a premature removal above

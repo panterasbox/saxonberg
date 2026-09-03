@@ -63,6 +63,7 @@ import {
 } from '../../banking/__tests__/banking-test-harness';
 import WorldClockRegistry from '../../../platform/idea/WorldClockRegistry';
 import { TemplatePaths } from '../../paths';
+import { EmploymentLogic } from '../../../platform/idea/api/EmploymentLogic';
 
 const FLOOR = '/trade/winemaking/location/_cellars-test-floor';
 const COUNTER_ROOM = '/trade/distribution/location/_cellars-test-counter';
@@ -145,7 +146,7 @@ describe('the cellars beat — rack, cork, consign, home', () => {
       if (path === CARD) return makeStuffAtPath(() => new PaymentCard(), path);
       throw new Error(`unexpected clone: ${path}`);
     }) as unknown as typeof StuffApi.clone);
-    vi.spyOn(EmploymentApi, 'shiftStateOf').mockReturnValue('on-shift');
+    vi.spyOn(EmploymentLogic.prototype, 'shiftStateOf').mockReturnValue('on-shift');
     const reg = makeStuffAtPath(
       () => new ChattelRegistry(),
       '/platform/idea/ChattelRegistry',
@@ -242,12 +243,16 @@ describe('the cellars beat — rack, cork, consign, home', () => {
     hand = makeStuffAtPath(() => new Hand(), `/trade/winemaking/agent/_hand-${seq++}`);
     hand.setName('Ilse');
     ContainmentApi.move(hand as never, floor as never);
-    await EmploymentApi.hire(outfit, hand, 'hand');
+    await outfit.appoint(hand, 'hand');
 
     // The literal verbs → the real seams.
     lines = [];
-    vi.spyOn(CommandApi, 'forceCommand').mockImplementation(
-      async (giver: unknown, text: string) => {
+    vi.spyOn(
+      hand as unknown as { forceCommand(text: string): Promise<void> },
+      'forceCommand',
+    ).mockImplementation(async (text: string) => {
+      const giver = hand;
+      void giver;
         lines.push(text);
         const who = giver as unknown as Hand;
         const here = who.getContainer() as Location;

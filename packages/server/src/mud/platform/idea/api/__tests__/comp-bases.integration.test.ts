@@ -100,7 +100,7 @@ describe("compensation bases", () => {
   it("per-settlement: settlePiecework pays units × rate as wage/piecework", async () => {
     const biz = seedBusiness();
     const hewer = makeStuffAtPath(() => new Worker(), HEWER);
-    EmploymentApi.hire(biz, hewer, "hewer");
+    biz.appoint(hewer, "hewer");
     const acct = await bizAccount(biz);
     await BankingApi.mint(acct, Money.of(100, Currency.compact()));
 
@@ -118,7 +118,7 @@ describe("compensation bases", () => {
   it("per-settlement refuses a non-employee and a time-basis employee", async () => {
     const biz = seedBusiness();
     const wenna = makeStuffAtPath(() => new Worker(), WENNA);
-    EmploymentApi.hire(biz, wenna, "bartender");
+    biz.appoint(wenna, "bartender");
     await expect(
       EmploymentApi.settlePiecework(biz, "/world/test/npc/stranger", 1),
     ).rejects.toThrow(/no such employee/);
@@ -130,7 +130,7 @@ describe("compensation bases", () => {
   it("share-of-flow: splits route share × amount as commission, conserved", async () => {
     const biz = seedBusiness();
     const barker = makeStuffAtPath(() => new Worker(), BARKER);
-    EmploymentApi.hire(biz, barker, "barker");
+    biz.appoint(barker, "barker");
     const acct = await bizAccount(biz);
 
     const splits = await EmploymentApi.flowSplitsFor(biz, 50);

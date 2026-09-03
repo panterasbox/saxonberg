@@ -11,7 +11,6 @@ import type { Reserved } from '../../../lib/reserve';
 import type { Atmospheric } from '../../../lib/biome/Atmospheric';
 import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
-import { ThermalApi } from '../../../api/thermal';
 import { BiomeApi } from '../../../api/biome';
 import { ConnectionApi } from '../../../api/connection';
 import { WorldClockApi } from '../../../api/worldclock';
@@ -23,6 +22,32 @@ import type { Combustible } from '../../../lib/fire/Combustible';
 import type { IgniteOutcome } from '../../../api/fire';
 
 const FireApiCallers = SecurityPolicies.FromModule('/api/fire#FireApi');
+/** The F1 object face: a Combustible host forwards its own combustion. */
+const selfSubject = {
+  // Compare by stuffId — the caller may surface as the raw target
+  // while the argument is the proxy (or vice versa).
+  where: (
+    caller: unknown,
+    _target: unknown,
+    _method: string,
+    args: readonly unknown[],
+  ) =>
+    (caller as { stuffId?: string }).stuffId !== undefined &&
+    (caller as { stuffId?: string }).stuffId ===
+      (args[0] as { stuffId?: string } | undefined)?.stuffId,
+};
+const FireCallers = SecurityPolicies.AnyOf(
+  FireApiCallers,
+  SecurityPolicies.FromMixin('FurnaceMixin', selfSubject),
+  SecurityPolicies.FromMixin('CombustibleMixin', {
+    // Compare by stuffId — the caller may surface as the raw target
+    // while the argument is the proxy (or vice versa).
+    where: (caller, _target, _method, args) =>
+      (caller as { stuffId?: string }).stuffId !== undefined &&
+      (caller as { stuffId?: string }).stuffId ===
+        (args[0] as { stuffId?: string } | undefined)?.stuffId,
+  }),
+);
 
 /**
  * FireLogic — the hot-reloadable logic singleton behind {@link FireApi}.
@@ -44,26 +69,26 @@ const FireApiCallers = SecurityPolicies.FromModule('/api/fire#FireApi');
  */
 @Unshadowable
 export class FireLogic extends ApiLogic {
-  /** See {@link FireApi.ignite}. */
-  @CallSecurity(FireApiCallers)
+  /** See {@link Combustible.ignite}. */
+  @CallSecurity(FireCallers)
   public ignite(stuff: Stuff): IgniteOutcome {
     return igniteImpl(stuff);
   }
 
-  /** See {@link FireApi.tryAutoignite}. */
-  @CallSecurity(FireApiCallers)
+  /** See {@link Combustible.tryAutoignite}. */
+  @CallSecurity(FireCallers)
   public tryAutoignite(stuff: Stuff): boolean {
     return tryAutoigniteImpl(stuff);
   }
 
-  /** See {@link FireApi.douse}. */
-  @CallSecurity(FireApiCallers)
+  /** See {@link Combustible.douse}. */
+  @CallSecurity(FireCallers)
   public douse(stuff: Stuff): boolean {
     return douseImpl(stuff);
   }
 
-  /** See {@link FireApi.advance}. */
-  @CallSecurity(FireApiCallers)
+  /** See {@link Combustible.advanceBurn}. */
+  @CallSecurity(FireCallers)
   public advance(stuff: Stuff): void {
     advanceImpl(stuff);
   }
@@ -310,14 +335,16 @@ function advanceFireInRoom(room: Stuff & Container): void {
   const crossFraction = dial(AppSettingKeys.fireCrossBoundaryFraction, 0.4);
   for (const c of liveCombustiblesIn(room)) {
     if (c.isBurning()) continue;
-    ThermalApi.depositHeat(c as unknown as Stuff, radiant);
-    tryAutoigniteImpl(c as unknown as Stuff);
+    const cs = c as unknown as Stuff;
+    if (MixinApi.isThermal(cs)) cs.depositHeat(radiant);
+    tryAutoigniteImpl(cs);
   }
   for (const dest of openNeighboursOf(room)) {
     for (const c of liveCombustiblesIn(dest)) {
       if (c.isBurning()) continue;
-      ThermalApi.depositHeat(c as unknown as Stuff, radiant * crossFraction);
-      tryAutoigniteImpl(c as unknown as Stuff);
+      const cs = c as unknown as Stuff;
+      if (MixinApi.isThermal(cs)) cs.depositHeat(radiant * crossFraction);
+      tryAutoigniteImpl(cs);
     }
   }
 }

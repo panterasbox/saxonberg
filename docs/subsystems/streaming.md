@@ -105,7 +105,7 @@ read by the platform-agnostic `list`/`who`/`history`. Each entry carries its
 `service` + display `handle`. Mutators (`addTuned` / `removeTuned` /
 `dropPlayer` / `dropChannel`) return the presence **edges** (0→1 / 1→0); the
 `StreamLogic` bridge reads the edges and drives the right backend reader's
-subscribe/unsubscribe. Delivery reuses the lone `MessageApi.sendMessage`
+subscribe/unsubscribe. Delivery reuses the lone `onMessage`
 chokepoint (external speakers have no `Stuff` actor, so not `.scene`) on the
 `world.<service>.message` topic — subscription-gated, not implant-gated.
 

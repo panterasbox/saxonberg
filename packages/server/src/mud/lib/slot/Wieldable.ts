@@ -18,8 +18,17 @@ import type { CommandContributions } from '../../api/command';
 import type { Slottable } from './Slottable';
 import type { Slotted } from './Slotted';
 import { SpeciesApi } from '../../api/species';
+import { StuffApi } from '../../api/stuff';
+import type { WeaponProfile } from '../combat/WeaponProfile';
+// eslint-disable-next-line no-restricted-imports -- the G1 weapon face: a wieldable's isWeapon()/weaponProfile() forward into the combat logic singleton exactly as the api/combat facade does (the Combustible/Energized precedent)
+import { CombatLogic } from '../../platform/idea/api/CombatLogic';
 
 export interface Wieldable extends Slottable {
+  /** Is this a WEAPON construction? (G1 — the weapons-check predicate) */
+  isWeapon(): boolean;
+  /** The delivery profile combat reads off this weapon, or null. */
+  weaponProfile(): WeaponProfile | null;
+
   getSlotClaim(bodyPlanPath: string): readonly string[];
   setSlotClaim(bodyPlanPath: string, slots: string[]): void;
   getEligibleBodyPlans(): readonly string[];
@@ -77,5 +86,26 @@ export function WieldableMixin<
       if (!bodyPlanPath) return false;
       return this.getSlotClaim(bodyPlanPath).includes(slot);
     }
+    /**
+     * Is this a WEAPON construction (bladed/pointed/hafted/flail/whip)?
+     * The weapons-check predicate (G1 — a non-Wieldable item is not a
+     * weapon by construction, so callers narrow `isWieldable` first).
+     */
+    public isWeapon(): boolean {
+      return wieldableCombatLogic().isWeapon(this as unknown as Stuff);
+    }
+
+    /** The delivery profile combat reads off this weapon, or null. */
+    public weaponProfile(): WeaponProfile | null {
+      return wieldableCombatLogic().weaponProfileOf(this as unknown as Stuff);
+    }
   };
+}
+
+/** Resolve the HMR-able CombatLogic singleton (the vocabulary reads). */
+function wieldableCombatLogic(): CombatLogic {
+  return StuffApi.singletonSync(
+    '/platform/idea/api/combat',
+    () => new CombatLogic(),
+  );
 }

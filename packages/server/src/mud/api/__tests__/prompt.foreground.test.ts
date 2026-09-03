@@ -20,7 +20,6 @@ import { Stuff } from '../../lib/stuff/Stuff';
 import EventRegistry from '../../platform/idea/EventRegistry';
 import Interactive from '../../platform/idea/Interactive';
 import Avatar from '../../platform/agent/Avatar';
-import { ConnectionApi } from '../connection';
 
 async function bootRegistry(): Promise<void> {
   const reg = await StuffApi.create(() => {
@@ -42,7 +41,7 @@ async function makeAvatarInteractive(): Promise<{
   const interactive = await StuffApi.create(
     () => new Interactive('sock-1', 'sess-1', { _id: 'u1' } as never),
   );
-  ConnectionApi.transfer(interactive, avatar);
+  interactive.transferTo(avatar);
   return { interactive, avatar };
 }
 
@@ -58,25 +57,25 @@ describe('PromptApi — foreground flag wire stamping', () => {
     {
       name: 'choice',
       run: (iact: Interactive) =>
-        PromptApi.choice(iact, 'Pick?', [
+        iact.promptChoice('Pick?', [
           { label: 'A', response: 'a' },
         ]),
     },
     {
       name: 'confirm',
-      run: (iact: Interactive) => PromptApi.confirm(iact, 'Continue?'),
+      run: (iact: Interactive) => iact.promptConfirm('Continue?'),
     },
     {
       name: 'text',
-      run: (iact: Interactive) => PromptApi.text(iact, 'Name?'),
+      run: (iact: Interactive) => iact.promptText('Name?'),
     },
     {
       name: 'mqlObject',
-      run: (iact: Interactive) => PromptApi.mqlObject(iact, 'Which?', []),
+      run: (iact: Interactive) => iact.promptMqlObject('Which?', []),
     },
     {
       name: 'mqlMany',
-      run: (iact: Interactive) => PromptApi.mqlMany(iact, 'Which?', []),
+      run: (iact: Interactive) => iact.promptMqlMany('Which?', []),
     },
   ])('$name defaults to foreground: true', async ({ run }) => {
     await bootRegistry();
@@ -93,7 +92,7 @@ describe('PromptApi — foreground flag wire stamping', () => {
     expect(captured).not.toBeNull();
     expect(captured!.foreground).toBe(true);
 
-    PromptApi.cancelAll(interactive, 'cancelled');
+    interactive.cancelPrompts('cancelled');
     await expect(p).rejects.toThrow();
   });
 
@@ -101,8 +100,7 @@ describe('PromptApi — foreground flag wire stamping', () => {
     {
       name: 'choice',
       run: (iact: Interactive) =>
-        PromptApi.choice(
-          iact,
+        iact.promptChoice(
           'Pick?',
           [{ label: 'A', response: 'a' }],
           { foreground: false },
@@ -111,22 +109,22 @@ describe('PromptApi — foreground flag wire stamping', () => {
     {
       name: 'confirm',
       run: (iact: Interactive) =>
-        PromptApi.confirm(iact, 'Continue?', 'no', { foreground: false }),
+        iact.promptConfirm('Continue?', 'no', { foreground: false }),
     },
     {
       name: 'text',
       run: (iact: Interactive) =>
-        PromptApi.text(iact, 'Name?', { foreground: false }),
+        iact.promptText('Name?', { foreground: false }),
     },
     {
       name: 'mqlObject',
       run: (iact: Interactive) =>
-        PromptApi.mqlObject(iact, 'Which?', [], { foreground: false }),
+        iact.promptMqlObject('Which?', [], { foreground: false }),
     },
     {
       name: 'mqlMany',
       run: (iact: Interactive) =>
-        PromptApi.mqlMany(iact, 'Which?', [], { foreground: false }),
+        iact.promptMqlMany('Which?', [], { foreground: false }),
     },
   ])('$name honors foreground: false', async ({ run }) => {
     await bootRegistry();
@@ -143,7 +141,7 @@ describe('PromptApi — foreground flag wire stamping', () => {
     expect(captured).not.toBeNull();
     expect(captured!.foreground).toBe(false);
 
-    PromptApi.cancelAll(interactive, 'cancelled');
+    interactive.cancelPrompts('cancelled');
     await expect(p).rejects.toThrow();
   });
 });

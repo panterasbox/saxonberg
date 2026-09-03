@@ -12,6 +12,7 @@
  */
 
 import "../../../../../../test-bootstrap";
+import { AdvancementMixin } from '../../../../../lib/advancement/Advancement';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import HarvestController from '../HarvestController';
 import Plant from '../../../../thing/Plant';
@@ -41,7 +42,6 @@ import { StuffApi } from '../../../../../api/stuff';
 import { MixinApi } from '../../../../../api/mixin';
 import { ContainmentApi } from '../../../../../api/containment';
 import { PersistableApi } from '../../../../../api/persistable';
-import { AdvancementApi } from '../../../../../api/advancement';
 import { WorldClockApi } from '../../../../../api/worldclock';
 import { Document } from '../../../../../lib/persistence/Document';
 import { CommandDefinition } from '../../../../../lib/command/CommandDefinition';
@@ -62,8 +62,10 @@ import {
 import { buildAllModalities } from '../../../../../lib/perception/modalities/__tests__/test-helpers';
 import '../../../WorldClockRegistry';
 
-class TestGiver extends SensorMixin(
+class TestGiver extends AdvancementMixin(
+  SensorMixin(
   CommandGiverMixin(ContainerMixin(ContainableMixin(NamedMixin(Idea)))),
+)
 ) {
   static _mixinName = 'TestGiverHarvest';
   received: unknown[] = [];
@@ -229,12 +231,6 @@ describe('harvest <plant>', () => {
     vi.spyOn(PersistableApi, 'captureHostOf').mockImplementation(
       (async () => {}) as unknown as typeof PersistableApi.captureHostOf,
     );
-    vi.spyOn(AdvancementApi, 'recordDeed').mockImplementation((async (
-      _o: Stuff,
-      s: { discipline: string; difficulty: string; outcome: string },
-    ) => {
-      deeds.push(s);
-    }) as unknown as typeof AdvancementApi.recordDeed);
     // The crop mint goes through the gated clone path; stand in a fresh
     // Crop so the test exercises the stamp rather than the template store.
     vi.spyOn(StuffApi, 'clone').mockImplementation((async (path: string) => {
@@ -264,6 +260,20 @@ describe('harvest <plant>', () => {
       g.setName('Alice');
       return g;
     }, freshPath('/platform/agent/Avatar/_harv-alice'));
+    // Credits land on the giver's own creditDeed since the OO sweep —
+    // the instance is the capture seam.
+    vi.spyOn(
+      giver as unknown as {
+        creditDeed(sub: {
+          discipline: string;
+          difficulty: string;
+          outcome: string;
+        }): Promise<void>;
+      },
+      'creditDeed',
+    ).mockImplementation(async (subcheck) => {
+      deeds.push(subcheck);
+    });
     ContainmentApi.move(giver, room);
     const bed = makeBed();
     ContainmentApi.move(bed, room);

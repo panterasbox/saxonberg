@@ -17,7 +17,6 @@ import EventRegistry from '../../platform/idea/EventRegistry';
 import Interactive from '../../platform/idea/Interactive';
 import Avatar from '../../platform/agent/Avatar';
 import Thing from '../../lib/stuff/Thing';
-import { ConnectionApi } from '../connection';
 
 async function bootRegistry(): Promise<void> {
   const reg = await StuffApi.create(() => {
@@ -39,7 +38,7 @@ async function makeAvatarInteractive(): Promise<{
   const interactive = await StuffApi.create(
     () => new Interactive('sock-1', 'sess-1', { _id: 'u1' } as never),
   );
-  ConnectionApi.transfer(interactive, avatar);
+  interactive.transferTo(avatar);
   return { interactive, avatar };
 }
 
@@ -70,7 +69,7 @@ describe('PromptApi — lifecycle (choice / confirm / text)', () => {
     await bootRegistry();
     const { interactive, avatar } = await makeAvatarInteractive();
     const envelopes = captureEnvelopes(avatar);
-    const promise = PromptApi.choice(interactive, 'Pick', [
+    const promise = interactive.promptChoice('Pick', [
       { label: 'A', response: 'a' },
       { label: 'B', response: 'b' },
     ]);
@@ -80,7 +79,7 @@ describe('PromptApi — lifecycle (choice / confirm / text)', () => {
     const promptId = envelopes[0]!.promptId!;
     expect(envelopes[0]!.outcome!.notes[0]!.kind).toBe('prompt-choice');
 
-    PromptApi.handleResponse(interactive, { promptId, response: 'b' });
+    interactive.handlePromptResponse({ promptId, response: 'b' });
     await expect(promise).resolves.toBe('b');
 
     // Dismissed envelope shipped.
@@ -100,7 +99,7 @@ describe('PromptApi — lifecycle (choice / confirm / text)', () => {
     const { interactive, avatar } = await makeAvatarInteractive();
     captureEnvelopes(avatar);
 
-    const promiseYes = PromptApi.confirm(interactive, 'Continue?');
+    const promiseYes = interactive.promptConfirm('Continue?');
     const idYes = PromptApi._getResolverCountForTesting() === 1
       ? // grab via test seam? We need the promptId; capture from envelope.
         null
@@ -116,16 +115,16 @@ describe('PromptApi — lifecycle (choice / confirm / text)', () => {
     PromptApi._clearAllForTesting();
 
     const envelopes = captureEnvelopes(avatar);
-    const p = PromptApi.confirm(interactive, 'Continue?');
+    const p = interactive.promptConfirm('Continue?');
     const promptId = envelopes[0]!.promptId!;
-    PromptApi.handleResponse(interactive, { promptId, response: 'yes' });
+    interactive.handlePromptResponse({ promptId, response: 'yes' });
     await expect(p).resolves.toBe(true);
 
     PromptApi._clearAllForTesting();
     const envelopes3 = captureEnvelopes(avatar);
-    const p2 = PromptApi.confirm(interactive, 'Sure?');
+    const p2 = interactive.promptConfirm('Sure?');
     const id2 = envelopes3[0]!.promptId!;
-    PromptApi.handleResponse(interactive, { promptId: id2, response: 'no' });
+    interactive.handlePromptResponse({ promptId: id2, response: 'no' });
     await expect(p2).resolves.toBe(false);
 
     void promiseYes;
@@ -135,9 +134,9 @@ describe('PromptApi — lifecycle (choice / confirm / text)', () => {
     await bootRegistry();
     const { interactive, avatar } = await makeAvatarInteractive();
     const envelopes = captureEnvelopes(avatar);
-    const p = PromptApi.text(interactive, 'Name?');
+    const p = interactive.promptText('Name?');
     const id = envelopes[0]!.promptId!;
-    PromptApi.handleResponse(interactive, { promptId: id, response: 'Bob' });
+    interactive.handlePromptResponse({ promptId: id, response: 'Bob' });
     await expect(p).resolves.toBe('Bob');
   });
 
@@ -151,10 +150,10 @@ describe('PromptApi — lifecycle (choice / confirm / text)', () => {
     await bootRegistry();
     const { interactive, avatar } = await makeAvatarInteractive();
     const envelopes = captureEnvelopes(avatar);
-    const p = PromptApi.compose(interactive, 'Write the article:');
+    const p = interactive.promptCompose('Write the article:');
     const id = envelopes[0]!.promptId!;
     expect(id, 'compose must push a prompt envelope').toBeDefined();
-    PromptApi.handleResponse(interactive, {
+    interactive.handlePromptResponse({
       promptId: id,
       response: '# A body\n\nWith two paragraphs.',
     });
@@ -165,7 +164,7 @@ describe('PromptApi — lifecycle (choice / confirm / text)', () => {
     await bootRegistry();
     const { interactive, avatar } = await makeAvatarInteractive();
     const envelopes = captureEnvelopes(avatar);
-    const p = PromptApi.compose(interactive, 'Write:', {
+    const p = interactive.promptCompose('Write:', {
       placeholder: 'Markdown',
       allowEditorEscalation: true,
     });
@@ -175,7 +174,7 @@ describe('PromptApi — lifecycle (choice / confirm / text)', () => {
     expect(note, 'a prompt-compose note must reach the client').toBeDefined();
     expect(note!.label).toBe('Write:');
     expect(note!.placeholder).toBe('Markdown');
-    PromptApi.handleResponse(interactive, {
+    interactive.handlePromptResponse({
       promptId: envelopes[0]!.promptId!,
       response: 'x',
     });
@@ -186,8 +185,8 @@ describe('PromptApi — lifecycle (choice / confirm / text)', () => {
     await bootRegistry();
     const { interactive, avatar } = await makeAvatarInteractive();
     const envelopes = captureEnvelopes(avatar);
-    const p = PromptApi.compose(interactive, 'Write:');
-    PromptApi.handleResponse(interactive, {
+    const p = interactive.promptCompose('Write:');
+    interactive.handlePromptResponse({
       promptId: envelopes[0]!.promptId!,
       response: '',
     });
@@ -209,13 +208,13 @@ describe('PromptApi — mqlObject lifecycle', () => {
     const sword1 = await StuffApi.create(() => new Thing());
     const sword2 = await StuffApi.create(() => new Thing());
     const envelopes = captureEnvelopes(avatar);
-    const p = PromptApi.mqlObject(interactive, 'Which?', [sword1, sword2]);
+    const p = interactive.promptMqlObject('Which?', [sword1, sword2]);
     const id = envelopes[0]!.promptId!;
     const note = envelopes[0]!.outcome!.notes[0]!;
     expect(note.kind).toBe('prompt-mql-object');
     expect((note as unknown as { matches: unknown[] }).matches).toHaveLength(2);
 
-    PromptApi.handleResponse(interactive, {
+    interactive.handlePromptResponse({
       promptId: id,
       response: sword2.stuffId,
     });
@@ -227,9 +226,9 @@ describe('PromptApi — mqlObject lifecycle', () => {
     const { interactive, avatar } = await makeAvatarInteractive();
     const sword = await StuffApi.create(() => new Thing());
     const envelopes = captureEnvelopes(avatar);
-    const p = PromptApi.mqlObject(interactive, 'Which?', [sword]);
+    const p = interactive.promptMqlObject('Which?', [sword]);
     const id = envelopes[0]!.promptId!;
-    PromptApi.handleResponse(interactive, {
+    interactive.handlePromptResponse({
       promptId: id,
       response: 'not-a-real-id',
     });
@@ -241,11 +240,11 @@ describe('PromptApi — mqlObject lifecycle', () => {
     const { interactive, avatar } = await makeAvatarInteractive();
     const sword = await StuffApi.create(() => new Thing());
     const envelopes = captureEnvelopes(avatar);
-    const p = PromptApi.mqlObject(interactive, 'Which?', [sword]);
+    const p = interactive.promptMqlObject('Which?', [sword]);
     const id = envelopes[0]!.promptId!;
     const stuffId = sword.stuffId;
     StuffApi.destruct(sword);
-    PromptApi.handleResponse(interactive, { promptId: id, response: stuffId });
+    interactive.handlePromptResponse({ promptId: id, response: stuffId });
     await expect(p).resolves.toBeNull();
   });
 });
@@ -265,9 +264,9 @@ describe('PromptApi — mqlMany lifecycle', () => {
     const b = await StuffApi.create(() => new Thing());
     const c = await StuffApi.create(() => new Thing());
     const envelopes = captureEnvelopes(avatar);
-    const p = PromptApi.mqlMany(interactive, 'Pick', [a, b, c]);
+    const p = interactive.promptMqlMany('Pick', [a, b, c]);
     const id = envelopes[0]!.promptId!;
-    PromptApi.handleResponse(interactive, {
+    interactive.handlePromptResponse({
       promptId: id,
       response: JSON.stringify([a.stuffId, c.stuffId]),
     });
@@ -280,11 +279,11 @@ describe('PromptApi — mqlMany lifecycle', () => {
     const a = await StuffApi.create(() => new Thing());
     const b = await StuffApi.create(() => new Thing());
     const envelopes = captureEnvelopes(avatar);
-    const p = PromptApi.mqlMany(interactive, 'Pick', [a, b]);
+    const p = interactive.promptMqlMany('Pick', [a, b]);
     const id = envelopes[0]!.promptId!;
     const bId = b.stuffId;
     StuffApi.destruct(b);
-    PromptApi.handleResponse(interactive, {
+    interactive.handlePromptResponse({
       promptId: id,
       response: JSON.stringify([a.stuffId, bId]),
     });

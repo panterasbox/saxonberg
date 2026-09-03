@@ -31,11 +31,6 @@ function logic(): AttendantLogic {
 }
 
 export class AttendantApi {
-  /** Boot seam (idempotent): install the lease sweep + linkdead release. */
-  public static boot(): void {
-    logic().boot();
-  }
-
   /** Test seam — run one lease idle-eviction sweep synchronously. */
   public static sweepNowForTesting(): void {
     logic().sweepNowForTesting();

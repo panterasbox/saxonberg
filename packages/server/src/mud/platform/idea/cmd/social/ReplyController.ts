@@ -24,6 +24,8 @@ import { Mml } from '../../../../api/mml';
 import { ChatApi } from '../../../../api/chat';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Comms } from '../../../../lib/comms/Comms';
+import type { SubjectSubscriber } from '../../../../lib/forum/SubjectSubscriber';
+import type { CommandGiver } from '../../../../lib/command/CommandGiver';
 
 interface ReplyModel extends CommandModel {
   message: string;
@@ -32,7 +34,8 @@ interface ReplyModel extends CommandModel {
 
 export default class ReplyController extends CommandController<ReplyModel> {
   async execute(model: ReplyModel, context: CommandContext): Promise<void> {
-    const speaker = context.commandGiver;
+    const speaker = context.commandGiver as Stuff & CommandGiver &
+      SubjectSubscriber;
     const comms = this.resolveComms(context);
     if (!comms) {
       return this.fail(context, 'You have no way to send a thought.', 'mixin-missing');
@@ -56,7 +59,7 @@ export default class ReplyController extends CommandController<ReplyModel> {
       comms.tell(targets[0]!, model.message);
       return;
     }
-    const ad = await ChatApi.openAdHoc(speaker, [speaker, ...targets]);
+    const ad = await speaker.openAdHocChat([speaker, ...targets]);
     comms.tell(targets, model.message, { channelId: ad.handle });
   }
 

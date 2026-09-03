@@ -10,7 +10,6 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { BeliefStoreApi } from '../../../api/belief';
 import {
   BeliefStoreMixin,
   RECOGNITION,
@@ -21,7 +20,10 @@ import BeliefDocument from '../BeliefDocument';
 import { Idea } from '../../stuff/Idea';
 import { StuffApi } from '../../../api/stuff';
 import { PersistenceManager } from '../../../../backend/PersistenceManager';
-import { makeStuffAtPath } from '../../security/__tests__/test-setup';
+import {
+  makeStuffAtPath,
+  withRootContext,
+} from '../../security/__tests__/test-setup';
 
 class Viewer extends BeliefStoreMixin(Idea) {}
 
@@ -72,8 +74,8 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe('BeliefStoreApi persistence', () => {
-  it('writeRecord persists a learned record as a single upsert', async () => {
+describe('belief persistence (the mixin viewer face)', () => {
+  it('the flush persists a learned record as a single upsert', async () => {
     const viewer = makeViewerAt();
     registerReferent('/obj/npc/mara');
     const record: BeliefRecord = {
@@ -84,7 +86,10 @@ describe('BeliefStoreApi persistence', () => {
       lastSeen: 2,
       payload: {},
     };
-    await BeliefStoreApi.writeRecord(viewer, record);
+    viewer.loadBelief(record);
+    await withRootContext(viewer, 'flush', () =>
+      viewer.evictAndFlushBeliefs(),
+    );
     expect(store.size).toBe(1);
     const doc = [...store.values()][0]!;
     expect(doc.knownAs).toBe('Mara');
@@ -94,7 +99,7 @@ describe('BeliefStoreApi persistence', () => {
   it('does NOT write through a null-knownAs stranger record', async () => {
     const viewer = makeViewerAt();
     registerReferent('/obj/npc/stranger');
-    await BeliefStoreApi.writeRecord(viewer, {
+    viewer.loadBelief({
       realm: RECOGNITION,
       referent: '/obj/npc/stranger',
       knownAs: null,
@@ -102,6 +107,9 @@ describe('BeliefStoreApi persistence', () => {
       lastSeen: 1,
       payload: {},
     });
+    await withRootContext(viewer, 'flush', () =>
+      viewer.evictAndFlushBeliefs(),
+    );
     expect(store.size).toBe(0);
   });
 
@@ -116,13 +124,13 @@ describe('BeliefStoreApi persistence', () => {
     expect(store.size).toBe(1);
 
     // Evict clears the in-memory map (final flush is idempotent).
-    await BeliefStoreApi.evictAndFlush(s1);
+    await withRootContext(s1, 'evict', () => s1.evictAndFlushBeliefs());
     expect(s1.allBeliefs()).toHaveLength(0);
     StuffApi.unregister(s1);
 
     // Session 2: a fresh viewer at the same durable key re-hydrates.
     const s2 = makeStuffAtPath(() => new Viewer(), path);
-    await BeliefStoreApi.hydrate(s2);
+    await withRootContext(s2, 'hydrate', () => s2.hydrateBeliefs());
     const rec = s2.recall(RECOGNITION, '/obj/npc/mara');
     expect(rec?.knownAs).toBe('Mara');
   });
@@ -156,11 +164,11 @@ describe('BeliefStoreApi persistence', () => {
   });
 });
 
-describe('BeliefStoreApi persistence — regard realm', () => {
+describe('belief persistence — regard realm', () => {
   it('writes through a BARE regard record (null knownAs survives isLearned)', async () => {
     const viewer = makeViewerAt();
     registerReferent('/obj/npc/bob');
-    await BeliefStoreApi.writeRecord(viewer, {
+    viewer.loadBelief({
       realm: REGARD,
       referent: '/obj/npc/bob',
       knownAs: null,
@@ -168,6 +176,9 @@ describe('BeliefStoreApi persistence — regard realm', () => {
       lastSeen: 2,
       payload: { regard: 5 },
     });
+    await withRootContext(viewer, 'flush', () =>
+      viewer.evictAndFlushBeliefs(),
+    );
     expect(store.size).toBe(1);
     const doc = [...store.values()][0]!;
     expect((doc.payload as { regard?: number }).regard).toBe(5);
@@ -177,7 +188,7 @@ describe('BeliefStoreApi persistence — regard realm', () => {
   it('does NOT write through a neutral (regard: 0) record', async () => {
     const viewer = makeViewerAt();
     registerReferent('/obj/npc/bob');
-    await BeliefStoreApi.writeRecord(viewer, {
+    viewer.loadBelief({
       realm: REGARD,
       referent: '/obj/npc/bob',
       knownAs: null,
@@ -185,6 +196,9 @@ describe('BeliefStoreApi persistence — regard realm', () => {
       lastSeen: 1,
       payload: { regard: 0 },
     });
+    await withRootContext(viewer, 'flush', () =>
+      viewer.evictAndFlushBeliefs(),
+    );
     expect(store.size).toBe(0);
   });
 
@@ -196,12 +210,12 @@ describe('BeliefStoreApi persistence — regard realm', () => {
     await flush();
     expect(store.size).toBe(1);
 
-    await BeliefStoreApi.evictAndFlush(s1);
+    await withRootContext(s1, 'evict', () => s1.evictAndFlushBeliefs());
     expect(s1.allBeliefs()).toHaveLength(0);
     StuffApi.unregister(s1);
 
     const s2 = makeStuffAtPath(() => new Viewer(), path);
-    await BeliefStoreApi.hydrate(s2);
+    await withRootContext(s2, 'hydrate', () => s2.hydrateBeliefs());
     expect(s2.recall(REGARD, '/obj/npc/bob')?.payload.regard).toBe(12);
   });
 

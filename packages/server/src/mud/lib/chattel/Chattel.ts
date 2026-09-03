@@ -29,6 +29,35 @@ import type { Stuff } from "../stuff/Stuff";
 import { CallSecurity, Final, Unshadowable } from "../security/decorators";
 import { SecurityPolicies } from "../security/SecurityPolicies";
 import { ESTATE_STORAGE } from "../persistence/PersistenceSlice";
+import { StuffApi } from "../../api/stuff";
+import { MixinApi } from "../../api/mixin";
+// eslint-disable-next-line no-restricted-imports -- the F1 object face: a good's chattelOwner()/stampChattel()/transferChattel() forward into the chattel logic singleton exactly as the api/chattel facade does (the Combustible/Energized precedent)
+import { ChattelLogic } from "../../platform/idea/api/ChattelLogic";
+import type { ChattelOwner } from "./ChattelRecord";
+
+/** The outcome of a stamp/transfer — the minted id, or a refusal reason. */
+export type ChattelStampResult =
+  | { ok: true; chattelId: string }
+  | { ok: false; reason: string };
+
+/** Resolve the HMR-able ChattelLogic singleton (the title registry face). */
+function chattelLogic(): ChattelLogic {
+  return StuffApi.singletonSync(
+    "/platform/idea/api/chattel",
+    () => new ChattelLogic(),
+  );
+}
+
+/**
+ * Build the typed owner principal for a Stuff: an organization takes the
+ * `organization` arm; anything else is a player.
+ */
+function ownerKeyOf(owner: Stuff): ChattelOwner {
+  const templatePath = owner.getIdentityPath() ?? "";
+  return MixinApi.isOrganization(owner)
+    ? { kind: "organization", templatePath }
+    : { kind: "player", templatePath };
+}
 
 /**
  * The id-minting contract: chattel identity has no in-world participant
@@ -51,6 +80,22 @@ export interface Chattel {
   getPlace(): string;
   /** Privileged: set the placement — chattel-logic-only. */
   _setPlace(place: string): void;
+
+  // The title face (F1) — forwards into ChattelLogic.
+  /** The owner — `stamp ?? parcel-extent ?? authorOf`; null when nobody. */
+  chattelOwner(): Promise<ChattelOwner | null>;
+  /** Has someone been stamped as owning this good? (sync — capture walk). */
+  isStamped(): boolean;
+  /** Persisted by its owner rather than its host? (player-stamped only). */
+  isOwnerPersisted(): boolean;
+  /** Record where the owner keeps this good (the single write path). */
+  setChattelPlace(place: string): Promise<void>;
+  /** Re-derive placement from where the good now IS (custody verbs). */
+  followCustody(): Promise<void>;
+  /** Establish ownership — mint the durable id and title it to `owner`. */
+  stampChattel(owner: Stuff): Promise<ChattelStampResult>;
+  /** Transfer ownership — re-stamp to `newOwner` (chain-of-title event). */
+  transferChattel(newOwner: Stuff): Promise<ChattelStampResult>;
 }
 
 export function ChattelMixin<TBase extends MixinConstructor<Stuff>>(
@@ -137,6 +182,69 @@ export function ChattelMixin<TBase extends MixinConstructor<Stuff>>(
      *
      * @hook Witness — chains `super.onDestruct()` so composed layers run.
      */
+    // ------- the title face (F1) — forwards into ChattelLogic -------
+
+    /** See {@link Chattel.chattelOwner} — the three-rung total resolve. */
+    public chattelOwner(): Promise<ChattelOwner | null> {
+      return chattelLogic().ownerOf(this as unknown as Stuff);
+    }
+
+    /**
+     * See {@link Chattel.isStamped}. Synchronous, and that is the point
+     * — the persistence capture walk cannot await, and the stamp IS the
+     * minted id.
+     */
+    public isStamped(): boolean {
+      return this._chattelId !== "";
+    }
+
+    /**
+     * See {@link Chattel.isOwnerPersisted} — true only for a good
+     * stamped to a **player** (an Estate host whose record carries it).
+     * Synchronous like `isStamped`, for the same capture-walk reason.
+     */
+    public isOwnerPersisted(): boolean {
+      return (
+        chattelLogic().stampedOwnerOf(this as unknown as Stuff)?.kind ===
+        "player"
+      );
+    }
+
+    /** See {@link Chattel.setChattelPlace} — the single write path. */
+    @Final
+    @Unshadowable
+    public setChattelPlace(place: string): Promise<void> {
+      return chattelLogic().setPlace(this as unknown as Stuff, place);
+    }
+
+    /** See {@link Chattel.followCustody} — records, never judges. */
+    @Final
+    @Unshadowable
+    public followCustody(): Promise<void> {
+      return chattelLogic().followCustody(this as unknown as Stuff);
+    }
+
+    /**
+     * See {@link Chattel.stampChattel}. Sealed — the chain-of-title
+     * invariant lives in the logic singleton and no subclass or shadow
+     * may interpose on the title write.
+     */
+    @Final
+    @Unshadowable
+    public stampChattel(owner: Stuff): Promise<ChattelStampResult> {
+      return chattelLogic().stamp(this as unknown as Stuff, ownerKeyOf(owner));
+    }
+
+    /** See {@link Chattel.transferChattel} — auditable re-stamp. */
+    @Final
+    @Unshadowable
+    public transferChattel(newOwner: Stuff): Promise<ChattelStampResult> {
+      return chattelLogic().transfer(
+        this as unknown as Stuff,
+        ownerKeyOf(newOwner),
+      );
+    }
+
     public onDestruct(): void {
       const id = this._chattelId;
       if (id) {

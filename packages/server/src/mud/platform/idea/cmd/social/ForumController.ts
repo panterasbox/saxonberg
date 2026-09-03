@@ -38,12 +38,13 @@ import { MqlApi } from '../../../../api/mql';
 import { ForumsApi } from '../../../../api/forums';
 import { SubjectApi } from '../../../../api/subject';
 import { PlayerApi } from '../../../../api/player';
-import { PromptApi } from '../../../../api/prompt';
 import type { Forums } from '../../../../lib/forum/Forums';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type Subject from '../../../../lib/forum/Subject';
 import type { EntrySort, ArgumentRelation } from '../../../../api/forums';
 import type { VoteValue } from '../../../../lib/forum/Vote';
+import type { SubjectSubscriber } from '../../../../lib/forum/SubjectSubscriber';
+import type { CommandGiver } from '../../../../lib/command/CommandGiver';
 
 interface ForumModel extends CommandModel {
   board?: string;
@@ -124,7 +125,9 @@ export default class ForumController extends CommandController<ForumModel> {
   }
 
   private async executeList(context: CommandContext): Promise<void> {
-    const boards = await ForumsApi.listBoards(context.commandGiver);
+    const giver = context.commandGiver as Stuff & CommandGiver &
+      SubjectSubscriber;
+    const boards = await giver.forumBoards();
     if (boards.length === 0) {
       this.send(context, Mml.fromMarkup(`\nNo boards.\n`));
       return;
@@ -169,7 +172,8 @@ export default class ForumController extends CommandController<ForumModel> {
     model: ForumModel,
     context: CommandContext,
   ): Promise<void> {
-    const actor = context.commandGiver;
+    const actor = context.commandGiver as Stuff & CommandGiver &
+      SubjectSubscriber;
     const title = (model.name ?? '').trim();
     if (!title) return this.fail(context, 'subject name required', 'name-required');
     const subject = await SubjectApi.resolveByTitle(title);
@@ -196,7 +200,8 @@ export default class ForumController extends CommandController<ForumModel> {
     model: ForumModel,
     context: CommandContext,
   ): Promise<void> {
-    const actor = context.commandGiver;
+    const actor = context.commandGiver as Stuff & CommandGiver &
+      SubjectSubscriber;
     const handle = (model.board ?? '').trim();
     if (!handle) return this.fail(context, 'board required', 'board-required');
     // Body: inline-greedy / fields side-channel / interactive compose prompt.
@@ -204,11 +209,11 @@ export default class ForumController extends CommandController<ForumModel> {
     if (!body) return this.fail(context, 'body required', 'body-required');
     const view = await ForumsApi.resolveBoardByHandle(handle);
     if (!view) return this.fail(context, `No board '${handle}'.`, 'no-such-board');
-    if (!(await SubjectApi.isAudienceMember(actor, view.subject))) {
+    if (!(await actor.isAudienceMemberOf(view.subject))) {
       return this.fail(context, 'You are not in this board’s audience.', 'not-member');
     }
     const title = (model.title ?? deriveTitle(body)).trim();
-    const entry = await ForumsApi.postThread(actor, view.board, title, body);
+    const entry = await actor.postThread(view.board, title, body);
     this.send(
       context,
       Mml.compose`\nPosted thread '${title}' (#${entry._id ?? '?'}).\n`,
@@ -219,13 +224,14 @@ export default class ForumController extends CommandController<ForumModel> {
     model: ForumModel,
     context: CommandContext,
   ): Promise<void> {
-    const actor = context.commandGiver;
+    const actor = context.commandGiver as Stuff & CommandGiver &
+      SubjectSubscriber;
     const entryId = (model.entry ?? '').trim();
     if (!entryId) return this.fail(context, 'entry required', 'entry-required');
     const parent = await ForumsApi.getEntry(entryId);
     if (!parent) return this.fail(context, `No entry '${entryId}'.`, 'no-such-entry');
     const view = await this.boardViewFor(parent.getBoard());
-    if (view && !(await SubjectApi.isAudienceMember(actor, view.subject))) {
+    if (view && !(await actor.isAudienceMemberOf(view.subject))) {
       return this.fail(context, 'You are not in this board’s audience.', 'not-member');
     }
 
@@ -244,7 +250,7 @@ export default class ForumController extends CommandController<ForumModel> {
       const body = await this.resolveBody(model, context, 'Compose your claim:');
       if (!body) return this.fail(context, 'body required', 'body-required');
       try {
-        const entry = await ForumsApi.attachClaim(actor, parent, relation, body);
+        const entry = await actor.attachClaim(parent, relation, body);
         this.send(context, Mml.compose`\nAttached (#${entry._id ?? '?'}).\n`);
       } catch (err) {
         return this.fail(context, (err as Error).message, 'reply-failed');
@@ -263,7 +269,7 @@ export default class ForumController extends CommandController<ForumModel> {
     const body = await this.resolveBody(model, context, 'Compose your reply:');
     if (!body) return this.fail(context, 'body required', 'body-required');
     try {
-      const entry = await ForumsApi.reply(actor, parent, body);
+      const entry = await actor.replyToEntry(parent, body);
       this.send(context, Mml.compose`\nReplied (#${entry._id ?? '?'}).\n`);
     } catch (err) {
       return this.fail(context, (err as Error).message, 'reply-failed');
@@ -274,7 +280,8 @@ export default class ForumController extends CommandController<ForumModel> {
     model: ForumModel,
     context: CommandContext,
   ): Promise<void> {
-    const actor = context.commandGiver;
+    const actor = context.commandGiver as Stuff & CommandGiver &
+      SubjectSubscriber;
     const entryId = (model.entry ?? '').trim();
     if (!entryId) return this.fail(context, 'entry required', 'entry-required');
     const entry = await ForumsApi.getEntry(entryId);
@@ -289,7 +296,7 @@ export default class ForumController extends CommandController<ForumModel> {
     const body = await this.resolveBody(model, context, 'Edit the body:');
     if (!body) return this.fail(context, 'body required', 'body-required');
     try {
-      await ForumsApi.editBody(actor, entry, body);
+      await actor.editEntryBody(entry, body);
       this.send(context, Mml.compose`\nEdited (#${entry._id ?? '?'}).\n`);
     } catch (err) {
       return this.fail(context, (err as Error).message, 'edit-failed');
@@ -339,7 +346,8 @@ export default class ForumController extends CommandController<ForumModel> {
     model: ForumModel,
     context: CommandContext,
   ): Promise<void> {
-    const actor = context.commandGiver;
+    const actor = context.commandGiver as Stuff & CommandGiver &
+      SubjectSubscriber;
     const entryId = (model.entry ?? '').trim();
     const dir = (model.direction ?? '').trim().toLowerCase();
     if (!entryId) return this.fail(context, 'entry required', 'entry-required');
@@ -357,11 +365,11 @@ export default class ForumController extends CommandController<ForumModel> {
       );
     }
     // Audience gate — only board members may vote.
-    if (view && !(await SubjectApi.isAudienceMember(actor, view.subject))) {
+    if (view && !(await actor.isAudienceMemberOf(view.subject))) {
       return this.fail(context, 'You are not in this board’s audience.', 'not-member');
     }
     try {
-      const updated = await ForumsApi.castVote(actor, entry, dir as VoteValue);
+      const updated = await actor.castVote(entry, dir as VoteValue);
       this.send(
         context,
         Mml.compose`\nVoted. Score now ${String(updated.getScore())}.\n`,
@@ -375,7 +383,8 @@ export default class ForumController extends CommandController<ForumModel> {
     model: ForumModel,
     context: CommandContext,
   ): Promise<void> {
-    const actor = context.commandGiver;
+    const actor = context.commandGiver as Stuff & CommandGiver &
+      SubjectSubscriber;
     const handle = (model.board ?? '').trim();
     if (!handle) return this.fail(context, 'board required', 'board-required');
     const view = await ForumsApi.resolveBoardByHandle(handle);
@@ -395,7 +404,7 @@ export default class ForumController extends CommandController<ForumModel> {
       );
     }
     try {
-      await ForumsApi.matureArgument(actor, view.board);
+      await actor.matureArgument(view.board);
       // The vote consumer is the deferred governance layer; be honest.
       this.send(
         context,
@@ -410,7 +419,8 @@ export default class ForumController extends CommandController<ForumModel> {
     model: ForumModel,
     context: CommandContext,
   ): Promise<void> {
-    const actor = context.commandGiver;
+    const actor = context.commandGiver as Stuff & CommandGiver &
+      SubjectSubscriber;
     const handle = (model.board ?? '').trim();
     const threadId = (model.thread ?? '').trim();
     const name = (model.name ?? '').trim();
@@ -425,7 +435,7 @@ export default class ForumController extends CommandController<ForumModel> {
     const thread = await ForumsApi.getEntry(threadId);
     if (!thread) return this.fail(context, `No thread '${threadId}'.`, 'no-such-thread');
     try {
-      const subject = await ForumsApi.promoteThread(actor, thread, name);
+      const subject = await actor.promoteThread(thread, name);
       this.send(
         context,
         Mml.compose`\nPromoted thread to '${subject.getTitle()}'. Light its chat with \`chat on ${subject.getTitle()}\`.\n`,
@@ -439,7 +449,8 @@ export default class ForumController extends CommandController<ForumModel> {
     model: ForumModel,
     context: CommandContext,
   ): Promise<void> {
-    const actor = context.commandGiver;
+    const actor = context.commandGiver as Stuff & CommandGiver &
+      SubjectSubscriber;
     if (!PlayerApi.isAvatarStuff(actor)) {
       return this.fail(context, 'Only Avatars follow in v1.', 'avatar-required');
     }
@@ -447,7 +458,7 @@ export default class ForumController extends CommandController<ForumModel> {
     if (!title) return this.fail(context, 'subject name required', 'name-required');
     const subject = await SubjectApi.resolveByTitle(title);
     if (!subject) return this.fail(context, `No subject '${title}'.`, 'no-such-subject');
-    await SubjectApi.follow(actor, subject._id!, true);
+    await actor.followSubject(subject._id!, true);
     this.send(context, Mml.compose`\nFollowing '${subject.getTitle()}'.\n`);
   }
 
@@ -466,7 +477,7 @@ export default class ForumController extends CommandController<ForumModel> {
     if (inline) return inline;
     if (context.interactive) {
       try {
-        const composed = await PromptApi.compose(context.interactive, label, {
+        const composed = await context.interactive.promptCompose(label, {
           placeholder: 'Markdown — ⌘/Ctrl+Enter to submit',
           allowEditorEscalation: true,
         });

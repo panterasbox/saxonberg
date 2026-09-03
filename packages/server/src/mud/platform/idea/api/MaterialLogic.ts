@@ -14,7 +14,6 @@ import type {
   OutcomeBand,
 } from '../../../api/material';
 import { StuffApi } from '../../../api/stuff';
-import { Template } from '../../../lib/stuff/Template';
 import { AppApi } from '../../../api/app';
 import { AppSettingKeys } from '../../../lib/config/AppSettings';
 import { Channels } from '../../../lib/material/Channel';
@@ -28,6 +27,13 @@ import type { Grade } from '../../../lib/craft/Grade';
 import type { TraumaType } from '../Condition';
 
 const MaterialApiCallers = SecurityPolicies.FromModule('/api/material#MaterialApi'
+);
+/** The F4 material face: a Material instance forwards its own reads. */
+const MaterialSelfCallers = SecurityPolicies.AnyOf(
+  MaterialApiCallers,
+  SecurityPolicies.FromModule('/lib/material/Material', {
+    includeSubclasses: true,
+  }),
 );
 
 /**
@@ -58,20 +64,14 @@ const MaterialApiCallers = SecurityPolicies.FromModule('/api/material#MaterialAp
  */
 @Unshadowable
 export class MaterialLogic extends ApiLogic {
-  /** See {@link MaterialApi.boot}. */
-  @CallSecurity(MaterialApiCallers)
-  public boot(): Promise<number> {
-    return bootImpl();
-  }
-
   /** See {@link MaterialApi.compositionOf}. */
-  @CallSecurity(MaterialApiCallers)
+  @CallSecurity(MaterialSelfCallers)
   public compositionOf(material: Material): MaterialComposition {
     return computeComposition(material);
   }
 
   /** See {@link MaterialApi.containsElement}. */
-  @CallSecurity(MaterialApiCallers)
+  @CallSecurity(MaterialSelfCallers)
   public containsElement(material: Material, elementSymbol: string): boolean {
     return containsElementOf(material, elementSymbol);
   }
@@ -655,58 +655,3 @@ function expandInto(
   }
 }
 
-// ─────────────────── the boot roster warm (bootImpl) ───────────────────
-
-/**
- * Stand up every authored Material as a live singleton so the sync
- * resolve-on-read seams (`Tangible.getMaterial`, the bulk slots'
- * material reads, `Combustible`'s autoignition read, composition
- * expansion) hit from the first frame of live play.
- *
- * The gap this closes: those readers use the SYNC
- * `StuffApi.findByTemplatePath`, which returns only already-live
- * instances — and nothing else ever stood materials up in a running
- * server (tests hand-construct theirs), so every live material read
- * was null: nothing could ignite, melt, or resolve a composition.
- * The `SpeciesApi.preloadAnatomy` tolerant-ensure precedent, made
- * total: the roster is small, reference-data, and read hot, so warm
- * it whole at boot rather than chasing every async seam that would
- * need a per-site ensure.
- *
- * Filters to rows whose backing `class` extends `Material` (wherever it
- * lives) — the tree's folder rows are `FolderZone`s owned by the zone
- * substrate, not ours to stand up.
- */
-async function bootImpl(): Promise<number> {
-  // The roster is every root's `idea/material/` subtree — found by the
-  // branch segment, never by a list of roots.
-  const templates = await Template.findByPathInfix('/idea/material/');
-  let stood = 0;
-  const isMaterial = new Map<string, boolean>();
-  for (const tpl of templates) {
-    // A Material is whatever `extends Material`, wherever it lives — the
-    // kernel's `/platform/idea/material/*` or a pack's
-    // (`/system/arcana/idea/material/PotionMaterial`) — never an allowlist of
-    // roots. Memoised per class path for the boot loop.
-    if (!isMaterial.has(tpl.class)) isMaterial.set(tpl.class, await isMaterialClass(tpl.class));
-    if (!isMaterial.get(tpl.class)) continue;
-    try {
-      await StuffApi.singleton(tpl.path);
-      stood++;
-    } catch (err) {
-      console.warn(`MaterialApi.boot: '${tpl.path}' failed to stand up:`, err);
-    }
-  }
-  console.info(`MaterialApi.boot: ${stood} material singleton(s) live`);
-  return stood;
-}
-
-/** Does `classPath` resolve to a class whose prototype chain includes `Material`? (The `ZoneApi.isFolderClass` precedent.) */
-async function isMaterialClass(classPath: string): Promise<boolean> {
-  try {
-    const cls = (await StuffApi.loadClassByPath(classPath)) as { prototype?: unknown };
-    return typeof cls === 'function' && cls.prototype instanceof Material;
-  } catch {
-    return false;
-  }
-}

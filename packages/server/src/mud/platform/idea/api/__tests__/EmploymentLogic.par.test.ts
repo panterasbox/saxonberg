@@ -201,7 +201,7 @@ describe('the par manifest (D7)', () => {
     }
     ContainmentApi.move(makeStuff(() => new Coupe()) as never, loc as never);
 
-    const sheet = EmploymentApi.stockSheetFor(mara, biz);
+    const sheet = biz.stockSheetFor(mara);
     const by = Object.fromEntries(sheet.map((s) => [s.line.category, s]));
     expect(by.gin?.onHand).toBe(1.25);
     expect(by.gin?.shortfall).toBe(1.75);
@@ -211,7 +211,7 @@ describe('the par manifest (D7)', () => {
     expect(by.coupe?.onHand).toBe(1);
 
     chest.setOpen(true);
-    const again = EmploymentApi.stockSheetFor(mara, biz);
+    const again = biz.stockSheetFor(mara);
     expect(again.find((s) => s.line.category === 'gin')?.onHand).toBe(2.25);
   });
 });

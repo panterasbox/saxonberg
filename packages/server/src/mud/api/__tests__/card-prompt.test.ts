@@ -52,9 +52,9 @@ describe('a prompt card holds until it is answered', () => {
     const h = await makeHarness();
 
     // A real prompt, awaited by a real caller.
-    const answer = PromptApi.confirm(h.interactive, 'Proceed?');
+    const answer = h.interactive.promptConfirm('Proceed?');
     const promptId = latestPromptId(h);
-    expect(PromptApi.isPending(h.interactive, promptId)).toBe(true);
+    expect(h.interactive.hasPendingPrompt(promptId)).toBe(true);
 
     /*
      * ⚠⚠ **Nothing here opens the card.** `PromptApi.confirm` above did,
@@ -80,7 +80,7 @@ describe('a prompt card holds until it is answered', () => {
     expect(h.ofType('card-closed').length).toBe(0);
 
     // Answer it — through the real inbound path, not a poke at the card.
-    PromptApi.handleResponse(h.interactive, { promptId, response: 'yes' });
+    h.interactive.handlePromptResponse({ promptId, response: 'yes' });
     await expect(answer).resolves.toBe(true);
 
     const closed = h.ofType('card-closed');
@@ -92,7 +92,7 @@ describe('a prompt card holds until it is answered', () => {
 
   it('a cancelled prompt closes its card too', async () => {
     const h = await makeHarness();
-    const answer = PromptApi.text(h.interactive, 'Name?');
+    const answer = h.interactive.promptText('Name?');
     // The rejection is handled below; attach now so no unhandled rejection
     // escapes between here and the cancel.
     const settled = answer.then(
@@ -103,7 +103,7 @@ describe('a prompt card holds until it is answered', () => {
     // Pushed by the substrate, not by this test.
     expect(CardApi._getSizeForTesting()).toBe(1);
 
-    PromptApi.cancelAll(h.interactive, 'cancelled');
+    h.interactive.cancelPrompts('cancelled');
     await settled;
 
     expect(h.ofType('card-closed')[0]!.reason).toBe('answered');
@@ -112,24 +112,24 @@ describe('a prompt card holds until it is answered', () => {
 
   it('settling one prompt leaves another prompt card alone', async () => {
     const h = await makeHarness();
-    const first = PromptApi.confirm(h.interactive, 'One?');
+    const first = h.interactive.promptConfirm('One?');
     const firstId = latestPromptId(h);
-    const second = PromptApi.confirm(h.interactive, 'Two?');
+    const second = h.interactive.promptConfirm('Two?');
     const secondId = latestPromptId(h);
     // ⭐ TWO cards, because two questions — the key carries the
     // `promptId` precisely so the second cannot retarget the first.
     expect(CardApi._getSizeForTesting()).toBe(2);
 
-    PromptApi.handleResponse(h.interactive, {
+    h.interactive.handlePromptResponse({
       promptId: firstId,
       response: 'yes',
     });
     await first;
 
     expect(CardApi._getSizeForTesting()).toBe(1);
-    expect(CardApi.list(h.interactive)[0]!.key).toBe(`prompt ${secondId}`);
+    expect(h.interactive.listCards()[0]!.key).toBe(`prompt ${secondId}`);
 
-    PromptApi.handleResponse(h.interactive, {
+    h.interactive.handlePromptResponse({
       promptId: secondId,
       response: 'no',
     });
@@ -144,7 +144,7 @@ describe('a prompt card holds until it is answered', () => {
    */
   it('carries a promptId and no body of its own', async () => {
     const h = await makeHarness();
-    const answer = PromptApi.confirm(h.interactive, 'Proceed?');
+    const answer = h.interactive.promptConfirm('Proceed?');
     const promptId = latestPromptId(h);
     const opened = h.ofType('card-opened')[0]!;
     expect(opened.promptId).toBe(promptId);
@@ -153,7 +153,7 @@ describe('a prompt card holds until it is answered', () => {
     // …and no prose, because `prompt` declares `noProse`.
     expect(opened.prose).toBeUndefined();
 
-    PromptApi.handleResponse(h.interactive, { promptId, response: 'yes' });
+    h.interactive.handlePromptResponse({ promptId, response: 'yes' });
     await answer;
   });
 });

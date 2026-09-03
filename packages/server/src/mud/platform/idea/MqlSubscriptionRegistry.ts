@@ -54,7 +54,6 @@ import { MqlApi, MqlPermissionError } from '../../api/mql';
 import { StuffApi } from '../../api/stuff';
 import { PerceptionApi } from '../../api/perception';
 import { EventApi } from '../../api/event';
-import { MessageApi } from '../../api/message';
 import { ShellApi } from '../../api/shell';
 import { FieldChangedEvent } from '../../lib/events/FieldChangedEvent';
 import {
@@ -406,7 +405,7 @@ export default class MqlSubscriptionRegistry extends Idea {
         subscriptionId,
         result,
       };
-      MessageApi.sendEnvelope(viewer, template);
+      viewer.onEnvelope(template);
     }
     return result;
   }
@@ -502,7 +501,7 @@ export default class MqlSubscriptionRegistry extends Idea {
       queryId,
       result,
     };
-    MessageApi.sendEnvelope(viewer, template);
+    viewer.onEnvelope(template);
   }
 
   @CallSecurity(MqlSubscriptionApiCallers)
@@ -891,7 +890,7 @@ export default class MqlSubscriptionRegistry extends Idea {
       subscriptionId: sub.subscriptionId,
       changes,
     };
-    MessageApi.sendEnvelope(viewer, template);
+    viewer.onEnvelope(template);
   }
 
   private diff(
@@ -1014,7 +1013,7 @@ export default class MqlSubscriptionRegistry extends Idea {
       ...(detail !== undefined ? { detail } : {}),
     };
     if (holder && MixinApi.isSensor(holder)) {
-      MessageApi.sendEnvelope(holder as Stuff & Sensor, template);
+      (holder as Stuff & Sensor).onEnvelope(template);
     } else {
       console.warn(
         `MqlSubscriptionApi: cannot deliver error envelope (no Sensor holder); ` +
@@ -1037,7 +1036,7 @@ export default class MqlSubscriptionRegistry extends Idea {
       ...(detail !== undefined ? { detail } : {}),
     };
     if (holder && MixinApi.isSensor(holder)) {
-      MessageApi.sendEnvelope(holder as Stuff & Sensor, template);
+      (holder as Stuff & Sensor).onEnvelope(template);
     } else {
       console.warn(
         `MqlSubscriptionApi: cannot deliver query-error envelope (no Sensor holder); ` +

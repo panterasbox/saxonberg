@@ -20,8 +20,15 @@ import StreamRelay from '../idea/StreamRelay';
 import type Avatar from '../agent/Avatar';
 import type { MessageFrame, RelaySpeaker } from '@saxonberg/types';
 
-function avatar(): Avatar {
-  return { getPresentation: () => 'someone' } as unknown as Avatar;
+function avatar(
+  sink?: (frame: MessageFrame) => void,
+): Avatar {
+  // Delivery is `avatar.onMessage(frame)` since the OO sweep, so the
+  // avatar fake is the capture seam.
+  return {
+    getPresentation: () => 'someone',
+    onMessage: (frame: MessageFrame) => sink?.(frame),
+  } as unknown as Avatar;
 }
 
 describe('StreamRelay (pure-mutator, in-memory)', () => {
@@ -126,15 +133,12 @@ describe('StreamRelay (pure-mutator, in-memory)', () => {
     relay.addTuned('online', 'twitch', 'b1', 'twitchdev');
     relay.addTuned('offline', 'twitch', 'b1', 'twitchdev');
 
-    const onlineAvatar = avatar();
+    const sent: Array<{ recipient: unknown; frame: MessageFrame }> = [];
+    const onlineAvatar = avatar((frame) =>
+      sent.push({ recipient: onlineAvatar, frame }),
+    );
     vi.spyOn(PlayerApi, 'findAvatarByPlayerId').mockImplementation((pid) =>
       pid === 'online' ? onlineAvatar : undefined,
-    );
-    const sent: Array<{ recipient: unknown; frame: MessageFrame }> = [];
-    vi.spyOn(MessageApi, 'sendMessage').mockImplementation(
-      (recipient: unknown, frame: MessageFrame) => {
-        sent.push({ recipient, frame });
-      },
     );
     const emitted: Array<{ name: string; payload: unknown }> = [];
     vi.spyOn(EventApi, 'emit').mockImplementation(
@@ -171,14 +175,9 @@ describe('StreamRelay (pure-mutator, in-memory)', () => {
 
   it('a youtube deliver rides the speech.relay topic', () => {
     relay.addTuned('p1', 'youtube', 'lc1', 'mkbhd');
-    const av = avatar();
-    vi.spyOn(PlayerApi, 'findAvatarByPlayerId').mockReturnValue(av);
     const frames: MessageFrame[] = [];
-    vi.spyOn(MessageApi, 'sendMessage').mockImplementation(
-      (_r: unknown, f: MessageFrame) => {
-        frames.push(f);
-      },
-    );
+    const av = avatar((f) => frames.push(f));
+    vi.spyOn(PlayerApi, 'findAvatarByPlayerId').mockReturnValue(av);
     vi.spyOn(EventApi, 'emit').mockReturnValue(undefined as never);
 
     relay.deliver(

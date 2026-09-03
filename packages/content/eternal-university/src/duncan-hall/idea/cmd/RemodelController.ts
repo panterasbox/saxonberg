@@ -58,8 +58,7 @@ export default class RemodelController extends CommandController<CommandModel> {
 
     let pick: string;
     try {
-      pick = await PromptApi.choice(
-        interactive,
+      pick = await interactive.promptChoice(
         'How do you want to redo the room?',
         DormThemes.ids().map((id) => ({
           label: DormThemes.labelOf(id),

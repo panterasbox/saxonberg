@@ -38,7 +38,6 @@ import { ContainmentApi } from '../../../../api/containment';
 import { MessageApi } from '../../../../api/message';
 import { CardApi } from '../../../../api/card';
 import { BulkableApi } from '../../../../api/bulk';
-import { RecognitionApi } from '../../../../api/recognition';
 import { PerceptionApi } from '../../../../api/perception';
 import { SocialApi } from '../../../../api/social';
 import { Mml } from '../../../../api/mml';
@@ -237,10 +236,10 @@ export default class LookController extends CommandController<LookModel> {
       // coalesce and advance `lastSeen` (not a record per sighting). The
       // null-name write never overwrites a learned name. Fired here on
       // the look *controller*, never inside the naming step (which runs
-      // on every projection) — see `RecognitionApi.describe`.
+      // on every projection) — see `describeFor`.
       for (const item of visibleContents) {
-        if (MixinApi.isOrganism(item)) {
-          RecognitionApi.learnIdentity(actor, item, null);
+        if (MixinApi.isOrganism(item) && MixinApi.isBeliefStore(actor)) {
+          actor.learnIdentityOf(item, null);
         }
       }
       // Items resting on a listed surface (the bottles on the back-bar) are
@@ -260,7 +259,9 @@ export default class LookController extends CommandController<LookModel> {
         const segments: Mml[] = [];
         if (occupants.length > 0) {
           segments.push(
-            await SocialApi.composeOccupants(actor, occupants, occupants.length),
+            MixinApi.isNotifyPolicy(actor)
+              ? await actor.composeOccupants(occupants, occupants.length)
+              : Mml.list(occupants.map((o) => Mml.actor(o))),
           );
         }
         if (items.length > 0) {
@@ -347,8 +348,8 @@ export default class LookController extends CommandController<LookModel> {
     }
     // Repeat-perception: a deliberate look at a being tracks it (same
     // coalescing stranger-record write as the room listing above).
-    if (MixinApi.isOrganism(target)) {
-      RecognitionApi.learnIdentity(actor, target, null);
+    if (MixinApi.isOrganism(target) && MixinApi.isBeliefStore(actor)) {
+      actor.learnIdentityOf(target, null);
     }
     // Run the long through `getMarkupLong(viewer)` so detail keywords
     // and any other contributing-mixin augmenters wrap inline —
@@ -373,7 +374,7 @@ export default class LookController extends CommandController<LookModel> {
     // reads "Dave's Bar's", the one bought for yourself reads yours. A
     // title-derived owner (a group's, nobody's in particular) says nothing.
     if (MixinApi.isChattel(target) && target.getChattelId()) {
-      const owner = await ChattelApi.ownerOf(target);
+      const owner = await target.chattelOwner();
       const holder =
         owner?.kind === 'organization' || owner?.kind === 'player'
           ? StuffApi.findByTemplatePath(owner.templatePath)

@@ -140,7 +140,7 @@ narration polish lands separately.
 witness fires synchronously and `Mobile.onSlotReleased` clears the
 rider's `engagedMode` when the vacated host composes the engaged
 mode's `conveyanceMixin`. The witness invocation lives inside
-`Slotted.vacate` itself (not `SlotApi.vacate`) so direct callers like
+`Slotted.vacate` itself so direct callers like
 `DismountController.execute` also trigger it. See
 [locomotion.md](./locomotion.md#slot-release-witness).
 
@@ -148,7 +148,7 @@ mode's `conveyanceMixin`. The witness invocation lives inside
 
 | Verb | Action |
 |---|---|
-| `mount <X>` | `SlotApi.transferOccupancy` from any current posture-bearing slot to `X.mountSlot`; set `Postures.Mounted` |
+| `mount <X>` | `transferOccupancy` from any current posture-bearing slot to `X.mountSlot`; set `Postures.Mounted` |
 | `dismount` | Vacate the mount slot the actor occupies; set `Postures.Stand` |
 
 `mount horse` finds the horse's mountSlot; `mount back` resolves

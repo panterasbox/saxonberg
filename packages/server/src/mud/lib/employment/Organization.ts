@@ -40,6 +40,15 @@ import {
   type EmploymentStatus,
 } from './Employment';
 import type { Employed } from './Employed';
+import { StuffApi } from '../../api/stuff';
+import { Final, Unshadowable } from '../security/decorators';
+import type {
+  OrganizationStuff,
+  BusinessStuff,
+  StockSheetLine,
+} from '../../api/employment';
+// eslint-disable-next-line no-restricted-imports -- the F4 org face: an organization's appoint()/dismiss()/roster reads forward into the employment logic singleton exactly as the api/employment facade does (the Combustible/Energized precedent)
+import { EmploymentLogic } from '../../platform/idea/api/EmploymentLogic';
 
 /**
  * The organization's own mutation surface: itself, or the employment engine
@@ -57,6 +66,24 @@ const OrganizationSurface = SecurityPolicies.AnyOf(
  * external code goes through these methods.
  */
 export interface Organization {
+  // The org face (F4) — forwards into EmploymentLogic.
+  /** Hire `actor` into `positionKey` (the `appoint` verb's act). */
+  appoint(actor: Stuff, positionKey: string): Promise<Employment | null>;
+  /** Fire `actor` (status → fired; history preserved). */
+  dismiss(actor: Stuff): Promise<void>;
+  /** Does `subject` hold ANY non-exited position here? */
+  employs(subject: Stuff | null): boolean;
+  /** May `subject` act as this organization's proprietor? */
+  hasProprietor(subject: Stuff): Promise<boolean>;
+  /** May `principal` publish as this organization? Fails closed. */
+  allowsPublishingBy(principal: Stuff | null): boolean;
+  /** Every actor holding `positionKey` here (durable templatePaths). */
+  holdersOf(positionKey: string): string[];
+  /** The organization chain above this one, nearest parent first. */
+  organizationChain(): OrganizationStuff[];
+  /** The live stock sheet against what `viewer` perceives. */
+  stockSheetFor(viewer: Stuff): StockSheetLine[];
+
   /** This organization's durable key — its own templatePath. */
   getOrganizationPath(): string;
   /**
@@ -373,6 +400,90 @@ export function OrganizationMixin<TBase extends MixinConstructor>(
     public endCover(actor: Stuff & Employed): void {
       actor._removeEmployment(this.getOrganizationPath());
     }
+
+    // ------- the org face (F4) — forwards into EmploymentLogic -------
+    // (The gated methods above are the roster PRIMITIVES the logic
+    // drives; these are the public orchestration verbs.)
+
+    /**
+     * Hire `actor` into this organization's `positionKey` (the
+     * `appoint` verb's act — wallet conferral included). Sealed — the
+     * roster invariants live in the logic.
+     */
+    @Final
+    @Unshadowable
+    public appoint(
+      actor: Stuff,
+      positionKey: string,
+    ): Promise<Employment | null> {
+      return employmentLogic().hire(
+        this as unknown as OrganizationStuff,
+        actor,
+        positionKey,
+      );
+    }
+
+    /** Fire `actor` (status → fired; history preserved). Sealed. */
+    @Final
+    @Unshadowable
+    public dismiss(actor: Stuff): Promise<void> {
+      return employmentLogic().fire(this as unknown as OrganizationStuff, actor);
+    }
+
+    /** Does `subject` hold ANY non-exited position here? (the staff test) */
+    public employs(subject: Stuff | null): boolean {
+      return employmentLogic().holdsPosition(
+        subject,
+        this as unknown as OrganizationStuff,
+      );
+    }
+
+    /** May `subject` act as this organization's proprietor? */
+    public hasProprietor(subject: Stuff): Promise<boolean> {
+      return employmentLogic().isProprietorOf(
+        subject,
+        this as unknown as OrganizationStuff,
+      );
+    }
+
+    /** May `principal` publish as this organization? Fails closed. */
+    public allowsPublishingBy(principal: Stuff | null): boolean {
+      return employmentLogic().mayPublishAs(
+        principal,
+        this as unknown as OrganizationStuff,
+      );
+    }
+
+    /** Every actor holding `positionKey` here (durable templatePaths). */
+    public holdersOf(positionKey: string): string[] {
+      return employmentLogic().holdersOf(
+        this as unknown as OrganizationStuff,
+        positionKey,
+      );
+    }
+
+    /** The organization chain above this one, nearest parent first. */
+    public organizationChain(): OrganizationStuff[] {
+      return employmentLogic().organizationChainOf(
+        this as unknown as OrganizationStuff,
+      );
+    }
+
+    /** The live stock sheet against what `viewer` perceives. */
+    public stockSheetFor(viewer: Stuff): StockSheetLine[] {
+      return employmentLogic().stockSheetFor(
+        viewer,
+        this as unknown as BusinessStuff,
+      );
+    }
   }
   return OrganizationMixin;
+}
+
+/** Resolve the HMR-able EmploymentLogic singleton (the labor pipeline). */
+function employmentLogic(): EmploymentLogic {
+  return StuffApi.singletonSync(
+    '/platform/idea/api/employment',
+    () => new EmploymentLogic(),
+  );
 }

@@ -20,7 +20,6 @@ import { AccessApi } from '@saxonberg/server/mud/api/access';
 import { AppApi } from '@saxonberg/server/mud/api/app';
 import { GroupApi } from '@saxonberg/server/mud/api/group';
 import { ParcelApi } from '@saxonberg/server/mud/api/parcel';
-import { CredentialApi } from '@saxonberg/server/mud/api/credential';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { Lock } from '@saxonberg/server/mud/lib/lock/Lock';
 import { OuterWarren } from '@saxonberg/server/mud/lib/location/OuterWarren';
@@ -130,7 +129,7 @@ export default class LeaseController extends CommandController<LeaseModel> {
     // Key the unit fresh and hand the tenant the key (D7).
     const keyway = Lock.mintKeyway();
     await ParcelApi.setKeyway(unitExtent, keyway);
-    await CredentialApi.issueKey(target, keyway, LOCK_TECH);
+    await Lock.issueKey(target, keyway, LOCK_TECH);
 
     // Reflect into the (possibly-live) building now.
     await view.refreshProvisioned();

@@ -34,7 +34,6 @@ import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
 import { PersistableApi } from '../../../../api/persistable';
-import { AdvancementApi } from '../../../../api/advancement';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import {
   SOIL_NITROGEN_RESERVE_KEY,
@@ -190,7 +189,8 @@ export default class FeedController extends CommandController<FeedModel> {
 
     if (applied > 0) {
       try {
-        await AdvancementApi.recordDeed(giver, {
+        if (MixinApi.isAdvancing(giver))
+          await giver.creditDeed({
           discipline: 'horticulture',
           difficulty: 'easy',
           outcome: 'success',

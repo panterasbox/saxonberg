@@ -64,7 +64,7 @@ Three claims drive the design:
    Completion and abort fire long after the originating dispatch
    finished — there is no `CommandContext` in scope; the scheduler
    emits its own `activity-update` envelopes via
-   `MessageApi.sendEnvelope`, independent of any command.
+   `onEnvelope`, independent of any command.
 
 ## The Engagement interface family
 
@@ -488,7 +488,7 @@ authoritative shape):
   controller via `ctx.note(result.note)`.
 - **Mid-engagement, complete, abort** — `activity-update`
   envelope, emitted out-of-band by the scheduler via
-  `MessageApi.sendEnvelope`. There is no `CommandContext` in scope
+  `onEnvelope`. There is no `CommandContext` in scope
   at those points.
 
 Both envelope kinds fan out to all of an Avatar's Interactives via
@@ -502,7 +502,7 @@ in-flight; the controller renders completion prose directly.
 NPC engagements without `SensorMixin` are server-side observable
 (shadows, audit) but never reach a wire. The scheduler's envelope
 helpers gate on `MixinApi.isSensor(actor)` and skip the
-`MessageApi.sendEnvelope` call when the actor lacks the mixin.
+`onEnvelope` call when the actor lacks the mixin.
 
 **Progress is derivable, not transmitted.** Don't send
 `progress: 0.5` 50 times during a 5-second activity.
@@ -572,7 +572,7 @@ why this shape was chosen.
    being `Mobile`; an NPC running its own activities can be
    `Engaged` without being a `Sensor` (server-side observable, no
    wire). The scheduler narrows with `MixinApi.isSensor(actor)`
-   before calling `MessageApi.sendEnvelope`.
+   before calling `onEnvelope`.
 8. **No separate non-checking `start()`.** A single method that
    does conflict resolution closes the lazy-caller footgun.
 9. **Mid-traversal actor stays in source room (Wave 2+ note).** For
@@ -642,7 +642,7 @@ sibling slates:
   [docs/slates/tails/host-slot-activities-slate.md](../slates/tails/host-slot-activities-slate.md).
   `MountActivity`, `DismountActivity`, `SitActivity`,
   `LieActivity`, `DriveActivity`, `ReadActivity`. Adds the
-  `SlotApi` pending-claim extension (`claimPending` /
+  `Slotted/Slottable` pending-claim extension (`claimPending` /
   `commitClaim` / `releaseClaim`) so cross-actor races on shared
   host slots (saddle, chair, driver seat) reject the loser
   cleanly rather than committing both. Deferred for the same

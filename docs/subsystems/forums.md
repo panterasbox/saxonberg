@@ -227,7 +227,7 @@ The two are **independent siblings** of the mutation — neither causes the
 other (the write isn't event-sourced; the event has no tail). The order
 is **persist-then-fire** so no listener observes a live event whose
 durable row hasn't landed. This mirrors the existing `fireFieldChange →
-EventApi.fire` pattern (MQL-sub) and the `ChronicleApi.record` silent-
+EventApi.fire` pattern (MQL-sub) and the `recordDeed` silent-
 append precedent. `ForumEventFired` is a `BusEvent`-shaped DTO
 (`static KIND = 'forum.eventFired'`) carrying the same dependency-key
 payload (the `FieldChangedEvent` precedent).
@@ -272,7 +272,7 @@ State + flow:
 - A scope is **delivered to the Interactive but projected through the
   holder Avatar** — `viewerOf(interactive)` resolves the holder and
   requires it compose `Sensor`; `projectScope` re-reads the docs and runs
-  them through `ForumsApi.listBoards` / `readBoard` / `readThread`, which
+  them through `actor.forumBoards()` / `ForumsApi.readBoard` / `readThread`, which
   apply the viewer's audience filter. Re-resolved live each flush, so a
   subscription always reflects the current perception/access view.
 - `normalizeScope` canonicalizes a board scope's `id` (which the GUI may

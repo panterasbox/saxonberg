@@ -16,7 +16,6 @@ import { Stuff } from '../../lib/stuff/Stuff';
 import EventRegistry from '../../platform/idea/EventRegistry';
 import Interactive from '../../platform/idea/Interactive';
 import Avatar from '../../platform/agent/Avatar';
-import { ConnectionApi } from '../connection';
 
 async function bootRegistry(): Promise<void> {
   const reg = await StuffApi.create(() => {
@@ -40,7 +39,7 @@ async function setup(): Promise<{
   const interactive = await StuffApi.create(
     () => new Interactive('sock-1', 'sess-1', { _id: 'u1' } as never),
   );
-  ConnectionApi.transfer(interactive, avatar);
+  interactive.transferTo(avatar);
   const envelopes: Array<{ type: string; [k: string]: unknown }> = [];
   vi.spyOn(avatar, 'onEnvelope').mockImplementation((tpl) => {
     envelopes.push(tpl as unknown as { type: string });
@@ -89,7 +88,7 @@ describe('MqlSubscriptionApi — integration loop', () => {
       fields: { displayName: 'Bob' },
     });
 
-    MqlSubscriptionApi.handleUnsubscribe(interactive, 's1');
+    interactive.cancelMqlSubscription('s1');
     expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(0);
     expect(MqlSubscriptionApi._getDependencyIndexEntryCountForTesting()).toBe(0);
   });
@@ -111,7 +110,7 @@ describe('MqlSubscriptionApi — integration loop', () => {
     });
     expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(2);
 
-    MqlSubscriptionApi.cancelAllForInteractive(interactive);
+    interactive.cancelAllMqlSubscriptions();
 
     expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(0);
     expect(MqlSubscriptionApi._getDependencyIndexEntryCountForTesting()).toBe(0);

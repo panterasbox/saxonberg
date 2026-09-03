@@ -15,7 +15,6 @@ import { Stuff } from '../../lib/stuff/Stuff';
 import EventRegistry from '../../platform/idea/EventRegistry';
 import Interactive from '../../platform/idea/Interactive';
 import Avatar from '../../platform/agent/Avatar';
-import { ConnectionApi } from '../connection';
 
 async function bootRegistry(): Promise<void> {
   const reg = await StuffApi.create(() => {
@@ -37,7 +36,7 @@ async function makeAvatarInteractive(): Promise<{
   const interactive = await StuffApi.create(
     () => new Interactive('sock-1', 'sess-1', { _id: 'u1' } as never),
   );
-  ConnectionApi.transfer(interactive, avatar);
+  interactive.transferTo(avatar);
   return { interactive, avatar };
 }
 
@@ -68,13 +67,13 @@ describe('PromptApi — validator', () => {
     const { interactive, avatar } = await makeAvatarInteractive();
     const envelopes = captureEnvelopes(avatar);
 
-    const p = PromptApi.text(interactive, 'Name?', {
+    const p = interactive.promptText('Name?', {
       validate: (s) => (s.length >= 3 ? true : 'too short'),
     });
     const id = envelopes[0]!.promptId!;
     envelopes.length = 0;
 
-    PromptApi.handleResponse(interactive, { promptId: id, response: 'A' });
+    interactive.handlePromptResponse({ promptId: id, response: 'A' });
     // Validation runs through an async path even for sync
     // validators (`await record.validate(...)`); flush microtasks.
     await Promise.resolve();
@@ -88,7 +87,7 @@ describe('PromptApi — validator', () => {
 
     // Valid response resolves.
     envelopes.length = 0;
-    PromptApi.handleResponse(interactive, { promptId: id, response: 'Alice' });
+    interactive.handlePromptResponse({ promptId: id, response: 'Alice' });
     await expect(p).resolves.toBe('Alice');
     expect(PromptApi._getResolverCountForTesting()).toBe(0);
   });
@@ -98,14 +97,14 @@ describe('PromptApi — validator', () => {
     const { interactive, avatar } = await makeAvatarInteractive();
     const envelopes = captureEnvelopes(avatar);
 
-    const p = PromptApi.text(interactive, 'Name?', {
+    const p = interactive.promptText('Name?', {
       validate: async (s) => {
         await Promise.resolve();
         return s.length >= 3 ? true : 'too short';
       },
     });
     const id = envelopes[0]!.promptId!;
-    PromptApi.handleResponse(interactive, { promptId: id, response: 'Bob' });
+    interactive.handlePromptResponse({ promptId: id, response: 'Bob' });
     await expect(p).resolves.toBe('Bob');
   });
 
@@ -114,12 +113,12 @@ describe('PromptApi — validator', () => {
     const { interactive, avatar } = await makeAvatarInteractive();
     const envelopes = captureEnvelopes(avatar);
 
-    const p = PromptApi.text(interactive, 'Name?', {
+    const p = interactive.promptText('Name?', {
       validate: async (_s) => 'always invalid',
     });
     const id = envelopes[0]!.promptId!;
     envelopes.length = 0;
-    PromptApi.handleResponse(interactive, { promptId: id, response: 'Bob' });
+    interactive.handlePromptResponse({ promptId: id, response: 'Bob' });
     // Async validator — wait one microtask for it to settle.
     await Promise.resolve();
     await Promise.resolve();
@@ -138,14 +137,14 @@ describe('PromptApi — validator', () => {
     const { interactive, avatar } = await makeAvatarInteractive();
     const envelopes = captureEnvelopes(avatar);
 
-    const p = PromptApi.text(interactive, 'Name?', {
+    const p = interactive.promptText('Name?', {
       validate: (_s) => {
         throw new Error('database down');
       },
     });
     const id = envelopes[0]!.promptId!;
     envelopes.length = 0;
-    PromptApi.handleResponse(interactive, { promptId: id, response: 'Bob' });
+    interactive.handlePromptResponse({ promptId: id, response: 'Bob' });
     await Promise.resolve();
     const failed = envelopes.find(
       (e) => e.outcome?.notes[0]?.kind === 'prompt-validation-failed',
@@ -165,14 +164,14 @@ describe('PromptApi — validator', () => {
     const envelopes = captureEnvelopes(avatar);
     let received: unknown = null;
 
-    const p = PromptApi.confirm(interactive, 'OK?', 'no', {
+    const p = interactive.promptConfirm('OK?', 'no', {
       validate: (b) => {
         received = b;
         return true;
       },
     });
     const id = envelopes[0]!.promptId!;
-    PromptApi.handleResponse(interactive, { promptId: id, response: 'yes' });
+    interactive.handlePromptResponse({ promptId: id, response: 'yes' });
     await p;
     expect(received).toBe(true);
     expect(typeof received).toBe('boolean');

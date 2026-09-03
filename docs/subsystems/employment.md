@@ -185,7 +185,7 @@ that `appointingAuthority` overrides when both are present.
 `Position.reportsTo` walks *within* an organization
 (`getReportingChain(positionKey)`, nearest superior first);
 `parentOrganization` walks *between* them
-(`EmploymentApi.organizationChainOf`, nearest parent first). Both are
+(`org.organizationChain()`, nearest parent first). Both are
 optional, so every shipped Position and Business is unchanged.
 
 ⭐ **The first content consumer is the Goodkin branch**, which names
@@ -202,7 +202,7 @@ contradiction.
 
 ## The uniform reads
 
-`EmploymentApi.holdersOf(organization, positionKey)` answers *who holds P
+`organization.holdersOf(positionKey)` answers *who holds P
 in O?* — durable templatePaths, identical for a ministry, a shop and a
 publisher. Its inverse is the actor's own `getActiveEmployments()`.
 
@@ -355,7 +355,7 @@ the gate) — no `TicketClerk`/`Bar.postRegister` clone. See
 Presence is a **consequence** of employment state, kept in brains so it
 stays hot-swappable:
 
-- **`shifts`** — reads `EmploymentApi.shiftStateOf(host)` (sync) and
+- **`shifts`** — reads `host.shiftState()` (sync) and
   teleports on-shift → `config.behindBar`, off-shift → `config.offstage`.
   The game-clock schedule match is **gone** (the schedule lives on the
   Business roster now). Not presence-gated (off-stage cast must move out
@@ -380,7 +380,7 @@ stays hot-swappable:
   and one per venue beside its content (`world/<venue>/__tests__/offstage.test.ts`).
 - **`covers`** — the proprietor covers gaps. On a presence-gated cadence, if
   **no other active on-shift maker is present** in the proprietor's location,
-  `EmploymentApi.beginCover(self, business)` upserts a **transient, on-shift**
+  `self.beginCovering(business)` upserts a **transient, on-shift**
   Employment against the first Position — reusing the whole on-shift→confer
   path, so the covering proprietor gains `MakerMixin` and an `order` still
   finds a fulfiller. Unpaid by construction (the wage settlement skips a
@@ -407,7 +407,7 @@ from a business account*. No custodial shape was needed: a
 and settlement never checks that the payer *owns* the routing account
 (it checks `authorize` and balance only). So the conferral is a **link**:
 
-- **`EmploymentApi.buysFor(actor): Promise<BusinessStuff[]>`** — every
+- **`actor.buysFor(): Promise<BusinessStuff[]>`** — every
   Business where the actor holds a non-exited `purchases` position, plus
   the one whose proprietor they are.
 - **`wallet use house`** (`WalletController`) — resolves the house via
@@ -425,7 +425,7 @@ and settlement never checks that the payer *owns* the routing account
   the hand holds is stamped to the business first). `house stock` /
   `house par` act on that business.
 - **`quit`** (`platform/idea/cmd/employment/QuitController.ts`, `quit
-  [<business>]`) is the player's way out; `EmploymentApi.quit` / `fire`
+  [<business>]`) is the player's way out; `actor.quitJob` / `org.dismiss`
   unlink the operating account (`BankingApi.unlinkAccount`), and a relog
   re-clones the wallet app, so the link never outlives the position.
   Both are async now.
@@ -448,7 +448,7 @@ strikes the line). `house stock` emits the sheet as prose and shows the
 live `stock` card on a screen ([display.md](./display.md); `no-display`
 without one).
 
-**`EmploymentApi.stockSheetFor(viewer, business): StockSheetLine[]`**
+**`business.stockSheetFor(viewer): StockSheetLine[]`**
 (`{ line, onHand, shortfall }`) — for each par line, the on-hand total
 over the goods the **viewer perceives** from where they stand
 (inventory + location, descending open containers — a bottle in a rack,

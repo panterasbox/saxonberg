@@ -33,7 +33,6 @@ import { setClientStateUpdatePush } from '../mud/lib/connection/HasInteractive';
 import type Interactive from '../mud/platform/idea/Interactive';
 import Login from '../mud/platform/idea/Login';
 import { ReactionApi } from '../mud/api/reaction';
-import { ConnectionApi } from '../mud/api/connection';
 import { User } from '../mud/lib/identity/User';
 import { TwitchProfile } from '../mud/lib/identity/TwitchProfile';
 import { KickProfile } from '../mud/lib/identity/KickProfile';
@@ -41,6 +40,7 @@ import { GoogleProfile } from '../mud/lib/identity/GoogleProfile';
 import { StuffApi } from '../mud/api/stuff';
 import { CallSecurity } from '../mud/lib/security/decorators';
 import { SecurityPolicies } from '../mud/lib/security/SecurityPolicies';
+import geoip from 'geoip-lite';
 import {
   inboundHandlers,
   type InboundClientMessage,
@@ -75,6 +75,35 @@ export type UnlinkResult =
   | { status: 'only-provider'; message: string };
 
 /**
+ * Resolve an IP to a country display name via the offline `geoip-lite`
+ * dataset. Returns `undefined` for localhost / private / unroutable IPs
+ * (no country) and on any lookup failure. Strips an IPv6-mapped-v4
+ * prefix (`::ffff:127.0.0.1` → `127.0.0.1`) so dev/proxy addresses
+ * resolve. Country is the only datum derived — never city/region here.
+ * (Moved from ConnectionLogic with the recordOrigin OO conversion —
+ * the backend is the sole caller and the layer that owns the request.)
+ */
+const REGION_NAMES = new Intl.DisplayNames(['en'], { type: 'region' });
+function geolocateCountry(ip: string | undefined): string | undefined {
+  if (!ip) return undefined;
+  try {
+    const normalized = ip.startsWith('::ffff:') ? ip.slice(7) : ip;
+    const hit = geoip.lookup(normalized);
+    if (!hit?.country) {
+      // Dev-only fallback: localhost / private IPs never geolocate, so a
+      // local session would never show a country. When `DEV_GEO_COUNTRY`
+      // is set, treat an unresolved IP as coming from it — a testing knob
+      // only (production has real client IPs via X-Forwarded-For).
+      return process.env.DEV_GEO_COUNTRY || undefined;
+    }
+    return REGION_NAMES.of(hit.country) ?? hit.country;
+  } catch {
+    return undefined;
+  }
+}
+
+
+/**
  * Sets the class-default policy for Application's instance methods to
  * `Public`. Backend wraps every entry call site in
  * `ExecutionContextApi.runRoot(Backend, ...)`, so the live frame at
@@ -85,6 +114,7 @@ export type UnlinkResult =
  * Application method would override.
  */
 @CallSecurity(SecurityPolicies.Public)
+
 export class Application {
   private static instance: Application;
 
@@ -148,8 +178,8 @@ export class Application {
       ReactionApi.isReactableTopic(frame.topic) &&
       ReactionApi.isReactableAct(commandId)
     ) {
-      ReactionApi.registerInteractive(interactive);
-      ReactionApi.noteDeliveredFrame(interactive, frameId, commandId);
+      interactive.registerReactions();
+      interactive.noteDeliveredFrame(frameId, commandId);
     }
   }
 
@@ -252,8 +282,10 @@ export class Application {
       );
 
       // Capture the connection's geographic origin (country only is
-      // surfaced; the raw IP stays transient on the Interactive).
-      ConnectionApi.recordOrigin(interactive, clientIp);
+      // surfaced; the raw IP stays transient on the Interactive). The
+      // country is derived HERE — the backend owns the raw request, and
+      // the geoip import may not cross into the mudlib's object tier.
+      interactive.recordOrigin(clientIp, geolocateCountry(clientIp));
 
       const login = await StuffApi.create(() => new Login(interactive));
       await login.enter();

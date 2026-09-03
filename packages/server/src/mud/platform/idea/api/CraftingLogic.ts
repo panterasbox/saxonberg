@@ -9,8 +9,6 @@ import { CorpoApi } from '../../../api/corpo';
 import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
 import { BulkableApi } from '../../../api/bulk';
-import { ThermalApi } from '../../../api/thermal';
-import { AdvancementApi } from '../../../api/advancement';
 import { ExecutionContextApi } from '../../../api/execution-context';
 import { WorldClockApi } from '../../../api/worldclock';
 import { Quantity } from '../../../lib/quantity';
@@ -690,7 +688,7 @@ async function finishGlass(
     for (const g of garnish) {
       let piece: Stuff = g.stuff;
       if (g.glob && MixinApi.isGlobbable(g.stuff) && g.stuff.getQuantity() > g.count) {
-        piece = await GlobbableApi.split(g.stuff, g.count);
+        piece = await g.stuff.split(g.count);
       }
       if (MixinApi.isContainable(piece)) ContainmentApi.move(piece, output);
     }
@@ -1003,7 +1001,8 @@ async function recordCraftEvidence(
   )
     ? (recipe.getDifficulty() as Difficulty)
     : 'easy';
-  await AdvancementApi.recordDeed(maker, {
+  if (MixinApi.isAdvancing(maker))
+    await maker.creditDeed({
     discipline,
     difficulty,
     outcome: 'success',
@@ -1342,7 +1341,7 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
   // recipe requiring heat declines when the hottest reachable furnace
   // doesn't clear it — a cold forge is a diegetic decline, not a flag.
   const requiresHeatK = recipe.getRequiresHeatK();
-  if (requiresHeatK > 0 && ThermalApi.reachableHeatFor(maker) < requiresHeatK) {
+  if (requiresHeatK > 0 && (MixinApi.isThermal(maker) ? maker.reachableHeatK() : 0) < requiresHeatK) {
     return {
       ok: false,
       reason: 'insufficient-heat',
@@ -1527,7 +1526,7 @@ async function repairImpl(req: RepairRequest): Promise<RepairOutcome> {
   let instrument: (Stuff & Tooled) | null = null;
   if (metal) {
     const heatK = dial(AppSettingKeys.craftingRepairMetalHeatK, 900);
-    if (ThermalApi.reachableHeatFor(maker) < heatK) {
+    if ((MixinApi.isThermal(maker) ? maker.reachableHeatK() : 0) < heatK) {
       return { ok: false, reason: 'insufficient-heat', detail: `${heatK}` };
     }
     instrument = tools.find((t) => t.hasCapability('anvil')) ?? null;
@@ -1645,7 +1644,7 @@ async function salvageImpl(req: SalvageRequest): Promise<SalvageOutcome> {
   const rate = dial(AppSettingKeys.craftingSalvageRate, 0.5);
 
   // The flattened constituents — a pure material is its own whole.
-  const comp = MaterialApi.compositionOf(material);
+  const comp = material.elementalComposition();
   const constituents: { material: Material; fraction: number }[] = [];
   if (comp.direct.length === 0) {
     constituents.push({ material, fraction: 1 });

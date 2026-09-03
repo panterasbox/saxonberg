@@ -37,7 +37,7 @@ import type { FieldMeta } from '../mixin';
 
 /**
  * The fields a caller supplies to mint one chronicle entry — the
- * `ChronicleApi` call shape. Everything is optional; the build seam
+ * `recordClaim`/`recordDeed` call shape (PersonaMixin). Everything is optional; the build seam
  * (`ChronicleLogic`) resolves defaults: `kind` defaults to `deed`,
  * `template` (rendered via `ProseApi`) takes precedence over `text`, a
  * deed's `when` defaults to the game-time witness, and a claim's `order`

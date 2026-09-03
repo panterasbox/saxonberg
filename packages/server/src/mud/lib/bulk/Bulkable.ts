@@ -49,7 +49,6 @@ import { Quantity } from '../quantity';
 import { QuantityMarshaller } from '../../platform/idea/persistence/QuantityMarshaller';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
-import { RecognitionApi } from '../../api/recognition';
 import { MqlSubscriptionApi } from '../../api/mql-subscription';
 import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
 import type { MarkupAugmenter } from '../../api/mml';
@@ -562,7 +561,7 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
      * substance and decanting carries the knowledge.
      *
      * So an identifiable substance routes through
-     * `RecognitionApi.describe` — the same rendering path an
+     * `describeFor` — the same rendering path an
      * unidentified item on the floor uses, not a parallel one. Anything
      * else keeps the shipped convention exactly: the blend payload
      * first (a mixed drink names itself, not its base material), then
@@ -586,10 +585,7 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
       if (!material) return null;
 
       if (MixinApi.isIdentifiable(material)) {
-        const described = RecognitionApi.describe(
-          viewer,
-          material as unknown as Stuff,
-        );
+        const described = (material as unknown as Stuff).describeFor(viewer);
         if (described) return described;
       }
       return slot.getPayload()?.appearance ?? material.getAppearance() ?? null;

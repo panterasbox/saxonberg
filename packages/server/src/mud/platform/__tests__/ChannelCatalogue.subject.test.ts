@@ -180,7 +180,7 @@ describe('ChannelCatalogue.audienceFor (via Subject group)', () => {
   });
 });
 
-describe('ChannelCatalogue subscription (per-subject mapping + migration)', () => {
+describe('ChannelCatalogue subscription (per-subject mapping)', () => {
   it('maps tunedIn/muted onto the per-subject store', async () => {
     const { channels } = setup();
     const owner = makeAvatar('p1');
@@ -200,21 +200,4 @@ describe('ChannelCatalogue subscription (per-subject mapping + migration)', () =
     expect(channels.getSubscription(av, channel).tunedIn).toBe(false);
   });
 
-  it('migrates a legacy chat.subscription.<channelId> key on first read', async () => {
-    const { channels } = setup();
-    const owner = makeAvatar('p1');
-    const channel = await channels.createPlayerChannel(owner, 'Gossip');
-    const av = makeAvatar('p2');
-
-    // Seed a legacy per-channel subscription (muted, tuned out).
-    const channelId = channel._id ?? channel.name;
-    (av as unknown as FakeAvatar).setProp(
-      Property.of<PropValue>(`chat.subscription.${channelId}`),
-      { tunedIn: false, muted: true } as unknown as PropValue,
-    );
-
-    // First read migrates it onto the per-subject store.
-    const sub = channels.getSubscription(av, channel);
-    expect(sub).toEqual({ tunedIn: false, muted: true });
-  });
 });

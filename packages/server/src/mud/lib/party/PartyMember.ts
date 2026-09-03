@@ -32,9 +32,28 @@ import {
 } from "../security/decorators";
 import { SecurityPolicies } from "../security/SecurityPolicies";
 import { Party } from "../../platform/idea/Party";
+import { StuffApi } from "../../api/stuff";
+import type { PartyOpResult, PartySimpleResult } from "../../api/party";
+// eslint-disable-next-line no-restricted-imports -- the F3 member face: a member's party verbs forward into the party logic singleton exactly as the api/party facade does (the Combustible/Energized precedent)
+import { PartyLogic } from "../../platform/idea/api/PartyLogic";
+import type { Stuff } from "../stuff/Stuff";
 
 /** Public read surface for PartyMemberMixin. */
 export interface PartyMember {
+  // The party verbs (F3) — forward into PartyLogic.
+  formParty(name: string, durable?: boolean): Promise<PartyOpResult>;
+  inviteToParty(invitee: Stuff): Promise<PartyOpResult>;
+  acceptPartyInvite(): Promise<PartyOpResult>;
+  enlist(hiree: Stuff): Promise<PartySimpleResult>;
+  leaveParty(): Promise<PartySimpleResult>;
+  kickFromParty(targetId: string): Promise<PartySimpleResult>;
+  disbandParty(): Promise<PartySimpleResult>;
+  transferCaptaincy(newCaptainId: string): Promise<PartySimpleResult>;
+  setPartySide(side: string): Promise<PartySimpleResult>;
+  setPartyFormation(name: string): Promise<PartySimpleResult>;
+  assignPartyRole(role: string, targetId: string): Promise<PartySimpleResult>;
+  muster(name: string): Promise<PartyOpResult>;
+  standDown(): Promise<PartySimpleResult>;
   getActivePartyPath(): string;
   getPendingInvitePartyPath(): string;
   /** The member's durable party ref: an Avatar's playerId, else the
@@ -142,6 +161,84 @@ export function PartyMemberMixin<TBase extends MixinConstructor>(Base: TBase) {
     public _setPendingInvitePartyPath(path: string): void {
       this.pendingInvitePartyPath = path;
     }
+
+    // ------- the party verbs (F3) — forward into PartyLogic -------
+
+    /** Found a new party (ad-hoc unless `durable`), captained by this. */
+    public formParty(name: string, durable = false): Promise<PartyOpResult> {
+      return partyLogic().form(this as unknown as Stuff, name, durable);
+    }
+
+    /** Offer `invitee` a place in this member's party (offer+accept). */
+    public inviteToParty(invitee: Stuff): Promise<PartyOpResult> {
+      return partyLogic().invite(this as unknown as Stuff, invitee);
+    }
+
+    /** Accept an outstanding party invite. */
+    public acceptPartyInvite(): Promise<PartyOpResult> {
+      return partyLogic().accept(this as unknown as Stuff);
+    }
+
+    /** Directly enlist `hiree` (the merc-hire path, no handshake). */
+    public enlist(hiree: Stuff): Promise<PartySimpleResult> {
+      return partyLogic().enlist(this as unknown as Stuff, hiree);
+    }
+
+    /** Leave the active party (a leaving captain auto-promotes an heir). */
+    public leaveParty(): Promise<PartySimpleResult> {
+      return partyLogic().leave(this as unknown as Stuff);
+    }
+
+    /** Captain removes a member by ref. */
+    public kickFromParty(targetId: string): Promise<PartySimpleResult> {
+      return partyLogic().kick(this as unknown as Stuff, targetId);
+    }
+
+    /** Captain dissolves the party (+ its chat channel). */
+    public disbandParty(): Promise<PartySimpleResult> {
+      return partyLogic().disband(this as unknown as Stuff);
+    }
+
+    /** Captain hands leadership to another member. */
+    public transferCaptaincy(newCaptainId: string): Promise<PartySimpleResult> {
+      return partyLogic().transfer(this as unknown as Stuff, newCaptainId);
+    }
+
+    /** Captain sets the party's shared combat side (the ally seam). */
+    public setPartySide(side: string): Promise<PartySimpleResult> {
+      return partyLogic().setSide(this as unknown as Stuff, side);
+    }
+
+    /** Captain adopts a formation by short name. */
+    public setPartyFormation(name: string): Promise<PartySimpleResult> {
+      return partyLogic().setFormation(this as unknown as Stuff, name);
+    }
+
+    /** Captain assigns a member a role from the formation's vocabulary. */
+    public assignPartyRole(
+      role: string,
+      targetId: string,
+    ): Promise<PartySimpleResult> {
+      return partyLogic().assignRole(this as unknown as Stuff, role, targetId);
+    }
+
+    /** Re-activate a dormant durable crew by name (one-active). */
+    public muster(name: string): Promise<PartyOpResult> {
+      return partyLogic().muster(this as unknown as Stuff, name);
+    }
+
+    /** Go dormant: clear the active pointer. */
+    public standDown(): Promise<PartySimpleResult> {
+      return partyLogic().standDown(this as unknown as Stuff);
+    }
   }
   return PartyMemberMixin;
+}
+
+/** Resolve the HMR-able PartyLogic singleton (the party choreography). */
+function partyLogic(): PartyLogic {
+  return StuffApi.singletonSync(
+    "/platform/idea/api/party",
+    () => new PartyLogic(),
+  );
 }

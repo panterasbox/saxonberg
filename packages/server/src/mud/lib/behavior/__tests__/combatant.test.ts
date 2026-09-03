@@ -18,8 +18,44 @@ import { CombatApi } from "../../../api/combat";
 import { PartyApi } from "../../../api/party";
 import { brain as combatant } from "../combatant";
 import type { BrainContext } from "../brain";
+import { CombatLogic } from '../../../platform/idea/api/CombatLogic';
+import { MixinApi } from '../../../api/mixin';
 
 afterEach(() => vi.restoreAllMocks());
+
+/**
+ * A fake host carrying the G1 combatant face, forwarding into the
+ * CombatLogic PROTOTYPE slots so each test's prototype spies drive it
+ * exactly as the real mixin forwards would.
+ */
+function faceHost(): object {
+  const h: Record<string, unknown> = {};
+  h.rangeStanding = () =>
+    (CombatLogic.prototype.rangeStanding as unknown as (a: unknown) => unknown)(
+      h,
+    );
+  h.gambitEligibility = (k: string) =>
+    (
+      CombatLogic.prototype.eligibilityFor as unknown as (
+        a: unknown,
+        k: string,
+      ) => unknown
+    )(h, k);
+  h.queueGambit = (k: string) =>
+    (
+      CombatLogic.prototype.queueGambit as unknown as (
+        a: unknown,
+        k: string,
+      ) => unknown
+    )(h, k);
+  h.formationStanding = () =>
+    (
+      CombatLogic.prototype.formationStandingOf as unknown as (
+        a: unknown,
+      ) => unknown
+    )(h);
+  return h;
+}
 
 function ctxFor(host: object): BrainContext {
   return {
@@ -51,17 +87,18 @@ function fakeSession(band: string, host: object, foe: object): unknown {
 
 describe("combatant brain", () => {
   it("presses with a strike when steady", () => {
-    const host = {};
+    const host = faceHost();
     const foe = {};
+    vi.spyOn(MixinApi, "isCombatant").mockReturnValue(true);
     vi.spyOn(CombatApi, "sessionFor").mockReturnValue(
       fakeSession("steady", host, foe) as never,
     );
     vi.spyOn(PartyApi, "areAllied").mockReturnValue(false);
-    vi.spyOn(CombatApi, "eligibilityFor").mockReturnValue({ ok: false });
+    vi.spyOn(CombatLogic.prototype, "eligibilityFor").mockReturnValue({ ok: false });
     // No reach info → the brain skips the close-the-gap policy and presses.
-    vi.spyOn(CombatApi, "rangeStanding").mockReturnValue(null);
+    vi.spyOn(CombatLogic.prototype, "rangeStanding").mockReturnValue(null);
     const queue = vi
-      .spyOn(CombatApi, "queueGambit")
+      .spyOn(CombatLogic.prototype, "queueGambit")
       .mockReturnValue({ ok: true });
 
     combatant.act(ctxFor(host));
@@ -69,14 +106,15 @@ describe("combatant brain", () => {
   });
 
   it("holds fire when overextended (lets the engine recover)", () => {
-    const host = {};
+    const host = faceHost();
     const foe = {};
+    vi.spyOn(MixinApi, "isCombatant").mockReturnValue(true);
     vi.spyOn(CombatApi, "sessionFor").mockReturnValue(
       fakeSession("broken", host, foe) as never,
     );
     vi.spyOn(PartyApi, "areAllied").mockReturnValue(false);
     const queue = vi
-      .spyOn(CombatApi, "queueGambit")
+      .spyOn(CombatLogic.prototype, "queueGambit")
       .mockReturnValue({ ok: true });
 
     combatant.act(ctxFor(host));
@@ -84,10 +122,11 @@ describe("combatant brain", () => {
   });
 
   it("does nothing when not in a fight", () => {
-    const host = {};
+    const host = faceHost();
+    vi.spyOn(MixinApi, "isCombatant").mockReturnValue(true);
     vi.spyOn(CombatApi, "sessionFor").mockReturnValue(undefined);
     const queue = vi
-      .spyOn(CombatApi, "queueGambit")
+      .spyOn(CombatLogic.prototype, "queueGambit")
       .mockReturnValue({ ok: true });
     combatant.act(ctxFor(host));
     expect(queue).not.toHaveBeenCalled();

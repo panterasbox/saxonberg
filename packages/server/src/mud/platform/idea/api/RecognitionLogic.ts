@@ -3,14 +3,14 @@
 // the reflection.)
 
 import { ApiLogic } from '../../../lib/stuff/ApiLogic';
-import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
-import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
+import { Unshadowable } from '../../../lib/security/decorators';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Sensor } from '../../../lib/message/Sensor';
 import type { Perception } from '../../../lib/perception/Perception';
 import { MixinApi } from '../../../api/mixin';
-import type { RefKind } from '../../../api/recognition';
+import type { RefKind } from '../../../lib/stuff/Stuff';
 import { StuffApi } from '../../../api/stuff';
+import { SecurityApi } from '../../../api/security';
 import { GrammarApi } from '../../../api/grammar';
 import { TemplatePathPrefixes } from '../../../lib/paths';
 // Type-only — the value is resolved lazily at call time via the
@@ -22,8 +22,7 @@ import { RECOGNITION, IDENTIFICATION } from '../../../lib/belief/BeliefStore';
 import { Appearance } from '../../../lib/identification/Appearance';
 import { DescriptorBank } from '../../../lib/identification/DescriptorBank';
 
-const RecognitionApiCallers = SecurityPolicies.FromModule('/api/recognition#RecognitionApi'
-);
+
 
 /** Template path of the vision modality singleton. */
 const VISION_PATH = `${TemplatePathPrefixes.perceptionModalities}vision`;
@@ -253,7 +252,7 @@ function strangerStem(target: Stuff): string {
   return species ? `${GrammarApi.articleFor(species)} ${species}` : 'someone';
 }
 
-/** See {@link RecognitionApi.salientFeatures}. */
+/** The `salientFeatures` face — see the object surface (Stuff/BeliefStore). */
 function salientFeaturesImpl(
   target: Stuff,
   covered: ReadonlySet<string> = EMPTY_COVERAGE
@@ -345,13 +344,13 @@ function describeCore(
   return withStatus ? decorate(core, target) : core;
 }
 
-/** See {@link RecognitionApi.describe}. */
+/** The `describe` face — see the object surface (Stuff/BeliefStore). */
 function describeImpl(viewer: Stuff, target: Stuff): string {
   return describeCore(viewer, target, false, false);
 }
 
 /**
- * See {@link RecognitionApi.kindOf}. Deliberately built from the same
+ * The kind read. Deliberately built from the same
  * three gates `describeCore` opens with, in the same order — a viewer
  * who cannot see, or who is looking at a mask, must not be handed the
  * one fact the mask exists to hide.
@@ -381,12 +380,12 @@ function kindOfImpl(viewer: Stuff | undefined, target: Stuff): RefKind {
   return 'player';
 }
 
-/** See {@link RecognitionApi.describeWithStatus}. */
+/** The `describeWithStatus` face — see the object surface (Stuff/BeliefStore). */
 function describeWithStatusImpl(viewer: Stuff, target: Stuff): string {
   return describeCore(viewer, target, false, true);
 }
 
-/** See {@link RecognitionApi.perceivedKeywords}. */
+/** The `perceivedKeywords` face — see the object surface (Stuff/BeliefStore). */
 function perceivedKeywordsImpl(viewer: Stuff, target: Stuff): string[] {
   if (MixinApi.isOrganism(target)) {
     // Targeting keeps the distinguishing worn features (the `withFeatures`
@@ -398,7 +397,7 @@ function perceivedKeywordsImpl(viewer: Stuff, target: Stuff): string[] {
   return MixinApi.isPerceptible(target) ? target.getKeywords() : [];
 }
 
-/** See {@link RecognitionApi.learnIdentity}. */
+/** The `learnIdentity` face — see the object surface (Stuff/BeliefStore). */
 function learnIdentityImpl(
   viewer: Stuff,
   subject: Stuff,
@@ -410,7 +409,7 @@ function learnIdentityImpl(
   viewer.know(RECOGNITION, referent, { knownAs: name });
 }
 
-/** See {@link RecognitionApi.recognizes}. */
+/** The `recognizes` face — see the object surface (Stuff/BeliefStore). */
 function recognizesImpl(viewer: Stuff, subject: Stuff): boolean {
   if (!MixinApi.isBeliefStore(viewer)) return false;
   const referent = subject.getIdentityPath();
@@ -426,12 +425,13 @@ function recognizesImpl(viewer: Stuff, subject: Stuff): boolean {
  * {@link RecognitionApi}.
  *
  * Lives at `/platform/idea/api/recognition` (a stateless `Stuff` singleton, no
- * backing `Template`); `RecognitionApi`'s public statics forward here
- * via `StuffApi.singletonSync`. The naming algorithm and its helpers
- * live in module-private free functions (the former private statics plus
- * `describeImpl`/`salientFeaturesImpl`, so the public-to-public
- * `describe`/`salientFeatures`/`perceivedKeywords` self-calls don't trip
- * the gate). Each public method carries the `FromModule` gate per method.
+ * backing `Template`). Since the Api OO sweep the PUBLIC surface is the
+ * object faces — `stuff.describeFor(viewer)` and friends on the Stuff
+ * base (via the registered `RecognitionFace`), and the viewer realm on
+ * `BeliefStoreMixin` — so the methods here are ungated (P5 parity with
+ * the retired Public statics); `BootstrapManager.installFrameworkWiring`
+ * registers this singleton as the face (the registry-class-handoff
+ * cycle-avoidance pattern).
  *
  * Like the Api face, this file makes **zero static perception imports** —
  * the vision modality is resolved lazily off its registered singleton.
@@ -440,20 +440,30 @@ function recognizesImpl(viewer: Stuff, subject: Stuff): boolean {
  */
 @Unshadowable
 export class RecognitionLogic extends ApiLogic {
-  /** See {@link RecognitionApi.describe}. */
-  @CallSecurity(RecognitionApiCallers)
+  /**
+   * The `describe` face — see the object surface (Stuff/BeliefStore).
+   *
+   * Wrapped in `SecurityApi.projectAcross` (the read aperture): naming
+   * is a *projection of a person*, and the interior walk (perception,
+   * light, disguise, belief) reads the far object — the aperture runs
+   * it omni only when viewer and target sit on opposite sides of a
+   * circle boundary. The outer `describeFor` hop is admitted by the
+   * boundary's exempt-method set.
+   */
   public describe(viewer: Stuff, target: Stuff): string {
-    return describeImpl(viewer, target);
+    return SecurityApi.projectAcross(viewer, target, () =>
+      describeImpl(viewer, target),
+    this);
   }
 
-  /** See {@link RecognitionApi.describeWithStatus}. */
-  @CallSecurity(RecognitionApiCallers)
+  /** The `describeWithStatus` face — same aperture as `describe`. */
   public describeWithStatus(viewer: Stuff, target: Stuff): string {
-    return describeWithStatusImpl(viewer, target);
+    return SecurityApi.projectAcross(viewer, target, () =>
+      describeWithStatusImpl(viewer, target),
+    this);
   }
 
-  /** See {@link RecognitionApi.learnIdentity}. */
-  @CallSecurity(RecognitionApiCallers)
+  /** The `learnIdentity` face — see the object surface (Stuff/BeliefStore). */
   public learnIdentity(
     viewer: Stuff,
     subject: Stuff,
@@ -462,35 +472,38 @@ export class RecognitionLogic extends ApiLogic {
     learnIdentityImpl(viewer, subject, name);
   }
 
-  /** See {@link RecognitionApi.recognizes}. */
-  @CallSecurity(RecognitionApiCallers)
+  /** The `recognizes` face — see the object surface (Stuff/BeliefStore). */
   public recognizes(viewer: Stuff, subject: Stuff): boolean {
     return recognizesImpl(viewer, subject);
   }
 
-  /** See {@link RecognitionApi.salientFeatures}. */
-  @CallSecurity(RecognitionApiCallers)
-  public salientFeatures(
+  /**
+   * The `salientFeatures` face — single-subject form of the same
+   * aperture (the worn-feature walk is a chain; the projection is the
+   * unit, not the hop).
+   */
+  public salientFeaturesOf(
     target: Stuff,
     covered: ReadonlySet<string> = EMPTY_COVERAGE
   ): string {
-    return salientFeaturesImpl(target, covered);
+    return SecurityApi.projectAcross(target, undefined, () =>
+      salientFeaturesImpl(target, covered),
+    this);
   }
 
-  /** See {@link RecognitionApi.knowsTrueType}. */
-  @CallSecurity(RecognitionApiCallers)
+  /** The `knowsTrueType` face — see the object surface (Stuff/BeliefStore). */
   public knowsTrueType(viewer: Stuff, target: Stuff): boolean {
     return knowsTrueTypeImpl(viewer, target);
   }
 
-  /** See {@link RecognitionApi.perceivedKeywords}. */
-  @CallSecurity(RecognitionApiCallers)
+  /** The `perceivedKeywords` face — same aperture (the targeting half). */
   public perceivedKeywords(viewer: Stuff, target: Stuff): string[] {
-    return perceivedKeywordsImpl(viewer, target);
+    return SecurityApi.projectAcross(viewer, target, () =>
+      perceivedKeywordsImpl(viewer, target),
+    this);
   }
 
-  /** See {@link RecognitionApi.kindOf}. */
-  @CallSecurity(RecognitionApiCallers)
+  /** The `kindOf` face — see the object surface (Stuff/BeliefStore). */
   public kindOf(viewer: Stuff | undefined, target: Stuff): RefKind {
     return kindOfImpl(viewer, target);
   }

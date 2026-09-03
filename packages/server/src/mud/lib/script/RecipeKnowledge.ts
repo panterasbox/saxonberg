@@ -22,7 +22,7 @@
  * key would make the deed no-op on the claim's row.
  */
 
-import { ChronicleApi } from "../../api/chronicle";
+import { MixinApi } from '../../api/mixin';
 import type { Stuff } from "../stuff/Stuff";
 
 function knownKey(recipeId: string): string {
@@ -36,14 +36,16 @@ export class RecipeKnowledge {
   /** True iff the actor has read of `recipeId` (a claim). */
   static async knowsOf(actor: Stuff, recipeId: string): Promise<boolean> {
     const key = knownKey(recipeId);
-    const entries = await ChronicleApi.entriesFor(actor);
+    if (!MixinApi.isPersona(actor)) return false;
+    const entries = await actor.chronicleEntries();
     return entries.some((e) => e.kind === "claim" && e.key === key);
   }
 
   /** True iff the actor has learned to make `recipeId` (a deed). */
   static async canMake(actor: Stuff, recipeId: string): Promise<boolean> {
     const key = madeKey(recipeId);
-    const entries = await ChronicleApi.entriesFor(actor);
+    if (!MixinApi.isPersona(actor)) return false;
+    const entries = await actor.chronicleEntries();
     return entries.some((e) => e.kind === "deed" && e.key === key);
   }
 
@@ -53,7 +55,8 @@ export class RecipeKnowledge {
     recipeId: string,
     name: string,
   ): Promise<void> {
-    await ChronicleApi.recordOnce(actor, knownKey(recipeId), {
+    if (!MixinApi.isPersona(actor)) return;
+    await actor.recordChronicleOnce(knownKey(recipeId), {
       kind: "claim",
       text: `Learned of ${name}.`,
       tags: ["recipe"],
@@ -66,7 +69,8 @@ export class RecipeKnowledge {
     recipeId: string,
     name: string,
   ): Promise<void> {
-    await ChronicleApi.recordOnce(actor, madeKey(recipeId), {
+    if (!MixinApi.isPersona(actor)) return;
+    await actor.recordChronicleOnce(madeKey(recipeId), {
       kind: "deed",
       text: `Learned to make ${name}.`,
       tags: ["recipe"],

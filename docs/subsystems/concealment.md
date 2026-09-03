@@ -120,7 +120,7 @@ secret).
 `effectivePerception` sums three terms:
 
 - **`capacity`** = the viewer's `awareness` competence-band rank ×
-  `detection.capacityPerBand`. The band read (`AdvancementApi.bandFor`) is
+  `detection.capacityPerBand`. The band read (`competenceBandFor`) is
   `async`, but the enumeration seams are sync — so
   `PerceptionLogic.preloadForSenseGate(actor)` (already called per-command
   to warm anatomy + modalities) is **extended to warm the actor's

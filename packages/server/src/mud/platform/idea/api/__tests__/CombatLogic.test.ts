@@ -50,7 +50,6 @@ import {
   CombatSession,
 } from "../../../../lib/combat/CombatSession";
 import { PartyApi } from "../../../../api/party";
-import { AdvancementApi } from "../../../../api/advancement";
 import { AccountabilityApi } from "../../../../api/accountability";
 import { COMBAT_COUP_TYPE } from "../../../../lib/combat/Coup";
 import { PartyMemberMixin } from "../../../../lib/party/PartyMember";
@@ -63,6 +62,7 @@ import Exit from "../../../../lib/boundary/Exit";
 import CartesianLocation from "../../../../lib/location/CartesianLocation";
 import CartesianZone from "../../location/CartesianZone";
 import { Postures } from "../../../../lib/slot/Postured";
+import type { Combatant } from '../../../../lib/combat/Combatant';
 
 class TestRoom extends ContainerMixin(Idea) {}
 class TestFighter extends Character {}
@@ -101,6 +101,32 @@ interface FighterOpts {
   /** A second weapon in the off-hand (dual-wield). */
   offWeaponForm?: string;
   ctor?: new () => TestFighter;
+}
+
+/**
+ * Since the OO sweep, credits land on the actor's own creditDeed /
+ * creditSignature (sealed instance methods). The factory installs
+ * capture spies on every fighter so tests observe minting without a
+ * class-static seam; the arrays are cleared at each using test.
+ */
+const mintedDeeds: Array<Record<string, unknown>> = [];
+const mintedSubs: Array<{ discipline: string }> = [];
+function installCreditCapture(f: TestFighter): void {
+  vi.spyOn(
+    f as unknown as { creditDeed(sub: unknown): Promise<void> },
+    "creditDeed",
+  ).mockImplementation(async (sub: unknown) => {
+    mintedDeeds.push(sub as Record<string, unknown>);
+  });
+  vi.spyOn(
+    f as unknown as { creditSignature(sig: unknown): Promise<void> },
+    "creditSignature",
+  ).mockImplementation(async (sig: unknown) => {
+    for (const sc of (sig as { discipline: Array<{ discipline: string }> })
+      .discipline ?? []) {
+      mintedSubs.push(sc);
+    }
+  });
 }
 
 function makeFighter(room: TestRoom, opts: FighterOpts = {}): TestFighter {
@@ -170,6 +196,7 @@ function makeFighter(room: TestRoom, opts: FighterOpts = {}): TestFighter {
     ow.setSlotClaim(planPathOf(f), ["offgrip"]);
     (f as unknown as { occupy(x: unknown, s: string): void }).occupy(ow, "offgrip");
   }
+  installCreditCapture(f);
   return f;
 }
 
@@ -271,7 +298,7 @@ describe("CombatLogic — poise economy", () => {
     const sa = session.getState(a)!;
 
     expect(sa.poise.band()).toBe("steady");
-    CombatApi.queueGambit(a, "strike");
+    (a as unknown as Stuff & Combatant).queueGambit("strike");
     CombatApi.advance(session);
     // Committing a gambit erodes + overextends the actor off steady.
     expect(sa.poise.band()).not.toBe("steady");
@@ -287,7 +314,7 @@ describe("CombatLogic — poise economy", () => {
     // Drive A's poise to broken directly, then a deliberate strike whiffs.
     sa.poise.erode(0.85, 0);
     expect(sa.poise.isBroken() || sa.poise.isOpen()).toBe(true);
-    CombatApi.queueGambit(a, "strike");
+    (a as unknown as Stuff & Combatant).queueGambit("strike");
     CombatApi.advance(session);
     // Whiff spends the whiff penalty — still open/broken (self-opened).
     expect(sa.poise.band() === "open" || sa.poise.band() === "broken").toBe(
@@ -304,9 +331,9 @@ describe("CombatLogic — gambit eligibility (injury edits the menu)", () => {
     const session = open(a, b, nonLethal);
     const sa = session.getState(a)!;
 
-    expect(CombatApi.eligibilityFor(a, "strike").ok).toBe(true);
+    expect((a as unknown as Stuff & Combatant).gambitEligibility("strike").ok).toBe(true);
     sa.flags.add("disarmed");
-    const elig = CombatApi.eligibilityFor(a, "strike");
+    const elig = (a as unknown as Stuff & Combatant).gambitEligibility("strike");
     expect(elig.ok).toBe(false);
     expect(elig.reason).toBe("no-instrument");
   });
@@ -317,7 +344,7 @@ describe("CombatLogic — gambit eligibility (injury edits the menu)", () => {
     const b = makeFighter(room, { weaponForm: "bladed" });
     const session = open(a, b, nonLethal);
     session.getState(a)!.flags.add("disarmed");
-    expect(CombatApi.eligibilityFor(a, "strike").ok).toBe(true);
+    expect((a as unknown as Stuff & Combatant).gambitEligibility("strike").ok).toBe(true);
   });
 
   it("an impaired (fractured) grip loses the weapon strike", () => {
@@ -325,13 +352,13 @@ describe("CombatLogic — gambit eligibility (injury edits the menu)", () => {
     const a = makeFighter(room, { weaponForm: "bladed" });
     const b = makeFighter(room, { weaponForm: "bladed" });
     open(a, b, nonLethal);
-    expect(CombatApi.eligibilityFor(a, "strike").ok).toBe(true);
+    expect((a as unknown as Stuff & Combatant).gambitEligibility("strike").ok).toBe(true);
 
     // Fracture the grip slot's part (body.arm.right) hard enough to impair.
     ConditionApi.inflict(a, { mechanism: "blunt", site: "body.arm.right", energy: 6 });
     // The engine drops the weapon when its grip slot is impaired; with no
     // innate attack, strike is lost.
-    const elig = CombatApi.eligibilityFor(a, "strike");
+    const elig = (a as unknown as Stuff & Combatant).gambitEligibility("strike");
     if (a.isSlotImpairedByTrauma("grip")) {
       expect(elig.ok).toBe(false);
     }
@@ -343,7 +370,7 @@ describe("CombatLogic — gambit eligibility (injury edits the menu)", () => {
     const unarmed = makeFighter(room, { natural: "blunt" }); // no weapon
     const session = open(a, unarmed, nonLethal);
     void session;
-    const elig = CombatApi.eligibilityFor(a, "disarm");
+    const elig = (a as unknown as Stuff & Combatant).gambitEligibility("disarm");
     expect(elig.ok).toBe(false);
     expect(elig.reason).toBe("target-unarmed");
   });
@@ -391,7 +418,7 @@ describe("CombatLogic — resolution", () => {
     const a = makeFighter(room, { weaponForm: "bladed" });
     const b = makeFighter(room, { weaponForm: "bladed" });
     const session = open(a, b, nonLethal);
-    expect(CombatApi.yieldFight(a)).toBe(true);
+    expect((a as unknown as Stuff & Combatant).yieldFight()).toBe(true);
     expect(session.isActive()).toBe(false);
     expect(session.getResolution()).toBe("yield");
   });
@@ -405,7 +432,7 @@ describe("CombatLogic — the exchange writes consequence", () => {
     const bare = makeFighter(room1, { weaponForm: "bladed" });
     const s1 = open(atkr, bare, nonLethal);
     s1.getState(bare)!.poise.erode(0.6, 0); // → reeling (0.4)
-    CombatApi.queueGambit(atkr, "strike");
+    (atkr as unknown as Stuff & Combatant).queueGambit("strike");
     CombatApi.advance(s1);
     expect(bare.getConditions().some((c) => c.kind === "trauma")).toBe(true);
 
@@ -423,7 +450,7 @@ describe("CombatLogic — the exchange writes consequence", () => {
     );
     const s2 = open(atkr2, armored, nonLethal);
     s2.getState(armored)!.poise.erode(0.6, 0);
-    CombatApi.queueGambit(atkr2, "strike");
+    (atkr2 as unknown as Stuff & Combatant).queueGambit("strike");
     CombatApi.advance(s2);
     // Plate turns the edge — no torso trauma lands.
     expect(armored.getConditions().some((c) => c.kind === "trauma")).toBe(
@@ -439,7 +466,7 @@ describe("CombatLogic — the exchange writes consequence", () => {
     // Attacker reeling (not overextended) drives a hard riposte; guard is
     // steady + armed, so the attacker's strike is parried.
     session.getState(atkr)!.poise.erode(0.55, 0); // → reeling
-    CombatApi.queueGambit(atkr, "strike");
+    (atkr as unknown as Stuff & Combatant).queueGambit("strike");
     CombatApi.advance(session);
     // The riposte landed on the attacker.
     expect(atkr.getConditions().some((c) => c.kind === "trauma")).toBe(true);
@@ -550,7 +577,7 @@ describe("CombatLogic — melee (sides + join)", () => {
     expect(session.getGraph().edgeBetween(foe, ally)).toBeDefined();
     expect(CombatApi.sessionFor(player)).toBeUndefined();
 
-    const res = CombatApi.defendAlly(player, ally);
+    const res = (player as unknown as Stuff & Combatant).defendAlly(ally);
     expect(res.ok).toBe(true);
     // The player joined the fight; the foe now presses the player, not the ally.
     expect(CombatApi.sessionFor(player)).toBe(session);
@@ -566,7 +593,7 @@ describe("CombatLogic — melee (sides + join)", () => {
     const fleer = makeFighter(room1, { weaponForm: "bladed" });
     const session1 = open(attacker, fleer, lethal, true);
     expect(CombatApi.sessionFor(fleer)).toBe(session1);
-    const broke = CombatApi.disengage(fleer);
+    const broke = (fleer as unknown as Stuff & Combatant).disengage();
     expect(broke.ok).toBe(true);
     expect(CombatApi.sessionFor(fleer)).toBeUndefined();
 
@@ -578,7 +605,7 @@ describe("CombatLogic — melee (sides + join)", () => {
     seedParty(a1, a2);
     const session2 = open(a1, pinned, lethal, true);
     CombatApi.join(a2 as never, pinned as never, session2.getTerms());
-    const blocked = CombatApi.disengage(pinned);
+    const blocked = (pinned as unknown as Stuff & Combatant).disengage();
     expect(blocked.ok).toBe(false);
     expect(CombatApi.sessionFor(pinned)).toBe(session2); // still stuck in it
   });
@@ -627,7 +654,7 @@ describe("CombatLogic — the feint (poker, not slots)", () => {
     // Fresh defender is steady + armed (the turtle the feint punishes).
     expect(session.getState(defender)!.poise.band()).toBe("steady");
 
-    CombatApi.queueGambit(attacker, "feint");
+    (attacker as unknown as Stuff & Combatant).queueGambit("feint");
     CombatApi.advance(session);
 
     // The bait worked: the defender over-committed and is now wide open.
@@ -642,7 +669,7 @@ describe("CombatLogic — the feint (poker, not slots)", () => {
     // A sharp defender (at/above the read gate) reads the feint.
     session.getState(defender)!.sharpness = 0.95;
 
-    CombatApi.queueGambit(attacker, "feint");
+    (attacker as unknown as Stuff & Combatant).queueGambit("feint");
     CombatApi.advance(session);
 
     // The feint fizzled — the reader's guard never cracked from the bait.
@@ -657,9 +684,9 @@ describe("CombatLogic — the fog (competence-graded read)", () => {
     const b = makeFighter(room, { weaponForm: "bladed" });
     const session = open(a, b, nonLethal);
     session.getState(a)!.sharpness = 0.2; // dull reader
-    CombatApi.queueGambit(b, "feint"); // b presents a feint
+    (b as unknown as Stuff & Combatant).queueGambit("feint"); // b presents a feint
 
-    const read = CombatApi.assess(a, b);
+    const read = (a as unknown as Stuff & Combatant).assessCombat(b);
     expect(read.ok).toBe(true);
     expect(read.poiseBand).toBe("open"); // bait reads as a real opening
     expect(read.read).toBeUndefined(); // no tell — didn't see through it
@@ -671,9 +698,9 @@ describe("CombatLogic — the fog (competence-graded read)", () => {
     const b = makeFighter(room, { weaponForm: "bladed" });
     const session = open(a, b, nonLethal);
     session.getState(a)!.sharpness = 0.95; // sharp reader
-    CombatApi.queueGambit(b, "feint");
+    (b as unknown as Stuff & Combatant).queueGambit("feint");
 
-    const read = CombatApi.assess(a, b);
+    const read = (a as unknown as Stuff & Combatant).assessCombat(b);
     expect(read.ok).toBe(true);
     expect(read.poiseBand).toBe("steady"); // sees b's true (fresh) band
     expect(read.read).toBe("feint"); // and the tell
@@ -686,7 +713,7 @@ describe("CombatLogic — the fog (competence-graded read)", () => {
     const session = open(a, b, nonLethal);
     session.getState(a)!.sharpness = 0.9;
 
-    const read = CombatApi.perceive(a);
+    const read = (a as unknown as Stuff & Combatant).perceiveCombat();
     expect(read.ok).toBe(true);
     expect(read.poiseBand).toBe("steady");
     // Unlike assess, a free glance does NOT spend the actor's next exchange.
@@ -712,8 +739,8 @@ function makeWeapon(
 
 describe("CombatLogic — balance → poise/tempo (guard-breaker ↔ exploiter)", () => {
   it("weaponProfileOf derives ordered factors (config-injected)", () => {
-    const dagger = CombatApi.weaponProfileOf(makeWeapon("bladed", 0.3, 0.25, steel()))!;
-    const hammer = CombatApi.weaponProfileOf(makeWeapon("hafted", 3.2, 1.1, steel()))!;
+    const dagger = (makeWeapon("bladed", 0.3, 0.25, steel())).weaponProfile()!;
+    const hammer = (makeWeapon("hafted", 3.2, 1.1, steel())).weaponProfile()!;
     // Exploiter faster, guard-breaker slower.
     expect(dagger.tempoFactor()).toBeGreaterThan(hammer.tempoFactor());
     // Guard-breaker hits harder and commits dearer.
@@ -740,7 +767,7 @@ describe("CombatLogic — balance → poise/tempo (guard-breaker ↔ exploiter)"
         const ts = session.getState(target);
         if (!ts) break;
         ts.poise.erode(0.9, i);
-        CombatApi.queueGambit(atkr, "strike");
+        (atkr as unknown as Stuff & Combatant).queueGambit("strike");
         CombatApi.advance(session);
         const traumas = target
           .getConditions()
@@ -775,8 +802,8 @@ describe("CombatLogic — guard → parry (a flail bypasses a steady guard)", ()
       const as = s1.getState(atkr1);
       if (!as) break;
       as.poise.erode(0.55, i); // keep the attacker reeling (hard riposte)
-      CombatApi.queueGambit(atkr1, "strike");
-      CombatApi.queueGambit(sword, "defend"); // stay steady, no offense
+      (atkr1 as unknown as Stuff & Combatant).queueGambit("strike");
+      (sword as unknown as Stuff & Combatant).queueGambit("defend"); // stay steady, no offense
       CombatApi.advance(s1);
       if (atkr1.getConditions().some((c) => c.kind === "trauma")) {
         riposted = true;
@@ -801,8 +828,8 @@ describe("CombatLogic — guard → parry (a flail bypasses a steady guard)", ()
       const as = s2.getState(atkr2);
       if (!as) break;
       as.poise.erode(0.55, i);
-      CombatApi.queueGambit(atkr2, "strike");
-      CombatApi.queueGambit(flail, "defend");
+      (atkr2 as unknown as Stuff & Combatant).queueGambit("strike");
+      (flail as unknown as Stuff & Combatant).queueGambit("defend");
       CombatApi.advance(s2);
     }
     // The flail can't parry → never ripostes → the attacker is never
@@ -872,8 +899,8 @@ describe("CombatLogic — reach range tier (control until closed, reversed insid
     const session = open(spear, dagger, nonLethal);
     for (let i = 0; i < 150 && session.isActive(); i++) {
       session.getGraph().setRange(spear, dagger, range);
-      CombatApi.queueGambit(spear, "strike");
-      CombatApi.queueGambit(dagger, "strike");
+      (spear as unknown as Stuff & Combatant).queueGambit("strike");
+      (dagger as unknown as Stuff & Combatant).queueGambit("strike");
       CombatApi.advance(session);
     }
     session.dissolve();
@@ -915,8 +942,8 @@ describe("CombatLogic — reach range tier (control until closed, reversed insid
     // for several beats (the dagger keeps trying, the spear keeps composed).
     for (let i = 0; i < 5 && s.isActive(); i++) {
       s.getState(spear)!.poise.restore(1, 1); // pin the spear composed
-      CombatApi.queueGambit(dagger, "close");
-      CombatApi.queueGambit(spear, "defend");
+      (dagger as unknown as Stuff & Combatant).queueGambit("close");
+      (spear as unknown as Stuff & Combatant).queueGambit("defend");
       CombatApi.advance(s);
     }
     expect(s.getGraph().rangeBetween(spear, dagger)).toBe("reach");
@@ -925,7 +952,7 @@ describe("CombatLogic — reach range tier (control until closed, reversed insid
     // persistent dagger finally closes.
     for (let i = 0; i < 6 && s.isActive(); i++) {
       s.getState(spear)!.poise.erode(0.7, i); // keep it reeling
-      CombatApi.queueGambit(dagger, "close");
+      (dagger as unknown as Stuff & Combatant).queueGambit("close");
       CombatApi.advance(s);
       if (s.getGraph().rangeBetween(spear, dagger) === "close") break;
     }
@@ -1050,8 +1077,8 @@ describe("CombatLogic — shield (wielded armor-construction)", () => {
       const as = s.getState(atkr);
       if (!as) break;
       as.poise.erode(0.55, i);
-      CombatApi.queueGambit(atkr, "strike");
-      CombatApi.queueGambit(flailShield, "defend");
+      (atkr as unknown as Stuff & Combatant).queueGambit("strike");
+      (flailShield as unknown as Stuff & Combatant).queueGambit("defend");
       CombatApi.advance(s);
       if (atkr.getConditions().some((c) => c.kind === "trauma")) {
         riposted = true;
@@ -1086,18 +1113,18 @@ describe("CombatLogic — hand-slot economy (switch / sidearm / dual-wield)", ()
     const backup = carriedWeapon(f, "hafted"); // a carried mace
     const s = open(f, opp, nonLethal);
 
-    expect(CombatApi.beginSwitch(f, backup as never).ok).toBe(true);
+    expect((f as unknown as Stuff & Combatant).beginWeaponSwitch(backup as never).ok).toBe(true);
     // Mid-switch: guard down, nothing to strike with.
-    expect(CombatApi.eligibilityFor(f, "strike").ok).toBe(false);
+    expect((f as unknown as Stuff & Combatant).gambitEligibility("strike").ok).toBe(false);
 
     // Advance past the switch window (opp holds off so f survives the gap).
     for (let i = 0; i < 4 && s.isActive(); i++) {
-      CombatApi.queueGambit(opp, "defend");
+      (opp as unknown as Stuff & Combatant).queueGambit("defend");
       CombatApi.advance(s);
     }
     // The backup is now in the grip and f can strike again.
     expect(gripOccupants(f)).toContain(backup);
-    expect(CombatApi.eligibilityFor(f, "strike").ok).toBe(true);
+    expect((f as unknown as Stuff & Combatant).gambitEligibility("strike").ok).toBe(true);
   });
 
   it("a sidearm draw re-arms after a disarm (a setback, not a fight-ender)", () => {
@@ -1108,17 +1135,17 @@ describe("CombatLogic — hand-slot economy (switch / sidearm / dual-wield)", ()
     const s = open(f, opp, nonLethal);
     // Simulate being disarmed.
     s.getState(f)!.flags.add("disarmed");
-    expect(CombatApi.eligibilityFor(f, "strike").ok).toBe(false); // no weapon
+    expect((f as unknown as Stuff & Combatant).gambitEligibility("strike").ok).toBe(false); // no weapon
 
     // Draw the sidearm (fast) and let the beat complete.
-    expect(CombatApi.drawSidearm(f).ok).toBe(true);
+    expect((f as unknown as Stuff & Combatant).drawSidearm().ok).toBe(true);
     for (let i = 0; i < 3 && s.isActive(); i++) {
-      CombatApi.queueGambit(opp, "defend");
+      (opp as unknown as Stuff & Combatant).queueGambit("defend");
       CombatApi.advance(s);
     }
     // Re-armed: the disarmed flag is cleared and f can strike again.
     expect(s.getState(f)?.flags.has("disarmed")).toBe(false);
-    expect(CombatApi.eligibilityFor(f, "strike").ok).toBe(true);
+    expect((f as unknown as Stuff & Combatant).gambitEligibility("strike").ok).toBe(true);
   });
 
   it("draw fails cleanly when there's no sidearm to draw", () => {
@@ -1126,7 +1153,7 @@ describe("CombatLogic — hand-slot economy (switch / sidearm / dual-wield)", ()
     const f = makeFighter(room, { weaponForm: "bladed" });
     const opp = makeFighter(room, { weaponForm: "bladed" });
     open(f, opp, nonLethal);
-    expect(CombatApi.drawSidearm(f).ok).toBe(false);
+    expect((f as unknown as Stuff & Combatant).drawSidearm().ok).toBe(false);
   });
 
   it("dual-wield is band-gated: a proficient off-hand parries where a novice fumbles", () => {
@@ -1149,8 +1176,8 @@ describe("CombatLogic — hand-slot economy (switch / sidearm / dual-wield)", ()
         const as = s.getState(atkr);
         if (!as) break;
         as.poise.erode(0.55, i);
-        CombatApi.queueGambit(atkr, "strike");
-        CombatApi.queueGambit(dw, "defend");
+        (atkr as unknown as Stuff & Combatant).queueGambit("strike");
+        (dw as unknown as Stuff & Combatant).queueGambit("defend");
         CombatApi.advance(s);
         if (atkr.getConditions().some((c) => c.kind === "trauma")) {
           riposted = true;
@@ -1172,8 +1199,8 @@ describe("CombatLogic — weapon-shaped gambits (the weapon edits the menu)", ()
     const hafted = makeFighter(room, { weaponForm: "hafted" });
     const bladed = makeFighter(room, { weaponForm: "bladed" });
     open(hafted, bladed, nonLethal);
-    expect(CombatApi.eligibilityFor(hafted, "sweep").ok).toBe(true);
-    const bladedTry = CombatApi.eligibilityFor(bladed, "sweep");
+    expect((hafted as unknown as Stuff & Combatant).gambitEligibility("sweep").ok).toBe(true);
+    const bladedTry = (bladed as unknown as Stuff & Combatant).gambitEligibility("sweep");
     expect(bladedTry.ok).toBe(false);
     expect(bladedTry.reason).toBe("wrong-weapon");
   });
@@ -1187,8 +1214,8 @@ describe("CombatLogic — weapon-shaped gambits (the weapon edits the menu)", ()
     });
     const bare = makeFighter(room, { weaponForm: "bladed" });
     open(shielded, bare, nonLethal);
-    expect(CombatApi.eligibilityFor(shielded, "bash").ok).toBe(true);
-    const bareTry = CombatApi.eligibilityFor(bare, "bash");
+    expect((shielded as unknown as Stuff & Combatant).gambitEligibility("bash").ok).toBe(true);
+    const bareTry = (bare as unknown as Stuff & Combatant).gambitEligibility("bash");
     expect(bareTry.ok).toBe(false);
     expect(bareTry.reason).toBe("no-shield");
   });
@@ -1202,8 +1229,8 @@ describe("CombatLogic — weapon-shaped gambits (the weapon edits the menu)", ()
     });
     const bladed = makeFighter(room, { weaponForm: "bladed" });
     open(whip, bladed, nonLethal);
-    expect(CombatApi.eligibilityFor(whip, "entangle").ok).toBe(true);
-    const bladedTry = CombatApi.eligibilityFor(bladed, "entangle");
+    expect((whip as unknown as Stuff & Combatant).gambitEligibility("entangle").ok).toBe(true);
+    const bladedTry = (bladed as unknown as Stuff & Combatant).gambitEligibility("entangle");
     expect(bladedTry.ok).toBe(false);
     expect(bladedTry.reason).toBe("wrong-weapon");
   });
@@ -1221,7 +1248,7 @@ describe("CombatLogic — weapon-shaped gambits (the weapon edits the menu)", ()
     const s = open(whip, target, nonLethal);
     let bound = false;
     for (let i = 0; i < 40 && s.isActive(); i++) {
-      CombatApi.queueGambit(whip, "entangle");
+      (whip as unknown as Stuff & Combatant).queueGambit("entangle");
       CombatApi.advance(s);
       if (s.getState(target)?.flags.has("grappled")) {
         bound = true;
@@ -1719,13 +1746,13 @@ describe("CombatLogic — Master-Apprentice (primary + high-threat + ally-exploi
 
     // The APPRENTICE — not the arming side's other member — cashes it:
     // the master holds (defend), the apprentice strikes into the window.
-    CombatApi.queueGambit(master, "defend");
-    CombatApi.queueGambit(apprentice, "strike");
+    (master as unknown as Stuff & Combatant).queueGambit("defend");
+    (apprentice as unknown as Stuff & Combatant).queueGambit("strike");
     for (let i = 0; i < 4 && !foeState.down; i++) {
       CombatApi.advance(session);
       if (!foeState.down) {
-        CombatApi.queueGambit(master, "defend");
-        CombatApi.queueGambit(apprentice, "strike");
+        (master as unknown as Stuff & Combatant).queueGambit("defend");
+        (apprentice as unknown as Stuff & Combatant).queueGambit("strike");
       }
     }
     // The strike resolved as an exploit: window consumed, the foe downed
@@ -1750,8 +1777,8 @@ describe("CombatLogic — formations: mid-fight adopt + determinism", () => {
     // Both members turtle so the lone foe isn't focus-fired down before
     // the beat under inspection (the redirect is pass-driven, not
     // exchange-driven — defending doesn't delay it).
-    CombatApi.queueGambit(front, "defend");
-    CombatApi.queueGambit(back, "defend");
+    (front as unknown as Stuff & Combatant).queueGambit("defend");
+    (back as unknown as Stuff & Combatant).queueGambit("defend");
     CombatApi.advance(session);
     expect(graph.edgeBetween(foe, back)).toBeTruthy(); // default: no redirect
 
@@ -1764,8 +1791,8 @@ describe("CombatLogic — formations: mid-fight adopt + determinism", () => {
     raw.assignRole(back.getTemplatePath()!, "back");
 
     // The very next beat's interception pass reads the new policy.
-    CombatApi.queueGambit(front, "defend");
-    CombatApi.queueGambit(back, "defend");
+    (front as unknown as Stuff & Combatant).queueGambit("defend");
+    (back as unknown as Stuff & Combatant).queueGambit("defend");
     CombatApi.advance(session);
     expect(session.isActive()).toBe(true);
     expect(graph.edgeBetween(foe, back)).toBeUndefined();
@@ -1814,7 +1841,7 @@ describe("CombatLogic — coup governance (right / call / facts)", () => {
     foe: TestFighter,
   ): void {
     session.getState(foe)!.poise.erode(0.85, 0);
-    CombatApi.queueGambit(striker, "strike");
+    (striker as unknown as Stuff & Combatant).queueGambit("strike");
     CombatApi.advance(session);
     expect(session.getState(foe)?.down ?? true).toBe(true);
   }
@@ -1851,7 +1878,7 @@ describe("CombatLogic — coup governance (right / call / facts)", () => {
     ).toBe(true);
     // The apprentice holds while the MASTER downs the foe — the coup
     // right must still route the stroke to the apprentice.
-    CombatApi.queueGambit(apprentice, "defend");
+    (apprentice as unknown as Stuff & Combatant).queueGambit("defend");
     downByExploit(session, master as TestFighter, foe);
     await new Promise((r) => setTimeout(r, 25));
 
@@ -1862,7 +1889,7 @@ describe("CombatLogic — coup governance (right / call / facts)", () => {
     expect(engagementOf(master)).toBeFalsy();
     expect(engagementOf(apprentice)).toBeFalsy();
     // …the apprentice cannot give it (not the captain)…
-    expect(CombatApi.orderCoup(apprentice)).toEqual({
+    expect((apprentice as unknown as Stuff & Combatant).orderCoup()).toEqual({
       ok: false,
       reason: "not-the-captain",
     });
@@ -1874,7 +1901,7 @@ describe("CombatLogic — coup governance (right / call / facts)", () => {
         recorded.push(fields as unknown as Record<string, unknown>);
       });
     try {
-      expect(CombatApi.orderCoup(master)).toEqual({ ok: true });
+      expect((master as unknown as Stuff & Combatant).orderCoup()).toEqual({ ok: true });
       const coup = engagementOf(apprentice);
       expect(coup).toBeTruthy();
       expect(engagementOf(master)).toBeFalsy();
@@ -1899,7 +1926,7 @@ describe("CombatLogic — coup governance (right / call / facts)", () => {
   it("orderCoup with nothing held is refused", () => {
     const room = makeStuff(() => new TestRoom());
     const a = knifeFighter(room, false);
-    expect(CombatApi.orderCoup(a).ok).toBe(false);
+    expect((a as unknown as Stuff & Combatant).orderCoup().ok).toBe(false);
   });
 });
 
@@ -1913,124 +1940,97 @@ describe("CombatLogic — command mints (the teaching payoff)", () => {
   }
 
   it("an interception mints `command` for a player-driven interceptor only", () => {
-    const deeds: Array<Record<string, unknown>> = [];
-    const spy = vi
-      .spyOn(AdvancementApi, "recordDeed")
-      .mockImplementation(async (_owner, sub) => {
-        deeds.push(sub as unknown as Record<string, unknown>);
-      });
-    try {
-      // Brain-driven front: no mint.
-      {
-        const room = makeStuff(() => new TestRoom());
-        const front = knifeFighter(room) as TestPartyFighter;
-        const back = knifeFighter(room) as TestPartyFighter;
-        const foe = knifeFighter(room, false);
-        seedFormationParty([front, back], "vanguard", { 0: "front", 1: "back" });
-        const session = open(foe, back, nonLethal);
-        CombatApi.join(front as never, foe as never, session.getTerms());
-        CombatApi.advance(session);
-        expect(deeds.filter((d) => d.discipline === "command")).toHaveLength(0);
-      }
-      // Player-driven front: the interception mints.
-      {
-        StuffApi.clearAll();
-        SchedulerApi._clearAllForTesting();
-        const room = makeStuff(() => new TestRoom());
-        const front = knifeFighter(room) as TestPartyFighter;
-        const back = knifeFighter(room) as TestPartyFighter;
-        const foe = knifeFighter(room, false);
-        seedFormationParty([front, back], "vanguard", { 0: "front", 1: "back" });
-        const session = open(foe, back, nonLethal);
-        CombatApi.join(front as never, foe as never, session.getTerms());
-        markPlayerDriven(session, front);
-        CombatApi.advance(session);
-        expect(
-          deeds.filter((d) => d.discipline === "command").length,
-        ).toBeGreaterThan(0);
-      }
-    } finally {
-      spy.mockRestore();
+    const deeds = mintedDeeds;
+    deeds.length = 0;
+    // Brain-driven front: no mint.
+    {
+      const room = makeStuff(() => new TestRoom());
+      const front = knifeFighter(room) as TestPartyFighter;
+      const back = knifeFighter(room) as TestPartyFighter;
+      const foe = knifeFighter(room, false);
+      seedFormationParty([front, back], "vanguard", { 0: "front", 1: "back" });
+      const session = open(foe, back, nonLethal);
+      CombatApi.join(front as never, foe as never, session.getTerms());
+      CombatApi.advance(session);
+      expect(deeds.filter((d) => d.discipline === "command")).toHaveLength(0);
+    }
+    // Player-driven front: the interception mints.
+    {
+      StuffApi.clearAll();
+      SchedulerApi._clearAllForTesting();
+      const room = makeStuff(() => new TestRoom());
+      const front = knifeFighter(room) as TestPartyFighter;
+      const back = knifeFighter(room) as TestPartyFighter;
+      const foe = knifeFighter(room, false);
+      seedFormationParty([front, back], "vanguard", { 0: "front", 1: "back" });
+      const session = open(foe, back, nonLethal);
+      CombatApi.join(front as never, foe as never, session.getTerms());
+      markPlayerDriven(session, front);
+      CombatApi.advance(session);
+      expect(
+        deeds.filter((d) => d.discipline === "command").length,
+      ).toBeGreaterThan(0);
     }
   });
 
   it("an armed opening cashed by an ALLY mints the armer's command deed", () => {
-    const deeds: Array<Record<string, unknown>> = [];
-    const spy = vi
-      .spyOn(AdvancementApi, "recordDeed")
-      .mockImplementation(async (_owner, sub) => {
-        deeds.push(sub as unknown as Record<string, unknown>);
-      });
-    const sigSpy = vi
-      .spyOn(AdvancementApi, "recordSignature")
-      .mockImplementation(async () => {});
-    try {
-      const room = makeStuff(() => new TestRoom());
-      const master = knifeFighter(room) as TestPartyFighter;
-      const apprentice = knifeFighter(room) as TestPartyFighter;
-      const foe = knifeFighter(room, false);
-      seedFormationParty(
-        [master, apprentice],
-        "master-apprentice",
-        { 0: "master", 1: "apprentice" },
-      );
-      const session = open(master, foe, nonLethal);
-      CombatApi.join(apprentice as never, foe as never, session.getTerms());
-      markPlayerDriven(session, master);
-      const foeState = session.getState(foe)!;
-      foeState.sharpness = 0.2;
+    const deeds = mintedDeeds;
+    deeds.length = 0;
+    mintedSubs.length = 0;
+    const room = makeStuff(() => new TestRoom());
+    const master = knifeFighter(room) as TestPartyFighter;
+    const apprentice = knifeFighter(room) as TestPartyFighter;
+    const foe = knifeFighter(room, false);
+    seedFormationParty(
+      [master, apprentice],
+      "master-apprentice",
+      { 0: "master", 1: "apprentice" },
+    );
+    const session = open(master, foe, nonLethal);
+    CombatApi.join(apprentice as never, foe as never, session.getTerms());
+    markPlayerDriven(session, master);
+    const foeState = session.getState(foe)!;
+    foeState.sharpness = 0.2;
 
-      // The master feints; the foe bites — the master ARMED the window.
-      CombatApi.queueGambit(master, "feint");
-      CombatApi.queueGambit(apprentice, "defend");
-      for (let i = 0; i < 6 && !foeState.poise.isOpen(); i++) {
-        CombatApi.advance(session);
-        if (!foeState.poise.isOpen()) {
-          CombatApi.queueGambit(master, "feint");
-          CombatApi.queueGambit(apprentice, "defend");
-        }
+    // The master feints; the foe bites — the master ARMED the window.
+    (master as unknown as Stuff & Combatant).queueGambit("feint");
+    (apprentice as unknown as Stuff & Combatant).queueGambit("defend");
+    for (let i = 0; i < 6 && !foeState.poise.isOpen(); i++) {
+      CombatApi.advance(session);
+      if (!foeState.poise.isOpen()) {
+        (master as unknown as Stuff & Combatant).queueGambit("feint");
+        (apprentice as unknown as Stuff & Combatant).queueGambit("defend");
       }
-      expect(foeState.poise.isOpen()).toBe(true);
-      const before = deeds.filter((d) => d.discipline === "command").length;
-
-      // The APPRENTICE cashes it — the exploit mints the ARMER (master).
-      CombatApi.queueGambit(master, "defend");
-      CombatApi.queueGambit(apprentice, "strike");
-      for (let i = 0; i < 4 && !foeState.down; i++) {
-        CombatApi.advance(session);
-        if (!foeState.down) {
-          CombatApi.queueGambit(master, "defend");
-          CombatApi.queueGambit(apprentice, "strike");
-        }
-      }
-      expect(foeState.down).toBe(true);
-      expect(
-        deeds.filter((d) => d.discipline === "command").length,
-      ).toBeGreaterThan(before);
-    } finally {
-      spy.mockRestore();
-      sigSpy.mockRestore();
     }
+    expect(foeState.poise.isOpen()).toBe(true);
+    const before = deeds.filter((d) => d.discipline === "command").length;
+
+    // The APPRENTICE cashes it — the exploit mints the ARMER (master).
+    (master as unknown as Stuff & Combatant).queueGambit("defend");
+    (apprentice as unknown as Stuff & Combatant).queueGambit("strike");
+    for (let i = 0; i < 4 && !foeState.down; i++) {
+      CombatApi.advance(session);
+      if (!foeState.down) {
+        (master as unknown as Stuff & Combatant).queueGambit("defend");
+        (apprentice as unknown as Stuff & Combatant).queueGambit("strike");
+      }
+    }
+    expect(foeState.down).toBe(true);
+    expect(
+      deeds.filter((d) => d.discipline === "command").length,
+    ).toBeGreaterThan(before);
   });
 
   it("the default preset mints no command deeds (parity)", () => {
-    const deeds: Array<Record<string, unknown>> = [];
-    const spy = vi
-      .spyOn(AdvancementApi, "recordDeed")
-      .mockImplementation(async (_owner, sub) => {
-        deeds.push(sub as unknown as Record<string, unknown>);
-      });
-    try {
-      const room = makeStuff(() => new TestRoom());
-      const a = knifeFighter(room, false);
-      const b = knifeFighter(room, false);
-      const session = open(a, b, nonLethal);
-      markPlayerDriven(session, a);
-      for (let i = 0; i < 5; i++) CombatApi.advance(session);
-      expect(deeds.filter((d) => d.discipline === "command")).toHaveLength(0);
-    } finally {
-      spy.mockRestore();
-    }
+    const deeds = mintedDeeds;
+    deeds.length = 0;
+    const room = makeStuff(() => new TestRoom());
+    const a = knifeFighter(room, false);
+    const b = knifeFighter(room, false);
+    const session = open(a, b, nonLethal);
+    markPlayerDriven(session, a);
+    for (let i = 0; i < 5; i++) CombatApi.advance(session);
+    expect(deeds.filter((d) => d.discipline === "command")).toHaveLength(0);
   });
 });
 
@@ -2147,15 +2147,15 @@ describe("CombatLogic — the species combat vocabulary (DECISION L)", () => {
     const human = makeFighter(room, { natural: "blunt" });
     open(ogre, human, nonLethal);
 
-    expect(CombatApi.rangeStanding(ogre as never)!.reachDelta).toBe(1);
-    expect(CombatApi.rangeStanding(human as never)!.reachDelta).toBe(-1);
+    expect((ogre as unknown as Stuff & Combatant).rangeStanding()!.reachDelta).toBe(1);
+    expect((human as unknown as Stuff & Combatant).rangeStanding()!.reachDelta).toBe(-1);
 
     // A neutral pair is level — the byte-parity control.
     const room2 = makeStuff(() => new TestRoom());
     const h1 = makeFighter(room2, { natural: "blunt" });
     const h2 = makeFighter(room2, { natural: "blunt" });
     open(h1, h2, nonLethal);
-    expect(CombatApi.rangeStanding(h1 as never)!.reachDelta).toBe(0);
+    expect((h1 as unknown as Stuff & Combatant).rangeStanding()!.reachDelta).toBe(0);
   });
 
   it("species-afforded gambits: a tailed species sweeps bodily, unarmed", () => {
@@ -2167,7 +2167,7 @@ describe("CombatLogic — the species combat vocabulary (DECISION L)", () => {
     open(tailed, foe, nonLethal);
     // The species affordance short-circuits the equipment gate; the
     // instrument gate is satisfied by the natural attack.
-    expect(CombatApi.eligibilityFor(tailed, "sweep").ok).toBe(true);
+    expect((tailed as unknown as Stuff & Combatant).gambitEligibility("sweep").ok).toBe(true);
   });
 
   it("without the species entry an unarmed natural attacker still rejects `wrong-weapon`", () => {
@@ -2175,7 +2175,7 @@ describe("CombatLogic — the species combat vocabulary (DECISION L)", () => {
     const beast = makeFighter(room, { natural: "blunt" });
     const foe = makeFighter(room, { weaponForm: "bladed" });
     open(beast, foe, nonLethal);
-    const elig = CombatApi.eligibilityFor(beast, "sweep");
+    const elig = (beast as unknown as Stuff & Combatant).gambitEligibility("sweep");
     expect(elig.ok).toBe(false);
     expect(elig.reason).toBe("wrong-weapon");
   });
@@ -2186,7 +2186,7 @@ describe("CombatLogic — the species combat vocabulary (DECISION L)", () => {
     limbless.getSpecies()!.setAffordedGambits(["sweep"]);
     const foe = makeFighter(room, { weaponForm: "bladed" });
     open(limbless, foe, nonLethal);
-    const elig = CombatApi.eligibilityFor(limbless, "sweep");
+    const elig = (limbless as unknown as Stuff & Combatant).gambitEligibility("sweep");
     expect(elig.ok).toBe(false);
     expect(elig.reason).toBe("no-instrument");
   });
@@ -2197,7 +2197,7 @@ describe("CombatLogic — the species combat vocabulary (DECISION L)", () => {
     beast.getSpecies()!.setAffordedGambits(["flying-dropkick"]);
     const foe = makeFighter(room, { weaponForm: "bladed" });
     open(beast, foe, nonLethal);
-    const elig = CombatApi.eligibilityFor(beast, "sweep");
+    const elig = (beast as unknown as Stuff & Combatant).gambitEligibility("sweep");
     expect(elig.ok).toBe(false);
     expect(elig.reason).toBe("wrong-weapon");
   });
@@ -2284,68 +2284,46 @@ describe("CombatLogic — fisticuffs (the bar-fight build)", () => {
   });
 
   it("an unarmed exchange credits `unarmed` + `melee-combat`, never `blades`", () => {
-    const subs: Array<{ discipline: string }> = [];
-    const spy = vi
-      .spyOn(AdvancementApi, "recordSignature")
-      .mockImplementation(async (_owner, sig) => {
-        for (const s of (sig as { discipline: Array<{ discipline: string }> })
-          .discipline) {
-          subs.push(s);
-        }
-      });
-    try {
-      const room = makeStuff(() => new TestRoom());
-      const brawler = makeFighter(room);
-      brawler.getSpecies()!
-        .setNaturalAttacks([{ key: "fist", channel: "blunt" }]);
-      const target = bag(room);
-      const session = open(brawler, target, nonLethal);
-      // player-driven so the transcript mints (brains bank nothing)
-      (session.getState(brawler) as unknown as { brainPath: string | null })
-        .brainPath = null;
-      const targetState = session.getState(target)!;
-      for (let i = 0; i < 8 && !targetState.down; i++) {
-        CombatApi.queueGambit(brawler, "strike");
-        CombatApi.advance(session);
-      }
-      const disc = subs.map((s) => s.discipline);
-      expect(disc).toContain("unarmed");
-      expect(disc).toContain("melee-combat");
-      expect(disc).not.toContain("blades");
-    } finally {
-      spy.mockRestore();
+    const subs = mintedSubs;
+    subs.length = 0;
+    const room = makeStuff(() => new TestRoom());
+    const brawler = makeFighter(room);
+    brawler.getSpecies()!
+      .setNaturalAttacks([{ key: "fist", channel: "blunt" }]);
+    const target = bag(room);
+    const session = open(brawler, target, nonLethal);
+    // player-driven so the transcript mints (brains bank nothing)
+    (session.getState(brawler) as unknown as { brainPath: string | null })
+      .brainPath = null;
+    const targetState = session.getState(target)!;
+    for (let i = 0; i < 8 && !targetState.down; i++) {
+      (brawler as unknown as Stuff & Combatant).queueGambit("strike");
+      CombatApi.advance(session);
     }
+    const disc = subs.map((s) => s.discipline);
+    expect(disc).toContain("unarmed");
+    expect(disc).toContain("melee-combat");
+    expect(disc).not.toContain("blades");
   });
 
   it("an armed exchange credits `blades`, never `unarmed`", () => {
-    const subs: Array<{ discipline: string }> = [];
-    const spy = vi
-      .spyOn(AdvancementApi, "recordSignature")
-      .mockImplementation(async (_owner, sig) => {
-        for (const s of (sig as { discipline: Array<{ discipline: string }> })
-          .discipline) {
-          subs.push(s);
-        }
-      });
-    try {
-      const room = makeStuff(() => new TestRoom());
-      const swordsman = makeFighter(room, { weaponForm: "bladed" });
-      const target = bag(room);
-      const session = open(swordsman, target, nonLethal);
-      (session.getState(swordsman) as unknown as { brainPath: string | null })
-        .brainPath = null;
-      const targetState = session.getState(target)!;
-      for (let i = 0; i < 8 && !targetState.down; i++) {
-        CombatApi.queueGambit(swordsman, "strike");
-        CombatApi.advance(session);
-      }
-      const disc = subs.map((s) => s.discipline);
-      expect(disc).toContain("blades");
-      expect(disc).toContain("melee-combat");
-      expect(disc).not.toContain("unarmed");
-    } finally {
-      spy.mockRestore();
+    const subs = mintedSubs;
+    subs.length = 0;
+    const room = makeStuff(() => new TestRoom());
+    const swordsman = makeFighter(room, { weaponForm: "bladed" });
+    const target = bag(room);
+    const session = open(swordsman, target, nonLethal);
+    (session.getState(swordsman) as unknown as { brainPath: string | null })
+      .brainPath = null;
+    const targetState = session.getState(target)!;
+    for (let i = 0; i < 8 && !targetState.down; i++) {
+      (swordsman as unknown as Stuff & Combatant).queueGambit("strike");
+      CombatApi.advance(session);
     }
+    const disc = subs.map((s) => s.discipline);
+    expect(disc).toContain("blades");
+    expect(disc).toContain("melee-combat");
+    expect(disc).not.toContain("unarmed");
   });
 
   it("two unarmed humans resolve a brawl to a downed loser (end-to-end fists)", () => {
@@ -2360,7 +2338,7 @@ describe("CombatLogic — fisticuffs (the bar-fight build)", () => {
     const session = open(a, b, nonLethal);
     const bState = session.getState(b)!;
     for (let i = 0; i < 40 && !bState.down && session.isActive(); i++) {
-      CombatApi.queueGambit(a, "strike");
+      (a as unknown as Stuff & Combatant).queueGambit("strike");
       CombatApi.advance(session);
     }
     expect(bState.down).toBe(true);
@@ -2460,7 +2438,7 @@ describe("CombatLogic — the bum's rush + the truce (the bar-fight build)", () 
     // rush primitive from the stochastic grapple.
     session.getState(b)!.flags.add("grappled");
 
-    const res = await CombatApi.bumRush(a as never, "south");
+    const res = await (a as unknown as Stuff & Combatant).bumRush("south");
     expect(res.ok).toBe(true);
     // B is out of the fight, sprawled in the destination room.
     expect(CombatApi.sessionFor(b as never)).toBeUndefined();
@@ -2475,17 +2453,17 @@ describe("CombatLogic — the bum's rush + the truce (the bar-fight build)", () 
     const session = open(a, b, nonLethal);
 
     // No hold yet.
-    expect((await CombatApi.bumRush(a as never, "south")).reason).toBe(
+    expect((await (a as unknown as Stuff & Combatant).bumRush("south")).reason).toBe(
       "no-hold",
     );
     // Held, but no exit that way.
     session.getState(b)!.flags.add("grappled");
-    expect((await CombatApi.bumRush(a as never, "west")).reason).toBe(
+    expect((await (a as unknown as Stuff & Combatant).bumRush("west")).reason).toBe(
       "no-exit",
     );
     // Not in a fight at all.
     const loner = makeFighter(src as unknown as TestRoom);
-    expect((await CombatApi.bumRush(loner as never, "south")).reason).toBe(
+    expect((await (loner as unknown as Stuff & Combatant).bumRush("south")).reason).toBe(
       "not-in-combat",
     );
   });
@@ -2496,12 +2474,12 @@ describe("CombatLogic — the bum's rush + the truce (the bar-fight build)", () 
     const b = makeFighter(room);
     const session = open(a, b, nonLethal);
 
-    const first = CombatApi.offerBreak(a as never);
+    const first = (a as unknown as Stuff & Combatant).offerBreak();
     expect(first.ok).toBe(true);
     expect(first.broke).toBe(false); // A offers first — nobody to reciprocate
     expect(session.isActive()).toBe(true);
 
-    const second = CombatApi.offerBreak(b as never);
+    const second = (b as unknown as Stuff & Combatant).offerBreak();
     expect(second.broke).toBe(true); // B reciprocates → the edge dissolves
     expect(session.isActive()).toBe(false); // …and the fight is over
     expect(session.getResolution()).toBe("draw"); // no victor, no defeat
@@ -2513,12 +2491,12 @@ describe("CombatLogic — the bum's rush + the truce (the bar-fight build)", () 
     const b = makeFighter(room);
     const session = open(a, b, nonLethal);
 
-    CombatApi.offerBreak(a as never); // A offers at beat 0
+    (a as unknown as Stuff & Combatant).offerBreak(); // A offers at beat 0
     // Beats pass without B answering (A's offer goes stale > 1 beat).
     session.advanceBeat();
     session.advanceBeat();
     session.advanceBeat();
-    const late = CombatApi.offerBreak(b as never); // B offers far too late
+    const late = (b as unknown as Stuff & Combatant).offerBreak(); // B offers far too late
     expect(late.broke).toBe(false); // A's offer lapsed — no dissolve
     expect(session.isActive()).toBe(true);
   });
@@ -2532,8 +2510,8 @@ describe("CombatLogic — the bum's rush + the truce (the bar-fight build)", () 
     CombatApi.join(c as never, a as never, session.getTerms());
 
     // A and B stand down toward each other; C is still on A.
-    CombatApi.offerBreak(a as never);
-    const broke = CombatApi.offerBreak(b as never);
+    (a as unknown as Stuff & Combatant).offerBreak();
+    const broke = (b as unknown as Stuff & Combatant).offerBreak();
     expect(broke.broke).toBe(true);
     // The fight continues — A still has C's edge.
     expect(session.isActive()).toBe(true);

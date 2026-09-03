@@ -25,6 +25,8 @@ import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { BrainContext } from '../../../lib/behavior/brain';
 import { makeStuff } from '../../../lib/security/__tests__/test-setup';
 import Offstage from '../../../platform/location/Offstage';
+import { EmploymentLogic } from '../../../platform/idea/api/EmploymentLogic';
+import { EmployedMixin } from '../../../lib/employment/Employed';
 
 const VENUE = fileURLToPath(new URL('../../../../../../content/saxonberg-lounge/content/world/lounge/', import.meta.url));
 const OFFSTAGE = '/world/lounge/location/offstage';
@@ -36,7 +38,9 @@ const cast = () => readdirSync(`${VENUE}agent/`).filter((f) => f.endsWith('.yaml
 const shiftsOf = (row: Row) => row.data.behaviors?.find((b) => b.brain === '/lib/behavior/shifts');
 
 class Post extends ContainerMixin(ContainableMixin(Idea)) { static _mixinName = 'Post'; }
-class Mover extends MobileMixin(ContainableMixin(Idea)) { static _mixinName = 'Mover'; }
+class Mover extends EmployedMixin(MobileMixin(ContainableMixin(Idea))) {
+  static _mixinName = 'Mover';
+}
 
 describe('the lounge parks its cast through Offstage', () => {
   beforeEach(() => StuffApi.clearAll());
@@ -71,16 +75,16 @@ describe('the lounge parks its cast through Offstage', () => {
     const ctx = (m: (typeof members)[number]): BrainContext =>
       ({ host: m.npc, config: m.cfg, state: {}, trigger: { source: 'cadence', raw: 'cadence:30s' } } as unknown as BrainContext);
 
-    vi.spyOn(EmploymentApi, 'shiftStateOf').mockReturnValue('on-shift');
+    vi.spyOn(EmploymentLogic.prototype, 'shiftStateOf').mockReturnValue('on-shift');
     for (const m of members) await shifts.act(ctx(m));
     for (const m of members) expect(m.npc.getContainer()?.stuffId, m.f).toBe(posts.get(m.cfg.behindBar!)!.stuffId);
 
-    vi.spyOn(EmploymentApi, 'shiftStateOf').mockReturnValue('off-shift');
+    vi.spyOn(EmploymentLogic.prototype, 'shiftStateOf').mockReturnValue('off-shift');
     for (const m of members) await shifts.act(ctx(m));
     for (const m of members) expect(m.npc.getContainer()?.stuffId, m.f).toBe(offstage.stuffId);
     expect(offstage.getContents()).toHaveLength(members.length);
 
-    vi.spyOn(EmploymentApi, 'shiftStateOf').mockReturnValue('on-shift');
+    vi.spyOn(EmploymentLogic.prototype, 'shiftStateOf').mockReturnValue('on-shift');
     for (const m of members) await shifts.act(ctx(m));
     expect(offstage.getContents()).toEqual([]);
     for (const m of members) expect(m.npc.getContainer()?.stuffId, m.f).toBe(posts.get(m.cfg.behindBar!)!.stuffId);

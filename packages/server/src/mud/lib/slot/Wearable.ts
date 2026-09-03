@@ -11,7 +11,7 @@
  *
  * Multi-slot claims are atomic — `wear` either claims all slots or
  * none (transactional). The atomicity check lives in the `wear`
- * controller / `SlotApi.occupyAll`; the substrate's `Slotted.occupy`
+ * controller / `Slotted.occupyAll`; the substrate's `Slotted.occupy`
  * is single-slot.
  */
 

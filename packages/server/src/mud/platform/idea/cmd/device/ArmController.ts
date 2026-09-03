@@ -29,7 +29,6 @@ import { MixinApi } from '../../../../api/mixin';
 import { MessageApi } from '../../../../api/message';
 import { ContainmentApi } from '../../../../api/containment';
 import { PerceptionApi } from '../../../../api/perception';
-import { AdvancementApi } from '../../../../api/advancement';
 import { AccessApi } from '../../../../api/access';
 import { GovernmentApi } from '../../../../api/government';
 import { ParcelApi } from '../../../../api/parcel';
@@ -88,9 +87,11 @@ export default class ArmController extends CommandController<ArmModel> {
     // spine). Snapshot the band at command time; a failed hide still tucks
     // the trap to at least `subtle`.
     await PerceptionApi.preloadForSenseGate(giver);
-    const band = await AdvancementApi.bandFor(giver, STEALTH_DISCIPLINE).catch(
-      () => CompetenceBand.FLOOR,
-    );
+    const band = MixinApi.isAdvancing(giver)
+      ? await giver
+          .competenceBandFor(STEALTH_DISCIPLINE)
+          .catch(() => CompetenceBand.FLOOR)
+      : CompetenceBand.FLOOR;
     let level = PerceptionApi.hideLevelFor(giver, band);
     if (level === 'obvious') level = 'subtle';
 

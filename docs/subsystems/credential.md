@@ -69,7 +69,7 @@ reflection). It knows its `kind` and serializes itself to a plain
   possession *is* access — a lock is revoked by **re-keying** (a fresh keyway,
   so the old entry silently stops matching), not a per-key ledger. The lock/key
   substrate lives in `lib/lock/` (`Lock` value-object + `LockType` +
-  `CredentialApi`); its first consumer is the dorm door — see
+  the `Lock` value class — the OO sweep's home for the key surface); its first consumer is the dorm door — see
   [residence.md](./residence.md). **Durability:** the physical `Key` persists
   with its holder (carried inventory rides the spine); the implant keychain is
   session-durable in v1 (the physical key is the cross-restart form).
@@ -186,7 +186,7 @@ travel; these remain its design space:
   record." v1 keeps two thin per-kind subclasses (the affordance constraint
   above); collapsing to one class waits on per-instance `self`/`inventory`
   affordance.
-- **A thin `CredentialApi`** (the slate's open dial 2) — not built; the
+- **A thin credential Api** (the slate's open dial 2) — not built (and the OO sweep retired `CredentialApi` itself: `lock.opensFor(mover)` + `Lock.issueKey`/`issueMasterKey` live on the `Lock` value class); the
   holder's plain methods are consumed directly by banking / fast travel.
 
 ## Module layout

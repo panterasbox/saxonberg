@@ -156,7 +156,7 @@ export class CompactLogic extends ApiLogic {
       // Staff or head — the organization's own chart is the roster.
       const org = organizationOf(committee);
       if (!org) return false;
-      if (EmploymentApi.holdsPosition(player, org)) return true;
+      if (org.employs(player)) return true;
       const authority = org.getAppointingAuthority();
       // ⚠ An organization whose authority is the committee over its OWN
       // extent would be asking this question again forever: the head
@@ -190,7 +190,7 @@ export class CompactLogic extends ApiLogic {
       const out: Stuff[] = [];
       for (const who of online) {
         if (
-          EmploymentApi.holdsPosition(who, org) ||
+          org.employs(who) ||
           (await EmploymentApi.holdsAuthority(who, org.getAppointingAuthority()))
         ) {
           out.push(who);

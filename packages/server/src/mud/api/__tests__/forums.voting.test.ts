@@ -24,6 +24,10 @@ import { EventApi } from '../event';
 import { AppApi } from '../app';
 import { ForumEventFired } from '../../lib/forum/ForumEvent';
 import type { Stuff } from '../../lib/stuff/Stuff';
+import {
+  SubjectSubscriberMixin,
+  type SubjectSubscriber,
+} from '../../lib/forum/SubjectSubscriber';
 
 let store: Map<string, Map<string, Record<string, unknown>>>;
 let idCounter = 0;
@@ -40,9 +44,9 @@ function col(name: string): Map<string, Record<string, unknown>> {
   return c;
 }
 
-class Actor extends Idea {}
-function makeActor(): Stuff {
-  return makeStuff(() => new Actor());
+class Actor extends SubjectSubscriberMixin(Idea) {}
+function makeActor(): Stuff & SubjectSubscriber {
+  return makeStuff(() => new Actor()) as unknown as Stuff & SubjectSubscriber;
 }
 
 beforeEach(() => {
@@ -101,9 +105,9 @@ async function freshBoard() {
 describe('forum event log (dual-write, persist-then-fire)', () => {
   it('appends exactly one row per mutation and fires after it persists', async () => {
     const { creator, board } = await freshBoard();
-    const thread = await ForumsApi.postThread(creator, board, 'T', 'body');
+    const thread = await creator.postThread(board, 'T', 'body');
     const voter = makeActor();
-    await ForumsApi.castVote(voter, thread, 'up');
+    await voter.castVote(thread, 'up');
 
     // makeForum mints a `board-created` event; the mutations under test
     // are the post + the vote. Filter the setup event out.
@@ -132,11 +136,11 @@ describe('forum event log (dual-write, persist-then-fire)', () => {
 
   it('the log is append-only — a vote toggle adds rows, never mutates', async () => {
     const { creator, board } = await freshBoard();
-    const thread = await ForumsApi.postThread(creator, board, 'T', 'body');
+    const thread = await creator.postThread(board, 'T', 'body');
     const voter = makeActor();
-    await ForumsApi.castVote(voter, thread, 'up'); // up
-    await ForumsApi.castVote(voter, thread, 'up'); // toggle off
-    await ForumsApi.castVote(voter, thread, 'down'); // down
+    await voter.castVote(thread, 'up'); // up
+    await voter.castVote(thread, 'up'); // toggle off
+    await voter.castVote(thread, 'down'); // down
     // board-created + post + 3 votes = 5 rows, none rewritten.
     expect(col(Collections.ForumEvents).size).toBe(5);
   });
@@ -145,29 +149,29 @@ describe('forum event log (dual-write, persist-then-fire)', () => {
 describe('forum voting', () => {
   it('auto-upvotes the author (+1, locked)', async () => {
     const { creator, board } = await freshBoard();
-    const thread = await ForumsApi.postThread(creator, board, 'T', 'body');
+    const thread = await creator.postThread(board, 'T', 'body');
     expect(thread.up).toBe(1);
     expect(thread.getScore()).toBe(1);
     // The author's own vote row is locked.
-    await expect(ForumsApi.castVote(creator, thread, 'down')).rejects.toThrow(
+    await expect(creator.castVote(thread, 'down')).rejects.toThrow(
       /your own entry/
     );
   });
 
   it('toggles up → none → down for a non-author voter', async () => {
     const { creator, board } = await freshBoard();
-    const thread = await ForumsApi.postThread(creator, board, 'T', 'body');
+    const thread = await creator.postThread(board, 'T', 'body');
     const voter = makeActor();
 
-    let e = await ForumsApi.castVote(voter, thread, 'up');
+    let e = await voter.castVote(thread, 'up');
     expect(e.up).toBe(2); // author + voter
     expect(await ForumsApi.getVoteState(e, voterId(voter))).toBe('up');
 
-    e = await ForumsApi.castVote(voter, thread, 'up'); // toggle off
+    e = await voter.castVote(thread, 'up'); // toggle off
     expect(e.up).toBe(1);
     expect(await ForumsApi.getVoteState(e, voterId(voter))).toBeNull();
 
-    e = await ForumsApi.castVote(voter, thread, 'down');
+    e = await voter.castVote(thread, 'down');
     expect(e.up).toBe(1);
     expect(e.down).toBe(1);
     expect(e.getScore()).toBe(0);
@@ -175,10 +179,10 @@ describe('forum voting', () => {
 
   it('one row per (entry, voter) — re-voting does not stack', async () => {
     const { creator, board } = await freshBoard();
-    const thread = await ForumsApi.postThread(creator, board, 'T', 'body');
+    const thread = await creator.postThread(board, 'T', 'body');
     const voter = makeActor();
-    await ForumsApi.castVote(voter, thread, 'up');
-    await ForumsApi.castVote(voter, thread, 'down');
+    await voter.castVote(thread, 'up');
+    await voter.castVote(thread, 'down');
     const rows = [...col(Collections.ForumVotes).values()].filter(
       (r) => r.entry === thread._id && r.voter === voterId(voter)
     );
@@ -189,9 +193,9 @@ describe('forum voting', () => {
 describe('forum sorts + anti-snowball', () => {
   it('orders threads by top / new / controversial; ranking ignores the display gate', async () => {
     const { creator, board } = await freshBoard();
-    const a = await ForumsApi.postThread(creator, board, 'A', 'a');
-    const b = await ForumsApi.postThread(creator, board, 'B', 'b');
-    const c = await ForumsApi.postThread(creator, board, 'C', 'c');
+    const a = await creator.postThread(board, 'A', 'a');
+    const b = await creator.postThread(board, 'B', 'b');
+    const c = await creator.postThread(board, 'C', 'c');
 
     // Stamp controlled aggregates + ages directly in the store.
     setEntry(a._id!, { up: 10, down: 0, createdAt: new Date(1000) });
@@ -212,7 +216,7 @@ describe('forum sorts + anti-snowball', () => {
 
   it('anti-snowball hides the displayed score until K votes / T minutes', async () => {
     const { creator, board } = await freshBoard();
-    const thread = await ForumsApi.postThread(creator, board, 'T', 'body');
+    const thread = await creator.postThread(board, 'T', 'body');
     // Fresh entry, < 5 votes, < 30 min → display hidden.
     setEntry(thread._id!, { up: 2, down: 0, createdAt: new Date() });
     const fresh = await ForumsApi.getEntry(thread._id!);

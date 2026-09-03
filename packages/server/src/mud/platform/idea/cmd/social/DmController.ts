@@ -42,6 +42,8 @@ import { MqlApi } from '../../../../api/mql';
 import type { MqlManyResult } from '../../../../api/mql';
 import { Mml } from '../../../../api/mml';
 import { ChatApi } from '../../../../api/chat';
+import type { SubjectSubscriber } from '../../../../lib/forum/SubjectSubscriber';
+import type { CommandGiver } from '../../../../lib/command/CommandGiver';
 
 /**
  * Resolve the operator's hosted comms update — preferring the
@@ -76,7 +78,8 @@ interface DmModel extends CommandModel {
 
 export default class DmController extends CommandController<DmModel> {
   async execute(model: DmModel, context: CommandContext): Promise<void> {
-    const speaker = context.commandGiver;
+    const speaker = context.commandGiver as Stuff & CommandGiver &
+      SubjectSubscriber;
     const comms = resolveComms(context);
     if (!comms) {
       MessageApi.scene(speaker)
@@ -119,7 +122,7 @@ export default class DmController extends CommandController<DmModel> {
     // Multi-target: open an ad-hoc Channel so subsequent
     // `chat <handle>` posts route to the same cohort; stamp the
     // channelId on every DM frame.
-    const ad = await ChatApi.openAdHoc(speaker, [speaker, ...targets]);
+    const ad = await speaker.openAdHocChat([speaker, ...targets]);
     comms.tell(targets, model.message, { channelId: ad.handle });
   }
 }

@@ -35,6 +35,10 @@ import type {
 
 export type { BlameVerdict } from "../lib/accountability/AccountabilityEvent";
 export type {
+  InitiateResult,
+  ThrownDelivery,
+} from "../platform/idea/api/CombatLogic";
+export type {
   CombatInfluence,
   InfluenceResult,
 } from "../lib/combat/CombatInfluence";
@@ -190,27 +194,9 @@ export class CombatApi {
     logic().merge(a, b);
   }
 
-  /** Set the actor's intent for the next exchange (non-blocking). */
-  public static queueGambit(actor: Stuff, gambitKey: string): GambitEligibility {
-    return logic().queueGambit(actor, gambitKey);
-  }
-
-  /** Attempt-time eligibility for a gambit (capability + band + parts). */
-  public static eligibilityFor(
-    actor: Stuff,
-    gambitKey: string,
-  ): GambitEligibility {
-    return logic().eligibilityFor(actor, gambitKey);
-  }
-
   /** The actor's active combat session, or undefined. */
   public static sessionFor(combatant: Stuff): CombatSession | undefined {
     return logic().sessionFor(combatant);
-  }
-
-  /** The actor yields — resolves the fight in the opponent's favour. */
-  public static yieldFight(actor: Stuff): boolean {
-    return logic().yieldFight(actor);
   }
 
   /**
@@ -221,55 +207,6 @@ export class CombatApi {
    * loss). `broke` is true when this call dissolved at least one edge.
    */
   /**
-   * Is this item a **weapon** — a wieldable carrying a weapon-domain
-   * construction (bladed/pointed/hafted/flail/whip)? A shield is a
-   * wielded *armor* construction and is correctly excluded. The predicate
-   * the weapons-check rack gates on, and the combat vocabulary's own
-   * "is this a weapon" test — a legitimate cross-cutting read (combat
-   * vocabulary × the item), so it lives on the Api.
-   */
-  public static isWeapon(item: Stuff): boolean {
-    return logic().isWeapon(item);
-  }
-
-  /**
-   * The weapons a `viewer` can SEE on a `subject`: wielded weapons always
-   * (drawn steel is obvious); sheathed / carried ones only when the viewer
-   * perceives them at the given attention. The doorman's read for the
-   * weapons-check house rule — a concealed blade that beats the watcher's
-   * alertness is legitimately missed (`search` is the counterplay). No
-   * frisk verb: this reads, it doesn't strip-search.
-   */
-  public static visibleArms(
-    viewer: Stuff,
-    subject: Stuff,
-    attention?: number,
-  ): Stuff[] {
-    return logic().visibleArms(viewer, subject, attention);
-  }
-
-  public static offerBreak(actor: Stuff): {
-    ok: boolean;
-    reason?: string;
-    broke: boolean;
-  } {
-    return logic().offerBreak(actor);
-  }
-
-  /**
-   * `fight rush <direction>` — the bum's rush: throw a **grappled** foe
-   * out through the named exit. A general control-win outcome (any winner,
-   * any exit). The loser leaves the fight, is relocated teleport-style, and
-   * lands sprawled. Async: the destination may fault in its zone.
-   */
-  public static bumRush(
-    actor: Stuff,
-    direction: string,
-  ): Promise<{ ok: boolean; reason?: string }> {
-    return logic().bumRush(actor, direction);
-  }
-
-  /**
    * The blame verdict for a victim's death, derived on read by replaying
    * the append-only attribution ledger. `null` if the victim has no
    * attributed combat death. `victimId` is the durable `templatePath`.
@@ -278,117 +215,32 @@ export class CombatApi {
     return logic().blameFor(victimId);
   }
 
+  /**
+   * The relationship-derived splash set around `target` — the
+   * subject-NEUTRAL read: a thrown flask may target a barrel, and the
+   * people splashed stand around IT, so the target need not be a
+   * combatant. A combatant's own read is `target.splashSet()`.
+   */
+  public static splashSetFor(target: Stuff): Stuff[] {
+    return logic().splashSetFor(target);
+  }
+
+  /**
+   * The range band between `a` and `b` (null = not co-present) — the
+   * subject-NEUTRAL geometry read: either side may be an item (a wand
+   * origin measures reach from itself — the EffectContext split), so
+   * this stays a two-object static; a combatant's own read is
+   * `combatant.bandTo(other)`.
+   */
+  public static bandBetween(a: Stuff, b: Stuff): RangeState | null {
+    return logic().bandBetween(a, b);
+  }
+
   /** Every attribution row for a fight (read/analytics; ordered by realAt). */
   public static attributionFor(
     sessionId: string,
   ): Promise<AccountabilityEvent[]> {
     return logic().attributionFor(sessionId);
-  }
-
-  /**
-   * Stay a coup in progress — any present party (or the executioner's own
-   * hand) stops the killing stroke on `target` (the victim or the
-   * executioner of a live coup). Returns true if a coup was interrupted.
-   */
-  public static intervene(actor: Stuff, target: Stuff): boolean {
-    return logic().intervene(actor, target);
-  }
-
-  /**
-   * The captain's execution directive (`fight finish`): release a coup
-   * **held** under a `coupCall: 'captain'` formation in the captain's
-   * room. The directive is recorded on the death row (`directedBy`) — a
-   * directed formation implies command responsibility. A held coup the
-   * captain never orders expires spared (mercy by default).
-   */
-  public static orderCoup(captain: Stuff): { ok: boolean; reason?: string } {
-    return logic().orderCoup(captain);
-  }
-
-  /**
-   * `defend <ally>` — interpose: pull a foe's pressure off a pressed ally
-   * onto yourself (join the fight if needed, then redirect the foe's
-   * threat edge from the ally onto you).
-   */
-  public static defendAlly(
-    interposer: Stuff,
-    ally: Stuff,
-  ): { ok: boolean; reason?: string } {
-    return logic().defendAlly(interposer, ally);
-  }
-
-  /**
-   * Break off from a fight to leave (fleeing = a locomotion attempt made
-   * while engaged). A no-op when the actor isn't fighting; otherwise an
-   * opposed-lite disengage — a focus-fire pin blocks it (`ok:false`), and
-   * every foe still locked on gets a parting shot. The movement controller
-   * calls this before a traverse.
-   */
-  public static disengage(actor: Stuff): { ok: boolean; message?: string } {
-    return logic().disengage(actor);
-  }
-
-  /**
-   * The costed, competence-graded tactical read of an opponent mid-fight
-   * — spends the actor's next exchange and mints a combat `ActSignature`.
-   */
-  public static assess(actor: Stuff, target: Stuff): CombatAssessResult {
-    return logic().assess(actor, target);
-  }
-
-  /**
-   * The **free** fogged read of the actor's opponent — the competence-hedged
-   * band + feint `tell`, with no cost and no side-effects. Powers the
-   * always-available `fight` status line; `assess` is the costed wrapper.
-   */
-  public static perceive(actor: Stuff): CombatAssessResult {
-    return logic().perceive(actor);
-  }
-
-  /**
-   * The derived {@link WeaponProfile} for a weapon (config-injected from the
-   * `combat.weapon.*` dials) — the authoritative live playstyle read the
-   * `analyze weapon` preview and the combat couplings consult. `null` when
-   * the target isn't a `Weapon`.
-   */
-  public static weaponProfileOf(weapon: Stuff): WeaponProfile | null {
-    return logic().weaponProfileOf(weapon);
-  }
-
-  /**
-   * The actor's engagement range against its current primary foe + its reach
-   * delta (the reach tier read the `combatant` brain uses to decide whether
-   * to close the gap, and the `fight` status read surfaces). `null` when the
-   * actor isn't fighting or has no live foe.
-   */
-  public static rangeStanding(actor: Stuff): RangeStanding | null {
-    return logic().rangeStanding(actor);
-  }
-
-  /**
-   * **Start a fight** — the one initiation handshake, wherever the act
-   * comes from.
-   *
-   * Reconciles both sides' standing terms, prompts on a conflict (via the
-   * caller's `onConflict`, because asking is a UI act), snapshots melee
-   * competence, warms the formation Ideas, reads the ambush *before*
-   * revealing the attacker, and then opens / joins / merges as the
-   * situation requires.
-   *
-   * Every initiating verb must go through this rather than reproducing
-   * the sequence. `attack` and `throw ... at` routing "identically" is a
-   * fact only while there is one copy of it.
-   */
-  public static initiate(
-    initiator: Stuff,
-    target: Stuff,
-    overrides?: { lethal?: boolean; to?: string },
-    onConflict?: (
-      target: Stuff,
-      mine: TermsProposal,
-    ) => Promise<boolean | null | "cancelled">,
-  ): Promise<InitiateResult> {
-    return logic().initiate(initiator, target, overrides, onConflict);
   }
 
   /**
@@ -405,17 +257,6 @@ export class CombatApi {
   }
 
   /**
-   * The engagement band between two combatants — the location-aware read.
-   *
-   * Prefer this to `CombatGraph.rangeBetween`, which is a pure
-   * value-object and answers `close` for a pair it has never seen. `null`
-   * means the two are not co-present at all.
-   */
-  public static bandBetween(a: Stuff, b: Stuff): RangeState | null {
-    return logic().bandBetween(a, b);
-  }
-
-  /**
    * The widest band this combatant's arena affords, derived from the
    * room's real linear extent — a 3 m cell caps at `reach`, an authored
    * 20 m outdoor cell reaches `far`. Nobody authors a band.
@@ -424,108 +265,6 @@ export class CombatApi {
     return logic().arenaMaxBandFor(who);
   }
 
-  /**
-   * Resolve a thrown carrier's arrival: where it landed, whether the
-   * vessel broke, and how its real volume divides between the target,
-   * whoever is clinched with them, and the floor.
-   *
-   * Returns a PLAN rather than applying one — discharging into each
-   * victim and pooling the remainder are world mutations with their own
-   * gates, and they belong to the caller.
-   */
-  public static resolveThrown(
-    thrower: Stuff,
-    target: Stuff,
-    contents: {
-      litres: number;
-      toughness?: number;
-      hardness?: number;
-      massKg?: number;
-    },
-    splash: readonly Stuff[],
-  ): ThrownDelivery {
-    return logic().resolveThrown(thrower, target, contents, splash);
-  }
-
-  /**
-   * Everyone an area delivery aimed at `target` would catch: the target
-   * plus whoever is clinched (`close`) with them. Bands are relationships
-   * rather than positions, so this is the honest reading of "splash" —
-   * no radius, no geometry.
-   */
-  public static splashSetFor(target: Stuff): Stuff[] {
-    return logic().splashSetFor(target);
-  }
-
-  /**
-   * The commit-time consent gate for an area delivery. The primary target
-   * runs the ordinary terms handshake (attacking the unwilling is a crime,
-   * not an impossibility); every OTHER sentient caught in the splash must
-   * already stand under consented terms with the thrower, or the whole act
-   * is refused before it commits.
-   *
-   * Area delivery must not be a cheaper route to a person than aiming at
-   * them.
-   */
-  public static mayDeliverTo(
-    thrower: Stuff,
-    primary: Stuff,
-    splash: readonly Stuff[],
-  ): { ok: true } | { ok: false; refusedBy: Stuff } {
-    return logic().mayDeliverTo(thrower, primary, splash);
-  }
-
-  /**
-   * The actor's own formation standing (preset + role + protector flag) —
-   * total, never null; a partyless actor reads the default formation.
-   * The `fight` status lines and the combatant brain's protector bias
-   * consume this; the enemy's formation is deliberately not readable.
-   */
-  public static formationStandingOf(actor: Stuff): FormationStanding {
-    return logic().formationStandingOf(actor);
-  }
-
-  /**
-   * Begin a **deliberate weapon switch** to `target` (a carried weapon) — a
-   * vulnerable durative beat: while it runs the combatant can't strike and
-   * their guard is down, and when it completes the grip is swapped. Fails if
-   * not in combat, downed, or already switching.
-   */
-  public static beginSwitch(
-    actor: Stuff,
-    target: Stuff,
-  ): { ok: boolean; reason?: string } {
-    return logic().beginSwitch(actor, target);
-  }
-
-  /**
-   * **Draw a sidearm** — a fast switch to a sheathed/carried backup weapon,
-   * the answer to being disarmed (a tempo setback, not a fight-ender). Fails
-   * with `no-sidearm` when nothing is available to draw.
-   */
-  public static drawSidearm(actor: Stuff): { ok: boolean; reason?: string } {
-    return logic().drawSidearm(actor);
-  }
-
-  /**
-   * The external state-instruction bridge — "Effect iff gated Api" made
-   * real for combat state. An external system (magic, the script
-   * interpreter) issues one {@link CombatInfluence} instruction into the
-   * combatant's live session: `stagger` (banded, focus-fire-scaled poise
-   * erosion — a crossing arms the normal ownerless opening, and influence
-   * never sets `down`), `expose` (arm the opening window without moving
-   * the gauge — any attacker cashes it, no command deed), or `steady`
-   * (endurance-capped recovery, suppressed under the focus-fire pin like
-   * the defend beat). Deterministic; magnitudes from the
-   * `combat.influence.*` dials. Callers route through their **own** gated
-   * logic — no spell ships here (the magic build's job).
-   */
-  public static influence(
-    combatant: Stuff,
-    instruction: CombatInfluence,
-  ): InfluenceResult {
-    return logic().influence(combatant, instruction);
-  }
 }
 
 SecurityApi.decorateApiClass(CombatApi);

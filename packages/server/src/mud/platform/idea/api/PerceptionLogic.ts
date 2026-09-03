@@ -16,7 +16,6 @@ import { MixinApi } from '../../../api/mixin';
 import type { SenseChannel } from '../../../lib/description/Perceiver';
 import { StuffApi } from '../../../api/stuff';
 import { SpeciesApi } from '../../../api/species';
-import { AdvancementApi } from '../../../api/advancement';
 import { AppApi } from '../../../api/app';
 import { AppSettingKeys } from '../../../lib/config/AppSettings';
 import { TemplatePathPrefixes } from '../../../lib/paths';
@@ -231,9 +230,11 @@ export class PerceptionLogic extends ApiLogic {
     const [, , band] = await Promise.all([
       SpeciesApi.preloadAnatomy(actor),
       this.preloadModalities(),
-      AdvancementApi.bandFor(actor, AWARENESS_DISCIPLINE).catch(
-        () => CompetenceBand.FLOOR,
-      ),
+      MixinApi.isAdvancing(actor)
+        ? actor.competenceBandFor(AWARENESS_DISCIPLINE).catch(
+            () => CompetenceBand.FLOOR,
+          )
+        : Promise.resolve(CompetenceBand.FLOOR),
     ]);
     awarenessBandCache.set(actor.stuffId, band);
   }
@@ -785,7 +786,7 @@ function coverScoreOf(actor: Stuff): number {
  * derivation (the opposed sibling of the detection side): a weighted score
  * of competence × cover × darkness × stillness, mapped to a
  * {@link ConcealmentLevel} band by the `stealth.hide.band.*` thresholds. The
- * `stealthBand` is resolved by the caller (`AdvancementApi.bandFor(actor,
+ * `stealthBand` is resolved by the caller (the actor's `competenceBandFor(
  * 'stealth')`, awaited at command time) and snapshotted into `hiddenLevel`,
  * so the sync perceive gate never reaches here. A score below `band.subtle`
  * fails to conceal (`obvious`).

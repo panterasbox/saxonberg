@@ -13,7 +13,6 @@ import { SandboxApi } from '../../../../api/sandbox';
 import { StuffApi } from '../../../../api/stuff';
 import { ShadowApi } from '../../../../api/shadow';
 import { EventApi } from '../../../../api/event';
-import { ConnectionApi } from '../../../../api/connection';
 import { ContainmentApi } from '../../../../api/containment';
 import { PersistApi } from '../../../../api/persist';
 import { Stuff } from '../../../stuff/Stuff';
@@ -183,7 +182,7 @@ describe('sandbox-escape: the round-trip criterion', () => {
     const interactive = await StuffApi.create(
       () => new Interactive('sock-rt', 'sess-rt', { _id: 'u1' } as never)
     );
-    ConnectionApi.transfer(interactive, avatar);
+    interactive.transferTo(avatar);
     const wardrobe = await StuffApi.create(() => new SandboxCrossing());
     ContainmentApi.move(
       wardrobe as unknown as Stuff & Containable,

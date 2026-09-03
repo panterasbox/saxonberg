@@ -26,7 +26,6 @@ import { RecordApi } from '../record';
 import { AppApi } from '../app';
 import { AppSettingKeys } from '../../lib/config/AppSettings';
 import { Collections } from '../../lib/persistence/Collections';
-import { ConnectionApi } from '../connection';
 import { ExecutionContextApi } from '../execution-context';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 import {
@@ -123,7 +122,7 @@ describe('the frame store', () => {
     // The fan-out really does reach both surfaces — otherwise the
     // one-row assertion below would be true for the wrong reason.
     const sent = vi
-      .spyOn(ConnectionApi, 'sendMessage')
+      .spyOn(Interactive.prototype, 'sendMessage')
       .mockImplementation(() => undefined);
 
     deliver(avatar, frame('one bell, two screens'));
@@ -225,7 +224,9 @@ describe('reading it back', () => {
     const avatar = makeAvatar('p1');
     const first = makeStuff(() => new Interactive('s1', 'sess1', makeUser('u1')));
     avatar.addInteractive(first);
-    vi.spyOn(ConnectionApi, 'sendMessage').mockImplementation(() => undefined);
+    vi.spyOn(Interactive.prototype, 'sendMessage').mockImplementation(
+      () => undefined,
+    );
     deliver(avatar, frame('the forge is lit'));
     deliver(avatar, frame('Tomas nods'));
     deliver(avatar, frame('the bar reads 1240 °C'));

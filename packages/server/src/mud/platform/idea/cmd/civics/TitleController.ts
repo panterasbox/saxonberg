@@ -66,7 +66,6 @@ import { Quantity } from '../../../../lib/quantity';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import { MqlApi } from '../../../../api/mql';
 import { AppApi } from '../../../../api/app';
-import { CredentialApi } from '../../../../api/credential';
 import { Lock } from '../../../../lib/lock/Lock';
 import { OuterWarren } from '../../../../lib/location/OuterWarren';
 import { Currency } from "../../../../lib/banking/Currency";
@@ -365,7 +364,7 @@ export default class TitleController extends CommandController<TitleModel> {
     const keyway = Lock.mintKeyway();
     await ParcelApi.setKeyway(extent, keyway);
     try {
-      await CredentialApi.issueKey(giver, keyway, 'pin-tumbler');
+      await Lock.issueKey(giver, keyway, 'pin-tumbler');
     } catch (err) {
       console.warn(`TitleController: key issue failed for ${extent}:`, err);
     }

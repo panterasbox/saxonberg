@@ -169,8 +169,7 @@ export default class Realtor extends PopulatesMixin(NPC) {
         return;
       }
 
-      const picked = await PromptApi.choice(
-        interactive,
+      const picked = await interactive.promptChoice(
         "Which lot?",
         offers
           .map((o) => ({ label: Realtor.describe(o), response: o.extent }))
@@ -181,8 +180,7 @@ export default class Realtor extends PopulatesMixin(NPC) {
       if (!offer) return;
 
       const price = Money.of(offer.priceMinor, Currency.compact()).render();
-      const yes = await PromptApi.confirm(
-        interactive,
+      const yes = await interactive.promptConfirm(
         `Buy ${offer.book} ${offer.leaf} for ${price}?`,
         "no",
       );
@@ -198,7 +196,7 @@ export default class Realtor extends PopulatesMixin(NPC) {
       // command runs with the player's own affordances, validators,
       // money and ascent gate, and refuses to THEM if it refuses.
       if (!MixinApi.isCommandGiver(player)) return;
-      await CommandApi.forceCommand(player, `title buy ${offer.leaf}`);
+      await player.forceCommand(`title buy ${offer.leaf}`);
     },
   };
 }

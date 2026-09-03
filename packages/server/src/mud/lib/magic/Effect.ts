@@ -43,7 +43,7 @@ export type EffectFamily = 'impulse' | 'modifier';
  */
 export const MANA_RESERVE_KEY = 'mana';
 
-/** Inject a real mechanism channel — backing: `ConditionApi.inflict` (heat at a body), `ThermalApi.depositHeat`+`FireApi.tryAutoignite` (heat at an object), `ElectricityApi.conduct` (shock, via a transient energized locus). */
+/** Inject a real mechanism channel — backing: `ConditionApi.inflict` (heat at a body), `Thermal.depositHeat`+`FireApi.tryAutoignite` (heat at an object), `ElectricityApi.conduct` (shock, via a transient energized locus). */
 export interface InjectChannelEffect {
   readonly kind: 'inject-channel';
   readonly channel: Channel;
@@ -59,7 +59,7 @@ export interface InjectChannelEffect {
    */
   readonly locus?: string;
   /** Real thermal joules an OBJECT-target heat injection deposits
-   * (`ThermalApi.depositHeat` + `FireApi.tryAutoignite`) — authored
+   * (`Thermal.depositHeat` + `FireApi.tryAutoignite`) — authored
    * separately from `energy` because the two branches speak different
    * physical scales. */
   readonly joules?: number;

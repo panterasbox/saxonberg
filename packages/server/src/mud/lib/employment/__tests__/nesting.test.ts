@@ -123,15 +123,15 @@ describe('organization parentage', () => {
 
     expect(child.getParentOrganizationPath()).toBe(PMO);
     expect(
-      EmploymentApi.organizationChainOf(child).map((o) => o.getTemplatePath()),
+      child.organizationChain().map((o) => o.getTemplatePath()),
     ).toEqual([PMO]);
-    expect(EmploymentApi.organizationChainOf(parent)).toEqual([]);
+    expect(parent.organizationChain()).toEqual([]);
   });
 
   it('ends the chain on a parent that does not resolve', () => {
     const child = makeStuffAtPath(() => new OrganizationEntity(), COMPACT);
     child.parentOrganization = '/compact/never-stood-up';
-    expect(EmploymentApi.organizationChainOf(child)).toEqual([]);
+    expect(child.organizationChain()).toEqual([]);
   });
 
   it('⚠ refuses a parent cycle at read rather than looping', () => {
@@ -139,7 +139,7 @@ describe('organization parentage', () => {
     const b = makeStuffAtPath(() => new OrganizationEntity(), COMPACT);
     a.parentOrganization = COMPACT;
     b.parentOrganization = PMO;
-    expect(() => EmploymentApi.organizationChainOf(a)).toThrowError(/cycle/);
+    expect(() => a.organizationChain()).toThrowError(/cycle/);
 
     // ...including a self-parenting organization.
     const solo = makeStuffAtPath(
@@ -147,7 +147,7 @@ describe('organization parentage', () => {
       '/compact/solo',
     );
     solo.parentOrganization = '/compact/solo';
-    expect(() => EmploymentApi.organizationChainOf(solo)).toThrowError(
+    expect(() => solo.organizationChain()).toThrowError(
       /cycle/,
     );
   });

@@ -8,7 +8,6 @@
  * `prompt cancel` verb, not this channel.
  */
 
-import { PromptApi } from '../../mud/api/prompt';
 import type {
   PromptResponseMessage,
   PromptCancelMessage,
@@ -26,7 +25,7 @@ export const handlePromptResponse: InboundHandler = (ctx, message) => {
   ) {
     return;
   }
-  PromptApi.handleResponse(ctx.interactive, payload);
+  ctx.interactive.handlePromptResponse(payload);
 };
 
 export const handlePromptCancel: InboundHandler = (ctx, message) => {
@@ -34,5 +33,5 @@ export const handlePromptCancel: InboundHandler = (ctx, message) => {
     | PromptCancelMessage['payload']
     | undefined;
   if (!payload || typeof payload.promptId !== 'string') return;
-  PromptApi.handleCancel(ctx.interactive, payload);
+  ctx.interactive.handlePromptCancel(payload);
 };

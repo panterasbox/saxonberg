@@ -8,7 +8,7 @@
  * floor stock to the cash-and-carry and lists it AS the outfit — a buyer
  * at the counter then splits to the outfit's operating account.
  *
- * The brain drives the literal verbs through `CommandApi.forceCommand`;
+ * The brain drives the literal verbs through `forceCommand` (the giver's own method since the OO sweep);
  * here that seam is a dispatcher onto the REAL controllers (`wallet use
  * house` → WalletController, `consign … --ask` → ConsignController, `get`
  * → the containment move the verb performs), the `HouseAccount` harness
@@ -394,7 +394,13 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
   /** The literal verbs, dispatched onto the real controllers as the hand. */
   function installDispatcher(hand: TestHand): string[] {
     const lines: string[] = [];
-    vi.spyOn(CommandApi, 'forceCommand').mockImplementation(async (giver, text) => {
+    // Dispatch is `hand.forceCommand(text)` since the OO sweep, so the
+    // hand is the interception seam.
+    vi.spyOn(
+      hand as unknown as { forceCommand(text: string): Promise<void> },
+      'forceCommand',
+    ).mockImplementation(async (text: string) => {
+      const giver = hand;
       // A teleport auto-senses on arrival (Mobile's own forced `sense`) —
       // not the brain's line; dropped from the record.
       if (text === 'sense') return;
@@ -438,20 +444,20 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
 
   it('hire into a purchases position deals the house card, once', async () => {
     const hand = makeHand();
-    await EmploymentApi.hire(outfit, hand, 'hand');
+    await outfit.appoint(hand, 'hand');
     const cards = () => hand.getContents().filter((c) => MixinApi.isCredentialWallet(c));
     expect(cards().length).toBe(1);
     const pay = (cards()[0] as unknown as PaymentCard).getCredential('payment');
     expect(pay?.hasAccount(outfitAccount)).toBe(true);
     expect(pay?.getActiveAccount()).toBe(outfitAccount);
     // Idempotent: a second hire (or the roster re-materializing) deals nothing.
-    await EmploymentApi.hire(outfit, hand, 'hand');
+    await outfit.appoint(hand, 'hand');
     expect(cards().length).toBe(1);
   });
 
   it('a hand that has lost its card (it persists with the hand; this is the one-off) is dealt one on the next roster tick', async () => {
     const hand = makeHand();
-    await EmploymentApi.hire(outfit, hand, 'hand');
+    await outfit.appoint(hand, 'hand');
     const cards = () => hand.getContents().filter((c) => MixinApi.isCredentialWallet(c));
     expect(cards().length).toBe(1);
     // The card left the hand somehow (a theft, a drop) — the roster deals another.
@@ -467,14 +473,17 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
 
   it('a lift that declines (too heavy) stops the beat — the rest of the floor waits for the next one', async () => {
     const hand = makeHand();
-    await EmploymentApi.hire(outfit, hand, 'hand');
+    await outfit.appoint(hand, 'hand');
     const gin = bottle('spirit:gin', 'gin');
     const vodka = bottle('spirit:vodka', 'vodka');
     ContainmentApi.move(gin as never, floorStock as never);
     ContainmentApi.move(vodka as never, floorStock as never);
     const lines: string[] = [];
     // `get gin` declines (too-heavy-to-lift): the bottle stays on the floor.
-    vi.spyOn(CommandApi, 'forceCommand').mockImplementation(async (_giver, text) => {
+    vi.spyOn(
+      hand as unknown as { forceCommand(text: string): Promise<void> },
+      'forceCommand',
+    ).mockImplementation(async (text: string) => {
       if (text === 'sense') return;
       lines.push(text);
       if (text === 'get vodka') ContainmentApi.move(vodka as never, hand as never);
@@ -499,7 +508,7 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
     const settings: Record<string, string> = { 'retail.consignment.listingCap': '1' };
     vi.spyOn(AppApi, 'setting').mockImplementation((key: string) => settings[key] ?? '');
     const hand = makeHand();
-    await EmploymentApi.hire(outfit, hand, 'hand');
+    await outfit.appoint(hand, 'hand');
     const gin = bottle('spirit:gin', 'gin');
     const vodka = bottle('spirit:vodka', 'vodka');
     ContainmentApi.move(gin as never, floorStock as never);
@@ -528,7 +537,7 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
 
   it('one beat: the floor stock is carried to the counter and listed AS the outfit; a buy splits to its account', async () => {
     const hand = makeHand();
-    await EmploymentApi.hire(outfit, hand, 'hand');
+    await outfit.appoint(hand, 'hand');
     const gin = bottle('spirit:gin', 'gin');
     const vodka = bottle('spirit:vodka', 'vodka');
     ContainmentApi.move(gin as never, floorStock as never);
@@ -553,7 +562,7 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
     expect(gin.getContainer()).toBe(counter);
     expect(counter.listingFor(gin.getChattelId())?.consignorKey).toBe(OUTFIT);
     expect(counter.listingFor(vodka.getChattelId())?.askMinor).toBe(10);
-    expect(await ChattelApi.ownerOf(gin)).toEqual({ kind: 'organization', templatePath: OUTFIT });
+    expect(await gin.chattelOwner()).toEqual({ kind: 'organization', templatePath: OUTFIT });
     // The hand went home.
     expect(hand.getContainer()).toBe(floorRoom);
     // A second beat with the floor empty does nothing.
@@ -570,14 +579,14 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
     await asPrincipal(buyer, () => BankingApi.openAccount('goodkin', 'goodkin', Currency.compact()));
     const bank = StuffApi.findByTemplatePath<BankCounter>(BANK)!;
     const cash = await asPrincipal(buyer, () => BankingApi.issueCash(buyer as never, Money.of(50, Currency.compact())));
-    await asPrincipal(buyer, () => BankingApi.deposit(bank, cash as never));
+    await asPrincipal(buyer, () => bank.deposit(cash as never));
 
     const before = BankingApi.balanceOf(outfitAccount).minor;
     const c = ctx(buyer, counterRoom, counter, 'buy gin');
     await asPrincipal(buyer, () => makeStuff(() => new BuyController()).execute({ thing: 'gin' }, c));
     expect(rejections(c)).toEqual([]);
     expect(gin.getContainer()).toBe(buyer);
-    expect(await ChattelApi.ownerOf(gin)).toEqual({ kind: 'player', templatePath: '/platform/agent/Avatar/pat' });
+    expect(await gin.chattelOwner()).toEqual({ kind: 'player', templatePath: '/platform/agent/Avatar/pat' });
     const commission = Math.round(14 * 0.15);
     expect(BankingApi.balanceOf(outfitAccount).minor - before).toBe(14 - commission);
     expect(BankingApi.balanceOf(hostAccount).minor).toBeGreaterThan(0);

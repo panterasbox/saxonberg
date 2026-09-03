@@ -16,8 +16,6 @@ import { SandboxApi } from "../../api/sandbox";
 import { ConnectionApi } from "../../api/connection";
 import { EventApi } from "../../api/event";
 import { StuffApi } from "../../api/stuff";
-import { BeliefStoreApi } from "../../api/belief";
-import { ChronicleApi } from "../../api/chronicle";
 import { ContainmentApi } from "../../api/containment";
 import { MixinApi } from "../../api/mixin";
 import type { Containable } from "../../lib/spatial/Containable";
@@ -702,7 +700,7 @@ export default class Avatar extends AvatarBase {
       this.relieve(condition);
     }
 
-    await ChronicleApi.recordDeed(this, {
+    await this.recordDeed({
       template: "{{ who | name }} returned to the world.",
       vars: { who: this },
       tags: ["death", "recovery"],
@@ -830,14 +828,14 @@ export default class Avatar extends AvatarBase {
     // Lazy-hydrate this avatar's identity memory (recognition /
     // identification) into its in-memory belief store. Serves the naming
     // path from memory thereafter — no Mongo read on look/listing.
-    await BeliefStoreApi.hydrate(this);
+    await this.hydrateBeliefs();
 
     // First-arrival deed — minted once, ever. Called unconditionally
     // (not gated on `opts.firstArrival`): the greeting flag only selects
     // prose, while the `recordOnce` key is the dedup authority, so the
     // first ever arrival mints and every re-login `enter` no-ops.
     // `startingLocation` is non-null here (the throw above guarantees it).
-    await ChronicleApi.recordOnce(this, "first-arrival", {
+    await this.recordChronicleOnce("first-arrival", {
       kind: "deed",
       template: "Arrived at {{ place | location }}.",
       vars: { place: startingLocation },
@@ -976,8 +974,7 @@ export default class Avatar extends AvatarBase {
      */
     try {
       const mode = this.getCockpitMode();
-      CardApi.applyArrangement(
-        interactive,
+      interactive.applyCardArrangement(
         this.arrangementCards(mode, this.getCockpitArrangement(mode)),
       );
     } catch (err) {
@@ -1274,7 +1271,7 @@ export default class Avatar extends AvatarBase {
       },
     };
     for (const interactive of forwardingTargets(this)) {
-      ConnectionApi.sendMessage(interactive, routed);
+      interactive.sendMessage(routed);
     }
   }
 
@@ -1306,7 +1303,7 @@ export default class Avatar extends AvatarBase {
    */
   protected override handleEnvelope(envelope: EnvelopeTemplate): void {
     for (const interactive of forwardingTargets(this)) {
-      ConnectionApi.sendEnvelope(interactive, envelope);
+      interactive.sendEnvelope(envelope);
     }
   }
 
@@ -1334,7 +1331,7 @@ export default class Avatar extends AvatarBase {
 
     // Final-flush + evict the identity-memory working set (fire-and-
     // forget, mirroring the save above — `onDestruct` is synchronous).
-    void BeliefStoreApi.evictAndFlush(this).catch((err) => {
+    void this.evictAndFlushBeliefs().catch((err) => {
       console.error(
         `Avatar.onDestruct: belief flush failed for playerId=${this.playerId}:`,
         err,
@@ -1345,7 +1342,7 @@ export default class Avatar extends AvatarBase {
     PlayerApi.unregisterAvatar(this);
     // Snapshot — detach() mutates the underlying set via removeInteractive.
     for (const interactive of [...this.interactives]) {
-      ConnectionApi.detach(interactive);
+      interactive.detach();
     }
   }
 

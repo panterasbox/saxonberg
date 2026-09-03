@@ -525,7 +525,7 @@ would quietly restore the hole.
 
 ## Comm-seam inventory (VERIFIED 2026-07-30)
 
-- **The delivery chokepoint holds**: `MessageApi.sendMessage/
+- **The delivery chokepoint holds**: `onMessage/
   sendEnvelope` → `MessageLogic` → `recipient.onMessage/onEnvelope` is
   the ONLY in-world caller pair of the Sensor pipeline. The frame body
   is **rendered MML string, materialized per-recipient at compose
@@ -577,7 +577,7 @@ work the moment two people stand on opposite sides of a circle:
 
 | Surface | What it was doing | Symptom |
 |---|---|---|
-| `RecognitionApi.describe*` / `perceivedKeywords` | name a person for a viewer | `who` from inside died on `getDisguise()`; a channel post from the field died naming its in-circle recipient |
+| `describeFor*` / `perceivedKeywords` | name a person for a viewer | `who` from inside died on `getDisguise()`; a channel post from the field died naming its in-circle recipient |
 | `PerceptionApi.sensorium` / `canPerceive` | delivery sense-gate: can this recipient perceive the frame? | `chat` from inside died on the recipient's `getSpecies()` |
 | `SocialApi.statusOf` / `composeRow` | compose a roster row | `who` from inside died on `getEngagements()` |
 
@@ -620,7 +620,7 @@ moves down one frame: `getPresentation` (exempt) → `getDisguise`
 (exempt it too) → `getAllOccupants` (…and again). `getPresentation`
 therefore wraps its own BODY in the aperture rather than sitting on a
 list, which makes the exemption transitive for exactly the span it
-covers and no further. `RecognitionApi.salientFeatures` is the same
+covers and no further. `salientFeatures` is the same
 shape (it walks worn coverings) and gets the same treatment.
 
 The exempt-method set stays for genuine LEAVES — `isDestroyed`,
@@ -731,7 +731,7 @@ them are fixed on this branch.
   `AmbientLitMixin` onto `Location` itself. Worth keeping the causal
   chain written down, because it is not obvious: a Location with no
   light computes `pitch-black`; at that band `VisionModality.canSee`
-  fails; `RecognitionApi.describe` then falls back to "someone" /
+  fails; `describeFor` then falls back to "someone" /
   "something" for every occupant. A dark room does not merely read as
   dark — nobody in it can be named, told apart, or addressed, so
   `tell <name>` cannot resolve a target at all.

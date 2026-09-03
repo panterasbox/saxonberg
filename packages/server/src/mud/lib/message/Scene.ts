@@ -288,12 +288,12 @@ export class Scene {
       switch (af.recipientKind) {
         case 'self': {
           const recipient = af.target!;
-          MessageApi.sendMessage(recipient, buildFrame(recipient));
+          recipient.onMessage(buildFrame(recipient));
           break;
         }
         case 'target': {
           const recipient = af.target!;
-          MessageApi.sendMessage(recipient, buildFrame(recipient));
+          recipient.onMessage(buildFrame(recipient));
           break;
         }
         case 'peers': {
@@ -304,7 +304,7 @@ export class Scene {
           if (explicitTarget) skip.add(explicitTarget);
           for (const sensor of MessageApi.getSensors(env)) {
             if (skip.has(sensor as Stuff)) continue;
-            MessageApi.sendMessage(sensor, buildFrame(sensor));
+            sensor.onMessage(buildFrame(sensor));
           }
           break;
         }
@@ -312,7 +312,7 @@ export class Scene {
           if (!actorAsContainer) break;
           for (const sensor of MessageApi.getSensors(actorAsContainer)) {
             if ((sensor as Stuff) === this.#actor) continue;
-            MessageApi.sendMessage(sensor, buildFrame(sensor));
+            sensor.onMessage(buildFrame(sensor));
           }
           break;
         }
@@ -336,7 +336,7 @@ export class Scene {
                 arrival.db,
               ).toString(arrival.sensor);
             }
-            MessageApi.sendMessage(arrival.sensor, frame);
+            arrival.sensor.onMessage(frame);
           }
           break;
         }

@@ -161,7 +161,7 @@ function landStrike(
   target: TestFighter,
 ): void {
   session.getState(target)!.poise.erode(0.6, 0);
-  CombatApi.queueGambit(atkr, "strike");
+  atkr.queueGambit("strike");
   CombatApi.advance(session);
 }
 

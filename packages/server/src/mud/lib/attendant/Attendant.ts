@@ -295,7 +295,8 @@ export function AttendantMixin<TBase extends MixinConstructor<Stuff>>(
         if (wantKeys.size > 0 && !wantKeys.has(a.positionKey)) continue;
         const who = StuffApi.findByTemplatePath(a.assignee);
         if (!who || !MixinApi.isEngaged(who)) continue;
-        if (EmploymentApi.shiftStateOf(who) !== "on-shift") continue;
+        if (!MixinApi.isEmployed(who) || who.shiftState() !== "on-shift")
+          continue;
         if (room && this.roomOf(who) !== room) continue;
         if ((who as Stuff & Engaged).getEngagementBySlot("attention")) continue;
         return who as Stuff & Engaged;

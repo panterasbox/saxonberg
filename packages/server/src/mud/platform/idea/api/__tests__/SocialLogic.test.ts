@@ -12,10 +12,11 @@
  */
 
 import "../../../../../test-bootstrap";
+import type { Stuff } from "../../../../lib/stuff/Stuff";
+import { BeliefStoreMixin } from "../../../../lib/belief/BeliefStore";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { SocialApi } from "../../../../api/social";
 import { GroupApi } from "../../../../api/group";
-import { RecognitionApi } from "../../../../api/recognition";
 import { PlayerApi } from "../../../../api/player";
 import { StuffApi } from "../../../../api/stuff";
 import { Idea } from "../../../../lib/stuff/Idea";
@@ -26,7 +27,14 @@ import {
   makeStuffAtPath,
 } from "../../../../lib/security/__tests__/test-setup";
 
-class NotifyHost extends NotifyPolicyMixin(Idea) {
+// Recognition is the viewer's own belief realm since the OO sweep; the
+// module `recognizedDefault` pins it per test.
+let recognizedDefault = true;
+class NotifyHost extends BeliefStoreMixin(NotifyPolicyMixin(Idea)) {
+  override recognizes(_subject: Stuff): boolean {
+    return recognizedDefault;
+  }
+
   getPlayerId(): string {
     return "viewer";
   }
@@ -59,7 +67,7 @@ beforeEach(() => {
   );
   // Default: everyone is recognized (so an unmatched person falls to
   // `everyone-else`, not `strangers`). Overridden per-test.
-  vi.spyOn(RecognitionApi, "recognizes").mockReturnValue(true);
+  recognizedDefault = true;
 });
 
 afterEach(() => {
@@ -72,12 +80,12 @@ describe("SocialApi.ruleFor — strict ordered first-match", () => {
     const v = makeViewer();
     const p = makePerson("/platform/agent/Avatar/p1");
     // Two stored rules, both containing the person; first should win.
-    SocialApi.setRule(v, "managed:a", { onConnect: "silent" });
-    SocialApi.setRule(v, "managed:b", { onConnect: "show" });
+    v.setNotifyRule("managed:a", { onConnect: "silent" });
+    v.setNotifyRule("managed:b", { onConnect: "show" });
     membership.add(`/platform/agent/Avatar/p1|managed:a`);
     membership.add(`/platform/agent/Avatar/p1|managed:b`);
 
-    const r = await SocialApi.ruleFor(v, p);
+    const r = await v.resolveNotifyRule(p);
     expect(r.groupRef).toBe("managed:a");
     expect(r.reserved).toBe(false);
   });
@@ -86,34 +94,34 @@ describe("SocialApi.ruleFor — strict ordered first-match", () => {
     const v = makeViewer();
     const p = makePerson("/platform/agent/Avatar/p1");
     // `deny` mutes (message=silent); `allow` surfaces (message=full).
-    SocialApi.setRule(v, "managed:allow", { onMessage: "full" });
-    SocialApi.setRule(v, "managed:deny", { onMessage: "silent" });
+    v.setNotifyRule("managed:allow", { onMessage: "full" });
+    v.setNotifyRule("managed:deny", { onMessage: "silent" });
     membership.add(`/platform/agent/Avatar/p1|managed:allow`);
     membership.add(`/platform/agent/Avatar/p1|managed:deny`);
 
     // Stored order: allow, deny → allow wins (surfaced).
-    expect((await SocialApi.ruleFor(v, p)).onMessage).toBe("full");
+    expect((await v.resolveNotifyRule(p)).onMessage).toBe("full");
 
     // Move deny above allow → muted.
-    expect(SocialApi.reorderRule(v, "managed:deny", "managed:allow", "above")).toBe(
+    expect(v.moveNotifyRule("managed:deny", "managed:allow", "above")).toBe(
       true,
     );
-    expect((await SocialApi.ruleFor(v, p)).onMessage).toBe("silent");
+    expect((await v.resolveNotifyRule(p)).onMessage).toBe("silent");
 
     // Move deny back below allow → surfaced again.
-    expect(SocialApi.reorderRule(v, "managed:deny", "managed:allow", "below")).toBe(
+    expect(v.moveNotifyRule("managed:deny", "managed:allow", "below")).toBe(
       true,
     );
-    expect((await SocialApi.ruleFor(v, p)).onMessage).toBe("full");
+    expect((await v.resolveNotifyRule(p)).onMessage).toBe("full");
   });
 
   it("falls through to the everyone-else baseline when nothing matches", async () => {
     const v = makeViewer();
     const p = makePerson("/platform/agent/Avatar/p1");
-    SocialApi.setRule(v, "managed:a", {});
+    v.setNotifyRule("managed:a", {});
     // No membership added → no stored or contacts rule matches; recognized
     // (default) so not a stranger either.
-    const r = await SocialApi.ruleFor(v, p);
+    const r = await v.resolveNotifyRule(p);
     expect(r.groupRef).toBe(RESERVED.everyoneElse);
     expect(r.reserved).toBe(true);
   });
@@ -121,8 +129,8 @@ describe("SocialApi.ruleFor — strict ordered first-match", () => {
   it("resolves an unrecognized person to the strangers baseline", async () => {
     const v = makeViewer();
     const p = makePerson("/platform/agent/Avatar/stranger");
-    vi.spyOn(RecognitionApi, "recognizes").mockReturnValue(false);
-    const r = await SocialApi.ruleFor(v, p);
+    recognizedDefault = false;
+    const r = await v.resolveNotifyRule(p);
     expect(r.groupRef).toBe(RESERVED.strangers);
     expect(r.reserved).toBe(true);
   });
@@ -130,9 +138,9 @@ describe("SocialApi.ruleFor — strict ordered first-match", () => {
   it("accepts a managed-group ref as a matching subject", async () => {
     const v = makeViewer();
     const p = makePerson("/platform/agent/Avatar/guildie");
-    SocialApi.setRule(v, "managed:fighter-guild", { onConnect: "show" });
+    v.setNotifyRule("managed:fighter-guild", { onConnect: "show" });
     membership.add(`/platform/agent/Avatar/guildie|managed:fighter-guild`);
-    const r = await SocialApi.ruleFor(v, p);
+    const r = await v.resolveNotifyRule(p);
     expect(r.groupRef).toBe("managed:fighter-guild");
     expect(r.onConnect).toBe("show");
   });
@@ -142,29 +150,29 @@ describe("SocialApi.ruleFor — strict ordered first-match", () => {
     const p = makePerson("/platform/agent/Avatar/dual");
     // A boosted custom guild rule — the only stored rule, so it sits above
     // where a tail-appended `friends` would land.
-    SocialApi.setRule(v, "managed:guild", { boostInDense: true });
+    v.setNotifyRule("managed:guild", { boostInDense: true });
     // The person is BOTH a guild member and a friend.
     membership.add(`/platform/agent/Avatar/dual|managed:guild`);
     membership.add(`/platform/agent/Avatar/dual|${FRIENDS_REF}`);
 
     // Before materialization: virtual `friends` lives at the head, above the
     // stored guild rule, so the dual person resolves to friends.
-    const before = await SocialApi.ruleFor(v, p);
+    const before = await v.resolveNotifyRule(p);
     expect(before.groupRef).toBe(FRIENDS_REF);
     expect(before.reserved).toBe(true);
 
     // Editing friends materializes it. The bug appended it to the tail
     // (below managed:guild), flipping the resolution to the guild rule.
-    SocialApi.setRule(v, FRIENDS_REF, { color: "violet" });
+    v.setNotifyRule(FRIENDS_REF, { color: "violet" });
 
     // After materialization: friends still wins — it was inserted at the
     // head, not appended below the custom guild rule.
-    const after = await SocialApi.ruleFor(v, p);
+    const after = await v.resolveNotifyRule(p);
     expect(after.groupRef).toBe(FRIENDS_REF);
     expect(after.reserved).toBe(false);
 
     // And the stored order reflects friends ahead of the guild rule.
-    const stored = SocialApi.listRules(v).map((r) => r.groupRef);
+    const stored = v.effectiveNotifyRules().map((r) => r.groupRef);
     expect(stored.indexOf(FRIENDS_REF)).toBeLessThan(
       stored.indexOf("managed:guild"),
     );
@@ -173,12 +181,12 @@ describe("SocialApi.ruleFor — strict ordered first-match", () => {
   it("materializing both head baselines keeps foes before friends, above custom rules", async () => {
     const v = makeViewer();
     const foesRef = `contacts:viewer:${RESERVED.foes}`;
-    SocialApi.setRule(v, "managed:guild", {});
+    v.setNotifyRule("managed:guild", {});
     // Materialize friends first, then foes — foes must still rank ahead.
-    SocialApi.setRule(v, FRIENDS_REF, { color: "violet" });
-    SocialApi.setRule(v, foesRef, { color: "rose" });
+    v.setNotifyRule(FRIENDS_REF, { color: "violet" });
+    v.setNotifyRule(foesRef, { color: "rose" });
 
-    const order = SocialApi.listRules(v).map((r) => r.groupRef);
+    const order = v.effectiveNotifyRules().map((r) => r.groupRef);
     expect(order.indexOf(foesRef)).toBeLessThan(order.indexOf(FRIENDS_REF));
     expect(order.indexOf(FRIENDS_REF)).toBeLessThan(
       order.indexOf("managed:guild"),
@@ -187,17 +195,17 @@ describe("SocialApi.ruleFor — strict ordered first-match", () => {
 
   it("re-materializing an already-stored head baseline does not move it", async () => {
     const v = makeViewer();
-    SocialApi.setRule(v, FRIENDS_REF, { color: "violet" });
-    SocialApi.setRule(v, "managed:guild", {});
+    v.setNotifyRule(FRIENDS_REF, { color: "violet" });
+    v.setNotifyRule("managed:guild", {});
     // friends is stored at the head; a second edit must not relocate it
     // (and must not jump it relative to the now-stored guild rule).
-    SocialApi.setRule(v, FRIENDS_REF, { color: "teal" });
+    v.setNotifyRule(FRIENDS_REF, { color: "teal" });
 
-    const order = SocialApi.listRules(v).map((r) => r.groupRef);
+    const order = v.effectiveNotifyRules().map((r) => r.groupRef);
     expect(order.indexOf(FRIENDS_REF)).toBeLessThan(
       order.indexOf("managed:guild"),
     );
-    const friends = SocialApi.listRules(v).find((r) => r.groupRef === FRIENDS_REF);
+    const friends = v.effectiveNotifyRules().find((r) => r.groupRef === FRIENDS_REF);
     expect(friends?.color).toBe("teal");
   });
 
@@ -205,17 +213,17 @@ describe("SocialApi.ruleFor — strict ordered first-match", () => {
     const v = makeViewer();
     const p = makePerson("/platform/agent/Avatar/p1");
     // mql rule first, managed rule second; person is in both.
-    SocialApi.setRule(v, "mql:species:khazadicus", { onMessage: "full" });
-    SocialApi.setRule(v, "managed:b", { onMessage: "summary" });
+    v.setNotifyRule("mql:species:khazadicus", { onMessage: "full" });
+    v.setNotifyRule("managed:b", { onMessage: "summary" });
     membership.add(`/platform/agent/Avatar/p1|mql:species:khazadicus`);
     membership.add(`/platform/agent/Avatar/p1|managed:b`);
 
     // Display path (no exclude): the mql rule is first and wins.
-    const display = await SocialApi.ruleFor(v, p);
+    const display = await v.resolveNotifyRule(p);
     expect(display.groupRef).toBe("mql:species:khazadicus");
 
     // Notification path: mql excluded → resolves to the managed rule.
-    const notify = await SocialApi.ruleFor(v, p, { excludeMql: true });
+    const notify = await v.resolveNotifyRule(p, { excludeMql: true });
     expect(notify.groupRef).toBe("managed:b");
   });
 });
@@ -223,7 +231,7 @@ describe("SocialApi.ruleFor — strict ordered first-match", () => {
 describe("SocialApi store ops", () => {
   it("sets, persists, and reads back a rule including color", async () => {
     const v = makeViewer();
-    const result = SocialApi.setRule(v, "managed:a", {
+    const result = v.setNotifyRule("managed:a", {
       color: "teal",
       onMessage: "summary",
       boostInDense: true,
@@ -231,7 +239,7 @@ describe("SocialApi store ops", () => {
     expect(result.created).toBe(true);
     expect(result.rule.color).toBe("teal");
 
-    const stored = SocialApi.listRules(v).find((r) => r.groupRef === "managed:a");
+    const stored = v.effectiveNotifyRules().find((r) => r.groupRef === "managed:a");
     expect(stored).toBeDefined();
     expect(stored).toMatchObject({
       color: "teal",
@@ -240,7 +248,7 @@ describe("SocialApi store ops", () => {
     });
 
     // A second set updates in place (created=false), merging the patch.
-    const again = SocialApi.setRule(v, "managed:a", { color: "rose" });
+    const again = v.setNotifyRule("managed:a", { color: "rose" });
     expect(again.created).toBe(false);
     expect(again.rule.color).toBe("rose");
     expect(again.rule.onMessage).toBe("summary"); // prior field preserved
@@ -248,25 +256,25 @@ describe("SocialApi store ops", () => {
 
   it("removeRule drops a stored rule (group falls to the tail)", async () => {
     const v = makeViewer();
-    SocialApi.setRule(v, "managed:a", {});
-    expect(SocialApi.removeRule(v, "managed:a")).toBe(true);
-    expect(SocialApi.removeRule(v, "managed:a")).toBe(false);
+    v.setNotifyRule("managed:a", {});
+    expect(v.clearNotifyRule("managed:a")).toBe(true);
+    expect(v.clearNotifyRule("managed:a")).toBe(false);
     expect(
-      SocialApi.listRules(v).some((r) => r.groupRef === "managed:a"),
+      v.effectiveNotifyRules().some((r) => r.groupRef === "managed:a"),
     ).toBe(false);
   });
 
   it("materializing a reserved label dedups its virtual baseline twin", async () => {
     const v = makeViewer();
     // Before: friends is virtual, appears once.
-    const before = SocialApi.listRules(v).filter(
+    const before = v.effectiveNotifyRules().filter(
       (r) => r.groupRef === FRIENDS_REF,
     );
     expect(before).toHaveLength(1);
 
     // Editing friends materializes it at the same canonical ref — still one.
-    SocialApi.setRule(v, FRIENDS_REF, { color: "violet" });
-    const after = SocialApi.listRules(v).filter(
+    v.setNotifyRule(FRIENDS_REF, { color: "violet" });
+    const after = v.effectiveNotifyRules().filter(
       (r) => r.groupRef === FRIENDS_REF,
     );
     expect(after).toHaveLength(1);

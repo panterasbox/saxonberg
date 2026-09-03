@@ -21,7 +21,6 @@ import type { Stuff } from '../../../../lib/stuff/Stuff';
 import { MixinApi } from '../../../../api/mixin';
 import { MessageApi } from '../../../../api/message';
 import { PerceptionApi } from '../../../../api/perception';
-import { AdvancementApi } from '../../../../api/advancement';
 import { CompetenceBand } from '../../../../lib/advancement/CompetenceBand';
 import { Mml } from '../../../../api/mml';
 
@@ -51,9 +50,11 @@ export default class HideController extends CommandController<CommandModel> {
     // only the stored level). Warm the light/anatomy read the derivation
     // shares with the detection gate.
     await PerceptionApi.preloadForSenseGate(actor);
-    const band = await AdvancementApi.bandFor(actor, STEALTH_DISCIPLINE).catch(
-      () => CompetenceBand.FLOOR,
-    );
+    const band = MixinApi.isAdvancing(actor)
+      ? await actor
+          .competenceBandFor(STEALTH_DISCIPLINE)
+          .catch(() => CompetenceBand.FLOOR)
+      : CompetenceBand.FLOOR;
     const level = PerceptionApi.hideLevelFor(actor, band);
 
     if (level === 'obvious') {

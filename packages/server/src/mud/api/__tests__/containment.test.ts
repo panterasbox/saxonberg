@@ -139,17 +139,17 @@ describe('ContainmentApi', () => {
     it('should return true when item is in container', () => {
       ContainmentApi.move(item, container1);
 
-      expect(ContainmentApi.isContainedIn(item, container1)).toBe(true);
+      expect(container1.hasContainable(item)).toBe(true);
     });
 
     it('should return false when item is not in container', () => {
       ContainmentApi.move(item, container1);
 
-      expect(ContainmentApi.isContainedIn(item, container2)).toBe(false);
+      expect(container2.hasContainable(item)).toBe(false);
     });
 
     it('should return false when item has no environment', () => {
-      expect(ContainmentApi.isContainedIn(item, container1)).toBe(false);
+      expect(container1.hasContainable(item)).toBe(false);
     });
   });
 
@@ -419,16 +419,18 @@ describe('ContainmentLogic singleton encapsulation', () => {
 
   it('lives at /platform/idea/api/containment once the facade has materialized it', () => {
     // A facade call lazily creates the logic singleton.
-    const probe = makeStuff(() => new TestContainer());
-    ContainmentApi.isContainedIn(probe, probe);
+    const probe = makeStuff(() => new TestItem());
+    const box = makeStuff(() => new TestContainer());
+    ContainmentApi.move(probe, box);
     const found = StuffApi.findByTemplatePath('/platform/idea/api/containment');
     expect(found).toBeDefined();
     expect(StuffApi.findByPathGlob('/platform/idea/api/*')).toContain(found);
   });
 
   it('denies a direct logic-method call from a non-ContainmentApi caller', () => {
-    const probe = makeStuff(() => new TestContainer());
-    ContainmentApi.isContainedIn(probe, probe);
+    const probe = makeStuff(() => new TestItem());
+    const box = makeStuff(() => new TestContainer());
+    ContainmentApi.move(probe, box);
     const logic = StuffApi.findByTemplatePath<ContainmentLogic>(
       '/platform/idea/api/containment'
     );
@@ -436,7 +438,7 @@ describe('ContainmentLogic singleton encapsulation', () => {
     // The test module is not `mud/api/containment#ContainmentApi`, so the
     // FromModule gate on the logic's own methods denies the call. The
     // gate throws synchronously even for async-bodied methods, so a
-    // direct call to the isContainedIn path is sufficient.
-    expect(() => logic!.isContainedIn(probe, probe)).toThrow(SecurityError);
+    // direct call to the move path is sufficient.
+    expect(() => logic!.move(probe as never, null)).toThrow(SecurityError);
   });
 });

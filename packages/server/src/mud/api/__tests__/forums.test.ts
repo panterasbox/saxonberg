@@ -29,6 +29,10 @@ import { PersistenceManager } from '../../../backend/PersistenceManager';
 import { StuffApi } from '../stuff';
 import { PlayerApi } from '../player';
 import type { Stuff } from '../../lib/stuff/Stuff';
+import {
+  SubjectSubscriberMixin,
+  type SubjectSubscriber,
+} from '../../lib/forum/SubjectSubscriber';
 
 let store: Map<string, Map<string, Record<string, unknown>>>;
 let idCounter = 0;
@@ -42,9 +46,9 @@ function col(name: string): Map<string, Record<string, unknown>> {
   return c;
 }
 
-class Actor extends Idea {}
-function makeActor(): Stuff {
-  return makeStuff(() => new Actor());
+class Actor extends SubjectSubscriberMixin(Idea) {}
+function makeActor(): Stuff & SubjectSubscriber {
+  return makeStuff(() => new Actor()) as unknown as Stuff & SubjectSubscriber;
 }
 
 beforeEach(() => {
@@ -103,13 +107,12 @@ describe('ForumsApi threads + replies', () => {
     const { board } = await ForumsApi.makeForum(creator, 'Gossip', {
       open: true,
     });
-    const thread = await ForumsApi.postThread(
-      creator,
+    const thread = await creator.postThread(
       board,
       'Best soup?',
       'What is the best soup?'
     );
-    const reply = await ForumsApi.reply(creator, thread, 'Tomato, obviously.');
+    const reply = await creator.replyToEntry(thread, 'Tomato, obviously.');
 
     const threads = await ForumsApi.readBoard(board);
     expect(threads).toHaveLength(1);
@@ -127,12 +130,12 @@ describe('ForumsApi threads + replies', () => {
       open: true,
     });
     // Thread A with a comment and a nested reply-to-the-comment.
-    const a = await ForumsApi.postThread(creator, board, 'A', 'a');
-    const c1 = await ForumsApi.reply(creator, a, 'comment on A');
-    const c2 = await ForumsApi.reply(creator, c1, 'nested reply to the comment');
+    const a = await creator.postThread(board, 'A', 'a');
+    const c1 = await creator.replyToEntry(a, 'comment on A');
+    const c2 = await creator.replyToEntry(c1, 'nested reply to the comment');
     // A SEPARATE thread B (same board) with its own reply.
-    const b = await ForumsApi.postThread(creator, board, 'B', 'b');
-    const bReply = await ForumsApi.reply(creator, b, 'comment on B');
+    const b = await creator.postThread(board, 'B', 'b');
+    const bReply = await creator.replyToEntry(b, 'comment on B');
 
     const { posts } = await ForumsApi.readThread(a);
     const ids = posts.map((p) => p._id);
@@ -153,10 +156,9 @@ describe('ForumsApi.promoteThread', () => {
     const { board, subject } = await ForumsApi.makeForum(creator, 'Gossip', {
       open: true,
     });
-    const thread = await ForumsApi.postThread(creator, board, 'Best soup?', 'body');
+    const thread = await creator.postThread(board, 'Best soup?', 'body');
 
-    const threadSubject = await ForumsApi.promoteThread(
-      creator,
+    const threadSubject = await creator.promoteThread(
       thread,
       'best-soup'
     );

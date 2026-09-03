@@ -27,7 +27,6 @@ import type {
   CommandModel,
 } from '../../api/command';
 import { Idea } from '../stuff/Idea';
-import { PromptApi } from '../../api/prompt';
 import { MixinApi } from '../../api/mixin';
 import { MqlApi } from '../../api/mql';
 import type { Display } from '../display/Display';
@@ -133,7 +132,7 @@ export abstract class CommandController<
     const interactive = context.interactive;
     if (!interactive || candidates.length === 0) return null;
     try {
-      return await PromptApi.mqlObject(interactive, label, candidates);
+      return await interactive.promptMqlObject(label, candidates);
     } catch {
       // Cancelled, timed out, or the host dropped — all "no target".
       return null;

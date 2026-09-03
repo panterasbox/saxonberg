@@ -138,51 +138,7 @@ export class ConnectionApi {
   // Note: createInteractive and removeInteractive are NOT exposed here.
   // Those are privileged operations that only Application/Backend should perform.
 
-  /**
-   * Route an Interactive to a new holder. Idempotent on the same target.
-   *
-   * This is **connection routing**, not character control or
-   * "operate on this avatar" — `target` is intentionally the broad
-   * `HasInteractive` set (Login during entry, Avatar during play, any
-   * future Bot/Spirit). Code that needs to act on an avatar
-   * specifically should narrow with `instanceof Avatar` (or
-   * `MixinApi.isCommandGiver` for command dispatch).
-   *
-   * Mechanics: removes `interactive` from its previous holder (if any),
-   * adds it to `target` via the `HasInteractiveMixin` primitives, and
-   * updates `interactive.holder`.
-   */
-  public static transfer(
-    interactive: Interactive,
-    target: HasInteractive & Stuff
-  ): void {
-    return logic().transfer(interactive, target);
-  }
 
-  /**
-   * Detach an Interactive from its current holder. After detach,
-   * `interactive.holder` is null. Used at disconnect / cleanup
-   * (`Interactive.onDestruct` calls this).
-   *
-   * No-op when there's no current holder.
-   */
-  public static detach(interactive: Interactive): void {
-    return logic().detach(interactive);
-  }
-
-  /**
-   * Record an Interactive's connection origin from its handshake IP: the
-   * raw IP is stored transiently on the Interactive (in-memory only — the
-   * PII posture) and resolved to a country display name via the offline
-   * geo dataset. Called once at connect by the connection layer. A
-   * missing / unresolvable IP is a safe no-op.
-   */
-  public static recordOrigin(
-    interactive: Interactive,
-    ip: string | undefined
-  ): void {
-    return logic().recordOrigin(interactive, ip);
-  }
 
   /**
    * The connecting player's origin, by playerId. Returns **country only**
@@ -196,34 +152,7 @@ export class ConnectionApi {
     return logic().originOf(playerId);
   }
 
-  /**
-   * Deliver a `MessageFrame` to one connected Interactive's client.
-   *
-   * The sensor-pipeline exit: a multiplexing `SensorMixin` host
-   * (`Avatar`, `Login`) calls this once per forwarding target from its
-   * `handleMessage` override. `frameId` is stamped per-Interactive at
-   * send time, so a multi-device Avatar gets a monotonic stream from
-   * each Interactive's own perspective. A detached or socket-less
-   * Interactive is a silent no-op.
-   */
-  public static sendMessage(
-    interactive: Interactive,
-    frame: MessageFrame
-  ): void {
-    return logic().sendMessage(interactive, frame);
-  }
 
-  /**
-   * Envelope counterpart to {@link ConnectionApi.sendMessage} — the
-   * structured server→client push, stamped from the same per-Interactive
-   * `frameId` counter so one ordering primitive covers all traffic.
-   */
-  public static sendEnvelope(
-    interactive: Interactive,
-    template: EnvelopeTemplate
-  ): void {
-    return logic().sendEnvelope(interactive, template);
-  }
 }
 
 /**

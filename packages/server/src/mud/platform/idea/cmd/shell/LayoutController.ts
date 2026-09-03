@@ -38,7 +38,6 @@ import type { Stuff } from '../../../../lib/stuff/Stuff';
 import Avatar from '../../../agent/Avatar';
 import type { HasInteractive } from '../../../../lib/connection/HasInteractive';
 import type { ArrangementSpec, CockpitMode, CardId } from '@saxonberg/types';
-import { CardApi } from '../../../../api/card';
 
 const LAYOUT_KEY = 'cockpit.layout';
 const ARRANGEMENTS_KEY = 'cockpit.arrangements';
@@ -113,8 +112,7 @@ export default class LayoutController extends CommandController<LayoutModel> {
      */
     const interactive = context.interactive;
     if (interactive) {
-      CardApi.applyArrangement(
-        interactive,
+      interactive.applyCardArrangement(
         host.arrangementCards(mode, name),
       );
     }
@@ -164,7 +162,7 @@ export default class LayoutController extends CommandController<LayoutModel> {
      * save over a card the player never asked for by name.
      */
     const open = context.interactive
-      ? CardApi.list(context.interactive)
+      ? context.interactive.listCards()
       : [];
     const cards = [
       ...new Set(

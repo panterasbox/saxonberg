@@ -87,7 +87,7 @@ describe('Engine emit sites', () => {
         seen.push(p);
       }
     );
-    ConnectionApi.transfer(interactive, holder);
+    interactive.transferTo(holder);
     await flushMicrotasks();
     expect(seen).toEqual([
       { interactiveId: interactive.stuffId, holderId: holder.stuffId },

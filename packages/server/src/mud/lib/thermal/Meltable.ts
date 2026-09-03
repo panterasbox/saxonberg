@@ -10,11 +10,11 @@
  * precedent): a Meltable iron ingot melts at iron's `1811 K`, wax at `~330 K`.
  * The reverse (a molten bulk solidifying below its melting point → a cast) and
  * the onward boil (a liquid past its boiling point → gas) are driven on the
- * `Bulkable` holder by the same `ThermalApi.reconcilePhase` pass, so
+ * `Bulkable` holder by the same the host's `reconcilePhase` pass, so
  * ice → water → steam falls out of the shipped water material for free.
  *
  * **Composed OUTSIDE `ThermalMixin`.** The latent plateau is enforced by
- * `ThermalApi.reconcilePhase` clamping the temperature back to the melting
+ * the host's `reconcilePhase` clamping the temperature back to the melting
  * point while it absorbs the overshoot heat into `latentAbsorbedJ`; when that
  * reaches `mass × latentHeatOfFusion` the solid melts. The gated `ThermalLogic`
  * is the single writer of the phase state + the latent accumulator (the
@@ -99,14 +99,17 @@ export function MeltableMixin<TBase extends MixinConstructor<Stuff>>(
       return lhf * massKg;
     }
 
-    @CallSecurity(SecurityPolicies.ApiOnly)
+    // AnyOf(ApiOnly, SelfOnly): since the OO sweep the phase engine
+    // runs inside the host's own `reconcilePhase()` frame, so the
+    // legitimate writer is the melting object itself.
+    @CallSecurity(SecurityPolicies.AnyOf(SecurityPolicies.ApiOnly, SecurityPolicies.SelfOnly))
     @Final
     @Unshadowable
     public _setMeltPhase(phase: MeltPhase): void {
       this.meltPhase = phase;
     }
 
-    @CallSecurity(SecurityPolicies.ApiOnly)
+    @CallSecurity(SecurityPolicies.AnyOf(SecurityPolicies.ApiOnly, SecurityPolicies.SelfOnly))
     @Final
     @Unshadowable
     public _absorbLatent(deltaJ: number): void {

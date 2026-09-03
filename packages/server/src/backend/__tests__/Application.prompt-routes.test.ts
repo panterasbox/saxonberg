@@ -1,14 +1,13 @@
 /**
  * Wave 3: Application.processUserMessage routes prompt-response /
- * prompt-cancel to PromptApi. handleUserDisconnect calls
- * PromptApi.cancelAll BETWEEN MqlSubscriptionApi.cancelAllForInteractive
+ * prompt-cancel to the Interactive's own prompt surface.
+ * handleUserDisconnect tears down substrate state BETWEEN lookup
  * and ConnectionManager.removeInteractive.
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Application } from '../Application';
 import { ConnectionManager } from '../ConnectionManager';
-import { PromptApi } from '../../mud/api/prompt';
 import type { IBackend } from '../IBackend';
 import type Interactive from '../../mud/platform/idea/Interactive';
 
@@ -28,14 +27,21 @@ function makeFakeBackend(): FakeBackend {
   };
 }
 
-function makeFakeInteractive(socketId: string): Interactive {
+type FakeInteractive = Interactive & {
+  handlePromptResponse: ReturnType<typeof vi.fn>;
+  handlePromptCancel: ReturnType<typeof vi.fn>;
+};
+
+function makeFakeInteractive(socketId: string): FakeInteractive {
   let counter = 0;
   return {
     getSocketId: () => socketId,
     getHolder: () => null,
     nextFrameId: () => ++counter,
     teardownSubstrateState: () => {},
-  } as unknown as Interactive;
+    handlePromptResponse: vi.fn(),
+    handlePromptCancel: vi.fn(),
+  } as unknown as FakeInteractive;
 }
 
 describe('Application — prompt routes', () => {
@@ -47,39 +53,33 @@ describe('Application — prompt routes', () => {
     ConnectionManager.get();
   });
 
-  it('prompt-response routes to PromptApi.handleResponse', () => {
+  it('prompt-response routes to interactive.handlePromptResponse', () => {
     const interactive = makeFakeInteractive('sock-1');
     vi.spyOn(ConnectionManager.get(), 'getInteractive').mockReturnValue(
       interactive,
     );
-    const spy = vi
-      .spyOn(PromptApi, 'handleResponse')
-      .mockImplementation(() => {});
+    const spy = interactive.handlePromptResponse;
     app.processUserMessage('sock-1', {
       type: 'prompt-response',
       payload: { promptId: 'p1', response: 'foo' },
     });
-    expect(spy).toHaveBeenCalledWith(interactive, {
+    expect(spy).toHaveBeenCalledWith({
       promptId: 'p1',
       response: 'foo',
     });
-    spy.mockRestore();
   });
 
-  it('prompt-cancel routes to PromptApi.handleCancel', () => {
+  it('prompt-cancel routes to interactive.handlePromptCancel', () => {
     const interactive = makeFakeInteractive('sock-1');
     vi.spyOn(ConnectionManager.get(), 'getInteractive').mockReturnValue(
       interactive,
     );
-    const spy = vi
-      .spyOn(PromptApi, 'handleCancel')
-      .mockImplementation(() => {});
+    const spy = interactive.handlePromptCancel;
     app.processUserMessage('sock-1', {
       type: 'prompt-cancel',
       payload: { promptId: 'p1' },
     });
-    expect(spy).toHaveBeenCalledWith(interactive, { promptId: 'p1' });
-    spy.mockRestore();
+    expect(spy).toHaveBeenCalledWith({ promptId: 'p1' });
   });
 
   it('malformed prompt-response payload drops silently', () => {
@@ -87,9 +87,7 @@ describe('Application — prompt routes', () => {
     vi.spyOn(ConnectionManager.get(), 'getInteractive').mockReturnValue(
       interactive,
     );
-    const spy = vi
-      .spyOn(PromptApi, 'handleResponse')
-      .mockImplementation(() => {});
+    const spy = interactive.handlePromptResponse;
     app.processUserMessage('sock-1', {
       type: 'prompt-response',
       payload: { promptId: 'p1' }, // missing response
@@ -99,7 +97,6 @@ describe('Application — prompt routes', () => {
       payload: { response: 'foo' }, // missing promptId
     });
     expect(spy).not.toHaveBeenCalled();
-    spy.mockRestore();
   });
 
   it('malformed prompt-cancel payload drops silently', () => {
@@ -107,15 +104,12 @@ describe('Application — prompt routes', () => {
     vi.spyOn(ConnectionManager.get(), 'getInteractive').mockReturnValue(
       interactive,
     );
-    const spy = vi
-      .spyOn(PromptApi, 'handleCancel')
-      .mockImplementation(() => {});
+    const spy = interactive.handlePromptCancel;
     app.processUserMessage('sock-1', {
       type: 'prompt-cancel',
       payload: {}, // missing promptId
     });
     expect(spy).not.toHaveBeenCalled();
-    spy.mockRestore();
   });
 
   it('handleUserDisconnect tears down substrate state then removes', () => {

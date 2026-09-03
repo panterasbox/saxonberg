@@ -262,9 +262,9 @@ reissue).
 - **Tabs** — `TabMixin` on the **venue `Location`** (the Bar): per-patron
   accrued unsettled charges, owned by the house so the tab outlives shift
   changes (the bartender acts on the venue's behalf). **Recognition-gated**
-  via `RecognitionApi.recognizes(recognizer, patron)` (a new boolean read on
+  via `recognizes(recognizer, patron)` (a new boolean read on
   the recognition surface) — a tab is a privilege of being *known*.
-  **Skipping** is priced, not prevented: `skipTab` applies a `RegardApi`
+  **Skipping** is priced, not prevented: `skipTab` applies a `BeliefStoreMixin (the regard face)`
   regard hit from the creditor and revokes the privilege; the unpaid balance
   stays on the books. State on the mixin (decision 3: session-durable). The
   `tab` verb (bare → show; `tab settle` / `tab skip`) is afforded by the

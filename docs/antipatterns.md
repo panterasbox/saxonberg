@@ -922,7 +922,7 @@ identity keys on must be a field.
 The upshot: a "data-only" mixin is usually still a mixin.
 `LabelledMixin` is three accessors and no logic, yet it carries a
 setter invariant the Hydrator routes through, contributes the `label`
-verb, is narrowed on by `RecognitionApi`, vetoes stack merges, and is
+verb, is narrowed on by the recognition face, vetoes stack merges, and is
 authorable. **A mixin is a TYPE; a prop is a VALUE.**
 
 Props handle the dynamic, per-instance, possibly-protected,
@@ -2969,7 +2969,7 @@ a player to one viewer and a hooded stranger to another, and
 player-ness is the single fact a disguise exists to hide.
 
 `Mml.actor` is the face for this: the emitter says *a person acting*
-and stops; `RecognitionApi.kindOf(viewer, target)` resolves
+and stops; `target.kindFor(viewer)` resolves
 `player | npc | thing` at `toString(viewer)`, beside the naming step,
 because it is the same question asked about kind instead of name.
 
@@ -3960,3 +3960,47 @@ backwards — deleting them does not unbreak the room, it un-houses it.
 
 Enforced by `pnpm lint:locations` (`unplottedLocations`), whose exemption
 list is the two rosters a reviewer already reads.
+
+## A subject-first Api static for a verb the object could carry
+
+The Api OO sweep's doctrine: **a verb whose first parameter is the one
+Stuff it acts on belongs ON that Stuff** — `item.stampChattel(owner)`,
+`combatant.queueGambit(key)`, `viewer.composeRosterRow(target)` — with
+the implementation forwarding into the subsystem's logic singleton (the
+host object is a *face*, exactly as the Api facade is). The Api keeps
+only the four mandates: **key/string-keyed resolvers**, **lifecycle**
+(create/destroy/mint), **wire/boundary plumbing**, and **cross-object
+orchestration** (two-subject transfers, nullable-principal checks,
+subject-neutral geometry).
+
+### BAD
+
+```ts
+FooApi.frobnicate(host, arg);   // subject-first static
+```
+
+### GOOD
+
+```ts
+host.frobnicate(arg);           // the verb rides the object;
+                                // the mixin forwards into FooLogic,
+                                // whose gate admits the acting instance
+```
+
+**The three-way gate rule** for the moved method's protection, in
+preference order:
+
+1. **A participant contract** (`FromClass`/`FromMixin` + relational
+   `where`) when a specific in-world relationship names the caller.
+2. **`FromMixin(<host>, { where: caller === args[subject] })` on the
+   logic singleton** — the host's own forward is the only admitted
+   instance path (compare by `stuffId`; proxy vs raw identity differs).
+3. **Ungated + sealed** (`@Final @Unshadowable`) when the legitimate
+   writers span pack controllers no kernel `FromX` list can enumerate —
+   the seal keeps the invariant body unoverridable, and the veto seams
+   (`canX` hooks) stay the extension points.
+
+Enforced by `pnpm lint:object-verbs` (CI-gating since the sweep): a new
+subject-first static on a non-exempt Api fails the build; the
+`EXEMPT_APIS` table carries a one-line mandate reason per surviving
+Api, and widening it is a deliberate, reviewable diff.

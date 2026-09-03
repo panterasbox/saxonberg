@@ -2,7 +2,7 @@
  * Lock / KeyCredential — the pure value-object core of the lock/key substrate:
  * the bearer match (a key opens a lock iff technology AND keyway match, or a
  * master for the technology), the round-trip, and the key prose. The physical
- * Key Thing + CredentialApi.presentsKey wiring is covered end-to-end by the DormWarren
+ * Key Thing + lock.opensFor wiring is covered end-to-end by the DormWarren
  * key-gate test.
  */
 

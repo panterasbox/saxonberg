@@ -10,7 +10,6 @@ import { SpeciesApi } from "../../../api/species";
 import { StuffApi } from "../../../api/stuff";
 import { ContainmentApi } from "../../../api/containment";
 import type { Adornment } from "../../../lib/boundary/Adornment";
-import { SlotApi } from "../../../api/slot";
 import { ParcelApi } from "../../../api/parcel";
 import { ChattelApi } from "../../../api/chattel";
 import { Mixins } from "../../../lib/mixin";
@@ -397,7 +396,7 @@ async function flushSkippedOwnedGoods(goods: Iterable<Stuff>): Promise<void> {
     if (good.isDestroyed() || !MixinApi.isChattel(good)) continue;
     const chattelId = good.getChattelId();
     if (!chattelId) continue;
-    const owner = await ChattelApi.ownerOf(good);
+    const owner = await good.chattelOwner();
     if (owner?.kind !== "player") continue;
     // A hung good keeps its wall: the mount slot rides the entry so the
     // room's next overlay re-attaches it as a fixture (residences D11).
@@ -456,7 +455,8 @@ function captureState(host: Stuff): Record<string, MixinSlice> {
         .getContents()
         .filter(
           (item) =>
-            !MixinApi.isHasInteractive(item) && !ChattelApi.isOwnerPersisted(item),
+            !MixinApi.isHasInteractive(item) &&
+            !(MixinApi.isChattel(item) && item.isOwnerPersisted()),
         )
     : [];
   const indexMap = new Map<Stuff, number>();
@@ -599,8 +599,7 @@ async function restoreState(
     for (const { index, slots } of slottedSlice.worn) {
       const item = restored[index];
       if (item && MixinApi.isSlottable(item)) {
-        SlotApi.occupyAll(
-          target as Stuff & Slotted,
+        (target as Stuff & Slotted).occupyAll(
           item as Stuff & Slottable,
           slots,
         );
@@ -955,8 +954,7 @@ function reoccupyRestingHost(host: Stuff): void {
     );
   if (!seat) return; // the bed is gone — wake on the floor
   try {
-    SlotApi.occupyAll(
-      seat as unknown as Stuff & Slotted,
+    (seat as unknown as Stuff & Slotted).occupyAll(
       host as unknown as Stuff & Slottable,
       [slot],
     );

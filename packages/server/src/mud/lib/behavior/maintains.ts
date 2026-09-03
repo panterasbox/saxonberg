@@ -9,7 +9,7 @@
  * names stay sound whether or not any tenant is looking.
  *
  * ⭐ **Nothing here is unavailable to a player.** The act is the literal
- * `maintain` verb through `CommandApi.forceCommand`, gated exactly as a
+ * `maintain` verb through `forceCommand` (the giver's own method since the OO sweep), gated exactly as a
  * typed line is: the NPC must be carrying a householder's kit (an
  * owner-authored `props:` loadout, not a self-issued power), must be
  * standing in the holding, and gets the same refusals anyone gets. Take
@@ -87,7 +87,7 @@ export const brain = class {
       if (!room || !MixinApi.isContainer(room)) continue;
       keeper.teleport(room as Stuff & Container);
       try {
-        await CommandApi.forceCommand(keeper, 'maintain');
+        await keeper.forceCommand('maintain');
         done += 1;
       } finally {
         /* keep walking the round even if one holding refuses */

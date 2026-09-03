@@ -144,17 +144,17 @@ describe('the shipped arrangements', () => {
 
   it("applying `build`'s arrangement opens the three authoring cards", async () => {
     const h = await makeHarness();
-    const { opened } = CardApi.applyArrangement(h.interactive, [
+    const { opened } = h.interactive.applyCardArrangement([
       ...SHIPPED_ARRANGEMENT_CARDS.build.default!,
     ]);
     expect(opened).toBe(3);
-    expect(CardApi.list(h.interactive).map((c) => c.cardId).sort()).toEqual([
+    expect(h.interactive.listCards().map((c) => c.cardId).sort()).toEqual([
       'cms',
       'git',
       'studio',
     ]);
     // ⚠ All three ship PINNED: an editor that aged out mid-edit would
     // be a data-loss bug wearing a lifetime rule.
-    expect(CardApi.list(h.interactive).every((c) => c.pinned)).toBe(true);
+    expect(h.interactive.listCards().every((c) => c.pinned)).toBe(true);
   });
 });

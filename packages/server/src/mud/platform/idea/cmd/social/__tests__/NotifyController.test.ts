@@ -126,7 +126,7 @@ describe("NotifyController", () => {
       message: "full",
     });
 
-    const stored = SocialApi.listRules(g).find((r) => r.groupRef === FRIENDS_REF);
+    const stored = g.effectiveNotifyRules().find((r) => r.groupRef === FRIENDS_REF);
     expect(stored).toMatchObject({
       groupRef: FRIENDS_REF,
       color: "amber",
@@ -139,7 +139,7 @@ describe("NotifyController", () => {
   it("sets boostInDense=false via --no-boost", async () => {
     const g = makeGiver();
     await run(g, { ref: "friends", noBoost: true });
-    const stored = SocialApi.listRules(g).find((r) => r.groupRef === FRIENDS_REF);
+    const stored = g.effectiveNotifyRules().find((r) => r.groupRef === FRIENDS_REF);
     expect(stored?.boostInDense).toBe(false);
   });
 
@@ -151,14 +151,14 @@ describe("NotifyController", () => {
     );
     // Nothing materialized.
     expect(
-      SocialApi.listRules(g).filter((r) => r.groupRef === FRIENDS_REF),
+      g.effectiveNotifyRules().filter((r) => r.groupRef === FRIENDS_REF),
     ).toHaveLength(1); // only the virtual baseline, not a stored row
   });
 
   it("reorders with --above", async () => {
     const g = makeGiver();
-    SocialApi.setRule(g, "managed:a", {});
-    SocialApi.setRule(g, "managed:b", {});
+    g.setNotifyRule("managed:a", {});
+    g.setNotifyRule("managed:b", {});
     await run(g, { ref: "managed:b", above: "managed:a" });
     const stored = g.notifyRules().map((r) => r.groupRef);
     expect(stored).toEqual(["managed:b", "managed:a"]);
@@ -166,11 +166,11 @@ describe("NotifyController", () => {
 
   it("removes via the --remove flag and via the remove subcommand", async () => {
     const g = makeGiver();
-    SocialApi.setRule(g, "managed:a", {});
+    g.setNotifyRule("managed:a", {});
     await run(g, { ref: "managed:a", remove: true });
     expect(g.notifyRules().some((r) => r.groupRef === "managed:a")).toBe(false);
 
-    SocialApi.setRule(g, "managed:c", {});
+    g.setNotifyRule("managed:c", {});
     await run(g, { subcommand: "remove", ref: "managed:c" });
     expect(g.notifyRules().some((r) => r.groupRef === "managed:c")).toBe(false);
   });
@@ -210,13 +210,13 @@ describe("NotifyController", () => {
     // No push method exists to spy on; the mutation must still succeed.
     await run(g, { ref: "friends", color: "amber" });
     expect(
-      SocialApi.listRules(g).find((r) => r.groupRef === FRIENDS_REF)?.color,
+      g.effectiveNotifyRules().find((r) => r.groupRef === FRIENDS_REF)?.color,
     ).toBe("amber");
   });
 
   it("enforces the 50-rule soft cap with a rejection", async () => {
     const g = makeGiver();
-    for (let i = 0; i < 50; i++) SocialApi.setRule(g, `managed:g${i}`, {});
+    for (let i = 0; i < 50; i++) g.setNotifyRule(`managed:g${i}`, {});
     expect(g.notifyRules()).toHaveLength(50);
 
     await run(g, { ref: "managed:over", color: "teal" });

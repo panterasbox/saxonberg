@@ -18,12 +18,37 @@
 import { Idea } from "../../lib/stuff/Idea";
 import { PostRegistrationMixin } from "../../lib/stuff/PostRegistration";
 import { Account } from "../../lib/banking/Account";
+import AccountBalance from "../../lib/banking/AccountBalance";
+import SupplyAggregate from "../../lib/banking/SupplyAggregate";
+import { BankingLogic } from "./api/BankingLogic";
+import { StuffApi } from "../../api/stuff";
 import type { VetoResult } from "../../lib/errors";
 import type { EvictionContext } from '../../lib/stuff/Stuff';
 
 const CentralBankBase = PostRegistrationMixin(Idea);
 
 export default class CentralBank extends CentralBankBase {
+
+  /**
+   * Self-warming boot (the boot()-retirement shape; no
+   * `BankingApi.boot()` sequencer line): warm the account-balance read
+   * cache and the single-row supply headline from their materialized
+   * rows — so the first `balanceOf` / `moneySupply` reads are populated
+   * — then run the idempotent custodian restamp on the logic singleton
+   * (whose gate admits this singleton by template).
+   */
+  public override async postRegister(_context?: unknown): Promise<void> {
+    await AccountBalance.warm();
+    await SupplyAggregate.warm();
+    // The Api's own logic() factory (with its HMR getCurrentExport
+    // wrapper) is authoritative; at boot the statically-imported class
+    // is identical, and singletonSync returns any already-live one.
+    const logic = StuffApi.singletonSync(
+      "/platform/idea/api/banking",
+      () => new BankingLogic(),
+    );
+    await logic.restampCustodians();
+  }
 
   /**
    * Residency veto - a load-bearing process-lifetime singleton is

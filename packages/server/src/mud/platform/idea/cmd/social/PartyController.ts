@@ -20,6 +20,8 @@ import { PartyApi } from "../../../../api/party";
 import { ReactionApi } from "../../../../api/reaction";
 import { Mml } from "../../../../api/mml";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
+import type { PartyMember } from '../../../../lib/party/PartyMember';
+import type { CommandGiver } from '../../../../lib/command/CommandGiver';
 
 const TOPIC = "shell.result";
 
@@ -38,7 +40,8 @@ function refOf(stuff: Stuff): string {
 
 export default class PartyController extends CommandController<PartyModel> {
   async execute(model: PartyModel, context: CommandContext): Promise<void> {
-    const giver = context.commandGiver;
+    const giver = context.commandGiver as Stuff & CommandGiver &
+      PartyMember;
     if (!MixinApi.isPartyMember(giver)) {
       return this.fail(context, "You can't join a party.", "not-a-party-member");
     }
@@ -80,20 +83,20 @@ export default class PartyController extends CommandController<PartyModel> {
   }
 
   private async executeForm(
-    giver: Stuff,
+    giver: Stuff & PartyMember,
     model: PartyModel,
     context: CommandContext,
   ): Promise<void> {
     const name = (model.name ?? "").trim();
     if (!name) return this.fail(context, "Name your party.", "name-required");
-    const res = await PartyApi.form(giver, name, model.durable === true);
+    const res = await giver.formParty(name, model.durable === true);
     if (!res.ok) return this.fail(context, this.reasonText(res.reason), res.reason);
     const kind = res.party.isDurable() ? "durable crew" : "party";
     this.send(context, Mml.compose`You form the ${kind} ${Mml.escape(name)}.`);
   }
 
   private async executeInvite(
-    giver: Stuff,
+    giver: Stuff & PartyMember,
     model: PartyModel,
     context: CommandContext,
   ): Promise<void> {
@@ -101,7 +104,7 @@ export default class PartyController extends CommandController<PartyModel> {
     if (!target) {
       return this.fail(context, "Invite whom?", "empty-result");
     }
-    const res = await PartyApi.invite(giver, target);
+    const res = await giver.inviteToParty(target);
     if (!res.ok) return this.fail(context, this.reasonText(res.reason), res.reason);
     this.send(
       context,
@@ -110,13 +113,13 @@ export default class PartyController extends CommandController<PartyModel> {
   }
 
   private async executeEnlist(
-    giver: Stuff,
+    giver: Stuff & PartyMember,
     model: PartyModel,
     context: CommandContext,
   ): Promise<void> {
     const target = model.target?.stuff;
     if (!target) return this.fail(context, "Enlist whom?", "empty-result");
-    const res = await PartyApi.enlist(giver, target);
+    const res = await giver.enlist(target);
     if (!res.ok) return this.fail(context, this.reasonText(res.reason), res.reason);
     this.send(
       context,
@@ -125,10 +128,10 @@ export default class PartyController extends CommandController<PartyModel> {
   }
 
   private async executeAccept(
-    giver: Stuff,
+    giver: Stuff & PartyMember,
     context: CommandContext,
   ): Promise<void> {
-    const res = await PartyApi.accept(giver);
+    const res = await giver.acceptPartyInvite();
     if (!res.ok) return this.fail(context, this.reasonText(res.reason), res.reason);
     this.send(
       context,
@@ -137,22 +140,22 @@ export default class PartyController extends CommandController<PartyModel> {
   }
 
   private async executeLeave(
-    giver: Stuff,
+    giver: Stuff & PartyMember,
     context: CommandContext,
   ): Promise<void> {
-    const res = await PartyApi.leave(giver);
+    const res = await giver.leaveParty();
     if (!res.ok) return this.fail(context, this.reasonText(res.reason), res.reason);
     this.send(context, Mml.fromMarkup("You leave your party."));
   }
 
   private async executeKick(
-    giver: Stuff,
+    giver: Stuff & PartyMember,
     model: PartyModel,
     context: CommandContext,
   ): Promise<void> {
     const target = model.target?.stuff;
     if (!target) return this.fail(context, "Remove whom?", "empty-result");
-    const res = await PartyApi.kick(giver, refOf(target));
+    const res = await giver.kickFromParty(refOf(target));
     if (!res.ok) return this.fail(context, this.reasonText(res.reason), res.reason);
     this.send(
       context,
@@ -161,22 +164,22 @@ export default class PartyController extends CommandController<PartyModel> {
   }
 
   private async executeDisband(
-    giver: Stuff,
+    giver: Stuff & PartyMember,
     context: CommandContext,
   ): Promise<void> {
-    const res = await PartyApi.disband(giver);
+    const res = await giver.disbandParty();
     if (!res.ok) return this.fail(context, this.reasonText(res.reason), res.reason);
     this.send(context, Mml.fromMarkup("You disband the party."));
   }
 
   private async executeTransfer(
-    giver: Stuff,
+    giver: Stuff & PartyMember,
     model: PartyModel,
     context: CommandContext,
   ): Promise<void> {
     const target = model.target?.stuff;
     if (!target) return this.fail(context, "Hand leadership to whom?", "empty-result");
-    const res = await PartyApi.transfer(giver, refOf(target));
+    const res = await giver.transferCaptaincy(refOf(target));
     if (!res.ok) return this.fail(context, this.reasonText(res.reason), res.reason);
     this.send(
       context,
@@ -185,25 +188,25 @@ export default class PartyController extends CommandController<PartyModel> {
   }
 
   private async executeSide(
-    giver: Stuff,
+    giver: Stuff & PartyMember,
     model: PartyModel,
     context: CommandContext,
   ): Promise<void> {
     const side = (model.name ?? "").trim();
     if (!side) return this.fail(context, "Name the side.", "name-required");
-    const res = await PartyApi.setSide(giver, side);
+    const res = await giver.setPartySide(side);
     if (!res.ok) return this.fail(context, this.reasonText(res.reason), res.reason);
     this.send(context, Mml.compose`Your party stands with ${Mml.escape(side)}.`);
   }
 
   private async executeAdopt(
-    giver: Stuff,
+    giver: Stuff & PartyMember,
     model: PartyModel,
     context: CommandContext,
   ): Promise<void> {
     const name = (model.name ?? "").trim().toLowerCase();
     if (!name) return this.fail(context, "Adopt which formation?", "name-required");
-    const res = await PartyApi.setFormation(giver, name);
+    const res = await giver.setPartyFormation(name);
     if (!res.ok) return this.fail(context, this.reasonText(res.reason), res.reason);
     // The witnessed formation-shift beat: adopting is a room-visible,
     // reactable act (a mid-fight switch lands on the very next beat, and
@@ -228,7 +231,7 @@ export default class PartyController extends CommandController<PartyModel> {
   }
 
   private async executeAssign(
-    giver: Stuff,
+    giver: Stuff & PartyMember,
     model: PartyModel,
     context: CommandContext,
   ): Promise<void> {
@@ -236,7 +239,7 @@ export default class PartyController extends CommandController<PartyModel> {
     if (!role) return this.fail(context, "Assign which role?", "name-required");
     const target = model.target?.stuff;
     if (!target) return this.fail(context, "Assign whom?", "empty-result");
-    const res = await PartyApi.assignRole(giver, role, refOf(target));
+    const res = await giver.assignPartyRole(role, refOf(target));
     if (!res.ok) return this.fail(context, this.reasonText(res.reason), res.reason);
     this.send(
       context,
@@ -245,13 +248,13 @@ export default class PartyController extends CommandController<PartyModel> {
   }
 
   private async executeMuster(
-    giver: Stuff,
+    giver: Stuff & PartyMember,
     model: PartyModel,
     context: CommandContext,
   ): Promise<void> {
     const name = (model.name ?? "").trim();
     if (!name) return this.fail(context, "Muster which crew?", "name-required");
-    const res = await PartyApi.muster(giver, name);
+    const res = await giver.muster(name);
     if (!res.ok) return this.fail(context, this.reasonText(res.reason), res.reason);
     this.send(
       context,
@@ -260,16 +263,16 @@ export default class PartyController extends CommandController<PartyModel> {
   }
 
   private async executeStandDown(
-    giver: Stuff,
+    giver: Stuff & PartyMember,
     context: CommandContext,
   ): Promise<void> {
-    const res = await PartyApi.standDown(giver);
+    const res = await giver.standDown();
     if (!res.ok) return this.fail(context, this.reasonText(res.reason), res.reason);
     this.send(context, Mml.fromMarkup("You stand your party down."));
   }
 
   private async executeList(
-    giver: Stuff,
+    giver: Stuff & PartyMember,
     context: CommandContext,
   ): Promise<void> {
     const parties = (await PartyApi.partiesOf(refOf(giver))).filter((p) =>
@@ -284,7 +287,7 @@ export default class PartyController extends CommandController<PartyModel> {
     this.send(context, Mml.fromMarkup(`Your crews:\n${Mml.escape(lines)}`));
   }
 
-  private executeShow(giver: Stuff, context: CommandContext): void {
+  private executeShow(giver: Stuff & PartyMember, context: CommandContext): void {
     const party = PartyApi.activePartyOf(giver);
     if (!party) {
       return this.send(context, Mml.fromMarkup("You are not in a party."));

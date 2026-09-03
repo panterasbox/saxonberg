@@ -112,7 +112,7 @@ describe('the fire tick — spread', () => {
     const neighbour = await log(r);
     await occupy(r);
 
-    FireApi.ignite(fire);
+    fire.ignite();
     expect(fire.isBurning()).toBe(true);
     expect(neighbour.isBurning()).toBe(false);
 
@@ -127,7 +127,7 @@ describe('the fire tick — spread', () => {
     const wetNeighbour = await log(r, true);
     await occupy(r);
 
-    FireApi.ignite(fire);
+    fire.ignite();
     FireApi.onFireTick();
     expect(wetNeighbour.isBurning()).toBe(false); // too wet to catch
   });
@@ -139,7 +139,7 @@ describe('the fire tick — spread', () => {
     const neighbour = await log(r);
     // No occupy() — nobody is watching.
 
-    FireApi.ignite(fire);
+    fire.ignite();
     FireApi.onFireTick();
     expect(neighbour.isBurning()).toBe(false); // frozen — no spread
   });
@@ -160,7 +160,7 @@ describe('the fire tick — spread', () => {
     const fireA = await log(a1);
     const acrossOpen = await log(b1, false, 0.3);
     await occupy(a1);
-    FireApi.ignite(fireA);
+    fireA.ignite();
     FireApi.onFireTick();
     expect(acrossOpen.isBurning()).toBe(true); // fire reached through the open door
 
@@ -179,7 +179,7 @@ describe('the fire tick — spread', () => {
     const fireA2 = await log(a2);
     const acrossShut = await log(b2, false, 0.3);
     await occupy(a2);
-    FireApi.ignite(fireA2);
+    fireA2.ignite();
     FireApi.onFireTick();
     expect(acrossShut.isBurning()).toBe(false); // the closed door is a firebreak
   });

@@ -11,7 +11,6 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Login from '../idea/Login';
 import Interactive from '../idea/Interactive';
 import { StuffApi } from '../../api/stuff';
-import { ConnectionApi } from '../../api/connection';
 import { PlayerApi } from '../../api/player';
 import { MixinApi } from '../../api/mixin';
 import { Mixins } from '../../lib/mixin';
@@ -78,9 +77,9 @@ describe('Login', () => {
   describe('enter() — branch on character count', () => {
     it('takes ownership of the connection (transfers to itself) first', async () => {
       const transfers: unknown[] = [];
-      vi.spyOn(ConnectionApi, 'transfer').mockImplementation((ix, h) =>
-        transfers.push({ ix, h }),
-      );
+      vi.spyOn(interactive, 'transferTo').mockImplementation((h) => {
+        transfers.push({ h });
+      });
       vi.spyOn(PlayerApi, 'loadAvatarsForUser').mockResolvedValue([]);
       vi.spyOn(
         Login.prototype as unknown as { enterCharGen: () => Promise<void> },
@@ -92,7 +91,7 @@ describe('Login', () => {
     });
 
     it('routes a user with zero characters into char-gen', async () => {
-      vi.spyOn(ConnectionApi, 'transfer').mockImplementation(() => {});
+      vi.spyOn(interactive, 'transferTo').mockImplementation(() => {});
       vi.spyOn(PlayerApi, 'loadAvatarsForUser').mockResolvedValue([]);
       const cg = vi
         .spyOn(
@@ -106,7 +105,7 @@ describe('Login', () => {
     });
 
     it('routes a user with ≥1 character to the roster (no auto-enter, no destruct)', async () => {
-      vi.spyOn(ConnectionApi, 'transfer').mockImplementation(() => {});
+      vi.spyOn(interactive, 'transferTo').mockImplementation(() => {});
       const avatars = [fakeAvatar('a'), fakeAvatar('b')];
       vi.spyOn(PlayerApi, 'loadAvatarsForUser').mockResolvedValue(avatars);
       const roster = vi
@@ -134,7 +133,7 @@ describe('Login', () => {
       const avatar = fakeAvatar('pid-1');
       vi.spyOn(PlayerApi, 'loadAvatarsForUser').mockResolvedValue([avatar]);
       const transfer = vi
-        .spyOn(ConnectionApi, 'transfer')
+        .spyOn(interactive, 'transferTo')
         .mockImplementation(() => {});
       const destruct = vi
         .spyOn(StuffApi, 'destruct')

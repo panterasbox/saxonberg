@@ -390,11 +390,7 @@ describe('EmploymentApi.holdsAuthority — the four-kind matrix', () => {
     // Somebody already holds the position — the whole point is that the
     // handover below must not disturb them.
     const staffer = makeStuffAtPath(() => new EmployedHost(), '/npc/staffer');
-    EmploymentApi.hire(
-      org,
-      staffer as unknown as Stuff,
-      'communications-director',
-    );
+    org.appoint(staffer as unknown as Stuff, 'communications-director');
     const employmentsBefore = JSON.stringify(staffer.employments);
     const rosterBefore = JSON.stringify(org.rosterSlots);
 
@@ -424,7 +420,7 @@ describe('EmploymentApi.holdsAuthority — the four-kind matrix', () => {
     expect(JSON.stringify(staffer.employments)).toBe(employmentsBefore);
     expect(JSON.stringify(org.rosterSlots)).toBe(rosterBefore);
     expect(
-      EmploymentApi.holdersOf(org, 'communications-director'),
+      org.holdersOf('communications-director'),
     ).toEqual(['/npc/staffer']);
   });
 });

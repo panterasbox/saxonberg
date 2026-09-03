@@ -85,16 +85,16 @@ describe('OrganizationMixin', () => {
     const holder = makeStuffAtPath(() => new EmployedHost(), HOLDER);
 
     // Nobody holds it anywhere yet.
-    expect(EmploymentApi.holdersOf(shop, POSITION.key)).toEqual([]);
-    expect(EmploymentApi.holdersOf(ministry, POSITION.key)).toEqual([]);
+    expect(shop.holdersOf(POSITION.key)).toEqual([]);
+    expect(ministry.holdersOf(POSITION.key)).toEqual([]);
     expect(holder.getActiveEmployments()).toEqual([]);
 
-    EmploymentApi.hire(shop, holder as unknown as Stuff, POSITION.key);
-    EmploymentApi.hire(ministry, holder as unknown as Stuff, POSITION.key);
+    shop.appoint(holder as unknown as Stuff, POSITION.key);
+    ministry.appoint(holder as unknown as Stuff, POSITION.key);
 
     // One read, two kinds of organization, the same answer.
-    expect(EmploymentApi.holdersOf(shop, POSITION.key)).toEqual([HOLDER]);
-    expect(EmploymentApi.holdersOf(ministry, POSITION.key)).toEqual([HOLDER]);
+    expect(shop.holdersOf(POSITION.key)).toEqual([HOLDER]);
+    expect(ministry.holdersOf(POSITION.key)).toEqual([HOLDER]);
 
     // The inverse: what does this actor hold, anywhere?
     const held = holder
@@ -110,7 +110,7 @@ describe('OrganizationMixin', () => {
     ministry.rosterSlots = [
       { positionKey: POSITION.key, assignee: HOLDER, schedule: [] },
     ];
-    expect(EmploymentApi.holdersOf(ministry, POSITION.key)).toEqual([HOLDER]);
+    expect(ministry.holdersOf(POSITION.key)).toEqual([HOLDER]);
   });
 
   it('never resurrects an explicit exit from the authored roster', () => {
@@ -121,11 +121,11 @@ describe('OrganizationMixin', () => {
     ];
     const holder = makeStuffAtPath(() => new EmployedHost(), HOLDER);
 
-    EmploymentApi.hire(ministry, holder as unknown as Stuff, POSITION.key);
-    expect(EmploymentApi.holdersOf(ministry, POSITION.key)).toEqual([HOLDER]);
+    ministry.appoint(holder as unknown as Stuff, POSITION.key);
+    expect(ministry.holdersOf(POSITION.key)).toEqual([HOLDER]);
 
-    EmploymentApi.quit(holder as unknown as Stuff, MINISTRY);
-    expect(EmploymentApi.holdersOf(ministry, POSITION.key)).toEqual([]);
+    (holder as unknown as Stuff & Employed).quitJob(MINISTRY);
+    expect(ministry.holdersOf(POSITION.key)).toEqual([]);
   });
 
   it('supports a wage-0 position — a volunteer is a wage-0 employee (AC 5)', async () => {
@@ -134,11 +134,7 @@ describe('OrganizationMixin', () => {
     expect(ministry.getPosition(POSITION.key)?.wageRate).toBe(0);
 
     const holder = makeStuffAtPath(() => new EmployedHost(), HOLDER);
-    const record = await EmploymentApi.hire(
-      ministry,
-      holder as unknown as Stuff,
-      POSITION.key,
-    );
+    const record = await ministry.appoint(holder as unknown as Stuff, POSITION.key);
     expect(record?.positionKey).toBe(POSITION.key);
     expect(holder.getEmployment(MINISTRY)?.status).toBe('employed');
   });
@@ -165,7 +161,7 @@ describe('OrganizationMixin', () => {
         '/compact/other',
       );
       const holder = makeStuffAtPath(() => new EmployedHost(), HOLDER);
-      EmploymentApi.hire(ministry, holder as unknown as Stuff, POSITION.key);
+      ministry.appoint(holder as unknown as Stuff, POSITION.key);
 
       // `other` is a bona fide organization — and still cannot touch a
       // record keyed on the ministry's path.

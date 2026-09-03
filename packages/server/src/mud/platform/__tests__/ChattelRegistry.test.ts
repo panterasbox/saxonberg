@@ -48,6 +48,7 @@ import type { Stuff } from "../../lib/stuff/Stuff";
 import type { Container } from "../../lib/spatial/Container";
 import type { Containable } from "../../lib/spatial/Containable";
 import type { FieldMeta } from "../../lib/mixin";
+import type { Chattel } from '../../lib/chattel/Chattel';
 
 /* ─────────────────────────── fixtures ─────────────────────────── */
 
@@ -188,11 +189,11 @@ describe("chattel possession core", () => {
     const torch = makeTorch();
     const alice = makeOwner("alice");
 
-    const result = await ChattelApi.stamp(torch, alice);
+    const result = await torch.stampChattel(alice);
     expect(result.ok).toBe(true);
     expect(torch.getChattelId()).not.toBe("");
 
-    const owner = await ChattelApi.ownerOf(torch);
+    const owner = await torch.chattelOwner();
     expect(owner).toEqual({ kind: "player", templatePath: "/platform/agent/Avatar/alice" });
   });
 
@@ -201,12 +202,12 @@ describe("chattel possession core", () => {
     const alice = makeOwner("alice");
     const bob = makeOwner("bob");
 
-    await ChattelApi.stamp(torch, alice);
-    const before = await ChattelApi.ownerOf(torch);
+    await torch.stampChattel(alice);
+    const before = await torch.chattelOwner();
     expect(before).toEqual({ kind: "player", templatePath: "/platform/agent/Avatar/alice" });
 
-    await ChattelApi.transfer(torch, bob);
-    const after = await ChattelApi.ownerOf(torch);
+    await torch.transferChattel(bob);
+    const after = await torch.chattelOwner();
     expect(after).toEqual({ kind: "player", templatePath: "/platform/agent/Avatar/bob" });
 
     // chattel_events records a mint then a transfer row (append-only).
@@ -221,13 +222,13 @@ describe("chattel possession core", () => {
     const alice = makeOwner("alice");
     const box = makeStuffAtPath(() => new Vault(), "/obj/test/box");
 
-    await ChattelApi.stamp(torch, alice);
+    await torch.stampChattel(alice);
     ContainmentApi.move(
       torch as unknown as Stuff & Containable,
       box as unknown as Stuff & Container,
     );
 
-    const owner = await ChattelApi.ownerOf(torch);
+    const owner = await torch.chattelOwner();
     expect(owner).toEqual({ kind: "player", templatePath: "/platform/agent/Avatar/alice" });
   });
 
@@ -241,13 +242,13 @@ describe("chattel possession core", () => {
     const alice = makeStuffAtPath(() => new EstateHolder(), "/platform/agent/Avatar/alice");
     const vault = makeStuffAtPath(() => new Vault(), "/obj/test/vault");
 
-    await ChattelApi.stamp(torch, alice);
+    await torch.stampChattel(alice);
     const id = torch.getChattelId();
     ContainmentApi.move(
       torch as unknown as Stuff & Containable,
       vault as unknown as Stuff & Container,
     );
-    await ChattelApi.setPlace(torch, "inventory");
+    await torch.setChattelPlace("inventory");
 
     // The vault captures WITHOUT the torch (the skip rule), and the flush
     // hands it to Alice; then Alice round-trips, carrying it.
@@ -268,7 +269,7 @@ describe("chattel possession core", () => {
     expect(restored).toBeDefined();
     expect(restored!.getChattelId()).toBe(id);
 
-    const owner = await ChattelApi.ownerOf(restored as Stuff);
+    const owner = await (restored as unknown as Stuff & Chattel).chattelOwner();
     expect(owner).toEqual({ kind: "player", templatePath: "/platform/agent/Avatar/alice" });
   });
 
@@ -285,7 +286,7 @@ describe("chattel possession core", () => {
     });
 
     expect(torch.getChattelId()).toBe("");
-    const owner = await ChattelApi.ownerOf(torch);
+    const owner = await torch.chattelOwner();
     expect(owner).toEqual({ kind: "player", templatePath: "/platform/agent/Avatar/carol" });
   });
 
@@ -318,7 +319,7 @@ describe("chattel possession core", () => {
 
     // The landlord, NOT carol the author — a tenancy needs a landlord who
     // is a person in the fiction, and the parcel is exactly that person.
-    expect(await ChattelApi.ownerOf(torch)).toEqual({
+    expect(await torch.chattelOwner()).toEqual({
       kind: "player",
       templatePath: "/platform/agent/Avatar/landlord",
     });
@@ -333,7 +334,7 @@ describe("chattel possession core", () => {
     // `ChattelOwner`'s group arm exists only so a group-held parcel is
     // expressible as a RESOLVED answer. Nothing stamps it: the `chattel`
     // collection stays empty here, so the persisted schema is untouched.
-    expect(await ChattelApi.ownerOf(torch)).toEqual({
+    expect(await torch.chattelOwner()).toEqual({
       kind: "group",
       name: "commons",
     });
@@ -343,14 +344,14 @@ describe("chattel possession core", () => {
   it("rung 1 still wins over rung 2 — a stamp beats the extent", async () => {
     const torch = makeTorch();
     const alice = makeOwner("alice");
-    await ChattelApi.stamp(torch, alice);
+    await torch.stampChattel(alice);
     vi.spyOn(ParcelApi, "coveringParcelOf").mockResolvedValue({
       getOwner: () => ({ kind: "player", templatePath: "/platform/agent/Avatar/landlord" }),
     } as unknown as Awaited<ReturnType<typeof ParcelApi.coveringParcelOf>>);
 
     // Only an explicit stamp transfers a fixture. A good that has changed
     // hands inside a let unit stays the holder's.
-    expect(await ChattelApi.ownerOf(torch)).toEqual({
+    expect(await torch.chattelOwner()).toEqual({
       kind: "player",
       templatePath: "/platform/agent/Avatar/alice",
     });
@@ -361,19 +362,19 @@ describe("chattel possession core", () => {
     const alice = makeOwner("alice");
     vi.spyOn(MixinApi, "isGlobbable").mockImplementation((o) => o === glob);
 
-    const stamp = await ChattelApi.stamp(glob, alice);
+    const stamp = await glob.stampChattel(alice);
     expect(stamp.ok).toBe(false);
     if (!stamp.ok) expect(stamp.reason).toMatch(/possession/);
 
     // ownerOf of a glob is null (not asked; owned-by-possession).
-    expect(await ChattelApi.ownerOf(glob)).toBeNull();
+    expect(await glob.chattelOwner()).toBeNull();
     expect(glob.getChattelId()).toBe("");
   });
 
   it("GC on destruct releases the current-state row + logs a terminal event", async () => {
     const torch = makeTorch();
     const alice = makeOwner("alice");
-    await ChattelApi.stamp(torch, alice);
+    await torch.stampChattel(alice);
     const id = torch.getChattelId();
     expect(col("chattel").some((d) => d.chattelId === id)).toBe(true);
 
@@ -387,6 +388,6 @@ describe("chattel possession core", () => {
 
     // A fresh, unrelated clone is unaffected — resolves via author fallback.
     const fresh = makeTorch();
-    expect(await ChattelApi.ownerOf(fresh)).toBeNull();
+    expect(await fresh.chattelOwner()).toBeNull();
   });
 });

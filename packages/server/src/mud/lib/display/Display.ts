@@ -248,8 +248,8 @@ export function DisplayMixin<TBase extends MixinConstructor<Stuff>>(
             ? StuffApi.findByTemplatePath(this.principal)
             : null;
           if (!business || !MixinApi.isOrganization(business)) return false;
-          if (EmploymentApi.holdsPosition(actor, business)) return true;
-          return EmploymentApi.isProprietorOf(actor, business);
+          if (business.employs(actor)) return true;
+          return business.hasProprietor(actor);
         }
         case 'open':
           return PerceptionApi.canReach(actor, this as unknown as Stuff);
@@ -356,7 +356,7 @@ export function DisplayMixin<TBase extends MixinConstructor<Stuff>>(
         }
         case 'card': {
           for (const interactive of viewer.getInteractives()) {
-            CardApi.push(interactive, source.cardId, {
+            interactive.pushCard(source.cardId, {
               key: source.key,
               subjectId: source.subjectId,
               prose: source.prose,

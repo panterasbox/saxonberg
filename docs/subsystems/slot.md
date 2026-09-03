@@ -16,7 +16,7 @@ boundary fixture system (post-retrofit `Adornable`).
 | `UNBOUNDED_CAPACITY` | `lib/slot/Slotted.ts` | Sentinel = `Number.MAX_SAFE_INTEGER`; JSON/BSON-safe substitute for `Infinity` |
 | `BodyPlanSlotsMixin` | `lib/slot/BodyPlanSlots.ts` | Sibling provider — Pattern B, derives universe from species → bodyPlan |
 | `Foldable` | `lib/slot/Foldable.ts` | Host capability — two-state fold/unfold; a folded host refuses its posture-bearing slots (gates `canOccupy`) |
-| `SlotApi` | `api/slot.ts` | Cross-cutting helpers (multi-slot transactional ops, inverse lookups, slot resolution, conveyance ripple walker) |
+| `Slotted/Slottable` | `api/slot.ts` | Cross-cutting helpers (multi-slot transactional ops, inverse lookups, slot resolution, conveyance ripple walker) |
 
 `Slotted` composes on `Stuff` (no `Container` prereq). Composing
 `Slottable` doesn't constrain a host — it just marks a Stuff as
@@ -141,9 +141,9 @@ returns `count > 0`.
   null if the candidate wasn't present. Throws on unknown slot.
 - `vacateSole(slot)` — convenience for single-capacity slots;
   throws if multi-occupant.
-- `SlotApi.occupyAll(host, candidate, slots)` — multi-slot atomic
+- `occupyAll(host, candidate, slots)` — multi-slot atomic
   claim with rollback on partial failure.
-- `SlotApi.transferOccupancy(candidate, from, to)` — vacate-then-
+- `transferOccupancy(candidate, from, to)` — vacate-then-
   occupy with rollback. Used by every posture verb to swap the
   actor's posture-bearing slot atomically.
 - **`tryReleaseFromSlots(item)`** — take `item` off this host
@@ -182,7 +182,7 @@ returns `count > 0`.
   removed from the occupant set. v1's `Mobile.onSlotReleased` clears
   `engagedMode` for passthrough modes (ride / drive) so a dismounting
   rider's engagement clears automatically. The invocation lives in
-  `Slotted.vacate` (not `SlotApi.vacate`) so direct callers like
+  `Slotted.vacate` so direct callers like
   `DismountController.execute` also trigger it. Future witnesses
   (polymorph revert on dismount, status-clear, etc.) compose the same
   optional-method shape.
@@ -195,7 +195,7 @@ Slots have **canonical internal names** (`hand:left`, `mount:1`,
 keyword is the noun the player types.
 
 A slot's `userFacingDetail` references a keyword on the host's
-`DetailedMixin` map. `SlotApi.resolveSlot(host, { detail: 'back' })`
+`DetailedMixin` map. `resolveSlot(host, { detail: 'back' })`
 returns the slot name whose `userFacingDetail` matches.
 
 ```yaml
@@ -207,13 +207,13 @@ slots:
 
 `mount horse` finds `back:1` via host resolution (the only mount-
 eligible slot). `mount back` resolves `back` as a Detail keyword,
-then `SlotApi.resolveSlot({ detail: 'back' })` finds the slot.
+then `resolveSlot({ detail: 'back' })` finds the slot.
 Same slot, two paths.
 
 `setStaticSlots` validates that no two slots on the same host share
 a `userFacingDetail`.
 
-## SlotApi reference
+## Slotted/Slottable reference
 
 | Method | Purpose |
 |---|---|
@@ -228,7 +228,7 @@ a `userFacingDetail`.
 
 `Slottable.getOccupiedHost()` delegates to `findOccupiedHost`. The
 two-step API is "use the convenience instance method by default;
-go through SlotApi when you need the verbose form."
+go through Slotted/Slottable when you need the verbose form."
 
 ## Wear / wield / mount failure notes
 
@@ -288,7 +288,7 @@ base (`lib/Bistate.ts`) alongside `Sealable`/`Switchable` in commit
 
 **`Slotted.occupy` gained `onSlotOccupied`** — the symmetric twin of the
 shipped `onSlotReleased`, firing from the same chokepoint so every arming
-path reaches it (`SlotApi.occupyAll`, combat's grip swap, persistence
+path reaches it (`occupyAll`, combat's grip swap, persistence
 restore). Declared `@hook` on `Slottable`. v1 consumer: `PosedMixin`
 records which host's posture slot a body occupies, so an avatar wakes where
 it slept — see [furnishing.md](./furnishing.md).

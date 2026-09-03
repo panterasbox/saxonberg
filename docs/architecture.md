@@ -205,6 +205,21 @@ adding.
 
 ### The Api ↔ logic-singleton split
 
+> **The post-sweep Api-tier mandate (the Api OO sweep, 2026-09).** An
+> Api's public statics are limited to the four mandates: key/string
+> resolvers, lifecycle (create/destroy/mint), wire/boundary plumbing,
+> and cross-object orchestration. **A verb whose first parameter is the
+> one Stuff it acts on lives ON that Stuff** — the owner mixin (or
+> class) carries the method and forwards into the same logic singleton
+> the facade reaches (the host object is a face, resolved via
+> `StuffApi.singletonSync` — the `Energized`/`Combustible` pattern),
+> with the logic's per-method gate widened
+> `AnyOf(<api>, FromMixin(<host>, { where: caller === args[subject] }))`.
+> Enforced by `pnpm lint:object-verbs` (CI-gating, zero census); the
+> `EXEMPT_APIS` table in `scripts/check-object-verbs.ts` names every
+> surviving Api with its mandate reason. See
+> [antipatterns.md § A subject-first Api static](./antipatterns.md).
+
 An `Api` carries identity three ways an unsettled organizational layer
 shouldn't — it holds the logic, it anchors the generated docs, and it's
 where types live. The surface-architecture refactor relocates all three
@@ -963,8 +978,9 @@ registry) lives in `lib/mixin.ts`.
 | `lib/mortality/` | `IncorporealMixin` | present, but unable to touch anything — the capability half of function-over-form. Platform verbs ride the participant; embodied verbs are refused by the `requiresEmbodied` validator. Carries the refusal prose so the same lever re-skins (the deferred prison work). Composed by `Shade`. See [mortality.md](./subsystems/mortality.md). |
 | `lib/reserve.ts` | `ReservedMixin` | a keyed collection of `Reserve` capacity axes (decomposed-scalar persistence). Biological reserves (endurance/satiation/hydration) + the authored-thematic seam (mana is content; a cultivated plant's root-zone `moisture` is another). **Neutral, not Creature-coupled** — composed by `Creature`, `Campfire` (fuel), a `Location` (air) and `Plant` (moisture). See [reserve.md](./subsystems/reserve.md). |
 | `lib/encumbrance/` | `LoadBearingMixin` | the carry-weight gauge (first vitals driver): derived-on-read `getBorneBurden` (weighted walk over contents + slot occupants with `Vessel.transmissionFactor` + slot-derived placement coupling) / `getCarryCapacity` (body mass × physiology margins) / `getLoadRatio` / `wouldExceedCeiling` / `drainForTraversal`. Requires `Container + Slotted + Tangible + Reserved + Vitals`. Composed outermost by `Creature`. See [encumbrance.md](./subsystems/encumbrance.md). |
-| `lib/belief/` | `BeliefStoreMixin` | per-viewer identity memory: a realm-namespaced (`recognition` / `identification` / `regard`) keyed bag of `BeliefRecord`s, dumb CRUD, keyed by referent `templatePath`. The in-memory working set behind `RecognitionApi.describe` (naming) and `RegardApi`/`RegardLogic` (per-viewer attitude scalar); backed by `BeliefDocument` rows (`api/belief.ts`). Composed by `Character`. See [belief.md](./subsystems/belief.md). |
-| `lib/status/` | `StatusMixin` | settable activity-status line ("watching the empty road"); verb / runtime-setter / static-authored-default sources, only the default persists. A **presence affix, not identity**: it rides `RecognitionApi.describeWithStatus` (the presence-scan roll-call) — **not** `getPresentation` / `describe`, which stay pure identity, so act-subject naming never drags the status along. Composed by `Character`. See [belief.md](./subsystems/belief.md). |
+| `lib/trait/` | `DispositionedMixin` | the personality owner face (the Api OO sweep's C3 mint): `imprintSignature`/`imprintDeed`/`seedTraitClaims` (SelfOnly + sealed writers over `disposition_events`) + the derive-on-read reads (`dispositionEntries`/`traitPositions`/`traitPosition`/`pronouncedTraits`/`compatibilityWith`/`regardBaselineToward`). Composed by `Character`; narrow with `MixinApi.isDispositioned`. See [trait.md](./subsystems/trait.md). |
+| `lib/belief/` | `BeliefStoreMixin` | per-viewer identity memory: a realm-namespaced (`recognition` / `identification` / `regard`) keyed bag of `BeliefRecord`s, dumb CRUD, keyed by referent `templatePath`. The in-memory working set behind `describeFor` (naming, the recognition face on the `Stuff` base) and the mixin's own regard surface (`regardFor`/`adjustRegard`, per-viewer attitude scalar); backed by `BeliefDocument` rows. Composed by `Character`. See [belief.md](./subsystems/belief.md). |
+| `lib/status/` | `StatusMixin` | settable activity-status line ("watching the empty road"); verb / runtime-setter / static-authored-default sources, only the default persists. A **presence affix, not identity**: it rides `describeWithStatusFor` (the presence-scan roll-call) — **not** `getPresentation` / `describeFor`, which stay pure identity, so act-subject naming never drags the status along. Composed by `Character`. See [belief.md](./subsystems/belief.md). |
 | `lib/disguise/` | `DisguisableMixin` / `DisguiseBearingMixin` | creature masking. `DisguisableMixin` (on `Creature`) resolves a viewer-blind `getDisguise()` over worn `DisguiseBearing` garments + a transient imposed slot; `Stuff.getPresentation()` defers to it. `DisguiseBearingMixin` (on a `Garment` → `DisguiseGarment`) carries the `{ appearsAs, covers, masksIdentity }` descriptor. See [belief.md](./subsystems/belief.md). |
 | `lib/identification/` | `IdentifiableMixin` | the type axis: an item whose true type (`identifiedName`) is hidden behind its unidentified appearance until a viewer identifies it. Composed by `IdentifiableThing`; the `IdentifyScroll` carries the `identify` verb. See [belief.md](./subsystems/belief.md). |
 | `lib/metabolism/` | `MetabolicMixin` | the intake-and-chemistry driver (first condition-driver): the digestion buffer + real `ingest`, the lazy reconcile-on-read over `WorldClock` game-time (absorption / mass-scaled basal drain / coupled recovery / toxin clearance), the cascade spawning `floorEffect` conditions + the death seam, the presence-freeze clock, and the toxin-burden + alcohol/BAC system. Drives `Vitals`/`Reserved`/`Posed`; composed inner of `LoadBearing`, outer of those three, by `Creature`. No Api. See [metabolism.md](./subsystems/metabolism.md). |

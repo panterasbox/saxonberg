@@ -40,6 +40,14 @@ import { TemplatePaths } from '../paths';
 import { CallSecurity, Final, Unshadowable } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
 import { Burning, type BurningStored } from './Burning';
+// eslint-disable-next-line no-restricted-imports -- the F1 object face: Combustible's ignite()/douse()/advanceBurn() forward into the fire logic singleton exactly as the api/fire facade does (the mixin is the subsystem's instance face; Energized is the D3 precedent)
+import { FireLogic } from '../../platform/idea/api/FireLogic';
+import type { IgniteOutcome } from '../../api/fire';
+
+/** Resolve the HMR-able FireLogic singleton (the combustion driver). */
+function fireLogic(): FireLogic {
+  return StuffApi.singletonSync('/platform/idea/api/fire', () => new FireLogic());
+}
 
 /** Fire dials with seeded-literal fallbacks (pre-warm / test safe). */
 const FIRE_DEFAULTS = {
@@ -94,6 +102,16 @@ export interface Combustible {
 
   /** Reconcile the fuel drain over elapsed game-time (reconcile-on-read). */
   reconcileBurning(): void;
+
+  // The combustion face (F1) — forwards into the FireLogic driver.
+  /** Deliberate ignition; `{lit:false, reason}` on refusal. */
+  ignite(): IgniteOutcome;
+  /** Heat-threshold autoignition; returns whether it lit. */
+  tryAutoignite(): boolean;
+  /** The water/wet extinguisher; returns whether anything was doused. */
+  douse(): boolean;
+  /** Advance one burning tick (fuel drain / char / burn-through). */
+  advanceBurn(): void;
 
   // Gated (`FireLogic`-only) Burning-state writers.
   _igniteState(nowGameSec: number, complete: boolean): void;
@@ -302,6 +320,53 @@ export function CombustibleMixin<TBase extends MixinConstructor<Stuff>>(
           self.setMaterial(char as never);
         }
       }
+    }
+
+    // ---------- the combustion face (forwards into FireLogic) ----------
+
+    /**
+     * Deliberate ignition (the `ignite` verb): a hand-flame lights a
+     * flammable, dry-enough object. Returns `{lit:true}` on success, or
+     * `{lit:false, reason}`. Sealed — the combustion driver is the one
+     * writer of Burning state.
+     */
+    @Final
+    @Unshadowable
+    public ignite(): IgniteOutcome {
+      return fireLogic().ignite(this as unknown as Stuff);
+    }
+
+    /**
+     * Heat-threshold autoignition — ignites iff temperature has crossed
+     * the (wetness-adjusted) autoignition point and fuel remains.
+     * Returns whether it lit.
+     */
+    @Final
+    @Unshadowable
+    public tryAutoignite(): boolean {
+      return fireLogic().tryAutoignite(this as unknown as Stuff);
+    }
+
+    /**
+     * The water/wet extinguisher: puts the fire out and wets the object
+     * so it resists re-ignition until dried. Returns whether anything
+     * was doused.
+     */
+    @Final
+    @Unshadowable
+    public douse(): boolean {
+      return fireLogic().douse(this as unknown as Stuff);
+    }
+
+    /**
+     * Advance one burning tick — drain fuel (self-extinguishing +
+     * charring / destructing at exhaustion). The presence-gated fire
+     * tick fans this out; a lone object also reconciles-on-read.
+     */
+    @Final
+    @Unshadowable
+    public advanceBurn(): void {
+      fireLogic().advance(this as unknown as Stuff);
     }
 
     // ---------- gated Burning-state writers (FireLogic only) ----------

@@ -125,35 +125,6 @@ export class MessageApi {
   }
 
   /**
-   * Lone delivery chokepoint — every routing helper here, every
-   * Scene.send dispatch, and every MudlogApi emit goes through this
-   * function. Non-MessageApi code MUST NOT call `sensor.onMessage`
-   * directly: the chokepoint is where future cross-cutting concerns
-   * (audit trail, debug logging, bus-level taps per §10.5, wire-
-   * level filters, etc.) hook in exactly once.
-   */
-  static sendMessage(recipient: SensorStuff, frame: MessageFrame): void {
-    return logic().sendMessage(recipient, frame);
-  }
-
-  /**
-   * Envelope delivery chokepoint, parallel to {@link sendMessage}.
-   * The envelope `template` carries no `frameId` — stamping happens
-   * per-Interactive at the wire-delivery layer in
-   * `Application.sendEnvelopeToInteractive`. Avatar's
-   * `handleEnvelope` is what fans the template out to connected
-   * Interactives; NPCs' default no-op `handleEnvelope` means an NPC
-   * envelope is server-side observable (shadows, audit) but never
-   * reaches a wire.
-   */
-  static sendEnvelope(
-    recipient: SensorStuff,
-    template: EnvelopeTemplate
-  ): void {
-    return logic().sendEnvelope(recipient, template);
-  }
-
-  /**
    * Send a message to every sensor inside a container.
    *
    * Low-level primitive — caller has already chosen the container.

@@ -15,13 +15,13 @@
  */
 
 import "../../../../test-bootstrap";
+import type { CompetenceBandName } from '../../advancement/CompetenceBand';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { readFileSync, readdirSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import YAML from 'yaml';
 import { MagicApi } from '../../../api/magic';
-import { AdvancementApi } from '../../../api/advancement';
 import { AccountabilityApi } from '../../../api/accountability';
 import { ExecutionContextApi } from '../../../api/execution-context';
 import { StuffApi } from '../../../api/stuff';
@@ -59,7 +59,14 @@ const SPELL_CLASS = '/platform/idea/magic/Spell';
 class TestWand extends IdentifiableMixin(
   ChargedMixin(ReservedMixin(ArcaneMixin(Thing))),
 ) {}
-class TestCharacter extends Character {}
+// The competence read runs ON the caster since the OO sweep; this
+// pins the band per test (credits no-op — PM is disconnected here).
+let testBand: CompetenceBandName = 'competent';
+class TestCharacter extends Character {
+  override async competenceBandFor(): Promise<CompetenceBandName> {
+    return testBand;
+  }
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const SPELL_SEEDS_DIR = join(
@@ -142,8 +149,7 @@ describe('EffectContext — the four separated jobs', () => {
     WorldClockApi._resetForTesting();
     WorldClockApi._setNowProviderForTesting(() => 100000);
     await installCatalogue();
-    vi.spyOn(AdvancementApi, 'recordSignature').mockResolvedValue(undefined);
-    vi.spyOn(AdvancementApi, 'bandFor').mockResolvedValue('competent');
+    testBand = 'competent';
     vi.spyOn(StuffApi, 'clone').mockImplementation(async () =>
       makeStuff(() => new GlowlightOrb()),
     );
@@ -196,7 +202,7 @@ describe('EffectContext — the four separated jobs', () => {
     ContainmentApi.move(victim, there);
 
     // A cast from `here` cannot touch a mark in `there` — unchanged.
-    const refusedCast = await MagicApi.resolveCast(user, 'shove', victim);
+    const refusedCast = await user.resolveCast('shove', victim);
     expect(refusedCast.reports.join(' ')).toMatch(/reach ends/);
 
     // The same working from a wand SET DOWN in `there` lands, because
@@ -204,7 +210,7 @@ describe('EffectContext — the four separated jobs', () => {
     const wand = makeWand('shove', '/obj/test/the-maker');
     ContainmentApi.move(wand, there);
     actingAs(user);
-    const out = await MagicApi.discharge(wand, victim);
+    const out = await wand.dischargeAt(victim);
     expect(out.ok).toBe(true);
     expect(out.reports.join(' ')).not.toMatch(/reach ends/);
   });
@@ -217,7 +223,7 @@ describe('EffectContext — the four separated jobs', () => {
     ContainmentApi.move(wand, room);
     actingAs(user);
 
-    const out = await MagicApi.discharge(wand);
+    const out = await wand.dischargeAt();
     expect(out.ok).toBe(true);
     // The veil settles on the person, not on the wand that fired it.
     const held = user.getConditions().find((c) => c.kind === 'sustained');
@@ -235,7 +241,7 @@ describe('EffectContext — the four separated jobs', () => {
     ContainmentApi.move(wand, room);
     actingAs(user);
 
-    await MagicApi.discharge(wand);
+    await wand.dischargeAt();
     const held = user.getConditions().find((c) => c.kind === 'sustained')!;
     expect(held.magicOrigin).toMatchObject({
       verb: 'create',
@@ -261,7 +267,7 @@ describe('EffectContext — the four separated jobs', () => {
       .mockImplementation(() => undefined as never);
     actingAs(user);
 
-    await MagicApi.discharge(wand, victim);
+    await wand.dischargeAt(victim);
     expect(rows).toHaveBeenCalled();
     const row = rows.mock.calls[0]![0] as {
       initiator: string;
@@ -283,14 +289,14 @@ describe('EffectContext — the four separated jobs', () => {
     const wand = makeWand('veil', '/obj/test/grand-artificer');
     ContainmentApi.move(wand, room);
     actingAs(user);
-    await MagicApi.discharge(wand);
+    await wand.dischargeAt();
     expect(
       user.getConditions().some((c) => c.kind === 'sustained'),
     ).toBe(true);
 
     // A different person dispels it: the tag is what dispel reads.
     actingAs(caster);
-    const out = await MagicApi.resolveCast(caster, 'dispel', user);
+    const out = await caster.resolveCast('dispel', user);
     expect(out.reports.join(' ')).toMatch(/unravel/);
     expect(
       user.getConditions().some((c) => c.kind === 'sustained'),
@@ -351,9 +357,9 @@ describe('EffectContext — the four separated jobs', () => {
     const wand = makeWand('glowlight', '/obj/test/grand-artificer');
     ContainmentApi.move(wand, room);
 
-    const cast = await MagicApi.resolveCast(caster, 'glowlight');
+    const cast = await caster.resolveCast('glowlight');
     actingAs(user);
-    const fired = await MagicApi.discharge(wand);
+    const fired = await wand.dischargeAt();
 
     expect(cast.ok).toBe(true);
     expect(fired.ok).toBe(true);
@@ -371,29 +377,27 @@ describe('EffectContext — the four separated jobs', () => {
     ContainmentApi.move(user, room);
     ContainmentApi.move(wand, room);
     // The user cannot cast it at all…
-    vi.spyOn(AdvancementApi, 'bandFor').mockResolvedValue('untrained');
-    const refused = await MagicApi.prepareCast(user, 'dispel');
+    testBand = 'untrained';
+    const refused = await user.prepareCast('dispel');
     expect(refused.ok).toBe(false);
     expect(refused.refusal).toMatch(/beyond your/);
 
     // …and can still fire the wand. The maker passed the gate, not them.
     actingAs(user);
-    const out = await MagicApi.discharge(wand);
+    const out = await wand.dischargeAt();
     expect(out.ok).toBe(true);
   });
 
   it('AC3 — firing an item credits no Transcript deed', async () => {
     const room = makeRoom();
     const user = makeActor();
+    const credit = vi.spyOn(user, 'creditSignature');
     const wand = makeWand('glowlight', '/obj/test/grand-artificer');
     ContainmentApi.move(user, room);
     ContainmentApi.move(wand, room);
-    const credit = vi
-      .spyOn(AdvancementApi, 'recordSignature')
-      .mockResolvedValue(undefined);
     actingAs(user);
 
-    await MagicApi.discharge(wand);
+    await wand.dischargeAt();
     // Competence derives from deeds; firing a wand teaches nothing.
     expect(credit).not.toHaveBeenCalled();
   });
@@ -415,7 +419,7 @@ describe('EffectContext — the four separated jobs', () => {
 
     const before = wand.getStoredKJ();
     for (let i = 0; i < 20; i++) {
-      const out = await MagicApi.discharge(wand); // no target
+      const out = await wand.dischargeAt(); // no target
       expect(out.ok).toBe(false);
       expect(out.refusal).toMatch(/needs a mark/);
     }
@@ -425,7 +429,7 @@ describe('EffectContext — the four separated jobs', () => {
     // …and it still fires when given one.
     const mark = makeActor();
     ContainmentApi.move(mark, room);
-    const fired = await MagicApi.discharge(wand, mark);
+    const fired = await wand.dischargeAt(mark);
     expect(fired.ok).toBe(true);
     expect(wand.getStoredKJ()).toBeLessThan(before);
   });
@@ -480,7 +484,7 @@ describe('EffectContext — the four separated jobs', () => {
       user.recall(IDENTIFICATION, wand.getTemplatePath()!),
     ).toBeNull();
 
-    const out = await MagicApi.discharge(wand, mark);
+    const out = await wand.dischargeAt(mark);
     expect(out.ok).toBe(true);
     // Firing a lance of true flame tells you what you are holding.
     const payload = user.recall(IDENTIFICATION, wand.getTemplatePath()!)!
@@ -503,7 +507,7 @@ describe('EffectContext — the four separated jobs', () => {
     ContainmentApi.move(wand, room);
     actingAs(user);
 
-    for (let i = 0; i < 3; i++) await MagicApi.discharge(wand, mark);
+    for (let i = 0; i < 3; i++) await wand.dischargeAt(mark);
     expect(user.recall(IDENTIFICATION, wand.getTemplatePath()!)).toBeNull();
   });
 
@@ -521,7 +525,7 @@ describe('EffectContext — the four separated jobs', () => {
     actingAs(user);
 
     // Refused for want of a mark — nothing fired, nothing spent…
-    const refused = await MagicApi.discharge(wand);
+    const refused = await wand.dischargeAt();
     expect(refused.ok).toBe(false);
     // …and nothing learned.
     expect(user.recall(IDENTIFICATION, wand.getTemplatePath()!)).toBeNull();
@@ -535,7 +539,7 @@ describe('EffectContext — the four separated jobs', () => {
     ContainmentApi.move(flat, room);
     const mark = makeActor();
     ContainmentApi.move(mark, room);
-    const dry = await MagicApi.discharge(flat, mark);
+    const dry = await flat.dischargeAt(mark);
     expect(dry.ok).toBe(false);
     expect(user.recall(IDENTIFICATION, flat.getTemplatePath()!)).toBeNull();
   });

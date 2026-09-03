@@ -13,10 +13,10 @@
  */
 
 import "../../../../../test-bootstrap";
+import { Stuff } from "../../../../lib/stuff/Stuff";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { SocialApi } from "../../../../api/social";
 import { GroupApi } from "../../../../api/group";
-import { RecognitionApi } from "../../../../api/recognition";
 import { PlayerApi } from "../../../../api/player";
 import { MixinApi } from "../../../../api/mixin";
 import { ShellApi } from "../../../../api/shell";
@@ -29,6 +29,12 @@ import {
 } from "../../../../lib/security/__tests__/test-setup";
 
 class NotifyHost extends NotifyPolicyMixin(Idea) {
+  // The viewer's recognition realm (the OO sweep): a stub occupant's
+  // `recognized` field is the answer; anything else is recognized.
+  recognizes(subject: unknown): boolean {
+    return subject instanceof Occupant ? subject.recognized : true;
+  }
+
   getPlayerId(): string {
     return "viewer";
   }
@@ -99,28 +105,28 @@ beforeEach(() => {
       return occ instanceof Occupant ? occ.groups.has(ref) : false;
     },
   );
-  vi.spyOn(RecognitionApi, "recognizes").mockImplementation(
-    (_v: unknown, subject: unknown) =>
-      subject instanceof Occupant ? subject.recognized : true,
-  );
-  vi.spyOn(RecognitionApi, "describe").mockImplementation(
-    (_v: unknown, t: unknown) =>
+  // Recognition rides the viewer's belief realm + the target-side face
+  // since the OO sweep. isBeliefStore is mocked true so the composer
+  // reaches the viewer's `recognizes`; the fake face covers the
+  // describe family.
+  vi.spyOn(MixinApi, "isBeliefStore").mockReturnValue(true);
+  Stuff._registerRecognitionFace(() => ({
+    describe: (_v: Stuff, t: Stuff) =>
       t instanceof Occupant ? t.display : "someone",
-  );
-  // The occupant roll-call renders through `describeWithStatus` (presence
-  // decoration). These stub occupants carry no `StatusMixin`, so it mirrors
-  // `describe` — the display name with no status affix.
-  vi.spyOn(RecognitionApi, "describeWithStatus").mockImplementation(
-    (_v: unknown, t: unknown) =>
+    // The occupant roll-call renders through `describeWithStatus`
+    // (presence decoration). These stub occupants carry no
+    // `StatusMixin`, so it mirrors `describe`.
+    describeWithStatus: (_v: Stuff, t: Stuff) =>
       t instanceof Occupant ? t.display : "someone",
-  );
-  vi.spyOn(RecognitionApi, "salientFeatures").mockImplementation(
-    (t: unknown) => {
+    salientFeaturesOf: (t: Stuff) => {
       if (!(t instanceof Occupant)) return "someone";
       const stem = t.speciesName ? `a ${t.speciesName}` : "someone";
       return t.feature ? `${stem} wearing ${t.feature}` : stem;
     },
-  );
+    perceivedKeywords: () => [],
+    kindOf: () => "npc" as const,
+    knowsTrueType: () => false,
+  }));
   vi.spyOn(ShellApi, "resolveSetting").mockImplementation(
     (_h: unknown, key: string) =>
       key === "social.verbosity"
@@ -142,7 +148,7 @@ describe("composeOccupants — density tiers", () => {
   it("<10: every occupant rendered individually (strangers full, not grouped)", async () => {
     const v = makeViewer();
     const dwarves = [makeDwarf(1), makeDwarf(2), makeDwarf(3)];
-    const out = (await SocialApi.composeOccupants(v, dwarves, 5)).toString();
+    const out = (await v.composeOccupants(dwarves, 5)).toString();
     // Each stranger gets its own name line, no mudq grouped handle.
     expect(out).toContain("dwarf 1");
     expect(out).toContain("dwarf 2");
@@ -152,7 +158,7 @@ describe("composeOccupants — density tiers", () => {
   it("30–100: strangers aggregate to a similarity-grouped count", async () => {
     const v = makeViewer();
     const dwarves = Array.from({ length: 12 }, (_, i) => makeDwarf(i));
-    const out = (await SocialApi.composeOccupants(v, dwarves, 50)).toString();
+    const out = (await v.composeOccupants(dwarves, 50)).toString();
     expect(out).toContain("12 dwarves in red robes");
     expect(out).toContain("mudq:dwarves in red robes");
     // The individual names are collapsed away.
@@ -164,7 +170,7 @@ describe("composeOccupants — density tiers", () => {
     const known = makeOccupant({ display: "Bob", recognized: true });
     const dwarves = [makeDwarf(1), makeDwarf(2)];
     const out = (
-      await SocialApi.composeOccupants(v, [known, ...dwarves], 20)
+      await v.composeOccupants([known, ...dwarves], 20)
     ).toString();
     expect(out).toContain("Bob"); // everyone-else → named at this tier
     expect(out).not.toContain("mudq:"); // strangers not grouped yet at 10–30
@@ -182,7 +188,7 @@ describe("composeOccupants — density tiers", () => {
         feature: "grey cloaks",
       }),
     );
-    const out = (await SocialApi.composeOccupants(v, crowd, 150)).toString();
+    const out = (await v.composeOccupants(crowd, 150)).toString();
     expect(out).toContain("3 humans in grey cloaks");
     expect(out).not.toContain("Bob");
   });
@@ -192,7 +198,7 @@ describe("composeOccupants — similarity grouping", () => {
   it("groups by (species, feature) into 'N <species> in <feature>'", async () => {
     const v = makeViewer();
     const dwarves = Array.from({ length: 4 }, (_, i) => makeDwarf(i));
-    const out = (await SocialApi.composeOccupants(v, dwarves, 50)).toString();
+    const out = (await v.composeOccupants(dwarves, 50)).toString();
     expect(out).toContain("4 dwarves in red robes");
   });
 
@@ -208,7 +214,7 @@ describe("composeOccupants — similarity grouping", () => {
       }),
     );
     const out = (
-      await SocialApi.composeOccupants(v, featureless, 50)
+      await v.composeOccupants(featureless, 50)
     ).toString();
     expect(out).toContain("(3 others present)");
     expect(out).toContain("mudq:others");
@@ -222,11 +228,11 @@ describe("composeOccupants — social.verbosity modulation", () => {
     const dwarves = Array.from({ length: 5 }, (_, i) => makeDwarf(i));
 
     verbosity = "standard";
-    const std = (await SocialApi.composeOccupants(v, dwarves, 20)).toString();
+    const std = (await v.composeOccupants(dwarves, 20)).toString();
     expect(std).not.toContain("mudq:"); // not grouped at 10–30 standard
 
     verbosity = "minimal";
-    const min = (await SocialApi.composeOccupants(v, dwarves, 20)).toString();
+    const min = (await v.composeOccupants(dwarves, 20)).toString();
     expect(min).toContain("5 dwarves in red robes"); // grouped one tier up
   });
 
@@ -234,7 +240,7 @@ describe("composeOccupants — social.verbosity modulation", () => {
     const v = makeViewer();
     const dwarves = Array.from({ length: 6 }, (_, i) => makeDwarf(i));
     verbosity = "verbose";
-    const out = (await SocialApi.composeOccupants(v, dwarves, 150)).toString();
+    const out = (await v.composeOccupants(dwarves, 150)).toString();
     expect(out).not.toContain("mudq:");
     expect(out).toContain("dwarf 0");
     expect(out).toContain("dwarf 5");
@@ -244,7 +250,7 @@ describe("composeOccupants — social.verbosity modulation", () => {
 describe("composeOccupants — boosted lift + color", () => {
   it("a boosted friend is full-named with its color attribute at every tier", async () => {
     const v = makeViewer();
-    SocialApi.setRule(v, "managed:vip", {
+    v.setNotifyRule("managed:vip", {
       boostInDense: true,
       color: "teal",
       nameRendering: "name",
@@ -257,7 +263,7 @@ describe("composeOccupants — boosted lift + color", () => {
       });
       const strangers = Array.from({ length: 4 }, (_, i) => makeDwarf(i));
       const out = (
-        await SocialApi.composeOccupants(v, [friend, ...strangers], size)
+        await v.composeOccupants([friend, ...strangers], size)
       ).toString();
       expect(out, `size ${size}`).toContain('color="teal"');
       expect(out, `size ${size}`).toContain("Gimli");
@@ -273,7 +279,7 @@ describe("composeOccupants — aggregate stays targetable", () => {
   it("the collapsed line carries a resolvable mudq MQL seed", async () => {
     const v = makeViewer();
     const dwarves = Array.from({ length: 8 }, (_, i) => makeDwarf(i));
-    const out = (await SocialApi.composeOccupants(v, dwarves, 50)).toString();
+    const out = (await v.composeOccupants(dwarves, 50)).toString();
     // A <link href="mudq:..."> handle, not a dead string.
     expect(out).toMatch(/<link href="mudq:dwarves in red robes">/);
     expect(out).toContain("8 dwarves in red robes");

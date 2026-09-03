@@ -52,7 +52,7 @@ describe('EmploymentApi / EmploymentLogic', () => {
   it('hires an actor into a position (record materializes)', async () => {
     const biz = seedBusiness();
     const mara = seedWorker(MARA);
-    const emp = await EmploymentApi.hire(biz, mara, 'bartender');
+    const emp = await biz.appoint(mara, 'bartender');
     expect(emp?.positionKey).toBe('bartender');
     expect(emp?.status).toBe('employed');
     const stored = mara.getEmployment(BUSINESS);
@@ -63,12 +63,12 @@ describe('EmploymentApi / EmploymentLogic', () => {
   it('fires and quits by flipping status (history preserved)', () => {
     const biz = seedBusiness();
     const mara = seedWorker(MARA);
-    EmploymentApi.hire(biz, mara, 'bartender');
+    biz.appoint(mara, 'bartender');
 
-    EmploymentApi.fire(biz, mara);
+    biz.dismiss(mara);
     expect(mara.getEmployment(BUSINESS)?.status).toBe('fired');
 
-    EmploymentApi.quit(mara, BUSINESS);
+    mara.quitJob(BUSINESS);
     expect(mara.getEmployment(BUSINESS)?.status).toBe('quit');
   });
 
@@ -89,18 +89,18 @@ describe('EmploymentApi / EmploymentLogic', () => {
   it('recognizes the proprietor via the direct edge', async () => {
     const biz = seedBusiness();
     const dave = seedWorker(DAVE);
-    await expect(EmploymentApi.isProprietorOf(dave, biz)).resolves.toBe(true);
+    await expect(biz.hasProprietor(dave)).resolves.toBe(true);
   });
 
   it('grants the operator override to the Prime Minister\'s SEAT (an office, never the founder)', async () => {
     const biz = seedBusiness();
     const stranger = seedWorker('/world/lounge/agent/remy');
     const holds = vi.spyOn(CompactApi, 'holdsOffice').mockResolvedValue(false);
-    await expect(EmploymentApi.isProprietorOf(stranger, biz)).resolves.toBe(
+    await expect(biz.hasProprietor(stranger)).resolves.toBe(
       false,
     );
     holds.mockResolvedValue(true);
-    await expect(EmploymentApi.isProprietorOf(stranger, biz)).resolves.toBe(
+    await expect(biz.hasProprietor(stranger)).resolves.toBe(
       true,
     );
     expect(holds).toHaveBeenCalledWith(stranger, 'prime-minister');

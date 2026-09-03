@@ -7,11 +7,26 @@
 
 import "../../../../../test-bootstrap";
 import { describe, it, expect, afterEach, vi } from 'vitest';
-import { SocialApi } from '../../../../api/social';
 import { MixinApi } from '../../../../api/mixin';
 import { AppApi } from '../../../../api/app';
 import { StuffApi } from '../../../../api/stuff';
+import { ProxyApi } from '../../../../api/proxy';
+import { PresenceLogic } from '../PresenceLogic';
 import type Avatar from '../../../agent/Avatar';
+
+/**
+ * White-box: the RAW (unproxied) logic instance — the avatar fakes are
+ * not Stuff, so `statusOf` is called directly (no gate; no circle scope
+ * so the read aperture is the identity branch). `Stuff.RAW_TARGET` is
+ * the sanctioned raw-state test seam.
+ */
+function statusOf(target: Avatar): string {
+  const proxy = StuffApi.createSync(() => new PresenceLogic());
+  const raw = (proxy as never as Record<symbol, PresenceLogic>)[
+    ProxyApi.RAW_TARGET
+  ]!;
+  return raw.statusOf(target);
+}
 
 /** A connected/linkdead avatar stub with one interactive at `lastInput`. */
 function makeAvatar(opts: {
@@ -39,7 +54,7 @@ describe('SocialApi.statusOf precedence', () => {
   it('reads linkdead-but-lingering as reconnecting', () => {
     vi.spyOn(AppApi, 'setting').mockReturnValue('300');
     vi.spyOn(MixinApi, 'isEngaged').mockReturnValue(true);
-    expect(SocialApi.statusOf(makeAvatar({ connected: false }))).toBe(
+    expect(statusOf(makeAvatar({ connected: false }))).toBe(
       'reconnecting'
     );
   });
@@ -48,9 +63,7 @@ describe('SocialApi.statusOf precedence', () => {
     vi.spyOn(AppApi, 'setting').mockReturnValue('300');
     vi.spyOn(MixinApi, 'isEngaged').mockReturnValue(true);
     expect(
-      SocialApi.statusOf(
-        makeAvatar({ connected: true, engaged: true, lastInputAgoMs: 10_000_000 })
-      )
+      statusOf(makeAvatar({ connected: true, engaged: true, lastInputAgoMs: 10_000_000 }))
     ).toBe('engaged');
   });
 
@@ -58,9 +71,7 @@ describe('SocialApi.statusOf precedence', () => {
     vi.spyOn(AppApi, 'setting').mockReturnValue('300'); // 5 minutes
     vi.spyOn(MixinApi, 'isEngaged').mockReturnValue(false);
     expect(
-      SocialApi.statusOf(
-        makeAvatar({ connected: true, lastInputAgoMs: 6 * 60 * 1000 })
-      )
+      statusOf(makeAvatar({ connected: true, lastInputAgoMs: 6 * 60 * 1000 }))
     ).toBe('idle');
   });
 
@@ -68,9 +79,7 @@ describe('SocialApi.statusOf precedence', () => {
     vi.spyOn(AppApi, 'setting').mockReturnValue('300');
     vi.spyOn(MixinApi, 'isEngaged').mockReturnValue(false);
     expect(
-      SocialApi.statusOf(
-        makeAvatar({ connected: true, lastInputAgoMs: 5_000 })
-      )
+      statusOf(makeAvatar({ connected: true, lastInputAgoMs: 5_000 }))
     ).toBe('active');
   });
 });

@@ -27,6 +27,15 @@ const AttendantApiCallers = SecurityPolicies.FromModule(
   "/api/attendant#AttendantApi",
 );
 
+/**
+ * The guard install is also callable by the self-warming
+ * `AttendantWarden` singleton (the boot()-retirement shape).
+ */
+const AttendantBootCallers = SecurityPolicies.AnyOf(
+  AttendantApiCallers,
+  SecurityPolicies.FromTemplate('/platform/idea/AttendantWarden'),
+);
+
 const DEFAULT_SWEEP_MS = 15_000;
 const DEFAULT_IDLE_MS = 120_000;
 
@@ -44,9 +53,9 @@ export class AttendantLogic extends ApiLogic {
   private sweepHandle: ScheduleHandle | null = null;
   private disconnectSub: Subscription<{ playerId: string }> | null = null;
 
-  /** Boot seam (idempotent): install the lease sweep + linkdead release. */
-  @CallSecurity(AttendantApiCallers)
-  public boot(): void {
+  /** Install the lease sweep + linkdead release (idempotent) — armed by `AttendantWarden.warm`. */
+  @CallSecurity(AttendantBootCallers)
+  public installGuards(): void {
     if (!this.sweepHandle) {
       this.sweepHandle = ScheduleApi.recurring(
         readInt(AppSettingKeys.attendantLeaseSweepIntervalMs, DEFAULT_SWEEP_MS),

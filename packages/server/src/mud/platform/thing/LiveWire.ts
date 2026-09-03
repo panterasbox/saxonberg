@@ -7,7 +7,7 @@
  * reads that). Perceptible so `look` describes it.
  *
  * No behavior of its own: it just *imposes a potential* into the room's
- * conductive-contact graph. `ElectricityApi.conduct(wire)` does the rest —
+ * conductive-contact graph. `wire.conduct()` does the rest —
  * everyone bridged to it through the water + `Floor` takes the current that
  * passes through them. This is the generalizable seam: the deferred wall
  * socket and the magic Lightning bolt are the same `Energized` source.

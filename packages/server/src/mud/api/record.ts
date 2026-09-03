@@ -246,47 +246,6 @@ export class RecordApi {
     return report;
   }
 
-  /**
-   * Install the recurring reset, if this server is armed for one.
-   *
-   * ⚠⚠ **Off unless explicitly armed.** `world.reset.mode` follows the
-   * residency-sweep precedent: absent or `dry-run` logs what it would
-   * remove and removes nothing; only `enforce` deletes. A destructive
-   * job that ships on by default is a data-loss bug with a schedule.
-   *
-   * ⚠ It also refuses to run enforcing while `world.resetPolicy` is
-   * unset. That setting is the PROSE the front door prints, and a
-   * server that wipes without printing it is a server whose front page
-   * is silently lying about what happens to your work. The two are
-   * armed together or not at all.
-   */
-  public static boot(): void {
-    const mode = readSetting(AppSettingKeys.worldResetMode);
-    if (!mode || mode === 'off') return;
-    if (mode === 'enforce' && !readSetting(AppSettingKeys.worldResetPolicy)) {
-      console.error(
-        '[reset] REFUSING to arm: `world.reset.mode` is `enforce` but ' +
-          '`world.resetPolicy` is unset. The front door would say nothing ' +
-          'about resets while the server performed them. Set both or neither.',
-      );
-      return;
-    }
-    const intervalMs = Number(
-      readSetting(AppSettingKeys.worldResetIntervalMs) || DEFAULT_RESET_MS,
-    );
-    const every = Number.isFinite(intervalMs) && intervalMs > 0
-      ? intervalMs
-      : DEFAULT_RESET_MS;
-    console.warn(
-      `[reset] armed in ${mode} mode, every ${Math.round(every / 3600000)}h`,
-    );
-    ScheduleApi.recurring(every, () => {
-      void RecordApi.wipe({ dryRun: mode !== 'enforce' }).catch((err) =>
-        console.error('[reset] run failed', err),
-      );
-    });
-  }
-
   /* ─── test seams ─── */
 
   public static _clearAllForTesting(): void {

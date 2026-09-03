@@ -21,6 +21,18 @@ const CATALOGUE_PATH = TemplatePaths.subjectCatalogue;
 
 const SubjectApiCallers = SecurityPolicies.FromModule('/api/subject#SubjectApi',
 );
+/** The F2 actor face (SubjectSubscriber hosts) forwards here as the actor. */
+const SubjectActorCallers = SecurityPolicies.AnyOf(
+  SubjectApiCallers,
+  SecurityPolicies.FromMixin('SubjectSubscriberMixin', {
+    // Compare by stuffId — the caller may surface as the raw target
+    // while the argument is the proxy (or vice versa).
+    where: (caller, _target, _method, args) =>
+      (caller as { stuffId?: string }).stuffId !== undefined &&
+      (caller as { stuffId?: string }).stuffId ===
+        (args[0] as { stuffId?: string } | undefined)?.stuffId,
+  }),
+);
 
 /**
  * SubjectLogic — the hot-reloadable logic singleton behind {@link SubjectApi}.
@@ -90,19 +102,19 @@ export class SubjectLogic extends ApiLogic {
   }
 
   /** See {@link SubjectApi.visibleSubjects}. */
-  @CallSecurity(SubjectApiCallers)
+  @CallSecurity(SubjectActorCallers)
   public async visibleSubjects(actor: Stuff): Promise<Subject[]> {
     return (await requireCatalogue()).visibleSubjects(actor);
   }
 
   /** See {@link SubjectApi.isAudienceMember}. */
-  @CallSecurity(SubjectApiCallers)
+  @CallSecurity(SubjectActorCallers)
   public async isAudienceMember(actor: Stuff, subject: Subject): Promise<boolean> {
     return (await requireCatalogue()).isAudienceMember(actor, subject);
   }
 
   /** See {@link SubjectApi.getSubscription}. */
-  @CallSecurity(SubjectApiCallers)
+  @CallSecurity(SubjectActorCallers)
   public async getSubscription(
     avatar: Avatar,
     subjectId: string,
@@ -111,7 +123,7 @@ export class SubjectLogic extends ApiLogic {
   }
 
   /** See {@link SubjectApi.setSubscription}. */
-  @CallSecurity(SubjectApiCallers)
+  @CallSecurity(SubjectActorCallers)
   public async setSubscription(
     avatar: Avatar,
     subjectId: string,
@@ -121,7 +133,7 @@ export class SubjectLogic extends ApiLogic {
   }
 
   /** See {@link SubjectApi.follow}. */
-  @CallSecurity(SubjectApiCallers)
+  @CallSecurity(SubjectActorCallers)
   public async follow(
     avatar: Avatar,
     subjectId: string,
@@ -131,7 +143,7 @@ export class SubjectLogic extends ApiLogic {
   }
 
   /** See {@link SubjectApi.mute}. */
-  @CallSecurity(SubjectApiCallers)
+  @CallSecurity(SubjectActorCallers)
   public async mute(
     avatar: Avatar,
     subjectId: string,
@@ -139,20 +151,6 @@ export class SubjectLogic extends ApiLogic {
     muted: boolean,
   ): Promise<SubjectSubscription> {
     return (await requireCatalogue()).mute(avatar, subjectId, surface, muted);
-  }
-
-  /** See {@link SubjectApi.migrateLegacySubscription}. */
-  @CallSecurity(SubjectApiCallers)
-  public async migrateLegacySubscription(
-    avatar: Avatar,
-    subjectId: string,
-    legacy: { tunedIn: boolean; muted: boolean },
-  ): Promise<SubjectSubscription> {
-    return (await requireCatalogue()).migrateLegacySubscription(
-      avatar,
-      subjectId,
-      legacy,
-    );
   }
 
   /** See {@link SubjectApi.renameSubject}. */

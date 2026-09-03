@@ -154,7 +154,7 @@ written at exactly three places — the sale (`title buy`), the grant
 the same order:
 
 ```
-Lock.mintKeyway() → ParcelApi.setKeyway(extent) → CredentialApi.issueKey(holder, keyway, 'pin-tumbler')
+Lock.mintKeyway() → ParcelApi.setKeyway(extent) → Lock.issueKey(holder, keyway, 'pin-tumbler')
 ```
 
 Re-keying on release is what makes an ex-tenant's key dead metal rather

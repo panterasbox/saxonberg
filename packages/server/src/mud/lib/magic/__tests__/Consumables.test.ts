@@ -14,20 +14,19 @@
  */
 
 import "../../../../test-bootstrap";
+import type { CompetenceBandName } from '../../advancement/CompetenceBand';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { readFileSync, readdirSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import YAML from 'yaml';
 import { MagicApi } from '../../../api/magic';
-import { AdvancementApi } from '../../../api/advancement';
 import { CommandApi } from '../../../api/command';
 import type { CommandDefinition } from '../../command/CommandDefinition';
 import { ExecutionContextApi } from '../../../api/execution-context';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { WorldClockApi } from '../../../api/worldclock';
-import { RecognitionApi } from '../../../api/recognition';
 import '../../../platform/idea/WorldClockRegistry';
 import SpellCatalogue from '../../../platform/idea/SpellCatalogue';
 import Spell from '../../../platform/idea/magic/Spell';
@@ -62,7 +61,14 @@ class GlowlightOrb extends LightSourceMixin(Thing) {}
 const SPELL_PATH_PREFIX = '/stuff/idea/magic/Spell/';
 const SPELL_CLASS = '/platform/idea/magic/Spell';
 
-class TestCharacter extends Character {}
+// The competence read runs ON the caster since the OO sweep; this
+// pins the band per test (credits no-op — PM is disconnected here).
+let testBand: CompetenceBandName = 'competent';
+class TestCharacter extends Character {
+  override async competenceBandFor(): Promise<CompetenceBandName> {
+    return testBand;
+  }
+}
 /** An identifiable item with no proper name — the unknown-flask shape. */
 class Vial extends IdentifiableMixin(VisibleMixin(ContainableMixin(Idea))) {}
 /** A bare marked thing: no working, just text. */
@@ -183,8 +189,7 @@ describe('Wave 2 — consumables', () => {
     WorldClockApi._resetForTesting();
     WorldClockApi._setNowProviderForTesting(() => 100000);
     await installCatalogue();
-    vi.spyOn(AdvancementApi, 'recordSignature').mockResolvedValue(undefined);
-    vi.spyOn(AdvancementApi, 'bandFor').mockResolvedValue('competent');
+    testBand = 'competent';
     vi.spyOn(StuffApi, 'clone').mockImplementation(async () =>
       makeStuff(() => new GlowlightOrb()),
     );
@@ -238,13 +243,11 @@ describe('Wave 2 — consumables', () => {
     scroll.setDeliveryEfficiency(2);
     ContainmentApi.move(scroll, room);
     actingAs(drinker);
-    const spy = vi.spyOn(MagicApi, 'discharge');
-    await MagicApi.discharge(scroll, drinker, { potencyScale: 0.5 });
-    expect(spy).toHaveBeenCalled();
+    await scroll.dischargeAt(drinker, { potencyScale: 0.5 });
     // The multiplication itself is asserted through the context builder
     // in EffectContext.test.ts; here we pin that the option is honoured
     // at all rather than silently dropped.
-    const out = await MagicApi.discharge(scroll, drinker, {
+    const out = await scroll.dischargeAt(drinker, {
       potencyScale: 0,
     });
     expect(out.ok).toBe(true);
@@ -454,7 +457,7 @@ describe('Wave 2 — consumables', () => {
     ContainmentApi.move(scroll, room);
     actingAs(reader);
 
-    const out = await MagicApi.discharge(scroll, vial);
+    const out = await scroll.dischargeAt(vial);
     expect(out.ok).toBe(true);
 
     // A WRITE, not a message: the reader now knows the class, so every
@@ -462,9 +465,9 @@ describe('Wave 2 — consumables', () => {
     expect(
       reader.recall(IDENTIFICATION, vial.getTemplatePath()!)?.payload.typeKnown,
     ).toBe(true);
-    expect(RecognitionApi.describe(reader, vial)).toBe('a potion of healing');
+    expect(vial.describeFor(reader)).toBe('a potion of healing');
     // …and it stays unidentified to everyone else.
-    expect(RecognitionApi.describe(other, vial)).toBe('a blue potion');
+    expect(vial.describeFor(other)).toBe('a blue potion');
   });
 
   it('D24 — identifying a VESSEL reaches the substance inside it', async () => {
@@ -502,7 +505,7 @@ describe('Wave 2 — consumables', () => {
     ContainmentApi.move(scroll, room);
     actingAs(reader);
 
-    const out = await MagicApi.discharge(scroll, flask as unknown as never);
+    const out = await scroll.dischargeAt(flask as unknown as never);
     expect(out.ok).toBe(true);
     // The record lands on the MATERIAL's path, which is what makes one
     // reading cover every flask of that draught — and what makes
@@ -532,7 +535,7 @@ describe('Wave 2 — consumables', () => {
     ContainmentApi.move(scroll, room);
     actingAs(reader);
 
-    const out = await MagicApi.discharge(scroll, empty as unknown as never);
+    const out = await scroll.dischargeAt(empty as unknown as never);
     expect(out.reports.join(' ')).toContain('nothing hidden to learn');
   });
 });

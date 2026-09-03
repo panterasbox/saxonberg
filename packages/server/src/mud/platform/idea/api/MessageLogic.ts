@@ -84,24 +84,6 @@ export class MessageLogic extends ApiLogic {
       .filter((obj): obj is typeof obj & Sensor => MixinApi.isSensor(obj));
   }
 
-  /** See {@link MessageApi.sendMessage}. */
-  @CallSecurity(MessageApiCallers)
-  public sendMessage(recipient: SensorStuff, frame: MessageFrame): void {
-    // A destroyed recipient is inert (its proxy no-ops every call), so a
-    // dead sensor still reachable from a room is harmless here — no guard
-    // needed. A *linkdead* recipient is live and still receives.
-    recipient.onMessage(frame);
-  }
-
-  /** See {@link MessageApi.sendEnvelope}. */
-  @CallSecurity(MessageApiCallers)
-  public sendEnvelope(
-    recipient: SensorStuff,
-    template: EnvelopeTemplate
-  ): void {
-    recipient.onEnvelope(template);
-  }
-
   /** See {@link MessageApi.messageContents}. */
   @CallSecurity(MessageApiCallers)
   public messageContents(
@@ -112,7 +94,7 @@ export class MessageLogic extends ApiLogic {
     const exclude = opts.exclude ?? null;
     for (const sensor of this.getSensors(container)) {
       if (exclude && (sensor as Stuff) === exclude) continue;
-      this.sendMessage(sensor, frame);
+      sensor.onMessage(frame);
     }
   }
 

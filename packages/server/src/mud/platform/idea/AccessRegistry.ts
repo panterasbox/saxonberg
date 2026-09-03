@@ -185,9 +185,9 @@ export default class AccessRegistry extends AccessRegistryBase {
     if (idx <= 0) return false;
     const operatingLocation = path.slice(0, idx);
     const business = EmploymentApi.businessAt(operatingLocation);
-    if (!business) return false;
-    if (EmploymentApi.holdsPosition(subject, business)) return true;
-    return EmploymentApi.isProprietorOf(subject, business);
+    if (!business || !MixinApi.isOrganization(business)) return false;
+    if (business.employs(subject)) return true;
+    return business.hasProprietor(subject);
   }
 
   /**
@@ -482,7 +482,7 @@ export default class AccessRegistry extends AccessRegistryBase {
       this.reportUnresolvedOrganization(owner.templatePath);
       return false;
     }
-    if (EmploymentApi.holdsPosition(subject, org)) return true;
+    if (org.employs(subject)) return true;
     const authority = org.getAppointingAuthority();
     // ⚠ An organization whose appointing authority is the committee over
     // an extent IT holds would recurse (committee → organization → head →

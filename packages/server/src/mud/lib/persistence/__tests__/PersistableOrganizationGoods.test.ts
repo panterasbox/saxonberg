@@ -146,8 +146,8 @@ describe("organization-owned goods persist with their host", () => {
     const good = makeStuffAtPath(() => new Good(), GOOD);
     ContainmentApi.move(good as never, counter as never);
     await stamp(good, OUTFIT_OWNER);
-    expect(ChattelApi.isStamped(good)).toBe(true);
-    expect(ChattelApi.isOwnerPersisted(good)).toBe(false);
+    expect(good.isStamped()).toBe(true);
+    expect(good.isOwnerPersisted()).toBe(false);
 
     await PersistableApi.capture(counter);
     await PersistableApi.capture(room);
@@ -196,7 +196,7 @@ describe("organization-owned goods persist with their host", () => {
     const good = makeStuffAtPath(() => new Good(), GOOD);
     ContainmentApi.move(good as never, room as never);
     await stamp(good, ALICE_OWNER);
-    expect(ChattelApi.isOwnerPersisted(good)).toBe(true);
+    expect(good.isOwnerPersisted()).toBe(true);
     await PersistableApi.capture(room);
     const rec = snapshots.find((d) => d.scope === ROOM) as { state: Record<string, { contents?: unknown[] }> };
     const contents = Object.values(rec.state).find((sl) => "contents" in sl)?.contents ?? [];

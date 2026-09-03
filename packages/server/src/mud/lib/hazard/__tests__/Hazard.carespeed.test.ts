@@ -26,6 +26,7 @@
  */
 
 import "../../../../test-bootstrap";
+import { AdvancementMixin } from '../../advancement/Advancement';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Trap from '../../../platform/thing/Trap';
 import { HazardDelivery, type HazardDeliveryOptions } from '../HazardDelivery';
@@ -37,7 +38,6 @@ import Location from '../../stuff/Location';
 import { MessageApi } from '../../../api/message';
 import { ContainmentApi } from '../../../api/containment';
 import { PerceptionApi } from '../../../api/perception';
-import { AdvancementApi } from '../../../api/advancement';
 import { SpeciesApi } from '../../../api/species';
 import { PersistenceManager } from '../../../../backend/PersistenceManager';
 import {
@@ -56,7 +56,9 @@ let trapCounter = 0;
 // A plain mover: Mobile (so it traverses) over Creature (so it has anatomy
 // the trap delivery resolves a site against). No BeliefStore — discovery
 // plays no part here; the outcome rides perception alone.
-class CareSpeedMover extends MobileMixin(Creature) {
+// AdvancementMixin composed so the awareness-band read (the mover's
+// own competenceBandFor since the OO sweep) exists and is spy-able.
+class CareSpeedMover extends AdvancementMixin(MobileMixin(Creature)) {
   static _mixinName = 'CareSpeedMover';
 }
 
@@ -87,7 +89,10 @@ async function warmedMover(path: string, band: string): Promise<CareSpeedMover> 
   c.setSpecies(sharedSpecies);
   stampTemplatePathForTest(c, path);
   ContainmentApi.move(c, makeStuff(() => new Location()));
-  vi.spyOn(AdvancementApi, 'bandFor').mockResolvedValue(band as never);
+  vi.spyOn(
+    c as unknown as { competenceBandFor(d: string): Promise<string> },
+    'competenceBandFor',
+  ).mockResolvedValue(band);
   vi.spyOn(SpeciesApi, 'preloadAnatomy').mockResolvedValue(undefined as never);
   await PerceptionApi.preloadForSenseGate(c);
   return c;

@@ -160,7 +160,7 @@ game-time safety-net sweep is a named deferred seam.
 
 Breach (abandon / claim expiry) = `escrow-revert` + a durable
 `breached` row naming the claimant + an **issuer-side regard nudge**
-(`RegardApi.adjustRegard(issuer's person, contractor,
+(`adjustRegardRegard(issuer's person, contractor,
 −contract.breachRegardPenalty)` — the issuer itself for a player, the
 proprietor for a business). Best-effort: either side not live (lazy NPC
 standup) → the nudge no-ops gracefully; the durable event row is what

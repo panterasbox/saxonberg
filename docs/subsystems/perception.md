@@ -127,7 +127,8 @@ any query Api method called for that viewer:
 > **Recognition is NOT a Shadow.** Per-viewer *identity* memory ("Bob has
 > met Phil, so a hooded stranger reads as Phil") is its own subsystem —
 > the `BeliefStoreMixin` on the viewer plus the explicit
-> `RecognitionApi.describe(viewer, target)` naming step, not a shadow on a
+> `target.describeFor(viewer)` naming step (the recognition face on the
+> `Stuff` base), not a shadow on a
 > visibility query. It *consults* this perception layer only for its
 > visibility gate. See [belief.md](./belief.md).
 

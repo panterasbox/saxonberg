@@ -128,14 +128,14 @@ describe('MaterialApi v2 — classification queries', () => {
   describe('compositionOf', () => {
     it('a pure element credits its own symbol with full weight', () => {
       const { iron } = setupSteel();
-      const result = MaterialApi.compositionOf(iron);
+      const result = iron.elementalComposition();
       expect(result.direct).toEqual([]);
       expect(result.flat).toEqual({ Fe: 1 });
     });
 
     it('an alloy expands to leaf-element fractions', () => {
       const { steel } = setupSteel();
-      const result = MaterialApi.compositionOf(steel);
+      const result = steel.elementalComposition();
       expect(result.direct).toHaveLength(2);
       expect(result.flat.Fe).toBeCloseTo(0.998);
       expect(result.flat.C).toBeCloseTo(0.002);
@@ -148,7 +148,7 @@ describe('MaterialApi v2 — classification queries', () => {
       );
       granite.setTags(['rock', 'igneous', 'mixture']);
       // composition empty by default
-      const result = MaterialApi.compositionOf(granite);
+      const result = granite.elementalComposition();
       expect(result.flat).toEqual({});
     });
   });
@@ -156,15 +156,15 @@ describe('MaterialApi v2 — classification queries', () => {
   describe('containsElement', () => {
     it('iron contains Fe; not C', () => {
       const { iron } = setupSteel();
-      expect(MaterialApi.containsElement(iron, 'Fe')).toBe(true);
-      expect(MaterialApi.containsElement(iron, 'C')).toBe(false);
+      expect(iron.containsElement('Fe')).toBe(true);
+      expect(iron.containsElement('C')).toBe(false);
     });
 
     it('steel contains both Fe and C', () => {
       const { steel } = setupSteel();
-      expect(MaterialApi.containsElement(steel, 'Fe')).toBe(true);
-      expect(MaterialApi.containsElement(steel, 'C')).toBe(true);
-      expect(MaterialApi.containsElement(steel, 'Au')).toBe(false);
+      expect(steel.containsElement('Fe')).toBe(true);
+      expect(steel.containsElement('C')).toBe(true);
+      expect(steel.containsElement('Au')).toBe(false);
     });
   });
 

@@ -22,7 +22,6 @@ import EventRegistry from '../../platform/idea/EventRegistry';
 import Interactive from '../../platform/idea/Interactive';
 import Avatar from '../../platform/agent/Avatar';
 import Thing from '../../lib/stuff/Thing';
-import { ConnectionApi } from '../connection';
 
 async function bootRegistry(): Promise<void> {
   const reg = await StuffApi.create(() => {
@@ -46,7 +45,7 @@ async function setup(): Promise<{
   const interactive = await StuffApi.create(
     () => new Interactive('sock-1', 'sess-1', { _id: 'u1' } as never),
   );
-  ConnectionApi.transfer(interactive, avatar);
+  interactive.transferTo(avatar);
   const envelopes: Array<{ type: string; promptId?: string; outcome?: { notes: Array<{ kind: string }> } }> = [];
   vi.spyOn(avatar, 'onEnvelope').mockImplementation((tpl) => {
     envelopes.push(tpl as unknown as { type: string });
@@ -64,35 +63,35 @@ describe('PromptApi — integration', () => {
 
   it('1. choice happy path', async () => {
     const { interactive, envelopes } = await setup();
-    const p = PromptApi.choice<'a' | 'b'>(interactive, 'Pick', [
+    const p = interactive.promptChoice<'a' | 'b'>('Pick', [
       { label: 'A', response: 'a' },
       { label: 'B', response: 'b' },
     ]);
     const id = envelopes[0]!.promptId!;
-    PromptApi.handleResponse(interactive, { promptId: id, response: 'b' });
+    interactive.handlePromptResponse({ promptId: id, response: 'b' });
     await expect(p).resolves.toBe('b');
   });
 
   it('2. confirm yes/no decoded to boolean', async () => {
     const { interactive, envelopes } = await setup();
-    const p = PromptApi.confirm(interactive, 'OK?', 'no');
+    const p = interactive.promptConfirm('OK?', 'no');
     const id = envelopes[0]!.promptId!;
-    PromptApi.handleResponse(interactive, { promptId: id, response: 'yes' });
+    interactive.handlePromptResponse({ promptId: id, response: 'yes' });
     await expect(p).resolves.toBe(true);
   });
 
   it('3. text with validator: retry then accept', async () => {
     const { interactive, envelopes } = await setup();
-    const p = PromptApi.text(interactive, 'Name?', {
+    const p = interactive.promptText('Name?', {
       validate: (s) => (s.length >= 3 ? true : 'too short'),
     });
     const id = envelopes[0]!.promptId!;
     envelopes.length = 0;
-    PromptApi.handleResponse(interactive, { promptId: id, response: 'A' });
+    interactive.handlePromptResponse({ promptId: id, response: 'A' });
     await Promise.resolve();
     await Promise.resolve();
     expect(envelopes[0]!.outcome!.notes[0]!.kind).toBe('prompt-validation-failed');
-    PromptApi.handleResponse(interactive, { promptId: id, response: 'Alice' });
+    interactive.handlePromptResponse({ promptId: id, response: 'Alice' });
     await expect(p).resolves.toBe('Alice');
   });
 
@@ -100,9 +99,9 @@ describe('PromptApi — integration', () => {
     const { interactive, envelopes } = await setup();
     const sword1 = await StuffApi.create(() => new Thing());
     const sword2 = await StuffApi.create(() => new Thing());
-    const p = PromptApi.mqlObject(interactive, 'Which?', [sword1, sword2]);
+    const p = interactive.promptMqlObject('Which?', [sword1, sword2]);
     const id = envelopes[0]!.promptId!;
-    PromptApi.handleResponse(interactive, {
+    interactive.handlePromptResponse({
       promptId: id,
       response: sword2.stuffId,
     });
@@ -112,9 +111,9 @@ describe('PromptApi — integration', () => {
   it('5. mqlObject bogus stuffId resolves null (substrate is pass-through)', async () => {
     const { interactive, envelopes } = await setup();
     const sword = await StuffApi.create(() => new Thing());
-    const p = PromptApi.mqlObject(interactive, 'Which?', [sword]);
+    const p = interactive.promptMqlObject('Which?', [sword]);
     const id = envelopes[0]!.promptId!;
-    PromptApi.handleResponse(interactive, {
+    interactive.handlePromptResponse({
       promptId: id,
       response: 'not-a-real-id',
     });
@@ -126,9 +125,9 @@ describe('PromptApi — integration', () => {
     const a = await StuffApi.create(() => new Thing());
     const b = await StuffApi.create(() => new Thing());
     const c = await StuffApi.create(() => new Thing());
-    const p = PromptApi.mqlMany(interactive, 'Pick', [a, b, c], { min: 1, max: 3 });
+    const p = interactive.promptMqlMany('Pick', [a, b, c], { min: 1, max: 3 });
     const id = envelopes[0]!.promptId!;
-    PromptApi.handleResponse(interactive, {
+    interactive.handlePromptResponse({
       promptId: id,
       response: JSON.stringify([a.stuffId, c.stuffId]),
     });
@@ -139,17 +138,17 @@ describe('PromptApi — integration', () => {
     const { interactive, envelopes } = await setup();
     const a = await StuffApi.create(() => new Thing());
     const b = await StuffApi.create(() => new Thing());
-    const p = PromptApi.mqlMany(interactive, 'Pick', [a, b], { min: 2, max: 2 });
+    const p = interactive.promptMqlMany('Pick', [a, b], { min: 2, max: 2 });
     const id = envelopes[0]!.promptId!;
     envelopes.length = 0;
-    PromptApi.handleResponse(interactive, {
+    interactive.handlePromptResponse({
       promptId: id,
       response: JSON.stringify([a.stuffId]),
     });
     expect(envelopes[0]!.outcome!.notes[0]!.kind).toBe('prompt-validation-failed');
     expect(PromptApi._getResolverCountForTesting()).toBe(1);
     // Recover with a valid response.
-    PromptApi.handleResponse(interactive, {
+    interactive.handlePromptResponse({
       promptId: id,
       response: JSON.stringify([a.stuffId, b.stuffId]),
     });
@@ -158,23 +157,23 @@ describe('PromptApi — integration', () => {
 
   it('8. per-prompt prompt-cancel rejects that one only', async () => {
     const { interactive, envelopes } = await setup();
-    const p1 = PromptApi.text(interactive, 'A?');
-    const p2 = PromptApi.text(interactive, 'B?');
+    const p1 = interactive.promptText('A?');
+    const p2 = interactive.promptText('B?');
     const id1 = envelopes[0]!.promptId!;
-    PromptApi.handleCancel(interactive, { promptId: id1 });
+    interactive.handlePromptCancel({ promptId: id1 });
     await expect(p1).rejects.toBeInstanceOf(PromptCancelledError);
     // p2 still pending.
     expect(PromptApi._getResolverCountForTesting()).toBe(1);
-    PromptApi.cancelAll(interactive, 'cancelled');
+    interactive.cancelPrompts('cancelled');
     await expect(p2).rejects.toBeInstanceOf(PromptCancelledError);
   });
 
   it('9. cancelAll wholesale rejects every pending await', async () => {
     const { interactive } = await setup();
-    const p1 = PromptApi.text(interactive, 'A?');
-    const p2 = PromptApi.text(interactive, 'B?');
-    const p3 = PromptApi.text(interactive, 'C?');
-    expect(PromptApi.cancelAll(interactive, 'cancelled')).toBe(3);
+    const p1 = interactive.promptText('A?');
+    const p2 = interactive.promptText('B?');
+    const p3 = interactive.promptText('C?');
+    expect(interactive.cancelPrompts('cancelled')).toBe(3);
     for (const p of [p1, p2, p3]) {
       // eslint-disable-next-line no-await-in-loop
       await expect(p).rejects.toMatchObject({ reason: 'cancelled' });
@@ -183,9 +182,9 @@ describe('PromptApi — integration', () => {
 
   it('10. disconnect cleanup uses reason host-disconnected', async () => {
     const { interactive } = await setup();
-    const p1 = PromptApi.text(interactive, 'A?');
-    const p2 = PromptApi.text(interactive, 'B?');
-    PromptApi.cancelAll(interactive, 'host-disconnected');
+    const p1 = interactive.promptText('A?');
+    const p2 = interactive.promptText('B?');
+    interactive.cancelPrompts('host-disconnected');
     await expect(p1).rejects.toMatchObject({ reason: 'host-disconnected' });
     await expect(p2).rejects.toMatchObject({ reason: 'host-disconnected' });
   });

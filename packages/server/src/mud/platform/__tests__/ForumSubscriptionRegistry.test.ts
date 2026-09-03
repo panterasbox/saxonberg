@@ -19,6 +19,7 @@ import { ForumsApi } from '../../api/forums';
 import ForumSubscriptionRegistry from '../idea/ForumSubscriptionRegistry';
 import SubjectCatalogue from '../idea/SubjectCatalogue';
 import { Idea } from '../../lib/stuff/Idea';
+import { SensorMixin } from '../../lib/message/Sensor';
 import {
   makeStuff,
   makeStuffAtPath,
@@ -27,12 +28,17 @@ import { PersistenceManager, Collections } from '../../../backend/PersistenceMan
 import { StuffApi } from '../../api/stuff';
 import { PlayerApi } from '../../api/player';
 import { EventApi } from '../../api/event';
-import { MessageApi } from '../../api/message';
+
 import { MixinApi } from '../../api/mixin';
 import { ForumEventFired } from '../../lib/forum/ForumEvent';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type Interactive from '../idea/Interactive';
 import type { ForumSubjectRecord } from '@saxonberg/types';
+import { ProxyApi } from '../../api/proxy';
+import {
+  SubjectSubscriberMixin,
+  type SubjectSubscriber,
+} from '../../lib/forum/SubjectSubscriber';
 
 let store: Map<string, Map<string, Record<string, unknown>>>;
 let idCounter = 0;
@@ -49,15 +55,36 @@ function col(name: string): Map<string, Record<string, unknown>> {
   return c;
 }
 
-class Actor extends Idea {}
-function makeActor(): Stuff {
-  return makeStuff(() => new Actor());
+class Actor extends SubjectSubscriberMixin(SensorMixin(Idea)) {
+  // Envelope capture: delivery is `viewer.onEnvelope(tpl)` since the
+  // OO sweep, so the viewer is the capture seam.
+  override handleEnvelope(tpl: unknown): void {
+    envelopes.push(tpl as { type: string });
+  }
+}
+function makeActor(): Stuff & SubjectSubscriber {
+  return makeStuff(() => new Actor()) as unknown as Stuff & SubjectSubscriber;
 }
 
-/** A fake Interactive whose holder is a (mock-Sensor) viewer. */
+/** A fake Interactive whose holder is a Sensor viewer (envelope-capturing). */
 function fakeInteractive(): Interactive {
   const holder = makeStuff(() => new Actor());
-  return { getHolder: () => holder } as unknown as Interactive;
+  const fake = {
+    getHolder: () => holder,
+    // The F2 instance surface: the fake forwards straight into the RAW
+    // registry (the fake carries no admissible frame; RAW_TARGET is the
+    // sanctioned white-box seam), exactly as the real Interactive
+    // method does through the gate.
+    cancelForumSubscription: (id: string) => {
+      const reg = StuffApi.findByTemplatePath<ForumSubscriptionRegistry>(
+        '/platform/idea/ForumSubscriptionRegistry',
+      )!;
+      (reg as never as Record<symbol, ForumSubscriptionRegistry>)[
+        ProxyApi.RAW_TARGET
+      ]!.handleUnsubscribe(fake as unknown as Interactive, id);
+    },
+  };
+  return fake as unknown as Interactive;
 }
 
 /**
@@ -69,6 +96,9 @@ function interactiveWithCircle(playerIds: string[]): Interactive {
   const holder = {
     allContacts: () =>
       playerIds.map((id) => ({ kind: 'avatar', playerId: id, label: 'friends' })),
+    onEnvelope: (tpl: unknown) => {
+      envelopes.push(tpl as { type: string });
+    },
   };
   return { getHolder: () => holder } as unknown as Interactive;
 }
@@ -105,9 +135,6 @@ beforeEach(() => {
 
   vi.spyOn(PlayerApi, 'isAvatarStuff').mockReturnValue(false as never);
   vi.spyOn(MixinApi, 'isSensor').mockReturnValue(true as never);
-  vi.spyOn(MessageApi, 'sendEnvelope').mockImplementation((_viewer, tpl) => {
-    envelopes.push(tpl as unknown as { type: string });
-  });
   // Capture the registry's single EventApi.on handler...
   vi.spyOn(EventApi, 'on').mockImplementation(((_kind: string, handler: unknown) => {
     busHandler = handler as (payload: unknown) => void;
@@ -144,7 +171,7 @@ describe('ForumSubscriptionRegistry', () => {
   it('delivers an initial snapshot then a live delta on a vote', async () => {
     const creator = makeActor();
     const { board } = await ForumsApi.makeForum(creator, 'Gossip', { open: true });
-    const thread = await ForumsApi.postThread(creator, board, 'Best soup?', 'body');
+    const thread = await creator.postThread(board, 'Best soup?', 'body');
 
     const interactive = fakeInteractive();
     await ForumsApi.handleSubscribe({
@@ -164,7 +191,7 @@ describe('ForumSubscriptionRegistry', () => {
     envelopes.length = 0;
     // A vote fires ForumEventFired (persist-then-fire) → drives a delta.
     const voter = makeActor();
-    await ForumsApi.castVote(voter, thread, 'up');
+    await voter.castVote(thread, 'up');
     await flush();
 
     const delta = envelopes.find((e) => e.type === 'forum-subscription-delta');
@@ -192,7 +219,7 @@ describe('ForumSubscriptionRegistry', () => {
     });
     envelopes.length = 0;
 
-    const t = await ForumsApi.postThread(creator, board, 'New', 'body');
+    const t = await creator.postThread(board, 'New', 'body');
     await flush();
 
     const delta = envelopes.find((e) => e.type === 'forum-subscription-delta');
@@ -203,17 +230,17 @@ describe('ForumSubscriptionRegistry', () => {
   it('stops delivering deltas after unsubscribe', async () => {
     const creator = makeActor();
     const { board } = await ForumsApi.makeForum(creator, 'Gossip', { open: true });
-    const thread = await ForumsApi.postThread(creator, board, 'T', 'body');
+    const thread = await creator.postThread(board, 'T', 'body');
     const interactive = fakeInteractive();
     await ForumsApi.handleSubscribe({
       interactive,
       subscriptionId: 'b1',
       scope: { kind: 'board', id: board._id! },
     });
-    ForumsApi.handleUnsubscribe(interactive, 'b1');
+    interactive.cancelForumSubscription('b1');
     envelopes.length = 0;
 
-    await ForumsApi.castVote(makeActor(), thread, 'up');
+    await (makeActor()).castVote(thread, 'up');
     await flush();
     expect(envelopes.find((e) => e.type === 'forum-subscription-delta')).toBeUndefined();
   });
@@ -228,13 +255,12 @@ describe('ForumSubscriptionRegistry — argument organizer', () => {
     inCircle?: boolean;
   }
 
-  async function makeArgumentBoard(creator: Stuff) {
+  async function makeArgumentBoard(creator: Stuff & SubjectSubscriber) {
     const { board } = await ForumsApi.makeForum(creator, 'RCV', {
       open: true,
       organizer: 'ordered',
     });
-    const spine = await ForumsApi.postThread(
-      creator,
+    const spine = await creator.postThread(
       board,
       'RCV',
       'Adopt ranked-choice voting.'
@@ -245,8 +271,7 @@ describe('ForumSubscriptionRegistry — argument organizer', () => {
   it('projects the lens and clears an open-objection badge live when answered', async () => {
     const creator = makeActor();
     const { board, spine } = await makeArgumentBoard(creator);
-    const con = await ForumsApi.attachClaim(
-      creator,
+    const con = await creator.attachClaim(
       spine,
       'objects-to',
       'Harder to count.'
@@ -270,8 +295,7 @@ describe('ForumSubscriptionRegistry — argument organizer', () => {
 
     envelopes.length = 0;
     // Answer the objection — attach any child. The badge must clear live.
-    const answer = await ForumsApi.attachClaim(
-      creator,
+    const answer = await creator.attachClaim(
       con,
       'objects-to',
       'Software counts fine.'
@@ -293,8 +317,7 @@ describe('ForumSubscriptionRegistry — argument organizer', () => {
   it('two viewers with different circles see different highlights over one structure', async () => {
     const creator = makeActor();
     const { board, spine } = await makeArgumentBoard(creator);
-    const claim = await ForumsApi.attachClaim(
-      creator,
+    const claim = await creator.attachClaim(
       spine,
       'supports',
       'Reduces spoilers.'
@@ -371,14 +394,13 @@ describe('ForumSubscriptionRegistry — argument organizer', () => {
       open: true,
       organizer: 'ordered',
     });
-    const thesis = await ForumsApi.postThread(
-      creator,
+    const thesis = await creator.postThread(
       board,
       'Shorten it',
       'four days is enough',
     );
     const objector = makeActor();
-    await ForumsApi.attachClaim(objector, thesis, 'objects-to', 'the six quiet days are not idle');
+    await objector.attachClaim(thesis, 'objects-to', 'the six quiet days are not idle');
 
     const interactive = fakeInteractive();
     await ForumsApi.handleSubscribe({

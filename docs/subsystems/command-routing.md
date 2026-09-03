@@ -109,7 +109,7 @@ avatar.executeCommand(text, { interactive })          ← CommandGiverMixin
 dispatcher reads accumulator on the claiming ctx
    │
    ▼
-MessageApi.sendEnvelope(actor, { type: 'dispatch-response', dispatchId,
+onEnvelope(actor, { type: 'dispatch-response', dispatchId,
                                   outcome: { status, notes } })
 ```
 
@@ -443,7 +443,7 @@ collapsed away.
 - A `pending-operand` verb opens the right prompt rather than guessing,
   and the entry names the field.
 - The centre chip is *name · kind · N mixins*. The **kind** is the
-  server's answer via `RecognitionApi.kindOf`, running the same gates
+  server's answer via `kindFor`, running the same gates
   the prose path uses, so a masked being reads `npc` in the menu and in
   the scrollback alike rather than one surface giving the other away.
   It is not derived client-side from the composition, which would be a
@@ -1138,7 +1138,7 @@ class DropController extends CommandController<DropModel> {
 Throws bubble out and are caught at `_executeOne`'s outer try/catch,
 which emits a uniform `controller-error { controller, detail }` note.
 Controllers don't need to wrap throwing primitives (e.g.
-`SlotApi.occupyAll`) themselves — throwing is the right shape for
+`occupyAll`) themselves — throwing is the right shape for
 programmatic-contract violations.
 
 ### Async dispatch — detaching the controller body

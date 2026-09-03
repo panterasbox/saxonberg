@@ -99,7 +99,7 @@ describe("The bar money loop (end to end)", () => {
     const cash = (await asOwner(patron, () =>
       BankingApi.issueCash(patron as never, Money.of(300, Currency.compact()))
     )) as Stuff & Globbable;
-    await asOwner(patron, () => BankingApi.deposit(bank, cash));
+    await asOwner(patron, () => bank.deposit(cash));
     expect(BankingApi.balanceOf(patronAcct).minor).toBe(300);
 
     // 2. buy a drink — a presented Charge settled from the implant/card

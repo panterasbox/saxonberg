@@ -174,100 +174,17 @@ function logic(): PromptLogic {
 export class PromptApi {
   /* ────────────────── Tier 1: choice ────────────────── */
 
-  public static choice<T extends string = string>(
-    interactive: Interactive,
-    label: string,
-    choices: PromptChoice[],
-    opts?: ChoicePromptOpts<T>,
-  ): Promise<T> {
-    return logic().choice(interactive, label, choices, opts);
-  }
-
   /* ────────────────── Tier 1: confirm ────────────────── */
-
-  public static confirm(
-    interactive: Interactive,
-    label: string,
-    defaultAnswer: 'yes' | 'no' = 'no',
-    opts?: PromptOpts<boolean>,
-  ): Promise<boolean> {
-    return logic().confirm(interactive, label, defaultAnswer, opts);
-  }
 
   /* ────────────────── Tier 1: text ────────────────── */
 
-  public static text(
-    interactive: Interactive,
-    label: string,
-    opts?: TextPromptOpts,
-  ): Promise<string> {
-    return logic().text(interactive, label, opts);
-  }
-
   /* ────────────────── Tier 1: compose ────────────────── */
-
-  /**
-   * Multiline body-composition prompt — the interactive route to a post
-   * body. The client renders a `<textarea>` (markdown; optional live MML
-   * preview). A shared capability (forums first; CMS/wiki later); the
-   * response is the raw markdown string.
-   */
-  public static compose(
-    interactive: Interactive,
-    label: string,
-    opts?: ComposePromptOpts,
-  ): Promise<string> {
-    return logic().compose(interactive, label, opts);
-  }
 
   /* ────────────────── Tier 1: mqlObject ────────────────── */
 
-  public static mqlObject(
-    interactive: Interactive,
-    label: string,
-    matches: Stuff[],
-    opts?: PromptOpts<Stuff | null>,
-  ): Promise<Stuff | null> {
-    return logic().mqlObject(interactive, label, matches, opts);
-  }
-
   /* ────────────────── Tier 1: mqlMany ────────────────── */
 
-  public static mqlMany(
-    interactive: Interactive,
-    label: string,
-    matches: Stuff[],
-    opts?: MqlManyPromptOpts,
-  ): Promise<Stuff[]> {
-    return logic().mqlMany(interactive, label, matches, opts);
-  }
-
   /* ────────────────── Inbound entry points ────────────────── */
-
-  /**
-   * Route a `prompt-response` wire message. Looks up the resolver,
-   * decodes the response per the prompt kind, runs the validator (if
-   * any), and either resolves the await or emits
-   * `prompt-validation-failed` and keeps the prompt alive.
-   */
-  public static handleResponse(
-    interactive: Interactive,
-    payload: { promptId: string; response: string },
-  ): void {
-    logic().handleResponse(interactive, payload);
-  }
-
-  /**
-   * Route a `prompt-cancel` wire message. Reject the await with
-   * `PromptCancelledError { reason: 'cancelled' }` and emit a
-   * `prompt-dismissed` envelope.
-   */
-  public static handleCancel(
-    interactive: Interactive,
-    payload: { promptId: string },
-  ): void {
-    logic().handleCancel(interactive, payload);
-  }
 
   /**
    * Server-side single-prompt cancel. Returns `true` if a record was
@@ -278,33 +195,6 @@ export class PromptApi {
     reason: 'cancelled' | 'host-disconnected' = 'cancelled',
   ): boolean {
     return logic().cancel(promptId, reason);
-  }
-
-  /**
-   * Server-side wholesale cancel — every prompt held by `interactive`.
-   * Returns the count cancelled. Called from the `prompt cancel` verb
-   * controller and `Application.handleUserDisconnect`.
-   */
-  public static cancelAll(
-    interactive: Interactive,
-    reason: 'cancelled' | 'host-disconnected',
-  ): number {
-    return logic().cancelAll(interactive, reason);
-  }
-
-  /**
-   * Is `promptId` still awaiting an answer from `interactive`?
-   *
-   * The read behind the `unanswered` card hold — *nothing that is still
-   * actionable ever leaves*. A prompt that has been answered, cancelled
-   * or timed out is gone from the interactive's bucket, so absence IS
-   * the answer; there is no separate "answered" flag to go stale.
-   */
-  public static isPending(
-    interactive: Interactive,
-    promptId: string,
-  ): boolean {
-    return logic().isPending(interactive, promptId);
   }
 
   /* ────────────────── Test seams ────────────────── */

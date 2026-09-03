@@ -199,7 +199,7 @@ function emitDispatchResponse(ctx: CommandContext): void {
     },
   };
   if (MixinApi.isSensor(giverAsStuff)) {
-    MessageApi.sendEnvelope(giverAsStuff as Stuff & Sensor, envelopeTemplate);
+    (giverAsStuff as Stuff & Sensor).onEnvelope(envelopeTemplate);
   }
   // A giver with nobody on the wire — an NPC driven by a brain or a
   // dialogue `dispatch` effect — gets the same envelope and no reader.
@@ -293,6 +293,7 @@ export interface CommandGiver {
     commandText: string,
     opts?: ExecuteCommandOpts
   ): Promise<void>;
+  forceCommand(commandText: string, opts?: ExecuteCommandOpts): Promise<void>;
   pushCommandSource(
     source: RecencySource,
     bucket: RecencyBucket,
@@ -618,6 +619,21 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
      */
     _isSchemaSubscribed(): boolean {
       return this._commandSchemaSubscribed;
+    }
+
+    /**
+     * Runtime-fired command (a brain's literal verb, a dialogue
+     * effect, an auto-sense) — `executeCommand` with `forced: true`
+     * stamped, so downstream attribution can tell a player's own
+     * keystroke from a system-driven act. The one home for the
+     * `forced` stamp (was `forceCommand` (the giver's own method since the OO sweep), retired by the
+     * OO sweep — the giver holds the verb).
+     */
+    async forceCommand(
+      commandText: string,
+      opts: ExecuteCommandOpts = {}
+    ): Promise<void> {
+      return this.executeCommand(commandText, { ...opts, forced: true });
     }
 
     async executeCommand(

@@ -16,7 +16,6 @@ import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
 import { Postures } from '../../../../lib/slot/Postured';
-import { SlotApi } from '../../../../api/slot';
 
 export default class DismountController extends CommandController<CommandModel> {
   execute(_model: CommandModel, context: CommandContext): void {
@@ -32,7 +31,7 @@ export default class DismountController extends CommandController<CommandModel> 
         `DismountController: requiresSlottable validator should have caught ${giver.stuffId}`
       );
     }
-    const occupied = SlotApi.findOccupiedSlots(giver);
+    const occupied = giver.occupiedSlots();
     let mount: Stuff | null = null;
     for (const [host, slotNames] of occupied.entries()) {
       if (!MixinApi.isMountable(host)) continue;

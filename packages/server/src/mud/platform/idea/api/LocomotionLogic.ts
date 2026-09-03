@@ -16,7 +16,6 @@ import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
 import { MqlApi } from '../../../api/mql';
 import { SpeciesApi } from '../../../api/species';
-import { SlotApi } from '../../../api/slot';
 import type { MixinName } from '../../../lib/mixin';
 import { LOAD_BEARING_DEFAULTS } from '../../../lib/encumbrance/LoadBearing';
 import { Postures } from '../../../lib/slot/Postured';
@@ -198,12 +197,6 @@ export class LocomotionLogic extends ApiLogic {
     return required.includes(posture);
   }
 
-  /** See {@link LocomotionApi.exitAllowsMode}. */
-  @CallSecurity(LocomotionApiCallers)
-  public exitAllowsMode(exit: Exit, mode: LocomotionMode): boolean {
-    return exit.allowsMode(mode.getName());
-  }
-
   /** See {@link LocomotionApi.canEngage}. */
   @CallSecurity(LocomotionApiCallers)
   public canEngage(actor: Stuff, mode: LocomotionMode): boolean {
@@ -275,7 +268,7 @@ export class LocomotionLogic extends ApiLogic {
 
     const passage = hauledCart.getPassageMode();
     const passable =
-      passage !== null && this.exitAllowsMode(exit, passage);
+      passage !== null && exit.allowsMode(passage.getName());
     if (!passable || !exit.isWheelPassable()) {
       return {
         ok: false,
@@ -334,7 +327,7 @@ export class LocomotionLogic extends ApiLogic {
     if (!MixinApi.isSlottable(actor)) return null;
     const mixinName = mode.getConveyanceMixin();
     if (!mixinName) return null;
-    const occupied = SlotApi.findOccupiedSlots(actor);
+    const occupied = actor.occupiedSlots();
     for (const [host] of occupied.entries()) {
       if (MixinApi.hasMixin(host, mixinName as MixinName)) return host;
     }
@@ -595,7 +588,7 @@ function checkConveyance(actor: Stuff, mode: LocomotionMode): TraversalGuard {
       reason: `You're not ${mode.getName()}ing anything.`,
     };
   }
-  const occupied = SlotApi.findOccupiedSlots(actor);
+  const occupied = actor.occupiedSlots();
   for (const [host] of occupied.entries()) {
     if (MixinApi.hasMixin(host, conveyance as MixinName)) return { ok: true };
   }

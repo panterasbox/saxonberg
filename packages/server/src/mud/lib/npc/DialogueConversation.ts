@@ -39,11 +39,8 @@ import { ScheduleApi } from "../../api/schedule";
 import type { AbortReason } from "@saxonberg/types";
 import type Interactive from "../../platform/idea/Interactive";
 import { PromptApi, PromptCancelledError } from "../../api/prompt";
-import { RegardApi } from "../../api/regard";
-import { TraitApi } from "../../api/trait";
 import { WorldClockApi } from "../../api/worldclock";
 import { SoulApi } from "../../api/soul";
-import { RecognitionApi } from "../../api/recognition";
 import { MixinApi } from "../../api/mixin";
 import { StuffApi } from "../../api/stuff";
 import { EmploymentApi } from "../../api/employment";
@@ -168,7 +165,7 @@ export class DialogueConversation implements SustainedEngagement {
     // Reject any pending choice for this driver (disconnect already did
     // this; explicit cancels and presence-loss need it here). The driver
     // is mid-conversation, so its foreground prompt is this wheel.
-    PromptApi.cancelAll(this.interactive, "cancelled");
+    this.interactive.cancelPrompts("cancelled");
     if (this.partner) SchedulerApi.cancel(this.partner, "cancelled");
   }
 
@@ -248,12 +245,11 @@ export class DialogueConversation implements SustainedEngagement {
         // beside the choices since the spoken copy in the feed scrolls
         // away. Falls back to the generic ask for a beatless node.
         const promptLabel = node.beat
-          ? `${RecognitionApi.describe(this.player, this.npc)}: ${node.beat}`
+          ? `${this.npc.describeFor(this.player)}: ${node.beat}`
           : PROMPT_LABEL;
         let picked: string;
         try {
-          picked = await PromptApi.choice(
-            this.interactive,
+          picked = await this.interactive.promptChoice(
             promptLabel,
             promptChoices,
           );
@@ -341,14 +337,20 @@ export class DialogueConversation implements SustainedEngagement {
   private async readFact(
     fact: string,
   ): Promise<string | number | boolean | undefined> {
-    if (fact === "regard") return RegardApi.getRegard(this.npc, this.player);
+    if (fact === "regard") {
+      return MixinApi.isBeliefStore(this.npc)
+        ? this.npc.regardFor(this.player)
+        : 0;
+    }
     const colon = fact.indexOf(":");
     if (colon <= 0) return undefined;
     const ns = fact.slice(0, colon);
     const key = fact.slice(colon + 1);
     switch (ns) {
       case "trait":
-        return (await TraitApi.positionFor(this.npc, key)).position;
+        return MixinApi.isDispositioned(this.npc)
+          ? (await this.npc.traitPosition(key)).position
+          : 0;
       case "time":
         return key === "hour" ? this.worldHour() : undefined;
       case "state":
@@ -356,7 +358,7 @@ export class DialogueConversation implements SustainedEngagement {
       case "position": {
         const organization = StuffApi.findByTemplatePath(key);
         if (!organization || !MixinApi.isOrganization(organization)) return false;
-        return EmploymentApi.holdsPosition(this.player, organization);
+        return organization.employs(this.player);
       }
       default:
         return undefined;
@@ -379,7 +381,9 @@ export class DialogueConversation implements SustainedEngagement {
           this.scratch[effect.key] = effect.value;
           break;
         case "regard":
-          RegardApi.adjustRegard(this.npc, this.player, effect.delta);
+          if (MixinApi.isBeliefStore(this.npc)) {
+            this.npc.adjustRegard(this.player, effect.delta);
+          }
           break;
         case "say":
           this.speak(this.npc, effect.line, this.player);
@@ -430,7 +434,7 @@ export class DialogueConversation implements SustainedEngagement {
     // "a human" to it — `appoint alice …` from Dave found "no such
     // person" the first time the live drive took his job.
     const text = command.replaceAll("$player", `#${this.player.stuffId}`);
-    await CommandApi.forceCommand(npc, text);
+    await npc.forceCommand(text);
   }
 
   private async npcEmote(verb: string): Promise<void> {

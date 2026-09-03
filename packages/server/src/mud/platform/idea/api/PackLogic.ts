@@ -3123,7 +3123,7 @@ async function isStaffed(m: PackMaintainers): Promise<boolean> {
   const org = StuffApi.findByTemplatePath(m.organization);
   if (!org || !MixinApi.isOrganization(org)) return false;
   // The head alone does not count — an office with no staff is unstaffed.
-  return org.getPositions().some((p) => EmploymentApi.holdersOf(org, p.key).length > 0);
+  return org.getPositions().some((p) => org.holdersOf(p.key).length > 0);
 }
 
 /**

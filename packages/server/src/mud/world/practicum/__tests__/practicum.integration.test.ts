@@ -13,6 +13,7 @@
  */
 
 import "../../../../test-bootstrap";
+import type { CompetenceBandName } from "../../../lib/advancement/CompetenceBand";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { readFileSync, readdirSync } from "fs";
 import { fileURLToPath } from "url";
@@ -34,7 +35,6 @@ import SpellCatalogue from "../../../platform/idea/SpellCatalogue";
 import Spell from "../../../platform/idea/magic/Spell";
 import { Template } from "../../../lib/stuff/Template";
 import { MagicApi } from "../../../api/magic";
-import { AdvancementApi } from "../../../api/advancement";
 import { FireApi } from "../../../api/fire";
 import { ContainmentApi } from "../../../api/containment";
 import { StuffApi } from "../../../api/stuff";
@@ -57,6 +57,12 @@ const SPELL_PATH_PREFIX = '/stuff/idea/magic/Spell/';
 const SPELL_CLASS = '/platform/idea/magic/Spell';
 
 class MagicTester extends HasInteractiveMixin(Character) {
+  // The band gate reads the caster's own competenceBandFor since the
+  // OO sweep; the practicum pins every tester at competent.
+  override async competenceBandFor(): Promise<CompetenceBandName> {
+    return "competent";
+  }
+
   static _mixinName = "MagicTesterPracticum";
 }
 
@@ -183,8 +189,6 @@ describe("The Practicum — the magic demonstrators", () => {
     real = 100000;
     WorldClockApi._setNowProviderForTesting(() => real);
     await installCatalogue();
-    vi.spyOn(AdvancementApi, "bandFor").mockResolvedValue("competent");
-    vi.spyOn(AdvancementApi, "recordSignature").mockResolvedValue(undefined);
   });
   afterEach(() => {
     WorldClockApi._resetForTesting();
@@ -198,12 +202,12 @@ describe("The Practicum — the magic demonstrators", () => {
     const dummy = dummyIn(yard);
     const caster = casterIn(yard);
 
-    expect(FireApi.isBurning(dummy)).toBe(false);
-    const out = await MagicApi.resolveCast(caster, "firebolt", dummy);
+    expect(dummy.isBurning()).toBe(false);
+    const out = await caster.resolveCast("firebolt", dummy);
     expect(out.ok).toBe(true);
     // 900 kJ into 1 kg of oak: ΔT = Q/C = 450 K → past the 570 K
     // autoignition point → REAL fire (spread/char are fire's job now).
-    expect(FireApi.isBurning(dummy)).toBe(true);
+    expect(dummy.isBurning()).toBe(true);
   });
 
   it("the conductive gallery: spark through the brine shocks the wading caster", async () => {
@@ -216,7 +220,7 @@ describe("The Practicum — the magic demonstrators", () => {
     vi.spyOn(StuffApi, "clone").mockImplementation(async () =>
       makeStuff(() => new SparkLocus()),
     );
-    const out = await MagicApi.resolveCast(caster, "spark", gallery as never);
+    const out = await caster.resolveCast("spark", gallery as never);
     expect(out.ok).toBe(true);
     expect(out.reports.join(" ")).toMatch(/current snaps/i);
     // The walk found the caster's own body in the pool — a shock or its
@@ -237,14 +241,14 @@ describe("The Practicum — the magic demonstrators", () => {
 
     // the brazier: a mundane fire lit the mundane way
     const brazier = dummyIn(cell);
-    FireApi.ignite(brazier);
-    expect(FireApi.isBurning(brazier)).toBe(true);
+    brazier.ignite();
+    expect(brazier.isBurning()).toBe(true);
 
     const caster = casterIn(yard);
     vi.spyOn(StuffApi, "clone").mockImplementation(async () =>
       makeStuff(() => new GlowlightOrb()),
     );
-    await MagicApi.resolveCast(caster, "glowlight");
+    await caster.resolveCast("glowlight");
     const sustained = caster
       .getConditions()
       .find((c) => c.kind === "sustained") as { boundStuffId?: string };
@@ -253,7 +257,7 @@ describe("The Practicum — the magic demonstrators", () => {
 
     // casting inside the ward is refused, legibly
     ContainmentApi.move(caster as never, cell as never);
-    const refused = await MagicApi.prepareCast(caster, "glowlight");
+    const refused = await caster.prepareCast("glowlight");
     expect(refused.ok).toBe(false);
     expect(refused.refusal).toMatch(/suppresses/);
 
@@ -262,7 +266,7 @@ describe("The Practicum — the magic demonstrators", () => {
     caster.getVitalSign("heartRate");
     expect(orb.getEmittedFlux().rawValue()).toBe(0);
     // …while the impulse-real fire keeps burning — nothing to un-happen
-    expect(FireApi.isBurning(brazier)).toBe(true);
+    expect(brazier.isBurning()).toBe(true);
 
     // step out — the working re-lights
     ContainmentApi.move(caster as never, yard as never);

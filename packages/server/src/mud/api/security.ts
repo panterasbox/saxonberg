@@ -843,6 +843,26 @@ export class SecurityApi {
     // who is listening but cannot make anyone listen.
     'getSubjectSubscription',
     'hasSubjectSubscription',
+    // ⭐ The naming projections (the Phase-D recognition face). Since
+    // the OO sweep these live as instance methods ON the target
+    // (`stuff.describeFor(viewer)`), so the crossing dispatch itself is
+    // the entry point — before the face body can widen anything. The
+    // methods are read-only *projections of a person* (they yield text
+    // or a keyword list, never a live ref), exactly the class of read
+    // `SecurityApi.projectAcross` exists for; the face wraps its
+    // interior walk in that aperture, and this entry admits the OUTER
+    // hop. `kindFor` deliberately rides the same set (its interior
+    // never leaves the target); the belief WRITE half (`learnIdentityOf`
+    // etc.) lives on the VIEWER and is deliberately NOT here.
+    'describeFor',
+    'describeWithStatusFor',
+    // Session-liveness is the same class of projection (a display
+    // string about a person, composed for far viewers); the interior
+    // engagement read rides the presence logic's own aperture.
+    'presenceStatus',
+    'salientFeatures',
+    'perceivedKeywordsFor',
+    'kindFor',
   ]);
 
   /**

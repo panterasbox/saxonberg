@@ -21,6 +21,7 @@ import { OrganizationMixin } from "../../../../lib/employment/Organization";
 import { StuffApi } from "../../../../api/stuff";
 import { ShadowApi } from "../../../../api/shadow";
 import type { ParcelOwner } from "../../../../lib/parcel/ParcelRecord";
+import { EmploymentLogic } from '../EmploymentLogic';
 import {
   makeStuffAtPath,
 } from "../../../../lib/security/__tests__/test-setup";
@@ -164,7 +165,7 @@ describe("CompactApi — the committee reads", () => {
     await expect(CompactApi.isCommitteeMember(pm, "/obj/x")).resolves.toBe(false);
     const org = makeStuffAtPath(() => new OrganizationEntity(), "/compact/executive");
     org.appointingAuthority = { kind: "office", office: "prime-minister" };
-    vi.spyOn(EmploymentApi, "holdsPosition").mockImplementation(
+    vi.spyOn(EmploymentLogic.prototype, "holdsPosition").mockImplementation(
       (s) => s?.getIdentityPath() === "/platform/agent/Avatar/staffer",
     );
     vi.spyOn(EmploymentApi, "holdsAuthority").mockImplementation(

@@ -49,12 +49,9 @@ import { MixinApi } from '../../../api/mixin';
 import { MqlApi } from '../../../api/mql';
 import { Mixins } from '../../../lib/mixin';
 import { ConditionApi } from '../../../api/condition';
-import { ThermalApi } from '../../../api/thermal';
 import { FireApi } from '../../../api/fire';
-import { ElectricityApi } from '../../../api/electricity';
 import { BulkableApi } from '../../../api/bulk';
 import { ContainmentApi } from '../../../api/containment';
-import { AdvancementApi } from '../../../api/advancement';
 import { AccountabilityApi } from '../../../api/accountability';
 import { CombatApi } from '../../../api/combat';
 import {
@@ -94,7 +91,6 @@ import { EffectContexts } from '../../../lib/magic/EffectContext';
 import type { EffectContext } from '../../../lib/magic/EffectContext';
 import { ExecutionContextApi } from '../../../api/execution-context';
 import { Resists } from '../../../lib/magic/Resist';
-import { RecognitionApi } from '../../../api/recognition';
 import { IDENTIFICATION } from '../../../lib/belief/BeliefStore';
 import { Appearance } from '../../../lib/identification/Appearance';
 import { Suppressions, type MagicSuppression } from '../../../lib/magic/Suppression';
@@ -105,8 +101,42 @@ import UnboundedReceptacle from '../../thing/UnboundedReceptacle';
 import type { FacultyView } from '../../../lib/magic/Caster';
 import { MANA_RESERVE_KEY, OVERCHANNEL_STRAIN_PATH } from '../../../lib/magic/Caster';
 import type { Reserved } from '../../../lib/reserve';
+import type { Combatant } from '../../../lib/combat/Combatant';
 
 const MagicApiCallers = SecurityPolicies.FromModule('/api/magic#MagicApi');
+/** The F3 object faces forward here as the subject instance. */
+const CasterCallers = SecurityPolicies.AnyOf(
+  MagicApiCallers,
+  SecurityPolicies.FromMixin('CasterMixin', {
+    // Compare by stuffId — the caller may surface as the raw target
+    // while the argument is the proxy (or vice versa).
+    where: (caller, _target, _method, args) =>
+      (caller as { stuffId?: string }).stuffId !== undefined &&
+      (caller as { stuffId?: string }).stuffId ===
+        (args[0] as { stuffId?: string } | undefined)?.stuffId,
+  }),
+);
+const ArcaneItemCallers = SecurityPolicies.AnyOf(
+  MagicApiCallers,
+  SecurityPolicies.FromMixin('ArcaneMixin', {
+    // Compare by stuffId — the caller may surface as the raw target
+    // while the argument is the proxy (or vice versa).
+    where: (caller, _target, _method, args) =>
+      (caller as { stuffId?: string }).stuffId !== undefined &&
+      (caller as { stuffId?: string }).stuffId ===
+        (args[0] as { stuffId?: string } | undefined)?.stuffId,
+  }),
+);
+/** `transferCharge(actor, shell, pt)` — the SHELL hosts the face (arg 1). */
+const ChargeShellCallers = SecurityPolicies.AnyOf(
+  MagicApiCallers,
+  SecurityPolicies.FromMixin('ChargedMixin', {
+    where: (caller, _target, _method, args) =>
+      (caller as { stuffId?: string }).stuffId !== undefined &&
+      (caller as { stuffId?: string }).stuffId ===
+        (args[1] as { stuffId?: string } | undefined)?.stuffId,
+  }),
+);
 
 /** The prepare-phase result — gates only, nothing spent. */
 export interface PrepareOutcome {
@@ -242,7 +272,7 @@ function dial(key: string, fallback: number): number {
 @Unshadowable
 export class MagicLogic extends ApiLogic {
   /** See {@link MagicApi.prepareCast}. */
-  @CallSecurity(MagicApiCallers)
+  @CallSecurity(CasterCallers)
   public prepareCast(
     caster: Stuff,
     spellId: string,
@@ -252,7 +282,7 @@ export class MagicLogic extends ApiLogic {
   }
 
   /** See {@link MagicApi.resolveCast}. */
-  @CallSecurity(MagicApiCallers)
+  @CallSecurity(CasterCallers)
   public resolveCast(
     caster: Stuff,
     spellId: string,
@@ -264,7 +294,7 @@ export class MagicLogic extends ApiLogic {
   /** See {@link MagicApi.discharge}. */
   @CallSecurity(MagicApiCallers)
   /** See {@link MagicApi.requiresMark}. */
-  @CallSecurity(MagicApiCallers)
+  @CallSecurity(ArcaneItemCallers)
   public requiresMark(item: Stuff): boolean {
     if (!MixinApi.isArcane(item)) return false;
     const path = item.getCarriedSpellPath();
@@ -278,7 +308,7 @@ export class MagicLogic extends ApiLogic {
   }
 
   /** See {@link MagicApi.transferCharge}. */
-  @CallSecurity(MagicApiCallers)
+  @CallSecurity(ChargeShellCallers)
   public transferCharge(
     actor: Stuff,
     shell: Stuff,
@@ -302,7 +332,7 @@ export class MagicLogic extends ApiLogic {
   }
 
   /** See {@link MagicApi.spellsView}. */
-  @CallSecurity(MagicApiCallers)
+  @CallSecurity(CasterCallers)
   public spellsView(caster: Stuff): Promise<SpellsView> {
     return spellsViewImpl(caster);
   }
@@ -365,9 +395,10 @@ async function prepareCastImpl(
   // per-spell conferral; see docs/subsystems/magic.md).
   const verbKey = MagicGrid.verbDisciplineKey(spell.verb);
   const nounKey = MagicGrid.nounDisciplineKey(spell.noun);
+  const advCaster = MixinApi.isAdvancing(caster) ? caster : null;
   const [verbBand, nounBand] = await Promise.all([
-    AdvancementApi.bandFor(caster, verbKey),
-    AdvancementApi.bandFor(caster, nounKey),
+    advCaster?.competenceBandFor(verbKey) ?? CompetenceBand.FLOOR,
+    advCaster?.competenceBandFor(nounKey) ?? CompetenceBand.FLOOR,
   ]);
   if (!CompetenceBand.atOrAbove(verbBand, spell.castingProfile.requiredBand)) {
     return {
@@ -492,7 +523,8 @@ async function resolveCastImpl(
   // A CAST is a deed; an item discharge deliberately is not — see
   // `dischargeImpl`.
   const difficulty = difficultyOf(spell.castingProfile.requiredBand);
-  void AdvancementApi.recordSignature(caster, {
+  if (MixinApi.isAdvancing(caster))
+    void caster.creditSignature({
     discipline: [
       {
         discipline: MagicGrid.verbDisciplineKey(spell.verb),
@@ -664,7 +696,7 @@ async function dischargeImpl(
  * wand *safer* than the equivalent cast — the wand is in the circuit and
  * the user is not.
  *
- * Routed through the shipped `ThermalApi` + `FireApi.tryAutoignite`
+ * Routed through the shipped the thermal mixin + `FireApi.tryAutoignite`
  * path, so whether it cracks or catches is a **materials-response read**
  * rather than a rule magic invented. That is the governing invariant
  * doing its job: magic is a new trigger, never a new mechanism.
@@ -678,9 +710,9 @@ function absorbWasteHeat(ctx: EffectContext, spell: SpellDescriptor): void {
     committedJ * dial(AppSettingKeys.magicWasteHeatFraction, 0.1);
   if (wasteJ <= 0) return;
   try {
-    ThermalApi.depositHeat(endpoint, wasteJ);
-    FireApi.tryAutoignite(endpoint);
-    ThermalApi.reconcilePhase(endpoint);
+    if (MixinApi.isThermal(endpoint)) endpoint.depositHeat(wasteJ);
+    if (MixinApi.isCombustible(endpoint)) endpoint.tryAutoignite();
+    if (MixinApi.isThermal(endpoint)) endpoint.reconcilePhase();
   } catch {
     // A shell with no thermal surface simply has nowhere to put it.
     // Not an error — an item that cannot be heated cannot crack.
@@ -691,9 +723,12 @@ async function spellsViewImpl(caster: Stuff): Promise<SpellsView> {
   const casterView = (caster as unknown as Caster).getFacultyView();
   const rows: SpellCellRow[] = [];
   for (const spell of catalogue()?.allSpells() ?? []) {
+    const advc = MixinApi.isAdvancing(caster) ? caster : null;
     const [verbBand, nounBand] = await Promise.all([
-      AdvancementApi.bandFor(caster, MagicGrid.verbDisciplineKey(spell.verb)),
-      AdvancementApi.bandFor(caster, MagicGrid.nounDisciplineKey(spell.noun)),
+      advc?.competenceBandFor(MagicGrid.verbDisciplineKey(spell.verb)) ??
+        CompetenceBand.FLOOR,
+      advc?.competenceBandFor(MagicGrid.nounDisciplineKey(spell.noun)) ??
+        CompetenceBand.FLOOR,
     ]);
     const limiting =
       CompetenceBand.rank(verbBand) <= CompetenceBand.rank(nounBand)
@@ -1056,7 +1091,7 @@ function execInjectChannel(
         ContainmentApi.move(locus, scene);
       }
       locus.setVoltage(Quantity.of((e.voltage ?? 240) * potency, 'V'));
-      const outcomes = ElectricityApi.conduct(locus);
+      const outcomes = locus.conduct();
       StuffApi.destruct(locus);
       const shocked = outcomes.length > 0;
       return {
@@ -1095,9 +1130,9 @@ function execInjectChannel(
       };
     });
   }
-  ThermalApi.depositHeat(target, (e.joules ?? 0) * potency);
-  const lit = FireApi.tryAutoignite(target);
-  ThermalApi.reconcilePhase(target);
+  if (MixinApi.isThermal(target)) target.depositHeat((e.joules ?? 0) * potency);
+  const lit = MixinApi.isCombustible(target) && target.tryAutoignite();
+  if (MixinApi.isThermal(target)) target.reconcilePhase();
   return lit
     ? 'It catches — real flame, and it will spread as real flame does.'
     : 'It heats under the working.';
@@ -1367,7 +1402,7 @@ function execIdentify(ctx: EffectContext, target: Stuff | undefined): string {
     return 'The knowing finds nowhere to settle.';
   }
   learnClassOf(learner, subject, signature);
-  return `The letters crawl, and you know it: ${RecognitionApi.describe(learner, subject)}.`;
+  return `The letters crawl, and you know it: ${subject.describeFor(learner)}.`;
 }
 
 /**
@@ -1638,7 +1673,7 @@ async function execScript(caster: Stuff, source: string): Promise<string> {
   if (!MixinApi.isCommandGiver(caster)) return 'No voice to speak it with.';
   for (const line of source.split(/[;\n]/)) {
     const text = line.trim();
-    if (text.length > 0) await CommandApi.forceCommand(caster, text);
+    if (text.length > 0) await caster.forceCommand(text);
   }
   return 'The scripted working runs.';
 }
@@ -1768,9 +1803,12 @@ async function potencyFactor(
   caster: Stuff,
   spell: SpellDescriptor,
 ): Promise<number> {
+  const advCaster2 = MixinApi.isAdvancing(caster) ? caster : null;
   const [verbBand, nounBand] = await Promise.all([
-    AdvancementApi.bandFor(caster, MagicGrid.verbDisciplineKey(spell.verb)),
-    AdvancementApi.bandFor(caster, MagicGrid.nounDisciplineKey(spell.noun)),
+    advCaster2?.competenceBandFor(MagicGrid.verbDisciplineKey(spell.verb)) ??
+      CompetenceBand.FLOOR,
+    advCaster2?.competenceBandFor(MagicGrid.nounDisciplineKey(spell.noun)) ??
+      CompetenceBand.FLOOR,
   ]);
   const minRank = Math.min(
     CompetenceBand.rank(verbBand),
@@ -1890,9 +1928,12 @@ function bestConduitFor(
  * would let a good caster deliver more than they spent.
  */
 async function competenceEfficiency(actor: Stuff): Promise<number> {
+  const advActor = MixinApi.isAdvancing(actor) ? actor : null;
   const [verbBand, nounBand] = await Promise.all([
-    AdvancementApi.bandFor(actor, MagicGrid.verbDisciplineKey('control')),
-    AdvancementApi.bandFor(actor, MagicGrid.nounDisciplineKey('arcana')),
+    advActor?.competenceBandFor(MagicGrid.verbDisciplineKey('control')) ??
+      CompetenceBand.FLOOR,
+    advActor?.competenceBandFor(MagicGrid.nounDisciplineKey('arcana')) ??
+      CompetenceBand.FLOOR,
   ]);
   const rank = Math.min(
     CompetenceBand.rank(verbBand),

@@ -18,6 +18,8 @@ import { ConsumerApi } from '../../../../api/consumer';
 import { EventApi } from '../../../../api/event';
 import EventRegistry from '../../EventRegistry';
 import { StuffApi } from '../../../../api/stuff';
+import ParticipationStandings from '../../ParticipationStandings';
+import { makeStuffAtPath } from '../../../../lib/security/__tests__/test-setup';
 import { Stuff } from '../../../../lib/stuff/Stuff';
 import { Idea } from '../../../../lib/stuff/Idea';
 import { AppSettings } from '../../../../lib/config/AppSettings';
@@ -104,9 +106,26 @@ afterEach(() => {
   AppSettings._resetForTesting();
 });
 
+/**
+ * Arm the dispatch tap + recompute schedule the way production does
+ * since the boot() retirement: the ParticipationStandings singleton's
+ * warm (its template stamp is what the widened Logic gate admits).
+ */
+async function bootConsumer(): Promise<void> {
+  const s =
+    StuffApi.findByTemplatePath<ParticipationStandings>(
+      '/platform/idea/ParticipationStandings',
+    ) ??
+    makeStuffAtPath(
+      () => new ParticipationStandings(),
+      '/platform/idea/ParticipationStandings',
+    );
+  await s.warm();
+}
+
 describe('ConsumerLogic durable identity re-key (stuffId → templatePath)', () => {
   it('stores a dispatch bucket under the templatePath, not the live stuffId', async () => {
-    ConsumerApi.boot();
+    await bootConsumer();
     const giver = await mint('/platform/agent/Avatar/p1');
     expect(giver.stuffId).not.toBe('/platform/agent/Avatar/p1'); // genuinely ephemeral
 
@@ -120,7 +139,7 @@ describe('ConsumerLogic durable identity re-key (stuffId → templatePath)', () 
   });
 
   it('aggregates across re-clone — a new stuffId at the same templatePath credits one log', async () => {
-    ConsumerApi.boot();
+    await bootConsumer();
     const before = await mint('/platform/agent/Avatar/p1');
     fireDispatch(before.stuffId, 'cmd-a');
     await flush();

@@ -99,7 +99,7 @@ decomposition of one messy in-world act into per-Discipline **sub-checks**:
 `{discipline, difficulty, outcome}` triples (an authored Q-matrix). The
 decomposition isn't inferred — it's *how the action was built*; the engine
 already runs the sub-checks to resolve the action, and the Transcript just
-records each as its own row (`AdvancementApi.recordSignature` explodes a
+records each as its own row (the owner's `creditSignature` explodes a
 signature into N rows sharing one timestamp).
 
 **One signature, two outputs.** The same signature carries an optional
@@ -144,7 +144,7 @@ is deferred.
 `theta` has a referent (competence *in a Discipline*) and may be read by
 future instruments, but the **only surface is the band**
 (`untrained | novice | competent | proficient | expert`, in
-`lib/advancement/CompetenceBand.ts`). `AdvancementApi.bandFor` /
+`lib/advancement/CompetenceBand.ts`). The owner's `competenceBandFor` /
 `bandsFor` return bands; the scalar never crosses the Api boundary. You
 learn you've improved the way you would in life — the lock that beat you
 last week clicks open — not by watching a meter.
@@ -157,10 +157,10 @@ above `band`, the `verbs` (yaml-paths) become afforded.
 
 Because Competence is derive-on-read, a band crossing has **no event of its
 own** — the only band-mover is a Transcript append. So
-`AdvancementApi.recordSignature` re-invokes the owner's
+every `creditSignature`/`creditDeed` re-invokes the owner's
 `AdvancementMixin.refreshConferrals` after every append (narrowed via
 `MixinApi.hasMixin(owner, Mixins.Advancement)`). The refresh reads
-`AdvancementApi.conferredVerbs` (the pure band × Catalog-conferral
+the owner's `conferredVerbs` (the pure band × Catalog-conferral
 decision), resolves the yaml-paths to `CommandDefinition`s, and reconciles
 the giver's affordance stack — `popCommandSource` then a conditional
 `pushCommandSource`, mirroring the hosted-update delta. The affording
@@ -175,7 +175,20 @@ pushes onto). It holds no per-character state (advancement is
 derive-on-read), only the static self-view contribution and
 `refreshConferrals`.
 
-## `AdvancementApi` / `AdvancementLogic`
+## The owner face on `AdvancementMixin`
+
+The Api OO sweep retired `AdvancementApi`/`AdvancementLogic`: the family
+lives ON `AdvancementMixin` (`lib/advancement/Advancement.ts`), P4-named
+per ledger — `creditSignature` / `creditDeed` / `transcriptEntries` /
+`competenceBandFor` / `competenceBands` / `conferredVerbs`, plus the two
+sync fold-cache reads (`practisingCompetenceCached` /
+`competenceDigestCached`, over `DerivedStandingCache`). The credit
+mutators are UNGATED with the seal (the writer set is every acting
+controller and engagement, kernel and packs alike — an honest ungated
+seal beats a FromModule glob) and end with `refreshConferrals()`.
+Callers narrow with `MixinApi.isAdvancing`.
+
+### The retired split (historical)
 
 The gated `Api` ↔ HMR logic-singleton split (the `ChronicleApi` /
 `ChronicleLogic` boilerplate; connection-gated via `PersistApi`,

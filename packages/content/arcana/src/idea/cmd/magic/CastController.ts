@@ -23,6 +23,8 @@ import { SchedulerApi } from '@saxonberg/server/mud/api/scheduler';
 import { MagicApi } from '@saxonberg/server/mud/api/magic';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { CastActivity } from '@saxonberg/server/mud/lib/magic/CastActivity';
+import type { Caster } from '@saxonberg/server/mud/lib/magic/Caster';
+import type { CommandGiver } from '@saxonberg/server/mud/lib/command/CommandGiver';
 
 const TOPIC = 'act.deed';
 
@@ -64,7 +66,10 @@ export default class CastController extends CommandController<CastModel> {
     }
     const target = model.target?.stuff ?? undefined;
 
-    const prep = await MagicApi.prepareCast(actor, spellId, target);
+    const prep = await (actor as Stuff & CommandGiver & Caster).prepareCast(
+      spellId,
+      target,
+    );
     if (!prep.ok) {
       MessageApi.scene(actor)
         .topic(TOPIC)
@@ -153,7 +158,7 @@ async function resolveAndRender(
   spellId: string,
   target: Stuff | undefined,
 ): Promise<void> {
-  const outcome = await MagicApi.resolveCast(actor, spellId, target);
+  const outcome = await (actor as Stuff & Caster).resolveCast(spellId, target);
   if (!outcome.ok) {
     MessageApi.scene(actor)
       .topic(TOPIC)

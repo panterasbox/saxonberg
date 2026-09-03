@@ -21,7 +21,6 @@ import type { CommandContext, CommandModel } from '../../../../api/command';
 import { MessageApi } from '../../../../api/message';
 import { CardApi } from '../../../../api/card';
 import { Mml } from '../../../../api/mml';
-import { PromptApi } from '../../../../api/prompt';
 import { StuffApi } from '../../../../api/stuff';
 import { TemplatePaths } from '../../../../lib/paths';
 import WikiRegistry, {
@@ -600,8 +599,7 @@ export default class WikiController extends CommandController<WikiModel> {
     // cleared the moderator gate, and a prompt it cannot answer would
     // hang rather than protect.
     if (context.interactive) {
-      const ok = await PromptApi.confirm(
-        context.interactive,
+      const ok = await context.interactive.promptConfirm(
         `Purge '${hit.page.getTitle()}' and every revision of it? This cannot be undone.`,
         'no',
       ).catch(() => false);
@@ -889,7 +887,7 @@ export default class WikiController extends CommandController<WikiModel> {
     if (typeof model.body === 'string') return model.body;
     if (context.interactive) {
       try {
-        const composed = await PromptApi.compose(context.interactive, label, {
+        const composed = await context.interactive.promptCompose(label, {
           placeholder: 'Wiki markdown — ⌘/Ctrl+Enter to submit',
           // ⚠ The editor opens on what is THERE. Without this, `wiki
           // edit` is `wiki retype`: an empty box whose contents

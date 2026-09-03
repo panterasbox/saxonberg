@@ -16,7 +16,6 @@ import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
 import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
-import { AdvancementApi } from '../../../../api/advancement';
 import { CombatApi, type CombatAssessResult } from '../../../../api/combat';
 import { Mml } from '../../../../api/mml';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
@@ -25,6 +24,7 @@ import { TRAUMA_BEHAVIOR } from '../../Condition';
 import type { Trauma } from '../../Condition';
 import type Condition from '../../Condition';
 import { StuffApi } from '../../../../api/stuff';
+import type { Combatant } from '../../../../lib/combat/Combatant';
 
 const TOPIC = 'act.deed';
 
@@ -79,7 +79,9 @@ export default class AssessController extends CommandController<AssessModel> {
       const session = CombatApi.sessionFor(giver);
       const opp = session?.opponentState(giver)?.combatant;
       if (opp && (opp as Stuff) === (target as Stuff)) {
-        const read = CombatApi.assess(giver as Stuff, target);
+        const read = (giver as unknown as Stuff & Combatant).assessCombat(
+          target,
+        );
         if (read.ok) return this.renderCombatAssess(giver, target, read);
       }
     }
@@ -95,7 +97,11 @@ export default class AssessController extends CommandController<AssessModel> {
     // gates the detail. (The perception/recognition layer gates *whether*
     // you can see the target at all via the visibility validators; the
     // detail *sharpening* is the competence axis.)
-    const medBand = isSelf ? 'expert' : await AdvancementApi.bandFor(giver, 'medicine');
+    const medBand = isSelf
+      ? 'expert'
+      : MixinApi.isAdvancing(giver)
+        ? await giver.competenceBandFor('medicine')
+        : 'untrained';
     const precise =
       isSelf || medBand === 'proficient' || medBand === 'expert';
 

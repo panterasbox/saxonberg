@@ -15,6 +15,8 @@
  */
 
 import "../../../../../../test-bootstrap";
+import { AdvancementMixin } from '../../../../../lib/advancement/Advancement';
+import type { CompetenceBandName } from '../../../../../lib/advancement/CompetenceBand';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import ArmController from '../ArmController';
 import GetController from '../../inventory/GetController';
@@ -30,7 +32,6 @@ import { MessageApi } from '../../../../../api/message';
 import { AccessApi } from '../../../../../api/access';
 import { ParcelApi } from '../../../../../api/parcel';
 import { PerceptionApi } from '../../../../../api/perception';
-import { AdvancementApi } from '../../../../../api/advancement';
 import { ContainmentApi } from '../../../../../api/containment';
 import type { CommandContext } from '../../../../../api/command';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
@@ -40,7 +41,15 @@ import {
 } from '../../../../../lib/security/__tests__/test-setup';
 
 class Room extends AddressableMixin(ContainerMixin(Idea)) {}
-class Placer extends ContainerMixin(ContainableMixin(Idea)) {}
+// The stealth-band read runs ON the placer since the OO sweep; pinned
+// at competent (what the old class-static stub returned).
+class Placer extends AdvancementMixin(
+  ContainerMixin(ContainableMixin(Idea)),
+) {
+  override async competenceBandFor(): Promise<CompetenceBandName> {
+    return 'competent';
+  }
+}
 
 function stubScene(): void {
   vi.spyOn(MessageApi, 'scene').mockImplementation(() => {
@@ -81,7 +90,6 @@ beforeEach(() => {
   StuffApi.clearAll();
   stubScene();
   vi.spyOn(PerceptionApi, 'preloadForSenseGate').mockResolvedValue(undefined);
-  vi.spyOn(AdvancementApi, 'bandFor').mockResolvedValue('competent');
   vi.spyOn(PerceptionApi, 'hideLevelFor').mockReturnValue('hidden');
   vi.spyOn(StuffApi, 'destruct').mockImplementation(() => undefined as never);
 });

@@ -27,23 +27,23 @@
  * class stays the unit of security; this is the unit of *discovery*.
  *
  * The underlying classes keep their direct exports (`RecognitionApi`,
- * `BeliefStoreApi`) during migration — this barrel is purely additive.
+ * `RecognitionApi`) during migration — this barrel is purely additive.
  * Member names drop the `Api`/`Store` suffix (implied by the
  * namespace); the bare concept noun is the word you'd search for.
  *
- * Pilot for the broader Api-namespace sweep. `Chronicle` joined this
- * barrel when the chronicle build landed its `ChronicleApi`.
+ * Pilot for the broader Api-namespace sweep.
  */
 
-import { BeliefStoreApi } from "./belief";
-import { ChronicleApi } from "./chronicle";
-import { RecognitionApi } from "./recognition";
 
 export const Identity = Object.freeze({
-  /** Per-viewer identity memory + its cache lifecycle (the dumb store). */
-  Belief: BeliefStoreApi, // hydrate · writeRecord · deleteRecord · evictAndFlush
-  /** Viewer×target naming — the compose seam over the belief store. */
-  Recognition: RecognitionApi, // describe · learnIdentity · salientFeatures · perceivedKeywords
-  /** Append-only identity ledger — the owner-indexed deed record. */
-  Chronicle: ChronicleApi, // record · recordDeed · recordOnce · entriesFor · seedClaims
+  // (Belief retired by the Api OO sweep — the viewer face lives ON
+  // BeliefStoreMixin: hydrateBeliefs · evictAndFlushBeliefs · the
+  // regard face. The store's write-through is mixin-internal.)
+  // (Recognition retired by the Api OO sweep — the target face lives ON
+  // the Stuff base: describeFor · describeWithStatusFor ·
+  // salientFeatures · perceivedKeywordsFor · kindFor; the viewer face
+  // on BeliefStoreMixin: learnIdentityOf · recognizes · knowsTrueTypeOf.)
+  // (Chronicle retired by the Api OO sweep — the owner face lives ON
+  // PersonaMixin: recordClaim · recordDeed · recordChronicleOnce ·
+  // chronicleEntries · seedChronicleClaims.)
 });

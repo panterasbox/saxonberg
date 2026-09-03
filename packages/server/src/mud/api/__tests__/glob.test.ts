@@ -105,25 +105,25 @@ describe('GlobbableApi.canMerge', () => {
   it('true for two same-template same-identity stacks', () => {
     const a = makeCoinAt(COIN_PATH, 3, 'gold');
     const b = makeCoinAt(COIN_PATH, 5, 'gold');
-    expect(GlobbableApi.canMerge(a, b)).toBe(true);
-    expect(GlobbableApi.canMerge(b, a)).toBe(true);
+    expect(a.canMergeWith(b) && b.canMergeWith(a)).toBe(true);
+    expect(b.canMergeWith(a) && a.canMergeWith(b)).toBe(true);
   });
 
   it('false when one side is non-Globbable', () => {
     const a = makeCoinAt(COIN_PATH, 3);
     const p = makeStuff(() => new PlainItem());
-    expect(GlobbableApi.canMerge(a, p)).toBe(false);
+    expect(a.canMergeWith(p)).toBe(false);
   });
 
   it('false against self', () => {
     const a = makeCoinAt(COIN_PATH, 3);
-    expect(GlobbableApi.canMerge(a, a)).toBe(false);
+    expect(a.canMergeWith(a)).toBe(false);
   });
 
   it('false when identity fields differ', () => {
     const a = makeCoinAt(COIN_PATH, 3, 'gold');
     const b = makeCoinAt(COIN_PATH, 5, 'silver');
-    expect(GlobbableApi.canMerge(a, b)).toBe(false);
+    expect(a.canMergeWith(b) && b.canMergeWith(a)).toBe(false);
   });
 });
 
@@ -145,7 +145,7 @@ describe('GlobbableApi.split', () => {
     ContainmentApi.move(source, env);
 
     const splitoff = await asApiCallerAsync(() =>
-      GlobbableApi.split(source, 3)
+      source.split(3)
     );
     expect(splitoff).not.toBe(source);
     expect(splitoff.getQuantity()).toBe(3);
@@ -159,7 +159,7 @@ describe('GlobbableApi.split', () => {
     const cloneSpy = stubCoinClone();
     const source = makeCoinAt(COIN_PATH, 5);
     const result = await asApiCallerAsync(() =>
-      GlobbableApi.split(source, 5)
+      source.split(5)
     );
     expect(result).toBe(source);
     expect(source.getQuantity()).toBe(5);
@@ -170,7 +170,7 @@ describe('GlobbableApi.split', () => {
     stubCoinClone();
     const source = makeCoinAt(COIN_PATH, 5);
     await expect(
-      asApiCallerAsync(() => GlobbableApi.split(source, 6))
+      asApiCallerAsync(() => source.split(6))
     ).rejects.toThrow(/exceeds source quantity/);
   });
 
@@ -178,7 +178,7 @@ describe('GlobbableApi.split', () => {
     stubCoinClone();
     const source = makeCoinAt(COIN_PATH, 5);
     await expect(
-      asApiCallerAsync(() => GlobbableApi.split(source, 0))
+      asApiCallerAsync(() => source.split(0))
     ).rejects.toThrow(/positive integer/);
   });
 
@@ -194,7 +194,7 @@ describe('GlobbableApi.split', () => {
     const sh = makeStuff(() => new TagShadow());
     ShadowApi.attach(source, sh);
     await expect(
-      asApiCallerAsync(() => GlobbableApi.split(source, 3))
+      asApiCallerAsync(() => source.split(3))
     ).rejects.toThrow(/canSplit\(3\) vetoed/);
   });
 
@@ -220,7 +220,7 @@ describe('GlobbableApi.split', () => {
         movedCount++;
       };
     try {
-      await asApiCallerAsync(() => GlobbableApi.split(source, 3));
+      await asApiCallerAsync(() => source.split(3));
     } finally {
       if (origOnMoved) {
         (Coin.prototype as unknown as { onMoved?: () => void }).onMoved =
@@ -246,7 +246,7 @@ describe('GlobbableApi.split', () => {
       const env = makeStuff(() => new TestContainer());
       ContainmentApi.move(source, env);
       const splitoff = await asApiCallerAsync(() =>
-        GlobbableApi.split(source, 4)
+        source.split(4)
       );
       expect(splitoffSeen).toBe(splitoff);
     } finally {
@@ -265,7 +265,7 @@ describe('GlobbableApi.merge', () => {
   it('folds absorbed into survivor and destructs absorbed', () => {
     const survivor = makeCoinAt(COIN_PATH, 10, 'gold');
     const absorbed = makeCoinAt(COIN_PATH, 5, 'gold');
-    asApiCaller(() => GlobbableApi.merge(survivor, absorbed));
+    asApiCaller(() => survivor.absorb(absorbed));
     expect(survivor.getQuantity()).toBe(15);
     expect(absorbed.isDestroyed()).toBe(true);
   });
@@ -274,7 +274,7 @@ describe('GlobbableApi.merge', () => {
     const survivor = makeCoinAt(COIN_PATH, 10, 'gold');
     const absorbed = makeCoinAt(COIN_PATH, 5, 'silver');
     expect(() =>
-      asApiCaller(() => GlobbableApi.merge(survivor, absorbed))
+      asApiCaller(() => survivor.absorb(absorbed))
     ).toThrow(/canMergeWith\(absorbed\) returned false/);
     expect(survivor.getQuantity()).toBe(10);
     expect(absorbed.getQuantity()).toBe(5);
@@ -291,7 +291,7 @@ describe('GlobbableApi.merge', () => {
     try {
       const survivor = makeCoinAt(COIN_PATH, 10, 'gold');
       const absorbed = makeCoinAt(COIN_PATH, 5, 'gold');
-      asApiCaller(() => GlobbableApi.merge(survivor, absorbed));
+      asApiCaller(() => survivor.absorb(absorbed));
       expect(absorbedSeen).toBe(absorbed);
     } finally {
       (Coin.prototype as unknown as { onMerged: (s: Stuff) => void }).onMerged =
@@ -689,25 +689,32 @@ describe('GlobbableLogic singleton encapsulation', () => {
     StuffApi.clearAll();
   });
 
-  it('lives at /platform/idea/api/glob once the facade has materialized it', () => {
-    // A facade call lazily creates the logic singleton. canMerge over
-    // two non-globbable Ideas returns false without side effects.
-    const a = makeStuff(() => new Idea());
-    const b = makeStuff(() => new Idea());
-    GlobbableApi.canMerge(a, b);
+  it('lives at /platform/idea/api/glob once the facade has materialized it', async () => {
+    // A facade call lazily creates the logic singleton. An empty
+    // applyQuantity walk has no side effects.
+    await GlobbableApi.applyQuantity(
+      [],
+      { kind: 'all' } as never,
+      async () => ({ ok: true, value: undefined }) as never,
+      { field: 'quantity' },
+    ).catch(() => undefined);
     const logic = StuffApi.findByTemplatePath('/platform/idea/api/glob');
     expect(logic).toBeDefined();
     expect(StuffApi.findByPathGlob('/platform/idea/api/*')).toContain(logic);
   });
 
-  it('denies a direct logic-method call from a non-GlobbableApi caller', () => {
+  it('denies a direct logic-method call from a non-GlobbableApi caller', async () => {
     const a = makeStuff(() => new Idea());
-    const b = makeStuff(() => new Idea());
-    GlobbableApi.canMerge(a, b);
+    await GlobbableApi.applyQuantity(
+      [],
+      { kind: 'all' } as never,
+      async () => ({ ok: true, value: undefined }) as never,
+      { field: 'quantity' },
+    ).catch(() => undefined);
     const logic = StuffApi.findByTemplatePath<GlobbableLogic>('/platform/idea/api/glob');
     expect(logic).toBeDefined();
     // The test module is neither `mud/api/glob#GlobbableApi` (FromModule)
     // nor the singleton itself (SelfOnly), so the gate denies the call.
-    expect(() => logic!.canMerge(a, b)).toThrow(SecurityError);
+    expect(() => logic!.split(a as never, 1)).toThrow(SecurityError);
   });
 });

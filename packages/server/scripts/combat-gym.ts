@@ -34,6 +34,8 @@ import type {
   CombatantState,
 } from "../src/mud/lib/combat/CombatSession";
 import type { CompetenceBandName } from "../src/mud/lib/advancement/CompetenceBand";
+import type { Combatant } from '../src/mud/lib/combat/Combatant';
+import type { Stuff } from '../src/mud/lib/stuff/Stuff';
 
 /**
  * A fighting policy: given the live session and the acting combatant, the
@@ -73,12 +75,14 @@ export const Policies: Record<string, GymPolicy> = {
   feinter: (session, self) => {
     const foe = firstFoe(session, self);
     const foeSteady = (foe && session.getState(foe)?.poise.band()) === "steady";
-    const foeArmed = CombatApi.eligibilityFor(self, "disarm").ok;
+    const foeArmed = (self as unknown as Stuff & Combatant).gambitEligibility(
+      "disarm",
+    ).ok;
     if (
       foeSteady &&
       foeArmed &&
       session.getBeat() % 2 === 0 &&
-      CombatApi.eligibilityFor(self, "feint").ok
+      (self as unknown as Stuff & Combatant).gambitEligibility("feint").ok
     ) {
       return "feint";
     }
@@ -163,7 +167,7 @@ export function runMatchup(
       const st = session.getState(f);
       if (!st || st.down) continue;
       const gambit = side.policy(session, f);
-      if (gambit) CombatApi.queueGambit(f, gambit);
+      if (gambit) (f as unknown as Stuff & Combatant).queueGambit(gambit);
     }
     CombatApi.advance(session);
     beats++;
@@ -286,7 +290,7 @@ export function runPartyMatchup(
         const st = session.getState(f);
         if (!st || st.down) return;
         const gambit = spec.policy(session, f);
-        if (gambit) CombatApi.queueGambit(f, gambit);
+        if (gambit) (f as unknown as Stuff & Combatant).queueGambit(gambit);
       });
     }
     CombatApi.advance(session);

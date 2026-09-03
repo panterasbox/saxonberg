@@ -9,18 +9,14 @@ import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import { PlayerApi } from '../../../api/player';
 import { MixinApi } from '../../../api/mixin';
-import { RecognitionApi } from '../../../api/recognition';
 import { ConnectionApi } from '../../../api/connection';
 import { RenownApi } from '../../../api/renown';
 import { InfluenceApi } from '../../../api/influence';
-import { AdvancementApi } from '../../../api/advancement';
-import { TraitApi } from '../../../api/trait';
-import { RegardApi } from '../../../api/regard';
-import { ChronicleApi } from '../../../api/chronicle';
 import { ShellApi } from '../../../api/shell';
 import { SocialApi } from '../../../api/social';
 import type { PresenceStatus } from '@saxonberg/types';
 import { Band } from '../../../lib/standing/Band';
+import { SecurityApi } from '../../../api/security';
 import type {
   ProfileCard,
   ProfileDigest,
@@ -32,6 +28,18 @@ import type {
 // SocialApi (one navigable surface); this logic singleton stays separate
 // for file size + HMR but is @internal.
 const SocialApiCallers = SecurityPolicies.FromModule('/api/social#SocialApi'
+);
+/** The F2 viewer face (NotifyPolicy hosts) forwards here as the viewer. */
+const ProfileViewerCallers = SecurityPolicies.AnyOf(
+  SocialApiCallers,
+  SecurityPolicies.FromMixin('NotifyPolicyMixin', {
+    // Compare by stuffId — the caller may surface as the raw target
+    // while the argument is the proxy (or vice versa).
+    where: (caller, _target, _method, args) =>
+      (caller as { stuffId?: string }).stuffId !== undefined &&
+      (caller as { stuffId?: string }).stuffId ===
+        (args[0] as { stuffId?: string } | undefined)?.stuffId,
+  }),
 );
 
 /** A connected account younger than this reads as a "new arrival". */
@@ -99,13 +107,25 @@ function contactEntryFor(
 @Unshadowable
 export class ProfileLogic extends ApiLogic {
   /** See {@link SocialApi.composeRow}. */
-  @CallSecurity(SocialApiCallers)
+  @CallSecurity(ProfileViewerCallers)
   public async composeRow(viewer: Stuff, target: Stuff): Promise<RosterRow> {
+    // The roster row IS the per-viewer projection of a person — the
+    // same category as naming, and the same read aperture.
+    return SecurityApi.projectAcross(viewer, target, () =>
+      this.composeRowImpl(viewer, target),
+    this);
+  }
+
+  private async composeRowImpl(
+    viewer: Stuff,
+    target: Stuff,
+  ): Promise<RosterRow> {
     const self = viewer.stuffId === target.stuffId;
-    const recognized = self || RecognitionApi.recognizes(viewer, target);
+    const recognized =
+      self || (MixinApi.isBeliefStore(viewer) && viewer.recognizes(target));
     const row: RosterRow = {
       handle: handleOf(target),
-      header: self ? target.getPresentation() : RecognitionApi.describe(viewer, target),
+      header: self ? target.getPresentation() : target.describeFor(viewer),
       recognized,
     };
     if (PlayerApi.isAvatarStuff(target)) {
@@ -120,15 +140,16 @@ export class ProfileLogic extends ApiLogic {
   }
 
   /** See {@link SocialApi.composeCard}. */
-  @CallSecurity(SocialApiCallers)
+  @CallSecurity(ProfileViewerCallers)
   public async composeCard(viewer: Stuff, target: Stuff): Promise<ProfileCard> {
     const self = viewer.stuffId === target.stuffId;
-    const recognized = self || RecognitionApi.recognizes(viewer, target);
+    const recognized =
+      self || (MixinApi.isBeliefStore(viewer) && viewer.recognizes(target));
     const card: ProfileCard = {
       handle: handleOf(target),
       header: self
         ? target.getPresentation()
-        : RecognitionApi.describe(viewer, target),
+        : target.describeFor(viewer),
       isSelf: self,
       recognized,
     };
@@ -204,7 +225,9 @@ export class ProfileLogic extends ApiLogic {
     // --- Always-outward standing (renown + competence) ---
     const subjectId = subjectIdOf(target);
     card.renownBand = Band.fromScalar(RenownApi.renownOf(subjectId)).name;
-    const competence = await AdvancementApi.bandsFor(target);
+    const competence = MixinApi.isAdvancing(target)
+      ? await target.competenceBands()
+      : [];
     if (competence.length) {
       card.competenceBands = competence.map((b) => ({
         discipline: b.discipline,
@@ -218,7 +241,9 @@ export class ProfileLogic extends ApiLogic {
     } else {
       const contact = contactEntryFor(viewer, target);
       if (contact) card.yourLabel = contact.label;
-      const word = regardWord(RegardApi.getRegard(viewer, target));
+      const word = regardWord(
+        MixinApi.isBeliefStore(viewer) ? viewer.regardFor(target) : 0,
+      );
       if (word) card.yourRegard = word;
     }
     return card;
@@ -235,7 +260,7 @@ export class ProfileLogic extends ApiLogic {
     target: Stuff
   ): PresenceStatus | undefined {
     if (!PlayerApi.isAvatarStuff(target)) return undefined;
-    const status = SocialApi.statusOf(target);
+    const status = target.presenceStatus();
     if (viewer.stuffId === target.stuffId) return status;
     const pref =
       ShellApi.resolveSetting<string>(target, 'privacy.showStatus') ?? 'anyone';
@@ -249,7 +274,8 @@ export class ProfileLogic extends ApiLogic {
   private async chronicleFor(
     target: Stuff
   ): Promise<{ prologue?: string; deeds: string[] } | undefined> {
-    const entries = await ChronicleApi.entriesFor(target);
+    if (!MixinApi.isPersona(target)) return undefined;
+    const entries = await target.chronicleEntries();
     if (!entries.length) return undefined;
     const claims = entries.filter((e) => e.kind === 'claim');
     const deeds = entries.filter((e) => e.kind === 'deed');
@@ -279,14 +305,18 @@ export class ProfileLogic extends ApiLogic {
         ...(make ? { make: make.band.name } : {}),
       },
     };
-    const competence = await AdvancementApi.bandsFor(target);
+    const competence = MixinApi.isAdvancing(target)
+      ? await target.competenceBands()
+      : [];
     if (competence.length) {
       digest.competence = competence.map((b) => ({
         discipline: b.discipline,
         band: b.band,
       }));
     }
-    const traits = await TraitApi.pronouncedFor(target);
+    const traits = MixinApi.isDispositioned(target)
+      ? await target.pronouncedTraits()
+      : [];
     if (traits.length) {
       digest.traits = traits.map((t) => ({
         axis: t.disposition,

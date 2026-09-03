@@ -115,9 +115,9 @@ const MANIFEST: ReadonlyArray<{ site: string; classification: string }> = [
   // The clone pipeline resolves a template's `class` — gate-passed at
   // saveTemplate.
   { site: "api/stuff.ts::loadClassByPath", classification: "gated-direct" },
-  // `MaterialLogic.boot` keeps a row by `instanceof Material` — resolving
+  // `MaterialCatalogue.postRegister` keeps a row by `instanceof Material` — resolving
   // the class wherever it lives (a capability pack's src/ included).
-  { site: "platform/idea/api/MaterialLogic.ts::loadClassByPath", classification: "gated-direct" },
+  { site: "platform/idea/MaterialCatalogue.ts::loadClassByPath", classification: "gated-direct" },
   // `FermentProfileCatalogue.postRegister` keeps a row by
   // `instanceof FermentProfile` (the MaterialLogic filter, homed on a
   // self-warming catalogue — the boot()-retirement direction).

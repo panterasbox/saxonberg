@@ -16,7 +16,6 @@ import { WetMixin } from '../../wetness/Wet';
 import { ReservedMixin, Reserve } from '../../reserve';
 import { CombustibleMixin } from '../Combustible';
 import { FireApi } from '../../../api/fire';
-import { ThermalApi } from '../../../api/thermal';
 import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
 import { Quantity } from '../../quantity';
@@ -83,13 +82,13 @@ describe('the combustion driver — ignition energy balance', () => {
 
   it('a dry object heated past its autoignition point ignites', () => {
     const log = firewood({ massKg: 1, stampedK: 600 }); // > 570 K autoignition
-    expect(FireApi.tryAutoignite(log)).toBe(true);
+    expect(log.tryAutoignite()).toBe(true);
     expect(log.isBurning()).toBe(true);
   });
 
   it('an object below its autoignition point does not ignite', () => {
     const log = firewood({ massKg: 1, stampedK: 500 }); // < 570 K
-    expect(FireApi.tryAutoignite(log)).toBe(false);
+    expect(log.tryAutoignite()).toBe(false);
     expect(log.isBurning()).toBe(false);
   });
 
@@ -97,23 +96,23 @@ describe('the combustion driver — ignition energy balance', () => {
     const log = firewood({ massKg: 1, stampedK: 600 });
     log.wet(1); // soak it — raises the effective ignition threshold well past 600
     expect(log.getEffectiveAutoignitionK()).toBeGreaterThan(600);
-    expect(FireApi.tryAutoignite(log)).toBe(false);
+    expect(log.tryAutoignite()).toBe(false);
 
     // Dry it back out — now the same 600 K catches.
     log.wet(-1);
     expect(log.getEffectiveAutoignitionK()).toBeCloseTo(570, 0);
-    expect(FireApi.tryAutoignite(log)).toBe(true);
+    expect(log.tryAutoignite()).toBe(true);
   });
 
   it('a small flame cannot out-heat a high-thermal-inertia object', () => {
     // A big log at ambient. A tiny heat deposit barely moves it.
     const beam = firewood({ massKg: 50, stampedK: 295 });
-    ThermalApi.depositHeat(beam, 1000); // C = 50×2000 = 1e5 J/K → ΔT = 0.01 K
-    expect(FireApi.tryAutoignite(beam)).toBe(false);
+    beam.depositHeat(1000); // C = 50×2000 = 1e5 J/K → ΔT = 0.01 K
+    expect(beam.tryAutoignite()).toBe(false);
 
     // A large enough deposit crosses the threshold → it catches.
-    ThermalApi.depositHeat(beam, 50_000_000); // ΔT = 500 K → ~795 K > 570
-    expect(FireApi.tryAutoignite(beam)).toBe(true);
+    beam.depositHeat(50_000_000); // ΔT = 500 K → ~795 K > 570
+    expect(beam.tryAutoignite()).toBe(true);
   });
 });
 
@@ -122,7 +121,7 @@ describe('the combustion driver — deliberate ignite + extinguishers', () => {
 
   it('the ignite verb lights a dry flammable object', () => {
     const log = firewood({ massKg: 1 });
-    const out = FireApi.ignite(log);
+    const out = log.ignite();
     expect(out.lit).toBe(true);
     expect(log.isBurning()).toBe(true);
     // A burning object reads at the flame temperature.
@@ -132,36 +131,39 @@ describe('the combustion driver — deliberate ignite + extinguishers', () => {
   it('the ignite verb refuses a soaked object (too wet to catch)', () => {
     const log = firewood({ massKg: 1 });
     log.wet(1);
-    const out = FireApi.ignite(log);
+    const out = log.ignite();
     expect(out.lit).toBe(false);
     expect(out.reason).toBe('too-wet');
     expect(log.isBurning()).toBe(false);
   });
 
-  it('the ignite verb refuses a non-flammable object', () => {
+  it('a non-flammable object has no combustion face at all', () => {
+    // Since the F1 move the refusal is structural: ignite()/douse() live
+    // on Combustible/Furnace, and the ignite verb's target predicate is
+    // the isCombustible/isFurnace narrow — a bare Thing never reaches
+    // the driver.
     const rock = makeStuff(() => new Thing());
-    const out = FireApi.ignite(rock);
-    expect(out.lit).toBe(false);
-    expect(out.reason).toBe('not-flammable');
+    expect(MixinApi.isCombustible(rock)).toBe(false);
+    expect(MixinApi.isFurnace(rock)).toBe(false);
   });
 
   it('a spent (no-fuel) object will not ignite', () => {
     const log = firewood({ massKg: 1, fuelPct: 0 });
-    expect(FireApi.ignite(log).lit).toBe(false);
-    expect(FireApi.tryAutoignite(firewood({ massKg: 1, stampedK: 600, fuelPct: 0 }))).toBe(
+    expect(log.ignite().lit).toBe(false);
+    expect((firewood({ massKg: 1, stampedK: 600, fuelPct: 0 })).tryAutoignite()).toBe(
       false,
     );
   });
 
   it('douse extinguishes a fire and wets it against re-ignition', () => {
     const log = firewood({ massKg: 1 });
-    FireApi.ignite(log);
+    log.ignite();
     expect(log.isBurning()).toBe(true);
-    expect(FireApi.douse(log)).toBe(true);
+    expect(log.douse()).toBe(true);
     expect(log.isBurning()).toBe(false);
     // Wet now → re-lighting is refused.
     expect(log.getWetness()).toBeGreaterThan(0);
-    expect(FireApi.ignite(log).reason).toBe('too-wet');
+    expect(log.ignite().reason).toBe('too-wet');
   });
 
   it('narrows Combustible via MixinApi', () => {
@@ -201,7 +203,7 @@ describe('the combustion driver — burns down to char', () => {
 
     const log = firewood({ massKg: 1, fuelPct: 100 });
     log.setCharMaterialPath('/stuff/idea/material/_test/ash');
-    FireApi.ignite(log);
+    log.ignite();
     log.reconcileBurning(); // seed the burn clock stamp
     expect(log.isBurning()).toBe(true);
 

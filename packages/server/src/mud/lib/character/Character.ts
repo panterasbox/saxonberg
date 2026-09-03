@@ -34,6 +34,7 @@
 import { Creature } from '../creature/Creature';
 import { GenderedMixin } from './Gendered';
 import { PersonaMixin } from './Persona';
+import { DispositionedMixin } from '../trait/Dispositioned';
 import { MobileMixin } from '../spatial/Mobile';
 import { HaulerMixin } from '../slot/Hauler';
 import { SensorMixin } from '../message/Sensor';
@@ -98,9 +99,11 @@ const CharacterBase = AdvancementMixin(
             PerceiverMixin(
               SensorMixin(
                 GenderedMixin(
+                  DispositionedMixin(
                   PersonaMixin(
                     StatusMixin(
                     BeliefStoreMixin(HidingMixin(EmployedMixin(Creature)))
+                  )
                   )
                   )
                 )

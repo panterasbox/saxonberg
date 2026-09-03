@@ -12,7 +12,6 @@ import { SandboxApi } from '../sandbox';
 import { StuffApi } from '../stuff';
 import { ShadowApi } from '../shadow';
 import { EventApi } from '../event';
-import { ConnectionApi } from '../connection';
 import { ContainmentApi } from '../containment';
 import { Stuff } from '../../lib/stuff/Stuff';
 import {
@@ -97,7 +96,7 @@ async function makeRig(): Promise<{
         _id: 'u1',
       } as never)
   );
-  ConnectionApi.transfer(interactive, avatar);
+  interactive.transferTo(avatar);
   return { avatar, interactive, room };
 }
 

@@ -52,7 +52,7 @@ performs. A `Lock` value-object (`lib/lock/Lock.ts`) is `{ keyway, technology }`
 `CredentialKind` — a `KeyCredential` keychain (bearer `{keyway, technology}`
 entries + master technologies) held **either** in the implant wallet **or** on
 a physical `Key` Thing (`lib/lock/Key`, the `PaymentCard`/`TravelCard`
-precedent). `CredentialApi` (`api/credential.ts`, the unified credential
+precedent). the `Lock` value class (`api/credential.ts`, the unified credential
 surface) is the callable home: `issueKey` / `issueMasterKey`, and the
 **synchronous** `presentsKey(mover, lock)` — a reachable-wallet scan (implant +
 carried key) safe to call from a door's `canTraverse`; minting a fresh keyway
@@ -460,7 +460,7 @@ crossing's north gate is seeded permanently locked and soft-walled in
 dialogue (Gus), so `lock` / `unlock` are minimal admin / no-key verbs. It
 is superseded by build-3's `lib/lock/` real model (a re-keyable `Lock`
 value-object a door carries, plus `Key` riding `CredentialWalletMixin` /
-`CredentialApi` — "the door checks a key, not identity"). This boolean is
+the `Lock` value class — "the door checks a key, not identity"). This boolean is
 a degenerate special case of that (a lock nobody holds a key for). **At
 reconcile toward `lib/lock/`:** retire this mixin + the `'locked'`
 `Exit.canTraverse` gate and re-express the gate as either a plain

@@ -159,7 +159,7 @@ a **`Document`** managed by a catalogue singleton — the
     ungraded stock derives at `fair`).
   - `requiresHeatK?` — the **heat gate**: craft-resolve declines
     (`insufficient-heat`, diegetic) unless
-    `ThermalApi.reachableHeatFor(maker) ≥ requiresHeatK` — the fire
+    `reachableHeatK(maker) ≥ requiresHeatK` — the fire
     build's D9 seam, consumed. The forge holds 1300 K (2080 K with the
     bellows worked), the oven 500 K — so the belt-knife's 1400 K
     genuinely requires the bellows and the whole cooking ladder runs at
@@ -245,7 +245,7 @@ The gated forwarding pair (the `ProvenanceApi`↔`ProvenanceLogic` shape):
    `hasCapability` → decline `missing-tool`. (A **broken** tool offers
    no capabilities — see the lifecycle below.)
 6. **The heat gate** — `requiresHeatK > 0` and
-   `ThermalApi.reachableHeatFor(maker) < requiresHeatK` → decline
+   `reachableHeatK(maker) < requiresHeatK` → decline
    `insufficient-heat` ("the forge is cold").
 7. **Derive grade** — `Grade.deriveAtFixedControl(matched)` (bulk +
    item grades together), floored at `baseGrade`.
@@ -771,7 +771,7 @@ design. What is *earned* is the shorthand (`lib/script/RecipeKnowledge`
 
 **Advancement evidence** rides the same tail: a matched recipe that
 authors a `discipline` appends a Transcript deed
-(`AdvancementApi.recordDeed`) at its authored `difficulty` — the seeded
+(`creditDeed`) at its authored `difficulty` — the seeded
 `smithing` (ISCED-F 0715) / `cooking` (1013) Disciplines, the
 `mixology` shape. Control stays **fixed** this build (the skill seam is
 the declared next crafting wave); the evidence simply accrues honestly,

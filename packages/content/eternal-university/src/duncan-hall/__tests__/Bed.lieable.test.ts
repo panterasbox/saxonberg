@@ -17,7 +17,6 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { parse } from "yaml";
 import { StuffApi } from "@saxonberg/server/mud/api/stuff";
-import { SlotApi } from "@saxonberg/server/mud/api/slot";
 import { MixinApi } from "@saxonberg/server/mud/api/mixin";
 import { Mixins } from "@saxonberg/server/mud/lib/mixin";
 import { makeStuffAtPath } from "@saxonberg/server/mud/lib/security/__tests__/test-setup";
@@ -63,9 +62,7 @@ describe("the dorm bed", () => {
   it("a body can lie in it, and metabolism reads the multiplier back", () => {
     const bed = makeBed();
     const body = makeStuffAtPath(() => new Body(), "/obj/test/Body");
-    SlotApi.occupyAll(
-      bed as unknown as Stuff & Slotted,
-      body as unknown as Stuff & Slottable,
+    (bed as unknown as Stuff & Slotted).occupyAll(body as unknown as Stuff & Slottable,
       ["lie:1"],
     );
 
@@ -78,9 +75,7 @@ describe("the dorm bed", () => {
   it("records where the sleeper slept, so they wake in it", () => {
     const bed = makeBed();
     const body = makeStuffAtPath(() => new Body(), "/obj/test/Body");
-    SlotApi.occupyAll(
-      bed as unknown as Stuff & Slotted,
-      body as unknown as Stuff & Slottable,
+    (bed as unknown as Stuff & Slotted).occupyAll(body as unknown as Stuff & Slottable,
       ["lie:1"],
     );
     expect(body.getRestingOnPath()).toBe(BED_PATH);

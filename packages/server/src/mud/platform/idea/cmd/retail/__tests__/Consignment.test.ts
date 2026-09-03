@@ -123,7 +123,7 @@ async function fundedAvatar(path: string, minor: number): Promise<TestGiver> {
     const cash = await asOwner(av, () =>
       BankingApi.issueCash(av as never, Money.of(minor, Currency.compact())),
     );
-    await asOwner(av, () => BankingApi.deposit(bank, cash as never));
+    await asOwner(av, () => bank.deposit(cash as never));
   }
   return av;
 }
@@ -169,7 +169,7 @@ describe("Consignment — sell loop over real ownership", () => {
     ContainmentApi.move(alice as never, loc as never);
     const aliceAcct = (await BankingApi.primaryAccountIdOf("/platform/agent/Avatar/alice"))!;
     const torch = ownedTorch(alice);
-    await asOwner(alice, () => ChattelApi.stamp(torch, alice));
+    await asOwner(alice, () => torch.stampChattel(alice));
 
     // Alice consigns the torch for 8.
     await asOwner(alice, () =>
@@ -179,7 +179,7 @@ describe("Consignment — sell loop over real ownership", () => {
       ),
     );
     expect(torch.getContainer()).toBe(shelf); // custody → shop
-    expect(await ChattelApi.ownerOf(torch)).toEqual({
+    expect(await torch.chattelOwner()).toEqual({
       kind: "player",
       templatePath: "/platform/agent/Avatar/alice",
     }); // ownership stays with Alice
@@ -197,7 +197,7 @@ describe("Consignment — sell loop over real ownership", () => {
 
     // commission = round(8 * 0.15) = 1; remainder = 7.
     expect(torch.getContainer()).toBe(bob); // custody → buyer
-    expect((await ChattelApi.ownerOf(torch))).toEqual({ kind: "player", templatePath: "/platform/agent/Avatar/bob" }); // stamp → buyer
+    expect((await torch.chattelOwner())).toEqual({ kind: "player", templatePath: "/platform/agent/Avatar/bob" }); // stamp → buyer
     expect(BankingApi.balanceOf(bobAcct).minor).toBe(92); // 100 − 8
     expect(BankingApi.balanceOf(aliceAcct).minor).toBe(7); // remainder
     expect(BankingApi.balanceOf(storeAcct).minor).toBe(1); // commission
@@ -212,7 +212,7 @@ describe("Consignment — sell loop over real ownership", () => {
     const broke = makeStuffAtPath(() => new TestGiver(), "/platform/agent/Avatar/broke");
     ContainmentApi.move(broke as never, loc as never);
     const torch = ownedTorch(broke);
-    await asOwner(broke, () => ChattelApi.stamp(torch, broke));
+    await asOwner(broke, () => torch.stampChattel(broke));
 
     await asOwner(broke, () =>
       makeStuff(() => new ConsignController()).execute(
@@ -246,8 +246,8 @@ describe("Consignment — sell loop over real ownership", () => {
       return t;
     }, "/obj/test/Lantern");
     ContainmentApi.move(t2 as never, alice as never);
-    await asOwner(alice, () => ChattelApi.stamp(t1, alice));
-    await asOwner(alice, () => ChattelApi.stamp(t2, alice));
+    await asOwner(alice, () => t1.stampChattel(alice));
+    await asOwner(alice, () => t2.stampChattel(alice));
 
     await asOwner(alice, () =>
       makeStuff(() => new ConsignController()).execute({ thing: "torch", ask: "8" }, ctx(alice, loc, shelf, "consign")),
@@ -282,7 +282,7 @@ describe("Consignment — sell loop over real ownership", () => {
       ContainmentApi.move(t as never, alice as never);
       return t;
     });
-    for (const g of goods) await asOwner(alice, () => ChattelApi.stamp(g, alice));
+    for (const g of goods) await asOwner(alice, () => g.stampChattel(alice));
 
     for (const kw of ["torch", "lantern", "whetstone"]) {
       await asOwner(alice, () =>
@@ -313,8 +313,8 @@ describe("Consignment — sell loop over real ownership", () => {
     }, "/obj/test/Cap-y");
     ContainmentApi.move(extra as never, alice as never);
     ContainmentApi.move(extra2 as never, alice as never);
-    await asOwner(alice, () => ChattelApi.stamp(extra, alice));
-    await asOwner(alice, () => ChattelApi.stamp(extra2, alice));
+    await asOwner(alice, () => extra.stampChattel(alice));
+    await asOwner(alice, () => extra2.stampChattel(alice));
     for (const kw of ["candle", "taper"]) {
       await asOwner(alice, () =>
         makeStuff(() => new ConsignController()).execute(
@@ -333,7 +333,7 @@ describe("Consignment — sell loop over real ownership", () => {
     const alice = await fundedAvatar("/platform/agent/Avatar/alice", 0);
     ContainmentApi.move(alice as never, loc as never);
     const torch = ownedTorch(alice);
-    await asOwner(alice, () => ChattelApi.stamp(torch, alice));
+    await asOwner(alice, () => torch.stampChattel(alice));
 
     await asOwner(alice, () =>
       makeStuff(() => new ConsignController()).execute({ thing: "torch", ask: "8" }, ctx(alice, loc, shelf, "consign")),
@@ -344,7 +344,7 @@ describe("Consignment — sell loop over real ownership", () => {
       makeStuff(() => new ReclaimController()).execute({ thing: "torch" }, ctx(alice, loc, shelf, "reclaim")),
     );
     expect(torch.getContainer()).toBe(alice); // custody back
-    expect((await ChattelApi.ownerOf(torch))).toEqual({ kind: "player", templatePath: "/platform/agent/Avatar/alice" });
+    expect((await torch.chattelOwner())).toEqual({ kind: "player", templatePath: "/platform/agent/Avatar/alice" });
     expect(shelf.activeListingCount("/platform/agent/Avatar/alice")).toBe(0);
   });
 });

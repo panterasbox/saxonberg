@@ -27,7 +27,6 @@ import Avatar from '../../platform/agent/Avatar';
 import Thing from '../../lib/stuff/Thing';
 import Location from '../../lib/stuff/Location';
 import { ContainmentApi } from '../containment';
-import { ConnectionApi } from '../connection';
 import { NamedMixin } from '../../lib/description/Named';
 
 class TestSword extends NamedMixin(Thing) {
@@ -74,7 +73,7 @@ async function setup(): Promise<{
   const interactive = await StuffApi.create(
     () => new Interactive('sock-1', 'sess-1', { _id: 'u1' } as never),
   );
-  ConnectionApi.transfer(interactive, avatar);
+  interactive.transferTo(avatar);
 
   const envelopes: Array<{ type: string; promptId?: string; outcome?: { notes: Array<{ kind: string }> } }> = [];
   vi.spyOn(avatar, 'onEnvelope').mockImplementation((tpl) => {
@@ -162,7 +161,7 @@ args:
 
     // Player picks the iron sword (the second match).
     const ironId = swords[1]!.stuffId;
-    PromptApi.handleResponse(interactive, {
+    interactive.handlePromptResponse({
       promptId,
       response: ironId,
     });
@@ -205,7 +204,7 @@ args:
     expect(promptEnvelope).toBeDefined();
     const promptId = promptEnvelope!.promptId!;
 
-    PromptApi.handleCancel(interactive, { promptId });
+    interactive.handlePromptCancel({ promptId });
     await expect(resolvePromise).rejects.toBeInstanceOf(PromptCancelledError);
   });
 
@@ -245,7 +244,7 @@ args:
     expect(promptEnvelope).toBeDefined();
     const promptId = promptEnvelope!.promptId!;
 
-    PromptApi.handleResponse(interactive, {
+    interactive.handlePromptResponse({
       promptId,
       response: JSON.stringify([swords[0]!.stuffId]),
     });
