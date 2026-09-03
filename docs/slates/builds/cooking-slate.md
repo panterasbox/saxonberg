@@ -1206,6 +1206,49 @@ requires two people to run one room.
   payment is the [credit slate](./credit-slate.md)'s), reservations
   and the host stand (content, whenever a venue wants them).
 
+### Takeout & delivery: the vessel pool's stress test, and a gig
+
+- ⭐ **Takeout is where Part 6's pool gets interesting**, because the
+  customer walks off with your bowl and your par sheet shortfalls.
+  History's three answers are all already expressible, and each is a
+  different subsystem: **bring your own** (the tiffin/growler — the
+  claim takes the *customer's* vessel instead of the house's, and the
+  kind-match rule already makes a washed-out vessel and a fresh one
+  the same input); **a deposit** (price the vessel, refund on return
+  — the returns loop the bar built); **disposable wrap** (up the tech
+  ladder, and it *creates waste* — feeding the compost/sanitation
+  producers from § Part 3). No new mechanism; a real economic
+  decision per venue.
+- **Delivery is a gig, and the substrate is exact**: the
+  [contract](../../subsystems/contract.md) clause primitive over an
+  **engine-verifiable condition** — and "this dish is in that room"
+  is as verifiable as conditions get — with escrow, the board, and
+  the **custodian rule**. The courier holds someone else's property,
+  which is `HeldGoodsMixin` (the coat-check custody base); walking
+  off with the dinner is a real defection with an accountability
+  trail.
+- ⭐⭐ **The thermal clock IS the delivery timer — no arbitrary
+  countdown.** Food cools toward ambient by shipped Newton cooling,
+  and the ambient is **the weather**, so a winter delivery is
+  genuinely harder. The mitigation is honest capital: an insulated
+  container (the shipped `Flask`/thermos + `IceBin` pattern — the
+  pizza bag is a thermos with a different label). And the best
+  consequence: **hot food has a RADIUS, and it emerges from the
+  cooling curve × travel time** rather than a configured limit —
+  von Thünen for dinner, which is why real delivery is local.
+- **The courier passes the vocation test**: the cook cannot leave the
+  kitchen (absent / lacks capacity), so somebody carries — the
+  register's exact shape, and it lands beside the roster's ⭐haulage
+  carter.
+- **Remote ordering is comms, not machinery**: the aether is the
+  internet, `dm`/`tell` and displays ship — a remote order is a
+  message plus a gig. ⚠ Heed display.md's rule: *a display confers no
+  money authority*.
+- **Deferred, noted**: the aggregator platform (the rent-extracting
+  intermediary between cook and eater) is a **corpo** and a genuinely
+  rich political-economy subject — platform labor, the take rate —
+  but it is a later build's, not this one's.
+
 ### Real estate: a kitchen sells property here too
 
 - **Improvements transfer with title**: furnishing is owner-based and
