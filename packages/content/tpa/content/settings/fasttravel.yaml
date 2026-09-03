@@ -33,3 +33,33 @@ settings:
   # automatically. Same shape as fasttravel.md's existing R1 reseed note.
   - key: fasttravel.tpaBusinessPath
     value: /system/tpa/idea/teleport-authority
+
+  # ⭐ What a gate charges per τ it supplies — NOT authored per
+  # terminal. The rate derives from where the gate's mana came from,
+  # because the operator resells its own supply at its cost basis. A
+  # line-fed city gate is cheap; a frontier post running on bought
+  # cells is dear, and the traveller can see which is which by looking
+  # at the terminal. Two otherwise-identical gates therefore quote
+  # DIFFERENT prices for the same ride, and neither number was tuned.
+  #
+  # ⭐ Derived from the shipped ladder, not chosen: a cell is 6 credits
+  # for 600 τ, so cell mana costs the operator exactly **0.01 per τ**,
+  # and that is what a cell-fed gate charges. The line is a fifth of
+  # that — the city buys in bulk.
+  #
+  # The consequence is legible without a gauge: on a LEVEL hop (the
+  # 40 τ survey floor) both rates round to a single credit and the mana
+  # is a rounding error on the fare. On a real CLIMB the `mgh` term
+  # dominates, the two gates visibly diverge, and the traveller can see
+  # WHY by looking at what is feeding each one. Nobody tuned that.
+  - key: tpa.manaRate.mains
+    value: "0.002"
+
+  - key: tpa.manaRate.cell
+    value: "0.01"
+
+  # The traveller's standing preference for whose mana pays a ride —
+  # `terminal` (the default: put it on the meter) or `self` (channel
+  # your own). Overridden per ride by `--channel` / `--meter`.
+  - key: tpa.power
+    value: terminal

@@ -30,6 +30,8 @@
 import { CommandController } from "@saxonberg/server/mud/lib/command/CommandController";
 import type { CommandContext, CommandModel } from "@saxonberg/server/mud/api/command";
 import { MqlApi } from "@saxonberg/server/mud/api/mql";
+import { MagicApi } from "@saxonberg/server/mud/api/magic";
+import { SUPPLY_STATE_GLOSS } from "@saxonberg/server/mud/lib/supply/SupplyState";
 import type { MqlOneResult } from "@saxonberg/server/mud/api/mql";
 import { MessageApi } from "@saxonberg/server/mud/api/message";
 import { Mml } from "@saxonberg/server/mud/api/mml";
@@ -49,7 +51,30 @@ import { CastActivity } from "@saxonberg/server/mud/lib/magic/CastActivity";
 import type { AbortReason } from "@saxonberg/types";
 import type { Caster } from "@saxonberg/server/mud/lib/magic/Caster";
 import type { CommandGiver } from "@saxonberg/server/mud/lib/command/CommandGiver";
+import {
+  MANA_POWERED_MIXIN,
+  type ManaPowered,
+} from "@saxonberg/content-arcana/src/lib/ManaPowered";
+import type { Charged } from "@saxonberg/server/mud/lib/magic/Charged";
+import type { SupplyState } from "@saxonberg/server/mud/lib/supply/SupplyState";
 import { FAST_TRAVEL_MIXIN, type FastTravel } from "../../../lib/FastTravel";
+
+/**
+ * A node that also RUNS ON SOMETHING — the shape the mana leg needs.
+ *
+ * ⚠ Narrowed structurally rather than assumed, and that is not
+ * defensive coding: a `FastTravelMixin` composer that is not
+ * mana-powered is a perfectly good node (a hand-authored gate, a
+ * fixture in a suite), and it simply skips the mana leg. The mechanism
+ * is the pack's; running on mana is a choice a row makes.
+ */
+type PoweredGate = Stuff &
+  FastTravel &
+  ManaPowered &
+  Charged & {
+    noteRideCost(tau: number): SupplyState | null;
+    manaRatePerTau(): number;
+  };
 
 /** The working the anchored front door casts. One spell, two grammars. */
 const TELEPORT_SPELL = "teleport";
@@ -65,6 +90,10 @@ interface AnchoredHit {
 
 interface TeleportModel extends CommandModel {
   destination?: MqlOneResult;
+  /** Channel your OWN reserve into the gate for this ride. */
+  channel?: boolean;
+  /** Put it on the gate's meter — the explicit opposite of `--channel`. */
+  meter?: boolean;
 }
 
 export default class TeleportController extends CommandController<TeleportModel> {
@@ -498,11 +527,24 @@ export default class TeleportController extends CommandController<TeleportModel>
       );
     }
 
+    const gate = MixinApi.isActive(node, MANA_POWERED_MIXIN)
+      ? (node as PoweredGate)
+      : null;
+
     if (node.getStatus() !== "operational") {
+      // ⭐ Name the CAUSE when there is one. `getStatus()` derives from
+      // `supplyState()`, so a gate that is out of service is out of
+      // service for a reason expressible in the shipped six words — and
+      // the six words name the shape of the fix. A generic "no
+      // departures board here today" was the old inert-`status` era's
+      // wording, and it told a traveller nothing.
+      const supply = gate?.supplyState() ?? null;
       return this.fail(
         context,
-        "this gate is out of service — no departures board here today",
-        "out-of-service",
+        supply
+          ? `this gate is out of service — ${SUPPLY_STATE_GLOSS[supply]}`
+          : "this gate is out of service — no departures board here today",
+        supply === "dry" ? "gate-dry" : "out-of-service",
       );
     }
 
@@ -543,18 +585,139 @@ export default class TeleportController extends CommandController<TeleportModel>
       return this.fail(context, "you can't travel", "immobile");
     }
 
+    /* ── the mana leg (D8) ────────────────────────────────────────
+     *
+     * ⭐⭐ **The ride is not a cast.** It issues no `prepareCast` and no
+     * `resolveCast`: it QUOTES `MagicApi.relocationCost`, draws that
+     * many τ off the terminal, settles the money, and moves the
+     * traveller with `Mobile.teleport`. That is D10's *"the TPA is a
+     * utility selling a capability its customers do not have"*
+     * expressed structurally — a ride through the cast pipeline would
+     * inherit the band gate, and the network's entire customer base
+     * would be locked out of the network.
+     *
+     * The two paths share the COST FUNCTION, not the pipeline.
+     */
+    const powered = await this.resolvePower(model, giver);
+    let costTau = 0;
+
+    if (gate) {
+      costTau = await MagicApi.relocationCost({
+        traveller: giver,
+        to: arrivalRoom,
+      });
+
+      // ⚠ The arming floor first, and it refuses a BYO ride TOO
+      // (AC13a). Below its floor the gate is not a gate any more: there
+      // is nothing for the mana to arrive INTO, so offering to bring
+      // your own is not the fix. `dry` is the honest word.
+      if (!gate.isArmed()) {
+        return this.fail(
+          context,
+          "this gate is dark — there is not enough left in it to hold the " +
+            "working open at all",
+          "gate-dry",
+        );
+      }
+
+      const state = gate.noteRideCost(costTau);
+      if (state && !powered) {
+        // ⭐ `overdrawn` here is a RELATIONSHIP, not a property: the
+        // same gate will happily run a cheaper hop, which is what
+        // AC13b asserts. So the refusal names the RIDE, never the gate.
+        return this.fail(
+          context,
+          `this gate cannot cover that hop — ${SUPPLY_STATE_GLOSS[state]}. ` +
+            `A shorter one, a cell in its bay, or channel your own.`,
+          state === "overdrawn" ? "overdrawn" : "out-of-service",
+        );
+      }
+
+      if (powered) {
+        // BYO. ⭐ NO spell-knowledge gate: fuel is not casting (D8), so
+        // this calls `chargeFrom` directly rather than going through
+        // `recharge`, which additionally requires knowing `transfer`.
+        // `chargeFrom` already refuses a non-caster (AC12's negative
+        // half, with nothing written here) and already runs through a
+        // real coupling with real losses — and it finds its conduit in
+        // the TERMINAL, because a brass pillar composes `ConduitMixin`.
+        const deficit = Math.max(0, costTau - gate.getStoredTau());
+        if (deficit > 0) {
+          const transfer = await gate.chargeFrom(giver, deficit);
+          if (transfer.refusal) {
+            return this.fail(context, transfer.refusal, "cannot-channel");
+          }
+          if (gate.getStoredTau() < costTau) {
+            return this.fail(
+              context,
+              "you pour what you have into it, and it is not enough",
+              "insufficient-mana",
+            );
+          }
+        }
+      }
+
+      if (!(await gate.draw(costTau))) {
+        const why = gate.stateForDraw(costTau);
+        return this.fail(
+          context,
+          why
+            ? `the gate will not run — ${SUPPLY_STATE_GLOSS[why]}`
+            : "the gate will not run",
+          "gate-cannot-draw",
+        );
+      }
+    }
+
     // Paid routes settle the fare BEFORE travelling (insufficient funds
     // refuses without moving). The total is the route's `fee` (the departure
-    // charge) plus the destination node's own arrival `surcharge` — both
-    // optional. A fully free trip (fee 0 + surcharge 0) skips settlement.
+    // charge), the destination node's own arrival `surcharge`, and — new
+    // with the reform — the MANA CHARGE the departure operator resells
+    // its own supply at. A fully free trip skips settlement.
     const fee = node.getRoutes().get(ref)?.fee ?? 0;
     const surcharge = destNode.getSurcharge();
-    if (fee > 0 || surcharge > 0) {
-      const ok = await this.settleFare(context, fee, surcharge, node, destNode);
+    // ⭐ Zero when the traveller brought their own: you cannot be
+    // charged for mana the operator did not buy. That is the whole of
+    // AC11 — the same ride, two prices, and the difference is a
+    // physical fact about who supplied the energy.
+    const manaCharge =
+      gate && !powered ? Math.ceil(costTau * gate.manaRatePerTau()) : 0;
+    if (fee > 0 || surcharge > 0 || manaCharge > 0) {
+      const ok = await this.settleFare(
+        context,
+        fee,
+        surcharge,
+        manaCharge,
+        node,
+        destNode,
+      );
       if (!ok) return;
     }
 
     giver.teleport(arrivalRoom);
+  }
+
+  /**
+   * **Whose mana pays** — the shipped three-tier chain, not a
+   * hand-rolled `resolveSetting(...) ?? 'terminal'` (the exact
+   * antipattern CLAUDE.md names against `LocomotionApi.defaultModeFor`):
+   *
+   * ```
+   * flag (--channel | --meter)  →  actor setting `tpa.power`  →  terminal
+   * ```
+   *
+   * Returns `true` when the TRAVELLER powers the hop.
+   */
+  private async resolvePower(
+    model: TeleportModel,
+    giver: Stuff,
+  ): Promise<boolean> {
+    if (model.channel) return true;
+    if (model.meter) return false;
+    const setting = MixinApi.isEnvironment(giver)
+      ? giver.getOwnSetting<string>("tpa.power")
+      : undefined;
+    return setting === "self";
   }
 
   /**
@@ -584,6 +747,7 @@ export default class TeleportController extends CommandController<TeleportModel>
     context: CommandContext,
     fee: number,
     surcharge: number,
+    manaCharge: number,
     node: Stuff & FastTravel,
     destNode: Stuff & FastTravel,
   ): Promise<boolean> {
@@ -650,7 +814,7 @@ export default class TeleportController extends CommandController<TeleportModel>
         networkFee = 0;
       }
     }
-    const total = fee + surcharge;
+    const total = fee + surcharge + manaCharge;
 
     // Build the split. When there's a base fare, the departure city budget is
     // the main payee (nets `fee − networkFee = total − networkFee − surcharge`)

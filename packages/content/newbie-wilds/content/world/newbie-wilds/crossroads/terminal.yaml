@@ -28,6 +28,30 @@ data:
   directionality: both
   status: operational
   surcharge: 2
+  # ── the mana leg (TPA reform W6) ──
+  # ⭐ A FRONTIER post runs on BOUGHT CELLS, which is why it quotes a
+  # dearer ride than a city gate for the same hop (AC13) — the operator
+  # resells its own supply at its cost basis, and nobody tuned that.
+  #
+  # It also drains with NOBODY RIDING (`standbyWatts`), which is what
+  # gives a cell swap a schedule and gives the Teleport Authority its
+  # first real job: somebody walks the frontier line changing cells.
+  # Below `armingFloorTau` the gate is not a gate — it goes dark and
+  # refuses even a traveller offering their own mana, because there is
+  # nothing left for the mana to arrive INTO.
+  capacityTau: 1200
+  armingFloorTau: 150
+  # 5 W against a 1200 τ cell is roughly a game-MONTH of holding the
+  # working open with nobody riding — a schedule somebody keeps, not a
+  # chore somebody resents.
+  standbyWatts: 5
+  # A cell in the bay on standup — the Authority put one in, and the
+  # standing draw is already eating it. Somebody has to come back.
+  # ⓘ Not `props:`: props seed CONTENTS, and a bay is occupancy. The
+  # terminal seats this itself on `postRegister`, once, and only into an
+  # empty bay — so a restart restores the captured occupant rather than
+  # minting a second cell.
+  bornWithCell: /system/arcana/thing/mana-cell
   routes:
     - to: /world/terminus/terminal/thing/arrival-terminal
       fee: 0

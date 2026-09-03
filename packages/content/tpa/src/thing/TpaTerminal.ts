@@ -24,6 +24,8 @@
  */
 
 import { Mml } from "@saxonberg/server/mud/api/mml";
+import { AppApi } from "@saxonberg/server/mud/api/app";
+import { AppSettingKeys } from "@saxonberg/server/mud/lib/config/AppSettings";
 import { MixinApi } from "@saxonberg/server/mud/api/mixin";
 import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
 import Thing from "@saxonberg/server/mud/lib/stuff/Thing";
@@ -33,18 +35,90 @@ import { FixtureMixin } from "@saxonberg/server/mud/lib/stuff/Fixture";
 import { PostRegistrationMixin } from "@saxonberg/server/mud/lib/stuff/PostRegistration";
 import { SingletonMixin } from "@saxonberg/server/mud/lib/stuff/Singleton";
 import { DisplayMixin } from "@saxonberg/server/mud/lib/display/Display";
+import { PersistableMixin } from "@saxonberg/server/mud/lib/persistence/Persistable";
+import { SlottedMixin } from "@saxonberg/server/mud/lib/slot/Slotted";
+import { ChargedMixin } from "@saxonberg/server/mud/lib/magic/Charged";
+import { ConduitMixin } from "@saxonberg/server/mud/lib/magic/Conduit";
+import { ContainerMixin } from "@saxonberg/server/mud/lib/spatial/Container";
+import { ContainmentApi } from "@saxonberg/server/mud/api/containment";
+import { StuffApi } from "@saxonberg/server/mud/api/stuff";
+import { MixinApi as _MixinApi } from "@saxonberg/server/mud/api/mixin";
+import { ReservedMixin } from "@saxonberg/server/mud/lib/reserve";
+import { SUPPLY_STATE_GLOSS } from "@saxonberg/server/mud/lib/supply/SupplyState";
+import type { SupplyState } from "@saxonberg/server/mud/lib/supply/SupplyState";
+import type { CommandContributions } from "@saxonberg/server/mud/api/command";
+import type { FieldMeta } from "@saxonberg/server/mud/lib/mixin";
+import {
+  BATTERY_SLOT,
+  ManaPoweredMixin,
+} from "@saxonberg/content-arcana/src/lib/ManaPowered";
 
+// ⭐ Read BOTTOM-UP, and every layer is forced by something:
+//
+// - **`ConduitMixin` at the bottom** is the single most load-bearing
+//   find in the whole reform. `MagicLogic.bestConduitFor(actor)` scans
+//   the actor's ENVIRONMENT for a `ConduitMixin` and refuses a transfer
+//   without one — *"bare hands are a poor road for that much energy."*
+//   A terminal that composes it **is its own coupling**, so a traveller
+//   standing at one can pour their pool in with no rod, no bench, and
+//   ZERO kernel change. It is also already true in the fiction: the
+//   terminal is a brass pillar, and brass conducts.
+// - **`ChargedMixin`** because an impulse device *"draws per use and
+//   runs off a stored charge"* — the reservoir IS the impulse shape, not
+//   an implementation convenience. It is what makes `dry` mean
+//   something, what `chargeFrom` needs a shell for, and what makes the
+//   three supplies three ways of filling ONE thing rather than three
+//   parallel draw paths.
+// - **`SlottedMixin`** for the battery bay; **`ManaPoweredMixin`** for
+//   the draw surface and the condition; **`ContainerMixin`** because a
+//   part that goes into a machine has to physically BE somewhere (the
+//   slot is occupancy, containment is location — the `plant`-into-a-pot
+//   order); **`PersistableMixin`** so the
+//   reservoir level and the cell in the bay survive a restart (the
+//   shipped spine captures a `SlottedSlice` and the per-mixin fields —
+//   no new collection).
+//
 // The departures board is a DISPLAY: `pairing: open` (anyone in reach
 // reads it), `shows: ['prose']` — a board is prose, and this terminal's
 // prose is COMPUTED rather than driven (`readScreen` below). See
 // docs/subsystems/display.md.
 const TpaTerminalBase = DisplayMixin(
-  SingletonMixin(
-    PostRegistrationMixin(
-      FixtureMixin(DetailedMixin(FastTravelMixin(Thing))),
+  PersistableMixin(
+    SingletonMixin(
+      PostRegistrationMixin(
+        FixtureMixin(
+          DetailedMixin(
+            FastTravelMixin(
+              ManaPoweredMixin(
+                SlottedMixin(
+                  ChargedMixin(
+                    ReservedMixin(ConduitMixin(ContainerMixin(Thing))),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
     ),
   ),
 );
+
+/**
+ * Numeric AppSetting read, falling back to the seeded literal — the
+ * shipped `dial` idiom, so the pack is right with the settings row
+ * absent (a fresh box, a unit fixture).
+ */
+function dial(key: string, fallback: number): number {
+  try {
+    const raw = AppApi.setting(key);
+    if (raw === "" || raw == null) return fallback;
+    const n = Number.parseFloat(raw);
+    return Number.isFinite(n) ? n : fallback;
+  } catch {
+    return fallback;
+  }
+}
 
 const DEFAULT_FLAVOR =
   "A Teleport Authority terminal stands here: a brass pillar crowned with a " +
@@ -62,6 +136,55 @@ const REGISTER_HINT =
   "return here from anywhere on the network.";
 
 export default class TpaTerminal extends TpaTerminalBase {
+  /**
+   * ⚠ `ChargedMixin` affords `zap` AND `recharge` on the peers /
+   * environment buckets. `recharge <terminal>` is exactly right — it is
+   * the pre-loading route for somebody who wants to fill the gate
+   * before riding. `zap` is not: a terminal is not a wand, and the verb
+   * would offer to fire a working the pillar does not carry.
+   *
+   * Overriding the static drops it. The contribution collector reads
+   * the MOST-DERIVED static rather than unioning the chain, which W6's
+   * suite asserts directly — if that ever changes, the fix is
+   * `zap.yaml` growing `requires: [ArcaneMixin]` (a spell-bound shell),
+   * which is the honest gate regardless.
+   *
+   * `teleport` + `register` come from `FastTravelMixin`, and are
+   * re-declared here because a most-derived static REPLACES rather than
+   * extends.
+   */
+  static commandContributions: CommandContributions = {
+    self: [],
+    peers: [
+      "system/tpa/cmd/movement/register.yaml",
+      "system/tpa/cmd/movement/teleport.yaml",
+      "system/arcana/cmd/magic/recharge.yaml",
+    ],
+    environment: [
+      "system/tpa/cmd/movement/register.yaml",
+      "system/tpa/cmd/movement/teleport.yaml",
+      "system/arcana/cmd/magic/recharge.yaml",
+    ],
+  };
+
+  /**
+   * A cell the Authority seated when it built the gate. Authored, and
+   * laid down ONCE — only into an empty bay, so a restart restores the
+   * captured occupant rather than minting a second one.
+   */
+  public bornWithCell: string = "";
+
+  static fieldMeta: FieldMeta = {
+    bornWithCell: { persistent: true, authorable: true },
+  };
+
+  public getBornWithCell(): string {
+    return this.bornWithCell;
+  }
+  public setBornWithCell(v: string): void {
+    this.bornWithCell = typeof v === "string" ? v : "";
+  }
+
   constructor() {
     super();
     this.pairing = "open";
@@ -69,6 +192,19 @@ export default class TpaTerminal extends TpaTerminalBase {
     // A brass pillar: nobody walks off with it. Narrow by design — the
     // TPA re-seating it, or an author moving the whole gate, still works.
     this.fixedInPlace = true;
+    // An impulse device: it draws per ride off a stored charge.
+    this.setDrawMode("impulse");
+    this.setStaticSlots([
+      {
+        name: BATTERY_SLOT,
+        // ⚠ `accepts` may only name a KERNEL `Mixins` value — a pack
+        // cannot invent one — so the bay takes any charged shell and
+        // `ManaCell.fitsSlot` narrows from the candidate side.
+        accepts: "ChargedMixin",
+        capacity: 1,
+        userFacingDetail: "bay",
+      },
+    ]);
   }
 
   public override async postRegister(_context?: unknown): Promise<void> {
@@ -78,8 +214,34 @@ export default class TpaTerminal extends TpaTerminalBase {
     // cache-registration, so reentrant route lookups (and the warren's
     // re-seat) hit the in-flight instance.
     await this.seatSelf();
+    await this.seatBornWithCell();
     await this.armNetwork();
     this.armTimetable();
+  }
+
+  /**
+   * Seat the authored cell, if the bay is empty. ⓘ NOT `props:` — props
+   * seed CONTENTS and a bay is occupancy; and the once-guard has to be
+   * "the bay is empty" rather than "have I populated", so a gate whose
+   * cell somebody swapped out does not get a free replacement on the
+   * next boot.
+   *
+   * Contents first, then the slot — the `plant`-into-a-pot order.
+   */
+  private async seatBornWithCell(): Promise<void> {
+    if (!this.bornWithCell) return;
+    if (this.getOccupant(BATTERY_SLOT)) return;
+    try {
+      const cell = await StuffApi.clone<Stuff>(this.bornWithCell);
+      if (!_MixinApi.isContainable(cell) || !_MixinApi.isSlottable(cell)) return;
+      ContainmentApi.move(cell, this as never);
+      this.occupy(cell, BATTERY_SLOT);
+    } catch (err) {
+      console.warn(
+        `TpaTerminal: could not seat ${this.bornWithCell}:`,
+        err instanceof Error ? err.message : String(err),
+      );
+    }
   }
 
   public override onDestruct(): void {
@@ -109,6 +271,11 @@ export default class TpaTerminal extends TpaTerminalBase {
    */
   private statusColor(): string {
     if (this.getStatus() !== "operational") return "grey";
+    // ⭐ AMBER — the fourth colour, and the one that is a RELATIONSHIP
+    // rather than a property. The gate is armed and running, and short
+    // for the ride currently selected; a cheaper ride off the same
+    // terminal is fine. See {@link stateForSelectedRide}.
+    if (this.selectedRideIsOverdrawn()) return "amber";
     switch (this.getDirectionality()) {
       case "arrival":
         return "blue";
@@ -116,6 +283,70 @@ export default class TpaTerminal extends TpaTerminalBase {
         return "red";
       default:
         return "purple";
+    }
+  }
+
+  /**
+   * **The gate's condition, derived — never a stored string.**
+   *
+   * ⭐ `status` was a persisted field nothing ever wrote: an author
+   * could set it and the light would go grey, and no mechanism in the
+   * game could dim a terminal for a reason. It now DERIVES from
+   * `ManaPoweredMixin.supplyState()`, so a gate is out of service iff
+   * something is actually wrong with its supply — which is what makes
+   * AC9's refusal originate in the mixin rather than in TPA-specific
+   * breakdown code.
+   *
+   * An authored non-`operational` value still wins, so an author can
+   * close a gate deliberately.
+   */
+  override getStatus(): string {
+    const authored = super.getStatus();
+    if (authored !== "operational") return authored;
+    return this.supplyState() ? "out-of-service" : "operational";
+  }
+
+  /** Is the CURRENTLY SELECTED ride more than this gate can cover? */
+  private selectedRideIsOverdrawn(): boolean {
+    return this._selectedRideDeficit;
+  }
+
+  /**
+   * Set by the ride path before it quotes, so the light can show the
+   * ride-scoped `overdrawn` band the stock read cannot know about.
+   * Transient — a condition of the moment, never persisted.
+   */
+  private _selectedRideDeficit = false;
+
+  /** Record whether this gate can cover a ride costing `tau`. */
+  public noteRideCost(tau: number): SupplyState | null {
+    const state = this.stateForDraw(tau);
+    this._selectedRideDeficit = state === "overdrawn";
+    return state;
+  }
+
+  /**
+   * **What this gate charges per τ it supplies**, and ⭐ it DERIVES
+   * from where the mana came from rather than being authored.
+   *
+   * That is the whole of D8a: the operator bought the mana and resells
+   * it at its cost basis, so a gate on the city line is cheap and a
+   * frontier post running on bought cells is dear — and the traveller
+   * can *see* which is which by looking at the terminal. Two
+   * otherwise-identical gates quote different prices for the same ride
+   * (AC13), and neither price is a number somebody tuned.
+   *
+   * `contact`/`none` is zero: you cannot be charged for mana the
+   * operator did not buy.
+   */
+  public manaRatePerTau(): number {
+    switch (this.getSupplyMode()) {
+      case "main":
+        return dial(AppSettingKeys.tpaManaRateMains, 0.002);
+      case "cell":
+        return dial(AppSettingKeys.tpaManaRateCell, 0.01);
+      default:
+        return 0;
     }
   }
 
@@ -134,7 +365,21 @@ export default class TpaTerminal extends TpaTerminalBase {
   /** The status light in words — the colorblind-safe channel, shown on
    * a deliberate look rather than in every room listing. */
   private statusLine(): string {
-    if (this.getStatus() !== "operational") {
+    const supply = this.supplyState();
+    if (supply) {
+      // ⭐ The six words, in words. The colour does the work in a room
+      // listing; this is the non-colour-alone channel, and it names the
+      // SHAPE OF THE FIX — a player who learned what `dry` means at a
+      // standpipe has learned what it means here.
+      return `Its status light is dark — ${SUPPLY_STATE_GLOSS[supply]}.`;
+    }
+    if (this._selectedRideDeficit) {
+      return (
+        "Its light burns amber: it is running, but short of what the " +
+        "outbound stop would take."
+      );
+    }
+    if (super.getStatus() !== "operational") {
       return "Its status light is dark — the terminal is out of service.";
     }
     switch (this.getDirectionality()) {

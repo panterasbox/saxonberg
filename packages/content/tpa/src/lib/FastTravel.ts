@@ -423,6 +423,20 @@ export function FastTravelMixin<TBase extends MixinConstructor<Stuff>>(
             : "";
         lines.push(`  ${name}${fare}${active}${reg}${times}`);
       }
+      // ⚠ **Which way THIS viewer's ride goes** (D8c). A sticky
+      // preference that is invisible at the moment it applies is the
+      // footgun; the board is already viewer-aware — it annotates each
+      // route against your own credential — so the power line rides the
+      // same per-viewer payload with no new plumbing, and the
+      // convenience stops being a trap.
+      const self =
+        MixinApi.isEnvironment(viewer) &&
+        viewer.getOwnSetting<string>("tpa.power") === "self";
+      lines.push(
+        self
+          ? "You are set to channel your own reserve (`--meter` for this ride only)."
+          : "Mana is on the gate's meter (`--channel` to bring your own).",
+      );
       lines.push("Travel with `teleport <destination>`.");
       return lines.join("\n");
     }

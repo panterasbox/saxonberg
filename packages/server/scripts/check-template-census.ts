@@ -112,6 +112,13 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
   for (const f of [
     '_biomePath', '_extendsBiomePath', '_speciesPath', '_bodyPlanPath',
     '_parentCladePath', '_materialPath', '_defaultMaterialPath',
+    // ⭐ The mana-device citations (TPA reform W5/W6). `mainsRef` names
+    // the line a device is wired to and `bornWithCell` the cell a gate
+    // shipped with — both resolved live, so a rowless one is a device
+    // that silently reports no supply for a reason no author could
+    // find. Read here rather than added to `UNREAD_PATH_FIELDS`,
+    // because that list only ever shrinks.
+    'mainsRef', 'bornWithCell',
   ] as const) {
     push(f, data[f]);
   }

@@ -60,3 +60,23 @@ args:
     onExcess: error
     scope: ["reachable", "here", "peers"]
     requires: any
+options:
+  # ⭐ WHOSE MANA PAYS, resolved by the shipped three-tier chain:
+  #   flag  →  the actor's `tpa.power` setting  →  `terminal`
+  #
+  # `--channel` says "put mine in"; `--meter` is its explicit opposite,
+  # and exists so somebody who set `tpa.power self` can override it for
+  # one ride without unsetting anything.
+  #
+  # ⚠ A sticky preference that is invisible at the moment it applies is
+  # the footgun. The departures board is viewer-aware already (it
+  # annotates each route against YOUR credential), so it carries a line
+  # saying which way YOUR ride will go — visible, it is a convenience.
+  channel:
+    short: c
+    type: boolean
+    description: "Channel your own reserve into the gate for this ride (casters only)."
+  meter:
+    short: m
+    type: boolean
+    description: "Put the mana on the gate's meter, whatever your standing preference says."

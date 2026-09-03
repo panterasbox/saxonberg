@@ -382,6 +382,24 @@ export const AppSettingKeys = {
    * with no teleport pack has an empty floor and is *correct*.
    */
   fasttravelBornWithNodes: "fasttravel.bornWithNodes",
+  /**
+   * TPA — what a gate on the CITY LINE charges per τ it supplies.
+   *
+   * ⭐ The rate is not authored per terminal: it DERIVES from where the
+   * gate's mana came from, because the operator resells its own supply
+   * at its cost basis. A line-fed gate is cheap; a frontier post
+   * running on bought cells is dear (`tpa.manaRate.cell`), and the
+   * traveller can see which is which by looking at the terminal.
+   * *Calibrate at launch.*
+   */
+  tpaManaRateMains: "tpa.manaRate.mains",
+  /**
+   * TPA — what a gate running on BOUGHT CELLS charges per τ. Dearer
+   * than the line by construction, which is what makes two
+   * otherwise-identical gates quote different prices for the same ride.
+   * *Calibrate at launch.*
+   */
+  tpaManaRateCell: "tpa.manaRate.cell",
 
   /**
    * Social-graph (attention management) — the reserved-baseline notify

@@ -10,6 +10,15 @@ data:
   keywords: [gate-a]
   directionality: departure
   status: operational
+  # ── the mana leg (TPA reform W6) ──
+  # A CITY gate runs on the line: cheap mana, and an arming floor it
+  # never approaches because the line refills faster than anything
+  # drains it. `standbyWatts: 0` — a gate somebody is feeding
+  # continuously has no absence to bill for.
+  mainsRef: /world/terminus/terminal/thing/mana-main
+  capacityTau: 4000
+  armingFloorTau: 200
+  standbyWatts: 0
   routes:
     - to: /world/lounge/thing/terminal
       fee: 0
