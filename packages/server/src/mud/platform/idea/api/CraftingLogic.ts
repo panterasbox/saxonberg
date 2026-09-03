@@ -19,6 +19,7 @@ import {
   type Difficulty,
 } from '../../../lib/advancement/ActSignature';
 import type Material from '../../../lib/material/Material';
+import { Freshness } from '../../../lib/material/Freshness';
 import {
   Recipe,
   RECIPE_MEDIA,
@@ -593,6 +594,70 @@ function pickItemInputs(
 }
 
 /**
+ * ⭐ **What the working did to the spoilage the inputs brought with them.**
+ *
+ * Two different facts, and keeping them apart is the point:
+ *
+ *   - **the load** — reset to nothing when the working reached the kill
+ *     temperature (cooking kills what is there), else the inputs' loads
+ *     blended by mass, because a lazy warm-through launders nothing;
+ *   - **the rate afterward** — NOT set here at all. It comes from the
+ *     OUTPUT material's own constants, and `/platform/idea/material/cooked`
+ *     tabulates the fastest rate in the library. A cooked dish starts
+ *     sterile and goes off faster than the raw stock it was made from,
+ *     which is exactly what leftovers do.
+ *
+ * Bulk draws weigh by litres and discrete inputs by mass — near enough the
+ * same units for food, and the blend is the same one a pour uses.
+ */
+function outputMicrobialLoad(
+  effectiveHeatK: number,
+  matched: readonly MatchedInput[],
+  matchedItems: readonly MatchedItemInput[],
+): number {
+  if (effectiveHeatK >= Freshness.killTemperatureK()) return 0;
+  let weighted = 0;
+  let total = 0;
+  for (const m of matched) {
+    const w = m.measureL;
+    if (w <= 0) continue;
+    weighted += m.slot.getFreshnessLoad() * w;
+    total += w;
+  }
+  for (const m of matchedItems) {
+    const unitKg = MixinApi.isTangible(m.stuff)
+      ? m.stuff.getMass().rawValue()
+      : 0;
+    const w = (unitKg > 0 ? unitKg : 0.1) * m.count;
+    const load = MixinApi.isFresh(m.stuff) ? m.stuff.getMicrobialLoad() : 0;
+    weighted += load * w;
+    total += w;
+  }
+  return total > 0 ? weighted / total : 0;
+}
+
+/**
+ * The by-hand twin of {@link outputMicrobialLoad}, over a build buffer's
+ * banked snapshot rather than live inputs. Same two facts, same order:
+ * the kill wins, else the banked loads blend by mass.
+ */
+function buildMicrobialLoad(
+  effectiveHeatK: number,
+  contributions: readonly BuildContribution[],
+): number {
+  if (effectiveHeatK >= Freshness.killTemperatureK()) return 0;
+  let weighted = 0;
+  let total = 0;
+  for (const c of contributions) {
+    const w = c.kind === 'item' ? 0.1 * (c.count ?? 1) : c.measureL;
+    if (w <= 0) continue;
+    weighted += (c.freshnessLoad ?? 0) * w;
+    total += w;
+  }
+  return total > 0 ? weighted / total : 0;
+}
+
+/**
  * Derive a blend's {@link BulkPayload} from its consumed inputs —
  * **macros in = macros out** (the fixed-vocabulary rule's engine): union
  * the parts' nutrient routing tags, sum their per-serving label amounts
@@ -608,6 +673,7 @@ function deriveBlendPayload(
   appearance: string,
   keywords: readonly string[],
   parts: { material: Material; servings: number }[],
+  effectiveHeatK = 0,
 ): BulkPayload {
   const nutrients = new Set<string>();
   const nutrientAmounts: Record<string, number> = {};
@@ -624,6 +690,14 @@ function deriveBlendPayload(
     }
     for (const tox of part.material.getToxicity()) {
       if (tox.amount <= 0) continue;
+      // ⭐ The SELECTIVE kill: a dose the author marked heat-labile is
+      // destroyed once the working actually reached its temperature.
+      // Alcohol marks none and rides into the pot honestly; so does the
+      // ptomaine a spoiled input already grew — heat stops growth, it does
+      // not un-poison what the growth produced.
+      if (tox.labileAtK !== undefined && tox.labileAtK <= effectiveHeatK) {
+        continue;
+      }
       toxins.set(
         tox.type,
         (toxins.get(tox.type) ?? 0) + tox.amount * part.servings,
@@ -752,6 +826,7 @@ async function applyBulkOutput(
   recipe: Recipe,
   matched: MatchedInput[],
   matchedItems: MatchedItemInput[] = [],
+  effectiveHeatK = 0,
 ): Promise<void> {
   const outSlot = BulkableApi.slotFor(output, undefined);
   if (!outSlot) {
@@ -792,7 +867,14 @@ async function applyBulkOutput(
         ),
         ...matchedItems.map((m) => ({ material: m.material, servings: m.count })),
       ],
+      effectiveHeatK,
     ),
+  );
+  // A cold bar mix carries its inputs' spoilage through unchanged — a
+  // daiquiri made with yesterday's lime juice is made with yesterday's
+  // lime juice, and nothing about shaking it says otherwise.
+  outSlot.setFreshnessLoad(
+    outputMicrobialLoad(effectiveHeatK, matched, matchedItems),
   );
 }
 
@@ -840,7 +922,9 @@ function applyTangibleOutput(
 async function applyEdibleOutput(
   output: Stuff,
   recipe: Recipe,
+  matched: MatchedInput[],
   matchedItems: MatchedItemInput[],
+  effectiveHeatK: number,
 ): Promise<void> {
   const outSlot = BulkableApi.slotFor(output, undefined);
   if (!outSlot) {
@@ -859,6 +943,9 @@ async function applyEdibleOutput(
     }
     outSlot.setMaterial(material);
     outSlot.setAmount(Quantity.of(recipe.getOutputPortionL(), 'L'));
+    outSlot.setFreshnessLoad(
+      outputMicrobialLoad(effectiveHeatK, matched, matchedItems),
+    );
     return;
   }
   // The derived default: the generic cooked base + macros summed from
@@ -872,7 +959,11 @@ async function applyEdibleOutput(
       recipe.getOutputAppearance(),
       recipe.getKeywords(),
       matchedItems.map((m) => ({ material: m.material, servings: m.count })),
+      effectiveHeatK,
     ),
+  );
+  outSlot.setFreshnessLoad(
+    outputMicrobialLoad(effectiveHeatK, matched, matchedItems),
   );
 }
 
@@ -1148,7 +1239,16 @@ async function mintFromBuildImpl(req: BuildMintRequest): Promise<CraftOutcome> {
   if (req.workpiece) {
     return mintWorkpiece(req.workpiece, recipe, grade, makerPath, makerStuff);
   }
-  return mintVessel(req, recipe, grade, makerPath, makerStuff);
+  // The same clamp the reverse-match applied, kept for the output step:
+  // what the working actually reached is what killed (or did not kill)
+  // the spoilage and the heat-labile doses.
+  let effectiveHeatK = req.heatedToK ?? 0;
+  const mintMedium = recipe?.getMedium() ?? null;
+  if (mintMedium) {
+    const cap = mediumCaps.get(mintMedium) ?? 0;
+    if (cap > 0 && cap < effectiveHeatK) effectiveHeatK = cap;
+  }
+  return mintVessel(req, recipe, grade, makerPath, makerStuff, effectiveHeatK);
 }
 
 /**
@@ -1263,6 +1363,7 @@ async function mintVessel(
   grade: Grade,
   makerPath: string,
   makerStuff: Stuff | null,
+  effectiveHeatK: number,
 ): Promise<CraftOutcome> {
   const vessel = req.vessel;
   if (!vessel) {
@@ -1326,9 +1427,16 @@ async function mintVessel(
         recipe ? recipe.getOutputAppearance() : '',
         recipe ? recipe.getKeywords() : material.getKeywords(),
         parts,
+        effectiveHeatK,
       ),
     );
   }
+  // The spoilage the buffer brought with it: killed off if the working
+  // actually got hot enough, otherwise blended through (a lazy
+  // warm-through launders nothing).
+  outSlot.setFreshnessLoad(
+    buildMicrobialLoad(effectiveHeatK, req.contributions),
+  );
 
   // The working finishes the glass: chill + dilution, the technique
   // stamp, the soil mark. Ice and garnish are the hand's own steps
@@ -1447,6 +1555,14 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
       detail: `${requiresHeatK}`,
     };
   }
+  // ⭐ **What the FOOD reached, as against what the room could deliver.**
+  // The gate above asks whether the setup can supply the recipe's heat;
+  // this is the temperature the dish was actually held at, and it is the
+  // recipe's own demand — a stew simmered beside a roaring forge was
+  // simmered, not forged. It is what decides the spoilage kill and the
+  // heat-labile doses, so conflating the two would have every dish cooked
+  // at the hottest thing in the room.
+  const workingHeatK = requiresHeatK;
 
   // Derive grade (weakest-link, floored at the recipe base if any,
   // then at any used control-bearing instrument's band — skill embedded
@@ -1506,9 +1622,21 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
   if (application === 'tangible') {
     applyTangibleOutput(output, recipe, matchedItems);
   } else if (application === 'edible') {
-    await applyEdibleOutput(output, recipe, matchedItems);
+    await applyEdibleOutput(
+      output,
+      recipe,
+      matched,
+      matchedItems,
+      workingHeatK,
+    );
   } else {
-    await applyBulkOutput(output, recipe, matched, matchedItems);
+    await applyBulkOutput(
+      output,
+      recipe,
+      matched,
+      matchedItems,
+      workingHeatK,
+    );
     const outSlot = BulkableApi.slotFor(output, undefined)!;
     await finishGlass(
       output,

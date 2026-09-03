@@ -64,6 +64,24 @@ export interface ToxinTag {
   type: string;
   /** Dose per serving (mg for solids / derived for liquids). */
   amount: number;
+  /**
+   * ⭐ **Heat-labile above this temperature (K)** — the working destroys
+   * the dose. Absent (the default) ⇒ the toxin survives anything a kitchen
+   * does to it.
+   *
+   * It rides the TAG the food authors, not the `Condition` seed, because
+   * lability is a fact about the *substance*: a raw bean's lectin is
+   * destroyed by boiling and a bean's cook needs to know at what
+   * temperature, while nothing about the body's response to it changes.
+   *
+   * ⚠ **Alcohol authors none, and honestly survives the pot.** So does
+   * the ptomaine a spoiled input already accumulated: cooking spoiled food
+   * does not un-poison it. That is real microbiology — heat stops the
+   * growth, it does not destroy the toxin the growth already produced —
+   * and it is the reason the kill has to be selective rather than a
+   * blanket "cooking makes food safe".
+   */
+  labileAtK?: number;
 }
 
 /** One severity rung of a toxin's banded condition. */

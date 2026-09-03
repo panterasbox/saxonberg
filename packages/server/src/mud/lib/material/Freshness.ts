@@ -204,6 +204,16 @@ export class Freshness {
     return dial(AppSettingKeys.freshnessAwDefault, FRESHNESS_DEFAULTS.AW_DEFAULT);
   }
 
+  /**
+   * The temperature (K) at/above which the flora dies rather than grows —
+   * the pasteurization floor, and the number a working has to reach for a
+   * cook to have *killed* anything. Read by the crafting output step as
+   * well as by the gauge, so "hot enough to cook" is one fact.
+   */
+  public static killTemperatureK(): number {
+    return dial(AppSettingKeys.freshnessKillK, FRESHNESS_DEFAULTS.KILL_K);
+  }
+
   /** The seed population a perishable starts from (fraction of capacity). */
   public static inoculum(): number {
     return dial(AppSettingKeys.freshnessInoculum, FRESHNESS_DEFAULTS.INOCULUM);

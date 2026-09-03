@@ -797,8 +797,29 @@ export default class Material extends SingletonMixin(
             '{ type: string, amount: finite number >= 0 }',
         );
       }
+      if (
+        entry.labileAtK !== undefined &&
+        (typeof entry.labileAtK !== 'number' ||
+          !Number.isFinite(entry.labileAtK) ||
+          entry.labileAtK <= 0)
+      ) {
+        throw new TypeError(
+          "Material.setToxicity: 'labileAtK' must be a finite temperature " +
+            'in kelvin above zero when present',
+        );
+      }
     }
-    this.toxicity = value.map((e) => ({ type: e.type, amount: e.amount }));
+    // ⚠ The rebuild is per-FIELD, not a spread, so an unknown key on an
+    // authored row can never sneak in — which means a new `ToxinTag` field
+    // must be added HERE too or it is silently dropped at the setter. That
+    // is exactly what happened to `labileAtK` on its first run: the
+    // Hydrator and every caller went through this line, so a cooked bean
+    // kept its lectin and nothing anywhere said why.
+    this.toxicity = value.map((e) => ({
+      type: e.type,
+      amount: e.amount,
+      ...(e.labileAtK !== undefined ? { labileAtK: e.labileAtK } : {}),
+    }));
   }
 
   /**

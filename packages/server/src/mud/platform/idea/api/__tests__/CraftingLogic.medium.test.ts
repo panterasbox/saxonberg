@@ -57,6 +57,10 @@ class TestCook extends ThermalMixin(
 const WATER = '/stuff/idea/material/_test/medium-water';
 const TALLOW = '/stuff/idea/material/_test/medium-tallow';
 const MEAT = '/stuff/idea/material/_test/medium-meat';
+const RAW_BEAN = '/stuff/idea/material/_test/medium-raw-bean';
+const SPIRIT = '/stuff/idea/material/_test/medium-spirit';
+const RANK_MEAT = '/stuff/idea/material/_test/medium-rank-meat';
+const PLAIN_VEG = '/stuff/idea/material/_test/medium-plain-veg';
 const DISH_T = '/obj/_test/medium-dish';
 
 let store: Record<string, Record<string, unknown>[]>;
@@ -169,6 +173,26 @@ function recipeRow(
   };
 }
 
+/** A dish over one bean-ish item and one spirit-ish item, at `requiresHeatK`. */
+function beanRow(id: string, requiresHeatK: number): Record<string, unknown> {
+  return {
+    recipeId: id,
+    name: id,
+    keywords: [id],
+    inputSlots: [
+      { slot: 'beans', category: 'vegetable', minGrade: 'fair', kind: 'item', count: 1 },
+    ],
+    toolCapabilities: [],
+    outputTemplate: DISH_T,
+    outputMaterial: '',
+    outputAppearance: `a portion of ${id}`,
+    baseGradeBand: '',
+    requiresHeatK,
+    outputApplication: 'edible',
+    outputPortionL: 0.4,
+  };
+}
+
 beforeEach(async () => {
   store = { recipes: [] };
   StuffApi.clearAll();
@@ -206,6 +230,19 @@ beforeEach(async () => {
   const tallow = registerMaterial(TALLOW, 'tallow', ['liquid', 'fat'], true);
   tallow.setSmokePoint(Quantity.of(478, 'K'));
   registerMaterial(MEAT, 'stew meat', ['meat'], true);
+  // ⭐ The AC9 fixtures — a synthetic raw bean whose lectin is destroyed
+  // by boiling, and a synthetic ferment whose alcohol is not. A kernel
+  // test never names shipped content, so both are made up; what is real
+  // is that ONE of them authors `labileAtK` and the other does not.
+  const bean = registerMaterial(RAW_BEAN, 'raw bean', ['vegetable'], true);
+  bean.setToxicity([{ type: 'lectin', amount: 400, labileAtK: 360 }]);
+  const spirit = registerMaterial(SPIRIT, 'spirit', ['vegetable'], true);
+  spirit.setToxicity([{ type: 'alcohol', amount: 30 }]);
+  // Its own tag, so the rank-stew recipe cannot accidentally reach for
+  // the sound meat standing in the same room.
+  const rank = registerMaterial(RANK_MEAT, 'rank meat', ['rank'], true);
+  rank.setToxicity([{ type: 'ptomaine', amount: 700 }]);
+  registerMaterial(PLAIN_VEG, 'root vegetable', ['vegetable'], true);
   // The generic cooked base every derived edible blend points at.
   registerMaterial('/platform/idea/material/cooked', 'cooked fare', ['food'], true);
 
@@ -215,6 +252,14 @@ beforeEach(async () => {
     recipeRow('fried-cutlet', 'fat', 440), // fine in tallow
     recipeRow('scorched-cutlet', 'fat', 500), // past tallow's smoke point
     recipeRow('dry-roast', '', 450), // no medium, no cap
+    // AC9: the same two-ingredient dish, cooked hot and cooked cold.
+    beanRow('boiled-beans', 373),
+    beanRow('warmed-beans', 300),
+    { ...recipeRow('rank-stew', 'water', 373),
+      inputSlots: [
+        { slot: 'water', category: 'water', minGrade: 'fair', kind: 'bulk', measureL: 0.5 },
+        { slot: 'meat', category: 'rank', minGrade: 'fair', kind: 'item', count: 1 },
+      ] },
   );
   const catalogue = makeStuffAtPath(
     () => new RecipeCatalogue(),
@@ -399,5 +444,109 @@ describe('Recipe.fromData validates the medium word', () => {
     expect(Recipe.fromData({ ...base, medium: 'fat' }).getMedium()).toBe('fat');
     expect(Recipe.fromData(base).getMedium()).toBeNull();
     expect(Recipe.fromData({ ...base, medium: '' }).getMedium()).toBeNull();
+  });
+});
+
+describe('the toxin kill is SELECTIVE (AC9)', () => {
+  function item(materialPath: string): Thing {
+    const t = makeStuff(() => new Thing());
+    t.setMass(Quantity.of(0.3, 'kg'));
+    t.setMaterial(
+      StuffApi.findByTemplatePath<Material>(materialPath) as unknown as Material,
+    );
+    ContainmentApi.move(t, room);
+    return t;
+  }
+
+  it('⭐ a heat-labile dose is destroyed once the working reaches its temperature', async () => {
+    item(RAW_BEAN);
+    const outcome = await craftAs(cook, {
+      recipeRef: 'boiled-beans',
+      makerMode: 'self',
+    });
+    expect(outcome.ok).toBe(true);
+    if (!outcome.ok) return;
+    const payload = BulkableApi.slotFor(outcome.output, undefined)!.getPayload()!;
+    expect(payload.toxicity.find((t) => t.type === 'lectin')).toBeUndefined();
+  });
+
+  it('…and survives a working that never got there', async () => {
+    item(RAW_BEAN);
+    const outcome = await craftAs(cook, {
+      recipeRef: 'warmed-beans',
+      makerMode: 'self',
+    });
+    expect(outcome.ok).toBe(true);
+    if (!outcome.ok) return;
+    const payload = BulkableApi.slotFor(outcome.output, undefined)!.getPayload()!;
+    expect(payload.toxicity.find((t) => t.type === 'lectin')?.amount).toBe(400);
+  });
+
+  it('⚠ alcohol authors no lability and rides into the pot honestly', async () => {
+    item(SPIRIT);
+    const outcome = await craftAs(cook, {
+      recipeRef: 'boiled-beans',
+      makerMode: 'self',
+    });
+    expect(outcome.ok).toBe(true);
+    if (!outcome.ok) return;
+    const payload = BulkableApi.slotFor(outcome.output, undefined)!.getPayload()!;
+    expect(payload.toxicity.find((t) => t.type === 'alcohol')?.amount).toBe(30);
+  });
+
+  it('⚠⚠ cooking spoiled food does NOT un-poison it', async () => {
+    // The ptomaine an input already grew authors no lability, because the
+    // heat stops the growth and does not destroy the toxin the growth
+    // produced. This is the honest-microbiology line the whole selective
+    // kill exists to draw.
+    const meat = item(RANK_MEAT);
+    expect(meat.getMaterial()!.getToxicity()[0]!.labileAtK).toBeUndefined();
+    ContainmentApi.move(makeBottle(WATER, 2), room);
+    const outcome = await craftAs(cook, {
+      recipeRef: 'rank-stew',
+      makerMode: 'self',
+    });
+    expect(outcome.ok).toBe(true);
+    if (!outcome.ok) return;
+    const payload = BulkableApi.slotFor(outcome.output, undefined)!.getPayload()!;
+    expect(payload.toxicity.find((t) => t.type === 'ptomaine')?.amount).toBe(700);
+  });
+});
+
+describe('the working resets the spoilage load (P4)', () => {
+  function spoiled(materialPath: string, load: number): Thing {
+    const t = makeStuff(() => new Thing());
+    t.setMass(Quantity.of(0.4, 'kg'));
+    t.setMaterial(
+      StuffApi.findByTemplatePath<Material>(materialPath) as unknown as Material,
+    );
+    t.setMicrobialLoad(load);
+    ContainmentApi.move(t, room);
+    return t;
+  }
+
+  it('⭐ a real cook KILLS what the inputs brought — the dish starts sterile', async () => {
+    spoiled(MEAT, 0.7);
+    ContainmentApi.move(makeBottle(WATER, 2), room);
+    const outcome = await craftAs(cook, {
+      recipeRef: 'wet-simmer', // 373 K, over the 333 K kill
+      makerMode: 'self',
+    });
+    expect(outcome.ok).toBe(true);
+    if (!outcome.ok) return;
+    const slot = BulkableApi.slotFor(outcome.output, undefined)!;
+    expect(slot.getFreshnessLoad()).toBe(0);
+  });
+
+  it('⚠ a lazy warm-through resets NOTHING — the load blends through', async () => {
+    spoiled(PLAIN_VEG, 0.7);
+    const outcome = await craftAs(cook, {
+      recipeRef: 'warmed-beans', // 300 K: warm, not cooked
+      makerMode: 'self',
+    });
+    expect(outcome.ok).toBe(true);
+    if (!outcome.ok) return;
+    const slot = BulkableApi.slotFor(outcome.output, undefined)!;
+    expect(slot.getFreshnessLoad()).toBeCloseTo(0.7, 4);
   });
 });
