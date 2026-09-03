@@ -571,7 +571,7 @@ and do not gate this MR.** Two carry unusual weight:
 
 ## Risks & opens
 
-1. ✅ **Every plan-level decision is settled** (P1–P11). P2 and P3 were
+1. ✅ **Every plan-level decision is settled** (P1–P12). P2 and P3 were
    corrected after the fact — a location class and a seeded field both belong to
    the farming pack, following `trade-mining`'s shipped vertical.
 2. ⚠ **`trade-ranching` depends on `trade-farming`** (P9). Declare it in the
