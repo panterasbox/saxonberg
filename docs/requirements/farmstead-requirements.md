@@ -1,0 +1,638 @@
+# Farmstead — requirements
+
+**One cycle, three entangled systems: the field, winter, and livestock.**
+
+Farming Stage A shipped the orchard half — the fruit cycle, `pick`, the ten
+grown families, the farmers market, the `farms` brain — on top of living-world
+phases 1–2 (the growth model, the garden bed, land use, soil). What it did
+**not** ship is the field: cultivation today is `PlantPot` and `GardenBed`, a
+1,000 m² Hinkley lot holds a four-plant bed, and the shipped
+`trade/farming/location/farm` is a packing shed whose own comment says *"the
+growing is the smallholding's."* **There is no farm in this game.**
+
+Three unbuilt things gate each other in a circle the shipped docs already
+record. Farming Stage B is gated on **winter** (the clock has seasons; the crop
+does not — husbandry's own words are *"no bloom, no season of readiness"*) and
+on **ranching** (*"nitrogen is a reserve that harvesting exports and `feed`
+restores from nowhere: a faucet at both ends"*). Ranching's signature claim —
+*pasture is a field* — is gated on Stage B. And winter is the annual spine of
+both. The circle does not resolve by picking a side: **the field, the season and
+the animals that eat it are one piece of work**, which is what "pasture is a
+field" was always saying.
+
+This build closes that circle, and in doing so closes named faucets in two merge
+requests currently in flight: textiles (!236) ships `wool.yaml` with
+`biologicalSource: null` and a `ScutchController` deliberately written so
+*"naming the flax row here would be the one line that stops wool"*; cooking
+(!231) ships `render-tallow`, `hearty-stew`, `fine-roast` and three more recipes
+wanting protein **no animal produced**.
+
+Seeding slates: [farming](../slates/builds/farming-slate.md) ·
+[ranching](../slates/builds/ranching-slate.md) ·
+[field-substrate](../slates/builds/field-substrate-slate.md) ·
+[pets](../slates/builds/pets-slate.md) (conventions only) ·
+[weather (tail)](../slates/tails/weather-slate.md). Sequence context:
+[living-world-roadmap](../living-world-roadmap.md) phases 4–5;
+[farming-plan § Stage B](../plans/farming-plan.md).
+
+---
+
+## Goals
+
+- **A player can plot a field out of land they own**, walk it, read its ground,
+  and work it — the level-up-your-farm loop the farming slate designed and
+  nobody built.
+- **Soil is one model** across pot, bed, field and pasture, with its seeded
+  character and its derived state separated and composed.
+- **Reading ground is a discipline** with an instrument ladder, not a number you
+  can `look` at.
+- **Crops, animals and hives answer to the season**, from one derived signal.
+- **The nitrogen cycle closes at both ends** — harvest exports what it took,
+  manure returns what wasn't used, legumes fix, leaching loses.
+- **Livestock are kept, individually first**, with a record that compresses the
+  ones you have stopped looking at.
+- **The wool, meat, tallow, milk, egg and malt faucets close**, feeding
+  textiles, cooking, fermentation, brewing and distilling from real production.
+- **A farmstead archetype states its needs** so a locality can bind them with
+  zero pack code.
+
+## Non-goals
+
+- **Heart's Delight.** Stage B is written as the valley and towns-slate D5 says
+  it ships both halves at once. This build ships *mechanism*; the valley is
+  *expression* and follows as a content build. If it can later be authored
+  against the farmstead archetype with no pack code, the cut was right — which
+  is the point of separating them.
+- **The shared `Genome`.** Husbandry-wide and owed to a build that does crops
+  too. Parentage-seeding stands in underneath an unchanged surface (D26).
+- **Disease.** Living-world phase 6. This build must make the condition score
+  honest because phase 6 reads it as the resistance term; it must not stub
+  `ContagionSpec`.
+- **Downstream nitrate contamination.** The loss leg ships; the commons dilemma
+  it implies is a civics build with a victim, an evidence trail and a
+  legislative response (D18).
+- **Per-locality climate.** Still a reserved `Locality` field. Winter is global
+  and meant to be.
+- **Aquaculture**, goats, and the pet *experience* layer (adoption, the
+  un-delegable outcome). This build lands the substrate pets will inherit; it
+  does not ship pets.
+- **A `FieldApi`** (D6).
+
+---
+
+## Surface decisions
+
+### The field
+
+**D1 — The soil checkpoint splits out of `CultivableMixin` into its own mixin.**
+`CultivableMixin` requires `Stuff & Container & Bulkable & Slotted & Populates &
+Reserved` — a *Thing* with a bulk interior of soil in litres. A field-room is not
+that shape and must not be made that shape. The soil already has its own
+checkpoint (`soilClockStamp`, `_soilMeanMoisture`, its own reentry guard, and a
+separate sky-edge stamp), deliberately self-contained since the residences
+build. Lift it whole; the Thing-shaped bed and the Location-shaped field both
+compose it. Duplicating it would fork the soil model, and *pasture is a field*
+dies the moment pasture's soil is not farming's soil.
+
+**D2 — Ground character is a SEEDED field; seeded and derived compose.** The
+field-substrate slate's register lists *"soil quality — seeded (probably) —
+deferred"*. It ships here, as the third field after weather and mine geology,
+and it answers that slate's own open question about whether the two kinds
+compose. They do, by multiplication:
+
+- **Seeded character** — texture, drainage, aspect, depth, stoniness, native pH.
+  A pure function of address + seed, exactly like `Deposit`. Always was true,
+  never changes, cold-starts fully specified.
+- **Derived state** — the reserves. A function of recorded history.
+
+Character sets the curve; state is the position on it. The same manure on sand
+and on loam does different things. This is the reaction norm the farming slate
+already uses for genetics, applied to dirt.
+
+**D3 — A field is *plotted* out of land you already own.** Not a lot bought from
+a plat book — that is the residential path. `plot` is the act. The field-room is
+a Warren satellite with no coordinates, reached through a gate, exactly as a
+Hinkley lot is (*"a lot's room is NOT on the street's grid"*). `PlatWarren`,
+`PlatPlan`, `HoldingWarren` and `LotGateExit` all ship; this points them at
+farmland. Count is bounded by the shipped land draw (`draw = Σ
+landRequirementM2`) against the parcel's declared area. **No maximum is
+written down** — the same answer smallholding reached for beds.
+
+Because the ground was always there (D2), **you can survey before you commit.**
+Plotting becomes a decision about *where*, informed by work you chose to do or a
+gamble you chose to take.
+
+**D4 — Soil is a career, not scenery.** The field-substrate slate's law: *a
+field you read for free is scenery; a field you pay to read is a career.*
+Reading soil **costs**, on the ladder:
+
+| Rung | Cost | Reading |
+|---|---|---|
+| Look | free | a coarse honest band — *"heavy ground; the low corner stays wet"* |
+| **The ribbon test** | a spade, your hands, time | texture class, by the real field procedure |
+| Instruments | capital | pH, then assay numbers with error bars |
+| The survey | many samples | the holding, known |
+
+`analyze ground` **already ships** as a stanza with mining owning
+`AnalyzeGroundController`. Farmland is a second reading on the same channel —
+the instrumentation split, not a new verb. Decided by lens 1: soil science is a
+real discipline and free-and-coarse teaches none of it.
+
+**D5 — The survey is per-viewer.** *The map is a record of your sampling, not of
+the world.* Land you have worked for years, you know; land you just bought, you
+don't. This makes buying land a real risk, makes an honest surveyor worth
+paying, and is the same doctrine as the herdbook (D20) arriving from the
+opposite end of the build.
+
+**D6 — No `FieldApi`.** The slate resisted one at two consumers on purpose:
+`Deposit` re-implements the thirty lines of hash-and-mix rather than importing
+weather's, because what they do not share is everything that matters — 1,015
+lines of fronts and seasons against a plane and three bands. Soil's grammar is a
+third distinct thing. Shared shape, not shared code. Reaffirmed at three.
+
+### Land use
+
+**D7 — A field has no `use` field.** Both slates carry a table committing a
+field each season to crop / hay / graze / orchard. The table is right about
+consequences and wrong about mechanism: land use in reality is a *description of
+what you did*, not a declaration. An enum there would be the engine holding an
+opinion about something it should be reading. Delete it, and the four uses fall
+out of **two facts** — what is standing on the field, and whether the mouth
+eating it is standing there too:
+
+| | Standing on it | Mouth | Nutrients |
+|---|---|---|---|
+| **Crop** | a sown crop | elsewhere | **exported** |
+| **Hay** | sward | elsewhere | **exported** |
+| **Graze** | sward | **on the field** | **cycled in place** |
+| **Orchard** | trees | elsewhere | mixed, multi-year |
+
+*Pasture is a field* stops being a claim needing defence. **Fertility follows
+the mouths** — a sentence a player derives rather than a rule they are told.
+The shipped `LandUse` six are untouched: that is *zoning*, a different layer,
+and it still gates whether agriculture is permitted at all.
+
+**D8 — What binds is physical, never administrative.** A sward takes a season to
+establish, so ploughing one up destroys a multi-season asset — the real
+distinction between permanent pasture and an arable ley. And the calendar bounds
+sowing and growth. The field is never *locked*; changing your mind just costs
+you what you built.
+
+**D9 — Residual and recovery is the one genuinely new sward mechanic.** Grazed
+below its residual, a sward has spent its root reserves and regrows slowly. This
+is what makes moving stock a **read** (move at residual, return at recovery)
+rather than a timer, and it makes overstocking *and* understocking both
+mistakes — grass that gets ahead of the herd goes stemmy and its feed quality
+drops. **Every failure is a slope, never a cliff**: an overgrazed paddock is a
+recovery-rate penalty, never a dead field or a dead animal. That is what lets
+the world-time clock run freely across an absence.
+
+### Winter
+
+**D10 — Winter is not a mode; it is cold and short days at a place.** No season
+flag on a plant — a plant answers to the conditions where it actually is. Three
+consequences: the dorm houseplant does not die every real month; **the
+greenhouse falls out for free** (somewhere warm and lit in February, making
+"buy your way out of winter" an economic decision against the shipped fuel
+chain rather than an architectural unlock); and the mechanism is identical
+indoors, outdoors, under glass and underground, so authors extend it without
+asking for a flag.
+
+**D11 — Photoperiod is the keystone signal, and one signal drives three
+systems.** `CelestialApi` already computes solar declination from real orbital
+geometry (`δ = tilt · sin(2π · dayIndex / Y)`, 23.5° tilt), hour angle,
+`nextSunrise` and `nextSunset`. **Daylength is arithmetic on two shipped calls
+and nobody has ever asked for it.** It drives:
+
+- **crop dormancy and bolting** — the signal real plants use;
+- **hens stop laying in short days** — which is why a lit hen house is a real
+  thing to build, and why eggs are seasonal unless you spend;
+- **the breeding season** — ewes are short-day breeders and lamb in late
+  winter, cattle are near-aseasonal, horses are long-day. **Lambing in spring is
+  a consequence of the calendar, not a flavour decision we author.**
+
+**D12 — Winter stays hard: 7.5 real days, global, once a real month.** Softening
+it would gut preservation, the salt interlock and the reason storage exists —
+the scarcity *is* the lesson, and spoilage (cooking !231, W0) just made storing
+well pay. The slate's honest worry — that 7.5 days of no growth bounces a
+farming-only player — gets a better answer than "mining absorbs them":
+**livestock do not stop.** They need feeding daily, they are in the barn where
+you are actually handling them, and lambing and calving are late-winter events.
+Farming stops; husbandry does not. Winter is when the animals are closest to you
+and most demanding — which is true to life and is itself an argument for
+building these together. Guardrail: a player must never be *unable to act* in
+winter (wage labour, the market, the barn and the whole indoor transform chain
+remain).
+
+**D13 — Winter feeding is a sequence, not a cliff.** Stockpiled standing forage
+(real practice — defer a paddock in late summer and graze it into early winter,
+quality decaying as it stands), then hay, then bought feed. Planning is rewarded
+with no planning UI.
+
+### The soil ledger
+
+**D14 — Soil nitrogen and dietary protein are one accounting.** Crude protein is
+nitrogen × 6.25 — how feed is actually valued and sold. The engine already has
+both halves and has never connected them: soil carries a `nitrogen` reserve, and
+`Material` carries `nutrients` / `nutrientAmounts` (`stew-meat` authors
+`protein: 26000`). Connecting them closes the faucet **mechanically** —
+harvested matter carries away the nitrogen it took, manure returns the nitrogen
+the animal did not use — and **pedagogically**, because the player watches
+fertility become feed value become growth become fertility. It also makes hay's
+feed quality and the field's fertility the same number seen twice, which is
+*why* understocking hurts: stemmy grass is low-protein grass.
+
+**D15 — Two honest openings, and they are the real ones.** A closed loop would
+be wrong; the real cycle is not closed either. **In: legume fixation** (N₂ from
+the atmosphere — a genuine faucet in reality, and it makes the legume rotation
+derivable rather than a "+N bonus"). **Out: leaching and volatilization** (rain
+carries nitrate past the roots; surface manure loses ammonia). The losses stop
+fertility accumulating to infinity and teach why you incorporate manure and why
+you do not spread before a storm.
+
+**D16 — Four derived reserves, not six.** D2's seeded character absorbs what the
+extra reserves were being asked to do. Only what your history changes is a
+reserve:
+
+| Reserve | In | Out | Teaches |
+|---|---|---|---|
+| **moisture** *(shipped)* | rain, watering | ET, uptake | evapotranspiration |
+| **nitrogen** *(shipped, both legs open)* | manure, legumes | uptake, leaching | the cycle |
+| **organic matter** | manure, residues, roots | slow mineralization | the long game |
+| **structure** | rest, roots, tilth | compaction, poaching | why you don't graze wet clay |
+
+Seeded texture then modulates all four — sand holds little water and leaches
+fast; clay holds water but poaches badly. Four reserves × ground character gives
+more distinguishable, diagnosable situations than six flat reserves would.
+**Organic matter earns its place on its own**: slow, built by exactly what
+ranching produces, and the mechanical reason *land you farmed well is better
+land* — permanence you can sell, and the reason your own survey record is worth
+having.
+
+**D17 — Poaching: ranching can hurt the farm.** Animals on wet ground destroy
+structure. Every other interlock runs ranching→farming as a benefit; this is the
+other direction, and it makes "put the herd on the tired field" a judgement
+rather than a free move.
+
+**D18 — The loss leg ships; downstream contamination does not.** Nitrate that
+leaches goes downhill, and the water pack ships watercourses with contamination
+by kind and derived downstream reachability. The commons dilemma is real and
+worth having — agricultural runoff is *the* classic nonpoint-source case, with a
+downstream victim who can name the upstream cause — but it is a civics build.
+Shipping a shallow version here would spend a good idea cheaply.
+
+### The animals
+
+**D19 — The individual is the base case; the herd is the compression you apply
+to animals you have stopped looking at.** The ranching slate's stance —
+*"a rancher does not win over a cow"*, livestock are fungible and managed at
+scale — is true of a 500-head operation and false of six goats on a quarter
+acre, which is the land this game actually has. Pets settles it: **there is
+never a herd of pets**, so if the herd were the base case, pets would be a
+special case of it, and it obviously is not. Pets is this base case with the
+compression unavailable.
+
+**D20 — The herd is a record. It *is* the herdbook.** Not an object in a room —
+a register naming these head, this composition, this age structure, on this
+ground. The room's prose describes animals; there is never a herd-object to
+`look` at. Chattel titles the register. **A herd is not a glob**: a glob's
+members are *identical* and share one state, where a herd's members are
+*unindividuated* and their states **diverge** — not a weaker version of the same
+thing, the opposite thing. Not-yet-distinguished is not interchangeable, and the
+management game is about the tail (the three thin ones, the lame one, the barren
+cow), never the mean. Pedagogically the herdbook is the actual instrument of
+animal husbandry: selection is impossible without records.
+
+**D21 — Individuals are materialized from a seed plus a sparse overlay.** The
+field pattern again: head *n* is a deterministic function of the herd's identity
+and its index (`Deposit.sampleAt`'s trick, applied to livestock — *seeded, never
+drawn*, so the answer was true before anyone asked), with a **sparse per-head
+record of what actually happened** layered over it, because the herd must
+remember head 17 while 17 is not an object. The boundary acts take the
+stockman's own word: **draft** a head out into its own page, **return** it to the
+tally. Returning folds its condition into the mean and destructs the object; the
+asymmetry is honest, because its identity was the record, not the flesh.
+**Identity is earned by being measured** stops being a metaphor and becomes the
+implementation.
+
+**D22 — `ChattelMixin` moves onto the `Creature` stack.** It is composed in
+exactly one place — `lib/stuff/Thing.ts` — and `Creature` descends from `Agent`,
+so **nothing alive is ownable today** and `ChattelApi.stamp` refuses a cow. The
+gate is structural (`MixinApi.isChattel`), not tier-based, so one composition
+line gives livestock, pets and future aquaculture per-instance ownership with
+chain-of-title from shipped code. This retires the pets slate's sketched
+`CompanionMixin` + `ownerPath`.
+
+**D23 — The maturation driver, with absolute time compressed and ratios
+preserved.** `Organism.age` and `lifecycleState` are persistent fields with **no
+driver** — `setAge` has zero callers and `ageCurve` is a reserved comment.
+Reconcile-on-read against world time walks an authored `ageCurve` on `Species`.
+A game year is 30 real days, so a true cattle generation interval is a
+two-to-three *real month* investment: the term that makes animal breeding
+interesting is the term that would make it unplayable. **Compress the absolute
+scale; preserve the inter-species ratios.** What teaches `R = h²·S / L` is that
+sheep improve faster than cattle *because their generation interval is shorter*,
+and that survives compression intact. Per-species authored, never hardcoded.
+
+**D24 — Condition is derived, never stored.** The running result of the
+partitioning cascade (maintenance → thermoregulation → growth → production →
+reproduction): sustained surplus gains, sustained deficit loses, and **production
+dies before condition does** because it sits lower in the order — the forgiveness
+curve with no special case. The read ladder mirrors D4 and cooking's palate:
+**by eye** a coarse band (thin / good / fat); **with your hands** a precise score,
+because real body condition scoring is palpation of spine and ribs — *precision
+costs an act*; **with a scale** kilos with error bars. This is phase 6's
+disease-resistance term (*good husbandry is immunity*), so it must be honest here.
+
+**D25 — Three taps, three real neglect failures.** A tap fills from the
+**production slice of the energy budget** — copy `Stock`'s reset *sweep*, never
+its `par` semantics, which is a faucet shape and would mint matter from nothing.
+
+| | Behaviour | Neglect |
+|---|---|---|
+| **Milk** | must be taken daily | she **dries off** for that lactation; mastitis is the sharper version |
+| **Eggs** | accumulate | they **spoil** |
+| **Wool** | grows continuously, harvested once | a worse fleece, and a hot sheep |
+
+Three renewable products, three genuine consequences, no invented punishments.
+
+**D26 — Breeding: photoperiod season, parentage-seeded heritability.**
+`SexedMixin` composes into every Creature and `Species.reproductiveMode` is
+authored with **no reader**; gestation runs over `WorldClock`. Breeding without
+heredity is multiplication, so an offspring's character is seeded **from its
+parentage** — the same seeding trick on a different key. That gives selection
+real traction and approximately correct response-to-selection, and the genome
+later replaces the seeding function underneath an unchanged surface.
+
+**D27 — Handling, not bond, is the individual axis for livestock.** A cow must
+not have pet-love, but without *something* an individual is per-head bookkeeping.
+**Handling** — temperament, flight zone, ease of working — is real animal
+husbandry, earned by contact, lost by neglect, and economically consequential: a
+quiet cow milks better and a flighty one hurts you.
+
+**D28 — Slaughter is sober and complete.** It exists because cooking !231 needs
+protein. It is work, it takes skill, and the animal is used entirely — meat and
+offal to cooking, tallow to the shipped render pot, hide to leather, bone and
+horn to crafting. **Make waste the thing that feels bad, not the killing.** No
+minigame, no guilt meter. The density dial does the rest unaided: a number in the
+herdbook is easy to cull and an animal you named is not.
+
+**D29 — One mortality rule for every kept animal.** The family conventions say
+livestock die of neglect but pets never starve. Once the individual is the base
+case, the same animal cannot be mortal in a barn and immortal in a bedroom. Any
+kept animal can decline to death; **the automation ladder is the protection, not
+an exemption** — a hired hand covers the material floor for wages, the decline is
+legible in bands the whole way down, and a pet is cheap to provision. The
+player's real-life time is protected by the mitigation being always available and
+cheap. *(Revises a `[DECIDED]` line in the pets slate.)*
+
+### The roster and the economics
+
+**D30 — Five species, each argued from unmet demand.**
+
+| | Products | The demand it closes |
+|---|---|---|
+| **Chickens** | eggs, meat, manure | **the on-ramp** — a hen is to ranching what the houseplant is to farming. Laying stops in short days, so photoperiod teaches itself on day one. |
+| **Sheep** | **wool**, milk, meat, sheepskin | textiles !236's sourceless `wool.yaml` and its deliberately generic `ScutchController`. Short-day breeder — the lambing rhythm. |
+| **Cattle** | **milk**, meat, **tallow**, hide, draught, the most manure | cooking !231's `render-tallow`, `hearty-stew`, `fine-roast`; dairy into the shipped fermentation substrate. The investment that makes the winter-feed budget bite. |
+| **Pigs** | meat, lard | **the waste converter** — `spent-grain` ships in *both* trade-brewing and trade-distilling with nowhere to go. |
+| **Bees** | honey, wax, **pollination** | see D34–D39. |
+
+Goats overlap sheep; deferred. Three tap behaviours, terminal harvest, and three
+scales of commitment — a player must be able to start with six hens on a quarter
+acre and never be told they are not ranching.
+
+**D31 — Barley ships, and closes three faucets at once.** Nothing grows grain
+(fruit, mint, one carrot), and `malt.yaml` ships in base-library with **no crop
+behind it — brewing and distilling are both drawing malt from nowhere right
+now.** Barley closes brewing, closes distilling, feeds pigs and hens, and is the
+classic arable partner to a grass ley, giving the rotation's arable half
+something to be.
+
+**D32 — The pack cut.**
+
+- **Kernel** — the soil split (a `GardenBed` is a kernel class and cannot import
+  a pack, so the substrate must be kernel), the seeded ground field, the
+  field-room `Location`, the maturation driver on `Organism`, the `ChattelMixin`
+  move, and **handling** (pets will want it and pets is not ranching, so its
+  composers share no pack ancestor).
+- **`trade-ranching`** — the herdbook Idea, the verbs its own content affords
+  (`draft`, `shear`, `milk`, `muck`), the venue archetype, the hand's brain.
+  `feed` and `water` already ship in the platform's bulk category; reuse them.
+- **The commons** — the species rows. A sheep exists whether or not anybody
+  ranches; the *husbandry* is the trade, the *animal* is a thing in the world.
+- **`trade-farming`** — barley, `plough`, the arable rotation.
+
+**D33 — The farmstead archetype states needs; a locality binds them.** Ground, a
+barn, water, a way to market. Proven on modest ground already owned. If Heart's
+Delight can later be authored against it with **zero pack code**, mechanism and
+expression were cut correctly — and we find out while it is still cheap.
+
+**The money loop.** A ranch is a business with **working capital**, which is what
+makes it feel unlike a farm. In: eggs and milk daily (small, steady — the
+on-ramp's income), wool annually, meat and hide at slaughter, breeding stock at
+the top end *and only if you kept records*, and manure, which you spread or
+**sell to a farmer** — a real trade between the two halves of the Grange. Out:
+feed, wages, fencing, and the winter budget. Nothing mints: every product is a
+transform of feed, which is a transform of sunlight and soil.
+
+### Bees
+
+**D34 — The colony is the herdbook with the individual end amputated.** You never
+draft a bee. A hive is exactly D20's record — a population with a strength,
+stores and a queen, on a piece of ground — minus the promotion act, which
+*validates* the primitive: if the aggregate stands alone it is a real thing, not
+a compression trick. The one new term is that **a colony's strength changes on
+its own**, where a herd's tally moves only when you act.
+
+**D35 — Pollination modifies fruit set, and never gates it.** `Growing.ts` ships
+`fruitSetCount`, the `_flowering` latch and an `onFloweringLatched` host hook,
+and nothing uses them. Pollination improves yield; wind and self-pollination are
+real for most staples, so a player with no bees is never blocked. That is what
+keeps it a **positive externality** rather than a tax — and the lesson only works
+if the benefit is real but hard to charge for. The apple-orchard-and-beekeeper
+case is Meade's 1952 textbook externality; Cheung's *"The Fable of the Bees"*
+(1973) went and looked and found **pollination contracts had existed all
+along**. The work-contract substrate already ships — clauses over verifiable
+conditions, escrow, a board — so a beekeeper renting hives to an orchardist for
+the season is expressible with **zero new code**, and both sides of the most
+famous argument in externality economics are playable.
+
+**D36 — Forage range is relational, never radial.** Fields within a few graph
+hops, or within the locality. A radius is a shape; shapes do not survive
+translation to prose. Hops read as a sentence.
+
+**D37 — Honey's character derives from what is in flower within range.** Clover
+and heather honey are genuinely different. Your honey is a function of your
+neighbours' land use — emergent from the field model, and a reason to care where
+a hive stands.
+
+**D38 — Swarming closes the stock faucet.** A colony reproduces by **fission**.
+Catch the swarm and you have two hives, so after the first one **your own bees
+make you more bees** with no vendor in the loop.
+
+**D39 — Bees are the last wave and are explicitly cuttable.** A hive is severable
+from a working ranch in a way barley and the field-room are not; the pollination
+coupling is the part that would be painful to retrofit, which is why it is
+designed now.
+
+**Overwintering is the winter-feed problem inverted**: the bees store their own,
+you take the surplus, and the judgement is how much to leave. Same lesson from
+the opposite direction, needing no new mechanism.
+
+### Draught animals and working dogs
+
+**D40 — Draught power is body mass; there is no new mechanism.** `PitPony` is the
+shipped precedent and its own doc says it: carry capacity derives from body mass
+in the encumbrance substrate, *"the pony is better at hauling because it is
+heavier, which is the actual reason, and the engine already knew it."*
+`HaulingCreature` ships; hitch/unhitch ships. So **ploughing costs draught
+power** — by hand it is punishing, with an ox it is work — which makes the ox a
+genuine capital investment and the first rung of a mechanization ladder we never
+author ahead of demand. And **an ox eats whether or not it works**: the
+depreciating-asset-that-consumes insight applied to a tool, which is the honest
+economics of draught power.
+
+**D41 — A working dog is a brain plus a `Creature`.** Brains are path-resolved
+modules (`wanders`, `patrols`, `maintains`, `wary`); herding is one more. A dog
+**substitutes for player attention** in stock work — one shepherd with a good dog
+handles a flock that would otherwise need several people.
+
+**D42 — The dog is the exception that proves the automation ladder.** The ladder
+is *by hand* (attention) → *hired NPC* (wages) → *script* (compute), under the
+rule that **automation maintains your assets and cannot maintain your
+relationships.** The dog is a fourth rung that costs **a relationship** — and it
+does real economic work, which means a poorly bonded dog works badly. So bond
+acquires an economic consequence **without giving any livestock a bond stat**:
+the slate's divergence survives intact, and the pet gets a job. This is the one
+place pets and livestock touch mechanically, and it is why the family is one
+substrate.
+
+---
+
+## Constraints
+
+- **No new Mongo collections.** Parcel-local persistence is the document tree
+  under the owning parcel; `canAtPath` is the authority.
+- **No migrations.** Content edits plus dropping the DB. Any compat/legacy/adopt
+  shim is junk on sight.
+- **Reconcile-on-read, no ticks.** The family clock: owned things integrate the
+  full elapsed gap against world time; **only the inhabited body gets the
+  far-past guard** (`MAX_REASONABLE_GAP_SEC` *drops* the interval, it does not
+  clamp, and it is 4 real hours — a herd inheriting it would gain nothing across
+  any absence longer than lunch). Bound long absences with a step/sample cap,
+  never a time cap.
+- **Seeded, never drawn.** Ground character, herd individuals and offspring are
+  fields, not distributions: *must the answer have been true before anyone
+  asked?* Yield never comes off a die (resolutional randomness is banned).
+- **Verbs on objects.** `lint:object-verbs` census stays zero; no
+  `XApi.verb(host, …)`. The `XApi` ↔ `XLogic` split is mandatory and separate
+  from that.
+- **Nothing instances `/lib/`.** A pack `lib/` is legal under the pack's own
+  root; the kernel's is not instanceable.
+- **A verb lives with the pack whose content affords it**, and a verb affordance
+  is a **static on a class** — a row's `commandContributions:` is dead silently.
+- **Cultivation verbs are embodied acts.** No designation at a distance; the god
+  view is refused. Delegation goes through the ladder.
+- **Every location plots.** `coords:` is the membership operation; a row without
+  them is in no grid and inherits nothing.
+- **`Collections.X`, never a string literal.** `lint:schema` gates it.
+- **Anything touching the wired runtime imports `test-bootstrap`**
+  (`lint:test-bootstrap`).
+- **Bands are presentation, not security.** Honest opacity: coarse by eye,
+  numbers with error bars through instruments.
+- **`pnpm test` runs at exactly two moments** — before the MR opens, and at
+  `/finalize`. Everything between is `test:near` + touched pack suites + the
+  lint family, regardless of how structural a change is.
+
+## Acceptance criteria
+
+1. A player can `plot` a field on agricultural ground they hold, walk to it
+   through its gate, and the field draws against the parcel's declared area.
+2. `analyze ground` on a field returns a soil reading; the free read is a band,
+   the ribbon test returns a texture class, and an instrument returns numbers
+   with error bars. Two players who have sampled differently see different
+   surveys of the same ground.
+3. The soil mixin is composed by both `GardenBed`/`PlantPot` and the field-room;
+   there is exactly one soil checkpoint implementation.
+4. Ground character is deterministic from address + seed across a cold boot, and
+   nothing about it is stored.
+5. A sward grows under weather and soil, is consumed by animals standing on the
+   field, is cut as hay, and grazing below residual measurably slows recovery.
+6. Nitrogen is conserved across the loop: harvest debits the field by what the
+   crop carries, manure credits it, legumes fix, leaching loses, and no path
+   credits nitrogen from nowhere.
+7. In winter, sward growth reaches zero, hens stop laying, and a plant in a
+   warm lit room keeps growing.
+8. Ewes conceive in the short-day window and lamb in late winter, driven by
+   derived daylength and not by an authored date.
+9. A herd exists as a record; drafting a head mints a `Creature` deterministically
+   and returning it folds its condition back into the tally. Head *n* drafted
+   twice is the same animal.
+10. An animal's condition is derived on read, bands by eye, and yields a precise
+    score only through a handling act.
+11. Milk, eggs and wool each accumulate from the production slice of the energy
+    budget, and each fails differently under neglect.
+12. Wool reaches the textiles chain and meat/tallow reach the cooking chain from
+    a real animal; `wool.yaml` carries a `biologicalSource`.
+13. Barley grows, malts, and feeds animals; no shipped recipe draws malt from a
+    sourceless row.
+14. A hive pollinates fields in range, raising fruit set; removing the hive
+    lowers yield without blocking it. A swarm can be caught into a second hive.
+15. An ox hitched to a plough works ground a person cannot work at the same rate;
+    a dog reduces the attention cost of moving stock, and a poorly handled dog
+    does it badly.
+16. The farmstead archetype states its needs and is bound by a locality that
+    ships no pack code.
+17. Subsystem docs exist and are the source of truth: **`docs/subsystems/soil.md`**
+    (the ledger, seeded character, the survey), **`ranching.md`** (the herdbook,
+    the taps, the cascade), and updates to `husbandry.md`, `smallholding.md`,
+    `weather.md`/`time.md` (photoperiod) and `field-substrate-slate.md`'s
+    register.
+18. All lint families green; `pnpm test` green once before the MR and once at
+    finalize.
+
+## Slate revisions this cycle makes
+
+Three `[DECIDED]` lines change, and the slates must be corrected at the sweep:
+
+- **farming + ranching** — the four-use *seasonal commitment* table becomes four
+  *descriptions* derived from two facts (D7).
+- **ranching** — the herd stops being the default with individuals as the
+  exception; the individual is the base case (D19), and the aggregate is a
+  record rather than an object (D20).
+- **pets** — "a pet never starves to death" becomes one mortality rule for every
+  kept animal, protected by the ladder rather than by exemption (D29).
+
+Also: the field-substrate slate's register gains **soil quality — shipped**, and
+its open question *"do derived and seeded fields compose?"* is answered yes, by
+multiplication (D2).
+
+## Cross-references
+
+**Seeding slates** — [farming](../slates/builds/farming-slate.md) ·
+[ranching](../slates/builds/ranching-slate.md) ·
+[field-substrate](../slates/builds/field-substrate-slate.md) ·
+[pets](../slates/builds/pets-slate.md) ·
+[weather (tail)](../slates/tails/weather-slate.md) ·
+[towns](../slates/builds/towns-slate.md) (Heart's Delight, deferred) ·
+[disease](../slates/builds/disease-slate.md) (phase 6, reads D24).
+
+**Subsystem docs** — [husbandry](../subsystems/husbandry.md) ·
+[smallholding](../subsystems/smallholding.md) · [parcel](../subsystems/parcel.md) ·
+[location](../subsystems/location.md) (the Warren) · [zone](../subsystems/zone.md) ·
+[weather](../subsystems/weather.md) · [time](../subsystems/time.md) ·
+[race](../subsystems/race.md) · [vitals](../subsystems/vitals.md) ·
+[metabolism](../subsystems/metabolism.md) · [chattel](../subsystems/chattel.md) ·
+[reserve](../subsystems/reserve.md) · [encumbrance](../subsystems/encumbrance.md) ·
+[conveyance](../subsystems/conveyance.md) · [behavior](../subsystems/behavior.md) ·
+[mining](../subsystems/mining.md) (the `Deposit` field) ·
+[fermentation](../subsystems/fermentation.md) · [contract](../subsystems/contract.md) ·
+[employment](../subsystems/employment.md) · [content-packs](../subsystems/content-packs.md).
+
+**Sequence** — [living-world-roadmap](../living-world-roadmap.md) phases 4–5 ·
+[farming-plan § Stage B](../plans/farming-plan.md) ·
+[launch-worklist](../launch-worklist.md).
+
+**In flight, and depended upon** — textiles MR !236 (wool's consumer) ·
+cooking MR !231 (spoilage, and meat's consumer).
