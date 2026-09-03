@@ -191,10 +191,23 @@ support, or leave a fork the plan has to pick.
 
 1. **D6 / AC7 — "the shipped `device`-category verbs already drive slots" is
    false.** No shipped verb inserts a `Slottable` into a non-body slot. AC7 as
-   written cannot pass. **Plan:** ship one new verb pair in the `device`
-   category from the arcana pack (P8), modelled on `plant`/`repot`. Small (one
-   view + one controller) but it is *new surface*, not reuse, and AC7 should be
-   read as "swapped through a `device`-category verb".
+   written cannot pass. **Plan (revised, user 2026-09-02): extend `put`, do not
+   invent a verb.** `put`'s target `requires: [VisibleMixin,
+   ContainerMixin|SurfacedMixin]` — adding `SlottedMixin` and an occupy branch
+   to `PutController` makes `put cell in terminal` work.
+   ⭐⭐ **This is a hole in the slot substrate, not a TPA requirement.** Nothing
+   in the game can put anything into any non-body slot by any verb (`wear` /
+   `wield` are body, `plant` / `repot` are the plant slot, `mount` is
+   conveyance), so `put` is where it belongs and fixing it once fixes it for
+   every slot-bearing fixture anyone authors. `PutController` already reaches
+   for `MixinApi.isSlotted` — but only to *release* the item from the giver's
+   own slots on the way out, never to insert into a target's.
+   ⓘ The reverse looks free: `get`'s target is `[VisibleMixin,
+   ContainableMixin]` with no source restriction, so `get cell` should already
+   work — subject to R8's fixture reach. AC7 reads as "swapped with `put` /
+   `get`".
+   ⚠ This makes it a **kernel** edit (the platform pack owns `put`), so it moves
+   out of arcana and into build one's W2, where the kernel is already open.
 2. **D6 — `SlotSpec.accepts` must name a kernel `Mixins` value.** A pack cannot
    invent one. The bay therefore accepts **`Mixins.Charged`** and
    `ManaCell.fitsSlot` narrows further. Anything else fails
@@ -856,6 +869,28 @@ therefore leaves a live world pointing at the old row until the key is edited by
 hand. W8 records this in the pack README and the doc; a fresh DB is correct
 automatically.
 
+### P15a — Why the Authority is realm content and not the pack's
+
+Asked directly (user, 2026-09-02): why not ship the Business in `/system/tpa`
+with everything else?
+
+**Because the row names this realm's governments.** Its board positions carry
+`appointedBy: { kind: seat, government: terminus-city, seat: magistrate }` — a
+different realm has different member localities, so the row is realm-specific
+**by construction**, not by analogy with the water pack. And a pack cannot
+append positions to another pack's row: one owner per row, and an edit is a
+*conflict*, never a merge. Shipping it in the pack would make **the mechanism
+pack depend on realm localities existing**, which is backwards for a pack whose
+job is to work in any realm.
+
+⚠ **The question exposes a real naming tension, and it is the plan's, not the
+asker's.** `/system/tpa` is named for an **instance** — TPA is the Authority's
+acronym — while holding only mechanism, which is exactly why "put the Business
+in the tpa pack" reads as obvious. Either the root becomes `/system/teleport`
+and *the Teleport Authority* stays purely the in-world operator's name, or
+"tpa" is accepted as having gone generic. **Open; cheaper to settle before
+seven rows point at it.**
+
 ### P16 — What each new surface gets: a test or a lint
 
 | surface | proof |
@@ -943,13 +978,18 @@ The single biggest mechanical wave. In order:
    realm's stops are universally reachable is a realm decision, not a mechanism
    decision. `lib/credential/Credential.ts` and its three tests lose the
    constant.
-7. Move the `fasttravel.*` settings **rows** to the pack. ⓘ The three
+7. ⭐ **Extend `put` to slots** (flag 1) — `SlottedMixin` on the target's
+   `requires`, an occupy branch in `PutController` that runs `canOccupy` and
+   refuses with the slot's own reason. Kernel + platform pack, and it closes a
+   substrate hole rather than serving this build: **no verb could insert into a
+   non-body slot before.** `get` needs nothing.
+8. Move the `fasttravel.*` settings **rows** to the pack. ⓘ The three
    `AppSettingKeys` **constants** stay in the kernel — that is the house
    pattern, not residue: the water pack's own dials (`waterFreezeK`,
    `waterPumpEfficiency`, `waterFouledAt`) live there too and the pack
    imports them. A key *name* is a shared vocabulary so a typo fails; the
    *values* stay authored in the pack.
-8. ⭐ **Delete the kernel's one piece of TPA knowledge instead of moving
+9. ⭐ **Delete the kernel's one piece of TPA knowledge instead of moving
    it.** `BankingLogic.restampCustodiansImpl` reads
    `fasttravel.tpaBusinessPath` solely to *"re-own the **legacy** raw `tpa`
    accumulator"* — the function's own comments call it legacy migration
@@ -963,9 +1003,9 @@ The single biggest mechanical wave. In order:
    default-custodian fallback in the same function may be live behaviour.
    Read before cutting, and leave anything that is not migration to
    banking's own sweep.
-9. Move the two fasttravel suites and the tpa controller suites into
+10. Move the two fasttravel suites and the tpa controller suites into
    `packages/content/tpa/src/__tests__/`.
-10. **D2:** every "Eternal City" in prose and docs.
+11. **D2:** every "Eternal City" in prose and docs.
 
 Prove: `grep -rn 'FastTravel\|fasttravel\|TpaTerminal\|TravelCard'
 packages/server/src/mud/lib packages/server/src/mud/world` returns nothing;
@@ -1016,9 +1056,7 @@ and that is worth saying in the test's comment).
 
 #### W5 — arcana: the device category (D4–D6, AC6/7/8/10) (provable: *a lamp and a cell are a category, not a terminal*)
 
-P8's three files + `ManaLamp`; the `device`-category verb pair from arcana
-(`content/system/arcana/cmd/device/insert.yaml` + `remove.yaml`, controllers at
-`src/idea/cmd/device/`), modelled on `plant`/`repot`; the `ManaCell` recipe +
+P8's three files + `ManaLamp`; the `ManaCell` recipe +
 store line + `Circulating` census key; the lamp placed in a residence room; the
 `SupplyState` report.
 
@@ -1183,7 +1221,6 @@ second half is still in flight.
 | `packages/content/arcana/src/thing/ManaCell.ts` | `Slottable + Charged`, the good |
 | `packages/content/arcana/src/thing/ManaMain.ts` | the mains |
 | `packages/content/arcana/src/thing/ManaLamp.ts` | AC6's domestic device |
-| `packages/content/arcana/src/idea/cmd/device/{Insert,Remove}Controller.ts` + `content/system/arcana/cmd/device/{insert,remove}.yaml` | the cell swap (⚠ new surface — see the flag) |
 | `packages/content/arcane-library/content/stuff/idea/magic/Spell/teleport.yaml` | the spell row |
 | `packages/content/world-seed/content/stuff/idea/Business/teleport-authority.yaml` | the Authority, realm content |
 
