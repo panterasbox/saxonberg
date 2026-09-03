@@ -259,9 +259,9 @@ keep the destination's payload — blend *merging* is out of scope). A
 payload-less slot behaves byte-identically to before.
 
 Since the cooking build the payload also carries the derived
-**composition** the palate reads (`parts` — the ingredients by their
-Materials' names — and `tastes`, the union of their basic tastes; see
-[crafting.md](./crafting.md) § The palate) and the **spoilage gauge**
+**composition** a palate reads (`parts` — the ingredients by their
+Materials' names — `tastes`, the union of their basic tastes, and
+`discipline`, the craft that made it) and the **spoilage gauge**
 (`freshness: { load, stamp }`), reconciled through the holder because the
 vessel is the Thermal host.
 
@@ -273,6 +273,11 @@ seeded lazily (a slot holding perishable matter gets one the first time
 anybody asks; nothing else does), and the shadow payload written at that
 moment mirrors the Material field for field so `payload ?? material` reads
 identically either way. See [spoilage.md](./spoilage.md).
+
+⚠ Those three are DATA the craft writes. The **reading** that uses them
+is `PalatableMixin` (`lib/metabolism/Palatable.ts`), composed on
+`CraftVessel` rather than here — a floor puddle and a garden bed hold
+matter and have no palate. See [crafting.md](./crafting.md) § The palate.
 
 ### Utensil kinds
 

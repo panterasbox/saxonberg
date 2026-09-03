@@ -333,6 +333,9 @@ export const Mixins = {
   Identifiable: 'IdentifiableMixin',
   Metabolic: 'MetabolicMixin',
   NutritionLabel: 'NutritionLabelMixin',
+  // The derived taste reading, projected through the taster's own
+  // competence in the discipline that MADE the thing.
+  Palatable: 'PalatableMixin',
   Thermal: 'ThermalMixin',
   ThermalRegulation: 'ThermalRegulationMixin',
   Respiration: 'RespirationMixin',

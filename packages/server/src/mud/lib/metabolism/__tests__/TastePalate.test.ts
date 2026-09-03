@@ -1,8 +1,8 @@
 /**
  * ⭐ **The palate** (AC11) — what a dish tastes like is DERIVED from what
- * went into it and projected through the taster's own `cooking`
- * competence. The same bowl reads differently to two people, and nothing
- * anywhere authors a per-dish flavour string.
+ * went into it and projected through the taster's competence IN THE
+ * DISCIPLINE THAT MADE IT. The same bowl reads differently to two people,
+ * and nothing anywhere authors a per-dish flavour string.
  *
  *   untrained / novice   the dominant basic tastes
  *   competent            …and the ingredients, by name
@@ -17,8 +17,9 @@ import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Thing from '../../stuff/Thing';
 import Material from '../../material/Material';
-import { BulkableMixin, type BulkPayload } from '../Bulkable';
+import { BulkableMixin, type BulkPayload } from '../../bulk/Bulkable';
 import { GradedMixin } from '../../craft/Graded';
+import { PalatableMixin } from '../Palatable';
 import { AdvancementMixin } from '../../advancement/Advancement';
 import type { DisciplineBand } from '../../advancement/Advancement';
 import { MixinApi } from '../../../api/mixin';
@@ -32,9 +33,19 @@ import {
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 
-/** A served dish: graded, bulk-bearing, and carrying a derived blend. */
-class TestDish extends GradedMixin(BulkableMixin(Thing)) {
+/**
+ * A served dish, in the shape `CraftVessel` has: graded, bulk-bearing,
+ * and PALATABLE. ⚠ The palate rides `PalatableMixin`, not `Bulkable` —
+ * that is the point of this file's home. A bare Bulkable (a floor
+ * puddle, a garden bed) has no palate, and the last test says so.
+ */
+class TestDish extends PalatableMixin(GradedMixin(BulkableMixin(Thing))) {
   static _mixinName = 'TestDishPalate';
+}
+
+/** A bulk holder that is NOT palatable — the floor, a bed, an air tank. */
+class TestPuddle extends BulkableMixin(Thing) {
+  static _mixinName = 'TestPuddlePalate';
 }
 
 /**
@@ -66,6 +77,9 @@ const STEW: BulkPayload = {
   edible: true,
   parts: ['root vegetable', 'stew meat'],
   tastes: ['sweet', 'umami'],
+  // ⭐ The craft that made it — the discipline the palate is read
+  // through. The kernel never knows the word; the recipe recorded it.
+  discipline: 'cooking',
 };
 
 function dish(payload: BulkPayload | null, band = 'fine'): TestDish {
@@ -144,6 +158,43 @@ describe('the palate reads the dish (AC11)', () => {
     for (const band of ['untrained', 'novice', 'competent', 'proficient', 'expert']) {
       expect(tasteOf(dish(STEW), taster(band))).toContain('It tastes');
     }
+  });
+
+  it('⭐ the discipline is the one that MADE it, not a word the kernel knows', () => {
+    // The same taster, the same dish, read through two different crafts:
+    // a cook tastes a cooked dish; a bartender tastes nothing extra off
+    // it, because their skill is not the one that made it.
+    const cookly = tasteOf(dish(STEW), taster('expert'));
+    expect(cookly).toContain('stew meat');
+
+    const drink: BulkPayload = { ...STEW, discipline: 'bartending' };
+    const brewerly = tasteOf(dish(drink), taster('expert'));
+    // Still tastes it — never a gate — but reads it at the floor.
+    expect(brewerly).toContain('It tastes');
+    expect(brewerly).not.toContain('stew meat');
+  });
+
+  it('a blend no recipe made records no discipline and reads at the floor', () => {
+    const offSpec: BulkPayload = { ...STEW };
+    delete offSpec.discipline;
+    const text = tasteOf(dish(offSpec), taster('expert'));
+    expect(text).toContain('It tastes');
+    expect(text).not.toContain('stew meat');
+  });
+
+  it('⚠⚠ a bare Bulkable has NO palate — a puddle is not a dish', () => {
+    // The whole reason this lives on `PalatableMixin`: it used to sit on
+    // `BulkableMixin`, which put a taste augmenter on floors, garden
+    // beds, plant pots, air tanks and watering cans.
+    const puddle = makeStuff(() => new TestPuddle());
+    (puddle as unknown as { interiorBulk: boolean }).interiorBulk = true;
+    (puddle as unknown as { interiorMaterial: string }).interiorMaterial = COOKED;
+    puddle.setInteriorCapacity(Quantity.of(1, 'L'));
+    puddle.setInteriorAmount(Quantity.of(0.4, 'L'));
+    puddle.getBulk('interior').setPayload(STEW);
+    expect(tasteOf(puddle as unknown as Stuff, taster('expert'))).not.toContain(
+      'It tastes',
+    );
   });
 
   it('⚠ the palate never leaks onto `look`', () => {

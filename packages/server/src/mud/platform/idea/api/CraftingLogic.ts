@@ -782,6 +782,7 @@ function deriveBlendPayload(
   keywords: readonly string[],
   parts: { material: Material; servings: number }[],
   effectiveHeatK = 0,
+  discipline = '',
 ): BulkPayload {
   const nutrients = new Set<string>();
   const nutrientAmounts: Record<string, number> = {};
@@ -830,6 +831,11 @@ function deriveBlendPayload(
   if (tags.size > 0) payload.tags = [...tags];
   if (partNames.length > 0) payload.parts = partNames;
   if (tastes.size > 0) payload.tastes = [...tastes];
+  // ⭐ Which craft made it — the skill a taster's palate is read through
+  // (`PalatableMixin`). Recording it here is what lets the kernel project
+  // a cocktail through the bartender's discipline and a stew through the
+  // cook's without ever knowing either WORD.
+  if (discipline) payload.discipline = discipline;
   return payload;
 }
 
@@ -984,6 +990,7 @@ async function applyBulkOutput(
         ...matchedItems.map((m) => ({ material: m.material, servings: m.count })),
       ],
       effectiveHeatK,
+      recipe.getDiscipline(),
     ),
   );
   // A cold bar mix carries its inputs' spoilage through unchanged — a
@@ -1085,6 +1092,7 @@ async function applyEdibleOutput(
       recipe.getKeywords(),
       matchedItems.map((m) => ({ material: m.material, servings: m.count })),
       effectiveHeatK,
+      recipe.getDiscipline(),
     ),
   );
   applySpoilage(
@@ -1554,6 +1562,7 @@ async function mintVessel(
         recipe ? recipe.getKeywords() : material.getKeywords(),
         parts,
         effectiveHeatK,
+        recipe ? recipe.getDiscipline() : '',
       ),
     );
   }

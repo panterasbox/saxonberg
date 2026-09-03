@@ -963,7 +963,11 @@ enumerating it makes adding a kind a diff a reviewer sees.
 ### The palate — taste is DERIVED, and it reads you
 
 `taste <dish>` renders on the taste channel only, and what it says depends
-on the taster's own `cooking` competence:
+on the taster's competence **in the discipline that made the thing**
+(`BulkPayload.discipline`, recorded from the recipe) — so a cocktail reads
+through the bartender's craft and a stew through the cook's, and the
+kernel never knows a discipline word. A blend no recipe made records none
+and reads at the floor:
 
 | band | what you get |
 |---|---|
@@ -982,6 +986,15 @@ is the retired per-dish-material anti-pattern wearing a different hat.
 The competence read is the SYNC digest cache, and a cold cache reads as
 the floor band — honest rather than defective: an unexercised palate IS a
 novice palate. ⚠ Never a gate: every band tastes the food.
+
+⚠⚠ **It lives on `PalatableMixin` (`lib/metabolism/Palatable.ts`),
+composed on `CraftVessel`** — everything somebody *made something in*.
+It shipped for one build on `BulkableMixin`, which put a taste-palate
+augmenter on `Floor` (puddles), `GardenBed`, `PlantPot`, `AirTank` and
+`WateringCan`, made it re-derive "…but only a food vessel with contents"
+in four guard lines, and dragged `lib/advancement` into the bulk
+substrate. **Firing on hosts you then have to guard your way back out of
+is the tell that a mixin is on the wrong host.**
 
 ## Deferred (non-goals)
 

@@ -40,6 +40,7 @@ import { ContainerMixin } from '../../lib/spatial/Container';
 import { DetailedMixin } from '../../lib/description/Detailed';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
 import { CraftedMixin, type Crafted } from '../../lib/craft/Crafted';
+import { PalatableMixin } from '../../lib/metabolism/Palatable';
 import type { FieldMeta } from '../../lib/mixin';
 import { Quantity } from '../../lib/quantity';
 import { BulkableApi } from '../../api/bulk';
@@ -84,8 +85,15 @@ const SoiledWriters = SecurityPolicies.AnyOf(
   SecurityPolicies.FromTemplate('/platform/idea/persistence/*Hydrator'),
 );
 
-const CraftVesselBase = CraftedMixin(
-  ThermalMixin(BulkableMixin(ContainerMixin(DetailedMixin(Thing)))),
+// ⭐ `Palatable` is the taste reading — what a craft's output tastes
+// like, projected through the taster's own competence in the discipline
+// that made it. It composes HERE, not on `BulkableMixin`, because this is
+// the class for "a vessel somebody made something in": a floor puddle and
+// a garden bed hold matter and have no palate. See `lib/metabolism/Palatable.ts`.
+const CraftVesselBase = PalatableMixin(
+  CraftedMixin(
+    ThermalMixin(BulkableMixin(ContainerMixin(DetailedMixin(Thing)))),
+  ),
 );
 
 export default class CraftVessel extends CraftVesselBase {
