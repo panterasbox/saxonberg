@@ -216,6 +216,16 @@ export class CombatApi {
   }
 
   /**
+   * The relationship-derived splash set around `target` — the
+   * subject-NEUTRAL read: a thrown flask may target a barrel, and the
+   * people splashed stand around IT, so the target need not be a
+   * combatant. A combatant's own read is `target.splashSet()`.
+   */
+  public static splashSetFor(target: Stuff): Stuff[] {
+    return logic().splashSetFor(target);
+  }
+
+  /**
    * The range band between `a` and `b` (null = not co-present) — the
    * subject-NEUTRAL geometry read: either side may be an item (a wand
    * origin measures reach from itself — the EffectContext split), so

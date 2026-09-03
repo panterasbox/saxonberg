@@ -19,6 +19,7 @@ import { PartyApi } from "../../../api/party";
 import { brain as combatant } from "../combatant";
 import type { BrainContext } from "../brain";
 import { CombatLogic } from '../../../platform/idea/api/CombatLogic';
+import { MixinApi } from '../../../api/mixin';
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -88,6 +89,7 @@ describe("combatant brain", () => {
   it("presses with a strike when steady", () => {
     const host = faceHost();
     const foe = {};
+    vi.spyOn(MixinApi, "isCombatant").mockReturnValue(true);
     vi.spyOn(CombatApi, "sessionFor").mockReturnValue(
       fakeSession("steady", host, foe) as never,
     );
@@ -106,6 +108,7 @@ describe("combatant brain", () => {
   it("holds fire when overextended (lets the engine recover)", () => {
     const host = faceHost();
     const foe = {};
+    vi.spyOn(MixinApi, "isCombatant").mockReturnValue(true);
     vi.spyOn(CombatApi, "sessionFor").mockReturnValue(
       fakeSession("broken", host, foe) as never,
     );
@@ -120,6 +123,7 @@ describe("combatant brain", () => {
 
   it("does nothing when not in a fight", () => {
     const host = faceHost();
+    vi.spyOn(MixinApi, "isCombatant").mockReturnValue(true);
     vi.spyOn(CombatApi, "sessionFor").mockReturnValue(undefined);
     const queue = vi
       .spyOn(CombatLogic.prototype, "queueGambit")

@@ -81,6 +81,7 @@ beforeEach(() => {
   vi.spyOn(MixinApi, "isContainable").mockReturnValue(true);
   vi.spyOn(MixinApi, "isContainer").mockReturnValue(true);
   vi.spyOn(MixinApi, "isVitals").mockReturnValue(true);
+  vi.spyOn(MixinApi, "isCombatant").mockReturnValue(true);
   vi.spyOn(MixinApi, "isPerceptible").mockReturnValue(true);
   (HOST as unknown as { getContainer: () => unknown }).getContainer = () => ({
     getContents: () => [HOST, ...occ.map(asStuff)],

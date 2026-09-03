@@ -80,7 +80,7 @@ export default class ThrowController extends CommandController<ThrowModel> {
     }
 
     // ── Everyone this would touch, and whether that is allowed. ──
-    const splash = ((target) as unknown as Stuff & Combatant).splashSet();
+    const splash = CombatApi.splashSetFor(target);
     const verdict = ((giver) as unknown as Stuff & Combatant).mayDeliverTo(target, splash);
     if (!verdict.ok) {
       // Refused BEFORE anything commits: nothing thrown, no poise spent,

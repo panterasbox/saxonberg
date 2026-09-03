@@ -103,16 +103,22 @@ function threatTripped(
   if (fighters.length >= 3) return true;
   if (bandRank(host) >= 1) return true;
   for (const f of fighters) {
-    if (((f) as unknown as Stuff & Combatant).visibleArmsFor(host, alertness).length > 0) return true;
+    if (
+      MixinApi.isCombatant(f) &&
+      f.visibleArmsFor(host, alertness).length > 0
+    ) {
+      return true;
+    }
   }
   return false;
 }
 
 /** Is the host wielding the (switched-on) office taser right now? */
 function hasTaser(host: Stuff, keyword: string): boolean {
-  return ((host) as unknown as Stuff & Combatant).visibleArmsFor(host).some(
-    (w) => MixinApi.isPerceptible(w) && w.hasKeyword(keyword),
-  );
+  if (!MixinApi.isCombatant(host)) return false;
+  return host
+    .visibleArmsFor(host)
+    .some((w) => MixinApi.isPerceptible(w) && w.hasKeyword(keyword));
 }
 
 async function readEightySixed(path: string): Promise<Set<string>> {
@@ -174,7 +180,9 @@ export const brain = class {
 
     // The house rule: a visibly-armed patron.
     const armed = occupants.filter(
-      (o) => ((o) as unknown as Stuff & Combatant).visibleArmsFor(host, alertness).length > 0,
+      (o) =>
+        MixinApi.isCombatant(o) &&
+        o.visibleArmsFor(host, alertness).length > 0,
     );
     if (armed.length > 0) await enforceHouseRule(ctx, host, armed[0]!);
   }
