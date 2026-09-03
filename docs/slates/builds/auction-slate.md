@@ -199,6 +199,16 @@ makes it verifiable rather than asserted.**
 
 ## What gets auctioned
 
+- ⭐⭐ **breeding stock** — added 2026-09-03 by the
+  [farmstead](../../requirements/farmstead-requirements.md) multiplayer pass
+  (**D79–D81**), and it is **the purest lemons case in the game**: one bull
+  serves thirty cows, so the trade is low-volume, high-value and almost entirely
+  *information*. The seller watched the animal grow and the buyer did not.
+  Everything this slate already has bears directly on it — the herdbook is the
+  pedigree, **provenance flips sign exactly as it does for an estate lot**, the
+  appraiser has an obvious job, and a reserve price is what stops a good ram
+  going for nothing on a quiet night. **A live ring on market day is where a
+  thin farming population becomes a market at all.**
 - **unique crafted items** (a master's work);
 - **salvage job lots** (real practice);
 - **impounded goods** — see the pipeline fix in

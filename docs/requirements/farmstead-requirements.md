@@ -72,6 +72,14 @@ Seeding slates: [farming](../slates/builds/farming-slate.md) ·
   the condition score honest because phase 6 reads it as the resistance term; it
   must not stub `ContagionSpec`. A sick animal making its keeper sick is the
   sharpest hazard on the farm and it belongs to that build, not this one.
+- **The warranty primitive.** The multiplayer pass found that **nothing in the
+  repo lets a seller make a binding claim about the thing they are selling** —
+  checked against `contract.md`, `retail.md` and `accountability.md`. Every
+  producer trade above runs on representations (*she's in calf · this seed is
+  clean · the hay was baled dry*), and D48 makes the last one lethal. It is
+  **not a farming feature** — it is crafted goods, magic items, land and
+  anything sold with a claim attached — so it lands in
+  [warranty-slate](../slates/builds/warranty-slate.md), not here.
 - **Downstream nitrate contamination.** The loss leg ships; the commons dilemma
   it implies is a civics build with a victim, an evidence trail and a
   legislative response (D18).
@@ -1076,6 +1084,74 @@ rather than a wizard doing favours.
 scale bids against the transport network for one supply — a competition on
 already-shipped substrate.
 
+### The market between producers
+
+*(D79–D83, added after the multiplayer pass. The lens's verdict: **we designed
+the commons half and skipped the market half.** Every place two players conflict
+over a resource is designed — predators, downstream water, the wood contest,
+forage, the *profits à prendre* family. Every place two players would **trade**
+was missing.)*
+
+**D79 — ⭐ The herdbook is a sales document.** D20 built it as a management tool.
+It is not, primarily: **records exist so a buyer can trust a claim about an
+animal they did not watch grow.** Selection is pointless if the result cannot be
+sold, and *identity is earned by being measured* has no economic teeth until
+somebody pays a premium for the measurements. The record must therefore be
+**legible to a buyer**, not only to its keeper.
+
+**D80 — ⭐⭐ Market day, because it manufactures concurrency.** What Stage A
+shipped is consignment against a stock counter — **posted prices, not discovered
+ones** — and with one producer *"the price of hay"* is whatever an NPC says,
+which is a faucet wearing a hat.
+
+But the bigger problem is structural: in a thin multiplayer world **nobody is
+around when you are.** A scheduled time and place where everyone trades at once
+fixes that by construction:
+
+> **Market day solves price discovery and player convergence with one
+> institution** — which is why every agricultural society invented one.
+
+Same move as making winter global (D12). It goes on the calendar, it gives the
+locality a rhythm, and it is where [auction](../slates/builds/auction-slate.md)'s
+price-discovery machinery meets a crowd.
+
+**D81 — Producer-to-producer trade ships as first-class, not as a shop.** What
+farms sell to farms is not what farms sell to eaters:
+
+| Trade | Note |
+|---|---|
+| **breeding stock** | one bull serves 30–50 cows — low volume, high value, **high information** |
+| **stud service** | the same trade without the capital: you bring your cow |
+| **hay, straw, roots** | a wet year here and a dry one there; **surplus farm → short ranch** |
+| **manure** | ⭐ arable runs a deficit, stock a surplus — D14's interlock as a *market* |
+| **seed** | the plant-side information problem |
+| **agistment** | selling **grass without moving it** — you bring your animals to my field |
+| **draught hire** | an ox team was too dear for one household |
+
+These are **negotiated, often forward, and often in kind** — which is the
+work-contract substrate (clauses over verifiable conditions, escrow, a board),
+not `PricedOffer`. Nothing new is needed; nothing currently points a farm at it.
+
+**D82 — ⭐⭐ Specialisation must beat autarky, and the lever is quality, not
+scarcity.** As written, five species plus a four-course rotation make a mixed
+farm **self-sufficient**: own both halves and the nitrogen cycles internally and
+you never trade. A player's optimal play is to do everything — which is the
+classic failure of economy games.
+
+The fix is **not** to withhold or gate. It is that a specialist's product is
+genuinely *better*: grade (D24), knowledge of your own ground accumulated as a
+survey (D5), competence, and records (D79). **Buying should beat making because
+the other producer is good at it**, and every piece of that already exists
+unpointed at the decision.
+
+**D83 — The producer cooperative: some capital is indivisible.** A bull, a plough
+team, a mill, a boar. One smallholder cannot afford one and four can, and that is
+the historically normal case rather than an edge case. ⚠ Checked: the
+`cooperative-slate` is about **polity governance** — chambers, influence,
+delegation — and does not cover producer co-ops, so **nothing in the repo designs
+this.** The shape wanted is shared ownership of a thing plus a rota for its use,
+which is chattel plus a group plus a schedule.
+
 ---
 
 ## Constraints
@@ -1216,6 +1292,16 @@ already-shipped substrate.
 42. A caster can read soil and animal condition as instrument-tier readings with
     error bars, and can quiet an animal — and doing so requires being present at
     the thing read.
+43. An animal's record is readable by a prospective buyer, not only by its
+    keeper, and a recorded animal fetches more than an unrecorded one.
+44. Two producers can trade hay, manure, stud service and grazing (agistment)
+    through the contract substrate, including forward and in-kind terms.
+45. A market day occurs on the calendar; prices at it are set by what sellers and
+    buyers do rather than by an authored figure.
+46. A specialist producer's output is measurably better than a generalist's, so
+    buying beats making without anything being withheld.
+47. An indivisible capital asset can be owned jointly and its use scheduled
+    between the owners.
 
 ## Slate revisions this cycle makes
 
