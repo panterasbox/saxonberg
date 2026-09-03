@@ -10,7 +10,7 @@
 # remembered. If you are here to "finish" it: don't.
 #
 # A fixture by encumbrance, like the pantry chest (the anvil rule).
-class: /platform/thing/Prop
+class: /platform/thing/Thing
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a toilet

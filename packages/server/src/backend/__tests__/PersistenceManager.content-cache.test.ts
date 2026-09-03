@@ -92,7 +92,7 @@ function installFakeContent(
 }
 
 const ROWS = [
-  { _id: BAR_ID, path: '/test/room/bar', class: '/platform/thing/Prop' },
+  { _id: BAR_ID, path: '/test/room/bar', class: '/platform/thing/Thing' },
   { _id: WELL_ID, path: '/test/thing/well', class: '/x/Well' },
 ];
 
@@ -123,8 +123,8 @@ describe('PersistenceManager — the resident content cache', () => {
       path: '/test/room/bar',
     });
 
-    expect(first[0]?.class).toBe('/platform/thing/Prop');
-    expect(second[0]?.class).toBe('/platform/thing/Prop');
+    expect(first[0]?.class).toBe('/platform/thing/Thing');
+    expect(second[0]?.class).toBe('/platform/thing/Thing');
     // One preload, and nothing after it.
     expect(state.findFilters).toEqual([{}]);
   });
@@ -153,7 +153,7 @@ describe('PersistenceManager — the resident content cache', () => {
     const again = await pm.find(Collections.Content, {
       path: '/test/room/bar',
     });
-    expect(again[0]?.class).toBe('/platform/thing/Prop');
+    expect(again[0]?.class).toBe('/platform/thing/Thing');
   });
 
   it('a save is written through, so the next read sees it', async () => {
@@ -182,7 +182,7 @@ describe('PersistenceManager — the resident content cache', () => {
     await pm.save(Collections.Content, {
       _id: BAR_ID,
       path: '/test/room/snug',
-      class: '/platform/thing/Prop',
+      class: '/platform/thing/Thing',
     });
 
     expect(await pm.find(Collections.Content, { path: '/test/room/bar' }))
@@ -190,7 +190,7 @@ describe('PersistenceManager — the resident content cache', () => {
     expect(
       (await pm.find(Collections.Content, { path: '/test/room/snug' }))[0]
         ?.class
-    ).toBe('/platform/thing/Prop');
+    ).toBe('/platform/thing/Thing');
   });
 
   it('a delete evicts the row', async () => {
@@ -220,8 +220,8 @@ describe('PersistenceManager — the resident content cache', () => {
     await pm.find(Collections.Content, { path: '/test/room/bar' });
     state.findFilters.length = 0;
 
-    await pm.find(Collections.Content, { class: '/platform/thing/Prop' });
-    expect(state.findFilters).toEqual([{ class: '/platform/thing/Prop' }]);
+    await pm.find(Collections.Content, { class: '/platform/thing/Thing' });
+    expect(state.findFilters).toEqual([{ class: '/platform/thing/Thing' }]);
   });
 
   it('never answers for another collection, even a by-path query', async () => {
@@ -241,7 +241,7 @@ describe('PersistenceManager — the resident content cache', () => {
     const reading = pm.find(Collections.Content, { path: '/test/room/bar' });
     await pm.save(Collections.Content, {
       path: '/test/room/snug',
-      class: '/platform/thing/Prop',
+      class: '/platform/thing/Thing',
     });
     state.hold!(); // the snapshot lands, without the new row in it
     await reading;
@@ -251,7 +251,7 @@ describe('PersistenceManager — the resident content cache', () => {
     const got = await pm.find(Collections.Content, {
       path: '/test/room/snug',
     });
-    expect(got[0]?.class).toBe('/platform/thing/Prop');
+    expect(got[0]?.class).toBe('/platform/thing/Thing');
   });
 
   it('does not resurrect a delete that lands while the preload is in flight', async () => {

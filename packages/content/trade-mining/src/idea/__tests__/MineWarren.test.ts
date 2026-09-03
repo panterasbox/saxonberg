@@ -22,7 +22,7 @@ import type { Working } from '../../location/Working';
 import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
 import Material from '@saxonberg/server/mud/platform/idea/material/Material';
 import ToolItem from '@saxonberg/server/mud/platform/thing/ToolItem';
-import Prop from '@saxonberg/server/mud/platform/thing/Prop';
+import Thing from '@saxonberg/server/mud/platform/thing/Thing';
 import SingletonCartesianLocation from '@saxonberg/server/mud/platform/location/SingletonCartesianLocation';
 import PersistentHydrator from '@saxonberg/server/mud/platform/idea/persistence/PersistentHydrator';
 import { Document } from '@saxonberg/server/mud/lib/persistence/Document';
@@ -79,7 +79,7 @@ function seedContent(): void {
       seamPhrases: ['green staining runs along the seam'],
     });
   }
-  add('/world/fx-mine/thing/glowcap-jar', '/platform/thing/Prop', {
+  add('/world/fx-mine/thing/glowcap-jar', '/platform/thing/Thing', {
     shortDescription: 'a jar of glowcap',
   });
 }

@@ -94,11 +94,11 @@ describe("general-store content integrity", () => {
   // class would fail the allowlist; the runtime `!isGlobbable` proof lives in
   // the standup integration test (which clones the goods for real).
   const DISCRETE_ITEM_CLASSES = new Set([
-    "/platform/thing/Prop",
+    "/platform/thing/Thing",
     // A `Provision` is the food class — discrete, `Crafted` (so it carries a
-    // maker's mark and a grade), and no more Globbable than a `Prop`. The
+    // maker's mark and a grade), and no more Globbable than a bare `Thing`. The
     // ration pack is one: perishable matter belongs on the class that says
-    // so, not on the generic `Prop` that happened to be carrying the gauge.
+    // so, not on the generic `Thing` that happened to be carrying the gauge.
     "/platform/thing/Provision",
     "/platform/thing/equipment/PortableLight",
     "/platform/thing/equipment/Weapon",

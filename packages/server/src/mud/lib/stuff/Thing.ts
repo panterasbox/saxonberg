@@ -56,11 +56,11 @@ import type { FieldMeta } from '../mixin';
 // `callable == visible == cared-about` says so.
 //
 // ⭐ It lives on **`Provision`**, and only there — the one class in the
-// library that IS food by name. The narrowing went via `Prop` first,
-// which was wrong for a reason worth keeping: `Prop` is the generic
-// concrete `Thing`, deliberately empty, so hanging a gauge on it taxes
-// the anvil and the toilet to serve four rows that were simply on the
-// wrong class. `prime-cut` sat in the same pantry chest as `stew-meat`
+// library that IS food by name. The narrowing went via the concrete
+// `platform/thing/Thing` first (then named `Prop`), which was wrong for a
+// reason worth keeping: that class is the generic concrete twin of THIS
+// one, deliberately empty, so hanging a gauge on it taxes the anvil and
+// the toilet to serve four rows that were simply on the wrong class. `prime-cut` sat in the same pantry chest as `stew-meat`
 // and was already a `Provision`; the fix was to move the rows, not to
 // widen a class.
 //

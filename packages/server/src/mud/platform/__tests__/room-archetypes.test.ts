@@ -80,12 +80,12 @@ describe("the four archetypes are template rows over ONE class (D6)", () => {
       // containers ABOVE a thing, and nobody carries a basin).
       "/platform/thing/WaterFixture",
       "/platform/thing/Surface", // the counter
-      "/platform/thing/Prop", // the toilet — prose, no capability
+      "/platform/thing/Thing", // the toilet — prose, no capability
       // ⭐ The one fixture that DID need a class, made explicitly (this
       // test's own instruction). A sconce is a light that lives in a
       // room's fixture map rather than its contents, which is
       // `Adornment` over the portable-light composition — no shipped
-      // class is both, and faking it with a `Prop` would have made the
+      // class is both, and faking it with a bare `Thing` would have made the
       // first thing a player hangs on a wall a decoration that emits
       // nothing. It ships in `generic-objects` (a pack's `src/`), beside
       // the row that names it.
@@ -170,11 +170,11 @@ describe("the bathroom — PRESENCE (D13)", () => {
   });
 
   it("the toilet does nothing, deliberately — prose, no capability", () => {
-    // Enforced rather than remembered. `/platform/thing/Prop` is Tangible +
+    // Enforced rather than remembered. `/platform/thing/Thing` is Tangible +
     // Visible + Containable and nothing else: no slot, no surface, no
     // container, no bulk. If you are here to "finish" the toilet: don't.
     const toilet = read("stuff/thing/fixture/toilet.yaml");
-    expect(toilet.class).toBe("/platform/thing/Prop");
+    expect(toilet.class).toBe("/platform/thing/Thing");
     for (const capability of [
       "staticSlots",
       "interiorBulk",

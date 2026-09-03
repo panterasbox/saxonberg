@@ -851,13 +851,21 @@ platform/thing/FoldingChair` is ordinary OO and correct. Only classes that are
 
 **When a substrate class is also cloned generically, split it.** The
 abstract base stays in `lib/`; a thin concrete subclass in `platform/`
-absorbs the clones, and templates name that. Nine exist:
-`platform/thing/Prop` (← `lib/stuff/Thing`), `platform/agent/Corpse` (←
-`Creature`), and `platform/agent/NPC`, `platform/location/CartesianLocation`,
-`platform/location/SingletonCartesianLocation`,
-`platform/thing/Vessel`, `platform/idea/Exit`, `platform/idea/material/Material`, `platform/idea/Biome`, which
-deliberately share their base's name (the import aliases it; the module
-registry keys on class identity, not name).
+absorbs the clones, and templates name that. Nine exist. **Eight
+deliberately share their base's name** (the import aliases it as
+`<Name>Base`; the module registry keys on class identity, not name):
+`platform/thing/Thing`, `platform/thing/Vessel`, `platform/agent/NPC`,
+`platform/location/CartesianLocation`,
+`platform/location/SingletonCartesianLocation`, `platform/idea/Exit`,
+`platform/idea/material/Material`, `platform/idea/Biome`. **One is a real
+rename because it is a real concept**: `platform/agent/Corpse`
+(← `Creature`). ⭐ Sharing the name is the DEFAULT — a twin that renames
+is claiming to be a different thing, and had better be one.
+`platform/thing/Thing` was called `Prop` until 2026-09-03, which named
+nothing (there is no prop concept anywhere in the tree) and read as
+"generic object nobody cares about" — so nobody defended it, and a
+spoilage gauge got hung on it to serve four rows that belonged on
+`Provision`.
 
 **Placement within `platform/<branch>/`:** flat at `platform/<branch>/<Name>.ts` by default. A
 `platform/<branch>/<cluster>/` directory only where 3+ cohesive classes land together

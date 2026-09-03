@@ -524,8 +524,8 @@ describe('the toxin kill is SELECTIVE (AC9)', () => {
 });
 
 describe('the working resets the spoilage load (P4)', () => {
-  // ⚠ `Prop`, not a bare `Thing`: the spoilage gauge composes on the two
-  // classes that carry discrete perishable matter, not on every Thing.
+  // ⚠ `Provision`, not a bare `Thing`: the spoilage gauge composes on the
+  // one class that IS food by name, not on every Thing.
   function spoiled(materialPath: string, load: number): Provision {
     const t = makeStuff(() => new Provision());
     t.setMass(Quantity.of(0.4, 'kg'));
