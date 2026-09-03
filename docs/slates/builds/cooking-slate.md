@@ -334,6 +334,39 @@ vessel kind — every piece already designed.
   orange), but **mint does** — a mint tisane is brewable day-one
   content; proper tea is a one-species farming add later.
 
+### Alcohol in the kitchen: works now, honest at tending (settled)
+
+- **Wine as an ingredient works today — and the rail rule creates the
+  vin de cuisine market for free.** Wine/beer/spirits are shipped bulk
+  liquids with honest alcohol macros; a wine-reduction dish is just a
+  recipe (a `wine` bulk slot + heat). The shipped **rail rule** sends
+  the cheapest bottle clearing `minGrade` to any unnamed slot — which
+  is exactly what cooking wine IS: the pot becomes the wine market's
+  bottom-shelf sink, real economics falling out of a rule the bar
+  built for well drinks.
+- **Reduction is distillation with the outputs swapped** — fractional
+  evaporation (alcohol off at 351 K, water at 373), literally the
+  distilling trade's physics keeping the pot instead of the vapor. In
+  v1 a reduction is an ordinary recipe; the kinship means the honest
+  evaporation model already ships when tending wants it.
+- **"Alcohol burns off" is the dose integral's FOURTH customer.** Real
+  retention is time × temperature (flambé ~75% retained, a 2.5-hour
+  simmer ~5% — the USDA tables): ∫f(T)dt again. v1's
+  macros-in = macros-out carries ALL the wine's alcohol — a known
+  overstatement, roughly honest for quick cooks, fixed by S2.
+  Meanwhile the metabolism honesty is a feature *now*: boozy dishes
+  carry real BAC — **the rum cake genuinely gets you tipsy**.
+- ⭐ **Deglazing is meaningless before tending — the process-memory
+  argument confirmed from a new direction.** Deglazing needs a
+  **fond**: the browned residue a sear leaves in the pan. One-shot v1
+  has no residue — nothing to deglaze. The fond is per-attempt
+  *vessel* state (process memory on the PAN, carried by the
+  build/technique record), so `deglaze` arrives as a tending-era act:
+  fond as the dry/fat methods' residue, deglaze converting it + a
+  splash of wine into the pan-sauce base — the frugal loop of the
+  sauté, pre-registered. (Flambé — burning the vapor for show — is
+  fire-substrate texture for the same era.)
+
 ### Prior art: technique is the act layer; method composes with it
 
 *(From the 2026-09-02 prior-art audit — the design rejects nothing
@@ -628,8 +661,10 @@ sinks):
      integral as freshness, opposite sign — so S2 partially
      *retro-feeds W0* rather than being pure new cost. And the scorch
      ceiling (`maxHeatK`) was never just about scorching — **scalded
-     green tea is the same field** (§ Part 2 hot drinks): the tending
-     wave arrives with a second customer already waiting.
+     green tea is the same field** (§ Part 2 hot drinks), fish's
+     narrow window the third customer (§ Part 1 seafood), and
+     **alcohol retention the fourth** (§ Part 2 alcohol): the tending
+     wave arrives with four customers already waiting.
    - **S4 — where sequencing lives** (a decision, not a build). Braise
      is ordered stages; `Recipe` is one-shot slots-and-gates and should
      stay so. The sequencing engine exists: the demonstration capture
