@@ -262,14 +262,15 @@ simulator. The rule:
 
 Break, scutch and hackle are three motions with one decision between them
 (*remove more woody matter, lose some staple length*) — historically,
-collectively, *dressing* the flax. They fold into one `dress`. Retting
+collectively, *dressing* the flax. They fold into one act — named
+`scutch` rather than `dress`, for the collision reason below. Retting
 has a genuine decision (when to pull it) and `FermentingMixin` already
 runs that clock, so like the fermentation build it may need **zero
 verbs**: put flax in a water tank, judge the moment, take it out.
 
 | verb | the decision it carries | pack |
 |---|---|---|
-| `dress` | how hard to work it — purity vs staple length | textiles |
+| `scutch` ⚠ | how hard to work it — purity vs staple length | textiles |
 | `spin` | how fine — speed traded against yarn grade | textiles |
 | `weave` | weave density — yield vs windproofing + wear | textiles |
 | `full` | felting / finishing pass (wool) | textiles |
@@ -281,6 +282,30 @@ verbs**: put flax in a water tank, judge the moment, take it out.
 Eight verbs, four packs. `mending` already ships and finally has
 something to repair. `shear` waits on ranching, as does wool's whole left
 edge.
+
+### ⚠⚠ `dress` is claimed three ways — coordinate before W8
+
+*(Found 2026-09-02 reading build-3's `design/cooking`.)* Three builds
+want one word, and all three uses are correct terms of art:
+
+| claimant | use | status |
+|---|---|---|
+| **cooking** (build-3) | `dress` a carcass — butchery, in the hunt vertical | slated on `design/cooking` |
+| **textiles** | *dressing* flax — break + scutch + hackle folded | ⭐ **yielded** → `scutch` |
+| **textiles** | `dress as <name>` — the wardrobe set (W4a) | strongest player intuition |
+
+This slate **yields the flax step to `scutch`** — the specific act,
+unambiguous, and historically the heart of the operation. It does *not*
+yield `dress as <name>`: getting dressed is the meaning a player reaches
+for first, and clothing is this build's subject.
+
+⚠ **That still leaves `dress <carcass>` and `dress as <name>` sharing a
+verb.** They take different argument shapes, and multi-stanza views over
+one verb are a shipped pattern (the metal chain's `measure strike` /
+`measure dip` ride the platform's `measure` view with controllers in the
+trade). So they can probably coexist — **but that is build-3's call as
+much as ours, and it should be settled between the slates, not
+discovered at build time.**
 
 ### ⭐ The tool ladder
 
@@ -398,28 +423,60 @@ layer covering the affected part. The apron intercepts it. That is
 Decision 3 and the room-condition pack meeting exactly, with no new
 mechanism on either side.
 
-### ⚠ Two pre-existing cleanliness representations to absorb
+### ⚠⚠ Corrected again — "soiled" is TWO concepts wearing one word
 
-The tree already models "is this clean" **twice, incompatibly**, and
-neither knows about the other:
+*(2026-09-02, after reading build-3's `design/cooking` at 92d042816.)*
+An earlier draft of this section claimed `CraftVessel.soiled` should
+"resolve onto `Soilable`." **That is wrong**, and the cooking slate had
+already reasoned it out more carefully:
 
-- **`CraftVessel.soiled`** — a **boolean**, on one concrete class, behind
-  a bespoke `SoiledWriters` policy. `WashController` hard-checks
-  `glass instanceof CraftVessel` and declines anything else, so `wash` is
-  not a general verb today: it is the bar's bussing beat.
-- **`DressingMixin.dressingQuality`** — a **0..1 scalar**, documented
-  *"0 (filthy) .. 1 (clean/sterile)"*, grading treatment outcome.
+| | `CraftVessel.soiled` | `SoilableMixin` |
+|---|---|---|
+| what it asks | *is this vessel claimable for a fill?* | *how well-kept is this thing?* |
+| shape | **binary — necessarily**, because a claim is binary | **banded** `clean/soiled/filthy` |
+| driver | one use fills it | acts deposit, progressively |
+| consumers | the vessel pool / returns loop | `restQuality`, disease risk, how a guest regards you |
+| owner | crafting (bar), extended by **cooking** | [room-condition-design-pack](./room-condition-design-pack.md) |
 
-Per *nothing is legacy — model it right*, both should resolve onto
-`Soilable` when it lands rather than becoming a third parallel gauge. A
-bar glass is simply soilable with a very small capacity (one use fills
-it); a dressing's quality is an inverted soil band — which would mean
-**washing your rags before you use them as bandages**, a connection the
-medical vertical gets for free.
+They are **different concepts that share a word**, and cooking is right
+to keep and extend the flag — `design/cooking` W1 makes `Dish extends
+CraftVessel` precisely to inherit `soiled` + `wash`, which is what makes
+leftovers possible and turns dinnerware into an economy.
 
-⚠ This is a **sequencing dependency, not a textiles deliverable**:
-whichever build ships `SoilableMixin` owns the absorption. Textiles must
-know whether it is that build (see wave W5).
+⭐ **`DressingMixin.dressingQuality` is the one that really is a
+condition gauge** (*"0 (filthy) .. 1 (clean/sterile)"*), and it should
+land on `Soilable` when that ships — giving the medical vertical
+*washing your rags before you use them as bandages* for free.
+
+### ⭐⭐ Ship the SEAM, not the mechanism — cooking's pattern, adopted
+
+The cooking slate solves the not-retrofittable problem elegantly, and
+textiles should copy it verbatim:
+
+> *"The kitchen getting messy is the room-condition pack's model;
+> cooking's obligation is **one pre-registered line — when that pack
+> lands, cooking acts emit the producer event.** v1 kitchens stay
+> magically tidy, stated honestly."*
+
+So textiles ships **the routing, not the gauge**:
+
+- **In scope (W3):** the covering stack decides *which layer receives a
+  deposit* — outermost over the affected part. That is genuinely
+  textiles' business; it is the layering model, not a cleanliness model.
+- **In scope (W5):** the pre-registered obligation — garment-soiling acts
+  emit the producer event the room-condition pack specifies.
+- **Out of scope:** `SoilableMixin` itself, its bands, and its attributed
+  event log. Textiles does not ship a gauge ahead of the pack, because
+  the events are *not retrofittable* and a second gauge would be the
+  third parallel representation of one idea.
+
+⭐ **The apron is therefore designed and seamed now, and lights up when
+room-condition lands** — exactly like cooking's kitchen. Its purpose does
+not depend on textiles owning the gauge.
+
+⚠ **Coordination note:** the room-condition pack now has **two builds
+waiting on it** with pre-registered obligations (cooking and textiles).
+That is an argument for its priority that neither slate can make alone.
 
 ### ⭐ The wash/fade loop still stands
 
@@ -750,10 +807,10 @@ Kernel first, then packs — the metal-chain shape.
 | **W3** | per-part covering stack: `covers:` walk, clo derives, wet feeds it | the thermal payoff |
 | **W4** | fit: derived measurements, cut-to stamp, the lineage seam | needs W2 |
 | **W4a** | ⚠ the **wardrobe** dressing set — `dress as <name>` | ⚠⚠ eight commands to dress would sour the build; rides the existing `wardrobe` fixture |
-| **W5** | soiling — **consume `Soilable`**, incl. its attributed events; the wash/fade loop | ⚠⚠ the events are *not retrofittable*; ⚠ confirm whether textiles or another build ships `SoilableMixin` |
+| **W5** | soiling — the **pre-registered producer-event obligation** + the wash/fade loop. NOT the gauge | ⚠⚠ `SoilableMixin` is room-condition's; its events are not retrofittable, so textiles ships the seam (cooking's pattern) |
 | **W6** | `getConcealment()` derive-on-read + the conspicuity band | the camo/hi-vis seam |
 | **W7** | `trade-farming` rows: flax, cotton, madder, weld, woad | content only, existing pack |
-| **W8** | `trade-textiles` pack: ret · dress · spin · weave · full + the tool ladder | the faucet. ⭐⭐⭐ **carries the spinning-bottleneck tuning obligation** |
+| **W8** | `trade-textiles` pack: ret · scutch · spin · weave · full + the tool ladder | the faucet. ⭐⭐⭐ **carries the spinning-bottleneck tuning obligation** |
 | **W9** | `trade-leatherwork` pack: tan + the tannery as a zoned nuisance venue | parallel input; produces `hide-stock` at last |
 | **W10** | `trade-dyeing` pack: dyestuffs, mordants, fastness | customer of both |
 | **W11** | `trade-tailoring` pack: cut · sew · livery; the jerkin recipe leaves smithing | closes the loop |
@@ -799,10 +856,12 @@ Kernel first, then packs — the metal-chain shape.
 10. ⭐ **What is a pattern?** A recipe, an authored document, or
     player-designable content that can be named, sold and inherited? The
     largest creative-expression surface in the build, currently unmodelled.
-11. ⚠ **Who ships `SoilableMixin`** — textiles, or the room-condition
-    build? Its attributed deposit/clear events are *"required at build
-    time, not retrofittable"*, so whoever ships it must ship them, and
-    textiles must not ship garment soiling ahead of it.
+11. ⚠ **When does the apron actually light up?** Textiles ships the
+    deposit *routing* and the pre-registered event; the gauge is the
+    room-condition build's. So the apron is designed, seamed and inert
+    until that build lands — which is now blocked-on by **two** slates
+    (cooking's kitchen and this one). Is that acceptable, or does one of
+    them pull `SoilableMixin` forward?
 12. **Is a scouring agent legitimate?** The room-condition pack
     deliberately refuses a washing consumable (water is a precondition;
     *"charging the care loop an errand per wash is the friction this pack
@@ -814,7 +873,11 @@ Kernel first, then packs — the metal-chain shape.
 13. **What are the honest labour times for `spin` and `weave`?** The
     spinning-bottleneck lesson lives entirely in this ratio (see the
     four-lens pass, Lens 1). Needs real numbers, not placeholders.
-14. **How legible must a dressing mistake be?** Lens 4's
+14. ⚠⚠ **Can `dress <carcass>` and `dress as <name>` share a verb?**
+    Multi-stanza views are a shipped pattern (`measure strike`/`dip`),
+    but this spans two packs and two builds. Needs settling with
+    build-3's `design/cooking`, not discovering at build time.
+15. **How legible must a dressing mistake be?** Lens 4's
     player-knowledge loop only teaches if being wrong is survivable and
     the reason is readable. Too harsh and it is a trap; too soft and
     nobody learns.
