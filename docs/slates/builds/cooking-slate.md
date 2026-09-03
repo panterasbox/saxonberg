@@ -461,6 +461,53 @@ outputs edibles" and becomes a trade with stakes:
   kill step, the temperature term); the victualler buys *seasons* (water
   activity — salt, drying). Different physics term, different trade.
 
+### Hazards: deterministic consequences, never slip rolls (settled)
+
+**The governing rule comes from the uncertainty doctrine**: resolutional
+randomness is banned — no "5% chance the mandolin takes your finger."
+Every kitchen hazard models as **a state you created plus a
+deterministic consequence** — which is what makes danger legible,
+mitigable, and *teachable*. The mandolin's risk is texture; its guard
+is a prop.
+
+- ⭐ **The grease fire is a tending-era hazard by construction.** The
+  chain: oil heats → smokes (`smokePoint` — *the smoke IS the
+  warning*) → ignites at **`flashPoint`** (pre-registered sibling
+  field, read by the fire build's shipped ignition balance). This
+  requires a pan whose temperature evolves unattended — S1 — so **v1
+  one-shot cooking cannot start a fire, and the unattended pan is
+  tending's negative space**: the tending wave introduces attention as
+  the skill and inattention as the hazard, one mechanism, both sides.
+  **Never water on a grease fire** (steam explosion) is the punishing
+  deterministic consequence; the right answer is the **lid**, and the
+  smother mechanism ships (the candle self-smothers under a sealed
+  air-limited jar — same physics, bigger flame). Sand/salt are the
+  floor alternatives; the extinguisher is up the tech ladder — the
+  medieval kit is lid, sand, wet cloth, and respect.
+- **Burns and scalds — mostly shipped**: `burn` is a shipped trauma;
+  `getSurfaceTemperature` already splits scalding contents from
+  touchable wall. Barehanded hot iron → deterministic burn. ⭐ **The
+  oven mitt is armor**: materials-response models layered attenuation
+  against the heat channel — a pot holder is a resist layer on the
+  same grid as a gambeson (the smith's tongs are the precedent).
+- **Smoke/CO — the silent one, precedent shipped**: fermentation's
+  cellar CO₂; a charcoal brazier in an unventilated kitchen is the
+  same shape and a real historical killer (respiration's
+  `breathableMedia` + crisis engagement carry it). Belongs to the
+  hearth/room family, not this build — the cook is its most exposed
+  customer.
+- **Food safety is Part 3 renamed**: the kill step, the danger zone,
+  the raw-fish gate, ptomaine — hazard management already designed.
+- **Pressure-cooker overpressure** — up the ladder with the vessel;
+  another state-consequence, materials-response's construction axis
+  waiting.
+
+**The pedagogy**: every mitigation is *knowledge, not gear* — know the
+flash sequence, keep the lid in reach, ventilate the brazier, mitt the
+handle, respect the danger zone. **Competence is the safety
+equipment** — and the professional kitchen's dignity is trained habits
+around hazards the domestic cook meets alone.
+
 ### Leftovers & storage containers (settled)
 
 Zero new mechanism — but one load-bearing decision about where the
