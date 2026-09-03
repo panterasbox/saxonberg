@@ -981,6 +981,101 @@ family to sit in, and it is the legal frame the enclosure argument behind D59's
 tenant-improvement problem is already half inside. **Model the rights, and the
 politics of enclosure becomes available without authoring a villain.**
 
+### Technology, and magic
+
+*(D75–D78, added after the progression pass.)*
+
+**D75 — ⭐ Technology is the removal of a constraint you have felt, so the
+pre-industrial economy is the prerequisite and not a phase.** Read as a table of
+*which constraint each tier removes*, rather than as a tech tree:
+
+| Constraint | Prehistoric | **Medieval — this build** | Industrial | Future |
+|---|---|---|---|---|
+| **nitrogen is scarce** | — | manure, clover, folding (D14–D16, D67) | ⭐ **Haber-Bosch destroys it** | synthesised |
+| **the season** | — | preservation and salt (D12, D71) | refrigeration + rail | closed environment |
+| **motive power** | your back | **the ox** (D40) | steam | — |
+| **the soil itself** | — | the field | — | hydroponics |
+| **distance** | walking | the cart | the railway | **the TPA** |
+
+Haber-Bosch is the most consequential agricultural technology in history and it
+means **nothing** to a player who has not spent a winter short of manure. Every
+later tier is only legible as the removal of something you felt, so building
+this tier first is correct sequencing rather than a limitation.
+
+⭐ **And the prehistoric column already ships in this build**: D61's forage *is*
+the pre-agricultural mode, and clearing is the transition. The design spans two
+tiers already.
+
+**What this obliges:** name the constraint each system imposes, so a later build
+can remove it deliberately. **No tech tree, ever** — trades advance by exercised
+disciplines and nobody authors tech ahead of demand.
+
+**D76 — The world is not uniform, and that is diffusion rather than
+chronology.** An ox in a world with a teleport network is not an inconsistency.
+**A technology spreads where its capital cost is repaid by the labour it saves**
+— which is why, today, people plough with oxen a plane ride from datacentres.
+Terminus has the TPA because Terminus has capital; a smallholding has an ox
+because an ox is what pays there. And the game can make that visible in a way no
+other medium can: **you can see the teleport network from behind the plough.**
+
+**D77 — ⚠⚠ Magic cannot do agriculture, and the reason is arithmetic.** Run
+against [arcane-science.md](../arcane-science.md) rather than assumed. `k = 1
+kJ/τ` and a mid reserve is `300 τ` — so **a full reserve is 300 kJ: about three
+percent of a day's food, or a hair dryer for five minutes.** Every negative below
+follows from that, and none is a rule anybody has to remember:
+
+- **It cannot fertilise.** Fixing nitrogen runs ~30 MJ/kg N — **about a hundred
+  full reserves per kilogram**, against tens of kilograms per hectare per year.
+  **Clover is cheaper than a wizard, permanently.**
+- **It cannot irrigate.** Conjure-water is a dehumidifier, self-limiting by heat
+  — the caster is the condenser and cooks on the fourth casting, for 100 mL each.
+  Irrigation stays a ditch (D73).
+- **It cannot heat a field or a glasshouse.** Heat is the *cheapest* delivery and
+  a small glasshouse on a cold night still costs about twelve reserves an hour.
+- **It cannot plough, and cannot conjure seed, manure or an animal** — matter
+  creation is 9 × 10¹⁶ J/kg.
+
+> **The entire farmstead economy is magic-proof by derivation.** Every scarcity
+> carrying the pedagogy survives contact with wizards, and the price list already
+> says so.
+
+⚠ **Write it down anyway**, because "a growth spell" is exactly what gets
+authored in two years by somebody who did not do the arithmetic. All three
+calculations are worked in `arcane-science.md`.
+
+**D78 — What magic *does* do here: the instrument and the hand, never the
+engine.** `Perceive` is the cheapest verb — a probe and a return — and patterning
+is energetically negligible. So the affordable magic is **diagnosis and
+handling**:
+
+- **Perceive·Earth reads the ground** — the top rung of D4's survey ladder, above
+  the spade and the assay. Magic **joins** the instrument chain instead of
+  bypassing it; and because a probe reads where you *are*, you still walk the
+  field.
+- **Perceive·Beast reads an animal** — D24's condition, without the palpation.
+- **Control·Mind quiets a beast** — D46's handling, and the honest reason a
+  hedge-witch is worth hiring at lambing.
+- **Create·Light for night work**, about 8 τ an hour. The only cheap thing on the
+  list.
+- **Ignition, spot heat, a wasp nest, a frozen pipe.** Small energy delivered
+  exactly.
+
+⭐⭐ **And the structural result, derived from the postulate rather than
+asserted:**
+
+> **Technology is capital. Magic is labour.**
+
+A technology removes a constraint permanently, for everyone, once it diffuses;
+it scales, and it works while you sleep. Magic removes one momentarily, for one
+person, and **cannot scale — because the caster is always one endpoint and their
+own body is the bottleneck.** A tractor does not cook itself. That is why nothing
+in this setting industrialised by magic, and why the TPA is a metered utility
+rather than a wizard doing favours.
+
+⚠ **One live consequence:** the TPA runs on mana. Any future magical farm work at
+scale bids against the transport network for one supply — a competition on
+already-shipped substrate.
+
 ---
 
 ## Constraints
@@ -1115,6 +1210,12 @@ politics of enclosure becomes available without authoring a villain.**
     changes water reaching ground downstream.
 40. A right to take produce from land somebody else holds — grazing, mast, wood,
     turf — is expressible and enforceable without transferring title.
+41. No spell, item or working improves a field's fertility, waters a field, or
+    warms one at production scale; attempts are priced out by the shipped price
+    list rather than refused by a special case.
+42. A caster can read soil and animal condition as instrument-tier readings with
+    error bars, and can quiet an animal — and doing so requires being present at
+    the thing read.
 
 ## Slate revisions this cycle makes
 

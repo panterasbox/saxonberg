@@ -26,6 +26,17 @@ is to build a subject from scratch and teach it honestly.
 > rule at the head of this document is only worth something if things
 > occasionally fail it.
 >
+> **Addition, 2026-09-03 — three agricultural worked examples.** Added
+> under *Worked examples*: the nitrogen-fixation, glasshouse-heating and
+> ground-reading calculations, prompted by the
+> [farmstead requirements](./requirements/farmstead-requirements.md)
+> (D77–D78) needing to know whether magic could do farm work. **No
+> mechanic, number or law changed** — all three are consequences of the
+> shipped `k = 1 kJ/τ`, the 300 τ mid reserve and the existing price
+> list, and each was recomputed end to end per the rule above. The
+> general result they share is worth stating in the log: **a full mid
+> reserve is 300 kJ, so magic is a hand tool and not an industry.**
+>
 > **Revision, 2026-08-11 — the mana/energy split.** Two errors of the
 > same kind, both in confident passages, both found by *using* the
 > science rather than reading it. **(1)** Halloway Equivalence read a
@@ -1512,6 +1523,68 @@ what resists it (composure, affine in reserve, floor f > 0), and
 precisely what we cannot explain (what fixes the pattern). Being able
 to state the boundary of your own explanation with that much precision
 is itself the lesson.
+
+### Fertilise-field — Transform·Earth, and the number that keeps agriculture honest
+
+The nuclear argument does not bar this one. **Fixing atmospheric nitrogen is
+chemistry** — N≡N is 941 kJ/mol, a strong bond but an ordinary one — so by the
+*small amounts* clause a caster genuinely can make a little nitrate. The bar is
+scale, and it is not close.
+
+- Industrial ammonia synthesis at best practice runs about **30 MJ per kg of
+  fixed nitrogen**, and a caster has no reason to beat a plant running at
+  optimum.
+- At `k = 1 kJ/τ` that is **≈ 3 × 10⁴ τ per kilogram**, against a mid reserve of
+  300 τ: **about a hundred full reserves for one kilogram.**
+- A hectare of grain wants **tens of kilograms of nitrogen a year** — a few
+  thousand full reserves per hectare per season.
+- And the caster is the other endpoint, so at any realistic η the waste heat
+  cooks them long before the mana runs out. **The conjure-water self-limit
+  again, for the same reason.**
+
+The lesson is not about magic. **A clover root nodule does this for free, with a
+bacterium, in the dark** — so a legume out-produces every mage who has ever
+lived by four orders of magnitude, and the agricultural economy is safe from
+thaumaturgy by arithmetic rather than by anybody's ruling.
+
+⭐ Worth teaching beside it: the technology that *did* break this constraint —
+Haber-Bosch, 1909 — is far more powerful than the magic. Students find that
+startling, and it is the correct intuition about energy scale.
+
+### Warm-the-glasshouse — Create·Fire at production scale
+
+Heat is the **cheapest** thing on the price list (η = 0.85), and it still fails,
+which is what makes this the clean demonstration.
+
+- Holding a small glasshouse against a cold night is on the order of **1 kW**.
+- 1 kW = 1 kJ/s = **1 τ/s = 3,600 τ per hour ≈ twelve full mid reserves an
+  hour.**
+
+So a caster can warm **a lambing pen, a seedbed, a person, a hand.** Not a
+season, and not an acre.
+
+> **Generalise it: a full mid reserve is 300 kJ — roughly three percent of a
+> day's food, or a hair dryer for five minutes.** Magic is a hand tool. Every
+> apparent exception is somebody who has not multiplied by the seconds.
+
+### Read-the-ground — Perceive·Earth, and why *this* one works
+
+The counterexample, and the reason the field has any job in agriculture at all.
+
+**Perceive is the cheapest verb** — a probe and a return — and patterning is
+energetically negligible. So the affordable magic on a farm is not power but
+**diagnosis**: what this soil is, how that animal fares, where the water runs.
+
+Two constraints keep it honest, and neither is imported:
+
+- **It is an active probe, so it reads where you are.** The postulate grants
+  transfer, not omniscience — the same limitation the survey meter has, for the
+  same reason. **You still walk the field.**
+- **It is an instrument, so it reports with error bars**, and sits on the ladder
+  beside the eye, the spade and the assay rather than replacing them.
+
+Which is the general shape of magic's place beside a craft: **it joins the
+instrument chain; it does not bypass it.**
 
 ---
 
