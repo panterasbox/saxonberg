@@ -3,12 +3,13 @@
 # as a row so the loop works today, and a carving trade will find a real
 # customer waiting when it arrives.
 #
-# ⭐ It is a `CraftVessel` like the bowls and the bar's glasses, and for
-# the same reason: it is claimed when you eat, dirtied by the meal, washed
-# at the basin and counted on the house par. Its interior slot is simply
-# never filled — serviceware without contents. `category: spoon` is what
-# `eat` matches on (`lib/bulk/Utensil.ts`).
-class: /platform/thing/CraftVessel
+# ⭐ It is `Cutlery` — SERVICEWARE, which is claimed when you eat, dirtied
+# by the meal, washed at the basin and counted on the house par, exactly
+# like the bowls and the bar's glasses. It is not a VESSEL: it was a
+# `CraftVessel` for one build and carried an interior slot
+# never filled — serviceware without contents. `utensilKind: spoon` is
+# what `eat` matches on (`lib/bulk/Utensil.ts`).
+class: /platform/thing/Cutlery
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a horn spoon
@@ -16,6 +17,6 @@ data:
   keywords: [spoon, horn-spoon, utensil]
   longDescription: |
     A shallow spoon cut from a cow's horn and scraped thin, the bowl of it gone translucent amber where the light comes through. Warm to hold, and it never scalds a lip.
-  category: spoon
+  utensilKind: spoon
   _materialPath: /stuff/idea/material/organic/horn
   mass: 0.03

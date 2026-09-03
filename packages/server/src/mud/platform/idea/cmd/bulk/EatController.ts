@@ -208,19 +208,18 @@ export default class EatController extends CommandController<EatModel> {
       const here = self.getContainer();
       if (here && MixinApi.isContainer(here)) reach.push(...here.getContents());
     }
+    // ⭐ Found by what it IS. This asked `isBulkable` and then matched
+    // the vessel `category`, because the utensil kind used to live on the
+    // bulk mixin — which is the whole reason a spoon had to be a vessel.
+    // It also duck-typed `isClaimable`/`soil` off a `Partial<{…}>`, which
+    // is the same tell one level down: a concept with no home.
     for (const kind of UTENSIL_KINDS) {
       for (const candidate of reach) {
-        if (!MixinApi.isBulkable(candidate)) continue;
-        if (!MixinApi.isVesselKind(candidate)) continue;
-        if (candidate.getCategory() !== kind) continue;
-        const vessel = candidate as unknown as Partial<{
-          isClaimable(): boolean;
-          soil(): void;
-        }>;
-        if (typeof vessel.isClaimable === "function" && !vessel.isClaimable()) {
-          continue;
-        }
-        if (typeof vessel.soil === "function") vessel.soil();
+        if (!MixinApi.isCutlery(candidate)) continue;
+        if (candidate.getUtensilKind() !== kind) continue;
+        if (!MixinApi.isServiceable(candidate)) continue;
+        if (!candidate.isClaimable()) continue;
+        candidate.soil();
         return { kind };
       }
     }

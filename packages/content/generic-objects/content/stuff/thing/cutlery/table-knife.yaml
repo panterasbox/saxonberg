@@ -7,7 +7,7 @@
 # ⚠ It is a `CraftVessel`, not a `Weapon`. A table knife is serviceware —
 # it is claimed at a meal, dirtied, and washed. Give it a blade profile and
 # every dinner service becomes an armoury.
-class: /platform/thing/CraftVessel
+class: /platform/thing/Cutlery
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a table knife
@@ -15,6 +15,6 @@ data:
   keywords: [table-knife, knife, utensil]
   longDescription: |
     A blunt-tipped knife with a broad flat blade, made for a table rather than a belt: it will part a roast and would embarrass anybody who drew it anywhere else.
-  category: table-knife
+  utensilKind: table-knife
   _materialPath: /stuff/idea/material/element/iron
   mass: 0.08

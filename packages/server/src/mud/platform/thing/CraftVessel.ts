@@ -48,6 +48,7 @@ import { CallSecurity } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { BlendLabel } from '../../lib/metabolism/BlendLabel';
 import { VesselKindMixin } from '../../lib/bulk/VesselKind';
+import { ServiceableMixin } from '../../lib/craft/Serviceable';
 
 /** Water's numbers — the fallbacks when the ice material authored none. */
 const DEFAULT_MELT_K = 273;
@@ -101,27 +102,21 @@ const SoiledWriters = SecurityPolicies.AnyOf(
 // and still wrong at both ends. Same shape as the spoilage gauge on the
 // generic `Thing`: the fix is a class named for the concept, not a wider
 // base. See `platform/thing/ServingVessel.ts`.
-const CraftVesselBase = VesselKindMixin(
+const CraftVesselBase = ServiceableMixin(
+  VesselKindMixin(
   CraftedMixin(
     ThermalMixin(BulkableMixin(ContainerMixin(DetailedMixin(Thing)))),
+  ),
   ),
 );
 
 export default class CraftVessel extends CraftVesselBase {
   static fieldMeta: FieldMeta = {
-    soiled: { persistent: true, runtimeState: true },
-    technique: { persistent: true, runtimeState: true },
     iceKg: { persistent: true, runtimeState: true },
     iceForm: { persistent: true, runtimeState: true },
     iceMeltK: { persistent: true, runtimeState: true },
     iceLatentJPerKg: { persistent: true, runtimeState: true },
   };
-
-  /** Used since its last wash — a soiled glass is never claimed. */
-  public soiled: boolean = false;
-
-  /** How the drink in it was worked (`''` = not yet filled). */
-  public technique: string = '';
 
   /** Ice in the glass (kg); 0 = none. */
   public iceKg: number = 0;
@@ -137,37 +132,6 @@ export default class CraftVessel extends CraftVesselBase {
 
   /** Reentry guard for the ice plateau (see `reconcileThermal`). */
   private _iceReconciling = false;
-
-  // ---- soiled ----
-  // `category` (the glassware par key: `coupe`, `rocks`, …) lives on
-  // `BulkableMixin` — it is the VESSEL KIND, shared with cans, kegs and
-  // sacks, and it is what ties an empty vessel to the product that is
-  // that vessel filled.
-
-  isSoiled(): boolean {
-    return this.soiled;
-  }
-
-  /**
-   * ⭐ **Mark it used.** The public half of the pair, and deliberately
-   * one-way: it can only ever dirty a vessel, and `wash()` below is the
-   * only road back. That is why it needs no gate where the raw setter
-   * does — anyone who uses a vessel may soil it (the craft that fills it,
-   * the diner who eats off it), and nobody at all may quietly un-soil one.
-   */
-  soil(): void {
-    this.soiled = true;
-  }
-
-  /**
-   * The raw setter, and the reason it is gated: it is the only way to set
-   * `soiled` back to `false` other than a real wash. The Hydrator arms are
-   * not optional — see the policy above.
-   */
-  @CallSecurity(SoiledWriters)
-  setSoiled(value: boolean): void {
-    this.soiled = value;
-  }
 
   /**
    * Wash it: tip the dregs, destroy whatever was garnishing it, drop the
@@ -185,18 +149,7 @@ export default class CraftVessel extends CraftVesselBase {
    * Named for the vessel, not the glass: a syrup bottle and a juice
    * bottle are `CraftVessel`s too.
    */
-  wash(): void {
-    // ⚠ Serviceware without contents is still washed: a spoon and a table
-    // knife are `CraftVessel`s whose interior slot is never filled (see
-    // `lib/bulk/Utensil.ts`), and `getBulk` THROWS on a host that has no
-    // such slot. Skip straight to the rest of the wash for them.
-    if (!this.hasInteriorBulk()) {
-      for (const c of [...this.getContents()]) StuffApi.destruct(c);
-      this.clearIce();
-      this.setTechnique('');
-      this.soiled = false;
-      return;
-    }
+  override wash(): void {
     const slot = this.getBulk('interior');
     if (!slot.isEmpty()) {
       BulkableApi.transfer(slot, null, {
@@ -210,22 +163,12 @@ export default class CraftVessel extends CraftVesselBase {
     slot.setPayload(null);
     for (const c of [...this.getContents()]) StuffApi.destruct(c);
     this.clearIce();
-    this.setTechnique('');
-    this.soiled = false;
+    super.wash();
   }
 
-  /** Clean and empty — claimable for a fill. */
-  isClaimable(): boolean {
-    return !this.soiled && this.isBulkEmpty('interior') && this.iceKg <= 0;
-  }
-
-  // ---- technique ----
-
-  getTechnique(): string {
-    return this.technique;
-  }
-  setTechnique(value: string): void {
-    this.technique = value;
+  /** Clean AND empty AND iceless — claimable for a fill. */
+  override isClaimable(): boolean {
+    return super.isClaimable() && this.isBulkEmpty('interior') && this.iceKg <= 0;
   }
 
   // ---- ice ----

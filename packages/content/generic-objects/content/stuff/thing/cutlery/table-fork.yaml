@@ -2,7 +2,7 @@
 # build: a fork is a near-copy of the table knife on the smith's bench, and
 # a second near-copy buys the roster nothing the first has not already
 # proved. When forks matter enough to fight over, they get their own recipe.
-class: /platform/thing/CraftVessel
+class: /platform/thing/Cutlery
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a table fork
@@ -10,6 +10,6 @@ data:
   keywords: [fork, table-fork, utensil]
   longDescription: |
     A two-tined iron fork with a scrubbed wooden handle, the tines splayed a little wider than they left the smithy.
-  category: fork
+  utensilKind: fork
   _materialPath: /stuff/idea/material/element/iron
   mass: 0.06

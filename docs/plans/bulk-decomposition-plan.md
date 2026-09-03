@@ -204,8 +204,8 @@ trapped. Not this plan's job; named so it is not forgotten.
   (on the MQL types) all use `declare module`. `lib/bulk` now imports no
   subsystem but `lib/material`, which is correct: bulk is a volume OF a
   material. `pnpm lint:imports` passes.
-- **W5 — `category` out. ⏭ NOT STARTED.** Its own mixin, composed alongside `Bulkable`.
-- **W6 — the serviceware tier. ⏭ NOT STARTED.** `ServiceableMixin` + `CutleryMixin` +
+- **W5 — `category` out. ✅ DONE.** Its own mixin, composed alongside `Bulkable`.
+- **W6 — the serviceware tier. ✅ DONE.** `ServiceableMixin` + `CutleryMixin` +
   `platform/thing/Cutlery`, and `EatController` narrows on `isCutlery`
   instead of `isBulkable`. The four-step shape is already written down in
   [crafting.md](../subsystems/crafting.md).
@@ -232,5 +232,27 @@ one that touches every writer; W1–W3 are one subsystem each.
    by, so a per-litre reading is a division rather than a guess.
 2. ~~Does a blend Material still exist?~~ **Answered: no.** A blend's slot
    material is `GENERIC_MIXED_MATERIAL`; its identity is the recipe's.
-3. Which subsystem owns the vessel-kind mixin — retail (the par) or
-   crafting (the claim)?
+3. ~~Which subsystem owns the vessel-kind mixin?~~ **Answered: `lib/bulk`.**
+   It depends on being a vessel and is composed alongside `BulkableMixin`,
+   which is exactly the "depends on bulkable but separate from it" shape.
+   Serviceware (claim · soil · wash · par) went to `lib/craft`, because
+   what dirties kit is the working.
+
+## ⚠⚠ The 222-error wall did not reappear — and I do not fully know why
+
+The first attempt at W6 (before this plan existed) produced 222 type
+errors, every one inside a capability pack, when `soiled`/`technique`/
+`wash` moved out of `CraftVessel`'s body. Coming at it from this end the
+same move produced **zero**.
+
+The likeliest explanation is the mixin's generic constraint: that attempt
+declared `ServiceableMixin<TBase extends MixinConstructor>` — bare, losing
+the `Stuff` surface — and when it was corrected to
+`MixinConstructor<Stuff>` two other things had changed at the same time,
+so the constraint alone was never tested. This wave used
+`MixinConstructor<Stuff>` plus the class-DECLARATION form (`ChattelMixin`'s
+shape, required anyway because `@CallSecurity` is not valid on a class
+expression), and it type-checks clean.
+
+⚠ Stated as a likelihood, not a diagnosis. If a future member-move off a
+pack-imported class fails the same way, start here.

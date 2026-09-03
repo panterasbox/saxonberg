@@ -21,6 +21,9 @@ import Thing from "../../../../../lib/stuff/Thing";
 import Location from "../../../../../lib/stuff/Location";
 import Material from "../../../../../lib/material/Material";
 import CraftVessel from "../../../../thing/CraftVessel";
+import Cutlery from "../../../../thing/Cutlery";
+import { MixinApi } from "../../../../../api/mixin";
+import type { UtensilKind } from "../../../../../lib/bulk/Utensil";
 import { Stuff } from "../../../../../lib/stuff/Stuff";
 import { Quantity } from "../../../../../lib/quantity";
 import { StuffApi } from "../../../../../api/stuff";
@@ -87,9 +90,14 @@ function apple(loc: Stuff): Stuff {
 }
 
 /** A utensil: a `CraftVessel` whose `category` is a utensil kind. */
-function utensil(kind: string, where: Stuff): CraftVessel {
-  const u = makeStuff(() => new CraftVessel());
-  u.setCategory(kind);
+/**
+ * ⭐ A utensil is `Cutlery` now, not a `CraftVessel` — no interior slot it
+ * never fills, no ice charge, and its kind is `utensilKind` rather than
+ * the VESSEL `category` it used to borrow.
+ */
+function utensil(kind: UtensilKind, where: Stuff): Cutlery {
+  const u = makeStuff(() => new Cutlery());
+  u.setUtensilKind(kind);
   u.setShortDescription(`a ${kind}`);
   ContainmentApi.move(u as never, where as never);
   return u;
@@ -191,10 +199,21 @@ describe("eating with cutlery (AC11a)", () => {
     expect(self!).toContain("with a fork");
   });
 
-  it("⚠ a bowl is not cutlery — the vessel kinds do not leak into the utensils", async () => {
-    utensil("bowl", loc);
+  it("⚠ a bowl is not cutlery — and the kinds can no longer even collide", async () => {
+    // ⭐ This used to be a real risk: the utensil kind and the vessel kind
+    // were the SAME `category` field on `BulkableMixin`, so a vessel whose
+    // kind happened to read `spoon` would have been eaten with. The two
+    // vocabularies live on different mixins now — `utensilKind` on
+    // `Cutlery`, `category` on `VesselKind` — so a bowl cannot be picked
+    // up as cutlery by construction, not by a check.
+    const bowl = makeStuff(() => new CraftVessel());
+    bowl.setCategory("bowl");
+    bowl.setShortDescription("a bowl");
+    ContainmentApi.move(bowl as never, loc as never);
+
     await eat(apple(loc));
     expect(self!).toContain("with your fingers");
+    expect(MixinApi.isCutlery(bowl)).toBe(false);
   });
 });
 

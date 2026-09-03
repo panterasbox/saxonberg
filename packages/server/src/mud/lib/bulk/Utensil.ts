@@ -2,10 +2,11 @@
  * The **utensil kinds** — the small closed vocabulary of things you eat
  * *with*, as against the vessels you eat *out of*.
  *
- * Both are the same `category` axis on {@link BulkableMixin} (the vessel
- * kind: `coupe`, `bowl`, `pot`, `spoon`), which is what lets a utensil be
- * an ordinary `CraftVessel` — claimed, soiled by use, washed at the basin,
- * counted on the house par — with its interior slot simply never filled.
+ * ⭐ The kind lives on {@link CutleryMixin} below. It used to be the
+ * `category` axis — the VESSEL kind, shared with vats and kegs — which is
+ * what forced a horn spoon to be a `CraftVessel` with an interior slot it
+ * never fills. A spoon is not a vessel; it is serviceware, which is a
+ * different thing and now a different mixin.
  * Serviceware without contents.
  *
  * ⭐ **Why the kernel has to know the list.** `eat` claims a clean utensil
@@ -20,6 +21,9 @@
  * you can only eat with the right implement is a lock disguised as
  * flavour, and this vocabulary must never become one.
  */
+
+import type { MixinConstructor, FieldMeta } from '../mixin';
+import type { Stuff } from '../stuff/Stuff';
 
 /** A thing you eat *with*. */
 export type UtensilKind = 'spoon' | 'fork' | 'table-knife';
@@ -41,3 +45,46 @@ export const UTENSIL_PHRASE: Record<UtensilKind, string> = {
   fork: 'with a fork',
   'table-knife': 'with a table knife',
 };
+
+/** The method surface cutlery offers other Stuff. */
+export interface Cutlery {
+  getUtensilKind(): UtensilKind | '';
+  setUtensilKind(value: UtensilKind | ''): void;
+}
+
+/**
+ * CutleryMixin — ⭐ **what kind of utensil this is, on a host that is not
+ * a vessel.**
+ *
+ * ⚠⚠ The kind used to be `category`, which lived on `BulkableMixin` — so
+ * *"this is a spoon"* required *"this is a bulk vessel"*, and `eat` found
+ * one by asking `MixinApi.isBulkable`. That is how the cutlery came to
+ * carry an interior slot it never fills and an ice charge, and why
+ * `CraftVessel.wash()` had to guard against part of its own host set.
+ *
+ * ⭐ `category` was right where it was — it is the VESSEL kind, shared
+ * with vats, kegs, cans and sacks, and a vat has one without being
+ * serviceware. The cutlery was borrowing a vocabulary that was never
+ * about it. This field is the one that is.
+ */
+export function CutleryMixin<TBase extends MixinConstructor<Stuff>>(
+  Base: TBase,
+) {
+  return class CutleryMixin extends Base implements Cutlery {
+    static _mixinName = 'CutleryMixin';
+
+    static fieldMeta: FieldMeta = {
+      utensilKind: { persistent: true, authorable: true },
+    };
+
+    /** `spoon` / `fork` / `table-knife`; `''` before it is authored. */
+    public utensilKind: UtensilKind | '' = '';
+
+    getUtensilKind(): UtensilKind | '' {
+      return this.utensilKind;
+    }
+    setUtensilKind(value: UtensilKind | ''): void {
+      this.utensilKind = value;
+    }
+  };
+}
