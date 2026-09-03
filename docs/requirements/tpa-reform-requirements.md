@@ -441,6 +441,19 @@ where it has been parked since before content packs existed.
   **separate conserved quantity** that merely relates to energy the way
   charge does. An electrical noun would be wrong in the fiction, not merely
   confusing in the code.
+- **⚠⚠ `lint:object-verbs` is CI-gating at a ZERO census** (the Api OO
+  sweep, merged to master 2026-09-02). Any public static on an `*Api`
+  whose **first parameter is a typed world object** is a build failure —
+  a verb whose subject is an object lives ON the object. This build must
+  add **no** `XApi.verb(host, …)`: the whole mana surface (`canDraw`,
+  `draw`, `supplyReport`) is mixin methods, and the terminal's reads are
+  the terminal's. What was already doctrine
+  ([oo calling conventions](../antipatterns.md)) is now a gate.
+- **⚠ `ThermalApi` and `SlotApi` were retired by that sweep.** The slot
+  surface a battery bay needs — `getSlotSpec`, `canOccupy`, `getOccupant`,
+  `isSlotFull` — is on **`Slotted` / `Slottable`** now. Reaching for a
+  slot Api will not compile, and comments in `lib/slot/**` still *name*
+  the retired methods as history; they are not a live surface.
 - **⚠ Fixtures sit in no container.** The residences build was burned by
   exactly this: scope, reach and validators all missed fixtures. A battery
   bay on a terminal is a fixture slot, and `swap cell` will hit it. Plan
