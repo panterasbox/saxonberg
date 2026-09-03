@@ -13,36 +13,36 @@
  * ordinary cost of getting anywhere.
  */
 
-import '@saxonberg/server/test-bootstrap';
+import '../../../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { readFileSync, readdirSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import YAML from 'yaml';
-import TeleportController from '../idea/cmd/movement/TeleportController';
-import { AccessApi } from '@saxonberg/server/mud/api/access';
-import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import { MqlApi } from '@saxonberg/server/mud/api/mql';
-import { ZoneApi } from '@saxonberg/server/mud/api/zone';
-import { BiomeApi } from '@saxonberg/server/mud/api/biome';
-import { StuffApi } from '@saxonberg/server/mud/api/stuff';
-import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
-import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
-import { Quantity } from '@saxonberg/server/mud/lib/quantity';
-import '@saxonberg/server/mud/platform/idea/WorldClockRegistry';
-import SpellCatalogue from '@saxonberg/server/mud/platform/idea/SpellCatalogue';
-import { Template } from '@saxonberg/server/mud/lib/stuff/Template';
-import SingletonCartesianLocation from '@saxonberg/server/mud/platform/location/SingletonCartesianLocation';
-import { Character } from '@saxonberg/server/mud/lib/character/Character';
+import TeleportController from '../TeleportController';
+import { AccessApi } from '../../../../../api/access';
+import { MixinApi } from '../../../../../api/mixin';
+import { MqlApi } from '../../../../../api/mql';
+import { ZoneApi } from '../../../../../api/zone';
+import { BiomeApi } from '../../../../../api/biome';
+import { StuffApi } from '../../../../../api/stuff';
+import { ContainmentApi } from '../../../../../api/containment';
+import { WorldClockApi } from '../../../../../api/worldclock';
+import { Quantity } from '../../../../../lib/quantity';
+import '../../../../../platform/idea/WorldClockRegistry';
+import SpellCatalogue from '../../../../../platform/idea/SpellCatalogue';
+import { Template } from '../../../../../lib/stuff/Template';
+import SingletonCartesianLocation from '../../../../../platform/location/SingletonCartesianLocation';
+import { Character } from '../../../../../lib/character/Character';
 import {
   makeStuff,
   stampTemplatePathForTest,
-} from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
-import { bearerOf } from '@saxonberg/server/mud/lib/encumbrance/__tests__/encumbrance-fixtures';
-import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
-import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
-import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
+} from '../../../../../lib/security/__tests__/test-setup';
+import { bearerOf } from '../../../../../lib/encumbrance/__tests__/encumbrance-fixtures';
+import { installV1QuantityMarshallers } from '../../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
+import type { CommandContext, CommandModel } from '../../../../../api/command';
+import type { Stuff } from '../../../../../lib/stuff/Stuff';
+import type { CompetenceBandName } from '../../../../../lib/advancement/CompetenceBand';
 
 class TestCharacter extends Character {
   override async competenceBandFor(): Promise<CompetenceBandName> {
@@ -54,7 +54,7 @@ const SPELL_CLASS = '/platform/idea/magic/Spell';
 const SPELL_PATH_PREFIX = '/stuff/idea/magic/Spell/';
 const SPELL_SEEDS_DIR = join(
   dirname(fileURLToPath(import.meta.url)),
-  '../../../arcane-library/content/stuff/idea/magic/Spell',
+  '../../../../../../../../content/arcane-library/content/stuff/idea/magic/Spell',
 );
 
 let seq = 0;

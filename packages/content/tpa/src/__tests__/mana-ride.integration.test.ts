@@ -17,7 +17,6 @@
 
 import "@saxonberg/server/test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import TeleportController from "../idea/cmd/movement/TeleportController";
 import TpaTerminal from "../thing/TpaTerminal";
 import ManaCell from "@saxonberg/content-arcana/src/thing/ManaCell";
 import ManaMain from "@saxonberg/content-arcana/src/thing/ManaMain";
@@ -77,24 +76,36 @@ function ctx(giver: Stuff, location: Stuff): CommandContext {
   } as unknown as CommandContext;
 }
 
-const TO_ARRIVE = {
-  destination: { raw: "arrive", stuff: null },
-} as unknown as CommandModel;
 
-const TO_ARRIVE_CHANNELLED = {
-  destination: { raw: "arrive", stuff: null },
-  channel: true,
-} as unknown as CommandModel;
-
+/**
+ * ⭐ The pack's tests drive the pack's own surface. Since the TPA reform's
+ * correction, the `teleport` VERB is the kernel's — a privileged person
+ * must be able to teleport with no network installed — and the network's
+ * rules live on `FastTravelMixin.ride()`, the `TravelNode` shape the
+ * kernel verb calls. So these exercise `ride()` directly: the credential
+ * gate, the condition, the mana leg and the fare are all here, and the
+ * verb's own forks are tested in the kernel.
+ *
+ * The outcome is folded into a notes-shaped list so the assertions read
+ * the same as when a controller produced them.
+ */
 async function ride(
   t: Traveller,
-  from: Stuff,
-  model: CommandModel = TO_ARRIVE,
-): Promise<CommandContext> {
-  const c = ctx(t as unknown as Stuff, from);
-  const ctrl = makeStuff(() => new TeleportController());
-  await ctrl.execute(model as never, c);
-  return c;
+  node: TpaTerminal,
+  spec: { channel?: boolean } = {},
+): Promise<void> {
+  notes = [];
+  const out = await node.ride(t as unknown as Stuff, {
+    keyword: "arrive",
+    ...spec,
+  });
+  if (!out.ok) {
+    notes.push({
+      kind: "controller-rejected",
+      reason: out.reason,
+      detail: out.refusal,
+    });
+  }
 }
 
 function rejectedFor(reason: string): boolean {
@@ -200,7 +211,7 @@ describe("the gate runs on mana", () => {
     expect(depart.getStatus()).toBe("out-of-service");
     expect(depart.getLongDescription()).toContain("status light is dark");
 
-    await ride(t, dRoom as unknown as Stuff);
+    await ride(t, depart);
     expect(rejectedFor("gate-dry")).toBe(true);
     expect((t as unknown as { getContainer(): unknown }).getContainer()).toBe(
       dRoom,
@@ -216,7 +227,7 @@ describe("the gate runs on mana", () => {
 
     // ⚠ Offering your own mana is not the fix. Below the floor the gate
     // is not a gate: there is nothing for the mana to arrive INTO.
-    await ride(t, dRoom as unknown as Stuff, TO_ARRIVE_CHANNELLED);
+    await ride(t, depart, { channel: true });
     expect(rejectedFor("gate-dry")).toBe(true);
     expect(depart.isArmed()).toBe(false);
   });
@@ -234,14 +245,14 @@ describe("the gate runs on mana", () => {
 
     // An expensive hop is refused, and the refusal names the RIDE.
     vi.spyOn(MagicApi, "relocationCost").mockResolvedValue(5000);
-    await ride(t, dRoom as unknown as Stuff);
+    await ride(t, depart);
     expect(rejectedFor("overdrawn")).toBe(true);
     // The amber band: running, but short for THIS ride.
     expect(depart.getStatus()).toBe("operational");
 
     // …and the same gate, unchanged, runs a cheaper one.
     vi.spyOn(MagicApi, "relocationCost").mockResolvedValue(100);
-    await ride(t, dRoom as unknown as Stuff);
+    await ride(t, depart);
     expect(notes.filter((n) => n.kind === "controller-rejected")).toHaveLength(0);
   });
 
@@ -288,14 +299,14 @@ describe("the gate runs on mana", () => {
   it("AC12 — a NON-caster cannot channel, and the reason is not a check we wrote", async () => {
     // A gate that is armed but SHORT for this ride, so the BYO path is
     // actually exercised (a full gate needs nobody's help).
-    const { dRoom } = seedNetwork({ capacity: 4000, stored: 50, mains: false });
+    const { dRoom, depart } = seedNetwork({ capacity: 4000, stored: 50, mains: false });
     const t = traveller("dave");
     ContainmentApi.move(t as never, dRoom as never);
     // ⭐ `installArcaneReserve` returns early for a non-caster, so a
     // non-caster holds NO reserve at all — `chargeFrom` refuses on that
     // fact rather than on anything this build added.
     expect(MixinApi.isCaster(t as unknown as Stuff)).toBe(false);
-    await ride(t, dRoom as unknown as Stuff, TO_ARRIVE_CHANNELLED);
+    await ride(t, depart, { channel: true });
     expect(rejectedFor("cannot-channel")).toBe(true);
   });
 
@@ -311,7 +322,7 @@ describe("the gate runs on mana", () => {
     ContainmentApi.move(t as never, dRoom as never);
 
     const before = depart.getStoredTau();
-    await ride(t, dRoom as unknown as Stuff);
+    await ride(t, depart);
     expect(notes.filter((n) => n.kind === "controller-rejected")).toHaveLength(0);
     expect(depart.getStoredTau()).toBeCloseTo(before - 100, 6);
     // …and the traveller arrived where the destination gate stands.
@@ -332,7 +343,7 @@ describe("the gate runs on mana", () => {
     const t = traveller("frank");
     ContainmentApi.move(t as never, dRoom as never);
 
-    await ride(t, dRoom as unknown as Stuff);
+    await ride(t, depart);
     expect(notes.filter((n) => n.kind === "controller-rejected")).toHaveLength(0);
     // The cell gave up what the gate was short of; the gate holds no
     // branch on which supply answered.
@@ -351,9 +362,16 @@ describe("the gate runs on mana", () => {
     // would offer to fire a working the pillar does not carry.
     expect(affordances.some((v) => v.includes("recharge"))).toBe(true);
     expect(affordances.some((v) => v.includes("zap"))).toBe(false);
-    // ⚠ This is the assertion that the collector reads the MOST-DERIVED
-    // static rather than unioning the chain. If it ever unions, the fix
-    // is `zap.yaml` growing `requires: [ArcaneMixin]`.
-    expect(affordances.some((v) => v.includes("teleport"))).toBe(true);
+    // ⚠ The assertion that the collector reads the MOST-DERIVED static
+    // rather than unioning the chain: `register` survives the override,
+    // `zap` does not. If it ever unions, the fix is `zap.yaml` growing
+    // `requires: [ArcaneMixin]`.
+    expect(affordances.some((v) => v.includes("register"))).toBe(true);
+    // ⭐⭐ And `teleport` is NOT here, deliberately. It is the KERNEL's
+    // verb, afforded by `MobileMixin` beside `go` and `goto`: a node
+    // adds the ride and the board to a verb everyone already has, it
+    // does not GRANT the verb. You must not need a travel network
+    // installed in order to teleport.
+    expect(affordances.some((v) => v.includes("teleport"))).toBe(false);
   });
 });

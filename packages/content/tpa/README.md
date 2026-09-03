@@ -18,11 +18,10 @@ here.
 
 | module | backs |
 |---|---|
-| `lib/FastTravel.ts` | `FastTravelMixin` — the node: directionality, routes, the timetable, the viewer-aware departures board, `boardLabel`. Substrate, inherited and never instanced. |
+| `lib/FastTravel.ts` | `FastTravelMixin` — the node: directionality, routes, the timetable, the viewer-aware departures board, `boardLabel`, and **`ride()`** — everything the NETWORK decides. Substrate, inherited and never instanced. |
 | `lib/paths.ts` | the pack's own template paths, in one place |
 | `thing/TpaTerminal.ts` | the concrete terminal: a node that **runs on mana** (arcana's `ManaPoweredMixin`) and is **its own coupling** (`ConduitMixin`) |
 | `thing/TravelCard.ts` | the carryable instrument — a bearer credential holder, never a clearance store |
-| `idea/cmd/movement/TeleportController.ts` | the four-way fork: free movement · the ride · the board · the anchored spell |
 | `idea/cmd/movement/RegisterController.ts` | `register` — writes to identity, never to a carried card |
 | `idea/cmd/tpa/ProcureCardController.ts` | the clerk hands out a replacement card |
 
@@ -45,11 +44,19 @@ somewhere else would not want it*:
 - **`TravelCard`** — the kernel's `CredentialWalletMixin` over a `Thing`
   with one `travel` kind. A payment card is the platform's; a key ring
   will be somebody's. This one is the travel kind's.
-- **the three controllers** — verbs, and a verb belongs to whatever
-  affords it.
+- **`RegisterController` / `ProcureCardController`** — `register` and
+  `procure card` are genuinely the network's own acts, and are afforded
+  by the node and the clerk respectively.
 
-⚠ **What deliberately is NOT here:** the socket (`ManaPoweredMixin` is
-arcana's — a wall lamp composes it and has nothing to do with travel);
+⚠ **What deliberately is NOT here:** ⭐⭐ **the `teleport` verb itself.**
+It is the kernel's, afforded by `MobileMixin`, and this pack supplies
+only the ride and the board through the kernel's `TravelNode` shape —
+because *you must not need the Teleport Authority to teleport.* Moving
+around inside an extent you hold is authorial authority and casting a
+working is magic; neither may stop working because this pack is absent.
+A node adds forks to a verb everybody already has; it does not grant
+one. Also not here: the socket (`ManaPoweredMixin` is arcana's — a wall
+lamp composes it and has nothing to do with travel);
 the physics (`relocationCost` is the kernel's — three packs ask for it);
 the six-word supply vocabulary (the kernel's, because two packs must
 agree on the same strings); and **any particular terminal.** Every gate

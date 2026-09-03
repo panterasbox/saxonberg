@@ -149,20 +149,19 @@ export default class TpaTerminal extends TpaTerminalBase {
    * `zap.yaml` growing `requires: [ArcaneMixin]` (a spell-bound shell),
    * which is the honest gate regardless.
    *
-   * `teleport` + `register` come from `FastTravelMixin`, and are
-   * re-declared here because a most-derived static REPLACES rather than
-   * extends.
+   * `register` comes from `FastTravelMixin` and is re-declared here
+   * because a most-derived static REPLACES rather than extends.
+   * `teleport` is the KERNEL's verb (`MobileMixin` affords it) — a node
+   * adds the ride and the board, it does not grant the verb.
    */
   static commandContributions: CommandContributions = {
     self: [],
     peers: [
       "system/tpa/cmd/movement/register.yaml",
-      "system/tpa/cmd/movement/teleport.yaml",
       "system/arcana/cmd/magic/recharge.yaml",
     ],
     environment: [
       "system/tpa/cmd/movement/register.yaml",
-      "system/tpa/cmd/movement/teleport.yaml",
       "system/arcana/cmd/magic/recharge.yaml",
     ],
   };

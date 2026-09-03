@@ -13,7 +13,6 @@
 import "@saxonberg/server/test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import RegisterController from "../idea/cmd/movement/RegisterController";
-import TeleportController from "../idea/cmd/movement/TeleportController";
 import TravelCard from "../thing/TravelCard";
 import CredentialWalletUpdate from "@saxonberg/server/mud/platform/idea/CredentialWalletUpdate";
 import { AetherMixin } from "@saxonberg/server/mud/lib/message/Aether";
@@ -138,8 +137,28 @@ function ctx(
 function registerCtl(): RegisterController {
   return makeStuff(() => new RegisterController());
 }
-function teleportCtl(): TeleportController {
-  return makeStuff(() => new TeleportController());
+/**
+ * ⭐ Drive the NODE, not the verb. Since the TPA reform's correction the
+ * `teleport` verb is the kernel's, and identity-bound clearance is a
+ * rule of the NETWORK — so it is asserted against
+ * `FastTravelMixin.ride()`, the `TravelNode` shape the kernel calls.
+ * The outcome is folded into the context so the assertions are
+ * unchanged.
+ */
+async function rideFrom(
+  t: Stuff,
+  c: CommandContext,
+  from: string = DEPART,
+): Promise<void> {
+  const node = StuffApi.findByTemplatePath<Stuff & FastTravel>(from)!;
+  const out = await node.ride(t, { keyword: "arrive" });
+  if (!out.ok) {
+    c.note({
+      kind: "controller-rejected",
+      reason: out.reason ?? "unspecified",
+      detail: out.refusal ?? "",
+    } as never);
+  }
 }
 
 function makeTraveller(name: string): Traveller {
@@ -174,10 +193,6 @@ function identityTravel(t: Stuff): CredentialWallet {
  * reform's fork reorder (P12/AC15) it reads the departures board, for
  * everyone, before any clearance check. A ride names its stop.
  */
-const TO_ARRIVE = {
-  destination: { raw: "arrive", stuff: null },
-} as unknown as CommandModel;
-
 describe("TPA identity binding (integration)", () => {
   beforeEach(async () => {
     StuffApi.clearAll();
@@ -229,12 +244,12 @@ describe("TPA identity binding (integration)", () => {
     ContainmentApi.move(b, dRoom);
 
     // B rides (bare teleport → selected route = the restricted destination).
-    await teleportCtl().execute(TO_ARRIVE, ctx(b, dRoom, "teleport"));
+    await rideFrom(ctx(b, dRoom, "teleport").commandGiver as Stuff, ctx(b, dRoom, "teleport"));
     // B did NOT move — clearance read from identity, not the loaded card.
     expect(b.getContainer()).toBe(dRoom);
 
     // A rides successfully — A's identity holds the clearance.
-    await teleportCtl().execute(TO_ARRIVE, ctx(a, dRoom, "teleport"));
+    await rideFrom(ctx(a, dRoom, "teleport").commandGiver as Stuff, ctx(a, dRoom, "teleport"));
     const rRoom = await StuffApi.singleton<Stuff & Container>(R_ROOM);
     expect(a.getContainer()).toBe(rRoom);
   });
@@ -264,13 +279,13 @@ describe("TPA identity binding (integration)", () => {
     ContainmentApi.move(card, cardOnly);
     ContainmentApi.move(cardOnly, dRoom);
     const c1 = ctx(cardOnly, dRoom, "teleport");
-    await teleportCtl().execute(TO_ARRIVE, c1);
+    await rideFrom(c1.commandGiver as Stuff, c1);
     expect(cardOnly.getContainer()).toBe(dRoom); // refused (no identity clearance)
     expect(c1.getNotes().some((n) => n.kind === "controller-rejected" && n.reason === "not-registered")).toBe(true);
 
     // The implant-only actor rides.
     ContainmentApi.move(implantOnly, dRoom);
-    await teleportCtl().execute(TO_ARRIVE, ctx(implantOnly, dRoom, "teleport"));
+    await rideFrom(ctx(implantOnly, dRoom, "teleport").commandGiver as Stuff, ctx(implantOnly, dRoom, "teleport"));
     const rRoom = await StuffApi.singleton<Stuff & Container>(R_ROOM);
     expect(implantOnly.getContainer()).toBe(rRoom);
   });
@@ -286,7 +301,8 @@ describe("TPA identity binding (integration)", () => {
     ContainmentApi.move(a, offRoom);
 
     const c = ctx(a, offRoom, "teleport");
-    await teleportCtl().execute(TO_ARRIVE, c);
+    // ⚠ Ride the OUT-OF-SERVICE gate, which is the subject here.
+    await rideFrom(c.commandGiver as Stuff, c, OFF_GATE);
     expect(a.getContainer()).toBe(offRoom); // refused, not moved
     expect(c.getNotes().some((n) => n.kind === "controller-rejected" && n.reason === "out-of-service")).toBe(true);
   });
@@ -321,7 +337,7 @@ describe("TPA identity binding (integration)", () => {
 
     // And reading it leaves the screen dark: the board is COMPUTED, so
     // there is no shared payload for a bystander to inherit.
-    await teleportCtl().execute(TO_ARRIVE, ctx(stranger, dRoom, "teleport"));
+    await rideFrom(ctx(stranger, dRoom, "teleport").commandGiver as Stuff, ctx(stranger, dRoom, "teleport"));
     expect(gate.getShowing()).toBeNull();
   });
 });

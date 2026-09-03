@@ -9,7 +9,6 @@
 
 import "@saxonberg/server/test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import TeleportController from "../idea/cmd/movement/TeleportController";
 import { AetherMixin } from "@saxonberg/server/mud/lib/message/Aether";
 import { MobileMixin } from "@saxonberg/server/mud/lib/spatial/Mobile";
 import { ContainerMixin } from "@saxonberg/server/mud/lib/spatial/Container";
@@ -17,7 +16,7 @@ import { ContainableMixin } from "@saxonberg/server/mud/lib/spatial/Containable"
 import { CommandGiverMixin } from "@saxonberg/server/mud/lib/command/CommandGiver";
 import { SensorMixin } from "@saxonberg/server/mud/lib/message/Sensor";
 import { NamedMixin } from "@saxonberg/server/mud/lib/description/Named";
-import { FastTravelMixin } from "../lib/FastTravel";
+import { FastTravelMixin, type FastTravel } from "../lib/FastTravel";
 import Thing from "@saxonberg/server/mud/lib/stuff/Thing";
 import Location from "@saxonberg/server/mud/lib/stuff/Location";
 import { Agent } from "@saxonberg/server/mud/lib/stuff/Agent";
@@ -100,19 +99,30 @@ function ctx(giver: Stuff, location: Stuff): CommandContext {
  * everyone, before any clearance check. A ride names its stop, so every
  * fare case here types the keyword.
  */
-const TO_ARRIVE = {
-  destination: { raw: "arrive", stuff: null },
-} as unknown as CommandModel;
-function teleportCtl(): TeleportController {
-  return makeStuff(() => new TeleportController());
-}
-
-/** Drive a TPA ride with the traveller as the execution-context principal. */
+/**
+ * ⭐ Drive the NODE, not the verb. Since the TPA reform's correction the
+ * `teleport` verb is the kernel's — a privileged person must be able to
+ * teleport with no network installed — and everything the NETWORK
+ * decides lives on `FastTravelMixin.ride()`, the `TravelNode` shape the
+ * kernel verb calls. The fare is the network's rule, so it is tested
+ * here, against `ride()`.
+ *
+ * The outcome is folded into a notes-shaped context so the assertions
+ * read exactly as they did when a controller produced them.
+ */
 async function ride(t: Traveller, location: Stuff): Promise<CommandContext> {
   const c = ctx(t, location);
+  const node = StuffApi.findByTemplatePath<Stuff & FastTravel>(DEPART)!;
   await withRootContext(null, "fare.test", async () => {
     ExecutionContextApi.tagActingAuthor(t as unknown as Stuff);
-    await teleportCtl().execute(TO_ARRIVE, c);
+    const out = await node.ride(t as unknown as Stuff, { keyword: "arrive" });
+    if (!out.ok) {
+      c.note({
+        kind: "controller-rejected",
+        reason: out.reason ?? "unspecified",
+        detail: out.refusal ?? "",
+      } as never);
+    }
   });
   return c;
 }

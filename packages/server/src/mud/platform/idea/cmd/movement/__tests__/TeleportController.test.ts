@@ -6,17 +6,17 @@
  * wizard holding nothing rides the TPA too (code trust buys no movement).
  */
 
-import '@saxonberg/server/test-bootstrap';
+import '../../../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import TeleportController from '../idea/cmd/movement/TeleportController';
-import SingletonCartesianLocation from '@saxonberg/server/mud/platform/location/SingletonCartesianLocation';
-import Avatar from '@saxonberg/server/mud/platform/agent/Avatar';
-import { AccessApi } from '@saxonberg/server/mud/api/access';
-import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
-import { StuffApi } from '@saxonberg/server/mud/api/stuff';
-import { MqlApi } from '@saxonberg/server/mud/api/mql';
-import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
-import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
+import TeleportController from '../TeleportController';
+import SingletonCartesianLocation from '../../../../../platform/location/SingletonCartesianLocation';
+import Avatar from '../../../../../platform/agent/Avatar';
+import { AccessApi } from '../../../../../api/access';
+import { ContainmentApi } from '../../../../../api/containment';
+import { StuffApi } from '../../../../../api/stuff';
+import { MqlApi } from '../../../../../api/mql';
+import { makeStuff, makeStuffAtPath } from '../../../../../lib/security/__tests__/test-setup';
+import type { CommandContext, CommandModel } from '../../../../../api/command';
 
 let notes: Array<Record<string, unknown>>;
 

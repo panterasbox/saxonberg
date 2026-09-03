@@ -23,21 +23,38 @@ and structurally the kernel's. Three things moved:
    own reserve, and it resells that mana at its cost basis — so a
    frontier post on bought cells quotes a dearer ride than a city gate on
    the line, and nobody tuned that number.
-3. **None of it is the kernel's.** The works live in the `tpa` capability
-   pack (`/system/tpa`); the socket lives in `arcana`
-   (`/system/arcana/lib/ManaPowered`); the kernel keeps only the physics
-   (`MagicApi.relocationCost`) and the cast pipeline. A kernel with no
-   teleport pack boots with no `teleport` verb and is *correct*.
+3. **The NETWORK is not the kernel's — but the VERB is.** The works live
+   in the `tpa` capability pack (`/system/tpa`); the socket lives in
+   `arcana` (`/system/arcana/lib/ManaPowered`); the kernel keeps the
+   physics (`MagicApi.relocationCost`), the cast pipeline, and the
+   `teleport` verb itself.
+
+   ⭐⭐ **You must not need the Teleport Authority to teleport.** Moving
+   yourself around inside an extent you hold is *authorial authority* —
+   the same authority that lets you edit the place — and casting a
+   working that relocates you is *magic*. Neither is a transit network's
+   business, and neither may stop working because a content pack is
+   absent. The reform got this wrong on its first pass: the whole verb
+   moved into the pack, so on a platform-only boot a privileged person
+   had no way to move at all, and `AuthorMixin` — a KERNEL mixin — was
+   left naming a pack's view.
+
+   So the verb is kernel and the network is a pack's, meeting over the
+   **`TravelNode` shape** (`lib/travel/TravelNode.ts`) — plain data in,
+   plain data out, never an import. `AnalyzeWaterController` reads the
+   water pack's works exactly this way.
 
 ## Where the code is
 
 | | |
 |---|---|
-| `packages/content/tpa/src/lib/FastTravel.ts` | the node mixin — routes, board, timetable, `boardLabel` |
+| `packages/server/src/mud/lib/travel/TravelNode.ts` | **the seam** — the shape a travel network answers, declared in the kernel |
+| `packages/server/src/mud/platform/idea/cmd/movement/TeleportController.ts` | **the verb** — free movement + the anchored spell, delegating the ride and the board |
+| `packages/content/tpa/src/lib/FastTravel.ts` | the node mixin — routes, board, timetable, `boardLabel`, and `ride()`: everything the NETWORK decides |
 | `packages/content/tpa/src/thing/TpaTerminal.ts` | the concrete terminal: a node that runs on mana |
 | `packages/content/tpa/src/thing/TravelCard.ts` | the carryable instrument |
-| `packages/content/tpa/src/idea/cmd/movement/` | `TeleportController`, `RegisterController` |
-| `packages/content/tpa/content/system/tpa/` | the views, the controller rows, the card, the Authority |
+| `packages/content/tpa/src/idea/cmd/movement/` | `RegisterController` |
+| `packages/content/tpa/content/system/tpa/` | `register` + `procure card`, the card, the Authority |
 | `packages/content/arcana/src/lib/ManaPowered.ts` | the socket every mana-powered device draws from |
 | `packages/server/src/mud/api/magic.ts` | `relocationCost` — the kernel's `m·g·Δh` |
 
@@ -186,16 +203,24 @@ wallet.
 
 ## The verbs
 
-**`teleport` / `tp`** (`TeleportController`,
-`system/tpa/cmd/movement/teleport.yaml`) — **purely diegetic**, one verb,
-and a fork order that decides which of four things you meant:
+**`teleport` / `tp`** — **the KERNEL's verb**
+(`platform/idea/cmd/movement/TeleportController.ts`,
+`platform/cmd/movement/teleport.yaml`), afforded by `MobileMixin`
+beside `go` and `goto`. One verb, and a fork order that decides which of
+four things you meant:
 
 ```
-both endpoints in one extent you HOLD → free, no mana, no registration
-at a node, a keyword given            → the TPA ride
-at a node, nothing given              → the departures board, for EVERYONE
-otherwise, a destination given        → the anchored spell
+both endpoints in one extent you HOLD → free, no network, no magic
+at a travel node, a stop named        → the node's ride
+at a travel node, nothing named       → the node's board, for EVERYONE
+otherwise, a destination named        → the anchored spell
 ```
+
+⭐⭐ Forks **1 and 4 are kernel** and run on kernel capabilities alone;
+forks **2 and 3 are the network's**, reached over the `TravelNode`
+shape. ⚠ **A node does not GRANT the verb** — it adds the ride and the
+board to a verb everybody already has. That is what lets a privileged
+person teleport in a world with no travel network installed.
 
 ⭐ **The order is load-bearing.** It used to ask `canSelfTeleport` FIRST,
 which is what made the board unreachable for both audiences at once.
@@ -229,7 +254,13 @@ movement at all.
 reads `grants[]`, so a lease-holder gets none of this and nothing had to
 be written to exclude them. See [access.md](./access.md).
 
-### 2 · The TPA ride
+### 2 · The TPA ride — `FastTravelMixin.ride()`
+
+⭐ **Everything the network decides lives on the node**, with the pack:
+the keyword match, the instrument gate, identity-bound clearance,
+direction, the gate's own condition, the mana leg and the fare. The
+kernel's verb knows none of it — it finds something answering the shape
+and asks.
 
 The keyword is matched **locally** against this node's routes, never
 through MQL. Then, in order: the instrument gate (any reachable travel
@@ -237,6 +268,11 @@ holder) → departure-capable → **the gate's own condition** (below) →
 clearance (the identity holder's `isRegistered`) → **the mana leg**
 (below) → fare settlement → `Mobile.teleport` to the destination's
 `getArrivalRoom()`.
+
+⚠ The **one** refusal the kernel falls through on is
+`route-not-found` — the network not going somewhere is not a refusal of
+the traveller. Every other refusal is final, and is rendered in the
+node's own words.
 
 ⭐⭐ **The ride issues no `prepareCast` and no `resolveCast`.** It quotes
 `MagicApi.relocationCost`, draws that many τ off the gate, settles the
@@ -297,9 +333,10 @@ only when you're at a node; the afforded node is `context.commandSource`.
 Arrival-capable nodes only, and **free at every node** (there is no
 `settle` call reachable from it).
 
-⭐ `teleport` is now contributed by the NODE too. It used to be afforded
-only by `AuthorMixin`, so the "unprivileged TPA ride" the controller
-always documented was reachable by authors and nobody else.
+⭐ `teleport` used to be afforded only by `AuthorMixin`, so the
+"unprivileged TPA ride" the controller always documented was reachable
+by authors and nobody else. It is on `MobileMixin` now — a movement
+verb, afforded to anything that moves.
 
 ## Unlock = scan-to-register
 
