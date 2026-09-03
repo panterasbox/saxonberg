@@ -1011,7 +1011,59 @@ sentence that was true:
 
 `ServingVessel extends CraftVessel`: the shared half is claim · soil ·
 wash · par, which a wort bucket and a coupe both do. The palate is the
-half only one of them has. `Dish` and `CookPot` extend `ServingVessel`
+half only one of them has.
+
+### ⏭ Deferred, and set up: the serviceware tier
+
+**The cutlery is still a `CraftVessel`, and should not be.** A horn spoon,
+a table fork and a table knife are `/platform/thing/CraftVessel` rows, and
+they pay three prices for it:
+
+- an **interior bulk slot** they never fill;
+- an **ice charge** (`iceKg`, `iceForm`, `iceMeltK`), because a
+  `CraftVessel` is a thing you can ice;
+- a `wash()` that opens with *"⚠ Serviceware without contents is still
+  washed … `getBulk` THROWS on a host that has no such slot."*
+  **A method that throws on part of its own host set is the host set
+  being wrong** — the same tell that moved the palate off `Bulkable`.
+
+⭐⭐ **The root is that the utensil kind is stored in `category`, which
+lives on `BulkableMixin`.** So *"this is a spoon"* requires *"this is a
+bulk vessel"*, and `EatController.claimUtensil` finds one by asking
+`MixinApi.isBulkable(candidate)` and then duck-typing `isClaimable` /
+`soil` off a `Partial<{…}>`. `category` is right where it is — it is the
+VESSEL kind, shared with vats, kegs, cans and sacks, and a vat has a
+category and is not serviceware. **The cutlery was borrowing a vocabulary
+that was never about it.**
+
+The shape of the fix, in the order it wants doing:
+
+1. `ServiceableMixin` (`lib/craft/Serviceable.ts`) — `soiled`,
+   `technique`, `soil`/`setSoiled`/`wash`/`isClaimable`: the half a coupe
+   and a spoon genuinely share. `CraftVessel` composes it and OVERRIDES
+   `wash()`/`isClaimable()` to add the slot, the dregs and the ice — so
+   neither needs a guard.
+2. `CutleryMixin` with its own `utensilKind`, beside `UTENSIL_KINDS` in
+   `lib/bulk/Utensil.ts`.
+3. `platform/thing/Cutlery` = `CutleryMixin(ServiceableMixin(Crafted(
+   Thermal(Detailed(Thing)))))` — Crafted because a spoon has a maker and
+   a grade, Thermal because it sits in the soup, and no Bulkable at all.
+4. `EatController` narrows on `MixinApi.isCutlery`, which also retires the
+   duck-typing.
+
+⚠⚠ **What blocked it, recorded so the next attempt does not re-derive
+it.** Moving `soiled`/`technique`/`wash` out of `CraftVessel`'s own body
+and into a mixin produces **222 type errors, every one of them inside a
+capability pack and none in the server tree** — packs that import
+`CraftVessel` through the server's `exports` map see a class no longer
+assignable to `Stuff`. Isolated by reverting `CraftVessel.ts` alone with
+the new mixin files still present: **1 error**, so the breakage is
+entirely that class's edit and not the mixins. Three fixes were tried and
+none worked: `MixinConstructor<Stuff>` vs bare `MixinConstructor`, the
+inline `return class X extends Base {…}` form every other mixin uses, and
+the class/interface **declaration merge** that `Provision.ts` uses for
+exactly this symptom. It wants a proper look at how the packs resolve the
+server's types, not another guess. `Dish` and `CookPot` extend `ServingVessel`
 (a cook tasting the pot is the archetypal use of a palate); the syrup
 and juice bottles are `ServingVessel`s because a person genuinely tastes
 what is in them, while oil, tallow, wort, must and wash are not.
