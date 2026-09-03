@@ -162,6 +162,42 @@ cooking's to build. Cooking's stake once the tap flows:
   baker pack can ship before the standing tap exists, with enriched
   doughs and pastry as its dairy-era second wave.
 
+**Grains & bread: a four-way split, not all the baker's.**
+
+- **The grain crop is farming's — and three trades already wait on
+  it.** No cereal ships; the tell is that **`malt` exists as a
+  material with no barley above it** (brewing smuggled in a grain
+  *product* without the grain). Farming's cereal (Stage B territory)
+  feeds the brewer's malt, the baker's flour, and cooking's pot at
+  once — the highest-leverage single crop in the backlog.
+- **Milling folds into the baker pack initially** (the `trade-fuel`
+  thin-node precedent), splitting out only on demand. Pointer for
+  that designer: the historical water mill is **the classic
+  watercourse power consumer** — the watershed ships flow, and a mill
+  would be its first mechanical-power read (the metal-chain
+  "toll the hoist" infrastructure-economics shape, waiting).
+- **Cooking keeps the unleavened hearth staples.** The defensible
+  line, historical and chemical: **the baker's frontier is dough work
+  — gluten development + leavening — plus the oven.** Short of that
+  is hearth cooking: **porridge** (boiled cracked grain, wet-trivial,
+  the medieval staple — needs no mill) and **griddle flatbread**
+  (dry-easy, no proof, no oven — chapatis are *domestic* acts).
+  Roster rows gated on the grain crop (enabling-data rule), but
+  *cooking's* rows; `specializes: cooking` keeps the boundary soft
+  the right way — the specialization *deepens* into doughs rather
+  than fencing them off.
+- ⭐⭐ **Pre-registered for the baker pack: staling is NOT spoilage,
+  and the freshness gauge models it backwards.** Bread's clock is
+  starch **retrogradation**, not microbial growth, and its
+  temperature curve is famously inverted: staling is *fastest* at
+  fridge temperatures (~4 °C is retrogradation's peak), paused
+  frozen, slower at room temp. The W0 freshness gauge does the
+  opposite — reuse it for staleness and the icebox *preserves* bread
+  that should stale fastest there. Bread needs its own small staling
+  axis (same reconcile-on-read pattern, inverted temperature term) —
+  a trap invisible until someone drives it and wonders why the
+  icebox makes perfect toast.
+
 **Confectionery clusters with the baker, by the same test.** Candy
 sells **stock** — it travels, shelves, and keeps, and it keeps for the
 terms-not-methods reason: high sugar is low water activity, so sweets
