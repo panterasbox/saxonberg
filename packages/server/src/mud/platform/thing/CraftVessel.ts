@@ -40,7 +40,6 @@ import { ContainerMixin } from '../../lib/spatial/Container';
 import { DetailedMixin } from '../../lib/description/Detailed';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
 import { CraftedMixin, type Crafted } from '../../lib/craft/Crafted';
-import { PalatableMixin } from '../../lib/metabolism/Palatable';
 import type { FieldMeta } from '../../lib/mixin';
 import { Quantity } from '../../lib/quantity';
 import { BulkableApi } from '../../api/bulk';
@@ -85,15 +84,23 @@ const SoiledWriters = SecurityPolicies.AnyOf(
   SecurityPolicies.FromTemplate('/platform/idea/persistence/*Hydrator'),
 );
 
-// ⭐ `Palatable` is the taste reading — what a craft's output tastes
-// like, projected through the taster's own competence in the discipline
-// that made it. It composes HERE, not on `BulkableMixin`, because this is
-// the class for "a vessel somebody made something in": a floor puddle and
-// a garden bed hold matter and have no palate. See `lib/metabolism/Palatable.ts`.
-const CraftVesselBase = PalatableMixin(
-  CraftedMixin(
-    ThermalMixin(BulkableMixin(ContainerMixin(DetailedMixin(Thing)))),
-  ),
+// ⚠ **`PalatableMixin` is NOT here — it is on `ServingVessel`.** It sat
+// on this class for one build, on the argument that this is "a vessel
+// somebody made something in". That is true and still too wide: what a
+// trade WORKS in and what a portion REACHES A PERSON in are different
+// classes, and the rows say so. A wort bucket, a must bucket, a tallow
+// crock and a **wash bucket** are all `CraftVessel`s, and so is the
+// cutlery — so a table knife and a bucket of dirty wash water both read
+// as things you taste.
+//
+// ⭐ The tell was in `Palatable.ts`'s own doc block, which listed its
+// hosts as "dishes, platters, the cook pot, the bar's glasses, the syrup
+// and oil bottles" — a list already narrower than where it was composed,
+// and still wrong at both ends. Same shape as the spoilage gauge on the
+// generic `Thing`: the fix is a class named for the concept, not a wider
+// base. See `platform/thing/ServingVessel.ts`.
+const CraftVesselBase = CraftedMixin(
+  ThermalMixin(BulkableMixin(ContainerMixin(DetailedMixin(Thing)))),
 );
 
 export default class CraftVessel extends CraftVesselBase {

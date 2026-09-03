@@ -2,7 +2,7 @@
 # keywords kept). A pool glass over CraftVessel: starts empty, is CLAIMED
 # by a bulk recipe whose outputTemplate names it, served, bussed, washed —
 # never minted per drink. `category` is the glassware par key.
-class: /platform/thing/CraftVessel
+class: /platform/thing/ServingVessel
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a coupe

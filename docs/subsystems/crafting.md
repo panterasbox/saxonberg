@@ -988,13 +988,33 @@ the floor band — honest rather than defective: an unexercised palate IS a
 novice palate. ⚠ Never a gate: every band tastes the food.
 
 ⚠⚠ **It lives on `PalatableMixin` (`lib/metabolism/Palatable.ts`),
-composed on `CraftVessel`** — everything somebody *made something in*.
-It shipped for one build on `BulkableMixin`, which put a taste-palate
-augmenter on `Floor` (puddles), `GardenBed`, `PlantPot`, `AirTank` and
-`WateringCan`, made it re-derive "…but only a food vessel with contents"
-in four guard lines, and dragged `lib/advancement` into the bulk
-substrate. **Firing on hosts you then have to guard your way back out of
-is the tell that a mixin is on the wrong host.**
+composed on `ServingVessel`** — a vessel a made portion reaches a person
+in. It took two wrong hosts to get there, and both were defended with a
+sentence that was true:
+
+1. **`BulkableMixin`** — which put a taste-palate augmenter on `Floor`
+   (puddles), `GardenBed`, `PlantPot`, `AirTank` and `WateringCan`, made
+   it re-derive "…but only a food vessel with contents" in four guard
+   lines, and dragged `lib/advancement` into the bulk substrate.
+   **Firing on hosts you then have to guard your way back out of is the
+   tell that a mixin is on the wrong host.**
+2. **`CraftVessel`** — "everything somebody made something in". Also
+   true, and still too wide: that class is the wort bucket, the must
+   bucket, the tallow crock, the **wash bucket** and the cutlery too, so
+   a table knife and a bucket of dirty water read as things you taste.
+   ⭐ **The second tell is quieter and worth learning:** the doc block
+   listed its own hosts as "dishes, platters, the cook pot, the bar's
+   glasses, the syrup and oil bottles" — a list already narrower than
+   where the mixin composed, and still wrong at both ends. **When a
+   comment has to enumerate a subset of its own hosts, the subset is the
+   class.**
+
+`ServingVessel extends CraftVessel`: the shared half is claim · soil ·
+wash · par, which a wort bucket and a coupe both do. The palate is the
+half only one of them has. `Dish` and `CookPot` extend `ServingVessel`
+(a cook tasting the pot is the archetypal use of a palate); the syrup
+and juice bottles are `ServingVessel`s because a person genuinely tastes
+what is in them, while oil, tallow, wort, must and wash are not.
 
 ## Deferred (non-goals)
 

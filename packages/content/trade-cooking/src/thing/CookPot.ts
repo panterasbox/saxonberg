@@ -32,7 +32,7 @@
  * capability, never because it knows this class.
  */
 
-import CraftVessel from '@saxonberg/server/mud/platform/thing/CraftVessel';
+import ServingVessel from '@saxonberg/server/mud/platform/thing/ServingVessel';
 import { DurableMixin } from '@saxonberg/server/mud/lib/material/Durable';
 import { ToolMixin } from '@saxonberg/server/mud/lib/craft/Tooled';
 import { ManualBuildMixin } from '@saxonberg/server/mud/lib/craft/ManualBuild';
@@ -40,7 +40,7 @@ import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 
 // ⭐ `CraftVessel` = `Crafted(Thermal(Bulkable(Container(Detailed(Thing)))))`.
 // Every strand of it is one a pot genuinely wants — see the class doc.
-const CookPotBase = ManualBuildMixin(ToolMixin(DurableMixin(CraftVessel)));
+const CookPotBase = ManualBuildMixin(ToolMixin(DurableMixin(ServingVessel)));
 
 const HEARTH = [
   'platform/cmd/crafting/heat.yaml',

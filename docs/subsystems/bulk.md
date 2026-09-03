@@ -290,8 +290,9 @@ the one collision to watch.
 
 ⚠ Those three are DATA the craft writes. The **reading** that uses them
 is `PalatableMixin` (`lib/metabolism/Palatable.ts`), composed on
-`CraftVessel` rather than here — a floor puddle and a garden bed hold
-matter and have no palate. See [crafting.md](./crafting.md) § The palate.
+`ServingVessel` rather than here — a floor puddle and a garden bed hold
+matter and have no palate, and neither does a wash bucket. See
+[crafting.md](./crafting.md) § The palate.
 
 ### Utensil kinds
 

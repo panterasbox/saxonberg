@@ -29,15 +29,27 @@
  * honest, because an off-spec lump of food teaches you nothing about its
  * making.
  *
- * ⚠ **Where it composes, and why not on `BulkableMixin`.** It lives on
- * `CraftVessel`: everything somebody *made something in* — dishes,
- * platters, the cook pot, the bar's glasses, the syrup and oil bottles.
- * It sat on `BulkableMixin` for one build, which put a taste-palate
- * augmenter on `Floor` (puddles), `GardenBed`, `PlantPot`, `AirTank` and
- * `WateringCan`, made it re-derive "…but only a food vessel with
- * contents" in four guard lines, and dragged `lib/advancement` into the
- * bulk substrate to do it. Firing on hosts you then have to guard your
- * way back out of is the tell that a mixin is on the wrong host.
+ * ⚠ **Where it composes: `ServingVessel`, and nowhere else.** It took two
+ * wrong hosts to get there, and both were defended with a true sentence.
+ *
+ *   1. `BulkableMixin` — which put a taste-palate augmenter on `Floor`
+ *      (puddles), `GardenBed`, `PlantPot`, `AirTank` and `WateringCan`,
+ *      made it re-derive "…but only a food vessel with contents" in four
+ *      guard lines, and dragged `lib/advancement` into the bulk
+ *      substrate. **Firing on hosts you then guard your way back out of
+ *      is the tell.**
+ *   2. `CraftVessel` — "a vessel somebody made something in". True, and
+ *      still too wide: that class is also the wort bucket, the must
+ *      bucket, the tallow crock, the **wash bucket** and the cutlery, so
+ *      a table knife and a bucket of dirty water read as things you
+ *      taste. **A second tell, quieter: the list in THIS comment named
+ *      "dishes, platters, the cook pot, the bar's glasses, the syrup and
+ *      oil bottles" — already narrower than where the mixin actually
+ *      composed, and still wrong at both ends.** When the doc block has
+ *      to enumerate a subset of its own hosts, the subset is the class.
+ *
+ * `ServingVessel` is that class: a vessel a made portion reaches a person
+ * in. What a trade WORKS in stays on `CraftVessel`.
  *
  * ⚠⚠ Nothing here is a gate. Every band tastes the food; the better
  * palate simply reads more off it. That is the difference between a

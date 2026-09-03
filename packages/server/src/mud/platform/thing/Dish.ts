@@ -24,9 +24,9 @@
  * room is a better dish than one that never had a temperature.
  */
 
-import CraftVessel from './CraftVessel';
+import ServingVessel from './ServingVessel';
 import { NutritionLabelMixin } from '../../lib/metabolism/NutritionLabel';
 
-const DishBase = NutritionLabelMixin(CraftVessel);
+const DishBase = NutritionLabelMixin(ServingVessel);
 
 export default class Dish extends DishBase {}
