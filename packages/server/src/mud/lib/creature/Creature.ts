@@ -199,7 +199,7 @@ export class Creature extends CreatureBase {
   /**
    * Mass override that lazy-seeds the body-grounded default. When the
    * instance authored no mass of its own (still `0`), resolve
-   * `species → bodyPlan → baseMass` and adopt it; an explicitly-authored
+   * `species → baseMass` (own, else the plan's) and adopt it; an explicitly-authored
    * mass is the deviation that wins (the guard short-circuits and this is
    * a plain `super.getMass()`).
    *
@@ -219,14 +219,18 @@ export class Creature extends CreatureBase {
   }
 
   /**
-   * Resolve the body-plan `baseMass` and adopt it as this body's mass,
+   * Resolve the species' `baseMass` and adopt it as this body's mass,
    * returning the seeded quantity (or `null` when there is no plan /
    * `baseMass` is absent or `0`). Does **not** read `getMass()` — the
    * zero-guard lives in {@link getMass}, so this stays recursion-free and
    * is the single place the body-grounded default is applied.
    */
   protected seedMassFromBodyPlan(): Quantity<'kg'> | null {
-    const baseMass = this.getSpecies()?.getBodyPlan()?.getBaseMass();
+    // ⚠ Through the SPECIES, not the plan: `Species.getBaseMass()`
+    // resolves own → plan → 0, so a dragonborn stops massing what a
+    // halfling does, and lineage can later override on the individual
+    // without either layer changing.
+    const baseMass = this.getSpecies()?.getBaseMass();
     if (baseMass !== undefined && baseMass > 0) {
       const seeded = Quantity.of(baseMass, 'kg');
       this.setMass(seeded);

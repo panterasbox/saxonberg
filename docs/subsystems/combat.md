@@ -191,7 +191,14 @@ mass-scaled blunt **fist** on `naturalAttacks` (`massScaled: true`), so a
 disarmed or bare-handed humanoid still `strike`s/`shove`s/`subdue`s — a
 heavier build hitting harder (`commitInflict` scales inflict energy by
 `clamp(baseMass / combat.natural.energyRefMassKg, min, max)`, the flag no
-shipped beast carries, so beasts are byte-identical). An unarmed exchange
+shipped beast carries, so beasts are byte-identical). ⚠ Since the
+textiles build that `baseMass` is read through **`Species.getBaseMass()`**
+(own, else the plan's), so a dragonborn's fist is ~1.79× a gnome's rather
+than every playable species sharing one 70 kg punch. The
+`combat.natural.largeBodyMassKg` threshold (150) is **not crossed by any
+playable species** — the dragonborn is closest at 125, deliberately, so
+size costs without silently granting ogre reach; `species-mass.bench`
+asserts it. An unarmed exchange
 additionally credits the **`unarmed`** Discipline (the `blades` pattern —
 `melee-combat` always, `unarmed` on an innate instrument, `blades` on an
 edge/point one).

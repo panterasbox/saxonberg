@@ -472,6 +472,8 @@ sessile plan is the stand-in for organisms with no agency anatomy
   (`suggestName`/`rerollName`). See [char-gen.md](./char-gen.md).
 - `_bodyPlanPath`, `_parentCladePath`, `_defaultMaterialPath` —
   cross-references to BodyPlan, Clade, Material
+- **`baseMass` (kg) + `stature` (m)** — the size pair, each `0` =
+  *inherit the plan*. See § *Size* below.
 - `lifecycleStates` — the species' valid set
   (e.g. `['alive', 'dead', 'undead']`)
 - `sexDeterminationSystem`, `reproductiveMode`
@@ -483,7 +485,7 @@ sessile plan is the stand-in for organisms with no agency anatomy
   `naturalAttacks` — a `NaturalAttackSpec[]` list (bite/claw/tail; per-
   attack delivery channel + optional mass/length/reach profile hints,
   rotated deterministically by beat; hint-less profiles derive from
-  `BodyPlan.baseMass`, exactly neutral below
+  `Species.getBaseMass()` (own, else the plan's), exactly neutral below
   `combat.natural.largeBodyMassKg` so seeded bodies are byte-preserved,
   "an ogre punches at ogre reach" above it) — and `affordedGambits` —
   existing gambit keys a species affords bodily (a tail affords `sweep`;
@@ -524,6 +526,64 @@ pack (`content/lib/species/**`), not the kernel seed tree — see
 | `constructa/metallica/tutor-bot/mk-iv` | biped | Constructa | Robot — `lifecycleStates: powered/unpowered/destroyed`, `sexDeterminationSystem: 'none'`. |
 
 ---
+
+### ⭐⭐ Size — `baseMass` + `stature`, and why it is one accessor
+
+`Species` carries **`baseMass` (kg)** and **`stature` (m)**, both
+defaulting to `0` = *inherit the body plan*, and both read through
+**`Species.getBaseMass()` / `getStature()`** which resolve *own → plan →
+0*. `BodyPlan` carries the plan-level defaults (`baseMass`,
+`baseStature`); `biped.yaml` authors 70 kg and 1.75 m.
+
+⚠ **Before this, no species overrode the plan**, so every playable
+species massed 70 kg — a halfling and a dragonborn carried the same
+weight, punched with the same energy, ate the same and cooled at the
+same rate. Fit cannot key on a constant, which is what forced the fix.
+
+⭐ **`stature` is deliberately a SCALAR**, not two axes. Lineage's body
+budget already owns *build* via the fat/muscle/bone split at one mass, so
+a second build axis here would duplicate it. What stature buys is the
+linear half of a fit measurement: with mass it yields a ponderal index,
+`girth = √(mass / stature)`, and those two numbers are what a garment is
+cut to.
+
+| species | fiction | stature (m) | baseMass (kg) | girth |
+|---|---|---|---|---|
+| gnome | *small, wiry* | 1.00 | 30 | **5.48** |
+| halfling | *small… fond of a good meal* | 1.05 | 38 | 6.02 |
+| dwarf | *stone-sturdy and stout* | 1.35 | 68 | **7.10** |
+| elf | *measured, watchful grace* | 1.80 | 64 | 5.96 |
+| half-elf | *elven poise and human drive* | 1.78 | 67 | 6.14 |
+| human | *adaptable and ambitious* | 1.75 | 70 | 6.32 |
+| tiefling | *horned and ember-eyed* | 1.78 | 73 | 6.40 |
+| half-orc | *broad and powerful* | 1.88 | 92 | 6.99 |
+| orc | *broad and fierce, short-lived* | 1.92 | 100 | 7.22 |
+| dragonborn | *the bearing of an elder wyrm* | 2.00 | 125 | **7.91** |
+
+⭐ **The fiction falls out of the arithmetic rather than being
+asserted.** The gnome is *wiry* — the lowest girth of anyone. The
+halfling eats well, so it carries near-human girth at 60% of the height,
+which is exactly what separates it from the gnome. The dwarf is
+third-shortest and fifth-heaviest, so *stone-sturdy and stout* is a
+number rather than an adjective. The half-elf sits between elf and human
+on both axes, at home in neither.
+
+⚠ **And the size is PAID FOR.** A dragonborn carries and eats ~1.8× a
+human and cools more slowly — a real cost for a real benefit, which is
+the incomparability the lineage slate wants. **Do not "balance" it
+away.**
+
+⚠ Every playable species stays **under** `combat.natural.largeBodyMassKg`
+(150), so none silently gains ogre reach; the dragonborn is closest at
+125. `scripts/__tests__/species-mass.bench.test.ts` asserts that, prints
+the whole derived table (mass · stature · girth · carry capacity · basal
+factor · thermal τ · fist scale) and snapshots it — because the other
+two gym benches drive **synthetic** body plans and are blind to a
+shipped-row change by construction.
+
+⭐ **The lineage seam is this one accessor.** Individual variance arrives
+later through `Creature.getMass()` alone, so neither `Species` nor
+`BodyPlan` re-opens when it lands.
 
 ## OrganismMixin — runtime biology
 

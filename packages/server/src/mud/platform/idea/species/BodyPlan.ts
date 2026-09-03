@@ -169,6 +169,25 @@ export default class BodyPlan extends SingletonMixin(PropertiedMixin(Idea)) {
   protected baseMass: number = 0;
 
   /**
+   * Reference **stature** in metres for a typical adult of this plan —
+   * the linear scale beside {@link baseMass}'s bulk. `0` means "no
+   * body-grounded default" (the sessile plan, a test stub); readers
+   * fall back gracefully.
+   *
+   * ⭐ Deliberately a SCALAR, not two axes. Lineage's body budget
+   * already owns *build* via the fat/muscle/bone split at one mass, so
+   * a second build axis here would duplicate it. What stature buys is
+   * the other half of a fit measurement: with mass it yields a ponderal
+   * index (`√(mass / stature)`), and those two numbers are what a
+   * garment is cut to.
+   *
+   * Species override it (`Species.stature`); an individual's variance
+   * arrives later through `Creature.getMass()` alone, which is why this
+   * is the plan's default rather than anyone's actual height.
+   */
+  protected baseStature: number = 0;
+
+  /**
    * Thermoregulatory strategy. `endotherm` (the default) defends a
    * setpoint by spending metabolism's reserves (the mammal/bird path);
    * `ectotherm` lets its core float to the effective ambient (the
@@ -209,6 +228,7 @@ export default class BodyPlan extends SingletonMixin(PropertiedMixin(Idea)) {
     sensoryPorts: { persistent: true },
     bodyParts: { persistent: true },
     baseMass: { persistent: true },
+    baseStature: { persistent: true },
     thermalStrategy: { persistent: true },
     breathableMedia: { persistent: true },
     respires: { persistent: true },
@@ -241,6 +261,17 @@ export default class BodyPlan extends SingletonMixin(PropertiedMixin(Idea)) {
       );
     }
     this.baseMass = value;
+  }
+
+  public getBaseStature(): number { return this.baseStature; }
+  public setBaseStature(value: number): void {
+    if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) {
+      throw new RangeError(
+        `BodyPlan.setBaseStature: must be a finite, non-negative number, ` +
+          `got ${value}`,
+      );
+    }
+    this.baseStature = value;
   }
 
   public getSlots(): readonly SlotSpec[] { return this.slots; }

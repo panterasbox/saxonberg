@@ -306,9 +306,45 @@ export default class Species extends SingletonMixin(
    * is not the secret, and a page of blank rows would tell a reader
    * nothing about what there is to learn.
    */
+  /**
+   * This species' typical adult mass in kg, overriding the body plan's
+   * {@link BodyPlan.baseMass}. `0` = **inherit the plan** (the default,
+   * and what every non-playable row keeps).
+   *
+   * ⚠ Before this existed, every playable species inherited `biped`'s
+   * 70 kg — so a halfling and a dragonborn carried the same weight,
+   * punched with the same energy, ate the same and cooled at the same
+   * rate. Fit cannot key on a constant, which is what forced the fix.
+   *
+   * ⭐ **Three production reads change and only three**
+   * (`Creature.seedMassFromBodyPlan`, combat's mass-scaled fist, and
+   * the natural-attack largeBody threshold) because everything else —
+   * encumbrance, metabolism, thermal mass, `Thermal.getTau` — reads
+   * `Creature.getMass()` and inherits this for free. That is the point.
+   */
+  protected baseMass: number = 0;
+
+  /**
+   * This species' typical adult **stature** in metres, overriding the
+   * plan's {@link BodyPlan.baseStature}. `0` = inherit the plan.
+   *
+   * With mass it yields the ponderal index a garment is cut to
+   * (`√(mass / stature)`), so it is the linear half of the fit
+   * measurement rather than a cosmetic height.
+   *
+   * ⭐ Read the two together and the fiction falls out of the
+   * arithmetic instead of being asserted: the gnome has the lowest
+   * girth of anyone (*wiry*), the halfling carries near-human girth at
+   * 60% of the height (*fond of a good meal*), and the dwarf is
+   * third-shortest and fifth-heaviest (*stone-sturdy and stout*).
+   */
+  protected stature: number = 0;
+
   static fieldMeta: FieldMeta = {
     // ── What a field guide prints ──
     binomial: { persistent: true },
+    baseMass: { persistent: true, authorable: true },
+    stature: { persistent: true, authorable: true },
     commonNames: { persistent: true },
     _bodyPlanPath: { persistent: true },
     _parentCladePath: { persistent: true },
@@ -350,6 +386,38 @@ export default class Species extends SingletonMixin(
 
   public getBinomial(): string { return this.binomial; }
   public setBinomial(value: string): void { this.binomial = value; }
+
+  /**
+   * Typical adult mass in kg — **own, else the plan's, else 0**. The
+   * one accessor every reader goes through, so lineage can later
+   * override on the individual without touching either layer.
+   */
+  public getBaseMass(): number {
+    if (this.baseMass > 0) return this.baseMass;
+    return this.getBodyPlan()?.getBaseMass() ?? 0;
+  }
+  public setBaseMass(value: number): void {
+    if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) {
+      throw new RangeError(
+        `Species.setBaseMass: must be a finite, non-negative number, got ${value}`,
+      );
+    }
+    this.baseMass = value;
+  }
+
+  /** Typical adult stature in metres — own, else the plan's, else 0. */
+  public getStature(): number {
+    if (this.stature > 0) return this.stature;
+    return this.getBodyPlan()?.getBaseStature() ?? 0;
+  }
+  public setStature(value: number): void {
+    if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) {
+      throw new RangeError(
+        `Species.setStature: must be a finite, non-negative number, got ${value}`,
+      );
+    }
+    this.stature = value;
+  }
 
   public getCommonNames(): readonly string[] { return this.commonNames; }
   public setCommonNames(value: string[]): void { this.commonNames = value; }

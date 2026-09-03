@@ -11,6 +11,10 @@ data:
   # body-size signal (encumbrance carry capacity now; metabolism basal
   # drain + thermal mass later) — see docs/subsystems/encumbrance.md.
   baseMass: 70
+  # The plan's reference stature (m), beside its reference mass — the
+  # linear half of the fit measurement. Every species that authors none
+  # inherits this; the ten playable ones all override.
+  baseStature: 1.75
   # Slots reference anatomy where they have a home (the slot↔part
   # relations live on the slot side): `bodyPart` = the part the slot
   # attaches at (lose it → slot disabled); `covers` = parts an occupant

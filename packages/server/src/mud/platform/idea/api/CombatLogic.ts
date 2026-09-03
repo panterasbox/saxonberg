@@ -568,10 +568,15 @@ function actorStrikeProfile(
   const attacks = naturalAttacksFor(actor);
   const spec = attacks[session ? rotationIndex(session, attacks.length) : 0];
   if (!spec) return { ...NEUTRAL_NATURAL_PROFILE };
-  const bodyPlan = MixinApi.isOrganism(actor)
-    ? (actor.getSpecies()?.getBodyPlan() ?? null)
+  // ⚠ The body read is the SPECIES, which resolves its own baseMass
+  // else the plan's — `NaturalBodyRead` is structural (`getBaseMass()`),
+  // so Species satisfies it exactly as BodyPlan did. Without this the
+  // largeBody threshold could only ever be crossed by authoring it on
+  // the plan, i.e. by every species at once.
+  const body = MixinApi.isOrganism(actor)
+    ? (actor.getSpecies() ?? null)
     : null;
-  return NaturalAttack.deriveProfile(spec, bodyPlan, naturalProfileConfig());
+  return NaturalAttack.deriveProfile(spec, body, naturalProfileConfig());
 }
 
 /**
@@ -2139,8 +2144,10 @@ function naturalMassScale(
   spec: NaturalAttackSpec | null,
 ): number {
   if (!spec?.massScaled) return 1;
+  // ⚠ Through the SPECIES (own, else the plan's), not the plan directly:
+  // otherwise every playable species shares one 70 kg fist.
   const bodyMass = MixinApi.isOrganism(attacker)
-    ? (attacker.getSpecies()?.getBodyPlan()?.getBaseMass() ?? 0)
+    ? (attacker.getSpecies()?.getBaseMass() ?? 0)
     : 0;
   const ref = dial(AppSettingKeys.combatNaturalEnergyRefMassKg, 70);
   if (!(bodyMass > 0) || !(ref > 0)) return 1;

@@ -11,6 +11,15 @@ data:
   sentient: true
   commonNames: ["dwarf"]
   _bodyPlanPath: /stuff/idea/species/BodyPlan/biped
+  # ── Size (textiles A4). Overrides the plan's 70 kg / 1.75 m; `0`
+  # would inherit. ⭐ The fiction — *stone-sturdy and stout* — FALLS OUT of the
+  # arithmetic rather than being asserted: girth = √(mass/stature)
+  # = 7.10 against the human's 6.32, so this one is third-shortest and fifth-heaviest.
+  # ⚠ Paid for, deliberately: mass drives carry capacity, basal
+  # drain, thermal mass and the mass-scaled fist alike. Do not
+  # 'balance' the cost away — incomparability is the point.
+  baseMass: 68
+  stature: 1.35
   # Fisticuffs (the bar-fight build): the humanoid innate — a
   # mass-scaled blunt fist, so a disarmed or unarmed person can still
   # brawl and a heavier build hits harder. Rides the same
