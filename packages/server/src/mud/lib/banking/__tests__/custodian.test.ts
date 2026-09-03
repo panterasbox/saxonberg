@@ -192,20 +192,25 @@ describe("the boot restamp pass (legacy → institution keys)", () => {
     expect(storedRow("acct-venue")?.bank).toBe(custodian);
   });
 
-  it("re-owns the legacy raw `tpa` accumulator to the TPA Business", async () => {
-    const TPA_BIZ = "/world/terminus/terminal/idea/tpa";
-    vi.spyOn(AppApi, "setting").mockImplementation((k: string) => {
-      if (k === AppSettingKeys.fasttravelTpaBusinessPath) return TPA_BIZ;
-      if (k === AppSettingKeys.bankingDefaultCustodianBank) return "goodkin";
-      return "";
-    });
+  it("⭐ does NOT know the Teleport Authority exists any more", async () => {
+    // The restamp used to re-own a legacy raw `tpa` accumulator to the
+    // TPA Business — the ONE piece of TPA knowledge left in the kernel.
+    // The TPA reform DELETED it rather than moving it: the branch was
+    // self-described migration, there are no users and no data, and a
+    // banking restamp has no business knowing what a Teleport Authority
+    // is.
+    //
+    // An unowned row now falls through to the generic last-resort rule
+    // (the default custodian), which is the honest answer for a row
+    // whose owner nothing can derive.
+    vi.spyOn(AppApi, "setting").mockImplementation((k: string) =>
+      k === AppSettingKeys.bankingDefaultCustodianBank ? "goodkin" : "",
+    );
     await seedRow({ accountId: "tpa", owner: "", balance: 30 });
     await runBootRestamp();
     const row = storedRow("tpa");
-    expect(row?.owner).toBe(TPA_BIZ);
+    expect(row?.owner).toBe("");
     expect(row?.bank).toBe(BankingApi.defaultCustodianBank());
     expect(row?.balance).toBe(30); // a cache-field fill, never a movement
-    // The Business's account resolution now finds the accumulated fees.
-    expect(await BankingApi.primaryAccountIdOf(TPA_BIZ)).toBe("tpa");
   });
 });

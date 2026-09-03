@@ -142,10 +142,16 @@ describe('`entity` — somebody owns it', () => {
 });
 
 describe('⭐ `committee` — a city department', () => {
+  // ⚠ `terminal/idea/tpa` is GONE from this list, and that is the
+  // decision rather than an omission: the Teleport Authority governs
+  // ITSELF now (`{kind: committee, parcel: /system/tpa}`) and its row
+  // ships inside the `tpa` capability pack. The network crosses every
+  // locality it serves, so a network one of its stops appoints to is
+  // that stop's network and the others are guests on it. Terminus
+  // staffs Terminus's institutions; the Authority is not one.
   it.each([
     ['terminus/registry', '/world/terminus/registry'],
     ['terminus/budget', '/world/terminus/terminal'],
-    ['terminal/idea/tpa', '/world/terminus/terminal'],
   ])('%s is staffed by the committee over %s', (fragment, parcel) => {
     expect(byPath(fragment).data.appointingAuthority).toEqual({
       kind: 'committee',
@@ -158,7 +164,7 @@ describe('⭐ `committee` — a city department', () => {
     // state default (`core`) — which would silently mean "the operator
     // staffs the city", the exact wrong answer. The parcel has to be
     // somebody's, and that somebody has to be the city.
-    for (const fragment of ['terminus/registry', 'terminus/budget', 'terminal/idea/tpa']) {
+    for (const fragment of ['terminus/registry', 'terminus/budget']) {
       const ref = byPath(fragment).data.appointingAuthority as {
         parcel: string;
       };
