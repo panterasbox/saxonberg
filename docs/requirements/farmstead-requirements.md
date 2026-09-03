@@ -57,7 +57,15 @@ Seeding slates: [farming](../slates/builds/farming-slate.md) ·
 - **The wool, meat, tallow, milk, egg and malt faucets close**, feeding
   textiles, cooking, fermentation, brewing and distilling from real production.
 - **A farmstead archetype states its needs** so a locality can bind them with
-  zero pack code.
+  zero pack code — and the **university farm is its first test** (D103).
+- **Producers can trade with each other** — stock, feed, manure, grass and
+  labour — and a market day gives the locality a time when everyone is present.
+- **A new player can learn this by doing it on somebody else's land**, before
+  owning any (D103–D104).
+- **A holding can be harmed and can be defended socially** — the reconcile is
+  the trail, and the neighbour is the security model.
+- **Everything reads as a place, not a readout**, and every cadence is stated in
+  game days or real days.
 
 ## Non-goals
 
@@ -88,6 +96,21 @@ Seeding slates: [farming](../slates/builds/farming-slate.md) ·
 - **Aquaculture**, goats, and the pet *experience* layer (adoption, the
   un-delegable outcome). This build lands the substrate pets will inherit; it
   does not ship pets.
+- **The forestry *industry*.** D70 ships woodland as a land use and the
+  cut-and-regrow rotation, because D63's fuel demand needs them. Timber grades,
+  conversion, seasoning, the wood species rows, the woodward and estovers are
+  [forestry-slate](../slates/builds/forestry-slate.md)'s.
+- **Hunting.** Pest pressure ships (D60); *taking game* is
+  [hunting-slate](../slates/builds/hunting-slate.md)'s, with the
+  fugitive-resource and game-law material.
+- **The ornamental economy.** Lawns, bouquets, floriography and the speculative
+  market are [flowers-slate](../slates/builds/flowers-slate.md)'s; only saffron
+  (D44) and clover (D43) are here, as crops.
+- **The producer cooperative's substrate.** D83 names the need and records that
+  nothing in the repo designs it; shared ownership plus a use rota is a general
+  primitive, not a farming one.
+- **Downstream effects of anything leaving a holding** — nitrate (D18) or water
+  (D73). The loss legs ship; where it goes is a civics build.
 - **A `FieldApi`** (D6).
 
 ---
@@ -233,7 +256,7 @@ it would gut preservation, the salt interlock and the reason storage exists —
 the scarcity *is* the lesson, and spoilage (cooking !231, W0) just made storing
 well pay. The slate's honest worry — that 7.5 days of no growth bounces a
 farming-only player — gets a better answer than "mining absorbs them":
-**livestock do not stop.** They need feeding daily, they are in the barn where
+**livestock do not stop.** They need feeding every game day, they are in the barn where
 you are actually handling them, and lambing and calving are late-winter events.
 Farming stops; husbandry does not. Winter is when the animals are closest to you
 and most demanding — which is true to life and is itself an argument for
@@ -417,7 +440,10 @@ cheap. *(Revises a `[DECIDED]` line in the pets slate.)*
 | **Pigs** | meat, lard | **the waste converter** — `spent-grain` ships in *both* trade-brewing and trade-distilling with nowhere to go. |
 | **Bees** | honey, wax, **pollination** | see D34–D39. |
 
-Goats overlap sheep; deferred. Three tap behaviours, terminal harvest, and three
+Goats overlap sheep; deferred. ⭐ **The roster answers to a second criterion as
+well — D92's commitment ladder** — and both must hold: each species earns its
+place by unmet demand *and* by sitting at a distinct point on the real-life
+attention scale. Three tap behaviours, terminal harvest, and three
 scales of commitment — a player must be able to start with six hens on a quarter
 acre and never be told they are not ranching.
 
@@ -485,7 +511,7 @@ Delight can later be authored against it with **zero pack code**, mechanism and
 expression were cut correctly — and we find out while it is still cheap.
 
 **The money loop.** A ranch is a business with **working capital**, which is what
-makes it feel unlike a farm. In: eggs and milk daily (small, steady — the
+makes it feel unlike a farm. In: eggs and milk on a game-day cadence (small, steady — the
 on-ramp's income), wool annually, meat and hide at slaughter, breeding stock at
 the top end *and only if you kept records*, and manure, which you spread or
 **sell to a farmer** — a real trade between the two halves of the Grange. Out:
@@ -730,7 +756,11 @@ some object — and clearing is the heaviest work, so it is where injury lives
 take the grain, boar root a field overnight. Pest pressure is ongoing, not a gate
 passed once. Defences are things already being built — fencing, hedges, the dog
 (D50) — plus hunting, for which no verb exists today and which is noted as a gap
-rather than assumed. **Seam, not scope:** clear too thoroughly and you lose
+rather than assumed. ⚠ **The boundary with [hunting-slate](../slates/builds/hunting-slate.md),
+stated once: pest pressure ships; taking game does not.** An animal eating your
+crop is this build's; an animal you go out to kill is that slate's.
+
+**Seam, not scope:** clear too thoroughly and you lose
 whatever was eating the rabbits; hedgerows exist for a reason.
 
 **Irrigation rides water rights.** Not a separate decision because it needs no
@@ -912,6 +942,12 @@ that yields charcoal yields the timber the mine shores with."* **D63 makes it
 three**: firewood for heating. Winter now bids against the smelter and the mine
 for one stand, which is where the fuel economy gets its teeth.
 
+⚠ **The boundary with [forestry-slate](../slates/builds/forestry-slate.md),
+stated once:** this build ships **the land use and the rotation**, because D63's
+fuel demand cannot exist without them. The **industry** — timber grades,
+conversion and sawing, seasoning, the wood species rows, the woodward, estovers
+— is that slate's, and is a non-goal here.
+
 Woodland also supplies **pannage** for the pigs (D30), hedgerow material for
 fencing (D56), and `ash` — whose material row **already ships** in `trade-fuel`,
 so D68's potash leg needs no new substance.
@@ -966,7 +1002,10 @@ reed for thatch (D68), withies, wildfowl and salt-marsh grazing.
 ⚠ **Draining wetland is D18's commons dilemma in physical form** — drain upstream
 and you flood downstream, and the water system already derives downstream
 reachability. Unlike nitrate this one has a **visible victim and an obvious
-cause**, which may make it the more buildable version of that argument.
+cause**. ⚠ **Decided, for consistency with D18: the loss leg ships and the
+downstream *effect* does not** — for drainage exactly as for nitrate. Water
+leaves, and where it goes is the civics build's, which keeps that argument whole
+instead of shipping two shallow halves of it.
 
 **D74 — ⭐⭐ Every extraction system in this build already has a name in one body
 of law.** Peat's is **turbary** — the right to cut turf on ground you do not
@@ -1284,7 +1323,7 @@ The five species already span the whole range of real demand and nothing said so
 
 | | Demand |
 |---|---|
-| **Bees** | weekly-ish; near-zero daily |
+| **Bees** | a check every week or two of **real** time; near-zero game-day demand |
 | **Sheep** | graze themselves — demand is **seasonal** (lambing, shearing) |
 | **Beef cattle** | graze; low |
 | **Hens** | forgiving; they forage and survive absence |
@@ -1354,7 +1393,9 @@ model.
 
 This converges with the multiplayer pass (D79–D83) from the opposite direction,
 and together they are the strongest argument in this document that **Heart's
-Delight should be a village rather than a subdivision.**
+Delight should be a village rather than a subdivision.** ⚠ That is a **finding
+for that build**, which is a non-goal here (D33) — recorded so it is not
+rediscovered, not scoped.
 
 **D97 — ⭐⭐ Deniability is the content, not a defect.** Most farm attacks are
 indistinguishable from negligence: a gate open (did they, or did you?), hay
@@ -1406,6 +1447,115 @@ for building [warranty-slate](../slates/builds/warranty-slate.md) early.
 two sides of one question**, and enclosure is the historical argument about where
 the line falls. It should be legislated in play, not settled in this document.
 
+### Learning it, starting it, and leaving it
+
+*(D102–D106, added by the coherence audit, which found that a build whose thesis
+is pedagogy had specified no teaching surface, no first thirty minutes, and no
+account of a holder who stops.)*
+
+**D102 — Three teaching registers, all already shipped.** They differ by **who
+is speaking**, which is why all three are needed and none substitutes:
+
+| Register | Who speaks | Surface |
+|---|---|---|
+| **Canonical** | the game | `help` topics — the harvested catalogue, plus `help api` for the author surface that the `callable == visible == cared-about` invariant already governs |
+| **Emergent** | other players | the **wiki** — what a locality worked out for itself, exactly as [flowers-slate](../slates/builds/flowers-slate.md) puts floriography there |
+| **Embodied** | the work | **the university farm** — D103 |
+
+⚠ **`help api` is the author surface and player help is a different thing.** This
+build owes both: help topics for every Api and mixin it adds, and **player-facing
+topics for the concepts** — what nitrogen is, what body condition means, what
+residual and recovery are. The concepts are the pedagogy; the API reference is
+the extensibility.
+
+**D103 — ⭐⭐⭐ The university farm: small, real, and working.** Modelled on Davis
+and Cal Poly, which teach agriculture with an actual production unit on campus —
+**small enough to walk, real enough to sell.** Students do the work; the unit
+is a teaching facility and a business at once.
+
+A few beds, a paddock, a handful of animals, a hive. And it answers **three** of
+this document's gaps at once:
+
+- **It is the teaching surface** — *learn by doing*, which is the Practicum's
+  whole thesis (the product is applied hours).
+- **It is the first thirty minutes.** You need no parcel, no lot and no capital:
+  you go to the campus farm and work. That is also how people actually learn
+  farming.
+- ⭐⭐ **It is the first test of D33.** If the campus farm can be authored against
+  the farmstead archetype with **zero pack code**, the mechanism/expression cut
+  was right — and we find that out here, cheaply, long before Heart's Delight.
+
+**D104 — ⭐⭐⭐ The agricultural ladder: labourer → tenant → owner.** The
+onboarding path is a real structure in agricultural economics (Spillman's
+*agricultural ladder*, 1919) and it is the same shape as the residence ladder
+(D62) — which is why the two should read as one progression rather than two:
+
+> **work somebody else's ground → a windowbox → a yard with hens → a tenancy →
+> a smallholding → a farm.**
+
+Rung zero is D103's campus farm, and it matters that it is rung *zero* rather
+than a tutorial: **you are doing the real acts on real ground for real pay**,
+which is the only on-ramp consistent with *everyone is an author* and with D59's
+account of how capital is actually accumulated.
+
+**D105 — Production floors are transforms, never faucets.** Two related risks
+the earlier drafts left unrecorded:
+
+- **The first animals.** Buying stock from a vendor is a faucet **unless that
+  vendor's herd actually breeds.** Seed a real breeding population as world
+  content — the `props`/`cast` designation exists for exactly this — and it
+  stops being one.
+- **Thin-population supply.** D80's market day and D81's producer trade need
+  somebody selling. The `farms` brain ships and NPC holdings can produce, but
+  **an NPC holding must run the same reconcile as a player's** — consuming feed,
+  drawing nitrogen, answering to winter. A vendor that mints goods on a timer
+  would quietly undo the conservation this whole build is built on.
+
+⭐ The university farm (D103) is the cleanest instance: it produces because it is
+farmed, and its output is small, seasonal and real.
+
+**D106 — What happens when a holder stops.** Absence is already handled — the
+world-time clock, the slopes of D45, the automation ladder as the paid floor. But
+**leaving** is not the same as being away, and the design should not pretend a
+holding is immortal:
+
+- **Land reverts** (D58). That is already the answer for ground, and it puts
+  derelict holdings in the world as real, buyable places.
+- **Animals are chattel with a chain of title** (D22, D98), so they do not
+  evaporate; they become somebody's problem and somebody's opportunity.
+- ⚠ **Nothing here should require a new mechanism.** Estates, incapacity and
+  succession are owned by the mortality and incapacity slates, and this build's
+  obligation is only to **not create an object those builds cannot dispose of.**
+
+
+---
+
+## Staging — ⚠ PROPOSED, needs the user's sign-off
+
+**This is no longer one build**, and the audit's largest finding is that nothing
+said so. 106 decisions accreted over eight lenses; the irreducible core is the
+**gate circle** — field + winter + livestock, three things that cannot be
+finished alone — and everything after it is elaboration on a working system.
+For scale: farming Stage B alone was six waves.
+
+The tiers below are a **proposal**, not a decision. How many of them belong in
+one MR is a scope call.
+
+| Tier | What | Why it sits there |
+|---|---|---|
+| **1 — the spine** | D1–D33 · D40–D42 · **D84–D94** (reading + cadence) · D102–D105 | the gate circle plus the rules that govern *how* everything reads and how often it is touched, which cannot be retrofitted. The teaching and on-ramp decisions are here because a build nobody can start is not shippable. |
+| **2 — the working farm** | D45–D68 (hazards, the plot lifecycle, materials, the wild) · D95–D101 (adversarial) | turns a correct system into a place with consequences. Severable from tier 1 in principle; probably not in practice, since D54's lifecycle changes what `plot` means. |
+| **3 — the economy** | D69–D74 (land-use modes, commons rights) · D79–D83 (the producer market) · D106 | needs producers to exist first. **D80's market day is the highest-value item in this tier** and the cheapest. |
+| **cuttable** | bees (D39) · salt (D71) · peat (D72) · wetland (D73) · saffron (D44) | each is severable from a working farm; each is marked at its decision |
+| **deferred to slates** | forestry industry · hunting · flowers/ornament · warranty | already non-goals; listed so the boundary is legible |
+
+⭐ **Two sequencing notes from the lenses:**
+
+- **D48 (hay fire) is the cheapest high-value thing in tier 2** — it reads the
+  moisture reserve, the fermentation heat model and `FireApi`, all shipped.
+- **[warranty-slate](../slates/builds/warranty-slate.md) should be built early**,
+  outside this build: auction, insurance and warranty are three slates converging
+  on one missing primitive, and D79–D81's producer trade is weaker without it.
 
 ---
 
@@ -1589,6 +1739,19 @@ the line falls. It should be legislated in play, not settled in this document.
     loss suffered offline has a route to redress — insurance, a claim, or both.
 60. Whether entry onto another's ground is a wrong is decided by the polity, not
     by the engine, and both answers are expressible.
+61. Every Api and mixin this build adds has help coverage, and **player-facing
+    help topics exist for the concepts** — nitrogen, body condition, residual and
+    recovery, grade — not only for the verbs.
+62. ⭐ The university farm is authored against the farmstead archetype with
+    **zero pack code**. *(This is D33's acceptance test, and failing it means the
+    mechanism/expression cut is wrong.)*
+63. A brand-new character with no land and no money can do real husbandry acts
+    for pay at the university farm within their first session.
+64. Every NPC-held production unit runs the same reconcile as a player's —
+    consuming inputs and answering to the season — and no vendor mints goods on a
+    timer.
+65. The animals a player first buys descend from a breeding population that
+    exists in the world.
 
 ## Slate revisions this cycle makes
 
