@@ -1152,6 +1152,83 @@ delegation — and does not cover producer co-ops, so **nothing in the repo desi
 this.** The shape wanted is shared ownership of a thing plus a rota for its use,
 which is chattel plus a group plus a schedule.
 
+### What any of this reads like
+
+*(D84–D88, added after the reading pass. The lens was run expecting a wall of
+numbers and found the opposite problem.)*
+
+**D84 — The risk is under-signal, not over-signal, and the design is already
+compliant by accident.** `card-surface.md`'s **body discipline** rule is our
+ladder, already house doctrine: *"`look` is vision — it reveals appearance and
+gross features; **an estimate at best for hidden quantities ("looks warm," never
+"37.4 °C")**… every fact has a **revelation condition**."*
+
+Because D4, D5 and D24 all say precision costs an act, **every quantity this
+build invents is invisible by default** — the four reserves, seeded character,
+improvement state, condition, sward height, colony strength. Honest opacity
+turns out to be brevity as well, and a wall of numbers cannot happen.
+
+⚠⚠ **Which leaves the other failure**, and it has a precedent in this repo: the
+unlit-interiors bug, where *the tell was every object reading "something," and
+the room prose still read fine.* The farm version is **a field that reads "a
+field" and a sheep that reads "a sheep"** — a design that is entirely correct and
+reads as scenery. This build has 83 decisions of mechanism and **no specified
+sentence of output**, and that is the gap.
+
+**D85 — ⭐⭐ The daily read is the DELTA, not the state.** Designing from the
+state change rather than the prose lands exactly on the daily loop:
+
+> A player walking into their paddock does not want a status report. **They want
+> what changed since yesterday.**
+
+*"The grass is well ahead of them. One ewe is hanging back."* Two clauses, and
+that is the whole daily read. **It scales to forty animals because the herd is a
+record** — a record can say *one of them* without naming forty, and it knows
+which one is exceptional.
+
+⭐ So the herdbook (D20) is now doing three jobs: **management, sale (D79), and
+legibility.** The aggregate is not a storage optimisation; it is what lets the
+prose stay short.
+
+**D86 — ⭐ A band is a percept, not a number in words.** The trap is subtle and
+fatal:
+
+| | |
+|---|---|
+| ✗ *"nitrogen: moderate"* | a gauge wearing a costume |
+| ✓ *"the crop is pale and thin in the low corner"* | a **symptom**, which the player diagnoses |
+
+The player reads what they would *see* and infers the cause — *derive from
+principles*, applied to output, and the thing that makes diagnosis a skill rather
+than a lookup.
+
+⚠ **And this is unpriced authoring work.** Soil moisture, nitrogen, organic
+matter, structure, sward height, condition, improvement, forage, colony strength,
+stand density — **ten-plus band vocabularies**, each needing three to five
+phrases that are genuinely distinguishable in prose. **If two bands read alike,
+the entire opacity ladder collapses into mush**, and no wave has costed it.
+
+**D87 — ⚠ Prose is presence; cards are the ledger — and farm state never goes in
+a room description.** The plural problem largely solves itself, because D3 made a
+field a **room**: you are never standing among your fields, you walk to one, so
+**the room graph is the pagination.**
+
+The overview belongs where overviews belong — the right column, as a card. Which
+gives the hard rule:
+
+> **Never put farm state in a room description.** The moment a field's
+> description carries its reserves, every location in the game becomes a status
+> readout and the world stops reading like a world.
+
+So the two acts stay separate: **`look` is vision** and renders a place;
+**`check` is the farm act** and renders the delta and the exceptions onto a card.
+
+**D88 — Holders name their fields.** Real farms always have — the top meadow, the
+wet corner, Long Acre — and the names carry the ground's history. The address
+substrate already ships. It is free characterisation *and* it solves reference:
+**"move them to the top meadow"** rather than "paddock 7."
+
+
 ---
 
 ## Constraints
@@ -1302,6 +1379,16 @@ which is chattel plus a group plus a schedule.
     buying beats making without anything being withheld.
 47. An indivisible capital asset can be owned jointly and its use scheduled
     between the owners.
+48. `look` at a field or an animal reveals appearance only; no reserve, score or
+    hidden quantity appears in a room description or in an unaided look.
+49. `check` reports **what changed and what is exceptional**, not a status dump,
+    and its length does not grow with headcount.
+50. ⭐ Every banded quantity has an **authored, percept-shaped** vocabulary whose
+    adjacent bands are distinguishable in prose by a reader who does not know the
+    underlying number. *(This is authoring work, and it is on the critical path —
+    if two bands read alike the honest-opacity model fails silently.)*
+51. A holder can name a field, and the name is what commands and prose use
+    thereafter.
 
 ## Slate revisions this cycle makes
 
