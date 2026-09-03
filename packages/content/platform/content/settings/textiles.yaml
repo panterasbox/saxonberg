@@ -1,0 +1,42 @@
+# textiles — the clo derivation's reference constants and the two fit /
+# wind coefficients.
+#
+# ⚠ What is NOT here is deliberate. `R_CLO = 0.155 m²·K/W` is the
+# definition of the unit; the thermal conductivities of still air
+# (0.026) and water (0.6) are facts about the world. None of those is a
+# dial and none of them ships as one — an operator who could move them
+# could make wool behave like steel. What an operator MAY move is the
+# reference body these numbers are stated against, and the weight of the
+# two consequences below.
+settings:
+  # The reference whole-body surface (m²) a garment's covered area is a
+  # share of — a biped-ish adult. A garment's own `slotClaims` pick out
+  # which parts it covers; this says how big the whole body is.
+  - key: textiles.clo.referenceSurfaceM2
+    value: "1.8"
+
+  # The share assumed for a garment whose `slotClaims` resolve to no
+  # body plan (a fixture, a stock row authored before its plan existed).
+  # A fallback, not a default: a real garment always resolves.
+  - key: textiles.clo.defaultCoveredFraction
+    value: "0.3"
+
+  # The `waterAbsorptionCapacity` (%) at which a soaked material's loft
+  # counts as fully flooded. ⭐ This is what decides how far apart wet
+  # wool (33%) and wet linen (20%) end up — set it at or below 33 and
+  # wool saturates, which flattens the distinction the whole wet model
+  # exists to show.
+  - key: textiles.clo.absorptionReference
+    value: "40"
+
+  # How much of a covered part's insulation an air gap costs at maximum
+  # looseness. A garment cut for a bigger body does not hug, and the
+  # trapped air it should have held convects away instead.
+  - key: textiles.fit.loosenessCloPenalty
+    value: "0.35"
+
+  # How much of the wind chill a fully close-woven, DRY outer layer
+  # removes. Not all of it: a coat is not a wall, and a hard enough wind
+  # still finds you.
+  - key: textiles.windproofWeight
+    value: "0.9"

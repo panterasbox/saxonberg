@@ -34,7 +34,6 @@ import type { Durable } from '../material/Durable';
 import type { Branded } from '../corpo/Branded';
 import { MixinApi } from '../../api/mixin';
 import { PerceptionApi } from '../../api/perception';
-import { SpeciesApi } from '../../api/species';
 import type { MarkupAugmenter } from '../../api/mml';
 import {
   MqlSubscriptionApi,
@@ -42,6 +41,8 @@ import {
   type SubscribableFieldDescriptor,
 } from '../../api/mql-subscription';
 import { Impression, type ImpressionClause } from './Impression';
+import { Quantity } from '../quantity';
+import type BodyPlan from '../../platform/idea/species/BodyPlan';
 import type {
   CaptureContext,
   SlottedSlice,
@@ -141,6 +142,85 @@ export interface Slotted {
    * *form sets the band, wear-order breaks ties inside a band*.
    */
   wornStack(): readonly (Stuff & Slottable & Wearable)[];
+
+  /**
+   * The covering over one body part, **outermost-first** — every worn
+   * occupant of a slot whose `covers` names `partKey`, ordered by the
+   * ladder (form sets the band; wear-order breaks ties inside a band).
+   *
+   * ⭐⭐ **This is the one outside-in walk.** Three logic singletons
+   * each hand-rolled a copy of it — the trauma covering walk, the
+   * struck-site armor stack, and the conduction walk — and they now
+   * call this. Each of them already holds the host, so the call *drops*
+   * a parameter rather than adding an Api hop.
+   *
+   * ⚠ Deliberately unfiltered by construction: the conduction walk
+   * cares about a rubber sole's material and not about whether it
+   * declares a form, so the shared method returns the occupants and
+   * each caller narrows. An occupant with no covering form sorts
+   * innermost.
+   *
+   * `includeHeld` appends wielded coverings — a raised shield fronts
+   * ANY struck part, so it is not tied to a `covers` edge. Off by
+   * default; combat and trauma turn it on when the blow is facing.
+   */
+  coveringAt(
+    partKey: string,
+    opts?: { includeHeld?: boolean },
+  ): readonly (Stuff & Slottable)[];
+
+  /**
+   * The outermost thing covering `partKey`, or `null` when the part is
+   * bare.
+   *
+   * ⭐ The soiling seam. When a deposit driver lands, it asks the
+   * wearer which layer takes the stain — which is why an apron works
+   * the moment room-condition ships, with nothing retrofitted here. It
+   * is a METHOD the future build calls, not a signal it listens for.
+   */
+  outermostAt(partKey: string): (Stuff & Slottable) | null;
+
+  /** The insulation stacked over one body part, in `clo`. */
+  insulationAt(partKey: string): Quantity<'clo'>;
+
+  /**
+   * Whole-body insulation in `clo`, **surface-weighted per part**.
+   *
+   * ⭐ This is what makes bare hands cost their surface share and a
+   * cloak beat a shirt because it covers more — neither of which a
+   * body-wide sum can express, which is the fidelity tier
+   * `Wearable.getClo`'s doc used to defer.
+   */
+  bodyInsulation(): Quantity<'clo'>;
+
+  /**
+   * How well the worn stack **breaks a wind**, `0..1` — the
+   * surface-weighted average of each part's OUTERMOST layer's weave
+   * density, discounted by how wet that layer is.
+   *
+   * ⭐ There is no `shell` role word and there is not going to be one:
+   * *the dense oiled thing simply IS one*. Windproofing is what a close
+   * weave does, so it derives from the number the loom already decides
+   * — which is also why `weave` is a real decision at the loom rather
+   * than a yield knob.
+   *
+   * ⚠ Only the outermost layer counts. A jumper under an open coat does
+   * not break a wind, which is the whole reason you put the coat on.
+   * And a soaked shell stops working, because wet cloth wicks the wind
+   * straight through.
+   */
+  windproofing(): number;
+
+  /**
+   * Would wearing `candidate` put a low band outside a high one? True
+   * iff its band is strictly below something already occupying a slot
+   * it claims.
+   *
+   * ⚠ Shirt-vs-coat is NOT a violation — both are band 0, that is the
+   * player's call, and its consequence is being cold rather than being
+   * prevented. What this refuses is a shirt over plate.
+   */
+  wouldLayerViolate(candidate: Stuff & Slottable): boolean;
 
   /**
    * **Take `item` off this body entirely** — every slot it occupies, as
@@ -333,7 +413,7 @@ function impressionClauses(
  */
 function impressionAugmenter(text: string, host: Stuff, viewer: Stuff): string {
   if (!MixinApi.isSlotted(host)) return text;
-  if (!SpeciesApi.tryGetBodyPlanPath(host)) return text;
+  if (!bodyPlanOf(host)) return text;
   const stack = host.wornStack();
   if (stack.length === 0) return text;
   const clauses = impressionClauses(stack);
@@ -345,6 +425,36 @@ function impressionAugmenter(text: string, host: Stuff, viewer: Stuff): string {
   const line = Impression.render(clauses, seed);
   if (!line) return text;
   return text && text.length > 0 ? `${text}\n\n${line}` : line;
+}
+
+/**
+ * The body plan a host resolves, or `null` — the guard every
+ * body-shaped method on this mixin shares. A weapon rack is `Slotted`
+ * too, and it has no anatomy, no impression and no covering stack.
+ */
+function bodyPlanOf(host: Stuff): BodyPlan | null {
+  // ⚠ Resolved the way the three walks this replaced resolved it —
+  // `Organism.getSpecies()?.getBodyPlan()` — rather than through a
+  // second mechanism. Two resolution paths for one fact is how the
+  // refactor would have silently changed behaviour at the edges.
+  if (!MixinApi.isOrganism(host)) return null;
+  return host.getSpecies()?.getBodyPlan() ?? null;
+}
+
+/**
+ * One occupant's band on the covering ladder — the construction's layer
+ * depth, or **0 (innermost) for anything carrying no covering form**.
+ *
+ * ⚠ Total by construction. `getLayerDepth()` throws on a
+ * weapon-delivery form, and a sheathed dagger is a legitimate slot
+ * occupant, so the guard is not defensive padding: it is what lets one
+ * comparator sort a mixed slot map.
+ */
+function depthOf(occupant: Stuff): number {
+  if (!MixinApi.isConstructed(occupant)) return 0;
+  const construction = occupant.getConstruction();
+  if (!construction || !construction.isCovering()) return 0;
+  return construction.getLayerDepth();
 }
 
 /** Wetness at or above which the stack reads as soaked. */
@@ -510,7 +620,139 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
           inWearOrder.push(occupant as Stuff & Slottable & Wearable);
         }
       }
-      return inWearOrder.reverse();
+      // ⭐ Outermost-first BY THE LADDER, not merely by wear order —
+      // the same comparator the covering stack uses, in one place.
+      return this.sortOutermostFirst(inWearOrder);
+    }
+
+    /**
+     * The ladder comparator, in ONE place: **form sets the band;
+     * wear-order breaks ties inside a band.**
+     *
+     * `depthOf` reads the construction's layer band (fabrics and kernel
+     * covering forms share one 0..4 ladder), and anything with no
+     * covering form sorts innermost at 0.
+     *
+     * ⚠ The input is in **wear order** (a `Set` preserves insertion, and
+     * the persistence spine re-wears through `occupyAll` in the captured
+     * order, so the order is durable with no new field). It is
+     * **reversed first**, then stably sorted — which is what makes
+     * *later-worn = outer* inside a band. Reversing after the sort, or
+     * not at all, silently gives you first-worn outer, and the two are
+     * indistinguishable until a body can actually hold two layers.
+     */
+    private sortOutermostFirst<T extends Stuff & Slottable>(
+      inWearOrder: readonly T[],
+    ): T[] {
+      return [...inWearOrder]
+        .reverse()
+        .sort(
+          (a, b) =>
+            depthOf(b as unknown as Stuff) - depthOf(a as unknown as Stuff),
+        );
+    }
+
+    public coveringAt(
+      partKey: string,
+      opts: { includeHeld?: boolean } = {},
+    ): readonly (Stuff & Slottable)[] {
+      const self = this as unknown as Stuff & Slotted;
+      const plan = bodyPlanOf(self);
+      if (!plan) return [];
+      const inWearOrder: (Stuff & Slottable)[] = [];
+      const seen = new Set<Stuff & Slottable>();
+      for (const spec of plan.getSlotsCovering(partKey)) {
+        for (const occ of this.getOccupants(spec.name)) {
+          if (seen.has(occ)) continue;
+          if (!MixinApi.isWearable(occ as unknown as Stuff)) continue;
+          seen.add(occ);
+          inWearOrder.push(occ);
+        }
+      }
+      if (opts.includeHeld) {
+        // A wielded covering — armor you HOLD. Unlike worn armor it is
+        // not tied to a `covers` edge: a raised shield fronts any part.
+        for (const occupants of this.getAllOccupants().values()) {
+          for (const occ of occupants) {
+            if (seen.has(occ)) continue;
+            const asStuff = occ as unknown as Stuff;
+            if (!MixinApi.isWieldable(asStuff)) continue;
+            if (!MixinApi.isConstructed(asStuff)) continue;
+            if (!asStuff.getConstruction()?.isCovering()) continue;
+            seen.add(occ);
+            inWearOrder.push(occ);
+          }
+        }
+      }
+      return this.sortOutermostFirst(inWearOrder);
+    }
+
+    public outermostAt(partKey: string): (Stuff & Slottable) | null {
+      return this.coveringAt(partKey)[0] ?? null;
+    }
+
+    public insulationAt(partKey: string): Quantity<'clo'> {
+      let clo = 0;
+      for (const layer of this.coveringAt(partKey)) {
+        const asStuff = layer as unknown as Stuff;
+        if (MixinApi.isWearable(asStuff)) clo += asStuff.getClo().rawValue();
+      }
+      return Quantity.of(clo, 'clo');
+    }
+
+    public bodyInsulation(): Quantity<'clo'> {
+      const self = this as unknown as Stuff & Slotted;
+      const plan = bodyPlanOf(self);
+      if (!plan) return Quantity.of(0, 'clo');
+      let total = 0;
+      for (const part of plan.getBodyParts()) {
+        if (part.governsVital) continue;
+        const share = plan.getPartSurfaceFraction(part.key);
+        if (!(share > 0)) continue;
+        total += share * this.insulationAt(part.key).rawValue();
+      }
+      return Quantity.of(total, 'clo');
+    }
+
+    public windproofing(): number {
+      const self = this as unknown as Stuff & Slotted;
+      const plan = bodyPlanOf(self);
+      if (!plan) return 0;
+      let weighted = 0;
+      for (const part of plan.getBodyParts()) {
+        if (part.governsVital) continue;
+        const share = plan.getPartSurfaceFraction(part.key);
+        if (!(share > 0)) continue;
+        const outer = this.outermostAt(part.key);
+        if (!outer) continue;
+        const asStuff = outer as unknown as Stuff;
+        const density = MixinApi.isConstructed(asStuff)
+          ? (asStuff.getConstruction()?.getFabric()?.weaveDensity ?? 1)
+          : 0;
+        const wetness = MixinApi.isWet(asStuff) ? asStuff.getWetness() : 0;
+        weighted += share * density * (1 - wetness);
+      }
+      return weighted < 0 ? 0 : weighted > 1 ? 1 : weighted;
+    }
+
+    public wouldLayerViolate(candidate: Stuff & Slottable): boolean {
+      const self = this as unknown as Stuff & Slotted;
+      const plan = bodyPlanOf(self);
+      if (!plan) return false;
+      const asStuff = candidate as unknown as Stuff;
+      if (!MixinApi.isWearable(asStuff)) return false;
+      const planPath = plan.getTemplatePath();
+      if (!planPath) return false;
+      const claims = asStuff.getSlotClaim(planPath);
+      if (claims.length === 0) return false;
+      const band = depthOf(asStuff);
+      for (const slot of claims) {
+        for (const occ of this.getOccupants(slot)) {
+          if (occ === candidate) continue;
+          if (depthOf(occ as unknown as Stuff) > band) return true;
+        }
+      }
+      return false;
     }
 
     public canOccupy(candidate: Stuff & Slottable, slot: string): boolean {

@@ -12,7 +12,9 @@ data:
   # it's a non-anatomical surface affordance, the case that keeps slots a
   # distinct axis rather than something anatomy owns.
   slots:
-    - { name: head,    accepts: WearableMixin, covers: [body.head] }
+    # Capacity 4, the biped's reason: a covering slot that holds one
+    # thing cannot layer, and the covering stack has nothing to walk.
+    - { name: head,    accepts: WearableMixin, capacity: 4, covers: [body.head] }
     - { name: collar,  accepts: WearableMixin }
     - { name: 'back:1', accepts: SlottableMixin, userFacingDetail: back }
     # Cranial implant slot — parallel to biped. See augmentation

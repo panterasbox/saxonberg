@@ -237,23 +237,22 @@ function footPartsOf(body: Stuff): string[] {
  */
 function groundContactInsulated(body: Stuff): boolean {
   if (!MixinApi.isOrganism(body) || !MixinApi.isSlotted(body)) return false;
-  const plan = body.getSpecies()?.getBodyPlan();
-  if (!plan) return false;
   const insulatorMax = dial(
     AppSettingKeys.electricityInsulatorMaxConductivity,
     0.001,
   );
+  // ⭐ ONE outside-in walk, on the body that owns the slots — the third
+  // of the three hand-rolled copies this replaced. ⚠ Note what this
+  // caller does NOT ask for: a covering FORM. A rubber sole insulates
+  // whether or not anyone authored it a construction, so the shared
+  // method returns the worn occupants and each caller narrows on the
+  // property it actually cares about — here, conductivity.
   for (const part of footPartsOf(body)) {
-    for (const spec of plan.getSlotsCovering(part)) {
-      for (const occ of body.getOccupants(spec.name)) {
-        if (!MixinApi.isWearable(occ)) continue;
-        const mat = MixinApi.isTangible(occ) ? occ.getMaterial() : null;
-        if (
-          mat &&
-          mat.getElectricalConductivity().rawValue() <= insulatorMax
-        ) {
-          return true;
-        }
+    for (const occ of body.coveringAt(part)) {
+      const asStuff = occ as unknown as Stuff;
+      const mat = MixinApi.isTangible(asStuff) ? asStuff.getMaterial() : null;
+      if (mat && mat.getElectricalConductivity().rawValue() <= insulatorMax) {
+        return true;
       }
     }
   }

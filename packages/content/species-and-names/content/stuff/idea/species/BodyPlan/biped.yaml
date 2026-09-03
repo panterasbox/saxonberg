@@ -22,12 +22,23 @@ data:
   # yet). Multi-part wear slots (legs/feet/hands) have no single
   # `bodyPart`; the cranial bay and neck attach at a part but cover
   # nothing. See docs/subsystems/vitals.md.
+  # ⚠⚠ The covering slots carry `capacity: 4`, and without it LAYERING
+  # IS IMPOSSIBLE. Every wear slot defaulted to capacity 1, so a body
+  # could hold exactly one torso garment — the shipped gambeson and the
+  # shipped hauberk could never be worn together, and the whole
+  # outside-in covering model (the resist fold, the ladder, per-part
+  # insulation) had nothing to walk. Four is a real historical stack:
+  # shirt, gambeson, mail, surcoat.
+  #
+  # It is a CAP rather than unbounded because "wear forty shirts" would
+  # otherwise be free insulation; the ladder decides the ORDER, and this
+  # decides how deep it can get.
   slots:
-    - { name: head,           accepts: WearableMixin, covers: [body.head] }
-    - { name: torso,          accepts: WearableMixin, covers: [body.torso] }
-    - { name: legs,           accepts: WearableMixin, covers: [body.leg.left, body.leg.right] }
-    - { name: feet,           accepts: WearableMixin, covers: [body.leg.left.foot, body.leg.right.foot] }
-    - { name: hands,          accepts: WearableMixin, covers: [body.arm.left.hand, body.arm.right.hand] }
+    - { name: head,           accepts: WearableMixin, capacity: 4, covers: [body.head] }
+    - { name: torso,          accepts: WearableMixin, capacity: 4, covers: [body.torso] }
+    - { name: legs,           accepts: WearableMixin, capacity: 4, covers: [body.leg.left, body.leg.right] }
+    - { name: feet,           accepts: WearableMixin, capacity: 4, covers: [body.leg.left.foot, body.leg.right.foot] }
+    - { name: hands,          accepts: WearableMixin, capacity: 4, covers: [body.arm.left.hand, body.arm.right.hand] }
     - { name: 'finger:left',  accepts: WearableMixin, bodyPart: body.arm.left.hand }
     - { name: 'finger:right', accepts: WearableMixin, bodyPart: body.arm.right.hand }
     - { name: neck,           accepts: WearableMixin }

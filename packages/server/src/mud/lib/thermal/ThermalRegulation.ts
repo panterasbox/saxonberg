@@ -392,7 +392,21 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
         BiomeApi.conductivityOf(mediumTag).rawValue() /
         BiomeApi.conductivityOf("air").rawValue();
       if (ambientK < this.setpointK) {
-        ambientK -= D.WIND_CHILL_PER_MS * windMs * Math.sqrt(immersion);
+        // ⭐ The outer layer breaks the wind. No `shell` role word: a
+        // close weave IS windproofing, so the term derives from the
+        // number the loom already decides — and a soaked shell stops
+        // working, because wet cloth wicks it straight through. A body
+        // with nothing on reads 0 and the chill is untouched.
+        const windproof = MixinApi.isSlotted(self) ? self.windproofing() : 0;
+        const shelter =
+          1 -
+          windproof *
+            readDial(
+              AppSettingKeys.textilesWindproofWeight,
+              D.WINDPROOF_WEIGHT,
+            );
+        ambientK -=
+          D.WIND_CHILL_PER_MS * windMs * Math.sqrt(immersion) * shelter;
         // Immersion in a cold dense medium drives effective ambient toward
         // the medium temperature far faster — fold a fraction of the gap.
         if (immersion > 2) {
@@ -555,19 +569,27 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
       );
     }
 
-    /** Worn-slot `clo` sum, expressed as a Kelvin band-widening. */
+    /**
+     * Worn insulation as a Kelvin band-widening — **surface-weighted per
+     * body part**, not a body-wide sum.
+     *
+     * ⭐⭐ This is the thermal consumer of `getSlotsCovering` that never
+     * existed. The old read summed `getClo()` over every occupant with
+     * no part awareness at all, which is why a body-wide sum *cannot*
+     * teach that bare extremities cost you: a pair of gloves and a
+     * cloak of the same clo were worth the same, and going out with
+     * nothing on your hands was free.
+     *
+     * `bodyInsulation()` weights each part's covering by its share of
+     * the body's surface (Meeh's law over the authored tissue masses),
+     * so a bare hand costs exactly its surface share and a cloak beats
+     * a shirt because it covers more parts. A host with no body plan
+     * answers zero, as before.
+     */
     protected wornInsulationKelvin(): number {
       const self = this.regHost;
       if (!MixinApi.isSlotted(self)) return 0;
-      let clo = 0;
-      // `getAllOccupants()` yields `Stuff & Slottable`; `isWearable`
-      // narrows each occupant in place, so `getClo()` is a typed call.
-      for (const occupants of self.getAllOccupants().values()) {
-        for (const occ of occupants) {
-          if (MixinApi.isWearable(occ)) clo += occ.getClo().rawValue();
-        }
-      }
-      return clo * THERMAL_DEFAULTS.CLO_TO_KELVIN;
+      return self.bodyInsulation().rawValue() * THERMAL_DEFAULTS.CLO_TO_KELVIN;
     }
 
     /**

@@ -123,8 +123,17 @@ the `Chair`/`sit` posture-slot side this gates.
 
 `SlotSpec.capacity` defaults to 1. Authored values:
 
-- `1` (default) — chairs, mount slots, worn-clothing slots.
-- `> 1` — benches (4), queen bed (2).
+- `1` (default) — chairs, mount slots.
+- `> 1` — benches (4), queen bed (2), and ⚠ **every covering slot**
+  (`capacity: 4` on the biped's and quadruped's `head` / `torso` /
+  `legs` / `feet` / `hands`). Worn-clothing slots used to take the
+  default, which meant **layering was impossible**: one torso garment,
+  full stop, so the shipped gambeson and hauberk could never be worn
+  together and the covering stack had nothing to walk. Four is a real
+  historical stack — shirt, gambeson, mail, surcoat — and it is a cap
+  rather than unbounded because "wear forty shirts" would otherwise be
+  free insulation. The ladder decides the ORDER; this decides the
+  DEPTH.
 - `UNBOUNDED_CAPACITY` (= `Number.MAX_SAFE_INTEGER`) — floor's
   `ground:1`. **Don't use `Infinity`** — it doesn't round-trip
   through JSON/BSON. The sentinel constant is JSON-safe and

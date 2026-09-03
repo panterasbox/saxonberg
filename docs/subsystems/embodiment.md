@@ -31,10 +31,56 @@ slotClaims:
 A body plan that doesn't appear in `slotClaims` is ineligible —
 `fitsSlot` returns false.
 
-The thermal build added `clo: Quantity<'clo'>` to `WearableMixin`
-(default `0`) — the thermal insulation a worn garment contributes,
-summed body-wide by `ThermalRegulationMixin`'s worn-slot walk (a parka
-authors ~4). See [thermal.md](./thermal.md).
+`WearableMixin.getClo()` is the thermal insulation a worn garment
+contributes. ⚠⚠ **It is DERIVED and the field is gone** (textiles): a
+wool coat is warm because wool conducts at 0.04 W/mK and its form traps
+air, not because somebody typed a number, and an authored `clo` silently
+overrode the whole thermal model. It reads material density and
+conductivity, the construction form's loft, the garment's mass, and its
+own `slotClaims` (so a garment states its clo with no wearer). See
+[thermal.md](./thermal.md) § *Worn insulation*.
+
+### ⭐ The covering stack — one walk, on the wearer
+
+`SlottedMixin` answers about its own slots:
+
+| method | answers |
+|---|---|
+| `wornStack()` | everything worn, outermost-first (`Wearable` occupants only — a sheathed sidearm is *slotted*, not worn) |
+| `coveringAt(part, {includeHeld})` | the covering over one body part, outermost-first |
+| `outermostAt(part)` | which layer takes a deposit — the soiling seam |
+| `insulationAt(part)` / `bodyInsulation()` | clo over a part / surface-weighted over the body |
+| `windproofing()` | how well the outermost layer breaks a wind |
+| `wouldLayerViolate(candidate)` | the ladder refusal |
+
+⭐⭐ **Three logic singletons hand-rolled the same outside-in walk** —
+the trauma covering walk, the struck-site armor stack and the conduction
+walk — and all three now call `coveringAt`. Each already holds the host,
+so the call *drops* a parameter rather than adding an Api hop. ⚠ There is
+no covering-stack Api and there must not be: a covering read is one host
+answering about its own slots, which is none of the four mandates
+`check-object-verbs` allows.
+
+**The ordering rule, in one comparator:** *form sets the band; wear-order
+breaks ties inside a band.* Bands are `Construction.getLayerDepth()`
+(padded 0 · quilted 1 · hide 2 · mail 3 · plate 4, and a fabric's own
+`layerBand` on the same ladder); anything with no covering form sorts
+innermost. Wear order is slot insertion order, and the persistence spine
+re-wears through `occupyAll` in the captured order, so it is **durable
+with no new field**.
+
+⚠ `WearController` refuses only the **inversion** — a low band outside a
+high one, i.e. a shirt over plate, with a `layer-order` note.
+Shirt-vs-coat is not refused: both are band 0, which goes on first is
+the player's call, and its consequence is being cold.
+
+⚠⚠ **Covering slots need `capacity` > 1 and did not have it.** Every
+wear slot defaulted to 1, so a body could hold exactly one torso garment
+— the shipped gambeson and the shipped hauberk could never be worn
+together, and the entire outside-in model had nothing to walk. The
+biped's and quadruped's covering slots now carry `capacity: 4` (shirt,
+gambeson, mail, surcoat). It is a cap rather than unbounded because
+"wear forty shirts" would otherwise be free insulation.
 
 ## `fitsSlot` overrides
 

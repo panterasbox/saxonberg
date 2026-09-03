@@ -2760,30 +2760,18 @@ function coveringGearAt(
   shieldFacing: boolean,
 ): Stuff[] {
   if (!MixinApi.isOrganism(target) || !MixinApi.isSlotted(target)) return [];
-  const items: Array<{ item: Stuff; depth: number }> = [];
-  const covering = target.getSpecies()?.getBodyPlan()?.getSlotsCovering(site);
-  for (const spec of covering ?? []) {
-    for (const occ of target.getOccupants(spec.name)) {
-      if (!MixinApi.isConstructed(occ) || !MixinApi.isWearable(occ)) continue;
-      const construction = occ.getConstruction();
-      if (!construction || !construction.isCovering()) continue;
-      items.push({ item: occ as Stuff, depth: construction.getLayerDepth() });
-    }
+  // ⭐ ONE outside-in walk, on the target that owns the slots — the
+  // second of the three hand-rolled copies this replaced. `includeHeld`
+  // is the raised shield, which fronts any struck part rather than
+  // riding a `covers` edge.
+  const items: Stuff[] = [];
+  for (const occ of target.coveringAt(site, { includeHeld: shieldFacing })) {
+    const asStuff = occ as unknown as Stuff;
+    if (!MixinApi.isConstructed(asStuff)) continue;
+    if (!asStuff.getConstruction()?.isCovering()) continue;
+    items.push(asStuff);
   }
-  if (shieldFacing) {
-    for (const [, occupants] of target.getAllOccupants()) {
-      for (const occ of occupants) {
-        if (!MixinApi.isWieldable(occ) || !MixinApi.isConstructed(occ)) {
-          continue;
-        }
-        const construction = occ.getConstruction();
-        if (!construction || !construction.isCovering()) continue;
-        items.push({ item: occ as Stuff, depth: construction.getLayerDepth() });
-      }
-    }
-  }
-  items.sort((a, b) => b.depth - a.depth);
-  return items.map((i) => i.item);
+  return items;
 }
 
 /**

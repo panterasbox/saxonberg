@@ -117,37 +117,25 @@ function resolveCoveringStack(
   shieldFacing = true
 ): CoveringLayer[] {
   if (!MixinApi.isOrganism(host) || !MixinApi.isSlotted(host)) return [];
+  // ⭐ ONE outside-in walk, on the host that owns the slots. This used
+  // to be a hand-rolled copy — the same loop existed here, in the
+  // struck-site armor stack, and in the conduction walk. `coveringAt`
+  // returns the occupants ordered by the ladder and leaves the
+  // narrowing to the caller, because each of the three cares about a
+  // different property.
+  //
+  // `includeHeld` is the shield: a `Wieldable` carrying a COVERING
+  // construction (armor you hold, not wear) fronts a *facing* attacker
+  // and is not tied to a `covers` edge — combat gates it so a flanking
+  // blow under focus-fire bypasses it.
   const layers: CoveringLayer[] = [];
-  const covering = host.getSpecies()?.getBodyPlan()?.getSlotsCovering(partKey);
-  for (const spec of covering ?? []) {
-    for (const occ of host.getOccupants(spec.name)) {
-      if (!MixinApi.isConstructed(occ) || !MixinApi.isWearable(occ)) continue;
-      const construction = occ.getConstruction();
-      if (!construction || !construction.isCovering()) continue;
-      layers.push(layerOf(occ, construction));
-    }
+  for (const occ of host.coveringAt(partKey, { includeHeld: shieldFacing })) {
+    const asStuff = occ as unknown as Stuff;
+    if (!MixinApi.isConstructed(asStuff)) continue;
+    const construction = asStuff.getConstruction();
+    if (!construction || !construction.isCovering()) continue;
+    layers.push(layerOf(asStuff, construction));
   }
-  // A wielded **shield** — a `Wieldable` item carrying an *armor*
-  // construction (armor you hold, not wear; distinct from a weapon's
-  // delivery construction and from worn `Wearable` armor) — covers a
-  // *facing* attacker (directional; combat gates `shieldFacing` so a
-  // flanking blow under focus-fire bypasses it). Unlike worn armor it isn't
-  // tied to a body-plan `covers` slot: a raised shield fronts any struck part.
-  if (shieldFacing) {
-    for (const [, occupants] of host.getAllOccupants()) {
-      for (const occ of occupants) {
-        if (!MixinApi.isWieldable(occ) || !MixinApi.isConstructed(occ)) continue;
-        const construction = occ.getConstruction();
-        if (!construction || !construction.isCovering()) continue;
-        layers.push(layerOf(occ, construction));
-      }
-    }
-  }
-  if (layers.length === 0) return [];
-  // Outside-in: highest layer depth first (plate/shield outer, padded inner).
-  layers.sort(
-    (a, b) => b.construction.getLayerDepth() - a.construction.getLayerDepth(),
-  );
   return layers;
 }
 

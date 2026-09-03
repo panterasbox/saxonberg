@@ -439,6 +439,44 @@ export default class BodyPlan extends SingletonMixin(PropertiedMixin(Idea)) {
   }
 
   /**
+   * The share of this body's **external surface** that `partKey`
+   * carries, as a fraction summing to 1 across the plan.
+   *
+   * ⭐ Derived by **Meeh's law** — surface scales as `mass^(2/3)` — over
+   * the tissue masses `bodyParts` already authors. There is no new
+   * authored field and there is not going to be one: a per-part surface
+   * number would be a second copy of a fact the tissue masses already
+   * carry, and the two would drift.
+   *
+   * ⚠ **Organs are excluded.** A part with `governsVital` is internal
+   * (the heart, the lungs) and has no external surface at all; counting
+   * it would dilute every other part's share by a body nobody can put a
+   * coat on. That signal is already in the data, so the exclusion is
+   * principled rather than a hand-picked list.
+   *
+   * This is what lets *"an uncovered part is colder"* mean something
+   * proportionate: a bare hand costs exactly its surface share (~2.7% of
+   * a biped, each), and a cloak beats a shirt because it covers more.
+   * A plan with no authored tissue masses returns `0` for everything
+   * and the caller falls back to a body-wide read.
+   */
+  public getPartSurfaceFraction(partKey: string): number {
+    let total = 0;
+    let own = 0;
+    for (const part of this.bodyParts) {
+      if (part.governsVital) continue;
+      let mass = 0;
+      for (const t of part.tissues ?? []) mass += t.mass;
+      if (!(mass > 0)) continue;
+      const area = Math.pow(mass, 2 / 3);
+      total += area;
+      if (part.key === partKey) own = area;
+    }
+    if (!(total > 0)) return 0;
+    return own / total;
+  }
+
+  /**
    * Derived helper — the deduped list of sense channels this body
    * plan instantiates. Built from `sensoryPorts` in insertion order
    * (a Set preserves first-insertion order). A sessile body plan

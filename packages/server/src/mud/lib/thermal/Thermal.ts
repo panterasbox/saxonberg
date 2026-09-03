@@ -117,6 +117,12 @@ export const THERMAL_DEFAULTS = {
   WET_BULB_CEILING_K: 308,
   /** Wind-chill: each m/s of wind cools effective ambient this many K. */
   WIND_CHILL_PER_MS: 0.6,
+  /**
+   * How much of the wind chill a fully close-woven, dry OUTER layer
+   * removes (`0..1`). Not the whole of it: a coat is not a wall, and a
+   * hard enough wind still finds you.
+   */
+  WINDPROOF_WEIGHT: 0.9,
   /** Lethal dwell (game-seconds) before hypo/hyperthermia kills. */
   THERMAL_LETHAL_SEC: 3 * 3600,
   /** Hysteresis: clear a thermal condition once core re-enters this margin (K). */

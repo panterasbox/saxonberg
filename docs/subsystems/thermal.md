@@ -131,8 +131,57 @@ case). `effectiveAmbient()` (a `protected` re-stamp-time resolver, **not**
 an Api) sums biome ambient + occupied warming-slot `warmth` + the
 wind-chill (cold) / heat-index (hot) transforms read through the
 surrounding-medium conductivity (immersion: cold water chills far
-faster). Worn `clo` (on `WearableMixin`, summed over the worn-slot walk)
-widens the comfort band downward.
+faster). Worn `clo` widens the comfort band downward.
+
+### ⭐⭐ Worn insulation is SURFACE-WEIGHTED PER PART, and `clo` DERIVES
+
+Both halves changed in the textiles build, and both were the same
+defect: a number that should have come from physics was a flat sum over
+an authored field.
+
+**`clo` derives.** The persistent `clo` field on `WearableMixin` is
+gone. A wool coat is warm because wool conducts at 0.04 W/mK and its
+form traps air:
+
+```
+clo   = (t / k_eff) / R_CLO           R_CLO = 0.155 m²·K/W
+t     = mass / (density × A_covered)
+k_eff = k_fibre·(1 − loft) + k_void·loft
+k_void = k_air·(1 − s) + k_water·s    s = wetness × min(1, wAC / ABS_REF)
+```
+
+⭐ `loft` is the **construction form's**, which is why *form sets the
+band* is not merely an ordering rule — a knit traps air and a plain
+weave does not, so the same wool insulates differently by how it was
+made. `A_covered` comes from the garment's own `slotClaims`, so it
+states its `clo` **with no wearer** (the inspection card needs that).
+
+⭐ **Wet cloth is a different object.** Water floods the loft, and the
+loft is where the insulation lived — `k_water` is 23× `k_air`. Wet wool
+retains more than wet linen because `waterAbsorptionCapacity` differs
+(33% vs 20%), not because anything is special-cased. And `getMass()` is
+wetness-aware on `Tangible`, so a soaked cloak is genuinely heavier to
+encumbrance. ⚠ **Organisms are excluded from that**, deliberately: flesh
+authors a 25% absorption capacity, so without the carve-out a rained-on
+character would gain a quarter of their mass and move carry capacity,
+thermal mass, basal drain and the mass-scaled fist at once. A body's
+water is metabolism's business.
+
+**The sum is per part.** `wornInsulationKelvin()` now reads
+`Slotted.bodyInsulation()`, which weights each part's covering by its
+share of the body's surface — Meeh's law (`m^(2/3)`) over the tissue
+masses `BodyPlan.bodyParts` already authors, organs excluded. ⚠ A
+body-wide sum **cannot** teach that bare extremities cost you: gloves
+and a cloak of the same clo were worth exactly the same, and going out
+with nothing on your hands was free. Now a bare hand costs its surface
+share and a cloak beats a shirt because it covers more.
+
+**Wind.** `windproofing()` is the surface-weighted average of each
+part's **outermost** layer's `weaveDensity`, discounted by that layer's
+wetness, and it scales the wind-chill term down by
+`textiles.windproofWeight`. ⭐ There is no `shell` role word: *the dense
+oiled thing simply is one*. A jumper under an open coat does not break a
+wind, and a soaked shell stops working.
 
 ### Cascade → conditions
 

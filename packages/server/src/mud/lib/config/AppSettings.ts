@@ -1421,6 +1421,32 @@ export const AppSettingKeys = {
    * so investing in treatment moves the threshold rather than the
    * river. */
   waterFouledAt: "water.fouledAt",
+
+  /* ─────────────────────────── textiles ─────────────────────────── */
+  /**
+   * Textiles — the `clo` derivation's three reference constants. ⚠ The
+   * PHYSICS is not dialable and is not here: `R_CLO = 0.155 m²·K/W` is
+   * the unit's definition, and the conductivities of air and water are
+   * facts. What operators may move is the reference BODY these numbers
+   * are stated against.
+   */
+  /** Textiles — reference whole-body surface area (m²) a garment's
+   * covered area is a share of. */
+  textilesCloReferenceSurfaceM2: "textiles.clo.referenceSurfaceM2",
+  /** Textiles — surface share assumed for a garment whose `slotClaims`
+   * resolve to no body plan (a fixture, a stock row). */
+  textilesCloDefaultCoveredFraction: "textiles.clo.defaultCoveredFraction",
+  /** Textiles — the `waterAbsorptionCapacity` (%) at which a soaked
+   * material's loft counts as fully flooded. Wool sits at 33 and linen
+   * at 20, so this is what decides how far apart wet wool and wet linen
+   * end up. */
+  textilesCloAbsorptionReference: "textiles.clo.absorptionReference",
+  /** Textiles — how much of a covered part's insulation an air gap
+   * costs at maximum looseness (`0..1`). The fit consequence. */
+  textilesFitLoosenessCloPenalty: "textiles.fit.loosenessCloPenalty",
+  /** Textiles — the outermost layer's weave density scales a wind
+   * term; this is its weight against the still-air baseline. */
+  textilesWindproofWeight: "textiles.windproofWeight",
 } as const;
 
 export type AppSettingKey =

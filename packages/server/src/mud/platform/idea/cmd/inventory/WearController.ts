@@ -21,9 +21,31 @@ import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
 import { SpeciesApi } from '../../../../api/species';
+import type { Stuff } from '../../../../lib/stuff/Stuff';
+import type { Slotted } from '../../../../lib/slot/Slotted';
 
 interface WearModel extends CommandModel {
   target: MqlOneResult;
+}
+
+/**
+ * The presentation of the outermost thing already occupying one of
+ * `slots` — what the refusal names, so the line says what is in the
+ * way rather than *"no"*. Falls back to a bare phrase if the stack has
+ * gone empty between the check and the read.
+ */
+function outermostClaimedBy(
+  giver: Stuff & Slotted,
+  candidate: Stuff,
+  slots: readonly string[],
+): string {
+  for (const slot of slots) {
+    for (const occ of giver.getOccupants(slot)) {
+      if ((occ as unknown as Stuff) === candidate) continue;
+      return (occ as unknown as Stuff).getPresentation();
+    }
+  }
+  return 'what you already have on';
 }
 
 export default class WearController extends CommandController<WearModel> {
@@ -73,6 +95,27 @@ export default class WearController extends CommandController<WearModel> {
         kind: 'controller-rejected',
         reason: 'wrong-fit',
         detail: `${target.getPresentation()} doesn't fit your body`,
+      });
+      return;
+    }
+    // ⚠ The ladder refusal, and it is narrow on purpose: a low band may
+    // not go OUTSIDE a high one — you cannot put a shirt over plate.
+    // Shirt-vs-coat is NOT refused: both are band 0, which of them goes
+    // on first is the player's call, and getting it wrong should make
+    // you cold rather than be prevented.
+    if (giver.wouldLayerViolate(target)) {
+      const outer = outermostClaimedBy(giver, target, slots);
+      MessageApi.scene(giver)
+        .topic('sense.survey')
+        .toSelf(
+          Mml.compose`${Mml.thing(target)} won't go on over ${outer}.`,
+        )
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'layer-order',
+        detail:
+          `${target.getPresentation()} would sit outside something heavier`,
       });
       return;
     }
