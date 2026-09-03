@@ -78,28 +78,64 @@ precisely so they could travel. Host constraint drops to `Stuff & Reserved`.
 is a pure refactor: **every existing husbandry and smallholding test must pass
 unchanged, with no test edits.** That is the wave's acceptance test.
 
-### P2 — the field is `Field extends PersistentCartesianLocation`
+### P2 — `Field` is a PACK location class, in `trade-farming`
 
-`platform/location/Field.ts`. It plots (`coords:` is membership — every location
-plots), it persists (soil state is per-instance), and it composes
-`SoilMixin` + `ReservedMixin`. It is **not** a `FurnishableRoom` — that class is
-the furnishing archetypes' base.
+**Corrected 2026-09-03.** An earlier draft put it in `platform/location/` without
+checking whether location classes live in packs. **They do:** `trade-mining`
+ships `MineRoom` (a location class), `MineWarren`, `AuthoredWorking` and
+`Deposit` — an entire land-use vertical inside a pack, working.
 
-It goes on `lint:locations`' `MINTED_ROWS` roster, which is a deliberate,
-reviewer-visible diff answering *"is this a KIND of place?"* — yes.
+`packages/content/trade-farming/src/location/Field.ts`, extending
+`PersistentCartesianLocation` and composing the **kernel** `SoilMixin` (P1) plus
+`ReservedMixin`. It plots (`coords:` is the membership operation — every location
+plots) and it persists, because soil state is per-instance.
 
-### P3 — ⚠ ground character is a KERNEL field, and needs the user's nod
+It is **not** a `FurnishableRoom` — that class is the furnishing archetypes'
+base. It goes on `lint:locations`' minted-`CartesianLocation` roster, which the
+lint family reaches because it walks every pack's `src/` as well as the kernel;
+that entry is a deliberate, reviewer-visible diff answering *"is this a KIND of
+place?"* — yes.
 
-`lib/husbandry/GroundCharacter.ts` — the third seeded field after weather and
-`Deposit`, following the shipped pattern exactly: hash/mix/roll derived from the
-covering Locality's address prefix, **storing nothing**.
+### P3 — `GroundCharacter` is the PACK's, beside `Field`
 
-**Kernel, not a pack**, because `GardenBed` is a kernel class and a kernel class
-cannot import a pack — the same argument that forces `SoilMixin` into the kernel.
-⚠ This is the one placement where the mining precedent points the other way
-(`Deposit` lives in `trade-mining`), so it deserves an explicit call rather than
-an assumption. **Per D6 it re-implements the ~30 lines rather than importing
-weather's.**
+**Decided 2026-09-03**, reversing an earlier recommendation whose premise did not
+hold.
+
+The earlier argument was *"kernel, because `GardenBed` is a kernel class and
+cannot import a pack."* That requires a **bed to have ground character**, and by
+**D65 it does not** — a bed's soil is *imported*, which is the entire scale rule
+and the reason a bed's texture is free while a field's is fixed. A pot certainly
+has none. **So no kernel class needs character; its only consumer is the field.**
+
+⭐ **The two halves of soil have different consumer sets, and that is the whole
+decision:**
+
+| | Consumers | Home |
+|---|---|---|
+| **derived** — moisture, nitrogen, the checkpoint, the sky edge | `GardenBed`, `PlantPot` **and** `Field` | **kernel** (P1, unchanged — the argument was sound *for this half*) |
+| **seeded** — texture, drainage, aspect, depth, native pH | **only `Field`** | **`trade-farming`** |
+
+So: `packages/content/trade-farming/src/idea/GroundCharacter.ts`. It follows the
+shipped seeded-field pattern exactly — hash/mix/roll derived from the covering
+Locality's address prefix, **storing nothing** — and per **D6 it re-implements
+those ~30 lines rather than importing weather's.** `Deposit` is now a **sibling**
+rather than a counter-example.
+
+⚠ **Not `/system/soil`, yet.** The axis test passes — soil is true whether or not
+anyone farms it, exactly like `/system/water` — but the field-substrate slate's
+own rule governs: **"two instances is where a pattern is NAMED, not factored,"**
+which is why it resisted a `FieldApi` at two consumers. Two sibling trades in one
+build is not enough to mint a system pack.
+
+⭐ **And deferring costs nothing here specifically:** a move is a path rename, and
+the standing rule is *no migrations ever — a rename is a DB drop*. Promote to
+`/system/soil` when a **third, non-farming** consumer appears.
+
+**Consequence, stated plainly: `trade-ranching` depends on `trade-farming`.**
+That is honest rather than awkward — *pasture is a field*, so the ranching pack
+building on the farming pack is the dependency the design already asserts, and
+pack-to-pack dependency is the metal chain's shipped shape
+(mining → fuel → smelting).
 
 ### P4 — the herdbook is a DOCUMENT on the trade's branch, not the holder's
 
@@ -283,17 +319,30 @@ per-species override could layer later without changing callers.
 
 ### P9 — the pack cut, restated as file moves
 
-- **Kernel** — `SoilMixin`, `GroundCharacter`, `Field`, the maturation driver on
-  `Organism`, the `ChattelMixin` + `BrandedMixin` moves, `HandlingMixin`,
-  `CelestialApi.dayLength`.
-- **`trade-ranching`** (new pack) — the **herd registry branch and its title claim** (P4), `draft`/`shear`/`milk`/
-  `muck`, the farmstead venue archetype, the hand's brain, the ranching
-  disciplines.
+Revised by P2/P3: **the field and its character are the farming pack's**, and
+only genuinely shared substrate stays in the kernel.
+
+- **Kernel** — `SoilMixin` (P1: beds and pots compose it), the **`flesh`**
+  reserve and the maturation driver on `Organism`, the `ChattelMixin` +
+  `BrandedMixin` moves onto the `Creature` stack, `HandlingMixin`,
+  `CelestialApi.dayLength`, and the `herd` entry in `DocumentKinds` *(a kind is a
+  platform act by construction)*.
+  ⭐ Every one of these has **composers with no common pack ancestor** — which is
+  the actual test, and the reason `Field` and `GroundCharacter` fail it.
+- **`trade-farming`** — ⭐ **`Field`** (P2), **`GroundCharacter`** (P3), the
+  sward, the land-use derivation, reclamation and `plough`, barley, clover,
+  turnips, saffron.
+- **`trade-ranching`** (new pack, **depends on `trade-farming`**) — the herd
+  registry branch and its title claim (P4), `draft`/`shear`/`milk`/`muck`, the
+  farmstead venue archetype, the hand's brain, the ranching disciplines.
 - **The commons** (`species-and-names`) — the five species rows. *A sheep exists
   whether or not anybody ranches.*
-- **`trade-farming`** — barley, clover, turnips, saffron, `plough`, reclamation
-  verbs.
 - **`eternal-university`** — ⚠ **P10**, the campus farm.
+
+⚠ **The dependency is new and load-bearing:** `trade-ranching` → `trade-farming`,
+because *pasture is a field*. That is the metal chain's shipped shape
+(mining → fuel → smelting) and it must be declared in the pack manifest, not
+assumed.
 
 ### P10 — ⚠ the university farm ships as content in `eternal-university`
 
@@ -329,14 +378,14 @@ and it is a strong one.
 
 ### W2 — Ground character + the survey ladder
 
-P3, D2, D4, D5, D55. The seeded field; `analyze ground`'s second channel; the
+P3 (**in `trade-farming`, not the kernel**), D2, D4, D5, D55. The seeded field; `analyze ground`'s second channel; the
 ribbon test as an act; the per-viewer survey record. **Green:** deterministic
 across a cold boot with nothing stored; two characters who have sampled
 differently see different surveys of one piece of ground (AC 2, 4).
 
 ### W3 — `Field`, and `plot`
 
-P2, D3. The Warren satellite, the gate, the land draw against the parcel's
+P2 (**a pack location class, following `MineRoom`**), D3. The Warren satellite, the gate, the land draw against the parcel's
 declared area, the first consumer of `LandUse`'s `field` ceiling. **Green:** plot
 a field on agricultural ground you hold, walk to it through its gate (AC 1).
 
@@ -466,20 +515,23 @@ and do not gate this MR.** Two carry unusual weight:
 
 ## Risks & opens
 
-1. ⚠ **P3 (kernel placement) is the last decision wanting sign-off before W2.**
-   *(P4, P7 and P8 are settled — see their entries.)*
-2. ⚠ **P4's read-side prefix check is load-bearing and easy to skip.** A herd
+1. ✅ **Every plan-level decision is settled** (P1–P11). P2 and P3 were
+   corrected after the fact — a location class and a seeded field both belong to
+   the farming pack, following `trade-mining`'s shipped vertical.
+2. ⚠ **`trade-ranching` depends on `trade-farming`** (P9). Declare it in the
+   manifest; a missing pack dependency fails at install, not at build.
+3. ⚠ **P4's read-side prefix check is load-bearing and easy to skip.** A herd
    read that trusts the `kind` tag reopens the forgery the path titling closes.
    It belongs in W8's tests, not in a later hardening pass.
-3. **W1 is a refactor of 871 lines of shipped, tested code** on a branch that
+4. **W1 is a refactor of 871 lines of shipped, tested code** on a branch that
    will absorb two merges. Do it first, prove it with unchanged tests, and never
    mix feature work into it.
-4. **Wave count is high (17).** If the build runs long, the cut order is: W15
+5. **Wave count is high (17).** If the build runs long, the cut order is: W15
    (bees), then saffron and turnips out of W11, then W13 — **never** W12, because
    a build nobody can start is not shippable.
-5. **The band vocabularies are the most likely thing to be skimped**, and
+6. **The band vocabularies are the most likely thing to be skimped**, and
    skimping them fails silently — two bands that read alike collapse the whole
    honest-opacity model.
-6. **Tier 3's three forward obligations** (D79 record legibility, D82 quality
+7. **Tier 3's three forward obligations** (D79 record legibility, D82 quality
    levers, D74 not foreclosing profits à prendre) must be honoured in W8 and W10
    or tier 3 becomes a rewrite.
