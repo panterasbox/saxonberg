@@ -152,6 +152,43 @@ rather than waiting on the full genome. Probably yes, same argument.
 
 ---
 
+## ⭐ Lawns — a flower at field scale
+
+Handed here by the [farmstead](../../requirements/farmstead-requirements.md)
+land-use pass (**D69**), which sorted ground into four modes — *growing,
+concentrating, accumulating,* and **being**. The fourth is this slate's, because
+its product is amenity and amenity is meaning.
+
+A lawn's honest description is **conspicuous consumption of land**: you are
+demonstrating that you can afford to make productive ground produce nothing.
+Which is Veblen again, at a thousand times the scale of a bouquet — and it means
+the frame at the top of this slate generalizes further than flowers. **The same
+argument covers a lawn, a park, a topiary, an ornamental lake and a deer park.**
+
+**And it reduces beautifully.** Before mowers you scythed a lawn or you grazed
+it, so mechanically:
+
+> **A lawn is pasture whose harvest you throw away.**
+
+It needs no new object at all — it is farmstead's sward with the yield
+discarded, which is *exactly* what makes it legible as a signal. The waste is
+the message, one more time.
+
+### It has real politics, because zoning ships
+
+A polity that zones for lawns is **choosing amenity over production**, and
+*"you may not keep hens in this district"* is a live argument with two genuine
+sides — the neighbour who wants a quiet street and the household that wanted
+eggs. Land use is already declared on the parcel record and already gates
+behaviour, so this is a fight the existing substrate can host without inventing
+anything.
+
+That also makes the lawn the **cheapest possible entry point** to this whole
+slate: it is one land use, no new mechanism, and it puts a positional good in
+front of every player who owns ground, long before anybody breeds a tulip.
+
+---
+
 ## ⚠⚠ Tulip mania — build the preconditions, NEVER the event
 
 The 1637 Dutch tulip episode is the most famous speculative bubble in

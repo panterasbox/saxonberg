@@ -174,6 +174,8 @@ eating it is standing there too:
 
 *Pasture is a field* stops being a claim needing defence. **Fertility follows
 the mouths** — a sentence a player derives rather than a rule they are told.
+⚠ These four are all one thing wearing four hats — **growing**. Ground can do
+three other things entirely, and **D69 generalizes this table**.
 The shipped `LandUse` six are untouched: that is *zoning*, a different layer,
 and it still gates whether agriculture is permitted at all.
 
@@ -869,6 +871,116 @@ miss: barley makes grain *and* straw; straw becomes bedding; bedding plus dung
 becomes the manure that fertilises the barley. The nitrogen ledger's return leg
 runs through a byproduct nobody planned for.
 
+### What else ground can be doing
+
+*(D69–D74, added after the land-use pass.)*
+
+**D69 — ⭐ Ground has four modes, and D7's table only covered one of them.**
+Crop, hay, graze and orchard are four hats on a single activity: **growing**.
+Three others exist, each modelled after something already designed:
+
+| Mode | The land is… | Product | Modelled like |
+|---|---|---|---|
+| **Growing** | a medium | the plant | the rest of this document |
+| **Concentrating** | **an apparatus** | a mineral the weather deposits | new — D71 |
+| **Accumulating** | **the product itself** | what took millennia to form | **mining**, not farming — D72 |
+| **Being** | already what it should be | amenity | **not this build** — the [flowers slate](../slates/builds/flowers-slate.md) owns it |
+
+The fourth is why lawns and ornamental landscaping are **out of scope here**:
+land whose product is amenity is *conspicuous consumption of ground*, which is
+the flowers slate's category, not the farmstead's.
+
+**D70 — Woodland is a land use, and the wood contest becomes three-way.**
+⭐ `trade-fuel` **already ships a coppice** — `hazel-stool`, `cordwood`, a hazel
+species row — and its README states the seam explicitly: *"the coppice —
+authored beds over the shipped `CultivableMixin`/`GrowingMixin` … **a
+cut-and-regrow rotation is the seam a later build widens.**"* **This is that
+build.** The coppice widens from authored beds into a managed stand on a
+cut-and-regrow rotation, which is a rotation exactly like the field's, only
+slower.
+
+The pack also already names a **two-consumer wood contest** — *"the same stand
+that yields charcoal yields the timber the mine shores with."* **D63 makes it
+three**: firewood for heating. Winter now bids against the smelter and the mine
+for one stand, which is where the fuel economy gets its teeth.
+
+Woodland also supplies **pannage** for the pigs (D30), hedgerow material for
+fencing (D56), and `ash` — whose material row **already ships** in `trade-fuel`,
+so D68's potash leg needs no new substance.
+
+**D71 — Salt: the field as an apparatus.** ⭐ *Cuttable, like bees (D39).* A
+saltern does not grow salt: you admit seawater and **the weather does the work**,
+which makes the field a machine and the sun its power source. We ship
+temperature, humidity and wind.
+
+Three sources, with deliberately different economics so that **place matters**:
+
+- **Solar salterns** — free energy, but need coast, sun, and a climate where
+  evaporation beats rainfall. Slow, seasonal, large.
+- **Brine boiling** — works anywhere there is a brine spring, but it is
+  **fuel-ravenous**, so it bids against D70's stand and D63's hearth for the
+  same wood.
+- **Rock salt** — straight onto the metal chain's shipped machinery.
+
+Salt earns its place twice: it is **the** preservation input, which is what makes
+D12's hard winter survivable and what the preservation slate waits on; and it is
+the great civics commodity. An inelastic necessity is maximally enforceable *and*
+maximally regressive to tax — the gabelle helped end a monarchy and Gandhi walked
+to the sea over one — so a polity taxing salt is making a decision whose
+incidence players can actually discover.
+
+**D72 — Peat: a soil you mine.** ⭐ *Cuttable.* Peat accumulates at roughly a
+millimetre a year, so a metre of it is a thousand years old. Cutting turf
+**looks like farming and behaves like mining** — extraction from a stock that
+does not renew on any human timescale — and it sits in the *same landscape* as
+the renewable system. Same weather, same ground, opposite economics: the
+sharpest available lesson about renewable versus not, taught by adjacency
+instead of assertion.
+
+It is also fuel (D63) in the places wood is not.
+
+⚠ **And draining a bog destroys the asset.** Exposed peat oxidises and the land
+**sinks** — Holme Fen has dropped about four metres since 1852, measured against
+a post driven to the clay. That is the counterweight to D59's tidy account of
+capital formation: **some improvements consume the thing they improve.**
+
+**D73 — Water-managed ground, and we already ship a cranberry with no bog.**
+`trade-farming` ships cranberries among Stage A's ten families and nothing models
+the bog they would actually grow in. The distinctive part is the harvest:
+**flood the bog and the berries float.** Rice is the sibling, and its best
+teachable fact is that a paddy is flooded **for weed control, not because rice
+wants standing water.**
+
+The unifier is ground where **you control the water level**, and the water pack
+ships watercourses, conduits, `SupplyState` and storage. Marsh and fen also give
+reed for thatch (D68), withies, wildfowl and salt-marsh grazing.
+
+⚠ **Draining wetland is D18's commons dilemma in physical form** — drain upstream
+and you flood downstream, and the water system already derives downstream
+reachability. Unlike nitrate this one has a **visible victim and an obvious
+cause**, which may make it the more buildable version of that argument.
+
+**D74 — ⭐⭐ Every extraction system in this build already has a name in one body
+of law.** Peat's is **turbary** — the right to cut turf on ground you do not
+own — and it belongs to a family of *profits à prendre*, rights to take produce
+from another's land:
+
+| Right | What it takes | Our system |
+|---|---|---|
+| **common of pasture** | grazing | the sward, D7 |
+| **pannage** | pigs on woodland mast | pigs, D30 + D70 |
+| **estovers** | wood | D63, D70 |
+| **turbary** | peat | D72 |
+| **piscary** | fish | the fishing slate |
+| **common in the soil** | sand, gravel, marl | D66 |
+
+That is not a coincidence — the medieval commons was a worked solution to
+exactly the problems this build keeps arriving at. It gives
+[hunting-slate](../slates/builds/hunting-slate.md)'s *ferae naturae* material a
+family to sit in, and it is the legal frame the enclosure argument behind D59's
+tenant-improvement problem is already half inside. **Model the rights, and the
+politics of enclosure becomes available without authoring a villain.**
+
 ---
 
 ## Constraints
@@ -992,6 +1104,17 @@ runs through a byproduct nobody planned for.
 35. A four-course rotation of wheat, turnips, barley and clover sustains yield
     across repeated cycles **without a fallow year**, and a player can verify
     that from the nitrogen ledger alone.
+36. A coppice stand is cut and regrows on a rotation, and a single stand cannot
+    simultaneously satisfy charcoal, mine timber and winter firewood — the
+    contest is observable.
+37. A saltern yields salt as a function of weather over elapsed time, with no
+    plant involved; brine boiling yields it faster and consumes fuel that
+    heating and charcoal also want.
+38. Cut peat does not measurably regrow, and a drained peat field subsides.
+39. A flooded bog can be harvested by flotation, and draining ground upstream
+    changes water reaching ground downstream.
+40. A right to take produce from land somebody else holds — grazing, mast, wood,
+    turf — is expressible and enforceable without transferring title.
 
 ## Slate revisions this cycle makes
 
