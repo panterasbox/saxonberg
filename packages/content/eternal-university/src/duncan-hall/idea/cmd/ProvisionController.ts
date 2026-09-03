@@ -37,7 +37,6 @@ import { Mml } from '@saxonberg/server/mud/api/mml';
 import { AccessApi } from '@saxonberg/server/mud/api/access';
 import { GroupApi } from '@saxonberg/server/mud/api/group';
 import { ParcelApi } from '@saxonberg/server/mud/api/parcel';
-import { CredentialApi } from '@saxonberg/server/mud/api/credential';
 import { Lock } from '@saxonberg/server/mud/lib/lock/Lock';
 import { type ParcelOwner } from '@saxonberg/server/mud/lib/parcel/ParcelRecord';
 import DormWarren from '../DormWarren';
@@ -144,7 +143,7 @@ export default class ProvisionController extends CommandController<ProvisionMode
     // identity, so this is what actually lets them in.
     const keyway = Lock.mintKeyway();
     await ParcelApi.setKeyway(unitExtent, keyway);
-    await CredentialApi.issueKey(target, keyway, DormWarren.DORM_LOCK_TECH);
+    await Lock.issueKey(target, keyway, DormWarren.DORM_LOCK_TECH);
 
     // Reflect the new unit into the (possibly-live) building now: hang the
     // door if its floor is already materialized, and refresh reachability +

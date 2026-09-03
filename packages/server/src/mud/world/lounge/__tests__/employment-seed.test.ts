@@ -139,12 +139,12 @@ describe("Dave's Bar — Business seed drives the engine", () => {
     atClock(2, 10);
 
     expect(MixinApi.isMaker(dave)).toBe(false); // not covering yet
-    EmploymentApi.beginCover(dave, biz);
+    dave.beginCovering(biz);
     expect(MixinApi.isMaker(dave)).toBe(true); // covering → a valid maker
     // The cover is proprietor-held, so it is unpaid + never rostered.
     expect(dave.getEmployment(BUSINESS)?.status).toBe('on-shift');
 
-    EmploymentApi.endCover(dave, biz);
+    dave.endCovering(biz);
     expect(MixinApi.isMaker(dave)).toBe(false); // stood down
     expect(dave.getEmployment(BUSINESS)).toBeUndefined();
   });

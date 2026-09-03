@@ -139,7 +139,7 @@ simply die. Its subject was a pending **command**, and it is the one the
 design leans on — *nothing that is still actionable ever leaves*. Its
 guarantee moves onto the pinned axis: a **prompt card opens PINNED and
 auto-releases with reason `answered`** when the prompt settles
-(`PromptLogic.cleanup` → `CardApi.notifyPromptSettled`). Same guarantee,
+(`PromptLogic.cleanup` → `interactive.notifyPromptSettled`). Same guarantee,
 one axis, no hold vocabulary.
 
 ## ⭐ One identity: the normalized command
@@ -233,7 +233,7 @@ shipped rows at all, so `CardSource` is a discriminated union:
   carries **no refresh control** even though it is static.
 
   ⚠⚠ **This push was missing for a whole build.** The row, the settle
-  path, the client body and five green tests all existed; `CardApi.push`
+  path, the client body and five green tests all existed; the card push
   had **zero production callers**, and every test hand-pushed the card
   it then asserted on. `card-birth-path.test.ts` now asserts the other
   half of the question — *is every declared kind reachable* — beside the
@@ -1268,7 +1268,7 @@ while checking these findings.
   WHY is wrong.** They say two visibility gates disagree:
   `Container.contents` keeps a child on `PerceptionApi.perceives`, then
   `projectFields` re-points `displayName` through
-  `RecognitionApi.describe`, whose `canSeeGate` says no.
+  `describeFor`, whose `canSeeGate` says no.
 
   ⭐ What the tree shows is that they answer **different questions**.
   `perceives` is the **concealment** gate (*is it hidden from you*);

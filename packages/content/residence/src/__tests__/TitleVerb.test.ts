@@ -28,7 +28,7 @@ import GroupRegistry from '@saxonberg/server/mud/platform/idea/GroupRegistry';
 import { ParcelApi } from '@saxonberg/server/mud/api/parcel';
 import { BankingApi } from '@saxonberg/server/mud/api/banking';
 import { EmploymentApi } from '@saxonberg/server/mud/api/employment';
-import { CredentialApi } from '@saxonberg/server/mud/api/credential';
+import { Lock } from '@saxonberg/server/mud/lib/lock/Lock';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
@@ -365,13 +365,13 @@ describe('title', () => {
 
   it('⭐ the sale KEYS the house and hands the buyer the key (D7)', async () => {
     const issued: Array<[string, string]> = [];
-    vi.spyOn(CredentialApi, 'issueKey').mockImplementation((async (
+    vi.spyOn(Lock, 'issueKey').mockImplementation((async (
       _who: Stuff,
       keyway: string,
       tech: string,
     ) => {
       issued.push([keyway, tech]);
-    }) as unknown as typeof CredentialApi.issueKey);
+    }) as unknown as typeof Lock.issueKey);
 
     const room = registryRoom();
     const buyer = buyerIn(room);

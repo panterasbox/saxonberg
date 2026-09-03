@@ -33,6 +33,11 @@
  * `docs/subsystems/thermal.md`.
  */
 
+import { Final, Unshadowable } from '../security/decorators';
+import type Material from '../material/Material';
+import type { BulkAffordance } from '../bulk/Bulkable';
+import type { Meltable } from './Meltable';
+import { ContainmentApi } from '../../api/containment';
 import type { MixinConstructor, FieldMeta } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
 import type { Tangible } from "../material/Tangible";
@@ -137,6 +142,8 @@ const KNOWN_MEDIA = new Set(["air", "water", "vacuum"]);
 type ThermalHost = Stuff & Tangible & Containable;
 
 export interface Thermal {
+  reconcilePhase(): void;
+  reachableHeatK(): number;
   /** Stamped temperature T0 (raw K) — the decomposed scalar. */
   stampedTemperatureK: number;
   /** Game-time (seconds) of the last reconcile / re-stamp; 0 = unseeded. */
@@ -179,7 +186,9 @@ function assertFiniteNonNeg(value: number, what: string): void {
 }
 
 export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
-  return class ThermalMixin extends Base implements Thermal {
+  // Declared-then-returned (the Meltable shape) so method decorators are
+  // legal — a class EXPRESSION cannot carry them.
+  class ThermalMixin extends Base implements Thermal {
     static _mixinName = "ThermalMixin";
 
     static fieldMeta: FieldMeta = {
@@ -333,6 +342,8 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
      * with no heat capacity (massless / material-less) re-equilibrates to
      * ambient instantly, so a deposit is a no-op there.
      */
+    @Final
+    @Unshadowable
     public depositHeat(joules: number): void {
       if (typeof joules !== "number" || !Number.isFinite(joules)) {
         throw new RangeError(
@@ -347,6 +358,34 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
       const nowS = this.thermalNowSeconds();
       if (nowS !== null) this.thermalClockStamp = nowS;
+    }
+
+    /**
+     * Reconcile this object's phase (was the host's `reconcilePhase` —
+     * the OO sweep): the solid→liquid latent-heat plateau and the
+     * vessel freeze/boil transitions, keyed on real Material
+     * properties. Sealed — owns the phase/temperature invariants.
+     * Ungated: the callers are physics drivers (Furnace, magic heat,
+     * casting) — a trusted physical relationship.
+     */
+    @Final
+    @Unshadowable
+    public reconcilePhase(): void {
+      reconcilePhaseImpl(this as unknown as Stuff);
+    }
+
+    /**
+     * The maximum sustained temperature (K) reachable from where this
+     * body stands — the hottest lit `Furnace` in its scope (the
+     * crafting emergent-reachability principle applied to heat: a
+     * smith's control gate is "what's the hottest thing I can
+     * reach?"). 0 when nothing hot is in reach. Ungated read.
+     * (Homed HERE, not on MakerMixin as first sketched: MakerMixin is
+     * augment-gated and players boiling a pot are not Makers — but
+     * every embodied creature is Thermal.)
+     */
+    public reachableHeatK(): number {
+      return reachableHeatForImpl(this as unknown as Stuff);
     }
 
     /**
@@ -517,5 +556,199 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
       return WorldClockApi.getNow().rawValue();
     }
-  };
+  }
+  return ThermalMixin;
+}
+
+
+/* ────────────── the phase-change engine (module-private) ──────────────
+ * Moved in whole from the retired ThermalLogic (the Api OO sweep): heat
+ * drives phase change; the SHAPE (the latent-heat plateau, the
+ * mass↔volume flow) is code; the magnitudes are all real `Material`
+ * properties. Reached only through the mixin's `reconcilePhase()` /
+ * `reachableHeatK()` methods below — nothing else may call in.
+ */
+
+/**
+ * The maximum sustained temperature (K) reachable from `position` — the hottest
+ * lit `Furnace` in its scope (the crafting emergent-reachability principle
+ * applied to heat: a smith's control gate is "what's the hottest thing I can
+ * reach?"). Returns 0 when nothing hot is in reach. Consumed by
+ * `CraftingLogic`'s heat gate (`recipe.requiresHeatK`) — the smithing/cooking
+ * temperature-control read.
+ */
+function reachableHeatForImpl(position: Stuff): number {
+  const scope = (position as unknown as { getContainer(): Stuff | null })
+    .getContainer();
+  if (scope === null || !MixinApi.isContainer(scope)) return 0;
+  let hottest = 0;
+  for (const occ of (scope as Stuff & Container).getContents()) {
+    const s = occ as unknown as Stuff;
+    if (s.isDestroyed() || !MixinApi.isFurnace(s)) continue;
+    if (!s.isLit() || s.fuelRemaining() <= 0) continue;
+    const t = s.getHeldTemperatureK();
+    if (t > hottest) hottest = t;
+  }
+  return hottest;
+}
+
+// ---------- phase-change internals (module-private free functions) ----------
+//
+// Heat drives phase change; this is the bidirectional transition engine. The
+// SHAPE (the latent-heat plateau, the mass↔volume flow) is code; the
+// magnitudes are all real `Material` properties (meltingPoint / boilingPoint /
+// latentHeatOfFusion). Off-class so there are no intra-singleton self-calls.
+
+/** Heat capacity `C = mass × specificHeat` (J/K) — mirrors the mixin's own read. */
+function thermalCapacityOf(stuff: Stuff, mat: Material | null): number {
+  const massKg = (stuff as unknown as { getMass(): Quantity<'kg'> })
+    .getMass()
+    .rawValue();
+  let c = mat ? mat.getSpecificHeat().rawValue() : 0;
+  if (c <= 0) c = THERMAL_DEFAULTS.DEFAULT_SPECIFIC_HEAT;
+  return massKg * c;
+}
+
+/** Litres of liquid `massKg` of `mat` becomes (`volume = mass / density`). */
+function massToLitres(massKg: number, mat: Material): number {
+  const density = mat.getDensity().rawValue();
+  if (density <= 0) return 0;
+  return (massKg / density) * 1000; // m³ → L
+}
+
+function reconcilePhaseImpl(stuff: Stuff): void {
+  // A solid object melting: the latent-heat plateau, then the flow to bulk.
+  if (MixinApi.isMeltable(stuff) && MixinApi.isThermal(stuff)) {
+    reconcileMelt(stuff as Stuff & Meltable & Thermal);
+    return;
+  }
+  // A liquid-holding vessel: freeze below its material's melting point (a
+  // casting) or boil above its boiling point (steam).
+  if (MixinApi.isBulkable(stuff) && MixinApi.isThermal(stuff)) {
+    reconcileBulkPhase(stuff as Stuff & Bulkable & Thermal);
+  }
+}
+
+/**
+ * The solid → liquid transition with a latent-heat plateau. While the object
+ * sits at/above its melting point, the overshoot heat is absorbed into the
+ * latent accumulator and the temperature is clamped back to the melting point
+ * (the plateau); once `mass × latentHeatOfFusion` has been absorbed the solid
+ * melts — it destructs and its mass flows to a `Bulkable` liquid pool in the
+ * scope's `Floor`.
+ */
+function reconcileMelt(m: Stuff & Meltable & Thermal): void {
+  const mp = m.getMeltingPointK();
+  if (mp <= 0) return; // does not melt in the modelled range
+  const temp = m.getTemperature().rawValue();
+  if (temp < mp) return; // below the melting point — no transition yet
+
+  const mat = MixinApi.isTangible(m) ? m.getMaterial() : null;
+  const overshootJ = (temp - mp) * thermalCapacityOf(m as unknown as Stuff, mat);
+  if (overshootJ > 0) {
+    m._absorbLatent(overshootJ);
+    m.setContentsTemperature(mp); // clamp — the plateau
+  }
+  const need = m.getLatentHeatToMeltJ();
+  if (need > 0 && m.getLatentAbsorbedJ() >= need) {
+    doMelt(m, mat);
+  }
+}
+
+/** The melt completion: destruct the solid and flow its mass into the scope's
+ * Floor as a molten liquid pool. */
+function doMelt(m: Stuff & Meltable, mat: Material | null): void {
+  if (!mat) return;
+  const massKg = (m as unknown as { getMass(): Quantity<'kg'> })
+    .getMass()
+    .rawValue();
+  const litres = massToLitres(massKg, mat);
+  const scope = (m as unknown as { getContainer(): Stuff | null }).getContainer();
+  StuffApi.destruct(m as unknown as Stuff);
+  if (scope === null || !MixinApi.isContainer(scope)) return;
+  const floor = findScopeFloor(scope as Stuff & Container);
+  if (floor === null || litres <= 0) return;
+  // Merge into the pool (same material) or seed a fresh molten pool.
+  const cur = floor.getBulkAmount('surface').rawValue();
+  if (cur <= 0 || floor.getBulkMaterial('surface') === null) {
+    floor.setBulkMaterial('surface', mat);
+  }
+  floor.setBulkAmount('surface', Quantity.of(cur + litres, 'L'));
+}
+
+/**
+ * A liquid-holding vessel's onward transitions, keyed on its held bulk's
+ * material + the vessel's own temperature: boil to gas above the boiling point
+ * (steam — the bulk shrinks away), or solidify below the melting point (a cast
+ * solid `Thing` drops into the vessel's scope). The reverse of the melt above,
+ * driven by the same heat read — so ice → water → steam falls out for free.
+ */
+function reconcileBulkPhase(v: Stuff & Bulkable & Thermal): void {
+  const aff: BulkAffordance = v.hasInteriorBulk() ? 'interior' : 'surface';
+  const amount = v.getBulkAmount(aff).rawValue();
+  if (amount <= 0) return;
+  const mat = v.getBulkMaterial(aff);
+  if (!mat) return;
+  const temp = v.getTemperature().rawValue();
+
+  const bp = mat.getBoilingPoint().rawValue();
+  if (bp > 0 && temp >= bp) {
+    // Boil — the liquid flashes to gas (steam); the pool shrinks away.
+    v.setBulkAmount(aff, Quantity.of(0, 'L'));
+    v.setBulkMaterial(aff, null);
+    return;
+  }
+
+  const mp = mat.getMeltingPoint().rawValue();
+  if (mp > 0 && temp <= mp) {
+    // Freeze — the liquid solidifies into a cast solid of the same material,
+    // mass derived back from the pooled volume. The casting is a **clone of the
+    // `/stuff/thing/Casting` template** (a re-meltable content object), not a raw
+    // construction — its material / mass / prose are stamped per freeze.
+    const massKg = (amount / 1000) * mat.getDensity().rawValue();
+    v.setBulkAmount(aff, Quantity.of(0, 'L'));
+    v.setBulkMaterial(aff, null);
+    const scope = (v as unknown as { getContainer(): Stuff | null })
+      .getContainer();
+    void StuffApi.clone(CASTING_TEMPLATE_PATH).then((cast) => {
+      const c = cast as unknown as Stuff & {
+        setShortDescription(s: string): void;
+        setMaterial(m: Material): void;
+        setMass(q: Quantity<'kg'>): void;
+      };
+      c.setShortDescription(`a cast lump of ${mat.getName()}`);
+      c.setMaterial(mat);
+      c.setMass(Quantity.of(massKg, 'kg'));
+      if (scope && MixinApi.isContainer(scope)) {
+        void ContainmentApi.move(
+          cast as unknown as Stuff & Containable,
+          scope as Stuff & Container,
+        );
+      }
+    });
+  }
+}
+
+/** The template a frozen molten pool clones into (a re-meltable cast lump). */
+const CASTING_TEMPLATE_PATH = '/stuff/thing/Casting';
+
+/** The scope's puddle-bearing `Floor` — a surface-bulk fixture / content (the
+ * WeatherLogic.findRoomFloor precedent). */
+function findScopeFloor(scope: Stuff & Container): (Stuff & Bulkable) | null {
+  const s = scope as unknown as Stuff;
+  if (MixinApi.isAdornable(s)) {
+    for (const fx of s.getFixtures()) {
+      const f = fx as unknown as Stuff;
+      if (MixinApi.isBulkable(f) && f.hasSurfaceBulk()) {
+        return f as Stuff & Bulkable;
+      }
+    }
+  }
+  for (const c of scope.getContents()) {
+    const co = c as unknown as Stuff;
+    if (MixinApi.isBulkable(co) && co.hasSurfaceBulk()) {
+      return co as Stuff & Bulkable;
+    }
+  }
+  return null;
 }

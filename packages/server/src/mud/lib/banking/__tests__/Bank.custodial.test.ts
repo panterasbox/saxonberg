@@ -126,7 +126,7 @@ describe("Custodial ops — open / deposit / withdraw (AC#4, AC#5)", () => {
 
     const accountId = await asOwner(alice, async () => {
       const id = await BankingApi.openAccount(bank.getBank(), bank.getCorpoKey(), Currency.compact());
-      await BankingApi.deposit(bank, coins);
+      await bank.deposit(coins);
       return id;
     });
 
@@ -134,7 +134,7 @@ describe("Custodial ops — open / deposit / withdraw (AC#4, AC#5)", () => {
     expect(bank.getTillLiquidity().minor).toBe(100);
     expect(BankingApi.balanceOf(accountId).minor).toBe(100);
 
-    await asOwner(alice, () => BankingApi.withdraw(bank, Money.of(100, Currency.compact())));
+    await asOwner(alice, () => bank.withdraw(Money.of(100, Currency.compact())));
     // After withdraw: vault 0, balance 0 — 1:1, coin back with alice.
     expect(bank.getTillLiquidity().minor).toBe(0);
     expect(BankingApi.balanceOf(accountId).minor).toBe(0);
@@ -162,8 +162,8 @@ describe("Custodial ops — open / deposit / withdraw (AC#4, AC#5)", () => {
 
     const accountId = await asOwner(alice, async () => {
       const id = await BankingApi.openAccount(bank.getBank(), bank.getCorpoKey(), Currency.compact());
-      await BankingApi.deposit(bank, coins);
-      await BankingApi.withdraw(bank, Money.of(30, Currency.compact()));
+      await bank.deposit(coins);
+      await bank.withdraw(Money.of(30, Currency.compact()));
       return id;
     });
 

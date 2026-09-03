@@ -19,6 +19,8 @@ import { StuffApi } from "../../api/stuff";
 import { makeStuffAtPath } from "../../lib/security/__tests__/test-setup";
 import { PersistenceManager } from "../../../backend/PersistenceManager";
 import type { Stuff } from "../../lib/stuff/Stuff";
+import { EmploymentLogic } from '../idea/api/EmploymentLogic';
+import { MixinApi } from '../../api/mixin';
 
 type Doc = Record<string, unknown> & { _id?: string };
 function installInMemoryStore(): void {
@@ -40,8 +42,8 @@ function installInMemoryStore(): void {
   } as unknown as PersistenceManager);
 }
 
-const BAR_LOC = "/world/lounge/location/bar";
-const RECORDS = "/world/lounge/location/bar/records/eighty-six";
+const BAR_LOC = "/test/lounge/location/bar";
+const RECORDS = "/test/lounge/location/bar/records/eighty-six";
 const DAVE = "/platform/agent/Avatar/dave";
 
 async function bootRegistry(): Promise<AccessRegistry> {
@@ -86,15 +88,17 @@ describe("AccessRegistry — the venue-records carve-out", () => {
     vi.spyOn(ParcelApi, "resolveOwnerRef").mockResolvedValue("lounge" as never);
     vi.spyOn(GroupApi, "isMember").mockResolvedValue(false as never);
     // The bar Business operates the bar location; Dave is its proprietor.
-    const bar = { stuffId: "bar-business" } as unknown as Stuff;
+    // The org face (F4): the registry asks the BUSINESS OBJECT.
+    const bar = {
+      stuffId: "bar-business",
+      employs: () => false,
+      hasProprietor: async (subject: Stuff | null) =>
+        subject?.getIdentityPath() === DAVE,
+    } as unknown as Stuff;
     vi.spyOn(EmploymentApi, "businessAt").mockImplementation((loc) =>
       loc === BAR_LOC ? (bar as never) : null,
     );
-    vi.spyOn(EmploymentApi, "holdsPosition").mockReturnValue(false);
-    vi.spyOn(EmploymentApi, "isProprietorOf").mockImplementation(
-      async (subject) =>
-        (subject as Stuff | null)?.getIdentityPath() === DAVE,
-    );
+    vi.spyOn(MixinApi, "isOrganization").mockReturnValue(true);
   });
   afterEach(() => {
     vi.restoreAllMocks();
@@ -119,7 +123,7 @@ describe("AccessRegistry — the venue-records carve-out", () => {
       await AccessApi.canAtPath(
         dave,
         "write-document" as never,
-        "/world/lounge/location/bar/menu",
+        "/test/lounge/location/bar/menu",
       ),
     ).toBe(false);
   });
@@ -130,7 +134,7 @@ describe("AccessRegistry — the venue-records carve-out", () => {
       await AccessApi.canAtPath(
         dave,
         "write-document" as never,
-        "/world/lounge/location/lounge/records/x",
+        "/test/lounge/location/lounge/records/x",
       ),
     ).toBe(false);
   });

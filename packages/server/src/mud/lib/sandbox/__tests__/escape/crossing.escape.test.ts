@@ -17,7 +17,6 @@ import { SandboxApi } from '../../../../api/sandbox';
 import { StuffApi } from '../../../../api/stuff';
 import { ShadowApi } from '../../../../api/shadow';
 import { EventApi } from '../../../../api/event';
-import { ConnectionApi } from '../../../../api/connection';
 import { ContainmentApi } from '../../../../api/containment';
 import { Stuff } from '../../../stuff/Stuff';
 import { ExecutionContextApi } from '../../../../api/execution-context';
@@ -93,7 +92,7 @@ describe('sandbox-escape: crossing', () => {
     const interactive = await StuffApi.create(
       () => new Interactive('sock-smg', 'sess-smg', { _id: 'u1' } as never)
     );
-    ConnectionApi.transfer(interactive, avatar);
+    interactive.transferTo(avatar);
 
     await SandboxApi.enter(avatar);
     const wireBody = SandboxApi.activeBodyFor(PLAYER)!;
@@ -134,7 +133,7 @@ describe('sandbox-escape: crossing', () => {
     const interactive = await StuffApi.create(
       () => new Interactive('sock-mv', 'sess-mv', { _id: 'u1' } as never)
     );
-    ConnectionApi.transfer(interactive, avatar);
+    interactive.transferTo(avatar);
 
     await SandboxApi.enter(avatar);
     const wireBody = SandboxApi.activeBodyFor(PLAYER)!;

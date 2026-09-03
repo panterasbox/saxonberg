@@ -25,7 +25,6 @@ import { Mml } from '../../../../api/mml';
 import { StuffApi } from '../../../../api/stuff';
 import { ContainmentApi } from '../../../../api/containment';
 import { PersistableApi } from '../../../../api/persistable';
-import { AdvancementApi } from '../../../../api/advancement';
 import { PLANT_SLOT } from '../../../../lib/husbandry/Cultivable';
 import Plant from '../../../thing/Plant';
 
@@ -237,7 +236,8 @@ export default class PlantController extends CommandController<PlantModel> {
     // estimator treats a trivial success as unsurprising, so no amount of
     // planting substitutes for keeping something alive.
     try {
-      await AdvancementApi.recordDeed(giver, {
+      if (MixinApi.isAdvancing(giver))
+        await giver.creditDeed({
         discipline: 'horticulture',
         difficulty: 'trivial',
         outcome: 'success',

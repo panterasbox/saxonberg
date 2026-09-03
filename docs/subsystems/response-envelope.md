@@ -275,7 +275,7 @@ class WearController extends CommandController<WearModel> {
     }
     // … more failure gates …
     // success: just do the work; no return value.
-    SlotApi.occupyAll(giver, target, [...slots]);
+    occupyAll(giver, target, [...slots]);
     MessageApi.scene(giver)
       .topic(MessageApi.Topics.sense.survey)
       .toSelf(Mml.compose`You put on ${Mml.thing(target)}.`)
@@ -305,7 +305,7 @@ match.
 
 ### `controller-error` is the dispatcher's catch — controllers don't try/catch
 
-Wear / Wield / Mount used to wrap `SlotApi.occupyAll` in try/catch
+Wear / Wield / Mount used to wrap `occupyAll` in try/catch
 and translate the thrown message into `summary`. They don't anymore.
 The dispatcher's outer catch around `_executeOne` emits a uniform
 `controller-error { controller, detail }` note for ANY thrown
@@ -353,7 +353,7 @@ reactions (shadow filters, audit observers, NPC AI that watches an
 Avatar) fire regardless of wire state. Symmetric to today's
 `Avatar.handleMessage`.
 
-`MessageApi.sendEnvelope(recipient, template)` is the lone delivery
+`onEnvelope(recipient, template)` is the lone delivery
 chokepoint. Producers (only the dispatcher in v1) call this; nothing
 else calls `sensor.onEnvelope` directly.
 
@@ -368,12 +368,12 @@ per-Interactive at the wire-delivery layer. The counter lives on
 
 ```
 Avatar with 2 Interactives, A and B
-  Scene.send → MessageApi.sendMessage → Avatar.handleMessage
+  Scene.send → onMessage → Avatar.handleMessage
     → for each Iact: Application.sendMessageToInteractive
       → stamps meta.frameId from this Iact's counter
       → Backend.sendMessageToSocket
 
-  MessageApi.sendEnvelope → Avatar.handleEnvelope
+  onEnvelope → Avatar.handleEnvelope
     → for each Iact: Application.sendEnvelopeToInteractive
       → stamps frameId from this Iact's counter
       → Backend.sendEnvelopeToSocket

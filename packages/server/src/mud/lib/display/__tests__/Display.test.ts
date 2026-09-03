@@ -19,7 +19,6 @@ import { CommandApi } from '../../../api/command';
 import { CommandDefinition } from '../../command/CommandDefinition';
 import LookController from '../../../platform/idea/cmd/perception/LookController';
 import { Mml } from '../../../api/mml';
-import { ConnectionApi } from '../../../api/connection';
 import { ContainmentApi } from '../../../api/containment';
 import { EmploymentApi } from '../../../api/employment';
 import { BankingApi } from '../../../api/banking';
@@ -73,7 +72,7 @@ async function makeViewer(name: string, room: SingletonCartesianLocation): Promi
   const interactive = await StuffApi.create(
     () => new Interactive(`sock-${seq}`, `sess-${seq}`, { _id: `u${seq}` } as never),
   );
-  ConnectionApi.transfer(interactive, avatar);
+  interactive.transferTo(avatar);
   const envelopes: { type: string; [k: string]: unknown }[] = [];
   vi.spyOn(avatar, 'onEnvelope').mockImplementation((tpl) => {
     envelopes.push(tpl as never);
@@ -184,7 +183,7 @@ describe('DisplayMixin — a display drives itself', () => {
       const biz = await makeBusiness();
       const keeper = await makeViewer('Mara', booth);
       const thief = await makeViewer('Tom', booth);
-      EmploymentApi.hire(biz, keeper.avatar, 'keeper');
+      biz.appoint(keeper.avatar, 'keeper');
       const tablet = await StuffApi.create(() => new Tablet());
       tablet.setPairing('staff');
       tablet.setPrincipal(BIZ);
@@ -236,8 +235,8 @@ describe('DisplayMixin — a display drives itself', () => {
       const deaf = makeActor('Augie', false);
       ContainmentApi.move(attuned, cellar);
       ContainmentApi.move(deaf, cellar);
-      EmploymentApi.hire(biz, attuned as unknown as Stuff, 'keeper');
-      EmploymentApi.hire(biz, deaf as unknown as Stuff, 'keeper');
+      biz.appoint(attuned as unknown as Stuff, 'keeper');
+      biz.appoint(deaf as unknown as Stuff, 'keeper');
       const r = await resolveScreenFor(attuned as unknown as Stuff);
       expect(r?.display.stuffId).toBe(tablet.stuffId);
       expect(r?.mode).toBe('mind');

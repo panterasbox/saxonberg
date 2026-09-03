@@ -2,7 +2,7 @@
  * The posture verbs are REACHABLE BY A PLAYER (found by driving the world).
  *
  * Both halves of this had shipped and neither worked, and no unit test
- * could see it because they all called `SlotApi.occupyAll` directly:
+ * could see it because they all claimed slots directly:
  *
  *   1. `cmd/posture/{lie,sit,stand,kneel}.yaml` and their controllers
  *      existed, but NOTHING contributed them — verbs reach a giver only
@@ -25,7 +25,6 @@ import { MixinApi } from "../../../api/mixin";
 import { Mixins } from "../../mixin";
 import Thing from "../../stuff/Thing";
 import { StuffApi } from "../../../api/stuff";
-import { SlotApi } from "../../../api/slot";
 import PosturedChair from "../../../platform/thing/Chair";
 import { makeStuffAtPath } from "../../security/__tests__/test-setup";
 import type { Stuff } from "../../stuff/Stuff";
@@ -81,9 +80,7 @@ describe("standing up forgets the bed — across the WHOLE composed stack", () =
     const body = makeStuffAtPath(() => new Body(), "/obj/test/ChainBody");
     const bed = makeBed();
 
-    SlotApi.occupyAll(
-      bed as unknown as Stuff & Slotted,
-      body as unknown as Stuff & Slottable,
+    (bed as unknown as Stuff & Slotted).occupyAll(body as unknown as Stuff & Slottable,
       ["lie:1"],
     );
     expect(body.getRestingOnPath()).toBe(BED_PATH);

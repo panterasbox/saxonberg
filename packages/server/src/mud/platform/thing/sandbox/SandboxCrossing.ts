@@ -44,6 +44,7 @@ import type { Container } from '../../../lib/spatial/Container';
 import type Avatar from '../../agent/Avatar';
 import SandboxCrossingExit from '../../../lib/sandbox/SandboxCrossingExit';
 import type { FieldMeta } from '../../../lib/mixin';
+import type { Chattel } from '../../../lib/chattel/Chattel';
 
 /** Fallback exit label when a skin declares none. */
 const DEFAULT_PASSAGE_DIRECTION = 'crossing';
@@ -127,7 +128,9 @@ export default class SandboxCrossing extends Thing {
    */
   public async ownerPlayerId(): Promise<string | null> {
     if (!this.getChattelId()) return null;
-    const owner = await ChattelApi.ownerOf(this as unknown as Stuff).catch(
+    const owner = await (this as unknown as Stuff & Chattel)
+      .chattelOwner()
+      .catch(
       () => null
     );
     if (owner?.kind !== 'player') return null;

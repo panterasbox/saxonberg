@@ -2,7 +2,7 @@
  * SitController — set actor.posture to Sit on a posture-bearing slot
  * of the target host. Atomicity (vacate any current posture-bearing
  * slot before occupying the new one) is centralized in
- * `PostureApi.transferPosture`; controller owns the narration.
+ * the actor's own `transferPosture` (the OO sweep). controller owns the narration.
  *
  * Validation surface (from `cmd/sit.yaml`):
  *   - requiresAnimate, requiresPosed, requiresSlottable (verb-level)
@@ -18,7 +18,6 @@ import type { MqlOneResult } from '../../../../api/mql';
 import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
-import { PostureApi } from '../../../../api/posture';
 import { Postures } from '../../../../lib/slot/Postured';
 
 interface SitModel extends CommandModel {
@@ -52,9 +51,7 @@ export default class SitController extends CommandController<SitModel> {
       );
     }
 
-    const result = PostureApi.transferPosture(
-      giver,
-      target,
+    const result = giver.transferPosture(target,
       Postures.Sit,
       'sit'
     );

@@ -61,7 +61,7 @@ the good over, and transfers ownership:
 
 - **stock good** — settle the full price to the store's Business account,
   remit the demo sales tax on it, and **stamp** the buyer
-  (`ChattelApi.stamp` — a fresh, author-owned shelf good changes hands).
+  (`item.stampChattel` — a fresh, author-owned shelf good changes hands).
 - **consignment listing** — settle the ask, **split** the remainder to the
   consignor's primary account (the store keeps the commission, its taxable
   revenue), and **transfer** the owner-stamp to the buyer.
@@ -80,7 +80,7 @@ consignment needs no bespoke ownership pointer:
   `ConsignmentShelf` while your **owner-stamp stays put**. A
   `ConsignmentListing` (`{ listingId, itemChattelId, consignorKey,
   askMinor }`) is a brokerage record — ask price + payout target — **not**
-  an ownership pointer; "whose is it" is always `ChattelApi.ownerOf`.
+  an ownership pointer; "whose is it" is always `item.chattelOwner()`.
   Gates: you must own it (`ownerOf`, not custody); it must be discrete (a
   glob is refused); you must hold a bank account (the payout target —
   nudge to Goodkin otherwise); and you must be under the **per-consignor
@@ -99,7 +99,7 @@ consignment needs no bespoke ownership pointer:
   `commission = ask × retail.consignment.commissionRate`.
 - **`reclaim <thing>`** returns custody of an unsold listing — **no
   chattel op** (ownership never left you). It authorizes on
-  `ChattelApi.ownerOf`, not on possessing any ticket — so a non-owner
+  `item.chattelOwner()`, not on possessing any ticket — so a non-owner
   reclaiming someone else's goods is refused (custody without title is
   theft).
 
@@ -168,7 +168,7 @@ stands at target through the residency spawn sweep, the rows' own
 
 The buyer's side is the wallet rule ([employment.md](./employment.md)):
 with the house account active, `buy` settles from it and stamps the
-chattel to the business (`ChattelApi.ownerKeyOf` widened: an
+chattel to the business (the owner-principal builder widened: an
 `OrganizationMixin` Stuff → the `organization` owner arm); with a
 personal account it stamps the buyer, exactly as before. The `restocks`
 brain is a keeper doing that loop on cadence.

@@ -45,6 +45,10 @@ import type { AnyConstructor } from '../../api/mixin';
 import { Mixins } from '../mixin';
 import { MixinApi } from '../../api/mixin';
 import { ShadowApi } from '../../api/shadow';
+import { StuffApi } from '../../api/stuff';
+import { Final, Unshadowable } from '../security/decorators';
+// eslint-disable-next-line no-restricted-imports -- the F1 object face: a stack's split()/absorb() forward into the glob logic singleton exactly as the api/glob facade does (the Combustible/Energized precedent)
+import { GlobbableLogic } from '../../platform/idea/api/GlobbableLogic';
 import { Appearance } from '../identification/Appearance';
 import {
   MqlSubscriptionApi,
@@ -79,10 +83,16 @@ export interface Globbable {
   canSplit(n: number): boolean;
 
   /**
-   * Witness on the source after `GlobbableApi.split` produces a new
-   * Stuff. No-op terminal so subclasses can `super.onSplit(splitoff)`.
+   * Witness on the source after `split` produces a new Stuff. No-op
+   * terminal so subclasses can `super.onSplit(splitoff)`.
    */
   onSplit(splitoff: Stuff): void;
+
+  // The stack face (F1) — forwards into GlobbableLogic.
+  /** Split `n` units off into a new Stuff (whole-stack returns this). */
+  split(n: number): Promise<Stuff & Globbable>;
+  /** Fold `absorbed` into this stack; destructs the absorbed Stuff. */
+  absorb(absorbed: Stuff & Globbable): void;
 
   /**
    * Witness on the surviving stack after `GlobbableApi.merge` absorbs
@@ -95,7 +105,7 @@ export interface Globbable {
 export function GlobbableMixin<TBase extends MixinConstructor<Stuff>>(
   Base: TBase
 ) {
-  return class GlobbableMixin extends Base {
+  class GlobbableMixin extends Base {
     static _mixinName = 'GlobbableMixin';
 
     /**
@@ -265,7 +275,43 @@ export function GlobbableMixin<TBase extends MixinConstructor<Stuff>>(
     public onMerged(_absorbed: Stuff): void {
       // No-op terminal so subclasses can super.onMerged().
     }
-  };
+
+    // ------- the stack face (F1) — forwards into GlobbableLogic -------
+
+    /**
+     * Split `n` units off this stack into a new Stuff (whole-stack
+     * short circuit returns this). Runs `canSplit`; `placeDirect`s the
+     * splitoff (silent on movement — subdividing matter already there).
+     * Sealed — the split/absorb pair owns quantity conservation; the
+     * `canSplit`/`canMergeWith` veto seams stay the extension points.
+     */
+    @Final
+    @Unshadowable
+    public async split(n: number): Promise<Stuff & Globbable> {
+      return globLogic().split(this as unknown as Stuff & Globbable, n);
+    }
+
+    /**
+     * Fold `absorbed` into this stack (the survivor): increments this
+     * quantity, destructs the absorbed Stuff, fires `onMerged`. Emits
+     * no movement events. Sealed with `split` — one conservation pair.
+     */
+    @Final
+    @Unshadowable
+    public absorb(absorbed: Stuff & Globbable): void {
+      globLogic().merge(this as unknown as Stuff & Globbable, absorbed);
+    }
+  }
+
+  return GlobbableMixin;
+}
+
+/** Resolve the HMR-able GlobbableLogic singleton (the stack mechanics). */
+function globLogic(): GlobbableLogic {
+  return StuffApi.singletonSync(
+    '/platform/idea/api/glob',
+    () => new GlobbableLogic(),
+  );
 }
 
 /**

@@ -31,12 +31,12 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { ChattelApi } from '@saxonberg/server/mud/api/chattel';
 import { EmploymentApi } from '@saxonberg/server/mud/api/employment';
-import { AdvancementApi } from '@saxonberg/server/mud/api/advancement';
 import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { ConditionApi } from '@saxonberg/server/mud/api/condition';
 import type Ore from '../../../thing/Ore';
 import type { Face, Working } from '../../../location/Working';
+import type { Chattel } from '@saxonberg/server/mud/lib/chattel/Chattel';
 
 /** Reference time for one cut, in game ms, at reference hardness. */
 const HEW_MS = 9000;
@@ -198,7 +198,9 @@ async function winOre(
     // ⭐ Who owns it. On tutwork the business keeps the ore; on your own
     // claim it is yours. Title is the parcel's answer, never the ledger's.
   const owner = await ownerFor(giver, working);
-    if (owner) await ChattelApi.stamp(lump as unknown as Stuff, owner);
+    if (owner && MixinApi.isChattel(lump as unknown as Stuff)) {
+      await (lump as unknown as Stuff & Chattel).stampChattel(owner);
+    }
 
     MessageApi.scene(giver)
       .topic(MINING_TOPIC)
@@ -208,7 +210,8 @@ async function winOre(
 
     // World-derived difficulty: the rock decides how hard the cut was,
     // not the verb. Nothing gates on the band.
-    await AdvancementApi.recordDeed(giver, {
+    if (MixinApi.isAdvancing(giver))
+      await giver.creditDeed({
       discipline: 'geology',
       difficulty: face.hardnessMPa >= 250 ? 'hard' : face.hardnessMPa >= 150 ? 'standard' : 'easy',
       outcome: 'success',
@@ -274,7 +277,11 @@ async function maybeRun(
  */
 async function ownerFor(giver: Stuff, working: Working): Promise<Stuff | null> {
     const warren = (working as unknown as { getWarren?(): Stuff | null }).getWarren?.() ?? null;
-    if (warren && EmploymentApi.shiftStateOf(giver) === 'on-shift') {
+    if (
+      warren &&
+      MixinApi.isEmployed(giver) &&
+      giver.shiftState() === 'on-shift'
+    ) {
       const business = EmploymentApi.businessAt(
         (working as unknown as Stuff).getTemplatePath() ?? '',
       );

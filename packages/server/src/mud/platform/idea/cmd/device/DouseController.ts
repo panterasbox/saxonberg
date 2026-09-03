@@ -49,7 +49,10 @@ export default class DouseController extends CommandController<DouseModel> {
       target,
       (s): s is Stuff => MixinApi.isCombustible(s) || MixinApi.isFurnace(s),
     );
-    const doused = target2 !== null && FireApi.douse(target2);
+    const doused =
+      target2 !== null &&
+      MixinApi.isCombustible(target2) &&
+      target2.douse();
     if (!doused) {
       MessageApi.scene(commandGiver)
         .topic('act.deed')

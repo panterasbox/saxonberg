@@ -22,11 +22,41 @@ import { SocialApi } from '../../../api/social';
 import type { PresenceStatus, RosterFrame } from '@saxonberg/types';
 import type Avatar from '../../agent/Avatar';
 import type { Subscription } from '../../../api/event';
+import { SecurityApi } from '../../../api/security';
 
 // Gated to the SocialApi facade — presence/profile reads fold into
 // SocialApi (one navigable surface); this logic singleton stays separate
 // for file size + HMR but is @internal.
 const SocialApiCallers = SecurityPolicies.FromModule('/api/social#SocialApi'
+);
+
+/**
+ * The tap install is also callable by the self-warming `PresenceRelay`
+ * singleton (the boot()-retirement shape).
+ */
+/** The F2 object faces forward here as the subject instance. */
+const PresenceSubjectCallers = SecurityPolicies.AnyOf(
+  SocialApiCallers,
+  SecurityPolicies.FromMixin('HasInteractiveMixin', {
+    // Compare by stuffId — the caller may surface as the raw target
+    // while the argument is the proxy (or vice versa).
+    where: (caller, _target, _method, args) =>
+      (caller as { stuffId?: string }).stuffId !== undefined &&
+      (caller as { stuffId?: string }).stuffId ===
+        (args[0] as { stuffId?: string } | undefined)?.stuffId,
+  }),
+  SecurityPolicies.FromMixin('NotifyPolicyMixin', {
+    // Compare by stuffId — the caller may surface as the raw target
+    // while the argument is the proxy (or vice versa).
+    where: (caller, _target, _method, args) =>
+      (caller as { stuffId?: string }).stuffId !== undefined &&
+      (caller as { stuffId?: string }).stuffId ===
+        (args[0] as { stuffId?: string } | undefined)?.stuffId,
+  }),
+);
+const SocialBootCallers = SecurityPolicies.AnyOf(
+  SocialApiCallers,
+  SecurityPolicies.FromTemplate('/platform/idea/PresenceRelay'),
 );
 
 /** The roster wire topic — a presence-PUBLIC channel, distinct from the
@@ -97,7 +127,7 @@ async function snapshotForImpl(viewer: Avatar): Promise<void> {
   if (viewer.isDestroyed() || !viewer.isConnected()) return;
   const rows = [];
   for (const person of onlineImpl()) {
-    rows.push(await SocialApi.composeRow(viewer, person));
+    rows.push(await viewer.composeRosterRow(person));
   }
   sendRosterImpl(viewer, { kind: 'roster', action: 'snapshot', rows });
 }
@@ -137,7 +167,7 @@ async function fanImpl(
     }
     try {
       if (action === 'add' && actor) {
-        const row = await SocialApi.composeRow(viewer, actor);
+        const row = await viewer.composeRosterRow(actor);
         sendRosterImpl(viewer, {
           kind: 'roster',
           action: 'add',
@@ -188,20 +218,28 @@ export class PresenceLogic extends ApiLogic {
     return onlineImpl();
   }
 
-  /** See {@link SocialApi.statusOf}. */
-  @CallSecurity(SocialApiCallers)
+  /**
+   * See the object surface (`host.presenceStatus()`). Wrapped in the
+   * boundary read aperture: a roster row is composed for a viewer who
+   * may be on the other side of a circle from the person it describes;
+   * reading their engagements is a pure read that yields a display
+   * string.
+   */
+  @CallSecurity(PresenceSubjectCallers)
   public statusOf(target: Avatar): PresenceStatus {
-    return statusOfImpl(target);
+    return SecurityApi.projectAcross(target, undefined, () =>
+      statusOfImpl(target),
+    this);
   }
 
-  /** See {@link SocialApi.snapshotFor}. */
-  @CallSecurity(SocialApiCallers)
+  /** See the object surface (`viewer.snapshotRoster()`). */
+  @CallSecurity(PresenceSubjectCallers)
   public snapshotFor(viewer: Avatar): Promise<void> {
     return snapshotForImpl(viewer);
   }
 
-  /** See {@link SocialApi.boot}. Idempotent. */
-  @CallSecurity(SocialApiCallers)
+  /** Armed by `PresenceRelay.warm` (the manifest postRegister). Idempotent. */
+  @CallSecurity(SocialBootCallers)
   public installRosterTap(): void {
     if (this.loginSub) return;
     const present = (p: { playerId: string }) =>

@@ -106,7 +106,7 @@ describe('a card is born on the server, or not at all', () => {
     expect(body).not.toContain('CardId');
   });
 
-  it('every server-side mint goes through CardApi.open or CardApi.push', () => {
+  it('every server-side mint goes through CardApi.open or interactive.pushCard', () => {
     const files = [
       ...sourceFiles(join(SERVER_SRC, 'mud')),
       ...packSourceFiles(),
@@ -120,9 +120,14 @@ describe('a card is born on the server, or not at all', () => {
       if (rel === 'mud/platform/idea/CardRegistry.ts') continue;
       if (rel === 'mud/platform/idea/api/CardLogic.ts') continue;
       if (rel === 'mud/api/card.ts') continue;
+      // The Interactive method surface (Phase E) is the substrate's
+      // instance face — its forwards are the implementation, not a mint.
+      if (rel === 'mud/platform/idea/Interactive.ts') continue;
       const text = readFileSync(file, 'utf8');
-      for (const m of text.matchAll(/CardApi\.(open|push|applyArrangement)\(/g)) {
-        sites.push(`${rel}:${m[1]}`);
+      for (const m of text.matchAll(
+        /CardApi\.open\(|\.(pushCard|applyCardArrangement)\(/g,
+      )) {
+        sites.push(`${rel}:${m[0].startsWith('CardApi') ? 'open' : m[1]!}`);
       }
       /*
        * ⚠ Nothing outside the substrate touches the registry directly.
@@ -157,16 +162,16 @@ describe('a card is born on the server, or not at all', () => {
     expect(sites.sort()).toEqual(
       [
         'content/trade-mining/src/idea/cmd/perception/AnalyzeGroundController.ts:open',
-        'mud/platform/agent/Avatar.ts:applyArrangement',
-        'mud/lib/display/Display.ts:push',
-        'mud/platform/idea/api/PromptLogic.ts:push',
+        'mud/platform/agent/Avatar.ts:applyCardArrangement',
+        'mud/lib/display/Display.ts:pushCard',
+        'mud/platform/idea/api/PromptLogic.ts:pushCard',
         'mud/platform/idea/cmd/author/CmsController.ts:open',
         'mud/platform/idea/cmd/author/StudioController.ts:open',
         'mud/platform/idea/cmd/perception/LookController.ts:open',
         'mud/platform/idea/cmd/perception/LookController.ts:open',
         'mud/platform/idea/cmd/perception/SenseController.ts:open',
-        'mud/platform/idea/cmd/shell/CockpitModeController.ts:applyArrangement',
-        'mud/platform/idea/cmd/shell/LayoutController.ts:applyArrangement',
+        'mud/platform/idea/cmd/shell/CockpitModeController.ts:applyCardArrangement',
+        'mud/platform/idea/cmd/shell/LayoutController.ts:applyCardArrangement',
         'mud/platform/idea/cmd/social/WhoController.ts:open',
         'mud/platform/idea/cmd/system/GitController.ts:open',
         'mud/platform/idea/cmd/system/HelpController.ts:open',
@@ -322,9 +327,9 @@ describe('a declared card is a reachable card', () => {
       if (rel === 'mud/api/card.ts') continue;
       const text = readFileSync(file, 'utf8');
       for (const m of text.matchAll(
-        /CardApi\.(?:open|push)\(\s*[A-Za-z0-9_.]+\s*,\s*['"]([a-z]+)['"]/g,
+        /CardApi\.open\(\s*[A-Za-z0-9_.]+\s*,\s*['"]([a-z]+)['"]|\.pushCard\(\s*['"]([a-z]+)['"]/g,
       )) {
-        born.add(m[1]!);
+        born.add((m[1] ?? m[2])!);
       }
       // Minted through a DISPLAY — `<screen>.show({ kind: 'card',
       // cardId: 'x' })` pushes via `CardApi.push` for every viewer who

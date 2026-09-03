@@ -16,7 +16,8 @@ halves, over one shared resolution primitive:
    limited, and delivered as an **ordinary inline message frame** (no
    separate notification surface — see "Presence frames" below).
 
-Both halves call **one** `SocialApi.ruleFor(viewer, person)` primitive.
+Both halves call **one** `viewer.resolveNotifyRule(person)` primitive
+(the F2 viewer face on `NotifyPolicyMixin`).
 The store is a `NotifyPolicyMixin` per-character rule list — the
 structural sibling of `_contacts`. The player surface is one dedicated
 verb, `notify`, plus a thin client settings card over it.
@@ -25,7 +26,7 @@ Seeded by
 [social-graph-slate.md](../slates/tails/social-graph-slate.md);
 builds on [contacts.md](./contacts.md),
 [grouping.md](./grouping.md) (the `GroupApi`/`GroupRef` policy subject),
-[belief.md](./belief.md) (`RecognitionApi.describe` / `salientFeatures`),
+[belief.md](./belief.md) (`describeFor` / `salientFeatures`),
 [messaging.md](./messaging.md) (the Scene composer),
 [message-rendering.md](./message-rendering.md) (the theme palette + MML),
 [shell-environment.md](./shell-environment.md) (`social.verbosity`).
@@ -44,7 +45,7 @@ builds on [contacts.md](./contacts.md),
 | Client settings panel | `components/settings/SocialNotificationsPanel.tsx` (presence frames render inline — no bespoke client component) |
 
 No new module category: `SocialApi`/`SocialLogic` mirror the
-`RecognitionApi`/`RecognitionLogic` and `RenownApi`/`RenownLogic`
+`RecognitionLogic` and `RenownApi`/`RenownLogic`
 Api↔logic-singleton split verbatim. All real logic lives in
 module-private free functions in `SocialLogic.ts` (the `RenownLogic`
 discipline — public-to-public self-calls would trip the `FromModule`
@@ -132,12 +133,12 @@ resolves to `strangers` and a recognized one falls to `everyone-else`.
 ## The shared primitive — `ruleFor`, strict ordered first-match
 
 ```ts
-SocialApi.ruleFor(viewer, person, { excludeMql? }): Promise<ResolvedRule>
+viewer.resolveNotifyRule(person, { excludeMql? }): Promise<ResolvedRule>
 ```
 
 Walks the effective list top-to-bottom and returns the **first** rule
 whose group contains the person — allow or deny, full stop.
-`matchesRule` dispatches: `strangers` → `!RecognitionApi.recognizes`;
+`matchesRule` dispatches: `strangers` → `!recognizes`;
 `everyone-else` → always true (the tail); any other ref →
 `GroupApi.isMember(personDurableId, ref)` (covers the normalized
 `friends`/`foes` contacts refs, managed groups, and MQL). The person's
@@ -155,8 +156,8 @@ consumers" contract is the spine of the build.
 
 ## Display lensing — the per-viewer occupant block
 
-`SocialApi.composeOccupants(viewer, occupants, roomSize): Promise<Mml>`
-is the formatter — a sibling of `RecognitionApi.describe` *one
+`viewer.composeOccupants(occupants, roomSize): Promise<Mml>`
+is the formatter — a sibling of `describeFor` *one
 cardinality up*: `describe` names one target viewer-aware; the formatter
 orders / groups / collapses a *collection* and composes **through**
 `describe` per named occupant (never re-implements naming).
@@ -187,7 +188,7 @@ dropped.
 
 Collapsible occupants group by the tuple **(species, most-distinctive
 worn feature)** — species via `OrganismMixin.getSpecies`, the worn
-feature parsed out of `RecognitionApi.salientFeatures` (compose *through*
+feature parsed out of `salientFeatures` (compose *through*
 the shipped primitive, never re-derive). A group needs a shared tuple
 **and** ≥2 members to read as a count line ("12 dwarves in red robes");
 lone occupants and incomplete tuples fall to the generic "(N others
@@ -358,7 +359,7 @@ departures); `--message` takes `full|summary|silent`; `--render` takes
 the boolean flag pair; `--color` takes a palette token. It then enforces
 the **50-rule soft cap** at set-time with a friendly rejection, and
 dispatches
-to `SocialApi.{setRule,removeRule,reorderRule,listRules}`. A `silent`
+to `viewer.{setNotifyRule,clearNotifyRule,moveNotifyRule,effectiveNotifyRules}`. A `silent`
 surface *is* the mute, so allow and deny share the verb. The global
 verbosity dial stays the settings verb
 (`settings set social.verbosity standard|minimal|verbose`).
@@ -443,7 +444,7 @@ country" remain deferred to the slate.
 ## A flagged deferral
 
 1. **Message-restyle live wiring (Phase 3b).**
-   `SocialApi.styleMessageFor(viewer, speaker, body)` is implemented and
+   `viewer.styleMessageFrom(speaker, body)` is implemented and
    unit-tested — it applies the first-match `onMessage` surface (`full` /
    `summary` → highlight in the rule color, `silent` → notification
    suppression only, **never** feed-filtering) and is late-bound
@@ -476,7 +477,7 @@ country" remain deferred to the slate.
   `contacts:<pid>:<label>` ref the reserved `friends`/`foes` normalize to.
 - [grouping.md](./grouping.md) — the `GroupApi` facade + `GroupRef` shape
   (the policy subject) + the owner-only `ContactsGroupProvider` boundary.
-- [belief.md](./belief.md) — `RecognitionApi.describe` / `salientFeatures`
+- [belief.md](./belief.md) — `describeFor` / `salientFeatures`
   (the compose-through primitives).
 - [messaging.md](./messaging.md) — the Scene composer + sensor routing the
   presence frame rides; [message-rendering.md](./message-rendering.md) —
@@ -553,7 +554,7 @@ who is actively working and alert one who has walked away.
 
 ## Roster rows across the sandbox boundary
 
-`SocialApi.statusOf` and `SocialApi.composeRow` route through
+`target.presenceStatus()` and `viewer.composeRosterRow(target)` route through
 `SecurityApi.projectAcross` (see
 [call-security.md](./call-security.md)). A roster row IS the per-viewer
 projection of a person — the same category as naming — and `who` from

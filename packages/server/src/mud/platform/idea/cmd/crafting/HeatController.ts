@@ -17,7 +17,6 @@ import type { Stuff } from '../../../../lib/stuff/Stuff';
 import { MixinApi } from '../../../../api/mixin';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
-import { ThermalApi } from '../../../../api/thermal';
 
 const TOPIC = 'act.deed';
 const HEAT_MS = 4000;
@@ -41,7 +40,7 @@ export default class HeatController extends ManualBuildController<HeatModel> {
       return;
     }
 
-    const reachableK = ThermalApi.reachableHeatFor(giver);
+    const reachableK = (MixinApi.isThermal(giver) ? giver.reachableHeatK() : 0);
     if (reachableK <= 0) {
       this.declineStep(
         context,
@@ -60,7 +59,7 @@ export default class HeatController extends ManualBuildController<HeatModel> {
       onComplete: () => {
         // Re-read at completion — the fire may have died mid-step; you
         // latch the heat you actually finished at.
-        const finalK = ThermalApi.reachableHeatFor(giver);
+        const finalK = (MixinApi.isThermal(giver) ? giver.reachableHeatK() : 0);
         if (finalK > 0) build.noteHeat(finalK);
         build.recordCommand(commandText);
         MessageApi.scene(giver)

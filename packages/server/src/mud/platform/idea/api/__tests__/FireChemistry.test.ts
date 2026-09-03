@@ -85,7 +85,7 @@ async function burningLog(where: CartesianLocation): Promise<Firewood> {
   await ContainmentApi.move(w, where);
   w.setStampedTemperatureK(295);
   w.setLastAmbientK(295);
-  FireApi.ignite(w);
+  w.ignite();
   return w;
 }
 

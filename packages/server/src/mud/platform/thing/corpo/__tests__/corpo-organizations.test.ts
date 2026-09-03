@@ -230,7 +230,7 @@ describe('⭐ the authority actually separates the company from the city', () =>
     const authority = branch.getAppointingAuthority();
     await expect(EmploymentApi.holdsAuthority(banker, authority)).resolves.toBe(false);
     // Appoint the banker to run Goodkin: now the committee admits them.
-    EmploymentApi.hire(goodkin, banker as never, 'chief-executive');
+    goodkin.appoint(banker as never, 'chief-executive');
     await expect(EmploymentApi.holdsAuthority(banker, authority)).resolves.toBe(true);
     // ⚠ THE assertion. The city owns the ground this counter stands on,
     // and that buys it nothing here — which is the whole reason the corpo
@@ -240,11 +240,11 @@ describe('⭐ the authority actually separates the company from the city', () =>
 
   it('⭐ answers "who runs Veshko?" — empty now, a name once appointed', () => {
     const veshko = stand(() => new OrganizationEntity(), '/corpo/veshko', readChart('veshko'));
-    expect(EmploymentApi.holdersOf(veshko, 'chief-executive')).toEqual([]);
+    expect(veshko.holdersOf('chief-executive')).toEqual([]);
 
     const boss = makeAvatar('boss');
-    EmploymentApi.hire(veshko, boss as never, 'chief-executive');
-    expect(EmploymentApi.holdersOf(veshko, 'chief-executive')).toEqual([
+    veshko.appoint(boss as never, 'chief-executive');
+    expect(veshko.holdersOf('chief-executive')).toEqual([
       '/platform/agent/Avatar/boss',
     ]);
   });
@@ -257,7 +257,7 @@ describe('⭐ the authority actually separates the company from the city', () =>
       readSeed('world/terminus/counting-houses/business.yaml'),
     );
     expect(
-      EmploymentApi.organizationChainOf(branch).map((o) => o.getTemplatePath()),
+      branch.organizationChain().map((o) => o.getTemplatePath()),
     ).toEqual(['/corpo/goodkin']);
   });
 });

@@ -1,6 +1,6 @@
 /**
  * RenownLogic reaction tap — the ingestion seam. Covers: after
- * `RenownApi.boot()` installs the tap, a fired `ReactionFiredEvent`
+ * `RenownStandings.warm()` installs the tap, a fired `ReactionFiredEvent`
  * appends exactly one scope-tagged `RenownEvent` carrying the RAW emote +
  * tags (no score); the install is idempotent; scope is stubbed (`null`
  * locality / empty groups) pending Phase 4.
@@ -17,6 +17,8 @@ import { RenownApi } from '../../../../api/renown';
 import { EventApi } from '../../../../api/event';
 import EventRegistry from '../../EventRegistry';
 import { StuffApi } from '../../../../api/stuff';
+import RenownStandings from '../../RenownStandings';
+import { makeStuffAtPath } from '../../../../lib/security/__tests__/test-setup';
 import { Stuff } from '../../../../lib/stuff/Stuff';
 import { Idea } from '../../../../lib/stuff/Idea';
 import { GroupApi } from '../../../../api/group';
@@ -97,9 +99,26 @@ afterEach(() => {
   WorldClockApi._resetForTesting();
 });
 
+/**
+ * Arm the taps + recompute schedule the way production does since the
+ * boot() retirement: the RenownStandings singleton's warm (its
+ * template stamp is what the widened Logic gate admits).
+ */
+async function bootRenown(): Promise<void> {
+  const s =
+    StuffApi.findByTemplatePath<RenownStandings>(
+      '/platform/idea/RenownStandings',
+    ) ??
+    makeStuffAtPath(
+      () => new RenownStandings(),
+      '/platform/idea/RenownStandings',
+    );
+  await s.warm();
+}
+
 describe('RenownLogic reaction tap', () => {
   it('appends a scope-tagged RenownEvent carrying the raw signal', async () => {
-    RenownApi.boot();
+    await bootRenown();
     fireReaction();
     await flush();
 
@@ -120,23 +139,23 @@ describe('RenownLogic reaction tap', () => {
   });
 
   it('install is idempotent — booting twice yields one event per reaction', async () => {
-    RenownApi.boot();
-    RenownApi.boot();
+    await bootRenown();
+    await bootRenown();
     fireReaction();
     await flush();
     expect(await RenownApi.eventsFor('/platform/agent/Avatar/author')).toHaveLength(1);
   });
 
   it('does not log when the tap was never installed', async () => {
-    // No RenownApi.boot() — the bus has no renown subscriber.
+    // No bootRenown() — the bus has no renown subscriber.
     fireReaction();
     await flush();
     expect(await RenownApi.eventsFor('/platform/agent/Avatar/author')).toHaveLength(0);
   });
 
-  it('boot self-registers the recompute schedule, once', () => {
-    RenownApi.boot();
-    RenownApi.boot();
+  it('boot self-registers the recompute schedule, once', async () => {
+    await bootRenown();
+    await bootRenown();
     expect(ScheduleApi.recurring).toHaveBeenCalledTimes(1);
   });
 });
@@ -160,7 +179,7 @@ describe('RenownLogic reception tap (receive-side)', () => {
   });
 
   it('credits the speaker once per genuine listener, skips self + non-comm', async () => {
-    RenownApi.boot();
+    await bootRenown();
 
     received('/platform/agent/Avatar/L1', 'c1');
     received('/platform/agent/Avatar/L2', 'c1');
@@ -178,7 +197,7 @@ describe('RenownLogic reception tap (receive-side)', () => {
   });
 
   it('dedups a listener hearing the same speaker again within the window', async () => {
-    RenownApi.boot();
+    await bootRenown();
     received('/platform/agent/Avatar/L1', 'c1');
     await flush();
     received('/platform/agent/Avatar/L1', 'c2'); // same speaker→L1, within window
@@ -206,7 +225,7 @@ describe('RenownLogic durable identity re-key (stuffId → templatePath)', () =>
   }
 
   it('stores reaction subject + source under the templatePath, not the stuffId', async () => {
-    RenownApi.boot();
+    await bootRenown();
     const author = await mint('/platform/agent/Avatar/p-author');
     const reactor = await mint('/platform/agent/Avatar/p-reactor');
     expect(author.stuffId).not.toBe('/platform/agent/Avatar/p-author'); // genuinely ephemeral
@@ -224,7 +243,7 @@ describe('RenownLogic durable identity re-key (stuffId → templatePath)', () =>
   });
 
   it('aggregates across re-clone — a new stuffId at the same templatePath keeps the standing', async () => {
-    RenownApi.boot();
+    await bootRenown();
     const before = await mint('/platform/agent/Avatar/p1');
     fireReaction({
       subjectId: before.stuffId,

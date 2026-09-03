@@ -11,10 +11,10 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { brain as enforces } from "../enforces";
 import { MixinApi } from "../../../api/mixin";
 import { CombatApi } from "../../../api/combat";
-import { CommandApi } from "../../../api/command";
 import { DocumentApi } from "../../../api/document";
 import type { Stuff } from "../../stuff/Stuff";
 import type { BrainContext } from "../brain";
+import { CombatLogic } from '../../../platform/idea/api/CombatLogic';
 
 interface FakeOcc {
   stuffId: string;
@@ -43,10 +43,19 @@ function asStuff(o: FakeOcc): Stuff {
     hasKeyword: (k: string) => k === o.keyword || o.arms.includes(k),
     getIdentityPath: () => o.identity,
     getTemplatePath: () => o.identity,
+    // The G1 combatant face — a fake forwards like the real mixin does.
+    visibleArmsFor: () => ((o.arms.length ?? 0) > 0 ? [{}] : []),
   } as unknown as Stuff;
 }
 
-const HOST = { stuffId: "dave" } as unknown as Stuff;
+const HOST = {
+  stuffId: "dave",
+  visibleArmsFor: () => {
+    const hk = (HOST as unknown as { hasKeyword?: (k: string) => boolean })
+      .hasKeyword;
+    return hk?.("taser") ? [{}] : [];
+  },
+} as unknown as Stuff;
 
 function ctx(
   config: Record<string, unknown> = {},
@@ -72,6 +81,7 @@ beforeEach(() => {
   vi.spyOn(MixinApi, "isContainable").mockReturnValue(true);
   vi.spyOn(MixinApi, "isContainer").mockReturnValue(true);
   vi.spyOn(MixinApi, "isVitals").mockReturnValue(true);
+  vi.spyOn(MixinApi, "isCombatant").mockReturnValue(true);
   vi.spyOn(MixinApi, "isPerceptible").mockReturnValue(true);
   (HOST as unknown as { getContainer: () => unknown }).getContainer = () => ({
     getContents: () => [HOST, ...occ.map(asStuff)],
@@ -86,7 +96,7 @@ beforeEach(() => {
     const f = occ.find((o) => o.stuffId === (s as { stuffId: string }).stuffId);
     return (f?.fighting ? ({} as never) : undefined) as never;
   });
-  vi.spyOn(CombatApi, "visibleArms").mockImplementation((_v, subject) => {
+  vi.spyOn(CombatLogic.prototype, "visibleArms").mockImplementation((_v, subject) => {
     const id = (subject as { stuffId: string }).stuffId;
     if (id === "dave") {
       const hk = (HOST as unknown as { hasKeyword: (k: string) => boolean })
@@ -96,12 +106,13 @@ beforeEach(() => {
     const f = occ.find((o) => o.stuffId === id);
     return ((f?.arms.length ?? 0) > 0 ? [{}] : []) as never;
   });
-  vi.spyOn(CommandApi, "forceCommand").mockImplementation((async (
-    _g: unknown,
-    text: string,
-  ) => {
+  // Dispatch is `host.forceCommand(text)` since the OO sweep — the
+  // fake host is the interception seam.
+  (
+    HOST as unknown as { forceCommand: (text: string) => Promise<void> }
+  ).forceCommand = async (text: string) => {
     forced.push(text);
-  }) as never);
+  };
   vi.spyOn(DocumentApi, "read").mockResolvedValue(null);
   vi.spyOn(DocumentApi, "save").mockResolvedValue(undefined as never);
 });
@@ -113,7 +124,7 @@ afterEach(() => {
 describe("enforces — the house rule (armed patron)", () => {
   it("warns first, no record, no violence", async () => {
     occ = [fake({ stuffId: "rowdy", arms: ["knife"] })];
-    const c = ctx({ recordsPath: "/world/lounge/records/86" });
+    const c = ctx({ recordsPath: "/test/lounge/records/86" });
     await enforces.act(c);
     expect(c.say).toHaveBeenCalledTimes(1);
     expect(String(c.say.mock.calls[0]![0]).toLowerCase()).toContain("check it");
@@ -125,12 +136,12 @@ describe("enforces — the house rule (armed patron)", () => {
     occ = [fake({ stuffId: "rowdy", arms: ["knife"] })];
     const state = { warned: { "/id/rowdy": true } };
     const c = ctx(
-      { recordsPath: "/world/lounge/records/86", ejectDirection: "south" },
+      { recordsPath: "/test/lounge/records/86", ejectDirection: "south" },
       state,
     );
     await enforces.act(c);
     expect(DocumentApi.save).toHaveBeenCalledWith(
-      "/world/lounge/records/86",
+      "/test/lounge/records/86",
       "venue-eighty-six",
       expect.objectContaining({ subjects: expect.arrayContaining(["/id/rowdy"]) }),
     );
@@ -142,7 +153,7 @@ describe("enforces — the house rule (armed patron)", () => {
     vi.mocked(DocumentApi.read).mockResolvedValue({
       getData: () => ({ subjects: ["/id/banned"] }),
     } as never);
-    const c = ctx({ recordsPath: "/world/lounge/records/86" });
+    const c = ctx({ recordsPath: "/test/lounge/records/86" });
     await enforces.act(c);
     expect(forced[0]).toBe("attack banned"); // straight to the door
   });

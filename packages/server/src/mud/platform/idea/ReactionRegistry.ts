@@ -42,7 +42,6 @@ import { MessageApi } from '../../api/message';
 import { EventApi } from '../../api/event';
 import { AppApi } from '../../api/app';
 import { StuffApi } from '../../api/stuff';
-import { RecognitionApi } from '../../api/recognition';
 import { ShellApi } from '../../api/shell';
 import { ScheduleApi, type ScheduleHandle } from '../../api/schedule';
 import { AppSettingKeys } from '../../lib/config/AppSettings';
@@ -59,6 +58,11 @@ import type {
 const ReactionApiCallers = SecurityPolicies.AnyOf(
   SecurityPolicies.FromModule('/api/reaction#ReactionApi'),
   SecurityPolicies.SelfOnly,
+);
+/** The Interactive reaction surface (Phase E) calls in as the proxied instance. */
+const ReactionCallers = SecurityPolicies.AnyOf(
+  ReactionApiCallers,
+  SecurityPolicies.FromModule('/platform/idea/Interactive'),
 );
 
 /** One reactor's reaction to one act. */
@@ -158,7 +162,7 @@ class InteractiveReactionSink implements ReactionSink {
   emitDelta(env: Omit<ReactionDeltaEnvelope, 'frameId'>): void {
     const viewer = this.viewer;
     if (!viewer) return;
-    MessageApi.sendEnvelope(viewer, env);
+    viewer.onEnvelope(env);
   }
 }
 
@@ -340,7 +344,7 @@ export default class ReactionRegistry extends Idea {
     return act ? { subjectId: act.subjectId, scope: act.scope } : null;
   }
 
-  @CallSecurity(ReactionApiCallers)
+  @CallSecurity(ReactionCallers)
   public noteDeliveredFrame(
     interactive: Interactive,
     frameId: number,
@@ -355,7 +359,7 @@ export default class ReactionRegistry extends Idea {
     if (ring.length > DEFAULTS.gutterRing) ring.shift();
   }
 
-  @CallSecurity(ReactionApiCallers)
+  @CallSecurity(ReactionCallers)
   public resolveGutter(
     interactive: Interactive,
     frameId: number,
@@ -374,7 +378,7 @@ export default class ReactionRegistry extends Idea {
   }
 
   /** The most-recent reactable act delivered to this Interactive. */
-  @CallSecurity(ReactionApiCallers)
+  @CallSecurity(ReactionCallers)
   public lastDeliveredActFor(interactive: Interactive): string | null {
     const ring = this.gutter.get(interactive);
     if (!ring || ring.length === 0) return null;
@@ -406,10 +410,10 @@ export default class ReactionRegistry extends Idea {
       commandId: req.commandId,
       reactors,
     };
-    MessageApi.sendEnvelope(viewer, template);
+    viewer.onEnvelope(template);
   }
 
-  @CallSecurity(ReactionApiCallers)
+  @CallSecurity(ReactionCallers)
   public registerInteractive(interactive: Interactive): void {
     if (this.interactiveSinks.has(interactive)) return;
     this.interactiveSinks.set(
@@ -418,7 +422,7 @@ export default class ReactionRegistry extends Idea {
     );
   }
 
-  @CallSecurity(ReactionApiCallers)
+  @CallSecurity(ReactionCallers)
   public cancelAllForInteractive(interactive: Interactive): void {
     this.interactiveSinks.delete(interactive);
     this.gutter.delete(interactive);
@@ -576,7 +580,7 @@ export default class ReactionRegistry extends Idea {
           names.push(
             id === vid
               ? reactor.getPresentation()
-              : RecognitionApi.describe(viewer, reactor),
+              : reactor.describeFor(viewer),
           );
         }
         if (names.length > 0) b.reactors = names;
@@ -611,7 +615,7 @@ export default class ReactionRegistry extends Idea {
    * Build named sample entries for `viewer`. When `familiarOnly`, only
    * reactors the viewer recognizes / has in contacts surface (strangers
    * stay in the count, unnamed); expand passes `false` for the full set.
-   * Names come from `RecognitionApi.describe` — the same late-binding
+   * Names come from `describeFor` — the same late-binding
    * the prose path uses, so the card and scrollback can't disagree.
    */
   private entriesFor(
@@ -633,7 +637,7 @@ export default class ReactionRegistry extends Idea {
       }
       out.push({
         reactorId: r.reactorId,
-        reactorName: RecognitionApi.describe(viewer, reactor),
+        reactorName: reactor.describeFor(viewer),
         emote: r.emote,
         ...(r.emoji !== undefined ? { emoji: r.emoji } : {}),
         ...(r.customText !== undefined ? { customText: r.customText } : {}),

@@ -16,19 +16,32 @@ import EnrollController from '../EnrollController';
 import Login from '../../../Login';
 import Interactive from '../../../Interactive';
 import Avatar from '../../../../agent/Avatar';
+import { PersonaMixin } from '../../../../../lib/character/Persona';
+
+/**
+ * A Persona-composed stand-in for the cloned avatar: the real chronicle
+ * face over the in-memory PM; commit's other touches are inert no-ops.
+ * The commit path grants the onboarding coin to non-guests; the
+ * AppApi.setting mock returns a non-numeric stipend, so no mint fires.
+ */
+class StubAvatar extends PersonaMixin(Idea) {
+  setSex(_s: string): void {}
+  async enter(): Promise<void> {}
+  getIsGuest(): boolean {
+    return false;
+  }
+}
 import Species from '../../../species/Species';
 import { Idea } from '../../../../../lib/stuff/Idea';
 import { StuffApi } from '../../../../../api/stuff';
 import { AppApi } from '../../../../../api/app';
 import { TemplateApi } from '../../../../../api/template';
 import { Template } from '../../../../../lib/stuff/Template';
-import { ConnectionApi } from '../../../../../api/connection';
 import { ContainmentApi } from '../../../../../api/containment';
-import { SlotApi } from '../../../../../api/slot';
 import { MessageApi } from '../../../../../api/message';
 import { WorldClockApi } from '../../../../../api/worldclock';
 import { PersistenceManager } from '../../../../../../backend/PersistenceManager';
-import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
+import { makeStuff, makeStuffAtPath } from '../../../../../lib/security/__tests__/test-setup';
 import type { CommandContext, CommandModel } from '../../../../../api/command';
 
 const SAPIENS =
@@ -106,32 +119,21 @@ describe('EnrollController.commit → chronicle seeding', () => {
       async (path: string) => path
     );
 
-    // The cloned avatar — a stub that carries a durable templatePath (the
-    // chronicle owner key) and a no-op enter (so the first-arrival deed
-    // does not fire from here).
+    // The cloned avatar — a REAL Persona-composed stub (the chronicle
+    // owner face lives ON the mixin since the OO sweep), path-stamped
+    // so the durable owner key resolves; enter is a no-op (so the
+    // first-arrival deed does not fire from here).
     avatarPath = '';
-    const avatarStub = {
-      setSex: vi.fn(),
-      enter: vi.fn().mockResolvedValue(undefined),
-      getTemplatePath: () => avatarPath,
-      // The identity-keyed producers key on getIdentityPath (sandbox
-      // build); an ordinary body's identity IS its templatePath.
-      getIdentityPath: () => avatarPath,
-      // The commit path grants the onboarding coin to non-guests; this
-      // AppApi.setting mock returns a non-numeric string for the stipend
-      // key, so no mint fires — the guard just needs the accessor.
-      getIsGuest: () => false,
-    };
     vi.spyOn(StuffApi, 'clone').mockImplementation(async (path: string) => {
       if (path.startsWith('/platform/agent/Avatar/')) {
         avatarPath = path;
-        return avatarStub as never;
+        return makeStuffAtPath(() => new StubAvatar(), path) as never;
       }
       return makeStuff(() => new Idea()) as never;
     });
     vi.spyOn(ContainmentApi, 'move').mockReturnValue(undefined as never);
-    vi.spyOn(SlotApi, 'occupyAll').mockReturnValue(undefined as never);
-    vi.spyOn(ConnectionApi, 'transfer').mockReturnValue(undefined as never);
+    
+    vi.spyOn(interactive, 'transferTo').mockReturnValue(undefined as never);
     vi.spyOn(StuffApi, 'destruct').mockReturnValue(undefined as never);
     vi.spyOn(MessageApi, 'scene').mockImplementation(() => {
       const b: Record<string, unknown> = {};

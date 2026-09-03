@@ -25,7 +25,6 @@ import type { CommandContext, CommandModel } from '../../../../api/command';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 import { PackApi } from '../../../../api/pack';
-import { PromptApi } from '../../../../api/prompt';
 import { MixinApi } from '../../../../api/mixin';
 import type {
   PackDiffReport,
@@ -136,8 +135,7 @@ export default class PackController extends CommandController<PackModel> {
     if (!interactive) return;
     let answer: string;
     try {
-      answer = (await PromptApi.text(
-        interactive,
+      answer = (await interactive.promptText(
         'This pack has no maintainers. You, or who? (a name, or enter for you)',
       )).trim();
     } catch {

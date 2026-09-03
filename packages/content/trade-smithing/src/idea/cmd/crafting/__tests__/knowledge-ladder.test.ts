@@ -23,7 +23,6 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { ExecutionContextApi } from '@saxonberg/server/mud/api/execution-context';
 import { CraftingApi } from '@saxonberg/server/mud/api/crafting';
-import { AdvancementApi } from '@saxonberg/server/mud/api/advancement';
 import { RecipeKnowledge } from '@saxonberg/server/mud/lib/script/RecipeKnowledge';
 import { MakerMixin } from '@saxonberg/server/mud/lib/craft/Maker';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
@@ -189,7 +188,7 @@ describe('the knowledge ladder, generalized (wiki parity)', () => {
       false,
     );
 
-    const rows = await AdvancementApi.entriesFor(builder, 'smithing');
+    const rows = await builder.transcriptEntries('smithing');
     expect(rows.length).toBeGreaterThan(0);
     expect(rows[0]).toMatchObject({
       discipline: 'smithing',

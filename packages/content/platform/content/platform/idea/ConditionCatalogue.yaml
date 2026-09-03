@@ -1,0 +1,7 @@
+# ConditionCatalogue — the singleton whose postRegister stands the
+# authored condition roster up as live singletons (the self-warming
+# catalogue shape; eager via this pack's boot list, not an AppBootstrap
+# sequencer line). Ordered after MaterialCatalogue on the boot
+# manifest: a condition's signs can name tissue materials.
+class: /platform/idea/ConditionCatalogue
+data: {}

@@ -47,6 +47,7 @@ import { Reserve } from '../../../lib/reserve';
 import { Creature } from '../../../lib/creature/Creature';
 import { Idea } from '../../../lib/stuff/Idea';
 import { ContainerMixin } from '../../../lib/spatial/Container';
+import { ThermalMixin } from '../../../lib/thermal/Thermal';
 import { ContainableMixin } from '../../../lib/spatial/Containable';
 import { NamedMixin } from '../../../lib/description/Named';
 import { MakerMixin } from '../../../lib/craft/Maker';
@@ -90,7 +91,7 @@ class TestRoom extends ContainerMixin(Idea) {
   static _mixinName = 'TestRoomVenues';
 }
 class TestMaker extends MakerMixin(
-  ContainerMixin(NamedMixin(ContainableMixin(Idea))),
+  ThermalMixin(ContainerMixin(NamedMixin(ContainableMixin(Idea)))),
 ) {
   static _mixinName = 'TestMakerVenues';
   // MakerMixin is augment-gated; this stands in for an on-shift employee
@@ -99,7 +100,9 @@ class TestMaker extends MakerMixin(
     return ['MakerMixin'];
   }
 }
-class TestPatron extends ContainerMixin(NamedMixin(ContainableMixin(Idea))) {
+class TestPatron extends ThermalMixin(
+  ContainerMixin(NamedMixin(ContainableMixin(Idea))),
+) {
   static _mixinName = 'TestPatronVenues';
 }
 

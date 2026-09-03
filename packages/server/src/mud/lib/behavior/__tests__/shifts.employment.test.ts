@@ -18,11 +18,13 @@ import { WorldClockApi } from '../../../api/worldclock';
 import type { Stuff } from '../../stuff/Stuff';
 import type { BrainContext } from '../brain';
 import { makeStuff } from '../../security/__tests__/test-setup';
+import { EmploymentLogic } from '../../../platform/idea/api/EmploymentLogic';
+import { EmployedMixin } from '../../employment/Employed';
 
 class Room extends ContainerMixin(ContainableMixin(Idea)) {
   static _mixinName = 'Room';
 }
-class Mover extends MobileMixin(ContainableMixin(Idea)) {
+class Mover extends EmployedMixin(MobileMixin(ContainableMixin(Idea))) {
   static _mixinName = 'Mover';
 }
 
@@ -50,7 +52,7 @@ describe('shifts brain — employment-driven presence', () => {
     const mover = makeStuff(() => new Mover());
     ContainmentApi.move(mover, source);
 
-    vi.spyOn(EmploymentApi, 'shiftStateOf').mockReturnValue('on-shift');
+    vi.spyOn(EmploymentLogic.prototype, 'shiftStateOf').mockReturnValue('on-shift');
     const singleton = vi
       .spyOn(StuffApi, 'singletonOrClone')
       .mockResolvedValue(behindBar as unknown as Stuff);
@@ -67,7 +69,7 @@ describe('shifts brain — employment-driven presence', () => {
     const mover = makeStuff(() => new Mover());
     ContainmentApi.move(mover, source);
 
-    vi.spyOn(EmploymentApi, 'shiftStateOf').mockReturnValue('off-shift');
+    vi.spyOn(EmploymentLogic.prototype, 'shiftStateOf').mockReturnValue('off-shift');
     const singleton = vi
       .spyOn(StuffApi, 'singletonOrClone')
       .mockResolvedValue(offstage as unknown as Stuff);
@@ -81,7 +83,7 @@ describe('shifts brain — employment-driven presence', () => {
   it('never reads the game clock', async () => {
     const dest = makeStuff(() => new Room());
     const mover = makeStuff(() => new Mover());
-    vi.spyOn(EmploymentApi, 'shiftStateOf').mockReturnValue('on-shift');
+    vi.spyOn(EmploymentLogic.prototype, 'shiftStateOf').mockReturnValue('on-shift');
     vi.spyOn(StuffApi, 'singletonOrClone').mockResolvedValue(
       dest as unknown as Stuff,
     );
@@ -97,7 +99,7 @@ describe('shifts brain — employment-driven presence', () => {
     const mover = makeStuff(() => new Mover());
     ContainmentApi.move(mover, behindBar);
 
-    vi.spyOn(EmploymentApi, 'shiftStateOf').mockReturnValue('on-shift');
+    vi.spyOn(EmploymentLogic.prototype, 'shiftStateOf').mockReturnValue('on-shift');
     vi.spyOn(StuffApi, 'singletonOrClone').mockResolvedValue(
       behindBar as unknown as Stuff,
     );

@@ -9,7 +9,7 @@
  * secretive NPC simply omits this brain.
  *
  * Real recognition, not a name bypass: it routes through
- * `SoulMixin.introduceSelf` → `RecognitionApi.learnIdentity`, the same
+ * `SoulMixin.introduceSelf` → the listener's `learnIdentityOf`, the same
  * path the `introduce` verb uses. Claims `attention` (held briefly via a
  * BehaviorBeat) like `greets`.
  *
@@ -19,7 +19,6 @@
 import type { EngagementSlot } from '../activity/Engaged';
 import type { BrainContext, BrainStatics } from './brain';
 import { MixinApi } from '../../api/mixin';
-import { RecognitionApi } from '../../api/recognition';
 
 export const brain = class {
   static label = 'introduces';
@@ -31,7 +30,7 @@ export const brain = class {
     const host = ctx.host;
     if (!MixinApi.isSoul(host)) return;
     // Don't re-introduce to someone who already knows us.
-    if (RecognitionApi.recognizes(arriver, host)) return;
+    if (MixinApi.isBeliefStore(arriver) && arriver.recognizes(host)) return;
     host.introduceSelf();
   }
 } satisfies BrainStatics;

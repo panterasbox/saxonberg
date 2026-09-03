@@ -30,8 +30,6 @@ import { Currency, BankingApi, Money } from "../../../../api/banking";
 import { ConnectionApi } from "../../../../api/connection";
 import { ContainmentApi } from "../../../../api/containment";
 import { MixinApi } from "../../../../api/mixin";
-import { SlotApi } from "../../../../api/slot";
-import { ChronicleApi } from "../../../../api/chronicle";
 import { Template } from "../../../../lib/stuff/Template";
 import Avatar from "../../../agent/Avatar";
 import Login from "../../Login";
@@ -735,7 +733,7 @@ export default class EnrollController extends CommandController<EnrollModel> {
           ContainmentApi.move(garment, avatar);
           if (bodyPlanPath && MixinApi.isWearable(garment)) {
             const slots = garment.getSlotClaim(bodyPlanPath);
-            if (slots.length) SlotApi.occupyAll(avatar, garment, slots);
+            if (slots.length) avatar.occupyAll(garment, slots);
           }
         } catch {
           /* skip this garment */
@@ -750,8 +748,8 @@ export default class EnrollController extends CommandController<EnrollModel> {
     //     registered (step 3), so `getTemplatePath()` resolves. The
     //     founding deed is event-singular by trigger (enroll fires once
     //     per character by construction), so it needs no dedup `key`.
-    await ChronicleApi.seedClaims(avatar, aspiration?.claimSeeds ?? []);
-    await ChronicleApi.recordDeed(avatar, {
+    await avatar.seedChronicleClaims(aspiration?.claimSeeds ?? []);
+    await avatar.recordDeed({
       template: "Enrolled as {{ name }}, {{ aspirationLabel }}.",
       vars: {
         name: draft.name,
@@ -775,7 +773,7 @@ export default class EnrollController extends CommandController<EnrollModel> {
     }
 
     // 6. Hand off to the avatar's session, then destruct Login.
-    ConnectionApi.transfer(interactive, avatar);
+    interactive.transferTo(avatar);
     await avatar.enter(interactive, { firstArrival: true });
     StuffApi.destruct(login);
   }

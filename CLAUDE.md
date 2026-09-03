@@ -116,7 +116,7 @@ behavior. Read the relevant doc before editing in its area.
   - [civics.md](./docs/subsystems/civics.md) — diegetic government: the Government data Idea + catalogue, Locality-declared jurisdiction, derive-on-read residency, seats-as-positions, the `government` verb; the meta committee reads on CompactApi
   - [livestream.md](./docs/subsystems/livestream.md) — broadcast-feed WS principal, StreamState, `requiresStreamer`, `stream away`/`back`
   - [streaming.md](./docs/subsystems/streaming.md) — unified `watch`/`tune` over StreamerTarget; per-platform transports (Twitch/YouTube/Kick — Kick = webhook-inbound + the KickProfile provider); overlay chat forwarding
-  - [display.md](./docs/subsystems/display.md) — screens: `DisplayMixin` (a tablet, a wall TV, the terminal's board are one thing), the four pairing policies + the unconditional `held` rung, stream/card sources, the projection rule (*the display you can see shows X* — `cockpit.watch` + `CardApi.push` per perceiving viewer), the modem as a predicate on the DRIVER, `resolveFor` ladder, `refreshViewer`; ⚠ a display confers no money authority
+  - [display.md](./docs/subsystems/display.md) — screens: `DisplayMixin` (a tablet, a wall TV, the terminal's board are one thing), the four pairing policies + the unconditional `held` rung, stream/card sources, the projection rule (*the display you can see shows X* — `cockpit.watch` + a per-viewer card push), the modem as a predicate on the DRIVER, `resolveFor` ladder, `refreshViewer`; ⚠ a display confers no money authority
   - [twitch-relay.md](./docs/subsystems/twitch-relay.md) — [superseded → streaming.md] the Twitch transport: EventSub reader, reauth flow, RelaySpeaker
   - [properties.md](./docs/subsystems/properties.md) — PropertiedMixin, Property<T>, transient vs saved storage, masks
   - [command-routing.md](./docs/subsystems/command-routing.md) — YAML view + controller MVC, dispatch chain, validators, affordance attribution + resolution, async override
@@ -138,7 +138,7 @@ behavior. Read the relevant doc before editing in its area.
   - [senses.md](./docs/subsystems/senses.md) — SenseChannel vocabulary, Modality singletons, PerceptionApi
   - [quantities.md](./docs/subsystems/quantities.md) — Quantity<U> substrate, Unit catalog, QuantityMarshaller
   - [perception.md](./docs/subsystems/perception.md) — viewer-aware queries, Shadow seam, the concealment/detection face on PerceptionApi, Audible push
-  - [belief.md](./docs/subsystems/belief.md) — per-viewer identity memory: BeliefStore realms, RecognitionApi.describe, disguise, regard, DISCOVERY
+  - [belief.md](./docs/subsystems/belief.md) — per-viewer identity memory: BeliefStore realms, the describeFor recognition face, disguise, regard, DISCOVERY
   - [concealment.md](./docs/subsystems/concealment.md) — presence-concealment gate: ConcealableMixin bands, honest-fog seams, `search`, the awareness Discipline
   - [hazard.md](./docs/subsystems/hazard.md) — traps: self-resolving HazardMixin, HazardDelivery, the three generics + the Sunken Delve
   - [stealth.md](./docs/subsystems/stealth.md) — actor-face of concealment: HidingMixin, motion degrades, ambush, the `wary` brain, TrapKit, the stealth Discipline

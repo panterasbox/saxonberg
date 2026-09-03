@@ -22,7 +22,6 @@
 import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import { MessageApi } from '../../../../api/message';
-import { CardApi } from '../../../../api/card';
 import { Mml } from '../../../../api/mml';
 
 interface CardModel extends CommandModel {
@@ -67,7 +66,7 @@ export default class CockpitCardController extends CommandController<CardModel> 
 
     // `auto` hands the decision back to the catalogue's own default.
     const pinned = action === 'pin' ? true : action === 'dismiss' ? false : null;
-    const ok = CardApi.setPinned(interactive, cardId, pinned);
+    const ok = interactive.setCardPinned(cardId, pinned);
     if (!ok) {
       return this.fail(
         context,
@@ -89,7 +88,7 @@ export default class CockpitCardController extends CommandController<CardModel> 
   }
 
   private executeList(context: CommandContext): void {
-    const cards = CardApi.list(context.interactive!);
+    const cards = context.interactive!.listCards();
     if (cards.length === 0) {
       return this.send(context, Mml.fromMarkup('\nno cards open\n'));
     }

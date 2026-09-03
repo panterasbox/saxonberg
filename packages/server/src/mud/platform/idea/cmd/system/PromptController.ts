@@ -5,7 +5,7 @@
  *
  *   - `prompt cancel` — cancels every pending prompt on every
  *     `Interactive` the giver owns (via
- *     `PromptApi.cancelAll(iact, 'cancelled')`). Reports the
+ *     `iact.cancelPrompts('cancelled')`). Reports the
  *     count of prompts cancelled via the standard dispatch-
  *     response channel.
  *
@@ -67,7 +67,7 @@ export default class PromptController extends CommandController<PromptModel> {
 
     let total = 0;
     for (const interactive of giver.getInteractives()) {
-      total += PromptApi.cancelAll(interactive, 'cancelled');
+      total += interactive.cancelPrompts('cancelled');
     }
 
     const message =

@@ -49,7 +49,7 @@ export default class QuitController extends CommandController<QuitModel> {
       }
       return this.fail(context, `You hold no position at ${wanted}.`, 'not-employed');
     }
-    await EmploymentApi.quit(giver, record.organizationPath);
+    await giver.quitJob(record.organizationPath);
     const org = StuffApi.findByTemplatePath(record.organizationPath);
     const name = org?.getPresentation() ?? record.organizationPath;
     MessageApi.scene(giver)

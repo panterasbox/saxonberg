@@ -16,10 +16,10 @@
  */
 
 import { SurveyChannelController, READING_TOPIC, GEOLOGY } from './SurveyChannelController';
+import { MixinApi } from "@saxonberg/server/mud/api/mixin";
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
-import { AdvancementApi } from '@saxonberg/server/mud/api/advancement';
 
 export default class MeasureDipController extends SurveyChannelController {
   async execute(_model: CommandModel, context: CommandContext): Promise<void> {
@@ -85,7 +85,8 @@ export default class MeasureDipController extends SurveyChannelController {
       )
       .send();
 
-    await AdvancementApi.recordDeed(giver, {
+    if (MixinApi.isAdvancing(giver))
+      await giver.creditDeed({
       discipline: GEOLOGY,
       difficulty: 'standard',
       outcome: 'success',

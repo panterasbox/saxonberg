@@ -16,6 +16,9 @@ import { ShadowApi } from '../shadow';
 import { MqlSubscriptionApi } from '../mql-subscription';
 import { CARDS } from '../../lib/connection/Cards';
 import { makeHarness, makeContext, type Harness } from './card-harness';
+import Interactive from '../../platform/idea/Interactive';
+import { makeStuff } from '../../lib/security/__tests__/test-setup';
+import type { User } from '../../lib/identity/User';
 
 /**
  * ⚠ The sweep's FALLBACK, not the window. The window is the
@@ -66,7 +69,7 @@ describe('a card lives on one axis: pinned or not', () => {
   it('a pinned card does NOT close, however long it sits', async () => {
     const h = await makeHarness();
     openWho(h);
-    CardApi.setPinned(h.interactive, 'who', true);
+    h.interactive.setCardPinned('who', true);
 
     expect(
       CardApi._sweepNowForTesting(FALLBACK, Date.now() + DEFAULT_WINDOW * 100),
@@ -80,16 +83,16 @@ describe('a card lives on one axis: pinned or not', () => {
     openWho(h);
     // `who` ships unpinned.
     expect(CARDS.who.pinnedByDefault).toBe(false);
-    expect(CardApi.list(h.interactive)[0]!.pinned).toBe(false);
+    expect(h.interactive.listCards()[0]!.pinned).toBe(false);
 
-    CardApi.setPinned(h.interactive, 'who', true);
-    expect(CardApi.list(h.interactive)[0]!.pinned).toBe(true);
+    h.interactive.setCardPinned('who', true);
+    expect(h.interactive.listCards()[0]!.pinned).toBe(true);
     expect(h.ofType('card-pinned').length).toBe(1);
     expect(h.ofType('card-pinned')[0]!.pinned).toBe(true);
 
     // `null` = hand the decision back to the catalogue.
-    CardApi.setPinned(h.interactive, 'who', null);
-    expect(CardApi.list(h.interactive)[0]!.pinned).toBe(
+    h.interactive.setCardPinned('who', null);
+    expect(h.interactive.listCards()[0]!.pinned).toBe(
       CARDS.who.pinnedByDefault,
     );
   });
@@ -126,12 +129,12 @@ describe('a card lives on one axis: pinned or not', () => {
   it('a dismissed card ages out again — the override goes both ways', async () => {
     const h = await makeHarness();
     openWho(h);
-    CardApi.setPinned(h.interactive, 'who', true);
+    h.interactive.setCardPinned('who', true);
     expect(
       CardApi._sweepNowForTesting(FALLBACK, Date.now() + DEFAULT_WINDOW + 1),
     ).toBe(0);
 
-    CardApi.setPinned(h.interactive, 'who', false);
+    h.interactive.setCardPinned('who', false);
     expect(
       CardApi._sweepNowForTesting(FALLBACK, Date.now() + DEFAULT_WINDOW * 2),
     ).toBe(1);
@@ -150,11 +153,11 @@ describe('a card lives on one axis: pinned or not', () => {
     const h = await makeHarness();
     openWho(h, 'who');
     openWho(h, 'who --here');
-    expect(CardApi.list(h.interactive).length).toBe(2);
+    expect(h.interactive.listCards().length).toBe(2);
 
-    expect(CardApi.setPinned(h.interactive, 'who --here', true)).toBe(true);
+    expect(h.interactive.setCardPinned('who --here', true)).toBe(true);
     const byKey = new Map(
-      CardApi.list(h.interactive).map((c) => [c.key, c.pinned]),
+      h.interactive.listCards().map((c) => [c.key, c.pinned]),
     );
     expect(byKey.get('who --here')).toBe(true);
     // ⭐ The OTHER one is untouched — which is the whole point.
@@ -164,8 +167,8 @@ describe('a card lives on one axis: pinned or not', () => {
   it('the catalogue name still resolves — the form the verb\'s help shows', async () => {
     const h = await makeHarness();
     openWho(h, 'who');
-    expect(CardApi.setPinned(h.interactive, 'who', true)).toBe(true);
-    expect(CardApi.list(h.interactive)[0]!.pinned).toBe(true);
+    expect(h.interactive.setCardPinned('who', true)).toBe(true);
+    expect(h.interactive.listCards()[0]!.pinned).toBe(true);
   });
 
   /**
@@ -195,7 +198,7 @@ describe('a card lives on one axis: pinned or not', () => {
     const h = await makeHarness();
     openWho(h);
     h.avatar.setSetting('cards.window', 5, h.avatar);
-    CardApi.setPinned(h.interactive, 'who', true);
+    h.interactive.setCardPinned('who', true);
     expect(
       CardApi._sweepNowForTesting(FALLBACK, Date.now() + 60_000),
     ).toBe(0);
@@ -211,29 +214,34 @@ describe('a card lives on one axis: pinned or not', () => {
    * Found when `Avatar.enter`'s own tests, which use a stub
    * Interactive, started failing on `getHolder is not a function`.
    */
-  it('⚠⚠ a partial Interactive yields no card, never a throw', async () => {
-    const stub = {} as unknown as Parameters<typeof CardApi.push>[0];
-    expect(() => CardApi.push(stub, 'who')).not.toThrow();
-    expect(CardApi.push(stub, 'who')).toBeNull();
-    expect(() =>
-      CardApi.applyArrangement(stub, ['who', 'news']),
-    ).not.toThrow();
+  it('⚠⚠ a holderless Interactive yields no card, never a throw', async () => {
+    // Since the Phase E move the methods live on Interactive itself, so
+    // the fully-absent stub case is a plain TypeError the login path
+    // already try/catches (`Avatar.enter`). The soft-fail guarantee that
+    // remains object-level is the HOLDERLESS one: a real Interactive
+    // with no holder yields a missing card, never a throw.
+    const bare = makeStuff(
+      () => new Interactive('sock-bare', 'sess-bare', ({ _id: 'u-bare' } as unknown as User)),
+    );
+    expect(() => bare.pushCard('who')).not.toThrow();
+    expect(bare.pushCard('who')).toBeNull();
+    expect(() => bare.applyCardArrangement(['who', 'news'])).not.toThrow();
     expect(() => CardApi._sweepNowForTesting(FALLBACK)).not.toThrow();
   });
 
   it('an explicit close states its own reason', async () => {
     const h = await makeHarness();
     const id = openWho(h);
-    expect(CardApi.close(h.interactive, id!, 'dismissed')).toBe(true);
+    expect(h.interactive.closeCard(id!, 'dismissed')).toBe(true);
     expect(h.ofType('card-closed')[0]!.reason).toBe('dismissed');
     // …and closing something that is not open is a no-op, not a throw.
-    expect(CardApi.close(h.interactive, id!, 'dismissed')).toBe(false);
+    expect(h.interactive.closeCard(id!, 'dismissed')).toBe(false);
   });
 
   it('an arrangement closes what it does not name, saying `rearranged`', async () => {
     const h = await makeHarness();
     openWho(h);
-    const { opened, closed } = CardApi.applyArrangement(h.interactive, [
+    const { opened, closed } = h.interactive.applyCardArrangement([
       'news',
     ]);
     expect(closed).toBe(1);
@@ -245,14 +253,14 @@ describe('a card lives on one axis: pinned or not', () => {
   it('an arrangement leaves a card it still names alone, pin and all', async () => {
     const h = await makeHarness();
     openWho(h);
-    CardApi.setPinned(h.interactive, 'who', true);
-    const before = CardApi.list(h.interactive)[0]!.instanceId;
+    h.interactive.setCardPinned('who', true);
+    const before = h.interactive.listCards()[0]!.instanceId;
 
-    const { opened, closed } = CardApi.applyArrangement(h.interactive, [
+    const { opened, closed } = h.interactive.applyCardArrangement([
       'who',
     ]);
     expect({ opened, closed }).toEqual({ opened: 0, closed: 0 });
-    const after = CardApi.list(h.interactive)[0]!;
+    const after = h.interactive.listCards()[0]!;
     expect(after.instanceId).toBe(before);
     expect(after.pinned).toBe(true);
   });
@@ -272,12 +280,12 @@ describe('a card lives on one axis: pinned or not', () => {
       }),
       'subject',
     );
-    const { opened, closed } = CardApi.applyArrangement(h.interactive, [
+    const { opened, closed } = h.interactive.applyCardArrangement([
       'subject',
     ]);
     expect({ opened, closed }).toEqual({ opened: 0, closed: 0 });
     // The subject card is still there, untouched by the rearrange.
-    expect(CardApi.list(h.interactive).map((c) => c.cardId)).toEqual([
+    expect(h.interactive.listCards().map((c) => c.cardId)).toEqual([
       'subject',
     ]);
   });
@@ -314,11 +322,11 @@ describe('the lifetime knobs', () => {
     const h = await makeHarness();
     h.avatar.setSetting('cards.keep', 3, h.avatar);
     const first = openWho(h);
-    CardApi.setPinned(h.interactive, first!, true);
+    h.interactive.setCardPinned(first!, true);
     for (let i = 0; i < 5; i++) openWho(h);
 
     CardApi._sweepNowForTesting(FALLBACK, Date.now());
-    const survivors = CardApi.list(h.interactive).map((c) => c.instanceId);
+    const survivors = h.interactive.listCards().map((c) => c.instanceId);
     expect(survivors).toContain(first);
   });
 

@@ -87,6 +87,14 @@ module.exports = {
       files: ['packages/server/src/**/*.ts', 'packages/server/src/**/*.tsx'],
       excludedFiles: [
         'packages/server/src/mud/api/*.ts',
+        // The Api OO sweep's second sanctioned importer tier: the flat
+        // `platform/idea/*.ts` singletons (the boot-manifest wardens /
+        // standings / engines, and `Interactive`'s Phase-E method
+        // surface) forward into their subsystem's logic singleton the
+        // same way the facade does — the host object IS a face. The
+        // glob is single-level: `platform/idea/api/**` (the logic
+        // modules themselves) and every deeper tree stay restricted.
+        'packages/server/src/mud/platform/idea/*.ts',
         'packages/server/src/**/__tests__/**'
       ],
       rules: {

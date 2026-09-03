@@ -58,11 +58,11 @@ export default class ReactController extends CommandController<ReactModel> {
         });
         return;
       }
-      commandId = ReactionApi.resolveGutter(interactive, n);
+      commandId = interactive.resolveGutter(n);
     } else if (model.toPerson?.stuff) {
       commandId = ReactionApi.lastReactableActBy(model.toPerson.stuff.stuffId);
     } else if (interactive) {
-      commandId = ReactionApi.lastDeliveredActFor(interactive);
+      commandId = interactive.lastDeliveredAct();
     }
 
     // 2. Validate reactability + audience membership.

@@ -50,7 +50,6 @@ import type {
 import { HARM_DEFAULTS, TRAUMA_BEHAVIOR } from '../../platform/idea/Condition';
 import { StuffApi } from '../../api/stuff';
 import { WorldClockApi } from '../../api/worldclock';
-import { ElectricityApi } from '../../api/electricity';
 import { ConditionApi } from '../../api/condition';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
@@ -1252,10 +1251,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (!source || !MixinApi.isEnergized(source)) return false;
       const self = this as unknown as Stuff;
       return (
-        ElectricityApi.currentThrough(
-          source as Stuff & Energized,
-          self,
-        ).rawValue() > 0
+        (source as Stuff & Energized).currentThrough(self).rawValue() > 0
       );
     }
 

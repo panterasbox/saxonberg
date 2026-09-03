@@ -83,54 +83,6 @@ export class SubjectApi {
     return logic().addManifestation(subject, surface, ref);
   }
 
-  static async visibleSubjects(actor: Stuff): Promise<Subject[]> {
-    return logic().visibleSubjects(actor);
-  }
-
-  static async isAudienceMember(actor: Stuff, subject: Subject): Promise<boolean> {
-    return logic().isAudienceMember(actor, subject);
-  }
-
-  static async getSubscription(
-    avatar: Avatar,
-    subjectId: string,
-  ): Promise<SubjectSubscription> {
-    return logic().getSubscription(avatar, subjectId);
-  }
-
-  static async setSubscription(
-    avatar: Avatar,
-    subjectId: string,
-    next: Partial<SubjectSubscription>,
-  ): Promise<SubjectSubscription> {
-    return logic().setSubscription(avatar, subjectId, next);
-  }
-
-  static async follow(
-    avatar: Avatar,
-    subjectId: string,
-    followed: boolean,
-  ): Promise<SubjectSubscription> {
-    return logic().follow(avatar, subjectId, followed);
-  }
-
-  static async mute(
-    avatar: Avatar,
-    subjectId: string,
-    surface: SubjectSurface,
-    muted: boolean,
-  ): Promise<SubjectSubscription> {
-    return logic().mute(avatar, subjectId, surface, muted);
-  }
-
-  static async migrateLegacySubscription(
-    avatar: Avatar,
-    subjectId: string,
-    legacy: { tunedIn: boolean; muted: boolean },
-  ): Promise<SubjectSubscription> {
-    return logic().migrateLegacySubscription(avatar, subjectId, legacy);
-  }
-
   static async renameSubject(subject: Subject, newTitle: string): Promise<void> {
     return logic().renameSubject(subject, newTitle);
   }

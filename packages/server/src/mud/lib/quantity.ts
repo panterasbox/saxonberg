@@ -100,7 +100,7 @@ export type Unit =
   // heat of combustion (energy released burning a kilogram of fuel: wood
   // ≈ 16, charcoal ≈ 30); `J/kg` = latent heat of fusion / vaporization
   // (energy per kilogram to melt / boil at the phase transition — the
-  // reserve-clamp plateau). Consumed by `FireApi` / `ThermalApi`.
+  // reserve-clamp plateau). Consumed by `FireApi` / the thermal mixin.
   | 'MJ/kg' | 'J/kg'
   // Clothing insulation (the clo unit) — its own thermal-resistance axis,
   // summed across worn garments by the body's thermoregulation layer

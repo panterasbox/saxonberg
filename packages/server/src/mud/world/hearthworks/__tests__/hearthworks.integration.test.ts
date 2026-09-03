@@ -115,7 +115,7 @@ describe('The Hearthworks — the fire demonstrators', () => {
     const wet = firewood(shed, 1, true);
     await occupy(shed);
 
-    FireApi.ignite(lit);
+    lit.ignite();
     FireApi.onFireTick();
     expect(dry.isBurning()).toBe(true); // caught
     expect(wet.isBurning()).toBe(false); // resisted — too wet
@@ -149,7 +149,7 @@ describe('The Hearthworks — the fire demonstrators', () => {
     await occupy(smithy);
 
     // Light the forge and work the bellows → smelting heat.
-    FireApi.ignite(forge);
+    forge.ignite();
     forge.setBellowsActive(true);
     let melted = false;
     for (let i = 0; i < 60; i++) {
@@ -173,7 +173,7 @@ describe('The Hearthworks — the fire demonstrators', () => {
     );
     const fire = firewood(cellar, 1);
     await occupy(cellar);
-    FireApi.ignite(fire);
+    fire.ignite();
 
     // Starve → incomplete → smoke; keep burning → self-smother.
     let sawSmoke = false;

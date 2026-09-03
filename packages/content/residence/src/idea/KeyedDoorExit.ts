@@ -14,7 +14,6 @@
  */
 
 import Exit, { type TraversalGuard } from '@saxonberg/server/mud/lib/boundary/Exit';
-import { CredentialApi } from '@saxonberg/server/mud/api/credential';
 import { Lock, type LockType } from '@saxonberg/server/mud/lib/lock/Lock';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
@@ -57,7 +56,7 @@ export default class KeyedDoorExit extends Exit {
       return { ok: false, gate: 'door', reason: 'The door is locked.' };
     }
     const lock = new Lock(keyway, this.lockTech);
-    if (!CredentialApi.presentsKey(mover, lock)) {
+    if (!lock.opensFor(mover)) {
       return {
         ok: false,
         gate: 'door',

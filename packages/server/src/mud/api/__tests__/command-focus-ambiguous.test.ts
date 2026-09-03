@@ -139,7 +139,7 @@ describe('focus after a disambiguation prompt', () => {
     if (prompts.length > 0) {
       const matches = offeredMatches(h);
       if (matches.length > 0) {
-        PromptApi.handleResponse(h.interactive, {
+        h.interactive.handlePromptResponse({
           promptId: latestPromptId(h),
           response: matches[0]!.stuffId,
         });

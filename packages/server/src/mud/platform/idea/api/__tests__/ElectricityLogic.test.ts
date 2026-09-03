@@ -174,10 +174,10 @@ describe('ElectricityLogic — the conduction walk', () => {
     const a = makeBody(room);
     const b = makeBody(room);
 
-    expect(ElectricityApi.currentThrough(wire, a).rawValue()).toBeGreaterThan(0);
-    expect(ElectricityApi.currentThrough(wire, b).rawValue()).toBeGreaterThan(0);
+    expect(wire.currentThrough(a).rawValue()).toBeGreaterThan(0);
+    expect(wire.currentThrough(b).rawValue()).toBeGreaterThan(0);
 
-    const outcomes = ElectricityApi.conduct(wire);
+    const outcomes = wire.conduct();
     expect(outcomes.length).toBe(2); // everyone bridged, allies included
     expect(traumaOf(a)).toBeDefined();
     expect(traumaOf(b)).toBeDefined();
@@ -189,9 +189,9 @@ describe('ElectricityLogic — the conduction walk', () => {
     const wire = makeWire(room, 120);
     const shod = bootBody(room, rubber());
 
-    expect(ElectricityApi.currentThrough(wire, shod).rawValue()).toBe(0);
+    expect(wire.currentThrough(shod).rawValue()).toBe(0);
     expect(ElectricityApi.pathToGround(shod)).toBe(false);
-    const outcomes = ElectricityApi.conduct(wire);
+    const outcomes = wire.conduct();
     expect(outcomes.length).toBe(0);
     expect(traumaOf(shod)).toBeUndefined();
   });
@@ -214,7 +214,7 @@ describe('ElectricityLogic — the conduction walk', () => {
     ContainmentApi.move(wire as never, body as never); // wire in hand
 
     expect(ElectricityApi.pathToGround(body)).toBe(false);
-    expect(ElectricityApi.currentThrough(wire, body).rawValue()).toBe(0);
+    expect(wire.currentThrough(body).rawValue()).toBe(0);
   });
 
   it('a dead / zero-volt source conducts nothing', () => {
@@ -222,8 +222,8 @@ describe('ElectricityLogic — the conduction walk', () => {
     floodFloor(room, saltWater(), 20);
     const wire = makeWire(room, 0);
     const body = makeBody(room);
-    expect(ElectricityApi.currentThrough(wire, body).rawValue()).toBe(0);
-    expect(ElectricityApi.conduct(wire).length).toBe(0);
+    expect(wire.currentThrough(body).rawValue()).toBe(0);
+    expect(wire.conduct().length).toBe(0);
   });
 
   it('groundNodeFor resolves the room Floor', () => {
@@ -249,9 +249,9 @@ describe('ElectricityLogic — the armor inversion + wet-skin', () => {
     const rubberClad = makeBody(room);
     wearTorso(rubberClad, rubber(), 'plate');
 
-    const iBare = ElectricityApi.currentThrough(wire, bare).rawValue();
-    const iPlate = ElectricityApi.currentThrough(wire, plated).rawValue();
-    const iRubber = ElectricityApi.currentThrough(wire, rubberClad).rawValue();
+    const iBare = wire.currentThrough(bare).rawValue();
+    const iPlate = wire.currentThrough(plated).rawValue();
+    const iRubber = wire.currentThrough(rubberClad).rawValue();
 
     expect(iPlate).toBeGreaterThan(iBare); // metal conducts → betrays armor
     expect(iRubber).toBeLessThan(iBare); // rubber adds series R → protects
@@ -265,7 +265,7 @@ describe('ElectricityLogic — the armor inversion + wet-skin', () => {
     wearTorso(shod, steel(), 'plate');
     // Insulation at the feet dominates the conductive plate — no ground, no
     // current.
-    expect(ElectricityApi.currentThrough(wire, shod).rawValue()).toBe(0);
+    expect(wire.currentThrough(shod).rawValue()).toBe(0);
   });
 
   it('a wet body takes markedly more current than a dry (grounded) one', () => {
@@ -281,8 +281,8 @@ describe('ElectricityLogic — the armor inversion + wet-skin', () => {
     const dryWire = makeWire(dryRoom, 120);
     const dryBody = makeBody(dryRoom);
 
-    const iWet = ElectricityApi.currentThrough(wetWire, wetBody).rawValue();
-    const iDry = ElectricityApi.currentThrough(dryWire, dryBody).rawValue();
+    const iWet = wetWire.currentThrough(wetBody).rawValue();
+    const iDry = dryWire.currentThrough(dryBody).rawValue();
     expect(iWet).toBeGreaterThan(0);
     expect(iDry).toBeGreaterThan(0);
     expect(iWet).toBeGreaterThan(iDry); // wet skin ~100× lower resistance
@@ -306,8 +306,8 @@ describe('ElectricityLogic — the armor inversion + wet-skin', () => {
     const dryWire = makeWire(dryRoom, 120);
     const dryBody = makeBody(dryRoom); // gauge dry
 
-    const iWet = ElectricityApi.currentThrough(wetWire, wetBody).rawValue();
-    const iDry = ElectricityApi.currentThrough(dryWire, dryBody).rawValue();
+    const iWet = wetWire.currentThrough(wetBody).rawValue();
+    const iDry = dryWire.currentThrough(dryBody).rawValue();
     expect(iWet).toBeGreaterThan(iDry);
   });
 });

@@ -176,7 +176,7 @@ says the truer thing: a corpse is a game object with a name, not a
 generic creature. Behavior is unchanged — the forensic-Creature role
 below is exactly as it was.
 
-The clone is then configured from the body — the `GlobbableApi.split` shape. What a
+The clone is then configured from the body — the `split` shape. What a
 corpse *is* is authored; whose it *was* is poured in through the gated
 `adoptMaterialState`. A missing template **throws**: a body failing to
 appear where someone died would leave a death with no evidence, no loot and

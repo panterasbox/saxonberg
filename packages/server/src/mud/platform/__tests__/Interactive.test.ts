@@ -18,10 +18,7 @@ import { StuffApi } from '../../api/stuff';
 import { ProxyApi } from '../../api/proxy';
 import { ConnectionApi } from '../../api/connection';
 import { PlayerApi } from '../../api/player';
-import { MqlSubscriptionApi } from '../../api/mql-subscription';
 import { ForumsApi } from '../../api/forums';
-import { ReactionApi } from '../../api/reaction';
-import { PromptApi } from '../../api/prompt';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 
 function makeUser(id: string, playerIds: string[] = []): User {
@@ -101,8 +98,8 @@ describe('Interactive', () => {
     });
 
     it('should support multiple Interactives on same Avatar', () => {
-      ConnectionApi.transfer(interactive1, mockAvatar);
-      ConnectionApi.transfer(interactive2, mockAvatar);
+      interactive1.transferTo(mockAvatar);
+      interactive2.transferTo(mockAvatar);
 
       expect(mockAvatar.getInteractives().size).toBe(2);
       expect(mockAvatar.getInteractives().has(interactive1)).toBe(true);
@@ -110,8 +107,8 @@ describe('Interactive', () => {
     });
 
     it('should both Interactives reference same Avatar via holder', () => {
-      ConnectionApi.transfer(interactive1, mockAvatar);
-      ConnectionApi.transfer(interactive2, mockAvatar);
+      interactive1.transferTo(mockAvatar);
+      interactive2.transferTo(mockAvatar);
 
       expect(interactive1.getHolder()).toBe(mockAvatar);
       expect(interactive2.getHolder()).toBe(mockAvatar);
@@ -159,7 +156,7 @@ describe('Interactive', () => {
     });
 
     it('should remove from holder on destroy', () => {
-      ConnectionApi.transfer(interactive, mockAvatar);
+      interactive.transferTo(mockAvatar);
 
       StuffApi.destruct(interactive);
 
@@ -167,7 +164,7 @@ describe('Interactive', () => {
     });
 
     it('should clear holder on destroy', () => {
-      ConnectionApi.transfer(interactive, mockAvatar);
+      interactive.transferTo(mockAvatar);
 
       StuffApi.destruct(interactive);
 
@@ -201,26 +198,26 @@ describe('Interactive', () => {
 
     it('cancels MQL + forum subscriptions, reactions, then prompts', () => {
       const mql = vi
-        .spyOn(MqlSubscriptionApi, 'cancelAllForInteractive')
+        .spyOn(interactive, 'cancelAllMqlSubscriptions')
         .mockImplementation(() => {});
       const forum = vi
-        .spyOn(ForumsApi, 'cancelAllForInteractive')
+        .spyOn(interactive, 'cancelAllForumSubscriptions')
         .mockImplementation(() => {});
       const reaction = vi
-        .spyOn(ReactionApi, 'cancelAllForInteractive')
+        .spyOn(interactive, 'cancelAllReactions')
         .mockImplementation(() => {});
       const prompt = vi
-        .spyOn(PromptApi, 'cancelAll')
+        .spyOn(interactive, 'cancelPrompts')
         .mockImplementation(() => 0);
 
       interactive.teardownSubstrateState();
 
       // Each cancellation receives this Interactive (the proxy identity
       // used as the subscription/registry key).
-      expect(mql).toHaveBeenCalledWith(interactive);
-      expect(forum).toHaveBeenCalledWith(interactive);
-      expect(reaction).toHaveBeenCalledWith(interactive);
-      expect(prompt).toHaveBeenCalledWith(interactive, 'host-disconnected');
+      expect(mql).toHaveBeenCalledTimes(1);
+      expect(forum).toHaveBeenCalledTimes(1);
+      expect(reaction).toHaveBeenCalledTimes(1);
+      expect(prompt).toHaveBeenCalledWith('host-disconnected');
 
       // Prompts reject last so a controller's catch can react while the
       // Interactive is still live.
@@ -253,7 +250,7 @@ describe('Interactive', () => {
       mockAvatar.setName('Alice');
       mockAvatar.setSurname('Smith');
 
-      ConnectionApi.transfer(interactive, mockAvatar);
+      interactive.transferTo(mockAvatar);
       const str = interactive.toString();
 
       // toString uses getPresentation() (casual register),

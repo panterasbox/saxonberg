@@ -52,6 +52,7 @@ import type { Mobile } from '@saxonberg/server/mud/lib/spatial/Mobile';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { BrainContext, BrainStatics } from '@saxonberg/server/mud/lib/behavior/brain';
+import type { Employed } from '@saxonberg/server/mud/lib/employment/Employed';
 
 const DEFAULT_BATCH = 6;
 const DEFAULT_ASK = 5;
@@ -109,12 +110,12 @@ export const brain = class {
         // Top the can up first; a ground with no standpipe near simply
         // declines the fill, and the water pours from whatever the hand
         // carries — both verbs' own rules, not the brain's.
-        await CommandApi.forceCommand(hand, 'fill can from standpipe');
-        await CommandApi.forceCommand(hand, `water ${kw}`);
+        await hand.forceCommand('fill can from standpipe');
+        await hand.forceCommand(`water ${kw}`);
       }
       const nutrient = ground.nutrientFraction();
       if (nutrient !== null && nutrient < feedAt) {
-        await CommandApi.forceCommand(hand, `feed ${kw} with sack`);
+        await hand.forceCommand(`feed ${kw} with sack`);
       }
       // Pick the ripe occupants — TARGETING THE GROUND, so the verb's
       // own resolution finds the ripest plant and keyword ambiguity
@@ -122,7 +123,7 @@ export const brain = class {
       // and by a no-progress guard (a pick that declines must not grind).
       let remaining = ripeCount(ground);
       while (remaining > 0 && picked < batch) {
-        await CommandApi.forceCommand(hand, `pick ${kw}`);
+        await hand.forceCommand(`pick ${kw}`);
         picked += 1;
         const now = ripeCount(ground);
         if (now >= remaining) break; // declined — stop, next beat retries
@@ -152,7 +153,7 @@ export const brain = class {
       ) {
         return;
       }
-      const outfits = await EmploymentApi.buysFor(hand);
+      const outfits = await (hand as unknown as Stuff & Employed).buysFor();
       const outfit = outfits[0];
       if (!outfit) return;
       // The stall's authored cap when present (A6), else the global dial
@@ -174,12 +175,12 @@ export const brain = class {
       );
       hand.teleport(counterRoom as Stuff & Container);
       try {
-        await CommandApi.forceCommand(hand, 'wallet use house');
+        await hand.forceCommand('wallet use house');
         for (const good of goods) {
           const kw = keywordOf(good);
           if (!kw) continue;
           const ask = askFor(ctx.config, good);
-          await CommandApi.forceCommand(hand, `consign ${kw} --ask ${ask}`);
+          await hand.forceCommand(`consign ${kw} --ask ${ask}`);
         }
       } finally {
         hand.teleport(home as Stuff & Container);
@@ -192,7 +193,7 @@ export const brain = class {
     ctx.state.beats = beats;
     if (drawEvery > 0 && beats % drawEvery === 0) {
       const amount = positiveInt(ctx.config.drawAmount, DEFAULT_DRAW_AMOUNT);
-      await CommandApi.forceCommand(hand, `draw ${amount}`);
+      await hand.forceCommand(`draw ${amount}`);
     }
   }
 } satisfies BrainStatics;

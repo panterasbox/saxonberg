@@ -138,7 +138,7 @@ export default class BuyController extends CommandController<BuyModel> {
     }
     this.handOver(item, giver);
     const owner = await this.buyerOf(giver, paid.receipt);
-    await ChattelApi.stamp(item, owner);
+    if (MixinApi.isChattel(item)) await item.stampChattel(owner);
     this.announce(giver, item, paid.tail, owner);
   }
 
@@ -179,7 +179,9 @@ export default class BuyController extends CommandController<BuyModel> {
     // moved during consignment); refuse if they've since closed their account.
     // Only a `player` owner names a payable account; a good resolving to a
     // parcel/group owner falls back to the listing's recorded consignor.
-    const owner = await ChattelApi.ownerOf(item);
+    const owner = MixinApi.isChattel(item)
+      ? await item.chattelOwner()
+      : null;
     const consignorKey =
       owner?.kind === "player" || owner?.kind === "organization"
         ? owner.templatePath
@@ -220,7 +222,9 @@ export default class BuyController extends CommandController<BuyModel> {
       return;
     }
     const buyer = await this.buyerOf(giver, paid.receipt);
-    await ChattelApi.transfer(item, buyer); // stamp → buyer (or their house)
+    if (MixinApi.isChattel(item)) {
+      await item.transferChattel(buyer); // stamp → buyer (or their house)
+    }
     this.handOver(item, giver); // custody → buyer
     if (MixinApi.isChattel(item)) shelf.removeListing(item.getChattelId());
     this.announce(giver, item, paid.tail, buyer);

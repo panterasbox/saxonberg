@@ -51,8 +51,6 @@ import {
 import { MixinApi } from '../../../api/mixin';
 import { Mixins, MixinRefusals, type MixinName } from '../../../lib/mixin';
 import { PerceptionApi } from '../../../api/perception';
-import { RecognitionApi } from '../../../api/recognition';
-import { MessageApi } from '../../../api/message';
 import { AccessApi } from '../../../api/access';
 import { GroupApi } from '../../../api/group';
 import { ExecutionContextApi } from '../../../api/execution-context';
@@ -992,8 +990,7 @@ export class CommandLogic extends ApiLogic {
         });
         return null;
       }
-      const picked = await PromptApi.mqlObject(
-        context.interactive,
+      const picked = await context.interactive.promptMqlObject(
         `which ${fname}?`,
         stuff,
       );
@@ -1041,8 +1038,7 @@ export class CommandLogic extends ApiLogic {
         });
         return null;
       }
-      const picks = await PromptApi.mqlMany(
-        context.interactive,
+      const picks = await context.interactive.promptMqlMany(
         `pick ${min}-${max} ${fname}`,
         stuff,
         { min, max: Number.isFinite(max) ? max : undefined },
@@ -1568,17 +1564,7 @@ export class CommandLogic extends ApiLogic {
       meta,
       payload,
     };
-    MessageApi.sendMessage(recipient as Stuff & Sensor, frame);
-  }
-
-  /** See {@link CommandApi.forceCommand}. */
-  @CallSecurity(CommandApiCallers)
-  public forceCommand(
-    giver: Stuff & CommandGiver,
-    text: string,
-    opts: ExecuteCommandOpts = {}
-  ): Promise<void> {
-    return giver.executeCommand(text, { ...opts, forced: true });
+    (recipient as Stuff & Sensor).onMessage(frame);
   }
 
   /** See {@link CommandApi.getCommandSchemaPayload}. */
@@ -1735,7 +1721,7 @@ async function resolveAffordancesImpl(
   // Your own verbs still apply — `get` and `look` are facts about you.
   const identified =
     !MixinApi.isIdentifiable(target) ||
-    RecognitionApi.knowsTrueType(viewer, target);
+    (MixinApi.isBeliefStore(viewer) && viewer.knowsTrueTypeOf(target));
 
   // ⚠ Deduped: a mixin composed at two points in the chain is returned
   // twice by `getActiveMixins`, and the live drive showed

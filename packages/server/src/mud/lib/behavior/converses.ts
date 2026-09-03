@@ -15,8 +15,8 @@
  */
 
 import type { EngagementSlot } from '../activity/Engaged';
+import { MixinApi } from '../../api/mixin';
 import type { BrainContext, BrainStatics } from './brain';
-import { TraitApi } from '../../api/trait';
 
 /** The disposition axis this brain reads (Gregarious ↔ Shy). */
 const AXIS = 'sociability';
@@ -43,7 +43,9 @@ export const brain = class {
     const terse = pool(ctx.config, 'terse');
     if (!chatty.length && !terse.length) return;
 
-    const { position } = await TraitApi.positionFor(ctx.host, AXIS);
+    const { position } = MixinApi.isDispositioned(ctx.host)
+      ? await ctx.host.traitPosition(AXIS)
+      : { position: 0 };
 
     if (position < 0) {
       // Shy: the more pronounced the shyness, the more often silent.

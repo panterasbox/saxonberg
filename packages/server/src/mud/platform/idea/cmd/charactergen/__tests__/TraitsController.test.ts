@@ -11,16 +11,20 @@
 import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import TraitsController from "../TraitsController";
-import { TraitApi } from "../../../../../api/trait";
 import { MessageApi } from "../../../../../api/message";
 import { Mml } from "../../../../../api/mml";
 import { Idea } from "../../../../../lib/stuff/Idea";
+import { DispositionedMixin } from "../../../../../lib/trait/Dispositioned";
+
+// The disposition face lives ON the actor since the OO sweep.
+class DispositionedIdea extends DispositionedMixin(Idea) {}
 import { StuffApi } from "../../../../../api/stuff";
 import { WorldClockApi } from "../../../../../api/worldclock";
 import { PersistenceManager } from "../../../../../../backend/PersistenceManager";
 import {
   makeStuff,
   makeStuffAtPath,
+  withRootContext,
 } from "../../../../../lib/security/__tests__/test-setup";
 import type { CommandContext, CommandModel } from "../../../../../api/command";
 
@@ -80,9 +84,9 @@ function ctxFor(actor: Idea): CommandContext {
 
 describe("TraitsController render", () => {
   it("renders a pole label + band per pronounced axis, never a number", async () => {
-    const actor = makeStuffAtPath(() => new Idea(), "/platform/agent/Avatar/tr");
-    await TraitApi.recordDeed(actor, { disposition: "sociability", valence: 80 });
-    await TraitApi.recordDeed(actor, { disposition: "temperance", valence: -80 });
+    const actor = makeStuffAtPath(() => new DispositionedIdea(), "/platform/agent/Avatar/tr");
+    await withRootContext(actor, 'imprint', () => actor.imprintDeed({ disposition: "sociability", valence: 80 }));
+    await withRootContext(actor, 'imprint', () => actor.imprintDeed({ disposition: "temperance", valence: -80 }));
 
     const ctrl = makeStuff(() => new TraitsController());
     await ctrl.execute({} as CommandModel, ctxFor(actor));
@@ -96,9 +100,9 @@ describe("TraitsController render", () => {
   });
 
   it("omits near-neutral axes", async () => {
-    const actor = makeStuffAtPath(() => new Idea(), "/platform/agent/Avatar/tr-faint");
+    const actor = makeStuffAtPath(() => new DispositionedIdea(), "/platform/agent/Avatar/tr-faint");
     // Below the pronounced threshold AND below the defined band.
-    await TraitApi.recordDeed(actor, { disposition: "honesty", valence: 3 });
+    await withRootContext(actor, 'imprint', () => actor.imprintDeed({ disposition: "honesty", valence: 3 }));
 
     const ctrl = makeStuff(() => new TraitsController());
     await ctrl.execute({} as CommandModel, ctxFor(actor));
@@ -107,7 +111,7 @@ describe("TraitsController render", () => {
   });
 
   it("renders the empty state with no evidence", async () => {
-    const actor = makeStuffAtPath(() => new Idea(), "/platform/agent/Avatar/tr-empty");
+    const actor = makeStuffAtPath(() => new DispositionedIdea(), "/platform/agent/Avatar/tr-empty");
     const ctrl = makeStuff(() => new TraitsController());
     await ctrl.execute({} as CommandModel, ctxFor(actor));
     expect(captured!.toString()).toContain("still taking shape");

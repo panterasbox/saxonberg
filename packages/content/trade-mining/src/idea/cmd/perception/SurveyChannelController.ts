@@ -39,6 +39,7 @@
  */
 
 import { CommandController } from '@saxonberg/server/mud/lib/command/CommandController';
+import { CompetenceBand } from "@saxonberg/server/mud/lib/advancement/CompetenceBand";
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
@@ -48,7 +49,6 @@ import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { AddressApi } from '@saxonberg/server/mud/api/address';
-import { AdvancementApi } from '@saxonberg/server/mud/api/advancement';
 import { DISCOVERY } from '@saxonberg/server/mud/lib/belief/BeliefStore';
 import Deposit from '../../Deposit';
 
@@ -154,7 +154,9 @@ export abstract class SurveyChannelController<
 
   /** The reader's band in `geology`, and the half-width it buys. */
   protected async bandOf(giver: Stuff): Promise<{ band: CompetenceBandName; errorDeg: number; solveFrom: number }> {
-    const band = await AdvancementApi.bandFor(giver, GEOLOGY);
+    const band = MixinApi.isAdvancing(giver)
+      ? await giver.competenceBandFor(GEOLOGY)
+      : CompetenceBand.FLOOR;
     return { band, errorDeg: ERROR_DEG[band], solveFrom: SOLVE_FROM[band] };
   }
 

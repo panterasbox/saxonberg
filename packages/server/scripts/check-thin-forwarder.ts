@@ -10,8 +10,11 @@
  *
  * Flags a method under `api/**` or `obj/api/**` whose body is exactly:
  *   - `return <param>.method(...)`                       (bare forward)
+ *   - `<param>.method(...)`                         (bare void forward)
  *   - `if (<cond>) return <trivial>; return <param>.method(...)`
  *                                        (narrow-then-forward-else-default)
+ *   - `if (<cond>) return <trivial>; <param>.method(...)`
+ *                                              (void-guard-then-forward)
  * where `<param>` is one of the method's own parameters, and `<trivial>`
  * is a no-information default (`null` / `undefined` / `[]` / `false` /
  * `true` / `0` / `''`).
@@ -100,12 +103,22 @@ function isTrivial(expr: ts.Expression | undefined): boolean {
  * `giver.executeCommand(text, {...opts, forced:true})`) and helpers
  * that transform (`slots.map(s => …)`, `text.replace(re, rep)`).
  */
-function forwardTarget(
+export function forwardTarget(
   stmt: ts.Statement,
   params: ReadonlySet<string>
 ): string | null {
-  if (!ts.isReturnStatement(stmt) || !stmt.expression) return null;
-  let expr: ts.Expression = stmt.expression;
+  let expr: ts.Expression;
+  if (ts.isReturnStatement(stmt) && stmt.expression) {
+    expr = stmt.expression;
+  } else if (ts.isExpressionStatement(stmt)) {
+    // The void-forward shape: a bare `<param>.m(...)` (or `void
+    // <param>.m(...)`) statement — same antipattern, no return value.
+    expr = ts.isVoidExpression(stmt.expression)
+      ? stmt.expression.expression
+      : stmt.expression;
+  } else {
+    return null;
+  }
   // Unwrap a trailing `as T` / parens / non-null (`x!`) around the call.
   while (
     ts.isAsExpression(expr) ||
@@ -134,7 +147,7 @@ function forwardTarget(
   return recv.text;
 }
 
-interface Finding {
+export interface Finding {
   file: string;
   line: number;
   cls: string;
@@ -142,13 +155,13 @@ interface Finding {
   target: string;
 }
 
-const files: string[] = [];
-for (const root of API_ROOTS) walk(root, files);
-
-const findings: Finding[] = [];
-
-for (const file of files) {
-  const source = readFileSync(file, "utf8");
+/**
+ * Scan one file's source for thin-forwarder findings (pure — exported
+ * so the fixture test can assert the lint FIRES; the
+ * shipped-broken-gate clause).
+ */
+export function scanSource(file: string, source: string): Finding[] {
+  const findings: Finding[] = [];
   const sf = ts.createSourceFile(
     file,
     source,
@@ -230,26 +243,45 @@ for (const file of files) {
     ts.forEachChild(node, visit);
   };
   visit(sf);
+  return findings;
 }
 
-if (findings.length > 0) {
-  console.error(
-    `check-thin-forwarder: ${findings.length} Api/Logic method${
-      findings.length === 1 ? "" : "s"
-    } that only forward a parameter's method (call the object directly ` +
-      `with local narrowing — see docs/antipatterns.md § Thin Api ` +
-      `Wrappers over Object Methods):`
-  );
-  for (const f of findings) {
-    console.error(
-      `  ${relative(join(SERVER_SRC, ".."), f.file)}:${f.line}  ` +
-        `${f.cls}.${f.method}() → ${f.target}.…()`
-    );
+function main(): void {
+  const files: string[] = [];
+  for (const root of API_ROOTS) walk(root, files);
+
+  const findings: Finding[] = [];
+  for (const file of files) {
+    findings.push(...scanSource(file, readFileSync(file, "utf8")));
   }
-  process.exit(1);
+
+  report(findings, files.length);
 }
 
-console.log(
-  `check-thin-forwarder: no parameter-forwarding Api/Logic methods ` +
-    `(${files.length} api/ files scanned).`
-);
+function report(findings: Finding[], fileCount: number): void {
+  if (findings.length > 0) {
+    console.error(
+      `check-thin-forwarder: ${findings.length} Api/Logic method${
+        findings.length === 1 ? "" : "s"
+      } that only forward a parameter's method (call the object directly ` +
+        `with local narrowing — see docs/antipatterns.md § Thin Api ` +
+        `Wrappers over Object Methods):`
+    );
+    for (const f of findings) {
+      console.error(
+        `  ${relative(join(SERVER_SRC, ".."), f.file)}:${f.line}  ` +
+          `${f.cls}.${f.method}() → ${f.target}.…()`
+      );
+    }
+    process.exit(1);
+  }
+
+  console.log(
+    `check-thin-forwarder: no parameter-forwarding Api/Logic methods ` +
+      `(${fileCount} api/ files scanned).`
+  );
+}
+
+if (process.argv[1] && /check-thin-forwarder\.ts$/.test(process.argv[1])) {
+  main();
+}

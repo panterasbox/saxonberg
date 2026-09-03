@@ -38,6 +38,17 @@ const RenownApiCallers = SecurityPolicies.FromModule('/api/renown#RenownApi'
 );
 
 /**
+ * The install/warm seam is also callable by the self-warming
+ * `RenownStandings` singleton (the boot()-retirement shape): the tap +
+ * schedule state stays HERE (hot-reload re-assertion), the manifest
+ * home arms it at postRegister.
+ */
+const RenownBootCallers = SecurityPolicies.AnyOf(
+  RenownApiCallers,
+  SecurityPolicies.FromTemplate('/platform/idea/RenownStandings'),
+);
+
+/**
  * Recompute cadence — a code constant (cadence is *mechanism*, not a
  * legislated value, per renown-plan §6 decision 3). Cache refresh is a
  * real-time concern, so the recompute rides real-time `ScheduleApi`; the
@@ -499,7 +510,7 @@ export class RenownLogic extends ApiLogic {
   /**
    * Install the reaction → renown ingestion tap (idempotent). Subscribes
    * to `ReactionFiredEvent` and appends a scope-tagged `RenownEvent` per
-   * fired reaction. Called once at boot (`RenownApi.boot`).
+   * fired reaction. Armed by `RenownStandings.warm` (the manifest postRegister).
    *
    * The sibling *regard* update is deliberately NOT installed here — a
    * reaction has no principled signed regard delta without the
@@ -507,7 +518,7 @@ export class RenownLogic extends ApiLogic {
    * recompute), so reaction→regard is left to a belief-side build. The
    * renown recompute never reads belief regardless.
    */
-  @CallSecurity(RenownApiCallers)
+  @CallSecurity(RenownBootCallers)
   public installReactionTap(): void {
     if (this.reactionSub) return;
     // Lock the receive side to renown: a reaction signal carries reactor +
@@ -537,7 +548,7 @@ export class RenownLogic extends ApiLogic {
    * and mints a small, rate-limited engagement signal for the speaker
    * (passive "being heard"). Sibling to the reaction tap; called at boot.
    */
-  @CallSecurity(RenownApiCallers)
+  @CallSecurity(RenownBootCallers)
   public installReceptionTap(): void {
     if (this.receptionSub) return;
     // Lock the receive side to renown: a reception signal reveals which
@@ -562,7 +573,7 @@ export class RenownLogic extends ApiLogic {
    * `ScheduleHandle`. Renown owns its own cadence — no `WorldClockRegistry`
    * coupling (decision 3).
    */
-  @CallSecurity(RenownApiCallers)
+  @CallSecurity(RenownBootCallers)
   public installRecomputeSchedule(): void {
     if (this.recomputeHandle) return;
     this.recomputeHandle = ScheduleApi.recurring(RENOWN_RECOMPUTE_MS, () => {

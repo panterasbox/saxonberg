@@ -3,7 +3,7 @@
  * (property 0a). Driven as the dispatcher would (a real controller Stuff
  * whose `execute` runs), with the heavy substrate mocked: `ParcelApi`
  * (title store), `AccessApi.canMutateZone` (the owner gate), `TemplateApi`
- * (zone mint), `StuffApi.singleton` (zone resolve), and `PromptApi.confirm`
+ * (zone mint), `StuffApi.singleton` (zone resolve), and the receiver's `promptConfirm`
  * (the receiver's consent). Proves the gating branches + the consent flow +
  * that the title mutation is (or isn't) reached.
  */
@@ -16,7 +16,6 @@ import Avatar from "../../../../agent/Avatar";
 import { ParcelApi } from "../../../../../api/parcel";
 import { AccessApi } from "../../../../../api/access";
 import { TemplateApi } from "../../../../../api/template";
-import { PromptApi } from "../../../../../api/prompt";
 import { StuffApi } from "../../../../../api/stuff";
 import {
   CommandApi,
@@ -198,10 +197,12 @@ describe("TransferController", () => {
   });
 
   /** A receiver Avatar with one live Interactive (so consent can be asked). */
+  let confirmFn: ReturnType<typeof vi.fn>;
+
   function onlineReceiver(playerId: string): Avatar {
     const av = makeAvatar(playerId);
     vi.spyOn(av, "getInteractives").mockReturnValue(
-      new Set([{} as never]),
+      new Set([{ promptConfirm: confirmFn } as never]),
     );
     return av;
   }
@@ -213,7 +214,7 @@ describe("TransferController", () => {
 
   it("owner transfers + receiver accepts → the title moves", async () => {
     vi.spyOn(AccessApi, "canMutateZone").mockResolvedValue(true);
-    vi.spyOn(PromptApi, "confirm").mockResolvedValue(true);
+    confirmFn = vi.fn().mockResolvedValue(true);
     const transfer = vi.spyOn(ParcelApi, "transfer").mockResolvedValue(null);
 
     const giver = makeAvatar("dave");
@@ -235,7 +236,7 @@ describe("TransferController", () => {
 
   it("refuses a non-owner giver (title never moves)", async () => {
     vi.spyOn(AccessApi, "canMutateZone").mockResolvedValue(false);
-    const confirm = vi.spyOn(PromptApi, "confirm").mockResolvedValue(true);
+    const confirm = confirmFn = vi.fn().mockResolvedValue(true);
     const transfer = vi.spyOn(ParcelApi, "transfer").mockResolvedValue(null);
 
     const giver = makeAvatar("stranger");
@@ -255,7 +256,7 @@ describe("TransferController", () => {
 
   it("refuses when the receiver declines consent", async () => {
     vi.spyOn(AccessApi, "canMutateZone").mockResolvedValue(true);
-    vi.spyOn(PromptApi, "confirm").mockResolvedValue(false);
+    confirmFn = vi.fn().mockResolvedValue(false);
     const transfer = vi.spyOn(ParcelApi, "transfer").mockResolvedValue(null);
 
     const giver = makeAvatar("dave");

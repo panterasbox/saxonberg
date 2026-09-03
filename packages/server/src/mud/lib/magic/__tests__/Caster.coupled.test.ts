@@ -18,13 +18,13 @@
  */
 
 import "../../../../test-bootstrap";
+import type { CompetenceBandName } from '../../advancement/CompetenceBand';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { readFileSync, readdirSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import YAML from 'yaml';
 import { MagicApi } from '../../../api/magic';
-import { AdvancementApi } from '../../../api/advancement';
 import { ExecutionContextApi } from '../../../api/execution-context';
 import { ContainmentApi } from '../../../api/containment';
 import { StuffApi } from '../../../api/stuff';
@@ -48,7 +48,14 @@ import { installV1QuantityMarshallers } from '../../persistence/__tests__/quanti
 const SPELL_PATH_PREFIX = '/stuff/idea/magic/Spell/';
 const SPELL_CLASS = '/platform/idea/magic/Spell';
 
-class TestCharacter extends Character {}
+// The competence read runs ON the caster since the OO sweep; this
+// pins the band per test (credits no-op — PM is disconnected here).
+let testBand: CompetenceBandName = 'competent';
+class TestCharacter extends Character {
+  override async competenceBandFor(): Promise<CompetenceBandName> {
+    return testBand;
+  }
+}
 
 const SCALE = 12;
 let real = 0;
@@ -221,8 +228,7 @@ describe('AC7 — the endpoint takes the reaction', () => {
     real = 100000;
     WorldClockApi._setNowProviderForTesting(() => real);
     await installCatalogue();
-    vi.spyOn(AdvancementApi, 'recordSignature').mockResolvedValue(undefined);
-    vi.spyOn(AdvancementApi, 'bandFor').mockResolvedValue('competent');
+    testBand = 'competent';
   });
   afterEach(() => {
     WorldClockApi._resetForTesting();
@@ -241,7 +247,7 @@ describe('AC7 — the endpoint takes the reaction', () => {
     caster.setPosture(Postures.Stand);
     mark.setPosture(Postures.Stand);
 
-    return MagicApi.resolveCast(caster, 'shove', mark).then((out) => {
+    return caster.resolveCast('shove', mark).then((out) => {
       expect(out.ok).toBe(true);
       // The mark goes down…
       expect(mark.getPosture()).toBe(Postures.Lie);
@@ -267,7 +273,7 @@ describe('AC7 — the endpoint takes the reaction', () => {
     ContainmentApi.move(wand, user);
     actingAs(user);
 
-    const out = await MagicApi.discharge(wand, mark);
+    const out = await wand.dischargeAt(mark);
     expect(out.ok).toBe(true);
     expect(mark.getPosture()).toBe(Postures.Lie);
     // The wand absorbed it. This is the whole of D6, and it is why
@@ -291,13 +297,13 @@ describe('AC7 — the endpoint takes the reaction', () => {
     actingAs(user);
 
     const before = wand.getStoredKJ();
-    const first = await MagicApi.discharge(wand);
+    const first = await wand.dischargeAt();
     expect(first.ok).toBe(true);
     expect(wand.getStoredKJ()).toBeLessThan(before);
 
     // Drain it flat, then fire again.
-    await MagicApi.discharge(wand);
-    const flat = await MagicApi.discharge(wand);
+    await wand.dischargeAt();
+    const flat = await wand.dischargeAt();
     expect(flat.ok).toBe(false);
     // Fails AUDIBLY — never silently, and never by ceasing to afford
     // the verb (D34: that would make the affordance list a charge meter).

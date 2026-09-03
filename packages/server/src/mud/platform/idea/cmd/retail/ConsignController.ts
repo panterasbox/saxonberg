@@ -39,6 +39,7 @@ import type { Containable } from "../../../../lib/spatial/Containable";
 import { EmploymentApi } from "../../../../api/employment";
 import type { Organization } from "../../../../lib/employment/Organization";
 import { StuffApi } from "../../../../api/stuff";
+import type { Chattel } from '../../../../lib/chattel/Chattel';
 
 const TOPIC = "act.deed";
 
@@ -101,7 +102,9 @@ export default class ConsignController extends CommandController<ConsignModel> {
     // An unstamped good in your hands that resolves to you (or to nobody)
     // is stamped to the principal below — a hand consigning the house's
     // floor stock titles it to the house, never to themselves.
-    const owner = await ChattelApi.ownerOf(item);
+    const owner = MixinApi.isChattel(item)
+      ? await item.chattelOwner()
+      : null;
     const ownedBy = (key: string | null): boolean =>
       (owner?.kind === "player" || owner?.kind === "organization") &&
       owner.templatePath === key;
@@ -119,7 +122,7 @@ export default class ConsignController extends CommandController<ConsignModel> {
     // held by /corpo/veshko; the yard's parentOrganization) is the
     // house's to put up.
     const chain = house
-      ? EmploymentApi.organizationChainOf(house as Stuff & Organization).map(
+      ? (house as Stuff & Organization).organizationChain().map(
           (o) => o.getTemplatePath(),
         )
       : [];
@@ -165,7 +168,9 @@ export default class ConsignController extends CommandController<ConsignModel> {
 
     // Establish the title if the good is unstamped (author-owned) — a
     // consignment needs a durable chattel id to key the listing on.
-    if (!item.getChattelId()) await ChattelApi.stamp(item, principal);
+    if (!item.getChattelId()) {
+      await (item as unknown as Stuff & Chattel).stampChattel(principal);
+    }
 
     // Custody → the shop's shelf; the owner-stamp stays put.
     ContainmentApi.move(item, shelf as unknown as Stuff & Container);
@@ -191,7 +196,7 @@ export default class ConsignController extends CommandController<ConsignModel> {
     if (!ownerKey || ownerKey === giver.getIdentityPath()) return null;
     const live = StuffApi.findByTemplatePath(ownerKey);
     if (!live || !MixinApi.isBusiness(live)) return null;
-    const mine = await EmploymentApi.buysFor(giver);
+    const mine = MixinApi.isEmployed(giver) ? await giver.buysFor() : [];
     return mine.includes(live) ? live : null;
   }
 

@@ -88,7 +88,7 @@ export default class WalletController extends BankingControllerBase<WalletModel>
       context.note({ kind: "controller-rejected", reason: "no-credential", detail: "wallet" });
       return;
     }
-    const candidates = await EmploymentApi.buysFor(giver);
+    const candidates = MixinApi.isEmployed(giver) ? await giver.buysFor() : [];
     if (candidates.length === 0) {
       MessageApi.scene(giver)
         .topic(TOPIC)

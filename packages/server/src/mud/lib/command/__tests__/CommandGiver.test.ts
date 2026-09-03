@@ -231,7 +231,7 @@ describe('CommandGiverMixin.executeCommand lifecycle', () => {
     expect(ExecutionContextApi.getCurrentCausingCommandId()).toBeNull();
   });
 
-  it('CommandApi.forceCommand stamps forced=true on the frame metadata', async () => {
+  it('forceCommand stamps forced=true on the frame metadata', async () => {
     // Player-typed `executeCommand('ping')` runs first as a baseline:
     // its Command frame's `forced` flag should be false.
     await giver.executeCommand('ping');
@@ -241,7 +241,7 @@ describe('CommandGiverMixin.executeCommand lifecycle', () => {
     // ExecutionContextApi from inside a controller body — the
     // baseline test below uses getCommandStack within a custom
     // `peek` command added on a sibling avatar.
-    await CommandApi.forceCommand(giver, 'ping');
+    await giver.forceCommand('ping');
     // forceCommand returns void in v1; envelope on the giver
     // is the source of outcome truth.
     expect((giver.envelopes.at(-1) as DispatchResponseEnvelope).outcome.status).toBe('ok');

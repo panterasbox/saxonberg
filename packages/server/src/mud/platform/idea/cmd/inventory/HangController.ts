@@ -19,7 +19,7 @@
  *      slot name is minted from the good's own chattel id so it is
  *      stable across restarts and can never collide with the synthetic
  *      `fixture:<n>` counter the authored `adornments:` field uses.
- *   3. `ChattelApi.followCustody(item)` — the placement record follows
+ *   3. `item.followCustody()` — the placement record follows
  *      where the thing ended up, exactly as it does for `drop` and
  *      `put`. A hung good's nearest persistence host is what it adorns,
  *      so this writes the room's place id and the estate entry picks up
@@ -116,7 +116,7 @@ export default class HangController extends CommandController<HangModel> {
 
     ContainmentApi.move(item, null);
     room.addFixture(item as Stuff & Adornment, this.slotFor(item));
-    await ChattelApi.followCustody(item);
+    if (MixinApi.isChattel(item)) await item.followCustody();
 
     MessageApi.scene(giver)
       .topic('sense.survey')

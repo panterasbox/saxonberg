@@ -17,7 +17,6 @@ import {
   beforeEach,
   afterEach,
   vi,
-  type MockInstance,
 } from 'vitest';
 import Avatar from '../agent/Avatar';
 import { CommandApi } from '../../api/command';
@@ -25,7 +24,6 @@ import Interactive from '../idea/Interactive';
 import { Character } from '../../lib/character/Character';
 import { User } from '../../lib/identity/User';
 import { MixinApi } from '../../api/mixin';
-import { ConnectionApi } from '../../api/connection';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 import type { MessageFrame } from '@saxonberg/types';
 
@@ -368,7 +366,7 @@ describe('Avatar', () => {
 
   describe('onMessage (SensorMixin override)', () => {
     let avatar: Avatar;
-    let sendMessage: MockInstance<typeof ConnectionApi.sendMessage>;
+    let sent: Array<[unknown, MessageFrame]>;
     let interactive1: Interactive;
     let interactive2: Interactive;
 
@@ -376,11 +374,16 @@ describe('Avatar', () => {
       // Create a simple avatar for testing
       avatar = makeAvatar('test-player-123');
 
-      // Stub the wire exit: ConnectionApi.sendMessage is where a
-      // multiplexed frame leaves the mudlib for a socket.
-      sendMessage = vi
-        .spyOn(ConnectionApi, 'sendMessage')
-        .mockImplementation(() => {});
+      // Stub the wire exit: Interactive.sendMessage is where a
+      // multiplexed frame leaves the mudlib for a socket (the Phase E
+      // instance surface). A prototype spy captures (receiver, frame).
+      sent = [];
+      const captured = sent;
+      vi.spyOn(Interactive.prototype, 'sendMessage').mockImplementation(
+        function (this: unknown, frame: MessageFrame) {
+          captured.push([this, frame]);
+        },
+      );
 
       interactive1 = makeStuff(() => new Interactive('socket-1', 'session-1', makeUser('user-1')));
       interactive2 = makeStuff(() => new Interactive('socket-2', 'session-2', makeUser('user-1')));
@@ -399,15 +402,11 @@ describe('Avatar', () => {
 
       avatar.onMessage(message);
 
-      expect(sendMessage).toHaveBeenCalledTimes(2);
-      expect(sendMessage).toHaveBeenCalledWith(
-        interactive1,
-        forwarded(message)
-      );
-      expect(sendMessage).toHaveBeenCalledWith(
-        interactive2,
-        forwarded(message)
-      );
+      expect(sent).toHaveLength(2);
+      expect(sent).toContainEqual([interactive1,
+        forwarded(message)]);
+      expect(sent).toContainEqual([interactive2,
+        forwarded(message)]);
     });
 
     it('should handle single Interactive', () => {
@@ -417,11 +416,9 @@ describe('Avatar', () => {
 
       avatar.onMessage(message);
 
-      expect(sendMessage).toHaveBeenCalledTimes(1);
-      expect(sendMessage).toHaveBeenCalledWith(
-        interactive1,
-        forwarded(message)
-      );
+      expect(sent).toHaveLength(1);
+      expect(sent).toContainEqual([interactive1,
+        forwarded(message)]);
     });
 
     it('should handle no Interactives gracefully', () => {
@@ -430,7 +427,7 @@ describe('Avatar', () => {
       // Should not throw
       expect(() => avatar.onMessage(message)).not.toThrow();
 
-      expect(sendMessage).not.toHaveBeenCalled();
+      expect(sent).toHaveLength(0);
     });
 
     it('should support multiplexing (same user, multiple devices)', () => {
@@ -446,14 +443,10 @@ describe('Avatar', () => {
       avatar.onMessage(message);
 
       // Both devices receive the message
-      expect(sendMessage).toHaveBeenCalledWith(
-        laptop,
-        forwarded(message)
-      );
-      expect(sendMessage).toHaveBeenCalledWith(
-        phone,
-        forwarded(message)
-      );
+      expect(sent).toContainEqual([laptop,
+        forwarded(message)]);
+      expect(sent).toContainEqual([phone,
+        forwarded(message)]);
     });
 
     it('⚠ stamps the routing answer on the frame it forwards', () => {
@@ -471,9 +464,9 @@ describe('Avatar', () => {
       avatar.addInteractive(interactive1);
       avatar.onMessage(makeFrame('shell.diagnostic', 'Error'));
 
-      const [, sent] = sendMessage.mock.calls[0] as [unknown, MessageFrame];
-      expect(Array.isArray(sent.meta?.feeds)).toBe(true);
-      expect(sent.meta?.feeds?.length).toBeGreaterThan(0);
+      const [, sentFrame] = sent[0] as [unknown, MessageFrame];
+      expect(Array.isArray(sentFrame.meta?.feeds)).toBe(true);
+      expect(sentFrame.meta?.feeds?.length).toBeGreaterThan(0);
     });
 
     it('should work with different message types', () => {
@@ -485,14 +478,10 @@ describe('Avatar', () => {
       avatar.onMessage(outputMsg);
       avatar.onMessage(errorMsg);
 
-      expect(sendMessage).toHaveBeenCalledWith(
-        interactive1,
-        forwarded(outputMsg)
-      );
-      expect(sendMessage).toHaveBeenCalledWith(
-        interactive1,
-        forwarded(errorMsg)
-      );
+      expect(sent).toContainEqual([interactive1,
+        forwarded(outputMsg)]);
+      expect(sent).toContainEqual([interactive1,
+        forwarded(errorMsg)]);
     });
   });
 

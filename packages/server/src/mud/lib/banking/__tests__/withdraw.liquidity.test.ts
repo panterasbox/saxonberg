@@ -71,7 +71,7 @@ describe("Withdraw — till-liquidity bound (AC#13)", () => {
     expect(bank.getTillLiquidity().minor).toBe(0);
 
     await expect(
-      asOwner(alice, () => BankingApi.withdraw(bank, Money.of(100, Currency.compact())))
+      asOwner(alice, () => bank.withdraw(Money.of(100, Currency.compact())))
     ).rejects.toThrow(/till low/);
     // balance untouched by the refused withdrawal
     expect(BankingApi.balanceOf(accountId).minor).toBe(1000);
@@ -102,12 +102,12 @@ describe("Withdraw — till-liquidity bound (AC#13)", () => {
 
     expect(bank.getTillLiquidity().minor).toBe(50);
     // 50 is coverable; 51 is not (till bound, not balance).
-    await asOwner(alice, () => BankingApi.withdraw(bank, Money.of(50, Currency.compact())));
+    await asOwner(alice, () => bank.withdraw(Money.of(50, Currency.compact())));
     expect(bank.getTillLiquidity().minor).toBe(0);
     expect(BankingApi.balanceOf(accountId).minor).toBe(950);
 
     await expect(
-      asOwner(alice, () => BankingApi.withdraw(bank, Money.of(1, Currency.compact())))
+      asOwner(alice, () => bank.withdraw(Money.of(1, Currency.compact())))
     ).rejects.toThrow(/till low/);
   });
 });

@@ -17,8 +17,6 @@
  */
 
 import { PersistenceManager } from './PersistenceManager';
-import { ConditionApi } from '../mud/api/condition';
-import { MaterialApi } from '../mud/api/material';
 import { TwitchRelayReader } from './TwitchRelayReader';
 import { YoutubeRelayReader } from './YoutubeRelayReader';
 import { KickRelayReader } from './KickRelayReader';
@@ -28,31 +26,14 @@ import { PackApi } from '../mud/api/pack';
 import { WorldClockApi } from '../mud/api/worldclock';
 import { AppApi } from '../mud/api/app';
 import { AppSettings } from '../mud/lib/config/AppSettings';
-import { RenownApi } from '../mud/api/renown';
-import RenownStanding from '../mud/lib/standing/RenownStanding';
-import { ConsumerApi } from '../mud/api/consumer';
-import ParticipationStanding from '../mud/lib/standing/ParticipationStanding';
-import { ProducerApi } from '../mud/api/producer';
 import { MixinApi } from '../mud/api/mixin';
 import { PersistableApi } from '../mud/api/persistable';
-import ProducerStanding from '../mud/lib/standing/ProducerStanding';
-import { BankingApi } from '../mud/api/banking';
-// Loaded for its side effect: registers banking's `bank-circle` dialogue
-// effect into the generic DialogueEffectRegistry (consumer → substrate).
 import { DiagnosticApi } from '../mud/api/diagnostics';
 import { RecordApi } from '../mud/api/record';
 import { CompileWatcher } from './CompileWatcher';
 import { fileURLToPath } from 'url';
 import { ResidencyApi } from '../mud/api/residency';
-import { CardApi } from '../mud/api/card';
-import { SandboxApi } from '../mud/api/sandbox';
 import { EmploymentApi } from '../mud/api/employment';
-import { AttendantApi } from '../mud/api/attendant';
-import { SocialApi } from '../mud/api/social';
-import { PartyApi } from '../mud/api/party';
-import { PressApi } from '../mud/api/press';
-import AccountBalance from '../mud/lib/banking/AccountBalance';
-import SupplyAggregate from '../mud/lib/banking/SupplyAggregate';
 import { Document } from '../mud/lib/persistence/Document';
 import { StuffApi } from '../mud/api/stuff';
 import type { Marshaller } from '../mud/lib/persistence/Marshaller';
@@ -196,6 +177,21 @@ export class AppBootstrap {
       }
     }
 
+    // App settings — warm the synchronous read cache from the
+    // `app_settings` row at STEP ZERO of the warm order, immediately after
+    // `PackApi.install()` (the `platform` pack merged the defaults above —
+    // its `settings` kind is merge-missing, so an operator's `config`
+    // value is never clobbered). Nothing between install and here feeds
+    // it, and warming FIRST is what lets every boot-manifest
+    // `postRegister` — including the self-warming catalogues — read
+    // dials (`getCached` throws loudly when unwarmed; the seeded-literal
+    // `dial()` fallbacks in the Logics are test-mode discipline only).
+    // Warm-only — the values come from the pack's content/settings/*.yaml.
+    // Awaits the Document directly — no boot method on AppApi (runtime
+    // ops only), and not a manifest entry: it is a Document warm with no
+    // template-backed row to ride.
+    await AppSettings.warm();
+
     await PersistenceManager.get().loadHooks();
     // (The starter wiki pages are the `wiki-starter` pack's `wiki` kind,
     // submitted by `PackApi.install` above THROUGH the registry's own
@@ -214,137 +210,27 @@ export class AppBootstrap {
     installOnlineHoldersProvider();
     await BootstrapManager.run();
 
-    // App settings — warm the synchronous read cache from the
-    // `app_settings` row (the `platform` pack merged the defaults above —
-    // its `settings` kind is merge-missing, so an operator's `config`
-    // value is never clobbered) before any consumer reads a setting; the
-    // evac path in Container.cleanupOnDestruct cannot await. Warm-only —
-    // the values come from the pack's content/settings/*.yaml. Awaits the
-    // Document directly — no boot method on AppApi (runtime ops only).
-    await AppSettings.warm();
-
-    // World clock — restore the persisted game-time anchor (or seed a
-    // zero clock on a fresh DB) and start its backstop. A sequencer
-    // step like the others, with the lifecycle owned by the Api.
-    // (It can't live inside BootstrapManager: that manager clones
-    // Stuff from the manifest, and the clock state is a Document, not
-    // a clonable template.)
-    await WorldClockApi.boot();
-
-
-    // Materials — stand the authored roster up as live singletons so the
-    // sync resolve-on-read seams (getMaterial / bulk slots / autoignition)
-    // hit from the first frame (nothing else stands materials up live).
-    await MaterialApi.boot();
-
-    // Conditions — the same gap one subsystem over: seeds are template
-    // rows and nothing cloned them into Ideas, so every condition read
-    // null in a running world and authored `toxinBehavior` / signs /
-    // progression were inert. Silent, because the one hot reader skips
-    // on null rather than throwing. After materials: a condition's
-    // signs can name tissue materials.
-    await ConditionApi.boot();
-
-    // Renown — warm the standing read-cache from the materialized
-    // aggregate, then install the reaction ingestion tap + self-register
-    // the real-time recompute schedule. Warm before boot so the first
-    // `renownOf` reads are populated. Activation = the singleton's
-    // presence; no consumer is wired this build.
-    await RenownStanding.warm();
-    RenownApi.boot();
-
-    // Participation (the consumer-influence quantity faucet) — warm the
-    // standing read-cache from the materialized aggregate, then install the
-    // command-dispatch tap + self-register the recompute schedule. Warm
-    // before boot so the first `participationOf` / consumer-standing reads
-    // are populated. Reads renown (already booted above) for the projection.
-    await ParticipationStanding.warm();
-    ConsumerApi.boot();
-
-    // Producer (the make faucet — the third influence stock) — warm the
-    // standing read-cache, then install the command-dispatch engagement tap
-    // (it reuses the consumer's signal; both taps assert the same
-    // consumer+producer restrictSubscribe allowlist) + self-register the
-    // recompute schedule. Engagement-only (reads no renown). Booted AFTER the
-    // consumer so the shared signal's allowlist is asserted in a stable order.
-    await ProducerStanding.warm();
-    ProducerApi.boot();
-
-    // Residency (self-eviction) — install the real-time cold-tail sweep.
-    // No warm step (nothing materialized); it reads AppSettings each sweep
-    // and enumerates the live registry (populated by the manifest clones
-    // above). Ships in observe mode, so booting culls nothing until an
-    // operator flips `residency.mode` to `enforce`.
-    ResidencyApi.boot();
     // The boot-time SPAWN sweep — the world stands at target on a fresh
     // boot, not a game-day later: every producer's floor row (a template
     // with an authored `censusKey` + home `container:`) is drawn until
     // its region declines. Enforce is the platform default; an operator
     // who flips `residency.spawn.mode` to observe gets a report only.
+    // A deliberate POST-MANIFEST sequencer line (not a boot entry, P2):
+    // it counts the live population the manifest just cloned, and the
+    // manifest cannot express "after everything".
     const spawned = await ResidencyApi.spawnNow();
     console.info(
       `ResidencyApi: boot spawn sweep — ${spawned.placed} placed, ` +
         `${spawned.declined} region(s) at target of ${spawned.regions}`,
     );
 
-    // The card surface — install the relevance-window sweep. ONE
-    // recurring callback for the whole card set, never a timer per card:
-    // a card's lifetime is a fact about time, and there is exactly one
-    // clock for it (the client's own husk interval is gone).
-    CardApi.boot();
-
-    // Sandbox (the holodeck) — install the orphan sweeper. Sessions are
-    // runtime state, so after a restart every circle scope is
-    // sessionless and the first sweep discards all scoped rows (the
-    // discard doctrine). Ordered after PM connect (above) and before
-    // players can enter (the WS listener starts after bootstrap).
-    SandboxApi.boot();
-
-    // Banking (the monetary substrate) — warm the account-balance read cache
-    // and the single-row supply headline from their materialized rows, then
-    // boot the logic singleton (the stable activation seam). Warm before boot
-    // so the first `balanceOf` / `moneySupply` reads are populated; the
-    // CentralBank singleton is cloned by the bootstrap manifest above.
-    await AccountBalance.warm();
-    await SupplyAggregate.warm();
-    await BankingApi.boot();
-
-    // Employment engine — run one immediate roster pass (so on-shift state
-    // is correct at boot) then self-register the recurring game-time tick
-    // that maintains each assignee's shift status and settles shift-end
-    // wages. Booted AFTER banking (the wage settlement calls BankingApi) and
-    // after the bootstrap manifest stood up the Business + cast.
-    EmploymentApi.boot();
-
-    // Attendant — install the storefront-attention anti-grief guards: the
-    // real-time lease idle-eviction sweep + the linkdead release. Booted after
-    // employment (server resolution reads on-shift state). Activation = the
-    // AttendantLogic singleton's presence; the sweep no-ops until a venue
-    // grants a lease.
-    AttendantApi.boot();
-
-    // Social graph (Wave 3) — install the presence relay: the net-new
-    // consumer that fans the four in-world-gated presence transitions
-    // (login / reconnect / disconnect / logout) out to online viewers
-    // whose first-matching rule for the acting player is non-silent.
-    // In-memory, nothing persisted; no warm step (the rule store rides
-    // each Avatar's own persistence).
-    // SocialApi.boot() installs BOTH the notify-gated presence relay and
-    // the presence-PUBLIC roster-delta tap (feeding the "Who's Online"
-    // card) — same four presence events, two consumers. In-memory.
-    SocialApi.boot();
-
-    // Party operational core — register the `party:` grouping provider with
-    // the (already-warmed) GroupRegistry and re-materialize durable parties
-    // from their `parties` records into live Party Ideas. After SocialApi so
-    // the grouping facade is fully warmed.
-    await PartyApi.boot();
-
-    // Press (news ticker) — a thin warm/activation seam. The board warms
-    // via its manifest postRegister; the staff→player feed fan-out is inline
-    // in PressLogic (Phase 3), so there is no event tap. Kept here for
-    // call-site symmetry with the other *Api.boot() seams.
-    PressApi.boot();
+    // The IMMEDIATE employment roster pass — on-shift state must be
+    // correct at boot. A deliberate POST-MANIFEST sequencer line (not a
+    // boot entry, P2): the Businesses it walks are other packs' manifest
+    // entries, which platform dependsOn edges cannot name without
+    // coupling to optional packs. The RECURRING tick is the
+    // EmploymentEngine singleton's (manifest-booted).
+    EmploymentApi.tickRoster();
 
     // Twitch relay — install the outbound DI port + wire the presence-gated
     // EventSub reader. Inert until a channel is seeded AND a player tunes
@@ -363,15 +249,6 @@ export class AppBootstrap {
     // listener (a runtime diagnostic notifies the content's author). Safe
     // and cheap in every environment; nothing fires it if no producer runs.
     DiagnosticApi.startRouter();
-
-    // The nightly reset — ⚠⚠ destructive, and OFF unless the operator
-    // armed it. `world.reset.mode` absent means nothing is installed at
-    // all; `dry-run` logs what it would remove; only `enforce` deletes.
-    // It also refuses to arm enforcing while `world.resetPolicy` is
-    // unset, because a server that wipes without printing the notice is
-    // a server whose front page lies. Booted last: it must see every
-    // registry it may have to re-seed afterwards.
-    RecordApi.boot();
 
     // ⭐ …and the world opens HERE, with every subsystem above booted, so
     // the first beat any brain runs meets a complete world.

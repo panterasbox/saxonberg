@@ -148,7 +148,7 @@ placeholder — so the edge reads honestly before it's been walked:
   builds the unit's `Lock` (`{keyway, pin-tumbler}` — the keyway a *synchronous*
   lookup off `DormWarren.keywayOf(unitKey)`, a cache refreshed from the durable
   parcel keyway) and admits whoever **presents a matching key** —
-  `CredentialApi.presentsKey(mover, lock)`, a sync reachable-wallet scan over the mover's
+  `opensFor(mover, lock)`, a sync reachable-wallet scan over the mover's
   implant keychain + any carried physical `Key` (a master ring passes the same
   way). No verb, no unlock step — you carry your key (or it's in your implant)
   and walk through. An empty keyway (unprovisioned / re-keyed) opens for no one.
@@ -206,7 +206,7 @@ unprovision before a new floor) → `ParcelApi.subdivide(unitExtent, dorms,
 owner)` (**no backing zone** — the extent is just the key) →
 `ParcelApi.grantUse(unitExtent, playerPath, null)` → **key the lock + issue the
 key** (`Lock.mintKeyway()` → `ParcelApi.setKeyway(unitExtent, keyway)` →
-`CredentialApi.issueKey(tenant, keyway, pin-tumbler)` — a physical brass `Key` in hand
+`Lock.issueKey(tenant, keyway, pin-tumbler)` — a physical brass `Key` in hand
 plus an implant-keychain entry, the diegetic "here's your key") →
 `ensureUnitDoor` + `refreshProvisioned`. The room/floor materialize lazily on
 first entry. Refuses a double-provision (`heldUnitOf` non-null → already
@@ -329,7 +329,7 @@ pick.)
 
 **Entry is just walking** — there is no `enter` verb. You climb the stairwell
 to your floor's corridor and go through your own door; it opens for whoever
-**presents a matching key** (the sync `CredentialApi.presentsKey` scan over your implant
+**presents a matching key** (the sync `opensFor` scan over your implant
 keychain + carried physical key) and blocks the keyless.
 
 `unprovision <player>` (alias `unlease`; `duncan-hall` content namespace, same dorms-agent

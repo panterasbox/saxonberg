@@ -150,13 +150,13 @@ describe("owner-based persistence — place", () => {
   it("defaults to storage, and setPlace writes the field AND the row index", async () => {
     const torch = makeTorch();
     const alice = makeOwner();
-    await ChattelApi.stamp(torch, alice);
+    await torch.stampChattel(alice);
 
     // Owned-but-unplaced is the default — no warehouse object, no homeless
     // special case.
     expect(torch.getPlace()).toBe(ESTATE_STORAGE);
 
-    await ChattelApi.setPlace(torch, ROOM_ID);
+    await torch.setChattelPlace(ROOM_ID);
 
     // One call, both writes: the good's own field round-trips WITH the good,
     // the row is the by-room index a materializing room reads.
@@ -179,13 +179,13 @@ describe("owner-based persistence — place", () => {
   it("a glob carries no place — a fungible stack has nowhere to be kept", async () => {
     const glob = makeTorch();
     vi.spyOn(MixinApi, "isGlobbable").mockImplementation((o) => o === glob);
-    await ChattelApi.setPlace(glob, ROOM_ID);
+    await glob.setChattelPlace(ROOM_ID);
     expect(glob.getPlace()).toBe(ESTATE_STORAGE);
   });
 
   it("an unstamped good takes no place — nothing owns it, so nothing keeps it", async () => {
     const torch = makeTorch();
-    await ChattelApi.setPlace(torch, ROOM_ID);
+    await torch.setChattelPlace(ROOM_ID);
     expect(col("chattel").length).toBe(0);
   });
 });
@@ -194,8 +194,8 @@ describe("owner-based persistence — the estate slice", () => {
   it("place=inventory round-trips into the owner's own container", async () => {
     const alice = makeOwner();
     const torch = makeTorch();
-    await ChattelApi.stamp(torch, alice);
-    await ChattelApi.setPlace(torch, ESTATE_INVENTORY);
+    await torch.stampChattel(alice);
+    await torch.setChattelPlace(ESTATE_INVENTORY);
     await PersistableApi.capture(alice);
 
     StuffApi.clearAll();
@@ -211,8 +211,8 @@ describe("owner-based persistence — the estate slice", () => {
   it("place=storage clones NOTHING — the absence of a placement, not a place", async () => {
     const alice = makeOwner();
     const torch = makeTorch();
-    await ChattelApi.stamp(torch, alice);
-    await ChattelApi.setPlace(torch, ESTATE_STORAGE);
+    await torch.stampChattel(alice);
+    await torch.setChattelPlace(ESTATE_STORAGE);
     const id = torch.getChattelId();
     await PersistableApi.capture(alice);
 
@@ -230,8 +230,8 @@ describe("owner-based persistence — the estate slice", () => {
   it("a room-placed good is left for the room — the owner mints nothing", async () => {
     const alice = makeOwner();
     const torch = makeTorch();
-    await ChattelApi.stamp(torch, alice);
-    await ChattelApi.setPlace(torch, ROOM_ID);
+    await torch.stampChattel(alice);
+    await torch.setChattelPlace(ROOM_ID);
     const id = torch.getChattelId();
     await PersistableApi.capture(alice);
 
@@ -248,8 +248,8 @@ describe("owner-based persistence — the estate slice", () => {
   it("an entry whose good is not live is carried forward verbatim", async () => {
     const alice = makeOwner();
     const torch = makeTorch();
-    await ChattelApi.stamp(torch, alice);
-    await ChattelApi.setPlace(torch, ROOM_ID);
+    await torch.stampChattel(alice);
+    await torch.setChattelPlace(ROOM_ID);
     const id = torch.getChattelId();
     await PersistableApi.capture(alice);
 
@@ -285,10 +285,10 @@ describe("eviction to storage — the lease-end sweep (D9)", () => {
     const alice = makeOwner();
     const a = makeTorch();
     const b = makeTorch();
-    await ChattelApi.stamp(a, alice);
-    await ChattelApi.stamp(b, alice);
-    await ChattelApi.setPlace(a, `${UNIT}/bedroom`);
-    await ChattelApi.setPlace(b, `${UNIT}/kitchen`);
+    await a.stampChattel(alice);
+    await b.stampChattel(alice);
+    await a.setChattelPlace(`${UNIT}/bedroom`);
+    await b.setChattelPlace(`${UNIT}/kitchen`);
 
     const evicted = await ChattelApi.evictToStorage(UNIT);
     expect(evicted).toBe(2);
@@ -299,7 +299,7 @@ describe("eviction to storage — the lease-end sweep (D9)", () => {
     expect(a.getPlace()).toBe(ESTATE_STORAGE);
     expect(b.getPlace()).toBe(ESTATE_STORAGE);
     expect(a.isDestroyed()).toBe(false);
-    expect(await ChattelApi.ownerOf(a)).toEqual({
+    expect(await a.chattelOwner()).toEqual({
       kind: "player",
       templatePath: ALICE_PATH,
     });
@@ -312,10 +312,10 @@ describe("eviction to storage — the lease-end sweep (D9)", () => {
     const alice = makeOwner();
     const inside = makeTorch();
     const elsewhere = makeTorch();
-    await ChattelApi.stamp(inside, alice);
-    await ChattelApi.stamp(elsewhere, alice);
-    await ChattelApi.setPlace(inside, `${UNIT}/bedroom`);
-    await ChattelApi.setPlace(elsewhere, "/world/test/other-room");
+    await inside.stampChattel(alice);
+    await elsewhere.stampChattel(alice);
+    await inside.setChattelPlace(`${UNIT}/bedroom`);
+    await elsewhere.setChattelPlace("/world/test/other-room");
 
     expect(await ChattelApi.evictToStorage(UNIT)).toBe(1);
     expect(elsewhere.getPlace()).toBe("/world/test/other-room");
@@ -324,11 +324,11 @@ describe("eviction to storage — the lease-end sweep (D9)", () => {
   it("re-placing from storage furnishes the next address", async () => {
     const alice = makeOwner();
     const t = makeTorch();
-    await ChattelApi.stamp(t, alice);
-    await ChattelApi.setPlace(t, `${UNIT}/bedroom`);
+    await t.stampChattel(alice);
+    await t.setChattelPlace(`${UNIT}/bedroom`);
     await ChattelApi.evictToStorage(UNIT);
 
-    await ChattelApi.setPlace(t, "/world/test/unit-9c/bedroom");
+    await t.setChattelPlace("/world/test/unit-9c/bedroom");
     expect(t.getPlace()).toBe("/world/test/unit-9c/bedroom");
     const placed = await ChattelApi.placedIn("/world/test/unit-9c/bedroom");
     expect(placed.map((p) => p.chattelId)).toEqual([t.getChattelId()]);
@@ -363,8 +363,8 @@ describe("release drops the owner's estate entry — the resurrection bug", () =
   it("a destroyed good does not come back on the next load", async () => {
     const torch = makeTorch();
     const alice = makeOwner();
-    await ChattelApi.stamp(torch, alice);
-    await ChattelApi.setPlace(torch, ESTATE_INVENTORY);
+    await torch.stampChattel(alice);
+    await torch.setChattelPlace(ESTATE_INVENTORY);
     const chattelId = torch.getChattelId();
     expect(alice.getEstateEntry(chattelId)).not.toBeNull();
 
@@ -394,12 +394,12 @@ describe("release drops the owner's estate entry — the resurrection bug", () =
     // drops only the row from silently re-opening this.
     const torch = makeTorch();
     const alice = makeOwner();
-    await ChattelApi.stamp(torch, alice);
+    await torch.stampChattel(alice);
     // The estate entry is written by `setPlace`, NOT by `stamp` — without
     // this the estate assertion below passes on a world where the entry
     // never existed, which is how the first draft of this test went green
     // against the unfixed code.
-    await ChattelApi.setPlace(torch, ESTATE_INVENTORY);
+    await torch.setChattelPlace(ESTATE_INVENTORY);
     const chattelId = torch.getChattelId();
     // Guard the assertions below against being vacuous: both halves must
     // exist before a release can be shown to remove them.

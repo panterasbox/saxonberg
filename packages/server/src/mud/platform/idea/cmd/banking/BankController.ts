@@ -183,7 +183,7 @@ export default class BankController extends BankingControllerBase<BankModel> {
       return;
     }
     try {
-      await BankingApi.deposit(bank, coins);
+      await bank.deposit(coins);
     } catch (err) {
       return this.declineScene(context, "deposit-failed", err, "coins");
     }
@@ -205,7 +205,7 @@ export default class BankController extends BankingControllerBase<BankModel> {
       return this.badAmount(context, model.amount);
     }
     try {
-      await BankingApi.withdraw(bank, Money.of(minor, Currency.compact()));
+      await bank.withdraw(Money.of(minor, Currency.compact()));
     } catch (err) {
       return this.declineScene(context, "withdraw-refused", err);
     }

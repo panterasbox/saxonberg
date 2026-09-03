@@ -42,6 +42,7 @@
     "build": "pnpm -r build",
     "lint": "eslint . --ext .ts,.tsx --cache",
     "lint:gates": "pnpm --filter @saxonberg/server run lint:gates",
+    "lint:object-verbs": "pnpm --filter @saxonberg/server run lint:object-verbs",
     "lint:census": "pnpm --filter @saxonberg/server run lint:census",
     "lint:locations": "pnpm --filter @saxonberg/server run lint:locations",
     "lint:field-meta": "pnpm --filter @saxonberg/server run lint:field-meta",

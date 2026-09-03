@@ -187,10 +187,10 @@ export const brain = class {
       const which = crushes[beats % crushes.length] ?? crushes[0]!;
       for (let i = 0; i < CRUSHES_PER_BEAT; i++) {
         if (inputsInReach(home, inputKeyword) < inputMin) break;
-        await CommandApi.forceCommand(hand, `order ${which}`);
-        await CommandApi.forceCommand(hand, `pour bucket into vat`);
+        await hand.forceCommand(`order ${which}`);
+        await hand.forceCommand(`pour bucket into vat`);
         if (ctx.config.pitchJar === true) {
-          await CommandApi.forceCommand(hand, `pour jar into vat`);
+          await hand.forceCommand(`pour jar into vat`);
         }
       }
       return;
@@ -227,9 +227,9 @@ export const brain = class {
     const empties = emptyVessels(home, category).slice(0, batch);
     const filled: Stuff[] = [];
     for (let i = 0; i < empties.length; i++) {
-      await CommandApi.forceCommand(hand, `get ${vk}`);
-      await CommandApi.forceCommand(hand, `fill ${vk} from vat`);
-      await CommandApi.forceCommand(hand, `close ${vk}`);
+      await hand.forceCommand(`get ${vk}`);
+      await hand.forceCommand(`fill ${vk} from vat`);
+      await hand.forceCommand(`close ${vk}`);
       // Verify by state, not hope: an empty fill (vat ran dry) stops the leg.
       const held = hand
         .getContents()
@@ -248,10 +248,10 @@ export const brain = class {
     if (!counterRoom || !MixinApi.isContainer(counterRoom)) return;
     hand.teleport(counterRoom as Stuff & Container);
     try {
-      await CommandApi.forceCommand(hand, 'wallet use house');
+      await hand.forceCommand('wallet use house');
       for (const vessel of filled) {
         const ask = askFor(ctx.config, vessel);
-        await CommandApi.forceCommand(hand, `consign ${vk} --ask ${ask}`);
+        await hand.forceCommand(`consign ${vk} --ask ${ask}`);
       }
     } finally {
       hand.teleport(home);
@@ -270,11 +270,11 @@ export const brain = class {
   ): Promise<void> {
     const cold = StuffApi.findByTemplatePath(leg.room);
     if (!cold || !MixinApi.isContainer(cold)) return;
-    await CommandApi.forceCommand(hand, `order ${leg.recipe}`);
+    await hand.forceCommand(`order ${leg.recipe}`);
     hand.teleport(cold as Stuff & Container);
     try {
-      await CommandApi.forceCommand(hand, `pour bucket into vat`);
-      await CommandApi.forceCommand(hand, `pour jar into vat`);
+      await hand.forceCommand(`pour bucket into vat`);
+      await hand.forceCommand(`pour jar into vat`);
     } finally {
       hand.teleport(home);
     }
@@ -294,14 +294,14 @@ export const brain = class {
     distills: { recipe: string; runs?: number; igniteKeyword?: string; compounds?: string[] },
   ): Promise<void> {
     if (distills.igniteKeyword) {
-      await CommandApi.forceCommand(hand, `ignite ${distills.igniteKeyword}`);
+      await hand.forceCommand(`ignite ${distills.igniteKeyword}`);
     }
     const runs = positiveInt(distills.runs, 2);
     for (let i = 0; i < runs; i++) {
-      await CommandApi.forceCommand(hand, `order ${distills.recipe}`);
+      await hand.forceCommand(`order ${distills.recipe}`);
     }
     for (const c of distills.compounds ?? []) {
-      await CommandApi.forceCommand(hand, `order ${c}`);
+      await hand.forceCommand(`order ${c}`);
     }
     await this.consignHeld(ctx, hand, home, counterRoomPath);
   }
@@ -315,7 +315,7 @@ export const brain = class {
     compounds: string[],
   ): Promise<boolean> {
     for (const c of compounds) {
-      await CommandApi.forceCommand(hand, `order ${c}`);
+      await hand.forceCommand(`order ${c}`);
     }
     return this.consignHeld(ctx, hand, home, counterRoomPath);
   }
@@ -338,10 +338,10 @@ export const brain = class {
     if (!counterRoom || !MixinApi.isContainer(counterRoom)) return false;
     hand.teleport(counterRoom as Stuff & Container);
     try {
-      await CommandApi.forceCommand(hand, 'wallet use house');
+      await hand.forceCommand('wallet use house');
       for (const vessel of filled) {
         const ask = askFor(ctx.config, vessel);
-        await CommandApi.forceCommand(hand, `consign ${vk} --ask ${ask}`);
+        await hand.forceCommand(`consign ${vk} --ask ${ask}`);
       }
     } finally {
       hand.teleport(home);
@@ -371,14 +371,14 @@ export const brain = class {
       .filter((k) => k.length > 0);
     hand.teleport(counterRoom as Stuff & Container);
     try {
-      await CommandApi.forceCommand(hand, 'wallet use house');
+      await hand.forceCommand('wallet use house');
       for (const b of buys) {
         const kw = str(b.keyword);
         if (!kw) continue;
         const count = positiveInt(b.count, DEFAULT_BUY_COUNT);
         for (let i = 0; i < count; i++) {
-          await CommandApi.forceCommand(hand, `buy ${kw}`);
-          await CommandApi.forceCommand(hand, `get ${kw}`);
+          await hand.forceCommand(`buy ${kw}`);
+          await hand.forceCommand(`get ${kw}`);
         }
       }
     } finally {
@@ -387,7 +387,7 @@ export const brain = class {
       for (const c of [...hand.getContents()]) {
         const kw = keywordOf(c);
         if (kw !== null && keywords.includes(kw)) {
-          await CommandApi.forceCommand(hand, `drop ${kw}`);
+          await hand.forceCommand(`drop ${kw}`);
         }
       }
     }

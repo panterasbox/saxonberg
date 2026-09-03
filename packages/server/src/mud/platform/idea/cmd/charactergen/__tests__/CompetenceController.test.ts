@@ -3,17 +3,20 @@
  * per practiced Discipline; the empty state; and the honesty firewall —
  * **no number** ever reaches the body.
  *
- * Evidence is seeded through `AdvancementApi` against the in-memory PM
+ * Evidence is seeded through the actor's own credit face against the in-memory PM
  * stub; the emitted scene body is captured by stubbing `MessageApi.scene`.
  */
 
 import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import CompetenceController from "../CompetenceController";
-import { AdvancementApi } from "../../../../../api/advancement";
 import { MessageApi } from "../../../../../api/message";
 import { Mml } from "../../../../../api/mml";
 import { Idea } from "../../../../../lib/stuff/Idea";
+import { AdvancementMixin } from "../../../../../lib/advancement/Advancement";
+
+// The transcript face lives ON the actor since the OO sweep.
+class AdvancingIdea extends AdvancementMixin(Idea) {}
 import { StuffApi } from "../../../../../api/stuff";
 import { WorldClockApi } from "../../../../../api/worldclock";
 import { PersistenceManager } from "../../../../../../backend/PersistenceManager";
@@ -78,13 +81,13 @@ function ctxFor(actor: Idea): CommandContext {
 
 describe("CompetenceController render", () => {
   it("renders a band per practiced Discipline, and never a number", async () => {
-    const actor = makeStuffAtPath(() => new Idea(), "/platform/agent/Avatar/comp");
-    await AdvancementApi.recordDeed(actor, {
+    const actor = makeStuffAtPath(() => new AdvancingIdea(), "/platform/agent/Avatar/comp");
+    await actor.creditDeed({
       discipline: "mixology",
       difficulty: "hard",
       outcome: "critical",
     });
-    await AdvancementApi.recordDeed(actor, {
+    await actor.creditDeed({
       discipline: "darts",
       difficulty: "easy",
       outcome: "success",
@@ -101,7 +104,7 @@ describe("CompetenceController render", () => {
   });
 
   it("renders an empty-state line when there is no evidence", async () => {
-    const actor = makeStuffAtPath(() => new Idea(), "/platform/agent/Avatar/comp-empty");
+    const actor = makeStuffAtPath(() => new AdvancingIdea(), "/platform/agent/Avatar/comp-empty");
     const ctrl = makeStuff(() => new CompetenceController());
     await ctrl.execute({} as CommandModel, ctxFor(actor));
 

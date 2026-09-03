@@ -13,7 +13,6 @@ import { Stuff } from '../../lib/stuff/Stuff';
 import EventRegistry from '../../platform/idea/EventRegistry';
 import Interactive from '../../platform/idea/Interactive';
 import Avatar from '../../platform/agent/Avatar';
-import { ConnectionApi } from '../connection';
 
 async function bootRegistry(): Promise<void> {
   const reg = await StuffApi.create(() => {
@@ -35,7 +34,7 @@ async function makeAvatarInteractive(): Promise<{
   const interactive = await StuffApi.create(
     () => new Interactive('sock-1', 'sess-1', { _id: 'u1' } as never),
   );
-  ConnectionApi.transfer(interactive, avatar);
+  interactive.transferTo(avatar);
   return { interactive, avatar };
 }
 
@@ -65,11 +64,11 @@ describe('PromptApi — cancellation', () => {
     await bootRegistry();
     const { interactive, avatar } = await makeAvatarInteractive();
     const envelopes = captureEnvelopes(avatar);
-    const p = PromptApi.text(interactive, 'Name?');
+    const p = interactive.promptText('Name?');
     const id = envelopes[0]!.promptId!;
     envelopes.length = 0;
 
-    PromptApi.handleCancel(interactive, { promptId: id });
+    interactive.handlePromptCancel({ promptId: id });
     await expect(p).rejects.toBeInstanceOf(PromptCancelledError);
     await expect(p).rejects.toMatchObject({ reason: 'cancelled' });
 
@@ -88,7 +87,7 @@ describe('PromptApi — cancellation', () => {
     await bootRegistry();
     const { interactive, avatar } = await makeAvatarInteractive();
     const envelopes = captureEnvelopes(avatar);
-    const p = PromptApi.text(interactive, 'Name?');
+    const p = interactive.promptText('Name?');
     const id = envelopes[0]!.promptId!;
 
     expect(PromptApi.cancel('not-real')).toBe(false);
@@ -100,12 +99,12 @@ describe('PromptApi — cancellation', () => {
     await bootRegistry();
     const { interactive, avatar } = await makeAvatarInteractive();
     captureEnvelopes(avatar);
-    const p1 = PromptApi.text(interactive, 'A?');
-    const p2 = PromptApi.text(interactive, 'B?');
-    const p3 = PromptApi.text(interactive, 'C?');
+    const p1 = interactive.promptText('A?');
+    const p2 = interactive.promptText('B?');
+    const p3 = interactive.promptText('C?');
 
     expect(PromptApi._getInteractivePromptCountForTesting(interactive)).toBe(3);
-    const count = PromptApi.cancelAll(interactive, 'host-disconnected');
+    const count = interactive.cancelPrompts('host-disconnected');
     expect(count).toBe(3);
 
     for (const p of [p1, p2, p3]) {
@@ -120,7 +119,7 @@ describe('PromptApi — cancellation', () => {
   it('cancelAll returns 0 for an Interactive with no prompts', async () => {
     await bootRegistry();
     const { interactive } = await makeAvatarInteractive();
-    expect(PromptApi.cancelAll(interactive, 'cancelled')).toBe(0);
+    expect(interactive.cancelPrompts('cancelled')).toBe(0);
   });
 
   it('cancel-during-validate: late async validator does not call resolve', async () => {
@@ -133,7 +132,7 @@ describe('PromptApi — cancellation', () => {
       releaseValidator = res;
     });
 
-    const p = PromptApi.text(interactive, 'Name?', {
+    const p = interactive.promptText('Name?', {
       validate: async (_s): Promise<true | string> => {
         await validatorPromise;
         return true;
@@ -142,9 +141,9 @@ describe('PromptApi — cancellation', () => {
     const id = envelopes[0]!.promptId!;
 
     // Submit a response — validator starts and parks.
-    PromptApi.handleResponse(interactive, { promptId: id, response: 'Bob' });
+    interactive.handlePromptResponse({ promptId: id, response: 'Bob' });
     // Cancel before validator settles.
-    PromptApi.handleCancel(interactive, { promptId: id });
+    interactive.handlePromptCancel({ promptId: id });
     // Now release the validator.
     releaseValidator!();
     // The promise rejects with cancellation, not resolves with 'Bob'.

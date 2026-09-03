@@ -278,7 +278,7 @@ method, which resolves in two tiers:
 
 | Slot holds | Phrase |
 |---|---|
-| an **identifiable** material | `RecognitionApi.describe(viewer, material)` — per-viewer |
+| an **identifiable** material | `describeFor(viewer, material)` — per-viewer |
 | anything else | `payload?.appearance ?? material.appearance` — the shipped read, unchanged |
 
 The case that earns the tier is the **potion**: what a draught *looks*

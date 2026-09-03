@@ -5,7 +5,7 @@ Chat is the multi-party communication substrate riding on top of the
 to one (or a small cohort of) addressees, a chat **channel** is a
 named, lived-in conversation surface — persistent or ephemeral, open
 or membered, player-created or engine-seeded. The wire still flows
-through `MessageApi.scene` / `MessageApi.sendMessage`; chat adds the
+through `MessageApi.scene` / `onMessage`; chat adds the
 channel model, the audience-resolution layer, and the runtime history
 ring that sit between "actor speaks into a channel" and the per-
 recipient frames produced by the messaging substrate.
@@ -266,7 +266,7 @@ audience-fanout chokepoint for persistent channels. The shape:
    and the per-channel `meta.channelId` stamp.
 3. Fan out to the audience. Scene's `toTarget` is single-recipient;
    chat needs N, so the post path emits per-recipient frames directly
-   via `MessageApi.sendMessage` with `audience:witness` tags and the
+   via `onMessage` with `audience:witness` tags and the
    same channel meta. **The manual witness + history frames also stamp
    `meta.commandId`** (read once from the ambient command context) — the
    self frame got it free from Scene, but the hand-built frames omitted
@@ -280,7 +280,7 @@ The reason for the split between Scene (self) and direct sends
 (audience) is that `Scene` is built around the actor/target/peers
 audience taxonomy; chat is a different topology (N named
 subscribers, none of whom are room-peers of the speaker). Going
-through `MessageApi.sendMessage` directly keeps chat on the same
+through `onMessage` directly keeps chat on the same
 lone delivery chokepoint without abusing Scene's audience shape.
 
 Ad-hoc posts are handled inline in `ChatController.executePost` —
@@ -509,7 +509,7 @@ into this doc as they ship.
 ## Related
 
 - [messaging.md](./messaging.md) — the Scene composer, the lone
-  `MessageApi.sendMessage` delivery chokepoint, modality stamping,
+  `onMessage` delivery chokepoint, modality stamping,
   and `SensorMixin.filterMessage` (the reception gate that drops
   chat frames for implant-less recipients).
 - [forums.md](./forums.md) — the `Subject` layer chat was retrofitted

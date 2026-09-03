@@ -73,8 +73,8 @@ interface DialogueGuard { fact: GuardFact; op: GuardOp; value: string|number|boo
 ```
 
 - **Guard fact namespace** (fixed, validation-array-driven): `regard`
-  (`RegardApi.getRegard(npc, player)`), `trait:<axis>`
-  (`TraitApi.positionFor(npc, axis).position`, axis ∈ the disposition
+  (`npc.regardFor(player)`), `trait:<axis>`
+  (`npc.traitPosition(axis).position`, axis ∈ the disposition
   roster), `time:hour` (world hour-of-day), `state:<key>` (ephemeral
   conversation scratch), `position:<organization path>` (whether the
   interlocutor holds a non-exited position there — an employer's
@@ -249,14 +249,14 @@ not conversation time.
 ## Auto-introduce — knowing who you're talking to
 
 Speech renders the speaker viewer-relatively
-(`RecognitionApi.describe` via `Mml.actor`), so an un-introduced NPC shows
+(`describeFor` via `Mml.actor`), so an un-introduced NPC shows
 by description ("a watchful dwarf"), not name. The fix is **real
 recognition via auto-introduce**, not a name bypass:
 
 - **`SoulMixin.introduceSelf()`** — the shared, modality-neutral
   introduce act (the introduce scene + `learnIdentity` to all in range).
   Introduce is a Soul act on every Character.
-  `RecognitionApi.recognizes(viewer, subject)` is the gate (don't
+  `recognizes(viewer, subject)` is the gate (don't
   re-introduce to someone who already knows you).
 - **NPC (intrinsic):** the **`introduces` brain** (arrival witness) — on
   a newcomer arriving, if they don't already know the host, the host

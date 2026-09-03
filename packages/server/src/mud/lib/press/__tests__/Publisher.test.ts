@@ -29,6 +29,7 @@ import { RELEASE_VISIBILITIES } from '../Publisher';
 import type { ParcelOwner } from '../../parcel/ParcelRecord';
 import { makeStuffAtPath } from '../../security/__tests__/test-setup';
 import type { Stuff } from '../../stuff/Stuff';
+import type { Employed } from '../../employment/Employed';
 
 const PRESS = '/compact/press';
 const GROUP_REF = 'managed:g-core';
@@ -101,12 +102,12 @@ describe('the publishing entitlement', () => {
     ).resolves.toBe(true);
 
     // ...and that buys them exactly nothing at the publish step.
-    expect(EmploymentApi.mayPublishAs(member, org)).toBe(false);
+    expect(org.allowsPublishingBy(member)).toBe(false);
 
     // Once they appoint THEMSELVES, they may publish — as a
     // position-holder, which is how anyone earns it.
-    EmploymentApi.hire(org, member as unknown as Stuff, DIRECTOR);
-    expect(EmploymentApi.mayPublishAs(member, org)).toBe(true);
+    org.appoint(member as unknown as Stuff, DIRECTOR);
+    expect(org.allowsPublishingBy(member)).toBe(true);
   });
 
   it('the entitlement matrix: publishing holder, other holder, stranger', () => {
@@ -115,14 +116,14 @@ describe('the publishing entitlement', () => {
     const clerk = makeAvatar('clerk');
     const stranger = makeAvatar('stranger');
 
-    EmploymentApi.hire(org, director as unknown as Stuff, DIRECTOR);
-    EmploymentApi.hire(org, clerk as unknown as Stuff, CLERK);
+    org.appoint(director as unknown as Stuff, DIRECTOR);
+    org.appoint(clerk as unknown as Stuff, CLERK);
 
-    expect(EmploymentApi.mayPublishAs(director, org)).toBe(true);
+    expect(org.allowsPublishingBy(director)).toBe(true);
     // A position-holder — just not a publishing one.
-    expect(EmploymentApi.mayPublishAs(clerk, org)).toBe(false);
-    expect(EmploymentApi.mayPublishAs(stranger, org)).toBe(false);
-    expect(EmploymentApi.mayPublishAs(null, org)).toBe(false);
+    expect(org.allowsPublishingBy(clerk)).toBe(false);
+    expect(org.allowsPublishingBy(stranger)).toBe(false);
+    expect(org.allowsPublishingBy(null)).toBe(false);
   });
 
   it('an empty publishingPositions list means ANY position, not anybody', () => {
@@ -130,26 +131,23 @@ describe('the publishing entitlement', () => {
     org.publishingPositions = [];
     const clerk = makeAvatar('clerk');
     const stranger = makeAvatar('stranger');
-    EmploymentApi.hire(org, clerk as unknown as Stuff, CLERK);
+    org.appoint(clerk as unknown as Stuff, CLERK);
 
-    expect(EmploymentApi.mayPublishAs(clerk, org)).toBe(true);
+    expect(org.allowsPublishingBy(clerk)).toBe(true);
     // You still have to hold a position.
-    expect(EmploymentApi.mayPublishAs(stranger, org)).toBe(false);
+    expect(org.allowsPublishingBy(stranger)).toBe(false);
   });
 
   it('refuses an organization that does not publish at all', () => {
     const org = makePressOffice();
     const director = makeAvatar('director');
-    EmploymentApi.hire(org, director as unknown as Stuff, DIRECTOR);
-    expect(EmploymentApi.mayPublishAs(director, org)).toBe(true);
+    org.appoint(director as unknown as Stuff, DIRECTOR);
+    expect(org.allowsPublishingBy(director)).toBe(true);
 
-    // A bare organization — no PublisherMixin — refuses everyone.
-    const notAPublisher = {
-      ...org,
-      getTemplatePath: () => PRESS,
-    } as unknown as Parameters<typeof EmploymentApi.mayPublishAs>[1];
+    // A bare organization — no PublisherMixin — refuses everyone (the
+    // mock strips publisher-ness from the real org).
     vi.spyOn(MixinApi, 'isPublisher').mockReturnValue(false);
-    expect(EmploymentApi.mayPublishAs(director, notAPublisher)).toBe(false);
+    expect(org.allowsPublishingBy(director)).toBe(false);
   });
 
   it('reuses the one exit-handling path: an exit is never resurrected', () => {
@@ -163,13 +161,13 @@ describe('the publishing entitlement', () => {
         schedule: [],
       },
     ];
-    expect(EmploymentApi.mayPublishAs(director, org)).toBe(true);
+    expect(org.allowsPublishingBy(director)).toBe(true);
 
     // ...which an explicit exit suppresses rather than being resurrected by.
-    EmploymentApi.hire(org, director as unknown as Stuff, DIRECTOR);
-    EmploymentApi.quit(director as unknown as Stuff, PRESS);
-    expect(EmploymentApi.mayPublishAs(director, org)).toBe(false);
-    expect(EmploymentApi.holdersOf(org, DIRECTOR)).toEqual([]);
+    org.appoint(director as unknown as Stuff, DIRECTOR);
+    (director as unknown as Stuff & Employed).quitJob(PRESS);
+    expect(org.allowsPublishingBy(director)).toBe(false);
+    expect(org.holdersOf(DIRECTOR)).toEqual([]);
   });
 });
 

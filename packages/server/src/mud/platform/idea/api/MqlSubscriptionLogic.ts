@@ -18,6 +18,11 @@ import type {
 
 const MqlSubscriptionApiCallers = SecurityPolicies.FromModule('/api/mql-subscription#MqlSubscriptionApi'
 );
+/** The Interactive subscription surface (F5) calls in as the instance. */
+const MqlSubCallers = SecurityPolicies.AnyOf(
+  MqlSubscriptionApiCallers,
+  SecurityPolicies.FromModule('/platform/idea/Interactive'),
+);
 
 /* ─────────────────────── registry resolution ─────────────────────── */
 // Module-level so it survives the logic singleton's destruct/recreate
@@ -117,7 +122,7 @@ export class MqlSubscriptionLogic extends ApiLogic {
   }
 
   /** See {@link MqlSubscriptionApi.handleUnsubscribe}. */
-  @CallSecurity(MqlSubscriptionApiCallers)
+  @CallSecurity(MqlSubCallers)
   public handleUnsubscribe(
     interactive: Interactive,
     subscriptionId: string
@@ -126,13 +131,13 @@ export class MqlSubscriptionLogic extends ApiLogic {
   }
 
   /** See {@link MqlSubscriptionApi.cancelAllForInteractive}. */
-  @CallSecurity(MqlSubscriptionApiCallers)
+  @CallSecurity(MqlSubCallers)
   public cancelAllForInteractive(interactive: Interactive): void {
     resolveRegistry().cancelAllForInteractive(interactive);
   }
 
   /** See {@link MqlSubscriptionApi.refreshForInteractive}. */
-  @CallSecurity(MqlSubscriptionApiCallers)
+  @CallSecurity(MqlSubCallers)
   public refreshForInteractive(interactive: Interactive): void {
     resolveRegistry().refreshForInteractive(interactive);
   }

@@ -50,7 +50,8 @@ export const brain = class {
 
     // Presence is driven by employment state, not the clock — the engine's
     // roster tick already resolved this host's on/off-shift status.
-    const state = EmploymentApi.shiftStateOf(host);
+    if (!MixinApi.isEmployed(host)) return;
+    const state = host.shiftState();
     const targetPath =
       state === 'on-shift' ? ctx.config.behindBar : ctx.config.offstage;
     if (typeof targetPath !== 'string') return;

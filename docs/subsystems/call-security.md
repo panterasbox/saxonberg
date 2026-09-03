@@ -896,7 +896,36 @@ arm may ride along for the owning logic's janitorial cases (stale
 state with no live participant to act).
 
 New object-owned mutators should reach for a participant contract
-first; `ApiOnly` on an object method is the legacy shape. The planned
+first; `ApiOnly` on an object method is the legacy shape. Since the Api
+OO sweep this is the DEFAULT posture for a moved verb — see the
+three-way gate rule in
+[antipatterns.md § A subject-first Api static](../antipatterns.md):
+participant contract, else the logic-side
+`FromMixin(<host>, where caller === subject)` widen, else
+ungated + sealed when the writers span packs.
+
+> ⚠ **The identity-path rule** (recorded for a future `FromIdentity`
+> policy): a policy that trusts an object's *identity path* must read
+> the raw `#identity` stamp (`Stuff._identityStampOf`-style seam),
+> **never** the overridable `getIdentityPath()` method — a subclass or
+> shadow overriding the method must not be able to impersonate an
+> identity to a gate. The same reasoning that keeps `FromTemplate` on
+> the hard-private `#templatePath` slot.
+
+> ⚠ **Audit-pending: the ungated+sealed set.** The Api OO sweep shipped
+> ~35 owner-mixin mutators with seals but NO caller gate (the writers
+> span pack controllers no kernel `FromX` list can enumerate) —
+> chattel stamp/transfer, glob split/absorb, the cast/charge pipeline,
+> advancement credits, the chronicle/regard writers, appoint/dismiss,
+> deposit/withdraw, the physics drivers. The compensating control is a
+> planned **audit rail** (`@Audited` — permit the call, sample
+> invocations with full runtime args into an `audit_events` collection
+> for review) plus pack-manifest-contributed gate participants for
+> re-tightening. The full inventory, the design position, and the
+> future gate primitives (`FromTemplateMethod`, interface admission)
+> are captured in
+> [the call-security pass slate](../slates/builds/call-security-pass-slate.md)
+> — that pass is its own build. The planned
 expansion is **trust-layer policies** (ownership via `ParcelApi`,
 authorship via `ProvenanceApi`, group membership via `GroupApi`) as
 sibling policies of the same shape — `allows` is already
@@ -1779,7 +1808,7 @@ capture must not become a `SecurityError`.
 
 - **Tamper resistance.** The stack proof still gates the *claim*; what
   changed is how often it is taken, not whether.
-- **Viewer-relative naming.** `RecognitionApi.describe` inside the MQL
+- **Viewer-relative naming.** `describeFor` inside the MQL
   scope walk is why `look bob` works iff the room view says "Bob". Its
   22% is a feature's cost, not waste.
 - **The destroyed-object inert guard**, which keeps benign races from
@@ -1872,7 +1901,7 @@ The rule it encodes: the layers contain durable **mutation**, but a
 read-only *projection of a person* — what they are called, what they
 can sense, what they are doing — is neither durable nor a mutation, and
 yields text or a display row, which the doctrine already lets cross.
-Its consumers are `RecognitionApi.describe*` / `perceivedKeywords` /
+Its consumers are `describeFor*` / `perceivedKeywords` /
 `salientFeatures`, `PerceptionApi.sensorium` / `canPerceive`, and
 `SocialApi.statusOf` / `composeRow`.
 

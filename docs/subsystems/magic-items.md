@@ -114,7 +114,7 @@ stays the LIQUID (below); every preset a row may override.
 
 The dormant `alwaysOn` / `drawActive` machinery on `Charged` is live,
 from the one `Slotted.occupy` / `vacate` chokepoint (every path — `wear`,
-`SlotApi.occupyAll`, persistence restore, the release gate):
+`occupyAll`, persistence restore, the release gate):
 
 - **`onSlotOccupied`** on an `alwaysOn` host discharges its bound working
   as a **`sustained` Condition on the wearer** (`sustainedBy` the host,
@@ -212,7 +212,7 @@ The rendering and identification paths both have to **reach past the
 glass** for this to be visible, and both do:
 
 - `look flask` → `Bulkable.getContentsDescriptionFor(viewer)` routes an
-  identifiable material through `RecognitionApi.describe`, so the same
+  identifiable material through `describeFor`, so the same
   flask reads as *"an iridescent crimson potion"* to a stranger and
   *"a veiling draught"* to someone who has learned it. It rides the
   shipped bulk-contents augmenter (the `viewer` parameter was always on
@@ -333,7 +333,7 @@ through the ladder rather than as a cliff.
 > `transfer` authored `delta: 20` against `cost: 4` and was generating
 > 16 kJ a cast, straight past the coupling. `adjust-reserve` now routes
 > **any** positive delta on a `charge` reserve through the one
-> implementation (`MagicApi.transferCharge`), so *no effect can add
+> implementation (`shell.chargeFrom`), so *no effect can add
 > charge without a coupling* — not just the one that did. The
 > `recharge` controller calls the same method: one mechanism, two
 > triggers, which is this subsystem's own rule applied to itself.
@@ -804,7 +804,7 @@ they are handed the finished string and may only add to it, and
 withholding needs a hand on the base. Silence falls through to the
 authored paragraph, so a class with no prose is exactly as it was.
 
-> ⚠ **The gate is `RecognitionApi.knowsTrueType`, which is strictly
+> ⚠ **The gate is `knowsTrueTypeOf`, which is strictly
 > narrower than "shows a type name."** A **believed** name reads as
 > knowledge from the inside and is not knowledge; a record from a prior
 > generation hedges. Both keep the generic prose — because handing the
@@ -1110,7 +1110,7 @@ a bug), and the reader-side "which systems do you know?" lookup slots
 into `decode` without disturbing `perceive`.
 
 **A working that needs a mark ASKS for one.** `read scroll` is the only
-form; when `MagicApi.requiresMark` says the working demands a target,
+form; when `item.requiresMark()` says the working demands a target,
 the controller raises a `PromptApi.mqlObject` over reachable candidates
 and spends nothing until one comes back.
 

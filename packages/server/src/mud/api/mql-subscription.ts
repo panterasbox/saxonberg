@@ -40,7 +40,6 @@ import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { MixinApi } from './mixin';
 import { EventApi } from './event';
-import { RecognitionApi } from './recognition';
 import {
   FieldChangedEvent,
   type FieldChangedPayload,
@@ -313,14 +312,14 @@ export class MqlSubscriptionApi {
       // the client-data projection seam — its descriptor `read` stays
       // viewer-blind so the perception/belief dependency never enters
       // the root `Stuff` module (cycle avoidance). Same
-      // `RecognitionApi.describe` routine the prose path uses, so the
+      // `describeFor` routine the prose path uses, so the
       // card and the scrollback can't show different *names*. The
       // activity-status affix is a presence decoration (not identity), so
       // it rides `describeWithStatus` in the prose occupant-listing only,
       // never this general identity field.
       const value =
         name === 'displayName'
-          ? RecognitionApi.describe(viewer, stuff)
+          ? stuff.describeFor(viewer)
           : d.read(stuff, viewer);
       if (value === undefined) continue;
       out[name] = value;
@@ -344,26 +343,6 @@ export class MqlSubscriptionApi {
       Partial<Pick<QueryRequest, 'query' | 'cardinality'>>,
   ): void {
     logic().handleQuery(req);
-  }
-
-  public static handleUnsubscribe(
-    interactive: Interactive,
-    subscriptionId: string,
-  ): void {
-    logic().handleUnsubscribe(interactive, subscriptionId);
-  }
-
-  public static cancelAllForInteractive(interactive: Interactive): void {
-    logic().cancelAllForInteractive(interactive);
-  }
-
-  /**
-   * Re-resolve every subscription this Interactive holds — the seam the
-   * sandbox crossing calls after moving a socket between bodies, so the
-   * client's cards re-render for the body it now drives. @internal
-   */
-  public static refreshForInteractive(interactive: Interactive): void {
-    logic().refreshForInteractive(interactive);
   }
 
   /**

@@ -39,6 +39,11 @@ import {
 
 const PromptApiCallers = SecurityPolicies.FromModule('/api/prompt#PromptApi'
 );
+/** The Interactive prompt surface (Phase E) calls in as the proxied instance. */
+const PromptCallers = SecurityPolicies.AnyOf(
+  PromptApiCallers,
+  SecurityPolicies.FromModule('/platform/idea/Interactive'),
+);
 
 /**
  * Default `prompt.format` Liquid template. Returns `here>` or `the brass
@@ -147,7 +152,7 @@ function push<T>(
       // about what it does.
       outcome: { notes: [{ ...note, ...currentAsker() }] },
     };
-    MessageApi.sendEnvelope(holder, template);
+    holder.onEnvelope(template);
 
     /*
      * ⭐⭐ **The card that says a question is still waiting.**
@@ -176,7 +181,7 @@ function push<T>(
      * silently retarget it at the newer question — one card answering
      * for two, and the older one with nothing left pointing at it.
      */
-    CardApi.push(interactive, 'prompt', {
+    interactive.pushCard('prompt', {
       promptId,
       key: `prompt ${promptId}`,
     });
@@ -310,7 +315,7 @@ function cleanup(record: ResolverRecord): void {
    * opens PINNED, so the relevance window can never reach it, and this
    * settle is the only thing that ends it.
    */
-  CardApi.notifyPromptSettled(record.interactive, record.promptId);
+  record.interactive.notifyPromptSettled(record.promptId);
 }
 
 function emitValidationFailed(record: ResolverRecord, message: string): void {
@@ -321,7 +326,7 @@ function emitValidationFailed(record: ResolverRecord, message: string): void {
     promptId: record.promptId,
     outcome: { notes: [{ kind: 'prompt-validation-failed', message }] },
   };
-  MessageApi.sendEnvelope(holder, template);
+  holder.onEnvelope(template);
 }
 
 function emitDismissed(
@@ -335,7 +340,7 @@ function emitDismissed(
     promptId: record.promptId,
     outcome: { notes: [{ kind: 'prompt-dismissed', reason }] },
   };
-  MessageApi.sendEnvelope(holder, template);
+  holder.onEnvelope(template);
 }
 
 /**
@@ -354,8 +359,8 @@ function emitDismissed(
  */
 @Unshadowable
 export class PromptLogic extends ApiLogic {
-  /** See {@link PromptApi.choice}. */
-  @CallSecurity(PromptApiCallers)
+  /** See {@link Interactive.promptChoice}. */
+  @CallSecurity(PromptCallers)
   public choice<T extends string = string>(
     interactive: Interactive,
     label: string,
@@ -379,8 +384,8 @@ export class PromptLogic extends ApiLogic {
     );
   }
 
-  /** See {@link PromptApi.confirm}. */
-  @CallSecurity(PromptApiCallers)
+  /** See {@link Interactive.promptConfirm}. */
+  @CallSecurity(PromptCallers)
   public confirm(
     interactive: Interactive,
     label: string,
@@ -401,8 +406,8 @@ export class PromptLogic extends ApiLogic {
     );
   }
 
-  /** See {@link PromptApi.text}. */
-  @CallSecurity(PromptApiCallers)
+  /** See {@link Interactive.promptText}. */
+  @CallSecurity(PromptCallers)
   public text(
     interactive: Interactive,
     label: string,
@@ -424,8 +429,8 @@ export class PromptLogic extends ApiLogic {
     );
   }
 
-  /** See {@link PromptApi.compose}. */
-  @CallSecurity(PromptApiCallers)
+  /** See {@link Interactive.promptCompose}. */
+  @CallSecurity(PromptCallers)
   public compose(
     interactive: Interactive,
     label: string,
@@ -451,8 +456,8 @@ export class PromptLogic extends ApiLogic {
     );
   }
 
-  /** See {@link PromptApi.mqlObject}. */
-  @CallSecurity(PromptApiCallers)
+  /** See {@link Interactive.promptMqlObject}. */
+  @CallSecurity(PromptCallers)
   public mqlObject(
     interactive: Interactive,
     label: string,
@@ -478,8 +483,8 @@ export class PromptLogic extends ApiLogic {
     );
   }
 
-  /** See {@link PromptApi.mqlMany}. */
-  @CallSecurity(PromptApiCallers)
+  /** See {@link Interactive.promptMqlMany}. */
+  @CallSecurity(PromptCallers)
   public mqlMany(
     interactive: Interactive,
     label: string,
@@ -508,8 +513,8 @@ export class PromptLogic extends ApiLogic {
     );
   }
 
-  /** See {@link PromptApi.handleResponse}. */
-  @CallSecurity(PromptApiCallers)
+  /** See {@link Interactive.handlePromptResponse}. */
+  @CallSecurity(PromptCallers)
   public handleResponse(
     interactive: Interactive,
     payload: { promptId: string; response: string }
@@ -574,8 +579,8 @@ export class PromptLogic extends ApiLogic {
     dismissAndResolve(record, typed);
   }
 
-  /** See {@link PromptApi.handleCancel}. */
-  @CallSecurity(PromptApiCallers)
+  /** See {@link Interactive.handlePromptCancel}. */
+  @CallSecurity(PromptCallers)
   public handleCancel(
     interactive: Interactive,
     payload: { promptId: string }
@@ -598,8 +603,8 @@ export class PromptLogic extends ApiLogic {
     return true;
   }
 
-  /** See {@link PromptApi.cancelAll}. */
-  @CallSecurity(PromptApiCallers)
+  /** See {@link Interactive.cancelPrompts}. */
+  @CallSecurity(PromptCallers)
   public cancelAll(
     interactive: Interactive,
     reason: 'cancelled' | 'host-disconnected'
@@ -615,8 +620,8 @@ export class PromptLogic extends ApiLogic {
     return count;
   }
 
-  /** See {@link PromptApi.isPending}. */
-  @CallSecurity(PromptApiCallers)
+  /** See {@link Interactive.hasPendingPrompt}. */
+  @CallSecurity(PromptCallers)
   public isPending(interactive: Interactive, promptId: string): boolean {
     return byInteractive.get(interactive)?.has(promptId) ?? false;
   }

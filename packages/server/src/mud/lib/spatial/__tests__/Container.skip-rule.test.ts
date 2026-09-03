@@ -177,8 +177,8 @@ describe("the skip rule holds", () => {
     const r = room();
     const t = torch();
     ContainmentApi.move(t as unknown as Stuff & Containable, r as unknown as Stuff & Container);
-    await ChattelApi.stamp(t, o);
-    await ChattelApi.setPlace(t, ROOM_PATH);
+    await t.stampChattel(o);
+    await t.setChattelPlace(ROOM_PATH);
 
     await PersistableApi.capture(r);
 
@@ -197,8 +197,8 @@ describe("the skip rule holds", () => {
     const r = room();
     const t = torch();
     ContainmentApi.move(t as unknown as Stuff & Containable, r as unknown as Stuff & Container);
-    await ChattelApi.stamp(t, o);
-    await ChattelApi.setPlace(t, ROOM_PATH);
+    await t.stampChattel(o);
+    await t.setChattelPlace(ROOM_PATH);
     await PersistableApi.capture(o); // the owner has a record to patch
     const id = t.getChattelId();
 
@@ -226,7 +226,7 @@ describe("the skip rule holds", () => {
     for (const item of [plain, stamped, tail]) {
       ContainmentApi.move(item as unknown as Stuff & Containable, r as unknown as Stuff & Container);
     }
-    await ChattelApi.stamp(stamped, o);
+    await stamped.stampChattel(o);
 
     await PersistableApi.capture(r);
     const slice = (recordFor(ROOM_PATH)?.state as Record<string, { contents?: unknown[] }>)

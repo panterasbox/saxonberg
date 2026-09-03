@@ -52,7 +52,9 @@ export default class ReclaimController extends CommandController<ReclaimModel> {
     }
 
     // You reclaim what you own (custody is with the shop; ownership is yours).
-    const owner = await ChattelApi.ownerOf(item);
+    const owner = MixinApi.isChattel(item)
+      ? await item.chattelOwner()
+      : null;
     if (
       owner?.kind !== "player" ||
       owner.templatePath !== giver.getIdentityPath()

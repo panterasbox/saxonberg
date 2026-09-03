@@ -12,7 +12,7 @@
  * config keys by census key.
  *
  * ⭐ **Nothing here is unavailable to a player.** The hand drives the
- * literal verbs through `CommandApi.forceCommand` — `get`, `wallet use
+ * literal verbs through `forceCommand` (the giver's own method since the OO sweep) — `get`, `wallet use
  * house`, `consign … --ask` — so the whole loop is the seat's: the hand
  * holds a `purchases` position and carries the house card dealt at hire
  * (`EmploymentLogic`, 3d), `wallet use house` makes the outfit's
@@ -44,6 +44,7 @@ import type { Mobile } from '../spatial/Mobile';
 import type { Container } from '../spatial/Container';
 import type { Containable } from '../spatial/Containable';
 import type { BrainContext, BrainStatics } from './brain';
+import type { Employed } from '../employment/Employed';
 
 const DEFAULT_BATCH = 6;
 const DEFAULT_ASK = 10;
@@ -85,7 +86,7 @@ export const brain = class {
     // (`retail.consignment.listingCap`) is the outfit's headroom — an NPC
     // executes the rule, it never runs at a decline. Nothing is lifted
     // off the floor that could not go up this beat.
-    const outfits = await EmploymentApi.buysFor(hand);
+    const outfits = await (hand as unknown as Stuff & Employed).buysFor();
     const outfit = outfits[0];
     if (!outfit) return;
     const cap = listingCap();
@@ -129,7 +130,7 @@ export const brain = class {
     for (const good of goods) {
       const kw = keywordOf(good);
       if (!kw) continue;
-      await CommandApi.forceCommand(hand, `get 1 ${kw}`);
+      await hand.forceCommand(`get 1 ${kw}`);
       // A lift that declined (too heavy, not there) leaves the good where
       // it was — stop rather than grind through the rest; the next beat
       // starts from what the hand can carry.
@@ -151,12 +152,12 @@ export const brain = class {
       // Every beat, not once: a forced command reports no outcome here,
       // and a hand dealt its card AFTER a failed first attempt must still
       // trade as the house.
-      await CommandApi.forceCommand(hand, 'wallet use house');
+      await hand.forceCommand('wallet use house');
       for (const good of carried) {
         const kw = keywordOf(good);
         if (!kw) continue;
         const ask = askFor(ctx.config, good);
-        await CommandApi.forceCommand(hand, `consign ${kw} --ask ${ask}`);
+        await hand.forceCommand(`consign ${kw} --ask ${ask}`);
       }
     } finally {
       hand.teleport(home as Stuff & Container);

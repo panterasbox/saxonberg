@@ -52,17 +52,6 @@ function logic(): ProducerLogic {
 
 export class ProducerApi {
   /**
-   * Boot seam (idempotent): install the receive-gated command-dispatch →
-   * producer engagement tap and self-register the real-time recompute
-   * schedule. The standing cache is warmed separately by
-   * `ProducerStanding.warm()` (awaited in `AppBootstrap` before this).
-   */
-  public static boot(): void {
-    logic().installEngagementTap();
-    logic().installRecomputeSchedule();
-  }
-
-  /**
    * Append one raw attributed-engagement signal (find-or-skip on `{author,
    * actor, bucket}`). No-op without an active connection. The engagement tap
    * is the eventual caller; exposed for tests and programmatic crediting.

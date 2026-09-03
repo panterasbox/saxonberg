@@ -554,15 +554,15 @@ describe("ReactionRegistry", () => {
     const interactive = await StuffApi.create(
       () => new Interactive("sock-1", "sess-1", { _id: "u1" } as never),
     );
-    ConnectionApi.transfer(interactive, avatar);
+    interactive.transferTo(avatar);
     ReactionApi.noteReactableAct({
       commandId: "cmd-1",
       subject: fakeReactor("s"),
       scope: LOC,
     });
-    ReactionApi.noteDeliveredFrame(interactive, 42, "cmd-1");
-    expect(ReactionApi.resolveGutter(interactive, 42)).toBe("cmd-1");
-    ReactionApi.cancelAllForInteractive(interactive);
-    expect(ReactionApi.resolveGutter(interactive, 42)).toBeNull();
+    interactive.noteDeliveredFrame(42, "cmd-1");
+    expect(interactive.resolveGutter(42)).toBe("cmd-1");
+    interactive.cancelAllReactions();
+    expect(interactive.resolveGutter(42)).toBeNull();
   });
 });

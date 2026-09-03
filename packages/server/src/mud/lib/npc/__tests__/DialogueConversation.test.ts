@@ -4,9 +4,9 @@
  *
  * The interior/exterior contract is asserted structurally: the NPC's
  * beats and the player's picked lines go through `say` (spied), while the
- * choice wheel goes through `PromptApi.choice` to the driver's
+ * choice wheel goes through the driver interactive's `promptChoice` to the driver's
  * Interactive (mocked + captured). Guard/effect reads (`RegardApi` /
- * `TraitApi`) are stubbed for determinism — their persistence is covered
+ * traits) are neutral by construction — their persistence is covered
  * by their own suites; here we test the dialogue wiring. Slots are held
  * via the real `SchedulerApi`, so the both-sides-free assertions are real.
  */
@@ -21,20 +21,19 @@ import {
   beforeEach,
   afterEach,
 } from "vitest";
-import { makeStuff } from "../../security/__tests__/test-setup";
+import { makeStuff, makeStuffAtPath } from "../../security/__tests__/test-setup";
 import { Idea } from "../../stuff/Idea";
 import { ContainerMixin } from "../../spatial/Container";
 import { ContainableMixin } from "../../spatial/Containable";
 import { SensorMixin } from "../../message/Sensor";
 import { VocalMixin } from "../../message/Vocal";
+import { BeliefStoreMixin } from "../../belief/BeliefStore";
 import { SoulMixin } from "../../social/Soul";
 import { EngagedMixin } from "../../activity/Engaged";
 import { ContainmentApi } from "../../../api/containment";
 import { StuffApi } from "../../../api/stuff";
 import { SchedulerApi } from "../../../api/scheduler";
-import { PromptApi, PromptCancelledError } from "../../../api/prompt";
-import { RegardApi } from "../../../api/regard";
-import { TraitApi } from "../../../api/trait";
+import { PromptCancelledError } from "../../../api/prompt";
 import { EventApi } from "../../../api/event";
 import EventRegistry from "../../../platform/idea/EventRegistry";
 import { Stuff } from "../../stuff/Stuff";
@@ -48,8 +47,8 @@ import {
 import type { DialogueTree } from "../tree";
 
 class TestRoom extends ContainerMixin(Idea) {}
-class TestNPC extends EngagedMixin(
-  SoulMixin(VocalMixin(SensorMixin(ContainableMixin(Idea)))),
+class TestNPC extends BeliefStoreMixin(
+  EngagedMixin(SoulMixin(VocalMixin(SensorMixin(ContainableMixin(Idea))))),
 ) {}
 class TestPlayer extends EngagedMixin(
   VocalMixin(SensorMixin(ContainableMixin(Idea))),
@@ -99,10 +98,16 @@ const flush = async (): Promise<void> => {
   }
 };
 
+let worldSeq = 0;
 function makeWorld(): World {
   const room = makeStuff(() => new TestRoom());
   const npc = makeStuff(() => new TestNPC());
-  const player = makeStuff(() => new TestPlayer());
+  // The player needs a durable identity: regard records key on the
+  // subject's identityPath (a keyless subject is a no-op write).
+  const player = makeStuffAtPath(
+    () => new TestPlayer(),
+    `/platform/agent/Avatar/dlg-player-${worldSeq++}`,
+  );
   ContainmentApi.move(npc as never, room as never);
   ContainmentApi.move(player as never, room as never);
 
@@ -110,15 +115,14 @@ function makeWorld(): World {
   const sayPlayer = vi.spyOn(player, "say").mockImplementation(() => {});
 
   const pending: PendingChoice[] = [];
-  vi.spyOn(PromptApi, "choice").mockImplementation(
-    (interactive, _label, choices) =>
+  const interactive = {
+    id: "iact-1",
+    promptChoice: (_label: unknown, choices: unknown) =>
       new Promise<string>((resolve, reject) => {
-        pending.push({ interactive, choices, resolve, reject });
+        pending.push({ interactive, choices, resolve, reject } as never);
       }),
-  );
-  vi.spyOn(PromptApi, "cancelAll").mockReturnValue(0);
-
-  const interactive = { id: "iact-1" } as unknown as Interactive;
+    cancelPrompts: () => 0,
+  } as unknown as Interactive;
 
   return {
     room,
@@ -169,14 +173,12 @@ beforeEach(async () => {
   StuffApi.clearAll();
   SchedulerApi._clearAllForTesting();
   await bootRegistry();
-  vi.spyOn(RegardApi, "getRegard").mockReturnValue(0);
-  vi.spyOn(RegardApi, "adjustRegard").mockReturnValue(undefined);
-  vi.spyOn(TraitApi, "positionFor").mockResolvedValue({
-    disposition: "sociability",
-    position: 0,
-    mass: 0,
-    band: "nascent",
-  } as never);
+  // Regard reads/writes run REAL against the npc's own belief store
+  // since the OO sweep (regardFor/adjustRegard are mixin methods); a
+  // fresh TestNPC holds no records, so the neutral default is genuine.
+  // Trait reads run real via the npc's own traitPosition since the OO
+  // sweep; the TestNPC composes no DispositionedMixin, so guard reads
+  // resolve to the neutral floor — the same 0 the old stub returned.
 });
 
 afterEach(() => {
@@ -288,21 +290,19 @@ describe("DialogueConversation — guards", () => {
 
   it("selects a warmer entry node at high regard (AC#6)", async () => {
     const w = makeWorld();
-    (RegardApi.getRegard as ReturnType<typeof vi.fn>).mockReturnValue(50);
+    vi.spyOn(w.npc, "regardFor").mockReturnValue(50);
     await openWith(w, regardEntryTree());
     expect(w.sayNpc).toHaveBeenCalledWith("Good to see you again!", w.player);
   });
 
   it("falls back to the neutral entry at low regard (AC#6)", async () => {
     const w = makeWorld();
-    (RegardApi.getRegard as ReturnType<typeof vi.fn>).mockReturnValue(0);
     await openWith(w, regardEntryTree());
     expect(w.sayNpc).toHaveBeenCalledWith("What'll it be?", w.player);
   });
 
   it("hides a choice whose guard fails (AC#6)", async () => {
     const w = makeWorld();
-    (RegardApi.getRegard as ReturnType<typeof vi.fn>).mockReturnValue(0);
     const tree: DialogueTree = {
       entry: [{ node: "root" }],
       nodes: {
@@ -343,7 +343,8 @@ describe("DialogueConversation — effects", () => {
     };
     await openWith(w, tree);
     await w.pick(0);
-    expect(RegardApi.adjustRegard).toHaveBeenCalledWith(w.npc, w.player, 5);
+    // The effect wrote through the npc's own sealed regard face.
+    expect(w.npc.regardFor(w.player)).toBe(5);
   });
 
   it("ephemeral scratch is gone on re-open (AC#7)", async () => {

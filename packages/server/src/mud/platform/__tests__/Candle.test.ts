@@ -84,7 +84,7 @@ describe('the candle — convergence', () => {
   it('a dry wick lights → it burns and gives light', () => {
     const c = candle();
     expect(c.getEmittedFlux().rawValue()).toBe(0); // dark before lighting
-    expect(FireApi.ignite(c).lit).toBe(true);
+    expect(c.ignite().lit).toBe(true);
     expect(c.isBurning()).toBe(true);
     expect(c.getEmittedFlux().rawValue()).toBe(15); // now it glows
   });
@@ -92,7 +92,7 @@ describe('the candle — convergence', () => {
   it('a wet wick will not catch', () => {
     const c = candle();
     c.wet(1);
-    const out = FireApi.ignite(c);
+    const out = c.ignite();
     expect(out.lit).toBe(false);
     expect(out.reason).toBe('too-wet');
     expect(c.getEmittedFlux().rawValue()).toBe(0);
@@ -100,9 +100,9 @@ describe('the candle — convergence', () => {
 
   it('snuffing it puts it out and it goes dark', () => {
     const c = candle();
-    FireApi.ignite(c);
+    c.ignite();
     expect(c.getEmittedFlux().rawValue()).toBe(15);
-    expect(FireApi.douse(c)).toBe(true);
+    expect(c.douse()).toBe(true);
     expect(c.isBurning()).toBe(false);
     expect(c.getEmittedFlux().rawValue()).toBe(0);
   });
@@ -119,7 +119,7 @@ describe('the candle — convergence', () => {
     await ContainmentApi.move(c, jar);
     c.setStampedTemperatureK(295);
     c.setLastAmbientK(295);
-    FireApi.ignite(c);
+    c.ignite();
     await occupy(jar);
     expect(c.isBurning()).toBe(true);
 

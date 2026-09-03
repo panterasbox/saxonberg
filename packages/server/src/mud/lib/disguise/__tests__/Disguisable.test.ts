@@ -13,7 +13,6 @@ import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { DisguisableMixin } from '../Disguisable';
 import { DisguiseBearingMixin, type Disguise } from '../Disguise';
-import { RecognitionApi } from '../../../api/recognition';
 import { RECOGNITION } from '../../belief/BeliefStore';
 import { BeliefStoreMixin } from '../../belief/BeliefStore';
 import { PerceptionMixin } from '../../perception/Perception';
@@ -112,15 +111,15 @@ describe('disguise masks recognition, removal re-fires it', () => {
 
     // The viewer knows Bob.
     viewer.know(RECOGNITION, bob.getTemplatePath()!, { knownAs: 'Bob' });
-    expect(RecognitionApi.describe(viewer, bob)).toBe('Bob');
+    expect(bob.describeFor(viewer)).toBe('Bob');
 
     // Hood up → masked. The known name is withheld; the covering shows.
     bob.occupy(hood, 'head');
-    expect(RecognitionApi.describe(viewer, bob)).toBe('a hooded figure');
+    expect(bob.describeFor(viewer)).toBe('a hooded figure');
 
     // Hood off → recognition re-fires (no stored disguise state; the
     // worn-scan simply finds nothing now).
     bob.vacate('head', hood);
-    expect(RecognitionApi.describe(viewer, bob)).toBe('Bob');
+    expect(bob.describeFor(viewer)).toBe('Bob');
   });
 });

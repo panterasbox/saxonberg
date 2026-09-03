@@ -33,7 +33,6 @@ import { ExecutionContextApi } from '../../../../../api/execution-context';
 import { TemplatePaths } from '../../../../../lib/paths';
 import { Collections } from '../../../../../lib/persistence/Collections';
 import { Sections } from '../../../../../lib/wiki/Section';
-import { PromptApi } from '../../../../../api/prompt';
 import { installWikiTestDb, type WikiTestDb } from '../../../../../lib/wiki/__tests__/wiki-test-db';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
 import type { Note, WikiEditConflictNote } from '@saxonberg/types';
@@ -525,23 +524,26 @@ describe('⭐ preview is the SAME pipeline (36)', () => {
  * article, which makes `wiki edit` mean `wiki retype`.
  */
 describe('the composer is seeded with what is being edited', () => {
-  /** Capture the opts `PromptApi.compose` is called with. */
-  function captureCompose(reply: string): { opts: () => Record<string, unknown> } {
+  /** A fake interactive capturing the opts `promptCompose` gets. */
+  function captureCompose(reply: string): {
+    opts: () => Record<string, unknown>;
+    interactive: unknown;
+  } {
     let seen: Record<string, unknown> = {};
-    vi.spyOn(PromptApi, 'compose').mockImplementation(
-      async (_i: unknown, _label: string, opts?: unknown) => {
+    const interactive = {
+      promptCompose: async (_label: string, opts?: unknown) => {
         seen = (opts ?? {}) as Record<string, unknown>;
         return reply;
       },
-    );
-    return { opts: () => seen };
+    };
+    return { opts: () => seen, interactive };
   }
 
   it('a full edit opens on the whole current body', async () => {
     await seedArticle();
     const before = String(row().body);
     const cap = captureCompose('replacement');
-    await run({ subcommand: 'edit', page: 'oak' }, {});
+    await run({ subcommand: 'edit', page: 'oak' }, cap.interactive);
     expect(cap.opts().initial).toBe(before);
   });
 
@@ -549,14 +551,14 @@ describe('the composer is seeded with what is being edited', () => {
     await seedArticle();
     const before = String(row().body);
     const cap = captureCompose('<h2 anchor="uses">Uses</h2>oak');
-    await run({ subcommand: 'edit', page: 'oak', section: 'uses' }, {});
+    await run({ subcommand: 'edit', page: 'oak', section: 'uses' }, cap.interactive);
     expect(cap.opts().initial).toBe(Sections.extract(before, 'uses'));
     expect(cap.opts().initial).not.toContain('Working');
   });
 
   it('creating opens EMPTY — there is nothing to open on', async () => {
     const cap = captureCompose('# New');
-    await run({ subcommand: 'create', page: 'fresh', title: 'Fresh' }, {});
+    await run({ subcommand: 'create', page: 'fresh', title: 'Fresh' }, cap.interactive);
     expect(cap.opts().initial).toBeUndefined();
   });
 });
@@ -571,13 +573,13 @@ describe('the composer is seeded with what is being edited', () => {
  */
 describe('a write nobody may make is refused up front', () => {
   it('does not open the composer for a refused CREATE', async () => {
-    const compose = vi.spyOn(PromptApi, 'compose');
+    const compose = vi.fn();
     vi.spyOn(WikiRegistry.prototype, 'refusalToCreate').mockResolvedValue(
       'the wiki is read-only for guests',
     );
     const { notes } = await run(
       { subcommand: 'create', page: 'graffiti', title: 'x' },
-      {},
+      { promptCompose: compose },
     );
     expect(reasons(notes)).toEqual(['wiki-denied']);
     expect(compose).not.toHaveBeenCalled();
@@ -587,11 +589,14 @@ describe('a write nobody may make is refused up front', () => {
   it('does not open the composer for a refused EDIT', async () => {
     await seedArticle();
     const before = String(row().body);
-    const compose = vi.spyOn(PromptApi, 'compose');
+    const compose = vi.fn();
     vi.spyOn(WikiRegistry.prototype, 'refusalToEdit').mockResolvedValue(
       'the wiki is read-only for guests',
     );
-    const { body, notes } = await run({ subcommand: 'edit', page: 'oak' }, {});
+    const { body, notes } = await run(
+      { subcommand: 'edit', page: 'oak' },
+      { promptCompose: compose },
+    );
     expect(reasons(notes)).toEqual(['wiki-denied']);
     expect(compose).not.toHaveBeenCalled();
     expect(body).toContain('read-only for guests');

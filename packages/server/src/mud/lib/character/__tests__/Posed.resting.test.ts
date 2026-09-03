@@ -18,7 +18,6 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from "vitest";
 import { StuffApi } from "../../../api/stuff";
-import { SlotApi } from "../../../api/slot";
 import { MixinApi } from "../../../api/mixin";
 import { makeStuffAtPath } from "../../security/__tests__/test-setup";
 import Chair from "../../../platform/thing/Chair";
@@ -59,9 +58,7 @@ describe("recording where a body rests", () => {
   it("occupying a POSTURE-BEARING slot records the host and slot", () => {
     const bed = makeBed();
     const body = makeBody();
-    SlotApi.occupyAll(
-      bed as unknown as Stuff & Slotted,
-      body as unknown as Stuff & Slottable,
+    (bed as unknown as Stuff & Slotted).occupyAll(body as unknown as Stuff & Slottable,
       ["lie:1"],
     );
     expect(body.getRestingOnPath()).toBe(BED_PATH);
@@ -74,9 +71,7 @@ describe("recording where a body rests", () => {
       { name: "hold:1", accepts: "SlottableMixin", capacity: 1 },
     ]);
     const body = makeBody();
-    SlotApi.occupyAll(
-      rack as unknown as Stuff & Slotted,
-      body as unknown as Stuff & Slottable,
+    (rack as unknown as Stuff & Slotted).occupyAll(body as unknown as Stuff & Slottable,
       ["hold:1"],
     );
     expect(body.getRestingOnPath()).toBe("");
@@ -85,9 +80,7 @@ describe("recording where a body rests", () => {
   it("getting up forgets it — no claiming a bed you are not in", () => {
     const bed = makeBed();
     const body = makeBody();
-    SlotApi.occupyAll(
-      bed as unknown as Stuff & Slotted,
-      body as unknown as Stuff & Slottable,
+    (bed as unknown as Stuff & Slotted).occupyAll(body as unknown as Stuff & Slottable,
       ["lie:1"],
     );
     (bed as unknown as Slotted).vacate("lie:1", body as unknown as Stuff & Slottable);
@@ -100,9 +93,7 @@ describe("recording where a body rests", () => {
     // `getOccupiedHost()`, so re-occupancy is what restores the multiplier.
     const bed = makeBed(2.5);
     const body = makeBody();
-    SlotApi.occupyAll(
-      bed as unknown as Stuff & Slotted,
-      body as unknown as Stuff & Slottable,
+    (bed as unknown as Stuff & Slotted).occupyAll(body as unknown as Stuff & Slottable,
       ["lie:1"],
     );
     const host = (body as unknown as Slottable).getOccupiedHost();

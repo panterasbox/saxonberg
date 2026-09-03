@@ -26,7 +26,6 @@ import type { CommandContext, CommandModel } from '../../../../api/command';
 import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
-import { ChronicleApi } from '../../../../api/chronicle';
 
 /** Identity-family self readout — reuse, don't invent a topic. */
 const TOPIC = 'act.deed';
@@ -34,7 +33,8 @@ const TOPIC = 'act.deed';
 export default class ChronicleController extends CommandController<CommandModel> {
   async execute(_model: CommandModel, context: CommandContext): Promise<void> {
     const actor = context.commandGiver;
-    const entries = await ChronicleApi.entriesFor(actor);
+    if (!MixinApi.isPersona(actor)) return;
+    const entries = await actor.chronicleEntries();
 
     // Partition — never interleave. Claims by authored prologue order,
     // deeds by the game-time witness.

@@ -357,7 +357,7 @@ export class CombatHookContext {
   /**
    * Queue an electrical delivery from `source` to the exchange target
    * (the stun-baton seam). Drained through
-   * `ElectricityApi.shockContact(source, target)` — the
+   * `source.shockContact(target)` — the
    * `effectiveVoltage ≤ 0` guard inside the conduction walk still
    * applies, so a dead/switched-off source truthfully delivers nothing.
    * A context with no target throws (the same null-recipient rule the

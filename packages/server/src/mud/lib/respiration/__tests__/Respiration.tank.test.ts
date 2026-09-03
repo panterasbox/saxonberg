@@ -28,7 +28,6 @@ import { WorldClockApi } from '../../../api/worldclock';
 import '../../../platform/idea/WorldClockRegistry';
 import { SchedulerApi } from '../../../api/scheduler';
 import { ContainmentApi } from '../../../api/containment';
-import { SlotApi } from '../../../api/slot';
 import { BulkableApi } from '../../../api/bulk';
 import { MixinApi } from '../../../api/mixin';
 import { ExecutionContextApi } from '../../../api/execution-context';
@@ -90,7 +89,7 @@ function wearAndPlace(diver: Character, tank: AirTank, where: TestLocation): voi
   if (!MixinApi.isSlotted(diver) || !MixinApi.isSlottable(tank)) {
     throw new Error('test setup: diver must be Slotted and tank Slottable');
   }
-  SlotApi.occupyAll(diver, tank, ['torso']);
+  diver.occupyAll(tank, ['torso']);
   ContainmentApi.move(diver, where);
 }
 

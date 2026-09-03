@@ -52,16 +52,6 @@ function logic(): SandboxLogic {
 }
 
 export class SandboxApi {
-  /**
-   * Boot seam: install the orphan sweeper (idempotent). After a restart
-   * every scope is sessionless, so the first sweep discards all scoped
-   * rows — correct by doctrine (nothing persists but the edit). Ordered
-   * in the boot manifest after PM connect, before players can enter.
-   */
-  public static boot(): void {
-    logic().installSweeper();
-  }
-
   /** Run one orphan sweep now (test / manual seam); returns swept scopes. */
   public static sweepNow(): Promise<string[]> {
     return logic().sweepNow();

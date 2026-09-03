@@ -176,7 +176,7 @@ export function HaulableMixin<
     /**
      * Short locomotion-mode name (or path) the cart's passage needs —
      * `wheeled` (ground medium) by default. The terrain gate asks
-     * `LocomotionApi.exitAllowsMode(exit, this)`; `wheeled` is admitted
+     * `exit.allowsMode(...)`; `wheeled` is admitted
      * by any `media: ['ground']` exit and refused by vertical/water/air.
      * `LocomotionApi.modeOf` accepts either name or path form.
      */

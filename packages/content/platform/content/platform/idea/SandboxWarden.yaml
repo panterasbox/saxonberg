@@ -1,0 +1,5 @@
+# SandboxWarden — the singleton whose postRegister arms the sandbox orphan sweeper (the discard doctrine's first pass)
+# (the self-warming shape; eager via this pack's boot list, not an
+# AppBootstrap sequencer line).
+class: /platform/idea/SandboxWarden
+data: {}

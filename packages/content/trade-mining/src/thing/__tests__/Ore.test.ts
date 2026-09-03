@@ -95,7 +95,7 @@ describe('the ore lump', () => {
     // Two lumps of ONE row pool regardless of grade — the shipped
     // `canMergeWith` default, and what a cart does.
     expect(rich.canMergeWith(lean)).toBe(true);
-    asApiCaller(() => GlobbableApi.merge(rich, lean));
+    asApiCaller(() => rich.absorb(lean));
     expect(rich.getQuantity()).toBe(8);
     expect(rich.getGrade()).toBeCloseTo((0.2 * 2 + 0.04 * 6) / 8, 10);
   });
@@ -103,7 +103,7 @@ describe('the ore lump', () => {
   it('⚠ the absorbed stack is DESTRUCTED before the hook fires — and its fields still read', () => {
     const survivor = lump(3, 0.10);
     const absorbed = lump(1, 0.50);
-    asApiCaller(() => GlobbableApi.merge(survivor, absorbed));
+    asApiCaller(() => survivor.absorb(absorbed));
     // The plan flagged this as the one unknown: if `destruct` had cleared
     // the absorbed stack's fields, the delta form could not be written at
     // all and the read would have to move to a pre-hook. It does not.
@@ -113,12 +113,12 @@ describe('the ore lump', () => {
 
   it('pooling is associative enough to trust: three lots in any order land the same', () => {
     const order1 = lump(2, 0.20);
-    asApiCaller(() => GlobbableApi.merge(order1, lump(3, 0.05)));
-    asApiCaller(() => GlobbableApi.merge(order1, lump(5, 0.10)));
+    asApiCaller(() => order1.absorb(lump(3, 0.05)));
+    asApiCaller(() => order1.absorb(lump(5, 0.10)));
 
     const order2 = lump(5, 0.10);
-    asApiCaller(() => GlobbableApi.merge(order2, lump(3, 0.05)));
-    asApiCaller(() => GlobbableApi.merge(order2, lump(2, 0.20)));
+    asApiCaller(() => order2.absorb(lump(3, 0.05)));
+    asApiCaller(() => order2.absorb(lump(2, 0.20)));
 
     expect(order1.getQuantity()).toBe(order2.getQuantity());
     expect(order1.getGrade()).toBeCloseTo(order2.getGrade(), 10);
@@ -127,9 +127,9 @@ describe('the ore lump', () => {
 
   it('the pooled figure survives a SPLIT — a sample off the lot assays as the lot', async () => {
     const lot = lump(2, 0.20);
-    asApiCaller(() => GlobbableApi.merge(lot, lump(6, 0.04)));
+    asApiCaller(() => lot.absorb(lump(6, 0.04)));
     const pooled = lot.getGrade();
-    const sample = (await asApiCaller(() => GlobbableApi.split(lot, 3))) as unknown as Ore;
+    const sample = (await asApiCaller(() => lot.split(3))) as unknown as Ore;
     expect(sample.getGrade()).toBeCloseTo(pooled, 10);
     expect(lot.getGrade()).toBeCloseTo(pooled, 10);
     expect(lot.getQuantity()).toBe(5);

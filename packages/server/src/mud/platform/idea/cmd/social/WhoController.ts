@@ -77,8 +77,9 @@ export default class WhoController extends CommandController<WhoModel> {
       );
     }
 
+    if (!MixinApi.isNotifyPolicy(viewer)) return;
     let rows: RosterRow[] = await Promise.all(
-      people.map((p) => SocialApi.composeRow(viewer, p))
+      people.map((p) => viewer.composeRosterRow(p))
     );
 
     // --country: narrow on the already-public country field (no leak).

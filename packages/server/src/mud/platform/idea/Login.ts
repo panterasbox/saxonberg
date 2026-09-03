@@ -37,8 +37,6 @@ import { Mml } from "../../api/mml";
 import { ContainmentApi } from "../../api/containment";
 import { MixinApi } from "../../api/mixin";
 import { InfluenceApi } from "../../api/influence";
-import { AdvancementApi } from "../../api/advancement";
-import { SlotApi } from "../../api/slot";
 import { Template } from "../../lib/stuff/Template";
 import { NameBank } from "../../lib/species/NameBank";
 import { HasInteractiveMixin } from "../../lib/connection/HasInteractive";
@@ -148,7 +146,7 @@ export default class Login extends LoginBase {
    */
   public async enter(): Promise<void> {
     const { interactive } = this;
-    ConnectionApi.transfer(interactive, this);
+    interactive.transferTo(this);
 
     // Anonymous session → mint a throwaway guest avatar and drop straight
     // into the lounge (no roster, no char-gen). This is the ONE place the
@@ -183,7 +181,7 @@ export default class Login extends LoginBase {
   public async enterAsGuest(): Promise<void> {
     const { interactive } = this;
     const avatar = await Login.mintRandomGuestAvatar(interactive.getUser());
-    ConnectionApi.transfer(interactive, avatar);
+    interactive.transferTo(avatar);
     console.info(`Login: Guest connected - ${avatar.getFullName()}`);
     await avatar.enter(interactive, { firstArrival: true });
     StuffApi.destruct(this);
@@ -305,7 +303,7 @@ export default class Login extends LoginBase {
           ContainmentApi.move(garment, avatar);
           if (bodyPlanPath && MixinApi.isWearable(garment)) {
             const slots = garment.getSlotClaim(bodyPlanPath);
-            if (slots.length) SlotApi.occupyAll(avatar, garment, slots);
+            if (slots.length) avatar.occupyAll(garment, slots);
           }
         } catch {
           /* skip this garment */
@@ -368,7 +366,7 @@ export default class Login extends LoginBase {
     const avatar = (await ConditionApi.embodyForSession(
       restored,
     )) as typeof restored;
-    ConnectionApi.transfer(this.interactive, avatar);
+    this.interactive.transferTo(avatar);
     console.info(`Login: User connected - ${avatar.getFullName()}`);
     await avatar.enter(this.interactive);
     StuffApi.destruct(this);
@@ -479,7 +477,7 @@ export default class Login extends LoginBase {
 
       // The practice record — the same derive-on-read digest the
       // in-session `competenceDigest` field ships.
-      const bands = AdvancementApi.competenceDigestCached(a);
+      const bands = a.competenceDigestCached();
       if (bands !== undefined && bands.length > 0) {
         out.practice = bands.map((b) => ({
           discipline: b.discipline,
@@ -521,13 +519,13 @@ export default class Login extends LoginBase {
   /** SensorMixin delivery — multiplex frames to the connected Interactive(s). */
   protected override handleMessage(frame: MessageFrame): void {
     for (const interactive of this.interactives) {
-      ConnectionApi.sendMessage(interactive, frame);
+      interactive.sendMessage(frame);
     }
   }
 
   protected override handleEnvelope(envelope: EnvelopeTemplate): void {
     for (const interactive of this.interactives) {
-      ConnectionApi.sendEnvelope(interactive, envelope);
+      interactive.sendEnvelope(envelope);
     }
   }
 }

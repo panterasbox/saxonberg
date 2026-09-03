@@ -29,6 +29,7 @@
 
 import { SecurityApi } from '../../api/security';
 import { Idea } from '../../lib/stuff/Idea';
+import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
 import type { VetoResult } from '../../lib/errors';
 import type { EvictionContext } from '../../lib/stuff/Stuff';
 import { CallSecurity } from '../../lib/security/decorators';
@@ -106,7 +107,21 @@ interface Schedule {
   birthScope: string | null;
 }
 
-export default class WorldClockRegistry extends Idea {
+const WorldClockRegistryBase = PostRegistrationMixin(Idea);
+
+export default class WorldClockRegistry extends WorldClockRegistryBase {
+
+  /**
+   * Self-warming boot (the FermentProfileCatalogue shape; no
+   * `WorldClockApi.boot()` sequencer line): restore the persisted
+   * game-time anchor (or seed a zero clock on a fresh DB), start the
+   * crash backstop, and register the system schedules. Runs when the
+   * boot manifest clones this Registry; `this.boot()` passes the
+   * gate via its `SelfOnly` arm.
+   */
+  public override async postRegister(_context?: unknown): Promise<void> {
+    await this.boot();
+  }
 
   /**
    * Residency veto - a load-bearing process-lifetime singleton is

@@ -34,6 +34,17 @@ const ProducerApiCallers = SecurityPolicies.FromModule('/api/producer#ProducerAp
 );
 
 /**
+ * The install/warm seam is also callable by the self-warming
+ * `ProducerStandings` singleton (the boot()-retirement shape): the tap +
+ * schedule state stays HERE (hot-reload re-assertion), the manifest
+ * home arms it at postRegister.
+ */
+const ProducerBootCallers = SecurityPolicies.AnyOf(
+  ProducerApiCallers,
+  SecurityPolicies.FromTemplate('/platform/idea/ProducerStandings'),
+);
+
+/**
  * Recompute cadence — a code constant (cadence is *mechanism*, not a
  * legislated value; mirrors the consumer / renown decision). Cache refresh
  * rides real-time `ScheduleApi`; the decay math inside also uses real time
@@ -330,9 +341,9 @@ export class ProducerLogic extends ApiLogic {
    * location/actor templatePaths. Asserts the FULL consumer+producer
    * allowlist (both taps assert the same pair so an HMR re-assert never
    * evicts the other — see `ConsumerLogic.installDispatchTap`). Called at
-   * boot (`ProducerApi.boot`).
+   * the manifest warm (`ProducerStandings.warm`).
    */
-  @CallSecurity(ProducerApiCallers)
+  @CallSecurity(ProducerBootCallers)
   public installEngagementTap(): void {
     if (this.engagementSub) return;
     EventApi.restrictSubscribe(
@@ -361,7 +372,7 @@ export class ProducerLogic extends ApiLogic {
    * re-scores all standings off the log. Cancellable via the retained
    * `ScheduleHandle`.
    */
-  @CallSecurity(ProducerApiCallers)
+  @CallSecurity(ProducerBootCallers)
   public installRecomputeSchedule(): void {
     if (this.recomputeHandle) return;
     this.recomputeHandle = ScheduleApi.recurring(PRODUCER_RECOMPUTE_MS, () => {

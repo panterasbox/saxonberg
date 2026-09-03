@@ -12,7 +12,6 @@ import type { MqlOneResult } from '../../../../api/mql';
 import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
-import { PostureApi } from '../../../../api/posture';
 import { Postures } from '../../../../lib/slot/Postured';
 
 interface KneelModel extends CommandModel {
@@ -46,9 +45,7 @@ export default class KneelController extends CommandController<KneelModel> {
       );
     }
 
-    const result = PostureApi.transferPosture(
-      giver,
-      target,
+    const result = giver.transferPosture(target,
       Postures.Kneel,
       'kneel'
     );

@@ -25,6 +25,7 @@ import { Mml } from "../../../../api/mml";
 import { CombatApi } from "../../../../api/combat";
 import { MixinApi } from "../../../../api/mixin";
 import { Gambit } from "../../../../lib/combat/Gambit";
+import type { Wieldable } from '../../../../lib/slot/Wieldable';
 
 interface AnalyzeWeaponModel extends CommandModel {
   target?: MqlOneResult;
@@ -53,7 +54,7 @@ export default class AnalyzeWeaponController extends CommandController<AnalyzeWe
     }
 
     const stuff = target.stuff as Stuff;
-    const profile = CombatApi.weaponProfileOf(stuff);
+    const profile = ((stuff) as unknown as Stuff & Wieldable).weaponProfile();
     if (!profile || profile.isInert()) {
       const detail = `${stuff.getPresentation()} isn't a weapon you can read for a playstyle.`;
       MessageApi.scene(giver)

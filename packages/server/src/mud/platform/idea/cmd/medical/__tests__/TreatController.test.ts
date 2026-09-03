@@ -12,6 +12,7 @@
  */
 
 import "../../../../../../test-bootstrap";
+import { AdvancementMixin } from "../../../../../lib/advancement/Advancement";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import TreatController from '../TreatController';
 import UndressController from '../UndressController';
@@ -20,7 +21,6 @@ import { DressingMixin } from '../../../../../lib/vitals/Dressing';
 import Thing from '../../../../../lib/stuff/Thing';
 import Location from '../../../../../lib/stuff/Location';
 import { Creature } from '../../../../../lib/creature/Creature';
-import { AdvancementApi } from '../../../../../api/advancement';
 import { MessageApi } from '../../../../../api/message';
 import { ContainmentApi } from '../../../../../api/containment';
 import { StuffApi } from '../../../../../api/stuff';
@@ -101,11 +101,11 @@ afterEach(() => {
 
 /** A medic in a room, carrying `dressing`, with a bleeding foot wound. */
 function medicWith(dressing: Thing, path: string, severity = 1.5): {
-  medic: Creature;
+  medic: MedicCreature;
   room: Location;
 } {
   const room = makeStuff(() => new Location());
-  const medic = makeStuff(() => new Creature());
+  const medic = makeStuff(() => new MedicCreature());
   stampTemplatePathForTest(medic, path);
   ContainmentApi.move(medic, room);
   ContainmentApi.move(dressing, medic);
@@ -118,6 +118,10 @@ function medicWith(dressing: Thing, path: string, severity = 1.5): {
   });
   return { medic, room };
 }
+
+// The medicine-band read + the treat credit run ON the medic since the
+// OO sweep — compose the transcript face onto the fixture creature.
+class MedicCreature extends AdvancementMixin(Creature) {}
 
 describe('TreatController', () => {
   it('consumes any isDressing item, sets dressed, arrests the bleed, mints a deed', async () => {
@@ -133,7 +137,7 @@ describe('TreatController', () => {
     // The dressing was consumed.
     expect(StuffApi.findById(rag.stuffId)).toBeFalsy();
     // A medicine deed was written.
-    const rows = await AdvancementApi.entriesFor(medic, 'medicine');
+    const rows = await medic.transcriptEntries('medicine');
     expect(rows.length).toBeGreaterThanOrEqual(1);
     expect(rows.every((r) => r.kind === 'deed')).toBe(true);
   });
@@ -149,7 +153,7 @@ describe('TreatController', () => {
 
   it('rejects when there is no wound to dress', async () => {
     const room = makeStuff(() => new Location());
-    const medic = makeStuff(() => new Creature());
+    const medic = makeStuff(() => new MedicCreature());
     stampTemplatePathForTest(medic, '/platform/agent/Avatar/medic-c');
     ContainmentApi.move(medic, room);
     ContainmentApi.move(makeStuff(() => new Bandage()), medic);
@@ -171,27 +175,27 @@ describe('TreatController', () => {
       {},
       ctxFor(low.medic, low.room)
     );
-    const lowRows = await AdvancementApi.entriesFor(low.medic, 'medicine');
+    const lowRows = await low.medic.transcriptEntries('medicine');
     const lowOutcome = standardOutcome(lowRows);
 
     // High: seed medicine competence with hard/critical deeds (difficulty
     // 'hard' so the treat's 'standard' row is distinguishable).
     const high = medicWith(makeStuff(() => new Bandage()), '/platform/agent/Avatar/high');
     for (let i = 0; i < 10; i++) {
-      await AdvancementApi.recordDeed(high.medic, {
+      await high.medic.creditDeed({
         discipline: 'medicine',
         difficulty: 'hard',
         outcome: 'critical',
       });
     }
-    expect(await AdvancementApi.bandFor(high.medic, 'medicine')).not.toBe(
+    expect(await high.medic.competenceBandFor('medicine')).not.toBe(
       'untrained'
     );
     await makeStuff(() => new TreatController()).execute(
       {},
       ctxFor(high.medic, high.room)
     );
-    const highRows = await AdvancementApi.entriesFor(high.medic, 'medicine');
+    const highRows = await high.medic.transcriptEntries('medicine');
     const highOutcome = standardOutcome(highRows);
 
     expect(OUTCOMES.indexOf(highOutcome)).toBeGreaterThan(
@@ -258,15 +262,15 @@ describe('UndressController — the clot gate', () => {
 describe('TreatController — stabilization', () => {
   /** A patient in the dying window, and a medic with a dressing. */
   function dyingPatient(): {
-    medic: Creature;
+    medic: MedicCreature;
     patient: Creature;
     room: Location;
     dressing: Thing;
   } {
     const room = makeStuff(() => new Location());
-    const medic = makeStuff(() => new Creature());
+    const medic = makeStuff(() => new MedicCreature());
     stampTemplatePathForTest(medic, '/platform/agent/Avatar/medic-stab');
-    const patient = makeStuff(() => new Creature());
+    const patient = makeStuff(() => new MedicCreature());
     stampTemplatePathForTest(patient, '/platform/agent/Avatar/patient-stab');
     patient.setLifecycleState('alive');
     const dressing = makeStuff(() => new Bandage());
@@ -334,7 +338,7 @@ describe('TreatController — stabilization', () => {
       ctxFor(medic, room),
     );
 
-    const rows = await AdvancementApi.entriesFor(medic, 'medicine');
+    const rows = await medic.transcriptEntries('medicine');
     expect(rows.length).toBeGreaterThanOrEqual(1);
     expect(rows.every((r) => r.kind === 'deed')).toBe(true);
   });

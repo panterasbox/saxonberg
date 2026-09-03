@@ -43,6 +43,8 @@ import type { Engaged } from "../../src/mud/lib/activity/Engaged";
 import EventRegistry from "../../src/mud/platform/idea/EventRegistry";
 import { EventApi } from "../../src/mud/api/event";
 import { runMatchup, Policies, type GymSide } from "../combat-gym";
+import type { Combatant } from '../../src/mud/lib/combat/Combatant';
+import type { Stuff } from '../../src/mud/lib/stuff/Stuff';
 
 class TestRoom extends ContainerMixin(Idea) {}
 class SparFighter extends Character {}
@@ -233,7 +235,7 @@ function landBlow(
 ): void {
   s.getState(defender as never)!.poise.erode(0.6, 0); // → reeling
   for (let i = 0; i < maxBeats && s.isActive(); i++) {
-    CombatApi.queueGambit(attacker as never, "strike");
+    (attacker as unknown as Stuff & Combatant).queueGambit("strike");
     CombatApi.advance(s);
     if (traumasOf(defender).length > 0) return;
   }

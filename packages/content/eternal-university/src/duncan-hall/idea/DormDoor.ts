@@ -31,7 +31,6 @@ import { type TraversalGuard } from '@saxonberg/server/mud/lib/boundary/Exit';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
-import { CredentialApi } from '@saxonberg/server/mud/api/credential';
 import { Lock } from '@saxonberg/server/mud/lib/lock/Lock';
 import DormWarren from './DormWarren';
 
@@ -77,7 +76,7 @@ export default class DormDoor extends DeferredDestinationExit {
       return { ok: false, gate: 'door', reason: 'The door is locked.' };
     }
     const lock = new Lock(keyway, DormWarren.DORM_LOCK_TECH);
-    if (!CredentialApi.presentsKey(mover, lock)) {
+    if (!lock.opensFor(mover)) {
       return { ok: false, gate: 'door', reason: "Your key doesn't fit this lock." };
     }
     return super.canTraverse(mover, mode);

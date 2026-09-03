@@ -45,7 +45,6 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { ExecutionContextApi } from '@saxonberg/server/mud/api/execution-context';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
-import { AdvancementApi } from '@saxonberg/server/mud/api/advancement';
 import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
 import { CommandApi, type CommandContext } from '@saxonberg/server/mud/api/command';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
@@ -154,9 +153,6 @@ describe('the farms beat — tend, pick, sell, home', () => {
     vi.spyOn(PersistableApi, 'captureHostOf').mockImplementation(
       (async () => {}) as unknown as typeof PersistableApi.captureHostOf,
     );
-    vi.spyOn(AdvancementApi, 'recordDeed').mockImplementation(
-      (async () => {}) as unknown as typeof AdvancementApi.recordDeed,
-    );
     let cropSeq = 0;
     vi.spyOn(StuffApi, 'clone').mockImplementation((async (path: string) => {
       if (path === CARD) return makeStuffAtPath(() => new PaymentCard(), path);
@@ -179,7 +175,7 @@ describe('the farms beat — tend, pick, sell, home', () => {
       c.setMass(Quantity.of(0.008, 'kg'));
       return c;
     }) as unknown as typeof StuffApi.clone);
-    vi.spyOn(EmploymentApi, 'shiftStateOf').mockReturnValue('on-shift');
+    vi.spyOn(Farmer.prototype, 'shiftState').mockReturnValue('on-shift');
     const reg = makeStuffAtPath(
       () => new ChattelRegistry(),
       '/platform/idea/ChattelRegistry',
@@ -275,7 +271,7 @@ describe('the farms beat — tend, pick, sell, home', () => {
     farmer = makeStuffAtPath(() => new Farmer(), `/trade/farming/agent/_farmer-${seq++}`);
     farmer.setName('Old Pol');
     ContainmentApi.move(farmer as never, grove as never);
-    await EmploymentApi.hire(farmBiz, farmer, 'hand');
+    await farmBiz.appoint(farmer, 'hand');
 
     // A vessel of water in hand — `water` pours from what you carry.
     const water = makeStuffAtPath(() => {
@@ -295,8 +291,12 @@ describe('the farms beat — tend, pick, sell, home', () => {
 
     // The literal verbs, dispatched onto the real controllers.
     lines = [];
-    vi.spyOn(CommandApi, 'forceCommand').mockImplementation(
-      async (giver: unknown, text: string) => {
+    vi.spyOn(
+      farmer as unknown as { forceCommand(text: string): Promise<void> },
+      'forceCommand',
+    ).mockImplementation(async (text: string) => {
+        const giver = farmer;
+        void giver;
         if (text === 'sense') return;
         lines.push(text);
         const who = giver as unknown as Farmer;

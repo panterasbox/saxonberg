@@ -46,28 +46,6 @@ export class ChatApi {
     return logic().resolveByName(name);
   }
 
-  static async resolveHandleForActor(
-    actor: Stuff,
-    handle: string,
-  ): Promise<AdHocChannel | null> {
-    return logic().resolveHandleForActor(actor, handle);
-  }
-
-  static async openAdHoc(
-    creator: Stuff,
-    members: Iterable<Stuff>,
-  ): Promise<AdHocChannel> {
-    return logic().openAdHoc(creator, members);
-  }
-
-  static async postToChannel(
-    speaker: Stuff,
-    channel: Channel,
-    body: string,
-  ): Promise<void> {
-    return logic().postToChannel(speaker, channel, body);
-  }
-
   static async createPlayerChannel(
     owner: Stuff,
     name: string,
@@ -103,27 +81,6 @@ export class ChatApi {
 
   static async historyFor(channelId: string): Promise<readonly MessageFrame[]> {
     return logic().historyFor(channelId);
-  }
-
-  static async visibleChannels(
-    actor: Stuff,
-  ): Promise<{ persistent: Channel[]; adHoc: AdHocChannel[] }> {
-    return logic().visibleChannels(actor);
-  }
-
-  static async getSubscription(
-    avatar: Parameters<ChannelCatalogue['getSubscription']>[0],
-    channel: Channel,
-  ): Promise<ChannelSubscription> {
-    return logic().getSubscription(avatar, channel);
-  }
-
-  static async setSubscription(
-    avatar: Parameters<ChannelCatalogue['setSubscription']>[0],
-    channel: Channel,
-    next: Partial<ChannelSubscription>,
-  ): Promise<ChannelSubscription> {
-    return logic().setSubscription(avatar, channel, next);
   }
 
   static async promoteAdHocToManaged(

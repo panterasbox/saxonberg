@@ -127,7 +127,7 @@ export const TemplatePathPrefixes = {
   // Addressing — the Locality leaf roster lives under this prefix; the
   // AddressRegistry enumerates it to build the coverage index.
   address: "/platform/idea/Locality/",
-  // Conditions — the whole authored roster, which `ConditionApi.boot`
+  // Conditions — the whole authored roster, which `ConditionCatalogue`
   // stands up as live singletons (the sync resolve-on-read seams, e.g.
   // `Metabolic.resolveToxinBehavior`, cannot await).
   condition: "/platform/idea/Condition/",

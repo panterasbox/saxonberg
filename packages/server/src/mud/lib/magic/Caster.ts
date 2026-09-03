@@ -42,6 +42,10 @@ import type { Stuff } from '../stuff/Stuff';
 import type Species from '../../platform/idea/species/Species';
 import type { ActiveCondition } from '../../platform/idea/Condition';
 import { Faculty, type FacultyBand, type FacultyProfile } from './Faculty';
+import { Final, Unshadowable } from '../security/decorators';
+import type { PrepareOutcome, CastOutcome, SpellsView } from '../../api/magic';
+// eslint-disable-next-line no-restricted-imports -- the F3 object face: a caster's prepareCast()/resolveCast()/spellsView() forward into the magic logic singleton exactly as the api/magic facade does (the Combustible/Energized precedent)
+import { MagicLogic } from '../../platform/idea/api/MagicLogic';
 
 /**
  * The arcane pool's reserve key — **magic-internal plumbing** (this
@@ -152,10 +156,18 @@ export interface Caster {
   getFacultyView(): FacultyView;
   /** Storage — public for the Hydrator. */
   facultyClockStamp: number;
+
+  // The cast face (F3) — forwards into MagicLogic.
+  /** Pre-cast gates; effective cast time or a legible refusal. */
+  prepareCast(spellId: string, target?: Stuff): Promise<PrepareOutcome>;
+  /** The cast's resolution body (runs at activity completion). */
+  resolveCast(spellId: string, target?: Stuff): Promise<CastOutcome>;
+  /** The `spells` self-view model — bands and prose only. */
+  spellsView(): Promise<SpellsView>;
 }
 
 export function CasterMixin<TBase extends MixinConstructor>(Base: TBase) {
-  return class CasterMixin extends Base implements Caster {
+  class CasterMixin extends Base implements Caster {
     static _mixinName = 'CasterMixin';
     /** Active only when conferred (Species.innateMixins / an augment). */
     static _augmentGated = true;
@@ -411,5 +423,55 @@ export function CasterMixin<TBase extends MixinConstructor>(Base: TBase) {
         strained: this.isOverchannelStrained(),
       };
     }
-  };
+    // ------- the cast face (F3) — forwards into MagicLogic -------
+
+    /**
+     * Run every pre-cast gate (faculty / band / impairment / targeting /
+     * suppression); returns the effective cast time or a legible
+     * refusal. Spends nothing. Sealed — the cast pipeline is the one
+     * writer of cast state.
+     */
+    @Final
+    @Unshadowable
+    public prepareCast(
+      spellId: string,
+      target?: Stuff,
+    ): Promise<PrepareOutcome> {
+      return casterMagicLogic().prepareCast(
+        this as unknown as Stuff,
+        spellId,
+        target,
+      );
+    }
+
+    /**
+     * The cast's resolution body — runs at the cast activity's
+     * completion: re-validates, spends the reserve, executes the effect
+     * list, stamps provenance, credits the Transcript.
+     */
+    @Final
+    @Unshadowable
+    public resolveCast(spellId: string, target?: Stuff): Promise<CastOutcome> {
+      return casterMagicLogic().resolveCast(
+        this as unknown as Stuff,
+        spellId,
+        target,
+      );
+    }
+
+    /** The `spells` self-view model — bands and prose only. */
+    public spellsView(): Promise<SpellsView> {
+      return casterMagicLogic().spellsView(this as unknown as Stuff);
+    }
+  }
+
+  return CasterMixin;
+}
+
+/** Resolve the HMR-able MagicLogic singleton (the cast pipeline). */
+function casterMagicLogic(): MagicLogic {
+  return StuffApi.singletonSync(
+    '/platform/idea/api/magic',
+    () => new MagicLogic(),
+  );
 }

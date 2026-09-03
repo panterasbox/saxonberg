@@ -10,7 +10,6 @@ import { PlayerApi } from "../../../api/player";
 import { GroupApi } from "../../../api/group";
 import { ChatApi } from "../../../api/chat";
 import { StuffApi } from "../../../api/stuff";
-import { AdvancementApi } from "../../../api/advancement";
 import { SecurityApi } from "../../../api/security";
 import { Party, DEFAULT_FORMATION_PATH } from "../Party";
 import { PartyRecord } from "../../../lib/party/PartyRecord";
@@ -18,6 +17,29 @@ import { PartyGroupProvider } from "../../../lib/party/PartyGroupProvider";
 import type { PartyOpResult, PartySimpleResult } from "../../../api/party";
 
 const PartyApiCallers = SecurityPolicies.FromModule("/api/party#PartyApi");
+/** The F3 member face (PartyMember hosts) forwards here as the member. */
+const PartyMemberCallers = SecurityPolicies.AnyOf(
+  PartyApiCallers,
+  SecurityPolicies.FromMixin("PartyMemberMixin", {
+    // Compare by stuffId — the caller may surface as the raw target
+    // while the argument is the proxy (or vice versa).
+    where: (caller, _target, _method, args) =>
+      (caller as { stuffId?: string }).stuffId !== undefined &&
+      (caller as { stuffId?: string }).stuffId ===
+        (args[0] as { stuffId?: string } | undefined)?.stuffId,
+  }),
+);
+
+/**
+ * The roster materialization is also callable by the self-warming
+ * `PartyRoster` singleton (the boot()-retirement shape): the provider
+ * + record machinery stays module-private HERE, the manifest home
+ * drives it at postRegister.
+ */
+const PartyBootCallers = SecurityPolicies.AnyOf(
+  PartyApiCallers,
+  SecurityPolicies.FromTemplate("/platform/idea/PartyRoster"),
+);
 
 /** The party: grouping provider, module-level so it survives a logic-
  * singleton recreation (fireChange reaches the same instance registered
@@ -49,8 +71,13 @@ let partyProvider: PartyGroupProvider | null = null;
 export class PartyLogic extends ApiLogic {
   /** Boot: register the `party:` provider + re-materialize durable parties
    * into live Ideas. Called from `AppBootstrap` after `GroupRegistry`. */
-  @CallSecurity(PartyApiCallers)
-  public async boot(): Promise<void> {
+  /**
+   * Register the `party:` grouping provider + re-materialize durable
+   * parties into live Ideas. Idempotent. Driven by `PartyRoster.warm`
+   * (the manifest postRegister).
+   */
+  @CallSecurity(PartyBootCallers)
+  public async materializeRoster(): Promise<void> {
     return bootImpl();
   }
 
@@ -93,7 +120,7 @@ export class PartyLogic extends ApiLogic {
 
   /* ───────────────── lifecycle (async) ───────────────── */
 
-  @CallSecurity(PartyApiCallers)
+  @CallSecurity(PartyMemberCallers)
   public async form(
     founder: Stuff,
     name: string,
@@ -102,37 +129,37 @@ export class PartyLogic extends ApiLogic {
     return formImpl(founder, name, durable);
   }
 
-  @CallSecurity(PartyApiCallers)
+  @CallSecurity(PartyMemberCallers)
   public async invite(inviter: Stuff, invitee: Stuff): Promise<PartyOpResult> {
     return inviteImpl(inviter, invitee);
   }
 
-  @CallSecurity(PartyApiCallers)
+  @CallSecurity(PartyMemberCallers)
   public async accept(invitee: Stuff): Promise<PartyOpResult> {
     return acceptImpl(invitee);
   }
 
-  @CallSecurity(PartyApiCallers)
+  @CallSecurity(PartyMemberCallers)
   public async enlist(hirer: Stuff, hiree: Stuff): Promise<PartySimpleResult> {
     return enlistImpl(hirer, hiree);
   }
 
-  @CallSecurity(PartyApiCallers)
+  @CallSecurity(PartyMemberCallers)
   public async leave(member: Stuff): Promise<PartySimpleResult> {
     return leaveImpl(member);
   }
 
-  @CallSecurity(PartyApiCallers)
+  @CallSecurity(PartyMemberCallers)
   public async kick(captain: Stuff, targetId: string): Promise<PartySimpleResult> {
     return kickImpl(captain, targetId);
   }
 
-  @CallSecurity(PartyApiCallers)
+  @CallSecurity(PartyMemberCallers)
   public async disband(captain: Stuff): Promise<PartySimpleResult> {
     return disbandImpl(captain);
   }
 
-  @CallSecurity(PartyApiCallers)
+  @CallSecurity(PartyMemberCallers)
   public async transfer(
     captain: Stuff,
     newCaptainId: string,
@@ -140,12 +167,12 @@ export class PartyLogic extends ApiLogic {
     return transferImpl(captain, newCaptainId);
   }
 
-  @CallSecurity(PartyApiCallers)
+  @CallSecurity(PartyMemberCallers)
   public async setSide(captain: Stuff, side: string): Promise<PartySimpleResult> {
     return setSideImpl(captain, side);
   }
 
-  @CallSecurity(PartyApiCallers)
+  @CallSecurity(PartyMemberCallers)
   public async setFormation(
     captain: Stuff,
     name: string,
@@ -153,7 +180,7 @@ export class PartyLogic extends ApiLogic {
     return setFormationImpl(captain, name);
   }
 
-  @CallSecurity(PartyApiCallers)
+  @CallSecurity(PartyMemberCallers)
   public async assignRole(
     captain: Stuff,
     role: string,
@@ -162,12 +189,12 @@ export class PartyLogic extends ApiLogic {
     return assignRoleImpl(captain, role, targetId);
   }
 
-  @CallSecurity(PartyApiCallers)
+  @CallSecurity(PartyMemberCallers)
   public async muster(member: Stuff, name: string): Promise<PartyOpResult> {
     return musterImpl(member, name);
   }
 
-  @CallSecurity(PartyApiCallers)
+  @CallSecurity(PartyMemberCallers)
   public async standDown(member: Stuff): Promise<PartySimpleResult> {
     return standDownImpl(member);
   }
@@ -546,7 +573,8 @@ async function setFormationImpl(
   // The formation shift is a leadership act — the captain banks a
   // `command` deed (fire-and-forget; a failed mint never blocks the
   // switch). Advancement never imports party — the dep is one-way.
-  void AdvancementApi.recordDeed(captain, {
+  if (MixinApi.isAdvancing(captain))
+    void captain.creditDeed({
     discipline: "command",
     difficulty: "standard",
     outcome: "success",

@@ -16,7 +16,7 @@
  *  - **No content hook in the messaging substrate.** The controller owns
  *    the write — it iterates the scene's own recipient set
  *    (`getSensors(env)`) and calls the single
- *    `RecognitionApi.learnIdentity` sink. The substrate stays a dumb
+ *    `learnIdentityOf` sink. The substrate stays a dumb
  *    channel.
  *  - **Whole-audience write** (everyone who perceives it learns →
  *    "knowing is knowing"). The `--to` audience is addressing flavor,
@@ -30,9 +30,6 @@ import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
-import { RecognitionApi } from '../../../../api/recognition';
-import { RegardApi } from '../../../../api/regard';
-import { ChronicleApi } from '../../../../api/chronicle';
 import { RECOGNITION } from '../../../../lib/belief/BeliefStore';
 import type { MqlOneResult } from '../../../../api/mql';
 import { Mml } from '../../../../api/mml';
@@ -135,9 +132,11 @@ export default class IntroduceController extends CommandController<IntroduceMode
       // `getSensors` returns `Stuff & Sensor`, so each is already a Stuff.
       for (const listener of MessageApi.getSensors(env)) {
         if (listener.stuffId === introducee.stuffId) continue;
-        RecognitionApi.learnIdentity(listener, introducee, name);
-        // Demo regard seam: warm each recipient to the introducee.
-        RegardApi.adjustRegard(listener, introducee, REGARD_INTRODUCE_BUMP);
+        if (MixinApi.isBeliefStore(listener)) {
+          listener.learnIdentityOf(introducee, name);
+          // Demo regard seam: warm each recipient to the introducee.
+          listener.adjustRegard(introducee, REGARD_INTRODUCE_BUMP);
+        }
       }
     }
 
@@ -145,7 +144,8 @@ export default class IntroduceController extends CommandController<IntroduceMode
     // `introduce`s don't duplicate. (A future "met <specific NPC>" deed
     // would instead be event-singular off recognition's first-encounter —
     // no key. Not built here.)
-    await ChronicleApi.recordOnce(actor, 'first-introduce', {
+    if (!MixinApi.isPersona(actor)) return;
+    await actor.recordChronicleOnce('first-introduce', {
       kind: 'deed',
       template: 'Made your first introduction.',
       tags: ['social', 'introduce'],

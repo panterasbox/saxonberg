@@ -199,13 +199,13 @@ describe("Goodkin — the new-player money arc", () => {
     )) as Stuff;
     const acct = await asOwner(alice, async () => {
       const id = await BankingApi.openAccount("goodkin", "goodkin", Currency.compact());
-      await BankingApi.deposit(counter, cash as never);
+      await counter.deposit(cash as never);
       return id;
     });
     expect(BankingApi.balanceOf(acct).minor).toBe(20);
     expect(counter.getTillLiquidity().minor).toBe(20);
     // Withdraw it back as physical coin (till makes exact change).
-    await asOwner(alice, () => BankingApi.withdraw(counter, Money.of(20, Currency.compact())));
+    await asOwner(alice, () => counter.withdraw(Money.of(20, Currency.compact())));
     expect(BankingApi.balanceOf(acct).minor).toBe(0);
     expect(counter.getTillLiquidity().minor).toBe(0);
     expect(await BankingApi.corpoKeyOf(acct)).toBe("goodkin");
@@ -226,16 +226,16 @@ describe("Goodkin — the new-player money arc", () => {
     )) as Stuff;
     const acct = await asOwner(alice, async () => {
       const id = await BankingApi.openAccount("goodkin", "goodkin", Currency.compact());
-      await BankingApi.deposit(counter, cash as never);
+      await counter.deposit(cash as never);
       return id;
     });
     // Over the stranger cap (10) → refused.
     await expect(
-      asOwner(alice, () => BankingApi.withdraw(counter, Money.of(25, Currency.compact()))),
+      asOwner(alice, () => counter.withdraw(Money.of(25, Currency.compact()))),
     ).rejects.toThrow(/limit/);
     // Halloran enrols Alice into the Circle → the raised cap applies.
     expect(await BankingApi.enrollCircle(ALICE, "goodkin")).toBe(true);
-    await asOwner(alice, () => BankingApi.withdraw(counter, Money.of(25, Currency.compact())));
+    await asOwner(alice, () => counter.withdraw(Money.of(25, Currency.compact())));
     expect(BankingApi.balanceOf(acct).minor).toBe(75);
   });
 });

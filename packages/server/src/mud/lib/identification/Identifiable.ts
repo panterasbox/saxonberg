@@ -22,11 +22,11 @@
  */
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
+import { MixinApi } from '../../api/mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { DetailMap } from '../description/Detailed';
 import { SecurityApi } from '../../api/security';
 import { GrammarApi } from '../../api/grammar';
-import { RecognitionApi } from '../../api/recognition';
 import { Appearance } from './Appearance';
 import { DescriptorBank } from './DescriptorBank';
 
@@ -240,7 +240,10 @@ export function IdentifiableMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     unidentifiedDetailRootFor(viewer: Stuff): DetailMap | null {
       if (this.descriptorClass.length === 0) return null;
-      if (RecognitionApi.knowsTrueType(viewer, this as unknown as Stuff)) {
+      if (
+        MixinApi.isBeliefStore(viewer) &&
+        viewer.knowsTrueTypeOf(this as unknown as Stuff)
+      ) {
         return null;
       }
       const generic = DescriptorBank.cached(this.descriptorClass)
@@ -267,7 +270,10 @@ export function IdentifiableMixin<TBase extends MixinConstructor>(Base: TBase) {
      * description.
      */
     getLongFor(viewer: Stuff): string {
-      if (RecognitionApi.knowsTrueType(viewer, this as unknown as Stuff)) {
+      if (
+        MixinApi.isBeliefStore(viewer) &&
+        viewer.knowsTrueTypeOf(this as unknown as Stuff)
+      ) {
         return super.getLongFor(viewer);
       }
       const { generation, progress } = Appearance.currentGeneration();

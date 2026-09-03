@@ -86,7 +86,7 @@ describe('the furnace family — held temperature', () => {
     const f = forge(1300);
     f.setStampedTemperatureK(295);
     f.setLastAmbientK(295);
-    FireApi.douse(f); // put it out
+    f.douse(); // put it out
     expect(f.isLit()).toBe(false);
     expect(f.getTemperature().rawValue()).toBe(295);
   });

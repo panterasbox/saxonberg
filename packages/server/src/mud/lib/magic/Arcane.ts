@@ -52,6 +52,11 @@ import { StuffApi } from '../../api/stuff';
 import { MagicGrid } from './Grid';
 import type { MagicNoun, MagicVerb } from './Grid';
 import type SpellCatalogue from '../../platform/idea/SpellCatalogue';
+// eslint-disable-next-line no-restricted-imports -- the F3 object face: an arcane item's requiresMark() forwards into the magic logic singleton exactly as the api/magic facade does (the Combustible/Energized precedent)
+import { MagicLogic } from '../../platform/idea/api/MagicLogic';
+import type { Stuff } from '../stuff/Stuff';
+import { Final, Unshadowable } from '../security/decorators';
+import type { CastOutcome, DischargeOptions } from '../../api/magic';
 
 /** One grid cell — the `MagicProvenance` axes, typed. */
 export interface ArcaneAddress {
@@ -63,6 +68,11 @@ export interface ArcaneAddress {
 const SPELL_CATALOGUE_PATH = '/platform/idea/SpellCatalogue';
 
 export interface Arcane {
+  /** Would firing this item's working demand a mark? (F3 read) */
+  requiresMark(): boolean;
+  /** Fire the bound working at an optional target (the item trigger). */
+  dischargeAt(target?: Stuff, opts?: DischargeOptions): Promise<CastOutcome>;
+
   /**
    * The grid cells this thing's effects occupy. **Derived** from the
    * carried spell when there is one, **declared** otherwise. Never
@@ -108,7 +118,7 @@ export interface Arcane {
 }
 
 export function ArcaneMixin<TBase extends MixinConstructor>(Base: TBase) {
-  return class ArcaneMixin extends Base implements Arcane {
+  class ArcaneMixin extends Base implements Arcane {
     static _mixinName = 'ArcaneMixin';
 
     static fieldMeta: FieldMeta = {
@@ -213,5 +223,44 @@ export function ArcaneMixin<TBase extends MixinConstructor>(Base: TBase) {
     public hasArcaneNoun(noun: MagicNoun): boolean {
       return this.getArcaneFootprint().some((a) => a.noun === noun);
     }
-  };
+    /**
+     * **Would firing this item's working demand a mark?** True only
+     * when *every* effect needs one. The question a door asks BEFORE
+     * spending anything (the F3 item-side read).
+     */
+    public requiresMark(): boolean {
+      return arcaneMagicLogic().requiresMark(this as unknown as Stuff);
+    }
+
+    /**
+     * Fire the working bound into this item at an optional target — the
+     * one entry point every item class uses (wand zap, scroll read,
+     * quaffed potion). No band gate, no cast time, no Transcript
+     * credit; the capability mixin that calls it has already spent the
+     * charge / consumed the dose. Sealed — the working pipeline is the
+     * one writer.
+     */
+    @Final
+    @Unshadowable
+    public dischargeAt(
+      target?: Stuff,
+      opts?: DischargeOptions,
+    ): Promise<CastOutcome> {
+      return arcaneMagicLogic().discharge(
+        this as unknown as Stuff,
+        target,
+        opts,
+      );
+    }
+  }
+
+  return ArcaneMixin;
+}
+
+/** Resolve the HMR-able MagicLogic singleton (the working pipeline). */
+function arcaneMagicLogic(): MagicLogic {
+  return StuffApi.singletonSync(
+    '/platform/idea/api/magic',
+    () => new MagicLogic(),
+  );
 }

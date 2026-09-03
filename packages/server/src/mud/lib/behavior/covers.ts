@@ -50,10 +50,11 @@ export const brain = class {
       MixinApi.isEmployed(self) &&
       self.getEmployment(businessPath)?.status === 'on-shift';
 
+    if (!MixinApi.isEmployed(self)) return;
     if (!otherMakerPresent && !covering) {
-      EmploymentApi.beginCover(self, business);
+      self.beginCovering(business);
     } else if (otherMakerPresent && covering) {
-      EmploymentApi.endCover(self, business);
+      self.endCovering(business);
     }
   }
 } satisfies BrainStatics;

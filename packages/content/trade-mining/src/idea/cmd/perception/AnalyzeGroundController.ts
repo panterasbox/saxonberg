@@ -26,12 +26,12 @@
  */
 
 import { SurveyChannelController, READING_TOPIC, GEOLOGY } from './SurveyChannelController';
+import { MixinApi } from "@saxonberg/server/mud/api/mixin";
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { SurveyFrame, SurveyPoint } from '@saxonberg/types';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { CardApi } from '@saxonberg/server/mud/api/card';
-import { AdvancementApi } from '@saxonberg/server/mud/api/advancement';
 
 export default class AnalyzeGroundController extends SurveyChannelController {
   async execute(_model: CommandModel, context: CommandContext): Promise<void> {
@@ -113,7 +113,8 @@ export default class AnalyzeGroundController extends SurveyChannelController {
     });
 
     if (solved.length > 0) {
-      await AdvancementApi.recordDeed(giver, {
+      if (MixinApi.isAdvancing(giver))
+        await giver.creditDeed({
         discipline: GEOLOGY,
         difficulty: 'hard',
         outcome: 'success',

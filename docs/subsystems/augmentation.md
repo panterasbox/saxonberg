@@ -198,7 +198,7 @@ for both the implanted and born-attuned paths.
 |---|---|---|---|
 | `AetherImplant` (v1) | `['AetherMixin']` | `_grantsModalities` | `PerceptionApi.sensorium` |
 | `ThermalVisionImplant` (future) | `['ThermalVisionMixin']` | `_grantsModalities` | `PerceptionApi.sensorium` |
-| `CyberArm` (future) | `['ProstheticArmMixin']` | `_grantsSlots`, `_grantsAttributeMasks` | `SlotApi`, `PropertiedMixin` |
+| `CyberArm` (future) | `['ProstheticArmMixin']` | `_grantsSlots`, `_grantsAttributeMasks` | `Slotted/Slottable`, `PropertiedMixin` |
 | `TranslationChip` (future) | `['TranslationMixin']` | `_grantsLanguages` | `LanguageApi` (future) |
 | `ArtificialHeart` (future) | `['HeartFunctionMixin']` | `_grantsVitalFunctions` | `VitalsApi` (future) |
 

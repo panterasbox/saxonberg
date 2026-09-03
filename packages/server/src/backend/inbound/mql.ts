@@ -65,8 +65,7 @@ export const handleMqlSubscribe: InboundHandler = (ctx, message) => {
 export const handleMqlUnsubscribe: InboundHandler = (ctx, message) => {
   const payload = message.payload as MqlUnsubscribeMessage | undefined;
   if (!payload || typeof payload.subscriptionId !== 'string') return;
-  MqlSubscriptionApi.handleUnsubscribe(
-    ctx.interactive,
+  ctx.interactive.cancelMqlSubscription(
     payload.subscriptionId,
   );
 };

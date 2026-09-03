@@ -515,8 +515,8 @@ resolver dedups by `(stuff, via)` after scoring.
 
 **Candidate names/keywords are viewer-relative** (the recognition
 name-leak gate). `pushDirect` builds each candidate's `name` from
-`RecognitionApi.describe(giver, stuff)` and its `keywords` from
-`RecognitionApi.perceivedKeywords(giver, stuff)` — so a living being
+`describeFor(giver, stuff)` and its `keywords` from
+`perceivedKeywordsFor(giver, stuff)` — so a living being
 resolves only by what the viewer perceives (`knownAs` if recognized,
 salient features if not, the disguise's descriptors if masked, never the
 true name); items keep their ordinary keywords. `look bob` resolves iff

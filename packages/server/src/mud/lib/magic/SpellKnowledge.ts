@@ -40,7 +40,7 @@
  * a no-op on the claim's row.
  */
 
-import { ChronicleApi } from '../../api/chronicle';
+import { MixinApi } from '../../api/mixin';
 import type { Stuff } from '../stuff/Stuff';
 
 function knownKey(spellPath: string): string {
@@ -51,7 +51,8 @@ export class SpellKnowledge {
   /** True iff the actor has read of `spellPath` (a claim). */
   static async knowsOf(actor: Stuff, spellPath: string): Promise<boolean> {
     const key = knownKey(spellPath);
-    const entries = await ChronicleApi.entriesFor(actor);
+    if (!MixinApi.isPersona(actor)) return false;
+    const entries = await actor.chronicleEntries();
     return entries.some((e) => e.kind === 'claim' && e.key === key);
   }
 
@@ -67,7 +68,8 @@ export class SpellKnowledge {
     spellPath: string,
     name: string,
   ): Promise<void> {
-    await ChronicleApi.recordOnce(actor, knownKey(spellPath), {
+    if (!MixinApi.isPersona(actor)) return;
+    await actor.recordChronicleOnce(knownKey(spellPath), {
       kind: 'claim',
       text: `Read of ${name}.`,
       tags: ['spell'],
