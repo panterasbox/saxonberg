@@ -94,6 +94,18 @@ textiles input; cosmetics is a second customer* — and discharges the
   must *accept* wool without re-opening.
 - **Cotton and silk.** Cotton is a second cellulose fibre: more content,
   no new lesson.
+- **Synthetic fibres, mills, and mass-produced lines.** ⭐ The substrate
+  must *be able to* carry them — audited in
+  [the plan](../plans/textiles-plan.md) § P15, which finds that kevlar
+  needs **no new construction form** (material scales the resist
+  magnitude), that the tool ladder already starts at rung zero for
+  prehistoric hands-only work, and that mass production is a shipped
+  pattern (a high capability `rate` + a production brain). **Three seams
+  are cut now to keep it true**: the stage is `prepare` not `ret`; the
+  chain begins at *fibre-exists-as-a-material*; and the
+  spinning-bottleneck assertion is scoped to the shipped tech level. **No
+  synthetic, mill or modern line is authored** — trades ship medieval and
+  advance by exercised disciplines.
 - **`SoilableMixin` itself**, its bands and its attributed event log —
   owned by
   [room-condition-design-pack](../slates/builds/room-condition-design-pack.md).

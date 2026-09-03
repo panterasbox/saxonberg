@@ -644,6 +644,11 @@ rides `CraftedMixin` through `FermentingMixin`'s documented transfer seam.
 `inputCategory` on a plain `Bulkable` pit charged by `fill` (the brewing
 wort path).
 
+⚠ **The entry point is the fibre material, not the pit** (P15 seam 2).
+`spin` takes a fibre material; where that material came from is upstream.
+This is what lets wool and, later, a synthetic plug into the same chain
+without touching `trade-textiles`.
+
 **Staple length is the Grade band's meaning, not a new field** (AC 12).
 `scutch`'s decision is a grade *choice*: work it harder for a cleaner line
 at a lower band, or accept tow. Propagation is the shipped weakest-link,
@@ -668,6 +673,63 @@ and writes absolute `FromModule` gates.
 ⚠ **A pack ships no mixin, no Api, no `lib/`.** `DyedMixin`,
 `CoveringForm`, `CoveringApi`/`CoveringLogic` and `WardrobeMixin` are all
 **kernel**, all in Stage A; Stage B consumes them.
+
+### P15 — The chain must span the tech ladder, and three seams decide whether it can
+
+*(Added 2026-09-02 at the user's question: does the pack support the trade
+from prehistoric garments to kevlar and mass-produced lines?)*
+
+⭐ **Most of it already does**, and the audit is worth recording because
+the parts that work are non-obvious:
+
+| capability | why it already works |
+|---|---|
+| **Kevlar / aramid / ballistic nylon** | ⭐⭐ **needs NO new construction form.** `MaterialLogic` scales the resist *magnitude* by the material — `edge` is hardness-driven, `blunt` toughness-driven, both against AppSettings refs — while `responseFor()` supplies only the *shape*. A `woven` fabric of aramid gets the `poor` shape scaled by aramid's enormous toughness and comes out genuinely protective. That is `response = f(mechanism, material, construction)` doing its job. ⚠ **The wrong move is adding a `kevlar` form; do not.** |
+| **Prehistoric, tool-less work** | `paceMs` returns `baseMs` when no instrument resolves, so hands-only spinning already works at the slow rate with no special case. **The tool ladder starts at rung zero** — prehistoric is the bottom of the same ladder, not a different one. Felting and twining need no spinning at all, and both are fabric rows. |
+| **Mass production** | a high `rate` on a `CapabilitySpec` plus a **production brain** — both shipped patterns (`farms.ts`, `delves.ts` ride in their packs). A mill is content, not mechanism. |
+| **The verbs at every level** | ⭐ **they do not change.** A modern mill operator still chooses yarn count and weave density. `spin` and `weave` carry the same decisions at every tech level; the ladder moves the *rate* and the *scale*, never the decision. |
+
+**Three seams must be cut correctly now** — each is nearly free at plan
+time and a rewrite once three packs have assumed otherwise:
+
+**Seam 1 — the stage is `prepare`, not `ret`.** Retting is *flax's*
+instance of fibre preparation. Wool **scours**, cotton **gins**, silk
+**reels**, synthetics **extrude**. The chain's shape is:
+
+```
+prepare → spin → fabricate → finish
+   ▲
+   retting is flax's instance of this stage, never the stage's name
+```
+
+⚠ **No controller, recipe id, category, Discipline description, doc
+heading or test name in `trade-textiles` may treat "retting" as the name
+of the stage.** `scutch` stays `scutch` — it is a real act, not a stage
+label — but the *stage* it belongs to is preparation.
+
+**Seam 2 — the chain begins at *fibre-exists-as-a-material*.** Flax
+arrives from farming, wool from ranching, aramid from a chemical-industry
+pack nobody has built. ⭐ **If the chain's entry point is the fibre row,
+all three plug in identically.** If retting is the entry point, only flax
+ever works. Concretely: `spin` takes a **fibre material**, and how that
+material came to exist is upstream and none of textiles' business.
+
+**Seam 3 — the bottleneck assertion is historically scoped.** *"Spinning
+is the maximum attended step"* is true before 1764 and false after — that
+**is** the lesson. ⚠ The B2 bench must assert it **at the shipped tech
+level**, named in the test, not as an eternal property. Otherwise a future
+mill wave breaks a test that was never meant to hold, and someone
+"fixes" it by slowing the loom.
+
+**Out of scope, deliberately.** Per *trades ship medieval and advance by
+exercised disciplines; never author tech ahead of demand* — no aramid, no
+nylon, no mill in this build. The question P15 answers is whether the
+substrate **can** carry them, not whether it does.
+
+⚠ **One honest limit: the prehistoric end is partly blocked on Stage C.**
+Pre-textile clothing is largely hide, and leatherwork is deferred because
+nothing produces hide. Felting and twining are reachable now; hide
+clothing is not.
 
 ---
 
@@ -900,8 +962,10 @@ Content only, existing packs.
 
 - **Pack scaffold** per P14: root, title claim, group, `package.json`,
   workspace + deployment registration.
-- **Retting, with no verb:** a `RettingPit` (`Bulkable` + `Fermenting`)
-  and a `FermentProfile` row — `inputCategory: flax-straw`,
+- **Preparation — retting, with no verb.** ⚠ **The stage is `prepare`;
+  retting is flax's instance of it** (P15 seam 1). Nothing here may name
+  the stage "retting". A `RettingPit` (`Bulkable` + `Fermenting`) and a
+  `FermentProfile` row — `inputCategory: flax-straw`,
   `productMaterial: …/flax`, `ratePerDay`, `stallBelowK`/`damageAboveK`
   (cold water rets slower — real, and it makes season matter), **`turnDays`
   + `turnedMaterial: …/rotted-flax` as the over-ret failure.**
@@ -927,7 +991,11 @@ fight):
    game-seconds per step** (retting is elapsed-but-unattended and is
    reported separately — **a wait is not labour**).
 3. **Assert (a):** `spin` is the maximum attended step by a margin dial.
-   *Spinning is the observable bottleneck.*
+   *Spinning is the observable bottleneck.* ⚠ **Scope the assertion to the
+   shipped tech level in the test's own name and comment** (P15 seam 3) —
+   this is true before the wheel-and-loom era ends and false after, which
+   is the lesson. A later mill wave must be able to change it without
+   "fixing" a test that was never eternal.
 4. **Assert (b):** with a `spinning` instrument at `rate: 3` in reach,
    `spin` drops ≈ 3× and **`weave` becomes the maximum.** *The wheel
    measurably moves the constraint to the loom.*
@@ -1083,6 +1151,14 @@ not "write a new one."**
   `SlotSpec.covers`. `face` is not a body-plan part key.
 - ⚠ `Construction.ts` must stay import-pure — two build-time lint scripts
   instantiate it outside the runtime.
+- ⚠⚠ **Do not add a `kevlar` construction form** (P15). Material scales
+  the resist magnitude; a high-performance textile is a `woven` fabric of
+  a tough material, not a new form.
+- ⚠ **The stage is `prepare`; retting is flax's instance of it.** No
+  controller, recipe id, category, doc heading or test name may treat
+  "retting" as the stage's name.
+- ⚠ **`spin` takes a fibre MATERIAL** — the chain's entry point is the
+  fibre row, never the pit, or only flax will ever work.
 
 **Managed risks:**
 
