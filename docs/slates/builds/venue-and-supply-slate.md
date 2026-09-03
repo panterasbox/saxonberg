@@ -20,6 +20,11 @@
 > placement discipline. This slate holds only those. Actual venues live
 > per-locality in `docs/staging/`.
 
+⭐⭐ **The settlement model this rides on is
+[settlement-model.md](../../settlement-model.md)** — the sixteen needs
+(which *are* the archetype list), the site/exit type taxonomy, the
+specialization gradient, and singleton-vs-warren.
+
 Substrate: [employment](../../subsystems/employment.md) ·
 [governance](../../subsystems/governance.md) ·
 [parcel](../../subsystems/parcel.md) ·
@@ -211,6 +216,7 @@ Rungs must differ by more than acreage, or the ladder is one number.
 | rung | you buy | what is actually different |
 |---|---|---|
 | **0** | a **tool** | you can do the work; you have no premises |
+| ⭐ **0.5** | a **market stall** — a pitch by the day | rented, cheap, **no title**. `market/stalls.yaml` **ships** — the missing step between a tool and premises, and historically how trade actually starts (a barrow, then a shop). **The market is the on-ramp to the generative street.** |
 | **1** | **premises** | a titled parcel; nothing on it |
 | **2** | a **one-person operation** | a going concern that feeds one household and sells a surplus |
 | **3** | **a business with a roster** | employees, an account, a place in the market |
@@ -284,6 +290,43 @@ the *slate's proposed* shape; what shipped is the wallet conferral above.
 The gap is closed.
 
 ---
+
+## 6b. ⭐⭐ One `PlatBook`, four land uses
+
+`PlatBook` is already fully parameterized — `parentExtent`, `lotBranch`,
+`lotPrefix`, `priceMinor`, `areaM2`, **`landUse`**, `holderPath` — so every
+growth case in the realm is one shipped mechanism:
+
+| plat | `landUse` | `areaM2` | sells |
+|---|---|---|---|
+| Hinkley Hills | `residential` | 1 000 | house lots |
+| Heart's Delight | `agricultural` | 40 000 – 400 000 | farm ground |
+| Terminus — West Bank | `commercial` | 200 – 2 000 | working frontage, **cheap** |
+| Terminus — East Bank | `commercial` | 200 – 2 000 | prestige frontage, **dear** |
+| Terminus — Wharfside | `industrial` | ≥ 100 | workshop premises |
+| the necropolis | `civic` | ⭐ ~4 | **plots** |
+
+⭐ A cemetery *is* a subdivision — numbered plots, sold, in rows.
+
+**And a street is authored when it is full and generative when it is
+not.** ⭐⭐ *The street does not decide; the parcel does* — "authored and
+generative streets" is one mechanism at two stages, visible on the ground
+as empty lots. ⚠ Two axes that correlate but are not the same: **frontage
+availability** (a fact about the plat) and **venue kind** (bespoke or
+archetype — a fact about the business). And ⚠ **availability is not
+cheapness**: reclaimed fill is cheap, a burned block is cheap, **new money
+is dear.**
+
+Lifecycle, needing no new systems: *new ground → frontage for sale → built
+out → secondary market → high street.* A generative street **matures into**
+an authored one; whoever got in early holds an appreciating asset. That is
+`PlatBook` capacity plus title transfer.
+
+⭐ **Three land markets**: **stake** (first come against a register —
+Rejection, the frontier condition, and it *ships*) · **sell** (a plat with
+capacity and a price) · **transfer** (secondary, once built out).
+
+Full model: [../../settlement-model.md](../../settlement-model.md).
 
 ## 7. Scaling discipline for 10× content
 

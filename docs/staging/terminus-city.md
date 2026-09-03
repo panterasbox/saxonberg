@@ -121,6 +121,81 @@ of the other's. Names provisional (owner's to finalize).
 - **The Civic Quarter** — the new government, retrofit: the **Forum**, **Lands &
   Works** office, the **Museum**, municipal hall. *governance + the admin-sim seat.*
 
+## 3b. ⭐⭐⭐ Retail — a city is where the general store fragments (2026-09-03)
+
+Terminus ships **one general store**, which is the *Hinkley* model sitting
+in a city. The difference between a village and a city is not more stuff:
+
+> **In a village one shop meets many needs. In a city many shops each meet
+> one.**
+
+Adam Smith — the division of labour is limited by the extent of the
+market. A general store exists exactly where demand for any single good is
+too thin to keep a specialist busy; when the market deepens the general
+store **decomposes**, and each fragment is a vocation that could not exist
+at village scale.
+
+⭐⭐ So **Terminus's shop list is read off `docs/vocations.md`** — the
+vocations whose demand test passes at city scale — not invented. Each
+village venue shatters: the store into greengrocer/butcher/baker/
+fishmonger/dry goods · the smith into ironmonger/cutler/farrier/locksmith/
+cooper · the infirmary into physician/apothecary/surgeon/midwife · the pub
+into tavern/alehouse/coffee house/wine merchant · the hall into temples/
+**undertaker**/**monumental mason**.
+
+Terminus has already fragmented **finance** (the Counting-Houses),
+**property** (realty + Mayfield Row), **arrival** (the terminal) and
+**education** (the university). Its **retail has not.**
+
+## 3c. Frontage — authored and generative streets **[DECIDED 2026-09-03]**
+
+⭐⭐ **The street does not decide; the parcel does.** A street is *authored*
+when its plat is full and *generative* when it has capacity — one
+mechanism at two stages of development, and diegetically obvious because
+you can see empty lots.
+
+| | who trades there | frontage |
+|---|---|---|
+| **the market square** | anyone, by the day | ⭐ rented, cheap, **no title** — `market/stalls.yaml` **ships** |
+| **West Bank** (working/everyman) | the ordinary trades | generative, modest capacity, **cheap** |
+| ⭐ **East Bank** (prestige/new money) | those who have made money | generative, real capacity, **dear** |
+| the old core — Counting-Houses · University Ave · Wharfside | established | **built out**; buy a going concern |
+
+⚠ **Availability is not cheapness.** East Bank is new because it became
+*fashionable*, not because it was created — so its frontage is expensive,
+which is what makes the ladder real: **stall → West Bank → East Bank** is a
+career, and where your shop is becomes a status statement nobody had to
+author.
+
+Same `PlatBook`, two `priceMinor` values, and **the price gap IS the class
+geography.** Lifecycle: *new ground → frontage for sale → built out →
+secondary market → high street* — `PlatBook` capacity plus title transfer,
+both shipped.
+
+## 3d. Commercial ≠ industrial **[DECIDED 2026-09-03]**
+
+The land-use vocabulary already separates them, and the area bands already
+say something true: `commercial` starts at 20 m², `industrial` at **100** —
+a forge needs five times a shop's minimum footprint.
+
+Enforced here, the shopping streets take **no forges**. So:
+
+- ⭐ **Wharfside is the workshop district** — ports are where industry
+  goes, because that is where raw material lands.
+- ⭐ And it clarifies what the city's industry *is*: Rejection smelts (you
+  smelt at the source); **Terminus does the finishing trades** — smith,
+  cutler, cooper, wheelwright — working metal somebody else already made.
+- ⚠⚠ **A home workshop is therefore illegal in Terminus**, which is
+  precisely the historical trajectory (cities regulated the trades out of
+  the home first, the village never did). See
+  `docs/settlement-model.md` § 4 — the same question gets three answers
+  across the realm, and that is the Tiebout axis.
+
+The reason is not tidiness: ⭐⭐⭐ **zoning exists because of density.** At
+3 m cells everyone smells your forge; at 200 m nobody does. Which is the
+shipped stewardship test — *does this spill onto people who did not
+consent?* — applied at city density.
+
 ## 4. Military / the war home-front
 
 Pointed **outward** (so "the city is safe" holds): the war vs. the **Ordinance**
