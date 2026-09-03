@@ -280,7 +280,7 @@ polity Sybil keystone.
   write delta arithmetic and the normative clamp live in the consumer,
   never in the dumb store.
 - **The regard face lives ON the viewer** (the Api OO sweep retired
-  `RegardApi`/`RegardLogic`): `viewer.regardFor(subject)` (absent → 0),
+  `BeliefStoreMixin (the regard face)`/`RegardLogic`): `viewer.regardFor(subject)` (absent → 0),
   `viewer.adjustRegard(subject, delta)` (the clamped accumulator, sealed
   `@Final @Unshadowable`), `viewer.setRegard`, `viewer.clearRegard`
   (`forgetField`), `viewer.regardsHeld()` (a `recallRealm(REGARD)`

@@ -30,7 +30,7 @@ deterministic** — a weighted score of `stealth` competence × available room
 cover × darkness × stillness (a low posture), mapped to a
 `ConcealmentLevel` by the `stealth.hide.band.*` thresholds (a score below
 `band.subtle` fails to conceal → `obvious`). **Snapshot at entry:** the
-`hide` verb `await`s `AdvancementApi.bandFor(actor, 'stealth')`, calls
+`hide` verb `await`s `competenceBandFor(actor, 'stealth')`, calls
 `hideLevelFor`, and stashes the band into `hiddenLevel` (the combat
 "snapshot competence at open" precedent); `getConcealment()` then reads the
 snapshot synchronously — **no async at the perceive gate**. This keeps the

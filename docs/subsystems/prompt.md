@@ -9,7 +9,7 @@ client, the player responds, the await resolves.
 The substrate is the second prompt-shaped wire channel sitting
 alongside the dispatch-response / MQL-subscription pipelines.
 Inbound dispatch lives in `Application.processUserMessage`; outbound
-envelopes ride the same `MessageApi.sendEnvelope` path as dispatch-
+envelopes ride the same `onEnvelope` path as dispatch-
 response and subscription deltas.
 
 See:
@@ -18,7 +18,7 @@ See:
   the envelope family this substrate lives inside.
 - [docs/subsystems/mql-subscription.md](./mql-subscription.md) —
   the pattern this substrate mirrors (per-Interactive substrate API,
-  envelopes via `MessageApi.sendEnvelope`, inbound dispatcher
+  envelopes via `onEnvelope`, inbound dispatcher
   routes, disconnect cleanup).
 - [docs/subsystems/command-spec.md](./command-spec.md) —
   cardinality vocabulary that consumes the substrate for
@@ -269,7 +269,7 @@ because the silence is the expensive part, not the queueing.
 ## Outbound delivery
 
 Every server-pushed envelope (push / validation-failed / dismissed)
-ships via `MessageApi.sendEnvelope(holder, template)` — the same
+ships via `onEnvelope(holder, template)` — the same
 Sensor pipeline the dispatch-response and subscription substrates
 use. Shadow filters and audit observers consume prompt envelopes
 on that channel.

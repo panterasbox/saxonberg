@@ -11,7 +11,7 @@ Game object
 Scene.send()
     builds one MessageFrame per audience, stamps commandId / causingCommandId
         ↓
-MessageApi.sendMessage(recipient, frame)         ← lone delivery chokepoint
+onMessage(recipient, frame)         ← lone delivery chokepoint
         ↓
 Sensor.onMessage(frame)
     ├─ filterMessage(frame)   shadowable extension point
@@ -32,7 +32,7 @@ delivery path. There are no parallel channels, no log sinks, no bus-level
 sidecars. Anything wanting to consume a frame is, or shadows, a Sensor.
 
 The response-envelope channel follows the same pipeline shape, with
-parallel surfaces at every tier: `MessageApi.sendEnvelope` is the lone
+parallel surfaces at every tier: `onEnvelope` is the lone
 delivery chokepoint, `Sensor.onEnvelope` / `filterEnvelope` /
 `handleEnvelope` mirror the message triad, and the fan-out runs through
 `Application.sendEnvelopeToInteractive` →
@@ -141,7 +141,7 @@ dispatch outcomes (`type: 'dispatch-response'` and reserved
 `'activity-update'` / `'prompt'` siblings). Envelopes carry no prose
 — their payload is `outcome.status` plus a typed `notes` list — and
 travel through a parallel Sensor pipeline (`onEnvelope` /
-`filterEnvelope` / `handleEnvelope`) with `MessageApi.sendEnvelope` as
+`filterEnvelope` / `handleEnvelope`) with `onEnvelope` as
 the lone delivery chokepoint. Both channels share the
 `Interactive.nextFrameId` counter so the client sees gap-free monotonic
 ordering across all server → client traffic on a single Interactive.
@@ -375,7 +375,7 @@ surface this design closes.
 `name`/`item`/`object`/`player`/`npc`/`location` helpers don't bake their
 display text at compose time — they emit a late-bound fragment whose
 inner text resolves at `toString(viewer)` via
-`RecognitionApi.describe(viewer, stuff)`, falling back to the viewer-blind
+`describeFor(viewer, stuff)`, falling back to the viewer-blind
 `getPresentation()` when no viewer is threaded. Since `Scene.send`
 materializes each frame body against its recipient
 (`body.toString(recipient)`), one composed line renders the *right name
@@ -566,7 +566,7 @@ Mml.actor(giver)   // the emitter says "a person acting" and stops
 // → <player …> | <npc …> | <thing …>, decided at toString(viewer)
 ```
 
-The decision is `RecognitionApi.kindOf(viewer, target)`, which lives
+The decision is `kindFor(viewer, target)`, which lives
 beside `describe` because it is the same question — *what does THIS
 recipient perceive* — asked about the kind instead of the name. It
 answers in four steps:
@@ -692,7 +692,7 @@ Constraints enforced inside the builder:
   per-audience `audience:*` tag plus shared tags; body is the `Mml`
   fragment's `toString()`; payload is the per-audience payload, falling
   back to the shared payload.
-- For self/target: dispatches via `MessageApi.sendMessage(recipient, frame)`.
+- For self/target: dispatches via `onMessage(recipient, frame)`.
 - For peers: walks `MessageApi.getSensors(env)` and dispatches one frame
   per sensor, skipping the actor and the explicit target.
 - For contents: dispatches via `MessageApi.messageContents(actor, frame,
@@ -785,7 +785,7 @@ EmoteGrammar, SoulCatalogue, dispatch paths).
 
 ## Routing pipeline
 
-`MessageApi.sendMessage(recipient, frame)` is the **lone delivery
+`onMessage(recipient, frame)` is the **lone delivery
 chokepoint**. Every routing helper, every `Scene.send` dispatch, and
 every `MudlogApi` emit goes through it. Non-MessageApi code does NOT
 call `sensor.onMessage` directly — the chokepoint is where future

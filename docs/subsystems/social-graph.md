@@ -26,7 +26,7 @@ Seeded by
 [social-graph-slate.md](../slates/tails/social-graph-slate.md);
 builds on [contacts.md](./contacts.md),
 [grouping.md](./grouping.md) (the `GroupApi`/`GroupRef` policy subject),
-[belief.md](./belief.md) (`RecognitionApi.describe` / `salientFeatures`),
+[belief.md](./belief.md) (`describeFor` / `salientFeatures`),
 [messaging.md](./messaging.md) (the Scene composer),
 [message-rendering.md](./message-rendering.md) (the theme palette + MML),
 [shell-environment.md](./shell-environment.md) (`social.verbosity`).
@@ -45,7 +45,7 @@ builds on [contacts.md](./contacts.md),
 | Client settings panel | `components/settings/SocialNotificationsPanel.tsx` (presence frames render inline — no bespoke client component) |
 
 No new module category: `SocialApi`/`SocialLogic` mirror the
-`RecognitionApi`/`RecognitionLogic` and `RenownApi`/`RenownLogic`
+`RecognitionLogic` and `RenownApi`/`RenownLogic`
 Api↔logic-singleton split verbatim. All real logic lives in
 module-private free functions in `SocialLogic.ts` (the `RenownLogic`
 discipline — public-to-public self-calls would trip the `FromModule`
@@ -138,7 +138,7 @@ viewer.resolveNotifyRule(person, { excludeMql? }): Promise<ResolvedRule>
 
 Walks the effective list top-to-bottom and returns the **first** rule
 whose group contains the person — allow or deny, full stop.
-`matchesRule` dispatches: `strangers` → `!RecognitionApi.recognizes`;
+`matchesRule` dispatches: `strangers` → `!recognizes`;
 `everyone-else` → always true (the tail); any other ref →
 `GroupApi.isMember(personDurableId, ref)` (covers the normalized
 `friends`/`foes` contacts refs, managed groups, and MQL). The person's
@@ -157,7 +157,7 @@ consumers" contract is the spine of the build.
 ## Display lensing — the per-viewer occupant block
 
 `viewer.composeOccupants(occupants, roomSize): Promise<Mml>`
-is the formatter — a sibling of `RecognitionApi.describe` *one
+is the formatter — a sibling of `describeFor` *one
 cardinality up*: `describe` names one target viewer-aware; the formatter
 orders / groups / collapses a *collection* and composes **through**
 `describe` per named occupant (never re-implements naming).
@@ -188,7 +188,7 @@ dropped.
 
 Collapsible occupants group by the tuple **(species, most-distinctive
 worn feature)** — species via `OrganismMixin.getSpecies`, the worn
-feature parsed out of `RecognitionApi.salientFeatures` (compose *through*
+feature parsed out of `salientFeatures` (compose *through*
 the shipped primitive, never re-derive). A group needs a shared tuple
 **and** ≥2 members to read as a count line ("12 dwarves in red robes");
 lone occupants and incomplete tuples fall to the generic "(N others
@@ -477,7 +477,7 @@ country" remain deferred to the slate.
   `contacts:<pid>:<label>` ref the reserved `friends`/`foes` normalize to.
 - [grouping.md](./grouping.md) — the `GroupApi` facade + `GroupRef` shape
   (the policy subject) + the owner-only `ContactsGroupProvider` boundary.
-- [belief.md](./belief.md) — `RecognitionApi.describe` / `salientFeatures`
+- [belief.md](./belief.md) — `describeFor` / `salientFeatures`
   (the compose-through primitives).
 - [messaging.md](./messaging.md) — the Scene composer + sensor routing the
   presence frame rides; [message-rendering.md](./message-rendering.md) —

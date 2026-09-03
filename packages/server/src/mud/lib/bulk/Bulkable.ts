@@ -561,7 +561,7 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
      * substance and decanting carries the knowledge.
      *
      * So an identifiable substance routes through
-     * `RecognitionApi.describe` — the same rendering path an
+     * `describeFor` — the same rendering path an
      * unidentified item on the floor uses, not a parallel one. Anything
      * else keeps the shipped convention exactly: the blend payload
      * first (a mixed drink names itself, not its base material), then

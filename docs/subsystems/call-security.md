@@ -1808,7 +1808,7 @@ capture must not become a `SecurityError`.
 
 - **Tamper resistance.** The stack proof still gates the *claim*; what
   changed is how often it is taken, not whether.
-- **Viewer-relative naming.** `RecognitionApi.describe` inside the MQL
+- **Viewer-relative naming.** `describeFor` inside the MQL
   scope walk is why `look bob` works iff the room view says "Bob". Its
   22% is a feature's cost, not waste.
 - **The destroyed-object inert guard**, which keeps benign races from
@@ -1901,7 +1901,7 @@ The rule it encodes: the layers contain durable **mutation**, but a
 read-only *projection of a person* — what they are called, what they
 can sense, what they are doing — is neither durable nor a mutation, and
 yields text or a display row, which the doctrine already lets cross.
-Its consumers are `RecognitionApi.describe*` / `perceivedKeywords` /
+Its consumers are `describeFor*` / `perceivedKeywords` /
 `salientFeatures`, `PerceptionApi.sensorium` / `canPerceive`, and
 `SocialApi.statusOf` / `composeRow`.
 

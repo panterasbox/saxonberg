@@ -13,7 +13,7 @@
  * closed `Effect` union, each a thin wrapper over a shipped gated Api
  * (the governing invariant; `MagicEffects.validate` makes anything else
  * unrepresentable). Access is a **band gate at cast time** on BOTH axes
- * (`requiredBand` vs `AdvancementApi.bandFor` — competence IS access;
+ * (`requiredBand` vs the caster's `competenceBandFor` — competence IS access;
  * conferral-of-verbs is deliberately not used; see magic.md).
  *
  * Deliberately NOT a Mongo collection (the Atlas 500-collection ceiling

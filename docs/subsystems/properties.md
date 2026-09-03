@@ -75,7 +75,7 @@ on `fieldMeta` and have no prop equivalent:
 
 `LabelledMixin` is three accessors and no logic, yet it carries a setter
 invariant the Hydrator routes through, contributes the `label` verb, is
-narrowed on by `RecognitionApi`, vetoes stack merges, and is authorable.
+narrowed on by the recognition face (`describeFor`), vetoes stack merges, and is authorable.
 **A mixin is a TYPE; a prop is a VALUE.**
 
 Direct assignment is invisible to the framework. Props are visible to

@@ -37,7 +37,7 @@ import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import { Quantity } from '../quantity';
 import { StuffApi } from '../../api/stuff';
-// eslint-disable-next-line no-restricted-imports -- the D3 object face: Energized's conduct()/currentThrough()/shockContact() forward into the electricity logic singleton exactly as the api/electricity facade does (the mixin is the subsystem's instance face; see the Api OO sweep plan, wave D3)
+// eslint-disable-next-line no-restricted-imports -- the D3 object face: Energized's conduct()/currentThrough()/shockContact() forward into the electricity logic singleton exactly as the api/electricity facade does (the mixin is the subsystem's instance face — antipatterns.md § A subject-first Api static)
 import { ElectricityLogic } from '../../platform/idea/api/ElectricityLogic';
 
 /** One body reached by a conduction event: who, and the current through it. */

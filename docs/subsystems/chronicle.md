@@ -201,7 +201,7 @@ minters ride moments that already fire:
   `'first-arrival'`, called **unconditionally** (not gated on the
   `firstArrival` greeting flag): the `recordOnce` key is the dedup
   authority, so the first ever arrival mints once and every re-login
-  `enter` no-ops. Minted next to `BeliefStoreApi.hydrate`; no-ops when
+  `enter` no-ops. Minted next to the belief hydrate (`viewer.hydrateBeliefs()`); no-ops when
   disconnected, so a Mongo hiccup never blocks the welcome scene.
 - **first-introduce deed** (`IntroduceController.execute`) — `recordOnce`
   keyed `'first-introduce'`, after the scene `.send()` and the
@@ -217,7 +217,7 @@ reads on demand and may read Mongo) and **no owner-side runtime state** —
 entries exist only as Documents, fetched owner-scoped when needed.
 Therefore the thinnest surface is **no mixin**: the owner key is read
 directly off `owner.getTemplatePath()` in the logic, exactly as
-`RecognitionApi.learnIdentity` reads `subject.getTemplatePath()`.
+`learnIdentityOf` reads `subject.getTemplatePath()`.
 `lib/chronicle/` holds only the `ChronicleEntry` Document.
 
 ## `who` needs a referent for people who aren't Stuff

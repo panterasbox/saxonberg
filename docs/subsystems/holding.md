@@ -199,13 +199,13 @@ Keys mint at the **chokepoints**, and there are exactly three:
 Each does the same three calls in the same order:
 
 ```
-Lock.mintKeyway() → ParcelApi.setKeyway(extent) → CredentialApi.issueKey(holder, keyway, 'pin-tumbler')
+Lock.mintKeyway() → ParcelApi.setKeyway(extent) → Lock.issueKey(holder, keyway, 'pin-tumbler')
 ```
 
 `FrontDoorExit` is the generic threshold: eager on its face with the
 entry room's **row** (a real template, so the zone resolves and the exit
 reads honestly before anything is minted), `canTraverse` gated on
-`CredentialApi.presentsKey` against the holding's keyway (a sync read off
+`opensFor` against the holding's keyway (a sync read off
 the warren's cache — an empty keyway admits nobody), and
 `computeDestination` faulting the holding in through `admit`.
 

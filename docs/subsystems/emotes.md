@@ -381,7 +381,7 @@ A catalog emote's `stuff` slot resolves at `scope: 'online'` by
 default — the target may be in any room, on any zone, anywhere a
 spawned `Avatar` or NPC exists. When the slot binds, the Scene's
 `.toTarget(target, bodies.target)` call routes the target frame
-through `MessageApi.sendMessage` directly to that recipient
+through `onMessage` directly to that recipient
 regardless of room boundaries. The peer audience (`.toPeers`) still
 uses Containable scope; only the targeted frame crosses rooms.
 

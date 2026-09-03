@@ -101,7 +101,7 @@ Relay frames ride the relay's own topic `speech.relay` (a distinct
 genre, so the cockpit cards them separately) and are **subscription-gated,
 not implant-gated** — they carry no `modality`, so they reach every tuned-in
 Avatar regardless of in-world implant. Delivery hand-builds the frame and
-goes through the lone `MessageApi.sendMessage` chokepoint (never
+goes through the lone `onMessage` chokepoint (never
 `MessageApi.scene`, which requires a Stuff actor — a Twitch viewer has
 none).
 
@@ -155,7 +155,7 @@ configured" and nothing subscribes.
 
 - [connection.md](./connection.md) — the Twitch OAuth spine + `TwitchProfile`
 - [chat.md](./chat.md) — the in-world `Channel` surface this deliberately is *not*
-- [messaging.md](./messaging.md) — the `MessageApi.sendMessage` chokepoint the relay reuses
+- [messaging.md](./messaging.md) — the `onMessage` chokepoint the relay reuses
 - [belief.md](./belief.md) — the viewer-aware naming the recognition seam would consume
 - [livestream.md](./livestream.md) — `BroadcastFeed`, the backend-singleton-worker precedent
 

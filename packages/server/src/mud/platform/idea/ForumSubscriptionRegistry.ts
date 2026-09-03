@@ -579,7 +579,7 @@ export default class ForumSubscriptionRegistry extends Idea {
  * template (for offline authors). Empty ids (anonymous guests) resolve to
  * '' — the client renders a generic byline. The name is NEVER stored on
  * the entry; the entry links by id and this resolves on read, so renames
- * reflect and the byline can become viewer-aware later (RecognitionApi).
+ * reflect and the byline can become viewer-aware later (`describeFor`).
  */
 async function resolveAuthorNames(
   ids: readonly string[],

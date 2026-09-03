@@ -73,7 +73,7 @@ every `Character`, **activated** by `Species.innateMixins` or an
 augment, the `isMaker` shape) → spell known → targeting shape →
 casting-hand impairment (`isSlotImpairedByTrauma('hands')`) → the
 **band gate on BOTH grid axes** (`requiredBand` vs
-`AdvancementApi.bandFor` on `magic-<verb>` + `magic-<noun>` —
+`competenceBandFor` on `magic-<verb>` + `magic-<noun>` —
 competence IS access; the magic Disciplines — the 18 `magic-*` rows,
 which ship in the **arcana** pack because its `Grid` derives their keys
 (the discipline-ownership rule; the `DisciplineCatalogue` warms by class,

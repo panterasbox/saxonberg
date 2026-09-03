@@ -274,7 +274,7 @@ primitive it was designed to be. Resolved there:
   `onMessage`; movement deliberately dropped) — the `notify` verb +
   the login presence relay.
 - **Display lensing** — bucket-keyed room-occupant verbosity (the
-  formatter is a sibling of `RecognitionApi.describe`, *not* a
+  formatter is a sibling of `describeFor`, *not* a
   "DescribeApi v2").
 - **Reserved labels** — `friends` / `foes` / `everyone-else` /
   `strangers` are now first-class virtual baseline rules with shipped

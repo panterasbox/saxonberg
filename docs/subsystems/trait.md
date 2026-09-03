@@ -92,7 +92,7 @@ P4-named per ledger — `imprintSignature` / `imprintDeed` /
 @Unshadowable`); reads are ungated; callers narrow with
 `MixinApi.isDispositioned`. The estimator + mint path formerly hosted
 in the hot-reloadable `TraitLogic` singleton at `/platform/idea/api/trait`, gated
-`FromModule("/api/trait#TraitApi")`. Internals are module-private free
+`FromModule("/api/trait#DispositionedMixin")`. Internals are module-private free
 functions (no intra-singleton `this.x()` to trip the gate). Surface:
 
 - `recordSignature(owner, signature, opts)` / `recordDeed(owner, subcheck,
@@ -109,7 +109,7 @@ functions (no intra-singleton `this.x()` to trip the gate). Surface:
 - `seedClaims(owner, seeds)` — seed `claim`-kind evidence (below).
 
 **Layering:** the trait layer depends on advancement (the `ActSignature`
-*type* only — no runtime edge) and on belief's `RegardApi` (one-way).
+*type* only — no runtime edge) and on belief's `BeliefStoreMixin (the regard face)` (one-way).
 Neither advancement nor belief gains any dependency on the trait layer.
 **Gated-API actor-from-context:** `owner` is the *subject of the act*
 (established by the recording call site), never a spoofable actor param.
@@ -171,7 +171,7 @@ behavior (converses brain, BehavedMixin seeding)
 trait  (DispositionedMixin / lib/trait)
    │  reads ActSignature type            │  reads (one-way)
    ▼                                      ▼
-advancement (ActSignature)            belief (RegardApi)
+advancement (ActSignature)            belief (BeliefStoreMixin (the regard face))
 ```
 
 ## Deferred

@@ -227,7 +227,7 @@ The two are **independent siblings** of the mutation — neither causes the
 other (the write isn't event-sourced; the event has no tail). The order
 is **persist-then-fire** so no listener observes a live event whose
 durable row hasn't landed. This mirrors the existing `fireFieldChange →
-EventApi.fire` pattern (MQL-sub) and the `ChronicleApi.record` silent-
+EventApi.fire` pattern (MQL-sub) and the `recordDeed` silent-
 append precedent. `ForumEventFired` is a `BusEvent`-shaped DTO
 (`static KIND = 'forum.eventFired'`) carrying the same dependency-key
 payload (the `FieldChangedEvent` precedent).

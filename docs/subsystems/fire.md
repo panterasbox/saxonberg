@@ -13,7 +13,7 @@ captured below.
 
 Homes: **`lib/fire/`** (combustion — `Combustible`/`Burning`/`Furnace`, the
 `FireApi`/`FireLogic` gated pair), **`lib/thermal/`** (the phase-change layer —
-`Meltable`, `ThermalApi.reconcilePhase`/`reachableHeatFor`), **`lib/material/`**
+`Meltable`, `reconcilePhase`/`reachableHeatFor`), **`lib/material/`**
 (the new `Material` props + the materials-response `heat` channel).
 
 ## The five layers
@@ -85,7 +85,7 @@ Dials: `response.heat.*`.
   `WorldClockRegistry.every` fan-out over **occupied** scopes (the
   weather-boundary / storm-strike precedent; an unwatched fire **freezes**,
   zero work in empty rooms, no offline-arson grief). Each burning object drains
-  its fuel + **radiates heat** (`ThermalApi.depositHeat`) into co-located
+  its fuel + **radiates heat** (`depositHeat`) into co-located
   combustibles and, **through OPEN boundaries only** (a closed/locked door is a
   firebreak — the `Sealable` read), into the adjacent scope's; a neighbour
   catches iff the delivered heat crossed its wetness-adjusted ignition point,
@@ -109,7 +109,7 @@ Dials: `response.heat.*`.
 ### 5. Phase change + the furnace family
 
 - **Phase change (`lib/thermal/`, D7).** `MeltableMixin` (a solid + a latent
-  accumulator) + **`ThermalApi.reconcilePhase`** — the bidirectional engine,
+  accumulator) + **`reconcilePhase`** — the bidirectional engine,
   driven by *any* heat source: a solid past its `meltingPoint` holds a
   **latent-heat plateau** (clamp temperature to the melting point, absorb the
   overshoot into the accumulator) then **melts**, destructing and flowing its
@@ -139,7 +139,7 @@ Dials: `response.heat.*`.
 
 ### The crafting seam (D9) — **consumed**
 
-**`ThermalApi.reachableHeatFor(position)`** — the maximum sustained temperature
+**`reachableHeatK(position)`** — the maximum sustained temperature
 (the hottest lit furnace) reachable from a position, the crafting
 emergent-reachability principle applied to heat. Built inert by this build;
 **consumed by the crafting-branches build with zero retrofit**, exactly as
@@ -159,9 +159,10 @@ cold"), and the by-hand `heat` step latches it onto the build buffer. See
 - **Real Quantities under a banded surface** — the six props are real
   `Quantity`s; players see bands, raw numbers on `analyze` only.
 - **Go through the Api layer** — `StuffApi.create`/`destruct`,
-  `ContainmentApi`, `BulkableApi`, `ThermalApi.depositHeat`/`reconcilePhase`.
+  `ContainmentApi`, `BulkableApi`, `depositHeat`/`reconcilePhase`.
 - **No new module categories** — capability mixins in their subsystem folders;
-  `FireApi`/`ThermalApi` gated Api pairs (the `Material`/`Weather` shape);
+  the `FireApi` facade + the thermal mixin face (the `Material`/`Weather`
+  shape);
   declarative demonstrator content.
 
 ## Content

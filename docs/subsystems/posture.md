@@ -133,14 +133,14 @@ the standard non-configurable case.
 | `stand <X>` | with arg | Stand on X (e.g., on a chair or table) |
 
 The asymmetry: `sit` / `lie` / `kneel` no-arg occupy the floor slot
-(routed through `SlotApi`); `stand` no-arg does not (it's the
+(routed through `Slotted/Slottable`); `stand` no-arg does not (it's the
 implicit "free" posture, no slot needed).
 
 ## `default: 'ground'` mechanism
 
 The framework substitutes `'ground'` as if the player had typed it,
 then runs MQL resolution + validators. `ground` resolves via the
-Detail-keyword pathway (`SlotApi.resolveSlot`) to the floor
+Detail-keyword pathway (`resolveSlot`) to the floor
 Adornment's `ground:1` slot. In a void Location with no floor
 Adornment, MQL no-match surfaces "you can't sit on the ground here"
 — no controller branching.
@@ -164,7 +164,7 @@ See [command-spec.md](./command-spec.md) for the field semantics.
 **The posture verbs were unreachable by any player, and had always been.**
 Driving the world in a browser to verify sleep-as-logout turned up two
 independent gaps, neither of which any unit test could see (they all called
-`SlotApi.occupyAll` directly):
+`occupyAll` directly):
 
 1. **Nothing contributed the verbs.** `cmd/posture/{lie,sit,stand,kneel}.yaml`
    and their controllers had shipped since the substrate landed, but a verb

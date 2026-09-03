@@ -466,7 +466,7 @@ because their furniture moved.
 > `SlottableMixin`. Both are fixed (see
 > [posture.md](./posture.md)); without them a bed you can occupy is worth
 > nothing, because nobody can occupy it. Found by driving the world, not by
-> a test — every unit test called `SlotApi.occupyAll` directly and so tested
+> a test — every unit test called `occupyAll` directly and so tested
 > the wrong end of the rope.
 
 ## Deploying this build

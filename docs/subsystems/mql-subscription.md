@@ -9,7 +9,7 @@ relevant state change until the client unsubscribes or disconnects.
 The substrate is the second wire channel sitting alongside the
 prose / dispatch-response pipeline. Inbound dispatch lives in
 `Application.processUserMessage`; outbound envelopes ride the same
-`MessageApi.sendEnvelope` path the dispatch-response framework uses,
+`onEnvelope` path the dispatch-response framework uses,
 so shadow filters and audit observers see subscription traffic the
 same way they see prose.
 
@@ -459,7 +459,7 @@ implementation here would drift from it.
 ### ⚠ `read` is sync, and that is load-bearing
 
 `practisingCompetence` reads a ledger whose Api is async
-(`AdvancementApi.bandsFor`). **Do not widen `read` to return a
+(`actor.competenceBands()`). **Do not widen `read` to return a
 promise.** `MqlSubscriptionApi.projectFields` is
 sync, and `ContainerMixin`'s own `contents` descriptor calls it from
 *inside* its `read` — so a promise would make projection async
@@ -756,7 +756,7 @@ The universal `displayName` descriptor's `read` delegates to
 - **Viewer-aware at the projection seam.** The `displayName` descriptor's
   own `read` stays viewer-blind (`getPresentation()`), but `projectFields`
   renders the universal `displayName` field through
-  `RecognitionApi.describe(viewer, stuff)` — so each subscriber sees its
+  `describeFor(viewer, stuff)` — so each subscriber sees its
   *own* perceived name (recognition / identification / disguise), the same
   routine the prose path uses. The descriptor isn't overloaded; the
   viewer-aware step is applied at projection. See

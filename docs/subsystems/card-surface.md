@@ -1268,7 +1268,7 @@ while checking these findings.
   WHY is wrong.** They say two visibility gates disagree:
   `Container.contents` keeps a child on `PerceptionApi.perceives`, then
   `projectFields` re-points `displayName` through
-  `RecognitionApi.describe`, whose `canSeeGate` says no.
+  `describeFor`, whose `canSeeGate` says no.
 
   ⭐ What the tree shows is that they answer **different questions**.
   `perceives` is the **concealment** gate (*is it hidden from you*);

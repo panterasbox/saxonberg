@@ -451,8 +451,8 @@ never reached NPCs.)*
 ### Resolution consumers
 
 At every win / kill, `runResolutionConsumers` (defensive, best-effort): a
-`ChronicleApi.recordDeed` for the victor (a **deed**, or a **crime**-tagged
-line for an unlawful kill) + a `RegardApi.adjustRegard` nudge from every
+`recordDeedDeed` for the victor (a **deed**, or a **crime**-tagged
+line for an unlawful kill) + a `adjustRegardRegard` nudge from every
 room witness (`combat.regard.duelWin` for a clean win, the negative
 `combat.regard.unlawfulKill` when the room recoils from a murderer). The
 global "X killed Y" presence relay stays deferred — the room-scoped death
@@ -465,7 +465,7 @@ auto-harvested by `DisciplineCatalogue`): `melee-combat` (skill) and
 `blades` (specializes it). Each resolved exchange mints the **player
 side's** own `ActSignature` (self-credit; difficulty from the target's
 poise band, outcome from the exchange result; `blades` additionally
-credited on an edge/point instrument) via `AdvancementApi.recordSignature`,
+credited on an edge/point instrument) via `creditSignature`,
 fire-and-forget. The existing **`assess`** verb (`AssessController`) gains a
 mid-fight branch: assessing your opponent delegates to `actor.assessCombat` —
 a **costed** read (it spends your next exchange, `queuedGambit = 'assess'`)
@@ -594,7 +594,7 @@ sharper fighter recovers more per defensive beat) and the read-fog.
 `g(composure)` is the **inert** `traits-stress` seam (`≡ 1` today — a
 stubbed composure composes without touching the exchange engine). Competence
 is snapshotted **synchronously at open** (`CombatOpenOptions.competenceBands`,
-keyed on `templatePath`; `AttackController` awaits `AdvancementApi.bandFor`
+keyed on `templatePath`; `AttackController` awaits `competenceBandFor`
 *before* opening — the async band can't be read mid-beat, and reading it once
 keeps a single session deterministic). Bare/test/gym/NPC paths default to
 `untrained`.
