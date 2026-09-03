@@ -510,10 +510,30 @@ classes under the four branches (`thing/`, `idea/`, `agent/`,
 `location/`), controllers at `idea/cmd/<category>/`, brains under
 `behavior/` (the Brain category's home inside a pack, mirroring the
 kernel's `lib/behavior/` — see [behavior.md](./behavior.md) § Brains in
-packs), tests under `__tests__/`; **no `lib/`** (substrate a pack needs
-is the kernel's, or a class it ships under a branch), no free-floating
-helpers, no Api (a pack that needs an Api needs a kernel MR — the *mod*
-rung).
+packs), tests under `__tests__/`, and **`lib/` for substrate that is only
+ever inherited** — mixin factories and value objects, the kernel's own
+`lib/` rule applied to a pack. No free-floating helpers, no logic
+singleton, no Api (a pack that needs an Api needs a kernel MR — the
+*mod* rung).
+
+⭐ **The `lib/` ban was lifted by the TPA reform (P2a)**, because it made
+a pack-owned mixin **unrepresentable**: a mixin is not instanceable, so
+no branch folder is honest for it, and promoting it to the kernel is
+wrong for substrate only that pack composes. The tree already carried the
+consequence — trade-mining's `WorkingMixin` was parked in the *Location*
+branch because invariant 8 left it nowhere else.
+
+The headline invariant is untouched: *nothing instances `/lib/`* is
+checked against **template paths** literally starting `/lib/`, and a pack
+mixin (`/system/arcana/lib/ManaPowered`) has no template row at all.
+`classFileOf` resolves it by longest prefix like any other pack path.
+
+⭐⭐ **The test for the kernel instead of a pack `lib/`: whether the
+substrate's composers have a common pack ancestor.** Arcana's lamp and
+tpa's terminal do — tpa depends on arcana anyway, it is magic — so
+`ManaPoweredMixin` is arcana's. A third pack wanting mana-powered devices
+*without* depending on arcana is the signal to promote it, and that is a
+review question, not a lint.
 `packages/content/<pkg>/src/<rel>.ts` backs `<root>/<rel>` for every
 namespace root the pack holds — source mirrors path, inside a pack as in
 the kernel — so `packages/content/arcana/src/thing/Wand.ts` IS
@@ -605,7 +625,8 @@ routes a changed pack file to the pack's suite), imports
 `lint:test-content` treats it as a content test beside its content. The
 lint family walks pack `src/` throughout (`scripts/pack-roots.ts` is the
 scripts' shared table): `instanceable` (invariant 3 through the table,
-invariant 8 — no `lib/`, every module under a branch), `gates`,
+invariant 8 — every module under a branch, `behavior/` or `lib/`, and a
+`lib/` module that is only inherited substrate), `gates`,
 `imports`, `module-scope`, `field-meta`, `blessed-bands`, `arg-kinds`
 (every `cmd/` under a pack's content), `untitled` (`/system/arcana` is a title
 root because arcana claims it — the roots derive from the claims).
@@ -1019,12 +1040,14 @@ the installer's walk mirrored in a script; zero is green).
 | **eternal-university** (the CAMPUS locality, residences D18) | platform, residence | default | `/world/eternal` homed whole: Duncan Hall (the residence ladder's first rung), Katie + her kit, the dorm rows; parked `src/` registers against the extent so `/world/eternal/…` class paths are unchanged | `duncan-hall` (enrols Katie) | the dorm-warren (producer) |
 | **hinkley-hills** (the SUBURB locality, residences D18) | platform, residence, trade-farming | default | `/world/terminus/hinkley-hills`: the stop, the lane, the plat and the lots (~24 ha held by the Improvement District until lots sell); lot-1 pre-taken | `hinkley-hills` | the plat-book, the lot-holder (producer) |
 | **residence** (CAPABILITY — title becomes a place, D18) | platform | default | `/system/residence`: the substrate classes the locality packs' residential rows name — PlatBook, PlatWarren, LotGateExit, HoldingWarren, the householder's kit — moved out of the kernel platform tree | — | — |
+| **tpa** (CAPABILITY — the teleport network's WORKS, TPA reform) | platform, arcana | default | `/system/tpa` → group `tpa` (PM-owned): `src/lib/` ships `FastTravelMixin` (the node — routes, board, timetable) and the pack's paths; `src/thing/` the `TpaTerminal` that composes it over arcana's `ManaPoweredMixin`, plus the `TravelCard`; `src/idea/cmd/movement/` the `teleport` + `register` controllers and `src/idea/cmd/tpa/` the card clerk's; rows: the three views + controller templates, `settings/fasttravel.yaml`, the travel card, and the **self-governing Teleport Authority** (`{kind: committee, parcel: /system/tpa}` — it names no realm, which is what lets it ship here). ⭐ The classes are the MECHANISM and are the pack's; a **terminal** is the realm's, so every gate keeps its `/world/**` row in the locality it stands in | `tpa` | — |
 | **water** (CAPABILITY — the watershed's WORKS, D1–D27) | platform | default | `/system/water` → group `water` (PM-owned): `src/` ships `Watercourse` + `WatercourseCatalogue` (topology authored, direction **derived**, compiled to a reachability set), `WaterRightRegistry` (prior appropriation recorded, riparian derived over the same records) and the three works — `Conduit` (the conveyance ladder, a sewer being the same object reversed), `ControlStructure`, `StorageNode`; rows: the two singletons, `settings/water.yaml`, and `fouled-water` in the commons. ⭐ The classes are the MECHANISM and are the pack's; a **river** is the realm's, so every reach ships at `/stuff/idea/Watercourse/<name>` in world-seed | `water` | — |
 
-Twenty-eight rows over thirty-one packs (`arcane-descriptors` folded into
+Twenty-nine rows over thirty-six packs (`arcane-descriptors` folded into
 `arcana` — the pack that ships the class ships the bank; libations added trade-distilling,
 trade-brewing, trade-winemaking, trade-bottling, trade-farming and made
-hospitality a capability pack). **A stub trade** ships everything
+hospitality a capability pack; the TPA reform added **tpa**, pack
+thirty-six, and it is the first pack to ship a `src/lib/`). **A stub trade** ships everything
 downstream of production and nothing of production — materials, vessel
 presets, brands, the floor product on an authored consignor, the serving
 recipe — so the bar's demand is met today while the ferment/still is the

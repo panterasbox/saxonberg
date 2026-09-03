@@ -294,6 +294,38 @@ instead of inflating. Everything the item economy wants falls out of it:
   channel, because what money buys is caster-labour, which is capped.
 - **Shell inflation is harmless**, so distribution can be generous.
 
+### ⭐ `ChargedMixin`'s second consumer: the wall socket
+
+Until the TPA reform, everything charged was an ITEM you carried. The
+reform added a second shape — a **device that runs on mana and does not
+care where the mana came from** — and it is a mixin in arcana
+(`/system/arcana/lib/ManaPowered`) rather than a feature of any one
+class, because it is composed by a brass wall sconce in a dorm room AND
+by a Teleport Authority terminal, which have nothing else in common.
+
+Three supplies (a **cell** in a bay, a **line** the row names, a
+**person in contact**), one `resolveSupply()`, and the device holds no
+branch on which answered. The contact arm routes through the shipped
+`chargeFrom`, so a non-caster's inability to feed a device is not a
+check anybody wrote — `installArcaneReserve` returns early for a
+non-caster, so they hold no reserve at all.
+
+A **`ManaCell`** is `Slottable + Charged` and **no new mixin**: a cell IS
+a charged shell, differing from a wand only in fitting a bay instead of a
+hand. It is `Circulating`, so distribution and the general store carry
+it — where a charged cell comes from is deliberately a recipe and a
+price, not an economy.
+
+⭐ The condition a mana-powered device fails in is the SHIPPED six-word
+supply vocabulary (`SupplyState` — see
+[watershed.md](./watershed.md)), so a player who learned what `dry`
+means at a standpipe has learned what it means at a teleport gate. The
+vocabulary is imported; ⚠ `SupplyReporting` deliberately is not
+implemented, because `analyze water <terminal>` reads that shape
+structurally and would otherwise work by accident.
+
+Details: [fasttravel.md](./fasttravel.md).
+
 > ⚠ **Charge decay has NO far-past absence guard**, and this is the
 > easiest thing in the build to get wrong. Metabolism has one for
 > fairness to an absent *body*; an **item must decay while nobody is

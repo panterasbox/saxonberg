@@ -13,6 +13,29 @@ One relation supplies all of it: **every place has a position on a
 watershed.** Flow, rights, diversion, storage, pollution and hydro power
 are readings of that single fact, and the organising primitive
 underneath is **gravity** — `mgh`.
+## ⭐ `SupplyState`'s second speaker
+
+The six-word vocabulary (`dry` · `cut` · `frozen` · `fouled` · `off` ·
+`overdrawn`) is in the KERNEL rather than in this pack, deliberately, and
+the TPA reform is the reason that was right: **mana** is now the second
+utility that fails in it. A Teleport Authority gate reports `dry` when
+its cell is spent, `cut` when its line is severed, `off` when somebody
+closed the stopcock, and `overdrawn` when the ride costs more than it can
+cover.
+
+Two packs that must agree on the same six strings are an entangled
+namespace, which is one of the two things that genuinely belong in the
+kernel — and had the vocabulary been owned by whichever utility shipped
+first, arcana would now depend on the water pack for a word.
+
+⚠ **Only the VOCABULARY is shared.** `ManaPoweredMixin` deliberately
+does NOT implement `SupplyReporting`: `AnalyzeWaterController` reads that
+interface structurally, so implementing it would make `analyze water
+<terminal>` work by accident. The `supplyReport` shape stays water's.
+
+See [fasttravel.md](./fasttravel.md) and
+[magic-items.md](./magic-items.md).
+
 
 ## The spine
 
