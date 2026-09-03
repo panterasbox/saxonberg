@@ -20,6 +20,7 @@ import {
 } from '../../../lib/advancement/ActSignature';
 import type Material from '../../../lib/material/Material';
 import { Freshness } from '../../../lib/material/Freshness';
+import type { ToxinTag } from '../../../lib/metabolism/Metabolic';
 import {
   Recipe,
   RECIPE_MEDIA,
@@ -651,6 +652,29 @@ function pickItemInputs(
   return remaining <= 0 ? picked : null;
 }
 
+/** Stamp a working's spoilage outcome onto the output slot. */
+function applySpoilage(outSlot: BulkSlot, outcome: SpoilageOutcome): void {
+  outSlot.setFreshnessLoad(outcome.load);
+  const formed = outcome.formed;
+  if (!formed) return;
+  const payload = outSlot.getPayload();
+  if (!payload) return;
+  const toxicity = payload.toxicity.map((t) => ({ ...t }));
+  const existing = toxicity.find((t) => t.type === formed.type);
+  if (existing) existing.amount += formed.amount;
+  else toxicity.push({ ...formed });
+  outSlot.setPayload({ ...payload, toxicity });
+}
+
+/**
+ * What a working did to the spoilage its inputs brought: the load the
+ * output starts from, and the formed toxin the killed population left.
+ */
+interface SpoilageOutcome {
+  load: number;
+  formed: ToxinTag | null;
+}
+
 /**
  * ⭐ **What the working did to the spoilage the inputs brought with them.**
  *
@@ -672,8 +696,7 @@ function outputMicrobialLoad(
   effectiveHeatK: number,
   matched: readonly MatchedInput[],
   matchedItems: readonly MatchedItemInput[],
-): number {
-  if (effectiveHeatK >= Freshness.killTemperatureK()) return 0;
+): SpoilageOutcome {
   let weighted = 0;
   let total = 0;
   for (const m of matched) {
@@ -691,7 +714,7 @@ function outputMicrobialLoad(
     weighted += load * w;
     total += w;
   }
-  return total > 0 ? weighted / total : 0;
+  return resolveSpoilage(effectiveHeatK, total > 0 ? weighted / total : 0);
 }
 
 /**
@@ -702,8 +725,7 @@ function outputMicrobialLoad(
 function buildMicrobialLoad(
   effectiveHeatK: number,
   contributions: readonly BuildContribution[],
-): number {
-  if (effectiveHeatK >= Freshness.killTemperatureK()) return 0;
+): SpoilageOutcome {
   let weighted = 0;
   let total = 0;
   for (const c of contributions) {
@@ -712,7 +734,35 @@ function buildMicrobialLoad(
     weighted += (c.freshnessLoad ?? 0) * w;
     total += w;
   }
-  return total > 0 ? weighted / total : 0;
+  return resolveSpoilage(effectiveHeatK, total > 0 ? weighted / total : 0);
+}
+
+/**
+ * ⭐⭐ **What the kill actually leaves behind.**
+ *
+ * Heat destroys the population; it does NOT destroy what the population
+ * already made. So a working that reaches the kill temperature takes the
+ * load to zero — the dish starts sterile and ages from there at its own
+ * material's rate — and *deposits the dose that load had already earned*
+ * into the output as a real, formed toxin, authoring no `labileAtK` so
+ * nothing later destroys it either.
+ *
+ * ⚠ Without this half, cooking rotten meat produced a clean dinner: the
+ * load reset, the derived dose went with it, and "cooking spoiled food
+ * does not make it safe" was true only of the hand-authored doses. A
+ * live drive is what found it — the whole point of standing the kitchen
+ * up rather than trusting the suite.
+ */
+function resolveSpoilage(
+  effectiveHeatK: number,
+  blended: number,
+): SpoilageOutcome {
+  if (effectiveHeatK < Freshness.killTemperatureK()) {
+    // A lazy warm-through launders nothing: the load rides straight
+    // through and the dose stays derived from it at the ingest.
+    return { load: blended, formed: null };
+  }
+  return { load: 0, formed: Freshness.doseFor(blended) };
 }
 
 /**
@@ -939,7 +989,8 @@ async function applyBulkOutput(
   // A cold bar mix carries its inputs' spoilage through unchanged — a
   // daiquiri made with yesterday's lime juice is made with yesterday's
   // lime juice, and nothing about shaking it says otherwise.
-  outSlot.setFreshnessLoad(
+  applySpoilage(
+    outSlot,
     outputMicrobialLoad(effectiveHeatK, matched, matchedItems),
   );
 }
@@ -1016,7 +1067,8 @@ async function applyEdibleOutput(
     }
     outSlot.setMaterial(material);
     outSlot.setAmount(Quantity.of(recipe.getOutputPortionL(), 'L'));
-    outSlot.setFreshnessLoad(
+    applySpoilage(
+      outSlot,
       outputMicrobialLoad(effectiveHeatK, matched, matchedItems),
     );
     return;
@@ -1035,7 +1087,8 @@ async function applyEdibleOutput(
       effectiveHeatK,
     ),
   );
-  outSlot.setFreshnessLoad(
+  applySpoilage(
+    outSlot,
     outputMicrobialLoad(effectiveHeatK, matched, matchedItems),
   );
 }
@@ -1506,10 +1559,9 @@ async function mintVessel(
   }
   // The spoilage the buffer brought with it: killed off if the working
   // actually got hot enough, otherwise blended through (a lazy
-  // warm-through launders nothing).
-  outSlot.setFreshnessLoad(
-    buildMicrobialLoad(effectiveHeatK, req.contributions),
-  );
+  // warm-through launders nothing) — and either way, what the killed
+  // population already made stays in the dish.
+  applySpoilage(outSlot, buildMicrobialLoad(effectiveHeatK, req.contributions));
 
   // The working finishes the glass: chill + dilution, the technique
   // stamp, the soil mark. Ice and garnish are the hand's own steps

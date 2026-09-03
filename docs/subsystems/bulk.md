@@ -258,6 +258,32 @@ into an empty destination (same-material pours into a non-empty vessel
 keep the destination's payload — blend *merging* is out of scope). A
 payload-less slot behaves byte-identically to before.
 
+Since the cooking build the payload also carries the derived
+**composition** the palate reads (`parts` — the ingredients by their
+Materials' names — and `tastes`, the union of their basic tastes; see
+[crafting.md](./crafting.md) § The palate) and the **spoilage gauge**
+(`freshness: { load, stamp }`), reconciled through the holder because the
+vessel is the Thermal host.
+
+⚠ The spoilage gauge is the one field that does NOT follow the payload's
+identity rule: it **blends by mass on every pour**, not only into an empty
+destination. That asymmetry is what closes the pour-to-reset exploit —
+decanting a spoiled pot into a clean bowl must not launder it. It is also
+seeded lazily (a slot holding perishable matter gets one the first time
+anybody asks; nothing else does), and the shadow payload written at that
+moment mirrors the Material field for field so `payload ?? material` reads
+identically either way. See [spoilage.md](./spoilage.md).
+
+### Utensil kinds
+
+`category` is the **vessel kind** — `coupe`, `bowl`, `pot`, `keg`, `sack`
+— and `lib/bulk/Utensil.ts` names the small closed subset of it that is
+**cutlery**: `spoon` · `fork` · `table-knife`, in the order `eat` prefers
+them. A utensil is an ordinary `CraftVessel` whose interior slot is never
+filled (serviceware without contents), so it is claimed, soiled, washed
+and counted on the par exactly like a glass. ⚠ It never gates the act —
+see [crafting.md](./crafting.md) § Cutlery.
+
 ### Description composition
 
 `BulkableMixin` contributes a `markupAugmenter` (the same

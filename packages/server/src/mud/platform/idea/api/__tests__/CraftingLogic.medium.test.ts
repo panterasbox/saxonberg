@@ -546,6 +546,49 @@ describe('the working resets the spoilage load (P4)', () => {
     expect(slot.getFreshnessLoad()).toBe(0);
   });
 
+  it('⭐⭐ the kill leaves the FORMED TOXIN behind — cooked rot is still rot', async () => {
+    // Heat destroys the population; it does not destroy what the
+    // population already made. Without this the load reset took the
+    // derived dose with it and cooking rotten meat produced a clean
+    // dinner — the exact free lunch the design says does not exist.
+    // ⚠ A vegetable slot, because a sound cut of meat is already standing
+    // in this room and `pickItemInputs` would reach for it first — the
+    // fixture collision that makes a spoilage assertion read green for
+    // the wrong reason.
+    spoiled(PLAIN_VEG, 0.9);
+    const outcome = await craftAs(cook, {
+      recipeRef: 'boiled-beans', // 373 K, over the 333 K kill
+      makerMode: 'self',
+    });
+    expect(outcome.ok).toBe(true);
+    if (!outcome.ok) return;
+    const slot = BulkableApi.slotFor(outcome.output, undefined)!;
+    // Sterile — it will keep as long as anything cooked keeps…
+    expect(slot.getFreshnessLoad()).toBe(0);
+    // …and poisonous, because it was rotten when it went in.
+    const dose = slot.getPayload()!.toxicity.find((t) => t.type === 'ptomaine');
+    expect(dose).toBeTruthy();
+    expect(dose!.amount).toBeGreaterThan(0);
+    // ⚠ And the formed dose authors no lability, so re-heating the
+    // leftovers cannot destroy it either.
+    expect(dose!.labileAtK).toBeUndefined();
+  });
+
+  it('a FRESH cook leaves no formed dose at all', async () => {
+    spoiled(PLAIN_VEG, 0);
+    const outcome = await craftAs(cook, {
+      recipeRef: 'boiled-beans',
+      makerMode: 'self',
+    });
+    expect(outcome.ok).toBe(true);
+    if (!outcome.ok) return;
+    const slot = BulkableApi.slotFor(outcome.output, undefined)!;
+    expect(slot.getFreshnessLoad()).toBe(0);
+    expect(
+      slot.getPayload()!.toxicity.some((t) => t.type === 'ptomaine'),
+    ).toBe(false);
+  });
+
   it('⚠ a lazy warm-through resets NOTHING — the load blends through', async () => {
     spoiled(PLAIN_VEG, 0.7);
     const outcome = await craftAs(cook, {

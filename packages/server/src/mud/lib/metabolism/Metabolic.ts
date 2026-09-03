@@ -31,6 +31,7 @@
  */
 
 import type { MixinConstructor, FieldMeta } from "../mixin";
+import type { CommandContributions } from "../../api/command";
 import type { Stuff } from "../stuff/Stuff";
 import { Quantity } from "../quantity";
 import type { Unit } from "../quantity";
@@ -395,6 +396,27 @@ function assertRecordOfNonNeg(value: Record<string, number>, what: string): void
 export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class MetabolicMixin extends Base implements Metabolic {
     static _mixinName = "MetabolicMixin";
+
+    /**
+     * ⭐⭐ **`eat` and `vomit` live on the BODY**, because a body with a
+     * digestion buffer is exactly what can do either. `drink`/`sip` are
+     * the vessel's (you drink from a thing), and eating is the same act
+     * from the other side: the target is chosen at dispatch, the
+     * capability is yours.
+     *
+     * ⚠⚠ **Both verbs shipped with NO affordance at all.** The views
+     * existed, the controllers existed, the tests instantiated the
+     * controllers directly — and no player could ever type `eat`, in any
+     * room, at any food, because nothing anywhere contributed them. A
+     * live drive typed `eat stew` at a bowl of stew and the world said
+     * *"I don't understand 'eat'"*. This is the `feel`/`taste` failure of
+     * the libations build repeating exactly: missing enabling data fails
+     * CLOSED and SILENT, and a controller test skips the binder that
+     * would have caught it.
+     */
+    static commandContributions: CommandContributions = {
+      self: ["platform/cmd/bulk/eat.yaml", "platform/cmd/bulk/vomit.yaml"],
+    };
 
     static fieldMeta: FieldMeta = {
       digestionPools: { persistent: true, runtimeState: true },

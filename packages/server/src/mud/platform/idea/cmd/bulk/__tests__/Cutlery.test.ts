@@ -32,6 +32,11 @@ import { CommandDefinition } from "../../../../../lib/command/CommandDefinition"
 import type { MqlOneResult } from "../../../../../api/mql";
 import { METABOLIC_DEFAULTS } from "../../../../../lib/metabolism/Metabolic";
 import { UTENSIL_KINDS } from "../../../../../lib/bulk/Utensil";
+import { MetabolicMixin } from "../../../../../lib/metabolism/Metabolic";
+import { Idea } from "../../../../../lib/stuff/Idea";
+import { existsSync } from "fs";
+import { join } from "path";
+import { fileURLToPath } from "url";
 import {
   makeStuff,
   makeStuffAtPath,
@@ -190,5 +195,110 @@ describe("eating with cutlery (AC11a)", () => {
     utensil("bowl", loc);
     await eat(apple(loc));
     expect(self!).toContain("with your fingers");
+  });
+});
+
+describe('⚠⚠ the verbs are actually AFFORDED (the binder, not the controller)', () => {
+  it('a body with a digestion buffer offers `eat` and `vomit`', () => {
+    // ⭐ This is the assertion whose absence let both verbs ship
+    // unreachable: every other test in the suite instantiates
+    // `EatController` directly, which skips the binder entirely. A live
+    // drive typed `eat stew` at a bowl of stew and the world answered
+    // "I don't understand 'eat'".
+    const contributed = (
+      MetabolicMixin(Idea) as unknown as {
+        commandContributions?: { self?: string[] };
+      }
+    ).commandContributions?.self;
+    expect(contributed).toContain('platform/cmd/bulk/eat.yaml');
+    expect(contributed).toContain('platform/cmd/bulk/vomit.yaml');
+  });
+
+  it('…and the shipped views those names point at exist', () => {
+    const views = join(
+      fileURLToPath(new URL('../../../../../../../../', import.meta.url)),
+      'content/platform/content/platform/cmd/bulk',
+    );
+    expect(existsSync(join(views, 'eat.yaml'))).toBe(true);
+    expect(existsSync(join(views, 'vomit.yaml'))).toBe(true);
+  });
+});
+
+describe('⭐ eating a MEAL out of the dish it came in', () => {
+  /** A served dish: a bulk vessel holding an edible blend. */
+  function servedDish(loc: Stuff): CraftVessel {
+    const d = makeStuff(() => new CraftVessel());
+    (d as unknown as { interiorBulk: boolean }).interiorBulk = true;
+    d.setInteriorCapacity(Quantity.of(1, 'L'));
+    d.setCategory('bowl');
+    d.setShortDescription('a bowl');
+    // The slot's material by PATH — the shape every bulk fixture in the
+    // suite uses; `setMaterial` needs a live singleton to read a path off.
+    (d as unknown as { interiorMaterial: string }).interiorMaterial = APPLE;
+    const slot = d.getBulk('interior');
+    slot.setAmount(Quantity.of(0.4, 'L'));
+    slot.setPayload({
+      name: 'hearty stew',
+      appearance: 'a thick brown stew',
+      nutrients: ['carb'],
+      nutrientAmounts: { carb: 34000 },
+      toxicity: [],
+      edible: true,
+    });
+    ContainmentApi.move(d as never, loc as never);
+    return d;
+  }
+
+  let eater2: TestEater;
+  let loc2: Stuff;
+
+  // ⚠ Its OWN setup: this describe sits outside the first one, so the
+  // material registration and the scene capture up there never ran for
+  // it — which read as "the feature is broken" when the fixture simply
+  // had no world.
+  beforeEach(() => {
+    installV1QuantityMarshallers();
+    StuffApi.clearAll();
+    captureScene();
+    makeStuffAtPath(() => {
+      const m = new Material();
+      m.setName('apple');
+      m.setAppearance('an apple');
+      m.setEdibility(true);
+      m.setNutrients(['carb']);
+      return m;
+    }, APPLE);
+    loc2 = makeStuff(() => new Location()) as unknown as Stuff;
+    eater2 = makeStuff(() => new TestEater());
+    (eater2 as unknown as { setName(n: string): void }).setName('ann');
+    ContainmentApi.move(eater2 as never, loc2 as never);
+  });
+  afterEach(() => {
+    vi.restoreAllMocks();
+    StuffApi.clearAll();
+  });
+
+  it('⚠ the meal is eaten and the DISH survives — a bowl to wash, not a bowl destroyed', async () => {
+    // The live drive typed `eat stew` at a bowl of stew and heard "you
+    // can't eat a bowl". A cooked meal is a blend inside a claimed dish,
+    // so the vessel IS what `eat` resolves to.
+    const dish = servedDish(loc2);
+    await makeStuff(() => new EatController()).execute(
+      { target: one(dish as unknown as Stuff, 'stew') } as never,
+      ctxFor(eater2 as unknown as Stuff, loc2),
+    );
+    expect(eater2.solidVolume).toBeGreaterThan(0);
+    expect((eater2.digestionPools.carb ?? 0)).toBeGreaterThan(0);
+    expect(dish.isDestroyed()).toBe(false);
+    expect(dish.getBulk('interior').getAmount().rawValue()).toBeCloseTo(0, 6);
+  });
+
+  it('and cutlery narrates on this arm too', async () => {
+    utensil('spoon', loc2);
+    await makeStuff(() => new EatController()).execute(
+      { target: one(servedDish(loc2) as unknown as Stuff, 'stew') } as never,
+      ctxFor(eater2 as unknown as Stuff, loc2),
+    );
+    expect(self!).toContain('with a spoon');
   });
 });

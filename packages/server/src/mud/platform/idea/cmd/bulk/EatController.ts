@@ -52,6 +52,13 @@ export default class EatController extends CommandController<EatModel> {
       return;
     }
 
+    // ⭐ A cooked meal is a bulk blend in a claimed dish, so `eat stew`
+    // targets the BOWL. Serve from the slot rather than swallowing the
+    // crockery — the two arms of the verb, one act.
+    if (this.isServedDish(target)) {
+      return this.eatFromDish(target, context);
+    }
+
     const material = MixinApi.isTangible(target) ? target.getMaterial() : null;
     if (!material || material.getEdibility() !== true) {
       MessageApi.scene(giver)
@@ -111,6 +118,76 @@ export default class EatController extends CommandController<EatModel> {
       )
       .send();
     await StuffApi.destruct(target);
+  }
+
+  /** A vessel holding edible matter — a bowl of stew, a plate of roast. */
+  private isServedDish(target: Stuff): boolean {
+    if (!MixinApi.isBulkable(target) || !target.hasInteriorBulk()) return false;
+    if (target.isBulkEmpty("interior")) return false;
+    const payload = target.getBulkPayload("interior");
+    if (payload) return payload.edible === true;
+    return target.getBulkMaterial("interior")?.getEdibility() === true;
+  }
+
+  /**
+   * Eat a portion out of a dish. The bulk sibling of the discrete arm —
+   * same solid intake, same spoilage fold (through the slot's own
+   * `getIngestPayload`), and the dish is EMPTIED rather than destroyed,
+   * because a bowl you have finished is a bowl to wash, not a bowl that
+   * has ceased to exist.
+   */
+  private async eatFromDish(
+    target: Stuff,
+    context: CommandContext,
+  ): Promise<void> {
+    const giver = context.commandGiver;
+    const slot = BulkableApi.slotFor(target, undefined);
+    if (!slot) return;
+    const material = slot.getMaterial();
+    const payload = slot.getIngestPayload();
+    const appearance =
+      payload?.appearance ?? material?.getAppearance() ?? "it";
+    const portion = Math.min(
+      METABOLIC_DEFAULTS.EAT_PORTION_LITRES,
+      slot.getAmount().rawValue(),
+    );
+    const accepted = BulkableApi.ingestSolid(giver, material, portion, payload);
+    if (accepted < portion - 1e-9) {
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(Mml.compose`You're too full to eat ${Mml.thing(target)}.`)
+        .send();
+      context.note({
+        kind: "controller-rejected",
+        reason: "too-full",
+        detail: "digestion buffer's solid sub-volume is full",
+      });
+      return;
+    }
+    const utensil = this.claimUtensil(giver);
+    const withIt = utensil ? ` ${UTENSIL_PHRASE[utensil.kind]}` : "";
+    MessageApi.scene(giver)
+      .topic(TOPIC)
+      // ⚠ No article: a blend's authored appearance carries its own
+      // ("a thick brown stew…"), where a Material's does not. The
+      // discrete arm below keeps `the`. Live drive read "You eat the a
+      // thick brown stew".
+      .toSelf(
+        utensil
+          ? Mml.compose`You eat ${appearance}${withIt}.`
+          : Mml.compose`You eat ${appearance} with your fingers.`,
+      )
+      .toPeers(
+        utensil
+          ? Mml.compose`${Mml.actor(giver)} eats from ${Mml.thing(target)}${withIt}.`
+          : Mml.compose`${Mml.actor(giver)} eats from ${Mml.thing(target)} with their fingers.`,
+      )
+      .send();
+    BulkableApi.transfer(slot, null, {
+      kind: "measure",
+      litres: accepted,
+      mode: "lenient",
+    });
   }
 
   /**

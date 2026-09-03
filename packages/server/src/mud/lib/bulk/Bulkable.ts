@@ -54,6 +54,7 @@ import { MqlSubscriptionApi } from '../../api/mql-subscription';
 import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
 import type { MarkupAugmenter } from '../../api/mml';
 import type Material from '../material/Material';
+import type { ToxinTag } from '../metabolism/Metabolic';
 import {
   COMPETENCE_BANDS,
   type CompetenceBandName,
@@ -122,8 +123,14 @@ export interface BulkPayload {
   nutrients: string[];
   /** Label amounts (tag → mg per serving) — display, like Material's. */
   nutrientAmounts: Record<string, number>;
-  /** Per-serving toxin doses (each ingest is one serving). */
-  toxicity: { type: string; amount: number }[];
+  /**
+   * Per-serving toxin doses (each ingest is one serving). ⚠ The full
+   * {@link ToxinTag} shape, not a narrowed `{type, amount}` — a payload
+   * mirrors a Material's toxicity, and a dose that dropped its
+   * `labileAtK` on the way through a blend would come back cookable
+   * after somebody had already cooked it.
+   */
+  toxicity: ToxinTag[];
   /** Whether the blend is edible (the label + eat gates read this). */
   edible: boolean;
   /**
