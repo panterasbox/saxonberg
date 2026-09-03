@@ -1407,6 +1407,104 @@ already `cut`'s waste decision.
 hard as it binds the tradesman.** ⚠ Any later proposal that lets a
 working beat a craft *durably* is contradicting Kell, not extending it.
 
+### P23 — The three businesses, and the price tables
+
+*(Decided with the user 2026-09-02. Shapes taken from the shipped
+`Business` + `AttendancePoint` seeds — `hollis-outfit.yaml` and
+`bar-counter.yaml` are the exemplars.)*
+
+#### ⭐ The mill does not retail — it consigns
+
+The producer-annex pattern distilling and brewing already ship: the mill
+**produces and consigns** through the shipped `consigns` brain, and cloth
+appears in the **Terminus general store**, where players already shop.
+Less new content, and it puts the good where the buyer is. **So only two
+of the three need a counter — and they need different ones.**
+
+```yaml
+# trade-textiles — the Wharfside mill            (produces + consigns)
+name: "the Wharfside mill"
+positions:
+  - { key: spinner, label: at the wheel, wageRate: 3, confers: [], purchases: false }
+  - { key: weaver,  label: at the loom,  wageRate: 5, confers: [], purchases: true  }
+rosterSlots: [ spinner → …/agent/mill-spinner, weaver → …/agent/mill-weaver ]
+banksAt: goodkin
+operatingLocations: [ …/location/mill-floor, …/thing/mill-stock ]
+# NO AttendancePoint — the `consigns` brain moves cloth to the store
+```
+
+```yaml
+# trade-dyeing — the Wharfside dyehouse          (a SERVICE, walk-in)
+positions: [ { key: dyer, label: at the vats, wageRate: 5, purchases: true } ]
+AttendancePoint:
+  discipline: line                 # bring cloth, wait your turn
+  serverPositionKeys: [dyer]
+  skin.poke: "The dyer wipes her hands and nods you over."
+```
+
+```yaml
+# trade-tailoring — the tailor's shop            (a SERVICE, by appointment)
+positions: [ { key: tailor, label: at the bench, wageRate: 6, purchases: true } ]
+AttendancePoint:
+  discipline: appointment          # P18 — the fitting is a booking
+  serverPositionKeys: [tailor]
+  skin.poke: "Vasca sets down the shears. 'Now then — let's have your measure.'"
+```
+
+⭐⭐ **Read the wage column.** spinner **3** · weaver **5** · dyer **5** ·
+tailor **6**. **The bottleneck job is the worst-paid one** — the
+uncomfortable historical fact, and precisely *why* mechanising spinning
+was both so profitable and so socially disruptive. ⚠ **Do not "fix" it
+upward for fairness**: the wage table teaches the same lesson as the B2
+bench and the P18 ladder, from a third direction, and flattening it
+deletes the lesson.
+
+#### Prices — off the P18 ladder
+
+**Cloth**, per unit, in the general store — P21's continuum priced at
+three points (grade and colour modify):
+
+| | per unit |
+|---|---|
+| sackcloth (coarse, open weave) | 20 |
+| plain linen | **40** ← the P18 anchor |
+| fine linen | 70 |
+
+**The dyehouse**, per unit, with ⭐ **P19's stage gradient legible on the
+board before you buy rather than after**:
+
+| service | fee |
+|---|---|
+| mordanting | 10 |
+| garment-dye | 25 |
+| piece-dye (per unit) | 40 |
+| yarn-dye (per unit) | 50 |
+| the **woad vat** | ~2× — the living vat is the premium |
+
+**The tailor:**
+
+| | |
+|---|---|
+| `measure` | ⭐ **free** |
+| alteration | 20 |
+| stock shirt / trousers | 50 / 60 |
+| stock coat | 200 |
+| bespoke shirt | 120 |
+| bespoke coat | 500 |
+
+⭐ **Measuring is free on purpose** — the loss-leader that gets you into
+the book (P18) and brings you back. Real retail behaviour, and it is what
+makes the book fill up.
+
+**Sanity against the wage:** a spinner on 3/hr earns 24 a day, so a stock
+coat is **~8 days of her own labour** and a bespoke one is a month; a
+tailor on 6/hr clears it in half that. Clothing is a serious purchase for
+the person who makes the yarn — stratified, but not absurd.
+
+⚠ As with P18: **a derivation and a starting table, not gospel.** The
+numbers move together or not at all — pulling one without the others
+breaks the wage/price consistency that makes them teach anything.
+
 ---
 
 ## Stage A — the kernel half
@@ -1677,7 +1775,11 @@ Content only, existing packs.
   read the `sharpenDurationMs()` way rather than the `HAMMER_MS` way —
   **so the bottleneck is tunable in settings and assertable by a bench
   without recompiling.**
-- **Venue:** the mill in Terminus (see Opens).
+- **Venue:** the mill at Wharfside. ⭐ **It does not retail** — it
+  produces and consigns through the shipped `consigns` brain, so cloth
+  reaches players in the Terminus general store (P23).
+- **The `Business`**: `spinner` at wage 3, `weaver` at 5 (P23) — ⚠ the
+  bottleneck job is the worst-paid, deliberately.
 
 ⭐⭐⭐ **The bottleneck bench** —
 `packages/content/trade-textiles/src/idea/cmd/textiles/__tests__/mill-throughput.bench.test.ts`,
@@ -1729,7 +1831,9 @@ fight):
   against, and a way for a dyed garment to describe itself.
 - **The `dyeing` Discipline** (P16): competence buys **fastness and
   repeatability** — matching last month's lot — never a brighter hue.
-- The dyehouse in Terminus; the vat as a class in `src/thing/`.
+- The dyehouse at Wharfside — a **walk-in service** (`AttendancePoint`,
+  `discipline: line`), `dyer` at wage 5; the vats as classes in
+  `src/thing/`. Its price board shows P19's stage gradient (P23).
 - **Tests:** twelve pairs each produce a hue and a fastness (AC 14); iron
   saddens and alum brightens the same dyestuff; **washing decays fastness
   and a poor mordant fades faster** — closing the loop A8 opened; a dyed
@@ -1771,8 +1875,9 @@ fight):
   gate — **you buy the look by buying the object** (AC 16).
 - **Livery** — a named set a business issues. ⚠ "Outfit" is a `Business`;
   the word here is **livery**, everywhere, including identifiers.
-- ⭐ **The shop is an `AttendantMixin` service point** (user, 2026-09-02),
-  `discipline: appointment` — you go to the shop, you are served, you are
+- ⭐ **The shop is an `AttendancePoint`** (user, 2026-09-02),
+  `discipline: appointment`, `tailor` at wage 6, ⭐ **`measure` free** as
+  the loss-leader that fills the book (P23) — you go to the shop, you are served, you are
   measured, you come back. Chosen over the gig board for v1 because
   **the fitting scene is tailoring's best RP beat and a job board has
   none**; the contract half is the player-tailor's, deferred.
