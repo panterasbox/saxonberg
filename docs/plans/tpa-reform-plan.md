@@ -467,6 +467,48 @@ the target.
 holds fewer charges than one attuned to a valley**, because `capacityTau` is
 authored and `mgh` is not.
 
+### BUC on a teleport item — recorded, not built
+
+**Asked (user, 2026-09-02): don't we need blessed/uncursed/cursed profiles, with
+blessed giving more control and cursed the least?**
+
+⚠ **BUC is an item axis, not a spell axis** — *"a potency level on the item's
+own effect axis; the engine owns the ordering `cursed < uncursed < blessed`,
+the item owns the meaning."* A cast from your own faculty has no BUC, there
+being no object to bless. So the scope is not "every spell" but "every item
+that carries one".
+
+⭐ The instinct is exactly the shipped pattern. The first cut used a **global**
+`BUC_POTENCY` multiplier and was rejected because *"every cursed item became
+the same item"* and *"0.6× firebolt and 1.0× firebolt read identically"*. The
+fix was **per-effect bands** — a field as a 3-tuple `[cursed, uncursed,
+blessed]`, and effects that exist only at some bands. So "blessed gives
+control" needs **no new machinery**.
+
+⭐⭐ **And control is the right axis for a reason specific to this design:**
+everything here says teleportation's hard part is **specification**, not power.
+BUC modulating *how good the survey is* is derived rather than decorative.
+
+⚠⚠ **But cursed must not ROLL the destination.**
+[uncertainty.md](../uncertainty.md) bans **resolutional** randomness outright —
+*roll to decide what the world IS, never what your action DID* — and a cursed
+wand that randomises where you land is exactly the banned shape. The honest
+form is deterministic, and is better fiction anyway: **a cursed item paid for
+less survey.**
+
+| band | the survey it holds | what you get |
+|---|---|---|
+| **blessed** | fine, with latitude | may name a spot *within* its area |
+| **uncursed** | one surveyed point | arrives there |
+| **cursed** | coarse — an area, not a spot | arrives at the area's landing point, **not** where meant |
+
+No roll anywhere: you did not know precisely where the cursed wand would put
+you, but it was always going to put you there — **epistemic**, which is legal,
+rather than resolutional, which is not.
+
+**Not built here**, since no teleport item ships. Recorded so the next author
+does not rediscover the randomness ban the hard way.
+
 **Scope: the door is made correct; no teleport item ships.** A wand or scroll
 of teleport is content, and none was asked for. The *door* must be right anyway
 — a code path that is wrong is wrong whether or not a row exercises it today —
