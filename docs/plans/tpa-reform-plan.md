@@ -884,13 +884,12 @@ Recorded rather than deleted because the *reasoning* still holds for anything
 that genuinely does name a realm — a row whose content references specific
 localities cannot live in a mechanism pack.
 
-⚠ **The question did expose a real naming tension, and it is the plan's, not the
-asker's.** `/system/tpa` is named for an **instance** — TPA is the Authority's
-acronym — while holding only mechanism, which is exactly why "put the Business
-in the tpa pack" reads as obvious. Either the root becomes `/system/teleport`
-and *the Teleport Authority* stays purely the in-world operator's name, or
-"tpa" is accepted as having gone generic. **Open; cheaper to settle before
-seven rows point at it.**
+✅ **The naming question is CLOSED (user, 2026-09-02): "tpa is and always will
+be the name."** The root stays `/system/tpa` and the pack id stays `tpa`;
+where the full form reads better, it is spelled `teleport-authority`. In
+practice the two never collide, because the mechanism and the institution are
+spelled differently anyway — `/system/tpa/thing/TpaTerminal` is the mechanism,
+`/system/tpa/idea/teleport-authority` is the institution.
 
 ### P16 — What each new surface gets: a test or a lint
 
