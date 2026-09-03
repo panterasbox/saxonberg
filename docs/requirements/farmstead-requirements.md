@@ -58,8 +58,9 @@ Seeding slates: [farming](../slates/builds/farming-slate.md) ·
   textiles, cooking, fermentation, brewing and distilling from real production.
 - **A farmstead archetype states its needs** so a locality can bind them with
   zero pack code — and the **university farm is its first test** (D103).
-- **Producers can trade with each other** — stock, feed, manure, grass and
-  labour — and a market day gives the locality a time when everyone is present.
+- **A record is legible to a buyer, and quality is worth paying for** — the
+  levers a producer market will later reward (D79, D82), even though the market
+  itself is tier 3.
 - **A new player can learn this by doing it on somebody else's land**, before
   owning any (D103–D104).
 - **A holding can be harmed and can be defended socially** — the reconcile is
@@ -96,7 +97,12 @@ Seeding slates: [farming](../slates/builds/farming-slate.md) ·
 - **Aquaculture**, goats, and the pet *experience* layer (adoption, the
   un-delegable outcome). This build lands the substrate pets will inherit; it
   does not ship pets.
-- **The forestry *industry*.** D70 ships woodland as a land use and the
+- **⚠ Everything in staging tier 3** — woodland as a land use, salt, peat, wet
+  ground, the commons-rights frame (D70–D74), and the producer market with its
+  market day and cooperative (D79–D83). Designed here, built next. ⚠ Three of
+  those decisions still **bind this MR's implementation** — see
+  *Staging § Tier 3 is deferred, but three of its decisions still bind this MR*.
+- **The forestry *industry*.** D70 would ship woodland as a land use and the
   cut-and-regrow rotation, because D63's fuel demand needs them. Timber grades,
   conversion, seasoning, the wood species rows, the woodward and estovers are
   [forestry-slate](../slates/builds/forestry-slate.md)'s.
@@ -942,17 +948,19 @@ that yields charcoal yields the timber the mine shores with."* **D63 makes it
 three**: firewood for heating. Winter now bids against the smelter and the mine
 for one stand, which is where the fuel economy gets its teeth.
 
-⚠ **The boundary with [forestry-slate](../slates/builds/forestry-slate.md),
-stated once:** this build ships **the land use and the rotation**, because D63's
-fuel demand cannot exist without them. The **industry** — timber grades,
-conversion and sawing, seasoning, the wood species rows, the woodward, estovers
-— is that slate's, and is a non-goal here.
+⚠⚠ **Restated under the staging cut (2026-09-03): none of this ships in this
+MR.** D70 is **tier 3**, so the managed stand and the cut-and-regrow rotation
+wait, and **D63's firewood demand is met from `trade-fuel`'s shipped coppice** —
+the demand is real here, the *supply-side land use* is not. When tier 3 does
+arrive it takes the land use and the rotation only; the **industry** — timber
+grades, conversion, seasoning, the wood species rows, the woodward, estovers —
+remains [forestry-slate](../slates/builds/forestry-slate.md)'s.
 
 Woodland also supplies **pannage** for the pigs (D30), hedgerow material for
 fencing (D56), and `ash` — whose material row **already ships** in `trade-fuel`,
 so D68's potash leg needs no new substance.
 
-**D71 — Salt: the field as an apparatus.** ⭐ *Cuttable, like bees (D39).* A
+**D71 — Salt: the field as an apparatus.** ⚠ *Tier 3 — not this MR.* A
 saltern does not grow salt: you admit seawater and **the weather does the work**,
 which makes the field a machine and the sun its power source. We ship
 temperature, humidity and wind.
@@ -973,7 +981,7 @@ maximally regressive to tax — the gabelle helped end a monarchy and Gandhi wal
 to the sea over one — so a polity taxing salt is making a decision whose
 incidence players can actually discover.
 
-**D72 — Peat: a soil you mine.** ⭐ *Cuttable.* Peat accumulates at roughly a
+**D72 — Peat: a soil you mine.** ⚠ *Tier 3 — not this MR.* Peat accumulates at roughly a
 millimetre a year, so a metre of it is a thousand years old. Cutting turf
 **looks like farming and behaves like mining** — extraction from a stock that
 does not renew on any human timescale — and it sits in the *same landscape* as
@@ -1530,7 +1538,7 @@ holding is immortal:
 
 ---
 
-## Staging — ⚠ PROPOSED, needs the user's sign-off
+## Staging — ⭐ DECIDED: tiers 1 and 2 are this MR; tier 3 follows
 
 **This is no longer one build**, and the audit's largest finding is that nothing
 said so. 106 decisions accreted over eight lenses; the irreducible core is the
@@ -1538,16 +1546,42 @@ said so. 106 decisions accreted over eight lenses; the irreducible core is the
 finished alone — and everything after it is elaboration on a working system.
 For scale: farming Stage B alone was six waves.
 
-The tiers below are a **proposal**, not a decision. How many of them belong in
-one MR is a scope call.
+**Decided 2026-09-03: tiers 1 and 2 ship in this MR. Tier 3 is a separate build
+that follows it.**
 
 | Tier | What | Why it sits there |
 |---|---|---|
 | **1 — the spine** | D1–D33 · D40–D42 · **D84–D94** (reading + cadence) · D102–D105 | the gate circle plus the rules that govern *how* everything reads and how often it is touched, which cannot be retrofitted. The teaching and on-ramp decisions are here because a build nobody can start is not shippable. |
 | **2 — the working farm** | D45–D68 (hazards, the plot lifecycle, materials, the wild) · D95–D101 (adversarial) | turns a correct system into a place with consequences. Severable from tier 1 in principle; probably not in practice, since D54's lifecycle changes what `plot` means. |
-| **3 — the economy** | D69–D74 (land-use modes, commons rights) · D79–D83 (the producer market) · D106 | needs producers to exist first. **D80's market day is the highest-value item in this tier** and the cheapest. |
-| **cuttable** | bees (D39) · salt (D71) · peat (D72) · wetland (D73) · saffron (D44) | each is severable from a working farm; each is marked at its decision |
+| **3 — the economy** ⚠ **NOT THIS MR** | **D70–D74** (woodland, salt, peat, wet ground, commons rights) · **D79–D83** (the producer market) | needs producers to exist first. **D80's market day is the highest-value item in it** and the cheapest. |
+| **cuttable within tiers 1–2** | bees (D39) · saffron (D44) · turnips + the rotation payoff (D67) | severable from a working farm; each is marked at its decision |
 | **deferred to slates** | forestry industry · hunting · flowers/ornament · warranty | already non-goals; listed so the boundary is legible |
+
+### ⚠⚠ Tier 3 is deferred, but three of its decisions still bind this MR
+
+**A deferred design still constrains the implementation it will later sit on**,
+and getting this wrong is how tier 3 turns into a rewrite instead of an addition:
+
+- **D79 — the herdbook must be legible to a buyer**, not only to its keeper. The
+  *market* is tier 3; the *record shape* is tier 1, and a herdbook built purely as
+  a management tool would have to be reworked.
+- **D82 — the quality levers are tier 1 mechanisms.** Grade, the per-viewer
+  survey, competence and records all ship here; the market that *rewards*
+  specialising over autarky is tier 3. Build the levers so they can be paid for
+  later.
+- **D74 — the commons rights are a legal frame, not a mechanism.** Nothing of it
+  ships here, but D101's trespass question and D64's abatement seam both point at
+  it, so **do not close either off** with an ownership model that cannot express
+  a right to take produce from land you do not hold.
+
+**And two decisions change meaning under this cut:**
+
+- **D69 stays** as framing — ground has four modes and D7 covered one — even
+  though D70–D73 do not ship. It costs a paragraph and it stops the frame being
+  re-derived.
+- **D106 moves into tier 2.** Its obligation (*do not create an object the
+  mortality and incapacity builds cannot dispose of*) is a constraint on the work
+  in this MR, not a follow-on.
 
 ⭐ **Two sequencing notes from the lenses:**
 
@@ -1595,6 +1629,11 @@ one MR is a scope call.
   lint family, regardless of how structural a change is.
 
 ## Acceptance criteria
+
+⚠ **Criteria 36–40 and 43–47 belong to staging tier 3 and do NOT gate this MR.**
+They are kept here so the follow-on build inherits them rather than re-deriving
+them. Everything else is this MR's.
+
 
 1. A player can `plot` a field on agricultural ground they hold, walk to it
    through its gate, and the field draws against the parcel's declared area.
