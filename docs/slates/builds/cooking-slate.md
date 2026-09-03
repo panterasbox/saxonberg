@@ -461,6 +461,41 @@ clock lives:
   sanitation slate's territory ("abandonment is an act"); compost is
   hearth-and-larder Part 3.
 
+### Scraps, waste & cleanup (settled)
+
+No new mechanism — one abstention, one pre-registration, one
+completed sentence:
+
+- **Scraps as objects: only where a consumer exists — v1 has none to
+  make.** The abstraction-law rule: a scrap is worth modeling exactly
+  when it's an *input* (trimmings → tallow, bones → stock — both
+  **butchery's outputs**, already in its stashed findings); peels are
+  clutter, not content. One-shot craft-resolve deliberately abstracts
+  prep — the mess is *inside* the abstraction. **Scrap objects arrive
+  with prep acts** (peeling as an act yields peels), the tending
+  era's territory; bones→stock then lands as clear broth's frugal
+  upstream, and compost-or-stock becomes a real household fork.
+- ⭐ **Spoiled-food disposal completes the compost pack's sentence.**
+  [Hearth-and-larder](./hearth-and-larder-design-pack.md) Part 3:
+  compost's "*consumer already ships and its producer does not*" —
+  **spoilage + cooking IS the missing producer.** Once W0 runs,
+  players hold crocks that turned; the bin/midden (a vessel row
+  feeding smallholding's nitrogen reserve) is the answer that isn't
+  `destruct`. Until it lands, pouring out spoiled bulk is the honest
+  minimum (the bulk substrate empties vessels today).
+- **Cleanup splits cleanly**: dishes are v1's cleanup **and they
+  ship** (Part 6's soil/wash/bus cycle — the basin, the rack, the
+  par). The *kitchen* getting messy is the
+  [room-condition pack](./room-condition-design-pack.md)'s model
+  (producers + causal clears, the steward's gate); cooking's
+  obligation is one pre-registered line — **when that pack lands,
+  cooking acts emit the producer event**. v1 kitchens stay magically
+  tidy, stated honestly.
+- **Greywater is the conduit ladder's** (watershed: "a sewer is the
+  same object reversed", contamination by kind ships) — dishwater is
+  a pointer, not cooking mechanism; the rural kitchen tosses the
+  basin out the door, which is just pouring.
+
 ### Seasoning & spices (settled)
 
 Four different things wearing one word:
@@ -550,12 +585,17 @@ sinks):
    it already runs, and ice cream wants the cold chain plus the
    ice-and-salt endothermy rung (freezing-point depression) for the
    pre-icebox era. Deferred by dependency, not taxonomy.
-2. **Preservation / the victualler** — the seasons-scale answer arriving
+2. **Compost** (hearth-and-larder Part 3) — its consumer always
+   shipped (smallholding's nitrogen reserve); **this build finally
+   creates its producer** (routine spoiled food needing a sink that
+   isn't `destruct`). The cheapest member of the family, now unblocked
+   — see § Part 3 scraps.
+3. **Preservation / the victualler** — the seasons-scale answer arriving
    when the days-scale answer has taught everyone the problem; salt gets
    its demand, the trade geography wakes.
-3. **The baker pack** — its own cycle: mill chain upstream, dough-as-
+4. **The baker pack** — its own cycle: mill chain upstream, dough-as-
    ferment, staling as the goods clock.
-4. **The tending wave** — durative cooking (the `FermentingMixin` shape
+5. **The tending wave** — durative cooking (the `FermentingMixin` shape
    applied to the pot), `maxHeatK` scorching, doneness, combination
    methods (braise), the skill seam crafting.md already declares next,
    and free cooking. The abstraction law licenses one-shot `cook` until
@@ -611,7 +651,7 @@ sinks):
      stir-resets-the-clock = a timestamp the reconcile reads; process
      memory = additive `BulkPayload` fields carried by the technique
      record.
-5. **The antitoxin** — the ptomaine Condition seed declares
+6. **The antitoxin** — the ptomaine Condition seed declares
    `resolution: { by: antitoxin }`, and `ResolutionSpec` is explicitly
    shape-only v1: **a declared mechanism token with no consumer — no
    antitoxin item exists anywhere.** Today the only plays are `vomit`
@@ -627,7 +667,7 @@ sinks):
    trap ration may be too punishing or too soft once spoilage makes
    exposure common. A W3 drive item, and a named check for the
    requirements cycle.
-6. **Disease** inherits the W0 growth term whenever its build comes,
+7. **Disease** inherits the W0 growth term whenever its build comes,
    already proven in production.
 
 ---
