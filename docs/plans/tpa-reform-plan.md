@@ -848,6 +848,27 @@ data:
 the **one realm reference**, and removing it is the whole of this decision:
 Terminus stops governing the network.
 
+⭐ **Seats fill exactly as every other pack's do — nothing to build.** The
+chain is the standard capability-pack one: `{kind: committee, parcel:
+/system/tpa}` → the committee over that parcel → the `tpa` group the
+manifest's title claim gives it → `owner: {office: prime-minister}` (the same
+declaration `water` and `arcana` make) → **the founder by Art. XI's
+pool-of-one**, with the PM operator override on top. `Authority.ts` says the
+quiet part outright: only `office` and `committee` carry that default, so
+*"an authority the founder cannot satisfy is one nobody can satisfy on a cold
+box"* — which is why `committee` was already the right kind here and a group
+would have been wrong.
+
+**And there is nothing to fill yet.** The Authority ships `positions: []` — a
+self-regulating institution with no staff, the network fee funding maintenance
+that is deferred. ⭐⭐ The **first** position is the one D8b's arming floor
+creates: a terminal drains with zero traffic, so somebody swaps frontier cells
+on a schedule, and that somebody is a **TPA employee appointed by the TPA's own
+committee**. It gives `docs/vocations.md`'s *water / sewer worker*-shaped gap
+an employer that is neither a locality nor a corpo — the first seat arriving
+with a reason rather than as scaffolding. Out of scope here; recorded so the
+build does not invent a staffing model it does not need.
+
 ⚠ **Reseed hazard, unchanged:** `fasttravel.tpaBusinessPath` is a
 `settings`-kind row and that kind is **merge-missing**, so an existing world
 keeps pointing at the old path until the key is edited by hand. W2 records it
