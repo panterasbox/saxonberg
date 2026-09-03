@@ -267,50 +267,127 @@ arguments about law, one road between them, felt by walking.
 
 ## Hinkley Hills — tenure
 
+> ⭐ **Worked out in full 2026-09-02** — the sources, the Death Man, the
+> District razor and the open-door policy are staged under `docs/staging/`.
+> This section holds the decisions and why.
+
 **Functional half (shipped).** 40 generative lots, the plat plan, the
-keyed house programme, the garden bed, the District tank. 14 files, of
-which **three are authored rooms** — everything a player touches is a
-keyed mint.
+keyed house programme, the garden bed, the standpipe, the District tank,
+`title buy`. 14 files, of which **three are authored rooms** — everything
+a player touches is a keyed mint. And **zero NPCs live here.**
 
-**The gap, and it is the biggest single-room win in the realm.** Hinkley
-is the only ground a player owns, and **the street shows nothing.** You
-cannot name your house, write its exterior, hang a sign, or have a
-neighbour see from the lane what you did. A suburb's entire nature is that
-it is *visible from the street*.
+**Sources:** The 'Burbs · Edward Scissorhands · Blue Velvet ·
+Pleasantville. Themes, never cast.
 
-⭐ **One authored `longDescription` per lot, plus a sign, rendered into the
-lane** is the highest-leverage addition in this slate. It converts the
-most mechanically sophisticated locality in the game from a set of
-identical interiors into a place with residents.
+### ⭐⭐ The engine is idle attention
 
-**The support half**, derived — dwelling produces nothing, so Hinkley is a
-**dormitory suburb** and the rail link is not connective tissue but its
-actual economic base:
+Rejection's engine is exhaustion. Hinkley is the inverse — **not enough to
+do and too much to look at**, which is the honest condition of a suburb
+and *The 'Burbs* precisely.
 
-- **The shop at the stop.** One general store. A round trip to town for
-  flour is the entire friction of living here; the shop converts "remote"
-  from a tax into a choice.
-- **The District office.** A desk for the paper institution that just got
-  its first real job (the tank, D27). Today the District has charter `""`,
-  no seats, and nowhere to meet.
-- **The hall.** What a subdivision builds when it decides it is a place
-  rather than a plan. The plat book on the wall.
-- **The nursery / seed merchant.** The garden suburb's own supply, and the
-  seam to Heart's Delight — planting stock arrives from the valley.
+> ⭐⭐⭐ **Hinkley's content is other people.** Not a trade, not a
+> resource, not a verb — the one locality whose play surface is the
+> **social graph**, which ships in full and has almost nothing to point at.
 
-**Character.** Everything is slightly too big for the population: a 400 m³
-tank for nine houses, a lane surveyed for a hundred families, signs in
-confident letters. It is the **speculative subdivision** — infrastructure
-built ahead of demand, waiting to be right. Specific, real, quietly funny,
-and already in the shipped prose.
+⭐ And it has no acts, it has a **loop**: nothing happens in a suburb,
+things accumulate.
 
-**The other gap.** The ladder (dorm → lot → house → garden) is real and
-then stops. Nothing above a quarter-acre, and lot *N* is indistinguishable
-from lot *M* — no aspect, no corner, no soil variance, no view. ⭐ One
-authored variation axis on the plat makes lots comparable, and therefore
-worth choosing between.
+### The facades
 
----
+Hinkley is the only ground a player owns and **the street shows nothing.**
+One owner-authored `longDescription` per lot plus a sign, rendered into the
+lane, is **the highest-value single addition in the realm** — one field and
+one render pass.
+
+### ⭐⭐⭐ The Death Man is permanently ambiguous
+
+Not *innocent and you were the maniac*; not *guilty and you were right*.
+**Unresolved, forever** — The 'Burbs shot an alternate ending, the Klopeks
+were guilty in both, and the same ending plays either way. It was never
+about the Klopeks.
+
+⚠ **The ambiguity cannot live in the ground** — this is an AGPL repo and a
+player can read the content, so a hidden body is found in an afternoon and
+a hidden *nothing* is confirmed just as fast. Therefore:
+
+> **You can resolve the ground. You can never resolve the man.**
+
+Dig the garden, find nothing a court would care about, and it changes
+nothing: he is still at the window, still hasn't spoken to a neighbour in
+nine years, still buying forty bags of soil a month. Nothing is hidden in
+the source, so there is nothing to spoil.
+
+⭐ **And the weird house is a role, not a secret** — let your front go and
+keep your back beautiful and *you are the weird house*. He is the
+demonstration of a state the player can enter, not a puzzle. The general
+rule for every weird house after him: **it always has something, and it is
+never a crime.**
+
+### ⭐⭐ The street sees condition and infers the person
+
+⚠ **No stewardship score exists.** Land use shipped (Hinkley built it), the
+allowance cascade is inert, and the **Stewardship** layer is absent. When
+it lands, keep two things apart: **Stewardship is a Discipline** (a fact
+about a *person*), **condition is a fact about a property** — and condition
+is the only thing visible from the street.
+
+So a run-down front supports the inference *careless man* and the inference
+is false. **A true measurement carrying a false conclusion**, which is how
+prejudice operates — and it puts the lane on the wrong side of the
+measurement doctrine, running an unlicensed layer-2 move on somebody else's
+reading.
+
+### ⭐⭐⭐ Blue Velvet: the record of your pursuit is the content
+
+Curiosity as complicity — Jeffrey chooses to look and is implicated by
+looking. Which answers how an unresolvable mystery satisfies:
+
+> **The mystery is never the content. The record of your pursuit is.**
+
+⭐⭐ **Hinkley is the mirror town** — what you get at the end is a file on
+yourself, and `accountability_events` + belief + renown already keep it.
+
+**Every rung of the ladder is a shipped subsystem** — notice (perception) ·
+theorize (**belief**) · share (social graph) · judge (**renown at a
+nine-person scope**, where every opinion is a measurable fraction) ·
+surveil (concealment) · trespass (parcel title, ⭐ *no lock involved*) ·
+dig (cultivation on ground you do not hold). **No quest chain is
+authored.**
+
+### ⭐⭐ Scissorhands: the decent path is free and socially expensive
+
+The crowd that adores and the crowd that hunts are the same crowd. So:
+**just knock.** Nobody has in nine years — not because it is hard, but
+because doing it publicly marks you, and a player shown that garden
+legitimately becomes the weird one by association. Two ladders: the decent
+one nobody climbs because it costs, and the escalation everyone is on
+because it is free.
+
+⚠ **Pleasantville guardrail: people judge, the system never does.** No
+mechanical penalty for authoring an odd facade, no gauge, no dinged score —
+the NPCs have views and the District cannot touch it, which puts the player
+in Prentice's position with nothing enforced.
+
+### ⭐⭐⭐ The District is the road not taken
+
+**Rejection has no institution and needs one. Hinkley has one and will not
+use it.** Two failure modes of civic life, one road apart.
+
+The stewardship doctrine — *zoning governs use, never self-expression;
+never your couch* — **forbids the HOA**, so the grievance has no legitimate
+channel and the neighbours invent an illegitimate one.
+
+> ⭐⭐ **The razor: the District can act on what you DO, never on what you
+> look like.** The mob is right that there is no channel, and the reason
+> there is no channel is that their grievance is not legitimate.
+
+⭐ **Which is what the potting soil is for.** They think it is a body; the
+mundane explanation is that he sells cuttings out of a residential lot — a
+real land-use violation, the one thing the District *can* act on, and it
+rules nothing out. *You cannot get a man for being strange, so you get him
+for the thing his fence is four inches over.* Regulatory capture at
+nine-house scale, and the same theme as Rejection Act III.
+
 
 ## Heart's Delight — cultivation
 
@@ -625,6 +702,29 @@ Leave it.
 - **D17 — Rejection runs the hue and cry; Terminus runs Peelers.** The
   policing slate's aesthetic arc is a Tiebout axis; two arguments about
   law with one road between them.
+- **D18 — ⭐⭐⭐ The Death Man is permanently ambiguous, and the ambiguity
+  lives in the man, not the ground.** The garden is resolvable; he is not.
+  ⚠ Nothing is hidden in the source — this is an AGPL repo, and an
+  ambiguity a player can settle by reading YAML is not one.
+- **D19 — The weird house is a role a player can enter, not a secret to
+  reveal.** And every weird house **always has something, and it is never
+  a crime.** ⚠ The game never teases danger; a game that rewards paranoia
+  teaches the opposite of what this one is for.
+- **D20 — Doors: closed to the wire, open to the fiction.** The door is
+  not the mechanism, **witness is**. `ownerOf` is already a *total*
+  function (`stamp ?? parcel-extent ?? authorOf`), so nothing in an NPC
+  home is unowned and the Bethesda ambiguity cannot arise — ⭐ **the
+  anti-exploit is the ledger, not the lock**, and disposal is the hard
+  problem (the fence, per policing-slate). ⚠ `knock` does not exist and is
+  wanted here first; **regard is the INPUT to the door, never the
+  output.**
+- **D21 — Locks are locality characterization, not global policy.**
+  Rejection does not lock (hue-and-cry; nothing worth taking and the town
+  would know); Hinkley locks everything (strangers with property, nobody
+  home by day). ⭐ You learn a town's theory of trust by trying a handle.
+- ⚠⚠ **D22 — UNSOLVED: an NPC house as free storage.** Stashing goods
+  where you pay no upkeep is a real hole in the open-door design and needs
+  a rule before any of it ships.
 
 ---
 
@@ -678,6 +778,17 @@ Leave it.
   and cry, Terminus = Peelers).
 - **Mayfield Row** ships the lease tier: Walter, `lease`/`unlease`, the
   Seznick House unit programme; Ricky fronts `title buy`.
+- **`ownerOf(item)`** is the total three-rung chain `stamp ??
+  parcel-extent ?? authorOf`; it never returns *nobody*. A good in a
+  Hinkley house resolves to the lot's owner with **no stamp required**.
+- **No `knock` verb exists** anywhere in the tree.
+- **Stewardship**: land use SHIPPED (Hinkley built it — the closed
+  six-entry vocabulary on `ParcelRecord`, longest-prefix resolve, the
+  cultivation gate); the **allowance cascade is an inert field**; the
+  **Stewardship layer is absent**, and no Stewardship Discipline is in the
+  shipped roster (which holds 24, incl. `horticulture`).
+- **The Hinkley house programme** already ships the house door
+  `locked: true` to the lot's keyway.
 
 ---
 
@@ -692,9 +803,11 @@ Rough order, each independently shippable:
    same wave.
 1. **Heart's Delight** (both halves) — the gate is clear, it completes the
    spine, and it is the only *new* town. Biggest, and B0 re-grounds first.
-2. **Hinkley facade + neighbours** — the owner-authored exterior, the sign
-   in the lane, four or five commuting cast in lots. Small, and it is the
-   highest immersion-per-line in the slate.
+2. **Hinkley: facades + neighbours + the death man** — the owner-authored
+   exterior, the sign in the lane, six cast, and the escalation ladder
+   (which authors no quest chain: every rung is a shipped subsystem). ⭐
+   The highest immersion-per-line in the slate, and it needs almost no new
+   mechanics — only `knock`, and a rule for D22.
 3. **Rejection's support half** — boarding house, public house, sharpening
    shop, infirmary, hall. Mostly rooms and cast.
 4. **Homes everywhere** — `Offstage` → addressed rooms with doors, after
