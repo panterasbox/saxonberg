@@ -64,6 +64,8 @@ information**).
 >   else, and the commons turns tragic. **Forage teaches that depletion is a
 >   decision; game teaches that some depletion decisions are not yours alone.**
 
+---
+
 ## ⭐⭐⭐ The niche — and it is not "fishing on land"
 
 | | Fishing | Foraging |
