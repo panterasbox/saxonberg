@@ -65,8 +65,16 @@ data:
       keywords: [fence, wire, boundary]
       description: |
         Four strands of wire on split posts, straight enough. It marks the lot rather than defends it — everything past it is grass nobody owns yet.
+    # ⚠⚠ NOT bare `flax` / `woad`. A live drive planted flax in this
+    # yard's bed and then could not look at it: `look flax` resolved
+    # THIS SCENERY DETAIL instead of the growing plant, pinned the
+    # focus to it (`here:flax>`), and every later command in the care
+    # loop resolved against the wrong thing. The crop a player planted
+    # must win the bare crop word; the volunteers answer to what they
+    # ARE — a wild stand along the fence.
     volunteers:
-      keywords: [volunteers, flax, woad, leaves, fenceline, stand, rosette]
+      keywords:
+        [volunteers, volunteer, wild-flax, wild-woad, leaves, fenceline, stand, rosette]
       description: |
         Flax and woad, both escaped and both surviving on neglect — which is the sort of plant that ends up against a fence. The flax is nothing but stem, blue-flowered at the top and stubbornly straight; pull one and it does not snap so much as refuse. The woad is all leaf and takes a thumbprint in green that goes dark while you watch it.
 

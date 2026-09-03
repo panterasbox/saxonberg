@@ -35,11 +35,29 @@ export default class RettingPit extends Vat {
     // `Vat` / `Bottle` precedent). A row's `data:` overrides any of them.
     this.category = 'retting-pit';
     this.setInteriorCapacity(Quantity.of(400, 'L'));
-    // ⚠ OPEN, and not overridable to anything useful: a pit in the
-    // ground has no lid, and the over-ret failure only bites an open
-    // vessel. Sealing this would be sealing away the one judgement the
-    // stage has.
-    this.setClosure('open');
+    /*
+     * ⚠⚠ `liquidTight`, NOT `open` — and the distinction cost this
+     * build a whole live drive.
+     *
+     * `closure` is the RETENTION axis: `BulkableLogic.requiredClosureFor`
+     * returns `liquidTight` for every material there is ("v1 has only
+     * liquid"), so anything poured into an `open` interior drains
+     * straight through to the floor. The LID is the other axis
+     * entirely — `Sealable`'s `setOpen(true)`, which is what "no lid,
+     * open to the air" actually means, and what the over-ret / the
+     * unsealed ferment read.
+     *
+     * Authored `open` here on the reasoning "a pit in the ground has no
+     * lid", and the result was a vessel that could never hold anything:
+     * `pour sheaf into pit` answered "The liquid runs straight through
+     * a retting pit and pools on the floor", the straw was destroyed,
+     * and the chain's first stage was unrunnable. No unit test caught
+     * it because the pack's tests build the pit's contents directly
+     * instead of pouring into it.
+     */
+    this.setClosure('liquidTight');
+    // No lid — a pit in the ground. The over-ret failure only bites an
+    // unsealed vessel, and this is the axis that says so.
     this.setOpen(true);
     this.setKeywords(['pit', 'retting-pit', 'pond']);
     this.setPrimaryKeyword('pit');

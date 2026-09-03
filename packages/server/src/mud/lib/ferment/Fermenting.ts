@@ -588,8 +588,31 @@ export function FermentingMixin<TBase extends MixinConstructor>(Base: TBase) {
         this.viability = 1;
         return;
       }
-      this.fermentPhase =
-        profile !== null && this.startingSugarGPerL > 0 ? 'active' : 'idle';
+      /*
+       * ⭐⭐ A batch is active when a PROFILE MATCHED — not when the
+       * substrate happens to contain sugar.
+       *
+       * This read `profile !== null && this.startingSugarGPerL > 0`,
+       * and the sugar half was a wine/beer assumption that had quietly
+       * become a precondition on the whole mixin. Nothing downstream
+       * uses sugar to advance a batch: `fractionConverted` climbs by
+       * `rateAt(profile, tempK) * days`, and `startingSugarGPerL` only
+       * seeds the gravity and ABV READOUTS, which correctly report
+       * nothing for a ferment that makes no alcohol.
+       *
+       * ⚠⚠ A live drive found it: the textile chain's RETTING PIT is a
+       * real slow bacterial ferment (pectin hydrolysis, a fortnight, an
+       * over-run failure four days past ready) and models perfectly on
+       * this mixin — except that flax straw has no sugar, so the pit sat
+       * `idle` forever and the chain could not start. The SHAPE matched;
+       * the PRECONDITION did not hold. `culture` batches already had
+       * their own sugar-free branch above, which is the same admission
+       * made once already for a special case.
+       *
+       * An unmatched material still idles, and an emptied vessel still
+       * resets — the two things the phase actually means.
+       */
+      this.fermentPhase = profile !== null ? 'active' : 'idle';
       if (this.fermentPhase === 'active' && profile !== null) {
         // Lag 0 = the must self-starts wild at the fill (skin bloom);
         // a lagged (sterile) must waits for a pitch or the wild lag.

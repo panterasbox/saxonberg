@@ -31,8 +31,29 @@ export default class BleachingGreen extends Vat {
     super();
     this.category = 'bleaching-green';
     this.setInteriorCapacity(Quantity.of(200, 'L'));
-    // Open to the sky, which is the entire mechanism.
-    this.setClosure('open');
+    /*
+     * ⚠⚠ `liquidTight`, NOT `open` — and the distinction cost this
+     * build a whole live drive.
+     *
+     * `closure` is the RETENTION axis: `BulkableLogic.requiredClosureFor`
+     * returns `liquidTight` for every material there is ("v1 has only
+     * liquid"), so anything poured into an `open` interior drains
+     * straight through to the floor. The LID is the other axis
+     * entirely — `Sealable`'s `setOpen(true)`, which is what "no lid,
+     * open to the air" actually means, and what the over-ret / the
+     * unsealed ferment read.
+     *
+     * Authored `open` here on the reasoning "a pit in the ground has no
+     * lid", and the result was a vessel that could never hold anything:
+     * `pour sheaf into pit` answered "The liquid runs straight through
+     * a retting pit and pools on the floor", the straw was destroyed,
+     * and the chain's first stage was unrunnable. No unit test caught
+     * it because the pack's tests build the pit's contents directly
+     * instead of pouring into it.
+     */
+    this.setClosure('liquidTight');
+    // Open to the sky, which is the entire mechanism — and `setOpen`
+    // is where "open to the sky" lives.
     this.setOpen(true);
     this.setKeywords(['green', 'bleaching-green', 'sward']);
     this.setPrimaryKeyword('green');
