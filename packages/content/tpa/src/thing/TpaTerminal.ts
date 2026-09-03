@@ -214,26 +214,34 @@ export default class TpaTerminal extends TpaTerminalBase {
     // cache-registration, so reentrant route lookups (and the warren's
     // re-seat) hit the in-flight instance.
     await this.seatSelf();
-    // ⚠ The line BEFORE the cell: a gate that has both should read as
-    // line-fed, and `getSupplyMode` prefers the bay — so a gate wired
-    // to a main and shipped with a cell is authoring a spare, not a
-    // supply. Standing the line up first makes that legible at boot.
     await this.armSupply();
-    await this.seatBornWithCell();
     await this.armNetwork();
     this.armTimetable();
   }
 
   /**
-   * Seat the authored cell, if the bay is empty. ⓘ NOT `props:` — props
-   * seed CONTENTS and a bay is occupancy; and the once-guard has to be
-   * "the bay is empty" rather than "have I populated", so a gate whose
-   * cell somebody swapped out does not get a free replacement on the
-   * next boot.
+   * @hook Seat the authored cell — the spine's **no-record branch**.
    *
-   * Contents first, then the slot — the `plant`-into-a-pot order.
+   * ⚠⚠ This was `postRegister`'s job for about an hour, and the live
+   * drive killed it: `StuffApi.singleton` already runs
+   * `hasRecord ? materialize : seedBornWith + capture`, so seating a
+   * cell in `postRegister` put one in the bay and THEN let the restore
+   * try to re-seat the captured one — *"Slotted.occupy: slot 'battery'
+   * is full"*, and the terminal failed to stand up at all. Every gate
+   * on the frontier was dark on the second boot.
+   *
+   * Overriding `seedBornWith` is the fix and is also what the row
+   * comment always claimed: laid down exactly once, on a world that has
+   * no record of this gate, and captured immediately after — so the
+   * next standup RESTORES the cell (at whatever charge it had drained
+   * to) rather than minting a fresh full one. AC13c's drain is only
+   * durable because of this.
+   *
+   * ⓘ Still not `props:` — props seed CONTENTS and a bay is occupancy.
+   * Contents first, then the slot: the `plant`-into-a-pot order.
    */
-  private async seatBornWithCell(): Promise<void> {
+  public override async seedBornWith(): Promise<void> {
+    await super.seedBornWith();
     if (!this.bornWithCell) return;
     if (this.getOccupant(BATTERY_SLOT)) return;
     try {
