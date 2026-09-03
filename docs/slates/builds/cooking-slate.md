@@ -816,6 +816,75 @@ was the fire extinguisher):
   market for functionally redundant goods. Allowed, sold, displayed;
   never required.
 
+### Cookware: rows over two spatial relations, materials do the physics (settled)
+
+**Mechanically, cookware variety is rows, not classes** — a copper pan
+and an iron pot are `CookPot`/`CraftVessel` rows with different
+`_materialPath`, and the physics fields already live on every Material
+(`thermalConductivity` · `specificHeat` · `density`):
+
+| cookware | the real property | the engine term |
+|---|---|---|
+| copper | fast, even response | high conductivity → small τ |
+| cast iron | thermal **mass** — holds sear temp when cold food lands | high `specificHeat × density` → big C |
+| stainless | poor conductor (hence cladding exists) | low conductivity |
+| clad/core | a conductivity layer under a durable face | **layered construction — materials-response models exactly this for armor**; the same pattern pointed at heat |
+| glass/ceramic | slow, gentle, even retention | low conductivity, decent C — the bean pot |
+
+- ⭐ **Pre-registration for the tending seam bill (S1)**: the
+  pot-on-the-fire couple must flow through the **vessel's own material
+  properties** (τ from conductivity, C from mass × specific heat) —
+  then every cookware row differentiates **for free** when tending
+  lands: cast iron genuinely holds its sear, the thin cheap pan
+  genuinely scorches (low conductivity → a narrower scorch window).
+  Zero cookware-specific code, ever. Until tending, one-shot resolve
+  reads only `reachableHeatFor`, so v1 cookware variety is texture,
+  economy (smith/potter products, `control` bands), and roleplay —
+  honestly stated.
+- **The medieval roster** (trades-ship-medieval): **copper** (the
+  metal chain ships `smelt-copper` + `cast-bar` — a copper pan is
+  authorable today), **iron**, **earthenware** (the ⭐potter's entry
+  into cookware). Stainless, aluminum cores, borosilicate are
+  19th–20th-century — up the known-of→can-make ladder, never authored
+  ahead of demand; the clad pan is that ladder's craft summit.
+- **Two toxin-substrate convergences**: unlined **copper + acidic
+  food leaches** — *why tinned copper exists*; the tin lining is the
+  smith's craft rung, and copper toxicity is the shape of **lead,
+  which already ships as a toxin**. Better: **lead-glazed
+  earthenware is THE historical kitchen poison** — the cheap pot
+  that poisons the household through every acidic stew: authored
+  content against a shipped toxin, a price-vs-safety decision with
+  real stakes. (Cast-iron *seasoning* is a patina — see the
+  [patina design pack](./patina-design-pack.md); a pointer, not a
+  mechanism.)
+
+**Shapes: IN vs ON is `Bulkable`-interior vs `Surfaced`, and the
+craft substrate abstracts over both.** Wet and fat methods need
+**bulk-holding** (the medium sits *in* something: pots, kettles, woks,
+the skillet holding its fat); dry needs only **bearing** (griddle,
+sheet, rack, spit — or a dry pot). But `ManualBuildMixin` banks
+*contributions*, not spatial containment — a griddle hosts a flatbread
+build exactly as a pot hosts a stew — so in/on is per-row spatial
+texture, invisible to the crafting machinery. **The oven is not
+cookware**: the vessel holds the food, the furnace (`FurnaceMixin`)
+holds the heat; what goes in an oven is the sheet or dish.
+
+- **Edge cases that fit by construction**: the **bain-marie** — a
+  vessel in a vessel of water, the inner ambient IS the outer's
+  373 K-capped water, so gentle custard heat *derives from nesting
+  two shipped objects*; the **pressure cooker** — sealing raises the
+  medium's `boilingPoint` (the cap model, correct in advance; far up
+  the ladder); **ember cooking** — no cookware at all, an item in the
+  campfire's scope: the dry method's floor and the free-cooking
+  horizon's.
+- ⭐ **The one accepted limit: a pan has no hot side.** Lumped
+  capacitance = one temperature per object — no intra-pan gradient,
+  no two-zone grill. Accepted **permanently** rather than modeling
+  spatial gradients: the tending wave gets the felt consequence by
+  reading conductivity into the scorch window (the honest result of
+  hot spots without simulating them). The two-zone technique is the
+  one loss, and it is a fair price.
+
 ### The field: no travel category (settled)
 
 - **Camp cooking already works by doctrine** — crafting.md: *"camp
