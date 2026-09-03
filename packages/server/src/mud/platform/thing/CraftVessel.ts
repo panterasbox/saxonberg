@@ -1,7 +1,7 @@
 /**
  * CraftVessel — **the vessel a craft's bulk output lands in**: claimed
  * from a pool, filled, marked used, washed, claimed again. A bar glass is
- * the obvious case, but so are hearth-cooking's syrup bottle and the
+ * the obvious case, but so are cooking's syrup bottle and the
  * house juice bottles — this is not a drink class, it is the shape every
  * claimable vessel is a row over.
  *

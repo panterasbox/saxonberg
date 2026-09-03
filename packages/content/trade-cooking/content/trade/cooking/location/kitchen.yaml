@@ -1,0 +1,57 @@
+# The KITCHEN — a BUNDLE, and that is the finding (D12).
+#
+# It has no room-level function, and the shipped code says so out loud:
+# `CookPot.yaml` is already "reachable heat + a pot is a kitchen, anywhere."
+# Cooking is conferred by the instruments; a kitchen ROOM confers nothing.
+# What it delivers is the ERRAND COLLAPSE — standing heat, plumbed water, a
+# work surface and food in reach, in the home you already live in.
+#
+# The built-ins below are the LANDLORD'S: authored fixtures under the unit's
+# parcel extent, so `ownerOf` resolves them to the parcel owner and carrying
+# one off is theft, recoverable (D5). The cook pot is the tenant's — its own
+# docstring already calls it portable capital, and portable capital is
+# chattel. Two independent guards: mass (the anvil rule) and title.
+#
+# ⚠ THE ONE AUTHORED DECISION WITH TEETH: the `air` reserve, copied from
+# `hearthworks/cellar.yaml`. This is the only room in the build where you
+# deliberately run a fire indoors. `FireLogic` computes
+# `ventilated = isSkyExposed || openNeighbours.length > 0`; a scope with a
+# finite air budget, a lit fire and NO ventilation burns incomplete — smoke
+# and carbon monoxide, the medium turns un-breathable, respiration takes the
+# CO on as a burden, and the fire self-smothers.
+#
+# Forgiving by construction: ANY open neighbour ventilates, and a kitchen
+# has a doorway. The failure mode of getting it wrong is "the stove went out
+# and the room stinks", not death by accident. Deleting the block restores
+# `airReserveOf -> null` -> open air, with nothing else touched.
+class: /platform/location/FurnishableRoom
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  # ⚠⚠ **No `coords:`, and that is the warren exception.** This row looks
+  # like a trade floor and is not: it is one of the four D6 FURNISHING
+  # ARCHETYPES — a HOME kitchen a floorplan clones into a house, where
+  # the programme stamps the cell. It ships from `trade-cooking`
+  # only because that pack owns cooking, and a coords sweep by pack name
+  # took it for a trade floor until `check-location-classes`'s FURNISHED
+  # roster said otherwise. It is on that roster for exactly this reason.
+  shortDescription: a kitchen
+  primaryKeyword: kitchen
+  keywords: [kitchen, room]
+  longDescription: |
+    A working kitchen — a range against one wall, a counter down the other, a larder in the corner and a basin under the window. It smells of woodsmoke and yesterday's cooking.
+  ambientIntensity: 35
+  ambientColorTemperature: 4500
+  reserves:
+    air:
+      capacityValue: 100
+      currentValue: 100
+      unit: "%"
+      theme: atmosphere
+      floorEffect: null
+  # Order matters: the counter is populated before anything that could rest
+  # on it (the dorm's desk-then-pot precedent).
+  props:
+    - /stuff/thing/fixture/range
+    - /stuff/thing/fixture/counter
+    - /stuff/thing/fixture/larder
+    - /stuff/thing/fixture/basin

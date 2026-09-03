@@ -121,8 +121,8 @@ function contentRows(): Row[] {
     ...yamlDir('trade-bottling', 'trade/bottling/thing', '/trade/bottling/thing'),
     ...yamlDir('trade-farming', 'trade/farming/idea/material', '/trade/farming/idea/material'),
     ...yamlDir('trade-farming', 'trade/farming/thing', '/trade/farming/thing'),
-    ...yamlDir('trade-hearth-cooking', 'trade/hearth-cooking/idea/material', '/trade/hearth-cooking/idea/material'),
-    ...yamlDir('trade-hearth-cooking', 'trade/hearth-cooking/thing', '/trade/hearth-cooking/thing'),
+    ...yamlDir('trade-cooking', 'trade/cooking/idea/material', '/trade/cooking/idea/material'),
+    ...yamlDir('trade-cooking', 'trade/cooking/thing', '/trade/cooking/thing'),
   ];
   // Placed by hand here, never by the sweep.
   for (const r of rows) {
@@ -155,7 +155,7 @@ async function stock(path: string): Promise<Stuff> {
   return s;
 }
 
-/** A house-made bottle filled by hand (the syrup — hearth-cooking's recipe wants a lit range). */
+/** A house-made bottle filled by hand (the syrup — cooking's recipe wants a lit range). */
 async function fill(path: string, materialPath: string, amountL: number): Promise<Stuff> {
   const b = await stock(path);
   const m = await StuffApi.singleton<Material>(materialPath);
@@ -181,7 +181,7 @@ beforeAll(async () => {
           ...docsOf('trade-brewing', 'recipes'),
           ...docsOf('trade-winemaking', 'recipes'),
           ...docsOf('trade-bottling', 'recipes'),
-          ...docsOf('trade-hearth-cooking', 'recipes'),
+          ...docsOf('trade-cooking', 'recipes'),
         ],
   );
 
@@ -238,9 +238,9 @@ beforeAll(async () => {
   for (const p of ['limes', 'lemons', 'oranges', 'grapefruits', 'mint', 'cherries', 'olives', 'cranberries']) {
     await stock(`/trade/farming/thing/crate-of-${p}`);
   }
-  await stock('/trade/hearth-cooking/thing/sugar-sack');
-  await stock('/trade/hearth-cooking/thing/coffee-sack');
-  await fill('/trade/hearth-cooking/thing/syrup-bottle', '/trade/hearth-cooking/idea/material/simple-syrup', 0.5);
+  await stock('/trade/cooking/thing/sugar-sack');
+  await stock('/trade/cooking/thing/coffee-sack');
+  await fill('/trade/cooking/thing/syrup-bottle', '/trade/cooking/idea/material/simple-syrup', 0.5);
   await stock(`${ROOT}/thing/glass-rack`);
 }, 120_000);
 

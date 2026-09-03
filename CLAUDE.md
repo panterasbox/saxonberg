@@ -754,7 +754,7 @@ reason.
   (`pour`/`stir`/`heat`/`repair`/`salvage`/`wash`/`make`) and
   `retail/menu`+`order`; a trade's own steps ship in its capability pack
   (`trade-hospitality`: `muddle`/`strain`/`garnish`/`mix`/`serve`;
-  `trade-hearth-cooking`: `cook`/`plate`; `trade-smithing`:
+  `trade-cooking`: `cook`/`plate`; `trade-smithing`:
   `forge`/`hammer`/`quench`/`sharpen`; `trade-mining`:
   `hew`/`drive`(`drift`)/`sink`/`raise`/`shore`/`stake`; `trade-fuel`:
   `char`; `trade-smelting`: `smelt`) under `content/<root>/cmd/` +

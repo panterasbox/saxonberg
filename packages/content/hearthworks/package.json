@@ -3,11 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "The Hearthworks \u2014 the venue that hosts the smithing and hearth-cooking trades: five rooms, the business, the cast, the two menus, the pantry.",
+  "description": "The Hearthworks \u2014 the venue that hosts the smithing and cooking trades: five rooms, the business, the cast, the two menus, the pantry.",
   "dependencies": {
     "@saxonberg/content-corpo-goodkin": "workspace:*",
     "@saxonberg/content-platform": "workspace:*",
-    "@saxonberg/content-trade-hearth-cooking": "workspace:*",
+    "@saxonberg/content-trade-cooking": "workspace:*",
     "@saxonberg/content-trade-smithing": "workspace:*",
     "@saxonberg/server": "workspace:*",
     "@saxonberg/types": "workspace:*"

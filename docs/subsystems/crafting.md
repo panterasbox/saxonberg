@@ -339,7 +339,7 @@ used to be a single list copied verbatim onto two rows:
 | hospitality `strain` | the STRAINER | `/trade/hospitality/thing/Strainer` |
 | hospitality `mix`, `serve`, `garnish` | the STATION — whole-drink acts at the bar | `/trade/hospitality/thing/BarStation` (back-bar, well) |
 | hospitality `muddle` | the MUDDLER | `/trade/hospitality/thing/Muddler` |
-| hearth-cooking `cook`, `plate`, platform `heat` | the POT | `/trade/hearth-cooking/thing/CookPot` |
+| cooking `cook`, `plate`, platform `heat` | the POT | `/trade/cooking/thing/CookPot` |
 | platform `boil` | the FURNACE — you cannot boil without a heat source | `FurnaceMixin` (oven, kiln, forge) |
 | smithing `hammer`, `quench`, `forge` + platform `repair`, `salvage` | the ANVIL | `/trade/smithing/thing/Anvil` |
 | platform `repair`, `salvage` | mending capital | `/platform/thing/MendingTool` (sewing kit, sewing machine) |
@@ -373,10 +373,10 @@ it: `make`, `heat`, `boil`, `pour`, `stir`/`shake`, `repair`, `salvage`,
 heats and boils; a basin washes; mending is any trade's); `menu`/`order` are platform
 **retail** (a menu is commerce, any venue); `muddle`, `strain`,
 `garnish`, `mix`, `serve` are `trade-hospitality`'s; `cook`, `plate`
-are `trade-hearth-cooking`'s; `forge`, `hammer`, `quench`, `sharpen`
+are `trade-cooking`'s; `forge`, `hammer`, `quench`, `sharpen`
 are `trade-smithing`'s — each a capability pack with its controllers in
 `src/idea/cmd/crafting/` and the tests beside them. The kitchen bundle
-and the cook-pot row are hearth-cooking's too (the bundle collects the
+and the cook-pot row are cooking's too (the bundle collects the
 trade's instruments).
 
 `FurnaceMixin` statically confers `heat` (with `ignite`/`douse`/`pump`)
@@ -586,7 +586,7 @@ holding a real (non-blend) material — a recipe with authored
 a pool glass; and such a recipe **tops up** a reachable bottle of the
 same template already holding that material (one juice bottle a day,
 not one per lime). `press-{lime,lemon,orange,grapefruit}` (tool `juicer`,
-`kind: item` produce, `outputPortionL`) and hearth-cooking's
+`kind: item` produce, `outputPortionL`) and cooking's
 `simple-syrup` (sugar + water, `requiresHeatK: 340`, tool `pot`) are
 ordinary `bulk` recipes over this.
 
@@ -707,12 +707,12 @@ homed by what they *are*:
   `Bottle` (the stock vessel — [retail.md](./retail.md)), `Crate`,
   `CocktailShaker` (the build vessel), `NeonSign`, `TipJar`. ⭐ A class
   named for ONE trade's fixture ships in that trade's pack, not here —
-  `GlassRack` is hospitality's, `CookPot` hearth-cooking's, `SpiritBottle`
+  `GlassRack` is hospitality's, `CookPot` cooking's, `SpiritBottle`
   and `Still` distilling's. See [content-packs.md](./content-packs.md) § *Where a class lives*.
 - **Singleton** → `obj/`: `RecipeCatalogue`.
 - **Recipes** live where the trade that introduces them lives (content
   packs wave 4a/4b): `trade-smithing` ships the smithing five at
-  `/trade/smithing/recipes/<id>`, `trade-hearth-cooking` its four
+  `/trade/smithing/recipes/<id>`, `trade-cooking` its four
   (toasted-ration, root-mash, fine-roast, hearty-stew),
   `trade-hospitality` the bar's 21 cocktails + coffee and the four
   presses, each stub trade its serving recipe (`pint`, `glass-of-{red,
@@ -733,7 +733,7 @@ tv, remote) and `agent/` (dave, mara). **The `Bar` populates NO bottle**
 — the rail is stocked by Mara's `restocks` brain buying at the
 distributor ([retail.md](./retail.md), [employment.md](./employment.md)).
 Every libation `Material` lives with the trade whose PROCESS makes it
-(`/trade/{distilling,brewing,winemaking,bottling,produce,hearth-cooking}/idea/material/`);
+(`/trade/{distilling,brewing,winemaking,bottling,produce,cooking}/idea/material/`);
 base-library keeps water, air, salt-water. `trade-hospitality/content/
 archetypes/hospitality.yaml` is the venue archetype its own `menu.test.ts`
 materializes a bar from (`archetype.materialize()`) to order all 24

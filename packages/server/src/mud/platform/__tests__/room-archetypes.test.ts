@@ -21,12 +21,12 @@ import { parse } from "yaml";
 
 // A32.2 scaffolding: a kernel test reading shipped content by path. Three
 // archetypes are the generic-objects pack's rows (content-packs wave 3);
-// the kitchen is the hearth-cooking trade's bundle (libations — a venue
+// the kitchen is the cooking trade's bundle (libations — a venue
 // bundle lives with the trade whose instruments it collects).
 const CONTENT = fileURLToPath(new URL("../../../../../content/", import.meta.url));
 const ROW: Record<string, string> = {
   bedroom: "generic-objects/content/stuff/location/room/bedroom.yaml",
-  kitchen: "trade-hearth-cooking/content/trade/hearth-cooking/location/kitchen.yaml",
+  kitchen: "trade-cooking/content/trade/cooking/location/kitchen.yaml",
   bathroom: "generic-objects/content/stuff/location/room/bathroom.yaml",
   living: "generic-objects/content/stuff/location/room/living.yaml",
 };

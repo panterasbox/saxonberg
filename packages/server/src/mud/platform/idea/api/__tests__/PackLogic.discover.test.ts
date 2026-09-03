@@ -61,10 +61,10 @@ describe('the shipped packs (real discovery, no install)', () => {
     const ids = PackApi.contentRoots().map((root) => root.split('/').slice(-2)[0]!);
     expect(ids).toHaveLength(35);
     expect(ids[0]).toBe('platform');
-    for (const trade of ['trade-smithing', 'trade-hearth-cooking', 'trade-hospitality', 'trade-distilling']) {
+    for (const trade of ['trade-smithing', 'trade-cooking', 'trade-hospitality', 'trade-distilling']) {
       expect(ids.indexOf(trade)).toBeGreaterThan(ids.indexOf('generic-objects'));
     }
-    for (const trade of ['trade-smithing', 'trade-hearth-cooking']) {
+    for (const trade of ['trade-smithing', 'trade-cooking']) {
       expect(ids.indexOf('hearthworks')).toBeGreaterThan(ids.indexOf(trade));
     }
     expect(ids.indexOf('hearthworks')).toBeGreaterThan(ids.indexOf('corpo-goodkin'));
@@ -86,7 +86,7 @@ describe('the shipped packs (real discovery, no install)', () => {
     // The D10 decoupling: every trade that consigns (and every venue
     // that buys) orders after distribution, and no producing sibling
     // depends on trade-distilling any more.
-    for (const consigner of ['trade-brewing', 'trade-winemaking', 'trade-bottling', 'trade-farming', 'trade-hearth-cooking', 'trade-distilling', 'terminus', 'saxonberg-lounge']) {
+    for (const consigner of ['trade-brewing', 'trade-winemaking', 'trade-bottling', 'trade-farming', 'trade-cooking', 'trade-distilling', 'terminus', 'saxonberg-lounge']) {
       expect(ids.indexOf(consigner)).toBeGreaterThan(ids.indexOf('distribution'));
     }
     // The watershed cut: the three packs whose content names the water

@@ -29,7 +29,7 @@ import Crate from '../../platform/thing/Crate';
 import CartesianZone from '../../platform/idea/location/CartesianZone';
 
 const PACKS = fileURLToPath(new URL('../../../../../content/', import.meta.url));
-const ANNEXES = ['trade-brewing', 'trade-winemaking', 'trade-bottling', 'trade-farming', 'trade-hearth-cooking'];
+const ANNEXES = ['trade-brewing', 'trade-winemaking', 'trade-bottling', 'trade-farming', 'trade-cooking'];
 /** The two corpo-owned yards: distilling's rows, owned via `parentOrganization`. */
 const VESHKO = '/trade/distilling/location/veshko-yard';
 const HOLLIS = '/trade/distilling';
@@ -125,7 +125,7 @@ describe('libations annexes — the floor rows fit the faucet', () => {
     }
     // bottling ships 9: seven mixers + the ice bag + the can of cola (the
     // 330 mL can is its own price point, not a smaller bottle).
-    // hearth-cooking: three sacks + the syrup bottle (the bar's syrup line is bought, not cooked)
+    // cooking: three sacks + the syrup bottle (the bar's syrup line is bought, not cooked)
     // farming 10: the eight bar-fruit crates + the grape and juniper
     // crates. Winemaking and brewing: 0 — the switchover (their goods
     // are brain-made from empties now).
@@ -247,9 +247,9 @@ describe('libations annexes — the serving recipes and the zone', () => {
     for (const f of files) {
       const r = Recipe.fromData(parse(readFileSync(f, 'utf8')) as Record<string, unknown>);
       expect(r.outputApplication, f).toBe('bulk');
-      expect(r.outputTemplate.startsWith('/trade/hospitality/thing/') || r.outputTemplate === '/trade/hearth-cooking/thing/syrup-bottle', f).toBe(true);
+      expect(r.outputTemplate.startsWith('/trade/hospitality/thing/') || r.outputTemplate === '/trade/cooking/thing/syrup-bottle', f).toBe(true);
     }
-    const syrup = Recipe.fromData(parse(readFileSync(join(PACKS, 'trade-hearth-cooking/content/recipes/simple-syrup.yaml'), 'utf8')) as Record<string, unknown>);
+    const syrup = Recipe.fromData(parse(readFileSync(join(PACKS, 'trade-cooking/content/recipes/simple-syrup.yaml'), 'utf8')) as Record<string, unknown>);
     expect(syrup.requiresHeatK).toBe(340);
     expect(syrup.outputPortionL).toBe(0.5);
     expect(syrup.inputSlots[0]).toMatchObject({ kind: 'item', category: 'sugar', count: 1 });

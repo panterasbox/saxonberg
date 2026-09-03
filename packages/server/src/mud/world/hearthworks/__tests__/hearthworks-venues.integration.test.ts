@@ -65,7 +65,7 @@ import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__
  * catalogue is path-agnostic — it serves every `recipe` document whoever
  * installed it.
  */
-const RECIPE_DIRS = ['trade-smithing', 'trade-hearth-cooking', 'trade-hospitality'].map((pack) =>
+const RECIPE_DIRS = ['trade-smithing', 'trade-cooking', 'trade-hospitality'].map((pack) =>
   fileURLToPath(new URL(`../../../../../../content/${pack}/content/recipes/`, import.meta.url)),
 );
 /** A shipped row's `data` block, read from a pack by content-relative path. */
@@ -300,7 +300,7 @@ describe('the venue menus', () => {
     // ⭐ The working verbs ride the instruments, and there is exactly ONE
     // record of that: `static commandContributions` on the class. A
     // trade's own instrument verbs live on that trade's pack classes
-    // (`/trade/smithing/thing/Anvil`, `/trade/hearth-cooking/thing/CookPot`)
+    // (`/trade/smithing/thing/Anvil`, `/trade/cooking/thing/CookPot`)
     // and are asserted in those packs' suites — which is precisely why
     // no kernel test can name them, and why the kernel can never name a
     // trade's view. What the KERNEL owns is the build vessel: `pour` and
