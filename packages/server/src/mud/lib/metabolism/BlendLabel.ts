@@ -93,6 +93,29 @@ export class BlendLabel {
     return out;
   }
 
+  /**
+   * The blend's Material tags — the union of the ingredients'. What a
+   * blend *is made of* rides with it: a soda-water input makes the drink
+   * `carbonated`, and the vessel's prose reads that.
+   *
+   * ⚠ Tags are a Material fact rather than a nutrition one, so this sits
+   * here only because this is the class that already walks the
+   * composition. If a third composition-derived reading appears that is
+   * neither label nor tag, the walk wants its own home.
+   */
+  public static tagsOf(
+    payload: BulkPayload | null,
+    blend: Material | null,
+  ): readonly string[] {
+    const ingredients = BlendLabel.ingredientsOf(payload);
+    if (ingredients.length === 0) return blend?.getTags() ?? [];
+    const out: string[] = [];
+    for (const m of ingredients) {
+      for (const tag of m.getTags()) if (!out.includes(tag)) out.push(tag);
+    }
+    return out;
+  }
+
   /** Edible iff anything that went in was. */
   public static isEdible(
     payload: BulkPayload | null,

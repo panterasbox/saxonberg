@@ -329,15 +329,16 @@ export class Freshness {
    * Writing a faithful shadow is therefore a no-op in meaning and the one
    * honest way to say "*this* batch has been out since Tuesday".
    */
-  public static materialShadow(material: Material | null): BulkPayload {
-    const shadow: BulkPayload = { name: material?.getName() ?? '' };
-    const appearance = material?.getAppearance();
-    if (appearance) shadow.appearance = appearance;
-    const keywords = material?.getKeywords();
-    if (keywords && keywords.length > 0) shadow.keywords = [...keywords];
-    const tags = material?.getTags();
-    if (tags && tags.length > 0) shadow.tags = [...tags];
-    return shadow;
+  public static materialShadow(_material: Material | null): BulkPayload {
+    // ⭐⭐ **Empty, now — and that is the whole decomposition in one
+    // function.** This used to copy the Material's name, appearance,
+    // keywords, tags, nutrition, amounts, toxins and edibility, because a
+    // payload carrying only the ptomaine "would silently drop the food's
+    // real nutrition". Every one of those is derived today, with a
+    // fallback to the Material, so a shadow that says nothing reads
+    // identically to no shadow at all. It survives only as somewhere for
+    // `withDose` to hang a formed toxin.
+    return {};
   }
 
   /** Whether a material's own constants let it spoil at all. */

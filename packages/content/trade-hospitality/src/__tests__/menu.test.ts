@@ -52,6 +52,7 @@ import ArchetypeCatalogue from '@saxonberg/server/mud/platform/idea/ArchetypeCat
 import CraftVessel from '@saxonberg/server/mud/platform/thing/CraftVessel';
 import IceBin from '../thing/IceBin';
 import Tap from '../thing/Tap';
+import { BlendLabel } from '@saxonberg/server/mud/lib/metabolism/BlendLabel';
 
 const ROOT = '/trade/hospitality';
 const CONTENT = fileURLToPath(new URL('../../../', import.meta.url)); // packages/content/
@@ -350,7 +351,12 @@ describe('trade-hospitality — the menu, every line', () => {
     expect(served['mojito']!.getTechnique()).toBe('muddled');
     expect(served['gin-tonic']!.getTechnique()).toBe('built');
     // Carbonation rides the payload; the glass is the recipe's.
-    expect(slot(served['aperol-spritz']!).getPayload()?.tags).toContain('carbonated');
+    expect(
+      BlendLabel.tagsOf(
+        slot(served['aperol-spritz']!).getPayload(),
+        slot(served['aperol-spritz']!).getMaterial(),
+      ),
+    ).toContain('carbonated');
     expect(served['pint']!.getTemplatePath()).toBe(`${ROOT}/thing/pint`);
     expect(served['glass-of-sparkling']!.getTemplatePath()).toBe(`${ROOT}/thing/flute`);
     expect(served['moscow-mule']!.getTemplatePath()).toBe(`${ROOT}/thing/copper-mug`);

@@ -55,6 +55,7 @@ import WorldClockRegistry from '@saxonberg/server/mud/platform/idea/WorldClockRe
 import RecipeCatalogue from '@saxonberg/server/mud/platform/idea/RecipeCatalogue';
 import Oven from '@saxonberg/server/mud/platform/thing/Oven';
 import CookPot from '../thing/CookPot';
+import { BlendIdentity } from '@saxonberg/server/mud/lib/craft/BlendIdentity';
 
 const ROOT = '/trade/cooking';
 const CONTENT = fileURLToPath(new URL('../../../', import.meta.url)); // packages/content/
@@ -366,7 +367,8 @@ describe('⭐ the three-media root spine', () => {
     expect(kindOf(fried.output)).toBe('plate');
 
     // …and three different dishes, by the blend's own derived identity.
-    const nameOf = (s: Stuff) => slot(s).getPayload()?.name ?? '';
+    const nameOf = (s: Stuff) =>
+      BlendIdentity.nameOf(slot(s).getPayload(), slot(s).getMaterial());
     const names = new Set([
       nameOf(boiled.output),
       nameOf(roasted.output),

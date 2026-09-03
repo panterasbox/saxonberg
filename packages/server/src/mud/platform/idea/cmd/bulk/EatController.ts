@@ -23,6 +23,7 @@ import { Mml } from "../../../../api/mml";
 import { METABOLIC_DEFAULTS } from "../../../../lib/metabolism/Metabolic";
 import { Freshness } from "../../../../lib/material/Freshness";
 import { BlendLabel } from "../../../../lib/metabolism/BlendLabel";
+import { BlendIdentity } from "../../../../lib/craft/BlendIdentity";
 import {
   UTENSIL_KINDS,
   UTENSIL_PHRASE,
@@ -148,7 +149,7 @@ export default class EatController extends CommandController<EatModel> {
     const material = slot.getMaterial();
     const payload = Freshness.ingestPayloadOf(slot);
     const appearance =
-      payload?.appearance ?? material?.getAppearance() ?? "it";
+      BlendIdentity.appearanceOf(payload, material) || "it";
     const portion = Math.min(
       METABOLIC_DEFAULTS.EAT_PORTION_LITRES,
       slot.getAmount().rawValue(),

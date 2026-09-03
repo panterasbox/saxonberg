@@ -50,6 +50,7 @@ import { StuffApi } from "../../api/stuff";
 import { WorldClockApi } from "../../api/worldclock";
 import { TemplatePaths, TemplatePathPrefixes } from "../paths";
 import { BlendLabel } from './BlendLabel';
+import { BlendIdentity } from '../../lib/craft/BlendIdentity';
 
 /* ─────────────────────────── toxin model (types) ─────────────────────────── */
 //
@@ -1008,7 +1009,7 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
       else this.liquidVolume = current + accepted;
 
       this.routeIntake(material, accepted, payload);
-      this.lastMealLabel = payload?.name ?? material.getName();
+      this.lastMealLabel = BlendIdentity.nameOf(payload, material);
       return accepted;
     }
 

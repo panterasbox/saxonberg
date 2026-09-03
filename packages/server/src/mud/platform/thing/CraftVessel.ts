@@ -46,6 +46,7 @@ import { BulkableApi } from '../../api/bulk';
 import { StuffApi } from '../../api/stuff';
 import { CallSecurity } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
+import { BlendLabel } from '../../lib/metabolism/BlendLabel';
 
 /** Water's numbers — the fallbacks when the ice material authored none. */
 const DEFAULT_MELT_K = 273;
@@ -333,7 +334,10 @@ export default class CraftVessel extends CraftVesselBase {
       if (this.iceKg > 0) {
         parts.push(this.iceForm === 'crushed' ? 'over crushed ice' : 'on the rocks');
       }
-      const tags = this.getBulkPayload('interior')?.tags ?? [];
+      const tags = BlendLabel.tagsOf(
+        this.getBulkPayload('interior'),
+        this.getBulkMaterial('interior'),
+      );
       if (tags.includes('carbonated')) parts.push('fizzing');
     }
     const contents = this.getContents();

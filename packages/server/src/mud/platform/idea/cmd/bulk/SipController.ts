@@ -15,6 +15,7 @@ import { BulkableApi } from '../../../../api/bulk';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 import { Freshness } from "../../../../lib/material/Freshness";
+import { BlendIdentity } from "../../../../lib/craft/BlendIdentity";
 
 const TOPIC = 'act.deed';
 
@@ -75,7 +76,7 @@ export default class SipController extends CommandController<SipModel> {
     BulkableApi.ingest(giver, material, result.applied, payload);
 
     const appearance =
-      payload?.appearance ?? (material?.getAppearance() || 'it');
+      BlendIdentity.appearanceOf(payload, material) || 'it';
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(Mml.compose`You take a sip of the ${appearance}.`)

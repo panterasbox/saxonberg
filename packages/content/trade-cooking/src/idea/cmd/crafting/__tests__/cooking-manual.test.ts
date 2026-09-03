@@ -24,6 +24,7 @@ import CookPot from '../../../../thing/CookPot';
 import CraftVessel from '@saxonberg/server/mud/platform/thing/CraftVessel';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { BlendLabel } from '@saxonberg/server/mud/lib/metabolism/BlendLabel';
+import { BlendIdentity } from '@saxonberg/server/mud/lib/craft/BlendIdentity';
 import {
   TestActor,
   VEG,
@@ -152,8 +153,8 @@ describe('the by-hand cooking path', () => {
     // protein). No per-dish material row exists.
     expect(slot.getMaterialPath()).toBe(COOKED);
     const payload = slot.getPayload()!;
-    expect(payload.name).toBe('Hearty Stew');
-    expect(payload.appearance).toMatch(/thick brown stew/);
+    expect(BlendIdentity.nameOf(payload, null)).toBe('Hearty Stew');
+    expect(BlendIdentity.appearanceOf(payload, null)).toMatch(/thick brown stew/);
     expect(BlendLabel.amountsOf(payload, null)).toEqual({ carb: 34000, protein: 26000 });
     expect(BlendLabel.isEdible(payload, null)).toBe(true);
     expect(slot.getAmount().rawValue()).toBeCloseTo(0.4, 9); // the portion
@@ -188,8 +189,14 @@ describe('the by-hand cooking path', () => {
     // Off-spec still conserves: the generic base named by its own row,
     // the macros honestly summed from what actually went in.
     expect(slot.getMaterialPath()).toBe(COOKED);
-    expect(slot.getPayload()!.name).toBe('cooked fare');
-    expect(BlendLabel.amountsOf(slot.getPayload()!, null)).toEqual({ carb: 17000 });
+    // ⭐ No recipe on the off-spec path — so the identity falls back to
+    // the generic base Material, which is the whole point of the branch.
+    expect(
+      BlendIdentity.nameOf(slot.getPayload()!, slot.getMaterial()),
+    ).toBe('cooked fare');
+    expect(
+      BlendLabel.amountsOf(slot.getPayload()!, slot.getMaterial()),
+    ).toEqual({ carb: 17000 });
     expect(slot.getAmount().rawValue()).toBeGreaterThan(0);
     expect((dish as unknown as { getRecipe(): string }).getRecipe()).toBe('');
   });

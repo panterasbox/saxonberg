@@ -16,6 +16,7 @@ import { MixinApi } from '../../../../api/mixin';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 import { Freshness } from "../../../../lib/material/Freshness";
+import { BlendIdentity } from "../../../../lib/craft/BlendIdentity";
 
 const TOPIC = 'act.deed';
 
@@ -116,7 +117,7 @@ export default class DrinkController extends CommandController<DrinkModel> {
     const drunk = seenAs
       ? Mml.compose`You drink ${seenAs}.`
       : Mml.compose`You drink the ${
-          payload?.appearance ?? (material?.getAppearance() || 'it')
+          BlendIdentity.appearanceOf(payload, material) || 'it'
         }.`;
     MessageApi.scene(giver)
       .topic(TOPIC)

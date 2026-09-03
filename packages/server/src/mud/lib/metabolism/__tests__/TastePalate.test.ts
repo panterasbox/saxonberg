@@ -32,6 +32,7 @@ import {
   makeStuffAtPath,
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
+import { BlendIdentity } from '../../../lib/craft/BlendIdentity';
 
 /**
  * A served dish, in the shape `CraftVessel` has: graded, bulk-bearing,
@@ -72,9 +73,15 @@ const STEW_MEAT = '/stuff/idea/material/food/stew-meat';
 const LIME = '/stuff/idea/material/food/lime';
 const SUGAR = '/stuff/idea/material/food/sugar';
 
+const COOK_RECIPE = 'hearty-stew';
+const BAR_RECIPE = 'daiquiri';
+
 const STEW: BulkPayload = {
-  name: 'hearty stew',
-  appearance: 'a thick brown stew',
+  // ⭐ The recipe that made it — and with it the name, the appearance,
+  // the keywords and the DISCIPLINE the palate is read through. Four
+  // copied strings became one id; `RecipeCatalogue.getRecipe` is sync, so
+  // the augmenter can ask.
+  recipeId: COOK_RECIPE,
   // ⭐ The COMPOSITION — Material paths and servings, not display names.
   // Asserting "root vegetable" below now requires a root-vegetable
   // Material to actually exist, which is the point: the reading is
@@ -83,9 +90,6 @@ const STEW: BulkPayload = {
     { materialPath: ROOT_VEG, servings: 1 },
     { materialPath: STEW_MEAT, servings: 1 },
   ],
-  // ⭐ The craft that made it — the discipline the palate is read
-  // through. The kernel never knows the word; the recipe recorded it.
-  discipline: 'cooking',
 };
 
 function dish(payload: BulkPayload | null, band = 'fine'): TestDish {
@@ -122,6 +126,31 @@ function lookOf(host: Stuff, viewer: Stuff): string {
 describe('the palate reads the dish (AC11)', () => {
   beforeEach(() => {
     installV1QuantityMarshallers();
+    // A warmed catalogue stands in: `BlendIdentity` asks it for the
+    // recipe by id, exactly as production does.
+    makeStuffAtPath(() => {
+      const cat = new Material();
+      (cat as unknown as { getRecipe(id: string): unknown }).getRecipe = (
+        id: string,
+      ) =>
+        id === COOK_RECIPE
+          ? {
+              getName: () => 'hearty stew',
+              getOutputAppearance: () => 'a thick brown stew',
+              getKeywords: () => ['stew'],
+              getDiscipline: () => 'cooking',
+            }
+          : id === BAR_RECIPE
+            ? {
+                getName: () => 'daiquiri',
+                getOutputAppearance: () => 'a pale drink',
+                getKeywords: () => ['daiquiri'],
+                getDiscipline: () => 'bartending',
+              }
+            : null;
+      return cat;
+    }, '/platform/idea/RecipeCatalogue');
+
     // ⭐ The tastes live on the INGREDIENTS now, not on the payload — so
     // "it tastes sweet and umami" is a fact about what went in, and
     // changing an ingredient changes the reading with nothing else
@@ -191,7 +220,7 @@ describe('the palate reads the dish (AC11)', () => {
     const cookly = tasteOf(dish(STEW), taster('expert'));
     expect(cookly).toContain('stew meat');
 
-    const drink: BulkPayload = { ...STEW, discipline: 'bartending' };
+    const drink: BulkPayload = { ...STEW, recipeId: BAR_RECIPE };
     const brewerly = tasteOf(dish(drink), taster('expert'));
     // Still tastes it — never a gate — but reads it at the floor.
     expect(brewerly).toContain('It tastes');
@@ -199,8 +228,10 @@ describe('the palate reads the dish (AC11)', () => {
   });
 
   it('a blend no recipe made records no discipline and reads at the floor', () => {
+    // No recipe at all — the off-spec lump. `BlendIdentity` finds none
+    // and the discipline reads empty, which is the floor.
     const offSpec: BulkPayload = { ...STEW };
-    delete offSpec.discipline;
+    delete offSpec.recipeId;
     const text = tasteOf(dish(offSpec), taster('expert'));
     expect(text).toContain('It tastes');
     expect(text).not.toContain('stew meat');

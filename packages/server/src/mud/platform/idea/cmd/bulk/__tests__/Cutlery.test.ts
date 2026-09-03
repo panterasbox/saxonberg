@@ -238,8 +238,6 @@ describe('⭐ eating a MEAL out of the dish it came in', () => {
     const slot = d.getBulk('interior');
     slot.setAmount(Quantity.of(0.4, 'L'));
     slot.setPayload({
-      name: 'hearty stew',
-      appearance: 'a thick brown stew',
     });
     ContainmentApi.move(d as never, loc as never);
     return d;

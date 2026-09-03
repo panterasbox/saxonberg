@@ -63,6 +63,7 @@ import { MixinApi } from "../../api/mixin";
 import { StuffApi } from "../../api/stuff";
 import type { BlendPart } from "../bulk/Bulkable";
 import type Material from "../material/Material";
+import { BlendIdentity } from "../../lib/craft/BlendIdentity";
 import {
   COMPETENCE_BANDS,
   type CompetenceBandName,
@@ -189,7 +190,7 @@ function palateAugmenter(
     tastesOf(ingredients, material),
     ingredientNames(ingredients),
     MixinApi.isGraded(host) ? host.getGradeBand() : null,
-    bandFor(viewer, payload?.discipline ?? ""),
+    bandFor(viewer, BlendIdentity.disciplineOf(payload)),
   );
   if (!line) return text;
   return text && text.length > 0 ? `${text}\n\n${line}` : line;

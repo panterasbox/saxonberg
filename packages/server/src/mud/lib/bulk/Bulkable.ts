@@ -121,12 +121,21 @@ export interface BlendPart {
 }
 
 export interface BulkPayload {
-  /** Display name ("hearty stew") — the blend's `Material.name`. */
-  name: string;
-  /** Optional appearance prose — the blend's `Material.appearance`. */
-  appearance?: string;
-  /** Resolution keywords (`look stew`) — the blend's keywords. */
-  keywords?: string[];
+  /**
+   * ⭐⭐ **The recipe that made this** — and with it the blend's whole
+   * identity. `name`, `appearance`, `keywords` and `discipline` were four
+   * copied strings here; they are none of them functions of the
+   * ingredients (you cannot get "hearty stew" out of root-vegetable plus
+   * stew-meat) and none of them the Material's either, because the craft
+   * sets a blend's material to a GENERIC base. **A blend has no Material
+   * of its own** — but it does have a recipe, and `recipeId` is canonical
+   * and unique-indexed. See `lib/craft/BlendIdentity.ts`.
+   *
+   * Absent on bulk that no recipe made: water in a butt, a puddle, a
+   * discrete ration's shadow. Those have a Material, and every reader
+   * falls back to it.
+   */
+  recipeId?: string;
   /**
    * ⭐ The temperature (K) the working actually REACHED — history, not
    * composition, and the reason it must be carried. The heat-labile kill
@@ -145,13 +154,6 @@ export interface BulkPayload {
    */
   formedToxins?: ToxinTag[];
   /**
-   * The union of the consumed inputs' Material tags — what the blend
-   * *is made of* rides with it (a soda-water input makes the drink
-   * `carbonated`; the presentation reads it). Absent on a payload that
-   * derived nothing.
-   */
-  tags?: string[];
-  /**
    * ⭐⭐ **The composition — what went in, and how much.** Material PATHS
    * with their servings, in the order first consumed, summed per
    * material. Absent on a blend that derived nothing.
@@ -169,14 +171,6 @@ export interface BulkPayload {
    * `docs/plans/bulk-decomposition-plan.md`.
    */
   composition?: BlendPart[];
-  /**
-   * ⭐ The **Discipline that made this**, recorded from the recipe — the
-   * skill a taster's palate is read through (`PalatableMixin`). A
-   * cocktail reads through the bartender's craft and a stew through the
-   * cook's, so the kernel never needs to know a discipline WORD. Absent
-   * on a blend no recipe made, which reads at the floor band.
-   */
-  discipline?: string;
 
   /*
    * ⚠ These three are DATA the craft writes; the reading that uses them
@@ -667,7 +661,14 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
         const described = (material as unknown as Stuff).describeFor(viewer);
         if (described) return described;
       }
-      return slot.getPayload()?.appearance ?? material.getAppearance() ?? null;
+      // ⚠⚠ Deliberately the MATERIAL's appearance and not the blend's.
+      // Reaching for `BlendIdentity` here would put a `lib/bulk` →
+      // `lib/craft` import back in — the exact edge the decomposition
+      // exists to remove — and it is circular besides (it silently broke
+      // every craft in the integration suite for one revision). A caller
+      // that wants the blend's own appearance asks `BlendIdentity`; this
+      // substrate answers only for the matter.
+      return material.getAppearance() || null;
     }
 
     public getBulkMaterialPath(affordance: BulkAffordance): string | null {

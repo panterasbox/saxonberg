@@ -781,14 +781,10 @@ function resolveSpoilage(
  * from the generic blend material for an off-spec build.
  */
 function deriveBlendPayload(
-  name: string,
-  appearance: string,
-  keywords: readonly string[],
+  recipeId: string,
   parts: { material: Material; servings: number }[],
   effectiveHeatK = 0,
-  discipline = '',
 ): BulkPayload {
-  const tags = new Set<string>();
   // ⭐ The composition: what went in, by PATH, with its servings summed
   // per material and first-seen order kept. Every derived fact below —
   // the tastes, the tags, the label — is a function of exactly this, and
@@ -800,29 +796,26 @@ function deriveBlendPayload(
     if (partPath) {
       composition.set(partPath, (composition.get(partPath) ?? 0) + part.servings);
     }
-    for (const tag of part.material.getTags()) tags.add(tag);
   }
   // ⚠⚠ The nutrition, the toxins and the edibility are NOT computed here
   // any more — they are functions of the composition below, and
   // `BlendLabel` computes them on read. What IS recorded is the heat the
   // working reached, because the heat-labile kill depends on it and no
   // amount of looking at the ingredients recovers it.
-  const payload: BulkPayload = { name };
+  // ⭐ Five facts, and every one of them irreducible: what recipe made it,
+  // what went in, how hot the working got, what the making formed. (The
+  // fifth, `freshness`, is live state the gauge stamps.) The name, the
+  // appearance, the keywords, the discipline, the tags, the nutrition and
+  // the tastes are all READ off these — see BlendIdentity and BlendLabel.
+  const payload: BulkPayload = {};
+  if (recipeId) payload.recipeId = recipeId;
   if (effectiveHeatK > 0) payload.cookedAtK = effectiveHeatK;
-  if (appearance) payload.appearance = appearance;
-  if (keywords.length > 0) payload.keywords = [...keywords];
-  if (tags.size > 0) payload.tags = [...tags];
   if (composition.size > 0) {
     payload.composition = [...composition].map(([materialPath, servings]) => ({
       materialPath,
       servings,
     }));
   }
-  // ⭐ Which craft made it — the skill a taster's palate is read through
-  // (`PalatableMixin`). Recording it here is what lets the kernel project
-  // a cocktail through the bartender's discipline and a stew through the
-  // cook's without ever knowing either WORD.
-  if (discipline) payload.discipline = discipline;
   return payload;
 }
 
@@ -967,9 +960,7 @@ async function applyBulkOutput(
   outSlot.setAmount(Quantity.of(totalL, 'L'));
   outSlot.setPayload(
     deriveBlendPayload(
-      recipe.getName(),
-      recipe.getOutputAppearance(),
-      recipe.getKeywords(),
+      recipe.getRecipeId(),
       [
         ...matched.flatMap((m) =>
           m.material ? [{ material: m.material, servings: 1 }] : [],
@@ -977,7 +968,6 @@ async function applyBulkOutput(
         ...matchedItems.map((m) => ({ material: m.material, servings: m.count })),
       ],
       effectiveHeatK,
-      recipe.getDiscipline(),
     ),
   );
   // A cold bar mix carries its inputs' spoilage through unchanged — a
@@ -1074,12 +1064,9 @@ async function applyEdibleOutput(
   outSlot.setAmount(Quantity.of(recipe.getOutputPortionL(), 'L'));
   outSlot.setPayload(
     deriveBlendPayload(
-      recipe.getName(),
-      recipe.getOutputAppearance(),
-      recipe.getKeywords(),
+      recipe.getRecipeId(),
       matchedItems.map((m) => ({ material: m.material, servings: m.count })),
       effectiveHeatK,
-      recipe.getDiscipline(),
     ),
   );
   applySpoilage(
@@ -1543,13 +1530,13 @@ async function mintVessel(
       });
     }
     outSlot.setPayload(
+      // ⚠ No recipe here is the by-hand path: the working has a material
+      // and no recipe, so the identity falls back to the Material exactly
+      // as `BlendIdentity` does for water in a butt.
       deriveBlendPayload(
-        recipe ? recipe.getName() : material.getName(),
-        recipe ? recipe.getOutputAppearance() : '',
-        recipe ? recipe.getKeywords() : material.getKeywords(),
+        recipe ? recipe.getRecipeId() : '',
         parts,
         effectiveHeatK,
-        recipe ? recipe.getDiscipline() : '',
       ),
     );
   }

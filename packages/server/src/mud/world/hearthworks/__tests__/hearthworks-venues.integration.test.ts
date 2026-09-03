@@ -60,6 +60,7 @@ import {
 } from '../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { BlendLabel } from '../../../lib/metabolism/BlendLabel';
+import { BlendIdentity } from '../../../lib/craft/BlendIdentity';
 
 /**
  * The three trade packs that ship every recipe (content packs wave 4a/4b):
@@ -467,7 +468,7 @@ describe('the cookhouse, served', () => {
     // (macros in = macros out; the fixed-vocabulary rule live).
     expect(slot.getMaterialPath()).toBe('/platform/idea/material/cooked');
     const payload = slot.getPayload()!;
-    expect(payload.name).toBe('Hearty Stew');
+    expect(BlendIdentity.nameOf(payload, null)).toBe('Hearty Stew');
     expect(BlendLabel.amountsOf(payload, null)).toMatchObject({
       carb: expect.any(Number),
       protein: expect.any(Number),

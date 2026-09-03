@@ -13,6 +13,7 @@ import Thing from '../../stuff/Thing';
 import { BulkableMixin, type BulkPayload } from '../Bulkable';
 import Material from '../../material/Material';
 import { Quantity } from '../../quantity';
+import { BlendIdentity } from '../../../lib/craft/BlendIdentity';
 import {
   makeStuff,
   makeStuffAtPath,
@@ -35,10 +36,16 @@ function makeVessel(amountL: number): TestVessel {
   return v;
 }
 
+// ⭐ What a blend payload IS now: what recipe made it and what went in.
+// The name, the appearance, the label and the tastes are all READ off
+// these — so this suite asserts the round-trip of the facts, not of a
+// derived string.
 const STEW_PAYLOAD: BulkPayload = {
-  name: 'hearty stew',
-  appearance: 'a thick brown stew',
-  keywords: ['stew'],
+  recipeId: 'hearty-stew',
+  composition: [
+    { materialPath: '/stuff/idea/material/food/root-vegetable', servings: 1 },
+    { materialPath: '/stuff/idea/material/food/stew-meat', servings: 2 },
+  ],
 };
 
 afterEach(() => StuffApi.clearAll());
@@ -53,7 +60,8 @@ describe('BulkPayload on a slot', () => {
     const v = makeVessel(0.4);
     const slot = BulkableApi.slotFor(v, undefined)!;
     slot.setPayload(STEW_PAYLOAD);
-    expect(slot.getPayload()!.name).toBe('hearty stew');
+    expect(slot.getPayload()!.recipeId).toBe('hearty-stew');
+    expect(slot.getPayload()!.composition).toHaveLength(2);
     expect(slot.getPayload()).not.toBe(STEW_PAYLOAD); // stored copy
 
     // Draining the slot clears the payload with the matter.
@@ -82,7 +90,11 @@ describe('BulkPayload on a slot', () => {
     });
     expect(res.applied).toBeCloseTo(0.2, 9);
     // The bowl holds the same blend; the pot (still half full) keeps its.
-    expect(to.getPayload()!.name).toBe('hearty stew');
-    expect(from.getPayload()!.name).toBe('hearty stew');
+    // ⚠ The SHARES ride along too — a transfer that kept the recipe and
+    // dropped the composition would still name the drink correctly and
+    // silently flatten its nutrition to nothing.
+    expect(to.getPayload()!.recipeId).toBe('hearty-stew');
+    expect(from.getPayload()!.recipeId).toBe('hearty-stew');
+    expect(to.getPayload()!.composition?.map((c) => c.servings)).toEqual([1, 2]);
   });
 });

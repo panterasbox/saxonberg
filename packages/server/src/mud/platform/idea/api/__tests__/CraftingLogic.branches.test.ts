@@ -37,6 +37,7 @@ import { CraftedMixin } from '../../../../lib/craft/Crafted';
 import { GlobbableMixin } from '../../../../lib/stuff/Globbable';
 import { Stuff } from '../../../../lib/stuff/Stuff';
 import { BlendLabel } from '../../../../lib/metabolism/BlendLabel';
+import { BlendIdentity } from '../../../../lib/craft/BlendIdentity';
 import {
   makeStuff,
   makeStuffAtPath,
@@ -461,8 +462,8 @@ describe('the gather walk rungs', () => {
     const slot = BulkableApi.slotFor(outcome.output, undefined)!;
     expect(slot.getMaterialPath()).toBe(MIXED);
     const payload = slot.getPayload()!;
-    expect(payload.name).toBe('Gin Martini');
-    expect(payload.appearance).toMatch(/crystal-clear martini/);
+    expect(BlendIdentity.nameOf(payload, null)).toBe('Gin Martini');
+    expect(BlendIdentity.appearanceOf(payload, null)).toMatch(/crystal-clear martini/);
     expect(BlendLabel.toxicityOf(payload, null)).toEqual([{ type: 'alcohol', amount: 26 }]);
   });
 });
