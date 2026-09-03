@@ -57,9 +57,9 @@ describe('discovery', () => {
 });
 
 describe('the shipped packs (real discovery, no install)', () => {
-  it('thirty-six ship; the trade packs order after generic-objects (wave 4a); the venues after their trades (wave 4b); the localities after residence (residences D18); every consigner after distribution (fermentation D10); the localities after water (watershed W9); the metal chain after ITS trades; the textile chain after farming AND the locality it consigns into', () => {
+  it('thirty-seven ship; the trade packs order after generic-objects (wave 4a); the venues after their trades (wave 4b); the localities after residence (residences D18); every consigner after distribution (fermentation D10); the localities after water (watershed W9); the metal chain after ITS trades; the textile chain after farming AND the locality it consigns into', () => {
     const ids = PackApi.contentRoots().map((root) => root.split('/').slice(-2)[0]!);
-    expect(ids).toHaveLength(36);
+    expect(ids).toHaveLength(37);
     expect(ids[0]).toBe('platform');
     for (const trade of ['trade-smithing', 'trade-hearth-cooking', 'trade-hospitality', 'trade-distilling']) {
       expect(ids.indexOf(trade)).toBeGreaterThan(ids.indexOf('generic-objects'));
@@ -96,6 +96,11 @@ describe('the shipped packs (real discovery, no install)', () => {
     // locality whose counter it sells through, not the other way round.
     for (const upstream of ['trade-farming', 'terminus', 'distribution']) {
       expect(ids.indexOf('trade-textiles')).toBeGreaterThan(ids.indexOf(upstream));
+    }
+    // Dyeing consumes farming's dyestuff materials and colours
+    // textiles' cloth, so it orders after both.
+    for (const upstream of ['trade-farming', 'trade-textiles']) {
+      expect(ids.indexOf('trade-dyeing')).toBeGreaterThan(ids.indexOf(upstream));
     }
 
     // The watershed cut: the three packs whose content names the water

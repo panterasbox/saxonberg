@@ -1,0 +1,18 @@
+# The dyehouse vat — rung N of the ladder.
+#
+# ⭐ `rate` for scale and `control` for EVENNESS, which is the quality
+# axis this trade already needs — and **evenness is what the dyehouse
+# sells**. A garment dyed at home in a household pot is the worst stage
+# on the worst equipment and comes out visibly amateur, which is correct
+# and is another legible social signal.
+class: /trade/dyeing/thing/DyeVat
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a dyehouse vat
+  primaryKeyword: vat
+  keywords: [vat, bath, dye-vat, copper]
+  longDescription: |
+    A copper the size of a bath, set over its own fire, with a windlass and a pair of long poles for turning the cloth. The rim is stained in rings, one for every colour it has ever held.
+  _materialPath: /stuff/idea/material/element/copper
+  interiorCapacity: 300
+  mass: 120

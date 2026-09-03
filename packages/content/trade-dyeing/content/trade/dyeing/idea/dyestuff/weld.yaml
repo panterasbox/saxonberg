@@ -1,0 +1,22 @@
+# Weld — the dye, as reference data.
+#
+# Luteolin, out of the whole plant. One season, not three — which is exactly why yellow cloth was ordinary and red was not. ⭐ And blue over yellow is how green was made, so half of every green in the world before synthetics started here.
+#
+# ⭐ AUTHORS AUTHOR DYES, NOT COLOURS. A dyed thing stores the
+# application stack and never a colour word; what this row carries is
+# where each `(dyestuff, mordant)` pair lands. Overdyeing is therefore
+# arithmetic rather than a table row, and fading is desaturation.
+#
+# ⚠ `fastness` is the CRAFT's half — how many washes the colour
+# survives. Competence in dyeing adds to it and never to the hue.
+class: /trade/dyeing/idea/Dyestuff
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: weld
+  materialPath: /trade/farming/idea/material/weld
+  chemistry: mordant
+  shades:
+    - { mordant: "alum", colour: "a bright yellow", fastness: 0.72 }
+    - { mordant: "iron", colour: "an olive khaki", fastness: 0.7 }
+    - { mordant: "tannin", colour: "a soft gold", fastness: 0.55 }
+    - { mordant: "", colour: "a yellow that will not hold", fastness: 0.02 }

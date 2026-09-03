@@ -1,0 +1,36 @@
+verbs: [dye]
+controller: /trade/dyeing/idea/cmd/dyeing/DyeController
+description: "Work cloth down into a dye bath"
+help: |
+  `dye <thing>` works something down into a bath you are standing at.
+
+  ⚠⚠ There are two chemistries and they behave oppositely. **Madder and
+  weld** are mordant dyes: the mordant decides the colour, and the bath
+  EXHAUSTS — the first dip is deep, the second paler, the third paler
+  still. **Woad** is a vat dye: no mordant, and the bath ACCUMULATES —
+  each dip builds depth. Woad also does something none of the others
+  do, which you will see when you lift the cloth out.
+
+  ⭐ You can dye at four stages, and they are different goods. Fibre
+  takes deepest and lasts longest; yarn lets you weave a pattern; cloth
+  is cheap and even; a finished garment is the cheapest, the most
+  convenient, and the WORST — seams and thread take colour differently,
+  and it shows.
+
+  ⚠ Linen is hard to dye, and that is real. Cellulose will not hold a
+  metal ion on its own — it wants tannin first — which is exactly why
+  linen was historically worn undyed and wool was the coloured cloth.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: target
+    type: object
+    required: true
+    scope: [inventory, reachable]
+options:
+  bath:
+    type: object
+    scope: [reachable]
+    description: "Which bath (defaults to the one you are standing at)"

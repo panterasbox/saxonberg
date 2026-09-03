@@ -35,6 +35,15 @@ data:
     # a trade an INDUSTRY rather than a crafting station.
     south:
       destination: /trade/textiles/location/mill
+    # ⭐ The dyehouse, beside the mill and for the same reason: a dyeing
+    # yard stank (urine was the classic woad vat) and wants water and
+    # room to hang cloth. ⚠⚠ **The textile chain IS the nuisance-trade
+    # chain** — retting ponds, dyehouses, and the tannery that is Stage
+    # C's and stank worst. That is a coherent industrial identity rather
+    # than three coincidences, and it is what makes siting a real
+    # decision.
+    east:
+      destination: /trade/dyeing/location/dyehouse
   props:
     - /world/terminus/wharfside/thing/city-intake
     - /world/terminus/wharfside/thing/city-outfall

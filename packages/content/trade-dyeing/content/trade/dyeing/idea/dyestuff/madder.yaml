@@ -1,0 +1,22 @@
+# Madder — the dye, as reference data.
+#
+# Alizarin, out of the root. ⭐ The oldest red there is, and the reason madder was a landholder's crop: three years in the ground before you can lift it.
+#
+# ⭐ AUTHORS AUTHOR DYES, NOT COLOURS. A dyed thing stores the
+# application stack and never a colour word; what this row carries is
+# where each `(dyestuff, mordant)` pair lands. Overdyeing is therefore
+# arithmetic rather than a table row, and fading is desaturation.
+#
+# ⚠ `fastness` is the CRAFT's half — how many washes the colour
+# survives. Competence in dyeing adds to it and never to the hue.
+class: /trade/dyeing/idea/Dyestuff
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: madder
+  materialPath: /trade/farming/idea/material/madder
+  chemistry: mordant
+  shades:
+    - { mordant: "alum", colour: "a clear red", fastness: 0.8 }
+    - { mordant: "iron", colour: "a dark maroon", fastness: 0.78 }
+    - { mordant: "tannin", colour: "a soft brick", fastness: 0.62 }
+    - { mordant: "", colour: "a red that will not hold", fastness: 0.02 }

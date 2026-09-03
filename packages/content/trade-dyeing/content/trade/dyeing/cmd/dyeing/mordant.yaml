@@ -1,0 +1,32 @@
+verbs: [mordant]
+controller: /trade/dyeing/idea/cmd/dyeing/MordantController
+description: "Prepare cloth in a metal bath so a colour will bind"
+help: |
+  `mordant <thing> with <alum|iron|tannin>` puts cloth through the
+  first of two baths.
+
+  ⭐ A mordant carries no colour of its own. It is what a colour BINDS
+  TO — so the skill in this trade is front-loaded: you commit to a
+  colour family before you can see anything at all. **Alum** brightens
+  to the true colour, **iron** saddens it (madder goes maroon, weld goes
+  olive), and **tannin** is what makes a plant fibre take a metal at
+  all.
+
+  ⚠⚠ Skip it and the colour does not hold. It washes straight out on
+  the first launder, and there is nothing to be done about it
+  afterwards.
+
+  ⚠ Woad takes no mordant. A vat dye is a different chemistry, and alum
+  before a woad vat is alum wasted — the vat will say so.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: target
+    type: object
+    required: true
+    scope: [inventory, reachable]
+  - name: mordant
+    type: string
+    required: true

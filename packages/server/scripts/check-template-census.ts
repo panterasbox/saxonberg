@@ -160,6 +160,15 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
    * a material naming a species that does not exist is a silent lie
    * about what the substance IS, and nothing else checks it.
    */
+  /*
+   * ⭐ `materialPath` — a reference Idea naming the MATERIAL it is
+   * about. The dyeing trade's `Dyestuff` rows are the first to carry
+   * one, and the census caught it on the same pass: a dyestuff naming a
+   * material that does not exist would make the whole dye act a silent
+   * no-op, because the bath is matched BY that path.
+   */
+  push('materialPath', data.materialPath);
+
   const bio = data.biologicalSource;
   if (bio && typeof bio === 'object' && !Array.isArray(bio)) {
     push(

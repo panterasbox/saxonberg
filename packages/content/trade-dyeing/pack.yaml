@@ -1,0 +1,23 @@
+id: trade-dyeing
+version: 0.1.0
+root: /trade/dyeing
+description: >-
+  The dyeing trade — colour, and ⚠⚠ TWO CHEMISTRIES rather than one.
+  Madder and weld are MORDANT dyes: they need a metal ion to bind, so
+  what colour you get is decided at the mordant bath before you can see
+  it. Woad is a VAT dye — insoluble, reduced in an alkaline vat,
+  oxidised in the AIR to blue, and taking no mordant at all. ⭐ Competence
+  buys fastness and repeatability, never a brighter hue: the dye decides
+  the colour, the craft decides whether it stays.
+requires:
+  groups:
+    - name: dyeing
+      purpose: the dyeing trade's own body
+      owner: { office: prime-minister }
+  title:
+    - { extent: /trade/dyeing, holder: { group: dyeing } }
+boot:
+  # ⭐ Reference Ideas are INERT AT BOOT unless something warms them —
+  # a rule that has bitten three times. The dyestuff roster is read
+  # synchronously by `dye`, so it is stood up eagerly here.
+  - { template: /trade/dyeing/idea/dyestuff-catalogue, role: sync-read, reason: "the dyestuff roster DyeController resolves synchronously (self-warming — no Api.boot)" }

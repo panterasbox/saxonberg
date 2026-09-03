@@ -1,0 +1,20 @@
+# Ilva Marrow — at the vats, and the keeper of the woad.
+#
+# ⭐ She feeds the vat bran and lime on a schedule she has not needed to
+# write down in eleven years, which is the whole of what this trade's
+# competence is: not a brighter colour, but the same colour twice and a
+# vat that is still alive next spring.
+class: /platform/agent/NPC
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: Ilva Marrow
+  pronouns: she
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  primaryKeyword: dyer
+  alternateNames: ["ilva", "marrow"]
+  shortDescription: "a dyer whose hands are blue to the wrist and will not come clean"
+  longDescription: |
+    Blue to the wrist, permanently, and she has stopped apologising for it. She can tell you what is wrong with a vat by leaning over it, and she will not tell you how.
+  dispositions:
+    - { disposition: diligence, valence: 75 }

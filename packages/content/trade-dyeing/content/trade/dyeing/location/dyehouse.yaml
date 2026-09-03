@@ -1,0 +1,30 @@
+# The Wharfside dyehouse — a WALK-IN SERVICE.
+#
+# ⭐ Unlike the mill, this one needs a counter: what the dyehouse sells
+# is EVENNESS, and evenness is a service performed on cloth you bring.
+# `discipline: line` — bring cloth, wait your turn.
+class: /platform/location/SingletonCartesianLocation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  coords:
+    x: 0
+    y: 0
+    z: 0
+  shortDescription: "the dyehouse"
+  primaryKeyword: dyehouse
+  keywords: [dyehouse, dyeworks, yard]
+  longDescription: |
+    Coppers along one wall, each over its own fire, and the yard behind hung with cloth on lines that run the whole length of it. The colours drying out there are the only bright things anywhere near the river.
+
+    The floor is stained past explaining. The woad vat is the sunken one with the lid, and nobody opens it but the dyer.
+  ambientIntensity: 120
+  ambientColorTemperature: 4200
+  exits:
+    north:
+      destination: /world/terminus/wharfside/bank
+  props:
+    - /trade/dyeing/thing/dye-counter
+    - /trade/dyeing/thing/dye-vat
+    - /trade/dyeing/thing/woad-vat
+  cast:
+    - /trade/dyeing/agent/dyer
