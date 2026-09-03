@@ -1,0 +1,29 @@
+# Adren Coll — at the loom, on 5, and the one who takes the cloth out.
+#
+# The `consigns` brain carries bolts to the general store's counter and
+# consigns them AS the mill: `purchases: true` on the weaver position
+# means the house card is dealt at hire, so each sale splits to the
+# mill's operating account.
+class: /platform/agent/NPC
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: Adren Coll
+  pronouns: he
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  primaryKeyword: weaver
+  alternateNames: ["adren", "coll"]
+  shortDescription: "a weaver with a shuttle in one hand and a tally in the other"
+  longDescription: |
+    Broad across the shoulders from the beater and deaf in one ear from the loom. He keeps a chalked tally on the frame of how many bolts are owed to how many spinners, and he is never wrong about it.
+  dispositions:
+    - { disposition: diligence, valence: 65 }
+  behaviors:
+    - brain: /lib/behavior/consigns
+      trigger: cadence:120s
+      config:
+        stock: /trade/textiles/thing/mill-stock
+        shelf: /world/terminus/general-store/counter
+        batch: 2
+        ask:
+          cloth:linen: 40

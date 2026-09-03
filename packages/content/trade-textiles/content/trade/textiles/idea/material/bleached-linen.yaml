@@ -1,0 +1,37 @@
+# Bleached linen — the same fibre, whitened.
+#
+# ⭐ Sun-bleaching is retting's shape applied to WEATHER: you lay it out
+# and the world does it, over days, with no verb at all. Sun, dew and
+# lye, and the only thing anybody does is wait and turn it.
+#
+# ⚠ It is a distinct MATERIAL rather than a flag, for the same reason
+# linen and flax-straw are: what changes is what the substance IS to
+# every downstream reader — including the dyer, for whom white ground is
+# the difference between a colour and a muddy version of it.
+#
+# ⚠⚠ It is still CELLULOSE, so bleaching buys a white ground and buys
+# nothing whatever against the mordant problem. A bleached linen still
+# needs its tannin.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: bleached linen
+  appearance: bright bleached linen
+  keywords: [bleached, white, "bleached linen"]
+  density: 1500
+  thermalConductivity: 0.05
+  # ⚠ A shade weaker than greige: the lye and the months take something.
+  hardness: 5
+  toughness: 2
+  specificHeat: 1360
+  electricalConductivity: 1.0e-11
+  waterAbsorptionCapacity: 20
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["textile", "fibre", "organic", "plant", "cellulose", "bleached", "once-living"]
+  composition: []
+  chemistry:
+    formula: C6H10O5
+    molarMass: 162.14
+  biologicalSource: { speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/malpighiales/linaceae/linum/usitatissimum, tissueType: stem }

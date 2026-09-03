@@ -1,0 +1,32 @@
+# Rotted flax — the over-ret, and the trade's ONE failure you can see.
+#
+# ⚠⚠ Retting is a judgement, not a wait. Too little and the fibre will
+# not come away from the boon; too much and the rot goes past the pectin
+# into the cellulose, and the fibre goes grey, weak and short. There is
+# no undoing it — this material has no path back into the chain, and
+# that is the point of it.
+#
+# ⭐ It rides `FermentProfile.turnedMaterial`, exactly as vinegar does
+# off an open finished ale: the same shipped mechanism, no new one.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: rotted flax
+  appearance: grey slimy rotted flax
+  keywords: [rotted-flax, rot, slime, ruin]
+  density: 450
+  thermalConductivity: 0.06
+  # ⚠ Weaker than the straw it came from, let alone the fibre it should
+  # have become. Nothing is spinning this.
+  hardness: 1
+  toughness: 1
+  specificHeat: 1360
+  electricalConductivity: 1.0e-11
+  waterAbsorptionCapacity: 70
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["plant", "organic", "once-living", "spoiled"]
+  composition: []
+  chemistry: null
+  biologicalSource: { speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/malpighiales/linaceae/linum/usitatissimum, tissueType: stem }

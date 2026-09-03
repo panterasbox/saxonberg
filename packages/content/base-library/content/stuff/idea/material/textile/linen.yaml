@@ -41,7 +41,10 @@ data:
   edibility: false
   nutrients: []
   toxicity: []
-  tags: ["textile", "fibre", "organic", "plant", "cellulose", "once-living"]
+  # ⚠ `greige` is the tag the bleaching green matches on — unbleached,
+  # loom-state linen. It is what this row IS until somebody lays it out
+  # in the sun for a month.
+  tags: ["textile", "fibre", "organic", "plant", "cellulose", "greige", "once-living"]
   # No constituent rows: a natural polymer is not a mixture of other
   # shipped materials. The chemistry below is cellulose's REPEAT UNIT,
   # which is the honest thing to state about a polymer.

@@ -1,0 +1,34 @@
+# Textiles — the discipline of turning fibre into cloth.
+#
+# ⭐⭐ What competence buys: **how fine you can go before it breaks.**
+#
+# A master spins a finer, evener yarn from the same fibre, and weaves it
+# closer without a flaw. A novice reaching for a fine count does not get
+# a worse yarn — they get LESS yarn, because the thread parts and the
+# stock is wasted.
+#
+# ⚠ It never buys yield. The flax is unchanged; what competence buys is
+# the TOP OF THE DECISION RANGE, never more line from the same sheaf.
+# That is the same rule smelting keeps ("competence buys knowing, never
+# getting") stated for a trade whose decision is a number rather than a
+# reading.
+#
+# ⚠ `conferrals` stays empty: competence GRADES, it does not gate. No
+# verb here is band-locked, and authoring the tech ladder ahead of
+# demand is the thing the trades doctrine forbids.
+class: /platform/idea/Discipline
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: textiles
+  channel: skill
+  label: Textiles
+  iscedf: "0723"  # ISCED-F 2013: textiles (clothes, footwear and leather)
+  description: >-
+    Preparing fibre and making cloth of it. Working the straw clean,
+    drawing a thread fine and even, and setting a web close. It never
+    makes more fibre than the field grew — what it buys is how far you
+    can push what you have before it parts.
+  requires: [recipe-knowledge]
+  specializes: []
+  synergizes: [appraisal]
+  conferrals: []

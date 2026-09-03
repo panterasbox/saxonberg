@@ -1,0 +1,19 @@
+# The drop spindle — a stick and a whorl, and the oldest machine there
+# is.
+#
+# ⭐ The tool ladder's rung ONE for spinning, and the `sewing-kit` half
+# of the shipped `sewing-kit` / `sewing-machine` pair, verbatim: same
+# capability kind, different parameters, NO class beyond the tool. A
+# tool variant is pure seed data.
+class: /trade/textiles/thing/SpinningTool
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a drop spindle
+  primaryKeyword: spindle
+  keywords: [spindle, drop-spindle, whorl]
+  longDescription: |
+    A finger-length shaft through a stone whorl, notched at the top. It costs nothing, fits in a pocket, and has outlasted every machine invented to replace it.
+  capabilities:
+    - { kind: spinning, rate: 1 }
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 0.2

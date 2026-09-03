@@ -1,0 +1,17 @@
+# Shive — the woody boon knocked out of the stem.
+#
+# ⭐ The other byproduct: fuel and litter. It is most of what a flax
+# stem weighs, which is the honest arithmetic of the whole preparation
+# stage — you throw away the majority of what you grew, and the
+# minority is worth more than the crop.
+class: /trade/textiles/thing/TextileStock
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a heap of shive
+  primaryKeyword: shive
+  keywords: [shive, boon, chaff, woody]
+  longDescription: |
+    Splintered woody chaff, ankle-deep where the board stands. It burns fast and hot and dirty, and it makes a warm dry bedding for anything with four legs.
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 0.2
+  gradeBand: poor

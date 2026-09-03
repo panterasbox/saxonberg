@@ -1,0 +1,17 @@
+# Yarn — line drawn out and twisted, at a chosen count.
+#
+# `yarnCount` is hanks to the pound, so higher is finer, and it is the
+# one number `spin`'s decision produces. ⚠ The real unit rather than a
+# "fineness" abstraction: without it, *how fine* is a vibe.
+class: /trade/textiles/thing/TextileStock
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a skein of linen yarn
+  primaryKeyword: yarn
+  keywords: [yarn, skein, thread, linen]
+  longDescription: |
+    A wound skein, even along its whole length if whoever drew it knew what they were doing, and thin in places if they did not.
+  _materialPath: /stuff/idea/material/textile/linen
+  mass: 0.4
+  gradeBand: fair
+  yarnCount: 10

@@ -1,0 +1,45 @@
+# The Wharfside mill — the trade's floor.
+#
+# ⭐⭐ **It does not retail, it CONSIGNS.** The producer-annex pattern
+# distilling and brewing already ship: the mill produces, the shipped
+# `consigns` brain carries cloth to the Terminus general store, and
+# players buy it where they already shop. Less new content, and it puts
+# the good where the buyer is — which is why only two of this build's
+# three trades need a counter at all.
+#
+# ⚠ It authors `coords` because `setCoords` is the MEMBERSHIP operation
+# and the zone beside it is what a room joins — a floor with no coords
+# is in no grid and inherits nothing. That was a real defect twice
+# before this build.
+class: /platform/location/SingletonCartesianLocation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  coords:
+    x: 0
+    y: 0
+    z: 0
+  shortDescription: "the mill floor"
+  primaryKeyword: floor
+  keywords: [floor, mill, shed, spinning]
+  longDescription: |
+    A long low shed with the river running under one end of it. Wheels on the left, looms on the right, and between them a permanent haze of dust that catches the light coming through the shutters.
+
+    The noise is not the wheels. It is the talking — six women at six wheels, drawing thread and holding four separate conversations, none of which stops when you walk in.
+  ambientIntensity: 90
+  ambientColorTemperature: 4200
+  props:
+    - /trade/textiles/thing/mill-stock
+    - /trade/textiles/thing/retting-pit
+    - /trade/textiles/thing/bleaching-green
+    - /trade/textiles/thing/scutching-board
+    - /trade/textiles/thing/spinning-wheel
+    - /trade/textiles/thing/hand-loom
+    - /trade/textiles/thing/broad-loom
+  # ⚠ The way back. The mill sits downstream of the bank on purpose —
+  # see the exit on the bank's side for why.
+  exits:
+    north:
+      destination: /world/terminus/wharfside/bank
+  cast:
+    - /trade/textiles/agent/mill-spinner
+    - /trade/textiles/agent/mill-weaver

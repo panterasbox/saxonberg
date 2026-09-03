@@ -1,0 +1,26 @@
+# Sackcloth — the open weave, and ⭐ THE PROOF THAT THE SECOND SOURCE
+# WORKS.
+#
+# This row is shipped by a PACK. The kernel's covering vocabulary knows
+# nothing about it; `FabricCatalogue` harvests it by path infix
+# (`/idea/fabric/`) across every root, `Construction.registerFabric`
+# takes it, and `constructionForm: sackcloth` resolves from that moment
+# on — with **no kernel list edit anywhere**. A pack adding `lace`
+# tomorrow does exactly this.
+#
+# ⚠ And it changes nothing about combat. Every textile form shares one
+# kernel resist profile (poor on all three mechanical channels), so
+# content chooses the weave and the kernel decides that cloth resists
+# poorly.
+class: /platform/idea/material/Fabric
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: sackcloth
+  layerBand: 0
+  # Barely any trapped air — an open weave is a net with pretensions.
+  loft: 0.05
+  # ⚠ The point of it: it BREATHES, which is why grain and roots keep in
+  # a sack instead of sweating. Useless against a wind, and that is the
+  # trade the loom made.
+  weaveDensity: 0.35
+  drape: 0.4

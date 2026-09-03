@@ -1,0 +1,19 @@
+# The retting pit at the Wharfside mill — a walled pool of still water.
+#
+# ⭐ ZERO VERBS. Put straw in it (`pour`), judge the moment, take it out.
+# `FermentingMixin` runs the clock, `Thermal` drifts it toward the room,
+# and the season becomes an input without anybody authoring a season.
+#
+# ⚠ It stinks, and the fiction knows it: retting ponds were banned
+# upstream of towns. That is siting, and siting is what makes this an
+# industry rather than a crafting station.
+class: /trade/textiles/thing/RettingPit
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a retting pit
+  primaryKeyword: pit
+  keywords: [pit, pond, retting, water]
+  longDescription: |
+    A stone-lined pool the length of a cart, brimful of water gone brown and still. Bundles are weighted under it with flat stones. The smell arrives about a second before you do and stays about an hour after you leave.
+  _materialPath: /stuff/idea/material/rock/slate
+  mass: 400

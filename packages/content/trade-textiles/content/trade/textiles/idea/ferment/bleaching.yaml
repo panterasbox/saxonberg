@@ -1,0 +1,39 @@
+# Bleaching — linen's instance of the FINISHING stage.
+#
+# ⚠⚠ The stage is `finish`, and bleaching is not its name. FULLING is
+# wool's instance of the same stage, and `full` does not ship here: it
+# works because wool scales interlock, linen cannot be fulled, and the
+# same scales are why plant fibres do not felt at all. When wool
+# arrives, fulling arrives with it as its own profile — and this pack
+# does not change.
+#
+# ⭐ Retting's shape applied to WEATHER instead of a vessel: you lay it
+# out, and sun and dew and lye do it over weeks. ZERO verbs, and a
+# genuine weather consumer — which is what makes a bleaching green a
+# PLACE, land dedicated to a purpose, rather than a piece of equipment.
+#
+# ⚠ It is slow because it was slow: months of it, which is exactly the
+# fact chlorine bleaching later destroyed, turning bleaching greens back
+# into farmland. That story is worth keeping the door open for.
+#
+# ⚠ Cold stalls it and heat does not damage it — the sun is the point.
+# There is no over-bleach failure: unlike the pit, leaving it out longer
+# only makes it whiter, and then stops.
+class: /platform/idea/ferment/FermentProfile
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: bleaching
+  # The greige fibre's own tag — see `/stuff/idea/material/textile/linen`.
+  inputCategory: greige
+  stallBelowK: 280
+  happyK: 293
+  damageAboveK: 340
+  # Far slower than the pit. Months, not a fortnight.
+  ratePerDay: 0.02
+  productMaterial: /trade/textiles/idea/material/bleached-linen
+  # ⚠ No `turnedMaterial`: there is nothing to over-bleach INTO. A green
+  # left too long just holds, which is the honest difference between
+  # this stage and the pit.
+  turnedMaterial: null
+  sealedOnly: false
+  leesFraction: 0

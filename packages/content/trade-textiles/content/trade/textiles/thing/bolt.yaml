@@ -1,0 +1,25 @@
+# A bolt of cloth — the chain's output, and ⭐⭐ where dye lots live.
+#
+# `ClothBolt` narrows `canMergeWith` to also require a matching grade, a
+# matching construction form and a matching dye application stack. Two
+# bolts from different lots do not stack, which is the real-world
+# dye-lot problem falling straight out of a predicate — and it is what
+# makes a dyer's repeatability visible **in the inventory**, with no
+# gauge and no number: a master's stock consolidates, a novice's
+# fragments.
+#
+# The FORM is stamped by `weave` (sackcloth / woven / fine-woven), so
+# one row covers the whole continuum and the named cloths are three
+# points on it rather than three rows drifting apart.
+class: /trade/textiles/thing/ClothBolt
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a bolt of linen
+  primaryKeyword: bolt
+  keywords: [bolt, cloth, linen, web]
+  longDescription: |
+    Cloth folded flat over a board, the selvedge straight and the cut end still fraying. Hold it to the light and you can count the threads, which is exactly how anybody decides what it is worth.
+  _materialPath: /stuff/idea/material/textile/linen
+  mass: 2
+  constructionForm: woven
+  gradeBand: fair

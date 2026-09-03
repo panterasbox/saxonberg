@@ -1,0 +1,47 @@
+# trade-textiles — the acts' durations and the decision ranges.
+#
+# ⭐⭐ **Durations are DIALS, and that is load-bearing.** The whole point
+# of this trade is that spinning is the observable bottleneck and buying
+# the wheel moves the constraint to the loom — a lesson that lives
+# entirely in the `spin`:`weave` labour ratio. Arbitrary constants would
+# lose it silently and nothing would fail; as dials, the bench can
+# assert the ratio and an operator can tune it without a recompile.
+settings:
+  # Scutching: half an hour a bundle by hand, a quarter with a board.
+  - key: textiles.scutch.baseMs
+    value: "1200000"
+  - key: textiles.scutch.chargeLitres
+    value: "4"
+
+  # ⚠⚠ SPINNING IS THE BOTTLENECK — roughly six times weaving's labour
+  # per unit of cloth. That is not a tuning accident: it is why one
+  # weaver kept several spinners busy, and why mechanising spinning
+  # first was both so profitable and so socially disruptive. Do not
+  # "balance" it down; the whole trade is built to make it felt.
+  - key: textiles.spin.baseMs
+    value: "5400000"
+  - key: textiles.spin.chargeUnits
+    value: "2"
+  # The count an untrained hand reaches, and how much further each
+  # competence band goes. ⭐ Competence buys the TOP OF THE RANGE and
+  # never more yarn from the same line.
+  - key: textiles.spin.baseCount
+    value: "10"
+  - key: textiles.spin.countPerBand
+    value: "8"
+
+  # ⭐⭐ Weaving — **a SIXTH of spinning**, which is dead centre of the
+  # historical band: it took five to ten spinners to keep one hand-loom
+  # weaver supplied.
+  #
+  # ⚠⚠ The wheel therefore does NOT flip the constraint to the loom, and
+  # the bench says so rather than the number being fitted until it does.
+  # A wheel is rate 3 against a 6× gap, so it CLOSES the gap threefold
+  # and leaves spinning still the maximum — which is exactly what
+  # happened: the wheel did not solve the shortage, and the machine that
+  # did was the JENNY, at eight spindles. Anything above rate 6 flips
+  # it, and the jenny is the first thing that clears that bar.
+  - key: textiles.weave.baseMs
+    value: "1800000"
+  - key: textiles.weave.chargeUnits
+    value: "4"

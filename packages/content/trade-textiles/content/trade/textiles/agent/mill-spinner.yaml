@@ -1,0 +1,19 @@
+# Sefa Roke — at the wheel, on 3 an hour.
+#
+# ⚠ She does the slowest step in the trade for the lowest wage in the
+# shop, which is not an oversight and is not hers to fix. It is the fact
+# the whole build is arranged to let a player notice.
+class: /platform/agent/NPC
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: Sefa Roke
+  pronouns: she
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  primaryKeyword: spinner
+  alternateNames: ["sefa", "roke"]
+  shortDescription: "a spinner at the wheel with her hands full and her mouth free"
+  longDescription: |
+    She has not looked at the wheel in eleven years. The thread comes off it even because her fingers know it, which leaves the whole of her attention for whatever is being argued about along the bench.
+  dispositions:
+    - { disposition: diligence, valence: 55 }

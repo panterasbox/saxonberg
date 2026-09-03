@@ -20,6 +20,8 @@ data:
     A waist-high bundle of flax stems tied twice, cut low so the fibre runs the whole length. Stiff, pale, and no use whatever until something has rotted the glue out of it.
   material: /stuff/idea/material/textile/linen
   mass: 4
+  # ⚠ LITRES — the bulk substrate is volumetric throughout. Eight
+  # litres of loose straw is about a sheaf you can get your arms round.
   interiorBulk: true
   interiorCapacity: 8
   interiorMaterial: /trade/farming/idea/material/flax-straw

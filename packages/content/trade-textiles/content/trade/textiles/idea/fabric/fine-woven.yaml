@@ -1,0 +1,15 @@
+# Fine linen — the close weave. The other end of the same continuum.
+#
+# Least cloth off the same thread, and worth the most: a close weave
+# breaks a wind (windproofing derives from `weaveDensity`, so nobody
+# authors "this is a shell") and takes far longer to wear through.
+class: /platform/idea/material/Fabric
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: fine-woven
+  layerBand: 0
+  loft: 0.12
+  # Close enough that the wind stops at it — and, incidentally, quiet
+  # enough to help somebody who does not want to be looked at.
+  weaveDensity: 0.92
+  drape: 0.7

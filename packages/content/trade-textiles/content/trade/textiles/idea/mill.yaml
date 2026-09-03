@@ -1,0 +1,48 @@
+# The Wharfside mill — a Business, and ⚠⚠ **read the wage column.**
+#
+#   spinner 3 · weaver 5
+#
+# **The bottleneck job is the worst-paid one.** That is the
+# uncomfortable historical fact, and it is precisely WHY mechanising
+# spinning was both so profitable and so socially disruptive: the step
+# that took the most labour was the step done by the people with the
+# least standing.
+#
+# ⚠ **Do not "fix" it upward for fairness.** The wage table teaches the
+# same lesson as the throughput bench and the price ladder, from a third
+# independent direction, and flattening it deletes the lesson rather
+# than the injustice.
+#
+# ⭐ No `AttendancePoint`. The mill produces and consigns; cloth reaches
+# players in the general store, where they already shop.
+class: /platform/idea/Business
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: "the Wharfside mill"
+  appointingAuthority:
+    kind: office
+    office: prime-minister
+  positions:
+    - key: spinner
+      label: at the wheel
+      wageRate: 3
+      confers: []
+      purchases: false
+    - key: weaver
+      label: at the loom
+      wageRate: 5
+      confers: []
+      purchases: true
+  rosterSlots:
+    - positionKey: spinner
+      assignee: /trade/textiles/agent/mill-spinner
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [0, 24] }
+    - positionKey: weaver
+      assignee: /trade/textiles/agent/mill-weaver
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [0, 24] }
+  banksAt: goodkin
+  operatingLocations:
+    - /trade/textiles/location/mill
+    - /trade/textiles/thing/mill-stock

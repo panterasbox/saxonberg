@@ -1,0 +1,20 @@
+# The bleaching green — an acre of grass kept for whitening linen.
+#
+# ⭐ Retting's shape applied to WEATHER. Lay it out; sun, dew and lye do
+# it over months; take it in when it is white. Zero verbs, and a real
+# weather consumer.
+#
+# ⭐⭐ It is LAND DEDICATED TO A PURPOSE, which is what a bleaching green
+# actually was — and the reason chlorine bleaching turning greens back
+# into farmland is one of the best land-economics stories the subject
+# has. That door is open; nothing here closes it.
+class: /trade/textiles/thing/BleachingGreen
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a bleaching green
+  primaryKeyword: green
+  keywords: [green, sward, bleaching, grass]
+  longDescription: |
+    A close-cropped acre pegged out in long pale strips, weighted at the corners against the wind. Somebody walks it twice a day with a watering can, which is the entire technology.
+  _materialPath: /stuff/idea/material/tissue/plant-tissue
+  mass: 50

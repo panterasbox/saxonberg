@@ -1,0 +1,23 @@
+# The spinning wheel — the same act, three times over.
+#
+# ⭐⭐ **It unlocks NOTHING.** Same `spinning` kind, `rate: 3`, and the
+# decision `spin` carries is identical on it: the ladder moves the rate
+# and the scale, never the decision. `control: fine` is skill embedded
+# in the capital, exactly as the treadle sewing machine has it.
+#
+# ⚠ This is the object the bottleneck bench buys. Without a wheel in
+# reach, spinning is the maximum attended step; with one, the loom is.
+# That is a measurable fact about this pack, asserted rather than
+# claimed.
+class: /trade/textiles/thing/SpinningTool
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a spinning wheel
+  primaryKeyword: wheel
+  keywords: [wheel, spinning-wheel, treadle, flyer]
+  longDescription: |
+    A great wheel and a small one, a treadle, and a flyer that whips the twist in faster than a hand can follow. It does nothing a spindle cannot; it does it while you are still reaching for the spindle.
+  capabilities:
+    - { kind: spinning, rate: 3, control: fine }
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 14

@@ -28,6 +28,13 @@ data:
       destination: /world/terminus/market/square
     west:
       destination: /world/terminus/valley-road/towpath
+    # ⭐ The mill, and it is HERE for a reason rather than anywhere.
+    # Retting wants standing water and stinks badly enough to have been
+    # banned upstream of towns; a bleaching green wants open ground and
+    # sun. Both of those are siting decisions, and siting is what makes
+    # a trade an INDUSTRY rather than a crafting station.
+    south:
+      destination: /trade/textiles/location/mill
   props:
     - /world/terminus/wharfside/thing/city-intake
     - /world/terminus/wharfside/thing/city-outfall

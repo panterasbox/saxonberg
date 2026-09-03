@@ -1,0 +1,19 @@
+id: trade-textiles
+version: 0.1.0
+root: /trade/textiles
+description: >-
+  The textile trade — straw into cloth. ⭐ The chain's entry point is the
+  FIBRE, not the pit: `spin` takes a fibre material and where it came
+  from is upstream, so wool, cotton and one day a synthetic plug in
+  without this pack changing a line. Preparation is a stage and retting
+  is flax's instance of it; finishing is a stage and bleaching is
+  linen's. Three verbs, three decisions — how hard to work it, how fine
+  to spin it, how close to weave it — and ⭐⭐ spinning is the
+  bottleneck, which is a lesson rather than a tuning accident.
+requires:
+  groups:
+    - name: textiles
+      purpose: the textile trade's own body
+      owner: { office: prime-minister }
+  title:
+    - { extent: /trade/textiles, holder: { group: textiles } }

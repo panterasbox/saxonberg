@@ -1,0 +1,17 @@
+# The mill's stock — where the floor's cloth spawns and where the
+# consigning hand takes it from. No `stockLines` and no prices: nothing
+# is sold here.
+class: /platform/thing/Stock
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: "the mill's stock"
+  primaryKeyword: stock
+  keywords: [stock, bolts, shelf]
+  longDescription: "Bolts stacked on their ends against the wall, each with a chalked mark on the cut edge."
+  discipline: scrum
+  attendDurationMs: 0
+  staffingPolicy: self-service
+  serverPositionKeys: []
+  businessPath: /trade/textiles/idea/mill
+  stockLines: []
+  prices: {}

@@ -1,0 +1,13 @@
+# The hand loom — four posts, a beam, and a shuttle you throw.
+class: /trade/textiles/thing/Loom
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a hand loom
+  primaryKeyword: loom
+  keywords: [loom, hand-loom, shuttle, heddle]
+  longDescription: |
+    A frame of four posts with a warp beam at the back and a cloth beam at the front, the heddles hung on cords. The shuttle lives in a groove worn for it in the breast beam.
+  capabilities:
+    - { kind: weaving, rate: 1 }
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 40

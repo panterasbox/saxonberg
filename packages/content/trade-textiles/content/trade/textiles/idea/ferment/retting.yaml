@@ -1,0 +1,41 @@
+# Retting — flax's instance of the PREPARATION stage.
+#
+# ⚠⚠ The stage is `prepare`, and retting is not its name. Wool SCOURS,
+# cotton GINS, silk REELS, a synthetic EXTRUDES — every one of them
+# arrives later as its own profile over its own material, and this pack
+# does not change. That is why nothing here is called "the retting
+# stage", and why the profile matches on the MATERIAL's `retting` tag
+# rather than naming the flax row.
+#
+# ⭐ It needs NO VERB. `FermentingMixin` already runs this clock: put the
+# straw in water, judge the moment, take it out. What rots is the pectin
+# gluing the bast bundles to the woody core — which is a real slow
+# bacterial ferment, so the engine that models a wine is the engine that
+# models this, unchanged.
+#
+# ⭐ Cold water rets slower — real, and it makes the season matter. A pit
+# below `stallBelowK` simply stops, which is why linen was a summer job.
+#
+# ⚠⚠ `turnDays` + `turnedMaterial` are the OVER-RET: the one failure in
+# the whole chain that you cause by not paying attention, and the only
+# one you cannot undo. Vinegar's mechanism, verbatim.
+class: /platform/idea/ferment/FermentProfile
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: retting
+  inputCategory: retting
+  # Cold water stalls it — the reason retting is a summer job.
+  stallBelowK: 283
+  happyK: 295
+  # Warm water runs it fast and coarsens the fibre.
+  damageAboveK: 305
+  # Roughly a fortnight in a happy pit — the historical figure for dew
+  # or pond retting, and slow enough that judging it is a real act.
+  ratePerDay: 0.07
+  productMaterial: /stuff/idea/material/textile/linen
+  # ⚠⚠ Four days past ready and the rot is into the cellulose. Grey,
+  # weak, short, and no way back.
+  turnedMaterial: /trade/textiles/idea/material/rotted-flax
+  turnDays: 4
+  sealedOnly: false
+  leesFraction: 0
