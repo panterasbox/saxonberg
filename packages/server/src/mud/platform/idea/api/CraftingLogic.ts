@@ -788,14 +788,20 @@ function deriveBlendPayload(
   const nutrientAmounts: Record<string, number> = {};
   const toxins = new Map<string, number>();
   const tags = new Set<string>();
-  // The composition, for the palate: what went in, and what it tastes of.
-  const partNames: string[] = [];
+  // ⭐ The composition: what went in, by PATH, with its servings summed
+  // per material and first-seen order kept. Every derived fact below —
+  // the tastes, the tags, the label — is a function of exactly this, and
+  // carrying it properly is what lets each subsystem compute its own
+  // instead of being handed the answer. See the bulk-decomposition plan.
+  const composition = new Map<string, number>();
   const tastes = new Set<string>();
   let edible = false;
   for (const part of parts) {
     if (part.material.getEdibility() === true) edible = true;
-    const partName = part.material.getName();
-    if (partName && !partNames.includes(partName)) partNames.push(partName);
+    const partPath = part.material.getTemplatePath();
+    if (partPath) {
+      composition.set(partPath, (composition.get(partPath) ?? 0) + part.servings);
+    }
     for (const taste of part.material.getTastes()) tastes.add(taste);
     for (const tag of part.material.getTags()) tags.add(tag);
     for (const tag of part.material.getNutrients()) nutrients.add(tag);
@@ -829,7 +835,12 @@ function deriveBlendPayload(
   if (appearance) payload.appearance = appearance;
   if (keywords.length > 0) payload.keywords = [...keywords];
   if (tags.size > 0) payload.tags = [...tags];
-  if (partNames.length > 0) payload.parts = partNames;
+  if (composition.size > 0) {
+    payload.composition = [...composition].map(([materialPath, servings]) => ({
+      materialPath,
+      servings,
+    }));
+  }
   if (tastes.size > 0) payload.tastes = [...tastes];
   // ⭐ Which craft made it — the skill a taster's palate is read through
   // (`PalatableMixin`). Recording it here is what lets the kernel project

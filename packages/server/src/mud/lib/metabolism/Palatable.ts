@@ -60,6 +60,9 @@ import type { MixinConstructor } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
 import type { MarkupAugmenter } from "../../api/mml";
 import { MixinApi } from "../../api/mixin";
+import { StuffApi } from "../../api/stuff";
+import type { BlendPart } from "../bulk/Bulkable";
+import type Material from "../material/Material";
 import {
   COMPETENCE_BANDS,
   type CompetenceBandName,
@@ -67,6 +70,27 @@ import {
 
 /** The sense channel a palate answers on. */
 const TASTE_CHANNEL = "taste";
+
+/**
+ * The ingredients' display names, resolved from the composition.
+ *
+ * ⭐ The composition carries Material PATHS, not names — a name is not a
+ * handle, and every derived reading below needs a handle. Resolving here
+ * is the price, and it is the right price: the alternative was the blend
+ * carrying a pre-computed answer for every subsystem that might ask.
+ */
+function ingredientNames(
+  composition: readonly BlendPart[] | undefined,
+): string[] {
+  if (!composition || composition.length === 0) return [];
+  const out: string[] = [];
+  for (const part of composition) {
+    const material = StuffApi.findByTemplatePath<Material>(part.materialPath);
+    const name = material?.getName();
+    if (name && !out.includes(name)) out.push(name);
+  }
+  return out;
+}
 
 /**
  * Render the palate lines for a host's contents, or `null` when there is
@@ -127,7 +151,7 @@ function palateAugmenter(
   const material = host.getBulkMaterial("interior");
   const line = renderPalate(
     payload?.tastes ?? material?.getTastes() ?? [],
-    payload?.parts ?? [],
+    ingredientNames(payload?.composition),
     MixinApi.isGraded(host) ? host.getGradeBand() : null,
     bandFor(viewer, payload?.discipline ?? ""),
   );

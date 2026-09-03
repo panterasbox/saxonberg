@@ -107,6 +107,19 @@ export const BULK_VOLUME_UNIT = 'L' as const;
  * Plain JSON-able record (the `reserves` precedent) — round-trips
  * through the default Hydrator with no marshaller.
  */
+/**
+ * One ingredient of a blend: which Material, and how many servings of it
+ * went in. `servings` is the craft's own unit — the same number the
+ * nutrition label already multiplies by — so a per-litre reading is an
+ * honest division rather than a guess.
+ */
+export interface BlendPart {
+  /** templatePath of the ingredient Material. */
+  materialPath: string;
+  /** Servings of it consumed into this blend. */
+  servings: number;
+}
+
 export interface BulkPayload {
   /** Display name ("hearty stew") — the blend's `Material.name`. */
   name: string;
@@ -136,11 +149,23 @@ export interface BulkPayload {
    */
   tags?: string[];
   /**
-   * ⭐ The **ingredients**, by their Materials' display names — the
-   * blend's composition, in the order they were consumed. Absent on a
-   * blend that derived nothing.
+   * ⭐⭐ **The composition — what went in, and how much.** Material PATHS
+   * with their servings, in the order first consumed, summed per
+   * material. Absent on a blend that derived nothing.
+   *
+   * ⚠ This was `parts: string[]`, *"the ingredients by their Materials'
+   * display names"* — and a name is not a handle. Nothing could ask a
+   * name for a taste, a toxin or a tag, so every subsystem had to be
+   * handed its answer pre-computed, and the only place to put those
+   * answers was this type: `tastes`, `tags`, the whole nutrition label.
+   * That is how a continuous-volume payload came to carry seven
+   * subsystems' vocabulary and why `lib/bulk` imports `lib/metabolism`.
+   *
+   * ⭐ With paths and servings, each subsystem derives its own facts on
+   * read, in its own folder. See
+   * `docs/plans/bulk-decomposition-plan.md`.
    */
-  parts?: string[];
+  composition?: BlendPart[];
   /**
    * The union of the ingredients' basic tastes (`sweet` · `salty` ·
    * `sour` · `bitter` · `umami`).

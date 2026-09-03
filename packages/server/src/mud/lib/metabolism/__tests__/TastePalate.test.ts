@@ -67,6 +67,10 @@ class TestTaster extends AdvancementMixin(Idea) {
 }
 
 const COOKED = '/stuff/idea/material/_test/palate-cooked';
+const ROOT_VEG = '/stuff/idea/material/food/root-vegetable';
+const STEW_MEAT = '/stuff/idea/material/food/stew-meat';
+const LIME = '/stuff/idea/material/food/lime';
+const SUGAR = '/stuff/idea/material/food/sugar';
 
 const STEW: BulkPayload = {
   name: 'hearty stew',
@@ -75,7 +79,14 @@ const STEW: BulkPayload = {
   nutrientAmounts: { carb: 34000, protein: 26000 },
   toxicity: [],
   edible: true,
-  parts: ['root vegetable', 'stew meat'],
+  // ⭐ The COMPOSITION — Material paths and servings, not display names.
+  // Asserting "root vegetable" below now requires a root-vegetable
+  // Material to actually exist, which is the point: the reading is
+  // derived from what went in, not from a string handed to the payload.
+  composition: [
+    { materialPath: ROOT_VEG, servings: 1 },
+    { materialPath: STEW_MEAT, servings: 1 },
+  ],
   tastes: ['sweet', 'umami'],
   // ⭐ The craft that made it — the discipline the palate is read
   // through. The kernel never knows the word; the recipe recorded it.
@@ -116,6 +127,19 @@ function lookOf(host: Stuff, viewer: Stuff): string {
 describe('the palate reads the dish (AC11)', () => {
   beforeEach(() => {
     installV1QuantityMarshallers();
+    for (const [path, name] of [
+      [ROOT_VEG, 'root vegetable'],
+      [STEW_MEAT, 'stew meat'],
+      [LIME, 'lime'],
+      [SUGAR, 'sugar'],
+    ] as const) {
+      makeStuffAtPath(() => {
+        const ingredient = new Material();
+        ingredient.setName(name);
+        ingredient.setEdibility(true);
+        return ingredient;
+      }, path);
+    }
     makeStuffAtPath(() => {
       const m = new Material();
       m.setName('cooked fare');
@@ -214,7 +238,10 @@ describe('the palate reads the dish (AC11)', () => {
     // Change what went in; the reading changes, with nothing else edited.
     const other: BulkPayload = {
       ...STEW,
-      parts: ['lime', 'sugar'],
+      composition: [
+        { materialPath: LIME, servings: 1 },
+        { materialPath: SUGAR, servings: 1 },
+      ],
       tastes: ['sour', 'sweet'],
     };
     const text = tasteOf(dish(other), taster('competent'));

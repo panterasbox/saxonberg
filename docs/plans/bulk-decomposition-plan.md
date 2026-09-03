@@ -130,11 +130,20 @@ trapped. Not this plan's job; named so it is not forgotten.
 
 ## Waves
 
-- **W0 — the composition.** `parts: string[]` (display names) becomes the
-  composition proper: Material paths with shares. Every writer is the
-  craft's blend step; every reader today just prints it. Nothing derives
-  yet — this wave only makes derivation possible, and is provable by
-  itself (the printed ingredient list must be identical).
+- **W0 — the composition. ✅ DONE.** `parts: string[]` (display names)
+  became `composition: BlendPart[]` (`materialPath` + `servings`, summed
+  per material, first-seen order kept). Smaller than feared: the craft
+  ALREADY held `{ material: Material; servings: number }` and flattened it
+  to names at the last step, so the fix was to stop flattening. One type,
+  one writer (`deriveBlendPayload`), one reader (`PalatableMixin`, which
+  now resolves paths back to names for the competent band).
+  ⭐ The test got more honest as a side effect: asserting *"you pick out
+  lime"* now requires a lime Material to exist, where before it asserted a
+  string the payload had been handed.
+  ⚠ Nothing derives yet, by design — and note the live drive canNOT prove
+  this wave: the ingredient line only shows at `competent`+ and the
+  drive's patron is untrained. The unit suite proves the new path; the
+  drive proves nothing regressed. Do not conflate them.
 - **W1 — derive the palate.** `tastes` off the payload; `PalatableMixin`
   computes from the composition. The one that proves the shape, and the
   smallest.
@@ -171,9 +180,10 @@ one that touches every writer; W1–W3 are one subsystem each.
 
 ## Open
 
-1. Does the composition carry shares (litres or fractions), or just the
-   ordered material paths? Shares are needed for honest per-litre
-   nutrition; order alone is enough for the palate.
+1. ~~Does the composition carry shares?~~ **Answered 2026-09-03: SHARES —
+   "we need honest per-litre nutrition."** Carried as `servings`, which is
+   the craft's own unit and the same number the label already multiplies
+   by, so a per-litre reading is a division rather than a guess.
 2. Does a blend Material still exist after W3, or is the blend only ever
    its composition?
 3. Which subsystem owns the vessel-kind mixin — retail (the par) or
