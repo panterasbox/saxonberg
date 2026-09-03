@@ -99,8 +99,33 @@ describe('FreshnessMixin — the spoilage gauge', () => {
     expect(anvil.getMicrobialLoad()).toBe(0);
     expect(anvil.getFreshnessBand()).toBe('fresh');
     expect(anvil.isPerishable()).toBe(false);
-    // …and the field stays at its sparse default: nothing to persist.
+    // …and BOTH fields stay at their sparse defaults: nothing to persist.
     expect(anvil._microbialLoad).toBe(0);
+    expect(anvil.freshnessClockStamp).toBe(0);
+  });
+
+  it('⚠⚠ inert matter writes NOTHING, however often it is looked at', () => {
+    // ⭐ The sparse-storage guarantee, and the assertion whose absence hid
+    // a real defect: the reconcile stamped the clock BEFORE asking whether
+    // the matter could rot, so the first `look` at an anvil wrote a
+    // non-default `freshnessClockStamp` into its snapshot forever. The
+    // claim in spoilage.md — "two scalar fields at their defaults" — was
+    // true only until somebody looked at the thing.
+    const anvil = food(material(0));
+    for (let i = 0; i < 5; i++) {
+      setNow(i * DAY);
+      anvil.getMicrobialLoad();
+      anvil.getFreshnessBand();
+    }
+    expect(anvil.freshnessClockStamp).toBe(0);
+    expect(anvil._microbialLoad).toBe(0);
+  });
+
+  it('…while perishable matter DOES stamp, on its first read', () => {
+    const meat = food(material(MEAT_EA));
+    expect(meat.freshnessClockStamp).toBe(0);
+    meat.getMicrobialLoad();
+    expect(meat.freshnessClockStamp).toBeGreaterThan(0);
   });
 
   it('a perishable material reports itself perishable', () => {

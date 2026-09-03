@@ -582,6 +582,22 @@ export function FreshnessMixin<TBase extends MixinConstructor<Stuff>>(
     public reconcileFreshness(): void {
       if (this._reconcilingFreshness) return;
 
+      // ⭐⭐ **Inertness is checked BEFORE the clock, and that ordering IS
+      // the sparse-storage guarantee.** The mixin composes onto every
+      // `Thing` because perishability is a property of the MATERIAL, not
+      // the class: a `Prop` is an anvil or a cut of stew meat depending on
+      // its `_materialPath`, so there is no food class to compose onto.
+      //
+      // ⚠ The cost of getting this order wrong was invisible and real. It
+      // read the clock and STAMPED it first, so the first `look` at an
+      // anvil, a lantern or a chair wrote a non-default
+      // `freshnessClockStamp` into that object's snapshot — for matter
+      // that can never rot. "Two scalar fields at their defaults" was true
+      // only until somebody looked at the thing. Inert matter now reads
+      // and writes NOTHING.
+      const material = this.freshnessMaterial();
+      if (!Freshness.isPerishable(material)) return;
+
       const nowS = Freshness.nowSeconds();
       if (nowS === null) return;
 
@@ -603,7 +619,7 @@ export function FreshnessMixin<TBase extends MixinConstructor<Stuff>>(
         this._microbialLoad = Freshness.advance(
           this._microbialLoad,
           elapsed,
-          this.freshnessMaterial(),
+          material,
           Freshness.hostTemperatureK(self),
         );
         this.freshnessClockStamp = nowS;

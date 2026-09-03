@@ -55,12 +55,30 @@ exponential, so a week-long gap costs exactly what a minute does.
 
 ## The gauge
 
-`FreshnessMixin` composes onto `ThingBase` beside `WetMixin` — a
-universal capability, and **inert by default**: a Material that tabulates
-no activation energy never advances past zero. An anvil does not rot, and
-no flag says so. Storage is two scalar fields at their `0` defaults
-(`_microbialLoad`, `freshnessClockStamp`), the sparse shape wetness
-established.
+`FreshnessMixin` composes onto `ThingBase` beside `WetMixin` — all 152
+`Thing` classes.
+
+⭐ **That universality is forced by the data model, not chosen for
+convenience.** Perishability is a property of the **Material**, not the
+class: a `Prop` is an anvil, a toilet, or a cut of stew meat depending on
+its `_materialPath`, and only 30 of the library's 107 materials tabulate
+an activation energy. There is no food class to compose onto — that is
+the codebase's own *"the distinction is the material, not a flag"* rule
+(`isEdibleMatter`), and a `PerishableProp` class would be a flag wearing
+a class name.
+
+**Inert by default**, therefore, is what carries the design: a Material
+tabulating no activation energy never advances past zero. An anvil does
+not rot, and no flag says so.
+
+⚠⚠ **The sparse-storage guarantee is an ORDERING, and it is easy to lose.**
+`reconcileFreshness` checks perishability **before** it reads the clock,
+so inert matter reads and writes nothing at all. Get that order wrong —
+stamp first, ask later — and the first `look` at an anvil writes a
+non-default `freshnessClockStamp` into its snapshot forever, for matter
+that can never rot. It shipped that way for one review round: "two scalar
+fields at their `0` defaults" was true only until somebody looked at the
+thing. Two tests now pin it.
 
 Reconcile-on-read over game-time, with **two deliberate divergences from
 `WetMixin`**:
