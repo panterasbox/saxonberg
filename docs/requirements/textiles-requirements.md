@@ -159,7 +159,12 @@ honest rather than absent: a linen shirt is armor that does not work.
 | | where | may a pack add one? |
 |---|---|---|
 | **resist-bearing** forms (`plate`, `mail`, `padded`, `hide` — plus `quilted`, ⚠ **which does not exist yet and this build adds**) | closed kernel `as const` | **no** |
-| **non-resisting textile** forms (`woven`, `knit`, `felted`, and successors like lace or netting) | template rows | **yes** |
+| **non-resisting textile** forms (`woven`, `knit`, `felted`, and successors like lace or netting) | template rows at **`/stuff/idea/fabric/`** | **yes** |
+
+⭐ **`fabric` is the term of art** — *"fabric construction"* is the
+textile industry's own name for this classification (woven / knit /
+nonwoven) — and it is precisely scoped: because resist-bearing forms stay
+kernel, that namespace can only ever hold fabrics.
 
 *Reasoning.* A form's resist profile is combat mitigation, and letting
 content author that is a real objection. A purely-textile form carries
@@ -240,7 +245,10 @@ verbs for the wardrobe affordance.**
 metabolism basal drain and thermal mass are all already reading it. Fit
 cannot key on a constant, so this build fixes it.
 
-- Species gain a real `baseMass` **and** a `stature`.
+- ⚠ **All TEN playable species** (corrected 2026-09-02 — char-gen ships
+  gnome, half-elf and orc besides the seven first counted) gain a real
+  `baseMass` **and** a `stature`. The numbers are settled in
+  [the plan](../plans/textiles-plan.md) § P8.
 - **`stature` is a scalar** (linear scale), not two-axis. Lineage's body
   budget already owns *build* via fat/muscle/bone at one mass; a second
   build axis would duplicate it.
@@ -477,7 +485,8 @@ puts real pressure on.
 
 1. `Garment` composes `Constructed`, `Durable`, `Crafted` and `Detailed`;
    all nine shipped clothing rows carry a material, a construction form
-   and a mass.
+   and a mass. **`Armor` is retired** — armor is a `Garment` of the right
+   material and form; its six rows and twelve test imports repoint.
 2. No shipped row authors `clo`; `getClo()` is derived, and a test
    asserts a wool garment out-insulates a linen one of equal mass from
    material properties alone.
@@ -490,8 +499,8 @@ puts real pressure on.
    ambient, and pins assert the three refactored walks are unchanged.
 5. A covering stack orders by form band, with wear-order breaking ties
    inside a band; a test asserts a shirt cannot be worn over plate.
-6. Each of the seven species declares its own `baseMass` and `stature`;
-   the gym benches are re-run and any movement is recorded.
+6. Each of the **ten playable** species declares its own `baseMass` and
+   `stature`; the gym benches are re-run and any movement is recorded.
 7. A garment stamps cut-to measurements; a test asserts bespoke fit
    out-performs stock on the same body, and that a halfling's garment
    fails on a dragonborn.

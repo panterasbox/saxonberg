@@ -113,7 +113,7 @@ ever ships.
   `measure.yaml`'s `strike`/`dip` stanzas. **This is the precedent that
   makes `wear set` legal.** Views support `args` and `subcommands`
   together (11 shipped examples).
-- **`platform/pack.yaml` claims `/stuff`**, so `/stuff/idea/covering/**`
+- **`platform/pack.yaml` claims `/stuff`**, so `/stuff/idea/fabric/**`
   is titled without a claim edit.
 - **`CardBodies.tsx` ~1276** suppresses `HereList` for `agent` — *"a
   person's contents are their pockets."* **That is precisely the hole
@@ -225,19 +225,30 @@ kernel edit**; content **never** authors a resist profile.
    `{ edge: 'poor', point: 'poor', blunt: 'absorb' }` — a gambeson, one
    band outside `padded`.
 2. **Non-resisting textile forms are template rows**, backed by
-   `platform/idea/material/CoveringForm.ts` (`SingletonMixin(Idea)`, the
-   `FermentProfile` shape), rows at **`/stuff/idea/covering/<key>`**:
+   `platform/idea/material/Fabric.ts` (`SingletonMixin(Idea)`, the
+   `FermentProfile` shape), rows at **`/stuff/idea/fabric/<key>`**:
+
+   ⭐ **`fabric` is the term of art, and it is precisely scoped.**
+   *"Fabric construction"* is the textile industry's own name for exactly
+   this classification (woven / knit / nonwoven), and — because
+   resist-bearing forms stay kernel — **this namespace can only ever hold
+   fabrics**. Plate is never a row, so the cloth connotation is correct
+   rather than sloppy. The kernel *type* stays `CoveringForm`, which
+   genuinely spans both domains; the registration method is
+   `Construction.registerFabric(spec)`.
+
+   Row fields:
    `key`, `layerBand` (0..4), `loft` (0..1), `weaveDensity` (0..1),
    `drape` (reserved). ⚠ `layerBand` is **required and range-validated on
    set** — that is what keeps `getLayerDepth()` total. An out-of-range row
    throws at hydration, loudly.
 3. **The bridge is a boot-time registry on the pure value object.**
-   `Construction.registerTextileForm(spec)` / `clearTextileForms()`
-   (HMR-safe) writing a module-private `Map`. A `CoveringFormCatalogue`
+   `Construction.registerFabric(spec)` / `clearFabrics()`
+   (HMR-safe) writing a module-private `Map`. A `FabricCatalogue`
    singleton harvests the rows and pushes them in from
    `MaterialLogic.boot` — **which already filters on
    `tpl.class.startsWith('/platform/idea/material/')`, so placing
-   `CoveringForm.ts` in that cluster makes the directory the filter, for
+   `Fabric.ts` in that cluster makes the directory the filter, for
    free.** `Construction.ts` still imports only `./Channel`.
 4. ⭐ **`responseFor()` on a textile form does not throw and is not
    authored.** One kernel constant answers for all of them:
@@ -279,19 +290,44 @@ kernel edit**; content **never** authors a resist profile.
    the profile. **Neither script has to read a template row**, which is
    the whole reason the shared profile is a kernel constant.
 
-### P4 — `Armor` becomes `class Armor extends Garment {}`
+### P4 — `Armor` is RETIRED; armor is a `Garment` of the right material and form
 
-After AC 1 the two stacks are byte-identical; keeping both is the
-duplication that produced the current mess. The name and file stay (six
-rows name `Armor`; `lint:census` would see the churn); the doc comment is
-rewritten to say what is now true — *armor-ness is material + form, and
-the class is a readable label on the same stack.*
+*(User decision, 2026-09-02 — the plan's default was `extends Garment`.)*
+
+After AC 1 the two stacks are byte-identical, and **armor-ness is not a
+class — it is material + construction form**. A steel breastplate is a
+`Garment` whose material is steel and whose form is `plate`. Keeping a
+subclass that adds nothing would be the same duplication that produced
+the current mess.
+
+**Blast radius, enumerated:**
+
+- **6 content rows** — `generic-objects/content/stuff/thing/armor/*.yaml`
+  (bronze-breastplate, hide-jerkin, leather-boots, mail-hauberk,
+  padded-gambeson, steel-breastplate) repoint `class:` to
+  `/platform/thing/equipment/Garment`. ⚠ **The directory name stays
+  `armor/`** — it is a content namespace, not a class, and renaming it
+  would churn `lint:census` for nothing.
+- **12 test imports** — `AnalyzeResponseController.test.ts`,
+  `CombatLogic.test.ts`, `CombatLogic.gearwear.test.ts`,
+  `CombatLogic.hooks.test.ts`, `ConditionLogic.shock.test.ts`,
+  `ElectricityLogic.test.ts`, `CraftingLogic.repair.test.ts`,
+  `material-response.inflict.test.ts`, `electricity-pips.test.ts`,
+  `ArmsAndArmor.test.ts`, `FloodedCell.integration.test.ts`, and
+  `terminus/src/__tests__/sewing-machine.acceptance.test.ts` — all swap
+  `import Armor` for `import Garment`. Mechanical; the constructions and
+  materials they set are unchanged.
+- **Delete** `platform/thing/equipment/Armor.ts`.
 
 ⚠ TypeScript drops an inner mixin's surface through nested generic mixins
 (the farming plan's `Provision` finding). **A3 checks the compile before
-assuming it is free**, and applies the class/interface merge
+assuming this is free**, and applies the class/interface merge
 (`interface Garment extends Crafted, Durable, Constructed, Detailed {}`)
 if the static surface narrows.
+
+⭐ **This is the same move the slate makes about garments generally** —
+*a garment's purpose is which channel it intercepts, not what class it
+is* — applied to the one class that was already an exception.
 
 ### P5 — `clo` derives from physics, on `Wearable`, per garment
 
@@ -438,12 +474,43 @@ the riskiest refactor in the build.
   encumbrance, metabolism, thermal mass, `Thermal.getTau` — reads
   `Creature.getMass()` and inherits the change for free. **That is the
   point.**
-- Seven playable species get real numbers; the twelve non-playable rows
-  are left inheriting. Constraints, not values: monotone with the
-  fiction's size ordering; `stature` and `baseMass` mutually consistent (a
-  halfling at 1.0 m / 35 kg has roughly a human's girth index — a *small
-  person*, not a dense one); and **no species so light that
-  `combat.natural.largeBodyMassKg` flips silently.**
+- ⚠ **TEN playable species, not seven** (corrected 2026-09-02 — char-gen
+  ships gnome, half-elf and orc as well). The nine non-playable `homo/*`
+  rows are left inheriting.
+
+⭐ **The numbers** (decided 2026-09-02). `girth = √(mass/stature)`; human
+is the 6.32 baseline. **Every mass is under `largeBodyMassKg` (150), so
+nobody silently gains ogre-reach** — dragonborn is the closest at 25 kg
+under.
+
+| species | fiction | `stature` (m) | `baseMass` (kg) | girth |
+|---|---|---|---|---|
+| gnome | *small, wiry* | 1.00 | 30 | **5.48** |
+| halfling | *small… fond of a good meal* | 1.05 | 38 | 6.02 |
+| dwarf | *stone-sturdy and stout* | 1.35 | 68 | **7.10** |
+| elf | *measured, watchful grace* | 1.80 | 64 | 5.96 |
+| half-elf | *elven poise and human drive* | 1.78 | 67 | 6.13 |
+| human | *adaptable and ambitious* | 1.75 | 70 | 6.32 |
+| tiefling | *horned and ember-eyed* | 1.78 | 73 | 6.40 |
+| half-orc | *broad and powerful* | 1.88 | 92 | 6.99 |
+| orc | *broad and fierce, short-lived* | 1.92 | 100 | 7.22 |
+| dragonborn | *the bearing of an elder wyrm* | 2.00 | 125 | **7.91** |
+
+⭐ **The fiction falls out of the arithmetic rather than being asserted.**
+The gnome is *wiry* — the lowest girth of anyone. The halfling eats well,
+so it carries near-human girth at 60% of the height, which is exactly what
+separates it from the gnome. **The dwarf is third-shortest and
+fifth-heaviest**, so *"stone-sturdy and stout"* is a number rather than a
+adjective. The half-elf sits between elf and human on both axes, at home
+in neither.
+
+⚠ **And the size is paid for.** A dragonborn carries and eats ~1.8× a
+human, and cools more slowly — a real cost for a real benefit, which is
+the incomparability [lineage-slate](../slates/builds/lineage-slate.md)
+wants. Do not "balance" it away.
+
+- Both fields stay `0` = *inherit the plan* for every non-playable row, so
+  the diff is ten rows plus `biped.yaml`.
 - ⚠ **The gym-bench plan.** The gym drives **synthetic** plans, so a green
   run proves the *engine* did not move. The run that matters is the
   shipped-species diff: A4 adds
@@ -638,17 +705,17 @@ writing anything else in this wave.**
 
 - **Kernel:** `Construction.ts` (rename, `quilted`,
   `TEXTILE_RESIST_PROFILE`, the registry, the widened ladder); new
-  `platform/idea/material/CoveringForm.ts` + `CoveringFormCatalogue.ts`;
+  `platform/idea/material/Fabric.ts` + `FabricCatalogue.ts`;
   the `MaterialLogic.boot` registration hook.
 - **Rename sweep:** the seven production files in P3.5 plus
   `check-does-nothing.ts`, `Construction.test.ts`,
   `material-response.test.ts:30`.
-- **Content:** `base-library` — `/stuff/idea/covering/{woven,knit,felted}`.
+- **Content:** `base-library` — `/stuff/idea/fabric/{woven,knit,felted}`.
 - **Tests:** the depth ladder is **total** over kernel ∪ registered forms;
   an out-of-range `layerBand` throws at registration; `responseFor` on a
   textile form returns `poor` on all three mechanical channels and still
-  throws on `shock`; `getDomain()` returns `'covering'`; a registered form
-  survives `clearTextileForms` + re-register (HMR); `doesNothing()` false
+  throws on `shock`; `getDomain()` returns `'covering'`; a registered fabric
+  survives `clearFabrics` + re-register (HMR); `doesNothing()` false
   for every form.
 - **Lints:** `does-nothing`, `inert-weapon`, `census`, `untitled`,
   `instanceable`.
@@ -684,8 +751,8 @@ Per P8. ⚠ **Moves live numbers. Its own commit, its own message.**
 - **Kernel:** `BodyPlan.ts` (`baseStature`), `Species.ts` (both fields +
   resolving getters), `Creature.ts:229`, `CombatLogic.ts:2143`,
   `NaturalAttack.deriveProfile`.
-- **Content:** `biped.yaml` `baseStature: 1.75`; seven playable `homo/*`
-  rows gain `baseMass` + `stature`.
+- **Content:** `biped.yaml` `baseStature: 1.75`; **ten** playable `homo/*`
+  rows gain `baseMass` + `stature` (the P8 table).
 - **Bench:** `scripts/__tests__/species-mass.bench.test.ts` added to
   `GYM_TESTS` — the per-species table, snapshotted.
 - **Tests:** `Creature.mass.test.ts` extended (species override wins over
@@ -966,7 +1033,7 @@ fight):
 | 3 | Soaked garment loses insulation, gains mass; wet wool > wet linen | **A5** (P5) |
 | 4 | The **thermal** consumer of `getSlotsCovering` exists; an uncovered part is colder | **A5** (P6) |
 | 5 | Stack orders by band, wear-order breaks ties; shirt not over plate | **A5** (P6), ladder from **A2** |
-| 6 | Seven species declare `baseMass` + `stature`; gym re-run, movement recorded | **A4** (the species-mass bench snapshot) |
+| 6 | **Ten** playable species declare `baseMass` + `stature`; gym re-run, movement recorded | **A4** (the species-mass bench snapshot) |
 | 7 | Garment stamps cut-to measurements; bespoke beats stock; cross-species fails | **A6** (P7), stature from **A4** |
 | 8 | `worn` in `DETAIL_FIELDS`; card renders worn and carried separately | **A1** (P1) |
 | 9 | Impression augmenter summarizes in aggregate, names no garment | **A1** (P2) |
@@ -1039,17 +1106,15 @@ not "write a new one."**
 
 **Opens for the user** (defaults stated; say the word to change one):
 
-1. **P4 — `Armor extends Garment`.** The default collapses two identical
-   stacks and keeps the name. The alternative is retiring `Armor` and
-   repointing six rows at `Garment`.
-2. **Venue placement** — the mill (Wharfside, near the water retting
-   wants), the dyehouse (Wharfside, downwind — a nuisance trade), the
-   tailor's shop (Mayfield Row or off University Avenue). Names and prose
-   are the build agent's pen.
-3. **The species numbers themselves** (A4). The plan fixes the
-   *constraints* — monotone with the fiction, girth-consistent, no silent
-   `largeBodyMassKg` flip — not the values.
-4. **`/stuff/idea/covering/` as the home for textile form rows** (P3.2).
-   The alternative is `/stuff/idea/construction/`, which reads better
-   against `Construction` but worse against the `covering` rename the
-   requirements just made.
+1. ✅ **RESOLVED — `Armor` is retired** (user, 2026-09-02). Six rows and
+   twelve test imports repoint at `Garment`; the `armor/` content
+   directory name stays.
+2. ✅ **RESOLVED — the proposed venues stand** (user, 2026-09-02): the
+   mill and dyehouse at Wharfside (near the water retting wants, downwind
+   for a nuisance trade), the tailor's shop off University Avenue or on
+   Mayfield Row. Names and prose are the build agent's pen.
+3. ✅ **RESOLVED — the ten-species table is in P8** (2026-09-02).
+4. ✅ **RESOLVED — `/stuff/idea/fabric/`** (user, 2026-09-02). Neither
+   `covering` nor `construction` read well; `fabric` is the trade's own
+   term for this exact classification and the namespace can only ever
+   hold fabrics.
