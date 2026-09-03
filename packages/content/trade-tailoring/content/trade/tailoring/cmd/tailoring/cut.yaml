@@ -1,0 +1,42 @@
+verbs: [cut]
+controller: /trade/tailoring/idea/cmd/tailoring/CutController
+description: "Chalk a pattern on cloth and cut the pieces out"
+help: |
+  `cut <cloth>` lays a pattern on a bolt and cuts the pieces.
+
+  ⭐ **A pattern is a 2D solution to a 3D problem, and cloth is
+  expensive.** That is the whole decision: `--tight` uses the least
+  cloth and leaves NO seam allowance, so the thing can never be let
+  out; `--generous` uses more and buys you a future alteration. A bolt
+  is capital, so cutting generous on a coat costs real money against a
+  future you cannot see.
+
+  ⭐⭐ `--for <someone>` stamps their measurements on the pieces. Cut for
+  nobody and it is **stock**, which fits the body plan's average and
+  therefore fits an unusual body badly — which is exactly why
+  off-the-rack clothes fit most people imperfectly, and exactly why a
+  tailor is worth paying.
+
+  Offcuts fall on the floor either way. They are not waste: patchwork,
+  quilting stock, and rags.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: cloth
+    type: object
+    required: true
+    scope: [inventory, reachable]
+    requires: GlobbableMixin
+options:
+  for:
+    type: object
+    scope: [reachable]
+    description: "Whose measurements to cut to (omit for stock)"
+  tight:
+    type: boolean
+    description: "Least cloth, no seam allowance — it can never be let out"
+  generous:
+    type: boolean
+    description: "More cloth, room to let out twice"

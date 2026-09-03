@@ -1,0 +1,31 @@
+verbs: [alter]
+controller: /trade/tailoring/idea/cmd/tailoring/AlterController
+description: "Let a garment out or take it in to a body"
+help: |
+  `alter <garment>` re-fits something to the body in front of you
+  (`--for <someone>`, or yourself).
+
+  ⭐⭐ Bodies change. Yours changes with what you eat and how you live,
+  and a coat cut for you last season stops sitting right — which is why
+  a tailor is a recurring service and not a one-time purchase.
+
+  ⚠⚠ Taking a garment IN is just cutting, and is always possible.
+  Letting one OUT needs cloth, and the only cloth there is is what was
+  folded into the seams when it was cut. **A garment cut close cannot be
+  let out at all** — not by anyone, and not by any means. Making
+  something bigger needs more matter, and nothing makes matter.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: garment
+    type: object
+    required: true
+    scope: [inventory, reachable]
+    requires: WearableMixin
+options:
+  for:
+    type: object
+    scope: [reachable]
+    description: "Whose body to fit it to (defaults to you)"

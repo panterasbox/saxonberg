@@ -1,0 +1,27 @@
+# The tailor's shop — a Business.
+#
+# ⚠ `tailor` at wage 6 — the highest of the three trades, and the only
+# one above the dyer. What it buys is FIT PRECISION, which is knowledge
+# about a specific body rather than throughput.
+class: /platform/idea/Business
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: "the tailor's shop"
+  appointingAuthority:
+    kind: office
+    office: prime-minister
+  positions:
+    - key: tailor
+      label: at the bench
+      wageRate: 6
+      confers: []
+      purchases: true
+  rosterSlots:
+    - positionKey: tailor
+      assignee: /trade/tailoring/agent/tailor
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [0, 24] }
+  banksAt: goodkin
+  operatingLocations:
+    - /trade/tailoring/location/shop
+    - /trade/tailoring/thing/tailor-counter

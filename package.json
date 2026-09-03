@@ -34,6 +34,7 @@
     "@saxonberg/content-trade-mining": "workspace:*",
     "@saxonberg/content-trade-smelting": "workspace:*",
     "@saxonberg/content-trade-smithing": "workspace:*",
+    "@saxonberg/content-trade-tailoring": "workspace:*",
     "@saxonberg/content-trade-textiles": "workspace:*",
     "@saxonberg/content-trade-winemaking": "workspace:*",
     "@saxonberg/content-water": "workspace:*",

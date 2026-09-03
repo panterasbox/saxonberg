@@ -1,0 +1,18 @@
+id: trade-tailoring
+version: 0.1.0
+root: /trade/tailoring
+description: >-
+  The tailoring trade — cloth into clothes that fit a body. ⭐ `cut` is
+  OPTIMISATION UNDER WASTE (a pattern is a 2D solution to a 3D problem
+  and cloth is expensive): cut tight for less waste and no room to
+  alter, or cut generous and pay for the seam allowance you may want
+  later. ⭐⭐ And because `getMass()` moves with metabolism, YOUR CLOTHES
+  STOP FITTING WHEN YOUR BODY CHANGES — which turns tailoring from a
+  one-time purchase into a recurring service with zero new mechanism.
+requires:
+  groups:
+    - name: tailoring
+      purpose: the tailoring trade's own body
+      owner: { office: prime-minister }
+  title:
+    - { extent: /trade/tailoring, holder: { group: tailoring } }

@@ -4,7 +4,7 @@ root: /trade/smithing
 description: >-
   The smithing trade — what smithing introduces: its stations (anvil,
   whetstone, workbench), its stock (iron ingots) and its recipes
-  (fire-poker, smiths-hammer, belt-knife, cook-pot, leather-jerkin). Fire
+  (fire-poker, smiths-hammer, belt-knife, cook-pot). Fire
   stations (Forge, Oven, Kiln, CookPot) are fire-substrate commons under
   /obj; the Hearthworks smithy (/world/hearthworks/location/smithy) is the venue
   that hosts this trade. Content packs wave 4a.

@@ -1,0 +1,19 @@
+# A linen coat — what `sew` makes.
+#
+# ⚠ It authors NO `clo`. Insulation derives from the material's
+# conductivity, the form's loft and the mass over the area covered — an
+# authored number would silently override the whole thermal model.
+class: /platform/thing/equipment/Garment
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a linen coat
+  primaryKeyword: coat
+  keywords: [coat, linen]
+  longDescription: |
+    A long coat, close-woven and lined at the shoulders. It is the most cloth anybody puts on at one time, which is why it costs what it costs.
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": [torso]
+  _materialPath: /stuff/idea/material/textile/linen
+  constructionForm: woven
+  gradeBand: fair
+  mass: 1.2

@@ -1,0 +1,19 @@
+# A pair of linen trousers — what `sew` makes.
+#
+# ⚠ It authors NO `clo`. Insulation derives from the material's
+# conductivity, the form's loft and the mass over the area covered — an
+# authored number would silently override the whole thermal model.
+class: /platform/thing/equipment/Garment
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a pair of linen trousers
+  primaryKeyword: trousers
+  keywords: [trousers, breeches, linen]
+  longDescription: |
+    Straight-legged and plainly finished, with the seams flat-felled so they will outlast whoever bought them.
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": [legs]
+  _materialPath: /stuff/idea/material/textile/linen
+  constructionForm: woven
+  gradeBand: fair
+  mass: 0.5

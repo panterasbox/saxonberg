@@ -1,0 +1,19 @@
+# A plain linen shirt — what `sew` makes.
+#
+# ⚠ It authors NO `clo`. Insulation derives from the material's
+# conductivity, the form's loft and the mass over the area covered — an
+# authored number would silently override the whole thermal model.
+class: /platform/thing/equipment/Garment
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a plain linen shirt
+  primaryKeyword: shirt
+  keywords: [shirt, linen]
+  longDescription: |
+    A shirt made the way shirts are made: four panels, two sleeves, and a collar that took as long as the rest of it put together.
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": [torso]
+  _materialPath: /stuff/idea/material/textile/linen
+  constructionForm: woven
+  gradeBand: fair
+  mass: 0.25

@@ -1,0 +1,24 @@
+# Vasca Idrin — at the bench, and the one who remembers you.
+#
+# ⭐ NPC reaction to dress lives HERE, in a brain, in a pack — never as
+# a kernel gauge. *Engine measures; subject values.* What the engine
+# knows is grade, condition, fit, colour and mark; what Vasca makes of
+# them is Vasca's, and another shopkeeper could reasonably make
+# something else of the same facts.
+class: /platform/agent/NPC
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: Vasca Idrin
+  pronouns: she
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  primaryKeyword: tailor
+  alternateNames: ["vasca", "idrin"]
+  shortDescription: "a tailor with pins down one cuff and a tape round her neck"
+  longDescription: |
+    Pins down one cuff, a tape round her neck, and the particular way of looking at somebody that means she is not looking at their face. She has your measurements written down somewhere, and if she has not, she would like to.
+  dispositions:
+    - { disposition: diligence, valence: 70 }
+  behaviors:
+    - brain: /trade/tailoring/behavior/tailors
+      trigger: cadence:180s

@@ -1,0 +1,12 @@
+# A bag of offcuts.
+class: /trade/textiles/thing/TextileStock
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a bag of offcuts
+  primaryKeyword: offcuts
+  keywords: [offcuts, scraps, rags, patchwork]
+  longDescription: |
+    Odd-shaped scraps in every size from a handspan down to a thumb. Patchwork, quilting, rag stock — nobody who works cloth throws these away, and nobody who does not understands why.
+  _materialPath: /stuff/idea/material/textile/linen
+  mass: 1
+  gradeBand: fair

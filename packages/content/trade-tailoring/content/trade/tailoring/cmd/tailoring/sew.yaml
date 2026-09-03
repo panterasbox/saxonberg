@@ -1,0 +1,31 @@
+verbs: [sew]
+controller: /trade/tailoring/idea/cmd/tailoring/SewController
+description: "Put cut pieces together into a garment"
+help: |
+  `sew <pieces> --pattern <shirt|trousers|coat|apron>` assembles cut
+  pieces into a real garment.
+
+  What comes out is a physical object: a material, a construction form,
+  a mass, a grade, a wear condition, and — if the pieces were cut for
+  somebody — the measurements they were cut to. Everything after that
+  (how warm it is, how it turns a blow, how it fits, how it takes dye)
+  works on it because of what it IS, not because sewing did anything
+  special to it.
+
+  ⭐ It carries your mark. A coat by a particular tailor looks like
+  theirs to anybody who sees it worn — you buy the look by buying the
+  object.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: pieces
+    type: object
+    required: true
+    scope: [inventory, reachable]
+    requires: WearableMixin
+options:
+  pattern:
+    type: string
+    description: "Which pattern — shirt, trousers, coat or apron"

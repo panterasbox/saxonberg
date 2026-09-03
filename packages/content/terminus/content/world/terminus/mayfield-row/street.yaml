@@ -30,6 +30,14 @@ data:
     # declares `row` back.
     realty:
       destination: /world/terminus/realty/office
+    # ⭐ The tailor's, at the respectable end. Its own zone, so a named
+    # cross-zone pair with both sides explicit — the shop declares
+    # `row` back. ⚠ Deliberately NOT beside the mill and the dyehouse:
+    # those two want water and stink, and a tailor wants customers and
+    # good light. Siting is a real decision in this chain, and the
+    # answer differs at each end of it.
+    tailor:
+      destination: /trade/tailoring/location/shop
   details:
     plate:
       keywords: [plate, brass, sign]

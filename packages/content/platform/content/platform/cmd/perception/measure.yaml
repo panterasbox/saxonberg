@@ -164,6 +164,39 @@ subcommands:
       - name: detail
         type: string
         required: false
+  # ⭐ The tailor's fitting — a STANZA on this shipped view, the same
+  # shape as `strike` and `dip` above: a platform view naming a PACK
+  # controller by absolute path. Zero new verbs for the whole tailoring
+  # trade's measuring, and `measure` is where a player would look for it
+  # anyway.
+  #
+  # ⚠ In an install WITHOUT `trade-tailoring` this dies on dispatch with
+  # a legible `controller-error` note, never a crash — the same
+  # arrangement the mining stanzas already have.
+  customer:
+    description: "Take somebody's measure and write it in the shop's book"
+    help: |
+      Run a tape over a customer and record the two numbers a garment is
+      cut to. It needs the shop's book to write in, and it needs the
+      person to be your customer — queueing and being served IS the
+      agreement, which is the whole of the consent this act asks for.
+
+      ⭐ It is free, on purpose. It is the thing that gets you into the
+      book and brings you back.
+
+      ⚠ Whether an entry is still YOU is answerable from the numbers
+      alone, so the book carries no date. A body that has not changed
+      keeps a good entry forever; one that has wants re-measuring, and
+      anything cut from the old figures will sit off.
+    examples:
+      - cmd: measure customer at the counter
+        note: Take the waiting customer's measure
+    controller: /trade/tailoring/idea/cmd/perception/MeasureCustomerController
+    args:
+      - name: subject
+        type: object
+        required: true
+        scope: [reachable]
   dip:
     description: "Read how steeply an ore body falls, off an exposed vein (needs a surveyor's instrument)"
     help: |

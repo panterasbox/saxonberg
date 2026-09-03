@@ -1,0 +1,13 @@
+# The cutting table — the long bench, the shears and the chalk.
+class: /trade/tailoring/thing/CuttingTable
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a cutting table
+  primaryKeyword: table
+  keywords: [table, bench, cutting, shears]
+  longDescription: |
+    Longer than a bed and scarred all over in short straight lines from a hundred years of shears. There is a chalk on a string, a yardstick let into the near edge, and a bowl of pins nobody has ever counted.
+  capabilities:
+    - { kind: cutting, rate: 2, control: fine }
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 60

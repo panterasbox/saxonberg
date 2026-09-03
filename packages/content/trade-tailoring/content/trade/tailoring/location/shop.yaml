@@ -1,0 +1,36 @@
+# The tailor's shop — a service BY APPOINTMENT.
+#
+# ⭐ `discipline: appointment` rather than the dyehouse's `line`,
+# because the fitting is a booking: you are handled, measured and
+# written into the book, and that takes the tailor's whole attention
+# for a few minutes.
+#
+# ⭐⭐ Chosen over a gig board for v1 because **the fitting is
+# tailoring's best RP beat and a job board has none.** The contract
+# half — commissioning a player-tailor through the work board — is
+# deferred and is the player-tailor's, not the NPC's.
+class: /platform/location/SingletonCartesianLocation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  coords:
+    x: 0
+    y: 0
+    z: 0
+  shortDescription: "the tailor's shop"
+  primaryKeyword: shop
+  keywords: [shop, tailor, tailors]
+  longDescription: |
+    One long room with the good light at the front and the work at the back: a cutting table under the window, a treadle machine, and a rail of half-finished things pinned with paper tickets.
+
+    Everything in here is either cloth or a way of measuring cloth. There is a mirror, and it is not a kind one.
+  ambientIntensity: 300
+  ambientColorTemperature: 5200
+  exits:
+    row:
+      destination: /world/terminus/mayfield-row/street
+  props:
+    - /trade/tailoring/thing/tailor-counter
+    - /trade/tailoring/thing/cutting-table
+    - /trade/tailoring/thing/measure-book
+  cast:
+    - /trade/tailoring/agent/tailor

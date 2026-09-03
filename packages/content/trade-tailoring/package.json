@@ -1,0 +1,26 @@
+{
+  "name": "@saxonberg/content-trade-tailoring",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "The tailoring trade \u2014 cut, sew and alter; the fitting as a scene, and the measurement book as a business asset.",
+  "dependencies": {
+    "@saxonberg/content-base-library": "workspace:*",
+    "@saxonberg/content-generic-objects": "workspace:*",
+    "@saxonberg/content-platform": "workspace:*",
+    "@saxonberg/content-terminus": "workspace:*",
+    "@saxonberg/content-trade-textiles": "workspace:*",
+    "@saxonberg/server": "workspace:*",
+    "@saxonberg/types": "workspace:*"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "vitest": "^2.0.0",
+    "yaml": "^2.8.2"
+  }
+}
