@@ -983,6 +983,96 @@ is for dyeing.
 another character, and it is *mechanically necessary* because `cutTo`
 needs a subject. Neither of the other two trades has a scene like it.
 
+### P18 — The measurement book, and the price ladder
+
+*(Decided with the user 2026-09-02, in the tailoring design beats.)*
+
+#### The book
+
+Measurements are **remembered**, so a tailor can cut for an absent
+subject. Three decisions:
+
+- **It lives in the document tree under the shop's parcel** — parcel-local
+  persistence is the document tree and `canAtPath` is the authority; **no
+  new collection**. ⭐ Consequence worth keeping: **the book is a business
+  asset, not a person's.** It transfers with the shop. A tailor who quits
+  does not take the town's measurements; a tailor who buys the shop
+  inherits a book of everyone who ever came in — which is how the trade
+  really works, and it makes the shop worth more than its fixtures.
+- ⭐ **The attendant lease IS the consent.** Being measured is another
+  person handling your body, so it needs agreement — and queueing and
+  being served *is* the agreement. **No new consent mechanism**, and it
+  falls out of choosing the attendant (B4). Measuring someone who is not
+  your customer is simply not something the verb offers.
+- **Reads:** the shop's staff via employment, plus **the subject
+  themselves** (a tailor telling you your chest measurement is ordinary,
+  and it is not self-knowledge in the psychology slate's sense). Not
+  public otherwise — a town's measurements are not a register.
+
+⭐⭐ **Staleness is body-change, never a clock — so the book needs no
+timestamp at all.**
+
+```
+staleness = |girthIndex_now − girthIndex_book| / girthIndex_book
+```
+
+The book stores measurements; whether they are still *you* is answerable
+from the numbers alone. **No stamp, no clock, no decay function**, and a
+person whose body is stable keeps a good entry forever. Reuses the girth
+index P7 already computes; the warning threshold is a dial.
+
+Which closes a loop: a garment cut from a stale entry fits *off* — not
+wrong, just off, exactly as P7 computes. So a returning customer wants
+re-measuring (**a reason to come in**), and a gift cut from an old
+measurement is a slightly-off gift. The book decays and needs tending,
+the same shape as fastness for the dyer: **the craft's value is in the
+upkeep, not the one-time act.**
+
+```
+measure <customer>              → writes/refreshes the entry (needs the lease)
+commission <pattern>            → cuts to your CURRENT measure (best fit)
+commission <pattern> for <name> → cuts to the BOOK's entry; ⚠ warns if stale
+```
+
+#### The price ladder — derived from wages, not picked
+
+Anchors, all shipped: `wageRate` is **minor units per game-hour**, rates
+3–6 (unskilled floor 3, skilled 5–6); the lounge prices cocktails 8–12; a
+Hinkley parcel is 4000. An 8-hour day is **24 minor** unskilled.
+
+Garments anchor to labour-time as they historically sat — **cloth is the
+expensive part, sewing the cheap half**:
+
+| good | target | minor |
+|---|---|---|
+| alteration | under an hour, no cloth | ~20 |
+| plain stock shirt | ~2 days' unskilled | ~50 |
+| stock wool coat | ~1–2 weeks | ~200 |
+| bespoke coat | 2–3× stock | ~500 |
+
+Working the bolt backwards from the stock coat at cloth ≈ 60%:
+
+```
+stock coat 200 → cloth ≈ 120 → a coat takes ~3 units
+                             → ~40 minor per unit of cloth
+a 12-unit bolt = ~480 minor ≈ 20 unskilled days = ~4 coats or ~12 shirts
+```
+
+⭐ **A bolt is capital, not a consumable** — which is what makes `cut`'s
+waste decision bite: cutting generous on a coat costs real money.
+
+⭐⭐ **The consistency check that matters:** if spinning is 4–8× weaving's
+labour (P17 / the B2 bench), **yarn is the majority of cloth's cost** —
+the actual historical fact. So **the price ladder teaches the bottleneck
+on its own**; you can read it off the invoice without the bench. Two
+independent lessons agreeing is the sign the numbers are honest rather
+than fitted.
+
+⚠ **These are a derivation and a starting ladder, not gospel.** The mill
+bench validates the spin:weave ratio; if it cannot reproduce this cost
+split at bed scale, that is B2 leg (c) firing exactly as designed —
+**document the finding, do not fit the numbers to hide it.**
+
 ---
 
 ## Stage A — the kernel half
@@ -1343,8 +1433,13 @@ fight):
   measured, you come back. Chosen over the gig board for v1 because
   **the fitting scene is tailoring's best RP beat and a job board has
   none**; the contract half is the player-tailor's, deferred.
-- ⭐ **Measurements are remembered** (user, 2026-09-02), so a tailor can
-  cut for an absent subject. See P18.
+- ⭐ **Measurements are remembered** (user, 2026-09-02) in a **book under
+  the shop's parcel** — a business asset that transfers with the shop.
+  The attendant lease is the consent; staleness is body-change, not a
+  clock, so the book carries no timestamp. See **P18**.
+- **Prices derive from wages** (P18), not from picked numbers: a bolt is
+  ~480 minor ≈ 20 unskilled days ≈ 4 coats. ⭐ **A bolt is capital**,
+  which is what makes `cut`'s waste decision bite.
 - **The tailor's shop + the tailor NPC** in Terminus, discharging the
   `barber / tailor` GAP row.
 - **One demonstrator brain** — `src/behavior/tailors.ts`, addressed
