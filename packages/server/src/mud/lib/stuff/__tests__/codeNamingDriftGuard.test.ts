@@ -122,6 +122,15 @@ const MANIFEST: ReadonlyArray<{ site: string; classification: string }> = [
   // `instanceof FermentProfile` (the MaterialLogic filter, homed on a
   // self-warming catalogue — the boot()-retirement direction).
   { site: "platform/idea/FermentProfileCatalogue.ts::loadClassByPath", classification: "gated-direct" },
+  // `FabricCatalogue.postRegister` keeps a row by `instanceof Fabric` —
+  // the same self-warming shape one row up. ⚠ Its predicate carries an
+  // extra `cls === Fabric` clause the siblings do not need: those have a
+  // `lib/` abstract base plus a thin `platform/` concrete that rows
+  // name, so the named class is always a STRICT subclass. `Fabric` is
+  // one class rows name directly, and `Fabric.prototype instanceof
+  // Fabric` is false — copying the predicate without the precondition
+  // would have matched nothing, silently.
+  { site: "platform/idea/FabricCatalogue.ts::loadClassByPath", classification: "gated-direct" },
   // The spawn sweep's `isCirculatingClass` (the MaterialLogic precedent):
   // a template row's `class:` (already gate-validated content) is loaded
   // only to ask whether it composes `CirculatingMixin`.

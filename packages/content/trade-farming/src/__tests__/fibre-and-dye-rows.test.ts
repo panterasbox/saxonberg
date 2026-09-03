@@ -117,8 +117,7 @@ describe("the fibre and dye crops", () => {
     const madder = data(join(FARMING, "thing", "plant", "madder.yaml"));
     const weld = data(join(FARMING, "thing", "plant", "weld.yaml"));
     const stage = (p: Record<string, unknown>): number =>
-      ((p.profile as Record<string, Record<string, number>>).daysToStage
-        .mature);
+      (p.profile as { daysToStage: { mature: number } }).daysToStage.mature;
     expect(stage(madder)).toBeGreaterThan(stage(weld) * 10);
   });
 
