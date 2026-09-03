@@ -2,9 +2,28 @@
  * CookPot — the cooking branch's build vessel + tool: a pot that banks
  * step-by-step contributions ({@link ManualBuildMixin} — the shaker's role
  * at the hearth) and offers the `pot` capability recipes require. Itself
- * craftable (a smithing recipe output — `CraftedMixin`), durable, portable
- * capital (camp-stew in the wilds is the point: reachable heat + a pot is
- * a kitchen).
+ * craftable (a smithing recipe output), durable, portable capital
+ * (camp-stew in the wilds is the point: reachable heat + a pot is a
+ * kitchen).
+ *
+ * ⭐ **It is a `CraftVessel`** — a member of the same vessel pool as the
+ * dishes and the bar's glasses, which is what makes *pot-as-last-resort*
+ * work at all: with no clean dish in reach, dinner lands in the pot you
+ * cooked it in and you eat standing over the fire. A bare `Bulkable`
+ * bolt-on would have bought a slot but not the loop. Every strand is one
+ * a pot genuinely wants:
+ *
+ *   - **Bulkable** holds the stew · **Container** holds what you dropped
+ *     in · **Thermal** gives the pot a temperature (which is the whole
+ *     seam a tending wave needs, and what the spoilage gauge reads) ·
+ *     **soiled/wash** because you wash a pot, and serving from it must
+ *     soil it or the fallback cannot participate in the loop ·
+ *     **category** (`pot`) as the vessel kind.
+ *
+ * ⚠ This does NOT contradict "a pot is not Bulkable" from the slate: that
+ * was about where the MEDIUM is read from (a build banks transient
+ * contributions, so the medium comes from slots/contributions), not about
+ * whether a pot may hold dinner. Both are true.
  *
  * Ships at `/trade/cooking/thing/CookPot` (the capability rung): a
  * class lives in the pack whose content is the only thing that names it,
@@ -13,17 +32,15 @@
  * capability, never because it knows this class.
  */
 
-import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
-import { DetailedMixin } from '@saxonberg/server/mud/lib/description/Detailed';
+import CraftVessel from '@saxonberg/server/mud/platform/thing/CraftVessel';
 import { DurableMixin } from '@saxonberg/server/mud/lib/material/Durable';
 import { ToolMixin } from '@saxonberg/server/mud/lib/craft/Tooled';
 import { ManualBuildMixin } from '@saxonberg/server/mud/lib/craft/ManualBuild';
-import { CraftedMixin } from '@saxonberg/server/mud/lib/craft/Crafted';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 
-const CookPotBase = CraftedMixin(
-  ManualBuildMixin(ToolMixin(DurableMixin(DetailedMixin(Thing)))),
-);
+// ⭐ `CraftVessel` = `Crafted(Thermal(Bulkable(Container(Detailed(Thing)))))`.
+// Every strand of it is one a pot genuinely wants — see the class doc.
+const CookPotBase = ManualBuildMixin(ToolMixin(DurableMixin(CraftVessel)));
 
 const HEARTH = [
   'platform/cmd/crafting/heat.yaml',

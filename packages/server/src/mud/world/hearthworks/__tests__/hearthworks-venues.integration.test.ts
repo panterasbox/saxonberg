@@ -192,6 +192,18 @@ function waterButt(): WaterFixture {
   return w;
 }
 
+/**
+ * Clean dinnerware of the given kind, at its shipped commons path — the
+ * pool a served meal is CLAIMED from. `makeStuffAtPath` keys the template
+ * path the claim matches on when the row declares no kind.
+ */
+function dish(path: string, capacityL: number): Dish {
+  const d = makeStuffAtPath(() => new Dish(), path) as unknown as Dish;
+  (d as unknown as { interiorBulk: boolean }).interiorBulk = true;
+  d.setInteriorCapacity(Quantity.of(capacityL, 'L'));
+  return d;
+}
+
 function stock(materialPath: string, massKg: number): Thing {
   const t = makeStuff(() => new Thing());
   t.setMass(Quantity.of(massKg, 'kg'));
@@ -281,12 +293,10 @@ beforeEach(async () => {
       w.setLength(Quantity.of(0.2, 'm'));
       return w as never;
     }
-    if (path === '/stuff/thing/items/plated-dish') {
-      const d = makeStuff(() => new Dish());
-      (d as unknown as { interiorBulk: boolean }).interiorBulk = true;
-      d.setInteriorCapacity(Quantity.of(0.6, 'L'));
-      return d as never;
-    }
+    // ⚠ No dinnerware clones here any more: a served meal is CLAIMED from
+    // the crockery in reach (`Dish extends CraftVessel`), which is why
+    // `standUpCookhouse` stocks a shelf of it.
+
     throw new Error(`unexpected clone ${path}`);
   });
 
@@ -423,6 +433,10 @@ describe('the cookhouse, served', () => {
     const pot = makeStuff(() => new TestPot());
     ContainmentApi.move(pot, room);
     ContainmentApi.move(waterButt(), room);
+    // The crockery shelf — the stew comes out in a bowl, the roast on a
+    // platter, and both are claimed rather than conjured.
+    ContainmentApi.move(dish('/stuff/thing/items/bowl', 0.6), room);
+    ContainmentApi.move(dish('/stuff/thing/items/platter', 0.8), room);
     const chest = makeStuff(() => new Chest());
     ContainmentApi.move(chest, room);
     ContainmentApi.move(stock('/stuff/idea/material/food/root-vegetable', 0.6), chest);

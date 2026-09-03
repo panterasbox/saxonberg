@@ -272,6 +272,38 @@ function claimGlass(
 }
 
 /**
+ * ⭐ **The last-resort cook vessel** — the pot the food was made in.
+ *
+ * Reached only when the dish pool has nothing clean: a meal must land
+ * SOMEWHERE, and "no clean bowl" cancelling dinner would be a worse lie
+ * than eating out of the pot. Prefers a vessel that was actually used as
+ * an instrument for this craft (the matched `pot`), then any claimable
+ * pool vessel in reach.
+ *
+ * ⚠ It must be soiled by the fill like any other claim, or the fallback
+ * would sit outside the wash loop and the pot would never need cleaning.
+ * `finishGlass` / `mintVessel` do that for every vessel alike.
+ */
+function claimCookVessel(
+  gathered: GatheredMatter,
+  usedTools: readonly (Stuff & Tooled)[],
+): Stuff | null {
+  const claimable = (v: Stuff): boolean => {
+    const pool = asPoolGlass(v);
+    return typeof pool.isClaimable === 'function'
+      ? pool.isClaimable()
+      : MixinApi.isBulkable(v) && v.isBulkEmpty('interior');
+  };
+  for (const tool of usedTools) {
+    if (MixinApi.isBulkable(tool) && claimable(tool)) return tool;
+  }
+  for (const g of gathered.glasses) {
+    if (claimable(g)) return g;
+  }
+  return null;
+}
+
+/**
  * Whether a Crafted discrete is EDIBLE MATTER — food by its own material
  * (`ConsumableMaterial.edibility`, the surface `eat`/metabolism already
  * consume). The maker's mark on a lime says who grew it, not what it is:
@@ -325,7 +357,13 @@ async function collectCandidate(c: Stuff, into: GatheredMatter): Promise<void> {
       slot !== undefined &&
       !c.isBulkEmpty('interior') &&
       mpath !== '' &&
-      mpath !== GENERIC_MIXED_MATERIAL;
+      mpath !== GENERIC_MIXED_MATERIAL &&
+      // ⚠ …and the COOKED base for the same reason as the mixed one: a
+      // plated stew (and a pot with dinner still in it) holds a derived
+      // blend, not stock. Dish-as-ingredient is out of scope for v1, and
+      // without this line a served bowl would quietly become a bulk
+      // source the moment `CookPot` joined the vessel pool.
+      mpath !== GENERIC_COOKED_MATERIAL;
     if (!intermediate) {
       into.glasses.push(c);
       return;
@@ -933,6 +971,13 @@ async function applyEdibleOutput(
         `Bulkable`,
     );
   }
+  // ⭐ The serve SOILS the vessel — dish, platter or the pot itself. A
+  // claimed vessel that nobody marked used would be re-claimable forever
+  // and the whole wash loop would be decorative; and a pot exempted from
+  // it could serve dinner every night and never need cleaning.
+  const pool = asPoolGlass(output);
+  if (typeof pool.setSoiled === 'function') pool.setSoiled(true);
+
   const authored = recipe.getOutputMaterial();
   if (authored) {
     const material = await StuffApi.singleton<Material>(authored);
@@ -1606,16 +1651,31 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
   // the next pools). Then apply its properties (dispatched on the
   // recipe's output-application kind), stamp, consume, wear.
   let output: Stuff;
-  if (application === 'bulk') {
-    const glass = claimGlass(
-      { bottles, tools, items, glasses },
-      recipe,
-      await outputVesselKind(recipe),
-    );
-    if (!glass) {
+  if (application === 'bulk' || application === 'edible') {
+    const pool = { bottles, tools, items, glasses };
+    const glass = claimGlass(pool, recipe, await outputVesselKind(recipe));
+    if (glass) {
+      output = glass;
+    } else if (application === 'bulk') {
+      // The bar's asymmetry, and it stays hard: no clean coupe, no
+      // martini. Glassware is the constraint that makes bussing work.
       return { ok: false, reason: 'no-glass', detail: recipe.getOutputTemplate() };
+    } else {
+      // ⭐ **Pot as last resort.** Dinner is not cancelled for want of
+      // crockery — the meal lands in the vessel it was cooked in and you
+      // eat standing over the fire. That is the campfire case, and it is
+      // why `CookPot` is a `CraftVessel`: the pot is a member of the same
+      // pool, so this is a claim, not a special case.
+      const pot = claimCookVessel(pool, usedTools);
+      if (!pot) {
+        return {
+          ok: false,
+          reason: 'no-glass',
+          detail: recipe.getOutputTemplate(),
+        };
+      }
+      output = pot;
     }
-    output = glass;
   } else {
     output = await StuffApi.clone<Stuff>(recipe.getOutputTemplate());
   }

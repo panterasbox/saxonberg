@@ -11,5 +11,12 @@ data:
     A deep-bellied iron pot with a bail handle, seasoned black inside. It has boiled a thousand suppers and is ready for the next.
   capabilities:
     - { kind: pot }
+  # ⭐ The vessel kind, and it is load-bearing: a pot is a member of the
+  # same claimable pool as the plates and bowls, so a meal with no clean
+  # dish in reach lands here instead of nowhere. Kind-matching is also
+  # what stops it ever being claimed as a drink glass.
+  category: pot
+  interiorBulk: true
+  interiorCapacity: 4
   _materialPath: /stuff/idea/material/element/iron
   mass: 2.5

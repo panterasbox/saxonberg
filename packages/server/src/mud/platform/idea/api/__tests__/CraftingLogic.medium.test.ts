@@ -213,13 +213,9 @@ beforeEach(async () => {
   );
   WorldClockApi._setNowProviderForTesting(() => 1000);
 
+  // ⚠ Nothing clones here any more: an edible output is CLAIMED from the
+  // vessel pool. A clone attempt is now a bug, so the mock says so.
   vi.spyOn(StuffApi, 'clone').mockImplementation(async (path: string) => {
-    if (path === DISH_T) {
-      const d = makeStuff(() => new CraftVessel());
-      (d as unknown as { interiorBulk: boolean }).interiorBulk = true;
-      d.setInteriorCapacity(Quantity.of(1, 'L'));
-      return d as never;
-    }
     throw new Error(`unexpected clone ${path}`);
   });
 
@@ -272,7 +268,19 @@ beforeEach(async () => {
   ContainmentApi.move(cook, room);
   ContainmentApi.move(makeHearth(800), room); // a roaring hearth
   ContainmentApi.move(makeMeat(), room);
+  ContainmentApi.move(cleanDish(), room); // the pool the meal is claimed from
 });
+
+/** A clean claimable dish at the recipes' output path. */
+function cleanDish(): CraftVessel {
+  const d = makeStuffAtPath(
+    () => new CraftVessel(),
+    DISH_T,
+  ) as unknown as CraftVessel;
+  (d as unknown as { interiorBulk: boolean }).interiorBulk = true;
+  d.setInteriorCapacity(Quantity.of(1, 'L'));
+  return d;
+}
 
 afterEach(() => {
   vi.restoreAllMocks();

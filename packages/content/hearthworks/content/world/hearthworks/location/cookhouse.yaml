@@ -29,9 +29,15 @@ data:
     - /stuff/thing/items/root-vegetables
     - /stuff/thing/items/root-vegetables
     - /stuff/thing/items/stew-meat
-    # Empty dishes for the DIY floor — `plate` needs a real dish in
-    # reach (the served path clones its own; the by-hand path doesn't).
+    # ⭐ Empty dinnerware — and it is now load-bearing for BOTH paths. A
+    # served meal is CLAIMED from this pool, not cloned into existence, so
+    # a cookhouse with no clean crockery serves out of the pot. One of
+    # each kind the roster names, twice over, so a second order while the
+    # first is still on the table has somewhere to go.
     - /stuff/thing/items/plated-dish
     - /stuff/thing/items/plated-dish
+    - /stuff/thing/items/bowl
+    - /stuff/thing/items/bowl
+    - /stuff/thing/items/platter
   cast:
     - /world/hearthworks/agent/cook
