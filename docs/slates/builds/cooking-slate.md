@@ -98,6 +98,37 @@ pack's designer:
   campfire is the same verbs, knowledge-gated — the hunter's trivial
   rung of the butcher's discipline. No venue axis.
 
+**Fish and seafood: already spoken for — and our W0 is *their*
+dependency.** The [fishing slate](./fishing-slate.md) is a thorough
+third extraction vertical (upstream acquisition, like butchery:
+cooking consumes the catch via a category tag), and the
+[preservation slate](./preservation-slate.md)'s v1 scope is literally
+"one perishable class (**fish** — fishing is the stated driver)" — so
+this build's W0 *generalizes and unblocks* the fishing slate's own
+perishability driver. The relay race runs fastest here ("fish fast,
+grain slow, salt never"); "boat-fresh" outranks even "butcher-fresh."
+Cooking's stake:
+
+- **No fish in the W2 roster** — no fish Material ships; chowder and
+  fried fish are *fishing-build content* against our shipped method
+  vocabulary (the enabling-data rule applied honestly).
+- **Fish is the tending wave's third customer**: delicate protein
+  denatures ~320–330 K and overcooks in minutes — a narrower window
+  than anything in the meat roster, joining scorch and scalded tea in
+  the `maxHeatK`/dose-integral field.
+- ⭐ **Pre-registered additive mechanism: a freshness gate on recipe
+  inputs.** Raw-fish dishes invert the kill step — no heat, so the
+  *input's* freshness is the whole safety story: an optional
+  freshness-band requirement on `RecipeInputSlot` ("only ultra-fresh
+  passes"), the first place a recipe reads the W0 gauge as a *gate*.
+  Fishing-era work, noted now for the slot schema's designer.
+- **Convergences**: shellfish × watershed **contamination by kind**
+  (filter-feeders concentrate what's in the water — oysters
+  downstream of a sewer are honestly dangerous, zero new mechanism);
+  **salt cod stays the victualler + freight showpiece** (named by
+  three slates) — cooking touches it only as an ingredient that needs
+  soaking, which is just a recipe.
+
 **Confectionery clusters with the baker, by the same test.** Candy
 sells **stock** — it travels, shelves, and keeps, and it keeps for the
 terms-not-methods reason: high sugar is low water activity, so sweets
