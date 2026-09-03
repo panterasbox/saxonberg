@@ -373,25 +373,66 @@ buy. **This build makes lineage phase 2 better.**
 
 ---
 
-## ⭐ Decision 7 — soiling, and the wash/fade loop
+## ⭐⭐ Decision 7 — soiling CONSUMES `Soilable`; it does not invent one
 
-Soiling stays **thin**. It rides the same neutral-capacity shape
-`WetMixin` uses (its own doc calls that axis neutral, and `lib/reserve.ts`
-says so outright), `wash` already ships from the libations build, and its
-primary consumer is *appearance*, not mechanics. **No laundry vocation in
-this build.**
+⚠⚠ **Corrected 2026-09-02 (four-lens pass).** An earlier draft of this
+slate designed a garment soiling gauge from scratch. **It is already
+designed** — [room-condition-design-pack](./room-condition-design-pack.md)
+(2026-08-06, planner-ready) specifies `SoilableMixin` outright, and
+textiles is a *consumer*, not an author, of it.
 
-But it closes Decision 1's loop:
+What that pack already decided, and textiles must not contradict:
+
+| the pack's decision | what it means here |
+|---|---|
+| `Soilable` lives on **items / surfaces / bodies** — banded `clean/soiled/filthy` | a garment is an item; nothing new is needed |
+| **Dirt is deposited by ACTS.** *"No act → no new dirt."* It **freezes** in absence | ⚠ a coat in a wardrobe does not get dirty. Soiling is NOT time-integrated — do not model it as exposure or wear |
+| Cleared by `wash` / `wipe` / `bathe` — *"acts of care, fought not watched"* | no new verb |
+| Water is a **precondition, not a consumable** — where there is a tap it simply works; *"charging the care loop an errand per wash is the friction this pack exists to avoid"* | ⚠ **no soap as a washing tax.** See open question 12 for the one place a scouring agent may still be legitimate |
+| Persisted as a band with **no clock stamp** — correct across dormancy *because it froze* | rides the existing persistence spine |
+| ⭐ **Actor-attributed deposit/clear events** `(actor, target, extent)`, blame derived on read — *"required at build time, not retrofittable"* | ⚠⚠ **the hard constraint.** Textiles ships garment soiling WITH the event log, or it does not ship garment soiling at all |
+
+⭐ **The apron gets stronger, not weaker, under act-deposition.** An act
+deposits soil; the covering stack routes the deposit to the **outermost**
+layer covering the affected part. The apron intercepts it. That is
+Decision 3 and the room-condition pack meeting exactly, with no new
+mechanism on either side.
+
+### ⚠ Two pre-existing cleanliness representations to absorb
+
+The tree already models "is this clean" **twice, incompatibly**, and
+neither knows about the other:
+
+- **`CraftVessel.soiled`** — a **boolean**, on one concrete class, behind
+  a bespoke `SoiledWriters` policy. `WashController` hard-checks
+  `glass instanceof CraftVessel` and declines anything else, so `wash` is
+  not a general verb today: it is the bar's bussing beat.
+- **`DressingMixin.dressingQuality`** — a **0..1 scalar**, documented
+  *"0 (filthy) .. 1 (clean/sterile)"*, grading treatment outcome.
+
+Per *nothing is legacy — model it right*, both should resolve onto
+`Soilable` when it lands rather than becoming a third parallel gauge. A
+bar glass is simply soilable with a very small capacity (one use fills
+it); a dressing's quality is an inverted soil band — which would mean
+**washing your rags before you use them as bandages**, a connection the
+medical vertical gets for free.
+
+⚠ This is a **sequencing dependency, not a textiles deliverable**:
+whichever build ships `SoilableMixin` owns the absorption. Textiles must
+know whether it is that build (see wave W5).
+
+### ⭐ The wash/fade loop still stands
+
+Independent of the gauge's home, Decision 1's loop closes:
 
 > **Washing removes soil. It also removes colour, if the mordant was
 > poor.**
 
-So the dyer's skill is not a one-shot cosmetic — it is measured in **how
-many washes the colour survives**. `f(dyestuff, mordant, fibre)` produces
-both a hue and a **fastness**; fastness decays per wash; a faded coat is
-legible on sight. That answers the cosmetics slate's open question 4
-(*"does a colour fade?"*) as **yes**, and gives dyeing a durable quality
-axis instead of a palette.
+The dyer's skill is measured in **how many washes the colour survives**.
+`f(dyestuff, mordant, fibre)` yields a hue **and** a fastness; fastness
+decays per wash; a faded coat is legible on sight. That answers the
+cosmetics slate's open question 4 as **yes** and gives dyeing a durable
+quality axis instead of a palette.
 
 ⚠ **Naming.** "Outfit" is **taken** — `farm-outfit.yaml` is a `Business`
 (the producer-annex pattern: Business + Stock + a hand with the
@@ -578,6 +619,125 @@ footnote.
 
 ---
 
+## The four-lens pass (2026-09-02)
+
+Run against the project's four lenses — **pedagogical richness ·
+creative expression for content authors · roleplay & immersion ·
+gamification & self-improvement**. Seven changes came out of it; all
+seven are folded in above and below. Recorded here because the *reasons*
+are the tuning targets, and a requirements pass that loses them will
+build the mechanism without the lesson.
+
+### Lens 1 · Pedagogy — strong, but one lesson was being left on the table
+
+⭐⭐⭐ **Spinning is the bottleneck. Name it, and tune for it.**
+
+The textile industry is *where the industrial revolution happened*, for a
+specific and teachable reason: it took roughly four to eight spinners to
+keep one weaver supplied. Kay's flying shuttle then roughly doubled
+weaver output and made the shortage acute — so **spinning mechanized
+first, because it was the constraint**, and the power loom followed to
+let weaving catch up.
+
+That entire sequence is nearly free here, because it is a **ratio, not a
+mechanism**. If `spin` and `weave` carry honest labour times:
+
+- players *discover* the bottleneck instead of being told it
+- the pressure to buy the wheel is felt, not authored
+- and buying it **moves the constraint downstream to the loom** — so
+  *"improving one stage creates a crisis in the next"* is lived
+
+⚠ This is a **tuning obligation on W8**, not a feature. If the two verbs
+get arbitrary durations the lesson silently does not happen and nothing
+fails.
+
+⭐ **Populate `composition` / `chemistry` on the fibre rows.** Cellulose
+vs protein is the master distinction in textiles — it decides what dye
+takes, what mordant is needed, what dissolves the fibre, how it burns,
+how it answers alkali. Wool dissolves in bleach; linen does not. Wool
+takes acid dyes directly; cellulose needs a mordant or a vat. Every
+shipped textile material row already carries `composition: []` and
+`chemistry: null` — **the field exists and is empty.** It also gives
+`f(dyestuff, mordant, fibre)` a real third axis instead of a table.
+
+### Lens 2 · Creative expression — one architectural hole
+
+⚠⚠ **Forms are a kernel enum; materials are template rows.**
+
+```
+a pack CAN add a fibre    →  /stuff/idea/material/textile/hemp.yaml     ✅ (trade-fuel ships ash + charcoal this way)
+a pack CANNOT add a weave →  ARMOR_FORMS = [...] as const, kernel .ts   ❌ (gated by Construction.isForm)
+```
+
+So a pack can invent a new fibre but not lace, netting, brigandine or
+scale — which collides with the metal-chain rule that **a pack must never
+need a kernel list edit**. Decision 2 asserts one covering vocabulary
+without saying who may extend it.
+
+⭐ **The likely answer is a split, and it is principled rather than
+convenient:** a form's *resist profile* is combat mitigation, and letting
+content author that is a real objection — but a purely-textile form
+(drape, loft, weave density, no resist contribution) has no such
+objection. So: **resist-bearing forms stay a closed kernel vocabulary;
+non-resisting textile forms become template rows.** Left as open question
+9 rather than decided, because it changes `Construction`'s shape.
+
+⭐ **Patterns are silent, and shouldn't be.** Tailoring cuts to a
+*pattern* and the slate never says what one is. A pattern as authored
+content — better, as something a **player** can design, name and sell —
+is the largest creative-expression opportunity in the build. Open
+question 10.
+
+### Lens 3 · Roleplay & immersion — one practical hole
+
+⚠⚠ **Getting dressed must not be eight commands.**
+
+`wear` takes exactly one target (`type: object, required: true` — no
+`all`, no set). A per-part layered stack across head / torso / legs /
+feet / hands with skin / mid / shell layers is potentially eight to ten
+invocations — every morning, and again after every wash. That is a chore,
+and it would sour the build in its first live drive.
+
+The design needs a **saved dressing set**. ⚠ "Outfit" is taken (a
+`Business`), so the concept is a **wardrobe** — `dress as <name>` —
+and note the `wardrobe.yaml` fixture already exists as a furnishing, which
+is the natural place for one to live. Wave W4a.
+
+*(The soiling half of this lens resolved differently — see Decision 7.
+The room-condition pack had already decided that water is a precondition
+rather than a consumable, precisely so the care loop is not a chore tax.
+The worry was real; the answer was already written.)*
+
+### Lens 4 · Gamification & self-improvement — the thinnest lens
+
+Two genuinely independent progression axes carry it: **competence**
+(Discipline bands, earned from evidence) and **capital** (the tool
+ladder, which unlocks nothing and only goes faster). Grade propagation
+makes mastery *visible* — a master's cloth looks better to everyone.
+
+⚠ **But that is all producer-side.** Most players will wear clothes, not
+make them, and the majority gets no named improvement loop.
+
+⭐ **There is one, and it is the best kind — it just needs stating.**
+Knowing that wet linen is a heat sink and oiled wool is not is **player
+knowledge, not a character stat.** It cannot be granted, bought, or
+power-levelled; you learn it by being cold. The design already supports
+it completely. Naming it as a goal is what makes it get *tuned* for —
+which means the consequences of dressing wrong must be legible enough to
+learn from and forgiving enough to survive.
+
+⚠ **And the solvability risk needs its defence written down.** If clo
+derives from physics there is a correct outfit for a given biome, and a
+wiki will publish it. [lineage-slate](./lineage-slate.md) already answers
+this exact shape — *"a wiki can tell you the best body for a given life;
+it cannot tell you what your life will be"* — and it transfers verbatim.
+⚠ But it is also a **design constraint, not just a comfort**: it only
+holds if garments are specialized enough that no single outfit is
+universally right. A parka that is merely worse in heat, rather than
+genuinely bad, collapses the whole question back to a solved one.
+
+---
+
 ## Proposed wave structure
 
 Kernel first, then packs — the metal-chain shape.
@@ -589,10 +749,11 @@ Kernel first, then packs — the metal-chain shape.
 | **W2** | species `baseMass` + `stature`; the balance pass + gym run | ⚠ moves live combat/encumbrance/metabolism numbers |
 | **W3** | per-part covering stack: `covers:` walk, clo derives, wet feeds it | the thermal payoff |
 | **W4** | fit: derived measurements, cut-to stamp, the lineage seam | needs W2 |
-| **W5** | soiling + the wash/fade loop | needs W3's stack ordering |
+| **W4a** | ⚠ the **wardrobe** dressing set — `dress as <name>` | ⚠⚠ eight commands to dress would sour the build; rides the existing `wardrobe` fixture |
+| **W5** | soiling — **consume `Soilable`**, incl. its attributed events; the wash/fade loop | ⚠⚠ the events are *not retrofittable*; ⚠ confirm whether textiles or another build ships `SoilableMixin` |
 | **W6** | `getConcealment()` derive-on-read + the conspicuity band | the camo/hi-vis seam |
 | **W7** | `trade-farming` rows: flax, cotton, madder, weld, woad | content only, existing pack |
-| **W8** | `trade-textiles` pack: ret · dress · spin · weave · full + the tool ladder | the faucet |
+| **W8** | `trade-textiles` pack: ret · dress · spin · weave · full + the tool ladder | the faucet. ⭐⭐⭐ **carries the spinning-bottleneck tuning obligation** |
 | **W9** | `trade-leatherwork` pack: tan + the tannery as a zoned nuisance venue | parallel input; produces `hide-stock` at last |
 | **W10** | `trade-dyeing` pack: dyestuffs, mordants, fastness | customer of both |
 | **W11** | `trade-tailoring` pack: cut · sew · livery; the jerkin recipe leaves smithing | closes the loop |
@@ -628,6 +789,36 @@ Kernel first, then packs — the metal-chain shape.
 8. **Does the conspicuity extension rebase the scale or add a negative
    index?** See Decision 10.
 
+### Added 2026-09-02 (the four-lens pass)
+
+9. ⚠⚠ **Who may extend the covering-form vocabulary?** Forms are a kernel
+   `as const` enum; materials are template rows a pack can add. The
+   proposed split — resist-bearing forms stay closed, purely-textile
+   forms become rows — changes `Construction`'s shape and wants deciding
+   before W0, not after.
+10. ⭐ **What is a pattern?** A recipe, an authored document, or
+    player-designable content that can be named, sold and inherited? The
+    largest creative-expression surface in the build, currently unmodelled.
+11. ⚠ **Who ships `SoilableMixin`** — textiles, or the room-condition
+    build? Its attributed deposit/clear events are *"required at build
+    time, not retrofittable"*, so whoever ships it must ship them, and
+    textiles must not ship garment soiling ahead of it.
+12. **Is a scouring agent legitimate?** The room-condition pack
+    deliberately refuses a washing consumable (water is a precondition;
+    *"charging the care loop an errand per wash is the friction this pack
+    exists to avoid"*). But **scouring fleece before dyeing is a
+    production step, not a care act** — you cannot dye greasy wool — and
+    ash already ships from `trade-fuel`, so ash → lye is a real chain
+    with its input already in the world. Production input, or the same
+    refused tax wearing a different hat?
+13. **What are the honest labour times for `spin` and `weave`?** The
+    spinning-bottleneck lesson lives entirely in this ratio (see the
+    four-lens pass, Lens 1). Needs real numbers, not placeholders.
+14. **How legible must a dressing mistake be?** Lens 4's
+    player-knowledge loop only teaches if being wrong is survivable and
+    the reason is readable. Too harsh and it is a trap; too soft and
+    nobody learns.
+
 ---
 
 ## Cross-references
@@ -641,7 +832,10 @@ GAP rows; `tailor`/`tanner` rostered) · [vocations.md](../../vocations.md)
 [launch-worklist.md](../../launch-worklist.md) (the deferred tailoring
 branch + its fiber-faucet condition).
 
-**Depends on / seams with:** [lineage-slate](./lineage-slate.md) (the
+**Depends on / seams with:**
+[room-condition-design-pack](./room-condition-design-pack.md) (⚠⚠ **owns
+`SoilableMixin`** — textiles is a consumer; its attributed events are not
+retrofittable) · [lineage-slate](./lineage-slate.md) (the
 body-composition budget; textiles ships the consumer, lineage the
 variance) · [search-slate](./search-slate.md) (the viewer half of
 detection) · [ranching-slate](./ranching-slate.md) (wool's left edge;
