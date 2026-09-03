@@ -1,32 +1,54 @@
-# Textiles slate — the chain that clothes the world
+# Textiles slate — REDUCED to its unbuilt tail
 
-> ## ⚠⚠ SUPERSEDED FOR ANYTHING OPERATIONAL — read the PLAN for *what*
+> ## ✅ BUILT — this slate is now the UNBUILT TAIL only
 >
-> **Status 2026-09-02: this slate is the reasoning record. It is STALE on
-> specifics.** Requirements closed the scope and
-> [the plan](../../plans/textiles-plan.md) then took 23 P-decisions,
-> several of which **reverse or delete things written below**. The
-> workflow's rule — *read the slate for why, never for what* — is now
-> load-bearing rather than stylistic.
+> **Status 2026-09-03: the chain is built and in review.** The kernel half (a garment is
+> a real object, the covering stack, derived `clo`, per-part thermal,
+> fit, the wardrobe, the dye/wash loop, the conspicuity rebase and the
+> hood/veil interlock) and three packs — `trade-textiles`,
+> `trade-dyeing`, `trade-tailoring` — are in.
 >
-> **Known divergences, so nobody builds from the stale half:**
+> **What is true now lives in
+> [docs/subsystems/textiles.md](../../subsystems/textiles.md)**, which is
+> the source of truth for the whole chain, plus `materials-response.md`,
+> `thermal.md`, `embodiment.md`, `slot.md`, `card-surface.md`,
+> `concealment.md`, `stealth.md` and `magic-items.md` for the seams it
+> touches. The requirements and plan artifacts retire at `/finalize`,
+> per the workflow's sweep rules; this reduction is the slate's half of
+> that and lands with the build.
 >
-> | below says | actually |
+> **The reasoning below is kept** — the audit that started the build, the
+> twelve decisions' *why*, and the four-lens pass — because a decision's
+> reasoning outlives its implementation. ⚠ **Read it for WHY, never for
+> WHAT**, and note that several things below were reversed by the build:
+>
+> | below says | what shipped |
 > |---|---|
-> | the verb table lists **`full`**, "Eight verbs" | ⚠ **`full` does not ship** — fulling and felting are wool-only (plan P21). Ten verbs; textiles ships three |
-> | the verb table lacks `mordant`, `alter`, `measure` | all three added (P19, P17, P18) |
-> | **W0–W12** wave numbering | ⚠ superseded by the plan's **A1–A10 / B1–B5** |
-> | W7 grows **cotton** | cut — flax only (requirements § 6, plan P21) |
-> | W5 emits a **pre-registered producer event** | ⚠ **deleted** — it was ceremony with no emitter, no listener and no connection to room-condition's ledger (P9) |
-> | W9 **leatherwork** in this cycle | **Stage C**, deferred — nothing produces hide |
-> | Decision 13 / OQ 3: **3 dyestuffs × 4 mordants** | ⚠ **wrong chemistry.** Woad is a *vat* dye taking no mordant — 2 × 4 **plus woad as the exception** (P20) |
-> | Decision 10 names a **`CoveringApi`** seam | ⚠ **no such Api** — the covering stack lives on the wearer (P6) |
+> | the verb table lists **`full`**; "Eight verbs" | ⚠ **`full` does not ship.** Fulling and felting are wool-only, so linen's finish is passive sun-bleaching. Eight verbs shipped, `full` not among them |
+> | the verb table lacks `mordant`, `alter`, `measure` | all three shipped (`measure customer` as a stanza) |
+> | **W0–W12** wave numbering | superseded by A1–A10 / B1–B5 |
+> | W7 grows **cotton** | flax only — a second cellulose fibre adds rows without a lesson |
+> | W5 emits a **pre-registered producer event** | ⚠ **deleted.** It would have had no emitter, no listener, and no connection to room-condition's ledger. The seam is a METHOD (`outermostAt`), not a signal |
+> | W9 **leatherwork** in this cycle | Stage C — nothing produces hide, and inventing a faucet is forbidden |
+> | Decision 13 / OQ 3: **3 dyestuffs × 4 mordants** | ⚠ **wrong chemistry.** Woad is a *vat* dye taking no mordant: 2 × 4 **plus woad as the exception** |
+> | Decision 10 names a **`CoveringApi`** seam | ⚠ **no such Api.** The covering stack lives on the wearer — an Api whose first parameter is a world object is what the OO sweep eliminated |
+> | Decision 6 says **seven** playable species | ⚠ **ten** — char-gen ships gnome, half-elf and orc besides the seven first counted |
 >
-> **What this slate is still good for:** the audit that started the build,
-> the twelve decisions' *reasoning*, the four-lens pass, and the
-> cross-references. Retire or reduce it at `/finalize` per the sweep
-> rules.
-
+> ## ⏳ THE UNBUILT TAIL — what this slate still owns
+>
+> | | blocked on | note |
+> |---|---|---|
+> | **leatherwork and tanning** | a hide faucet (ranching, or a butchery) | ⭐ Not a scope cut but a DEPENDENCY. `trade-tailoring` already holds the `leather-jerkin` recipe, correct and unmakeable. `cut`/`sew` take hide the day it exists |
+> | **wool, and everything on its left edge** | ranching | ⭐ The launch story is *flax gives you woven cloth; wool gives you everything else* — felt, fulling, knitting, and saturated colour, because wool takes a metal mordant directly where cellulose needs tannin. Wool's arrival is a real event, not a second row |
+> | **cotton and silk** | nothing | a second cellulose fibre: more content, no new lesson |
+> | **synthetics, mills, mass production** | demand | ⭐ The substrate CAN carry them (audited): kevlar needs no new construction form, the tool ladder already starts at rung zero, and a mill is a high `rate` plus a production brain. ⚠⚠ The jenny is what flips the bottleneck, not the wheel — the bench prints the rate it has to beat |
+> | **patterned weaving** (stripes, checks) | the loom holding two yarn colours | the yarn-dye stage's payoff, deferred |
+> | **piece bleaching** (laying the woven cloth out) | a durative gauge on a discrete object — a mixin, therefore kernel | ⚠ What ships bleaches the FIBRE, which is historically real and narrower than the picture |
+> | **player-designable patterns as artifacts** (named, sold, licensed) | — | a pattern here is a Recipe |
+> | **magic garments** | — | the machinery composes today; it is content, and magic-items' next wave's |
+> | **hair dye** | lineage phase 1's appearance substrate | dyeing here is cloth only |
+> | **individual body variance within a species** | lineage phase 2 | ⭐ It feeds an EXISTING seam: fit reads `Creature.getMass()`, so textiles does not re-open |
+> | **the tannery's nuisance siting** | leatherwork | ⚠ The textile chain IS the nuisance-trade chain, and the tannery stank worst |
 
 > **Captured 2026-09-02**, design session in `build-1` while the TPA
 > rewrite (`design/tpa-reform`) and cooking (`design/cooking`) were in

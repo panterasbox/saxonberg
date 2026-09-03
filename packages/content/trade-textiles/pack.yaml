@@ -17,3 +17,11 @@ requires:
       owner: { office: prime-minister }
   title:
     - { extent: /trade/textiles, holder: { group: textiles } }
+boot:
+  # ⚠ A venue whose floor holds a `Stock` and whose cast runs a
+  # `consigns` beat has to be EAGER: lazily-cloned rooms mean the
+  # weaver never starts carrying bolts to the store and the trade
+  # produces into a room nobody has opened. `trade-farming` records the
+  # same pair for the same reason.
+  - { template: /trade/textiles/location/mill, role: producer, reason: "the mill floor — its Stock is the home container bolts spawn into, and its weaver runs the consigns brain" }
+  - { template: /trade/textiles/idea/mill, role: producer, reason: "the weaver's `purchases` position is materialized over a live business; the consigns beat trades as it" }

@@ -279,6 +279,169 @@ is just a worse card.
 
 ---
 
+## The chain, as it ships
+
+```
+        ┌─ trade-farming ─┐   ┌──── trade-textiles ────┐   ┌ trade-tailoring ┐
+seed ─▶ plant ─▶ SHEAF ─▶ pit ─▶ line ─▶ yarn ─▶ BOLT ─▶ pieces ─▶ GARMENT
+        (flax)          (ret)  scutch   spin   weave     cut       sew
+                          │                      │                  ▲
+                          └─ over-ret ▶ ruined    └── green ▶ bleached│
+                                                                     │
+        ┌──── trade-dyeing ────┐                                     │
+        madder · weld · woad ─▶ mordant ─▶ dye ──────────────────────┘
+```
+
+**Three packs, four stages, eight verbs** — `scutch` `spin` `weave` ·
+`mordant` `dye` · `cut` `sew` `alter` — plus `measure customer` and
+`wear set` as **stanzas on shipped views**, so the whole build adds
+those eight and no more.
+
+⭐ **Preparation and finishing ship with ZERO verbs.**
+`FermentingMixin` runs the retting pit's clock and the bleaching green
+is the same shape applied to weather. What you do is judge the moment.
+
+### ⚠ The two stage names that are not stage names
+
+| stage | flax's instance | wool's instance |
+|---|---|---|
+| `prepare` | **retting** | scouring |
+| `finish` | **bleaching** | fulling |
+
+Nothing in `trade-textiles` treats "retting" or "fulling" as the name of
+a stage. Wool scours, cotton gins, silk reels, a synthetic extrudes —
+each arrives later as its own `FermentProfile` over its own material,
+and the pack does not change.
+
+### ⭐ Three seams cut so the ladder stays open
+
+1. **The stage is `prepare`, not `ret`** (above).
+2. **The chain begins at *fibre-exists-as-a-material***. `scutch` and
+   `spin` gate on a MATERIAL tag, never on the flax row; `dye` takes a
+   dyestuff material, never a crop. ⭐ That second one is the seam
+   **Perkin walks through** — mauveine (1856) destroyed madder and
+   indigo agriculture in a generation, and for a synthetic ever to plug
+   in, the entry point has to be the material.
+3. **The bottleneck assertion is scoped to the shipped tech level**, in
+   the bench's own name.
+
+⚠⚠ **Do not add a `kevlar` construction form.** `MaterialLogic` scales
+the resist *magnitude* by the material while `responseFor()` supplies
+only the *shape*, so a high-performance textile is a `woven` fabric of a
+tough material. That is `response = f(mechanism, material,
+construction)` doing its job.
+
+## ⭐⭐ Throughput at bed scale — the measured finding
+
+`mill-throughput.bench.test.ts` reads the shipped dials and measures one
+bolt:
+
+| | by hand | with the wheel |
+|---|---|---|
+| scutch | 0.33 h | 0.33 h |
+| **spin** | **3 h** | **1 h** |
+| weave | 0.5 h | 0.5 h |
+| spin : weave | **6×** | **2×** |
+
+Six is dead centre of the historical band — five to ten spinners kept
+one hand-loom weaver supplied.
+
+⚠⚠ **The wheel closes the gap threefold and does NOT flip it**, and the
+plan expected otherwise. At any honest ratio it cannot: three does not
+clear six. ⭐ **That is the history.** The wheel did not solve the
+spinning shortage; the machine that did was the **jenny**, at eight
+spindles — and eight is the first thing that clears a gap of six.
+Fitting the durations until a wheel flipped it would have deleted the
+most famous fact about this trade to satisfy a sentence. The bench
+asserts what is measurable, pins the ratio inside the historical band,
+and prints the rate that would flip it.
+
+⭐ **And the bed-scale worry did not fire.** One Hinkley bed yields
+~12 bolts per game-year (a stock shirt is ~1 bolt-unit), so the ratio is
+feelable at smallholder throughput. The anticipated "document the
+shortfall instead" outcome was not needed — the number is printed either
+way, which is what made it answerable rather than arguable.
+
+⚠ Retting is reported separately: ~14 game-days **elapsed**, zero
+attended. **A wait is not labour**, and folding it in would make
+preparation look like the bottleneck when it is the one step you can
+walk away from.
+
+## The three businesses
+
+| | shape | wage |
+|---|---|---|
+| the Wharfside **mill** | produces + **consigns** — no counter | spinner **3** · weaver **5** |
+| the Wharfside **dyehouse** | walk-in service, `discipline: line` | dyer **5** |
+| the **tailor's shop** | by appointment, `discipline: appointment` | tailor **6** |
+
+⭐ The mill does not retail. It consigns through the shipped `consigns`
+brain, so cloth reaches players in the Terminus general store where they
+already shop — less new content, and the good is where the buyer is.
+
+⚠⚠ **Read the wage column: the bottleneck job is the worst-paid one.**
+That is the uncomfortable historical fact, and precisely *why*
+mechanising spinning was both so profitable and so socially disruptive.
+**Do not "fix" it upward for fairness** — the wage table teaches the
+same lesson as the bench and the price ladder, from a third independent
+direction, and flattening it deletes the lesson rather than the
+injustice.
+
+### Prices, derived from wages rather than picked
+
+`wageRate` is minor units per game-hour; an 8-hour unskilled day is 24.
+
+| | minor |
+|---|---|
+| `measure` | **free** — the loss-leader that fills the book |
+| alteration | 20 |
+| stock shirt / trousers | 50 / 60 |
+| stock coat | 200 |
+| bespoke shirt / coat | 120 / 500 |
+| plain linen, per unit | 40 |
+
+A spinner on 3/hr earns 24 a day, so a stock coat is **~8 days of her
+own labour** and a bespoke one is a month. ⭐ **A bolt is capital**
+(~480 minor ≈ 20 unskilled days ≈ 4 coats), which is what makes `cut`'s
+waste decision bite. ⚠⚠ **The numbers move together or not at all.**
+
+## ⭐ Siting — the textile chain IS the nuisance-trade chain
+
+Retting ponds stank badly enough to be banned upstream of towns;
+dyehouses stank (urine was the classic woad vat); the tannery is Stage
+C's and stank worst. That is a coherent industrial identity rather than
+three coincidences, and it is what makes these read as **industry**
+rather than as crafting stations.
+
+So the mill and the dyehouse sit at Wharfside by the water, and the
+tailor's shop sits off Mayfield Row where there are customers and good
+light. **The answer differs at each end of the same chain**, which is
+what a siting decision is.
+
+## Magic — the craft wins on permanence
+
+All three trades land on one shape, which is the sign the doctrine is
+doing work rather than being recited.
+
+- **Textiles**: `create·light` over a bleaching green is the obvious
+  shortcut, and the refusal is physical rather than fiat — *bleaching is
+  photochemistry; a glowlight is illumination*. It teaches
+  light-as-energy vs light-as-seeing.
+- **Dyeing** is where magic genuinely endangers a trade, and Kell's
+  answer beats a refusal: **a magically-fixed colour is a binding**, so
+  it fades when the charge runs out. ⭐⭐ *Magic gives you a brilliant
+  colour that does not last; the craft gives you a modest one that
+  does.* A player should take that bargain once and regret it — and it
+  lands exactly on the muted palette.
+- **Tailoring**: `alter`'s ceiling is the seam allowance **because
+  matter is conserved**. A spell cannot conjure cloth, so magic might
+  alter faster and never further. It needed no code.
+
+⚠ Any later proposal that lets a working beat a craft *durably* is
+contradicting Kell, not extending it.
+
+---
+
 ## Cross-references
 
 [materials-response.md](./materials-response.md) ·

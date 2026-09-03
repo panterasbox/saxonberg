@@ -883,6 +883,35 @@ discrete sibling of the graded bottle; a *fine* prime cut is what the
 fine-roast's `minGrade: fine` slot demands (the grade spread on solid
 stock).
 
+## ⭐ The textile chain — three trades over one substrate
+
+`trade-textiles` · `trade-dyeing` · `trade-tailoring` ship as
+capability packs and add **eight verbs and no more**:
+
+| pack | verbs (category) | Discipline | what competence buys |
+|---|---|---|---|
+| textiles | `scutch` `spin` `weave` (`textiles`) | `/trade/textiles/idea/Discipline/textiles` | **how fine you can go before it breaks** |
+| dyeing | `mordant` `dye` (`dyeing`) | `/trade/dyeing/idea/Discipline/dyeing` | **fastness and repeatability**, never a hue |
+| tailoring | `cut` `sew` `alter` (`tailoring`) | `/trade/tailoring/idea/Discipline/tailoring` | **fit precision** |
+
+⭐ Two more affordances ship as **stanzas on views that already exist** —
+`measure customer` on the platform's `measure` (the `measure strike`
+precedent) and `wear set` on `wear` — so a whole wardrobe and the
+tailor's fitting cost **zero verbs**.
+
+⭐⭐ **Preparation and finishing ship with zero verbs at all.** Retting
+is a real slow bacterial ferment, so `FermentingMixin` runs it
+unchanged; the bleaching green is that shape applied to weather. What
+you do is judge the moment — and the pit has four days' grace before
+`turnedMaterial` (vinegar's mechanism, verbatim) makes the fibre
+worthless.
+
+⚠ Every one of these competence answers keeps the trade rule: **it never
+buys yield.** Overreaching on `spin` does not make worse yarn, it makes
+**less** yarn; a poor mordant does not make a duller colour, it makes
+one that washes out. Full detail in
+[textiles.md](./textiles.md).
+
 ## Deferred (non-goals)
 
 **Skill-as-control** — the declared **next crafting wave**

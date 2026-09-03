@@ -168,7 +168,8 @@ Per entry: **what gates it**, **who pays**, **which subsystem it rides**.
 | ~~notary~~ | ⭐ **REJECTED 2026-07-31** | — | **the substrate already attests** — the register's first honest NO ([insurance § the notary](./slates/builds/insurance-slate.md)) |
 | **scrivener** | designed | **drafting judgment** | parties to an instrument — *a badly drafted clause executes exactly as written* |
 | **insurer** | **designed** ([insurance](./slates/builds/insurance-slate.md)) | capital + portfolio construction | premiums |
-| **barber / tailor** | **GAP** | skill | customers |
+| **tailor** | ⭐ **SHIPPED 2026-09-03** ([textiles](./subsystems/textiles.md)) | **fit precision** — how nearly `cutTo` matches a measured body | customers — ⭐ *the fitting is a scene, and a changing body is the retention loop* |
+| **barber** | **GAP** | skill | customers — ⚠ waits on lineage's appearance substrate, which is also what hair dye waits on |
 | **steward** (household / land) | **designed** ([household](./slates/builds/household-design-pack.md)) | **Stewardship Discipline** (the causal read) + capacity | householders — **trade** or **wage**; ⭐ *the product is attention while you are elsewhere* |
 | *houseworker / cleaner* | — | *wage* | ⚠ **texture, not a vocation** — anyone can, and the mess freezes while you are away |
 | **nanny / carer** | ⛔ **BLOCKED** | — | **no dependents exist**, deliberately — see below |

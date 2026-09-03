@@ -21,3 +21,7 @@ boot:
   # a rule that has bitten three times. The dyestuff roster is read
   # synchronously by `dye`, so it is stood up eagerly here.
   - { template: /trade/dyeing/idea/dyestuff-catalogue, role: sync-read, reason: "the dyestuff roster DyeController resolves synchronously (self-warming — no Api.boot)" }
+  # The dyehouse is a walk-in SERVICE, so its counter's attendance
+  # queue and its dyer's position want a live business from boot.
+  - { template: /trade/dyeing/location/dyehouse, role: producer, reason: "the dyehouse floor — its counter is the attendance point customers queue at" }
+  - { template: /trade/dyeing/idea/dyehouse, role: producer, reason: "the dyer's position is materialized over a live business" }

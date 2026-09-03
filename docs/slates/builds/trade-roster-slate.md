@@ -90,7 +90,7 @@ Localities are real seeds except where marked ⏳ (designed, unbuilt).
 |---|---|---|---|---|---|
 | **carpenter** | terminus, hinkley-hills | ⭐carpentry | tools | holding, apprenticeship | Goibniu |
 | **mason** | terminus, eternal-campus | ⭐masonry | tools | debt, holding | Goibniu |
-| **tailor** | terminus | ⭐textiles | stock | favour, debt | Vesta |
+| **tailor** | terminus | ⭐textiles — **SHIPPED 2026-09-03** | stock | favour, debt | Vesta |
 | **tanner** | terminus, moor | ⭐leatherwork | stock | feud, debt | — |
 | **potter** | hinkley-hills, terminus | ⭐ceramics | stock | apprenticeship | Vesta |
 | **glazier** | terminus, hearthworks | ⭐glasswork | tools | favour | Goibniu |
@@ -160,7 +160,7 @@ on the `obj/Discipline` pattern.
 | `electrical-work` | skill | 0713 | Electricity and energy |
 | `carpentry` | skill | 0722 | Materials — wood |
 | `masonry` | skill | 0732 | Building and civil engineering |
-| `textiles` | skill | 0723 | clothes and footwear |
+| `textiles` | skill | 0723 | clothes and footwear — ⭐ **SHIPPED**; `dyeing` (0711) and `tailoring` (0723) ship beside it |
 | `leatherwork` | skill | 0723 | shares the code with `textiles` |
 | `ceramics` | skill | 0214 | Handicrafts |
 | `glasswork` | skill | 0722 | Materials — glass |

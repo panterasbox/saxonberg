@@ -1,0 +1,11 @@
+# FabricCatalogue — the singleton whose postRegister registers every
+# authored fabric row into `Construction`'s second covering source (the
+# self-warming catalogue shape; eager via this pack's boot list, not an
+# AppBootstrap sequencer line).
+#
+# ⚠⚠ Without this ROW the boot entry names nothing and the server dies
+# at `BootstrapManager` with `Template not found`. A `boot:` entry is a
+# template path, and a catalogue class with no row behind it is a
+# half-wired catalogue — which is precisely what a cold boot is for.
+class: /platform/idea/FabricCatalogue
+data: {}

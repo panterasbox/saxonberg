@@ -16,3 +16,9 @@ requires:
       owner: { office: prime-minister }
   title:
     - { extent: /trade/tailoring, holder: { group: tailoring } }
+boot:
+  # ⭐ The shop must be eager for a reason the other two do not have:
+  # the BOOK lives on its counter, and a measurement written into a
+  # room nobody has opened is a measurement nobody keeps.
+  - { template: /trade/tailoring/location/shop, role: producer, reason: "the shop floor — its counter is the appointment point, and the measurement book lives on it" }
+  - { template: /trade/tailoring/idea/tailor-shop, role: producer, reason: "the tailor's position is materialized over a live business" }
