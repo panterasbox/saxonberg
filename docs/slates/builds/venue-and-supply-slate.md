@@ -328,6 +328,36 @@ capacity and a price) · **transfer** (secondary, once built out).
 
 Full model: [../../settlement-model.md](../../settlement-model.md).
 
+## 6c. ⭐⭐⭐ The warehouse receipt — storage is a financial instrument
+
+`freight-slate` already carries the shape, and it is better than "a box you
+rent": a warehouseman is a **bailee** — holds your goods, owes a **duty of
+care**, and **issues a receipt.** ⭐ **A warehouse receipt is a document of
+title.**
+
+It does three jobs at once, and only the first is storage:
+
+1. **The legitimate storage a player expects.** An itinerant player with no
+   home currently has **nowhere to put anything** — which every survival
+   and MMO player arrives expecting to have solved.
+2. ⭐⭐ **It answers [towns-slate](./towns-slate.md) D22 — the NPC house as
+   free storage — with a MOTIVE rather than a prohibition.** That exploit
+   exists because there is no legitimate alternative; give people a receipt
+   and it loses its point.
+3. ⭐⭐⭐ **A receipt is COLLATERAL.** The gray economy's credit loop exists
+   precisely because the Counting-Houses will not lend to someone with *"no
+   standing and no collateral"* — so receipts give the legitimate economy a
+   way to lend to exactly the people it currently refuses. That is
+   [policing-slate](./policing-slate.md)'s own enforcement table
+   (*"open credit access → the loan business collapses"*) made concrete.
+
+> ⭐ **Warehouses are not storage furniture. They are the lever that
+> shrinks the Gray.**
+
+⚠ Which also means the warehouseman is a **vocation with a duty** rather
+than a container — and the duty (bailment) is the thing that makes losing
+somebody's goods a real event.
+
 ## 7. Scaling discipline for 10× content
 
 > ⭐ **The mechanism is the trade pack's. The instance is the locality's.**

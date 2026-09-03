@@ -452,6 +452,23 @@ undramatic. Here it would be an office with a name and a record.
 > ⚠ And exclusion is constrained so it stays in this register: it may
 > refuse **service · shelter · trade · employment**, and may **never**
 > touch presence or speech — *the aether reaches everywhere.*
+>
+> **3. ⭐⭐⭐ WAREHOUSES SHRINK THE GRAY — and whoever scopes this build
+> needs to know it.** `freight-slate`'s warehouseman is a **bailee** who
+> **issues a receipt**, and *a warehouse receipt is a document of title* —
+> therefore **collateral.** The credit loop below turns entirely on the
+> Counting-Houses refusing to lend to a resident with *"no standing and no
+> collateral"*; receipts hand the legitimate economy a way to lend to
+> precisely those people.
+>
+> That is this slate's own enforcement table — *"open credit access → the
+> loan business collapses"* — arriving as a **shipping decision rather than
+> a thought experiment.** ⚠ So the freight build is not adjacent to the
+> crime build: **it is a lever on it**, and building warehouses without
+> intending that is how the Gray gets accidentally defunded.
+>
+> Full chain: [settlement-model.md § 11](../../settlement-model.md) +
+> [venue-and-supply-slate § 6c](./venue-and-supply-slate.md).
 
 **The district is already authored for this.** From
 [terminus-city.md](../../staging/terminus-city.md) §3:

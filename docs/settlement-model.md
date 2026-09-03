@@ -42,13 +42,26 @@ A settlement that cannot meet a need either **imports** it or has an
 own test, *a vocation exists iff unmet demand*. So the needs list and the
 archetype list are the same list.
 
+> ⭐ **REVISED 2026-09-03 — sixteen became nineteen.** The test for a
+> *need* rather than a service is **does the settlement stop working
+> without it.** Three passed: **waste** (I had listed water in and never
+> water out — and it is the whole basis of the LULU taxonomy), **light**
+> (you cannot work after dark), and **care** (⭐ which earns its row by
+> explaining a demographic fact: *a camp has no old people because there is
+> nowhere for them to be*). ⚠ Money · post · stabling · leisure are
+> **services** the specialization gradient produces on demand; **defense**
+> is deliberately outward-facing. A template that grows every conversation
+> is not a template — the test is the discipline.
+
 | tier | need | the venue | state |
 |---|---|---|---|
 | **survive** | food, raw | farm · market garden | `trade-farming` |
 | | food, prepared | cookhouse · eatery | `trade-hearth-cooking` |
 | | food, retail | general store | ✅ ships |
 | | water | well · standpipe · tank | `water` |
+| | ⭐ **waste** | ⭐ *the other side of water* — drain · midden · the noxious trades | `water`'s Conduit ladder: *a sewer is the same object reversed* |
 | | fuel | fuel yard · woodlot | `trade-fuel` |
+| | ⭐ **light** | chandler · lamp oil | ⚠⚠ `light.md` ships; **candles do not exist as content** |
 | | clothing | weaver · tailor | ⚠ textiles, planned |
 | | health | infirmary | ⚠ medic designed, **nothing built** |
 | **work** | tools | smithy | `trade-smithing` |
@@ -58,7 +71,8 @@ archetype list are the same list.
 | **hold together** | housing | lodging · lease · lot | `residence` |
 | | drink & assembly | public house | `trade-hospitality` |
 | | education | school · institute · library | ⚠ nothing outside campus |
-| | ceremony | chapel · hall · **burial ground** | ⚠⚠ **nothing at all** |
+| | ⭐ **care** | almshouse · the mutual-aid fund — *who looks after those who cannot work* | ⚠ nothing; the Institute's fund is the design |
+| | ceremony | chapel · hall · **burial ground** · ⭐ **a festival** | ⚠⚠ **nothing at all** — see § 11 |
 | | law | register · constable · court | ⚠ policing designed |
 
 ⭐⭐ **Score a settlement against the sixteen and you get its portrait, not
@@ -532,7 +546,89 @@ no law needed) → **Heart's Delight** (seasonal, custom-governed) →
 
 ---
 
-## 11. Open
+## 11. ⭐⭐ Player expectations, from other game systems
+
+The colony sims (§ 10) answer *what a settlement needs*. A different set of
+games decides **what a player walks in expecting**, and the mismatches are
+the risks.
+
+| genre | the expectation it trained | for us |
+|---|---|---|
+| **MMOs** (WoW, FFXIV) | a town is a **service cluster**; the capital has everything; you route to the fullest hub | ⚠ **the hub trap** |
+| **Classic MUDs** | shop · inn · bank · guild · healer · an exit to the wild — and **town is safe, outside is not** | ⭐⭐⭐ we **invert** this |
+| **Stardew / Animal Crossing** | a fixed cast with **routines you learn**, shops with hours, and **festivals** | ⭐ cores and commute cadences do the first half |
+| **Survival** (Valheim, Rust) | a settlement is something you **build**; **storage** is the central problem | plats do the first; see below |
+| **RPGs** (Skyrim, Witcher) | named NPCs talk, generic ones do not; **you can enter any house** | we decided against the second, with reasons (§ 6) |
+| **EVE** | ⭐ **security level is a posted number** | ours is doors — better immersion, worse legibility |
+| **Dwarf Fortress** | every need tracked, and **one missing need cascades** | the § 1 scorecard *is* this |
+
+### ⭐⭐⭐ Risk 1 — the hub trap
+
+MMO habit is *go where the most services are*. If Terminus has everything
+and the other towns have gaps, **players will never leave Terminus.**
+
+The answer exists — the other towns offer what the city structurally
+**cannot**: ground you can own, a seat you can hold, a claim you can stake,
+land use that admits a field. But it has to be **legible before you go.**
+The one-line version: *you cannot buy a house in the city.*
+
+### ⭐⭐ Risk 2 — storage, and the answer is a financial instrument
+
+`freight-slate` already has it, and better than "a box you rent":
+
+> A warehouseman is a **bailee**: holds your goods, owes a **duty of
+> care**, and **issues a receipt.** ⭐ **A warehouse receipt is a document
+> of title.**
+
+Three things at once:
+
+1. The legitimate storage MMO players expect — an itinerant player
+   currently has **nowhere to put anything.**
+2. ⭐⭐ It answers the open **NPC-house-as-free-storage** exploit
+   ([towns-slate](./slates/builds/towns-slate.md) D22) **with a motive
+   rather than a prohibition.** The exploit exists because there is no
+   legitimate alternative.
+3. ⭐⭐⭐ **A receipt is collateral.** The gray economy's credit loop
+   exists precisely because the Counting-Houses will not lend to someone
+   with *"no standing and no collateral."* Receipts give the legitimate
+   economy a way to lend to exactly those people — which is the
+   enforcement table's *"open credit access → the loan business
+   collapses"* made concrete.
+
+> **So warehouses are not storage furniture. They are the lever that
+> shrinks the Gray.**
+
+### ⭐⭐⭐ Risk 3 — we invert the genre's oldest convention
+
+*Town is safe, wilderness is dangerous* is the deepest-trained expectation
+a MUD player carries. Ours does not work that way: the safest place
+mechanically is **Hinkley**, which has **no law whatsoever**, and the most
+dangerous ground in the realm is **Rejection's own yard** — inside a town.
+
+A good subversion, and it **will be mis-read** unless the readout is loud.
+Doors (§ 9) are the immersive signal; EVE's is a posted number. Probably
+both: the handle tells you the culture, and something explicit tells you
+the jurisdiction — ***whose law runs here, and is there anyone to appeal
+to.***
+
+### ⭐⭐ And the one thing Stardew has that we have nothing like: the festival
+
+A recurring communal event that puts **the entire cast in one room.** It is
+how a player learns who lives somewhere, it is the **cheapest possible
+ceremony** (no chapel required), and it is the counterweight to a world of
+shift schedules where you only ever meet people one at a time.
+
+⭐ **Bloom is already begging to be one** — three weeks when the valley is
+a postcard, Rovere's is full, and people come up from the city just to
+look. A festival with an economy already attached, authored before anyone
+called it that.
+
+Rejection's is **pay Friday**, or setting day. Hinkley's is the District's
+**annual meeting** — badly attended, which is the joke.
+
+---
+
+## 12. Open
 
 - **Ceremony is a realm-wide hole.** No burial ground, no chapel, no hall
   in use, anywhere outside Terminus — for a game with a mortality
