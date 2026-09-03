@@ -95,6 +95,11 @@ describe("general-store content integrity", () => {
   // the standup integration test (which clones the goods for real).
   const DISCRETE_ITEM_CLASSES = new Set([
     "/platform/thing/Prop",
+    // A `Provision` is the food class — discrete, `Crafted` (so it carries a
+    // maker's mark and a grade), and no more Globbable than a `Prop`. The
+    // ration pack is one: perishable matter belongs on the class that says
+    // so, not on the generic `Prop` that happened to be carrying the gauge.
+    "/platform/thing/Provision",
     "/platform/thing/equipment/PortableLight",
     "/platform/thing/equipment/Weapon",
     "/platform/thing/Receptacle",
@@ -197,7 +202,7 @@ describe("general-store content integrity", () => {
   it("the goods are backed by real systems (not decorative props)", () => {
     // The rations are genuinely edible — their material is a food material.
     const rations = load(STORE_DIR, "thing/rations.yaml");
-    expect(rations.class).toBe("/platform/thing/Prop");
+    expect(rations.class).toBe("/platform/thing/Provision");
     expect(String(rations.data?._materialPath)).toMatch(/^\/stuff\/idea\/material\/food\//);
     // The lights actually emit (authored flux + warmth), start unlit.
     for (const f of ["torch", "lantern"]) {
