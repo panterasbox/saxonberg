@@ -263,6 +263,27 @@ In `lib/magic/Charged.ts` + `lib/magic/Charge.ts`:
 
 `magic.charge.kJPerCostPt` keeps its key (an operator may have set it) but its
 comment says it is now the identity and vestigial; the *code* stops naming kJ.
+
+⭐⭐ **DECIDED (user: "whatever is most honest"): `'pt'` for the unit, τ for
+the names.** Three claims are available and only one is true at the layer it
+would be made:
+
+| | asserts | |
+|---|---|---|
+| `'kJ'` (today) | this charge **is energy** | ❌ false — the mana pack's whole correction is that mana is a *separate* conserved quantity converting at `k = 1 kJ/τ` |
+| `'τ'` | this quantity **is mana** | ⚠ true in this game, but `lib/quantity.ts` is **form-independent** substrate; another game on this engine has no magic, and baking τ into the unit catalog bakes one game's fiction into the platform |
+| `'pt'` | this reserve **holds N points** | ✅ the only thing the engine actually knows |
+
+So the change is not a compromise: dropping `'kJ'` **removes a false claim**,
+and `'τ'` would **add a true claim at the wrong layer**. `'pt'` says exactly
+what is known — which is why `quantity.ts` minted it, in as many words: *"the
+neutral unit for authored reserve instances (mana / charge / essence)."*
+
+⭐ **The split falls on a real seam.** The unit stays neutral because
+`lib/quantity.ts` is general substrate; the **method names say τ** because
+`lib/magic/` is a magic subsystem and the kernel already has one (`Caster.ts`,
+`Charged.ts`, `Effect.ts`, `Conduit.ts`). `getStoredTau()` is honest there in a
+way a `'τ'` `Unit` would not be in the quantity catalog.
 Four content rows change key name. `transferChargeImpl`'s report string says
 "τ". **No number changes anywhere** — that is the assertion W1 proves, by
 running the four charge suites unmodified except for the renamed calls.
