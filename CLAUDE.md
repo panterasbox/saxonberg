@@ -69,6 +69,15 @@ behavior. Read the relevant doc before editing in its area.
   retirement rules at sweep time. Skills under `.claude/skills/`
   (`/requirements`, `/mr-iterate`, `/finalize`) are thin entry
   points to phases of this loop.
+- [docs/settlement-model.md](./docs/settlement-model.md) — the
+  settlement model: the **sixteen needs** every town must meet or import
+  (which are also the archetype list), the site-driven vs exit-driven
+  **type taxonomy** (resource · node · suburb · industry · LULU · city),
+  the specialization gradient (*a city is where the general store
+  fragments*), ⭐ **zoning exists because of density, not order**,
+  singleton-vs-warren, the one-`PlatBook` growth mechanism and the three
+  land markets, the business ladder, and the **six networks** the realm
+  is connected by
 - [docs/vocations.md](./docs/vocations.md) — the vocations &
   industries register: the demand test, the five criteria for a real
   vocation, four gap-finding methods, and the shipped/designed/gap
