@@ -615,12 +615,14 @@ every new path resolves.
 - **Venue stock gaps** (water slot at the cookhouse, dishes in reach)
   surface in the hearthworks suite and the drive — expected, in-scope.
 
-## Open questions (for the user — not decided silently)
+## Open questions — ALL RESOLVED 2026-09-03
 
-1. **Pack naming**: `trade-cooking` dir/id + `@saxonberg/content-trade-cooking`
-   + group `cooking` — confirm.
-2. **`ToxinTag.labileAtK`** as the selective-kill carrier (vs a flag on
-   the Condition seed) — confirm the shape.
+1. ✅ **Pack naming confirmed**: `trade-cooking` dir/id +
+   `@saxonberg/content-trade-cooking` + group `cooking` + root
+   `/trade/cooking`.
+2. ✅ **`ToxinTag.labileAtK` confirmed** as the selective-kill carrier
+   (not a flag on the Condition seed): the lability of a toxin is a
+   fact about the *substance*, so it rides the tag the food authors.
 3. ✅ **RESOLVED with the user 2026-09-03** — `CookPot extends
    CraftVessel` (not a `BulkableMixin` bolt-on): the pot joins the same
    vessel pool as the dishes, and picks up `Thermal` that S1 needs
@@ -628,13 +630,32 @@ every new path resolves.
    *(Remaining build-time judgement: whether `Durable`/`Tool` compose
    cleanly over `CraftVessel`'s deeper stack — the same TS
    mixin-narrowing hazard already budgeted for `Dish`.)*
-4. **Utensil-kind vocabulary** as a small kernel const module (vs a
-   row-authored flag) — confirm.
-5. **Cutlery extent**: table-knife + fork as new trade-smithing recipes
-   now, or rows only (recipes deferred)? "Minted by smithing" reads as
-   recipes; confirm touching smithing's roster.
-6. **Doc split**: new `spoilage.md` + method vocabulary into
-   `crafting.md`, vs one new `cooking.md` — preference?
-7. **Historical doc lines** naming `trade-hearth-cooking` (build
-   chronicles in `content-packs.md` / `slates/README.md`): leave as
-   history (recommended) or rewrite?
+4. ✅ **Utensil-kind vocabulary confirmed** as a small enumerated
+   kernel module (not a row-authored flag) — `eat` must know which
+   kinds are utensils to claim one, and an enumerated vocabulary makes
+   adding a kind a visible diff (the `lint:locations` roster
+   precedent).
+5. ⭐ **Cutlery extent — DECIDED: rows for all three, plus ONE
+   trade-smithing recipe (the table knife).** `belt-knife` is a shipped
+   smithing recipe, so a table knife is a near-copy rather than a
+   roster expansion — and it gives the smith a real answer to the
+   demand cutlery creates (slate Part 6: one dinner table wakes three
+   making trades). The fork stays a row this build (a second near-copy
+   buys little); the wood/horn **spoon is a row only** — its maker is
+   the ⭐carver, a roster gap nobody has built. ⚠ Reverse this if
+   touching `trade-smithing`'s roster during the rename wave feels like
+   one pack too many; the loop works with rows alone.
+6. ✅ **Doc split DECIDED: `spoilage.md` separate; the method
+   vocabulary into `crafting.md`.** Spoilage is *substrate other builds
+   inherit* — disease inherits its growth term, the fridge and the
+   victualler both depend on it — so it earns its own subsystem doc and
+   its own map entry. Cooking's methods are a **branch of the crafting
+   subsystem**, and `crafting.md` already documents the branches
+   (bar/smithing/cooking); a separate `cooking.md` would split one
+   subsystem's contract across two files.
+7. ✅ **Historical lines DECIDED: leave them.** Build chronicles record
+   what happened; the pack *was* called `trade-hearth-cooking` when
+   those waves shipped, and rewriting them would make the record lie
+   about the past to tidy the present. Only **current-state** surfaces
+   (the pack table, path lists, live prose) get renamed — the
+   distinction the W1.1 checklist already draws.
