@@ -46,12 +46,13 @@
  *
  * ## Where the mixin lives
  *
- * A pack ships no `lib/`, and this is a mixin the four type rows'
- * concrete class composes — so the factory and the one class that
- * composes it share a module in the pack's `location/` branch, the
- * abstract-base-plus-thin-concrete-face split written in one file. A
- * bespoke mine either names {@link Working} directly or composes
- * `WorkingMixin` over a room class of its own.
+ * A pack's own substrate lives in its `src/lib/`, exactly as the
+ * kernel's does — inherited, never instanced (TPA reform P2a amended
+ * `lint:instanceable`'s invariant 8 to say so). This module is a mixin
+ * factory and the types its surface speaks, and nothing else; the
+ * classes that compose it are `location/MineRoom` and
+ * `location/AuthoredWorking`. A bespoke mine composes `WorkingMixin`
+ * over a room class of its own.
  */
 
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';

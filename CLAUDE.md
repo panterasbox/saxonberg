@@ -626,10 +626,20 @@ Saxonberg has a fixed taxonomy of module types. Every TypeScript file
 in `packages/server/src/mud/` falls into one of these — **and so does
 every file in a capability pack's `src/`** (`packages/content/<pkg>/src/`):
 the branches (`thing/`, `idea/`, `agent/`, `location/`), controllers at
-`idea/cmd/<category>/`, tests; no `lib/`, no Api, no helpers (a pack that
-needs an Api needs a kernel MR). A pack imports the kernel **only by
+`idea/cmd/<category>/`, brains at `behavior/`, **`lib/` for substrate
+that is only ever inherited** (mixin factories, value objects — the
+kernel's own `lib/` rule applied to a pack), tests; **no Api, no logic
+singleton, no free helper functions** (a pack that needs any of those
+needs a kernel MR). A pack imports the kernel **only by
 package specifier** (`@saxonberg/server/mud/lib/…`, the server's
-`exports` map) and writes absolute `FromModule` gates. **If a new
+`exports` map) and writes absolute `FromModule` gates.
+⭐ **Substrate goes to the KERNEL when its composers have no common pack
+ancestor** — that is the test for `lib/` here versus a kernel MR, and a
+third pack wanting a mixin without depending on its owner is the signal
+to promote it. The headline invariant is untouched: *nothing instances
+`/lib/`* is checked against **template paths** starting `/lib/`, and a
+pack mixin (`/system/arcana/lib/ManaPowered`) has no template row at
+all. **If a new
 file you're considering doesn't fit, STOP and discuss with the user
 before creating it.** The `Api` is the dev-facing surface — a thin,
 typed, gated forwarding shell; protection-needing internal logic is
@@ -812,6 +822,18 @@ where the `.ts` file sits, and where its templates live:
 The invariant, and it is literal: **nothing instances `/lib/`.** No
 template's `class:` may name a `/lib/` module, and no template path may
 start `/lib/`. Enforced by `pnpm lint:instanceable`, not by convention.
+
+⭐ **A capability pack has a `lib/` of its own, under its root** —
+`/system/arcana/lib/ManaPowered`, `/trade/mining/lib/Working` — holding
+the same thing the kernel's does and nothing else: substrate that is
+only ever inherited. It does not start `/lib/`, so the headline
+invariant never fires; `classFileOf` resolves it by longest prefix like
+any other pack path. The ban on a pack `lib/` was lifted by the TPA
+reform (P2a) because it made a pack-owned mixin **unrepresentable** — a
+mixin is not instanceable, so no branch folder is honest for it, and
+promoting it to the kernel is wrong for substrate only that pack
+composes. **Still the kernel's, always:** an Api, a logic singleton, a
+free helper function.
 
 ### ⭐ The five namespace axes — which root a pack takes
 

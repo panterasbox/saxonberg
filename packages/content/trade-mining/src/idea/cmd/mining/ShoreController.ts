@@ -32,7 +32,7 @@ import { Mml } from '@saxonberg/server/mud/api/mml';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
 import type MineWarren from '../../MineWarren';
-import type { Working } from '../../../location/Working';
+import type { Working } from '../../../lib/Working';
 
 /** Reference time to set one timber, in game ms. */
 const SHORE_MS = 20000;

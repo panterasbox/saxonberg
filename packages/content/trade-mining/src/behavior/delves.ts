@@ -37,8 +37,8 @@ import type { Mobile } from '@saxonberg/server/mud/lib/spatial/Mobile';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { BrainContext, BrainStatics } from '@saxonberg/server/mud/lib/behavior/brain';
-import type { Working, Face } from '../location/Working';
-import { WORKING_MIXIN } from '../location/Working';
+import type { Working, Face } from '../lib/Working';
+import { WORKING_MIXIN } from '../lib/Working';
 import type { Employed } from '@saxonberg/server/mud/lib/employment/Employed';
 
 /** Cuts per beat — a bound, like every loop here. */

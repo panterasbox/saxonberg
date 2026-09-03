@@ -71,6 +71,9 @@ importers:
       '@saxonberg/content-terminus':
         specifier: workspace:*
         version: link:packages/content/terminus
+      '@saxonberg/content-tpa':
+        specifier: workspace:*
+        version: link:packages/content/tpa
       '@saxonberg/content-trade-bottling':
         specifier: workspace:*
         version: link:packages/content/trade-bottling
@@ -613,6 +616,31 @@ importers:
       '@saxonberg/content-water':
         specifier: workspace:*
         version: link:../water
+      '@saxonberg/server':
+        specifier: workspace:*
+        version: link:../../server
+      '@saxonberg/types':
+        specifier: workspace:*
+        version: link:../../types
+    devDependencies:
+      typescript:
+        specifier: ^5.4.0
+        version: 5.9.3
+      vitest:
+        specifier: ^2.0.0
+        version: 2.1.9(@types/node@20.19.28)(jsdom@25.0.1)
+      yaml:
+        specifier: ^2.8.2
+        version: 2.9.0
+
+  packages/content/tpa:
+    dependencies:
+      '@saxonberg/content-arcana':
+        specifier: workspace:*
+        version: link:../arcana
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:../platform
       '@saxonberg/server':
         specifier: workspace:*
         version: link:../../server
