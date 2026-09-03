@@ -18,7 +18,7 @@ import { StuffApi } from "@saxonberg/server/mud/api/stuff";
 import { MixinApi } from "@saxonberg/server/mud/api/mixin";
 import { AppSettings } from "@saxonberg/server/mud/lib/config/AppSettings";
 import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
-import type { FastTravel } from "@saxonberg/server/mud/lib/fasttravel/FastTravel";
+import type { FastTravel } from "@saxonberg/content-tpa/src/lib/FastTravel";
 import {
   installStore,
   type Doc,
@@ -101,14 +101,14 @@ const ROOMS = [
 const STUBS: Doc[] = [
   {
     path: "/world/lounge/thing/terminal",
-    class: "/world/common/tpa/TpaTerminal",
+    class: "/system/tpa/thing/TpaTerminal",
     hydratorClass: PH,
     data: { seatIn: "/world/test/lounge-room", keywords: ["lounge"], directionality: "both", routes: [] },
   },
   { path: "/world/test/lounge-room", class: "/platform/location/VoidLocation", hydratorClass: PH, data: { shortDescription: "the lounge" } },
   {
     path: "/world/newbie-wilds/crossroads/terminal",
-    class: "/world/common/tpa/TpaTerminal",
+    class: "/system/tpa/thing/TpaTerminal",
     hydratorClass: PH,
     data: { seatIn: "/world/test/crossroads-room", keywords: ["crossroads"], directionality: "both", routes: [] },
   },

@@ -17,7 +17,7 @@ import YAML from "yaml";
 import { StuffApi } from "@saxonberg/server/mud/api/stuff";
 import { AppSettings } from "@saxonberg/server/mud/lib/config/AppSettings";
 import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
-import type { FastTravel } from "@saxonberg/server/mud/lib/fasttravel/FastTravel";
+import type { FastTravel } from "@saxonberg/content-tpa/src/lib/FastTravel";
 import {
   installStore,
   type Doc,
@@ -80,7 +80,7 @@ const CROSSROADS = "/world/newbie-wilds/crossroads/terminal";
 const STUBS: Doc[] = [
   {
     path: "/world/lounge/thing/terminal",
-    class: "/world/common/tpa/TpaTerminal",
+    class: "/system/tpa/thing/TpaTerminal",
     hydratorClass: PH,
     data: { seatIn: "/world/test/lounge-room", shortDescription: "The Lounge", keywords: ["lounge"], directionality: "both", routes: [] },
   },

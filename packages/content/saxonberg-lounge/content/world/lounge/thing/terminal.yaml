@@ -4,20 +4,26 @@
 # absorbs the campus-arrival role; walk across the avenue to campus).
 # `seatIn` names the lounge Warren: the terminal seats ITSELF into the elastic
 # host on postRegister and registers to re-seat on host migration
-# (FixtureMixin). Its arrival room is the Warren host
-# (LoungeTerminal.getArrivalRoom).
+# (FixtureMixin) — which is also what makes its arrival room right with no
+# code, since `seatSelf` moves it INTO the live host and `getArrivalRoom()`
+# is `getContainer()`.
 #
 # The lounge arrival room is a Warren host (a runtime role) that carries no
 # stable address, so the board's covering-Locality lookup can't resolve "The
-# Lounge" — LoungeTerminal overrides `getDestinationLabel()` to return "The
-# Lounge" directly (the guaranteed board label, D13/[DECIDE-ADDR]), while the
-# terminal's own `shortDescription` stays generic (it reads correctly in the
-# lounge room). The keyword `lounge` is the typeable `teleport lounge` handle.
-class: /world/lounge/thing/LoungeTerminal
+# Lounge" — the authored `boardLabel` says it instead (the guaranteed board
+# label, D13/[DECIDE-ADDR]), while the terminal's own `shortDescription`
+# stays generic (it reads correctly in the lounge room). The keyword `lounge`
+# is the typeable `teleport lounge` handle.
+#
+# ⭐ There used to be a `LoungeTerminal` subclass here carrying exactly two
+# overrides: this label, and an arrival room that was already redundant. TPA
+# reform P6 retired it — a bespoke string is authored content, not a class.
+class: /system/tpa/thing/TpaTerminal
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   seatIn: /world/lounge/idea/warren
   shortDescription: a Teleport Authority terminal
+  boardLabel: The Lounge
   keywords: [lounge]
   directionality: both
   routes:

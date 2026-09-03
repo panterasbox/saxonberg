@@ -1,0 +1,48 @@
+# teleport — purely diegetic since the TPA reform. One verb, and the fork
+# order in TeleportController decides which of four things you meant:
+#
+#   both endpoints in one extent you HOLD → free, no mana, no registration
+#   at a node, a keyword given            → the TPA ride
+#   at a node, nothing given              → the departures board, for EVERYONE
+#   otherwise, a destination given        → the anchored spell
+#
+# ⚠ Object relocation is NOT here any more — `teleport --target` became the
+# kernel's `goto --subject`, so authorial tooling survives this pack's
+# absence and one verb stops meaning two unrelated things.
+#
+# Only `requiresAnimate` is verb-level: every TPA-specific gate (a
+# credential, being at a node) lives inside the ride fork, so it never
+# blocks free movement or the board.
+verbs: [teleport, tp]
+controller: /system/tpa/idea/cmd/movement/TeleportController
+description: "Teleport — free inside your own extent, else by Teleport Authority."
+help: |
+  Cross the world in a single step.
+
+  Standing at a Teleport Authority terminal, a bare `teleport` reads
+  the departures board — it is a public timetable, so it shows you
+  every route the gate runs whether or not you have registered them.
+  Name a stop and you ride: `teleport <place>`.
+
+  Inside an extent you hold authorial authority over, `teleport
+  <somewhere>` simply moves you. That is not a journey — it is moving
+  around inside what you author — so it is free and needs no
+  registration. Leasing a place is not holding it.
+
+  `tp` is a shorthand alias. To relocate an OBJECT, use `goto
+  --subject`.
+examples:
+  - cmd: teleport
+    note: Read the departures board at the terminal you're standing at
+  - cmd: teleport hinkley
+    note: Ride the network to a registered stop
+validators:
+  - /lib/command/validators/requiresAnimate
+args:
+  # Where to go. The ride fork reads the RAW token as a local route
+  # keyword; free movement resolves it as an MQL target.
+  - name: destination
+    type: object
+    required: false
+    scope: ["online", "/stuff/**", "/platform/**", "reachable"]
+    requires: any

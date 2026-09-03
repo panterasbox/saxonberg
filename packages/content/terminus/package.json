@@ -17,6 +17,7 @@
     "@saxonberg/content-platform": "workspace:*",
     "@saxonberg/content-residence": "workspace:*",
     "@saxonberg/content-saxonberg-lounge": "workspace:*",
+    "@saxonberg/content-tpa": "workspace:*",
     "@saxonberg/content-trade-brewing": "workspace:*",
     "@saxonberg/content-trade-distilling": "workspace:*",
     "@saxonberg/content-trade-farming": "workspace:*",

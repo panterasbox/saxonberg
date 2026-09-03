@@ -5,7 +5,7 @@
 # like. The fare is 5 — cheap enough that living out here and working in
 # town is a real arrangement rather than a penalty, which is the whole
 # premise of a commuter suburb.
-class: /world/common/tpa/TpaTerminal
+class: /system/tpa/thing/TpaTerminal
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   seatIn: /world/terminus/hinkley-hills/location/arrival

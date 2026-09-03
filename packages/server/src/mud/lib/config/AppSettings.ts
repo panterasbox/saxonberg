@@ -368,6 +368,20 @@ export const AppSettingKeys = {
    * custodian, and the TPA is a business, not the state).
    */
   fasttravelTpaBusinessPath: "fasttravel.tpaBusinessPath",
+  /**
+   * Fast-travel — the **born-with registration floor**: a comma-separated
+   * list of node template paths every fresh travel credential starts
+   * registered for, so a realm's interchange and social hub are
+   * universally reachable by design.
+   *
+   * ⭐ Data, not a code constant (TPA reform D12/AC22). It used to be
+   * `BORN_WITH_TRAVEL_NODES` in `lib/credential/`, three `/world/**`
+   * paths hard-coded into the kernel — which of a realm's stops are
+   * universally reachable is a REALM decision, and the paths are
+   * authored in `world-seed`. The seeded literal is empty, so a kernel
+   * with no teleport pack has an empty floor and is *correct*.
+   */
+  fasttravelBornWithNodes: "fasttravel.bornWithNodes",
 
   /**
    * Social-graph (attention management) — the reserved-baseline notify

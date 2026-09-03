@@ -19,7 +19,7 @@
 # are the typeable handles for `teleport crossroads` at Gate A; the board
 # DISPLAYS the covering Locality name ("The Last Counted Mile") and the ⊙ total
 # fare.
-class: /world/common/tpa/TpaTerminal
+class: /system/tpa/thing/TpaTerminal
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   seatIn: /world/newbie-wilds/crossroads/hub

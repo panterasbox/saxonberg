@@ -6,6 +6,7 @@
   "description": "The newbie wilds \u2014 frontier onboarding zone: crossroads, delve, cast.",
   "dependencies": {
     "@saxonberg/content-platform": "workspace:*",
+    "@saxonberg/content-tpa": "workspace:*",
     "@saxonberg/server": "workspace:*",
     "@saxonberg/types": "workspace:*"
   }

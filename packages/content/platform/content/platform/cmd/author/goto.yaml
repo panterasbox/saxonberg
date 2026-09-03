@@ -1,14 +1,30 @@
+# goto — authorial relocation. `goto <target>` moves you to where the
+# target is; `--subject <obj>` moves that object there instead.
+#
+# ⭐ `--subject` used to be `teleport --target` (TPA reform P13). Moving an
+# object is author tooling and belongs in the author category; `teleport`
+# is a content pack's diegetic verb and must be absent when the pack is.
 verbs: [goto]
 controller: /platform/idea/cmd/author/GotoController
-description: "Move yourself to <target>'s location"
+description: "Move yourself (or --subject something) to <target>'s location"
 help: |
   Jump straight to wherever a target is. Name an online player, an
   object path, or anything you can reach, and you'll be moved to
-  that target's location.
+  that target's location. Name a location and you land in it.
+
+  `--subject <obj>` (`-s`) relocates that object to the destination
+  instead of moving you — access-gated on the object, and it honours
+  a `canTeleport` veto.
 
   Use `--look` (`-l`) to auto-look on arrival when the move falls
-  back to a raw relocation. `--force` (`-f`) bypasses containment
-  vetoes, but it's admin-only and the v1 stub always denies it.
+  back to a raw relocation. `--force` (`-f`) bypasses containment and
+  `canTeleport` vetoes, but it's admin-only and the v1 stub always
+  denies it.
+examples:
+  - cmd: goto fountain
+    note: Move yourself to the fountain's location
+  - cmd: goto fountain --subject crate
+    note: Relocate the crate to the fountain's location
 args:
   - name: target
     type: object
@@ -16,10 +32,16 @@ args:
     scope: ["online", "/stuff/**", "/platform/**", "reachable"]
     requires: any
 options:
+  subject:
+    short: s
+    type: object
+    scope: ["reachable", "online", "/stuff/**", "/platform/**"]
+    description: "Relocate this object/being to the destination instead of yourself (access-gated)."
+    requires: any
   force:
     short: f
     type: boolean
-    description: "Bypass containment vetoes (admin only; v1 stub always denies)"
+    description: "Bypass containment / canTeleport vetoes (admin only; v1 stub always denies)"
   look:
     short: l
     type: boolean

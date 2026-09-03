@@ -79,7 +79,13 @@ export function AuthorMixin<TBase extends MixinConstructor>(Base: TBase) {
         'platform/cmd/author/reload.yaml',
         'platform/cmd/author/destruct.yaml',
         'platform/cmd/author/eval.yaml',
-        'platform/cmd/author/teleport.yaml',
+        // ⓘ The tpa pack's view, named from the kernel — the ratified
+        // D3 exception (`CasterMixin` names arcana's `cast.yaml` the
+        // same way). `teleport`'s AUTHORIAL half moved to `goto
+        // --subject` (TPA reform P13); what an author still wants it
+        // for is D11's free movement inside an extent they hold, which
+        // has no terminal to be afforded by.
+        'system/tpa/cmd/movement/teleport.yaml',
         // Advancement developer harness — fabricate Transcript deeds so
         // the derive-on-read Competence loop + band conferrals are
         // exercisable without lane-2's real craft verbs. Wizard-gated

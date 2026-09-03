@@ -5,12 +5,13 @@
   "description": "The lounge \u2014 this wave only its three authored msh world scripts; rooms, NPCs and fixtures follow in wave 4.",
   "type": "module",
   "dependencies": {
-    "@saxonberg/content-distribution": "workspace:*",
     "@saxonberg/content-corpo-aevex": "workspace:*",
     "@saxonberg/content-corpo-goodkin": "workspace:*",
     "@saxonberg/content-corpo-veshko": "workspace:*",
     "@saxonberg/content-corpo-vionne": "workspace:*",
+    "@saxonberg/content-distribution": "workspace:*",
     "@saxonberg/content-platform": "workspace:*",
+    "@saxonberg/content-tpa": "workspace:*",
     "@saxonberg/content-trade-hospitality": "workspace:*",
     "@saxonberg/server": "workspace:*",
     "@saxonberg/types": "workspace:*"

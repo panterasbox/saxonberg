@@ -43,8 +43,6 @@ packages/server/src/mud/lib/employment/__tests__/Organization.test.ts
 packages/server/src/mud/lib/employment/__tests__/Roster.test.ts
 packages/server/src/mud/lib/employment/__tests__/conferral.test.ts
 packages/server/src/mud/lib/employment/__tests__/contract-lifecycle.test.ts
-packages/server/src/mud/lib/fasttravel/__tests__/FastTravel.test.ts
-packages/server/src/mud/lib/fasttravel/__tests__/cascade.integration.test.ts
 packages/server/src/mud/lib/parcel/__tests__/acreage.test.ts
 packages/server/src/mud/lib/persistence/__tests__/persistence-spine.test.ts
 packages/server/src/mud/lib/residency/__tests__/SpawnBlessing.test.ts
@@ -77,8 +75,6 @@ packages/server/src/mud/platform/idea/api/__tests__/TemplateLogic.codeGate.test.
 packages/server/src/mud/platform/idea/api/__tests__/TemplateLogic.transitiveClosure.test.ts
 packages/server/src/mud/platform/idea/api/__tests__/comp-bases.integration.test.ts
 packages/server/src/mud/platform/idea/api/__tests__/employment.ensureOperator.test.ts
-packages/server/src/mud/platform/idea/cmd/author/__tests__/tpa-fare.integration.test.ts
-packages/server/src/mud/platform/idea/cmd/author/__tests__/tpa-identity-binding.integration.test.ts
 packages/server/src/mud/platform/idea/cmd/banking/__tests__/BankingControllers.test.ts
 packages/server/src/mud/platform/idea/cmd/banking/__tests__/DrawController.test.ts
 packages/server/src/mud/platform/idea/cmd/charactergen/__tests__/EnrollController.chronicle.test.ts
@@ -91,6 +87,5 @@ packages/server/src/mud/platform/idea/cmd/retail/__tests__/Consignment.test.ts
 packages/server/src/mud/platform/idea/cmd/system/__tests__/CommitteeController.test.ts
 packages/server/src/mud/platform/idea/cmd/system/__tests__/ConfigController.test.ts
 packages/server/src/mud/platform/idea/cmd/system/__tests__/ParcelVerbs.test.ts
-packages/server/src/mud/platform/idea/cmd/tpa/__tests__/ProcureCardController.test.ts
 packages/server/src/mud/platform/idea/cmd/work/__tests__/work-verbs.test.ts
 packages/server/src/mud/platform/thing/corpo/__tests__/corpo-organizations.test.ts
