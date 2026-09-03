@@ -358,6 +358,34 @@ caster recover endurance *slower* than a non-caster.
 
 ---
 
+### ⭐⭐ The attention term — a mundane hood makes an arcane veil cheaper
+
+The standby draw is not a flat global number. It is multiplied by the
+**wearer's** `Slotted.attentionFactor()`, `[floor, 1]`:
+
+```
+standbyWatts_effective = dial(magic.charge.standbyWatts) × wearer.attentionFactor()
+```
+
+⭐ Voss Decay says a veil erodes fastest **under attention**, and a deep
+hood masking the face reduces the evidence observers accumulate — which
+is *exactly* the stated leak mechanism. So a **mundane** garment does
+real arcane work while carrying no joules of its own, and it is one
+multiplication: **one derived quantity, two consumers**
+(`hideLevelFor`'s floor is the other), **one object**.
+
+⚠ The shipped `hood.yaml` needs **no new field**: `attentionFactor`
+reads `masksIdentity` plus the head-covering stack, both of which the
+row already declares. ⚠ And only a HEAD covering counts — a cloak over
+the torso hides nothing anybody was reading you by.
+
+⚠⚠ **Faculty is capacity, never access.** This makes a binding cheaper
+to **hold**. It gates no spell, changes no efficiency cap, and confers
+no capability; `magic.attention.floor` is bounded well above zero so no
+garment makes a binding free, and the factor is clamped at 1 so none
+makes one cost *more*. A doctrine test asserts the first and last of
+those.
+
 ## BUC — a potency level on the item's own effect axis
 
 Not a hidden alignment tag and not a second stat. A cursed wand of

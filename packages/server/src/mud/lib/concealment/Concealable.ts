@@ -25,12 +25,16 @@
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { ConcealmentLevel } from './ConcealmentLevel';
 import { ConcealmentLevels } from './ConcealmentLevel';
+import type { Stuff } from '../stuff/Stuff';
+import { MixinApi } from '../../api/mixin';
 
 export interface Concealable {
   /** The concealment band (`'obvious'` when not concealed). */
   getConcealment(): ConcealmentLevel;
   /** Set the concealment band; throws on an unknown band word. */
   setConcealment(level: ConcealmentLevel): void;
+  /** The AUTHORED band, before any worn contribution. */
+  getBaseConcealment(): ConcealmentLevel;
   /** True iff the band is anything other than `'obvious'`. */
   isConcealed(): boolean;
   /**
@@ -79,7 +83,36 @@ export function ConcealableMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     public concealmentHint?: string;
 
+    /**
+     * The concealment band — **derive-on-read**: the authored base,
+     * shifted by whatever the host is WEARING.
+     *
+     * ⭐ The same architectural move as `clo`, on a different channel:
+     * the persisted field is the author's claim about the thing itself,
+     * and the read folds in what is true right now. A camouflaged
+     * covering shifts it down, a conspicuous one up — and the offset's
+     * sign comes from content (the outermost layer's colour and weave),
+     * never from an `isCamouflage` flag.
+     *
+     * ⚠ Non-`Slotted` hosts (a trapdoor, a cached letter) read exactly
+     * their authored band, so every shipped concealment row behaves
+     * identically to before.
+     */
     getConcealment(): ConcealmentLevel {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isSlotted(self)) return this.concealment;
+      const offset = self.concealmentOffset();
+      if (offset === 0) return this.concealment;
+      // Positive offset = louder = a LOWER band; the ranks run
+      // conspicuous → buried.
+      const rank = ConcealmentLevels.rankOf(this.concealment) - Math.round(offset);
+      const all = ConcealmentLevels.ALL;
+      const clamped = rank < 0 ? 0 : rank >= all.length ? all.length - 1 : rank;
+      return all[clamped]!;
+    }
+
+    /** The AUTHORED band, before any worn contribution. */
+    getBaseConcealment(): ConcealmentLevel {
       return this.concealment;
     }
 
@@ -93,7 +126,7 @@ export function ConcealableMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     isConcealed(): boolean {
-      return ConcealmentLevels.isConcealed(this.concealment);
+      return ConcealmentLevels.isConcealed(this.getConcealment());
     }
 
     getConcealmentHint(): string | undefined {

@@ -214,6 +214,41 @@ export interface Slotted {
   windproofing(): number;
 
   /**
+   * How the worn stack shifts this host's own conspicuity, in
+   * **concealment-band ranks** — negative hides, positive advertises.
+   *
+   * ⭐ The sign comes from **content, not a flag**: the outermost
+   * layer's hue against a neutral, plus the form's weave density. So a
+   * pack authoring a new dye gets concealment behaviour for free, and
+   * nobody ever writes `isCamouflage: true`.
+   *
+   * ⚠ **The offset is ABSOLUTE, not terrain-matched.** Real camouflage
+   * is a relationship between a thing and a background, and that
+   * belongs to the search slate. A dark close weave is quieter than a
+   * bright open one *everywhere*, which is a true and much smaller
+   * claim, and the code says so rather than implying the bigger one.
+   */
+  concealmentOffset(): number;
+
+  /**
+   * How much attention this host draws, `[floor, 1]` — 1 is a bare face
+   * in plain view, lower is a face somebody has to work to read.
+   *
+   * ⭐ One derived quantity, two consumers, one object: the same number
+   * feeds `hideLevelFor`'s floor and the arcane standing-cost term. A
+   * deep hood masking the face reduces the evidence observers
+   * accumulate, which is **exactly Voss Decay's stated leak mechanism**
+   * — so a MUNDANE hood makes an ARCANE veil cheaper to hold, and the
+   * garment does real arcane work carrying no joules.
+   *
+   * ⚠⚠ **Faculty is capacity, never access.** This makes a binding
+   * cheaper to HOLD. It gates no spell, changes no efficiency cap, and
+   * confers no capability, and the floor is bounded well above zero so
+   * no garment makes a binding free.
+   */
+  attentionFactor(): number;
+
+  /**
    * Would wearing `candidate` put a low band outside a high one? True
    * iff its band is strictly below something already occupying a slot
    * it claims.
@@ -461,6 +496,46 @@ function depthOf(occupant: Stuff): number {
 
 /** How much insulation a fully loose garment loses to its air gaps. */
 const LOOSENESS_CLO_PENALTY = 0.35;
+
+/** Band-ranks a fully conspicuous (or fully quiet) covering is worth. */
+const COVERING_CONCEALMENT_WEIGHT = 1.5;
+
+/** The lowest `attentionFactor` any garment can produce. */
+const ATTENTION_FLOOR = 0.4;
+
+/**
+ * How much one garment advertises (`+`) or quiets (`−`) its wearer, in
+ * `[-1, 1]`.
+ *
+ * ⭐ Derived from **content, not a flag**: a close weave in a colour
+ * near the undyed neutral is quiet; a bright saturated one is loud. A
+ * pack authoring a new dye therefore gets concealment behaviour for
+ * free, and nobody ever writes `isCamouflage: true`.
+ *
+ * ⚠ An undyed garment is mildly quiet, not neutral — undyed linen is
+ * the colour of everything else, which is the whole reason it was worn
+ * by people who did not want to be looked at.
+ */
+function conspicuityOf(garment: Stuff): number {
+  const density = MixinApi.isConstructed(garment)
+    ? (garment.getConstruction()?.getFabric()?.weaveDensity ?? 0.5)
+    : 0.5;
+  // A close weave is a quieter silhouette: no light through it, no
+  // fluttering edge.
+  const weave = -0.4 * density;
+  if (!MixinApi.isDyed(garment)) return weave;
+  // Colour on it is what people see. The strength of what is on it IS
+  // the loudness, and a washed-out garment goes quiet again on its own.
+  let strength = 0;
+  for (const a of garment.getDyeStack()) {
+    strength = Math.max(strength, a.strength);
+  }
+  return clampSigned(weave + strength);
+}
+
+function clampSigned(x: number): number {
+  return x < -1 ? -1 : x > 1 ? 1 : x;
+}
 
 /** Numeric AppSetting read, falling back to the seeded literal. */
 function dial(key: string, fallback: number): number {
@@ -763,6 +838,59 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
         weighted += share * density * (1 - wetness);
       }
       return weighted < 0 ? 0 : weighted > 1 ? 1 : weighted;
+    }
+
+    public concealmentOffset(): number {
+      const self = this as unknown as Stuff & Slotted;
+      const plan = bodyPlanOf(self);
+      if (!plan) return 0;
+      const weight = dial(
+        AppSettingKeys.stealthHideCoveringWeight,
+        COVERING_CONCEALMENT_WEIGHT,
+      );
+      let weighted = 0;
+      for (const part of plan.getBodyParts()) {
+        if (part.governsVital) continue;
+        const share = plan.getPartSurfaceFraction(part.key);
+        if (!(share > 0)) continue;
+        const outer = this.outermostAt(part.key);
+        if (!outer) continue;
+        weighted += share * conspicuityOf(outer as unknown as Stuff);
+      }
+      return weighted * weight;
+    }
+
+    public attentionFactor(): number {
+      const self = this as unknown as Stuff & Slotted;
+      const plan = bodyPlanOf(self);
+      const floor = dial(
+        AppSettingKeys.magicAttentionFloor,
+        ATTENTION_FLOOR,
+      );
+      if (!plan) return 1;
+      let masked = 0;
+      for (const part of plan.getBodyParts()) {
+        if (part.governsVital) continue;
+        // ⚠ Only the HEAD masks a face. A cloak over the torso hides
+        // nothing anybody was reading you by.
+        if (!part.key.startsWith('body.head')) continue;
+        const share = plan.getPartSurfaceFraction(part.key);
+        if (!(share > 0)) continue;
+        for (const layer of this.coveringAt(part.key)) {
+          const asStuff = layer as unknown as Stuff;
+          // The shipped hood needs NO new field: a garment that already
+          // declares it masks identity is the thing that masks a face.
+          const masksIdentity =
+            MixinApi.isDisguiseBearing(asStuff) &&
+            (asStuff.getDisguise()?.masksIdentity ?? false);
+          const density = MixinApi.isConstructed(asStuff)
+            ? (asStuff.getConstruction()?.getFabric()?.weaveDensity ?? 1)
+            : 0;
+          masked = Math.max(masked, masksIdentity ? 1 : density * 0.5);
+        }
+      }
+      const factor = 1 - masked * (1 - floor);
+      return factor < floor ? floor : factor > 1 ? 1 : factor;
     }
 
     public wouldLayerViolate(candidate: Stuff & Slottable): boolean {

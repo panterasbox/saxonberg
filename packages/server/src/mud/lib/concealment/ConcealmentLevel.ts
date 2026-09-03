@@ -2,12 +2,33 @@
  * ConcealmentLevel — the monotone concealment vocabulary.
  *
  * A **concealment level** answers a single question about a perceivable
- * thing: *how hard is it to notice that this is here at all?* The five
- * bands are ordered and monotone — `obvious` (index 0) is "not concealed,
- * fully present in every viewer's world"; each higher band demands more
- * of a viewer's *effective perception* before the thing resolves. This is
- * the presence axis the exploration layer gates on (distinct from
- * identity — who a perceived thing IS — which belief/recognition owns).
+ * thing: *how hard is it to notice that this is here at all?* The bands
+ * are ordered and monotone — each higher band demands more of a viewer's
+ * *effective perception* before the thing resolves. This is the presence
+ * axis the exploration layer gates on (distinct from identity — who a
+ * perceived thing IS — which belief/recognition owns).
+ *
+ * ## ⭐ The scale extends DOWNWARD: `conspicuous`
+ *
+ * `obvious` used to be the floor, and a floor is the wrong shape for
+ * this axis: a person in a hi-vis vest is not merely un-hidden, they are
+ * *harder to miss than a person in grey*. So the vocabulary gains one
+ * band **below** `obvious`, with a **negative** requirement — a
+ * conspicuous thing resolves for a viewer whose effective perception is
+ * below zero.
+ *
+ * ⚠ **Every authored row still resolves**, because content authors band
+ * WORDS and the only words in shipped content are `subtle` and
+ * `hidden`. Nothing reads a raw index. What moves is `rankOf`, and
+ * therefore `isConcealed` — which is now *"ranks above `obvious`"*
+ * rather than *"is not `obvious`"*, so a conspicuous thing is correctly
+ * **not** concealed.
+ *
+ * ⚠ And one honest limit, recorded rather than papered over:
+ * `PerceptionApi.perceives` **saturates below `obvious`** and always
+ * will — an obvious thing already always resolves, so a negative
+ * requirement cannot make it resolve harder. The band earns its keep on
+ * the *actor* side, in `hideLevelFor`'s floor, not on the target side.
  *
  * The vocabulary subsumes the old `Exit.hidden` boolean: a hidden exit is
  * simply an exit at a mid concealment band (`concealment.hiddenDefaultLevel`).
@@ -34,6 +55,7 @@ import { AppSettingKeys } from '../config/AppSettings';
  * higher index always demands at least as much effective perception.
  */
 export const CONCEALMENT_LEVELS = [
+  'conspicuous',
   'obvious',
   'subtle',
   'hidden',
@@ -53,6 +75,9 @@ const CONCEALMENT_LEVEL_SET: ReadonlySet<string> = new Set(CONCEALMENT_LEVELS);
  * the platform pack's `content/settings/concealment.yaml` `concealment.level.*` values.
  */
 const REQUIREMENT_FALLBACK: Record<ConcealmentLevel, number> = {
+  // ⭐ Negative, and a dial like every other band: a hi-vis thing
+  // resolves for a viewer who would miss an ordinary one.
+  conspicuous: -2,
   obvious: 0,
   subtle: 2,
   hidden: 4,
@@ -65,6 +90,7 @@ const REQUIREMENT_FALLBACK: Record<ConcealmentLevel, number> = {
  * `obvious` has no key — it is always 0.
  */
 const REQUIREMENT_KEY: Record<Exclude<ConcealmentLevel, 'obvious'>, string> = {
+  conspicuous: AppSettingKeys.concealmentLevelConspicuous,
   subtle: AppSettingKeys.concealmentLevelSubtle,
   hidden: AppSettingKeys.concealmentLevelHidden,
   deep: AppSettingKeys.concealmentLevelDeep,
@@ -101,22 +127,30 @@ export class ConcealmentLevels {
     return typeof s === 'string' && CONCEALMENT_LEVEL_SET.has(s);
   }
 
-  /** True iff the band is anything other than `obvious` (i.e. concealed). */
+  /**
+   * True iff the band ranks ABOVE `obvious`.
+   *
+   * ⚠ It used to be `level !== 'obvious'`, which was equivalent while
+   * `obvious` was the floor and is wrong now: a **conspicuous** thing is
+   * the opposite of concealed, not a kind of it.
+   */
   public static isConcealed(level: ConcealmentLevel): boolean {
-    return level !== 'obvious';
+    return (
+      ConcealmentLevels.rankOf(level) > ConcealmentLevels.rankOf('obvious')
+    );
   }
 
-  /** The ordinal position (0 = `obvious` … 4 = `buried`) — the monotone rank. */
+  /** The ordinal position (0 = `conspicuous` … 5 = `buried`) — the monotone rank. */
   public static rankOf(level: ConcealmentLevel): number {
     return CONCEALMENT_LEVELS.indexOf(level);
   }
 
   /**
    * The effective-perception a viewer must muster to notice a thing at
-   * this band — the dial-backed projection. `obvious` is 0; the concealed
-   * bands read `concealment.level.<band>` (falling back to the seeded
-   * literal). Monotone in the band ordering by construction (the dials are
-   * authored monotone; the fallbacks are monotone).
+   * this band — the dial-backed projection. `obvious` stays a hardcoded
+   * 0; every other band, **including the negative `conspicuous`**, reads
+   * `concealment.level.<band>` (falling back to the seeded literal).
+   * Monotone in the band ordering by construction.
    */
   public static requirementFor(level: ConcealmentLevel): number {
     if (level === 'obvious') return 0;

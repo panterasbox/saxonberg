@@ -195,6 +195,21 @@ export interface Charged {
   chargeClockStamp: number;
 }
 
+/**
+ * The attention factor of whoever is carrying / wearing this charged
+ * thing — `1` (no discount) when nothing resolves.
+ *
+ * ⚠ The **wearer's**, not the item's: a veil is worn, and what makes it
+ * cheap to hold is that nobody can read the face behind it.
+ */
+function attentionOfWearer(host: Stuff): number {
+  const bearer = MixinApi.isSlottable(host) ? host.getOccupiedHost() : null;
+  const carrier =
+    bearer ?? (MixinApi.isContainable(host) ? host.getContainer() : null);
+  if (carrier && MixinApi.isSlotted(carrier)) return carrier.attentionFactor();
+  return 1;
+}
+
 export function ChargedMixin<TBase extends MixinConstructor>(Base: TBase) {
   class ChargedMixin extends Base implements Charged {
     static _mixinName = 'ChargedMixin';
@@ -296,11 +311,25 @@ export function ChargedMixin<TBase extends MixinConstructor>(Base: TBase) {
           // from the leak, and two orders of magnitude bigger. Only
           // while the effect is actually running.
           if (this.alwaysOn && this.drawActive) {
+            // ⭐⭐ The hood/veil interlock, and it is ONE multiplication.
+            //
+            // Voss Decay says a veil erodes fastest under attention, so
+            // the standby bill is not a flat global number: it scales
+            // with how much attention the WEARER draws. A deep hood
+            // masking the face reduces the evidence observers
+            // accumulate, which is exactly the stated leak mechanism —
+            // so a MUNDANE garment makes an ARCANE binding cheaper to
+            // hold while carrying no joules of its own.
+            //
+            // ⚠⚠ Faculty is capacity, never access. This makes a
+            // binding cheaper to HOLD; it gates no spell, changes no
+            // efficiency cap, confers no capability, and the floor is
+            // bounded well above zero so no garment makes one free.
             loss += Charge.standbyDraw(
               dial(
                 AppSettingKeys.magicChargeStandbyWatts,
                 CHARGE_DEFAULTS.STANDBY_WATTS,
-              ),
+              ) * attentionOfWearer(this as unknown as Stuff),
               elapsed,
               WorldClockApi.getScale(),
             );

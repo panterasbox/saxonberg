@@ -96,6 +96,7 @@ const DEFAULT_HIDE_COMPETENCE_PER_BAND = 2;
 const DEFAULT_HIDE_COVER_WEIGHT = 1;
 const DEFAULT_HIDE_LIGHT_WEIGHT = 1;
 const DEFAULT_HIDE_STILLNESS_BONUS = 1;
+const DEFAULT_HIDE_BAND_CONSPICUOUS = -1;
 const DEFAULT_HIDE_BAND_SUBTLE = 0;
 const DEFAULT_HIDE_BAND_HIDDEN = 4;
 const DEFAULT_HIDE_BAND_DEEP = 7;
@@ -814,7 +815,13 @@ function hideLevelForImpl(
         AppSettingKeys.stealthHideLightWeight,
         DEFAULT_HIDE_LIGHT_WEIGHT,
       ) +
-    stillnessBonusFor(actor);
+    stillnessBonusFor(actor) +
+    // ⭐⭐ What you are WEARING, and this is where the covering read
+    // becomes load-bearing rather than decorative. `concealmentOffset`
+    // is negative for a dark close weave and positive for a bright open
+    // one, so a person in grey hides better than the same person in a
+    // hi-vis vest — through the score, not a special case.
+    (MixinApi.isSlotted(actor) ? -actor.concealmentOffset() : 0);
 
   const buried = dialNumber(
     AppSettingKeys.stealthHideBandBuried,
@@ -836,7 +843,17 @@ function hideLevelForImpl(
   if (score >= deep) return 'deep';
   if (score >= hidden) return 'hidden';
   if (score >= subtle) return 'subtle';
-  return 'obvious'; // the hide failed — no concealment gained
+  // ⭐ The FLOOR is no longer flat. A failed hide used to bottom out at
+  // `obvious` however loudly the actor was dressed; below the
+  // conspicuous threshold it now bottoms out one band WORSE, which is
+  // the whole point of extending the scale downward: a person in a
+  // hi-vis vest who tries to hide is easier to see than one in grey,
+  // not merely equally visible.
+  const conspicuous = dialNumber(
+    AppSettingKeys.stealthHideBandConspicuous,
+    DEFAULT_HIDE_BAND_CONSPICUOUS,
+  );
+  return score < conspicuous ? 'conspicuous' : 'obvious';
 }
 
 /**

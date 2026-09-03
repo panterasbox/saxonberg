@@ -157,3 +157,30 @@ describe("⚠ a material must not assert a CONSTRUCTION", () => {
     }
   });
 });
+
+/**
+ * ⭐ The shipped hood is what the arcane interlock actually reads.
+ *
+ * `attentionFactor` needs **no new field**: it reads `masksIdentity`
+ * plus the head-covering stack, both of which the hood row already
+ * declares. This is the content half of that promise — the kernel test
+ * proves the mechanism, this proves the row feeds it.
+ */
+describe("the hood needs no new field for the veil interlock", () => {
+  const hood = CLOTHING.find((r) => r.file === "hood.yaml")!;
+
+  it("masks identity and claims the HEAD slot", () => {
+    expect(hood.data.masksIdentity).toBe(true);
+    const claims = hood.data.slotClaims as Record<string, string[]>;
+    expect(claims["/stuff/idea/species/BodyPlan/biped"]).toEqual(["head"]);
+  });
+
+  it("⚠ its `covers: [face]` is the DISGUISE field, not a slot's", () => {
+    // A recurring misreading: `covers` on a `SlotSpec` names body-plan
+    // parts, and `face` is not one. This `covers` belongs to
+    // `DisguiseBearingMixin` and lives in the row's data alongside
+    // `appearsAs` — a different field with the same name.
+    expect(hood.data.covers).toEqual(["face"]);
+    expect(hood.class).toMatch(/DisguiseGarment$/);
+  });
+});

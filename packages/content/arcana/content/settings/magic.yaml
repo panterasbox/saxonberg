@@ -71,3 +71,15 @@ settings:
 
   - key: magic.conjure.waterLitres
     value: "1"
+
+  # ⭐⭐ The hood/veil interlock's floor — the lowest `attentionFactor` a
+  # worn covering can produce, multiplying the standby draw of a HELD
+  # binding. Voss Decay says a veil erodes fastest under attention, so a
+  # hood that masks the face genuinely makes a veil cheaper to hold: a
+  # MUNDANE garment doing real arcane work while carrying no joules.
+  #
+  # ⚠⚠ Bounded well above zero on purpose. Faculty is CAPACITY, never
+  # access — a hood makes a binding cheaper, never free, gates no spell
+  # whatever, and changes no efficiency cap.
+  - key: magic.attention.floor
+    value: "0.4"

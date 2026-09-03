@@ -888,6 +888,10 @@ export const AppSettingKeys = {
    * the seeded literal so a pre-warm / test read is safe. See
    * docs/subsystems/concealment.md.
    */
+  /** Concealment — the requirement for the band BELOW obvious. ⭐
+   * Negative on purpose: a conspicuous thing resolves for a viewer who
+   * would miss an ordinary one. */
+  concealmentLevelConspicuous: "concealment.level.conspicuous",
   concealmentLevelSubtle: "concealment.level.subtle",
   concealmentLevelHidden: "concealment.level.hidden",
   concealmentLevelDeep: "concealment.level.deep",
@@ -961,6 +965,10 @@ export const AppSettingKeys = {
    * non-creature object in the room the hider can duck behind, capped).
    * Read with a seeded-literal fallback. */
   stealthHideCoverWeight: "stealth.hide.coverWeight",
+  /** Stealth — how many concealment band-ranks a fully conspicuous (or
+   * fully quiet) worn covering is worth. ⭐ A person in a hi-vis vest
+   * who hides gets a worse FLOOR than a person in grey. */
+  stealthHideCoveringWeight: "stealth.hide.coveringWeight",
   /** Stealth (hide) — score per band of darkness below neutral light (a
    * dark corner hides better). Read with a seeded-literal fallback. */
   stealthHideLightWeight: "stealth.hide.lightWeight",
@@ -975,6 +983,10 @@ export const AppSettingKeys = {
    * seeded-literal fallbacks.
    */
   stealthHideBandSubtle: "stealth.hide.band.subtle",
+  /** Stealth — the hide score BELOW which a failed hide bottoms out one
+   * band worse than obvious. ⭐ The floor is no longer flat: a person in
+   * a hi-vis vest who hides is easier to see than one in grey. */
+  stealthHideBandConspicuous: "stealth.hide.band.conspicuous",
   stealthHideBandHidden: "stealth.hide.band.hidden",
   stealthHideBandDeep: "stealth.hide.band.deep",
   stealthHideBandBuried: "stealth.hide.band.buried",
@@ -1245,6 +1257,10 @@ export const AppSettingKeys = {
    * worn ring flattens in days where a stowed wand lasts months.
    * *Calibrate at launch.* */
   magicChargeStandbyWatts: "magic.charge.standbyWatts",
+  /** Magic — the lowest `attentionFactor` any garment can produce.
+   * ⚠ Bounded well above zero on purpose: a hood makes a binding
+   * CHEAPER to hold, never free. Faculty is capacity, never access. */
+  magicAttentionFloor: "magic.attention.floor",
   /** Magic — a focus's pattern rot, per GAME second. Much slower than
    * charge decay: a binding is a state held away from equilibrium and a
    * pattern that does work cannot BE at equilibrium, so it relaxes — but

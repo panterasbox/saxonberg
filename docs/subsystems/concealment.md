@@ -13,6 +13,78 @@ system." **Traps** ([hazard.md](./hazard.md)) are the flagship first
 consumer; a **care↔speed movement axis** (`sneak`/`walk`/`run`) is the
 risk-dial at the trap seam.
 
+
+## ⭐⭐ The scale extends DOWNWARD — `conspicuous`
+
+`obvious` used to be the floor, and a floor is the wrong shape for this
+axis: a person in a hi-vis vest is not merely un-hidden, they are
+**harder to miss** than a person in grey. So the vocabulary gains one
+band **below** `obvious`, with a **negative** requirement
+(`concealment.level.conspicuous`, seeded `-2`) — a dial like every other
+band. `obvious` stays a hardcoded 0.
+
+⚠ **Every authored row still resolves.** Content authors band WORDS, and
+the only words in shipped content are `subtle` and `hidden`; nothing
+reads a raw index. A content test walks every `concealment:` value in
+every pack and asserts it against the vocabulary — in both directions,
+so a row authored later lands there too.
+
+What moves is `rankOf`, and therefore `isConcealed`, which is now *"ranks
+above `obvious`"* rather than *"is not `obvious`"* — because a
+conspicuous thing is the **opposite** of concealed, not a kind of it.
+
+### ⚠⚠ Two hard-coded zeroes meant `obvious` and had to be named
+
+Both are the same trap: a literal `0` that was correct only while
+`obvious` was the bottom of the scale.
+
+- `HidingMixin.degradeHide` floored at `0` and broke the hide there.
+  Left alone, a walking hider would have stayed *"hidden"* at
+  `obvious`, which is incoherent — a hide degraded to obvious is not a
+  hide — and `conspicuous` is not something walking can do to you
+  anyway; you get there by what you are wearing. It now floors at
+  `rankOf('obvious')`, which restores the shipped behaviour exactly.
+- `isConcealed` (above).
+
+### ⚠ The honest limit: `perceives` saturates below `obvious`
+
+An obvious thing already always resolves, so a **negative** requirement
+cannot make it resolve *harder*. `PerceptionApi.perceives` therefore
+gains nothing from the new band and never will. **The band earns its
+keep on the ACTOR side**, in `hideLevelFor`'s floor: a failed hide used
+to bottom out at `obvious` however loudly the actor was dressed, and
+below `stealth.hide.band.conspicuous` it now bottoms out one band worse.
+A person in a hi-vis vest who tries to hide is easier to see than one in
+grey — which is the whole point, and it is recorded here rather than
+papered over.
+
+## ⭐ `getConcealment()` derives — authored base + what you are wearing
+
+The same architectural move as `clo`, on a different channel: the
+persisted field is the **author's claim about the thing itself**, and
+the read folds in what is true right now.
+
+`ConcealableMixin.getConcealment()` shifts the authored band by
+`Slotted.concealmentOffset()` when the host has slots;
+`getBaseConcealment()` is the authored value, untouched. ⚠ A
+non-`Slotted` host — a trapdoor, a cached letter — reads exactly its
+authored band, so every shipped concealment row behaves identically to
+before.
+
+⭐ **The offset's sign comes from content, not a flag.** It is the
+surface-weighted outermost layer's colour (the dye stack's strength)
+against a neutral, plus the form's weave density — so a pack authoring a
+new dye gets concealment behaviour for free, and **nobody ever writes
+`isCamouflage: true`**. A washed-out garment goes quiet again on its
+own, because fading is desaturation and desaturation is exactly what
+stops somebody being easy to spot.
+
+⚠ **The offset is ABSOLUTE, not terrain-matched.** Real camouflage is a
+relationship between a thing and a background, and that belongs to the
+[search slate](../slates/builds/search-slate.md). *A dark close weave is
+quieter than a bright open one everywhere* is a true and much smaller
+claim, and the code makes only that one.
+
 ## The gate — `ConcealableMixin` + `ConcealmentLevel`
 
 `lib/concealment/`. Two pieces: a vocabulary value-object and a dumb
