@@ -123,7 +123,7 @@ function resolveCoveringStack(
     for (const occ of host.getOccupants(spec.name)) {
       if (!MixinApi.isConstructed(occ) || !MixinApi.isWearable(occ)) continue;
       const construction = occ.getConstruction();
-      if (!construction || !construction.isArmor()) continue;
+      if (!construction || !construction.isCovering()) continue;
       layers.push(layerOf(occ, construction));
     }
   }
@@ -138,7 +138,7 @@ function resolveCoveringStack(
       for (const occ of occupants) {
         if (!MixinApi.isWieldable(occ) || !MixinApi.isConstructed(occ)) continue;
         const construction = occ.getConstruction();
-        if (!construction || !construction.isArmor()) continue;
+        if (!construction || !construction.isCovering()) continue;
         layers.push(layerOf(occ, construction));
       }
     }

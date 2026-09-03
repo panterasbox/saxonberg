@@ -1,0 +1,21 @@
+# Woven — threads crossed at right angles. The default cloth, and the
+# only fabric form flax can reach at launch: linen is woven, full stop.
+#
+# ⭐ Content chooses the weave; the KERNEL decides that cloth resists
+# poorly. There is no resist profile here and there never will be — a
+# fabric row carries drape, loft and weave density, which is exactly why
+# a pack may add one without a kernel edit.
+class: /platform/idea/material/Fabric
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: woven
+  # Innermost band — cloth goes under everything. Wear order decides
+  # shirt-vs-coat inside the band, which is the player's call.
+  layerBand: 0
+  # Little trapped air: a plain weave is thin and lies flat, which is
+  # why a linen shirt is cool and a linen coat is not much of a coat.
+  loft: 0.1
+  # Close enough to break the wind, and the axis `weave` trades against
+  # yield at the loom.
+  weaveDensity: 0.75
+  drape: 0.6

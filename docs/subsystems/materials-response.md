@@ -62,12 +62,14 @@ picks its *shape*:
 `Construction` ships the **qualitative** per-channel grid — the *shape* of
 the curve, transcribed verbatim from the slate:
 
-| armor form | edge | point | blunt |
+| covering form | edge | point | blunt |
 |---|---|---|---|
 | plate | deflect | resist | transmit |
 | mail | resist | fail | transmit |
+| quilted | poor | poor | absorb |
 | padded | poor | poor | absorb |
 | hide | moderate | poor | moderate |
+| *any fabric* | poor | poor | poor |
 
 | delivery form | primary | secondary |
 |---|---|---|
@@ -78,8 +80,62 @@ the curve, transcribed verbatim from the slate:
 | whip | edge | blunt |
 | blunted | blunt | — |
 
-Armor forms also carry a canonical outside-in **`LAYER_DEPTH`** (padded 0 …
-plate 3) so a covering stack orders itself with no authored number.
+Covering forms also carry a canonical outside-in **`LAYER_DEPTH`**
+(padded 0 · quilted 1 · hide 2 · mail 3 · plate 4) so a covering stack
+orders itself with no authored number.
+
+### ⭐⭐ The covering domain has TWO sources
+
+A padded gambeson *is* quilted cloth, so a shirt is not armor but it
+**is** a covering — which is why the domain word is `covering`, not
+`armor` (`ARMOR_FORMS` → `COVERING_FORMS`, `ARMOR_PROFILES` →
+`COVERING_PROFILES`, `isArmor()` → `isCovering()`, and
+`responseFor()`'s domain guard now says so).
+
+The two halves of that vocabulary answer to different people:
+
+| | where | may a pack add one? |
+|---|---|---|
+| **resist-bearing** — `plate` `mail` `padded` `quilted` `hide` | a closed kernel `as const` | **no** — a resist profile is combat mitigation |
+| **non-resisting textile** — `woven` `knit` `felted`, and lace or netting later | template rows at `/stuff/idea/fabric/`, class `/platform/idea/material/Fabric` | **yes** — *a pack must never need a kernel list edit* |
+
+⭐ **Content never authors a resist profile.** One kernel constant
+answers for every textile form at once — `TEXTILE_RESIST_PROFILE`,
+`poor` on all three mechanical channels. *That is the split made
+literal:* content chooses drape, loft and weave density; **the kernel
+decides that cloth resists poorly.** It is *"a linen shirt is armor that
+does not work"* as one line of kernel data, and a pack adding `lace`
+changes nothing whatever about combat. `poor` is deliberately not an
+inert token, so `doesNothing()` stays false for every fabric — a shirt
+attenuates a little, which is the honest answer.
+
+⚠ **Do NOT add a `kevlar` form.** `MaterialLogic` scales the resist
+*magnitude* by the material while `responseFor()` supplies only the
+*shape*, so a `woven` fabric of aramid gets the `poor` shape scaled by
+aramid's toughness and comes out genuinely protective. That is
+`response = f(mechanism, material, construction)` doing its job.
+
+**Four constraints hold simultaneously**, and each is load-bearing:
+
+1. `getLayerDepth()` stays **total** — it is called unconditionally in
+   three hot paths (`MaterialLogic.heatAttenuationFraction`, the
+   struck-site covering stack, the trauma covering walk), so a fabric
+   row's `layerBand` is **required and range-validated at
+   registration**, loudly, rather than throwing when somebody swings.
+2. `Construction.ts` stays **import-pure** (only `./Channel`) — two
+   build-time lints instantiate it outside the runtime. The bridge is a
+   module-private `Map` filled by `Construction.registerFabric`.
+3. `check-does-nothing` covers every present and future fabric in **one
+   assertion** over `TEXTILE_RESIST_PROFILE`, because they all share it
+   — the whole reason that profile is a kernel constant.
+4. `FabricCatalogue` (`platform/idea/FabricCatalogue.ts`) warms the
+   roster at `postRegister`, **never an operator `boot()`**, and rides
+   the platform pack's `boot:` manifest. ⚠ This is the
+   *reference-Ideas-inert-at-boot* rule, and here the failure would not
+   even be silent: a garment row authoring `constructionForm: woven`
+   **throws at hydration** against a cold roster. The manifest is the
+   install-order union DFS-sorted and the platform pack installs first,
+   so the warm precedes any locality's `props:` clone.
 
 ## The response function (the Api home)
 

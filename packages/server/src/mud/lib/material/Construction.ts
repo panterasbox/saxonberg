@@ -14,14 +14,45 @@
  * Two v1 vocabularies share one shape (the reusable thing is the
  * *pattern*, not one flat enum spanning mail and swords):
  *
- * - **armor forms** (`plate` / `mail` / `padded` / `hide`) carry a
- *   *resist* profile — a {@link ResistToken} per channel — plus a canonical
- *   outside-in {@link LAYER_DEPTH} so a covering stack orders itself
- *   (padded innermost … plate outermost) without an author writing a number.
+ * - **covering forms** (`plate` / `mail` / `padded` / `quilted` / `hide`,
+ *   plus the registered fabrics below) carry a *resist* profile — a
+ *   {@link ResistToken} per channel — plus a canonical outside-in
+ *   {@link LAYER_DEPTH} so a covering stack orders itself (padded
+ *   innermost … plate outermost) without an author writing a number.
  * - **weapon-delivery forms** (`bladed` / `pointed` / `hafted`) carry a
  *   *deliver* profile — a {@link DeliveryToken} per channel — so an
  *   implement *derives* which channel(s) it presents (a dagger delivers
  *   edge, a mace blunt).
+ *
+ * ## ⭐ The covering domain has TWO sources, and the split is deliberate
+ *
+ * A padded gambeson *is* quilted cloth, so a shirt is not armor but it
+ * **is** a covering — and `responseFor()`'s domain guard should say so.
+ * That is the rename: `armor` → `covering`.
+ *
+ * But the two halves of the covering vocabulary answer to different
+ * people:
+ *
+ * | | where | may a pack add one? |
+ * |---|---|---|
+ * | **resist-bearing** (`plate` `mail` `padded` `quilted` `hide`) | this closed `as const` | **no** — a form's resist profile is combat mitigation |
+ * | **non-resisting textile** (`woven` `knit` `felted`, and lace or netting later) | template rows at `/stuff/idea/fabric/`, registered here | **yes** — a pack must never need a kernel list edit |
+ *
+ * ⭐ **Content never authors a resist profile.** One kernel constant
+ * answers for every textile form at once —
+ * {@link TEXTILE_RESIST_PROFILE}, `poor` on all three mechanical
+ * channels. *That is the split made literal:* content chooses drape,
+ * loft and weave; **the kernel decides that cloth resists poorly.** It
+ * is "a linen shirt is armor that does not work" as one line of kernel
+ * data, and a pack adding `lace` changes nothing about combat.
+ *
+ * ⚠ **This module must stay import-pure** — it imports `./Channel` and
+ * nothing else, because two build-time lint scripts
+ * (`check-does-nothing`, `check-inert-weapon`) instantiate it OUTSIDE
+ * the runtime and cannot read a template-backed registry. The bridge is
+ * therefore a plain module-private `Map` filled by
+ * {@link Construction.registerFabric}, and the lints assert over the
+ * shared kernel constant rather than walking rows.
  *
  * The `Grade` / `ToolCapability` / `WeatherType` value-object precedent:
  * a closed vocabulary + data tables + a thin immutable surface, persisted
@@ -33,10 +64,23 @@ import type { Channel, MechanicalChannel } from './Channel';
 
 // ---------- form vocabularies ----------
 
-/** The v1 armor forms (carry a resist profile). */
-export const ARMOR_FORMS = ['plate', 'mail', 'padded', 'hide'] as const;
-/** An armor form — one of {@link ARMOR_FORMS}. */
-export type ArmorForm = (typeof ARMOR_FORMS)[number];
+/**
+ * The **resist-bearing** covering forms — closed, kernel-only. A pack
+ * may not add one: a form's resist profile is combat mitigation, and
+ * letting content author that is a real objection.
+ *
+ * `quilted` is a gambeson — layered and stitched cloth, one band outside
+ * `padded` and genuinely better against a blunt blow than loose padding.
+ */
+export const COVERING_FORMS = [
+  'plate',
+  'mail',
+  'padded',
+  'quilted',
+  'hide',
+] as const;
+/** A resist-bearing covering form — one of {@link COVERING_FORMS}. */
+export type KernelCoveringForm = (typeof COVERING_FORMS)[number];
 
 /**
  * The v1 weapon-delivery forms (carry a deliver profile). Two of them are
@@ -64,16 +108,73 @@ export const WEAPON_DELIVERY_FORMS = [
 /** A weapon-delivery form — one of {@link WEAPON_DELIVERY_FORMS}. */
 export type DeliveryForm = (typeof WEAPON_DELIVERY_FORMS)[number];
 
-/** The full construction-form vocabulary (both domains). */
+/** The full KERNEL construction-form vocabulary (both domains). */
 export const CONSTRUCTION_FORMS = [
-  ...ARMOR_FORMS,
+  ...COVERING_FORMS,
   ...WEAPON_DELIVERY_FORMS,
 ] as const;
-/** A construction form — armor or weapon-delivery. */
-export type ConstructionForm = ArmorForm | DeliveryForm;
+
+/**
+ * A covering form — a kernel resist-bearing one, or a registered fabric
+ * key. The type genuinely spans both domains (cloth and plate are both
+ * coverings), which is why the kernel *type* keeps the general name
+ * while the registration method is {@link Construction.registerFabric}.
+ */
+export type CoveringForm = string;
+
+/**
+ * A construction form. Open on the covering side (a pack registers a
+ * fabric), closed on the weapon side.
+ */
+export type ConstructionForm = string;
 
 /** Which vocabulary a form belongs to. */
-export type ConstructionDomain = 'armor' | 'weapon-delivery';
+export type ConstructionDomain = 'covering' | 'weapon-delivery';
+
+/**
+ * One registered non-resisting textile form, hydrated from a
+ * `/stuff/idea/fabric/<key>` row by {@link Fabric}.
+ *
+ * ⚠ `layerBand` is **required and range-validated on set** — that is
+ * exactly what keeps {@link Construction.getLayerDepth} total, and
+ * `getLayerDepth()` is called unconditionally in three hot paths (the
+ * heat fold, the struck-site armor stack, the trauma covering walk). An
+ * out-of-range row throws at hydration, loudly, rather than at the
+ * moment somebody swings.
+ */
+export interface FabricSpec {
+  /** The form word an author writes (`woven`, `knit`, `felted`). */
+  key: string;
+  /** Outside-in depth band, `0..4`, sharing the kernel ladder. */
+  layerBand: number;
+  /** Trapped-air fraction `0..1` — the thermal parameter. */
+  loft: number;
+  /** Thread closeness `0..1` — windproofing, and cover for concealment. */
+  weaveDensity: number;
+  /** How it hangs, `0..1`. Reserved: authored, not yet consumed. */
+  drape: number;
+}
+
+/**
+ * ⭐ **The one resist profile every textile form shares.** Content
+ * chooses drape, loft and weave; the kernel decides that cloth resists
+ * poorly — so `responseFor()` on a fabric neither throws nor consults a
+ * row, and adding `lace` changes nothing about combat.
+ *
+ * `poor` is deliberately NOT in {@link INERT_RESIST_TOKENS}: a shirt
+ * attenuates a little, which is the honest answer and keeps
+ * `doesNothing()` false for every fabric.
+ */
+export const TEXTILE_RESIST_PROFILE: Readonly<
+  Record<MechanicalChannel, ResistToken>
+> = { edge: 'poor', point: 'poor', blunt: 'poor' };
+
+/**
+ * The registered fabric forms. Module-private and plain — the bridge
+ * that lets a template-backed roster extend the vocabulary without
+ * `Construction.ts` importing anything.
+ */
+const FABRICS = new Map<string, FabricSpec>();
 
 // ---------- profile token vocabularies (SHAPE, not magnitude) ----------
 
@@ -116,17 +217,22 @@ export type DeliveryToken = (typeof DELIVERY_TOKENS)[number];
 // ---------- the profile tables (the taxonomy grid, verbatim) ----------
 
 /**
- * Per-armor-form resistance profile — the slate's taxonomy grid. Every
- * `ArmorForm × Channel` cell is a {@link ResistToken}. The single
- * authoritative shape table; magnitudes live in AppSettings.
+ * Per-kernel-covering-form resistance profile — the slate's taxonomy
+ * grid. Every `KernelCoveringForm × Channel` cell is a
+ * {@link ResistToken}. The single authoritative shape table; magnitudes
+ * live in AppSettings. Fabrics share {@link TEXTILE_RESIST_PROFILE}
+ * instead and appear nowhere in this table.
  */
-const ARMOR_PROFILES: Record<
-  ArmorForm,
+const COVERING_PROFILES: Record<
+  KernelCoveringForm,
   Record<MechanicalChannel, ResistToken>
 > = {
   plate: { edge: 'deflect', point: 'resist', blunt: 'transmit' },
   mail: { edge: 'resist', point: 'fail', blunt: 'transmit' },
   padded: { edge: 'poor', point: 'poor', blunt: 'absorb' },
+  // A gambeson: layered and stitched, so it soaks a blunt blow the way
+  // padding does and is one band further out.
+  quilted: { edge: 'poor', point: 'poor', blunt: 'absorb' },
   hide: { edge: 'moderate', point: 'poor', blunt: 'moderate' },
 };
 
@@ -149,16 +255,23 @@ const DELIVERY_PROFILES: Record<
   };
 
 /**
- * Canonical outside-in depth per armor form (padded innermost … plate
- * outermost). The *form* implies its layer depth so a covering stack sorts
- * itself with no authored number (Settled 11 "authors author concepts").
- * An explicit per-item override is a reserved, unused-v1 seam.
+ * Canonical outside-in depth per kernel covering form (padded innermost
+ * … plate outermost). The *form* implies its layer depth so a covering
+ * stack sorts itself with no authored number (Settled 11 "authors author
+ * concepts"). An explicit per-item override is a reserved, unused-v1
+ * seam.
+ *
+ * ⚠ The ladder widened from `0..3` to `0..4` when `quilted` arrived, and
+ * a registered fabric's `layerBand` shares the SAME `0..4` scale — one
+ * ladder over two sources, which is what keeps
+ * {@link Construction.getLayerDepth} total.
  */
-const LAYER_DEPTH: Record<ArmorForm, number> = {
+const LAYER_DEPTH: Record<KernelCoveringForm, number> = {
   padded: 0,
-  hide: 1,
-  mail: 2,
-  plate: 3,
+  quilted: 1,
+  hide: 2,
+  mail: 3,
+  plate: 4,
 };
 
 /**
@@ -174,8 +287,18 @@ const INERT_RESIST_TOKENS: ReadonlySet<ResistToken> = new Set<ResistToken>([
 
 // ---------- predicates ----------
 
-function isArmorForm(s: string): s is ArmorForm {
-  return (ARMOR_FORMS as readonly string[]).includes(s);
+function isKernelCoveringForm(s: string): s is KernelCoveringForm {
+  return (COVERING_FORMS as readonly string[]).includes(s);
+}
+
+/** Is `s` a REGISTERED textile form? */
+function isFabricForm(s: string): boolean {
+  return FABRICS.has(s);
+}
+
+/** Is `s` any covering form — kernel resist-bearing OR registered fabric? */
+function isCoveringForm(s: string): boolean {
+  return isKernelCoveringForm(s) || isFabricForm(s);
 }
 
 function isDeliveryForm(s: string): s is DeliveryForm {
@@ -188,8 +311,9 @@ function isDeliveryForm(s: string): s is DeliveryForm {
  * {@link Construction.of}; hosts persist the form word and reconstruct.
  */
 export class Construction {
-  /** The armor-form vocabulary — re-exported for callers. */
-  public static readonly ARMOR_FORMS: readonly ArmorForm[] = ARMOR_FORMS;
+  /** The kernel covering-form vocabulary — re-exported for callers. */
+  public static readonly COVERING_FORMS: readonly KernelCoveringForm[] =
+    COVERING_FORMS;
   /** The weapon-delivery-form vocabulary — re-exported for callers. */
   public static readonly DELIVERY_FORMS: readonly DeliveryForm[] =
     WEAPON_DELIVERY_FORMS;
@@ -203,14 +327,99 @@ export class Construction {
     this._form = form;
   }
 
-  /** Narrowing predicate for a string against the full form vocabulary. */
+  /**
+   * Narrowing predicate against the full form vocabulary — **both
+   * covering sources plus the weapon forms.** A fabric registered by a
+   * pack answers `true` here with no kernel edit, which is the whole
+   * point of the second source.
+   */
   public static isForm(s: string): s is ConstructionForm {
-    return isArmorForm(s) || isDeliveryForm(s);
+    return isCoveringForm(s) || isDeliveryForm(s);
   }
 
-  /** Is `s` an armor form? */
-  public static isArmorForm(s: string): s is ArmorForm {
-    return isArmorForm(s);
+  /** Is `s` a covering form (kernel resist-bearing OR registered fabric)? */
+  public static isCoveringForm(s: string): boolean {
+    return isCoveringForm(s);
+  }
+
+  /** Is `s` a registered textile form? */
+  public static isFabricForm(s: string): boolean {
+    return isFabricForm(s);
+  }
+
+  /**
+   * Register one textile form. Called by `Fabric.postRegister` as each
+   * `/stuff/idea/fabric/<key>` row stands up (the roster's warm is
+   * `FabricCatalogue`'s job).
+   *
+   * ⚠ Validated HERE rather than trusted, because `layerBand` is what
+   * keeps {@link getLayerDepth} total across both sources — and that
+   * method is called unconditionally in three hot paths, so a bad band
+   * must fail at hydration, not at the moment somebody swings.
+   * Re-registering the same key overwrites (a pack go-live re-warms).
+   */
+  public static registerFabric(spec: FabricSpec): void {
+    if (!spec.key || !/^[a-z][a-z0-9-]*$/.test(spec.key)) {
+      throw new RangeError(
+        `Construction.registerFabric: '${spec.key}' is not a kebab form word`,
+      );
+    }
+    if (isKernelCoveringForm(spec.key) || isDeliveryForm(spec.key)) {
+      throw new RangeError(
+        `Construction.registerFabric: '${spec.key}' is already a kernel form`,
+      );
+    }
+    for (const [field, value] of [
+      ['layerBand', spec.layerBand],
+      ['loft', spec.loft],
+      ['weaveDensity', spec.weaveDensity],
+      ['drape', spec.drape],
+    ] as const) {
+      if (!Number.isFinite(value)) {
+        throw new RangeError(
+          `Construction.registerFabric('${spec.key}'): ${field} must be a number`,
+        );
+      }
+    }
+    const maxBand = Object.keys(LAYER_DEPTH).length - 1;
+    if (
+      !Number.isInteger(spec.layerBand) ||
+      spec.layerBand < 0 ||
+      spec.layerBand > maxBand
+    ) {
+      throw new RangeError(
+        `Construction.registerFabric('${spec.key}'): layerBand ` +
+          `${spec.layerBand} is outside the 0..${maxBand} ladder`,
+      );
+    }
+    for (const [field, value] of [
+      ['loft', spec.loft],
+      ['weaveDensity', spec.weaveDensity],
+      ['drape', spec.drape],
+    ] as const) {
+      if (value < 0 || value > 1) {
+        throw new RangeError(
+          `Construction.registerFabric('${spec.key}'): ${field} ${value} ` +
+            `is outside 0..1`,
+        );
+      }
+    }
+    FABRICS.set(spec.key, { ...spec });
+  }
+
+  /** The registered spec for a fabric form, or `null`. */
+  public static fabric(key: string): FabricSpec | null {
+    return FABRICS.get(key) ?? null;
+  }
+
+  /** Every registered fabric key (HMR / test introspection). */
+  public static fabricKeys(): readonly string[] {
+    return [...FABRICS.keys()];
+  }
+
+  /** Drop the whole textile registry — the HMR / go-live re-warm seam. */
+  public static clearFabrics(): void {
+    FABRICS.clear();
   }
 
   /** Is `s` a weapon-delivery form? */
@@ -222,7 +431,10 @@ export class Construction {
   public static of(form: string): Construction {
     if (!Construction.isForm(form)) {
       throw new RangeError(
-        `Construction.of: unknown form '${form}' (expected one of ${CONSTRUCTION_FORMS.join(', ')})`,
+        `Construction.of: unknown form '${form}' (expected one of ` +
+          `${CONSTRUCTION_FORMS.join(', ')}` +
+          (FABRICS.size > 0 ? `, ${[...FABRICS.keys()].join(', ')}` : '') +
+          `)`,
       );
     }
     return new Construction(form);
@@ -235,12 +447,21 @@ export class Construction {
 
   /** Which vocabulary this form belongs to. */
   public getDomain(): ConstructionDomain {
-    return isArmorForm(this._form) ? 'armor' : 'weapon-delivery';
+    return isCoveringForm(this._form) ? 'covering' : 'weapon-delivery';
   }
 
-  /** Is this an armor form? */
-  public isArmor(): boolean {
-    return isArmorForm(this._form);
+  /**
+   * Is this a covering? True for plate and for linen alike — a shirt is
+   * not armor, but it *is* a covering, and it resists poorly rather than
+   * not at all.
+   */
+  public isCovering(): boolean {
+    return isCoveringForm(this._form);
+  }
+
+  /** The registered textile spec for this form, or `null` if it is not one. */
+  public getFabric(): FabricSpec | null {
+    return FABRICS.get(this._form) ?? null;
   }
 
   /** Is this a weapon-delivery form? */
@@ -254,9 +475,9 @@ export class Construction {
    * form (domain guard — a sword doesn't resist).
    */
   public responseFor(channel: Channel): ResistToken {
-    if (!isArmorForm(this._form)) {
+    if (!isCoveringForm(this._form)) {
       throw new RangeError(
-        `Construction.responseFor: '${this._form}' is a weapon-delivery form, not armor`,
+        `Construction.responseFor: '${this._form}' is a weapon-delivery form, not a covering`,
       );
     }
     if (!Channels.isMechanicalChannel(channel)) {
@@ -264,7 +485,10 @@ export class Construction {
         `Construction.responseFor: '${channel}' is not a mechanical channel (shock resolves by circuit, not the covering fold)`,
       );
     }
-    return ARMOR_PROFILES[this._form][channel];
+    // ⭐ A fabric does not throw and is not authored: one kernel
+    // constant answers for every textile form at once.
+    if (!isKernelCoveringForm(this._form)) return TEXTILE_RESIST_PROFILE[channel];
+    return COVERING_PROFILES[this._form][channel];
   }
 
   /**
@@ -274,7 +498,7 @@ export class Construction {
   public deliveryFor(channel: Channel): DeliveryToken {
     if (!isDeliveryForm(this._form)) {
       throw new RangeError(
-        `Construction.deliveryFor: '${this._form}' is an armor form, not a weapon`,
+        `Construction.deliveryFor: '${this._form}' is a covering form, not a weapon`,
       );
     }
     if (!Channels.isMechanicalChannel(channel)) return 'none';
@@ -283,7 +507,7 @@ export class Construction {
 
   /**
    * The channels this weapon form actually delivers (token !== `none`),
-   * primary channel(s) first. Empty for an armor form. Only the mechanical
+   * primary channel(s) first. Empty for a covering form. Only the mechanical
    * channels — shock delivery is a source capability, not a weapon form.
    */
   public deliveredChannels(): MechanicalChannel[] {
@@ -323,10 +547,18 @@ export class Construction {
    * covering stack).
    */
   public getLayerDepth(): number {
-    if (!isArmorForm(this._form)) {
+    if (!isCoveringForm(this._form)) {
       throw new RangeError(
-        `Construction.getLayerDepth: '${this._form}' is not an armor form`,
+        `Construction.getLayerDepth: '${this._form}' is not a covering form`,
       );
+    }
+    // ⚠ TOTAL across BOTH sources. Three hot paths call this
+    // unconditionally (the heat fold, the struck-site armor stack, the
+    // trauma covering walk), so a fabric must answer here rather than
+    // throw — which is why `layerBand` is required and range-validated
+    // at registration.
+    if (!isKernelCoveringForm(this._form)) {
+      return FABRICS.get(this._form)!.layerBand;
     }
     return LAYER_DEPTH[this._form];
   }
@@ -343,10 +575,11 @@ export class Construction {
    * healthy roster returns `false` for every form.
    */
   public doesNothing(): boolean {
-    if (isArmorForm(this._form)) {
-      const tokens = MECHANICAL_CHANNELS.map(
-        (c) => ARMOR_PROFILES[this._form as ArmorForm][c],
-      );
+    if (isCoveringForm(this._form)) {
+      const profile = isKernelCoveringForm(this._form)
+        ? COVERING_PROFILES[this._form]
+        : TEXTILE_RESIST_PROFILE;
+      const tokens = MECHANICAL_CHANNELS.map((c) => profile[c]);
       return !Construction.resistProfileHasEffect(tokens);
     }
     const tokens = MECHANICAL_CHANNELS.map(
@@ -355,7 +588,7 @@ export class Construction {
     return !Construction.deliveryProfileHasEffect(tokens);
   }
 
-  /** Does an armor resist profile mitigate on at least one channel? (pure —
+  /** Does a covering resist profile mitigate on at least one channel? (pure —
    * fixture-testable by the does-nothing lint). */
   public static resistProfileHasEffect(
     tokens: readonly ResistToken[],

@@ -27,7 +27,7 @@ import Thing from '../../lib/stuff/Thing';
 import { WearableMixin } from '../../lib/slot/Wearable';
 import { SlottableMixin } from '../../lib/slot/Slottable';
 import { ContainableMixin } from '../../lib/spatial/Containable';
-import type { Sensor } from '../../lib/perception/Sensor';
+import type { Sensor } from '../../lib/message/Sensor';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import {
   makeStuff,

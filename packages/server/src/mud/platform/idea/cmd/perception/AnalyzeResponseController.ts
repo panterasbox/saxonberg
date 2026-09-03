@@ -98,7 +98,7 @@ export default class AnalyzeResponseController extends CommandController<Analyze
       ? stuff.getCondition()
       : undefined;
 
-    const armor = construction.isArmor();
+    const armor = construction.isCovering();
     const verb = armor ? 'turns' : 'delivers';
     const lines: Mml[] = [];
     lines.push(

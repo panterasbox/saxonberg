@@ -1,0 +1,20 @@
+# Knit — one thread looped through itself. It stretches, it traps far
+# more air than a weave, and it lets the wind straight through.
+#
+# ⚠ Reachable only when a fibre with the staple for it arrives; flax
+# does not knit well. The row ships anyway so the vocabulary is honest
+# about what fabric construction IS, rather than describing the one
+# form the launch fibre happens to reach.
+class: /platform/idea/material/Fabric
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: knit
+  layerBand: 0
+  # The loops ARE the insulation — this is why a jumper beats a shirt of
+  # the same mass, and it falls out of the thermal arithmetic rather
+  # than being asserted.
+  loft: 0.45
+  # Open: a knit is a net. Warm and useless in a wind, which is the
+  # honest pairing and the reason you wear something over it.
+  weaveDensity: 0.35
+  drape: 0.8

@@ -77,7 +77,7 @@ function garment(
   const g = makeStuff(() => new TestGarment());
   g.setShortDescription(`a ${keyword}`);
   g.setPrimaryKeyword(keyword);
-  g.setSlotClaim(body.getSpecies()!.getBodyPlanPath(), slots);
+  g.setSlotClaim(body.getSpecies()!.getBodyPlanPath() ?? '', slots);
   if (opts.grade) g.setGradeBand(opts.grade);
   if (opts.condition !== undefined) g.setCondition(opts.condition);
   return g;
@@ -93,7 +93,9 @@ describe('Slotted.wornStack — the body half', () => {
     body.occupyAll(shirt, ['torso']);
     body.occupyAll(trousers, ['legs']);
 
-    expect(body.wornStack().map((g) => g.getPrimaryKeyword())).toEqual([
+    expect(
+      body.wornStack().map((g) => (g as unknown as TestGarment).getPrimaryKeyword()),
+    ).toEqual([
       'trousers',
       'shirt',
     ]);
@@ -148,7 +150,7 @@ describe('the dressed-impression line', () => {
     expect(line.length).toBeGreaterThan(0);
     // The whole point of the line: it summarizes, it does not enumerate.
     for (const g of worn) {
-      expect(line).not.toContain(g.getPrimaryKeyword().toLowerCase());
+      expect(line).not.toContain((g.getPrimaryKeyword() ?? '').toLowerCase());
     }
   });
 
@@ -162,6 +164,7 @@ describe('the dressed-impression line', () => {
 
     const first = impressionOf(body);
     for (let i = 0; i < 20; i++) expect(impressionOf(body)).toBe(first);
+    expect(first.length).toBeGreaterThan(0);
 
     // A changed outfit changes the facts digest, so the read may move —
     // and must still be a line about quality, not about the shirt.

@@ -110,7 +110,7 @@ function responsePipsAugmenter(
     ? host.getCondition()
     : undefined;
 
-  const armor = construction.isArmor();
+  const armor = construction.isCovering();
   const cells = MECHANICAL_CHANNELS.map((channel: MechanicalChannel) => {
     const band = MaterialApi.previewBand(
       channel,

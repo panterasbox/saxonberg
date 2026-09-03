@@ -628,7 +628,7 @@ function wieldedShield(actor: Stuff): Stuff | null {
       if (
         MixinApi.isWieldable(occ) &&
         MixinApi.isConstructed(occ) &&
-        occ.getConstruction()?.isArmor()
+        occ.getConstruction()?.isCovering()
       ) {
         return occ as Stuff;
       }
@@ -2759,7 +2759,7 @@ function coveringGearAt(
     for (const occ of target.getOccupants(spec.name)) {
       if (!MixinApi.isConstructed(occ) || !MixinApi.isWearable(occ)) continue;
       const construction = occ.getConstruction();
-      if (!construction || !construction.isArmor()) continue;
+      if (!construction || !construction.isCovering()) continue;
       items.push({ item: occ as Stuff, depth: construction.getLayerDepth() });
     }
   }
@@ -2770,7 +2770,7 @@ function coveringGearAt(
           continue;
         }
         const construction = occ.getConstruction();
-        if (!construction || !construction.isArmor()) continue;
+        if (!construction || !construction.isCovering()) continue;
         items.push({ item: occ as Stuff, depth: construction.getLayerDepth() });
       }
     }

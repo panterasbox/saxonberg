@@ -1,0 +1,20 @@
+# Felted — fibre matted directly into cloth, skipping the yarn rung
+# entirely. No spinning, no weaving: heat, moisture and agitation, and
+# the scales interlock.
+#
+# ⚠⚠ WOOL ONLY, and therefore UNREACHABLE at launch. Felting works
+# because wool scales interlock; plant fibres have no scales and do not
+# felt at all. The row ships unreachable on purpose (the `chalcopyrite`
+# precedent): a form wool will reach, present so the vocabulary is
+# honest rather than a promise made in prose.
+class: /platform/idea/material/Fabric
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: felted
+  # One band out: felt is the outer thing you put over the woven thing.
+  layerBand: 1
+  loft: 0.6
+  # Matted fibre is the densest cloth there is — felt is what you make a
+  # hat and a boot-liner out of.
+  weaveDensity: 0.85
+  drape: 0.3
