@@ -40,3 +40,23 @@ settings:
   # still finds you.
   - key: textiles.windproofWeight
     value: "0.9"
+
+  # Extra placement coupling per unit of a worn garment's tightness.
+  # Clothes cut for a smaller body BIND, and binding is a real load on a
+  # body that has to move in them.
+  - key: textiles.fit.tightnessBurden
+    value: "0.5"
+
+  # Extra seam wear per unit of tightness, as a multiplier on the
+  # EXISTING per-blow decrement. ⚠ A multiplier, never a clock: a
+  # garment in a wardrobe does not wear out.
+  - key: textiles.fit.tightnessWear
+    value: "1.5"
+
+  # The fit distance above which a garment simply will not go on.
+  # ⭐ A halfling's coat on a dragonborn fails on a NUMBER rather than a
+  # species check, so a heavy human and a light dragonborn shade into
+  # each other correctly. Raise it and hand-me-downs get more forgiving;
+  # lower it and the tailor gets more business.
+  - key: textiles.fit.refuseAbove
+    value: "0.35"

@@ -82,6 +82,62 @@ biped's and quadruped's covering slots now carry `capacity: 4` (shirt,
 gambeson, mail, surcoat). It is a cap rather than unbounded because
 "wear forty shirts" would otherwise be free insulation.
 
+## ⭐⭐ Fit — two derived numbers and one stamp
+
+A garment fits a body or it does not, and the whole model is two
+numbers:
+
+```
+statureM   = species.getStature()
+girthIndex = √(massKg / statureM)          a ponderal index
+```
+
+`massKg` is `Creature.getMass()`, which already reflects composition.
+⭐ **That is the lineage seam, and it is one line** — individual variance
+arrives through `getMass()` alone, and nothing in textiles is touched to
+consume it. A test asserts exactly that.
+
+**The stamp** is three scalars on `WearableMixin` — `cutToBodyPlan`
+(`''` = stock), `cutToStature`, `cutToGirth` — each persistent,
+authorable and validated on set. ⚠ Three named scalars rather than one
+composite: a **fixed-key** composite of three scalars is precisely the
+case the persistent-fields doctrine says decomposes.
+(`Wearable.slotClaims` is the contrasting **variable-key** case and
+stays a raw map; the distinction is fixed keys vs. variable keys, not
+"object vs. scalar" by eye.)
+
+⭐ **An absent stamp means STOCK**, and stock resolves to the wearer's
+body plan's average — so all fifteen shipped rows read as ill-fitting
+hand-me-downs **with no content edit**, and a near-average body is
+served passably while an unusual one is served badly. Which is exactly
+what off-the-rack clothing does, and it needed no authored fallback.
+
+`garment.fitOn(wearer)` returns a `FitReading`: the two measurements,
+the relative `distance` between them, and a signed `looseness` /
+`tightness`. ⭐ **It sits on the GARMENT, not the wearer** — the garment
+carries `cutTo` and is the thing that fits or does not; the wearer is
+the argument.
+
+**Consequences, each on a shipped mechanism:**
+
+| reading | consequence | where |
+|---|---|---|
+| *loose* | air gaps → `insulationAt` scales the layer's clo by `1 − looseness × dial` | `Slotted.insulationAt` — it needs the wearer, which is why it is not inside `getClo()` |
+| *tight* | a burden surcharge on the placement coupling | `LoadBearing.getBorneBurden` |
+| *tight* | a multiplier on the **existing** per-blow condition decrement — ⚠ never a clock | `ConditionLogic`'s covering-wear site |
+| *impossible* | `WearController` refuses above `textiles.fit.refuseAbove` | a `fit-impossible` note |
+
+⚠ A `cutToBodyPlan` **mismatch is a hard refusal independent of
+distance**, and it is not redundant with `slotClaims`: every playable
+species is `biped`, so slot matching alone would let a halfling's coat
+onto a dragonborn. ⭐ And the *distance* refusal fails on a **number**
+rather than a species check, so a heavy human and a light dragonborn
+shade into each other correctly.
+
+Free consequences, none of them authored: a **secondhand market** (a
+garment cut for someone else fits you badly), **cross-species failure**,
+and **the tailor's economic reason to exist**.
+
 ## `fitsSlot` overrides
 
 `Slottable` ships a default `fitsSlot(host, slot) => true`.

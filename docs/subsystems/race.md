@@ -583,7 +583,11 @@ shipped-row change by construction.
 
 ⭐ **The lineage seam is this one accessor.** Individual variance arrives
 later through `Creature.getMass()` alone, so neither `Species` nor
-`BodyPlan` re-opens when it lands.
+`BodyPlan` re-opens when it lands — and neither does textiles: garment
+fit reads `getMass()` for its girth index, so a lineage-varied body
+starts fitting its clothes differently the moment lineage ships, with no
+code in either subsystem touched. `Wearable.fit.test.ts` asserts it by
+changing only `getMass()`.
 
 ## OrganismMixin — runtime biology
 

@@ -23,6 +23,8 @@ import { Mml } from '../../../../api/mml';
 import { SpeciesApi } from '../../../../api/species';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Slotted } from '../../../../lib/slot/Slotted';
+import { AppApi } from '../../../../api/app';
+import { AppSettingKeys } from '../../../../lib/config/AppSettings';
 
 interface WearModel extends CommandModel {
   target: MqlOneResult;
@@ -46,6 +48,18 @@ function outermostClaimedBy(
     }
   }
   return 'what you already have on';
+}
+
+/** Numeric AppSetting read with a seeded-literal fallback. */
+function fitDial(key: string, fallback: number): number {
+  try {
+    const raw = AppApi.setting(key);
+    if (raw === '' || raw == null) return fallback;
+    const n = Number.parseFloat(raw);
+    return Number.isFinite(n) ? n : fallback;
+  } catch {
+    return fallback;
+  }
 }
 
 export default class WearController extends CommandController<WearModel> {
@@ -95,6 +109,29 @@ export default class WearController extends CommandController<WearModel> {
         kind: 'controller-rejected',
         reason: 'wrong-fit',
         detail: `${target.getPresentation()} doesn't fit your body`,
+      });
+      return;
+    }
+    // ⚠ The impossible fit — a HARD refusal, independent of the ladder.
+    //
+    // ⭐ A halfling's coat on a dragonborn fails on a NUMBER, not on a
+    // species check, so a heavy human and a light dragonborn shade into
+    // each other correctly. And a `cutTo` naming a DIFFERENT body plan
+    // is refused whatever the distance: both are `biped`, so slot
+    // matching alone would let the coat straight on.
+    const fit = target.fitOn(giver);
+    const refuseAbove = fitDial(AppSettingKeys.textilesFitRefuseAbove, 0.35);
+    if (fit.measurable && (fit.wrongBody || fit.distance > refuseAbove)) {
+      MessageApi.scene(giver)
+        .topic('sense.survey')
+        .toSelf(
+          Mml.compose`${Mml.thing(target)} was not cut for a body like yours — it will not go on.`,
+        )
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'fit-impossible',
+        detail: `${target.getPresentation()} was cut for a different body`,
       });
       return;
     }

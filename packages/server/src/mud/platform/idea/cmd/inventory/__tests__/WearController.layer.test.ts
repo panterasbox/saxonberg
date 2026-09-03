@@ -181,3 +181,66 @@ describe('the ladder refusal', () => {
     expect(body.coveringAt('body.torso')[0]).toBe(cuirass);
   });
 });
+
+describe('the impossible fit', () => {
+  afterEach(() => {
+    Construction.clearFabrics();
+    StuffApi.clearAll();
+  });
+
+  it("⚠ refuses a garment cut for a body unlike yours, with a `fit-impossible` note", () => {
+    installV1QuantityMarshallers();
+    Construction.registerFabric({
+      key: 'woven',
+      layerBand: 0,
+      loft: 0.1,
+      weaveDensity: 0.75,
+      drape: 0.6,
+    });
+    const n = seq++;
+    const plan = makeStuff(() => new BodyPlan());
+    plan.setName(`refuse-${n}`);
+    plan.setBaseMass(70);
+    plan.setBaseStature(1.75);
+    plan.setSlots([
+      { name: 'torso', accepts: 'WearableMixin', capacity: 4, covers: ['body.torso'] },
+    ]);
+    plan.setBodyParts([
+      {
+        key: 'body.torso',
+        parent: null,
+        tissues: [{ tissuePath: '/stuff/idea/material/tissue/flesh', mass: 40 }],
+      },
+    ]);
+    const planPath = `/stuff/idea/species/BodyPlan/refuse-${n}`;
+    stampTemplatePathForTest(plan, planPath);
+
+    const species = makeStuff(() => new Species());
+    species.setBodyPlan(plan);
+    species.setBaseMass(125);
+    species.setStature(2.0);
+    stampTemplatePathForTest(species, `/stuff/idea/species/test/refuse-${n}`);
+
+    const big = makeStuff(() => new Wearer());
+    big.setSpecies(species);
+    const location = makeStuff(() => new Location());
+    ContainmentApi.move(big, location);
+
+    // Cut for a halfling — and both are the same body plan, so slot
+    // matching alone would have let it straight on.
+    const coat = garment(planPath, 'woven', 'coat');
+    coat.setCutTo(planPath, 1.05, Math.sqrt(38 / 1.05));
+    ContainmentApi.move(coat, big);
+
+    const ctx = context(big, location);
+    makeStuff(() => new WearController()).execute(model(coat), ctx);
+
+    const rejection = ctx
+      .getNotes()
+      .find((n2) => n2.kind === 'controller-rejected') as
+      | { reason?: string }
+      | undefined;
+    expect(rejection?.reason).toBe('fit-impossible');
+    expect(big.getOccupants('torso').has(coat)).toBe(false);
+  });
+});

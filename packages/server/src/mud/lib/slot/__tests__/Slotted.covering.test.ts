@@ -42,6 +42,8 @@ function dressableBody(): Creature {
   const n = seq++;
   const plan = makeStuff(() => new BodyPlan());
   plan.setName(`cover-biped-${n}`);
+  plan.setBaseMass(70);
+  plan.setBaseStature(1.75);
   plan.setSlots([
     // ⚠ Capacity 4, mirroring the shipped biped: a covering slot that
     // holds one thing cannot layer at all.
@@ -469,5 +471,41 @@ describe('windproofing — no `shell` role word', () => {
 
   it('a bare body reads zero', () => {
     expect(dressableBody().windproofing()).toBe(0);
+  });
+});
+
+describe('fit consequences ride SHIPPED mechanisms', () => {
+  beforeEach(() => {
+    installV1QuantityMarshallers();
+    Construction.registerFabric({
+      key: 'woven',
+      layerBand: 0,
+      loft: 0.1,
+      weaveDensity: 0.75,
+      drape: 0.6,
+    });
+  });
+  afterEach(() => {
+    Construction.clearFabrics();
+    StuffApi.clearAll();
+  });
+
+  it('⭐ a LOOSE garment insulates less — air gaps convect the warmth away', () => {
+    // The penalty lands on `insulationAt`, not inside `getClo()`, whose
+    // whole point is being wearer-free: a garment on a shelf has no fit.
+    const body = dressableBody();
+    const coat = garment(wool(), ['torso'], 1.0);
+    body.occupyAll(coat, ['torso']);
+    const wellFitted = body.insulationAt('body.torso').rawValue();
+    expect(wellFitted).toBeGreaterThan(0);
+    // Now cut it for a much bigger body — same cloth, same mass.
+    const plan = body.getSpecies()!.getBodyPlan()!;
+    coat.setCutTo(plan.getTemplatePath()!, 2.4, 12);
+    expect(coat.fitOn(body).looseness).toBeGreaterThan(0);
+    expect(body.insulationAt('body.torso').rawValue()).toBeLessThan(
+      wellFitted,
+    );
+    // …and the garment's OWN clo is untouched, because clo is physics.
+    expect(coat.getClo().rawValue()).toBeGreaterThan(0);
   });
 });

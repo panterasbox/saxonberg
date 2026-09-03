@@ -1447,6 +1447,16 @@ export const AppSettingKeys = {
   /** Textiles — the outermost layer's weave density scales a wind
    * term; this is its weight against the still-air baseline. */
   textilesWindproofWeight: "textiles.windproofWeight",
+  /** Textiles — extra placement coupling per unit of a worn garment's
+   * tightness. Clothes that bind are a real load. */
+  textilesFitTightnessBurden: "textiles.fit.tightnessBurden",
+  /** Textiles — extra seam wear per unit of tightness, as a multiplier
+   * on the EXISTING per-blow decrement. ⚠ Not a clock: wear stays
+   * act-driven. */
+  textilesFitTightnessWear: "textiles.fit.tightnessWear",
+  /** Textiles — the fit distance above which a garment simply will not
+   * go on. A halfling's coat on a dragonborn fails on a NUMBER. */
+  textilesFitRefuseAbove: "textiles.fit.refuseAbove",
 } as const;
 
 export type AppSettingKey =

@@ -842,7 +842,18 @@ function inflictThroughStack(
         residual < incident &&
         MixinApi.isDurable(layer.occ)
       ) {
-        layer.occ.wear(dial(AppSettingKeys.craftingWearArmorPerBlow, 0.004));
+        // ⭐ A TIGHT garment wears at the seams faster — it is under
+        // tension before anything hits it. A multiplier on the EXISTING
+        // per-blow decrement, ⚠ never a clock: wear stays act-driven.
+        const tightness = MixinApi.isWearable(layer.occ)
+          ? layer.occ.fitOn(target).tightness
+          : 0;
+        const seamWear =
+          1 +
+          tightness * dial(AppSettingKeys.textilesFitTightnessWear, 1.5);
+        layer.occ.wear(
+          dial(AppSettingKeys.craftingWearArmorPerBlow, 0.004) * seamWear,
+        );
       }
     }
     const part = target.getPart(spec.site);

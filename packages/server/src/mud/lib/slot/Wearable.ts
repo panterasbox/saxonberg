@@ -67,7 +67,80 @@ export interface Wearable extends Slottable {
    * anything is special-cased.
    */
   getClo(): Quantity<'clo'>;
+
+  /**
+   * How well this garment fits `wearer` — the two derived measurements
+   * against the stamp `cut` left.
+   *
+   * ⭐ **On the GARMENT, not the wearer.** The garment carries `cutTo`
+   * and is the thing that fits or does not; the wearer is the argument.
+   */
+  fitOn(wearer: Stuff): FitReading;
+
+  /** The measurements this garment was cut to (`''` plan = stock). */
+  getCutTo(): FitReading['cut'];
+  /** Stamp the measurements — `cut`'s job. */
+  setCutTo(bodyPlanPath: string, statureM: number, girthIndex: number): void;
+
+  // Persistence-shape accessor pairs (default Hydrator). ⚠ THREE named
+  // scalars rather than one composite object: a fixed-key composite of
+  // three scalars is exactly the case the persistent-fields doctrine
+  // says decomposes. (`slotClaims` is the contrasting VARIABLE-key case
+  // and stays a raw map.)
+  getCutToBodyPlan(): string;
+  setCutToBodyPlan(value: string): void;
+  getCutToStature(): number;
+  setCutToStature(value: number): void;
+  getCutToGirth(): number;
+  setCutToGirth(value: number): void;
 }
+
+/**
+ * A garment measured against a body — two numbers, one distance, and a
+ * signed verdict.
+ *
+ * ⭐ Deliberately **two numbers, not a tailor's chart**: a stature and a
+ * ponderal index `girth = √(mass / stature)`. `massKg` is
+ * `Creature.getMass()`, which already reflects composition and will
+ * reflect lineage variance — **that is the seam, and it is one line.**
+ */
+export interface FitReading {
+  /** The measurements the garment was cut to. */
+  cut: {
+    /** `''` = stock, and stock resolves to the plan's average body. */
+    bodyPlanPath: string;
+    statureM: number;
+    girthIndex: number;
+  };
+  /** The wearer's own measurements. */
+  body: { statureM: number; girthIndex: number };
+  /** Euclidean relative distance between the two. `0` = cut for you. */
+  distance: number;
+  /** `0..` — how much bigger the garment is than the body. */
+  looseness: number;
+  /** `0..` — how much smaller the garment is than the body. */
+  tightness: number;
+  /**
+   * ⚠ A different body plan entirely — a HARD refusal independent of
+   * distance, and not redundant with `slotClaims`: a halfling and a
+   * dragonborn are both `biped`, so slot matching alone would let the
+   * coat on.
+   */
+  wrongBody: boolean;
+  /** Whether the measurements resolved at all (a plan-less host). */
+  measurable: boolean;
+}
+
+/** The neutral reading — a garment nobody can be measured against. */
+const UNMEASURABLE: FitReading = Object.freeze({
+  cut: { bodyPlanPath: '', statureM: 0, girthIndex: 0 },
+  body: { statureM: 0, girthIndex: 0 },
+  distance: 0,
+  looseness: 0,
+  tightness: 0,
+  wrongBody: false,
+  measurable: false,
+});
 
 /** Thermal conductivity of still air, W/(m·K). */
 const K_AIR = 0.026;
@@ -89,6 +162,16 @@ const CLO_DEFAULTS = {
   ABSORPTION_REFERENCE: 40,
 } as const;
 
+/** Validate a non-negative finite measurement, naming the setter. */
+function nonNegative(setter: string, value: number): number {
+  if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) {
+    throw new RangeError(
+      `Wearable.${setter}: must be a finite, non-negative number, got ${value}`,
+    );
+  }
+  return value;
+}
+
 /** Numeric AppSetting read, falling back to the seeded literal. */
 function dial(key: string, fallback: number): number {
   try {
@@ -108,6 +191,9 @@ export function WearableMixin<
     static _mixinName = 'WearableMixin';
     static fieldMeta: FieldMeta = {
       slotClaims: { persistent: true, authorable: true },
+      cutToBodyPlan: { persistent: true, authorable: true },
+      cutToStature: { persistent: true, authorable: true },
+      cutToGirth: { persistent: true, authorable: true },
     };
 
     /**
@@ -115,6 +201,117 @@ export function WearableMixin<
      * names. Empty / absent = ineligible on that body plan.
      */
     public slotClaims: Record<string, string[]> = {};
+
+    /**
+     * The body plan this garment was cut for. `''` = **stock**, and
+     * that is the load-bearing default: every shipped row carries no
+     * stamp and therefore reads as an ill-fitting hand-me-down against
+     * the plan's average body, with **no content edit**.
+     */
+    public cutToBodyPlan = '';
+    /** Stature (m) the garment was cut to. */
+    public cutToStature = 0;
+    /** Ponderal index the garment was cut to. */
+    public cutToGirth = 0;
+
+    public getCutToBodyPlan(): string {
+      return this.cutToBodyPlan;
+    }
+    public setCutToBodyPlan(value: string): void {
+      if (typeof value !== 'string') {
+        throw new TypeError('Wearable.setCutToBodyPlan: must be a string');
+      }
+      this.cutToBodyPlan = value;
+    }
+    public getCutToStature(): number {
+      return this.cutToStature;
+    }
+    public setCutToStature(value: number): void {
+      this.cutToStature = nonNegative('setCutToStature', value);
+    }
+    public getCutToGirth(): number {
+      return this.cutToGirth;
+    }
+    public setCutToGirth(value: number): void {
+      this.cutToGirth = nonNegative('setCutToGirth', value);
+    }
+
+    public getCutTo(): FitReading['cut'] {
+      return {
+        bodyPlanPath: this.cutToBodyPlan,
+        statureM: this.cutToStature,
+        girthIndex: this.cutToGirth,
+      };
+    }
+
+    public setCutTo(
+      bodyPlanPath: string,
+      statureM: number,
+      girthIndex: number,
+    ): void {
+      this.setCutToBodyPlan(bodyPlanPath);
+      this.setCutToStature(statureM);
+      this.setCutToGirth(girthIndex);
+    }
+
+    /**
+     * Measure this garment against `wearer` — see {@link FitReading}.
+     *
+     * ⭐ An ABSENT stamp is not an error: it means *stock*, and stock
+     * resolves to the wearer's body plan's average. So a shipped row
+     * fits a near-average body passably and an unusual one badly, which
+     * is exactly what off-the-rack clothing does, and it needs no
+     * authored fallback.
+     */
+    public fitOn(wearer: Stuff): FitReading {
+      if (!MixinApi.isOrganism(wearer)) return UNMEASURABLE;
+      const species = wearer.getSpecies();
+      const plan = species?.getBodyPlan();
+      if (!species || !plan) return UNMEASURABLE;
+      const planPath = plan.getTemplatePath() ?? '';
+
+      const statureM = species.getStature();
+      const massKg = MixinApi.isTangible(wearer)
+        ? wearer.getMass().rawValue()
+        : 0;
+      if (!(statureM > 0) || !(massKg > 0)) return UNMEASURABLE;
+      const girthIndex = Math.sqrt(massKg / statureM);
+
+      // Stock: the plan's average body, which is the honest reading of
+      // "cut for nobody in particular".
+      const stock = this.cutToBodyPlan === '';
+      const cutPlan = stock ? planPath : this.cutToBodyPlan;
+      const planMass = plan.getBaseMass();
+      const planStature = plan.getBaseStature();
+      const cutStature = stock ? planStature : this.cutToStature;
+      const cutGirth =
+        stock
+          ? planStature > 0 && planMass > 0
+            ? Math.sqrt(planMass / planStature)
+            : 0
+          : this.cutToGirth;
+      if (!(cutStature > 0) || !(cutGirth > 0)) return UNMEASURABLE;
+
+      const dStature = (statureM - cutStature) / cutStature;
+      const dGirth = (girthIndex - cutGirth) / cutGirth;
+      const distance = Math.hypot(dStature, dGirth);
+      // Signed: the garment is LOOSE when it was cut for a bigger body.
+      const signed = (dStature + dGirth) / 2;
+
+      return {
+        cut: {
+          bodyPlanPath: cutPlan,
+          statureM: cutStature,
+          girthIndex: cutGirth,
+        },
+        body: { statureM, girthIndex },
+        distance,
+        looseness: signed < 0 ? -signed : 0,
+        tightness: signed > 0 ? signed : 0,
+        wrongBody: !stock && cutPlan !== planPath,
+        measurable: true,
+      };
+    }
 
     /**
      * Derive this garment's insulation from physics — see the interface

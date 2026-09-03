@@ -42,6 +42,8 @@ import {
 } from '../../api/mql-subscription';
 import { Impression, type ImpressionClause } from './Impression';
 import { Quantity } from '../quantity';
+import { AppApi } from '../../api/app';
+import { AppSettingKeys } from '../config/AppSettings';
 import type BodyPlan from '../../platform/idea/species/BodyPlan';
 import type {
   CaptureContext,
@@ -457,6 +459,21 @@ function depthOf(occupant: Stuff): number {
   return construction.getLayerDepth();
 }
 
+/** How much insulation a fully loose garment loses to its air gaps. */
+const LOOSENESS_CLO_PENALTY = 0.35;
+
+/** Numeric AppSetting read, falling back to the seeded literal. */
+function dial(key: string, fallback: number): number {
+  try {
+    const raw = AppApi.setting(key);
+    if (raw === '' || raw == null) return fallback;
+    const n = Number.parseFloat(raw);
+    return Number.isFinite(n) ? n : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 /** Wetness at or above which the stack reads as soaked. */
 const SOAKED_AT = 0.7;
 /** Wetness at or above which the stack reads as damp. */
@@ -692,10 +709,23 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
     }
 
     public insulationAt(partKey: string): Quantity<'clo'> {
+      const self = this as unknown as Stuff;
+      const penalty = dial(
+        AppSettingKeys.textilesFitLoosenessCloPenalty,
+        LOOSENESS_CLO_PENALTY,
+      );
       let clo = 0;
       for (const layer of this.coveringAt(partKey)) {
         const asStuff = layer as unknown as Stuff;
-        if (MixinApi.isWearable(asStuff)) clo += asStuff.getClo().rawValue();
+        if (!MixinApi.isWearable(asStuff)) continue;
+        // ⭐ A loose garment leaves air GAPS, and a gap convects the
+        // warmth away instead of trapping it. That is the fit
+        // consequence, and it needs the wearer — which is why the
+        // penalty lands here rather than inside `getClo()`, whose whole
+        // point is being wearer-free.
+        const fit = asStuff.fitOn(self);
+        const factor = Math.max(0, 1 - fit.looseness * penalty);
+        clo += asStuff.getClo().rawValue() * factor;
       }
       return Quantity.of(clo, 'clo');
     }
