@@ -596,8 +596,7 @@ optimization."*
 What clothing adds is that it becomes **the highest-bandwidth honest
 signal in the game.** Everything else you would read off a stranger —
 renown, competence, wealth — is hidden or needs a query. Clothes are on
-their body and described on sight, and after this build they carry five
-real facts:
+their body, and after this build they carry five real facts:
 
 ```
 grade     ← staple length, carried from the field
@@ -610,6 +609,11 @@ brand     ← BrandedMixin, already resolve-on-read
 None of them authored as a "quality" number. **A good coat signals wealth
 because it cost wealth** — costly signalling that emerges from the supply
 chain rather than being declared.
+
+⚠ **But "on sight" is a claim this build has to earn** — worn and carried
+are one undifferentiated row on the inspection card today, and no
+`markupAugmenter` renders worn equipment at all. **Decision 12 is what
+makes Decision 9 true**, and it is why the UX wave goes first.
 
 ### ⚠ Where the line is drawn
 
@@ -823,6 +827,151 @@ two trades is what stops textiles absorbing the enchanting economy.
 
 ---
 
+## ⭐⭐⭐ Decision 12 — presentation, and the customization market
+
+*(Added 2026-09-02. The lens-3 pass treated immersion too lightly; this
+is the correction, and it re-orders the build.)*
+
+### What the audit actually found
+
+⚠ An earlier reading of this concluded *"nobody can see your clothes,"*
+from the prose path alone. **That was wrong** — there are two render
+paths and the card one carries clothing today:
+
+- `look <person>` opens a **live, subject-bound inspection card**
+  (`CardApi.open(context, 'subject', …)`), projecting `DETAIL_FIELDS`:
+  `displayName · quantity · primaryKeyword · shortDescription ·
+  longDescription · illustration · details · bulkMaterial · mass ·
+  contents · exits`.
+- `WearController` calls **only** `giver.occupyAll(target, slots)` — it
+  never touches containment. A worn garment stays in inventory *and*
+  occupies slots, so **it is in `getContents()` and does reach the
+  client.**
+
+⭐ **And the "non-obviously carried" model exists** — three live
+mechanisms, better than a prose filter:
+
+| mechanism | what it does |
+|---|---|
+| `PerceptionApi.perceives` in the `contents` descriptor | ⭐⭐ **honest fog on the wire** — a concealed, undiscovered item never enters the client payload *at all*. Not hidden in the UI; never sent |
+| `ContainmentApi.looseContents` | surface-resting items render under their surface, found by `look <surface>` |
+| containment nesting | what is inside your pack is the *pack's* contents, not yours |
+
+**The real gap is presentation, not data.** There is no `worn` field and
+no slot grouping, so a coat you are wearing and a coat in your pack are
+the same row: *"a wool coat, a linen shirt, a loaf of bread, a hammer"*
+says nothing about which two are on your body. And on the prose side,
+**thirteen shipped `markupAugmenters` and not one renders worn
+equipment.**
+
+### ⭐⭐ The card ENUMERATES; the prose SUMMARIZES
+
+The governing rule, and it is the one that keeps them from duplicating:
+
+> **They are two resolutions of the same subject, not two subjects.**
+
+That is how perceiving a person works — you get an impression (*well
+dressed, travel-stained, good boots*) and you look closer for the list.
+It also kills the restatement problem by construction: **prose that
+enumerates is just a worse card.**
+
+| surface | job |
+|---|---|
+| the **card** | the precise, complete, mechanical list — worn and carried, laid out separately |
+| the **prose** | the *gestalt* — never an inventory |
+
+The prose block has two sources:
+
+- **Authored half** — what the card can never tell you: bearing, manner,
+  the scar, how you hold yourself. Free text, the player's, on
+  `PersonaMixin`'s claimed layer.
+- ⭐ **Derived half — the impression line.** The aggregate of the five
+  facts Decision 9 puts on a garment (grade, condition, fit, colour +
+  fastness, brand), summarized: *"Dressed well, but soaked through."*
+  *"Everything he owns has been patched."* **The fourteenth
+  `markupAugmenter`** — a shipped pattern with thirteen instances — tuned
+  to **summarize rather than enumerate**, which is exactly what makes it
+  not a restatement.
+
+### Decided
+
+1. ⭐ **`worn` is a SEPARATE projection field**, not a flag on `contents`
+   rows. A flag would be cheaper, but the body-vs-pack **layout**
+   distinction is the entire point, and the client should be able to lay
+   them out as distinct sections rather than filter one list.
+2. **The impression line ships in this build.** It is the part that needs
+   real prose craft and is easiest to get thin and repetitive — which is
+   an argument for doing it with attention now, not bolting it on later.
+3. ⭐⭐ **W1a lands BEFORE the chain.** See below.
+
+### ⭐⭐⭐ Why the UX goes first
+
+> *"If clothes don't look good, then how can we expect anything else to
+> look good?"*
+
+The `worn` field, the worn-vs-carried card layout and the impression line
+are **not textiles features.** They improve every object in the game;
+clothes are only the forcing function that exposes them. Burying them
+behind eleven waves of supply chain gets the ordering exactly backwards —
+and W1a **pays off across the whole game whether or not the rest of this
+chain ever ships**, which is the strongest possible argument for a wave.
+
+### ⚠ The market: Fortnite's model is a MINT, and cannot be imported
+
+A skin in Fortnite is **created from nothing and sold**. This economy is
+conserved — every good comes from the chain. Importing that model means
+punching a faucet through the middle of the thing.
+
+⭐ **But the appeal transfers, and improves.** What makes a skin
+desirable is scarcity plus provenance — *"I paid,"* or *"I was there in
+season three."* This world has **real** scarcity (the chain) and **real**
+provenance (`authoring_events` ships). So:
+
+> **A garment here can mean more than a skin, because somebody actually
+> made it.**
+
+That is Decision 9's costly signalling with the customization market as
+its payoff, rather than a cosmetic layer bolted beside the economy.
+
+### ⚠⚠ Re-sort the build around the BUYER
+
+The closest real analogue is FFXIV, where glamour is enormous and a
+minority of crafters supply nearly everyone. Expect the same shape here —
+**overwhelmingly buy, not make** — and that is *good*: if everyone made
+their own clothes there would be no tailor and no livelihood.
+
+⚠ **But every wave in the original plan is producer-side.** The slate
+optimized for the person at the loom, which is the wrong majority. A
+buyer needs to find clothes they like, know what they are getting,
+commission something specific — and above all **change their look without
+re-buying.**
+
+⭐⭐ **Which reprioritizes one pack sharply: dyeing is the customization
+market's core loop, not tailoring.** You buy a garment rarely and
+recolour it often, so dyeing is the **highest-frequency player-facing
+surface in the entire chain** — not the third-listed customer of the
+other two. It is also where the wash/fade loop (Decision 7) becomes a
+retention mechanic rather than an attrition one.
+
+### ⭐⭐ The skin economy, done honestly
+
+`DetailedMixin` already ships keyed sub-descriptions on an object. So let
+a **maker write the prose for the garment they made**. A tailor does not
+sell a coat — they sell a *described* coat, and wearing it puts that
+description on your body.
+
+> **You buy the look by buying the object.**
+
+Customization becomes a **product of the supply chain** rather than a
+bypass of it. Bespoke fit (Decision 6), a named pattern (open question
+10) and authored garment prose are one product line — and the thing a
+tailor actually sells that a factory cannot.
+
+⚠ It is also a user-generated-content surface with a moderation
+dimension, and it rides the `recordAuthoring` gate. Open question 18.
+
+---
+
 ## The four-lens pass (2026-09-02)
 
 Run against the project's four lenses — **pedagogical richness ·
@@ -951,6 +1100,7 @@ Kernel first, then packs — the metal-chain shape.
 |---|---|---|
 | **W0** | `Construction`: the covering rename + textile forms + depth | everything reads it |
 | **W1** | `Garment` composes like `Armor`; the nine clothing rows gain material + form + mass | the chain needs a real terminus |
+| ⭐⭐ **W1a** | **the UX wave** — `worn` as a separate projection field, worn-vs-carried card layout, the impression augmenter | ⭐⭐⭐ **before the chain.** Not textiles features: they improve every object, and pay off whether or not the chain ships |
 | **W2** | species `baseMass` + `stature`; the balance pass + gym run | ⚠ moves live combat/encumbrance/metabolism numbers |
 | **W3** | per-part covering stack: `covers:` walk, clo derives, wet feeds it | the thermal payoff |
 | **W4** | fit: derived measurements, cut-to stamp, the lineage seam | needs W2 |
@@ -960,7 +1110,7 @@ Kernel first, then packs — the metal-chain shape.
 | **W7** | `trade-farming` rows: flax, cotton, madder, weld, woad | content only, existing pack |
 | **W8** | `trade-textiles` pack: ret · scutch · spin · weave · full + the tool ladder | the faucet. ⭐⭐⭐ **carries the spinning-bottleneck tuning obligation** |
 | **W9** | `trade-leatherwork` pack: tan + the tannery as a zoned nuisance venue | parallel input; produces `hide-stock` at last |
-| **W10** | `trade-dyeing` pack: dyestuffs, mordants, fastness | customer of both |
+| **W10** | `trade-dyeing` pack: dyestuffs, mordants, fastness | ⭐⭐ **the customization core loop** — highest-frequency player surface; buy rarely, recolour often |
 | **W11** | `trade-tailoring` pack: cut · sew · livery; the jerkin recipe leaves smithing | closes the loop |
 | **W11a** | the **hood/veil interlock** — mundane attention reduction subsidizes an arcane binding | ⭐ Decision 11; meets Decision 10's concealment seam on one object |
 | **W12** | content placement + the demonstrator brain | expression |
@@ -1038,7 +1188,17 @@ Kernel first, then packs — the metal-chain shape.
     blanket price is meant to catch gram-scale chemistry. **This is a
     magic-subsystem question, not a textiles one** — but dyeing is the
     first trade to actually ask it. See Decision 11.
-17. **Should a garment ever be a magic-item host?** The machinery
+17. ⚠ **Does player-authored garment prose need moderation, and whose?**
+    It is the customization market's actual product (Decision 12), it
+    rides the `recordAuthoring` gate, and *everyone is an author* — but
+    it is prose one player writes that appears on another player's body,
+    which no shipped authoring surface currently does. **Not a textiles
+    mechanism; a policy question this build is the first to raise.**
+18. **How much prose variety does the impression line need before it
+    reads as repetitive?** It aggregates five facts, so the outcome space
+    is combinatorially fine but the *phrasings* are authored. The thin,
+    repetitive failure is the likely one.
+19. **Should a garment ever be a magic-item host?** The machinery
     composes today (`Arcane` + charge economy + `Wearable`), but every
     shipped wearable is jewelry. A magic *garment* is new content, not
     new mechanism — is it this build's, or magic-items' next wave?
@@ -1089,6 +1249,18 @@ rung; `SAXONBERG_PACKS`) · [race.md](../../subsystems/race.md) +
 [corpo.md](../../subsystems/corpo.md) (BrandedMixin) ·
 [provenance.md](../../subsystems/provenance.md) (the authorship ledger —
 *mage-woven is a mark, not a physics*).
+
+**Presentation (Decision 12):**
+[card-surface.md](../../subsystems/card-surface.md) (⭐⭐ the ONE
+inspection card, laid out by `StuffKind`; liveness is a property of
+attention) · [mql-subscription.md](../../subsystems/mql-subscription.md)
+(`DETAIL_FIELDS` — where `worn` must be added) ·
+[message-rendering.md](../../subsystems/message-rendering.md) +
+[messaging.md](../../subsystems/messaging.md) (the `markupAugmenters`
+pipeline the impression line rides) ·
+[perception.md](../../subsystems/perception.md) (⭐ `perceives` in the
+`contents` descriptor — honest fog *on the wire*) ·
+[client-shell.md](../../subsystems/client-shell.md).
 
 **Magic (Decision 11):** [arcane-science.md](../../arcane-science.md)
 (⭐⭐ **Kell's Partition** — impulse vs binding, and the economic
