@@ -214,6 +214,11 @@ export default class TpaTerminal extends TpaTerminalBase {
     // cache-registration, so reentrant route lookups (and the warren's
     // re-seat) hit the in-flight instance.
     await this.seatSelf();
+    // ⚠ The line BEFORE the cell: a gate that has both should read as
+    // line-fed, and `getSupplyMode` prefers the bay — so a gate wired
+    // to a main and shipped with a cell is authoring a spare, not a
+    // supply. Standing the line up first makes that legible at boot.
+    await this.armSupply();
     await this.seatBornWithCell();
     await this.armNetwork();
     this.armTimetable();

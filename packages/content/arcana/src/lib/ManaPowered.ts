@@ -137,6 +137,12 @@ export interface ManaPowered {
   /** Reconcile the standing draw (reconcile-on-read, no clock). */
   reconcileStandby(): void;
 
+  /**
+   * Stand the linked mains up, if this device names one. A host calls
+   * it once at `postRegister`.
+   */
+  armSupply(): Promise<void>;
+
   // ---------- storage (public for the Hydrator) ----------
   drawMode: DrawMode;
   mainsRef: string;
@@ -276,6 +282,37 @@ export function ManaPoweredMixin<
         this.standbyClockStamp = nowS;
       } finally {
         this._reconcilingStandby = false;
+      }
+    }
+
+    /**
+     * ⚠⚠ **Stand the linked line up.** Found by the live drive, and it
+     * is the difference between a design and a working one: a
+     * `ManaMain` is a SINGLETON, and a singleton nobody resolves never
+     * exists. {@link resolveSupply} reads the live object
+     * (`findByTemplatePath`) and is deliberately SYNC — it is on the
+     * render path — so it cannot clone one itself.
+     *
+     * So a device wired to a line resolves that line at standup,
+     * exactly as `FastTravelMixin.armNetwork` resolves its routes. The
+     * row installed, the terminal read its `mainsRef`, and every gate
+     * still reported `getSupplyMode() === 'none'` — the whole
+     * line-versus-cell fare distinction was inert, and nothing but
+     * driving it would have said so.
+     *
+     * A failure is warned and swallowed: an unresolvable line is a
+     * device with no line, which the six-word vocabulary already has a
+     * word for.
+     */
+    public async armSupply(): Promise<void> {
+      if (!this.mainsRef) return;
+      try {
+        await StuffApi.singletonOrClone<Stuff>(this.mainsRef);
+      } catch (err) {
+        console.warn(
+          `ManaPoweredMixin: mains ${this.mainsRef} failed to load:`,
+          err instanceof Error ? err.message : String(err),
+        );
       }
     }
 
