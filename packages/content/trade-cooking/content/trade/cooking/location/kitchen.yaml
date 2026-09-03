@@ -55,3 +55,11 @@ data:
     - /stuff/thing/fixture/counter
     - /stuff/thing/fixture/larder
     - /stuff/thing/fixture/basin
+    # A furnished let comes with something to eat off and something to eat
+    # with. Movables rather than built-ins, but they belong to the let the
+    # way the basin does — and without them the errand collapse the kitchen
+    # exists FOR is only half delivered.
+    - /stuff/thing/items/bowl
+    - /stuff/thing/items/plated-dish
+    - /stuff/thing/cutlery/horn-spoon
+    - /stuff/thing/cutlery/table-knife

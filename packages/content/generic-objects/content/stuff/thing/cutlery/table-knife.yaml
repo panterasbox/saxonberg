@@ -1,0 +1,20 @@
+# A table knife — the third utensil kind, and the one the SMITH makes: it
+# is the output row of `trade-smithing`'s `table-knife` recipe, a near-copy
+# of the belt knife at a gentler heat. ⭐ That is the point of shipping one
+# cutlery recipe rather than none: a dinner table wakes making trades, and
+# the smith gets a real answer to the demand crockery and cutlery create.
+#
+# ⚠ It is a `CraftVessel`, not a `Weapon`. A table knife is serviceware —
+# it is claimed at a meal, dirtied, and washed. Give it a blade profile and
+# every dinner service becomes an armoury.
+class: /platform/thing/CraftVessel
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a table knife
+  primaryKeyword: table-knife
+  keywords: [table-knife, knife, utensil]
+  longDescription: |
+    A blunt-tipped knife with a broad flat blade, made for a table rather than a belt: it will part a roast and would embarrass anybody who drew it anywhere else.
+  category: table-knife
+  _materialPath: /stuff/idea/material/element/iron
+  mass: 0.08

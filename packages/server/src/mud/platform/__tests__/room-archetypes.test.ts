@@ -120,6 +120,15 @@ describe("the kitchen — BUNDLE (D12)", () => {
       "/stuff/thing/fixture/counter",
       "/stuff/thing/fixture/larder",
       "/stuff/thing/fixture/basin",
+      // ⭐ …and something to eat off, and something to eat WITH. Dinnerware
+      // is claimed from what is in reach rather than conjured per meal, so
+      // a kitchen with no crockery serves out of the pot — which is a
+      // legitimate outcome and a poor let. Cutlery never gates the act; it
+      // changes the sentence.
+      "/stuff/thing/items/bowl",
+      "/stuff/thing/items/plated-dish",
+      "/stuff/thing/cutlery/horn-spoon",
+      "/stuff/thing/cutlery/table-knife",
     ]);
   });
 

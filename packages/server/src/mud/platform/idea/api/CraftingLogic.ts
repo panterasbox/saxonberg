@@ -191,7 +191,7 @@ interface GatheredMatter {
  */
 interface PoolGlass {
   isClaimable(): boolean;
-  setSoiled(value: boolean): void;
+  soil(): void;
   setTechnique(value: string): void;
   setIce(kg: number, form: string, meltK?: number, latentJPerKg?: number): void;
   clearIce(): void;
@@ -848,7 +848,7 @@ async function finishGlass(
     }
   }
   if (typeof pool.setTechnique === 'function') pool.setTechnique(technique);
-  if (typeof pool.setSoiled === 'function') pool.setSoiled(true);
+  if (typeof pool.soil === 'function') pool.soil();
 }
 
 /**
@@ -976,7 +976,7 @@ async function applyEdibleOutput(
   // and the whole wash loop would be decorative; and a pot exempted from
   // it could serve dinner every night and never need cleaning.
   const pool = asPoolGlass(output);
-  if (typeof pool.setSoiled === 'function') pool.setSoiled(true);
+  if (typeof pool.soil === 'function') pool.soil();
 
   const authored = recipe.getOutputMaterial();
   if (authored) {

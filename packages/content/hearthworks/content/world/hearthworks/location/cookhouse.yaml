@@ -39,5 +39,12 @@ data:
     - /stuff/thing/items/bowl
     - /stuff/thing/items/bowl
     - /stuff/thing/items/platter
+    # Cutlery. ⚠ Never a gate: `eat` uses one when there is one and says
+    # so, and eats with your fingers when there is not. It is here because
+    # a cookhouse that serves stew and hands you nothing to eat it with is
+    # a worse lie than one that does.
+    - /stuff/thing/cutlery/horn-spoon
+    - /stuff/thing/cutlery/horn-spoon
+    - /stuff/thing/cutlery/table-knife
   cast:
     - /world/hearthworks/agent/cook

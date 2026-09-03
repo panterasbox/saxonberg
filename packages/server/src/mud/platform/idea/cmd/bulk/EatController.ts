@@ -12,6 +12,7 @@
  */
 
 import { CommandController } from "../../../../lib/command/CommandController";
+import type { Stuff } from "../../../../lib/stuff/Stuff";
 import type { CommandContext, CommandModel } from "../../../../api/command";
 import type { MqlOneResult } from "../../../../api/mql";
 import { BulkableApi } from "../../../../api/bulk";
@@ -21,6 +22,11 @@ import { StuffApi } from "../../../../api/stuff";
 import { Mml } from "../../../../api/mml";
 import { METABOLIC_DEFAULTS } from "../../../../lib/metabolism/Metabolic";
 import { Freshness } from "../../../../lib/material/Freshness";
+import {
+  UTENSIL_KINDS,
+  UTENSIL_PHRASE,
+  type UtensilKind,
+} from "../../../../lib/bulk/Utensil";
 
 const TOPIC = "act.deed";
 
@@ -85,12 +91,58 @@ export default class EatController extends CommandController<EatModel> {
     }
 
     const appearance = material.getAppearance() || material.getName() || "it";
+    // ⭐ Cutlery READS, it never gates. A clean utensil in reach is used
+    // and dirtied — which is what puts it in the same wash loop as the
+    // crockery — and its absence changes the sentence, not the outcome.
+    const utensil = this.claimUtensil(giver);
+    const withIt = utensil ? ` ${UTENSIL_PHRASE[utensil.kind]}` : "";
     // Emit the scene while the item still exists, then consume it.
     MessageApi.scene(giver)
       .topic(TOPIC)
-      .toSelf(Mml.compose`You eat the ${appearance}.`)
-      .toPeers(Mml.compose`${Mml.actor(giver)} eats ${Mml.thing(target)}.`)
+      .toSelf(
+        utensil
+          ? Mml.compose`You eat the ${appearance}${withIt}.`
+          : Mml.compose`You eat the ${appearance} with your fingers.`,
+      )
+      .toPeers(
+        utensil
+          ? Mml.compose`${Mml.actor(giver)} eats ${Mml.thing(target)}${withIt}.`
+          : Mml.compose`${Mml.actor(giver)} eats ${Mml.thing(target)} with their fingers.`,
+      )
       .send();
     await StuffApi.destruct(target);
+  }
+
+  /**
+   * The first clean utensil in reach — held kit first, then the table.
+   * Soils it on the way out (a used spoon is washed like a used bowl).
+   * `null` when there is none, which is a perfectly good way to eat.
+   */
+  private claimUtensil(
+    eater: CommandContext["commandGiver"],
+  ): { kind: UtensilKind } | null {
+    const self = eater as unknown as Stuff;
+    const reach: Stuff[] = [];
+    if (MixinApi.isContainer(self)) reach.push(...self.getContents());
+    if (MixinApi.isContainable(self)) {
+      const here = self.getContainer();
+      if (here && MixinApi.isContainer(here)) reach.push(...here.getContents());
+    }
+    for (const kind of UTENSIL_KINDS) {
+      for (const candidate of reach) {
+        if (!MixinApi.isBulkable(candidate)) continue;
+        if (candidate.getCategory() !== kind) continue;
+        const vessel = candidate as unknown as Partial<{
+          isClaimable(): boolean;
+          soil(): void;
+        }>;
+        if (typeof vessel.isClaimable === "function" && !vessel.isClaimable()) {
+          continue;
+        }
+        if (typeof vessel.soil === "function") vessel.soil();
+        return { kind };
+      }
+    }
+    return null;
   }
 }

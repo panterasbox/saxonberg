@@ -128,7 +128,23 @@ export default class CraftVessel extends CraftVesselBase {
   isSoiled(): boolean {
     return this.soiled;
   }
-  /** Mark used (the fill) or clean (the wash). */
+
+  /**
+   * ⭐ **Mark it used.** The public half of the pair, and deliberately
+   * one-way: it can only ever dirty a vessel, and `wash()` below is the
+   * only road back. That is why it needs no gate where the raw setter
+   * does — anyone who uses a vessel may soil it (the craft that fills it,
+   * the diner who eats off it), and nobody at all may quietly un-soil one.
+   */
+  soil(): void {
+    this.soiled = true;
+  }
+
+  /**
+   * The raw setter, and the reason it is gated: it is the only way to set
+   * `soiled` back to `false` other than a real wash. The Hydrator arms are
+   * not optional — see the policy above.
+   */
   @CallSecurity(SoiledWriters)
   setSoiled(value: boolean): void {
     this.soiled = value;
@@ -151,6 +167,17 @@ export default class CraftVessel extends CraftVesselBase {
    * bottle are `CraftVessel`s too.
    */
   wash(): void {
+    // ⚠ Serviceware without contents is still washed: a spoon and a table
+    // knife are `CraftVessel`s whose interior slot is never filled (see
+    // `lib/bulk/Utensil.ts`), and `getBulk` THROWS on a host that has no
+    // such slot. Skip straight to the rest of the wash for them.
+    if (!this.hasInteriorBulk()) {
+      for (const c of [...this.getContents()]) StuffApi.destruct(c);
+      this.clearIce();
+      this.setTechnique('');
+      this.soiled = false;
+      return;
+    }
     const slot = this.getBulk('interior');
     if (!slot.isEmpty()) {
       BulkableApi.transfer(slot, null, {

@@ -1,0 +1,33 @@
+# Horn — keratin off an animal's head, worked warm and set hard. The
+# medieval plastic: it splits, scrapes and presses into spoons, combs,
+# beakers, lantern panes and buttons, and it is what a spoon was made of
+# for most of history before it was made of anything else.
+#
+# Tough for its softness (like leather, and for the same reason — layered
+# keratin spreads a blow rather than resisting it), a poor conductor of
+# heat (which is exactly why a horn spoon never scalds a lip), and
+# electrically an insulator when dry.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: horn
+  appearance: scraped translucent horn, amber where the light comes through
+  keywords: [horn, keratin]
+  density: 1300
+  specificHeat: 1700
+  thermalConductivity: 0.2
+  # Mechanical response (MPa / MJ·m⁻³): harder than leather, far softer
+  # than bone, and tough enough to survive being dropped on a flagstone.
+  hardness: 60
+  toughness: 6
+  electricalConductivity: 1.0e-11
+  # Water absorption (% of dry mass): horn takes up water and softens,
+  # which is how it is worked in the first place.
+  waterAbsorptionCapacity: 12
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["organic", "horn", "keratin", "once-living"]
+  composition: []
+  chemistry: null
+  biologicalSource: null
