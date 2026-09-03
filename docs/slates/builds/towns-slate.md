@@ -148,11 +148,16 @@ that is only a mine is a facility.
 **The support half**, derived — miners are paid in coin, work rotations,
 come up filthy, and their bodies wear out:
 
-- **A boarding house.** Rooms let by the week to single men. ⭐ This is the
-  residence rung Hinkley cannot have: **tenancy without title**, the
-  missing middle of the property ladder (dorm → *lodging* → lot). The dorm
-  is institutional; a lodging house is a **business somebody runs**, which
-  makes it the first rental market in the game.
+- **A boarding house.** Rooms let by the week to single men. ⭐ The
+  residence rung Hinkley cannot have — and ⚠ **not** the first rental
+  market: Mayfield Row already ships one (Walter, the `lease`/`unlease`
+  verbs, the Seznick House unit programme). The distinction is the
+  instrument. Mayfield lets a **unit on a term** — a lease, a keyway, a
+  tenancy you hold. A lodging house lets a **bed by the week**, no
+  instrument, no term, out the door on Friday if you cannot pay. Same
+  rung of the ladder (dorm → lodging → lease → lot), two different
+  theories of what a tenant is, and the mining town gets the harsher one
+  because that is what the work pays for.
 - **The public house.** The wage sink — and, not incidentally, the room
   where a town gets chartered. ⭐ Rejection has no polity and no room to
   argue in. Those are the same gap.
@@ -502,9 +507,10 @@ Leave it.
   faces the commons. Do not converge them on one civics mechanism.
 - **D5 — Heart's Delight ships both halves in one build.** Its support
   half is richer than its functional half.
-- **D6 — Rejection's support half is a rental market first.** The boarding
-  house is the missing ladder rung (tenancy without title), and it is a
-  business somebody runs.
+- **D6 — Rejection's support half is a lodging house first.** ⚠ Not the
+  first rental market — Mayfield Row ships that. The lodging house is the
+  *instrument-free* rung: a bed by the week, no lease, no term. The
+  ladder is dorm → lodging → lease → lot.
 - **D7 — Hinkley's support half is a facade, then a civic room.** The
   owner-authored exterior + sign rendered into the lane comes before the
   hall.
