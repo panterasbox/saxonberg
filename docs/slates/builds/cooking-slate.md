@@ -1462,6 +1462,69 @@ food:
   economy — temple economies were real), and the no-powers rule
   immunizes it: with nothing granted, there is nothing to farm.
 
+---
+
+## Part 9 — Magic & the kitchen (settled)
+
+The arcane system legislates this for us: it has **one postulate** and
+a **price list**, and every answer below is read off them rather than
+invented.
+
+### Magic cannot MAKE food — the headline
+
+*"Magic never creates matter… every conjuration in the roster is
+therefore a **collection**."* So the genre's create-food-and-water is
+**out**, and what replaces it is better: **conjuring dinner means the
+dinner came from somewhere** — somebody's larder is emptier, and that
+is theft with an accountability trail. The most-abused fantasy trope
+is banned by the fiction's own physics, not by a designer's ruling.
+
+### Magic CAN move energy — so it is a rung on the heat ladder
+
+- **Heat is the cheapest delivery form** the price list has
+  (η = 0.85 — *"thermalisation is the cheapest thing energy can
+  do"*), so the mage-heated pan is about the cheapest spell there is:
+  the **arcane rung of Part 7's fuel ladder** — no wood, no smoke, no
+  supply line, but the caster pays.
+- ⭐ **The price list already wrote the joke**: losses dissipate *in
+  the caster*, so casting warms you — *"novices run hot and masters
+  stay cool… a novice at 0.35 dissipates six times what a master at
+  0.85 does, and **cooks accordingly**."* The apprentice heating the
+  pan is himself the thing getting hot.
+- ⭐⭐ **Magical refrigeration is Carnot-priced, and the pumped heat
+  goes INTO THE CASTER** (`W ≥ Q · (T_hot − T_cold) / T_cold`) — *the
+  mage who chills the larder cooks himself.* Which is precisely why
+  magic does **not** kill the icehouse trade or trivialize the cold
+  chain: **the price list is the balance mechanism**, and nobody has
+  to nerf anything.
+
+### Magic food that heals is a magic ITEM shaped like a pie
+
+- **The food is the carrier, not the cause** — it would work
+  identically as a ring. So there is no "magic cooking" trade: the
+  cook makes the pie, the enchanter enchants it
+  ([magic-items](../../subsystems/magic-items.md)' three item classes,
+  the `S* = inflow/d` charge economy, BUC, `canAfflict`, and
+  **census-gated distribution** — so magic food is **rare by
+  construction**, never a staple). Part 3's rule holds: cooking is
+  not a backdoor to effects. The honest answer to *"but magic food
+  heals, right?"* is **yes — because it is magic, not because it is
+  food.**
+- ⭐ **Eating is a uniquely interesting delivery**: the one act that
+  puts an object *inside* you and consumes it — a natural single-use
+  item class, and **the cleanest consent seam in the game** (you
+  chose to eat it; `canAfflict` gets its clearest case).
+- **The dark side ships already**: poisoned or cursed food (toxins +
+  BUC + the accountability ledger) — the banquet betrayal is
+  mechanically real, which is exactly the drama worth having.
+
+### The pedagogy: magic doesn't escape the physics, it relocates
+
+The arcane system is *built on* thermodynamics (one impossible
+postulate, everything else real) and so is this design — so a
+mage-cook is **the same energy accounting either way**. Exergy, the
+second law, and Carnot taught through dinner.
+
 ⚠ Build-freeze note: captured during the client-rebuild design-only
 phase. This slate is the input to a `/requirements` cycle when the
 freeze lifts.
