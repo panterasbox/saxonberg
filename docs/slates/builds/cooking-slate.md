@@ -508,6 +508,53 @@ handle, respect the danger zone. **Competence is the safety
 equipment** — and the professional kitchen's dignity is trained habits
 around hazards the domestic cook meets alone.
 
+### Food & medicine: nourishment, not potions (settled)
+
+This is the question the no-buff rule (§ Part 8) exists to answer, and
+the honest distinction is sharp:
+
+- ⭐⭐ **Food doesn't heal — food FEEDS, and feeding is what healing
+  REQUIRES.** A buff is a stat granted by eating; nutrition is a
+  **precondition**. And the scaffolding already ships inert:
+  metabolism's *"Protein → healing: routed into an inert pool that
+  drains nowhere."* The honest model is therefore already framed —
+  wounds close over time, that healing **spends** protein and energy,
+  and a starving body doesn't mend. Not a potion; physiology.
+  ❌ *eat stew → +20 HP*; ✅ *you heal at all because there is
+  material to rebuild with.*
+- **The invalid's broth earns its reputation honestly**: `absorbPerMin`
+  is **per nutrient**, so liquid nutrition genuinely absorbs faster
+  than a roast — the broth's advantage is a digestion-pool rate, not a
+  bonus. (Historically, nursing and feeding the sick were one job;
+  here the cook feeds the convalescent for real reasons.) A natural
+  future act: feeding someone who cannot feed themselves.
+- **The remedy boundary**: the **apothecary owns remedies, the cook
+  owns nourishment**. The honest line for what a remedy may do —
+  **resolve a named `Condition`** (`resolution: { by: … }`, how the
+  substrate already works), never grant a bonus: ✅ an antitoxin
+  clears ptomaine; ❌ a tonic gives +2 strength. The **antitoxin gap**
+  (§ Part 4, item 6) is exactly where remedies land,
+  and herbal knowledge is the `apothecary` Discipline's, even when the
+  *method* (a tisane) is cooking's — the same trade/method split as
+  everywhere else.
+- **Magic stays magic**: enchanted food is
+  [magic-items](../../subsystems/magic-items.md)' business (BUC, the
+  charge economy, the `canAfflict` veto) — never a cooking backdoor to
+  effects.
+- ⭐⭐ **The flip side is where food really touches health:
+  DEFICIENCY, not buffs.** Metabolism carries scurvy wired-but-inert
+  — *"a deficiency IS just a `Reserve`… wire one when a real consumer
+  appears"* — and **this build is that consumer appearing** (the same
+  pattern as compost's missing producer). Bad diet *causes* conditions:
+  honest, and the best pedagogy in the whole design.
+- ⭐⭐⭐ **The ship's galley is where the entire design converges.**
+  Part 7's `galley` archetype + the victualler's preserved stores + no
+  cold storage + no fresh produce = **scurvy**, with citrus the honest
+  cure that **farming already grows** (lemon, lime and orange rows
+  ship today). Real history, real science, every piece already
+  existing or slated — the set-piece this family has been building
+  toward without anyone planning it.
+
 ### Leftovers & storage containers (settled)
 
 Zero new mechanism — but one load-bearing decision about where the
