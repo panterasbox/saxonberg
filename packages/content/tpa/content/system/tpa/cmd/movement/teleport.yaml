@@ -40,9 +40,23 @@ validators:
   - /lib/command/validators/requiresAnimate
 args:
   # Where to go. The ride fork reads the RAW token as a local route
-  # keyword; free movement resolves it as an MQL target.
+  # keyword; free movement resolves it as an MQL target; the anchored
+  # spell resolves it through `TeleportController.resolveAnchored`.
+  #
+  # ⚠ `onExcess: error` is deliberate and is the whole of D10's
+  # ambiguity rule at the view layer: the default `top` SILENTLY picks a
+  # winner, and "which of these did you mean" is the engine admitting
+  # you did not hold the place clearly and then arriving anyway.
+  # Teleportation's hard part IS specification, so ambiguity is a FAILED
+  # SPECIFICATION, never a disambiguation prompt.
+  #
+  # ⓘ The scope list stays deliberately narrow and contains no `world`.
+  # The anchored resolver computes its scopes PER ACTOR (held extents,
+  # registered nodes, then what is in front of you), which a static
+  # `scope:` cannot express — that is why it is controller-side.
   - name: destination
     type: object
     required: false
-    scope: ["online", "/stuff/**", "/platform/**", "reachable"]
+    onExcess: error
+    scope: ["reachable", "here", "peers"]
     requires: any

@@ -44,7 +44,24 @@ import { AppSettingKeys } from "@saxonberg/server/mud/lib/config/AppSettings";
 import type { AetherHosted } from "@saxonberg/server/mud/lib/augmentation/AetherHosted";
 import type { CredentialWallet } from "@saxonberg/server/mud/lib/credential/CredentialWallet";
 import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
+import { SchedulerApi } from "@saxonberg/server/mud/api/scheduler";
+import { CastActivity } from "@saxonberg/server/mud/lib/magic/CastActivity";
+import type { AbortReason } from "@saxonberg/types";
+import type { Caster } from "@saxonberg/server/mud/lib/magic/Caster";
+import type { CommandGiver } from "@saxonberg/server/mud/lib/command/CommandGiver";
 import { FAST_TRAVEL_MIXIN, type FastTravel } from "../../../lib/FastTravel";
+
+/** The working the anchored front door casts. One spell, two grammars. */
+const TELEPORT_SPELL = "teleport";
+
+/** Which anchor answered — for the refusal prose, never for the gate. */
+type Anchor = "extent" | "registered" | "scope";
+
+interface AnchoredHit {
+  stuff: Stuff | null;
+  ambiguous: boolean;
+  anchor: Anchor | null;
+}
 
 interface TeleportModel extends CommandModel {
   destination?: MqlOneResult;
@@ -141,6 +158,253 @@ export default class TeleportController extends CommandController<TeleportModel>
     }
   }
 
+  /* ── the anchored spell (D10) ───────────────────────────────────── */
+
+  /**
+   * Cast `teleport` at a destination resolved through the ANCHORS —
+   * the off-network front door.
+   *
+   * ⭐ Two front doors, deliberately complementary. `cast teleport` is
+   * **see-it-and-go**: arcana's own verb, the ordinary `reachable`
+   * scope, a short hop across a room you are looking at. `teleport` is
+   * the **anchored** door: the long hop to somewhere you are *not*, and
+   * the only way to name it is one of the three things you can honestly
+   * be said to hold in mind. One spell row, one cost function, two
+   * grammars.
+   */
+  private async anchoredCast(
+    raw: string,
+    context: CommandContext,
+  ): Promise<void> {
+    const giver: Stuff = context.commandGiver;
+
+    // ⭐ The SPECIFICATION is checked before the faculty, deliberately.
+    // Failing to hold a place clearly is a failure about the place, not
+    // about you — a caster and a non-caster who both said something
+    // vague deserve the same answer, and it is the more useful one.
+    const hit = await TeleportController.resolveAnchored(giver, raw);
+    if (hit.ambiguous) {
+      // ⚠ A FAILED SPECIFICATION, never a disambiguation prompt (D10).
+      // Teleportation's hard part is holding a place precisely; "which
+      // of these did you mean" is the engine admitting you did not, and
+      // then doing it anyway. The refusal IS the mechanic.
+      return this.fail(
+        context,
+        `several places answer to '${raw}' — you cannot hold it clearly ` +
+          `enough to arrive in it`,
+        "failed-specification",
+      );
+    }
+    if (!hit.stuff) {
+      return this.fail(
+        context,
+        `you cannot bring '${raw}' to mind — you have never surveyed it, ` +
+          `it is not yours, and it is not in front of you`,
+        "no-anchor",
+      );
+    }
+
+    if (!MixinApi.isCaster(giver)) {
+      return this.fail(
+        context,
+        `no terminal here goes there, and you have no gift to make the ` +
+          `hop yourself`,
+        "no-faculty",
+      );
+    }
+
+    const caster = giver as Stuff & CommandGiver & Caster;
+    const prep = await caster.prepareCast(TELEPORT_SPELL, hit.stuff);
+    if (!prep.ok) {
+      return this.fail(
+        context,
+        prep.refusal ?? "the working will not come",
+        "cast-refused",
+      );
+    }
+
+    // ⚠ The anchored hop REFUSES a short pool rather than overchannelling
+    // into it (AC18). Overchannelling is a fair price for a firebolt you
+    // chose to force; paying it to travel would make strain the ordinary
+    // cost of getting anywhere, which is not a bargain anyone would take
+    // knowingly. The quote is `prepareCast`'s, so nothing was spent.
+    const pool = MixinApi.isReserved(giver)
+      ? (caster.getMana()?.current.rawValue() ?? 0)
+      : 0;
+    const price = prep.costTau ?? 0;
+    if (pool < price) {
+      return this.fail(
+        context,
+        `you are ${Math.ceil(price - pool)} short of what that hop costs — ` +
+          `rest, or ride the network`,
+        "insufficient-mana",
+      );
+    }
+
+    const target = hit.stuff;
+    const onComplete = (): void => {
+      void this.resolveAnchoredCast(caster, target, context);
+    };
+    // No engagement capacity (a bare fixture) → resolve now, the
+    // degenerate-fallback pattern `CastController` uses. AWAITED here,
+    // unlike the scheduled arm: with nothing to schedule there is
+    // nothing to fire-and-forget, and a caller that awaited `execute`
+    // should see the arrival.
+    if (!MixinApi.isEngaged(giver)) {
+      return this.resolveAnchoredCast(caster, target, context);
+    }
+    const activity = new CastActivity({
+      actor: giver,
+      spellId: TELEPORT_SPELL,
+      durationMs: (prep.castSeconds ?? 3) * 1000,
+      onComplete,
+      onAbort: (_reason: AbortReason): void => {
+        MessageApi.scene(giver)
+          .topic("act.deed")
+          .toSelf(Mml.compose`The place slips out of focus, and you stay put.`)
+          .send();
+      },
+    });
+    const result = SchedulerApi.start(activity);
+    if (result.ok && result.status === "completed-sync") return;
+    if (result.ok) {
+      context.note(result.note);
+      MessageApi.scene(giver)
+        .topic("act.deed")
+        .toSelf(Mml.compose`You begin holding the place in mind…`)
+        .toPeers(
+          Mml.compose`${Mml.actor(giver)} goes still, shaping something.`,
+        )
+        .send();
+      return;
+    }
+    this.fail(
+      context,
+      "your hands and voice are otherwise committed",
+      "engagement-conflict",
+    );
+  }
+
+  /** The completion body — resolve and render. */
+  private async resolveAnchoredCast(
+    caster: Stuff & Caster,
+    target: Stuff,
+    _context: CommandContext,
+  ): Promise<void> {
+    const out = await caster.resolveCast(TELEPORT_SPELL, target);
+    MessageApi.scene(caster as unknown as Stuff)
+      .topic("act.deed")
+      .toSelf(
+        Mml.fromMarkup(
+          out.ok
+            ? out.reports.join(" ") || "The world folds, and lets go."
+            : (out.refusal ?? "The working slips away at the last moment."),
+        ),
+      )
+      .send();
+  }
+
+  /**
+   * **The three anchors, in order, first hit wins — and never `world:`.**
+   *
+   * ⭐⭐ The rule this enforces is not a performance one, though it is
+   * that too. *You may only teleport somewhere you can honestly be said
+   * to hold in mind*, and there are exactly three ways to hold a place:
+   *
+   * 1. **an extent you hold** — you authored it, so of course you know
+   *    where it is. One `<extent>/**` path-glob seed per held extent,
+   *    each fed through `MqlApi.resolveOne`. This is precisely what
+   *    `CommandLogic`'s `tries` loop does with a view's static `scope:`
+   *    list; the only difference is that the list is computed PER
+   *    ACTOR, which a static YAML `scope:` cannot express — which is
+   *    why it lives here and not in the view.
+   * 2. **a registered node** — you have physically been there and
+   *    surveyed it. A small enumerated set of template paths off the
+   *    credential, matched by keyword against each live node. No MQL,
+   *    no scan.
+   * 3. **current scope** — `here`, then `peers`, then `reachable`: you
+   *    are looking at it.
+   *
+   * ⚠ There is no fourth anchor and there must never be a `world:`
+   * seed. Resolving is not permission, and a world scan would make
+   * "somewhere you hold in mind" mean "anywhere that exists". A spy
+   * test asserts on the scope ARGUMENT across every branch, so a new
+   * anchor cannot slip one past.
+   *
+   * Static so the resolver is unit-testable without a dispatch.
+   */
+  static async resolveAnchored(
+    giver: Stuff,
+    raw: string,
+  ): Promise<AnchoredHit> {
+    const commandGiver = giver as Stuff & CommandGiver;
+
+    // 1 — held extents.
+    for (const extent of await AccessApi.heldExtents(giver)) {
+      const scope = `${extent}/**`;
+      const many = MqlApi.resolveMany(raw, { commandGiver, scope });
+      if (many.stuff.length > 1) {
+        return { stuff: null, ambiguous: true, anchor: "extent" };
+      }
+      if (many.stuff.length === 1) {
+        return { stuff: many.stuff[0]!, ambiguous: false, anchor: "extent" };
+      }
+    }
+
+    // 2 — registered nodes. An enumerated set, so this is a walk over a
+    // handful of live singletons rather than any kind of query.
+    const kw = raw.trim().toLowerCase();
+    const hits: Stuff[] = [];
+    for (const ref of TeleportController.registeredNodes(giver)) {
+      const node = StuffApi.findByTemplatePath<Stuff>(ref);
+      if (!node) continue;
+      if (
+        MixinApi.isPerceptible(node) &&
+        node.getKeywords().some((k) => k.toLowerCase() === kw)
+      ) {
+        hits.push(node);
+      }
+    }
+    if (hits.length > 1) {
+      return { stuff: null, ambiguous: true, anchor: "registered" };
+    }
+    if (hits.length === 1) {
+      return { stuff: hits[0]!, ambiguous: false, anchor: "registered" };
+    }
+
+    // 3 — what is in front of you.
+    for (const scope of ["here", "peers", "reachable"]) {
+      const many = MqlApi.resolveMany(raw, { commandGiver, scope });
+      if (many.stuff.length > 1) {
+        return { stuff: null, ambiguous: true, anchor: "scope" };
+      }
+      if (many.stuff.length === 1) {
+        return { stuff: many.stuff[0]!, ambiguous: false, anchor: "scope" };
+      }
+    }
+
+    return { stuff: null, ambiguous: false, anchor: null };
+  }
+
+  /**
+   * The node paths on the actor's IDENTITY-bound travel credential —
+   * the places they have physically been and registered. Read off the
+   * aether-hosted wallet, never a carried card (a loaded card handed to
+   * someone else confers nothing).
+   */
+  private static registeredNodes(giver: Stuff): readonly string[] {
+    if (!MixinApi.isAether(giver)) return [];
+    const holder =
+      giver
+        .getHostedUpdates()
+        .find(
+          (s): s is Stuff & AetherHosted & CredentialWallet =>
+            MixinApi.isCredentialWallet(s) && !!s.getCredential("travel"),
+        ) ?? null;
+    const cred = holder?.getCredential("travel");
+    return cred ? [...cred.getRegistered()] : [];
+  }
+
   /* ── TPA ride (unprivileged) ────────────────────────────────────── */
 
   private async tpaTeleport(
@@ -158,7 +422,13 @@ export default class TeleportController extends CommandController<TeleportModel>
       reachable.find(
         (s): s is Stuff & FastTravel => MixinApi.isActive(s, FAST_TRAVEL_MIXIN),
       ) ?? null;
+    const raw = model.destination?.raw;
     if (!node) {
+      // ⭐ No terminal, but a place named: the ANCHORED SPELL (D10).
+      // The network is a utility selling a capability its customers do
+      // not have — so someone who HAS the capability should not need
+      // the utility, and this is where they do not.
+      if (raw) return this.anchoredCast(raw, context);
       return this.fail(context, "there is no terminal here", "no-terminal");
     }
 
@@ -175,7 +445,7 @@ export default class TeleportController extends CommandController<TeleportModel>
     // `getSelectedDestination()`: that getter falls back to the first
     // route, so it is never null on a node with routes, and the board
     // was unreachable from a bare `teleport` for the whole of its life.
-    const kw = model.destination?.raw;
+    const kw = raw;
     if (!kw) {
       if (MixinApi.isSensor(giver)) {
         // The board is PROSE, and prose off a screen is read, never
@@ -247,11 +517,11 @@ export default class TeleportController extends CommandController<TeleportModel>
       );
     }
     if (!res.route) {
-      return this.fail(
-        context,
-        `no route here goes to '${kw}'`,
-        "route-not-found",
-      );
+      // ⭐ The network does not go there — but you might. Falling
+      // through to the spell is the honest order: the terminal is a
+      // convenience, not a permission, and a caster standing at a gate
+      // is not worse off than one standing in a field.
+      return this.anchoredCast(kw, context);
     }
     node.setSelectedDestination(res.route.ref);
     const ref = res.route.ref;
