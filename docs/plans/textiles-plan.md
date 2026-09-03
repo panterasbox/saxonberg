@@ -204,12 +204,30 @@ A1 shippable before the chain.
 - **Non-repetition:** phrasings ship as
   `content/platform/content/descriptor-banks/impression.yaml`, keyed
   `(facet, band)`, ≥ 5 each — and `lint:descriptors` keeps them disjoint
-  from material vocabulary for free. Selection is **seeded, not drawn**
-  (uncertainty.md): a hash of `(host.stuffId, factsDigest, viewerId)`
-  minus the viewer's recent set. The recent set is a **transient
-  `PropertiedMixin` prop on the viewer** —
-  `Property.of<string[]>('impression.recent')`, a runtime-computed key on
-  a session-scoped slot, one of the two sanctioned prop uses. Cap 8, FIFO.
+  from material vocabulary for free.
+
+  ⚠⚠ **CORRECTED 2026-09-02 — the returned plan held a "recent set" in
+  `Property.of<string[]>('impression.recent')` on the viewer. That
+  violates the prop rule, and it is unnecessary.** CLAUDE.md: *"a prop is
+  for a slot whose **key is computed at runtime**… anything authored in
+  YAML or narrowed on is a mixin field."* `'impression.recent'` is a
+  **literal constant**, so it is not the sanctioned case.
+
+  ⭐ **And no state is needed at all.** Selection is **seeded, not
+  drawn** (`uncertainty.md`): a pure hash of
+  `(host.stuffId, factsDigest, viewerId)`. **The same outfit therefore
+  always reads the same way to the same viewer — which is correct and
+  desirable**, not a defect: an unchanged person should not re-describe
+  themselves differently every glance. Variety across *people* comes from
+  different hosts hashing differently, and a changed outfit changes
+  `factsDigest` and re-rolls honestly. **No prop, no FIFO cap, no session
+  state.**
+
+  ⚠ **The returned plan's test was testing the wrong thing** — 20 looks
+  at one host in one outfit *should* read identically. The tests that
+  matter: **N distinct hosts in distinct outfits yield ≥ K distinct
+  phrasings**, and **a re-read of one host is stable until its facts
+  change.**
 - **The authored half stays authored.** `PersonaMixin` is untouched.
 
 ### P3 — `Construction` gains a second source: closed resist kernel, open textile registry, one total depth ladder
@@ -242,14 +260,35 @@ kernel edit**; content **never** authors a resist profile.
    `drape` (reserved). ⚠ `layerBand` is **required and range-validated on
    set** — that is what keeps `getLayerDepth()` total. An out-of-range row
    throws at hydration, loudly.
-3. **The bridge is a boot-time registry on the pure value object.**
-   `Construction.registerFabric(spec)` / `clearFabrics()`
-   (HMR-safe) writing a module-private `Map`. A `FabricCatalogue`
-   singleton harvests the rows and pushes them in from
-   `MaterialLogic.boot` — **which already filters on
-   `tpl.class.startsWith('/platform/idea/material/')`, so placing
-   `Fabric.ts` in that cluster makes the directory the filter, for
-   free.** `Construction.ts` still imports only `./Channel`.
+3. **The bridge is a registry on the pure value object.**
+   `Construction.registerFabric(spec)` / `clearFabrics()` (HMR-safe)
+   writing a module-private `Map`. `Construction.ts` still imports only
+   `./Channel`.
+
+   ⚠⚠ **CORRECTED 2026-09-02 — the returned plan hung this on
+   `MaterialLogic.boot`, WHICH DOES NOT EXIST.** There is no such method;
+   the only `startsWith('/platform/idea/material/')` in the tree is an
+   assertion inside `libations-annexes.test.ts`. (CLAUDE.md's claim that
+   *"`MaterialLogic.boot` keeps a row only when
+   `tpl.class.startsWith(…)`"* is **stale** — flag for the sweep rather
+   than racing the index file.)
+
+   ⭐ **The correct mechanism is the precedent the plan already named.**
+   `FermentProfileCatalogue` is *"the **self-warming** home"* of its
+   roster, so `FabricCatalogue` (`platform/idea/FabricCatalogue.ts`)
+   copies it:
+
+   - `public override async postRegister()` → `await this.warm()` —
+     **self-warming, never an operator `boot()`**. ⚠ This is the
+     *reference-Ideas-inert-at-boot* rule, which has bitten three times:
+     nothing warms the roster and every read returns null forever.
+   - `warm()` harvests `/**/idea/fabric/**` **by path glob, never an
+     allowlist of roots** — a pack must never need a kernel list edit,
+     the same reason `everyMaterial()` globs `/**/idea/material/**`.
+   - a **residency veto** (`canEvict` → false): a culled catalogue
+     re-warms nothing.
+   - eager loading rides the **platform pack's `boot:` manifest**, and
+     `warm()` is idempotent so a pack go-live can re-warm.
 4. ⭐ **`responseFor()` on a textile form does not throw and is not
    authored.** One kernel constant answers for all of them:
    `TEXTILE_RESIST_PROFILE = { edge: 'poor', point: 'poor', blunt: 'poor' }`.
@@ -277,8 +316,8 @@ kernel edit**; content **never** authors a resist profile.
    changes. That is why this is a 15-site diff, not a 149-site one.
 6. ⚠ **`Constructed.setConstructionForm` validation ordering is
    unverified.** It throws on `!Construction.isForm(value)` at hydration;
-   if `MaterialLogic.boot` has not registered the textile rows when a
-   garment row hydrates, `constructionForm: woven` throws. **A2 verifies
+   if `FabricCatalogue.postRegister` has not warmed when a garment row
+   hydrates, `constructionForm: woven` throws. **A2 verifies
    this first.** Named contingency: accept any well-formed kebab token at
    set-time, return `null` + a `DiagnosticApi` record for an unresolved
    form, and add a **boot-time totality assertion** in the catalogue —
@@ -479,9 +518,29 @@ Wrappers over Object Methods* and the four mandates in
   ```
   `massKg` is `Creature.getMass()`, which already reflects composition and
   will reflect lineage variance. **That is the seam, and it is one line.**
-- **The stamp.** `WearableMixin` gains
-  `cutTo?: { bodyPlanPath, statureM, girthIndex }` — persistent,
-  `authorable`, no marshaller. `cut` (B4) stamps it. ⭐ **An absent stamp
+- **The stamp.** ⚠⚠ **CORRECTED 2026-09-02 — the returned plan made this
+  `cutTo?: { bodyPlanPath, statureM, girthIndex }`, "a plain object (no
+  marshaller)". That is the BAD example** in `antipatterns.md` §
+  *Persistent Fields Default to Scalars*: a **fixed-key** composite of
+  three scalars is precisely the case the doctrine says **decomposes**
+  (*"mixins that carry richer runtime types decompose them into named
+  scalar fields and reconstruct on read"*). So `WearableMixin` gains
+  **three scalar fields**:
+
+  ```
+  cutToBodyPlan: string    // '' = stock
+  cutToStature:  number
+  cutToGirth:    number
+  ```
+
+  each persistent + `authorable`, each with its own validating setter,
+  reconstructed into a `FitReading` on read. ⭐ Contrast
+  `WardrobeMixin.wardrobes` (P12), which is a **variable-key map** — the
+  doctrine's named escape-hatch case, and the exact shape
+  `Wearable.slotClaims` already ships raw. The distinction is fixed keys
+  vs. variable keys, not "object vs scalar" by eye.
+
+  `cut` (B4) stamps them. ⭐ **An absent stamp
   means "stock"** and resolves to the plan average — so all fifteen
   shipped rows read as ill-fitting hand-me-downs **with no content edit**.
 - **Fit is the distance:**
@@ -799,13 +858,16 @@ Per P1 + P2.
 
 ### Wave A2 — `Construction`: the covering rename, `quilted`, the second source
 
-Per P3. ⚠ **Verify the `MaterialLogic.boot` ↔ hydration ordering before
-writing anything else in this wave.**
+Per P3. ⚠⚠ **Verify the `FabricCatalogue.postRegister` warm ↔ garment-row
+hydration ordering before writing anything else in this wave** — if a
+garment row hydrates before the roster warms, `setConstructionForm`
+throws. The boot-time totality assertion is the named contingency (P3.6).
 
 - **Kernel:** `Construction.ts` (rename, `quilted`,
   `TEXTILE_RESIST_PROFILE`, the registry, the widened ladder); new
-  `platform/idea/material/Fabric.ts` + `FabricCatalogue.ts`;
-  the `MaterialLogic.boot` registration hook.
+  `platform/idea/material/Fabric.ts`;
+  `platform/idea/FabricCatalogue.ts` (self-warming via `postRegister`,
+  `canEvict` veto, listed in the platform pack's `boot:`).
 - **Rename sweep:** the seven production files in P3.5 plus
   `check-does-nothing.ts`, `Construction.test.ts`,
   `material-response.test.ts:30`.
