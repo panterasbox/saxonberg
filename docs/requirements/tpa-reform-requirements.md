@@ -556,6 +556,18 @@ where it has been parked since before content packs existed.
   kernel behaves correctly with the pack absent — the water build's rule.
 - **Go through `AccessApi`.** No bespoke "is this person staff/an author?"
   check anywhere in this build.
+- ⚠⚠ **A pack's mixins live in its `src/lib/`, which requires amending
+  `lint:instanceable` invariant 8** (decided 2026-09-02). The rule was "a
+  pack ships no `lib/`", which made a **pack-specific mixin
+  unrepresentable** — it could go to the kernel (wrong for a mixin this
+  build is *removing* from the kernel) or into a branch folder (wrong by
+  construction: `thing/` means instanceable). Amended to *"`lib/` holds
+  only inherited substrate"* — mixins and value objects, nothing else; an
+  Api, a logic singleton or a free helper in a pack still means a kernel
+  MR. The headline *"nothing instances `/lib/`"* invariant is untouched,
+  because it tests **template paths** and a pack mixin has none.
+  ⭐ Where a mixin belongs has a testable answer: **substrate goes to the
+  kernel when its composers have no common pack ancestor.**
 - **The pack must hold a namespace root**, or `classFileOf` resolves its
   classes into the kernel tree.
 
