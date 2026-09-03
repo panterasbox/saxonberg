@@ -40,8 +40,11 @@ Seeding slates: [farming](../slates/builds/farming-slate.md) ·
 ## Goals
 
 - **A player can plot a field out of land they own**, walk it, read its ground,
-  and work it — the level-up-your-farm loop the farming slate designed and
-  nobody built.
+  and **make it into a field** — clear it, treat it, work it, and watch it revert
+  if they stop. The level-up-your-farm loop the farming slate designed and nobody
+  built.
+- **Land can hurt you, and so can what lives on it.** Failure has more than one
+  shape, and at least one of them is sharp.
 - **Soil is one model** across pot, bed, field and pasture, with its seeded
   character and its derived state separated and composed.
 - **Reading ground is a discipline** with an instrument ladder, not a number you
@@ -65,9 +68,10 @@ Seeding slates: [farming](../slates/builds/farming-slate.md) ·
   is the point of separating them.
 - **The shared `Genome`.** Husbandry-wide and owed to a build that does crops
   too. Parentage-seeding stands in underneath an unchanged surface (D26).
-- **Disease.** Living-world phase 6. This build must make the condition score
-  honest because phase 6 reads it as the resistance term; it must not stub
-  `ContagionSpec`.
+- **Disease, and zoonoses with it.** Living-world phase 6. This build must make
+  the condition score honest because phase 6 reads it as the resistance term; it
+  must not stub `ContagionSpec`. A sick animal making its keeper sick is the
+  sharpest hazard on the farm and it belongs to that build, not this one.
 - **Downstream nitrate contamination.** The loss leg ships; the commons dilemma
   it implies is a civics build with a victim, an evidence trail and a
   legislative response (D18).
@@ -183,9 +187,11 @@ below its residual, a sward has spent its root reserves and regrows slowly. This
 is what makes moving stock a **read** (move at residual, return at recovery)
 rather than a timer, and it makes overstocking *and* understocking both
 mistakes — grass that gets ahead of the herd goes stemmy and its feed quality
-drops. **Every failure is a slope, never a cliff**: an overgrazed paddock is a
-recovery-rate penalty, never a dead field or a dead animal. That is what lets
-the world-time clock run freely across an absence.
+drops. **An overgrazed paddock is a recovery-rate penalty**, never a dead field or a
+dead animal — which is what lets the world-time clock run freely across an
+absence. ⚠ This is a rule about **absence**, not a rule about safety; D45 scopes
+it, and the earlier phrasing *"every failure is a slope, never a cliff"* was
+overbroad.
 
 ### Winter
 
@@ -368,7 +374,9 @@ later replaces the seeding function underneath an unchanged surface.
 not have pet-love, but without *something* an individual is per-head bookkeeping.
 **Handling** — temperament, flight zone, ease of working — is real animal
 husbandry, earned by contact, lost by neglect, and economically consequential: a
-quiet cow milks better and a flighty one hurts you.
+quiet cow milks better and a flighty one hurts you. **The second clause is the
+important one — see D46, where handling is a safety mechanic before it is an
+efficiency one.**
 
 **D28 — Slaughter is sober and complete.** It exists because cooking !231 needs
 protein. It is work, it takes skill, and the animal is used entirely — meat and
@@ -545,6 +553,181 @@ the slate's divergence survives intact, and the pet gets a job. This is the one
 place pets and livestock touch mechanically, and it is why the family is one
 substrate.
 
+### Hazard and failure
+
+*(D45–D52, added after the hazards pass. Numbered by addition order rather than
+position, to avoid renumbering.)*
+
+**D45 — Slopes for absence, cliffs for presence, and weather is neither.** The
+slates' forgiveness contract exists to protect a player **who was not there**,
+and D9 originally over-generalized it into a world where nothing can hurt
+anybody. Three regimes, not one:
+
+- **What accrues in your absence is a slope.** You could not respond, so it must
+  not be catastrophic — overgrazing, drifting condition, a hedge going gappy.
+- **What happens in your presence can be a cliff.** You are standing there and
+  can act, so a bull in a pen with you is allowed to be exactly as dangerous as a
+  bull.
+- **Weather is neither, because it is not a judgement on you.** Hail an hour
+  before harvest is catastrophic and fair, because it fell on everyone's field
+  and not only the negligent one's. That is a legitimate *environmental*
+  provenance under the uncertainty doctrine, and it is what the
+  [insurance slate](../slates/builds/insurance-slate.md) is for.
+
+**D46 — Handling is a safety mechanic before it is an efficiency one.** D27 gave
+tractability an economic consequence, which is the smaller half. **Quiet stock
+handling exists in the real world because flighty animals injure people.**
+Cattle are the most dangerous thing on a farm — a bull, and a cow with a calf.
+Crushing against a gate, kicks, trampling in a race. The combat substrate already
+models a heavy thing that charges, and `harm.md`'s `ConditionApi.inflict` already
+delivers the consequence. **A badly handled animal is a hazard, not an
+inconvenience** — which is what gives D27 its teeth and gives the player a
+reason to handle stock properly beyond a yield percentage.
+
+**D47 — The farm has its own damps, and the rescue is what kills.** The direct
+analogue of the mine's bad air, riding shipped `breathableMedia`, asphyxiation
+and the crisis engagement drain:
+
+- **Manure pit hydrogen sulfide** — the signature agricultural fatality, and its
+  signature is *multiple* deaths: one person goes down, the people who go in
+  after them die too. H₂S also deadens the sense of smell at lethal
+  concentrations, so **the warning disappears exactly when it matters**. The
+  canary's dark twin, and the one hazard here that specifically punishes courage
+  rather than negligence.
+- **Silo gas** — nitrogen dioxide off fermenting silage.
+- **Grain entrapment** — you sink in flowing grain; seconds to be trapped.
+- **Cellar CO₂** — already shipped by the fermentation build.
+
+**D48 — Hay fire, and it is the memorable one.** Bale hay too wet and microbial
+activity heats the stack until it ignites — genuinely how barns burn. It reads
+the moisture reserve, the fermentation heat model and `FireApi`, **all shipped**,
+and it destroys the entire winter feed store *weeks after* a mistake that was
+invisible at the time. Build this one first: it is the single most instructive
+failure in the design, and it costs almost no new mechanism.
+
+**D49 — Slow poisons, delivered by your own hand.** Ragwort is cumulatively
+hepatotoxic and is **more palatable dried than growing**, so animals that would
+step around it in a field eat it in a bale. A poison you cut, dried, stacked and
+fed, months later, invisible throughout. The husbandry lesson that no amount of
+attention on the day can save you from.
+
+**D50 — Predators, and the dog's third job.** Named in the ranching slate and
+dropped from the first draft: *"a real ranch threat, a fear-axis consumer, and
+the one live-tick compute consumer probably worth paying for."* A fox in a hen
+house **surplus-kills** — it does not take one bird, it kills everything — which
+is a sudden total loss with a real and buildable defence. **A working dog guards
+as well as herds and keeps deer out** (D41/D42 gain a third reason to exist), and
+predators range across parcels, which makes them a **commons problem** and
+therefore civics content rather than a personal chore.
+
+**D51 — The operator gets hurt, and the farm does not stop needing work.** The
+failure mode agriculture is actually famous for, and the build said nothing about
+it. `harm.md` ships. An injured keeper still owes the animals their feed, which
+is precisely when the automation ladder stops being a convenience and becomes the
+thing that saves the herd — the wage line paying for itself in the only way that
+really lands.
+
+**D52 — Five failure shapes, deliberately varied.** The first draft was
+monotonic: everything degraded gracefully. The variety *is* the texture, and
+each shape teaches a different lesson:
+
+| Shape | Example | What it teaches |
+|---|---|---|
+| **Sudden total loss** | fox, hail, hay fire | why you insure, why you diversify |
+| **Slow poison** | ragwort, deficiency | that attention on the day is not enough |
+| **The compounding cascade** | wet autumn → poached ground → poor spring grass → thin stock → hard winter | **the year that actually breaks farms** |
+| **The rescue trap** | H₂S in the pit | that the second casualty is caused by the first |
+| **Injury to the operator** | clearing, handling, machinery | that the farm is a body, not a spreadsheet |
+
+**D53 — The antagonist is the year; the creature is a returning predator.** The
+mine got a boss. The farmstead's structural antagonist is **winter**, and the
+design already says so. Where a creature is wanted, the shape is **not a monster
+with a health bar** — it is a predator that keeps coming back: named, learning,
+costly, and something the whole locality has a stake in killing or living with.
+The mine's cast works because it is *in the mine*; the farm's antagonist works
+because it is *in the neighbourhood*, and it produces collective action rather
+than an encounter.
+
+### The lifecycle of a plot
+
+*(D54–D60, added after the same pass.)*
+
+**D54 — `plot` is a claim, not a field.** The first draft made plotting produce
+ready-to-use ground, which is the Stardew model where the farm is already a farm.
+Real ground has a lifecycle and the build owes all of it:
+
+> **ground → claim → clear → treat → establish → maintain → *revert*.**
+
+`plot` is step two. **Reclamation** sits between owning ground and planting on
+it; **maintenance** sits between being a field and staying one.
+
+**D55 — Seeded character's primary consequence is the cost of improvement, not
+the yield.** This amends the emphasis of D2. Stony ground costs stone-picking;
+wet ground costs ditching and drains; scrub and wood cost clearing; steep ground
+costs terracing or refusal; sour ground costs lime. **That is why some land was
+farmed for a thousand years and some was never farmed at all** — not lower yield,
+but improvement costing more than it returned. It is also a far better use of
+M.U.L.E.'s unequal-plots idea than a yield modifier, because the player *pays*
+the difference in labour instead of reading it off a number.
+
+**D56 — The cleared stone is the wall.** The stone walls of Ireland and New
+England are the fields' own stones stacked at the edge. So stony ground is
+**expensive to clear and cheap to fence** — and fencing is needed anyway for
+stock (and is what bounds paddock subdivision). Zero waste, historically exact,
+and it inverts an expectation in a way a player remembers.
+
+**D57 — Improvement is a third axis, independent of character and of zoning.**
+Ground carries an **improvement state** separate from its seeded character (D2)
+and separate from `LandUse` — because *permission* and *capability* are different
+questions and both must be satisfied. One consequence matters more than the rest:
+**authored content ships land at any point on the axis**, so raw wilderness, a
+working farm and a derelict one are the same object at three settings rather than
+three kinds of thing.
+
+**D58 — Improved land reverts.** Stop clearing the drains and the field goes wet;
+stop cutting and scrub returns; fences fail. **Land is a maintained state, not a
+permanent one.** This gives upkeep something to be other than an HP bar —
+farming's own stated rule — and it puts **abandoned, reverted farms in the world
+as real places**: cheap because somebody stopped, and worth buying if you will do
+the work. That is the smallholder's actual path, and it is a better start than a
+tidy empty plot.
+
+**D59 — ⭐ Land improvement is capital formation, and it lands the tenant
+improvement problem.** The biggest pedagogical payload in the build, and it
+emerges rather than being staged. Converting labour into a durable asset is the
+most tangible instance of capital anyone will meet, and on shipped substrate it
+produces:
+
+- **Why tenure matters** — you will not drain a field you might lose next year.
+  This is the **tenant improvement problem**, one of the most consequential
+  arguments in agricultural economics and law, and the reason long leases,
+  compensation-for-improvements and the Ulster custom exist. This game has
+  tenure, leases, a parcel registry and a
+  [legal-code slate](../slates/builds/legal-code-slate.md): the problem lands on
+  real substrate and produces real politics.
+- **Why you would rent rather than buy**, answered by something other than price.
+- **What you are paying for when you buy improved land** — somebody else's
+  accumulated labour, *visible in the survey* (drains, walls, tilth, organic
+  matter). Improvements are legible, which makes the price difference
+  intelligible instead of arbitrary.
+
+**D60 — Fauna are inhabitants, then pressure — never a monster gate.** They were
+there first, which is the honest frame. **Clearing is displacement**: a badger
+sett, a rabbit warren, a fox earth, boar, a wasp nest. Some leave, some return,
+some object — and clearing is the heaviest work, so it is where injury lives
+(D51). **And it does not end**: deer and rabbits come back for the crop, birds
+take the grain, boar root a field overnight. Pest pressure is ongoing, not a gate
+passed once. Defences are things already being built — fencing, hedges, the dog
+(D50) — plus hunting, for which no verb exists today and which is noted as a gap
+rather than assumed. **Seam, not scope:** clear too thoroughly and you lose
+whatever was eating the rabbits; hedgerows exist for a reason.
+
+**Irrigation rides water rights.** Not a separate decision because it needs no
+new mechanism: the water pack ships watercourses, conduits, and rights (prior
+appropriation recorded, riparian derived). Irrigating a field is therefore a
+**rights** problem before it is a ditch, which is the correct order and puts the
+commons where it belongs.
+
 ---
 
 ## Constraints
@@ -634,6 +817,22 @@ substrate.
 20. Saffron is harvested per flower within its window, and the yield per unit of
     ground is small while the yield per unit of labour is high — observably the
     inverse of barley.
+21. Newly plotted ground is **not plantable**. Clearing, and the treatment its
+    seeded character calls for, are required first, and two plots of different
+    character demand measurably different work to reach the same state.
+22. Improvement state is readable in the survey, is authorable at any setting
+    (wilderness / working / derelict all ship as the same object), and **decays
+    when unmaintained** — a field left alone goes back.
+23. A poorly handled animal can injure the handler, through the shipped harm
+    path, and handling reduces the risk.
+24. A manure pit is lethal to enter unventilated, and entering to rescue somebody
+    already down kills the rescuer too unless they take a precaution.
+25. Hay baled above a moisture threshold self-heats and can ignite the store,
+    weeks after baling.
+26. A fox reaching a hen house kills more birds than it takes; a dog on the
+    holding prevents it.
+27. Ragwort cut into hay poisons the animals fed on it cumulatively, with no
+    signal at the moment of feeding.
 
 ## Slate revisions this cycle makes
 
