@@ -245,7 +245,7 @@ feed quality and the field's fertility the same number seen twice, which is
 **D15 — Two honest openings, and they are the real ones.** A closed loop would
 be wrong; the real cycle is not closed either. **In: legume fixation** (N₂ from
 the atmosphere — a genuine faucet in reality, and it makes the legume rotation
-derivable rather than a "+N bonus"). **Out: leaching and volatilization** (rain
+derivable rather than a "+N bonus"). **The legume is clover** — see D43. **Out: leaching and volatilization** (rain
 carries nitrate past the roots; surface manure loses ammonia). The losses stop
 fertility accumulating to infinity and teach why you incorporate manure and why
 you do not spread before a storm.
@@ -408,6 +408,43 @@ behind it — brewing and distilling are both drawing malt from nowhere right
 now.** Barley closes brewing, closes distilling, feeds pigs and hens, and is the
 classic arable partner to a grass ley, giving the rotation's arable half
 something to be.
+
+**D43 — Clover ships, and it is the plant three other decisions already
+assume.** Added after the flower pass; numbered by addition order rather than
+position, to avoid renumbering. Clover is simultaneously:
+
+- **the legume** that fixes atmospheric nitrogen (D15),
+- **among the best forage** in a sward (D9), and
+- **the classic bee plant** — which is why "clover honey" is the default honey
+  in the real world (D37).
+
+One plant satisfies all three, which is what makes the nutrient loop, the
+pasture and the hive **one system** rather than three that happen to share a
+field. It was implicit in three decisions and unstated in all of them; naming it
+is a correction, not an addition.
+
+**D44 — Saffron ships as the labour-intensive smallholder crop.** The build
+otherwise specs grain, cattle and hay, **all of which want acres**, on a world
+whose land scale is the 1,000 m² lot — leaving a smallholder with hens,
+vegetables and nothing of value to grow.
+
+Saffron is the most expensive agricultural product by weight in the world
+because it is the hand-picked stigmas of a crocus and takes roughly **150
+flowers per gram**. Its value comes from **labour intensity, not land** — the
+exact inverse of grain, which is land-intensive and labour-light. That contrast
+is a real agricultural-economics distinction this build could not otherwise
+teach, and it hands a player with a small plot and time to spend a genuine
+career on ground too small for a cow.
+
+The harvest is the mechanism: **per-flower, by hand, in a narrow window**, which
+is the whole lesson made physical rather than asserted through a price.
+
+⭐ **The fact that unifies flowers generally**, worth carrying into the content:
+*a flower is a plant's advertisement to a pollinator.* Colour, scent and nectar
+exist to attract an insect — so dye, perfume, flavour, medicine and ornament are
+all human interception of a signal that was never meant for us. Pollination
+(D35), the dyestuffs textiles already ships, and saffron are not four unrelated
+industries; they are four ways of harvesting the same evolutionary bribe.
 
 **D32 — The pack cut.**
 
@@ -591,6 +628,12 @@ substrate.
     register.
 18. All lint families green; `pnpm test` green once before the MR and once at
     finalize.
+19. Clover sown in a sward fixes nitrogen into the field's reserve, feeds grazing
+    animals, and is read by a hive in range as forage that shapes its honey —
+    the same row satisfying all three without a special case.
+20. Saffron is harvested per flower within its window, and the yield per unit of
+    ground is small while the yield per unit of labour is high — observably the
+    inverse of barley.
 
 ## Slate revisions this cycle makes
 
