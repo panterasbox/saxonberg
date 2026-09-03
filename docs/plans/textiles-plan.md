@@ -1073,6 +1073,71 @@ bench validates the spin:weave ratio; if it cannot reproduce this cost
 split at bed scale, that is B2 leg (c) firing exactly as designed —
 **document the finding, do not fit the numbers to hide it.**
 
+### P19 — Dyeing: four stages, two acts, two vats
+
+*(Decided with the user 2026-09-02, in the dyeing design beats.)*
+
+#### ⭐⭐ You dye at four stages, and they are different goods
+
+```
+fibre ──dye──► spin ──► weave ──► cut/sew        "dyed in the wool"
+  yarn ────────dye──► weave ──► cut/sew          yarn-dyed
+    cloth ──────────────dye──► cut/sew           piece-dyed
+      garment ────────────────────dye            garment-dyed
+```
+
+| stage | buys | pays |
+|---|---|---|
+| **fibre** | deepest penetration → **best fastness**; blended shades | commit before you know what you are making; dye more than you need |
+| **yarn** | **patterns** — stripes, checks (⏳ deferred: the loom must hold two yarn colours) | still committed pre-weave |
+| **cloth** | cheap solids, dye to order | solids only |
+| **garment** | ⭐ **recolour what you already own** | **least even**; seams and thread take dye differently; worst fastness |
+
+⭐⭐ **This is what gives Decision 12 its gradient.** The customization
+loop — *buy rarely, recolour often* — is **garment-dyeing**, which is the
+cheapest, most convenient and **worst** of the four. So **a rich person's
+clothes are visibly better because they were dyed earlier in the chain**,
+which is honest economics, legible on sight, and feeds Decision 9's
+costly signalling directly. The convenient option being the inferior one
+needs no balancing, because it is true.
+
+**Cost:** the same `dye` act on a different object. Stages differ by a
+**fastness multiplier** and an **evenness** term — two numbers, not four
+code paths. ⏳ Patterned weaving is a **deferred tail**.
+
+#### Mordanting is its OWN act — and it supplies the missing failure mode
+
+`mordant <thing> with <alum>` **then** `dye <thing> with <madder>`. Two
+baths, as it really is, and the skill is front-loaded: you commit to a
+colour family before you can see it.
+
+⭐⭐ **This is where P17's missing failure mode comes from.** Dye
+something un-mordanted and the colour **does not hold — it washes
+straight out on the first launder.** Real, nearly free (fastness ≈ 0),
+and it is exactly the *"something to be bad at"* that every P16
+competence answer needs to be visible against. ⚠ And the mirror: woad
+takes **no** mordant, so mordanting before a woad vat is wasted alum.
+
+It also mints a real intermediate good — **mordanted cloth**, which can
+be prepared in advance and stockpiled.
+
+#### Two vats: the dyehouse and the household
+
+⭐ **The tool ladder, for the third time** (`sewing-kit`/`sewing-machine`
+is the shipped shape): a **household vat** is rung zero — yours, free,
+small, poor control. A **dyehouse vat** is rung N — `rate` for scale and
+⭐ **`control` for EVENNESS**, which is the quality axis this trade
+already needs.
+
+⭐⭐ Which unifies neatly: **evenness is what the dyehouse sells.**
+Garment-dyeing at home is the worst stage × the worst equipment, and
+comes out visibly amateur — correct, and another legible social signal.
+
+⚠ It also makes **dyeing the domestic trade and tailoring the
+professional one**: you go to a tailor to be measured, but you recolour
+your own coat at home. That asymmetry is deliberate — it is what makes
+"recolour often" actually often.
+
 ---
 
 ## Stage A — the kernel half
