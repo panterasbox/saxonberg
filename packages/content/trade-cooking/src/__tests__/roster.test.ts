@@ -361,7 +361,7 @@ describe('⭐ the three-media root spine', () => {
     // ⭐ Three vessel KINDS, because the output rows name three different
     // dinnerware kinds — the method shows up on the table.
     const kindOf = (s: Stuff) =>
-      MixinApi.isBulkable(s) ? s.getCategory() : '';
+      MixinApi.isVesselKind(s) ? s.getCategory() : '';
     expect(kindOf(boiled.output)).toBe('bowl');
     expect(kindOf(roasted.output)).toBe('platter');
     expect(kindOf(fried.output)).toBe('plate');

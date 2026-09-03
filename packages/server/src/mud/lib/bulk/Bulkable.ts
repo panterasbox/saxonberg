@@ -353,8 +353,6 @@ export interface Bulkable {
    * that shared string IS the relationship, since template inheritance
    * does not exist.
    */
-  getCategory(): string;
-  setCategory(value: string): void;
   hasInteriorBulk(): boolean;
   hasSurfaceBulk(): boolean;
   /**
@@ -493,11 +491,7 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
      */
     public closure: ClosureLevel = 'liquidTight';
 
-    /** The vessel kind (`coupe`, `can`, `keg`, `sack`). See {@link Bulkable.getCategory}. */
-    public category: string = '';
-
     static fieldMeta: FieldMeta = {
-      category: { persistent: true, authorable: true },
       interiorBulk: { persistent: true, authorable: true },
       surfaceBulk: { persistent: true, authorable: true },
       interiorMaterial: { persistent: true, authorable: true, authorPicker: 'Material' },
@@ -531,13 +525,6 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
         },
       },
     ];
-
-    getCategory(): string {
-      return this.category;
-    }
-    setCategory(value: string): void {
-      this.category = value;
-    }
 
     // ---- accessor pairs (strict-Quantity invariants, Pattern D) ----
     protected get interiorAmount(): Quantity<'L'> {
@@ -816,7 +803,9 @@ function bulkContentsAugmenter(
       // unbroken" off its authored row, which is a lie the moment
       // somebody drinks it. Only the interior slot, and only when the
       // row declared what kind of vessel it is.
-      const kind = host.getCategory();
+      // ⚠ The kind is no longer Bulkable's — a puddle has volume and no
+      // par key — so the substrate asks whether this host has one.
+      const kind = MixinApi.isVesselKind(host) ? host.getCategory() : '';
       if (affordance === 'interior' && kind) {
         lines.push(`The ${kind} is empty.`);
       }

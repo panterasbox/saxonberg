@@ -243,7 +243,7 @@ function claimGlass(
 ): Stuff | null {
   const want = recipe.getOutputTemplate();
   const kindOf = (g: Stuff): string =>
-    MixinApi.isBulkable(g) ? g.getCategory() : '';
+    MixinApi.isVesselKind(g) ? g.getCategory() : '';
   const matches = (g: Stuff): boolean =>
     wantKind ? kindOf(g) === wantKind : g.getTemplatePath() === want;
   // A house-made intermediate (an authored `outputMaterial`: pressed

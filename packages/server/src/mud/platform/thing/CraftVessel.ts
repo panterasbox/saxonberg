@@ -47,6 +47,7 @@ import { StuffApi } from '../../api/stuff';
 import { CallSecurity } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { BlendLabel } from '../../lib/metabolism/BlendLabel';
+import { VesselKindMixin } from '../../lib/bulk/VesselKind';
 
 /** Water's numbers — the fallbacks when the ice material authored none. */
 const DEFAULT_MELT_K = 273;
@@ -100,8 +101,10 @@ const SoiledWriters = SecurityPolicies.AnyOf(
 // and still wrong at both ends. Same shape as the spoilage gauge on the
 // generic `Thing`: the fix is a class named for the concept, not a wider
 // base. See `platform/thing/ServingVessel.ts`.
-const CraftVesselBase = CraftedMixin(
-  ThermalMixin(BulkableMixin(ContainerMixin(DetailedMixin(Thing)))),
+const CraftVesselBase = VesselKindMixin(
+  CraftedMixin(
+    ThermalMixin(BulkableMixin(ContainerMixin(DetailedMixin(Thing)))),
+  ),
 );
 
 export default class CraftVessel extends CraftVesselBase {

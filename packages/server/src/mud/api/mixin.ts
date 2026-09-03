@@ -149,6 +149,7 @@ import type { Durable } from '../lib/material/Durable';
 import type { Keen } from '../lib/material/Keen';
 import type { Dressing } from '../lib/vitals/Dressing';
 import type { Crafted } from '../lib/craft/Crafted';
+import type { VesselKind } from '../lib/bulk/VesselKind';
 import type { Maker } from '../lib/craft/Maker';
 import type { Caster } from '../lib/magic/Caster';
 import type { Arcane } from '../lib/magic/Arcane';
@@ -1266,6 +1267,10 @@ export class MixinApi {
 
   public static isCrafted(obj: Stuff): obj is Stuff & Crafted {
     return this.hasMixin(obj, Mixins.Crafted);
+  }
+
+  public static isVesselKind(obj: Stuff): obj is Stuff & VesselKind {
+    return this.hasMixin(obj, Mixins.VesselKind);
   }
 
   /**

@@ -307,6 +307,7 @@ export const Mixins = {
   Forkable: 'ForkableMixin',
   Globbable: 'GlobbableMixin',
   Bulkable: 'BulkableMixin',
+  VesselKind: 'VesselKindMixin',
   UnboundedSource: 'UnboundedSourceMixin',
   Engaged: 'EngagedMixin',
   Atmospheric: 'AtmosphericMixin',

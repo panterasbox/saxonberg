@@ -211,6 +211,7 @@ export default class EatController extends CommandController<EatModel> {
     for (const kind of UTENSIL_KINDS) {
       for (const candidate of reach) {
         if (!MixinApi.isBulkable(candidate)) continue;
+        if (!MixinApi.isVesselKind(candidate)) continue;
         if (candidate.getCategory() !== kind) continue;
         const vessel = candidate as unknown as Partial<{
           isClaimable(): boolean;
