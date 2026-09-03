@@ -293,7 +293,7 @@ and the hard temperature cap that medium imposes:
 The teachable core — the honest-science reason this cut wins — is that
 **water can't brown**. A pot of stew in a 1300 K forge is still a 373 K
 pot of stew. That falls straight out of physics the engine already has
-(`ThermalApi.reachableHeatFor`, real Kelvin, phase change, Materials with
+(`reachableHeatK()` on the Thermal host, real Kelvin, phase change, Materials with
 `boilingPoint`); we don't enforce a method, we let the medium impose its
 cap and the recipe declare the chemistry it needs.
 
@@ -309,7 +309,11 @@ its continuations whenever the roster wants them, zero new physics.
 
 **Where each word lives** (mostly: places that already exist):
 
-- **Temperature** — shipped (`ThermalApi`, the fire build).
+- **Temperature** — shipped (`ThermalMixin` + `reachableHeatK()`, the fire
+  build). ⚠ *Vocabulary updated 2026-09-03*: the api-oo-sweep retired
+  `ThermalApi`; the heat gate now reads
+  `MixinApi.isThermal(maker) ? maker.reachableHeatK() : 0` — verbs live
+  ON the objects.
 - **Medium** — what's actually carrying the heat, read per path. ⚠
   *Corrected 2026-09-02 (the prior-art audit)*: `CookPot` is **not
   `Bulkable`** — a build vessel banks transient `BuildContribution`s,
@@ -1086,7 +1090,7 @@ and an iron pot are `CookPot`/`CraftVessel` rows with different
   lands: cast iron genuinely holds its sear, the thin cheap pan
   genuinely scorches (low conductivity → a narrower scorch window).
   Zero cookware-specific code, ever. Until tending, one-shot resolve
-  reads only `reachableHeatFor`, so v1 cookware variety is texture,
+  reads only `reachableHeatK()`, so v1 cookware variety is texture,
   economy (smith/potter products, `control` bands), and roleplay —
   honestly stated.
 - **The medieval roster** (trades-ship-medieval): **copper** (the
