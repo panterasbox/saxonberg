@@ -51,6 +51,23 @@ export const brain = class {
     // Presence is driven by employment state, not the clock — the engine's
     // roster tick already resolved this host's on/off-shift status.
     if (!MixinApi.isEmployed(host)) return;
+
+    // ⚠⚠ **"Not yet resolved" is not "off duty."** `shiftState()` collapses
+    // both into `off-shift`, because `isOnShift()` is a `.some()` over the
+    // stored employment records and an empty store answers false. A cast
+    // NPC is spawned by residency when a player walks in, and its roster
+    // record is only materialized by the engine's pass — so for the window
+    // between the two, a 24/7-rostered cook read as off duty and this brain
+    // teleported him out of his own kitchen. In the client that is *"Odo
+    // vanishes."*, and `order` then answers "There's no one on hand to make
+    // that."
+    //
+    // Presence FOLLOWS employment; with no employment there is nothing to
+    // follow, so the brain leaves the host where the world put it and waits
+    // for the pass. An NPC that has genuinely left keeps a record (`quit` /
+    // `fired` are statuses, not deletions), so this never strands one.
+    if (host.getEmployments().length === 0) return;
+
     const state = host.shiftState();
     const targetPath =
       state === 'on-shift' ? ctx.config.behindBar : ctx.config.offstage;

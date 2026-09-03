@@ -28,6 +28,28 @@ class Mover extends EmployedMixin(MobileMixin(ContainableMixin(Idea))) {
   static _mixinName = 'Mover';
 }
 
+/**
+ * Give a host a RESOLVED employment record.
+ *
+ * ⚠ Every migration test needs one now: the brain distinguishes *"the
+ * roster says you are off duty"* from *"the roster has not resolved you
+ * yet"*, and only the first moves anybody. The white-box write is
+ * deliberate — `_upsertEmployment` carries a participant contract naming
+ * the employing organization, and standing a Business up here would test
+ * the employment engine rather than the brain.
+ */
+function employ(host: Stuff, status: 'on-shift' | 'off-shift'): void {
+  (host as unknown as { employments: unknown[] }).employments = [
+    {
+      organizationPath: '/org/test',
+      positionKey: 'tender',
+      status,
+      hiredAt: 0,
+      onShiftSince: status === 'on-shift' ? 0 : null,
+    },
+  ];
+}
+
 function ctxFor(host: Stuff): BrainContext {
   return {
     host,
@@ -50,6 +72,7 @@ describe('shifts brain — employment-driven presence', () => {
     const behindBar = makeStuff(() => new Room());
     const source = makeStuff(() => new Room());
     const mover = makeStuff(() => new Mover());
+    employ(mover, 'on-shift');
     ContainmentApi.move(mover, source);
 
     vi.spyOn(EmploymentLogic.prototype, 'shiftStateOf').mockReturnValue('on-shift');
@@ -67,6 +90,7 @@ describe('shifts brain — employment-driven presence', () => {
     const offstage = makeStuff(() => new Room());
     const source = makeStuff(() => new Room());
     const mover = makeStuff(() => new Mover());
+    employ(mover, 'off-shift');
     ContainmentApi.move(mover, source);
 
     vi.spyOn(EmploymentLogic.prototype, 'shiftStateOf').mockReturnValue('off-shift');
@@ -83,6 +107,7 @@ describe('shifts brain — employment-driven presence', () => {
   it('never reads the game clock', async () => {
     const dest = makeStuff(() => new Room());
     const mover = makeStuff(() => new Mover());
+    employ(mover, 'on-shift');
     vi.spyOn(EmploymentLogic.prototype, 'shiftStateOf').mockReturnValue('on-shift');
     vi.spyOn(StuffApi, 'singletonOrClone').mockResolvedValue(
       dest as unknown as Stuff,
@@ -97,6 +122,7 @@ describe('shifts brain — employment-driven presence', () => {
   it('stays put when already at the destination', async () => {
     const behindBar = makeStuff(() => new Room());
     const mover = makeStuff(() => new Mover());
+    employ(mover, 'on-shift');
     ContainmentApi.move(mover, behindBar);
 
     vi.spyOn(EmploymentLogic.prototype, 'shiftStateOf').mockReturnValue('on-shift');
@@ -106,5 +132,50 @@ describe('shifts brain — employment-driven presence', () => {
 
     await shifts.act(ctxFor(mover));
     expect(mover.getContainer()?.stuffId).toBe(behindBar.stuffId);
+  });
+
+  it('⭐ leaves a host whose roster has NOT resolved yet exactly where it is', async () => {
+    // The Hearthworks cook, one beat after residency spawned him: standing
+    // at his own hearth, 24/7 on the roster, and carrying no employment
+    // record because the engine's pass has not reached him. `shiftState()`
+    // answers `off-shift` — it is a `.some()` over an empty store — and the
+    // brain used to believe it and teleport him out of the kitchen. In the
+    // client that read as "Odo vanishes.", and `order` answered "There's no
+    // one on hand to make that."
+    const kitchen = makeStuff(() => new Room());
+    const offstage = makeStuff(() => new Room());
+    const cook = makeStuff(() => new Mover());
+    ContainmentApi.move(cook, kitchen);
+    expect(cook.getEmployments()).toHaveLength(0);
+
+    const singleton = vi
+      .spyOn(StuffApi, 'singletonOrClone')
+      .mockResolvedValue(offstage as unknown as Stuff);
+
+    await shifts.act(ctxFor(cook));
+
+    // Not moved, and the destination was never even resolved.
+    expect(cook.getContainer()?.stuffId).toBe(kitchen.stuffId);
+    expect(singleton).not.toHaveBeenCalled();
+  });
+
+  it('…but a resolved OFF-SHIFT record still sends them offstage', async () => {
+    // The complement, so the fix cannot degrade into "never migrate": an
+    // NPC who has genuinely gone off duty keeps a record (`quit` and
+    // `fired` are statuses, not deletions), so the brain still acts.
+    const kitchen = makeStuff(() => new Room());
+    const offstage = makeStuff(() => new Room());
+    const cook = makeStuff(() => new Mover());
+    employ(cook, 'off-shift');
+    ContainmentApi.move(cook, kitchen);
+
+    vi.spyOn(EmploymentLogic.prototype, 'shiftStateOf').mockReturnValue('off-shift');
+    vi.spyOn(StuffApi, 'singletonOrClone').mockResolvedValue(
+      offstage as unknown as Stuff,
+    );
+
+    await shifts.act(ctxFor(cook));
+
+    expect(cook.getContainer()?.stuffId).toBe(offstage.stuffId);
   });
 });
