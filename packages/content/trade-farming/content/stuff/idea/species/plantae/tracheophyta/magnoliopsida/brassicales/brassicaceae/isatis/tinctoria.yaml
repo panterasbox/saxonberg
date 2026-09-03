@@ -1,0 +1,28 @@
+# Isatis tinctoria — woad. The BLUE, and the odd one out.
+#
+# ⚠⚠ Woad is a VAT dye, not a mordant dye, and that is the whole reason
+# it ships: indigotin does not dissolve. It has to be chemically REDUCED
+# in an alkaline, oxygen-poor vat before cloth will take it, and then
+# OXIDISED in the air afterwards — which is why a piece comes out of a
+# woad vat yellow-green and walks up through jade to blue as you watch.
+# It takes no mordant at all, and a mordant applied to it is wasted alum.
+#
+# The leaves are what you want, and they are wanted FRESH: woad loses
+# its colour as it dries, which is why it was grown near where it was
+# used and why the pastel trade made towns rich in a way madder never
+# did.
+class: /platform/idea/species/Species
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  binomial: Isatis tinctoria
+  commonNames: ["woad", "dyer's woad", "pastel"]
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/sessile
+  _parentCladePath: /stuff/idea/species/plantae
+  _defaultMaterialPath: /stuff/idea/material/tissue/plant-tissue
+  lifecycleStates: ["alive", "dead"]
+  sexDeterminationSystem: monoecious
+  reproductiveMode: sexual
+  lifespanMin: 0
+  lifespanMax: 2
+  circadianBand: aperiodic
+  diet: photosynthesis

@@ -42,6 +42,8 @@ data:
     Grass, a wire fence, and the back of the house — a white weatherboard wall with two windows and a step down from the kitchen door. The ground falls away west just enough to catch the afternoon.
 
     Somebody dug a bed here and framed it in boards, and then either ran out of time or ran out of reasons. It is good soil under the grass; the rest of the lot is still lot.
+
+    Along the fence, gone wild from whoever had the lot before: a stand of something blue-flowered and stringy, and a low rosette of broad leaves that bruise dark when you brush past them.
   # NO authored exits: the programme wires the locked house door (north)
   # and the way back out the gate (south) per holding — an authored edge
   # here would point every keyed clone at one shared room.
@@ -63,6 +65,12 @@ data:
       keywords: [fence, wire, boundary]
       description: |
         Four strands of wire on split posts, straight enough. It marks the lot rather than defends it — everything past it is grass nobody owns yet.
+    volunteers:
+      keywords: [volunteers, flax, woad, leaves, fenceline, stand, rosette]
+      description: |
+        Flax and woad, both escaped and both surviving on neglect — which is the sort of plant that ends up against a fence. The flax is nothing but stem, blue-flowered at the top and stubbornly straight; pull one and it does not snap so much as refuse. The woad is all leaf and takes a thumbprint in green that goes dark while you watch it.
+
+        Neither of them is any use as it stands. That is the point of both of them: what a stand of flax has is locked inside the stem, and what a woad leaf has does not look blue until somebody has done something quite strange to it.
     grass:
       keywords: [grass, lot, ground, slope]
       description: |

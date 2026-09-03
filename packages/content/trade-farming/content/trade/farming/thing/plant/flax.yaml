@@ -1,0 +1,33 @@
+# Flax — the first FIBRE crop, and the chain's whole left edge.
+#
+# ⚠ It is harvested for the STEM, so it comes off as a sheaf of straw
+# rather than a fruit; everything a linen shirt is made of is locked
+# inside it until the retting pit gets the glue out.
+#
+# The profile is a fast annual like the carrot — flax is famously ~100
+# days from sowing to pulling — but thirstier and less nutrient-hungry:
+# it is a light feeder, which is exactly why it was the crop you put in
+# after something greedy.
+class: /platform/thing/Plant
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a stand of flax
+  primaryKeyword: flax
+  keywords: [flax, linseed, stems, crop]
+  longDescription: |
+    Slender blue-flowered stems standing close and straight, grown crowded on purpose so none of them branches. A branch is a break in the fibre, and a break in the fibre is a short line.
+  _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/malpighiales/linaceae/linum/usitatissimum
+  material: /stuff/idea/material/tissue/plant-tissue
+  lifecycleState: alive
+  seedTemplatePath: /trade/farming/thing/seed/flax
+  harvestTemplatePath: /trade/farming/thing/crop/flax-sheaf
+  # A light feeder — half the carrot's draw. The rotation crop.
+  nutrientDraw: 8
+  profile:
+    moistureHappyAt: 0.35
+    moistureWiltAt: 0.08
+    litresPerGameDay: 0.15
+    luxHappyAt: 120
+    luxDarkAt: 15
+    rootDemand: { seedling: 0.2, young: 0.8, established: 1.6, mature: 2.4 }
+    daysToStage: { young: 12, established: 40, mature: 90 }

@@ -55,6 +55,19 @@ data:
     - { itemTemplatePath: /trade/farming/thing/seed/cranberry, par: 2 }
     - { itemTemplatePath: /trade/farming/thing/seed/grape, par: 2 }
     - { itemTemplatePath: /trade/farming/thing/seed/juniper, par: 2 }
+    # ⭐ The fibre and dye line (textiles B1). Flax is the chain's whole
+    # left edge; the three dyestuffs are what makes cloth worth
+    # recolouring. Deliberately on the SAME counter as the pots and the
+    # soil: the suburban-garden path already starts here, and this is
+    # one more thing to put in the bed you already own.
+    #
+    # ⚠ Madder is dearer than the other two and it should be — three
+    # years to a usable root, against weld's one season. The price
+    # teaches the same fact the garden does.
+    - { itemTemplatePath: /trade/farming/thing/seed/flax, par: 3 }
+    - { itemTemplatePath: /trade/farming/thing/seed/weld, par: 2 }
+    - { itemTemplatePath: /trade/farming/thing/seed/woad, par: 2 }
+    - { itemTemplatePath: /trade/farming/thing/seed/madder, par: 2 }
     # The homebrew line (fermentation D15/P13): the whole kit on the
     # stipend — carboy, small press, small mash tun, culture jar, and
     # the small pot still, sold openly (D11's fire is the deterrent;
@@ -98,6 +111,10 @@ data:
     /trade/farming/thing/pot/large: 8
     /stuff/thing/vessel/soil-sack: 2
     /trade/farming/thing/seed/snake-plant: 5
+    /trade/farming/thing/seed/flax: 5
+    /trade/farming/thing/seed/weld: 5
+    /trade/farming/thing/seed/woad: 7
+    /trade/farming/thing/seed/madder: 14
     /trade/farming/thing/seed/lime: 6
     /trade/farming/thing/seed/lemon: 6
     /trade/farming/thing/seed/orange: 6

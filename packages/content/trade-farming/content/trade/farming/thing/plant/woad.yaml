@@ -1,0 +1,36 @@
+# Woad — the blue, cut for its LEAVES and cut fresh.
+#
+# ⚠ Woad loses colour as it dries, so what the vat wants is leaves off
+# the bed, not out of store. That is why it was grown near where it was
+# used — and it is the reason a dyehouse and a woad bed end up in the
+# same town whether or not anybody planned it.
+#
+# ⭐ It is a POLYCARP: you cut a stand two or three times in a season
+# and it comes again. The one crop in this build that keeps giving, and
+# the reason a small bed can feed a vat at all.
+class: /platform/thing/Plant
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a bed of woad
+  primaryKeyword: woad
+  keywords: [woad, pastel, crop]
+  longDescription: |
+    A low rosette of broad blue-green leaves, the outer ones already cut back to the stem. Bruise one and it darkens where your thumb was, which is the whole trade in miniature.
+  _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/brassicales/brassicaceae/isatis/tinctoria
+  material: /stuff/idea/material/tissue/plant-tissue
+  lifecycleState: alive
+  seedTemplatePath: /trade/farming/thing/seed/woad
+  harvestTemplatePath: /trade/farming/thing/crop/woad-leaf
+  nutrientDraw: 12
+  profile:
+    moistureHappyAt: 0.3
+    moistureWiltAt: 0.06
+    litresPerGameDay: 0.12
+    luxHappyAt: 100
+    luxDarkAt: 12
+    rootDemand: { seedling: 0.2, young: 0.9, established: 1.8, mature: 2.6 }
+    daysToStage: { young: 14, established: 40, mature: 75 }
+    # The fruit cycle (D1/D2): the PAIR is the polycarp marker. Woad is
+    # CUT rather than picked, three times in a season, and comes again.
+    fruitSetCount: 3
+    fruitFillDays: 20

@@ -1,0 +1,14 @@
+# Weld — the whole plant, cut and dried. The cheap yellow.
+#
+# One season rather than madder's three, which is exactly why yellow
+# cloth was ordinary and red was not.
+class: /platform/thing/Crop
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a bundle of dried weld
+  primaryKeyword: weld
+  keywords: [weld, bundle, dyestuff, rocket]
+  longDescription: |
+    A tied armful of spindly stems gone straw-coloured, the seed pods still on. It looks exactly like a weed somebody could not be bothered to pull, and it is.
+  material: /trade/farming/idea/material/weld
+  mass: 0.5

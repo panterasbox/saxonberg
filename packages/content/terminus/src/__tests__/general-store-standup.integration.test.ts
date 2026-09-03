@@ -71,6 +71,13 @@ const GARDEN_LINES = [
   "/trade/farming/thing/seed/cranberry",
   "/trade/farming/thing/seed/grape",
   "/trade/farming/thing/seed/juniper",
+  // ⭐ The fibre and dye packets (textiles B1) — the chain's left edge
+  // on the same counter as the pots and the soil, because the
+  // suburban-garden path already starts here.
+  "/trade/farming/thing/seed/flax",
+  "/trade/farming/thing/seed/weld",
+  "/trade/farming/thing/seed/woad",
+  "/trade/farming/thing/seed/madder",
 ] as const;
 
 /**

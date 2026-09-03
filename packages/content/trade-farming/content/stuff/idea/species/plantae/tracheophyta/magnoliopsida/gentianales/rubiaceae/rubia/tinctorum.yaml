@@ -1,0 +1,22 @@
+# Rubia tinctorum — madder. The RED, and the oldest of them.
+#
+# ⚠ What you want is the ROOT, and the root wants three years — which is
+# why madder was a landholder's crop and not a smallholder's, and why
+# red cloth cost what it cost. The dyestuff is alizarin, and it is a
+# MORDANT dye: it needs a metal ion to bind, so what colour you get is
+# decided at the mordant bath and not at the dye pot.
+class: /platform/idea/species/Species
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  binomial: Rubia tinctorum
+  commonNames: ["madder", "dyer's madder"]
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/sessile
+  _parentCladePath: /stuff/idea/species/plantae
+  _defaultMaterialPath: /stuff/idea/material/tissue/plant-tissue
+  lifecycleStates: ["alive", "dead"]
+  sexDeterminationSystem: monoecious
+  reproductiveMode: sexual
+  lifespanMin: 0
+  lifespanMax: 6
+  circadianBand: aperiodic
+  diet: photosynthesis

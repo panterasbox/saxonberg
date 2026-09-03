@@ -1,0 +1,17 @@
+# Woad leaf — cut FRESH, and that matters.
+#
+# ⚠ Woad loses its colour as it dries, which is why it was grown near
+# where it was used and why the pastel trade made towns rich in a way
+# madder never did. What this becomes in the vat is a different
+# chemistry from the other two entirely: no mordant, a reduction, and
+# the colour arriving in the AIR afterwards.
+class: /platform/thing/Crop
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: an armful of woad leaves
+  primaryKeyword: woad
+  keywords: [woad, leaves, leaf, dyestuff, pastel]
+  longDescription: |
+    Broad blue-green leaves, already bruising where they were handled. There is nothing blue about them to look at, which is the first surprising thing about woad and not the last.
+  material: /trade/farming/idea/material/woad
+  mass: 0.6

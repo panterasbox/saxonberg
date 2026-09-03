@@ -1,0 +1,27 @@
+# A sheaf of flax straw — the harvest, and ⚠ NOT a fibre yet.
+#
+# ⭐ A bulk holder rather than a discrete crop, because what comes off
+# the bed is a QUANTITY of straw and the whole chain downstream is
+# measured in kilos. `GradedReceptacle` gives it the two things a crop
+# needs — the grade off the plant's worst stretch, and the maker's mark
+# — over a `Bulkable` interior that already knows how to pour.
+#
+# ⭐⭐ The grade IS the staple length. The band the harvest stamps here
+# is carried by `CraftedMixin` through the retting pit's transfer seam,
+# through scutching, spinning and weaving, to the bolt — the shipped
+# weakest-link rule, with nothing new to carry it.
+class: /platform/thing/GradedReceptacle
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a sheaf of flax straw
+  primaryKeyword: sheaf
+  keywords: [sheaf, flax, straw, bundle]
+  longDescription: |
+    A waist-high bundle of flax stems tied twice, cut low so the fibre runs the whole length. Stiff, pale, and no use whatever until something has rotted the glue out of it.
+  material: /stuff/idea/material/textile/linen
+  mass: 4
+  interiorBulk: true
+  interiorCapacity: 8
+  interiorMaterial: /trade/farming/idea/material/flax-straw
+  interiorAmount: 6
+  closure: open
