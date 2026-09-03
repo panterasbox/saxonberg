@@ -23,8 +23,15 @@ that shapes every slate.
 > ([smallholding.md](./subsystems/smallholding.md)). **Farming Stage A
 > then rode phase 2's substrate (2026-09-01):** the fruit cycle /
 > perennial tap, the ten grown families, the farmers market, and the
-> first production brain (`farms`, shipped in trade-farming) — Stage B
-> (Heart's Delight) waits on the residences-grounded re-plan.
+> first production brain (`farms`, shipped in trade-farming). **Stage B
+> (Heart's Delight) is no longer gated on residences** — Waves 0–5 landed
+> (`HoldingWarren`/`PlatPlan`/`HoldingProgramme`, D17 identity), and B0
+> re-grounds. ⚠ It is now gated on **winter**, which does not exist for
+> plants (the clock has seasons; husbandry has *"no bloom, no season of
+> readiness"*) — and the valley is what justifies building it. **Ranching
+> ships first**: nitrogen is a faucet at both ends, and *pasture is a
+> field*. See [towns-slate](./slates/builds/towns-slate.md) D27 +
+> [venue-and-supply-slate](./slates/builds/venue-and-supply-slate.md) V11.
 
 ---
 

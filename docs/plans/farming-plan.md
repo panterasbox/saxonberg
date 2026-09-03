@@ -25,10 +25,24 @@ Hinkley; nothing in this build *edits* Hinkley or residences territory.
   fix, the fruit cycle, the healed gather, harvest-by-ground, the ten
   species + planting stock, the farmers market. **The faucet does NOT
   close in Stage A** (P0 below).
-- **Stage B** (Waves B0–B5) — Heart's Delight — **gated on residences
-  Waves 0–5 landing on master** (the pack cut, D17 identity +
-  `lint:census`, `HoldingWarren`/`PlatPlan`, `HoldingProgramme`,
-  the LotHolder rework). B0 is a mandatory re-grounding checkpoint.
+- **Stage B** (Waves B0–B5) — Heart's Delight. ⭐ **The residences gate
+  is CLEARED (2026-09-03):** Waves 0–5 landed (the pack cut, D17 identity
+  + `lint:census`, `HoldingWarren`/`PlatPlan`, `HoldingProgramme`, the
+  LotHolder rework) — all of it is in shipped Hinkley content. B0 remains
+  a mandatory re-grounding checkpoint.
+  ⚠⚠ **Two NEW gates replace it**, both recorded 2026-09-03:
+  **winter** — the clock has seasons (`DefaultCalendar`,
+  `CelestialApi.seasonFor`, `SEASON_BIAS`) but the *crop does not*
+  (husbandry: *"no bloom, no season of readiness"*, supply "arrives in
+  pulses"). The valley is a calendar, so it cannot ship without one — and
+  ⭐ it is also what *justifies* building winter, exactly as greenhouses
+  are what winter is for.
+  **Ranching** — nitrogen is a reserve that harvesting exports and `feed`
+  restores from nowhere: a faucet at both ends. `ranching-slate`'s
+  *"pasture is a field"* makes rotation emerge from soil accounting, so
+  the nutrient cycle arrives with the animals rather than being invented.
+  See [towns-slate](../slates/builds/towns-slate.md) D27 +
+  [venue-and-supply-slate](../slates/builds/venue-and-supply-slate.md) V11.
 
 ---
 
