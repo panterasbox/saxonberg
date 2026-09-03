@@ -230,15 +230,45 @@ Two different facts, both written in the output-apply step:
    `claimGlass` walk over the gathered pool, kind from
    `outputVesselKind` (the recipe's output row's `category`: stew →
    `bowl`, roast → `plate`).
-3. **Pot as last resort**: no claimable dish ⇒ the meal lands in the
-   cook vessel — for craft-resolve, the matched `pot` tool; for
-   by-hand, the build vessel itself (a `plate`-less path). This
-   requires **`CookPot` to gain `BulkableMixin`** (an interior slot to
-   hold the finished meal — the slate's "CookPot is not Bulkable" was
-   about the *medium read*, which P3 answers with slots; holding dinner
-   needs a real slot). `mintVessel`'s Bulkable+Crafted requirement then
-   admits the pot as its own destination. `no-dish` never blocks
-   dinner; the bar's hard `no-glass` stays hard (asymmetry untouched).
+3. **Pot as last resort — and `CookPot` becomes a `CraftVessel`**
+   (revised 2026-09-03; supersedes "gain `BulkableMixin`"). No
+   claimable dish ⇒ the meal lands in the cook vessel: for
+   craft-resolve the matched `pot`, for by-hand the build vessel
+   itself. A bare `BulkableMixin` bolt-on buys a *slot* but not the
+   *loop* — and pot-as-last-resort only works if the pot is a
+   first-class member of the same vessel pool as the dishes. So:
+
+   ```
+   CookPot = ManualBuild(Tool(Durable(CraftVessel)))
+           // CraftVessel = Crafted(Thermal(Bulkable(Container(Detailed(Thing)))))
+   ```
+
+   Every strand is one a pot genuinely wants: **Bulkable** holds the
+   stew · **Container** holds what you dropped in · **Thermal** gives
+   the pot a temperature, ⭐ *which is S1's entire seam* — the tending
+   wave then arrives with its host already shaped · **soiled/wash**
+   because you wash a pot, and serving from it must soil it or the
+   fallback cannot participate in the loop · **category** (`pot`) as
+   the vessel kind. `mintVessel`'s Bulkable+Crafted requirement admits
+   it as its own destination for free. `no-dish` never blocks dinner;
+   the bar's hard `no-glass` stays hard (asymmetry untouched).
+
+   ⚠ **The slate's "`CookPot` is not `Bulkable`" is not contradicted**
+   — that statement was about the *medium read* (a build banks
+   transient contributions, so the medium comes from slots/contributions
+   per P3), not about whether a pot may hold dinner. Both are true.
+
+   ⚠ **Guard, and its test.** A Crafted Bulkable is a pool/bulk-source
+   candidate (`collectCandidate` :314). Kind-matching on `category`
+   already stops a pot being claimed as a *drink glass* (a recipe
+   wanting `coupe` never matches `pot`), and the gather walk already
+   refuses to descend into `Crafted` containers — *"the olive in a
+   served martini is not the next martini's garnish"* (:390–:397), so
+   nothing steals ingredients out of the pot. What is **not** yet
+   excluded is the pot's *contents* being drawn as a bulk input —
+   "stock into soup", the dish-as-ingredient case the slate puts out of
+   scope for v1. Needs a deliberate negative test proving it does not
+   happen yet.
 4. **No clone-per-meal path remains** (AC10) — the `:1405` clone is
    reached only by `tangible` after this.
 
@@ -574,6 +604,14 @@ every new path resolves.
   must not be claimed as a drink vessel or gathered as an input; the
   gather walk needs a guard (tool-first ordering already excludes tools
   — verify, test).
+- **Deferred factoring, named not built: a `BulkableVessel` base.**
+  Bulk-plus-containment currently exists *only* inside `CraftVessel`,
+  bundled with craft concerns (`soiled`, `technique`, `iceKg`). Every
+  consumer today is craft-shaped, so no base is factored — the
+  `ExitableVessel` precedent (*deferred until a consumer needs a
+  concrete class*). When a non-craft holder appears — a rain barrel, a
+  well, a bucket — factor the base **out of `CraftVessel`** rather than
+  duplicating the composition.
 - **Venue stock gaps** (water slot at the cookhouse, dishes in reach)
   surface in the hearthworks suite and the drive — expected, in-scope.
 
@@ -583,9 +621,13 @@ every new path resolves.
    + group `cooking` — confirm.
 2. **`ToxinTag.labileAtK`** as the selective-kill carrier (vs a flag on
    the Condition seed) — confirm the shape.
-3. **`CookPot` gains `BulkableMixin`** so the pot can hold (and serve)
-   the finished meal — the pot-as-last-resort mechanically requires a
-   slot; confirm.
+3. ✅ **RESOLVED with the user 2026-09-03** — `CookPot extends
+   CraftVessel` (not a `BulkableMixin` bolt-on): the pot joins the same
+   vessel pool as the dishes, and picks up `Thermal` that S1 needs
+   anyway. See P5.3 for the composition and the pool-candidate guard.
+   *(Remaining build-time judgement: whether `Durable`/`Tool` compose
+   cleanly over `CraftVessel`'s deeper stack — the same TS
+   mixin-narrowing hazard already budgeted for `Dish`.)*
 4. **Utensil-kind vocabulary** as a small kernel const module (vs a
    row-authored flag) — confirm.
 5. **Cutlery extent**: table-knife + fork as new trade-smithing recipes
