@@ -52,6 +52,23 @@ archetype list are the same list.
 > **services** the specialization gradient produces on demand; **defense**
 > is deliberately outward-facing. A template that grows every conversation
 > is not a template — the test is the discipline.
+>
+> ⚠⚠ **And each was checked against the vocations register's own warning
+> — *NEVER INVENT A NEED TO CREATE A MARKET*** (if a vocation requires a
+> **new player obligation** to exist, the demand was fabricated; the
+> innkeeper is its worked example). Two of the three sit near the line:
+>
+> | need | honest? | why |
+> |---|---|---|
+> | **light** | ✅ | darkness is **already** an obstacle — the mine teaches the light dependency out loud at Provisioning. No new obligation. |
+> | **waste** | ✅ *only as an externality* | ⚠ *"your house accumulates filth, pay somebody"* would be fabricated. Contamination already bites — Rejection fouls a river upstream of everyone. The demand is for **a spill that already costs somebody**, never a chore. |
+> | **care** | ⚠ **the riskiest** | *"you must fund an almshouse"* would be fabricated. The honest version: injury already happens, and mutual aid is **voluntary** — a service bought, never an obligation levied. |
+>
+> ⭐ Which trades these needs charter is worked in
+> [rendering-slate](./slates/builds/rendering-slate.md): **one** genuinely
+> new pack (knacker → tanner → chandler, closing *light* and half of
+> *waste*), and everything else is already in the register as *designed*
+> or a named **GAP**.
 
 | tier | need | the venue | state |
 |---|---|---|---|

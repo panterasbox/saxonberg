@@ -262,6 +262,7 @@ right per row is most of the civic design.
 | **almanac-maker / weather-reader** | **designed** ([insurance § the almanac-maker](./slates/builds/insurance-slate.md)) | ⭐ **a TIME SERIES** (years of records — not skill or capital) | farmers — *a tighter planting window*; ⭐⭐ **owns DATA where the ratings agency owns a METHOD** |
 | **herald / identifier** | **GAP** | competence | ⭐ **belief's missing vocation** — identity verification as a trade |
 | **monument mason** | **GAP** | Discipline | ⭐ the **necropolis**; the chronicle made physical |
+| ⭐⭐ **knacker · chandler** | **GAP — newly identified 2026-09-03** | premises (industrial) + Discipline | ⭐⭐⭐ **the only genuinely new trade the settlement pass produced.** `organic/leather` ships as a material and so do `hide-stock` / `hide-jerkin` / `leather-boots` / `leather-whip` — **and nothing makes leather**; there is no `tallow`, no `soap`, no `candle`, while Rejection's whole culture section is built on the candle. One input, three outputs: carcass → tallow → **candles (the light need)** + soap; → hide → **the tanner** → leather; → bone → glue. ⚠ Gated on **ranching**. See [rendering-slate](./slates/builds/rendering-slate.md). |
 
 ### Maintain & dispose
 
