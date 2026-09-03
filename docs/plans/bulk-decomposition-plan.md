@@ -154,14 +154,38 @@ trapped. Not this plan's job; named so it is not forgotten.
   was handed. Change an ingredient and the reading changes with nothing
   else edited — which is what `Palatable`'s doc block always claimed and
   the cached array quietly contradicted.
-- **W2 — derive the label.** `nutrients`, `nutrientAmounts`, `edible`,
-  `toxicity` off the payload; metabolism and harm compute from the
-  composition. ⚠ The toxin `labileAtK` care in the current field comment
-  must survive: a dose that lost it would come back cookable after
-  somebody had cooked it.
-- **W3 — derive the presentation.** `name`, `appearance`, `keywords`,
-  `tags`. ⚠ Ordering: `tags` has the widest read surface, so it goes last
-  inside the wave.
+- **W2 — derive the label. ✅ DONE.** `nutrients`, `nutrientAmounts`,
+  `edible`, `toxicity` off the payload; `BlendLabel` computes them.
+  ⚠⚠ The `labileAtK` care needed a carried field to survive: the
+  heat-labile kill used to be applied at blend time and thrown away,
+  which was only safe while the answer was frozen with it. **`cookedAtK`
+  is now on the payload** — history, not composition. So is
+  **`formedToxins`** (the ptomaine a spoiled batch grew: nothing in the
+  composition implies it, and it rides past the heat filter because heat
+  stops growth without un-poisoning what growth produced).
+  ⭐ `Freshness.materialShadow` collapsed to one field, and
+  `NutritionLabel`'s face and `mustBeEdible` each lost an arm — the
+  fallback is inside the derivation now. Live: `Nutrition: carb 34000mg,
+  protein 26000mg`, byte-identical.
+- **W3 — the presentation. ⚠⚠ THE PLAN'S PREMISE WAS WRONG; needs a
+  decision.** This wave assumed `name` / `appearance` / `keywords` are
+  *"the blend Material's presentation"* and would derive from it. **They
+  are not.** The craft sets the output slot's material to
+  `GENERIC_MIXED_MATERIAL` — a generic base — and passes the name,
+  appearance and keywords in from the **RECIPE**
+  (`recipe.getName()`, `getOutputAppearance()`, `getKeywords()`). You
+  cannot derive "hearty stew" from root-vegetable + stew-meat, and the
+  material does not know it either. **A blend has no Material of its
+  own.** (That also answers open question 2.)
+  ⭐ Which suggests a better wave than the one planned: the payload
+  carries **`recipeId`** — a canonical, unique-indexed key, and
+  `RecipeCatalogue.getRecipe(id)` is SYNCHRONOUS off a warmed catalogue,
+  so the sync augmenters can use it. Then `name`, `appearance`,
+  `keywords` **and `discipline`** all derive from the recipe: four
+  carried fields become one, and `discipline` leaves W4 early. `tags`
+  stays a composition derivation (the union of the ingredients'), which
+  is what the plan said.
+  ⇒ **Decision wanted before building.**
 - **W4 — merge what is carried.** `discipline` and `freshness` move to
   declaration merging in their own folders. `lib/bulk`'s
   `../metabolism/Metabolic` import goes; `pnpm lint:imports` is the proof.
