@@ -220,6 +220,28 @@ export interface EmitFieldEffect {
   readonly locus: string;
 }
 
+/**
+ * **Relocation** — backing: `Mobile.teleport`. The traveller is
+ * `ctx.actor`, ALWAYS, and there is no `self` flag to turn that off:
+ * the arcane postulate says the caster is one endpoint of any working,
+ * and teleportation is the case where that is load-bearing rather than
+ * decorative. A third party cannot be sent (AC5), and an ITEM in the
+ * middle changes nothing — `EffectContext` separates `actor` from
+ * `origin`, so a wand of teleport moves its wielder rather than
+ * cloaking itself.
+ *
+ * `to` is an item's fixed survey: **a wand holds one place, the network
+ * holds many, shared.** Absent ⇒ the trigger's own target, which is what
+ * a cast supplies. That is why a wand attuned to a mountaintop holds
+ * fewer charges than one attuned to a valley — nobody tunes that; `mgh`
+ * does it.
+ */
+export interface RelocateEffect {
+  readonly kind: 'relocate';
+  /** A template path — the item's own destination. Absent ⇒ the target. */
+  readonly to?: string;
+}
+
 /** The exotic 5% — backing: the scripting interpreter, **code-trust (`isWizard`) gated** at execution. */
 export interface ScriptEffect {
   readonly kind: 'script';
@@ -238,6 +260,7 @@ export type Effect =
   | SenseEffect
   | CloakEffect
   | EmitFieldEffect
+  | RelocateEffect
   | ScriptEffect;
 
 /** The known effect kinds (validation vocabulary). */
@@ -252,6 +275,7 @@ export const EFFECT_KINDS = [
   'sense',
   'cloak',
   'emit-field',
+  'relocate',
   'script',
 ] as const;
 
@@ -296,6 +320,13 @@ export class MagicEffects {
       case 'emit-field':
       case 'script':
         return false;
+      // ⚠ A relocation with no mark and no authored `to` has nowhere to
+      // go, and must refuse BEFORE the mana is spent — the shape gate
+      // is what stops a targetless `cast teleport` billing for a hop it
+      // cannot make (the 45-zaps lesson). An item that carries its own
+      // survey supplies `to`, so it never needs one.
+      case 'relocate':
+        return effect.to === undefined;
     }
   }
 
@@ -497,6 +528,17 @@ export class MagicEffects {
           resist,
           self: e.self === true ? true : undefined,
         };
+      }
+      case 'relocate': {
+        // `to` is optional and, when present, a template path — the
+        // same shape `conjure` validates. No `self` flag: relocation
+        // always lands on the actor, which is what makes AC5 structural
+        // rather than a check somebody could forget.
+        const to = MagicEffects.optString(e.to, 'to');
+        if (to !== undefined && !to.startsWith('/')) {
+          throw new TypeError(`relocate: 'to' must be a template path`);
+        }
+        return { kind: 'relocate', to };
       }
       case 'conjure': {
         const templatePath = MagicEffects.optString(

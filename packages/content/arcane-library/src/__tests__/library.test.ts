@@ -37,8 +37,8 @@ interface Row { class?: string; data?: Record<string, unknown> }
 describe('the arcane library — every row installs', () => {
   const rows = [...yamlFiles(CONTENT)].map((f) => ({ file: f, row: YAML.parse(readFileSync(f, 'utf-8')) as Row }));
 
-  it('ships thirty rows: 12 spells, 2 loci, 13 items, 3 draughts', () => {
-    expect(rows).toHaveLength(30);
+  it('ships thirty-one rows: 13 spells, 2 loci, 13 items, 3 draughts', () => {
+    expect(rows).toHaveLength(31);
   });
 
   it('every class resolves — the loci into this pack, the item classes into arcana, the rest into the kernel', async () => {
@@ -59,7 +59,7 @@ describe('the arcane library — every row installs', () => {
 
   it("every spell row's effects validate, and the two loci-naming rows name this pack's rows", () => {
     const spells = rows.filter((r) => r.row.class === '/platform/idea/magic/Spell');
-    expect(spells).toHaveLength(12);
+    expect(spells).toHaveLength(13);
     const named = new Set<string>();
     for (const { file, row } of spells) {
       for (const raw of row.data!.effects as unknown[]) {
