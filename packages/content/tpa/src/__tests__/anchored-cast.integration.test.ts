@@ -32,10 +32,8 @@ import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import '@saxonberg/server/mud/platform/idea/WorldClockRegistry';
 import SpellCatalogue from '@saxonberg/server/mud/platform/idea/SpellCatalogue';
 import { Template } from '@saxonberg/server/mud/lib/stuff/Template';
-import Species from '@saxonberg/server/mud/platform/idea/species/Species';
 import SingletonCartesianLocation from '@saxonberg/server/mud/platform/location/SingletonCartesianLocation';
 import { Character } from '@saxonberg/server/mud/lib/character/Character';
-import { MANA_RESERVE_KEY } from '@saxonberg/server/mud/lib/magic/Caster';
 import {
   makeStuff,
   stampTemplatePathForTest,

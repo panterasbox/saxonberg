@@ -345,6 +345,9 @@ importers:
 
   packages/content/eternal-university:
     dependencies:
+      '@saxonberg/content-arcana':
+        specifier: workspace:*
+        version: link:../arcana
       '@saxonberg/content-generic-objects':
         specifier: workspace:*
         version: link:../generic-objects
@@ -443,6 +446,9 @@ importers:
       '@saxonberg/content-terminus':
         specifier: workspace:*
         version: link:../terminus
+      '@saxonberg/content-tpa':
+        specifier: workspace:*
+        version: link:../tpa
       '@saxonberg/content-trade-farming':
         specifier: workspace:*
         version: link:../trade-farming
@@ -471,6 +477,9 @@ importers:
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform
+      '@saxonberg/content-tpa':
+        specifier: workspace:*
+        version: link:../tpa
       '@saxonberg/server':
         specifier: workspace:*
         version: link:../../server
@@ -553,6 +562,9 @@ importers:
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform
+      '@saxonberg/content-tpa':
+        specifier: workspace:*
+        version: link:../tpa
       '@saxonberg/content-trade-hospitality':
         specifier: workspace:*
         version: link:../trade-hospitality
@@ -577,6 +589,9 @@ importers:
 
   packages/content/terminus:
     dependencies:
+      '@saxonberg/content-arcana':
+        specifier: workspace:*
+        version: link:../arcana
       '@saxonberg/content-corpo-goodkin':
         specifier: workspace:*
         version: link:../corpo-goodkin
@@ -598,6 +613,9 @@ importers:
       '@saxonberg/content-saxonberg-lounge':
         specifier: workspace:*
         version: link:../saxonberg-lounge
+      '@saxonberg/content-tpa':
+        specifier: workspace:*
+        version: link:../tpa
       '@saxonberg/content-trade-brewing':
         specifier: workspace:*
         version: link:../trade-brewing

@@ -1,0 +1,34 @@
+# A mana lamp — a wall sconce that runs on mana, and ⭐ the proof that
+# `ManaPoweredMixin` is a CATEGORY and not a terminal in disguise (AC6).
+#
+# It ships before the Teleport Authority's terminal composes the same
+# mixin, on purpose: a lamp and a piece of public infrastructure have
+# nothing in common except the socket, and if the abstraction were
+# secretly a terminal this row is where that would show.
+#
+# It is also D5's third row made concrete — **a resident is a sufficient
+# battery.** A caster pours a little of their own reserve in and the room
+# stays lit; anyone else buys a cell. Neither is a special case in the
+# lamp: both arrive through the one `resolveSupply`.
+#
+# `armingFloorTau: 0` because a lamp has no working to lapse — it is lit
+# or it is not. The terminal is the other half of that axis.
+class: /system/arcana/thing/ManaLamp
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a mana lamp
+  primaryKeyword: lamp
+  keywords: [lamp, sconce, light]
+  longDescription: >
+    A brass sconce bracketed to the wall, its pale glass bowl the size of
+    two cupped hands. A slot beneath the bowl takes a cell; a small lever
+    at the base turns it up and down.
+  capacityTau: 40
+  litFlux: 400
+  drawPerHourTau: 2
+  details:
+    bay:
+      keywords: [bay, slot, socket]
+      description: >
+        A shallow brass socket beneath the bowl, sized for one cell.
+        `put cell in lamp` seats it; `get cell` takes it back out.
