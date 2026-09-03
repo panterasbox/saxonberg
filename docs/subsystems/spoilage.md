@@ -55,17 +55,38 @@ exponential, so a week-long gap costs exactly what a minute does.
 
 ## The gauge
 
-`FreshnessMixin` composes onto `ThingBase` beside `WetMixin` — all 152
-`Thing` classes.
+`FreshnessMixin` composes onto exactly **two** classes: `Prop` and
+`Provision` — the two that carry discrete perishable matter. Bulk holders
+(`Bottle`, `Receptacle`, `UnboundedReceptacle`) do **not** compose it;
+their gauge is the payload field, read through `Freshness.loadOf(slot)`.
 
-⭐ **That universality is forced by the data model, not chosen for
-convenience.** Perishability is a property of the **Material**, not the
-class: a `Prop` is an anvil, a toilet, or a cut of stew meat depending on
-its `_materialPath`, and only 30 of the library's 107 materials tabulate
-an activation energy. There is no food class to compose onto — that is
-the codebase's own *"the distinction is the material, not a flag"* rule
-(`isEdibleMatter`), and a `PerishableProp` class would be a flag wearing
-a class name.
+⚠ **It was on `ThingBase` — all 152 `Thing` classes — for one review
+round**, which put five spoilage methods on the documented author surface
+of a rock, a lantern and a pair of socks to serve those two. That is the
+`callable == visible == cared-about` invariant, and it lost.
+
+⭐⭐ **What makes the narrowing safe is a GATE, not a judgement.**
+Perishability is a property of the **Material**, not the class — a `Prop`
+is an anvil, a toilet or a cut of stew meat depending on its
+`_materialPath`, and only 30 of the library's 107 materials tabulate an
+activation energy. There is no food class to compose onto (the codebase's
+own *"the distinction is the material, not a flag"* rule,
+`isEdibleMatter`). So narrowing by hand risks the worst failure this
+codebase knows: food authored onto an inert class would **silently never
+rot**, exactly as `eat` shipped with no affordance and `feel`/`taste`
+never ran.
+
+`pnpm lint:perishable` closes that: every shipped row whose
+`_materialPath` names a material that rots must resolve to a class
+composing `FreshnessMixin`. CI-gating, no exemption list — a row that
+legitimately holds perishable matter on an inert class is a design
+conversation, not a list edit.
+
+⚠ **What the gate cannot see, stated rather than implied:** a RUNTIME
+`setMaterial(perishable)` onto a non-`Fresh` host. A gate reads authored
+rows; it cannot read a craft's output assignment. The gap is narrow — the
+craft paths flow material onto outputs of known classes — and it is the
+price of the narrowing.
 
 **Inert by default**, therefore, is what carries the design: a Material
 tabulating no activation energy never advances past zero. An anvil does

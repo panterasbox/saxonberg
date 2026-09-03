@@ -29,6 +29,7 @@ import { Quantity } from '../../../../lib/quantity';
 import Material from '../../../../lib/material/Material';
 import { Freshness } from '../../../../lib/material/Freshness';
 import Thing from '../../../../lib/stuff/Thing';
+import Prop from '../../../thing/Prop';
 import { Recipe } from '../../../../lib/craft/Recipe';
 import Oven from '../../../thing/Oven';
 import CraftVessel from '../../../thing/CraftVessel';
@@ -523,8 +524,10 @@ describe('the toxin kill is SELECTIVE (AC9)', () => {
 });
 
 describe('the working resets the spoilage load (P4)', () => {
-  function spoiled(materialPath: string, load: number): Thing {
-    const t = makeStuff(() => new Thing());
+  // ⚠ `Prop`, not a bare `Thing`: the spoilage gauge composes on the two
+  // classes that carry discrete perishable matter, not on every Thing.
+  function spoiled(materialPath: string, load: number): Prop {
+    const t = makeStuff(() => new Prop());
     t.setMass(Quantity.of(0.4, 'kg'));
     t.setMaterial(
       StuffApi.findByTemplatePath<Material>(materialPath) as unknown as Material,

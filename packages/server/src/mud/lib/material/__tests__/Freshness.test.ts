@@ -10,6 +10,7 @@ import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Thing from '../../stuff/Thing';
 import Prop from '../../../platform/thing/Prop';
+import Provision from '../../../platform/thing/Provision';
 import Material from '../Material';
 import { Freshness } from '../Freshness';
 import { MixinApi } from '../../../api/mixin';
@@ -59,7 +60,7 @@ function food(mat: Material, tempK = 293): Prop {
   });
 }
 
-/** A bare `Thing` (Fresh, NOT Thermal) — reads the neutral ambient dial. */
+/** A bare `Thing` — ⚠ deliberately NOT Fresh. See the boundary test. */
 function bareThing(mat: Material): Thing {
   return makeStuff(() => {
     const t = new Thing();
@@ -83,11 +84,34 @@ describe('FreshnessMixin — the spoilage gauge', () => {
     WorldClockApi._resetForTesting();
   });
 
-  it('every Thing carries the gauge, and a fresh one reads fresh', () => {
-    const t = bareThing(material(MEAT_EA));
-    expect(MixinApi.isFresh(t)).toBe(true);
-    expect(t.getMicrobialLoad()).toBe(0);
-    expect(t.getFreshnessBand()).toBe('fresh');
+  it('a host that carries the gauge reads fresh when nothing has grown', () => {
+    const p = food(material(MEAT_EA));
+    expect(MixinApi.isFresh(p)).toBe(true);
+    expect(p.getMicrobialLoad()).toBe(0);
+    expect(p.getFreshnessBand()).toBe('fresh');
+  });
+
+  it('⚠⚠ a bare `Thing` does NOT carry the gauge — a rock has no palate for rot', () => {
+    // ⭐ The boundary, asserted. `FreshnessMixin` shipped on `ThingBase`
+    // for one review round, which put five spoilage methods on the
+    // documented author surface of all 152 Thing classes to serve the two
+    // that carry discrete perishable matter. A rock, a lantern and a pair
+    // of socks do not need a microbial load.
+    //
+    // ⚠ What makes this narrowing SAFE is not this test — it is
+    // `pnpm lint:perishable`, which fails CI when a row's material rots
+    // and its class cannot. Without that, food authored onto an inert
+    // class would silently never spoil.
+    const rock = bareThing(material(MEAT_EA));
+    expect(MixinApi.isFresh(rock)).toBe(false);
+    expect(
+      (rock as unknown as { getMicrobialLoad?: unknown }).getMicrobialLoad,
+    ).toBeUndefined();
+  });
+
+  it('…and the two classes that DO carry it are the two that hold food', () => {
+    expect(MixinApi.isFresh(makeStuff(() => new Prop()))).toBe(true);
+    expect(MixinApi.isFresh(makeStuff(() => new Provision()))).toBe(true);
   });
 
   // ---- AC1: inertness is the material's silence, not a flag ----

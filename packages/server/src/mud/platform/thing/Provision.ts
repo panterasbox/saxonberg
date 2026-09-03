@@ -15,12 +15,18 @@
 import Thing from '../../lib/stuff/Thing';
 import { DetailedMixin } from '../../lib/description/Detailed';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
+import { FreshnessMixin } from '../../lib/material/Freshness';
 import { CraftedMixin } from '../../lib/craft/Crafted';
 import type { Crafted } from '../../lib/craft/Crafted';
 
-// Thermal for the same reason `Prop` carries it: a Provision IS food by
-// construction, and the spoilage gauge reads its host's temperature.
-const ProvisionBase = CraftedMixin(ThermalMixin(DetailedMixin(Thing)));
+// Thermal AND Freshness, because a Provision IS food by construction —
+// the one class in the library of which that is true by name. The gauge
+// reads its host's temperature, which is why the two travel together.
+// Neither is on `Thing`: see `lib/stuff/Thing.ts` for why, and
+// `lint:perishable` for what makes the narrowing safe.
+const ProvisionBase = CraftedMixin(
+  FreshnessMixin(ThermalMixin(DetailedMixin(Thing))),
+);
 
 /**
  * ⚠ TS drops an inner mixin's surface through a nested generic mixin:

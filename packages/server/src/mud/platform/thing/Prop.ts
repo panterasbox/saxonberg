@@ -14,6 +14,7 @@
 
 import Thing from '../../lib/stuff/Thing';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
+import { FreshnessMixin } from '../../lib/material/Freshness';
 
 /**
  * ⭐ **Thermal, because a prop is often food.** The stew-meat, root-
@@ -23,6 +24,11 @@ import { ThermalMixin } from '../../lib/thermal/Thermal';
  * subject. Thermal is reconcile-on-read and costs nothing until something
  * reads it, so the anvil and the toilet carry it unharmed.
  */
-const PropBase = ThermalMixin(Thing);
+// ⭐ …and `Freshness` for the same reason, because it is the same rows:
+// `Prop` is where the library's discrete perishable matter lives (stew
+// meat, root vegetables, ration stock) — one of only TWO classes that do.
+// It is not on `Thing`, so a rock has no microbial load; `lint:perishable`
+// is what makes that narrowing safe (see `lib/stuff/Thing.ts`).
+const PropBase = FreshnessMixin(ThermalMixin(Thing));
 
 export default class Prop extends PropBase {}

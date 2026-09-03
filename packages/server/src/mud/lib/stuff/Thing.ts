@@ -36,7 +36,6 @@ import { PerceptibleMixin } from '../description/Perceptible';
 import { VisibleMixin } from '../description/Visible';
 import { ConcealableMixin } from '../concealment/Concealable';
 import { WetMixin } from '../wetness/Wet';
-import { FreshnessMixin } from '../material/Freshness';
 import { ChattelMixin } from '../chattel/Chattel';
 import type { FieldMeta } from '../mixin';
 
@@ -46,16 +45,26 @@ import type { FieldMeta } from '../mixin';
 // ConcealableMixin (default `obvious`) lets any Thing carry a concealment
 // level — a hidden cache, a dropped-and-buried item — resolved per-viewer by
 // the detection gate (inert until authored). WetMixin gives every Thing a
-// material-driven wetness gauge (inert until wetted). FreshnessMixin gives
-// every Thing a material-driven spoilage gauge (inert until its Material
-// tabulates a spoilage activation energy — an anvil does not rot). All four
-// are additive attribute mixins; composition order is moot.
+// material-driven wetness gauge (inert until wetted). Both are additive
+// attribute mixins; composition order is moot.
+//
+// ⚠ **`FreshnessMixin` is deliberately NOT here.** It shipped on this base
+// for one review round and put five spoilage methods — `getMicrobialLoad`,
+// `getFreshnessBand`, `isPerishable`, `setMicrobialLoad`,
+// `reconcileFreshness` — on the documented author surface of all 152 Thing
+// classes, to serve the two that carry discrete perishable matter (`Prop`
+// and `Provision`). A rock does not need a microbial load, and
+// `callable == visible == cared-about` says so.
+//
+// ⚠⚠ Narrowing it is only safe because a GATE replaces the coverage:
+// `pnpm lint:perishable` fails CI when a row's `_materialPath` names a
+// material that rots and its class cannot. Without that, food authored
+// onto an inert class would simply never spoil, silently — the failure
+// mode this build hit twice by other routes.
 const ThingBase = ChattelMixin(
   ConcealableMixin(
-    FreshnessMixin(
-      WetMixin(
-        VisibleMixin(PerceptibleMixin(TangibleMixin(ContainableMixin(Stuff)))),
-      ),
+    WetMixin(
+      VisibleMixin(PerceptibleMixin(TangibleMixin(ContainableMixin(Stuff)))),
     ),
   ),
 );

@@ -44,6 +44,7 @@
     "lint:gates": "pnpm --filter @saxonberg/server run lint:gates",
     "lint:object-verbs": "pnpm --filter @saxonberg/server run lint:object-verbs",
     "lint:census": "pnpm --filter @saxonberg/server run lint:census",
+    "lint:perishable": "pnpm --filter @saxonberg/server run lint:perishable",
     "lint:locations": "pnpm --filter @saxonberg/server run lint:locations",
     "lint:field-meta": "pnpm --filter @saxonberg/server run lint:field-meta",
     "lint:does-nothing": "pnpm --filter @saxonberg/server run lint:does-nothing",

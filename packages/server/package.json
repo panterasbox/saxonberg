@@ -49,6 +49,7 @@
     "lint:instanceable": "tsx scripts/check-instanceable-placement.ts",
     "lint:locations": "tsx scripts/check-location-classes.ts",
     "lint:census": "tsx scripts/check-template-census.ts",
+    "lint:perishable": "tsx scripts/check-perishable.ts",
     "lint:arg-kinds": "tsx scripts/check-arg-kinds.ts",
     "lint:descriptors": "tsx scripts/check-descriptor-banks.ts",
     "lint:topics": "tsx scripts/check-topic-keys.ts --lint",
