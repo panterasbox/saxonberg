@@ -5,6 +5,15 @@
 lives in [textiles-slate.md](../slates/builds/textiles-slate.md) (12
 decisions); read it for *why*, never for *what*.
 
+⚠⚠ **THIS PLAN IS AUTHORITATIVE.** The slate froze at the requirements
+handoff and is **stale on specifics** — it still lists `full` as a verb,
+numbers waves **W0–W12** (superseded by **A1–A10 / B1–B5** below), grows
+cotton, emits a soiling event, and prints a 3 × 4 dye grid whose
+chemistry is wrong. The slate carries its own divergence table; when the
+two disagree, **the plan wins**. Where the plan itself carries a
+`⚠ CORRECTED` note, that note is the decision — the text it corrects is
+kept only so the reasoning survives.
+
 **Build discipline:** one MR spanning both stages, with the **kernel/pack
 seam at the end of Stage A** (§ P0). `pnpm test:near` + every touched
 pack's vitest + the full lint family per wave. `pnpm test` at exactly two
@@ -624,7 +633,7 @@ wants. Do not "balance" it away.
   "any movement is recorded" IS that snapshot**, committed and quoted in
   the MR description.
 
-### P9 — Soiling: routing + one pre-registered event, and nothing resembling a gauge
+### P9 — Soiling: the routing method only. ⚠⚠ NO event, NO gauge
 
 - **The routing** — genuinely textiles' business, because it is the
   layering model: `outermostAt` answers *which layer takes the
@@ -1665,7 +1674,7 @@ Per P12.
 - **Docs:** `slot.md`; `command-spec.md` (the stanza-not-a-verb precedent,
   second instance after `measure strike`).
 
-### Wave A8 — soiling routing, the pre-registered event, the wash/fade loop
+### Wave A8 — soiling routing (no event), and the wash/fade loop
 
 Per P9.
 

@@ -1,5 +1,33 @@
 # Textiles slate — the chain that clothes the world
 
+> ## ⚠⚠ SUPERSEDED FOR ANYTHING OPERATIONAL — read the PLAN for *what*
+>
+> **Status 2026-09-02: this slate is the reasoning record. It is STALE on
+> specifics.** Requirements closed the scope and
+> [the plan](../../plans/textiles-plan.md) then took 23 P-decisions,
+> several of which **reverse or delete things written below**. The
+> workflow's rule — *read the slate for why, never for what* — is now
+> load-bearing rather than stylistic.
+>
+> **Known divergences, so nobody builds from the stale half:**
+>
+> | below says | actually |
+> |---|---|
+> | the verb table lists **`full`**, "Eight verbs" | ⚠ **`full` does not ship** — fulling and felting are wool-only (plan P21). Ten verbs; textiles ships three |
+> | the verb table lacks `mordant`, `alter`, `measure` | all three added (P19, P17, P18) |
+> | **W0–W12** wave numbering | ⚠ superseded by the plan's **A1–A10 / B1–B5** |
+> | W7 grows **cotton** | cut — flax only (requirements § 6, plan P21) |
+> | W5 emits a **pre-registered producer event** | ⚠ **deleted** — it was ceremony with no emitter, no listener and no connection to room-condition's ledger (P9) |
+> | W9 **leatherwork** in this cycle | **Stage C**, deferred — nothing produces hide |
+> | Decision 13 / OQ 3: **3 dyestuffs × 4 mordants** | ⚠ **wrong chemistry.** Woad is a *vat* dye taking no mordant — 2 × 4 **plus woad as the exception** (P20) |
+> | Decision 10 names a **`CoveringApi`** seam | ⚠ **no such Api** — the covering stack lives on the wearer (P6) |
+>
+> **What this slate is still good for:** the audit that started the build,
+> the twelve decisions' *reasoning*, the four-lens pass, and the
+> cross-references. Retire or reduce it at `/finalize` per the sweep
+> rules.
+
+
 > **Captured 2026-09-02**, design session in `build-1` while the TPA
 > rewrite (`design/tpa-reform`) and cooking (`design/cooking`) were in
 > design in the sibling worktrees. **Status: decided design,
@@ -1127,15 +1155,18 @@ Kernel first, then packs — the metal-chain shape.
    the dye plants; the tannery is a nuisance trade wanting industrial
    zoning and may not belong in either. This is the cosmetics slate's
    open question 9, still open.
-2. **Is `dyeing` its own Discipline, or does it ride `apothecary`?**
-   Cosmetics open question 1, unchanged. Extraction overlaps; a dedicated
-   `dyeing` is cleaner but adds a roster row.
-3. **How many dyestuffs × mordants?** Cosmetics open question 2. Three
-   dyestuffs × four mordants is twelve outcomes from seven authored rows;
-   the multiplicative shape is the point, the counts are not settled.
-4. **Does cotton ship in stage one, or only flax + wool?** Cotton needs a
-   warm biome and a gin; flax needs neither. Possibly a later crop.
-5. **Does `stature` want to be a scalar or a two-axis (height × build)?**
+2. ✅ **RESOLVED — `dyeing` gets its own Discipline** (plan P16): it is
+   the customization core loop, extraction is apothecary's but **fastness
+   is nobody else's**.
+3. ⚠ **RESOLVED, AND THE PREMISE WAS WRONG** (plan P20). A uniform 3 × 4
+   grid teaches wrong chemistry: madder and weld are mordant dyes, **woad
+   is a vat dye taking no mordant at all**. Ships as **2 × 4 plus woad as
+   the deliberate exception**.
+4. ✅ **RESOLVED — flax only** (requirements § 6, plan P21). A second
+   *cellulose* fibre adds rows without a lesson; what is missing is wool.
+5. ✅ **RESOLVED — a scalar** (requirements § 6): lineage's fat/muscle/bone
+   already owns *build*.
+5b. *(original)* **Does `stature` want to be a scalar or a two-axis?**
    Fit reads better with two; every other consumer named in the lineage
    slate reads fine with one.
 6. **Does felting need `full`, or is felting its own verb?** Fulling

@@ -233,18 +233,25 @@ cultivation is farming's mechanism; textiles' begins at the retting pit.
 | `scutch` | how hard to work it — purity vs staple length | textiles |
 | `spin` | how fine — speed traded against yarn grade | textiles |
 | `weave` | weave density — yield vs windproofing and wear | textiles |
-| `full` | the felting / finishing pass | textiles |
 | `dye` | `f(dyestuff, mordant, fibre)` | dyeing |
 | `cut` | pattern + fit | tailoring |
 | `sew` | assembly | tailoring |
+| `mordant` | which metal — the colour family, committed before you see it (P19) | dyeing |
+| `alter` | let out / take in — spends the seam allowance `cut` left (P17) | tailoring |
+| `measure` | the fitting — a **stanza** on the shipped `measure` view (P18) | tailoring |
 
 Break, scutch and hackle are three motions with one decision; they fold
 into `scutch`. **Retting needs no verb** — `FermentingMixin` already runs
 that clock; put flax in water, judge the moment, take it out.
 
-**`full` covers felting too.** Fulling woven wool and felting loose fibre
-share one mechanism (heat + agitation + moisture) and differ only in the
-input. One decision, one verb.
+⚠⚠ **CORRECTED 2026-09-02 — `full` does not ship.** Fulling works because
+**wool scales interlock**; **linen cannot be fulled**, and the same scales
+are why plant fibres **do not felt at all**. With flax at launch, `full`
+has nothing to act on. **Linen's finish is passive sun-bleaching** — a
+bleaching green, zero verbs, retting's shape applied to weather — so the
+stage is `finish`, bleaching is linen's instance and fulling is wool's
+(plan § P21). ⭐ The launch story: **flax gives you woven cloth; wool
+gives you everything else.**
 
 **The tool ladder ships**: drop spindle → spinning wheel, and the loom
 ladder. Precedent is the shipped `sewing-kit` / `sewing-machine` pair
