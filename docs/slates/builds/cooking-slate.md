@@ -1268,6 +1268,59 @@ requires two people to run one room.
   venue with a fitted kitchen can employ a cook; one without cannot —
   the economy slate's productive-capital thesis rendered in a room.
 
+---
+
+## Part 8 — Food culture & regional cuisine (settled in principle)
+
+**None of this is v1** — it is content plus one open fork. But the
+governing rules are worth fixing now, because they decide what later
+content is *allowed* to be.
+
+**The doctrine settles the shape**: trade is **mechanism**, locality is
+**expression** — the methods, the grades, the physics are shared code;
+a region's cuisine is **copied content**, and the test is that a second
+venue in a second town needs *zero pack code*.
+
+- ⭐⭐ **Cuisine spreads the way skills spread — by teaching — and it
+  already ships.** The knowledge ladder mints the **known-of claim by
+  WATCHING a maker perform**, while the can-make deed comes only from
+  your own first faithful hand build (*"the book isn't enough — the
+  hands learn"*). So a dish genuinely propagates person to person and
+  town to town: invented at one venue, watched by an apprentice,
+  carried down the road. **Culture as a shipped mechanic, not a
+  content tag** — and the [provenance](../../subsystems/provenance.md)
+  ledger means dishes have *inventors*, so named dishes ("Katie's
+  stew") are a ledger fact, not flavor text.
+- ⭐⭐ **Cuisine is a fact about PLACE and PRACTICE, never about
+  LINEAGE — terroir, not blood.** What you cook comes from what your
+  basin grows and what your trade taught you; a species' *physiology*
+  may differ (obligate diets are metabolism's business), but that is
+  never culture. This is both the honest design and the one that keeps
+  fantasy food out of essentialist territory.
+- **What regional difference EMERGES from** — all shipped or slated
+  substrate, no new mechanism:
+  - **Ingredients**: what the basin grows and the climate allows
+    (biome · farming · the watershed's three basins), with von
+    Thünen sorting the rest — perishables stay local, spices travel
+    (§ Part 3 seasoning).
+  - ⭐ **Fuel cost drives METHOD**, which is real culinary history: a
+    wood-scarce region cooks **fast and hot** (the wok), a wood-rich
+    one **braises for hours**. The fuel trade ships (charcoal), so
+    method distribution can follow fuel economics rather than an
+    author's whim.
+  - **The preservation regime**: hard winters build a
+    salting/fermenting culture (the victualler's terms — § the
+    preservation slate).
+  - *(Water chemistry — Burton vs Dublin — is brewing's classic; a
+    pointer, not a claim.)*
+- **The open fork is not ours**: how much of this is hand-placed
+  versus derived is exactly the
+  [authored-vs-procedural slate](./authored-vs-procedural-slate.md)'s
+  question. Point at it; do not resolve it here.
+- **The pedagogy comes free**: *why cuisines differ* is real
+  curriculum — geography, economics, migration, preservation — and it
+  is teachable here only because the chain underneath is honest.
+
 ⚠ Build-freeze note: captured during the client-rebuild design-only
 phase. This slate is the input to a `/requirements` cycle when the
 freeze lifts.
