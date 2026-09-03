@@ -53,8 +53,8 @@ not a wave of their own:**
 | `reproductiveMode` authored on 6 rows, **no reader** | `Species.ts:168` | W9's attachment point |
 | `integratePrecipitation` | `platform/idea/api/WeatherLogic.ts:430` | the ∫weather dependency is **closed** |
 | `CelestialApi` has declination, hour angle, `nextSunrise`/`nextSunset`; **no `dayLength`** | `api/celestial.ts` | photoperiod is arithmetic on two shipped calls (W6) |
-| `fruitSetCount`, `_flowering`, `onFloweringLatched` | `lib/husbandry/Growing.ts:120,275,767` | the pollination hook (W14) |
-| `PitPony` proves draught needs **no new mechanism** — capacity is body mass | `trade-mining/src/agent/PitPony.ts` | W12 is a row + a brain |
+| `fruitSetCount`, `_flowering`, `onFloweringLatched` | `lib/husbandry/Growing.ts:120,275,767` | the pollination hook (W15) |
+| `PitPony` proves draught needs **no new mechanism** — capacity is body mass | `trade-mining/src/agent/PitPony.ts` | W13 is a row + a brain |
 | `BrandedMixin` is Thing-only (`NeonSign`, `GradedReceptacle`), MQL-visible via `subscribableFields` | `lib/corpo/Branded.ts` | W8 moves it with chattel |
 | `WorldClockApi.DEFAULT_SCALE = 12` | `api/worldclock.ts:108` | 1 game day = **2 real hours** |
 | `lint:locations` keeps **enumerated** `MINTED_ROWS` / `FURNISHED` rosters | `scripts/check-location-classes.ts:203,214` | a new field class is a **deliberate roster diff** |
@@ -201,12 +201,25 @@ claimed home**; **containment holds position**. Their disagreement *is* D95's
 straying — derivable on read, needing no new event, and the reason a herd has a
 jurisdictional anchor at all. Without one, nothing bounds where livestock can be.
 
-### P5 — the sward is a third `Reserve` on the field
+### P5 — the sward is a `Reserve` on the field, keyed `sward`
 
-Key `forage`, theme `cultivation`, beside `moisture` and `nitrogen`. Grown by the
-soil reconcile (weather × soil × season), drawn down by occupants and by cutting.
+Key **`sward`**, theme `cultivation`. Grown by the soil reconcile
+(weather × soil × season), drawn down by occupants grazing and by cutting.
 **Residual and recovery (D9) is a floor on the reserve below which the regrowth
 *rate* is penalised until it rebuilds** — not a second stock.
+
+⚠⚠ **NOT keyed `forage`, and the reason matters.** D61's reclamation income is
+**wild foraging** — `discovery-slate`'s gathering stock, a *derived* field over
+ground nobody has cleared — and it lands in **W4, one wave before this one**. Two
+different things share the English word, in adjacent waves. The standing grass is
+the **sward** (which is the word the design already uses throughout: *sward
+height*, *residual*, *the sward*), and `forage` stays the gathering sense.
+
+⚠ **And it is not "the third reserve".** By **D16** the soil carries **four**
+derived reserves — `moisture`, `nitrogen` (shipped) plus **`organicMatter` and
+`structure`, added in W10** — so a field ends with **five** keyed reserves, of
+which `sward` is the standing crop rather than a soil property. At W5 only the
+two shipped soil reserves exist; do not read "third" into the key set.
 
 ### P6 — the partitioning cascade is a method on the animal
 
@@ -440,21 +453,23 @@ differently see different surveys of one piece of ground (AC 2, 4).
 
 ### W3 — `Field`, and `plot`
 
-P2 (**a pack location class, following `MineRoom`**), D3. The Warren satellite, the gate, the land draw against the parcel's
-declared area, the first consumer of `LandUse`'s `field` ceiling. **Green:** plot
+P2 (**a pack location class, following `MineRoom`**), D3. The Warren satellite, the gate, **field naming (D88)**, the land draw against
+the parcel's declared area, the first consumer of `LandUse`'s `field` ceiling. **Green:** plot
 a field on agricultural ground you hold, walk to it through its gate (AC 1).
 
 ### W4 — Reclamation: clear, treat, improve, revert
 
 D54–D61. The improvement axis (P2's class gains it), clearing, the stone→wall
-closure, reversion when unmaintained, and **forage as the reclamation income**
-(D61 — consuming `discovery-slate`'s model, not redesigning it). **Green:** newly
+closure, reversion when unmaintained, **D106's disposability check**, and
+**wild forage as the reclamation income** (D61 — consuming `discovery-slate`'s
+model, not redesigning it; ⚠ this is gathering, *not* W5's `sward` reserve). **Green:** newly
 plotted ground is **not plantable**; two plots of different character demand
 measurably different work; leaving a field alone takes it back (AC 21, 22, 28).
 
 ### W5 — The sward and the derived land uses
 
-P5, D7–D9. Standing biomass, growth, grazing draw by occupants, cutting hay,
+P5, D7–D9. Standing biomass on the **`sward`** reserve ⚠ (*not* `forage` — that
+word is W4's wild gathering; see P5), growth, grazing draw by occupants, cutting hay,
 residual and recovery. **No `use` field anywhere.** **Green:** graze below
 residual and recovery measurably slows; hay cut and carried leaves the field
 poorer than grazing it did (AC 5).
@@ -512,13 +527,14 @@ by what is put in it and a field's texture cannot (AC 6, 32, 33).
 ### W11 — The roster, the crops, and the pack cut
 
 D30–D33, D43, D44, D67, P9. Five species as commons rows; `trade-ranching`;
-barley, clover, turnips, saffron; the farmstead archetype. **Green:** the
+barley, clover, turnips, saffron; **both archetype rows** (`farm` and `byre`,
+P12). **Green:** the
 four-course sustains yield with **no fallow year**, verifiable from the ledger;
 malt has a crop behind it (AC 13, 34, 35).
 
 ### W12 — The university farm, teaching, and the on-ramp
 
-D102–D105, P10, P12. The campus farm as authored content **binding both
+D102–D105, **D62**, P10, P12. The campus farm as authored content **binding both
 archetypes** (`farm` and `byre`) at small scale; help topics for **concepts**
 as well as verbs; the labourer rung. **Green:** ⭐ the campus farm needs **zero
 pack code** (AC 62 — D33's test), and a new character with no land and no money
@@ -539,7 +555,8 @@ at the same rate; a poorly handled dog works badly (AC 15).
 D45–D53, D95–D101. **Start with D48 (hay fire)** — it reads the moisture reserve,
 the fermentation heat model and `FireApi`, all shipped, and is the cheapest
 high-value item in the build. Then the damps and the rescue trap, ragwort,
-handling injury, predators, and the adversarial surface. **Green:** a manure pit
+handling injury, predators **and D64's hired abatement**, and the adversarial
+surface. **Green:** a manure pit
 kills an unprotected rescuer; hay above a moisture threshold self-heats; a fox
 kills more than it takes (AC 24, 25, 26).
 
@@ -548,6 +565,26 @@ kills more than it takes (AC 24, 25, 26).
 D34–D39. The colony as the herdbook without draft; pollination modifying
 `fruitSetCount`; forage range by graph hops; swarming. **Cut this wave whole if
 the build is running long** — it is severable by construction.
+
+### ⚠ Decisions with no wave of their own — assigned here, not orphaned
+
+The audit found four that no wave named. They are small, but a build agent
+working the wave list would have shipped without them:
+
+| | Rides |
+|---|---|
+| **D62** — the dwelling's yard as the on-ramp | **W12**, with the campus farm; it is the same ladder (D104) |
+| **D64** — predator abatement is a hired job | **W14**, beside D50's predators — the seam is a contract, not a mechanism |
+| **D88** — holders name their fields | **W3**, with `plot`; naming is part of minting a field, not a later feature |
+| **D106** — what happens when a holder stops | **W4**, with reversion (D58); its obligation is *do not create an object the mortality build cannot dispose of*, which is a review check on every wave |
+
+And three groups are **constraints, not build items**, so they deliberately have
+no wave: **D69** (the four modes — framing that stops the frame being
+re-derived), **D75–D77** (the tech tiers and the magic negatives — they forbid
+work rather than specify it), and **D84–D87 / D89–D91** (the reading and cadence
+rules, which govern every wave and are listed at the head of this plan).
+⭐ **D78 names a seam** — `Perceive·Earth` as the survey ladder's top rung — that
+is the magic subsystem's to build, not this one's.
 
 ### W16 — Drives, docs, finalize runway
 
@@ -561,7 +598,14 @@ field-substrate slate's register gains *soil quality — shipped*. The three sla
 
 ## Acceptance-criteria coverage
 
-AC 1–35 and 48–65 map to W1–W16 as marked above. **AC 36–40 and 43–47 are tier 3
+⚠ **The wave entries cite roughly half the in-scope criteria by number** — the
+ones that make a good wave-closing test. The rest (largely 14, 16–20, 23, 27,
+29–31, 41–42, 48–61, 64–65) are **not unowned; they are cross-cutting** — the
+reading and cadence rules, the magic negatives, the band-distinguishability read
+— and are checked at `/finalize` against the whole build rather than at one
+wave's close. **Do not treat an uncited criterion as out of scope.**
+
+AC 1–35 and 48–65 are this MR's. **AC 36–40 and 43–47 are tier 3
 and do not gate this MR.** Two carry unusual weight:
 
 - **AC 50** (band vocabularies distinguishable in prose) — P8, and it is authoring
