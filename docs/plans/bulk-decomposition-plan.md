@@ -185,12 +185,27 @@ trapped. Not this plan's job; named so it is not forgotten.
   carried fields become one, and `discipline` leaves W4 early. `tags`
   stays a composition derivation (the union of the ingredients'), which
   is what the plan said.
-  ⇒ **Decision wanted before building.**
-- **W4 — merge what is carried.** `discipline` and `freshness` move to
-  declaration merging in their own folders. `lib/bulk`'s
-  `../metabolism/Metabolic` import goes; `pnpm lint:imports` is the proof.
-- **W5 — `category` out.** Its own mixin, composed alongside `Bulkable`.
-- **W6 — the serviceware tier.** `ServiceableMixin` + `CutleryMixin` +
+  ⇒ **Built that way. ✅ DONE, with two fields kept back.**
+  `recipeId` carries, and `name` + `discipline` derive from it. But
+  **`appearance` and `keywords` stay carried**, for two different reasons
+  that are the wave's real finding:
+  - `appearance` is rendered by `bulkContentsAugmenter` INSIDE `lib/bulk`,
+    which may not import `lib/craft`. A boundary, not an oversight.
+  - ⭐⭐ `keywords` are how the blend is FOUND. Derived, `look stew`
+    answered *"You don't see any 'stew' here."* **Name and discipline are
+    READ and degrade gracefully when a lookup misses; keywords missing is
+    not a degraded reading, it is an object that has stopped existing.**
+    That is the line for which facts a substrate may outsource.
+- **W4 — merge what is carried. ✅ DONE.** `discipline` left early with
+  W3, so this was `formedToxins` (declared by `lib/metabolism`) and
+  `freshness` (by `lib/material/Freshness`). ⭐ The answer to *"what is a
+  mixin, for a value object"* turned out to be a technique already in the
+  tree — `Engaged`, `CombatSession`, `AbortReason` and `Bulkable` ITSELF
+  (on the MQL types) all use `declare module`. `lib/bulk` now imports no
+  subsystem but `lib/material`, which is correct: bulk is a volume OF a
+  material. `pnpm lint:imports` passes.
+- **W5 — `category` out. ⏭ NOT STARTED.** Its own mixin, composed alongside `Bulkable`.
+- **W6 — the serviceware tier. ⏭ NOT STARTED.** `ServiceableMixin` + `CutleryMixin` +
   `platform/thing/Cutlery`, and `EatController` narrows on `isCutlery`
   instead of `isBulkable`. The four-step shape is already written down in
   [crafting.md](../subsystems/crafting.md).
@@ -215,7 +230,7 @@ one that touches every writer; W1–W3 are one subsystem each.
    "we need honest per-litre nutrition."** Carried as `servings`, which is
    the craft's own unit and the same number the label already multiplies
    by, so a per-litre reading is a division rather than a guess.
-2. Does a blend Material still exist after W3, or is the blend only ever
-   its composition?
+2. ~~Does a blend Material still exist?~~ **Answered: no.** A blend's slot
+   material is `GENERIC_MIXED_MATERIAL`; its identity is the recipe's.
 3. Which subsystem owns the vessel-kind mixin — retail (the par) or
    crafting (the claim)?
