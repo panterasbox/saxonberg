@@ -197,6 +197,11 @@ subcommands:
         type: object
         required: true
         scope: [reachable]
+        # The two numbers come off a BODY — `measurementsOf` reads the
+        # species' stature and the instance's mass, and returns null for
+        # anything that is not an organism. Declaring it here is what
+        # turns "nothing happens" into a sentence.
+        requires: OrganismMixin
   dip:
     description: "Read how steeply an ore body falls, off an exposed vein (needs a surveyor's instrument)"
     help: |

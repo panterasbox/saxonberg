@@ -2,7 +2,7 @@
 # departure: a free return leg to the lounge (fee 0) and the paid line out to
 # the newbie-wilds crossroads (fee 15 — demo split: TPA 3 / city 12). Its two
 # routes satisfy D4 (lounge free + paid destination both reachable from A).
-class: /world/common/tpa/TpaTerminal
+class: /system/tpa/thing/TpaTerminal
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   seatIn: /world/terminus/terminal/location/departure-gate-a
@@ -10,6 +10,15 @@ data:
   keywords: [gate-a]
   directionality: departure
   status: operational
+  # ── the mana leg (TPA reform W6) ──
+  # A CITY gate runs on the line: cheap mana, and an arming floor it
+  # never approaches because the line refills faster than anything
+  # drains it. `standbyWatts: 0` — a gate somebody is feeding
+  # continuously has no absence to bill for.
+  mainsRef: /world/terminus/terminal/thing/mana-main
+  capacityTau: 4000
+  armingFloorTau: 200
+  standbyWatts: 0
   routes:
     - to: /world/lounge/thing/terminal
       fee: 0

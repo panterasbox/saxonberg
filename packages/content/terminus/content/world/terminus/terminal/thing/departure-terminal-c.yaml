@@ -2,7 +2,7 @@
 # non-operational: grey status light, no routes, and the TPA ride fork refuses
 # a departure from it (status read at authorization). The hub's visible
 # expansion capacity.
-class: /world/common/tpa/TpaTerminal
+class: /system/tpa/thing/TpaTerminal
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   seatIn: /world/terminus/terminal/location/departure-gate-c

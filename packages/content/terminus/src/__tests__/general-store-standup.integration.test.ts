@@ -39,6 +39,8 @@ const OBJ_DIR = fileURLToPath(new URL("../../../generic-objects/content/stuff/",
 const PRODUCE_DIR = fileURLToPath(new URL("../../../trade-farming/content/trade/farming/", import.meta.url));
 // The upkeep kit — the residence pack's, stocked cross-pack.
 const RESIDENCE_DIR = fileURLToPath(new URL("../../../residence/content/system/residence/", import.meta.url));
+const ARCANA_DIR = fileURLToPath(new URL("../../../arcana/content/system/arcana/", import.meta.url));
+const ARCANA_SRC = fileURLToPath(new URL("../../../arcana/src", import.meta.url));
 // The homebrew kit's trade rows (fermentation D15).
 const WINE_DIR = fileURLToPath(new URL("../../../trade-winemaking/content/trade/winemaking/", import.meta.url));
 const BREW_DIR = fileURLToPath(new URL("../../../trade-brewing/content/trade/brewing/", import.meta.url));
@@ -107,6 +109,16 @@ const HOMEBREW_LINES = [
   "/trade/distilling/thing/small-still",
 ] as const;
 
+/**
+ * The mana line (TPA reform W5) — arcana's, stocked cross-pack exactly
+ * as the pots and the upkeep kit are. A cell is what makes a
+ * mana-powered device usable by somebody with no gift at all.
+ */
+const MANA_LINES = [
+  "/system/arcana/thing/mana-cell",
+  "/system/arcana/thing/mana-lamp",
+] as const;
+
 function seedDoc(rel: string): Doc {
   const parsed = YAML.parse(
     readFileSync(`${STORE_DIR}${rel}.yaml`, "utf-8"),
@@ -123,7 +135,9 @@ function seedDoc(rel: string): Doc {
 function objDoc(path: string): Doc {
   const file = path.startsWith("/trade/farming/")
     ? `${PRODUCE_DIR}${path.replace("/trade/farming/", "")}.yaml`
-    : path.startsWith("/system/residence/")
+    : path.startsWith("/system/arcana/")
+      ? `${ARCANA_DIR}${path.replace("/system/arcana/", "")}.yaml`
+      : path.startsWith("/system/residence/")
       ? `${RESIDENCE_DIR}${path.replace("/system/residence/", "")}.yaml`
       : path.startsWith("/trade/winemaking/")
         ? `${WINE_DIR}${path.replace("/trade/winemaking/", "")}.yaml`
@@ -159,8 +173,10 @@ describe("general-store standup (real seeds)", () => {
       ...GARDEN_LINES.map(objDoc),
       ...FURNISH_LINES.map(objDoc),
       ...HOMEBREW_LINES.map(objDoc),
+      ...MANA_LINES.map(objDoc),
     ]);
     ModuleApi.registerPackSource(DIST_SRC, "/trade/distilling");
+    ModuleApi.registerPackSource(ARCANA_SRC, "/system/arcana");
     installV1QuantityMarshallers();
     await AppSettings.warm();
   });

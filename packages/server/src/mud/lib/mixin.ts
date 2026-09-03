@@ -322,7 +322,6 @@ export const Mixins = {
   Lounge: 'LoungeMixin',
   // The off-shift parking room a venue's cast is relocated to.
   Offstage: 'OffstageMixin',
-  FastTravel: 'FastTravelMixin',
   Fixture: 'FixtureMixin',
   // A screen: shows one source (a stream or a card) to everyone who can
   // see it. Pairing decides who drives it. See docs/subsystems/display.md.
@@ -550,6 +549,14 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
 
   // Bodies & behavior.
   VitalsMixin: "{} isn't alive",
+  /*
+   * ⚠ A measurement is taken off a BODY. `measure customer`, `cut --for`
+   * and `alter --for` all read stature off the species and girth off the
+   * instance's mass, and every one of them returns null for a thing. The
+   * phrase names what the target would have to BE, because "isn't the
+   * right kind of thing" tells nobody who to go and find.
+   */
+  OrganismMixin: "{} isn't a body you can measure",
   BehavedMixin: "{} has nothing to say",
   PosturedMixin: "you can't change posture on {}",
 
@@ -577,6 +584,12 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   DurableMixin: "{} doesn't wear out",
   KeenMixin: "{} doesn't take an edge",
   WearableMixin: "{} isn't something you can wear",
+  /*
+   * ⚠ Dyeing is a property of the FIBRE, not of the object — a stone
+   * mug and a steel blade compose nothing that could take colour. The
+   * phrase says the material fact rather than the mixin's name.
+   */
+  DyedMixin: "{} won't take a dye",
   WieldableMixin: "{} isn't something you can wield",
 
   // Stacks, charges, marks, labels.

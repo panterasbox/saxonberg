@@ -363,14 +363,21 @@ describe('forceMove narrow-entry gating (ContainmentApi.forceMove)', () => {
     StuffApi.clearAll();
   });
 
-  it('rejects calls from outside the teleport/goto controllers', () => {
+  it('rejects calls from outside GotoController', () => {
     // `forceMove` carries
-    // `@CallSecurity(FromController(TeleportController, GotoController))`.
+    // `@CallSecurity(FromModule('/platform/idea/cmd/author/GotoController'))`.
     // Anything else (including a test file) is denied by the gate
     // before the body runs.
+    //
+    // ⓘ It used to be an `AnyOf` over Goto AND Teleport. The TPA reform
+    // moved object relocation onto `goto --subject` and `teleport` into
+    // the tpa capability pack, which narrowed the gate to ONE arm — and
+    // a kernel gate could not have named a pack's controller anyway.
     const item = makeStuff(() => new HookableThing());
     const dest = makeStuff(() => new HookableBox());
-    expect(() => ContainmentApi.forceMove(item, dest)).toThrow(/AnyOf/);
+    expect(() => ContainmentApi.forceMove(item, dest)).toThrow(
+      /GotoController/,
+    );
     expect(item.getContainer()).toBeNull();
   });
 });

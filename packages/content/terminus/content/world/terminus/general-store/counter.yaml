@@ -93,6 +93,13 @@ data:
     # ships the substrate's own goods); the same rule as the others —
     # one kit row in the world, and a shop that sells it.
     - { itemTemplatePath: /system/residence/thing/householders-kit, par: 3 }
+    # The mana line. A cell is what makes a mana-powered device usable
+    # by somebody with no gift at all — the lamp on a dorm wall, the
+    # frontier TPA post that has nothing else feeding it. Cross-pack for
+    # the same reason as the pots and the kit: one cell row in the
+    # world, and a shop that sells it.
+    - { itemTemplatePath: /system/arcana/thing/mana-cell, par: 4 }
+    - { itemTemplatePath: /system/arcana/thing/mana-lamp, par: 2 }
   prices:
     /world/terminus/general-store/thing/torch: 2
     /world/terminus/general-store/thing/rations: 3
@@ -146,3 +153,10 @@ data:
     # to do. It wears with use, so the recurring cost is real without the
     # first one being a barrier — a couple of hours' wages.
     /system/residence/thing/householders-kit: 9
+    # ⭐ Against the ladder (stipend 20; lantern 10, sconce-lamp 12): a
+    # cell is an evening's wage and buys about fifteen level TPA hops, so
+    # the mana half of a fare is a real cost a traveller can choose to
+    # carry instead of paying. The lamp sits beside the ordinary sconce,
+    # a little dearer for never needing oil.
+    /system/arcana/thing/mana-cell: 6
+    /system/arcana/thing/mana-lamp: 16

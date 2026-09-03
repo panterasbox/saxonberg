@@ -15,7 +15,7 @@ import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { SecurityPolicies } from '../SecurityPolicies';
 import DestructController from '../../../platform/idea/cmd/author/DestructController';
-import TeleportController from '../../../platform/idea/cmd/author/TeleportController';
+import GoController from '../../../platform/idea/cmd/movement/GoController';
 import GotoController from '../../../platform/idea/cmd/author/GotoController';
 import { StuffApi } from '../../../api/stuff';
 
@@ -34,8 +34,8 @@ describe('FromController', () => {
 
     it('denies calls from outside the controller', () => {
       const policy = SecurityPolicies.FromController(DestructController);
-      const teleport = Object.create(TeleportController.prototype);
-      expect(policy.allows(teleport, null, 'm')).toBe(false);
+      const go = Object.create(GoController.prototype);
+      expect(policy.allows(go, null, 'm')).toBe(false);
     });
 
     it('denies non-controller callers (Api classes etc.)', () => {
@@ -48,18 +48,18 @@ describe('FromController', () => {
   describe('multi-controller form', () => {
     it('allows calls from any listed controller', () => {
       const policy = SecurityPolicies.FromController(
-        TeleportController,
+        GoController,
         GotoController,
       );
-      const tele = Object.create(TeleportController.prototype);
+      const go = Object.create(GoController.prototype);
       const goto = Object.create(GotoController.prototype);
-      expect(policy.allows(tele, null, 'm')).toBe(true);
+      expect(policy.allows(go, null, 'm')).toBe(true);
       expect(policy.allows(goto, null, 'm')).toBe(true);
     });
 
     it('denies calls from controllers not in the list', () => {
       const policy = SecurityPolicies.FromController(
-        TeleportController,
+        GoController,
         GotoController,
       );
       const destruct = Object.create(DestructController.prototype);

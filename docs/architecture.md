@@ -173,7 +173,14 @@ adding.
   words, and a vocabulary each pack declares for itself is two
   vocabularies. Success is deliberately *not* in the list: a working
   supply reports `null`, so "fine" can never be mistaken for a named
-  state. This is the fourth
+  state. ⭐ `lib/travel/TravelNode.ts` (the TPA reform) is the same
+  argument one step further: an `interface` naming the two methods a
+  travel network answers (`ride` · `renderDepartures`) plus a
+  `TravelNodes.of()` probe, so the kernel's `teleport` verb can hand a
+  ride to the `tpa` pack's terminal **without either side importing the
+  other**. A kernel verb may not import a pack; it may declare the shape
+  it will talk to. See [content-packs.md](./subsystems/content-packs.md)
+  § How a kernel VERB reaches pack behaviour. This is the fourth
   category named so that an orphan type/constant has a home other than
   the forbidden `types.ts` / `constants.ts` reflex — see
   "One concept per module" below.

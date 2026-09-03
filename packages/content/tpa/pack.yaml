@@ -1,0 +1,25 @@
+id: tpa
+version: 0.1.0          # reserved; nothing reads/enforces it (non-goal: version machinery)
+root: /system/tpa
+description: >-
+  TPA — the Teleport Authority: teleportation as a public utility, as
+  distinct from teleportation as a spell. The kernel owns the physics
+  (the `mgh` a relocation costs, the cast pipeline it rides) and arcana
+  owns the socket every mana-powered device draws from; this pack owns
+  the WORKS — the `FastTravelMixin` a node composes, the `TpaTerminal`
+  that is one, the `TravelCard` that registers you at one, the Authority
+  that runs the network, and the verbs that are the NETWORK's own
+  (`register`, `procure card`). ⭐ The `teleport` verb is deliberately
+  NOT here — it is the kernel's, and reaches a node over the
+  `TravelNode` shape, because you must not need the Teleport Authority
+  to teleport. Nothing here is specific to
+  one realm: a terminal row belongs to the locality it stands in, and
+  which of a realm's stops you are born knowing is that realm's to
+  author.
+requires:
+  groups:
+    - name: tpa
+      purpose: the tpa pack's own body — the teleport network's works
+      owner: { office: prime-minister }
+  title:
+    - { extent: /system/tpa, holder: { group: tpa } }

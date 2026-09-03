@@ -839,6 +839,16 @@ specification.**
 
 ### ⭐ Control·Body and the terminal network
 
+> ✅ **IMPLEMENTED** by the TPA reform. `MagicApi.relocationCost` is
+> `m·g·Δh` and nothing else — **distance appears nowhere in the
+> function**, so the claim below is assertable by reading the code
+> rather than only by running a test. The `teleport` spell row
+> (`control`·`body`) authors its `cost` as the SURVEY FLOOR and declares
+> `costModel: {kind: potential}`; the physics is added on top. Downhill
+> is free and never a refund. See
+> [fasttravel.md](./subsystems/fasttravel.md) and
+> [magic.md](./subsystems/magic.md).
+
 **Teleportation is the third specification-limited effect, and the one
 where the economics are visible from the street.**
 
@@ -870,6 +880,14 @@ A hop to the next district and a hop across the realm cost the same.
 Fares vary with **how high and how heavy**, never with how far — and a
 student who can say *why* has understood what the postulate actually
 breaks.
+
+> ⭐ And the fare a traveller is quoted now has a **second** term with
+> the same property: the network runs on mana it had to BUY, and it
+> resells that mana at its cost basis. A gate on the city line quotes
+> less than a frontier post running on bought cells, for the same ride —
+> so the price on the board carries two honest facts at once, *how far
+> up* and *what is feeding this gate*, and neither is a number anybody
+> tuned.
 
 This is the honest centre of the field's ignorance, and it is where a
 course should locate its "we don't know." It is a gap in explanation,

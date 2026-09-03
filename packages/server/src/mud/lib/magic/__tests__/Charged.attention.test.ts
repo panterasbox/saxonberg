@@ -98,7 +98,7 @@ function ring(): Ring {
   const r = makeStuff(() => new Ring());
   stampTemplatePathForTest(r, `/obj/test/attn-ring-${seq++}`);
   r.setAlwaysOn(true);
-  r.setCapacityKJ(10000);
+  r.setCapacityTau(10000);
   r.installChargeReserve();
   return r;
 }
@@ -140,14 +140,14 @@ describe('the hood/veil interlock', () => {
     // what is under test is the STANDBY TERM, not the binding's setup.
     hoodedRing.setDrawActive(true);
     bareRing.setDrawActive(true);
-    const hoodedBefore = hoodedRing.getStoredKJ();
-    const bareBefore = bareRing.getStoredKJ();
+    const hoodedBefore = hoodedRing.getStoredTau();
+    const bareBefore = bareRing.getStoredTau();
 
     now += 3600 * 1000;
 
     return {
-      hooded: hoodedBefore - hoodedRing.getStoredKJ(),
-      bare: bareBefore - bareRing.getStoredKJ(),
+      hooded: hoodedBefore - hoodedRing.getStoredTau(),
+      bare: bareBefore - bareRing.getStoredTau(),
     };
   }
 

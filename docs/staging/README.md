@@ -35,6 +35,12 @@ relevant slate (`docs/slates/`), not here.
 One subdirectory per content area:
 
 - `eternal-university/` — the EU campus (the first hand-authored area).
+- `newbie-wilds/` — the frontier crossroads + the delve.
 
-Add a new area subdir as content for it begins; delete a subdir once that
-area is fully in YAML.
+A single-file area stays a flat `<area>.md` at this level and only earns a
+subdir when it outgrows one file — `terminus-city.md`,
+`terminus-banking.md`, and the three locality bibles
+(`rejection.md`, `hinkley-hills.md`, `hearts-delight.md`) are flat today.
+
+Add a new area file or subdir as content for it begins; delete it once
+that area is fully in YAML.

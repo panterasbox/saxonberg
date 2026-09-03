@@ -29,3 +29,6 @@ options:
     type: object
     scope: [reachable]
     description: "Whose body to fit it to (defaults to you)"
+    # `--for` is a BODY: the cut is stamped from its stature and
+    # girth. Anything else has no measurements to take.
+    requires: OrganismMixin

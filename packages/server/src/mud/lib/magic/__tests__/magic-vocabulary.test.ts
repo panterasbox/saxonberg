@@ -48,9 +48,13 @@ describe("MagicEffects.validate — the closed union", () => {
       { kind: "cloak", disguise: "a veiled figure" },
       { kind: "emit-field", field: "light", locus: "/stuff/thing/magic/glowlight-mote" },
       { kind: "script", source: "say hello" },
+      // The twelfth member (TPA reform W3). `to` is optional — a CAST
+      // takes the mark you named; an ITEM carries its own survey.
+      { kind: "relocate" },
+      { kind: "relocate", to: "/test/place/summit" },
     ];
     for (const s of samples) expect(() => MagicEffects.validate(s)).not.toThrow();
-    expect(EFFECT_KINDS).toHaveLength(11);
+    expect(EFFECT_KINDS).toHaveLength(12);
   });
 
   it("makes an unbacked effect unrepresentable — the governing invariant", () => {

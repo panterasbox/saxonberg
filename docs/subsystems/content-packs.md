@@ -510,10 +510,68 @@ classes under the four branches (`thing/`, `idea/`, `agent/`,
 `location/`), controllers at `idea/cmd/<category>/`, brains under
 `behavior/` (the Brain category's home inside a pack, mirroring the
 kernel's `lib/behavior/` — see [behavior.md](./behavior.md) § Brains in
-packs), tests under `__tests__/`; **no `lib/`** (substrate a pack needs
-is the kernel's, or a class it ships under a branch), no free-floating
-helpers, no Api (a pack that needs an Api needs a kernel MR — the *mod*
-rung).
+packs), tests under `__tests__/`, and **`lib/` for substrate that is only
+ever inherited** — mixin factories and value objects, the kernel's own
+`lib/` rule applied to a pack. No free-floating helpers, no logic
+singleton, no Api (a pack that needs an Api needs a kernel MR — the
+*mod* rung).
+
+⭐ **The `lib/` ban was lifted by the TPA reform (P2a)**, because it made
+a pack-owned mixin **unrepresentable**: a mixin is not instanceable, so
+no branch folder is honest for it, and promoting it to the kernel is
+wrong for substrate only that pack composes. The tree already carried the
+consequence — trade-mining's `WorkingMixin` was parked in the *Location*
+branch because invariant 8 left it nowhere else.
+
+The headline invariant is untouched: *nothing instances `/lib/`* is
+checked against **template paths** literally starting `/lib/`, and a pack
+mixin (`/system/arcana/lib/ManaPowered`) has no template row at all.
+`classFileOf` resolves it by longest prefix like any other pack path.
+
+⭐⭐ **The test for the kernel instead of a pack `lib/`: whether the
+substrate's composers have a common pack ancestor.** Arcana's lamp and
+tpa's terminal do — tpa depends on arcana anyway, it is magic — so
+`ManaPoweredMixin` is arcana's. A third pack wanting mana-powered devices
+*without* depending on arcana is the signal to promote it, and that is a
+review question, not a lint.
+
+### ⭐⭐ How a kernel VERB reaches pack behaviour — the declared shape
+
+> **A kernel verb may not import a pack. It may declare the SHAPE it
+> will talk to, and let whatever answers that shape answer.**
+
+The import boundary runs one way (`lint:imports`, and `classFileOf`
+resolves a pack root into that pack's `src/` and *never* falls back to
+the kernel), so a kernel controller cannot name a pack class. But a verb
+often needs to *reach* one: `analyze water` needs the water pack's
+conduit, `teleport` needs the tpa pack's terminal. The answer is a
+kernel-side interface plus a one-method holder that tests for it
+structurally:
+
+| shape | declared in | who answers it | the verb |
+|---|---|---|---|
+| `SupplyReporting` (`supplyReport()`) | the water pack's own substrate, read structurally | any conduit-like host | `analyze water` |
+| `TravelNode` (`ride()` + `renderDepartures()`) | `lib/travel/TravelNode.ts` (kernel) | `FastTravelMixin` (the `tpa` pack) | `teleport` |
+
+`TravelNodes.of(stuff)` is the whole mechanism: a duck-type probe
+returning `Stuff & TravelNode` or `null`. The kernel imports nothing; the
+pack implements a shape it never imports either — it just has the two
+methods. Both sides are checkable, because the shape is a real
+`interface` and the pack's tests assert against `ride()`.
+
+⭐ **The forks are the design, not the plumbing.** `teleport` keeps the
+forks that are the *kernel's* — free movement inside an extent you hold,
+and the anchored spell — and delegates only the forks that are the
+*network's* (the timetable, the fare, the clearance, the mana leg). That
+split is the test for whether a shape seam is honest: **remove the pack
+and the verb must still do something correct**, not merely fail politely.
+The `tpa`-less kernel still teleports the people entitled to.
+
+⚠ A shape seam is NOT the general answer to "the kernel needs a pack
+thing". It works here because the *capability* is the kernel's (movement)
+and only an *implementation* is the pack's. When the capability itself
+belongs to the pack, the verb belongs to the pack too — that is the
+ordinary case, and `content/<root>/cmd/` is where it goes.
 `packages/content/<pkg>/src/<rel>.ts` backs `<root>/<rel>` for every
 namespace root the pack holds — source mirrors path, inside a pack as in
 the kernel — so `packages/content/arcana/src/thing/Wand.ts` IS
@@ -605,7 +663,8 @@ routes a changed pack file to the pack's suite), imports
 `lint:test-content` treats it as a content test beside its content. The
 lint family walks pack `src/` throughout (`scripts/pack-roots.ts` is the
 scripts' shared table): `instanceable` (invariant 3 through the table,
-invariant 8 — no `lib/`, every module under a branch), `gates`,
+invariant 8 — every module under a branch, `behavior/` or `lib/`, and a
+`lib/` module that is only inherited substrate), `gates`,
 `imports`, `module-scope`, `field-meta`, `blessed-bands`, `arg-kinds`
 (every `cmd/` under a pack's content), `untitled` (`/system/arcana` is a title
 root because arcana claims it — the roots derive from the claims).
@@ -1022,13 +1081,15 @@ the installer's walk mirrored in a script; zero is green).
 | **trade-textiles** (CAPABILITY — the textile chain, textiles B2) | platform, base-library, generic-objects, trade-farming, terminus, distribution | default | `/trade/textiles` → group `textiles` (PM-owned): `src/` ships `RettingPit` + `BleachingGreen` (both `Vat` presets — retting is a real slow bacterial ferment, so `FermentingMixin` models it unchanged and PREPARATION SHIPS WITH ZERO VERBS), `ClothBolt` (⭐⭐ `canMergeWith` narrowed to grade + form + **dye application stack**, so two dye lots do not merge and a dyer's repeatability is visible in the inventory), `TextileStock`, the three tool classes and the three controllers. Rows: the `textiles` Discipline, `rotted-flax` + `bleached-linen`, the retting and bleaching `FermentProfile`s, ⭐ **its own fabric forms** (`sackcloth`, `fine-woven`) which the kernel never learned exist, line/tow/shive/yarn/bolt, the tool ladder (spindle → wheel at `rate: 3`; hand → broad loom), and the Wharfside mill that **consigns rather than retails** | `textiles` | the mill floor + the Business (producer) |
 | **trade-dyeing** (CAPABILITY — colour, textiles B3) | platform, base-library, trade-farming, trade-textiles, terminus | default | `/trade/dyeing` → group `dyeing` (PM-owned): `src/` ships `Dyestuff` + `DyestuffCatalogue` (the self-warming roster, harvested by path infix so a chemical-industry pack joins it with no edit here), `DyeVat` and `WoadVat` (⭐⭐ **a living thing** — fermentation-shaped, fed, killable), and the `mordant`/`dye` controllers. ⚠⚠ **Two chemistries, not one**: madder and weld are mordant dyes (2 × 4 = eight outcomes, one of which is the un-mordanted FAILURE at fastness 0.02) and woad is a vat dye taking no mordant, its refusal falling out of the shade table rather than a special case | `dyeing` | the catalogue (sync-read), the dyehouse + its Business (producer) |
 | **trade-tailoring** (CAPABILITY — fit, textiles B4) | platform, base-library, generic-objects, trade-textiles, terminus | default | `/trade/tailoring` → group `tailoring` (PM-owned): `src/` ships `CutPieces` (Wearable *before* it is wearable, so the `cutTo` stamp survives cut-today-sew-tomorrow), `CuttingTable`, `MeasureBook` (⚠ an OBJECT, not a document — `DOCUMENT_KINDS` is a closed kernel vocabulary a pack may not extend, and a ledger on the counter is the better fit for "it transfers with the shop"), the `cut`/`sew`/`alter` controllers and the `measure customer` stanza controller, plus the `tailors` demonstrator brain. It receives the `leather-jerkin` recipe from `trade-smithing`, ⚠ still unmakeable — its hide has no producer and inventing a faucet is forbidden | `tailoring` | the shop + the Business (producer) |
+| **tpa** (CAPABILITY — the teleport network's WORKS, TPA reform) | platform, arcana | default | `/system/tpa` → group `tpa` (PM-owned): `src/lib/` ships `FastTravelMixin` (the node — routes, board, timetable) and the pack's paths; `src/thing/` the `TpaTerminal` that composes it over arcana's `ManaPoweredMixin`, plus the `TravelCard`; `src/idea/cmd/movement/` the `teleport` + `register` controllers and `src/idea/cmd/tpa/` the card clerk's; rows: the three views + controller templates, `settings/fasttravel.yaml`, the travel card, and the **self-governing Teleport Authority** (`{kind: committee, parcel: /system/tpa}` — it names no realm, which is what lets it ship here). ⭐ The classes are the MECHANISM and are the pack's; a **terminal** is the realm's, so every gate keeps its `/world/**` row in the locality it stands in | `tpa` | — |
 | **water** (CAPABILITY — the watershed's WORKS, D1–D27) | platform | default | `/system/water` → group `water` (PM-owned): `src/` ships `Watercourse` + `WatercourseCatalogue` (topology authored, direction **derived**, compiled to a reachability set), `WaterRightRegistry` (prior appropriation recorded, riparian derived over the same records) and the three works — `Conduit` (the conveyance ladder, a sewer being the same object reversed), `ControlStructure`, `StorageNode`; rows: the two singletons, `settings/water.yaml`, and `fouled-water` in the commons. ⭐ The classes are the MECHANISM and are the pack's; a **river** is the realm's, so every reach ships at `/stuff/idea/Watercourse/<name>` in world-seed | `water` | — |
 
-Thirty-one rows over **thirty-eight** packs (`arcane-descriptors` folded into
+Thirty-two rows over **thirty-nine** packs (`arcane-descriptors` folded into
 `arcana` — the pack that ships the class ships the bank; libations added trade-distilling,
 trade-brewing, trade-winemaking, trade-bottling, trade-farming and made
-hospitality a capability pack; textiles added trade-textiles, trade-dyeing
-and trade-tailoring). **A stub trade** ships everything
+hospitality a capability pack; the TPA reform added **tpa**, the first pack
+to ship a `src/lib/`; textiles added trade-textiles, trade-dyeing and
+trade-tailoring). **A stub trade** ships everything
 downstream of production and nothing of production — materials, vessel
 presets, brands, the floor product on an authored consignor, the serving
 recipe — so the bar's demand is met today while the ferment/still is the

@@ -159,7 +159,7 @@ behavior. Read the relevant doc before editing in its area.
   - [contract.md](./docs/subsystems/contract.md) — the work-contract (gig) substrate: clauses over verifiable conditions, escrow, the board, the custodian rule
   - [collections.md](./docs/subsystems/collections.md) — canonical surfaces for collection-shaped mixins, naming axes
   - [hot-reload.md](./docs/subsystems/hot-reload.md) — HotReloadApi state machine, clone integration, controller dispatch
-  - [content-packs.md](./docs/subsystems/content-packs.md) — versioned content packages: the PackApi reconcile installer, the contribution kinds (domain / document over `DocumentKinds` / settings / subject / wiki / command-view) and their policies, `sourcePack` stamps, the manifest's `requires` (groups + title claims) / `boot` / `maintainers`, the boot union, `SAXONBERG_PACKS`, the **capability rung** (a pack ships `src/`; the class-source table, `resolveClassFile`, the server's `exports` map as the pack import profile, the deployment manifest, the rung check), the thirty-five shipped packs (the platform is pack zero; arcana, trade-distilling and trade-hospitality the capability packs; distribution the decoupler; the metal chain's trade-mining/trade-fuel/trade-smelting over rejection, a venue pack with no `src/` at all; brains in packs via `src/behavior/`; the `archetype` kind; the stub trades; no seeders)
+  - [content-packs.md](./docs/subsystems/content-packs.md) — versioned content packages: the PackApi reconcile installer, the contribution kinds (domain / document over `DocumentKinds` / settings / subject / wiki / command-view) and their policies, `sourcePack` stamps, the manifest's `requires` (groups + title claims) / `boot` / `maintainers`, the boot union, `SAXONBERG_PACKS`, the **capability rung** (a pack ships `src/`; the class-source table, `resolveClassFile`, the server's `exports` map as the pack import profile, the deployment manifest, the rung check), the thirty-six shipped packs (the platform is pack zero; arcana, trade-distilling and trade-hospitality the capability packs; distribution the decoupler; the metal chain's trade-mining/trade-fuel/trade-smelting over rejection, a venue pack with no `src/` at all; tpa the teleport network's works behind the kernel's `TravelNode` shape; brains in packs via `src/behavior/`; a pack's own `src/lib/` for inherited substrate; the `archetype` kind; the stub trades; no seeders)
   - [race.md](./docs/subsystems/race.md) — Material substrate, Clade scope, BodyPlan + Species templates, OrganismMixin, animacy gating
   - [vitals.md](./docs/subsystems/vitals.md) — body-state substrate: the Agent/Creature/Character split, VitalsMixin, BodyPlan anatomy, death seams
   - [harm.md](./docs/subsystems/harm.md) — the injury driver: `ConditionApi.inflict`, five trauma behaviors, reconcile-on-read wounds, the medic vertical
@@ -172,7 +172,7 @@ behavior. Read the relevant doc before editing in its area.
   - [fermentation.md](./docs/subsystems/fermentation.md) — the durative transform: FermentingMixin on the VESSEL, FermentProfile rows + the boot-warmed roster, the grade/mark/strain transfer seam, cultures + the lees split, the cellar CO₂, the cellars brain, the work boards; zero new verbs
   - [fire.md](./docs/subsystems/fire.md) — combustion + high heat: the heat channel, FireApi/Combustible, the ignition balance, phase change, furnaces, Hearthworks
   - [magic.md](./docs/subsystems/magic.md) — effect substrate + casting: Effect-iff-gated-Api, the grid as Disciplines, CasterMixin faculty, suppression, the Practicum
-  - [magic-items.md](./docs/subsystems/magic-items.md) — using a thing as a way to act: the EffectContext split (origin/actor/source), Arcane grid footprint, the three item classes + `S* = inflow/d` charge economy, BUC + the `canAfflict` veto, derived appearance + descriptor banks, the fade/defective-copy memory loop, census-gated distribution
+  - [magic-items.md](./docs/subsystems/magic-items.md) — using a thing as a way to act: the EffectContext split (origin/actor/source), Arcane grid footprint, the three item classes + `S* = inflow/d` charge economy denominated in **τ**, `ManaPowered` as ChargedMixin's second consumer (the wall socket), BUC + the `canAfflict` veto, derived appearance + descriptor banks, the fade/defective-copy memory loop, census-gated distribution
   - [combat-formations.md](./docs/subsystems/combat-formations.md) — party-strategy policies over the threat graph: presets, three hooks, coup governance, the command Discipline
   - [party.md](./docs/subsystems/party.md) — the Party Idea + PartyRecord mirror, the fourth GroupProvider, the `sideOf`/`areAllied` combat seam, the `party` verb
   - [reserve.md](./docs/subsystems/reserve.md) — the generalized Reserve capacity axis, ReservedMixin, biological reserves
@@ -196,7 +196,7 @@ behavior. Read the relevant doc before editing in its area.
   - [posture.md](./docs/subsystems/posture.md) — Postured + Posed + Postures vocabulary, the posture-bearing slot
   - [conveyance.md](./docs/subsystems/conveyance.md) — Mountable/Drivable, the traverse ripple, mount/dismount, haulage (hitch/unhitch)
   - [locomotion.md](./docs/subsystems/locomotion.md) — LocomotionMode singletons, enablement mixins, per-mode controllers, the sneak/run pace modes
-  - [fasttravel.md](./docs/subsystems/fasttravel.md) — the TPA teleport network: FastTravelMixin nodes, the travel credential, dual-mode `teleport`
+  - [fasttravel.md](./docs/subsystems/fasttravel.md) — the TPA teleport network, now a **utility that runs on mana**: ⭐⭐ the VERB is the kernel's and the NETWORK is the `tpa` pack's, meeting over the `TravelNode` shape (you must not need the TPA to teleport — free-in-your-extent and the anchored spell are kernel forks); FastTravelMixin nodes + `ride()`, the travel credential, the board-for-everyone, the three supplies + the arming floor + the amber band, the derived mana rate, the self-governing Authority
   - [credential.md](./docs/subsystems/credential.md) — the unified credential substrate: the wallet mixin, payment/travel/key kinds, lock/key + `presentsKey`
   - [glob.md](./docs/subsystems/glob.md) — fungible stacks: Globbable quantity, split/merge/applyQuantity, the MQL quantity surface
   - [response-envelope.md](./docs/subsystems/response-envelope.md) — DispatchResponseEnvelope, 16 Note kinds, Status auto-escalation, CommandContext
@@ -626,10 +626,20 @@ Saxonberg has a fixed taxonomy of module types. Every TypeScript file
 in `packages/server/src/mud/` falls into one of these — **and so does
 every file in a capability pack's `src/`** (`packages/content/<pkg>/src/`):
 the branches (`thing/`, `idea/`, `agent/`, `location/`), controllers at
-`idea/cmd/<category>/`, tests; no `lib/`, no Api, no helpers (a pack that
-needs an Api needs a kernel MR). A pack imports the kernel **only by
+`idea/cmd/<category>/`, brains at `behavior/`, **`lib/` for substrate
+that is only ever inherited** (mixin factories, value objects — the
+kernel's own `lib/` rule applied to a pack), tests; **no Api, no logic
+singleton, no free helper functions** (a pack that needs any of those
+needs a kernel MR). A pack imports the kernel **only by
 package specifier** (`@saxonberg/server/mud/lib/…`, the server's
-`exports` map) and writes absolute `FromModule` gates. **If a new
+`exports` map) and writes absolute `FromModule` gates.
+⭐ **Substrate goes to the KERNEL when its composers have no common pack
+ancestor** — that is the test for `lib/` here versus a kernel MR, and a
+third pack wanting a mixin without depending on its owner is the signal
+to promote it. The headline invariant is untouched: *nothing instances
+`/lib/`* is checked against **template paths** starting `/lib/`, and a
+pack mixin (`/system/arcana/lib/ManaPowered`) has no template row at
+all. **If a new
 file you're considering doesn't fit, STOP and discuss with the user
 before creating it.** The `Api` is the dev-facing surface — a thin,
 typed, gated forwarding shell; protection-needing internal logic is
@@ -812,6 +822,18 @@ where the `.ts` file sits, and where its templates live:
 The invariant, and it is literal: **nothing instances `/lib/`.** No
 template's `class:` may name a `/lib/` module, and no template path may
 start `/lib/`. Enforced by `pnpm lint:instanceable`, not by convention.
+
+⭐ **A capability pack has a `lib/` of its own, under its root** —
+`/system/arcana/lib/ManaPowered`, `/trade/mining/lib/Working` — holding
+the same thing the kernel's does and nothing else: substrate that is
+only ever inherited. It does not start `/lib/`, so the headline
+invariant never fires; `classFileOf` resolves it by longest prefix like
+any other pack path. The ban on a pack `lib/` was lifted by the TPA
+reform (P2a) because it made a pack-owned mixin **unrepresentable** — a
+mixin is not instanceable, so no branch folder is honest for it, and
+promoting it to the kernel is wrong for substrate only that pack
+composes. **Still the kernel's, always:** an Api, a logic singleton, a
+free helper function.
 
 ### ⭐ The five namespace axes — which root a pack takes
 

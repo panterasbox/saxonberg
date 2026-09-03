@@ -200,12 +200,13 @@ view and that view is medical's.
   actor's posture-bearing slot atomically.
 - **`tryReleaseFromSlots(item)`** — take `item` off this host
   entirely, every slot it occupies, as **one decision**. Returns
-  `{released: false, dumpedKJ}` (the occupant refused; **nothing** was
+  `{released: false, dumpedTau}` (the occupant refused; **nothing** was
   vacated) or `{released: true, vacated}` (`0` = it was not in any slot,
   which is a no-op rather than a failure).
 
-  **Every verb that removes something from a body goes through this** —
-  `remove`, `unwield`, `drop`, `give`, `put`. It exists because leaving
+  **Every verb that takes something out of a slot goes through this** —
+  `remove`, `unwield`, `drop`, `give`, `put`, and (TPA reform) `get`,
+  which is the first non-body caller. It exists because leaving
   a body is one event several verbs perform, and only the first two used
   to vacate at all: `drop` moved the Stuff and left the slot claiming
   it, so **a dropped sword lay on the floor while the hand stayed full
@@ -219,6 +220,44 @@ view and that view is medical's.
   `MixinApi.isBlessable`, so a slot knows only that occupants may
   refuse, never what a curse is. All-or-nothing across the item's slots,
   so a two-handed cursed thing cannot end up half off.
+
+## ⭐ The verb surface — `put` / `get` reach a non-body slot
+
+> Before the TPA reform **nothing in the game could put anything into a
+> non-body slot by any verb.**
+
+`wear`/`wield` are body slots, `plant`/`repot` are the plant slot,
+`mount` is conveyance, and the whole `device` category (`arm · disarm ·
+douse · fold · ignite · pump · switch · unfold`) drives no slot at all.
+So a battery bay, a lamp's oil reservoir and a mill's replaceable stone
+were all authorable and none of them fillable. That is a hole in this
+substrate, not a requirement of one build, so `put`/`get` were extended
+once and every slot-bearing fixture anyone authors gets it.
+
+**`put X in Y`** takes the slot branch when three things hold, each
+load-bearing:
+
+1. **`Y` is not a body** (`!isVitals`) — dressing someone else is not
+   `put`, and the two verbs that do body slots already exist.
+2. **`Y` is a `Container`** — a part inside a machine has to physically
+   BE somewhere. Occupancy is not containment, so **contents move
+   first and the slot claims second**, exactly the `plant`-into-a-pot
+   order. A `Slotted` host that is not a `Container` has nowhere to put
+   the part and says so.
+3. **Some open slot accepts `X`** — *a slot is more specific than a
+   container.* An item that fits the bay goes in the bay; one that does
+   not is ordinary containment.
+
+⭐ Condition 3 is why **no existing target changed behaviour**: a seed
+still just goes in the pot, because a seed is not a `Plant`. `on` is
+never a slot (`ContainmentApi.placeOn` owns surfaces).
+
+**`get X`** is the reverse and needed exactly one thing: vacate the slot
+before the move, through `tryReleaseFromSlots` — otherwise the bay stays
+full of a cell that is now in somebody's pocket. The occupant's refusal
+(a cursed thing) is honoured, and it is all-or-nothing across the host's
+slots. The actor's own body is skipped: taking your own worn thing is
+`remove`.
 
 ## Lifecycle
 

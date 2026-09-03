@@ -57,9 +57,9 @@ describe('discovery', () => {
 });
 
 describe('the shipped packs (real discovery, no install)', () => {
-  it('thirty-eight ship; the trade packs order after generic-objects (wave 4a); the venues after their trades (wave 4b); the localities after residence (residences D18); every consigner after distribution (fermentation D10); the localities after water (watershed W9); the metal chain after ITS trades; the textile chain after farming AND the locality it consigns into', () => {
+  it('thirty-nine ship; the trade packs order after generic-objects (wave 4a); the venues after their trades (wave 4b); the localities after residence (residences D18); every consigner after distribution (fermentation D10); the localities after water (watershed W9); the metal chain after ITS trades; every locality with a terminal after tpa (the TPA reform); the textile chain after farming AND the locality it consigns into', () => {
     const ids = PackApi.contentRoots().map((root) => root.split('/').slice(-2)[0]!);
-    expect(ids).toHaveLength(38);
+    expect(ids).toHaveLength(39);
     expect(ids[0]).toBe('platform');
     for (const trade of ['trade-smithing', 'trade-hearth-cooking', 'trade-hospitality', 'trade-distilling']) {
       expect(ids.indexOf(trade)).toBeGreaterThan(ids.indexOf('generic-objects'));
@@ -113,5 +113,19 @@ describe('the shipped packs (real discovery, no install)', () => {
     for (const namer of ['world-seed', 'terminus', 'hinkley-hills']) {
       expect(ids.indexOf(namer)).toBeGreaterThan(ids.indexOf('water'));
     }
+    // ⭐ The TPA cut: every locality whose rows name
+    // `/system/tpa/thing/TpaTerminal` installs after the pack that ships
+    // the class — and `tpa` itself after `arcana`, whose
+    // `ManaPoweredMixin` its terminal composes. The mechanism is the
+    // system's; a terminal is the realm's.
+    for (const namer of [
+      'terminus',
+      'hinkley-hills',
+      'newbie-wilds',
+      'saxonberg-lounge',
+    ]) {
+      expect(ids.indexOf(namer)).toBeGreaterThan(ids.indexOf('tpa'));
+    }
+    expect(ids.indexOf('tpa')).toBeGreaterThan(ids.indexOf('arcana'));
   });
 });

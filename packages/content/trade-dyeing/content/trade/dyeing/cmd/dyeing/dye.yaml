@@ -29,8 +29,12 @@ args:
     type: object
     required: true
     scope: [inventory, reachable]
+    requires: DyedMixin
 options:
   bath:
     type: object
     scope: [reachable]
     description: "Which bath (defaults to the one you are standing at)"
+    # A bath is read as a liquid volume — the controller narrows to
+    # Bulkable before it looks at a single drop.
+    requires: BulkableMixin

@@ -34,6 +34,9 @@ options:
     type: object
     scope: [reachable]
     description: "Whose measurements to cut to (omit for stock)"
+    # `--for` is a BODY: the cut is stamped from its stature and
+    # girth. Anything else has no measurements to take.
+    requires: OrganismMixin
   tight:
     type: boolean
     description: "Least cloth, no seam allowance — it can never be let out"

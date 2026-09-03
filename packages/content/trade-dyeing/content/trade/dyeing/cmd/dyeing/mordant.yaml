@@ -27,6 +27,7 @@ args:
     type: object
     required: true
     scope: [inventory, reachable]
+    requires: DyedMixin
   - name: mordant
     type: string
     required: true

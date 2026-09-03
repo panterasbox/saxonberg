@@ -84,6 +84,22 @@ The substrate ships these predicates:
    extent, `find` lists paths under your extents, the CMS tree prunes
    to them, `errors` shows the diagnostics under them. A non-holder is
    told what they *do* hold, never "you are not an author."
+
+   ⭐⭐ **The right frame is AUTHORIAL AUTHORITY, not privilege** (TPA
+   reform D11). Free movement inside an extent you hold is not a perk
+   the engine grants the powerful; it is the observation that *moving
+   around inside what you author is not a journey*. The same authority
+   that lets you edit the place lets you be in it. Cross the boundary
+   and it is the Teleport Authority like everyone else, and the wizard
+   axis — code trust — buys no movement at all.
+
+   ⚠ **A use-grant is not authorship, and it is excluded structurally.**
+   `heldExtents` admits on `ParcelRecord.getOwner()` and never reads
+   `grants[]`, so somebody who *leases* a place gets none of this and
+   nothing had to be written to exclude them. That is worth stating
+   because the tempting fix — "let a grant-holder move around what they
+   lease" — quietly makes a lease into title, and the whole point of the
+   grant vocabulary is that it is *not*.
 4. **`AccessApi.isWizard(subject)`** — orthogonal wizard axis, the
    **code-trust capability**. True iff `subject` is in `'wizards'`.
    Determines who can write TypeScript source, run `eval`, `reload`
@@ -373,8 +389,8 @@ tree mode, etc.) we revisit.
 | Controller | Check |
 |---|---|
 | `DestructController` | Zone target: `canMutateZone(giver, target)`. Else non-force: `can(giver, 'destruct', target)`; force: `can(giver, 'force-destruct', target)`. |
-| `TeleportController` | self: `heldExtents(giver)` — from and to both inside ONE held extent (the wizard axis buys no movement); another subject: `can(giver, 'teleport'`/`'force-teleport', target)`. |
-| `GotoController` | non-force: `can(giver, 'goto', dest)`; force: `can(giver, 'force-goto', dest)`. |
+| `TeleportController` (the **tpa pack**'s) | `heldExtents(giver)` — from and to both inside ONE held extent, which makes the hop free (D11). No other-subject arm: relocating an object moved to `goto --subject` (TPA reform P13). |
+| `GotoController` | non-force: `can(giver, 'goto', dest)`; force: `can(giver, 'force-goto', dest)`. With `--subject`: `can(giver, 'teleport'`/`'force-teleport', subject)` — the authority is over the OBJECT, not the destination. |
 | `SoulController` | `canAtPath(giver, 'write-document', '/expression/emotes/<verb>')` — the soul committee's title ([emotes.md](./emotes.md)). |
 | `BroadcastController` | `canAtPath(giver, 'broadcast', extent)` for `--at <extent>`; a non-holder's refusal lists `heldExtents(giver)`. |
 | `PackController` | `requiresPackInstaller` (validator) — `canAtPath(giver, 'install', '/compact/executive')`. |

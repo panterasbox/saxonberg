@@ -4,7 +4,7 @@
 # an item is a new trigger, never a new mechanism, and one authored
 # definition serving both doors is the whole of wave 1.
 #
-# `capacityKJ: 900` against firebolt's 20-point cost is about 45 firings
+# `capacityTau: 900` against firebolt's 20-point cost is about 45 firings
 # from full — a real resource, spent in an afternoon of trouble, and
 # worth the trip to a mage who will fill it again.
 #
@@ -26,7 +26,7 @@ data:
   carriedSpellPath: /stuff/idea/magic/Spell/firebolt
   makerId: /obj/npc/practicum/artificer
   deliveryEfficiency: 1.4
-  capacityKJ: 900
+  capacityTau: 900
   alwaysOn: false
   # ── distribution (D21) ──
   # Material tags weigh PLACE AFFINITY; effect tags are READ from

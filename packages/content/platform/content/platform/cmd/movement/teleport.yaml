@@ -1,0 +1,78 @@
+# teleport — the KERNEL's verb, and the reason it is the kernel's is the
+# whole point of it:
+#
+#   both endpoints in one extent you HOLD → free, no network, no magic
+#   at a travel node, a stop named        → the node's ride
+#   at a travel node, nothing named       → the node's board, for EVERYONE
+#   otherwise, a destination named        → the anchored spell
+#
+# ⭐⭐ **You must not need the Teleport Authority to teleport.** Moving
+# around inside an extent you hold is AUTHORIAL AUTHORITY — the same
+# authority that lets you edit the place — and casting a working that
+# relocates you is MAGIC. Neither is a transit network's business, and
+# neither may stop working because a content pack is absent. Forks 1 and
+# 4 run on kernel capabilities alone; forks 2 and 3 are handed to
+# whatever travel node is standing here, over the `TravelNode` SHAPE.
+#
+# ⚠ To relocate an OBJECT, use `goto --subject`. One verb meaning two
+# unrelated things depending on who typed it was the wrong shape.
+verbs: [teleport, tp]
+controller: /platform/idea/cmd/movement/TeleportController
+description: "Teleport — free inside your own extent, by a travel network, or by the working."
+help: |
+  Cross the world in a single step.
+
+  Inside an extent you hold authorial authority over, `teleport
+  <somewhere>` simply moves you. That is not a journey — it is moving
+  around inside what you author — so it is free and needs nothing else.
+  Leasing a place is not holding it.
+
+  Standing at a travel node, a bare `teleport` reads its departures
+  board — a timetable is public, so it shows every route the node runs
+  whether or not you have registered them. Name a stop and you ride.
+
+  Anywhere else, naming a destination casts the working, if you have
+  it. You can only reach somewhere you can honestly be said to hold in
+  mind: an extent you hold, a stop you have registered, or something in
+  front of you. Naming something vague is refused rather than guessed
+  at — holding the place precisely IS the difficulty.
+
+  `tp` is a shorthand alias.
+examples:
+  - cmd: teleport
+    note: Read the departures board at the node you're standing at
+  - cmd: teleport hinkley
+    note: Ride a travel network to a stop it serves
+validators:
+  - /lib/command/validators/requiresAnimate
+args:
+  # Where to go. A node reads the RAW token as a local stop keyword;
+  # free movement resolves it as an MQL target; the anchored spell
+  # resolves it through the three anchors.
+  #
+  # ⚠ `onExcess: error` is deliberate: the default `top` SILENTLY picks
+  # a winner, and "which of these did you mean" is the engine admitting
+  # you did not hold the place clearly and then arriving anyway.
+  # Ambiguity is a FAILED SPECIFICATION, never a disambiguation prompt.
+  #
+  # ⓘ The scope list is deliberately narrow and contains no `world`.
+  # The anchored resolver computes its scopes PER ACTOR, which a static
+  # `scope:` cannot express — that is why it is controller-side.
+  - name: destination
+    type: object
+    required: false
+    onExcess: error
+    scope: ["reachable", "here", "peers"]
+    requires: any
+options:
+  # Whose energy pays, for a network that runs on something. Inert at a
+  # node that does not — which is the node answering honestly, not the
+  # verb knowing what kind of network it is talking to.
+  channel:
+    short: c
+    type: boolean
+    description: "Channel your own reserve into the node for this ride."
+  meter:
+    short: m
+    type: boolean
+    description: "Put it on the node's meter, whatever your standing preference says."

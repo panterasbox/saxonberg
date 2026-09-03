@@ -62,6 +62,30 @@ and the source's state gates its dependents:
 > **rights-of-way**, which makes the easement (and the **holdout
 > problem**) a live political object.
 
+> **⭐ The residential demand case (added 2026-09-02, from the
+> [cooking slate](./cooking-slate.md) § Part 7)** — this slate is all
+> *industrial* (substations, Foundry Row, the electrician's round), and
+> it lacks the consumer that makes metering matter to a player. **The
+> kitchen is it.** An electric range is the household's first utility
+> dependency that *hurts* when it fails: an outage darkening a lamp is
+> atmosphere, an outage meaning **no dinner** is a consequence. Two
+> consequences for this build's requirements:
+>
+> 1. **Treat the kitchen as the canonical residential consumer** — the
+>    demand case the storm contract's stakes are ultimately about.
+> 2. ⭐ **Make the supply-reference tier commodity-generic (power ·
+>    gas · water), not electricity-shaped.** Gas is the same shape one
+>    commodity over, and the pipe already exists: the watershed's
+>    `Conduit` ladder ("a sewer is the same object reversed") carries a
+>    combustible as readily as water, so a gas main is a conduit and
+>    the second utility costs nothing structurally. Water is already
+>    the third (the kitchen archetype asks `bulkSource: water`;
+>    `SupplyState` ships). A dry tap is a kitchen that stops working.
+>
+> The tech-ladder counterweight worth keeping: **the gas kitchen is
+> helpless in an outage; the hearth needs no infrastructure** — a real
+> tradeoff players feel during a storm, not a balance dial.
+
 Open middle-tier questions: does the ref carry anything besides
 on/off (a voltage the source sets? sag/brownout states?); does the
 conduction walk ever traverse the ref (probably not — it's a

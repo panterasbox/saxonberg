@@ -35,7 +35,7 @@ import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { ConditionApi } from '@saxonberg/server/mud/api/condition';
 import type Ore from '../../../thing/Ore';
-import type { Face, Working } from '../../../location/Working';
+import type { Face, Working } from '../../../lib/Working';
 import type { Chattel } from '@saxonberg/server/mud/lib/chattel/Chattel';
 
 /** Reference time for one cut, in game ms, at reference hardness. */

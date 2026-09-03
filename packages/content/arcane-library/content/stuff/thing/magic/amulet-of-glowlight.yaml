@@ -19,7 +19,7 @@ data:
   carriedSpellPath: /stuff/idea/magic/Spell/glowlight
   makerId: /obj/npc/practicum/artificer
   deliveryEfficiency: 1.0
-  capacityKJ: 600
+  capacityTau: 600
   alwaysOn: true
   censusKey: amulet
   materialTags: [brass, leather]

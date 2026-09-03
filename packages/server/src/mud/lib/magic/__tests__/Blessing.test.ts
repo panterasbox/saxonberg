@@ -185,14 +185,14 @@ describe('BlessableMixin — hidden state that stays hidden', () => {
   it('AC12 — a cursed CHARGED item discharges into its holder', () => {
     const ring = makeStuff(() => new TestRing());
     ring.setBlessingBand('cursed');
-    ring.setCapacityKJ(1000);
+    ring.setCapacityTau(1000);
     const wearer = makeStuff(() => new Creature());
-    const before = ring.getStoredKJ();
+    const before = ring.getStoredTau();
 
     const dumped = ring.dischargeIntoHolder(wearer);
     expect(dumped).toBeGreaterThan(0);
     // The energy left the ring…
-    expect(ring.getStoredKJ()).toBeLessThan(before);
+    expect(ring.getStoredTau()).toBeLessThan(before);
     // …and went into the wearer. First law: it had to go somewhere.
     const burns = wearer
       .getConditions()
@@ -209,7 +209,7 @@ describe('BlessableMixin — hidden state that stays hidden', () => {
 
   it('AC12 — an UNCURSED charged item discharges nothing', () => {
     const ring = makeStuff(() => new TestRing());
-    ring.setCapacityKJ(1000);
+    ring.setCapacityTau(1000);
     const wearer = makeStuff(() => new Creature());
     expect(ring.dischargeIntoHolder(wearer)).toBe(0);
     expect(wearer.getConditions()).toHaveLength(0);
@@ -218,7 +218,7 @@ describe('BlessableMixin — hidden state that stays hidden', () => {
   it('AC12 — a cursed but FLAT item has nothing left to hurt you with', () => {
     const ring = makeStuff(() => new TestRing());
     ring.setBlessingBand('cursed');
-    ring.setCapacityKJ(10);
+    ring.setCapacityTau(10);
     ring.spendCharge(10);
     const wearer = makeStuff(() => new Creature());
     expect(ring.dischargeIntoHolder(wearer)).toBe(0);
@@ -283,7 +283,7 @@ describe('AC13 — host-held vs term-bought sustained effects', () => {
       () => new TestRing(),
       `/obj/test/ring-host-${seq++}`,
     );
-    ring.setCapacityKJ(1000);
+    ring.setCapacityTau(1000);
     const body = makeStuff(() => new Creature());
     hold(body, {
       realizes: 'cloak',
@@ -306,7 +306,7 @@ describe('AC13 — host-held vs term-bought sustained effects', () => {
       () => new TestRing(),
       `/obj/test/ring-flat-${seq++}`,
     );
-    ring.setCapacityKJ(10);
+    ring.setCapacityTau(10);
     ring.spendCharge(10);
     const body = makeStuff(() => new Creature());
     hold(body, {

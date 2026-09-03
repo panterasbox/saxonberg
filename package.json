@@ -23,6 +23,7 @@
     "@saxonberg/content-saxonberg-lounge": "workspace:*",
     "@saxonberg/content-species-and-names": "workspace:*",
     "@saxonberg/content-terminus": "workspace:*",
+    "@saxonberg/content-tpa": "workspace:*",
     "@saxonberg/content-trade-bottling": "workspace:*",
     "@saxonberg/content-trade-brewing": "workspace:*",
     "@saxonberg/content-trade-distilling": "workspace:*",

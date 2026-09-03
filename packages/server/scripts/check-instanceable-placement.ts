@@ -26,13 +26,17 @@
  *      kinds (`recipes/`, a tree's `cmd/` views) are never walked here.
  *      A capability pack's own root (`/arcana/`) is a rooted tree too.
  *   8. A capability pack's `src/` has the kernel's taxonomy and nothing
- *      else: no `lib/`, and every module under a branch directory — or
- *      under `behavior/`, the Brain category's home inside a pack
- *      (mirroring the kernel's `lib/behavior/`; libations 1g), where a
- *      module must have the brain shape: its sole export is `brain`, a
- *      named class-expression. A `class:` under a pack namespace
- *      resolves into that pack's `src/` (invariant 3, through the same
- *      table `StuffApi.resolveClassFile` reads — `scripts/pack-roots.ts`).
+ *      else: every module under a branch directory — or under
+ *      `behavior/`, the Brain category's home inside a pack (mirroring
+ *      the kernel's `lib/behavior/`; libations 1g), where a module must
+ *      have the brain shape: its sole export is `brain`, a named
+ *      class-expression — or under `lib/`, which holds ONLY INHERITED
+ *      SUBSTRATE, exactly as the kernel's does: mixin factories and
+ *      value objects, never an Api, never a logic singleton, never a
+ *      free helper function (TPA reform P2a). A `class:` under a pack
+ *      namespace resolves into that pack's `src/` (invariant 3, through
+ *      the same table `StuffApi.resolveClassFile` reads —
+ *      `scripts/pack-roots.ts`).
  *   9. Every curated blueprint's `classPath:` resolves (blueprints carry
  *      no `class:`, so invariant 3 never sees them).
  *  10. No template row carries the RETIRED `populates:` key (split into
@@ -161,28 +165,71 @@ export function tradePlacementOk(
 
 /**
  * Invariant 8, the pure decision: a capability pack's `src/` has the
- * kernel's taxonomy and nothing else — no `lib/` (substrate it needs is
- * the kernel's, or a class it ships under a branch), and no module
- * outside a branch directory (`thing/`, `idea/`, `agent/`, `location/`)
- * or the pack's `behavior/` (a brain — one file per brain, flat).
+ * kernel's taxonomy and nothing else — every module under a branch
+ * directory (`thing/`, `idea/`, `agent/`, `location/`), or the pack's
+ * `behavior/` (a brain — one file per brain, flat), or `lib/`
+ * (substrate that is only ever inherited — see {@link packLibShapeOk}).
  * `rel` is `src/`-relative with forward slashes; tests are not modules.
+ *
+ * ⭐ `lib/` was banned outright until the TPA reform (P2a), which made
+ * the ban unrepresentable: a mixin a pack owns is not instanceable, so
+ * no branch folder is honest for it, and promoting it to the kernel is
+ * wrong for substrate only that pack composes. The headline invariant
+ * is untouched — "nothing instances /lib/" is invariants 1 and 2,
+ * checked against TEMPLATE paths literally starting `/lib/`, and a pack
+ * mixin at `/system/arcana/lib/ManaPowered` has no template row at all.
  *
  * A LOCALITY pack (`locality: true` — its manifest root is a `/world/`
  * extent) mirrors its rows instead: template paths inside
  * `/world/<locality>` are exempt from `<root>/<branch>` sorting (the
  * invariant-7 note), and source mirrors path, so its `src/` follows the
  * rows — branch subdirs by lineage past ~6 files, flat below (the
- * lounge convention). Only `lib/` and mis-shaped brains stay refusable.
+ * lounge convention). Mis-shaped brains and mis-shaped `lib/` modules
+ * stay refusable there too.
  */
 export function packSrcPlacementOk(rel: string, locality = false): boolean {
   const parts = rel.split('/');
   if (parts.includes('__tests__')) return true;
   const top = parts[0];
-  if (top === 'lib') return false;
+  if (top === 'lib') return true;
   if (locality) return true;
   if (parts.length < 2) return false;
   if (top === 'behavior') return parts.length === 2;
   return (BRANCHES as readonly string[]).includes(top!);
+}
+
+/**
+ * Invariant 8's `lib/` half, the pure decision: a module under a pack's
+ * `lib/` holds only INHERITED SUBSTRATE — the kernel's own `lib/` rule,
+ * applied to packs. Three shapes are refused, each for the reason the
+ * kernel refuses it:
+ *
+ * - an **Api** — the gated capability surface, which is the kernel's;
+ *   a pack that needs one needs a kernel MR;
+ * - a **logic singleton** (`*Logic.ts`, or `extends ApiLogic`) — the
+ *   HMR boundary behind an Api, so the same rule;
+ * - a **free helper function** — export discipline: a would-be helper
+ *   folds into the owning class or a value object. The one recognized
+ *   category passes, a **mixin factory** (`export function FooMixin`);
+ *   decorators are `lib/security/`'s and that directory is the
+ *   kernel's alone.
+ *
+ * `rel` is `src/lib/`-relative. Returns a refusal reason, or `null`
+ * when the module is legitimate substrate.
+ */
+export function packLibShapeOk(rel: string, source: string): string | null {
+  if (/(^|\/)api(\/|$)/.test(rel) || /\bclass\s+\w*Api\b/.test(source)) {
+    return 'an Api — the gated capability surface is the kernel\'s; a pack that needs one needs a kernel MR';
+  }
+  if (/Logic\.ts$/.test(rel) || /\bextends\s+ApiLogic\b/.test(source)) {
+    return 'a logic singleton — the HMR boundary behind an Api, which is the kernel\'s';
+  }
+  for (const m of source.matchAll(/^export\s+function\s+([A-Za-z_$][\w$]*)/gm)) {
+    const name = m[1]!;
+    if (name.endsWith('Mixin')) continue;
+    return `exports a free function \`${name}\` — fold it into the owning class or a value object`;
+  }
+  return null;
 }
 
 /**
@@ -304,21 +351,22 @@ function main(): void {
     }
   }
 
-  // 8 — a capability pack's src/ has the kernel's taxonomy: no lib/, and
-  // every module under a branch directory.
+  // 8 — a capability pack's src/ has the kernel's taxonomy: every module
+  // under a branch directory, behavior/ (brain-shaped) or lib/ (only
+  // inherited substrate).
   for (const pack of sources) {
-    if (existsSync(join(pack.srcDir, 'lib'))) {
-      findings.push({ invariant: 8, file: join(pack.srcDir, 'lib'), detail: `pack ${pack.id} ships src/lib/ — substrate a pack needs is the kernel's, or a class under a branch` });
-    }
     // A locality pack's src/ mirrors its rows (roots[0] is the manifest
     // root — insertion order in packSources).
     const locality = (pack.roots[0] ?? '').startsWith('/world/');
     for (const f of packSrcFiles(pack.srcDir)) {
       const rel = relative(pack.srcDir, f).split('\\').join('/');
       if (!packSrcPlacementOk(rel, locality)) {
-        findings.push({ invariant: 8, file: f, detail: `pack ${pack.id}: src/${rel} is outside a branch directory (thing|idea|agent|location) or behavior/` });
+        findings.push({ invariant: 8, file: f, detail: `pack ${pack.id}: src/${rel} is outside a branch directory (thing|idea|agent|location), behavior/ or lib/` });
       } else if (rel.startsWith('behavior/') && !packBrainShapeOk(readFileSync(f, 'utf8'))) {
         findings.push({ invariant: 8, file: f, detail: `pack ${pack.id}: src/${rel} is not brain-shaped (sole export \`brain\`, a named class-expression)` });
+      } else if (rel.startsWith('lib/')) {
+        const why = packLibShapeOk(rel.slice('lib/'.length), readFileSync(f, 'utf8'));
+        if (why) findings.push({ invariant: 8, file: f, detail: `pack ${pack.id}: src/${rel} is ${why}` });
       }
     }
   }
@@ -359,7 +407,7 @@ function main(): void {
     5: 'redundant hydratorClass (no data to apply)',
     6: 'orphaned data (no hydratorClass — silently discarded)',
     7: 'instanceable template not under a branch segment (thing|idea|agent|location)',
-    8: 'a capability pack src/ outside the taxonomy (lib/, a module not under a branch or behavior/, or a behavior/ module not brain-shaped)',
+    8: 'a capability pack src/ outside the taxonomy (a module not under a branch, behavior/ or lib/; a behavior/ module not brain-shaped; a lib/ module that is not inherited substrate)',
     9: 'classPath: does not resolve (a curated blueprint pointing at nothing)',
     10: 'retired `populates:` key (split into props:/cast: 2026-09-01) — the Hydrator discards it silently',
   };

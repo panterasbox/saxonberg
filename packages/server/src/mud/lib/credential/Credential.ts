@@ -20,6 +20,8 @@
  */
 
 import { Money } from "../banking/Money";
+import { AppApi } from "../../api/app";
+import { AppSettingKeys } from "../config/AppSettings";
 
 /** The credential kinds the wallet can hold. Adding a kind is adding data. */
 export type CredentialKind = "payment" | "travel" | "key";
@@ -35,21 +37,31 @@ export const CREDENTIAL_KINDS: readonly CredentialKind[] = [
 export const UNCAPPED = -1;
 
 /**
- * The born-with registration floor — the three nodes every fresh travel
- * credential is registered for, so the interchange and the social hub are
- * universally reachable by design (the hub has no foot path to the rest of the
- * world). The **Terminus arrival node** (onboarding's lounge→campus hop now
- * lands here; walk across to campus), **the lounge** (so a fresh player can
- * always TPA back to Dave's Bar — Gate A's free return works without an
- * explicit `register`), and **the paid destination** (the newbie-wilds
- * crossroads — reachable for a fare, not a registration gate). Replaces the
- * retired single University Avenue node.
+ * The born-with registration floor — the nodes every fresh travel
+ * credential starts registered for, so a realm's interchange and social
+ * hub are universally reachable by design (a hub may have no foot path
+ * to the rest of the world).
+ *
+ * ⭐ **Authored data, read at mint** (TPA reform D12/AC22). This was
+ * three `/world/**` paths hard-coded here — a content path in
+ * `packages/server/src/mud/lib/`, which is precisely what the pack cut
+ * exists to remove. Which of a realm's stops are universally reachable
+ * is a realm decision; the values live in `world-seed`, and the seeded
+ * literal is EMPTY so a kernel with no teleport pack has an empty floor
+ * and is correct rather than broken.
  */
-export const BORN_WITH_TRAVEL_NODES = [
-  "/world/terminus/terminal/thing/arrival-terminal",
-  "/world/lounge/thing/terminal",
-  "/world/newbie-wilds/crossroads/terminal",
-] as const;
+function bornWithTravelNodes(): string[] {
+  let raw = "";
+  try {
+    raw = AppApi.setting(AppSettingKeys.fasttravelBornWithNodes) || "";
+  } catch {
+    return []; // settings unwarmed (unit fixtures) — an empty floor
+  }
+  return raw
+    .split(",")
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
+}
 
 /**
  * The serialized form of a credential — a plain object the wallet stores in
@@ -229,21 +241,21 @@ export class PaymentCredential extends Credential {
  * The fast-travel credential: a registered-node set plus the
  * register/authorize surface. A node's network identity is its own
  * singleton template path; the registered set is a set of those paths. Every
- * credential is born with the {@link BORN_WITH_TRAVEL_NODES} floor registered
- * (the interchange, the lounge, and the paid destination), the documented
- * exception to "reach a node before you can travel to it"; the floor is
- * preserved across hydration (saved entries union on top, never clearing it).
+ * credential is born with the authored `fasttravel.bornWithNodes` floor
+ * registered, the documented exception to "reach a node before you can
+ * travel to it"; the floor is preserved across hydration (saved entries
+ * union on top, never clearing it).
  */
 export class TravelCredential extends Credential {
   readonly kind = "travel" as const;
 
   /** The allowed-node set, seeded with the born-with floor. */
-  private _registered: Set<string> = new Set(BORN_WITH_TRAVEL_NODES);
+  private _registered: Set<string> = new Set(bornWithTravelNodes());
 
   static fromData(row: SerializedCredential): TravelCredential {
     const c = new TravelCredential();
     c._registered = new Set([
-      ...BORN_WITH_TRAVEL_NODES,
+      ...bornWithTravelNodes(),
       ...(row.registered ?? []),
     ]);
     return c;
