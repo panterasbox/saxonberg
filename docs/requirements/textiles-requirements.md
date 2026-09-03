@@ -9,7 +9,7 @@ be repaired or be made. The one soft-goods recipe in the tree squats in
 Meanwhile the substrate to fix all of it already ships and is starving:
 `WetMixin` soaks off `Material.waterAbsorptionCapacity`,
 `ThermalRegulation` sums `getClo()` over worn slots, and every body-plan
-slot declares a `covers:` relation with **zero callers**.
+slot declares a `covers:` relation that **thermal never reads**.
 
 This build makes clothing a real object, makes it **visible**, and gives
 it a supply chain: flax grown and retted, spun and woven into cloth, dyed
@@ -158,7 +158,7 @@ honest rather than absent: a linen shirt is armor that does not work.
 
 | | where | may a pack add one? |
 |---|---|---|
-| **resist-bearing** forms (`plate`, `mail`, `padded`, `hide`, `quilted`) | closed kernel `as const` | **no** |
+| **resist-bearing** forms (`plate`, `mail`, `padded`, `hide` — plus `quilted`, ⚠ **which does not exist yet and this build adds**) | closed kernel `as const` | **no** |
 | **non-resisting textile** forms (`woven`, `knit`, `felted`, and successors like lace or netting) | template rows | **yes** |
 
 *Reasoning.* A form's resist profile is combat mitigation, and letting
@@ -170,8 +170,13 @@ source; `isForm()` consults both.
 
 ### 3. The covering stack resolves per body part
 
-Uses `BodyPlan.slotsCovering(part)`, callerless since the vitals build.
-This takes the decision `Wearable.getClo()` explicitly defers
+Uses `BodyPlan.getSlotsCovering(part)`. ⚠ **Corrected 2026-09-02:** that
+method is *not* callerless — `ConditionLogic`, `CombatLogic` and
+`ElectricityLogic` each already walk it, and the `BodyPlan` source comment
+saying *"no consumer yet"* is stale. What is missing is the **thermal**
+consumer, and the real win is that **three hand-rolled copies of one
+outside-in walk collapse into one**. This takes the decision
+`Wearable.getClo()` explicitly defers
 (*"surface-weighted per-region coverage is a deferred fidelity tier"*),
 because a body-wide sum cannot teach that bare extremities cost you.
 
@@ -450,10 +455,14 @@ puts real pressure on.
 
 - Module categories are fixed; no new ones without sign-off. No
   free-floating helpers.
-- Every gating lint must pass: `lint:instanceable`, `lint:census`,
-  `lint:untitled`, `lint:schema`, `lint:topics`, `lint:imports`,
-  `lint:module-scope`, `lint:gates`, `lint:locations`,
-  `lint:test-content`, `lint:test-bootstrap`.
+- Every gating lint must pass. ⚠ **The list is longer than first
+  written** — this build trips at least: `lint:does-nothing`,
+  `lint:inert-weapon`, `lint:field-meta`, `lint:descriptors`,
+  `lint:census`, `lint:untitled`, `lint:schema`, `lint:topics`, plus
+  `lint:instanceable`, `lint:imports`, `lint:module-scope`, `lint:gates`,
+  `lint:locations`, `lint:test-content`, `lint:test-bootstrap`,
+  `lint:boundary`, `lint:object-verbs`, `lint:arg-kinds`,
+  `lint:thin-forwarder`.
 - Any test touching the wired runtime imports `test-bootstrap`.
 - Kernel tests must not name shipped content.
 - ⚠ **`pnpm test` runs at exactly two moments**: before the MR opens, and
@@ -474,8 +483,11 @@ puts real pressure on.
    material properties alone.
 3. A test asserts a soaked garment loses insulation and gains mass, and
    that wet wool retains more than wet linen.
-4. `BodyPlan.slotsCovering` has real callers; a test asserts an uncovered
-   body part is colder than a covered one under the same ambient.
+4. The **thermal** path is a consumer of `BodyPlan.getSlotsCovering`, and
+   the three pre-existing local walks (`ConditionLogic`, `CombatLogic`,
+   `ElectricityLogic`) are replaced by the shared one; a test asserts an
+   uncovered body part is colder than a covered one under the same
+   ambient, and pins assert the three refactored walks are unchanged.
 5. A covering stack orders by form band, with wear-order breaking ties
    inside a band; a test asserts a shirt cannot be worn over plate.
 6. Each of the seven species declares its own `baseMass` and `stature`;

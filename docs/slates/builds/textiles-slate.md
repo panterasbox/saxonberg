@@ -82,8 +82,11 @@ faucet**)."* This slate is that faucet.
 
 - Every `biped` slot declares `covers: [body.torso]` etc., with the
   comment *"coverage relation, for armor / hit-location — **no consumer
-  yet**."* `BodyPlan.slotsCovering(part)` exists and has **zero
-  callers**.
+  yet**."* ⚠ **That comment is STALE** (found at plan time):
+  `BodyPlan.getSlotsCovering(part)` has three production callers —
+  `ConditionLogic`, `CombatLogic`, `ElectricityLogic` — each walking it
+  independently. **Thermal is the missing consumer**, and the win is that
+  three hand-rolled copies of one walk collapse into one.
 - `WetMixin` soaks and dries off `Material.waterAbsorptionCapacity`, and
   its own doc says *"wet wool lingers and a wet blade sheds at once,
   emergent from a tabulated number."* Exactly the model this build wants,
