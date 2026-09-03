@@ -19,7 +19,12 @@ import {
   type Difficulty,
 } from '../../../lib/advancement/ActSignature';
 import type Material from '../../../lib/material/Material';
-import { Recipe, type RecipeInputSlot } from '../../../lib/craft/Recipe';
+import {
+  Recipe,
+  RECIPE_MEDIA,
+  type RecipeInputSlot,
+  type RecipeMedium,
+} from '../../../lib/craft/Recipe';
 import { Template } from '../../../lib/stuff/Template';
 import {
   Techniques,
@@ -462,6 +467,43 @@ function carriesBrand(stuff: Stuff, brandKey: string): boolean {
  * then highest grade. `claimed` tracks per-bottle draw so two slots of the
  * same category don't double-claim the same litres.
  */
+/**
+ * ⭐ **The medium's phase ceiling** — the heat a cooking medium can carry
+ * into the food, however hot the fire is. Water pins at its **boiling
+ * point** (the excess goes into steam, not into the stew); a fat pins at
+ * its **smoke point** (past it the fat breaks down, which is a different
+ * thing happening, not a hotter version of this one).
+ *
+ * `0` when the material tabulates none — no cap, the fire wins. Syrup's
+ * elevated boiling point needs no special case: it rides its own row.
+ */
+function mediumCapK(medium: RecipeMedium, material: Material | null): number {
+  if (!material) return 0;
+  const cap =
+    medium === 'fat'
+      ? material.getSmokePoint().rawValue()
+      : material.getBoilingPoint().rawValue();
+  return cap > 0 ? cap : 0;
+}
+
+/**
+ * The matched input actually carrying the medium — found by the medium's
+ * own TAG on the Material (`water` ships on water; a cooking fat authors
+ * `fat`), never by slot name. No such input ⇒ the recipe cannot be worked
+ * at all: you cannot boil without water.
+ */
+function findMediumMaterial(
+  medium: RecipeMedium,
+  matched: readonly MatchedInput[],
+  matchedItems: readonly MatchedItemInput[],
+): Material | null {
+  for (const m of matched) {
+    if (m.material?.hasTag(medium)) return m.material;
+  }
+  for (const m of matchedItems) if (m.material.hasTag(medium)) return m.material;
+  return null;
+}
+
 function pickCandidate(
   inSlot: RecipeInputSlot,
   bottles: BottleCandidate[],
@@ -914,16 +956,54 @@ function matchBuild(
   recipes: readonly Recipe[],
   contributions: readonly BuildContribution[],
   heatedToK = 0,
+  mediumCaps: ReadonlyMap<RecipeMedium, number> = new Map(),
 ): Recipe | null {
   let best: Recipe | null = null;
   for (const recipe of recipes) {
-    if (recipe.getRequiresHeatK() > heatedToK) continue; // never worked hot enough
+    // The medium clamp, the by-hand twin of `craftImpl`'s: a recipe
+    // worked THROUGH water was never worked hotter than the water got,
+    // no matter what the build's latched heat says. `mediumCaps` is
+    // pre-resolved by the async caller so this stays synchronous — the
+    // key is present iff SOMETHING banked carries the medium's tag, and
+    // its value is that medium's ceiling (0 = it tabulates none).
+    const medium = recipe.getMedium();
+    let effectiveK = heatedToK;
+    if (medium) {
+      if (!mediumCaps.has(medium)) continue; // no water banked, no boiling
+      const cap = mediumCaps.get(medium)!;
+      if (cap > 0 && cap < effectiveK) effectiveK = cap;
+    }
+    if (recipe.getRequiresHeatK() > effectiveK) continue; // never worked hot enough
     if (!buildSatisfies(recipe, contributions)) continue;
     if (!best || recipe.getRequiresHeatK() > best.getRequiresHeatK()) {
       best = recipe;
     }
   }
   return best;
+}
+
+/**
+ * Pre-resolve the media the buffer actually banked, so the synchronous
+ * {@link matchBuild} can clamp per recipe. A key is present iff some
+ * banked contribution's Material carries that medium's tag; the value is
+ * the HIGHEST ceiling among them — bank both tallow and butter and you
+ * are assumed to reach for the one that takes the heat.
+ */
+async function resolveMediumCaps(
+  contributions: readonly BuildContribution[],
+): Promise<Map<RecipeMedium, number>> {
+  const caps = new Map<RecipeMedium, number>();
+  for (const c of contributions) {
+    if (!c.materialPath) continue;
+    const material = await StuffApi.singleton<Material>(c.materialPath);
+    for (const medium of RECIPE_MEDIA) {
+      if (!material.hasTag(medium)) continue;
+      const cap = mediumCapK(medium, material);
+      const seen = caps.get(medium);
+      caps.set(medium, seen === undefined ? cap : Math.max(seen, cap));
+    }
+  }
+  return caps;
 }
 
 /** Whether `contributions` exactly cover `recipe`'s slots (no leftovers). */
@@ -1038,10 +1118,12 @@ async function mintFromBuildImpl(req: BuildMintRequest): Promise<CraftOutcome> {
     return { ok: false, reason: 'insufficient-input', detail: 'empty-build' };
   }
   const catalogue = await requireCatalogue();
+  const mediumCaps = await resolveMediumCaps(req.contributions);
   const recipe = matchBuild(
     catalogue.allRecipes(),
     req.contributions,
     req.heatedToK ?? 0,
+    mediumCaps,
   );
 
   // Weakest-link grade over the buffer, floored at a matched recipe's base.
@@ -1340,8 +1422,25 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
   // The heat gate (the reachable-heat crafting-control seam consumed): a
   // recipe requiring heat declines when the hottest reachable furnace
   // doesn't clear it — a cold forge is a diegetic decline, not a flag.
+  //
+  // ⭐ …and the fire is only half of it. A recipe working THROUGH a medium
+  // gets whichever is lower, the fire or what the medium can carry: a wet
+  // recipe demanding 450 K declines at a roaring forge because the water
+  // stops at 373. Boiling cannot brown, and no table anywhere says so.
+  let effectiveHeatK = MixinApi.isThermal(maker) ? maker.reachableHeatK() : 0;
+  const medium = recipe.getMedium();
+  if (medium) {
+    const mediumMaterial = findMediumMaterial(medium, matched, matchedItems);
+    if (!mediumMaterial) {
+      // No water in reach is an ordinary missing input, said in the
+      // ordinary way — no new reason word for "you have no water".
+      return { ok: false, reason: 'insufficient-input', detail: medium };
+    }
+    const cap = mediumCapK(medium, mediumMaterial);
+    if (cap > 0 && cap < effectiveHeatK) effectiveHeatK = cap;
+  }
   const requiresHeatK = recipe.getRequiresHeatK();
-  if (requiresHeatK > 0 && (MixinApi.isThermal(maker) ? maker.reachableHeatK() : 0) < requiresHeatK) {
+  if (requiresHeatK > 0 && effectiveHeatK < requiresHeatK) {
     return {
       ok: false,
       reason: 'insufficient-heat',

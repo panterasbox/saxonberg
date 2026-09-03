@@ -17,6 +17,10 @@ data:
   props:
     - /stuff/thing/Oven
     - /trade/cooking/thing/cook-pot
+    # ⭐ The water butt is load-bearing, not scenery: a wet recipe declares
+    # `medium: water` and must MATCH an input carrying the water tag, so a
+    # cookhouse without a water source cannot boil a stew.
+    - /stuff/thing/fixture/water-butt
     - /world/hearthworks/thing/kitchen-menu
     - /world/hearthworks/thing/pantry-chest
     # Working stock out on the table (the DIY floor's hand-reach; the

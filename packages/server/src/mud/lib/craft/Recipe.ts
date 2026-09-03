@@ -69,6 +69,28 @@ export interface RecipeInputSlot {
 export type OutputApplication = 'bulk' | 'tangible' | 'edible';
 
 /**
+ * ⭐ **The cooking medium** — what carries the heat into the food, and
+ * therefore the ceiling on how hot the food can get however hard the fire
+ * roars.
+ *
+ * There is no method table anywhere: `boil`, `simmer`, `poach`, `fry` and
+ * `roast` are not engine words. A recipe declares the medium it works
+ * through and the heat it needs, and the physics decides what is possible
+ * — water pins a wet method at its **boiling point** (373 K), a fat at its
+ * **smoke point** (tallow ≈ 478 K), and a dry method has no medium and no
+ * cap at all. That one pair of tabulated numbers is the whole reason
+ * boiling cannot brown and frying can: a recipe demanding 450 K and
+ * declaring `medium: water` declines for want of heat at a forge, because
+ * the water is what will not get there.
+ *
+ * Absent ⇒ dry: the fire reaches the food directly.
+ */
+export type RecipeMedium = 'water' | 'fat';
+
+/** The authorable medium words — the `fromData` validation set. */
+export const RECIPE_MEDIA: readonly RecipeMedium[] = ['water', 'fat'];
+
+/**
  * A residue output beside the main one (fermentation P11/D12):
  * conservation makes byproducts exist — a crush cannot output only
  * must — and the economy consumes them (pomace and spent grain are
@@ -133,6 +155,7 @@ export class Recipe {
     outputMaterial: { persistent: true, spoiler: 1, spoilerName: 0 },
     baseGradeBand: { persistent: true, spoiler: 1, spoilerName: 0 },
     requiresHeatK: { persistent: true, spoiler: 1, spoilerName: 0 },
+    medium: { persistent: true, spoiler: 1, spoilerName: 0 },
     outputResidue: { persistent: true, spoiler: 1, spoilerName: 0 },
     outputApplication: { persistent: true, spoiler: 1, spoilerName: 0 },
     outputPortionL: { persistent: true, spoiler: 1, spoilerName: 0 },
@@ -171,6 +194,14 @@ export class Recipe {
 
   /** Minimum reachable heat (K) to resolve; 0 = no heat gate. */
   requiresHeatK: number = 0;
+
+  /**
+   * The heat-carrying medium (`water` / `fat`); empty ⇒ dry. See
+   * {@link RecipeMedium} — it does two things, and only two: the recipe
+   * must actually HAVE an input carrying the medium's tag (no water, no
+   * boiling), and the medium's own phase ceiling caps the effective heat.
+   */
+  medium: string = '';
   /** The residue output beside the main one, or null (P11). */
   outputResidue: RecipeResidue | null = null;
 
@@ -241,6 +272,7 @@ export class Recipe {
     r.outputMaterial = str(data.outputMaterial);
     r.baseGradeBand = str(data.baseGradeBand);
     r.requiresHeatK = num(data.requiresHeatK);
+    r.medium = Recipe.mediumFrom(data.medium, r.recipeId);
     r.outputApplication = str(data.outputApplication);
     r.outputPortionL = num(data.outputPortionL);
     r.outputAppearance = str(data.outputAppearance);
@@ -293,6 +325,20 @@ export class Recipe {
     return out;
   }
 
+  /**
+   * Validate an authored `medium` word. A typo must fail at READ, not
+   * silently cook a stew over an uncapped fire.
+   */
+  private static mediumFrom(v: unknown, id: string): string {
+    if (v === undefined || v === null || v === '') return '';
+    if (typeof v === 'string' && (RECIPE_MEDIA as readonly string[]).includes(v)) {
+      return v;
+    }
+    throw new Error(
+      `Recipe '${id}': 'medium' must be ${RECIPE_MEDIA.join(' | ')} (or absent for a dry method)`,
+    );
+  }
+
   /** Validate an authored `ice` word. */
   private static iceFrom(v: unknown, id: string): RecipeIce {
     if (v === undefined || v === null || v === '') return 'none';
@@ -312,6 +358,7 @@ export class Recipe {
       outputMaterial: this.outputMaterial,
       baseGradeBand: this.baseGradeBand,
       requiresHeatK: this.requiresHeatK,
+      medium: this.medium,
       outputApplication: this.outputApplication,
       outputPortionL: this.outputPortionL,
       outputAppearance: this.outputAppearance,
@@ -345,6 +392,13 @@ export class Recipe {
   }
   getRequiresHeatK(): number {
     return this.requiresHeatK;
+  }
+
+  /** The heat-carrying medium, or `null` for a dry method. */
+  getMedium(): RecipeMedium | null {
+    return this.medium === 'water' || this.medium === 'fat'
+      ? this.medium
+      : null;
   }
   getOutputResidue(): RecipeResidue | null {
     return this.outputResidue;
