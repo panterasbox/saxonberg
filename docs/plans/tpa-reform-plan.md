@@ -26,6 +26,18 @@ DB. Stage by name; push every turn.
 File refs are current at plan time. **Every one of these was checked in the
 source, not taken from a doc.**
 
+> ✅ **Re-verified 2026-09-02 against `origin/master` after a 33-commit catch-up
+> (the Api OO sweep and its successors).** All twenty-eight load-bearing facts
+> below still hold — the lint gates, the five kernel fast-travel consumers,
+> `LoungeTerminal extends TpaTerminal`, the flat item-door spend at
+> `MagicLogic:648`, `Charge.UNIT = 'kJ'`, `capacityKJ` in exactly four content
+> rows, `installArcaneReserve`'s early return, `validateSlotSpecs`' `Mixins`
+> gate, `put`'s `ContainerMixin|SurfacedMixin` target, the empty `device`
+> category, 48 collections, 35 packs. ⚠ Three symbols moved *file* since the
+> plan was written and the paths here are corrected: `TreeAction` is
+> `api/access.ts`, `OnExcessPolicy` is `api/command.ts`, and
+> **`Tangible.getMass()` is `lib/material/Tangible.ts`, not `lib/spatial/`**.
+
 **The lints that will bite**
 
 - `packages/server/scripts/check-object-verbs.ts` is CI-gating at zero
@@ -176,8 +188,9 @@ source, not taken from a doc.**
   default `'top'` silently picks a winner.
 - `ZoneApi.elevationFor(scope: Stuff & Container): Promise<number|null>` —
   walks out to the outermost container first; `coords.z` deliberately does not
-  contribute. `Tangible.getMass(): Quantity<'kg'>` and
-  `LoadBearing.getBorneBurden(): Quantity<'kg'>` are the two halves of `m`.
+  contribute. `Tangible.getMass(): Quantity<'kg'>` (`lib/material/Tangible.ts`) and
+  `LoadBearing.getBorneBurden(): Quantity<'kg'>` (`lib/encumbrance/LoadBearing.ts`)
+  are the two halves of `m`.
 - `ReservedMixin.reserves` is `{persistent: true, runtimeState: true}` — a
   reservoir persists only if its host persists.
 - Packs: **35 today**, 16 with `src/`. `/system/tpa` is number **36**, not
