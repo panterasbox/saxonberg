@@ -367,7 +367,7 @@ its `par` semantics, which is a faucet shape and would mint matter from nothing.
 
 | | Behaviour | Neglect |
 |---|---|---|
-| **Milk** | must be taken daily | she **dries off** for that lactation; mastitis is the sharper version |
+| **Milk** | taken twice a **game** day (D89) | she **dries off** for that lactation — ⚠ a large **slope**, not a cliff (D45): the next lactation is unaffected. Mastitis is the sharper version |
 | **Eggs** | accumulate | they **spoil** |
 | **Wool** | grows continuously, harvested once | a worse fleece, and a hot sheep |
 
@@ -1228,6 +1228,95 @@ wet corner, Long Acre — and the names carry the ground's history. The address
 substrate already ships. It is free characterisation *and* it solves reference:
 **"move them to the top meadow"** rather than "paddock 7."
 
+### Cadence — whose day is it
+
+*(D89–D94, added after the cadence pass, which found a corrected error written
+back in.)*
+
+**D89 — ⚠⚠⚠ Every cadence is stated in GAME days or REAL days. Never "daily".**
+`WorldClockApi.DEFAULT_SCALE = 12`, so **a game day is two real hours** and a
+player logging in once a real day skips **twelve game days**. Every unqualified
+"daily" obligation in an earlier draft was therefore a twelvefold penalty on a
+normal person, and D25's *"must be taken daily"* meant a once-a-day player had
+missed twelve milkings.
+
+⚠ **Both source slates had already caught this** — farming's *"the 12× clock
+invalidates this slate's tending-cadence lean"* and ranching's own
+`[CORRECTION 2026-07-31]`, which says in as many words *"do not port the
+real-world cadence."* This document cited that correction and then reintroduced
+the error. **Any wave that writes a period without a unit is wrong.**
+
+Reference points, so nobody re-derives them:
+
+| | Game | Real |
+|---|---|---|
+| a day | 1 | **2 hours** |
+| a season / winter | 90 days | **7.5 days** |
+| a year | 360 days | **30 days** |
+| paddock residency | 7–14 days | **14–28 hours** |
+
+**D90 — ⭐⭐ `check` is the one interaction, and the chores are not the player's
+obligation.** The family conventions already state *"the one-interaction-per-login
+cadence"*; an earlier draft specified five daily acts times *n* animals against
+it. The resolution is not to cut the acts but to move them:
+
+> **The daily acts are things that must happen. The player chooses who does
+> them.**
+
+The one interaction is **`check`** — D85's delta read. Feeding, watering, mucking
+and milking are covered by the automation ladder, and the *decision* of whether
+to pay for that cover is the content. **The player's loop is deciding, not
+doing** — the ladder doing structural work rather than being a convenience.
+
+**D91 — ⭐⭐ The batchable test.** One rule that classifies every act in this
+build:
+
+> **If an act can be batched, it can be delegated — and it should be neither the
+> player's obligation nor their fun.**
+
+Batchable across the holding ⇒ chore ⇒ the ladder covers it. Requires judgment
+about **this** animal or **this** field ⇒ the player's, and worth a login. The
+paddock move, the draft, the cull, the sowing decision and the survey sit on the
+right of that line; feeding and mucking sit on the left.
+
+**D92 — ⭐⭐⭐ The roster is a commitment ladder, and should be authored as one.**
+The five species already span the whole range of real demand and nothing said so:
+
+| | Demand |
+|---|---|
+| **Bees** | weekly-ish; near-zero daily |
+| **Sheep** | graze themselves — demand is **seasonal** (lambing, shearing) |
+| **Beef cattle** | graze; low |
+| **Hens** | forgiving; they forage and survive absence |
+| **Pigs** | moderate, and they eat waste |
+| **A dairy cow** | **a tyrant** — twice a game day, no exceptions |
+
+**A player's real-life cadence therefore decides what they can keep** — a choice,
+honestly priced, never a gate. Dairy being the most demanding farming there is
+happens to be true. And the on-ramp (D30's hens) is forgiving **for the same
+reason it is the on-ramp**, which is a coincidence worth making deliberate.
+
+**D93 — Accrual for the on-ramp, expiry for the committed.** Eggs accrue (collect
+whenever), wool accrues over a year, **milk expires**, and windows expire —
+lambing, harvest, the paddock move. D25 does this by accident; do it on purpose.
+The forgiving end of the ladder accrues, and expiry is what you take on when you
+commit.
+
+**D94 — Winter inverts the cadence, and the autumn decision absorbs it.** D12
+makes winter the season animals demand **most** — hand feeding, lambing — while
+the fields do nothing. True to life, and also precisely when a casual player
+leaves.
+
+The mitigation is already in the design rather than bolted on: **winter is when
+the hired hand is worth paying for**, and autumn is when you decide. So the
+winter-feed budget becomes **a labour budget as well as a hay budget**, which
+makes the year's one big decision richer instead of merely harder.
+
+⭐ **One alignment worth building around, currently accidental:** paddock
+residency is 14–28 real hours, so **the act that rewards judgment already happens
+at human cadence** while the acts that do not happen at game cadence and get
+delegated. Preserve that when tuning anything.
+
 
 ---
 
@@ -1389,6 +1478,16 @@ substrate already ships. It is free characterisation *and* it solves reference:
     if two bands read alike the honest-opacity model fails silently.)*
 51. A holder can name a field, and the name is what commands and prose use
     thereafter.
+52. No shipped period is expressed as an unqualified "daily" — every cadence in
+    content, prose and code names game days or real days.
+53. A player logging in once a real day can keep hens, sheep and beef cattle in
+    good condition unaided; a dairy cow requires either a much higher login
+    cadence or hired cover.
+54. Every act is classified batchable-or-not, batchable acts are covered by the
+    automation ladder, and no login requires more than one judgment act per
+    holding to stay in good standing.
+55. Missing milkings reduces yield progressively and ends the lactation early; it
+    does not harm the animal permanently or affect the next lactation.
 
 ## Slate revisions this cycle makes
 
