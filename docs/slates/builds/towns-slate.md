@@ -141,54 +141,129 @@ latent in shipped rows — nothing below needs to be invented, only built.
 
 ## Rejection — extraction
 
+> ⭐ **Worked out in full 2026-09-02** — the sources, the three acts, the
+> cast and the charter decision are staged under `docs/staging/`. This
+> section holds only what a *slate* should: the decisions and why.
+
 **Functional half (shipped).** The Ferrow, four businesses, the grade
 chain end-to-end to the ingot, the damps and the canary, the register.
 39 files, no TypeScript.
 
-**The gap.** Eight surface rooms and **all eight are workplaces.** The Dry
-is a changing room. There is nowhere in Rejection to *be* that is not
-work: no dwelling, no drinking house, no infirmary, no hall. A mining town
-that is only a mine is a facility.
+**The gap.** Eight surface rooms and **all eight are workplaces.** There
+is nowhere in Rejection to *be* that is not work.
 
-**The support half**, derived — miners are paid in coin, work rotations,
-come up filthy, and their bodies wear out:
+### The sources are a sequence, not a blend
 
-- **A boarding house.** Rooms let by the week to single men. ⭐ The
-  residence rung Hinkley cannot have — and ⚠ **not** the first rental
-  market: Mayfield Row already ships one (Walter, the `lease`/`unlease`
-  verbs, the Seznick House unit programme). The distinction is the
-  instrument. Mayfield lets a **unit on a term** — a lease, a keyway, a
-  tenancy you hold. A lodging house lets a **bed by the week**, no
-  instrument, no term, out the door on Friday if you cannot pay. Same
-  rung of the ladder (dorm → lodging → lease → lot), two different
-  theories of what a tenant is, and the mining town gets the harsher one
-  because that is what the work pays for.
-- **The public house.** The wage sink — and, not incidentally, the room
-  where a town gets chartered. ⭐ Rejection has no polity and no room to
-  argue in. Those are the same gap.
-- **The sharpening shop.** Historically a named trade: the mine
-  blacksmith, paid *out of miners' wages* to keep picks keen. A real
-  service dependency, a tool-durability sink already modelled
-  ([crafting](../../subsystems/crafting.md) `Durable`), and it gives
-  Rejection its own smithy without importing a venue.
-- **The infirmary.** Silicosis, crush, the damps. ⭐ The honest home for
-  the medic vertical ([health-vertical](./health-vertical-slate.md),
-  [medic-judgment](./medic-judgment-slate.md)), because it is the one
-  place where the injuries are **occupational and predictable** rather
-  than the outcome of a fight.
-- **A meeting hall or chapel.** Where the disaster is mourned. A mine that
-  has never had a bad day is not a mine.
+**Perfection, Nevada** (*Tremors*) · **Deadwood** · **Matewan** — one per
+act, each a different lens, each causing the next, and none of it
+requiring anyone to decide to be a villain.
 
-**The unbuilt mechanism worth the most.** The co-op row already flags the
-**wood contest** — *"Its stand is also the MINE's timber supply. Two
-consumers, one supply"* — and it is not wired. That is a genuine rival
-good with no authored answer, sitting one field away from working.
+| act | lens | what it leaves behind |
+|---|---|---|
+| **I — Tremors** | survival | the town has no mechanism for unowned ground |
+| **II — Deadwood** | civics | a charter, worth what Terminus says it is worth |
+| **III — Matewan** | political economy | who the charter covers, and who it does not |
 
-**Character.** Named for what the ground did to the people who came first.
-Transient, superstitious, thirty years old and still refusing to admit it
-is permanent. Everything temporary-looking and load-bearing.
+### ⭐⭐ The geology carries Act I
 
----
+**A mine manufactures soft ground** — broken waste and fine tailings
+dumped downslope, over the placer gravels the first prospectors washed. So
+the lode is in rock and the town sits above unconsolidated fill. Two
+consequences:
+
+- ⭐⭐⭐ **The safe place is down the adit.** The mine — dust, damps,
+  falls, the thing the creed is built around fearing — is where you *run*.
+  Everything they know is backwards.
+- ⭐⭐ **The spoil bank is nobody's claim.** The habitat is a by-product of
+  the industry, on the one ground the town has no owner for. The Act I
+  problem, stated as geography.
+
+And the creed **blinds them first**: a mining camp already has a category
+for *the ground took him*, so the first three deaths are filed — honestly,
+correctly, by a competent surgeon — as ordinary industrial accidents.
+
+### ⭐⭐ Val and Earl are the labor question
+
+Handymen. Not on any roster, no claim, no wage rate, and no Institute
+subscription because casual labour cannot afford a check-off. Every job in
+Rejection has an owner — the co-op owns the face, the fuel yard the clamp,
+the smelter the furnace. **They do the work with no owner**: clearing
+spoil, digging ditch, hauling the dead.
+
+> *Who is responsible for the work nobody employs anyone to do?*
+
+The labor plot, stated without a strike in it — and it pays off in Act III,
+because **they cannot strike.** Nobody employs them; there is nothing to
+withhold from. The town's one weapon does not fit the two people most
+exposed, and the charter's first real test is whether it covers a man with
+no employer.
+
+### The support half, derived
+
+- **the Ferrow Institute** — ⭐ the load-bearing new room. A real
+  institution: a wage check-off funding the library, the reading room, the
+  mutual-aid fund and the meeting hall. The town's school, its insurance,
+  and the room it charters itself in. One room, three acts.
+- **the Tallow** — the public house, and ⭐ per Deadwood the publican is
+  the most powerful person in town: he holds **the slate**, which is every
+  man's tab and therefore every man's business. *Whoever holds the debt is
+  the government until there is one.*
+- **the print shop** — the register says who owns what; the paper says it
+  **happened**. And in Act III it is the only detector, because police
+  catch what someone saw and journalists catch what is in the books.
+- **the Rest** — lodging. ⚠ Not the first rental market (Mayfield Row
+  ships that); the rung *below* a lease — a bed by the week, no
+  instrument, no term.
+- **the infirmary**, **the sharpening shop**, **the spoil bank**, **the
+  Row**.
+
+### ⭐⭐⭐ The charter is only worth what Terminus says it is worth
+
+The pressure to charter is **not internal**. Rejection's titles are
+honoured by a book only Rejection respects, and its money already banks at
+goodkin, in a city that owes it nothing. The town organises so there is
+something for a larger power to ratify.
+
+So the charter is a **petition, not a victory**: what they build is *de
+facto* authority, real inside Rejection and worth nothing at its edge. An
+unrecognized sheriff can arrest a man in Rejection and cannot follow him
+to Terminus. ⭐⭐ And **nothing that happens in Rejection is cognizable
+anywhere that matters** — which is not colourful lawlessness, it is *why
+men get sent there.*
+
+**The knife:** you cannot purchase what nobody owns, and enclosure
+requires title. **Terminus recognizes the charter because the corpo needs
+clean title to buy.** Legitimacy granted for the purpose of making the
+town sellable, handed over by the people who intend to take it. They win
+Act II; that is how they lose Act III.
+
+**And the counterweight:** ⭐ Rejection is where the game shows you *why
+the Compact exists* — a polity whose legitimacy is entirely at another's
+discretion, which is what nearly every real polity is. The fiction may be
+bleak precisely because the platform is not. ⚠ Never said in-world.
+
+### The Pinkertons
+
+The pattern already ships in `policing-slate` as *predator and instrument*
+— a corpo that wants a strike broken **hires muscle rather than sending
+its own**, for deniability. Three facts:
+
+1. **Private force has capacity and no authority.** Authority comes from
+   an office; hired men are just men.
+2. ⭐⭐ **The frightening one is the deputized one.** Baldwin-Felts agents
+   at Matewan were sworn as deputy sheriffs. Your alignment model already
+   names that pole **capture**.
+3. ⭐ **Rejection has no office to capture, which is worse.** With no law
+   they break nothing — and no one has standing to refuse, because
+   standing is a thing an office confers.
+
+**The Pinkertons are the reason you need a sheriff**, and the corpo would
+prefer the town stayed unchartered. The interests invert cleanly.
+
+⭐ Policing mode: Rejection runs **the hue and cry** (the frontier, per
+policing-slate's Tiebout axis) against Terminus's **Peelers**. Two
+arguments about law, one road between them, felt by walking.
+
 
 ## Hinkley Hills — tenure
 
@@ -531,6 +606,25 @@ Leave it.
   designation.
 - **D13 — Prove the residency/eviction interaction before authoring
   homes.** ⚠ Silent failure mode.
+- **D14 — ⭐⭐⭐ Rejection's charter is only worth what Terminus says it is
+  worth.** *De facto* authority is the town's to take; *de jure* is
+  Terminus's to grant, discretionarily, by an office a player can hold.
+  A player in Rejection petitions, a player in Terminus decides, the corpo
+  lobbies the seat and the town has nothing to lobby with.
+  ⚠ Design against both degenerate ends — always-decline is a treadmill,
+  always-grant has no tension.
+- **D15 — Act I is a hazard, not a boss.** The rule is *you cannot be on
+  soft ground*; the creature needs no stats. This is the accurate
+  adaptation — *Tremors* is a terrain-and-logistics film, not a fight
+  film. A fought graboid needs a **scale layer** (multi-cell occupancy,
+  submergence) that does not exist; deferred, and worth building on its
+  own merits later.
+- **D16 — Private force has capacity and no authority.** Authority comes
+  from an office. The frightening agent is the *deputized* one, and
+  Rejection has no office to deputize into — which is worse, not safer.
+- **D17 — Rejection runs the hue and cry; Terminus runs Peelers.** The
+  policing slate's aesthetic arc is a Tiebout axis; two arguments about
+  law with one road between them.
 
 ---
 
@@ -564,6 +658,26 @@ Leave it.
 - **`banksAt: goodkin`** on Rejection's fuel-yard and provisioning
   businesses.
 - **Only TPA arrival terminal**: `/world/terminus/terminal/thing/arrival-terminal`.
+- **Combat readiness**: ships a 1v1 poise session + cycle 2's N-party
+  melee (threat graph, focus-fire, `defend`, fleeing); ranged bands
+  `close·reach·near·far` **derived from the room's real extent in
+  metres**. `HazardMixin` is armed→sprung, triggered by the locomotion
+  traverse, delivery through the weapon grammar, detection gated by
+  concealment. ⚠ **No representation for a creature bigger than the
+  room**, no multi-cell occupancy, no submergence state. One shipped
+  monster (the wolf, `naturalAttackChannel: point`).
+- **The Ferrow `stocks:` table** ships three species as taxonomy only
+  (`Gryllus tenebrarum`, `Rattus fodinae`, `Subterracavia pallida`) with
+  no creature rows — a prey pyramid with the top missing, and
+  ⚠ **inert as shipped, failing silently**.
+- **`policing-slate`** already carries the Pinkerton pattern (*predator
+  and instrument* — a corpo hires rather than sends), the doctrine line
+  *organized crime is governance without license, corpo malfeasance is
+  license without accountability*, the press as the only detector for
+  ledger crime, and the aesthetic arc as a Tiebout axis (frontier = hue
+  and cry, Terminus = Peelers).
+- **Mayfield Row** ships the lease tier: Walter, `lease`/`unlease`, the
+  Seznick House unit programme; Ricky fronts `title buy`.
 
 ---
 
@@ -571,6 +685,11 @@ Leave it.
 
 Rough order, each independently shippable:
 
+0. ⭐ **Rejection Act I — the hunt** (GREENLIT 2026-09-02). Hazard-shaped,
+   buildable on shipped substrate, and it seeds Acts II/III mechanically:
+   a town that has just lost six people and cannot work its own ground is
+   a town that sells cheap. Needs the `stocks:` inertness fixed in the
+   same wave.
 1. **Heart's Delight** (both halves) — the gate is clear, it completes the
    spine, and it is the only *new* town. Biggest, and B0 re-grounds first.
 2. **Hinkley facade + neighbours** — the owner-authored exterior, the sign
