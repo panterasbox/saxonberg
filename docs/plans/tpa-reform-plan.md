@@ -450,6 +450,16 @@ are looking at); **`teleport` is the anchored front door** (P11's three anchors
 — the long hop to somewhere you are not). One spell row, one cost function, two
 grammars.
 
+### P5a — The name stays `FastTravel`
+
+**Decided (user, 2026-09-02).** `SurveyedMixin` / `TeleportNodeMixin` were
+considered and declined. *"Everyone knows what fast travel is"* — and the
+stronger reason is that **the house convention for mixin names is mechanical,
+not diegetic**: `ContainerMixin`, `SlottedMixin`, `PostureMixin` are none of
+them words in the fiction. Renaming for diegetic honesty would have pushed
+*against* the convention while appearing to tidy it. `TravelNetwork` was noted
+as the more honest alternative if it is ever revisited.
+
 ### P6 — `LoungeTerminal` is collapsed, not moved
 
 `FastTravelMixin` gains one authored field, `boardLabel: string | null`
@@ -933,11 +943,29 @@ The single biggest mechanical wave. In order:
    realm's stops are universally reachable is a realm decision, not a mechanism
    decision. `lib/credential/Credential.ts` and its three tests lose the
    constant.
-7. Move the `fasttravel.*` settings rows to the pack; `BankingLogic`'s legacy
-   read keeps its try/catch.
-8. Move the two fasttravel suites and the tpa controller suites into
+7. Move the `fasttravel.*` settings **rows** to the pack. ⓘ The three
+   `AppSettingKeys` **constants** stay in the kernel — that is the house
+   pattern, not residue: the water pack's own dials (`waterFreezeK`,
+   `waterPumpEfficiency`, `waterFouledAt`) live there too and the pack
+   imports them. A key *name* is a shared vocabulary so a typo fails; the
+   *values* stay authored in the pack.
+8. ⭐ **Delete the kernel's one piece of TPA knowledge instead of moving
+   it.** `BankingLogic.restampCustodiansImpl` reads
+   `fasttravel.tpaBusinessPath` solely to *"re-own the **legacy** raw `tpa`
+   accumulator"* — the function's own comments call it legacy migration
+   three times. **No migrations ever** (no users, no data): delete the
+   `tpa` re-own branch and the `AppSettingKeys.fasttravelTpaBusinessPath`
+   read with it, and the kernel stops knowing the Teleport Authority
+   exists. The constant then has **no kernel consumer** and moves to the
+   pack as a plain string.
+   ⚠ Scope this precisely: the *`tpa` re-own* and the `bankPath`→`bank`
+   fill are self-described migration; the treasury→CB assignment and the
+   default-custodian fallback in the same function may be live behaviour.
+   Read before cutting, and leave anything that is not migration to
+   banking's own sweep.
+9. Move the two fasttravel suites and the tpa controller suites into
    `packages/content/tpa/src/__tests__/`.
-9. **D2:** every "Eternal City" in prose and docs.
+10. **D2:** every "Eternal City" in prose and docs.
 
 Prove: `grep -rn 'FastTravel\|fasttravel\|TpaTerminal\|TravelCard'
 packages/server/src/mud/lib packages/server/src/mud/world` returns nothing;
