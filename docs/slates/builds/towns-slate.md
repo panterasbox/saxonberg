@@ -130,8 +130,9 @@ and has no say over what Rejection puts in the water.
 | the resource is a… | **stock** — finite, depletes | **space** — fixed, subdividable | **flow** — renewable, seasonal |
 | contested good | the seam; the coppice | frontage | **water** |
 | on the river | headwaters — *fouls* | side slope — *head problem* | the flats — *diverts* |
-| polity | **none** — unchartered | inherited paper District (charter `""`) | **none** — declared absent |
+| polity | **none** — unchartered | inherited paper District (charter `""`) | ⭐ a **co-operative** — private ordering, no legal authority |
 | its road to a polity | **charter from nothing** | **capture an empty shell** | **face the commons** |
+| ⭐⭐ its civic failure | needs public authority, cannot get it | has it, will not use it | built an institution for the **wrong commons** |
 
 ⭐⭐ **That last row is the whole civics curriculum**, and it is three
 different lessons rather than three instances of one. It is also entirely
@@ -391,67 +392,178 @@ nine-house scale, and the same theme as Rejection Act III.
 
 ## Heart's Delight — cultivation
 
-**It does not exist.** No Locality row, no zone, no rooms. What ships is
-its **hydrology**: `Watercourse/delight` — spring 720 m → *the alluvial
-flats, 180 m, 240 km²* → mouth 35 m, joining the Kestrel at the
-confluence. The flats node's own comment: *"the diversion fight, when it
-comes, is here."*
+> ⭐ **Worked out in full 2026-09-03** — the sources, the founding
+> sequence, the tower and the cast are staged under `docs/staging/`. This
+> section holds the decisions and why.
 
-⭐⭐ **Its gate is cleared.** `roadmap.md` and `farming-plan.md` §Stage B
-both say Heart's Delight waits on residences Waves 0–5 landing on master.
-Those landed — `HoldingWarren`, `PlatPlan`, `HoldingProgramme`, D17
-identity and the LotHolder rework are all *in shipped Hinkley content*.
-Stage B is unblocked today; **B0 re-grounds** and is mandatory.
+**It does not exist.** No Locality row, no zone, no rooms — only its
+hydrology (`Watercourse/delight`: spring 720 m → **the flats, 180 m**,
+240 km² → mouth 35 m). The flats node's own comment: *"the diversion
+fight, when it comes, is here."*
 
-### It is Sunnyvale, and the real history is the design
+⭐⭐ **The Stage B gate is CLEARED** — `roadmap.md` and `farming-plan.md`
+§Stage B both name residences Waves 0–5, and those shipped. B0 re-grounds
+first.
 
-The Valley of Heart's Delight was the Santa Clara Valley, c. 1890–1960:
-the largest fruit-growing and packing region in the world — apricots,
-prunes, cherries, pears — sold to settlers on its **artesian** water. You
-drilled and it came up on its own. Then it didn't, so they pumped. Then
-the ground sank: roughly thirteen feet of subsidence in San Jose by 1969.
-Then the orchards were paved.
+### ⚠⚠ But winter does not exist for plants
 
-That is a complete, true, mechanically-modellable arc, and it hands the
-town its whole character.
+The **clock** has seasons (`DefaultCalendar`, `CelestialApi.seasonFor`,
+`SEASON_BIAS` in weather). Husbandry does not: *"no bloom, no season of
+readiness"*, *"with no global season, supply arrives in pulses."* And
+`farming-slate` lists winter **first** among what is unbuilt.
 
-**The support half**, derived — fruit is seasonal, perishable, and
-worthless unless graded and moved inside a window:
+⭐ **That is the reason to build the valley, not to defer it.** Greenhouses
+are what winter is for; a fruit valley is what a *season* is for. One
+piece of substrate per town: Rejection needs the `stocks:` fix, Hinkley
+needs `knock`, the valley needs winter.
 
-- **The packing house / cannery.** The characteristic institution, and
-  mechanically a **new economic shape**: a *seasonal* employer. Rejection
-  runs year-round shifts; Terminus runs businesses; a cannery hires
-  everyone for six weeks and nobody for forty-six. ⭐ Nothing in the game
-  has that labor pattern, and it is the one that makes migrant work,
-  glut, and off-season debt legible.
-- **The drying yards.** Apricots on trays in the sun. A transform whose
-  only inputs are **sunlight and space**, which the shipped thermal and
-  weather models can drive honestly — and where **rain during drying
-  season is a disaster.** ⭐ The first place weather has real money on it.
-- **The growers' co-operative.** Sunsweet, Sunkist and Blue Diamond were
-  all founded to solve one problem: a single grower has no bargaining
-  power against a single buyer. ⭐ It is Rejection's co-op **inverted** —
-  that one distributes *labor*, this one aggregates *market power* — and
-  joining it is a real choice with a real cost. See
-  [cooperative-slate](./cooperative-slate.md).
-- **The pump house.** ⭐⭐⭐ **Subsidence is a common-pool tragedy that
-  renders as a number going down.** Zones already carry an inherited
-  `elevation` field; the water model already has storage and rights. Each
-  grower's individually rational pumping lowers the ground for everyone —
-  not a scripted doom, only doomed **if the players over-draft**. This is
-  the single best pedagogical object in the slate and it is nearly free.
-- **The depot and the blossom road houses.** Fruit leaves by rail; people
-  came to look at the valley in bloom.
+### Sources — and ⚠ Chinatown is the wrong one
 
-**Character.** The pleasantest town in the realm — sunlit, prosperous,
-seasonal — sitting on the thing that will undo it, with the mechanism
-legible to anyone who reads the well.
+**Cannery Row** (primary) · **Twain** · *Field of Dreams* (the
+foreclosure, not the ghosts) · *Children of the Corn* (one thing: the
+countryside is legible to insiders and opaque to outsiders).
 
-⚠ **Author both halves at once.** Heart's Delight is the one town whose
-support half is richer than its functional half; shipping orchards and
-coming back later would build the least interesting third of it.
+⚠ Chinatown is the obvious water-rights reference and it needs a
+**conspiracy**. Heart's Delight needs **nobody to do anything wrong.**
 
----
+⭐⭐ **Cannery Row is a tone correction.** Not a postcard with a problem —
+**warm and shabby**, with a demimonde: the people who came for the pack
+and stayed. The orchards are beautiful and there are people asleep in the
+packing house, and both are the same town. Rejection is deadpan-grim,
+Hinkley is paranoid, **the valley is comic with the sadness underneath.**
+
+### ⭐⭐⭐ The lesson is how towns form
+
+Seven steps, in order, each a thing you can walk to: **the water** (why
+anyone farmed here) → **the land** (Halloran held it first) → **the rail**
+(he gave the right-of-way, so the stop went on *his* land) → **the
+shipping point** → **the store** → **the name** → **the map.**
+
+Walk depot → store → packing house and you have walked the town's
+formation.
+
+**The name.** The town was Halloran, and a postal clerk said the name was
+taken. So they picked a **sales pitch** — *Heart's Delight* was what the
+land agents called it and no local ever had. ⭐⭐ Halloran gave the land,
+the town took his name, a clerk took it back: the Rejection theme
+(*legitimacy is granted elsewhere*) in a comic register.
+
+> ⭐⭐⭐ And the engine already enforces the post office's rule —
+> `AddressRegistry`: **"One Locality per prefix — a duplicate claim is an
+> authoring error."**
+
+### ⭐⭐⭐ Why Halloran gave the land
+
+**Because he had been cut off.** A generation earlier he came over the
+pass with a party that made it, and went back in winter for one that had
+not. A man who has been on the wrong side of a mountain understands what a
+rail line is.
+
+> **The town exists because its founder had been trapped.**
+
+⭐ And the geography agrees: Rejection is at the headwaters, so the road
+Halloran came down is the valley road that now carries ore, and the
+mountains that nearly killed him are where the mine is.
+
+⭐⭐ **The realm needs this.** Rejection Act I is a town with no mechanism
+for trouble on nobody's claim; Act III is a charter that does not cover
+the people who need it. The valley was founded by a man who went back for
+strangers with **no mechanism at all** — the collective action problem
+*solved*, once, and forgotten. Without it the three towns are three
+flavours of institutional failure.
+
+⚠ **Leave the cannibalism alone.** The usable half is a party trapped over
+a winter and a relief that went back.
+
+⭐⭐⭐ **And a player publishes it.** The lore is findable (the depot's
+railroad paperwork, the co-op's oldest minute book, the post-office
+correspondence) and unremembered — then **recovered by a player and
+written to the wiki, attributed through `provenance`.** History as a
+permanent, attributed mark on the world.
+
+⭐⭐ **The last Halloran works the pack** — seasonal labor on ground his
+family gave away the best of, with no idea. The person who is the evidence
+is right there stacking trays.
+
+### ⭐⭐⭐ The water tower
+
+The landmark is a **water tower painted as a can of peaches**: a
+`StorageNode` wearing a `BrandedMixin` mark. Two shipped systems, no new
+code, and the valley's arrival image. The town's water is held in a
+container shaped like the thing the water becomes — and the mark on it is
+the **buyer's**, not the town's.
+
+**Three artifacts, one theme:** the **name** (a postal clerk), the
+**tower** (a buyer's brand), the **land** (sold one owner at a time) — all
+somebody else's decision, and **nobody does anything wrong.**
+
+### The calendar is the town
+
+Bloom (a postcard, ~3 wks) · thinning & the water (the anxious season) ·
+the drying season (⭐ rain is a disaster — the first place weather costs
+money) · the pack (~6 wks, a factory, 200 hands) · the off-season (~5
+months, empty and genuinely lonely). ⭐ **Seasonal employment is a labor
+pattern nothing else in the game has**, and money arrives **once a year in
+a lump**, which is why a bad drying season is a solvency event.
+
+### ⭐⭐ Nobody takes the valley. The valley sells.
+
+Rejection loses to a **buyer**. The valley must not, because the true
+story is worse: **nobody paved the valley — everybody sold, individually,
+for a good price, and the aggregate was paving paradise.** Same shape as
+the subsidence: individually rational, collectively ruinous, no villain.
+⭐ One theme expressed twice, in water and in land.
+
+**And the water doctrine is the engine of both:** prior appropriation
+allocates the river (senior takes all, junior takes *nothing*, and neither
+is a villain) — ⭐⭐⭐ **so the juniors go to the aquifer, and the aquifer
+has no doctrine at all.**
+
+### ⭐⭐⭐ The civic triptych
+
+| town | its institution | the failure |
+|---|---|---|
+| **Rejection** | none | needs public authority, cannot get it |
+| **Hinkley** | a special district | has it, will not use it |
+| **Heart's Delight** | **a co-operative** | private ordering that works — **in the wrong domain** |
+
+The Growers' Association has no legal authority and does real work
+(Ostrom). ⭐⭐⭐ **They built an institution for the wrong commons**: the
+co-op solves *market power*, the aquifer is a *physical* commons, and a
+marketing co-op has no instrument for it. **Institutions are shaped by
+their founders' problem and do not adapt.**
+
+⭐⭐ **And each town holds the institution the next one needs** — Hinkley's
+district is what the valley needs for water; the valley's co-op is what
+Rejection's tutworkers need for labor; Rejection's charter fight is what
+would make Hinkley's district real. **And none of them talk.**
+
+### Two entry points, class-marked
+
+**Arrive with capital** → buy ground, become a grower (a long loop).
+**Arrive with nothing** → take the pack (six weeks, paid in a lump, then
+nothing). They do not easily become each other, which is the real
+agricultural economy — and ⭐ a Rejection miner on off-cores can work the
+pack, so two labor markets meet on the valley road.
+
+⚠ **Not a repeat of Rejection's labor story.** Mining labor is a union of
+the employed with something to withhold; farm labor is **migrant,
+seasonal, and historically written out of labor law** (Delano happened
+outside the NLRA). Different problem, different instrument.
+
+### ⭐ Hendy: the site, not the building
+
+An ironworks gives the valley a **direct** relation to Rejection (it built
+mining machinery). ⚠ But `trade-smithing` ships and a village smith can
+make a pick; a works is justified by what a smith *cannot* make — a hoist,
+a pump, a stamp mill — and metal-chain Stage A shipped none. **Its real
+customer is the pump, and the pump does not exist.**
+
+⭐ So author **a yard with rail frontage and no building.** One room,
+commits nothing, and the works then arrives *in response to an event*
+rather than as furniture — the first beat of the valley losing to land
+price, which is an ending rather than a phase.
+
 
 ## The connective tissue — goods and services in and out
 
@@ -659,9 +771,15 @@ Leave it.
   directly to Heart's Delight is wrong.
 - **D3 — The address tree and the watershed stay misaligned.** Already
   shipped doctrine (`Locality/rejection.yaml`); this slate depends on it.
-- **D4 — Each town reaches its polity by a different road.** Rejection
-  charters from nothing; Hinkley captures an empty shell; Heart's Delight
-  faces the commons. Do not converge them on one civics mechanism.
+- **D4 — Each town reaches its polity by a different road**, and they are
+  three *failure modes*, not three instances. Rejection needs public
+  authority and cannot get it; Hinkley has it and will not use it; the
+  valley built a working institution **for the wrong commons**. Do not
+  converge them on one civics mechanism.
+  ⭐⭐ **And each town holds the institution the next one needs** —
+  Hinkley's district is the valley's water answer, the valley's co-op is
+  Rejection's labor answer, Rejection's charter fight is what would make
+  Hinkley's district real. **And none of them talk.**
 - **D5 — Heart's Delight ships both halves in one build.** Its support
   half is richer than its functional half.
 - **D6 — Rejection's support half is a lodging house first.** ⚠ Not the
@@ -725,6 +843,32 @@ Leave it.
 - ⚠⚠ **D22 — UNSOLVED: an NPC house as free storage.** Stashing goods
   where you pay no upkeep is a real hole in the open-door design and needs
   a rule before any of it ships.
+- **D23 — ⭐⭐ Nobody takes the valley; the valley sells.** Rejection loses
+  to a buyer. Heart's Delight loses to **the price of land**, one owner at
+  a time, each making a decision correct for them — the same shape as the
+  subsidence, and no villain anywhere. ⚠ Which is why **Chinatown is the
+  wrong reference**: it needs a conspiracy and this needs nobody to do
+  anything wrong.
+- **D24 — The valley's lesson is how towns form.** Seven steps, in order,
+  each walkable: water → land → rail → shipping point → store → **name** →
+  map. ⭐ And the name is assigned by a postal clerk, which is
+  `AddressRegistry`'s own rule (*one Locality per prefix*) as the founding
+  joke.
+- **D25 — ⭐⭐⭐ The founding is findable, unremembered, and published by a
+  PLAYER.** Halloran gave the right-of-way because he had been cut off —
+  he came over the pass and went back in winter for a party that had not.
+  The town exists because its founder was trapped, and nobody knows. It is
+  recovered from a document and written to the **wiki**, attributed
+  through `provenance`. ⚠ Leave the cannibalism alone; the usable half is
+  a party trapped over a winter and a relief that went back.
+- **D26 — Hendy is a site, not a building.** An ironworks is justified by
+  what a village smith cannot make — a hoist, a pump, a stamp mill — and
+  metal-chain Stage A shipped none. Author a yard with rail frontage and
+  no building; the works arrives later *in response to an event*.
+- **D27 — ⚠⚠ The valley is gated on WINTER.** The clock has seasons; the
+  crop does not (*"no bloom, no season of readiness"*). ⭐ That is the
+  reason to build the valley rather than defer it — a fruit valley is what
+  a season is *for*.
 
 ---
 
@@ -789,6 +933,16 @@ Leave it.
   shipped roster (which holds 24, incl. `horticulture`).
 - **The Hinkley house programme** already ships the house door
   `locked: true` to the lot's keyway.
+- **Seasons**: the clock has them (`DefaultCalendar` 360d/12mo/4 seasons,
+  pure `CelestialApi.seasonFor`, `SEASON_BIAS` in weather transitions).
+  ⚠ **Husbandry does not** — *"no bloom, no season of readiness"*, *"with
+  no global season, supply arrives in pulses."* `farming-slate` lists
+  **winter first** among what is unbuilt and argues to keep it hard.
+- **`AddressRegistry`**: *"One Locality per prefix — a duplicate claim is
+  an authoring error."*
+- **The tower** composes two shipped systems and needs no new code:
+  `StorageNode` (water — Hinkley's tank is one) + `BrandedMixin` (corpo,
+  resolve-on-read).
 
 ---
 
@@ -801,8 +955,10 @@ Rough order, each independently shippable:
    a town that has just lost six people and cannot work its own ground is
    a town that sells cheap. Needs the `stocks:` inertness fixed in the
    same wave.
-1. **Heart's Delight** (both halves) — the gate is clear, it completes the
-   spine, and it is the only *new* town. Biggest, and B0 re-grounds first.
+1. **Heart's Delight** (both halves) — completes the spine and is the only
+   *new* town. Biggest; B0 re-grounds first. ⚠⚠ **Gated on winter** (D27),
+   which it is also the justification for — so the honest order is
+   *winter, then the valley*, in one cycle or two.
 2. **Hinkley: facades + neighbours + the death man** — the owner-authored
    exterior, the sign in the lane, six cast, and the escalation ladder
    (which authors no quest chain: every rung is a shipped subsystem). ⭐
