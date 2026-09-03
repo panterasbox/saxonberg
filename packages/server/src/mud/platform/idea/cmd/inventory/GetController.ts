@@ -420,6 +420,34 @@ export default class GetController extends CommandController<GetModel> {
       host.removeFixture(operand as Stuff & Adornment);
     }
 
+    // ⭐ TAKING IT OUT OF A SLOT. The reverse of `put`'s slot branch: an
+    // item seated in a fixture's slot (a cell in a battery bay) is
+    // ordinary contents too, so `get` already resolved it — it needed
+    // only to VACATE the slot first, or the bay would stay full of a
+    // cell that is now in someone's pocket. The occupant's own refusal
+    // (a cursed thing; `Blessable.tryRelease`) is honoured, and it is
+    // all-or-nothing across the host's slots.
+    if (MixinApi.isSlottable(operand)) {
+      for (const host of operand.occupiedSlots().keys()) {
+        if ((host as unknown as Stuff) === (giver as unknown as Stuff)) continue;
+        const release = host.tryReleaseFromSlots(operand);
+        if (!release.released) {
+          context.note({
+            kind: 'controller-rejected',
+            reason: 'slot-will-not-release',
+            detail: `${operand.getPresentation()} refuses release`,
+          });
+          MessageApi.scene(giver)
+            .topic('sense.survey')
+            .toSelf(
+              Mml.compose`${Mml.thing(operand)} will not come out of ${Mml.thing(host as unknown as Stuff)}.`,
+            )
+            .send();
+          return false;
+        }
+      }
+    }
+
     ContainmentApi.move(operand, giver);
     // Custody returns to a pair of hands; `place` follows to `inventory`.
     // Picking up a good you do not hold title to is theft — permitted and

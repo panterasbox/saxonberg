@@ -110,12 +110,12 @@ function makeWearer(): Wearer {
   return w;
 }
 
-function makeRing(opts: { alwaysOn?: boolean; band?: string; capacityKJ?: number } = {}): Worn {
+function makeRing(opts: { alwaysOn?: boolean; band?: string; capacityTau?: number } = {}): Worn {
   const r = makeStuff(() => new Worn());
   stampTemplatePathForTest(r, `/obj/test/ring-${seq++}`);
   r.setCarriedSpellPath(VEIL);
   r.setAlwaysOn(opts.alwaysOn ?? true);
-  if (opts.capacityKJ) r.setCapacityKJ(opts.capacityKJ);
+  if (opts.capacityTau) r.setCapacityTau(opts.capacityTau);
   r.installChargeReserve();
   if (opts.band) r.setBlessingBand(opts.band);
   return r;
@@ -176,13 +176,13 @@ describe('Charged — wearing sustains, releasing releases', () => {
   it('run flat: the standby draw empties the shell and the hold is released on the next read', async () => {
     const wearer = makeWearer();
     vi.spyOn(ExecutionContextApi, 'getCurrentCommandGiver').mockReturnValue(wearer);
-    const ring = makeRing({ capacityKJ: 100 });
+    const ring = makeRing({ capacityTau: 100 });
     wearer.occupy(ring as never, 'finger:left');
     await settle();
     expect(heldBy(wearer, ring)).toBe(1);
     // Past capacity / standby watts in REAL seconds (the provider is real
     // ms; the draw is metered in real time) — twice over, for margin.
-    now += ((ring.getCapacityKJ() * 1000) / CHARGE_DEFAULTS.STANDBY_WATTS) * 1000 * 2;
+    now += ((ring.getCapacityTau() * 1000) / CHARGE_DEFAULTS.STANDBY_WATTS) * 1000 * 2;
     expect(ring.isDepleted()).toBe(true);
     expect(ring.isDrawActive()).toBe(false);
     expect(heldBy(wearer, ring)).toBe(0);
@@ -194,12 +194,12 @@ describe('Charged — wearing sustains, releasing releases', () => {
     const ring = makeRing({ band: 'cursed' });
     wearer.occupy(ring as never, 'finger:left');
     await settle();
-    const before = ring.getStoredKJ();
+    const before = ring.getStoredTau();
     const out = wearer.tryReleaseFromSlots(ring as never);
     expect(out.released).toBe(false);
     expect(heldBy(wearer, ring)).toBe(1);
     now += 3600 * 12;
-    expect(ring.getStoredKJ()).toBeLessThan(before);
+    expect(ring.getStoredTau()).toBeLessThan(before);
     expect(ring.isDrawActive()).toBe(true);
   });
 

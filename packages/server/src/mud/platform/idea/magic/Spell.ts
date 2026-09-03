@@ -45,6 +45,20 @@ export type SpellTargeting = (typeof SPELL_TARGETINGS)[number];
  * passed `MagicEffects.validate`; `family` is derived from them
  * (modifier iff any effect installs a sustained hold).
  */
+/**
+ * The cost models a spell may declare. One member today.
+ *
+ * **`potential`** — gravitational potential energy, `m·g·Δh`, added to
+ * the authored floor. Distance appears nowhere in it, which is the
+ * whole claim: *teleportation's hard part is specification, not
+ * distance*, so the authored floor prices the survey and the physics
+ * prices the lift. Downhill is free and never a refund.
+ */
+export type SpellCostModel = { readonly kind: 'potential' };
+
+/** Validation vocabulary companion to {@link SpellCostModel}. */
+export const SPELL_COST_MODELS = ['potential'] as const;
+
 export interface SpellDescriptor {
   /**
    * **The durable key** — this spell's template path
@@ -70,8 +84,23 @@ export interface SpellDescriptor {
    * fields that happened not to apply. See requirements D3.
    */
   castingProfile: CastingProfile;
-  /** Energy required, absolute pt. Trigger-neutral — an item pays it too. */
+  /**
+   * Energy required, absolute τ. Trigger-neutral — an item pays it too.
+   *
+   * ⚠ Under a {@link costModel} this is the **floor**, not the price:
+   * the survey component, which is the part the fiction says is
+   * expensive. The model adds the physics on top.
+   */
   cost: number;
+  /**
+   * **How the cost is arrived at.** Absent ⇒ the flat authored
+   * {@link cost}, which is every shipped spell.
+   *
+   * A CLOSED union, validated on catalogue warm exactly as `effects`
+   * is: a second model is a design conversation, not a list edit (the
+   * `SupplyState` rule, one level over).
+   */
+  costModel?: SpellCostModel;
   targeting: SpellTargeting;
   effects: Effect[];
   /**
@@ -113,8 +142,13 @@ export default class Spell extends Idea {
    * trigger ignores it wholesale (D3). Plain scalars → persists free.
    */
   public castingProfile: Record<string, unknown> = {};
-  /** Energy required (absolute pt; the `magic.costDefault` dial when 0). */
+  /** Energy required (absolute τ; the `magic.costDefault` dial when 0). */
   public cost: number = 0;
+  /**
+   * How the cost is arrived at — `{}` (or absent) for the flat
+   * authored {@link cost}. A plain scalar blob, so it persists free.
+   */
+  public costModel: Record<string, unknown> = {};
   /** Targeting mode. */
   public targeting: string = 'none';
   /** The declarative effect list (validated by the catalogue on warm). */
@@ -149,6 +183,7 @@ export default class Spell extends Idea {
     noun: { persistent: true },
     castingProfile: { persistent: true },
     cost: { persistent: true },
+    costModel: { persistent: true },
     targeting: { persistent: true },
     effects: { persistent: true },
     durationSeconds: { persistent: true },

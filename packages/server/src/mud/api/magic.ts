@@ -39,7 +39,12 @@ import type { MagicSuppression } from '../lib/magic/Suppression';
 import type { SpellDescriptor } from '../platform/idea/magic/Spell';
 import { fileURLToPath } from 'url';
 export type { ChargeTransfer } from '../platform/idea/api/MagicLogic';
-import type { ChargeTransfer } from '../platform/idea/api/MagicLogic';
+import type {
+  ChargeTransfer,
+  RelocationSpec,
+} from '../platform/idea/api/MagicLogic';
+
+export type { RelocationSpec };
 import { SecurityApi } from './security';
 
 export type { PrepareOutcome, CastOutcome, SpellsView, DischargeOptions };
@@ -90,6 +95,24 @@ export class MagicApi {
     place: Stuff | null,
   ): Promise<MagicSuppression | null> {
     return logic().suppressionAtDeep(place);
+  }
+
+  /**
+   * **What moving `spec.traveller` from one place to another costs, in
+   * τ** — `m·g·Δh`, and nothing else.
+   *
+   * A subjectless physics service folding two zones and one body: it
+   * belongs to no single object, and three separate packs need to ask
+   * for it (the spell's own cost model, the TPA's fare quote, a
+   * departures board). Distance appears nowhere in the arithmetic —
+   * teleportation's hard part is SPECIFICATION, and the spell's
+   * authored `cost` is what prices that.
+   *
+   * Downhill is free and never a refund; an endpoint with no zone
+   * elevation reads as level.
+   */
+  public static async relocationCost(spec: RelocationSpec): Promise<number> {
+    return logic().relocationCost(spec);
   }
 }
 

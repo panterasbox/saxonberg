@@ -487,6 +487,17 @@ to suppress both. Login spawning uses `silent: true`: a newly cloned
 avatar shouldn't be announced as "vanishing from nowhere" or
 "appearing out of thin air" before the player has even seen the room.
 
+⭐ **`MobileMixin` also affords the `teleport` VERB**, beside `go` and
+`goto` — the TPA reform moved it off `AuthorMixin`, where it had been a
+wizard tool, on the grounds that *teleportation is a way of moving and
+belongs to whatever moves*. The verb is the kernel's and the teleport
+NETWORK is the `tpa` pack's; they meet over the `TravelNode` shape
+(`lib/travel/TravelNode.ts`) and neither imports the other, so a
+platform-only boot still teleports the people entitled to. Forks, in
+order: free movement inside an extent you hold → a travel node's
+timetable or ride → the anchored spell. See
+[fasttravel.md](./fasttravel.md).
+
 ### Movement-message resolution
 
 `announceDeparture` / `announceArrival` compose a Scene at

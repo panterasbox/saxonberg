@@ -79,7 +79,7 @@ import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Exitable } from '@saxonberg/server/mud/lib/boundary/Exitable';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { ParcelOwner } from '@saxonberg/server/mud/lib/parcel/ParcelRecord';
-import type { WorkingTier, Cell } from '../location/Working';
+import type { WorkingTier, Cell } from '../lib/Working';
 
 type MemberStuff = Stuff & Container;
 type ExitableContainer = Stuff & Container & Exitable;

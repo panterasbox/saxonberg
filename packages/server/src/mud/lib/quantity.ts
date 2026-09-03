@@ -79,10 +79,12 @@ export type Unit =
   // Blood-alcohol concentration (mass/volume) — the Widmark BAC read,
   // carrying the `'bac'` drunk-ladder tag scale
   | 'g/dL'
-  // Pressure / force / energy / power. `kJ` is the magic-items charge
-  // scale: `arcane-science.md` prices every working in kilojoules, and
-  // a charged shell's tank is authored and reported in them. Round-trips
-  // to `J` via a converter like every other SI scale here.
+  // Pressure / force / energy / power. `kJ` is the SI energy scale
+  // `arcane-science.md` prices a working against; a charged shell's own
+  // tank is `'pt'` below (TPA reform P1 — mana is a separate conserved
+  // quantity converting at `1 τ ≡ 1 kJ`, so the reserve holds POINTS
+  // and the conversion is the fiction's). Round-trips to `J` via a
+  // converter like every other SI scale here.
   | 'Pa' | 'N' | 'J' | 'kJ' | 'W'
   // Mechanical material properties (materials-response) — real, tabulated:
   // `MPa` = indentation hardness (pressure-shaped, resistance to a point
@@ -119,11 +121,14 @@ export type Unit =
   | 'V' | 'A' | 'Ω' | 'S/m'
   | 'kV' | 'mV' | 'mA' | 'kΩ' | 'MΩ'
   // Dimensionless points — the neutral unit for *authored* reserve
-  // instances (the Reserve substrate's promised magic-side pools:
-  // mana / charge / essence), where capacity is a real per-host
-  // magnitude (avail/max) rather than the biological `%`-of-100
-  // shape. Named neutrally: "mana" is a content word, never an
-  // engine surface.
+  // instances (the Reserve substrate's magic-side pools: mana / charge
+  // / essence), where capacity is a real per-host magnitude (avail/max)
+  // rather than the biological `%`-of-100 shape. Named neutrally:
+  // "mana" is a content word, never an engine surface — and so is the
+  // fiction's τ, which `lib/magic/` speaks in its METHOD NAMES while
+  // this catalog stays form-independent (TPA reform P1). A caster's
+  // pool and a charged shell's tank are both this, which is what lets
+  // one pour into the other with no conversion.
   | 'pt'
   // Vitals (rate / pressure / volume)
   | 'bpm' | 'mmHg' | 'L'

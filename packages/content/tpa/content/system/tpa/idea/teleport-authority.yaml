@@ -1,0 +1,47 @@
+# The Teleport Authority — the network operator, as a Business (everything
+# is a business): the entity that owns the network-fee income every paid
+# ride splits off (`fasttravel.tpaBusinessPath` points here; the fee lands
+# on this Business's operating account). Minimal v1: no proprietor (a
+# public-infrastructure operator, the municipal shape), no positions, no
+# roster. `operatingLocations` is deliberately EMPTY: the per-terminal fare
+# operators claim the terminal fixtures; the TPA is resolved by path, never
+# by `ensureOperatorAt` (no collision).
+#
+# ⭐ **It governs ITSELF** (TPA reform D1/P15/AC21), and that is the whole
+# of the decision that moved this row out of Terminus. The network crosses
+# every locality it serves; a network one of its stops appoints to is that
+# stop's network, and the other stops are guests on it. So the appointing
+# authority is the committee over the pack's OWN extent — which names no
+# realm, which is what lets the row ship inside the mechanism pack at all.
+#
+# ⭐ Seats fill the standard capability-pack way, with nothing to build:
+# `{kind: committee, parcel: /system/tpa}` → the committee over that parcel
+# → the `tpa` group the manifest's title claim gives it → `owner: {office:
+# prime-minister}` (the same declaration water and arcana make) → the
+# founder by Art. XI's pool-of-one, with the PM operator override on top.
+# `Authority.ts` says the quiet part outright: only `office` and `committee`
+# carry that default, so an authority the founder cannot satisfy is one
+# nobody can satisfy on a cold box — which is why `committee` was already
+# the right kind here and a group would have been wrong.
+#
+# And there is nothing to fill YET: a self-regulating institution with no
+# staff, the network fee funding maintenance that is deferred. The FIRST
+# position is the one D8b's arming floor creates — a terminal drains with
+# zero traffic, so somebody swaps frontier cells on a schedule, and that
+# somebody is a TPA employee appointed by the TPA's own committee. Out of
+# scope here; recorded so nobody invents a staffing model this does not
+# need.
+#
+# `banksAt` is the authored custody fact — the TPA is NOT the state (the
+# CB banks only the treasury), so it banks commercially: Goodkin, v1's one
+# real branch, until the corpo banks land.
+class: /platform/idea/Business
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  # Self-regulating: the committee over its OWN extent. Names no realm.
+  appointingAuthority:
+    kind: committee
+    parcel: /system/tpa
+  positions: []
+  operatingLocations: []
+  banksAt: goodkin

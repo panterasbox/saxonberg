@@ -83,7 +83,7 @@ export default class GiveController extends CommandController<GiveModel> {
         MessageApi.scene(giver)
           .topic('sense.survey')
           .toSelf(
-            release.dumpedKJ > 0
+            release.dumpedTau > 0
               ? Mml.compose`You cannot let go of ${Mml.thing(item)} — and it is running hot against your skin.`
               : Mml.compose`You cannot let go of ${Mml.thing(item)}. It has no intention of leaving your hand.`,
           )

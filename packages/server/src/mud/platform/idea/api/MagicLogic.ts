@@ -63,6 +63,7 @@ import { SpeciesApi } from '../../../api/species';
 import { AccessApi } from '../../../api/access';
 import { CommandApi } from '../../../api/command';
 import { ZoneApi } from '../../../api/zone';
+import { BiomeApi } from '../../../api/biome';
 import { WorldClockApi } from '../../../api/worldclock';
 import { AppApi } from '../../../api/app';
 import { AppSettingKeys } from '../../../lib/config/AppSettings';
@@ -82,7 +83,12 @@ import type { Vitals } from '../../../lib/vitals/Vitals';
 import type { Caster } from '../../../lib/magic/Caster';
 import { Faculty } from '../../../lib/magic/Faculty';
 import { MagicEffects } from '../../../lib/magic/Effect';
-import type { Effect, EmitFieldEffect, InjectChannelEffect } from '../../../lib/magic/Effect';
+import type {
+  Effect,
+  EmitFieldEffect,
+  InjectChannelEffect,
+  RelocateEffect,
+} from '../../../lib/magic/Effect';
 import { Charge } from '../../../lib/magic/Charge';
 import { MagicGrid } from '../../../lib/magic/Grid';
 import { Blessing } from '../../../lib/magic/Blessing';
@@ -101,6 +107,7 @@ import UnboundedReceptacle from '../../thing/UnboundedReceptacle';
 import type { FacultyView } from '../../../lib/magic/Caster';
 import { MANA_RESERVE_KEY, OVERCHANNEL_STRAIN_PATH } from '../../../lib/magic/Caster';
 import type { Reserved } from '../../../lib/reserve';
+import type { Container } from '../../../lib/spatial/Container';
 import type { Combatant } from '../../../lib/combat/Combatant';
 
 const MagicApiCallers = SecurityPolicies.FromModule('/api/magic#MagicApi');
@@ -145,6 +152,34 @@ export interface PrepareOutcome {
   /** Effective cast time (game-seconds), strain-slowed. */
   castSeconds?: number;
   spellName?: string;
+  /**
+   * What this cast would cost, in τ — the FULL price under a
+   * {@link SpellCostModel}, not the authored floor. Present so a front
+   * door can preview it and a departures board can quote it without
+   * casting anything.
+   */
+  costTau?: number;
+}
+
+/**
+ * Whose mass moves, and between which two places — the request shape
+ * `MagicApi.relocationCost` takes.
+ *
+ * ⭐ A request object rather than `(traveller, to)`, deliberately.
+ * `MagicApi` is on `check-object-verbs`' `EXEMPT_APIS`, so a
+ * subject-first static would pass the gate — and leaning on an
+ * exemption to add NEW surface is exactly the drift the gate exists to
+ * stop. `RelocationSpec` ends in `Spec`, so `NON_SUBJECT_SUFFIX` clears
+ * it honestly, and it matches the blessed `CraftingApi` request shape.
+ * No exemption list is touched.
+ */
+export interface RelocationSpec {
+  /** Whose mass moves — self only; the caster is always one endpoint. */
+  readonly traveller: Stuff;
+  /** Where from; defaults to the traveller's current scene. */
+  readonly from?: Stuff | null;
+  /** Where to. */
+  readonly to: Stuff;
 }
 
 /** The resolution result — reports are caster-facing prose lines. */
@@ -291,6 +326,12 @@ export class MagicLogic extends ApiLogic {
     return resolveCastImpl(caster, spellId, target);
   }
 
+  /** See {@link MagicApi.relocationCost}. */
+  @CallSecurity(MagicApiCallers)
+  public relocationCost(spec: RelocationSpec): Promise<number> {
+    return relocationCostImpl(spec);
+  }
+
   /** See {@link MagicApi.discharge}. */
   @CallSecurity(MagicApiCallers)
   /** See {@link MagicApi.requiresMark}. */
@@ -429,7 +470,141 @@ async function prepareCastImpl(
     dial(AppSettingKeys.magicCastSecondsDefault, 3);
   const castSeconds =
     base * (1 + MAGIC_DEFAULTS.STRAIN_SLOWDOWN_PER_STAGE * strainStage);
-  return { ok: true, castSeconds, spellName: spell.name };
+  // The FULL price, so a front door can preview it and a departures
+  // board can quote it without casting anything. Nothing is spent here.
+  const costTau = await costOf(caster, spell, target);
+  return { ok: true, castSeconds, spellName: spell.name, costTau };
+}
+
+/* ── the computed cost (TPA reform P3/P4) ───────────────────────────── */
+
+/**
+ * **The place a mark denotes** — itself when it is already a place,
+ * else what it stands in.
+ *
+ * ⚠ Not {@link sceneOf}, which answers "what container is this thing
+ * IN" and is therefore `null` for a room. The distinction is
+ * load-bearing here: `teleport <a room>` means *into that room*, and
+ * `teleport <a fountain>` means *into the fountain's room*.
+ */
+function placeOf(s: Stuff): (Stuff & Container) | null {
+  if (MixinApi.isContainer(s)) return s;
+  return standsIn(s);
+}
+
+/**
+ * **The place a body is standing in** — never itself.
+ *
+ * ⚠ Distinct from {@link placeOf}, and the distinction is a real trap:
+ * a Creature composes `ContainerMixin` (it has an inventory), so
+ * `placeOf(traveller)` answers *the traveller* and every Δh comes out
+ * zero. A traveller's endpoint is where they ARE; a destination's is
+ * what it DENOTES.
+ */
+function standsIn(s: Stuff): (Stuff & Container) | null {
+  if (!MixinApi.isContainable(s)) return null;
+  const env = s.getContainer();
+  return env && MixinApi.isContainer(env) ? env : null;
+}
+
+/**
+ * **`m·g·Δh`, and nothing else.**
+ *
+ * ⭐ Distance appears nowhere in this function, which is what makes AC3
+ * assertable **by reading it** rather than only by a test: two rides of
+ * different length at equal altitude and mass cost the same because
+ * there is no term that could tell them apart. The fiction says
+ * teleportation's hard part is SPECIFICATION, not distance; the
+ * authored `cost` prices the survey, and this prices the lift.
+ *
+ * - `Δh` from `ZoneApi.elevationFor`, which walks out to the outermost
+ *   container. An unzoned endpoint contributes **0** — documented as
+ *   "level", not as an error: a place nobody gave an elevation is not a
+ *   place that is expensive to reach.
+ * - `m` is the traveller's own mass plus what they are carrying, the
+ *   two halves of the encumbrance gauge. You pay to lift your pack.
+ * - `g` is the destination biome's real gravity, not a constant.
+ * - **Downhill is free, never a refund** — the `max(0, …)`. Energy you
+ *   could in principle recover is not energy the working recovers.
+ *
+ * Returns τ (`1 τ ≡ 1 kJ`, so joules ÷ 1000).
+ */
+async function relocationCostImpl(spec: RelocationSpec): Promise<number> {
+  // ⚠ The traveller's endpoint is where they STAND (a body is its own
+  // Container, so `placeOf` would answer "the traveller"); a named
+  // `from` is a destination-shaped mark and denotes itself.
+  const fromScene = spec.from ? placeOf(spec.from) : standsIn(spec.traveller);
+  const toScene = placeOf(spec.to);
+  if (!fromScene || !toScene) return 0;
+
+  const [h1, h2] = await Promise.all([
+    ZoneApi.elevationFor(fromScene),
+    ZoneApi.elevationFor(toScene),
+  ]);
+  const deltaH = h1 === null || h2 === null ? 0 : h2 - h1;
+  if (deltaH <= 0) return 0;
+
+  const t = spec.traveller;
+  let massKg = MixinApi.isTangible(t) ? t.getMass().rawValue() : 0;
+  if (MixinApi.isLoadBearing(t)) massKg += t.getBorneBurden().rawValue();
+  if (!Number.isFinite(massKg) || massKg <= 0) return 0;
+
+  let g = 9.81;
+  try {
+    const q = await BiomeApi.resolveGravityFor(toScene);
+    const raw = q.rawValue();
+    if (Number.isFinite(raw) && raw > 0) g = raw;
+  } catch {
+    /* an unbiomed destination falls back to earth-normal */
+  }
+
+  return Math.max(0, (massKg * g * deltaH) / 1000);
+}
+
+/**
+ * **What a cast of `spell` costs this caster, in τ.**
+ *
+ * The flat arm is byte-for-byte the expression that used to be inline,
+ * and a spell with no `costModel` cannot reach the second line — so the
+ * common case got simpler, not more complex. The authored `cost` stops
+ * being "the price" and becomes **the floor**: the survey component,
+ * which is exactly what the fiction says is expensive.
+ *
+ * The fade multiplier is applied by the CALLER, outside this, so a hazy
+ * teleport costs more for the same reason a hazy firebolt does.
+ */
+async function costOf(
+  traveller: Stuff,
+  spell: SpellDescriptor,
+  target?: Stuff,
+): Promise<number> {
+  const flat = spell.cost || dial(AppSettingKeys.magicCostDefault, 15);
+  if (spell.costModel?.kind !== 'potential') return flat;
+  const to = await relocationDestination(spell, target);
+  if (!to) return flat;
+  return flat + (await relocationCostImpl({ traveller, to }));
+}
+
+/**
+ * Where this working sends you: the `relocate` effect's authored `to`
+ * (an ITEM's fixed survey, resolved live), else the trigger's own
+ * target. Null when neither resolves — the caller then charges the
+ * floor, which is the honest answer for a working with nowhere to go
+ * rather than zero or infinity.
+ */
+async function relocationDestination(
+  spell: SpellDescriptor,
+  target?: Stuff,
+): Promise<Stuff | null> {
+  for (const e of spell.effects) {
+    if (e.kind !== 'relocate' || !e.to) continue;
+    try {
+      return await StuffApi.singletonOrClone<Stuff>(e.to);
+    } catch {
+      return null;
+    }
+  }
+  return target ?? null;
 }
 
 async function resolveCastImpl(
@@ -460,8 +635,7 @@ async function resolveCastImpl(
   const fadeMultiplier = MixinApi.isMemorized(caster)
     ? caster.costMultiplierFor(spell.spellId)
     : 1;
-  const cost =
-    (spell.cost || dial(AppSettingKeys.magicCostDefault, 15)) * fadeMultiplier;
+  const cost = (await costOf(caster, spell, target)) * fadeMultiplier;
   const current = pool?.current.rawValue() ?? 0;
   let overchanneled = false;
   if (current >= cost) {
@@ -644,9 +818,16 @@ async function dischargeImpl(
   // reader.
   const classScale = 1;
   const payer: Stuff = opts?.source ?? item;
+  // ⚠ Through `costOf`, not `spell.cost`. Under `costModel: potential`
+  // the authored number is only the FLOOR — the survey component — so a
+  // flat read here would UNDERCHARGE every use of a teleport-bearing
+  // item. The traveller is `actor` (the wielder, never the shell), and
+  // the destination is the item's own survey.
+  const committedTau =
+    (await costOf(actor, spell, target)) *
+    dial(AppSettingKeys.magicChargeKJPerCostPt, 1);
   if (MixinApi.isCharged(item)) {
-    const costKJ = spell.cost * dial(AppSettingKeys.magicChargeKJPerCostPt, 1);
-    if (!item.spendCharge(costKJ)) {
+    if (!item.spendCharge(committedTau)) {
       return {
         ok: false,
         refusal: 'It is spent — nothing answers but a dry click.',
@@ -678,7 +859,7 @@ async function dischargeImpl(
     const report = await executeEffect(ctx, target, spell, effect);
     if (report) reports.push(report);
   }
-  absorbWasteHeat(ctx, spell);
+  absorbWasteHeat(ctx, committedTau);
   // The working fired, so anything self-evident about it is now known.
   noteUseIdentification(ctx, item);
   return { ok: true, reports };
@@ -701,11 +882,10 @@ async function dischargeImpl(
  * rather than a rule magic invented. That is the governing invariant
  * doing its job: magic is a new trigger, never a new mechanism.
  */
-function absorbWasteHeat(ctx: EffectContext, spell: SpellDescriptor): void {
+function absorbWasteHeat(ctx: EffectContext, committedTau: number): void {
   const endpoint = ctx.origin;
   if (!MixinApi.isCharged(endpoint)) return;
-  const committedJ =
-    spell.cost * dial(AppSettingKeys.magicChargeKJPerCostPt, 1) * 1000;
+  const committedJ = committedTau * 1000;
   const wasteJ =
     committedJ * dial(AppSettingKeys.magicWasteHeatFraction, 0.1);
   if (wasteJ <= 0) return;
@@ -914,7 +1094,7 @@ async function executeOne(
       // property of the thing that has it; a shell's charge is energy
       // that had to come from somewhere and cross something. An effect
       // that simply added it would mint joules — `transfer` authored
-      // `delta: 20` against a `cost: 4` and was generating 16 kJ a cast,
+      // `delta: 20` against a `cost: 4` and was generating 16 τ a cast,
       // a lossless back door around the entire coupling model.
       //
       // So the charge case routes through the ONE implementation, which
@@ -962,6 +1142,16 @@ async function executeOne(
       return effect.sense === 'identify-item'
         ? execIdentify(ctx, landsOn)
         : execSense(ctx, landsOn);
+    case 'relocate':
+      // ⭐ `ctx.actor`, NOT `landsOn`. There is no branch here and no
+      // flag to change it: the arcane postulate says the caster is one
+      // endpoint of any working, so a third party can never be sent
+      // (AC5), and that is enforced STRUCTURALLY rather than by a
+      // check somebody could later forget. An item in the middle
+      // changes nothing — `EffectContext` separates `actor` (the
+      // wielder / reader) from `origin` (the wand), so a wand of
+      // teleport moves its user rather than itself.
+      return execRelocate(ctx, landsOn, effect);
     case 'cloak':
       return execCloak(ctx, spell, effect.disguise);
     case 'emit-field':
@@ -981,6 +1171,49 @@ async function executeOne(
  * precedent) for a non-consenting sentient victim outside a shared
  * combat session.
  */
+/**
+ * Move the ACTOR to the working's destination — the item's authored
+ * survey (`to`) when it has one, else the mark you named.
+ *
+ * The traveller is `ctx.actor` and nothing else can make it otherwise.
+ * Arrival is the shipped `Mobile.teleport` — the polished path, with its
+ * announcements and auto-look — because relocation is a new TRIGGER for
+ * movement, never a new mechanism for it.
+ */
+async function execRelocate(
+  ctx: EffectContext,
+  landsOn: Stuff | null | undefined,
+  effect: RelocateEffect,
+): Promise<string> {
+  const traveller = ctx.actor;
+  if (!MixinApi.isMobile(traveller) || !MixinApi.isContainable(traveller)) {
+    return 'Nothing here can be moved that way.';
+  }
+  const mark = await relocationDestination(
+    { effects: [effect] } as unknown as SpellDescriptor,
+    landsOn ?? undefined,
+  );
+  const dest = mark ? placeOf(mark) : null;
+  if (!dest) {
+    return 'The place will not hold still enough to arrive in.';
+  }
+  if (dest === standsIn(traveller)) {
+    return 'You are already there.';
+  }
+  try {
+    traveller.teleport(dest);
+  } catch (err) {
+    if (
+      err instanceof Error &&
+      err.message.startsWith('sandbox boundary denied')
+    ) {
+      return 'That place is on the wire — no real body arrives inside a circle.';
+    }
+    return 'The world refuses the arrival.';
+  }
+  return 'The world folds, and lets go somewhere else.';
+}
+
 async function deliverAt(
   ctx: EffectContext,
   target: Stuff,
@@ -1765,7 +1998,7 @@ function targetingRefusal(
       // through means the executor refuses AFTER the spend leg has
       // already taken the caster's mana or the wand's charge.
       //
-      // Found by live-driving: 45 targetless zaps flattened a 900 kJ
+      // Found by live-driving: 45 targetless zaps flattened a 900 τ
       // wand exactly as 45 real ones did. The gate belongs here, ahead
       // of the spend, and it governs BOTH triggers because both consult
       // this one function.
@@ -1834,11 +2067,11 @@ async function potencyFactor(
  * loss too — that energy left them whether or not it arrived.
  */
 export interface ChargeTransfer {
-  /** kJ that actually reached the shell. */
+  /** τ that actually reached the shell. */
   delivered: number;
   /** Reserve points actually taken from the caster. */
   spent: number;
-  /** kJ lost to the coupling. */
+  /** τ lost to the coupling. */
   lost: number;
   /** Player-facing line. */
   report: string;
@@ -1897,7 +2130,7 @@ async function transferChargeImpl(
     report:
       delivered > 0
         ? `The shell drinks it down and warms in your hand. ` +
-          `${delivered.toFixed(0)} kJ in, ${lost.toFixed(0)} kJ gone to the coupling.`
+          `${delivered.toFixed(0)} τ in, ${lost.toFixed(0)} τ gone to the coupling.`
         : 'It is already as full as it will get.',
   };
 }

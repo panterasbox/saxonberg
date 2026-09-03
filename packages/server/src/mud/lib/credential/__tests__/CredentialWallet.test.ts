@@ -11,7 +11,7 @@
  */
 
 import "../../../../test-bootstrap";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { ContainmentApi } from "../../../api/containment";
 import { MixinApi } from "../../../api/mixin";
 import { MqlApi } from "../../../api/mql";
@@ -26,14 +26,42 @@ import {
 } from "../CredentialWallet";
 import CredentialWalletUpdate from "../../../platform/idea/CredentialWalletUpdate";
 import PaymentCard from "../../../platform/thing/PaymentCard";
-import TravelCard from "../../../world/common/tpa/TravelCard";
-import { BORN_WITH_TRAVEL_NODES } from "../Credential";
+import Thing from "../../stuff/Thing";
+import type { CredentialKind } from "../Credential";
+import { AppApi } from "../../../api/app";
+import { AppSettingKeys } from "../../config/AppSettings";
 import { makeStuff } from "../../security/__tests__/test-setup";
 import type { Stuff } from "../../stuff/Stuff";
 
 class TestWallet extends CredentialWalletMixin(Idea) {
   static _mixinName = "TestWallet";
 }
+
+/**
+ * A carried travel-credential holder — the Thing half of the either-base
+ * symmetry. Declared here rather than imported: the shipped card is the
+ * `tpa` capability pack's (`/system/tpa/thing/TravelCard`), and a kernel
+ * test proves the KERNEL over a synthetic fixture.
+ */
+class TestTravelCard extends CredentialWalletMixin(Thing) {
+  static defaultCredentialKinds: readonly CredentialKind[] = ["travel"];
+}
+
+/**
+ * The born-with floor this suite authors. It is `fasttravel.bornWithNodes`
+ * since the TPA reform (D12) — authored realm data, not a kernel constant,
+ * so the suite seeds a shape rather than importing the realm's values.
+ */
+const FLOOR = ["/world/one/node", "/world/two/node"];
+
+beforeEach(() => {
+  vi.spyOn(AppApi, "setting").mockImplementation((k: string) =>
+    k === AppSettingKeys.fasttravelBornWithNodes ? FLOOR.join(",") : "",
+  );
+});
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 // An attuned actor that can both carry (Container) and host (Aether).
 class Traveller extends AetherMixin(ContainerMixin(ContainableMixin(Idea))) {}
@@ -82,7 +110,7 @@ describe("CredentialWalletMixin holder", () => {
     expect(w2.getCredential("payment")!.hasAccount("acct-z")).toBe(true);
     const t = w2.getCredential("travel")!;
     expect(t.isRegistered("/world/a/node")).toBe(true);
-    for (const node of BORN_WITH_TRAVEL_NODES) {
+    for (const node of FLOOR) {
       expect(t.isRegistered(node)).toBe(true); // floor preserved
     }
   });
@@ -100,8 +128,8 @@ describe("either-base resolution (one scan finds the holder)", () => {
     const resolved =
       reachableFrom(actor as unknown as Stuff).find(isWallet) ?? null;
     expect(resolved).toBe(wallet);
-    // Born-with three-node floor (interchange + lounge + paid destination).
-    for (const node of BORN_WITH_TRAVEL_NODES) {
+    // The authored born-with floor.
+    for (const node of FLOOR) {
       expect(resolved?.getCredential("travel")!.isRegistered(node)).toBe(true);
     }
     // `register` writes to the hosted update's travel record.
@@ -113,14 +141,14 @@ describe("either-base resolution (one scan finds the holder)", () => {
 
   it("resolves a carried travel card (no update)", () => {
     const actor = makeStuff(() => new Traveller());
-    const card = makeStuff(() => new TravelCard());
+    const card = makeStuff(() => new TestTravelCard());
     card.ensureCredential("travel");
     ContainmentApi.move(card, actor as never);
 
     const resolved =
       reachableFrom(actor as unknown as Stuff).find(isWallet) ?? null;
     expect(resolved).toBe(card);
-    for (const node of BORN_WITH_TRAVEL_NODES) {
+    for (const node of FLOOR) {
       expect(resolved?.getCredential("travel")!.isRegistered(node)).toBe(true);
     }
   });

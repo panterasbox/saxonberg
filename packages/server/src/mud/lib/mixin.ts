@@ -320,7 +320,6 @@ export const Mixins = {
   Lounge: 'LoungeMixin',
   // The off-shift parking room a venue's cast is relocated to.
   Offstage: 'OffstageMixin',
-  FastTravel: 'FastTravelMixin',
   Fixture: 'FixtureMixin',
   // A screen: shows one source (a stream or a card) to everyone who can
   // see it. Pairing decides who drives it. See docs/subsystems/display.md.

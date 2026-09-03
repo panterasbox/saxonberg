@@ -16,7 +16,7 @@ the target's live Composure.
 > the fiction's physics — the one postulate, the laws, the price
 > list — and **8 binding content-authoring rules** that govern what a
 > spell may cost and what an effect may claim (costs are energy
-> committed in kJ, derivable from the price list; effects author
+> committed in τ (`1 τ ≡ 1 kJ`), derivable from the price list; effects author
 > energy *delivered*, never outcomes; a new noun needs a real physical
 > register; momentum is conserved; if it can't be dimensionally
 > analyzed it doesn't ship). Those rules exist so the magic system can
@@ -28,6 +28,57 @@ Part IV (the locked model). Consumers this build deliberately does NOT
 include: the inquiry substrate (discovery/publishing), the magic-items
 tier (Consumable/BUC), Transform/polymorph — each its own later build
 over this same substrate.
+
+## ⭐ The computed cost (`costModel`)
+
+A spell's authored `cost` is a flat number, and for twelve of the
+thirteen shipped spells that is the whole price. `teleport` is the
+exception, and it introduced ONE optional field:
+
+```yaml
+cost: 40
+costModel:
+  kind: potential   # m·g·Δh, added to the floor
+```
+
+A **closed** union, validated on catalogue warm exactly as `effects` is —
+a row naming a model nobody implements is DROPPED rather than silently
+priced flat. A second model is a design conversation, not a list edit
+(the `SupplyState` rule, one level over).
+
+`MagicLogic.costOf(traveller, spell, target)` is the one place cost is
+computed, and both doors go through it:
+
+- **the cast door** — `resolveCastImpl`'s inline expression became this
+  call; `prepareCastImpl` now returns `costTau` so a front door can
+  preview the full price without spending anything.
+- **the item door** — ⚠ and this is where it mattered. Both item sites
+  read `spell.cost` FLAT. Under a cost model the authored number is only
+  the **floor**, so a flat read would have **undercharged every use** of
+  a model-bearing item, by the whole physics term.
+
+⭐ **The flat arm got simpler, not more complex.** It is byte-for-byte
+the expression that was inline, and a spell with no `costModel` cannot
+reach the second line — which is why the assertion that protects this
+whole seam is a pin: `dispel` still costs exactly 20.
+
+### `relocate` — the twelfth `Effect`
+
+The closed union grew one member, backed by `Mobile.teleport`. ⭐ Its
+executor lands on **`ctx.actor`** and has **no flag to say otherwise**,
+which is how "a caster cannot teleport a third party" is enforced
+STRUCTURALLY rather than by a check somebody can forget. An item in the
+middle changes nothing: `EffectContext` separates `actor` (the wielder,
+the reader) from `origin` (the wand), so a wand of teleport moves its
+user rather than cloaking itself.
+
+`to` is an item's **fixed survey** — a wand holds one place, the network
+holds many, shared. Absent ⇒ the trigger's own target, which is what a
+cast supplies. ⭐ That is why *a wand attuned to a mountaintop holds
+fewer charges than one attuned to a valley*, and nobody tuned it.
+
+See [fasttravel.md](./fasttravel.md) and
+[magic-items.md](./magic-items.md).
 
 ## The governing invariant
 

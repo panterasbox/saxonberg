@@ -42,9 +42,9 @@ import { SecurityPolicies } from '../lib/security/SecurityPolicies';
 import { ContainmentLogic } from '../platform/idea/api/ContainmentLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
-// `TeleportController` / `GotoController` are reached lazily via
-// string module ids to avoid a value-level static-import cycle
-// (api/containment → controller → ContainmentApi).
+// `GotoController` is reached lazily via a string module id to avoid a
+// value-level static-import cycle (api/containment → controller →
+// ContainmentApi).
 
 type ContainerStuff = Stuff & Container;
 type ContainableStuff = Stuff & Containable;
@@ -147,24 +147,25 @@ export class ContainmentApi {
    * but their veto results are ignored. Post-move `on*` hooks fire
    * identically.
    *
-   * Gated to the `TeleportController` / `GotoController` — the
-   * **narrow-entry pattern**. Only the teleport/goto controllers can
-   * reach this entry point; each does the `AccessApi.can(giver,
-   * 'force-teleport' | 'force-goto', ...)` check before invoking.
-   * Combined, the mutation has exactly one legitimate entry path AND
-   * that path enforces who is authorized.
+   * Gated to `GotoController` — the **narrow-entry pattern**. Only the
+   * one author verb can reach this entry point, and it does the
+   * `AccessApi.can(giver, 'force-goto' | 'force-teleport', ...)` check
+   * before invoking. Combined, the mutation has exactly one legitimate
+   * entry path AND that path enforces who is authorized.
    *
-   * Each controller is cloned per execution (`teleport/goto --force`),
-   * and `FromModule` matches it by its class module id (code provenance),
-   * so the cloned instances are admitted directly — an `AnyOf` of the two
-   * controllers' `FromModule` gates, no `FromTemplate` arms. Direct calls
-   * from any other module throw `SecurityError`.
+   * ⓘ It used to be an `AnyOf` over `GotoController` and
+   * `TeleportController`. The TPA reform (P13) moved object relocation
+   * onto `goto --subject` and `teleport` into the tpa capability pack,
+   * which narrowed this gate to one arm — and a kernel gate could not
+   * have named the pack's controller anyway.
+   *
+   * The controller is cloned per execution (`goto --force`), and
+   * `FromModule` matches it by its class module id (code provenance), so
+   * the cloned instance is admitted directly — no `FromTemplate` arm.
+   * Direct calls from any other module throw `SecurityError`.
    */
   @CallSecurity(
-    SecurityPolicies.AnyOf(
-      SecurityPolicies.FromModule('/platform/idea/cmd/author/TeleportController'),
-      SecurityPolicies.FromModule('/platform/idea/cmd/author/GotoController'),
-    ),
+    SecurityPolicies.FromModule('/platform/idea/cmd/author/GotoController'),
   )
   public static forceMove(
     item: ContainableStuff,

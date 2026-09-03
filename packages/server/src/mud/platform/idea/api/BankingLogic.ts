@@ -1127,24 +1127,20 @@ async function payDrawImpl(
  * rows): a cache-field fill, never a money movement — balances and
  * conservation are untouched. Migrates pre-institution rows (`bankPath`
  * branch paths → `bank` institution keys), moves the `treasury` (the
- * legislature's fisc, the sole state account) to the CB, re-owns the
- * legacy raw `tpa` accumulator to the TPA Business, and sends anything
- * still custodied nowhere to the default custodian — the last resort
- * where no relationship is derivable.
+ * legislature's fisc, the sole state account) to the CB, and sends
+ * anything still custodied nowhere to the default custodian — the last
+ * resort where no relationship is derivable.
+ *
+ * ⓘ It used to re-own a legacy raw `tpa` accumulator to the Teleport
+ * Authority Business, which was the ONE piece of TPA knowledge left in
+ * the kernel. Deleted rather than moved (TPA reform W2/§10): it was
+ * self-described migration, there are no users and no data, and the
+ * kernel has no business knowing the Teleport Authority exists.
  */
 async function restampCustodiansImpl(): Promise<void> {
   if (!active()) return;
   const treasuryId = demoTaxConfig().treasury;
   const custodian = defaultCustodianBankImpl();
-  // The Teleport Authority Business path (for the legacy `tpa` row
-  // migration) — a string read, no content import.
-  let tpaBusinessPath = "";
-  try {
-    tpaBusinessPath =
-      AppApi.setting(AppSettingKeys.fasttravelTpaBusinessPath) || "";
-  } catch {
-    /* unwarmed — the row falls through to the generic rules */
-  }
   for (const row of await AccountBalance.find<AccountBalance>({})) {
     if (Account.isEscrowAccount(row.accountId)) continue;
     let dirty = false;
@@ -1172,16 +1168,6 @@ async function restampCustodiansImpl(): Promise<void> {
         dirty = true;
       }
       if (dirty) await row.save();
-      continue;
-    }
-    // The legacy raw `tpa` accumulator (pre-TPA-Business): re-own it to
-    // the Teleport Authority Business so its account resolution finds the
-    // accumulated network fees instead of minting a fresh row.
-    if (row.accountId === "tpa" && !row.owner && tpaBusinessPath) {
-      row.owner = tpaBusinessPath;
-      row.bank = custodian;
-      row.isPrimary = true;
-      await row.save();
       continue;
     }
     // Anything still custodied nowhere goes to the default — the last

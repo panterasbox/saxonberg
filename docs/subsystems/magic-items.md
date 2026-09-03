@@ -248,6 +248,34 @@ ingestion-only potion is a wasted flask.
 
 ## The charge economy
 
+### The denominator is τ, and the `Unit` is `'pt'`
+
+⭐ A charged shell's tank and a caster's own pool are the **same
+quantity** — mana — and since the TPA reform (P1) they are denominated
+the same way, which is what lets one pour into the other with no
+conversion. The surface says **τ**: `capacityTau`, `getStoredTau()`,
+`getCapacityTau()`, `setCapacityTau()`, `spendCharge(tau)`,
+`receiveCharge(tau)`, `CHARGE_DEFAULTS.CAPACITY_TAU`. The underlying
+`Unit` is the neutral **`'pt'`**, not `'τ'`.
+
+The split falls on a real seam, and it is not a compromise:
+
+| | asserts | |
+|---|---|---|
+| `'kJ'` (before) | this charge **is energy** | ❌ false — mana is a *separate* conserved quantity, converting at `k = 1 kJ/τ` |
+| `'τ'` | this quantity **is mana** | ⚠ true here, but `lib/quantity.ts` is form-independent substrate; another game on this engine has no magic |
+| `'pt'` | this reserve **holds N points** | ✅ the only thing the engine knows — and what `quantity.ts` minted `'pt'` to say |
+
+So dropping `'kJ'` **removed a false claim**; `'τ'` would have **added
+a true claim at the wrong layer**. The method names say τ because
+`lib/magic/` is a magic subsystem, where `getStoredTau()` is honest.
+
+⚠ `magic.charge.kJPerCostPt` keeps its key — an operator may have set
+it — but it is **vestigial**: the two pools are one denominator now, so
+the honest value is the identity. ⓘ **No shipped number moved** in the
+renomination (`1 τ ≡ 1 kJ`), which the four charge suites assert by
+passing with every expected value untouched.
+
 **Decay is load-bearing, not flavour.** A depleted wand is a paperweight
 with a socket, so the item *count* is the wrong quantity to bound.
 Throttling inflow alone cannot work — stock grows without bound at any
@@ -265,6 +293,38 @@ instead of inflating. Everything the item economy wants falls out of it:
 - **You find shells and buy charge.** Wealth cannot corner the found
   channel, because what money buys is caster-labour, which is capped.
 - **Shell inflation is harmless**, so distribution can be generous.
+
+### ⭐ `ChargedMixin`'s second consumer: the wall socket
+
+Until the TPA reform, everything charged was an ITEM you carried. The
+reform added a second shape — a **device that runs on mana and does not
+care where the mana came from** — and it is a mixin in arcana
+(`/system/arcana/lib/ManaPowered`) rather than a feature of any one
+class, because it is composed by a brass wall sconce in a dorm room AND
+by a Teleport Authority terminal, which have nothing else in common.
+
+Three supplies (a **cell** in a bay, a **line** the row names, a
+**person in contact**), one `resolveSupply()`, and the device holds no
+branch on which answered. The contact arm routes through the shipped
+`chargeFrom`, so a non-caster's inability to feed a device is not a
+check anybody wrote — `installArcaneReserve` returns early for a
+non-caster, so they hold no reserve at all.
+
+A **`ManaCell`** is `Slottable + Charged` and **no new mixin**: a cell IS
+a charged shell, differing from a wand only in fitting a bay instead of a
+hand. It is `Circulating`, so distribution and the general store carry
+it — where a charged cell comes from is deliberately a recipe and a
+price, not an economy.
+
+⭐ The condition a mana-powered device fails in is the SHIPPED six-word
+supply vocabulary (`SupplyState` — see
+[watershed.md](./watershed.md)), so a player who learned what `dry`
+means at a standpipe has learned what it means at a teleport gate. The
+vocabulary is imported; ⚠ `SupplyReporting` deliberately is not
+implemented, because `analyze water <terminal>` reads that shape
+structurally and would otherwise work by accident.
+
+Details: [fasttravel.md](./fasttravel.md).
 
 > ⚠ **Charge decay has NO far-past absence guard**, and this is the
 > easiest thing in the build to get wrong. Metabolism has one for

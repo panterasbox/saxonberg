@@ -1,0 +1,21 @@
+# fasttravel — the born-with registration floor, which is REALM content.
+#
+# ⭐ These three paths were `BORN_WITH_TRAVEL_NODES` in
+# `packages/server/src/mud/lib/credential/Credential.ts` until the TPA
+# reform (D12/AC22): three `/world/**` content paths hard-coded into the
+# kernel. Which of a realm's stops every traveller is born knowing is a
+# realm decision, not a mechanism decision — so it lives here, with the
+# rest of the realm's seed, and a kernel with no teleport pack reads an
+# empty floor and is correct rather than broken.
+#
+# The `settings` kind is merge-missing: a key the app_settings singleton
+# lacks is merged in; a value the operator changed via `config` is never
+# touched.
+settings:
+  # The Terminus arrival node (onboarding's lounge→campus hop lands here;
+  # walk across to campus), the lounge (so a fresh player can always TPA
+  # back to Dave's Bar — Gate A's free return works with no explicit
+  # `register`), and the paid destination (the newbie-wilds crossroads —
+  # reachable for a fare, not behind a registration gate).
+  - key: fasttravel.bornWithNodes
+    value: /world/terminus/terminal/thing/arrival-terminal,/world/lounge/thing/terminal,/world/newbie-wilds/crossroads/terminal

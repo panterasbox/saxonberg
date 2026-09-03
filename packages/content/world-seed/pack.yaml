@@ -6,7 +6,9 @@ description: >-
   deleted piecewise as each locality is homed in its own pack: the lounge
   and the hearthworks left in wave 4b; eternal, terminus and hinkley-hills
   left with the residences build (eternal-university / terminus /
-  hinkley-hills). What remains: moor, practicum, substation, the common
-  TPA travel card, and the commons stuff/ tree (the Locality and
-  Government reference rows). All of it rides the platform's /world and
-  /stuff claims, so this pack declares nothing.
+  hinkley-hills). What remains: moor, practicum, substation, the
+  born-with travel floor (`fasttravel.bornWithNodes` — WHICH of a
+  realm's stops every traveller starts registered for is a realm
+  decision, not the tpa mechanism's), and the commons stuff/ tree (the
+  Locality and Government reference rows). All of it rides the
+  platform's /world and /stuff claims, so this pack declares nothing.

@@ -32,7 +32,7 @@ data:
   carriedSpellPath: /stuff/idea/magic/Spell/firebolt
   makerId: /obj/npc/practicum/artificer
   deliveryEfficiency: 1.4
-  capacityKJ: 900
+  capacityTau: 900
   alwaysOn: false
   censusKey: wand
   materialTags: [wood, brass]

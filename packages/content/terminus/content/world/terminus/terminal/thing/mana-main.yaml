@@ -1,0 +1,28 @@
+# The Terminal District's mana line — the trunk the city's gates draw
+# from, and the reason a Terminus ride is cheap.
+#
+# ⭐ This is the CITY's instance of the mechanism arcana ships. The
+# class is `/system/arcana/thing/ManaMain` and belongs to the system;
+# this row is Terminus's, and belongs to the realm. Same split as
+# `Locality` and `Government`.
+#
+# It refills to capacity whenever anybody looks: *the mains is abundant
+# by construction*, and where the city's line mana comes from is
+# deliberately off-stage. Cut it (`severed: true`) or close it
+# (`closed: true`) and every gate on it reports `cut` or `off` — which
+# is the whole difference between a thing somebody can fix by opening a
+# valve and a thing somebody has to repair.
+class: /system/arcana/thing/ManaMain
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  seatIn: /world/terminus/terminal/location/arrival-gate
+  shortDescription: the district mana line
+  primaryKeyword: line
+  keywords: [line, main, conduit, mains]
+  longDescription: >
+    A brass trunk the thickness of a thigh runs the length of the gate
+    hall a foot below the ceiling, dropping a spur to each terminal.
+    Somebody has chalked a maintenance date on it that is well past.
+  capacityTau: 100000
+  severed: false
+  closed: false

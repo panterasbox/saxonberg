@@ -39,10 +39,11 @@ specifier** (`@saxonberg/server/mud/lib/…`) through the server's
   `DocumentKind` — *"editing this file is a platform act"*. The kind is
   kernel; the validated save that decides what a legitimate right looks
   like is this pack's.
-- **A mixin.** A pack's module categories are branches, controllers and
-  tests — there is no `lib/`. That is why the catalogue finds
-  withdrawals and outfalls by **shape** rather than by an MQL mixin
-  selector, and why `check-world-scan` names the one file that does it.
+- **A mixin.** ⓘ A pack MAY ship one now — `src/lib/` was opened to
+  inherited substrate by the TPA reform (P2a) — but this pack still does
+  not need one, which is why the catalogue finds withdrawals and outfalls
+  by **shape** rather than by an MQL mixin selector, and why
+  `check-world-scan` names the one file that does it.
 - **Any particular river.** The Kestrel, the Confluence, the aqueduct and
   Wharfside are Terminus's and world-seed's content. A second realm needs
   zero code from here.

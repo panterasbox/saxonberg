@@ -24,7 +24,9 @@ import { Idea } from '../../lib/stuff/Idea';
 import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
 import { Template } from '../../lib/stuff/Template';
 import Spell, {
+  SPELL_COST_MODELS,
   SPELL_TARGETINGS,
+  type SpellCostModel,
   type SpellDescriptor,
   type SpellTargeting,
 } from './magic/Spell';
@@ -226,6 +228,19 @@ function buildDescriptor(data: unknown): SpellDescriptor | null {
   } catch {
     return null;
   }
+  // The cost model is a CLOSED union, validated here exactly as the
+  // effects are: a row naming a model nobody implements drops the spell
+  // rather than silently pricing it flat. Absent ⇒ the flat authored
+  // cost, which is every shipped spell but one.
+  let costModel: SpellCostModel | undefined;
+  const rawModel = d.costModel as { kind?: unknown } | undefined;
+  if (rawModel && typeof rawModel === 'object' && rawModel.kind !== undefined) {
+    if (!(SPELL_COST_MODELS as readonly unknown[]).includes(rawModel.kind)) {
+      return null;
+    }
+    costModel = { kind: rawModel.kind as 'potential' };
+  }
+
   const family = effects.some((e) => MagicEffects.familyOf(e) === 'modifier')
     ? 'modifier'
     : 'impulse';
@@ -241,6 +256,7 @@ function buildDescriptor(data: unknown): SpellDescriptor | null {
     noun: d.noun,
     castingProfile,
     cost: numberOr(d.cost, 0),
+    costModel,
     targeting,
     effects,
     cursedEffects,
@@ -260,6 +276,7 @@ function numberOr(v: unknown, fallback: number): number {
 function cloneDescriptor(d: SpellDescriptor): SpellDescriptor {
   return {
     ...d,
+    costModel: d.costModel ? { ...d.costModel } : undefined,
     effects: d.effects.map((e) => ({ ...e })),
     cursedEffects: d.cursedEffects.map((e) => ({ ...e })),
     blessedEffects: d.blessedEffects.map((e) => ({ ...e })),

@@ -10,6 +10,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@saxonberg/content-arcana": "workspace:*",
     "@saxonberg/content-corpo-goodkin": "workspace:*",
     "@saxonberg/content-corpo-vionne": "workspace:*",
     "@saxonberg/content-distribution": "workspace:*",
@@ -17,6 +18,7 @@
     "@saxonberg/content-platform": "workspace:*",
     "@saxonberg/content-residence": "workspace:*",
     "@saxonberg/content-saxonberg-lounge": "workspace:*",
+    "@saxonberg/content-tpa": "workspace:*",
     "@saxonberg/content-trade-brewing": "workspace:*",
     "@saxonberg/content-trade-distilling": "workspace:*",
     "@saxonberg/content-trade-farming": "workspace:*",

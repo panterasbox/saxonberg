@@ -31,7 +31,7 @@
 import CartesianLocation from '@saxonberg/server/mud/platform/location/CartesianLocation';
 import { PersistableMixin } from '@saxonberg/server/mud/lib/persistence/Persistable';
 import { WarrenMemberMixin } from '@saxonberg/server/mud/lib/location/WarrenMember';
-import { WorkingMixin } from './Working';
+import { WorkingMixin } from '../lib/Working';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 
 const MineRoomBase = PersistableMixin(WarrenMemberMixin(WorkingMixin(CartesianLocation)));

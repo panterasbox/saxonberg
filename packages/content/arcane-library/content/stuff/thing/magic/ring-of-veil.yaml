@@ -22,7 +22,7 @@ data:
   carriedSpellPath: /stuff/idea/magic/Spell/veil
   makerId: /obj/npc/practicum/artificer
   deliveryEfficiency: 1.2
-  capacityKJ: 900
+  capacityTau: 900
   alwaysOn: true
   censusKey: ring
   materialTags: [silver]

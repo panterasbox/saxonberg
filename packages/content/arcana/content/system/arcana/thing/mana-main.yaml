@@ -1,0 +1,32 @@
+# The city line — a mana main, and deliberately the least interesting
+# object in the pack.
+#
+# ⭐ It refills to capacity unless somebody cut it or closed it, which
+# is the honest minimum: *the mains is abundant by construction*, and
+# where the city's line mana comes from is explicitly off-stage. A
+# generation economy would be a subsystem invented to answer a question
+# nobody in the fiction is asking.
+#
+# This is the GENERIC row — a locality that wants a line seats its own
+# copy with its own `seatIn`. `severed` and `closed` are the two of the
+# six supply words a line can be in: `cut` and `off`.
+class: /system/arcana/thing/ManaMain
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a mana line
+  primaryKeyword: line
+  keywords: [line, main, conduit]
+  longDescription: >
+    A brass conduit the thickness of a wrist runs up out of the floor and
+    into the wall, humming faintly to itself. A stopcock the size of a
+    fist sits where it turns.
+  capacityTau: 100000
+  severed: false
+  closed: false
+  details:
+    stopcock:
+      keywords: [stopcock, valve, tap]
+      description: >
+        A brass wheel, stiff with disuse. Turning it hard over shuts the
+        line — which is a different thing from cutting it, and is the
+        difference between `off` and `cut`.
