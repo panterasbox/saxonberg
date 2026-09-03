@@ -144,9 +144,16 @@ trapped. Not this plan's job; named so it is not forgotten.
   this wave: the ingredient line only shows at `competent`+ and the
   drive's patron is untrained. The unit suite proves the new path; the
   drive proves nothing regressed. Do not conflate them.
-- **W1 — derive the palate.** `tastes` off the payload; `PalatableMixin`
-  computes from the composition. The one that proves the shape, and the
-  smallest.
+- **W1 — derive the palate. ✅ DONE.** `tastes` off the payload;
+  `PalatableMixin` unions the ingredients' own tastes. Live proof: the
+  drive's `taste stew` still reads *"It tastes sweet and umami."* — the
+  identical sentence, now a fact about what went in.
+  ⭐ The suite is where the shape shows: the tastes moved onto the
+  ingredient Materials in the fixture, so *"sweet and umami"* is now
+  root-vegetable + stew-meat rather than a two-string array the payload
+  was handed. Change an ingredient and the reading changes with nothing
+  else edited — which is what `Palatable`'s doc block always claimed and
+  the cached array quietly contradicted.
 - **W2 — derive the label.** `nutrients`, `nutrientAmounts`, `edible`,
   `toxicity` off the payload; metabolism and harm compute from the
   composition. ⚠ The toxin `labileAtK` care in the current field comment

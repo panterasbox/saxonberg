@@ -167,11 +167,6 @@ export interface BulkPayload {
    */
   composition?: BlendPart[];
   /**
-   * The union of the ingredients' basic tastes (`sweet` · `salty` ·
-   * `sour` · `bitter` · `umami`).
-   */
-  tastes?: string[];
-  /**
    * ⭐ The **Discipline that made this**, recorded from the recipe — the
    * skill a taster's palate is read through (`PalatableMixin`). A
    * cocktail reads through the bartender's craft and a stew through the

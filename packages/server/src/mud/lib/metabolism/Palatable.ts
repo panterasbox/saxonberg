@@ -79,15 +79,50 @@ const TASTE_CHANNEL = "taste";
  * is the price, and it is the right price: the alternative was the blend
  * carrying a pre-computed answer for every subsystem that might ask.
  */
-function ingredientNames(
+function ingredientsOf(
   composition: readonly BlendPart[] | undefined,
-): string[] {
+): Material[] {
   if (!composition || composition.length === 0) return [];
-  const out: string[] = [];
+  const out: Material[] = [];
   for (const part of composition) {
     const material = StuffApi.findByTemplatePath<Material>(part.materialPath);
-    const name = material?.getName();
+    if (material) out.push(material);
+  }
+  return out;
+}
+
+/** The ingredients' display names, in the order they went in. */
+function ingredientNames(ingredients: readonly Material[]): string[] {
+  const out: string[] = [];
+  for (const m of ingredients) {
+    const name = m.getName();
     if (name && !out.includes(name)) out.push(name);
+  }
+  return out;
+}
+
+/**
+ * ⭐ **The blend's basic tastes, DERIVED — the union of what went in.**
+ *
+ * This was a `tastes` array on the payload, written by the craft at the
+ * blend step and read back here. That is the same fact recorded twice,
+ * and this file's own doc block already said why it was wrong: *"nothing
+ * authors what a dish tastes like."* A cached derivation is an authored
+ * flavour string wearing a different hat — it can go stale, and nothing
+ * would ever say so.
+ *
+ * Falls back to the blend Material's own tastes for a payload that
+ * records no composition (a hand-filled vessel, a puddle), which is what
+ * the cached field did too.
+ */
+function tastesOf(
+  ingredients: readonly Material[],
+  blend: Material | null,
+): string[] {
+  if (ingredients.length === 0) return [...(blend?.getTastes() ?? [])];
+  const out: string[] = [];
+  for (const m of ingredients) {
+    for (const taste of m.getTastes()) if (!out.includes(taste)) out.push(taste);
   }
   return out;
 }
@@ -149,9 +184,10 @@ function palateAugmenter(
 
   const payload = host.getBulkPayload("interior");
   const material = host.getBulkMaterial("interior");
+  const ingredients = ingredientsOf(payload?.composition);
   const line = renderPalate(
-    payload?.tastes ?? material?.getTastes() ?? [],
-    ingredientNames(payload?.composition),
+    tastesOf(ingredients, material),
+    ingredientNames(ingredients),
     MixinApi.isGraded(host) ? host.getGradeBand() : null,
     bandFor(viewer, payload?.discipline ?? ""),
   );

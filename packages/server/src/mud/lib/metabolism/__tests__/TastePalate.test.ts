@@ -87,7 +87,6 @@ const STEW: BulkPayload = {
     { materialPath: ROOT_VEG, servings: 1 },
     { materialPath: STEW_MEAT, servings: 1 },
   ],
-  tastes: ['sweet', 'umami'],
   // ⭐ The craft that made it — the discipline the palate is read
   // through. The kernel never knows the word; the recipe recorded it.
   discipline: 'cooking',
@@ -127,16 +126,21 @@ function lookOf(host: Stuff, viewer: Stuff): string {
 describe('the palate reads the dish (AC11)', () => {
   beforeEach(() => {
     installV1QuantityMarshallers();
-    for (const [path, name] of [
-      [ROOT_VEG, 'root vegetable'],
-      [STEW_MEAT, 'stew meat'],
-      [LIME, 'lime'],
-      [SUGAR, 'sugar'],
+    // ⭐ The tastes live on the INGREDIENTS now, not on the payload — so
+    // "it tastes sweet and umami" is a fact about what went in, and
+    // changing an ingredient changes the reading with nothing else
+    // edited. That is the whole claim this suite makes.
+    for (const [path, name, tastes] of [
+      [ROOT_VEG, 'root vegetable', ['sweet']],
+      [STEW_MEAT, 'stew meat', ['umami']],
+      [LIME, 'lime', ['sour']],
+      [SUGAR, 'sugar', ['sweet']],
     ] as const) {
       makeStuffAtPath(() => {
         const ingredient = new Material();
         ingredient.setName(name);
         ingredient.setEdibility(true);
+        ingredient.setTastes([...tastes]);
         return ingredient;
       }, path);
     }
@@ -242,7 +246,6 @@ describe('the palate reads the dish (AC11)', () => {
         { materialPath: LIME, servings: 1 },
         { materialPath: SUGAR, servings: 1 },
       ],
-      tastes: ['sour', 'sweet'],
     };
     const text = tasteOf(dish(other), taster('competent'));
     expect(text).toContain('sour');

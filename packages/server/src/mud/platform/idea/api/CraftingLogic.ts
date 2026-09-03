@@ -794,7 +794,6 @@ function deriveBlendPayload(
   // carrying it properly is what lets each subsystem compute its own
   // instead of being handed the answer. See the bulk-decomposition plan.
   const composition = new Map<string, number>();
-  const tastes = new Set<string>();
   let edible = false;
   for (const part of parts) {
     if (part.material.getEdibility() === true) edible = true;
@@ -802,7 +801,6 @@ function deriveBlendPayload(
     if (partPath) {
       composition.set(partPath, (composition.get(partPath) ?? 0) + part.servings);
     }
-    for (const taste of part.material.getTastes()) tastes.add(taste);
     for (const tag of part.material.getTags()) tags.add(tag);
     for (const tag of part.material.getNutrients()) nutrients.add(tag);
     const amounts = part.material.getNutrientAmounts();
@@ -841,7 +839,6 @@ function deriveBlendPayload(
       servings,
     }));
   }
-  if (tastes.size > 0) payload.tastes = [...tastes];
   // ⭐ Which craft made it — the skill a taster's palate is read through
   // (`PalatableMixin`). Recording it here is what lets the kernel project
   // a cocktail through the bartender's discipline and a stew through the
