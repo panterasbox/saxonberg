@@ -29,6 +29,13 @@ not a wave of their own:**
 - **D84–D87** — nothing renders a hidden quantity on `look`; farm state never
   enters a room description; the read is the **delta**, on a card.
 - **D45** — slopes for absence, cliffs for presence, and weather is neither.
+- ⭐⭐ **Documents you author versus records about you.** The store holds both,
+  and they take **different ownership models**. A document you author lives on
+  **your** branch (`/home/<self>`, your parcel) and `canAtPath` is exactly right.
+  A **record about you** lives on an **institution's** branch, because its value
+  depends on its subject not being able to edit it. **The test:** *if being able
+  to rewrite it would be an exploit, it is not yours to hold.* See P4 — it binds
+  the herdbook, and it will bind credentials, transcripts and title.
 
 ---
 
@@ -94,23 +101,68 @@ cannot import a pack — the same argument that forces `SoilMixin` into the kern
 an assumption. **Per D6 it re-implements the ~30 lines rather than importing
 weather's.**
 
-### P4 — ⚠⚠ the herdbook's persistence home — the biggest open question
+### P4 — the herdbook is a DOCUMENT on the trade's branch, not the holder's
 
-A herd is a **record** (D20) that is chattel (D22), moves between paddocks, and
-must survive without an owner logged in. Three candidate homes, and the
-requirements deliberately did not choose:
+**Decided 2026-09-03**, reversing an earlier recommendation twice over.
 
-| | Shape | Cost |
-|---|---|---|
-| **(a) `PersistableMixin` host, keyed `(scope, key)`** | the shipped self-persistence spine into `holder_snapshots` | the dorm-room precedent fits exactly; a herd is a keyed holder |
-| **(b) `StoredDocument` under the owning parcel** | the document tree, `canAtPath` as the authority | matches *"parcel-local persistence = the document tree"* — but a herd is not parcel-local, it moves |
-| **(c) an `Idea` with a persistence record** | like `Government` | adds a row per herd |
+**The kind:** a new `DocumentKinds` entry — `herd`, **path-keyed**
+(`naturalKey: null`), `contentDir: 'herds'`, `onVanish: 'keep'`. The precedent
+is `water-right`, and it matches feature for feature: *a record — dated,
+transferable, and meaningless if it can be quietly lost.* Adding a kind is a
+**platform act** needing a code consumer and a go-live hook; that gate is
+working, not friction.
 
-**Recommendation: (a).** A herd is a keyed holder that owns state, which is what
-`PersistableApi.restoreOrSeed(host, key)` exists for, and it satisfies *no new
-Mongo collections*. **(b) is refused because a herd moves** — parcel-local
-storage would strand it the moment it crossed a gate. ⚠ **User sign-off wanted**;
-everything in W7 hangs off it.
+**The path:** `/trade/ranching/herds/<…>`, on a branch **titled to the ranching
+trade's group** — the shape the four-namespace table already blesses
+(*`/trade/<industry>` … held by the trade's own group*) and the shape water
+rights already use (`/system/water/rights/…`, titled to the `water` group, owned
+by an office). ⚠ **This is the security requirement, not a filing convenience.**
+
+> **A record about you lives on a branch titled to somebody else. You file; you
+> do not hold the pen.**
+
+⚠⚠ **Two earlier candidates are refused, and for the same reason:**
+
+- **`/home/<self>`** — the shipped base case gives an owner their whole home
+  branch with no broader grant, so the subject could rewrite their own pedigree.
+  D79 makes the herdbook a **sales document**; this is the lemons fraud with the
+  engine supplying the pen.
+- **The owning parcel** — same hole, one step out: a landholder can write
+  documents on their own parcel.
+
+**This bug class was closed once already in this repo** and must not be
+reopened: land use lives in the gated `parcels` collection rather than on the
+zone template because *"a content author could rezone their own land — the
+precise forgery the retired `data.ownerGroupName` stamps were removed to close."*
+
+*(`holder_snapshots` via `PersistableMixin` was the earlier recommendation. It is
+sound but points at a collection when the standing direction is documents, and it
+does not answer the custody question at all.)*
+
+⭐ **It is also historically exact.** Real herdbooks are kept by **breed
+societies**, not by the animals' owners — Coates's Herd Book, 1822, worked
+because it was independent of the men selling the bulls. The record is
+trustworthy *because* its subject cannot edit it, which is the same sentence as
+the security requirement. Three things fall out free:
+
+- custody of the **record** is separate from ownership of the **herd** — you own
+  the cattle, the society keeps the book;
+- **transfer is a registry act, not a file edit**, which is where D79's sale and
+  the warranty slate attach;
+- **filing is a gated act**, so *who may register a herd* becomes a live question
+  the polity can answer.
+
+⚠ **Read-side verification is mandatory**, not optional hardening. The store is
+shared and the kind tag is forgeable — `document-store.md` is explicit that
+*"`kind: 'release'` is a tag anyone who can write a document can apply, so every
+read re-verifies what the transport guarantees."* **Every herd read must verify
+the document actually sits under the registry prefix**, or somebody writes
+`kind: 'herd'` on their own home branch and it counts.
+
+⚠ **Two sources, deliberately.** The document holds **composition, ownership and
+claimed home**; **containment holds position**. Their disagreement *is* D95's
+straying — derivable on read, needing no new event, and the reason a herd has a
+jurisdictional anchor at all. Without one, nothing bounds where livestock can be.
 
 ### P5 — the sward is a third `Reserve` on the field
 
@@ -158,7 +210,7 @@ surface in the build.
 - **Kernel** — `SoilMixin`, `GroundCharacter`, `Field`, the maturation driver on
   `Organism`, the `ChattelMixin` + `BrandedMixin` moves, `HandlingMixin`,
   `CelestialApi.dayLength`.
-- **`trade-ranching`** (new pack) — the herdbook Idea, `draft`/`shear`/`milk`/
+- **`trade-ranching`** (new pack) — the **herd registry branch and its title claim** (P4), `draft`/`shear`/`milk`/
   `muck`, the farmstead venue archetype, the hand's brain, the ranching
   disciplines.
 - **The commons** (`species-and-names`) — the five species rows. *A sheep exists
@@ -238,7 +290,8 @@ winter, hens stop laying, and **a plant in a warm lit room keeps growing**
 ### W7 — Livestock core
 
 D19–D24, D27, D29, D98. `ChattelMixin` and `BrandedMixin` onto the Creature
-stack; the maturation driver; `HandlingMixin`; the herdbook (P4); draft and
+stack; the maturation driver; `HandlingMixin`; the herdbook as a registry
+document (P4) **with its read-side prefix check**; draft and
 return with seeded materialisation; condition derived (P6, P7). **Green:** head
 *n* drafted twice is the same animal; returning folds condition into the mean;
 condition bands by eye and yields a precise score only through a handling act
@@ -320,17 +373,20 @@ and do not gate this MR.** Two carry unusual weight:
 
 ## Risks & opens
 
-1. ⚠ **P4 (the herdbook's home), P7 (what condition reads), P8 (where bands are
-   authored) and P3 (kernel placement) want sign-off before W2.**
-2. **W1 is a refactor of 871 lines of shipped, tested code** on a branch that
+1. ⚠ **P7 (what condition reads), P8 (where bands are authored) and P3 (kernel
+   placement) want sign-off before W2.** *(P4 is settled — see its entry.)*
+2. ⚠ **P4's read-side prefix check is load-bearing and easy to skip.** A herd
+   read that trusts the `kind` tag reopens the forgery the path titling closes.
+   It belongs in W7's tests, not in a later hardening pass.
+3. **W1 is a refactor of 871 lines of shipped, tested code** on a branch that
    will absorb two merges. Do it first, prove it with unchanged tests, and never
    mix feature work into it.
-3. **Wave count is high (16).** If the build runs long, the cut order is: W14
+4. **Wave count is high (16).** If the build runs long, the cut order is: W14
    (bees), then saffron and turnips out of W10, then W12 — **never** W11, because
    a build nobody can start is not shippable.
-4. **The band vocabularies are the most likely thing to be skimped**, and
+5. **The band vocabularies are the most likely thing to be skimped**, and
    skimping them fails silently — two bands that read alike collapse the whole
    honest-opacity model.
-5. **Tier 3's three forward obligations** (D79 record legibility, D82 quality
+6. **Tier 3's three forward obligations** (D79 record legibility, D82 quality
    levers, D74 not foreclosing profits à prendre) must be honoured in W7 and W9
    or tier 3 becomes a rewrite.
