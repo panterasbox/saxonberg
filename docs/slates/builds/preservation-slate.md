@@ -436,6 +436,12 @@ trade geography that follows.
   and reuses thermal's Q10 idiom.)*
 - **Bulk vs. item.** A barrel of salt pork is bulk; a fish is an item. Does the
   gauge live on both, and does `BulkPayload` gain a freshness field?
+  **→ ANSWERED (2026-09-02, [cooking-slate](./cooking-slate.md) § leftovers):
+  yes — for bulk contents the load lives on the `BulkPayload` and transfers
+  carry it.** Vessel-borne freshness is the pour-to-reset exploit (decant
+  spoiling stew into a fresh crock → free clock); payload-borne, the clock
+  travels with the stew. Mixing blends loads mass-weighted (dilution is
+  honestly how concentration works). Items keep the mixin gauge.
 - **Does cooking reset or slow the clock?** (Real answer: both, by method — and
   a good reason for cooking to matter past nutrition.)
 - **Does sealing do physics**, or stay binary? `SealableMixin` has none today.

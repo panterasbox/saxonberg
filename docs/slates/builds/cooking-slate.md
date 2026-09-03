@@ -428,6 +428,39 @@ outputs edibles" and becomes a trade with stakes:
   kill step, the temperature term); the victualler buys *seasons* (water
   activity — salt, drying). Different physics term, different trade.
 
+### Leftovers & storage containers (settled)
+
+Zero new mechanism — but one load-bearing decision about where the
+clock lives:
+
+- **Leftovers are Part 6's payoff**: a persistent vessel holding a
+  residue (the half-eaten dish, the stew still in the pot). Moving
+  them is the bulk substrate as-is: `pour` pot → crock, lid it, carry
+  it to the cellar. Storage containers (crock · jar · tin) are vessel
+  rows — more potter/smith content on the household par.
+- **What storage DOES stays other packs' substrate**: temperature
+  mediation is the thermal chain (the crock reads the cellar's
+  ambient; the icebox is the [fridge pack](./fridge-design-pack.md)'s
+  whole point); air is `Sealable` — **binary**, per terms-not-methods,
+  until a consumer demands a hurdle multiplier. Cooking adds rows.
+- ⭐⭐ **Freshness rides the PAYLOAD, not the vessel** — settling the
+  [spoilage pack](./spoilage-design-pack.md)'s open question ("does
+  `BulkPayload` gain a freshness field?"): **yes** — for bulk
+  contents the microbial load lives on the `BulkPayload` and
+  **transfers carry it**. Vessel-borne freshness is the
+  **pour-to-reset exploit** (decant spoiling stew into a fresh crock
+  → free clock). Payload-borne, the clock travels with the stew.
+  Mixing blends loads **mass-weighted** — and dilution genuinely is
+  how concentration works, so the edge case answers itself.
+- **Reheating is the kill step again, free**: past the kill
+  threshold, the clock resets like any cooking — including the honest
+  failure mode: a lazy warm-through that never reaches kill
+  temperature resets *nothing* (the v1 threshold, later the S2 dose,
+  captures it with no leftover-specific rule).
+- **Deliberately not here**: vermin, flies, the open crock — the
+  sanitation slate's territory ("abandonment is an act"); compost is
+  hearth-and-larder Part 3.
+
 ### Seasoning & spices (settled)
 
 Four different things wearing one word:
