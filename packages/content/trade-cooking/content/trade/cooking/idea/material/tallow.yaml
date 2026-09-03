@@ -28,6 +28,11 @@ data:
   spoilActivationEnergy: 45000
   waterActivity: 0.2
   edibility: true
+  # ⭐ The basic tastes (closed five-word set). Nothing authors what a
+  # DISH tastes like — `taste` derives that from what went in, projected
+  # through the taster's own palate. See docs/subsystems/crafting.md.
+  # Rendered fat carries flavour more than it has one; umami is the nearest honest word.
+  tastes: [umami]
   nutrients: [fat]
   nutrientAmounts:
     fat: 90000

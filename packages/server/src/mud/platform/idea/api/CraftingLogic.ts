@@ -717,9 +717,15 @@ function deriveBlendPayload(
   const nutrientAmounts: Record<string, number> = {};
   const toxins = new Map<string, number>();
   const tags = new Set<string>();
+  // The composition, for the palate: what went in, and what it tastes of.
+  const partNames: string[] = [];
+  const tastes = new Set<string>();
   let edible = false;
   for (const part of parts) {
     if (part.material.getEdibility() === true) edible = true;
+    const partName = part.material.getName();
+    if (partName && !partNames.includes(partName)) partNames.push(partName);
+    for (const taste of part.material.getTastes()) tastes.add(taste);
     for (const tag of part.material.getTags()) tags.add(tag);
     for (const tag of part.material.getNutrients()) nutrients.add(tag);
     const amounts = part.material.getNutrientAmounts();
@@ -752,6 +758,8 @@ function deriveBlendPayload(
   if (appearance) payload.appearance = appearance;
   if (keywords.length > 0) payload.keywords = [...keywords];
   if (tags.size > 0) payload.tags = [...tags];
+  if (partNames.length > 0) payload.parts = partNames;
+  if (tastes.size > 0) payload.tastes = [...tastes];
   return payload;
 }
 

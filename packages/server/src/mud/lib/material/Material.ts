@@ -78,6 +78,20 @@ export interface CompositionEntry {
 }
 
 /**
+ * The five basic tastes — the physiology's own closed list, and the whole
+ * authored flavour vocabulary. Everything a player reads about how a dish
+ * tastes is DERIVED from these plus what went into it; nothing anywhere
+ * authors a per-dish flavour string.
+ */
+export const BASIC_TASTES: readonly string[] = [
+  'sweet',
+  'salty',
+  'sour',
+  'bitter',
+  'umami',
+];
+
+/**
  * Atomic / molecular science data — convenience aggregate of
  * Material's chemistry-related fields. Material stores each field
  * as its own scalar (`symbol`, `atomicNumber`, `formula`,
@@ -558,6 +572,24 @@ export default class Material extends SingletonMixin(
   protected toxicity: ToxinTag[] = [];
 
   /**
+   * ⭐ **The basic tastes this substance carries** — a closed five-word
+   * vocabulary (`sweet` · `salty` · `sour` · `bitter` · `umami`), the
+   * physiology's own list and not a flavour-note bank.
+   *
+   * ⚠ It is deliberately NOT prose. What a dish tastes *like* is derived
+   * from what went into it, projected through the taster's own palate:
+   * a novice cook gets the dominant tastes, someone competent picks out
+   * the ingredients, and an expert reads the grade. Authoring a
+   * "flavour string" per dish is the retired per-dish-material
+   * anti-pattern wearing a different hat — see
+   * [docs/subsystems/spoilage.md] and `crafting.md`.
+   *
+   * Empty is the honest default: most materials have never been tasted
+   * by anybody who wrote them down.
+   */
+  protected tastes: string[] = [];
+
+  /**
    * Free-form classification tags. See class header for layer-1
    * description; vocabulary intentionally not centrally registered.
    */
@@ -666,6 +698,7 @@ export default class Material extends SingletonMixin(
     name: { persistent: true },
     appearance: { persistent: true },
     tags: { persistent: true },
+    tastes: { persistent: true, spoiler: 1, spoilerName: 0 },
     composition: { persistent: true },
     symbol: { persistent: true },
     atomicNumber: { persistent: true },
@@ -989,6 +1022,18 @@ export default class Material extends SingletonMixin(
       );
     }
     this.waterActivity = value < 0 ? 0 : value > 1 ? 1 : value;
+  }
+
+  /** The basic tastes this substance carries (may be empty). */
+  public getTastes(): readonly string[] { return this.tastes; }
+  /** Set the basic tastes. Unknown words are dropped — the set is closed. */
+  public setTastes(value: string[]): void {
+    if (!Array.isArray(value)) {
+      throw new TypeError('Material.setTastes: expected a string[]');
+    }
+    this.tastes = value.filter((t): t is string =>
+      (BASIC_TASTES as readonly string[]).includes(t),
+    );
   }
 
   public getTags(): readonly string[] { return this.tags; }

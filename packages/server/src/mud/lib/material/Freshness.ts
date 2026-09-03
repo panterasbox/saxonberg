@@ -116,6 +116,9 @@ function clamp01(x: number): number {
   return x < 0 ? 0 : x > 1 ? 1 : x;
 }
 
+/** The senses spoilage answers to: you see it and you smell it. */
+const FRESHNESS_CHANNELS: readonly string[] = ['vision', 'smell'];
+
 /** The player-facing phrase for a non-fresh band (never `fresh`). */
 const FRESHNESS_PHRASE: Record<Exclude<FreshnessBand, 'fresh'>, string> = {
   tainted: 'It smells faintly off.',
@@ -130,7 +133,19 @@ const FRESHNESS_PHRASE: Record<Exclude<FreshnessBand, 'fresh'>, string> = {
  * so a thing that has sat for a week reads truthfully the moment it is
  * looked at.
  */
-function freshnessAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
+function freshnessAugmenter(
+  text: string,
+  host: Stuff,
+  _viewer: Stuff,
+  opts?: { filter?: readonly string[] },
+): string {
+  // ⭐ You SEE that something has turned and you SMELL it; you do not hear
+  // it. A per-call filter naming neither channel is a different sense
+  // asking, and gets nothing. (No filter at all is the gestalt read — the
+  // band belongs there.)
+  if (opts?.filter && !opts.filter.some((c) => FRESHNESS_CHANNELS.includes(c))) {
+    return text;
+  }
   if (!MixinApi.isFresh(host)) return text;
   // A destroyed host is an inert proxy whose every call no-ops to
   // `undefined` — and a thing that no longer exists has no smell. (The eaten

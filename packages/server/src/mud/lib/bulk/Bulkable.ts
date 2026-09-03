@@ -54,6 +54,10 @@ import { MqlSubscriptionApi } from '../../api/mql-subscription';
 import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
 import type { MarkupAugmenter } from '../../api/mml';
 import type Material from '../material/Material';
+import {
+  COMPETENCE_BANDS,
+  type CompetenceBandName,
+} from '../advancement/CompetenceBand';
 
 /**
  * Ordered liquid-retention scale on a bulk holder. The vessel retains
@@ -129,6 +133,22 @@ export interface BulkPayload {
    * derived nothing.
    */
   tags?: string[];
+  /**
+   * ⭐ The **ingredients**, by their Materials' display names — the
+   * blend's composition, in the order they were consumed.
+   *
+   * It exists for the palate: `taste` projects what went in through the
+   * taster's own `cooking` competence, so somebody competent picks out
+   * "roots, stew meat" where a novice gets only the dominant tastes. The
+   * derivation is the point — no dish anywhere authors what it tastes
+   * like. Absent on a blend that derived nothing.
+   */
+  parts?: string[];
+  /**
+   * The union of the ingredients' basic tastes (`sweet` · `salty` ·
+   * `sour` · `bitter` · `umami`) — the novice rung of the same read.
+   */
+  tastes?: string[];
   /**
    * ⭐ The blend's **spoilage gauge** — the bulk twin of
    * `FreshnessMixin`'s two fields, stored on the payload because the
@@ -451,7 +471,10 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
      * host's description is rendered. The surface affordance renders as
      * a puddle (`look floor`).
      */
-    static markupAugmenters: MarkupAugmenter[] = [bulkContentsAugmenter];
+    static markupAugmenters: MarkupAugmenter[] = [
+      bulkContentsAugmenter,
+      tastePalateAugmenter,
+    ];
 
     // ---- affordance presence flags (authored per host) ----
     /**
@@ -827,4 +850,87 @@ function bulkContentsAugmenter(
   }
   if (lines.length === 0) return text;
   return `${text}\n\n${lines.join(' ')}`;
+}
+
+/**
+ * ⭐ **The taste of a dish, derived — never authored.**
+ *
+ * Filtered to the `taste` channel, so it lands on `taste <dish>` and
+ * nowhere else. What it says depends on the TASTER: the same bowl reads
+ * differently to a novice cook and to an expert one, because a palate is
+ * something you build and this is the one place the game shows you that
+ * you have.
+ *
+ *   - **untrained / novice** — the dominant basic tastes and nothing
+ *     else. "Salty, a little sour." That is honestly all most people get.
+ *   - **competent** — the ingredients, by name. You can pick out what is
+ *     in it.
+ *   - **proficient / expert** — and the maker's grade: the quality of the
+ *     stock and the working, which is what a cook tastes for.
+ *
+ * ⚠ The cache is read SYNC (`competenceDigestCached`), and a cold cache
+ * reads as the floor band. That is honest rather than a defect: an
+ * unexercised palate is a novice palate, and the first `advancement`
+ * read warms it.
+ *
+ * ⚠⚠ Nothing here is a gate. Every band tastes the food; the better
+ * palate simply reads more off it.
+ */
+function tastePalateAugmenter(
+  text: string,
+  host: Stuff,
+  viewer: Stuff,
+  opts?: { filter?: readonly string[] },
+): string {
+  // Taste-channel only. A `look` must not read a dish's palate out.
+  if (!opts?.filter || !opts.filter.includes('taste')) return text;
+  if (!MixinApi.isBulkable(host)) return text;
+  if (!host.hasInteriorBulk() || host.isBulkEmpty('interior')) return text;
+  const payload = host.getBulkPayload('interior');
+  const material = host.getBulkMaterial('interior');
+  const tastes = payload?.tastes ?? material?.getTastes() ?? [];
+  const parts = payload?.parts ?? [];
+
+  const band = cookingBandOf(viewer);
+  const lines: string[] = [];
+  if (tastes.length > 0) {
+    lines.push(`It tastes ${joinWords([...tastes])}.`);
+  }
+  const rank = COMPETENCE_BANDS.indexOf(band);
+  if (rank >= COMPETENCE_BANDS.indexOf('competent') && parts.length > 0) {
+    lines.push(`You pick out ${joinWords(parts)}.`);
+  }
+  if (rank >= COMPETENCE_BANDS.indexOf('proficient') && MixinApi.isGraded(host)) {
+    lines.push(`The making of it reads ${host.getGradeBand()}.`);
+  }
+  if (lines.length === 0) return text;
+  return text && text.length > 0
+    ? `${text}\n\n${lines.join(' ')}`
+    : lines.join(' ');
+}
+
+/**
+ * ⚠ The Discipline key the palate reads, and the only content word in this
+ * file. It is the shipped `cooking` discipline's key — the same string a
+ * recipe authors — not a keyword and not a display name.
+ */
+const COOKING_DISCIPLINE = 'cooking';
+
+/**
+ * The taster's `cooking` competence, read from the SYNC digest cache. A
+ * cold cache (or a taster with no transcript at all) reads `untrained` —
+ * the floor, which is what an unexercised palate is.
+ */
+function cookingBandOf(viewer: Stuff): CompetenceBandName {
+  if (!MixinApi.isAdvancing(viewer)) return 'untrained';
+  const digest = viewer.competenceDigestCached();
+  if (!digest) return 'untrained';
+  const entry = digest.find((d) => d.discipline === COOKING_DISCIPLINE);
+  return entry?.band ?? 'untrained';
+}
+
+/** `a, b and c` — the ordinary English list, for a derived phrase. */
+function joinWords(words: readonly string[]): string {
+  if (words.length <= 1) return words[0] ?? '';
+  return `${words.slice(0, -1).join(', ')} and ${words[words.length - 1]}`;
 }
