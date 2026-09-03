@@ -1,0 +1,37 @@
+# A mana cell — a bottled charge you can carry, and the good that makes
+# a mana-powered device usable by somebody with no gift at all.
+#
+# ⭐ `capacityTau: 600` against a level TPA hop's 40 τ survey floor is
+# about fifteen ordinary rides, or a long evening of lamplight. A real
+# resource: spent in a week of use, cheap enough that a traveller buys
+# one without thinking and dear enough that a frontier post running on
+# them has a running cost somebody has to cover.
+#
+# It is `Circulating` so distribution and the general store carry it,
+# and it is a discrete Thing (never Globbable) so each carries a chattel
+# stamp on buy.
+class: /system/arcana/thing/ManaCell
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a mana cell
+  primaryKeyword: cell
+  keywords: [cell, mana cell, battery]
+  longDescription: >
+    A palm-sized cell of wound brass and grey glass, one end warm to the
+    touch. A maker's stamp is pressed into the base, and a hairline seam
+    runs the length of it where the two halves were closed.
+  capacityTau: 600
+  censusKey: cell
+  materialTags: [brass, glass]
+  regionTarget: 3
+  details:
+    seam:
+      keywords: [seam, join]
+      description: >
+        A hairline join, sealed with something that is not quite solder.
+        Prising it is how you learn what one costs to replace.
+    stamp:
+      keywords: [stamp, base, mark]
+      description: >
+        A maker's stamp, worn but legible. Every cell in the city carries
+        one; the Authority will not seat a cell it cannot read.

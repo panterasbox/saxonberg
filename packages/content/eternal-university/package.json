@@ -10,6 +10,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@saxonberg/content-arcana": "workspace:*",
     "@saxonberg/content-generic-objects": "workspace:*",
     "@saxonberg/content-platform": "workspace:*",
     "@saxonberg/content-residence": "workspace:*",
