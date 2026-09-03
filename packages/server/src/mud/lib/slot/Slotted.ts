@@ -27,7 +27,21 @@ import { Final, Unshadowable } from '../security/decorators';
 import { Mixins } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Slottable } from './Slottable';
+import type { Wearable } from './Wearable';
+import type { Graded } from '../craft/Graded';
+import { GRADE_BANDS } from '../craft/Grade';
+import type { Durable } from '../material/Durable';
+import type { Branded } from '../corpo/Branded';
 import { MixinApi } from '../../api/mixin';
+import { PerceptionApi } from '../../api/perception';
+import { SpeciesApi } from '../../api/species';
+import type { MarkupAugmenter } from '../../api/mml';
+import {
+  MqlSubscriptionApi,
+  REF_FIELDS,
+  type SubscribableFieldDescriptor,
+} from '../../api/mql-subscription';
+import { Impression, type ImpressionClause } from './Impression';
 import type {
   CaptureContext,
   SlottedSlice,
@@ -112,6 +126,21 @@ export interface Slotted {
   isSlotFull(slot: string): boolean;
 
   canOccupy(candidate: Stuff & Slottable, slot: string): boolean;
+
+  /**
+   * The **worn** stack, outermost-first — every occupant that is
+   * `Wearable`, deduplicated across the several slots a garment may
+   * claim.
+   *
+   * ⚠ Worn is a strict subset of slotted: a sheathed sidearm and a
+   * cranial implant are *slotted*, not worn, and the wire projection
+   * and the impression line both mean the clothes.
+   *
+   * Ordering today is **later-worn = outer** (slot insertion order,
+   * reversed), which the covering-ladder comparator later refines into
+   * *form sets the band, wear-order breaks ties inside a band*.
+   */
+  wornStack(): readonly (Stuff & Slottable & Wearable)[];
 
   /**
    * **Take `item` off this body entirely** — every slot it occupies, as
@@ -215,6 +244,118 @@ function validateSlotSpecs(specs: SlotSpec[]): void {
   }
 }
 
+/**
+ * Fold the worn stack into the facet readings the impression line
+ * renders. **Total over absent facts**: a garment that composes no
+ * `Graded` contributes nothing to quality, and a stack with nothing
+ * notable about its upkeep contributes no upkeep clause at all — which
+ * is what keeps the line one sentence rather than a checklist.
+ *
+ * ⚠ Nothing here reads an occupant's presentation. The line must name
+ * no individual garment, and the cheapest guarantee of that is never
+ * having the words.
+ */
+function impressionClauses(
+  stack: readonly (Stuff & Slottable & Wearable)[],
+): ImpressionClause[] {
+  const clauses: ImpressionClause[] = [];
+
+  // ── quality: the mean grade across whatever is graded ──
+  let gradeSum = 0;
+  let gradeCount = 0;
+  for (const item of stack) {
+    const asStuff = item as unknown as Stuff;
+    if (!MixinApi.isGraded(asStuff)) continue;
+    gradeSum += (asStuff as Stuff & Graded).getGrade().getOrdinal();
+    gradeCount++;
+  }
+  if (gradeCount > 0) {
+    const bands = GRADE_BANDS;
+    const mean = Math.round(gradeSum / gradeCount);
+    const band = bands[Math.max(0, Math.min(bands.length - 1, mean))];
+    if (band) clauses.push({ facet: 'quality', band });
+  }
+
+  // ── upkeep: wetness first (it is the loudest), then condition ──
+  let wettest = 0;
+  let worstCondition = 1;
+  let anyDurable = false;
+  for (const item of stack) {
+    const asStuff = item as unknown as Stuff;
+    if (MixinApi.isWet(asStuff)) {
+      wettest = Math.max(wettest, asStuff.getWetness());
+    }
+    if (MixinApi.isDurable(asStuff)) {
+      anyDurable = true;
+      worstCondition = Math.min(
+        worstCondition,
+        (asStuff as Stuff & Durable).getCondition(),
+      );
+    }
+  }
+  if (wettest >= SOAKED_AT) {
+    clauses.push({ facet: 'upkeep', band: 'soaked' });
+  } else if (wettest >= DAMP_AT) {
+    clauses.push({ facet: 'upkeep', band: 'damp' });
+  } else if (anyDurable && worstCondition < RAGGED_BELOW) {
+    clauses.push({ facet: 'upkeep', band: 'ragged' });
+  } else if (anyDurable && worstCondition < WORN_BELOW) {
+    clauses.push({ facet: 'upkeep', band: 'worn' });
+  }
+
+  // ── the mark, when ONE dominates the stack ──
+  const marks = new Map<string, { count: number; label: string }>();
+  for (const item of stack) {
+    const asStuff = item as unknown as Stuff;
+    if (!MixinApi.hasMixin(asStuff, Mixins.Branded)) continue;
+    const brand = (asStuff as unknown as Branded).getBrand();
+    if (!brand) continue;
+    const seen = marks.get(brand.key) ?? { count: 0, label: brand.name };
+    seen.count++;
+    marks.set(brand.key, seen);
+  }
+  if (marks.size === 1 && stack.length > 1) {
+    const only = [...marks.values()][0];
+    if (only && only.count >= stack.length) {
+      clauses.push({ facet: 'brand', band: 'dominant', token: only.label });
+    }
+  }
+
+  return clauses;
+}
+
+/**
+ * Append the dressed-impression line to a wearer's long description.
+ *
+ * Guarded to hosts that resolve a **body plan** — a weapon rack is
+ * `Slotted` too, and a rack has no impression. Silent when nothing is
+ * worn, and silent when no facet resolves.
+ */
+function impressionAugmenter(text: string, host: Stuff, viewer: Stuff): string {
+  if (!MixinApi.isSlotted(host)) return text;
+  if (!SpeciesApi.tryGetBodyPlanPath(host)) return text;
+  const stack = host.wornStack();
+  if (stack.length === 0) return text;
+  const clauses = impressionClauses(stack);
+  if (clauses.length === 0) return text;
+  // The digest is what makes the read STABLE until the outfit changes
+  // and honest when it does — the facets, not the garments.
+  const digest = clauses.map((c) => `${c.facet}:${c.band}`).join('|');
+  const seed = Impression.seedOf([host.stuffId, digest, viewer.stuffId]);
+  const line = Impression.render(clauses, seed);
+  if (!line) return text;
+  return text && text.length > 0 ? `${text}\n\n${line}` : line;
+}
+
+/** Wetness at or above which the stack reads as soaked. */
+const SOAKED_AT = 0.7;
+/** Wetness at or above which the stack reads as damp. */
+const DAMP_AT = 0.3;
+/** Condition below which the stack reads as ragged. */
+const RAGGED_BELOW = 0.25;
+/** Condition below which the stack reads as merely worn. */
+const WORN_BELOW = 0.6;
+
 export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
   Base: TBase
 ) {
@@ -225,6 +366,55 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
     static fieldMeta: FieldMeta = {
       staticSlots: { persistent: true, authorable: true },
     };
+
+    /**
+     * Live-query subscribable field: `worn` — the **body** half against
+     * `Container.contents`' **pack** half.
+     *
+     * ⭐ The two are a **partition of one set**, not two sets. A worn
+     * garment never left its wearer's contents (`WearController` only
+     * claims slots), so `contents` skips anything currently occupying a
+     * slot on the host and `worn` picks exactly those up. Worn is
+     * public — it is what you can see on somebody — which is why the
+     * card renders it for an `agent` where `contents` is deliberately
+     * suppressed as reading their pockets.
+     *
+     * Same per-viewer filters as `contents`: never the viewer itself,
+     * `Visible` only, and `PerceptionApi.perceives` so a concealed
+     * garment never enters the projection.
+     *
+     * `dependsOnFields` keys the dependency index to the `'worn'` fires
+     * installed on `occupy` / `vacate` / `vacateSole` — occupancy is not
+     * a persistent field, so the events come from the primitives, the
+     * way `contents` does.
+     */
+    static subscribableFields: SubscribableFieldDescriptor[] = [
+      {
+        name: 'worn',
+        read: (stuff, viewer) => {
+          const host = stuff as Stuff & Slotted;
+          return host
+            .wornStack()
+            .filter(
+              (item) =>
+                item.stuffId !== viewer.stuffId &&
+                MixinApi.isVisible(item as unknown as Stuff) &&
+                PerceptionApi.perceives(viewer, item as unknown as Stuff),
+            )
+            .map((item) =>
+              MqlSubscriptionApi.projectFields(
+                item as unknown as Stuff,
+                REF_FIELDS,
+                viewer,
+              ),
+            );
+        },
+        dependsOnFields: ['worn'],
+      },
+    ];
+
+    /** The dressed-impression line (see {@link Impression}). */
+    static markupAugmenters: MarkupAugmenter[] = [impressionAugmenter];
 
     /**
      * Authoring data — only used by the default `getSlotNames` /
@@ -299,6 +489,28 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
         );
       }
       return set.values().next().value as Stuff & Slottable;
+    }
+
+    /**
+     * Worn occupants, outermost-first. Walks the live slot map (whose
+     * insertion order IS wear order — a `Map` and a `Set` both preserve
+     * it, and the persistence spine re-wears through `occupyAll` in the
+     * captured order, so it survives a round trip with no new field),
+     * keeps only `Wearable` occupants, dedupes a multi-slot claim to
+     * its first appearance, and reverses so later-worn reads outer.
+     */
+    public wornStack(): readonly (Stuff & Slottable & Wearable)[] {
+      const seen = new Set<Stuff & Slottable>();
+      const inWearOrder: (Stuff & Slottable & Wearable)[] = [];
+      for (const occupants of this.slots.values()) {
+        for (const occupant of occupants) {
+          if (seen.has(occupant)) continue;
+          seen.add(occupant);
+          if (!MixinApi.isWearable(occupant as unknown as Stuff)) continue;
+          inWearOrder.push(occupant as Stuff & Slottable & Wearable);
+        }
+      }
+      return inWearOrder.reverse();
     }
 
     public canOccupy(candidate: Stuff & Slottable, slot: string): boolean {
@@ -394,6 +606,7 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
           console.warn('Slotted: onWielded threw — skipped', err);
         }
       }
+      this.fireWornChange();
     }
 
     public vacate(
@@ -429,6 +642,7 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
           console.warn('Slotted: onUnwielded threw — skipped', err);
         }
       }
+      this.fireWornChange();
       return candidate;
     }
 
@@ -613,7 +827,24 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
           console.warn('Slotted: onUnwielded threw — skipped', err);
         }
       }
+      this.fireWornChange();
       return sole;
+    }
+
+    /**
+     * Poke the subscription substrate after an occupancy change. The
+     * substrate matches on `(KIND, 'field', 'worn')` and re-projects the
+     * host, so the values carried are documentation-only — which is why
+     * they are deliberately unequal rather than a real before/after
+     * count (`fireFieldChange` suppresses an `Object.is` no-op).
+     */
+    private fireWornChange(): void {
+      MqlSubscriptionApi.fireFieldChange(
+        this as unknown as Stuff,
+        'worn',
+        null,
+        this.slots.size,
+      );
     }
 
     /**

@@ -387,6 +387,17 @@ nothing to the merge. Subscriptions with `cardinality: 'many'` AND a
 | DetailedMixin | `details` (alias-grouped) | `{ ids, description, hasChildren }` | default `dependsOnFields: ['details']`; ShadowChangedEvent |
 | TangibleMixin | `bulkMaterial`, `mass` | `{ material }` (prefix-walk at focus key) | defaults for `bulkMaterial` / `mass`; **explicit** `dependsOnFields: ['detailMaterials']` for `detailMaterial` because the descriptor name doesn't match the setter's field discriminator. ShadowChangedEvent on the shadow-aware ones. |
 | GlobbableMixin | `quantity` | — | default `dependsOnFields: ['quantity']` |
+| ContainerMixin | `contents` | — | explicit `dependsOnFields: ['contents']`; fired inline from `addContainable` / `removeContainable`. ⚠ Subtracts anything currently occupying a slot on the host — see `SlottedMixin` below |
+| SlottedMixin | `worn` | — | explicit `dependsOnFields: ['worn']`; fired inline from `occupy` / `vacate` / `vacateSole` |
+
+⭐ **`contents` and `worn` are a PARTITION of one set.** A worn garment
+never leaves the wearer's contents (the `wear` verb only claims slots),
+so `contents` skips slot occupants and `worn` picks up exactly those —
+filtered to `Wearable` ones, since a sheathed sidearm and a cranial
+implant are *slotted*, not worn. Both apply the same per-viewer filter
+(no self · `Visible` · `PerceptionApi.perceives`). Full rationale, and
+why the card lays them out as two sections rather than annotating one,
+in [card-surface.md](./card-surface.md) § *`worn` vs `contents`*.
 
 `DetailedMixin.getDetailEntries(parent?)` returns alias-grouped
 top-level entries (a single Detail object addressed by multiple keys

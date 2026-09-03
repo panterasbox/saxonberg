@@ -1547,6 +1547,21 @@ export interface StuffDetailRecord extends StuffRefRecord {
   mass?: { value: number; unit: 'kg' };
   contents?: StuffRefRecord[];
   /**
+   * What the subject is **wearing** — the body half against `contents`'
+   * pack half, and a partition of the same set rather than a second copy
+   * of it: a worn garment is filtered OUT of `contents` and appears
+   * here instead.
+   *
+   * Outermost-first. Per-viewer filtered exactly as `contents` is (no
+   * self, `Visible` only, perceivable only). Omitted entirely for hosts
+   * that expose no slots.
+   *
+   * ⚠ Worn is **public** in a way carried is not — it is what anyone
+   * looking at you can see — which is why the card renders it for an
+   * `agent`, where contents is deliberately suppressed.
+   */
+  worn?: StuffRefRecord[];
+  /**
    * Obvious exits for Exitable hosts — what `look` would surface as
    * "Obvious exits: ...". Omitted entirely for non-Exitable hosts.
    * Each entry carries the direction string (`'south'`, `'up'`); the

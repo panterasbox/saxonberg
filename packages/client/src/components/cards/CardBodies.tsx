@@ -355,6 +355,7 @@ const DESCRIPTION_FIELDS: ReadonlySet<string> = new Set([
   "illustration",
   "details",
   "contents",
+  "worn",
   "exits",
   "quantity",
   "bulkMaterial",
@@ -807,6 +808,60 @@ function HereList({
       </Rows>
       {hidden > 0 && (
         <Overflow data-testid="here-overflow">+{hidden} more</Overflow>
+      )}
+    </>
+  );
+}
+
+/**
+ * What the subject is **wearing**, as its own section.
+ *
+ * ⚠ Rendered for EVERY kind, `agent` included — which is precisely the
+ * hole this fills. `HereList` is suppressed for a person because their
+ * contents are their pockets; what they have ON is the opposite, the
+ * most public fact about them, and until now the card could not show
+ * it at all. The two lists are a partition of one set server-side, so
+ * nothing can appear in both.
+ *
+ * Outermost-first, capped and counted the way `HereList` is.
+ */
+function WornList({
+  record,
+  onSendCommand,
+  onCommandPreview,
+}: {
+  record: StuffDetailRecord | undefined;
+  onSendCommand: (text: string) => void;
+  onCommandPreview?: (command: string | null) => void;
+}): React.ReactElement | null {
+  const worn = record?.worn ?? [];
+  if (worn.length === 0) return null;
+  const preview = onCommandPreview ?? (() => undefined);
+  const shown = worn.slice(0, HERE_SHOWN);
+  const hidden = worn.length - shown.length;
+  return (
+    <>
+      <Label>Worn</Label>
+      <Rows>
+        {shown.map((row) => {
+          const target = row.primaryKeyword ?? row.displayName;
+          const command = `look ${target}`;
+          return (
+            <div key={row.stuffId}>
+              <EntityName
+                stuffId={row.stuffId}
+                label={row.displayName}
+                title={`Click to send: ${command}`}
+                command={command}
+                onPreview={preview}
+                onClick={() => onSendCommand(command)}
+              />
+            </div>
+          );
+        })}
+      </Rows>
+      {hidden > 0 && (
+        <Overflow data-testid="worn-overflow">+{hidden} more</Overflow>
       )}
     </>
   );
@@ -1307,6 +1362,14 @@ function MqlBody(props: CardBodyProps): React.ReactElement {
       {!isPlace && !isAgent && !isIdea && <Measured record={record} />}
       {isPlace && (
         <WaysOut
+          record={record}
+          onSendCommand={onSendCommand}
+          onCommandPreview={onCommandPreview}
+        />
+      )}
+      {/* ⭐ Worn is public — so unlike contents it renders for an agent. */}
+      {!isIdea && (
+        <WornList
           record={record}
           onSendCommand={onSendCommand}
           onCommandPreview={onCommandPreview}

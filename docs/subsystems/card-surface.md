@@ -746,6 +746,74 @@ on non-container detail subscriptions for a uniform projection
 policy. If contents grow heavy enough that this matters, that's
 the moment to split.
 
+## ⭐⭐ `worn` vs `contents` — a PARTITION, not a second list
+
+`worn` is the **body** half against `contents`' **pack** half, and the
+two are two projections **over one set** rather than two sets.
+
+```ts
+DETAIL_FIELDS = [ …, 'contents', 'worn', 'exits' ];
+```
+
+**Why it had to be a separate field.** Wearing something never takes it
+out of the wearer's contents — `WearController` only claims slots, and
+a worn shirt is still in `getContents()`. So a flag on a `contents` row
+would have been the cheap version, and it would have been wrong twice:
+the distinction the card needs is a **layout** one (two sections, not
+one section with an annotation), and `contents` is *suppressed entirely*
+for an `agent` because *a person's contents are their pockets* — which
+would have suppressed what they are wearing along with it.
+
+⭐ **That suppression is exactly the hole `worn` fills.** What somebody
+has *on* is the most public fact about them and the one thing a look
+card could not show; what they have *in their pockets* is nobody's
+business. So the card renders `worn` **for every kind including
+`agent`**, above `HereList`, and `contents` stays suppressed there.
+
+**The partition is enforced on the producing side**, not by the client:
+
+- `SlottedMixin.subscribableFields` ships `worn` — `wornStack()` filtered
+  to `Wearable` occupants (a sheathed sidearm and a cranial implant are
+  *slotted*, not worn), then the same per-viewer filters `contents` uses
+  (no self · `Visible` only · `PerceptionApi.perceives`, so a concealed
+  garment never reaches the wire).
+- `ContainerMixin`'s `contents` descriptor gained a fourth clause:
+  **skip a child currently occupying a slot on the host.**
+
+Ordering is **outermost-first**. Wear order is slot insertion order —
+a `Map` and a `Set` both preserve it, and the persistence spine re-wears
+through `occupyAll` in the captured order — so the order is durable with
+**no new field**.
+
+Diffs ride `FieldChangedEvent { field: 'worn' }`, fired inline from
+`occupy` / `vacate` / `vacateSole`, exactly as `contents` fires from
+`addContainable` / `removeContainable`.
+
+### The impression line — the card enumerates, the prose summarizes
+
+The same subject gets a second, lower-resolution reading: a
+`markupAugmenter` on `SlottedMixin` appends a one-sentence **gestalt**
+of how the host is dressed. Prose that enumerated the stack would just
+be a worse card, so the line **names no individual garment** — it never
+calls `getPresentation()` on an occupant, and the test asserts it shares
+no token with any worn item's `primaryKeyword`.
+
+It is a **fold over whatever facts resolve** (quality · upkeep · the
+mark, with fit and colour arriving later), each contributing a clause or
+nothing, guarded to hosts that resolve a body plan — a weapon rack is
+`Slotted` too and has no impression.
+
+⭐ Phrasing is **seeded, not drawn**: a pure hash of
+`(host, factsDigest, viewer)`. The same outfit therefore always reads
+the same way to the same viewer, which is correct — an unchanged person
+should not re-describe themselves differently every glance. Variety
+comes from different *hosts*, and a changed outfit re-rolls honestly.
+**No prop, no recent-set, no session state.** See
+`lib/slot/Impression.ts`, which also records why the phrasings are a
+module constant rather than a `descriptor-banks` file (that kind is a
+closed two-axis shape for unidentified-item appearance; a `(facet, band)`
+map installed there would have its keys silently discarded).
+
 ## Body discipline: percepts, not state dump
 
 The card body renders **what a perception verb would reveal to
