@@ -61,6 +61,7 @@ not a wave of their own:**
 | land use `agricultural` → cultivation `field`, band 1 000–4 000 000 m² — **and nothing consumes the `field` ceiling** | `lib/parcel/LandUse.ts:116` | W3 is its first consumer |
 | `trade-fuel` ships the coppice + `ash` (thing **and** material) | `packages/content/trade-fuel/` | D63's firewood supply; D68's potash needs no new row |
 | `tannin.yaml` ships (textiles) | `trade-dyeing/…/material/tannin.yaml` | hide → leather has its reagent |
+| `archetype` is a shipped **document kind**; rows are pure YAML under `content/archetypes/`; `ArchetypeCatalogue` warms them read-only | `DocumentKinds.ts:64`, `platform/idea/ArchetypeCatalogue.ts`, `trade-mining/content/archetypes/mining.yaml` | **AC 62 is satisfied by construction** (P12) |
 | ⚠ **`cordwood.yaml` says "hazel" and carries `_materialPath: …/wood/oak`**, and **oak is the only wood material** | `trade-fuel/…/thing/cordwood.yaml` | a one-line fix to take in passing (W0) |
 
 ---
@@ -331,10 +332,10 @@ only genuinely shared substrate stays in the kernel.
   the actual test, and the reason `Field` and `GroundCharacter` fail it.
 - **`trade-farming`** — ⭐ **`Field`** (P2), **`GroundCharacter`** (P3), the
   sward, the land-use derivation, reclamation and `plough`, barley, clover,
-  turnips, saffron.
+  turnips, saffron, and the **`farm` archetype row** (P12).
 - **`trade-ranching`** (new pack, **depends on `trade-farming`**) — the herd
   registry branch and its title claim (P4), `draft`/`shear`/`milk`/`muck`, the
-  farmstead venue archetype, the hand's brain, the ranching disciplines.
+  **`byre` archetype row** (P12), the hand's brain, the ranching disciplines.
 - **The commons** (`species-and-names`) — the five species rows. *A sheep exists
   whether or not anybody ranches.*
 - **`eternal-university`** — ⚠ **P10**, the campus farm.
@@ -357,6 +358,60 @@ The stanza ships and `trade-mining` owns `AnalyzeGroundController`. Farmland is 
 second channel on it (the instrumentation split), and **the ribbon test is a
 separate physical act** with a tool prerequisite — a procedure is a verb, a
 reading is a channel.
+
+### P12 — the archetypes: TWO rows, no code, and one deliberate empty slot
+
+An earlier draft named "the farmstead venue archetype" three times without
+saying what one is. It is a **shipped document kind**, and that fact is what
+satisfies AC 62.
+
+**The machinery, verified:** `archetype` is a `DocumentKinds` entry
+(`naturalKey: 'archetypeId'`, `contentDir: 'archetypes'`,
+`onVanish: 'delete'`); rows live at
+`packages/content/<pack>/content/archetypes/<id>.yaml`; `ArchetypeCatalogue`
+(a singleton `Idea` at `/platform/idea/ArchetypeCatalogue`) warms a transient
+cache from `documents {kind: 'archetype'}` and resolves by id, **read-only and
+ungated** — *an archetype is public knowledge, the floor an industry states*.
+
+> ⭐⭐ **An archetype is a YAML row and nothing else.** So AC 62 — *the campus
+> farm needs zero pack code* — is satisfied **by construction**, not by
+> discipline. If W12 finds itself writing `src/`, the archetype is the wrong
+> shape, and that is the finding to report (P10).
+
+**Three rules taken verbatim from `mining.yaml`, which is the exemplar:**
+
+1. **Needs are stated in capabilities the kernel already checks, never in
+   furniture** — `{ lightLux: 20 }`, `{ presence: pony }`,
+   `{ bulkSource: timber }`, `{ tool: assay-scale }`.
+2. ⭐⭐ **Reported, never enforced.** A farm missing a slot is a *legal, visible
+   state*, and **nothing multiplies off a satisfaction.** This is the no-gauge
+   rule at venue scale, and it is the single easiest thing here to get wrong.
+3. **A default names the trade's own row only where the trade genuinely owns
+   it.** Whose barn and whose ox is a fact about the *place*, so those bind at
+   the locality.
+
+**Two archetypes, not one.** The requirements say "a farmstead archetype"
+(D33); the pack cut says otherwise, and the pack cut is right — mining, brewing,
+distilling and winemaking each ship their own, and **a holding that only grows
+crops must not fail a byre slot**:
+
+| | Pack | Slots |
+|---|---|---|
+| **`farm`** | `trade-farming` | ground (the `field` cultivation ceiling) · **water** · storage · traction · a way to market |
+| **`byre`** | `trade-ranching` | shelter (D12's winter) · enclosure · **water** · feed store · somewhere the muck goes (D68) |
+
+A mixed farmstead satisfies both, which is the honest reading of a mixed farm —
+and it gives the university farm **two** bindings to prove rather than one.
+
+⭐ **`water` is the divergence slot, and it ships with NO DEFAULT** — the
+`light`-in-a-mine move, and the reason it is the right choice: every farm needs
+water and **no two places answer the same way.** A stream, a well, a cistern,
+a pond, roof catchment, or a piped supply off the shipped `Conduit` ladder. The
+archetype names none of them.
+
+**Traction takes a modest default** (`trade-farming`'s plough) because the trade
+genuinely owns the implement — while the *animal* pulling it binds at the
+locality, exactly as haulage does for the mine.
 
 ---
 
@@ -463,7 +518,8 @@ malt has a crop behind it (AC 13, 34, 35).
 
 ### W12 — The university farm, teaching, and the on-ramp
 
-D102–D105, P10. The campus farm as authored content; help topics for **concepts**
+D102–D105, P10, P12. The campus farm as authored content **binding both
+archetypes** (`farm` and `byre`) at small scale; help topics for **concepts**
 as well as verbs; the labourer rung. **Green:** ⭐ the campus farm needs **zero
 pack code** (AC 62 — D33's test), and a new character with no land and no money
 can do real husbandry acts for pay in their first session (AC 63).
@@ -529,9 +585,12 @@ and do not gate this MR.** Two carry unusual weight:
 5. **Wave count is high (17).** If the build runs long, the cut order is: W15
    (bees), then saffron and turnips out of W11, then W13 — **never** W12, because
    a build nobody can start is not shippable.
-6. **The band vocabularies are the most likely thing to be skimped**, and
+6. ⚠ **The archetype is *reported, never enforced* (P12)** — the easiest thing
+   in this build to get wrong, because a satisfaction score is the obvious next
+   step and it is forbidden. **Nothing multiplies off a slot.**
+7. **The band vocabularies are the most likely thing to be skimped**, and
    skimping them fails silently — two bands that read alike collapse the whole
    honest-opacity model.
-7. **Tier 3's three forward obligations** (D79 record legibility, D82 quality
+8. **Tier 3's three forward obligations** (D79 record legibility, D82 quality
    levers, D74 not foreclosing profits à prendre) must be honoured in W8 and W10
    or tier 3 becomes a rewrite.
