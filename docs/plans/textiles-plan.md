@@ -840,6 +840,21 @@ all three plug in identically.** If retting is the entry point, only flax
 ever works. Concretely: `spin` takes a **fibre material**, and how that
 material came to exist is upstream and none of textiles' business.
 
+**Seam 2b — and the same rule for DYESTUFF.** ⚠ *Added 2026-09-02 by the
+continuity lens; seam 2 covered fibre and left this open.* **`dye` takes
+a dyestuff MATERIAL, never a crop.** Madder-the-plant is farming's;
+madder-the-dyestuff is what dyeing consumes, and where it came from — a
+field or a retort — is upstream and none of dyeing's business.
+
+⭐ **This is the seam Perkin walks through.** Mauveine (1856) — the first
+synthetic dye, found by accident while trying to synthesise quinine —
+destroyed madder and indigo agriculture within a generation, turned
+colour from luxury into commodity, and founded the modern chemical
+industry. For that to ever plug in, the entry point must be the material.
+⭐ P19/P20 already got the harder half right: because **woad takes no
+mordant**, the mordant step is **per-dyestuff rather than universal** —
+which is exactly what a synthetic *direct* dye needs.
+
 **Seam 3 — the bottleneck assertion is historically scoped.** *"Spinning
 is the maximum attended step"* is true before 1764 and false after — that
 **is** the lesson. ⚠ The B2 bench must assert it **at the shipped tech
@@ -851,6 +866,29 @@ mill wave breaks a test that was never meant to hold, and someone
 exercised disciplines; never author tech ahead of demand* — no aramid, no
 nylon, no mill in this build. The question P15 answers is whether the
 substrate **can** carry them, not whether it does.
+
+#### ⭐ What later looks like — notes that cost nothing now
+
+Recorded so nobody closes a door. **None of this is authored.**
+
+- **Chemical bleaching.** Sun-bleaching wants weeks of dedicated land;
+  chlorine bleaching wants hours. That jump **turned bleaching greens
+  back into farmland** — one of the best land-economics stories the
+  subject has, and P21's place-based green sets it up by existing.
+- ⭐⭐⭐ **Standardised sizing is nearly free.** Ready-to-wear exists
+  because Civil War uniform contracts proved bodies could be
+  *classified*. `cutTo` is a measurement stamp where **absent = stock**,
+  so **a size system is just a set of named standard `cutTo` values** —
+  **zero mechanism change**. And the fit distance stays honest: a size-40
+  coat fits you well or badly by how near you are to the size-40 body,
+  which is precisely why off-the-rack clothes fit most people
+  imperfectly. ⭐ It also frames P18: **the measurement book is the
+  pre-industrial form of the same idea**, and sizing is what replaces it.
+- **The tool ladders have headroom.** spindle → wheel → jenny → frame;
+  hand loom → flying shuttle → power loom. All expressible as `rate`; the
+  jenny's multi-thread trick is a throughput multiplier `rate` covers
+  numerically. ⚠ And the sewing machine **already ships** — tailoring's
+  industrial rung is in the world today.
 
 ⚠ **One honest limit: the prehistoric end is partly blocked on Stage C.**
 Pre-textile clothing is largely hide, and leatherwork is deferred because
@@ -1300,6 +1338,74 @@ the operation `Globbable` already ships.
   derived. Comparable packs ship 2–12 recipes; textiles sits at the low
   end **because its variety is derived rather than authored**, which is
   the correct reason to be there.
+
+### P22 — The magic lens on Stage B: the craft wins on permanence
+
+*(Added 2026-09-02. Decision 11 covered magic against the chain as a
+whole; this is the pass against the three trades' own mechanisms. All
+three land on one shape, which is the sign the doctrine is doing work
+rather than being recited.)*
+
+#### Textiles — a precise refusal worth authoring
+
+⭐ `create·light` over a **bleaching green** looks like the obvious
+shortcut, and Voss says glowlight is *cheap* to hold (~8 τ/hour —
+nothing in the world is actively trying to make a room dark). The refusal
+is physical, not fiat:
+
+> **Bleaching is photochemistry; a glowlight is illumination.**
+> Sun-bleaching wants short wavelengths; a glowlight makes lumens to see
+> by.
+
+It teaches **light-as-energy vs light-as-seeing**, and it should be
+authored as a diegetic line when someone tries it, never a silent
+no-op. Retting is the other case and Kell already answers it: holding a
+tank at temperature is a **binding**, so a warm shed beats a mage.
+
+#### ⭐⭐ Dyeing — the real threat, and the inversion that saves the craft
+
+This is where magic genuinely endangers a trade. The `dyeing` Discipline
+buys **fastness** (P16); fastness is what a mordant does; and
+`arcane-science.md` allows chemical transformation *"in small amounts"*.
+If a spell fixes colour better than alum, the dyer's craft evaporates.
+
+Kell answers it, and the answer beats a refusal:
+
+> **A magically-fixed colour is a BINDING** — held state, topped up
+> continuously, gone when the assertion cuts. So a magically-dyed
+> garment **fades the moment the charge runs out.**
+
+⭐⭐ Which inverts into a genuinely tempting, genuinely bad bargain:
+
+**Magic gives you a brilliant colour that does not last. The craft gives
+you a modest colour that does.**
+
+And it lands exactly on P20's muted palette — a mage *can* put saturated
+colour on linen, but only while paying for it. A player should take that
+bargain once and regret it. ⚠ Same answer for the living woad vat
+(P20): magically holding it is a standing bill against feeding it bran,
+and the craft wins.
+
+#### ⭐⭐ Tailoring — conservation binds magic exactly as hard as the tailor
+
+Could a spell resize a garment? The principled answer is not the
+specification problem — it is simpler:
+
+> **Making a coat bigger needs more cloth, and a spell cannot conjure
+> matter** (elemental transformation is off by ~10⁶). Making it smaller
+> is just cutting.
+
+So **`alter`'s ceiling is the seam allowance because matter is
+conserved** — a physical fact, not a game rule. Magic hits the identical
+wall. It might alter *faster*; it cannot alter *further*. ⭐ The cleanest
+magic/craft interaction in the build, and it needs no code: the limit is
+already `cut`'s waste decision.
+
+#### The shape all three share
+
+**The mundane craft wins on permanence, and conservation binds magic as
+hard as it binds the tradesman.** ⚠ Any later proposal that lets a
+working beat a craft *durably* is contradicting Kell, not extending it.
 
 ---
 
