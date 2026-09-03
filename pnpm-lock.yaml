@@ -544,6 +544,9 @@ importers:
 
   packages/content/saxonberg-lounge:
     dependencies:
+      '@saxonberg/content-arcana':
+        specifier: workspace:*
+        version: link:../arcana
       '@saxonberg/content-corpo-aevex':
         specifier: workspace:*
         version: link:../corpo-aevex
