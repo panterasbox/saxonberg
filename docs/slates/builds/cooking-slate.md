@@ -1270,7 +1270,7 @@ requires two people to run one room.
 
 ---
 
-## Part 8 — Food culture & regional cuisine (settled in principle)
+## Part 8 — Food culture, regional cuisine & observance (settled in principle)
 
 **None of this is v1** — it is content plus one open fork. But the
 governing rules are worth fixing now, because they decide what later
@@ -1320,6 +1320,57 @@ venue in a second town needs *zero pack code*.
 - **The pedagogy comes free**: *why cuisines differ* is real
   curriculum — geography, economics, migration, preservation — and it
   is teachable here only because the chain underneath is honest.
+
+### Feasts, fasting & the sacred meal
+
+The [faith slate](./faith-slate.md) already settled the doctrine, and
+it is the right one: **"religion that FORBIDS beats religion that
+GRANTS"**, *"meet a need, don't grant a power — no powers, ever"*,
+with NetHack's *"you farm the god"* as the named failure. Applied to
+food:
+
+- ⚠ **The actionable constraint for THIS build: ship no consumable
+  buffs.** Stat-food is the door through which both god-farming and
+  min-maxed cuisine enter. The codebase already decided this — the
+  `Dish` verdict is *"a felt, diegetic difference, never a stat
+  buff"* — and the cooking build must not reopen it. Blessed food
+  grants nothing; that is what keeps the altar from becoming a
+  vending machine.
+- **The costs are real; the returns are social.** A fast is genuinely
+  not eating (metabolism's satiation and its consequences ship); a
+  feast is genuinely provisioning many (real economy). Observance
+  therefore costs real resources and returns **regard and renown** —
+  the faith slate's *"a standard you are held to, people who hold you
+  to it."* Cost mechanical, reward social: the honest asymmetry.
+- ⭐ **Vesta is already the cook's god, and pre-authored for exactly
+  this**: the story bible has her as *"patron of the hearth — home,
+  welcome, the gathered fire. The host"* under MITRA (*the bond,
+  presence, serving-experience*), and the trade roster already leans
+  cook, baker, potter and groundskeeper to her. **Feeding people IS
+  her practice** — the trade needs no devotional mechanic bolted on,
+  because it already is one.
+- **The feast is the calendar meeting the economy**: a feast day is a
+  calendar fact (the time subsystem ships one), and a feast is the
+  **demand spike** that makes the cook's year seasonal — pairing with
+  the preservation slate's *agricultural year falls out*: the harvest
+  festival is when the larder is fullest and the cook works hardest.
+  A date plus a lot of orders; zero mechanism.
+- ⭐ **Commensality is the platform's thesis in miniature.** The
+  shared meal is the oldest social technology, and a feast is simply
+  a gathering — the Party Idea, groups, the scene composer,
+  reactions. The meal is the natural occasion for every social
+  system, and eating together is the anti-isolation act the
+  never-cut-players-off doctrine wants.
+- **Dietary proscription: the engine never blocks the mouth.** What
+  may not be eaten, and when, is content; enforcement is **social,
+  not mechanical** — eating is an observable act in a room, so a
+  proscription broken in public is witnessed and one broken alone is
+  not. That is an honest model of conscience versus enforcement, and
+  it is FORBIDS-not-GRANTS applied to food. (A polity may impose
+  beyond conscience — civics' layer, never cooking's.)
+- **Offerings are an honest sink** (food given at an altar leaves the
+  economy — temple economies were real), and the no-powers rule
+  immunizes it: with nothing granted, there is nothing to farm.
 
 ⚠ Build-freeze note: captured during the client-rebuild design-only
 phase. This slate is the input to a `/requirements` cycle when the
