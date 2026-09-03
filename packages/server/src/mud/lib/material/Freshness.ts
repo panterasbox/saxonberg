@@ -179,6 +179,19 @@ function freshnessAugmenter(
  * spoilage; this is the trade that was chosen, and it is the ONLY impure
  * seam in the file.
  */
+/**
+ * ⭐ **Spoilage's own field on the blend payload, declared here.** The
+ * gauge has to hang on something per-instance, and the payload is that
+ * something — but the payload's own module has no business knowing what
+ * a microbial load is. Declared from the folder that owns it.
+ */
+declare module '../bulk/Bulkable' {
+  interface BulkPayload {
+    /** Microbial load + the game-time it was last reconciled. */
+    freshness?: { load: number; stamp: number };
+  }
+}
+
 export class Freshness {
   /**
    * The specific growth rate (per game-hour) at a temperature, for a

@@ -53,7 +53,6 @@ import { MqlSubscriptionApi } from '../../api/mql-subscription';
 import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
 import type { MarkupAugmenter } from '../../api/mml';
 import type Material from '../material/Material';
-import type { ToxinTag } from '../metabolism/Metabolic';
 
 /**
  * Ordered liquid-retention scale on a bulk holder. The vessel retains
@@ -120,6 +119,18 @@ export interface BlendPart {
   servings: number;
 }
 
+/**
+ * ⭐⭐ **What a blend IS, and nothing else.** Two facts live here —
+ * `recipeId` (what made it) and `composition` (what went in) — plus
+ * `cookedAtK`, which the making could not otherwise recover.
+ *
+ * ⚠ Other subsystems add their own carried facts by DECLARATION MERGING
+ * from their own folders, which is how a value object gets the thing a
+ * class gets from a mixin: `formedToxins` is declared by
+ * `lib/metabolism`, `freshness` by `lib/material/Freshness`. That is why
+ * `lib/bulk` imports no subsystem — continuous volume is all this file
+ * knows about, and `pnpm lint:imports` is what keeps it that way.
+ */
 export interface BulkPayload {
   /**
    * ⭐⭐ **The recipe that made this** — and with it the blend's whole
@@ -147,13 +158,6 @@ export interface BulkPayload {
    */
   cookedAtK?: number;
   /**
-   * Toxins that AROSE rather than arriving in an ingredient — the
-   * ptomaine a spoiled batch grew. Nothing in the composition implies
-   * them, so they cannot derive. ⚠ Heat does not touch these: it stops
-   * growth, it does not un-poison what the growth produced.
-   */
-  formedToxins?: ToxinTag[];
-  /**
    * ⭐⭐ **The composition — what went in, and how much.** Material PATHS
    * with their servings, in the order first consumed, summed per
    * material. Absent on a blend that derived nothing.
@@ -178,22 +182,6 @@ export interface BulkPayload {
    * on `CraftVessel`. It sat on `BulkableMixin` for one build, which put
    * a taste-palate augmenter on floors, garden beds and air tanks.
    */
-  /**
-   * ⭐ The blend's **spoilage gauge** — the bulk twin of
-   * `FreshnessMixin`'s two fields, stored on the payload because the
-   * matter is what goes off, not the vessel: pour a spoiling stew into a
-   * clean bowl and the spoilage travels with it.
-   *
-   * Absent on an inert blend (nothing whose material tabulates a spoilage
-   * activation energy ever writes one), so a bar's drinks carry no extra
-   * bytes.
-   *
-   * ⚠ **Data only — bulk owns the field, not the meaning.** The reconcile
-   * (through the HOLDER, since the vessel is the Thermal host) lives in
-   * the spoilage subsystem: `Freshness.loadOf(slot)`. Same as `nutrients`
-   * and `toxicity`, which bulk stores without knowing metabolism.
-   */
-  freshness?: { load: number; stamp: number };
 }
 
 

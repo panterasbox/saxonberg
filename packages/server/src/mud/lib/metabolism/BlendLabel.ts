@@ -37,6 +37,26 @@ import type { ToxinTag } from './Metabolic';
 import type Material from '../material/Material';
 import { StuffApi } from '../../api/stuff';
 
+/**
+ * ⭐ **Metabolism's own field on the blend payload, declared here.** A
+ * `BulkPayload` is a value object, so it cannot compose a mixin — this is
+ * the equivalent move: the subsystem that owns the concept declares the
+ * field from its own folder, and `lib/bulk` never learns the word
+ * "toxin". Same technique `Engaged`, `CombatSession` and `AbortReason`
+ * already use, and that `Bulkable` itself uses on the MQL types.
+ */
+declare module '../bulk/Bulkable' {
+  interface BulkPayload {
+    /**
+     * Toxins that AROSE rather than arriving in an ingredient — the
+     * ptomaine a spoiled batch grew. Nothing in the composition implies
+     * them, so they cannot derive. ⚠ Heat does not touch these: it stops
+     * growth, it does not un-poison what the growth produced.
+     */
+    formedToxins?: ToxinTag[];
+  }
+}
+
 export class BlendLabel {
   /**
    * The ingredient Materials of a payload, in the order they went in.
