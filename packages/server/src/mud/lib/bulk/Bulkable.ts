@@ -148,6 +148,37 @@ export interface BulkPayload {
    */
   recipeId?: string;
   /**
+   * ⚠⚠ **The one presentation string still carried, and the reason is a
+   * boundary, not an oversight.** The blend's appearance is the RECIPE's
+   * (`getOutputAppearance`), like its name and keywords — but unlike
+   * those, it is rendered by `bulkContentsAugmenter` **in this file**
+   * ("It holds a thick brown stew…"), and `lib/bulk` may not import
+   * `lib/craft` to ask. Reaching for `BlendIdentity` here was tried: it
+   * put back the exact `lib/bulk` → `lib/craft` edge the decomposition
+   * exists to remove, and it was circular besides.
+   *
+   * ⭐ Dropping it instead was tried too, and that is the instructive
+   * half: every dish silently began reading "a portion of plain cooked
+   * fare" — the generic base's appearance — and **the live drive still
+   * passed**, because its check was `/holds|stew/i`. An empty derivation
+   * and a wrong one look identical unless the assertion names the
+   * sentence.
+   */
+  appearance?: string;
+  /**
+   * ⚠⚠ Carried for the same reason as `appearance`, and learned the same
+   * way: derived keywords silently broke RESOLUTION. `look stew` answered
+   * *"You don't see any 'stew' here"* because the blend's keywords came
+   * back as the generic base material's, and every later check in the
+   * drive failed as a cascade off that one miss.
+   *
+   * ⭐ The lesson is about which facts a substrate may outsource. Name and
+   * discipline are READ by callers and degrade gracefully if a lookup
+   * misses; keywords are how the thing is FOUND, so a miss is not a
+   * degraded reading, it is an object that has stopped existing.
+   */
+  keywords?: string[];
+  /**
    * ⭐ The temperature (K) the working actually REACHED — history, not
    * composition, and the reason it must be carried. The heat-labile kill
    * depends on it: a toxin the author marked labile is destroyed once the
@@ -649,14 +680,11 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
         const described = (material as unknown as Stuff).describeFor(viewer);
         if (described) return described;
       }
-      // ⚠⚠ Deliberately the MATERIAL's appearance and not the blend's.
-      // Reaching for `BlendIdentity` here would put a `lib/bulk` →
-      // `lib/craft` import back in — the exact edge the decomposition
-      // exists to remove — and it is circular besides (it silently broke
-      // every craft in the integration suite for one revision). A caller
-      // that wants the blend's own appearance asks `BlendIdentity`; this
-      // substrate answers only for the matter.
-      return material.getAppearance() || null;
+      // The blend's own appearance when it has one, else the matter's.
+      // ⚠ Read off the payload rather than through `BlendIdentity`,
+      // because `lib/bulk` may not import `lib/craft` — see the field's
+      // comment for why that is a boundary and not an oversight.
+      return slot.getPayload()?.appearance ?? material.getAppearance() ?? null;
     }
 
     public getBulkMaterialPath(affordance: BulkAffordance): string | null {

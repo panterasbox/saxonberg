@@ -782,6 +782,8 @@ function resolveSpoilage(
  */
 function deriveBlendPayload(
   recipeId: string,
+  appearance: string,
+  keywords: readonly string[],
   parts: { material: Material; servings: number }[],
   effectiveHeatK = 0,
 ): BulkPayload {
@@ -809,6 +811,8 @@ function deriveBlendPayload(
   // the tastes are all READ off these — see BlendIdentity and BlendLabel.
   const payload: BulkPayload = {};
   if (recipeId) payload.recipeId = recipeId;
+  if (appearance) payload.appearance = appearance;
+  if (keywords.length > 0) payload.keywords = [...keywords];
   if (effectiveHeatK > 0) payload.cookedAtK = effectiveHeatK;
   if (composition.size > 0) {
     payload.composition = [...composition].map(([materialPath, servings]) => ({
@@ -961,6 +965,8 @@ async function applyBulkOutput(
   outSlot.setPayload(
     deriveBlendPayload(
       recipe.getRecipeId(),
+      recipe.getOutputAppearance(),
+      recipe.getKeywords(),
       [
         ...matched.flatMap((m) =>
           m.material ? [{ material: m.material, servings: 1 }] : [],
@@ -1065,6 +1071,8 @@ async function applyEdibleOutput(
   outSlot.setPayload(
     deriveBlendPayload(
       recipe.getRecipeId(),
+      recipe.getOutputAppearance(),
+      recipe.getKeywords(),
       matchedItems.map((m) => ({ material: m.material, servings: m.count })),
       effectiveHeatK,
     ),
@@ -1535,6 +1543,8 @@ async function mintVessel(
       // as `BlendIdentity` does for water in a butt.
       deriveBlendPayload(
         recipe ? recipe.getRecipeId() : '',
+        recipe ? recipe.getOutputAppearance() : '',
+        recipe ? recipe.getKeywords() : material.getKeywords(),
         parts,
         effectiveHeatK,
       ),

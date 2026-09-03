@@ -233,10 +233,25 @@ async function main(): Promise<void> {
   console.log("\n3. Read what was served");
   const dish = plain(await cook.cmd("look stew", 2200));
   say(">", dish);
-  ok("the dish holds the stew", /holds|stew/i.test(dish), dish);
+  // ⚠⚠ Name the SENTENCE, not a word of it. This check was
+  // `/holds|stew/i` and it passed green while every dish silently read
+  // "It holds a portion of plain cooked fare" — the generic base's
+  // appearance, after a refactor dropped the blend's own. **An empty
+  // derivation and a wrong one look identical unless the assertion says
+  // what the prose should be.**
+  ok(
+    "the dish holds the STEW's own appearance, not the base material's",
+    /a thick brown stew, roots and meat in a dark gravy/i.test(dish),
+    dish,
+  );
+  ok("…and the honest label rides with it", /carb 34000mg/.test(dish), dish);
   const taste = plain(await cook.cmd("taste stew", 2200));
   say(">", taste);
-  ok("the palate reads it (derived, never authored)", /tastes/i.test(taste), taste);
+  ok(
+    "the palate reads the DERIVED tastes — sweet from the root, umami from the meat",
+    /It tastes sweet and umami/i.test(taste),
+    taste,
+  );
 
   // ── 4. Eat it — cutlery reads, never gates ─────────────────────────
   console.log("\n4. Eat it");

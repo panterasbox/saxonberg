@@ -62,7 +62,11 @@ export class BlendIdentity {
     payload: BulkPayload | null,
     material: Material | null,
   ): string {
+    // ⚠ The carried string first: it is what the substrate renders, so
+    // reading the recipe here instead could disagree with the vessel's
+    // own prose after a recipe edit.
     return (
+      payload?.appearance ||
       BlendIdentity.recipeOf(payload)?.getOutputAppearance() ||
       material?.getAppearance() ||
       ''
@@ -74,6 +78,9 @@ export class BlendIdentity {
     payload: BulkPayload | null,
     material: Material | null,
   ): readonly string[] {
+    // ⚠ Carried first — these are how the blend is FOUND, and a lookup
+    // that misses does not degrade the reading, it removes the object.
+    if (payload?.keywords?.length) return payload.keywords;
     const recipe = BlendIdentity.recipeOf(payload);
     if (recipe) return recipe.getKeywords();
     return material?.getKeywords() ?? [];
