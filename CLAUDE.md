@@ -863,9 +863,15 @@ registry keys on class identity, not name).
 `platform/<branch>/<cluster>/` directory only where 3+ cohesive classes land together
 — today `equipment/`, `modalities/`, `location/`, `species/`, `magic/`,
 `corpo/`, `persistence/`, `sandbox/`, `material/`, plus the pre-existing
-`instrument/`. `material/` is the one cluster that is load-bearing rather
-than cosmetic: `MaterialLogic.boot` keeps a row only when
-`tpl.class.startsWith('/platform/idea/material/')`, so the directory IS the filter. Lowercase content-tree roots under `/stuff/<branch>/` (`gear/`,
+`instrument/`. ⚠ **No cluster is load-bearing — `material/` included.**
+The warm is `MaterialCatalogue.warm()`: it selects candidates by
+**template-path infix** (`/idea/material/`, every root's subtree) and
+keeps a row whose **`class` extends `Material` wherever it lives** —
+*never an allowlist of roots*, which is exactly how a pack's
+`/system/arcana/idea/material/PotionMaterial` qualifies. **The kernel
+directory is NOT the filter**, and there is no `MaterialLogic.boot`.
+
+Lowercase content-tree roots under `/stuff/<branch>/` (`gear/`,
 `exits/`, `material/`, `biome/`) are template namespaces whose backing
 classes live elsewhere — that is fine and pre-existing.
 

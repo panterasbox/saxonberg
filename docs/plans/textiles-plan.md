@@ -268,10 +268,14 @@ kernel edit**; content **never** authors a resist profile.
    ⚠⚠ **CORRECTED 2026-09-02 — the returned plan hung this on
    `MaterialLogic.boot`, WHICH DOES NOT EXIST.** There is no such method;
    the only `startsWith('/platform/idea/material/')` in the tree is an
-   assertion inside `libations-annexes.test.ts`. (CLAUDE.md's claim that
-   *"`MaterialLogic.boot` keeps a row only when
-   `tpl.class.startsWith(…)`"* is **stale** — flag for the sweep rather
-   than racing the index file.)
+   assertion inside `libations-annexes.test.ts`. ✅ **CLAUDE.md carried
+   that stale claim and has been corrected** (2026-09-02) — it was wrong
+   three ways: the class (`MaterialCatalogue`, not `MaterialLogic`), the
+   filter (a **template-path infix** plus a *class-extends-`Material`*
+   check, not a `startsWith`), and the conclusion — *"the directory IS
+   the filter"* is **backwards**, since the catalogue is explicitly
+   *"never an allowlist of roots"* and that is precisely how a pack's
+   `/system/arcana/idea/material/PotionMaterial` qualifies.
 
    ⭐ **The correct mechanism is the precedent the plan already named.**
    `FermentProfileCatalogue` is *"the **self-warming** home"* of its
@@ -282,9 +286,11 @@ kernel edit**; content **never** authors a resist profile.
      **self-warming, never an operator `boot()`**. ⚠ This is the
      *reference-Ideas-inert-at-boot* rule, which has bitten three times:
      nothing warms the roster and every read returns null forever.
-   - `warm()` harvests `/**/idea/fabric/**` **by path glob, never an
-     allowlist of roots** — a pack must never need a kernel list edit,
-     the same reason `everyMaterial()` globs `/**/idea/material/**`.
+   - `warm()` harvests by **template-path infix** (`/idea/fabric/`,
+     every root's subtree) and keeps a row whose class extends `Fabric`
+     — **never an allowlist of roots**, the `MaterialCatalogue.warm()`
+     shape verbatim, so a pack's own fabric class qualifies without a
+     kernel list edit.
    - a **residency veto** (`canEvict` → false): a culled catalogue
      re-warms nothing.
    - eager loading rides the **platform pack's `boot:` manifest**, and
