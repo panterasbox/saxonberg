@@ -17,8 +17,8 @@
 import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Creature } from '../../../../lib/creature/Creature';
+import { PersonaMixin } from '../../../../lib/character/Persona';
 import { ConditionApi } from '../../../../api/condition';
-import { ChronicleApi } from '../../../../api/chronicle';
 import { AccountabilityApi } from '../../../../api/accountability';
 import { StuffApi } from '../../../../api/stuff';
 import AccountabilityEvent from '../../../../lib/accountability/AccountabilityEvent';
@@ -29,9 +29,21 @@ import { installV1QuantityMarshallers } from '../../../../lib/persistence/__test
 let rows: AccountabilityFields[] = [];
 let deeds: { tags?: string[] }[] = [];
 
+class StoriedCreature extends PersonaMixin(Creature) {}
+
 function body(): Creature {
   const c = makeStuff(() => new Creature());
   c.setLifecycleState('alive');
+  return c;
+}
+
+/** A persona-composed body whose own recordDeed is the capture seam. */
+function storiedBody(): StoriedCreature {
+  const c = makeStuff(() => new StoriedCreature());
+  c.setLifecycleState('alive');
+  vi.spyOn(c, 'recordDeed').mockImplementation(async (f) => {
+    deeds.push(f as { tags?: string[] });
+  });
   return c;
 }
 
@@ -42,9 +54,6 @@ describe('ConditionApi.die — one transition', () => {
     installV1QuantityMarshallers();
     vi.spyOn(AccountabilityApi, 'record').mockImplementation((f) => {
       rows.push(f);
-    });
-    vi.spyOn(ChronicleApi, 'recordDeed').mockImplementation(async (_o, f) => {
-      deeds.push(f as { tags?: string[] });
     });
   });
   afterEach(() => {
@@ -164,8 +173,8 @@ describe('ConditionApi.die — one transition', () => {
     expect(rows[0]!.killer).toBe('/platform/agent/Avatar/rat');
   });
 
-  it('mints a chronicle deed tagged death', async () => {
-    const c = body();
+  it('mints a chronicle deed tagged death (persona hosts only)', async () => {
+    const c = storiedBody();
     await ConditionApi.die(c, 'hypothermia');
     expect(deeds).toHaveLength(1);
     expect(deeds[0]!.tags).toContain('death');

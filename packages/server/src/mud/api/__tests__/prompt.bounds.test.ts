@@ -18,7 +18,6 @@ import EventRegistry from '../../platform/idea/EventRegistry';
 import Interactive from '../../platform/idea/Interactive';
 import Avatar from '../../platform/agent/Avatar';
 import Thing from '../../lib/stuff/Thing';
-import { ConnectionApi } from '../connection';
 
 async function bootRegistry(): Promise<void> {
   const reg = await StuffApi.create(() => {
@@ -40,7 +39,7 @@ async function makeAvatarInteractive(): Promise<{
   const interactive = await StuffApi.create(
     () => new Interactive('sock-1', 'sess-1', { _id: 'u1' } as never),
   );
-  ConnectionApi.transfer(interactive, avatar);
+  interactive.transferTo(avatar);
   return { interactive, avatar };
 }
 
@@ -73,12 +72,12 @@ describe('PromptApi.mqlMany — bounds enforcement', () => {
     const b = await StuffApi.create(() => new Thing());
     const envelopes = captureEnvelopes(avatar);
 
-    const p = PromptApi.mqlMany(interactive, 'Pick', [a, b], { min: 2, max: 2 });
+    const p = interactive.promptMqlMany('Pick', [a, b], { min: 2, max: 2 });
     const id = envelopes[0]!.promptId!;
     envelopes.length = 0;
 
     // Selecting 1 is under min: 2.
-    PromptApi.handleResponse(interactive, {
+    interactive.handlePromptResponse({
       promptId: id,
       response: JSON.stringify([a.stuffId]),
     });
@@ -90,7 +89,7 @@ describe('PromptApi.mqlMany — bounds enforcement', () => {
 
     // Valid response resolves.
     envelopes.length = 0;
-    PromptApi.handleResponse(interactive, {
+    interactive.handlePromptResponse({
       promptId: id,
       response: JSON.stringify([a.stuffId, b.stuffId]),
     });
@@ -105,11 +104,11 @@ describe('PromptApi.mqlMany — bounds enforcement', () => {
     const c = await StuffApi.create(() => new Thing());
     const envelopes = captureEnvelopes(avatar);
 
-    const p = PromptApi.mqlMany(interactive, 'Pick', [a, b, c], { max: 2 });
+    const p = interactive.promptMqlMany('Pick', [a, b, c], { max: 2 });
     const id = envelopes[0]!.promptId!;
     envelopes.length = 0;
 
-    PromptApi.handleResponse(interactive, {
+    interactive.handlePromptResponse({
       promptId: id,
       response: JSON.stringify([a.stuffId, b.stuffId, c.stuffId]),
     });
@@ -128,11 +127,11 @@ describe('PromptApi.mqlMany — bounds enforcement', () => {
     const a = await StuffApi.create(() => new Thing());
     const envelopes = captureEnvelopes(avatar);
 
-    const p = PromptApi.mqlMany(interactive, 'Pick', [a]);
+    const p = interactive.promptMqlMany('Pick', [a]);
     const id = envelopes[0]!.promptId!;
     envelopes.length = 0;
 
-    PromptApi.handleResponse(interactive, {
+    interactive.handlePromptResponse({
       promptId: id,
       response: 'not-json',
     });
@@ -148,11 +147,11 @@ describe('PromptApi.mqlMany — bounds enforcement', () => {
     const a = await StuffApi.create(() => new Thing());
     const envelopes = captureEnvelopes(avatar);
 
-    const p = PromptApi.mqlMany(interactive, 'Pick', [a]);
+    const p = interactive.promptMqlMany('Pick', [a]);
     const id = envelopes[0]!.promptId!;
     envelopes.length = 0;
 
-    PromptApi.handleResponse(interactive, {
+    interactive.handlePromptResponse({
       promptId: id,
       response: JSON.stringify([1, 2, 3]),  // numbers, not strings
     });
@@ -168,9 +167,9 @@ describe('PromptApi.mqlMany — bounds enforcement', () => {
     const b = await StuffApi.create(() => new Thing());
     const envelopes = captureEnvelopes(avatar);
 
-    const p = PromptApi.mqlMany(interactive, 'Pick', [a, b]);
+    const p = interactive.promptMqlMany('Pick', [a, b]);
     const id = envelopes[0]!.promptId!;
-    PromptApi.handleResponse(interactive, {
+    interactive.handlePromptResponse({
       promptId: id,
       response: JSON.stringify([]),  // empty array OK when no min
     });

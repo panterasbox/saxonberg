@@ -1,0 +1,20 @@
+# P5 · The Dry — recovery, and the social beat.
+#
+# The changing shack: benches, a stove, water, food. It is where reserve,
+# thermal and metabolism all get their turn, and it is the room where two
+# miners who have never spoken end up talking because there is nowhere
+# else to sit while your clothes steam.
+class: /platform/location/SingletonCartesianLocation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the dry
+  primaryKeyword: dry
+  keywords: [dry, "the dry", shack, canteen]
+  longDescription: |
+    Long benches down both walls, hooks above them, and a stove in the middle that somebody keeps going. Clothes hang steaming over it in a rank. There is a water butt by the door with a dipper on a string, and a shelf of tin plates.
+
+    It smells of wet wool, coal smoke and other people. After eight hours in the drift it is the best room in the world.
+  coords: { x: -1, y: 1, z: 0 }
+  exits:
+    southeast:
+      destination: /world/rejection/location/pithead-yard

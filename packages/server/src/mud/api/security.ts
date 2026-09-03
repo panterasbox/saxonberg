@@ -27,7 +27,7 @@
  * push noise frames onto every policy lookup.
  */
 
-import { nanoid } from 'nanoid';
+import { customAlphabet } from 'nanoid';
 import type { SecurityPolicy } from '../lib/security/SecurityPolicies';
 import {
   ExecutionContextApi,
@@ -129,17 +129,49 @@ export class SecurityApi {
   /* ─────────────────────────── Identity ─────────────────────────── */
 
   /**
-   * Mint a fresh, URL-safe, collision-resistant identifier — the
-   * project-wide id source. Server code calls this instead of importing
-   * `nanoid` directly, so id generation routes through one Api seam (the
-   * client mints its own ids browser-side). Despite the name it returns
-   * a nanoid (21 chars by default), not an RFC-4122 UUID.
+   * ⭐⭐ **Base58, and that is the whole of the fix.**
+   *
+   * `nanoid`'s default alphabet is `A-Za-z0-9_-`, so **one id in
+   * sixty-four began with a hyphen** — measured at 1.56% — and a leading
+   * `-` is a character that means something almost everywhere an id
+   * travels. It reached us through MQL: the disambiguation loop stores
+   * `#<stuffId>` as the player's focus, the lexer read `#-Xk3…` as a
+   * bare `#`, and roughly one prompt pick in sixty-four left a focus
+   * that could not be re-resolved. That was fixed in the lexer, and the
+   * lexer is still tolerant — but tolerating a bad character at every
+   * reader is the wrong shape when you can simply not mint it.
+   *
+   * So the alphabet is **base58**: the digits and letters, minus `-`,
+   * `_`, and the four that a human cannot tell apart in a log or read
+   * down a phone (`0`/`O`, `I`/`l`). An id is now a plain word — safe in
+   * a URL, a path, a shell argument, a query, and a sentence.
+   *
+   * ⚠ It was ALREADY documented this way: `StuffApi.generateId` has said
+   * *"uses base58-encoded nanoid"* since it was written, and it was
+   * simply not true. The comment was right about the intent.
+   *
+   * 21 characters of base58 is ~123 bits, against the default
+   * alphabet's ~126 — the same collision story by any practical measure.
+   *
+   * Server code calls this instead of importing `nanoid` directly, so id
+   * generation routes through one Api seam (the client mints its own
+   * ids browser-side, and those are React keys, never MQL seeds).
+   * Despite the name it is not an RFC-4122 UUID.
    *
    * @param size optional length override (e.g. short handles).
    */
   public static uuid(size?: number): string {
-    return size === undefined ? nanoid() : nanoid(size);
+    return size === undefined ? SecurityApi.#mintId() : SecurityApi.#mintId(size);
   }
+
+  /**
+   * The base58 generator. ⚠ Ambiguity-free by construction: no `0`/`O`,
+   * no `I`/`l`, and — the point — no `-` or `_`.
+   */
+  static readonly #mintId = customAlphabet(
+    '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz',
+    21,
+  );
 
   /* ─────────────────────────── Storage ─────────────────────────── */
 
@@ -811,6 +843,26 @@ export class SecurityApi {
     // who is listening but cannot make anyone listen.
     'getSubjectSubscription',
     'hasSubjectSubscription',
+    // ⭐ The naming projections (the Phase-D recognition face). Since
+    // the OO sweep these live as instance methods ON the target
+    // (`stuff.describeFor(viewer)`), so the crossing dispatch itself is
+    // the entry point — before the face body can widen anything. The
+    // methods are read-only *projections of a person* (they yield text
+    // or a keyword list, never a live ref), exactly the class of read
+    // `SecurityApi.projectAcross` exists for; the face wraps its
+    // interior walk in that aperture, and this entry admits the OUTER
+    // hop. `kindFor` deliberately rides the same set (its interior
+    // never leaves the target); the belief WRITE half (`learnIdentityOf`
+    // etc.) lives on the VIEWER and is deliberately NOT here.
+    'describeFor',
+    'describeWithStatusFor',
+    // Session-liveness is the same class of projection (a display
+    // string about a person, composed for far viewers); the interior
+    // engagement read rides the presence logic's own aperture.
+    'presenceStatus',
+    'salientFeatures',
+    'perceivedKeywordsFor',
+    'kindFor',
   ]);
 
   /**

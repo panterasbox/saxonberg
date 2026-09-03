@@ -1,0 +1,21 @@
+verbs: [hew]
+controller: /trade/mining/idea/cmd/mining/HewController
+description: "Win ore from a face"
+help: |
+  `hew east` cuts ore out of the face in that direction. It is work: it
+  takes game time, it costs endurance, and the ground decides how long —
+  granite is roughly twice slate.
+
+  You get what is actually there. A better prospector does not get more
+  ore from the same rock; he knows where to point. Read the ground with
+  `analyze ground` and the faces with `survey` before you swing.
+
+  A face runs out. When it does, drive on.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: face
+    type: string
+    required: false

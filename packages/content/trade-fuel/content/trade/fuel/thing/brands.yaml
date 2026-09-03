@@ -1,0 +1,19 @@
+# Half-burnt brands — ⭐ **the failure you can see.**
+#
+# A burn drawn too tight leaves wood that never charred: black outside,
+# brown and heavy inside, and worth a fraction of what it should be. It
+# is not waste and it is not charcoal; it is the visible, gradable record
+# of a judgment call that went one way.
+class: /platform/thing/Provision
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a heap of half-burnt brands
+  primaryKeyword: brands
+  keywords: [brands, brand, "half-burnt wood"]
+  longDescription: >-
+    Charred on the outside and still brown at the heart, heavy in the hand
+    where good charcoal is light. It will burn, after a fashion, and it
+    will not get a furnace anywhere near metal.
+  _materialPath: /stuff/idea/material/wood/oak
+  gradeBand: poor
+  mass: 9

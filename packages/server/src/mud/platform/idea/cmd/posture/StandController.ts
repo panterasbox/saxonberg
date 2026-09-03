@@ -3,7 +3,7 @@
  * Vacates any current posture-bearing slot and sets posture to Stand.
  * With an argument (`stand <X>`), occupies a slot on X accepting the
  * Stand posture (e.g., standing on a chair or table) via
- * `PostureApi.transferPosture`.
+ * the actor's own `transferPosture` (the OO sweep).
  *
  * Validation surface (from `cmd/stand.yaml`):
  *   - requiresAnimate, requiresPosed (verb-level)
@@ -20,7 +20,6 @@ import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
 import { Postures } from '../../../../lib/slot/Postured';
-import { PostureApi } from '../../../../api/posture';
 
 interface StandModel extends CommandModel {
   target?: MqlOneResult;
@@ -48,9 +47,7 @@ export default class StandController extends CommandController<StandModel> {
           `StandController: requiresSlottable expected — actor cannot occupy a slot`
         );
       }
-      const result = PostureApi.transferPosture(
-        giver,
-        target,
+      const result = giver.transferPosture(target,
         Postures.Stand,
         'stand'
       );
@@ -77,7 +74,7 @@ export default class StandController extends CommandController<StandModel> {
     }
 
     // Slot-less form: just vacate any current posture-bearing slot.
-    PostureApi.vacatePostureBearingSlots(giver);
+    giver.vacatePostureBearingSlots();
     giver.setPosture(Postures.Stand);
     MessageApi.scene(giver)
       .topic('act.deed')

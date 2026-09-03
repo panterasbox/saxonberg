@@ -44,7 +44,7 @@ export default class FloodedCell extends SingletonCartesianLocation {
     for (const content of self.getContents()) {
       // `isEnergized` narrows the containable to `Stuff & Energized`.
       if (MixinApi.isEnergized(content)) {
-        ElectricityApi.conduct(content);
+        content.conduct();
       }
     }
   }

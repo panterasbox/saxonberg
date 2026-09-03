@@ -42,6 +42,8 @@ export abstract class SpatialZone extends Zone {
     stocks: { persistent: true, authorable: true },
     favours: { persistent: true, authorable: true },
     blessingOdds: { persistent: true, authorable: true },
+    address: { persistent: true, authorable: true },
+    deposit: { persistent: true, authorable: true },
   };
 
   /**
@@ -84,6 +86,68 @@ export abstract class SpatialZone extends Zone {
 
   public getBlessingOdds(): BlessingOdds | null { return this.blessingOdds; }
   public setBlessingOdds(value: BlessingOdds | null): void { this.blessingOdds = value; }
+
+  /**
+   * ⭐ **The address this region sits at** — `terminus/rejection`, or
+   * `null` to walk on.
+   *
+   * `AddressLogic.resolveAddressString` has always had this as its step
+   * 2: walk containment-outward for a place declaring its own address,
+   * and failing that ask the zone. ⚠⚠ **Step 2 could never fire.** No
+   * zone class declared `address` in `fieldMeta`, so an authored value
+   * was silently discarded by the hydrator and `lookupField('address')`
+   * always answered `null` — the documented `source: 'zone'` was an
+   * unreachable branch of a shipped enum. Declaring it here is the whole
+   * fix; the resolver is unchanged.
+   *
+   * ⭐ It is the reason the field belongs on a ZONE rather than on each
+   * room. A locality is a region, and its rooms are in it — so one
+   * declaration on the region covers every room the zone walk reaches,
+   * including **minted** ones, which can never declare anything for
+   * themselves. Hinkley authors `_address` on two rooms and the rest of
+   * the suburb resolves nothing; a mine that grows new workings at
+   * runtime cannot use that pattern at all.
+   *
+   * ⚠ On `SpatialZone` and not on `Zone`, for the same reason
+   * `stocks`/`favours` are: a `FolderZone` is a namespace root, and
+   * *"what is the street address of `/wiki`"* is not a question.
+   */
+  protected address: string | null = null;
+
+  public getAddress(): string | null { return this.address; }
+  public setAddress(value: string | null): void { this.address = value ?? null; }
+
+  /**
+   * ⭐ **The `Deposit` row governing the ground under this region**, or
+   * `null` to walk on.
+   *
+   * The ground model — stratigraphy, water table, the lode and its
+   * gangue — is a property of the LAND, in exactly the sense elevation
+   * is. So it is inherited by the ordinary `lookupField` walk, and a
+   * declaration on a region covers the surface outcrop and the workings
+   * beneath it alike: the outcrop, the float and the three-point problem
+   * are all played above ground, so a deposit declared only on a mine's
+   * own zone would leave a prospector standing on the stain with nothing
+   * to measure.
+   *
+   * ⚠⚠ **This replaces `trade-mining`'s `MineZone`, and the deletion is
+   * the point.** A pack cannot add a field to a kernel class — the
+   * failure is silent, and it cost a live drive to find — so mining
+   * shipped a `CartesianZone` subclass carrying this one field. But then
+   * the zone covering a whole town had to be classed `MineZone`, which
+   * said *this town is a mine*. It is not: Rejection is the town, the
+   * Ferrow is the orebody, and the diggings are the workings on it. A
+   * region that declares what is under it is not thereby a mine.
+   *
+   * ⭐ The string is **opaque to the kernel** — it is interpreted by
+   * whichever pack owns the `Deposit` class, exactly as `Locality._reach`
+   * carries a watercourse citation the kernel never resolves. Carrying a
+   * citation is not importing a concept.
+   */
+  protected deposit: string | null = null;
+
+  public getDeposit(): string | null { return this.deposit; }
+  public setDeposit(value: string | null): void { this.deposit = value ?? null; }
 
   /**
    * Locations that live in this zone. Populated by the subclass's

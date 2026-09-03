@@ -136,12 +136,6 @@ export class ContainmentLogic extends ApiLogic {
     item._setRestingOn(surface);
   }
 
-  /** See {@link ContainmentApi.isContainedIn}. */
-  @CallSecurity(ContainmentApiCallers)
-  public isContainedIn(item: Stuff, container: ContainerStuff): boolean {
-    return container.getContents().some((obj) => obj.stuffId === item.stuffId);
-  }
-
   // `findReachable` / `findHostedUpdate` were removed — the reachable
   // walk now lives in MQL's `reachable` seed (api/mql/scope-walk.ts
   // `candidatesForReachable`).

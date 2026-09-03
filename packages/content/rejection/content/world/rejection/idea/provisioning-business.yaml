@@ -1,0 +1,19 @@
+# The provisioning shed — buys tools and timber in, sells them on.
+class: /platform/idea/Business
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  appointingAuthority:
+    kind: entity
+    path: /world/rejection/agent/storekeeper
+  positions:
+    - key: storekeeper
+      label: minding the stores
+      wageRate: 4
+  rosterSlots:
+    - positionKey: storekeeper
+      assignee: /world/rejection/agent/storekeeper
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [0, 24] }
+  banksAt: goodkin
+  operatingLocations:
+    - /world/rejection/location/provisioning

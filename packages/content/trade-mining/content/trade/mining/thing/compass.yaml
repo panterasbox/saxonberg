@@ -1,0 +1,22 @@
+# A surveyor's compass — the cheap end of the survey ladder, and the one
+# a prospector actually owns.
+#
+# ⭐ It reads STRIKE at the surface and dip on a face, exactly as the
+# miner's dial does. What the dial buys is not a channel the compass
+# lacks — it is that the dial is a mine instrument, hung and levelled,
+# and the compass is a thing in your pocket. Both feed the same reading;
+# the reader's eye is what sets the error band. Competence buys
+# resolution; equipment buys access.
+class: /trade/mining/thing/instrument/SurveyInstrument
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  primaryKeyword: compass
+  keywords: ["compass", "surveyors-compass", "needle"]
+  shortDescription: a surveyor's brass compass
+  longDescription: >-
+    A heavy brass compass in a fitted case, its card marked in whole
+    degrees and its needle jewelled at the pivot. The lid carries a
+    folding sight vane, scratched to nothing along one edge from years of
+    being set down on rock.
+  mass: 0.4
+  capabilities: ["surveying"]

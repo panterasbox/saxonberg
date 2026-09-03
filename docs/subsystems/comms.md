@@ -221,7 +221,7 @@ and peers frames render ("You say, …" / "*X* says, …").
 
 Comms is a **source** feeding the [messaging](./messaging.md)
 pipeline, not a parallel one. Every verb composes through
-`MessageApi.scene` and goes out the single `MessageApi.sendMessage`
+`MessageApi.scene` and goes out the single `onMessage`
 delivery chokepoint:
 
 - **MML / Scene composer** — `messaging.md` owns the
@@ -299,7 +299,7 @@ design space. Designed but **not yet built**:
 ## Related
 
 - [messaging.md](./messaging.md) — the Scene composer,
-  `MessageApi.sendMessage` delivery chokepoint, modality stamping,
+  `onMessage` delivery chokepoint, modality stamping,
   `SensorMixin.filterMessage`, and the `VocalMixin` / `AetherMixin`
   capability split with the Containable-wins audience rule.
 - [chat.md](./chat.md) — the channel model riding the implant

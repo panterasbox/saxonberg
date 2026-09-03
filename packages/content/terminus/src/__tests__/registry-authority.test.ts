@@ -105,10 +105,10 @@ describe('the Registry, as seeded', () => {
     const biz = seededRegistry();
     // The civics seat reads (department, positionKey) off this chart —
     // porting the authority must not disturb who holds what.
-    expect(EmploymentApi.holdersOf(biz, 'magistrate')).toEqual([
+    expect(biz.holdersOf('magistrate')).toEqual([
       '/world/terminus/registry/clerk',
     ]);
-    expect(EmploymentApi.holdersOf(biz, 'registrar')).toEqual([
+    expect(biz.holdersOf('registrar')).toEqual([
       '/world/terminus/registry/clerk',
     ]);
   });

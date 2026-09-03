@@ -84,7 +84,11 @@ function resolveRegistry(): WorldClockRegistry {
     );
   }
   const reg = StuffApi.createSync<WorldClockRegistry>(
-    () => new registryClass!()
+    () => new registryClass!(),
+    // The manifest clone is the production path (postRegister = the
+    // self-warming boot). A lazily-built harness registry starts
+    // unwarmed; the test that needs the boot drives postRegister().
+    { deferPostRegister: true }
   );
   reg.setTemplatePath(REGISTRY_PATH);
   registryRef = reg;
@@ -167,12 +171,6 @@ export class WorldClockLogic extends ApiLogic {
     resolveRegistry().restore(snap);
   }
 
-  /** See {@link WorldClockApi.boot}. */
-  @CallSecurity(WorldClockApiCallers)
-  public async boot(): Promise<void> {
-    await resolveRegistry().boot();
-  }
-
   /** See {@link WorldClockApi.shutdown}. */
   @CallSecurity(WorldClockApiCallers)
   public async shutdown(): Promise<void> {
@@ -209,12 +207,6 @@ export class WorldClockLogic extends ApiLogic {
     opts?: ScheduleOpts & { startAt?: Quantity<'s'>; runs?: number }
   ): ClockHandle {
     return resolveRegistry().every(interval, cb, opts);
-  }
-
-  /** See {@link WorldClockApi.cancel}. Doesn't touch the registry. */
-  @CallSecurity(WorldClockApiCallers)
-  public cancel(handle: ClockHandle): void {
-    handle.cancel();
   }
 
   /** See {@link WorldClockApi.cancelByTag}. */

@@ -8,16 +8,37 @@ import type { Stuff } from '../../../lib/stuff/Stuff';
 import { MixinApi } from '../../../api/mixin';
 import { MaterialApi } from '../../../api/material';
 import { ConditionApi } from '../../../api/condition';
+import { StuffApi } from '../../../api/stuff';
+import { WorldClockApi } from '../../../api/worldclock';
+import { TemplatePaths } from '../../../lib/paths';
 import { AppApi } from '../../../api/app';
 import { AppSettingKeys } from '../../../lib/config/AppSettings';
 import { Quantity } from '../../../lib/quantity';
 import type Material from '../../../lib/material/Material';
 import type { Energized } from '../../../lib/electricity/Energized';
 import type { SustainedShock } from '../Condition';
-import type { ConductionOutcome } from '../../../api/electricity';
+import type { ConductionOutcome } from '../../../lib/electricity/Energized';
 
 const ElectricityApiCallers = SecurityPolicies.FromModule(
   '/api/electricity#ElectricityApi',
+);
+
+/**
+ * The conduction verbs are also callable by the SOURCE itself (the
+ * Energized mixin's own conduct/currentThrough/shockContact methods —
+ * the Api OO sweep): the caller must both compose Energized and BE the
+ * source argument, so no third object can fire someone else's charge.
+ */
+const ElectricitySourceCallers = SecurityPolicies.AnyOf(
+  ElectricityApiCallers,
+  SecurityPolicies.FromMixin('EnergizedMixin', {
+    // Compare by stuffId — the caller may surface as the raw target
+    // while the argument is the proxy (or vice versa).
+    where: (caller, _target, _method, args) =>
+      (caller as { stuffId?: string }).stuffId !== undefined &&
+      (caller as { stuffId?: string }).stuffId ===
+        (args[0] as { stuffId?: string } | undefined)?.stuffId,
+  }),
 );
 
 /**
@@ -41,13 +62,13 @@ const ElectricityApiCallers = SecurityPolicies.FromModule(
 @Unshadowable
 export class ElectricityLogic extends ApiLogic {
   /** See {@link ElectricityApi.conduct}. */
-  @CallSecurity(ElectricityApiCallers)
+  @CallSecurity(ElectricitySourceCallers)
   public conduct(source: Stuff & Energized): ConductionOutcome[] {
     return conductImpl(source);
   }
 
   /** See {@link ElectricityApi.currentThrough}. */
-  @CallSecurity(ElectricityApiCallers)
+  @CallSecurity(ElectricitySourceCallers)
   public currentThrough(
     source: Stuff & Energized,
     victim: Stuff,
@@ -58,7 +79,7 @@ export class ElectricityLogic extends ApiLogic {
   }
 
   /** See {@link ElectricityApi.shockContact}. */
-  @CallSecurity(ElectricityApiCallers)
+  @CallSecurity(ElectricitySourceCallers)
   public shockContact(
     source: Stuff & Energized,
     victim: Stuff,
@@ -508,6 +529,12 @@ function maybeSustain(
   if (!MixinApi.isVitals(victim)) return;
   const tetanic = dial(AppSettingKeys.electricityTetanicAmps, 0.02);
   const tetany = amps >= tetanic;
+  // The after-grip window: a discrete contact (a baton tap) breaks its own
+  // circuit at once, so tetany can't self-sustain off the circuit re-probe
+  // — this bounds it. A live circuit re-probes as closed and holds tetany
+  // regardless, but we still refresh the stamp so the grip lingers a beat
+  // past the moment the victim is pulled free. Absent clock → no window.
+  const tetanyUntil = tetany ? tetanyReleaseAt() : undefined;
 
   const existing = victim.getConditions().find(
     (c): c is SustainedShock =>
@@ -515,7 +542,10 @@ function maybeSustain(
   );
   if (existing) {
     existing.current = amps;
-    if (tetany) existing.tetany = true;
+    if (tetany) {
+      existing.tetany = true;
+      if (tetanyUntil !== undefined) existing.tetanyUntil = tetanyUntil;
+    }
     if (!existing.sites.includes(site)) existing.sites.push(site);
     return;
   }
@@ -525,6 +555,21 @@ function maybeSustain(
     source: sourcePath,
     sites: [site],
   };
-  if (tetany) record.tetany = true;
+  if (tetany) {
+    record.tetany = true;
+    if (tetanyUntil !== undefined) record.tetanyUntil = tetanyUntil;
+  }
   victim.afflict(record);
+}
+
+/** The game-time at which a freshly-latched tetany's after-grip releases,
+ * or undefined when no world clock is running (a pre-boot / unit context
+ * that never advances — the record then rides the circuit re-probe alone,
+ * the pre-window behaviour). */
+function tetanyReleaseAt(): number | undefined {
+  if (!StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)) {
+    return undefined;
+  }
+  const nowS = WorldClockApi.getNow().rawValue();
+  return nowS + dial(AppSettingKeys.electricityTetanyPulseSeconds, 6);
 }

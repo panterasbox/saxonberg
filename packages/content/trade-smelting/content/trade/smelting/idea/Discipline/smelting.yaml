@@ -1,0 +1,18 @@
+# Smelting — the discipline of getting metal out of rock.
+#
+# ⚠ It changes nothing about the YIELD, which is arithmetic on the
+# charge's own chemistry. What it changes is what a smelterman can read
+# off a furnace before the charge is spoiled — the same rule the rest of
+# this build keeps: competence buys knowing, never getting.
+class: /platform/idea/Discipline
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: smelting
+  channel: skill
+  label: Smelting
+  iscedf: "0715"  # ISCED-F 2013: mechanics and metal trades
+  description: >-
+    Reducing ore to metal. Charging a furnace, holding it at heat, and
+    knowing when the run is ready to tap. It never changes what the rock
+    held — only whether you get it all out.
+  requires: []

@@ -30,6 +30,14 @@ settings:
   - key: electricity.tetanicAmps
     value: "0.02"
 
+  # The discrete-pulse tetany window (game-seconds): a stun-baton tap
+  # breaks its own circuit at once, so tetany can't self-sustain off it —
+  # instead it holds the body rigid for this long after contact, then
+  # releases. A live circuit (a flooded cell, a downed line) ignores this
+  # and holds as long as current flows. See docs/subsystems/electricity.md.
+  - key: electricity.tetanyPulseSeconds
+    value: "6"
+
   - key: electricity.fibrillationAmps
     value: "0.1"
 

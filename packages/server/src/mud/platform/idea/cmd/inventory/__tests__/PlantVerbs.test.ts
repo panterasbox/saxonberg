@@ -9,6 +9,7 @@
  */
 
 import "../../../../../../test-bootstrap";
+import { AdvancementMixin } from '../../../../../lib/advancement/Advancement';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import PlantController from '../PlantController';
 import RepotController from '../RepotController';
@@ -33,7 +34,6 @@ import { StuffApi } from '../../../../../api/stuff';
 import { ShadowApi } from '../../../../../api/shadow';
 import { ContainmentApi } from '../../../../../api/containment';
 import { PersistableApi } from '../../../../../api/persistable';
-import { AdvancementApi } from '../../../../../api/advancement';
 import { WorldClockApi } from '../../../../../api/worldclock';
 import { CommandDefinition } from '../../../../../lib/command/CommandDefinition';
 import {
@@ -53,8 +53,10 @@ import {
 import { buildAllModalities } from '../../../../../lib/perception/modalities/__tests__/test-helpers';
 import '../../../WorldClockRegistry';
 
-class TestGiver extends SensorMixin(
+class TestGiver extends AdvancementMixin(
+  SensorMixin(
   CommandGiverMixin(ContainerMixin(ContainableMixin(NamedMixin(Idea)))),
+)
 ) {
   static _mixinName = 'TestGiver';
   received: unknown[] = [];
@@ -226,12 +228,6 @@ describe('plant / repot', () => {
       }) as unknown as typeof PersistableApi.captureHostOf,
     );
     deeds = [];
-    vi.spyOn(AdvancementApi, 'recordDeed').mockImplementation((async (
-      _owner: Stuff,
-      subcheck: { discipline: string; difficulty: string; outcome: string },
-    ) => {
-      deeds.push(subcheck);
-    }) as unknown as typeof AdvancementApi.recordDeed);
   });
 
   // No StuffApi.clearAll() — it would wipe the WorldClockRegistry and
@@ -248,6 +244,20 @@ describe('plant / repot', () => {
       const g = new TestGiver();
       g.setName('Alice');
       return g;
+    });
+    // Credits land on the giver's own creditDeed since the OO sweep —
+    // the instance is the capture seam.
+    vi.spyOn(
+      giver as unknown as {
+        creditDeed(sub: {
+          discipline: string;
+          difficulty: string;
+          outcome: string;
+        }): Promise<void>;
+      },
+      'creditDeed',
+    ).mockImplementation(async (subcheck) => {
+      deeds.push(subcheck);
     });
     ContainmentApi.move(giver, room);
     return { giver, room };

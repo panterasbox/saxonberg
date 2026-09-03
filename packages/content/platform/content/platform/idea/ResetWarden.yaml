@@ -1,0 +1,5 @@
+# ResetWarden — the singleton whose postRegister arms the nightly world reset, if the operator dialed one (off/dry-run/enforce)
+# (the self-warming shape; eager via this pack's boot list, not an
+# AppBootstrap sequencer line).
+class: /platform/idea/ResetWarden
+data: {}

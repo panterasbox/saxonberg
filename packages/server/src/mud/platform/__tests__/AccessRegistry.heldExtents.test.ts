@@ -22,6 +22,7 @@ import { PersistenceManager } from "../../../backend/PersistenceManager";
 import { makeStuffAtPath } from "../../lib/security/__tests__/test-setup";
 import type { ParcelOwner } from "../../lib/parcel/ParcelRecord";
 import type { Stuff } from "../../lib/stuff/Stuff";
+import { EmploymentLogic } from '../idea/api/EmploymentLogic';
 
 type Doc = Record<string, unknown> & { _id?: string };
 class OrganizationEntity extends OrganizationMixin(Idea) {}
@@ -91,7 +92,7 @@ describe("AccessApi.heldExtents", () => {
     vi.spyOn(GroupApi, "isMember").mockImplementation(
       async (key: string, ref: string) => ref === "managed:lounge" && key === "/platform/agent/Avatar/alice",
     );
-    vi.spyOn(EmploymentApi, "holdsPosition").mockImplementation(
+    vi.spyOn(EmploymentLogic.prototype, "holdsPosition").mockImplementation(
       (s: Stuff | null) => s?.getIdentityPath() === "/platform/agent/Avatar/staffer",
     );
     vi.spyOn(EmploymentApi, "holdsAuthority").mockImplementation(

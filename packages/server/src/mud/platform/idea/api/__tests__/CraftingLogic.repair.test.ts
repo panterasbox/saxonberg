@@ -28,6 +28,7 @@ import RecipeCatalogue from '../../RecipeCatalogue';
 import { Reserve } from '../../../../lib/reserve';
 import { Idea } from '../../../../lib/stuff/Idea';
 import { ContainerMixin } from '../../../../lib/spatial/Container';
+import { ThermalMixin } from '../../../../lib/thermal/Thermal';
 import { ContainableMixin } from '../../../../lib/spatial/Containable';
 import { Stuff } from '../../../../lib/stuff/Stuff';
 import type { RepairOutcome } from '../../../../api/crafting';
@@ -39,7 +40,7 @@ import {
 class TestRoom extends ContainerMixin(Idea) {
   static _mixinName = 'TestRoomRepair';
 }
-class TestSmith extends ContainerMixin(ContainableMixin(Idea)) {
+class TestSmith extends ThermalMixin(ContainerMixin(ContainableMixin(Idea))) {
   static _mixinName = 'TestSmithRepair';
 }
 

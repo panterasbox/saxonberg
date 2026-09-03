@@ -182,6 +182,7 @@ export const Mixins = {
   Named: 'NamedMixin',
   Gendered: 'GenderedMixin',
   Persona: 'PersonaMixin',
+  Dispositioned: 'DispositionedMixin',
   Advancement: 'AdvancementMixin',
   Container: 'ContainerMixin',
   Containable: 'ContainableMixin',
@@ -276,8 +277,13 @@ export const Mixins = {
   // Residency — the game-time reset (repop) sweep's consumer marker: an
   // object that restores itself on the sweep (the shop's Stock tops up).
   Resettable: 'ResettableMixin',
-  // Consignment — the store's brokerage shelf: holds player-owned goods in
-  // custody (ownership stays with the consignor) + the listing registry.
+  // Held goods — the custody base (the coat check, whole): holds
+  // player-owned goods in custody (owner-stamp stays put) + the reclaim
+  // surface. A ConsignmentShelf is this plus a sale layer; a CheckRack is
+  // just this.
+  HeldGoodsShelf: 'HeldGoodsMixin',
+  // Consignment — the store's brokerage shelf: the held-goods base plus the
+  // sale layer (ask + listing cap + buy).
   ConsignmentShelf: 'ConsignmentShelfMixin',
   Workspace: 'WorkspaceMixin',
   Author: 'AuthorMixin',
@@ -395,7 +401,7 @@ export const Mixins = {
   Combustible: 'CombustibleMixin',
   // Phase change — "I can melt": a solid whose material melts past its
   // meltingPoint (a latent-heat plateau), flowing to a Bulkable liquid.
-  // Driven by heat (ThermalApi.reconcilePhase), not fire-specific.
+  // Driven by heat (the host reconcilePhase), not fire-specific.
   Meltable: 'MeltableMixin',
   // Furnace — a Combustible-fuelled sustained heat source (forge/kiln/oven/
   // campfire): pinned hot while lit + fuelled, bellows-boosted, heats the
@@ -552,6 +558,18 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   PlantableMixin: "{} isn't something you can plant",
 
   // Making & wear.
+  //
+  // ⚠ `ToolMixin` was missing and the gate was right to ask: `shore`
+  // requires a Tool, so a live refusal was falling through to the
+  // generic sentence — a dead end a player cannot act on. The phrase
+  // says what the object would have to BE, which is the only thing that
+  // tells somebody what to go and find.
+  //
+  // ⚠ `AdornmentMixin` was added on both sides of the fermentation merge
+  // and lives up under *Boundaries & mechanisms*, which is the right
+  // home: an adornment hangs on a boundary (a sign on a door), not on a
+  // body.
+  ToolMixin: "{} isn't a tool",
   ManualBuildMixin: "{} isn't a vessel you can work in",
   CraftedMixin: "{} isn't a made thing",
   DurableMixin: "{} doesn't wear out",

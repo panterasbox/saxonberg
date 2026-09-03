@@ -44,6 +44,15 @@ const ATMOSPHERE_DENSITIES: Record<string, Quantity<'kg/m³'>> = {
   // Smoke — combustion products (the fire driver's incomplete-burn output).
   // Slightly hotter/less dense than air; carries carbon monoxide.
   smoke: Quantity.of(1.1, 'kg/m³'),
+  // ⚠ The two mine gases (metal chain M5). BLACKDAMP is air with the
+  // oxygen already breathed or rusted out of it — nitrogen and CO2, and
+  // therefore DENSER than air, which is why it lies in the bottom of a
+  // dead end and why the historical name for a low working is a `sump`.
+  // STINKDAMP is hydrogen sulfide: also heavier, and — the load-bearing
+  // difference — it STINKS, which is exactly why the canary exists for
+  // the other one.
+  blackdamp: Quantity.of(1.29, 'kg/m³'),
+  stinkdamp: Quantity.of(1.36, 'kg/m³'),
   // Carbon dioxide — a working ferment's output (the cellar hazard,
   // fermentation P11). Denser than air: it pools where it is made.
   'carbon-dioxide': Quantity.of(1.98, 'kg/m³'),
@@ -63,6 +72,8 @@ const ATMOSPHERE_CONDUCTIVITIES: Record<string, Quantity<'W/(m·K)'>> = {
   water: Quantity.of(0.6, 'W/(m·K)'),
   vacuum: Quantity.of(1e-4, 'W/(m·K)'),
   smoke: Quantity.of(0.03, 'W/(m·K)'),
+  blackdamp: Quantity.of(0.025, 'W/(m·K)'),
+  stinkdamp: Quantity.of(0.014, 'W/(m·K)'),
   'carbon-dioxide': Quantity.of(0.0166, 'W/(m·K)'),
 };
 
@@ -80,6 +91,14 @@ const ATMOSPHERE_BREATHABLE: Record<string, boolean> = {
   // respiration medium crisis fires), the fire-driver's "kills by CO, not
   // flame" seam.
   smoke: false,
+  // ⭐⭐ The two mine gases, and the pair is the whole point: **one of
+  // them announces itself and the other does not.** Stinkdamp reeks of
+  // rotten eggs and a nose catches it; blackdamp is odourless, and the
+  // only free reading of it is a bird that stops singing. That is the
+  // historical reason for the canary, and it is why smell and the canary
+  // are COMPLEMENTARY rather than redundant.
+  blackdamp: false,
+  stinkdamp: false,
   // CO₂ displaces breathable air the same way — the ferment cellar's
   // hazard (asphyxia, not poison: no contaminant tag).
   'carbon-dioxide': false,
@@ -98,6 +117,10 @@ const ATMOSPHERE_CONTAMINANT: Record<string, string | null> = {
   water: null,
   vacuum: null,
   smoke: 'carbonMonoxide',
+  // Blackdamp poisons nobody — it is simply air with nothing left in it
+  // to breathe, which is what makes it so quiet a killer.
+  blackdamp: null,
+  stinkdamp: 'hydrogenSulfide',
   'carbon-dioxide': null,
 };
 

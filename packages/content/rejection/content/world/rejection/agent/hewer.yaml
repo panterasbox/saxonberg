@@ -1,0 +1,39 @@
+# ⭐ The co-op's hewer — and the reason he exists is not colour.
+#
+# **Supply must not be a function of concurrency.** A smelter whose input
+# dries up on a quiet night is not an economy, it is a demo that only
+# works while somebody is watching. This is the hand whose `delves` beat
+# keeps ore arriving at the scale with no player in the world.
+#
+# ⚠ He is not privileged. Every act in the beat is a forced LITERAL verb,
+# so bad ground refuses him, a worked-out face refuses him, and foul air
+# would kill him exactly as it would kill you.
+#
+# ⭐ He is on the co-op's ROSTER, which is what makes his cut **tutwork**:
+# the business keeps the ground and the ore, and `hew` stamps the lump to
+# the co-op rather than to him. That is not a special case in the brain —
+# it is the chattel rule reading his shift.
+class: /platform/agent/NPC
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sensitivus
+  lifecycleState: alive
+  primaryKeyword: hewer
+  keywords: [hewer, miner]
+  shortDescription: a hewer on tutwork
+  longDescription: >-
+    Wiry, grey with rock dust to the eyebrows, working a face with the
+    unhurried economy of somebody who intends to still be doing it at the
+    end of the shift. He nods and goes back to it.
+  props:
+    - /trade/mining/thing/pick
+    - /trade/mining/thing/timber-set
+    - /world/rejection/thing/glowcap-jar
+  behaviors:
+    - brain: /trade/mining/behavior/delves
+      trigger: cadence:90s
+      config:
+        home: /world/rejection/ferrow/timbered-drift
+        shelf: /world/rejection/thing/assay-counter
+        ask: 9
+        batch: 3

@@ -203,9 +203,16 @@ export interface SustainedShock {
   source?: string;
   /** The contact site keys the shock burn accrues at. */
   sites: string[];
-  /** Tetany holds the circuit closed regardless of volition ("can't let go")
-   * and gates volitional verbs (release / drop / move). */
+  /** Tetany holds the body rigid ("can't let go") and gates volitional
+   * verbs (release / drop / move). A LIVE circuit sustains it as long as
+   * current flows; a discrete contact (a stun-baton tap) has no standing
+   * circuit, so `tetanyUntil` bounds how long the after-grip lasts. */
   tetany?: boolean;
+  /** Game-time (seconds) at which a discrete-pulse tetany releases (the
+   * after-grip of a one-shot contact). Absent on a live-circuit shock,
+   * which self-sustains by re-probing the circuit instead. Once elapsed
+   * with no live circuit, the reconcile relieves the record. */
+  tetanyUntil?: number;
   /** The game-time (seconds) this shock was last integrated — the
    * reconcile-on-read anchor (the `Trauma.tickedAt` precedent). */
   tickedAt?: number;

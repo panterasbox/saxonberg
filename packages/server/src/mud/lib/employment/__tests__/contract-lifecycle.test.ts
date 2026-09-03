@@ -13,7 +13,6 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { Currency, BankingApi, Money } from "../../../api/banking";
 import { ContractApi } from "../../../api/contract";
 import type { GigSpec } from "../../../api/contract";
-import { RegardApi } from "../../../api/regard";
 import { WorldClockApi } from "../../../api/worldclock";
 import { ExecutionContextApi } from "../../../api/execution-context";
 import { ContainmentApi } from "../../../api/containment";
@@ -278,7 +277,7 @@ describe("contract lifecycle", () => {
 
   it("claim expiry: lazy breach reopens, reverts escrow, records, nudges regard", async () => {
     const id = await postAndClaim();
-    expect(RegardApi.getRegard(issuer, courier)).toBe(0);
+    expect(issuer.regardFor(courier)).toBe(0);
     gameNow += 49 * HOUR; // past the 48h default
     const open = await ContractApi.openGigsOn(BOARD);
     expect(open).toHaveLength(1);
@@ -289,7 +288,7 @@ describe("contract lifecycle", () => {
     const events = (await ContractApi.eventsFor(id)).map((e) => e.event);
     expect(events).toContain("breached");
     expect(events).toContain("released-back");
-    expect(RegardApi.getRegard(issuer, courier)).toBe(-15);
+    expect(issuer.regardFor(courier)).toBe(-15);
     expect(BankingApi.reconcile(Currency.compact()).balanced).toBe(true);
   });
 
@@ -300,7 +299,7 @@ describe("contract lifecycle", () => {
     });
     expect(BankingApi.balanceOf(issuerAcct).minor).toBe(100);
     expect((await ContractApi.contractById(id))?.state).toBe("open");
-    expect(RegardApi.getRegard(issuer, courier)).toBe(-15);
+    expect(issuer.regardFor(courier)).toBe(-15);
     // The gig reopened — another courier can claim it (escrow re-held).
     expect(await as(rival, () => ContractApi.claim(id))).toEqual({ ok: true });
     expect(BankingApi.escrowBalanceOf(id).minor).toBe(REWARD);

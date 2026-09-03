@@ -1,0 +1,14 @@
+# A length of cordwood — what comes off a coppice stool, and ⭐ the ONE
+# supply two trades compete for: the collier chars it and the mine shores
+# with it. That contest is the whole reason the fuel yard is a business
+# rather than a prop.
+class: /platform/thing/Provision
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a length of cordwood
+  primaryKeyword: cordwood
+  keywords: [cordwood, wood, pole, billet]
+  longDescription: "A straight length of hazel, barked and cut to a arm's length."
+  _materialPath: /stuff/idea/material/wood/oak
+  gradeBand: fair
+  mass: 3.2

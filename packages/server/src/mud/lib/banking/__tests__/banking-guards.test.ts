@@ -129,7 +129,7 @@ describe("Till security — vault coin leaves only via the banking verbs", () =>
     const coins = makeCoinsIn(alice, 100);
     await asOwner(alice, async () => {
       await BankingApi.openAccount(bank.getBank(), bank.getCorpoKey(), Currency.compact());
-      await BankingApi.deposit(bank, coins);
+      await bank.deposit(coins);
     });
     // The vault now holds the coin. A loose grab is vetoed by till security.
     const vaultCoin = (bank as Stuff & Container).getContents().find(
@@ -140,7 +140,7 @@ describe("Till security — vault coin leaves only via the banking verbs", () =>
     // The coin stayed in the vault.
     expect(bank.getTillLiquidity().minor).toBe(100);
     // But the banking verb opens the disbursement window and dispenses it.
-    await asOwner(alice, () => BankingApi.withdraw(bank, Money.of(100, Currency.compact())));
+    await asOwner(alice, () => bank.withdraw(Money.of(100, Currency.compact())));
     expect(bank.getTillLiquidity().minor).toBe(0);
   });
 });
@@ -163,16 +163,16 @@ describe("Withdrawal quota — the common-pool till guard", () => {
     const coins = makeCoinsIn(alice, 100);
     const acct = await asOwner(alice, async () => {
       const id = await BankingApi.openAccount(bank.getBank(), bank.getCorpoKey(), Currency.compact());
-      await BankingApi.deposit(bank, coins);
+      await bank.deposit(coins);
       return id;
     });
     // First 50 is under the 60 cap.
-    await asOwner(alice, () => BankingApi.withdraw(bank, Money.of(50, Currency.compact())));
+    await asOwner(alice, () => bank.withdraw(Money.of(50, Currency.compact())));
     expect(BankingApi.balanceOf(acct).minor).toBe(50);
     // A further 25 would breach the cap (50 already drawn + 25 > 60) → refused
     // (the quota derives the day's withdrawals over the ledger).
     await expect(
-      asOwner(alice, () => BankingApi.withdraw(bank, Money.of(25, Currency.compact()))),
+      asOwner(alice, () => bank.withdraw(Money.of(25, Currency.compact()))),
     ).rejects.toThrow(/limit/);
     // The balance is untouched by the refusal.
     expect(BankingApi.balanceOf(acct).minor).toBe(50);
@@ -189,13 +189,13 @@ describe("Withdrawal quota — the common-pool till guard", () => {
     const coins = makeCoinsIn(alice, 100);
     const acct = await asOwner(alice, async () => {
       const id = await BankingApi.openAccount(bank.getBank(), bank.getCorpoKey(), Currency.compact());
-      await BankingApi.deposit(bank, coins);
+      await bank.deposit(coins);
       return id;
     });
     // Enrol Alice into the Circle (the real enrollment write) → raised cap.
     expect(await BankingApi.enrollCircle(ALICE, "goodkin")).toBe(true);
     // 90 would breach the stranger cap (60) but is under the Circle cap (500).
-    await asOwner(alice, () => BankingApi.withdraw(bank, Money.of(90, Currency.compact())));
+    await asOwner(alice, () => bank.withdraw(Money.of(90, Currency.compact())));
     expect(BankingApi.balanceOf(acct).minor).toBe(10);
   });
 });
@@ -217,7 +217,7 @@ describe("Fees + corpo royalty — conserved, split to the treasury", () => {
     const coins = makeCoinsIn(alice, 100);
     const acct = await asOwner(alice, async () => {
       const id = await BankingApi.openAccount(bank.getBank(), bank.getCorpoKey(), Currency.compact());
-      await BankingApi.deposit(bank, coins); // credits 100, then a 10 fee
+      await bank.deposit(coins); // credits 100, then a 10 fee
       return id;
     });
     // Customer paid the 10 fee out of the 100 deposited.

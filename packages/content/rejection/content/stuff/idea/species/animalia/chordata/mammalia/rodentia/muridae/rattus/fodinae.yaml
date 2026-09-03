@@ -1,0 +1,34 @@
+# Rattus fodinae — the delve rat. It lives on what miners drop, which is
+# a genuine ecological niche and the reason rats are in every mine that
+# has ever had people in it.
+#
+# ⚠ It is CHARACTER, not function — so it ships in the venue rather than
+# in the trade. A second mine is free to have something else in its
+# corners, and nothing in the machinery notices.
+class: /platform/idea/species/Species
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  binomial: Rattus fodinae
+  commonNames: ["delve rat", "rat"]
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/quadruped
+  _parentCladePath: /stuff/idea/species/animalia
+  _defaultMaterialPath: /stuff/idea/material/tissue/flesh
+  vitalProfile:
+    coreTemperature: { baseline: 310, survivableMin: 297, survivableMax: 315 }
+    heartRate: { baseline: 350, survivableMin: 120, survivableMax: 550 }
+    respiratoryRate: { baseline: 90, survivableMin: 30, survivableMax: 180 }
+    bloodPressureSystolic: { baseline: 120, survivableMin: 60, survivableMax: 170 }
+    bloodPressureDiastolic: { baseline: 80, survivableMin: 40, survivableMax: 120 }
+    spo2: { baseline: 96, survivableMin: 55, survivableMax: 100 }
+    bloodVolume: { baseline: 0.02, survivableMin: 0.012, survivableMax: 0.02 }
+  lifecycleStates: ["alive", "dead"]
+  sexDeterminationSystem: xy
+  reproductiveMode: sexual
+  lifespanMin: 0
+  lifespanMax: 3
+  circadianBand: nocturnal
+  diet: omnivore
+  visionProfile:
+    scotopicMin: pitch-black
+    photopicMax: lit
+    bandShift: 2

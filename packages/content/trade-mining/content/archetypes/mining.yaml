@@ -1,0 +1,39 @@
+# ⭐⭐ The MINE archetype — what a working mine NEEDS, stated in
+# capabilities the kernel already checks, never in furniture.
+#
+# This file is the whole of *"the trade states needs; the locality binds
+# them"*. It is reported, never enforced: a mine with no light is a
+# legal, visible state and nothing multiplies off a satisfaction. What it
+# buys is that a second mining town can be checked against it.
+#
+# ⭐ **The `light` slot ships with NO DEFAULT, and that is the
+# demonstration.** The archetype says *you need light underground*.
+# Rejection answers with glowcap; another mine answers with
+# oil lamps; a third answers with something nobody has written yet. Same
+# slot, different world — and the vocabulary names none of them, because
+# `lightLux` is a property of the SPACE and the read is the same
+# `vision.signalAt` that `measure light` reads.
+#
+# ⚠ The defaults that ARE here name `trade-mining` rows only where the
+# trade genuinely owns the row — the tools any mine needs. Haulage, air
+# and support are bound by the venue, because whose pony and whose timber
+# is a fact about the place.
+archetypeId: mining
+label: a working mine
+industry: mining
+capabilities:
+  # ⭐ The divergence slot. No default, on purpose.
+  - { key: light, needs: { lightLux: 20 } }
+  # Haulage and air ride `presence` — the honest need is *a thing of this
+  # kind is here*, and a pit pony is an animal rather than a tool or a
+  # bulk source. ⚠ The keywords are the SPECIES' primary keywords and are
+  # authored distinctly (`pony`, `canary`) because `presence` matching is
+  # keyword-based and a mine is dense in near-identical nouns.
+  - { key: haulage, needs: { presence: pony } }
+  - { key: air, needs: { presence: canary } }
+  # Support is a stocked supply, not a fixture: a mine that has run out
+  # of timber fails this slot, which is the correct reading.
+  - { key: support, needs: { bulkSource: timber } }
+  - { key: assay, needs: { tool: assay-scale } }
+  - { key: survey, needs: { tool: surveying }, default: /trade/mining/thing/miners-dial }
+  - { key: winning, needs: { tool: winning }, default: /trade/mining/thing/pick }

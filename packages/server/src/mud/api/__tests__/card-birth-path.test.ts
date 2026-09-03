@@ -18,7 +18,7 @@
 
 import '../../../test-bootstrap';
 import { describe, it, expect } from 'vitest';
-import { readdirSync, readFileSync, statSync } from 'fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join, relative } from 'path';
 import { CARD_IDS, SHIPPED_ARRANGEMENT_CARDS } from '@saxonberg/types';
@@ -42,6 +42,40 @@ function sourceFiles(root: string): string[] {
   };
   walk(root);
   return out;
+}
+
+const CONTENT_ROOT = join(SERVER_SRC, '..', '..', 'content');
+
+/**
+ * ⚠⚠ **A pack can mint a card, and the scans have to know it.**
+ *
+ * The card vocabulary stays kernel — `CardId` is a closed union in
+ * `@saxonberg/types` — but since content packs began shipping `src/`,
+ * the CONTROLLER that opens a row may live in a pack. `analyze ground`
+ * is the first: the `survey` row is declared in the kernel catalogue and
+ * opened from `trade-mining`.
+ *
+ * ⚠ A scan that walked only `src/mud` was wrong in BOTH directions. It
+ * called `survey` an orphan no command could open (it was reachable),
+ * and it would have let a pack mint a card with no declared site at all
+ * (it was not looking). Widening it is the fix; the site list below is
+ * still asserted as a set, so a pack mint is a deliberate edit here.
+ */
+function packSourceFiles(): string[] {
+  const out: string[] = [];
+  for (const pack of readdirSync(CONTENT_ROOT).sort()) {
+    const src = join(CONTENT_ROOT, pack, 'src');
+    if (!existsSync(src) || !statSync(src).isDirectory()) continue;
+    out.push(...sourceFiles(src));
+  }
+  return out;
+}
+
+/** Stable id for a scanned file — kernel-relative, or `content/<pack>/…`. */
+function idOf(file: string): string {
+  return relative(SERVER_SRC, file)
+    .replace(/\\/g, '/')
+    .replace(/^(\.\.\/)+/, '');
 }
 
 describe('a card is born on the server, or not at all', () => {
@@ -72,22 +106,28 @@ describe('a card is born on the server, or not at all', () => {
     expect(body).not.toContain('CardId');
   });
 
-  it('every server-side mint goes through CardApi.open or CardApi.push', () => {
-    const files = sourceFiles(join(SERVER_SRC, 'mud')).filter(
-      (f) => !f.includes('__tests__'),
-    );
+  it('every server-side mint goes through CardApi.open or interactive.pushCard', () => {
+    const files = [
+      ...sourceFiles(join(SERVER_SRC, 'mud')),
+      ...packSourceFiles(),
+    ].filter((f) => !f.includes('__tests__'));
     expect(files.length).toBeGreaterThan(500);
 
     const sites: string[] = [];
     for (const file of files) {
-      const rel = relative(SERVER_SRC, file).replace(/\\/g, '/');
+      const rel = idOf(file);
       // The substrate itself is where minting is IMPLEMENTED.
       if (rel === 'mud/platform/idea/CardRegistry.ts') continue;
       if (rel === 'mud/platform/idea/api/CardLogic.ts') continue;
       if (rel === 'mud/api/card.ts') continue;
+      // The Interactive method surface (Phase E) is the substrate's
+      // instance face — its forwards are the implementation, not a mint.
+      if (rel === 'mud/platform/idea/Interactive.ts') continue;
       const text = readFileSync(file, 'utf8');
-      for (const m of text.matchAll(/CardApi\.(open|push|applyArrangement)\(/g)) {
-        sites.push(`${rel}:${m[1]}`);
+      for (const m of text.matchAll(
+        /CardApi\.open\(|\.(pushCard|applyCardArrangement)\(/g,
+      )) {
+        sites.push(`${rel}:${m[0].startsWith('CardApi') ? 'open' : m[1]!}`);
       }
       /*
        * ⚠ Nothing outside the substrate touches the registry directly.
@@ -121,16 +161,17 @@ describe('a card is born on the server, or not at all', () => {
      */
     expect(sites.sort()).toEqual(
       [
-        'mud/platform/agent/Avatar.ts:applyArrangement',
-        'mud/lib/display/Display.ts:push',
-        'mud/platform/idea/api/PromptLogic.ts:push',
+        'content/trade-mining/src/idea/cmd/perception/AnalyzeGroundController.ts:open',
+        'mud/platform/agent/Avatar.ts:applyCardArrangement',
+        'mud/lib/display/Display.ts:pushCard',
+        'mud/platform/idea/api/PromptLogic.ts:pushCard',
         'mud/platform/idea/cmd/author/CmsController.ts:open',
         'mud/platform/idea/cmd/author/StudioController.ts:open',
         'mud/platform/idea/cmd/perception/LookController.ts:open',
         'mud/platform/idea/cmd/perception/LookController.ts:open',
         'mud/platform/idea/cmd/perception/SenseController.ts:open',
-        'mud/platform/idea/cmd/shell/CockpitModeController.ts:applyArrangement',
-        'mud/platform/idea/cmd/shell/LayoutController.ts:applyArrangement',
+        'mud/platform/idea/cmd/shell/CockpitModeController.ts:applyCardArrangement',
+        'mud/platform/idea/cmd/shell/LayoutController.ts:applyCardArrangement',
         'mud/platform/idea/cmd/social/WhoController.ts:open',
         'mud/platform/idea/cmd/system/GitController.ts:open',
         'mud/platform/idea/cmd/system/HelpController.ts:open',
@@ -141,7 +182,6 @@ describe('a card is born on the server, or not at all', () => {
   });
 
   it('⚠ every `opens_card:` names a real card, and every mint is declared', () => {
-    const cmdRoot = join(SERVER_SRC, '..', '..', 'content', 'platform', 'content', 'platform', 'cmd');
     const yamls: string[] = [];
     const walk = (dir: string): void => {
       for (const entry of readdirSync(dir)) {
@@ -150,7 +190,14 @@ describe('a card is born on the server, or not at all', () => {
         else if (entry.endsWith('.yaml')) yamls.push(full);
       }
     };
-    walk(cmdRoot);
+    // ⚠ Every pack's content, not just the platform's: a pack ships
+    // command views of its own, and an `opens_card:` naming a card that
+    // does not exist is exactly as broken there.
+    for (const pack of readdirSync(CONTENT_ROOT).sort()) {
+      const content = join(CONTENT_ROOT, pack, 'content');
+      if (!existsSync(content) || !statSync(content).isDirectory()) continue;
+      walk(content);
+    }
     expect(yamls.length).toBeGreaterThan(50);
 
     const declared = new Set<string>();
@@ -184,6 +231,7 @@ describe('a card is born on the server, or not at all', () => {
         'stock',
         'studio',
         'subject',
+        'survey',
         'who',
         'wiki',
       ].sort(),
@@ -258,9 +306,10 @@ describe('a card is born on the server, or not at all', () => {
  */
 describe('a declared card is a reachable card', () => {
   it('⭐ every CardId is minted by a command or shipped in an arrangement', () => {
-    const files = sourceFiles(join(SERVER_SRC, 'mud')).filter(
-      (f) => !f.includes('__tests__'),
-    );
+    const files = [
+      ...sourceFiles(join(SERVER_SRC, 'mud')),
+      ...packSourceFiles(),
+    ].filter((f) => !f.includes('__tests__'));
     const born = new Set<string>();
 
     // Named in a shipped arrangement — pushed at login / mode switch.
@@ -272,15 +321,15 @@ describe('a declared card is a reachable card', () => {
 
     // Minted directly by server code.
     for (const file of files) {
-      const rel = relative(SERVER_SRC, file).replace(/\\/g, '/');
+      const rel = idOf(file);
       if (rel === 'mud/platform/idea/CardRegistry.ts') continue;
       if (rel === 'mud/platform/idea/api/CardLogic.ts') continue;
       if (rel === 'mud/api/card.ts') continue;
       const text = readFileSync(file, 'utf8');
       for (const m of text.matchAll(
-        /CardApi\.(?:open|push)\(\s*[A-Za-z0-9_.]+\s*,\s*['"]([a-z]+)['"]/g,
+        /CardApi\.open\(\s*[A-Za-z0-9_.]+\s*,\s*['"]([a-z]+)['"]|\.pushCard\(\s*['"]([a-z]+)['"]/g,
       )) {
-        born.add(m[1]!);
+        born.add((m[1] ?? m[2])!);
       }
       // Minted through a DISPLAY — `<screen>.show({ kind: 'card',
       // cardId: 'x' })` pushes via `CardApi.push` for every viewer who

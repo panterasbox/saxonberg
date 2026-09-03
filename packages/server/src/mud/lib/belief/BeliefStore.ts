@@ -54,8 +54,16 @@
 
 import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
+import { Stuff as StuffBase } from '../stuff/Stuff';
 import { StuffApi } from '../../api/stuff';
-import { BeliefStoreApi } from '../../api/belief';
+import { PersistApi } from '../../api/persist';
+import BeliefDocument from './BeliefDocument';
+import {
+  CallSecurity,
+  Final,
+  Unshadowable,
+} from '../security/decorators';
+import { SecurityPolicies } from '../security/SecurityPolicies';
 
 /**
  * Realm constant: instance-continuity memory. Keyed by the target's
@@ -258,6 +266,16 @@ export interface BeliefStore {
    * never does.
    */
   allBeliefs(): readonly BeliefRecord[];
+  hydrateBeliefs(): Promise<void>;
+  evictAndFlushBeliefs(): Promise<void>;
+  regardFor(subject: Stuff): number;
+  adjustRegard(subject: Stuff, delta: number): void;
+  setRegard(subject: Stuff, value: number): void;
+  clearRegard(subject: Stuff): void;
+  regardsHeld(): ReadonlyMap<string, number>;
+  learnIdentityOf(subject: Stuff, name: string | null): void;
+  recognizes(subject: Stuff): boolean;
+  knowsTrueTypeOf(target: Stuff): boolean;
   /**
    * Install a hydrated record directly (the persistence hydrate path).
    * Bypasses the upsert/coalesce logic AND the write-through — the record
@@ -269,8 +287,91 @@ export interface BeliefStore {
   clearBeliefs(): void;
 }
 
+/* ────────── the per-record persistence (module-private) ──────────
+ * Moved in whole from the retired BeliefStoreLogic (the ledger viewer
+ * face of the Api OO sweep): the BeliefDocument I/O is internal to the
+ * mixin file now — the mixin's own know/forget call it directly and
+ * nothing else may. BeliefDocument is lib/belief/ — inside the mudlib,
+ * no boundary issue.
+ */
+
+/** Has this record learned anything worth persisting? */
+function isLearned(record: BeliefRecord): boolean {
+  return (
+    record.knownAs !== null ||
+    record.payload.typeKnown === true ||
+    // A bare regard record (null knownAs) is still worth persisting; a
+    // neutral/absent regard is not (matches "absent or 0 = no opinion").
+    (record.payload.regard !== undefined && record.payload.regard !== 0)
+  );
+}
+
+/** Persistence is a no-op unless Mongo is connected (tests, pre-boot). */
+function persistenceActive(): boolean {
+  return PersistApi.isConnected();
+}
+
+/** The durable per-viewer key, or null for a session-ephemeral viewer. */
+function viewerKey(viewer: Stuff): string | null {
+  return viewer.getIdentityPath();
+}
+
+/**
+ * Per-record write-through. Persists a learned record (upsert keyed by
+ * `{viewerId, realm, referent}`); no-ops for a bare stranger record, a
+ * keyless viewer, or a closed connection. The find-then-save read is on
+ * the WRITE path, never the naming path, so the no-read constraint
+ * holds.
+ */
+async function writeRecordImpl(
+  viewer: Stuff,
+  record: BeliefRecord,
+): Promise<void> {
+  if (!persistenceActive()) return;
+  const viewerId = viewerKey(viewer);
+  if (!viewerId || !isLearned(record)) return;
+  const [existing] = await BeliefDocument.find({
+    viewerId,
+    realm: record.realm,
+    referent: record.referent,
+  });
+  const doc = existing ?? new BeliefDocument();
+  doc.applyRecord(viewerId, record);
+  await doc.save();
+}
+
+/** Drop a persisted record (mirrors the mixin's forget). */
+async function deleteRecordImpl(
+  viewer: Stuff,
+  realm: string,
+  referent: string,
+): Promise<void> {
+  if (!persistenceActive()) return;
+  const viewerId = viewerKey(viewer);
+  if (!viewerId) return;
+  const docs = await BeliefDocument.find({ viewerId, realm, referent });
+  for (const doc of docs) await doc.delete();
+}
+
+/* ────────── the regard arithmetic (module-private) ──────────
+ * Moved in whole from the retired RegardLogic: the store stays dumb
+ * CRUD; the read-modify-write delta and the normative clamp live
+ * beside it now, behind the sealed methods below.
+ */
+
+/** Inclusive bounds on stored regard. The range is normative (clamped). */
+const REGARD_MIN = -100;
+const REGARD_MAX = 100;
+
+/** Clamp to the normative -100..+100 range. */
+function clampRegard(value: number): number {
+  return Math.max(REGARD_MIN, Math.min(REGARD_MAX, value));
+}
+
 export function BeliefStoreMixin<TBase extends MixinConstructor>(Base: TBase) {
-  return class BeliefStoreMixin extends Base implements BeliefStore {
+  // Declared-then-returned (the Meltable shape) so method decorators
+  // are legal — a class EXPRESSION cannot carry them.
+  class BeliefStoreMixin extends Base implements BeliefStore {
     static _mixinName = 'BeliefStoreMixin';
 
     /**
@@ -384,11 +485,9 @@ export function BeliefStoreMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     forget(realm: string, referent: string): void {
       this._beliefs.delete(keyOf(realm, referent));
-      void BeliefStoreApi.deleteRecord(
-        this as unknown as Stuff,
-        realm,
-        referent,
-      ).catch(() => {});
+      void deleteRecordImpl(this as unknown as Stuff, realm, referent).catch(
+        () => {},
+      );
     }
 
     forgetField(realm: string, referent: string, field: BeliefField): void {
@@ -421,9 +520,146 @@ export function BeliefStoreMixin<TBase extends MixinConstructor>(Base: TBase) {
      * inert off the Mongo path.
      */
     private _writeThrough(record: BeliefRecord): void {
-      void BeliefStoreApi.writeRecord(this as unknown as Stuff, record).catch(
-        () => {},
+      void writeRecordImpl(this as unknown as Stuff, record).catch(() => {});
+    }
+
+    /**
+     * Lazy-hydrate this viewer's persisted beliefs into the in-memory
+     * map. Called on session establish (`Avatar.enter` — a self-call,
+     * which is what the gate admits). No-op without a durable viewer
+     * key or an active connection.
+     */
+    @CallSecurity(SecurityPolicies.SelfOnly)
+    public async hydrateBeliefs(): Promise<void> {
+      if (!persistenceActive()) return;
+      const self = this as unknown as Stuff;
+      const viewerId = viewerKey(self);
+      if (!viewerId) return;
+      const docs = await BeliefDocument.find({ viewerId });
+      for (const doc of docs) this.loadBelief(doc.toRecord());
+    }
+
+    /**
+     * Final flush of every learned record, then clear the in-memory
+     * map. Called on logout (`Avatar.onDestruct` — a self-call). The
+     * flush is a backstop for any write-through still in flight;
+     * clearing releases the working set.
+     */
+    @CallSecurity(SecurityPolicies.SelfOnly)
+    public async evictAndFlushBeliefs(): Promise<void> {
+      const self = this as unknown as Stuff;
+      if (persistenceActive()) {
+        const viewerId = viewerKey(self);
+        if (viewerId) {
+          for (const record of this.allBeliefs()) {
+            if (isLearned(record)) await writeRecordImpl(self, record);
+          }
+        }
+      }
+      this.clearBeliefs();
+    }
+
+    /* ────────── the recognition face (the first realm) ────────── */
+
+    /**
+     * Learn (or overwrite) who `subject` IS to this viewer (was
+     * `RecognitionApi.learnIdentity` — the OO sweep). `name = null`
+     * records a sighting without a name. Sealed; ungated (P5 parity —
+     * the writers span introduce, dialogue auto-introduce and content
+     * effects, principals no FromX policy can enumerate).
+     */
+    @Final
+    @Unshadowable
+    public learnIdentityOf(subject: Stuff, name: string | null): void {
+      const referent = subject.getIdentityPath();
+      if (!referent) return;
+      this.know(RECOGNITION, referent, { knownAs: name });
+    }
+
+    /** Does this viewer recognize `subject` (a named RECOGNITION record)? */
+    public recognizes(subject: Stuff): boolean {
+      const referent = subject.getIdentityPath();
+      if (!referent) return false;
+      const record = this.recall(RECOGNITION, referent) as
+        | { knownAs?: string | null }
+        | undefined;
+      return !!record?.knownAs;
+    }
+
+    /**
+     * Does this viewer actually KNOW what `target` is (a current-
+     * generation identification with no believed-name override)? The
+     * gate on revealing an item's authored long description.
+     */
+    public knowsTrueTypeOf(target: Stuff): boolean {
+      return (
+        StuffBase._recognitionFace()?.knowsTrueType(
+          this as unknown as Stuff,
+          target,
+        ) ?? false
       );
     }
-  };
+
+    /* ────────── the regard face (the third realm) ────────── */
+
+    /**
+     * This viewer's current regard for `subject` — a signed scalar in
+     * `-100..+100`, `0` when no opinion (no record / keyless subject).
+     * Ungated read.
+     */
+    public regardFor(subject: Stuff): number {
+      const referent = subject.getIdentityPath();
+      if (!referent) return 0;
+      return this.recall(REGARD, referent)?.payload.regard ?? 0;
+    }
+
+    /**
+     * Move this viewer's regard for `subject` by `delta` (signed),
+     * clamped into `-100..+100`. Sealed — the method owns the clamp
+     * invariant. Ungated (P5 parity with the retired Public
+     * `RegardApi.adjustRegard`): the writers are a trusted-relationship
+     * set — IntroduceController, the dialogue effect path, the contract
+     * and combat resolutions — and several run under principals no
+     * FromX policy can name.
+     */
+    @Final
+    @Unshadowable
+    public adjustRegard(subject: Stuff, delta: number): void {
+      this.setRegard(subject, this.regardFor(subject) + delta);
+    }
+
+    /** Set an absolute (clamped) regard value. Sealed; see {@link adjustRegard}. */
+    @Final
+    @Unshadowable
+    public setRegard(subject: Stuff, value: number): void {
+      const referent = subject.getIdentityPath();
+      if (!referent) return;
+      this.know(REGARD, referent, { regard: clampRegard(value) });
+    }
+
+    /**
+     * Clear this viewer's regard for `subject` (back to "no opinion").
+     * The belief record itself is kept; only the regard field drops.
+     */
+    @Final
+    @Unshadowable
+    public clearRegard(subject: Stuff): void {
+      const referent = subject.getIdentityPath();
+      if (!referent) return;
+      this.forgetField(REGARD, referent, 'regard');
+    }
+
+    /**
+     * Every regard this viewer holds, as `referent → value`. A
+     * read-only snapshot for consumers (renown aggregation, display).
+     */
+    public regardsHeld(): ReadonlyMap<string, number> {
+      const out = new Map<string, number>();
+      for (const [referent, record] of this.recallRealm(REGARD)) {
+        out.set(referent, record.payload.regard ?? 0);
+      }
+      return out;
+    }
+  }
+  return BeliefStoreMixin;
 }

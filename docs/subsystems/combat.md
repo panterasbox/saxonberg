@@ -151,7 +151,7 @@ downed, defeated, defeated-foe, coup begun), and **venue** (optional
 points of the beat lifecycle, with consequences funneled through the
 engine-drained `CombatHookContext` queue and the whole engine lint-locked
 against per-dynamic carve-outs (`check-combat-dynamics`). The gated
-**`CombatApi.influence`** bridge (stagger/expose/steady) is the external
+**`combatant.influenceCombat`** bridge (stagger/expose/steady) is the external
 state-instruction surface. The seams exist here; the **choreography, the
 determinism contract, the enchantment-via-shadows boundary, and the
 species combat vocabulary live in
@@ -180,18 +180,54 @@ fallback; the natural profile derives from the body, and a species can
 afford existing gambits bodily — see
 [combat-hooks.md](./combat-hooks.md) § the species vocabulary).
 
-**Attempt-time cross-gating** (`CombatApi.eligibilityFor`): a gambit needing
+**Attempt-time cross-gating** (`combatant.gambitEligibility`): a gambit needing
 an impaired slot is *rejected when attempted* (`Vitals.isSlotImpairedByTrauma`
 → the wielding grip's `bodyPart`), and `disarm` is rejected when the
 opponent is unarmed. This is the "injury edits the menu" behaviour — the
 visible menu-greying is a client-card concern, deferred with the card; the
-terminal build needs only the reject. Humanoids declare **no** innate attack
-(fisticuffs deferred), so a disarmed or fractured-grip humanoid genuinely
-loses `strike`, while a natural-weapon beast keeps it.
+terminal build needs only the reject. **Fisticuffs shipped (the bar-fight
+build):** every humanoid (`homo/*` clade) species row declares a
+mass-scaled blunt **fist** on `naturalAttacks` (`massScaled: true`), so a
+disarmed or bare-handed humanoid still `strike`s/`shove`s/`subdue`s — a
+heavier build hitting harder (`commitInflict` scales inflict energy by
+`clamp(baseMass / combat.natural.energyRefMassKg, min, max)`, the flag no
+shipped beast carries, so beasts are byte-identical). An unarmed exchange
+additionally credits the **`unarmed`** Discipline (the `blades` pattern —
+`melee-combat` always, `unarmed` on an innate instrument, `blades` on an
+edge/point one).
 
 `lib/combat/CombatFlags.ts` — the session-scoped flag set (`disarmed` /
 `prone` / `grappled` / `inspired`), set by control gambits, gone at session
 end.
+
+**The sanctuary gate (the bar-fight build).** A room may forbid a fight
+from opening in it — the `CombatSanctuary` interface
+(`lib/combat/CombatHookContext.ts`), deliberately a *sibling* of
+`CombatVenue`, never a member: the reactive venue hooks witness a fight
+(and may punish one) but can never veto it; a sanctuary is the one place
+a fight cannot open at all. `combatSanctuaryRefusal(initiator, defender)`
+is presence-dispatched at the very top of `openSessionImpl`, before any
+state is built, so a non-null return is a clean refusal (no session, no
+holds, no ledger) surfaced as `reason: "sanctuary"` + `refusal` prose
+through the initiate result to `AttackController`. Every fight-starter
+funnels through `initiate → openSessionImpl`, so one consultation covers
+the attack verb, ambush brains, thrown attacks, and forced NPC commands;
+`join`/`merge` need no gate. First implementer: the lounge's `LoungeMixin`
+(combat-free by mechanism — the social commons; the Bar and office are
+other classes and stay fair game).
+
+**Backing down + the bum's rush (`fight break` / `fight rush`).** `fight
+break` offers a mutual stand-down: it resolves the actor's beat as a
+`defend` (offering under fire is a real risk) and posts an offer good for
+the current + next beat (`CombatantState.breakOfferedBeat`); when both
+ends of a threat edge hold a fresh offer the edge dissolves, and a fully
+edgeless session resolves as a **draw** — no victor, no defeat, no yield
+loser (yield concedes and records a loss; break does not — which is what
+makes backing down chooseable). Multi-party: a partial break drops only
+the now-edgeless combatants. `fight rush <direction>` is the bum's rush —
+a control winner throws a `grappled` foe out through an exit (leaves the
+session, relocated teleport-style via `ContainmentApi.move`, lands
+`Postures.Lie`); a general control-win outcome, not a Dave feature.
 
 **Reactive dispatch (X)** — the session consults a defender's reactive
 affordances at `parried` / `whiff` / `grab`. "Reactive" is a net-new
@@ -248,7 +284,7 @@ at its decision points by hand-building a minimal `BrainContext` and calling
 `act` (bypassing `_runAct`'s slot-contention / presence machinery —
 acceptable, the session owns its own concurrency). Asymmetric by design: the
 full directed-autocombat loop is player-side; the enemy is brain-driven and
-simply *picks a gambit* through `CombatApi.queueGambit`, holding fire when
+simply *picks a gambit* through `combatant.queueGambit`, holding fire when
 overextended so the engine's defend-and-recover default takes over. A
 non-player combatant (no live `Interactive`) is auto-detected as
 brain-driven.
@@ -415,8 +451,8 @@ never reached NPCs.)*
 ### Resolution consumers
 
 At every win / kill, `runResolutionConsumers` (defensive, best-effort): a
-`ChronicleApi.recordDeed` for the victor (a **deed**, or a **crime**-tagged
-line for an unlawful kill) + a `RegardApi.adjustRegard` nudge from every
+`recordDeedDeed` for the victor (a **deed**, or a **crime**-tagged
+line for an unlawful kill) + a `adjustRegardRegard` nudge from every
 room witness (`combat.regard.duelWin` for a clean win, the negative
 `combat.regard.unlawfulKill` when the room recoils from a murderer). The
 global "X killed Y" presence relay stays deferred — the room-scoped death
@@ -429,9 +465,9 @@ auto-harvested by `DisciplineCatalogue`): `melee-combat` (skill) and
 `blades` (specializes it). Each resolved exchange mints the **player
 side's** own `ActSignature` (self-credit; difficulty from the target's
 poise band, outcome from the exchange result; `blades` additionally
-credited on an edge/point instrument) via `AdvancementApi.recordSignature`,
+credited on an edge/point instrument) via `creditSignature`,
 fire-and-forget. The existing **`assess`** verb (`AssessController`) gains a
-mid-fight branch: assessing your opponent delegates to `CombatApi.assess` —
+mid-fight branch: assessing your opponent delegates to `actor.assessCombat` —
 a **costed** read (it spends your next exchange, `queuedGambit = 'assess'`)
 that mints a combat signature and returns the opponent's banded tactical
 state (poise / flags / armed / condition). Bands, never numbers.
@@ -491,10 +527,10 @@ seam (see [party.md](./party.md)).
 - **The `defend` family** — one canonical `defend` verb over three
   cardinalities: `defend` (cover up = the self gambit), `defend <fallen>`
   (stay a coup = the old `intervene`/`stay`, kept as aliases), `defend
-  <ally>` (interpose — `CombatApi.defendAlly` joins if needed and
+  <ally>` (interpose — `interposer.defendAlly` joins if needed and
   `CombatGraph.redirect`s a foe's edge off the ally onto the interposer).
 - **Fleeing** — combat's resolution of a **locomotion attempt made while
-  engaged** (not a verb, not a mode). `CombatApi.disengage`, called at the
+  engaged** (not a verb, not a mode). `actor.disengage()`, called at the
   movement controller's pre-traverse gate, is a no-op when not fighting
   else an **opposed-lite** break: a focus-fire pin vetoes it, foes still
   locked on get a **parting shot** (same materials-response inflict, at
@@ -545,7 +581,7 @@ beats blind aggression, aggression beats a feinter.
 (no RNG): a dull reader under-reads (band shifts one step toward `steady`)
 and **mistakes a feint for a real opening** (`open`); a sharp reader sees the
 true band and the feint's **tell**. Two surfaces carry the fogged read:
-the **free** `fight` status opponent line (`CombatApi.perceive` — no cost,
+the **free** `fight` status opponent line (`actor.perceiveCombat` — no cost,
 no side-effects), and the **costed** `assess` verb (`CombatApi.assess`
 wraps `perceive` and adds the beat cost + the melee-read `ActSignature`).
 The **same** `CombatFog.reads(sharpness)` gate decides both the fog's tell
@@ -558,7 +594,7 @@ sharper fighter recovers more per defensive beat) and the read-fog.
 `g(composure)` is the **inert** `traits-stress` seam (`≡ 1` today — a
 stubbed composure composes without touching the exchange engine). Competence
 is snapshotted **synchronously at open** (`CombatOpenOptions.competenceBands`,
-keyed on `templatePath`; `AttackController` awaits `AdvancementApi.bandFor`
+keyed on `templatePath`; `AttackController` awaits `competenceBandFor`
 *before* opening — the async band can't be read mid-beat, and reading it once
 keeps a single session deterministic). Bare/test/gym/NPC paths default to
 `untrained`.

@@ -38,6 +38,7 @@
     "lint:boundary": "tsx scripts/check-boundary-exemptions.ts",
     "lint:world-scan": "tsx scripts/check-world-scan.ts",
     "lint:thin-forwarder": "tsx scripts/check-thin-forwarder.ts",
+    "lint:object-verbs": "tsx scripts/check-object-verbs.ts",
     "lint:pm": "tsx scripts/check-pm-access.ts",
     "lint:imports": "tsx scripts/check-mud-imports.ts",
     "lint:does-nothing": "tsx scripts/check-does-nothing.ts",

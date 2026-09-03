@@ -22,6 +22,19 @@ import { EventApi } from '../event';
 import { ShadowApi } from '../shadow';
 import { MqlSubscriptionApi } from '../mql-subscription';
 import { makeHarness, makeContext, type Harness } from './card-harness';
+import CardRegistry from '../../platform/idea/CardRegistry';
+import { makeStuffAtPath } from '../../lib/security/__tests__/test-setup';
+
+/**
+ * Install the sweep the way production does since the boot()
+ * retirement: the CardRegistry's postRegister (the manifest path).
+ */
+async function installSweep(): Promise<void> {
+  const reg =
+    StuffApi.findByTemplatePath<CardRegistry>('/platform/idea/CardRegistry') ??
+    makeStuffAtPath(() => new CardRegistry(), '/platform/idea/CardRegistry');
+  await reg.postRegister();
+}
 
 function openWho(h: Harness, text: string): string | null {
   return CardApi.open(
@@ -65,13 +78,13 @@ describe('card eviction is a sweep', () => {
     expect(once).not.toHaveBeenCalled();
   });
 
-  it('boot installs exactly ONE recurring handle, and is idempotent', () => {
+  it('the sweep install arms exactly ONE recurring handle, and is idempotent', async () => {
     CardApi._resetSweepForTesting();
     expect(CardApi._sweepHandleCountForTesting()).toBe(0);
     const recurring = vi.spyOn(ScheduleApi, 'recurring');
-    CardApi.boot();
-    CardApi.boot();
-    CardApi.boot();
+    await installSweep();
+    await installSweep();
+    await installSweep();
     expect(recurring).toHaveBeenCalledTimes(1);
     expect(CardApi._sweepHandleCountForTesting()).toBe(1);
   });
@@ -92,7 +105,7 @@ describe('card eviction is a sweep', () => {
       },
     );
     CardApi._resetSweepForTesting();
-    CardApi.boot();
+    await installSweep();
     expect(tick).not.toBeNull();
 
     openWho(h, 'who');

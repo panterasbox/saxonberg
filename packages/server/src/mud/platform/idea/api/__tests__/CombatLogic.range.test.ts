@@ -45,6 +45,7 @@ import CartesianZone from "../../location/CartesianZone";
 import { Stuff } from "../../../../lib/stuff/Stuff";
 import EventRegistry from "../../EventRegistry";
 import { EventApi } from "../../../../api/event";
+import type { Combatant } from '../../../../lib/combat/Combatant';
 
 class TestRoom extends ContainerMixin(Idea) {}
 class TestFighter extends Character {}
@@ -157,7 +158,7 @@ function act(
   gambit: string,
   maxBeats = 20,
 ): void {
-  const elig = CombatApi.queueGambit(actor as never, gambit);
+  const elig = (actor as unknown as Stuff & Combatant).queueGambit(gambit);
   if (!elig.ok) throw new Error(`gambit ${gambit} ineligible: ${elig.reason}`);
   for (let i = 0; i < maxBeats && s.isActive(); i++) {
     CombatApi.advance(s);
@@ -258,8 +259,8 @@ describe("CombatLogic — a melee strike cannot cross a ranged band", () => {
     const session = open(a, b);
     for (let i = 0; i < 150 && session.isActive(); i++) {
       session.getGraph().setRange(a, b, band);
-      CombatApi.queueGambit(a as never, "strike");
-      CombatApi.queueGambit(b as never, "strike");
+      (a as unknown as Stuff & Combatant).queueGambit("strike");
+      (b as unknown as Stuff & Combatant).queueGambit("strike");
       CombatApi.advance(session);
     }
     session.dissolve();
@@ -299,7 +300,7 @@ describe("CombatLogic — the reach dance stays inside the melee bands", () => {
     // act only between `close` and `reach` — a ranged pair is not "reach,
     // further out", and pushing it would be the reach dance leaking.
     graph.setRange(spear, dagger, "near");
-    CombatApi.queueGambit(spear as never, "defend");
+    (spear as unknown as Stuff & Combatant).queueGambit("defend");
     CombatApi.advance(session);
 
     expect(graph.rangeBetween(spear, dagger)).toBe("near");
@@ -413,7 +414,7 @@ describe("CombatLogic — the splash set is a relationship, not a radius", () =>
     s.getGraph().setRange(clinched, target, "close");
     s.getGraph().setRange(bystander, target, "reach");
 
-    const set = CombatApi.splashSetFor(target as never);
+    const set = (target as unknown as Stuff & Combatant).splashSet();
     expect(set).toContain(target);
     expect(set).toContain(clinched);
     // At `reach` you are near the target, not ON them.
@@ -436,13 +437,13 @@ describe("CombatLogic — the splash set is a relationship, not a radius", () =>
     // `elsewhere` is in the session but has no edge to the target.
     CombatApi.join(elsewhere as never, thrower as never, s.getTerms());
 
-    expect(CombatApi.splashSetFor(target as never)).not.toContain(elsewhere);
+    expect((target as unknown as Stuff & Combatant).splashSet()).not.toContain(elsewhere);
   });
 
   it("a target in no fight splashes only itself", () => {
     const room = makeArena(12);
     const lone = makeFighter(room as unknown as TestRoom, 0.9);
-    expect(CombatApi.splashSetFor(lone as never)).toEqual([lone]);
+    expect((lone as unknown as Stuff & Combatant).splashSet()).toEqual([lone]);
   });
 });
 
@@ -460,11 +461,7 @@ describe("CombatLogic — the commit-time consent gate (AC 25, AC 31)", () => {
     // The gate never speaks about the primary; the terms handshake and
     // the `consented: false` marker do. A gate that refused here would
     // forbid crime itself.
-    const verdict = CombatApi.mayDeliverTo(
-      thrower as never,
-      target as never,
-      [target as never],
-    );
+    const verdict = (thrower as unknown as Stuff & Combatant).mayDeliverTo(target as never, [target as never]);
     expect(verdict.ok).toBe(true);
   });
 
@@ -486,14 +483,10 @@ describe("CombatLogic — the commit-time consent gate (AC 25, AC 31)", () => {
     CombatApi.join(bystander as never, duelist as never, s.getTerms());
     s.getGraph().setRange(bystander, duelist, "close");
 
-    const splash = CombatApi.splashSetFor(duelist as never);
+    const splash = (duelist as unknown as Stuff & Combatant).splashSet();
     expect(splash).toContain(bystander);
 
-    const verdict = CombatApi.mayDeliverTo(
-      thrower as never,
-      duelist as never,
-      splash as never,
-    );
+    const verdict = (thrower as unknown as Stuff & Combatant).mayDeliverTo(duelist as never, splash as never);
     expect(verdict.ok).toBe(false);
     if (!verdict.ok) expect(verdict.refusedBy).toBe(bystander);
   });
@@ -511,12 +504,8 @@ describe("CombatLogic — the commit-time consent gate (AC 25, AC 31)", () => {
     s.getGraph().setRange(ally, duelist, "close");
     s.getGraph().addEdge(thrower, ally, s.getTerms());
 
-    const splash = CombatApi.splashSetFor(duelist as never);
-    const verdict = CombatApi.mayDeliverTo(
-      thrower as never,
-      duelist as never,
-      splash as never,
-    );
+    const splash = (duelist as unknown as Stuff & Combatant).splashSet();
+    const verdict = (thrower as unknown as Stuff & Combatant).mayDeliverTo(duelist as never, splash as never);
     expect(verdict.ok).toBe(true);
   });
 
@@ -527,11 +516,7 @@ describe("CombatLogic — the commit-time consent gate (AC 25, AC 31)", () => {
     const prop = makeStuff(() => new TestRoom());
     open(thrower, target);
 
-    const verdict = CombatApi.mayDeliverTo(
-      thrower as never,
-      target as never,
-      [target as never, prop as never],
-    );
+    const verdict = (thrower as unknown as Stuff & Combatant).mayDeliverTo(target as never, [target as never, prop as never]);
     expect(verdict.ok).toBe(true);
   });
 });
@@ -546,7 +531,7 @@ describe("CombatApi.initiate — the one initiation handshake (P6)", () => {
 
     // Both sides default to non-lethal, so reconciliation agrees and
     // nobody is prompted — the frictionless bar scuffle.
-    const res = await CombatApi.initiate(a as never, b as never);
+    const res = await (a as unknown as Stuff & Combatant).initiateCombat(b as never);
     expect(res.ok).toBe(true);
     expect(res.consented).toBe(true);
     expect(res.terms?.lethality).toBe("non-lethal");
@@ -563,7 +548,7 @@ describe("CombatApi.initiate — the one initiation handshake (P6)", () => {
     // `--lethal` against a non-lethal defender with no prompt handler is
     // the attacking-the-unwilling path: the fight still happens, and the
     // missing consent is what the blame ledger reads.
-    const res = await CombatApi.initiate(a as never, b as never, {
+    const res = await (a as unknown as Stuff & Combatant).initiateCombat(b as never, {
       lethal: true,
     });
     expect(res.ok).toBe(true);
@@ -578,12 +563,7 @@ describe("CombatApi.initiate — the one initiation handshake (P6)", () => {
     const a = person(room);
     const b = person(room);
 
-    const res = await CombatApi.initiate(
-      a as never,
-      b as never,
-      { lethal: true },
-      async () => true,
-    );
+    const res = await (a as unknown as Stuff & Combatant).initiateCombat(b as never, { lethal: true }, async () => true);
     expect(res.ok).toBe(true);
     expect(res.consented).toBe(true);
     expect(res.terms?.lethality).toBe("lethal");
@@ -596,12 +576,7 @@ describe("CombatApi.initiate — the one initiation handshake (P6)", () => {
     const a = person(room);
     const b = person(room);
 
-    const res = await CombatApi.initiate(
-      a as never,
-      b as never,
-      { lethal: true },
-      async () => false,
-    );
+    const res = await (a as unknown as Stuff & Combatant).initiateCombat(b as never, { lethal: true }, async () => false);
     expect(res.ok).toBe(true);
     // Declining is not refusing the fight — it refuses the ESCALATION.
     expect(res.consented).toBe(true);
@@ -615,12 +590,7 @@ describe("CombatApi.initiate — the one initiation handshake (P6)", () => {
     const a = person(room);
     const b = person(room);
 
-    const res = await CombatApi.initiate(
-      a as never,
-      b as never,
-      { lethal: true },
-      async () => "cancelled" as const,
-    );
+    const res = await (a as unknown as Stuff & Combatant).initiateCombat(b as never, { lethal: true }, async () => "cancelled" as const);
     expect(res.ok).toBe(false);
     expect(res.reason).toBe("cancelled");
     expect(CombatApi.sessionFor(a as never)).toBeUndefined();
@@ -632,12 +602,12 @@ describe("CombatApi.initiate — the one initiation handshake (P6)", () => {
     const b = person(room);
     const c = person(room);
 
-    const first = await CombatApi.initiate(a as never, b as never);
+    const first = await (a as unknown as Stuff & Combatant).initiateCombat(b as never);
     expect(first.ok).toBe(true);
     const s = CombatApi.sessionFor(a as never)!;
     openSessions.push(s);
 
-    const second = await CombatApi.initiate(c as never, b as never);
+    const second = await (c as unknown as Stuff & Combatant).initiateCombat(b as never);
     expect(second.ok).toBe(true);
     // One fight, three fighters — not two sessions.
     expect(CombatApi.sessionFor(c as never)).toBe(s);
@@ -647,7 +617,7 @@ describe("CombatApi.initiate — the one initiation handshake (P6)", () => {
     const room = makeArena(12);
     const a = person(room);
     const prop = makeStuff(() => new TestRoom());
-    const res = await CombatApi.initiate(a as never, prop as never);
+    const res = await (a as unknown as Stuff & Combatant).initiateCombat(prop as never);
     expect(res.ok).toBe(false);
     expect(res.reason).toBe("not-a-combatant");
   });
@@ -664,12 +634,7 @@ describe("CombatApi.resolveThrown — the arrival plan (AC 23)", () => {
     const target = person(room);
     open(thrower, target);
 
-    const plan = CombatApi.resolveThrown(
-      thrower as never,
-      target as never,
-      glassFlask,
-      [target as never],
-    );
+    const plan = (thrower as unknown as Stuff & Combatant).resolveThrown(target as never, glassFlask, [target as never]);
     expect(plan.profile.breaksOnArrival()).toBe(true);
     expect(plan.shares.length).toBe(1);
     expect(plan.shares[0]!.victim).toBe(target);
@@ -693,13 +658,8 @@ describe("CombatApi.resolveThrown — the arrival plan (AC 23)", () => {
     CombatApi.join(clinched as never, target as never, s.getTerms());
     s.getGraph().setRange(clinched, target, "close");
 
-    const splash = CombatApi.splashSetFor(target as never);
-    const plan = CombatApi.resolveThrown(
-      thrower as never,
-      target as never,
-      glassFlask,
-      splash as never,
-    );
+    const splash = (target as unknown as Stuff & Combatant).splashSet();
+    const plan = (thrower as unknown as Stuff & Combatant).resolveThrown(target as never, glassFlask, splash as never);
 
     expect(plan.shares.length).toBe(2);
     const bystander = plan.shares.find((sh) => !sh.primary)!;
@@ -722,12 +682,7 @@ describe("CombatApi.resolveThrown — the arrival plan (AC 23)", () => {
 
     // Steel's 200 MJ/m³ against glass's 0.5: the same throw, a different
     // material, and the flask simply bounces.
-    const plan = CombatApi.resolveThrown(
-      thrower as never,
-      target as never,
-      { litres: 0.25, toughness: 200, hardness: 600 },
-      [target as never],
-    );
+    const plan = (thrower as unknown as Stuff & Combatant).resolveThrown(target as never, { litres: 0.25, toughness: 200, hardness: 600 }, [target as never]);
     expect(plan.profile.breaksOnArrival()).toBe(false);
     expect(plan.shares).toEqual([]);
     expect(plan.spilled).toBeCloseTo(0.25, 6);
@@ -741,21 +696,11 @@ describe("CombatApi.resolveThrown — the arrival plan (AC 23)", () => {
 
     // `far` is past a thrown carrier's `near` envelope.
     expect(s.getGraph().rangeBetween(thrower, target)).toBe("far");
-    const long = CombatApi.resolveThrown(
-      thrower as never,
-      target as never,
-      glassFlask,
-      [target as never],
-    );
+    const long = (thrower as unknown as Stuff & Combatant).resolveThrown(target as never, glassFlask, [target as never]);
     expect(long.profile.beyondEnvelope).toBe(true);
 
     s.getGraph().setRange(thrower, target, "near");
-    const inRange = CombatApi.resolveThrown(
-      thrower as never,
-      target as never,
-      glassFlask,
-      [target as never],
-    );
+    const inRange = (thrower as unknown as Stuff & Combatant).resolveThrown(target as never, glassFlask, [target as never]);
     expect(inRange.profile.beyondEnvelope).toBe(false);
     // Closing the gap is worth doing — that is the whole range duel.
     expect(

@@ -7,6 +7,7 @@
  */
 
 import "@saxonberg/server/test-bootstrap";
+import type { CompetenceBandName } from "@saxonberg/server/mud/lib/advancement/CompetenceBand";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { readFileSync, readdirSync } from "fs";
 import { fileURLToPath } from "url";
@@ -14,7 +15,6 @@ import { dirname, join } from "path";
 import YAML from "yaml";
 import CastController from "../CastController";
 import requiresCastingFaculty from "@saxonberg/server/mud/lib/command/validators/requiresCastingFaculty";
-import { AdvancementApi } from "@saxonberg/server/mud/api/advancement";
 import { MessageApi } from "@saxonberg/server/mud/api/message";
 import { SchedulerApi } from "@saxonberg/server/mud/api/scheduler";
 import { WorldClockApi } from "@saxonberg/server/mud/api/worldclock";
@@ -50,7 +50,14 @@ class GlowlightOrb extends LightSourceMixin(Thing) {}
 const SPELL_PATH_PREFIX = '/stuff/idea/magic/Spell/';
 const SPELL_CLASS = '/platform/idea/magic/Spell';
 
-class TestCaster extends Character {}
+// The competence read runs ON the caster since the OO sweep; pinned
+// per test (credits no-op — PM is disconnected here).
+let testBand: CompetenceBandName = "competent";
+class TestCaster extends Character {
+  override async competenceBandFor(): Promise<CompetenceBandName> {
+    return testBand;
+  }
+}
 class Room extends ContainerMixin(ContainableMixin(Idea)) {}
 
 const __filename = fileURLToPath(import.meta.url);
@@ -144,8 +151,7 @@ describe("CastController + CastActivity", () => {
     StuffApi.register(reg);
     EventApi._setRegistryForTesting(reg);
     await installCatalogue();
-    vi.spyOn(AdvancementApi, "bandFor").mockResolvedValue("competent");
-    vi.spyOn(AdvancementApi, "recordSignature").mockResolvedValue(undefined);
+    testBand = "competent";
     vi.spyOn(StuffApi, "clone").mockImplementation(async () =>
       makeStuff(() => new GlowlightOrb()),
     );
@@ -214,7 +220,7 @@ describe("CastController + CastActivity", () => {
   it("a band-gated refusal lands at dispatch with legible prose", async () => {
     room = makeStuff(() => new Room());
     const caster = makeCaster(room);
-    vi.spyOn(AdvancementApi, "bandFor").mockResolvedValue("untrained");
+    testBand = "untrained";
     const controller = makeStuff(() => new CastController());
     await controller.execute(
       { spell: "glowlight" } as unknown as CommandModel,

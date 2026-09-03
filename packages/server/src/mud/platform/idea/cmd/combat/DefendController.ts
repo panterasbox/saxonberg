@@ -22,6 +22,7 @@ import { MessageApi } from "../../../../api/message";
 import { Mml } from "../../../../api/mml";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
 import { CombatApi } from "../../../../api/combat";
+import type { Combatant } from '../../../../lib/combat/Combatant';
 
 const TOPIC = "act.deed";
 
@@ -42,7 +43,7 @@ export default class DefendController extends CommandController<DefendModel> {
           "empty-result",
         );
       }
-      const elig = CombatApi.queueGambit(giver, "defend");
+      const elig = ((giver) as unknown as Stuff & Combatant).queueGambit("defend");
       if (!elig.ok) {
         return this.fail(
           context,
@@ -62,10 +63,10 @@ export default class DefendController extends CommandController<DefendModel> {
     const target = model.target.stuff;
 
     // A killing stroke poised over (or by) the target → stay it.
-    if (CombatApi.intervene(giver, target)) return;
+    if (((giver) as unknown as Stuff & Combatant).intervene(target)) return;
 
     // Otherwise interpose for a pressed ally.
-    const res = CombatApi.defendAlly(giver, target);
+    const res = ((giver) as unknown as Stuff & Combatant).defendAlly(target);
     if (!res.ok) {
       return this.fail(context, this.reasonText(res.reason ?? ""), res.reason ?? "failed");
     }

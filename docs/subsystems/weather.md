@@ -417,7 +417,7 @@ A materialless object reads `wetness.absorptionCapacityDefaultPct`.
   fires a presence-gated fan-out: an occupied SkyExposed `storm` scope
   rolls `storm.strikeRate` and, on a hit, mints a transient
   `LightningStrike` (`EnergizedMixin`+`AudibleMixin`, engine-event
-  content) routed through the shipped `ElectricityApi.conduct` (never a
+  content) routed through the shipped `conduct` (never a
   bespoke shock path), biases a direct hit onto the most-conductive
   attractor via `shockContact`, cracks a thunderclap, and is reaped. An
   empty scope is a harmless-but-heard flash. **No weather state stored** —

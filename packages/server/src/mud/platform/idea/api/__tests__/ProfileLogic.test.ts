@@ -14,23 +14,37 @@
  */
 
 import "../../../../../test-bootstrap";
+
+let recognizedNow = false;
+let statusNow = 'active';
 import { describe, it, expect, afterEach, vi } from 'vitest';
-import { SocialApi } from '../../../../api/social';
 import { MixinApi } from '../../../../api/mixin';
 import { PlayerApi } from '../../../../api/player';
-import { RecognitionApi } from '../../../../api/recognition';
 import { RenownApi } from '../../../../api/renown';
 import { InfluenceApi } from '../../../../api/influence';
-import { AdvancementApi } from '../../../../api/advancement';
-import { TraitApi } from '../../../../api/trait';
-import { RegardApi } from '../../../../api/regard';
-import { ChronicleApi } from '../../../../api/chronicle';
 import { ConnectionApi } from '../../../../api/connection';
 import { ShellApi } from '../../../../api/shell';
 import { Band } from '../../../../lib/standing/Band';
 import { InfluenceStanding } from '../../../../lib/standing/InfluenceStanding';
 import { StuffApi } from '../../../../api/stuff';
-import type { Stuff } from '../../../../lib/stuff/Stuff';
+import { ProxyApi } from '../../../../api/proxy';
+import { Stuff } from '../../../../lib/stuff/Stuff';
+import { ProfileLogic } from '../ProfileLogic';
+
+/**
+ * White-box: the RAW (unproxied) logic instance — the fakes here are not
+ * Stuff, so the compose entry is called directly (no gate; both fakes
+ * carry no circle scope so the read aperture is the identity branch).
+ * `Stuff.RAW_TARGET` is the sanctioned raw-state test seam.
+ */
+function composerRaw(): ProfileLogic {
+  const proxy = StuffApi.createSync(() => new ProfileLogic());
+  return (proxy as never as Record<symbol, ProfileLogic>)[ProxyApi.RAW_TARGET]!;
+}
+const composer = { 
+  composeCard: (v: Stuff, t: Stuff) => composerRaw().composeCard(v, t),
+  composeRow: (v: Stuff, t: Stuff) => composerRaw().composeRow(v, t),
+};
 
 /** A target with the full identity getter surface. */
 function makeTarget(): Stuff {
@@ -51,12 +65,23 @@ function makeTarget(): Stuff {
     getStatus: () => 'watching the road',
     getAspiration: () => 'healer',
     getBio: () => 'A wandering healer.',
+    // The viewer-aware naming face (base Stuff methods) — the fakes
+    // mirror the registered face.
+    describeFor: () => (recognizedNow ? 'Mara' : 'a tall human woman'),
+    describeWithStatusFor: () =>
+      recognizedNow ? 'Mara' : 'a tall human woman',
+    kindFor: () => 'npc',
+    // The chronicle owner face (the OO sweep): the composer reads the
+    // ledger off the target itself.
+    chronicleEntries: async () => [],
   } as unknown as Stuff;
 }
 
 function makeViewer(): Stuff {
   return {
     stuffId: 'v1',
+    recognizes: () => recognizedNow,
+    regardFor: () => 0,
     allContacts: () => [],
   } as unknown as Stuff;
 }
@@ -75,10 +100,18 @@ function stubSubstrate(recognized: boolean): void {
   // Not an Avatar in this unit — country / newness / presence status are
   // exercised separately; keeps this test to the identity-redaction core.
   vi.spyOn(PlayerApi, 'isAvatarStuff').mockReturnValue(false);
-  vi.spyOn(RecognitionApi, 'recognizes').mockReturnValue(recognized);
-  vi.spyOn(RecognitionApi, 'describe').mockReturnValue(
-    recognized ? 'Mara' : 'a tall human woman'
-  );
+  // Recognition rides the viewer's belief realm + the target face
+  // since the OO sweep.
+  vi.spyOn(MixinApi, 'isBeliefStore').mockReturnValue(true);
+  recognizedNow = recognized;
+  Stuff._registerRecognitionFace(() => ({
+    describe: () => (recognizedNow ? 'Mara' : 'a tall human woman'),
+    describeWithStatus: () => (recognizedNow ? 'Mara' : 'a tall human woman'),
+    salientFeaturesOf: () => 'a tall human woman',
+    perceivedKeywords: () => [],
+    kindOf: () => 'npc' as const,
+    knowsTrueType: () => false,
+  }));
   // Standing — empty / dormant without a DB; the composer must still
   // surface renown + competence outward.
   vi.spyOn(RenownApi, 'renownOf').mockReturnValue(0);
@@ -92,10 +125,6 @@ function stubSubstrate(recognized: boolean): void {
   vi.spyOn(InfluenceApi, 'standingForHost').mockReturnValue(
     new InfluenceStanding('acct', 'producer', 0, Band.of('dormant'))
   );
-  vi.spyOn(AdvancementApi, 'bandsFor').mockResolvedValue([]);
-  vi.spyOn(TraitApi, 'pronouncedFor').mockResolvedValue([]);
-  vi.spyOn(RegardApi, 'getRegard').mockReturnValue(0);
-  vi.spyOn(ChronicleApi, 'entriesFor').mockResolvedValue([]);
 }
 
 afterEach(() => {
@@ -106,7 +135,7 @@ afterEach(() => {
 describe('ProfileLogic.composeCard redaction', () => {
   it('withholds the persona from a stranger but shows physicality + renown', async () => {
     stubSubstrate(false);
-    const card = await SocialApi.composeCard(makeViewer(), makeTarget());
+    const card = await composer.composeCard(makeViewer(), makeTarget());
 
     expect(card.recognized).toBe(false);
     // Persona hidden.
@@ -129,7 +158,7 @@ describe('ProfileLogic.composeCard redaction', () => {
 
   it('unlocks the persona once recognized', async () => {
     stubSubstrate(true);
-    const card = await SocialApi.composeCard(makeViewer(), makeTarget());
+    const card = await composer.composeCard(makeViewer(), makeTarget());
 
     expect(card.recognized).toBe(true);
     expect(card.nameSurface?.name).toBe('Mara');
@@ -141,7 +170,7 @@ describe('ProfileLogic.composeCard redaction', () => {
   it('gives the self-card everything plus the standing digest, no annotations', async () => {
     stubSubstrate(true);
     const me = makeTarget();
-    const card = await SocialApi.composeCard(me, me);
+    const card = await composer.composeCard(me, me);
 
     expect(card.isSelf).toBe(true);
     expect(card.nameSurface?.name).toBe('Mara');
@@ -162,7 +191,11 @@ describe('ProfileLogic.composeRow — country always, status gated', () => {
       getTemplatePath: () => '/platform/agent/Avatar/t1',
       getIdentityPath: () => '/platform/agent/Avatar/t1',
       getPresentation: () => 'Mara',
+      describeFor: () => 'Mara',
+      describeWithStatusFor: () => 'Mara',
+      kindFor: () => 'player',
       getPlayerId: () => 'p-mara',
+      presenceStatus: () => statusNow,
       allContacts: () => [], // viewer is not a contact of the target
     } as unknown as Stuff;
   }
@@ -178,30 +211,29 @@ describe('ProfileLogic.composeRow — country always, status gated', () => {
   function stubRow(status: string, showStatus: string): void {
     vi.spyOn(PlayerApi, 'isAvatarStuff').mockReturnValue(true);
     vi.spyOn(MixinApi, 'isContacts').mockReturnValue(true);
-    vi.spyOn(RecognitionApi, 'recognizes').mockReturnValue(true);
-    vi.spyOn(RecognitionApi, 'describe').mockReturnValue('Mara');
+    recognizedNow = true;
     vi.spyOn(ConnectionApi, 'originOf').mockReturnValue({ country: 'Brazil' });
-    vi.spyOn(SocialApi, 'statusOf').mockReturnValue(status as never);
+    statusNow = status;
     vi.spyOn(ShellApi, 'resolveSetting').mockReturnValue(showStatus as never);
   }
 
   it('always shows country and a notable status under `anyone`', async () => {
     stubRow('idle', 'anyone');
-    const row = await SocialApi.composeRow(viewer(), makeAvatarTarget());
+    const row = await composer.composeRow(viewer(), makeAvatarTarget());
     expect(row.country).toBe('Brazil');
     expect(row.status).toBe('idle');
   });
 
   it('withholds the granular status from a non-contact under `contacts+`', async () => {
     stubRow('idle', 'contacts+');
-    const row = await SocialApi.composeRow(viewer(), makeAvatarTarget());
+    const row = await composer.composeRow(viewer(), makeAvatarTarget());
     expect(row.country).toBe('Brazil'); // country is unconditional
     expect(row.status).toBeUndefined(); // bare online — status withheld
   });
 
   it('omits the unremarkable active default from a row', async () => {
     stubRow('active', 'anyone');
-    const row = await SocialApi.composeRow(viewer(), makeAvatarTarget());
+    const row = await composer.composeRow(viewer(), makeAvatarTarget());
     expect(row.status).toBeUndefined();
   });
 });

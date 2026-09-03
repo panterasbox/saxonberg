@@ -7,7 +7,6 @@ import { SecurityPolicies } from "../../../lib/security/SecurityPolicies";
 import type { Stuff } from "../../../lib/stuff/Stuff";
 import { MixinApi } from "../../../api/mixin";
 import { GroupApi } from "../../../api/group";
-import { RecognitionApi } from "../../../api/recognition";
 import { PlayerApi } from "../../../api/player";
 import { SandboxApi } from "../../../api/sandbox";
 import { ShellApi } from "../../../api/shell";
@@ -37,6 +36,27 @@ import {
 } from "../../../lib/social/NotifyRule";
 
 const SocialApiCallers = SecurityPolicies.FromModule("/api/social#SocialApi");
+/** The F2 viewer face (NotifyPolicy hosts) forwards here as the viewer. */
+const SocialViewerCallers = SecurityPolicies.AnyOf(
+  SocialApiCallers,
+  SecurityPolicies.FromMixin("NotifyPolicyMixin", {
+    // Compare by stuffId — the caller may surface as the raw target
+    // while the argument is the proxy (or vice versa).
+    where: (caller, _target, _method, args) =>
+      (caller as { stuffId?: string }).stuffId !== undefined &&
+      (caller as { stuffId?: string }).stuffId ===
+        (args[0] as { stuffId?: string } | undefined)?.stuffId,
+  }),
+);
+
+/**
+ * The tap install is also callable by the self-warming `PresenceRelay`
+ * singleton (the boot()-retirement shape).
+ */
+const SocialBootCallers = SecurityPolicies.AnyOf(
+  SocialApiCallers,
+  SecurityPolicies.FromTemplate("/platform/idea/PresenceRelay"),
+);
 
 /**
  * Code-side baseline fallback — used only when AppSettings isn't warmed
@@ -286,7 +306,7 @@ async function matchesRule(
 ): Promise<boolean> {
   const ref = rule.groupRef;
   if (ref === RESERVED.strangers) {
-    return !RecognitionApi.recognizes(viewer, person);
+    return !(MixinApi.isBeliefStore(viewer) && viewer.recognizes(person));
   }
   if (ref === RESERVED.everyoneElse) return true;
   if (!personId) return false;
@@ -467,7 +487,7 @@ function speciesNameOf(occ: Stuff): string | null {
  * the shipped salient-features primitive rather than re-deriving it.
  */
 function wornFeatureOf(occ: Stuff): string | null {
-  const salient = RecognitionApi.salientFeatures(occ);
+  const salient = occ.salientFeatures();
   const marker = " wearing ";
   const idx = salient.lastIndexOf(marker);
   if (idx < 0) return null;
@@ -477,7 +497,7 @@ function wornFeatureOf(occ: Stuff): string | null {
 
 /**
  * Build an eager `<name>` fragment for one occupant. The display text is
- * resolved **now** through `RecognitionApi.describeWithStatus(viewer, occ)`
+ * resolved **now** through `occ.describeWithStatusFor(viewer)`
  * (compose *through* describe, never re-implement naming) because the
  * occupant block is resolved eagerly for a single known viewer (see
  * `composeOccupantsImpl`); a boosted occupant carries its rule's palette
@@ -486,14 +506,14 @@ function wornFeatureOf(occ: Stuff): string | null {
  * ("…, watching the empty road").
  */
 function nameMml(viewer: Stuff, occ: Stuff, color?: PaletteToken): Mml {
-  const display = RecognitionApi.describeWithStatus(viewer, occ);
+  const display = occ.describeWithStatusFor(viewer);
   const colorAttr = color ? ` color="${Mml.escape(color)}"` : "";
   // Hand-built rather than `Mml.actor` because of the `color` attribute
   // — so the kind resolution has to be asked for explicitly. ⚠ It must
   // be: the occupant list is the one surface where a hooded figure is
   // read carefully, so it is the last place that should quietly admit
   // a real person is under the hood.
-  const tag = RecognitionApi.kindOf(viewer, occ);
+  const tag = occ.kindFor(viewer);
   return Mml.fromMarkup(
     `<${tag} stuff-id="${Mml.escape(occ.stuffId)}"${colorAttr}>` +
       `${Mml.escape(display)}</${tag}>`,
@@ -795,7 +815,7 @@ async function styleMessageForImpl(
  * recipient `Scene`) would require a broader comms/messaging refactor to
  * late-bind the per-viewer restyle, deferred rather than forced here. A
  * future consumer (a `filterMessage`-shadow or a late-bound producer-side
- * wrapper) calls `SocialApi.styleMessageFor(viewer, speaker, body)` at the
+ * wrapper) calls `viewer.styleMessageFrom(speaker, body)` at the
  * compose seam. `summary` currently renders like `full` (no clean
  * per-recipient aggregation hook yet).
  *
@@ -830,7 +850,7 @@ export class SocialLogic extends ApiLogic {
    * Install the presence relay (idempotent). Subscribes to
    * `PlayerLoggedIn` / `PlayerLoggedOut` and fans each out to the online
    * viewers whose first-matching rule for the acting player is non-silent.
-   * Called once at boot (`SocialApi.boot`).
+   * Armed by `PresenceRelay.warm` (the manifest postRegister).
    *
    * Unlike the renown reaction/reception taps, this does NOT
    * `restrictSubscribe`: login/logout is *public presence* (already an
@@ -838,7 +858,7 @@ export class SocialLogic extends ApiLogic {
    * cadence side-channel — locking subscribe would wrongly bar other
    * legitimate future presence consumers.
    */
-  @CallSecurity(SocialApiCallers)
+  @CallSecurity(SocialBootCallers)
   public installPresenceTap(): void {
     if (this.loginSub) return;
     const limiter = this.presenceSeen;
@@ -866,7 +886,7 @@ export class SocialLogic extends ApiLogic {
   }
 
   /** See {@link SocialApi.styleMessageFor}. */
-  @CallSecurity(SocialApiCallers)
+  @CallSecurity(SocialViewerCallers)
   public styleMessageFor(
     viewer: Stuff,
     speaker: Stuff,
@@ -876,7 +896,7 @@ export class SocialLogic extends ApiLogic {
   }
 
   /** See {@link SocialApi.ruleFor}. */
-  @CallSecurity(SocialApiCallers)
+  @CallSecurity(SocialViewerCallers)
   public async ruleFor(
     viewer: Stuff,
     person: Stuff,
@@ -886,13 +906,13 @@ export class SocialLogic extends ApiLogic {
   }
 
   /** See {@link SocialApi.listRules}. */
-  @CallSecurity(SocialApiCallers)
+  @CallSecurity(SocialViewerCallers)
   public listRules(viewer: Stuff): NotifyRule[] {
     return listRulesImpl(viewer);
   }
 
   /** See {@link SocialApi.setRule}. */
-  @CallSecurity(SocialApiCallers)
+  @CallSecurity(SocialViewerCallers)
   public setRule(
     viewer: Stuff,
     ref: GroupRef,
@@ -902,13 +922,13 @@ export class SocialLogic extends ApiLogic {
   }
 
   /** See {@link SocialApi.removeRule}. */
-  @CallSecurity(SocialApiCallers)
+  @CallSecurity(SocialViewerCallers)
   public removeRule(viewer: Stuff, ref: GroupRef): boolean {
     return removeRuleImpl(viewer, ref);
   }
 
   /** See {@link SocialApi.composeOccupants}. */
-  @CallSecurity(SocialApiCallers)
+  @CallSecurity(SocialViewerCallers)
   public composeOccupants(
     viewer: Stuff,
     occupants: Stuff[],
@@ -918,7 +938,7 @@ export class SocialLogic extends ApiLogic {
   }
 
   /** See {@link SocialApi.reorderRule}. */
-  @CallSecurity(SocialApiCallers)
+  @CallSecurity(SocialViewerCallers)
   public reorderRule(
     viewer: Stuff,
     ref: GroupRef,

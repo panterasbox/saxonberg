@@ -1,0 +1,25 @@
+# Geology — the mining trade's discipline, and ⭐ **the one thing in this
+# build competence actually changes.**
+#
+# It buys RESOLUTION and the availability of an inference, never outcome:
+# the error bar on a reading IS the competence (`040 ± 15°` against
+# `041 ± 3°`, same lode), and three points under a practised eye solve a
+# plane that the same three points under a novice do not. It never touches
+# the ground. A better prospector does not get more ore from the same
+# rock; he knows where to point.
+#
+# ⚠ It is earned by SURVEYING and by cutting, at world-derived difficulty
+# — a faint trace is a harder read than a stained one, and the ground
+# decides which it was. Nothing anywhere gates on the band.
+class: /platform/idea/Discipline
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: geology
+  channel: skill
+  label: Geology
+  iscedf: "0532"  # ISCED-F 2013: earth sciences
+  description: >-
+    Reading ground. Where an orebody runs, how steeply it falls, what a
+    face is worth before it is broken. Improves by measuring and by
+    cutting; it changes what you can work out, never what the rock holds.
+  requires: []

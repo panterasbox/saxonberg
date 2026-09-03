@@ -35,9 +35,60 @@ import {
   type SettingsSchemaEntry,
 } from "../shell/Environment";
 import { LETHALITIES, STOP_CONDITIONS } from "./CombatTerms";
+import { StuffApi } from "../../api/stuff";
+import type {
+  InitiateResult,
+  CombatAssessResult,
+  FormationStanding,
+  RangeStanding,
+  GambitEligibility,
+} from "../../api/combat";
+import type { TermsProposal } from "./CombatTerms";
+import type { RangeState } from "./CombatGraph";
+import type { CombatInfluence, InfluenceResult } from "./CombatInfluence";
+// eslint-disable-next-line no-restricted-imports -- the G1 combatant face: a combatant's fight verbs forward into the combat logic singleton exactly as the api/combat facade does (the Combustible/Energized precedent)
+import { CombatLogic } from "../../platform/idea/api/CombatLogic";
 
 /** Public method surface for CombatantMixin. */
 export interface Combatant {
+  // The combatant face (G1) — forwards into CombatLogic.
+  initiateCombat(
+    target: Stuff,
+    overrides?: { lethal?: boolean; to?: string },
+    negotiate?: (
+      target: Stuff,
+      mine: TermsProposal,
+    ) => Promise<boolean | null | "cancelled">,
+  ): Promise<InitiateResult>;
+  queueGambit(gambitKey: string): GambitEligibility;
+  gambitEligibility(gambitKey: string): GambitEligibility;
+  yieldFight(): boolean;
+  intervene(target: Stuff): boolean;
+  defendAlly(ally: Stuff): { ok: boolean; reason?: string };
+  disengage(): { ok: boolean; message?: string };
+  bumRush(direction: string): Promise<{ ok: boolean; reason?: string }>;
+  offerBreak(): { ok: boolean; reason?: string; broke: boolean };
+  beginWeaponSwitch(target: Stuff): { ok: boolean; reason?: string };
+  drawSidearm(): { ok: boolean; reason?: string };
+  resolveThrown(
+    target: Stuff,
+    contents: Parameters<CombatLogic["resolveThrown"]>[2],
+    splash: readonly Stuff[],
+  ): ReturnType<CombatLogic["resolveThrown"]>;
+  orderCoup(): { ok: boolean; reason?: string };
+  influenceCombat(instruction: CombatInfluence): InfluenceResult;
+  assessCombat(target: Stuff): CombatAssessResult;
+  perceiveCombat(): CombatAssessResult;
+  rangeStanding(): RangeStanding | null;
+  formationStanding(): FormationStanding;
+  bandTo(other: Stuff): RangeState | null;
+  mayDeliverTo(
+    primary: Stuff,
+    splash: readonly Stuff[],
+  ): { ok: true } | { ok: false; refusedBy: Stuff };
+  splashSet(): Stuff[];
+  visibleArmsFor(viewer: Stuff, attention?: number): Stuff[];
+
   /** The legacy single-attack innate channel, or null (no natural
    * weapon — disarm/impair removes `strike`). The engine prefers the
    * species-level `Species.naturalAttacks[]` vocabulary when that list
@@ -364,7 +415,164 @@ export function CombatantMixin<TBase extends MixinConstructor>(Base: TBase) {
     ];
 
     static markupAugmenters: MarkupAugmenter[] = [combatStateAugmenter];
+
+    // ------ the combatant face (G1) — forwards into CombatLogic ------
+    // Ungated forwards; the logic's per-method gates admit the acting
+    // instance (FromMixin self-subject), and the poise/tempo writers
+    // stay inside the logic behind the session machinery.
+
+    /** Open (or negotiate into) a fight with `target` — the one copy of
+     * the attack/throw routing. */
+    public initiateCombat(
+      target: Stuff,
+      overrides?: { lethal?: boolean; to?: string },
+      negotiate?: (
+        target: Stuff,
+        mine: TermsProposal,
+      ) => Promise<boolean | null | "cancelled">,
+    ): Promise<InitiateResult> {
+      return combatLogic().initiate(
+        this as unknown as Stuff,
+        target,
+        overrides,
+        negotiate,
+      );
+    }
+
+    /** Set the intent for the next exchange (non-blocking). */
+    public queueGambit(gambitKey: string): GambitEligibility {
+      return combatLogic().queueGambit(this as unknown as Stuff, gambitKey);
+    }
+
+    /** Attempt-time eligibility for a gambit (capability + band + parts). */
+    public gambitEligibility(gambitKey: string): GambitEligibility {
+      return combatLogic().eligibilityFor(this as unknown as Stuff, gambitKey);
+    }
+
+    /** Yield — resolves the fight in the opponent's favour. */
+    public yieldFight(): boolean {
+      return combatLogic().yieldFight(this as unknown as Stuff);
+    }
+
+    /** Interrupt a live coup aimed at `target`. */
+    public intervene(target: Stuff): boolean {
+      return combatLogic().intervene(this as unknown as Stuff, target);
+    }
+
+    /** Interpose — pull an ally's threat edge onto yourself. */
+    public defendAlly(ally: Stuff): { ok: boolean; reason?: string } {
+      return combatLogic().defendAlly(this as unknown as Stuff, ally);
+    }
+
+    /** Leave the fight (the traverse gate calls this first). */
+    public disengage(): { ok: boolean; message?: string } {
+      return combatLogic().disengage(this as unknown as Stuff);
+    }
+
+    /** `fight rush <direction>` — throw a grappled foe through an exit. */
+    public bumRush(
+      direction: string,
+    ): Promise<{ ok: boolean; reason?: string }> {
+      return combatLogic().bumRush(this as unknown as Stuff, direction);
+    }
+
+    /** Offer a clean break (both sides disengage on acceptance). */
+    public offerBreak(): { ok: boolean; reason?: string; broke: boolean } {
+      return combatLogic().offerBreak(this as unknown as Stuff);
+    }
+
+    /** Begin a guarded weapon switch against `target`. */
+    public beginWeaponSwitch(target: Stuff): { ok: boolean; reason?: string } {
+      return combatLogic().beginSwitch(this as unknown as Stuff, target);
+    }
+
+    /** Fast-draw a sheathed/carried backup weapon. */
+    public drawSidearm(): { ok: boolean; reason?: string } {
+      return combatLogic().drawSidearm(this as unknown as Stuff);
+    }
+
+    /** Resolve a thrown delivery at `target` (aim × answer placement). */
+    public resolveThrown(
+      target: Stuff,
+      contents: Parameters<CombatLogic["resolveThrown"]>[2],
+      splash: readonly Stuff[],
+    ): ReturnType<CombatLogic["resolveThrown"]> {
+      return combatLogic().resolveThrown(
+        this as unknown as Stuff,
+        target,
+        contents,
+        splash,
+      );
+    }
+
+    /** The captain's execution directive (`fight finish`). */
+    public orderCoup(): { ok: boolean; reason?: string } {
+      return combatLogic().orderCoup(this as unknown as Stuff);
+    }
+
+    /** Apply a wizard-authored combat influence instruction. */
+    public influenceCombat(instruction: CombatInfluence): InfluenceResult {
+      return combatLogic().influence(this as unknown as Stuff, instruction);
+    }
+
+    /** The costed read of `target`'s combat state (spends an exchange). */
+    public assessCombat(target: Stuff): CombatAssessResult {
+      return combatLogic().assess(this as unknown as Stuff, target);
+    }
+
+    /** The free `fight` status read of your own fight. */
+    public perceiveCombat(): CombatAssessResult {
+      return combatLogic().perceive(this as unknown as Stuff);
+    }
+
+    /** Range standing against the live foe, or null outside a fight. */
+    public rangeStanding(): RangeStanding | null {
+      return combatLogic().rangeStanding(this as unknown as Stuff);
+    }
+
+    /** Your own formation standing (the enemy's is not readable). */
+    public formationStanding(): FormationStanding {
+      return combatLogic().formationStandingOf(this as unknown as Stuff);
+    }
+
+    /** The range band between this combatant and `other` (null = not
+     * co-present). */
+    public bandTo(other: Stuff): RangeState | null {
+      return combatLogic().bandBetween(this as unknown as Stuff, other);
+    }
+
+    /** May this thrower deliver to `primary` (+ splash) — the consent
+     * gate on area delivery. */
+    public mayDeliverTo(
+      primary: Stuff,
+      splash: readonly Stuff[],
+    ): { ok: true } | { ok: false; refusedBy: Stuff } {
+      return combatLogic().mayDeliverTo(this as unknown as Stuff, primary, splash);
+    }
+
+    /** The relationship-derived splash set around this target. */
+    public splashSet(): Stuff[] {
+      return combatLogic().splashSetFor(this as unknown as Stuff);
+    }
+
+    /** The weapons `viewer` can SEE on this combatant (the doorman's
+     * read — wielded always; sheathed only when perceived). */
+    public visibleArmsFor(viewer: Stuff, attention?: number): Stuff[] {
+      return combatLogic().visibleArms(
+        viewer,
+        this as unknown as Stuff,
+        attention,
+      );
+    }
   };
+}
+
+/** Resolve the HMR-able CombatLogic singleton (the fight engine). */
+function combatLogic(): CombatLogic {
+  return StuffApi.singletonSync(
+    "/platform/idea/api/combat",
+    () => new CombatLogic(),
+  );
 }
 
 /**

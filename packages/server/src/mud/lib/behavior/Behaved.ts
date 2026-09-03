@@ -50,7 +50,7 @@ import { MixinApi } from '../../api/mixin';
 import type { CommandContributions } from '../../api/command';
 import { ReactionApi } from '../../api/reaction';
 import { SoulApi } from '../../api/soul';
-import { TraitApi, type ClaimSeed } from '../../api/trait';
+import type { ClaimSeed } from '../trait/Dispositioned';
 import type { Container } from '../spatial/Container';
 import type { Containable } from '../spatial/Containable';
 import type { Engaged, EngagementSlot } from '../activity/Engaged';
@@ -183,9 +183,10 @@ export function BehavedMixin<TBase extends MixinConstructor<Stuff>>(
       const seeds = this.dispositions ?? [];
       if (!seeds.length) return;
       const host = this as unknown as Stuff;
-      const existing = await TraitApi.entriesFor(host);
+      if (!MixinApi.isDispositioned(host)) return;
+      const existing = await host.dispositionEntries();
       if (existing.some((e) => e.kind === 'claim')) return;
-      await TraitApi.seedClaims(host, seeds);
+      await host.seedTraitClaims(seeds);
     }
 
     public onDestruct(): void {

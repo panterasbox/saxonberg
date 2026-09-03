@@ -27,7 +27,6 @@ import { Stuff } from "../../../../../lib/stuff/Stuff";
 import { StuffApi } from "../../../../../api/stuff";
 import { ShadowApi } from "../../../../../api/shadow";
 import { AccessApi } from "../../../../../api/access";
-import { ChattelApi } from "../../../../../api/chattel";
 import { ContainmentApi } from "../../../../../api/containment";
 import { CommandDefinition } from "../../../../../lib/command/CommandDefinition";
 import {
@@ -38,6 +37,8 @@ import {
 import type { MqlManyResult, MqlOneResult } from "../../../../../api/mql";
 import { makeStuff } from "../../../../../lib/security/__tests__/test-setup";
 import type { Adornable } from "../../../../../lib/boundary/Adornable";
+import { ChattelLogic } from '../../../api/ChattelLogic';
+import { ChattelMixin } from '../../../../../lib/chattel/Chattel';
 
 class TestGiver extends SensorMixin(
   CommandGiverMixin(ContainerMixin(ContainableMixin(NamedMixin(Idea)))),
@@ -46,7 +47,9 @@ class TestGiver extends SensorMixin(
 }
 
 /** A wall sconce reduced to its two load-bearing mixins. */
-class Sconce extends AdornmentMixin(ContainableMixin(NamedMixin(Idea))) {
+class Sconce extends ChattelMixin(
+  AdornmentMixin(ContainableMixin(NamedMixin(Idea))),
+) {
   static _mixinName = "Sconce";
 }
 
@@ -176,7 +179,7 @@ describe("taking it down", () => {
 
   it("your own fixture comes off the wall and back into your hands", async () => {
     const { loc, giver, sconce } = await hung();
-    vi.spyOn(ChattelApi, "ownerOf").mockResolvedValue({
+    vi.spyOn(ChattelLogic.prototype, "ownerOf").mockResolvedValue({
       kind: "player",
       templatePath: giver.getIdentityPath()!,
     });
@@ -194,7 +197,7 @@ describe("taking it down", () => {
 
   it("somebody else's fixture stays on the wall when you hold no authority", async () => {
     const { loc, giver, sconce } = await hung();
-    vi.spyOn(ChattelApi, "ownerOf").mockResolvedValue({
+    vi.spyOn(ChattelLogic.prototype, "ownerOf").mockResolvedValue({
       kind: "player",
       templatePath: "/platform/agent/Avatar/somebody-else",
     });
@@ -222,7 +225,7 @@ describe("taking it down", () => {
 
   it("write authority over the room takes it down even without title", async () => {
     const { loc, giver, sconce } = await hung();
-    vi.spyOn(ChattelApi, "ownerOf").mockResolvedValue({
+    vi.spyOn(ChattelLogic.prototype, "ownerOf").mockResolvedValue({
       kind: "group",
       templatePath: "the-bar",
     } as never);
@@ -244,7 +247,7 @@ describe("taking it down", () => {
       return s;
     });
     ContainmentApi.move(sword, loc);
-    vi.spyOn(ChattelApi, "ownerOf").mockResolvedValue({
+    vi.spyOn(ChattelLogic.prototype, "ownerOf").mockResolvedValue({
       kind: "player",
       templatePath: "/platform/agent/Avatar/somebody-else",
     });

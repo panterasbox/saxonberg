@@ -1,0 +1,18 @@
+# A basket of charcoal — the fuel yard's product.
+#
+# ⚠ Fuel value and ignition point are read off the MATERIAL, never
+# authored here twice. Charcoal burns hot because charcoal is carbon, and
+# the row says which material it is rather than restating what that means.
+class: /platform/thing/Provision
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a basket of charcoal
+  primaryKeyword: charcoal
+  keywords: [charcoal, char, coal]
+  longDescription: >-
+    Black, light and startlingly clean-breaking. A lump rings faintly when
+    you knock two together, which is how a collier tells a good burn from
+    a rushed one.
+  _materialPath: /stuff/idea/material/organic/charcoal
+  gradeBand: fair
+  mass: 8

@@ -27,6 +27,13 @@
 class: /platform/location/FurnishableRoom
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
+  # ⚠⚠ **No `coords:`, and that is the warren exception.** This row looks
+  # like a trade floor and is not: it is one of the four D6 FURNISHING
+  # ARCHETYPES — a HOME kitchen a floorplan clones into a house, where
+  # the programme stamps the cell. It ships from `trade-hearth-cooking`
+  # only because that pack owns cooking, and a coords sweep by pack name
+  # took it for a trade floor until `check-location-classes`'s FURNISHED
+  # roster said otherwise. It is on that roster for exactly this reason.
   shortDescription: a kitchen
   primaryKeyword: kitchen
   keywords: [kitchen, room]

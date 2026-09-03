@@ -9,7 +9,7 @@ client, the player responds, the await resolves.
 The substrate is the second prompt-shaped wire channel sitting
 alongside the dispatch-response / MQL-subscription pipelines.
 Inbound dispatch lives in `Application.processUserMessage`; outbound
-envelopes ride the same `MessageApi.sendEnvelope` path as dispatch-
+envelopes ride the same `onEnvelope` path as dispatch-
 response and subscription deltas.
 
 See:
@@ -18,7 +18,7 @@ See:
   the envelope family this substrate lives inside.
 - [docs/subsystems/mql-subscription.md](./mql-subscription.md) —
   the pattern this substrate mirrors (per-Interactive substrate API,
-  envelopes via `MessageApi.sendEnvelope`, inbound dispatcher
+  envelopes via `onEnvelope`, inbound dispatcher
   routes, disconnect cleanup).
 - [docs/subsystems/command-spec.md](./command-spec.md) —
   cardinality vocabulary that consumes the substrate for
@@ -35,7 +35,7 @@ See:
 | `packages/server/src/mud/lib/command/CommandGiver.ts` | Refresh-Note injection at dispatch-response composition |
 | `packages/server/src/backend/inbound/prompt.ts` | Inbound prompt routes (`handlePromptResponse` / `handlePromptCancel`), dispatched via `inboundHandlers` in `backend/inbound/index.ts` |
 | `packages/server/src/backend/inbound/command.ts` | Empty-command short-circuit + `renderPromptRefresh` call (`:29-41`) |
-| `packages/server/src/backend/Application.ts` | Disconnect cleanup (`handleUserDisconnect` runs `PromptApi.cancelAll`) |
+| `packages/server/src/backend/Application.ts` | Disconnect cleanup (`handleUserDisconnect` triggers `interactive.teardownSubstrateState`, which runs `cancelPrompts`) |
 
 ## Surface
 
@@ -119,8 +119,8 @@ Inbound message type        Routes to
 command                     CommandGiver.executeCommand
 mql-subscribe               MqlSubscriptionApi
 mql-unsubscribe             MqlSubscriptionApi
-prompt-response             PromptApi.handleResponse  ← bypasses command bus
-prompt-cancel               PromptApi.handleCancel    ← bypasses command bus
+prompt-response             interactive.handlePromptResponse  ← bypasses command bus
+prompt-cancel               interactive.handlePromptCancel    ← bypasses command bus
 ```
 
 `prompt-response` and `prompt-cancel` bypass the command bus
@@ -133,7 +133,7 @@ cancel` verb (next section).
 ### `prompt` command
 
 ```
-prompt cancel    →  PromptApi.cancelAll(interactive, 'cancelled')
+prompt cancel    →  interactive.cancelPrompts('cancelled')
                     Reports the count of prompts cancelled.
 ```
 
@@ -170,7 +170,7 @@ BEFORE the `PromptEnvelope`. The frame's `payload` carries
 with the prompt envelope (visual highlight, click-to-focus, etc.).
 
 ```ts
-PromptApi.mqlObject(iact, 'Which sword?', matches, {
+iact.promptMqlObject('Which sword?', matches, {
   body: Mml.compose`Multiple swords match: ${Mml.thing(rusty)} or ${Mml.thing(iron)}.`,
 });
 ```
@@ -203,7 +203,7 @@ box is the honest affordance.
 ### Push
 
 1. Resolve the Interactive's holder via `getHolder()` and assert
-   it's a Sensor — `PromptApi.#requireViewer` throws synchronously
+   it's a Sensor — the prompt substrate's viewer check throws synchronously
    if the holder is missing or isn't Sensor-shaped. Push paths
    without a viewing surface (placeless Interactive, NPC-only
    Stuff) fail loudly rather than silently dropping prompts.
@@ -245,7 +245,7 @@ box is the honest affordance.
 Application.handleUserDisconnect:
   1. Resolve Interactive from socketId.
   2. MqlSubscriptionApi.cancelAllForInteractive(interactive);
-  3. PromptApi.cancelAll(interactive, 'host-disconnected');
+  3. interactive.cancelPrompts('host-disconnected');
   4. ConnectionManager.removeInteractive(socketId);
 ```
 
@@ -269,7 +269,7 @@ because the silence is the expensive part, not the queueing.
 ## Outbound delivery
 
 Every server-pushed envelope (push / validation-failed / dismissed)
-ships via `MessageApi.sendEnvelope(holder, template)` — the same
+ships via `onEnvelope(holder, template)` — the same
 Sensor pipeline the dispatch-response and subscription substrates
 use. Shadow filters and audit observers consume prompt envelopes
 on that channel.
@@ -432,7 +432,7 @@ For `object` fields, cardinality is implicit `{ exactly: 1 }`;
 The dispatcher applies `CommandApi.applyCardinalityPolicy` between
 MQL resolution and controller execution. `applyCardinalityPolicy`
 is async — when `onExcess: prompt` fires it pushes
-`PromptApi.mqlObject` (object) or `mqlMany` (objects with bounds
+`interactive.promptMqlObject` (object) or `promptMqlMany` (objects with bounds
 from the cardinality spec) and awaits the player's pick. The
 filtered Stuff list lands on the model unchanged shape; the
 controller never sees the prompt round-trip.
@@ -469,7 +469,7 @@ for the dispatcher decision matrix.
 
 ## ⭐ A prompt card is PINNED, and settling closes it
 
-`PromptLogic.cleanup` pokes `CardApi.notifyPromptSettled`, which closes
+`PromptLogic.cleanup` pokes `interactive.notifyPromptSettled`, which closes
 the prompt's card with reason `answered`.
 
 ⚠⚠ **This is where the `unanswered` hold's guarantee went.** The card

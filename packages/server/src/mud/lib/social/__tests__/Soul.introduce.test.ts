@@ -1,5 +1,5 @@
 /**
- * SoulMixin.introduceSelf + RecognitionApi.recognizes — the shared
+ * SoulMixin.introduceSelf + the listener's own recognizes — the shared
  * auto-introduce core. Introducing teaches every in-range perceiver the
  * introducer's name (real recognition, the same write the `introduce`
  * verb uses), and `recognizes` reports it.
@@ -8,7 +8,6 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect } from "vitest";
 import { SoulMixin } from "../Soul";
-import { RecognitionApi } from "../../../api/recognition";
 import { BeliefStoreMixin } from "../../belief/BeliefStore";
 import { PerceptionMixin } from "../../perception/Perception";
 import { SensorMixin } from "../../message/Sensor";
@@ -49,7 +48,7 @@ function person(name: string, appearance: string): Person {
   return p;
 }
 
-describe("SoulMixin.introduceSelf + RecognitionApi.recognizes", () => {
+describe("SoulMixin.introduceSelf + recognizes", () => {
   it("teaches in-range perceivers the introducer's name", () => {
     const room = makeStuff(() => new Room());
     const mara = person("Mara", "a steady, watchful dwarf");
@@ -57,13 +56,13 @@ describe("SoulMixin.introduceSelf + RecognitionApi.recognizes", () => {
     ContainmentApi.move(mara, room);
     ContainmentApi.move(pat, room);
 
-    expect(RecognitionApi.recognizes(pat, mara)).toBe(false);
-    expect(RecognitionApi.describe(pat, mara)).not.toBe("Mara");
+    expect(pat.recognizes(mara)).toBe(false);
+    expect(mara.describeFor(pat)).not.toBe("Mara");
 
     expect(mara.introduceSelf()).toBe(true);
 
-    expect(RecognitionApi.recognizes(pat, mara)).toBe(true);
-    expect(RecognitionApi.describe(pat, mara)).toBe("Mara");
+    expect(pat.recognizes(mara)).toBe(true);
+    expect(mara.describeFor(pat)).toBe("Mara");
   });
 
   it("returns false when the introducer has no name to give", () => {

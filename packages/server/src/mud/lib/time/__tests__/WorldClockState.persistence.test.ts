@@ -12,6 +12,9 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { WorldClockState } from '../WorldClockState';
 import { WorldClockApi } from '../../../api/worldclock';
 import { PersistenceManager } from '../../../../backend/PersistenceManager';
+import { StuffApi } from '../../../api/stuff';
+import { TemplatePaths } from '../../paths';
+import type WorldClockRegistry from '../../../platform/idea/WorldClockRegistry';
 import { ExecutionContextApi } from '../../../api/execution-context';
 import { SecurityError } from '../../security/errors';
 
@@ -118,12 +121,19 @@ describe('WorldClockState persistence (AC3)', () => {
     expect(state.scale).toBe(3);
   });
 
-  it('boot() restores the persisted anchor; shutdown() persists the snapshot', async () => {
+  it('postRegister restores the persisted anchor; shutdown() persists the snapshot', async () => {
     pm.setFindResult([
       { elapsedGameTimeS: 7200, scale: 6, lastShutdownRealMs: 1 },
     ]);
 
-    await WorldClockApi.boot();
+    // The self-warming boot: the manifest clone's postRegister runs
+    // `this.boot()` (SelfOnly arm). The lazy test registry stands in
+    // for the manifest clone.
+    const registry = StuffApi.findByTemplatePath<WorldClockRegistry>(
+      TemplatePaths.worldClockRegistry,
+    )!;
+    expect(registry).toBeTruthy();
+    await registry.postRegister();
     expect(WorldClockApi.getScale()).toBe(6);
     expect(WorldClockApi.getNow().rawValue()).toBe(7200);
 
@@ -135,19 +145,23 @@ describe('WorldClockState persistence (AC3)', () => {
     expect(pm.saves[0]!.doc.scale).toBe(6);
   });
 
-  it('boot() / shutdown() are SystemRoot-gated — denied under any caller frame', () => {
-    // The allow path (empty stack → null caller) is exercised by the
-    // test above. Here: any in-world / scheduled / network context runs
-    // under a frame with a non-null target, so it must be rejected — no
-    // one in-game can re-anchor the clock or freeze world-time.
+  it('shutdown() is SystemRoot-gated and registry.boot() is caller-gated — denied under any caller frame', () => {
+    // The allow paths (empty stack → null caller for shutdown; the
+    // SelfOnly postRegister arm for boot) are exercised above. Here:
+    // any in-world / scheduled / network context runs under a frame
+    // with a non-null target, so it must be rejected — no one in-game
+    // can re-anchor the clock or freeze world-time.
     const caller = { id: 'in-world-actor' };
     expect(() =>
       ExecutionContextApi.runRoot(caller, 'attack', () =>
         WorldClockApi.shutdown()
       )
     ).toThrow(SecurityError);
+    const registry = StuffApi.findByTemplatePath<WorldClockRegistry>(
+      TemplatePaths.worldClockRegistry,
+    )!;
     expect(() =>
-      ExecutionContextApi.runRoot(caller, 'attack', () => WorldClockApi.boot())
+      ExecutionContextApi.runRoot(caller, 'attack', () => registry.boot())
     ).toThrow(SecurityError);
     expect(pm.saves).toHaveLength(0);
   });

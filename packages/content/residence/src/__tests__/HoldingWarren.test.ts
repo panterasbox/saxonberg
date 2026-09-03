@@ -10,6 +10,7 @@
  */
 
 import '@saxonberg/server/test-bootstrap';
+import { Lock } from "@saxonberg/server/mud/lib/lock/Lock";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import HoldingWarren from '../idea/HoldingWarren';
 import HouseholdersKit from '../thing/HouseholdersKit';
@@ -28,7 +29,6 @@ import { Document } from '@saxonberg/server/mud/lib/persistence/Document';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { ParcelApi } from '@saxonberg/server/mud/api/parcel';
-import { CredentialApi } from '@saxonberg/server/mud/api/credential';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { CommandApi, type CommandContext, type CommandModel } from '@saxonberg/server/mud/api/command';
@@ -342,7 +342,7 @@ describe('the residential programme (D16)', () => {
     // Keyless still refused; a presented key admits.
     const bob = makeStuffAtPath(() => new Avatar(), '/platform/agent/Avatar/bob');
     bob.setPlayerId('bob');
-    await CredentialApi.issueKey(iris, 'kw-77', 'pin-tumbler');
+    await Lock.issueKey(iris, 'kw-77', 'pin-tumbler');
     expect(door.canTraverse(iris as never).ok).toBe(true);
     expect(door.canTraverse(bob as never).ok).toBe(false);
 

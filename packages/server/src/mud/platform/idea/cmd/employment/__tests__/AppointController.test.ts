@@ -188,7 +188,7 @@ describe('AppointController', () => {
     expect(record!.positionKey).toBe(POSITION);
     expect(record!.status).toBe('employed');
     // ...and the chart now answers who holds it.
-    expect(EmploymentApi.holdersOf(org, POSITION)).toEqual([APPOINTEE]);
+    expect(org.holdersOf(POSITION)).toEqual([APPOINTEE]);
     expect(ctx.getNotes().some((n) => n.kind === 'controller-rejected')).toBe(
       false,
     );

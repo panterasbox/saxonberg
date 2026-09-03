@@ -1,0 +1,31 @@
+# P3 · The Assay Shed — ⭐ where money ENTERS the venue, and where the
+# light lesson pays off.
+#
+# `REQUIRED_BAND_FOR_DETAIL` wants `bright` for a `fine` read, and a hand
+# lamp is not bright. So underground you get the coarse read — *green
+# staining, a seam here* — and judging grade by eye needs daylight or an
+# instrument. **That is why samples come up, and why this room is on the
+# surface.**
+#
+# Ore sells on CONSIGNMENT with payment on assay: zero new mechanism, and
+# historically exact. You were paid after the assay, not on the spot, and
+# the wait is what makes the assay an event.
+class: /platform/location/SingletonCartesianLocation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the assay shed
+  primaryKeyword: shed
+  keywords: [shed, "assay shed", assay]
+  longDescription: |
+    Daylight, which after the drift is the point of the place. A long bench under a north window, the scale under a glass dome at the end of it, and a rank of numbered sample bins along the wall with a slate above each.
+
+    A hatch in the far wall opens onto the loading dock. Prices are chalked beside it and have been rubbed out and rewritten enough times to have worn a pale patch in the boards.
+  coords: { x: 1, y: 0, z: 0 }
+  exits:
+    west:
+      destination: /world/rejection/location/pithead-yard
+  props:
+    - /trade/mining/thing/assay-kit
+    - /world/rejection/thing/assay-counter
+  cast:
+    - /world/rejection/agent/buyer

@@ -27,7 +27,6 @@ import Receptacle from '@saxonberg/server/mud/platform/thing/Receptacle';
 import Crop from '@saxonberg/server/mud/platform/thing/Crop';
 import Material from '@saxonberg/server/mud/lib/material/Material';
 import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
-import { AdvancementApi } from '@saxonberg/server/mud/api/advancement';
 import { type GrowthProfileData } from '@saxonberg/server/mud/lib/husbandry/Growing';
 import GardenBed from '@saxonberg/server/mud/platform/thing/GardenBed';
 import PlantPot from '@saxonberg/server/mud/platform/thing/PlantPot';
@@ -605,9 +604,6 @@ describe('⭐ the acceptance walk: plant → tend → harvest → feed → again
     await bootParcels();
     vi.spyOn(PersistableApi, 'captureHostOf').mockImplementation(
       (async () => {}) as unknown as typeof PersistableApi.captureHostOf,
-    );
-    vi.spyOn(AdvancementApi, 'recordDeed').mockImplementation(
-      (async () => {}) as unknown as typeof AdvancementApi.recordDeed,
     );
     vi.spyOn(StuffApi, 'clone').mockImplementation((async (path: string) => {
       plantSeq += 1;

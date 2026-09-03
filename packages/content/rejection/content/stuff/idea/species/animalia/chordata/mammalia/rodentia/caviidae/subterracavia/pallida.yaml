@@ -1,0 +1,39 @@
+# Subterracavia pallida — the pale grazer: a blind, unpigmented cavy that
+# eats the glowcap and has been down here long enough to have stopped
+# bothering with eyes.
+#
+# ⭐ It is the ecology's own argument that the glowcap is INFRASTRUCTURE
+# rather than decoration: something eats it, which means keeping a
+# fixture lit is a small ongoing fight with an animal rather than a line
+# item. Cave fauna really do go blind and pale; the invention is only
+# which fungus.
+class: /platform/idea/species/Species
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  binomial: Subterracavia pallida
+  commonNames: ["pale grazer", "grazer"]
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/quadruped
+  _parentCladePath: /stuff/idea/species/animalia
+  _defaultMaterialPath: /stuff/idea/material/tissue/flesh
+  vitalProfile:
+    coreTemperature: { baseline: 309, survivableMin: 296, survivableMax: 314 }
+    heartRate: { baseline: 250, survivableMin: 90, survivableMax: 400 }
+    respiratoryRate: { baseline: 70, survivableMin: 25, survivableMax: 150 }
+    bloodPressureSystolic: { baseline: 110, survivableMin: 55, survivableMax: 160 }
+    bloodPressureDiastolic: { baseline: 70, survivableMin: 35, survivableMax: 110 }
+    spo2: { baseline: 96, survivableMin: 52, survivableMax: 100 }
+    bloodVolume: { baseline: 0.06, survivableMin: 0.036, survivableMax: 0.06 }
+  lifecycleStates: ["alive", "dead"]
+  sexDeterminationSystem: xy
+  reproductiveMode: sexual
+  lifespanMin: 0
+  lifespanMax: 6
+  circadianBand: cathemeral
+  diet: herbivore
+  visionProfile:
+    # ⚠ Blind. The window is empty in both directions, which is the
+    # honest encoding of an animal with no functioning eyes — not a
+    # penalty, a fact.
+    scotopicMin: pitch-black
+    photopicMax: pitch-black
+    bandShift: 0

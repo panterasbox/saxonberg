@@ -47,6 +47,7 @@ import type {
 } from '@saxonberg/types';
 import { CARDS, CARDS_BY_NAME, type CardDefinition } from '../../lib/connection/Cards';
 import { Idea } from '../../lib/stuff/Idea';
+import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
 import { Agent } from '../../lib/stuff/Agent';
 import Location from '../../lib/stuff/Location';
 import type { VetoResult } from '../../lib/errors';
@@ -58,9 +59,9 @@ import type { Sensor } from '../../lib/message/Sensor';
 import type { CommandGiver } from '../../lib/command/CommandGiver';
 import type Interactive from './Interactive';
 import { MixinApi } from '../../api/mixin';
-import { MessageApi } from '../../api/message';
 import { SecurityApi } from '../../api/security';
 import { StuffApi } from '../../api/stuff';
+import { ScheduleApi, type ScheduleHandle } from '../../api/schedule';
 import { ShellApi } from '../../api/shell';
 import { Mml } from '../../api/mml';
 import { MqlApi } from '../../api/mql';
@@ -209,7 +210,72 @@ function subjectKindOf(stuff: Stuff): StuffKind {
   return 'thing';
 }
 
-export default class CardRegistry extends Idea {
+/**
+ * How long an unpinned, non-live card is kept after its last touch.
+ * The window is a fact about ATTENTION, not about card kinds — see
+ * card-surface.md. Swept by the ONE recurring pass `installSweep`
+ * arms (never a timer per card).
+ */
+const DEFAULT_WINDOW_MS = 10 * 60_000;
+
+/** How often the sweep looks. See the note on {@link DEFAULT_WINDOW_MS}. */
+const SWEEP_INTERVAL_MS = 30_000;
+
+const CardRegistryBase = PostRegistrationMixin(Idea);
+
+export default class CardRegistry extends CardRegistryBase {
+  /** The ONE recurring sweep handle — retained so re-install is a no-op. */
+  private sweepHandle: ScheduleHandle | null = null;
+
+  /**
+   * Self-warming boot (the boot()-retirement shape; no
+   * `CardApi.boot()` sequencer line): install the relevance-window
+   * sweep when the boot manifest clones this Registry.
+   */
+  public override async postRegister(_context?: unknown): Promise<void> {
+    this.installSweep();
+  }
+
+  /**
+   * Install the relevance-window sweep (idempotent). One recurring
+   * callback for the whole card set — never a timer per card.
+   *
+   * ⚠ A scheduled callback fires long after the frame that installed
+   * it, under `ScheduleApi`'s own root — so the tick lands on the
+   * deliberately ungated {@link sweepTick}, whose inner `this.sweep`
+   * self-call is what `SelfOnly` admits. (The old Api-side install
+   * re-planted the principal with an inner `runRoot`; a platform/idea
+   * file may not push frames, and does not need to.)
+   */
+  @CallSecurity(CardApiCallers)
+  public installSweep(): void {
+    if (this.sweepHandle) return;
+    this.sweepHandle = ScheduleApi.recurring(SWEEP_INTERVAL_MS, () => {
+      this.sweepTick();
+    });
+  }
+
+  /**
+   * One sweep pass at the default window. Deliberately ungated: the
+   * scheduled tick's caller is `ScheduleApi`'s root, and the sweep is
+   * idempotent maintenance — every state mutation behind it stays on
+   * the gated methods this self-call reaches.
+   */
+  public sweepTick(): void {
+    this.sweep(DEFAULT_WINDOW_MS);
+  }
+
+  @CallSecurity(CardApiCallers)
+  public _resetSweepForTesting(): void {
+    if (this.sweepHandle) ScheduleApi.cancel(this.sweepHandle);
+    this.sweepHandle = null;
+  }
+
+  @CallSecurity(CardApiCallers)
+  public _sweepHandleCountForTesting(): number {
+    return this.sweepHandle ? 1 : 0;
+  }
+
   /**
    * Residency veto — a load-bearing process-lifetime singleton is never
    * culled by the self-eviction sweep.
@@ -392,7 +458,7 @@ export default class CardRegistry extends Idea {
       ...(state.payload ? { payload: state.payload } : {}),
       ...(state.subjectKind ? { subjectKind: state.subjectKind } : {}),
     };
-    MessageApi.sendEnvelope(holder, template);
+    holder.onEnvelope(template);
     return state.instanceId;
   }
 
@@ -476,7 +542,7 @@ export default class CardRegistry extends Idea {
         instanceId: state.instanceId,
         pinned: next,
       };
-      MessageApi.sendEnvelope(holder, template);
+      holder.onEnvelope(template);
     }
     return true;
   }
@@ -502,7 +568,7 @@ export default class CardRegistry extends Idea {
         instanceId,
         reason,
       };
-      MessageApi.sendEnvelope(holder, template);
+      holder.onEnvelope(template);
     }
     return true;
   }
@@ -720,7 +786,7 @@ export default class CardRegistry extends Idea {
     for (const state of bucket.values()) {
       if (state.cardId !== cardId) continue;
       if (state.demoted === true) continue; // already demoted
-      MqlSubscriptionApi.handleUnsubscribe(interactive, state.instanceId);
+      interactive.cancelMqlSubscription(state.instanceId);
       state.demoted = true;
       state.takenAt = Date.now();
       if (!holder) continue;
@@ -731,7 +797,7 @@ export default class CardRegistry extends Idea {
         takenAt: state.takenAt,
         live: false,
       };
-      MessageApi.sendEnvelope(holder, template);
+      holder.onEnvelope(template);
     }
   }
 
@@ -825,7 +891,7 @@ export default class CardRegistry extends Idea {
       ...(carriesBody && state.records ? { result: state.records } : {}),
       ...(carriesBody && state.payload ? { payload: state.payload } : {}),
     };
-    MessageApi.sendEnvelope(holder, template);
+    holder.onEnvelope(template);
   }
 
   /**
@@ -899,7 +965,7 @@ export default class CardRegistry extends Idea {
     if (!CARDS[state.cardId].live) return;
     // ⚠ A demoted card already gave its handle up.
     if (state.demoted === true) return;
-    MqlSubscriptionApi.handleUnsubscribe(state.interactive, state.instanceId);
+    state.interactive.cancelMqlSubscription(state.instanceId);
   }
 
   /**

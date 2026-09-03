@@ -16,7 +16,6 @@
 
 import DeferredDestinationExit from '@saxonberg/server/mud/lib/boundary/DeferredDestinationExit';
 import { type TraversalGuard } from '@saxonberg/server/mud/lib/boundary/Exit';
-import { CredentialApi } from '@saxonberg/server/mud/api/credential';
 import { Lock, type LockType } from '@saxonberg/server/mud/lib/lock/Lock';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import type { OuterWarren } from '@saxonberg/server/mud/lib/location/OuterWarren';
@@ -89,7 +88,7 @@ export default class FrontDoorExit extends DeferredDestinationExit {
       return { ok: false, gate: 'door', reason: 'The door is locked.' };
     }
     const lock = new Lock(keyway, this.lockTech);
-    if (!CredentialApi.presentsKey(mover, lock)) {
+    if (!lock.opensFor(mover)) {
       return {
         ok: false,
         gate: 'door',

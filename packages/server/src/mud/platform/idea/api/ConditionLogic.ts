@@ -5,13 +5,13 @@ import { ApiLogic } from '../../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../../lib/stuff/Stuff';
+import type Interactive from '../../../platform/idea/Interactive';
 import { MixinApi } from '../../../api/mixin';
 import { MaterialApi } from '../../../api/material';
 import { ExecutionContextApi } from '../../../api/execution-context';
 import { WorldClockApi } from '../../../api/worldclock';
 import { StuffApi } from '../../../api/stuff';
-import { TemplatePaths, TemplatePathPrefixes } from '../../../lib/paths';
-import { Template } from '../../../lib/stuff/Template';
+import { TemplatePaths } from '../../../lib/paths';
 import { AppApi } from '../../../api/app';
 import { AppSettingKeys } from '../../../lib/config/AppSettings';
 import { HARM_DEFAULTS, TRAUMA_BEHAVIOR } from '../Condition';
@@ -20,10 +20,8 @@ import type { Vitals } from '../../../lib/vitals/Vitals';
 import type { MortalArc } from '../../../lib/mortality/MortalArc';
 import { ContainmentApi } from '../../../api/containment';
 import { SandboxApi } from '../../../api/sandbox';
-import { ConnectionApi } from '../../../api/connection';
 import { PersistableApi } from '../../../api/persistable';
 import { PlayerApi } from '../../../api/player';
-import { ChronicleApi } from '../../../api/chronicle';
 import { AccountabilityApi } from '../../../api/accountability';
 import { SpeciesApi } from '../../../api/species';
 import { SecurityApi } from '../../../api/security';
@@ -229,12 +227,6 @@ function conditionNowSeconds(): number | null {
  */
 @Unshadowable
 export class ConditionLogic extends ApiLogic {
-  /** See {@link ConditionApi.boot}. */
-  @CallSecurity(ConditionApiCallers)
-  public boot(): Promise<number> {
-    return bootImpl();
-  }
-
   /** See {@link ConditionApi.inflict}. */
   @CallSecurity(ConditionApiCallers)
   public inflict(target: Stuff, spec: InflictSpec): InflictOutcome {
@@ -500,7 +492,7 @@ async function divideBody(avatar: PlayerBody, cause: string): Promise<void> {
       ContainmentApi.move(shade, fell);
     }
     for (const interactive of held) {
-      ConnectionApi.transfer(interactive as never, shade as never);
+      (interactive as unknown as Interactive).transferTo(shade as never);
     }
     for (const interactive of held) {
       await (shade as unknown as PlayerBody).enter(interactive as never);
@@ -727,7 +719,7 @@ async function reembodyImpl(shade: Stuff): Promise<Stuff> {
   await recordReturnDeed(stuff);
 
   for (const interactive of held) {
-    ConnectionApi.transfer(interactive as never, stuff as never);
+    (interactive as unknown as Interactive).transferTo(stuff as never);
   }
   for (const interactive of held) {
     await body.enter(interactive as never);
@@ -738,7 +730,8 @@ async function reembodyImpl(shade: Stuff): Promise<Stuff> {
 /** The other half of the death deed — the chronicle records both edges. */
 async function recordReturnDeed(host: Stuff): Promise<void> {
   try {
-    await ChronicleApi.recordDeed(host, {
+    if (!MixinApi.isPersona(host)) return;
+    await host.recordDeed({
       template: '{{ who | name }} returned to the world.',
       vars: { who: host },
       tags: ['death', 'passage'],
@@ -784,7 +777,8 @@ async function ejectFromCircle(
 /** The chronicle deed. No-ops without a durable owner key / connection. */
 async function recordDeathDeed(host: Stuff, cause: string): Promise<void> {
   try {
-    await ChronicleApi.recordDeed(host, {
+    if (!MixinApi.isPersona(host)) return;
+    await host.recordDeed({
       template: '{{ who | name }} died of {{ cause }}.',
       vars: { who: host, cause },
       where: MixinApi.isContainable(host)
@@ -980,52 +974,3 @@ function inflictShock(
   return { trauma, afflicted: landed };
 }
 
-// ─────────────────── the boot roster warm (bootImpl) ───────────────────
-
-/**
- * Stand up every authored `Condition` as a live singleton so the sync
- * resolve-on-read seams hit from the first frame of live play.
- *
- * ⚠ **The gap this closes is the `MaterialApi.boot` gap, one subsystem
- * over.** Condition seeds are inserted as template ROWS and nothing
- * cloned them into Ideas, so `StuffApi.findByTemplatePath` answered
- * `null` for **every** condition in a running world. Authored behavior
- * — signs, names, progression, `toxinBehavior` — was read off an object
- * that was not there.
- *
- * It failed **silently**, which is why it survived: the one hot reader,
- * `Metabolic.resolveToxinBehavior`, returns `null` and its caller does
- * `if (!behavior) continue`. So a toxin simply never cleared. No throw,
- * no log, no failing test — and the toxin suites hand-construct their
- * own `Condition` (the same masking `MaterialLogic.bootImpl` records:
- * *"tests hand-construct theirs"*), so CI was green over a dead
- * subsystem.
- *
- * Warmed whole at boot rather than lazily, for `MaterialLogic`'s stated
- * reason: the roster is small (15), reference-data, and read from sync
- * seams that cannot await. The lazy validator-preload shape used for
- * modalities and anatomy does not fit — conditions are also read from
- * scheduled metabolism ticks, which run behind no validator.
- */
-async function bootImpl(): Promise<number> {
-  const templates = await Template.findDescendants(
-    TemplatePathPrefixes.condition,
-  );
-  let stood = 0;
-  for (const tpl of templates) {
-    // Leaf rows only — a folder row under the tree belongs to the zone
-    // substrate, not to us (the `MaterialLogic.bootImpl` filter).
-    if (tpl.class !== CONDITION_CLASS) continue;
-    try {
-      await StuffApi.singleton(tpl.path);
-      stood++;
-    } catch (err) {
-      console.warn(`ConditionApi.boot: '${tpl.path}' failed to stand up:`, err);
-    }
-  }
-  console.info(`ConditionApi.boot: ${stood} condition singleton(s) live`);
-  return stood;
-}
-
-/** The backing class every authored `Condition` row names. */
-const CONDITION_CLASS = '/platform/idea/Condition';

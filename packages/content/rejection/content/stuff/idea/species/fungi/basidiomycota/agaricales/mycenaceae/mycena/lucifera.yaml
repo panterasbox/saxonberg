@@ -1,0 +1,43 @@
+# Mycena lucifera — the glowcap, and ⭐⭐ **Rejection's answer to the
+# archetype's defaultless `light` slot.**
+#
+# The mine archetype says *you need light underground* and names nothing.
+# This place answers with a bioluminescent fungus; another mine
+# answers with oil lamps; a third answers with something nobody has
+# written. Same slot, different world — and that is the demonstration the
+# whole trade/locality split exists to make.
+#
+# ⚠⚠ **This row is the taxonomy only — nothing grows it, and nothing
+# cultivates it.** The shipped fixture and jar are `PortableLight`s with
+# mushrooms in the description; they do not compose `GrowingMixin`, they
+# carry no `_speciesPath` back to here, and the fungus-farmer an earlier
+# comment promised does not exist. The row still earns its place: it is
+# what a fungiculture build would grow, and it says what the organism IS
+# before anything makes it live.
+#
+# ⭐ The interesting part when that build happens: the growth model's four
+# limiting factors are `min(water, light, root, nutrient)`, and a
+# saprotroph inverts exactly one of them. `ramp(lux, luxDarkAt,
+# luxHappyAt)` returns 1 unconditionally when both bounds are 0 — so
+# *"thrives in total darkness"* is authorable with no kernel change, and
+# a mine becomes a farm with inverted conditions rather than a special
+# case. See `docs/slates/builds/authored-vs-procedural-slate.md`.
+#
+# Foxfire is real: several *Mycena* species genuinely glow, continuously
+# and coldly, from luciferin oxidation. The invention is the brightness,
+# not the mechanism.
+class: /platform/idea/species/Species
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  binomial: Mycena lucifera
+  commonNames: ["glowcap", "foxfire", "lamp fungus"]
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/sessile
+  _parentCladePath: /stuff/idea/species/fungi
+  _defaultMaterialPath: /stuff/idea/material/tissue/plant-tissue
+  lifecycleStates: ["alive", "dead"]
+  sexDeterminationSystem: none
+  reproductiveMode: asexual
+  lifespanMin: 0
+  lifespanMax: 1
+  circadianBand: cathemeral
+  diet: saprotrophic

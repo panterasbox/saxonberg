@@ -4,17 +4,17 @@
  *
  * A single-token, zero-arg, self-only, read-only verb (the `chronicle`
  * shape). Reads the derived per-Discipline bands
- * (`AdvancementApi.bandsFor`) and renders them as **bands, never a
+ * (the owner's `competenceBands`) and renders them as **bands, never a
  * number** — the honesty firewall. Disciplines with no evidence are
  * absent (the floor is implicit); the empty state renders a beginning
  * line.
  */
 
 import { CommandController } from "../../../../lib/command/CommandController";
+import { MixinApi } from "../../../../api/mixin";
 import type { CommandContext, CommandModel } from "../../../../api/command";
 import { MessageApi } from "../../../../api/message";
 import { Mml } from "../../../../api/mml";
-import { AdvancementApi } from "../../../../api/advancement";
 
 /** Identity-family self readout — reuse, don't invent a topic. */
 const TOPIC = "act.deed";
@@ -22,7 +22,9 @@ const TOPIC = "act.deed";
 export default class CompetenceController extends CommandController<CommandModel> {
   async execute(_model: CommandModel, context: CommandContext): Promise<void> {
     const actor = context.commandGiver;
-    const bands = await AdvancementApi.bandsFor(actor);
+    const bands = MixinApi.isAdvancing(actor)
+      ? await actor.competenceBands()
+      : [];
 
     const blocks: string[] = [Mml.strong("Competence").toString()];
 

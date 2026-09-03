@@ -1,0 +1,7 @@
+# MaterialCatalogue — the singleton whose postRegister stands the
+# authored material roster up as live singletons (the self-warming
+# catalogue shape; eager via this pack's boot list, not an AppBootstrap
+# sequencer line). No field state; the sync resolve-on-read seams read
+# the live population.
+class: /platform/idea/MaterialCatalogue
+data: {}

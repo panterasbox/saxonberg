@@ -17,7 +17,6 @@ import type { Slotted } from '@saxonberg/server/mud/lib/slot/Slotted';
 import type { Audible } from '@saxonberg/server/mud/lib/perception/Audible';
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import { SlotApi } from '@saxonberg/server/mud/api/slot';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 
@@ -93,7 +92,7 @@ function carriedAndWorn(giver: Stuff): Stuff[] {
     out.push(...((giver as Stuff & Container).getContents() as Stuff[]));
   }
   if (MixinApi.isSlotted(giver)) {
-    SlotApi.walkOccupants(giver as Stuff & Slotted, (_h, _s, occupant) => {
+    (giver as Stuff & Slotted).walkOccupants((_h, _s, occupant) => {
       out.push(occupant as unknown as Stuff);
     });
   }

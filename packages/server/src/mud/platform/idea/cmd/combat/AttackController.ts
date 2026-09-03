@@ -21,11 +21,12 @@ import type { CommandContext, CommandModel } from "../../../../api/command";
 import type { MqlOneResult } from "../../../../api/mql";
 import { MessageApi } from "../../../../api/message";
 import { MixinApi } from "../../../../api/mixin";
-import { PromptApi, PromptCancelledError } from "../../../../api/prompt";
+import { PromptCancelledError } from "../../../../api/prompt";
 import { Mml } from "../../../../api/mml";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
 import { CombatApi } from "../../../../api/combat";
 import type { TermsProposal } from "../../../../lib/combat/CombatTerms";
+import type { Combatant } from '../../../../lib/combat/Combatant';
 
 const TOPIC = "act.deed";
 
@@ -68,8 +69,7 @@ export default class AttackController extends CommandController<AttackModel> {
     // that starts a fight runs the SAME sequence — see
     // `CombatApi.initiate`. Prompting stays here, because asking a
     // player a question is the controller's job, not the engine's.
-    const result = await CombatApi.initiate(
-      giver as Stuff,
+    const result = await (giver as unknown as Stuff & Combatant).initiateCombat(
       target,
       { lethal: model.lethal, to: model.to },
       (t, mine) => this.resolveConflict(t, mine),
@@ -77,6 +77,15 @@ export default class AttackController extends CommandController<AttackModel> {
     if (!result.ok) {
       if (result.reason === "cancelled") {
         return this.fail(context, "The challenge goes unanswered.", "cancelled");
+      }
+      // A sanctuary refusal carries its own house prose (the lounge:
+      // "Not in here. The lounge is for talk — take it next door.").
+      if (result.reason === "sanctuary") {
+        return this.fail(
+          context,
+          result.refusal ?? "Not here — this is no place for a fight.",
+          "sanctuary",
+        );
       }
       return this.fail(
         context,
@@ -106,8 +115,7 @@ export default class AttackController extends CommandController<AttackModel> {
     const interactive = [...target.getInteractives()][0];
     if (!interactive) return null;
     try {
-      const picked = await PromptApi.choice(
-        interactive,
+      const picked = await interactive.promptChoice(
         `You are challenged to a ${mine.lethality} fight (to ${mine.stopCondition}). Accept?`,
         [
           { label: "Accept", response: "accept" },

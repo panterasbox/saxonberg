@@ -29,6 +29,9 @@ import { SecurityPolicies } from '../security/SecurityPolicies';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
 import { Employment, type EmploymentData, type EmploymentStatus } from './Employment';
+import type { OrganizationStuff, BusinessStuff } from '../../api/employment';
+// eslint-disable-next-line no-restricted-imports -- the F4 actor face: an employee's quitJob()/buysFor()/cover verbs forward into the employment logic singleton exactly as the api/employment facade does (the Combustible/Energized precedent)
+import { EmploymentLogic } from '../../platform/idea/api/EmploymentLogic';
 
 /**
  * A stored record as it may actually be on disk: pre-split rows carry
@@ -74,6 +77,12 @@ const ByEmployingOrganization = SecurityPolicies.AnyOf(
  * Hydrator but is not the contract surface.
  */
 export interface Employed {
+  // The actor face (F4) — forwards into EmploymentLogic.
+  quitJob(organizationPath: string): Promise<void>;
+  buysFor(): Promise<BusinessStuff[]>;
+  beginCovering(business: OrganizationStuff): Employment | null;
+  endCovering(business: OrganizationStuff): void;
+  shiftState(): 'on-shift' | 'off-shift';
   /** All employment records as value objects. */
   getEmployments(): readonly Employment[];
   /** The record at `organizationPath`, or undefined. */
@@ -210,7 +219,41 @@ export function EmployedMixin<TBase extends MixinConstructor>(Base: TBase) {
         (e) => recordKey(e) !== organizationPath,
       );
     }
+    // ------- the actor face (F4) — forwards into EmploymentLogic -------
+
+    /** Quit `organizationPath` (status → quit; unlinks the house account). */
+    public quitJob(organizationPath: string): Promise<void> {
+      return employedLogic().quit(this as unknown as Stuff, organizationPath);
+    }
+
+    /** Every Business this actor buys for (position `purchases: true`). */
+    public buysFor(): Promise<BusinessStuff[]> {
+      return employedLogic().buysFor(this as unknown as Stuff);
+    }
+
+    /** Begin covering `business` (transient on-shift Employment). */
+    public beginCovering(business: OrganizationStuff): Employment | null {
+      return employedLogic().beginCover(this as unknown as Stuff, business);
+    }
+
+    /** End a cover — drop the transient cover Employment. */
+    public endCovering(business: OrganizationStuff): void {
+      employedLogic().endCover(this as unknown as Stuff, business);
+    }
+
+    /** On-shift/off-shift, roster-aware (the ticked read). */
+    public shiftState(): 'on-shift' | 'off-shift' {
+      return employedLogic().shiftStateOf(this as unknown as Stuff);
+    }
   }
 
   return EmployedMixin;
+}
+
+/** Resolve the HMR-able EmploymentLogic singleton (the labor pipeline). */
+function employedLogic(): EmploymentLogic {
+  return StuffApi.singletonSync(
+    '/platform/idea/api/employment',
+    () => new EmploymentLogic(),
+  );
 }

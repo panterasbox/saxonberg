@@ -32,7 +32,6 @@ import { StuffApi } from "../../../../api/stuff";
 import { SchedulerApi } from "../../../../api/scheduler";
 import { ConditionApi } from "../../../../api/condition";
 import type { EnergyInflictSpec, InflictSpec } from "../../../../api/condition";
-import { ElectricityApi } from "../../../../api/electricity";
 import type { ConductionOutcome } from "../../../../api/electricity";
 import { MaterialApi } from "../../../../api/material";
 import { Quantity } from "../../../../lib/quantity";
@@ -357,8 +356,8 @@ function open(
 
 /** Queue a strike for `a`, keep `b` on defend, advance one beat. */
 function strikeBeat(session: CombatSession, a: Character, b: Character): void {
-  CombatApi.queueGambit(a, "strike");
-  CombatApi.queueGambit(b, "defend");
+  a.queueGambit("strike");
+  b.queueGambit("defend");
   CombatApi.advance(session);
 }
 
@@ -744,7 +743,7 @@ describe("CombatLogic hooks — the consequence drain", () => {
     expect(rust2.hookLog.some((e) => e.startsWith("exchange:"))).toBe(true);
   });
 
-  it("deliverShock routes through ElectricityApi.shockContact AFTER the primary inflict", () => {
+  it("deliverShock routes through the source's shockContact AFTER the primary inflict", () => {
     const room = makeStuff(() => new TestRoom());
     const shocker = makeStuff(() => new TestShocker());
     shocker.setVoltage(Quantity.of(50, "V"));
@@ -760,13 +759,15 @@ describe("CombatLogic hooks — the consequence drain", () => {
 
     const inflictSpy = vi.spyOn(ConditionApi, "inflict");
     const shockSpy = vi
-      .spyOn(ElectricityApi, "shockContact")
+      .spyOn(
+        shocker as unknown as { shockContact(v: unknown): unknown },
+        "shockContact",
+      )
       .mockImplementation(() => undefined as never);
     strikeBeat(session, a, b);
 
     expect(shockSpy).toHaveBeenCalledTimes(1);
-    expect(shockSpy.mock.calls[0]![0]).toBe(shocker);
-    expect(shockSpy.mock.calls[0]![1]).toBe(b);
+    expect(shockSpy.mock.calls[0]![0]).toBe(b);
     expect(shockSpy.mock.invocationCallOrder[0]!).toBeGreaterThan(
       inflictSpy.mock.invocationCallOrder[0]!,
     );
@@ -775,7 +776,7 @@ describe("CombatLogic hooks — the consequence drain", () => {
   it("a landed energized hit: the mechanical inflict precedes shockContact, once each (the stun-baton ordering)", () => {
     // The Phase-3 migration's ordering fixture: a real armed StunBaton
     // lands a blow — the mechanical `ConditionApi.inflict` fires first,
-    // then `ElectricityApi.shockContact(baton, target)`, exactly once
+    // then `baton.shockContact(target)`, exactly once
     // each. Green against the pre-migration `isEnergized` branch AND
     // the instrument-seam drain that replaces it (same sequence
     // position — DECISION D-4).
@@ -792,7 +793,10 @@ describe("CombatLogic hooks — the consequence drain", () => {
 
     const inflictSpy = vi.spyOn(ConditionApi, "inflict");
     const shockSpy = vi
-      .spyOn(ElectricityApi, "shockContact")
+      .spyOn(
+        baton as unknown as { shockContact(v: unknown): unknown },
+        "shockContact",
+      )
       .mockImplementation(() => []);
     strikeBeat(session, a, b);
 
@@ -802,8 +806,7 @@ describe("CombatLogic hooks — the consequence drain", () => {
     expect(primary.mechanism).toBe("blunt");
     // …then the two-terminal shock, after it.
     expect(shockSpy).toHaveBeenCalledTimes(1);
-    expect(shockSpy.mock.calls[0]![0]).toBe(baton);
-    expect(shockSpy.mock.calls[0]![1]).toBe(b);
+    expect(shockSpy.mock.calls[0]![0]).toBe(b);
     expect(shockSpy.mock.invocationCallOrder[0]!).toBeGreaterThan(
       inflictSpy.mock.invocationCallOrder[0]!,
     );
@@ -944,8 +947,8 @@ describe("CombatLogic hooks — participant terminals", () => {
 
     // A beat where nothing moves the gauges (mutual defend at full
     // poise — the restore clamps at the ceiling) → no band events.
-    CombatApi.queueGambit(a, "defend");
-    CombatApi.queueGambit(b, "defend");
+    a.queueGambit("defend");
+    b.queueGambit("defend");
     CombatApi.advance(session);
     expect(a.hookLog.filter((e) => e.startsWith("band:"))).toHaveLength(0);
     expect(b.hookLog.filter((e) => e.startsWith("band:"))).toHaveLength(0);
@@ -1022,17 +1025,17 @@ describe("CombatLogic hooks — participant terminals", () => {
     const vState = session.getState(victim)!;
     vState.poise.erode(0.6, 0);
     // The striker lands (stamps lastStruckBy); the bystander defends.
-    CombatApi.queueGambit(striker, "strike");
-    CombatApi.queueGambit(bystander, "defend");
-    CombatApi.queueGambit(victim, "defend");
+    striker.queueGambit("strike");
+    bystander.queueGambit("defend");
+    victim.queueGambit("defend");
     CombatApi.advance(session);
     expect(vState.lastStruckBy).toBe(striker);
 
     // The victim then dies of their wounds between beats (attrition).
     victim.setLifecycleState("dead");
-    CombatApi.queueGambit(striker, "defend");
-    CombatApi.queueGambit(bystander, "defend");
-    CombatApi.queueGambit(victim, "defend");
+    striker.queueGambit("defend");
+    bystander.queueGambit("defend");
+    victim.queueGambit("defend");
     CombatApi.advance(session);
 
     expect(session.getResolution()).toBe("death");
@@ -1115,9 +1118,9 @@ describe("CombatLogic — CombatApi.influence (the external-instruction bridge)"
     const b1 = makeFighter(room1, { weaponForm: "bladed" });
     const s1 = open(a1, b1, nonLethal);
     expect(
-      CombatApi.influence(b1, { kind: "stagger", intensity: "heavy" }).ok,
+      b1.influenceCombat({ kind: "stagger", intensity: "heavy" }).ok,
     ).toBe(true);
-    CombatApi.influence(b1, { kind: "stagger", intensity: "heavy" });
+    b1.influenceCombat({ kind: "stagger", intensity: "heavy" });
     expect(s1.getState(b1)!.poise.band()).toBe("reeling");
 
     // 2v1 (two incoming edges): the SAME two staggers, focus-fire-scaled,
@@ -1130,8 +1133,8 @@ describe("CombatLogic — CombatApi.influence (the external-instruction bridge)"
     expect(CombatApi.join(c2 as never, b2 as never, s2.getTerms()).ok).toBe(
       true,
     );
-    CombatApi.influence(b2, { kind: "stagger", intensity: "heavy" });
-    CombatApi.influence(b2, { kind: "stagger", intensity: "heavy" });
+    b2.influenceCombat({ kind: "stagger", intensity: "heavy" });
+    b2.influenceCombat({ kind: "stagger", intensity: "heavy" });
     expect(s2.getState(b2)!.poise.band()).toBe("open");
   });
 
@@ -1143,14 +1146,14 @@ describe("CombatLogic — CombatApi.influence (the external-instruction bridge)"
     const bState = session.getState(b)!;
     bState.poise.erode(0.6, 0); // 0.4 — reeling, above the floor
 
-    CombatApi.influence(b, { kind: "stagger", intensity: "heavy" });
+    b.influenceCombat({ kind: "stagger", intensity: "heavy" });
     // The crossing armed the normal opening via lower() — ownerless.
     expect(bState.poise.band()).toBe("open");
     expect(bState.openingArmedBy).toBeNull();
     expect(bState.down).toBe(false);
     // More influence while broken: still never sets down.
     expect(
-      CombatApi.influence(b, { kind: "stagger", intensity: "heavy" }).ok,
+      b.influenceCombat({ kind: "stagger", intensity: "heavy" }).ok,
     ).toBe(true);
     expect(bState.down).toBe(false);
 
@@ -1169,7 +1172,7 @@ describe("CombatLogic — CombatApi.influence (the external-instruction bridge)"
     const session = open(a, b, nonLethal);
     const bState = session.getState(b)!;
 
-    expect(CombatApi.influence(b, { kind: "expose" }).ok).toBe(true);
+    expect(b.influenceCombat({ kind: "expose" }).ok).toBe(true);
     // Armed without moving the gauge — open, not broken, ownerless.
     expect(bState.poise.band()).toBe("open");
     expect(bState.poise.isBroken()).toBe(false);
@@ -1192,7 +1195,7 @@ describe("CombatLogic — CombatApi.influence (the external-instruction bridge)"
     (b1 as unknown as { adjustReserve(k: string, d: unknown): void })
       .adjustReserve("endurance", Quantity.of(-100, "%"));
     s1.getState(b1)!.poise.erode(0.6, 0); // reeling
-    expect(CombatApi.influence(b1, { kind: "steady" }).ok).toBe(true);
+    expect(b1.influenceCombat({ kind: "steady" }).ok).toBe(true);
     expect(s1.getState(b1)!.poise.band()).toBe("reeling"); // nothing back
 
     // Fresh: the same instruction climbs a band.
@@ -1201,7 +1204,7 @@ describe("CombatLogic — CombatApi.influence (the external-instruction bridge)"
     const b2 = makeFighter(room2, { weaponForm: "bladed" });
     const s2 = open(a2, b2, nonLethal);
     s2.getState(b2)!.poise.erode(0.6, 0);
-    expect(CombatApi.influence(b2, { kind: "steady" }).ok).toBe(true);
+    expect(b2.influenceCombat({ kind: "steady" }).ok).toBe(true);
     expect(s2.getState(b2)!.poise.band()).toBe("pressed");
   });
 
@@ -1217,7 +1220,7 @@ describe("CombatLogic — CombatApi.influence (the external-instruction bridge)"
     const vState = session.getState(victim)!;
     vState.poise.erode(0.6, 0);
 
-    const res = CombatApi.influence(victim, { kind: "steady" });
+    const res = victim.influenceCombat({ kind: "steady" });
     expect(res).toEqual({ ok: false, reason: "suppressed" });
     expect(vState.poise.band()).toBe("reeling"); // nothing restored
   });
@@ -1225,7 +1228,7 @@ describe("CombatLogic — CombatApi.influence (the external-instruction bridge)"
   it("refuses out-of-combat and downed targets with the named reasons", () => {
     const room = makeStuff(() => new TestRoom());
     const loner = makeFighter(room, { weaponForm: "bladed" });
-    expect(CombatApi.influence(loner, { kind: "expose" })).toEqual({
+    expect(loner.influenceCombat({ kind: "expose" })).toEqual({
       ok: false,
       reason: "not-in-combat",
     });
@@ -1234,7 +1237,7 @@ describe("CombatLogic — CombatApi.influence (the external-instruction bridge)"
     const b = makeFighter(room, { weaponForm: "bladed" });
     const session = open(a, b, nonLethal);
     session.getState(b)!.down = true;
-    expect(CombatApi.influence(b, { kind: "steady" })).toEqual({
+    expect(b.influenceCombat({ kind: "steady" })).toEqual({
       ok: false,
       reason: "downed",
     });
@@ -1253,18 +1256,18 @@ describe("CombatLogic — CombatApi.influence (the external-instruction bridge)"
       .adjustReserve("endurance", Quantity.of(-100, "%"));
 
     // A quiet first beat — no band events, the baseline stamped.
-    CombatApi.queueGambit(a, "defend");
-    CombatApi.queueGambit(b, "defend");
+    a.queueGambit("defend");
+    b.queueGambit("defend");
     CombatApi.advance(session);
     expect(b.hookLog.filter((e) => e.startsWith("band:"))).toHaveLength(0);
 
     // The between-beat external stagger: steady → pressed.
-    CombatApi.influence(b, { kind: "stagger", intensity: "heavy" });
+    b.influenceCombat({ kind: "stagger", intensity: "heavy" });
     expect(session.getState(b)!.poise.band()).toBe("pressed");
 
     // The following (otherwise quiet) beat witnesses it — no new hook.
-    CombatApi.queueGambit(a, "defend");
-    CombatApi.queueGambit(b, "defend");
+    a.queueGambit("defend");
+    b.queueGambit("defend");
     CombatApi.advance(session);
     expect(b.hookLog).toContain("band:pressed");
   });
@@ -1287,7 +1290,7 @@ describe("CombatLogic — CombatApi.influence (the external-instruction bridge)"
       strikeBeat(session, a, b);
       if (mode === "external") {
         expect(
-          CombatApi.influence(b, { kind: "stagger", intensity: "heavy" }).ok,
+          b.influenceCombat({ kind: "stagger", intensity: "heavy" }).ok,
         ).toBe(true);
       }
       expect(bState.down).toBe(false); // influence never downs
@@ -1362,15 +1365,17 @@ describe("CombatLogic — non-mechanical innates (DECISION K)", () => {
     session.getState(b)!.poise.erode(0.6, 0);
 
     const inflictSpy = vi.spyOn(ConditionApi, "inflict");
-    const shockSpy = vi.spyOn(ElectricityApi, "shockContact");
+    const shockSpy = vi.spyOn(
+      eel as unknown as { shockContact(v: unknown): unknown },
+      "shockContact",
+    );
     const narrateSpy = vi.spyOn(CombatNarration, "narrate");
     strikeBeat(session, eel as unknown as Character, b);
 
     // The single-fire proof: the drain is the ONE deliverer — the split
     // never also calls shockContact directly (the forbidden double-fire).
     expect(shockSpy).toHaveBeenCalledTimes(1);
-    expect(shockSpy.mock.calls[0]![0]).toBe(eel);
-    expect(shockSpy.mock.calls[0]![1]).toBe(b);
+    expect(shockSpy.mock.calls[0]![0]).toBe(b);
     // No mechanical primary: every inflict that fired is the shock
     // door's own (inside shockContactImpl), never an energy spec.
     const mechanisms = inflictSpy.mock.calls.map(
@@ -1429,12 +1434,18 @@ describe("CombatLogic — non-mechanical innates (DECISION K)", () => {
     session.getState(b)!.poise.erode(0.6, 0);
 
     const inflictSpy = vi.spyOn(ConditionApi, "inflict");
-    const shockSpy = vi.spyOn(ElectricityApi, "shockContact");
     const narrateSpy = vi.spyOn(CombatNarration, "narrate");
     strikeBeat(session, sparkless, b);
 
     // Nothing delivered: no carrier → no shock, no primary, no blood.
-    expect(shockSpy).not.toHaveBeenCalled();
+    // (Delivery is the source's own shockContact since the OO sweep; a
+    // sparkless fighter has no source, so absence shows as no shock
+    // inflict at all.)
+    expect(
+      inflictSpy.mock.calls.some(
+        (c) => (c[1] as { mechanism?: string }).mechanism === "shock",
+      ),
+    ).toBe(false);
     expect(inflictSpy).not.toHaveBeenCalled();
     expect(session.hasDrawnBlood()).toBe(false);
     expect(session.getState(b)!.lastStruckBy ?? null).toBeNull();
@@ -1455,10 +1466,13 @@ describe("CombatLogic — non-mechanical innates (DECISION K)", () => {
     session.getState(b)!.poise.erode(0.6, 0);
 
     const inflictSpy = vi.spyOn(ConditionApi, "inflict");
-    const shockSpy = vi.spyOn(ElectricityApi, "shockContact");
     strikeBeat(session, wolf, b);
 
-    expect(shockSpy).not.toHaveBeenCalled();
+    expect(
+      inflictSpy.mock.calls.some(
+        (c) => (c[1] as { mechanism?: string }).mechanism === "shock",
+      ),
+    ).toBe(false);
     expect(inflictSpy).toHaveBeenCalledTimes(1);
     const primary = inflictSpy.mock.calls[0]![1] as EnergyInflictSpec;
     expect(primary.mechanism).toBe("point");

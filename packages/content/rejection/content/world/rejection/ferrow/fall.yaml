@@ -1,0 +1,29 @@
+# ⚠ A FALL — ground that has already come down. ⭐ It is a ROOM, not a
+# death: a fall blocks a FACE and never a room, every exit stays open, and
+# nothing in this build can trap or bury anybody. What a fall costs is a
+# shift spent barring it down, which is exactly what neglect should cost.
+class: /trade/mining/location/MineRoom
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a fall of ground
+  primaryKeyword: fall
+  keywords: [fall, collapse, rubble]
+  longDescription: |
+    A place where the back has come down, the floor heaped with what used to be over it.
+  oreRow: /world/rejection/thing/copper-ore
+  backPhrases:
+    - "The back has come down here and what is left of it is a fresh, pale scar."
+    - "Overhead is the shape of an absence, and it is a bad shape."
+    - "The break is old and has settled. It will not do that again."
+  seamPhrases:
+    - "There is green in the rubble, which means the seam is somewhere in what came down."
+    - "The seam is cut off by the fall and picks up again above it, if you could get there."
+    - "Green shows in the fresh scar overhead, which is exactly the worst place for it."
+  airPhrases:
+    - "The fall has half-choked the way and the air with it."
+    - "Dust still hangs in the air here, hours later."
+    - "The air past the fall is dead. Nothing has moved through it in a long time."
+  groundPhrases:
+    - "More is going to come. You can hear it thinking about it."
+    - "The edges of the break are still shedding, in ones and twos."
+    - "It has settled. Whatever was going to fall has fallen."

@@ -1,0 +1,29 @@
+# The fuel yard — the coppice and the clamp, a short walk off the pithead.
+#
+# ⭐ It is sited NEXT TO THE SMELTER rather than next to the mine, and
+# that is real economics rather than layout: you burn more mass of
+# charcoal than you smelt of ore, so the expensive thing to move is the
+# fuel. Von Thünen, in one exit.
+class: /platform/location/SingletonCartesianLocation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the fuel yard
+  primaryKeyword: yard
+  keywords: [yard, "fuel yard", coppice, clamp]
+  longDescription: |
+    A wide flat of beaten earth with the coppice standing behind it — hazel, all of an age, cut to the ground in one panel and eight feet high in the next. Cordwood is stacked in ricks to season, and in the middle of the flat is a turfed dome the height of a man with thin blue smoke coming out of a dozen holes in it.
+
+    Nobody is asleep here. Somebody is always awake here.
+  coords: { x: 1, y: 1, z: 0 }
+  exits:
+    southwest:
+      destination: /world/rejection/location/pithead-yard
+    east:
+      destination: /world/rejection/location/smelter
+  props:
+    - /trade/fuel/thing/clamp
+    - /trade/fuel/thing/hazel-stool
+    - /trade/mining/thing/billhook
+    - /trade/mining/thing/felling-axe
+  cast:
+    - /world/rejection/agent/collier

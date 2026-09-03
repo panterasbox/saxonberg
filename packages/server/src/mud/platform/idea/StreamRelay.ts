@@ -342,7 +342,7 @@ export default class StreamRelay extends StreamRelayBase {
     for (const playerId of this.whoTuned(service, key)) {
       const avatar = PlayerApi.findAvatarByPlayerId(playerId);
       if (!avatar) continue; // offline - skip
-      MessageApi.sendMessage(avatar, {
+      avatar.onMessage({
         id: SecurityApi.uuid(),
         topic,
         tags: ['audience:witness'],

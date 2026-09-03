@@ -38,7 +38,6 @@
 import Avatar, { type AvatarInitContext } from './Avatar';
 import type Species from '../idea/species/Species';
 import { IncorporealMixin } from '../../lib/mortality/Incorporeal';
-import { ConnectionApi } from '../../api/connection';
 import { PlayerApi } from '../../api/player';
 
 /** Init context for a shade: the identity it stands in for. */
@@ -160,7 +159,7 @@ export default class Shade extends IncorporealMixin(Avatar) {
     this.stopAutoSave();
     PlayerApi.unregisterAvatar(this);
     for (const interactive of [...this.getInteractives()]) {
-      ConnectionApi.detach(interactive);
+      interactive.detach();
     }
     await super.onDestruct();
   }

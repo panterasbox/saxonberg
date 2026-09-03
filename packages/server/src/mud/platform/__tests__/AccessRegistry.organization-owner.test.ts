@@ -23,6 +23,7 @@ import { StuffApi } from "../../api/stuff";
 import { PersistenceManager } from "../../../backend/PersistenceManager";
 import { makeStuffAtPath } from "../../lib/security/__tests__/test-setup";
 import type { Stuff } from "../../lib/stuff/Stuff";
+import { EmploymentLogic } from '../idea/api/EmploymentLogic';
 
 type Doc = Record<string, unknown> & { _id?: string };
 
@@ -79,7 +80,7 @@ function stubOrganizationTitle(): void {
 
 /** Staff = the listed identity paths; head = the listed identity paths. */
 function stubChart(staff: string[], heads: string[]): void {
-  vi.spyOn(EmploymentApi, "holdsPosition").mockImplementation(
+  vi.spyOn(EmploymentLogic.prototype, "holdsPosition").mockImplementation(
     (subject: Stuff | null) =>
       subject !== null && staff.includes(subject.getIdentityPath() ?? ""),
   );

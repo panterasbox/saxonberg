@@ -1,0 +1,35 @@
+# The Farm Yard — the farming trade's ground, and ⭐ **the reason a
+# production floor needs a zone at all.**
+#
+# ⚠⚠ `coords:` is not decoration. `CartesianLocation.setCoords` is the
+# ONLY path by which an authored row joins a zone, so a cartesian room
+# that authors no coords is not sitting at the origin — **it is in no
+# grid at all**, and it silently inherits nothing: no address and so no
+# Locality, no `atmosphere.*` override, no celestial profile, no
+# `suppressesMagic`, no `stocks`/`favours`/`blessingOdds`. Every trade
+# floor in the repo was in that state, which is why every one of them
+# also read as "fine" — nothing they needed had been asked for yet.
+#
+# ⭐ The rule, stated once: **a location declares its own coords unless a
+# warren manages them dynamically.** The four rows that legitimately go
+# without are the furnishing archetypes a floorplan clones and the bare
+# venue `Archetype.materialize()` fills — there a programme stamps the
+# position, which is exactly the exception.
+#
+# ⏳ This zone declares no `address:` on purpose. WHERE these floors sit
+# is a locality decision (the cash-and-carry turned out to be a room on
+# the Counting-Houses avenue and moved to the `terminus` pack outright);
+# the rest have no exits and nobody walks to them, so naming a street for
+# them here would be inventing geography. The grid is the fix; the
+# address is a locality build's to declare.
+# ⚠ The zone sits at the INDUSTRY ROOT (`/trade/farming`) rather than at
+# `/trade/farming/location`. A class row must be at
+# `<root>/<branch>/<leaf>` — `lint:instanceable`'s invariant 7 — so a row
+# AT the branch directory is illegal, and the industry root is where a
+# zone covering the whole trade belongs anyway. `/world/rejection.yaml`
+# is the same shape: the region zone one level above its rooms.
+class: /platform/idea/location/CartesianZone
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: The Farm Yard
+  cellSize: 3.0

@@ -32,7 +32,6 @@ import type { EvictionContext } from '../../lib/stuff/Stuff';
 import { CallSecurity } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { EventApi } from '../../api/event';
-import { MessageApi } from '../../api/message';
 import { MixinApi } from '../../api/mixin';
 import { ForumsApi } from '../../api/forums';
 import { PlayerApi } from '../../api/player';
@@ -59,6 +58,11 @@ import type {
 } from '@saxonberg/types';
 
 const ForumSubscriptionApiCallers = SecurityPolicies.FromModule('/api/forums#ForumsApi',
+);
+/** The Interactive teardown surface (Phase F2) calls in as the instance. */
+const ForumSubscriptionCallers = SecurityPolicies.AnyOf(
+  ForumSubscriptionApiCallers,
+  SecurityPolicies.FromModule('/platform/idea/Interactive'),
 );
 
 /**
@@ -184,7 +188,7 @@ export default class ForumSubscriptionRegistry extends Idea {
       scope: canonical,
       records,
     };
-    MessageApi.sendEnvelope(viewer, template);
+    viewer.onEnvelope(template);
   }
 
   /**
@@ -221,7 +225,7 @@ export default class ForumSubscriptionRegistry extends Idea {
   }
 
   /** See {@link ForumsApi.handleUnsubscribe}. */
-  @CallSecurity(ForumSubscriptionApiCallers)
+  @CallSecurity(ForumSubscriptionCallers)
   public handleUnsubscribe(interactive: Interactive, subscriptionId: string): void {
     const bucket = this.registry.get(interactive);
     const state = bucket?.get(subscriptionId);
@@ -232,7 +236,7 @@ export default class ForumSubscriptionRegistry extends Idea {
   }
 
   /** See {@link ForumsApi.cancelAllForInteractive}. */
-  @CallSecurity(ForumSubscriptionApiCallers)
+  @CallSecurity(ForumSubscriptionCallers)
   public cancelAllForInteractive(interactive: Interactive): void {
     const bucket = this.registry.get(interactive);
     if (!bucket) return;
@@ -265,7 +269,9 @@ export default class ForumSubscriptionRegistry extends Idea {
       // The forum landing: the boards this viewer can see, each projected
       // as a record whose `id` is the board's flat title handle (so the
       // client opens it with `forum <handle>`).
-      const boards = await ForumsApi.listBoards(viewer);
+      const boards = MixinApi.isSubjectSubscriber(viewer)
+        ? await viewer.forumBoards()
+        : [];
       return boards.map((v) => projectBoard(v.board, v.subject));
     }
     if (scope.kind === 'board') {
@@ -311,7 +317,9 @@ export default class ForumSubscriptionRegistry extends Idea {
   private async projectSubjects(
     viewer: Stuff & Sensor,
   ): Promise<ForumSubjectRecord[]> {
-    const subjects = await SubjectApi.visibleSubjects(viewer);
+    const subjects = MixinApi.isSubjectSubscriber(viewer)
+      ? await viewer.visibleSubjects()
+      : [];
     const backing = await SubjectApi.getBackingGroupIds();
     const out: ForumSubjectRecord[] = [];
     for (const s of subjects) {
@@ -539,7 +547,7 @@ export default class ForumSubscriptionRegistry extends Idea {
       subscriptionId: state.subscriptionId,
       changes,
     };
-    MessageApi.sendEnvelope(viewer, template);
+    viewer.onEnvelope(template);
   }
 
   private teardown(state: ForumSubState): void {
@@ -561,7 +569,7 @@ export default class ForumSubscriptionRegistry extends Idea {
       reason,
       ...(detail ? { detail } : {}),
     };
-    MessageApi.sendEnvelope(viewer, template);
+    viewer.onEnvelope(template);
   }
 }
 
@@ -571,7 +579,7 @@ export default class ForumSubscriptionRegistry extends Idea {
  * template (for offline authors). Empty ids (anonymous guests) resolve to
  * '' — the client renders a generic byline. The name is NEVER stored on
  * the entry; the entry links by id and this resolves on read, so renames
- * reflect and the byline can become viewer-aware later (RecognitionApi).
+ * reflect and the byline can become viewer-aware later (`describeFor`).
  */
 async function resolveAuthorNames(
   ids: readonly string[],

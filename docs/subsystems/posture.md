@@ -11,7 +11,7 @@ constants vocabulary. Verb suite: `sit`, `lie`, `kneel`, `stand`.
 | `Posed` | `lib/character/Posed.ts` | Actor capability — carries `getPosture()` / `setPosture()` |
 | `Postures` | `lib/slot/Postured.ts` | Frozen const-object: `Stand`, `Sit`, `Lie`, `Kneel`, `Mounted` |
 | `Posture` | `lib/slot/Postured.ts` | Derived type union of `Postures` values |
-| `PostureApi` | `api/posture.ts` | Slot+state mechanics (`transferPosture`, `vacatePostureBearingSlots`, `findCurrentPostureBearingSlot`). Pure mechanism — no messaging; callers (controllers) own the narration |
+| `PosedMixin` (the verbs) | `lib/character/Posed.ts` | Slot+state mechanics ON the actor since the OO sweep (`actor.transferPosture`, `actor.vacatePostureBearingSlots`, `actor.currentPostureBearingSlot`; the mutators are gated to the posture controllers — the narrow-entry pattern — and sealed). Pure mechanism — no messaging; callers (controllers) own the narration |
 
 `PosturedMixin` composes on `Stuff & Slotted`. `PosedMixin` composes
 on `Stuff` and is composed by `Character`, so every PC and NPC
@@ -107,15 +107,15 @@ suppresses the migration script and any future auto-floor tooling.
 ## Verbs
 
 The four with-arg posture verbs (`sit X`, `lie X`, `kneel X`,
-`stand X`) and `stand X` call `PostureApi.transferPosture(actor,
+`stand X`) and `stand X` call `actor.transferPosture(
 target, posture, verb)` for the slot+state mechanics; the
 controller emits the verb-specific message scene on success. The
 asymmetric `stand` no-arg form calls
-`PostureApi.vacatePostureBearingSlots` directly (no occupy step —
+`actor.vacatePostureBearingSlots()` directly (no occupy step —
 posture flips to `Stand`, the actor stays free of any slot) and
 fires its own "you stand up" scene.
 
-Layering: PostureApi is pure mechanism, no `MessageApi.send`
+Layering: the posture methods are pure mechanism, no `MessageApi.send`
 inside. Narration is verb-specific surface so it lives in the
 controller, matching how MountController, GetController,
 DropController etc. work. The exception in the codebase is the
@@ -133,14 +133,14 @@ the standard non-configurable case.
 | `stand <X>` | with arg | Stand on X (e.g., on a chair or table) |
 
 The asymmetry: `sit` / `lie` / `kneel` no-arg occupy the floor slot
-(routed through `SlotApi`); `stand` no-arg does not (it's the
+(routed through `Slotted/Slottable`); `stand` no-arg does not (it's the
 implicit "free" posture, no slot needed).
 
 ## `default: 'ground'` mechanism
 
 The framework substitutes `'ground'` as if the player had typed it,
 then runs MQL resolution + validators. `ground` resolves via the
-Detail-keyword pathway (`SlotApi.resolveSlot`) to the floor
+Detail-keyword pathway (`resolveSlot`) to the floor
 Adornment's `ground:1` slot. In a void Location with no floor
 Adornment, MQL no-match surfaces "you can't sit on the ground here"
 — no controller branching.
@@ -164,7 +164,7 @@ See [command-spec.md](./command-spec.md) for the field semantics.
 **The posture verbs were unreachable by any player, and had always been.**
 Driving the world in a browser to verify sleep-as-logout turned up two
 independent gaps, neither of which any unit test could see (they all called
-`SlotApi.occupyAll` directly):
+`occupyAll` directly):
 
 1. **Nothing contributed the verbs.** `cmd/posture/{lie,sit,stand,kneel}.yaml`
    and their controllers had shipped since the substrate landed, but a verb

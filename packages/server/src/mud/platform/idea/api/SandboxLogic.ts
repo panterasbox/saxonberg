@@ -19,7 +19,6 @@ import { WorldClockApi } from '../../../api/worldclock';
 import { MqlSubscriptionApi } from '../../../api/mql-subscription';
 import { BankingApi } from '../../../api/banking';
 import { PersistableApi } from '../../../api/persistable';
-import { ConnectionApi } from '../../../api/connection';
 import { PlayerApi } from '../../../api/player';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
@@ -33,6 +32,15 @@ import type Avatar from '../../agent/Avatar';
 import type Interactive from '../Interactive';
 
 const SandboxApiCallers = SecurityPolicies.FromModule('/api/sandbox#SandboxApi');
+
+/**
+ * The sweeper install is also callable by the self-warming
+ * `SandboxWarden` singleton (the boot()-retirement shape).
+ */
+const SandboxBootCallers = SecurityPolicies.AnyOf(
+  SandboxApiCallers,
+  SecurityPolicies.FromTemplate('/platform/idea/SandboxWarden'),
+);
 
 /**
  * One live circle session — RUNTIME state only (never persisted; a
@@ -374,7 +382,7 @@ async function enterImpl(
     'sandbox.transfer',
     () => {
       for (const interactive of [...actor.getInteractives()]) {
-        ConnectionApi.transfer(interactive as Interactive, wireBody);
+        (interactive as Interactive).transferTo(wireBody);
         moved.push(interactive as Interactive);
       }
     },
@@ -396,7 +404,7 @@ async function enterImpl(
       { circleScope: scope }
     );
     // The socket now drives a different body — re-render its cards.
-    MqlSubscriptionApi.refreshForInteractive(interactive);
+    interactive.refreshMqlSubscriptions();
   }
 
   state.occupants.add(wireBody.stuffId);
@@ -431,7 +439,7 @@ async function exitImpl(wireBody: Avatar): Promise<void> {
     async () => {
       if (avatar) {
         for (const interactive of [...wireBody.getInteractives()]) {
-          ConnectionApi.transfer(interactive as Interactive, avatar);
+          (interactive as Interactive).transferTo(avatar);
           returned.push(interactive as Interactive);
         }
         // Merge: epistemic only (the consumer's allowlist).
@@ -462,7 +470,7 @@ async function exitImpl(wireBody: Avatar): Promise<void> {
       () => avatar!.enter(interactive),
       'swallow'
     );
-    MqlSubscriptionApi.refreshForInteractive(interactive);
+    interactive.refreshMqlSubscriptions();
   }
   // Unpark under an omni root. `exit` is reached from the wire body's
   // own `go out`, so the ambient context is the CIRCLE — and the
@@ -527,7 +535,7 @@ async function seedCopyImpl(actor: Avatar, target: Stuff): Promise<Stuff> {
     async () => {
       let owned = false;
       if (MixinApi.isChattel(target) && target.getChattelId()) {
-        const owner = await ChattelApi.ownerOf(target).catch(() => null);
+        const owner = await target.chattelOwner().catch(() => null);
         owned = owner?.kind === 'player' && owner.templatePath === identity;
       }
       if (!owned && MixinApi.isContainable(target)) {
@@ -606,7 +614,7 @@ async function reconnectImpl(
     null,
     'sandbox.reconnect',
     () => {
-      ConnectionApi.transfer(interactive, wireBody);
+      interactive.transferTo(wireBody);
     },
     { circleScope: OMNI_SCOPE }
   );
@@ -692,8 +700,8 @@ export class SandboxLogic extends ApiLogic {
   /** The recurring orphan-sweep handle — retained so re-install no-ops. */
   private sweeperHandle: ScheduleHandle | null = null;
 
-  /** See {@link SandboxApi.boot}. Install the orphan sweeper (idempotent). */
-  @CallSecurity(SandboxApiCallers)
+  /** Install the orphan sweeper (idempotent) — armed by `SandboxWarden.warm`. */
+  @CallSecurity(SandboxBootCallers)
   public installSweeper(): void {
     if (this.sweeperHandle) return;
     this.sweeperHandle = ScheduleApi.recurring(

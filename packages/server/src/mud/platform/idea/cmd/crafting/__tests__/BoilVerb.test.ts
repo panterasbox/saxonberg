@@ -27,6 +27,7 @@
  */
 
 import '../../../../../../test-bootstrap';
+import { ThermalMixin } from '../../../../../lib/thermal/Thermal';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import BoilController from '../BoilController';
 import Material from '../../../../../lib/material/Material';
@@ -67,8 +68,10 @@ import {
   installV1QuantityTagTables,
 } from '../../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 
-class TestActor extends CommandGiverMixin(
-  SensorMixin(EngagedMixin(ContainerMixin(ContainableMixin(Idea)))),
+class TestActor extends ThermalMixin(
+  CommandGiverMixin(
+    SensorMixin(EngagedMixin(ContainerMixin(ContainableMixin(Idea)))),
+  ),
 ) {
   protected handleMessage(): void {}
   protected handleEnvelope(): void {}

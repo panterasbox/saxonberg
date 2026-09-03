@@ -1,5 +1,10 @@
 verbs: [analyze]
 description: "Analyze a physical channel in detail"
+# ⚠ `opens_card` is VERB-level in the schema, so declaring `survey` here
+# licenses every `analyze` subcommand to open it — and only `ground`
+# ever will. Recorded so a reviewer does not read it as a leak: the
+# declaration is the GATE `CardApi.open` is checked against, not the push.
+opens_card: survey
 help: |
   Go deeper than a glance. Where `measure` reads a single number
   off an instrument, `analyze` breaks a channel down and shows
@@ -8,8 +13,8 @@ help: |
 
   Pick a channel as a subcommand: `light`, `chemistry`,
   `atmosphere`, `time`, `sky`, `address`, `weather`, `response`,
-  or `electrical`. Most default to where you stand, so the bare
-  subcommand usually does what you want.
+  `electrical`, or `ground`. Most default to where you stand, so
+  the bare subcommand usually does what you want.
 subcommands:
   response:
     description: "Preview what a made thing does — per-channel outcome bands (a weapon's delivery, an armor's protection)"
@@ -205,3 +210,33 @@ subcommands:
         default: "here"
         scope: ["reachable"]
         requires: ContainerMixin
+  # ⚠ The controller ships in `trade-mining` — see the note on
+  # `measure`'s `strike` stanza for why, and for what happens in an
+  # install without that pack.
+  ground:
+    description: "Read what your survey readings ADD UP TO — the ore body's parameters, with their error bands"
+    help: |
+      Put your own measurements together. Every `measure strike` and
+      `measure dip` you have taken is written down; this is what they
+      amount to.
+
+      ⭐ Three readings beat one because independent observations of an
+      angle average, and the error narrows as you take more — so walking
+      the outcrop is doing the thing that makes the answer better, not
+      grinding for it.
+
+      ⭐ And your eye decides whether the readings solve AT ALL. A
+      practised prospector reads three points as a plane; an untrained one
+      reads them as three green rocks, and this will say so rather than
+      show you a blank.
+
+      Opens the survey card, which is your field book: the readings, where
+      you took them, and what they solve to.
+    examples:
+      - cmd: analyze ground
+        note: Read your own survey book
+    controller: /trade/mining/idea/cmd/perception/AnalyzeGroundController
+    args:
+      - name: detail
+        type: string
+        required: false

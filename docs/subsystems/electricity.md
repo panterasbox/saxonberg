@@ -49,7 +49,7 @@ the response-fn home), [harm](./harm.md) / [vitals](./vitals.md) (the
   stay byte-identical. `InflictSpec` is a discriminated union:
   `EnergyInflictSpec` (magnitude = `energy`) vs `ShockInflictSpec`
   (magnitude = `current: Quantity<'A'>`).
-- **The conduction walk** is the gated `ElectricityApi` / `ElectricityLogic`
+- **The conduction walk** lives behind the SOURCE's own methods since the Api OO sweep (`source.conduct()` / `source.currentThrough(victim)` / `source.shockContact(victim)` on `EnergizedMixin`, sealed; the Ohm's-law core stays in `ElectricityLogic`, its gate a source-participant contract — the caller must compose Energized and BE the source). The surviving thin `ElectricityApi` keeps only the ground reads (`pathToGround` / `groundNodeFor` — walks over arbitrary nodes)
   pair (`/platform/idea/api/electricity`). `conduct(source)` builds the conductive
   contact graph of the source's location, resolves per-body potentials
   (live contact + ground path), divides current toward the ground sink by
@@ -134,14 +134,25 @@ presence-frozen), reusing `VitalsMixin.reconcileConditions`'s
 first-touch / linkdead / far-past machinery verbatim. It accrues a contact
 burn, re-verifies the circuit each read (a cheap `currentThrough` probe),
 and is relieved the moment the circuit breaks — **unless tetany holds it
-closed**. `ElectricityApi.conduct` mints/upserts it; `isBeingShocked()` /
+closed**. The source's `conduct()` mints/upserts it; `isBeingShocked()` /
 `isTetanized()` are the predicates.
 
 **Tetany** (`SustainedShock.tetany`, latched at/above the tetanic band)
-holds the circuit closed regardless of volition ("can't let go") — the
-sustain keeps accruing even after the body would otherwise let go. The
-volition-verb gate (block `release`/`drop`/`move` while tetanized) is
-exposed via `isTetanized()`; wiring it into every verb is a light follow-up.
+holds a body rigid ("can't let go"). It holds one of two ways: a **live
+circuit** re-probes as current-carrying and self-sustains (a flooded cell,
+a downed line — the sustain keeps accruing until the circuit *physically*
+breaks, i.e. the source dies, the medium drains, or someone drags the
+victim clear), or a **discrete contact** (a stun-baton tap breaks its own
+circuit at once) holds for a bounded after-grip window
+(`SustainedShock.tetanyUntil` = now + `electricity.tetanyPulseSeconds`),
+then releases with no current accrued — less-lethal, never non-lethal.
+⭐ The bar-fight build corrected a latent trap: tetany no longer
+self-sustains a *dead* circuit off the flag alone (`shockCircuitLive`
+re-probes current, no tetany short-circuit), so a rescue always works and
+a single baton tap can't tetanize you to death. The **volition-verb gate**
+(`release`/`drop`/`move`/exertion refused while tetanized) is now wired:
+`isTetanized()` (reconcile-on-read) is read by `requiresConscious` (+ the
+six release verbs) and combat's `eligibilityImpl`.
 
 ## The vitals coupling — the electrocution death seam
 
@@ -174,7 +185,7 @@ metal armor does NOT protect against a shock).
   Substation* (`/world/substation`), electricity's own home (and where the
   deferred power-grid content grows), so it never pollutes another themed
   area. Provisions a salt-water-pooled `Floor` + a `LiveWire` at standup;
-  `onEntered` → `ElectricityApi.conduct`. Teaches the whole model with no
+  `onEntered` → the wire's own `conduct()`. Teaches the whole model with no
   magic — barefoot → shocked, rubber boots / dry step → unharmed, two allies →
   both shocked. **Reachability**: seeded with coords in its zone + an
   end-to-end integration test; no cross-area inbound exit is wired this cycle
@@ -183,7 +194,7 @@ metal armor does NOT protect against a shock).
 - **`StunBaton`** (`lib/electricity/StunBaton.ts`, authored as a template at
   `/world/substation/stun-baton` and `props:`-placed in the cell) — a
   `Weapon` + `Energized` + `Switchable` (the combat toe-hold). A landed hit
-  routes through **`ElectricityApi.shockContact`** — a **direct two-terminal
+  routes through **the source's `shockContact(victim)`** — a **direct two-terminal
   contact** (a taser/baton completes its own circuit through its electrodes,
   so it needs no ground path and no conductive medium) into the same
   `ConditionApi.inflict({mechanism:'shock'})` door, never the mechanical fold.

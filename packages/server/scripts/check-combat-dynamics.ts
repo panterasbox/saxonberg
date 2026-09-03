@@ -52,9 +52,27 @@ const MUD_ROOT = join(SERVER_ROOT, "src", "mud");
 export const COMBAT_DYNAMICS_ALLOWLIST: ReadonlySet<string> = new Set([
   "isCombatReactive",
   "isCombatant",
+  // The EVIDENCE TAIL's narrowing (the Api OO sweep, waves C1–C3): the
+  // deed-credit / witness-regard / chronicle writes at fight END were
+  // always there as Api calls that narrowed internally
+  // (AdvancementApi/RegardApi/ChronicleApi); the sweep moved those onto
+  // the owner mixins, so the caller-side `MixinApi.isX` narrowing now
+  // appears here. It is the same non-branching credit tail — no combat
+  // PHYSICS consults any of the three.
+  "isAdvancing",
+  "isPersona",
+  "isBeliefStore",
   "isConstructed",
   "isContainable",
   "isContainer",
+  // The bum's rush (`fight rush`) — a control-win OUTCOME, not a blow —
+  // throws a grappled body through an exit and leaves it sprawled: it
+  // resolves the exit off the room (`isExitable`) and reposes the loser
+  // (`isPosed`). Combat already moves bodies (isContainable/isContainer);
+  // relocating one through a door and dropping it prone is the same
+  // rationale, not a new blood-and-poise dynamic.
+  "isExitable",
+  "isPosed",
   "isDurable",
   "isGraded",
   "isKeen",

@@ -61,7 +61,7 @@ the good over, and transfers ownership:
 
 - **stock good** — settle the full price to the store's Business account,
   remit the demo sales tax on it, and **stamp** the buyer
-  (`ChattelApi.stamp` — a fresh, author-owned shelf good changes hands).
+  (`item.stampChattel` — a fresh, author-owned shelf good changes hands).
 - **consignment listing** — settle the ask, **split** the remainder to the
   consignor's primary account (the store keeps the commission, its taxable
   revenue), and **transfer** the owner-stamp to the buyer.
@@ -80,7 +80,7 @@ consignment needs no bespoke ownership pointer:
   `ConsignmentShelf` while your **owner-stamp stays put**. A
   `ConsignmentListing` (`{ listingId, itemChattelId, consignorKey,
   askMinor }`) is a brokerage record — ask price + payout target — **not**
-  an ownership pointer; "whose is it" is always `ChattelApi.ownerOf`.
+  an ownership pointer; "whose is it" is always `item.chattelOwner()`.
   Gates: you must own it (`ownerOf`, not custody); it must be discrete (a
   glob is refused); you must hold a bank account (the payout target —
   nudge to Goodkin otherwise); and you must be under the **per-consignor
@@ -98,7 +98,37 @@ consignment needs no bespoke ownership pointer:
   online — payout rides `primaryAccountIdOf`, a pure DB read.
   `commission = ask × retail.consignment.commissionRate`.
 - **`reclaim <thing>`** returns custody of an unsold listing — **no
-  chattel op** (ownership never left you).
+  chattel op** (ownership never left you). It authorizes on
+  `item.chattelOwner()`, not on possessing any ticket — so a non-owner
+  reclaiming someone else's goods is refused (custody without title is
+  theft).
+
+### The custody base — `HeldGoodsMixin` (consignment ⊃ coat check)
+
+The custody half of consignment is factored out as **`HeldGoodsMixin`**
+(the shared base): move a good into a fixture's custody (owner-stamp
+stays put), know whose it is (`recordHolding`/`holdingFor`/`holdingsOf`/
+`countHeld`/`removeHolding`), and hand it back to its owner
+(`resolveHeld`). *That is the coat check, whole.* `ConsignmentShelfMixin
+extends HeldGoodsMixin` and adds the **sale** layer on top — the ask, the
+per-consignor cap, `buy` — so a `ConsignmentListing extends HeldGood`
+with an `askMinor`. The `ConsignmentShelf` public surface is unchanged;
+the sale controllers don't know the base exists.
+
+**The check rack (`check` — the bar-fight build)** composes **only the
+base**. `CheckRack` (`platform/thing/CheckRack.ts`) = `Persistable +
+HeldGoodsMixin + FixtureMixin`, affording `check` + `reclaim`, never
+`consign`/`buy` — a checked weapon is a plain held good (no ask, no
+listing), so there was never a "not-for-sale" flag to add: a coat check
+is the base without the marketplace. `check <weapon>` (gated on
+`CombatApi.isWeapon` — a shield is armor, refused) records a holding and
+mints a diegetic `Ticket` (the owner-stamp, not the ticket, is the
+reclaim authority — a lost ticket never traps your weapon). `buy` finds
+no consignment shelf at a rack, so a checked weapon simply isn't
+buyable; `reclaim` narrows on `HeldGoodsShelf`, so it serves both a store
+shelf and a check rack. The lounge's rack rides `FixtureMixin`'s `seatIn`
+self-seat into the Warren host (the TPA-terminal precedent), so it stands
+on the combat-free lounge side of the door to Dave's Bar.
 
 The `ConsignmentShelf` (`lib/retail/ConsignmentShelf.ts`) composes
 `Persistable`, which is **load-bearing, not incidental**: it captures the
@@ -109,14 +139,19 @@ shelf would drop it).
 ## The distributor — the cash-and-carry, and consignment BY a business (libations)
 
 The bar buys from a **distributor**, never from a `props:` line.
-The **`distribution` pack** ships the cash-and-carry (fermentation D10
-moved it out of trade-distilling so sibling trades share no edges):
-`/trade/distribution/location/cash-and-carry` (an ordinary
-`SingletonCartesianLocation` — a trade floor's durability lives on its
-fixtures, never the room); `thing/counter` a `Stock` whose ONE stocked
-line is the malt sack (the imported-input faucet) atop the consignment
-shelf, `serverPositionKeys: [clerk]`; `idea/business` with `clerk` and
-`keeper` (`purchases: true`). Everything
+The **`distribution` pack** ships the distributor's MECHANISM
+(fermentation D10 moved it out of trade-distilling so sibling trades
+share no edges): `thing/counter` a `Stock` whose ONE stocked line is the
+malt sack (the imported-input faucet) atop the consignment shelf,
+`serverPositionKeys: [clerk]`; `idea/business` with `clerk` and `keeper`
+(`purchases: true`); `agent/clerk` and `thing/racking`.
+
+⭐ The **ROOM** is the locality's — `/world/terminus/counting-houses/cash-and-carry`,
+a showroom with a roller door onto the avenue, described in that avenue's
+own prose. Trade is mechanism and locality is expression, and the split
+is what lets the room sit in a real grid: it plots at `(0,-1,0)` in The
+Counting-Houses, one cell south of the block, which is also what makes
+that cardinal exit pair legal. Everything
 on the counter is **consigned by an authored consignor**: every producer
 pack ships an *outfit* — a Business, a `Stock` its floor product stands
 in, and a hand NPC running the kernel **`consigns`** brain whose config
@@ -133,7 +168,7 @@ stands at target through the residency spawn sweep, the rows' own
 
 The buyer's side is the wallet rule ([employment.md](./employment.md)):
 with the house account active, `buy` settles from it and stamps the
-chattel to the business (`ChattelApi.ownerKeyOf` widened: an
+chattel to the business (the owner-principal builder widened: an
 `OrganizationMixin` Stuff → the `organization` owner arm); with a
 personal account it stamps the buyer, exactly as before. The `restocks`
 brain is a keeper doing that loop on cadence.

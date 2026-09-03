@@ -424,7 +424,7 @@ export default class GetController extends CommandController<GetModel> {
     // Custody returns to a pair of hands; `place` follows to `inventory`.
     // Picking up a good you do not hold title to is theft — permitted and
     // recoverable — so this records, it does not refuse. (D8)
-    await ChattelApi.followCustody(operand);
+    if (MixinApi.isChattel(operand)) await operand.followCustody();
     MessageApi.scene(giver)
       .topic('sense.survey')
       .toSelf(Mml.compose`You pick up ${Mml.thing(operand)}.`)
@@ -450,7 +450,9 @@ export default class GetController extends CommandController<GetModel> {
     giver: Stuff,
     host: Stuff,
   ): Promise<boolean> {
-    const owner = await ChattelApi.ownerOf(operand);
+    const owner = MixinApi.isChattel(operand)
+      ? await operand.chattelOwner()
+      : null;
     if (
       owner?.kind === 'player' &&
       owner.templatePath === giver.getIdentityPath()

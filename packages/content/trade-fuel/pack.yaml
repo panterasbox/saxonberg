@@ -1,0 +1,19 @@
+id: trade-fuel
+version: 0.1.0
+root: /trade/fuel
+description: >-
+  The fuel trade — the coppice, the burn and the charcoal. A managed
+  stand over the shipped growth model, the clamp that chars it, and the
+  single act (char) that runs the burn as a watched engagement over game
+  time. ⭐ Airflow is the decision and the burn can be LOST: too much air
+  and the charge goes to ash, too little and you draw half-burnt brands.
+  Charcoal is what makes the smelt reach copper's melting point, and the
+  same stand cuts the timber the mine shores with — two consumers, one
+  supply.
+requires:
+  groups:
+    - name: fuel
+      purpose: the fuel trade's own body
+      owner: { office: prime-minister }
+  title:
+    - { extent: /trade/fuel, holder: { group: fuel } }

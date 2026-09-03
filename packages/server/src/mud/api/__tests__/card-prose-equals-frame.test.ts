@@ -14,7 +14,7 @@
  */
 
 import '../../../test-bootstrap';
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { CardApi } from '../card';
 import { StuffApi } from '../stuff';
 import { EventApi } from '../event';
@@ -38,19 +38,16 @@ describe('the card and the terminal are one payload, rendered once', () => {
   it('⭐ `frame.body === card.prose`, literally', async () => {
     const h = await makeHarness();
     const frames: { topic: string; body: string }[] = [];
-    const originalSend = MessageApi.sendMessage;
     // Capture the frame the composer actually built — not a
-    // reconstruction of it.
-    (MessageApi as unknown as Record<string, unknown>).sendMessage = ((
-      recipient: unknown,
-      frame: { topic: string; body: string },
-    ) => {
-      frames.push({ topic: frame.topic, body: frame.body });
-      return (originalSend as unknown as (...a: unknown[]) => unknown)(
-        recipient,
-        frame,
-      );
-    }) as unknown as typeof MessageApi.sendMessage;
+    // reconstruction of it. Delivery is `recipient.onMessage(frame)`
+    // since the OO sweep (the send chokepoint lives on the Sensor), so
+    // the capture seam is the recipient (the harness's onEnvelope spy
+    // shape).
+    vi.spyOn(h.avatar, 'onMessage').mockImplementation(
+      (frame: { topic: string; body: string }) => {
+        frames.push({ topic: frame.topic, body: frame.body });
+      },
+    );
 
     try {
       const ctx = makeContext(h, {
@@ -76,8 +73,7 @@ describe('the card and the terminal are one payload, rendered once', () => {
        */
       expect(card.prose).toBe(resultFrame!.body);
     } finally {
-      (MessageApi as unknown as Record<string, unknown>).sendMessage =
-        originalSend;
+      vi.restoreAllMocks();
     }
   });
 
@@ -94,7 +90,7 @@ describe('the card and the terminal are one payload, rendered once', () => {
     // The rows a command opens, each with the prose its controller emits.
     const proseRows = CARD_IDS.filter((id) => CARDS[id].noProse !== true);
     expect(proseRows.sort()).toEqual(
-      ['help', 'news', 'stock', 'subject', 'who', 'wiki'].sort(),
+      ['help', 'news', 'stock', 'subject', 'survey', 'who', 'wiki'].sort(),
     );
 
     // …and the rest declare it, which is what the filter honours.
@@ -105,7 +101,7 @@ describe('the card and the terminal are one payload, rendered once', () => {
 
     // A `noProse` card discards prose even when a caller supplies it,
     // so the declaration cannot be defeated by a careless call site.
-    CardApi.push(h.interactive, 'cms', {
+    h.interactive.pushCard('cms', {
       prose: Mml.fromMarkup('should not appear'),
     });
     expect(h.ofType('card-opened')[0]!.prose).toBeUndefined();

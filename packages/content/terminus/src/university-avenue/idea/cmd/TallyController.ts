@@ -20,7 +20,6 @@ import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Slotted } from '@saxonberg/server/mud/lib/slot/Slotted';
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import { SlotApi } from '@saxonberg/server/mud/api/slot';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import CrossingLog from '../../thing/CrossingLog';
@@ -107,7 +106,7 @@ function carriedAndWorn(giver: Stuff): Stuff[] {
     );
   }
   if (MixinApi.isSlotted(giver)) {
-    SlotApi.walkOccupants(giver as Stuff & Slotted, (_h, _s, occupant) => {
+    (giver as Stuff & Slotted).walkOccupants((_h, _s, occupant) => {
       out.push(occupant as unknown as Stuff);
     });
   }

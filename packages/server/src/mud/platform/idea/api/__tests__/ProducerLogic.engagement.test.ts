@@ -23,6 +23,9 @@ import { ProducerApi } from '../../../../api/producer';
 import { EventApi } from '../../../../api/event';
 import EventRegistry from '../../EventRegistry';
 import { StuffApi } from '../../../../api/stuff';
+import ParticipationStandings from '../../ParticipationStandings';
+import ProducerStandings from '../../ProducerStandings';
+import { makeStuffAtPath } from '../../../../lib/security/__tests__/test-setup';
 import { Stuff } from '../../../../lib/stuff/Stuff';
 import { ZoneApi } from '../../../../api/zone';
 import { ProvenanceApi } from '../../../../api/provenance';
@@ -127,10 +130,40 @@ afterEach(() => {
   AppSettings._resetForTesting();
 });
 
+/**
+ * Arm the dispatch tap + recompute schedule the way production does
+ * since the boot() retirement: the ParticipationStandings singleton's
+ * warm (its template stamp is what the widened Logic gate admits).
+ */
+async function bootConsumer(): Promise<void> {
+  const s =
+    StuffApi.findByTemplatePath<ParticipationStandings>(
+      '/platform/idea/ParticipationStandings',
+    ) ??
+    makeStuffAtPath(
+      () => new ParticipationStandings(),
+      '/platform/idea/ParticipationStandings',
+    );
+  await s.warm();
+}
+
+/** The producer twin — arms the engagement tap + schedule. */
+async function bootProducer(): Promise<void> {
+  const s =
+    StuffApi.findByTemplatePath<ProducerStandings>(
+      '/platform/idea/ProducerStandings',
+    ) ??
+    makeStuffAtPath(
+      () => new ProducerStandings(),
+      '/platform/idea/ProducerStandings',
+    );
+  await s.warm();
+}
+
 describe('ProducerLogic engagement tap (shared signal)', () => {
   it('credits the zone author (producer) AND the giver (consumer) from one dispatch', async () => {
-    ConsumerApi.boot();
-    ProducerApi.boot();
+    await bootConsumer();
+    await bootProducer();
     fireDispatch(); // PLAYER ≠ AUTHOR
     await flush();
 
@@ -145,8 +178,8 @@ describe('ProducerLogic engagement tap (shared signal)', () => {
   });
 
   it('A≠P: engaging your OWN content earns the author no producer credit', async () => {
-    ConsumerApi.boot();
-    ProducerApi.boot();
+    await bootConsumer();
+    await bootProducer();
     // The engaging player IS the author.
     fireDispatch({ actorTemplatePath: AUTHOR, subjectId: AUTHOR });
     await flush();
@@ -160,8 +193,8 @@ describe('ProducerLogic engagement tap (shared signal)', () => {
     vi.spyOn(ZoneApi, 'resolveZoneForPath').mockResolvedValue(
       zoneAt('/home/maker/studio')
     );
-    ConsumerApi.boot();
-    ProducerApi.boot();
+    await bootConsumer();
+    await bootProducer();
     fireDispatch({ locationTemplatePath: '/home/maker/studio/room' });
     await flush();
 
@@ -170,16 +203,16 @@ describe('ProducerLogic engagement tap (shared signal)', () => {
   });
 
   it('credits nothing to producer when the signal carries no location', async () => {
-    ConsumerApi.boot();
-    ProducerApi.boot();
+    await bootConsumer();
+    await bootProducer();
     fireDispatch({ locationTemplatePath: undefined });
     await flush();
     expect(await ProducerApi.eventsFor(AUTHOR)).toHaveLength(0);
   });
 
   it('consumer participation row is byte-identical with/without the optional fields', async () => {
-    ConsumerApi.boot();
-    ProducerApi.boot();
+    await bootConsumer();
+    await bootProducer();
 
     fireDispatch(); // with location + actor
     await flush();

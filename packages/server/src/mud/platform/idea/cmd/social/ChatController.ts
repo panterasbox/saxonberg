@@ -23,6 +23,9 @@ import { Mml } from '../../../../api/mml';
 import { ChatApi } from '../../../../api/chat';
 import { SubjectApi } from '../../../../api/subject';
 import { PlayerApi } from '../../../../api/player';
+import type { SubjectSubscriber } from '../../../../lib/forum/SubjectSubscriber';
+import type { Stuff } from '../../../../lib/stuff/Stuff';
+import type { CommandGiver } from '../../../../lib/command/CommandGiver';
 
 interface ChatModel extends CommandModel {
   channel?: string;
@@ -79,7 +82,8 @@ export default class ChatController extends CommandController<ChatModel> {
     model: ChatModel,
     context: CommandContext,
   ): Promise<void> {
-    const speaker = context.commandGiver;
+    const speaker = context.commandGiver as Stuff & CommandGiver &
+      SubjectSubscriber;
     const channelName = (model.channel ?? '').trim();
     const body = (model.message ?? '').trim();
     if (!channelName) {
@@ -91,7 +95,7 @@ export default class ChatController extends CommandController<ChatModel> {
     const channel = await ChatApi.resolveByName(channelName);
     if (!channel) {
       // Try ad-hoc handle path.
-      const ad = await ChatApi.resolveHandleForActor(speaker, channelName);
+      const ad = await speaker.resolveChatHandle(channelName);
       if (ad) {
         // For ad-hoc channels, audience = ad.members; route directly.
         const cat = await ChatApi.catalogue();
@@ -143,12 +147,13 @@ export default class ChatController extends CommandController<ChatModel> {
       }
       return this.fail(context, `No channel '${channelName}'.`, 'no-such-channel');
     }
-    await ChatApi.postToChannel(speaker, channel, body);
+    await speaker.postToChannel(channel, body);
   }
 
   private async executeList(context: CommandContext): Promise<void> {
-    const actor = context.commandGiver;
-    const { persistent, adHoc } = await ChatApi.visibleChannels(actor);
+    const actor = context.commandGiver as Stuff & CommandGiver &
+      SubjectSubscriber;
+    const { persistent, adHoc } = await actor.visibleChannels();
     if (persistent.length === 0 && adHoc.length === 0) {
       this.send(context, Mml.fromMarkup(`\nNo channels.\n`));
       return;
@@ -168,14 +173,15 @@ export default class ChatController extends CommandController<ChatModel> {
     context: CommandContext,
     tunedIn: boolean,
   ): Promise<void> {
-    const actor = context.commandGiver;
+    const actor = context.commandGiver as Stuff & CommandGiver &
+      SubjectSubscriber;
     if (!PlayerApi.isAvatarStuff(actor)) {
       return this.fail(context, 'Only Avatars subscribe in v1.', 'avatar-required');
     }
     const name = (model.name ?? '').trim();
     const channel = await ChatApi.resolveByName(name);
     if (!channel) return this.fail(context, `No channel '${name}'.`, 'no-such-channel');
-    await ChatApi.setSubscription(actor, channel, { tunedIn });
+    await actor.updateChannelSubscription(channel, { tunedIn });
     this.send(
       context,
       tunedIn
@@ -189,14 +195,15 @@ export default class ChatController extends CommandController<ChatModel> {
     context: CommandContext,
     muted: boolean,
   ): Promise<void> {
-    const actor = context.commandGiver;
+    const actor = context.commandGiver as Stuff & CommandGiver &
+      SubjectSubscriber;
     if (!PlayerApi.isAvatarStuff(actor)) {
       return this.fail(context, 'Only Avatars mute in v1.', 'avatar-required');
     }
     const name = (model.name ?? '').trim();
     const channel = await ChatApi.resolveByName(name);
     if (!channel) return this.fail(context, `No channel '${name}'.`, 'no-such-channel');
-    await ChatApi.setSubscription(actor, channel, { muted });
+    await actor.updateChannelSubscription(channel, { muted });
     this.send(
       context,
       muted
@@ -255,7 +262,8 @@ export default class ChatController extends CommandController<ChatModel> {
     model: ChatModel,
     context: CommandContext,
   ): Promise<void> {
-    const actor = context.commandGiver;
+    const actor = context.commandGiver as Stuff & CommandGiver &
+      SubjectSubscriber;
     if (!PlayerApi.isAvatarStuff(actor)) {
       return this.fail(context, 'Only Avatars attach surfaces in v1.', 'avatar-required');
     }
@@ -312,7 +320,8 @@ export default class ChatController extends CommandController<ChatModel> {
     model: ChatModel,
     context: CommandContext,
   ): Promise<void> {
-    const actor = context.commandGiver;
+    const actor = context.commandGiver as Stuff & CommandGiver &
+      SubjectSubscriber;
     if (!PlayerApi.isAvatarStuff(actor)) {
       return this.fail(context, 'Only Avatars disband in v1.', 'avatar-required');
     }

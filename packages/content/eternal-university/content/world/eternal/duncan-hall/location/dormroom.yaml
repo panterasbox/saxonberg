@@ -16,7 +16,7 @@ data:
   shortDescription: a dorm room
   primaryKeyword: room
   longDescription: |
-    A narrow single room — a bed against one wall, a desk under the window, a footlocker at the foot of the bed, a cold tap in the corner. Daylight comes in over the desk. The kind of blank the university hands every new arrival, waiting to be made someone's.
+    A narrow single room — a bed against one wall, a desk under the window, a footlocker at the foot of the bed, a cold tap in the corner, and a tall wardrobe wedged in beside the door whose inside does not appear to have a back. Daylight comes in over the desk. The kind of blank the university hands every new arrival, waiting to be made someone's.
   # Enough daylight over the desk to keep a houseplant honest (the `lit`
   # band starts at 20 lux, and a plain Location's size scale is 1 m²), and
   # the dimmest place a plant can reach is the footlocker — a closed
@@ -25,7 +25,13 @@ data:
   ambientColorTemperature: 5500
   # Order matters: the desk must be populated BEFORE the pot that rests
   # `onto` it.
+  # ⭐⭐ **The sandbox's door.** A circle belongs to the player who owns
+  # it, so the door stands in the room they hold — and a dorm room IS
+  # the bedroom, the whole room being the whole home. This is the FIRST
+  # home on the ladder, so it is also the first place a new tenant can
+  # reach their circle at all.
   props:
+    - /platform/thing/sandbox/wardrobe
     - /world/eternal/duncan-hall/thing/bed
     - /world/eternal/duncan-hall/thing/desk
     - /world/eternal/duncan-hall/thing/footlocker

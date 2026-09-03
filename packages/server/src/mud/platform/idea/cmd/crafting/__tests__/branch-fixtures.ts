@@ -8,6 +8,9 @@
  */
 
 import { vi } from 'vitest';
+import { ThermalMixin } from '../../../../../lib/thermal/Thermal';
+import { AdvancementMixin } from '../../../../../lib/advancement/Advancement';
+import { PersonaMixin } from '../../../../../lib/character/Persona';
 import { CommandApi } from '../../../../../api/command';
 import type { CommandContext } from '../../../../../api/command';
 import type { MqlOneResult } from '../../../../../api/mql';
@@ -47,8 +50,16 @@ export const COOKED = '/platform/idea/material/cooked';
 export const KNIFE_T = '/stuff/thing/arms/belt-knife';
 export const DISH_T = '/stuff/thing/items/plated-dish';
 
-export class TestActor extends CommandGiverMixin(
-  SensorMixin(EngagedMixin(ContainerMixin(ContainableMixin(Idea)))),
+// Persona + Advancement composed since the OO sweep: the knowledge
+// ladder's claims/deeds and the transcript credits run ON the actor.
+export class TestActor extends ThermalMixin(
+  AdvancementMixin(
+    PersonaMixin(
+      CommandGiverMixin(
+        SensorMixin(EngagedMixin(ContainerMixin(ContainableMixin(Idea)))),
+      ),
+    ),
+  ),
 ) {
   protected handleMessage(): void {}
   protected handleEnvelope(): void {}

@@ -19,7 +19,6 @@ import {
 import EventRegistry from '../../../../platform/idea/EventRegistry';
 import Interactive from '../../../../platform/idea/Interactive';
 import Avatar from '../../../../platform/agent/Avatar';
-import { ConnectionApi } from '../../../../api/connection';
 
 /*
  * ⚠⚠ **A 20 s timeout, and the number is a MEASUREMENT rather than a
@@ -65,7 +64,7 @@ async function makeAvatarInteractive(
   const interactive = await StuffApi.create(
     () => new Interactive(`sock-${tag}`, `sess-${tag}`, { _id: 'u1' } as never)
   );
-  ConnectionApi.transfer(interactive, avatar);
+  interactive.transferTo(avatar);
   return { interactive, avatar };
 }
 

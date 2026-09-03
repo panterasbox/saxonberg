@@ -16,6 +16,11 @@ import type { CommandContext } from '../../../api/command';
 import { CARDS } from '../../../lib/connection/Cards';
 
 const CardApiCallers = SecurityPolicies.FromModule('/api/card#CardApi');
+/** The Interactive card surface (Phase E) calls in as the proxied instance. */
+const CardCallers = SecurityPolicies.AnyOf(
+  CardApiCallers,
+  SecurityPolicies.FromModule('/platform/idea/Interactive'),
+);
 
 /* ─────────────────────── registry resolution ─────────────────────── */
 // Module-level so it survives the logic singleton's destruct/recreate
@@ -55,7 +60,13 @@ function resolveRegistry(): CardRegistry {
         "'../CardRegistry' so its module-load side effect registers the class.",
     );
   }
-  const reg = StuffApi.createSync<CardRegistry>(() => new registryClass!());
+  const reg = StuffApi.createSync<CardRegistry>(
+    () => new registryClass!(),
+    // The manifest clone is the production path (postRegister = the
+    // sweep install). A lazily-built harness registry starts with no
+    // sweep; the test that needs one drives postRegister().
+    { deferPostRegister: true },
+  );
   reg.setTemplatePath(REGISTRY_PATH);
   return reg;
 }
@@ -119,7 +130,7 @@ export class CardLogic extends ApiLogic {
   /* ─── forwards ─── */
 
   /** See {@link CardApi.open}. */
-  @CallSecurity(CardApiCallers)
+  @CallSecurity(CardCallers)
   public open(
     interactive: Interactive,
     cardId: CardId,
@@ -128,8 +139,8 @@ export class CardLogic extends ApiLogic {
     return resolveRegistry().open(interactive, cardId, opts);
   }
 
-  /** See {@link CardApi.touch}. */
-  @CallSecurity(CardApiCallers)
+  /** See {@link Interactive.touchCard}. */
+  @CallSecurity(CardCallers)
   public touchCard(
     interactive: Interactive,
     key: string,
@@ -138,8 +149,8 @@ export class CardLogic extends ApiLogic {
     return resolveRegistry().touchCard(interactive, key, opts);
   }
 
-  /** See {@link CardApi.setPinned}. */
-  @CallSecurity(CardApiCallers)
+  /** See {@link Interactive.setCardPinned}. */
+  @CallSecurity(CardCallers)
   public setPinned(
     interactive: Interactive,
     cardRef: string,
@@ -148,8 +159,8 @@ export class CardLogic extends ApiLogic {
     return resolveRegistry().setPinned(interactive, cardRef, pinned);
   }
 
-  /** See {@link CardApi.close}. */
-  @CallSecurity(CardApiCallers)
+  /** See {@link Interactive.closeCard}. */
+  @CallSecurity(CardCallers)
   public close(
     interactive: Interactive,
     instanceId: string,
@@ -158,8 +169,8 @@ export class CardLogic extends ApiLogic {
     return resolveRegistry().close(interactive, instanceId, reason);
   }
 
-  /** See {@link CardApi.list}. */
-  @CallSecurity(CardApiCallers)
+  /** See {@link Interactive.listCards}. */
+  @CallSecurity(CardCallers)
   public list(interactive: Interactive): {
     instanceId: string;
     cardId: CardId;
@@ -170,8 +181,8 @@ export class CardLogic extends ApiLogic {
     return resolveRegistry().list(interactive);
   }
 
-  /** See {@link CardApi.applyArrangement}. */
-  @CallSecurity(CardApiCallers)
+  /** See {@link Interactive.applyCardArrangement}. */
+  @CallSecurity(CardCallers)
   public applyArrangement(
     interactive: Interactive,
     cards: readonly CardId[],
@@ -179,8 +190,8 @@ export class CardLogic extends ApiLogic {
     return resolveRegistry().applyArrangement(interactive, cards);
   }
 
-  /** See {@link CardApi.notifyPromptSettled}. */
-  @CallSecurity(CardApiCallers)
+  /** See {@link Interactive.notifyPromptSettled}. */
+  @CallSecurity(CardCallers)
   public notifyPromptSettled(
     interactive: Interactive,
     promptId: string,
@@ -188,8 +199,8 @@ export class CardLogic extends ApiLogic {
     resolveRegistry().notifyPromptSettled(interactive, promptId);
   }
 
-  /** See {@link CardApi.cancelAllForInteractive}. */
-  @CallSecurity(CardApiCallers)
+  /** See {@link Interactive.cancelAllCards}. */
+  @CallSecurity(CardCallers)
   public cancelAllForInteractive(interactive: Interactive): void {
     const reg = lookupRegistry();
     if (reg) reg.cancelAllForInteractive(interactive);
@@ -200,7 +211,7 @@ export class CardLogic extends ApiLogic {
   /**
    * Run one sweep. The Api's scheduled callback re-plants this singleton
    * as the principal and calls straight in, so the policy admits
-   * `SelfOnly` alongside the Api face — see {@link CardApi.boot}.
+   * `SelfOnly` alongside the Api face (the registry self-sweeps since the boot() retirement).
    */
   @CallSecurity(
     SecurityPolicies.AnyOf(CardApiCallers, SecurityPolicies.SelfOnly),

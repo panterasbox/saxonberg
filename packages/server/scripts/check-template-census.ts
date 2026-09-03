@@ -28,7 +28,7 @@ import { readFileSync, readdirSync, statSync, existsSync } from 'fs';
 import { join, dirname, relative, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import YAML from 'yaml';
-import { packSources, packSrcFiles } from './pack-roots';
+import { packSources } from './pack-roots';
 
 const EXIT_ON_FINDINGS = true;
 
@@ -134,6 +134,68 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
       }
     }
   }
+  // ⭐ Both this build and the water build found that gap independently
+  // and widened this walk in the same commit-week; the merge left two
+  // identical loops and this is the survivor. Two walks would have
+  // double-counted every born-with ref in the census total.
+  /*
+   * ⚠⚠ `composition[].materialPath` — the same gap as `props:`/`cast:`
+   * above, found the same way. A blend names its constituents by
+   * template path and NOTHING checked that they resolve, so `bronze`
+   * could name a tin row that did not exist (it named none at all, and
+   * silently summed to 0.88). Every read that walks composition —
+   * `analyze chemistry`, `containsElementOf`, the flat element map —
+   * would have been quietly wrong about what the material IS.
+   */
+  const composition = data.composition;
+  if (Array.isArray(composition)) {
+    for (const part of composition) {
+      if (part && typeof part === 'object') {
+        push('composition.materialPath', (part as Record<string, unknown>).materialPath);
+      }
+    }
+  }
+  /*
+   * ⭐ The deposit's MATERIAL citations. A `Deposit` is a pure-data Idea
+   * whose whole content is references: each stratum names its host rock,
+   * each zone its ore mineral, and the lode its gangue. They are the
+   * numbers `hew` and `analyze ground` resolve, so a rowless one is a
+   * face that reads as barren for a reason no author could find.
+   */
+  const strata = data.stratigraphy;
+  if (Array.isArray(strata)) {
+    for (const layer of strata) {
+      if (layer && typeof layer === 'object') {
+        push('stratigraphy.host', (layer as Record<string, unknown>).host);
+      }
+    }
+  }
+  const oreZones = data.zones;
+  if (Array.isArray(oreZones)) {
+    for (const z of oreZones) {
+      if (z && typeof z === 'object') {
+        push('zones.mineral', (z as Record<string, unknown>).mineral);
+      }
+    }
+  }
+  const lode = data.lode;
+  if (lode && typeof lode === 'object') {
+    push('lode.gangue', (lode as Record<string, unknown>).gangue);
+  }
+  /*
+   * The warren's own citation: the working TYPE it clones per cell.
+   *
+   * ⚠ `typeRows` is a plain map of kind → path, which clause (d)'s
+   * detector does not flag — it looks at scalars and at arrays of
+   * objects. Reading it anyway is free, and a type row that resolves to
+   * nothing is a `carve` that mints a room from no template.
+   */
+  const typeRows = data.typeRows;
+  if (typeRows && typeof typeRows === 'object' && !Array.isArray(typeRows)) {
+    for (const [kind, v] of Object.entries(typeRows as Record<string, unknown>)) {
+      push(`typeRows.${kind}`, v);
+    }
+  }
   const exits = data.exits;
   if (exits && typeof exits === 'object') {
     for (const [dir, spec] of Object.entries(exits as Record<string, unknown>)) {
@@ -170,6 +232,14 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     'roomTemplate', 'holderPath', 'streetPath', 'corridorTemplate',
     'programmePath', 'purifiedByBoiling',
     'productMaterial', 'leesMaterial', 'turnedMaterial',
+    // The mine: the ore row a face yields, the warren that carves, the
+    // grid it carves into, and the parcel extent the claim ring covers.
+    // ⭐ Flagged by clause (d) on the water merge — the meta-gate doing
+    // exactly its job on a build that had not met it yet.
+    'oreRow', 'warrenPath', 'zonePath', 'mineExtent', 'aditPath',
+    // The zone's ground model, and the collier's three outcomes.
+    'deposit', 'charcoalTemplate', 'brandsTemplate', 'ashTemplate',
+    'gangueMaterialPath',
   ] as const) {
     push(scalar, data[scalar]);
   }
@@ -215,6 +285,15 @@ const IGNORED_PATH_FIELDS: readonly string[] = [
   // clause exists to catch. See docs/subsystems/watershed.md.
   'extent',
   'servesExtent',
+  // ⭐ A mining claim's block names a parcel EXTENT — ground somebody
+  // holds title to — and staking one deliberately mints *a title and no
+  // room*. That is the whole difference between `stake` and `title buy`:
+  // one is a first-come registration over ground, the other is choosing
+  // from a catalogue of lots somebody already laid out. So a claim
+  // extent naming no row is the NORMAL case, not a dangling reference,
+  // and it resolves through `ParcelApi.ownerOf`'s longest-prefix walk
+  // exactly like `_address` and `servesExtent` above.
+  'claimBlocks',
 ];
 
 /**
@@ -229,7 +308,7 @@ const IGNORED_PATH_FIELDS: readonly string[] = [
  */
 const UNREAD_PATH_FIELDS: readonly string[] = [
   'businessPath', 'carriedSpellPath', 'charMaterialPath', 'charter',
-  'composition', 'container', 'departments', 'dropDestination', 'effects',
+  'container', 'departments', 'dropDestination', 'effects',
   'feedPath', 'growsIntoPath', 'harvestTemplatePath', 'interiorMaterial',
   'lobbyPath', 'makerId', 'material', 'operatingLocations', 'parLines',
   'parentExtent', 'parentOrganization', 'principal', 'roadTemplate',
@@ -338,12 +417,82 @@ function checkTemplatePathConstants(rows: Map<string, string>): number {
   return checked;
 }
 
+/**
+ * ── clause (d): a `cast:` entry names an AGENT ────────────────────────
+ *
+ * ⚠⚠ **`props:`/`cast:` is a DECLARED DESIGNATION with a gate in both
+ * directions.** `PopulatesMixin.applyCast` refuses a row that does not
+ * resolve to a `Behaved` class — *that is a prop, not cast* — and throws
+ * at HYDRATE. When the row carrying the list is in a pack's `boot:`
+ * chain, that is a FATAL boot error rather than a warning.
+ *
+ * Two shipped rows were on the wrong list and the metal-chain build found
+ * them by booting: the Registry's deed desk (a counter) and Katie's
+ * master ring (a key). Both had comments beside them calling them props;
+ * only the YAML disagreed.
+ *
+ * The check is BRANCH-shaped rather than mixin-shaped, because a script
+ * does not import the mudlib: a cast member's class must live on an
+ * `agent/` branch. That is not the same predicate `applyCast` uses — a
+ * `Behaved` composition is — but it catches the whole observed failure
+ * class (things on the people list) with no class loading, and a genuine
+ * `Behaved` non-agent would be a design conversation rather than a typo.
+ */
+/**
+ * The `/paths` listed under a row's `cast:` key.
+ *
+ * ⚠⚠ **This consumes the list ITEMS rather than slicing a block.** The
+ * first cut wrote the end of the block as a lookahead `(?=^  \S|\Z)` —
+ * and JS has no `\Z`, so `\Z` matched a literal `Z`, the lookahead
+ * never fired at end-of-file, and the whole regex FAILED rather than
+ * matching short. Every row whose `cast:` was its LAST key went
+ * unchecked and the gate passed silently. `check-location-classes` had
+ * the identical bug in its exits scan; the fix is the same both times —
+ * match a shape that terminates on its own, so there is no end-of-block
+ * to get wrong.
+ */
+export function castRefsOf(text: string): string[] {
+  const block = /^ {2}cast:[^\S\n]*\n((?:[^\S\n]+-[^\S\n]*\S+[^\S\n]*\n?)*)/m.exec(
+    text,
+  );
+  if (!block) return [];
+  return [...block[1]!.matchAll(/^\s*-\s*(\/\S+)\s*$/gm)].map((m) => m[1]!);
+}
+
+function checkCastAreAgents(rows: Map<string, string>): number {
+  const classOf = new Map<string, string>();
+  for (const [path, file] of rows) {
+    const m = /^class:\s*(\S+)\s*$/m.exec(readFileSync(file, 'utf8'));
+    if (m) classOf.set(path, m[1]!);
+  }
+  let checked = 0;
+  for (const [, file] of rows) {
+    const text = readFileSync(file, 'utf8');
+    for (const target of castRefsOf(text)) {
+      const cls = classOf.get(target);
+      if (cls === undefined) continue; // clause (b) already reports it
+      checked += 1;
+      if (!/\/agent\//.test(cls)) {
+        findings.push({
+          clause: 'd', file,
+          detail:
+            `\`cast:\` names ${target}, whose class ${cls} is not on an ` +
+            `agent branch — that is a PROP, not cast. It throws at hydrate ` +
+            `(\`PopulatesMixin.applyCast\`); list it under \`props:\`.`,
+        });
+      }
+    }
+  }
+  return checked;
+}
+
 function main(): void {
   const rows = templateRows();
   checkRetiredChannel();
   const fieldRefs = checkFieldRefs(rows);
   checkPathFieldCoverage(rows);
   const constants = checkTemplatePathConstants(rows);
+  const castRefs = checkCastAreAgents(rows);
 
   if (findings.length > 0) {
     console.error(`\n[check-template-census — ERROR] ${findings.length} finding(s):\n`);
@@ -354,8 +503,8 @@ function main(): void {
   } else {
     console.log(
       `check-template-census: every templatePath resolves to a row ` +
-        `(${rows.size} rows; ${fieldRefs} field refs, ${constants} singleton constants; ` +
-        `asTemplatePath retired).`,
+        `(${rows.size} rows; ${fieldRefs} field refs, ${constants} singleton constants, ` +
+        `${castRefs} cast member(s) on agent branches; asTemplatePath retired).`,
     );
   }
 }

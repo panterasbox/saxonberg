@@ -131,8 +131,7 @@ export default class TransferController extends CommandController<TransferModel>
       );
     }
 
-    const accepted = await PromptApi.confirm(
-      interactive,
+    const accepted = await interactive.promptConfirm(
       `Accept title to ${parcel.getExtent()}? It carries liability.`,
       "no",
     );

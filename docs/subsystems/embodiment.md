@@ -51,7 +51,7 @@ only fits Elven feet, etc.).
 ## Multi-slot atomicity
 
 A wearable claiming multiple slots (boots → both feet, longbow →
-both hands) uses `SlotApi.occupyAll` in the controller — either
+both hands) uses `occupyAll` in the controller — either
 every slot is claimed or none. Failure surface names the blocked
 slot. Removal vacates every claimed slot.
 
@@ -66,7 +66,7 @@ side. No umbrella mixin.
 
 | Verb | Action |
 |---|---|
-| `wear <X>` | `SlotApi.occupyAll` on `X.slotClaims[actor.bodyPlanPath]` |
+| `wear <X>` | `occupyAll` on `X.slotClaims[actor.bodyPlanPath]` |
 | `remove <X>` | Vacate every claimed slot |
 | `wield <X>` | Same shape as `wear` for held positions |
 | `unwield <X>` | Same shape as `remove` |

@@ -1,0 +1,46 @@
+# Tin — Sn, atomic number 50. The soft one. A low-melting white metal
+# you can bend in your hands and that cries when you bend it; on its own
+# it is useless for a tool or an edge.
+#
+# ⭐⭐ It is here for what it does in an ALLOY, and that is the whole
+# teaching point of the metal: bronze (hardness 250) is harder than
+# copper and MUCH harder than tin (30), so a twelfth part of the softest
+# metal in the set makes the mixture harder than either constituent.
+# Alloying is not averaging. A player who reads all three rows can see
+# that for themselves, which is why tin authors its mechanical response
+# rather than leaving it to be inferred.
+#
+# ⚠ Metallic tin is essentially non-toxic — the toxic tins are the
+# ORGANOtins, which are compounds and not this row. `toxicity: []` is a
+# claim, not an omission.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: tin
+  density: 7310
+  specificHeat: 228
+  thermalConductivity: 67
+  # Electrical conductivity (S/m) — a conductor, but a poor one beside
+  # copper's 6×10⁷.
+  electricalConductivity: 9.17e6
+  # Mechanical response (materials-response): MPa / MJ·m⁻³. The softest
+  # metal in the library — below aluminium's 160 by a wide margin.
+  hardness: 30
+  toughness: 40
+  # Phase change (thermal): melts at 505 K — low enough for a hearth,
+  # which is why tin was worked before iron was smelted at all. Boils at
+  # 2875 K; latent heats are the reserve-clamp plateaus (fusion 59.2
+  # kJ/kg, vaporization 2.49 MJ/kg).
+  meltingPoint: 505
+  latentHeatOfFusion: 59200
+  boilingPoint: 2875
+  latentHeatOfVaporization: 2490000
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["element", "metal", "non-ferrous", "crystalline", "conductor"]
+  composition: []
+  symbol: Sn
+  atomicNumber: 50
+  molarMass: 118.710
+  biologicalSource: null

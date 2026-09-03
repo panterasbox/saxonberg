@@ -9,7 +9,7 @@ stat. Traits are the personality **input the NPC brains read** and the
 *character* instead of *skill*; the two share one authored `ActSignature`.
 
 Home: `lib/trait/` (value-objects + the ledger Document), `api/trait.ts`
-(`TraitApi`) → `platform/idea/api/TraitLogic.ts` (the gated logic singleton).
+the owner face on `DispositionedMixin` (`lib/trait/Dispositioned.ts` — the Api OO sweep retired `TraitApi`/`TraitLogic`).
 
 Scope of this build: the substrate + two read-only consumers (behavior +
 regard baseline). **Stress / composure (job 3)** — the equanimity Reserve,
@@ -22,7 +22,7 @@ A trait is **never stored**. The durable state is the append-only
 `DispositionEntry` ledger; a character's position on each axis is **derived
 on read** over it, exactly as `Competence` derives over the Transcript.
 Re-tuning the estimator re-derives who someone is without rewriting a row.
-There is **no stored trait field and no Character mixin** — `TraitApi`
+There is **no stored trait field** — `DispositionedMixin` owns no fields; it
 reads the owner-keyed ledger, mirroring how competence is read from the
 owner-keyed Transcript.
 
@@ -81,11 +81,18 @@ The dials are AppSettings-driven (`traits.decayHalfLifeDays`,
 `TraitLogic` and passed into the pure value-objects; fixed fallbacks serve
 the unwarmed (unit-test / pre-boot) path.
 
-## The gated surface — `TraitApi` / `TraitLogic`
+## The owner face — `DispositionedMixin`
 
-`TraitApi` (`api/trait.ts`) is the thin forwarding shell; the logic lives
+The Api OO sweep retired `TraitApi`/`TraitLogic`: the family lives ON
+`DispositionedMixin` (composed into `Character` beside `PersonaMixin`),
+P4-named per ledger — `imprintSignature` / `imprintDeed` /
+`dispositionEntries` / `traitPositions` / `traitPosition` /
+`pronouncedTraits` / `compatibilityWith` / `regardBaselineToward` /
+`seedTraitClaims`. Writers are `SelfOnly`-gated and sealed (`@Final
+@Unshadowable`); reads are ungated; callers narrow with
+`MixinApi.isDispositioned`. The estimator + mint path formerly hosted
 in the hot-reloadable `TraitLogic` singleton at `/platform/idea/api/trait`, gated
-`FromModule("/api/trait#TraitApi")`. Internals are module-private free
+`FromModule("/api/trait#DispositionedMixin")`. Internals are module-private free
 functions (no intra-singleton `this.x()` to trip the gate). Surface:
 
 - `recordSignature(owner, signature, opts)` / `recordDeed(owner, subcheck,
@@ -102,7 +109,7 @@ functions (no intra-singleton `this.x()` to trip the gate). Surface:
 - `seedClaims(owner, seeds)` — seed `claim`-kind evidence (below).
 
 **Layering:** the trait layer depends on advancement (the `ActSignature`
-*type* only — no runtime edge) and on belief's `RegardApi` (one-way).
+*type* only — no runtime edge) and on belief's `BeliefStoreMixin (the regard face)` (one-way).
 Neither advancement nor belief gains any dependency on the trait layer.
 **Gated-API actor-from-context:** `owner` is the *subject of the act*
 (established by the recording call site), never a spoofable actor param.
@@ -120,12 +127,12 @@ presence of a row means interaction has spoken); absent one, the innate
 compatibility is the starting regard ("sets the *starting* regard…
 interaction moves it from there"). It is **derive-on-read — nothing is
 written to belief**, and belief never reads the trait layer. Consumers
-(brains, future dialogue warmth) call `TraitApi.regardBaseline`.
+(brains, future dialogue warmth) call `viewer.regardBaselineToward(subject)`.
 
 ## Behavior (Job 1) — the demonstrator brain
 
 `lib/behavior/converses.ts` is the demonstrator: a trait-aware chatter
-brain that reads `TraitApi.positionFor(host, "sociability")` and modulates
+brain that reads `host.traitPosition("sociability")` and modulates
 its speech — a Gregarious host holds court (warm `chatty` pool); a Shy host
 mostly stays quiet, speaking tersely on the rare turn. This is the first
 brain to read the trait layer, establishing the allowed **behavior → trait**
@@ -141,7 +148,7 @@ derive-don't-track means a fresh ledger is near-neutral. The resolution
 (mirroring char-gen's chronicle/transcript claim-seeding): seed disposition
 **evidence**, not a stat. `BehavedMixin` carries a declarative
 `dispositions: ClaimSeed[]` field; at `postRegister` it seeds those as
-`claim`-kind rows via `TraitApi.seedClaims` — **once** (idempotent across
+`claim`-kind rows via the host's own `seedTraitClaims` — **once** (idempotent across
 re-clone / CMS go-live: it skips if any `claim` row already exists). So
 Mara derives reserved & temperate, Remy gregarious, etc. — personality that
 came from a seeded history, not a slider. (This is the deliberate
@@ -161,10 +168,10 @@ never the raw signed magnitude — the same honesty firewall competence keeps.
 behavior (converses brain, BehavedMixin seeding)
    │  reads / seeds
    ▼
-trait  (TraitApi / TraitLogic / lib/trait)
+trait  (DispositionedMixin / lib/trait)
    │  reads ActSignature type            │  reads (one-way)
    ▼                                      ▼
-advancement (ActSignature)            belief (RegardApi)
+advancement (ActSignature)            belief (BeliefStoreMixin (the regard face))
 ```
 
 ## Deferred

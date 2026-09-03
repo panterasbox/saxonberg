@@ -27,7 +27,6 @@ import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { brain } from '../maintains';
 import { InnerWarren } from '../../location/InnerWarren';
-import { CommandApi } from '../../../api/command';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import SingletonCartesianLocation from '../../../platform/location/SingletonCartesianLocation';
@@ -105,20 +104,28 @@ function keeper(desk: SingletonCartesianLocation): Avatar {
     k as unknown as Stuff & Containable,
     desk as unknown as Stuff & Container,
   );
+  captureCommands(k as unknown as Stuff);
   return k;
 }
 
 beforeEach(() => {
   StuffApi.clearAll();
   issued = [];
-  vi.spyOn(CommandApi, 'forceCommand').mockImplementation((async (
-    actor: Stuff,
-    line: string,
-  ) => {
-    issued.push({ actor, line });
-    return undefined;
-  }) as unknown as typeof CommandApi.forceCommand);
 });
+
+/**
+ * Capture a host's runtime-fired commands. Dispatch is
+ * `host.forceCommand(line)` since the OO sweep, so the host is the
+ * capture seam.
+ */
+function captureCommands(actor: Stuff): void {
+  vi.spyOn(
+    actor as unknown as { forceCommand: (line: string) => Promise<void> },
+    'forceCommand',
+  ).mockImplementation(async (line: string) => {
+    issued.push({ actor, line });
+  });
+}
 afterEach(() => {
   vi.restoreAllMocks();
   StuffApi.clearAll();

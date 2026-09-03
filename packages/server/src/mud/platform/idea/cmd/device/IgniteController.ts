@@ -15,6 +15,7 @@ import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 import { FireApi } from '../../../../api/fire';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
+import type { Combustible } from '../../../../lib/fire/Combustible';
 
 interface IgniteModel extends CommandModel {
   target?: MqlOneResult;
@@ -62,7 +63,7 @@ export default class IgniteController extends CommandController<IgniteModel> {
       return;
     }
 
-    const outcome = FireApi.ignite(ignitable);
+    const outcome = (ignitable as Stuff & Combustible).ignite();
     if (!outcome.lit) {
       const detail =
         outcome.reason === 'already-burning'

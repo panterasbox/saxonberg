@@ -11,7 +11,7 @@
  * claim's row); claim and deed are independent (knowing-of never implies
  * can-make); and both are owner-scoped.
  *
- * Mongo is faked with the same in-memory PM harness the ChronicleApi
+ * Mongo is faked with the same in-memory PM harness the chronicle
  * tests use (find / save round-trip the chronicle entries the ladder
  * derives over).
  */
@@ -19,18 +19,21 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { RecipeKnowledge } from "../RecipeKnowledge";
-import { ChronicleApi } from "../../../api/chronicle";
 import { Idea } from "../../stuff/Idea";
+import { PersonaMixin } from '../../character/Persona';
 import { WorldClockApi } from "../../../api/worldclock";
 import { PersistenceManager } from "../../../../backend/PersistenceManager";
 import { makeStuffAtPath } from "../../security/__tests__/test-setup";
+
+class StoriedIdea extends PersonaMixin(Idea) {}
+
 
 let store: Map<string, Record<string, unknown>>;
 let idCounter = 0;
 let counter = 0;
 
-function makeActor(): Idea {
-  return makeStuffAtPath(() => new Idea(), `/platform/agent/Avatar/p${counter++}`);
+function makeActor(): StoriedIdea {
+  return makeStuffAtPath(() => new StoriedIdea(), `/platform/agent/Avatar/p${counter++}`);
 }
 
 beforeEach(() => {
@@ -74,7 +77,7 @@ describe("RecipeKnowledge ladder", () => {
     expect(await RecipeKnowledge.canMake(actor, "martini")).toBe(false);
 
     await RecipeKnowledge.noteKnown(actor, "martini", "Martini");
-    const entries = await ChronicleApi.entriesFor(actor);
+    const entries = await actor.chronicleEntries();
     expect(entries.filter((e) => e.tags?.includes("recipe"))).toHaveLength(1);
   });
 
@@ -87,7 +90,7 @@ describe("RecipeKnowledge ladder", () => {
     expect(await RecipeKnowledge.canMake(actor, "martini")).toBe(true);
 
     // Distinct keys: claim + deed are two rows, not one clobbered row.
-    const entries = await ChronicleApi.entriesFor(actor);
+    const entries = await actor.chronicleEntries();
     expect(entries).toHaveLength(2);
     expect(entries.some((e) => e.kind === "claim")).toBe(true);
     expect(entries.some((e) => e.kind === "deed")).toBe(true);
@@ -97,7 +100,7 @@ describe("RecipeKnowledge ladder", () => {
     const actor = makeActor();
     await RecipeKnowledge.noteMade(actor, "martini", "Martini");
     await RecipeKnowledge.noteMade(actor, "martini", "Martini");
-    const entries = await ChronicleApi.entriesFor(actor);
+    const entries = await actor.chronicleEntries();
     expect(entries.filter((e) => e.kind === "deed")).toHaveLength(1);
   });
 

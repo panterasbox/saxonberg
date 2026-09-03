@@ -3,7 +3,7 @@
  * DECISION C): `onWielded` fires from `occupy` (per slot — a 2H claim
  * hears it once per claimed slot), `onUnwielded` from
  * `vacate`/`vacateSole` AFTER the generic `onSlotReleased` witness, and
- * through `cleanupOnDestruct` / the `SlotApi.occupyAll` restore path.
+ * through `cleanupOnDestruct` / the host `occupyAll` restore path.
  * A non-CombatReactive occupant fires nothing.
  */
 
@@ -18,7 +18,6 @@ import type { InflictSpec } from '../../../api/condition';
 import { Idea } from '../../stuff/Idea';
 import type { Stuff } from '../../stuff/Stuff';
 import { StuffApi } from '../../../api/stuff';
-import { SlotApi } from '../../../api/slot';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
 class Body extends SlottedMixin(Idea) {
@@ -82,10 +81,10 @@ describe('Slotted × CombatReactive — the arming witnesses', () => {
 
   it('a two-slot (2H) claim fires once per slot — symmetric on release', () => {
     const item = makeStuff(() => new ReactiveItem());
-    // The restore/wield chokepoint — SlotApi.occupyAll is exactly what
+    // The restore/wield chokepoint — the host's occupyAll is exactly what
     // WieldController and the persistence spine's re-wear both call, so
     // a restored clone being armed fires the same witnesses.
-    SlotApi.occupyAll(body, item, ['hand:left', 'hand:right']);
+    body.occupyAll(item, ['hand:left', 'hand:right']);
     expect(item.events).toEqual(['wielded:hand:left', 'wielded:hand:right']);
 
     item.events.length = 0;

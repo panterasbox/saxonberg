@@ -1,0 +1,30 @@
+# P2 · The Claims Office — where title is real.
+#
+# ⭐ The whole pedagogical payload of the parcel layer, in one room: you
+# find ground, you post a notice, and the recorder writes it down. A claim
+# is STAKED, not bought — `title buy` is buying from a catalogue and
+# staking is a first-come registration, which is a different act with a
+# different verb.
+class: /platform/location/SingletonCartesianLocation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the claims office
+  primaryKeyword: office
+  keywords: [office, "claims office", claims]
+  longDescription: |
+    One room, one counter, and a stove that has not been lit this month. Behind the counter the whole of the wall is a map: the diggings in plan, claims inked in and numbered, the untitled ground left white. More of it is white than is not.
+
+    The register itself is a ledger the size of a paving slab, and it is chained to the counter.
+  coords: { x: 0, y: 1, z: 0 }
+  exits:
+    south:
+      destination: /world/rejection/location/pithead-yard
+  props:
+    - /world/rejection/thing/claims-counter
+  cast:
+    - /world/rejection/agent/registrar
+  details:
+    map:
+      keywords: [map, wall, plan, claims]
+      description: |
+        Claims inked in and numbered as they were recorded, the white ground between them the part nobody has spoken for. Two of the numbered blocks have been crossed through and re-lettered, which is what a lapse looks like when somebody remembers to write it down.

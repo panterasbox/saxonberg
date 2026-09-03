@@ -18,7 +18,6 @@
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
 import { MixinApi } from '../mixin';
-import { RecognitionApi } from '../recognition';
 import { PerceptionApi } from '../perception';
 import type { Detail } from '../../lib/description/Detailed';
 import type { BulkAffordance } from '../../lib/bulk/Bulkable';
@@ -298,8 +297,8 @@ function pushDirect(
   // The same `describe` routine drives the rendered name, so `look bob`
   // works iff "Bob" is also what the room view shows the viewer. Items
   // and inert things keep their ordinary keywords (no identity gate).
-  const name = RecognitionApi.describe(viewer, stuff);
-  const keywords = RecognitionApi.perceivedKeywords(viewer, stuff);
+  const name = stuff.describeFor(viewer);
+  const keywords = stuff.perceivedKeywordsFor(viewer);
   out.push({ stuff, name, keywords });
   pushBulkMaterials(out, stuff);
 }

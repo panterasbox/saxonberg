@@ -341,28 +341,6 @@ export default class SubjectCatalogue extends SubjectCatalogueBase {
     });
   }
 
-  /**
-   * Port a legacy per-channel `{tunedIn, muted}` subscription onto the
-   * per-subject store, idempotently. Called lazily by `ChannelCatalogue`
-   * on first subscription read for a retrofitted channel: if the
-   * per-subject key is unset but a legacy value is supplied, write it
-   * through (mapping `tunedIn → followed`, `muted → free-chat in
-   * mutedSurfaces`). A no-op once the per-subject key exists.
-   */
-  public migrateLegacySubscription(
-    avatar: Avatar,
-    subjectId: string,
-    legacy: { tunedIn: boolean; muted: boolean },
-  ): SubjectSubscription {
-    if (avatar.hasSubjectSubscription(subjectId)) {
-      return readSubscription(avatar, subjectId);
-    }
-    return this.setSubscription(avatar, subjectId, {
-      followed: legacy.tunedIn,
-      mutedSurfaces: legacy.muted ? ['open-chat'] : [],
-    });
-  }
-
   // --- Group bookkeeping --------------------------------------------
 
   public getBackingGroupIds(): ReadonlySet<string> {

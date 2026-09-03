@@ -28,7 +28,6 @@ import PersistentHydrator from '../idea/persistence/PersistentHydrator';
 import { Document } from '../../lib/persistence/Document';
 import { PersistableApi } from '../../api/persistable';
 import { StuffApi } from '../../api/stuff';
-import { ChronicleApi } from '../../api/chronicle';
 import { ParcelApi } from '../../api/parcel';
 import { PersistenceManager } from '../../../backend/PersistenceManager';
 import {
@@ -113,7 +112,6 @@ describe('a snapshot never hands back an unusable body', () => {
       name: 'lounge',
     });
     // The chronicle write is not what is under test here.
-    vi.spyOn(ChronicleApi, 'recordDeed').mockResolvedValue(undefined);
     makeStuffAtPath(
       () => new PersistentHydrator(),
       PersistentHydrator.templatePath,

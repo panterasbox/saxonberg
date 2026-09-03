@@ -10,7 +10,6 @@
 
 import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { ElectricityApi } from '../../../../api/electricity';
 import { EnergizedMixin } from '../../../../lib/electricity/Energized';
 import { ContainableMixin } from '../../../../lib/spatial/Containable';
 import { NamedMixin } from '../../../../lib/description/Named';
@@ -33,6 +32,7 @@ import {
 } from '../../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import type { Trauma, SustainedShock } from '../../Condition';
+import requiresConscious from '../../../../lib/command/validators/requiresConscious';
 
 class TestWire extends EnergizedMixin(ContainableMixin(NamedMixin(Idea))) {
   static _mixinName = 'TestWire';
@@ -154,7 +154,7 @@ describe('ElectricityLogic — being-shocked sustain + tetany + death', () => {
     const wire = makeWire(room, 50); // ~0.05 A wet → tetanic, sub-fibrillation
     const body = makeBody(room);
 
-    ElectricityApi.conduct(wire);
+    wire.conduct();
     expect(shockOf(body)).toBeDefined();
     expect(body.isBeingShocked()).toBe(true);
 
@@ -168,7 +168,7 @@ describe('ElectricityLogic — being-shocked sustain + tetany + death', () => {
     const floor = floodFloor(room, 20);
     const wire = makeWire(room, 15); // ~0.015 A → above let-go, below tetany
     const body = makeBody(room);
-    ElectricityApi.conduct(wire);
+    wire.conduct();
     expect(body.isBeingShocked()).toBe(true);
 
     floor.setBulkAmount('surface', Quantity.of(0, 'L')); // the pool drains
@@ -182,7 +182,7 @@ describe('ElectricityLogic — being-shocked sustain + tetany + death', () => {
     const wire = makeWire(room, 50);
     const body = makeBody(room, false); // unconnected ⇒ linkdead
     expect(body.isLinkdead()).toBe(true);
-    ElectricityApi.conduct(wire);
+    wire.conduct();
     body.getConditionBand(); // first-touch stamp
     const before = burnSeverity(body);
 
@@ -190,20 +190,45 @@ describe('ElectricityLogic — being-shocked sustain + tetany + death', () => {
     expect(burnSeverity(body)).toBeCloseTo(before, 6); // froze
   });
 
-  it('tetany holds the circuit closed even when the body would let go', () => {
+  it('a live tetanic circuit latches tetany and keeps accruing while it flows', () => {
     const room = makeRoom();
-    const floor = floodFloor(room, 20);
+    floodFloor(room, 20);
     const wire = makeWire(room, 50); // ≥ tetanic → latches tetany
     const body = makeBody(room);
-    ElectricityApi.conduct(wire);
+    wire.conduct();
     expect(shockOf(body)?.tetany).toBe(true);
-
-    // The body "lets go" — the pool drains — but tetany holds the circuit.
-    floor.setBulkAmount('surface', Quantity.of(0, 'L'));
+    expect(body.isTetanized()).toBe(true); // the "can't let go" grip
     const before = burnSeverity(body);
     tick(body, 2);
-    expect(body.isBeingShocked()).toBe(true); // still clamped on
-    expect(burnSeverity(body)).toBeGreaterThan(before); // still accruing
+    // The pool stays live: the circuit re-probes closed and keeps burning.
+    expect(body.isBeingShocked()).toBe(true);
+    expect(burnSeverity(body)).toBeGreaterThan(before);
+  });
+
+  it('breaking the LIVE circuit releases tetany (the rescue works — bar-fight W1)', () => {
+    // ⚠ Corrected semantics (the bar-fight build): tetany no longer
+    // manufactures current from a broken circuit. "Can't let go" is now
+    // the *victim's* volition gate (requiresConscious → isTetanized), so
+    // an outside rescue — draining the pool, cutting the source, dragging
+    // them clear — physically breaks the circuit and RELEASES them. A solo
+    // victim can no longer be self-sustained to death with the source gone
+    // (the hazard-counterplay audit). The after-grip lingers one window,
+    // then the sustain relieves.
+    const room = makeRoom();
+    const floor = floodFloor(room, 20);
+    const wire = makeWire(room, 50); // ≥ tetanic
+    const body = makeBody(room);
+    wire.conduct();
+    expect(body.isTetanized()).toBe(true);
+
+    floor.setBulkAmount('surface', Quantity.of(0, 'L')); // the rescue
+    const before = burnSeverity(body);
+    tick(body, 3); // past the after-grip window
+    expect(body.isBeingShocked()).toBe(false); // circuit broke → released
+    expect(body.isTetanized()).toBe(false);
+    // No further shock-burn accrues once the circuit breaks (the existing
+    // contact burn only heals from here — never grows).
+    expect(burnSeverity(body)).toBeLessThanOrEqual(before + 1e-9);
   });
 
   it('a fibrillating current drives heartRate to arrest → death (electrocution)', () => {
@@ -211,7 +236,7 @@ describe('ElectricityLogic — being-shocked sustain + tetany + death', () => {
     floodFloor(room, 20);
     const wire = makeWire(room, 240); // ~0.24 A wet → fibrillation
     const body = makeBody(room);
-    ElectricityApi.conduct(wire);
+    wire.conduct();
 
     tick(body, 3);
     expect(body.getVitalSign('heartRate').rawValue()).toBeLessThanOrEqual(30);
@@ -233,11 +258,60 @@ describe('ElectricityLogic — being-shocked sustain + tetany + death', () => {
     floodFloor(room, 20);
     const wire = makeWire(room, 50); // ~0.05 A → tetany, no fibrillation
     const body = makeBody(room);
-    ElectricityApi.conduct(wire);
+    wire.conduct();
 
     tick(body, 3);
     expect(body.isTetanized()).toBe(true);
     expect(body.getLifecycleState()).not.toBe('dead');
     expect(body.getVitalSign('heartRate').rawValue()).toBeGreaterThan(30);
+  });
+
+  // ── The stun-baton pulse window (bar-fight W1) ──
+
+  it('a discrete contact (a baton tap) tetanizes for a bounded window, then releases', () => {
+    const room = makeRoom();
+    const baton = makeWire(room, 5000); // a switched-on stun baton
+    const body = makeBody(room);
+    // The two-terminal contact path: no medium, no standing circuit — a
+    // one-shot that mints a bounded-window tetany.
+    baton.shockContact(body);
+    expect(body.isTetanized()).toBe(true); // seized, this instant
+    const gripBurn = burnSeverity(body);
+
+    // No live circuit holds it: within the ~6 game-second window the body
+    // is rigid but NO current flows (contact is over), so nothing accrues.
+    // (`isTetanized()` reconciles on read, so advancing `real` is enough.)
+    real += 200; // ≈ +2.4 game-seconds — inside the window
+    expect(body.isTetanized()).toBe(true);
+    // No current flows during the window, so the contact burn never grows
+    // (it only heals a hair) — the honest less-lethal after-grip.
+    expect(burnSeverity(body)).toBeLessThanOrEqual(gripBurn + 1e-9);
+
+    // Past the window the after-grip releases (reconcile-on-read).
+    real += 5000; // ≫ the window
+    expect(body.isTetanized()).toBe(false);
+    expect(body.isBeingShocked()).toBe(false);
+    expect(body.getLifecycleState()).not.toBe('dead'); // less-lethal
+  });
+
+  it('the tetany volition gate refuses release/exertion verbs while it holds', () => {
+    const room = makeRoom();
+    const baton = makeWire(room, 5000);
+    const body = makeBody(room);
+    baton.shockContact(body);
+
+    // The `requiresConscious` validator is the volition gate: tetanized →
+    // a refusal string; released → undefined (verb allowed).
+    const ctx = { commandGiver: body } as unknown as Parameters<
+      typeof requiresConscious
+    >[0];
+    expect(body.isTetanized()).toBe(true);
+    const refusal = requiresConscious(ctx);
+    expect(refusal).toBeTruthy();
+    expect(String(refusal).toLowerCase()).toContain('let go');
+
+    tick(body, 3); // window elapses
+    expect(body.isTetanized()).toBe(false);
+    expect(requiresConscious(ctx)).toBeUndefined();
   });
 });

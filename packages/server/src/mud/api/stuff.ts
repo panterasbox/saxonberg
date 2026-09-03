@@ -161,8 +161,14 @@ export class StuffApi {
     new WeakMap();
 
   /**
-   * Generate a unique ID using nanoid.
-   * Uses base58-encoded nanoid for short, URL-safe IDs.
+   * Generate a unique ID.
+   *
+   * ⭐ Base58 — short, URL-safe, and free of the characters that mean
+   * something to a reader (`-`, `_`) or to a human eye (`0`/`O`,
+   * `I`/`l`). ⚠ This comment said "base58" long before it was true: the
+   * source was `nanoid`'s default `A-Za-z0-9_-` alphabet, so one id in
+   * sixty-four began with a hyphen and MQL's `#<id>` seed threw on it.
+   * See {@link SecurityApi.uuid}.
    */
   public static generateId(): string {
     return SecurityApi.uuid();
@@ -691,8 +697,19 @@ export class StuffApi {
    * has no async setup" — silently skipping `postRegister()` would
    * yield a half-initialised object. The throw forces such classes
    * to use the async `create()` path instead.
+   *
+   * `opts.deferPostRegister` is the one sanctioned bypass, for the
+   * lazy registry resolvers (`resolveRegistry` in the Logic
+   * singletons): the boot manifest is the production path (clone runs
+   * `postRegister` there), and a lazily-built harness registry
+   * DELIBERATELY starts unwarmed — the test that needs the warm
+   * drives `postRegister()` itself. Skipping stays explicit, never
+   * silent.
    */
-  public static createSync<T extends Stuff>(factory: () => T): T {
+  public static createSync<T extends Stuff>(
+    factory: () => T,
+    opts?: { deferPostRegister?: boolean }
+  ): T {
     const prevSentinel = Stuff._beginConstruction();
     let raw: T;
     try {
@@ -705,7 +722,7 @@ export class StuffApi {
       raw,
       MixinApi.getWeakRefFields(raw.constructor as AnyConstructor)
     );
-    if (MixinApi.isPostRegistration(proxy)) {
+    if (!opts?.deferPostRegister && MixinApi.isPostRegistration(proxy)) {
       // Don't even register — fail before the half-initialised object
       // can leak into the registry.
       throw new Error(

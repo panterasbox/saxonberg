@@ -125,7 +125,7 @@ portable inanimate object gets per-instance identity for free
 The stamp is coherent only on a **discrete** instance. A `Globbable`
 fungible stack is structurally incompatible — a split of a stack of five
 has no answer for which unit keeps the id, and a merge equates identities.
-So chattel is **discrete-goods only**: `ChattelApi.stamp`/`transfer`/
+So chattel is **discrete-goods only**: `stampChattel`/`transferChattel`/
 `ownerOf` **refuse a glob** (a clear no-op, not a silent mint), a glob's
 `_chattelId` stays empty, and fungible stacks are **owned-by-possession**
 (whoever holds them). Coins are the money substrate, conserved by the

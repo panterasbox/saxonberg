@@ -16,6 +16,7 @@ import { MessageApi } from "../../../../api/message";
 import { Mml } from "../../../../api/mml";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
 import { CombatApi } from "../../../../api/combat";
+import type { Combatant } from '../../../../lib/combat/Combatant';
 
 const TOPIC = "act.deed";
 
@@ -39,7 +40,9 @@ export default class InterveneController extends CommandController<InterveneMode
     }
     const target = model.target.stuff;
 
-    const stopped = CombatApi.intervene(giver as Stuff, target);
+    const stopped = (giver as unknown as Stuff & Combatant).intervene(
+      target,
+    );
     if (!stopped) {
       return this.fail(
         context,

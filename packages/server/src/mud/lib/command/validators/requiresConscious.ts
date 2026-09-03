@@ -16,6 +16,13 @@
  * a new agency axis; collapse layers onto it as a condition the
  * validator also checks. A non-vitals giver (no body) passes — animacy/
  * other validators own those cases.
+ *
+ * Tetany is the third such layered incapacitation (the bar-fight build):
+ * a body seized by a shock's "can't let go" is conscious but cannot
+ * command its own muscles — so the volitional/release verbs refuse while
+ * `isTetanized()` holds (the stun baton's window; a live circuit for as
+ * long as it flows). This is the wiring electricity.md called a "light
+ * follow-up" — `isTetanized()` had no call sites until here.
  */
 
 import type { CommandValidator } from "../../../api/command";
@@ -39,11 +46,22 @@ const validator: CommandValidator = (context) => {
       c.kind === "affliction" &&
       c.templatePath === TemplatePaths.thermalTorpor,
   );
-  if (giver.getConsciousness() === "conscious" && !collapsed && !torpid) {
+  // Tetany — seized rigid by a shock's "can't let go". Conscious, but the
+  // muscles won't answer, so release / exertion verbs refuse.
+  const tetanized = giver.isTetanized();
+  if (
+    giver.getConsciousness() === "conscious" &&
+    !collapsed &&
+    !torpid &&
+    !tetanized
+  ) {
     return undefined;
   }
 
   const name = giver.getPresentation();
+  if (tetanized) {
+    return `${name} is seized rigid by the current and can't let go.`;
+  }
   if (collapsed) {
     return `${name} has collapsed from exhaustion and can't do that.`;
   }

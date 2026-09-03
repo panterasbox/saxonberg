@@ -13,7 +13,6 @@ import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
 import { BulkableApi, type TransferAmount } from '../../../../api/bulk';
 import { MixinApi } from '../../../../api/mixin';
-import { AdvancementApi } from '../../../../api/advancement';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 
@@ -88,7 +87,8 @@ export default class FillController extends CommandController<FillModel> {
       const phase = source.getFermentPhase();
       if (phase === 'finished' || phase === 'turned') {
         try {
-          await AdvancementApi.recordDeed(giver, {
+          if (MixinApi.isAdvancing(giver))
+            await giver.creditDeed({
             discipline: 'fermenting',
             difficulty: 'easy',
             outcome: 'success',

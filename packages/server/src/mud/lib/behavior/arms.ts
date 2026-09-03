@@ -3,7 +3,7 @@
  * attack, so a seeded fighter is defenceless until a weapon is in its
  * hand. This brain closes that gap: on its cadence it finds the first
  * wieldable within reach — its own inventory first, then the room it
- * stands in — takes it up if needed, and wields it (`SlotApi.occupyAll`,
+ * stands in — takes it up if needed, and wields it (the host's `occupyAll`,
  * the same call the `wield` verb makes). So a duelist authored beside a
  * knife on a stone simply picks it up; no starting-inventory seam needed.
  *
@@ -17,7 +17,6 @@
  */
 
 import { MixinApi } from '../../api/mixin';
-import { SlotApi } from '../../api/slot';
 import { SpeciesApi } from '../../api/species';
 import { ContainmentApi } from '../../api/containment';
 import type { Stuff } from '../stuff/Stuff';
@@ -53,7 +52,7 @@ export const brain = class {
         if (MixinApi.isContainable(item) && item.getContainer() !== host) {
           ContainmentApi.move(item, host);
         }
-        SlotApi.occupyAll(host, item, [...slots]);
+        host.occupyAll(item, [...slots]);
       } catch {
         // Race / shape violation — leave it for the next tick.
       }

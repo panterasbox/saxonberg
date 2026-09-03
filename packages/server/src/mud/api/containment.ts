@@ -254,13 +254,6 @@ export class ContainmentApi {
     logic().placeOn(item, surface);
   }
 
-  /**
-   * Check if an object is contained in a specific container
-   */
-  public static isContainedIn(item: Stuff, container: ContainerStuff): boolean {
-    return logic().isContainedIn(item, container);
-  }
-
   // The `getContainer`/`getContents` read-wrappers were removed: those
   // reads live on the objects themselves — call `item.getContainer()` /
   // `container.getContents()` directly (narrow with MixinApi as needed).

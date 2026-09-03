@@ -20,11 +20,13 @@ import type { Stuff } from '../../stuff/Stuff';
 import type { BrainContext } from '../../behavior/brain';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import Offstage from '../../../platform/location/Offstage';
+import { EmploymentLogic } from '../../../platform/idea/api/EmploymentLogic';
+import { EmployedMixin } from '../Employed';
 
 class Post extends ContainerMixin(ContainableMixin(Idea)) {
   static _mixinName = 'Post';
 }
-class Mover extends MobileMixin(ContainableMixin(Idea)) {
+class Mover extends EmployedMixin(MobileMixin(ContainableMixin(Idea))) {
   static _mixinName = 'Mover';
 }
 
@@ -67,7 +69,7 @@ describe('Offstage — the off-shift parking role', () => {
     ContainmentApi.move(bartender, post);
     ContainmentApi.move(cook, post);
 
-    vi.spyOn(EmploymentApi, 'shiftStateOf').mockReturnValue('off-shift');
+    vi.spyOn(EmploymentLogic.prototype, 'shiftStateOf').mockReturnValue('off-shift');
     await shifts.act(ctxFor(bartender, '/lounge/off'));
     await shifts.act(ctxFor(cook, '/hearth/off'));
 
@@ -76,7 +78,7 @@ describe('Offstage — the off-shift parking role', () => {
     expect(loungeOff.getContents().map((s) => s.stuffId)).toEqual([bartender.stuffId]);
     expect(hearthOff.getContents().map((s) => s.stuffId)).toEqual([cook.stuffId]);
 
-    vi.spyOn(EmploymentApi, 'shiftStateOf').mockReturnValue('on-shift');
+    vi.spyOn(EmploymentLogic.prototype, 'shiftStateOf').mockReturnValue('on-shift');
     await shifts.act(ctxFor(bartender, '/lounge/off'));
     await shifts.act(ctxFor(cook, '/hearth/off'));
     expect(bartender.getContainer()?.stuffId).toBe(post.stuffId);

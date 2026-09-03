@@ -68,7 +68,6 @@ import {
 import { parseMarkdown, type MarkdownOptions } from './mml/markdown';
 import { parseToTree, type MmlNode } from './mml/tree';
 import { isKnownTag, isComponentCandidate, VOID_TAGS } from './mml/tags';
-import { RecognitionApi } from './recognition';
 import { SecurityApi } from './security';
 
 // Re-export the MentionResolver interface so consumers can keep
@@ -248,7 +247,7 @@ type MmlPayload =
 
 /**
  * The placeholder tag `Mml.actor` carries until render time, when
- * `RecognitionApi.kindOf` replaces it with `player` or `npc`.
+ * `kindFor` replaces it with `player` or `npc`.
  *
  * ⚠ Deliberately **not** in `KNOWN_TAGS`, and that is the invariant
  * worth protecting: it never reaches a parser, a policy, a stylesheet
@@ -312,7 +311,7 @@ export class Mml {
    * (and there are many) keeps composing exactly as before — the
    * per-recipient resolution rides `Scene.send`'s existing
    * `body.toString(recipient)` materialization. See
-   * `RecognitionApi.describe`.
+   * `describeFor`.
    *
    * The **tag** is resolved at the same seam for {@link ACTOR_TAG},
    * which is why that one is not a wire tag at all.
@@ -324,7 +323,7 @@ export class Mml {
   /**
    * Render a reference to **a person acting**, without claiming which
    * kind of person. Resolves to `<player>` or `<npc>` at render time
-   * through `RecognitionApi.kindOf(viewer, stuff)`.
+   * through `stuff.kindFor(viewer)`.
    *
    * ⭐ **This is the face nearly every emitter wants.** A controller
    * holds a `giver`; whether a human is on the other end of it is a
@@ -967,10 +966,10 @@ export class Mml {
       // questions are the same question — what does THIS recipient
       // perceive.
       const tag = wire === ACTOR_TAG
-        ? RecognitionApi.kindOf(viewer, stuff)
+        ? stuff.kindFor(viewer)
         : wire;
       const label = viewer
-        ? RecognitionApi.describe(viewer, stuff)
+        ? stuff.describeFor(viewer)
         : stuff.getPresentation();
       // The object turns its label into a composable `Mml` *fragment*
       // (`getPresentationMml`, Stuff): `null` = the plain default, which

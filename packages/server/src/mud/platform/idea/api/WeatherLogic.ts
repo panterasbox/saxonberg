@@ -898,7 +898,6 @@ async function runStormFanout(): Promise<void> {
   const nowS = nowSecondsOrNull();
   if (nowS === null) return;
   const { BiomeApi } = await import('../../../api/biome');
-  const { ElectricityApi } = await import('../../../api/electricity');
   const rate = dial(AppSettingKeys.stormStrikeRate, 0.15);
   const visited = new Set<string>();
   for (const interactive of ConnectionApi.getAllInteractives()) {
@@ -913,7 +912,7 @@ async function runStormFanout(): Promise<void> {
     const resolved = computeResolved(room, locality, nowS, true);
     if (resolved.sample.type !== 'storm') continue;
     if (stormRoll() >= rate) continue;
-    await fireStrike(room, ElectricityApi);
+    await fireStrike(room);
   }
 }
 
@@ -953,10 +952,7 @@ function conductivityOf(s: Stuff): number {
  * attractor, crack a thunderclap the whole locale hears, then reap the
  * source. A strike into an empty scope harms no one but is still heard.
  */
-async function fireStrike(
-  room: Stuff & Container,
-  ElectricityApi: typeof import('../../../api/electricity').ElectricityApi,
-): Promise<void> {
+async function fireStrike(room: Stuff & Container): Promise<void> {
   const { default: LightningStrike } = await import(
     '../../../lib/weather/LightningStrike'
   );
@@ -976,14 +972,11 @@ async function fireStrike(
   );
   try {
     // Ambient fan through the conduction graph (ground / pool / immersion).
-    ElectricityApi.conduct(strike as unknown as Stuff & Energized);
+    (strike as unknown as Stuff & Energized).conduct();
     // Attractor bias: a raised conductive rod draws a direct hit.
     const attractor = pickAttractor(room);
     if (attractor !== null && attractor !== (strike as unknown as Stuff)) {
-      ElectricityApi.shockContact(
-        strike as unknown as Stuff & Energized,
-        attractor,
-      );
+      (strike as unknown as Stuff & Energized).shockContact(attractor);
     }
     // The world weathers whether you watch — the crack is heard regardless.
     (strike as unknown as { emit(o: unknown): void }).emit({

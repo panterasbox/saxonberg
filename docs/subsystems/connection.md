@@ -80,7 +80,7 @@ directly.
 
 **`Login`** is a one-shot orchestrator. Composes `HasInteractiveMixin`
 too, so the handoff from Login → Avatar uses the same
-`ConnectionApi.transfer` mechanism that any future re-handoff would.
+`interactive.transferTo` mechanism that any future re-handoff would.
 Lives only as long as `enter()` takes; `StuffApi.destruct(this)` is
 the last line of its body (`Login.ts § enter`).
 
@@ -127,9 +127,9 @@ Provider OAuth ──▶ /auth/{provider}/callback
                           │
                           ▼
                        login.enter()
-                  ├─ ConnectionApi.transfer(interactive, login)
+                  ├─ interactive.transferTo(login)
                   ├─ PlayerApi.loadAvatarsForUser(user)
-                  ├─ ConnectionApi.transfer(interactive, avatar)
+                  ├─ interactive.transferTo(avatar)
                   ├─ avatar.teleport(startingRoom, { silent: true })
                   ├─ MessageApi.scene(avatar)…session.link
                   ├─ EventApi.emit(Events.PlayerLoggedIn | …Reconnected, …)
@@ -336,7 +336,7 @@ constructor(interactive: Interactive) {
 }
 ```
 
-The seed is `addInteractive`, NOT `ConnectionApi.transfer`. The
+The seed is `addInteractive`, NOT `interactive.transferTo`. The
 Interactive's `holder` is still `null` at this point. The first
 proper `transfer` happens inside `enter()` (next phase).
 
@@ -358,7 +358,7 @@ a session" means; Avatar doesn't need to know how Login picked it.
 
 ### `Login.enter()` — verbatim sequence
 
-1. **`ConnectionApi.transfer(interactive, this)`** — formal handoff
+1. **`interactive.transferTo(this)`** — formal handoff
    to Login. Calls `interactive.setHolder(login)` and fires
    `onConnectionAttached` on Login.
 
@@ -382,7 +382,7 @@ a session" means; Avatar doesn't need to know how Login picked it.
 3. **`if (avatars.length !== 1) throw`** — multi-character is not
    yet supported. See [§ Not Yet Implemented](#not-yet-implemented).
 
-4. **`ConnectionApi.transfer(interactive, avatar)`** — moves the
+4. **`interactive.transferTo(avatar)`** — moves the
    holder slot from Login to Avatar. Witness hooks fire (see
    [§ Multiplexing](#multiplexing)).
 
@@ -444,7 +444,7 @@ a session" means; Avatar doesn't need to know how Login picked it.
    reconnect (`PlayerReconnected`), discriminated by a transient
    `sessionActive` flag that survives the linkdead window. (Separately,
    `Application.handleUserConnect` captures the connection's country of
-   origin via `ConnectionApi.recordOrigin` when the Interactive is created
+   origin via `interactive.recordOrigin` when the Interactive is created
    — see [social-graph.md](./social-graph.md) § Country of origin.)
 
 After `Avatar.enter()` returns, the user is in-world.
@@ -475,7 +475,7 @@ snapshotClientState(): Record<...>         // dense snapshot for welcome payload
 ```
 
 External code does NOT call `addInteractive`/`removeInteractive`
-directly; `ConnectionApi.transfer` and `ConnectionApi.detach` are
+directly; `interactive.transferTo` and `interactive.detach` are
 the only sanctioned mutators (`connection.ts:80-150`).
 
 ### A second connection for the same user
@@ -483,7 +483,7 @@ the only sanctioned mutators (`connection.ts:80-150`).
 `PlayerApi.loadAvatarsForUser` checks the registry first
 (`PlayerApi.ts:102`). If the Avatar is already registered (because
 a previous connection cloned it), the new Login receives the
-**existing** Avatar object. `ConnectionApi.transfer(newInteractive,
+**existing** Avatar object. `newInteractive.transferTo(
 existingAvatar)` then adds the new connection to the same Set.
 
 The Avatar now has two Interactives. `Avatar.handleMessage` iterates
@@ -504,7 +504,7 @@ each get their own outbound stream.
 
 ### Witness Hooks
 
-`ConnectionApi.transfer` fires per-connection AND presence-transition
+`interactive.transferTo` fires per-connection AND presence-transition
 hooks (`connection.ts § transfer`):
 
 | Hook | When | Why |
@@ -718,7 +718,7 @@ recipient.handleMessage(frame)     (after filterMessage)
               │
               ▼ (Avatar override)
 for (const i of this.interactives):
-    ConnectionApi.sendMessage(i, frame)
+    i.sendMessage(frame)
               │
               ▼
 Application.sendMessageToInteractive(i, frame)
@@ -730,7 +730,7 @@ Backend.sendMessageToSocket(socketId, frame)
 ws.send(JSON.stringify(frame))     (only if ws.readyState === OPEN)
 ```
 
-`ConnectionApi.sendMessage` / `sendEnvelope` are the mudlib's **only**
+`interactive.sendMessage` / `sendEnvelope` are the mudlib's **only**
 way onto the wire; they forward through `ConnectionLogic` to
 `Application`, which owns the Backend reference and stamps the
 per-Interactive `frameId`. A `Stuff` never holds an `Application`
@@ -771,7 +771,7 @@ ws 'close' (code) → Backend.handleWebSocketClose(socketId, code)
                        ├─ StuffApi.destruct(interactive)
                        │     │
                        │     ├─ interactive.onDestruct()
-                       │     │     └─ ConnectionApi.detach(this)
+                       │     │     └─ this.detach()
                        │     │            ├─ avatar.removeInteractive(this)
                        │     │            ├─ interactive.holder = null
                        │     │            ├─ avatar.onConnectionDetached?()
@@ -794,7 +794,7 @@ any final substrate-side delivery still has a live Interactive to
 address (and a controller's prompt-catch block can react while the
 Interactive is still around). Each subsystem exposes its own
 `cancelAllForInteractive(this)` (`MqlSubscriptionApi`, `ForumsApi`,
-`ReactionApi`) and `PromptApi.cancelAll`; adding a new per-Interactive
+its own reaction/prompt teardown; adding a new per-Interactive
 substrate means appending one call in `teardownSubstrateState`, not
 touching Application.
 
@@ -823,7 +823,7 @@ When something DOES destruct an Avatar (test cleanup, future
 character-deletion flow), `Avatar.onDestruct` fires a final
 fire-and-forget `Avatar.save()`, cancels the periodic persist-back
 timer, unregisters from `PlayerApi`, and detaches every still-
-connected Interactive via `ConnectionApi.detach`. The detach loop
+connected Interactive via `interactive.detach`. The detach loop
 guarantees no Interactive is left holding `holder = avatar` after
 the avatar is gone, so the witness pipeline stays consistent even
 if a caller didn't drop the connections first.
@@ -933,7 +933,7 @@ taxonomy and how `FrameKind`/`runRoot` plant frames.
 - **Login destructs itself.** It exists for the entry procedure
   only. Don't keep references to it past `enter()`. Don't subclass
   it for "kept-alive entry contexts" — that's the Avatar's job.
-- **`ConnectionApi.transfer` / `detach` are the only mutators of
+- **`interactive.transferTo` / `detach` are the only mutators of
   the holder slot.** Calling `interactive.setHolder(...)` directly
   skips witness hooks and the cross-cutting
   `Events.ConnectionAttached` event. Don't call
@@ -960,7 +960,7 @@ taxonomy and how `FrameKind`/`runRoot` plant frames.
   has zero or more than one playerId. The character
   list / pick-a-character UI is the missing piece. When it lands,
   the `Login` body splits into "load avatars → present picker" then
-  "transfer to chosen avatar" — the `ConnectionApi.transfer` machinery
+  "transfer to chosen avatar" — the `interactive.transferTo` machinery
   is already general enough to support it.
 - **WebSocket close on logout.** `POST /auth/logout` invalidates the
   session but leaves the WebSocket open. Either the route should

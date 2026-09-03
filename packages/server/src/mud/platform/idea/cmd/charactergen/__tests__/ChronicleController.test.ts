@@ -3,7 +3,7 @@
  * order: bio → claims by `order` asc → deeds by `when` asc, NEVER
  * interleaved (even when seeded out of order). Plus the empty state.
  *
- * Entries are seeded through `ChronicleApi` against the in-memory PM
+ * Entries are seeded through the owner's own chronicle face against the in-memory PM
  * stub; the controller reads them back via `entriesFor`. The emitted
  * scene body is captured by stubbing `MessageApi.scene`.
  */
@@ -11,7 +11,6 @@
 import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import ChronicleController from '../ChronicleController';
-import { ChronicleApi } from '../../../../../api/chronicle';
 import { MessageApi } from '../../../../../api/message';
 import { Mml } from '../../../../../api/mml';
 import { Idea } from '../../../../../lib/stuff/Idea';
@@ -83,20 +82,12 @@ describe('ChronicleController render', () => {
     actor.setBio('I am a healer.');
 
     // Seed deliberately OUT of order.
-    await ChronicleApi.seedClaims(actor, [
+    await actor.seedChronicleClaims([
       { text: 'claim-two', order: 2 },
       { text: 'claim-one', order: 1 },
     ]);
-    await ChronicleApi.record(actor, {
-      kind: 'deed',
-      text: 'deed-late',
-      when: 200,
-    });
-    await ChronicleApi.record(actor, {
-      kind: 'deed',
-      text: 'deed-early',
-      when: 100,
-    });
+    await actor.recordDeed({ text: 'deed-late', when: 200 });
+    await actor.recordDeed({ text: 'deed-early', when: 100 });
 
     const ctrl = makeStuff(() => new ChronicleController());
     await ctrl.execute({} as CommandModel, ctxFor(actor));

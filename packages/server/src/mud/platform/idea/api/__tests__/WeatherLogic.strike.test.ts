@@ -19,7 +19,7 @@ import { BiomeApi } from '../../../../api/biome';
 import { WorldClockApi } from '../../../../api/worldclock';
 import { StuffApi } from '../../../../api/stuff';
 import { ContainmentApi } from '../../../../api/containment';
-import { ElectricityApi } from '../../../../api/electricity';
+import LightningStrike from '../../../../lib/weather/LightningStrike';
 import { ConnectionManager } from '../../../../../backend/ConnectionManager';
 import { Quantity } from '../../../../lib/quantity';
 import { HasInteractiveMixin } from '../../../../lib/connection/HasInteractive';
@@ -126,13 +126,15 @@ describe('Storm lightning strikes (Phase E)', () => {
     BiomeApi.invalidateRootBiomeCache();
   });
 
-  it('a struck storm scope fires ElectricityApi.conduct', async () => {
+  it('a struck storm scope fires the strike locus conduct', async () => {
     const room = skyRoom();
     await occupy(room);
     WeatherApi._forceTypeForTesting('storm');
     WeatherApi._forceStrikeRollForTesting(0); // always strike
 
-    const spy = vi.spyOn(ElectricityApi, 'conduct');
+    const spy = vi
+      .spyOn(LightningStrike.prototype, 'conduct')
+      .mockImplementation(() => []);
     await WeatherApi.onStormTick();
     await flush();
 
@@ -145,7 +147,9 @@ describe('Storm lightning strikes (Phase E)', () => {
     WeatherApi._forceTypeForTesting('storm');
     WeatherApi._forceStrikeRollForTesting(0.99); // above the rate → miss
 
-    const spy = vi.spyOn(ElectricityApi, 'conduct');
+    const spy = vi
+      .spyOn(LightningStrike.prototype, 'conduct')
+      .mockImplementation(() => []);
     await WeatherApi.onStormTick();
     await flush();
 
@@ -158,7 +162,9 @@ describe('Storm lightning strikes (Phase E)', () => {
     WeatherApi._forceTypeForTesting('rain'); // not storm
     WeatherApi._forceStrikeRollForTesting(0);
 
-    const spy = vi.spyOn(ElectricityApi, 'conduct');
+    const spy = vi
+      .spyOn(LightningStrike.prototype, 'conduct')
+      .mockImplementation(() => []);
     await WeatherApi.onStormTick();
     await flush();
 
@@ -173,13 +179,15 @@ describe('Storm lightning strikes (Phase E)', () => {
     WeatherApi._forceTypeForTesting('storm');
     WeatherApi._forceStrikeRollForTesting(0);
 
-    const spy = vi.spyOn(ElectricityApi, 'shockContact');
+    const spy = vi
+      .spyOn(LightningStrike.prototype, 'shockContact')
+      .mockImplementation(() => []);
     await WeatherApi.onStormTick();
     await flush();
 
     expect(spy).toHaveBeenCalled();
     // The victim of the direct hit is the conductive rod.
-    expect(spy.mock.calls[0]![1]).toBe(rod);
+    expect(spy.mock.calls[0]![0]).toBe(rod);
   });
 
   it('an empty scope still fires (a heard flash) but harms no one', async () => {
@@ -188,7 +196,9 @@ describe('Storm lightning strikes (Phase E)', () => {
     WeatherApi._forceTypeForTesting('storm');
     WeatherApi._forceStrikeRollForTesting(0);
 
-    const spy = vi.spyOn(ElectricityApi, 'conduct');
+    const spy = vi
+      .spyOn(LightningStrike.prototype, 'conduct')
+      .mockImplementation(() => []);
     await WeatherApi.onStormTick();
     await flush();
 

@@ -48,9 +48,17 @@ and real **sinks** (rent, tax, wear). Ordered by leverage:
      faucet; metabolism (everyone eats) is the bedrock paymaster; the
      Reserve floor-buy adds polity demand. *Serves: Grange,
      Victuallers.*
-   - **Mining / Ferrow Delving** [T2] — the materials faucet; ends the
-     metal-import era (a world event); salt as the preservation
-     staple. *Serves: Delvers, Ironwrights.*
+   - **Mining / Ferrow Delving** [⭐ **STAGE A SHIPPED** 2026-09-02, the
+     metal chain — see [mining.md](./subsystems/mining.md)] — the
+     materials faucet, **open**: ground → ore → charcoal → copper →
+     tools, all of it cut and made rather than stocked, at Rejection over
+     the Ferrow. The metal-import era is ended for COPPER.
+     ⏳ Still out: everything below the water table (no shaft, hoist,
+     pump or drainage commons — an adit drains by gravity and the oxide
+     cap sits above the table), so no sulfides and no roasting; iron
+     wants the bellows; tin has chemistry but no ore, which is what keeps
+     bronze a later stage; and salt-as-preservation-staple is untouched.
+     *Serves: Delvers, Ironwrights.*
    - **Fishing v1** [T2 — [fishing-slate](./slates/builds/fishing-slate.md)] — the accessible
      income floor (the body's rest); first real gameplay consumer of
      weather; drives perishability; the salt-cod interlock with

@@ -51,7 +51,6 @@ import {
   OMNI_SCOPE,
 } from '../../api/execution-context';
 import { HotReloadApi } from '../../api/hot-reload';
-import { MessageApi } from '../../api/message';
 import { MixinApi } from '../../api/mixin';
 import { ModuleApi } from '../../api/module';
 import { WorldClockApi, type ClockHandle } from '../../api/worldclock';
@@ -599,10 +598,7 @@ export default class SchedulerRegistry extends Idea {
       kind: 'engagement-completed',
       engagementId: e.engagementId,
     };
-    MessageApi.sendEnvelope(
-      e.actor,
-      buildActivityUpdate(e.engagementId, note),
-    );
+    e.actor.onEnvelope(buildActivityUpdate(e.engagementId, note));
   }
 
   private sendCancelledEnvelope(e: Engagement, reason: AbortReason): void {
@@ -612,10 +608,7 @@ export default class SchedulerRegistry extends Idea {
       engagementId: e.engagementId,
       reason,
     };
-    MessageApi.sendEnvelope(
-      e.actor,
-      buildActivityUpdate(e.engagementId, note),
-    );
+    e.actor.onEnvelope(buildActivityUpdate(e.engagementId, note));
   }
 }
 

@@ -1,0 +1,29 @@
+# ⭐ A JUNCTION — where ways meet, and where the ground has the most to
+# hold up. The span cost in `stabilityAt` is per open neighbour, so a
+# four-way junction in slate genuinely wants timber and the same junction
+# in granite does not. The prose says which without saying the number.
+class: /trade/mining/location/MineRoom
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a junction
+  primaryKeyword: junction
+  keywords: [junction, crossing, meeting]
+  longDescription: |
+    A place where ways meet, cut wider than either of them and timbered heavier for it.
+  oreRow: /world/rejection/thing/copper-ore
+  backPhrases:
+    - "The back is wide here, and carried on sets rather than on itself."
+    - "Where the ways cross, the roof is a made thing rather than a cut one."
+    - "The corners are dressed square, which took somebody a day they did not want to spend."
+  seamPhrases:
+    - "Green shows in two of the four walls, which is a decision waiting to be made."
+    - "The seam comes through the junction and goes out the far side."
+    - "There is ore in three directions here, and one of them is somebody else's ground."
+  airPhrases:
+    - "Two draughts meet here and neither wins."
+    - "The air is better at the crossing than in any of the ways off it."
+    - "Nothing moves. Four ways in and no air out of any of them."
+  groundPhrases:
+    - "One of the caps has taken a bow in the middle. It is holding."
+    - "There is a crack across the back, corner to corner, and it is open a knife's width."
+    - "The ground works audibly here, in the slow way that means it is deciding."

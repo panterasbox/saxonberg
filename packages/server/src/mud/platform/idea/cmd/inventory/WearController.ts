@@ -1,7 +1,7 @@
 /**
  * WearController — claim a Wearable's body-plan slots on the actor.
  *
- * Multi-slot claims are atomic via `SlotApi.occupyAll`.
+ * Multi-slot claims are atomic via the giver's `occupyAll`.
  *
  * Validation surface (from `cmd/wear.yaml`):
  *   - requiresAnimate, requiresSlotted (verb-level)
@@ -20,7 +20,6 @@ import type { MqlOneResult } from '../../../../api/mql';
 import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
-import { SlotApi } from '../../../../api/slot';
 import { SpeciesApi } from '../../../../api/species';
 
 interface WearModel extends CommandModel {
@@ -91,10 +90,10 @@ export default class WearController extends CommandController<WearModel> {
         return;
       }
     }
-    // SlotApi.occupyAll may throw on race conditions or shape
+    // occupyAll may throw on race conditions or shape
     // violations; the dispatcher's outer catch emits
     // controller-error uniformly — no try/catch here per plan.
-    SlotApi.occupyAll(giver, target, [...slots]);
+    giver.occupyAll(target, [...slots]);
     MessageApi.scene(giver)
       .topic('sense.survey')
       .toSelf(Mml.compose`You put on ${Mml.thing(target)}.`)

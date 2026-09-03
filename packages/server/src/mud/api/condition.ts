@@ -150,23 +150,6 @@ export class ConditionApi {
    * reconcile-on-read `tickedAt` anchor. No-op-afflict when `target` is not
    * a wound-able body.
    */
-  /**
-   * **Stand the authored `Condition` roster up as live singletons.**
-   * Called once from `AppBootstrap`, the `MaterialApi.boot` sibling.
-   *
-   * ⚠ Without it every condition read `null` in a running world —
-   * seeds are template ROWS and nothing cloned them into Ideas — so
-   * authored signs, progression and `toxinBehavior` were read off an
-   * object that was not there. It failed **silently**
-   * (`Metabolic.resolveToxinBehavior` returns `null`; its caller does
-   * `if (!behavior) continue`), so a toxin simply never cleared.
-   *
-   * Returns how many stood up, for the boot log.
-   */
-  public static boot(): Promise<number> {
-    return logic().boot();
-  }
-
   public static inflict(target: Stuff, spec: InflictSpec): InflictOutcome {
     return logic().inflict(target, spec);
   }

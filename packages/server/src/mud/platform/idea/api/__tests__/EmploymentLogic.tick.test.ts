@@ -84,7 +84,7 @@ describe('EmploymentLogic.tickRoster', () => {
     const emp = mara.getEmployment(BUSINESS);
     expect(emp?.status).toBe('on-shift');
     expect(emp?.onShiftSince).toBe(now);
-    expect(EmploymentApi.shiftStateOf(mara)).toBe('on-shift');
+    expect(mara.shiftState()).toBe('on-shift');
   });
 
   it('flips on→off and clears onShiftSince at shift end', () => {
@@ -100,7 +100,7 @@ describe('EmploymentLogic.tickRoster', () => {
     const emp = mara.getEmployment(BUSINESS);
     expect(emp?.status).toBe('off-shift');
     expect(emp?.onShiftSince).toBeNull();
-    expect(EmploymentApi.shiftStateOf(mara)).toBe('off-shift');
+    expect(mara.shiftState()).toBe('off-shift');
   });
 
   it('does not resurrect a fired worker', () => {
@@ -109,7 +109,7 @@ describe('EmploymentLogic.tickRoster', () => {
     // Materialize, then fire.
     atClock(2, 20);
     EmploymentApi.tickRoster();
-    EmploymentApi.fire(biz, mara);
+    biz.dismiss(mara);
     expect(mara.getEmployment(BUSINESS)?.status).toBe('fired');
 
     // A tick during the on-shift window leaves the terminal status alone.

@@ -1,0 +1,16 @@
+# Slag — ⚠ the gangue, fluxed off and thrown out. It is here because a
+# smelt that produced only metal would be lying about where the rest of
+# the rock went: a lump of ore is mostly not ore, and the heap outside a
+# smelter is the visible proof.
+class: /platform/thing/Provision
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a lump of cooled slag
+  primaryKeyword: slag
+  keywords: [slag, dross]
+  longDescription: >-
+    Glassy, black-green, blistered where the gas came out of it. Worth
+    nothing, and there is always far more of it than there is metal.
+  _materialPath: /stuff/idea/material/mineral/quartz
+  gradeBand: poor
+  mass: 2

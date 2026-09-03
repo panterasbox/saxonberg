@@ -112,7 +112,41 @@ export interface EvictionContext {
 /**
  * Base class for all game objects.
  */
+/** The wire-tag kinds a described reference can carry. */
+export type RefKind = 'player' | 'npc' | 'thing';
+
+/**
+ * The recognition engine's face — registered by
+ * `BootstrapManager.installFrameworkWiring` (the registry-class-handoff
+ * pattern: `RecognitionLogic` extends `Idea` extends `Stuff`, so a
+ * static import here would be a load-order cycle). The viewer-aware
+ * describe family below resolves it lazily per call; unregistered
+ * (a bare harness), each method falls back to the viewer-blind
+ * presentation.
+ */
+export interface RecognitionFace {
+  describe(viewer: Stuff, target: Stuff): string;
+  describeWithStatus(viewer: Stuff, target: Stuff): string;
+  salientFeaturesOf(target: Stuff, covered?: ReadonlySet<string>): string;
+  perceivedKeywords(viewer: Stuff, target: Stuff): string[];
+  kindOf(viewer: Stuff | undefined, target: Stuff): RefKind;
+  knowsTrueType(viewer: Stuff, target: Stuff): boolean;
+}
+
 export abstract class Stuff {
+  /** See {@link RecognitionFace}. */
+  static #recognitionFace: (() => RecognitionFace) | null = null;
+
+  /** Framework wiring seam — see {@link RecognitionFace}. @internal */
+  public static _registerRecognitionFace(face: () => RecognitionFace): void {
+    Stuff.#recognitionFace = face;
+  }
+
+  /** The registered face, or null in a bare harness. @internal */
+  public static _recognitionFace(): RecognitionFace | null {
+    return Stuff.#recognitionFace ? Stuff.#recognitionFace() : null;
+  }
+
   /**
    * Universal live-query subscribable fields — fields every Stuff
    * exposes regardless of mixin composition. Currently just
@@ -198,6 +232,54 @@ export abstract class Stuff {
     return SecurityApi.projectAcross(this, undefined, () =>
       this.presentationCore()
     );
+  }
+
+  /**
+   * **What this looks like to `viewer`** — the viewer-aware identity
+   * (was `RecognitionApi.describe`; the described object owns its
+   * fallback — the `getPresentation` precedent). The concise form: a
+   * recognized name or the stranger stem, no worn feature, no status.
+   */
+  describeFor(viewer: Stuff): string {
+    return (
+      Stuff._recognitionFace()?.describe(viewer, this) ??
+      this.getPresentation()
+    );
+  }
+
+  /** {@link describeFor} with the activity-status affix — the
+   * presence-scan (room roll-call) form. */
+  describeWithStatusFor(viewer: Stuff): string {
+    return (
+      Stuff._recognitionFace()?.describeWithStatus(viewer, this) ??
+      this.getPresentation()
+    );
+  }
+
+  /**
+   * The stranger stem plus the most-notable worn item (unless `covered`
+   * hides the region) — the presence / targeting surface's fuller form.
+   */
+  salientFeatures(covered?: ReadonlySet<string>): string {
+    return (
+      Stuff._recognitionFace()?.salientFeaturesOf(this, covered) ??
+      this.getPresentation()
+    );
+  }
+
+  /** The keywords `viewer` may target this by (worn features included
+   * for a stranger — `look vest` resolves them). */
+  perceivedKeywordsFor(viewer: Stuff): string[] {
+    return Stuff._recognitionFace()?.perceivedKeywords(viewer, this) ?? [];
+  }
+
+  /**
+   * The wire-tag kind this reads as to `viewer` (undefined viewer:
+   * logs/snapshots — the object's own truth). A fooled viewer is told
+   * the disguise's answer, deliberately.
+   */
+  kindFor(viewer?: Stuff): RefKind {
+    return Stuff._recognitionFace()?.kindOf(viewer, this) ?? 'thing';
   }
 
   /** The pure identity synthesis; see `getPresentation` for the seam. */

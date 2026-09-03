@@ -287,7 +287,7 @@ faithful manual build mints the **can-make** deed **and** transcribes the
 recipe-script — the *same act*. `make <catalogue-recipe>` declines until
 you can-make it; a player's own non-catalogue `def` is ungated (you wrote
 it). Claim and deed use **distinct keys** (`recipe-known:` /
-`recipe-made:`) because `ChronicleApi.recordOnce` dedups on `{owner, key}`
+`recipe-made:`) because `recordChronicleOnce` dedups on `{owner, key}`
 regardless of kind. `ScriptLogic.invoke` auto-loads a learned home
 recipe-script by name, so `make martini` finds the banked script after the
 first build.

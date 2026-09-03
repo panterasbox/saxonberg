@@ -13,38 +13,22 @@ import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { HasInteractive } from '../../../lib/connection/HasInteractive';
 import { EventApi } from '../../../api/event';
 import { Events } from '../../../lib/events';
-import geoip from 'geoip-lite';
 import type { ConnectionOrigin } from '../../../api/connection';
 
 const ConnectionApiCallers = SecurityPolicies.FromModule('/api/connection#ConnectionApi'
 );
+/**
+ * The Interactive method surface (Phase E) forwards here as the
+ * proxied `Interactive` instance, so the four methods it owns admit
+ * that class alongside the Api face.
+ */
+const ConnectionCallers = SecurityPolicies.AnyOf(
+  ConnectionApiCallers,
+  SecurityPolicies.FromModule('/platform/idea/Interactive'),
+);
 
 /** ISO-3166 alpha-2 → English region display name (e.g. `DE` → `Germany`). */
-const REGION_NAMES = new Intl.DisplayNames(['en'], { type: 'region' });
 
-/**
- * Resolve an IP to a country display name via the offline `geoip-lite`
- * dataset. Returns `undefined` for localhost / private / unroutable IPs
- * (no country) and on any lookup failure. Strips an IPv6-mapped-v4
- * prefix (`::ffff:127.0.0.1` → `127.0.0.1`) so dev/proxy addresses
- * resolve. Country is the only datum derived — never city/region here.
- */
-function geolocateCountry(ip: string): string | undefined {
-  try {
-    const normalized = ip.startsWith('::ffff:') ? ip.slice(7) : ip;
-    const hit = geoip.lookup(normalized);
-    if (!hit?.country) {
-      // Dev-only fallback: localhost / private IPs never geolocate, so a
-      // local session would never show a country. When `DEV_GEO_COUNTRY`
-      // is set, treat an unresolved IP as coming from it — a testing knob
-      // only (production has real client IPs via X-Forwarded-For).
-      return process.env.DEV_GEO_COUNTRY || undefined;
-    }
-    return REGION_NAMES.of(hit.country) ?? hit.country;
-  } catch {
-    return undefined;
-  }
-}
 
 /**
  * ⭐ **Per-socket inbound sequencing** — two lanes, and the reason
@@ -160,13 +144,6 @@ export class ConnectionLogic extends ApiLogic {
     outOfBandChains.delete(socketId);
   }
 
-  /** See {@link ConnectionApi.recordOrigin}. */
-  @CallSecurity(ConnectionApiCallers)
-  public recordOrigin(interactive: Interactive, ip: string | undefined): void {
-    if (!ip) return;
-    interactive.setOrigin({ ip, country: geolocateCountry(ip) });
-  }
-
   /** See {@link ConnectionApi.originOf}. */
   @CallSecurity(ConnectionApiCallers)
   public originOf(playerId: string): ConnectionOrigin {
@@ -208,8 +185,8 @@ export class ConnectionLogic extends ApiLogic {
     return ConnectionManager.get().getSocketIds();
   }
 
-  /** See {@link ConnectionApi.transfer}. */
-  @CallSecurity(ConnectionApiCallers)
+  /** See {@link Interactive.transferTo}. */
+  @CallSecurity(ConnectionCallers)
   public transfer(
     interactive: Interactive,
     target: HasInteractive & Stuff
@@ -248,8 +225,8 @@ export class ConnectionLogic extends ApiLogic {
     });
   }
 
-  /** See {@link ConnectionApi.detach}. */
-  @CallSecurity(ConnectionApiCallers)
+  /** See {@link Interactive.detach}. */
+  @CallSecurity(ConnectionCallers)
   public detach(interactive: Interactive): void {
     const previous = interactive.getHolder();
     if (!previous) return;
@@ -263,14 +240,14 @@ export class ConnectionLogic extends ApiLogic {
     }
   }
 
-  /** See {@link ConnectionApi.sendMessage}. */
-  @CallSecurity(ConnectionApiCallers)
+  /** See {@link Interactive.sendMessage}. */
+  @CallSecurity(ConnectionCallers)
   public sendMessage(interactive: Interactive, frame: MessageFrame): void {
     Application.get().sendMessageToInteractive(interactive, frame);
   }
 
-  /** See {@link ConnectionApi.sendEnvelope}. */
-  @CallSecurity(ConnectionApiCallers)
+  /** See {@link Interactive.sendEnvelope}. */
+  @CallSecurity(ConnectionCallers)
   public sendEnvelope(
     interactive: Interactive,
     template: EnvelopeTemplate

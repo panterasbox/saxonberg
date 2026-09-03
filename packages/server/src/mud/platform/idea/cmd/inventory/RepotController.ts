@@ -22,7 +22,6 @@ import { Mml } from '../../../../api/mml';
 import { ContainmentApi } from '../../../../api/containment';
 import { MixinApi } from '../../../../api/mixin';
 import { PersistableApi } from '../../../../api/persistable';
-import { AdvancementApi } from '../../../../api/advancement';
 import { PLANT_SLOT } from '../../../../lib/husbandry/Cultivable';
 
 const TOPIC = 'act.deed';
@@ -187,7 +186,8 @@ export default class RepotController extends CommandController<RepotModel> {
     // the remedy, and acted — so it grades by what was actually at stake,
     // which is how much root there was to disturb.
     try {
-      await AdvancementApi.recordDeed(giver, {
+      if (MixinApi.isAdvancing(giver))
+        await giver.creditDeed({
         discipline: 'horticulture',
         difficulty,
         outcome: 'success',

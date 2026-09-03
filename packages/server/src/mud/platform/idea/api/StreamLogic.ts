@@ -151,7 +151,7 @@ export class StreamLogic extends ApiLogic {
     for (const playerId of players) {
       const avatar = PlayerApi.findAvatarByPlayerId(playerId);
       if (!avatar) continue;
-      MessageApi.sendMessage(avatar, {
+      avatar.onMessage({
         id: `stream-end-${key}-${playerId}`,
         topic: `world.${service}.message`,
         tags: ['audience:witness'],

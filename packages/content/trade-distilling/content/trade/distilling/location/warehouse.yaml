@@ -11,6 +11,13 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
+  # ⚠ `coords:` is the MEMBERSHIP operation — `setCoords` is the only way
+  # an authored row joins a zone, so without it this floor was in no grid
+  # and inherited nothing from one. See the zone row beside it.
+  coords:
+    x: 2
+    y: 0
+    z: 0
   shortDescription: a warehouse
   primaryKeyword: warehouse
   keywords: [warehouse, store, depot]

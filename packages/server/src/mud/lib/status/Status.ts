@@ -18,9 +18,9 @@
  * authored field.
  *
  * A **presence decoration, not an identity affix.** The status is NOT
- * part of `getPresentation()` / `RecognitionApi.describe` (those are pure
+ * part of `getPresentation()` / `describeFor` (those are pure
  * identity) — it weaves in only through
- * `RecognitionApi.describeWithStatus`, which the presence-scan surfaces
+ * `describeWithStatusFor`, which the presence-scan surfaces
  * call: the room occupant roll-call ("…, watching the empty road") and
  * the profile. Act-subject naming ("Bob says …", "Bob arrives") uses the
  * status-free `describe`, so the idle status never contradicts the act in

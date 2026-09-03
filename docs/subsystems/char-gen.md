@@ -449,7 +449,7 @@ sequence, in order:
    the species is in place to avoid hydration-order coupling).
 5. **Dress in the aspiration's themed outfit** — best-effort: each
    garment is cloned, moved onto the avatar (`ContainmentApi.move`), and
-   its body-plan slot claims occupied (`SlotApi.occupyAll`), narrowed
+   its body-plan slot claims occupied (`occupyAll`), narrowed
    with `MixinApi.isContainable`/`isWearable`/`isSlotted`. Missing
    garments or slot mismatches are skipped (content may lag).
 6. **Hand off**: `ConnectionApi.transfer(interactive, avatar)`, then

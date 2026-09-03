@@ -10,6 +10,7 @@ help: |
   or armor, reach for `remove` instead.
 validators:
   - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
   - /lib/command/validators/requiresSlotted
   - /lib/command/validators/requiresEmbodied
 args:

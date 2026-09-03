@@ -17,10 +17,11 @@ import { StuffApi } from "../../../api/stuff";
 import { AppApi } from "../../../api/app";
 import { SpeciesApi } from "../../../api/species";
 import { PartyApi } from "../../../api/party";
-import { ChronicleApi } from "../../../api/chronicle";
-import { RegardApi } from "../../../api/regard";
-import { AdvancementApi } from "../../../api/advancement";
 import { PerceptionApi } from "../../../api/perception";
+import { ContainmentApi } from "../../../api/containment";
+import { Postures } from "../../../lib/slot/Postured";
+import type { Container } from "../../../lib/spatial/Container";
+import type { Containable } from "../../../lib/spatial/Containable";
 import { ShellApi } from "../../../api/shell";
 import { AppSettingKeys } from "../../../lib/config/AppSettings";
 import { AccountabilityApi } from "../../../api/accountability";
@@ -56,6 +57,7 @@ import {
   CombatHookContext,
   type CombatConsequence,
   type CombatVenue,
+  type CombatSanctuary,
   type ExchangeOutcomeKind,
 } from "../../../lib/combat/CombatHookContext";
 import type { CombatReactive } from "../../../lib/combat/CombatReactive";
@@ -116,6 +118,42 @@ import type {
 } from "../../../api/combat";
 
 const CombatApiCallers = SecurityPolicies.FromModule("/api/combat#CombatApi");
+/** The G1 combatant face forwards here as the acting instance. */
+const CombatantCallers = SecurityPolicies.AnyOf(
+  CombatApiCallers,
+  SecurityPolicies.FromMixin("CombatantMixin", {
+    // Compare by stuffId — the caller may surface as the raw target
+    // while the argument is the proxy (or vice versa).
+    where: (caller, _target, _method, args) =>
+      (caller as { stuffId?: string }).stuffId !== undefined &&
+      (caller as { stuffId?: string }).stuffId ===
+        (args[0] as { stuffId?: string } | undefined)?.stuffId,
+  }),
+);
+/** Combatant-face methods whose SUBJECT is the second argument. */
+const CombatantArg1Callers = SecurityPolicies.AnyOf(
+  CombatApiCallers,
+  SecurityPolicies.FromMixin("CombatantMixin", {
+    // Compare by stuffId — the caller may surface as the raw target
+    // while the argument is the proxy (or vice versa).
+    where: (caller, _target, _method, args) =>
+      (caller as { stuffId?: string }).stuffId !== undefined &&
+      (caller as { stuffId?: string }).stuffId ===
+        (args[1] as { stuffId?: string } | undefined)?.stuffId,
+  }),
+);
+/** The G1 weapon face (Wieldable hosts) forwards here as the item. */
+const WieldableCallers = SecurityPolicies.AnyOf(
+  CombatApiCallers,
+  SecurityPolicies.FromMixin("WieldableMixin", {
+    // Compare by stuffId — the caller may surface as the raw target
+    // while the argument is the proxy (or vice versa).
+    where: (caller, _target, _method, args) =>
+      (caller as { stuffId?: string }).stuffId !== undefined &&
+      (caller as { stuffId?: string }).stuffId ===
+        (args[0] as { stuffId?: string } | undefined)?.stuffId,
+  }),
+);
 
 /** Default combat brain for a non-player combatant. */
 const DEFAULT_COMBAT_BRAIN = "/lib/behavior/combatant";
@@ -171,7 +209,7 @@ export class CombatLogic extends ApiLogic {
     mergeImpl(a, b);
   }
 
-  @CallSecurity(CombatApiCallers)
+  @CallSecurity(CombatantCallers)
   public queueGambit(actor: Stuff, gambitKey: string): GambitEligibility {
     const session = sessionForImpl(actor);
     if (!session) return { ok: false, reason: "not-in-combat" };
@@ -182,7 +220,7 @@ export class CombatLogic extends ApiLogic {
     return { ok: true };
   }
 
-  @CallSecurity(CombatApiCallers)
+  @CallSecurity(CombatantCallers)
   public eligibilityFor(actor: Stuff, gambitKey: string): GambitEligibility {
     return eligibilityImpl(actor, gambitKey);
   }
@@ -192,7 +230,7 @@ export class CombatLogic extends ApiLogic {
     return sessionForImpl(combatant);
   }
 
-  @CallSecurity(CombatApiCallers)
+  @CallSecurity(CombatantCallers)
   public async initiate(
     initiator: Stuff,
     target: Stuff,
@@ -214,7 +252,7 @@ export class CombatLogic extends ApiLogic {
     return standingTermsImpl(combatant, lethal, to);
   }
 
-  @CallSecurity(CombatApiCallers)
+  @CallSecurity(CombatantCallers)
   public resolveThrown(
     thrower: Stuff,
     target: Stuff,
@@ -229,12 +267,12 @@ export class CombatLogic extends ApiLogic {
     return resolveThrownImpl(thrower, target, contents, splash);
   }
 
-  @CallSecurity(CombatApiCallers)
+  @CallSecurity(CombatantCallers)
   public splashSetFor(target: Stuff): Stuff[] {
     return splashSetForImpl(target);
   }
 
-  @CallSecurity(CombatApiCallers)
+  @CallSecurity(CombatantCallers)
   public mayDeliverTo(
     thrower: Stuff,
     primary: Stuff,
@@ -248,12 +286,12 @@ export class CombatLogic extends ApiLogic {
     return arenaMaxBandFor(who);
   }
 
-  @CallSecurity(CombatApiCallers)
+  @CallSecurity(CombatantCallers)
   public bandBetween(a: Stuff, b: Stuff): RangeState | null {
     return bandBetweenImpl(a, b);
   }
 
-  @CallSecurity(CombatApiCallers)
+  @CallSecurity(CombatantCallers)
   public yieldFight(actor: Stuff): boolean {
     const session = sessionForImpl(actor);
     if (!session) return false;
@@ -262,6 +300,35 @@ export class CombatLogic extends ApiLogic {
     endWith(session, "yield", actor, opp);
     if (opp) runResolutionConsumers(session, opp, actor, false, false);
     return true;
+  }
+
+  @CallSecurity(WieldableCallers)
+  public isWeapon(item: Stuff): boolean {
+    return isWeaponItem(item);
+  }
+
+  @CallSecurity(CombatantArg1Callers)
+  public visibleArms(
+    viewer: Stuff,
+    subject: Stuff,
+    attention?: number,
+  ): Stuff[] {
+    return visibleArmsImpl(viewer, subject, attention);
+  }
+
+  @CallSecurity(CombatantCallers)
+  public offerBreak(
+    actor: Stuff,
+  ): { ok: boolean; reason?: string; broke: boolean } {
+    return offerBreakImpl(actor);
+  }
+
+  @CallSecurity(CombatantCallers)
+  public async bumRush(
+    actor: Stuff,
+    direction: string,
+  ): Promise<{ ok: boolean; reason?: string }> {
+    return bumRushImpl(actor, direction);
   }
 
   @CallSecurity(CombatApiCallers)
@@ -276,17 +343,17 @@ export class CombatLogic extends ApiLogic {
     return AccountabilityApi.eventsForSession(sessionId);
   }
 
-  @CallSecurity(CombatApiCallers)
+  @CallSecurity(CombatantCallers)
   public intervene(actor: Stuff, target: Stuff): boolean {
     return interveneImpl(actor, target);
   }
 
-  @CallSecurity(CombatApiCallers)
+  @CallSecurity(CombatantCallers)
   public orderCoup(captain: Stuff): { ok: boolean; reason?: string } {
     return orderCoupImpl(captain);
   }
 
-  @CallSecurity(CombatApiCallers)
+  @CallSecurity(CombatantCallers)
   public defendAlly(
     interposer: Stuff,
     ally: Stuff,
@@ -294,37 +361,37 @@ export class CombatLogic extends ApiLogic {
     return defendAllyImpl(interposer, ally);
   }
 
-  @CallSecurity(CombatApiCallers)
+  @CallSecurity(CombatantCallers)
   public disengage(actor: Stuff): { ok: boolean; message?: string } {
     return disengageImpl(actor);
   }
 
-  @CallSecurity(CombatApiCallers)
+  @CallSecurity(CombatantCallers)
   public assess(actor: Stuff, target: Stuff): CombatAssessResult {
     return assessImpl(actor, target);
   }
 
-  @CallSecurity(CombatApiCallers)
+  @CallSecurity(WieldableCallers)
   public weaponProfileOf(weapon: Stuff): WeaponProfile | null {
     return weaponProfileOfImpl(weapon);
   }
 
-  @CallSecurity(CombatApiCallers)
+  @CallSecurity(CombatantCallers)
   public perceive(actor: Stuff): CombatAssessResult {
     return perceiveImpl(actor);
   }
 
-  @CallSecurity(CombatApiCallers)
+  @CallSecurity(CombatantCallers)
   public rangeStanding(actor: Stuff): RangeStanding | null {
     return rangeStandingImpl(actor);
   }
 
-  @CallSecurity(CombatApiCallers)
+  @CallSecurity(CombatantCallers)
   public formationStandingOf(actor: Stuff): FormationStanding {
     return formationStandingOfImpl(actor);
   }
 
-  @CallSecurity(CombatApiCallers)
+  @CallSecurity(CombatantCallers)
   public beginSwitch(
     actor: Stuff,
     target: Stuff,
@@ -332,12 +399,12 @@ export class CombatLogic extends ApiLogic {
     return beginSwitchImpl(actor, target, false);
   }
 
-  @CallSecurity(CombatApiCallers)
+  @CallSecurity(CombatantCallers)
   public drawSidearm(actor: Stuff): { ok: boolean; reason?: string } {
     return drawSidearmImpl(actor);
   }
 
-  @CallSecurity(CombatApiCallers)
+  @CallSecurity(CombatantCallers)
   public influence(
     combatant: Stuff,
     instruction: CombatInfluence,
@@ -952,6 +1019,19 @@ function openSessionImpl(
   if (!MixinApi.isEngaged(initiator) || !MixinApi.isEngaged(defender)) {
     return { ok: false, reason: "not-engageable" };
   }
+  // Sanctuary: a room may refuse a fight from starting (the lounge, the
+  // social commons). Consulted before ANY state is built, so a refusal is
+  // clean — no session, no holds, no ledger rows. Every fight-starter
+  // funnels here, so this one gate covers the attack verb, ambush brains,
+  // thrown attacks, and forced NPC commands alike.
+  const sanctuaryRefusal = sanctuaryRefusalFor(
+    venueOf(initiator),
+    initiator,
+    defender,
+  );
+  if (sanctuaryRefusal !== null) {
+    return { ok: false, reason: "sanctuary", refusal: sanctuaryRefusal };
+  }
   // A combatant already engaged in a fight can't open a fresh session
   // (a second attacker joins the existing one — cycle-2 Phase 4).
   if (
@@ -1111,6 +1191,7 @@ function deriveState(combatant: Stuff & Engaged): CombatantState {
     tempo,
     flags: new CombatFlags(),
     queuedGambit: null,
+    breakOfferedBeat: null,
     weaponSwitch: null,
     brainPath: brainPathFor(combatant),
     brainConfig: {},
@@ -1130,7 +1211,7 @@ function deriveState(combatant: Stuff & Engaged): CombatantState {
  * The competence band the caller snapshotted for this combatant (keyed by
  * durable `templatePath`), or `untrained` when no controller resolved it
  * (bare/test/gym/NPC-vs-NPC paths). Synchronous by construction — the async
- * `AdvancementApi.bandFor` is awaited by the controller *before* open, never
+ * the combatant's `competenceBandFor` is awaited by the controller *before* open, never
  * mid-beat, so a single session stays deterministic.
  */
 function bandFromOpts(
@@ -2045,6 +2126,30 @@ function instrumentDeliveryScale(
 }
 
 /**
+ * The mass-energy factor for a `massScaled` natural attack (the fisticuffs
+ * build): `clamp(baseMass / energyRefMassKg, min, max)` — a heavier body's
+ * fist hits harder. Neutral (1) for a wielded weapon, a non-mass-scaled
+ * innate (every shipped beast), or a striker with no body read — so this
+ * is byte-identical everywhere the flag is absent. Orthogonal to the
+ * reach/balance strike profile (that shapes the poise contest; this
+ * scales the delivered energy).
+ */
+function naturalMassScale(
+  attacker: Stuff,
+  spec: NaturalAttackSpec | null,
+): number {
+  if (!spec?.massScaled) return 1;
+  const bodyMass = MixinApi.isOrganism(attacker)
+    ? (attacker.getSpecies()?.getBodyPlan()?.getBaseMass() ?? 0)
+    : 0;
+  const ref = dial(AppSettingKeys.combatNaturalEnergyRefMassKg, 70);
+  if (!(bodyMass > 0) || !(ref > 0)) return 1;
+  const min = dial(AppSettingKeys.combatNaturalEnergyScaleMin, 0.5);
+  const max = dial(AppSettingKeys.combatNaturalEnergyScaleMax, 2.5);
+  return Math.min(max, Math.max(min, bodyMass / ref));
+}
+
+/**
  * Wear-on-use for a landed weapon strike (Law 2: use, never the clock):
  * the weapon's structural condition wears per strike, and an edge/point
  * delivery also dulls the working surface (the fast-cycling keenness
@@ -2076,6 +2181,7 @@ function commitInflict(
   const instrument = resolveInstrument(actorState);
   const weapon = instrument?.weapon ?? null;
   let channel: Channel = instrument?.channel ?? "blunt";
+  let innateSpec: NaturalAttackSpec | null = null;
   // The species rotation (DECISION L): an innate striker cycles its
   // natural attacks by SESSION BEAT (`rotationIndex` — deterministic;
   // two strikes in one beat use the same attack). A single-entry list
@@ -2085,7 +2191,10 @@ function commitInflict(
   if (instrument && !weapon) {
     const attacks = naturalAttacksFor(attacker);
     const rotated = attacks[rotationIndex(session, attacks.length)];
-    if (rotated) channel = rotated.channel;
+    if (rotated) {
+      channel = rotated.channel;
+      innateSpec = rotated;
+    }
   }
   const site = siteFor(target, bandForEnergy === "open");
 
@@ -2113,7 +2222,8 @@ function commitInflict(
   const energy =
     energyFor(bandForEnergy) *
     (energyScale > 0 ? energyScale : 1) *
-    instrumentDeliveryScale(weapon, channel);
+    instrumentDeliveryScale(weapon, channel) *
+    naturalMassScale(attacker, innateSpec);
   let spec: EnergyInflictSpec = {
     mechanism: channel,
     site,
@@ -2408,6 +2518,34 @@ function callVenueHook(
   );
 }
 
+/**
+ * Presence-dispatch the sanctuary veto (the `callVenueHook` shape, but it
+ * RETURNS): a room implementing {@link CombatSanctuary.combatSanctuaryRefusal}
+ * may return refusal prose to forbid a fight; absent hook, or a null
+ * return, allows it. A null room (unplaced initiator) never refuses. A
+ * hook that throws is treated as "no refusal" (fail-open — a broken venue
+ * never traps a player in an un-startable fight), logged via guardedHook.
+ */
+function sanctuaryRefusalFor(
+  room: Stuff | null,
+  initiator: Stuff,
+  defender: Stuff,
+): string | null {
+  if (!room) return null;
+  const fn = (room as unknown as Record<string, unknown>)
+    .combatSanctuaryRefusal;
+  if (typeof fn !== "function") return null;
+  let refusal: string | null = null;
+  guardedHook("combatSanctuaryRefusal", () => {
+    refusal =
+      (fn as CombatSanctuary["combatSanctuaryRefusal"])!.apply(room, [
+        initiator,
+        defender,
+      ]) ?? null;
+  });
+  return refusal;
+}
+
 /** Flavor lines queued by hooks (`ctx.attachFlavor`), buffered so they
  * emit AFTER the exchange's own narration beat, in queue order. */
 const pendingFlavor: Array<{ anchor: Stuff; line: string }> = [];
@@ -2522,7 +2660,7 @@ function applyConsequence(
       return {
         consequence: c,
         shock: ctx.target
-          ? ElectricityApi.shockContact(c.source, ctx.target)
+          ? c.source.shockContact(ctx.target)
           : [],
       };
     case "flavor": {
@@ -3012,6 +3150,166 @@ function checkFirstBlood(session: CombatSession, report: InflictReport): void {
   }
 }
 
+/* ───────────────────────── the truce + the bum's rush ───────────────────────── */
+
+/** Does a threat edge run between these two in either direction? */
+function edgedBetween(
+  session: CombatSession,
+  a: Stuff,
+  b: Stuff,
+): boolean {
+  const g = session.getGraph();
+  return !!(g.edgeBetween(a, b) ?? g.edgeBetween(b, a));
+}
+
+/** Does this combatant still have any threat edge to anyone? */
+function hasAnyThreatEdge(session: CombatSession, who: Stuff): boolean {
+  for (const s of session.getStates()) {
+    if (s.combatant === who) continue;
+    if (edgedBetween(session, who, s.combatant)) return true;
+  }
+  return false;
+}
+
+/** Are there NO threat edges left anywhere in the session? */
+function sessionHasNoThreatEdges(session: CombatSession): boolean {
+  const states = session.getStates();
+  for (let i = 0; i < states.length; i++) {
+    for (let j = i + 1; j < states.length; j++) {
+      const a = states[i]!.combatant;
+      const b = states[j]!.combatant;
+      if (edgedBetween(session, a, b)) return false;
+    }
+  }
+  return true;
+}
+
+/**
+ * `fight break` — offer a mutual stand-down. The offer resolves the
+ * actor's beat as a **defend** (cover up — offering while they keep
+ * swinging is a real risk) and stands for the current + next beat. When
+ * BOTH ends of a threat edge hold a fresh offer, the edge dissolves; a
+ * combatant whose last edge dissolves leaves the fight; a session with no
+ * edges left resolves as a **draw** — no victor, no defeat, no yield loser
+ * (yield concedes and records a loss; break does not — which is what makes
+ * backing down chooseable). Distinct from yield by that alone.
+ */
+function offerBreakImpl(
+  actor: Stuff,
+): { ok: boolean; reason?: string; broke: boolean } {
+  const session = sessionForImpl(actor);
+  if (!session) return { ok: false, reason: "not-in-combat", broke: false };
+  const state = session.getState(actor);
+  if (!state || state.down) {
+    return { ok: false, reason: "not-in-combat", broke: false };
+  }
+  const beat = session.getBeat();
+  // Cover up this beat and post the offer.
+  state.queuedGambit = "defend";
+  state.breakOfferedBeat = beat;
+
+  const graph = session.getGraph();
+  // Reciprocated fresh offers dissolve the edge (collect first, then act —
+  // removeParticipant mutates the state set).
+  const toDrop: Array<Stuff> = [];
+  for (const opp of session.getStates()) {
+    if (opp.combatant === actor) continue;
+    if (!edgedBetween(session, actor, opp.combatant)) continue;
+    const fresh =
+      opp.breakOfferedBeat !== null && beat - opp.breakOfferedBeat <= 1;
+    if (fresh) toDrop.push(opp.combatant);
+  }
+  for (const opp of toDrop) {
+    graph.removeEdge(actor, opp);
+    graph.removeEdge(opp, actor);
+  }
+  const broke = toDrop.length > 0;
+  if (broke && session.isActive()) {
+    if (sessionHasNoThreatEdges(session)) {
+      // The whole fight stood down — a mutual break: end with no victor.
+      // (Resolve BEFORE any removeParticipant, whose empty-side auto-
+      // dissolve would otherwise pre-empt the draw resolution.)
+      endWith(session, "draw");
+    } else {
+      // A partial break in a multi-party fight: anyone now edgeless walks
+      // away, and the fight continues for the rest. Snapshot first —
+      // removeParticipant mutates the state set.
+      const leaving = session
+        .getStates()
+        .map((s) => s.combatant)
+        .filter((c) => !hasAnyThreatEdge(session, c));
+      for (const c of leaving) session.removeParticipant(c);
+    }
+  }
+  return { ok: true, broke };
+}
+
+/**
+ * `fight rush <direction>` — the bum's rush: a control winner throws a
+ * **grappled** foe out through an exit. A general combat outcome, not a
+ * Dave feature — any control winner, any exit. The loser leaves the
+ * session (dissolving it if a side empties) and is relocated
+ * teleport-style (`ContainmentApi.move`, not `traverse` — the loser isn't
+ * *acting*; the containment witnesses still fire) and lands sprawled
+ * (`Postures.Lie`). Rushing spends the actor's beat.
+ */
+async function bumRushImpl(
+  actor: Stuff,
+  direction: string,
+): Promise<{ ok: boolean; reason?: string }> {
+  const session = sessionForImpl(actor);
+  if (!session) return { ok: false, reason: "not-in-combat" };
+  const graph = session.getGraph();
+  // A grappled foe on an edge FROM the actor (subdue's flagOnLand).
+  let target: Stuff | null = null;
+  for (const opp of session.getStates()) {
+    if (opp.combatant === actor) continue;
+    if (!graph.edgeBetween(actor, opp.combatant)) continue;
+    if (opp.flags.has("grappled")) {
+      target = opp.combatant;
+      break;
+    }
+  }
+  if (!target) return { ok: false, reason: "no-hold" };
+
+  const room = venueOf(actor);
+  const exit =
+    room && MixinApi.isExitable(room) ? room.getExit(direction) : undefined;
+  if (!exit) return { ok: false, reason: "no-exit" };
+  let dest: Stuff & Container;
+  try {
+    dest = await exit.resolveDestination();
+  } catch {
+    return { ok: false, reason: "no-exit" };
+  }
+  if (!MixinApi.isContainable(target)) {
+    return { ok: false, reason: "no-exit" };
+  }
+
+  const actorState = session.getState(actor);
+  if (actorState) actorState.queuedGambit = null; // the rush spends the beat
+
+  // Narrate before the move (both rooms hear it). `room` is non-null here
+  // (the exit came from it), but narrow explicitly for the compiler.
+  const rushedName = presentationOf(target);
+  const rusherName = presentationOf(actor);
+  if (room) {
+    CombatNarration.narrateFlavor(
+      room,
+      `${rusherName} hurls ${rushedName} out through the ${direction} exit.`,
+    );
+  }
+
+  session.removeParticipant(target); // leaves the fight (dissolves if empty)
+  ContainmentApi.move(target as Stuff & Containable, dest as Stuff & Container);
+  if (MixinApi.isPosed(target)) target.setPosture(Postures.Lie);
+  CombatNarration.narrateFlavor(
+    dest as Stuff,
+    `${rushedName} comes sprawling in, thrown clear of a fight.`,
+  );
+  return { ok: true };
+}
+
 /**
  * A downed combatant lost the poise contest — the **three-case** severity
  * keying (Build 2):
@@ -3259,6 +3557,12 @@ function eligibilityImpl(actor: Stuff, gambitKey: string): GambitEligibility {
   const state = session.getState(actor);
   if (!state) return { ok: false, reason: "not-in-combat" };
   if (state.down) return { ok: false, reason: "downed" };
+  // Tetany seizes the muscles: a shocked fighter cannot queue a gambit.
+  // The command validators don't run inside `fight` subcommand dispatch,
+  // so the gate lives here too (the bar-fight build's stun-baton window).
+  if (MixinApi.isVitals(actor) && actor.isTetanized()) {
+    return { ok: false, reason: "tetanized" };
+  }
 
   if (spec.needsInstrument && resolveInstrument(state) === null) {
     return { ok: false, reason: "no-instrument" };
@@ -3465,6 +3769,49 @@ function completeSwitch(state: CombatantState): void {
   reDeriveTempo(state);
 }
 
+/**
+ * The weapons a `viewer` can SEE on a `subject`: wielded weapons always
+ * (drawn steel is obvious), sheathed/carried ones only when the viewer
+ * actually perceives them (`PerceptionApi.perceives` at the given
+ * attention) — so a well-concealed blade that beats the watcher's
+ * alertness got in, legitimately, and `search` is the counterplay. The
+ * doorman's read for the weapons-check house rule; no frisk verb.
+ */
+function visibleArmsImpl(
+  viewer: Stuff,
+  subject: Stuff,
+  attention?: number,
+): Stuff[] {
+  const seen = new Set<Stuff>();
+  const out: Stuff[] = [];
+  const add = (w: Stuff): void => {
+    if (!seen.has(w)) {
+      seen.add(w);
+      out.push(w);
+    }
+  };
+  // Wielded weapons — no perception check, drawn steel is plain.
+  for (const w of allWieldedWeapons(subject)) add(w);
+  if (MixinApi.isSlotted(subject)) {
+    for (const occ of subject.getOccupants("sidearm")) {
+      if (isWeaponItem(occ) && PerceptionApi.perceives(viewer, occ, attention)) {
+        add(occ as Stuff);
+      }
+    }
+  }
+  if (MixinApi.isContainer(subject)) {
+    for (const item of subject.getContents()) {
+      if (
+        isWeaponItem(item) &&
+        PerceptionApi.perceives(viewer, item, attention)
+      ) {
+        add(item as Stuff);
+      }
+    }
+  }
+  return out;
+}
+
 /** A backup weapon the actor can draw — a dedicated `sidearm` sheath slot
  * first, else any carried (inventory) weapon that isn't the wielded one. */
 function findBackupWeapon(actor: Stuff): Stuff | null {
@@ -3535,6 +3882,7 @@ function clamp01(n: number): number {
 /** The combat Disciplines credit accrues to (seeded as data). */
 const MELEE_DISCIPLINE = "melee-combat";
 const BLADES_DISCIPLINE = "blades";
+const UNARMED_DISCIPLINE = "unarmed";
 const COMMAND_DISCIPLINE = "command";
 
 /* ───────────────────────── blame ledger ───────────────────────── */
@@ -3569,6 +3917,9 @@ export interface InitiateResult {
   reason?: string;
   terms?: CombatTerms;
   consented?: boolean;
+  /** Player-readable prose when a sanctuary refused the fight
+   * (`reason === "sanctuary"`); the controller renders it verbatim. */
+  refusal?: string;
 }
 
 /**
@@ -3637,7 +3988,9 @@ async function snapshotBandsImpl(
     try {
       competenceBands.set(
         key,
-        await AdvancementApi.bandFor(c, MELEE_COMBAT_DISCIPLINE),
+        MixinApi.isAdvancing(c)
+          ? await c.competenceBandFor(MELEE_COMBAT_DISCIPLINE)
+          : CompetenceBand.FLOOR,
       );
     } catch {
       // Unresolved → the combatant defaults to `untrained` sharpness.
@@ -3833,7 +4186,7 @@ async function initiateImpl(
   // otherwise a fresh session opens.
   const initiatorSession = sessionForImpl(initiator);
   const targetSession = sessionForImpl(target);
-  let result: { ok: boolean; reason?: string };
+  let result: { ok: boolean; reason?: string; refusal?: string };
   if (
     initiatorSession &&
     targetSession &&
@@ -3847,9 +4200,17 @@ async function initiateImpl(
     result = joinImpl(target, initiator, terms, opts);
   } else {
     const opened = openSessionImpl(initiator, target, terms, opts);
-    result = opened.ok ? { ok: true } : { ok: false, reason: opened.reason };
+    result = opened.ok
+      ? { ok: true }
+      : { ok: false, reason: opened.reason, refusal: opened.refusal };
   }
-  if (!result.ok) return { ok: false, reason: result.reason ?? "failed" };
+  if (!result.ok) {
+    return {
+      ok: false,
+      reason: result.reason ?? "failed",
+      refusal: result.refusal,
+    };
+  }
   return { ok: true, terms, consented };
 }
 
@@ -4172,7 +4533,8 @@ function orderCoupImpl(captain: Stuff): { ok: boolean; reason?: string } {
     if (!coupEligible(pending.executioner, victim)) {
       return { ok: false, reason: "moment-passed" };
     }
-    void AdvancementApi.recordDeed(captain, {
+    if (MixinApi.isAdvancing(captain))
+      void captain.creditDeed({
       discipline: COMMAND_DISCIPLINE,
       difficulty: "standard",
       outcome: "success",
@@ -4433,7 +4795,9 @@ function runResolutionConsumers(
       : `Bested ${vName} in a duel.`;
     const tags = ["combat", killed ? "kill" : "victory"];
     if (crime) tags.push("crime");
-    void ChronicleApi.recordDeed(victor, { text, tags }).catch(() => {});
+    if (MixinApi.isPersona(victor)) {
+      void victor.recordDeed({ text, tags }).catch(() => {});
+    }
   } catch {
     /* chronicle is best-effort */
   }
@@ -4442,7 +4806,7 @@ function runResolutionConsumers(
     : dial(AppSettingKeys.combatRegardDuelWin, 2);
   for (const w of roomBelievers(victor, [victor, vanquished])) {
     try {
-      RegardApi.adjustRegard(w, victor, delta);
+      if (MixinApi.isBeliefStore(w)) w.adjustRegard(victor, delta);
     } catch {
       /* skip a witness that can't hold regard */
     }
@@ -4496,7 +4860,15 @@ function mintExchangeSignature(
   if (instr && (instr.channel === "edge" || instr.channel === "point")) {
     subs.push({ discipline: BLADES_DISCIPLINE, difficulty, outcome: result });
   }
-  void AdvancementApi.recordSignature(actor, { discipline: subs }).catch(
+  // The fisticuffs sibling of the blades credit: an innate-instrument
+  // exchange (no wielded weapon) additionally credits `unarmed`, so the
+  // brawler's and swordsman's transcripts diverge. An armed exchange
+  // never does.
+  if (instr && !instr.weapon) {
+    subs.push({ discipline: UNARMED_DISCIPLINE, difficulty, outcome: result });
+  }
+  if (MixinApi.isAdvancing(actor))
+    void actor.creditSignature({ discipline: subs }).catch(
     () => {},
   );
 }
@@ -4538,7 +4910,8 @@ function outcomeToResult(outcome: OutcomeKind): Outcome {
  */
 function mintCommandDeed(state: CombatantState, difficulty: Difficulty): void {
   if (state.brainPath) return;
-  void AdvancementApi.recordDeed(state.combatant, {
+  if (MixinApi.isAdvancing(state.combatant))
+    void state.combatant.creditDeed({
     discipline: COMMAND_DISCIPLINE,
     difficulty,
     outcome: "success",
@@ -4546,7 +4919,8 @@ function mintCommandDeed(state: CombatantState, difficulty: Difficulty): void {
 }
 
 function mintAssessSignature(actor: Stuff): void {
-  void AdvancementApi.recordDeed(actor, {
+  if (MixinApi.isAdvancing(actor))
+    void actor.creditDeed({
     discipline: MELEE_DISCIPLINE,
     difficulty: "standard",
     outcome: "success",

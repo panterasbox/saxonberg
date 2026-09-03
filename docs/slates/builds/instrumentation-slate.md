@@ -226,3 +226,240 @@ more, who gets to see more, and what do you give up to keep seeing?**
    whether Grade buys precision, durability, or both.
 7. **The species-intrinsic roster** — which senses any species gets
    natively, and whether that is a balance lever or purely flavor.
+
+---
+
+# Session addendum — 2026-09-01: the mechanism, and why the retrofit is now urgent
+
+> Captured while planning the metal-chain build, when the user reopened
+> this: *"all those analyze and measure commands that we've been putting
+> more and more shit into, I'm not really sure I want that as our model…
+> the way we're using subcommands here is maybe regrettable."*
+>
+> Everything above stands. This adds **the root cause**, **the concrete
+> model**, and **the reason it is blocking a build today**. Two of this
+> slate's open questions are answered at the bottom.
+
+## ⭐⭐⭐ The root cause: affordance and capability are at different grains
+
+This slate said *"`analyze` is what bypasses the architecture"* but not
+**why** the bypass was structurally invited. It is one mismatch:
+
+> **The unit of affordance is the VIEW. The unit of capability is the
+> SUBCOMMAND. They do not line up.**
+
+Verified in the code: `Sextant.commandContributions` names
+`platform/cmd/perception/measure.yaml` — **the whole view** — so a
+sextant on the table affords `measure temperature` and
+`measure humidity` too. The controller then re-checks by hand what the
+affordance system was never told:
+`MeasureAltitudeController` does `inv.some(i => i instanceof Altimeter)`.
+
+Every symptom follows from that one gap:
+
+- **controllers cross concerns** — each re-derives its own instrument check
+- **packs cannot extend** — a pack contributes a *view*, and the view is
+  the wrong grain (see § *Why this is blocking a build*)
+- **tool vs. eyeball cannot be expressed** — a tool affords a whole family
+- **the competence gate never got wired** — there is nowhere natural to
+  put it, and the evidence is stark: **zero of the 22 `measure`/`analyze`
+  controllers band on a discipline**, while `assess`, `feel`, `search` and
+  `hide` all do
+
+## One thing that is accidentally right, and should be doctrine
+
+`Avatar.commandContributions` includes `analyze` on **`self`** — and
+**not** `measure`. `measure` is afforded solely by the ten instruments in
+`platform/thing/instrument/`. So the split this slate wants half-exists
+already, by accident:
+
+> **`analyze` is what you can work out. `measure` is what an instrument
+> tells you.**
+
+## ⭐⭐ The model: the instrument holds the capability, not the view
+
+**`MeasuringMixin` on a Thing** — declares `channels: string[]` and
+implements `read(channel, ctx) → Reading`. The instrument owns *what it
+reads* and *how*.
+
+**One `measure` verb, one controller, no subcommands.** The channel is a
+**string positional**, resolved against the instruments in reach. This is
+the shipped **`cast <spell>`** shape — a free-text name resolved against
+real capability — and `cast` ships *from a pack* (`arcana`), so the
+precedent covers extension too.
+
+`cast` also brings the discoverability answer: *"`spells` lists what you
+can currently shape, **and how well**."* The same companion verb here —
+`readings` — lists what you can read and at what precision. **More honest
+than a static help list, and in-world: you learn what a dial does by
+examining the dial.**
+
+**Eyeballing is the body as an instrument**: the body composes the same
+mixin with a coarse precision and two or three channels (warm/cold,
+bright/dim). One model; tool-vs-eyeball becomes *which instrument
+answered*. The user's *"most measurement needs tools, eyeballing is the
+rare case"* falls out — the body declares almost nothing.
+
+⭐ **And the pack/platform split stops being a policy.** It is just where
+the instrument lives: platform ships the raw-physics instruments and their
+channels; a pack ships specialised ones. **No platform edit, no subcommand
+contribution, no kernel change.**
+
+### The line between a channel and a bespoke verb
+
+> **A reading is instant, non-destructive and repeatable — point the
+> instrument, get a number. A procedure costs time, material or risk to
+> produce knowledge.**
+>
+> **Readings are channels. Procedures are verbs.**
+
+So `measure strike` is a channel; **`assay` is a verb** (it crushes and
+roasts and consumes the sample); **sounding the back is a verb** (you
+strike the roof and listen).
+
+## ⭐⭐ Perceive vs. interpret — how this meets the sensory verbs
+
+The user's question: if `analyze` is self-conferred, it implies a
+modality — and we already have per-modality active-perception verbs. How
+do they play together?
+
+**They are not rivals. `PerceptionApi.sensorium` already is this model one
+rung in** — it *"walks BodyPlan organs + active-mixin `_grantsModalities`
+— organ-gates-modality with the augmentation widening."*
+
+> ⭐⭐ **The sensorium and the instrument set are one continuum — ways the
+> world becomes legible to you. Organs you were born with, augments you
+> had installed, instruments you carry.** Two of the three tiers ship.
+
+Two layers, cleanly separated:
+
+- **Perceive** — `look` / `smell` / `listen` / `feel` / `taste`, with
+  `sense` the gestalt. Acquire a percept through one modality.
+  Qualitative, free, no discipline. *"Acrid, sulfurous."*
+- **Interpret** — `analyze`. Reason about a fact. Discipline-banded.
+
+So `analyze` is rightly **self-conferred** — interpretation is always
+yours — and must be **route-gated**: you cannot interpret what you have no
+channel to. The route is *a modality or an instrument*, which is the same
+continuum again.
+
+> **You smell to notice. You analyze to know.** And a character with no
+> nose can still `analyze chemistry` — **with a gas analyzer.**
+
+**Each analysis declares which modalities can answer it** — one authored
+field, large payoff:
+
+| Question | Routes |
+|---|---|
+| ore grade | vision (colour) · an assay scale |
+| chemistry | smell · taste · a gas analyzer |
+| a weapon's balance | **touch** (heft) |
+| rot | smell · vision |
+| the back is drummy | **sound**, with a bar |
+
+⭐ **The output names the route it used.** *"You turn the lump over — by
+the weight of it, this is rich"* vs. *"the sourness on the air says
+sulfides."* Same question, different route, different prose: it teaches
+the model and hands authors variety for free. An optional explicit form
+(`analyze chemistry by smell`) costs nothing.
+
+⚠ **The failure must be loud.** `feel` and `taste` had *never run* because
+no body plan granted touch — a feature whose enabling data was missing
+failed closed and **silent**. No route means *"you have no way to tell,"*
+naming what is missing. This is the same warning as step 5 above, at the
+other end.
+
+### Modalities closed, channels open
+
+Seven `Modality` singletons versus a `ToolCapability`-style open
+vocabulary for instruments. Not an inconsistency: **bodies do not grow new
+senses by authoring, and instruments do.** A pack ships a dial with a new
+channel; a pack does not ship a new sense.
+
+## The implant rung — and it is this slate's own Wave 2+
+
+The user: *"people that go deep into one vocation may want to augment
+their bodies so they are always afforded the tools they use most often.
+there's limited aug slots so they have to choose carefully, but we want
+that path to be open to developers."*
+
+`augmentation.md` already names it — Wave 2+ adds *"the generalized
+'contribute capability' surface beyond modalities (verbs, motor, vital
+functions)."* **The instrument model is that surface's first real
+consumer.** The mechanism is the shipped `AugmentMixin.confers()`
+returning mixin names:
+
+- an augment conferring a **modality-granting** mixin widens the
+  **sensorium** (`AetherImplant` does this today);
+- an augment conferring **`MeasuringMixin`** widens the **instrument
+  set**.
+
+⭐ **User ruling: these stay separate mechanisms.** Same substrate, two
+distinct capabilities, no merging.
+
+**An implant is the same instrument, differently carried** — a pack ships
+one class and two rows, one wieldable and one mountable. Which extends
+this slate's carried-vs-mounted table with the rung above it:
+
+| Rung | Precision | Cost |
+|---|---|---|
+| **eyeball** | crude | free — two or three channels is all a body has |
+| **carried** | good, **upgradeable** | a hand; losable, stealable, loanable |
+| **mounted** | good, **frozen at install** | anatomy, visibility, permanence |
+
+⭐ **The tradeoff that keeps the tool economy alive: a carried tool can be
+upgraded, lent, sold or replaced by a better craftsman's work; an implant
+is frozen at the quality you installed.** Mastery buys convenience and
+pays in flexibility, so the smith keeps a market.
+
+⭐⭐ **And it answers a friction the instrument model creates.** A working
+surveyor needs a dial, a compass, a lens and an assay kit — four things to
+carry. **The trade gives you tools; mastery lets you stop carrying them.**
+Earned, not granted, and filling a slot with a miner's dial says *I am a
+surveyor* by giving something up.
+
+Competence is untouched: the implant grants the **channel**, the
+discipline still bands the **reading**. A novice with an implanted dial
+still reads ±15°.
+
+## ⚠ Why this is blocking a build today
+
+The metal chain hit the mismatch head-on and had to work around it (its
+plan's § P1 — the plan is retired; the shipped shape is recorded in
+[mining.md](../../subsystems/mining.md) § *The trade/locality line*). The
+finding is correct and worth keeping — **a pack cannot contribute a subcommand**, because a
+command view is one document per file with no verb-level merge, the schema
+forbids extension, and an `unknown-subcommand` **stops the chain** rather
+than falling through. Its workaround is to edit the platform view and have
+each stanza name a controller the mining pack ships, which means:
+
+> in an install without `trade-mining`, `measure strike` is advertised in
+> `measure`'s help and dies on dispatch with a `controller-error`.
+
+**Under this slate's model that wart evaporates**: mining ships a dial
+that declares `['strike','dip']`, and nothing in the platform pack
+changes. So **the `analyze` retrofit wants to land before metal-chain's
+wave M7**, and doing so retires that plan's risk R4.
+
+## Two of this slate's open questions, answered
+
+- **#7 — the species-intrinsic roster, "balance lever or purely flavor."**
+  **Answered: not a balance concern.** User: *"if some species are
+  'better' that's fine. that was the case on the MUDs I used to play but
+  people still picked the lower powered races."* Asymmetric capability
+  between species is fine; players pick for identity, not optimisation.
+  ⚠ The species doctrine's *"difference that ranks is essentialism"* is
+  about **characterization** — never ship a species that reads as the dumb
+  one — **not about capability spreads.** The two are different problems.
+- **#1, partially — which reads stay universal.** The perceive/interpret
+  split above is the answer's shape: **the sensory verbs stay free**
+  (they are senses, not instruments, exactly as this slate says), `look`
+  stays the medium, and what gets gated is *interpretation* — by route,
+  not by permission.
+
+Still open and untouched by this session: **#2** (does `analyze time` want
+a timepiece), **#3** (attunement vs. mount capacity), **#4**
+(reversibility of mounts), **#5** (certification authority), **#6**
+(instrument crafting — and note the metal-chain build ships two
+instruments, so this one is arriving whether or not it is answered).
+

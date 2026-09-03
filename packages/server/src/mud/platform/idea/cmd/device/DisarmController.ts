@@ -25,7 +25,6 @@ import { MqlApi } from '../../../../api/mql';
 import { MixinApi } from '../../../../api/mixin';
 import { MessageApi } from '../../../../api/message';
 import { PerceptionApi } from '../../../../api/perception';
-import { AdvancementApi } from '../../../../api/advancement';
 import { SchedulerApi } from '../../../../api/scheduler';
 import { AppApi } from '../../../../api/app';
 import { AppSettingKeys } from '../../../../lib/config/AppSettings';
@@ -112,7 +111,8 @@ export default class DisarmController extends CommandController<DisarmModel> {
       // crediting the graded deed. Fire-and-forget (the onComplete is sync);
       // a disconnected Transcript must not surface as an unhandled rejection.
       hazard.disarmBy(actor);
-      void AdvancementApi.recordDeed(actor, {
+      if (MixinApi.isAdvancing(actor))
+        void actor.creditDeed({
         discipline: 'awareness',
         difficulty: 'standard',
         outcome: 'success',

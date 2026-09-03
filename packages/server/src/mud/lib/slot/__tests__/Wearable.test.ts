@@ -13,7 +13,6 @@ import Species from '../../../platform/idea/species/Species';
 import { MixinApi } from '../../../api/mixin';
 import { Mixins } from '../../mixin';
 import { makeStuff } from '../../security/__tests__/test-setup';
-import { SlotApi } from '../../../api/slot';
 
 class Boots extends WearableMixin(SlottableMixin(ContainableMixin(Idea))) {}
 
@@ -56,7 +55,7 @@ describe('WearableMixin', () => {
     expect(boots.fitsSlot(host, 'foot:left')).toBe(false);
   });
 
-  it('multi-slot atomicity via SlotApi.occupyAll', () => {
+  it('multi-slot atomicity via the host occupyAll', () => {
     class TestHost extends SlottedMixin(Idea) {}
     const host = makeStuff(() => new TestHost());
     host.setStaticSlots([
@@ -69,7 +68,7 @@ describe('WearableMixin', () => {
     // mixin, and we test atomicity not fitsSlot here. Override the
     // candidate-side test by giving boots a stub fitsSlot.
     boots.fitsSlot = () => true;
-    SlotApi.occupyAll(host, boots, ['foot:left', 'foot:right']);
+    host.occupyAll(boots, ['foot:left', 'foot:right']);
     expect(host.getOccupant('foot:left')).toBe(boots);
     expect(host.getOccupant('foot:right')).toBe(boots);
   });

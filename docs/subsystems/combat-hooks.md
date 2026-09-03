@@ -33,7 +33,7 @@ beat order:
 
 | Seam | Surface | Kind | Exact engine moment |
 |---|---|---|---|
-| `onWielded` / `onUnwielded` | instrument | witness | `Slotted.occupy` (after the successful slot add) / `vacate`·`vacateSole` (after the generic `onSlotReleased`) — **per slot** (a 2H claim hears it once per slot), outside any session (plain `(host, slotName)` args, no ctx). Persistence restore and clone hydration re-arm through the same chokepoint (`SlotApi.occupyAll`), so `onWielded` fires there too — bodies must be cheap and idempotent. |
+| `onWielded` / `onUnwielded` | instrument | witness | `Slotted.occupy` (after the successful slot add) / `vacate`·`vacateSole` (after the generic `onSlotReleased`) — **per slot** (a 2H claim hears it once per slot), outside any session (plain `(host, slotName)` args, no ctx). Persistence restore and clone hydration re-arm through the same chokepoint (`occupyAll`), so `onWielded` fires there too — bodies must be cheap and idempotent. |
 | `onSessionEntered` | participant | witness | `openSessionImpl` success tail (initiator then defender) and `joinImpl` (the joiner), before the venue hook. |
 | `onCombatOpened` | venue | witness | `openSessionImpl` success tail, after the participants; anchor = the initiator's room; a mid-fight `join` never re-fires it. |
 | *beat top* | — | — | `advanceImpl`: band-baseline snapshot → interception pass → weapon-switch advance → brain intents → the reach-sorted exchange loop. Per-beat participant hooks fire in `getStates()` roster order (insertion-ordered), never the reach sort. |
@@ -81,6 +81,18 @@ The base `Location` is untouched; a hook-less room (a gym
 `ContainerMixin(Idea)` box, a non-Location container) is simply skipped.
 A reactive venue is a Location subclass (or future mixin) overriding
 them — the gate-barring arena, the crowd-reacting colosseum.
+
+**`CombatSanctuary` — the veto, a deliberate sibling (bar-fight build).**
+A room that can *refuse* a fight from opening is a **separate**
+interface, `CombatSanctuary.combatSanctuaryRefusal(initiator,
+defender)`, declared beside `CombatVenue` and **never a member of it**:
+the reactive venue hooks witness a fight and may punish one, but can
+never veto — a sanctuary is the one place a fight cannot start. It is
+presence-dispatched at the very top of `openSessionImpl`, before any
+state is built, so a non-null return is a clean refusal (surfaced as
+`reason: "sanctuary"` + prose), not a torn-down session. First
+implementer: the lounge's `LoungeMixin` (combat-free by mechanism). See
+[combat.md](./combat.md) § the sanctuary gate.
 
 ## `CombatHookContext` — read freely, consequence through the queue
 
@@ -130,7 +142,7 @@ recipient's own `afflict` door (`isVitals`); toxin →
 the `Reserved` surface; wear → the recipient's wielded instrument's
 `DurableMixin` gauge (no wielded instrument → inert); influence →
 the same module-private `influenceImpl` as `CombatApi.influence`; shock
-→ `ElectricityApi.shockContact(source, target)` (the `effectiveVoltage
+→ `shockContact(source, target)` (the `effectiveVoltage
 ≤ 0` guard inside the conduction walk still applies — a switched-off
 source truthfully delivers nothing); flavor → buffered and emitted
 through `CombatNarration.narrateFlavor` (the existing witness loop)
@@ -197,7 +209,7 @@ Validated across ~40 candidate dynamics walked through the seams
 
 The proof-by-construction worked example. **Before**: `commitInflict`
 held the barnacle — `if (weapon && MixinApi.isEnergized(weapon))
-ElectricityApi.shockContact(weapon, target)` — combat knowing about
+shockContact(weapon, target)` — combat knowing about
 electricity. **After**: `EnergizedMixin` composes `CombatReactiveMixin`
 (a nested factory — `hasMixin`'s per-level `_mixinName` walk narrows the
 composition as both `Energized` and `CombatReactive`) and overrides

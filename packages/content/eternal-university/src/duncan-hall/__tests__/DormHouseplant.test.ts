@@ -166,6 +166,16 @@ function seedDomain(): void {
     DormWarren.LOBBY_PATH,
     `${SEEDS}world/eternal/duncan-hall/location/corridor.yaml`,
   );
+  /*
+   * ⭐ The sandbox's door. A circle belongs to the player who owns it, so
+   * the crossing stands in the room they hold — and a dorm room IS the
+   * bedroom, the whole room being the whole home. It is a `props:` entry
+   * like the bed, so the harness has to seed it like the bed.
+   */
+  addSeed(
+    '/platform/thing/sandbox/wardrobe',
+    `${PLATFORM}platform/thing/sandbox/wardrobe.yaml`,
+  );
   for (const f of ['bed', 'desk', 'footlocker', 'tap']) {
     addSeed(
       `/world/eternal/duncan-hall/thing/${f}`,

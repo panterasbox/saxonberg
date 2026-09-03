@@ -1,0 +1,14 @@
+# The other top rung: the instrument that turns a lump into a number.
+recipeId: assay-kit
+name: Assayer's Kit
+keywords: [assay, assay-kit]
+inputSlots:
+  - { slot: balance, category: metal, minGrade: good, kind: item, count: 1 }
+  - { slot: case, category: wood, minGrade: fair, kind: item, count: 1 }
+toolCapabilities: [striking, anvil]
+outputTemplate: /trade/mining/thing/assay-kit
+outputMaterial: ''
+outputApplication: tangible
+requiresHeatK: 1100
+difficulty: formidable
+discipline: mining

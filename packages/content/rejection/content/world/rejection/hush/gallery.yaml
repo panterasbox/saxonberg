@@ -1,0 +1,26 @@
+# The Hush — the chamber you break into at the authored feature pin.
+#
+# ⭐ The seam works both ways and BOTH SIDES ARE EXPLICIT (the
+# counting-houses precedent): the grid exits into the sphere and the
+# sphere exits back to the exact grid cell it was entered from. A
+# one-sided crossing is how a player ends up somewhere with no way home.
+class: /platform/location/SingletonSphericalLocation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the Hush
+  primaryKeyword: hush
+  keywords: [hush, chamber, cavern]
+  longDescription: |
+    The pick goes through into nothing, and then the nothing has a floor. The chamber runs away from the hole in every direction at once, its walls scalloped in long smooth flutes where water went for a very long time and then stopped. Nothing here is square. Nothing here was cut.
+
+    Your light does not find the far side. The sound of your own breathing comes back changed, and later than it should.
+  coordinates: [0, 0, 0]
+  radius: 22
+  exits:
+    out:
+      destination: /world/rejection/ferrow/hush-mouth
+  details:
+    flutes:
+      keywords: [flutes, walls, scallop, scalloping]
+      description: |
+        Long vertical scallops, a hand's span across, running from the floor up out of the light. Water made these, moving in one direction for longer than there have been people. It is not moving now, which is its own kind of information.

@@ -156,7 +156,7 @@ describe('WorldClockApi scheduling (AC5 / AC4)', () => {
       const h = WorldClockApi.every(Quantity.of(1, 's'), () => count++);
       WorldClockApi._advanceForTesting(2000);
       expect(count).toBe(2);
-      WorldClockApi.cancel(h);
+      h.cancel();
       WorldClockApi._advanceForTesting(5000);
       expect(count).toBe(2);
     });

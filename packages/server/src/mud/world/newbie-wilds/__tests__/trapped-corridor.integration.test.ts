@@ -23,6 +23,7 @@
  */
 
 import "../../../../test-bootstrap";
+import { AdvancementMixin } from '../../../lib/advancement/Advancement';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { readFileSync, readdirSync, statSync } from 'fs';
 import { fileURLToPath } from 'url';
@@ -55,7 +56,6 @@ import { MessageApi } from '../../../api/message';
 import { ContainmentApi } from '../../../api/containment';
 import { PerceptionApi } from '../../../api/perception';
 import { LocomotionApi } from '../../../api/locomotion';
-import { AdvancementApi } from '../../../api/advancement';
 import { SpeciesApi } from '../../../api/species';
 import { BiomeApi } from '../../../api/biome';
 import { MqlApi, type MqlOneResult } from '../../../api/mql';
@@ -166,7 +166,9 @@ function installStore(docs: Doc[]): void {
 // discovery) over Creature (anatomy the delivery lands a foot-site against).
 // NOT Engaged — so `search` / `disarm` take their synchronous fallback (no
 // scheduler needed; the durative interrupt path is covered by the unit tests).
-class Delver extends BeliefStoreMixin(MobileMixin(SensorMixin(Creature))) {
+class Delver extends AdvancementMixin(
+  BeliefStoreMixin(MobileMixin(SensorMixin(Creature))),
+) {
   static _mixinName = 'TrapDelver';
   protected override handleMessage(): void {}
   protected override handleEnvelope(): void {}
@@ -213,7 +215,10 @@ function delver(): Delver {
 
 /** Warm a delver's `awareness` band into the sync detection cache. */
 async function warm(c: Delver, band: string): Promise<void> {
-  vi.spyOn(AdvancementApi, 'bandFor').mockResolvedValue(band as never);
+  vi.spyOn(
+    c as unknown as { competenceBandFor(d: string): Promise<string> },
+    'competenceBandFor',
+  ).mockResolvedValue(band);
   vi.spyOn(SpeciesApi, 'preloadAnatomy').mockResolvedValue(undefined as never);
   await PerceptionApi.preloadForSenseGate(c);
 }

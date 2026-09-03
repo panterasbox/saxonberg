@@ -101,7 +101,7 @@ ministry, a press office, a registry — composing
 `PublisherMixin(OrganizationMixin(PostRegistrationMixin(Idea)))`. It is
 what a template's `class:` names; **nothing instances `/lib/`**.
 
-## The entitlement — `EmploymentApi.mayPublishAs`
+## The entitlement — `publisher.allowsPublishingBy(principal)`
 
 Exactly *does the principal hold a non-exited position at this
 organization whose key is in `publishingPositions`* (empty ⇒ any

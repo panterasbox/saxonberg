@@ -1,0 +1,24 @@
+# The ore buyer at the assay shed — the smelter's man, and ⭐ where money
+# ENTERS the venue. He buys out of the smelter's ingot revenue, which is
+# ordinary circulation: there is no endowment and no lending tier behind
+# him, because this build removed the need for one by building the trade.
+class: /platform/agent/NPC
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sensitivus
+  lifecycleState: alive
+  primaryKeyword: buyer
+  keywords: [buyer, assayer]
+  shortDescription: the ore buyer
+  longDescription: >-
+    A broad woman in a leather apron with a jeweller's glass on a cord and
+    green under her nails that will not come off. She weighs everything
+    twice and writes down the second figure.
+  behaviors:
+    - brain: /lib/behavior/idles
+      trigger: cadence:45s
+      config:
+        pool:
+          - { kind: free, value: "tips a sample bin and lets the light run across the break." }
+          - { kind: free, value: "chalks a figure on a slate, considers it, and does not change it." }
+          - { kind: free, value: "says, \"The scale does not argue and neither do I.\"" }

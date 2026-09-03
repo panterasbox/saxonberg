@@ -13,7 +13,6 @@ import { SandboxApi } from '../sandbox';
 import { StuffApi } from '../stuff';
 import { ShadowApi } from '../shadow';
 import { EventApi } from '../event';
-import { ConnectionApi } from '../connection';
 import { ContainmentApi } from '../containment';
 import { CommandApi } from '../command';
 import { Stuff } from '../../lib/stuff/Stuff';
@@ -88,7 +87,7 @@ describe('go wardrobe (the real command path)', () => {
     const interactive = await StuffApi.create(
       () => new Interactive('sock-gw', 'sess-gw', { _id: 'u1' } as never)
     );
-    ConnectionApi.transfer(interactive, avatar);
+    interactive.transferTo(avatar);
 
     // Place the (unowned, public) wardrobe: its onMoved installs the
     // passage into the room.

@@ -128,42 +128,6 @@ export class ForumsApi {
     return logic().getBoard(id);
   }
 
-  static async listBoards(actor: Stuff): Promise<BoardView[]> {
-    return logic().listBoards(actor);
-  }
-
-  static async postThread(
-    actor: Stuff,
-    board: Board,
-    title: string,
-    body: string,
-  ): Promise<Entry> {
-    return logic().postThread(actor, board, title, body);
-  }
-
-  static async reply(actor: Stuff, parent: Entry, body: string): Promise<Entry> {
-    return logic().reply(actor, parent, body);
-  }
-
-  /** Attach a typed claim (pro/con/question) on an argument board. */
-  static async attachClaim(
-    actor: Stuff,
-    parent: Entry,
-    relation: ArgumentRelation,
-    body: string,
-  ): Promise<Entry> {
-    return logic().attachClaim(actor, parent, relation, body);
-  }
-
-  /** Edit a claim/post body in place (lossless `'entry-edited'` trail). */
-  static async editBody(
-    actor: Stuff,
-    entry: Entry,
-    body: string,
-  ): Promise<Entry> {
-    return logic().editBody(actor, entry, body);
-  }
-
   static async getEntry(id: string): Promise<Entry | null> {
     return logic().getEntry(id);
   }
@@ -186,36 +150,12 @@ export class ForumsApi {
     return logic().readArgumentThread(root);
   }
 
-  static async castVote(
-    actor: Stuff,
-    entry: Entry,
-    direction: VoteValue,
-  ): Promise<Entry> {
-    return logic().castVote(actor, entry, direction);
-  }
-
   static async getVoteState(entry: Entry, voter: string): Promise<VoteState> {
     return logic().getVoteState(entry, voter);
   }
 
   static async displayScoreFor(entry: Entry): Promise<number | null> {
     return logic().displayScoreFor(entry);
-  }
-
-  static async promoteThread(
-    actor: Stuff,
-    thread: Entry,
-    threadName: string,
-  ): Promise<Subject> {
-    return logic().promoteThread(actor, thread, threadName);
-  }
-
-  /**
-   * Mark an argument deliberation matured — emits a decoupled `mature`
-   * event the deferred vote layer will consume; binds nothing in v1.
-   */
-  static async matureArgument(actor: Stuff, board: Board): Promise<void> {
-    return logic().matureArgument(actor, board);
   }
 
   /* ─── Live subscriptions (the forum document-change observer) ───
@@ -227,16 +167,6 @@ export class ForumsApi {
     return subscriptions().handleSubscribe(req);
   }
 
-  static handleUnsubscribe(
-    interactive: Interactive,
-    subscriptionId: string,
-  ): void {
-    subscriptions().handleUnsubscribe(interactive, subscriptionId);
-  }
-
-  static cancelAllForInteractive(interactive: Interactive): void {
-    subscriptions().cancelAllForInteractive(interactive);
-  }
 }
 
 SecurityApi.decorateApiClass(ForumsApi);

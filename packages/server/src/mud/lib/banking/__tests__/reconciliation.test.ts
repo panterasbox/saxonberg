@@ -101,13 +101,13 @@ describe("Reconciliation invariant", () => {
     const aliceAcct = await asOwner(alice, () =>
       BankingApi.openAccount("goodkin", "goodkin", Currency.compact())
     );
-    await asOwner(alice, () => BankingApi.deposit(bank, cash));
+    await asOwner(alice, () => bank.deposit(cash));
     expect(BankingApi.balanceOf(aliceAcct).minor).toBe(500);
     expect(BankingApi.reconcile(Currency.compact()).circulatingCoin).toBe(0); // all in the vault
     expectBalanced(500);
 
     // 3. withdraw 200 → coin back into circulation
-    await asOwner(alice, () => BankingApi.withdraw(bank, Money.of(200, Currency.compact())));
+    await asOwner(alice, () => bank.withdraw(Money.of(200, Currency.compact())));
     expect(BankingApi.reconcile(Currency.compact()).circulatingCoin).toBe(200);
     expectBalanced(500);
 

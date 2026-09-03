@@ -1,0 +1,22 @@
+id: rejection
+version: 0.1.0
+root: /world/rejection
+description: >-
+  Rejection — a VENUE pack, and the FIRST mining town. The pithead's five
+  rooms, the adit and three authored galleries, the two zones, the Ferrow
+  deposit row, the four procedural room type rows and their prose banks,
+  the claim register, the four businesses that make the chain circulate,
+  the fuel yard with its coppice and the smelter beside it, this place's
+  own ecology (crickets, delve-rats, the pale grazer, the glowcap that
+  lights it), and the functional cast.
+  ⭐ It ships NO TypeScript. Every class it names belongs to the three
+  trades or the platform — which is what makes "a second mining town is a
+  locality pack over the same trades" a fact a reviewer can check by
+  listing the directory rather than a claim.
+requires:
+  groups:
+    - name: rejection
+      purpose: the Ferrow diggings and the town that works them
+      owner: { office: prime-minister }
+  title:
+    - { extent: /world/rejection, holder: { group: rejection } }

@@ -100,7 +100,7 @@ non-sealable case (a mug): no barrier → it cools in minutes.
 — "measuring requires unsealing" is a fact of touch. The general
 **scalding-band (≥ 345 K) burn hook** afflicts a `burn` trauma on contact
 — wired on `feel` and a bare-handed `get`, gating on `Touch.bandFor`
-(no new verb, no `ThermalApi`). The campfire is one consumer of this
+(no new verb, no thermal Api). The campfire is one consumer of this
 hook, not its own mechanic. Contact-touch (external) stays separate from
 the body's interoceptive shiver/sweat cues (sensing its own core).
 
@@ -176,7 +176,7 @@ room-ambient bump is a follow-on.
 
 ## Phase change (the fire build)
 
-`ThermalApi.depositHeat` + `ThermalApi.reconcilePhase` (the gated
+the host's own `depositHeat` + `reconcilePhase` (sealed mixin methods since the Api OO sweep — `ThermalApi`/`ThermalLogic` are retired; the phase engine is module-private in `lib/thermal/Thermal.ts`; the
 `api/thermal.ts` + `platform/idea/api/ThermalLogic.ts` pair — the heat-delivery /
 phase-change surface `ThermalMixin` deliberately keeps off its own class).
 **`depositHeat(joules)`** is the heat-DELIVERY primitive the sync model lacked
@@ -193,7 +193,7 @@ liquid-holding vessel **boils** to gas above its boiling point and **solidifies*
 to a cast `Thing` below its melting point. Bidirectional — **ice → water → steam
 falls out of the shipped water material**. The **furnace family** (`FurnaceMixin`,
 generalizing the `Campfire` pin — see [fire.md](./fire.md)) heats the Meltables
-in its scope toward its held temperature; `ThermalApi.reachableHeatFor` reads the
+in its scope toward its held temperature; a body's `reachableHeatK()` (on ThermalMixin) reads the
 hottest reachable furnace — the crafting-control read `CraftingLogic`'s heat
 gate consumes (`recipe.requiresHeatK`; see [crafting.md](./crafting.md)). See
 [fire.md](./fire.md) for the combustion driver + the full high-heat physics.

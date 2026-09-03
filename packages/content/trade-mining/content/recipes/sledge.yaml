@@ -1,0 +1,13 @@
+recipeId: sledge
+name: Sledge
+keywords: [sledge, maul]
+inputSlots:
+  - { slot: stock, category: ferrous, minGrade: fair, kind: item, count: 2 }
+  - { slot: haft, category: wood, minGrade: poor, kind: item, count: 1 }
+toolCapabilities: [striking, anvil]
+outputTemplate: /trade/mining/thing/sledge
+outputMaterial: ''
+outputApplication: tangible
+requiresHeatK: 1200
+difficulty: standard
+discipline: mining

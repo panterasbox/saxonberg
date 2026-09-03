@@ -1,0 +1,16 @@
+# Casting a bar — pouring a molten pool into a mould and letting it
+# freeze. ⚠ The freeze itself is the SHIPPED thermal path
+# (`ThermalApi.reconcilePhase`), and it is bidirectional: heat the bar
+# again and it runs back to a pool. Honest in both directions.
+recipeId: cast-bar
+name: Cast a Bar
+keywords: [cast, bar, ingot]
+inputSlots:
+  - { slot: metal, category: metal, minGrade: poor, kind: item, count: 1 }
+toolCapabilities: [gripping]
+outputTemplate: /trade/smelting/thing/copper-ingot
+outputMaterial: ''
+outputApplication: tangible
+requiresHeatK: 1358
+difficulty: easy
+discipline: smelting

@@ -1,0 +1,39 @@
+# ⭐⭐ The smelter — and it is the piece that closes the loop **without
+# minting a single credit.**
+#
+# It buys ore AND charcoal, and it buys them out of revenue from ingots.
+# `ferrow-delving.md` §9 funded an off-take buyer through CB *lending* and
+# flagged that it needed the deferred banking lending tier. **That
+# dependency is gone**: the seam existed only because smelting was the v1
+# abstraction boundary, and this build removed the boundary by building
+# the trade.
+#
+# So conservation is satisfied without argument: **no new money is minted
+# anywhere in this build.** The mine makes new MATTER; the CB remains the
+# only mint; wear is the matter sink.
+class: /platform/idea/Business
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  appointingAuthority:
+    kind: entity
+    path: /world/rejection/agent/smelterman
+  positions:
+    - key: smelterman
+      label: holding the furnace at heat
+      wageRate: 6
+    - key: buyer
+      label: weighing ore at the shed
+      wageRate: 5
+  rosterSlots:
+    - positionKey: smelterman
+      assignee: /world/rejection/agent/smelterman
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [0, 24] }
+    - positionKey: buyer
+      assignee: /world/rejection/agent/buyer
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [0, 24] }
+  banksAt: goodkin
+  operatingLocations:
+    - /world/rejection/location/smelter
+    - /world/rejection/location/assay-shed

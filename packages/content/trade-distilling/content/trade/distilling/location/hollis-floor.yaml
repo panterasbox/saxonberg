@@ -8,6 +8,13 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
+  # ⚠ `coords:` is the MEMBERSHIP operation — `setCoords` is the only way
+  # an authored row joins a zone, so without it this floor was in no grid
+  # and inherited nothing from one. See the zone row beside it.
+  coords:
+    x: 1
+    y: 0
+    z: 0
   shortDescription: the Hollis bottling floor
   primaryKeyword: floor
   keywords: [floor, bottling, hollis, warehouse]

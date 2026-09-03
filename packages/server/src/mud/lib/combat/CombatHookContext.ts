@@ -145,6 +145,37 @@ export interface CombatVenue {
   onCombatResolved?(ctx: CombatHookContext): void;
 }
 
+/**
+ * A **sanctuary venue** — a Location that can REFUSE a fight from
+ * starting in it. Deliberately a *separate* interface from
+ * {@link CombatVenue}, not a member of it: the reactive venue hooks
+ * witness a fight (and may punish one), but they can never veto one; a
+ * sanctuary is the one place a fight cannot open at all (the lounge, the
+ * social commons). Presence-dispatched at `openSessionImpl`'s top, before
+ * any session state is built — so a non-null return is a clean refusal,
+ * not a torn-down session.
+ *
+ * Every fight-starter funnels through `initiate → openSessionImpl` (the
+ * attack verb, an NPC ambush brain, a thrown attack, an NPC's forced
+ * command), so one consultation covers them all. `join`/`merge` need no
+ * gate — no session can exist in a gated room to join, and combat
+ * sessions never relocate.
+ */
+export interface CombatSanctuary {
+  /**
+   * Return player-readable refusal prose to forbid a fight opening here,
+   * or `null` to allow it. Anchored on the initiator's room.
+   *
+   * Determinism contract: synchronous, deterministic, cheap — no
+   * `await`, no wall-clock, no randomness.
+   *
+   * @hook Invoked by the combat engine at the very top of
+   * `openSessionImpl`, before any state is built. Optional — declare it
+   * on a Location subclass (or mixin) to make that place a sanctuary.
+   */
+  combatSanctuaryRefusal?(initiator: Stuff, defender: Stuff): string | null;
+}
+
 /** Constructor init for {@link CombatHookContext} (built by the engine). */
 export interface CombatHookContextInit {
   session: CombatSession;
@@ -326,7 +357,7 @@ export class CombatHookContext {
   /**
    * Queue an electrical delivery from `source` to the exchange target
    * (the stun-baton seam). Drained through
-   * `ElectricityApi.shockContact(source, target)` — the
+   * `source.shockContact(target)` — the
    * `effectiveVoltage ≤ 0` guard inside the conduction walk still
    * applies, so a dead/switched-off source truthfully delivers nothing.
    * A context with no target throws (the same null-recipient rule the

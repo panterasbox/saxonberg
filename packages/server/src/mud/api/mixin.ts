@@ -36,6 +36,8 @@ import type { Forums } from '../lib/forum/Forums';
 import type { Named } from '../lib/description/Named';
 import type { Gendered } from '../lib/character/Gendered';
 import type { Persona } from '../lib/character/Persona';
+import type { Dispositioned } from '../lib/trait/Dispositioned';
+import type { Advancing } from '../lib/advancement/Advancement';
 import type { Visible } from '../lib/description/Visible';
 import type { Perceptible } from '../lib/description/Perceptible';
 import type { Detailed } from '../lib/description/Detailed';
@@ -122,7 +124,7 @@ import type { Globbable } from '../lib/stuff/Globbable';
 import type { Chattel } from '../lib/chattel/Chattel';
 import type { Estate } from '../lib/chattel/Estate';
 import type { Resettable } from '../lib/residency/Resettable';
-import type { ConsignmentShelf } from '../lib/retail/Consignment';
+import type { ConsignmentShelf, HeldGoodsShelf } from '../lib/retail/Consignment';
 import type { Bulkable } from '../lib/bulk/Bulkable';
 import type { Engaged } from '../lib/activity/Engaged';
 import type { Behaved } from '../lib/behavior/Behaved';
@@ -131,6 +133,7 @@ import type { Addressable } from '../lib/address/Addressable';
 import type { SkyExposed } from '../lib/biome/SkyExposed';
 import type { Contacts } from '../lib/social/Contacts';
 import type { NotifyPolicy } from '../lib/social/NotifyPolicy';
+import type { SubjectSubscriber } from '../lib/forum/SubjectSubscriber';
 import type { Soul } from '../lib/social/Soul';
 import type { WarrenMember } from '../lib/location/WarrenMember';
 import type { Offstage } from '../lib/employment/Offstage';
@@ -768,6 +771,14 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.Persona);
   }
 
+  public static isDispositioned(obj: Stuff): obj is Stuff & Dispositioned {
+    return this.hasMixin(obj, Mixins.Dispositioned);
+  }
+
+  public static isAdvancing(obj: Stuff): obj is Stuff & Advancing {
+    return this.hasMixin(obj, Mixins.Advancement);
+  }
+
   public static isVisible(obj: Stuff): obj is Stuff & Visible {
     return this.hasMixin(obj, Mixins.Visible);
   }
@@ -889,6 +900,12 @@ export class MixinApi {
 
   public static isNotifyPolicy(obj: Stuff): obj is Stuff & NotifyPolicy {
     return this.hasMixin(obj, Mixins.NotifyPolicy);
+  }
+
+  public static isSubjectSubscriber(
+    obj: Stuff,
+  ): obj is Stuff & SubjectSubscriber {
+    return this.hasMixin(obj, Mixins.SubjectSubscriber);
   }
 
   public static isSoul(obj: Stuff): obj is Stuff & Soul {
@@ -1143,7 +1160,16 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.Resettable);
   }
 
-  /** The store's brokerage shelf (holds consigned goods + listings). */
+  /** A held-goods fixture — the custody base (a coat check OR a
+   * consignment shelf): holds player-owned goods, hands them back to their
+   * owner. `reclaim` narrows on this so it serves both. */
+  public static isHeldGoodsShelf(
+    obj: Stuff,
+  ): obj is Stuff & HeldGoodsShelf {
+    return this.hasMixin(obj, Mixins.HeldGoodsShelf);
+  }
+
+  /** The store's brokerage shelf (held goods + the sale layer). */
   public static isConsignmentShelf(
     obj: Stuff,
   ): obj is Stuff & ConsignmentShelf {

@@ -28,7 +28,6 @@ import { ShadowApi } from '../../../../../api/shadow';
 import EventRegistry from '../../../EventRegistry';
 import { Stuff } from '../../../../../lib/stuff/Stuff';
 import { ContainmentApi } from '../../../../../api/containment';
-import { ConnectionApi } from '../../../../../api/connection';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
 
 // Test actor — composes HasInteractive + CommandGiver + Sensor.
@@ -90,11 +89,11 @@ describe('PromptController — prompt cancel', () => {
     const interactive = await StuffApi.create(
       () => new Interactive('sock-1', 'sess-1', { _id: 'u1' } as never),
     );
-    ConnectionApi.transfer(interactive, actor as never);
+    interactive.transferTo(actor as never);
 
     // Push two prompts on this Interactive.
-    const p1 = PromptApi.text(interactive, 'A?');
-    const p2 = PromptApi.text(interactive, 'B?');
+    const p1 = interactive.promptText('A?');
+    const p2 = interactive.promptText('B?');
     expect(PromptApi._getInteractivePromptCountForTesting(interactive)).toBe(2);
 
     const controller = makeStuff(() => new PromptController());
@@ -119,7 +118,7 @@ describe('PromptController — prompt cancel', () => {
     const interactive = await StuffApi.create(
       () => new Interactive('sock-1', 'sess-1', { _id: 'u1' } as never),
     );
-    ConnectionApi.transfer(interactive, actor as never);
+    interactive.transferTo(actor as never);
 
     const controller = makeStuff(() => new PromptController());
     const ctx = makeContext(actor, loc);

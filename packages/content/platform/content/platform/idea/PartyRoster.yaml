@@ -1,0 +1,6 @@
+# PartyRoster — the singleton whose postRegister registers the `party:`
+# grouping provider and re-materializes durable parties into live Ideas
+# (the self-warming shape; eager via this pack's boot list, not an
+# AppBootstrap sequencer line). After GroupRegistry.
+class: /platform/idea/PartyRoster
+data: {}

@@ -58,6 +58,31 @@ subcommands:
     description: "Gambit — wrap a whip's lash around a foe to bind them up (whip only)"
   defend:
     description: "Cover up and recover poise instead of attacking"
+  break:
+    description: "Offer a mutual stand-down — end the fight with no victor"
+    help: |
+      `fight break` is how you back down without losing. You cover up and
+      offer to stop; if your opponent breaks too, the fight ends with no
+      victor and no defeat on anyone's record — the difference from
+      `yield`, which concedes and marks a loss. Offer while they keep
+      swinging and you're just turtling: the olive branch has a cost.
+    examples:
+      - cmd: fight break
+        note: Offer to end the fight then and there
+  rush:
+    description: "Throw a foe you've locked up out through an exit (subdue first)"
+    help: |
+      The bum's rush: once you've `subdue`d a foe (locked them up), `fight
+      rush <direction>` hauls them to that exit and throws them out. They
+      land sprawling in the next room, out of the fight. Any control winner
+      can do it — it's how a fight ends with someone shown the door.
+    examples:
+      - cmd: fight rush south
+        note: Throw your grappled foe out the south exit
+    args:
+      - name: direction
+        type: string
+        required: true
   switch:
     description: "Switch to a carried weapon — a vulnerable beat (guard down, can't strike)"
     help: |

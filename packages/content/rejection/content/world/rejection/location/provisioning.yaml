@@ -1,0 +1,33 @@
+# P4 · Provisioning — where money LEAVES, and ⭐ where the light
+# dependency is taught **before** the descent rather than after it.
+#
+# A jar of glowcap on the counter beside the picks is the whole lesson: a
+# mine is dark, and dark is not a mood, it is a thing you buy your way out
+# of. ⚠ The fungus DIES and must be replaced — the consumable is
+# biological rather than combustible, which is Rejection's own answer to
+# the archetype's defaultless `light` slot.
+class: /platform/location/SingletonCartesianLocation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the provisioning shed
+  primaryKeyword: provisioning
+  keywords: [provisioning, stores, shop]
+  longDescription: |
+    Tool wall on the left — picks, bars, shovels, sledges, all hung by the eye and all second-hand. Timber stacked to the roof on the right, cut to length and smelling of sap. Between them a counter, and on the counter a rank of stoppered jars with a soft green light in them.
+
+    A hand-lettered card by the jars: A JAR LASTS A MONTH. THE DARK LASTS LONGER.
+  coords: { x: -1, y: 0, z: 0 }
+  exits:
+    east:
+      destination: /world/rejection/location/pithead-yard
+  # ⚠⚠ The room props the COUNTER, not the goods — and the difference is
+  # not tidiness. A `Stock` fixture stocks itself to par and PRICES what
+  # it holds (`PricedOffer` — worth on the offer, never on the good), so a
+  # pick standing in the room as a prop is a pick with no price: `buy
+  # pick` finds it, finds no offer, and says *"a miner's pick isn't for
+  # sale."* Which is true, and useless. Found by driving; the general
+  # store's shop floor props exactly two things and both are fixtures.
+  props:
+    - /world/rejection/thing/store-counter
+  cast:
+    - /world/rejection/agent/storekeeper

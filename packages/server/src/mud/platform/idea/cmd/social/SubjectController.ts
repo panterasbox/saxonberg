@@ -19,6 +19,9 @@ import type { CommandContext, CommandModel } from '../../../../api/command';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 import { SubjectApi } from '../../../../api/subject';
+import type { SubjectSubscriber } from '../../../../lib/forum/SubjectSubscriber';
+import type { CommandGiver } from '../../../../lib/command/CommandGiver';
+import type { Stuff } from '../../../../lib/stuff/Stuff';
 
 interface SubjectModel extends CommandModel {
   name?: string;
@@ -69,7 +72,9 @@ export default class SubjectController extends CommandController<SubjectModel> {
   }
 
   private async executeList(context: CommandContext): Promise<void> {
-    const subjects = await SubjectApi.visibleSubjects(context.commandGiver);
+    const giver = context.commandGiver as Stuff & CommandGiver &
+      SubjectSubscriber;
+    const subjects = await giver.visibleSubjects();
     if (subjects.length === 0) {
       this.send(context, Mml.fromMarkup(`\nNo subjects.\n`));
       return;

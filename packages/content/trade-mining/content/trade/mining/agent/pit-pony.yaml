@@ -1,0 +1,35 @@
+# The pit pony — haulage, and no new mechanism at all.
+#
+# ⭐ Carry capacity derives from body MASS in the shipped encumbrance
+# substrate, so hitching the cart to 320 kg of pony instead of carrying
+# it yourself is a measurably lower load ratio. The pony is better at
+# hauling because it is heavier, which is the real reason — and no code
+# in this pack computes it.
+#
+# ⚠ The CLASS exists only to give it a brain. The shipped
+# `HaulingCreature` carries none, so a venue listing one under `cast:` is
+# refused at hydrate — *that is a prop, not cast* — and the refusal is
+# right: `cast:` means things with a brain, and an animal that cannot
+# idle reads as furniture. Found by driving, in a room that would not
+# stand up.
+class: /trade/mining/agent/PitPony
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/perissodactyla/equidae/equus/caballus-pumilus
+  lifecycleState: alive
+  primaryKeyword: pony
+  keywords: ["pony", "pit-pony", "horse"]
+  shortDescription: a stocky pit pony
+  longDescription: >-
+    A short, barrel-chested pony with a clipped mane and the patient,
+    unbothered look of an animal that has done this a great many times.
+    Its harness is worn smooth where the traces run.
+  mass: 320
+  behaviors:
+    - brain: /lib/behavior/idles
+      trigger: cadence:55s
+      config:
+        pool:
+          - { kind: free, value: "shifts its weight and blows out through its nose." }
+          - { kind: free, value: "leans into the traces without being asked, then stops when nothing follows." }
+          - { kind: free, value: "turns one ear toward the dark and leaves it there." }

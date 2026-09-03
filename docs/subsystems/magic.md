@@ -59,9 +59,9 @@ gated** at execution.
 
 ## The cast pipeline
 
-`MagicApi.prepareCast` (gates, spends nothing) → `CastActivity`
+`caster.prepareCast` (gates, spends nothing) → `CastActivity`
 (hands+voice for the strain-slowed cast time) → at **completion**
-`MagicApi.resolveCast`: re-validate → spend → execute effects → stamp
+`caster.resolveCast`: re-validate → spend → execute effects → stamp
 provenance → credit the Transcript. An aborted cast spends nothing and
 fires nothing (`magic.abortCostFraction` reserved at 0). **This is the
 active gate**: interruption IS the shipped combat/engagement model —
@@ -73,7 +73,7 @@ every `Character`, **activated** by `Species.innateMixins` or an
 augment, the `isMaker` shape) → spell known → targeting shape →
 casting-hand impairment (`isSlotImpairedByTrauma('hands')`) → the
 **band gate on BOTH grid axes** (`requiredBand` vs
-`AdvancementApi.bandFor` on `magic-<verb>` + `magic-<noun>` —
+`competenceBandFor` on `magic-<verb>` + `magic-<noun>` —
 competence IS access; the magic Disciplines — the 18 `magic-*` rows,
 which ship in the **arcana** pack because its `Grid` derives their keys
 (the discipline-ownership rule; the `DisciplineCatalogue` warms by class,

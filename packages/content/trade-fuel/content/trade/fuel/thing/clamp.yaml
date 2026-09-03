@@ -1,0 +1,38 @@
+# A charcoal clamp — a heap of cordwood stacked around a chimney, turfed
+# over and fired.
+#
+# ⭐ Its ONE dial is `draught`, and the three template paths below are the
+# three things a burn can come out as. The rows are named here because a
+# fuel yard is the same everywhere; a locality that wants its own charcoal
+# row overrides them.
+class: /trade/fuel/thing/CharcoalPit
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a turfed charcoal clamp
+  primaryKeyword: clamp
+  keywords: [clamp, pit, heap, kiln]
+  longDescription: >-
+    A dome of stacked cordwood the height of a man, packed round a
+    chimney of poles and sealed under turf and earth. A dozen vents are
+    stopped with sods; where it is burning, thin blue smoke comes out of
+    them and nothing else does.
+  mass: 1800
+  interiorBulk: false
+  draught: 0.45
+  yieldRatio: 0.35
+  charcoalTemplate: /trade/fuel/thing/charcoal
+  brandsTemplate: /trade/fuel/thing/brands
+  ashTemplate: /trade/fuel/thing/ash
+  # Charcoal's own burn heat, once it IS charcoal — the number a smelter
+  # needs and wood cannot reach.
+  burnTemperatureK: 1420
+  bellowsMultiplier: 1.0
+  fuelBurnRatePerMin: 0.05
+  lit: false
+  reserves:
+    fuel:
+      capacityValue: 100
+      currentValue: 100
+      unit: "%"
+      theme: combustion
+      floorEffect: null

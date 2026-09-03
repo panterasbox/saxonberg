@@ -1,0 +1,18 @@
+# A miner's pick — the tool the whole trade is named for.
+#
+# ⚠ Keywords authored DEFENSIVELY: matching is substring, and `pick head`
+# is a separate object in the same economy. The primary is `pick`; the
+# head's is `pick-head`.
+class: /platform/thing/ToolItem
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  primaryKeyword: pick
+  keywords: ["pick", "miners-pick"]
+  shortDescription: a miner's pick
+  longDescription: >-
+    A steel head on a hickory haft, one end drawn to a point and the
+    other flattened to a chisel. The haft is worn pale where two hands
+    have gripped it and dark where one has.
+  mass: 2.6
+  capabilities: ["winning", "striking"]
+  _materialPath: /stuff/idea/material/element/iron

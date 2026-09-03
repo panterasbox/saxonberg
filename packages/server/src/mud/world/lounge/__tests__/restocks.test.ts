@@ -9,7 +9,7 @@
  * house that cannot pay stops at the first decline. The bussing beat
  * collects, washes and racks a soiled glass.
  *
- * The brain drives the literal verbs through `CommandApi.forceCommand`;
+ * The brain drives the literal verbs through `forceCommand` (the giver's own method since the OO sweep);
  * here that seam is a dispatcher onto the REAL `wallet` / `buy` / `consign`
  * controllers (the distilling pack's harness), with the physical verbs
  * (`get` / `put` / `wash`) as their containment effect. `shiftStateOf` is
@@ -60,6 +60,8 @@ import {
   withRootContext,
 } from '../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
+import type { Chattel } from '../../../lib/chattel/Chattel';
+import { EmploymentLogic } from '../../../platform/idea/api/EmploymentLogic';
 import {
   installBankingHarness,
   teardownBankingHarness,
@@ -70,7 +72,10 @@ const BAR = '/world/lounge/location/bar';
 const BAR_BIZ = '/world/lounge/idea/business';
 const SHELF = '/trade/hospitality/thing/back-bar';
 const RACK = '/trade/hospitality/thing/glass-rack';
-const CASH_AND_CARRY = '/trade/distribution/location/cash-and-carry';
+// ⭐ The ROOM is the locality's and the MECHANISM is distribution's —
+// fermentation's D10 decoupling kept whole, with the showroom where its
+// door is (a roller door on the Counting-Houses avenue).
+const CASH_AND_CARRY = '/world/terminus/counting-houses/cash-and-carry';
 const COUNTER = '/trade/distribution/thing/counter';
 const DISTRIBUTION = '/trade/distribution/idea/business';
 const OUTFIT = '/trade/distilling/location/veshko-yard/idea/outfit';
@@ -187,7 +192,7 @@ describe("the keeper's back loop — Mara restocks Dave's Bar from the cash-and-
       c.setMass(Quantity.of(0.008, 'kg'));
       return c;
     }) as unknown as typeof StuffApi.clone);
-    vi.spyOn(EmploymentApi, 'shiftStateOf').mockReturnValue('on-shift');
+    vi.spyOn(EmploymentLogic.prototype, 'shiftStateOf').mockReturnValue('on-shift');
     const reg = makeStuffAtPath(() => new ChattelRegistry(), '/platform/idea/ChattelRegistry');
     await reg.postRegister();
     makeStuffAtPath(() => {
@@ -239,7 +244,7 @@ describe("the keeper's back loop — Mara restocks Dave's Bar from the cash-and-
     mara = makeStuffAtPath(() => new Hand(), `/world/lounge/agent/mara-${seq++}`);
     mara.setName('Mara');
     ContainmentApi.move(mara as never, bar as never);
-    await EmploymentApi.hire(barBiz, mara, 'keeper');
+    await barBiz.appoint(mara, 'keeper');
   });
   afterEach(() => {
     teardownBankingHarness();
@@ -251,7 +256,7 @@ describe("the keeper's back loop — Mara restocks Dave's Bar from the cash-and-
     const hand = makeStuffAtPath(() => new Hand(), `/trade/distilling/location/veshko-yard/agent/hand-${seq++}`);
     hand.setName('Orrin');
     ContainmentApi.move(hand as never, cashAndCarry as never);
-    await EmploymentApi.hire(outfit, hand, 'hand');
+    await outfit.appoint(hand, 'hand');
     const c = ctx(hand, cashAndCarry, null, 'wallet use house');
     await asPrincipal(hand, () => makeStuff(() => new WalletController()).execute({ subcommand: 'use', corpo: 'house' } as never, c));
     expect(rejections(c)).toEqual([]);
@@ -270,7 +275,12 @@ describe("the keeper's back loop — Mara restocks Dave's Bar from the cash-and-
   /** The literal verbs, dispatched onto the real controllers as the keeper. */
   function installDispatcher(): string[] {
     const lines: string[] = [];
-    vi.spyOn(CommandApi, 'forceCommand').mockImplementation(async (giver, text) => {
+    vi.spyOn(
+      mara as unknown as { forceCommand(text: string): Promise<void> },
+      'forceCommand',
+    ).mockImplementation(async (text: string) => {
+      const giver = mara;
+      void giver;
       if (text === 'sense') return; // the teleport's own arrival sense
       lines.push(text);
       const who = giver as unknown as Hand;
@@ -337,7 +347,7 @@ describe("the keeper's back loop — Mara restocks Dave's Bar from the cash-and-
     const onShelf = shelf.getContents().filter((b) => bottles.includes(b as Bottle));
     expect(onShelf.length).toBe(2);
     for (const b of onShelf) {
-      expect(await ChattelApi.ownerOf(b)).toEqual({ kind: 'organization', templatePath: BAR_BIZ });
+      expect(await (b as unknown as Stuff & Chattel).chattelOwner()).toEqual({ kind: 'organization', templatePath: BAR_BIZ });
     }
     expect(counter.getContents().filter((b) => bottles.includes(b as Bottle)).length).toBe(1);
     // The house paid; the outfit was paid (less the distributor's cut).
@@ -349,7 +359,7 @@ describe("the keeper's back loop — Mara restocks Dave's Bar from the cash-and-
     expect(pnl.lines.cogs).toBe(-28);
     expect(pnl.lines.sales).toBeUndefined();
     // The sheet is met; the second beat buys nothing.
-    expect(EmploymentApi.stockSheetFor(mara, barBiz).find((l) => l.line.category === 'gin')?.shortfall).toBe(0);
+    expect(barBiz.stockSheetFor(mara).find((l) => l.line.category === 'gin')?.shortfall).toBe(0);
     lines.length = 0;
     await restocks.act(c);
     expect(lines).toEqual([]);
@@ -363,7 +373,7 @@ describe("the keeper's back loop — Mara restocks Dave's Bar from the cash-and-
     expect(lines).toEqual(['wallet use house', 'buy gin']);
     expect(shelf.getContents().length).toBe(0);
     expect(BankingApi.balanceOf(barAccount).minor).toBe(10);
-    expect(EmploymentApi.stockSheetFor(mara, barBiz).find((l) => l.line.category === 'gin')?.shortfall).toBe(1.5);
+    expect(barBiz.stockSheetFor(mara).find((l) => l.line.category === 'gin')?.shortfall).toBe(1.5);
   });
 
   it('the bussing beat: a soiled, empty glass loose in the bar is collected, washed and racked', async () => {

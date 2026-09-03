@@ -1,0 +1,34 @@
+# Slate — fine-grained foliated metamorphic rock, the country rock of
+# the Ferrow oxide cap. Softer than granite and it CLEAVES: the mining
+# reason it matters is that a heading driven in slate costs roughly half
+# what the same heading costs in granite, and the same cleavage is what
+# makes the back work rather than hold.
+#
+# Metamorphosed shale; its parent's clay minerals recrystallized to
+# muscovite and chlorite under low-grade regional metamorphism, which is
+# where the planar fabric comes from. `composition` stays empty for the
+# same reason granite's does — the mineral rows exist now, but a slate
+# is a graded continuum of them, not a recipe.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: slate
+  density: 2750
+  specificHeat: 760
+  thermalConductivity: 2.0
+  # Electrical conductivity (S/m) — dry slate is near-inert, as granite is.
+  electricalConductivity: 1.0e-5
+  # Water absorption capacity (% of dry mass, ASTM D570): dense and
+  # near-impermeable ACROSS the cleavage — which is why it roofs.
+  waterAbsorptionCapacity: 0.4
+  # Mechanical response (materials-response): MPa. Well under granite —
+  # the carve cost that makes a slate heading the cheap one.
+  hardness: 90
+  toughness: 25
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["rock", "metamorphic", "mixture", "foliated", "cleavage"]
+  composition: []
+  chemistry: null
+  biologicalSource: null

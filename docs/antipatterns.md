@@ -922,7 +922,7 @@ identity keys on must be a field.
 The upshot: a "data-only" mixin is usually still a mixin.
 `LabelledMixin` is three accessors and no logic, yet it carries a
 setter invariant the Hydrator routes through, contributes the `label`
-verb, is narrowed on by `RecognitionApi`, vetoes stack merges, and is
+verb, is narrowed on by the recognition face, vetoes stack merges, and is
 authorable. **A mixin is a TYPE; a prop is a VALUE.**
 
 Props handle the dynamic, per-instance, possibly-protected,
@@ -2969,7 +2969,7 @@ a player to one viewer and a hooded stranger to another, and
 player-ness is the single fact a disguise exists to hide.
 
 `Mml.actor` is the face for this: the emitter says *a person acting*
-and stops; `RecognitionApi.kindOf(viewer, target)` resolves
+and stops; `target.kindFor(viewer)` resolves
 `player | npc | thing` at `toString(viewer)`, beside the naming step,
 because it is the same question asked about kind instead of name.
 
@@ -3856,3 +3856,151 @@ Decided 2026-09-01 (the fermentation MR review). The surviving
 is slated for the same conversion:
 [api-boot-retirement-slate](./slates/builds/api-boot-retirement-slate.md).
 Never add a new one.
+
+---
+
+## A completion that calls back into its controller
+
+A controller is **one ephemeral clone per execution**, destructed the
+moment `execute` returns. An engaged act completes long after that, so a
+scheduled callback that reaches `this.<method>` runs on a destroyed
+Stuff — and the proxy answers with a **silent no-op**.
+
+### BAD
+
+```ts
+this.engageAct(context, {
+  onComplete: () => { void this.win(context, working, face); },
+});
+```
+
+The swing lands, the prose prints, and no ore ever appears. The only
+trace is a debug line nobody is reading: `[inert] win() called on
+destroyed Stuff`.
+
+### GOOD (a module function, closed over what it needs)
+
+```ts
+this.engageAct(context, {
+  onComplete: () => { void winOre(context, working, room, face, oreRow, grade); },
+});
+
+async function winOre(/* … */): Promise<void> { /* … */ }
+```
+
+⚠ And the completion is the one place in a controller where **the actor
+is not guaranteed**: a player can log out mid-act, and `Mml.actor()` on a
+departed avatar renders `undefined`, which throws an unhandled rejection
+that takes the process down. Guard with `isDestroyed()` — and note the
+right answer differs by act. An interrupted cut leaves the rock standing,
+so `hew` returns; but a charcoal clamp still OPENS and a furnace is still
+TAPPED, because the fire did not need watching to finish. **Only the
+telling needs a listener.**
+
+Found by driving (metal chain, 2026-09-01). `lint:does-nothing` cannot
+see it — the method exists and the call is well-typed.
+
+---
+
+## A pack subclass for a field the kernel already models
+
+A pack **cannot add a field to a kernel class**, and the failure is
+silent: `fieldMeta` is what the Hydrator reflects through, so an
+undeclared key in `data:` is discarded and the object comes up as though
+the author had written nothing. The reflex is to ship a subclass.
+
+### BAD
+
+```ts
+// trade-mining/src/idea/MineZone.ts — a CartesianZone that carries `deposit`
+export default class MineZone extends CartesianZone { /* one field */ }
+```
+
+That works, and then the zone covering a whole TOWN has to be classed
+`MineZone` — asserting *this town is a mine*, when Rejection is the town,
+the Ferrow is the orebody and the diggings are the workings on it.
+
+### GOOD (a kernel field holding an opaque citation)
+
+```ts
+// lib/zone/SpatialZone.ts
+static fieldMeta = { /* … */ deposit: { persistent: true, authorable: true } };
+```
+
+⭐ **Ask what the field is a fact ABOUT.** A deposit is a property of the
+ground, exactly as `elevation` is; the kernel carries the citation string
+and never interprets it, so it never imports the pack — the same contract
+`Locality._reach` uses for a watercourse. Ship the subclass only when the
+CLASS is genuinely yours.
+
+Decided 2026-09-02 (the metal chain sweep), after `build/water` settled
+the same shape twice.
+
+---
+
+## A cartesian location that authors no `coords`
+
+`CartesianLocation.setCoords` is the **only** path by which an authored
+row joins a zone. A cartesian row with no `coords:` is therefore not
+sitting at the origin — **it is in no grid at all**, and it silently
+inherits nothing a zone carries: no `address` and so no Locality, no
+`atmosphere.*` override, no celestial profile, no `stocks`, no `deposit`.
+
+Nothing throws. Nothing logs. Sixteen rooms shipped that way — every
+trade floor in the repo — and all of them read as fine, because nothing
+they had lost had been asked for yet.
+
+> **Every location plots on some coordinate system.** The only exemption
+> is a position a warren or floorplan assigns at runtime.
+
+⚠ And the fix is a zone, never fewer coords. An earlier revision of
+`lint:locations`' own failure message advised *"delete the coords rather
+than inventing a zone for one room"*; that advice was taken and it was
+backwards — deleting them does not unbreak the room, it un-houses it.
+
+Enforced by `pnpm lint:locations` (`unplottedLocations`), whose exemption
+list is the two rosters a reviewer already reads.
+
+## A subject-first Api static for a verb the object could carry
+
+The Api OO sweep's doctrine: **a verb whose first parameter is the one
+Stuff it acts on belongs ON that Stuff** — `item.stampChattel(owner)`,
+`combatant.queueGambit(key)`, `viewer.composeRosterRow(target)` — with
+the implementation forwarding into the subsystem's logic singleton (the
+host object is a *face*, exactly as the Api facade is). The Api keeps
+only the four mandates: **key/string-keyed resolvers**, **lifecycle**
+(create/destroy/mint), **wire/boundary plumbing**, and **cross-object
+orchestration** (two-subject transfers, nullable-principal checks,
+subject-neutral geometry).
+
+### BAD
+
+```ts
+FooApi.frobnicate(host, arg);   // subject-first static
+```
+
+### GOOD
+
+```ts
+host.frobnicate(arg);           // the verb rides the object;
+                                // the mixin forwards into FooLogic,
+                                // whose gate admits the acting instance
+```
+
+**The three-way gate rule** for the moved method's protection, in
+preference order:
+
+1. **A participant contract** (`FromClass`/`FromMixin` + relational
+   `where`) when a specific in-world relationship names the caller.
+2. **`FromMixin(<host>, { where: caller === args[subject] })` on the
+   logic singleton** — the host's own forward is the only admitted
+   instance path (compare by `stuffId`; proxy vs raw identity differs).
+3. **Ungated + sealed** (`@Final @Unshadowable`) when the legitimate
+   writers span pack controllers no kernel `FromX` list can enumerate —
+   the seal keeps the invariant body unoverridable, and the veto seams
+   (`canX` hooks) stay the extension points.
+
+Enforced by `pnpm lint:object-verbs` (CI-gating since the sweep): a new
+subject-first static on a non-exempt Api fails the build; the
+`EXEMPT_APIS` table carries a one-line mandate reason per surviving
+Api, and widening it is a deliberate, reviewable diff.

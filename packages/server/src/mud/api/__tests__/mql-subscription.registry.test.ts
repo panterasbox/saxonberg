@@ -16,7 +16,6 @@ import { Stuff } from '../../lib/stuff/Stuff';
 import EventRegistry from '../../platform/idea/EventRegistry';
 import Interactive from '../../platform/idea/Interactive';
 import Avatar from '../../platform/agent/Avatar';
-import { ConnectionApi } from '../connection';
 
 async function bootRegistry(): Promise<void> {
   const reg = await StuffApi.create(() => {
@@ -37,7 +36,7 @@ async function makeAvatarInteractive(): Promise<{
   const interactive = await StuffApi.create(
     () => new Interactive('sock-1', 'sess-1', { _id: 'u1' } as never),
   );
-  ConnectionApi.transfer(interactive, avatar);
+  interactive.transferTo(avatar);
   return { interactive, avatar };
 }
 
@@ -92,9 +91,9 @@ describe('MqlSubscriptionApi — registry surface', () => {
       cardinality: 'one',
     });
     expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(1);
-    MqlSubscriptionApi.handleUnsubscribe(interactive, 's-nope');
+    interactive.cancelMqlSubscription('s-nope');
     expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(1);
-    MqlSubscriptionApi.handleUnsubscribe(interactive, 's1');
+    interactive.cancelMqlSubscription('s1');
     expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(0);
     expect(MqlSubscriptionApi._getDependencyIndexEntryCountForTesting()).toBe(0);
   });
@@ -115,7 +114,7 @@ describe('MqlSubscriptionApi — registry surface', () => {
       cardinality: 'one',
     });
     expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(2);
-    MqlSubscriptionApi.cancelAllForInteractive(interactive);
+    interactive.cancelAllMqlSubscriptions();
     expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(0);
     expect(MqlSubscriptionApi._getDependencyIndexEntryCountForTesting()).toBe(0);
   });
