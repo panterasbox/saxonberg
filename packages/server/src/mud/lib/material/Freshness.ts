@@ -583,10 +583,10 @@ export function FreshnessMixin<TBase extends MixinConstructor<Stuff>>(
       if (this._reconcilingFreshness) return;
 
       // ⭐⭐ **Inertness is checked BEFORE the clock, and that ordering IS
-      // the sparse-storage guarantee.** The mixin composes onto every
-      // `Thing` because perishability is a property of the MATERIAL, not
-      // the class: a `Prop` is an anvil or a cut of stew meat depending on
-      // its `_materialPath`, so there is no food class to compose onto.
+      // the sparse-storage guarantee.** Perishability is a property of the
+      // MATERIAL, not the class, so even on `Provision` — the food class —
+      // a host can be made of something that never rots, and the gauge has
+      // to cost nothing when it is.
       //
       // ⚠ The cost of getting this order wrong was invisible and real. It
       // read the clock and STAMPED it first, so the first `look` at an

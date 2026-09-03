@@ -52,9 +52,17 @@ import type { FieldMeta } from '../mixin';
 // for one review round and put five spoilage methods — `getMicrobialLoad`,
 // `getFreshnessBand`, `isPerishable`, `setMicrobialLoad`,
 // `reconcileFreshness` — on the documented author surface of all 152 Thing
-// classes, to serve the two that carry discrete perishable matter (`Prop`
-// and `Provision`). A rock does not need a microbial load, and
+// classes. A rock does not need a microbial load, and
 // `callable == visible == cared-about` says so.
+//
+// ⭐ It lives on **`Provision`**, and only there — the one class in the
+// library that IS food by name. The narrowing went via `Prop` first,
+// which was wrong for a reason worth keeping: `Prop` is the generic
+// concrete `Thing`, deliberately empty, so hanging a gauge on it taxes
+// the anvil and the toilet to serve four rows that were simply on the
+// wrong class. `prime-cut` sat in the same pantry chest as `stew-meat`
+// and was already a `Provision`; the fix was to move the rows, not to
+// widen a class.
 //
 // ⚠⚠ Narrowing it is only safe because a GATE replaces the coverage:
 // `pnpm lint:perishable` fails CI when a row's `_materialPath` names a

@@ -55,26 +55,32 @@ exponential, so a week-long gap costs exactly what a minute does.
 
 ## The gauge
 
-`FreshnessMixin` composes onto exactly **two** classes: `Prop` and
-`Provision` — the two that carry discrete perishable matter. Bulk holders
-(`Bottle`, `Receptacle`, `UnboundedReceptacle`) do **not** compose it;
-their gauge is the payload field, read through `Freshness.loadOf(slot)`.
+`FreshnessMixin` composes onto exactly **one** class: `Provision` — "the
+one class in the library of which [being food] is true by name". Bulk
+holders (`Bottle`, `Receptacle`, `UnboundedReceptacle`) do **not** compose
+it; their gauge is the payload field, read through
+`Freshness.loadOf(slot)`.
 
-⚠ **It was on `ThingBase` — all 152 `Thing` classes — for one review
-round**, which put five spoilage methods on the documented author surface
-of a rock, a lantern and a pair of socks to serve those two. That is the
-`callable == visible == cared-about` invariant, and it lost.
+⚠ **It took two rounds to land there, and both wrong answers had the same
+shape.** First `ThingBase` — all 152 `Thing` classes — which put five
+spoilage methods on the documented author surface of a rock, a lantern and
+a pair of socks. Then `Prop`, the deliberately-empty generic `Thing`,
+which taxed the anvil and the toilet instead. Both were argued from *"a
+prop is often food"*, which is a claim about ROWS; the four rows in
+question (`stew-meat`, `root-vegetables`, `ration-stock`, `rations`) were
+simply on the wrong class, and `prime-cut` — in the same pantry chest —
+was already a `Provision`. **The fix for a mixin on too wide a host is
+usually to move the rows, not to widen the class further.**
 
 ⭐⭐ **What makes the narrowing safe is a GATE, not a judgement.**
-Perishability is a property of the **Material**, not the class — a `Prop`
-is an anvil, a toilet or a cut of stew meat depending on its
-`_materialPath`, and only 30 of the library's 107 materials tabulate an
-activation energy. There is no food class to compose onto (the codebase's
-own *"the distinction is the material, not a flag"* rule,
-`isEdibleMatter`). So narrowing by hand risks the worst failure this
-codebase knows: food authored onto an inert class would **silently never
-rot**, exactly as `eat` shipped with no affordance and `feel`/`taste`
-never ran.
+Perishability is a property of the **Material**, not the class — the same
+class is an anvil or a cut of stew meat depending on its `_materialPath`,
+and only 30 of the library's 107 materials tabulate an activation energy.
+Read too far, that argues for composing as wide as possible (it is what
+produced both wrong answers above). So narrowing by hand risks the worst
+failure this codebase knows: food authored onto an inert class would
+**silently never rot**, exactly as `eat` shipped with no affordance and
+`feel`/`taste` never ran.
 
 `pnpm lint:perishable` closes that: every shipped row whose
 `_materialPath` names a material that rots must resolve to a class
@@ -112,8 +118,8 @@ Reconcile-on-read over game-time, with **two deliberate divergences from
    ration does not stop rotting because its owner dropped link.
 
 The temperature the gauge reads is the host's own (`Thermal`), which is
-why `Prop` and `Provision` — the classes every food row is over — compose
-`ThermalMixin`. A cold larder and a warm windowsill are then different
+why `Provision` — the class every food row is over — composes
+`ThermalMixin` alongside `FreshnessMixin`; the two travel together. A cold larder and a warm windowsill are then different
 answers to the same question, for free.
 
 ## The blend half

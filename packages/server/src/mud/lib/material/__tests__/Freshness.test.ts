@@ -9,7 +9,6 @@
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Thing from '../../stuff/Thing';
-import Prop from '../../../platform/thing/Prop';
 import Provision from '../../../platform/thing/Provision';
 import Material from '../Material';
 import { Freshness } from '../Freshness';
@@ -48,10 +47,10 @@ function material(ea: number, aw = 0.98): Material {
   }, `/stuff/idea/material/_test/fresh-${matSeq}`) as unknown as Material;
 }
 
-/** A `Prop` (Thermal + Fresh) of the given material, held at `tempK`. */
-function food(mat: Material, tempK = 293): Prop {
+/** A `Provision` (Thermal + Fresh + Crafted) of the given material, held at `tempK`. */
+function food(mat: Material, tempK = 293): Provision {
   return makeStuff(() => {
-    const p = new Prop();
+    const p = new Provision();
     p.setMass(Quantity.of(1, 'kg'));
     p.setMaterial(mat);
     p.setStampedTemperatureK(tempK);
@@ -110,7 +109,7 @@ describe('FreshnessMixin — the spoilage gauge', () => {
   });
 
   it('…and the two classes that DO carry it are the two that hold food', () => {
-    expect(MixinApi.isFresh(makeStuff(() => new Prop()))).toBe(true);
+    expect(MixinApi.isFresh(makeStuff(() => new Provision()))).toBe(true);
     expect(MixinApi.isFresh(makeStuff(() => new Provision()))).toBe(true);
   });
 
@@ -233,7 +232,7 @@ describe('FreshnessMixin — the spoilage gauge', () => {
 
   // ---- AC3: the host's own temperature is what the gauge reads ----
 
-  it('a Prop reads its OWN thermal state — the larder and the windowsill differ', () => {
+  it('a Provision reads its OWN thermal state — the larder and the windowsill differ', () => {
     const mat = material(MEAT_EA);
     const larder = food(mat, 280);
     const sill = food(mat, 305);
@@ -248,7 +247,7 @@ describe('FreshnessMixin — the spoilage gauge', () => {
   // ---- bands + the augmenter ----
 
   it('bands map by threshold', () => {
-    const mk = (load: number): Prop => {
+    const mk = (load: number): Provision => {
       const p = food(material(MEAT_EA));
       p.setMicrobialLoad(load);
       return p;
@@ -261,7 +260,7 @@ describe('FreshnessMixin — the spoilage gauge', () => {
 
   it('a spoiled thing shows a band line, never a number; a fresh one says nothing', () => {
     // Fold every augmenter the chain contributes, the way the render does.
-    const augment = (host: Prop): string =>
+    const augment = (host: Provision): string =>
       MixinApi.getAllMarkupAugmenters(
         (host as unknown as { constructor: never }).constructor,
       ).reduce((text, fn) => fn(text, host, host), 'A bowl of stew.');
@@ -354,7 +353,7 @@ describe('the gauge across a restore (AC5)', () => {
 
     setNow(2 * DAY); // two game-days of absence
 
-    const restored = makeStuff(() => new Prop());
+    const restored = makeStuff(() => new Provision());
     restored.setMaterial(mat);
     await makeStuff(() => new PersistentHydrator()).hydrate(restored, stored);
 
@@ -370,7 +369,7 @@ describe('the gauge across a restore (AC5)', () => {
     // …and it counted at the LARDER's rate, not the room's. The same
     // snapshot restored warm is far worse off.
     const warmStored = { ...stored, stampedTemperatureK: 303, lastAmbientK: 303 };
-    const warmRestored = makeStuff(() => new Prop());
+    const warmRestored = makeStuff(() => new Provision());
     warmRestored.setMaterial(mat);
     await makeStuff(() => new PersistentHydrator()).hydrate(
       warmRestored,
@@ -380,7 +379,7 @@ describe('the gauge across a restore (AC5)', () => {
   });
 
   it('the sparse default round-trips as nothing to restore', async () => {
-    const fresh = makeStuff(() => new Prop());
+    const fresh = makeStuff(() => new Provision());
     fresh.setMaterial(material(0));
     expect(fresh._microbialLoad).toBe(0);
     expect(fresh.freshnessClockStamp).toBe(0);

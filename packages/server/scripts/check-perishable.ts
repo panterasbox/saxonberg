@@ -2,17 +2,19 @@
  * check-perishable — ⭐ **every row made of matter that can rot must be a
  * class that can rot.**
  *
- * Perishability is a property of the **Material**, not the class: a `Prop`
- * is an anvil, a toilet, or a cut of stew meat depending on its
- * `_materialPath`. So `FreshnessMixin` cannot be composed "where the food
- * is" by inspection — there is no food class, which is the codebase's own
- * *"the distinction is the material, not a flag"* rule (`isEdibleMatter`).
+ * Perishability is a property of the **Material**, not the class: the same
+ * class is an anvil or a cut of stew meat depending on its
+ * `_materialPath`, which is the codebase's own *"the distinction is the
+ * material, not a flag"* rule (`isEdibleMatter`). Read too far, that
+ * argues for composing `FreshnessMixin` as wide as possible — and it did:
+ * first onto `ThingBase` (all 152 `Thing` classes), then onto `Prop` (the
+ * deliberately-empty generic `Thing`). Both put five spoilage methods on
+ * the documented author surface of a rock, a lantern and a pair of socks,
+ * against the governing `callable == visible == cared-about` invariant.
  *
- * It was therefore composed onto `ThingBase` — every one of 152 `Thing`
- * classes — to serve the two that actually carry discrete perishable
- * matter. That put five spoilage methods on the documented author surface
- * of a rock, a lantern and a pair of socks, against the governing
- * `callable == visible == cared-about` invariant.
+ * ⭐ The answer was that a food class already existed — `Provision`, "the
+ * one class in the library of which that is true by name" — and four rows
+ * were on the wrong one. The mixin is composed there, and only there.
  *
  * ⚠ **This gate is what buys the narrowing.** Composing only where food
  * lives risks the worst failure this codebase knows: a perishable material

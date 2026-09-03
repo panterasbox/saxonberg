@@ -17,7 +17,7 @@ import { Creature } from "../../../../../lib/creature/Creature";
 import { SensorMixin } from "../../../../../lib/message/Sensor";
 import { CommandGiverMixin } from "../../../../../lib/command/CommandGiver";
 import Condition from "../../../Condition";
-import Prop from "../../../../thing/Prop";
+import Provision from "../../../../thing/Provision";
 import Location from "../../../../../lib/stuff/Location";
 import Material from "../../../../../lib/material/Material";
 import { Stuff } from "../../../../../lib/stuff/Stuff";
@@ -106,9 +106,9 @@ function rationMaterial(): Material {
   }, RATION) as unknown as Material;
 }
 
-function ration(tempK: number): Prop {
+function ration(tempK: number): Provision {
   return makeStuff(() => {
-    const p = new Prop();
+    const p = new Provision();
     p.setShortDescription("a ration");
     p.setMass(Quantity.of(0.3, "kg"));
     p.setMaterial(rationMaterial());
