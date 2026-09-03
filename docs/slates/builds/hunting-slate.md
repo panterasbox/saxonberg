@@ -19,6 +19,8 @@
 See also: [discovery-slate](./discovery-slate.md) (**foraging — the sibling,
 and the pattern this borrows**) · [guild-slate](./guild-slate.md) (the Wardens)
 · [pets-slate](./pets-slate.md) (taming is the same encounter, other outcome) ·
+[forestry-slate](./forestry-slate.md) (⭐ **forest law is one law** — *vert
+and venison*, the wood and the deer; share the enforcement design) ·
 [legal-code-slate](./legal-code-slate.md) + [policing-slate](./policing-slate.md)
 + [enforcement-slate](./enforcement-slate.md) (game law) ·
 [field-substrate-slate](./field-substrate-slate.md) (seeded × derived) ·
