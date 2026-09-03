@@ -198,6 +198,49 @@ cooking's to build. Cooking's stake once the tap flows:
   a trap invisible until someone drives it and wonders why the
   icebox makes perfect toast.
 
+**Hunting & foraging: the wild upstream — both cheaper than they
+look.** Neither is cooking's to build; both feed it by category tag
+like every other acquisition trade.
+
+- ⭐ **Foraging is fishing on land.** The
+  [fishing slate](./fishing-slate.md)'s one genuinely-new primitive is
+  a **catch-distribution model read through the weather/time fog** —
+  which is exactly what foraging wants (what is available *here, now*
+  as a function of place × season × weather). Build it once and
+  foraging is its second consumer, not a second build. It is **the
+  field pattern** (mining's `Deposit` precedent): **seeded, never
+  drawn** — what grows in this thicket is a *fact about the thicket*,
+  discoverable, not a roll on `search` (the uncertainty doctrine's
+  environmental-legal / resolutional-banned line).
+- **The gap is already predicted**: `foraging` is a ⭐gap Discipline
+  in the [trade roster](./trade-roster-slate.md) (`awareness` ships,
+  `foraging` does not) and **no `forage`/`gather` verb exists** — the
+  [authored-vs-procedural slate](./authored-vs-procedural-slate.md)
+  names both, and reframes the real question as *authoring*, not
+  foraging. It owns that fork.
+- ⭐⭐ **Foraging's skill is NEGATIVE knowledge — knowing what NOT to
+  eat — and the whole substrate ships.** Toxins are real
+  (`ToxinBehavior`, banded Conditions), and identification carries
+  **partial identification and misidentification** (the
+  identification-slate tail). A misjudged mushroom is a real dose, and
+  telling the death cap from the field mushroom is *knowledge, never a
+  roll* — the vocations register's epistemic gate in its purest form,
+  and exactly what real foraging is.
+- **Hunting is combat + butchery, and both are covered**: the hunt is
+  **track** (the same field/distribution read) → **stalk** (stealth
+  ships: `HidingMixin`, ambush, the wary brain) → **shoot** (ranged
+  ships: bands, aim, the delivery profile) → **dress** (butchery's
+  act, § above). A remarkably cheap vertical — and honest, because
+  the animal is a real creature with vitals that dies by the same
+  rules as anything else, not a loot piñata.
+- **Cooking's stake, and the economy's**: wild ingredients are
+  *seasonal and place-bound*, feeding Part 8's regional cuisine; and
+  foraging is the **income floor with no capital** (the roster's
+  forager holds Means: *nothing*) — the fallback trade. ⚠ It must stay
+  a **source node, never a faucet** (the economy slate's conservation
+  spine): limited by time, place, season, and the plain fact that a
+  town cannot be fed by foraging.
+
 **Confectionery clusters with the baker, by the same test.** Candy
 sells **stock** — it travels, shelves, and keeps, and it keeps for the
 terms-not-methods reason: high sugar is low water activity, so sweets
