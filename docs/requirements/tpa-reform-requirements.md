@@ -90,29 +90,50 @@ failure vocabulary, shipped by the water build).
 **Q.** What kind of organization is a body that spans localities to enable
 travel, owns infrastructure, and has no capital and no owner?
 
-**A.** A **special-purpose authority** — the special-district form:
-*functional* rather than territorial, overlapping rather than nested,
-funded by user fees rather than taxes, governed by a board its member
-governments appoint. A corpo is integrated because it is pursuing
-something; an authority does one job across bodies that each stay
-sovereign.
+**A.** A **self-regulating institution** — the clearing-house / standards-body
+form: it spans jurisdictions, enables commerce, sets its own rules, is funded
+by fees from its users, and **is owned by nobody**. Not a corpo (no capital, no
+mark, not integrated), not a government (no jurisdiction, makes no law), and
+**not a special district** — it has no member states.
 
-It needs **no new primitive**. `OrganizationMixin`'s appointing authority
-is a four-kind `PrincipalRef` union, and one kind is `seat`, resolving
-through `GovernmentApi.holdsSeat`. So the Authority is an `Organization`
-whose board positions are appointed by `{kind: 'seat'}` refs naming seats
-in its member localities' governments. A locality joins by its
-seat-holder appointing; it leaves by not appointing.
+> ⚠⚠ **Corrected 2026-09-02, and the error was mine.** An earlier revision of
+> this decision made the TPA a special-purpose district with a board appointed
+> by its member localities' governments. That was imported from the real-world
+> analogy, never asked for, and it dragged two kernel changes and a derived-board
+> design behind it. The user's actual framing: *"the TPA is just a private
+> institution that regulates itself"* and *"the Terminus institution has no
+> authority over the TPA."*
 
-⭐ That preserves civics' load-bearing consent rule —
-*"the government carries no claims list; declaring jurisdiction is
-authoring the Locality"* — with no `Locality` field and no kernel change.
-**The authority can never claim a locality that did not consent, because
-consent *is* the appointment.**
+It needs **no new primitive and no kernel change at all.** The Authority is
+one `Organization`/`Business` row whose appointing authority is its **own
+committee over its own extent**:
+
+```yaml
+appointingAuthority: { kind: committee, parcel: /system/tpa }
+```
+
+The pack's manifest already claims `/system/tpa` for the `tpa` group, so that
+parcel exists by construction. ⭐ **The self-perpetuating board, expressed
+entirely in shipped primitives, naming no realm** — which is what lets the row
+**ship inside the pack** with everything else.
+
+⚠ The shipped row today says `{kind: committee, parcel: /world/terminus/terminal}`
+— a **Terminus** parcel, so the city currently governs the network. That is the
+realm reference this decision removes, and it is why the row was parked in the
+`terminus` pack.
 
 Its `Business` face is unchanged and stays the economy half (fares, the
 network fee, wages). `BusinessMixin` already requires `OrganizationMixin`
 on its base, so this is one object with two faces.
+
+⭐⭐ **And the form opens a political question rather than closing one.**
+Nobody elected the Teleport Authority, and every locality depends on it. A
+locality that dislikes its fares has no vote — only leverage. *Who checks a
+body everyone depends on and nobody governs?* is a live problem in the real
+world (payment networks, ICANN, SWIFT, the credit bureaus), it is squarely
+[compact-political-science.md](../compact-political-science.md)'s territory,
+and it is left **standing as a question** rather than pre-answered. The
+member-government board answered it in the dullest way available.
 
 ### D2 — It is named "the Teleport Authority", full stop
 
@@ -632,9 +653,10 @@ where it has been parked since before content packs existed.
     is **free** and needs no registration — resolved through `AccessApi`.
 20. A **use-grant holder does not** get free movement in the extent they
     lease.
-21. The Teleport Authority is an **`Organization`** whose board positions
-    name `{kind: 'seat'}` appointing authorities in member localities'
-    governments, and `holdsSeat` resolves them.
+21. The Teleport Authority **ships inside `/system/tpa`**, names no realm
+    anywhere in its row, and its appointing authority is its **own
+    committee over `/system/tpa`** — asserted directly, and asserted
+    negatively: **no Terminus office or committee can appoint to it.**
 22. No content path for a teleport node appears anywhere in
     `packages/server/src/mud/lib/` — `BORN_WITH_TRAVEL_NODES` is authored
     data.

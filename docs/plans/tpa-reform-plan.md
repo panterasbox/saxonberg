@@ -822,68 +822,48 @@ claim.
 `register` costs nothing and gains no settlement path — AC14 is asserted by
 there being no `settle` call reachable from `RegisterController`.
 
-### P15 — The Authority: one row, two faces, and one kernel field
+### P15 — The Authority: one row, two faces, zero kernel change
 
-`PositionData` gains one optional field in `lib/employment/Position.ts`:
+**Rewritten 2026-09-02** — see the requirements' D1 correction. The Authority
+is a **self-regulating institution**, so `PositionData.appointedBy`,
+`mayAppointTo`, `GovernmentSeat.appointsTo` and the derived-board design are
+all **deleted from this plan**. None of them is needed.
 
-```ts
-/** Who appoints to THIS position, overriding the organization's own
- *  authority. The special-district shape: one board, many appointers,
- *  each a member government's seat. Absent ⇒ the organization's. */
-appointedBy?: PrincipalRef;
-```
-
-`Position.fromData` coerces through the shipped `Authority.fromData`;
-`EmploymentLogic.isProprietorOfImpl` grows a position-keyed sibling,
-`mayAppointTo(subject, org, positionKey)`, that tries the position's ref first
-and falls back to the org's — the PM override rides on top exactly as today.
-`holdsAuthorityImpl` needs **no change**: `{kind:'seat'}` already dispatches to
-`GovernmentApi.holdsSeat`.
-
-The Authority row itself **moves** from
-`packages/content/terminus/content/world/terminus/terminal/idea/tpa.yaml` to
-realm content at `/stuff/idea/Business/teleport-authority` in **`world-seed`**
-(the pattern `/stuff/idea/Government/*` and `/stuff/idea/Locality/*` already
-set: a system's classes are the pack's, its instances are the realm's). It stays
-one `/platform/idea/Business` row — `BusinessMixin` requires
-`OrganizationMixin`, so the two faces are one object (D1) — and gains board
-positions:
+The row **ships in `packages/content/tpa/content/system/tpa/idea/teleport-authority.yaml`**
+— inside the pack, with everything else — and the only edit it needs is its
+appointing authority:
 
 ```yaml
-positions:
-  - { key: board-terminus, label: the Terminus seat, wageRate: 0,
-      appointedBy: { kind: seat, government: terminus-city, seat: magistrate } }
-  - { key: board-hinkley,  label: the Hinkley Hills seat, wageRate: 0,
-      appointedBy: { kind: seat, government: hinkley-hills, seat: magistrate } }
+class: /platform/idea/Business
+data:
+  # It governs itself: the committee over its OWN extent, which the pack's
+  # manifest already claims for the `tpa` group. Names no realm.
+  appointingAuthority: { kind: committee, parcel: /system/tpa }
+  positions: []
+  operatingLocations: []      # the per-terminal fare operators claim the fixtures
+  banksAt: goodkin            # the TPA is not the state; it banks commercially
 ```
 
-⭐ **A locality joins by its seat-holder appointing and leaves by not
-appointing** — there is no membership list anywhere, which is precisely why
-civics' consent rule survives with no `Locality` field and no kernel change
-beyond the one position field.
+⚠ The shipped row's `{kind: committee, parcel: /world/terminus/terminal}` is
+the **one realm reference**, and removing it is the whole of this decision:
+Terminus stops governing the network.
 
-⚠ **Reseed hazard, named now:** `fasttravel.tpaBusinessPath` is a
-`settings`-kind row, and that kind is **merge-missing** — an existing world's
-key is *not* updated when the seed value changes. Moving the Authority's path
-therefore leaves a live world pointing at the old row until the key is edited by
-hand. W8 records this in the pack README and the doc; a fresh DB is correct
-automatically.
+⚠ **Reseed hazard, unchanged:** `fasttravel.tpaBusinessPath` is a
+`settings`-kind row and that kind is **merge-missing**, so an existing world
+keeps pointing at the old path until the key is edited by hand. W2 records it
+in the pack README and the doc; a fresh DB is correct automatically.
 
-### P15a — Why the Authority is realm content and not the pack's
+### P15a — ⛔ SUPERSEDED: "the Authority is realm content"
 
-Asked directly (user, 2026-09-02): why not ship the Business in `/system/tpa`
-with everything else?
+This decision argued the Authority had to be realm content because its board
+positions named this realm's governments. **That premise was the plan's own
+invention** (D1's member-government board), and with it removed the argument
+collapses: a self-regulating institution names nobody, so it ships in the pack.
+Recorded rather than deleted because the *reasoning* still holds for anything
+that genuinely does name a realm — a row whose content references specific
+localities cannot live in a mechanism pack.
 
-**Because the row names this realm's governments.** Its board positions carry
-`appointedBy: { kind: seat, government: terminus-city, seat: magistrate }` — a
-different realm has different member localities, so the row is realm-specific
-**by construction**, not by analogy with the water pack. And a pack cannot
-append positions to another pack's row: one owner per row, and an edit is a
-*conflict*, never a merge. Shipping it in the pack would make **the mechanism
-pack depend on realm localities existing**, which is backwards for a pack whose
-job is to work in any realm.
-
-⚠ **The question exposes a real naming tension, and it is the plan's, not the
+⚠ **The question did expose a real naming tension, and it is the plan's, not the
 asker's.** `/system/tpa` is named for an **instance** — TPA is the Authority's
 acronym — while holding only mechanism, which is exactly why "put the Business
 in the tpa pack" reads as obvious. Either the root becomes `/system/teleport`
@@ -989,7 +969,15 @@ The single biggest mechanical wave. In order:
    `waterPumpEfficiency`, `waterFouledAt`) live there too and the pack
    imports them. A key *name* is a shared vocabulary so a typo fails; the
    *values* stay authored in the pack.
-9. ⭐ **Delete the kernel's one piece of TPA knowledge instead of moving
+9. ⭐ **The Authority moves into the pack and stops being Terminus's** (P15,
+   AC21). `terminus/content/world/terminus/terminal/idea/tpa.yaml` →
+   `tpa/content/system/tpa/idea/teleport-authority.yaml`, with
+   `appointingAuthority` repointed from `{kind: committee, parcel:
+   /world/terminus/terminal}` to `{kind: committee, parcel: /system/tpa}`.
+   Prove it negatively as well as positively: **no Terminus office or
+   committee can appoint to it.** ⚠ Record the `fasttravel.tpaBusinessPath`
+   merge-missing reseed hazard in the pack README and the doc.
+10. ⭐ **Delete the kernel's one piece of TPA knowledge instead of moving
    it.** `BankingLogic.restampCustodiansImpl` reads
    `fasttravel.tpaBusinessPath` solely to *"re-own the **legacy** raw `tpa`
    accumulator"* — the function's own comments call it legacy migration
@@ -1003,9 +991,9 @@ The single biggest mechanical wave. In order:
    default-custodian fallback in the same function may be live behaviour.
    Read before cutting, and leave anything that is not migration to
    banking's own sweep.
-10. Move the two fasttravel suites and the tpa controller suites into
+11. Move the two fasttravel suites and the tpa controller suites into
    `packages/content/tpa/src/__tests__/`.
-11. **D2:** every "Eternal City" in prose and docs.
+12. **D2:** every "Eternal City" in prose and docs.
 
 Prove: `grep -rn 'FastTravel\|fasttravel\|TpaTerminal\|TravelCard'
 packages/server/src/mud/lib packages/server/src/mud/world` returns nothing;
@@ -1122,17 +1110,13 @@ and cell-fed terminals quote different mana charges for the same ride); AC14
 (`register` costs nothing, at every node); the shipped fare suite green — the
 existing money model is untouched.
 
-#### W8 — The Authority (D1, D2, AC21) (provable: *consent is the appointment*)
+#### W8 — ⛔ FOLDED INTO W2
 
-P15's `PositionData.appointedBy` + `mayAppointTo` (kernel); the Authority row
-moved to `/stuff/idea/Business/teleport-authority` in `world-seed` with its
-board positions and its charter; `fasttravel.tpaBusinessPath` repointed with the
-merge-missing hazard recorded.
-
-Prove: AC21 — a Terminus magistrate may appoint to `board-terminus` and may
-**not** appoint to `board-hinkley`; `holdsSeat` resolves both; the org-level
-authority still governs positions with no `appointedBy`; the shipped employment
-suite green.
+The Authority was a whole wave when it carried a kernel change and a
+member-government board. As a self-regulating institution it is **one row move
+and one field edit**, so it belongs with W2's other moves — which also means
+**build one now delivers the complete separation**: the TPA leaves the kernel
+*and* stops being Terminus's, as one story. Build two is purely the mana work.
 
 #### W9 — Docs, drives, finalize runway (AC24, AC27–29)
 
@@ -1222,7 +1206,7 @@ second half is still in flight.
 | `packages/content/arcana/src/thing/ManaMain.ts` | the mains |
 | `packages/content/arcana/src/thing/ManaLamp.ts` | AC6's domestic device |
 | `packages/content/arcane-library/content/stuff/idea/magic/Spell/teleport.yaml` | the spell row |
-| `packages/content/world-seed/content/stuff/idea/Business/teleport-authority.yaml` | the Authority, realm content |
+| `packages/content/tpa/content/system/tpa/idea/teleport-authority.yaml` | the Authority — **in the pack**, self-governing |
 
 **Moved**
 
@@ -1237,7 +1221,7 @@ second half is still in flight.
 | `packages/content/platform/content/platform/cmd/movement/register.yaml` | `packages/content/tpa/content/system/tpa/cmd/movement/register.yaml` |
 | `packages/content/platform/content/settings/fasttravel.yaml` | the tpa pack |
 | `packages/content/world-seed/content/world/common/tpa/travel-card.yaml` | the tpa pack |
-| `packages/content/terminus/content/world/terminus/terminal/idea/tpa.yaml` | `world-seed`, as the Authority |
+| `packages/content/terminus/content/world/terminus/terminal/idea/tpa.yaml` | the **tpa pack**, as the self-governing Authority |
 | the two `lib/fasttravel/__tests__/` suites + `cmd/{author,tpa}/__tests__/tpa-*` | `packages/content/tpa/src/__tests__/` |
 
 **Deleted**
@@ -1258,7 +1242,6 @@ second half is still in flight.
 | `platform/idea/magic/Spell.ts` | `costModel` field + fieldMeta |
 | `platform/idea/SpellCatalogue.ts` | validate `costModel` |
 | `lib/credential/Credential.ts` | D12 — the floor becomes a settings read |
-| `lib/employment/Position.ts` · `platform/idea/api/EmploymentLogic.ts` | P15 — `appointedBy` + `mayAppointTo` |
 | `platform/idea/cmd/author/GotoController.ts` + `platform/cmd/author/goto.yaml` | P13 — `--target` / `--force` |
 | `lib/mixin.ts` · `api/mixin.ts` | remove the FastTravel entries |
 | `packages/content/{terminus,hinkley-hills,newbie-wilds,saxonberg-lounge}/package.json` + their terminal rows | the pack dependency + the `class:` repoint |
@@ -1283,7 +1266,7 @@ Sequenced so no risk is mitigated later than the wave it first appears in.
 | R9 | **`SlotSpec.accepts` cannot name a pack mixin** | W5 | **W5, by construction.** The bay accepts `Mixins.Charged`; `ManaCell.fitsSlot` narrows. Anything else throws at hydrate, which is the lint. |
 | R10 | **`ChargedMixin` affords `zap` on a terminal** | W6 | **W6.** The terminal overrides the static; if the collector unions the chain instead, `zap.yaml` gains `requires: [ArcaneMixin]`, the correct gate regardless. |
 | R11 | **A terminal's reservoir resets on restart** (a singleton re-cloned from template) | W6 | **W6 (P10).** `PersistableMixin` + the shipped `SlottedSlice`; no new collection. |
-| R12 | **`fasttravel.tpaBusinessPath` is merge-missing**, so a live world keeps pointing at the retired Authority row | W8 | **W8.** Recorded in the pack README, the doc, and the MR — the same shape as fasttravel.md's existing R1 reseed note. Fresh DBs are correct automatically. |
+| R12 | **`fasttravel.tpaBusinessPath` is merge-missing**, so a live world keeps pointing at the retired Authority row | W2 | **W2.** Recorded in the pack README, the doc, and the MR — the same shape as fasttravel.md's existing R1 reseed note. Fresh DBs are correct automatically. |
 | R13 | **Build two is planned against build one's plan, not its code** | W5 | **W5 opens with a re-grounding pass** and a short delta note appended to this plan, surfaced before W6 if anything material moved. |
 | R14 | **The τ rename touches an authored persistent field** across content | W1 | **W1.** Four rows; `lint:field-meta` + `lint:census` gate the rest; the wave is deliberately alone in the file. |
 
@@ -1305,7 +1288,7 @@ Sequenced so no risk is mitigated later than the wave it first appears in.
 | 15 | W2 |
 | 16 · 17 · 18 | W4 |
 | 19 · 20 | W4 |
-| 21 | W8 |
+| 21 | W2 |
 | 22 · 23 | W2 |
 | 24 | W9 (the README paragraph) |
 | 25 | W1 |
