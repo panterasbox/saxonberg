@@ -1317,6 +1317,95 @@ residency is 14–28 real hours, so **the act that rewards judgment already happ
 at human cadence** while the acts that do not happen at game cadence and get
 delegated. Preserve that when tuning anything.
 
+### When somebody means you harm
+
+*(D95–D101, added after the adversarial pass, which converged on the same answer
+as the multiplayer one.)*
+
+**D95 — ⭐ The farm is attackable by design, and the reconcile is the trail.**
+Settled doctrine rather than a fresh call: *guards constrain good faith only*,
+*detect evasion, not malice*, and the accountability ledger is derive-on-read
+blame rather than a chokepoint. **The answer to attack is law, not walls.**
+
+⚠ **But this is the first asset in the game attacked while its owner is
+absent.** Everything else — your body, your carried goods, your shop while you
+stand in it — is attacked in your presence. A farm is attacked while you are
+logged out and you learn of it at reconcile. The attack surface is almost
+entirely things this build created: **the gate left open** (D7's herd in the
+wheat, weaponised), **the hay fired** (D48), **ragwort in the fodder** (D49),
+**overgrazing under agistment** (D81), **poaching wet ground** (D17), **cut
+drains**, rustling, hive robbery, an unauthorised coppice cut (D70), and —
+because improvements decay (D58) — **damage by merely preventing maintenance.**
+
+⭐ **The evidence model is already free.** The ranching slate's own line —
+*"the gate was open Tuesday; they were in the wheat by Wednesday; here is what's
+left"* — means **the reconcile IS the forensic reconstruction.** Resolving at read
+time gave us the trail as a side effect.
+
+**D96 — ⭐⭐⭐ The security model is social, and the farm is what makes a village
+necessary.** Real agriculture's answer to *"I cannot watch my land"* is a set of
+institutions and every one of them is a person: the dog (D41), the hired hand who
+is also a **witness**, living on the land, the village, and above all **the
+neighbour**. In rural life your neighbour watching your ground *is* the security
+model.
+
+> **Trade gives you a reason to know your neighbours; vulnerability gives you a
+> reason to trust them.**
+
+This converges with the multiplayer pass (D79–D83) from the opposite direction,
+and together they are the strongest argument in this document that **Heart's
+Delight should be a village rather than a subdivision.**
+
+**D97 — ⭐⭐ Deniability is the content, not a defect.** Most farm attacks are
+indistinguishable from negligence: a gate open (did they, or did you?), hay
+burned (baled wet per D48, or fired?), a dead ewe (disease, neglect, or poison?),
+a poached field (your stock or theirs?).
+
+**Do not engineer the ambiguity away.** It is what makes reconstruction
+interesting and courts necessary, and it is
+[warranty-slate](../slates/builds/warranty-slate.md)'s rule arriving from another
+direction: **the engine records what happened; deciding who is to blame is
+content.**
+
+**D98 — Rustling's answer ships, and needs the same one line as D22.** Chattel
+carries **chain-of-title**, so a stolen animal keeps its provenance and cannot be
+sold cleanly — fencing is the hard part, exactly as in life. And the reason real
+cattle were branded is already built: **`BrandedMixin`** ships, is MQL-visible
+through `subscribableFields`, and is currently composed only on Things
+(`NeonSign`, `GradedReceptacle`). **Branding livestock is what marks were
+invented for**, and reaching the Creature stack is the same move D22 makes for
+chattel.
+
+**D99 — ⭐ Make theft more profitable than destruction.** A stolen thing still
+exists, with an id, a chain of title and a counterparty; a destroyed thing leaves
+nothing to follow. Steering the rational attack toward theft **generates a story
+and a trail instead of a shrug**, and it is the same reason fencing stolen goods
+beats arson in life.
+
+**D100 — ⚠⚠ The floor: no unrecoverable total loss while offline.** Permissiveness
+has a limit and it is about **playability, not fairness**. If one person can
+erase a season's work while you sleep with no path to redress, the game is
+unplayable for anyone who has a job.
+
+This is **not** an argument for prevention. It is an argument for a **bounded
+blast radius per act** — fire takes a store, not a holding — and for redress
+being real. ⭐ And insurance already carries the design:
+[insurance-slate](../slates/builds/insurance-slate.md)'s *"insurance prices
+prevention, so the fire code enforces itself"* means the answer to *somebody
+could burn my hay* is a premium that falls when you store it properly, rather
+than a rule.
+
+⭐ Worth recording for sequencing: that slate opens with **"adverse selection is
+the lemons problem, third instance"** — so auction, insurance and warranty are
+**three slates converging on one missing primitive**, which is a strong argument
+for building [warranty-slate](../slates/builds/warranty-slate.md) early.
+
+**D101 — Trespass is the polity's question, not ours.** Title ships and
+`AccessApi.can` gates it — but D74's commons rights say some people have a
+**right** to be on land they do not own. **Trespass and *profits à prendre* are
+two sides of one question**, and enclosure is the historical argument about where
+the line falls. It should be legislated in play, not settled in this document.
+
 
 ---
 
@@ -1488,6 +1577,18 @@ delegated. Preserve that when tuning anything.
     holding to stay in good standing.
 55. Missing milkings reduces yield progressively and ends the lactation early; it
     does not harm the animal permanently or affect the next lactation.
+56. A holding can be harmed by another player — stock let out, a store fired,
+    fodder poisoned, ground overgrazed — and none of it is prevented by the
+    engine.
+57. After such harm, `check` reconstructs **what happened and when** from the
+    reconcile, in enough detail to support a claim, without naming a culprit the
+    engine did not observe.
+58. A stolen animal retains its chain of title and its brand, and selling it
+    without clean title is materially harder than selling one with it.
+59. No single hostile act destroys more than a bounded part of a holding, and a
+    loss suffered offline has a route to redress — insurance, a claim, or both.
+60. Whether entry onto another's ground is a wrong is decided by the polity, not
+    by the engine, and both answers are expressible.
 
 ## Slate revisions this cycle makes
 
