@@ -283,29 +283,46 @@ Eight verbs, four packs. `mending` already ships and finally has
 something to repair. `shear` waits on ranching, as does wool's whole left
 edge.
 
-### ⚠⚠ `dress` is claimed three ways — coordinate before W8
+### ✅ `dress` — resolved with build-3, and nobody spends a verb
 
-*(Found 2026-09-02 reading build-3's `design/cooking`.)* Three builds
-want one word, and all three uses are correct terms of art:
+*(Raised 2026-09-02, settled the same day with `build-3-6f`.)* An earlier
+draft of this slate reported a three-way collision on `dress` and
+proposed keeping `dress as <name>` for the wardrobe set. **Build-3
+corrected it on three counts, and they were right on all three:**
 
-| claimant | use | status |
-|---|---|---|
-| **cooking** (build-3) | `dress` a carcass — butchery, in the hunt vertical | slated on `design/cooking` |
-| **textiles** | *dressing* flax — break + scutch + hackle folded | ⭐ **yielded** → `scutch` |
-| **textiles** | `dress as <name>` — the wardrobe set (W4a) | strongest player intuition |
+1. **Cooking never claimed `dress`.** `dress <carcass>` belongs to
+   **butchery** — its own trade, a sibling Discipline, in a pack **nobody
+   has scheduled**. The verb is a stashed note for that pack's future
+   designer. There was no shipped or in-flight claim to collide with.
+2. **The stanza pattern does not fit.** `measure strike` / `measure dip`
+   works because both stanzas are *the same act* differing in quantity.
+   `dress <carcass>` and `dress as <name>` are unrelated homonyms with
+   **different affordance models** — the carcass one is
+   instrument-conferred (block, hook, knife), the wardrobe one is innate
+   like `wear`. ⭐ And **help is harvested**, so `help dress` — *"prepare
+   a carcass, or put on a saved outfit"* — would be a real page a real
+   person reads.
+3. ⭐⭐ **Their counter-proposal is better: don't mint a verb at all.**
 
-This slate **yields the flax step to `scutch`** — the specific act,
-unambiguous, and historically the heart of the operation. It does *not*
-yield `dress as <name>`: getting dressed is the meaning a player reaches
-for first, and clothing is this build's subject.
+**Settled:**
 
-⚠ **That still leaves `dress <carcass>` and `dress as <name>` sharing a
-verb.** They take different argument shapes, and multi-stanza views over
-one verb are a shipped pattern (the metal chain's `measure strike` /
-`measure dip` ride the platform's `measure` view with controllers in the
-trade). So they can probably coexist — **but that is build-3's call as
-much as ours, and it should be settled between the slates, not
-discovered at build time.**
+| act | verb |
+|---|---|
+| the flax step | **`scutch`** — the specific act, historically the heart of the operation |
+| the wardrobe set | **`wear <set>`** — a stanza on the *shipped* `wear`, beside `wear <item>` |
+| butchery | **`dress`** — left free for whoever builds that pack |
+
+A saved set **is** a wear: same affordance (innate, embodiment), same
+semantics (these things end up on your body), one verb, two arg shapes,
+**for the same act** — which is precisely what the stanza pattern is for.
+Bare-name ambiguity against an item is settled by a possessive or a
+set-namespaced arg (`cockpit shelf first` is the shipped precedent for
+sub-command args).
+
+⭐ **Net: this build adds ZERO verbs to the platform** for the wardrobe
+affordance — the discipline sandbox-QoL and fermentation both shipped
+with. If a dedicated verb is ever wanted, `don` is the honest term of art
+and still leaves `dress` alone.
 
 ### ⭐ The tool ladder
 
@@ -676,6 +693,136 @@ footnote.
 
 ---
 
+## ⭐⭐ Decision 11 — magic, and the negative result that carries it
+
+*(Added 2026-09-02. Audited against
+[arcane-science.md](../../arcane-science.md) and the shipped magic tree.)*
+
+### ⭐⭐⭐ Textiles is the trade where magic is LEAST useful — and that is the point
+
+The chain's bottleneck is **spinning** (see the four-lens pass, Lens 1),
+and spinning is neither an energy problem nor a chemistry problem. It is
+*fine repetitive motor work over hours*. Magic writes initial and
+boundary conditions; **there is no grid cell for "twist fibre
+consistently all afternoon."**
+
+So the one step where a mage would be worth the most is the one step
+magic cannot touch. **Magic does not shortcut the bottleneck — capital
+does.** That is *"why magic never industrialized"* made concrete inside a
+single trade, and it **strengthens** the industrial-revolution lesson
+rather than competing with it. ⚠ A design that let a mage spin would
+destroy the most valuable thing this build teaches.
+
+### Magic in the SUPPLY CHAIN leaves no residue — Kell's Partition
+
+> *Every magical act is either an **impulse** — a delivery of energy,
+> after which the world takes over — or a **binding** — a state held away
+> from equilibrium, which must be continuously topped up.*
+>
+> *A firebolt's fire, once lit, is **ordinary fire**. It has no author
+> and nothing can un-light it.*
+
+Applied to the chain, this settles the "magic clothes" question outright:
+
+| the act | the product |
+|---|---|
+| `create·fire` brings a dye vat to temperature | an **ordinary** hot dye vat |
+| `control·water` drives a retting tank | **ordinary** retted flax |
+| `create·light` lights the weaving floor | **ordinary** cloth |
+
+⚠ **There is no mechanism by which cloth remembers how it was made.**
+That is the physics, not a scoping decision, and the slate should not
+invent one.
+
+⭐ **What that makes a mage, instead: capital.** The economic corollary —
+*"excellent at what happens ONCE and poor at what must be HELD… furnace
+over firebolt for sustained heat"* — says a mill would use a mage on the
+**once** steps (bring the vat up) and never the **held** ones (keep it
+there; a furnace wins). A mage in a mill is the **same category as the
+spinning wheel**: a labour-saving device with a running bill, sitting on
+the tool ladder beside the wheel and the loom. Which is a far better
+place for magic in an economy than a quality modifier.
+
+### ⭐ The honest "yes" is PROVENANCE, not physics
+
+`authoring_events` + the `recordAuthoring` gate + `CreditRouting` all
+ship, and Decision 9 already makes a garment's facts legible on sight.
+So **mage-woven is a MARK** — a claim in the ledger, socially real, worth
+a premium, and **forgeable**. A market for authenticity, at the cost of
+zero new mechanism, and it lands squarely on the social half this build
+already owns.
+
+### ⚠ The one genuine tension — dyeing is chemistry
+
+*"Chemical transformation is real and affordable in small amounts. A
+caster can rearrange bonds."* **A mordant is a metal ion chelating a dye
+to a fibre** — bond rearrangement at gram scale. So dyeing is the single
+step in this chain where `transform` is *scientifically* within budget.
+
+⚠ But `lib/magic/PriceList.ts` prices `transform` **three orders of
+magnitude above every other verb**, deliberately, to keep it out of
+circulation by arithmetic rather than by a rule somebody must remember.
+Whether that blanket price catches a gram-scale mordant fix, when the
+science explicitly permits small chemistry, is **unresolved by either
+doc**. Open question 16.
+
+### Casting garments — the machinery is complete; garments are an unused host
+
+`ring-of-veil` is the shipped exemplar and already the whole pattern:
+`alwaysOn: true`, a sustained binding, *"keeps paying for it out of its
+own shell — the standby draw, ~25 days of a 900 kJ charge at 5 W. Taken
+off, or run flat, the veil drops."* Kell and Voss, made mechanical.
+
+Every wearable magic item today is **jewelry** (`Ring`, amulet). A
+**garment** host needs no new machinery — `Arcane` + the charge economy +
+`Wearable` already compose. But two shipped rules bound what one may do:
+
+- ⚠⚠ **Faculty is capacity, NEVER access.** *"If a configured `depth`
+  ever gated which spells you can cast, you would have bought
+  progression."* **A garment may never unlock a spell.**
+- ⚠ **Efficiency is capped at 1.** A garment cannot make a caster better
+  than perfect.
+
+Which leaves a narrow honest space: **composure / serenity** (the Reeve
+Line — vestments and ritual dress, and psychologically real), **reserve
+capacity** (`ReservedMixin`), and **warding** (`MagicSuppression` matches
+on grid footprint, so a warded garment blocks by *cell* — genuinely
+defensive, and it is the armor analogue on the arcane axis).
+
+### ⭐⭐ The interlock worth building: the hood subsidizes the veil
+
+Voss Decay: *"a veil erodes fastest under attention — the thing pushing
+back is the observers' own accumulating evidence, and the more of it
+there is, the faster you pay."*
+
+So a **mundane** hood that reduces attention makes an **arcane** veil
+binding *cheaper to hold*. `DisguiseGarment` and the veil are the same
+job attacked from opposite ends, and the cheap mundane half subsidizes
+the expensive magical half — a garment doing real arcane work **without
+carrying a single joule**. It also composes with Decision 10's
+covering-stack concealment contribution, so all three seams meet on one
+object.
+
+### Which grid cells the trade actually touches
+
+5 verbs × 13 nouns. Textiles' own cells, in rough order of relevance:
+
+| cell | where | note |
+|---|---|---|
+| `control·water` | retting | the signature process; a durative water state |
+| `transform·…` | dyeing | ⚠ the affordable-chemistry band vs the price list — OQ 16 |
+| `create·fire` | dye baths, fulling, scouring | ⚠ **impulse only** — a furnace beats it for held heat |
+| `perceive·…` | grading staple, judging fastness | the appraisal face |
+| `create·light` | fine work — weaving, sewing | ordinary light; no residue |
+
+`control·plant` belongs to farming and `control·beast` to ranching, even
+though both feed this chain. **`create·arcana` — enchanting a garment —
+is magic-items' business, not this trade's**: the tailor makes the
+garment, the artificer binds the working, and keeping those two acts in
+two trades is what stops textiles absorbing the enchanting economy.
+
+---
+
 ## The four-lens pass (2026-09-02)
 
 Run against the project's four lenses — **pedagogical richness ·
@@ -756,9 +903,10 @@ invocations — every morning, and again after every wash. That is a chore,
 and it would sour the build in its first live drive.
 
 The design needs a **saved dressing set**. ⚠ "Outfit" is taken (a
-`Business`), so the concept is a **wardrobe** — `dress as <name>` —
-and note the `wardrobe.yaml` fixture already exists as a furnishing, which
-is the natural place for one to live. Wave W4a.
+`Business`), so the concept is a **wardrobe** — and it costs **no new
+verb**: `wear <set>` is a stanza on the shipped `wear` (settled with
+build-3, § Decision 5). The `wardrobe.yaml` fixture already exists as a
+furnishing, which is the natural place for one to live. Wave W4a.
 
 *(The soiling half of this lens resolved differently — see Decision 7.
 The room-condition pack had already decided that water is a precondition
@@ -806,7 +954,7 @@ Kernel first, then packs — the metal-chain shape.
 | **W2** | species `baseMass` + `stature`; the balance pass + gym run | ⚠ moves live combat/encumbrance/metabolism numbers |
 | **W3** | per-part covering stack: `covers:` walk, clo derives, wet feeds it | the thermal payoff |
 | **W4** | fit: derived measurements, cut-to stamp, the lineage seam | needs W2 |
-| **W4a** | ⚠ the **wardrobe** dressing set — `dress as <name>` | ⚠⚠ eight commands to dress would sour the build; rides the existing `wardrobe` fixture |
+| **W4a** | the **wardrobe** set as a stanza on shipped `wear` — `wear <set>` | ⚠⚠ eight commands to dress would sour the build; ⭐ **zero new verbs**; rides the existing `wardrobe` fixture |
 | **W5** | soiling — the **pre-registered producer-event obligation** + the wash/fade loop. NOT the gauge | ⚠⚠ `SoilableMixin` is room-condition's; its events are not retrofittable, so textiles ships the seam (cooking's pattern) |
 | **W6** | `getConcealment()` derive-on-read + the conspicuity band | the camo/hi-vis seam |
 | **W7** | `trade-farming` rows: flax, cotton, madder, weld, woad | content only, existing pack |
@@ -814,6 +962,7 @@ Kernel first, then packs — the metal-chain shape.
 | **W9** | `trade-leatherwork` pack: tan + the tannery as a zoned nuisance venue | parallel input; produces `hide-stock` at last |
 | **W10** | `trade-dyeing` pack: dyestuffs, mordants, fastness | customer of both |
 | **W11** | `trade-tailoring` pack: cut · sew · livery; the jerkin recipe leaves smithing | closes the loop |
+| **W11a** | the **hood/veil interlock** — mundane attention reduction subsidizes an arcane binding | ⭐ Decision 11; meets Decision 10's concealment seam on one object |
 | **W12** | content placement + the demonstrator brain | expression |
 
 ---
@@ -873,14 +1022,26 @@ Kernel first, then packs — the metal-chain shape.
 13. **What are the honest labour times for `spin` and `weave`?** The
     spinning-bottleneck lesson lives entirely in this ratio (see the
     four-lens pass, Lens 1). Needs real numbers, not placeholders.
-14. ⚠⚠ **Can `dress <carcass>` and `dress as <name>` share a verb?**
-    Multi-stanza views are a shipped pattern (`measure strike`/`dip`),
-    but this spans two packs and two builds. Needs settling with
-    build-3's `design/cooking`, not discovering at build time.
+14. ✅ **RESOLVED 2026-09-02 — the `dress` collision.** Settled with
+    build-3: `scutch` for flax, `wear <set>` for the wardrobe, `dress`
+    left free for butchery. Zero new verbs. See Decision 5.
 15. **How legible must a dressing mistake be?** Lens 4's
     player-knowledge loop only teaches if being wrong is survivable and
     the reason is readable. Too harsh and it is a trap; too soft and
     nobody learns.
+16. ⚠ **Does the `transform` price list catch a mordant?**
+    [arcane-science.md](../../arcane-science.md) permits chemical
+    transformation *"in small amounts"*, and a mordant is bond
+    rearrangement at gram scale — but `lib/magic/PriceList.ts` prices
+    `transform` three orders of magnitude above every other verb to keep
+    it out of circulation by arithmetic. Neither doc resolves whether the
+    blanket price is meant to catch gram-scale chemistry. **This is a
+    magic-subsystem question, not a textiles one** — but dyeing is the
+    first trade to actually ask it. See Decision 11.
+17. **Should a garment ever be a magic-item host?** The machinery
+    composes today (`Arcane` + charge economy + `Wearable`), but every
+    shipped wearable is jewelry. A magic *garment* is new content, not
+    new mechanism — is it this build's, or magic-items' next wave?
 
 ---
 
@@ -925,4 +1086,17 @@ Durable, Crafted; `repair`/`salvage`) ·
 [content-packs.md](../../subsystems/content-packs.md) (the capability
 rung; `SAXONBERG_PACKS`) · [race.md](../../subsystems/race.md) +
 [vitals.md](../../subsystems/vitals.md) (BodyPlan, `covers:`, baseMass) ·
-[corpo.md](../../subsystems/corpo.md) (BrandedMixin).
+[corpo.md](../../subsystems/corpo.md) (BrandedMixin) ·
+[provenance.md](../../subsystems/provenance.md) (the authorship ledger —
+*mage-woven is a mark, not a physics*).
+
+**Magic (Decision 11):** [arcane-science.md](../../arcane-science.md)
+(⭐⭐ **Kell's Partition** — impulse vs binding, and the economic
+corollary that makes a mage *capital*; **Voss Decay** — why a veil erodes
+under attention; **Transform is not forbidden, it is unaffordable**) ·
+[magic.md](../../subsystems/magic.md) (the grid as Disciplines,
+`CasterMixin` faculty, suppression) ·
+[magic-items.md](../../subsystems/magic-items.md) (the three item
+classes, the `S* = inflow/d` charge economy, BUC; `ring-of-veil` is the
+worn exemplar) · [concealment.md](../../subsystems/concealment.md) +
+[belief.md](../../subsystems/belief.md) (the veil's observer side).
