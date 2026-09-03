@@ -728,6 +728,62 @@ appropriation recorded, riparian derived). Irrigating a field is therefore a
 **rights** problem before it is a ditch, which is the correct order and puts the
 commons where it belongs.
 
+### The wild, the yard, and the second half of winter
+
+*(D61–D64, added after the colony-games pass.)*
+
+**D61 — ⭐ Forage is the reclamation income, and clearing spends it.** Clearing
+(D54) is currently pure cost with no return until a crop matures. Newly claimed
+ground is **wilderness, and wilderness is forageable** — which pays for the
+clearing. [discovery-slate](../slates/builds/discovery-slate.md) owns the
+foraging design in full (*authors write the TABLE, the world computes the
+STOCK*; depletion is a choice, not a tragedy; derive-on-read, so unvisited
+ground costs nothing) and **this build does not redesign it** — it consumes it.
+
+What is new is the coupling, and it is the best thing the design has:
+
+> **The forage declines as you clear.** You are converting a foraging commons
+> into a farm — *the neolithic transition, expressed as a cashflow decision.*
+
+Wild forage is immediate, zero-capital and low-yield per acre. Farming is
+high-yield but demands capital, labour and waiting. So the player faces the
+question our ancestors actually faced — **can I afford to stop gathering long
+enough to start growing?** — and the answer depends on their labour and how long
+they can go without income. Not narrated; budgeted.
+
+It also gives D58's derelict farm a second life: reverted ground **has gone back
+to being forageable**, which is part of why buying it cheap works.
+
+**D62 — The dwelling's yard is the on-ramp, and the residence ladder is the same
+continuum.** Manor Lords attaches production to *dwellings*: a house plot has a
+backyard whose size decides what it holds — a vegetable garden, a chicken coop, a
+goat shed, an apiary. That answers the smallholder problem a second way,
+complementary to saffron (D44), and it costs little because residences already
+ship (`HoldingWarren`, `PlatPlan`, tenure, the leased dorm room).
+
+> **windowbox → a yard with hens → a smallholding → a farm.**
+
+One continuum rather than two systems that meet at a boundary, and it gives the
+cuttable bee wave (D39) its natural first home: **a hive in a townhouse yard.**
+
+**D63 — Winter demands FUEL as well as feed.** Banished's most famous loop is a
+supply chain — foresters, woodcutters, land — whose only purpose is not dying in
+winter. This build gave winter a *feed* budget for animals and forgot a *fuel*
+budget for people. We ship the fuel chain (`trade-fuel`, `char`), combustion,
+thermal and `ThermalRegulation`, so **a cold house costs you**, and winter
+generates demand for firewood exactly as it generates demand for hay. It is the
+second half of the winter economy and it was absent.
+
+**D64 — Predator abatement is somebody's business, not the holder's chore.** The
+[guild slate](../slates/builds/guild-slate.md) already wrote the seam, verbatim:
+the Wardens' demand anchor is *"hazard abatement for landholders — parcel owners
+pay to clear traps/beasts."* So D50's fox is not a chore the holder grinds
+through; it is **a job they hire out**, which puts it on the work-contract
+substrate, gives another vocation paying demand, and keeps the commons dimension
+intact. Hunting itself belongs to the Wardens and to
+[hunting-slate](../slates/builds/hunting-slate.md), **not to this build** — what
+farmstead owes is the seam.
+
 ---
 
 ## Constraints
@@ -833,6 +889,14 @@ commons where it belongs.
     holding prevents it.
 27. Ragwort cut into hay poisons the animals fed on it cumulatively, with no
     signal at the moment of feeding.
+28. Newly claimed wilderness yields forage, and the forage available measurably
+    declines as the ground is cleared toward cultivation.
+29. A dwelling's yard holds production scaled to its size, and the same objects
+    work in a townhouse yard and on a smallholding.
+30. An unheated dwelling in winter imposes a real cost on its occupant, and
+    firewood demand rises across the locality when the season turns.
+31. A landholder with a predator problem can hire it solved through the shipped
+    work-contract substrate rather than only solving it personally.
 
 ## Slate revisions this cycle makes
 
@@ -858,7 +922,14 @@ multiplication (D2).
 [pets](../slates/builds/pets-slate.md) ·
 [weather (tail)](../slates/tails/weather-slate.md) ·
 [towns](../slates/builds/towns-slate.md) (Heart's Delight, deferred) ·
-[disease](../slates/builds/disease-slate.md) (phase 6, reads D24).
+[disease](../slates/builds/disease-slate.md) (phase 6, reads D24) ·
+[discovery](../slates/builds/discovery-slate.md) (**owns foraging** — D61
+consumes it and does not redesign it) ·
+[hunting](../slates/builds/hunting-slate.md) (the Wardens' side of D60/D64) ·
+[guild](../slates/builds/guild-slate.md) (the Wardens' demand anchor) ·
+[insurance](../slates/builds/insurance-slate.md) (D45's weather) ·
+[legal-code](../slates/builds/legal-code-slate.md) (D59's tenant improvement) ·
+[flowers](../slates/builds/flowers-slate.md) (the social half, spun out).
 
 **Subsystem docs** — [husbandry](../subsystems/husbandry.md) ·
 [smallholding](../subsystems/smallholding.md) · [parcel](../subsystems/parcel.md) ·

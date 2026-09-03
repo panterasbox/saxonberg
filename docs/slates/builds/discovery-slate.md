@@ -47,6 +47,23 @@ information**).
 
 ---
 
+> **⭐ Two consumers arrived 2026-09-03 (the farmstead design pass), and this
+> slate is unchanged by either — they consume it, they do not restate it.**
+>
+> - [farmstead requirements](../../requirements/farmstead-requirements.md) **D61**
+>   — forage is the income that pays for *reclamation*: newly claimed ground is
+>   wilderness, and **the forage declines as you clear it.** Converting a
+>   foraging commons into a farm is the neolithic transition expressed as a
+>   cashflow decision — *can I afford to stop gathering long enough to start
+>   growing?* It also gives a reverted, derelict holding (D58) a second life,
+>   because it has gone back to being forageable.
+> - [hunting-slate](./hunting-slate.md) — the sibling, and the contrast that
+>   sharpens this slate's best call. **Depletion is a choice, not a tragedy**
+>   holds for forage precisely because a patch stays put. Game *moves*, so your
+>   neighbour's hunting depletes your deer, restraint is a gift to everyone
+>   else, and the commons turns tragic. **Forage teaches that depletion is a
+>   decision; game teaches that some depletion decisions are not yours alone.**
+
 ## ⭐⭐⭐ The niche — and it is not "fishing on land"
 
 | | Fishing | Foraging |
