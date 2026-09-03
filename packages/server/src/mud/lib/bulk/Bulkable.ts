@@ -127,20 +127,23 @@ export interface BulkPayload {
   appearance?: string;
   /** Resolution keywords (`look stew`) — the blend's keywords. */
   keywords?: string[];
-  /** Nutrient routing tags (metabolism's per-litre routes). */
-  nutrients: string[];
-  /** Label amounts (tag → mg per serving) — display, like Material's. */
-  nutrientAmounts: Record<string, number>;
   /**
-   * Per-serving toxin doses (each ingest is one serving). ⚠ The full
-   * {@link ToxinTag} shape, not a narrowed `{type, amount}` — a payload
-   * mirrors a Material's toxicity, and a dose that dropped its
-   * `labileAtK` on the way through a blend would come back cookable
-   * after somebody had already cooked it.
+   * ⭐ The temperature (K) the working actually REACHED — history, not
+   * composition, and the reason it must be carried. The heat-labile kill
+   * depends on it: a toxin the author marked labile is destroyed once the
+   * working got that hot. ⚠⚠ It used to be applied at blend time and
+   * thrown away, which was only safe because the answer was frozen with
+   * it; deriving the toxins without carrying the heat would bring a
+   * cooked-off dose back from the dead. `0` / absent = never heated.
    */
-  toxicity: ToxinTag[];
-  /** Whether the blend is edible (the label + eat gates read this). */
-  edible: boolean;
+  cookedAtK?: number;
+  /**
+   * Toxins that AROSE rather than arriving in an ingredient — the
+   * ptomaine a spoiled batch grew. Nothing in the composition implies
+   * them, so they cannot derive. ⚠ Heat does not touch these: it stops
+   * growth, it does not un-poison what the growth produced.
+   */
+  formedToxins?: ToxinTag[];
   /**
    * The union of the consumed inputs' Material tags — what the blend
    * *is made of* rides with it (a soda-water input makes the drink

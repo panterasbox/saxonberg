@@ -19,6 +19,8 @@ import { BulkableMixin } from '../../bulk/Bulkable';
 import { ThermalMixin } from '../../thermal/Thermal';
 import Material from '../../material/Material';
 import { Freshness } from '../Freshness';
+import { BlendLabel } from '../../metabolism/BlendLabel';
+import type { BulkPayload } from '../../bulk/Bulkable';
 import { Quantity } from '../../quantity';
 import { WorldClockApi } from '../../../api/worldclock';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
@@ -156,30 +158,40 @@ describe('the spoilage gauge on a bulk slot', () => {
   it('the ingest payload carries a ptomaine dose the stored payload does not', () => {
     const slot = BulkableApi.slotFor(pot(2, BROTH), undefined)!;
     Freshness.stampLoad(slot, 0.9);
+    const broth = StuffApi.findByTemplatePath<Material>(BROTH) ?? null;
+    // ⭐ Read the toxins the way production does — through the derivation,
+    // not off a field. A formed dose is CARRIED (nothing in the
+    // composition implies it); the ingredients' own doses are DERIVED.
+    const toxins = (p: BulkPayload | null): readonly { type: string; amount: number }[] =>
+      BlendLabel.toxicityOf(p, broth);
 
     const stored = slot.getPayload()!;
-    expect(stored.toxicity.some((t) => t.type === 'ptomaine')).toBe(false);
+    expect(toxins(stored).some((t) => t.type === 'ptomaine')).toBe(false);
 
     const ingest = Freshness.ingestPayloadOf(slot)!;
-    const dose = ingest.toxicity.find((t) => t.type === 'ptomaine');
+    const dose = toxins(ingest).find((t) => t.type === 'ptomaine');
     expect(dose).toBeTruthy();
     expect(dose!.amount).toBeGreaterThan(0);
     // ⭐ The dose is DERIVED, never stored — a pot that gets chilled must
     // not keep a dose it no longer deserves.
-    expect(slot.getPayload()!.toxicity.some((t) => t.type === 'ptomaine')).toBe(
+    expect(toxins(slot.getPayload()!).some((t) => t.type === 'ptomaine')).toBe(
       false,
     );
-    // The blend's real nutrition survives the fold.
-    expect(ingest.nutrients).toContain('protein');
+    // The blend's real nutrition survives the fold — and this is a
+    // STRONGER claim than it was: the nutrition is now derived from what
+    // went in rather than copied onto the payload, so a fold that lost
+    // the composition would fail here.
+    expect(BlendLabel.nutrientsOf(ingest, broth)).toContain('protein');
   });
 
   it('fresh matter ingests exactly as before — no dose, no surprises', () => {
     const slot = BulkableApi.slotFor(pot(2, BROTH), undefined)!;
     setNow(HOUR);
+    const broth = StuffApi.findByTemplatePath<Material>(BROTH) ?? null;
     const ingest = Freshness.ingestPayloadOf(slot);
-    expect(ingest?.toxicity.some((t) => t.type === 'ptomaine') ?? false).toBe(
-      false,
-    );
+    expect(
+      BlendLabel.toxicityOf(ingest, broth).some((t) => t.type === 'ptomaine'),
+    ).toBe(false);
   });
 
   it('the item gauge and the payload gauge use identical arithmetic', () => {

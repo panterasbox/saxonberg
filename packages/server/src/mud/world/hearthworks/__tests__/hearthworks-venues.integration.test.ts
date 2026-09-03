@@ -59,6 +59,7 @@ import {
   makeStuffAtPath,
 } from '../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
+import { BlendLabel } from '../../../lib/metabolism/BlendLabel';
 
 /**
  * The three trade packs that ship every recipe (content packs wave 4a/4b):
@@ -467,11 +468,11 @@ describe('the cookhouse, served', () => {
     expect(slot.getMaterialPath()).toBe('/platform/idea/material/cooked');
     const payload = slot.getPayload()!;
     expect(payload.name).toBe('Hearty Stew');
-    expect(payload.nutrientAmounts).toMatchObject({
+    expect(BlendLabel.amountsOf(payload, null)).toMatchObject({
       carb: expect.any(Number),
       protein: expect.any(Number),
     });
-    expect(payload.edible).toBe(true);
+    expect(BlendLabel.isEdible(payload, null)).toBe(true);
     expect(slot.getAmount().rawValue()).toBeCloseTo(0.4, 9);
 
     // The macros route through the shipped metabolism ingest — the

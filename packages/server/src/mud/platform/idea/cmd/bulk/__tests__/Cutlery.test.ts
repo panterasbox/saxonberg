@@ -240,10 +240,6 @@ describe('⭐ eating a MEAL out of the dish it came in', () => {
     slot.setPayload({
       name: 'hearty stew',
       appearance: 'a thick brown stew',
-      nutrients: ['carb'],
-      nutrientAmounts: { carb: 34000 },
-      toxicity: [],
-      edible: true,
     });
     ContainmentApi.move(d as never, loc as never);
     return d;

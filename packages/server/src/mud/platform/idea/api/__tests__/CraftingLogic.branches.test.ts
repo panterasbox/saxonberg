@@ -36,6 +36,7 @@ import { NamedMixin } from '../../../../lib/description/Named';
 import { CraftedMixin } from '../../../../lib/craft/Crafted';
 import { GlobbableMixin } from '../../../../lib/stuff/Globbable';
 import { Stuff } from '../../../../lib/stuff/Stuff';
+import { BlendLabel } from '../../../../lib/metabolism/BlendLabel';
 import {
   makeStuff,
   makeStuffAtPath,
@@ -462,6 +463,6 @@ describe('the gather walk rungs', () => {
     const payload = slot.getPayload()!;
     expect(payload.name).toBe('Gin Martini');
     expect(payload.appearance).toMatch(/crystal-clear martini/);
-    expect(payload.toxicity).toEqual([{ type: 'alcohol', amount: 26 }]);
+    expect(BlendLabel.toxicityOf(payload, null)).toEqual([{ type: 'alcohol', amount: 26 }]);
   });
 });

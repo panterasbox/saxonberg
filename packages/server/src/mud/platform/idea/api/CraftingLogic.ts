@@ -659,11 +659,15 @@ function applySpoilage(outSlot: BulkSlot, outcome: SpoilageOutcome): void {
   if (!formed) return;
   const payload = outSlot.getPayload();
   if (!payload) return;
-  const toxicity = payload.toxicity.map((t) => ({ ...t }));
-  const existing = toxicity.find((t) => t.type === formed.type);
+  // ⭐ A FORMED toxin — it arose in the working, it did not arrive in an
+  // ingredient, so it cannot derive from the composition and is carried.
+  // ⚠ It is also deliberately past the heat filter: the kill stops the
+  // growth, it does not un-poison what the growth already produced.
+  const formedToxins = (payload.formedToxins ?? []).map((t) => ({ ...t }));
+  const existing = formedToxins.find((t) => t.type === formed.type);
   if (existing) existing.amount += formed.amount;
-  else toxicity.push({ ...formed });
-  outSlot.setPayload({ ...payload, toxicity });
+  else formedToxins.push({ ...formed });
+  outSlot.setPayload({ ...payload, formedToxins });
 }
 
 /**
@@ -784,9 +788,6 @@ function deriveBlendPayload(
   effectiveHeatK = 0,
   discipline = '',
 ): BulkPayload {
-  const nutrients = new Set<string>();
-  const nutrientAmounts: Record<string, number> = {};
-  const toxins = new Map<string, number>();
   const tags = new Set<string>();
   // ⭐ The composition: what went in, by PATH, with its servings summed
   // per material and first-seen order kept. Every derived fact below —
@@ -794,42 +795,20 @@ function deriveBlendPayload(
   // carrying it properly is what lets each subsystem compute its own
   // instead of being handed the answer. See the bulk-decomposition plan.
   const composition = new Map<string, number>();
-  let edible = false;
   for (const part of parts) {
-    if (part.material.getEdibility() === true) edible = true;
     const partPath = part.material.getTemplatePath();
     if (partPath) {
       composition.set(partPath, (composition.get(partPath) ?? 0) + part.servings);
     }
     for (const tag of part.material.getTags()) tags.add(tag);
-    for (const tag of part.material.getNutrients()) nutrients.add(tag);
-    const amounts = part.material.getNutrientAmounts();
-    for (const [tag, mg] of Object.entries(amounts)) {
-      nutrientAmounts[tag] = (nutrientAmounts[tag] ?? 0) + mg * part.servings;
-    }
-    for (const tox of part.material.getToxicity()) {
-      if (tox.amount <= 0) continue;
-      // ⭐ The SELECTIVE kill: a dose the author marked heat-labile is
-      // destroyed once the working actually reached its temperature.
-      // Alcohol marks none and rides into the pot honestly; so does the
-      // ptomaine a spoiled input already grew — heat stops growth, it does
-      // not un-poison what the growth produced.
-      if (tox.labileAtK !== undefined && tox.labileAtK <= effectiveHeatK) {
-        continue;
-      }
-      toxins.set(
-        tox.type,
-        (toxins.get(tox.type) ?? 0) + tox.amount * part.servings,
-      );
-    }
   }
-  const payload: BulkPayload = {
-    name,
-    nutrients: [...nutrients],
-    nutrientAmounts,
-    toxicity: [...toxins].map(([type, amount]) => ({ type, amount })),
-    edible,
-  };
+  // ⚠⚠ The nutrition, the toxins and the edibility are NOT computed here
+  // any more — they are functions of the composition below, and
+  // `BlendLabel` computes them on read. What IS recorded is the heat the
+  // working reached, because the heat-labile kill depends on it and no
+  // amount of looking at the ingredients recovers it.
+  const payload: BulkPayload = { name };
+  if (effectiveHeatK > 0) payload.cookedAtK = effectiveHeatK;
   if (appearance) payload.appearance = appearance;
   if (keywords.length > 0) payload.keywords = [...keywords];
   if (tags.size > 0) payload.tags = [...tags];

@@ -317,22 +317,20 @@ export class Freshness {
   }
 
   /**
-   * A `BulkPayload` that mirrors a `Material` **exactly** — every field a
-   * reader consults, so `payload ?? material` reads identically either
-   * way. It exists because the gauge has to hang on something: a slot
+   * A `BulkPayload` that stands for a `Material` — and it is now nearly
+   * empty, which is the decomposition paying off. It used to copy every
+   * field a reader consults (nutrients, amounts, toxicity, edibility)
+   * because a payload carrying only the ptomaine *"would silently drop
+   * the food's real nutrition"*. It cannot any more: `BlendLabel` falls
+   * back to the Material for a payload with no composition, so a minimal
+   * shadow reads identically to no shadow at all. It exists because the gauge has to hang on something: a slot
    * holding perishable matter needs a place to keep its load, and the
    * payload is the per-instance face of "what this particular matter is".
    * Writing a faithful shadow is therefore a no-op in meaning and the one
    * honest way to say "*this* batch has been out since Tuesday".
    */
   public static materialShadow(material: Material | null): BulkPayload {
-    const shadow: BulkPayload = {
-      name: material?.getName() ?? '',
-      nutrients: [...(material?.getNutrients() ?? [])],
-      nutrientAmounts: { ...(material?.getNutrientAmounts() ?? {}) },
-      toxicity: (material?.getToxicity() ?? []).map((t) => ({ ...t })),
-      edible: material?.getEdibility() ?? false,
-    };
+    const shadow: BulkPayload = { name: material?.getName() ?? '' };
     const appearance = material?.getAppearance();
     if (appearance) shadow.appearance = appearance;
     const keywords = material?.getKeywords();
@@ -372,11 +370,16 @@ export class Freshness {
     const dose = Freshness.doseFor(load);
     if (!dose) return payload;
     const base: BulkPayload = payload ?? Freshness.materialShadow(material);
-    const toxicity = base.toxicity.map((t) => ({ ...t }));
-    const existing = toxicity.find((t) => t.type === dose.type);
+    // ⭐ A FORMED toxin: the population produced it, no ingredient brought
+    // it, and nothing in the composition implies it — so it is carried,
+    // not derived. And it rides past the heat filter by construction,
+    // because heat stops the growth without un-poisoning what the growth
+    // already made.
+    const formedToxins = (base.formedToxins ?? []).map((t) => ({ ...t }));
+    const existing = formedToxins.find((t) => t.type === dose.type);
     if (existing) existing.amount += dose.amount;
-    else toxicity.push({ ...dose });
-    return { ...base, toxicity };
+    else formedToxins.push({ ...dose });
+    return { ...base, formedToxins };
   }
 
   /**

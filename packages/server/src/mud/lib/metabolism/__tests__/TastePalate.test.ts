@@ -75,10 +75,6 @@ const SUGAR = '/stuff/idea/material/food/sugar';
 const STEW: BulkPayload = {
   name: 'hearty stew',
   appearance: 'a thick brown stew',
-  nutrients: ['carb', 'protein'],
-  nutrientAmounts: { carb: 34000, protein: 26000 },
-  toxicity: [],
-  edible: true,
   // ⭐ The COMPOSITION — Material paths and servings, not display names.
   // Asserting "root vegetable" below now requires a root-vegetable
   // Material to actually exist, which is the point: the reading is

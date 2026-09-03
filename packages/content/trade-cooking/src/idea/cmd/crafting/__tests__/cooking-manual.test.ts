@@ -23,6 +23,7 @@ import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import CookPot from '../../../../thing/CookPot';
 import CraftVessel from '@saxonberg/server/mud/platform/thing/CraftVessel';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import { BlendLabel } from '@saxonberg/server/mud/lib/metabolism/BlendLabel';
 import {
   TestActor,
   VEG,
@@ -153,8 +154,8 @@ describe('the by-hand cooking path', () => {
     const payload = slot.getPayload()!;
     expect(payload.name).toBe('Hearty Stew');
     expect(payload.appearance).toMatch(/thick brown stew/);
-    expect(payload.nutrientAmounts).toEqual({ carb: 34000, protein: 26000 });
-    expect(payload.edible).toBe(true);
+    expect(BlendLabel.amountsOf(payload, null)).toEqual({ carb: 34000, protein: 26000 });
+    expect(BlendLabel.isEdible(payload, null)).toBe(true);
     expect(slot.getAmount().rawValue()).toBeCloseTo(0.4, 9); // the portion
     expect((dish as unknown as { getRecipe(): string }).getRecipe()).toBe(
       'hearty-stew',
@@ -188,7 +189,7 @@ describe('the by-hand cooking path', () => {
     // the macros honestly summed from what actually went in.
     expect(slot.getMaterialPath()).toBe(COOKED);
     expect(slot.getPayload()!.name).toBe('cooked fare');
-    expect(slot.getPayload()!.nutrientAmounts).toEqual({ carb: 17000 });
+    expect(BlendLabel.amountsOf(slot.getPayload()!, null)).toEqual({ carb: 17000 });
     expect(slot.getAmount().rawValue()).toBeGreaterThan(0);
     expect((dish as unknown as { getRecipe(): string }).getRecipe()).toBe('');
   });

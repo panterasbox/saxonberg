@@ -39,10 +39,6 @@ const STEW_PAYLOAD: BulkPayload = {
   name: 'hearty stew',
   appearance: 'a thick brown stew',
   keywords: ['stew'],
-  nutrients: ['carb', 'protein'],
-  nutrientAmounts: { carb: 34000, protein: 26000 },
-  toxicity: [],
-  edible: true,
 };
 
 afterEach(() => StuffApi.clearAll());

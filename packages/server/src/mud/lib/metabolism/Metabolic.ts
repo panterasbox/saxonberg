@@ -49,6 +49,7 @@ import { MixinApi } from "../../api/mixin";
 import { StuffApi } from "../../api/stuff";
 import { WorldClockApi } from "../../api/worldclock";
 import { TemplatePaths, TemplatePathPrefixes } from "../paths";
+import { BlendLabel } from './BlendLabel';
 
 /* ─────────────────────────── toxin model (types) ─────────────────────────── */
 //
@@ -1026,7 +1027,7 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
       const pools = this.digestionPools;
       // Nutrient tags scale by accepted volume. A blend payload speaks
       // for the actual meal; the material row is its generic base.
-      for (const tag of payload?.nutrients ?? material.getNutrients()) {
+      for (const tag of BlendLabel.nutrientsOf(payload, material)) {
         const route = this.routeTag(tag);
         if (!route) continue;
         pools[tag] = (pools[tag] ?? 0) + route.yieldPerLitre * litres;
@@ -1034,7 +1035,7 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
       // Toxin tags add their per-serving dose to the pool (each ingest
       // is one serving). The dose absorbs into the burden over time — so
       // the un-absorbed dose is what `vomit` can still dump.
-      for (const tox of payload?.toxicity ?? material.getToxicity()) {
+      for (const tox of BlendLabel.toxicityOf(payload, material)) {
         if (tox.amount <= 0) continue;
         pools[tox.type] = (pools[tox.type] ?? 0) + tox.amount;
       }

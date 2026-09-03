@@ -22,6 +22,7 @@ import { StuffApi } from "../../../../api/stuff";
 import { Mml } from "../../../../api/mml";
 import { METABOLIC_DEFAULTS } from "../../../../lib/metabolism/Metabolic";
 import { Freshness } from "../../../../lib/material/Freshness";
+import { BlendLabel } from "../../../../lib/metabolism/BlendLabel";
 import {
   UTENSIL_KINDS,
   UTENSIL_PHRASE,
@@ -124,9 +125,10 @@ export default class EatController extends CommandController<EatModel> {
   private isServedDish(target: Stuff): boolean {
     if (!MixinApi.isBulkable(target) || !target.hasInteriorBulk()) return false;
     if (target.isBulkEmpty("interior")) return false;
-    const payload = target.getBulkPayload("interior");
-    if (payload) return payload.edible === true;
-    return target.getBulkMaterial("interior")?.getEdibility() === true;
+    return BlendLabel.isEdible(
+      target.getBulkPayload("interior"),
+      target.getBulkMaterial("interior"),
+    );
   }
 
   /**

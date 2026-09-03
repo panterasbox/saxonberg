@@ -22,6 +22,7 @@ import type { Stuff } from "../../stuff/Stuff";
 import type { FieldValidator } from "../../../api/command";
 import { MixinApi } from "../../../api/mixin";
 import { MqlApi } from "../../../api/mql";
+import { BlendLabel } from "../../metabolism/BlendLabel";
 
 /** Made of edible matter — a ration, an apple, a cut of meat. */
 function isEdibleMatter(s: Stuff): boolean {
@@ -33,9 +34,13 @@ function isEdibleMatter(s: Stuff): boolean {
 function holdsEdibleMatter(s: Stuff): boolean {
   if (!MixinApi.isBulkable(s) || !s.hasInteriorBulk()) return false;
   if (s.isBulkEmpty('interior')) return false;
-  const payload = s.getBulkPayload('interior');
-  if (payload) return payload.edible === true;
-  return s.getBulkMaterial('interior')?.getEdibility() === true;
+  // ⭐ One call, both cases: `BlendLabel` falls back to the blend
+  // Material for a payload with no composition, which is what the two
+  // arms here used to spell out separately.
+  return BlendLabel.isEdible(
+    s.getBulkPayload('interior'),
+    s.getBulkMaterial('interior'),
+  );
 }
 
 const validator: FieldValidator = (value, field, _context) => {

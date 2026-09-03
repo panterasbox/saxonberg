@@ -19,6 +19,7 @@ import PersistentHydrator from '../../../platform/idea/persistence/PersistentHyd
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import '../../../platform/idea/WorldClockRegistry';
+import { BlendLabel } from '../../../lib/metabolism/BlendLabel';
 
 const HOUR = 3600;
 const DAY = 24 * HOUR;
@@ -307,14 +308,28 @@ describe('Freshness — the shared arithmetic', () => {
     expect(Freshness.withDose(null, mat, 0.1)).toBeNull();
   });
 
-  it('withDose synthesizes the material shadow so nutrition is not dropped', () => {
+  it('⭐ the dose rides a nearly-EMPTY shadow, and nutrition survives anyway', () => {
+    // The shadow used to copy the Material's nutrition, amounts, toxins
+    // and edibility, because a payload carrying only the ptomaine "would
+    // silently drop the food's real nutrition". It cannot any more: the
+    // label DERIVES, and falls back to the Material for a payload with no
+    // composition. So the shadow is nearly empty and reads identically —
+    // which is the decomposition paying off, not a regression.
     const mat = material(MEAT_EA);
     mat.setNutrients(['protein']);
     mat.setNutrientAmounts({ protein: 26000 });
     const payload = Freshness.withDose(null, mat, 0.9)!;
-    expect(payload.nutrients).toEqual(['protein']);
-    expect(payload.nutrientAmounts.protein).toBe(26000);
-    expect(payload.toxicity.find((t) => t.type === 'ptomaine')).toBeTruthy();
+
+    expect(BlendLabel.nutrientsOf(payload, mat)).toEqual(['protein']);
+    expect(BlendLabel.amountsOf(payload, mat).protein).toBe(26000);
+    expect(
+      BlendLabel.toxicityOf(payload, mat).find((t) => t.type === 'ptomaine'),
+    ).toBeTruthy();
+
+    // ⚠ And the formed dose is the ONE thing the shadow carries — it is
+    // the only fact here that no amount of looking at the Material
+    // recovers.
+    expect(payload.formedToxins?.map((t) => t.type)).toEqual(['ptomaine']);
   });
 
   it('blendLoads is mass-weighted — pouring does not launder spoilage', () => {

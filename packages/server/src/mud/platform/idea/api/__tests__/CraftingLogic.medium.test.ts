@@ -42,6 +42,7 @@ import { ThermalMixin } from '../../../../lib/thermal/Thermal';
 import { ContainableMixin } from '../../../../lib/spatial/Containable';
 import { NamedMixin } from '../../../../lib/description/Named';
 import { Stuff } from '../../../../lib/stuff/Stuff';
+import { BlendLabel } from '../../../../lib/metabolism/BlendLabel';
 import {
   makeStuff,
   makeStuffAtPath,
@@ -477,7 +478,7 @@ describe('the toxin kill is SELECTIVE (AC9)', () => {
     expect(outcome.ok).toBe(true);
     if (!outcome.ok) return;
     const payload = BulkableApi.slotFor(outcome.output, undefined)!.getPayload()!;
-    expect(payload.toxicity.find((t) => t.type === 'lectin')).toBeUndefined();
+    expect(BlendLabel.toxicityOf(payload, null).find((t) => t.type === 'lectin')).toBeUndefined();
   });
 
   it('…and survives a working that never got there', async () => {
@@ -489,7 +490,7 @@ describe('the toxin kill is SELECTIVE (AC9)', () => {
     expect(outcome.ok).toBe(true);
     if (!outcome.ok) return;
     const payload = BulkableApi.slotFor(outcome.output, undefined)!.getPayload()!;
-    expect(payload.toxicity.find((t) => t.type === 'lectin')?.amount).toBe(400);
+    expect(BlendLabel.toxicityOf(payload, null).find((t) => t.type === 'lectin')?.amount).toBe(400);
   });
 
   it('⚠ alcohol authors no lability and rides into the pot honestly', async () => {
@@ -501,7 +502,7 @@ describe('the toxin kill is SELECTIVE (AC9)', () => {
     expect(outcome.ok).toBe(true);
     if (!outcome.ok) return;
     const payload = BulkableApi.slotFor(outcome.output, undefined)!.getPayload()!;
-    expect(payload.toxicity.find((t) => t.type === 'alcohol')?.amount).toBe(30);
+    expect(BlendLabel.toxicityOf(payload, null).find((t) => t.type === 'alcohol')?.amount).toBe(30);
   });
 
   it('⚠⚠ cooking spoiled food does NOT un-poison it', async () => {
@@ -519,7 +520,7 @@ describe('the toxin kill is SELECTIVE (AC9)', () => {
     expect(outcome.ok).toBe(true);
     if (!outcome.ok) return;
     const payload = BulkableApi.slotFor(outcome.output, undefined)!.getPayload()!;
-    expect(payload.toxicity.find((t) => t.type === 'ptomaine')?.amount).toBe(700);
+    expect(BlendLabel.toxicityOf(payload, null).find((t) => t.type === 'ptomaine')?.amount).toBe(700);
   });
 });
 
@@ -570,7 +571,7 @@ describe('the working resets the spoilage load (P4)', () => {
     // Sterile — it will keep as long as anything cooked keeps…
     expect(Freshness.loadOf(slot)).toBe(0);
     // …and poisonous, because it was rotten when it went in.
-    const dose = slot.getPayload()!.toxicity.find((t) => t.type === 'ptomaine');
+    const dose = BlendLabel.toxicityOf(slot.getPayload()!, null).find((t) => t.type === 'ptomaine');
     expect(dose).toBeTruthy();
     expect(dose!.amount).toBeGreaterThan(0);
     // ⚠ And the formed dose authors no lability, so re-heating the
@@ -589,7 +590,7 @@ describe('the working resets the spoilage load (P4)', () => {
     const slot = BulkableApi.slotFor(outcome.output, undefined)!;
     expect(Freshness.loadOf(slot)).toBe(0);
     expect(
-      slot.getPayload()!.toxicity.some((t) => t.type === 'ptomaine'),
+      BlendLabel.toxicityOf(slot.getPayload()!, null).some((t) => t.type === 'ptomaine'),
     ).toBe(false);
   });
 
