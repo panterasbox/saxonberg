@@ -735,7 +735,10 @@ others matter.*
   the fat/oil Material row (the named gap); the toxin-kill write in
   `applyEdibleOutput`; **the dinnerware unification** (Part 6 —
   `Dish extends CraftVessel`, the edible branch claims from the dish
-  pool instead of cloning).
+  pool instead of cloning); ⭐ **the v1 taste slice** (Part 10 —
+  `taste` on a dish/build reads its composition filtered by the taster's
+  competence — no tending needed, and it retires the never-really-run
+  `taste` verb).
 - **W2 — content**: the recipe roster widened across all three methods
   (the ZPD ladder obligation — trivial → hard rungs per method), pantry
   stock to match, the kitchen bundle refreshed.
@@ -1524,6 +1527,117 @@ The arcane system is *built on* thermodynamics (one impossible
 postulate, everything else real) and so is this design — so a
 mage-cook is **the same energy accounting either way**. Exergy, the
 second law, and Carnot taught through dinner.
+
+---
+
+## Part 10 — Failure, measurement & taste (through the four lenses)
+
+Read against the project's four lenses — **pedagogy · creative
+expression · immersion and roleplay · gamification and
+self-improvement**.
+
+### Can you burn things? No — and that is a real gap, not a tidy deferral
+
+**v1 has exactly two failure modes, and both ship**: **refusal** (the
+diegetic declines — `no-recipe`, `insufficient-input`, `missing-tool`,
+`insufficient-heat`; costs only time) and the **off-spec mint** (the
+pot-luck fill, the generic worked lump — *you made something, just not
+the thing*). What v1 **cannot** do is **degrade** (scorch),
+**destroy** (burnt to carbon) or **escape** (the grease fire) — all
+three need an unattended pan whose temperature evolves, i.e. **S1 +
+S2**.
+
+⚠ Stated bluntly, because it matters: **v1 cooking cannot fail
+*interestingly*; it can only refuse.** Burning is the most universal
+cooking failure there is, so this is an experiential hole rather than a
+neat scoping line — and the strongest argument that the tending wave is
+*near*, not "someday."
+
+- ⭐ **When it lands, the smell is the warning.** `smell` is a shipped
+  sense channel, so a scorching pot emits an olfactory signal *to the
+  room* — socially readable, and someone else can shout. Failure
+  becomes multiplayer.
+- Failure must stay **informative and survivable**; the BKT difficulty
+  coupling already refuses to reward grinding.
+
+### Measurement: explicitly NOT enforced
+
+- ⭐⭐ **Precision is a property of the INSTRUMENT, never of the
+  player's typing.** Making someone declare grams is data entry, not
+  skill. The shipped pattern already fits: `control` on capital floors
+  the outcome, so a graduated measure or scale is *capital*.
+- ⭐ **Eyeballing cannot be a dice roll** (the uncertainty doctrine).
+  So eyeballing is **coarser units, deterministic**: a pinch, a splash,
+  a handful are real quantities the measure grammar already carries.
+  With no scale the handful **is** what you added — the outcome
+  differs because the *input* differed, not because a die fell.
+- ⭐⭐ **The cook/baker split is ALSO a precision split**: baking is
+  chemistry that punishes imprecision (which is *why* bakers own
+  scales); a stew tolerates a handful. The baker pack authors **tight**
+  tolerance, cooking loose — the taxonomy paying out again.
+- **Pre-registered additive field**: a **tolerance band** on
+  `RecipeInputSlot` (v1 matches exactly; bands are baker/tending-era).
+
+### Taste: the anti-gauge
+
+**Honest state**: `taste` is a contact-only single-sense verb that
+reads an **authored detail string** (`getDetail(topic, 'taste')`), and
+[senses.md](../../subsystems/senses.md) says there is **no
+`gustatoryProfile` yet — "those land per content demand."** Cooking is
+that demand appearing (the third time this build turns out to be
+somebody's missing half, after compost's producer and scurvy's
+consumer).
+
+- ⭐⭐ **Taste is the sensorium's rung on the ANALYZE ladder** — the
+  instrumentation doctrine's continuum (*sensorium and instruments are
+  ONE continuum; readings are channels, procedures are verbs*). Your
+  palate is the instrument you always carry; `analyze` with real
+  capital resolves more.
+- ⭐⭐⭐ **What you taste depends on WHO YOU ARE.** A novice tastes
+  "salty"; a competent cook tastes "over-salted, and there's juniper in
+  here"; a master reads the stock's grade. **Competence expressed as
+  PERCEPTION, never as a bonus** — the answer to progression without
+  stats: *you get better by perceiving more.* It is also true (wine and
+  coffee expertise IS perceptual training), and it generalizes far past
+  cooking — the assayer's eye, the physician's diagnosis.
+- ⭐⭐⭐ **Tasting is THE ANTI-GAUGE.** The no-gauge reading rules
+  forbid a doneness progress bar, and the answer is not to hide the bar
+  — **there is no bar; there is a spoon.** You *check*, at a cost (a
+  moment, a spoonful), through an instrument whose resolution is your
+  competence.
+- **Do we author taste profiles? No — DERIVE them.** The `BulkPayload`
+  already carries what went in (identity + macros) and Materials carry
+  composition and tags; a per-dish flavour string would be a second
+  copy of the composition (the two-copies rule). A taste *reading* is a
+  **projection of composition through the taster's competence**. What
+  may legitimately be authored is a small **sensory descriptor
+  vocabulary on MATERIALS** — the five basic tastes are real chemistry
+  (salt → salty, sugar → sweet, acid → sour) — riding the shipped
+  descriptor-bank pattern.
+- ⭐ **A meaningful slice is v1-able, and cheap**: `taste` on a dish or
+  a build returning its composition filtered by competence needs **no
+  tending at all** — the payload and the build's contributions both
+  exist today. It answers *"did I salt this?"*, and it retires the
+  standing embarrassment that `taste` has never really run.
+  Tasting for **doneness** is what waits for tending (state that
+  changes).
+- ⭐ **Taste as a safety instrument, honestly partial**: the palate
+  detects spoilage only past a band — which is precisely why food
+  poisoning happens, since early spoilage is undetectable. And **a
+  taste is a small dose**: tasting the unknown mushroom is the
+  forager's gamble, deterministic (dose × potency), never a roll.
+- **Social**: tasting is a visible act, the spoon-from-the-pot is the
+  iconic kitchen image, and tasting *someone else's* cooking is trust —
+  which is also the poisoning vector.
+
+### The four lenses, tabulated
+
+| | burning / failure | measurement | taste |
+|---|---|---|---|
+| **pedagogy** | heat × time is the variable | precision matters *where it matters* — the most useful lesson a cooking course teaches | expertise IS discrimination |
+| **creative expression** | the off-spec mint is where improvisation lands | loose tolerance is what *permits* improvising | add → taste → adjust; without tasting, improvisation is blind |
+| **immersion / RP** | the burnt smell reaches the room | "a handful of salt" reads better than 47.3 g | the spoon; and tasting another's food is trust |
+| **gamification / self-improvement** | failure informative, never punishing | the scale is capital that measurably improves outcomes — progression with no stat | **you advance by perceiving more** |
 
 ⚠ Build-freeze note: captured during the client-rebuild design-only
 phase. This slate is the input to a `/requirements` cycle when the
