@@ -197,8 +197,22 @@ inert `status` seam a cause**: `getStatus()` reads the report, `dry` → grey
 **A.** No. It is `ChargedMixin + Slottable` and a concrete `ManaCell`
 Thing. `ChargedMixin` already ships `getStoredKJ` / `getCapacityKJ` /
 `getChargeFraction` / `isDepleted` / `spendCharge`; `SlotSpec.accepts`
-already gates what fits a bay; the shipped **`device`-category verbs**
-already drive slots. Compose, do not invent.
+already gates what fits a bay. Compose, do not invent.
+
+⚠⚠ **Correction (planning, 2026-09-02).** An earlier revision of this
+decision said the shipped `device`-category verbs already drive slots.
+**They do not** — the category is `arm · disarm · douse · fold · ignite ·
+pump · switch · unfold`, and *no* shipped verb inserts a `Slottable` into
+a non-body slot (`wear`/`wield` are body, `plant`/`repot` are
+`inventory`). So the swap needs **one new `device`-category verb**, from
+the arcana pack, modelled on `plant`/`repot`. Read AC7 as *"swapped
+through a `device`-category verb"* rather than as reuse.
+
+⚠ **And `SlotSpec.accepts` must name a kernel `Mixins` value** —
+`Slotted.validateSlotSpecs` builds its valid set from
+`Object.values(Mixins)` and **throws** at hydrate otherwise, so a pack
+cannot invent one. The bay accepts `Mixins.Charged`; `ManaCell.fitsSlot`
+narrows the rest.
 
 ### D7 — `ChargedMixin` is renominated from kJ to mana
 
@@ -576,5 +590,5 @@ bay) · [mql](../subsystems/mql.md) (**resolving is not permission**) ·
 teleport path stays anchored) ·
 [credential](../subsystems/credential.md) (the travel record) ·
 [content-packs](../subsystems/content-packs.md) (the capability rung,
-`/system/tpa` as pack thirty-two) ·
+`/system/tpa` as pack thirty-six — 35 ship today) ·
 [banking](../subsystems/banking.md) (the fare split, untouched).
