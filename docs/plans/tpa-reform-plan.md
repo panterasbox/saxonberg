@@ -420,6 +420,60 @@ zero or infinity.
 `PrepareOutcome` gains `costTau?: number` so the cast front door can preview it
 and the departures board can quote it without casting.
 
+### P3a — The item door: a wand is a portable survey
+
+**Asked directly (user, 2026-09-02): how does the spell work off the network —
+with a wand or a scroll?** P3 said "route the item door through `costOf`" and
+left it there. It needs three sentences more, and **all three rules already
+ship** — nothing here is new design.
+
+**Who moves.** magic-items.md: *"A self-effect targets `ctx.actor`. Reading
+`origin` would cloak the wand instead of the person."* So a wand of teleport
+moves **its wielder**, and the `RelocateEffect`'s lands-on-`ctx.actor` rule (W3)
+carries AC5's self-only guarantee through the item door **with no extra code**.
+The caster-is-one-endpoint postulate survives an item in the middle precisely
+because `EffectContext` separates `actor` from `origin`.
+
+**What specifies the destination.** The three-item-classes table already says a
+**Charged** item supplies *"energy **+ specification**"*. ⭐⭐ So **a wand of
+teleport is a portable survey**: it holds **one** destination, authored on its
+row. That is why it cannot take you anywhere — and why the network still has a
+business: **a wand holds one place, the network holds many, shared.** The
+specification problem prices both, the same lesson twice at different scales.
+
+**Who pays.** `MagicLogic:640` — *"A charged shell pays for itself; a
+consumable's payer is its user. An explicit option wins — a scroll names its
+reader."* Which yields a distinction worth keeping:
+
+| | who moves | who pays τ | usable by |
+|---|---|---|---|
+| `cast teleport` | the caster | the caster | casters |
+| the TPA ride | the traveller | the terminal, or the traveller with `--channel` | **anyone** |
+| a **wand** | the wielder | **the wand** | **anyone** — it pays for itself |
+| a **scroll** | the reader | **the reader** | ⭐ **casters only** — a non-caster holds no reserve to spend |
+
+⭐ The scroll row falls out of shipped code and is good fiction unaided: **a
+scroll is a script you perform, so you supply the power; a wand is a device
+that brought its own.**
+
+⚠ **The bug P3 would have shipped.** `MagicLogic:648` spends
+`spell.cost * kJPerCostPt` — a **flat** read of the authored cost. Under
+`costModel: potential` that authored number is only the **floor** (the survey
+component), so the item door would **undercharge every use**. Both item sites
+(`:648`, `:708`) route through `costOf`, passing the item's own destination as
+the target.
+
+⭐ And that produces a result nobody tunes: **a wand attuned to a mountaintop
+holds fewer charges than one attuned to a valley**, because `capacityTau` is
+authored and `mgh` is not.
+
+**Scope: the door is made correct; no teleport item ships.** A wand or scroll
+of teleport is content, and none was asked for. The *door* must be right anyway
+— a code path that is wrong is wrong whether or not a row exercises it today —
+so W3 proves it with a fixture rather than by minting an item. (Attuning a
+wand in play is the natural home for the **player-survey** feature this build
+deferred; it is not this build's.)
+
 ### P4 — `MagicApi.relocationCost(spec)` — a request object, so the census stays clean
 
 The `mgh` arithmetic is the kernel's (D3's table) and three separate packs need
@@ -1321,7 +1375,7 @@ Sequenced so no risk is mitigated later than the wave it first appears in.
 
 | AC | wave |
 |---|---|
-| 1 · 2 · 3 · 4 · 5 | W3 |
+| 1 · 2 · 3 · 4 · 5 · 5b | W3 |
 | 6 | W5 (abstraction) → W6 (the terminal makes it literal) |
 | 7 | W5 |
 | 8 | W5 |

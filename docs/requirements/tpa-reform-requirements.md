@@ -617,6 +617,11 @@ where it has been parked since before content packs existed.
    traveller costs more.
 5. A caster **cannot teleport a third party** — asserted, with the
    authorial `--target` path unaffected.
+5b. The **item door** is honest: using a teleport-bearing item moves
+   `ctx.actor` (the wielder/reader), **not the item**, and charges
+   `costOf` — the authored floor **plus** the `mgh` to the item's own
+   destination — rather than the flat authored cost. Proven with a
+   fixture; **no teleport item ships.**
 6. `ManaPoweredMixin` exists in arcana, carries `drawMode`, and is composed
    by at least **two unrelated things** — a terminal and one domestic
    device — proving the abstraction is not a terminal in disguise.
