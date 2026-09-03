@@ -421,6 +421,38 @@ undramatic. Here it would be an office with a name and a record.
 
 # Part V — The Gray: a worked gang, in a real district
 
+> ⭐⭐ **BUILD DECIDED 2026-09-03** (the threat-model pass). The Gray is
+> the realm's answer to *where is there real risk* — and the answer is
+> **economic, never violent**, per the locked constraint below. Two things
+> came out of that pass and belong here:
+>
+> **1. ⚠⚠ Its substrate gate is the LENDING TIER, which is unbuilt.** The
+> credit loop is the engine — *no bank access → the gang lends → you cannot
+> repay → you work it off → the shakedown corner is where collection
+> happens* — and the Counting-Houses will not lend to a flophouse resident
+> with no standing. Banking ships two-tier money, custodial banks and
+> settlement; **lending is deferred.** Without it the Gray is a district
+> with a mood and no mechanism. Every locality pulls exactly one piece of
+> substrate (Rejection the `stocks:` fix, Hinkley `knock`, Heart's Delight
+> **winter**) — ⭐ **the Gray pulls lending.**
+>
+> **2. ⭐⭐⭐ Exclusion and the Gray are one system from two ends.** The
+> threat pass made *exclusion* an explicit sanction (a declaration by an
+> authority over a parcel extent — see
+> [settlement-model.md § 9](../../settlement-model.md)). Someone excluded
+> from the legitimate economy still needs **credit, work, protection and
+> arbitration** — precisely the four services this outfit sells. So:
+>
+> > **Every exclusion creates a customer for the gang.**
+>
+> Which is the same shape as the enforcement-dynamics table below already
+> has (*squeeze the fence → worse for residents*). **The two builds want to
+> land together**, and neither should be scoped without the other.
+>
+> ⚠ And exclusion is constrained so it stays in this register: it may
+> refuse **service · shelter · trade · employment**, and may **never**
+> touch presence or speech — *the aether reaches everywhere.*
+
 **The district is already authored for this.** From
 [terminus-city.md](../../staging/terminus-city.md) §3:
 

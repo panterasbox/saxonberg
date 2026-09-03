@@ -196,6 +196,70 @@ The reason is not tidiness: ⭐⭐⭐ **zoning exists because of density.** At
 shipped stewardship test — *does this spill onto people who did not
 consent?* — applied at city density.
 
+## 3e. ⭐⭐ The Gray — threat is a property of an EXTENT, not a locality **[2026-09-03]**
+
+A city is not homogeneous. **The Gray is high-impunity and
+high-*economic*-predation inside a low-impunity, low-predation city** —
+which is true of every real city and is why the threat model has to sit
+below the locality tier.
+
+⭐ It rides machinery that already works that way: parcels resolve by
+**longest prefix**, and zone fields (`elevation`, land use) already
+inherit and override. So a district's threat and enforcement are a
+**zone-level override of its city**, not a special case.
+
+**Four axes**, and they vary independently — hazard · violent predation ·
+**economic predation** · impunity. Full model:
+[../settlement-model.md § 9](../settlement-model.md).
+
+| | hazard | violent | ⭐ economic | impunity |
+|---|---|---|---|---|
+| the old core | low | low | low | low — Peelers |
+| Wharfside | moderate (industry) | low | low | low |
+| **the Gray** | low | ⭐ **low — locked** | ⚠⚠ **very high** | ⚠⚠ high |
+
+⚠⚠ **Locked and load-bearing: "danger is economic/social — not lethal.
+Lethal combat faces outward."** The Gray is **not a mob of murderers** — it
+is a business whose pressure is financial and social, which is the harder
+and better version. It will not kill you; it will take everything you earn,
+indefinitely, through a debt you cannot repay. ⭐ And in a world where
+`passage` is a floor under death and **there is no floor under a loan**,
+that is the scarier threat.
+
+**And the governance framing is the city's own premise:** Terminus was
+built by people who wanted no governance and the young polity is
+*retroactively* trying to govern it. ⭐ **The Gray is not where the state
+failed — it is where the state has not arrived, and the gang got there
+first.** Its arrival is a live conflict, not a restoration.
+
+### What building it needs
+
+The district is already listed in §3 — fence/pawnshop, flophouse,
+manhole/dead-drop, shakedown corner. Missing:
+
+- **the gang as a `Business`** — collectors, lookouts, runners, a corner
+  boss; ⭐ *the top commits no acts*, and the ledger's shape makes that
+  structurally true rather than narratively asserted
+- **the periphery, where it touches the legitimate world** — the fence
+  (laundering provenance; *the chattel chain is their actual problem*), the
+  flophouse keeper, a constable on the take, and a clerk in the
+  Counting-Houses who moves money that should not move
+- ⭐⭐ **the charter petition** — *a gang is a guild nobody chartered, or
+  one that was denied one.* The outfit can petition to become a benevolent
+  association: charter them and they are regulated, taxed and answerable;
+  refuse and they stay outside, unchanged, and now with a grievance. **No
+  clean answer, which is what makes it a real vote.**
+
+⚠⚠ **Gated on the banking LENDING TIER**, which is deferred. Credit is the
+engine; without it this is a district with a mood and no mechanism. See
+[../slates/builds/policing-slate.md](../slates/builds/policing-slate.md)
+Part V.
+
+⭐⭐⭐ **And it pairs with exclusion**: someone refused by the legitimate
+economy needs credit, work, protection and arbitration — the four services
+the gang sells. **Every exclusion creates a customer.** The two want to
+land together.
+
 ## 4. Military / the war home-front
 
 Pointed **outward** (so "the city is safe" holds): the war vs. the **Ordinance**

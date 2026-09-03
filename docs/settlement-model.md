@@ -360,7 +360,162 @@ place first and a cost later.
 
 ---
 
-## 9. What the colony sims contributed
+## 9. ⭐⭐⭐ Threat, law, and the sanction
+
+### Threat is not one number — it is four axes, and they vary independently
+
+| axis | what it is | responsible |
+|---|---|---|
+| **hazard** | the environment can kill you — damps, falls, exposure | nobody |
+| **violent predation** | somebody might hurt you | a person |
+| ⭐ **economic predation** | somebody might take everything you earn, indefinitely | a person |
+| **impunity** | how likely is it that nothing happens to them afterwards | the polity |
+
+⭐ Conflating them is the mistake: **a place can be dangerous without being
+lawless, and lawless without being dangerous.** Rejection is very high
+hazard, low predation (everyone is known) and high impunity (no office
+exists). **Hinkley is zero hazard, zero predation and TOTAL impunity** —
+the safest and least-policed place in the realm, which is exactly why its
+danger is social.
+
+### ⚠⚠ Lethal combat faces outward — that is locked
+
+`policing-slate`, and it settles the question before it is asked:
+
+> *"danger is **economic/social** — shakedowns, the corpo squeeze, the
+> Gray — **not lethal**. Lethal combat faces outward."*
+
+So there is **no high-violence settlement, by design.** Which is not a gap:
+
+> ⭐⭐⭐ **Death is cheap and debt is not.** `passage` is a floor — always
+> available, unpleasant, never dangerous. There is no floor under a loan.
+> **The real predation in this world is financial.**
+
+### What already prevents murder at every corner
+
+More than expected, and all of it ships:
+
+- **Combat is consent-gated and terms-bound.** *A consented duel is
+  lawful; an imposed lethal attack on the unwilling is a crime* — and
+  blame is **derived from the ledger**, not adjudicated.
+- ⭐⭐ **Defeat ≠ death.** A person is only *defeated* by the winning blow;
+  killing them is the separate, **interruptible coup**. A lost fight is not
+  a death unless somebody deliberately finishes it, and bystanders can stop
+  them.
+- **Death is recoverable** (`passage`), and **accountability is
+  producers-not-chokepoint**, so the record exists whether or not anyone
+  was watching.
+
+### So what is at stake?
+
+| stake | how it bites |
+|---|---|
+| **time** | the `recovering` affliction, the walk back, a shift not worked |
+| **property** | ⭐ chattel is **traceable** — robbery's problem is disposal, not the taking |
+| **standing** | the ledger, the chronicle, a nine-person renown scope |
+| ⭐⭐ **place** | **being refused a settlement you depend on** |
+
+### ⭐⭐⭐ Exclusion — the sanction, made explicit **[DECIDED 2026-09-03]**
+
+> **A declaration, by an authority, over an extent, recorded append-only,
+> and read by everything that serves you.**
+
+⭐ The extent comes free: `ParcelApi` already resolves by longest prefix,
+so *"banned from this shop"* and *"banned from this town"* are **the same
+declaration at two scales.** Append-only means an exclusion can be **lifted
+by a later record and never erased** — the chronicle's own shape.
+
+**Who may declare is the differentiation:**
+
+| | authority | binds |
+|---|---|---|
+| **Terminus** | a magistrate — an office | the city, or one district |
+| **Heart's Delight** | ⭐ the co-op — private ordering | the **pool** only, not the valley |
+| **Rejection** | ⭐⭐ **the hue and cry** — a threshold of the town, no office required | the camp |
+| **Hinkley Hills** | ⚠⚠ **nobody can** | — |
+| any proprietor | themselves | one venue |
+
+⭐⭐⭐ **Hinkley's inability to exclude is the mechanical reason its story
+happens.** The District may act on *use*, never on a person. They cannot
+ban the death man and cannot reach him — so they watch him, for nine
+years. The theme resolves into a mechanism rather than being authored.
+
+⭐⭐ And Rejection's is the mirror of its charter problem: **an
+unrecognized polity can still exclude.** Refusal is the one sovereign act
+that needs nobody else's permission, which is why frontier communities used
+it constantly.
+
+#### ⚠⚠ The constraint that keeps it from being griefing
+
+> **Exclusion may never touch the aether or movement.**
+
+Refusable: **service · shelter · trade · employment.** Never **presence or
+speech.** That preserves the doctrine — *the aether reaches everywhere,
+isolation is never a difficulty mechanic* — and makes exclusion an
+**economic** sanction, the same register the Gray operates in.
+
+#### ⭐⭐⭐ And exclusion and the gray economy are one system
+
+Someone excluded from the legitimate economy still needs **credit, work,
+protection and arbitration** — which is precisely the four services a gang
+sells.
+
+> **Every exclusion creates a customer for the gang.**
+
+Not a flaw — the enforcement dynamics already have exactly this shape
+(*squeeze the fence → worse for residents*; *open credit access → the loan
+business collapses*). Harsher sanction, bigger gray economy. It means the
+two builds want to land together.
+
+### How law is enforced, per settlement
+
+`policing-slate`'s aesthetic arc is a **Tiebout axis** — the mode *is* the
+locality:
+
+| | mode | who enforces | sanction | custody |
+|---|---|---|---|---|
+| **Terminus** | **Peelers** — identifiable, minimum force, preventive | a constabulary | fine · custody | ✅ only place |
+| **Heart's Delight** | custom + private ordering | the co-op | expulsion from the pool | ✗ |
+| **Rejection** | ⭐ **the hue and cry** | *everyone*, with a lantern | exclusion | ✗ |
+| **Hinkley Hills** | ⚠ **none** | nobody | ⭐ social, and only social | ✗ |
+| **the necropolis** | ⚠⚠ **none, by construction** | — | — | ✗ |
+| **the range / wilds** | none | — | — | ✗ |
+
+⭐⭐ **The necropolis is the realm's impunity hole, by the same mechanism
+that created it.** A LULU town exists to be *outside the city's
+ordinances* — so it is outside all of them. That is why Colma's other
+industries are card rooms and car dealerships, and it gives the place a
+second reason to exist beyond the dead.
+
+### ⭐⭐ The readout — a player must be able to calculate before going
+
+Risk has to be legible in advance, and the signal is already decided for a
+different reason (§ 4):
+
+> **Whether people lock their doors is the threat readout.**
+
+Rejection does not lock — nothing worth taking and the town would know
+within the hour. Hinkley locks everything. Terminus varies by district.
+*You learn a town's theory of trust by trying a handle*, which is the same
+sentence as *you learn its impunity.* Plus the visible ones: is there a
+constable · is anyone armed · does anyone react when you draw.
+
+### ⭐ The progression this produces
+
+A player's life runs **outward**, trading safety for opportunity at every
+step:
+
+**Terminus** (policed, expensive, competitive) → **Hinkley** (safe, empty,
+no law needed) → **Heart's Delight** (seasonal, custom-governed) →
+**Rejection** (lethal ground, no office) → **the range and the wilds**
+(nothing at all).
+
+⭐ And the thing being calculated at each step is not *will I be murdered*
+— it is ***if something goes wrong here, is there anyone to appeal to?***
+
+---
+
+## 10. What the colony sims contributed
 
 | game | the lesson |
 |---|---|
@@ -377,7 +532,7 @@ place first and a cost later.
 
 ---
 
-## 10. Open
+## 11. Open
 
 - **Ceremony is a realm-wide hole.** No burial ground, no chapel, no hall
   in use, anywhere outside Terminus — for a game with a mortality
