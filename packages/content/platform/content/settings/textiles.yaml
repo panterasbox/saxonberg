@@ -60,3 +60,27 @@ settings:
   # lower it and the tailor gets more business.
   - key: textiles.fit.refuseAbove
     value: "0.35"
+
+  # ── the dye bath ──
+  # Fraction of remaining colour a FULLY UNBOUND dye loses per wash. It
+  # is scaled by `1 − fastness`, so ⭐ this number IS the failure mode:
+  # dye something un-mordanted and the colour does not hold, which is
+  # the "something to be bad at" every competence answer needs to be
+  # visible against.
+  # ⭐ Near-total on purpose: at fastness 0 the colour goes below
+  # legibility in ONE wash, so an un-mordanted piece really does wash
+  # straight out. Lower it and the failure mode stops being felt.
+  - key: textiles.dye.washLoss
+    value: "0.95"
+
+  # How much the bond itself weakens per wash. Small on purpose: good
+  # work should last, and still eventually need redoing — the craft's
+  # value is in the upkeep, not the one-time act.
+  - key: textiles.dye.bondLoss
+    value: "0.05"
+
+  # Application strength below which a colour stops reading at all and
+  # the thing is undyed again. ⭐ Fading is desaturation; this is where
+  # desaturation bottoms out.
+  - key: textiles.dye.legibleAt
+    value: "0.08"

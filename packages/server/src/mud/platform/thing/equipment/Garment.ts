@@ -40,6 +40,9 @@
  *   store-bought one simply has an empty mark.
  * - `DetailedMixin` — the parts a viewer can examine, and the surface a
  *   maker's authored prose rides on.
+ * - `DyedMixin` — the dye application stack and its fastness, so a
+ *   garment can be coloured, washed, and faded. Undyed is the sparse
+ *   default (an empty stack), so this costs a shipped row nothing.
  *
  * Variety stays content + composition, never subclassing: *type* is
  * `slotClaims` + description; *added behavior* is a mixin layered on
@@ -56,12 +59,15 @@ import { DetailedMixin } from '../../../lib/description/Detailed';
 import { ConstructedMixin } from '../../../lib/material/Constructed';
 import { DurableMixin } from '../../../lib/material/Durable';
 import { CraftedMixin } from '../../../lib/craft/Crafted';
+import { DyedMixin } from '../../../lib/material/Dyed';
 import { SlottableMixin } from '../../../lib/slot/Slottable';
 import { WearableMixin } from '../../../lib/slot/Wearable';
 
 const GarmentBase = WearableMixin(
   SlottableMixin(
-    CraftedMixin(DurableMixin(ConstructedMixin(DetailedMixin(Thing)))),
+    CraftedMixin(
+      DurableMixin(ConstructedMixin(DyedMixin(DetailedMixin(Thing)))),
+    ),
   ),
 );
 

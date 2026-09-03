@@ -78,6 +78,7 @@ import type { Hiding } from '../lib/concealment/Hiding';
 import type { Hazard } from '../lib/hazard/Hazard';
 import type { Tangible } from '../lib/material/Tangible';
 import type { Constructed } from '../lib/material/Constructed';
+import type { Dyed } from '../lib/material/Dyed';
 import type { Organism } from '../lib/species/Organism';
 import type { Sexed } from '../lib/character/Sexed';
 import type { Vitals } from '../lib/vitals/Vitals';
@@ -975,6 +976,10 @@ export class MixinApi {
 
   public static isTangible(obj: Stuff): obj is Stuff & Tangible {
     return this.hasMixin(obj, Mixins.Tangible);
+  }
+
+  public static isDyed(obj: Stuff): obj is Stuff & Dyed {
+    return this.hasMixin(obj, Mixins.Dyed);
   }
 
   public static isConstructed(obj: Stuff): obj is Stuff & Constructed {

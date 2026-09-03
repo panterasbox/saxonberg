@@ -33,7 +33,15 @@ export default class WashController extends ManualBuildController<WashModel> {
   execute(model: WashModel, context: CommandContext): void {
     const giver = context.commandGiver;
     const glass = model.glass?.stuff ?? null;
+    // ⚠⚠ TWO CONCEPTS SHARE THE WORD "washed", and they must not be
+    // folded together. `CraftVessel.soiled` is *is this glass claimable
+    // for a fill* — binary by necessity, owned by crafting. What
+    // laundering does to a garment is *how much colour is still bound*.
+    // The vessel branch is untouched; a garment takes the other one.
     if (!(glass instanceof CraftVessel)) {
+      if (glass && MixinApi.isDyed(glass)) {
+        return this.launderGarment(glass, context);
+      }
       this.declineStep(context, Mml.compose`Wash what?`, "no-glass");
       return;
     }
@@ -56,6 +64,55 @@ export default class WashController extends ManualBuildController<WashModel> {
           .topic(TOPIC)
           .toSelf(Mml.compose`You wash ${Mml.thing(glass)} clean.`)
           .toPeers(Mml.compose`${Mml.actor(giver)} washes ${Mml.thing(glass)}.`)
+          .send();
+      },
+    });
+  }
+
+  /**
+   * `wash <garment>` — one trip through the tub.
+   *
+   * ⭐ **This is where the dyer's craft is measured.** Each wash strips
+   * colour in proportion to `1 − fastness`, so an un-mordanted piece
+   * comes out of the first launder pale and a well-mordanted one
+   * survives many. Competence in dyeing buys fastness and
+   * repeatability; it never buys a brighter colour, and this is what
+   * makes that a mechanic rather than a claim.
+   *
+   * ⚠ Water is a **precondition, never a consumable** — the same rule
+   * the vessel branch follows, and the reason there is no laundry
+   * vocation: the care loop is not an errand per wash.
+   */
+  private launderGarment(garment: Stuff, context: CommandContext): void {
+    const giver = context.commandGiver;
+    const water = this.findWater(giver);
+    if (!water) {
+      this.declineStep(
+        context,
+        Mml.compose`There's no water here to wash ${Mml.thing(garment)} in.`,
+        "no-water",
+      );
+      return;
+    }
+    if (!MixinApi.isDyed(garment)) return;
+    const before = garment.getColorTag();
+    this.engageStep(context, {
+      durationMs: WASH_MS,
+      beginSelf: Mml.compose`You take ${Mml.thing(garment)} to ${Mml.thing(water)}.`,
+      onComplete: () => {
+        if (!MixinApi.isDyed(garment)) return;
+        const changed = garment.launder();
+        const after = garment.getColorTag();
+        const line =
+          before && !after
+            ? Mml.compose`The colour goes out of ${Mml.thing(garment)} entirely.`
+            : changed
+              ? Mml.compose`You wash ${Mml.thing(garment)}. Some of the colour comes away with the water.`
+              : Mml.compose`You wash ${Mml.thing(garment)} clean.`;
+        MessageApi.scene(giver)
+          .topic(TOPIC)
+          .toSelf(line)
+          .toPeers(Mml.compose`${Mml.actor(giver)} washes ${Mml.thing(garment)}.`)
           .send();
       },
     });

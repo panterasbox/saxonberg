@@ -468,6 +468,27 @@ the present on-shift maker.
   the glass, because a syrup bottle and a juice bottle are
   `CraftVessel`s too. Bussing is `get <glass>` / `put <glass> in rack` —
   shipped verbs.
+  ### ⭐ `wash <garment>` — the same verb, the other branch (textiles)
+
+  `wash`'s target already required `CraftedMixin`, and a `Garment`
+  composes it — so the laundry branch needed **no arg change and no new
+  verb**. A non-`CraftVessel` target that is `Dyed` takes
+  `launderGarment` instead: each wash strips colour in proportion to
+  `1 − fastness`, so an un-mordanted piece comes out of the first tub
+  pale and a well-mordanted one survives many washes.
+
+  ⭐ **This is where the dyer's craft is measured.** Hue comes from the
+  dyestuff; *durability comes from the craft*, which is why competence
+  in dyeing buys fastness and repeatability and never a brighter colour.
+
+  ⚠⚠ **Two concepts share the word, and they are not folded together.**
+  `CraftVessel.soiled` is *is this vessel claimable for a fill* — binary
+  by necessity, owned by crafting. What laundering does to a garment is
+  *how much colour is still bound*. The `instanceof CraftVessel` branch
+  is untouched. ⚠ Water stays a **precondition, never a consumable** on
+  both branches, which is also why there is no laundry vocation: the
+  care loop is not an errand per wash.
+
 - **`muddle`** — a `ManualBuild` step like `stir`; needs a reachable
   `muddler` capability; records `BuildMethod` `'muddled'`.
   `shake` already existed (`stir.yaml` is `verbs: [stir, shake]`); `mix`

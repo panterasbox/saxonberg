@@ -1457,6 +1457,16 @@ export const AppSettingKeys = {
   /** Textiles — the fit distance above which a garment simply will not
    * go on. A halfling's coat on a dragonborn fails on a NUMBER. */
   textilesFitRefuseAbove: "textiles.fit.refuseAbove",
+  /** Textiles — fraction of remaining colour a FULLY UNBOUND dye loses
+   * per wash. Scaled by `1 − fastness`, so a well-mordanted piece keeps
+   * nearly all of it and an un-mordanted one washes straight out. */
+  textilesDyeWashLoss: "textiles.dye.washLoss",
+  /** Textiles — how much the BOND itself weakens per wash. Why even
+   * good work eventually needs redoing. */
+  textilesDyeBondLoss: "textiles.dye.bondLoss",
+  /** Textiles — application strength below which a colour no longer
+   * reads at all, and the thing is undyed again. */
+  textilesDyeLegibleAt: "textiles.dye.legibleAt",
 } as const;
 
 export type AppSettingKey =

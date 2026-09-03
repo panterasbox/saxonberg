@@ -263,6 +263,7 @@ export const Mixins = {
   // The form axis — a material worked into a Construction (materials-
   // response). Composed by armor (resist profile) and weapons (delivery).
   Constructed: 'ConstructedMixin',
+  Dyed: 'DyedMixin',
   Branded: 'BrandedMixin',
   // Chattel — a movable good's durable per-instance identity, the key its
   // unspoofable ownership is stamped against (the parcel-title twin).
