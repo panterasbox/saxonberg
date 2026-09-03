@@ -270,7 +270,7 @@ packages/content/tpa/
                      requires.title: [{extent: /system/tpa, holder: {group: tpa}}]
   package.json       @saxonberg/content-tpa; deps: server, types, content-platform
   tsconfig.json / vitest.config.ts     (copied from water verbatim)
-  src/thing/FastTravel.ts              FastTravelMixin + FAST_TRAVEL_MIXIN
+  src/lib/FastTravel.ts                FastTravelMixin + FAST_TRAVEL_MIXIN (P2a)
   src/thing/TpaTerminal.ts             the concrete terminal
   src/thing/TravelCard.ts
   src/idea/cmd/movement/TeleportController.ts
@@ -293,6 +293,53 @@ each gain `@saxonberg/content-tpa` in `dependencies`, or the installer's
 **Verb category:** `teleport` and `register` land in **`movement`**, not
 `author`. `teleport` is a verb every player types; its current home under
 `cmd/author/` is a leftover from when it was `goto`'s privileged sibling.
+
+### P2a — A pack's substrate lives in `src/lib/`, and invariant 8 is amended
+
+⚠⚠ **The current taxonomy makes a pack-specific mixin unrepresentable**, and
+this build needs two of them. `lint:instanceable` invariant 8 bans `src/lib/`
+outright — *"substrate a pack needs is the kernel's, or a class under a
+branch"* — so a pack mixin must either go to the kernel (wrong for
+`FastTravelMixin`, which this build is *removing* from the kernel) or sit in a
+branch folder (wrong by construction: `thing/` means an instanceable Thing, and
+a mixin is not instanceable).
+
+The tree already carries the bug. **`packages/content/trade-mining/src/location/Working.ts`**
+is a real `export function WorkingMixin` with a `_mixinName`, parked in the
+**Location branch folder** because invariant 8 left it nowhere else. An earlier
+revision of this plan repeated that mistake twice.
+
+**Decided (user, 2026-09-02): invariant 8 is amended from "no `lib/`" to
+"`lib/` holds only inherited substrate."** The kernel's own rule, applied to
+packs — mixins and value objects, nothing else. **Still forbidden in a pack:**
+an Api, a logic singleton, free helper functions. Those still mean a kernel MR.
+
+⭐ **The headline invariant is untouched.** "Nothing instances `/lib/`" is
+enforced as `path.startsWith('/lib/')` against *template paths*, and a pack
+mixin has no template row at all. `/system/arcana/lib/ManaPowered` does not
+start with `/lib/`; `classFileOf` resolves it by longest prefix like any other
+pack path. Invariants 1 and 2 never fire.
+
+**Where a given mixin belongs then has a testable answer:**
+
+> ⭐⭐ **Substrate goes to the kernel when its composers have no common pack
+> ancestor.**
+
+| mixin | composed by | home |
+|---|---|---|
+| the fast-travel node | tpa only | `/system/tpa/lib/` |
+| `ManaPoweredMixin` | arcana's lamp **and** tpa's terminal | `/system/arcana/lib/` — **tpa depends on arcana anyway** (it is magic), so that is an ordinary dependency edge, not a kernel case |
+
+A third pack wanting mana-powered devices *without* depending on arcana is the
+signal to promote it — a review question, not a lint.
+
+⚠ **`src/mixin/` was considered and rejected**: the kernel already ruled that
+*"mixin is an implementation technique, not a subsystem"* and banned
+`lib/mixins/`. A second name for the same concept repeats a decided mistake.
+
+Placement inside a pack's `lib/` follows the kernel's shape — **flat by
+default**, a `lib/<subsystem>/` subdirectory only where 3+ cohesive files land
+together.
 
 ### P3 — The computed cost is a closed `costModel` on the spell row
 
@@ -469,13 +516,15 @@ honest gate anyway.
 
 ### P8 — `ManaPoweredMixin` / cell / main: placement and source resolution
 
-A pack ships no `lib/`, so a pack mixin lives **in a branch folder beside what
-composes it**, with an exported name constant instead of a `Mixins` registry
-entry. The shipped precedent is
+A pack mixin lives in the pack's **`src/lib/`** (P2a) with an exported name
+constant instead of a `Mixins` registry entry — the registry is kernel-only and
+a pack cannot add to it. The naming/narrowing precedent is
 `packages/content/trade-mining/src/location/Working.ts` (`WORKING_MIXIN` +
-`MixinApi.isActive(x, WORKING_MIXIN)`).
+`MixinApi.isActive(x, WORKING_MIXIN)`); ⚠ its *placement* is the pre-existing
+violation P2a fixes, and W0 moves it to `trade-mining/src/lib/Working.ts` in
+passing.
 
-**`packages/content/arcana/src/thing/ManaPowered.ts`** → `/system/arcana/thing/ManaPowered`
+**`packages/content/arcana/src/lib/ManaPowered.ts`** → `/system/arcana/lib/ManaPowered` (P2a — it is a mixin, so it is substrate, not a `thing/`)
 
 ```ts
 export const MANA_POWERED_MIXIN = 'ManaPoweredMixin';
@@ -823,7 +872,20 @@ automatically.
 `packages/content/tpa/` with `pack.yaml`, `package.json`, `tsconfig.json`,
 `vitest.config.ts` copied from `water`; the group + title claim; `pnpm install`;
 add to the deployment manifest and any `SAXONBERG_PACKS` docs. **No source, no
-rows.** Prove: `pnpm lint:untitled` sees `/system/tpa` as a title root;
+rows.**
+
+**Plus P2a's doctrine change, which must land here so the lint and the docs
+never disagree with W2's move:** amend invariant 8 in
+`packages/server/scripts/check-instanceable-placement.ts` (`lib/` permitted,
+holding only inherited substrate; Api / logic singleton / free helper still
+refused), update CLAUDE.md's pack module-category line and the *Instanceable
+lives in `platform/<branch>/`* section, and **move
+`trade-mining/src/location/Working.ts` → `trade-mining/src/lib/Working.ts`** —
+the pre-existing violation, fixed while the rule is being written rather than
+left as a counter-example.
+
+Prove: `lint:instanceable` green with a `src/lib/` present and still red on a
+planted `src/api/`; `pnpm lint:untitled` sees `/system/tpa` as a title root;
 `pack status tpa` prints `data`; a fresh-DB boot installs it empty;
 `pack-roots.ts` does not yet list it (no `src/`).
 
