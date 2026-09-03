@@ -1167,6 +1167,45 @@ needs a new archetype row and a mobile host (the conveyance substrate
 ships: hitch/unhitch, haulage), never new mechanism. The
 trade-is-mechanism / locality-is-expression rule, one level down.
 
+### Front of house: the restaurant is the first TWO-TRADE venue
+
+**The floor is hospitality's, the kitchen is cooking's** — and that is
+the whole boundary. Dave's Bar is *one* trade (the barkeep makes and
+serves); a restaurant is the first venue needing both, which makes it
+a genuinely interdependent **two-role player business**: the cook
+makes, the server delivers. Nothing else in the shipped economy
+requires two people to run one room.
+
+- **The attendant substrate already carries table service** — its
+  keystone insight is that *the exclusive resource is the SERVER'S
+  attention slot*. Table service merely **inverts who travels** (the
+  server comes to you); the slot model is untouched, a waiter with N
+  tables is one attention slot and the tables are the queue. And the
+  `line`-vs-`Ticket` axis asks exactly the right question — *must you
+  stay present to hold your place?* — so ⭐ **a seat is a ticket you
+  sit on**. The `seating` need already exists in the archetype
+  grammar; `Postured`/`Posed` ships.
+- ⭐⭐ **Part 6 accidentally built the mechanic that makes service
+  matter.** `Dish extends CraftVessel` inherits `Thermal` — so **food
+  cools between the pass and the table.** Slow service means cold
+  food, with a real consequence and *no stat anywhere*: service speed
+  is mechanically load-bearing for free, and the cook's plated work
+  can be ruined by the floor, which is exactly the interdependence
+  the two-role business needs.
+- **The wait is the point, and the doctrine already protects it**:
+  attendant's never-frozen rule (you mill about; you are poked when
+  it is your turn) means between-courses time is **social time** —
+  what a tavern is actually for, and the
+  never-cut-players-off-from-peers doctrine in its happiest form.
+- **The waiter's skill is the READ, never a charisma stat**:
+  `hospitality-catering` ships as a Discipline, tips route to the
+  present agent, and reception feeds renown. Reading the table and
+  recommending is the epistemic gate the vocations register wants; no
+  new measurement.
+- **Deferred, cleanly**: the tab/check (pay-at-order ships; deferred
+  payment is the [credit slate](./credit-slate.md)'s), reservations
+  and the host stand (content, whenever a venue wants them).
+
 ### Real estate: a kitchen sells property here too
 
 - **Improvements transfer with title**: furnishing is owner-based and
