@@ -27,6 +27,7 @@ import { BulkableApi } from '../../../../api/bulk';
 import { PersistenceManager } from '../../../../../backend/PersistenceManager';
 import { Quantity } from '../../../../lib/quantity';
 import Material from '../../../../lib/material/Material';
+import { Freshness } from '../../../../lib/material/Freshness';
 import Thing from '../../../../lib/stuff/Thing';
 import { Recipe } from '../../../../lib/craft/Recipe';
 import Oven from '../../../thing/Oven';
@@ -543,7 +544,7 @@ describe('the working resets the spoilage load (P4)', () => {
     expect(outcome.ok).toBe(true);
     if (!outcome.ok) return;
     const slot = BulkableApi.slotFor(outcome.output, undefined)!;
-    expect(slot.getFreshnessLoad()).toBe(0);
+    expect(Freshness.loadOf(slot)).toBe(0);
   });
 
   it('⭐⭐ the kill leaves the FORMED TOXIN behind — cooked rot is still rot', async () => {
@@ -564,7 +565,7 @@ describe('the working resets the spoilage load (P4)', () => {
     if (!outcome.ok) return;
     const slot = BulkableApi.slotFor(outcome.output, undefined)!;
     // Sterile — it will keep as long as anything cooked keeps…
-    expect(slot.getFreshnessLoad()).toBe(0);
+    expect(Freshness.loadOf(slot)).toBe(0);
     // …and poisonous, because it was rotten when it went in.
     const dose = slot.getPayload()!.toxicity.find((t) => t.type === 'ptomaine');
     expect(dose).toBeTruthy();
@@ -583,7 +584,7 @@ describe('the working resets the spoilage load (P4)', () => {
     expect(outcome.ok).toBe(true);
     if (!outcome.ok) return;
     const slot = BulkableApi.slotFor(outcome.output, undefined)!;
-    expect(slot.getFreshnessLoad()).toBe(0);
+    expect(Freshness.loadOf(slot)).toBe(0);
     expect(
       slot.getPayload()!.toxicity.some((t) => t.type === 'ptomaine'),
     ).toBe(false);
@@ -598,6 +599,6 @@ describe('the working resets the spoilage load (P4)', () => {
     expect(outcome.ok).toBe(true);
     if (!outcome.ok) return;
     const slot = BulkableApi.slotFor(outcome.output, undefined)!;
-    expect(slot.getFreshnessLoad()).toBeCloseTo(0.7, 4);
+    expect(Freshness.loadOf(slot)).toBeCloseTo(0.7, 4);
   });
 });

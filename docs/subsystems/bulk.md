@@ -265,6 +265,15 @@ Materials' names — `tastes`, the union of their basic tastes, and
 (`freshness: { load, stamp }`), reconciled through the holder because the
 vessel is the Thermal host.
 
+⭐ **Bulk owns the `freshness` FIELD and nothing else about it.** The
+reconcile, the lazy seed and the ingest fold live in the spoilage
+subsystem (`Freshness.loadOf(slot)` / `.stampLoad()` / `.ingestPayloadOf()`),
+so `lib/bulk` imports nothing from it — exactly as it stores `nutrients`
+and `toxicity` without importing metabolism. Those three statics are that
+file's one documented impure seam, and the trade is deliberate: the
+alternative put spoilage policy on a slot handle and made the bulk
+substrate depend on the subsystem.
+
 ⚠ The spoilage gauge is the one field that does NOT follow the payload's
 identity rule: it **blends by mass on every pour**, not only into an empty
 destination. That asymmetry is what closes the pour-to-reset exploit —
@@ -273,6 +282,11 @@ seeded lazily (a slot holding perishable matter gets one the first time
 anybody asks; nothing else does), and the shadow payload written at that
 moment mirrors the Material field for field so `payload ?? material` reads
 identically either way. See [spoilage.md](./spoilage.md).
+
+⚠⚠ `Vat` composes both `FermentingMixin` and `BulkableMixin`, so a
+fermenting slot is also a gauge slot. Nothing collides today because every
+fermentable is inert — see [spoilage.md](./spoilage.md) § Fermentation is
+the one collision to watch.
 
 ⚠ Those three are DATA the craft writes. The **reading** that uses them
 is `PalatableMixin` (`lib/metabolism/Palatable.ts`), composed on

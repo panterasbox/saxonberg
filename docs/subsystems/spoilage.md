@@ -112,7 +112,8 @@ keep a dose it no longer deserves.
 
 Two folds, one function (`Freshness.withDose`):
 
-- **bulk** — `BulkSlot.getIngestPayload()`, read by `drink` and `sip`.
+- **bulk** — `Freshness.ingestPayloadOf(slot)`, read by `drink`, `sip`
+  and `eat`'s dish arm.
 - **discrete** — `EatController` builds a transient payload from the
   target's own mixin gauge.
 
@@ -220,6 +221,34 @@ which is a load of ≈0.92 — "rotten", exactly what that row's name and
 appearance already claimed. The hand-authored row and the derived curve
 agree without either being tuned to the other, which is the check worth
 having.
+
+## ⚠⚠ Fermentation is the one collision to watch
+
+`Vat` composes **both** `FermentingMixin` and `BulkableMixin`, so a
+fermenting vessel's slot is also a spoilage-gauge slot. Fermentation *is*
+deliberate microbial growth; spoilage is the undeliberate kind. Two
+microbial models, one slot.
+
+**Nothing collides today**, and only because of a data fact: every
+fermenting material — `wort`, `lager-wort`, `distillers-wort`,
+`red-must`, `white-must`, `wash`, `ale` — tabulates **no**
+`spoilActivationEnergy`, so `Freshness.loadOf` returns 0 and never seeds.
+
+⚠ That is luck resting on a decision, not a guard. Wort is a sugary
+liquid that genuinely spoils, so the day somebody tabulates an `Ea` on it
+(entirely reasonable — a ruined batch is real, and the fermentation build
+already models cultures and viability) a vat will accrue a *spoilage*
+load while deliberately fermenting, and the ferment's own product will
+read as rotten.
+
+**Before adding a spoilage constant to any fermentable, decide which
+model owns the vessel.** The likely answer is that `FermentingMixin`
+suppresses the gauge for as long as a ferment is live — a working culture
+IS the flora, and it out-competes what would otherwise grow — and hands
+back over when the ferment completes, which is exactly when a finished
+ale starts to be spoilable. That is a fermentation build's decision, not
+this one's, and it is written down here so it is a decision rather than a
+surprise.
 
 ## Deliberate deferrals
 

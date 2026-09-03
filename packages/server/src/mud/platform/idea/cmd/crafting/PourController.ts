@@ -25,6 +25,7 @@ import { MixinApi } from "../../../../api/mixin";
 import { MessageApi } from "../../../../api/message";
 import { Mml } from "../../../../api/mml";
 import { StuffApi } from "../../../../api/stuff";
+import { Freshness } from "../../../../lib/material/Freshness";
 
 const TOPIC = "act.deed";
 /** A standard manual pour (≥ every demo recipe's per-slot measure). */
@@ -108,7 +109,7 @@ export default class PourController extends ManualBuildController<PourModel> {
       onComplete: () => {
         // ⚠ Read the spoilage BEFORE the draw — a full drain clears the
         // source's payload, and the gauge rides the payload.
-        const freshnessLoad = slot.getFreshnessLoad();
+        const freshnessLoad = Freshness.loadOf(slot);
         const result = BulkableApi.transfer(slot, null, {
           kind: "measure",
           litres: STANDARD_POUR_L,

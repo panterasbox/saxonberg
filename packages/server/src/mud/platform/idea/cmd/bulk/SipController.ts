@@ -14,6 +14,7 @@ import type { MqlOneResult } from '../../../../api/mql';
 import { BulkableApi } from '../../../../api/bulk';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
+import { Freshness } from "../../../../lib/material/Freshness";
 
 const TOPIC = 'act.deed';
 
@@ -55,7 +56,7 @@ export default class SipController extends CommandController<SipModel> {
     const material = fromSlot.getMaterial();
     // ⭐ The INGEST payload, not the stored one: whatever the matter
     // has spoiled into rides along with it (see `Freshness.withDose`).
-    const payload = fromSlot.getIngestPayload();
+    const payload = Freshness.ingestPayloadOf(fromSlot);
     const result = BulkableApi.transfer(fromSlot, null, {
       kind: 'measure',
       litres: SIP_LITRES,

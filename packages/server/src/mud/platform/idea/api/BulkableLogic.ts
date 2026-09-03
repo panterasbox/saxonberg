@@ -302,8 +302,8 @@ export class BulkableLogic extends ApiLogic {
     // (identity, riding into an EMPTY destination only), blends by mass on
     // EVERY pour. Otherwise decanting a spoiled pot into a fresh one would
     // launder it: the pour-to-reset exploit.
-    const fromLoad = from.getFreshnessLoad();
-    const toLoadBefore = to !== null ? to.getFreshnessLoad() : 0;
+    const fromLoad = Freshness.loadOf(from);
+    const toLoadBefore = to !== null ? Freshness.loadOf(to) : 0;
     const fromPayload = from.getPayload();
     const toWasEmpty = to !== null && to.isEmpty();
     from.debit(applied);
@@ -327,7 +327,8 @@ export class BulkableLogic extends ApiLogic {
       // slot just carries the source's load across (the arithmetic degrades
       // to that on its own when `toAmountBefore` is 0).
       if (to.getPayload()?.freshness || fromLoad > 0) {
-        to.setFreshnessLoad(
+        Freshness.stampLoad(
+          to,
           Freshness.blendLoads(fromLoad, applied, toLoadBefore, toAmountBefore),
         );
       }

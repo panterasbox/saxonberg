@@ -654,7 +654,7 @@ function pickItemInputs(
 
 /** Stamp a working's spoilage outcome onto the output slot. */
 function applySpoilage(outSlot: BulkSlot, outcome: SpoilageOutcome): void {
-  outSlot.setFreshnessLoad(outcome.load);
+  Freshness.stampLoad(outSlot, outcome.load);
   const formed = outcome.formed;
   if (!formed) return;
   const payload = outSlot.getPayload();
@@ -702,7 +702,7 @@ function outputMicrobialLoad(
   for (const m of matched) {
     const w = m.measureL;
     if (w <= 0) continue;
-    weighted += m.slot.getFreshnessLoad() * w;
+    weighted += Freshness.loadOf(m.slot) * w;
     total += w;
   }
   for (const m of matchedItems) {

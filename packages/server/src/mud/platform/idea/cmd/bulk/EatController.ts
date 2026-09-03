@@ -77,7 +77,7 @@ export default class EatController extends CommandController<EatModel> {
     // ⭐ The discrete half of the spoilage reach: a solid item carries its
     // gauge on its own `FreshnessMixin` fields rather than on a blend
     // payload, so the dose is folded into a TRANSIENT payload here — the
-    // same `withDose` the bulk slot's `getIngestPayload` uses, so a bowl
+    // same `withDose` `Freshness.ingestPayloadOf` uses, so a bowl
     // of stew and the roast it came from poison by identical arithmetic.
     const load = MixinApi.isFresh(target) ? target.getMicrobialLoad() : 0;
     const payload = Freshness.withDose(null, material, load);
@@ -132,7 +132,7 @@ export default class EatController extends CommandController<EatModel> {
   /**
    * Eat a portion out of a dish. The bulk sibling of the discrete arm —
    * same solid intake, same spoilage fold (through the slot's own
-   * `getIngestPayload`), and the dish is EMPTIED rather than destroyed,
+   * `Freshness.ingestPayloadOf`), and the dish is EMPTIED rather than destroyed,
    * because a bowl you have finished is a bowl to wash, not a bowl that
    * has ceased to exist.
    */
@@ -144,7 +144,7 @@ export default class EatController extends CommandController<EatModel> {
     const slot = BulkableApi.slotFor(target, undefined);
     if (!slot) return;
     const material = slot.getMaterial();
-    const payload = slot.getIngestPayload();
+    const payload = Freshness.ingestPayloadOf(slot);
     const appearance =
       payload?.appearance ?? material?.getAppearance() ?? "it";
     const portion = Math.min(

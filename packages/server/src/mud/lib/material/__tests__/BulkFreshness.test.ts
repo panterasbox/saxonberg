@@ -1,5 +1,9 @@
 /**
- * The spoilage gauge on a bulk slot — the blend half of `FreshnessMixin`.
+ * The spoilage gauge on a bulk slot — the blend half of `FreshnessMixin`,
+ * and ⚠ the SPOILAGE subsystem's one impure seam: `lib/bulk` stores the
+ * `freshness` field and knows nothing about it, exactly as it stores
+ * `nutrients` without knowing metabolism. Hence this suite living beside
+ * `Freshness.ts` rather than beside `Bulkable.ts`.
  * The load rides the MATTER (`BulkPayload.freshness`), so it travels with
  * a pour, blends by volume on every transfer, and folds a ptomaine dose in
  * at the ingest read. ⭐ The blend rule is what closes the pour-to-reset
@@ -11,10 +15,10 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
 import { BulkableApi } from '../../../api/bulk';
 import Thing from '../../stuff/Thing';
-import { BulkableMixin } from '../Bulkable';
+import { BulkableMixin } from '../../bulk/Bulkable';
 import { ThermalMixin } from '../../thermal/Thermal';
 import Material from '../../material/Material';
-import { Freshness } from '../../material/Freshness';
+import { Freshness } from '../Freshness';
 import { Quantity } from '../../quantity';
 import { WorldClockApi } from '../../../api/worldclock';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
@@ -84,11 +88,11 @@ describe('the spoilage gauge on a bulk slot', () => {
   it('perishable matter grows a load on its own; inert matter never does', () => {
     const soup = BulkableApi.slotFor(pot(2, BROTH), undefined)!;
     const tap = BulkableApi.slotFor(pot(2, WATER), undefined)!;
-    soup.getFreshnessLoad(); // seeds the gauge
-    tap.getFreshnessLoad();
+    Freshness.loadOf(soup); // seeds the gauge
+    Freshness.loadOf(tap);
     setNow(2 * DAY);
-    expect(soup.getFreshnessLoad()).toBeGreaterThan(0.3);
-    expect(tap.getFreshnessLoad()).toBe(0);
+    expect(Freshness.loadOf(soup)).toBeGreaterThan(0.3);
+    expect(Freshness.loadOf(tap)).toBe(0);
     // Sparse: the inert slot never acquired a payload at all.
     expect(tap.getPayload()).toBeNull();
   });
@@ -96,18 +100,18 @@ describe('the spoilage gauge on a bulk slot', () => {
   it('the holder is the thermal host — a cold pot keeps', () => {
     const warm = BulkableApi.slotFor(pot(2, BROTH, 303), undefined)!;
     const cold = BulkableApi.slotFor(pot(2, BROTH, 277), undefined)!;
-    warm.getFreshnessLoad();
-    cold.getFreshnessLoad();
+    Freshness.loadOf(warm);
+    Freshness.loadOf(cold);
     setNow(2 * DAY);
-    expect(warm.getFreshnessLoad()).toBeGreaterThan(
-      cold.getFreshnessLoad() * 5,
+    expect(Freshness.loadOf(warm)).toBeGreaterThan(
+      Freshness.loadOf(cold) * 5,
     );
   });
 
   it('a pour carries the load into a clean vessel — the matter is what is off', () => {
     const from = BulkableApi.slotFor(pot(2, BROTH), undefined)!;
     const to = BulkableApi.slotFor(pot(0, null), undefined)!;
-    from.setFreshnessLoad(0.8);
+    Freshness.stampLoad(from, 0.8);
 
     const res = BulkableApi.transfer(from, to, {
       kind: 'measure',
@@ -115,16 +119,16 @@ describe('the spoilage gauge on a bulk slot', () => {
       mode: 'strict',
     });
     expect(res.applied).toBeCloseTo(1, 9);
-    expect(to.getFreshnessLoad()).toBeCloseTo(0.8, 5);
+    expect(Freshness.loadOf(to)).toBeCloseTo(0.8, 5);
     // …and the source is not laundered by having poured some out.
-    expect(from.getFreshnessLoad()).toBeCloseTo(0.8, 5);
+    expect(Freshness.loadOf(from)).toBeCloseTo(0.8, 5);
   });
 
   it('⭐ the pour-to-reset exploit is closed: loads blend by volume', () => {
     const spoiled = BulkableApi.slotFor(pot(1, BROTH), undefined)!;
     const fresh = BulkableApi.slotFor(pot(1, BROTH), undefined)!;
-    spoiled.setFreshnessLoad(0.9);
-    fresh.setFreshnessLoad(0);
+    Freshness.stampLoad(spoiled, 0.9);
+    Freshness.stampLoad(fresh, 0);
 
     // 1 L of spoiled into 1 L of fresh → the average, not zero.
     BulkableApi.transfer(spoiled, fresh, {
@@ -132,31 +136,31 @@ describe('the spoilage gauge on a bulk slot', () => {
       litres: 1,
       mode: 'strict',
     });
-    expect(fresh.getFreshnessLoad()).toBeCloseTo(0.45, 4);
+    expect(Freshness.loadOf(fresh)).toBeCloseTo(0.45, 4);
   });
 
   it('a small spoiled pour barely moves a big fresh pot (mass-weighted)', () => {
     const spoiled = BulkableApi.slotFor(pot(1, BROTH), undefined)!;
     const fresh = BulkableApi.slotFor(pot(3, BROTH), undefined)!;
-    spoiled.setFreshnessLoad(0.9);
-    fresh.setFreshnessLoad(0);
+    Freshness.stampLoad(spoiled, 0.9);
+    Freshness.stampLoad(fresh, 0);
     BulkableApi.transfer(spoiled, fresh, {
       kind: 'measure',
       litres: 0.1,
       mode: 'strict',
     });
-    expect(fresh.getFreshnessLoad()).toBeLessThan(0.05);
-    expect(fresh.getFreshnessLoad()).toBeGreaterThan(0);
+    expect(Freshness.loadOf(fresh)).toBeLessThan(0.05);
+    expect(Freshness.loadOf(fresh)).toBeGreaterThan(0);
   });
 
   it('the ingest payload carries a ptomaine dose the stored payload does not', () => {
     const slot = BulkableApi.slotFor(pot(2, BROTH), undefined)!;
-    slot.setFreshnessLoad(0.9);
+    Freshness.stampLoad(slot, 0.9);
 
     const stored = slot.getPayload()!;
     expect(stored.toxicity.some((t) => t.type === 'ptomaine')).toBe(false);
 
-    const ingest = slot.getIngestPayload()!;
+    const ingest = Freshness.ingestPayloadOf(slot)!;
     const dose = ingest.toxicity.find((t) => t.type === 'ptomaine');
     expect(dose).toBeTruthy();
     expect(dose!.amount).toBeGreaterThan(0);
@@ -172,7 +176,7 @@ describe('the spoilage gauge on a bulk slot', () => {
   it('fresh matter ingests exactly as before — no dose, no surprises', () => {
     const slot = BulkableApi.slotFor(pot(2, BROTH), undefined)!;
     setNow(HOUR);
-    const ingest = slot.getIngestPayload();
+    const ingest = Freshness.ingestPayloadOf(slot);
     expect(ingest?.toxicity.some((t) => t.type === 'ptomaine') ?? false).toBe(
       false,
     );
@@ -181,9 +185,9 @@ describe('the spoilage gauge on a bulk slot', () => {
   it('the item gauge and the payload gauge use identical arithmetic', () => {
     const mat = ensureMaterial(BROTH, 80_000);
     const slot = BulkableApi.slotFor(pot(2, BROTH, 300), undefined)!;
-    slot.getFreshnessLoad(); // seed at t=0
+    Freshness.loadOf(slot); // seed at t=0
     setNow(DAY);
-    const viaSlot = slot.getFreshnessLoad();
+    const viaSlot = Freshness.loadOf(slot);
     const viaStatic = Freshness.advance(0, DAY, mat, 300);
     expect(viaSlot).toBeCloseTo(viaStatic, 6);
   });
