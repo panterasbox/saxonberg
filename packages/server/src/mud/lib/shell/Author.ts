@@ -124,12 +124,22 @@ export function AuthorMixin<TBase extends MixinConstructor>(Base: TBase) {
         // her staff, never wizardness), so an author who is not on the
         // executive sees the verb but can't run it.
         'platform/cmd/author/pack.yaml',
-        // The app-settings surface — `config [key [value]]`, the dials
-        // that tune the running world. ⚠ It carries `requiresWizard`
-        // (it retunes the world for everybody, not a personal
-        // preference — `settings`/`var` are the per-character ones), and
-        // like the rest of this suite it is AFFORDED here and
-        // AUTHORIZED there.
+        // The app-settings surface — `config [key [value]]`.
+        //
+        // ⚠⚠ **Afforded here under protest: its GATE is on the wrong
+        // axis.** `config.yaml` carries `requiresWizard`, and what it
+        // actually reaches is 361 BALANCE DIALS — `freshness.muMaxPerHour`,
+        // `combat.*`, `response.*`. None of that is TypeScript access, and
+        // `requiresWizard` is the code-trust axis and nothing else. There
+        // is simply no authority modelled for "who may retune the world",
+        // and *a missing authority is not a grant* (access.md) — so the
+        // gate defaulted to the nearest strong thing to hand, which is the
+        // anti-pattern, not the answer. **The seat is missing and wants
+        // building; do not read this line as an endorsement.**
+        //
+        // Contributed anyway because the alternative is worse: the verb
+        // was reachable by NOBODY (below), and an unreachable verb hides
+        // the gate question entirely.
         //
         // ⚠⚠ It was afforded NOWHERE until a live drive tried to type
         // it: view shipped, controller shipped, `ConfigController.test`

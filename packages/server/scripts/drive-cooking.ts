@@ -25,9 +25,10 @@
  *      dish CLAIMED from the venue's own crockery;
  *   2. reads it: the contents line, the palate, the honest label;
  *   3. eats it, with the cookhouse's horn spoon;
- *   4. watches the meat left out on the table walk fresh → tainted →
- *      spoiled → rotten under the compressed clock;
- *   5. eats the rotten cut and confirms the poisoning is real.
+ *   4. reads the gauge on the cut left out on the table — the SEAM, not
+ *      the band walk, which takes 47 game-hours at the shipped rate and
+ *      is proven exactly by the unit suite instead;
+ *   5. eats it and vomits, confirming both verbs are afforded live.
  *
  * ⚠ It is a DRIVE, not a test: it prints what the world said and exits
  * non-zero on a checkpoint that did not happen. Read the transcript.
@@ -46,13 +47,6 @@ const WS_URL = SERVER.replace(/^http/, "ws");
 
 let failures = 0;
 
-/**
- * Set once the drive has turned a GLOBAL dial up, and called from the
- * top-level `finally` — so a crash mid-walk still puts the world back.
- * A drive that exits hot leaves every perishable in the realm rotting
- * hundreds of times too fast, with nothing anywhere to say so.
- */
-let restoreDial: (() => Promise<void>) | null = null;
 
 function ok(label: string, condition: boolean, saw?: string): void {
   if (condition) {
@@ -65,11 +59,7 @@ function ok(label: string, condition: boolean, saw?: string): void {
 }
 
 /** POST the test-auth seam and return the session cookie header. */
-async function login(
-  handle: string,
-  startLocation?: string,
-  wizard = false,
-): Promise<string> {
+async function login(handle: string, startLocation?: string): Promise<string> {
   for (let i = 0; i < 40; i++) {
     try {
       const res = await fetch(`${SERVER}/auth/test-login`, {
@@ -79,7 +69,6 @@ async function login(
           handle,
           withCharacter: true,
           ...(startLocation ? { startLocation } : {}),
-          ...(wizard ? { wizard: true } : {}),
         }),
       });
       if (res.ok) {
@@ -107,12 +96,8 @@ class Session {
    * client draws sends `play <playerId>`. This walks that handshake,
    * which is the same one a player walks.
    */
-  static async open(
-    handle: string,
-    startLocation?: string,
-    wizard = false,
-  ): Promise<Session> {
-    const cookie = await login(handle, startLocation, wizard);
+  static async open(handle: string, startLocation?: string): Promise<Session> {
+    const cookie = await login(handle, startLocation);
     const s = new Session();
     s.ws = new WebSocket(WS_URL, { headers: { cookie } });
     await new Promise<void>((resolve, reject) => {
@@ -264,83 +249,50 @@ async function main(): Promise<void> {
   );
   ok("…and it read as a meal, not as crockery", !/can't eat/i.test(eaten), eaten);
 
-  // ── 5. The spoilage clock, on the meat left out on the table ───────
+  // ── 5. The spoilage gauge, as far as a PLAYER can reach it ─────────
   //
-  // ⚠⚠ **The band walk is NOT reachable at the shipped dials, and that is
-  // the design working.** Stew meat tabulates Ea = 80 kJ/mol; at the 293 K
-  // a table reads, `f_T = exp(-(Ea/R)(1/293 - 1/303)) = 0.338` and
-  // `f_aw = (0.97-0.6)/0.4 = 0.925`, so `μ = 0.35 · 0.338 · 0.925 =
-  // 0.110` per game-hour. Logistic from the 0.002 inoculum to the 0.25
-  // tainted threshold needs `μt = ln((1-0.002)/0.002 · 0.25/0.75) = 5.11`
-  // — **47 game-hours**, or 3.9 real hours at the shipped 12× clock. Meat
-  // that goes off in two days is right; a drive that expected it inside
-  // two minutes was asserting something the model forbids, and read as a
-  // product defect when the arithmetic was the thing at fault.
+  // ⚠⚠ **The band walk is not driveable, and it must not be faked.** Stew
+  // meat tabulates Ea = 80 kJ/mol; at the 293 K a table reads that is
+  // μ = 0.110 per game-hour, so the logistic climb from the 0.002
+  // inoculum to the 0.25 `tainted` threshold takes **47 game-hours** —
+  // 3.9 real hours at the shipped 12× clock. Meat that goes off in two
+  // days is the design working.
   //
-  // So the clock is compressed the only honest way: an OPERATOR session
-  // turns the global `freshness.muMaxPerHour` dial up, the walk runs, and
-  // the dial goes back in a `finally`. ⚠ This is not a wizard standing in
-  // for a missing player path — retuning a world-wide balance dial IS an
-  // operator act, and the patron below never touches it. Everything the
-  // PLAYER does in this drive stays ordinary.
+  // ⚠⚠⚠ An earlier revision of this drive reached for a WIZARD session to
+  // turn `freshness.muMaxPerHour` up, and argued that retuning a global
+  // balance dial "IS an operator act". **There is no operator tier, and
+  // inventing one is how `requiresWizard` keeps leaking out of its lane.**
+  // It is the TypeScript-trust axis and nothing else; *a missing
+  // authority is not a grant* (access.md). The drive is an ORDINARY
+  // patron, top to bottom, or it is not evidence about what players can
+  // do.
   //
-  // At μ_max = 120 the same arithmetic gives μ = 37.5/game-hour: tainted
-  // at ~41 real seconds, spoiled at ~53, rotten at ~64 — four or five
-  // turns of the loop below.
-  const DIAL = "freshness.muMaxPerHour";
-  const SHIPPED_MU = "0.35";
-  const DRIVE_MU = "120";
-  console.log("\n5. Watch the cut of meat on the table go off");
-  const operator = await Session.open(`cookop-${stamp}`, undefined, true);
-  restoreDial = async () => {
-    const back = plain(await operator.cmd(`config ${DIAL} ${SHIPPED_MU}`, 2000));
-    say("operator >", back);
-    ok(
-      `the spoilage dial went back to ${SHIPPED_MU}`,
-      new RegExp(SHIPPED_MU).test(back),
-      back,
-    );
-    operator.close();
-    restoreDial = null;
-  };
-  say("operator >", plain(await operator.cmd("look", 2000)));
-  const set = plain(await operator.cmd(`config ${DIAL} ${DRIVE_MU}`, 2000));
-  say("operator >", set);
+  // ⭐ Nothing was lost by dropping it. The walk is proven EXACTLY and in
+  // milliseconds by `lib/material/__tests__/Freshness.test.ts` (all four
+  // bands off a set load) and `cmd/bulk/__tests__/SpoiledFood.test.ts`
+  // (a fresh ration poisons nobody; left out four days the same ration
+  // poisons and the band fires; vomiting inside the window dumps what has
+  // not absorbed; kept cold it is still good). Those drive the game clock
+  // directly — no dial, no wizard. What a live drive adds is the SEAM:
+  // that the gauge reaches a player over the wire at all.
+  console.log("\n5. The gauge reaches the player (the walk is unit-proven)");
+  const cut = plain(await cook.cmd("look meat", 2200));
+  say(">", cut);
+  ok("the cut of meat is there to read", /meat|cuts/i.test(cut), cut);
   ok(
-    "the operator compressed the spoilage clock (47 game-hours is the shipped rate)",
-    !/don't|not permitted|unknown/i.test(set),
-    set,
+    "…and reads FRESH — no band line on sound food, which is the rule",
+    !/faintly off|gone bad|rotten/i.test(cut),
+    cut,
   );
-  const bandOf = (t: string): string =>
-    /rotten/i.test(t) ? "rotten"
-      : /gone bad/i.test(t) ? "spoiled"
-      : /faintly off/i.test(t) ? "tainted"
-      : "fresh";
-  const walk: string[] = [];
-  for (let i = 0; i < 14; i++) {
-    const look = plain(await cook.cmd("look meat", 1400));
-    const band = bandOf(look);
-    if (walk[walk.length - 1] !== band) {
-      walk.push(band);
-      console.log(`   [${i}] ${band}`);
-    }
-    if (band === "rotten") break;
-    await new Promise((r) => setTimeout(r, 8000));
-  }
-  ok(`the band walked (${walk.join(" \u2192 ")})`, walk.length > 1, walk.join(" \u2192 "));
-  ok("\u2026all the way to rotten", walk.includes("rotten"), walk.join(" \u2192 "));
 
-  // ── 6. Eat the rotten cut; the poisoning is real ───────────────────
-  console.log("\n6. Eat the rotten cut");
+  // ── 6. Eat it, then bring it back up — both verbs, live ────────────
+  console.log("\n6. Eat the cut, then vomit");
   const bad = plain(await cook.cmd("eat meat", 3000));
   say(">", bad);
-  ok("the rotten cut is eaten (never a gate — it lets you)", bad.length > 0, bad);
+  ok("the cut is eaten (spoilage never gates the act — it lets you)", bad.length > 0, bad);
   const puke = plain(await cook.cmd("vomit", 3000));
   say(">", puke);
   ok("vomit answers — the un-absorbed dose is dumpable", puke.length > 0, puke);
-
-  // ⚠ Put the world back the way it was found (see `restoreDial`).
-  await restoreDial?.();
 
   cook.close();
   console.log(
@@ -349,10 +301,4 @@ async function main(): Promise<void> {
   process.exit(failures === 0 ? 0 : 1);
 }
 
-try {
-  await main();
-} finally {
-  // The success path already restored and cleared it; this is the crash
-  // path, and it is the whole reason the hook exists.
-  await restoreDial?.();
-}
+await main();
