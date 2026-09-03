@@ -1338,6 +1338,13 @@ fight):
   gate — **you buy the look by buying the object** (AC 16).
 - **Livery** — a named set a business issues. ⚠ "Outfit" is a `Business`;
   the word here is **livery**, everywhere, including identifiers.
+- ⭐ **The shop is an `AttendantMixin` service point** (user, 2026-09-02),
+  `discipline: appointment` — you go to the shop, you are served, you are
+  measured, you come back. Chosen over the gig board for v1 because
+  **the fitting scene is tailoring's best RP beat and a job board has
+  none**; the contract half is the player-tailor's, deferred.
+- ⭐ **Measurements are remembered** (user, 2026-09-02), so a tailor can
+  cut for an absent subject. See P18.
 - **The tailor's shop + the tailor NPC** in Terminus, discharging the
   `barber / tailor` GAP row.
 - **One demonstrator brain** — `src/behavior/tailors.ts`, addressed
