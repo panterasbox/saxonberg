@@ -914,7 +914,7 @@ async function executeOne(
       // property of the thing that has it; a shell's charge is energy
       // that had to come from somewhere and cross something. An effect
       // that simply added it would mint joules — `transfer` authored
-      // `delta: 20` against a `cost: 4` and was generating 16 kJ a cast,
+      // `delta: 20` against a `cost: 4` and was generating 16 τ a cast,
       // a lossless back door around the entire coupling model.
       //
       // So the charge case routes through the ONE implementation, which
@@ -1765,7 +1765,7 @@ function targetingRefusal(
       // through means the executor refuses AFTER the spend leg has
       // already taken the caster's mana or the wand's charge.
       //
-      // Found by live-driving: 45 targetless zaps flattened a 900 kJ
+      // Found by live-driving: 45 targetless zaps flattened a 900 τ
       // wand exactly as 45 real ones did. The gate belongs here, ahead
       // of the spend, and it governs BOTH triggers because both consult
       // this one function.
@@ -1834,11 +1834,11 @@ async function potencyFactor(
  * loss too — that energy left them whether or not it arrived.
  */
 export interface ChargeTransfer {
-  /** kJ that actually reached the shell. */
+  /** τ that actually reached the shell. */
   delivered: number;
   /** Reserve points actually taken from the caster. */
   spent: number;
-  /** kJ lost to the coupling. */
+  /** τ lost to the coupling. */
   lost: number;
   /** Player-facing line. */
   report: string;
@@ -1897,7 +1897,7 @@ async function transferChargeImpl(
     report:
       delivered > 0
         ? `The shell drinks it down and warms in your hand. ` +
-          `${delivered.toFixed(0)} kJ in, ${lost.toFixed(0)} kJ gone to the coupling.`
+          `${delivered.toFixed(0)} τ in, ${lost.toFixed(0)} τ gone to the coupling.`
         : 'It is already as full as it will get.',
   };
 }

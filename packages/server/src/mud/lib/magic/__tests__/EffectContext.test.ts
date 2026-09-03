@@ -404,7 +404,7 @@ describe('EffectContext — the four separated jobs', () => {
 
   it('a shape refusal costs NOTHING — the gate runs before the spend', async () => {
     // Found by live-driving, not by the suite: 45 TARGETLESS zaps
-    // flattened a 900 kJ wand exactly as 45 real ones did. `targeting:
+    // flattened a 900 τ wand exactly as 45 real ones did. `targeting:
     // 'any'` permits a missing target, so firebolt reached its executor,
     // refused there for want of a mark, and left the charge already
     // gone. The shape gate now asks whether EVERY effect needs a mark,
@@ -417,21 +417,21 @@ describe('EffectContext — the four separated jobs', () => {
     ContainmentApi.move(wand, room);
     actingAs(user);
 
-    const before = wand.getStoredKJ();
+    const before = wand.getStoredTau();
     for (let i = 0; i < 20; i++) {
       const out = await wand.dischargeAt(); // no target
       expect(out.ok).toBe(false);
       expect(out.refusal).toMatch(/needs a mark/);
     }
     // Twenty refusals, nothing spent.
-    expect(wand.getStoredKJ()).toBe(before);
+    expect(wand.getStoredTau()).toBe(before);
 
     // …and it still fires when given one.
     const mark = makeActor();
     ContainmentApi.move(mark, room);
     const fired = await wand.dischargeAt(mark);
     expect(fired.ok).toBe(true);
-    expect(wand.getStoredKJ()).toBeLessThan(before);
+    expect(wand.getStoredTau()).toBeLessThan(before);
   });
 
   it('a working that is USEFUL untargeted still fires untargeted', () => {
@@ -534,7 +534,7 @@ describe('EffectContext — the four separated jobs', () => {
     const flat = makeWand('firebolt', '/obj/test/maker');
     flat.setDescriptorClass('wand');
     flat.setIdentifiesOnUse(true);
-    flat.setCapacityKJ(1);
+    flat.setCapacityTau(1);
     flat.spendCharge(1);
     ContainmentApi.move(flat, room);
     const mark = makeActor();

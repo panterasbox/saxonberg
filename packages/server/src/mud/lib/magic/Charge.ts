@@ -38,13 +38,34 @@
  * the expensive mode**, and it bites hardest on exactly the class most
  * prone to inflation, because people wear rings and stow wands.
  *
- * ## Units
+ * ## Units — τ, and why the catalog still says `'pt'`
  *
- * **Energy is kilojoules. Time is GAME seconds.** Every rate constant
- * here carries its unit in its name, because the 12× game-time factor is
- * the single likeliest place for a dishonest number to hide — a rate
- * quoted per month must be divided through before it can be compared to
- * a physical one.
+ * **Charge is tau (τ). Time is GAME seconds.** Every rate constant here
+ * carries its unit in its name, because the 12× game-time factor is the
+ * single likeliest place for a dishonest number to hide — a rate quoted
+ * per month must be divided through before it can be compared to a
+ * physical one.
+ *
+ * ⭐ The `Unit` this reserve is denominated in is **`'pt'`**, not
+ * `'kJ'` and not `'τ'`, and the split falls on a real seam (TPA reform
+ * P1). Three claims are available and only one is true at the layer it
+ * would be made:
+ *
+ * | | asserts | |
+ * |---|---|---|
+ * | `'kJ'` | this charge **is energy** | ❌ false — mana is a separate conserved quantity that *converts* to energy at `k = 1 kJ/τ` |
+ * | `'τ'` | this quantity **is mana** | ⚠ true in this game, but `lib/quantity.ts` is form-independent substrate; another game on this engine has no magic |
+ * | `'pt'` | this reserve **holds N points** | ✅ the only thing the engine actually knows |
+ *
+ * So dropping `'kJ'` **removes a false claim**, and `'τ'` would **add a
+ * true claim at the wrong layer**. The METHOD NAMES say τ, because
+ * `lib/magic/` is a magic subsystem and `getStoredTau()` is honest
+ * there in a way a `'τ'` `Unit` would not be in the quantity catalog.
+ *
+ * ⓘ **`1 τ ≡ 1 kJ`** (`Conduit.ts` already writes it), so
+ * {@link standbyDraw} — whose input is watts, real power — needs no
+ * conversion beyond the `J → kJ` it always did, and **no shipped
+ * number moved** in this rename.
  *
  * Pure, immutable, clock-free — which is what makes AC 6's convergence
  * test exact rather than approximate.
@@ -54,8 +75,14 @@ export class Charge {
   /** The reserve key a charged host stores its energy under. */
   public static readonly RESERVE_KEY = 'charge';
 
-  /** The unit that energy is, everywhere in this build. */
-  public static readonly UNIT = 'kJ' as const;
+  /**
+   * The unit a charge reserve is denominated in — the neutral
+   * points scale `lib/quantity.ts` minted for exactly this ("mana is a
+   * content word, never an engine surface"). The fiction's word for one
+   * of these is **τ**, and `1 τ ≡ 1 kJ`; see the class docstring for
+   * why the catalog does not learn that.
+   */
+  public static readonly UNIT = 'pt' as const;
 
   /**
    * **Exponential self-discharge.** `S(t) = S₀·e^(−d·t)` — the honest
@@ -67,18 +94,18 @@ export class Charge {
    * returns the input untouched rather than inventing energy.
    */
   public static decayFor(
-    storedKJ: number,
+    storedTau: number,
     elapsedGameSec: number,
     decayPerGameSec: number,
   ): number {
-    if (!Number.isFinite(storedKJ) || storedKJ <= 0) return 0;
+    if (!Number.isFinite(storedTau) || storedTau <= 0) return 0;
     if (!Number.isFinite(elapsedGameSec) || elapsedGameSec <= 0) {
-      return storedKJ;
+      return storedTau;
     }
     if (!Number.isFinite(decayPerGameSec) || decayPerGameSec <= 0) {
-      return storedKJ;
+      return storedTau;
     }
-    return storedKJ * Math.exp(-decayPerGameSec * elapsedGameSec);
+    return storedTau * Math.exp(-decayPerGameSec * elapsedGameSec);
   }
 
   /**
@@ -87,18 +114,18 @@ export class Charge {
    * question a report asks.
    */
   public static lossOver(
-    storedKJ: number,
+    storedTau: number,
     elapsedGameSec: number,
     decayPerGameSec: number,
   ): number {
     return (
-      storedKJ - Charge.decayFor(storedKJ, elapsedGameSec, decayPerGameSec)
+      storedTau - Charge.decayFor(storedTau, elapsedGameSec, decayPerGameSec)
     );
   }
 
   /**
    * **The equilibrium stock**, `S* = inflow/d`. THE number the whole
-   * charge economy is built on: a world where makers push `inflow` kJ
+   * charge economy is built on: a world where makers push `inflow` τ
    * per game-second into circulation, against a leak rate `d`, settles
    * here and stays. Not a cap anyone enforces — a fixed point the
    * arithmetic produces.
@@ -107,16 +134,16 @@ export class Charge {
    * exactly the failure mode D7 exists to prevent.
    */
   public static equilibrium(
-    inflowKJPerGameSec: number,
+    inflowTauPerGameSec: number,
     decayPerGameSec: number,
   ): number {
     if (!Number.isFinite(decayPerGameSec) || decayPerGameSec <= 0) {
       return Infinity;
     }
-    if (!Number.isFinite(inflowKJPerGameSec) || inflowKJPerGameSec <= 0) {
+    if (!Number.isFinite(inflowTauPerGameSec) || inflowTauPerGameSec <= 0) {
       return 0;
     }
-    return inflowKJPerGameSec / decayPerGameSec;
+    return inflowTauPerGameSec / decayPerGameSec;
   }
 
   /**
@@ -124,21 +151,22 @@ export class Charge {
    * `S + (inflow − d·S)·Δt`, floored at zero.
    */
   public static stepStock(
-    stockKJ: number,
-    inflowKJPerGameSec: number,
+    stockTau: number,
+    inflowTauPerGameSec: number,
     decayPerGameSec: number,
     stepGameSec: number,
   ): number {
     const next =
-      stockKJ + (inflowKJPerGameSec - decayPerGameSec * stockKJ) * stepGameSec;
+      stockTau + (inflowTauPerGameSec - decayPerGameSec * stockTau) * stepGameSec;
     return Math.max(0, next);
   }
 
   /**
    * **Standby draw** — what an always-on item spends just staying on,
-   * in kJ over an interval. `drawWatts` is joules per REAL second of
-   * held effect, so the conversion to kJ over game-seconds is where the
-   * unit discipline earns its keep.
+   * in τ over an interval. `drawWatts` is joules per REAL second of
+   * held effect, and `1 τ ≡ 1 kJ`, so the arithmetic is unchanged by
+   * the renomination: the conversion to τ over game-seconds is where
+   * the unit discipline earns its keep.
    *
    * `gameSecondsPerRealSecond` is the world clock's scale (12× today):
    * a game-second is 1/12 of a real second of wall time, so an interval
@@ -158,6 +186,6 @@ export class Charge {
         ? gameSecondsPerRealSecond
         : 1;
     const realSeconds = elapsedGameSec / scale;
-    return (drawWatts * realSeconds) / 1000; // J → kJ
+    return (drawWatts * realSeconds) / 1000; // J → kJ ≡ τ
   }
 }

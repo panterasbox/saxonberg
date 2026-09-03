@@ -16,7 +16,7 @@ the target's live Composure.
 > the fiction's physics — the one postulate, the laws, the price
 > list — and **8 binding content-authoring rules** that govern what a
 > spell may cost and what an effect may claim (costs are energy
-> committed in kJ, derivable from the price list; effects author
+> committed in τ (`1 τ ≡ 1 kJ`), derivable from the price list; effects author
 > energy *delivered*, never outcomes; a new noun needs a real physical
 > register; momentum is conserved; if it can't be dimensionally
 > analyzed it doesn't ship). Those rules exist so the magic system can

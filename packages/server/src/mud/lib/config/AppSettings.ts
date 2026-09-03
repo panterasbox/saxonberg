@@ -1210,7 +1210,7 @@ export const AppSettingKeys = {
   /** Magic — base mana recovery (pt per game-minute) at rest, before the
    * serenity factor and the metabolism-shaped rest-quality scaling. */
   magicRecoveryPerMinBase: "magic.recoveryPerMinBase",
-  /** Magic — kilojoules delivered into an item's tank per point of the
+  /** Magic — τ delivered into an item's tank per point of the
    * recharging caster's own reserve spent. The exchange rate of the
    * recharging SERVICE: what is scarce is caster-hours, not shells.
    * *Calibrate at launch.* */
@@ -1221,11 +1221,14 @@ export const AppSettingKeys = {
    * maintain, which is the counterweight to having no tank to run dry.
    * *Calibrate at launch.* */
   magicRefreshPatternPerManaPt: "magic.recharge.patternPerManaPt",
-  /** Magic — kilojoules of stored charge a charged item spends per point
-   * of a spell's authored cost. The conversion between the caster-facing
-   * pool (pt) and the item-facing tank (kJ) — a spell's `cost` is
-   * trigger-neutral once read as *energy required*, which the arcane
-   * science says it literally is. *Calibrate at launch.* */
+  /** Magic — τ of stored charge a charged item spends per point of a
+   * spell's authored cost. ⓘ **Vestigial since the TPA reform (P1):**
+   * the caster-facing pool and the item-facing tank are now the SAME
+   * denominator (both `'pt'`, both spoken as τ), so the honest value is
+   * the identity `1` and the conversion is a no-op. The KEY is kept —
+   * an operator may have set it, and `1 τ ≡ 1 kJ` makes the old value
+   * mean the same thing — but nothing in the code names kJ any more.
+   * *Calibrate at launch.* */
   magicChargeKJPerCostPt: "magic.charge.kJPerCostPt",
   /** Magic — fraction of an item's committed energy that becomes WASTE
    * HEAT in the item rather than effect. No process is perfectly

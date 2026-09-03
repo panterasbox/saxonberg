@@ -248,6 +248,34 @@ ingestion-only potion is a wasted flask.
 
 ## The charge economy
 
+### The denominator is τ, and the `Unit` is `'pt'`
+
+⭐ A charged shell's tank and a caster's own pool are the **same
+quantity** — mana — and since the TPA reform (P1) they are denominated
+the same way, which is what lets one pour into the other with no
+conversion. The surface says **τ**: `capacityTau`, `getStoredTau()`,
+`getCapacityTau()`, `setCapacityTau()`, `spendCharge(tau)`,
+`receiveCharge(tau)`, `CHARGE_DEFAULTS.CAPACITY_TAU`. The underlying
+`Unit` is the neutral **`'pt'`**, not `'τ'`.
+
+The split falls on a real seam, and it is not a compromise:
+
+| | asserts | |
+|---|---|---|
+| `'kJ'` (before) | this charge **is energy** | ❌ false — mana is a *separate* conserved quantity, converting at `k = 1 kJ/τ` |
+| `'τ'` | this quantity **is mana** | ⚠ true here, but `lib/quantity.ts` is form-independent substrate; another game on this engine has no magic |
+| `'pt'` | this reserve **holds N points** | ✅ the only thing the engine knows — and what `quantity.ts` minted `'pt'` to say |
+
+So dropping `'kJ'` **removed a false claim**; `'τ'` would have **added
+a true claim at the wrong layer**. The method names say τ because
+`lib/magic/` is a magic subsystem, where `getStoredTau()` is honest.
+
+⚠ `magic.charge.kJPerCostPt` keeps its key — an operator may have set
+it — but it is **vestigial**: the two pools are one denominator now, so
+the honest value is the identity. ⓘ **No shipped number moved** in the
+renomination (`1 τ ≡ 1 kJ`), which the four charge suites assert by
+passing with every expected value untouched.
+
 **Decay is load-bearing, not flavour.** A depleted wand is a paperweight
 with a socket, so the item *count* is the wrong quantity to bound.
 Throttling inflow alone cannot work — stock grows without bound at any

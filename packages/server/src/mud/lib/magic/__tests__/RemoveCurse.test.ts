@@ -446,9 +446,9 @@ describe('the release gate — cursed sticks, and the phantom occupant', () => {
 
   it('the refusal DISCHARGES — stuck and biting are one fact', () => {
     const { body, wand } = wielding('cursed');
-    wand.setCapacityKJ(900);
+    wand.setCapacityTau(900);
     wand.installChargeReserve(); // fills to capacity
-    const before = wand.getStoredKJ();
+    const before = wand.getStoredTau();
     expect(before).toBeGreaterThan(0);
     const result = body.tryReleaseFromSlots(wand as never);
     expect(result.released).toBe(false);
@@ -456,6 +456,6 @@ describe('the release gate — cursed sticks, and the phantom occupant', () => {
     // a curse that sticks but never bites — a silent, plausible bug that
     // no test of either half alone would catch. Hence one call.
     expect(result.released === false && result.dumpedKJ).toBeGreaterThan(0);
-    expect(wand.getStoredKJ()).toBeLessThan(before);
+    expect(wand.getStoredTau()).toBeLessThan(before);
   });
 });

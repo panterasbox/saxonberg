@@ -22,9 +22,9 @@
  * ## It doubles as the authoring check for content rule 1
  *
  * `arcane-science.md`'s first content rule is that costs are energy
- * committed in kJ and must be **derivable from the price list**. Having
- * the list in code means an author can be told what their cell costs
- * rather than guessing, and a reviewer can check it.
+ * committed in τ (`1 τ ≡ 1 kJ`) and must be **derivable from the price
+ * list**. Having the list in code means an author can be told what their
+ * cell costs rather than guessing, and a reviewer can check it.
  *
  * Pure and clock-free — no Stuff, no I/O.
  */

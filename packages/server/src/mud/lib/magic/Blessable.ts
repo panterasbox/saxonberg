@@ -265,7 +265,7 @@ export function BlessableMixin<TBase extends MixinConstructor>(Base: TBase) {
       const self = this as unknown as Stuff;
       if (!this.getBlessing().isCursed()) return 0;
       if (!MixinApi.isCharged(self)) return 0;
-      const stored = self.getStoredKJ();
+      const stored = self.getStoredTau();
       if (stored <= 0) return 0;
 
       // What it dumps per beat is a fraction of what it holds, so a

@@ -72,7 +72,7 @@ describe('Charge — the arithmetic (pure)', () => {
   it('AC6 — stock CONVERGES to inflow/decay rather than growing without bound', () => {
     // The headline acceptance criterion, driven as the actual stock
     // equation: dS/dt = inflow − d·S.
-    const inflow = 5; // kJ per game-second pushed into circulation
+    const inflow = 5; // τ per game-second pushed into circulation
     const decay = 0.002;
     const target = Charge.equilibrium(inflow, decay); // 2500
 
@@ -110,7 +110,7 @@ describe('Charge — the arithmetic (pure)', () => {
 
   it('AC9 — standby draw converts through the GAME-TIME scale, not around it', () => {
     // 12 game-seconds is ONE real second, so a 1 W draw costs 1 J.
-    expect(Charge.standbyDraw(1, 12, 12)).toBeCloseTo(0.001, 9); // kJ
+    expect(Charge.standbyDraw(1, 12, 12)).toBeCloseTo(0.001, 9); // τ
     // At scale 1 the same interval is 12 real seconds → 12 J.
     expect(Charge.standbyDraw(1, 12, 1)).toBeCloseTo(0.012, 9);
     // The 12× factor is the likeliest place a dishonest number hides —
@@ -135,21 +135,21 @@ describe('ChargedMixin — the battery', () => {
     vi.restoreAllMocks();
   });
 
-  it('installs its tank at the authored capacity, in kJ', () => {
+  it('installs its tank at the authored capacity, denominated in points (τ)', () => {
     const wand = makeStuff(() => new TestWand());
-    wand.setCapacityKJ(900);
+    wand.setCapacityTau(900);
     const pool = wand.getCharge()!;
-    expect(pool.capacity.unit).toBe('kJ');
+    expect(pool.capacity.unit).toBe('pt');
     expect(pool.capacity.rawValue()).toBe(900);
     expect(wand.getChargeFraction()).toBe(1);
     expect(wand.isDepleted()).toBe(false);
-    expect(() => wand.setCapacityKJ(0)).toThrow(/positive/);
+    expect(() => wand.setCapacityTau(0)).toThrow(/positive/);
   });
 
   it('AC6 — decays on read, and does so with NOBODY WATCHING', () => {
     const wand = makeStuff(() => new TestWand());
-    wand.setCapacityKJ(1000);
-    const before = wand.getStoredKJ(); // seeds the stamp
+    wand.setCapacityTau(1000);
+    const before = wand.getStoredTau(); // seeds the stamp
     expect(before).toBe(1000);
 
     // ONE enormous jump — far past anything metabolism would integrate.
@@ -158,21 +158,21 @@ describe('ChargedMixin — the battery', () => {
     // stock leaks while unobserved. Copying metabolism's guard would
     // silently break distribution.
     advance(20_000_000);
-    const after = wand.getStoredKJ();
+    const after = wand.getStoredTau();
     expect(after).toBeLessThan(before);
     expect(after).toBeGreaterThan(0); // asymptotic, never a cliff
   });
 
   it('spends all-or-nothing; a spend it cannot cover takes NOTHING', () => {
     const wand = makeStuff(() => new TestWand());
-    wand.setCapacityKJ(100);
+    wand.setCapacityTau(100);
     expect(wand.spendCharge(40)).toBe(true);
-    expect(wand.getStoredKJ()).toBeCloseTo(60, 6);
+    expect(wand.getStoredTau()).toBeCloseTo(60, 6);
 
     // A half-powered firing is not a thing — and a partial spend would
     // make "depleted" unreportable.
     expect(wand.spendCharge(1000)).toBe(false);
-    expect(wand.getStoredKJ()).toBeCloseTo(60, 6);
+    expect(wand.getStoredTau()).toBeCloseTo(60, 6);
 
     expect(wand.spendCharge(60)).toBe(true);
     expect(wand.isDepleted()).toBe(true);
@@ -182,29 +182,29 @@ describe('ChargedMixin — the battery', () => {
 
   it('AC8 — takes charge in, clamped at capacity, reporting what it took', () => {
     const wand = makeStuff(() => new TestWand());
-    wand.setCapacityKJ(100);
+    wand.setCapacityTau(100);
     wand.spendCharge(80); // 20 left
     expect(wand.receiveCharge(50)).toBeCloseTo(50, 6);
-    expect(wand.getStoredKJ()).toBeCloseTo(70, 6);
+    expect(wand.getStoredTau()).toBeCloseTo(70, 6);
     // Only the room is taken — the rest of the offer is not consumed.
     expect(wand.receiveCharge(1000)).toBeCloseTo(30, 6);
-    expect(wand.getStoredKJ()).toBeCloseTo(100, 6);
+    expect(wand.getStoredTau()).toBeCloseTo(100, 6);
     expect(wand.receiveCharge(10)).toBe(0);
   });
 
   it('AC9 — a worn ALWAYS-ON item depletes measurably faster than a trigger', () => {
     const ring = makeStuff(() => new TestWand());
     const wand = makeStuff(() => new TestWand());
-    for (const item of [ring, wand]) item.setCapacityKJ(1000);
+    for (const item of [ring, wand]) item.setCapacityTau(1000);
     ring.setAlwaysOn(true);
     ring.setDrawActive(true);
     // Seed both stamps at the same moment.
-    ring.getStoredKJ();
-    wand.getStoredKJ();
+    ring.getStoredTau();
+    wand.getStoredTau();
 
     advance(500_000);
-    const ringLeft = ring.getStoredKJ();
-    const wandLeft = wand.getStoredKJ();
+    const ringLeft = ring.getStoredTau();
+    const wandLeft = wand.getStoredTau();
 
     // Always-on is the EXPENSIVE mode (D8) — and it bites hardest on
     // exactly the class most prone to inflation, because people wear
@@ -221,18 +221,18 @@ describe('ChargedMixin — the battery', () => {
 
   it('AC9 — turning the draw OFF bills the interval that just ended, then stops', () => {
     const ring = makeStuff(() => new TestWand());
-    ring.setCapacityKJ(1000);
+    ring.setCapacityTau(1000);
     ring.setAlwaysOn(true);
-    ring.getStoredKJ();
+    ring.getStoredTau();
 
     ring.setDrawActive(true);
     advance(200_000);
-    const afterDrawing = ring.getStoredKJ();
+    const afterDrawing = ring.getStoredTau();
     ring.setDrawActive(false);
-    const atSwitchOff = ring.getStoredKJ();
+    const atSwitchOff = ring.getStoredTau();
 
     advance(200_000);
-    const afterIdle = ring.getStoredKJ();
+    const afterIdle = ring.getStoredTau();
     const drawingLoss = 1000 - afterDrawing;
     const idleLoss = atSwitchOff - afterIdle;
     expect(drawingLoss).toBeGreaterThan(idleLoss);
@@ -240,7 +240,7 @@ describe('ChargedMixin — the battery', () => {
 
   it('a depleted item is still CHARGED — composition, never state (D34)', () => {
     const wand = makeStuff(() => new TestWand());
-    wand.setCapacityKJ(10);
+    wand.setCapacityTau(10);
     wand.spendCharge(10);
     expect(wand.isDepleted()).toBe(true);
     // The affordance reflects the kind. If a flat wand stopped being a

@@ -270,7 +270,7 @@ export class MagicEffects {
    * lets a working reach its executor, refuse there for want of a mark,
    * and leave the caster's mana — or a wand's charge — already gone.
    * Live-driving found exactly that: 45 targetless zaps flattened a
-   * 900 kJ wand as thoroughly as 45 real ones.
+   * 900 τ wand as thoroughly as 45 real ones.
    */
   public static needsTarget(effect: Effect): boolean {
     // A SCOPED effect finds its own subjects, so there is nothing to
