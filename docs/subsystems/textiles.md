@@ -1,0 +1,292 @@
+# Textiles
+
+Clothing used to be prose. Nine shipped rows authored a description and
+a slot claim and nothing else — so worn clothing contributed exactly
+zero insulation, weighed nothing to encumbrance, could not get wet, wear
+out, be graded, be repaired or be made, and the one soft-goods recipe in
+the tree squatted in `trade-smithing` consuming a `hide-stock` nothing
+produced. Meanwhile the substrate to fix all of it already shipped and
+was starving: `WetMixin` soaks off `Material.waterAbsorptionCapacity`,
+`ThermalRegulation` sums insulation over worn slots, and every body-plan
+slot declares a `covers:` relation **thermal never read**.
+
+This doc is the kernel half — the object, the covering stack, and the
+seams. The three trades that feed it live in their own packs.
+
+---
+
+## ⭐⭐ The governing idea: a garment's purpose is which channel it intercepts
+
+Nobody authors *"this is a lab coat."* You author white, cheap, woven
+cloth, covering torso and arms, sitting outermost, with low insulation —
+and lab-coat-ness **emerges**. The codebase already stated the rule in
+`lib/vitals/Dressing.ts`: a dressing *"is not a **kind** — it's a role an
+item plays."*
+
+An apron is soiling and only soiling: outermost and cheap, it takes the
+stain so your shirt does not. A lab coat is two channels at once —
+sacrificial soiling **plus** station signal, which is why it is white.
+
+⭐ **Applied to the one class that was already an exception, this
+retires `Armor`.** Armor-ness is not a class; it is **material +
+construction form**. A steel breastplate is a `Garment` whose material
+is steel and whose form is `plate`; a linen shirt is a `Garment` whose
+material is linen and whose form is `woven`. The covering walk asks the
+material and the form and **never asks what class they are**, so both
+already resolved through one path — the subclass was asserting something
+the model does not believe. See
+[materials-response.md](./materials-response.md).
+
+---
+
+## The object
+
+`platform/thing/equipment/Garment` =
+`Wearable(Slottable(Crafted(Durable(Constructed(Dyed(Detailed(Thing)))))))`.
+
+| composed | buys |
+|---|---|
+| `Tangible` (on `Thing`) | the material, and a real **mass** — a coat is felt by encumbrance |
+| `Constructed` | the form word, and with it the resist profile, the layer band, and the fabric's loft and weave density |
+| `Durable` | wear-on-use condition — clothes wear out and `repair` works on them. A durable good, **not** a crafting tool |
+| `Crafted` (composes `Graded`) | the as-made grade and the maker's mark, so a garment can be a recipe output; a store-bought one simply has an empty mark |
+| `Dyed` | the dye application stack and its fastness |
+| `Detailed` | the parts a viewer can examine, and the surface a maker's authored prose rides on |
+
+All fifteen shipped rows (nine `clothes/`, six `armor/`) carry
+`_materialPath`, `constructionForm`, `gradeBand` and `mass`. ⚠ **None
+authors `clo`, and a content test refuses one.**
+
+---
+
+## The covering vocabulary — two sources, one ladder
+
+A padded gambeson *is* quilted cloth, so a shirt is not armor but it
+**is** a covering — hence `armor` → `covering` throughout
+`Construction`, and `quilted` as the fifth resist-bearing form.
+
+| | where | may a pack add one? |
+|---|---|---|
+| **resist-bearing** — `plate` `mail` `padded` `quilted` `hide` | a closed kernel `as const` | **no** |
+| **non-resisting textile** — `woven` `knit` `felted`, lace or netting later | `/stuff/idea/fabric/<key>` rows, class `/platform/idea/material/Fabric` | **yes** |
+
+⭐ **Content never authors a resist profile.** One kernel constant —
+`TEXTILE_RESIST_PROFILE`, `poor` on all three mechanical channels —
+answers for every textile form at once. Content chooses drape, loft and
+weave; **the kernel decides that cloth resists poorly.** A pack adding
+`lace` changes nothing whatever about combat.
+
+Full rationale, the four simultaneous constraints, and the
+`FabricCatalogue` boot-ordering argument:
+[materials-response.md](./materials-response.md) § *The covering domain
+has TWO sources*.
+
+---
+
+## The covering stack — one walk, on the wearer
+
+`SlottedMixin` answers about its own slots. ⚠ **There is no
+covering-stack Api and there must not be**: a covering read is one host
+answering about its own slots, which is none of the four mandates
+`check-object-verbs` allows.
+
+| method | answers |
+|---|---|
+| `wornStack()` | everything worn, outermost-first |
+| `coveringAt(part, {includeHeld})` | the covering over one body part, outermost-first |
+| `outermostAt(part)` | which layer takes a deposit |
+| `insulationAt(part)` · `bodyInsulation()` | clo over a part · surface-weighted over the body |
+| `windproofing()` | how well the outermost layer breaks a wind |
+| `concealmentOffset()` · `attentionFactor()` | the two derived social/arcane reads |
+| `wouldLayerViolate(candidate)` | the ladder refusal |
+
+⭐⭐ **Three logic singletons hand-rolled the same outside-in walk** —
+the trauma covering walk, the struck-site armor stack, and the
+conduction walk — and all three now call `coveringAt`. Each already
+holds the host, so the call **drops** a parameter rather than adding an
+Api hop.
+
+⚠ The shared method returns the **occupants** and leaves the narrowing
+to each caller, because they want different things: the conduction walk
+cares about a rubber sole's conductivity and not whether it declares a
+form. Requiring `Constructed` in the shared walk would have silently
+changed it.
+
+**The ordering rule, one comparator, one place:** *form sets the band;
+wear-order breaks ties inside a band.* Bands come from
+`Construction.getLayerDepth()` (padded 0 · quilted 1 · hide 2 · mail 3 ·
+plate 4, and a fabric's `layerBand` on the same ladder); anything with
+no covering form sorts innermost. Wear order is slot insertion order,
+and the persistence spine re-wears through `occupyAll` in the captured
+order — **durable with no new field**.
+
+⚠ `WearController` refuses only the **inversion** (a shirt over plate,
+`layer-order` note). Shirt-vs-coat is the player's call and its
+consequence is being cold.
+
+⚠⚠ **Covering slots need `capacity` > 1 and did not have it.** Every
+wear slot took the default 1, so a body held exactly one torso garment —
+the shipped gambeson and hauberk could never be worn together, and the
+entire outside-in model had nothing to walk. The biped's and quadruped's
+covering slots carry `capacity: 4`. A cap rather than unbounded, because
+"wear forty shirts" would otherwise be free insulation: **the ladder
+decides the order, the capacity decides the depth.**
+
+---
+
+## Insulation — derived, per part, and wet
+
+`clo` **derives and is never authored**; the thermal sum is
+**surface-weighted per body part**, not body-wide. Both were the same
+defect: a number that should have come from physics was a flat sum over
+an authored field, and a body-wide sum *cannot* teach that bare
+extremities cost you.
+
+The arithmetic, the wet model, the organism carve-out on wet mass, and
+the windproofing term: [thermal.md](./thermal.md) § *Worn insulation*.
+
+---
+
+## Fit — two numbers and one stamp, and the lineage seam
+
+```
+statureM   = species.getStature()
+girthIndex = √(massKg / statureM)
+```
+
+⭐ `massKg` is `Creature.getMass()`, which already reflects composition —
+**that is the lineage seam and it is one line.** The stamp is three
+scalars (`cutToBodyPlan` / `cutToStature` / `cutToGirth`), and an absent
+stamp means **stock**, resolving to the plan's average body, so all
+fifteen shipped rows read as ill-fitting hand-me-downs with no content
+edit. Consequences, the wrong-body refusal and the distance refusal:
+[embodiment.md](./embodiment.md) § *Fit*.
+
+---
+
+## Dye, wash and fade
+
+`DyedMixin` (`lib/material/Dyed.ts`) stores the **application stack** —
+`[{dyestuff, mordant, strength}]` — and a `fastness`, never a colour
+word. Overdyeing is arithmetic, fading is desaturation, and authors
+author dyes rather than colours. It rides `ColorTag`, the seam
+`lib/perception/Light.ts` already reserved.
+
+`wash <garment>` takes the launder branch (`wash`'s target already
+required `CraftedMixin` and a `Garment` composes it — no arg change, no
+new verb). Each wash strips colour in proportion to `1 − fastness`, so
+an **un-mordanted piece washes straight out on the first launder** and a
+well-mordanted one survives many. ⭐ Hue comes from the dyestuff;
+**durability comes from the craft** — which is why competence in dyeing
+buys fastness and repeatability and never a brighter colour.
+
+⚠⚠ `CraftVessel.soiled` is a **different concept sharing a word** — *is
+this vessel claimable for a fill*, binary by necessity, owned by
+crafting. The two are not folded together and a test says so.
+
+---
+
+## ⭐ The soiling seam — a METHOD, not a signal
+
+Textiles owns the **layering model**, so it answers *which layer takes
+the stain*: `wearer.outermostAt(partKey)`. That is the whole seam, and
+the covering stack needed the method anyway.
+
+**Out of scope, and asserted absent:** the gauge, its bands, its
+attributed deposit log — those belong to
+[room-condition](../slates/builds/room-condition-design-pack.md), and a
+second gauge would be a third parallel representation of one idea.
+
+⚠⚠ **And no `soil.*` event either.** The plan proposed one; it was wrong
+three times over. Room-condition's *"attributed events"* are **ledger
+records** while `EventApi` is a **broadcast bus**, so an emit would not
+feed the log it was meant to. Nothing in this build soils anything, so
+it would have **zero emitters**. And zero listeners, by design. A
+soiling deposit has an actor, a target garment and a body part — **a
+local interaction is a call, not a broadcast.**
+
+⚠ Dirt is **act-deposited and freezes in absence**: a coat in a wardrobe
+does not get dirty. Soiling is not time-integrated, and there is no
+clock stamp anywhere in this build.
+
+⭐ **The apron is designed and seamed now and lights up when
+room-condition lands** — it is content only: cheap, outermost band, wide
+`slotClaims`. Until then it is an honest, cheap, ugly garment.
+
+---
+
+## The presentation — the card enumerates, the prose summarizes
+
+Two resolutions of one subject, not two subjects. Prose that enumerates
+is just a worse card.
+
+- **`worn`** is a distinct `DETAIL_FIELDS` projection and a **partition**
+  of `contents` — the body half against the pack half. See
+  [card-surface.md](./card-surface.md).
+- **The impression line** is a `markupAugmenter` on `SlottedMixin`: a
+  one-sentence gestalt that **names no individual garment**, folded over
+  whatever facts resolve, with phrasing **seeded rather than drawn**.
+- **The authored half stays authored** — bearing, manner, the scar live
+  on `PersonaMixin`'s claimed layer, untouched.
+- **Getting dressed is one command**: `wear set <name>`, a **stanza** on
+  the shipped `wear` view. Zero new verbs. See [slot.md](./slot.md).
+
+---
+
+## The social and arcane seams
+
+- **Concealment**: `getConcealment()` derives from the authored base plus
+  the worn covering, and the scale gains `conspicuous` below `obvious`.
+  ⚠ `perceives` saturates below `obvious`; the band earns its keep in
+  `hideLevelFor`'s floor. See [concealment.md](./concealment.md).
+- **The hood/veil interlock**: `attentionFactor()` multiplies a held
+  binding's standby draw, so a **mundane** hood makes an **arcane** veil
+  cheaper to hold. ⚠⚠ Faculty is capacity, never access. See
+  [magic-items.md](./magic-items.md).
+- ⚠ **No engine gauge from dress to regard.** *Engine measures; subject
+  values.* NPC reaction to dress lives in a **brain**, in a pack.
+
+---
+
+## What this build deliberately does not ship
+
+- **`SoilableMixin`, its bands and its event** — above.
+- **Leatherwork and tanning** — nothing produces hide, so a tannery now
+  would tan imports. Waits on ranching or a butchery faucet.
+- **Wool and everything on its left edge** (`shear`, scouring) — waits on
+  ranching. ⭐ The launch story is *flax gives you woven cloth; wool
+  gives you everything else* — felt, fulling, knitting, saturated
+  colour — which makes wool's arrival a real event rather than a second
+  row.
+- **`full`** — fulling works because wool scales interlock; **linen
+  cannot be fulled**, and the same scales are why plant fibres do not
+  felt at all. The `felted` fabric row ships **unreachable** (the
+  `chalcopyrite` precedent) so the vocabulary is honest rather than a
+  promise in prose.
+- **Cotton and silk** — a second cellulose fibre is more content and no
+  new lesson.
+- **Synthetics, mills, mass production** — trades ship medieval and
+  advance by exercised disciplines. ⚠⚠ **Do not add a `kevlar`
+  construction form**: material scales the resist magnitude, so a
+  high-performance textile is a `woven` fabric of a tough material.
+- **Terrain-matched camouflage** and the viewer-side detection equipment
+  term — the search slate's.
+- **Hair dye** — lineage must ship appearance substrate first.
+- **Individual body variance within a species** — lineage phase 2, and
+  it feeds an existing seam.
+- **A laundry vocation.** Water is a precondition, not a consumable, so
+  the care loop is not an errand per wash.
+
+---
+
+## Cross-references
+
+[materials-response.md](./materials-response.md) ·
+[thermal.md](./thermal.md) · [embodiment.md](./embodiment.md) ·
+[slot.md](./slot.md) · [card-surface.md](./card-surface.md) ·
+[mql-subscription.md](./mql-subscription.md) ·
+[concealment.md](./concealment.md) · [stealth.md](./stealth.md) ·
+[magic-items.md](./magic-items.md) · [crafting.md](./crafting.md) ·
+[race.md](./race.md) · [encumbrance.md](./encumbrance.md) ·
+[fermentation.md](./fermentation.md) ·
+[content-packs.md](./content-packs.md)
