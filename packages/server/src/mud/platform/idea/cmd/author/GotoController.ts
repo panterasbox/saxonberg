@@ -225,12 +225,26 @@ export default class GotoController extends CommandController<GotoModel> {
   static _resolveDestinationContainer(
     focused: Stuff,
   ): (Stuff & Container) | null {
-    if (MixinApi.isContainer(focused)) return focused;
+    // ⚠ **You go TO a fixture, never INTO it.** Found by driving: a TPA
+    // terminal became a `Container` when it grew a battery bay (a part
+    // inside a machine has to physically be somewhere), and `goto
+    // terminal` promptly put the author *inside the brass pillar* —
+    // where `put cell in terminal` then could not see it, because the
+    // terminal was the actor's container rather than a peer.
+    //
+    // `isFixedInPlace` is the right discriminator and is already the
+    // one `get` leans on for exactly this class of object (the wall TV,
+    // the terminal's pillar): a thing bolted down is scenery you
+    // approach. A room stays a room, and a wardrobe you can carry off
+    // is still somewhere you can climb into.
+    const bolted =
+      MixinApi.isContainable(focused) && focused.isFixedInPlace();
+    if (MixinApi.isContainer(focused) && !bolted) return focused;
     if (MixinApi.isContainable(focused)) {
       const env = focused.getContainer();
       if (env && MixinApi.isContainer(env)) return env;
     }
-    return null;
+    return MixinApi.isContainer(focused) ? focused : null;
   }
 }
 
