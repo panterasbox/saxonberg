@@ -302,6 +302,77 @@ The existing money model — route `fee`, destination `surcharge`, the
 base+rate network fee, the two-budget split, tender-agnostic settlement —
 is **untouched**.
 
+### D8b — The arming floor: a terminal is BOTH kinds of device
+
+**Q.** When a terminal runs out of mana, can a caster still ride it on
+their own pool? And does the light go out?
+
+**A.** There is an **arming floor**, and below it nobody rides — not even
+with their own mana. The reason is Kell, not balance: *"a device does not
+cast; it sustains a binding a caster established… when the mana runs out,
+the binding lapses."* The survey is held **in an energized apparatus**.
+De-energise it and the working lapses; you are standing in front of a
+brass pillar with nothing to channel *into*.
+
+⭐⭐⭐ So a terminal is **both kinds of device at once** — an **impulse**
+device for the ride (per use, `mgh`) and a small **binding** device for
+holding the survey (per second). Three states follow:
+
+| reservoir | light | terminal-funded | you bring it |
+|---|---|---|---|
+| healthy | lit — blue / red / purple as today | ✅ | ✅ |
+| above the floor, below **this ride's** cost | ⭐ **amber** | ❌ `overdrawn` | ✅ you bring the difference |
+| below the arming floor | **dark** | ❌ `dry` | ❌ `dry` — nothing to channel into |
+
+⭐ **Both words already exist and already mean this** — `overdrawn` is
+*"more is being drawn than it can carry"*, `dry` is *"the source has run
+too **low to draw from**"*. No seventh word; the closed vocabulary is not
+extended.
+
+⭐⭐ `overdrawn` lands as a **relationship, not a property**: because the
+cost is `mgh`, the same terminal is fine for a level hop and overdrawn for
+an uphill one. So **the light is a stock indicator and the refusal is a
+transaction outcome** — the light cannot know where you are going, and
+must not pretend to.
+
+⭐⭐ **This is what gives maintenance a reason to exist.** A standing draw
+means a frontier terminal's cell dies **with zero traffic**, so the swap
+is *scheduled* rather than demand-driven — which is what makes it a job
+rather than a chore. The standing draw is the one real dial: small enough
+that an idle terminal lasts a long while, never forever.
+
+⚠ **Consequence for the device category:** `drawMode` cannot be a single
+field that describes the whole device. It keeps describing the **primary**
+draw — which supply shape the device needs, still `impulse`, still
+battery-shaped — and the floor is a separate authored `armingFloorTau`.
+
+### D8c — Choosing your power: a per-ride flag over a sticky preference
+
+**Q.** In the healthy band, how does a caster say *"use mine instead"*?
+
+**A.** A **per-ride flag overriding a sticky per-character setting**,
+resolved on the shipped three-tier chain — the exact shape
+`LocomotionApi.defaultModeFor(actor)` already uses for movement mode:
+
+> **explicit flag → the actor's `tpa.power` setting → the universe default**
+
+- `tpa.power` ∈ `terminal` (the universe default) | `self`
+- `teleport <dest> --channel` — channel your own, this ride only
+- `teleport <dest> --meter` — take the terminal's, this ride only
+
+The universe default is **`terminal`**, so a fresh player never silently
+drains a pool they did not know they had.
+
+⚠ **A sticky preference is only safe if it is visible where it applies.**
+The departures board and the ride's quote must show which way **this**
+ride will go for **this** viewer — otherwise a setting made days ago
+quietly empties a caster's pool before a fight, which is precisely the
+scenario the whole BYO decision exists to make interesting. Visible
+stickiness is a convenience; invisible stickiness is a trap.
+
+In the **amber** band there is nothing to express — bringing your own is
+the only way through, so the flag is moot and the refusal says so.
+
 ### D9 — `register` is free, and the board is public
 
 **Q.** If `register` is "the traveller being specified into the system",
@@ -518,6 +589,18 @@ where it has been parked since before content packs existed.
 12. A **casting** traveller may supply from their own pool with the same
     result, and a **non-caster cannot** — asserted, since they hold no
     reserve.
+13a. A terminal below its **arming floor** reports `dry`, shows dark, and
+    refuses the ride **even when the traveller offers their own mana**.
+13b. A terminal above the floor but short for **this** ride reports
+    `overdrawn`, shows amber, refuses a terminal-funded ride, and
+    **accepts one the traveller powers** — and the same terminal accepts
+    a cheaper (lower-`Δh`) ride unfunded, proving `overdrawn` is a
+    relationship and not a property.
+13c. A terminal with **no traffic at all** drains to `dry` over time,
+    proving the standing draw and giving the swap a schedule.
+13d. Power selection resolves **flag → `tpa.power` setting → `terminal`**,
+    and the departures board shows **which way this viewer's ride will
+    go**.
 13. A terminal's mana rate is **derived from its supply mode**: an
     otherwise-identical mains-fed and cell-fed terminal quote **different**
     mana charges for the same ride.

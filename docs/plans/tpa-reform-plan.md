@@ -576,6 +576,71 @@ explicit act with **no** spell-knowledge gate (D8: fuel is not casting);
 gate. Both land in the same reservoir, so AC12 asserts the same outcome either
 way.
 
+### P9a — The arming floor, and the two draws (D8b)
+
+`ManaPoweredMixin` gains one authored field and one derived read:
+
+```ts
+/** Below this, the working lapses — the device is not itself any more. */
+armingFloorTau: number;            // persistent + authorable, default 0
+isArmed(): boolean;                // storedTau >= armingFloorTau
+```
+
+and the standing draw is a **reconcile-on-read decay**, not a scheduled
+tick — the shipped pattern everywhere else in this codebase (`GrowingMixin`,
+`ThermalMixin`, `CultivableMixin`'s soil, `Charge.standbyDraw` which already
+exists and takes watts). `Charge.standbyDraw` is therefore reused verbatim:
+the terminal authors a small `standbyWatts`, and the existing arithmetic
+turns absence into depletion with no new clock.
+
+⭐ **`drawMode` keeps meaning what Kell says it means** — which supply shape
+the device needs — and stays `impulse` on a terminal. The floor is a
+*separate* fact about a device that also holds something. A wall lamp
+authors `armingFloorTau: 0` and is purely impulse; a terminal authors a
+real one and is both. Nothing about the field's meaning changes.
+
+`supplyState()` resolves in precedence order, which is where the three
+states come from:
+
+```
+!isArmed()                         → 'dry'      (dark; nobody rides)
+storedTau < costOfThisRide         → 'overdrawn' (amber; BYO only)   ← ride-scoped
+severed / closed on the main       → 'cut' / 'off'
+otherwise                          → null
+```
+
+⚠ **The ride-scoped arm cannot be reached from `getStatus()`**, which knows
+no destination. So the split is structural: `supplyState()` (no argument)
+answers the **stock** question for the light, and a second read
+`stateForDraw(tau)` answers the **transaction** question for the ride.
+Trying to fold them is how the light ends up lying.
+
+The light gains **amber** as a fourth colour in `statusColor()` — the
+existing method already maps `getStatus()` to grey/blue/red/purple, so this
+is one branch, and the long description keeps carrying the same fact in
+words (the non-colour-alone channel the terminal already honours).
+
+### P9b — Power selection is the shipped three-tier chain (D8c)
+
+Do **not** hand-roll `resolveSetting(actor, 'tpa.power') ?? 'terminal'` —
+that is the exact antipattern CLAUDE.md's table names against
+`LocomotionApi.defaultModeFor`. The pack's `TeleportController` gets a
+private resolver of the same shape:
+
+```
+flag (--channel | --meter)  →  actor setting `tpa.power`  →  'terminal'
+```
+
+`tpa.power` is an `EnvironmentMixin` settings key (`shell-environment.md`),
+authored in the pack's settings row with the seeded literal `terminal`.
+
+⚠ **The board must show which way this viewer's ride goes** (D8c's trap).
+`renderDepartures` is already **viewer-aware** — it reads the viewer's
+credential to annotate "not yet registered" — so the power line rides the
+same per-viewer payload with no new plumbing. A sticky preference that is
+invisible at the moment it applies is the footgun; visible, it is a
+convenience.
+
 ### P10 — The reservoir persists on the shipped spine; no collection is added
 
 `TpaTerminal` composes `PersistableMixin` (singleton, keyed on `templatePath`).
@@ -900,10 +965,25 @@ terminal and a lamp); a restart preserves the reservoir and the bay occupant.
 *Still broken:* the ride draws mana but nobody is billed for it; supplying your
 own changes nothing.
 
-#### W7 — The fare (D8, D8a, AC11–14) (provable: *the receipt shows the physics*)
+#### W6a — The arming floor and the amber band (D8b, AC13a–13c)
+
+Folded into W6, listed separately because it is the wave's second provable.
+P9a's `armingFloorTau` + `isArmed()` + `standbyWatts` reconcile;
+`supplyState()`'s precedence; `stateForDraw(tau)`; amber in `statusColor()`.
+The frontier rows author a real floor and a small standby; the mains-fed
+city gates author a floor they never approach.
+
+Prove: AC13a (below the floor, dark, refuses **even a BYO ride**); AC13b
+(above the floor but short for *this* ride → amber, refuses unfunded,
+accepts powered — **and accepts a cheaper ride unfunded**, which is what
+proves `overdrawn` is a relationship); AC13c (an untouched terminal drains
+to `dry` over game-time, giving the swap a schedule).
+
+#### W7 — The fare (D8, D8a, D8c, AC11–14) (provable: *the receipt shows the physics*)
 
 P14's `manaCharge` term and split leg; `manaRatePerTau()`; the two AppSettings;
-P9's `--power self`; the board's per-route quote showing
+P9b's flag→setting→default chain (`--channel` / `--meter` / `tpa.power`)
+and the board's per-viewer power line (AC13d); the board's per-route quote showing
 `service + surcharge + mana` broken out with a one-line why.
 
 Prove: AC11 (cell-fed traveller pays the service fee and no mana charge; the
@@ -1092,7 +1172,8 @@ Sequenced so no risk is mitigated later than the wave it first appears in.
 | 8 | W5 |
 | 9 | W6 |
 | 10 | W5 |
-| 11 · 12 · 13 | W7 |
+| 11 · 12 · 13 · 13d | W7 |
+| 13a · 13b · 13c | W6 |
 | 14 | W2 (already free) → W7 (asserted) |
 | 15 | W2 |
 | 16 · 17 · 18 | W4 |
