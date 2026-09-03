@@ -910,7 +910,22 @@ ungated + sealed when the writers span packs.
 > **never** the overridable `getIdentityPath()` method — a subclass or
 > shadow overriding the method must not be able to impersonate an
 > identity to a gate. The same reasoning that keeps `FromTemplate` on
-> the hard-private `#templatePath` slot. The planned
+> the hard-private `#templatePath` slot.
+
+> ⚠ **Audit-pending: the ungated+sealed set.** The Api OO sweep shipped
+> ~35 owner-mixin mutators with seals but NO caller gate (the writers
+> span pack controllers no kernel `FromX` list can enumerate) —
+> chattel stamp/transfer, glob split/absorb, the cast/charge pipeline,
+> advancement credits, the chronicle/regard writers, appoint/dismiss,
+> deposit/withdraw, the physics drivers. The compensating control is a
+> planned **audit rail** (`@Audited` — permit the call, sample
+> invocations with full runtime args into an `audit_events` collection
+> for review) plus pack-manifest-contributed gate participants for
+> re-tightening. The full inventory, the design position, and the
+> future gate primitives (`FromTemplateMethod`, interface admission)
+> are captured in
+> [the call-security pass slate](../slates/builds/call-security-pass-slate.md)
+> — that pass is its own build. The planned
 expansion is **trust-layer policies** (ownership via `ParcelApi`,
 authorship via `ProvenanceApi`, group membership via `GroupApi`) as
 sibling policies of the same shape — `allows` is already
