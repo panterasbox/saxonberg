@@ -24,11 +24,22 @@ questions`, and that was a Phase 1 failure being paid for in Phase 2.
 
 ## ⭐⭐ Planning runs on Fable
 
-Project convention: **Opus for most things, Fable for planning.** The
-`planner` agent (`.claude/agents/planner.md`) carries `model: fable`
-and the planning contract. Invoke it for the authoring pass rather
-than writing the plan inline — that is the whole reason this phase is
-a skill.
+Project convention: **Opus for most things, Fable for planning.**
+
+**The mechanism, and it matters:** spawn the `planner` agent
+(`Agent` tool, `subagent_type: "planner"`). That agent definition
+(`.claude/agents/planner.md`) carries `model: fable`, so **Fable is
+scoped to the subagent** — the session stays on whatever the user
+selected (`~/.claude/settings.json` → `opus[1m]`), and every other
+phase is on Opus without anything having to switch back.
+
+⚠ **Do not switch the session model to plan.** `/model fable` would
+persist past this phase and quietly carry into build and review;
+scoping it to the agent is what makes the convention self-cleaning.
+
+⚠ **And actually spawn it** — writing the plan inline is the silent
+failure here. It looks identical in the transcript and the convention
+simply doesn't happen. That is the whole reason this phase is a skill.
 
 ## What to do
 
@@ -53,8 +64,27 @@ a skill.
    acceptable. This is conversational; the plan is the artifact that
    absorbs the outcome.
 
-5. **Write it** to `docs/plans/<feature>-plan.md` and stop. The build
-   is a separate phase, started with fresh context.
+5. **Write it** to `docs/plans/<feature>-plan.md`.
+
+6. ⭐⭐ **The handoff once-over — do this unprompted.** Before the user
+   clears context, read the finished plan *as the build agent will*: a
+   fresh reader with no memory of this conversation. Then say, briefly:
+
+   - **Completeness** — can every wave be executed from the doc alone?
+     Any step that only makes sense because you were here is a gap.
+   - **Cohesion** — do the waves compose, in this order, with each
+     independently landable? Does a later wave assume something an
+     earlier one didn't actually establish?
+   - ⚠ **Anything that needs the user's eye** — a decision the plan
+     makes that they may not have registered, a risk they should price,
+     a place the plan and the requirements disagree.
+
+   This is their last checkpoint before the build runs to the MR
+   without stopping, so surface it now or it surfaces in review. Say
+   plainly when there is nothing — a clean bill is a useful answer.
+
+7. **Stop.** The build is a separate phase, started with fresh context
+   and `/build`.
 
 ## Plan doc shape
 

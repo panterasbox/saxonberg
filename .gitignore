@@ -21,6 +21,9 @@ out/
 .claude/*
 !.claude/skills/
 !.claude/agents/
+# ...and the /build skill's directory, which the generic `build/` rule
+# above would otherwise swallow.
+!.claude/skills/build/
 .mcp.json
 .eslintcache
 
