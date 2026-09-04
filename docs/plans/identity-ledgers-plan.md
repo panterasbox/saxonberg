@@ -42,8 +42,9 @@ asked at five sites:
 | `lint:dispositions` | are the rows we do write even landing? |
 
 Splitting them means touching `getIdentityPath()` and its readers three
-separate times, and — worse — #42 must land **before** the `Extra`
-projection or that work silently activates an untested guard (§ W1).
+separate times, and — worse — #42 must land **before** anything moves
+accountability attribution, or that work silently activates a guard that
+has never been exercised (§ W1).
 
 ---
 
@@ -185,11 +186,79 @@ is untouched.
 `setTemplatePath` re-keys the registry index. Promoting an extra means
 authoring a `Cast` row. No runtime transition exists to build.
 
-**D7 — an `Extra` PROJECTS its institution.** Override
-`getIdentityPath()` to return the office/business it acts for; `null` when
-it has none. *No writes otherwise* is the null case, not a second rule,
-and the shared row becomes structurally unreachable rather than merely
-discouraged.
+**D7 — institution is a SECOND DERIVED ATTRIBUTION, and it applies to
+`Cast` and `Extra` alike.**
+
+⚠ *Supersedes the earlier "an `Extra` projects its institution through
+`getIdentityPath()`" — that was wrong twice over: it overloaded an
+identity method with a policy meaning, and it made "who do you act for" an
+Extra-only concept when it is the whole of the office model.*
+
+The ledger already models this and already derives it:
+
+> `AccountabilityEvent.directedBy` — *"Durable id of the party bearing
+> **command responsibility** … **Derived, never stamped**: a crime row
+> carrying `directedBy` names the commander alongside the striker
+> (credit/blame divergence)."* `deriveBlame` surfaces it on a crime
+> verdict.
+
+Fed by combat formations today; the concept is exactly *who else answers
+for this act*. So:
+
+| | attributions on a harm row |
+|---|---|
+| **`Cast`** | **two, both real** — the person AND the institution. Odile's bad ruling is Odile's act and the Registry's failure, which is how offices work and what *"check offices, never the founder"* wants |
+| **`Extra`** | **one** — the institution only, because there is no person to name |
+
+⭐ The correct statement is not *"an Extra has an institution"* but **"an
+Extra has no identity of its own, so its institutional attribution is the
+only one it has."** Same field on both classes; different arity.
+
+⚠ `directedBy` is command responsibility *for the actor*. The victim side
+needs the mirror. Generalize the pair rather than inventing a third
+concept — the shape is shipped, the coverage is not.
+
+**D7a — the institution RESOLVES; it is not usually authored.** A
+three-tier chain in the shape this codebase uses everywhere
+(`LocomotionApi.defaultModeFor`, the biome outward walk, the address
+longest-prefix):
+
+1. an authored `institution:` field — explicit wins;
+2. else **the employer**, off the shipped `Business` roster (⭐ the
+   archetype slate's own finding: *"the position itself is authored on the
+   Business roster"*, so employed NPCs need no new field at all);
+3. else **`ParcelApi.ownerOf(<declared home>)`** — longest-prefix over the
+   parcel registry, returning a `ParcelOwner` that dispatches on
+   group / player / **organization**. The same call `AccessApi` already
+   makes to answer *"who does this ground answer to"*;
+4. else `null`.
+
+⭐ Tiers 2 and 3 are derivations over shipped data, so **most rows carry
+nothing new** — the ordinary-case-with-no-code test passing.
+
+⚠⚠ **Resolve from the DECLARED HOME, never the current location.** A guard
+who walks into a tavern does not become the tavern's. This is the one way
+to get the chain obviously wrong.
+
+**D7b — a sentient `Extra` that resolves to no institution is a BUILD
+ERROR.** The crime rule is terms-free `!consented && sentient`, and
+`AccountabilityEvent.sentient` already exists to draw the cull/crime line.
+So if hurting something is a crime, the victim must be *someone*: either
+`Cast`, or institutionally answerable.
+
+⭐ **The shipped sentry is exactly this case**, and its own header
+documents the behaviour at risk — *"a player who ambushes the sentry under
+lethal terms gets the imposed-terms crime marker."* It has no name, no
+employer, and stands on untitled ground, so it resolves to `null` and its
+crimes would vanish. It works today only because there is exactly one
+sentry, so the shared row *is* an individual — the accident this build
+exists to stop relying on.
+
+The lint does not paper over that. It narrows the question from *"why did
+my crime vanish"* to **"who fields this picket?"** — answerable by an
+author, and the answer (the watch should exist) improves the world instead
+of silencing an error. A wolf is fine forever: `sentient: false`, and
+nobody is to blame for a wolf.
 
 ---
 
@@ -199,8 +268,9 @@ The largest source of post-MR rewrites in this repo. Decided here.
 
 | what | host | why |
 |---|---|---|
-| `getIdentityPath()` institution projection | **`Extra`** (class) | true of every member by definition; `WireBody` is the precedent for overriding the method rather than adding a mechanism |
-| the institution pointer | **`Extra`** — an **identity path-string**, not a live ref | must survive reclone and must not keep a business resident; see `ref-shapes.md` before writing `fieldMeta` |
+| the institution **resolve** (D7a's three tiers) | **`lib/npc/NPC` substrate** — both classes need it | it is not an Extra concept; Cast attributes to its institution too, alongside itself |
+| the optional authored `institution:` override | same host — an **identity path-string**, not a live ref | must survive reclone and must not keep a business resident; see `ref-shapes.md` before writing `fieldMeta` |
+| the second attribution on the row | **`AccountabilityEvent`** — generalize `directedBy` + its victim-side mirror | ⭐ derived-never-stamped already, and `deriveBlame` already surfaces it |
 | `SingletonMixin` | **`Cast`** | `Cast = SingletonMixin(NPC-substrate)`; the throw at second clone *is* the enforcement |
 | `dispositions: ClaimSeed[]` | **stays on `BehavedMixin`** | ⚠ do not move it. Both Extra and Cast have brains, and an Extra's archetype resolves as a *lens* from the same declared data — the field is right where it is |
 | the rest of the dossier (prologue · competence · standing) | **`Cast`** | the claim is true of exactly `Cast`; a mixin would need a host set of one. ⚠ Not `BehavedMixin` — that would put it on every Extra |
@@ -281,12 +351,18 @@ different identity paths; a reembodied player's two corpses do too.
 3. **Classify the 42 rows** by the article rule — 25 named + 6
    definite-article individuals → `Cast`; the indefinite role-fillers →
    `Extra`. Small enough to do by hand and to review.
-4. `pnpm lint:identity` — a dossier on an `Extra` is an error; a `Cast`
-   row is a singleton; a proper `name:` on an `Extra` is an error.
+4. The institution resolve (D7a) on the substrate, and the second
+   attribution on the harm row (D7).
+5. `pnpm lint:identity` — a dossier on an `Extra` is an error; a `Cast`
+   row is a singleton; a proper `name:` on an `Extra` is an error; ⭐ and
+   **a sentient `Extra` resolving to no institution is an error** (D7b).
+6. ⚠ Expect W3 to surface **content gaps rather than code bugs** — the
+   sentry is the known one, and the fix there is authoring the watch, not
+   weakening the lint.
 
-**Acceptance (behavioural):** an extra's deed lands on its institution's
-ledger and on no row of its own; an extra with no institution writes
-nothing anywhere; **killing a sentry shows up as a harm to the watch**.
+**Acceptance (behavioural):** killing a sentry shows up as a harm to the
+watch; Odile's act shows up as **both** hers and the Registry's; a wolf's
+mauling attributes to nobody and raises nothing.
 
 ---
 
@@ -337,9 +413,15 @@ S1 drive's silent failure becomes a build error.
    test into a later wave.**
 2. ⚠ **`getIdentityPath() ?? somethingElse` readers.** Reactions, channels
    and subjects fall back to `''` or an `ownerId`. Those were written for
-   *"no identity yet"*, not *"deliberately none"* — an Extra returning
-   `null` could quietly rebuild the collision the projection removes.
-   **Audit all of them in W3.**
+   *"no identity yet"*, not *"deliberately none"*. ⭐ D7's reframing
+   **removes most of this risk** — an `Extra` keeps its own identity and
+   the institution rides a second attribution, so nothing starts returning
+   `null` that did not before. Audit the readers anyway in W3, but the
+   blast radius is now the empty-string sink (W1), not the projection.
+5. ⚠⚠ **W3 will surface content gaps, not code bugs**, and the temptation
+   will be to weaken `lint:identity` rather than author the missing
+   institution. The sentry is the known instance; expect one or two more.
+   **Authoring the watch is the fix.**
 3. **Sizing.** Stage A alone is a respectable build; A+B is at the upper
    end of the measured band. Stage B can ship separately if A runs long —
    the seam is clean, because A is correctness and B is authoring.
