@@ -78,7 +78,13 @@ const GLOB_REFUSAL =
  * loophole.
  */
 function isFungibleStack(item: Stuff): boolean {
-  return MixinApi.isGlobbable(item) && item.getQuantity() > 1;
+  if (!MixinApi.isGlobbable(item)) return false;
+  // ⚠ An UNREADABLE quantity is treated as a stack, not as a lot: the
+  // refusal is the conservative answer, and something that claims to be
+  // fungible without saying how many is exactly the case not to mint an
+  // id for.
+  const n = (item as unknown as { getQuantity?(): number }).getQuantity?.();
+  return typeof n === 'number' ? n > 1 : true;
 }
 
 let registryRef: ChattelRegistry | null = null;
