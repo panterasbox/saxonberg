@@ -5,7 +5,7 @@
  * ⚠⚠ **Storage is deliberately NOT a priced scarce good here**, and the
  * reason is a fact about the engine rather than a scoping preference:
  * **capacity is a property of a BEARER'S BODY**
- * (`bodyMass × CAPACITY_FRACTION × …`), and a warehouse has no bearer.
+ * (`bodyMass × CAPACITY_FRACTION × …`), and a warehouse has no body.
  * So *full* is unrepresentable, and a service that cannot fill up cannot
  * charge rent, turn anyone away, or fail. What ships is the **receipt**
  * and the **duty**; a stocktake that always balances would be inert
@@ -29,7 +29,6 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type { Business } from '@saxonberg/server/mud/platform/idea/Business';
 import WaybillRegistry from '../idea/WaybillRegistry';
-import BearerReceipt from './BearerReceipt';
 import { WAYBILL_REGISTRY_PATH } from '../lib/haulage/ShipmentDesk';
 
 export default class Warehouse extends Vessel {
@@ -50,18 +49,24 @@ export default class Warehouse extends Vessel {
   /**
    * Take goods into store and issue a receipt.
    *
-   * ⭐⭐ **`bearer` decides whether the receipt is a Thing or a record**,
-   * and that is the whole of the document-of-title design: a bearer
-   * receipt is minted as a `BearerReceipt` you can be robbed of, and
-   * whoever holds it may claim the goods; a registered receipt is a row
-   * naming a person and cannot be taken off them. Same document, two
-   * custody models — the credential bearer/registered split, reused.
+   * ⚠⚠ **The receipt is a RECORD, and there is deliberately no object.**
+   * It shipped with a `bearer` option that minted a `BearerReceipt` —
+   * "a document of title that is a Thing you can steal" — and the claim
+   * was empty: nothing anywhere read the slip back, so holding it
+   * entitled the holder to nothing and stealing it accomplished
+   * nothing. A prop with a strong docstring attached.
+   *
+   * ⭐ The bearer form belongs with the act that would give it meaning:
+   * a `withdraw` at the shed that checks who holds what, hands the goods
+   * over and voids the row. Built together it is a real
+   * document-of-title mechanic; built apart it is furniture. It is named
+   * in `docs/subsystems/logistics.md` as a missing seam rather than
+   * implied by a class sitting in the tree.
    */
   public async deposit(
     goods: Stuff & Containable,
     depositor: string,
-    opts: { bearer?: boolean } = {},
-  ): Promise<{ receiptPath: string; token: BearerReceipt | null }> {
+  ): Promise<{ receiptPath: string }> {
     const bailee = await this.resolveBailee();
     if (!bailee) {
       throw new Error(
@@ -76,26 +81,14 @@ export default class Warehouse extends Vessel {
     const registry = await StuffApi.singleton<WaybillRegistry>(
       WAYBILL_REGISTRY_PATH,
     );
-    const bearer = opts.bearer === true;
     const receiptPath = await registry.issueReceipt(bailee, {
       what,
       goodsPath,
       depositor,
-      bearer,
     });
-
-    // A bearer receipt has to EXIST as an object, or "you can steal it"
-    // is a claim with nothing behind it.
-    let token: BearerReceipt | null = null;
-    if (bearer) {
-      token = await StuffApi.clone<BearerReceipt>(
-        '/trade/haulage/thing/bearer-receipt',
-      );
-      token.setReceiptPath(receiptPath);
-      token.setWhat(what);
-    }
-    return { receiptPath, token };
+    return { receiptPath };
   }
+
 
   private async resolveBailee(): Promise<(Stuff & Business) | null> {
     if (this.baileePath === '') return null;

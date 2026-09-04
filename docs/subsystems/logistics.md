@@ -249,10 +249,21 @@ reporting spine blind to most freight in the realm.
 A bailee's acknowledgement, and a **document of title**: you transfer the
 receipt instead of moving anything.
 
-⭐ **Bearer or registered.** A bearer receipt is minted as a `Thing` you
-can be robbed of; a registered one is a row and mints *nothing at all*.
-The asymmetry IS the design — the reason a merchant would prefer one
-form is exactly that one of them can be lost.
+⚠⚠ **It is a RECORD, and there is deliberately no object.** It shipped
+with a bearer/registered split — a `BearerReceipt` `Thing` you could be
+robbed of, versus a row naming a person — and the bearer half was **cut
+before merge, because it was proof of nothing**: no `withdraw`, no claim
+check, nothing anywhere read the slip back. Holding one entitled the
+holder to nothing and stealing one accomplished nothing. A prop with a
+strong docstring attached, which is the same failure as a help example
+that cannot be typed.
+
+⭐ **The missing seam, named:** `withdraw <receipt>` at the shed —
+checking who holds what, handing the goods over, voiding the row. Build
+that and the bearer instrument comes back with a reason to exist and
+real persistence semantics to get right; the asymmetry (*one of them can
+be lost*) is a good design and it needs the act underneath it. Built
+apart, it is furniture.
 
 ### The rate card
 
@@ -550,7 +561,7 @@ path is the point of the fix rather than an exemption from it.
 - **Warehousing as a business** — rent, shrinkage, the stocktake. Its
   spine is *record versus reality*, and nothing in scope makes the two
   diverge, so a stocktake would always balance. ⚠ And **capacity is a
-  property of a bearer's BODY**; a warehouse has no bearer, so *full* is
+  property of a bearer's BODY**; a warehouse has no body, so *full* is
   unrepresentable. What ships is the receipt and the duty.
 - **A passenger service.** The taxonomy is recorded and the `ride`
   experience ships; the market does not exist, because walking is free

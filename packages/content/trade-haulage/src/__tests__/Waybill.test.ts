@@ -11,7 +11,7 @@
  *     filing business's own branch, so coverage IS market share and
  *     nobody can read across.
  *
- * Plus AC10 (the six fields), AC11 (bearer vs registered), and AC16a
+ * Plus AC10 (the six fields), AC11 (the filed receipt), and AC16a
  * (edge traffic derived from the paper, with **no counter stored
  * anywhere**).
  */
@@ -189,37 +189,12 @@ describe('the warehouse receipt', () => {
         what: 'six bags of malt',
         goodsPath: '/stuff/thing/vessel/sack',
         depositor: '/platform/agent/Avatar/brewer',
-        bearer: false,
       }),
     );
     const held = await reg.receiptsOf(depot);
     expect(held).toHaveLength(1);
     expect(held[0]!.depositor).toBe('/platform/agent/Avatar/brewer');
     expect(held[0]!.bailee).toBe(DEPOT);
-  });
-
-  it('⭐ AC11 — bearer and registered are the same document, two custody models', async () => {
-    const depot = business(DEPOT);
-    const reg = waybills();
-    await asClerk(async () => {
-      await reg.issueReceipt(depot, {
-        what: 'a bearer lot',
-        goodsPath: '/x',
-        depositor: '/platform/agent/Avatar/merchant',
-        bearer: true,
-      });
-      await reg.issueReceipt(depot, {
-        what: 'a registered lot',
-        goodsPath: '/x',
-        depositor: '/platform/agent/Avatar/merchant',
-        bearer: false,
-      });
-    });
-    const held = await reg.receiptsOf(depot);
-    expect(held.filter((r) => r.bearer)).toHaveLength(1);
-    expect(held.filter((r) => !r.bearer)).toHaveLength(1);
-    // The *object* half — that a bearer receipt is a Thing you can be
-    // robbed of — is `Warehouse.deposit`'s, and is asserted there.
   });
 
   it('refuses a receipt nobody can redeem', async () => {
@@ -230,8 +205,7 @@ describe('the warehouse receipt', () => {
           what: 'a lot',
           goodsPath: '/x',
           depositor: '',
-          bearer: false,
-        }),
+          }),
       ),
     ).rejects.toThrow(/no depositor/);
   });

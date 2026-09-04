@@ -5,7 +5,7 @@
  *    CARRIER'S hands and the shipper is not — custody moved, ownership
  *    did not, and the bill is what says so. That gap is the whole of
  *    what bailment is.
- *  - ⭐ **AC11's object half**: a **bearer** receipt is minted as a Thing
+ *  - ⚠ **AC11**: the receipt is a filed RECORD; the bearer object was cut
  *    you can be robbed of; a **registered** one is a record and mints
  *    nothing at all. The asymmetry IS the design.
  *  - and the refusals that keep the desk honest: no carrier, no
@@ -30,7 +30,6 @@ import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import DepotCounter from '../thing/DepotCounter';
 import Warehouse from '../thing/Warehouse';
-import BearerReceipt from '../thing/BearerReceipt';
 import WaybillRegistry from '../idea/WaybillRegistry';
 import { WAYBILL_REGISTRY_PATH } from '../lib/haulage/ShipmentDesk';
 import {
@@ -50,7 +49,6 @@ class Crate extends ContainableMixin(Idea) {
 
 const QUAY = '/world/terminus/estuary/lower-towpath';
 const YARD = '/world/rejection/location/pithead-yard';
-const RECEIPT_ROW = '/trade/haulage/thing/bearer-receipt';
 
 /** ⚠ Here rather than in the fixtures — see the note there. */
 async function asClerk<T>(fn: () => Promise<T>): Promise<T> {
@@ -63,7 +61,7 @@ async function asClerk<T>(fn: () => Promise<T>): Promise<T> {
 let quay: TestRoom;
 let registry: WaybillRegistry;
 
-/** Serve the registry singleton and the bearer-receipt row by path. */
+/** Serve the registry singleton and the businesses by path. */
 function installSingletons(): void {
   registry = makeStuffAtPath(
     () => new WaybillRegistry(),
@@ -79,11 +77,6 @@ function installSingletons(): void {
     }
     return real(path);
   }) as typeof StuffApi.singleton);
-  const realClone = StuffApi.clone.bind(StuffApi);
-  vi.spyOn(StuffApi, 'clone').mockImplementation(((path: string) =>
-    path === RECEIPT_ROW
-      ? Promise.resolve(makeStuff(() => new BearerReceipt()) as unknown as Stuff)
-      : realClone(path)) as typeof StuffApi.clone);
 }
 
 beforeEach(() => {
@@ -196,7 +189,18 @@ describe('the shipping desk', () => {
 });
 
 describe('the warehouse', () => {
-  it('⭐ AC11 — a BEARER receipt is a Thing; a REGISTERED one is not', async () => {
+  it('⚠ AC11 — the receipt is a RECORD, and there is no object to mint', async () => {
+    /*
+     * ⭐ AC11 shipped as a bearer/registered split: a `BearerReceipt`
+     * Thing you could be robbed of, versus a row naming a person. The
+     * object half was CUT, because it was proof of nothing — no
+     * `withdraw`, no claim check, nothing anywhere read `receiptPath`
+     * back, so holding the slip entitled the holder to nothing and
+     * stealing it accomplished nothing. A prop with a strong docstring.
+     *
+     * The bearer form returns with the act that would give it meaning.
+     * Until then the record IS the receipt.
+     */
     const shed = makeStuff(() => new Warehouse());
     shed.setBaileePath(DEPOT);
     ContainmentApi.move(
@@ -204,34 +208,17 @@ describe('the warehouse', () => {
       quay as unknown as Stuff & Container,
     );
 
-    const bearerGoods = makeStuff(() => new Crate());
-    ContainmentApi.move(bearerGoods, quay as unknown as Stuff & Container);
-    const bearer = await asClerk(() =>
+    const goods = makeStuff(() => new Crate());
+    ContainmentApi.move(goods, quay as unknown as Stuff & Container);
+    const filed = await asClerk(() =>
       shed.deposit(
-        bearerGoods as unknown as Stuff & Containable,
-        '/platform/agent/Avatar/merchant',
-        { bearer: true },
-      ),
-    );
-    // A slip of paper you are holding — and therefore one you can be
-    // robbed of, because it is an object like any other.
-    expect(bearer.token).toBeInstanceOf(BearerReceipt);
-    expect(bearer.token!.getReceiptPath()).toBe(bearer.receiptPath);
-    expect(MixinApi.isContainable(bearer.token as unknown as Stuff)).toBe(true);
-
-    const registeredGoods = makeStuff(() => new Crate());
-    ContainmentApi.move(registeredGoods, quay as unknown as Stuff & Container);
-    const registered = await asClerk(() =>
-      shed.deposit(
-        registeredGoods as unknown as Stuff & Containable,
+        goods as unknown as Stuff & Containable,
         '/platform/agent/Avatar/merchant',
       ),
     );
-    // ⭐ Nothing to mint, nothing to take. The record IS the receipt,
-    // and that asymmetry is the reason a merchant would want one form
-    // over the other.
-    expect(registered.token).toBeNull();
-    expect(registered.receiptPath).toMatch(/warehouse-receipts/);
+    expect(filed.receiptPath).toMatch(/warehouse-receipts/);
+    // Nothing was minted — `deposit` hands back a path and nothing else.
+    expect(Object.keys(filed)).toEqual(['receiptPath']);
   });
 
   it('takes the goods into store and names who they belong to', async () => {

@@ -1169,9 +1169,12 @@ the shape the drives keep finding.
   the shipped attendant queue **is** the counter.
 - `src/thing/Warehouse.ts` — the bailee store; issuing a receipt is a
   method on it (verbs go on objects).
-- `src/thing/BearerReceipt.ts` — ⭐ **a Thing you can steal.** The
-  registered receipt is a record with no Thing at all; the credential
-  bearer/registered split, reused.
+- ~~`src/thing/BearerReceipt.ts`~~ — ⚠⚠ **CUT before merge, at review.**
+  It was "a Thing you can steal" and it was proof of nothing: no
+  `withdraw`, no claim check, nothing anywhere read the slip back, so
+  holding it entitled the holder to nothing. The receipt is the filed
+  RECORD; the bearer instrument returns with the act that would give it
+  meaning (named as a missing seam in the subsystem doc).
 - `src/idea/cmd/perception/{MeasurePassageController,AnalyzeLoadController}.ts`
   + stanzas added to the platform's `measure.yaml` / `analyze.yaml` (the
   trade-mining precedent, ⚠-commented for a haulage-less install).
@@ -1687,7 +1690,6 @@ participating in it. Roads and rivers exist with nobody employed by them.*
 | `src/lib/haulage/ShipmentDesk.ts` | *(none)* | pack `lib/` | a mixin ⇒ `lib/<subsystem>/`, no `Mixin` suffix in the filename. |
 | `src/thing/DepotCounter.ts` | `/trade/haulage/thing/DepotCounter` | `thing` | instanceable fixture. |
 | `src/thing/Warehouse.ts` | `/trade/haulage/thing/Warehouse` | `thing` | instanceable; the bailee. |
-| `src/thing/BearerReceipt.ts` | `/trade/haulage/thing/BearerReceipt` | `thing` | ⭐ a document of title that is a **Thing** you can steal. |
 | `src/behavior/hauls.ts` | `/trade/haulage/behavior/hauls` | `behavior/` | a pack brain; sole export `export const brain = class {…}`. |
 | `src/idea/cmd/haulage/ShipController.ts` | `/trade/haulage/idea/cmd/haulage/ShipController` | `idea/cmd/` | ⭐ **`ship <goods> to <destination>`** — the pack's own verb in its own `haulage` category (P9). |
 | `src/idea/cmd/perception/{MeasurePassage,AnalyzeLoad}Controller.ts` | `/trade/haulage/idea/cmd/perception/…` | `idea/cmd/` | the instrumentation split — **stanzas on shipped views, not new verbs.** |

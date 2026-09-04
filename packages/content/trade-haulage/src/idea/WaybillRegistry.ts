@@ -119,12 +119,13 @@ export interface WarehouseReceipt {
   /** The warehouse's own durable path. */
   bailee: string;
   /**
-   * ⭐ **Bearer or registered** — the credential split, reused. A bearer
-   * receipt is a Thing you can steal and whoever holds it may claim the
-   * goods; a registered one is a record naming a person and cannot be
-   * taken. The same document of title, two custody models.
+   * ⚠ There is deliberately NO `bearer` flag. It shipped as half of a
+   * bearer/registered split whose bearer half was a `BearerReceipt`
+   * Thing that **nothing anywhere read back** — so holding one entitled
+   * you to nothing, stealing one accomplished nothing, and the flag
+   * distinguished a record from a prop. It returns with `withdraw`, the
+   * act that would make holding a slip mean something.
    */
-  bearer: boolean;
   filedAtS: number;
 }
 
@@ -270,7 +271,7 @@ export default class WaybillRegistry extends PostRegistrationMixin(Idea) {
    * whole of what storage is in this build. It is deliberately NOT a
    * priced scarce good: discrete containment has no capacity in this
    * engine (capacity is a property of a *bearer's body*, and a
-   * warehouse has no bearer), so nothing here fills up, charges rent or
+   * warehouse has no body), so nothing here fills up, charges rent or
    * turns anyone away. See the warehousing non-goal.
    */
   public async issueReceipt(
@@ -416,7 +417,6 @@ function receiptOf(data: Record<string, unknown>): WarehouseReceipt | null {
     goodsPath: String(data.goodsPath ?? ''),
     depositor: String(data.depositor ?? ''),
     bailee: String(data.bailee ?? ''),
-    bearer: data.bearer === true,
     filedAtS: Number(data.filedAtS ?? 0),
   };
 }

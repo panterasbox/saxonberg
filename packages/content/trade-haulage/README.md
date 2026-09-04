@@ -18,7 +18,6 @@ here.
 | `WaybillRegistry` | the **bill of lading** every completed carriage files — `ship` at a counter, the `hauls` brain, and a player who claimed a gig, all the same paper. Path-keyed under the filing business's own branch, so **a depot's records cover exactly what it handled**. `house traffic` counts edges over it, and no traffic counter is stored anywhere. |
 | `RateCardRegistry` | a carrier's published prices. **Visible** (a stranger can read one), because rate discrimination has to be a table rather than an accusation; **settable**, because a carrier that cannot choose its prices cannot be the villain of that arc. |
 | `ShipmentDeskMixin` · `DepotCounter` · `Warehouse` | the depot: an attendant queue, a shipment desk, a bailee's shed. Every piece a shipped shape. |
-| `BearerReceipt` | ⭐ a document of title that is **a Thing you can steal**. The registered form ships as nothing at all, and that asymmetry is the design. |
 | `teamstering` | the discipline. Buys **information** (what you knew before you committed) and **capability** (a bigger team) — never a faster wagon on the same road. |
 | `hauls` | the brain. ⭐⭐ The NPC is the **reserve supply**, so it sets the wage: a player cannot charge more than it costs and need not accept less. |
 
