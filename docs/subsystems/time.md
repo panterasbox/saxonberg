@@ -584,3 +584,19 @@ demoted the clock tower from a would-be Stuff to a dynamic room-detail
 prose reader — the rejected-`Timepiece`/rejected-`ClockTower` lesson
 that keeps the engine seam general while the antique clockwork stays
 content.
+
+## ⭐⭐ Daylength (farmstead W6)
+
+`CelestialApi.daylightAt` / `daylightFractionAt` / `daylightSecondsFor` —
+**arithmetic on two calls this Api already had**, and nobody had ever
+asked for it. The declination is real orbital geometry, the hour angle at
+altitude 0 falls out of it, and daylength is `2·H0/360` of a rotation.
+
+It drives three systems: crop dormancy, hens going off lay in short days,
+and the breeding season — so **lambing in spring is a consequence of the
+calendar, not a flavour decision anybody authors.**
+
+⚠ Polar day answers the whole rotation and polar night answers zero,
+which are the honest limits rather than special cases: at 66.5° and
+beyond, both genuinely happen.
+

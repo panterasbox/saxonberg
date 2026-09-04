@@ -669,3 +669,19 @@ Three lessons worth keeping, none of them about farming:
 - **[holding.md](./holding.md)** — the residential ladder the holder half
   converged onto (residences, 2026-08-31): the two-tier institution, the
   authored plat plan, keyed rooms, condition and the capacity dials
+
+## ⭐ The field arrived (farmstead)
+
+A bed is no longer the largest thing you can cultivate. `plot` breaks a
+**field** out of ground you already hold — the first consumer of
+`LandUse`'s `field` cultivation ceiling, which had shipped here with
+nothing reading it — and a field is a *place* rather than a Thing with a
+bulk interior of soil.
+
+The land draw still rides the productive object; what is new is that a
+field draws against the parcel's declared yard, and that newly plotted
+ground is **not plantable** until it has been cleared.
+
+See [soil.md](./soil.md) for the field, the ledger, ground character and
+the survey ladder, and [ranching.md](./ranching.md) for what eats it.
+

@@ -616,11 +616,31 @@ surface. **Green:** a manure pit
 kills an unprotected rescuer; hay above a moisture threshold self-heats; a fox
 kills more than it takes (AC 24, 25, 26).
 
-### W15 — Bees ⭐ CUTTABLE
+### W15 — Bees ⭐ CUTTABLE — ⚠ **CUT**
 
 D34–D39. The colony as the herdbook without draft; pollination modifying
 `fruitSetCount`; forage range by graph hops; swarming. **Cut this wave whole if
 the build is running long** — it is severable by construction.
+
+⚠ **It was cut**, on the build's own sanctioned cut order (risk 5: *"the
+cut order is: W15 (bees), then saffron and turnips out of W11, then W13 —
+never W12"*). Saffron, turnips and W13 all shipped; only this went.
+
+**What ships anyway**, because both were cheap and the second is the
+reason the wave was designed early: the **`Apis mellifera` species row**,
+and **clover** — which is the plant D43 named as simultaneously the
+legume, the best forage in a sward, and the classic bee plant. So the
+forage half of D37 (*honey's character derives from what is in flower
+within range*) has its referent standing in the field already.
+
+**What does not**: the hive object, pollination modifying `fruitSetCount`,
+forage range by graph hops, honey, and swarming.
+
+⚠⚠ **AC 14 is therefore NOT MET**, and it is the follow-on's first item.
+The coupling D39 worried about retrofitting — `fruitSetCount`, the
+`_flowering` latch and `onFloweringLatched` — is untouched and still
+unconsumed, which is the state it was in before this build and the state
+the design expected to hand over.
 
 ### ⚠ Decisions with no wave of their own — assigned here, not orphaned
 

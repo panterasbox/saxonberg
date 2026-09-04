@@ -661,3 +661,29 @@ and the shipped `competence` verb reports its band.
 [farming-slate](../slates/builds/farming-slate.md) ·
 [ranching-slate](../slates/builds/ranching-slate.md) ·
 [living-world-roadmap](../living-world-roadmap.md)
+
+## ⭐ The soil half left (farmstead W1)
+
+`CultivableMixin` no longer contains the soil. Both of its checkpoints —
+the reconcile window and the sky edge — live in **`lib/husbandry/Soil.ts`**,
+whose host constraint is `Stuff & Reserved` alone, so a **Location** can
+compose them. `CultivableMixin` is what is left: the plant slot, the
+shared-soil division, and the two hooks soil asks of its host.
+
+A composer writes `CultivableMixin(SoilMixin(…))`; a field writes
+`SoilMixin(…)` and no plant slot at all. See [soil.md](./soil.md).
+
+## ⭐⭐ A fifth limiting factor: `cold` (farmstead W6)
+
+Growth answers to **temperature** as well as water, light, root and
+nutrient — the minimum, never a product. *Winter is not a mode; it is
+cold and short days at a place*, so the dorm houseplant does not die
+every real month, the greenhouse falls out for free, and the mechanism is
+identical indoors, outdoors, under glass and underground.
+
+⚠ `coldStopK` is **optional**: a profile declaring neither cold field is
+never cold-limited, and every plant that shipped before winter existed
+behaves exactly as it did. ⚠⚠ And the ambient carries a **tri-state** —
+`-1` means *has not looked*, which reads as unlimited and never as
+frozen.
+
