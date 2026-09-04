@@ -219,12 +219,60 @@ answered it: seed evidence, mark it `claim`, and the derivation stays
 pure. A floor felt necessary only because nobody had the claim marker in
 view.
 
-**D5 — `Extra` and `Cast` are two concrete classes; `platform/agent/NPC`
-retires into them.** CLAUDE.md's twin rule says sharing the base's name is
-the default and *"a twin that renames is claiming to be a different thing,
-and had better be one"* — here there are two different things, and `NPC`
-predicts neither surface. Both extend the `lib/npc/NPC` substrate, which
-is untouched.
+**D5 — identity is a MIXIN with two named clone targets; `platform/agent/NPC`
+retires.**
+
+⚠ *Revised. The first form said "`Extra` and `Cast` are two concrete
+classes" and would not have compiled against the tree it has to live in.*
+
+The shipped hierarchy:
+
+```
+Creature (concrete)
+ └─ Character (ABSTRACT)
+     ├─ NPC ....................... lib/npc/NPC — the substrate
+     │   ├─ platform/agent/NPC ................. 25 rows
+     │   ├─ Crafter    = MakerMixin(NPC) ......... 7 rows
+     │   ├─ Mercenary  = PartyMemberMixin(NPC) ... 1 row
+     │   └─ Gus (bespoke) ........................ 1 row
+     │       (+ Katie, TicketClerk — 0 rows)
+     └─ Avatar / ShelledCharacter
+```
+
+⚠⚠ **Two axes, single inheritance.** Dave must be a `Crafter` *and* cast.
+`Extra`/`Cast` as base classes cannot express that — it is a diamond.
+
+⭐⭐ **The codebase already answered this and the answer was one line
+away.** `Crafter = MakerMixin(NPC)` and `Mercenary = PartyMemberMixin(NPC)`
+— the capability axis is *already* a mixin applied to the substrate and
+given a name. And `SingletonMixin`, the enforcement half of cast-ness, is
+already a mixin. So:
+
+- **`lib/npc/NPC` stays.** Shared substrate of every class below it;
+  untouched by this build.
+- **`platform/agent/NPC` retires.** After the split no row names it, and
+  ⭐ *a class nothing instances does not belong in `platform/`* — the
+  headline placement rule.
+- **`CastMixin` carries the identity rung** — `SingletonMixin` plus the
+  dossier fields. It is the thing that actually composes.
+- **`Extra` and `Cast` are the two generic clone targets**, so a row's
+  `class:` still says which rung it is out loud. `Extra = NPC` (plain),
+  `Cast = CastMixin(NPC)`.
+- **Combinations stay one-liners in the existing idiom**:
+  `Crafter = CastMixin(MakerMixin(NPC))`. Same shape, same file, one name.
+
+On the naming: CLAUDE.md's twin rule says sharing the base's name is the
+default and *"a twin that renames is claiming to be a different thing, and
+had better be one."* Here the concrete twin **splits into two things**, so
+both rename — the `Corpse` precedent.
+
+⚠⚠ **A correlation trap to refuse.** All 7 `Crafter` rows carry a proper
+name (Dave, Mara, Sloane, Remy, Augie, Odo, Berta) and the 1 `Mercenary`
+does not — so capability and identity look perfectly correlated. **They
+are not.** That is a 42-row accident of the same species as *instanced
+exactly once*, and collapsing the axes on the strength of it would bake
+the accident into the type system. Keep them orthogonal even though every
+current row could be filed either way.
 
 **D6 — promotion is an authoring act.** Identity is a stamp;
 `setTemplatePath` re-keys the registry index. Promoting an extra means
@@ -384,9 +432,10 @@ The largest source of post-MR rewrites in this repo. Decided here.
 | the optional authored `institution:` override | same host — an **identity path-string**, not a live ref | must survive reclone and must not keep a business resident; see `ref-shapes.md` before writing `fieldMeta` |
 | the party pair `killerFor` / `victimFor` | **`AccountabilityEvent`** — two new persistent fields beside `directedBy`, ⚠ **not** folded into it (D7c: standing ≠ episodic) | derived at write time from D7a's chain; `''` when the actor/victim is not a person with a party |
 | surfacing them | **`BlameVerdict`** — beside `commandResponsible` | ⚠ `victimFor` is **not** crime-gated; `commandResponsible` stays as it is |
-| `SingletonMixin` | **`Cast`** | `Cast = SingletonMixin(NPC-substrate)`; the throw at second clone *is* the enforcement |
+| `SingletonMixin` + the dossier fields | **`CastMixin`** (new, `lib/npc/`) | ⭐ the identity rung must COMPOSE — `Crafter` proves the capability axis already does. The throw at second clone *is* the enforcement |
+| the two clone targets | **`platform/agent/Extra`** and **`platform/agent/Cast`** | so a row's `class:` names its rung; `platform/agent/NPC` retires because nothing instances it |
 | `dispositions: ClaimSeed[]` | **stays on `BehavedMixin`** | ⚠ do not move it. Both Extra and Cast have brains, and an Extra's archetype resolves as a *lens* from the same declared data — the field is right where it is |
-| the rest of the dossier (prologue · competence · standing) | **`Cast`** | the claim is true of exactly `Cast`; a mixin would need a host set of one. ⚠ Not `BehavedMixin` — that would put it on every Extra |
+| the rest of the dossier (prologue · competence · circumstance · renown) | **`CastMixin`** | ⭐ **Revised** — an earlier note here argued *against* a mixin on the grounds that its host set would be exactly one class. That was true only while `Cast` was a base class; with two axes the mixin is the only shape that composes. ⚠ Still not `BehavedMixin` — that would put a dossier on every Extra |
 | corpse identity scheme | **`ConditionLogic.mintCorpseFrom`** | one call site, no new surface |
 | the durable-id read | **`CombatLogic.durableIdOf` + `ConditionLogic`** | one shared helper after W1, not two fallbacks |
 
@@ -458,8 +507,10 @@ different identity paths; a reembodied player's two corpses do too.
 
 ### W3 — `Extra` / `Cast`
 
-1. `platform/agent/Extra.ts` and `platform/agent/Cast.ts` over the
-   `lib/npc/NPC` substrate; `platform/agent/NPC.ts` retires (D5).
+1. `CastMixin` in `lib/npc/`; `platform/agent/Extra.ts` and
+   `platform/agent/Cast.ts` as the two clone targets;
+   `platform/agent/NPC.ts` retires; `Crafter` recomposes as
+   `CastMixin(MakerMixin(NPC))` (D5).
 2. `Cast = SingletonMixin(…)`. ⚠ **Neither class touches
    `getIdentityPath()`** — D7 replaced the projection with a second
    derived attribution, so identity resolution is unchanged by this
