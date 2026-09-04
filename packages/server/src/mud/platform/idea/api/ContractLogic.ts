@@ -367,6 +367,10 @@ async function postImpl(spec: GigSpec): Promise<PostGigResult> {
   record.contractId = contractId;
   record.state = "open";
   record.boardPath = spec.boardPath;
+  // Where the work starts. An explicit `--from` wins; otherwise the
+  // poster's own environment, which is the right answer for an NPC
+  // posting from its floor and costs the caller nothing.
+  record.origin = spec.originPath ?? originOfPoster(poster);
   record.issuer = issuer.party;
   record.issuerAccountId = issuer.accountId;
   record.claimMode = spec.claimMode;
@@ -614,13 +618,37 @@ async function completeImpl(contractId: string): Promise<CompleteResult> {
 
 async function openGigsOnImpl(boardPath: string): Promise<ContractRecord[]> {
   if (!active()) return [];
-  const live = await ContractRecord.findLiveByBoard(boardPath);
+  return liveAfterExpiry(await ContractRecord.findLiveByBoard(boardPath));
+}
+
+async function openGigsFromImpl(
+  originPath: string,
+): Promise<ContractRecord[]> {
+  if (!active() || originPath.length === 0) return [];
+  return liveAfterExpiry(await ContractRecord.findLiveByOrigin(originPath));
+}
+
+/** Lazy expiry over a candidate set — the one place the sweep-free rule lives. */
+async function liveAfterExpiry(
+  live: ContractRecord[],
+): Promise<ContractRecord[]> {
   const out: ContractRecord[] = [];
   for (const record of live) {
     const fresh = await expireStale(record);
     if (fresh.state === "open" || fresh.state === "claimed") out.push(fresh);
   }
   return out;
+}
+
+/**
+ * The poster's own environment as a durable path — the default origin.
+ * `""` when the poster is nowhere addressable, which reads as *this gig
+ * names no origin* rather than as an error: a bounty for something to be
+ * fetched from wherever is a legitimate posting.
+ */
+function originOfPoster(poster: Stuff): string {
+  if (!MixinApi.isContainable(poster)) return "";
+  return poster.getContainer()?.getTemplatePath() ?? "";
 }
 
 @Unshadowable
@@ -653,6 +681,12 @@ export class ContractLogic extends ApiLogic {
   @CallSecurity(ContractApiCallers)
   public async complete(contractId: string): Promise<CompleteResult> {
     return completeImpl(contractId);
+  }
+
+  /** See {@link ContractApi.openGigsFrom}. */
+  @CallSecurity(ContractApiCallers)
+  public async openGigsFrom(originPath: string): Promise<ContractRecord[]> {
+    return openGigsFromImpl(originPath);
   }
 
   /** See {@link ContractApi.openGigsOn}. */

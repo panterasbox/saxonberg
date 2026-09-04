@@ -40,9 +40,17 @@ interface JobModel extends CommandModel {
   destination?: string;
   /** `post`: the reward, minor units (a string arg; coerced here). */
   reward?: string;
+  /** `post`: where the work STARTS (name reachable-first, else a path). */
+  from?: string;
   bounty?: boolean;
   business?: boolean;
   expires?: number;
+  /**
+   * ⭐ browse: list gigs whose ORIGIN is here rather than what hangs on
+   * this board — the backhaul (D17). `here` is the only value that means
+   * anything today; anything else is read as a place name.
+   */
+  origin?: string;
   /** `claim`/`complete`/`abandon`: a gig id (or unique prefix). */
   id?: string;
 }
@@ -63,7 +71,7 @@ export default class JobController extends CommandController<JobModel> {
       case "abandon":
         return this.executeAbandon(model, context, board);
       case "browse":
-        return this.executeBrowse(context, board);
+        return this.executeBrowse(model, context, board);
       default:
         return this.fail(
           context,
@@ -76,11 +84,38 @@ export default class JobController extends CommandController<JobModel> {
   /* ─────────────────────────── browse ─────────────────────────── */
 
   private async executeBrowse(
+    model: JobModel,
     context: CommandContext,
     board: JobBoard,
   ): Promise<void> {
     const giver = context.commandGiver;
     const giverKey = giver.getIdentityPath() ?? "";
+
+    // ⭐ `jobs --origin here` is the BACKHAUL read (D17): a hauler at the
+    // far end of a corridor asking what wants moving back. It is a
+    // different question from "what hangs on this board" — the return
+    // load is posted wherever the shipper is, not where you are standing
+    // — so it reads by origin rather than by board.
+    const originRaw = (model.origin ?? "").trim();
+    if (originRaw) {
+      const originPath = this.resolvePlace(originRaw, context);
+      const back = await ContractApi.openGigsFrom(originPath);
+      if (back.length === 0) {
+        this.send(
+          context,
+          Mml.compose`\nNothing wants moving out of ${leafOf(originPath)} right now — you would go back empty.\n`,
+        );
+        return;
+      }
+      this.send(
+        context,
+        Mml.compose`\nWanting carriage out of ${leafOf(originPath)}:\n${back
+          .map((gig) => this.describeGig(gig, giverKey))
+          .join("\n")}\n`,
+      );
+      return;
+    }
+
     const gigs = await ContractApi.openGigsOn(board.getTemplatePath() ?? "");
     if (gigs.length === 0) {
       this.send(
@@ -94,6 +129,22 @@ export default class JobController extends CommandController<JobModel> {
       context,
       Mml.compose`\nPosted work:\n${lines.join("\n")}\n`,
     );
+  }
+
+  /**
+   * A place the player named, as a durable path: `here` is the room they
+   * stand in, a reachable thing resolves by name, and anything else is
+   * taken as a path verbatim (the `post` destination rule, reused).
+   */
+  private resolvePlace(raw: string, context: CommandContext): string {
+    if (raw.toLowerCase() === "here") {
+      return context.location?.getTemplatePath() ?? "";
+    }
+    const reachable = MqlApi.resolveMany(raw, {
+      commandGiver: context.commandGiver,
+      scope: "reachable",
+    }).stuff[0];
+    return reachable?.getTemplatePath() ?? raw;
   }
 
   private describeGig(gig: ContractRecord, giverKey: string): string {
@@ -145,11 +196,12 @@ export default class JobController extends CommandController<JobModel> {
     // Destination: a reachable thing by name first, else treat the string
     // as a template path — ContractApi re-validates either way.
     const raw = (model.destination ?? "").trim();
-    const reachable = MqlApi.resolveMany(raw, {
-      commandGiver: context.commandGiver,
-      scope: "reachable",
-    }).stuff[0];
-    const destinationPath = reachable?.getTemplatePath() ?? raw;
+    const destinationPath = this.resolvePlace(raw, context);
+
+    // Where the work starts. Omitted ⇒ ContractApi derives it from the
+    // poster's own environment, which is right for an NPC posting from
+    // its floor and for a player posting at the board they stand at.
+    const fromRaw = (model.from ?? "").trim();
 
     const result = await ContractApi.post({
       boardPath: board.getTemplatePath() ?? "",
@@ -157,6 +209,7 @@ export default class JobController extends CommandController<JobModel> {
       rewardMinor: reward,
       claimMode: model.bounty ? "open-bounty" : "exclusive",
       asBusiness: model.business === true,
+      ...(fromRaw ? { originPath: this.resolvePlace(fromRaw, context) } : {}),
       ...(model.expires ? { expiresGameHours: Number(model.expires) } : {}),
     });
     if (!result.ok) {

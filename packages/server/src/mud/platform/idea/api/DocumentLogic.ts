@@ -12,6 +12,7 @@ import { StoredDocument } from "../../../lib/document/StoredDocument";
 import { MixinApi } from "../../../api/mixin";
 import type { Stuff } from "../../../lib/stuff/Stuff";
 import type { Publisher } from "../../../lib/press/Publisher";
+import type { Business } from "../Business";
 import { RELEASE_DOCUMENT_KIND } from "../../../lib/press/Release";
 import { CommandApi } from "../../../api/command";
 
@@ -145,6 +146,90 @@ async function saveReleaseImpl(
   // publisher owns the document, a person wrote it. DocumentLogic is an
   // admitted authoring transport (the `recordAuthoring` gate names
   // `/platform/idea/api/document`).
+  await ProvenanceApi.recordAuthoring({ path });
+}
+
+/**
+ * The kinds {@link saveAsBusinessImpl} may write. **Closed, and the whole
+ * containment argument.** A business-owned write is an ownership bypass;
+ * pinning the kind is what stops it being a general forgery tool — it can
+ * never write a `command-view`, a `recipe` or a `release`.
+ */
+const BUSINESS_DOCUMENT_KINDS: readonly string[] = [
+  'bill-of-lading',
+  'warehouse-receipt',
+  'rate-card',
+];
+
+/**
+ * Write a document **owned by a Business** rather than by the acting
+ * author — `saveReleaseImpl`'s twin, built to the same rails.
+ *
+ * ⚠⚠ **The second ownership bypass in this file**, and it exists for the
+ * same reason as the first: `save` gates on parcel title, which admits
+ * the *landowner*. A bill of lading is issued by a **clerk** on behalf of
+ * a **carrier**, and making every clerk a landowner is precisely the
+ * error `saveReleaseImpl`'s comment names. Titling each carrier an extent
+ * does not work either — it works for the proprietor and fails for every
+ * employee, and a player-run carrier cannot be given a group.
+ *
+ * Three rails, all load-bearing and all structural:
+ *
+ *   1. **No caller-supplied owner.** It takes the `Business` and derives
+ *      the owner from its own durable path.
+ *   2. **The path must lie under that business's own branch.** A carrier
+ *      cannot stamp its ownership anywhere else in the tree — and this is
+ *      also what makes a depot's records cover *exactly* what it handled,
+ *      read by prefix (logistics D12/AC17).
+ *   3. **The `kind` is checked against {@link BUSINESS_DOCUMENT_KINDS}.**
+ *
+ * ⚠ Deliberately **no caller-module allowlist**, unlike `saveRelease`.
+ * The callers are pack registries — the haulage trade's today, a second
+ * trade's tomorrow — and a `FromModule` list here would be a kernel edit
+ * every such pack needs, which the standing rule forbids (*a pack must
+ * never need a kernel list edit*). The three rails above are the
+ * containment; the caller list would have added friction to TypeScript,
+ * which is already root.
+ */
+async function saveAsBusinessImpl(
+  business: Stuff & Business,
+  path: string,
+  kind: string,
+  data: Record<string, unknown>,
+): Promise<void> {
+  if (!MixinApi.isBusiness(business)) {
+    throw new Error(
+      'DocumentApi.saveAsBusiness: the owner must be a Business',
+    );
+  }
+  const owner = business.getTemplatePath() ?? '';
+  if (owner.length === 0) {
+    throw new Error(
+      'DocumentApi.saveAsBusiness: the business has no durable path to own by',
+    );
+  }
+  if (!path.startsWith(`${owner}/`)) {
+    throw new Error(
+      `DocumentApi.saveAsBusiness: ${path} is not under ${owner}'s own branch`,
+    );
+  }
+  if (!BUSINESS_DOCUMENT_KINDS.includes(kind)) {
+    throw new Error(
+      `DocumentApi.saveAsBusiness: '${kind}' is not a business-filed kind ` +
+        `(${BUSINESS_DOCUMENT_KINDS.join(', ')})`,
+    );
+  }
+
+  const doc = (await StoredDocument.findByPath(path)) ?? new StoredDocument();
+  doc.path = path;
+  doc.owner = owner;
+  doc.kind = kind;
+  doc.data = data;
+  await doc.save();
+
+  // Authorship is the acting author's, keyed on the path — the carrier
+  // owns the paper, a person (or an NPC clerk) wrote it. Same split as
+  // the release path.
   await ProvenanceApi.recordAuthoring({ path });
 }
 
@@ -312,6 +397,20 @@ export class DocumentLogic extends ApiLogic {
     data: Record<string, unknown>,
   ): Promise<void> {
     return saveReleaseImpl(publisher, path, data);
+  }
+
+  /**
+   * See {@link DocumentApi.saveAsBusiness}. ⚠⚠ The second ownership
+   * bypass; its three rails are in `saveAsBusinessImpl`.
+   */
+  @CallSecurity(DocumentApiCallers)
+  public async saveAsBusiness(
+    business: Stuff & Business,
+    path: string,
+    kind: string,
+    data: Record<string, unknown>,
+  ): Promise<void> {
+    return saveAsBusinessImpl(business, path, kind, data);
   }
 
   /** See {@link DocumentApi.save}. */

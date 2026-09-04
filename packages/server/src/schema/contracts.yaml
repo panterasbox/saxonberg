@@ -38,3 +38,11 @@ indexes:
   - keys: { boardPath: 1 }
     why: |
       The per-board scan: everything posted to one board.
+  - keys: { origin: 1 }
+    why: |
+      ⭐ The BACKHAUL read (logistics D17): a hauler standing at the far end
+      of a corridor asks what wants moving back, which is a scan by where
+      the work STARTS rather than by which board it hangs on. The one
+      collective structure the logistics build ships, and it needs its own
+      index because a gig's origin and its board are usually different
+      places.

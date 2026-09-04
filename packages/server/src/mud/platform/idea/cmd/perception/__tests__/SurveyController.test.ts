@@ -27,6 +27,8 @@ import { fileURLToPath } from 'url';
 import SurveyController from '../SurveyController';
 import ArchetypeCatalogue from '../../../ArchetypeCatalogue';
 import SingletonCartesianLocation from '../../../../location/SingletonCartesianLocation';
+import CartesianZone from '../../../location/CartesianZone';
+import { BiomeApi } from '../../../../../api/biome';
 import FurnishableRoom from '../../../../location/FurnishableRoom';
 import { InnerWarren } from '../../../../../lib/location/InnerWarren';
 import Chair from '../../../../thing/Chair';
@@ -93,6 +95,30 @@ function roomArchetypeDocs(): StoredDocument[] {
         getKind: () => 'archetype',
       } as unknown as StoredDocument;
     });
+}
+
+/**
+ * A synthetic archetype doc, for the two scopes the shipped rows do not
+ * exercise yet. The logistics build adds five industry-less archetypes;
+ * without `surveyScope` all five would land on every `survey` in the
+ * game, in every bedroom, for every player.
+ */
+function scopedDoc(
+  archetypeId: string,
+  label: string,
+  surveyScope: string,
+): StoredDocument {
+  const data = {
+    archetypeId,
+    label,
+    surveyScope,
+    capabilities: [{ key: 'shelter', needs: { seating: 1 }, default: null }],
+  };
+  return {
+    getPath: () => `/test/archetypes/${archetypeId}`,
+    getData: () => data as Record<string, unknown>,
+    getKind: () => 'archetype',
+  } as unknown as StoredDocument;
 }
 
 let captured: string;
@@ -266,6 +292,74 @@ describe('survey', () => {
     // The one thing D4 forbids: a gauge. `0.87` or `87%` must never appear.
     expect(captured).not.toMatch(/\d+(\.\d+)?\s*%/);
     expect(captured).not.toMatch(/\b0\.\d+\b/);
+  });
+
+  /* ── surveyScope (logistics D19 / P6) ────────────────────────── */
+
+  /** Re-warm the catalogue with the shipped rows PLUS `extra`. */
+  const warmWith = async (extra: StoredDocument[]): Promise<void> => {
+    vi.spyOn(DocumentApi, 'listOfKind').mockImplementation(async (kind: string) =>
+      kind === 'archetype' ? [...roomArchetypeDocs(), ...extra] : [],
+    );
+    const catalogue = StuffApi.findByTemplatePath<ArchetypeCatalogue>(
+      '/platform/idea/ArchetypeCatalogue',
+    )!;
+    await catalogue.warm();
+  };
+
+  it("an `off-room` archetype never appears in a room survey", async () => {
+    await warmWith([scopedDoc('haulage-rig', 'a haulage rig', 'off-room')]);
+    const room = makeStuff(() => new SingletonCartesianLocation());
+    await survey(makeStuff(() => new SingletonCartesianLocation()), room);
+    // A rig is surveyed by NAMING it, never by standing somewhere.
+    expect(captured).not.toContain('a haulage rig');
+    // …and the shipped four are untouched.
+    expect(captured).toContain('a bedroom: no');
+  });
+
+  it("a `corridor` archetype stays off an INDOOR survey", async () => {
+    await warmWith([scopedDoc('corridor', 'a way', 'corridor')]);
+    const room = makeStuff(() => new SingletonCartesianLocation());
+    vi.spyOn(BiomeApi, 'isSkyExposed').mockReturnValue(false);
+    await survey(makeStuff(() => new SingletonCartesianLocation()), room);
+    // ⭐ The whole point of the second field: five new archetypes must not
+    // print in every bedroom in the game.
+    expect(captured).not.toContain('a way');
+  });
+
+  it("a `corridor` archetype reports over ALL of a corridor's rooms at once (AC15l)", async () => {
+    await warmWith([scopedDoc('corridor', 'a way', 'corridor')]);
+    const zone = makeStuff(() => new CartesianZone());
+    const here = makeStuff(() => new SingletonCartesianLocation());
+    const along = makeStuff(() => new SingletonCartesianLocation());
+    zone.addLocation(here, 0, 0, 0);
+    zone.addLocation(along, 0, 1, 0);
+    // The shelter is a room AWAY — the union is the point.
+    ContainmentApi.move(
+      bed() as unknown as Stuff & Containable,
+      along as unknown as Stuff & Container,
+    );
+    vi.spyOn(BiomeApi, 'isSkyExposed').mockReturnValue(true);
+
+    await survey(makeStuff(() => new SingletonCartesianLocation()), here);
+    expect(captured).toContain('a way: yes');
+  });
+
+  it('a corridor missing its shelter reports the gap and blocks nothing', async () => {
+    await warmWith([scopedDoc('corridor', 'a way', 'corridor')]);
+    const zone = makeStuff(() => new CartesianZone());
+    const here = makeStuff(() => new SingletonCartesianLocation());
+    zone.addLocation(here, 0, 0, 0);
+    vi.spyOn(BiomeApi, 'isSkyExposed').mockReturnValue(true);
+
+    const ctx = await survey(
+      makeStuff(() => new SingletonCartesianLocation()),
+      here,
+    );
+    expect(captured).toContain('a way: no');
+    expect(captured).toContain('wants shelter');
+    // Reported, never enforced: nothing was rejected and nothing penalised.
+    expect(ctx.note).not.toHaveBeenCalled();
   });
 
   it('is afforded actor-side, beside `look`', () => {

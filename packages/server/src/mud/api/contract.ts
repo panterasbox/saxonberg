@@ -49,6 +49,13 @@ export interface GigSpec {
   asBusiness?: boolean;
   /** Optional posting lifetime (game-hours; 0/absent = the default). */
   expiresGameHours?: number;
+  /**
+   * ⭐ Where the work STARTS — a durable `templatePath`. Omitted ⇒ derived
+   * from the poster's own environment, so an NPC posting from its floor
+   * gets it right for free. Read by {@link ContractApi.openGigsFrom} —
+   * the backhaul (logistics D17).
+   */
+  originPath?: string;
 }
 
 /** A refusal is a value with a prose-ready reason (the verb renders it). */
@@ -139,6 +146,22 @@ export class ContractApi {
   /** The board browse: live gigs on `boardPath` (lazy expiry applied). */
   public static async openGigsOn(boardPath: string): Promise<ContractRecord[]> {
     return logic().openGigsOn(boardPath);
+  }
+
+  /**
+   * ⭐ **The backhaul read** (logistics D17): live gigs whose work STARTS
+   * at `originPath`, wherever they are posted. Lazy expiry applied, same
+   * as the board browse.
+   *
+   * A wagon returning empty has done half the work for all the cost, and
+   * *you cannot solve your own backhaul* — you need somebody else's cargo
+   * going the other way. That is a coordination problem with visible
+   * waste, and all it costs is this read plus a field.
+   */
+  public static async openGigsFrom(
+    originPath: string,
+  ): Promise<ContractRecord[]> {
+    return logic().openGigsFrom(originPath);
   }
 
   /** One gig's current-state row (lazy expiry applied), or null. */

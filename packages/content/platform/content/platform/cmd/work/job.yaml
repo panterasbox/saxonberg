@@ -18,9 +18,20 @@ help: |
   (or your sealed `fulfill` record), and pays out of escrow on the spot.
   `job abandon [id]` walks away: the escrow reverts, and the issuer
   remembers.
+
+  `jobs --origin here` asks a different question: not what hangs on this
+  board, but what wants moving OUT of where you are standing. That is the
+  backhaul — a wagon going home empty has done half the work for all the
+  cost, and you cannot solve your own: you need somebody else's cargo
+  going the other way.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
+options:
+  origin:
+    short: o
+    type: string
+    description: "List work starting HERE (or at a named place) — the backhaul."
 subcommands:
   post:
     description: "Post a delivery gig, reward held in escrow"
@@ -31,6 +42,8 @@ subcommands:
     examples:
       - cmd: job post crate to the bar for 25
         note: Post an exclusive delivery gig, 25 credits on completion
+      - cmd: job post crate to the depot for 30 --from the brewing floor
+        note: Name where the goods are collected, so a hauler can find the backhaul
     args:
       - name: item
         type: object
@@ -55,6 +68,10 @@ subcommands:
       business:
         type: boolean
         description: "Post as your business (escrow from its account)."
+      from:
+        short: f
+        type: string
+        description: "Where the goods are collected (default: where you post)."
       expires:
         short: e
         type: number

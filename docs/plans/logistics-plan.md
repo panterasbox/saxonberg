@@ -682,7 +682,7 @@ for it anyway.
 
 ---
 
-## Wave W2 — Kernel substrate B: the paper, the board, the archetype
+## ✅ Wave W2 — Kernel substrate B: the paper, the board, the archetype
 
 **Lands:** every kernel seam the two new packs will need, so W3–W9 add no
 further kernel surface.
@@ -735,6 +735,54 @@ edit entirely).
 **Exit gate:** `test:near`; `lib/document`, `lib/employment`, `lib/archetype`,
 `platform` suites green; **`lint:schema` green and no new
 collection**; `lint:census`, `lint:untitled`, `lint:instanceable` green.
+
+### ✅ W2 done
+
+`test:near` 3990/3990, 25/25 lint gates, `pnpm lint` 0 errors. Retail is
+untouched, as P9's revision said it would be.
+
+**Four decisions the plan left open, and what decided them:**
+
+1. ⭐⭐ **`saveAsBusiness` has NO caller-module allowlist**, unlike its
+   twin `saveRelease` (which is gated to `PressLogic`). Its callers are
+   **pack registries** — the haulage trade's today, a second trade's
+   tomorrow — so a `FromModule` list here would be *a kernel list edit
+   every paper-filing pack needs*, which the requirements forbid outright
+   (*a pack must never need a kernel list edit*). The three structural
+   rails are the containment: derived owner, path constrained to the
+   business's own branch, closed three-member kind allowlist. `TypeScript
+   access IS root`, so the caller list would have bought friction against
+   nobody. Asserted, not assumed — `business-paper-transport.test.ts`.
+2. ⭐⭐⭐ **`surveyScope: 'corridor'` is gated on `BiomeApi.isSkyExposed`,
+   not on a zone marker.** The plan said *"skipped when that zone is not
+   a corridor zone"* and named no mechanism, and the obvious one — a
+   field on the zone — is **forbidden by D20** (*zone: nothing new*; a
+   logistics field wanting zone-level inheritance is the
+   mixin-on-the-wrong-host mistake in field form). An undeclared field in
+   a zone's `data` would also be silently discarded by the Hydrator, the
+   orphaned-`data` antipattern. **Outdoors is what makes somewhere a WAY
+   rather than a room**, `isSkyExposed` is the shipped kernel predicate
+   for it, and it costs no field anywhere. ⚠ An outdoor square does
+   answer the corridor questions — and that is right, not noise: D18's
+   own table calls the high street a corridor, and the report is
+   *reported, never enforced*.
+3. **The `origin` read is `ContractApi.openGigsFrom(originPath)`**, a
+   second finder rather than an options bag on `openGigsOn`. The backhaul
+   is *a different question* — "what wants moving out of here", wherever
+   it is posted — not a filter on one board's list, and `--from` on a
+   board browse would have implied the two compose when they do not.
+   `ContractRecord.findLiveByOrigin` + a `{ origin: 1 }` index on the
+   shipped `contracts` collection.
+4. **`edgeMinutes`, `origin` and the two archetype fields all default to
+   the old behaviour**, so every shipped row is byte-identical with them
+   unauthored — asserted for the archetypes (AC15k) because that is the
+   one the requirements name.
+
+**Surprise:** the release-transport suite's persistence mock is
+**collection-blind**, and the provenance row `saveAsBusiness` also writes
+came back out of a `documents` prefix scan as a phantom duplicate. The
+new suite's mock is collection-aware; the old one is fine only because it
+never lists by prefix.
 
 ---
 

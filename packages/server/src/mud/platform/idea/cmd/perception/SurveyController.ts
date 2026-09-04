@@ -35,6 +35,7 @@ import type ArchetypeCatalogue from '../../ArchetypeCatalogue';
 import { StuffApi } from '../../../../api/stuff';
 import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
+import { BiomeApi } from '../../../../api/biome';
 import { Mml } from '../../../../api/mml';
 
 const CATALOGUE_PATH = '/platform/idea/ArchetypeCatalogue';
@@ -75,6 +76,11 @@ export default class SurveyController extends CommandController {
         )
       : [room as Stuff & Container];
 
+    // The corridor space set: every room of the zone the actor stands in,
+    // resolved BY ZONE rather than by lane, so this controller imports no
+    // pack and the shipped zones are read rather than extended.
+    const wayside = this.waysideSpaces(room as Stuff & Container);
+
     const lines: string[] = [];
     lines.push(
       holding
@@ -82,11 +88,23 @@ export default class SurveyController extends CommandController {
         : 'You take stock of the room:',
     );
 
-    if (archetypes.length === 0) {
+    const reported = archetypes.filter(
+      (a) => a.getSurveyScope() !== 'off-room' &&
+        (a.getSurveyScope() !== 'corridor' || wayside !== null),
+    );
+    if (reported.length === 0) {
       lines.push('  (nothing here knows what a room is for.)');
     }
-    for (const archetype of archetypes) {
-      lines.push(this.reportOf(archetype.satisfies(spaces)));
+    for (const archetype of reported) {
+      lines.push(
+        this.reportOf(
+          archetype.satisfies(
+            archetype.getSurveyScope() === 'corridor' && wayside
+              ? wayside
+              : spaces,
+          ),
+        ),
+      );
     }
 
     if (holding) {
@@ -138,6 +156,32 @@ export default class SurveyController extends CommandController {
       .allArchetypes()
       .filter((a) => a.getIndustry() === null)
       .sort((a, b) => a.getArchetypeId().localeCompare(b.getArchetypeId()));
+  }
+
+  /**
+   * The rooms a `surveyScope: 'corridor'` archetype reports over, or
+   * `null` when this is not a place a way runs through.
+   *
+   * ⭐ **Outdoors is what makes somewhere a WAY rather than a room**, and
+   * `BiomeApi.isSkyExposed` is the shipped predicate for it — so this
+   * costs no new field on the zone (logistics D20: *zone, nothing new*)
+   * and no marker anywhere. A high street and a towpath both answer; a
+   * bedroom, a bar and a brewing floor do not, which is what keeps five
+   * new lines off every `survey` in the game.
+   *
+   * ⚠ An outdoor square DOES answer, and that is correct rather than
+   * noise: D18's own table calls the high street a corridor, and *is
+   * there shelter, water, a crossing, light here* is a fair question to
+   * ask of any public outdoor ground. Reported, never enforced.
+   */
+  private waysideSpaces(room: Stuff & Container): (Stuff & Container)[] | null {
+    if (!BiomeApi.isSkyExposed(room)) return null;
+    const zone = room.getZone();
+    if (!zone) return [room];
+    const rooms = [...zone.getLocations()]
+      .map((l) => l as unknown as Stuff)
+      .filter((l): l is Stuff & Container => MixinApi.isContainer(l));
+    return rooms.length > 0 ? rooms : [room];
   }
 
   /** The room's holding, when it belongs to one and it answers for a shell. */
