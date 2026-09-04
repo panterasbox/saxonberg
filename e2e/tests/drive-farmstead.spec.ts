@@ -182,19 +182,23 @@ test('the campus farm, end to end', async ({ browser }) => {
     await see('draft 3', /cut number 3 out of|the college herd/i);
     await snap('drafted');
 
-    // …and the animal is really there, with the rest of the loop on it.
+    // ⭐⭐ …and it answers to what it IS — which is the species binding
+    // arriving all the way at the player.
     //
-    // ⚠ `handle stock`, not `handle cow`. The livestock row is generic —
-    // ONE row serves every species a herd can be founded on — and a
-    // drafted head comes up with **no species bound to it**, so it never
-    // learns the words `cow`, `heifer` or `calf` that its own species row
-    // already carries. Reported rather than papered over: a speciesless
-    // Creature also has no body plan and no vital profile behind it,
-    // which is a bigger thing than the noun.
+    // The livestock row is generic, because ONE row serves every species
+    // a herd can be founded on. `draft` stands the herd's species up and
+    // folds its own `commonNames` in, so the head that comes out of a
+    // cattle herd is a **cow**. Until it did, `handle cow` answered
+    // *"that is not an animal you can work with"* about the cow standing
+    // in front of you — and the row's authored keywords had never worked
+    // either, because a `Creature` is not `Perceptible`.
     await see(
-      'handle stock',
+      'handle cow',
       /run a hand down the spine|get a hand on it, barely|swings hard into you/i,
     );
+    await expect(
+      page.getByText(/not an animal you can work with/i),
+    ).toHaveCount(0);
     await snap('handled');
   } finally {
     await snap('final');

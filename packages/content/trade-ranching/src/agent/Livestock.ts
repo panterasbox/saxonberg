@@ -28,11 +28,30 @@
 
 import { Creature } from '@saxonberg/server/mud/lib/creature/Creature';
 import { HandlingMixin } from '@saxonberg/server/mud/lib/husbandry/Handling';
+import { PerceptibleMixin } from '@saxonberg/server/mud/lib/description/Perceptible';
 import { ProducingMixin } from '../lib/Producing';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 
-export default class Livestock extends ProducingMixin(HandlingMixin(Creature)) {
+/**
+ * ⚠⚠ **`PerceptibleMixin`, and it is a bug fix rather than a feature.**
+ *
+ * A `Creature` composes `Visible` and `Named` but NOT `Perceptible`,
+ * because a person is addressed by their NAME. An animal is not: it is
+ * addressed by what it is — *the cow*, *the beast*, *the heifer*. The
+ * livestock row has always authored
+ * `keywords: [head, stock, animal, beast]`, and every one of them was
+ * **silently discarded**: the Hydrator writes only what `fieldMeta`
+ * declares, nothing declared `keywords`, and the field did not exist.
+ *
+ * The symptom in play was that a drafted head answered to `stock` and to
+ * nothing else — and only because *"a head of stock"* is its short
+ * description. `handle beast` said *"that is not an animal you can work
+ * with"* about the animal standing in front of you. Found by driving it.
+ */
+export default class Livestock extends ProducingMixin(
+  HandlingMixin(PerceptibleMixin(Creature)),
+) {
   /**
    * ⭐ The animal affords the acts you do TO an animal. ⚠ A row's
    * `commandContributions:` is dead silently — the affordance is a

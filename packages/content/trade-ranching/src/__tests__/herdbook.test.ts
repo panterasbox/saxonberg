@@ -32,6 +32,10 @@ import { PersistenceManager } from '@saxonberg/server/mud/lib/persistence/__test
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import Herdbook from '../thing/Herdbook';
+import Livestock from '../agent/Livestock';
+import Species from '@saxonberg/server/mud/platform/idea/species/Species';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 
 const REGISTRY_PATH = '/trade/ranching/idea/HerdRegistry';
 
@@ -329,5 +333,74 @@ describe('the herdbook fixture', () => {
     ) as Herdbook;
     await expect(b.postRegister()).resolves.toBeUndefined();
     expect(await reg.all()).toEqual([]);
+  });
+});
+
+
+/**
+ * ⚠⚠ **A head has to be addressable as what it is**, and for a while it
+ * was not.
+ *
+ * A `Creature` composes `Visible` and `Named` but not `Perceptible`,
+ * because a person is addressed by their NAME. An animal is not. The
+ * livestock row has always authored
+ * `keywords: [head, stock, animal, beast]` and every one of them was
+ * silently discarded — the Hydrator writes only what `fieldMeta`
+ * declares, and nothing declared `keywords`. In play a drafted head
+ * answered to `stock` and nothing else, and only because *"a head of
+ * stock"* is its short description: `handle beast` said *"that is not an
+ * animal you can work with"* about the animal in front of you.
+ */
+describe('a drafted head is addressable', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    StuffApi.clearAll();
+    installStore();
+  });
+  afterEach(() => {
+    vi.restoreAllMocks();
+    StuffApi.clearAll();
+  });
+
+  it('⚠⚠ composes Perceptible, so the row\'s authored keywords are REAL', async () => {
+    const beast = await StuffApi.create(() => new Livestock());
+    expect(MixinApi.isPerceptible(beast as unknown as Stuff)).toBe(true);
+    beast.setKeywords(['head', 'stock', 'animal', 'beast']);
+    expect(beast.getKeywords()).toContain('beast');
+  });
+
+  it('⭐ binding the species is what lets it answer to `cow`', async () => {
+    const species = makeStuffAtPath(
+      () => new Species(),
+      '/stuff/idea/species/_test/cow',
+    ) as Species;
+    species.setCommonNames(['cow', 'heifer', 'calf']);
+
+    const beast = await StuffApi.create(() => new Livestock());
+    beast.setKeywords(['head', 'stock']);
+    beast.setSpecies(species);
+
+    // ⭐ The binding is a PATH, resolved on read — which is why standing
+    // the species up matters: an unstamped instance would set nothing.
+    expect(beast.getSpecies()).not.toBeNull();
+
+    // What `draft` folds in: the generic words stay, the species' own
+    // words join them, and the head presents as what it is.
+    const names = beast.getSpecies()!.getCommonNames().map((n) => n.toLowerCase());
+    beast.setKeywords([...new Set([...beast.getKeywords(), ...names])]);
+    expect(beast.getKeywords()).toEqual(
+      expect.arrayContaining(['head', 'stock', 'cow', 'heifer', 'calf']),
+    );
+  });
+
+  it('⚠ setSpecies on an UNSTAMPED species silently binds nothing', async () => {
+    // The seam worth knowing about: the binding is `getTemplatePath()`,
+    // so a species that was cloned rather than resolved records `null`
+    // and the head comes up with no body plan behind it. It is why
+    // `draft` stands the species up instead of taking whatever is handy.
+    const loose = await StuffApi.create(() => new Species());
+    const beast = await StuffApi.create(() => new Livestock());
+    beast.setSpecies(loose);
+    expect(beast.getSpecies()).toBeNull();
   });
 });
