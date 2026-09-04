@@ -475,6 +475,20 @@ above. `asIdentityPath` from a scheme keyed on the deceased is exactly
 `OuterWarren`'s pattern. Cheap now; a data migration later, and there are
 no migrations.
 
+⭐⭐ **Sequenced ahead of #40 by decision (2026-09-04)**, and deliberately
+**not** gated on the rest of this slate — it shares this slate's diagnosis
+but none of its open questions. On the `roadmap.md` v1 punch list, and
+flagged on #40 itself.
+
+⚠ **Two things the scheme has to survive**, and both are cheap to get
+right now and awkward afterwards:
+
+- **`reembody`** — one person can leave several corpses, so the deceased's
+  identity alone is not unique.
+- **An `Extra`'s deceased key is shared with its siblings** — two dead
+  sentries would collide on the deceased half. The *moment* is what
+  separates them, which is another reason to key on both.
+
 ---
 
 ## ⭐⭐ The falsifiability property — the best thing in the provocation
@@ -607,9 +621,14 @@ is settled by evidence rather than argument.
    nothing repeats a row *yet*; the day one does, it moves to the front.
    ⚠ Q0 gates it.
 8. **The corpse identity** — `asIdentityPath` at the one mint site.
-   Latent today, and **the necropolis (#40) is the build that hits it**;
-   worth landing before that starts, because the alternative is a
-   migration and there are no migrations.
+   ⭐⭐ **DECIDED 2026-09-04: this lands BEFORE the necropolis (#40)**, and
+   it does not wait for the rest of this slate — it is one argument at one
+   call site and it is independent of every open question here. Tracked on
+   the `roadmap.md` v1 punch list so it is visible to whoever picks up #40
+   rather than buried in a slate that is not yet requirements.
+   ⚠ The scheme must survive two things: **`reembody`** (one person can
+   leave several corpses) and an **`Extra`'s shared deceased key** — so key
+   on the deceased *and the moment*, never the deceased alone.
 
 ⭐ Steps 1–3 are the build; 4 is what keeps it honest; 5–6 are the
 consumers. The clinic build waits on 6 and should not start before Q3 is

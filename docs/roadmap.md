@@ -681,6 +681,25 @@ onboarding → dorm + authoring), each thin-engine / content-heavy:
 Tactical work that doesn't need a slate. Pull these in
 opportunistically.
 
+- ⚠⚠ **Every corpse in the world shares one identity — land this BEFORE
+  the necropolis.** `ConditionLogic.mintCorpseFrom` clones
+  `TemplatePaths.mortalityCorpse` with a `dataOverlay` and **no
+  `asIdentityPath`**, so `getIdentityPath()` returns the corpse *template*
+  path for every body ever made, a player's included. Nothing is broken
+  today and the reason is worth keeping: per-instance facts arrive as
+  hydrated **fields** (`"the body of …"`, `_speciesPath`, `causeOfDeath`,
+  `diedAtGameSec`), never as ledger rows — the mortality build only ever
+  needed fields. ⚠ **The necropolis content pass (#40) is what breaks it**:
+  *"a monument is chronicle made physical"* over a shared identity is one
+  chronicle for every death that has ever happened. The fix is one argument
+  at one call site, `OuterWarren`'s scheme-derived pattern exactly.
+  ⭐ **Two things the scheme has to survive**, both cheap now and awkward
+  later: `reembody` means **one person can leave several corpses**, and an
+  **Extra's** deceased key is shared with its siblings — so key on the
+  deceased *and the moment*, not the deceased alone. Sequenced ahead of #40
+  by decision; the alternative once graves exist is a migration, and there
+  are no migrations. See
+  [dossier-slate](./slates/builds/dossier-slate.md) § *the victim mirror*.
 - ⚠⚠ **The Hearthworks has no inbound exit.** Found by the food-safety
   drive, in a live browser, by trying to walk there: the TPA board offers
   only Terminus and nothing connects onward, so both Hearthworks venues —
