@@ -267,6 +267,13 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     // The zone's ground model, and the collier's three outcomes.
     'deposit', 'groundCharacter', 'charcoalTemplate', 'brandsTemplate',
     'ashTemplate',
+    // The herdbook: the species every head belongs to, and the ground
+    // the herd claims as home. ⭐ `speciesPath` here is the UNPREFIXED
+    // twin of `_speciesPath` (line 113) — a herdbook is not a creature,
+    // so it carries the citation rather than the instruction — and
+    // `homeExtent` names a real zone, which is the jurisdictional anchor
+    // straying is derived against. Both flagged by clause (d).
+    'speciesPath', 'homeExtent',
     'gangueMaterialPath',
   ] as const) {
     push(scalar, data[scalar]);

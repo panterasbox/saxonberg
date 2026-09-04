@@ -43,6 +43,9 @@ data:
   ambientColorTemperature: 5800
   props:
     - /world/eternal/campus-farm/thing/byre
+    # ⭐ The book on the byre door, which is what AFFORDS `draft` — and
+    # what founds the college herd the first time this yard registers.
+    - /world/eternal/campus-farm/thing/herdbook
     - /world/eternal/campus-farm/thing/yard-wall
     - /world/eternal/campus-farm/thing/trough
     - /world/eternal/campus-farm/thing/hay-barn

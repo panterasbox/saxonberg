@@ -363,6 +363,9 @@ importers:
       '@saxonberg/content-trade-farming':
         specifier: workspace:*
         version: link:../trade-farming
+      '@saxonberg/content-trade-ranching':
+        specifier: workspace:*
+        version: link:../trade-ranching
       '@saxonberg/server':
         specifier: workspace:*
         version: link:../../server

@@ -1,0 +1,58 @@
+# ⭐⭐ **The college herd** — six cows, and the book that says so.
+#
+# `trade-ranching` ships the `Herdbook` CLASS and no cattle. A herd is a
+# thing about somewhere, so it belongs to the venue, exactly as the
+# Ferrow orebody belongs to Rejection and not to `trade-mining`.
+#
+# ## What is authored and what is not
+#
+# ⚠ Six numbers, and nothing else. Every head's sex, frame, age and
+# condition is a deterministic function of `(herdId, index)` — head 3 is
+# the same animal every time anybody looks at it, and the answer was true
+# before anyone asked. Nobody authored the thin one; the thin one is
+# simply what number 3 turned out to be, and finding it is stockmanship
+# rather than reading.
+#
+# ## ⭐ You fill in the form; the society keeps the book
+#
+# Registering this row FILES the herd onto `/trade/ranching/herds`, a
+# branch titled to the ranching group — so the college can found a herd
+# and cannot afterwards edit its own record. That separation is the whole
+# of P4 and it is not bureaucratic: a herdbook is a sales document, and a
+# record whose subject holds the pen is worth nothing to a buyer.
+#
+# ⚠ Filing is get-or-create. This row is what the herd STARTED as; the
+# document is what it has become, and a re-registration never rolls it
+# back.
+#
+# ## Six, because the byre says six
+#
+# *"Six can stand out of the weather in here, and in February they will."*
+# The building was written first and the herd fits it, which is the right
+# way round — a byre is a real constraint on a real number of animals,
+# and a student who wonders why not sixty has learned what a byre is for.
+class: /trade/ranching/thing/Herdbook
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the herdbook
+  primaryKeyword: herdbook
+  keywords: [herdbook, book, register, ledger]
+  longDescription: >-
+    A hide-bound book hanging from a nail inside the byre door, swollen
+    at the corners from a wet winter. Ruled columns: number, dam, born,
+    served, calved. Six numbers are written in and one of them has been
+    crossed out and written again in a different hand.
+  mass: 1.4
+  herdId: college-herd
+  herdName: the college herd
+  speciesPath: /stuff/idea/species/animalia/chordata/mammalia/artiodactyla/bovidae/bos/taurus
+  tally: 6
+  # The farm is the university's, so the herd is too — the same office
+  # that appoints its labourer.
+  holderRef: organization:/stuff/idea/Government/eternal-university
+  homeExtent: /world/eternal/campus-field
+  details:
+    numbers:
+      keywords: [numbers, columns, entries, hand]
+      description: |
+        The numbers run one to six and the columns beside them are mostly blank, because nobody has been keeping it up. Number four is crossed out and rewritten, which means either a mistake or a change of mind about which animal that was, and there is nobody left here to ask.

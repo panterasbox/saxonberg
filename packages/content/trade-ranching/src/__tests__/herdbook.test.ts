@@ -31,6 +31,7 @@ import { Document } from '@saxonberg/server/mud/lib/persistence/Document';
 import { PersistenceManager } from '@saxonberg/server/mud/lib/persistence/__tests__/backend-store';
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
+import Herdbook from '../thing/Herdbook';
 
 const REGISTRY_PATH = '/trade/ranching/idea/HerdRegistry';
 
@@ -228,5 +229,105 @@ describe('the seeded head', () => {
     // Everything it does not name is untouched.
     expect(folded.handling).toBe(seeded.handling);
     expect(folded.sex).toBe(seeded.sex);
+  });
+});
+
+
+/**
+ * ⭐⭐ **The book on the wall — the door into all of this.**
+ *
+ * `draft` was afforded by NOTHING and no herd could be filed in play at
+ * all, which are the same hole seen from two sides: the mechanisms were
+ * built and tested and a player standing in the byre got *"I don't
+ * understand 'draft'"*. A live drive found it.
+ *
+ * The seam is the real-world one — **you fill in the form; the society
+ * keeps the book.** The venue authors the herd on its own row; the row
+ * files it onto the trade's branch, where the venue cannot edit it
+ * afterwards.
+ */
+describe('the herdbook fixture', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    StuffApi.clearAll();
+    installStore();
+  });
+  afterEach(() => {
+    vi.restoreAllMocks();
+    StuffApi.clearAll();
+  });
+
+  const book = (over: Partial<Record<string, unknown>> = {}): Herdbook => {
+    const b = makeStuffAtPath(
+      () => new Herdbook(),
+      '/world/test/thing/herdbook',
+    ) as Herdbook;
+    b.setHerdId((over.herdId as string) ?? 'college-herd');
+    b.setHerdName((over.herdName as string) ?? 'the college herd');
+    b.setSpeciesPath((over.speciesPath as string) ?? '/stuff/idea/species/_test/cow');
+    b.setTally((over.tally as number) ?? 6);
+    b.setHolderRef((over.holderRef as string) ?? 'organization:/stuff/idea/Government/x');
+    b.setHomeExtent((over.homeExtent as string) ?? '/world/test/field');
+    return b;
+  };
+
+  it('⭐⭐ affords `draft` to whoever is in the room', () => {
+    // The `ClaimsRegister` shape: a trade's acts are conferred by the
+    // trade's own fixtures. Environment AND peers, so it works standing
+    // next to it and for anybody else in the byre.
+    const c = Herdbook.commandContributions;
+    expect(c.environment).toContain('trade/ranching/cmd/ranching/draft.yaml');
+    expect(c.peers).toContain('trade/ranching/cmd/ranching/draft.yaml');
+    // ⚠ Not `self`: you do not carry the byre's book around with you.
+    expect(c.self).toEqual([]);
+  });
+
+  it('⭐ registering it FILES the herd onto the trade\'s branch', async () => {
+    const reg = registry(); // the register has to exist to file into
+    const b = book();
+    await b.postRegister();
+
+    const filed = await reg.read('college-herd');
+    expect(filed).not.toBeNull();
+    expect(filed!.tally).toBe(6);
+    expect(filed!.name).toBe('the college herd');
+    expect(filed!.homeExtent).toBe('/world/test/field');
+    // ⚠⚠ And it landed under the REGISTRY prefix, not under the venue's
+    // own branch — which is the whole of P4. A record the college could
+    // edit would be worth nothing to a buyer.
+    const rows = col('documents').filter((d) => d.kind === HERD_KIND);
+    expect(rows).toHaveLength(1);
+    expect(String(rows[0]!.path)).toContain(HERD_PREFIX);
+  });
+
+  it('⚠⚠ filing is GET-OR-CREATE — a cold room never rolls the herd back', async () => {
+    const reg = registry();
+    const b = book();
+    await b.postRegister();
+
+    // The herd lives a bit: one head out, and the register remembers
+    // something about another.
+    await reg.draft('college-herd', 2);
+    const live = (await reg.read('college-herd'))!;
+    live.overlay['4'] = { flesh: 31, note: 'the thin one' };
+    await reg.update(live);
+
+    // The room goes cold and comes back. If this re-filed, six head with
+    // no history would silently replace everything that had happened.
+    await b.postRegister();
+
+    const after = (await reg.read('college-herd'))!;
+    expect(after.drafted.map((d) => d.index)).toEqual([2]);
+    expect(after.overlay['4']?.note).toBe('the thin one');
+  });
+
+  it('a book naming no herd files nothing, and says nothing', async () => {
+    const reg = registry();
+    const b = makeStuffAtPath(
+      () => new Herdbook(),
+      '/world/test/thing/blank-book',
+    ) as Herdbook;
+    await expect(b.postRegister()).resolves.toBeUndefined();
+    expect(await reg.all()).toEqual([]);
   });
 });

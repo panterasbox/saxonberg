@@ -159,13 +159,43 @@ test('the campus farm, end to end', async ({ browser }) => {
     await see('plough', /traces over your shoulders|turned and clean|want a plough/i);
     await snap('ploughing');
 
-    // ---------- ⚠ the herd ----------
-    // A PROBE rather than an assertion. `draft` is the entry point to the
-    // whole ranching half, and if the answer is anything other than the
-    // act working, the finding is that the half cannot be entered.
-    await runCommand(page, 'draft 0');
-    await page.waitForTimeout(2500);
-    await snap('draft');
+    // ---------- ⭐⭐ the herd ----------
+    // `draft` is the entry point to the whole ranching half, and it was
+    // afforded by NOTHING — a player in the byre got *"I don't understand
+    // 'draft'"*, while `Livestock` afforded the other seven verbs you
+    // could only reach by drafting first. Circular. And no herd could be
+    // filed in play at all.
+    //
+    // ⭐ Both ends are now the herdbook on the byre door: it affords the
+    // verb (the `ClaimsRegister` shape) and it founds the college herd
+    // the first time this yard registers. **You fill in the form; the
+    // society keeps the book** — the record lands on the trade's branch,
+    // where the college cannot edit it.
+    await runCommand(page, 'go yard');
+    await page.waitForTimeout(1500);
+    await see('look herdbook', /hide-bound|ruled columns/i);
+    await snap('herdbook');
+
+    // ⭐ Head 3 is a deterministic function of (herdId, index): the same
+    // animal every time anybody looks, and the answer was true before
+    // anyone asked. Nobody authored the thin one.
+    await see('draft 3', /cut number 3 out of|the college herd/i);
+    await snap('drafted');
+
+    // …and the animal is really there, with the rest of the loop on it.
+    //
+    // ⚠ `handle stock`, not `handle cow`. The livestock row is generic —
+    // ONE row serves every species a herd can be founded on — and a
+    // drafted head comes up with **no species bound to it**, so it never
+    // learns the words `cow`, `heifer` or `calf` that its own species row
+    // already carries. Reported rather than papered over: a speciesless
+    // Creature also has no body plan and no vital profile behind it,
+    // which is a bigger thing than the noun.
+    await see(
+      'handle stock',
+      /run a hand down the spine|get a hand on it, barely|swings hard into you/i,
+    );
+    await snap('handled');
   } finally {
     await snap('final');
     await close();

@@ -15,6 +15,7 @@
     "@saxonberg/content-platform": "workspace:*",
     "@saxonberg/content-residence": "workspace:*",
     "@saxonberg/content-trade-farming": "workspace:*",
+    "@saxonberg/content-trade-ranching": "workspace:*",
     "@saxonberg/server": "workspace:*",
     "@saxonberg/types": "workspace:*"
   },
