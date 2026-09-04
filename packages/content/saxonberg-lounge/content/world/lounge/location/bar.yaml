@@ -129,9 +129,13 @@ data:
     # The bar bundle by reference (`/trade/hospitality/location/bar` —
     # template inheritance does not exist, so the same list is spelled
     # here): the shelves, the tools on the well, the stations, the seats.
-    # NO bottles: the rail is stocked by BUYING — Mara's `restocks` beat at
-    # the cash-and-carry against the business's par sheet — never by
-    # populates magic; a reboot leaves the rail exactly as the record says.
+    # NO bottles: the rail is stocked by ORDERING — Mara's `restocks` beat
+    # posts a carriage bounty against the business's par sheet and clears
+    # the receiving bench onto the rail, and somebody carries the goods.
+    # Never populates magic; a reboot leaves the rail exactly as the
+    # record says. ⚠ She used to walk to the cash-and-carry and buy;
+    # logistics D11 ended that, and the Lounge is off the road map, so
+    # the leg is the hauler's.
     - /trade/hospitality/thing/back-bar
     - /trade/hospitality/thing/well
     - { template: /trade/hospitality/thing/shaker, onto: /trade/hospitality/thing/well }

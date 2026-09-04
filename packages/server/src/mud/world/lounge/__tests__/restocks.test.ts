@@ -170,7 +170,7 @@ function stock(path: string, kw: string): Stock {
  */
 class TestRack extends ContainerMixin(Thing) {}
 
-describe("the keeper's back loop — Mara restocks Dave's Bar from the cash-and-carry", () => {
+describe("the keeper's back loop — Mara orders Dave's Bar's rail in, and receives it", () => {
   let bar: Location;
   let floor: Location;
   let cashAndCarry: Location;

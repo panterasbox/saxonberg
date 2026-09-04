@@ -53,7 +53,7 @@ describe("Dave's Bar — the rail is bought, never populated (libations D14)", (
       (p) => (typeof p === "string" ? p : p.template),
     );
 
-  it("no bottle rides `props` — the keeper's restocks beat stocks the rail by buying", () => {
+  it("no bottle rides `props` — the keeper's restocks beat stocks the rail by ORDERING", () => {
     for (const t of populates()) expect(t, t).not.toMatch(/bottle|keg|crate/);
     for (const f of ["gin-bottle", "vermouth-bottle", "rum-bottle", "lime-bottle"]) {
       expect(existsSync(`${LOUNGE_DIR}thing/${f}.yaml`), f).toBe(false);
