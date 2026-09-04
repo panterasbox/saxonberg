@@ -132,7 +132,7 @@ behavior. Read the relevant doc before editing in its area.
   - [spatial.md](./docs/subsystems/spatial.md) — containment/movement substrate: Container/Containable/Mobile/Surfaced/Sealable, vessels
   - [location.md](./docs/subsystems/location.md) — room/coordinate/zone geometry, the Warren elastic graph, lounge content, `startLocation`
   - [boundary.md](./docs/subsystems/boundary.md) — exits/doors/Adornable, exit-kind templates, DeferredDestinationExit, Switchable/Lockable/Bistate, locks & keys
-  - [bulk.md](./docs/subsystems/bulk.md) — continuous matter: Bulkable slots, transfer/drain-through, measure grammar, fill/pour/drink
+  - [bulk.md](./docs/subsystems/bulk.md) — continuous matter and NOTHING else: Bulkable slots, transfer/drain-through, measure grammar, fill/pour/drink; the vessel kind is `VesselKindMixin`, and `BulkPayload` carries only what cannot derive (subsystems declare their own fields onto it)
   - [light.md](./docs/subsystems/light.md) — Light value object, `signalAt`, AmbientLit, LightSource, per-viewer perception
   - [augmentation.md](./docs/subsystems/augmentation.md) — augment-confers-mixin, getActiveMixins, @RequiresActive, the three-base capability model
   - [senses.md](./docs/subsystems/senses.md) — SenseChannel vocabulary, Modality singletons, PerceptionApi
@@ -181,6 +181,7 @@ behavior. Read the relevant doc before editing in its area.
   - [husbandry.md](./docs/subsystems/husbandry.md) — the growth model: GrowingMixin reconcile-on-read (no far-past guard), min-of-four limiting factor, the pot-as-N=1-bed object shape, the houseplant
   - [smallholding.md](./docs/subsystems/smallholding.md) — ground you own: CultivableMixin (a pot is a bed with one slot), soil's own checkpoint, land use's closed six, weakest-link harvest grade, `title`, PlatBook/PlatWarren/LotGateExit, Hinkley Hills
   - [mining.md](./docs/subsystems/mining.md) — ground you cut: the Deposit field (seeded, never drawn), WorkingMixin's four reads, MineWarren carve/shore/promote, the damps + the canary, grade end-to-end to the smelt
+  - [spoilage.md](./docs/subsystems/spoilage.md) — food that goes off: the microbial LOAD (`μ = μ_max · f_T · f_aw`, Arrhenius over a per-Material activation energy), FreshnessMixin on `Provision`, the bands, the kill's formed toxin, `lint:perishable`
   - [thermal.md](./docs/subsystems/thermal.md) — heat exchange: ThermalMixin Newton cooling, the thermos/campfire, ThermalRegulation
   - [respiration.md](./docs/subsystems/respiration.md) — air exchange + asphyxiation: the crisis engagement drain, `breathableMedia`, AirTank
   - [shell-workspace.md](./docs/subsystems/shell-workspace.md) — WorkspaceMixin cwd state, `workspace.tree`, read/write verb suite, SourceTreeApi

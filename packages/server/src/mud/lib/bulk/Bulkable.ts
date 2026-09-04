@@ -202,8 +202,8 @@ export interface BulkPayload {
    * subsystems' vocabulary and why `lib/bulk` imports `lib/metabolism`.
    *
    * ⭐ With paths and servings, each subsystem derives its own facts on
-   * read, in its own folder. See
-   * `docs/plans/bulk-decomposition-plan.md`.
+   * read, in its own folder. See `docs/subsystems/bulk.md` §
+   * `BulkPayload`.
    */
   composition?: BlendPart[];
 

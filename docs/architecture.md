@@ -929,6 +929,11 @@ registry) lives in `lib/mixin.ts`.
 
 | Folder | Mixin | Purpose |
 |---|---|---|
+| `lib/bulk/` | `VesselKindMixin` | the vessel KIND (`coupe`, `keg`, `vat`, `sack`) — the par key that ties an empty vessel to the product that is that vessel filled. ⚠ NOT on `BulkableMixin`: a floor puddle has volume and no par key |
+| `lib/bulk/` | `CutleryMixin` | `utensilKind` (`spoon`/`fork`/`table-knife`) — what you eat WITH, on a host that is not a vessel |
+| `lib/craft/` | `ServiceableMixin` | the venue's washable kit: soiled · technique · wash · claimable. Shared by `CraftVessel` (which overrides `wash`/`isClaimable` to add the dregs and the ice) and `Cutlery` (which holds nothing) |
+| `lib/material/` | `FreshnessMixin` | the spoilage gauge — a microbial LOAD reconciled on read. On `Provision` only; `pnpm lint:perishable` is what makes the narrowing safe (spoilage.md) |
+| `lib/metabolism/` | `PalatableMixin` | the derived taste reading, projected through the taster's own competence. On `ServingVessel` — a vessel a made portion reaches a person IN |
 | `lib/chattel/` | `EstateMixin` | owner-based persistence — every stamped good its host holds title to, wherever it sits; routes restore on `place` (furnishing.md) |
 | `lib/character/` | `GenderedMixin` | pronouns (he/she/they/etc.), persistent |
 | `lib/description/` | `NamedMixin` | proper names — `name`, `surname`, `nameSuffix`, `honorific`, `alternateNames`, `fullName`, persistent |
@@ -1034,6 +1039,32 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
 When a constraint is intentionally relaxed (e.g., `CommandGiverMixin`
 isn't bound to Container/Containable so loose objects can still expose
 commands), leave a comment explaining why.
+
+#### ⚠⚠ `MixinConstructor<Stuff>`, and the pack-boundary trap
+
+**Always bind the base to `Stuff` (or narrower).** A bare
+`<TBase extends MixinConstructor>` loses the `Stuff` surface, and the
+failure does not show up where you are working — it shows up in the
+**capability packs**, which import platform classes through the server's
+`exports` map and then see a class that is no longer assignable to
+`Stuff`.
+
+⭐ The symptom, recorded because it cost a day: moving four members off
+`CraftVessel` into a new mixin produced **222 type errors, every one
+inside a pack and none in the server tree**. Isolated by reverting that
+one class with the new mixin files still present: 1 error. Three fixes
+were tried and rejected on the wrong theory (the inline `return class`
+form, the `Provision.ts`-style declaration merge) before the same move
+succeeded with `MixinConstructor<Stuff>` plus the class-DECLARATION form.
+
+⚠ Stated as the likeliest cause, not a proven one — the constraint was
+never tested in isolation. **If a member-move off a pack-imported class
+produces pack-only assignability errors, check the generic bound first.**
+
+⭐ And note the declaration form is not free choice: a decorator
+(`@CallSecurity`) is **not valid on a class-expression member**, so any
+mixin with a gated method must use `class X extends Base {…}` +
+`return X` (the `ChattelMixin` shape), not `return class {…}`.
 
 ### Public-Shape Interfaces Colocated With Mixins
 

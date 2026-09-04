@@ -1297,7 +1297,7 @@ not write; nothing is migrated, ever.
 of its own (12 rows, its group + claim, depending on the two trades and
 its bank); the third industry **trade-hospitality** ships what the
 lounge introduced (the four stations, the tip-jar template, the
-cocktail recipes) and hearth-cooking's second pass rides along —
+cocktail recipes) and cooking's second pass rides along —
 `generic-objects` ships no recipes. The A23 graduations: `Offstage` →
 `lib/employment` (`OffstageMixin` + the concrete
 `platform/location/Offstage`; both venues' casts park through it, the

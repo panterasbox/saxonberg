@@ -18,10 +18,16 @@ thermos slice.
 
 ## ⭐ `category` — the vessel kind, and the tie between an empty and a product
 
-A bulk holder declares **what kind of vessel it is**: `coupe`, `can`,
-`keg`, `sack`, `spirit-bottle`. It is a property of the vessel,
-independent of what is in it — a coupe is a coupe whether it holds a
-martini or nothing.
+A vessel declares **what kind it is**: `coupe`, `can`, `keg`, `sack`,
+`spirit-bottle`. It is a property of the vessel, independent of what is
+in it — a coupe is a coupe whether it holds a martini or nothing.
+
+⚠ **It lives on `VesselKindMixin` (`lib/bulk/VesselKind.ts`), NOT on
+`BulkableMixin`.** It rode the volume mixin until the bulk decomposition,
+which handed a par key to every floor puddle, garden bed, plant pot, air
+tank and watering can in the game. It is composed by the classes that
+actually have a kind — `Bottle`, `Vat`, `CraftVessel` and everything
+below them — and `MixinApi.isVesselKind` is how a reader asks.
 
 It exists because **template inheritance does not exist**, so the empty
 vessel row (`/trade/bottling/thing/can`) and the product row that is
@@ -54,12 +60,17 @@ arguably the squatter on the word. A nothing-is-legacy rename of that
 class (to something conveyance-flavored) would free the term; parked
 here so it isn't lost (surfaced in the fermentation MR review).
 
-### ⚠ OPEN — `category` has no home a `Crate` can reach
+### ✅ RESOLVED — `category` now has a home a `Crate` can reach
 
-`category` lives on **`BulkableMixin`**, so only bulk holders carry it.
-`Crate` is a `Container` and not `Bulkable`, so authoring `category: crate`
-on a crate row would be **silently discarded by the hydrator** — it is
-deliberately *not* authored today.
+> Was: *"`category` lives on `BulkableMixin`, so only bulk holders carry
+> it. `Crate` is a `Container` and not `Bulkable`, so authoring
+> `category: crate` would be silently discarded."*
+
+⭐ The bulk decomposition moved the kind onto its own
+**`VesselKindMixin`**, which depends on nothing. A `Crate` can compose it
+and author `category: crate` whenever the census wants that convergence —
+the blocker was never the crate, it was the kind living on the volume.
+The rest of this section stands as the reason to bother.
 
 The consequence is narrow but real: an emptied crate derives
 `vessel:<primaryKeyword>` (`vessel:grapefruits`), so **empties do not
@@ -240,114 +251,47 @@ Demo Materials (`coffee`, `water`) are **flat** — appearance + keywords
 only, no composition / chemistry depth (fidelity is demand-driven;
 nothing in this slice reads past appearance + keywords).
 
-### `BulkPayload` — the per-instance blend face
+### `BulkPayload` — what a blend IS, and nothing else
 
-A **derived mixture** (a plated stew, a mixed cocktail — the crafting
-branches' blends) can't be a Material row without making the material
-library boundless (the fixed-vocabulary rule, [race.md](./race.md) §
-Material). So each slot optionally carries a **`BulkPayload`** — a
-plain persisted record with a Material row's identity + metabolism
-face (`name`/`appearance`/`keywords`, `nutrients` routing tags, label
-`nutrientAmounts`, per-serving `toxicity`, `edible`) — while the slot's
-material stays ONE generic substance (`/platform/idea/material/cooked`,
-`cocktail/mixed`). Every reader treats `payload ?? material`
-uniformly: the MQL bulk candidate (`look stew`), the contents
-augmenter, the NutritionLabel, the drink/sip prose, and metabolism's
-`ingest`. Cleared whenever the slot empties; `transfer` carries a copy
-into an empty destination (same-material pours into a non-empty vessel
-keep the destination's payload — blend *merging* is out of scope). A
-payload-less slot behaves byte-identically to before.
+A **derived mixture** (a plated stew, a mixed cocktail) can't be a
+Material row without making the material library boundless (the
+fixed-vocabulary rule, [race.md](./race.md) § Material). So each slot
+optionally carries a **`BulkPayload`**, while the slot's material stays
+ONE generic substance (`/platform/idea/material/cooked`,
+`cocktail/mixed`). Cleared whenever the slot empties; `transfer` carries a
+copy into an empty destination. A payload-less slot behaves
+byte-identically to no payload at all.
 
-Since the cooking build the payload also carries the derived
-**composition** a palate reads (`parts` — the ingredients by their
-Materials' names — `tastes`, the union of their basic tastes, and
-`discipline`, the craft that made it) and the **spoilage gauge**
-(`freshness: { load, stamp }`), reconciled through the holder because the
-vessel is the Thermal host.
+⭐⭐ **It carries only what cannot be derived.** It used to hold twelve
+fields — a Material row's whole identity and metabolism face — which is
+how a continuous-volume type came to name seven subsystems' vocabulary
+and why `lib/bulk` imported `lib/metabolism`. The bulk decomposition
+reduced it to facts nothing else can recover:
 
-⭐ **Bulk owns the `freshness` FIELD and nothing else about it.** The
-reconcile, the lazy seed and the ingest fold live in the spoilage
-subsystem (`Freshness.loadOf(slot)` / `.stampLoad()` / `.ingestPayloadOf()`),
-so `lib/bulk` imports nothing from it — exactly as it stores `nutrients`
-and `toxicity` without importing metabolism. Those three statics are that
-file's one documented impure seam, and the trade is deliberate: the
-alternative put spoilage policy on a slot handle and made the bulk
-substrate depend on the subsystem.
+| field | why it cannot derive | declared in |
+|---|---|---|
+| `composition` | **what went in** — Material PATHS + servings. Everything below reads this. | `lib/bulk` |
+| `recipeId` | which recipe made it. Not a property of the ingredients: the same inputs worked by a cook and a bartender are different makings. | `lib/bulk` |
+| `cookedAtK` | the temperature the working REACHED. The heat-labile toxin kill depends on it. | `lib/bulk` |
+| `appearance` | ⚠ a boundary: rendered by `bulkContentsAugmenter` in `lib/bulk`, which may not import `lib/craft` to ask the recipe. | `lib/bulk` |
+| `keywords` | ⚠ how the blend is FOUND. A missed lookup is not a degraded reading — it is an object that stopped existing. | `lib/bulk` |
+| `formedToxins` | toxins that AROSE (a spoiled batch's ptomaine). Nothing in the composition implies them. | `lib/metabolism` |
+| `freshness` | live state: microbial load + its clock stamp. | `lib/material/Freshness` |
 
-⚠ The spoilage gauge is the one field that does NOT follow the payload's
-identity rule: it **blends by mass on every pour**, not only into an empty
-destination. That asymmetry is what closes the pour-to-reset exploit —
-decanting a spoiled pot into a clean bowl must not launder it. It is also
-seeded lazily (a slot holding perishable matter gets one the first time
-anybody asks; nothing else does), and the shadow payload written at that
-moment mirrors the Material field for field so `payload ?? material` reads
-identically either way. See [spoilage.md](./spoilage.md).
+Everything else is **read**: the tastes and the tags (`BlendLabel` unions
+the ingredients'), the whole nutrition label (`BlendLabel`, shares scaled
+by servings — which is why the composition carries them), the name and
+the discipline (`BlendIdentity`, off the recipe, falling back to the
+Material).
 
-⚠⚠ `Vat` composes both `FermentingMixin` and `BulkableMixin`, so a
-fermenting slot is also a gauge slot. Nothing collides today because every
-fermentable is inert — see [spoilage.md](./spoilage.md) § Fermentation is
-the one collision to watch.
+⭐ **The last two rows are the interesting part: a value object cannot
+compose a mixin, so the subsystems that own those facts declare their
+fields by DECLARATION MERGING from their own folders.** That is the
+payload-shaped equivalent of composing a mixin, and it is a technique the
+tree already used — `Engaged`, `CombatSession`, `AbortReason` and
+`Bulkable` itself (on the MQL types). It is why `lib/bulk` imports no
+subsystem but `lib/material`, and `pnpm lint:imports` holds that.
 
-⚠ Those three are DATA the craft writes. The **reading** that uses them
-is `PalatableMixin` (`lib/metabolism/Palatable.ts`), composed on
-`ServingVessel` rather than here — a floor puddle and a garden bed hold
-matter and have no palate, and neither does a wash bucket. See
-[crafting.md](./crafting.md) § The palate.
-
-### Utensil kinds
-
-`category` is the **vessel kind** — `coupe`, `bowl`, `pot`, `keg`, `sack`
-— and `lib/bulk/Utensil.ts` names the small closed subset of it that is
-**cutlery**: `spoon` · `fork` · `table-knife`, in the order `eat` prefers
-them. A utensil is an ordinary `CraftVessel` whose interior slot is never
-filled (serviceware without contents), so it is claimed, soiled, washed
-and counted on the par exactly like a glass. ⚠ It never gates the act —
-see [crafting.md](./crafting.md) § Cutlery.
-
-### Description composition
-
-`BulkableMixin` contributes a `markupAugmenter` (the same
-`getMarkupLong` pipeline `DetailedMixin` rides), so a non-empty slot's
-contents surface wherever a holder's long description renders:
-`look thermos` → "… It holds dark, steaming coffee."; `look floor` → "…
-A puddle of water pools here." A puddle also surfaces in the bare `look`
-room view via `BulkableApi.floorPuddleSummary(location)`, since the
-floor is an `Adornment` excluded from the room's contents list. (Making
-the floor's contents the *primary* room presentation is the deferred
-containment-inversion, not this — see non-goals.)
-
-### `getContentsDescriptionFor(viewer, affordance?)` — the one viewer-aware read
-
-Bulk is otherwise **viewer-blind**, and rightly so: a puddle of water is
-a puddle of water to everybody. The augmenter reads its phrase from this
-method, which resolves in two tiers:
-
-| Slot holds | Phrase |
-|---|---|
-| an **identifiable** material | `describeFor(viewer, material)` — per-viewer |
-| anything else | `payload?.appearance ?? material.appearance` — the shipped read, unchanged |
-
-The case that earns the tier is the **potion**: what a draught *looks*
-like and what it *is* are different facts, and which one you get depends
-on what you have learned. Identity rides the **material**, not the
-flask, so one identification covers every flask of that substance and
-decanting carries the knowledge with the liquid — see
-[magic-items.md](./magic-items.md) § Identification. `MagicLogic`'s
-identify effect makes the **same** redirect, so *looking at* and
-*identifying* a vessel agree about what the subject is.
-
-Two article rules follow from the two tiers, and they are not
-interchangeable: the identification phrase is a **full noun phrase**
-carrying its own article ("an iridescent crimson potion"), while a plain
-material's `appearance` is a **bare phrase** the verb articles itself
-("You drink **the** dark, steaming coffee."). `DrinkController` branches
-on `MixinApi.isIdentifiable(material)` for exactly this reason; branching
-on "did a phrase come back" silently drops the "the" from every ordinary
-drink.
-
-`null` for an empty slot, a slotless host, or an ambiguous affordance —
-the description pass runs on every render, so the boring cases are
-silent rather than throwing.
 
 ## MQL surface
 
