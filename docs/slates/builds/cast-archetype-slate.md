@@ -18,6 +18,15 @@ be the anchor, not an adjacency), and the deviation model —
 > get modelled explicitly on top of that."**
 
 > **Status: design conversation, captured. Not requirements.**
+>
+> ⭐⭐⭐ **REVISED 2026-09-03 after a 41-character stress test.** The whole
+> known cast — 19 Rejection · 6 Hinkley Hills · 8 Heart's Delight · 8
+> Terminus — was written out as sheets and run through `role × temperament`
+> to find where it breaks *before* the design is closed. See
+> [§ The 41-character stress test](#-the-41-character-stress-test-2026-09-03).
+> The model survives and needs five changes; the exercise also turned up a
+> **shipped defect** (§ the disposition-key defect) that is independent of
+> all of it.
 
 Related: [behavior.md](../../subsystems/behavior.md) (**the shipped
 substrate — read it first**: `behaviors:`, brains, `_seedDispositions`),
@@ -105,6 +114,20 @@ lounge cast's *role* (venue staff) is still carried in `behaviors:`.
 So a shipped NPC differs on three axes today — **class** (capability),
 **behaviors** (role), **dispositions** (temperament) — and only the last
 two are data. This slate absorbs those two. The class axis stays as it is.
+
+> ⭐⭐⭐ **REVISED 2026-09-03 — class has a sharper rule than "capability".**
+> Half of Terminus's cast carries a bespoke class, and the pattern is
+> exact: **Walter** fronts `lease`/`unlease`, **Ricky** fronts `title buy`
+> (running it as *the buyer*, not himself), **Tootie** sells travel cards.
+> Which matches the hard-won kernel rule — *a verb affordance is a static
+> on a class; a row's `commandContributions:` is dead silently.* So:
+>
+> **A bespoke class exists exactly when the NPC affords a VERB.**
+>
+> `Crafter` is the same rule read through a mixin (it confers making).
+> That is not a taste decision and it is checkable. ⚠ **Gus is the possible
+> exception** — he may exist for the `crossing-ritual` brain rather than a
+> verb, and if so he is the one class that could arguably be data.
 
 ---
 
@@ -381,6 +404,185 @@ Two roles not written here (`counter`, `venue-staff`) plus these six cover
 20 of 21 dispositioned rows. **Dave stays bespoke** — the "starting point,
 not pure" case working as intended: the abstraction's job is to not be in
 the way.
+
+# ⭐⭐⭐ The 41-character stress test (2026-09-03)
+
+> **Method: do not close a taxonomy until every known instance has run
+> through it.** The whole known cast was written out as sheets — name ·
+> class · role · temperament · the fact that explains them — and scored
+> against the model. 41 characters: **19 Rejection · 6 Hinkley Hills · 8
+> Heart's Delight · 8 Terminus.**
+
+## What worked — and it is the reason to keep the model
+
+- **Clean fits (~20 %)**: Ines · Delia · Bo · Ilaria · Bia · Wenna ·
+  Pemby · Odell. Role and temperament carry essentially all of them.
+- ⭐ **Same role, different temperament produces different people.** Two
+  **Keepers** (Morwenna the Anchor / Bo the Connector) are two completely
+  different shops. Two **Growers** (Furtado / Avila). Three **Clerks**
+  across three towns (Delia / Enid / Ilaria), one role, three
+  temperaments. That is the composition doing exactly its job.
+- ⭐ **Temperaments reuse across localities** — Witness ×2, Idealist ×2,
+  Striver ×2, Connector ×3, Inquirer ×2. That is a *vocabulary*, not a
+  per-venue list, which was the open question.
+- ⭐⭐⭐ **It found a duplicate nobody was looking for.** **Rundle**
+  (Rejection's surgeon) and **Terada** (the valley's pumpman) are the same
+  character in two towns: both keep a book, both have evidence, neither has
+  standing. A taxonomy that surfaces that is working; one that could not
+  would be decoration.
+- **Roles that recur across the corpus**: Clerk ×4 · Keeper ×3 · Hand ×3 ·
+  Grower ×2 · Publican ×2 · Commuter ×2 · Tender ×2.
+
+## Change 1 — five more temperaments (5 → 10)
+
+The shipped four plus prop-tier `steady` were all harvested from **one
+venue's cast**, which is why a mining camp and a farm valley break them.
+Add:
+
+| temperament | the shape | exemplars |
+|---|---|---|
+| **the Witness** | has evidence and no authority; **publishes** rather than receives | Rundle · Terada |
+| **the Inquirer** | wants to know, and is not owed belief | Rhonda · Teodoro |
+| **the Idealist** | the only one in the room who thinks it could be otherwise | Enid · Ilaria |
+| **the Striver** | Anchor-shaped but **ambitious** — reliability pointed at getting somewhere | Rosalind · Avila |
+| **the Contented** | ⭐ a characterizing **negative**: complete satisfaction in a small job | Tootie (`ambition −60`) |
+
+⚠ **The Witness is not the Confessor.** Confessor *receives* confidences;
+Rundle shows his case book to anyone who asks. Distinct, and the corpus
+needed both.
+
+## Change 2 — ⭐⭐⭐ the third data axis is STANDING, and it is pointers
+
+The stress test's headline. Role is **what you do**; temperament is **how
+you are**; and across all four towns the most characterizing thing about a
+person was neither:
+
+- **history** — Jory's lung · Morwenna's compensation · Terada's eleven-year
+  notebook · the collier's decade without sleep · Halloran's family
+- **holdings** — Furtado's grandmother's priority date · Jory's slate
+- **relationship** — Earl needs Val · the Chenoweths are one character in
+  two bodies · Rosalind and Teodoro are defined by *never meeting*
+
+⭐ They look like three gaps. They are one:
+
+> **Everything the model misses is *what is true of this person that they
+> did not choose*.** Role is what you do, temperament is how you are, and
+> the missing axis is **where you stand.**
+
+The proof it is load-bearing: **Jory Hocking and Bia Rovere compile to an
+identical profile** — Publican × Connector — and are not the same person.
+**Jory holds the slate; Bia does not.**
+
+⭐⭐⭐ **And the axis is not new data — it is three pointers into shipped
+registries:**
+
+| the miss | already lives in | pointer |
+|---|---|---|
+| history | the **chronicle** — which already has *authored prologue claims* | a prologue ref |
+| holdings | **parcels · chattel · seats** | a title / a seat |
+| relationship | the **social graph · contacts · party** | a bond |
+
+Which keeps the archetype from becoming a dumping ground, and gives the
+clean statement:
+
+> ⭐⭐ **Role and temperament are the ARCHETYPE. Standing is the INSTANCE.**
+
+⚠⚠ **And that is exactly why props cannot have standing** — no durable
+identity to hang a title, a prologue or a bond on. Same line the slate
+already drew from the identity model, arrived at from the opposite end.
+
+⚠⚠⚠ **The deed-row hazard applies to prologues too.** A chronicle prologue
+attached on a *template* key would be read by every sibling instance and
+survive every re-mint — the identical bug § the deed-row hazard flags for
+deeds. **Standing pointers are a cast-only feature**, and that must be
+enforced rather than assumed.
+
+## Change 3 — roles are not always here, and not always now
+
+- ⭐⭐ **Elsewhere.** Rosalind and Teodoro *work in the Counting-Houses and
+  the press* and **reside** in Hinkley. The model assumes role = what you
+  do here. A **Commuter** role is real and gateable
+  (`requires: { workplace, residence, transit }`), but the underlying point
+  stands: a cast member's role can live in another locality.
+- ⭐⭐ **Seasonal.** Bettencourt runs 04:00–20:00 daily for six weeks and
+  sits alone in an empty shed for ten months. Halloran and the timekeeper
+  exist only during the pack. **No calendar axis exists**, and Heart's
+  Delight cannot be authored without one.
+- ⭐ **Borrowed.** Wenna and Halloran are two faces of *one institution* —
+  the transaction face and the relationship face. Walter is "Mayfield
+  Holdings' agent, owner-conferred, never self-enrolled." **In a village
+  you are yourself; in a city you are an office**, which is the agency
+  slate's own line (*authority from the principal, attribution to the
+  agent*) showing up as characterization.
+
+## Change 4 — opacity must be an explicit value
+
+**Prentice** (the death man) has **deliberately unauthored dispositions**,
+so that a player cannot resolve him by reading a field. That is a design
+requirement, not an omission.
+
+⚠ Suppression (§ *a row must be able to SUPPRESS*) is a different thing —
+it *replaces* an archetype's line. Opacity authors **nothing**, on purpose.
+An omitted temperament should fail the save (the blank-NPC failure the gate
+exists to prevent); `temperament: opaque` must pass it.
+
+## Change 5 — not every role can be gated
+
+⭐ `requires:` is load-bearing and correct for the **Hand**. But **Val** is
+a handyman, and a handyman's entire nature is having *no fixed station* —
+no stock, no shelf, no counter. He breaks the gate by being what he is.
+
+So the vocabulary needs a role kind whose contract is *availability* rather
+than a station, or `requires:` needs to admit an empty set **deliberately**
+— the same shape as Change 4.
+
+## ⚠ A category the model does not name: the FUNCTIONARY
+
+Rejection's shipped seven are **named by function, not by name** — "the
+collier", "the onsetter", "the registrar". Long-lived and individuated, but
+referred to by office. Very true to a workplace, and it sits *between* prop
+and cast rather than on the line. Worth deciding whether that is a third
+tier or simply a cast member whose `name` is absent.
+
+## ⚠⚠ The disposition-key defect (independent, and shippable alone)
+
+The corpus turned up **five uses of four disposition keys that do not
+exist** in the closed 17-axis `DISPOSITION_AXES`:
+
+| in shipped content | the actual axis |
+|---|---|
+| `greed: 30` (Halloran, Goodkin officer) | `generosity: -30` |
+| `gregariousness: 60` (Pemby) | `sociability: 60` |
+| `candor` ×2 (Walter −30, Ricky +40) | ⚠ no clean equivalent |
+| `warmth: 60` (Ricky) | ⚠ no clean equivalent |
+
+`DISPOSITION_KEYS` is exported but nothing on the seeding path appears to
+validate against it, so **five authored personality traits are almost
+certainly being dropped silently** — the recurring failure mode.
+
+⭐ **Fix: `pnpm lint:dispositions`** — every `disposition:` key in shipped
+content resolves to `DISPOSITION_KEYS`. Twenty lines, the `lint:topics`
+shape (which found 45 of 105 emitted topics had no authored descriptor).
+
+⚠ That two of the four (`candor`, `warmth`) have **no clean mapping** reads
+two ways: the authors were not checking the list, or the 17 axes are
+missing something real. Decide which before the lint lands, because the
+answer changes whether the fix is a rename or an addition.
+
+---
+
+## ⭐⭐ Coverage after the stress test
+
+| | |
+|---|---|
+| corpus | 41 characters, four localities |
+| clean fits | ~20 % on `role × temperament` alone |
+| temperaments | **5 → 10** (9 cast-tier + `steady` at prop-tier) |
+| class | ⭐ redefined: a bespoke class **iff** the NPC affords a verb |
+| third axis | ⭐⭐⭐ **standing** — three pointers into shipped registries, cast-only |
+| still open | seasonal roles · elsewhere roles · opacity · ungateable roles · the functionary tier |
+
+---
 
 ## ⭐ The finding this exercise produced: a row must be able to SUPPRESS
 
