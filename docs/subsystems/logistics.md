@@ -602,7 +602,7 @@ with `go <vehicle>` and leave with `out`, and a blocked road stops you
 where you stand. An NPC experiences none of this: `travel()` is one
 forced command that either arrives or does not.
 
-## ⚠⚠⚠ The open hole: the cost surface is opt-in
+## ⭐⭐ The cost surface is OPT-IN — decided, not overlooked
 
 **Ordinary movement is instantaneous and free.** `Exit.edgeMinutes` is
 spent only by the Journey engagement — the kernel never reads it, and
@@ -615,20 +615,34 @@ spent only by the Journey engagement — the kernel never reads it, and
 
 That is not a bug in any file; it is the mechanic being **opt-in**, and
 scripting makes opting out free. It is named here rather than papered
-over, and it wants a decision before the corridor economy is load-bearing:
+over. ⭐ **Decided at review (2026-09-04):**
 
-1. **Charge the edge in the kernel** — ordinary traversal of an edge with
-   `edgeMinutes` costs that time. Honest and universal; a large change to
-   how all movement feels, and the setting's own comment currently
-   promises the opposite.
-2. **Make the rig the gate** — a laden or hitched vehicle may only cross
-   a corridor edge inside a Journey. Narrow, and leaves walking alone.
-3. **Accept it** — `journey` stays a convenience (one command, passengers,
-   a readable trip) and freight speed is not a real constraint.
+1. ⛔ **Charge the edge in the kernel** — ordinary traversal of an edge
+   with `edgeMinutes` costs that time. **REJECTED, on a principle worth
+   reusing: *moving around must not feel like netlag.*** A player
+   walking a corridor is navigating, not waiting; a delay on every `go`
+   reads as the server being slow rather than as the world being big,
+   and no amount of correctness buys that back. ⚠ Note this rejects the
+   *universal* form — it does not reject cost per se, which is what
+   option 2 charges to the load rather than to the walk.
+2. 🔬 **Make the rig the gate** — a laden or hitched vehicle may only
+   cross a corridor edge inside a Journey. Narrow: it leaves walking
+   untouched and charges only what freight does, which is the half that
+   the cost surface is actually about. **Parked pending playtest**, not
+   rejected. It cannot be judged from a design doc because the question
+   is how it FEELS across the modalities — on foot, mounted, driving a
+   rig, aboard a barge — and whether the gate reads as the cart being
+   heavy or as the game saying no. That playtest is the deciding
+   evidence and it has not been run.
+3. ✅ **Accept it** — the shipped behaviour. `journey` is a convenience
+   (one command, passengers, a readable trip, a vehicle really in every
+   room) and freight speed is not a hard constraint.
 
-⚠ Option 3 is the status quo and it costs the build its premise: *"a
-wagon is cheaper per kg over a graded road"* means nothing when the road
-is free to anyone with a keyboard macro.
+⚠ The tension is accepted knowingly rather than resolved: *"a wagon is
+cheaper per kg over a graded road"* is a claim about cost the world does
+not currently enforce against a player willing to type `go` repeatedly.
+That is survivable while the corridor economy is young, and it is the
+first thing to revisit if freight speed ever needs to mean something.
 
 ## What is deliberately not here
 
