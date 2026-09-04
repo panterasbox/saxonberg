@@ -186,6 +186,12 @@ Each names where it lands instead.
   road** — both non-goals. → the contested road / utilities build.
 - **Livery *content*.** The `livery` archetype ships (D19); the stable,
   its keeper and the feed economy are **ranching's**.
+- ⚠ **A passenger service business** — a coach line, a timetable, a
+  fleet, fares. The taxonomy is recorded (D21) and the `ride`
+  experience ships, but **the market does not exist yet**: walking is
+  free across a five-minute basin. Its demand arrives with **distance**
+  (a larger realm) or **danger** (the contested road build), and the
+  one rung that has demand today — the **porter** — is already D16.
 - ⚠ **The Delight/Kestrel inconsistency.**
   [hearts-delight](../staging/hearts-delight.md) says Rejection's fouling
   reaches the valley; the hydrology has the two tributaries meeting only
@@ -237,6 +243,13 @@ and what means the region never has to be carpeted in rooms.
 the TPA are incumbent networks in the design; nothing in the lane or
 `Route` shape may make a corpo-run or authority-run lane
 unrepresentable.
+
+⚠⚠ **Nor may it assume the node sequence was authored.** A scheduled
+service's route is authored; **a haulage gig's route, and any on-demand
+trip's, is computed per request** — and they are the same shape. Today
+the realm has two corridors and the path is unique, so this does not
+bite; if `Route` bakes in *authored*, on-demand service becomes
+unrepresentable later and is expensive to retrofit. See D21.
 
 ### D3 — A vehicle is a `Mobile` vessel; openness governs what you see
 
@@ -727,6 +740,69 @@ jurisdictional gaps"* is **derivable today**.
 ⚠ **The easement is a real gap and is deliberately not filled** — see
 Non-goals.
 
+### D21 — The passenger taxonomy is five dials, and only one rung has demand
+
+Bus, chartered bus, taxi, rideshare, limousine, pedicab, driverless —
+seven services that sit at the same place on the cost surface and feel
+completely different.
+
+> ⭐⭐⭐ **They are not seven services. They are one service with five
+> dials, and every dial already has a home in a decision above.**
+
+| dial | values | where it lives |
+|---|---|---|
+| **who sets the route** | operator (fixed + timetable) · hirer · passenger | **D2** — authored `Route` vs computed |
+| **exclusivity** | shared · your party · exclusive | vehicle capacity + a boarding policy |
+| **how you engage** | ⭐ hail *(a command in the room)* · summon *(**the aether**)* · book ahead *(a **contract**)* | three shipped substrates |
+| **the driver's status** | ⭐⭐ employed · **gig** · none | **D16** |
+| **price formation** | posted tariff · meter *(card × distance)* · negotiated · surge | **D9** |
+
+Two of these are sharper than they look:
+
+⭐⭐ **The taxi/rideshare distinction *is* the employee/contractor
+distinction** — which is the real-world political fight about those
+industries rather than a side effect of it. Both sides already ship, so
+the argument is available the moment anyone runs a fleet.
+
+⭐ **Summoning is an aether app.** The difference between hailing a cab
+and calling a car is *which network you reached the driver on*, and the
+aether is just the internet.
+
+⭐ **And driverless already ships: it is the TPA.** Summoned, no driver,
+operator-priced, no social element, at the top of the cost surface. The
+thing you would build last was there first.
+
+#### ⚠ But no passenger market exists yet, and D5 says why
+
+A service does not compete with walking for a person carrying nothing,
+and this realm is a basin you cross in five real minutes.
+
+> **A taxi exists where walking is slow. Ours is not.**
+
+| what creates passenger demand | status |
+|---|---|
+| **distance** | later — a larger realm |
+| ⭐ **danger** — the stagecoach existed because of highwaymen as much as mileage | the contested road build |
+| **status** — you ride because of who sees you riding | works at any distance, thin on its own |
+| ⭐⭐ **load** — somebody to carry what you cannot | ✅ **live today** |
+
+> ⭐⭐⭐ **The one rung of this taxonomy with real demand right now is the
+> PORTER** — hire someone to carry what you cannot. Encumbrance bites at
+> ~20 kg on day one, so that market exists before any other. **And it is
+> already in scope: the porter is D16's entry-level gig.**
+
+#### What this decision therefore delivers
+
+- **the taxonomy, recorded**, so all seven are authorable later with no
+  new mechanism;
+- **`ride` and the `passenger-conveyance` archetype**, both already in
+  scope from D4 and D19;
+- **the D2 amendment** — a `Route`'s sequence may be computed as well as
+  authored;
+- ⚠ **and no passenger service business.** A shipped coach line nobody
+  rides is *never-half-grown* from the other side: not an unfinished
+  thing, a finished thing with no demand. → see Non-goals.
+
 ---
 
 ## Constraints
@@ -863,6 +939,13 @@ Non-goals.
     rooms at once**, and a corridor missing shelter reports the gap
     without anything being blocked or penalised.
 15m. The needs vocabulary is **unchanged** — no ninth need was added.
+
+**The passenger axis**
+
+15n. A `Route` can be constructed from a **computed** node sequence as
+    well as an authored one, and the Journey does not care which.
+15o. A passenger may `ride` a conveyance somebody else drives, holding
+    no engagement, and alight at a stop.
 
 **Reporting**
 
