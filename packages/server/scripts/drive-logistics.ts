@@ -290,6 +290,15 @@ async function main(): Promise<void> {
   // shipment's destination is by definition out of reach, so both
   // examples in `ship`'s own help were unusable. A checkpoint that
   // describes an act nobody performs is worse than no checkpoint.
+  // ⭐⭐ TYPE the journey verb's destination, for the reason the `ship`
+  // step exists: an NPC brain passes `journey` a computed PATH, so the
+  // NPC loop proves the mechanism and never the grammar. Both verbs
+  // shipped unable to name a remote place and nothing noticed.
+  const badTrip = plain(await p.cmd("journey to Narnia-on-Sea", 2000));
+  say("> journey to Narnia-on-Sea", badTrip);
+  ok("⭐⭐ a bad `journey` destination LISTS the stops you may name",
+    /you can journey to|no road runs from here/i.test(badTrip), badTrip);
+
   say("> unhitch", await p.cmd("unhitch", 2000));
   const shipped = plain(
     await p.cmd("ship handcart to Rejection --worth 12", 2500),

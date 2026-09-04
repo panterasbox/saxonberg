@@ -550,6 +550,86 @@ path is the point of the fix rather than an exemption from it.
 
 ---
 
+## ⭐⭐⭐ Routing: what the pathfinding actually is
+
+**One BFS, per lane, over a compiled adjacency map.** `LaneCatalogue`
+induces each lane's edges once, caches the graph (dropped on HMR), and
+`planRoute(from, to, lane)` breadth-firsts across it, bounded at 2,000
+nodes so a mis-authored graph cannot hang a boot. `consigns`' walk and
+the carter's `journey` both call it.
+
+Three properties of that, stated because each is a decision:
+
+- ⭐ **It is hop-optimal, not time-optimal.** `edgeMinutes` weights the
+  DURATION of the trip, never the search. A road with fewer, longer legs
+  wins over a shorter one with more legs. Roads are roads; nobody
+  Dijkstras a valley.
+- ⚠ **There is no cross-lane routing.** A lane is a mode, so a route
+  that would change modes — wheels to a back at the pass — is *not
+  planned for you*, and that is the design: **breaking bulk is the
+  lesson**, and auto-routing around it would hide the geography this
+  build exists to make real. Blocked means blocked.
+- ⭐ **There is no general pathfinding Api and should not be one yet.**
+  A general graph search invites auto-routing at every call site, which
+  is the regression above. When a second edge set needs search, promote
+  the walk then — not before.
+
+Cost is not a concern at this size: the compile is once, a query is
+O(V+E) over a bounded, cached map, and the callers are a player's verb
+and an NPC beat measured in minutes.
+
+## ⚠⚠ Players and NPCs do not travel the same way, and that hid every bug
+
+An NPC brain drives the **literal verb** — `hauls` issues
+`journey to <path> via <lane>` through ordinary dispatch, subject to
+every gate a person is. That is the doctrine and it is right. But it
+passes a **template path it computed**, and a player must *say where*.
+
+> **An NPC brain driving a literal verb proves the verb's MECHANISM and
+> never its GRAMMAR.**
+
+Every place-naming defect in this build shipped behind that gap and was
+invisible to a green suite: `ship`'s destination could not name a remote
+place at all, `journey`'s had the same flaw copied from the same
+comment, and the drive typed neither. The NPC loops looked healthy
+because they were — the naming layer is player-only, and nothing
+exercised it. ⭐ A drive that does not TYPE a verb has not tested it.
+
+The other asymmetries, which are experience rather than defect: a
+driver's hands are occupied for the whole trip (you cannot fight while
+driving, which is what creates the escort economy), passengers board
+with `go <vehicle>` and leave with `out`, and a blocked road stops you
+where you stand. An NPC experiences none of this: `travel()` is one
+forced command that either arrives or does not.
+
+## ⚠⚠⚠ The open hole: the cost surface is opt-in
+
+**Ordinary movement is instantaneous and free.** `Exit.edgeMinutes` is
+spent only by the Journey engagement — the kernel never reads it, and
+`AppSettings` says so in as many words. So:
+
+> A player who types `go north` eleven times — or writes an `msh` script
+> that does — crosses the same ground in **zero game time**, with a
+> hitched rig and its cargo following, and pays none of the cost surface
+> this build is about.
+
+That is not a bug in any file; it is the mechanic being **opt-in**, and
+scripting makes opting out free. It is named here rather than papered
+over, and it wants a decision before the corridor economy is load-bearing:
+
+1. **Charge the edge in the kernel** — ordinary traversal of an edge with
+   `edgeMinutes` costs that time. Honest and universal; a large change to
+   how all movement feels, and the setting's own comment currently
+   promises the opposite.
+2. **Make the rig the gate** — a laden or hitched vehicle may only cross
+   a corridor edge inside a Journey. Narrow, and leaves walking alone.
+3. **Accept it** — `journey` stays a convenience (one command, passengers,
+   a readable trip) and freight speed is not a real constraint.
+
+⚠ Option 3 is the status quo and it costs the build its premise: *"a
+wagon is cheaper per kg over a graded road"* means nothing when the road
+is free to anyone with a keyboard macro.
+
 ## What is deliberately not here
 
 - **Customs, tariffs, checkpoints** — blocked, not deferred: there is no

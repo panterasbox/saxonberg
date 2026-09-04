@@ -82,13 +82,20 @@ export default class JourneyController extends CommandController<JourneyModel> {
     if (here.length === 0) {
       return this.fail(context, 'you are nowhere a road reaches', 'nowhere');
     }
-    const there = this.resolvePlace(raw, context);
+    const there = await this.resolvePlace(raw, context, catalogue, here);
     if (there.length === 0 || there === here) {
+      // ⭐ A refusal that says what you MAY name. The roads from here
+      // have a knowable, short stop list, so withholding it is just
+      // making the player guess.
+      const stops = await this.stopsFrom(catalogue, here);
       return this.fail(
         context,
         there === here
           ? 'you are already there'
-          : `nothing here answers to '${raw}'`,
+          : stops.length > 0
+            ? `no road from here goes to '${raw}'. From here you can ` +
+              `journey to: ${stops.join(', ')}.`
+            : `no road runs from here.`,
         there === here ? 'already-there' : 'no-destination',
       );
     }
@@ -191,18 +198,59 @@ export default class JourneyController extends CommandController<JourneyModel> {
   }
 
   /**
-   * A place the player named, as a durable path: a reachable thing
-   * resolves by name, anything else is taken as a path verbatim (the
-   * `job post` destination rule, reused).
+   * A place the player named, as a durable path.
+   *
+   * ⚠⚠ This was the `job post` rule copied a THIRD time — MQL-reachable,
+   * else a literal template path — and a journey's destination is
+   * remote by definition, so a path was the only working form and both
+   * of this verb's own help examples were untypeable. Same defect as
+   * `ship` had, from the same copied comment.
+   *
+   * ⭐⭐ But it must NOT use `ship`'s answer. `ship` names a consignee
+   * PLACE, and a Locality is right for that; a journey's destination is
+   * a NODE ON A LANE — a room the road actually passes through. Resolve
+   * "Rejection" to a Locality here and `planRoute` gets a path that is
+   * on no lane and answers "no route". Same English word, different
+   * unit: the `consign`/`ship` distinction one level down.
+   *
+   * ⭐ So the scope is exactly right and needs no index: **the stops on
+   * the roads that run from where you stand**. `journey to crossroads`
+   * and `journey to the crossroads` both work; nothing else is
+   * offered, because nothing else is reachable by road from here.
    */
-  private resolvePlace(raw: string, context: CommandContext): string {
+  private async resolvePlace(
+    raw: string,
+    context: CommandContext,
+    catalogue: LaneCatalogue,
+    here: string,
+  ): Promise<string> {
     const hit = MqlApi.resolveMany(raw, {
       commandGiver: context.commandGiver,
       scope: 'reachable',
     }).stuff[0];
     const path = hit?.getTemplatePath() ?? '';
     if (path.length > 0) return path;
+
+    const want = normalizePlace(raw);
+    if (want.length > 0) {
+      for (const lane of await catalogue.lanesAt(here)) {
+        const match = lane.nodes.find((n) => normalizePlace(leafOf(n)) === want);
+        if (match) return match;
+      }
+    }
     return raw.startsWith('/') ? raw : '';
+  }
+
+  /** Every stop the roads from here can reach — what `journey` offers. */
+  private async stopsFrom(
+    catalogue: LaneCatalogue,
+    here: string,
+  ): Promise<string[]> {
+    const out = new Set<string>();
+    for (const lane of await catalogue.lanesAt(here)) {
+      for (const n of lane.nodes) if (n !== here) out.add(leafOf(n));
+    }
+    return [...out].sort();
   }
 
   /**
@@ -261,4 +309,18 @@ function isVehicle(s: Stuff): boolean {
 function leafOf(path: string): string {
   const leaf = path.split('/').filter(Boolean).pop() ?? path;
   return leaf.replace(/-/g, ' ');
+}
+
+/**
+ * A place name reduced to something two spellings of it agree on:
+ * lowercase, no leading article, spaces and hyphens the same thing.
+ * `"the Last Water"`, `"last-water"` and `"last water"` are one name.
+ */
+function normalizePlace(raw: string): string {
+  return raw
+    .trim()
+    .toLowerCase()
+    .replace(/^the\s+/, '')
+    .replace(/[\s-]+/g, ' ')
+    .trim();
 }
