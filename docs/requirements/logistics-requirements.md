@@ -399,7 +399,34 @@ Both are **Documents**, not a new collection (see Constraints).
 A depot is the **interface** — where a lane touches the local economy —
 and every piece of it is a shipped shape: an **attendant queue** (the
 counter), a **warehouse** (storage), and a **`Business`** with positions
-and an account. `consign` already works there, so **no new verb**.
+and an account.
+
+⚠⚠ **Correction (review, 2026-09-03): "`consign` already works there, so
+no new verb" was wrong, and it is withdrawn.** It was lifted from one
+line of [settlement-model.md](../settlement-model.md) § 8 without
+checking what retail's `consign` does.
+
+**The two acts share an English word and nothing else.** Retail
+`consign <thing> --ask <coin>` moves custody to a shop and creates a
+**`ConsignmentListing`** — a priced listing with a commission split and a
+consignor account paid on resale. Handing goods to a carrier creates a
+**bill of lading** — a destination, a custody chain, no price, no buyer,
+no listing. Different input, different record, different outcome.
+
+⭐⭐ **And overloading one verb forecloses the composition the build
+exists to create.** A `--to` that excludes `--ask` makes *"ship it to
+Rejection and sell it there"* unexpressible — which is the merchant's
+whole business, and this doc's own economics:
+
+> *"Transport cost is a spread — the same good is worth more at
+> destination. That is arbitrage."*
+
+So: **carriage gets its own verb in its own pack**, per the standing rule
+that *a verb lives with the pack whose content affords it*.
+**`ship <goods> to <destination>`**, in `trade-haulage`, in its own
+`haulage` category (the metal chain's `mining`/`fuel`/`smelting`
+precedent). Retail's `consign` is untouched, and **`ship` then `consign`
+at the far end composes** — which is the arbitrage, expressible.
 
 It sells two things that fail independently: **handling** (a transaction
 service — consolidation) and **storage** (a time service). Only the

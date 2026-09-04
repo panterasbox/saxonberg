@@ -375,8 +375,13 @@ changing the geometry:
 
 **The depot** — one per settlement, and it is the *interface*: where the
 star (TPA) touches the graph (roads) and the goods network touches the
-local economy. `consign` already works there, so **no new verb**. Each one
-looks completely different — a weighbridge at an adit, a rail platform
+local economy. ⚠ *(An earlier revision said "`consign` already works
+there, so **no new verb**." **Withdrawn 2026-09-03** — retail's `consign`
+creates a priced `ConsignmentListing`; handing goods to a carrier creates
+a bill of lading, and overloading the one verb makes ship-it-and-sell-it-
+there unexpressible. Carriage gets `ship` in the haulage pack; see the
+[logistics requirements](./requirements/logistics-requirements.md) D8.)*
+Each one looks completely different — a weighbridge at an adit, a rail platform
 with a noticeboard, a loading dock stacked with empty trays.
 
 **The carrier** — freight (bulk, business to business) and delivery

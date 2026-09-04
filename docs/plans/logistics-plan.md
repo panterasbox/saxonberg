@@ -454,26 +454,44 @@ crate still sitting in the wagon **in** the destination room delivers.
 is the only thing that makes a fungible shipment nameable by a gig. No new
 condition template, no `CONDITION_TEMPLATES` edit, no engine seam.
 
-### P9 — `consign … --to <destination>` rides a shape seam
+### P9 — `ship <goods> to <destination>`, in `trade-haulage`
 
-D8 requires no new verb for consigning to a carrier. The retail `consign` is
-sale-shaped (`--ask`), so:
+⚠ **Revised at review (2026-09-03).** An earlier draft of this decision put
+`--to` on retail's `consign`, honouring D8's *"no new verb."* **D8's clause
+has been withdrawn** — see the requirements' D8 correction — and this
+decision follows it.
 
-- `platform/content/platform/cmd/retail/consign.yaml` gains an option
-  `--to <destination>` (mutually exclusive with `--ask`);
-- `ConsignController` gains one branch: when `--to` is present, it probes
-  the resolved counter for the **`ShipmentDesk` shape** — a duck-typed
-  `acceptsCarriage()` / `consignForCarriage(actor, goods, destination)` pair,
-  exactly the `TravelNodes.of(stuff)` seam `teleport` uses for the TPA —
-  and delegates. The kernel imports nothing; the pack implements a shape it
-  never imports either.
+Retail `consign <thing> --ask <coin>` creates a **`ConsignmentListing`**: a
+priced listing, a commission split, a consignor account paid on resale.
+Handing goods to a carrier creates a **bill of lading**: a destination, a
+custody chain, no price, no buyer. The two share an English word and
+nothing else.
 
-**Rejected:** a `ship` verb in `trade-haulage`. Cheaper to write and arguably
-more correct by content-packs.md's own *"when the capability belongs to the
-pack, the verb belongs to the pack too"* — but it contradicts D8's explicit
-"no new verb", and the capability being extended (hand custody of a good to
-a counter) is genuinely retail's; only *carriage* is the pack's. **Flagged
-for the reviewer** — this is a one-file swap if review disagrees.
+⭐⭐ And the overload **forecloses the composition the build exists to
+create**: a `--to` that excludes `--ask` makes *"ship it to Rejection and
+sell it there"* unexpressible, which is the transport spread — the
+arbitrage the whole design is for.
+
+So:
+
+- **`trade-haulage` ships `ship <goods> to <destination>`** — view at
+  `content/trade/haulage/cmd/haulage/ship.yaml`, controller at
+  `src/idea/cmd/haulage/ShipController.ts`. A **`haulage` command
+  category**, on the metal chain's `mining` / `fuel` / `smelting`
+  precedent (a trade's own acts get their own category).
+- **Afforded by content**: the depot counter's `commandContributions`,
+  never a core mixin. You can `ship` where there is a shipping desk.
+- **Retail's `consign` and `ConsignController` are untouched**, which
+  removes a kernel edit from W2 and the `ShipmentDesk` *shape probe* with
+  it — the pack's controller talks to the pack's own counter directly.
+- ⭐ **`ship` then `consign` at the far end composes**, and that is the
+  arbitrage, expressible.
+
+✅ Checked: **no object in shipped content carries `ship` as a keyword**, so
+the verb/noun collision is theoretical.
+
+**Rejected:** `consign --to` (the earlier draft). It muddles two acts under
+one word, and — the decisive objection — it forecloses ship-and-sell-there.
 
 ### P10 — Reporting is a registry query, not an MQL seed
 
@@ -527,7 +545,7 @@ user prefers it.
 | `rejection` (edit) | `/world/rejection` | *where* — the climb, the pass, the pithead-yard end. |
 | `newbie-wilds` (edit) | `/world/newbie-wilds` | *where* — one exit onto the corridor past Rejection. |
 | `world-seed` (edit) | `/stuff/idea/Lane`, `/stuff/idea/Route` | **the realm's own facts.** The `Watercourse` rule exactly: the class is the pack's, the instances are the realm's, and they sit beside `kestrel.yaml` under the platform pack's `/stuff` claim so the realm's pack can edit them. |
-| `platform` (edit) | — | `consign.yaml`'s `--to`; the `measure`/`analyze` teamstering stanzas (the trade-mining precedent). |
+| `platform` (edit) | — | the `measure` / `analyze` teamstering stanzas (the trade-mining precedent). ⭐ **Retail is NOT touched** — P9 was revised at review and carriage has its own verb in its own pack. |
 | `saxonberg-lounge`, the six producer trades (edit) | — | par-line retune; the goods-yard doors; brain config. |
 
 ⚠ `transport` must **not** claim `/stuff/idea/Lane` in `requires.title` —
@@ -633,9 +651,10 @@ further kernel surface.
   validated in `fromData`, `materializesOnto` read by `materialize()`.
 - `packages/server/src/mud/platform/idea/cmd/perception/SurveyController.ts`
   — the `surveyScope` rung.
-- `packages/content/platform/content/platform/cmd/retail/consign.yaml` +
-  `platform/idea/cmd/retail/ConsignController.ts` — the `--to` option and
-  the `ShipmentDesk` shape probe (P9).
+⭐ **Retail is not touched.** An earlier draft added `--to` to
+`consign.yaml` + `ConsignController`; P9 was revised at review and
+carriage now has its own verb in its own pack, so this kernel edit is
+**gone**.
 
 **Tests**
 `lib/document/__tests__` — the three kinds install, read back, survive a
@@ -648,10 +667,11 @@ archetypes are **byte-identical** with the new fields absent (AC15k's second
 half); an archetype with `materializesOnto` a non-location container
 materializes onto it; a `surveyScope: 'off-room'` archetype never appears in
 a room `survey`.
-Retail suites green with `--to` present and absent.
+Retail suites green and **unmodified** (P9's revision removed the retail
+edit entirely).
 
 **Exit gate:** `test:near`; `lib/document`, `lib/employment`, `lib/archetype`,
-`lib/retail`, `platform` suites green; **`lint:schema` green and no new
+`platform` suites green; **`lint:schema` green and no new
 collection**; `lint:census`, `lint:untitled`, `lint:instanceable` green.
 
 ---
@@ -850,8 +870,12 @@ each room.
   publish and read a card (`route × weight × commodity → charge`).
   **Readable by a non-employee** — the antitrust arc needs a table, not an
   accusation — and **settable** by the carrier.
-- `src/lib/haulage/ShipmentDesk.ts` — the mixin the depot counter composes;
-  P9's shape target.
+- `src/lib/haulage/ShipmentDesk.ts` — the mixin the depot counter
+  composes: it accepts goods for carriage and files the waybill.
+- `src/idea/cmd/haulage/ShipController.ts` +
+  `content/trade/haulage/cmd/haulage/ship.yaml` — **`ship <goods> to
+  <destination>`** (P9), a new `haulage` category, afforded by the depot
+  counter's own `commandContributions`.
 - `src/thing/DepotCounter.ts` — `ShipmentDeskMixin(AttendantMixin(Vessel))`;
   the shipped attendant queue **is** the counter.
 - `src/thing/Warehouse.ts` — the bailee store; issuing a receipt is a
@@ -901,6 +925,10 @@ confers the bigger rig, with the scalar never surfaced (**AC15b**); a
 competent teamster's readouts are richer than a novice's for the same rig on
 the same road **and the journey takes the same time** (**AC15c**); a depot's
 records cover every consignment it handled and no others (**AC17**).
+
+⚠ **Sweep item, not a build item:** the new **`haulage` command category**
+needs its line in CLAUDE.md's category list. CLAUDE.md is a swept index
+file per the worktree rules — leave it to `/finalize`, do not race it.
 
 **Exit gate:** trade-haulage vitest + transport vitest + `test:near` + the
 full lint family. ⚠ **`requiresWizard` appears nowhere** — the warehouseman
@@ -1068,6 +1096,7 @@ participating in it. Roads and rivers exist with nobody employed by them.*
 | `src/thing/Warehouse.ts` | `/trade/haulage/thing/Warehouse` | `thing` | instanceable; the bailee. |
 | `src/thing/BearerReceipt.ts` | `/trade/haulage/thing/BearerReceipt` | `thing` | ⭐ a document of title that is a **Thing** you can steal. |
 | `src/behavior/hauls.ts` | `/trade/haulage/behavior/hauls` | `behavior/` | a pack brain; sole export `export const brain = class {…}`. |
+| `src/idea/cmd/haulage/ShipController.ts` | `/trade/haulage/idea/cmd/haulage/ShipController` | `idea/cmd/` | ⭐ **`ship <goods> to <destination>`** — the pack's own verb in its own `haulage` category (P9). |
 | `src/idea/cmd/perception/{MeasurePassage,AnalyzeLoad}Controller.ts` | `/trade/haulage/idea/cmd/perception/…` | `idea/cmd/` | the instrumentation split — **stanzas on shipped views, not new verbs.** |
 | `content/trade/haulage/idea/Discipline/teamstering.yaml` | — | content | *a discipline row ships with the pack whose code teaches its key.* |
 | `content/archetypes/{depot,livery}.yaml` | — | document | premises archetypes; the `livery` **file** ships, its content does not. |
@@ -1080,7 +1109,6 @@ participating in it. Roads and rivers exist with nobody employed by them.*
 `api/contract.ts` + `platform/idea/api/ContractLogic.ts` ·
 `lib/archetype/Archetype.ts` ·
 `platform/idea/cmd/perception/SurveyController.ts` ·
-`platform/idea/cmd/retail/ConsignController.ts` ·
 `platform/idea/cmd/movement/TeleportController.ts` ·
 `platform/idea/cmd/author/GotoController.ts` ·
 `platform/idea/cmd/work/JobController.ts` ·
@@ -1161,9 +1189,12 @@ Narrow by construction — derived owner, constrained path, closed kind
 allowlist — and it should be reviewed against `saveRelease`'s three rails
 one at a time.
 
-**7. `consign --to` in the kernel controller (P9).** Chosen to honour D8's
-"no new verb"; content-packs.md's own rule would put the verb in the pack.
-A one-file swap if review prefers it.
+**7. ~~`consign --to` in the kernel controller~~ — RESOLVED at review.**
+D8's "no new verb" clause was withdrawn; carriage ships as **`ship`** in
+`trade-haulage` (P9, revised). The decisive argument was not tidiness but
+that the overload **forecloses ship-and-sell-there**, which is the
+transport spread the build exists to create. This removed a kernel edit
+rather than adding one.
 
 ---
 
