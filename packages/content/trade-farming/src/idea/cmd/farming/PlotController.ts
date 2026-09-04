@@ -47,7 +47,6 @@ import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
-import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { AddressApi } from '@saxonberg/server/mud/api/address';
 import { AccessApi } from '@saxonberg/server/mud/api/access';
 import { ParcelApi } from '@saxonberg/server/mud/api/parcel';
@@ -245,19 +244,11 @@ export default class PlotController extends CommandController<PlotModel> {
 
   /** The authored ground-character model, or `null` (the ordinary case). */
   private async characterAt(place: Stuff & Container): Promise<GroundCharacter | null> {
-    const zone = (place as unknown as {
-      getZone?(): { lookupField<T>(f: string): Promise<T | null> } | null;
-    }).getZone?.();
-    if (!zone) return null;
-    const path = await zone.lookupField<string>('groundCharacter');
-    if (!path) return null;
-    const resident = StuffApi.findByTemplatePath<GroundCharacter>(path);
-    if (resident) return resident;
-    try {
-      return await StuffApi.singleton<GroundCharacter>(path);
-    } catch {
-      return null;
-    }
+    return GroundCharacter.forZone(
+      (place as unknown as {
+        getZone?(): { lookupField<T>(f: string): Promise<T | null> } | null;
+      }).getZone?.(),
+    );
   }
 
   /** Decline diegetically, and file the structured reason. */

@@ -107,3 +107,42 @@ describe('the campus farm', () => {
     expect(post!.wageRate).toBeGreaterThan(0);
   });
 });
+
+/**
+ * ⭐⭐ **The ground the farm sits on is AUTHORED, and the citation is
+ * live.** `trade-farming` ships the `GroundCharacter` class and no dirt;
+ * the venue writes the dirt. This asserts the two ends meet — the zone
+ * cites a row, and the row exists — because the whole authored layer was
+ * unreachable until a cold boot said so, and a broken citation is
+ * silent in exactly the same way.
+ */
+describe('the college ground', () => {
+  const read = (p: string): Record<string, unknown> =>
+    parse(readFileSync(p, 'utf8')) as Record<string, unknown>;
+
+  it('⭐ the field\'s zone cites a ground model, and the model is shipped', () => {
+    const zone = read(`${PACK}content/world/eternal/campus-field.yaml`);
+    const cited = (zone.data as Record<string, unknown>).groundCharacter;
+    expect(cited).toBe('/world/eternal/campus-field/idea/ground');
+
+    const row = read(`${PACK}content/world/eternal/campus-field/idea/ground.yaml`);
+    expect(row.class).toBe('/trade/farming/idea/GroundCharacter');
+  });
+
+  it('⭐⭐ and it teaches infield/outfield — a pin near, a lean far', () => {
+    const data = read(`${PACK}content/world/eternal/campus-field/idea/ground.yaml`)
+      .data as { pins: Record<string, Record<string, unknown>>; bands: unknown[] };
+    const field = read(
+      `${PACK}content/world/eternal/campus-field/location/home-field.yaml`,
+    ).data as { groundSpotX: number; groundSpotY: number };
+
+    // The pin sits on the home field's OWN spot: the ground nearest the
+    // yard is the ground two centuries of muck went on.
+    const key = `${field.groundSpotX},${field.groundSpotY}`;
+    expect(Object.keys(data.pins)).toContain(key);
+    expect(data.pins[key]!.topsoilM).toBeGreaterThan(0.25);
+    // And the far end is leaned, never pinned — it is the ground the
+    // seed dealt, wearing its neglect.
+    expect(data.bands.length).toBeGreaterThanOrEqual(2);
+  });
+});

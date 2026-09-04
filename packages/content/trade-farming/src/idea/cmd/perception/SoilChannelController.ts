@@ -57,7 +57,6 @@ import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/C
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
-import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { AddressApi } from '@saxonberg/server/mud/api/address';
 import { DISCOVERY } from '@saxonberg/server/mud/lib/belief/BeliefStore';
 import GroundCharacter, { type GroundSample, type Spot } from '../../GroundCharacter';
@@ -176,22 +175,11 @@ export abstract class SoilChannelController<
    * caller as a branch.
    */
   protected async characterAt(place: Stuff & Container): Promise<GroundCharacter | null> {
-    const zone = (place as unknown as {
-      getZone?(): { lookupField<T>(f: string): Promise<T | null> } | null;
-    }).getZone?.();
-    if (!zone) return null;
-    const path = await zone.lookupField<string>('groundCharacter');
-    if (!path) return null;
-    // ⚠ Get-or-create: a reference Idea nothing boots a roster of reads
-    // `null` forever on a fresh process. The recurring bug, and the
-    // shipped answer (`SurveyChannelController.depositAt`).
-    const resident = StuffApi.findByTemplatePath<GroundCharacter>(path);
-    if (resident) return resident;
-    try {
-      return await StuffApi.singleton<GroundCharacter>(path);
-    } catch {
-      return null;
-    }
+    return GroundCharacter.forZone(
+      (place as unknown as {
+        getZone?(): { lookupField<T>(f: string): Promise<T | null> } | null;
+      }).getZone?.(),
+    );
   }
 
   /** The soil field's seed — the Locality's address, and nothing stored. */

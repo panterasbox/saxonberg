@@ -17,3 +17,7 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: the home field
   cellSize: 20.0
+  # ⭐ The ground under this zone. Inherited by the ordinary `lookupField`
+  # walk, so every field cut here — the authored home field and any
+  # future plotted one — reads the same dirt.
+  groundCharacter: /world/eternal/campus-field/idea/ground

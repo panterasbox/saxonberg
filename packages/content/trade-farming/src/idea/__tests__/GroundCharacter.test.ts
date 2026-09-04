@@ -152,6 +152,41 @@ describe('the fold — pin over lean over procedural', () => {
   });
 });
 
+/**
+ * ⚠⚠ **The citation walk — the half that shipped BROKEN.**
+ *
+ * Three controllers and `Field.postRegister` ask a zone for
+ * `groundCharacter`. Nothing declared that field on a zone class, so the
+ * hydrator discarded any authored value and the walk answered `null`
+ * forever: the whole authored layer above was unreachable, and every
+ * test in this file still passed because they hand the model straight
+ * in. A cold boot found it. The kernel-side guard is
+ * `SpatialZone.authoredFields.test.ts`; this is the reader's side.
+ */
+describe('forZone — following the citation', () => {
+  const zone = (value: string | null) => ({
+    async lookupField<T>(f: string): Promise<T | null> {
+      return (f === 'groundCharacter' ? value : null) as T | null;
+    },
+  });
+
+  it('no zone at all is the ordinary case, and it is null', async () => {
+    expect(await GroundCharacter.forZone(null)).toBeNull();
+    expect(await GroundCharacter.forZone(undefined)).toBeNull();
+  });
+
+  it('a zone that declares nothing walks off the end, not into an error', async () => {
+    expect(await GroundCharacter.forZone(zone(null))).toBeNull();
+  });
+
+  it('⚠ a citation naming no row degrades to null rather than throwing', async () => {
+    // A row can be deleted out from under a zone. Ground still has
+    // character — that is what a total function means — so the read
+    // falls back to the procedural layer instead of failing the verb.
+    expect(await GroundCharacter.forZone(zone('/no/such/ground'))).toBeNull();
+  });
+});
+
 describe('what it reads like (D86)', () => {
   it('⭐⭐ the free look is a PERCEPT, never a number in words', () => {
     for (const texture of TEXTURE_CLASSES) {

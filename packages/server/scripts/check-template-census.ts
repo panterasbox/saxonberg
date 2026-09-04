@@ -265,7 +265,8 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     // exactly its job on a build that had not met it yet.
     'oreRow', 'warrenPath', 'zonePath', 'mineExtent', 'aditPath',
     // The zone's ground model, and the collier's three outcomes.
-    'deposit', 'charcoalTemplate', 'brandsTemplate', 'ashTemplate',
+    'deposit', 'groundCharacter', 'charcoalTemplate', 'brandsTemplate',
+    'ashTemplate',
     'gangueMaterialPath',
   ] as const) {
     push(scalar, data[scalar]);

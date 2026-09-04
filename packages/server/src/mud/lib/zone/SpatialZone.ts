@@ -18,6 +18,9 @@ import type Location from '../stuff/Location';
 import type { VetoResult } from '../errors';
 import type { FieldMeta } from '../mixin';
 import type { BlessingOdds } from '../magic/Blessing';
+import type { CelestialProfile } from '../time/CelestialProfile';
+import { Suppressions } from '../magic/Suppression';
+import type { MagicSuppression } from '../magic/Suppression';
 
 /**
  * Abstract base for all topographical Zone subtypes (`CartesianZone`,
@@ -44,6 +47,9 @@ export abstract class SpatialZone extends Zone {
     blessingOdds: { persistent: true, authorable: true },
     address: { persistent: true, authorable: true },
     deposit: { persistent: true, authorable: true },
+    groundCharacter: { persistent: true, authorable: true },
+    celestialProfile: { persistent: true, authorable: true },
+    suppressesMagic: { persistent: true, authorable: true },
   };
 
   /**
@@ -148,6 +154,76 @@ export abstract class SpatialZone extends Zone {
 
   public getDeposit(): string | null { return this.deposit; }
   public setDeposit(value: string | null): void { this.deposit = value ?? null; }
+
+  /**
+   * ⭐ **The `GroundCharacter` row governing the SOIL over this region**,
+   * or `null` to walk on. `deposit`'s sibling, one layer up: the same
+   * land, read by the farmer instead of the miner.
+   *
+   * ⚠⚠ **It is declared here for the reason `deposit` is, and the reason
+   * is a defect this build repeated.** A pack cannot add a field to a
+   * kernel class and the failure is SILENT — the hydrator discards what
+   * no `fieldMeta` declares, `lookupField` then answers `null` forever,
+   * and the authored half of a three-layer model becomes an unreachable
+   * branch that every test still passes because tests hand the model in
+   * directly. Mining paid for that lesson with a live drive; farming
+   * shipped `zone.lookupField('groundCharacter')` against nothing and
+   * cost a second one.
+   *
+   * ⭐ Soil is a property of the LAND, so the ordinary ancestor walk is
+   * the right carrier: a farm's own zone declares its ground, or a
+   * region declares the ground under a whole valley and every field cut
+   * in it inherits the same clay.
+   *
+   * The string is **opaque to the kernel** — `trade-farming` owns the
+   * `GroundCharacter` class and the fold that reads it. Carrying a
+   * citation is not importing a concept.
+   */
+  protected groundCharacter: string | null = null;
+
+  public getGroundCharacter(): string | null { return this.groundCharacter; }
+  public setGroundCharacter(value: string | null): void {
+    this.groundCharacter = value ?? null;
+  }
+
+  /**
+   * ⚠⚠ **Two more that were never declared, and the gate that found
+   * them.** Both are documented, shipped read paths — `CelestialLogic`
+   * asks `lookupField('celestialProfile')` and `MagicLogic` asks
+   * `lookupField('suppressesMagic')`, the second being the region-scale
+   * ward magic.md describes — and until now **no zone class declared
+   * either**, so both walks answered `null` for every zone in the game
+   * and no author could have made them do otherwise.
+   *
+   * `suppressesMagic` is declared on `Location`, which is why it looked
+   * fine: a ROOM can carry a ward, and the region-scale one the doc
+   * promises was the unreachable half.
+   *
+   * ⭐ They were found by asking the question from the reader's end —
+   * *every name any code looks up must be declared somewhere* — after
+   * `groundCharacter` made it three. That check is
+   * `SpatialZone.authoredFields.test.ts`.
+   */
+  protected celestialProfile: CelestialProfile | null = null;
+
+  public getCelestialProfile(): CelestialProfile | null {
+    return this.celestialProfile;
+  }
+  public setCelestialProfile(value: CelestialProfile | null): void {
+    this.celestialProfile = value ?? null;
+  }
+
+  /** The region-scale anti-magic field, or `null`. See above. */
+  protected suppressesMagic: MagicSuppression | null = null;
+
+  public getSuppressesMagic(): MagicSuppression | null {
+    return this.suppressesMagic;
+  }
+  public setSuppressesMagic(value: MagicSuppression | null): void {
+    // Per-field invariant on the setter, exactly as `Location` has it:
+    // `Suppressions.validate` throws on a bad verbs/nouns filter.
+    this.suppressesMagic = Suppressions.validate(value);
+  }
 
   /**
    * Locations that live in this zone. Populated by the subclass's

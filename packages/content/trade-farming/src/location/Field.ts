@@ -751,7 +751,11 @@ export default class Field extends FieldBase {
       this as unknown as Stuff & Container,
     );
     const seed = GroundCharacter.seedFor(locality?.getAddress() ?? '');
-    this.installFieldReserves(this.groundSample(null, seed));
+    // ⚠ The zone's authored model, NOT `null`. A field whose reserves were
+    // sized off procedural sand while `look` and `analyze soil` reported
+    // authored loam would be visibly two different fields to one player.
+    const model = await GroundCharacter.forZone(this.getZone());
+    this.installFieldReserves(this.groundSample(model, seed));
     void this.restampSeason();
   }
 

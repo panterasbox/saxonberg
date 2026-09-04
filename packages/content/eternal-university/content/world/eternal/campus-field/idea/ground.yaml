@@ -1,0 +1,64 @@
+# ⭐⭐ The college ground — **the infield and the outfield**, which is the
+# oldest fact in European farming and the one this row exists to teach.
+#
+# `trade-farming` ships the `GroundCharacter` CLASS and no dirt. Ground is
+# a thing about somewhere, so it belongs to the venue, exactly as the
+# Ferrow orebody belongs to Rejection and not to `trade-mining`.
+#
+# ## What is authored and what is not
+#
+# ⚠ Almost nothing. Texture, slope, aspect and the shape of the drainage
+# are computed from position and stored NOWHERE, seeded off this
+# locality's own address. What is written down here is the part a
+# procedural field cannot know, because it is not a fact about the land
+# at all — **it is a record of what people did to it.**
+#
+# ## Infield and outfield
+#
+# ⭐ A farm's muck went on the ground nearest the yard, because muck is
+# heavy and carting it is the whole cost. Two centuries of that makes the
+# near ground deep, sweet and stoneless while the far ground stays thin
+# and sour — and the near field is called the **home field** for the same
+# reason it is the best field on the farm. Nobody chose good land; they
+# made it, one cartload at a time, and the making is legible in the dirt.
+#
+# So: a **pin** on the home field's own spot, which is the deliberate
+# statement *this ground was improved* — and a **lean** over the far end,
+# which nudges rather than replaces, so the outfield stays the ground the
+# seed dealt and merely wears its neglect.
+#
+# ⚠ Both are indistinguishable downstream from a computed cell. A student
+# who walks out with a spade and reads the two ends of one farm learns
+# the difference by measuring it, which is the only way it is worth
+# learning.
+class: /trade/farming/idea/GroundCharacter
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: the college ground
+  pins:
+    # The home field, at its own `groundSpotX`/`groundSpotY`. Deep loam,
+    # picked clean, limed sweet, and level. ⚠ A pin REPLACES, and that is
+    # correct here: this is not ground that happened to be good.
+    "4,7":
+      texture: loam
+      stoniness: 0.04
+      drainage: 0.62
+      slopeDeg: 1.5
+      topsoilM: 0.34
+      nativePh: 6.6
+  bands:
+    # The outfield — the far end, up the slope, out of cart range. Thin,
+    # stony and sour: the ground nobody ever carried muck to.
+    - from: [7, 0]
+      to: [14, 5]
+      stoninessScale: 1.6
+      depthScale: 0.6
+      phOffset: -0.5
+      note: "out of cart range; it never got the muck and it shows"
+    # The wet bottom every farm has, along the low corner. It is not poor
+    # ground — it is ground with water standing in it, which is a
+    # DITCHING bill rather than a yield penalty (D55).
+    - from: [0, 0]
+      to: [3, 3]
+      drainageScale: 0.55
+      note: "the spring line comes out along this corner"

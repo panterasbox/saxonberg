@@ -141,6 +141,43 @@ rock:**
 ⚠ The thirty lines of hash-and-mix are **re-implemented, not imported**
 (D6) — the fourth instance, same ruling: shared shape, not shared code.
 
+### The citation — how a zone says what its ground is
+
+A zone carries `groundCharacter`, the path of a `GroundCharacter` row,
+and it is inherited by the ordinary `lookupField` ancestor walk — so a
+farm's own zone declares its ground, or a region declares the ground
+under a whole valley and every field cut in it reads the same clay.
+`GroundCharacter.forZone(zone)` is the **one** place the citation is
+followed; `Field.postRegister`, the three field-work verbs and the survey
+channel all go through it, so they cannot disagree about the dirt they
+are standing on.
+
+The shipped instance is the university's, and it teaches **infield and
+outfield**: a *pin* on the home field's own spot (the ground nearest the
+yard, which is where two centuries of muck went), a *lean* over the far
+end (out of cart range, thin and sour), and a wet corner along the spring
+line. None of that is a fact about the land — it is a record of what
+people did to it, which is precisely the part a procedural field cannot
+know.
+
+> ⚠⚠ **`groundCharacter` is declared on the KERNEL's `SpatialZone`, and
+> it has to be.** A pack cannot add a field to a kernel class: the
+> hydrator discards what no `fieldMeta` declares, silently, and the walk
+> then answers `null` forever. Farming shipped three readers against a
+> field no zone class declared, so the entire authored layer above was an
+> unreachable branch — and every unit test passed, because tests hand the
+> model straight in. **A cold boot found it**, the same way it found
+> `deposit` for mining and `address` for the resolver.
+>
+> ⭐ The general form is now a gate:
+> `SpatialZone.authoredFields.test.ts` reads the problem from **both**
+> ends — every key a shipped zone row authors must be declared, and
+> **every name any code looks up must be declared somewhere**. The second
+> half was added here and immediately found two more:
+> `celestialProfile` and the region-scale `suppressesMagic`, both
+> documented, both shipped, both unreachable since the day they were
+> written.
+
 ### ⭐⭐ Character prices IMPROVEMENT, never yield (D55)
 
 `improvementCost` is the whole payload and there is deliberately **no

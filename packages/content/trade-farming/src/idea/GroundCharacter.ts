@@ -55,6 +55,7 @@
  */
 
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
+import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 
 /**
@@ -178,6 +179,38 @@ export default class GroundCharacter extends Idea {
    */
   public static seedFor(address: string): number {
     return (hashString(address) ^ BASE_SEED) >>> 0;
+  }
+
+  /**
+   * The authored model governing a zone's ground, or `null` — **the one
+   * place the citation is followed**, so `Field`, the survey channel and
+   * the field-work verbs cannot disagree about what dirt they stand on.
+   *
+   * ⚠⚠ The field it reads, `groundCharacter`, is declared on the kernel's
+   * `SpatialZone` and it HAS to be. A pack cannot add a field to a kernel
+   * class: the hydrator silently discards what no `fieldMeta` declares,
+   * this walk then answers `null` forever, and the authored layer becomes
+   * an unreachable branch that every unit test still passes because tests
+   * hand the model straight in. That is exactly how it shipped the first
+   * time, and a cold boot is what found it.
+   *
+   * ⚠ Get-or-create: a reference Idea that nothing boots a roster of
+   * reads `null` forever on a fresh process — the recurring bug, and the
+   * shipped answer (`SurveyChannelController.depositAt`).
+   */
+  public static async forZone(
+    zone: { lookupField<T>(f: string): Promise<T | null> } | null | undefined,
+  ): Promise<GroundCharacter | null> {
+    if (!zone) return null;
+    const path = await zone.lookupField<string>('groundCharacter');
+    if (!path) return null;
+    const resident = StuffApi.findByTemplatePath<GroundCharacter>(path);
+    if (resident) return resident;
+    try {
+      return await StuffApi.singleton<GroundCharacter>(path);
+    } catch {
+      return null;
+    }
   }
 
   // ---------- ⭐ the one resolved read ----------
