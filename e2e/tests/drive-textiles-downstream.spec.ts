@@ -205,9 +205,9 @@ test('⭐ the tailor — measure, cut, sew, wear', async ({ browser }) => {
 
   await cmd(w.page, 'look book', 2600);
 
-  const measured = await cmd(w.page, 'measure customer me', 3600);
+  const measured = await cmd(w.page, 'measure figure', 3600);
   if (!refused(measured)) note('⭐ MEASURE CUSTOMER writes the body into the shop book');
-  else note(`measure customer said: ${measured.split('\n').slice(-1)[0]}`);
+  else note(`measure figure said: ${measured.split('\n').slice(-1)[0]}`);
 
   const cut = await cmd(w.page, 'cut bolt --for me', 5200);
   if (!refused(cut) && /pieces/i.test(cut)) {

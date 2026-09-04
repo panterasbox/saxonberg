@@ -25,7 +25,7 @@
 > | below says | what shipped |
 > |---|---|
 > | the verb table lists **`full`**; "Eight verbs" | ⚠ **`full` does not ship.** Fulling and felting are wool-only, so linen's finish is passive sun-bleaching. Eight verbs shipped, `full` not among them |
-> | the verb table lacks `mordant`, `alter`, `measure` | all three shipped (`measure customer` as a stanza) |
+> | the verb table lacks `mordant`, `alter`, `measure` | all three shipped (`measure figure` as a stanza) |
 > | **W0–W12** wave numbering | superseded by A1–A10 / B1–B5 |
 > | W7 grows **cotton** | flax only — a second cellulose fibre adds rows without a lesson |
 > | W5 emits a **pre-registered producer event** | ⚠ **deleted.** It would have had no emitter, no listener, and no connection to room-condition's ledger. The seam is a METHOD (`outermostAt`), not a signal |

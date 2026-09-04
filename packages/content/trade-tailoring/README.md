@@ -46,7 +46,7 @@ Neither of the other two trades has a beat like it.
 person handling your body, so it needs agreement — and queueing and
 being served *is* the agreement. No new consent mechanism.
 
-`measure customer` is a **stanza** on the platform's shipped `measure`
+`measure figure` is a **stanza** on the platform's shipped `measure`
 view (the `measure strike` precedent), so the trade adds **zero verbs**
 for it. And it is **free**: the loss-leader that fills the book.
 

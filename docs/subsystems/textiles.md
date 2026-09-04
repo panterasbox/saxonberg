@@ -296,11 +296,27 @@ seed ─▶ plant ─▶ SHEAF ─▶ pit ─▶ line ─▶ yarn ─▶ BOLT �
 ```
 
 **Three packs, four stages, eight verbs** — `scutch` `spin` `weave` ·
-`mordant` `dye` · `cut` `sew` `alter` — plus `measure customer` and the
+`mordant` `dye` · `cut` `sew` `alter` — plus `measure figure` and the
 saved-set stanza, both **stanzas on shipped views**, so the chain itself
 adds those eight and no more. (`equip` / `unequip` shipped on the same
 branch and are not the chain's: they are the dressing surface, and the
 slate for them is [equip-slate.md](../slates/builds/equip-slate.md).)
+
+⚠ The fitting stanza is `measure figure`, and it shipped for a day as
+`measure customer`. Every other stanza on that view names the CHANNEL
+being read (`light`, `density`, `strike`, `dip`); `customer` named the
+subject's SOCIAL ROLE, which is the wrong axis — and a role that is not
+even true off the shop floor, since a quartermaster measuring recruits
+or a parent measuring a child is the same act with no customer in it.
+⭐ The subject now **defaults to yourself**, which makes the un-shopped
+case the default one. ⚠⚠ And the header's claim that *"the attendant
+lease IS the consent"* was **prose over an empty check** — nothing ever
+read a lease. The real gates are an organism and a `MeasureBook` in
+reach, and the doc now says so. The honest consent model, when somebody
+builds it, is that **the tape is the instrument and the instrument is
+what needs the permission** — `measure strike` already needs a
+surveyor's compass, and by eye you would get a rough figure at worse
+resolution. That is a slate, not a rename.
 
 ⭐ **Preparation and finishing ship with ZERO verbs.**
 `FermentingMixin` runs the retting pit's clock and the bleaching green

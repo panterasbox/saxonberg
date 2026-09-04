@@ -895,7 +895,7 @@ capability packs and add **eight verbs and no more**:
 | tailoring | `cut` `sew` `alter` (`tailoring`) | `/trade/tailoring/idea/Discipline/tailoring` | **fit precision** |
 
 ⭐ Two more affordances ship as **stanzas on views that already exist** —
-`measure customer` on the platform's `measure` (the `measure strike`
+`measure figure` on the platform's `measure` (the `measure strike`
 precedent) and the saved-set stanza on the dressing view — so a whole
 wardrobe and the tailor's fitting cost **zero verbs**.
 

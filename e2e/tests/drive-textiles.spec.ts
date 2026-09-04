@@ -483,8 +483,10 @@ test('⭐ the textile chain — flax in the ground to a coat on a back', async (
       note('the tailor shop stands up with the table and the book');
     }
     await cmd(page, 'look book', 2400);
-    const measured = await cmd(page, 'measure customer me', 3200);
-    note(`measure customer: ${measured.split('\n').slice(-1)[0]}`);
+    // ⭐ Bare — the subject defaults to `me`, which is the un-shopped
+    // case and now the default one.
+    const measured = await cmd(page, 'measure figure', 3200);
+    note(`measure figure: ${measured.split('\n').slice(-1)[0]}`);
     const cut = await cmd(page, 'cut bolt --for me', 4500);
     if (/pieces/i.test(cut) && !/Cut what/i.test(cut)) {
       note('⭐ cut stamps the pieces to a BODY — fit is bought before the garment exists');
