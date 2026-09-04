@@ -26,6 +26,17 @@ The forcing function is the last deliverable, not the first:
 `consigns` and `restocks` stop teleporting. Everything else exists to
 make that possible without breaking the economy that depends on them.
 
+⭐⭐ **And there is a second purpose, which is arguably the larger one.
+Hauling is the first labor market that can be transferred from NPCs to
+players.** It has no skill floor — anyone can carry a crate, which is
+exactly what a brand-new player brings; demand for it is universal
+rather than one trade's; and a haul is perfectly parcelable, which is
+what the shipped gig substrate already models. Once the brains walk
+instead of teleporting, **every NPC-performed haul is visibly a job a
+player could have taken.** The pattern this build establishes —
+*post the work, let players take it, let the NPC cover the residual* —
+is the one every NPC-run sector will need.
+
 Seeded by [logistics-slate](../slates/builds/logistics-slate.md) (the
 parent design; eleven decisions taken in conversation 2026-09-03) with
 [freight-slate](../slates/builds/freight-slate.md) as the detail sibling
@@ -78,6 +89,34 @@ navigability, [encumbrance](../subsystems/encumbrance.md),
 - **G9 — The teleport-ripple defect is fixed.** Teleporting while
   mounted or hitched must not silently leave the animal or the cart
   behind.
+- **G10 — Hauling is a trade you can get better at.** A discipline
+  measures it, competence buys **information and bigger rigs** (never a
+  faster wagon), and the career ladder from porter to operator runs on
+  the shipped business ladder rather than on a stat.
+- **G11 — Hauling is the first player labor market.** Supply work is
+  **posted before it is performed**; a player may take it; the NPC
+  covers what nobody takes, so the economy stays DAU-independent while
+  the labor market stays legible.
+- **G12 — The empty return is visible.** A hauler standing at the far
+  end can see what wants moving back, so the collective waste of a
+  deadhead run is something players can see and fix.
+
+## ⭐⭐⭐ The four lenses
+
+The standing design method, recorded because running it is what caught
+the largest gap in this doc's first draft.
+
+| lens | what this build delivers | |
+|---|---|---|
+| **Pedagogy** | transport cost → land use; **capacity vs reach** — why technologies coexist rather than replace; the private record precedes the public one; custody, bailment and documents of title; rate discrimination as a table rather than an accusation; **why intermediaries exist** | ✅ |
+| **Creative expression** | a carrier business with a name, a mark and a published rate card; routes and schedules; a depot and what it holds | ⚠ thin — **you cannot make a wagon** (the wainwright gap, a non-goal) |
+| **Immersion / RP** | the road as a place you pass through; the carriage as a social space; the driver's hands full, so an escort is mechanically necessary | ⚠ **conditional on the corridor rooms earning their length** |
+| **Gamification / self-improvement** | ⭐ three layers — **personal** (D15 teamstering), **economic** (porter → carter → carrier → operator, a career not a stat), and **collective** (D17 backhaul; reliability as scoped renown) | ✅ *after* D15–D17 |
+
+⚠ **The first draft of this doc scored zero on the fourth lens** — no
+disciplines, no ladder, no labor market. D15, D16 and D17 exist because
+the lens pass found that, and they are the reason this build is worth
+more than a road.
 
 ---
 
@@ -101,6 +140,17 @@ Each names where it lands instead.
   robbery.** One coherent later build. → **the contested road build**.
   (This is also why the barricade-on-exits-vs-lane-edges question is not
   answered here.)
+- **A `navigation` discipline, wayfinding, cartography, maps as goods.**
+  ⭐ **A discipline needs somewhere to get lost**, and a realm with two
+  corridors and one road has no wayfinding in it. It arrives when the
+  graph does. → a later build, once the road network branches.
+- **Congestion.** A road is non-rival until it isn't, but with two
+  corridors and a handful of haulers there is no traffic to congest. →
+  the contested road build, alongside road wear and maintenance.
+- **The wainwright / wheelwright.** ⚠ A named gap in
+  [vocations.md](../vocations.md) and a real hole in the creative-
+  expression lens — you cannot *make* a wagon in this build, only own
+  one. → a crafting-branch question, not this build's.
 - **Standards, slot dimensions, weights and measures, the weighbridge.**
   → its own small build; a general mechanism, not a freight one.
 - **Live cargo and drovers** — the steer walks, the carcass rides. →
@@ -227,13 +277,44 @@ Which makes the number derivable rather than a taste call: **transit
 must be long enough that someone who learns a shipment is moving can
 reach the road and act on it.**
 
+⚠ **An earlier draft of this doc put the spine at 30–60 real minutes.
+That was wrong, and wrong in a specific way worth recording:
+`kestrel:headwaters` at 1400 m is the *water's* elevation, and it was
+read as *Rejection's*. The town declares no elevation at all** — its
+zone file carries `deposit:` and explicitly nothing else. Nothing in
+shipped content says Rejection is high, and the realm is one basin a
+few hours across, on the San Francisco Bay model (Mt Diablo is 1173 m
+and ~30 km from the water).
+
 The clock is **12×** — one game hour is five real minutes
-([time.md](../subsystems/time.md)). Terminus sits at 35 m and Rejection
-at ~1400 m, so the spine is a real mountain haul: **6–12 game hours,
-≈ 30–60 real minutes** for a loaded wagon end to end. That is
-deliberately long. It is the settlement model's *"by the load —
-irregular, heavy, an event"* cadence, the driver stays interactive
-throughout, and **consign means most players never sit through it.**
+([time.md](../subsystems/time.md)). So:
+
+| leg | game time, loaded | real |
+|---|---|---|
+| Terminus ↔ Hinkley Hills | ~20 min | ~1.5 min |
+| Terminus ↔ the valley crossroads | ~30 min | ~2.5 min |
+| crossroads ↔ Rejection (the climb) | ~40 min | ~3.5 min |
+| **Terminus ↔ Rejection, end to end** | **~90 min** | **~7.5 min** |
+| the same walked, unloaded | ~60 min | ~5 min |
+
+Seven and a half real minutes is the longest haul in the realm — ample
+for the vulnerability rule, and short enough that a player-driver can
+sit through it.
+
+#### ⭐⭐ And the correction changes the industry's premise
+
+At basin scale **distance is cheap**, so von Thünen cannot carry the
+industry on its own:
+
+> **Hauling is a business because of CAPACITY, not distance.** You
+> cannot carry 400 kg for ninety minutes. *It is far* was never the
+> reason.
+
+That is truer to the cost surface this build is built on — capacity ↔
+reach is the axis and distance never was — it matches how most real
+freight works (short-haul), and it removes the temptation to inflate
+journey times to make them feel important. Von Thünen still runs; the
+rings are simply tighter.
 
 Beat interval derives from exit `speed` / `defaultDurationMs`, modulated
 by **mode** and **load**, so a heavy wagon is genuinely slower.
@@ -304,6 +385,9 @@ and `consigns` precedent; there is no second implementation.
 Consequence, and it is wanted: freight is a **job**, wages are a real
 cost line, and industrial action against a carrier stops something.
 
+⭐ **Amended by D16:** the brain is the *fallback* supplier, not the
+first one. Work is posted before it is performed.
+
 ### D11 — The brains come off teleport
 
 `consigns` and `restocks` are rewritten to move goods over the road.
@@ -314,6 +398,9 @@ venues that depend on them are shipped, live content.
 road is slower than the drinking is a regression, not a lesson. Par
 levels, batch sizes and cadence are retuned as part of this decision,
 not left to discovery.
+
+⭐ **Amended by D16:** the rewritten loops **post a gig first** and only
+haul it themselves when the window expires unclaimed.
 
 ### D12 — Reporting is MQL over the paper, and there is no aggregate yet
 
@@ -354,6 +441,90 @@ Worn gear and pack come along, or teleport strips you. Being **mounted
 or hitched refuses the ride** with an honest message naming what
 blocked it. Silent failure is the thing being killed.
 
+### D15 — `teamstering` is the discipline, and band 0 must be able to earn
+
+⚠ **An earlier draft of this doc had no disciplines at all**, which said
+hauling is unskilled labour forever with no ladder. That was the
+gamification lens failing, and it is corrected here.
+
+**`teamstering` ships with this build** — hitching, load balance,
+passage judgement, and handling a team. ⚠ **Draft animals ride it**,
+because there is no husbandry discipline: all 46 shipped Disciplines
+were checked and animal handling is not among them.
+[freight-slate](../slates/builds/freight-slate.md) lists *"husbandry
+(existing)"* for draft beasts and **that is an error in the slate.**
+
+Conferrals split along the standing rule — *competence buys
+information, not outcomes*:
+
+| band buys | what | why it is legitimate |
+|---|---|---|
+| **information** | passage judgement (*will my rig make that turn*) and load-fit readouts **before you commit** | the same readout ladder as the gun and `analyze` — it never changes the outcome, only what you knew going in |
+| **capability** | **bigger rigs** — a novice handles a single-horse cart, a competent teamster a four-horse team | a *different act*, not the same act done better: the known-of→can-make ladder, never the odometer failure |
+
+⚠ **Per the instrumentation doctrine the readouts are stanzas on the
+shipped `measure` / `analyze` views, not new verbs.**
+
+> ⭐ **Band 0 must be able to earn.** If teamstering gates entry it stops
+> being the labor market that takes a brand-new player, which is the
+> entire point of D16.
+
+⭐ And the growth that matters most here is **not a stat**: the career
+ladder is **porter → carter → carrier → operator**, which runs on the
+shipped business ladder, and a carrier's reliability is **renown, scoped
+to the places they serve** — *"the quality signal is TRUST, not
+measurement."*
+
+### D16 — ⭐⭐⭐ The work is posted before it is done; the NPC is the fallback
+
+**The build's second purpose, and the pattern every NPC-run sector will
+reuse.** A business's supply need becomes a **gig on the board** with a
+window. A player may take it. **If nobody does before the window
+expires, the NPC hauler covers it.**
+
+Three things this buys at once:
+
+1. the economy stays **DAU-independent** — the standing commitment
+   holds, because the NPC always covers;
+2. every NPC-performed haul is **visibly a job a player could have taken
+   and didn't** — the labor market is legible even when nobody is in it;
+3. ⭐⭐ **the NPC is the reserve supply, so it sets the wage.** A player
+   cannot charge more than the NPC costs and need not accept less. The
+   reservation wage, doing real work.
+
+> ⭐⭐ **The NPC is the market-maker of last resort.**
+
+Two risks, named rather than discovered:
+
+- ⚠ **A taken-and-failed gig starves a venue.** The window must expire
+  back to the NPC, and the shipped contract substrate's escrow +
+  custody clause handles the loss.
+- ⚠ **The NPC's rate is a load-bearing tuning dial** — it sets the wage
+  level for the whole first labor market. It ships as **authored data
+  with a comment saying so**, never a constant somebody picked.
+
+### D17 — The empty return is visible on the board
+
+⭐ **Backhaul is the collective lesson, and it is nearly free.** A wagon
+returning empty has done half the work for all the cost, and **you
+cannot solve your own backhaul** — you need someone else's cargo going
+the other way. That is a coordination problem with visible waste, which
+is what makes logistics the cleanest domain for one.
+
+The gig board ships, so a return load is just **a gig posted in the
+other direction**. All this decision requires is that gigs carry
+**origin and destination**, so a hauler standing in Rejection can see
+what wants moving to Terminus.
+
+Which teaches the genuinely non-obvious thing: **why intermediaries
+exist.** A forwarder who matches loads produces real value while
+touching nothing — the opposite of what most people assume about
+middlemen.
+
+⚠ Consolidation, congestion and road wear are the *other* three
+collective structures and are **out** (see Non-goals). Backhaul is in
+because it costs a field.
+
 ---
 
 ## Constraints
@@ -390,6 +561,12 @@ blocked it. Silent failure is the thing being killed.
   or a second carrier must need **zero new pack code**.
 - **The wall-clock invariant.** No rate, duration or entitlement may be
   denominated in real time or in command throughput.
+- **Competence surfaces as bands only.** The Competence scalar never
+  crosses the Api boundary; a conferral is a band × Catalogue lookup.
+  No teamstering number is ever shown or stored.
+- **No conferral may make the same act better.** A discipline may buy
+  information or unlock a different act; it may never make a wagon
+  faster on the same road.
 - **The full suite runs at exactly two moments** — before the MR opens
   and at `/finalize`. Everything between is `test:near` plus the touched
   packs plus the lint family.
@@ -444,6 +621,28 @@ blocked it. Silent failure is the thing being killed.
     `teleport` calls**, and Dave's Bar and the distributor's counter are
     still stocked after a long unattended run.
 
+**The trade you can get better at**
+
+15a. A character with **no transcript at all** can take a haulage gig,
+    complete it, and be paid — band 0 earns.
+15b. Practising haulage appends Transcript rows against `teamstering`,
+    and crossing a band confers the larger-rig capability; the
+    Competence scalar is never surfaced.
+15c. A competent teamster's passage and load-fit readouts are **richer
+    than a novice's for the same rig on the same road**, and the
+    journey takes the **same** time for both.
+
+**The labor market**
+
+15d. A venue's supply need appears as a **gig on the board before** any
+    NPC acts on it, carrying origin, destination and a window.
+15e. A player who takes that gig and delivers is paid, and the NPC does
+    **not** also perform it.
+15f. A gig whose window expires unclaimed is performed by the NPC, and
+    the venue is stocked either way.
+15g. A hauler at the far end of a corridor can list gigs whose
+    **origin** is where they stand — the backhaul is findable.
+
 **Reporting**
 
 16. MQL over bills of lading answers *what moved from X to Y in a given
@@ -492,7 +691,11 @@ items) · [supply-chain-slate](../slates/builds/supply-chain-slate.md)
 [document-store](../subsystems/document-store.md) ·
 [retail](../subsystems/retail.md) · [employment](../subsystems/employment.md) ·
 [attendant](../subsystems/attendant.md) · [behavior](../subsystems/behavior.md) ·
-[time](../subsystems/time.md) · [mql](../subsystems/mql.md)
+[time](../subsystems/time.md) · [mql](../subsystems/mql.md) ·
+[advancement](../subsystems/advancement.md) (Discipline, Transcript,
+bands, conferrals) · [renown](../subsystems/renown.md) ·
+[participation](../subsystems/participation.md) ·
+[vocations](../vocations.md) (the wainwright gap)
 
 **Doctrine** — [measurement.md](../measurement.md) (the three layers;
 the engine may publish quantities, never a verdict) ·
