@@ -1309,7 +1309,7 @@ early).
 
 ---
 
-## Wave W7 — The labor market: post first, NPC covers the residual
+## ✅ Wave W7+W8 — The labor market, and the switchover (landed together)
 
 **Lands:** D16 and D17 — the build's second purpose, and the pattern every
 NPC-run sector will reuse.
@@ -1363,9 +1363,76 @@ named risk, tested rather than discovered.
 a fixture-world behavior test + `test:near` + lints. **The old teleport
 loops still run**; nothing has switched over yet.
 
+### ✅ W7 + W8 done — ⚠ **re-planned into ONE wave**
+
+**The split was wrong and the plan said so itself.** W7 was to add the
+posting while *"the old teleport loops still run"*, and W8 was to remove
+the teleporting. Between them every good would have moved **twice** —
+once posted and hauled, once teleported and consigned — which is exactly
+the half-state W8's own preamble forbids (*"no half-state may ship"*).
+Gating the posting behind a flag no shipped row set would have been a
+dead branch. So they landed together.
+
+**Six decisions, and two of them are the design:**
+
+1. ⭐⭐⭐ **A supply order lands on a receiving BENCH, not on the shelf.**
+   `ContractApi.post` refuses a gig whose condition **already holds**,
+   and a short line usually still has something on the shelf — so an
+   order aimed at the shelf is refused *precisely when the venue most
+   wants it*. The bench is empty by construction because the keeper
+   clears it every beat. This was not in the plan and it is the single
+   thing that makes `restocks`' half work at all.
+2. ⭐⭐ **The hauler buys at the supplier and is reimbursed by the
+   reward.** The keeper cannot `buy` without being at a counter, and she
+   no longer travels — so the goods have to be bought by whoever fetches
+   them. That keeps the distributor paid and the consignors' resale
+   intact, and it makes a real **second rung**: the producer leg needs no
+   capital, this one needs enough to front a load.
+3. **Postings are `--bounty` with NO expiry, and the window is the
+   CARTER's patience.** A lapsing posting would revert the escrow and
+   leave the venue unstocked — the exact regression D11 forbids. A
+   bounty has no claim step, so *"a player who takes it is paid and the
+   NPC does not also perform it"* falls out for free: the gig is settled
+   and gone by the time the carter looks.
+4. **The works board is ON each floor**, not out in the yard, so *neither
+   NPC ever leaves its own floor* is literal rather than nearly true.
+5. **`contract.settled` is a new bus event** — the kernel announces that
+   a gig settled and names no trade; `WaybillRegistry` subscribes at
+   `postRegister`. That is what makes a player's delivered gig file the
+   same bill of lading `ship` does (AC15p), and without it the reporting
+   spine would be blind to the **dominant** carriage path.
+6. **The retune**: every supplied par level doubled, producer batches
+   went from six loose goods to a crate of twelve, and both cadences
+   slowed. ⚠ Doubling also fixes something the old numbers hid — an
+   order can only be posted while a unit of the line is still on the
+   shelf, so a par that ran to zero between beats could never be
+   re-ordered.
+
+**⭐⭐⭐ Two blocking defects the DRIVE found, that no unit test could
+have:**
+
+- ⚠⚠ **`job post` from a brain was refused: *"no attributable
+  poster"*.** `getActingAuthor` deliberately refuses any chain
+  containing a forced frame — right for authorship, but it made
+  contracts the **only** economic act an NPC could not perform. `buy`
+  and `consign` both move real money and both work, because they resolve
+  their principal from the command giver and the wallet. `ContractLogic`
+  now falls back to the giver **when every frame in the chain shares
+  one**, so a forced command somebody *else* caused is still refused.
+- ⚠⚠ **`job post --business` was refused: *"you don't run a
+  business"*.** `resolveIssuer` required the **proprietor**, and a floor
+  hand holds a `purchases` position. `buy` and `consign --ask` already
+  spend the house's money through `buysFor`. *The seat is the
+  authority* — `resolveIssuer` now accepts the proprietor **or** the
+  house the poster buys for.
+
+Both were silent: the brains ran, declined, and left every board bare.
+**The whole labor market was inert**, on a build whose second purpose is
+that labor market.
+
 ---
 
-## Wave W8 — ⚠⚠ The forcing function: the switchover (atomic)
+## ✅ Wave W8 — ⚠⚠ The forcing function: the switchover (landed with W7)
 
 The highest-risk wave. It is one wave because no half-state may ship: the
 day the brains stop teleporting is the day the road has to carry the

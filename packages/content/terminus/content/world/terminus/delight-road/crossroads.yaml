@@ -57,6 +57,10 @@ data:
       description: |
         Deep, square-cut, dry today and clean of weed. Somebody walks this ditch with a spade often enough that it has never silted, which tells you more about who keeps this crossing than any sign would.
     roads:
-      keywords: [roads, road, west, south, pass, hills]
+      # ⚠ NO direction words. `go west` resolves its argument through
+      # MQL, and a detail keyworded `west` wins the match over the exit —
+      # so the walk answered *"you can't reach the valley crossroads"* and
+      # the realm was not contiguous after all. Found by driving it.
+      keywords: [roads, road, junction, pass, hills]
       description: |
         South, the made road runs on into the valley where the good ground is. West, the other road lifts almost at once towards the hills and the pass, and you can see from here that it stops being a road for wheels somewhere up there.

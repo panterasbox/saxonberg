@@ -14,22 +14,57 @@
  * is collected, washed and racked.
  *
  * ⭐ **Nothing here is unavailable to a player.** Every act is a literal
- * verb through `forceCommand` (the giver's own method since the OO sweep) — `wallet use house`, `buy`,
- * `put … on`, `pour … into`, `get`, `wash` — gated exactly as a typed
- * line is: the seat is the authority, the wallet's active account is the
- * principal, and a `buy` the house cannot afford declines the way it
- * would for anyone (the beat stops there; the sheet keeps saying so and
- * `house pnl` shows why). Movement between the bar and the supplier is a
- * `teleport` (the `shifts` shape — a walk is the locomotion slate's).
+ * verb through `forceCommand` (the giver's own method since the OO sweep)
+ * — `wallet use house`, `job post`, `get`, `put … on`, `pour … into`,
+ * `wash` — gated exactly as a typed line is.
+ *
+ * ## ⭐⭐ The keeper stopped TRAVELLING (logistics D11)
+ *
+ * She used to `teleport` to the supplier's counter, buy the shortfall,
+ * and `teleport` back. **Distance was free** — the same magic as the
+ * bar's `populates:` bottles, one level up the chain.
+ *
+ * She does not walk instead. She **posts the work and receives the
+ * goods**, and somebody else carries them: a player, or the carrier's
+ * own carter as the fallback. That is a better reading of the goal than
+ * the literal one — not *"the keeper walks four rooms"* but ***"the
+ * keeper does not travel, because carriage is somebody's job"*** — and
+ * it is the whole point of the logistics build.
+ *
+ * ⚠ The literal reading was impossible anyway: this brain's host is the
+ * **Saxonberg Lounge bar**, and *"Saxonberg and the Lounge joining the
+ * map"* is a stated non-goal. The leg into the Lounge rides the TPA
+ * lane, which is a lane with no intermediate stops and no duration —
+ * D2's own limit case doing exactly the work D2 says it does.
+ *
+ * ## ⚠ Why the order names a BENCH and not the shelf
+ *
+ * A gig is refused if its condition **already holds**, and a short line
+ * usually still has something on the shelf — so an order whose
+ * destination was the shelf would be refused precisely when the bar most
+ * wanted it. The order lands on a **receiving bench**, which the keeper
+ * empties onto the shelf every beat and which is therefore empty by
+ * construction. The bench is the loading dock, and it exists for a
+ * mechanical reason rather than a decorative one.
+ *
+ * ⭐ The hauler buys at the supplier and is reimbursed by the reward, so
+ * the distributor is still paid and the consignors still see their
+ * resale. That is a real **second rung** of the labor market: the
+ * producer leg needs no capital at all, and this one needs enough to
+ * front a load.
  *
  * Not presence-gated and not ambient: the back loop runs unwatched, on
  * the authored cadence.
  *
- * config: `{ shelf: string, rack?: string, bin?: string, batch?: number }`
- * — template paths of the fixtures in the keeper's own room (bottles and
- * crates go ON the shelf, glasses IN the rack, ice is poured INTO the
- * bin); `batch` caps the buys per beat (default 12). The supplier is never
- * config — it comes from each par line.
+ * config: `{ shelf: string, rack?: string, bin?: string, batch?: number,
+ * board?: string, bench?: string, reward?: number }` — template paths of
+ * the fixtures in the keeper's own room (bottles and crates go ON the
+ * shelf, glasses IN the rack, ice is poured INTO the bin); `batch` caps
+ * the orders per beat (default 12); `board` the works board she posts
+ * to, `bench` the receiving bench orders land on, and `reward` what the
+ * house pays for one delivered line — **goods plus carriage**, because
+ * the hauler fronts the purchase. The supplier is never config: it comes
+ * from each par line.
  */
 
 import { MixinApi } from '../../api/mixin';
@@ -44,6 +79,12 @@ import type { Containable } from '../spatial/Containable';
 import type { BrainContext, BrainStatics } from './brain';
 
 const DEFAULT_BATCH = 12;
+/**
+ * ⭐ What the house pays for one delivered line — **goods plus
+ * carriage**, because the hauler fronts the purchase at the supplier
+ * and is reimbursed on delivery. Authored per venue; this is the floor.
+ */
+const DEFAULT_REWARD = 24;
 
 type Keeper = Stuff & Mobile & Containable & Container & CommandGiver;
 
@@ -95,28 +136,27 @@ export const brain = class {
       else bySupplier.set(l.line.supplier, [l]);
     }
 
-    let bought: Stuff[] = [];
-    let budget = batch;
-    for (const [supplierPath, lines] of bySupplier) {
-      if (budget <= 0) break;
-      const counterRoom = counterRoomOf(supplierPath);
-      if (!counterRoom) continue;
-      keeper.teleport(counterRoom as Stuff & Container);
-      try {
-        if (!ctx.state.house) {
-          await keeper.forceCommand('wallet use house');
-          ctx.state.house = true;
-        }
-        const got = await buyLines(keeper, lines, budget);
-        bought = bought.concat(got.items);
-        budget -= got.items.length;
-        if (got.declined) break; // the house can't pay — the sheet says so
-      } finally {
-        keeper.teleport(home as Stuff & Container);
-      }
+    // ⭐⭐ **Order the shortfall; do not go and get it.** One posting per
+    // short line, bounded by `batch`, funded by the house, landing on
+    // the receiving bench.
+    const boardPath = ctx.config.board;
+    const benchPath = ctx.config.bench;
+    if (typeof boardPath === 'string' && typeof benchPath === 'string') {
+      await order(keeper, home, bySupplier, {
+        benchPath,
+        reward: positiveInt(ctx.config.reward, DEFAULT_REWARD),
+        batch,
+      });
     }
 
-    // Shelve what came back: ice into the bin, glasses into the rack,
+    // ⭐ **Receive.** Anything a hauler put on the bench is the bar's
+    // now — take it off and shelve it exactly as a purchase used to be
+    // shelved. This is the whole of what "the keeper became a receiver"
+    // means, and it is the same six lines as before with a different
+    // source.
+    const bought = await unpackBench(keeper, home, benchPath, batch);
+
+    // Shelve what came in: ice into the bin, glasses into the rack,
     // everything else onto the shelf.
     const shelfKw = fixtureKeyword(home, shelfPath);
     const rackKw = fixtureKeyword(home, ctx.config.rack);
@@ -135,12 +175,21 @@ export const brain = class {
 
     // The bussing beat: a used, empty glass loose in the room is
     // collected, washed and racked.
+    //
+    // ⚠⚠ `get 1 <kw>`, never a bare `get <kw>` — and this one WAS bare
+    // until the logistics build's structural assertion caught it. `get`
+    // binds GREEDILY, so a bar with six dirty coupes on it put all six
+    // in the keeper's hands on the first pass of a loop that then washed
+    // and racked one of them per iteration, five of them out of her
+    // hands rather than off the bar. The sibling `consigns` brain
+    // carries a long comment about exactly this failure, found by
+    // driving; the bussing beat kept it.
     if (rackKw) {
       for (const item of home.getContents() as Stuff[]) {
         if (!isGlass(item) || !isSoiledEmpty(item) || !MixinApi.isContainable(item)) continue;
         const kw = keywordOf(item);
         if (!kw) continue;
-        await keeper.forceCommand(`get ${kw}`);
+        await keeper.forceCommand(`get 1 ${kw}`);
         if (item.getContainer() !== keeper) continue;
         await keeper.forceCommand(`wash ${kw}`);
         await keeper.forceCommand(`put ${kw} in ${rackKw}`);
@@ -179,36 +228,6 @@ function counterRoomOf(supplierPath: string): (Stuff & Container) | null {
   return null;
 }
 
-/**
- * Buy against each short line at the counter the keeper now stands at:
- * the perceived goods that match the category, one `buy` per unit until
- * the shortfall is covered or the counter runs out. A `buy` that leaves
- * the good where it was declined — stop.
- */
-async function buyLines(
-  keeper: Keeper,
-  lines: StockSheetLine[],
-  budget: number,
-): Promise<{ items: Stuff[]; declined: boolean }> {
-  const items: Stuff[] = [];
-  for (const { line, shortfall } of lines) {
-    let need = shortfall;
-    const candidates = EmploymentApi.goodsFor(keeper, line.category).filter(
-      (g): g is Stuff & Containable =>
-        MixinApi.isContainable(g) && g.getContainer() !== keeper && MixinApi.isChattel(g),
-    );
-    for (const good of candidates) {
-      if (need <= 0 || items.length >= budget) break;
-      const kw = keywordOf(good);
-      if (!kw) continue;
-      await keeper.forceCommand(`buy ${kw}`);
-      if (good.getContainer() !== keeper) return { items, declined: true };
-      items.push(good);
-      need -= unitsOf(good, line.unit);
-    }
-  }
-  return { items, declined: false };
-}
 
 /** How much of a par line one good covers, in the line's unit. */
 function unitsOf(good: Stuff, unit: 'L' | 'count' | 'kg'): number {
@@ -256,4 +275,122 @@ function isSoiledEmpty(thing: Stuff): boolean {
 
 function positiveInt(v: unknown, fallback: number): number {
   return typeof v === 'number' && Number.isFinite(v) && v > 0 ? Math.floor(v) : fallback;
+}
+
+/**
+ * Post one carriage order per short line, on the works board the keeper
+ * stands beside.
+ *
+ * ⚠ **The exemplar is a unit already on the shelf**, because `job post`
+ * takes an object the poster can REACH and a keeper cannot reach the
+ * supplier's stock. That also means a line at literal zero cannot be
+ * ordered — which is why the par levels are set so a line goes short
+ * long before it goes empty, and why the retune was part of this
+ * decision rather than left to discovery.
+ *
+ * ⚠⚠ `--bounty` and NO `--expires`. A bounty escrows at post and has no
+ * claim step, so **anyone may turn it in and the first to do so is
+ * paid** — which is how "a player who takes it is paid and the NPC does
+ * not also perform it" falls out for free. And a posting that lapsed
+ * would revert the escrow and leave the bar unstocked, which is the
+ * exact regression D11 forbids: the window a hauler waits is the
+ * CARTER's patience, not the posting's lifetime.
+ */
+async function order(
+  keeper: Keeper,
+  home: Stuff & Container,
+  bySupplier: Map<string, StockSheetLine[]>,
+  opts: { benchPath: string; reward: number; batch: number },
+): Promise<void> {
+  let budget = opts.batch;
+  let traded = false;
+  for (const [supplierPath, lines] of bySupplier) {
+    if (budget <= 0) break;
+    const counterRoom = counterRoomOf(supplierPath);
+    if (!counterRoom) continue;
+    const fromPath = counterRoom.getTemplatePath() ?? '';
+    if (fromPath === '') continue;
+
+    for (const line of lines) {
+      if (budget <= 0) break;
+      const exemplar = exemplarFor(home, line);
+      if (!exemplar) continue;
+      const kw = keywordOf(exemplar);
+      if (!kw) continue;
+      if (!traded) {
+        // Every beat, not once: a forced command reports no outcome, and
+        // a keeper dealt her card after a failed first attempt must still
+        // trade as the house.
+        await keeper.forceCommand('wallet use house');
+        traded = true;
+      }
+      await keeper.forceCommand(
+        `job post ${kw} to ${opts.benchPath} for ${opts.reward} ` +
+          `--bounty --business --from ${fromPath}`,
+      );
+      budget -= 1;
+    }
+  }
+}
+
+/**
+ * Take everything a hauler left on the receiving bench, so the shelving
+ * pass can put it away.
+ *
+ * ⚠⚠ `get 1 <kw>`, never a bare `get <kw>` — `get` binds GREEDILY, and a
+ * bench holding six of one thing would otherwise put all six in the
+ * keeper's arms in one call and make every bound above it meaningless.
+ * The `consigns` brain learned this the expensive way.
+ */
+async function unpackBench(
+  keeper: Keeper,
+  home: Stuff & Container,
+  benchPath: unknown,
+  batch: number,
+): Promise<Stuff[]> {
+  if (typeof benchPath !== 'string' || benchPath === '') return [];
+  const bench = (home.getContents() as Stuff[]).find(
+    (c) => c.getTemplatePath() === benchPath,
+  );
+  if (!bench) return [];
+
+  // A bench is a surface if it is one, and a container otherwise —
+  // whichever it is, what a hauler put down is what comes off it.
+  const landed: Stuff[] = MixinApi.isSurfaced(bench)
+    ? [...bench.getResting()]
+    : MixinApi.isContainer(bench)
+      ? (bench.getContents() as Stuff[])
+      : [];
+
+  const taken: Stuff[] = [];
+  for (const item of landed.slice(0, batch)) {
+    if (!MixinApi.isContainable(item)) continue;
+    const kw = keywordOf(item);
+    if (!kw) continue;
+    await keeper.forceCommand(`get 1 ${kw}`);
+    if (item.getContainer() !== (keeper as unknown as Stuff)) continue;
+    taken.push(item);
+  }
+  return taken;
+}
+
+/** A unit of this line already on the shelf — what `job post` names. */
+function exemplarFor(
+  home: Stuff & Container,
+  line: StockSheetLine,
+): Stuff | null {
+  const category = line.line.category;
+  for (const item of home.getContents() as Stuff[]) {
+    if (!MixinApi.isContainer(item)) continue;
+    for (const good of item.getContents() as Stuff[]) {
+      if (categoryOf(good) === category) return good;
+    }
+  }
+  return null;
+}
+
+/** A good's par category, if it declares one. */
+function categoryOf(good: Stuff): string {
+  const asked = good as unknown as { getCategory?: () => string };
+  return typeof asked.getCategory === 'function' ? asked.getCategory() : '';
 }

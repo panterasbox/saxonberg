@@ -1,7 +1,7 @@
 # the farm — the yard: the outfit's Stock (the floor rows' home
 # `container:` — the sweep stands them at target here) and the hand whose
-# `consigns` beat carries them to the cash-and-carry. No exits: the hand
-# teleports (the `shifts` shape); a walk is the locomotion slate's.
+# `consigns` beat carries them to the cash-and-carry. ⭐ It has a DOOR now (logistics D11): a hauler has to be able to
+# reach the crate the hand posts about. The hand never uses it.
 # An ordinary location, not a FurnishableRoom: that class is the
 # FURNISHING archetypes' base. A trade floor's durability lives on its
 # persistable fixtures (the Stock, the racking, the counter) — the
@@ -33,7 +33,19 @@ data:
     A packing shed open on one side: trestles, a scale, crates under wet sacking (the growing is the smallholding's; the floor stands at target through the sweep until a grower supplies it).
   ambientIntensity: 25
   ambientColorTemperature: 4200
+  exits:
+    # ⭐ The back door onto the goods yards — the one room the D11
+    # switchover cost. The hand does not travel; a HAULER comes in this
+    # way to collect what the hand crated and posted about.
+    northeast:
+      destination: /world/terminus/goods-yards/yard
+      media: [ground]
+      edgeMinutes: 4
   props:
+    # ⭐ The works board, ON the floor. The hand posts what wants moving
+    # without stepping outside — which is what makes D11's resolution
+    # literal: neither NPC ever leaves its own floor again.
+    - /trade/haulage/thing/works-board
     - /trade/farming/thing/farm-stock
   cast:
     - /trade/farming/agent/farm-hand

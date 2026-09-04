@@ -12,28 +12,51 @@
  * config keys by census key.
  *
  * ⭐ **Nothing here is unavailable to a player.** The hand drives the
- * literal verbs through `forceCommand` (the giver's own method since the OO sweep) — `get`, `wallet use
- * house`, `consign … --ask` — so the whole loop is the seat's: the hand
- * holds a `purchases` position and carries the house card dealt at hire
- * (`EmploymentLogic`, 3d), `wallet use house` makes the outfit's
- * operating account the one it trades as, and `consign` then records the
- * business as consignor and pays its account on resale. Movement between
- * the floor and the counter is a `teleport` (the `shifts` shape — a walk
- * is the locomotion slate's).
+ * literal verbs through `forceCommand` (the giver's own method since the OO sweep) — `get`, `put … in`,
+ * `job post … --bounty --from` — so the whole loop is the seat's: the
+ * hand holds a `purchases` position and carries the house card dealt at
+ * hire (`EmploymentLogic`, 3d).
+ *
+ * ## ⭐⭐ The hand stopped TRAVELLING (logistics D11)
+ *
+ * It used to carry the floor stock to the distributor's counter and put
+ * it up there, and **movement between the floor and the counter was a
+ * `teleport`** — the same magic as the bar's `populates:` bottles, one
+ * level up the chain.
+ *
+ * It does not walk instead. It **crates the goods and posts the work**,
+ * and somebody else carries them — a player, or the carrier's own
+ * carter as the fallback. That is a better reading of the goal than the
+ * literal one: not *"the hand walks four rooms"* but ***"the hand does
+ * not travel, because carriage is somebody's job."*** Which is the whole
+ * point of the logistics build.
+ *
+ * ⚠ Two shipped facts made the literal reading impossible anyway: every
+ * producer floor was an **exitless island**, and the keeper this brain's
+ * sibling runs on stands in the Lounge, which a stated non-goal keeps
+ * off the road map.
+ *
+ * ⭐ The board is **on the floor**, so the hand posts without stepping
+ * outside. The floor now has a DOOR — because a hauler has to come and
+ * collect — and the hand never uses it.
  *
  * Not presence-gated and not ambient: the floor runs unwatched, and the
  * cadence is the authored one.
  *
  * config: `{ stock: string, shelf: string, ask: Record<string, number>,
- * defaultAsk?: number, batch?: number }` — `stock` the outfit's own
- * `Stock` (template path), `shelf` the host counter (template path,
- * materialized on demand), `ask` minor units by census key, `defaultAsk`
- * for a good whose key the table lacks (default 10), `batch` goods per
- * beat (default 6).
+ * defaultAsk?: number, batch?: number, board?: string, crate?: string,
+ * carriage?: number }` — `stock` the outfit's own `Stock` (template
+ * path), `shelf` the host counter the goods are FOR (template path),
+ * `ask` minor units by census key, `defaultAsk` for a good whose key the
+ * table lacks (default 10), `batch` goods per beat (default 6),
+ * `board` the works board on this floor, `crate` the consignment
+ * container row, and `carriage` what the house will pay to have a crate
+ * moved (default: the NPC rate's minimum).
  */
 
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
+import { ContainmentApi } from '../../api/containment';
 import { CommandApi } from '../../api/command';
 import { AppApi } from '../../api/app';
 import { EmploymentApi } from '../../api/employment';
@@ -48,6 +71,10 @@ import type { Employed } from '../employment/Employed';
 
 const DEFAULT_BATCH = 6;
 const DEFAULT_ASK = 10;
+/** The consignment container a posted haul is about. */
+const DEFAULT_CRATE = '/trade/haulage/thing/supply-crate';
+/** What the house pays to have one crate moved, when the row says nothing. */
+const DEFAULT_CARRIAGE = 6;
 
 type Hand = Stuff & Mobile & Containable & Container & CommandGiver;
 
@@ -102,12 +129,18 @@ export const brain = class {
     if (goods.length === 0) return;
     const counterRoom = shelf.getContainer();
     if (!counterRoom || !MixinApi.isContainer(counterRoom)) return;
-    // Home is the floor the stock stands on — never "wherever the hand is
-    // now": a hand captured mid-beat at the counter (a persistable room)
-    // restores THERE, and must still walk back to its own floor.
+    // Home is the floor the stock stands on.
+    //
+    // ⚠ It used to be re-taken here with a `teleport`, because the hand
+    // travelled to the counter and a beat captured mid-trip restored it
+    // THERE. It does not travel any more, so there is nothing to come
+    // back from — and a hand that has somehow ended up elsewhere simply
+    // does nothing this beat rather than teleporting home, because
+    // **there is no `teleport` in this brain at all** and that is the
+    // whole of D11.
     const home = MixinApi.isContainable(stock) ? stock.getContainer() : null;
     if (!home || !MixinApi.isContainer(home)) return;
-    if (hand.getContainer() !== home) hand.teleport(home as Stuff & Container);
+    if (hand.getContainer() !== home) return;
 
     // Take the goods off the floor — `get` reaches into the open stock.
     //
@@ -146,22 +179,64 @@ export const brain = class {
       .slice(0, Number.isFinite(headroom) ? headroom : undefined);
     if (carried.length === 0) return;
 
-    // To the counter; trade as the house once; put each good up.
-    hand.teleport(counterRoom as Stuff & Container);
-    try {
-      // Every beat, not once: a forced command reports no outcome here,
-      // and a hand dealt its card AFTER a failed first attempt must still
-      // trade as the house.
-      await hand.forceCommand('wallet use house');
-      for (const good of carried) {
-        const kw = keywordOf(good);
-        if (!kw) continue;
-        const ask = askFor(ctx.config, good);
-        await hand.forceCommand(`consign ${kw} --ask ${ask}`);
-      }
-    } finally {
-      hand.teleport(home as Stuff & Container);
+    // ⭐⭐ **Crate it and post the work.** The hand does not travel: it
+    // puts the goods in a crate on its own floor and hangs a docket on
+    // the works board saying where they have to get to and what the
+    // house will pay to have them gone. Somebody else carries them.
+    const boardPath = ctx.config.board;
+    if (typeof boardPath !== 'string' || boardPath === '') return;
+    const cratePath =
+      typeof ctx.config.crate === 'string' && ctx.config.crate !== ''
+        ? ctx.config.crate
+        : DEFAULT_CRATE;
+
+    const crate = await StuffApi.clone(cratePath).catch(() => null);
+    if (!crate || !MixinApi.isContainer(crate) || !MixinApi.isContainable(crate)) {
+      return;
     }
+    ContainmentApi.move(crate, home as Stuff & Container);
+    const crateKw = keywordOf(crate);
+    if (!crateKw) return;
+
+    // Load it — bounded, and `put` one at a time for the same greedy-
+    // binding reason `get 1` exists above.
+    let loaded = 0;
+    for (const good of carried) {
+      const kw = keywordOf(good);
+      if (!kw) continue;
+      await hand.forceCommand(`put ${kw} in ${crateKw}`);
+      if (MixinApi.isContainable(good) && good.getContainer() === crate) loaded += 1;
+    }
+    if (loaded === 0) {
+      // Nothing went in; do not leave an empty crate on the floor to be
+      // hauled for nothing.
+      await StuffApi.destruct(crate as unknown as Stuff);
+      return;
+    }
+
+    // ⚠ Stamped to the outfit, so the crate is the house's until it is
+    // handed over — custody will move, ownership will not.
+    if (MixinApi.isChattel(crate) && !crate.getChattelId()) {
+      await crate.stampChattel(outfit as unknown as Stuff);
+    }
+
+    // ⚠ `--bounty`: no claim step, escrow held from post, ANYONE may
+    // turn it in. That is what makes "a player who takes it is paid and
+    // the NPC does not also perform it" fall out — the gig is settled
+    // and gone by the time the carter looks.
+    //
+    // ⚠⚠ And NO `--expires`. If the posting lapsed the escrow would
+    // revert and the distributor would go unsupplied, which is the exact
+    // regression D11 forbids. The window a hauler waits is the CARTER's
+    // patience, not the posting's lifetime.
+    const carriage = positiveInt(ctx.config.carriage, DEFAULT_CARRIAGE);
+    const homePath = home.getTemplatePath() ?? '';
+    const toPath = counterRoom.getTemplatePath() ?? '';
+    if (homePath === '' || toPath === '') return;
+    await hand.forceCommand('wallet use house');
+    await hand.forceCommand(
+      `job post ${crateKw} to ${toPath} for ${carriage} --bounty --business --from ${homePath}`,
+    );
   }
 } satisfies BrainStatics;
 

@@ -40,9 +40,15 @@ data:
     - /trade/haulage/thing/depot-counter
     - /trade/haulage/thing/warehouse
     - /trade/haulage/thing/rate-board
+    # ⭐ The depot's own board. A depot is where a lane touches the local
+    # economy, so it is also where somebody looking for a haul goes to
+    # find one — and where a hauler at the far end asks what wants
+    # moving BACK (`jobs --origin here`, the backhaul).
+    - /trade/haulage/thing/works-board
   cast:
     - /trade/haulage/agent/warehouseman
     - /trade/haulage/agent/dispatcher
+
   details:
     rings:
       keywords: [rings, ring, mooring, iron]

@@ -386,6 +386,13 @@ export class EventApi {
       // open policy (the RelayMessage precedent). The logic gate on
       // DiagnosticLogic is the real write restriction.
       [Events.Diagnostic]: EventApi.emittableBy(),
+      // Open emit — `ContractLogic`'s settle path is the only emitter,
+      // and naming it here would import the logic singleton into this
+      // module and form a load cycle (event → contract → ContractLogic →
+      // event), exactly as the `Diagnostic` entry above describes. The
+      // gate on `ContractLogic.complete` is the real restriction: the
+      // event is announced only after money has actually moved.
+      [Events.ContractSettled]: EventApi.emittableBy(),
     };
     return EventApi.#defaultPolicies;
   }

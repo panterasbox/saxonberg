@@ -110,6 +110,22 @@ data:
   # stays, the rest step out back. The staff are `Crafter`s (MakerMixin
   # NPCs) so the present bartender fulfills an `order`.
   props:
+    # ⭐⭐ The two fixtures the D11 switchover needed, and nothing else
+    # about the bar changed.
+    #
+    # The WORKS BOARD: Mara posts what the rail is short of without
+    # leaving her own bar — the keeper stopped travelling, she did not
+    # start walking, and *"Saxonberg and the Lounge joining the map"* is
+    # a stated non-goal so she could not have walked anywhere.
+    #
+    # The RECEIVING BENCH: an order lands here rather than on the
+    # back-bar, and that is mechanical rather than decorative. A gig is
+    # refused when its condition ALREADY HOLDS, and a short line usually
+    # still has something on the shelf — so an order aimed at the shelf
+    # would be refused precisely when the bar most wanted it. The bench
+    # is empty by construction, because she clears it every beat.
+    - /trade/haulage/thing/works-board
+    - /trade/haulage/thing/receiving-bench
     # The bar bundle by reference (`/trade/hospitality/location/bar` —
     # template inheritance does not exist, so the same list is spelled
     # here): the shelves, the tools on the well, the stations, the seats.

@@ -1,0 +1,20 @@
+# ⭐ The works board — a job board on a working floor.
+#
+# ⚠⚠ **The board is ON the floor, not out in a yard**, and that is what
+# makes D11's resolution literal: *neither NPC ever leaves its own floor
+# again.* A hand that had to walk out to post would be travelling, and
+# the whole point is that it does not — carriage is somebody else's job.
+#
+# A works board on the wall of a distillery is completely ordinary
+# content, and it costs one `props:` line per floor.
+class: /platform/thing/JobBoard
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a works board
+  primaryKeyword: works-board
+  keywords: [works-board, board, jobs, work, slate]
+  longDescription: >
+    A plank board by the door with a rail of pegs along the bottom and a
+    stub of chalk on a string. Dockets hang from the pegs: what wants
+    moving, where to, and what the house will pay to have it gone. A
+    couple of them have been up long enough to have curled.

@@ -43,11 +43,27 @@ data:
     # player could type; the seat is the authority. The config names only
     # the bar's own fixtures — the supplier comes from each par line.
     - brain: /lib/behavior/restocks
-      trigger: cadence:10m
+      # ⚠ Retuned by logistics D11. She is ORDERING now, not shopping:
+      # a beat posts what is short and clears the bench, and the road
+      # decides when the goods actually come. Ordering faster than the
+      # road can answer would just pile up dockets.
+      trigger: cadence:15m
       config:
         shelf: /trade/hospitality/thing/back-bar
         rack: /trade/hospitality/thing/glass-rack
         bin: /trade/hospitality/thing/ice-bin
+        # ⭐⭐ The D11 switchover. She POSTS the shortfall on the works
+        # board and RECEIVES what a hauler leaves on the bench; she does
+        # not go and get it, and there is no `teleport` left in the
+        # brain at all.
+        board: /trade/haulage/thing/works-board
+        bench: /trade/haulage/thing/receiving-bench
+        reward: 30
+        # ⚠ Goods PLUS carriage: the hauler buys at the distributor and
+        # is reimbursed on delivery, so the distributor is still paid and
+        # the consignors still see their resale. That makes this the
+        # labor market's SECOND rung — the producer leg needs no capital
+        # at all, and this one needs enough to front a load.
     - brain: /lib/behavior/idles
       trigger: cadence:11s
       config:

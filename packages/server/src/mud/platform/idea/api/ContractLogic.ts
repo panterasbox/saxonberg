@@ -21,8 +21,11 @@ import { MixinApi } from "../../../api/mixin";
 import { Currency, BankingApi, Money, Account } from "../../../api/banking";
 import { PlayerApi } from "../../../api/player";
 import { EmploymentApi } from "../../../api/employment";
+import type { Business as BusinessShape } from "../Business";
 import { ExecutionContextApi } from "../../../api/execution-context";
 import { WorldClockApi } from "../../../api/worldclock";
+import { EventApi } from "../../../api/event";
+import { Events, type ContractSettledEvent } from "../../../lib/events";
 import { PersistApi } from "../../../api/persist";
 import { SecurityApi } from "../../../api/security";
 import { AppApi } from "../../../api/app";
@@ -77,7 +80,36 @@ function dial(key: string, fallback: number): number {
 
 /** The acting principal as a live Stuff, or null (unattributable). */
 function actor(): Stuff | null {
-  return (ExecutionContextApi.getActingAuthor() as Stuff | null) ?? null;
+  const author = ExecutionContextApi.getActingAuthor() as Stuff | null;
+  if (author) return author;
+
+  /*
+   * ⭐ An NPC driving ITSELF.
+   *
+   * `getActingAuthor` refuses any chain containing a forced frame, and
+   * that is right for AUTHORSHIP: a forced command may have been made to
+   * run by somebody else, and a provenance row that named the wrong
+   * person would be worse than none.
+   *
+   * But it made contracts the outlier in the economy. Every other
+   * economic act an NPC performs — `buy` and `consign`, both of which
+   * move real money — resolves its principal from the command GIVER and
+   * the wallet's active account, and works. ⚠⚠ Found by DRIVING: the
+   * supply brains' `job post` came back *"no attributable poster"* and
+   * the whole labor market was inert, on a build whose second purpose is
+   * that labor market. No unit test would have caught it, because no
+   * unit test posts through a brain.
+   *
+   * ⚠ The narrowing is what makes it safe: a chain whose frames do not
+   * all share ONE giver is still unattributable, so a forced command
+   * somebody else caused is refused exactly as it was.
+   */
+  const commands = ExecutionContextApi.getCommandStack();
+  if (commands.length === 0) return null;
+  const givers = new Set(commands.map((c) => c.context.commandGiver));
+  return givers.size === 1
+    ? ((commands[0]!.context.commandGiver as Stuff) ?? null)
+    : null;
 }
 
 /** The acting principal's durable key, or "". */
@@ -298,9 +330,32 @@ async function resolveIssuer(
   | { ok: false; reason: string }
 > {
   if (asBusiness) {
-    const business = EmploymentApi.businessOfProprietor(poster);
+    /*
+     * ⭐ The PROPRIETOR, or somebody who buys for the house.
+     *
+     * It used to be the proprietor alone, which made posting the one
+     * economic act an employee could not do on the house's behalf —
+     * `buy` and `consign … --ask` both already spend the house's money
+     * through `buysFor` and the wallet's active account, and both are
+     * how every producer floor in the realm works.
+     *
+     * ⚠⚠ Found by DRIVING: the supply brains' postings came back *"you
+     * don't run a business"* on every floor at once, because a floor
+     * hand holds a `purchases` position and not the proprietorship. The
+     * whole labor market was inert behind it.
+     *
+     * **The seat is the authority.** A purchasing clerk posting work
+     * their house funds is exactly what a purchasing clerk does, and it
+     * carries the same authority `consign` already grants them.
+     */
+    const business =
+      EmploymentApi.businessOfProprietor(poster) ??
+      (await buysForOf(poster));
     if (!business) {
-      return { ok: false, reason: "you don't run a business" };
+      return {
+        ok: false,
+        reason: "you don't run a business, and you buy for nobody",
+      };
     }
     let accountId: string;
     try {
@@ -613,6 +668,36 @@ async function completeImpl(contractId: string): Promise<CompleteResult> {
     txId,
   });
   await BankingApi.escrowClose(contractId);
+
+  /*
+   * ⭐ Announce it. A settled gig is a fact several subsystems want and
+   * none of them is the contract substrate's business — so this says
+   * what happened and names nobody who might care.
+   *
+   * The haulage trade listens, because **a player who claims a haul gig
+   * and delivers it has to file the same bill of lading `ship` at a
+   * counter does.** D16 makes the GIG the dominant carriage path, so
+   * paper filed only by the counter and the NPC brain would leave the
+   * whole freight-reporting spine blind to most freight in the realm,
+   * and *"edge traffic is a count over the paper"* would count only
+   * counter traffic.
+   *
+   * ⚠ Durable keys only: a listener that files paper must not need a
+   * live Stuff, and must not be handed one that has since died.
+   */
+  EventApi.emit<ContractSettledEvent>(Events.ContractSettled, {
+    contractId,
+    boardPath: fresh.boardPath,
+    origin: fresh.origin,
+    destination: fresh.clause?.condition.destinationPath ?? "",
+    issuer: fresh.issuer.templatePath,
+    settledBy: key,
+    itemPath:
+      fresh.clause?.condition.item.kind === "template"
+        ? fresh.clause.condition.item.path
+        : "",
+    paidMinor: record.rewardMinor,
+  });
   return { ok: true, paidMinor: record.rewardMinor };
 }
 
@@ -726,4 +811,26 @@ export class ContractLogic extends ApiLogic {
     if (!active()) return [];
     return ContractEvent.findByContractId(contractId);
   }
+}
+
+/**
+ * The business this poster buys for — the house whose account a
+ * purchasing seat may spend. One, or the one operating where the poster
+ * stands; ambiguity is refused rather than guessed at.
+ */
+async function buysForOf(
+  poster: Stuff,
+): Promise<(Stuff & BusinessShape) | null> {
+  if (!MixinApi.isEmployed(poster)) return null;
+  const houses = await poster.buysFor();
+  if (houses.length === 0) return null;
+  if (houses.length === 1) return houses[0] as Stuff & BusinessShape;
+  const here = MixinApi.isContainable(poster)
+    ? (poster.getContainer()?.getTemplatePath() ?? "")
+    : "";
+  return (
+    (houses.find((b) => b.getOperatingLocations().includes(here)) as
+      | (Stuff & BusinessShape)
+      | undefined) ?? null
+  );
 }

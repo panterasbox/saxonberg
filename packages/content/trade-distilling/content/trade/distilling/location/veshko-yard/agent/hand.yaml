@@ -17,11 +17,25 @@ data:
     - { disposition: diligence, valence: 80 }
   behaviors:
     - brain: /lib/behavior/consigns
-      trigger: cadence:90s
+      trigger: cadence:4m
       config:
         stock: /trade/distilling/location/veshko-yard/thing/stock
         shelf: /trade/distribution/thing/counter
-        batch: 6
+        # ⭐ The board this floor posts to, and what the house will pay to
+        # have one crate moved. ⚠ The CARRIAGE is the whole price — the
+        # goods are already the house's, and the hauler is being paid to
+        # move them, not to buy them. That is why this leg needs no
+        # capital at all and is the labor market's FIRST RUNG.
+        board: /trade/haulage/thing/works-board
+        crate: /trade/haulage/thing/supply-crate
+        carriage: 10
+        # ⚠ Retuned by logistics D11: a CRATE, not six loose goods. The
+
+        # carriage is per consignment, so a bigger crate is the same haul
+
+        # and the loop closes in fewer trips.
+
+        batch: 12
         ask:
           # Volk carries the mark and a premium over the same liquid
           # unbranded — the whole Kirkland lesson in two numbers.

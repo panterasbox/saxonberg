@@ -21,6 +21,24 @@ data:
     for a long time. He walks at the horse's head rather than riding,
     which tells you what he thinks about the state of the road.
   behaviors:
+    # ⭐⭐ The reserve supply. Every beat he reads the works boards, and
+    # for any haul nobody has taken inside its window he does the work
+    # himself: to the origin, pick it up, journey to the destination,
+    # put it down, turn it in.
+    #
+    # ⚠ He never CLAIMS. The gigs are `--bounty` — no claim step, anyone
+    # may turn one in — so a player who gets there first is paid and the
+    # carter finds nothing, which is exactly what AC15e asks for and
+    # costs no coordination at all.
+    - brain: /trade/haulage/behavior/hauls
+      trigger: cadence:4m
+      config:
+        boards:
+          - /trade/haulage/thing/works-board
+        lane: city
+        # ⚠ ONE. A haul is a long act; a carter doing four a beat would
+        # be teleporting in all but name.
+        batch: 1
     - brain: /lib/behavior/idles
       trigger: cadence:60s
       config:

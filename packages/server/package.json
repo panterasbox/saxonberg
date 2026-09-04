@@ -58,7 +58,8 @@
     "lint:test-content": "tsx scripts/check-test-content.ts --lint",
     "lint:schema": "tsx scripts/check-schema-docs.ts --lint",
     "lint:untitled": "tsx scripts/check-untitled-paths.ts --lint",
-    "lint:test-bootstrap:verify": "tsx scripts/check-test-bootstrap.ts --verify"
+    "lint:test-bootstrap:verify": "tsx scripts/check-test-bootstrap.ts --verify",
+    "drive:logistics": "tsx scripts/drive-logistics.ts"
   },
   "dependencies": {
     "@saxonberg/types": "workspace:*",

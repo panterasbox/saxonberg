@@ -41,6 +41,11 @@
  */
 
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
+import { PostRegistrationMixin } from '@saxonberg/server/mud/lib/stuff/PostRegistration';
+import { EventApi } from '@saxonberg/server/mud/api/event';
+import { Events, type ContractSettledEvent } from '@saxonberg/server/mud/lib/events';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { DocumentApi } from '@saxonberg/server/mud/api/document';
 import { SecurityApi } from '@saxonberg/server/mud/api/security';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
@@ -138,7 +143,61 @@ export interface EdgeTraffic {
   crossings: number;
 }
 
-export default class WaybillRegistry extends Idea {
+export default class WaybillRegistry extends PostRegistrationMixin(Idea) {
+  /**
+   * ⭐⭐ **Every completed carriage files the paper, whatever path
+   * produced it.**
+   *
+   * `ship` at a counter and the `hauls` brain file directly. **A player
+   * who claims a haul gig and delivers it** goes through the contract
+   * substrate, which announces `contract.settled` and names no trade —
+   * so this is where the third path joins the other two.
+   *
+   * ⚠ Without it the reporting spine (D12, D18, AC16, AC16a, AC17) is
+   * blind to the DOMINANT carriage path: D16 makes the gig where most
+   * freight moves, and *"edge traffic is a count over the paper"* would
+   * be counting counter traffic and NPC runs only.
+   *
+   * ⚠ It files only for gigs that named an ORIGIN and a destination —
+   * a bounty to fetch something from wherever is not carriage, and a
+   * bill with no `from` on it is not a bill.
+   */
+  public async postRegister(): Promise<void> {
+    EventApi.on<ContractSettledEvent>(Events.ContractSettled, (payload) => {
+      void this.fileForGig(payload);
+    });
+  }
+
+  /** File the bill a settled haul gig earns. */
+  public async fileForGig(gig: ContractSettledEvent): Promise<void> {
+    if (gig.origin === '' || gig.destination === '') return;
+    const carrier = await this.resolveBusiness(gig.issuer);
+    if (!carrier) return;
+    await this.file(carrier, {
+      what: leafOf(gig.itemPath) || 'a consignment',
+      goodsPath: gig.itemPath,
+      howMuch: '1',
+      from: gig.origin,
+      to: gig.destination,
+      shipper: gig.issuer,
+      declaredValueMinor: 0,
+      // ⚠ The legs are the ONE thing a gig cannot know: nobody recorded
+      // which way the carrier went, and inventing a route would put a
+      // guess into the traffic count. An honest empty is better than a
+      // plausible fiction — the count says what it can see.
+      legs: [],
+      via: 'gig',
+    });
+  }
+
+  private async resolveBusiness(
+    path: string,
+  ): Promise<(Stuff & Business) | null> {
+    if (path === '') return null;
+    const biz = await StuffApi.singleton<Stuff>(path).catch(() => null);
+    return biz && MixinApi.isBusiness(biz) ? biz : null;
+  }
+
   /** A load-bearing process-lifetime singleton is never culled. */
   public canEvict(_context: EvictionContext): VetoResult {
     return { ok: false, reason: 'system singleton; never culled' };
@@ -360,4 +419,11 @@ function receiptOf(data: Record<string, unknown>): WarehouseReceipt | null {
     bearer: data.bearer === true,
     filedAtS: Number(data.filedAtS ?? 0),
   };
+}
+
+/** The last path segment, for the prose on the paper. */
+function leafOf(path: string): string {
+  if (path === '') return '';
+  const leaf = path.split('/').filter(Boolean).pop() ?? path;
+  return leaf.replace(/-/g, ' ');
 }

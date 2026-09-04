@@ -57,6 +57,8 @@ data:
       description: |
         Dressed blocks of the same grey country rock the tips are made of, laid dry and standing chest high, running away in both directions until it stops being worth building. It keeps nothing out. It says where the yard begins.
     road:
-      keywords: [road, north, country, uncounted]
+      # ⚠ NO direction words — see the crossroads' note: a detail
+      # keyworded `north` beats the exit and the walk stops dead.
+      keywords: [road, track, country, uncounted]
       description: |
         Past the wall the made surface gives up within fifty paces and the road becomes a cart track going north between the shoulders of the hills. There is no milestone on it. There is nothing on it.

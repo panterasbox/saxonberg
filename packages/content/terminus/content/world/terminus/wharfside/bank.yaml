@@ -41,6 +41,13 @@ data:
       destination: /world/terminus/estuary/lower-towpath
       media: [ground, water]
       edgeMinutes: 3
+    # ⭐ The goods yards behind the working city — the one room D11's
+    # switchover cost, and the way a hauler reaches every trade floor in
+    # Terminus without any of their hands ever leaving their own floor.
+    northwest:
+      destination: /world/terminus/goods-yards/yard
+      media: [ground]
+      edgeMinutes: 3
   props:
     - /world/terminus/wharfside/thing/city-intake
     - /world/terminus/wharfside/thing/city-outfall

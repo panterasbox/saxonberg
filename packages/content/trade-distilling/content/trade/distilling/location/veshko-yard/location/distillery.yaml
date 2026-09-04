@@ -25,7 +25,19 @@ data:
     A hangar of a floor: column stills in a row behind a chain-link fence, forklifts, and pallets of grey-labelled Volk under sodium light. Everything is stencilled.
   ambientIntensity: 30
   ambientColorTemperature: 3800
+  exits:
+    # ⭐ The back door onto the goods yards — the one room the D11
+    # switchover cost. The hand does not travel; a HAULER comes in this
+    # way to collect what the hand crated and posted about.
+    north:
+      destination: /world/terminus/goods-yards/yard
+      media: [ground]
+      edgeMinutes: 2
   props:
+    # ⭐ The works board, ON the floor. The hand posts what wants moving
+    # without stepping outside — which is what makes D11's resolution
+    # literal: neither NPC ever leaves its own floor again.
+    - /trade/haulage/thing/works-board
     - /trade/distilling/thing/racking
     - /trade/distilling/location/veshko-yard/thing/stock
   cast:
