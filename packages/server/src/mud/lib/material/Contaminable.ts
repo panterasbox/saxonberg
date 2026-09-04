@@ -395,15 +395,22 @@ export class Contamination {
    * ⭐⭐ **The toxins an `intoxicate` population has already made** — folded
    * at the READ, exactly as the spoilage dose is, and never stored.
    *
-   * `cookedAtK` is what separates the two poisons the roster ships: staph's
-   * toxin authors no `labileAtK` and survives the pot, botulinum's does and
-   * is destroyed by it. *Boiling fixes botulism and not staph* is the whole
-   * distinction, and it is two authored numbers.
+   * ⚠ **The heat filter is NOT applied here, deliberately.** The tag it
+   * emits carries `labileAtK` when the organism authors one, and
+   * `BlendLabel.toxicityOf` is the ONE place that compares it against the
+   * working's `cookedAtK` — for authored toxins and formed ones alike.
+   * Filtering in both places would be two functions deciding one fact.
+   *
+   * That comparison is what separates the two poisons the roster ships:
+   * staph's toxin authors no `labileAtK` and survives the pot, botulinum's
+   * authors 358 K and does not. *Boiling fixes botulism and not staph* is
+   * the whole distinction, and it is two authored numbers.
+   *
+   * ⚠ This took a `cookedAtK` parameter for one build and never read it —
+   * a signature promising a decision it does not make. The sweep's lint
+   * caught it.
    */
-  public static formedToxins(
-    loads: PathogenLoads,
-    cookedAtK = 0,
-  ): ToxinTag[] {
+  public static formedToxins(loads: PathogenLoads): ToxinTag[] {
     const out: ToxinTag[] = [];
     for (const [key, load] of Object.entries(loads)) {
       const behavior = Contamination.behaviorOf(key);
@@ -432,7 +439,7 @@ export class Contamination {
   ): BulkPayload | null {
     if (Contamination.isClean(loads)) return payload;
     const base: BulkPayload = payload ?? {};
-    const formed = Contamination.formedToxins(loads, base.cookedAtK ?? 0);
+    const formed = Contamination.formedToxins(loads);
     const next: BulkPayload = { ...base, pathogens: { ...loads } };
     if (formed.length > 0) {
       const carried = (base.formedToxins ?? []).map((t) => ({ ...t }));

@@ -1,27 +1,35 @@
 # Food safety slate — the second population, and what preservation actually preserves
 
-> **Status: design, captured 2026-09-03.** The three structural forks below
-> were settled in conversation and are marked **[DECIDED]**; the rest is the
-> surface they imply. This slate does **not** re-design the spoilage core —
-> that **shipped** with the cooking build (MR !231) and its permanent record
-> is [spoilage.md](../../subsystems/spoilage.md).
+> **⭐⭐ Status: SHIPPED 2026-09-04 (MR !244), with one tail.** Everything
+> below landed except **molds** (Part 10), which stays a build of its own.
+> The permanent record is [spoilage.md](../../subsystems/spoilage.md) — read
+> that first; this slate is kept for the molds surface and for the design
+> reasoning behind the decisions, not as live design.
+>
+> It also landed **living-world phase 3** and the enabler that phase was
+> holding: *the growth term* ([living-world-roadmap.md](../../living-world-roadmap.md)).
+>
+> *(Captured 2026-09-03 as design. The three structural forks were settled
+> in conversation and are marked **[DECIDED]**; the rest is the surface they
+> imply. This slate never re-designed the spoilage core — that shipped with
+> the cooking build, MR !231.)*
 >
 > **The one-sentence build:** food already goes off in a way you can smell,
 > and the thing that actually hurts you is the thing you *cannot*.
 
-See also — the parents: [preservation-slate](./preservation-slate.md)
+See also — the parents: [preservation-slate](../builds/preservation-slate.md)
 (⭐ **read first.** Its *mechanism* half shipped; this slate is its
 *endeavour* half plus a centre it did not have. Its § *terms, not methods*
 is the completeness doctrine and is **inherited unchanged**) ·
-[disease-slate](./disease-slate.md) (⚠ **the boundary.** This build fills
+[disease-slate](../builds/disease-slate.md) (⚠ **the boundary.** This build fills
 `ProgressionSpec` and leaves `ContagionSpec` untouched — see Part 4) ·
-[cooking-slate](./cooking-slate.md) (shipped; the kill step is its) ·
-[ranching-slate](./ranching-slate.md) (§ *the ranching seam — leave it open*;
+[cooking-slate](../builds/cooking-slate.md) (shipped; the kill step is its) ·
+[ranching-slate](../builds/ranching-slate.md) (§ *the ranching seam — leave it open*;
 this build finally cuts it, from the hunting side) ·
-[rendering-slate](./rendering-slate.md) (the non-meat half of a carcass —
-adjacent, not annexed) · [pharma-slate](./pharma-slate.md) (⚠ **cut** — see
-Part 10) · [health-vertical-slate](./health-vertical-slate.md) (the medic
-demand this creates) · [sampling-and-labs-slate](./sampling-and-labs-slate.md)
+[rendering-slate](../builds/rendering-slate.md) (the non-meat half of a carcass —
+adjacent, not annexed) · [pharma-slate](../builds/pharma-slate.md) (⚠ **cut** — see
+Part 10) · [health-vertical-slate](../builds/health-vertical-slate.md) (the medic
+demand this creates) · [sampling-and-labs-slate](../builds/sampling-and-labs-slate.md)
 (the bench answer to an invisible question).
 
 Substrates: [spoilage.md](../../subsystems/spoilage.md) (the growth law, the
@@ -39,7 +47,7 @@ rescuable dying clock — the stakes, already built) ·
 
 ## Part 0 — What shipped, and what this is
 
-The [preservation slate](./preservation-slate.md) split the territory into
+The [preservation slate](../builds/preservation-slate.md) split the territory into
 *"spoilage is the mechanism; **preservation is the endeavour**"* and then sat
 unbuilt for a month. The cooking build took the mechanism half whole:
 
@@ -300,7 +308,7 @@ that makes recovery a *procedure*.
 > it creates honest demand for a doctor instead of a lecture — a second
 > customer for the medic vertical in [harm.md](../../subsystems/harm.md), and
 > the natural first client of
-> [sampling-and-labs](./sampling-and-labs-slate.md)'s bench.
+> [sampling-and-labs](../builds/sampling-and-labs-slate.md)'s bench.
 
 ---
 
@@ -362,12 +370,12 @@ It is also where the pressure lands mechanically:
   (`generic-objects/…/stuff/agent/Corpse.yaml`).
 - **23 animal species rows** ship, so there is prey without ranching. ⭐ **This
   build takes the hunting side of the seam
-  [ranching-slate](./ranching-slate.md) explicitly left open** — no livestock,
+  [ranching-slate](../builds/ranching-slate.md) explicitly left open** — no livestock,
   no husbandry, no herd.
 - `Harvestable` / `Fruiting` is **plant-side only** (`lib/husbandry`). **There
   is no path from a dead animal to meat.** That is the gap.
 - `render-tallow` **already ships as a recipe**, so the non-meat half has a
-  toehold and [rendering-slate](./rendering-slate.md) stays adjacent rather
+  toehold and [rendering-slate](../builds/rendering-slate.md) stays adjacent rather
   than annexed.
 
 **Cross-contamination** — the board, the knife, the hands — is the second
@@ -468,7 +476,7 @@ here:
   links storage, mass poisoning, hallucination and medicine in one row, with
   real history behind it.
 
-**Medicine is OUT.** [pharma-slate](./pharma-slate.md) owns credence goods
+**Medicine is OUT.** [pharma-slate](../builds/pharma-slate.md) owns credence goods
 and the institutions around them, and penicillin wants the mold build to
 exist first. **This build creates the demand** (an invisible illness needs a
 diagnosis, a diagnosis needs a diagnostician) and deliberately does not
@@ -487,7 +495,67 @@ names is checkable against the equation rather than needing design work.
 
 ---
 
-## Open questions
+## ⭐ The attach points the build left open
+
+Graduated from the retired plan's *Deferred seams* at the 2026-09-04 sweep,
+because each one is a place a **later** build hooks on and the plan was the
+only thing holding the list. Nothing here is unfinished work of this build;
+each is a seam that now exists and has nobody using it yet.
+
+- **Molds** — Part 10, and the one real tail. `ContaminableMixin` is the
+  attach point: a mold is a *visible* surface population, which makes it the
+  third thing after the flora (you can smell it) and the pathogens (you
+  cannot sense them at all) — and the first one that argues with
+  `channels: []`.
+- **`ContagionSpec`** — deliberately untouched. Person-to-person is
+  [disease-slate](../builds/disease-slate.md)'s, and Part 4's boundary is
+  what keeps this build from drifting into it.
+- **Hands.** D3 names one and this build ships no host for it. The attach
+  point is `Creature`; the consumer is the disease build, which needs a
+  body-side carrier for transmission anyway. Composing it here would have
+  bought a *worse* game (every meal a hygiene chore) for no new mechanism.
+- **`f_pH`** — the fourth hurdle beside temperature, water activity and time.
+  A `FermentProfile` row plus one read. ⚠ Inherits the unresolved `Vat`
+  name collision.
+- **Irrigation contamination** — `ContaminableMixin` composes onto
+  `WateringCan` the day somebody wants the field→gut path that real food
+  safety spends most of its effort on.
+- **`trade-butchery`** — the spin-out. Butchering ships inside
+  `trade-cooking` because one act does not make a trade; a second and a
+  third (offal, hides, the rendering seam) would.
+- **A durative `cook`** — the day someone wants to pull a roast early, an
+  engagement is the honest shape and `holdS` becomes its *default* rather
+  than its ceiling.
+- **Rancidity** — fat oxidising is its own small law, not another term in
+  the growth equation. It wants a build, not a field.
+
+## Open questions — ⭐ all five ANSWERED by the build
+
+Kept with their answers rather than deleted: what a question turned out to
+be is worth more than the question.
+
+- ✅ **Where the infection gauge composes** → `VitalsMixin`, whose host set
+  is exactly 1 (`Creature`), so plants are excluded for free. Answered with
+  the host count as the note below demanded.
+- ✅ **Same `freshness` shape or a sibling field** → a **sibling**:
+  `pathogens` + `pathogenStamp` on `BulkPayload`, declared from
+  `lib/material/Contaminable.ts`. A shared `{load, stamp}` could not have
+  held a per-organism map, and the pour blend and material shadow both keep
+  working because each subsystem declares and blends its own field.
+- ✅ **Cross-contamination's reach** → **objects only**, as the lean said. A
+  board, a blade, a vessel and the food itself; no room-borne load. Hands
+  were cut too — the attach point is `Creature` and the consumer is the
+  disease build.
+- ✅ **Any sense channel for contamination** → **none. Procedure only.** No
+  augmenter on the mixin, `channels: []` on every roster row, and
+  `lint:pathogens` refuses a non-empty one, so the silence is a gate rather
+  than a habit. What keeps it fair is that the *risk* is legible even
+  though the *hazard* is not.
+- ✅ **Numeric calibration** → fitted against the shipped `ptomaine` seed's
+  band shape and its `dose × potency / mass` arithmetic, exactly as the
+  note demanded, rather than a fresh set of invented numbers.
+
+### The original questions, as asked
 
 - **Where the infection gauge composes.** An infection needs a living body —
   `OrganismMixin` gates animacy, `VitalsMixin` holds the reconcile. Lean:

@@ -310,16 +310,16 @@ describe('ContaminableMixin — the population no sense reports', () => {
 
   it('⭐⭐ a heat-STABLE toxin survives the pot; a heat-LABILE one does not', () => {
     const loads = { stable: 0.8, labile: 0.8 };
-    const raw = Contamination.formedToxins(loads, 0).map((t) => t.type);
+    const raw = Contamination.formedToxins(loads).map((t) => t.type);
     expect(raw).toContain('test-stable-toxin');
     expect(raw).toContain('test-labile-toxin');
 
     // The tag carries the lability; `BlendLabel.toxicityOf` is what applies
     // it, so what this pins is that the tag is authored honestly.
-    const labile = Contamination.formedToxins(loads, 0).find(
+    const labile = Contamination.formedToxins(loads).find(
       (t) => t.type === 'test-labile-toxin',
     )!;
-    const stable = Contamination.formedToxins(loads, 0).find(
+    const stable = Contamination.formedToxins(loads).find(
       (t) => t.type === 'test-stable-toxin',
     )!;
     expect(labile.labileAtK).toBe(358);

@@ -26,7 +26,6 @@ import {
   makeStuffAtPath,
 } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
-import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { SpeciesApi } from '@saxonberg/server/mud/api/species';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { TemplatePathPrefixes } from '@saxonberg/server/mud/lib/paths';

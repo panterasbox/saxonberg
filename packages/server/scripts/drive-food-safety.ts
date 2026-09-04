@@ -16,6 +16,19 @@
  *
  *   reset → boot ONCE → drive ONCE.
  *
+ * ⚠⚠ **And a `props:` edit does not reach a world that has already
+ * booted.** `PopulatesMixin`'s once-guard is *persistent* — it exists so a
+ * content go-live cannot mint a second set of furniture into every live
+ * room — so a cookhouse furnished on Monday keeps Monday's props no matter
+ * what the YAML says on Tuesday. Adding the four larder stations and
+ * re-driving without a reset therefore reported **thirteen** missed
+ * checkpoints on a build in which nothing was broken: the room simply had
+ * no block, no trough, no rack and no chimney in it, and `butcher` was
+ * unafforded for want of the thing that affords it. The failure looks
+ * exactly like a dead affordance chain, which is the one thing this drive
+ * exists to catch — so it is worth knowing that a stale world forges that
+ * signal. There are no migrations; the reset IS the mechanism.
+ *
  * An ORDINARY patron in the shipped Hearthworks cookhouse: no wizard, no
  * `clone`, no `startLocation` trickery beyond the seat.
  *
