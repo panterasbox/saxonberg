@@ -4,14 +4,18 @@
 **First consumer:** the Terminus cast (31 rows that already exist), then
 the clinic build (`medic-judgment-slate`) and the necropolis (#40).
 
-> ⚠ **This plan is serving as both product and engineering doc.** The
-> normal cycle puts a requirements pass first; it is skipped deliberately
-> here because the product surface is thin and fully enumerable — *an NPC
-> reads as good at their own job; an author can say what a character has
-> been through; a guard's crime lands on the watch* — while everything
-> else is genuinely code-shaped (which key does which producer read, which
-> class composes which mixin). If any of those three sentences is wrong,
-> stop and write the requirements doc instead.
+**Requirements:**
+[identity-ledgers-requirements](../requirements/identity-ledgers-requirements.md)
+— the product doc, and **the drive script lives there.**
+
+> ⚠ An earlier revision of this plan stood in for the requirements doc on
+> the grounds that the product surface was "thin and fully enumerable".
+> That judgment did not survive the design conversation: the build grew a
+> fiction rule (a lawful duel still costs the watch a guard), a content
+> mandate (the watch must exist), and a taxonomy decision over 42 written
+> characters. The requirements pass then found **two missing surfaces this
+> plan did not contain** (§ W3, W5) — which is the argument for not
+> skipping it, made by the skip.
 
 **Seeding slates:** [dossier-slate](../slates/builds/dossier-slate.md)
 (the diagnosis, the scorecard, the identity rung) ·
@@ -440,6 +444,12 @@ different identity paths; a reembodied player's two corpses do too.
 5. `pnpm lint:identity` — a dossier on an `Extra` is an error; a `Cast`
    row is a singleton; a proper `name:` on an `Extra` is an error; ⭐ and
    **a sentient `Extra` resolving to no institution is an error** (D7b).
+6. ⭐⭐ **NEW SCOPE from the requirements pass — a reader for an
+   institution's record.** Blame is derived and **nothing player-facing
+   shows it**, so "the watch counts its losses" would ship invisible. The
+   drive's step 9 cannot run without this. Cheapest honest surface: extend
+   an existing record-reading verb to accept an institution, rather than
+   minting one.
 6. ⚠ Expect W3 to surface **content gaps rather than code bugs** — the
    sentry is the known one, and the fix there is authoring the watch, not
    weakening the lint.
@@ -461,10 +471,26 @@ later"* — `deviation = current derived − archetype baseline` is
 uncomputable without it, and provenance separability cannot be
 retrofitted.
 
-### W5 — competence claims
+### W5 — competence claims, and a way to ask
 
 D4, with Dave as the first consumer.
-**Acceptance:** a player who asks reads Dave as good at bartending.
+
+⚠⚠ **NEW SCOPE from the requirements pass, and it is load-bearing.** The
+verbs that report what someone is good at and what they have done are
+**zero-arg and self-only** — neither takes a target. Meanwhile
+`advancement.md` states the read gate is deliberately asymmetric: a
+player's competence is self-only, **an NPC's is readable by any viewer**.
+
+> ⭐ **The permission is open and there is no door.** Nobody can ask what
+> Dave is good at, so the headline goal is unreachable no matter how well
+> the seeding works — the `feel`/`taste` shape exactly: a capability that
+> ships and has never run.
+
+So this wave also gives both readings an **optional target**, honouring
+the asymmetric gate: refused for another player, answered for anyone else.
+
+**Acceptance:** a player who asks reads Dave as good at bartending, and is
+refused when asking about another player.
 
 ### W6 — `lint:dossiers` + the trio's fold
 
@@ -535,4 +561,8 @@ S1 drive's silent failure becomes a build error.
 
 ## Drive record
 
-*(appended at build time — the exit criterion.)*
+The script is **requirements § The drive** — twelve steps, run against a
+freshly reset world (written history is laid down once at birth, so a
+stale world lies at every checkpoint).
+
+*(The record is appended here at build time — the exit criterion.)*
