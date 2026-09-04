@@ -162,7 +162,9 @@ Each names where it lands instead.
   house, the co-op, the tower and the cast belong to its own build.
 - **Saxonberg and the Lounge joining the map.** Excluded by design —
   Saxonberg is the diegetic seat of the Compact, meant to be built by
-  decree of the pact.
+  decree of the pact. ⚠ This collides with AC15, which names Dave's Bar;
+  **D11 resolves it** — the Lounge is served over the TPA lane and never
+  joins the road graph.
 - **Auto-replan around a blocked route.** Blocked means blocked; the
   driver re-issues. Auto-routing hides the geography this build exists
   to make real.
@@ -342,8 +344,24 @@ freight works (short-haul), and it removes the temptation to inflate
 journey times to make them feel important. Von Thünen still runs; the
 rings are simply tighter.
 
-Beat interval derives from exit `speed` / `defaultDurationMs`, modulated
-by **mode** and **load**, so a heavy wagon is genuinely slower.
+⚠⚠ **Correction (planning pass, 2026-09-03).** An earlier draft of this
+decision said beat interval "derives from exit `speed` /
+`defaultDurationMs`." **Neither field exists.** `speed` is a field on
+`LocomotionMode` (a per-mode multiplier) and `defaultDurationMs` appears
+nowhere in the repo — the claim was asserted twice, here and in D18, and
+never checked.
+
+The dial is still cheap, but it is **one new authored field**, planned
+rather than assumed: `Exit.edgeMinutes` — game minutes for one baseline,
+unloaded, walk-mode traverse of that edge, defaulting to an AppSetting.
+**Nothing in the kernel reads it: `go north` stays instantaneous.** Only
+the Journey does, as
+
+```
+beatGameMinutes = edgeMinutes × modeFactor(mode) × loadFactor(rig)
+```
+
+so a heavy wagon is genuinely slower.
 
 ⚠ Everything here is **game time**. Per the freight slate's ⭐⭐⭐⭐
 invariant, **no economic entitlement may depend on the rate at which a
@@ -414,27 +432,77 @@ cost line, and industrial action against a carrier stops something.
 ⭐ **Amended by D16:** the brain is the *fallback* supplier, not the
 first one. Work is posted before it is performed.
 
-### D11 — The brains come off teleport
+### D11 — The brains come off teleport, because they stop TRAVELLING
 
-`consigns` and `restocks` are rewritten to move goods over the road.
-This is the build's forcing function and its highest-risk change: the
-venues that depend on them are shipped, live content.
+`consigns` and `restocks` stop calling `teleport`. This is the build's
+forcing function and its highest-risk change: the venues that depend on
+them are shipped, live content.
 
-⚠ The loops must still **close** — a bar that cannot restock because the
+#### ⚠⚠ The literal reading is impossible, and the planning pass proved it
+
+An earlier draft of this decision implied the brains **walk**. Two
+shipped facts and one of this doc's own non-goals rule that out:
+
+| | |
+|---|---|
+| **every producer floor is an exitless island** | all thirteen trade rooms carry zero `exits:`, each with the comment *"No exits: the hand teleports (the `shifts` shape); a walk is the locomotion slate's."* |
+| ⚠⚠ **`restocks` runs at the Lounge** | its host is the Saxonberg Lounge bar — and **"Saxonberg and the Lounge joining the map"** is a stated non-goal of this very document |
+
+#### ⭐⭐⭐ The resolution: they stop travelling, not just teleporting
+
+D16 already supplies the answer — the venue's supply need is a **gig**,
+and somebody else hauls it. So:
+
+> **`restocks` becomes a poster and a receiver. `consigns` becomes a
+> poster and a shipper. Neither NPC ever leaves its own floor again.**
+> The goods move because a hauler — a player, or the `hauls` brain —
+> carries them.
+
+That is a better reading of the goal than the literal one, not a
+concession to it:
+
+1. *"Zero `teleport` calls"* is met by the **honest** route — not *"the
+   keeper walks four rooms"* but *"the keeper does not travel, because
+   carriage is somebody's job."* Which is the entire point of the build.
+2. **Only the hauler needs the road**, so the road is exercised by the
+   one thing it exists for.
+3. ⭐ **The Lounge stays off the map**: the leg into it rides the **TPA
+   lane**, which D2 already defines as *"the limit case — a lane with no
+   intermediate stops and no duration."* Not a loophole — D2's own
+   mechanism doing exactly the work D2 says it does, and diegetically
+   right: the Compact's seat is served by the Authority's network.
+4. It proves *"rail is a data addition"* without shipping rail.
+
+⚠ **What this still costs:** producer floors must be *reachable*, because
+a hauler collects from them. One new Terminus room — the goods yards, off
+Wharfside — and **one exit pair for each mainland producer floor**. The
+Lounge alone stays off-map and is TPA-served.
+
+⚠ **The loops must still close** — a bar that cannot restock because the
 road is slower than the drinking is a regression, not a lesson. Par
-levels, batch sizes and cadence are retuned as part of this decision,
-not left to discovery.
+levels, batch sizes and cadence are retuned as part of this decision, not
+left to discovery.
 
-⭐ **Amended by D16:** the rewritten loops **post a gig first** and only
-haul it themselves when the window expires unclaimed.
-
-### D12 — Reporting is MQL over the paper, and there is no aggregate yet
+### D12 — Reporting is a query over the paper, and there is no aggregate yet
 
 No reporting subsystem, no new store, no dashboard. Bills of lading and
 rate cards are Documents; the questions the design wants answered —
 *what moved from X to Y this season*, *what did carrier C charge on
 route R*, *what is the spread on this good between two markets* — are
 **queries**.
+
+⚠⚠ **Correction (planning pass): the query language is not MQL.** MQL's
+seeds all resolve `Stuff` and `MqlMatch` wraps `Stuff`; documents are not
+in its world. Making them MQL-seedable means a new seed inside the sealed
+`api/mql/**` subdir **and** widening the result type across every consumer
+of every MQL result — a large refactor for one wording.
+
+So the queries live on the **registry that owns the paper**, surfaced as
+stanzas on the shipped `house` verb (the `house stock` / `house pnl`
+precedent): `house freight` and `house traffic`. ⭐ **Every substantive
+claim of this decision is unchanged** — the paper is the datum, there is
+no reporting subsystem, no new store, and no aggregate. Only the reader
+changed.
 
 ⭐ And the honest consequence of shipping without customs: **private
 books do not aggregate.** Nobody sees the realm's trade, only their own.
@@ -598,8 +666,9 @@ The honest translation of road character into a container graph:
 > **Rooms are places something can happen. Edge duration is the
 > emptiness between them.**
 
-Both already expressible — exit `speed` / `defaultDurationMs` vary per
-edge — so the dial costs nothing:
+Both carried by **`Exit.edgeMinutes`** plus the room count — ⚠ see D5's
+correction: that field is **new**, not shipped, though it is one field
+and the kernel never reads it:
 
 | road | rooms | edge duration | reads as |
 |---|---|---|---|
@@ -876,8 +945,11 @@ and this realm is a basin you cross in five real minutes.
    can, and holds no engagement.
 8. A passenger in an **open** conveyance perceives the room the
    conveyance is in; a passenger in a **sealed** one does not.
-9. A loaded wagon's end-to-end spine transit measures 6–12 game hours,
-   and scales with load.
+9. A loaded wagon's end-to-end spine transit measures **1.5–2 game hours
+   (7.5–10 real minutes)**, and scales with load. ⚠ An earlier draft said
+   *"6–12 game hours"* — which at the 12× clock is 30–60 **real** minutes,
+   i.e. the discarded draft D5 itself corrects, relabelled from real hours
+   to game hours. D5's table governs.
 
 **The trade**
 
@@ -897,7 +969,9 @@ and this realm is a basin you cross in five real minutes.
 
 15. ⭐ `consigns` and `restocks` complete their loops with **zero
     `teleport` calls**, and Dave's Bar and the distributor's counter are
-    still stocked after a long unattended run.
+    still stocked after a long unattended run. ⚠ Neither brain travels at
+    all (D11): the Lounge leg is served over the TPA lane, and no NPC
+    leaves its own floor.
 
 **The trade you can get better at**
 
@@ -949,8 +1023,9 @@ and this realm is a basin you cross in five real minutes.
 
 **Reporting**
 
-16. MQL over bills of lading answers *what moved from X to Y in a given
-    period* and *what a named carrier charged on a named route*.
+16. ⚠ **A query** over bills of lading answers *what moved from X to Y in
+    a given period* and *what a named carrier charged on a named route*.
+    (An earlier draft said "MQL"; MQL cannot see documents — see D12.)
 16a. ⭐ Edge traffic is **derivable from bills of lading** — *which
     corridor segments carried the most this season* is a query, and no
     traffic counter is stored anywhere.
