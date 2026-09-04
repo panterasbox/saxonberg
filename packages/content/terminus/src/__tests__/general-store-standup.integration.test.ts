@@ -41,6 +41,10 @@ const PRODUCE_DIR = fileURLToPath(new URL("../../../trade-farming/content/trade/
 const RESIDENCE_DIR = fileURLToPath(new URL("../../../residence/content/system/residence/", import.meta.url));
 const ARCANA_DIR = fileURLToPath(new URL("../../../arcana/content/system/arcana/", import.meta.url));
 const ARCANA_SRC = fileURLToPath(new URL("../../../arcana/src", import.meta.url));
+// The haulage line (logistics W5/W6): the rigs are the transport
+// system's rows and its `HaulageRig` class, stocked cross-pack.
+const TRANSPORT_DIR = fileURLToPath(new URL("../../../transport/content/system/transport/", import.meta.url));
+const TRANSPORT_SRC = fileURLToPath(new URL("../../../transport/src", import.meta.url));
 // The homebrew kit's trade rows (fermentation D15).
 const WINE_DIR = fileURLToPath(new URL("../../../trade-winemaking/content/trade/winemaking/", import.meta.url));
 const BREW_DIR = fileURLToPath(new URL("../../../trade-brewing/content/trade/brewing/", import.meta.url));
@@ -112,6 +116,33 @@ const MANA_LINES = [
   "/system/arcana/thing/mana-lamp",
 ] as const;
 
+// ⭐⭐ The haulage line (logistics W5/W6). The handcart is the FIRST
+// RUNG: the encumbrance build's shipped class, placed nowhere and sold
+// nowhere until this build put it on a shelf inside a starting stipend.
+const HAULAGE_LINES = [
+  "/stuff/thing/gear/handcart",
+  "/system/transport/thing/sledge",
+  "/system/transport/thing/dray",
+  "/system/transport/thing/wagon",
+] as const;
+
+/**
+ * ⭐ Where a shipped row lives, by the prefix of its template path —
+ * longest prefix wins, the commons is the fallback. A table rather than
+ * the seven-deep nested ternary it replaced: the haulage line would have
+ * made it eight, and adding a stock line should be adding a row.
+ */
+const ROW_HOMES: { prefix: string; dir: () => string }[] = [
+  { prefix: "/trade/farming/", dir: () => PRODUCE_DIR },
+  { prefix: "/system/arcana/", dir: () => ARCANA_DIR },
+  { prefix: "/system/residence/", dir: () => RESIDENCE_DIR },
+  { prefix: "/system/transport/", dir: () => TRANSPORT_DIR },
+  { prefix: "/trade/winemaking/", dir: () => WINE_DIR },
+  { prefix: "/trade/brewing/", dir: () => BREW_DIR },
+  { prefix: "/trade/distilling/", dir: () => DIST_DIR },
+  { prefix: "/stuff/", dir: () => OBJ_DIR },
+];
+
 function seedDoc(rel: string): Doc {
   const parsed = YAML.parse(
     readFileSync(`${STORE_DIR}${rel}.yaml`, "utf-8"),
@@ -124,21 +155,11 @@ function seedDoc(rel: string): Doc {
   };
 }
 
-/** Load a shipped row by template path — generic-objects' `/stuff/…` or the produce trade's `/trade/farming/…`. */
+/** Load a shipped row by template path, from whichever pack owns it. */
 function objDoc(path: string): Doc {
-  const file = path.startsWith("/trade/farming/")
-    ? `${PRODUCE_DIR}${path.replace("/trade/farming/", "")}.yaml`
-    : path.startsWith("/system/arcana/")
-      ? `${ARCANA_DIR}${path.replace("/system/arcana/", "")}.yaml`
-      : path.startsWith("/system/residence/")
-      ? `${RESIDENCE_DIR}${path.replace("/system/residence/", "")}.yaml`
-      : path.startsWith("/trade/winemaking/")
-        ? `${WINE_DIR}${path.replace("/trade/winemaking/", "")}.yaml`
-        : path.startsWith("/trade/brewing/")
-          ? `${BREW_DIR}${path.replace("/trade/brewing/", "")}.yaml`
-          : path.startsWith("/trade/distilling/")
-            ? `${DIST_DIR}${path.replace("/trade/distilling/", "")}.yaml`
-            : `${OBJ_DIR}${path.replace("/stuff/", "")}.yaml`;
+  const home = ROW_HOMES.find((h) => path.startsWith(h.prefix));
+  if (!home) throw new Error(`objDoc: no pack owns '${path}'`);
+  const file = `${home.dir()}${path.slice(home.prefix.length)}.yaml`;
   const parsed = YAML.parse(readFileSync(file, "utf-8")) as Record<string, unknown>;
   return {
     path,
@@ -148,9 +169,9 @@ function objDoc(path: string): Doc {
   };
 }
 
-// The counter stocks thirty-four lines to par on standup, each a real
-// clone through the actual pipeline — the gardening, furnishings and
-// produce-seed lines pushed that past the default 5s budget.
+// The counter stocks every line to par on standup, each a real clone
+// through the actual pipeline — the gardening, furnishings, produce-seed
+// and haulage lines pushed that well past the default 5s budget.
 vi.setConfig({ testTimeout: 30_000 });
 
 describe("general-store standup (real seeds)", () => {
@@ -167,9 +188,11 @@ describe("general-store standup (real seeds)", () => {
       ...FURNISH_LINES.map(objDoc),
       ...HOMEBREW_LINES.map(objDoc),
       ...MANA_LINES.map(objDoc),
+      ...HAULAGE_LINES.map(objDoc),
     ]);
     ModuleApi.registerPackSource(DIST_SRC, "/trade/distilling");
     ModuleApi.registerPackSource(ARCANA_SRC, "/system/arcana");
+    ModuleApi.registerPackSource(TRANSPORT_SRC, "/system/transport");
     installV1QuantityMarshallers();
     await AppSettings.warm();
   });
