@@ -1,0 +1,62 @@
+# The yard gate — the town's road-side door, and ⭐ **the goods entrance
+# to the pithead the shipped locality never had.**
+#
+# ⚠ Rejection shipped as an EXITLESS ISLAND: arrival was by TPA and no
+# exit crossed the locality boundary in either direction. The comment on
+# the pithead yard said so — *"the walked valley road can land later."*
+# This is later.
+#
+# It is also where newbie-wilds attaches: the road does not stop at the
+# diggings, it goes on past them into country nobody has counted.
+class: /platform/location/SingletonCartesianLocation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the yard gate
+  primaryKeyword: gate
+  alternateNames: [entrance, road, weighbridge, lodge]
+  _address: terminus/rejection/road/yard-gate
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  ambientIntensity: 540
+  ambientColorTemperature: 5700
+  longDescription: |
+    A gateway in a wall of dressed spoil-stone, wide enough for two carts abreast and standing open. There is a lodge beside it with a window at cart-driver height and a slate in the window, and set into the ground under the gateway is an iron plate the size of a door with a slot round it.
+
+    Through the gateway, northeast, the yard. North the road goes on past the wall and up into country that stops having names.
+  coords:
+    x: -4
+    y: 0
+    z: 0
+  exits:
+    east:
+      destination: /world/rejection/kestrel-road/tips
+      media: [ground]
+      edgeMinutes: 8
+    northeast:
+      destination: /world/rejection/location/pithead-yard
+      media: [ground]
+      edgeMinutes: 3
+    # ⭐ Past the diggings, the road runs on into uncounted country. The
+    # far half of this pair is authored in the newbie-wilds pack.
+    north:
+      destination: /world/newbie-wilds/crossroads/hub
+      media: [ground]
+      edgeMinutes: 12
+  details:
+    plate:
+      keywords: [plate, iron, weighbridge, scale, slot]
+      description: |
+        An iron deck plate set flush in the gateway with a finger-width slot all round it, and a rod running from one corner into the lodge wall. A weighbridge, and a working one — you can feel it give under you.
+
+        ⚠ Nothing here weighs anything yet. Standards, weights and measures are their own small build; what ships is the plate, in the place a weighbridge goes.
+    slate:
+      keywords: [slate, window, lodge, board, chalk]
+      description: |
+        Chalked, half rubbed out and rewritten in a different hand: a list of names against a list of numbers, and a line ruled under yesterday. It is a record of who came through with what, kept by somebody who is not always here.
+    wall:
+      keywords: [wall, spoil-stone, stone, gateway]
+      description: |
+        Dressed blocks of the same grey country rock the tips are made of, laid dry and standing chest high, running away in both directions until it stops being worth building. It keeps nothing out. It says where the yard begins.
+    road:
+      keywords: [road, north, country, uncounted]
+      description: |
+        Past the wall the made surface gives up within fifty paces and the road becomes a cart track going north between the shoulders of the hills. There is no milestone on it. There is nothing on it.

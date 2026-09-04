@@ -1,9 +1,11 @@
 # P1 · The Pithead Yard — the hub, and where you arrive.
 #
-# ⚠ Arrival is by TPA. No inbound exit is wired from anywhere else in the
-# world, which is what keeps a content-area standup clean and what keeps
-# this build from touching another locality's files. The walked valley
-# road can land later.
+# ⭐ **The road landed.** This shipped with arrival by TPA and no exit
+# crossing the locality boundary in either direction — the comment here
+# said *"the walked valley road can land later"* — and the logistics
+# build is later: `north` goes out to the yard gate, and from there over
+# the pass to the valley crossroads and down the Delight to Terminus, on
+# foot, with no wizard flag anywhere.
 #
 # ⭐ The OUTCROP is here, and it is the reason the surface zone carries
 # the deposit: `measure strike` works standing in the yard, on the green
@@ -32,6 +34,14 @@ data:
       destination: /world/rejection/location/adit
     northeast:
       destination: /world/rejection/location/fuel-yard
+    # The goods entrance: the yard's road-side door onto the Kestrel road.
+    # ⚠ `southwest` rather than `north`: the yard already opens north onto
+    # the claims office, and a second exit on the same direction is a
+    # duplicate key the installer cannot parse.
+    southwest:
+      destination: /world/rejection/kestrel-road/yard-gate
+      media: [ground]
+      edgeMinutes: 3
   details:
     outcrop:
       keywords: [outcrop, stain, green, band, rock, malachite]

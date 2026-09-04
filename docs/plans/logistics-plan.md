@@ -914,7 +914,7 @@ the rows. The same warning stands today for `arcana`, `residence`,
 
 ---
 
-## Wave W4 — The ground: two corridors, the crossroads, the pass
+## ✅ Wave W4 — The ground: two corridors, the crossroads, the pass
 
 **Lands:** G1. The largest authoring job in the build, and the `corridor`
 archetype is its acceptance instrument.
@@ -990,6 +990,70 @@ blocked or penalised** (**AC15l**); the needs vocabulary is unchanged
 **Exit gate:** the four packs' suites + `test:near` + the full lint family.
 **Live drive leg:** walk Terminus → Rejection → newbie-wilds and back,
 unassisted. This is the wave whose gate the whole build leans on.
+
+### ✅ W4 done
+
+Thirteen new rooms across three packs, `test:near` 4139/4139, transport
+pack 34/34, 25/25 lint gates, fresh-DB boot 37 packs clean. **The realm
+is contiguous**: Terminus market square → Rejection pithead yard on foot,
+both ways, with no `teleport` and no wizard flag; newbie-wilds reachable
+from Rejection. The drive leg is held to W9 with the rest of the drive.
+
+**Seven decisions the plan left open, and what decided them:**
+
+1. ⭐⭐ **The pass refuses wheels on the edges INTO it, not only on its
+   own two.** The first cut set the bit on `the-pass`'s exits alone, and
+   the AC2 assertion caught what that means: a wagon could reach the
+   saddle and not leave it — **stranded on a pitch with nowhere to turn**.
+   *The stair is the EDGE, not the room.* The last wheeled room is the
+   LAST WATER, which is also where the sign and the turning-place now
+   are.
+2. ⚠⚠ **Every road exit had to declare `media: [ground]` explicitly.** An
+   exit with no `media` is the legacy walk-only default and admits the
+   ground *pace* family alone — so a corridor authored the ordinary way
+   would have had a `wheeled` lane that compiled **completely empty**,
+   with nothing anywhere saying why. Found by the AC2 assertion, and the
+   single most likely thing for a later corridor author to get wrong.
+3. ⭐ **`ServiceRoute` is a second class, and `Route` stays a value
+   object.** The plan put authored routes at `/stuff/idea/Route/<key>`;
+   a template row's `class:` must resolve to a real module, and `Route`
+   is deliberately not a Stuff (a per-request trip must mint nothing).
+   So: a data `Idea` for the ROW an author writes, a value object for
+   the VALUE a Journey travels, and `routeByKey` between them — which is
+   AC15n from the other side.
+4. **`FordExit` reads the water pack BY SHAPE**, never by import: the
+   `AnalyzeWaterController` / `TravelNode` idiom. An install with no
+   water pack has a ford that is simply always passable, and `transport`
+   owes `water` nothing for one crossing. It refreshes on the
+   catalogue's own six-game-hour weather segment, so a ford and
+   `measure` cannot disagree about the same water at the same moment.
+5. **The census learned the way fields.** `seeds`, `edges.from/to`,
+   `nodes`, `stops` and `operator` are template paths, so `refsOf` reads
+   them rather than joining `IGNORED_PATH_FIELDS` — *a lane naming a room
+   that does not exist is a road that compiles empty*. It earned its
+   keep immediately: it caught `/world/terminus/terminal/hall` (the real
+   row is `…/terminal/location/hall`) in the TPA lane.
+6. **Addresses: the Delight road is off-grid on purpose.** Its rooms sit
+   under `terminus/delight-valley/…`, which no `Locality` claims, so
+   `AddressApi.coverageChainOf` returns an empty chain — D20's
+   *"banditry lives in jurisdictional gaps"*, derivable today and
+   authored rather than asserted. The Kestrel road is Rejection's
+   (`terminus/rejection/road/…`) and the estuary is the city's
+   waterfront. One corridor covered, one not, which is the contrast.
+7. **Corridor zones declare no elevation**, on the shipped `valley-road`
+   precedent, which says so in its own comment: a corridor climbing 35 m
+   → 180 m carrying one number would be false at both ends, and the
+   crossroads is where the road meets the valley's own ground.
+
+**Surprise:** `pithead-yard` already had a `north` exit (to the claims
+office), so the road out is `southwest`. YAML duplicate keys are a
+**parse** failure, and `lint:instanceable` reported it as *"class: does
+not resolve"* — which is the message you would chase for half an hour
+before reading the second line.
+
+⚠ Still open at W4, cleared by W5: the boot's *"pack 'transport' ships 6
+class(es) no row of any installed pack names"* line. The rig, the barge
+and the coach get their rows in W5.
 
 ---
 

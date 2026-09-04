@@ -1,0 +1,42 @@
+# The reach — the middle of the water lane. Short edges, and something
+# in every one of them.
+class: /platform/location/SingletonCartesianLocation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the reach
+  primaryKeyword: reach
+  alternateNames: [river, water, towpath, bank]
+  _address: terminus/city/wharfside/reach
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  ambientIntensity: 620
+  ambientColorTemperature: 5800
+  longDescription: |
+    The city ends behind you in a ragged line of yards and the river takes over. The towpath narrows to a made ledge along the bank, cut for horses that no longer walk it, and the water beside it is a straight run of a quarter-mile with the tide in the bottom of it.
+
+    A rotted set of staging leans out over the water half way along, and past it the banks begin to spread.
+  coords:
+    x: 2
+    y: 0
+    z: 0
+  exits:
+    west:
+      destination: /world/terminus/estuary/lower-towpath
+      media: [ground, water]
+      edgeMinutes: 4
+    east:
+      destination: /world/terminus/estuary/estuary-mouth
+      media: [ground, water]
+      edgeMinutes: 4
+  details:
+    staging:
+      keywords: [staging, jetty, piles, timbers, wreck]
+      description: |
+        Six piles and the remains of a deck, black with age and furred green at the waterline. It served something that is not there any more. At low water you can see the stumps of an older set inside it.
+    ledge:
+      keywords: [ledge, towpath, path, cut]
+      description: |
+        A yard wide, cut into the bank and revetted with brick, with a groove worn into the outer edge at knee height by a rope that has not been on it in living memory.
+    tide:
+      keywords: [tide, water, river, salt]
+      description: |
+        It comes up this far. You can tell by the weed on the revetment and by the fact that the river here does not always go the same way.

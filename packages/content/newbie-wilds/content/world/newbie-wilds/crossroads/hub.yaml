@@ -25,6 +25,21 @@ data:
     x: 0
     y: 0
     z: 0
+  exits:
+    # ⭐ **The road south.** The frontier stopped being reachable only by
+    # the Line: the cart track that comes up past the Ferrow diggings
+    # arrives here, so a player can walk Terminus → the crossroads → the
+    # pass → Rejection → the last counted mile without a teleport
+    # anywhere. The graded road giving out at this spot is now something
+    # you can watch happen rather than something the prose asserts.
+    #
+    # Long, and the length is the content: twelve game minutes of
+    # nothing, which is what "the last counted mile" is supposed to feel
+    # like on the way in.
+    south:
+      destination: /world/rejection/kestrel-road/yard-gate
+      media: [ground]
+      edgeMinutes: 12
   details:
     office:
       keywords: [office, charter, lantern, seal, warden]
@@ -42,6 +57,10 @@ data:
       keywords: [treeline, trees, woods, wood, forest]
       description: |
         The road runs on past both doors into a treeline that has gone quiet. Not empty-quiet — listening-quiet. Somewhere close in there something huffs, and settles, and waits.
+    south:
+      keywords: [south, road, track, cart-track, back]
+      description: |
+        The graded surface runs out a hundred paces south of the buildings and becomes a cart track between two shoulders of hill, going back the way the freight comes: over the pass, down the Delight, and eventually into a city that has counted everything. Nobody walks it for pleasure.
     line:
       keywords: [line, terminal, tpa, kerb]
       description: |

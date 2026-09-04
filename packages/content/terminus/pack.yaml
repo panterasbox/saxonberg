@@ -46,6 +46,23 @@ requires:
     # municipality's like the rest of the built city — the office SELLS
     # ground, it does not own the ground it sells.
     - { extent: /world/terminus/realty, holder: { group: terminus }, landUse: commercial }
+    # ⭐ The two corridors (logistics D18/D20): a road corridor is
+    # SUBDIVIDED AS ITS OWN PARCEL, so the road across somebody's flats
+    # is the road's ground and not theirs — which is what makes
+    # toll-versus-obstruction resolvable when the contested-road build
+    # lands. **No seventh land use was needed**: the closed six already
+    # carry it.
+    #
+    # `civic` — "offices, parks and THE COMMONS" — is the public highway.
+    # The estuary towpath is the city's own working waterfront and is
+    # kept by the municipality like any other street.
+    - { extent: /world/terminus/estuary, holder: { group: terminus }, landUse: civic }
+    # ⚠ `wild` — "unserviced ground: PASSAGE and gathering only" — is the
+    # Delight road, which crosses ground nobody's municipality maintains.
+    # The civic/wild split IS the toll-versus-obstruction distinction
+    # already: a gate on ground you hold is legitimate, a barricade on
+    # the commons is not. No mechanic, no new entry, decided.
+    - { extent: /world/terminus/delight-road, holder: { group: terminus }, landUse: wild }
 boot:
   - { template: /world/terminus/mayfield-row/seznick-house/building, role: producer, reason: warms the unit caches from the durable slot set and installs the lobby stair at postRegister }
   # ⚠ Moved here with the room from `trade-distilling`: a showroom on the

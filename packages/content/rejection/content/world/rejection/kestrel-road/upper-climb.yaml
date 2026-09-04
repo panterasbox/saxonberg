@@ -1,0 +1,56 @@
+# The upper climb — the last water, and it is signposted as such.
+#
+# ⭐ A corridor's `water` need (for teams) is exactly why wells sit on
+# roads. This is that slot, met — and the pass above it is where it
+# stops being met, which is what the `corridor` archetype's report is
+# for.
+class: /platform/location/SingletonCartesianLocation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the last water
+  primaryKeyword: spring
+  alternateNames: [climb, road, water, trough]
+  _address: terminus/rejection/road/upper-climb
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  ambientIntensity: 580
+  ambientColorTemperature: 5700
+  longDescription: |
+    The zigzags end and the road runs along a shelf under the crags with the wind coming down it. A spring comes out of the rock at head height and falls into a stone trough set into the bank, and the overflow goes under the road in a culvert somebody cut properly.
+
+    Cut into the rock above the trough, in letters a foot high: LAST WATER. It is not decoration.
+  coords:
+    x: -1
+    y: 0
+    z: 0
+  exits:
+    east:
+      destination: /world/rejection/kestrel-road/lower-climb
+      media: [ground]
+      edgeMinutes: 10
+    # ⚠ `wheelPassable: false` on the edge INTO the pass as well as on
+    # the pass's own two, because the stair is the EDGE and not the room:
+    # a wagon that could reach the saddle and not leave it would be
+    # stranded on a pitch with nowhere to turn. Both sides of every road
+    # edge are authored explicitly, and this is one of them.
+    west:
+      destination: /world/rejection/kestrel-road/the-pass
+      media: [ground]
+      wheelPassable: false
+      edgeMinutes: 12
+  details:
+    trough:
+      keywords: [trough, water, spring, stone, basin]
+      description: |
+        A single block hollowed out, green inside, kept full by a finger of water off the rock face that has evidently never stopped. Deep enough for a horse to get its whole muzzle in. Worn at the near lip by two hundred years of them doing exactly that.
+    inscription:
+      keywords: [inscription, letters, sign, carving, warning]
+      description: |
+        LAST WATER, cut a finger deep into the living rock and repainted often enough to still be white. Not a courtesy. Somebody is telling you that from here to the far side there is none, and that they are tired of being asked.
+    gate:
+      keywords: [gate, hurdle, board, sign, notice, turn]
+      description: |
+        Where the shelf runs out, a hurdle on a frame closes the way with a painted board wired to it: NO WHEELS BEYOND THIS GATE · BREAK YOUR LOAD AT THE CROSSING. In front of it the ground has been churned into a wide flat place by two hundred years of drivers reading that and turning round.
+    crags:
+      keywords: [crags, rock, cliff, face, above]
+      description: |
+        Grey and broken, going up out of sight, with the road tucked in under them out of the worst of the weather for exactly as long as the shelf lasts.

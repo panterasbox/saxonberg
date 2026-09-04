@@ -50,16 +50,12 @@ import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { EvictionContext } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
 import { LANE_PATH_PREFIX, type LaneDescriptor, type LaneEdge } from './Lane';
+import { SERVICE_ROUTE_PATH_PREFIX } from './ServiceRoute';
 import { Route } from '../lib/journey/Route';
 
 /** The catalogue singleton's own template path. */
 export const LANE_CATALOGUE_PATH = '/system/transport/idea/LaneCatalogue';
 
-/**
- * Template-path prefix every authored `Route` ROW lives under — in the
- * commons, for the same reason lanes are. See {@link LANE_PATH_PREFIX}.
- */
-export const ROUTE_PATH_PREFIX = '/stuff/idea/Route';
 
 /** ⚠ A walk bound, so a mis-authored graph cannot hang a boot. */
 const MAX_LANE_NODES = 2_000;
@@ -376,7 +372,7 @@ async function loadIndex(): Promise<CompiledIndex> {
     lanes.set(d.key, await compileLane(d, problems));
   }
 
-  for (const tpl of await Template.findDescendants(ROUTE_PATH_PREFIX)) {
+  for (const tpl of await Template.findDescendants(SERVICE_ROUTE_PATH_PREFIX)) {
     const d = routeDescriptorOf((tpl.data ?? {}) as Record<string, unknown>);
     if (d === null) continue;
     if (!lanes.has(d.laneKey)) {
@@ -487,6 +483,16 @@ async function induce(
     if (!MixinApi.isExitable(room)) continue;
 
     for (const exit of room.getExits().values()) {
+      // ⭐ Some crossings answer differently at different times of year —
+      // a ford is up in the spring flood. Asked BY SHAPE, so a seasonal
+      // exit participates without this walk knowing what kind it is, and
+      // an ordinary exit costs one `typeof`.
+      const seasonal = exit as unknown as {
+        refreshCrossing?: () => Promise<void>;
+      };
+      if (typeof seasonal.refreshCrossing === 'function') {
+        await seasonal.refreshCrossing();
+      }
       if (exit.isBlocked()) continue;
       if (!exit.allowsMode(d.mode)) continue;
       if (wheeled && !exit.isWheelPassable()) continue;

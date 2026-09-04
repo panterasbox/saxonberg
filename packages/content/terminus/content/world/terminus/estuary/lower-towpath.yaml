@@ -1,0 +1,42 @@
+# The lower towpath — the working end of Wharfside, where things are
+# loaded rather than looked at.
+class: /platform/location/SingletonCartesianLocation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the lower towpath
+  primaryKeyword: towpath
+  alternateNames: [path, wharf, quay, bank]
+  _address: terminus/city/wharfside/lower-towpath
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  ambientIntensity: 590
+  ambientColorTemperature: 5800
+  longDescription: |
+    Below the confluence the Kestrel goes wide and slow and the city finally does something useful with it. A stone quay runs along the bank, low enough to work a barge over and high enough to stay out of the spring, with rings set into it at intervals and a crane frame at the near end with no rope on it.
+
+    The water here is deep enough that you cannot see the bottom, which is not true anywhere upstream.
+  coords:
+    x: 1
+    y: 0
+    z: 0
+  exits:
+    west:
+      destination: /world/terminus/wharfside/bank
+      media: [ground, water]
+      edgeMinutes: 3
+    east:
+      destination: /world/terminus/estuary/reach
+      media: [ground, water]
+      edgeMinutes: 4
+  details:
+    rings:
+      keywords: [rings, ring, mooring, iron]
+      description: |
+        Iron, set into the stone at two-fathom intervals, worn bright on their upper curve and rusted solid underneath. The spacing tells you what length of craft this quay was cut for.
+    crane:
+      keywords: [crane, frame, jib, gantry]
+      description: |
+        A timber A-frame with an iron sheave at the head and no rope through it. Somebody took the rope. The frame is sound and would work again tomorrow.
+    water:
+      keywords: [water, river, kestrel, deep]
+      description: |
+        Brown, opaque, and moving without any surface to speak of. You cannot see the bottom. Upstream of the confluence you can see the bottom everywhere, which is the whole reason a boat stops there and starts here.

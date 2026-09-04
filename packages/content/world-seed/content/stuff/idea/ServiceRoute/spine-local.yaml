@@ -1,0 +1,28 @@
+# The local — the spine, stopping everywhere.
+#
+# ⭐ This row and its sibling `spine-express` exist to prove one claim
+# for the cost of two YAML files: **express versus local is ONE LANE with
+# two stop sets.** Same lane, same nodes, same legs travelled; the only
+# difference is where you may board and alight.
+#
+# ⚠ An authored route and a computed one are the same shape, and the
+# Journey cannot tell them apart (AC15n). A scheduled service's route is
+# authored; a haulage gig's is worked out per request; if `Route` baked
+# in *authored*, on-demand carriage would become unrepresentable later
+# and expensive to retrofit.
+#
+# `stops` omitted ⇒ it stops everywhere it passes.
+class: /system/transport/idea/ServiceRoute
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: spine-local
+  name: the local
+  laneKey: spine
+  nodes:
+    - /world/terminus/wharfside/bank
+    - /world/terminus/delight-road/ford
+    - /world/terminus/delight-road/milestone
+    - /world/terminus/delight-road/drove
+    - /world/terminus/delight-road/flats
+    - /world/terminus/delight-road/crossroads
+  stops: []

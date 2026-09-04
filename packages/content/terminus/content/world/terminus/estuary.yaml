@@ -1,0 +1,21 @@
+# The estuary — Terminus's export road, and the realm's one water lane.
+#
+# ⭐ **The towpath and the reach are the SAME GROUND, read by two lanes.**
+# Every exit here admits `ground` and `water`, so the walking lane and the
+# barge lane induce over the same edges — which is exactly why edge
+# duration lives on the exit and not on the lane: two lanes share the
+# ground, and the number belongs to the ground.
+#
+# ⚠ The contrast with the Delight road is the point (D18 / AC15h): three
+# rooms, SHORT edges, continuous incident — a walk you take rather than
+# one you endure — against four rooms and long edges on the same total
+# budget. Same duration, completely different road.
+#
+# Below the confluence, so a barge gets up it. The gorge above Terminus
+# is *"steep enough that no boat has ever been up it"* — the water build
+# decided that, not this one.
+class: /platform/idea/location/CartesianZone
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: The Estuary
+  cellSize: 20.0

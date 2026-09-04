@@ -28,6 +28,19 @@ data:
       destination: /world/terminus/market/square
     west:
       destination: /world/terminus/valley-road/towpath
+      edgeMinutes: 4
+    # ⭐ The two roads out of the city that the logistics build authored.
+    # SOUTH is the Delight road — the wagon's road, up the farming valley
+    # to the crossroads. EAST is the estuary — the export road, and the
+    # one stretch of the realm a barge can work.
+    south:
+      destination: /world/terminus/delight-road/ford
+      media: [ground]
+      edgeMinutes: 6
+    east:
+      destination: /world/terminus/estuary/lower-towpath
+      media: [ground, water]
+      edgeMinutes: 3
   props:
     - /world/terminus/wharfside/thing/city-intake
     - /world/terminus/wharfside/thing/city-outfall

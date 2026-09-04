@@ -109,5 +109,13 @@ describe('the shipped packs (real discovery, no install)', () => {
       expect(ids.indexOf(namer)).toBeGreaterThan(ids.indexOf('tpa'));
     }
     expect(ids.indexOf('tpa')).toBeGreaterThan(ids.indexOf('arcana'));
+    // ⭐ The logistics cut: the realm's lanes and service routes are rows
+    // in the COMMONS (world-seed), and Terminus's ford names the
+    // transport system's `FordExit` — so both install after the pack
+    // that ships the classes. The mechanism is the system's; a road up
+    // somebody's valley is the realm's.
+    for (const namer of ['world-seed', 'terminus']) {
+      expect(ids.indexOf(namer)).toBeGreaterThan(ids.indexOf('transport'));
+    }
   });
 });

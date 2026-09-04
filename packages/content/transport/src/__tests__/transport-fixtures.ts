@@ -69,8 +69,8 @@ export function installRows(lanes: LaneSpec[], routes: RouteSpec[] = []): void {
   routes.forEach((r, i) => {
     store.push({
       _id: `route-${i}`,
-      path: `/stuff/idea/Route/${r.key}`,
-      class: '/system/transport/idea/Route',
+      path: `/stuff/idea/ServiceRoute/${r.key}`,
+      class: '/system/transport/idea/ServiceRoute',
       data: {
         key: r.key,
         laneKey: r.laneKey,

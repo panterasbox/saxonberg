@@ -1,0 +1,62 @@
+# The valley crossroads — ⚠ **a node with a depot SITE, and nothing
+# else.**
+#
+# Heart's Delight's own build fills the town in around this. What ships
+# here is the road, the ditch, and an empty yard with a stone the Compact
+# put down and nobody has built on — the *"author the site and no
+# building"* trick, applied one level up from a lot.
+#
+# ⭐⭐ **This is where bulk breaks, and that is not decoration.** The
+# spine is wheeled from Terminus to here and the pass beyond it is not,
+# so a wagon can reach this yard and cannot reach Rejection. Consolidation
+# — the depot's one product (D8) — has real economic work to do on the
+# day it opens, which is the difference between a service and a shipped
+# building nobody needs.
+class: /platform/location/SingletonCartesianLocation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the valley crossroads
+  primaryKeyword: crossroads
+  alternateNames: [crossing, road, junction, yard]
+  _address: terminus/delight-valley/crossroads
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  ambientIntensity: 600
+  ambientColorTemperature: 5800
+  longDescription: |
+    Two roads meet. The one you came up runs on south into the farming valley; the one across it comes down out of the eastern hills and goes on west towards the pass. There is a deep ditch on the inside of the angle, cut to take the water off both of them, and it has been maintained.
+
+    On the fourth corner there is a yard: half an acre of hard standing, a gate with no fence either side of it, and a squared stone set flush with the ground at the centre. The stone has an inscription that has been walked smooth.
+
+    Nothing is built here. Everything is going to be.
+  coords:
+    x: 0
+    y: -5
+    z: 0
+  exits:
+    north:
+      destination: /world/terminus/delight-road/flats
+      media: [ground]
+      edgeMinutes: 8
+    # ⚠ Cross-pack, and authored on BOTH sides: the far half lives in the
+    # rejection pack. Neither pack reaches into the other's files.
+    west:
+      destination: /world/rejection/kestrel-road/lower-climb
+      media: [ground]
+      edgeMinutes: 10
+  details:
+    stone:
+      keywords: [stone, inscription, marker, slab]
+      description: |
+        A dressed slab set flush with the hardstanding, a yard across, with an inscription round its edge worn past reading except for a date and the word COMMONS. Whatever was granted here was granted to everybody, and everybody has been walking on it since.
+    yard:
+      keywords: [yard, standing, hardstanding, site, gate]
+      description: |
+        Half an acre of rammed stone, level, drained, and empty. Cart tracks come onto it from three directions and stop. A gate stands in the middle of nothing, with no fence on either side, which means somebody meant to build one and either ran out of money or ran out of years.
+    ditch:
+      keywords: [ditch, drain, water, cut]
+      description: |
+        Deep, square-cut, dry today and clean of weed. Somebody walks this ditch with a spade often enough that it has never silted, which tells you more about who keeps this crossing than any sign would.
+    roads:
+      keywords: [roads, road, west, south, pass, hills]
+      description: |
+        South, the made road runs on into the valley where the good ground is. West, the other road lifts almost at once towards the hills and the pass, and you can see from here that it stops being a road for wheels somewhere up there.

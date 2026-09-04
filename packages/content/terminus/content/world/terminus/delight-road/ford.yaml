@@ -1,0 +1,55 @@
+# The ford — ⭐ **the road that changes with the season**, and the whole
+# of it is a number the water system already computes.
+#
+# A side-channel of the Delight crosses the road here. In August you walk
+# over gravel; in the spring rise the water is over the stones and moving,
+# and the ford is up. Nothing here declares that: the exit reads
+# `flowAt('delight:mouth')` — the same figure `measure` reads — against a
+# threshold, and sets the shipped `blocked` bit. See
+# `/system/transport/idea/FordExit`.
+#
+# ⚠ The way ONWARD is the ford. There is no other line: that is what
+# makes a seasonal crossing a fact about the road rather than a detour.
+class: /platform/location/SingletonCartesianLocation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the ford on the Delight
+  primaryKeyword: ford
+  alternateNames: [crossing, road, stones]
+  _address: terminus/delight-valley/ford
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  ambientIntensity: 600
+  ambientColorTemperature: 5800
+  longDescription: |
+    The road out of the city runs south along the Delight and then, without any ceremony at all, runs into it. A side-channel comes down off the flats and crosses here, and the crossing is a bed of set stones with a pole on either bank to tell you how deep it is.
+
+    In a dry month the pole is a joke and the stones are dusty. The marks on it are not.
+
+    North, the city. South, the road picks up again on the far bank and goes on up the valley.
+  coords:
+    x: 0
+    y: -1
+    z: 0
+  exits:
+    north:
+      destination: /world/terminus/wharfside/bank
+      media: [ground]
+      edgeMinutes: 6
+    south:
+      kind: /world/terminus/delight-road/exits/delight-ford
+      destination: /world/terminus/delight-road/milestone
+      media: [ground]
+      edgeMinutes: 6
+  details:
+    pole:
+      keywords: [pole, gauge, marks, stick]
+      description: |
+        A peeled stave driven into the bank, banded in tar every hand's width. The bands nobody can reach are the ones worth looking at: somebody has cut a notch beside the fourth one and written a year under it.
+    stones:
+      keywords: [stones, stone, bed, crossing, gravel]
+      description: |
+        Set stones, laid flat and level, with the gravel scoured out from between them on the downstream side. Somebody maintains this. Nobody is paid to.
+    channel:
+      keywords: [channel, water, delight, river, side-channel]
+      description: |
+        A braid of the Delight that leaves the main stream up on the flats and comes down to rejoin it below the city. Most of the year it carries very little. Most of the year is not all of it.

@@ -1,0 +1,49 @@
+# The CORRIDOR archetype — ⭐⭐ **the acceptance instrument for "if a
+# corridor has five rooms, five things have to be true there".**
+#
+# A road SEGMENT is not an archetype: there is no capability a single
+# road room must have, and a road's real properties (mode gates, grade,
+# the edge budget) live on the EXIT rather than in the room. But a
+# corridor has needs across its whole LENGTH, and the shipped checker
+# already evaluates over the union of many spaces — so this is one
+# archetype reported across all of a way's rooms at once.
+#
+# `surveyScope: corridor` is what makes that happen, and it is also what
+# keeps this line out of every bedroom in the game: it reports only where
+# you are standing outdoors, on a way, and then over the whole zone.
+#
+# **One corridor archetype, not several.** Towpath, pass, high street and
+# drove road differ in INSTANCE DATA — what the corridor actually has —
+# per the standing second-variant probe. Four kinds of road with one
+# contract is the claim; four archetypes would be four claims.
+#
+# ⭐ *Reported, never enforced.* A corridor with no shelter is a legal,
+# visible state and the report names the gap. Nothing is blocked, nothing
+# is penalised, and no multiplier reads this — which is exactly what
+# turns D18's instruction into a checkable artifact.
+#
+# ⚠ No ninth need was added. All four slots are EXISTING vocabulary:
+# shelter is seating, water is a bulk source, a crossing is a presence,
+# light is lux. The proof that the needs vocabulary already reaches this
+# domain is that it was already being used for it — the mining
+# archetype's `haulage: { presence: pony }`.
+archetypeId: corridor
+label: a way
+surveyScope: corridor
+capabilities:
+  # The road house. Rovere's is already designed in Heart's Delight and
+  # waiting for a road to be on; until it is built, this reports missing,
+  # which is the honest state of a road with nowhere to stop.
+  - { key: shelter, needs: { seating: 2 } }
+  # Water for teams — the reason wells sit on roads. The Kestrel road's
+  # LAST WATER trough answers this; the pass above it does not, and that
+  # is the point of the sign.
+  - { key: water, needs: { bulkSource: water } }
+  # The ford or the bridge: something that gets you over what is in the
+  # way.
+  - { key: crossing, needs: { presence: crossing } }
+  # ⭐ **No default, on purpose** — the mining archetype's divergence
+  # trick. One road answers with lamps and another with nothing, and
+  # **the dark stretch is the point**. A default here would quietly say
+  # that an unlit road is a defect.
+  - { key: light, needs: { lightLux: 5 } }

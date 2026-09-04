@@ -1,0 +1,49 @@
+# The milestone — the trope that costs nothing and does the most work.
+#
+# ⭐ A road room is a BUDGET LINE, not filler: five rooms means five
+# things have to be true here. This one is where the road tells you how
+# far it is, and where two hundred years of people have said what they
+# thought of that.
+class: /platform/location/SingletonCartesianLocation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the milestone
+  primaryKeyword: milestone
+  alternateNames: [stone, road, mile]
+  _address: terminus/delight-valley/milestone
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  ambientIntensity: 620
+  ambientColorTemperature: 5800
+  longDescription: |
+    The valley has opened out and the road runs straight along the flat of it with the water off to the left, out of sight behind willows. There is nothing here but grass, wind, and one worked stone standing at the verge with its face to the north.
+
+    It is a long way to the next thing. That is what the stone is for.
+  coords:
+    x: 0
+    y: -2
+    z: 0
+  exits:
+    # The same crossing, from the other bank — both halves of the ford
+    # are the ford, or you could cross one way and not the other.
+    north:
+      kind: /world/terminus/delight-road/exits/delight-ford
+      destination: /world/terminus/delight-road/ford
+      media: [ground]
+      edgeMinutes: 6
+    south:
+      destination: /world/terminus/delight-road/drove
+      media: [ground]
+      edgeMinutes: 8
+  details:
+    stone:
+      keywords: [stone, milestone, milepost, marker, face]
+      description: |
+        Waist-high, dressed on three sides, cut with TERMINUS and a numeral on the north face and nothing at all on the south — whoever paid for it was thinking about people coming down, not going up. The numeral has been recut at least once, deeper and less well.
+    graffiti:
+      keywords: [graffiti, scratches, names, marks, initials]
+      description: |
+        Names, initials and dates, some chiselled and most scratched, going round the stone in a band at sitting height. The oldest are on the sheltered side. One near the bottom is a set of tally marks with nothing to say what was being counted.
+    willows:
+      keywords: [willows, trees, water, river, delight]
+      description: |
+        A line of them marking where the Delight runs, close enough to hear when the wind drops and far enough that you would have to want to get to it.

@@ -1,0 +1,47 @@
+# The empty flats — the long stretch with nothing on it, and it is
+# deliberate.
+#
+# ⭐ **This room's content is the absence.** D18: *the lonely stretch is
+# few rooms and long edges — nothing for a long time, then something.*
+# A corridor whose every room is a landmark is a high street; the flats
+# are what make the milestone and the crossroads mean anything.
+class: /platform/location/SingletonCartesianLocation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the empty flats
+  primaryKeyword: flats
+  alternateNames: [road, plain, alluvium]
+  _address: terminus/delight-valley/flats
+  _biomePath: /stuff/idea/biome/outdoor/meadow
+  ambientIntensity: 660
+  ambientColorTemperature: 5750
+  longDescription: |
+    Alluvium, flat as a table, the best ground in the valley and not a building on it. The road runs across it dead straight because there was never any reason for it to do anything else. Somebody has ploughed a strip a long way off to the west and left the rest.
+
+    You can see a great distance in every direction and there is nothing in any of them. Behind, the drove crossing. Ahead, eventually, a break in the line where the road meets another one.
+  coords:
+    x: 0
+    y: -4
+    z: 0
+  exits:
+    north:
+      destination: /world/terminus/delight-road/drove
+      media: [ground]
+      edgeMinutes: 8
+    south:
+      destination: /world/terminus/delight-road/crossroads
+      media: [ground]
+      edgeMinutes: 8
+  details:
+    ground:
+      keywords: [ground, soil, alluvium, flats, earth, land]
+      description: |
+        Deep, dark, stoneless river silt, laid down by a river that has moved since. It is the reason anybody is ever going to build a town in this valley, and the reason the ploughed strip is where it is.
+    strip:
+      keywords: [strip, plough, field, furrows]
+      description: |
+        A single ploughed land, a long way off, with nobody working it. Somebody is holding ground here against the day the road brings a reason to farm it properly.
+    distance:
+      keywords: [distance, horizon, hills, view, sky]
+      description: |
+        Hills east and west, far enough to be blue. Between them, the valley, and one road across it, and you on it.

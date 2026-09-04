@@ -1,0 +1,34 @@
+# The spine — ⭐ **the wagon's road**, and it is not drawn anywhere.
+#
+# `mode: wheeled` is the whole declaration. The lane is the INDUCED
+# subgraph: every exit whose `media` admits the wheeled mode's medium
+# AND whose `wheelPassable` bit is set. Nothing here lists a room, an
+# edge or a route.
+#
+# ⭐⭐ Which is why the pass works. `the-pass` sets `wheelPassable: false`
+# on its two exits and this lane stops there of its own accord — a wagon
+# reaches the valley crossroads and cannot reach Rejection, so bulk
+# breaks at the crossroads on the day the road opens. One bit on one
+# exit, and an economy.
+#
+# ⚠ `seeds` is where the induced walk STARTS, not a map: rooms load
+# lazily, so "walk every reachable room's exits" has to begin somewhere
+# nameable. One path per lane.
+#
+# `operator: null` — the public highway. The field exists so that a
+# corpo-run or authority-run lane is the same shape as nobody's; rail and
+# the TPA are incumbent networks in this design and nothing here may
+# assume a player.
+#
+# `stops: []` — every node is a stop. An ordinary road is not a service.
+class: /system/transport/idea/Lane
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: spine
+  name: the spine
+  mode: wheeled
+  seeds:
+    - /world/terminus/wharfside/bank
+  edges: []
+  stops: []
+  operator: null

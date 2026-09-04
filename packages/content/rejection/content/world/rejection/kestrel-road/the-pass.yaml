@@ -1,0 +1,58 @@
+# ⭐⭐ The pass — **a barrier with one way through**, and the reason the
+# crossroads depot exists.
+#
+# Both of its exits are `wheelPassable: false`. The medium gate cannot
+# express this (the pass is ordinary ground, and you walk it), so the bit
+# that covers the residue is doing the whole job — the same bit a stair
+# or a stile carries. Set it, and the `wheeled` lane's induced subgraph
+# stops here of its own accord, with nothing anywhere else changed.
+#
+# The refusal names the reason. A wagon turned back by a message that
+# says "you can't wheeled that way" teaches nothing; one turned back at
+# a stair-pitch with a gate and a sign teaches where bulk breaks.
+class: /platform/location/SingletonCartesianLocation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the pass
+  primaryKeyword: pass
+  alternateNames: [saddle, gap, col, road, stairs]
+  _address: terminus/rejection/road/the-pass
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  ambientIntensity: 700
+  ambientColorTemperature: 6200
+  longDescription: |
+    The shelf ends against the hill and the road ends with it. What goes on is a stair: eighty-odd pitched steps of set rock climbing the gut of a gully to the saddle, wide enough for two people or one animal, with a chain along the exposed side that has been renewed in places and not in others.
+
+    There is a gate at the bottom, a hurdle on a frame, with a board wired to it. Cart tracks come up to the gate from the east and stop dead. From the top you can see down the other side into the Kestrel's own valley, and the smoke.
+  coords:
+    x: -2
+    y: 0
+    z: 0
+  exits:
+    east:
+      destination: /world/rejection/kestrel-road/upper-climb
+      media: [ground]
+      wheelPassable: false
+      edgeMinutes: 12
+    west:
+      destination: /world/rejection/kestrel-road/tips
+      media: [ground]
+      wheelPassable: false
+      edgeMinutes: 12
+  details:
+    board:
+      keywords: [board, sign, notice, gate, hurdle]
+      description: |
+        Wired to the gate, painted and repainted: NO WHEELS BEYOND THIS GATE · BREAK YOUR LOAD AT THE CROSSING. Under it, in a different hand and much older, somebody has added: OR CARRY IT.
+    steps:
+      keywords: [steps, stair, stairs, pitching, rock]
+      description: |
+        Set rock, pitched by hand, each riser a hand's height and each tread a stride — laid for legs, and laid well. Nothing on wheels has ever come up them and nothing ever will. A pack animal manages it. A person with twenty kilos manages it slowly.
+    chain:
+      keywords: [chain, rail, handrail, links, drop]
+      description: |
+        Iron links on iron stakes along the outside, where the gully falls away. Bright where hands go and rusted where they do not. Three stakes are missing and the chain there lies on the steps.
+    smoke:
+      keywords: [smoke, valley, kestrel, rejection, view, town]
+      description: |
+        A brown smudge sitting in the head of the next valley, not moving, with the shapes of a headframe and a spoil bank under it. That is where this road has been going the whole time.
