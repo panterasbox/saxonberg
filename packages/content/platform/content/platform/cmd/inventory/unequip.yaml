@@ -1,0 +1,28 @@
+# The other direction. `remove` / `doff` / `unwield` are aliases.
+#
+# ⭐ Outermost-first: you cannot get a shirt out from under a hauberk,
+# and the player should not have to work that out any more than they
+# should have had to work out the way in.
+verbs: [unequip, remove, doff, unwield]
+controller: /platform/idea/cmd/inventory/UnequipController
+description: "Take off and put up your kit"
+help: |
+  `unequip` on its own strips everything you have on, outermost first.
+  `unequip <thing>` takes off or puts up one thing.
+
+  ⭐ **It takes as long to get out of as it took to get into**, which is
+  worth remembering before you go into deep water in mail.
+
+  ⚠ Some things will not come off. A cursed piece stops the strip at
+  itself and says so — everything outside it is already off by then.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresSlotted
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: target
+    type: object
+    required: false
+    scope: "inventory"
+    requires: WearableMixin|WieldableMixin

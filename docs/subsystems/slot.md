@@ -226,7 +226,7 @@ view and that view is medical's.
 > Before the TPA reform **nothing in the game could put anything into a
 > non-body slot by any verb.**
 
-`wear`/`wield` are body slots, `plant`/`repot` are the plant slot,
+`equip` (worn and wielded alike) is body slots, `plant`/`repot` the plant slot,
 `mount` is conveyance, and the whole `device` category (`arm · disarm ·
 douse · fold · ignite · pump · switch · unfold`) drives no slot at all.
 So a battery bay, a lamp's oil reservoir and a mill's replaceable stone
@@ -323,11 +323,11 @@ go through Slotted/Slottable when you need the verbose form."
 
 ## Wear / wield / mount failure notes
 
-The slot-claiming verbs (`wear`, `wield`, `mount`) emit a
+The slot-claiming verbs (`equip` — which `wear`/`wield` alias — and `mount`) emit a
 `slot-occupied { host: StuffRef, slot: string, occupant?: StuffRef }`
 note onto the dispatch context when the required slot is already
-taken. `host` identifies who owns the slot — the actor for `wear` /
-`wield`, the mount target for `mount`. `slot` is the canonical
+taken. `host` identifies who owns the slot — the actor for `equip`,
+the mount target for `mount`. `slot` is the canonical
 body-plan slot name (`'hand:left'`, `'mount:1'`, …). `occupant` is
 the current occupant when known, omitted otherwise.
 

@@ -1,0 +1,20 @@
+# Dressing dials.
+#
+# ⭐⭐ The duration of getting a garment on is DERIVED from its mass, not
+# authored per row — the same doctrine that made `clo` derived. A linen
+# shirt weighs nothing and goes on in seconds; a mail hauberk weighs ten
+# kilos and takes minutes. These two scale the whole ladder, so tuning
+# how long dressing feels is one edit rather than a sweep over every
+# garment in the world.
+#
+# ⚠ Game-milliseconds.
+settings:
+  # The floor: fiddling with any garment at all — finding the opening,
+  # getting an arm in.
+  - key: equip.baseMs
+    value: "4000"
+
+  # Per kilogram. Mass is the honest signal for how long a thing takes
+  # to get onto a body.
+  - key: equip.msPerKg
+    value: "14000"

@@ -160,18 +160,57 @@ slot. Removal vacates every claimed slot.
 ## Wearable + Wieldable overlap
 
 Some objects (gauntlets, bracers) compose both. Each side declares
-its own `slotClaims`. The verb selects the mode: `wear gauntlet`
-invokes the Wearable side; `wield gauntlet` invokes the Wieldable
-side. No umbrella mixin.
+its own `slotClaims`. **The OBJECT selects the mode, not the word**:
+`equip gauntlet` claims whichever side the gauntlet offers. No umbrella
+mixin.
 
 ## Verbs
 
+⭐⭐ **Two verbs, not four.** `equip` and `unequip` are the dressing
+surface; `wear` · `wield` · `remove` · `doff` · `unwield` are **aliases**
+of them. Worn and wielded are two answers to one intention, and a player
+who wants their kit on should not have to know which word a given object
+answers to. See [equip-slate.md](../slates/builds/equip-slate.md).
+
 | Verb | Action |
 |---|---|
-| `wear <X>` | `occupyAll` on `X.slotClaims[actor.bodyPlanPath]` |
-| `remove <X>` | Vacate every claimed slot |
-| `wield <X>` | Same shape as `wear` for held positions |
-| `unwield <X>` | Same shape as `remove` |
+| `equip` | The whole kit, **innermost-first** |
+| `equip <X>` | `occupyAll` on `X.slotClaims[actor.bodyPlanPath]`, worn or held |
+| `equip <X> --from <box>` | Draw from a container in reach first |
+| `equip set <name>` / `--save` / `equip sets` | The wardrobe stanza |
+| `unequip [<X>]` | Vacate claimed slots, **outermost-first** |
+
+### ⭐⭐ Ordering is the reason the verb exists
+
+The covering ladder means a low band may not go outside a high one — a
+fact about the model that the engine knows exactly and that the player
+was rediscovering one refusal at a time. `equip` sorts candidates by
+`Construction.getLayerDepth()` before the walk and re-checks
+`wouldLayerViolate` per item for what is *already* on.
+
+⚠ **A retry-sort is not enough**, and the first implementation learned
+it the hard way: repeatedly putting on whatever is currently legal fails
+once a high band lands first, because nothing takes it back off. A
+cuirass ahead of a shirt in the pack dressed the actor in the cuirass
+alone.
+
+### ⭐⭐ Dressing costs time
+
+Each layer is a `DressingStep` (`lib/slot/DressingStep.ts`) occupying
+`hands` — voice stays free — for a duration **derived from the garment's
+mass** (`equip.baseMs` + `equip.msPerKg`), never authored per row. So a
+shirt is seconds and a hauberk is minutes, and **you cannot armour up in
+an ambush**.
+
+⚠ Layers **chain**: the next starts from the previous one's completion,
+because firing them together is an `engagement-conflict` and dresses you
+in exactly one garment. An interrupted dressing leaves what went on ON —
+the covering stack is a stack, and a shorter one is already coherent, so
+no rollback exists or is needed.
+
+⚠ A skip is a **caveat, not a rejection**: `equip` that got five of six
+pieces on succeeded, and says what it left and why without emitting
+`controller-rejected`.
 
 Validators per verb (the controllers fail-fast on type narrows that
 shouldn't be reachable post-validator; user-facing rejection lives in

@@ -1,0 +1,70 @@
+# ⭐⭐ ONE verb for getting kitted out — worn and wielded together.
+#
+# `wear` and `wield` are ALIASES here, not separate verbs. Worn and
+# wielded are two answers to one intention, and a player who wants their
+# kit on should not have to know which word a given object answers to.
+#
+# ⭐ The reason the verb exists is ORDERING. The covering ladder means a
+# light thing will not go on over a heavy one — a fact about the model
+# the engine knows exactly, and which the player used to rediscover one
+# refusal at a time. `equip` puts things on inside-out so nobody has to.
+#
+# ⚠ `wear sword` is legal now, and that is the accepted cost of the
+# collapse. A baldric IS worn; the precision lost is small against a
+# vocabulary that shrank from four verbs to two.
+verbs: [equip, wear, wield]
+controller: /platform/idea/cmd/inventory/EquipController
+description: "Put on and take up your kit, in the right order"
+help: |
+  `equip` on its own puts on everything you are carrying that will go
+  on — innermost first, so the layers land in an order that works. It
+  tells you what went on, and it tells you what it left and why.
+
+  `equip <thing>` does one thing, whether that thing is worn or held.
+  `wear` and `wield` still work and mean the same.
+
+  ⭐ **Getting dressed takes time.** A shirt is a moment; a mail hauberk
+  is minutes, and the difference is the weight of the thing. Your hands
+  are busy while you do it — your voice is not — and if you are
+  interrupted, whatever went on stays on. You cannot armour up once the
+  fighting has started.
+
+  `equip <thing> --from <container>` reaches into a chest or a wardrobe
+  you can see, so getting dressed at home is one command and not six.
+
+  `equip set <name>` puts on a set you saved; `equip set <name> --save`
+  records what you have on right now; `equip sets` lists them. A set is
+  worth having mostly for the wardrobe — anything it names that you no
+  longer own is simply reported as missed.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresSlotted
+  - /lib/command/validators/requiresEmbodied
+args:
+  # ⚠ NOT required: bare `equip` is the whole-kit form and the main path.
+  - name: target
+    type: object
+    required: false
+    scope: [inventory, reachable]
+    requires: WearableMixin|WieldableMixin
+options:
+  from:
+    type: object
+    scope: [reachable]
+    description: "A chest or wardrobe to take the kit out of first"
+    requires: ContainerMixin
+fallthrough: true
+subcommands:
+  set:
+    description: "Put on a saved set (`--save` to record what you have on)"
+    args:
+      - name: name
+        type: string
+        required: true
+    options:
+      save:
+        type: boolean
+        description: "Save what you are wearing right now under <name>"
+  sets:
+    description: "List your saved sets"

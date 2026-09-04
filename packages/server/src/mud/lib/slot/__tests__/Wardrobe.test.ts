@@ -12,7 +12,7 @@
 
 import '../../../../test-bootstrap';
 import { describe, it, expect, afterEach } from 'vitest';
-import { readFileSync, readdirSync, statSync } from 'fs';
+import { readFileSync, readdirSync, statSync, existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import YAML from 'yaml';
@@ -106,23 +106,55 @@ describe('WardrobeMixin — the variable-key escape hatch', () => {
   });
 });
 
-describe('⚠ zero new verbs — the source-shape assertions', () => {
-  it('`wear.yaml` registers exactly [wear], with set/sets as SUBCOMMANDS', () => {
+describe('the verb shape — sets ride a verb, they are not one', () => {
+  /*
+   * ⚠⚠ This suite used to assert ZERO NEW VERBS, and that claim has been
+   * overtaken by a deliberate decision rather than eroded: `wear` and
+   * `wield` collapsed into `equip` (and `remove`/`doff`/`unwield` into
+   * `unequip`) because the covering ladder made ORDER the engine's
+   * knowledge while the interface made the player rediscover it one
+   * refusal at a time. The vocabulary got SMALLER — four verbs became
+   * two, the old words kept as aliases — which is the spirit the
+   * original assertion was defending. See `equip-slate.md`.
+   *
+   * What survives unchanged, and is what this really tested: a saved set
+   * is a SUBCOMMAND of the dressing verb, never a verb of its own.
+   */
+  it('`equip.yaml` carries wear/wield as ALIASES, with set/sets as subcommands', () => {
     const doc = YAML.parse(
-      readFileSync(join(CMD_ROOT, 'inventory', 'wear.yaml'), 'utf-8'),
+      readFileSync(join(CMD_ROOT, 'inventory', 'equip.yaml'), 'utf-8'),
     ) as {
       verbs?: string[];
       subcommands?: Record<string, unknown>;
       fallthrough?: boolean;
       args?: unknown[];
     };
-    expect(doc.verbs).toEqual(['wear']);
+    expect(doc.verbs).toEqual(['equip', 'wear', 'wield']);
     expect(Object.keys(doc.subcommands ?? {}).sort()).toEqual(['set', 'sets']);
-    // ⚠ `fallthrough` is what keeps bare `wear <item>` working once the
+    // ⚠ `fallthrough` is what keeps bare `equip <item>` working once the
     // verb has subcommands: an unrecognised first token binds against
     // `args:` instead of erroring.
     expect(doc.fallthrough).toBe(true);
     expect(doc.args).toBeDefined();
+    // ⭐ The target is OPTIONAL — bare `equip` is the whole-kit form and
+    // the main path, which is the entire point of the verb.
+    expect((doc.args as Array<{ required?: boolean }>)[0]?.required).toBe(false);
+  });
+
+  it('`unequip.yaml` absorbs remove/doff/unwield', () => {
+    const doc = YAML.parse(
+      readFileSync(join(CMD_ROOT, 'inventory', 'unequip.yaml'), 'utf-8'),
+    ) as { verbs?: string[] };
+    expect(doc.verbs).toEqual(['unequip', 'remove', 'doff', 'unwield']);
+  });
+
+  it('⚠ the four old views are GONE, not left shadowing the aliases', () => {
+    for (const stale of ['wear', 'wield', 'remove', 'unwield']) {
+      expect(
+        existsSync(join(CMD_ROOT, 'inventory', `${stale}.yaml`)),
+        `${stale}.yaml should have been removed`,
+      ).toBe(false);
+    }
   });
 
   it('⚠⚠ TEXTILES claims no `dress` — and medical still owns it alone', () => {

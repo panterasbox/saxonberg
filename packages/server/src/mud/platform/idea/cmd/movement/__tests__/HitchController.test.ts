@@ -8,7 +8,7 @@ import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import HitchController from '../HitchController';
 import UnhitchController from '../UnhitchController';
-import WieldController from '../../inventory/WieldController';
+import EquipController from '../../inventory/EquipController';
 import Location from '../../../../../lib/stuff/Location';
 import { Stuff } from '../../../../../lib/stuff/Stuff';
 import { StuffApi } from '../../../../../api/stuff';
@@ -159,7 +159,7 @@ describe('hands-occupied guard — wield while hauling', () => {
     const sword = heldThing(1);
     ContainmentApi.move(sword, giver);
     const ctx = ctxFor(giver, loc, 'wield');
-    makeStuff(() => new WieldController()).execute({ target: one(sword, 'sword') }, ctx);
+    makeStuff(() => new EquipController()).execute({ target: one(sword, 'sword') }, ctx);
     expect(ctx.getNotes()).toContainEqual(
       expect.objectContaining({ kind: 'controller-rejected', reason: 'hands-hauling' }),
     );

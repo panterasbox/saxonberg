@@ -1508,6 +1508,17 @@ export const AppSettingKeys = {
   /** Textiles — the fit distance above which a garment simply will not
    * go on. A halfling's coat on a dragonborn fails on a NUMBER. */
   textilesFitRefuseAbove: "textiles.fit.refuseAbove",
+
+  /*
+   * ⭐⭐ Dressing DIALS. Getting a garment on is an engaged act whose
+   * duration is DERIVED from the thing itself — the `clo` doctrine, not
+   * a `donSeconds` on every row: a linen shirt is seconds because it
+   * weighs nothing and a mail hauberk is minutes because it weighs ten
+   * kilos, and that falls out of what they ARE. These two scale the
+   * whole ladder rather than editing garments one at a time.
+   */
+  equipBaseMs: "equip.baseMs",
+  equipMsPerKg: "equip.msPerKg",
   /** Textiles — fraction of remaining colour a FULLY UNBOUND dye loses
    * per wash. Scaled by `1 − fastness`, so a well-mordanted piece keeps
    * nearly all of it and an un-mordanted one washes straight out. */
