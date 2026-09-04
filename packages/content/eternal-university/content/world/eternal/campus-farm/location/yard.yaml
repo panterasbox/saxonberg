@@ -14,7 +14,7 @@ data:
   longDescription: |
     A square of trodden mud between a low stone byre and a hay barn, with a
     water trough along one wall and a steaming midden heaped in the far
-    corner. Somebody has swept the middle of it and given up on the edges.
+    corner, with a cracked stone lid over the tank beneath it. Somebody has swept the middle of it and given up on the edges.
     A gate at the top of the yard opens onto the home field.
   coords: { x: 0, y: 0, z: 0 }
   props:
@@ -31,3 +31,7 @@ data:
   exits:
     field:
       destination: /world/eternal/campus-field/location/home-field
+    # ⚠⚠ Down into the slurry pit. Walking is all it takes, which is how
+    # it happens in life.
+    down:
+      destination: /world/eternal/campus-farm/location/pit

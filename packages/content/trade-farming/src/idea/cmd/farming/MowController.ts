@@ -138,6 +138,16 @@ export default class MowController extends FieldWorkController {
       // The cut IS the mass. Nobody authors how much hay a field gives.
       const massed = hay as unknown as { setMass?(q: Quantity<'kg'>): void };
       massed.setMass?.(Quantity.of(round2(taken), 'kg'));
+      // ⚠⚠ **And the cut carries the field's wetness into the barn**
+      // (D48). This one line is the whole of the hay fire: what decides
+      // whether a rick heats is what went into it, and you cannot see
+      // that afterwards. Cutting in a wet spell is invisible today and
+      // catastrophic in a month.
+      const moisture = field.soilMoistureFraction();
+      if (moisture !== null) {
+        (hay as unknown as { baledMoistureFraction?: number })
+          .baledMoistureFraction = round2(0.1 + moisture * 0.3);
+      }
       ContainmentApi.move(hay as Stuff & Containable, field as unknown as Stuff & Container);
     }
 

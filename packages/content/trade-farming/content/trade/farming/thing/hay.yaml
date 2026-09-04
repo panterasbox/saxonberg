@@ -5,10 +5,12 @@
 # answer rather than a number somebody typed. That is what makes a wet
 # year and a dry one different without a weather table anywhere near it.
 #
-# ⚠ Baled above a moisture threshold this self-heats and can fire the
-# barn (D48) — the hazard wave's, and the reason this row is a thing you
-# store rather than a number on a counter.
-class: /platform/thing/Provision
+# ⚠⚠ **Baled above a moisture threshold this self-heats and fires the
+# barn** (D48), and that is why this is a thing you store rather than a
+# number on a counter. `mow` stamps its moisture off the field it came
+# from, so cutting in a wet spell puts a bad rick in your barn — weeks
+# before the barn does anything about it.
+class: /trade/farming/thing/HayBale
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a cut of hay

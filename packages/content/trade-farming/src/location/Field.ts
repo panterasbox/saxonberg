@@ -716,6 +716,14 @@ export default class Field extends FieldBase {
    * field with soil and no grass on it is not a state the world has.
    */
   public installFieldReserves(sample: GroundSample): void {
+    // ⚠⚠ **A field with no area is not yet a field.** Registration runs
+    // BEFORE `plot` has sized a minted one, so installing here would
+    // seed a zero-capacity moisture reserve — and because both installs
+    // are idempotent, the real sizing call would then find the reserve
+    // present and do nothing. A field that could never hold water, from
+    // one ordering. Found by the plot suite, which is exactly the kind
+    // of thing an authored-content path breaks silently.
+    if (this.areaM2 <= 0) return;
     this.installSoilReserves(sample);
     this.installSward();
     // Learn where — and when — it is, the moment it exists.

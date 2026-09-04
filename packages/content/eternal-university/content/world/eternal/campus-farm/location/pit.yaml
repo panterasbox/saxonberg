@@ -1,0 +1,38 @@
+# ⚠⚠ **The manure pit** (D47) — the signature agricultural fatality, and
+# **its signature is MULTIPLE deaths.**
+#
+# One person goes down. The people who go in after them die too. That is
+# not a rule anybody wrote here: it is what an unbreathable medium does
+# to whoever is standing in it, and the shipped respiration crisis was
+# already the whole mechanism.
+#
+# ⭐⭐ And the gas is already in the engine. `stinkdamp` is hydrogen
+# sulfide — the mine's own bad air, with `breathable: false` and
+# `contaminant: hydrogenSulfide` — so the pit needed **no new medium, no
+# new hazard class and no new verb**. A slurry pit and a mine sump are
+# the same fact about the world, which is why one atmosphere tag serves
+# both.
+#
+# ⚠ It is the one hazard in this build that specifically punishes
+# COURAGE rather than negligence. H₂S also deadens the sense of smell at
+# lethal concentrations, so the warning disappears exactly when it
+# matters — the canary's dark twin.
+#
+# Reached by going `down` from the yard, which is the only way anybody
+# ever gets into one.
+class: /platform/location/SingletonCartesianLocation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the slurry pit
+  primaryKeyword: pit
+  keywords: [pit, slurry, tank, midden]
+  longDescription: |
+    A stone-lined tank under the midden, half full of black slurry with a
+    crust on it that has cracked in places. Iron rungs go down one wall.
+    The smell at the top is bad enough; a few rungs down it stops, which
+    is not the reassurance it seems to be.
+  coords: { x: 0, y: 1, z: -1 }
+  _atmosphere: stinkdamp
+  exits:
+    up:
+      destination: /world/eternal/campus-farm/location/yard

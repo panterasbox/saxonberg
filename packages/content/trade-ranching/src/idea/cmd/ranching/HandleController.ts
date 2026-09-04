@@ -27,6 +27,7 @@ import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/com
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { ConditionApi } from '@saxonberg/server/mud/api/condition';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { RANCHING_TOPIC } from './DraftController';
@@ -34,6 +35,16 @@ import type Livestock from '../../../agent/Livestock';
 
 /** The Discipline handling stock credits. */
 export const STOCKMANSHIP = 'stockmanship';
+
+/**
+ * Risk above which working an animal actually hurts you.
+ *
+ * ⚠ It sits well up the scale on purpose: a `wary` animal — which is
+ * most farm stock most of the time — never hurts anybody, and the
+ * ordinary act stays ordinary. What gets you is the one nobody has
+ * worked with.
+ */
+const HURT_THRESHOLD = 0.45;
 
 interface HandleModel extends CommandModel {
   target?: MqlOneResult;
@@ -50,6 +61,41 @@ export default class HandleController extends CommandController<HandleModel> {
 
     const before = target.getHandling();
     const flesh = target.getReserve('flesh');
+
+    // ⭐⭐ **D46 — a badly handled animal is a HAZARD, not an
+    // inconvenience.** Quiet stock handling exists in the real world
+    // because flighty animals injure people: crushing against a gate,
+    // kicks, trampling in a race. Cattle are the most dangerous thing on
+    // a farm.
+    //
+    // ⚠ The risk is the SQUARE of the complement of tractability, so it
+    // is near zero across the whole quiet end and climbs steeply at the
+    // wild end — which is how handling injuries actually distribute, and
+    // why this is a reason to handle stock properly rather than a tax on
+    // doing so. And it fires BEFORE the handling improves, because the
+    // animal you are about to work is the animal you have.
+    const risk = target.handlingRisk();
+    if (risk > HURT_THRESHOLD) {
+      const mass = target.getMass().rawValue();
+      ConditionApi.inflict(giver, {
+        mechanism: 'blunt',
+        site: 'body.torso',
+        // ⭐ The energy is the ANIMAL's: a hen cannot hurt you and a cow
+        // can break your ribs against a gate, and the difference is mass
+        // rather than a table.
+        energy: mass * risk * 0.6,
+      });
+      MessageApi.scene(giver)
+        .topic(RANCHING_TOPIC)
+        .toSelf(
+          Mml.compose`It swings hard into you before you have a hand on it and you go into the rail.`,
+        )
+        .toPeers(
+          Mml.compose`One of the animals slams ${Mml.actor(giver)} into the rail and is away across the yard.`,
+        )
+        .send();
+    }
+
     const after = target.handle(1);
 
     // ⭐ The precise score — the thing you paid an act for. Everything
