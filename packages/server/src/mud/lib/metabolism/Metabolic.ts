@@ -31,6 +31,7 @@
  */
 
 import type { MixinConstructor, FieldMeta } from "../mixin";
+import type { CommandContributions } from "../../api/command";
 import type { Stuff } from "../stuff/Stuff";
 import { Quantity } from "../quantity";
 import type { Unit } from "../quantity";
@@ -48,6 +49,8 @@ import { MixinApi } from "../../api/mixin";
 import { StuffApi } from "../../api/stuff";
 import { WorldClockApi } from "../../api/worldclock";
 import { TemplatePaths, TemplatePathPrefixes } from "../paths";
+import { BlendLabel } from './BlendLabel';
+import { BlendIdentity } from '../../lib/craft/BlendIdentity';
 
 /* ─────────────────────────── toxin model (types) ─────────────────────────── */
 //
@@ -64,6 +67,24 @@ export interface ToxinTag {
   type: string;
   /** Dose per serving (mg for solids / derived for liquids). */
   amount: number;
+  /**
+   * ⭐ **Heat-labile above this temperature (K)** — the working destroys
+   * the dose. Absent (the default) ⇒ the toxin survives anything a kitchen
+   * does to it.
+   *
+   * It rides the TAG the food authors, not the `Condition` seed, because
+   * lability is a fact about the *substance*: a raw bean's lectin is
+   * destroyed by boiling and a bean's cook needs to know at what
+   * temperature, while nothing about the body's response to it changes.
+   *
+   * ⚠ **Alcohol authors none, and honestly survives the pot.** So does
+   * the ptomaine a spoiled input already accumulated: cooking spoiled food
+   * does not un-poison it. That is real microbiology — heat stops the
+   * growth, it does not destroy the toxin the growth already produced —
+   * and it is the reason the kill has to be selective rather than a
+   * blanket "cooking makes food safe".
+   */
+  labileAtK?: number;
 }
 
 /** One severity rung of a toxin's banded condition. */
@@ -377,6 +398,27 @@ function assertRecordOfNonNeg(value: Record<string, number>, what: string): void
 export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class MetabolicMixin extends Base implements Metabolic {
     static _mixinName = "MetabolicMixin";
+
+    /**
+     * ⭐⭐ **`eat` and `vomit` live on the BODY**, because a body with a
+     * digestion buffer is exactly what can do either. `drink`/`sip` are
+     * the vessel's (you drink from a thing), and eating is the same act
+     * from the other side: the target is chosen at dispatch, the
+     * capability is yours.
+     *
+     * ⚠⚠ **Both verbs shipped with NO affordance at all.** The views
+     * existed, the controllers existed, the tests instantiated the
+     * controllers directly — and no player could ever type `eat`, in any
+     * room, at any food, because nothing anywhere contributed them. A
+     * live drive typed `eat stew` at a bowl of stew and the world said
+     * *"I don't understand 'eat'"*. This is the `feel`/`taste` failure of
+     * the libations build repeating exactly: missing enabling data fails
+     * CLOSED and SILENT, and a controller test skips the binder that
+     * would have caught it.
+     */
+    static commandContributions: CommandContributions = {
+      self: ["platform/cmd/bulk/eat.yaml", "platform/cmd/bulk/vomit.yaml"],
+    };
 
     static fieldMeta: FieldMeta = {
       digestionPools: { persistent: true, runtimeState: true },
@@ -967,7 +1009,7 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
       else this.liquidVolume = current + accepted;
 
       this.routeIntake(material, accepted, payload);
-      this.lastMealLabel = payload?.name ?? material.getName();
+      this.lastMealLabel = BlendIdentity.nameOf(payload, material);
       return accepted;
     }
 
@@ -986,7 +1028,7 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
       const pools = this.digestionPools;
       // Nutrient tags scale by accepted volume. A blend payload speaks
       // for the actual meal; the material row is its generic base.
-      for (const tag of payload?.nutrients ?? material.getNutrients()) {
+      for (const tag of BlendLabel.nutrientsOf(payload, material)) {
         const route = this.routeTag(tag);
         if (!route) continue;
         pools[tag] = (pools[tag] ?? 0) + route.yieldPerLitre * litres;
@@ -994,7 +1036,7 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
       // Toxin tags add their per-serving dose to the pool (each ingest
       // is one serving). The dose absorbs into the burden over time — so
       // the un-absorbed dose is what `vomit` can still dump.
-      for (const tox of payload?.toxicity ?? material.getToxicity()) {
+      for (const tox of BlendLabel.toxicityOf(payload, material)) {
         if (tox.amount <= 0) continue;
         pools[tox.type] = (pools[tox.type] ?? 0) + tox.amount;
       }

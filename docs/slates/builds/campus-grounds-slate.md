@@ -541,7 +541,7 @@ which makes it archetype-defining rather than campus decoration.
 | trade | ships | missing |
 |---|---|---|
 | hospitality | `bar`, `cellar` | — (the exception, below) |
-| **hearth-cooking** | **`kitchen`**, `pantry-floor` | ⚠ **nowhere to eat** |
+| **cooking** | **`kitchen`**, `pantry-floor` | ⚠ **nowhere to eat** |
 | brewing | `brewing-floor` | — |
 | winemaking | `vintner-floor` | — |
 
@@ -550,7 +550,7 @@ finished** — a bar *collapses production and consumption into one room*.
 You make the drink and hand it across the same counter.
 
 Food does not work that way; kitchens are back-of-house. So
-hearth-cooking is a shipped trade with **a production floor and no dining
+cooking is a shipped trade with **a production floor and no dining
 room** — structurally the same gap as Part 7's six homeless combat
 disciplines. **The eatery is the missing half of a trade already built**,
 not a new one.
@@ -597,12 +597,12 @@ most mechanics.
 ### It is cheap
 
 The verbs largely exist: `menu` / `order` are **platform**; `cook` /
-`plate` ship with **trade-hearth-cooking**. No new verb is obviously
+`plate` ship with **trade-cooking**. No new verb is obviously
 required.
 
 ⚠ **One placement question:** `serve` currently lives in
 **trade-hospitality**. Whether an eatery pulls that pack in, or
-hearth-cooking's `plate` is its own service verb, decides whether the two
+cooking's `plate` is its own service verb, decides whether the two
 trades stay independent — and it is a **pack-placement** call
 ([content-packs.md](../../subsystems/content-packs.md); CLAUDE.md's rule
 is *"a verb lives with the pack whose content affords it"*), not a

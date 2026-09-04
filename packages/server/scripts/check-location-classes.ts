@@ -222,13 +222,13 @@ const FURNISHED = [
   "terminus/content/world/terminus/mayfield-row/seznick-house/location/hall.yaml",
   "terminus/content/world/terminus/mayfield-row/seznick-house/location/main.yaml",
   // ⚠ The KITCHEN archetype, and its pack is misleading: it ships in
-  // trade-hearth-cooking but it is one of the four D6 furnishing
+  // trade-cooking but it is one of the four D6 furnishing
   // archetypes — a HOME kitchen, whose whole point is the errand
   // collapse in the home you already live in. Its built-ins are the
   // landlord's and the cook pot is the tenant's. It is not a trade
   // floor, and a sweep by pack name took it for one until
   // `room-archetypes.test.ts` said otherwise.
-  "trade-hearth-cooking/content/trade/hearth-cooking/location/kitchen.yaml",
+  "trade-cooking/content/trade/cooking/location/kitchen.yaml",
 ];
 
 export interface Row {

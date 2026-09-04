@@ -247,6 +247,24 @@ flow:
   `bands`; cleared when the level falls below the lowest band. No
   per-band spawn/clear churn.
 
+⭐ **`ToxinTag.labileAtK` — the selective kill.** A dose may declare the
+temperature at which a WORKING destroys it (a raw bean's lectin). It rides
+the tag the food authors rather than the `Condition` seed, because
+lability is a fact about the *substance*: the cook needs to know at what
+temperature, while nothing about the body's response changes. Crafting
+drops labile doses whose temperature the working actually reached.
+
+⚠ **Three things deliberately author none and honestly survive the pot:**
+alcohol; the ptomaine a spoiled input already grew (heat stops the growth,
+it does not un-poison what the growth produced — **cooking spoiled food
+does not make it safe**); and everything nobody has thought about, because
+absence is the safe default. See [spoilage.md](./spoilage.md).
+
+⚠⚠ `Material.setToxicity` rebuilds each entry field by field rather than
+spreading it, so a new `ToxinTag` field must be added THERE too or it is
+silently dropped at the setter — which is exactly what happened to
+`labileAtK` on its first run, with nothing anywhere saying why.
+
 The per-body rate params (`ToxinBehavior`: absorption / clearance /
 potency / bands / storeRaw) live on the toxin's **`Condition` seed**
 (`Condition.toxinBehavior`), resolved by `<TemplatePathPrefixes.metabolismCondition><type>`
@@ -255,6 +273,13 @@ potency / bands / storeRaw) live on the toxin's **`Condition` seed**
 `Metabolic.ts` (types on the owning mixin module, not a standalone file).
 v1 ships acute content: alcohol, ptomaine (spoiled food), venom, and lead
 (wired, chronic content deferred).
+
+⭐ **Ptomaine is no longer authored per row.** Since the cooking build the
+dose is DERIVED from a food's own microbial load at the moment it is
+swallowed, on a curve rather than a step, and folded into the ingest
+payload at the read — see [spoilage.md](./spoilage.md) § The ingest reach.
+The shipped `spoiled-ration` keeps its authored dose as a head start; it
+also now grows.
 
 ### `introduceToxin` — the bloodstream seam (past digestion)
 

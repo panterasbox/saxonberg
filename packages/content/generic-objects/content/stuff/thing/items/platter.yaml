@@ -1,0 +1,17 @@
+# A platter — the dinnerware kind a ROAST comes out on: wide, shallow, and
+# meant to be carved from at the table rather than eaten off. Third of the
+# three commons dinnerware kinds (plate · bowl · platter), and the same
+# claimed-not-cloned vessel as the other two.
+class: /platform/thing/Dish
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a platter
+  primaryKeyword: platter
+  keywords: [platter, dish, board, serving]
+  longDescription: |
+    A broad oval platter with a shallow lip and a channel cut round the rim to catch what a roast gives up.
+  _materialPath: /stuff/idea/material/ceramic/ceramic
+  category: platter
+  interiorBulk: true
+  interiorCapacity: 0.8
+  mass: 0.8

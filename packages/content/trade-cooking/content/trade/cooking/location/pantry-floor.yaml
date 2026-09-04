@@ -1,0 +1,30 @@
+# the pantry outfit's floor — the yard: the outfit's Stock (the floor rows' home
+# `container:` — the sweep stands them at target here) and the hand whose
+# `consigns` beat carries them to the cash-and-carry. No exits: the hand
+# teleports (the `shifts` shape); a walk is the locomotion slate's.
+# An ordinary location, not a FurnishableRoom: that class is the
+# FURNISHING archetypes' base. A trade floor's durability lives on its
+# persistable fixtures (the Stock, the racking, the counter) — the
+# consigned goods and their listings ride those, never the room; the
+# `populates` set below is the placement and respawns each boot.
+class: /platform/location/SingletonCartesianLocation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  # ⚠ `coords:` is the MEMBERSHIP operation — `setCoords` is the only way
+  # an authored row joins a zone, so without it this floor was in no grid
+  # and inherited nothing from one. See the zone row beside it.
+  coords:
+    x: 1
+    y: 0
+    z: 0
+  shortDescription: "the pantry floor"
+  primaryKeyword: floor
+  keywords: ["floor", "pantry", "storeroom"]
+  longDescription: |
+    A dry storeroom with a scale by the door and sacks on pallets — the dry-goods floor the cookhouse and the bar both draw on.
+  ambientIntensity: 25
+  ambientColorTemperature: 4200
+  props:
+    - /trade/cooking/thing/pantry-stock
+  cast:
+    - /trade/cooking/agent/pantry-hand

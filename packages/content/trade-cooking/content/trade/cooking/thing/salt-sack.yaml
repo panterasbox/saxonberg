@@ -1,0 +1,20 @@
+# The floor sack of salt — 10 kg at target in the pantry stock.
+class: /platform/thing/Bottle
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: "a sack of salt"
+  longDescription: "A ten-kilo hessian sack of salt, stencilled."
+  primaryKeyword: salt
+  keywords: ["salt", "sack"]
+  category: sack
+  interiorBulk: true
+  interiorCapacity: 20
+  interiorMaterial: /trade/cooking/idea/material/salt
+  interiorAmount: 4.63
+  material: /stuff/idea/material/textile/jute
+  closure: liquidTight
+  gradeBand: fair
+  censusKey: pantry:salt
+  regionTarget: 6
+  materialTags: ["food", "salt"]
+  container: /trade/cooking/thing/pantry-stock

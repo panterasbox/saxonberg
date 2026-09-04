@@ -74,6 +74,11 @@ export type Unit =
   | 'dB' | 'Hz'
   // Chemistry / material
   | 'mol' | 'g/mol' | 'mol/L' | 'kg/m³' | 'ppm'
+  // Molar energy (joules per mole) — the Arrhenius activation energy a
+  // rate law reads. Spoilage tabulates one per perishable Material
+  // (`Material.spoilActivationEnergy`): how steeply that food's microbial
+  // growth answers to temperature. Real, sourced, ~50-130 kJ/mol.
+  | 'J/mol'
   // Mass (sub-gram) — toxin / nutrient authored amounts + absorbed dose
   | 'mg'
   // Blood-alcohol concentration (mass/volume) — the Widmark BAC read,
@@ -194,6 +199,7 @@ const unitOps: Partial<Record<Unit, UnitOps>> = {
   dB: DECIBEL_OPS,
   mol: ARITHMETIC_OPS,
   'g/mol': ARITHMETIC_OPS,
+  'J/mol': ARITHMETIC_OPS,
   'mol/L': ARITHMETIC_OPS,
   'kg/m³': ARITHMETIC_OPS,
   ppm: ARITHMETIC_OPS,

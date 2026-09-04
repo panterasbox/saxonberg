@@ -52,6 +52,7 @@ import ArchetypeCatalogue from '@saxonberg/server/mud/platform/idea/ArchetypeCat
 import CraftVessel from '@saxonberg/server/mud/platform/thing/CraftVessel';
 import IceBin from '../thing/IceBin';
 import Tap from '../thing/Tap';
+import { BlendLabel } from '@saxonberg/server/mud/lib/metabolism/BlendLabel';
 
 const ROOT = '/trade/hospitality';
 const CONTENT = fileURLToPath(new URL('../../../', import.meta.url)); // packages/content/
@@ -121,8 +122,8 @@ function contentRows(): Row[] {
     ...yamlDir('trade-bottling', 'trade/bottling/thing', '/trade/bottling/thing'),
     ...yamlDir('trade-farming', 'trade/farming/idea/material', '/trade/farming/idea/material'),
     ...yamlDir('trade-farming', 'trade/farming/thing', '/trade/farming/thing'),
-    ...yamlDir('trade-hearth-cooking', 'trade/hearth-cooking/idea/material', '/trade/hearth-cooking/idea/material'),
-    ...yamlDir('trade-hearth-cooking', 'trade/hearth-cooking/thing', '/trade/hearth-cooking/thing'),
+    ...yamlDir('trade-cooking', 'trade/cooking/idea/material', '/trade/cooking/idea/material'),
+    ...yamlDir('trade-cooking', 'trade/cooking/thing', '/trade/cooking/thing'),
   ];
   // Placed by hand here, never by the sweep.
   for (const r of rows) {
@@ -155,7 +156,7 @@ async function stock(path: string): Promise<Stuff> {
   return s;
 }
 
-/** A house-made bottle filled by hand (the syrup — hearth-cooking's recipe wants a lit range). */
+/** A house-made bottle filled by hand (the syrup — cooking's recipe wants a lit range). */
 async function fill(path: string, materialPath: string, amountL: number): Promise<Stuff> {
   const b = await stock(path);
   const m = await StuffApi.singleton<Material>(materialPath);
@@ -181,7 +182,7 @@ beforeAll(async () => {
           ...docsOf('trade-brewing', 'recipes'),
           ...docsOf('trade-winemaking', 'recipes'),
           ...docsOf('trade-bottling', 'recipes'),
-          ...docsOf('trade-hearth-cooking', 'recipes'),
+          ...docsOf('trade-cooking', 'recipes'),
         ],
   );
 
@@ -238,9 +239,9 @@ beforeAll(async () => {
   for (const p of ['limes', 'lemons', 'oranges', 'grapefruits', 'mint', 'cherries', 'olives', 'cranberries']) {
     await stock(`/trade/farming/thing/crate-of-${p}`);
   }
-  await stock('/trade/hearth-cooking/thing/sugar-sack');
-  await stock('/trade/hearth-cooking/thing/coffee-sack');
-  await fill('/trade/hearth-cooking/thing/syrup-bottle', '/trade/hearth-cooking/idea/material/simple-syrup', 0.5);
+  await stock('/trade/cooking/thing/sugar-sack');
+  await stock('/trade/cooking/thing/coffee-sack');
+  await fill('/trade/cooking/thing/syrup-bottle', '/trade/cooking/idea/material/simple-syrup', 0.5);
   await stock(`${ROOT}/thing/glass-rack`);
 }, 120_000);
 
@@ -350,7 +351,12 @@ describe('trade-hospitality — the menu, every line', () => {
     expect(served['mojito']!.getTechnique()).toBe('muddled');
     expect(served['gin-tonic']!.getTechnique()).toBe('built');
     // Carbonation rides the payload; the glass is the recipe's.
-    expect(slot(served['aperol-spritz']!).getPayload()?.tags).toContain('carbonated');
+    expect(
+      BlendLabel.tagsOf(
+        slot(served['aperol-spritz']!).getPayload(),
+        slot(served['aperol-spritz']!).getMaterial(),
+      ),
+    ).toContain('carbonated');
     expect(served['pint']!.getTemplatePath()).toBe(`${ROOT}/thing/pint`);
     expect(served['glass-of-sparkling']!.getTemplatePath()).toBe(`${ROOT}/thing/flute`);
     expect(served['moscow-mule']!.getTemplatePath()).toBe(`${ROOT}/thing/copper-mug`);

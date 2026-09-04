@@ -1,6 +1,6 @@
 # a champagne flute — a pool glass over CraftVessel (claimed, served, bussed, washed;
 # never minted per drink). `category` is the glassware par key.
-class: /platform/thing/CraftVessel
+class: /platform/thing/ServingVessel
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a champagne flute

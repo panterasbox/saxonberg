@@ -1,0 +1,29 @@
+# Simple syrup — cooking's: a sugar item and a quarter-litre of water brought to 340 K in a pot, half a litre of syrup into a syrup bottle claimed from the pool.
+recipeId: simple-syrup
+name: Simple syrup
+keywords: ["syrup", "simple-syrup"]
+discipline: cooking
+difficulty: easy
+inputSlots:
+# ⚠ Sugar is a BULK good — it lives in a sack, and there is no discrete
+# sugar item anywhere in the library. This slot asked for `kind: item`,
+# which meant the shipped recipe could never resolve at all; nothing
+# noticed because nothing cooked it. Quarter-litre of sugar and a
+# quarter-litre of water make the half-litre the bottle takes, exactly.
+- slot: sugar
+  category: "sugar"
+  minGrade: "fair"
+  measureL: 0.25
+- slot: water
+  category: "water"
+  minGrade: "fair"
+  measureL: 0.25
+toolCapabilities: ["pot"]
+outputApplication: bulk
+outputTemplate: /trade/cooking/thing/syrup-bottle
+outputAppearance: clear simple syrup, still warm
+outputPortionL: 0.5
+requiresHeatK: 340
+# Worked through water like any wet recipe — 340 K is well under the cap,
+# so this declares its medium for honesty rather than for the gate.
+medium: water

@@ -1,0 +1,42 @@
+# Tallow — rendered beef or mutton fat, the medieval kitchen's cooking fat
+# and its candle stock. ⭐ The `fat` tag is what makes it a MEDIUM: a
+# recipe declaring `medium: fat` matches its fat slot against this tag,
+# and the `smokePoint` below is the ceiling that recipe's heat is capped
+# at. That is the whole of "you can fry hotter than you can boil".
+class: /platform/idea/material/ConsumableMaterial
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: tallow
+  appearance: pale, waxy rendered tallow
+  keywords: [tallow, fat, dripping, suet]
+  density: 900
+  thermalConductivity: 0.17
+  specificHeat: 2000
+  # Phase change: tallow is solid at room temperature and melts in the pan
+  # (beef tallow ≈ 320 K). It has no useful boiling point — long before it
+  # would boil it passes its smoke point and breaks down, which is exactly
+  # why `medium: fat` reads `smokePoint` and `medium: water` reads
+  # `boilingPoint`.
+  meltingPoint: 320
+  latentHeatOfFusion: 190000
+  # ⭐ Beef tallow smokes at about 205 °C (478 K) — the highest ceiling in
+  # a medieval kitchen, and the reason a crisp fried cutlet is a tallow
+  # dish and not an olive-oil one.
+  smokePoint: 478
+  # Rendered fat keeps: it is nearly anhydrous, far under the 0.60 growth
+  # floor. Rendering is a preservation technique, not only a cooking one.
+  spoilActivationEnergy: 45000
+  waterActivity: 0.2
+  edibility: true
+  # ⭐ The basic tastes (closed five-word set). Nothing authors what a
+  # DISH tastes like — `taste` derives that from what went in, projected
+  # through the taster's own palate. See docs/subsystems/crafting.md.
+  # Rendered fat carries flavour more than it has one; umami is the nearest honest word.
+  tastes: [umami]
+  nutrients: [fat]
+  nutrientAmounts:
+    fat: 90000
+  toxicity: []
+  tags: [liquid, food, fat, cooking-fat, rendered]
+  composition: []
+  biologicalSource: null

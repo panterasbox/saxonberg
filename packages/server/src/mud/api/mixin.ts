@@ -87,6 +87,7 @@ import type { LoadBearing } from '../lib/encumbrance/LoadBearing';
 import type { Metabolic } from '../lib/metabolism/Metabolic';
 import type { Thermal } from '../lib/thermal/Thermal';
 import type { Wet } from '../lib/wetness/Wet';
+import type { Fresh } from '../lib/material/Freshness';
 import type { Growing } from '../lib/husbandry/Growing';
 import type { Fermenting } from '../lib/ferment/Fermenting';
 import type { Plantable } from '../lib/husbandry/Plantable';
@@ -147,6 +148,9 @@ import type { Durable } from '../lib/material/Durable';
 import type { Keen } from '../lib/material/Keen';
 import type { Dressing } from '../lib/vitals/Dressing';
 import type { Crafted } from '../lib/craft/Crafted';
+import type { VesselKind } from '../lib/bulk/VesselKind';
+import type { Cutlery } from '../lib/bulk/Utensil';
+import type { Serviceable } from '../lib/craft/Serviceable';
 import type { Maker } from '../lib/craft/Maker';
 import type { Caster } from '../lib/magic/Caster';
 import type { Arcane } from '../lib/magic/Arcane';
@@ -1023,6 +1027,16 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.Wet);
   }
 
+  /**
+   * A host carrying the spoilage gauge. Composed on every `Thing`, so the
+   * predicate is nearly always true — what actually decides whether a
+   * thing rots is its Material's tabulated activation energy
+   * (`isPerishable()`), not this.
+   */
+  public static isFresh(obj: Stuff): obj is Stuff & Fresh {
+    return this.hasMixin(obj, Mixins.Fresh);
+  }
+
   public static isGrowing(obj: Stuff): obj is Stuff & Growing {
     return this.hasMixin(obj, Mixins.Growing);
   }
@@ -1250,6 +1264,18 @@ export class MixinApi {
 
   public static isCrafted(obj: Stuff): obj is Stuff & Crafted {
     return this.hasMixin(obj, Mixins.Crafted);
+  }
+
+  public static isVesselKind(obj: Stuff): obj is Stuff & VesselKind {
+    return this.hasMixin(obj, Mixins.VesselKind);
+  }
+
+  public static isCutlery(obj: Stuff): obj is Stuff & Cutlery {
+    return this.hasMixin(obj, Mixins.Cutlery);
+  }
+
+  public static isServiceable(obj: Stuff): obj is Stuff & Serviceable {
+    return this.hasMixin(obj, Mixins.Serviceable);
   }
 
   /**

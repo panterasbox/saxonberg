@@ -140,7 +140,7 @@ content affords it.** The platform pack ships the verbs any trade's
 instrument can confer (`pour`, `stir`, `heat`, `repair`, `salvage`,
 `wash`, `make`) and the commerce pair (`retail/menu`, `retail/order`);
 a trade's own steps ship in the trade's capability pack — hospitality's
-`muddle`/`strain`/`garnish`/`mix`/`serve`, hearth-cooking's
+`muddle`/`strain`/`garnish`/`mix`/`serve`, cooking's
 `cook`/`plate`, smithing's `forge`/`hammer`/`quench`/`sharpen` — as
 `content/<root>/cmd/<category>/<verb>.yaml` + `src/idea/cmd/<category>/`
 controllers + `content/<root>/idea/cmd/<category>/<Name>Controller.yaml`

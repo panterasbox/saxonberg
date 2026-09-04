@@ -38,9 +38,13 @@ import YAML from 'yaml';
 import SingletonCartesianLocation from '../location/SingletonCartesianLocation';
 import Chair from '../thing/Chair';
 import Oven from '../thing/Oven';
-import Prop from '../thing/Prop';
+import Thing from '../thing/Thing';
 import UnboundedReceptacle from '../thing/UnboundedReceptacle';
-import Thing from '../../lib/stuff/Thing';
+// ⚠ Both Things are in view here: the SUBSTRATE (composed with mixins to
+// build the fixtures below) and its concrete twin (what a bare row names).
+// Aliasing the base is the convention every other split-the-base class
+// uses inside its own file.
+import ThingBase from '../../lib/stuff/Thing';
 import { SurfacedMixin } from '../../lib/spatial/Surfaced';
 import { AdornmentMixin } from '../../lib/boundary/Adornment';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
@@ -51,11 +55,11 @@ import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
 import type { Containable } from '../../lib/spatial/Containable';
 
-class Board extends SurfacedMixin(Thing) {}
+class Board extends SurfacedMixin(ThingBase) {}
 /** The same surface, made to go on a wall. */
-class WallShelf extends AdornmentMixin(SurfacedMixin(Thing)) {}
+class WallShelf extends AdornmentMixin(SurfacedMixin(ThingBase)) {}
 /** A cold box: insulated AND closable — the two halves of cold storage. */
-class ColdBox extends ThermalMixin(SealableMixin(ContainerMixin(Thing))) {}
+class ColdBox extends ThermalMixin(SealableMixin(ContainerMixin(ThingBase))) {}
 
 /** The four shipped ROOM archetypes, read off the generic-objects pack. */
 const ARCHETYPE_DIR = fileURLToPath(
@@ -158,8 +162,8 @@ function tap(): UnboundedReceptacle {
   t.setShortDescription('a cold tap');
   return t;
 }
-function toilet(): Prop {
-  const p = makeStuff(() => new Prop());
+function toilet(): Thing {
+  const p = makeStuff(() => new Thing());
   p.setShortDescription('a toilet');
   p.setPrimaryKeyword('toilet');
   p.setKeywords(['toilet', 'lavatory']);

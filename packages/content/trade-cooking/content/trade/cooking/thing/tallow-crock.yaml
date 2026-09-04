@@ -1,0 +1,15 @@
+# A tallow crock — the vessel rendering FILLS from the pool (a `bulk`
+# output claims a clean, empty CraftVessel; nothing is cloned). Fat sets
+# solid in it and is scooped out warm.
+class: /platform/thing/CraftVessel
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a tallow crock
+  longDescription: A squat glazed crock with a wooden lid, the inside of it clouded white where the fat has set and been scooped out again.
+  primaryKeyword: crock
+  keywords: [crock, tallow-crock, tallow]
+  category: tallow-crock
+  interiorBulk: true
+  interiorCapacity: 1
+  _materialPath: /stuff/idea/material/ceramic/ceramic
+  mass: 1.2

@@ -1,0 +1,24 @@
+# A hearth roast — fair meat, dry, at 450 K. The rung UNDER `fine-roast`
+# (fine stock at 500 K): same act, worse stock, gentler fire, and the
+# reverse-match picks whichever the work actually supports. The ladder is
+# what makes better stock worth buying.
+recipeId: hearth-roast
+name: Hearth Roast
+keywords:
+- hearth-roast
+- roast
+inputSlots:
+- slot: meat
+  category: meat
+  minGrade: fair
+  kind: item
+  count: 1
+toolCapabilities:
+- pot
+outputTemplate: /stuff/thing/items/platter
+outputAppearance: a plain hearth roast, brown outside and honest within
+outputApplication: edible
+outputPortionL: 0.4
+requiresHeatK: 450
+difficulty: standard
+discipline: cooking

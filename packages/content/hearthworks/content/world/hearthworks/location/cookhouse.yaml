@@ -10,13 +10,36 @@ data:
   primaryKeyword: cookhouse
   longDescription: |
     A low cookhouse warm with woodsmoke, a clay hearth glowing along one wall and a scrubbed table down the middle. A pantry chest stands against the wall, and the smell of stew never quite leaves the rafters.
+  # ⚠⚠ **An interior with no authored ambient and nothing lit inside it
+  # is PITCH BLACK, and only its contents go nameless.** Every `Location`
+  # composes `AmbientLitMixin`, whose `ambientIntensity` defaults to 0;
+  # `VisionModality.signalAt` then sums only what is actually emitting,
+  # so an unlit room falls under the band `canSee` needs for a figure and
+  # `RecognitionLogic.obscured()` renders every object as "something".
+  # The room's own prose still reads normally, which is what makes it so
+  # quiet a failure.
+  #
+  # ⭐ The trap this closes is circular: the cookhouse's only light was
+  # the hearth, and the hearth is UNLIT until somebody lights it — so a
+  # cook walked into a dark room whose one fix was an object they could
+  # not see to name. A banked fire, a lamp on a hook, an open shed side:
+  # every one of these rooms has a reason to be dim rather than blind,
+  # and the shipped kitchen archetype (35 lux) and a dozen Terminus rooms
+  # already author exactly this.
+  # Here: the fire-glow of a working kitchen: enough to cook by, warm and low.
+  ambientIntensity: 35
+  ambientColorTemperature: 2700
   coords:
     x: 2
     y: 0
     z: 0
   props:
     - /stuff/thing/Oven
-    - /trade/hearth-cooking/thing/cook-pot
+    - /trade/cooking/thing/cook-pot
+    # ⭐ The water butt is load-bearing, not scenery: a wet recipe declares
+    # `medium: water` and must MATCH an input carrying the water tag, so a
+    # cookhouse without a water source cannot boil a stew.
+    - /stuff/thing/fixture/water-butt
     - /world/hearthworks/thing/kitchen-menu
     - /world/hearthworks/thing/pantry-chest
     # Working stock out on the table (the DIY floor's hand-reach; the
@@ -25,9 +48,29 @@ data:
     - /stuff/thing/items/root-vegetables
     - /stuff/thing/items/root-vegetables
     - /stuff/thing/items/stew-meat
-    # Empty dishes for the DIY floor — `plate` needs a real dish in
-    # reach (the served path clones its own; the by-hand path doesn't).
+    # ⭐ Empty dinnerware — and it is now load-bearing for BOTH paths. A
+    # served meal is CLAIMED from this pool, not cloned into existence, so
+    # a cookhouse with no clean crockery serves out of the pot. One of
+    # each kind the roster names, twice over, so a second order while the
+    # first is still on the table has somewhere to go.
     - /stuff/thing/items/plated-dish
     - /stuff/thing/items/plated-dish
+    - /stuff/thing/items/bowl
+    - /stuff/thing/items/bowl
+    - /stuff/thing/items/platter
+    # Cutlery. ⚠ Never a gate: `eat` uses one when there is one and says
+    # so, and eats with your fingers when there is not. It is here because
+    # a cookhouse that serves stew and hands you nothing to eat it with is
+    # a worse lie than one that does.
+    - /stuff/thing/cutlery/horn-spoon
+    - /stuff/thing/cutlery/horn-spoon
+    - /stuff/thing/cutlery/table-knife
+    # The roster's instruments beyond the pot: a sieve makes a broth clear,
+    # a press makes the oil, and the crock and bottle are what rendering
+    # and pressing FILL (claimed from the pool like every other vessel).
+    - /trade/cooking/thing/kitchen-sieve
+    - /trade/cooking/thing/fruit-press
+    - /trade/cooking/thing/tallow-crock
+    - /trade/cooking/thing/oil-bottle
   cast:
     - /world/hearthworks/agent/cook

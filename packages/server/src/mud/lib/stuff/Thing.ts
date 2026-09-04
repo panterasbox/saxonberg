@@ -45,8 +45,30 @@ import type { FieldMeta } from '../mixin';
 // ConcealableMixin (default `obvious`) lets any Thing carry a concealment
 // level — a hidden cache, a dropped-and-buried item — resolved per-viewer by
 // the detection gate (inert until authored). WetMixin gives every Thing a
-// material-driven wetness gauge (inert until wetted). All three are additive
+// material-driven wetness gauge (inert until wetted). Both are additive
 // attribute mixins; composition order is moot.
+//
+// ⚠ **`FreshnessMixin` is deliberately NOT here.** It shipped on this base
+// for one review round and put five spoilage methods — `getMicrobialLoad`,
+// `getFreshnessBand`, `isPerishable`, `setMicrobialLoad`,
+// `reconcileFreshness` — on the documented author surface of all 152 Thing
+// classes. A rock does not need a microbial load, and
+// `callable == visible == cared-about` says so.
+//
+// ⭐ It lives on **`Provision`**, and only there — the one class in the
+// library that IS food by name. The narrowing went via the concrete
+// `platform/thing/Thing` first (then named `Prop`), which was wrong for a
+// reason worth keeping: that class is the generic concrete twin of THIS
+// one, deliberately empty, so hanging a gauge on it taxes the anvil and
+// the toilet to serve four rows that were simply on the wrong class. `prime-cut` sat in the same pantry chest as `stew-meat`
+// and was already a `Provision`; the fix was to move the rows, not to
+// widen a class.
+//
+// ⚠⚠ Narrowing it is only safe because a GATE replaces the coverage:
+// `pnpm lint:perishable` fails CI when a row's `_materialPath` names a
+// material that rots and its class cannot. Without that, food authored
+// onto an inert class would simply never spoil, silently — the failure
+// mode this build hit twice by other routes.
 const ThingBase = ChattelMixin(
   ConcealableMixin(
     WetMixin(

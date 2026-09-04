@@ -21,12 +21,12 @@ import { parse } from "yaml";
 
 // A32.2 scaffolding: a kernel test reading shipped content by path. Three
 // archetypes are the generic-objects pack's rows (content-packs wave 3);
-// the kitchen is the hearth-cooking trade's bundle (libations — a venue
+// the kitchen is the cooking trade's bundle (libations — a venue
 // bundle lives with the trade whose instruments it collects).
 const CONTENT = fileURLToPath(new URL("../../../../../content/", import.meta.url));
 const ROW: Record<string, string> = {
   bedroom: "generic-objects/content/stuff/location/room/bedroom.yaml",
-  kitchen: "trade-hearth-cooking/content/trade/hearth-cooking/location/kitchen.yaml",
+  kitchen: "trade-cooking/content/trade/cooking/location/kitchen.yaml",
   bathroom: "generic-objects/content/stuff/location/room/bathroom.yaml",
   living: "generic-objects/content/stuff/location/room/living.yaml",
 };
@@ -80,12 +80,12 @@ describe("the four archetypes are template rows over ONE class (D6)", () => {
       // containers ABOVE a thing, and nobody carries a basin).
       "/platform/thing/WaterFixture",
       "/platform/thing/Surface", // the counter
-      "/platform/thing/Prop", // the toilet — prose, no capability
+      "/platform/thing/Thing", // the toilet — prose, no capability
       // ⭐ The one fixture that DID need a class, made explicitly (this
       // test's own instruction). A sconce is a light that lives in a
       // room's fixture map rather than its contents, which is
       // `Adornment` over the portable-light composition — no shipped
-      // class is both, and faking it with a `Prop` would have made the
+      // class is both, and faking it with a bare `Thing` would have made the
       // first thing a player hangs on a wall a decoration that emits
       // nothing. It ships in `generic-objects` (a pack's `src/`), beside
       // the row that names it.
@@ -120,6 +120,15 @@ describe("the kitchen — BUNDLE (D12)", () => {
       "/stuff/thing/fixture/counter",
       "/stuff/thing/fixture/larder",
       "/stuff/thing/fixture/basin",
+      // ⭐ …and something to eat off, and something to eat WITH. Dinnerware
+      // is claimed from what is in reach rather than conjured per meal, so
+      // a kitchen with no crockery serves out of the pot — which is a
+      // legitimate outcome and a poor let. Cutlery never gates the act; it
+      // changes the sentence.
+      "/stuff/thing/items/bowl",
+      "/stuff/thing/items/plated-dish",
+      "/stuff/thing/cutlery/horn-spoon",
+      "/stuff/thing/cutlery/table-knife",
     ]);
   });
 
@@ -161,11 +170,11 @@ describe("the bathroom — PRESENCE (D13)", () => {
   });
 
   it("the toilet does nothing, deliberately — prose, no capability", () => {
-    // Enforced rather than remembered. `/platform/thing/Prop` is Tangible +
+    // Enforced rather than remembered. `/platform/thing/Thing` is Tangible +
     // Visible + Containable and nothing else: no slot, no surface, no
     // container, no bulk. If you are here to "finish" the toilet: don't.
     const toilet = read("stuff/thing/fixture/toilet.yaml");
-    expect(toilet.class).toBe("/platform/thing/Prop");
+    expect(toilet.class).toBe("/platform/thing/Thing");
     for (const capability of [
       "staticSlots",
       "interiorBulk",

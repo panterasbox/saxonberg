@@ -1,0 +1,17 @@
+# A bowl — the dinnerware kind a WET dish is served in. Same pool, same
+# claim/fill/soil/wash loop as the plate and the bar's glasses; what makes
+# it a bowl rather than a plate is the one word `category`, which is what
+# a recipe's output row names and what the house counts by.
+class: /platform/thing/Dish
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a bowl
+  primaryKeyword: bowl
+  keywords: [bowl, dish, serving]
+  longDescription: |
+    A deep glazed bowl, thick-walled and heavy in the hand, the sort that keeps a stew hot as far as the table.
+  _materialPath: /stuff/idea/material/ceramic/ceramic
+  category: bowl
+  interiorBulk: true
+  interiorCapacity: 0.6
+  mass: 0.5

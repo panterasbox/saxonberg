@@ -72,7 +72,7 @@ function vatsIn(room: Stuff & Container): (Stuff & Fermenting)[] {
   const out: (Stuff & Fermenting)[] = [];
   for (const c of room.getContents()) {
     if (!MixinApi.isFermenting(c)) continue;
-    if (!MixinApi.isBulkable(c) || c.getCategory() !== 'vat') continue;
+    if (!MixinApi.isVesselKind(c) || c.getCategory() !== 'vat') continue;
     out.push(c);
   }
   return out;
@@ -82,8 +82,9 @@ function vatsIn(room: Stuff & Container): (Stuff & Fermenting)[] {
 function emptyVessels(room: Stuff & Container, category: string): Stuff[] {
   const out: Stuff[] = [];
   for (const c of room.getContents()) {
-    if (!MixinApi.isBulkable(c)) continue;
+    if (!MixinApi.isVesselKind(c)) continue;
     if (c.getCategory() !== category) continue;
+    if (!MixinApi.isBulkable(c)) continue;
     if (!c.isBulkEmpty('interior')) continue;
     out.push(c);
   }

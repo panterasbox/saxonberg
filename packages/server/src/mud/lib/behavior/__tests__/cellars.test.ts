@@ -259,8 +259,9 @@ describe('the cellars beat — rack, cork, consign, home', () => {
         if (text === 'get bottle') {
           const empty = (here.getContents() as Stuff[]).find(
             (c) =>
-              MixinApi.isBulkable(c) &&
+              MixinApi.isVesselKind(c) &&
               c.getCategory() === 'wine-bottle' &&
+              MixinApi.isBulkable(c) &&
               c.isBulkEmpty('interior'),
           );
           if (empty && MixinApi.isContainable(empty)) {

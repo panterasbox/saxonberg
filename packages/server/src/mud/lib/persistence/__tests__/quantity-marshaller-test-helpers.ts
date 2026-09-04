@@ -24,6 +24,7 @@ import { registerMarshallerForTest } from '../../security/__tests__/test-setup';
 const V1_QUANTITY_UNITS: ReadonlyArray<Unit> = [
   'kg',
   'g/mol',
+  'J/mol',
   'kg/m³',
   'lumen',
   'lux',
