@@ -838,6 +838,13 @@ unassisted. This is the wave whose gate the whole build leans on.
 - `commandContributions` on each rig/vessel affording `journey`.
 - Retail: the wagon and the barge on a Terminus counter, so a player can buy
   one. (⚠ *You cannot make one* — the wainwright gap, a stated non-goal.)
+- ⭐⭐ **The entry rung** (D16, added at review). `generic-objects` ships a
+  `handcart` row that is **placed nowhere and sold nowhere** — so today a
+  new character has no rig at all, and AC15a fails silently. This wave
+  fixes it: **a handcart stocked cheaply at Terminus**, priced so a
+  character with starting funds can buy one. ⭐ Better still if the depot
+  **lends a barrow against the job** — same content cost, better story,
+  and it makes the depot the on-ramp rather than the shop.
 
 **Tests**
 A loaded wagon's end-to-end spine transit is in band and scales with load
@@ -898,6 +905,26 @@ each room.
 - Depot content in **`terminus`** (the depot itself is a place): the
   Terminus depot beside Wharfside, and the crossroads **site** (a yard, a
   ditch, no building) from W4.
+
+#### ⚠ Two decisions this wave must make (deferred here at review)
+
+Neither blocks earlier waves; both are due before W6 closes.
+
+1. **How is a rate card read?** AC12 requires a **non-employee** to read
+   a published card, and no surface is specified. `house` is your own
+   business's books, so it is the wrong verb. Candidates: a **board or
+   sign at the depot** (content, no verb), a `read` on the Document, or a
+   stanza on an existing perception verb. ⚠ Without a surface AC12 is
+   untestable and D9's *"rates must be visible, because rate
+   discrimination is the antitrust arc's evidence"* has nothing behind
+   it.
+2. **How do the two pricing mechanisms coexist?** The **gig board** has
+   the *poster* set a reward (a reverse auction); the **rate card** has
+   the *carrier* post a price. Both are real and historical, and the
+   recommendation is that **both exist and apply to different acts** —
+   you either tender to a common carrier at their counter (card) or hire
+   somebody directly (gig). ⚠ Say so explicitly, or a later reader will
+   try to unify them.
 
 **The teamstering split** (D15, and the constraint that no conferral makes
 the same act better):
@@ -965,6 +992,15 @@ NPC-run sector will reuse.
   charge more than the NPC costs and need not accept less.
 - `jobs --origin here` from W2 is the backhaul surface (D17): a hauler
   standing in Rejection lists what wants moving to Terminus.
+- ⭐⭐ **Gig sizing (D16's entry rung).** The posting brains size a
+  shortfall into **at least one class that fits a back (~20 kg) or a
+  barrow**, not only wagonloads. Otherwise band 0 cannot take any job and
+  the labor market has no first rung.
+- ⭐⭐ **A fulfilled gig files a bill of lading** (D7, added at review).
+  `ContractApi`'s completion path notifies `WaybillRegistry`, so **the
+  player gig, the NPC brain and `ship` at a counter all file the same
+  paper.** ⚠ Without this the reporting spine (D12/D18, AC16/16a/17) is
+  blind to the *dominant* carriage path, and the gap surfaces at W9.
 
 **Tests**
 A venue's supply need appears as a gig **before** any NPC acts on it,
@@ -972,7 +1008,11 @@ carrying origin, destination and a window (**AC15d**); a player who takes it
 and delivers is paid **and the NPC does not also perform it** (**AC15e**); a
 gig whose window expires unclaimed is performed by the NPC and the venue is
 stocked either way (**AC15f**); a hauler at the far end lists gigs whose
-**origin** is where they stand (**AC15g**); ⚠ a **taken-and-failed** gig
+**origin** is where they stand (**AC15g**); ⭐ a **player-claimed gig,
+delivered, files a bill of lading** indistinguishable in kind from the
+`ship` path's (**AC15p**); at least one posted gig class completes **on a
+back or a barrow** with no wagon and no team (**AC15q**); ⚠ a
+**taken-and-failed** gig
 breaches, reopens, and the venue is still covered on the next window — the
 named risk, tested rather than discovered.
 
@@ -1141,7 +1181,7 @@ edit it.
 | 14 the `hauls` brain on the same Journey | W6 |
 | **15 the forcing function** | **W8** |
 | 15a–15c band 0 earns; the discipline; the readouts | W6 |
-| 15d–15g the labor market and the backhaul | W7 |
+| 15d–15g, 15p, 15q the labor market, the backhaul, the paper on the gig path, the entry rung | W7 (15q's rig content: W5) |
 | 15h–15j road character, the ford, land use | W4, W9 |
 | 15k–15m archetypes | W2 (substrate), W4/W5/W6 (content) |
 | 15n–15o computed routes, the passenger | W3, W5 |

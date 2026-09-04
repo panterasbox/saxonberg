@@ -71,9 +71,13 @@ navigability, [encumbrance](../subsystems/encumbrance.md),
   command; advancing the journey is the scheduler. The vehicle is
   physically present in each node it passes, so a busy road is visibly
   busy and an interception is possible without an interception system.
-- **G4 — The player-operable rungs of the cost surface exist.** Back
-  and handcart ship; this build adds **wagon + team** and **barge**, and
-  the load model that lets them carry crates and grain.
+- **G4 — The player-operable rungs of the cost surface exist *and are
+  obtainable*.** The back and the handcart's **class** ship; this build
+  adds **wagon + team** and **barge**, the load model that lets them
+  carry crates and grain, and — ⚠ the half a review pass found missing —
+  **a way for a character with no capital to actually get a rig** (D16's
+  entry rung: the `handcart` row is currently placed nowhere and sold
+  nowhere).
 - **G5 — Goods travel without their owner.** Handing goods to a carrier
   (`ship`, D8) produces a **bill of lading**; the goods are then in a real container,
   in a real place, genuinely at risk, and the shipper is elsewhere.
@@ -408,6 +412,21 @@ receipt is a record you cannot.**
 
 Both are **Documents**, not a new collection (see Constraints).
 
+#### ⚠⚠ The waybill is filed by the CARRIAGE, not by the verb (review)
+
+A bill of lading must be filed by **every completed carriage, whatever
+path produced it** — `ship` at a counter, the `hauls` brain, or **a
+player who claimed a gig and delivered it**.
+
+⭐ This is not a detail. D16 makes the **gig the dominant path**, so a
+waybill filed only by `ship` and by the NPC brain would leave the whole
+reporting spine — D12, D18, AC16, AC16a, AC17 — **blind to most freight
+in the realm**, and *"edge traffic is a count over the paper"* would
+count only counter traffic and NPC runs.
+
+> **A haul gig is carriage, not merely delivery.** Fulfilling one files
+> the paper, exactly as tendering at a counter does.
+
 ### D8 — The depot ships, as a business
 
 A depot is the **interface** — where a lane touches the local economy —
@@ -655,7 +674,30 @@ Three things this buys at once:
 
 > ⭐⭐ **The NPC is the market-maker of last resort.**
 
-Two risks, named rather than discovered:
+#### ⭐⭐⭐ The entry rung has to have content behind it (review)
+
+D15 promises *band 0 must be able to earn*. A review pass found **no
+wave delivers it**: the vehicles that ship are a **wagon and a barge**,
+both capital a new character does not have, and the `handcart` exists as
+a template that is **placed nowhere and sold nowhere**. ⚠ G4 said *"back
+and handcart ship"* — which meant *the class ships*, never *one is
+obtainable*. G4 now says so.
+
+So the labor market's first rung needs two pieces of content, and
+without them AC15a fails silently:
+
+1. ⭐ **An obtainable handcart** — stocked, cheap, and reachable by a
+   character with no money to speak of. (Or borrowable: a depot that
+   lends a barrow against the job is the better story.)
+2. ⭐ **Gigs sized for a back and a barrow.** If every posting is a
+   wagonload, a new player cannot take one. At least one gig class must
+   fit inside encumbrance's ~20 kg back and the barrow above it.
+
+> **A labor market whose smallest job needs capital is not an entry
+> rung.** This is the same failure shape the drives keep finding — the
+> mechanism correct, the enabling data absent, and the failure silent.
+
+Two further risks, named rather than discovered:
 
 - ⚠ **A taken-and-failed gig starves a venue.** The window must expire
   back to the NPC, and the shipped contract substrate's escrow +
@@ -1042,8 +1084,9 @@ and this realm is a basin you cross in five real minutes.
 
 **The trade you can get better at**
 
-15a. A character with **no transcript at all** can take a haulage gig,
-    complete it, and be paid — band 0 earns.
+15a. A character with **no transcript at all and no capital** can obtain
+    a rig, take a haulage gig, complete it, and be paid — band 0 earns
+    without borrowing money.
 15b. Practising haulage appends Transcript rows against `teamstering`,
     and crossing a band confers the larger-rig capability; the
     Competence scalar is never surfaced.
@@ -1061,6 +1104,11 @@ and this realm is a basin you cross in five real minutes.
     the venue is stocked either way.
 15g. A hauler at the far end of a corridor can list gigs whose
     **origin** is where they stand — the backhaul is findable.
+15p. ⭐ **A player who claims a haul gig and delivers it files a bill of
+    lading**, the same as `ship` at a counter and the same as the NPC
+    brain. No carriage path is invisible to the paper (D7).
+15q. At least one posted gig class is completable **on a back or a
+    barrow**, with no wagon and no team.
 
 **The road as a place**
 
