@@ -353,7 +353,7 @@ test('⭐ the textile chain — flax in the ground to a coat on a back', async (
      * crop word and the yard has a wild stand of it along the fence.
      */
     let sheafed = false;
-    for (let round = 0; round < 340 && !sheafed; round++) {
+    for (let round = 0; round < 420 && !sheafed; round++) {
       await cmd(page, 'fill can from standpipe', 800);
       await cmd(page, 'water bed', 800);
       if (round % 16 === 4) {
@@ -361,13 +361,17 @@ test('⭐ the textile chain — flax in the ground to a coat on a back', async (
         await cmd(page, 'fill waterskin from standpipe', 800);
         await cmd(page, 'drink from waterskin', 900);
       }
+      /*
+       * ⚠ Just TRY the harvest rather than guessing ripeness off prose.
+       * The refusal names the stage ("it is still established"), which
+       * is better telemetry than any card regex, and it costs one
+       * command. An earlier run watched for ripeness words that the
+       * card never prints and harvested nothing all season.
+       */
       if (round % 8 === 3) {
-        await cmd(page, 'look bed', 1500);
-        const shown = await card(page);
-        if (/ripe|ready|mature|full|seed head|harvest|in flower|blue/i.test(shown)) {
-          const got = await cmd(page, 'harvest flax', 3000);
-          if (/sheaf/i.test(got)) { sheafed = true; break; }
-        }
+        const got = await cmd(page, 'harvest flax', 2600);
+        if (/sheaf/i.test(got)) { sheafed = true; break; }
+        if (round % 40 === 3) console.log(`  [stage] ${got.split('\n').slice(-1)[0]}`);
       }
     }
     if (!sheafed) {
@@ -403,22 +407,35 @@ test('⭐ the textile chain — flax in the ground to a coat on a back', async (
       note(`⚠ the straw would not go into the pit: ${poured.split('\n').slice(-1)[0]}`);
     }
 
-    // Judge the moment. Retting is ~14 game-days ≈ 2.5 real minutes.
+    /*
+     * ⚠⚠ Judge the moment off WHAT THE PIT HOLDS, never off a hopeful
+     * word: the pit's own prose never changes, and matching `linen`
+     * against the whole card once "confirmed" a ferment that had not
+     * happened. What changes is the contents line, from the straw's
+     * appearance to the product's.
+     *
+     * The window is real and narrow — ready at ~14 game-days, RUINED
+     * four days later — so act the moment it turns.
+     */
     let retted = false;
-    for (let round = 0; round < 45 && !retted; round++) {
-      await page.waitForTimeout(3500);
-      await cmd(page, 'look pit', 1600);
+    for (let round = 0; round < 60 && !retted; round++) {
+      await page.waitForTimeout(3000);
+      await cmd(page, 'look pit', 1500);
       const shown = await card(page);
-      if (/ready|retted|slipp|linen|done/i.test(shown)) retted = true;
+      if (/it holds/i.test(shown) && !/stiff pale flax straw/i.test(shown)) {
+        retted = true;
+        note(
+          `⭐⭐ the pit RETTED on its own clock — it holds ${/It holds ([^.]*)\./i.exec(shown)?.[1] ?? '?'}`,
+        );
+      }
     }
-    if (retted) note('⭐ the retting pit runs its own clock — the act is judging the moment');
-    else note('⚠ the pit never reported ready in the window driven');
+    if (!retted) note('⚠ the pit never changed its contents in the window driven');
 
     const filled = await cmd(page, 'fill sheaf from pit', 3000);
-    console.log(`recover: ${filled.split('\n').slice(-1)[0]}`);
+    if (/You fill/i.test(filled)) note('the retted fibre comes back out of the pit');
 
     const sc = await cmd(page, 'scutch sheaf', 4500);
-    if (/line|tow|shive/i.test(sc) && !/Scutch what/i.test(sc)) {
+    if (/line|tow|shive/i.test(sc) && !/Scutch what|is empty/i.test(sc)) {
       note('⭐ scutch yields LINE + TOW + SHIVE — the byproducts are real objects');
     } else {
       note(`⚠ scutch: ${sc.split('\n').slice(-1)[0]}`);
