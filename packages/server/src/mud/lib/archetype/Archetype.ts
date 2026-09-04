@@ -114,6 +114,17 @@ export interface Satisfaction {
  *   another with oil lamps, and neither is named here. The read is
  *   `vision.signalAt(space).intensity`, which is what `measure light`
  *   reads, so the archetype and the instrument agree by construction.
+ * - `cultivation` — ⭐ **the ground itself admits cultivation at this
+ *   scale** (`bed` | `field`), read through `ParcelApi.cultivationScaleAt`
+ *   off the covering parcel's land use. The `lightLux` / `coldStorage`
+ *   shape: a property of the SPACE rather than of anything standing in
+ *   it, and the kernel already checks it — the smallholding build shipped
+ *   the ceiling and nothing read it until the farmstead one did.
+ *
+ *   ⚠ It is deliberately not `presence: field`. A field object standing
+ *   somewhere is a much weaker claim than *this ground is zoned for
+ *   farming at scale*, and the archetype's whole job is to state the
+ *   strongest thing the kernel can actually check.
  * - `vesselKind` — a bulk holder of the named vessel kind (`category`
  *   on `BulkableMixin` — the term bulk.md, `outputVesselKind` and the
  *   `vessel:` census prefix already use): the vat a ferment needs, a
@@ -133,6 +144,7 @@ export type CapabilityNeed =
   | { rest: number }
   | { presence: string }
   | { lightLux: number }
+  | { cultivation: string }
   | { vesselKind: string };
 
 export interface CapabilitySlot {
@@ -169,6 +181,7 @@ const NEED_KEYS = [
   'rest',
   'presence',
   'lightLux',
+  'cultivation',
   'vesselKind',
 ] as const;
 
@@ -186,6 +199,14 @@ function needOf(archetypeId: string, key: string, raw: unknown): CapabilityNeed 
   }
   const [k, v] = entries[0]!;
   switch (k) {
+    case 'cultivation':
+      // ⚠ Validated against the shipped vocabulary rather than accepting
+      // any string: `cultivation: fields` would otherwise be a slot that
+      // could never be satisfied and would never say why.
+      if (v !== 'bed' && v !== 'field') {
+        fail(archetypeId, `capability '${key}': \`cultivation\` must be 'bed' or 'field'`);
+      }
+      return { cultivation: v } as CapabilityNeed;
     case 'tool':
     case 'bulkSource':
     case 'presence':

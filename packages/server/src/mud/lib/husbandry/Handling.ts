@@ -115,7 +115,27 @@ export function HandlingMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase
     static _mixinName = 'HandlingMixin';
 
     static fieldMeta: FieldMeta = {
-      handling: { persistent: true, authorable: true },
+      /**
+       * ⭐ `spoiler: 1` with `spoilerName: 0` — the documented split for
+       * a MEASURED property, and the whole of the honest-opacity ladder
+       * in two flags.
+       *
+       * *That an animal has a temperament* is not a secret; it is what
+       * `help` and the concept topics publish. **`0.62` is the thing you
+       * pay an act for** — by eye you get a band, and a wiki panel
+       * printing the number would defeat the ladder from outside the
+       * game entirely.
+       *
+       * ⚠ The split is opting into a redaction marker, which the reveal
+       * model refuses elsewhere. It is coherent here for the reason it is
+       * coherent on `Material`'s density: the NAME was already public.
+       */
+      handling: {
+        persistent: true,
+        authorable: true,
+        spoiler: 1,
+        spoilerName: 0,
+      },
       handlingStamp: { persistent: true },
     };
 
