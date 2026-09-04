@@ -67,6 +67,7 @@ import { WarrenMemberMixin } from '@saxonberg/server/mud/lib/location/WarrenMemb
 import { SoilMixin, SOIL_MOISTURE_RESERVE_KEY, SOIL_NITROGEN_RESERVE_KEY, SOIL_RESERVE_THEME } from '@saxonberg/server/mud/lib/husbandry/Soil';
 import { ReservedMixin, Reserve } from '@saxonberg/server/mud/lib/reserve';
 import { ImprovableMixin } from '../lib/Improvable';
+import { SwardMixin } from '../lib/Sward';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -121,8 +122,12 @@ const FieldGround = SoilMixin(ReservedMixin(CartesianLocation));
 // ground, independent of what the polity permits (`LandUse`) and of what
 // the ground is made of (`GroundCharacter`). All three must be satisfied
 // and none substitutes for another.
+// `SwardMixin` is the STANDING CROP, and it goes over soil because it
+// drinks it: the grass transpires the moisture the sky put in, which is
+// what closes the loop and what makes a dry month read as a sward that
+// stopped growing rather than as a message about rain.
 const FieldBase = PersistableMixin(
-  WarrenMemberMixin(ImprovableMixin(FieldGround)),
+  WarrenMemberMixin(ImprovableMixin(SwardMixin(FieldGround))),
 );
 
 export default class Field extends FieldBase {
@@ -273,6 +278,77 @@ export default class Field extends FieldBase {
     return this.areaM2;
   }
 
+  /**
+   * ⭐ **What drinks this soil is the grass standing in it.** The pot and
+   * the bed answer with their occupants' summed demand; a field answers
+   * with its sward's transpiration, which is the same question asked of a
+   * different kind of ground.
+   */
+  public override soilWaterDemandPerGameDay(): number {
+    return this.swardTranspirationPerGameDay();
+  }
+
+  // ---------- the three hooks the sward asks of its host ----------
+
+  /** Every square metre of a field is sward, until something else is sown. */
+  public override swardAreaM2(): number {
+    return this.areaM2;
+  }
+
+  /**
+   * ⭐⭐ **The limiting factor — a MINIMUM, never a product** (the shipped
+   * growth model's rule, applied to grass).
+   *
+   * A sward is limited by whichever of water and nutrient is scarcest,
+   * and multiplying them would let two half-limitations read as a quarter
+   * — which is not how a field behaves and not what a player should
+   * learn. Warmth and daylength join the same minimum in W6; the shape is
+   * here so they slot in rather than being retrofitted.
+   *
+   * ⚠ Unauthored reserves read `null`, which means *this ground does not
+   * model that factor* and NOT *this factor is zero*. Ground with no
+   * nitrogen reserve is not nitrogen-starved; it is unmodelled.
+   */
+  public override swardGrowthFactor(): number {
+    const factors: number[] = [];
+    const moisture = this.soilMoistureFraction();
+    if (moisture !== null) {
+      // Grass is drought-sensitive well before it is dead: growth falls
+      // away below about a third of field capacity.
+      factors.push(clampUnit(moisture / 0.35));
+    }
+    const nitrogen = this.nutrientFraction();
+    if (nitrogen !== null) {
+      factors.push(clampUnit(0.25 + nitrogen * 1.5));
+    }
+    return factors.length === 0 ? 1 : Math.min(...factors);
+  }
+
+  /**
+   * ⭐ **D7's whole graze row: is the mouth standing here?**
+   *
+   * Summed intake of the animals actually in this field. Nothing else
+   * decides whether the field is "grazed" — there is no `use` enum, and
+   * the difference between grazing and haymaking is only ever whether the
+   * animal was here when the grass came off.
+   *
+   * ⚠ A PURE read of authored demand, never a reconcile: reading an
+   * animal's own hunger here would re-enter that animal's metabolism,
+   * which reads this field. Same hazard, same discipline, as the soil's.
+   */
+  public override swardGrazingDemandPerGameDay(): number {
+    let demand = 0;
+    for (const occupant of this.getContents()) {
+      const grazer = occupant as unknown as {
+        grazingDemandPerGameDay?(): number;
+      };
+      if (typeof grazer.grazingDemandPerGameDay === 'function') {
+        demand += Math.max(0, grazer.grazingDemandPerGameDay());
+      }
+    }
+    return demand;
+  }
+
   // ---------- minting ----------
 
   /**
@@ -357,4 +433,17 @@ export default class Field extends FieldBase {
   public override getPresentation(): string {
     return this.fieldName || super.getPresentation();
   }
+
+  /**
+   * Install the sward alongside the soil reserves — one call, because a
+   * field with soil and no grass on it is not a state the world has.
+   */
+  public installFieldReserves(sample: GroundSample): void {
+    this.installSoilReserves(sample);
+    this.installSward();
+  }
+}
+
+function clampUnit(v: number): number {
+  return v < 0 ? 0 : v > 1 ? 1 : v;
 }

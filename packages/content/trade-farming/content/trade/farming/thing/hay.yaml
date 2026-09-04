@@ -1,0 +1,21 @@
+# Hay — the winter feed budget, made of summer.
+#
+# ⭐ Its MASS is not authored. `mow` stamps it with exactly the dry matter
+# that came off the field, so how much hay a field gives is the field's
+# answer rather than a number somebody typed. That is what makes a wet
+# year and a dry one different without a weather table anywhere near it.
+#
+# ⚠ Baled above a moisture threshold this self-heats and can fire the
+# barn (D48) — the hazard wave's, and the reason this row is a thing you
+# store rather than a number on a counter.
+class: /platform/thing/Provision
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a cut of hay
+  primaryKeyword: hay
+  keywords: [hay, grass, fodder, sward]
+  longDescription: >-
+    Cut grass, still smelling green, with clover and a few seed heads
+    through it. It will want turning before it is fit to stack.
+  _materialPath: /stuff/idea/material/food/root-vegetable
+  mass: 1

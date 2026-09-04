@@ -1,0 +1,20 @@
+# A scythe — the instrument of the hay meadow, and the reason `mow` is a
+# real act rather than a button.
+#
+# ⚠ The `mowing` capability is its own, not `cutting`: a knife cuts and a
+# scythe mows, and the two are not interchangeable at either end. An open
+# vocabulary, so a later sickle, reaper or mower answers the same string.
+class: /platform/thing/ToolItem
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  primaryKeyword: scythe
+  keywords: ["scythe", "snath"]
+  shortDescription: a scythe
+  longDescription: >-
+    A long curved blade on a snath bent to fit somebody who is not you,
+    with two grips pegged along it. The edge is bright for a hand's width
+    back and black beyond that; it wants peening as often as it wants
+    sharpening.
+  mass: 3.4
+  capabilities: ["mowing"]
+  _materialPath: /stuff/idea/material/element/iron

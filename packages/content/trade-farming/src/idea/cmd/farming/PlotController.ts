@@ -200,7 +200,7 @@ export default class PlotController extends CommandController<PlotModel> {
     const locality = await AddressApi.resolveLocalityFor(place);
     const seed = GroundCharacter.seedFor(locality?.getAddress() ?? '');
     const sample = field.groundSample(await this.characterAt(place), seed);
-    field.installSoilReserves(sample);
+    field.installFieldReserves(sample);
 
     MessageApi.scene(giver)
       .topic(TOPIC)
