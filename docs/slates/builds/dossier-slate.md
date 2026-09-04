@@ -268,6 +268,118 @@ later at any price.
 
 ---
 
+## ⭐⭐⭐ The identity rung — `Extra` and `Cast` as two classes
+
+> **User: "split up our NPC class into cast vs prop NPCs. cast gets Named
+> and a dossier, props just play roles like 'a guard' or 'a fisherman' …
+> the reasoning is that cast is bespoke, they get customized and diverge
+> from archetypes. not only because they get real deeds but also because
+> authors will do that. extras or props don't get that treatment, so the
+> thinking is that they're only archetype and nothing else."**
+
+This is the same line as everything above, drawn at the class level — and
+[cast-archetype-slate](./cast-archetype-slate.md) had already reached it
+from the archetype side. Its answer stands and is not restated here:
+**one archetype, two compilation targets** — *a mask on a prop; a birth
+certificate on cast*. A lens is the same estimator with the save step
+omitted, so the two sides cannot drift apart, and promotion is minting an
+identity and re-running the archetypes in seed mode.
+
+What this section adds is the **class**, the **name**, and the half that
+was still open: **the write side**.
+
+### ⭐ The finding: it protects a property that currently holds by accident
+
+Every ledger keys on `Stuff.getIdentityPath()`, which returns
+`#identityPath ?? getTemplatePath()`. So every instance cloned from one
+template row shares one ledger.
+
+**But every NPC row in the tree is instanced exactly once** (verified
+2026-09-04 across all shipped locality rows — Dave, Mara, the registrar,
+the collier, the smelterman, each one row and one body). So identity is
+*already* individual for every named character, and the ledgers already
+work — **for free, and by accident.**
+
+⚠⚠ Which means the split is not about *granting* cast an identity. It is
+about protecting a property nothing currently enforces. The moment
+somebody writes `a guard` and stands it in six rooms — which is precisely
+what "extras play roles" invites — those six guards silently share a
+ledger, and one guard's deeds bank into all six. No error, no warning.
+
+> ⭐ **The extra class is not the downgrade. It is the safety rail.** It
+> exists so the ledger question is answered at authoring time instead of
+> discovered later.
+
+### The naming — `Extra`, not "prop"
+
+⚠ `props:` and `cast:` already mean something precise one level down: a
+**declared designation** on a location row with a `Behaved` gate in both
+directions. The food-safety build hit it — a corpse under `cast:` refused
+to hydrate and took the whole login with it.
+
+A role-filling NPC **is** `Behaved` and therefore goes under `cast:`. So
+calling it a "prop NPC" would make the word mean two different things one
+level apart, in a codebase that has already paid for that confusion once.
+
+Theatre owns the right word: an **extra** is exactly *a guard, a
+fisherman*. So the two classes are **`Extra`** (the default) and
+**`Cast`** (the one that earns a dossier), and the collision never
+happens.
+
+### The class difference is exactly one thing
+
+⭐ Resist making `Cast` rich. The difference is **entitlement to an
+individual ledger** — and everything else is a *consequence*, because
+every ledger already keys on identity. A name, a prologue, a transcript,
+bonds, a dossier: all of them fall out of being individually identified.
+Nothing needs adding for them one at a time.
+
+| | archetype resolves as | own ledger | dossier | deviation |
+|---|---|---|---|---|
+| **`Extra`** | a **lens** (read-time, unsaved) | no — shares its row's | **no** | none: that is what makes it an extra |
+| **`Cast`** | a **seed** (`claim` evidence) | yes | **yes** | declared at mint, then drifts under play |
+| player | intake choice | yes | char-gen seeds it | the whole character arc |
+
+And the pair is enforceable, which is the point of making them classes:
+
+> **`lint:identity`** — a dossier on an `Extra` is a build error, and so
+> is an `Extra` row instanced more than once while carrying anything that
+> writes to a ledger.
+
+### ⚠ The open half — what happens when an extra ACTS
+
+The lens settles what an extra *is like*. It says nothing about what an
+extra's **deeds** do, and that is undecided. Four limbs:
+
+| limb | reading | cost |
+|---|---|---|
+| **A — nothing is written** | an extra's acts vanish | ⚠ three holes: who hurt you, who made this, who owns that |
+| **B — the shared row** | *"the guards in this town are brutal"* — a reputation of the KIND | ⚠⚠ blame becomes collective: one guard's crime convicts the role |
+| **C — the institution** | an extra acts *as* a role, so acts belong to the office / business / watch fielding them | needs the employment + governance seam, which ships |
+| **D — the act promotes** | doing something that demands an individual answer *makes* you cast | the mechanism already exists (above) |
+
+⚠⚠ **B is not the safe limb — it is the default.** It is what happens if
+this is left undecided, because sharing a row is sharing a ledger. So
+whichever limb is taken must be a decision the class *encodes*, never a
+fallback nobody chose.
+
+**Lean: C by default, D as the escape hatch, A for the residue.** A guard
+arresting you *is the watch* arresting you — not a compromise for want of
+identity, but how institutions work, and it holds from a Roman legion to a
+modern police force (lens 5). It also gives institutions reputations
+rather than having individuals accumulate them on the institution's
+behalf, which is what the governance design wants anyway. Then an act the
+institution cannot absorb — a killing, a fraud — **promotes**, and the
+backstory problem dissolves exactly as the archetype slate says it does.
+
+⚠ **And the mirror nobody has raised: an extra as a VICTIM.**
+`accountability` keys blame on the *victim's* durable path, so hurting one
+guard hurts the row — which is worse than the actor side, because it means
+an extra cannot meaningfully be killed. That may argue for promoting on
+**being acted upon** as much as on acting. Settle both together.
+
+---
+
 ## ⭐⭐ The falsifiability property — the best thing in the provocation
 
 > *"…and what things **would** aggregate to if real records were
@@ -329,6 +441,9 @@ consumes, failing closed and silent.
 - **Player dossiers as an authoring surface.** Char-gen already seeds
   claims for players and that path stays as it is; whether the two
   converge is an open question below, not a goal.
+- **Reworking `accountability` around extras.** The victim mirror (§ the
+  identity rung) is named there and settled with Q0; the ledger's own
+  keying is not this build's to change. → `accountability.md` + Q0.
 - **LLM-generated backstory.** Adjacent and tempting; the dossier is the
   artifact such a thing would *write*, not part of this build. →
   [llm-npc-design](./llm-npc-design.md).
@@ -337,6 +452,10 @@ consumes, failing closed and silent.
 
 ## Open questions
 
+0. ⚠ **What an `Extra`'s deeds do** — limbs A–D in § *The identity rung*.
+   The lean is C (the institution) + D (promotion) + A (the residue), and
+   the reason it is urgent rather than tidy is that **B is what happens if
+   nobody decides**. The victim mirror settles here too.
 1. ⭐ **One document, or a block on the row?** The provocation says
    *"single document"*. A block keeps one file per character and matches
    how `dispositions:` already works; a `DocumentKinds` entry (the closed
@@ -386,6 +505,9 @@ is settled by evidence rather than argument.
    ceiling; a later pass drives it to zero.
 5. **The materialized trio** — whichever limb Q2 takes.
 6. **Body/condition claims** — the clinic's slice, once Q3 is settled.
+7. **`Extra` / `Cast` + `lint:identity`** — the class split. Sequenced
+   last only because nothing repeats a row *yet*; the day one does, it
+   moves to the front. ⚠ Q0 gates it.
 
 ⭐ Steps 1–3 are the build; 4 is what keeps it honest; 5–6 are the
 consumers. The clinic build waits on 6 and should not start before Q3 is
