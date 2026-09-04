@@ -3596,6 +3596,55 @@ export interface ClientStateUpdateMessage {
   payload: { key: string; value: unknown };
 }
 
+/**
+ * ⭐⭐ The colour words a dyed thing can be named by — the SHARED half
+ * of the dye colour model.
+ *
+ * The server folds a dye stack subtractively into a continuous colour
+ * and names it by its nearest neighbour here (`lib/perception/Colour.ts`);
+ * the client maps each word onto one of the theme's eight tints
+ * (`MmlRenderer`'s `COLOR_ALIASES`). The **positions** stay server-side,
+ * because where madder-with-alum lands is physics and not wire.
+ *
+ * ⚠⚠ It lives here because the two sides must not drift. An unlisted
+ * token falls through to `neutral` **silently** in the renderer, so a
+ * word added on the server and forgotten on the client would render a
+ * whole textile economy grey with nothing to say so. Both ends assert
+ * against this array, which is what turns that into a failing test
+ * instead of a shrug.
+ */
+export const DYE_COLOR_TAGS = [
+  'white',
+  'cream',
+  'oatmeal',
+  'fawn',
+  'grey',
+  'black',
+  'pale blue',
+  'sage',
+  'straw',
+  'dusty rose',
+  'slate',
+  'brown',
+  'russet',
+  'red',
+  'maroon',
+  'pink',
+  'orange',
+  'gold',
+  'yellow',
+  'olive',
+  'green',
+  'teal',
+  'blue',
+  'indigo',
+  'purple',
+  'violet',
+] as const;
+
+/** One of the {@link DYE_COLOR_TAGS}. */
+export type DyeColorTag = (typeof DYE_COLOR_TAGS)[number];
+
 // ============================================================================
 // Style overlay (message-rendering Wave 1)
 // ============================================================================

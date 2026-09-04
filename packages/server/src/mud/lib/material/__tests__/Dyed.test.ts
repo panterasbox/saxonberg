@@ -21,7 +21,20 @@ class Cloth extends DyedMixin(Idea) {}
 const MADDER = '/stuff/idea/material/dyestuff/madder';
 const WELD = '/stuff/idea/material/dyestuff/weld';
 
-function cloth(fastness: number, stack = [{ dyestuff: MADDER, mordant: 'alum', strength: 1 }]) {
+/**
+ * ⭐ Madder-with-alum's shipped position — what it TRANSMITS per
+ * channel. A fixture stack without one folds to undyed and reads as no
+ * colour at all, which is `colourOf`'s deliberate fail-toward-nothing:
+ * a mordant marker is a real colourless entry, so the triple must stay
+ * optional and an entry lacking it must contribute nothing rather than
+ * multiply the cloth toward black.
+ */
+const MADDER_ALUM = { transmitR: 0.74, transmitG: 0.1, transmitB: 0.14 };
+
+function cloth(
+  fastness: number,
+  stack = [{ dyestuff: MADDER, mordant: 'alum', strength: 1, ...MADDER_ALUM }],
+) {
   const c = makeStuff(() => new Cloth());
   c.setDyeStack(stack.map((a) => ({ ...a })));
   c.setFastness(fastness);
@@ -87,7 +100,7 @@ describe('washing is what tests the craft', () => {
     // does not hold. Real, nearly free, and it is the "something to be
     // bad at" every competence answer needs to be visible against.
     const unmordanted = cloth(0, [
-      { dyestuff: MADDER, mordant: '', strength: 1 },
+      { dyestuff: MADDER, mordant: '', strength: 1, ...MADDER_ALUM },
     ]);
     expect(unmordanted.getColorTag()).not.toBeNull();
     unmordanted.launder();

@@ -167,10 +167,80 @@ edit. Consequences, the wrong-body refusal and the distance refusal:
 ## Dye, wash and fade
 
 `DyedMixin` (`lib/material/Dyed.ts`) stores the **application stack** —
-`[{dyestuff, mordant, strength}]` — and a `fastness`, never a colour
-word. Overdyeing is arithmetic, fading is desaturation, and authors
-author dyes rather than colours. It rides `ColorTag`, the seam
-`lib/perception/Light.ts` already reserved.
+`[{dyestuff, mordant, strength, transmitR/G/B}]` — and a `fastness`,
+never a colour word. Overdyeing is arithmetic, fading is desaturation,
+and authors author dyes rather than colours. It rides `ColorTag`, the
+seam `lib/perception/Light.ts` already reserved.
+
+### ⭐⭐ The colour is SUBTRACTIVE, and that is why it is not RGB
+
+`lib/perception/Colour.ts` is the arithmetic. A colour is stored as
+**transmittance** per channel — a yellow dye is a thing that absorbs
+blue — and a stack **multiplies**, which is what layered filters do.
+
+⚠⚠ **RGB gets the one case wrong that the model exists for.** RGB is
+additive: blue over yellow added is white, multiplied as bytes is
+black, and neither is green. Transmittance gives green, which is how
+green was actually made. RGB appears only at the edge, as `toHex()`.
+
+| | transmits | |
+|---|---|---|
+| weld + alum | `0.88, 0.78, 0.14` | passes red+green, eats blue |
+| woad (vat) | `0.12, 0.40, 0.75` | passes blue, eats red |
+| **product** | `0.42, 0.52, 0.26` | **a green no row contains** |
+
+⭐ **`strength` is the lerp toward undyed**, so fading is desaturation
+for free and cloth walks continuously back toward the fibre instead of
+falling off the `legibleAt` cliff. Strength 0 is the identity — which
+is exactly why the mordant's zero-strength marker can sit on the stack
+without colouring anything, and why the triple is **optional**: a
+mordant is genuinely colourless, and an entry without one contributes
+nothing rather than multiplying toward black.
+
+⭐⭐ **Measured, and better than the claim.** Weld over a *shallow* vat
+is olive; green needs a vat built up over many dips. That is how
+Lincoln green was actually made, and no lookup table could have
+produced it — a table would have had to author "olive" and "green" as
+two outcomes and pick one at authoring time. `Colour.test.ts` pins it.
+
+⚠ **Four independent entries per dye, not one hue under a per-mordant
+filter.** The metal ion is part of the chromophore, so alum-madder (a
+clear red lake) and iron-madder (a purple-brown one) are different
+pigments. "Iron saddens everything" would be tidier and false.
+
+⚠ **The base is neutral white today.** The honest base is the fibre's
+own colour — unbleached linen is fawn, wool cream to brown — which is
+what makes *"linen was worn undyed and wool was the coloured cloth"*
+true rather than asserted. That needs a colour on `Material` rows and
+is the obvious next step, deliberately not stapled to this build.
+
+### The word, the tint, and the dark
+
+The palette in `Colour.ts` is **nearest-neighbour naming only** — the
+arithmetic already happened. It is deliberately muted *and* carries a
+**pale band** (`pale blue`, `sage`, `straw`, `oatmeal`), which is
+load-bearing: a bath tops out around strength 0.8 and a vat builds from
+0.35, so most real cloth lands light, and a palette of saturated words
+only would answer "grey" for a perfectly good pale blue.
+
+⭐ On the wire it is `<color value="…">` — the seam that already
+existed, whose grammar says *"a thing's color is a real property of
+what's perceived"* and **never a raw hex**. The client collapses the
+words onto the theme's eight tints. That is not a loss: the sentence
+already said the colour, so the tint is emphasis and never the channel.
+
+⚠⚠ **`DYE_COLOR_TAGS` lives in `@saxonberg/types` because the two ends
+must not drift.** An unlisted token falls through to `neutral`
+*silently* in `MmlRenderer`, so a word added server-side and forgotten
+client-side would render a whole textile economy grey with nothing
+raised. Both ends assert against that array.
+
+⚠ **The colour line is gated on light**, reusing
+`PerceptionApi.canMakeOutMarks` rather than inventing a lux cutoff —
+*"knowing that a scroll is there and being able to read it are
+different questions"*, and colour is the same question. In the dark it
+says **"too dim to tell"** rather than nothing, because an absent line
+reads as *undyed*, which is a different fact and the wrong one.
 
 `wash <garment>` takes the launder branch (`wash`'s target already
 required `CraftedMixin` and a `Garment` composes it — no arg change, no
@@ -223,6 +293,11 @@ is just a worse card.
 - **`worn`** is a distinct `DETAIL_FIELDS` projection and a **partition**
   of `contents` — the body half against the pack half. See
   [card-surface.md](./card-surface.md).
+- ⭐ **Conspicuity reads SATURATION, not strength.** The comment always
+  claimed *"a bright saturated one is loud"*, and reading strength could
+  not tell a pale blue from a deep red at the same dip. The folded mix
+  can, so a shallow vat is quiet and a madder red is not — the third
+  claim the colour model turned from prose into behaviour.
 - **The impression line** is a `markupAugmenter` on `SlottedMixin`: a
   one-sentence gestalt that **names no individual garment**, folded over
   whatever facts resolve, with phrasing **seeded rather than drawn**.

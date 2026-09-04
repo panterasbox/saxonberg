@@ -9,6 +9,15 @@
 #
 # ⚠ `fastness` is the CRAFT's half — how many washes the colour
 # survives. Competence in dyeing adds to it and never to the hue.
+#
+# ⭐⭐ `transmitR/G/B` IS the position — what this (dye, mordant)
+# pair lets through, per channel. Subtractive, so a yellow is a
+# thing that eats blue. The cloth multiplies the stack, which is
+# what makes blue over yellow come out GREEN with no green row
+# anywhere. ⚠ Four independent entries, not one hue under a
+# per-mordant filter: the metal ion is part of the chromophore, so
+# alum-madder and iron-madder are different pigments rather than
+# one pigment darkened.
 class: /trade/dyeing/idea/Dyestuff
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
@@ -16,7 +25,31 @@ data:
   materialPath: /trade/farming/idea/material/weld
   chemistry: mordant
   shades:
-    - { mordant: "alum", colour: "a bright yellow", fastness: 0.72 }
-    - { mordant: "iron", colour: "an olive khaki", fastness: 0.7 }
-    - { mordant: "tannin", colour: "a soft gold", fastness: 0.55 }
-    - { mordant: "", colour: "a yellow that will not hold", fastness: 0.02 }
+    - mordant: "alum"
+      colour: "a bright yellow"
+      fastness: 0.72
+      # transmits R/G/B — subtractive, so this is what SURVIVES the dye.
+      transmitR: 0.88
+      transmitG: 0.78
+      transmitB: 0.14
+    - mordant: "iron"
+      colour: "an olive khaki"
+      fastness: 0.7
+      # transmits R/G/B — subtractive, so this is what SURVIVES the dye.
+      transmitR: 0.5
+      transmitG: 0.46
+      transmitB: 0.18
+    - mordant: "tannin"
+      colour: "a soft gold"
+      fastness: 0.55
+      # transmits R/G/B — subtractive, so this is what SURVIVES the dye.
+      transmitR: 0.78
+      transmitG: 0.6
+      transmitB: 0.22
+    - mordant: ""
+      colour: "a yellow that will not hold"
+      fastness: 0.02
+      # transmits R/G/B — subtractive, so this is what SURVIVES the dye.
+      transmitR: 0.9
+      transmitG: 0.82
+      transmitB: 0.4

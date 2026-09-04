@@ -37,13 +37,39 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 export interface Shade {
   /** The mordant key this outcome belongs to (`''` for a vat dye). */
   mordant: string;
-  /** The palette word the derived `ColorTag` names it by. */
+  /**
+   * The prose phrase the VAT SCENE says as the cloth comes out — *"a
+   * clear red"*.
+   *
+   * ⚠ This is a sentence, not the colour. What the cloth reads as
+   * afterwards is derived from the triple below and named by the
+   * kernel palette, so an overdyed piece gets a word nobody wrote here.
+   */
   colour: string;
   /**
    * How well the bond holds, `0..1`. ⭐ This is the CRAFT's half: the
    * dyestuff decides the hue, the mordant decides how long you keep it.
    */
   fastness: number;
+  /**
+   * ⭐⭐ Where this `(dyestuff, mordant)` pair LANDS — what it
+   * transmits per channel, `0..1`. Subtractive, so a yellow dye is one
+   * that passes red and green and eats blue.
+   *
+   * This is the "position in a small colour space" the model always
+   * claimed and never had. It is copied onto the cloth at dye time,
+   * and the stack multiplies — which is what makes **blue over yellow
+   * actually green** instead of whichever was stronger.
+   *
+   * ⚠ Four independent entries per dye, NOT one hue under a per-mordant
+   * filter. That is chemistry, not laziness: the metal ion is part of
+   * the chromophore complex, so alizarin-alum (a clear red lake) and
+   * alizarin-iron (a purple-brown one) are genuinely different
+   * pigments. "Iron saddens everything" would be tidier and false.
+   */
+  transmitR: number;
+  transmitG: number;
+  transmitB: number;
 }
 
 export default class Dyestuff extends SingletonMixin(Idea) {
@@ -107,6 +133,21 @@ export default class Dyestuff extends SingletonMixin(Idea) {
         throw new RangeError(
           `Dyestuff.setShades: fastness ${s?.fastness} is outside 0..1`,
         );
+      }
+      /*
+       * ⚠ REQUIRED here, unlike on the cloth. An authored dye row with
+       * no position is a dye that cannot be mixed, and it would fail
+       * silently — the cloth would simply come out uncoloured and
+       * nobody would know which row was wrong. A row is authored once;
+       * a refusal at hydrate is the cheap place to find out.
+       */
+      for (const k of ['transmitR', 'transmitG', 'transmitB'] as const) {
+        const v = s?.[k];
+        if (!Number.isFinite(v) || v < 0 || v > 1) {
+          throw new RangeError(
+            `Dyestuff.setShades: ${k} ${v} is outside 0..1 (mordant '${s?.mordant}')`,
+          );
+        }
       }
     }
     this.shades = value.map((s) => ({ ...s }));

@@ -47,6 +47,7 @@ import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/com
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
+import type { DyeApplication } from '@saxonberg/server/mud/lib/material/Dyed';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
@@ -171,10 +172,20 @@ export default class DyeController extends ManualBuildController<DyeModel> {
         if (!MixinApi.isDyed(target)) return;
         // The mordant entry is CONSUMED into the application it decided.
         if (pending) dropPendingMordant(target);
+        /*
+         * ⭐⭐ The shade's POSITION travels onto the cloth, exactly as
+         * its `fastness` does. The kernel `DyedMixin` folds the stack
+         * subtractively from these, which is what makes overdyeing
+         * arithmetic — and it must be copied rather than looked up,
+         * because the kernel may not reach into a pack for a row.
+         */
         target.applyDye({
           dyestuff: dyestuff.getMaterialPath(),
           mordant: chemistry === 'vat' ? '' : (pending ?? ''),
           strength,
+          transmitR: shade.transmitR,
+          transmitG: shade.transmitG,
+          transmitB: shade.transmitB,
         });
         target.setFastness(fastness);
         // The mordant bath exhausts; a vat is fed, not spent.
@@ -233,8 +244,21 @@ function hasTannin(target: Stuff): boolean {
   return target.getDyeStack().some((a) => a.mordant === 'tannin');
 }
 
-/** Drop the trailing zero-strength mordant entry — it is spent. */
-function dropPendingMordant(target: Stuff & { getDyeStack(): readonly { dyestuff: string; mordant: string; strength: number }[]; setDyeStack(v: { dyestuff: string; mordant: string; strength: number }[]): void }): void {
+/**
+ * Drop the trailing zero-strength mordant entry — it is spent.
+ *
+ * ⚠ Typed against the real {@link DyeApplication} rather than a
+ * hand-written `{dyestuff, mordant, strength}`. The spread below
+ * carried the colour triple through at runtime either way, but a
+ * structural type that omits it is a trap: the next person to touch
+ * this would have no way to see that the fields exist.
+ */
+function dropPendingMordant(
+  target: Stuff & {
+    getDyeStack(): readonly DyeApplication[];
+    setDyeStack(v: DyeApplication[]): void;
+  },
+): void {
   const stack = [...target.getDyeStack()];
   stack.pop();
   target.setDyeStack(stack.map((a) => ({ ...a })));

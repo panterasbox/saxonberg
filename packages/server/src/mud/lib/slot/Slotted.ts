@@ -524,13 +524,15 @@ function conspicuityOf(garment: Stuff): number {
   // fluttering edge.
   const weave = -0.4 * density;
   if (!MixinApi.isDyed(garment)) return weave;
-  // Colour on it is what people see. The strength of what is on it IS
-  // the loudness, and a washed-out garment goes quiet again on its own.
-  let strength = 0;
-  for (const a of garment.getDyeStack()) {
-    strength = Math.max(strength, a.strength);
-  }
-  return clampSigned(weave + strength);
+  /*
+   * ⭐ SATURATION, not strength — the difference the colour model buys.
+   * The comment above always claimed "a bright saturated one is loud",
+   * and reading strength could not tell a pale blue from a deep red at
+   * the same dip. The folded mix knows, so a shallow vat is quiet and a
+   * madder red is not, and a washed-out garment goes quiet on its own
+   * because fading IS desaturation.
+   */
+  return clampSigned(weave + (garment.getColorMix()?.saturation() ?? 0));
 }
 
 function clampSigned(x: number): number {

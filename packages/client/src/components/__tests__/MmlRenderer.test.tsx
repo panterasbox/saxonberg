@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { MmlRenderer } from "../MmlRenderer";
+import { MmlRenderer, COLOR_ALIASES } from "../MmlRenderer";
+import { DYE_COLOR_TAGS } from "@saxonberg/types";
+import { tokens } from "../ui";
 import { useStore } from "../../store";
 
 function renderRenderer(text: string) {
@@ -323,5 +325,40 @@ describe("MmlRenderer", () => {
       fireEvent.click(screen.getByText("a brass thermometer"));
       expect(onCommandClick).toHaveBeenLastCalledWith("look thermometer");
     });
+  });
+});
+
+describe("⚠⚠ the dye colour vocabulary resolves — no silent grey", () => {
+  /*
+   * `paletteFor` falls through to `neutral` for a token it does not
+   * know, and says nothing. So a colour word the server can emit but
+   * the client has never heard of renders GREY, and the only symptom
+   * is that a whole textile economy looks drab — which reads as a
+   * design choice, not a bug. `DYE_COLOR_TAGS` is shared so both ends
+   * can be checked against it; this is the client end.
+   */
+  it("every dye word maps to a real theme tint", () => {
+    for (const tag of DYE_COLOR_TAGS) {
+      const resolved = COLOR_ALIASES[tag] ?? tag;
+      expect(
+        tokens.palette[resolved],
+        `'${tag}' → '${resolved}' is not a palette token; it would render neutral`,
+      ).toBeDefined();
+    }
+  });
+
+  it("⭐ many-to-one is fine, but the map must not be EMPTY of hue", () => {
+    /*
+     * The collapse onto eight tints is deliberate — the prose already
+     * said "a deep green" and the tint is emphasis. What would be
+     * wrong is every word landing on `neutral`, which is what an
+     * un-extended map produced and what this really guards.
+     */
+    const hues = new Set(
+      DYE_COLOR_TAGS.map((t) => COLOR_ALIASES[t] ?? t).filter(
+        (t) => t !== "neutral",
+      ),
+    );
+    expect(hues.size).toBeGreaterThanOrEqual(5);
   });
 });

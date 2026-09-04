@@ -34,7 +34,7 @@ import { tokens } from './ui';
  * the theme palette (kept legible under any theme). Palette tokens pass
  * through unchanged.
  */
-const COLOR_ALIASES: Record<string, string> = {
+export const COLOR_ALIASES: Record<string, string> = {
   purple: 'violet',
   blue: 'sky',
   red: 'rose',
@@ -43,6 +43,36 @@ const COLOR_ALIASES: Record<string, string> = {
   green: 'emerald',
   gold: 'amber',
   yellow: 'amber',
+  // ⭐⭐ The DYE vocabulary. `Colour.nearestTag()` names a dyed thing
+  // from a continuous subtractive space, so it emits words no UI
+  // palette was ever going to contain — 'russet', 'oatmeal', 'woad
+  // blue'. Every one of them has to land here, because an unlisted
+  // token falls through to `neutral` SILENTLY: a whole textile economy
+  // would have rendered grey and nothing would have said so.
+  //
+  // ⚠ Many-to-one on purpose. The theme palette is eight tints, 1:1
+  // with the ground's `tint-*` tier so a theme swap is one edit, and
+  // collapsing a dozen dye words onto it costs nothing — the PROSE
+  // already said "a deep green". The tint is emphasis, never the
+  // channel.
+  white: 'neutral',
+  cream: 'neutral',
+  oatmeal: 'neutral',
+  fawn: 'amber',
+  black: 'neutral',
+  'pale blue': 'sky',
+  sage: 'emerald',
+  straw: 'amber',
+  'dusty rose': 'rose',
+  brown: 'amber',
+  russet: 'amber',
+  maroon: 'rose',
+  pink: 'rose',
+  orange: 'amber',
+  olive: 'emerald',
+  indigo: 'violet',
+  violet: 'violet',
+  teal: 'teal',
 };
 
 /**
