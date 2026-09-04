@@ -531,20 +531,35 @@ producers key on `getIdentityPath()` like everything else** — but it is
 seven call sites rather than zero, and it must be in the build's scope
 rather than assumed away.
 
-### ⚠ A pre-existing inconsistency this exposes — worth checking, not yet a claim
+### ⚠⚠ A pre-existing inconsistency this exposes — **filed as #42**
 
-If accountability keys on `getTemplatePath()` while the identity
-projection exists for the sandbox, then a harm inside a circle files under
-the **vessel's** template path rather than the player's real identity —
-which contradicts the documented intent of the projection (*"PASS rows
-attribute to the real identity, never the vessel"*).
+Traced far enough to file, and it is not this build's:
 
-⚠ **Stated as a question, because it has not been traced**: it depends on
-whether harms can be produced in-circle at all, and on whether in-circle
-blame is *meant* to reach the real person (a live question the sandbox
-slate already lists under *accountability/consent inside someone else's
-circle*). If harms can happen there, this is a shipped defect that has
-nothing to do with extras and should be filed on its own.
+- `sandbox.md`'s policy table classes `accountability_events` **PASS
+  (mark)** — *"**Identity-real** … what happened to **you** stays yours"*;
+- `WireBody` implements exactly that, overriding `getIdentityPath()` to
+  return the real player's Avatar path;
+- ⚠ **but no accountability producer reads that method** — they key on
+  `getTemplatePath()`, which `WireBody` deliberately does *not* override.
+
+⭐ **So the safety is coming from the wrong layer.** `deriveBlame` filters
+circle-marked rows precisely so *"anyone who could open a circle"* cannot
+*"stage a killing and mint a real crime row against a real identity"* —
+but if the producers file under the vessel, that guard has never had to
+hold. Safe by accident, with a gate that is not in the path: the class of
+failure this codebase keeps rediscovering.
+
+⚠⚠ **And it is why the seven-call-site change above is not a free
+refactor.** Moving accountability onto `getIdentityPath()` makes
+`deriveBlame`'s circle filter **load-bearing for the first time**. Whoever
+does the extras work would silently switch on the path that filter was
+written to defend — so the filter must be *verified under a real in-circle
+killing* with the change, not after it.
+
+**Not this slate's to fix → issue #42.** What was deliberately left
+untraced there and should not be guessed: what a `WireBody`'s own
+`getTemplatePath()` actually resolves to, which decides whether today's
+behaviour is exploitable, inert, or accidentally correct.
 
 ### ⚠ The victim mirror — and what checking the corpse actually found
 
