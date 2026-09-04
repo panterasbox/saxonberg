@@ -12,8 +12,8 @@ import {
 } from "../Disposition";
 
 describe("Disposition roster", () => {
-  it("ships all 17 axes, each with two distinct pole labels", () => {
-    expect(DISPOSITION_AXES).toHaveLength(17);
+  it("ships all 19 axes, each with two distinct pole labels", () => {
+    expect(DISPOSITION_AXES).toHaveLength(19);
     for (const axis of DISPOSITION_AXES) {
       expect(axis.key.length).toBeGreaterThan(0);
       expect(axis.positive.length).toBeGreaterThan(0);
@@ -61,6 +61,6 @@ describe("Disposition lookups", () => {
   });
 
   it("all() returns the full roster", () => {
-    expect(Disposition.all()).toHaveLength(17);
+    expect(Disposition.all()).toHaveLength(19);
   });
 });

@@ -183,7 +183,7 @@ behavior. Read the relevant doc before editing in its area.
   - [chronicle.md](./docs/subsystems/chronicle.md) — append-only identity ledger: deed vs claim, three singularity patterns, the `chronicle` verb
   - [participation.md](./docs/subsystems/participation.md) — the quantity half of influence: `participation_events`, real-time decay, the engagement×renown projection
   - [advancement.md](./docs/subsystems/advancement.md) — growth measurement: Discipline catalog, Transcript, derive-on-read Competence bands, conferrals
-  - [trait.md](./docs/subsystems/trait.md) — the personality layer: 17 opposed pairs, `disposition_events`, derive-on-read TraitPosition, regard baseline
+  - [trait.md](./docs/subsystems/trait.md) — the personality layer: 19 opposed pairs, `disposition_events`, derive-on-read TraitPosition, regard baseline
   - [renown.md](./docs/subsystems/renown.md) — measured standing: `renown_events` → RenownStanding, reaction + reception signals, per-scope derive
   - [influence.md](./docs/subsystems/influence.md) — the three-stock contract: InfluenceApi dispatcher, the producer stock, the account roll-up seam, conviction hold/flip/tally
   - [provenance.md](./docs/subsystems/provenance.md) — authorship ledger: `authoring_events`, context-derived author, the `recordAuthoring` gate, CreditRouting

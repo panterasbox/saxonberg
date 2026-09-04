@@ -28,11 +28,17 @@ owner-keyed Transcript.
 
 ### The roster — `lib/trait/Disposition.ts`
 
-17 opposed-pair axes: CK3's *personality* core (13 direct keepers), 3
+19 opposed-pair axes: CK3's *personality* core (13 direct keepers), 3
 reframed for this world (`boldness` ← Brave/Craven; `fairness` ←
 Just/Arbitrary; `worldview` ← Cynical/Zealous, recast idealistic/cynical
-with no faith hook), and 1 native addition (`curiosity` ← Curious/Incurious,
-central to a learning game). Everything CK3 handled via its *other* trait
+with no faith hook), and 3 native additions — `curiosity`
+(Curious/Incurious, central to a learning game), plus `candor`
+(Candid/Guarded) and `warmth` (Warm/Aloof), **added 2026-09-04 because
+content had already authored them and the roster was silently dropping
+them.** Candor is not honesty (truth vs lie, against forthcoming vs
+withholding — a guarded person tells you nothing and lies about none of
+it); warmth is neither sociability (how much company you seek) nor
+compassion (how you answer suffering). Everything CK3 handled via its *other* trait
 categories is left to Saxonberg's own systems (education → advancement,
 congenital → race, health → vitals). Each axis has a durable `key` and two
 pole labels; `DISPOSITION_KEYS` is the validation array. **Polarity:** a
