@@ -367,6 +367,22 @@ has something on the shelf — so an order aimed at the shelf would be
 refused precisely when the venue most wanted it. The bench is empty by
 construction.
 
+⚠⚠ **A bounty with no expiry needs two guards, and both are load-bearing:**
+
+- **`job post --kind`.** A posting binds to the exemplar's *instance*
+  when the exemplar is chattel-marked (deliver THIS crate) — the right
+  reading when you point at your own goods, and the wrong one when a
+  keeper points at a bottle on her own rail to say what she wants more
+  of. Every bottle on a venue's rail is marked, because the venue bought
+  it. `--kind` forces the kind reading, and it is an ordinary
+  player-facing distinction rather than an NPC affordance.
+- **A kind already pending on that bench is not re-ordered.** The line
+  stays short until somebody carries it and the bounty never lapses, so
+  without this the keeper escrows another reward every beat until the
+  house is broke. ⭐ *One beat looks perfect* — which is why a fixture
+  that runs a single beat, and a live drive whose window is minutes, can
+  both miss it. The test asserts the **second** beat.
+
 ⭐ **The backhaul is visible.** `jobs --origin here` lists work that
 STARTS where you stand, so a hauler at the far end can see what wants
 moving back. *You cannot solve your own backhaul* — you need somebody

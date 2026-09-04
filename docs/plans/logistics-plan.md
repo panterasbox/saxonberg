@@ -1482,7 +1482,7 @@ retune is the dial — not a revert.
 
 ---
 
-## Wave W9 — Road character, reporting, docs, drives, finalize runway
+## ✅ Wave W9 — Road character, reporting, docs, drives, finalize runway
 
 **Files**
 
@@ -1508,6 +1508,52 @@ retune is the dial — not a revert.
 (`git status --short | grep -vE '^.. (docs/|CLAUDE\.md|.*\.md$|packages/content/)'`),
 **ONE full `pnpm test`**, the full lint family, push, and stop for the
 user's MR review. `/finalize` is its own phase.
+
+### What W9 landed, and ⭐⭐⭐ the three defects the LAST test found
+
+The corridor archetype, the `house freight` / `house traffic` stanzas
+over `WaybillRegistry` (no traffic counter is stored anywhere — edge
+traffic is derived from bills of lading), `docs/subsystems/logistics.md`,
+and `scripts/drive-logistics.ts` all landed with their waves. The live
+drive is **green on every checkpoint**: Terminus→Rejection is contiguous
+on foot, the pass signs itself, the last water is named, the rate board
+reads to a stranger, the backhaul lists, and every producer floor has its
+door and its works board.
+
+⭐ **The last thing left was the shipped `restocks` tests**, which still
+asserted the pre-D11 contract (she teleports, buys, comes home).
+Rewriting them onto the post-and-receive contract meant dispatching the
+**real `JobController`** over the real `ContractApi`/`BankingApi` for the
+first time — and that one seam found three defects, none of which a
+one-beat drive could see:
+
+1. ⭐ **No bulk par line ever matched.** `exemplarFor` scanned
+   `getCategory()`, which on a bottle is its **vessel kind**
+   (`bottle`), not its par category (`gin`). The flagship line ordered
+   nothing and reported no error. It now reads the sheet with the
+   sheet's own eyes — `EmploymentApi.goodsFor`, the same matcher
+   `house stock` shows a player. ⚠ *This is the `mixin-on-the-wrong-host`
+   family: two matchers for one question, and the brain picked the
+   wrong one.*
+2. ⭐ **The order bound to the wrong bottle.** Every bottle on a bar's
+   rail is chattel-marked (the bar bought it), and `job post` reads a
+   mark as *"deliver THIS one"* — correct when you point at your own
+   crate, nonsense when you point at your own shelf to say what you want
+   more of. **`job post --kind`** now forces the kind reading; it is a
+   real player-facing distinction, documented on the view with its own
+   example, and the keeper passes it.
+3. ⭐⭐ **The keeper would bankrupt the house by morning.** A bounty has
+   no expiry and the line stays short until somebody carries it, so she
+   re-posted and re-escrowed her reward **every beat**. `order()` now
+   skips a kind already pending on the board for that bench. ⚠⚠ One
+   beat looks perfect, which is exactly why nothing caught it: the
+   suite tested one beat and the drive's window was minutes, not a
+   night.
+
+Also reviewed rather than blessed: the wiki spoiler-field snapshot picks
+up `ContractRecord.origin` and `Exit._edgeMinutes`. An exit's travel time
+and a gig's collection point are both printed on the board — neither is a
+spoiler, so the snapshot is updated rather than the fields tagged.
 
 ---
 
