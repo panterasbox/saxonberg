@@ -8,9 +8,9 @@
  * on shift, the keeper reads `EmploymentApi.stockSheetFor` — the SAME
  * sheet `house stock` shows a player, perception-scoped, so she counts
  * what she can see from where she stands — groups the short lines by
- * supplier, goes to the supplier's counter, trades as the house, buys a
- * unit at a time until the line is covered, comes back and shelves what
- * she bought. Then the bussing beat: any soiled, empty glass in the room
+ * supplier, and posts a carriage bounty for each one that is short and
+ * not already on the board. Then she empties the receiving bench onto
+ * the rail. Then the bussing beat: any soiled, empty glass in the room
  * is collected, washed and racked.
  *
  * ⭐ **Nothing here is unavailable to a player.** Every act is a literal
@@ -69,8 +69,8 @@
 
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
-import { CommandApi } from '../../api/command';
 import { EmploymentApi, type Business, type StockSheetLine } from '../../api/employment';
+import { ContractApi } from '../../api/contract';
 import type { CommandGiver } from '../command/CommandGiver';
 import type { Stuff } from '../stuff/Stuff';
 import type { Mobile } from '../spatial/Mobile';
@@ -142,7 +142,8 @@ export const brain = class {
     const boardPath = ctx.config.board;
     const benchPath = ctx.config.bench;
     if (typeof boardPath === 'string' && typeof benchPath === 'string') {
-      await order(keeper, home, bySupplier, {
+      await order(keeper, bySupplier, {
+        boardPath,
         benchPath,
         reward: positiveInt(ctx.config.reward, DEFAULT_REWARD),
         batch,
@@ -229,18 +230,6 @@ function counterRoomOf(supplierPath: string): (Stuff & Container) | null {
 }
 
 
-/** How much of a par line one good covers, in the line's unit. */
-function unitsOf(good: Stuff, unit: 'L' | 'count' | 'kg'): number {
-  if (unit === 'count') {
-    return MixinApi.isGlobbable(good) ? good.getQuantity() : 1;
-  }
-  if (!MixinApi.isBulkable(good) || !good.hasInteriorBulk()) return 1;
-  const litres = good.getBulkAmount('interior').rawValue();
-  if (unit === 'L') return litres;
-  const density = good.getBulkMaterial('interior')?.getDensity().rawValue() ?? 1000;
-  return (litres / 1000) * density;
-}
-
 /** The primary keyword of the live instance of `templatePath` in `room`. */
 function fixtureKeyword(room: Stuff & Container, templatePath: unknown): string | null {
   if (typeof templatePath !== 'string') return null;
@@ -295,15 +284,22 @@ function positiveInt(v: unknown, fallback: number): number {
  * would revert the escrow and leave the bar unstocked, which is the
  * exact regression D11 forbids: the window a hauler waits is the
  * CARTER's patience, not the posting's lifetime.
+ *
+ * ⚠⚠⚠ **And a line already ordered is not ordered again.** A bounty with
+ * no expiry sits on the board until somebody carries it, while the line
+ * it was posted about stays short until they do — so without this the
+ * keeper escrows another reward every single beat and the house is
+ * bankrupt by morning. Nothing in the suite could see that (one beat
+ * looks perfect) and the live drive's window was minutes, not a night.
  */
 async function order(
   keeper: Keeper,
-  home: Stuff & Container,
   bySupplier: Map<string, StockSheetLine[]>,
-  opts: { benchPath: string; reward: number; batch: number },
+  opts: { boardPath: string; benchPath: string; reward: number; batch: number },
 ): Promise<void> {
   let budget = opts.batch;
   let traded = false;
+  const pending = await pendingKinds(opts.boardPath, opts.benchPath);
   for (const [supplierPath, lines] of bySupplier) {
     if (budget <= 0) break;
     const counterRoom = counterRoomOf(supplierPath);
@@ -313,10 +309,12 @@ async function order(
 
     for (const line of lines) {
       if (budget <= 0) break;
-      const exemplar = exemplarFor(home, line);
+      const exemplar = exemplarFor(keeper, line);
       if (!exemplar) continue;
       const kw = keywordOf(exemplar);
       if (!kw) continue;
+      // Already on the board and still un-carried: wait for it.
+      if (pending.has(exemplar.getTemplatePath() ?? '')) continue;
       if (!traded) {
         // Every beat, not once: a forced command reports no outcome, and
         // a keeper dealt her card after a failed first attempt must still
@@ -326,11 +324,27 @@ async function order(
       }
       await keeper.forceCommand(
         `job post ${kw} to ${opts.benchPath} for ${opts.reward} ` +
-          `--bounty --business --from ${fromPath}`,
+          `--kind --bounty --business --from ${fromPath}`,
       );
+      pending.add(exemplar.getTemplatePath() ?? '');
       budget -= 1;
     }
   }
+}
+
+/** The kinds already posted to this bench and not yet carried. */
+async function pendingKinds(
+  boardPath: string,
+  benchPath: string,
+): Promise<Set<string>> {
+  const open = await ContractApi.openGigsOn(boardPath);
+  const kinds = new Set<string>();
+  for (const gig of open) {
+    const condition = gig.clause?.condition;
+    if (!condition || condition.destinationPath !== benchPath) continue;
+    if (condition.item.kind === 'template') kinds.add(condition.item.path);
+  }
+  return kinds;
 }
 
 /**
@@ -374,23 +388,20 @@ async function unpackBench(
   return taken;
 }
 
-/** A unit of this line already on the shelf — what `job post` names. */
-function exemplarFor(
-  home: Stuff & Container,
-  line: StockSheetLine,
-): Stuff | null {
-  const category = line.line.category;
-  for (const item of home.getContents() as Stuff[]) {
-    if (!MixinApi.isContainer(item)) continue;
-    for (const good of item.getContents() as Stuff[]) {
-      if (categoryOf(good) === category) return good;
-    }
+/**
+ * A unit of this line already on the rail — what `job post` names.
+ *
+ * ⚠⚠ **The same matcher the SHEET uses**, via `EmploymentApi.goodsFor`,
+ * and that is the whole point: a par category is a MATERIAL tag (`gin`)
+ * for a bulk line and a vessel kind (`coupe`) for a count line. This
+ * scanned `getCategory()` alone until the post path got its first test —
+ * which reads the vessel kind off a bottle (`bottle`), matches no bulk
+ * line ever, and so ordered nothing for the flagship line while
+ * reporting no error at all. Read the sheet with the sheet's own eyes.
+ */
+function exemplarFor(keeper: Keeper, line: StockSheetLine): Stuff | null {
+  for (const good of EmploymentApi.goodsFor(keeper, line.line.category)) {
+    if (MixinApi.isContainable(good) && keywordOf(good)) return good;
   }
   return null;
-}
-
-/** A good's par category, if it declares one. */
-function categoryOf(good: Stuff): string {
-  const asked = good as unknown as { getCategory?: () => string };
-  return typeof asked.getCategory === 'function' ? asked.getCategory() : '';
 }

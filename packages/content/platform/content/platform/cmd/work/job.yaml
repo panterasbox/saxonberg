@@ -39,11 +39,18 @@ subcommands:
       Post a gig to this board: name the item, the destination with `to`,
       and the reward with `for`. Delivery is the v1 shape — the engine
       verifies the drop itself, so only verifiable work can be posted.
+
+      You name ONE item, and by default that exact item is what has to
+      arrive — right when the thing is yours and already marked. Add
+      `--kind` when any one of the same sort will do: a bar restocking
+      its rail wants *a* bottle of gin, not the bottle it is pointing at.
     examples:
       - cmd: job post crate to the bar for 25
         note: Post an exclusive delivery gig, 25 credits on completion
       - cmd: job post crate to the depot for 30 --from the brewing floor
         note: Name where the goods are collected, so a hauler can find the backhaul
+      - cmd: job post gin to the bench for 24 --kind --bounty --business
+        note: Any bottle of gin will do — the exemplar just says which kind
     args:
       - name: item
         type: object
@@ -68,6 +75,10 @@ subcommands:
       business:
         type: boolean
         description: "Post as your business (escrow from its account)."
+      kind:
+        short: k
+        type: boolean
+        description: "Any item of this KIND, not this exact one."
       from:
         short: f
         type: string

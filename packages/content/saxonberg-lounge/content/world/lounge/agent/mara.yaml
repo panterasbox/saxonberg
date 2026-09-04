@@ -37,11 +37,12 @@ data:
         railStool: /world/lounge/location/bar
         offstage: /world/lounge/location/offstage
     # The keeper's back loop: on shift, read the par sheet from the rail,
-    # go to the distributor, `wallet use house`, `buy` the shortfall a unit
-    # at a time, come back and shelve it; then bus the soiled glasses
-    # (`get`, `wash`, `put … in rack`). Every act is a literal verb a
-    # player could type; the seat is the authority. The config names only
-    # the bar's own fixtures — the supplier comes from each par line.
+    # `wallet use house` and `job post` a carriage bounty for each short
+    # line that isn't already on the board, clear the receiving bench onto
+    # the rail, then bus the soiled glasses (`get`, `wash`, `put … in
+    # rack`). Every act is a literal verb a player could type; the seat is
+    # the authority. The config names only the bar's own fixtures — the
+    # supplier comes from each par line.
     - brain: /lib/behavior/restocks
       # ⚠ Retuned by logistics D11. She is ORDERING now, not shopping:
       # a beat posts what is short and clears the bench, and the road

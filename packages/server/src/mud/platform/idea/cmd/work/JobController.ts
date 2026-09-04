@@ -44,6 +44,14 @@ interface JobModel extends CommandModel {
   from?: string;
   bounty?: boolean;
   business?: boolean;
+  /**
+   * ⭐ `post --kind`: bind the gig to the exemplar's KIND, not to the
+   * exemplar. A marked item is instance-bound by default (deliver THIS
+   * crate), which is the right reading when you are pointing at your own
+   * goods — and the wrong one when you are pointing at a bottle on your
+   * own shelf to say what you want more of.
+   */
+  kind?: boolean;
   expires?: number;
   /**
    * ⭐ browse: list gigs whose ORIGIN is here rather than what hangs on
@@ -186,9 +194,15 @@ export default class JobController extends CommandController<JobModel> {
     const reward = Number(model.reward);
 
     // Instance-bound when the exemplar carries a chattel id (deliver THIS
-    // crate); else kind-bound on its template.
+    // crate); else kind-bound on its template. ⚠ `--kind` forces the
+    // kind reading: the `restocks` keeper points at a bottle already on
+    // her rail to say what is short, and every such bottle is marked
+    // (she bought it) — so without the flag the order would read
+    // "deliver the bottle you are looking at", which is nobody's work.
     const chattelId =
-      MixinApi.isChattel(item) ? item.getChattelId() : "";
+      model.kind !== true && MixinApi.isChattel(item)
+        ? item.getChattelId()
+        : "";
     const itemRef: ConditionData["item"] = chattelId
       ? { kind: "chattel", chattelId }
       : { kind: "template", path: item.getTemplatePath() ?? "" };
