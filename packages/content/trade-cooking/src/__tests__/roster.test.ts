@@ -81,6 +81,9 @@ const ROSTER = [
   'press-olive-oil',
   'pan-fried-roots',
   'crisp-fried-cutlet',
+  // the (heat × hold) pair — the same act at two extremes
+  'seared-cut',
+  'warmed-through',
 ];
 
 type Row = {
@@ -258,7 +261,7 @@ async function stockKitchen(): Promise<void> {
   await stock('/stuff/thing/fixture/water-butt'); // the wet medium
   // Stock: roots, meat, rations, orchard fruit, olives.
   for (let i = 0; i < 12; i++) await stock('/stuff/thing/items/root-vegetables');
-  for (let i = 0; i < 8; i++) await stock('/stuff/thing/items/stew-meat');
+  for (let i = 0; i < 11; i++) await stock('/stuff/thing/items/stew-meat');
   await stock('/stuff/thing/items/prime-cut');
   await stock('/stuff/thing/items/ration-stock');
   for (let i = 0; i < 3; i++) await stock('/trade/farming/thing/cherry');
@@ -266,9 +269,9 @@ async function stockKitchen(): Promise<void> {
   await stock(`${ROOT}/thing/sugar-sack`);
   // Crockery: one of each kind the roster's output rows name, plus the
   // vessels the fat chain fills.
-  for (let i = 0; i < 4; i++) await stock('/stuff/thing/items/bowl');
+  for (let i = 0; i < 5; i++) await stock('/stuff/thing/items/bowl');
   for (let i = 0; i < 3; i++) await stock('/stuff/thing/items/plated-dish');
-  for (let i = 0; i < 3; i++) await stock('/stuff/thing/items/platter');
+  for (let i = 0; i < 5; i++) await stock('/stuff/thing/items/platter');
   await stock(`${ROOT}/thing/tallow-crock`);
   await stock(`${ROOT}/thing/oil-bottle`);
   await stock(`${ROOT}/thing/syrup-bottle`);
@@ -295,10 +298,10 @@ describe('trade-cooking — the roster resolves (AC12)', () => {
       '/platform/idea/RecipeCatalogue',
     )!;
     for (const id of ROSTER) expect(cat.knows(id), id).toBe(true);
-    expect(ROSTER.length).toBe(14);
+    expect(ROSTER.length).toBe(16);
   });
 
-  it('⭐ every line cooks — fourteen recipes, one kitchen, the real resolve', async () => {
+  it('⭐ every line cooks — sixteen recipes, one kitchen, the real resolve', async () => {
     await stockKitchen();
     // The fat chain first: nothing can be fried until a fat exists.
     for (const id of ['render-tallow', 'press-olive-oil']) {
@@ -315,6 +318,46 @@ describe('trade-cooking — the roster resolves (AC12)', () => {
       expect(litres(out.output), id).toBeGreaterThan(0);
     }
   }, 120_000);
+});
+
+describe('⭐⭐ requirement 19 — a recipe with no hold behaves as it always did', () => {
+  it('every recipe that shipped before holds existed authors NO hold', () => {
+    const cat = StuffApi.findByTemplatePath<RecipeCatalogue>(
+      '/platform/idea/RecipeCatalogue',
+    )!;
+    // ⚠ `holdS: 0` is not "held for no time" — it is "the working was as
+    // long as it needed", the threshold semantics this replaced. Every one
+    // of the fourteen rows that predate the change must still say it, or
+    // the whole Hearthworks pantry starts cooking differently on day one.
+    const preExisting = ROSTER.filter(
+      (id) => id !== 'seared-cut' && id !== 'warmed-through',
+    );
+    expect(preExisting.length).toBe(14);
+    for (const id of preExisting) {
+      const r = cat.allRecipes().find((x) => x.getRecipeId() === id)!;
+      expect(r.getHoldS(), id).toBe(0);
+    }
+  });
+
+  it('⭐ …and the two that DO author a hold author the pair `(heat, hold)`', () => {
+    const cat = StuffApi.findByTemplatePath<RecipeCatalogue>(
+      '/platform/idea/RecipeCatalogue',
+    )!;
+    const sear = cat.allRecipes().find((r) => r.getRecipeId() === 'seared-cut')!;
+    const warm = cat
+      .allRecipes()
+      .find((r) => r.getRecipeId() === 'warmed-through')!;
+    expect(sear.getRequiresHeatK()).toBeGreaterThan(warm.getRequiresHeatK());
+    expect(sear.getHoldS()).toBeLessThan(warm.getHoldS());
+
+    // ⭐⭐ The point of the pair: the brief moment at high heat kills, and
+    // the long hold barely over the line does not. Two rows, no engine
+    // word for "sear" or "reheat" anywhere.
+    const seared = Freshness.killOver(1, sear.getHoldS(), sear.getRequiresHeatK());
+    const warmed = Freshness.killOver(1, warm.getHoldS(), warm.getRequiresHeatK());
+    expect(seared).toBe(0);
+    expect(warmed).toBeGreaterThan(0.4);
+  });
 });
 
 describe('⭐ the three-media root spine', () => {

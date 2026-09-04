@@ -29,6 +29,7 @@ import { PropertiedMixin } from '../../lib/stuff/Propertied';
 import { Quantity } from '../../lib/quantity';
 import type { Vitals } from '../../lib/vitals/Vitals';
 import type { ToxinBehavior } from '../../lib/metabolism/Metabolic';
+import type { PathogenBehavior } from '../../lib/material/Contaminable';
 import type { Channel } from '../../lib/material/Channel';
 import type { MagicProvenance } from '../../lib/magic/Grid';
 import type { ResistBand } from '../../lib/magic/Resist';
@@ -591,6 +592,22 @@ export default class Condition extends SingletonMixin(
   protected toxinBehavior: ToxinBehavior | null = null;
 
   /**
+   * ⭐⭐ **Optional pathogen behavior — the per-population constants of a
+   * living organism**, as against `toxinBehavior`'s per-body rates for a
+   * burden that decays.
+   *
+   * The distinction is the build's: a toxin is an *amount* you carry and
+   * clear, a pathogen is a *population* that grows — in food, and then in
+   * you. Both live on this row because both are afflictions with names,
+   * signs and a resolution, and a row may honestly carry both (an
+   * intoxicating population's toxin is its own row, with its own bands).
+   *
+   * Authored only on the pathogen roster under
+   * `/platform/idea/Condition/pathogen/`; `null` everywhere else.
+   */
+  protected pathogenBehavior: PathogenBehavior | null = null;
+
+  /**
    * Optional mental-resist bands — the ascending `{threshold, stage}`
    * cutoffs the magic mental resolver stages a post-fold residual
    * against, scaled by the target's live Composure factor (the
@@ -621,6 +638,7 @@ export default class Condition extends SingletonMixin(
     resolution: { persistent: true, spoiler: 1, spoilerName: 0 },
     contagion: { persistent: true, spoiler: 1, spoilerName: 0 },
     toxinBehavior: { persistent: true, spoiler: 1, spoilerName: 0 },
+    pathogenBehavior: { persistent: true, spoiler: 1, spoilerName: 0 },
     mentalBands: { persistent: true, spoiler: 1, spoilerName: 0 },
   };
 
@@ -672,6 +690,14 @@ export default class Condition extends SingletonMixin(
   }
   public setToxinBehavior(value: ToxinBehavior | null): void {
     this.toxinBehavior = value;
+  }
+
+  /** The pathogen behavior block (null for everything but the roster). */
+  public getPathogenBehavior(): PathogenBehavior | null {
+    return this.pathogenBehavior;
+  }
+  public setPathogenBehavior(value: PathogenBehavior | null): void {
+    this.pathogenBehavior = value;
   }
 
   /** The mental-resist bands (null for non-mental conditions). */

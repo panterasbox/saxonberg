@@ -174,6 +174,7 @@ export class Recipe {
     outputMaterial: { persistent: true, spoiler: 1, spoilerName: 0 },
     baseGradeBand: { persistent: true, spoiler: 1, spoilerName: 0 },
     requiresHeatK: { persistent: true, spoiler: 1, spoilerName: 0 },
+    holdS: { persistent: true, spoiler: 1, spoilerName: 0 },
     medium: { persistent: true, spoiler: 1, spoilerName: 0 },
     outputResidue: { persistent: true, spoiler: 1, spoilerName: 0 },
     outputApplication: { persistent: true, spoiler: 1, spoilerName: 0 },
@@ -214,6 +215,25 @@ export class Recipe {
 
   /** Minimum reachable heat (K) to resolve; 0 = no heat gate. */
   requiresHeatK: number = 0;
+
+  /**
+   * ⭐⭐ **How long the working HOLDS the food at `requiresHeatK`**, in
+   * game-seconds — the other half of "hot enough", and what turns a
+   * threshold into an act.
+   *
+   * The kill is a rate: a long hold at a lower heat and a brief moment at
+   * a higher one do the same work, and a lazy warm-through barely over the
+   * line does neither however long you leave it. Authoring the pair
+   * `(requiresHeatK, holdS)` is what makes a sear, a simmer and a
+   * warm-through three different recipes rather than one boolean.
+   *
+   * ⭐ **Absent (`0`) means "the working was as long as it needed"** —
+   * byte-identical to the behaviour before holds existed, which is what
+   * keeps every recipe already in the world cooking exactly as it did. A
+   * number is a claim that the hold was NOT sufficient, and is therefore
+   * always a deliberate authoring act.
+   */
+  holdS: number = 0;
 
   /**
    * The heat-carrying medium (`water` / `fat`); empty ⇒ dry. See
@@ -295,6 +315,7 @@ export class Recipe {
     r.outputMaterial = str(data.outputMaterial);
     r.baseGradeBand = str(data.baseGradeBand);
     r.requiresHeatK = num(data.requiresHeatK);
+    r.holdS = num(data.holdS);
     r.medium = Recipe.mediumFrom(data.medium, r.recipeId);
     r.outputApplication = str(data.outputApplication);
     r.outputPortionL = num(data.outputPortionL);
@@ -415,6 +436,7 @@ export class Recipe {
       outputMaterial: this.outputMaterial,
       baseGradeBand: this.baseGradeBand,
       requiresHeatK: this.requiresHeatK,
+      holdS: this.holdS,
       medium: this.medium,
       outputApplication: this.outputApplication,
       outputPortionL: this.outputPortionL,
@@ -450,6 +472,11 @@ export class Recipe {
   }
   getRequiresHeatK(): number {
     return this.requiresHeatK;
+  }
+
+  /** How long the working holds the food at its heat; `0` ⇒ as long as needed. */
+  getHoldS(): number {
+    return this.holdS;
   }
 
   /** What the working does to the output's water state; `null` ⇒ nothing. */

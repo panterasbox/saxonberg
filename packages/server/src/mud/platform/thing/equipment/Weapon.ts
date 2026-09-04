@@ -34,6 +34,7 @@ import { ConstructedMixin } from '../../../lib/material/Constructed';
 import { DurableMixin } from '../../../lib/material/Durable';
 import { KeenMixin } from '../../../lib/material/Keen';
 import { CraftedMixin } from '../../../lib/craft/Crafted';
+import { ContaminableMixin } from '../../../lib/material/Contaminable';
 import { SlottableMixin } from '../../../lib/slot/Slottable';
 import { WieldableMixin } from '../../../lib/slot/Wieldable';
 import { MixinApi } from '../../../api/mixin';
@@ -56,10 +57,24 @@ import type { FieldMeta } from '../../../lib/mixin';
 // KeenMixin adds the fast-cycling working-surface (edge) axis alongside
 // Durable's structural condition — read only on edge/point delivery, so
 // it's inert for hafted/blunt forms.
-const WeaponBase = WieldableMixin(
-  SlottableMixin(
-    KeenMixin(
-      CraftedMixin(DurableMixin(ConstructedMixin(DetailedMixin(Thing)))),
+// ⚠ **Contaminable, because the knife a player actually owns is a Weapon.**
+// The only blade in the general store is `clasp-knife`, class `Weapon`,
+// `constructionForm: bladed` — and it is the thing that opens a carcass and
+// then chops the vegetables. `Cutlery` is table serviceware and holds
+// nothing, ever; a bespoke butchering class would fail the drive, which
+// requires the SAME knife to do both jobs.
+//
+// ⭐ The two facts stay apart, and that split is the decision: **carrying**
+// contamination is a property of a surface that touches food (this mixin,
+// composed broadly), while **butchering** is an affordance of an edge (the
+// verb, gated on `constructionForm`). Collapse them and you get either a
+// sieve that can butcher or a knife that cannot chop.
+const WeaponBase = ContaminableMixin(
+  WieldableMixin(
+    SlottableMixin(
+      KeenMixin(
+        CraftedMixin(DurableMixin(ConstructedMixin(DetailedMixin(Thing)))),
+      ),
     ),
   ),
 );

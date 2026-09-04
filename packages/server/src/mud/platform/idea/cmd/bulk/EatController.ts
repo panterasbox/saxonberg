@@ -24,6 +24,7 @@ import { StuffApi } from "../../../../api/stuff";
 import { Mml } from "../../../../api/mml";
 import { METABOLIC_DEFAULTS } from "../../../../lib/metabolism/Metabolic";
 import { Freshness } from "../../../../lib/material/Freshness";
+import { Contamination } from "../../../../lib/material/Contaminable";
 import { BlendLabel } from "../../../../lib/metabolism/BlendLabel";
 import { BlendIdentity } from "../../../../lib/craft/BlendIdentity";
 import {
@@ -131,8 +132,10 @@ export default class EatController extends CommandController<EatModel> {
    * ⚠ Anything a discrete item knows that must reach the mouth has to be
    * copied across this line, and a fact that isn't fails **silently and
    * completely**: the suite stays green, the food is bad, the eater is
-   * fine. Two are carried today — the spoilage dose the microbial load has
-   * earned, and the maker, without which harm from a meal can name nobody.
+   * fine. Three are carried today — the spoilage dose the microbial load
+   * has earned, the pathogen loads (with any formed toxin they have
+   * already made), and the maker, without which harm from a meal can name
+   * nobody.
    */
   private ingestPayloadFor(
     target: Stuff,
@@ -140,9 +143,12 @@ export default class EatController extends CommandController<EatModel> {
   ): BulkPayload | null {
     const load = MixinApi.isFresh(target) ? target.getMicrobialLoad() : 0;
     let payload = Freshness.withDose(null, material, load);
-    const maker = MixinApi.isCrafted(target) ? target.getMaker() : '';
+    const maker = MixinApi.isCrafted(target) ? target.getMaker() : "";
     if (maker) payload = { ...(payload ?? {}), maker };
-    return payload;
+    const pathogens = MixinApi.isContaminable(target)
+      ? target.getPathogenLoads()
+      : {};
+    return Contamination.withLoads(payload, pathogens);
   }
 
   /** A vessel holding edible matter — a bowl of stew, a plate of roast. */

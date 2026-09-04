@@ -21,6 +21,10 @@ import {
 import type Material from '../../../lib/material/Material';
 import { Freshness } from '../../../lib/material/Freshness';
 import { Cure } from '../../../lib/material/Cured';
+import {
+  Contamination,
+  type PathogenLoads,
+} from '../../../lib/material/Contaminable';
 import type { ToxinTag } from '../../../lib/metabolism/Metabolic';
 import {
   Recipe,
@@ -666,6 +670,10 @@ function pickItemInputs(
 /** Stamp a working's spoilage outcome onto the output slot. */
 function applySpoilage(outSlot: BulkSlot, outcome: SpoilageOutcome): void {
   Freshness.stampLoad(outSlot, outcome.load);
+  // ⚠⚠ The silent half, and it must ride the SAME stamp. A dish that
+  // carried the flora through and dropped the pathogens would be a build
+  // whose unit tests all pass and whose contaminated stew is harmless.
+  Contamination.stampLoads(outSlot, outcome.pathogens);
   const formed = outcome.formed;
   if (!formed) return;
   const payload = outSlot.getPayload();
@@ -688,6 +696,8 @@ function applySpoilage(outSlot: BulkSlot, outcome: SpoilageOutcome): void {
 interface SpoilageOutcome {
   load: number;
   formed: ToxinTag | null;
+  /** ⚠ The SECOND population — silent, event-seeded, its own kill curve. */
+  pathogens: PathogenLoads;
 }
 
 /**
@@ -709,15 +719,18 @@ interface SpoilageOutcome {
  */
 function outputMicrobialLoad(
   effectiveHeatK: number,
+  holdS: number,
   matched: readonly MatchedInput[],
   matchedItems: readonly MatchedItemInput[],
 ): SpoilageOutcome {
   let weighted = 0;
   let total = 0;
+  const parts: { loads: PathogenLoads; weight: number }[] = [];
   for (const m of matched) {
     const w = m.measureL;
     if (w <= 0) continue;
     weighted += Freshness.loadOf(m.slot) * w;
+    parts.push({ loads: Contamination.loadsFor(m.slot), weight: w });
     total += w;
   }
   for (const m of matchedItems) {
@@ -727,9 +740,23 @@ function outputMicrobialLoad(
     const w = (unitKg > 0 ? unitKg : 0.1) * m.count;
     const load = MixinApi.isFresh(m.stuff) ? m.stuff.getMicrobialLoad() : 0;
     weighted += load * w;
+    // ⭐ The contamination the INPUTS brought with them — a carcass cut
+    // with a dirty knife makes a contaminated stew, and it must survive
+    // the trip from a discrete item into a blend.
+    parts.push({
+      loads: MixinApi.isContaminable(m.stuff)
+        ? m.stuff.getPathogenLoads()
+        : {},
+      weight: w,
+    });
     total += w;
   }
-  return resolveSpoilage(effectiveHeatK, total > 0 ? weighted / total : 0);
+  return resolveSpoilage(
+    effectiveHeatK,
+    holdS,
+    total > 0 ? weighted / total : 0,
+    Contamination.blendAll(parts),
+  );
 }
 
 /**
@@ -739,17 +766,25 @@ function outputMicrobialLoad(
  */
 function buildMicrobialLoad(
   effectiveHeatK: number,
+  holdS: number,
   contributions: readonly BuildContribution[],
 ): SpoilageOutcome {
   let weighted = 0;
   let total = 0;
+  const parts: { loads: PathogenLoads; weight: number }[] = [];
   for (const c of contributions) {
     const w = c.kind === 'item' ? 0.1 * (c.count ?? 1) : c.measureL;
     if (w <= 0) continue;
     weighted += (c.freshnessLoad ?? 0) * w;
+    parts.push({ loads: c.pathogenLoads ?? {}, weight: w });
     total += w;
   }
-  return resolveSpoilage(effectiveHeatK, total > 0 ? weighted / total : 0);
+  return resolveSpoilage(
+    effectiveHeatK,
+    holdS,
+    total > 0 ? weighted / total : 0,
+    Contamination.blendAll(parts),
+  );
 }
 
 /**
@@ -770,14 +805,37 @@ function buildMicrobialLoad(
  */
 function resolveSpoilage(
   effectiveHeatK: number,
+  holdS: number,
   blended: number,
+  pathogens: PathogenLoads = {},
 ): SpoilageOutcome {
+  // ⭐ Each population answers to its OWN kill temperature and its own
+  // survival floor, so this runs whatever the flora did — a working under
+  // the flora's kill can still be over some organism's, and a working
+  // over both still leaves a spore-former's floor alive.
+  const survivors = Contamination.killOver(
+    pathogens,
+    effectiveHeatK,
+    holdS,
+    // The working's water activity is the food's; a craft has no cure
+    // state to consult mid-working, and the kill does not read `a_w`
+    // anyway (only growth does).
+    1,
+  );
   if (effectiveHeatK < Freshness.killTemperatureK()) {
     // A lazy warm-through launders nothing: the load rides straight
     // through and the dose stays derived from it at the ingest.
-    return { load: blended, formed: null };
+    return { load: blended, formed: null, pathogens: survivors };
   }
-  return { load: 0, formed: Freshness.doseFor(blended) };
+  // ⭐⭐ **The kill is a rate held for a time.** `holdS === 0` is a recipe
+  // that authors no hold, which means the working was as long as it needed
+  // — byte-identical to the threshold this replaced, and what keeps every
+  // shipped recipe cooking exactly as it did. A hold that IS authored is a
+  // claim that the working was brief, and is integrated.
+  const load = holdS > 0 ? Freshness.killOver(blended, holdS, effectiveHeatK) : 0;
+  // ⚠ And what the killed population already MADE stays in the dish,
+  // derived from the load that was there before the heat touched it.
+  return { load, formed: Freshness.doseFor(blended), pathogens: survivors };
 }
 
 /**
@@ -1000,7 +1058,7 @@ async function applyBulkOutput(
   // lime juice, and nothing about shaking it says otherwise.
   applySpoilage(
     outSlot,
-    outputMicrobialLoad(effectiveHeatK, matched, matchedItems),
+    outputMicrobialLoad(effectiveHeatK, recipe.getHoldS(), matched, matchedItems),
   );
 }
 
@@ -1050,8 +1108,19 @@ function applyTangibleOutput(
   // by the working's heat, or blended through if it never got hot), then
   // what the working does to the water.
   if (MixinApi.isFresh(output)) {
-    const outcome = outputMicrobialLoad(effectiveHeatK, matched, matchedItems);
+    const outcome = outputMicrobialLoad(
+      effectiveHeatK,
+      recipe.getHoldS(),
+      matched,
+      matchedItems,
+    );
     output.setMicrobialLoad(outcome.load);
+    // ⚠ The silent half rides the discrete transform too, or curing a
+    // contaminated cut would quietly clean it — which is the exact
+    // opposite of what curing does.
+    if (MixinApi.isContaminable(output)) {
+      output.setPathogenLoads(outcome.pathogens);
+    }
   }
   if (MixinApi.isCured(output)) {
     // The input's own water state first — a dried cut smoked is still a
@@ -1112,7 +1181,7 @@ async function applyEdibleOutput(
     }
     applySpoilage(
       outSlot,
-      outputMicrobialLoad(effectiveHeatK, matched, matchedItems),
+      outputMicrobialLoad(effectiveHeatK, recipe.getHoldS(), matched, matchedItems),
     );
     return;
   }
@@ -1133,7 +1202,7 @@ async function applyEdibleOutput(
   );
   applySpoilage(
     outSlot,
-    outputMicrobialLoad(effectiveHeatK, matched, matchedItems),
+    outputMicrobialLoad(effectiveHeatK, recipe.getHoldS(), matched, matchedItems),
   );
 }
 
@@ -1612,7 +1681,14 @@ async function mintVessel(
   // actually got hot enough, otherwise blended through (a lazy
   // warm-through launders nothing) — and either way, what the killed
   // population already made stays in the dish.
-  applySpoilage(outSlot, buildMicrobialLoad(effectiveHeatK, req.contributions));
+  applySpoilage(
+    outSlot,
+    buildMicrobialLoad(
+      effectiveHeatK,
+      recipe?.getHoldS() ?? 0,
+      req.contributions,
+    ),
+  );
 
   // The working finishes the glass: chill + dilution, the technique
   // stamp, the soil mark. Ice and garnish are the hand's own steps

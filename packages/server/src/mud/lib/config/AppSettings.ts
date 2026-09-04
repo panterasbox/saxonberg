@@ -1114,9 +1114,13 @@ export const AppSettingKeys = {
   /** Spoilage — at/above this temperature (K) the flora dies exponentially
    * instead of growing. This is the temperature cooking has to reach. */
   freshnessKillK: "freshness.killK",
-  /** Spoilage — the exponential death rate (per game-hour) above the kill
-   * temperature. */
+  /** Spoilage — the exponential death rate (per game-hour) AT the kill
+   * temperature; it climbs from there (see below). */
   freshnessKillRatePerHour: "freshness.killRatePerHour",
+  /** Spoilage — activation energy (J/mol) of the DEATH curve: what makes
+   * the kill a rate rather than a threshold, so a long hold at a lower heat
+   * and a brief moment at a higher one do the same work. */
+  freshnessKillActivationEnergy: "freshness.killActivationEnergy",
   /** Spoilage — the water activity (a_w) below which nothing grows at all:
    * why salt, sugar, honey and spirits keep, with no shelf-stable flag. */
   freshnessAwFloor: "freshness.awFloor",

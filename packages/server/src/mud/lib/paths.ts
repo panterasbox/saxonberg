@@ -134,6 +134,8 @@ export const TemplatePathPrefixes = {
   // Metabolism toxin conditions resolve by `<prefix><toxin-type>` (v1
   // keys the condition by the toxin tag, e.g. `…/conditions/alcohol`).
   metabolismCondition: "/platform/idea/Condition/metabolism/",
+  /** The pathogen roster — a `Condition` row carrying a `pathogenBehavior`. */
+  pathogenCondition: "/platform/idea/Condition/pathogen/",
   // Magic — authored condition seeds (dread, overchannel-strain). (The
   // spell and discipline rosters are warmed BY CLASS, not by prefix —
   // a pack ships them under its own root.)

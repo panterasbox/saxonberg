@@ -674,6 +674,65 @@ illness they end in is W4's.
 **Ends at** `feat(spoilage): the second population — silent,
 event-seeded, its own kill curve`.
 
+> ✅ **DONE.** `lib/material/Contaminable.ts` ships `PathogenBehavior`,
+> the `Contamination` policy statics and `ContaminableMixin`, composed on
+> `Provision` · `CraftVessel` · `ToolItem` · `Weapon` (P8, exactly).
+> `pathogenBehavior` sits on `Condition` beside `toxinBehavior`; five
+> roster rows ship under `/platform/idea/Condition/pathogen/` (which the
+> shipped `ConditionCatalogue.warm` already stands up — no boot risk) plus
+> two toxin rows under `metabolism/`. The loads ride `BulkPayload`, blend
+> on every pour, survive both craft paths, and cross **both** arms of the
+> ingest bridge.
+>
+> **Decisions this wave made:**
+> - ⭐⭐ **The kill became an Arrhenius RATE on both populations** (P6+P7).
+>   `Freshness.killRatePerHourAt` replaces a flat dial that made boiling no
+>   better than warming; `Freshness.killOver` and
+>   `Contamination.killOver` are the two callers of the same curve, so they
+>   cannot drift.
+> - ⭐ **`holdS: 0` means "as long as it needed", not "held for no time".**
+>   That is what keeps requirement 19 exactly true — all fourteen shipped
+>   recipes author no hold and behave identically — and it is pinned by a
+>   test that walks the catalogue rather than trusting the reading.
+> - **Two new recipes author the `(heat × hold)` pair**: `seared-cut`
+>   (500 K / 10 s — a complete kill) and `warmed-through` (335 K / 120 s —
+>   **less than half**). The second is authored as a trap, and it is the
+>   row that makes D5 a thing a player can be wrong about.
+> - ⭐⭐ **`BlendLabel.toxicityOf` now applies `labileAtK` to FORMED toxins
+>   too.** It skipped the filter "by construction"; ptomaine authors no
+>   lability so nothing changes for it, but without this staph's
+>   heat-stable poison and botulinum's heat-labile one were the same
+>   thing, and requirement D10 was unreachable.
+> - **`wash` stopped being a glassware verb.** It was `instanceof
+>   CraftVessel`, so a knife — the one implement that most needs washing,
+>   and criterion 17's whole counterplay — could not be washed at all. It
+>   now takes anything `Serviceable` or `Contaminable`.
+> - **A new gate, `lint:pathogens`** (the plan's suggested
+>   `lint:contaminable`), and it was **proved to fail** on a deliberately
+>   broken row before being trusted. It catches the silent one: an
+>   `intoxicate` row whose `toxin.type` resolves to no `Condition` deposits
+>   a dose that `resolveToxinBehavior` returns null for and the caller
+>   skips — green suite, poisoned food, healthy eater. It also refuses a
+>   non-empty `channels`, so D4's silence is a gate rather than a habit.
+>   ⭐ `lint:family` went 25 → 26 with no list edited anywhere.
+> - **Roster calibration** is fitted against what ships (D13): the two new
+>   toxin rows use ptomaine's band shape and its `dose × potency / mass`
+>   arithmetic. Salmonella's `infectiousDose` sits **at** the inoculum a
+>   contaminating event deposits — honest (its real dose is famously low)
+>   and what makes the raw-meat lesson land first try.
+> - ⚠ **Staph's `awFloor: 0.86` is authored and not yet exercised**: the
+>   cures this build ships take a_w to ≈0.45, well under it. Recorded
+>   rather than quietly tuned — the property is correct and waits for a
+>   lighter cure.
+>
+> **Surprise:** the germination mechanism needed no code of its own.
+> `germinationK` is a second ceiling on *growth*, so a cooling dish crosses
+> it and the survivors' rate simply turns positive again — D11 falls out
+> of the rate law instead of being a special case.
+>
+> Gates: **26** green · `test:near` 367 files / 3854 tests · trade-cooking
+> 18/18 · `Contaminable.test.ts` 22/22.
+
 ### W3 — Butchering and cross-contamination
 **Implements** requirements D3, D9, **D14**, plan P5, **D15**.
 `butcher` verb + controller in `trade-cooking`; `Corpse` → cuts as

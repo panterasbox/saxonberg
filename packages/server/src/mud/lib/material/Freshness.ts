@@ -54,6 +54,7 @@ import type Material from './Material';
 import type { ToxinTag } from '../metabolism/Metabolic';
 import type { BulkPayload, BulkSlot } from '../bulk/Bulkable';
 import { Cure, type CureState } from './Cured';
+import { Contamination } from './Contaminable';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { WorldClockApi } from '../../api/worldclock';
@@ -80,8 +81,15 @@ const FRESHNESS_DEFAULTS = {
   FREEZING_K: 273,
   /** At/above this (K) the flora dies instead of growing. */
   KILL_K: 333,
-  /** Exponential death rate (per game-hour) above the kill temperature. */
+  /** Exponential death rate (per game-hour) AT the kill temperature. */
   KILL_RATE_PER_HOUR: 6,
+  /**
+   * Activation energy (J/mol) of the DEATH curve — what makes the kill a
+   * rate rather than a threshold. Steep, and real thermal-death curves
+   * are: 60 °C held for minutes and 100 °C held for a moment do the same
+   * work, and a lazy warm-through does neither.
+   */
+  KILL_ACTIVATION_ENERGY: 200000,
   /** Water activity below which nothing grows (the shelf-stable floor). */
   AW_FLOOR: 0.6,
   /** The a_w a perishable Material that tabulates none is assumed to have. */
@@ -211,10 +219,7 @@ export class Freshness {
     if (!(ea > 0)) return 0; // inert: nothing tabulated, nothing rots
 
     if (tempK >= dial(AppSettingKeys.freshnessKillK, FRESHNESS_DEFAULTS.KILL_K)) {
-      return -dial(
-        AppSettingKeys.freshnessKillRatePerHour,
-        FRESHNESS_DEFAULTS.KILL_RATE_PER_HOUR,
-      );
+      return -Freshness.killRatePerHourAt(tempK);
     }
     if (
       tempK <= dial(AppSettingKeys.freshnessFreezingK, FRESHNESS_DEFAULTS.FREEZING_K)
@@ -281,6 +286,53 @@ export class Freshness {
    */
   public static killTemperatureK(): number {
     return dial(AppSettingKeys.freshnessKillK, FRESHNESS_DEFAULTS.KILL_K);
+  }
+
+  /**
+   * ⭐⭐ **The death rate (per game-hour) at a temperature — because "hot
+   * enough" is a RATE, not a line you cross.**
+   *
+   * Arrhenius over the kill temperature: at exactly `killK` it is the
+   * tabulated base rate, and it climbs steeply from there. A long hold at
+   * a lower heat and a brief moment at a higher one achieve the same kill;
+   * a warm-through barely over the line achieves neither, however long you
+   * leave it, which is what makes a simmer, a sear and a lazy reheat three
+   * genuinely different acts.
+   *
+   * ⚠ It used to be a flat dial, so every temperature above 60 °C killed
+   * at exactly the same speed and boiling was no better than warming.
+   */
+  public static killRatePerHourAt(tempK: number): number {
+    const killK = dial(AppSettingKeys.freshnessKillK, FRESHNESS_DEFAULTS.KILL_K);
+    const base = dial(
+      AppSettingKeys.freshnessKillRatePerHour,
+      FRESHNESS_DEFAULTS.KILL_RATE_PER_HOUR,
+    );
+    if (tempK <= killK) return base;
+    const ea = dial(
+      AppSettingKeys.freshnessKillActivationEnergy,
+      FRESHNESS_DEFAULTS.KILL_ACTIVATION_ENERGY,
+    );
+    return base * Math.exp((ea / FRESHNESS_DEFAULTS.GAS_CONSTANT) * (1 / killK - 1 / tempK));
+  }
+
+  /**
+   * What survives a working that held the food at `tempK` for `holdS`
+   * game-seconds. The **craft's** half of the kill — the same arithmetic
+   * `advance` runs on the passive reconcile, called with a recipe's hold
+   * instead of elapsed game-time.
+   *
+   * ⭐ One function, two callers, deliberately: two kill curves that drift
+   * apart is the bug this avoids.
+   */
+  public static killOver(load: number, holdS: number, tempK: number): number {
+    const l0 = clamp01(load);
+    if (l0 <= 0 || !(holdS > 0)) return l0;
+    const killK = dial(AppSettingKeys.freshnessKillK, FRESHNESS_DEFAULTS.KILL_K);
+    if (tempK < killK) return l0;
+    const hours = holdS / FRESHNESS_DEFAULTS.SECONDS_PER_HOUR;
+    const survived = l0 * Math.exp(-Freshness.killRatePerHourAt(tempK) * hours);
+    return survived < 1e-6 ? 0 : survived;
   }
 
   /** The seed population a perishable starts from (fraction of capacity). */
@@ -543,7 +595,17 @@ export class Freshness {
     // ⚠ The load FIRST: reading it reconciles (and may seed) the payload,
     // so reading the payload before it would hand back a stale copy.
     const load = Freshness.loadOf(slot);
-    return Freshness.withDose(slot.getPayload(), slot.getMaterial(), load);
+    // ⚠⚠ The silent half, reconciled the same way and folded the same
+    // way. `Contamination.withLoads` also deposits any formed toxin an
+    // intoxicating population has made, which is the arm that needs no
+    // in-host machinery at all.
+    const pathogens = Contamination.loadsFor(slot);
+    const withDose = Freshness.withDose(
+      slot.getPayload(),
+      slot.getMaterial(),
+      load,
+    );
+    return Contamination.withLoads(withDose, pathogens);
   }
 
   /** Game-seconds now, or `null` when no world clock (pre-boot / tests). */

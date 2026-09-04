@@ -1,0 +1,31 @@
+# ⭐ A seared cut — the FAST end of requirement D5. A very hot fire and ten
+# seconds on it.
+#
+# The kill is a rate, so this and a long simmer arrive at the same place by
+# different roads: at 500 K the flora and every vegetative pathogen are
+# gone almost instantly, and ten seconds is plenty. What survives is what
+# survives *any* cook — a spore-former's floor — which is why a seared cut
+# eaten at once is safe and a seared cut left on the table overnight is
+# not.
+#
+# It exists to be compared with `warmed-through`, which authors the other
+# extreme and is the trap.
+recipeId: seared-cut
+name: Seared cut
+keywords: ["seared-cut", "sear", "seared"]
+discipline: cooking
+difficulty: standard
+inputSlots:
+- slot: meat
+  category: meat
+  minGrade: fair
+  kind: item
+  count: 1
+toolCapabilities: ["pot"]
+outputTemplate: /stuff/thing/items/platter
+outputAppearance: a cut seared hard on the outside, barely rested
+outputApplication: edible
+outputPortionL: 0.4
+requiresHeatK: 500
+# Ten seconds. At this heat that is a complete kill — which is the point.
+holdS: 10

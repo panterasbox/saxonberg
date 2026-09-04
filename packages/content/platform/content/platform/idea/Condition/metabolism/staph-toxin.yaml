@@ -1,0 +1,30 @@
+# Staphylococcal enterotoxin — the poison a staph population leaves in the
+# food, calibrated the way ptomaine was: burden = dose × potency / bodyMass,
+# banded against what already ships.
+#
+# ⚠ Fast and violent and short. The fastest onset of anything here (a high
+# `absorptionRate`), and it clears quickly once it is through — which is
+# the honest shape and also the reason it is survivable.
+#
+# ⭐ It authors NO `labileAtK` on the tag that carries it (see the
+# `staph-aureus` pathogen row). Heat kills the population and leaves this
+# exactly where it was.
+class: /platform/idea/Condition
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: staph toxin
+  signature: []
+  progression: null
+  resolution:
+    by: rest
+  observableSigns: [nauseous, sweating, pallid]
+  contagion: null
+  toxinBehavior:
+    toxinType: staph-toxin
+    absorptionRate: 8
+    clearanceRate: 0.05
+    potency: 1
+    bands:
+      - { threshold: 1.5, severity: 1 }
+      - { threshold: 4, severity: 2 }
+      - { threshold: 9, severity: 3 }
