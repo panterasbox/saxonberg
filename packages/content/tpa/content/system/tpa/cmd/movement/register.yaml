@@ -1,0 +1,23 @@
+# register — record the Teleport Authority terminal here onto your travel
+# credential, so you can `teleport` to it later. Contributed to the command
+# set only when you're at a node (FastTravelMixin.commandContributions).
+# Arrival-capable nodes only — the controller refuses a departures-only node.
+verbs: [register]
+controller: /system/tpa/idea/cmd/movement/RegisterController
+description: "Register the Teleport Authority terminal here onto your travel credential."
+help: |
+  Record the Teleport Authority terminal you're standing at onto
+  your travel credential, so you can `teleport` straight back here
+  later. No target — it registers wherever you currently are.
+
+  `register` only appears when you're actually at a fast-travel
+  node, and only at one you can arrive at — a departures-only
+  platform won't let you set it as a destination. You need your
+  travel credential on you for it to take.
+# ⚠ The two TPA-shaped validators (`requiresTravelCredential`,
+# `mustBeAtFastTravelNode`) were deleted with the pack cut: they lived in
+# the KERNEL's validator directory, which is exactly where a capability
+# pack's preconditions must not live — and RegisterController re-checked
+# both, redundantly, on every call.
+validators:
+  - /lib/command/validators/requiresAnimate

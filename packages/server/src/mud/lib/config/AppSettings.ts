@@ -368,6 +368,38 @@ export const AppSettingKeys = {
    * custodian, and the TPA is a business, not the state).
    */
   fasttravelTpaBusinessPath: "fasttravel.tpaBusinessPath",
+  /**
+   * Fast-travel — the **born-with registration floor**: a comma-separated
+   * list of node template paths every fresh travel credential starts
+   * registered for, so a realm's interchange and social hub are
+   * universally reachable by design.
+   *
+   * ⭐ Data, not a code constant (TPA reform D12/AC22). It used to be
+   * `BORN_WITH_TRAVEL_NODES` in `lib/credential/`, three `/world/**`
+   * paths hard-coded into the kernel — which of a realm's stops are
+   * universally reachable is a REALM decision, and the paths are
+   * authored in `world-seed`. The seeded literal is empty, so a kernel
+   * with no teleport pack has an empty floor and is *correct*.
+   */
+  fasttravelBornWithNodes: "fasttravel.bornWithNodes",
+  /**
+   * TPA — what a gate on the CITY LINE charges per τ it supplies.
+   *
+   * ⭐ The rate is not authored per terminal: it DERIVES from where the
+   * gate's mana came from, because the operator resells its own supply
+   * at its cost basis. A line-fed gate is cheap; a frontier post
+   * running on bought cells is dear (`tpa.manaRate.cell`), and the
+   * traveller can see which is which by looking at the terminal.
+   * *Calibrate at launch.*
+   */
+  tpaManaRateMains: "tpa.manaRate.mains",
+  /**
+   * TPA — what a gate running on BOUGHT CELLS charges per τ. Dearer
+   * than the line by construction, which is what makes two
+   * otherwise-identical gates quote different prices for the same ride.
+   * *Calibrate at launch.*
+   */
+  tpaManaRateCell: "tpa.manaRate.cell",
 
   /**
    * Social-graph (attention management) — the reserved-baseline notify
@@ -1256,7 +1288,7 @@ export const AppSettingKeys = {
   /** Magic — base mana recovery (pt per game-minute) at rest, before the
    * serenity factor and the metabolism-shaped rest-quality scaling. */
   magicRecoveryPerMinBase: "magic.recoveryPerMinBase",
-  /** Magic — kilojoules delivered into an item's tank per point of the
+  /** Magic — τ delivered into an item's tank per point of the
    * recharging caster's own reserve spent. The exchange rate of the
    * recharging SERVICE: what is scarce is caster-hours, not shells.
    * *Calibrate at launch.* */
@@ -1267,11 +1299,14 @@ export const AppSettingKeys = {
    * maintain, which is the counterweight to having no tank to run dry.
    * *Calibrate at launch.* */
   magicRefreshPatternPerManaPt: "magic.recharge.patternPerManaPt",
-  /** Magic — kilojoules of stored charge a charged item spends per point
-   * of a spell's authored cost. The conversion between the caster-facing
-   * pool (pt) and the item-facing tank (kJ) — a spell's `cost` is
-   * trigger-neutral once read as *energy required*, which the arcane
-   * science says it literally is. *Calibrate at launch.* */
+  /** Magic — τ of stored charge a charged item spends per point of a
+   * spell's authored cost. ⓘ **Vestigial since the TPA reform (P1):**
+   * the caster-facing pool and the item-facing tank are now the SAME
+   * denominator (both `'pt'`, both spoken as τ), so the honest value is
+   * the identity `1` and the conversion is a no-op. The KEY is kept —
+   * an operator may have set it, and `1 τ ≡ 1 kJ` makes the old value
+   * mean the same thing — but nothing in the code names kJ any more.
+   * *Calibrate at launch.* */
   magicChargeKJPerCostPt: "magic.charge.kJPerCostPt",
   /** Magic — fraction of an item's committed energy that becomes WASTE
    * HEAT in the item rather than effect. No process is perfectly

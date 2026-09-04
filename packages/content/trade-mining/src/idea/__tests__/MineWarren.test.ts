@@ -18,7 +18,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import MineWarren from '../MineWarren';
 import Deposit from '../Deposit';
 import MineRoom from '../../location/MineRoom';
-import type { Working } from '../../location/Working';
+import type { Working } from '../../lib/Working';
 import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
 import Material from '@saxonberg/server/mud/platform/idea/material/Material';
 import ToolItem from '@saxonberg/server/mud/platform/thing/ToolItem';
@@ -36,7 +36,7 @@ import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persiste
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
-import type { Cell } from '../../location/Working';
+import type { Cell } from '../../lib/Working';
 
 interface Doc extends Record<string, unknown> { _id?: string }
 

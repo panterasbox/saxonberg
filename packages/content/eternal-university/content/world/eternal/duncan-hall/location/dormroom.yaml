@@ -31,6 +31,18 @@ data:
   # home on the ladder, so it is also the first place a new tenant can
   # reach their circle at all.
   props:
+    # ⭐ The mana lamp — university-owned, and the domestic half of the
+    # device category (TPA reform AC6). It composes exactly what the
+    # Teleport Authority's terminal composes and shares nothing else
+    # with it, which is what makes `ManaPoweredMixin` a category rather
+    # than a terminal wearing a costume.
+    #
+    # It ships with an EMPTY bay on purpose: D5's third row is that *a
+    # resident is a sufficient battery*, so a tenant who can cast pours
+    # a little of their own reserve in, and one who cannot buys a cell
+    # at the general store. Either way the room gets lit, and neither is
+    # a special case in the lamp.
+    - /system/arcana/thing/mana-lamp
     - /platform/thing/sandbox/wardrobe
     - /world/eternal/duncan-hall/thing/bed
     - /world/eternal/duncan-hall/thing/desk

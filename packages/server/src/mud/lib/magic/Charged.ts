@@ -105,7 +105,7 @@ export const CHARGE_DEFAULTS = {
    *
    * Sized against D8's claim, which is a *ratio* rather than a number:
    * an always-on wearable **flattens a charge in days where a triggered
-   * item lasts months**. At 5 W a 900 kJ shell runs about 25 game-days
+   * item lasts months**. At 5 W a 900 τ shell runs about 25 game-days
    * of continuous draw, against an idle half-life near 80 game-days —
    * so always-on is genuinely the expensive mode and not a rounding
    * difference. *Calibrate at launch.*
@@ -116,8 +116,8 @@ export const CHARGE_DEFAULTS = {
    * hot is the honest consequence rather than an oversight.)
    */
   STANDBY_WATTS: 5,
-  /** Default shell capacity (kJ) when a template authors none. */
-  CAPACITY_KJ: 500,
+  /** Default shell capacity (τ) when a template authors none. */
+  CAPACITY_TAU: 500,
 } as const;
 
 /** Numeric AppSetting read, falling back to the seeded literal. */
@@ -143,22 +143,22 @@ export interface Charged {
   reconcileCharge(): void;
   /** The charge reserve, freshly reconciled. `null` before install. */
   getCharge(): Reserve | null;
-  /** Stored energy in kJ, freshly reconciled. */
-  getStoredKJ(): number;
-  /** Capacity in kJ. */
-  getCapacityKJ(): number;
-  setCapacityKJ(kJ: number): void;
+  /** Stored charge in τ, freshly reconciled. */
+  getStoredTau(): number;
+  /** Capacity in τ. */
+  getCapacityTau(): number;
+  setCapacityTau(tau: number): void;
   /** current/capacity in [0,1]. */
   getChargeFraction(): number;
   /** Is there nothing left? A depleted item still affords its verb. */
   isDepleted(): boolean;
   /**
-   * Spend `kJ`. Returns `false` — **without spending anything** — when
+   * Spend `tau`. Returns `false` — **without spending anything** — when
    * the charge cannot cover it, so a partial firing is impossible.
    */
-  spendCharge(kJ: number): boolean;
-  /** Take `kJ` in, clamped at capacity. Returns what was actually taken. */
-  receiveCharge(kJ: number): number;
+  spendCharge(tau: number): boolean;
+  /** Take `tau` in, clamped at capacity. Returns what was actually taken. */
+  receiveCharge(tau: number): number;
   /** Does this item hold its effect up continuously while worn? */
   isAlwaysOn(): boolean;
   setAlwaysOn(value: boolean): void;
@@ -189,7 +189,7 @@ export interface Charged {
   chargeFrom(actor: Stuff, committedPt: number): Promise<ChargeTransfer>;
 
   // ---------- storage (public for the Hydrator) ----------
-  capacityKJ: number;
+  capacityTau: number;
   alwaysOn: boolean;
   drawActive: boolean;
   chargeClockStamp: number;
@@ -220,14 +220,14 @@ export function ChargedMixin<TBase extends MixinConstructor>(Base: TBase) {
     };
 
     static fieldMeta: FieldMeta = {
-      capacityKJ: { persistent: true, authorable: true, spoiler: 1 },
+      capacityTau: { persistent: true, authorable: true, spoiler: 1 },
       alwaysOn: { persistent: true, authorable: true },
       drawActive: { persistent: true, runtimeState: true },
       chargeClockStamp: { persistent: true, runtimeState: true },
     };
 
-    /** Shell capacity, kJ. */
-    public capacityKJ: number = CHARGE_DEFAULTS.CAPACITY_KJ;
+    /** Shell capacity, τ. */
+    public capacityTau: number = CHARGE_DEFAULTS.CAPACITY_TAU;
 
     /** Does it hold its effect up continuously (a ring), or fire (a wand)? */
     public alwaysOn: boolean = false;
@@ -246,8 +246,8 @@ export function ChargedMixin<TBase extends MixinConstructor>(Base: TBase) {
       reserved.setReserve(
         new Reserve(
           Charge.RESERVE_KEY,
-          Quantity.of(this.capacityKJ, Charge.UNIT),
-          Quantity.of(this.capacityKJ, Charge.UNIT),
+          Quantity.of(this.capacityTau, Charge.UNIT),
+          Quantity.of(this.capacityTau, Charge.UNIT),
           'arcane',
           null,
         ),
@@ -395,22 +395,22 @@ export function ChargedMixin<TBase extends MixinConstructor>(Base: TBase) {
       );
     }
 
-    public getStoredKJ(): number {
+    public getStoredTau(): number {
       return this.getCharge()?.current.rawValue() ?? 0;
     }
 
-    public getCapacityKJ(): number {
-      return this.capacityKJ;
+    public getCapacityTau(): number {
+      return this.capacityTau;
     }
 
-    public setCapacityKJ(kJ: number): void {
-      const n = Number(kJ);
+    public setCapacityTau(tau: number): void {
+      const n = Number(tau);
       if (!Number.isFinite(n) || n <= 0) {
         throw new RangeError(
-          `capacityKJ: must be a positive number, got '${String(kJ)}'`,
+          `capacityTau: must be a positive number, got '${String(tau)}'`,
         );
       }
-      this.capacityKJ = n;
+      this.capacityTau = n;
       // Re-seat the reserve so an authored capacity change is honoured
       // rather than silently ignored on an already-installed shell.
       const reserved = this as unknown as Reserved;
@@ -436,11 +436,11 @@ export function ChargedMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     public isDepleted(): boolean {
-      return this.getStoredKJ() <= 0;
+      return this.getStoredTau() <= 0;
     }
 
-    public spendCharge(kJ: number): boolean {
-      const want = Number(kJ);
+    public spendCharge(tau: number): boolean {
+      const want = Number(tau);
       if (!Number.isFinite(want) || want < 0) return false;
       if (want === 0) return true;
       const pool = this.getCharge();
@@ -454,8 +454,8 @@ export function ChargedMixin<TBase extends MixinConstructor>(Base: TBase) {
       return true;
     }
 
-    public receiveCharge(kJ: number): number {
-      const want = Number(kJ);
+    public receiveCharge(tau: number): number {
+      const want = Number(tau);
       if (!Number.isFinite(want) || want <= 0) return 0;
       const pool = this.getCharge();
       if (!pool) return 0;

@@ -38,7 +38,7 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type { BrainContext } from '@saxonberg/server/mud/lib/behavior/brain';
-import type { Cell } from '../../location/Working';
+import type { Cell } from '../../lib/Working';
 
 const ZONE = '/world/fx-mine/mine';
 const SURFACE = '/world/fx-mine/pithead';

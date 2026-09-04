@@ -199,7 +199,7 @@ export default class DropController extends CommandController<DropModel> {
         MessageApi.scene(giver)
           .topic('sense.survey')
           .toSelf(
-            release.dumpedKJ > 0
+            release.dumpedTau > 0
               ? Mml.compose`You cannot let go of ${Mml.thing(operand)} — and it is running hot against your skin.`
               : Mml.compose`You cannot let go of ${Mml.thing(operand)}. It has no intention of being put down.`,
           )

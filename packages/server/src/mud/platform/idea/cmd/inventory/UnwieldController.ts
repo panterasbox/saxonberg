@@ -65,7 +65,7 @@ export default class UnwieldController extends CommandController<UnwieldModel> {
       MessageApi.scene(giver)
         .topic('sense.survey')
         .toSelf(
-          release.dumpedKJ > 0
+          release.dumpedTau > 0
             ? Mml.compose`Your hand will not open around ${Mml.thing(target)} — and it is running hot against your palm.`
             : Mml.compose`Your hand will not open around ${Mml.thing(target)}. It has no intention of letting go.`,
         )

@@ -101,6 +101,112 @@ them too:
 
 See [parcel.md](./parcel.md) for the `/compact` title.
 
+## ⭐⭐⭐ When a collection should be a document instead (audit, 2026-09-03)
+
+The cluster caps at **500 collections** and a world is **46**, so *"should
+this be a collection?"* is a real question with a real budget behind it.
+All 48 were audited against the criteria below. **The answer is three**,
+and two of those are defects rather than migrations.
+
+### The rubric — all five must hold
+
+| # | test | why |
+|---|---|---|
+| 1 | **path-addressable** — every read by path or prefix, never *find all X where Y = Z* | the store is a tree |
+| 2 | **grows with things, not actions** | ⚠⚠ a document is **one row**; concurrent appends to one row **fork** |
+| 3 | **no revision log, no compare-and-set** | ⭐ the standing exclusion: *`wiki` is deliberately not a kind — a page has a revision log and a CAS edit path of its own* |
+| 4 | **≤ 1 secondary key** | `PersistenceManager` creates exactly **one** unique partial index per flat-key kind (`{kind, data.<naturalKey>}`) and nothing else |
+| 5 | **a titled owner** | `canAtPath` gates on parcel title, and `lint:untitled` says an unclaimed path is one **nobody can ever edit** |
+
+⚠ **Criterion 2 is the one that does the work, and row counts lie.**
+`renown_events`, `beliefs`, `accountability_events` and `player_frames`
+all measured **zero rows** in the live worlds on 2026-09-03 — because
+nobody has played, not because they are small. **Growth law, never
+volume.** Every `*_events` collection, `bank_ledger`, `chronicles`,
+`transcripts` and `diagnostics` fail here regardless of what they hold
+today.
+
+### ⭐⭐⭐ The verb test — `warm()` vs `rebuild()`
+
+A third disposition exists beside *move* and *keep*: **a collection that
+is a cache of derivable state should not persist at all.** And there is a
+one-word tell, visible in every singleton's `postRegister`:
+
+| the call | what it means | verdict |
+|---|---|---|
+| `warm()` · `warmCache()` · `boot()` | **the collection is the truth**, memory is the cache | keep |
+| `rebuild()` | **the collection is the cache** | it should not exist |
+
+⭐ Swept across all 39 singletons: **`BlueprintCatalogue` is the only one
+that calls `rebuild()`.** `MaterialCatalogue`, `RecipeCatalogue`,
+`SoulCatalogue`, `ChannelCatalogue`, `SubjectCatalogue`,
+`ArchetypeCatalogue`, `HelpCatalogue`, `FermentProfileCatalogue` and the
+rest all **warm** — they load, and their collections are real state.
+
+### The audit result
+
+| collection | disposition | evidence |
+|---|---|---|
+| ⭐⭐⭐ **`blueprints`** | **delete — derivable** | the only `rebuild()` in the tree; `Blueprint.find()` appears **twice**, both inside `BlueprintCatalogue.rebuild()`; the class says *"A CACHE: `rebuild` regenerates it at every boot"* |
+| ⭐⭐⭐ **`descriptor_banks`** | **move — should be a kind** | ⚠ **a documented inconsistency** (below) |
+| ⭐⭐ **`office_holders`** | **move** | 0 indexes, 5 sparse rows, `postRegister` does **no DB work**, and `holderOf` = *explicit row else the founder default* — a path lookup with a fallback |
+| ⭐ `media_assets` | move | 0 indexes; provenance records, addressable by asset |
+| ⚠ `bank_supply` | **leave** | 1 row, 0 indexes, looks perfect — **it is money.** The conservation chokepoint's counter does not go in a generic JSON store where `canAtPath` decides who may write. |
+| ⚠ `pack_installs` | **leave** | circular: it is the *installer's* ledger, and documents are what the installer writes |
+| ❌ the rest | leave | real state, or criterion 2 |
+
+**Ceiling: 48 → 45.** Modest, and the point is less the count than that
+two of the three are **bugs**.
+
+### ⚠ The two defects
+
+**`blueprints` is a cache that persists.** 147 rows survive a restart and
+are then immediately discarded and re-derived by the only code that reads
+them. ⭐ It is **not** a duplicate of the `blueprint` document kind — the
+two hold disjoint populations by design (147 machine-minted
+`bp-<class-path>` skeletons vs 9 hand-authored curated overlays at
+`/platform/blueprints/<id>`; **zero id overlap** in both live worlds).
+⚠ The seam to prove before removing it: `rebuild()` reads the previous
+generation for *drift-safe on id* and the signature dedup — `derivedId()`
+is deterministic, so that stability may already come from the function
+rather than the stored rows.
+
+**`descriptor_banks` should be a kind, by its own class comment:**
+
+> *"The **`NameBank` shape verbatim**, and for the same reasons: these are
+> bulk authored **content**, not code, so they live as plain-JSON
+> `Document`s in their own collection and arrive through the `PackApi`
+> reconcile installer as the `descriptor-banks` content kind."*
+
+`name-bank` **is** a document kind. `descriptor-bank` is not — and
+`PackLogic` parses `content/descriptor-banks/*.yaml` right beside the
+kinds that land in `documents`, then routes these into a collection.
+Same shape, same installer, same stated reasons, different store.
+
+### ⭐⭐ A cross-cutting register is not a new namespace
+
+The recurring ask is a global ledger — *every herd in the world*, every
+right, every licence — and the reflex is a root like `/herds`. ⚠ That
+fails criterion 5 immediately: **nobody holds title to it, so nobody can
+write it.**
+
+The taxonomy above already answers it, in two parts:
+
+> ⭐ **The record lives with its owner. The register lives on the branch
+> of the institution that keeps it.** The deed is yours; the register is
+> the county's.
+
+Which is the house pattern already — `ParcelRecord` + `ParcelRegistry`,
+and chattel's *"ownership is a row in a separate, gated registry, stored
+apart from the editable good it gates."* The herd's record sits under the
+rancher's parcel where they can write it; the register entry sits on
+`/corpo/<association>` or the realm's own branch, holding a pointer and
+whatever the register must answer globally.
+
+⭐ And it forces the question the design should be asking anyway — **who
+keeps this register?** — instead of inventing a rootless namespace that
+nobody can be accountable for.
+
 ## The Api (`api/document.ts` → `platform/idea/api/DocumentLogic.ts`)
 
 A thin gated forwarding shell over a hot-reloadable logic singleton at

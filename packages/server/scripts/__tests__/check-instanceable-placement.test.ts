@@ -6,7 +6,12 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { tradePlacementOk, packSrcPlacementOk, packBrainShapeOk } from '../check-instanceable-placement';
+import {
+  tradePlacementOk,
+  packSrcPlacementOk,
+  packBrainShapeOk,
+  packLibShapeOk,
+} from '../check-instanceable-placement';
 
 describe('check-instanceable-placement.tradePlacementOk', () => {
   it('an instanceable row under <root>/<branch>/ passes', () => {
@@ -40,22 +45,41 @@ describe('check-instanceable-placement over a capability pack', () => {
     expect(tradePlacementOk('/system/arcana/Wand', true, [])).toBe(true);
   });
 
-  it('invariant 8: a pack src/ has no lib/ and nothing outside a branch', () => {
+  it('invariant 8: a pack src/ holds branches, behavior/ and lib/, and nothing else', () => {
     expect(packSrcPlacementOk('thing/Wand.ts')).toBe(true);
     expect(packSrcPlacementOk('idea/cmd/magic/CastController.ts')).toBe(true);
     expect(packSrcPlacementOk('__tests__/x.test.ts')).toBe(true);
-    expect(packSrcPlacementOk('lib/Helper.ts')).toBe(false);
     expect(packSrcPlacementOk('Helper.ts')).toBe(false);
     expect(packSrcPlacementOk('util/Helper.ts')).toBe(false);
     // behavior/ is the Brain category's home in a pack — flat, one file per brain.
     expect(packSrcPlacementOk('behavior/paces.ts')).toBe(true);
     expect(packSrcPlacementOk('behavior/nested/paces.ts')).toBe(false);
-    // A locality pack mirrors its rows: locality subdirs and flat files
-    // pass; lib/ never does (residences D18 — the locality packs).
+    // lib/ is the pack's own substrate since the TPA reform (P2a) — the
+    // DIRECTORY is admitted here; what may live in it is packLibShapeOk's.
+    expect(packSrcPlacementOk('lib/ManaPowered.ts')).toBe(true);
+    expect(packSrcPlacementOk('lib/magic/ManaPowered.ts')).toBe(true);
+    // A locality pack mirrors its rows: locality subdirs and flat files pass.
     expect(packSrcPlacementOk('duncan-hall/DormWarren.ts', true)).toBe(true);
     expect(packSrcPlacementOk('duncan-hall/idea/cmd/ProvisionController.ts', true)).toBe(true);
     expect(packSrcPlacementOk('TicketClerk.ts', true)).toBe(true);
-    expect(packSrcPlacementOk('lib/Helper.ts', true)).toBe(false);
+  });
+
+  it("invariant 8: a pack lib/ holds only inherited substrate", () => {
+    const mixin =
+      "export const MANA_POWERED_MIXIN = 'ManaPoweredMixin';\n" +
+      'export function ManaPoweredMixin<T>(Base: T) {\n  return class extends (Base as never) {};\n}\n';
+    expect(packLibShapeOk('ManaPowered.ts', mixin)).toBeNull();
+    // A value object is substrate too.
+    expect(packLibShapeOk('Charge.ts', 'export class Charge {\n  static UNIT = "pt";\n}\n')).toBeNull();
+
+    // An Api, a logic singleton and a free helper each stay the kernel's.
+    expect(packLibShapeOk('api/mana.ts', 'export class ManaApi {}\n')).toMatch(/Api/);
+    expect(packLibShapeOk('Mana.ts', 'export class ManaApi {}\n')).toMatch(/Api/);
+    expect(packLibShapeOk('ManaLogic.ts', 'export class ManaLogic {}\n')).toMatch(/logic singleton/);
+    expect(packLibShapeOk('Mana.ts', 'export class X extends ApiLogic {}\n')).toMatch(/logic singleton/);
+    expect(packLibShapeOk('helpers.ts', 'export function tauOf(x: number) {\n  return x;\n}\n')).toMatch(
+      /free function/,
+    );
   });
 
   it('a pack behavior/ module must be brain-shaped', () => {

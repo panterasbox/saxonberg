@@ -80,12 +80,12 @@ export interface SlotSpec {
  * Public shape provided by SlottedMixin.
  */
 /**
- * The outcome of {@link Slotted.tryReleaseFromSlots}. `dumpedKJ` is set
+ * The outcome of {@link Slotted.tryReleaseFromSlots}. `dumpedTau` is set
  * only on a refusal, and is what the refusal cost the holder.
  */
 export type SlotReleaseResult =
   | { readonly released: true; readonly vacated: number }
-  | { readonly released: false; readonly dumpedKJ: number };
+  | { readonly released: false; readonly dumpedTau: number };
 
 /** Slot resolution query — by Detail keyword or by accepted-mixin. */
 export type SlotResolutionQuery = { detail: string } | { accepts: string };
@@ -568,7 +568,7 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
         if (refusal) {
           // All-or-nothing: nothing has been vacated yet, so a
           // two-handed cursed thing cannot end up half off.
-          return { released: false, dumpedKJ: refusal.dumpedKJ };
+          return { released: false, dumpedTau: refusal.dumpedTau };
         }
       }
 

@@ -46,9 +46,11 @@ reflection). It knows its `kind` and serializes itself to a plain
   lifted verbatim from the retired `PaymentCredentialMixin`.
 - **`TravelCredential`** — the registered-node set plus
   `register`/`unregister`/`isRegistered`/`authorize`. Born with the
-  **three-node `BORN_WITH_TRAVEL_NODES` floor** (the Terminus arrival node,
-  the lounge, and the newbie-wilds crossroads — the University Avenue node is
-  retired); `fromData` unions saved entries on top of the floor, never
+  **authored `fasttravel.bornWithNodes` floor** — read from settings, not a
+  code constant (TPA reform D12/AC22: *which* of a realm's stops are
+  universally reachable is a realm decision, so `world-seed` authors the
+  three paths and a kernel with no teleport pack has an empty floor and is
+  correct); `fromData` unions saved entries on top of the floor, never
   clearing it. **Presentation-vs-clearance down-payment:** the record
   satisfies the `teleport`/`register` *instrument* gate wherever it is held,
   but travel **clearance** is bound to the traveller's **identity** — read
@@ -213,6 +215,9 @@ Registry: `Mixins.CredentialWallet` (`lib/mixin.ts`),
   the risk ladder, the `wallet` verb).
 - [fasttravel.md](./fasttravel.md) — the `travel` credential consumer (the
   TPA fork, `register`, the scan-to-register unlock + born-with floor).
+  ⚠ Since the TPA reform the credential gates the *network*, never
+  teleportation itself: the kernel `teleport` verb's free-movement and
+  anchored-spell forks read no credential at all.
 - [augmentation.md](./augmentation.md) — the three-base capability model and
   the aether hosting relation the wallet update rides.
 - [credential-wallet-slate.md](../slates/tails/credential-wallet-slate.md) —

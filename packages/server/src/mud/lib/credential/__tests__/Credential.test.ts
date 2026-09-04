@@ -2,26 +2,42 @@
  * The credential record value-objects (the authorization half). Behavior
  * lifted from the retired PaymentCredentialMixin / TravelCredentialMixin,
  * now exercised directly on the plain records the wallet holds:
- *   - travel: born-with three-node floor, register/isRegistered/
+ *   - travel: the AUTHORED born-with floor (TPA reform D12: three
+ *     hard-coded /world/** paths became `fasttravel.bornWithNodes`, so
+ *     these suites seed it rather than importing a constant),
+ *     register/isRegistered/
  *     unregister/authorize, serialize round-trip re-floors;
  *   - payment: link/active/cap/frozen + authorize ladder, serialize round-trip.
  */
 
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import {
   Credential,
   PaymentCredential,
   TravelCredential,
-  BORN_WITH_TRAVEL_NODES,
   UNCAPPED,
 } from "../Credential";
+import { AppApi } from "../../../api/app";
+import { AppSettingKeys } from "../../config/AppSettings";
 import { Money } from "../../banking/Money";
 import { Currency } from "../../banking/Currency";
 
+/** The floor this suite authors — the shape, not the realm's values. */
+const FLOOR = ["/world/one/node", "/world/two/node", "/world/three/node"];
+
 describe("TravelCredential record", () => {
-  it("is born with all three floor nodes registered", () => {
+  beforeEach(() => {
+    vi.spyOn(AppApi, "setting").mockImplementation((k: string) =>
+      k === AppSettingKeys.fasttravelBornWithNodes ? FLOOR.join(",") : "",
+    );
+  });
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("is born with every authored floor node registered", () => {
     const c = new TravelCredential();
-    for (const node of BORN_WITH_TRAVEL_NODES) {
+    for (const node of FLOOR) {
       expect(c.isRegistered(node)).toBe(true);
     }
   });
@@ -42,10 +58,19 @@ describe("TravelCredential record", () => {
     const back = Credential.fromData(c.toData());
     expect(back).toBeInstanceOf(TravelCredential);
     const t = back as TravelCredential;
-    for (const node of BORN_WITH_TRAVEL_NODES) {
+    for (const node of FLOOR) {
       expect(t.isRegistered(node)).toBe(true);
     }
     expect(t.isRegistered("/world/a/node")).toBe(true);
+  });
+
+  it("an unauthored floor is EMPTY, and that is correct", () => {
+    // ⭐ A kernel with no teleport pack installed reads no floor at all.
+    // The old code hard-coded three `/world/**` paths, so a pack-less
+    // world was born registered for stops that did not exist.
+    vi.spyOn(AppApi, "setting").mockReturnValue("");
+    const c = new TravelCredential();
+    for (const node of FLOOR) expect(c.isRegistered(node)).toBe(false);
   });
 
   it("re-floors even when the serialized row dropped the floor", () => {
@@ -54,7 +79,7 @@ describe("TravelCredential record", () => {
       kind: "travel",
       registered: ["/world/b/node"],
     }) as TravelCredential;
-    for (const node of BORN_WITH_TRAVEL_NODES) {
+    for (const node of FLOOR) {
       expect(back.isRegistered(node)).toBe(true);
     }
     expect(back.isRegistered("/world/b/node")).toBe(true);

@@ -142,10 +142,16 @@ describe('`entity` — somebody owns it', () => {
 });
 
 describe('⭐ `committee` — a city department', () => {
+  // ⚠ `terminal/idea/tpa` is GONE from this list, and that is the
+  // decision rather than an omission: the Teleport Authority governs
+  // ITSELF now (`{kind: committee, parcel: /system/tpa}`) and its row
+  // ships inside the `tpa` capability pack. The network crosses every
+  // locality it serves, so a network one of its stops appoints to is
+  // that stop's network and the others are guests on it. Terminus
+  // staffs Terminus's institutions; the Authority is not one.
   it.each([
     ['terminus/registry', '/world/terminus/registry'],
     ['terminus/budget', '/world/terminus/terminal'],
-    ['terminal/idea/tpa', '/world/terminus/terminal'],
   ])('%s is staffed by the committee over %s', (fragment, parcel) => {
     expect(byPath(fragment).data.appointingAuthority).toEqual({
       kind: 'committee',
@@ -158,7 +164,7 @@ describe('⭐ `committee` — a city department', () => {
     // state default (`core`) — which would silently mean "the operator
     // staffs the city", the exact wrong answer. The parcel has to be
     // somebody's, and that somebody has to be the city.
-    for (const fragment of ['terminus/registry', 'terminus/budget', 'terminal/idea/tpa']) {
+    for (const fragment of ['terminus/registry', 'terminus/budget']) {
       const ref = byPath(fragment).data.appointingAuthority as {
         parcel: string;
       };
@@ -166,6 +172,28 @@ describe('⭐ `committee` — a city department', () => {
       expect(title, `${ref.parcel} has no claimed title`).toBeDefined();
       expect(title!.owner?.name, ref.parcel).toBe('terminus');
     }
+  });
+
+  it('⭐ AC21 — the Teleport Authority is appointed by its OWN committee', () => {
+    // The positive half of the exclusion noted above, asserted rather
+    // than left to a comment. A network that crosses every locality it
+    // serves cannot be staffed by any one of them, so the Authority's
+    // authority is the committee over its own pack root — and that root
+    // has to be genuinely titled, or the `committee` kind falls through
+    // to the state default and the OPERATOR silently staffs it.
+    const tpa = byPath('tpa/idea/teleport-authority');
+    expect(tpa.data.appointingAuthority).toEqual({
+      kind: 'committee',
+      parcel: '/system/tpa',
+    });
+    const title = coveringTitle('/system/tpa');
+    expect(title, '/system/tpa has no claimed title').toBeDefined();
+
+    // …and NEGATIVELY (AC21's second half): no Terminus authority names
+    // it. A committee over a Terminus parcel would put the city in the
+    // Authority's appointment chain by the back door.
+    const ref = tpa.data.appointingAuthority as { parcel: string };
+    expect(ref.parcel.startsWith('/world/')).toBe(false);
   });
 
   it('⚠ the Registry stays a BUSINESS — it sells land titles', () => {

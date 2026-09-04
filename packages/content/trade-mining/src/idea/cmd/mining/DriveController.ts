@@ -28,7 +28,7 @@ import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import type MineWarren from '../../MineWarren';
 import type { WorkingType } from '../../MineWarren';
-import type { Cell, Face } from '../../../location/Working';
+import type { Cell, Face } from '../../../lib/Working';
 
 /** Reference time to cut one cell, in game ms, at reference hardness. */
 const DRIVE_MS = 40000;

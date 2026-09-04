@@ -79,7 +79,7 @@ export function AuthorMixin<TBase extends MixinConstructor>(Base: TBase) {
         'platform/cmd/author/reload.yaml',
         'platform/cmd/author/destruct.yaml',
         'platform/cmd/author/eval.yaml',
-        'platform/cmd/author/teleport.yaml',
+
         // Advancement developer harness — fabricate Transcript deeds so
         // the derive-on-read Competence loop + band conferrals are
         // exercisable without lane-2's real craft verbs. Wizard-gated

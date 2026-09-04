@@ -19,7 +19,7 @@ import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import AuthoredWorking from '../AuthoredWorking';
 import MineRoom from '../MineRoom';
-import { WORKING_MIXIN } from '../Working';
+import { WORKING_MIXIN } from '../../lib/Working';
 import Deposit from '../../idea/Deposit';
 import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
 import Material from '@saxonberg/server/mud/platform/idea/material/Material';

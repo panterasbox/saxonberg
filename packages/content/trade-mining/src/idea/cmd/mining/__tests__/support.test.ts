@@ -52,7 +52,7 @@ import type { CommandContext } from '@saxonberg/server/mud/api/command';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
-import type { Cell } from '../../../../location/Working';
+import type { Cell } from '../../../../lib/Working';
 
 const ZONE = '/world/fx-mine/mine';
 const DEPOSIT = '/world/fx-mine/idea/deposit/fx';

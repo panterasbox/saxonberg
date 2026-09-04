@@ -269,7 +269,7 @@ describe('AC7 — the endpoint takes the reaction', () => {
     const wand = makeStuff(() => new Wand());
     stampTemplatePathForTest(wand, `/obj/test/wand-${seq++}`);
     wand.setCarriedSpellPath('/stuff/idea/magic/Spell/shove');
-    wand.setCapacityKJ(1000);
+    wand.setCapacityTau(1000);
     ContainmentApi.move(wand, user);
     actingAs(user);
 
@@ -289,17 +289,17 @@ describe('AC7 — the endpoint takes the reaction', () => {
     const wand = makeStuff(() => new Wand());
     stampTemplatePathForTest(wand, `/obj/test/wand-${seq++}`);
     wand.setCarriedSpellPath('/stuff/idea/magic/Spell/glowlight'); // costs 10
-    wand.setCapacityKJ(25);
+    wand.setCapacityTau(25);
     ContainmentApi.move(wand, user);
     vi.spyOn(StuffApi, 'clone').mockImplementation(async () =>
       makeStuff(() => new SingletonCartesianLocation()),
     );
     actingAs(user);
 
-    const before = wand.getStoredKJ();
+    const before = wand.getStoredTau();
     const first = await wand.dischargeAt();
     expect(first.ok).toBe(true);
-    expect(wand.getStoredKJ()).toBeLessThan(before);
+    expect(wand.getStoredTau()).toBeLessThan(before);
 
     // Drain it flat, then fire again.
     await wand.dischargeAt();

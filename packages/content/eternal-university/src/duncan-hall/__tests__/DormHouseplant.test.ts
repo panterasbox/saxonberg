@@ -23,6 +23,7 @@ import "@saxonberg/server/test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { readFileSync, readdirSync } from 'fs';
 import { fileURLToPath } from 'url';
+import { ModuleApi } from '@saxonberg/server/mud/api/module';
 import YAML from 'yaml';
 import DormWarren from '../idea/DormWarren';
 import DormRoom from '../location/DormRoom';
@@ -193,6 +194,14 @@ function seedDomain(): void {
   addSeed('/stuff/thing/vessel/watering-can', `${OBJECTS}stuff/thing/vessel/watering-can.yaml`);
   addSeed('/stuff/thing/vessel/soil-sack', `${OBJECTS}stuff/thing/vessel/soil-sack.yaml`);
   // Materials + taxonomy the above reference.
+  // The dorm's mana lamp (TPA reform W5): the DOMESTIC half of the
+  // device category, seated by the room's `props:` like the bed and the
+  // desk. It needs arcana's class registered as well as its row, which
+  // `registerPackSource` below does.
+  addSeed(
+    '/system/arcana/thing/mana-lamp',
+    `${CONTENT}arcana/content/system/arcana/thing/mana-lamp.yaml`,
+  );
   addSeed(
     '/stuff/idea/material/bulk/water',
     `${CONTENT}base-library/content/stuff/idea/material/bulk/water.yaml`,
@@ -247,6 +256,10 @@ function seedUnit(floor: number, pos: number): string {
 function installStore(): void {
   store = new Map();
   idCounter = 0;
+  // The arcana pack's `src/`, so `/system/arcana/thing/ManaLamp` (the
+  // dorm's own wall lamp) resolves — the same registration a pack test
+  // makes for a sibling pack.
+  ModuleApi.registerPackSource(`${PACKS}arcana/src`, '/system/arcana');
   seedDomain();
   col('parcels').push({
     _id: `p-${++idCounter}`,

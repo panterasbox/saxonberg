@@ -1,0 +1,46 @@
+# Teleport — control·body, and the working that made the cost model
+# necessary. ⭐ **The authored `cost` here is the FLOOR, not the price**:
+# it buys the SURVEY — holding a place clearly enough to arrive in it —
+# which is the part `arcane-science.md` says is expensive. `costModel:
+# potential` adds the physics on top: `m·g·Δh`, the energy the world
+# actually charges to lift a body.
+#
+# ⭐⭐ **Distance costs nothing**, and that is the whole claim. Two hops
+# of wildly different length at the same altitude and mass cost the
+# same, because there is no distance term anywhere in
+# `MagicApi.relocationCost`. Going UP costs; going down is free and is
+# never a refund; carrying a full pack costs more, because you are
+# lifting the pack too.
+#
+# ⚠ The `relocate` effect always lands on `ctx.actor` and has no flag to
+# say otherwise: the arcane postulate makes the caster one endpoint of
+# any working, so you cannot send a third party (AC5). An ITEM in the
+# middle changes nothing — a wand of teleport moves its wielder.
+#
+# `requiredBand: proficient` on both axes. This is not a starter working:
+# it is the operation the whole Teleport Authority exists because most
+# people cannot perform.
+class: /platform/idea/magic/Spell
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  spellId: teleport
+  name: Teleport
+  verb: control
+  noun: body
+  # The survey floor. What it costs to hold a place well enough to
+  # arrive in it, before the world charges you for the lift.
+  cost: 40
+  costModel:
+    kind: potential
+  castingProfile:
+    requiredBand: proficient
+    castSeconds: 6
+  targeting: any
+  effects:
+    - kind: relocate
+  description: >-
+    You hold a place in mind until it is more real than the one you are
+    standing in, and the world settles the difference. The hard part was
+    never the distance — it is knowing precisely enough WHERE. Arriving
+    higher than you left costs what lifting you there would have cost;
+    arriving lower is simply free.

@@ -27,7 +27,7 @@
  */
 
 import SingletonCartesianLocation from '@saxonberg/server/mud/platform/location/SingletonCartesianLocation';
-import { WorkingMixin } from './Working';
+import { WorkingMixin } from '../lib/Working';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 
 export default class AuthoredWorking extends WorkingMixin(SingletonCartesianLocation) {

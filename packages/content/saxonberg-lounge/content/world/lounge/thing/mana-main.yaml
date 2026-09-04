@@ -1,0 +1,18 @@
+# The Lounge's mana line — the spur that feeds the terminal by the door.
+#
+# The lounge is not a frontier post: somebody pays a line bill here, so
+# the ride out is cheap and the gate is never dark. That is the same
+# fact the fare shows, from the other end.
+class: /system/arcana/thing/ManaMain
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  seatIn: /world/lounge/idea/warren
+  shortDescription: a mana line
+  primaryKeyword: line
+  keywords: [line, main, conduit, mains]
+  longDescription: >
+    A slim brass conduit runs down the wall beside the terminal and
+    disappears into the floor, warm to the back of a hand.
+  capacityTau: 100000
+  severed: false
+  closed: false

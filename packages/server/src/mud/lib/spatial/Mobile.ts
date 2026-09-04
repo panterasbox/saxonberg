@@ -228,6 +228,13 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
         'platform/cmd/boundary/open.yaml',
         'platform/cmd/boundary/close.yaml',
         'platform/cmd/author/goto.yaml',
+        // ⭐ `teleport` is a MOVEMENT verb and the KERNEL's. Its two
+        // universal forks — free movement inside an extent you hold,
+        // and the anchored working — depend on no content pack, so it
+        // is afforded here beside `go` and `goto` rather than by a
+        // travel node. A node adds the ride and the board; it does not
+        // grant the verb.
+        'platform/cmd/movement/teleport.yaml',
       ],
       peers: [],
       environment: [],

@@ -70,7 +70,6 @@ import type { SmellSource } from '../lib/perception/SmellSource';
 import type { SoundSource } from '../lib/perception/SoundSource';
 import type { Audible } from '../lib/perception/Audible';
 import type { Augment } from '../lib/augmentation/Augment';
-import type { FastTravel } from '../lib/fasttravel/FastTravel';
 import type { CredentialWallet } from '../lib/credential/CredentialWallet';
 import type { Perception } from '../lib/perception/Perception';
 import type { Concealable } from '../lib/concealment/Concealable';
@@ -824,10 +823,6 @@ export class MixinApi {
 
   public static isExitable(obj: Stuff): obj is Stuff & Exitable {
     return this.hasMixin(obj, Mixins.Exitable);
-  }
-
-  public static isFastTravel(obj: Stuff): obj is Stuff & FastTravel {
-    return this.hasMixin(obj, Mixins.FastTravel);
   }
 
   public static isCredentialWallet(

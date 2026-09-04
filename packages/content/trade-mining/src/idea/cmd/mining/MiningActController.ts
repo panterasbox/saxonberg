@@ -27,7 +27,7 @@ import { Mml } from '@saxonberg/server/mud/api/mml';
 import { SchedulerApi } from '@saxonberg/server/mud/api/scheduler';
 import { ManualBuildStep } from '@saxonberg/server/mud/lib/craft/ManualBuildStep';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
-import { WORKING_MIXIN, type Working, type Stability } from '../../../location/Working';
+import { WORKING_MIXIN, type Working, type Stability } from '../../../lib/Working';
 
 /** The topic every mining act narrates on. */
 export const MINING_TOPIC = 'act.deed';

@@ -41,6 +41,12 @@ const PRODUCE_DIR = fileURLToPath(
 const RESIDENCE_DIR = fileURLToPath(
   new URL("../../../residence/content/system/residence/", import.meta.url),
 );
+// The mana line (TPA reform W5): the cell and the lamp are arcana's —
+// the store stocks them cross-pack, the same way it stocks the farming
+// pots and the residence kit.
+const ARCANA_DIR = fileURLToPath(
+  new URL("../../../arcana/content/system/arcana/", import.meta.url),
+);
 const CH_DIR = fileURLToPath(
   new URL("../../../terminus/content/world/terminus/counting-houses/", import.meta.url),
 );
@@ -118,6 +124,12 @@ describe("general-store content integrity", () => {
     // plant it grows into. Both stocked from ordinary `/obj/` templates.
     "/platform/thing/PlantPot",
     "/platform/thing/Seed",
+    // The mana line (TPA reform W5): a cell is a Charged + Slottable
+    // shell — a wand that fits a bay instead of a hand — and the lamp is
+    // the domestic half of the mana-powered device category. Both
+    // discrete, neither Globbable.
+    "/system/arcana/thing/ManaCell",
+    "/system/arcana/thing/ManaLamp",
     // The homebrew line (fermentation D15): the carboy and culture jar
     // are Vat-family vessels (the transform rides the vessel), the
     // small still the distilling pack's furnace-tool — all discrete.
@@ -161,6 +173,7 @@ describe("general-store content integrity", () => {
       const wine = line.itemTemplatePath.startsWith("/trade/winemaking/");
       const brew = line.itemTemplatePath.startsWith("/trade/brewing/");
       const dist = line.itemTemplatePath.startsWith("/trade/distilling/");
+      const arcana = line.itemTemplatePath.startsWith("/system/arcana/");
       const dir = local
         ? STORE_DIR
         : produce
@@ -173,7 +186,9 @@ describe("general-store content integrity", () => {
                 ? BREW_DIR
                 : dist
                   ? DIST_DIR
-                  : OBJ_DIR;
+                  : arcana
+                    ? ARCANA_DIR
+                    : OBJ_DIR;
       const rel = local
         ? line.itemTemplatePath.replace("/world/terminus/general-store/", "")
         : produce
@@ -186,7 +201,9 @@ describe("general-store content integrity", () => {
                 ? line.itemTemplatePath.replace("/trade/brewing/", "")
                 : dist
                   ? line.itemTemplatePath.replace("/trade/distilling/", "")
-                  : line.itemTemplatePath.replace("/stuff/", "");
+                  : arcana
+                    ? line.itemTemplatePath.replace("/system/arcana/", "")
+                    : line.itemTemplatePath.replace("/stuff/", "");
       expect(existsSync(`${dir}${rel}.yaml`), line.itemTemplatePath).toBe(true);
       const good = load(dir, `${rel}.yaml`);
       // A real, discrete item class (backed by a shipped system, not a prop).

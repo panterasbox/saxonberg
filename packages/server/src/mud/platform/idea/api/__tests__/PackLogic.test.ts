@@ -411,7 +411,7 @@ describe('PackLogic — pack integration (real packs + real class resolution)', 
     // (the 12 spells, the 2 loci, the 13 items, the 3 draughts) — and the
     // five corpo packs (a mark + its brands each).
     const arcane = results.find((r) => r.packId === 'arcane-library');
-    expect(arcane!.inserted).toHaveLength(30);
+    expect(arcane!.inserted).toHaveLength(31);
     expect(arcane!.inserted).toContain('/stuff/idea/magic/Spell/glowlight');
     expect(arcane!.inserted).toContain('/stuff/thing/magic/glowlight-mote');
     expect(arcane!.inserted).toContain('/stuff/thing/magic/ring-of-veil');
