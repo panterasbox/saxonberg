@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Eternal University — the campus locality, homed whole out of the transitional world-seed: Duncan Hall (the dorm) and University Avenue, content and parked TS together.",
+  "description": "Eternal University \u2014 the campus locality, homed whole out of the transitional world-seed: Duncan Hall (the dorm) and University Avenue, content and parked TS together.",
   "scripts": {
     "build": "tsc",
     "test": "vitest run --passWithNoTests",

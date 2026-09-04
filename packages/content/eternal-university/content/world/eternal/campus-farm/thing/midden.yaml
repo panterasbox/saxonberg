@@ -1,0 +1,11 @@
+# ⚠ The MUCK slot, and it is not a waste-disposal problem: it is the
+# RETURN LEG of the nitrogen ledger. A byre with nowhere to put the muck
+# is a byre throwing away half of what the animals are for.
+class: /platform/thing/Prop
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a steaming midden
+  primaryKeyword: midden
+  keywords: [midden]
+  longDescription: >-
+    A heap of straw and dung with the rain steaming off it, turned at one end and settled at the other.

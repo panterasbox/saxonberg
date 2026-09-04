@@ -1,0 +1,10 @@
+# The MARKET slot for the farm archetype. ⚠ A farm that cannot sell is a
+# garden — which is why 'a way to market' is a need and not a nicety.
+class: /platform/thing/Prop
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a handcart
+  primaryKeyword: cart
+  keywords: [cart]
+  longDescription: >-
+    A two-wheeled handcart with worn shafts, standing tipped against the wall.

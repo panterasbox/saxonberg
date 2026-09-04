@@ -80,6 +80,7 @@ import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { BiomeApi } from '@saxonberg/server/mud/api/biome';
+import { AddressApi } from '@saxonberg/server/mud/api/address';
 import { CelestialApi } from '@saxonberg/server/mud/api/celestial';
 import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
@@ -718,6 +719,31 @@ export default class Field extends FieldBase {
     this.installSoilReserves(sample);
     this.installSward();
     // Learn where — and when — it is, the moment it exists.
+    void this.restampSeason();
+  }
+
+  /**
+   * ⭐⭐ **A hand-authored field stands itself up, and that is what makes
+   * AC 62 reachable.**
+   *
+   * A plotted field gets its reserves from `plot`. An AUTHORED one — the
+   * campus farm, a venue's home field — has no act to hang them on, and
+   * `reserves` is `runtimeState` so a row cannot declare them. Without
+   * this, authoring a field would need pack code, which is precisely the
+   * thing the archetype exists to make unnecessary.
+   *
+   * So registration resolves the ground and installs what its character
+   * calls for. ⚠ Idempotent by construction — `installSoilReserves` and
+   * `installSward` both skip a reserve that already exists, so a restored
+   * field keeps its history and only a fresh one is seeded.
+   */
+  public override async postRegister(): Promise<void> {
+    await super.postRegister();
+    const locality = await AddressApi.resolveLocalityFor(
+      this as unknown as Stuff & Container,
+    );
+    const seed = GroundCharacter.seedFor(locality?.getAddress() ?? '');
+    this.installFieldReserves(this.groundSample(null, seed));
     void this.restampSeason();
   }
 

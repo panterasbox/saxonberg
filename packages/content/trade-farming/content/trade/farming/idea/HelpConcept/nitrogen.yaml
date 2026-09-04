@@ -1,0 +1,38 @@
+# ⭐⭐ What nitrogen IS. The API reference can tell a reader that
+# `Soil.fixNitrogen` exists; only this can tell them why they should
+# care, and a build that adds an agronomy owes both.
+class: /platform/idea/HelpConcept
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: nitrogen
+  title: Nitrogen
+  summary: The thing your ground runs out of, and the whole reason a rotation exists.
+  keywords: [nitrogen, fertility, manure, muck, nutrient, protein]
+  seeAlso: [organic-matter, rotation, body-condition]
+  body: |
+    Plants are mostly built out of air and water. The part they cannot get
+    that way is nitrogen, and that is why fertility is a problem at all.
+
+    Everything green that grows on your ground took nitrogen out of it.
+    When you carry the crop away, the nitrogen goes with it. When an
+    animal eats the crop **standing on the field**, almost all of it comes
+    straight back where it stands — which is why grazing a field and
+    cutting it for hay are the same act with opposite consequences, and
+    why nobody had to write that rule down.
+
+    Two things put it back honestly, and two things take it away.
+
+      IN   clover and its relatives fix it out of the AIR — the one
+           genuinely free source there is, and the reason a clover ley is
+           worth a year of your rotation
+      IN   muck, which is slow: a little of it feeds this year's crop and
+           most of it feeds the next three
+
+      OUT  every harvest you carry off
+      OUT  rain, which washes it down past the roots — which is why you
+           work muck IN rather than leaving it on top, and why spreading
+           before a storm is throwing it away
+
+    ⭐ Feed value and fertility are the same number seen twice. Protein is
+    nitrogen times 6.25 — that is how feed has always been valued — so
+    good hay is nitrogen-rich hay is nitrogen the field no longer has.

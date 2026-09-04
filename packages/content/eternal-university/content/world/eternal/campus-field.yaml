@@ -1,0 +1,19 @@
+# The home field's own zone — ⭐ and the split is honest rather than a
+# workaround.
+#
+# A named exit between two rooms is legal only ACROSS a zone boundary,
+# because within one grid a door has to have a known inverse. That rule
+# is asking a real question — *does the authorship of the space change
+# here?* — and here it does: **the yard is built and the field is
+# ground.** They have different cell sizes for the same reason.
+#
+# ⚠ It is also the shape a PLOTTED field has, arrived at from the other
+# direction: a plotted field is a warren member on nobody's grid, reached
+# through a gate. The authored one crosses a zone boundary; the minted
+# one crosses a warren boundary; both are *you go through the gate to get
+# to the field*.
+class: /platform/idea/location/CartesianZone
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: the home field
+  cellSize: 20.0

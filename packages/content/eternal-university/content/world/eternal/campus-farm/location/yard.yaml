@@ -1,0 +1,33 @@
+# The farmyard — ⭐ where the BYRE archetype's five slots are bound, and
+# every one of them is bound by a THING standing in a room.
+#
+# The archetype states needs in capabilities the kernel already checks;
+# this is a locality answering them. ⚠ Reported, never enforced: if the
+# midden were missing, the yard would still work and the archetype would
+# simply say so.
+class: /platform/location/SingletonCartesianLocation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the university farmyard
+  primaryKeyword: farmyard
+  keywords: [farmyard, yard, farm]
+  longDescription: |
+    A square of trodden mud between a low stone byre and a hay barn, with a
+    water trough along one wall and a steaming midden heaped in the far
+    corner. Somebody has swept the middle of it and given up on the edges.
+    A gate at the top of the yard opens onto the home field.
+  coords: { x: 0, y: 0, z: 0 }
+  props:
+    - /world/eternal/campus-farm/thing/byre
+    - /world/eternal/campus-farm/thing/yard-wall
+    - /world/eternal/campus-farm/thing/trough
+    - /world/eternal/campus-farm/thing/hay-barn
+    - /world/eternal/campus-farm/thing/midden
+    - /world/eternal/campus-farm/thing/handcart
+    - /trade/farming/thing/spade
+    - /trade/farming/thing/plough
+    - /trade/farming/thing/soil-kit
+    - /trade/farming/thing/scythe
+  exits:
+    field:
+      destination: /world/eternal/campus-field/location/home-field

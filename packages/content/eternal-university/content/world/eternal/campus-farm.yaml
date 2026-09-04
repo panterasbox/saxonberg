@@ -1,0 +1,19 @@
+# The campus farm — ⭐⭐⭐ **small, real, and working** (D103).
+#
+# Modelled on Davis and Cal Poly, which teach agriculture with an actual
+# production unit on campus: small enough to walk, real enough to sell.
+# Students do the work; the unit is a teaching facility and a business at
+# once.
+#
+# ⭐⭐ **And it is this build's own falsifiable test** (AC 62). If the
+# campus farm can be authored against the farm and byre archetypes with
+# **ZERO PACK CODE**, the mechanism/expression cut was right — and we find
+# that out here, cheaply, long before anybody builds a valley. There is no
+# `src/` in this pack for any of it: every file under `campus-farm/` is
+# YAML, and the classes it names are `trade-farming`'s and
+# `trade-ranching`'s.
+class: /platform/idea/location/CartesianZone
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: the campus farm
+  cellSize: 20.0

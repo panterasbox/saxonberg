@@ -1,0 +1,22 @@
+# ⭐ The long game, and the reason land you farmed well is worth more.
+class: /platform/idea/HelpConcept
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: organic-matter
+  title: Organic matter
+  summary: The bank your fertility comes out of, built slowly and lost slowly.
+  keywords: [organic, matter, humus, muck, compost, tilth]
+  seeAlso: [nitrogen, structure]
+  body: |
+    Nitrogen is the flow. Organic matter is the bank it comes out of.
+
+    Dung, straw, crop residues and dead roots all rot down into it, and it
+    releases nitrogen a little at a time for years afterwards. That is why
+    muck is an investment rather than a fertiliser: spread it this autumn
+    and you are feeding the field until the one after next.
+
+    ⭐ It is also the mechanical reason **land you farmed well is better
+    land**. Two fields with the same texture and the same rain can be
+    worth very different money, and the difference is what somebody did
+    to them over years. It shows in your own survey, and it is the part
+    of a farm you can genuinely sell.

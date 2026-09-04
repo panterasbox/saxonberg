@@ -1,0 +1,12 @@
+# ⭐⭐ The ENCLOSURE slot — and note where it came from. Stony ground is
+# dear to clear and CHEAP TO FENCE, because the wall is the field's own
+# stones stacked at the edge. Zero waste, historically exact, and it
+# inverts an expectation in a way a player remembers.
+class: /platform/thing/Prop
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a drystone wall
+  primaryKeyword: wall
+  keywords: [wall]
+  longDescription: >-
+    A drystone wall about chest high, built without mortar out of stone that plainly came off this ground, with a wooden gate hung in a gap.

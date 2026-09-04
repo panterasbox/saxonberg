@@ -1,0 +1,36 @@
+# The home field — ⭐⭐ a `Field` authored directly, with NO pack code
+# anywhere, which is the whole of AC 62.
+#
+# It is four hundred square metres of ground with a name, a position on
+# the soil field, and a clover ley already in it. Everything else about
+# it — its texture, how it drains, what it is sour, what it would cost to
+# bring further in — is DERIVED from where it is, and stored nowhere.
+#
+# ⭐ `legumeFraction` is the one authored number that matters and it is
+# the teaching one: the ley is already down, so a student who grazes it
+# watches fertility rise and a student who cuts it for hay watches
+# fertility fall, on the same field, in the same season. That is the
+# whole of D7 available in the first hour anybody works here.
+#
+# ⚠ It authors no reserves, because it cannot: `reserves` is engine
+# state. The class stands itself up at registration from its own ground —
+# which is exactly what makes authoring one possible without code.
+class: /trade/farming/location/Field
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  fieldName: the home field
+  shortDescription: the home field
+  primaryKeyword: field
+  keywords: [field, "home field", ground, ley]
+  longDescription: |
+    Four hundred square metres of good level ground behind the yard, laid
+    down to a clover ley that is a shade greener than it has any business
+    being. The gate back to the yard hangs true.
+  coords: { x: 0, y: 0, z: 0 }
+  groundSpotX: 4
+  groundSpotY: 7
+  areaM2: 400
+  legumeFraction: 0.4
+  exits:
+    yard:
+      destination: /world/eternal/campus-farm/location/yard

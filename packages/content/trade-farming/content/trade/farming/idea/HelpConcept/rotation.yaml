@@ -1,0 +1,33 @@
+# ⭐⭐⭐ The agricultural revolution, available to be REDISCOVERED.
+class: /platform/idea/HelpConcept
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: rotation
+  title: Rotation
+  summary: Why the same field can be cropped every year without a fallow.
+  keywords: [rotation, four-course, fallow, ley, clover, turnips, norfolk]
+  seeAlso: [nitrogen, organic-matter]
+  body: |
+    Crop the same ground year after year and it runs down, because every
+    harvest carries nitrogen away and nothing brings it back. For most of
+    history the answer was to leave a field idle every third year and let
+    it recover — a third of your land producing nothing.
+
+    The way out is a **rotation** in which one of the courses puts more
+    back than it takes:
+
+      wheat    a cereal. Takes.
+      turnips  a root crop, and you FOLD the sheep on it — they eat it
+               where it stands and manure as they go, so most of what it
+               took comes straight back
+      barley   a cereal. Takes.
+      clover   a ley, grazed. Takes nothing out of the ground at all,
+               because it takes its nitrogen out of the AIR — and the
+               stock grazing it return what they eat where they eat it
+
+    ⭐ No fallow year, and the ground gets BETTER rather than merely
+    holding. That is not a bonus anybody granted you: it is what the
+    ledger does, and you can read it off your own field.
+
+    ⚠ It was worked out gradually and by a great many people. The story
+    about one clever lord and his turnips is a story.

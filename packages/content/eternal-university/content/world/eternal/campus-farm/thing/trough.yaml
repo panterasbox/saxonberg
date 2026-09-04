@@ -1,0 +1,13 @@
+# ⭐ The WATER slot — the archetype's divergence slot, which ships with
+# NO DEFAULT because every farm needs water and no two places answer the
+# same way. This place answers with a pipe from uphill. Another would
+# answer with a well, a pond, a stream or roof catchment, and the
+# archetype would be equally satisfied.
+class: /platform/thing/Prop
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a stone water trough
+  primaryKeyword: trough
+  keywords: [trough]
+  longDescription: >-
+    A hollowed stone trough along the wall, fed by a lead pipe from somewhere uphill, with a skin of green on the waterline.

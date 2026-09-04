@@ -1,0 +1,12 @@
+# The FEED slot, and the STORAGE slot for the farm archetype — the
+# winter feed budget made a place rather than a number. ⚠ It is also
+# where the hay fire lives: a stack put up wet heats, and this is what it
+# heats.
+class: /platform/thing/Prop
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a hay barn
+  primaryKeyword: barn
+  keywords: [barn]
+  longDescription: >-
+    An open-sided barn with a stone floor and a roof on posts, stacked to the eaves at one end and empty at the other.

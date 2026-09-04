@@ -1,0 +1,33 @@
+# ⭐⭐ D89 and D92, said plainly, BEFORE somebody buys a dairy cow.
+class: /platform/idea/HelpConcept
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: husbandry-clock
+  title: What an animal asks of you
+  summary: Game days, real hours, and choosing stock you can actually keep.
+  keywords: [cadence, clock, daily, milking, time, commitment]
+  seeAlso: [body-condition]
+  body: |
+    A game day is two real hours. That matters more here than anywhere
+    else in the world, because animals are the one thing that asks for
+    something on a schedule.
+
+    Different stock ask for wildly different amounts, and the difference
+    is the point rather than a difficulty setting:
+
+      bees          a look every week or two, and almost nothing daily
+      sheep         graze themselves; the work is seasonal and hard
+      beef cattle   graze themselves; low
+      hens          forgiving. Eggs accrue, so collect whenever
+      pigs          moderate, and they eat what nothing else will
+      a dairy cow   twice a game day, no exceptions
+
+    ⭐ **Your own life decides what you can keep**, and that is an honest
+    choice rather than a gate. Nobody will stop you buying a dairy cow.
+    If you do not milk her she dries off for that lactation — a season's
+    income gone, the animal perfectly well, and the next lactation
+    unaffected.
+
+    ⚠ And what must happen is not the same as what YOU must do. Feeding,
+    watering and mucking out can all be paid for. Deciding whether to pay
+    for them is the part that is yours.
