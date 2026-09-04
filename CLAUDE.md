@@ -71,6 +71,10 @@ behavior. Read the relevant doc before editing in its area.
   syllabus*, and **layer 3 enumerated** in three entrenchment tiers —
   A1–A16 amendable by nobody, B by whoever ships the code (the AGPL is
   the check), C by the polity
+- [docs/lint-family.md](./docs/lint-family.md) — the build-time gates:
+  the **derived** roster (`lint:family` runs every `lint:*`), what each
+  gate protects and why, and ⭐ the **census-then-ratchet** pattern for
+  removing an antipattern
 - [docs/roadmap.md](./docs/roadmap.md) — what's left to build
 - [docs/deployment.md](./docs/deployment.md) — deployment & infra:
   single Lightsail box + Caddy/Let's Encrypt + Mongo Atlas, GitLab CI
@@ -78,12 +82,19 @@ behavior. Read the relevant doc before editing in its area.
   (deploy-time materialization, local stays `.env`), cost model, the
   AWS cleanup record, and the one-time standup runbook
 - [docs/workflow.md](./docs/workflow.md) — feature-cycle process:
-  slate → requirements → plan → build → MR iteration → pre-merge
-  sweep → merge. Defines the artifact taxonomy
+  slate → requirements → plan → build → review → pre-merge sweep →
+  merge. Defines the artifact taxonomy
   (slate/requirements/plan/subsystem), their lifetimes, and the
-  retirement rules at sweep time. Skills under `.claude/skills/`
-  (`/requirements`, `/mr-iterate`, `/finalize`) are thin entry
-  points to phases of this loop.
+  retirement rules at sweep time. ⭐ **The line: requirements = what
+  the PRODUCT needs, plan = what the CODE needs** — if a requirements
+  sentence names a class, a file or a method, it is in the wrong doc.
+  ⭐⭐ **The build phase's exit criterion is the DRIVE** (run the
+  requirements doc's drive script against the running game before the
+  MR opens — tests build state, they never use it). Planning runs on
+  **Fable** (the `planner` agent). Skills + agents are **tracked** at
+  `.claude/skills/` + `.claude/agents/` (`/requirements`, `/plan`,
+  `/finalize`; `/mr-iterate` retired 2026-09-03 — review is a
+  conversation).
 - [docs/settlement-model.md](./docs/settlement-model.md) — the
   settlement model: the **sixteen needs** every town must meet or import
   (which are also the archetype list), the site-driven vs exit-driven
@@ -450,121 +461,51 @@ discoverability.
 
 ### The lint family
 
-- The lint family walks every capability pack's `src/` as well as the
-  kernel tree (`scripts/pack-roots.ts` is the shared reader): a pack
-  namespace root resolves into that pack's `src/`, never the kernel.
-- `pnpm lint:gates` (`scripts/check-gate-strings.ts`) — every concrete
-  `FromModule`/`FromController` string and `*_MODULE_ID` constant
-  resolves to a real module + export. CI-gating. Implemented as a
-  **script**, not an ESLint rule, because ESLint 8's legacy config can't
-  load a local rule without `--rulesdir` (which breaks editor / ad-hoc
-  eslint).
-- The projection's **re-export report** (above) — advisory (WARN),
-  scoped to `mud/api/` author faces: flags faces that speak a named type
-  but don't re-export it. Residual gaps are capability/mixin interfaces
-  that ride their own concept's face.
-- `pnpm lint:instanceable`
-  (`scripts/check-instanceable-placement.ts`) — **nothing instances
-  `/lib/`.** Six invariants over every template (seeds + both content
-  packs, real YAML parse): no `class:` resolves under `/lib/`; no
-  template path lives under `/lib/`; every `class:` resolves to a real
-  module + export; every `hydratorClass:` resolves to a real template
-  row; no redundant `hydratorClass` (declared with no `data` to apply);
-  and no orphaned `data` (a data block with no `hydratorClass`, whose
-  every key `clone()` silently discards — the dangerous direction).
-  CI-gating. **No exemption list, by design** — a class that belongs in
-  `lib/` is simply never named by a template; if one appears to need an
-  exemption that is a design conversation, not a list edit.
-- `pnpm lint:boundary` (`scripts/check-boundary-exemptions.ts`) — the
-  sandbox boundary's exemption lists, checked the way the base-class
-  list already is: by the build. Every exempt template path must
-  resolve to a real seed row (rename a singleton and the exemption
-  silently points at nothing), and the symmetric vs inbound-only method
-  sets must stay disjoint (an entry in both silently un-does the
-  direction rule). CI-gating. It deliberately does NOT judge whether an
-  exemption is *justified* — that is a review call, and the reason
-  these stay short readable lists instead of being derived.
-- `pnpm lint:topics` (`scripts/check-topic-keys.ts`) — **the topic
-  vocabulary**: every topic key emitted in server source resolves to an
-  **authored** descriptor, and every key's root is one of the seven in
-  `TOPIC_ROOTS`. `TopicCatalogue`'s third tier *derives* a plausible
-  descriptor for an unknown key, so without this a typo or a rename
-  fails silently — when the gate was first run, **45 of 105 emitted
-  topics had no authored descriptor at all**. No exemption list: all
-  five ways `.topic(…)` is written resolve statically, so an
-  unresolvable argument is an error, not a skip. ⚠ Resolution is
-  **file-scoped first** — an earlier revision used one tree-wide table
-  and silently resolved a name against an unrelated file. CI-gating.
-  The build-time third of a four-part gate (runtime diagnostic, pack
-  reconcile, boot prune) — see
-  [topics.md](./docs/subsystems/topics.md).
-- `pnpm lint:imports` (`scripts/check-mud-imports.ts`) — **the import
-  boundary**: nothing under `src/mud/` imports outside the tree (Node
-  built-ins included) except the Api tier (`api/**` + `platform/idea/api/**`),
-  which imports and wraps. Mudlib code cannot *import* a capability — it
-  asks the gated surface. Scope: imports only; ambient globals
-  (`process.env`, `globalThis`, `Buffer`) stay reachable, so this is an
-  architectural boundary, not a security perimeter. The import-graph
-  twin of call-security, and much of what makes the sandbox / wizard
-  code-trust story checkable. `import
-  type` is exempt everywhere (erased, no capability); both the built-in
-  and npm allowlists are **enumerated** so a widening is a deliberate
-  edit; dynamic `import()`/`require()`/`createRequire` ride the same
-  matrix. The per-file exception registry is **empty** — every
-  capability lives behind an Api, and the mudlib keeps the policy (the
-  fold pattern is an opaque handle: `ScriptApi.compileSandboxed`,
-  `ProseApi.compile`, `PersistApi.sealString`,
-  `CommandApi.validateCommandView`). **Ask before adding the first
-  exception.** `--report` groups crossings for a sweep.
-  CI-gating. Pattern + folds: [architecture.md § The import
-  boundary](./docs/architecture.md).
-- `pnpm lint:test-content` (`scripts/check-test-content.ts`) — **kernel
-  tests that name shipped content** (`/world/<locality>`): a shrinking
-  allowlist (`scripts/test-content-allowlist.txt`) — a listed offender
-  warns, a NEW one fails, a listed path that no longer offends is stale
-  and fails too. A kernel test proves the kernel over synthetic fixtures;
-  a test of real content lives beside the content (`src/mud/world/**`,
-  exempt). CI-gating. See [testing.md](./docs/testing.md).
-- `pnpm lint:schema` (`scripts/check-schema-docs.ts`) — **the collection
-  ↔ schema doc ↔ record class ↔ subsystem doc link.** Six assertions: one
-  doc per collection and no extras either way; the three generated tables
-  are current with the docs; every `static collectionName` is
-  `Collections.X` and never a string literal (this failed on 11 classes
-  when written); every `owner` names the class that really writes there
-  and every `ownerModule` names the file that class is really declared
-  in; every `subsystem` resolves under `docs/subsystems/`; every doc says
-  what its collection is. No exemption list — test fixtures are exempt
-  from the literal rule by living under `__tests__`, and that is the only
-  carve-out. Resolution is AST-based and **file-scoped** (the
-  `lint:topics` lesson). CI-gating.
-- `pnpm lint:untitled` (`scripts/check-untitled-paths.ts`) — **every
-  shipped template path under a claimed root** lies under some pack's
-  `requires.title` claim. The title roots are **derived** — the first
-  segment of every claim any pack makes (`/platform /stuff /world
-  /compact /studio /wiki /home /corpo /trade /arcana /blueprints
-  /expression` today); there is no list to edit when a pack claims a
-  new root. `ownerOf` returns `null` for untitled content
-  and every write fails closed, so an unclaimed shipped path is a path
-  nobody can ever edit. No exemption list. CI-gating.
-- `pnpm lint:census` (`scripts/check-template-census.ts`) — **every
-  template-path-valued field in every shipped row resolves to a real
-  row**, and `clone()`'s `asTemplatePath` channel stays retired. A minted
-  identity is a stamped slot now (D17), never a synthesized path, because
-  a path naming no row cannot be edited, addressed, or zoned. CI-gating.
-- `pnpm lint:locations` (`scripts/check-location-classes.ts`) — three
-  checks over the location vocabulary. The **`FurnishableRoom` roster**
-  (that class carries a persistence record, so a room nobody furnishes
-  wants a plain location) and the **minted `CartesianLocation` roster**
-  are enumerated, not inferred — adding a row is the design question
-  *"does a player furnish this?"* / *"is this a KIND of place?"*, and it
-  should be a diff a reviewer sees. The third is structural: **a zone row
-  that zones nothing fails**, because a zone governs the directory that
-  shares its name, and moving that directory leaves a valid zone over an
-  empty path with every room silently falling back to the enclosing one.
-  CI-gating.
+The build-time gates that keep the conventions above from being merely
+written down. **Full roster + per-gate rationale:
+[docs/lint-family.md](./docs/lint-family.md).**
+
+⭐⭐ **The roster is DERIVED and runs as one gate.**
+
+```bash
+pnpm -C packages/server lint:family          # every gate, all failures
+pnpm -C packages/server lint:family --list   # the roster
+```
+
+`lint:family` reads `package.json` and runs every `lint:*` script but
+itself, so **adding a gate makes it run in CI, in the sweep and locally
+with no list to edit.** The lint family walks every capability pack's
+`src/` as well as the kernel tree (`scripts/pack-roots.ts` is the shared
+reader): a pack namespace root resolves into that pack's `src/`, never
+the kernel.
+
+⚠ **Why derived (2026-09-03).** The enumerated lists had drifted: **25
+gates existed, CI ran 19, this file documented 13, `/finalize` named
+3**, and four gates this file called *"CI-gating"* — `lint:gates`,
+`lint:boundary`, `lint:census`, `lint:locations` — were in no pipeline
+at all. All passed when run, so nothing was broken; it was
+**unenforced**, which is the same class as *gates ship broken and
+silently pass*. Enumeration rotted, so enumeration was removed.
+
+⭐ **The pattern worth copying: census, then ratchet.** The strongest
+gates began as a burn-down meter and became a ratchet —
+`lint:object-verbs` counted 338 Api statics whose first parameter was a
+world object, the sweep drove it to 0, and the gate holds it there. For
+any antipattern worth removing: write the census, **gate today's count
+as the ceiling** (it may fall, never rise), and a later refactor flips
+it to zero. Step 2 is what makes stopping the growth affordable before
+anyone has time to fix it.
+
+⚠ **CI's validate stage is behind a manual `gate` job** — the pipeline
+starts blocked and lint/test/build do not run until someone clicks ▶.
+That is deliberate (intermediate pushes burn no minutes) but it means
+**the gates only run if somebody starts them**; enabling *Settings →
+Merge requests → "Pipelines must succeed"* is what would make the
+pre-merge pass actually forced.
+
 - **Sealed-subdir isolation** (`.eslintrc.js`, `no-restricted-imports`,
   error) — only `api/<x>.ts` may import from `api/<x>/**` (`mql`, `mml`
-  today).
+  today). An ESLint rule, not a `lint:*` gate.
 
 ## Tech Stack
 
