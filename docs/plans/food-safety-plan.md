@@ -86,6 +86,14 @@ plant-side (`lib/husbandry`).
 which is what makes requirement D14 a real gate rather than a nicety:
 without it, `butcher` reads a fallen patron in Dave's Bar.
 
+⚠⚠ **A corpse ALREADY HAS A DECAY CLOCK, and it is not the spoilage
+clock.** `lib/mortality/Postmortem.ts` carries `sinceDeath()` and
+banded decay stages off `MORTALITY_DEFAULTS.DECAY_STAGE_SEC`, starting
+at `'fresh'`. It is a **forensic** gauge — mortality.md: *"decay
+degrades evidence while the cause stamp stays ground truth"* — on its
+own cadence, for its own purpose, and `Creature` composes no
+`FreshnessMixin`. See D15.
+
 **The species taxonomy** — a Species row carries `_parentCladePath`
 (e.g. the bullfrog's `/stuff/idea/species/animalia`), and the playable
 species sit under `.../animalia/chordata/mammalia/primates/hominidae/homo/`.
@@ -153,6 +161,29 @@ contamination is a real route and a real future consumer; it is not this
 build's, and the mixin composes onto a watering can the day someone
 wants it.)
 
+### P2a — ⚠ A vessel then carries TWO loads, and they are different facts
+
+`CraftVessel` is
+`ServiceableMixin(VesselKindMixin(CraftedMixin(ThermalMixin(BulkableMixin(ContainerMixin(DetailedMixin(Thing)))))))`
+— it is **Bulkable**, so its contents already carry their own load in
+the payload. Composing `ContaminableMixin` gives the vessel a **surface**
+load as well.
+
+That is correct and honest — *a dirty pot* and *a bad stew* are
+genuinely different facts, and only one of them survives emptying the
+pot — but the interaction must be authored, not left to fall out:
+
+- **Filling a contaminated vessel contaminates its contents.** This is
+  the entire reason `wash` matters and the mechanism behind drive step
+  13.
+- **Emptying does not clean.** The surface load survives the pour, which
+  is what makes a single unwashed pot a chain of poisonings.
+- **Washing clears the surface, never the contents.** Washing a pot of
+  bad stew is not a cure for the stew.
+
+⚠ Same shape holds for `Provision` (which is not Bulkable) — a discrete
+cut has one load and no ambiguity. The two-load case is vessels only.
+
 ### P3 — Two stamps are correct; co-location on the payload is for a different reason
 
 Requirement D2's *decision* stands — the pathogen load lives inside the
@@ -188,6 +219,34 @@ scalar — because a carcass can carry more than one and they must not
 average. Sparse by construction: an empty map is the default and costs
 one field.
 
+### P4a — ⚠⚠ A population must be able to produce a TOXIN instead of an infection
+
+The field list above can only describe an organism that infects you,
+and **two of the five roster entries do not**. Requirement D10 says it
+at product level — *"some hazards make a toxin rather than infecting
+you, and the two behave differently"* — and the roster names both:
+*Staph aureus* (a heat-stable toxin: kill the population, keep the
+poison) and *C. botulinum* (a heat-**labile** one: boiling saves you).
+
+So `pathogenBehavior` needs a **reach discriminator**: on ingestion this
+population either
+
+- **infects** — seeds an in-host load (W4's path), or
+- **intoxicates** — has already deposited a formed toxin in the food,
+  which rides the **shipped** `formedToxins` channel on the payload and
+  the shipped `labileAtK` field.
+
+⭐ The intoxication arm needs almost no new machinery: the cooking build
+already deposits a derived dose as a formed toxin when heat kills a
+population, and `labileAtK` already separates a raw bean's lectin from
+ptomaine. This is that seam gaining a second producer.
+
+⚠ **And botulinum is BOTH** — a spore-former (P6) whose surviving spores
+germinate as food cools and then produce the toxin. The two mechanisms
+compose on one row; neither is a special case of the other. A build that
+treats "spore-former" and "toxin-producer" as alternatives cannot author
+the roster it was given.
+
 ### P5 — Butchering ships in `trade-cooking`, with a named spin-out seam
 
 A butcher is a real vocation and will want `trade-butchery` when
@@ -198,6 +257,37 @@ kitchen. Verb + controller land there under
 
 **The seam:** `butchery` is its own Discipline row (requirement D9), so
 the spin-out later moves a verb and a controller, not a skill model.
+
+### D15 — ⚠⚠⚠ Butchering must carry the corpse's age into the meat
+
+**The defect this review found.** A corpse already runs a decay clock
+(Grounding), and it is a *forensic* one on its own cadence. If
+butchering stamps the cuts' microbial clock at the moment of the
+**butchering**, then:
+
+> A player kills a boar, leaves it lying for three days, comes back,
+> butchers it — and gets **fresh meat**.
+
+That is a free lunch of exactly the shape the cooking build closed when
+it made a kill step deposit the dose the population had already earned.
+*Heat kills the population but not what it made*; here, **a knife must
+not reset a clock that has been running since the animal died.**
+
+The cuts' initial state derives from `sinceDeath()` at the moment of
+butchering: a microbial load advanced over that elapsed time at the
+carcass's own temperature, plus whatever contamination the butchering
+act itself adds. A carcass left in the sun is meat that was never worth
+cutting; one dragged into the cellar within the hour is prime.
+
+⭐ Which is the right lesson anyway — *field dressing is time-critical*
+is the first thing any hunter learns, and it makes the cellar earn its
+keep from the very first kill.
+
+⚠ **The two clocks stay separate.** Postmortem decay keeps being
+forensic and keeps its own stages; this reads `sinceDeath()` and derives
+from it. Do not fuse them, and do not compose `FreshnessMixin` onto
+`Creature` to get this — that widens a mixin whose host count is
+deliberately 1.
 
 ### P6 — The kill step becomes a survival fraction, not a reset
 
@@ -262,6 +352,12 @@ Each independently landable.
 declaration merging; `Freshness.waterActivityOf` gains a per-instance
 carrier and `growthRate` threads it; blend-by-mass on transfer.
 `Provision` composes `CuredMixin`.
+
+⭐ **Defaults are `moisture: 1.0`, `solute: 0`**, deriving exactly the
+Material's tabulated `a_w`. That identity is what makes requirement 19
+true — every existing row in the Hearthworks pantry, the general store
+and Dave's Bar behaves on day one precisely as it does today — and it
+should be pinned by a test, not assumed.
 **Acceptance:** requirements 1–4. **Ends at** `feat(spoilage): water
 activity is per-instance — moisture and solute over the material base`.
 
@@ -279,13 +375,17 @@ salt stops being a seasoning`.
 `lib/material/Contaminable.ts`; `pathogenBehavior` on `Condition`;
 per-population inoculum and channels; Arrhenius kill rate with a spore
 survival floor; the pathogen half of the payload record.
-**Acceptance:** requirements 9, 10 in full; 11–13 to the point the
-*food* behaves correctly (the illness they end in is W4's). **Ends at**
-`feat(spoilage): the second population — silent, event-seeded, its own
-kill curve`.
+**Acceptance:** requirement 9 in full. ⚠ **Criterion 10 (a contaminated
+item is indistinguishable from a clean one) cannot be shown in W2** —
+nothing can contaminate anything until W3, so W2 proves it in tests
+against a directly-seeded load and the *player-observable* half lands
+with W3. 11–13 advance to the point the food behaves correctly; the
+illness they end in is W4's.
+**Ends at** `feat(spoilage): the second population — silent,
+event-seeded, its own kill curve`.
 
 ### W3 — Butchering and cross-contamination
-**Implements** requirements D3, D9, **D14**, plan P5.
+**Implements** requirements D3, D9, **D14**, plan P5, **D15**.
 `butcher` verb + controller in `trade-cooking`; `Corpse` → cuts as
 `Provision` rows with the clock stamped at the kill; the `butchery`
 Discipline row; contamination on gut spillage scaled by competence;
@@ -404,6 +504,17 @@ build phase, run before the MR opens, recorded below.
 
 - ⚠⚠ **The catalogue warm** (above). Verify by cold boot on a dropped
   DB, not by test.
+- ⚠⚠ **The two clocks on a corpse** (D15). The failure is silent and
+  reads as generosity: butchering a stale carcass yields prime meat and
+  nothing complains. Pin it with a test that butchers an *aged* corpse.
+- ⚠ **The toxin-producing reach** (P4a). A build that ships only the
+  infection arm can author three of the five roster entries and will
+  look finished.
+- ⚠ **`origin/master` moved during this cycle** — MR !242 (the workflow
+  overhaul) merged after this branch was cut. Catch the branch up before
+  W0, and take the tracked `.claude/skills/` + `.claude/agents/` with
+  it (⚠ a sibling worktree needs `rm .claude/skills` once, or checkout
+  blocks on the old symlink).
 - ⚠ **`Provision` gains a third and fourth mixin.** It is now
   `Crafted(Contaminable(Cured(Freshness(Thermal(Detailed(Thing))))))`.
   Watch the TS declaration-merging problem its docstring already
