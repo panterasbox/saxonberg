@@ -326,6 +326,27 @@ fisherman*. So the two classes are **`Extra`** (the default) and
 **`Cast`** (the one that earns a dossier), and the collision never
 happens.
 
+### ⭐⭐ The grammar already encodes it, and nobody planned that
+
+42 agent rows ship. **25 carry a proper `name:`.** Of the 17 that do not,
+the shortDescriptions split on the **article**, cleanly and consistently:
+
+| | rows |
+|---|---|
+| **"*a* ___"** — one of a kind | *a* watchful sentry · *a* lean sellsword · *a* hewer on tutwork · *a* gentleman out of the fog · *a* rangy grey wolf |
+| **"*the* ___"** — one specific person | *the* collier · *the* smelterman · *the* onsetter · *the* storekeeper · *the* ore buyer · *the* claims recorder |
+
+⭐ **The definite article is the tell.** Nobody was asked to mark this and
+every author did. It also settles the middle case that a proper-name test
+alone gets wrong: **the Rejection collier is Cast** — one specific person
+who happens to be referred to by their job, with a decade without sleep as
+his defining fact — and he has no name field at all.
+
+So the test is **singleton-ness**; a proper name is strong evidence of it,
+not the gate. 25 named + 6 definite-article individuals = **31 Cast**; the
+handful of indefinite role-fillers are the **Extras**. The whole corpus
+classifies by hand today.
+
 ### The class difference is exactly one thing
 
 ⭐ Resist making `Cast` rich. The difference is **entitlement to an
@@ -334,11 +355,60 @@ every ledger already keys on identity. A name, a prologue, a transcript,
 bonds, a dossier: all of them fall out of being individually identified.
 Nothing needs adding for them one at a time.
 
-| | archetype resolves as | own ledger | dossier | deviation |
+### ⭐⭐⭐ Three rungs, and every mechanism already ships
+
+The two-class sketch was one rung short. Identity is decided at **mint**,
+by which of three shipped channels a row uses:
+
+| rung | how identity is set | own ledger | archetype is | example |
 |---|---|---|---|---|
-| **`Extra`** | a **lens** (read-time, unsaved) | no — shares its row's | **no** | none: that is what makes it an extra |
-| **`Cast`** | a **seed** (`claim` evidence) | yes | **yes** | declared at mint, then drifts under play |
-| player | intake choice | yes | char-gen seeds it | the whole character arc |
+| **`Extra`** | cloned, nothing stamped ⇒ falls back to the row's path | no — shares its row's | a **lens** (read-time, unsaved) | *a* sentry |
+| **minted individual** | **`asIdentityPath`** (D17) from a scheme | yes | a seed | a Warren node (`${parent}/${nodeId}`), a player Avatar |
+| **`Cast`** | **`SingletonMixin`** ⇒ one instance, identity *is* its row | yes | a **seed** + a dossier | Odile · *the* collier |
+
+Neither mechanism is new:
+
+- **`SingletonMixin`** already allows at most one live instance per path
+  and **throws at `clone()`** otherwise. It is composed by `Condition`,
+  `Material`, `Clade`, `LocomotionMode`, `CombatFormation` — and by **no
+  agent class**. Pointing it at NPCs is the whole of `Cast`.
+- **`asIdentityPath`** is the shipped mint-time identity channel, used by
+  `EnrollController`, the guest `Login` path, `PlayerLogic`, minted
+  `CartesianLocation`s, and `OuterWarren` (whose nodes derive
+  `${parentExtent}/${nodeId}`). ⭐ **That is "many bodies from one row,
+  each its own person", already working.**
+
+> ⭐⭐ **So `Cast = SingletonMixin(NPC)` + a dossier, and `Extra = NPC`
+> unchanged.** The author picks the class, and that choice *is* the
+> identity decision.
+
+### ⭐ Promotion is an AUTHORING act, not a runtime one
+
+> **User: "I dunno about promotion. that seems like an authorial decision
+> not dynamic."**
+
+Settled that way, and the engine agrees rather than merely permitting it:
+
+**Identity is a stamp, deliberately.** `setTemplatePath` is `ApiOnly`-gated
+and **re-keys the registry index**; the pre-register form is a
+caller-allowlisted seam. It is set at mint precisely so every index is
+stable. A runtime promotion would mutate the key every index is built on.
+
+So cast-archetype's *"minting it a distinct identity path and re-running
+its declared archetypes in seed mode"* is real, but it is **`asIdentityPath`
+at mint** — not a lifecycle event. Promoting an extra means **authoring a
+Cast row for it**: the same decision, made in the tree, reviewable, by a
+person.
+
+⚠ **Rejected: "everyone starts as an extra and there is a lifecycle."**
+Same stamp reason, plus a smaller one — an authored Dave would have to be
+promoted at boot, which is ceremony purchasing nothing.
+
+⚠⚠ **The consequence, stated plainly because it is a design position and
+not a technicality:** without runtime promotion an extra never becomes
+somebody, so *"a guard killed me"* answers **"the watch killed you"** —
+permanently, not until the guard gets interesting. If you want a blameable
+guard, you author one. That is consistent and it is a commitment.
 
 And the pair is enforceable, which is the point of making them classes:
 
@@ -356,27 +426,54 @@ extra's **deeds** do, and that is undecided. Four limbs:
 | **A — nothing is written** | an extra's acts vanish | ⚠ three holes: who hurt you, who made this, who owns that |
 | **B — the shared row** | *"the guards in this town are brutal"* — a reputation of the KIND | ⚠⚠ blame becomes collective: one guard's crime convicts the role |
 | **C — the institution** | an extra acts *as* a role, so acts belong to the office / business / watch fielding them | needs the employment + governance seam, which ships |
-| **D — the act promotes** | doing something that demands an individual answer *makes* you cast | the mechanism already exists (above) |
+| ~~**D — the act promotes**~~ | ⚠ **dropped** — promotion is an authoring act (below) | identity is a stamp; a runtime promotion re-keys every index |
 
 ⚠⚠ **B is not the safe limb — it is the default.** It is what happens if
 this is left undecided, because sharing a row is sharing a ledger. So
 whichever limb is taken must be a decision the class *encodes*, never a
 fallback nobody chose.
 
-**Lean: C by default, D as the escape hatch, A for the residue.** A guard
-arresting you *is the watch* arresting you — not a compromise for want of
+**Lean: C by default, A for the residue** — and with D dropped, C is
+carrying more weight than it was, which is the honest reading anyway. A
+guard arresting you *is the watch* arresting you — not a compromise for want of
 identity, but how institutions work, and it holds from a Roman legion to a
 modern police force (lens 5). It also gives institutions reputations
 rather than having individuals accumulate them on the institution's
-behalf, which is what the governance design wants anyway. Then an act the
-institution cannot absorb — a killing, a fraud — **promotes**, and the
-backstory problem dissolves exactly as the archetype slate says it does.
+behalf, which is what the governance design wants anyway. An act the
+institution cannot absorb — a killing, a fraud — is then the signal that
+**an author should have written a Cast row**, and the world telling you so
+is a better outcome than the engine papering over it.
 
-⚠ **And the mirror nobody has raised: an extra as a VICTIM.**
-`accountability` keys blame on the *victim's* durable path, so hurting one
-guard hurts the row — which is worse than the actor side, because it means
-an extra cannot meaningfully be killed. That may argue for promoting on
-**being acted upon** as much as on acting. Settle both together.
+### ⚠ The victim mirror — and what checking the corpse actually found
+
+`accountability` keys blame on the **victim's** durable path, so hurting
+one extra hurts the row: an extra cannot meaningfully be killed.
+
+The hopeful lead was that death might mint the individual anyway — a
+corpse is a separate persistent Stuff, so the forensic record could be
+individual even when the living extra never was. **Checked, and it is
+false, for everyone:**
+
+> `ConditionLogic.mintCorpseFrom` calls
+> `StuffApi.clone(TemplatePaths.mortalityCorpse, undefined, { dataOverlay })`
+> — **with no `asIdentityPath`.** So *every corpse in the world shares one
+> identity*, a player's included.
+
+⭐ Per-instance facts survive, because they arrive as hydrated **fields**
+(`shortDescription: "the body of …"`, `_speciesPath`, `causeOfDeath`,
+`diedAtGameSec`) rather than as ledger rows. So nothing is broken **today**
+— the mortality build only ever needed fields.
+
+⚠⚠ But it is latent and it will bite the moment anything keys a *ledger*
+on a corpse, which is precisely what the **necropolis** content pass
+(issue #40) is: *"a monument is chronicle made physical"*, graves as
+titled extents, grave goods with owners. A chronicle on a shared corpse
+identity is one chronicle for every death that has ever happened.
+
+⭐ **And the fix is one argument at one call site** — the middle rung
+above. `asIdentityPath` from a scheme keyed on the deceased is exactly
+`OuterWarren`'s pattern. Cheap now; a data migration later, and there are
+no migrations.
 
 ---
 
@@ -505,9 +602,14 @@ is settled by evidence rather than argument.
    ceiling; a later pass drives it to zero.
 5. **The materialized trio** — whichever limb Q2 takes.
 6. **Body/condition claims** — the clinic's slice, once Q3 is settled.
-7. **`Extra` / `Cast` + `lint:identity`** — the class split. Sequenced
-   last only because nothing repeats a row *yet*; the day one does, it
-   moves to the front. ⚠ Q0 gates it.
+7. **`Extra` / `Cast` + `lint:identity`** — the class split, which is
+   `SingletonMixin(NPC)` plus the lint. Sequenced last only because
+   nothing repeats a row *yet*; the day one does, it moves to the front.
+   ⚠ Q0 gates it.
+8. **The corpse identity** — `asIdentityPath` at the one mint site.
+   Latent today, and **the necropolis (#40) is the build that hits it**;
+   worth landing before that starts, because the alternative is a
+   migration and there are no migrations.
 
 ⭐ Steps 1–3 are the build; 4 is what keeps it honest; 5–6 are the
 consumers. The clinic build waits on 6 and should not start before Q3 is
