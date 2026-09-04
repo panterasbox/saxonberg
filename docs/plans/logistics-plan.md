@@ -1555,6 +1555,61 @@ up `ContractRecord.origin` and `Exit._edgeMinutes`. An exit's travel time
 and a gig's collection point are both printed on the board — neither is a
 spoiler, so the snapshot is updated rather than the fields tagged.
 
+### ⚠⚠ And what the FULL SUITE found, three passes running
+
+Every one is a shipped assertion describing the world before the road —
+the build's own premise landing on tests written before it, not a
+regression:
+
+1. `restocks`' own suite asserted the teleport-and-buy contract.
+2. The lounge's config census (three keys added, none removed).
+3. `trade-mining`'s exemplar suite: *"NO inbound exit is wired from
+   another locality — arrival is by TPA."* ⭐ Rewritten to keep what it
+   was protecting — **neither pack reaches into the other's files** —
+   and to say what is now true: exactly TWO seams, both on the Kestrel
+   road, both authored on both sides.
+4. `trade-distilling`'s consigns beat expected the teleport. Its fixture
+   now gives the floor a door and stands a duck-typed `LaneCatalogue` at
+   the transport pack's own path — the same by-shape seam the kernel
+   brain uses so it need not import a pack.
+5. Terminus's two general-store suites (the haulage line's classes and
+   rows) and `destination-naming` (the road's two ends must resolve).
+
+### ⚠⚠⚠ The stale-comment sweep — what a suite cannot see
+
+The `consigns` reversal left the content tree describing a build that
+never shipped, and **nothing failed**:
+
+- **Three dead config keys on six producer hands** (`board`, `crate`,
+  `carriage`) — the posting version of the beat. `consigns` reads none
+  of them. ⭐ *A dead key in a row is the quietest lie a content tree
+  can tell.*
+- **Six floor rows, two bar rows, one test name, one drive label** all
+  said the hand posts and the keeper shops. The hand walks and the
+  keeper orders.
+- The works boards STAY, with a better reason than the one they shipped
+  with: a floor without one is a floor a player who owns the outfit
+  cannot post carriage from, and where a hauler cannot ask
+  `jobs --origin here`.
+
+### The drive record (2026-09-04, fresh DB)
+
+**GREEN on every checkpoint**, twice: contiguity Terminus→Rejection on
+foot (no teleport), the pass turning wheels back and saying where bulk
+breaks, the last water, the rate board readable by a stranger, the
+backhaul read, the goods yards, a producer floor's door and its works
+board. The drive gained a read of the one posting brain — a gig's ORIGIN
+is the supplier's counter, so `jobs --origin <cash-and-carry>` reads the
+bar keeper's orders from the road even though her board is off the map.
+
+⚠ **A pre-existing defect the drive surfaced and this build did NOT
+fix** (it is the metal chain's): the `delves` hewer's `get ore` throws
+`controller-error(Cannot read properties of undefined (reading
+'replace'))` every beat. Its bare-`get` form is that build's deliberate,
+test-pinned decision (`delves.bounded.test.ts` asserts *"never a bare or
+counted grab"*), so overturning it from here would be the wrong call —
+but the brain is crashing on a fresh realm.
+
 ---
 
 ## File-and-class inventory
