@@ -1,0 +1,20 @@
+# One head — ⭐ the object a drafted number gets to stand in.
+#
+# ⚠ ONE row, and it is a KIND rather than a kind of animal: what makes a
+# head a sheep or a cow is its SPECIES, which `draft` stamps from the
+# herd's own record. A second ranching locality with different animals
+# needs zero pack code, which is the falsifiable line the whole trade is
+# built on.
+#
+# It carries no name, no description worth reading and no keywords beyond
+# the generic, because everything interesting about it — its condition,
+# its temper, its age — is derived from the seed and the register, and
+# reads as prose rather than as fields.
+class: /trade/ranching/agent/Livestock
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a head of stock
+  keywords: [head, stock, animal, beast]
+  longDescription: >-
+    One of the herd, standing where you cut it out and watching you
+    sideways.

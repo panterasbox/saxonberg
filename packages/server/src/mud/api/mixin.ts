@@ -91,6 +91,7 @@ import type { Growing } from '../lib/husbandry/Growing';
 import type { Fermenting } from '../lib/ferment/Fermenting';
 import type { Plantable } from '../lib/husbandry/Plantable';
 import type { Soil } from '../lib/husbandry/Soil';
+import type { Handling } from '../lib/husbandry/Handling';
 import type { Cultivable } from '../lib/husbandry/Cultivable';
 import type { Combustible } from '../lib/fire/Combustible';
 import type { Meltable } from '../lib/thermal/Meltable';
@@ -1043,6 +1044,15 @@ export class MixinApi {
    */
   public static isPlantable(obj: Stuff): obj is Stuff & Plantable {
     return this.hasMixin(obj, Mixins.Plantable);
+  }
+
+  /**
+   * An animal that can be handled — tractability, the flight zone, and
+   * (the half that matters) the risk it presents to whoever is working
+   * it.
+   */
+  public static isHandling(obj: Stuff): obj is Stuff & Handling {
+    return this.hasMixin(obj, Mixins.Handling);
   }
 
   /**

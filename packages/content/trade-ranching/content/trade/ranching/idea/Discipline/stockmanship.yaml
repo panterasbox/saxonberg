@@ -1,0 +1,27 @@
+# Stockmanship — ⭐ working animals quietly, which is a real skill and
+# one of the few in agriculture that is visibly a skill.
+#
+# ⚠ It buys nothing from the animal. A better stockman does not get more
+# milk out of the same cow: he gets the cow handled without either of
+# them being hurt, and he can tell what condition she is in. Competence
+# changes what you can WORK OUT and how safely, never what the animal
+# gives.
+#
+# Earned by handling, at difficulty read off the animal at the moment of
+# the act — a wild one is a hard check and a quiet one is trivial, so the
+# estimator's own anti-grind property does the work and there is no
+# bespoke guard.
+class: /platform/idea/Discipline
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: stockmanship
+  channel: skill
+  label: Stockmanship
+  iscedf: "0811"  # ISCED-F 2013: crop and livestock production
+  description: >-
+    Working animals quietly — reading a flight zone, moving stock without
+    frightening them, and knowing by hand what condition a beast is in.
+    Improves by handling; it changes what you can tell and how safely you
+    can work, never what the animal gives.
+  specializes:
+    - agriculture

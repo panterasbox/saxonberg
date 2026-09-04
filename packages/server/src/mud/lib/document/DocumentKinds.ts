@@ -83,6 +83,42 @@ export const DOCUMENT_KINDS = {
    * the water pack's.
    */
   'water-right': { kind: 'water-right', naturalKey: null, contentDir: 'water-rights', ext: 'yaml', onVanish: 'keep' },
+  /**
+   * A **herd** — a register naming these head, this composition, this
+   * age structure, on this ground (farmstead D20).
+   *
+   * ⭐⭐ **A record about you lives on a branch titled to somebody
+   * else.** The path is `/trade/ranching/herds/<…>`, titled to the
+   * ranching trade's own group, and that is the **security requirement
+   * rather than a filing convenience**:
+   *
+   * > **You file; you do not hold the pen.**
+   *
+   * ⚠ Two obvious homes are refused for the same reason. `/home/<self>`
+   * gives an owner their whole home branch with no broader grant, so the
+   * subject could rewrite their own pedigree — and D79 makes the
+   * herdbook a **sales document**, which is the lemons fraud with the
+   * engine supplying the pen. The owning **parcel** is the same hole one
+   * step out. This bug class was closed once already in this repo (land
+   * use lives in the gated `parcels` collection rather than on the zone
+   * template, because *"a content author could rezone their own land"*)
+   * and must not be reopened.
+   *
+   * ⭐ It is also historically exact. Real herdbooks are kept by **breed
+   * societies**, not by the animals' owners — Coates's Herd Book, 1822,
+   * worked because it was independent of the men selling the bulls. The
+   * record is trustworthy *because* its subject cannot edit it, which is
+   * the same sentence as the security requirement.
+   *
+   * `onVanish: 'keep'`, and for `water-right`'s reason exactly: a herd
+   * is a record of something that happened, and no absent file should be
+   * able to erase one.
+   *
+   * The KIND is the platform's (a pack cannot declare one — its consumer
+   * is code and the installer needs a go-live hook); what a legitimate
+   * herd looks like is the ranching pack's.
+   */
+  herd: { kind: 'herd', naturalKey: null, contentDir: 'herds', ext: 'yaml', onVanish: 'keep' },
 } as const satisfies Record<string, DocumentKindSpec>;
 
 export type DeclaredDocumentKind = keyof typeof DOCUMENT_KINDS;

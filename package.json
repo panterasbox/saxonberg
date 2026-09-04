@@ -32,6 +32,7 @@
     "@saxonberg/content-trade-hearth-cooking": "workspace:*",
     "@saxonberg/content-trade-hospitality": "workspace:*",
     "@saxonberg/content-trade-mining": "workspace:*",
+    "@saxonberg/content-trade-ranching": "workspace:*",
     "@saxonberg/content-trade-smelting": "workspace:*",
     "@saxonberg/content-trade-smithing": "workspace:*",
     "@saxonberg/content-trade-winemaking": "workspace:*",

@@ -56,6 +56,8 @@ import { RespirationMixin } from '../respiration/Respiration';
 import { DisguisableMixin } from '../disguise/Disguisable';
 import { ConcealableMixin } from '../concealment/Concealable';
 import { SlottableMixin } from '../slot/Slottable';
+import { ChattelMixin } from '../chattel/Chattel';
+import { BrandedMixin } from '../corpo/Branded';
 import { PostmortemMixin } from '../mortality/Postmortem';
 import { Quantity } from '../quantity';
 
@@ -97,6 +99,27 @@ import { Quantity } from '../quantity';
 // driven and drives `spo2`; thermal overrides getVitalSign for
 // `coreTemperature` only — neither reads the other's sign.)
 // LoadBearingMixin sits outermost — the encumbrance gauge reads
+// ⭐⭐ `ChattelMixin` and `BrandedMixin` compose OUTERMOST, and their
+// arrival here is the whole of D22 and D98.
+//
+// Chattel was composed in exactly one place — `lib/stuff/Thing.ts` — and
+// `Creature` descends from `Agent`, so **nothing alive was ownable**:
+// `ChattelApi.stamp` refused a cow. The gate is structural
+// (`MixinApi.isChattel`), not tier-based, so one composition line gives
+// livestock, pets and future aquaculture per-instance ownership with
+// chain-of-title out of shipped code — and it retires the pets slate's
+// sketched `CompanionMixin` + `ownerPath` before it was written.
+//
+// ⭐ Chain-of-title is also rustling's answer (D98): a stolen animal
+// keeps its provenance and cannot be sold cleanly, so fencing is the
+// hard part, exactly as in life. And `BrandedMixin` was composed only on
+// Things (a neon sign, a graded receptacle) — **branding livestock is
+// what marks were invented for** — and it reaches the Creature stack by
+// the same one-line move.
+//
+// Both are additive attribute mixins with no ordered relationship to the
+// body stack below; outermost keeps them clear of it.
+//
 // Container + Slotted + Tangible (Agent) + Reserved + Vitals, so it
 // must compose outer of all of them (same placement logic as Vitals
 // outer of Reserved).
@@ -108,7 +131,9 @@ import { Quantity } from '../quantity';
 // clock, so its placement is immaterial to the ordered body stack, and
 // being outermost puts its `canEvict` veto ahead of the others — a corpse
 // objects to being collected before any inner layer gets a say.
-const CreatureBase = PostmortemMixin(
+const CreatureBase = ChattelMixin(
+  BrandedMixin(
+  PostmortemMixin(
   ConcealableMixin(
   LoadBearingMixin(
     ContainerMixin(
@@ -152,6 +177,8 @@ const CreatureBase = PostmortemMixin(
         )
       )
     )
+  )
+  )
   )
   )
   )

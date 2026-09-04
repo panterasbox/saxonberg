@@ -29,6 +29,15 @@ const DocumentApiCallers = SecurityPolicies.FromModule("/api/document#DocumentAp
  * a REST `tagActingAuthor` stamp), the anti-spoof source for the owner of
  * a write (memory: gated-api-actor-from-context). Never a parameter.
  */
+/** The herd register's branch — see {@link saveHerdImpl}. */
+const HERD_REGISTER_PREFIX = '/trade/ranching/herds';
+
+/** What a filed herd is owned BY: the trade, never the keeper. */
+const HERD_REGISTER_OWNER = '/trade/ranching';
+
+/** The kind a herd write is pinned to. */
+const HERD_DOCUMENT_KIND = 'herd';
+
 function actingAuthor(): Stuff | null {
   return (ExecutionContextApi.getActingAuthor() as Stuff | null) ?? null;
 }
@@ -204,6 +213,60 @@ function codeFieldsChanged(
   return JSON.stringify(codeFieldsOf(prev)) !== JSON.stringify(codeFieldsOf(next));
 }
 
+/**
+ * Write a **herd** document, owned by the ranching trade's own branch.
+ *
+ * ⚠⚠ **An ownership bypass by construction**, and — exactly as
+ * `saveRelease` is — narrow only because of the shape of its signature
+ * plus its gate. `save` gates on self-home / covering title, which
+ * admits the *branch owner*; the herdbook's whole point is that its
+ * subject is **not** the branch owner:
+ *
+ * > **You file; you do not hold the pen.**
+ *
+ * A keeper must be able to draft a head out and turn it back in — which
+ * writes the record — while remaining unable to rewrite what the record
+ * SAYS about their animals. Routing those writes through a pinned
+ * transport is how that is arranged, and it is the same arrangement the
+ * press path makes for a comms director who is not a landowner.
+ *
+ * Four things keep it honest, and all four are load-bearing:
+ *
+ *   1. **It takes no owner.** The owner is the registry branch, fixed
+ *      here, so there is no parameter to lie in.
+ *   2. **It refuses a path outside the register.** A caller cannot stamp
+ *      the trade's ownership anywhere else in the tree.
+ *   3. **The `kind` is pinned here, not passed.** It cannot write
+ *      anything but a herd.
+ *   4. **The caller is gated to the registry singleton itself**, which
+ *      is where the validation of what a legitimate herd looks like
+ *      lives.
+ *
+ * ⚠ The kernel names a pack path in that gate, which is ordinarily the
+ * tell of a mis-cut. It is not one here: a document KIND is a platform
+ * act by construction (its consumer is code and the installer needs a
+ * go-live hook), and naming the one consumer alongside the kind it was
+ * declared for is the same act, not a second one. `lint:gates` resolves
+ * the string, so a rename cannot silently orphan it.
+ */
+async function saveHerdImpl(
+  path: string,
+  data: Record<string, unknown>,
+): Promise<void> {
+  if (!path.startsWith(`${HERD_REGISTER_PREFIX}/`)) {
+    throw new Error(
+      `DocumentApi.saveHerd: ${path} is not in the herd register ` +
+        `(${HERD_REGISTER_PREFIX})`,
+    );
+  }
+  const doc = (await StoredDocument.findByPath(path)) ?? new StoredDocument();
+  doc.path = path;
+  doc.owner = HERD_REGISTER_OWNER;
+  doc.kind = HERD_DOCUMENT_KIND;
+  doc.data = data;
+  await doc.save();
+}
+
 async function saveImpl(
   path: string,
   kind: string,
@@ -312,6 +375,19 @@ export class DocumentLogic extends ApiLogic {
     data: Record<string, unknown>,
   ): Promise<void> {
     return saveReleaseImpl(publisher, path, data);
+  }
+
+  /**
+   * See {@link DocumentApi.saveHerd}. ⚠⚠ The second ownership bypass,
+   * and the narrowing lives on the **Api static** for `saveRelease`'s
+   * reason exactly.
+   */
+  @CallSecurity(DocumentApiCallers)
+  public async saveHerd(
+    path: string,
+    data: Record<string, unknown>,
+  ): Promise<void> {
+    return saveHerdImpl(path, data);
   }
 
   /** See {@link DocumentApi.save}. */

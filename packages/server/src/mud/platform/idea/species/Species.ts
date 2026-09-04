@@ -99,8 +99,48 @@ export interface VitalBand {
   baseline: number;
   survivableMin: number;
   survivableMax: number;
-  // reserved: ageCurve?: AgeCurveSpec — declared-but-empty seam.
+  // reserved: a per-sign age curve — still an empty seam. The
+  // WHOLE-ORGANISM age curve is {@link AgeCurveSpec} below; this one
+  // would be "how does a lamb's resting heart rate differ from a ewe's",
+  // which nothing asks yet.
 }
+
+/**
+ * ⭐⭐ **The maturation curve — how long this species takes to become
+ * itself** (farmstead D23).
+ *
+ * `Organism.age` and `lifecycleState` have been persistent fields with
+ * **no driver** since the race build: `setAge` had zero non-test callers
+ * and the age curve was a comment. This is the shape that driver walks.
+ *
+ * ## ⚠ Compress the absolute scale; preserve the inter-species RATIOS
+ *
+ * A game year is 30 real days, so a true cattle generation interval —
+ * two and a half years — is a **two-to-three real month** investment.
+ * The term that makes animal breeding interesting is the term that would
+ * make it unplayable. So the numbers here are compressed, and what is
+ * held exactly is the *proportion between species*: what teaches
+ * `R = h²·S / L` is that **sheep improve faster than cattle because
+ * their generation interval is shorter**, and that survives compression
+ * intact.
+ *
+ * Every figure is per-species authored and none is hardcoded anywhere.
+ */
+export interface AgeCurveSpec {
+  /** Game-days from birth to weaning — off the mother, on solid feed. */
+  weanedAt: number;
+  /** Game-days to breeding age. ⭐ The generation interval's numerator. */
+  matureAt: number;
+  /** Game-days at which the animal is past its best. */
+  agedAt: number;
+  /** Game-days at which it is at the end of its life. */
+  senescentAt: number;
+}
+
+/** The life stages the curve resolves into, young to old. */
+export const LIFE_STAGES = ['newborn', 'juvenile', 'adult', 'aged'] as const;
+
+export type LifeStage = (typeof LIFE_STAGES)[number];
 
 /**
  * Per-species vital baselines + survivable bands. Keyed by the
@@ -170,6 +210,14 @@ export default class Species extends SingletonMixin(
   /** Lifespan band (years). v1 is descriptive only. */
   protected lifespanMin: number = 0;
   protected lifespanMax: number = 0;
+
+  /**
+   * The maturation curve (D23), or `null` for a species nobody has
+   * timed. ⚠ `null` is the ordinary case and means *this species does
+   * not age in this game*, which is not the same as *it ages instantly*
+   * — the driver reads it and does nothing.
+   */
+  protected ageCurve: AgeCurveSpec | null = null;
 
   /**
    * `'diurnal'`, `'nocturnal'`, `'crepuscular'`, `'cathemeral'`,
@@ -318,6 +366,7 @@ export default class Species extends SingletonMixin(
     reproductiveMode: { persistent: true },
     lifespanMin: { persistent: true },
     lifespanMax: { persistent: true },
+    ageCurve: { persistent: true, authorable: true },
     circadianBand: { persistent: true },
     diet: { persistent: true },
     visionProfile: { persistent: true },
@@ -417,6 +466,25 @@ export default class Species extends SingletonMixin(
   public getReproductiveMode(): string { return this.reproductiveMode; }
   public setReproductiveMode(value: string): void {
     this.reproductiveMode = value;
+  }
+
+  public getAgeCurve(): AgeCurveSpec | null { return this.ageCurve; }
+  public setAgeCurve(value: AgeCurveSpec | null): void {
+    this.ageCurve = value ?? null;
+  }
+
+  /**
+   * The life stage an animal of `ageDays` has reached — ⭐ derived, and
+   * `null` for a species with no curve, which reads as *unmodelled* and
+   * never as *newborn*.
+   */
+  public lifeStageAt(ageDays: number): LifeStage | null {
+    const curve = this.ageCurve;
+    if (!curve) return null;
+    if (ageDays < curve.weanedAt) return 'newborn';
+    if (ageDays < curve.matureAt) return 'juvenile';
+    if (ageDays < curve.agedAt) return 'adult';
+    return 'aged';
   }
 
   public getLifespanMin(): number { return this.lifespanMin; }

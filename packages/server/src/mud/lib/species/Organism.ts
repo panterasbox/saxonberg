@@ -22,13 +22,30 @@
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import { StuffApi } from '../../api/stuff';
+import { WorldClockApi } from '../../api/worldclock';
+import { TemplatePaths } from '../paths';
 import type Species from '../../platform/idea/species/Species';
+import type { LifeStage } from '../../platform/idea/species/Species';
+
+const SECONDS_PER_GAME_DAY = 86_400;
 
 export interface Organism {
   getSpecies(): Species | null;
   setSpecies(value: Species | null): void;
   getAge(): number;
   setAge(value: number): void;
+  /**
+   * ⭐ **The maturation driver** (farmstead D23) — reconcile-on-read
+   * against world time. `age` and `lifecycleState` have been persistent
+   * fields with **no driver** since the race build; this is it.
+   */
+  reconcileAge(): void;
+  /** Age in GAME DAYS, reconciled — the unit the age curve speaks. */
+  getAgeDays(): number;
+  /** The life stage, or `null` for a species with no authored curve. */
+  getLifeStage(): LifeStage | null;
+  /** Has it reached breeding age? `false` when unmodelled. */
+  isMature(): boolean;
   getLifecycleState(): string;
   setLifecycleState(value: string): void;
   /** Lifecycle predicates — the organism answers for its own state. */
@@ -47,6 +64,7 @@ export function OrganismMixin<TBase extends MixinConstructor>(Base: TBase) {
     static fieldMeta: FieldMeta = {
       _speciesPath: { persistent: true, authorable: true, authorPicker: 'Species' },
       age: { persistent: true, authorable: true },
+      ageStamp: { persistent: true },
       lifecycleState: { persistent: true, runtimeState: true },
     };
 
@@ -101,8 +119,75 @@ export function OrganismMixin<TBase extends MixinConstructor>(Base: TBase) {
       this._speciesPath = value?.getTemplatePath() ?? null;
     }
 
-    public getAge(): number { return this.age; }
+    /**
+     * Game-seconds stamp of the last age reconcile; `0` = never touched.
+     *
+     * ⚠ **No far-past guard, and that is the point.** Absence does not
+     * stop a calf becoming a cow, and a driver that dropped long gaps
+     * would make every animal in the world permanently a calf. Long
+     * absences are bounded by arithmetic, not by a time cap: this is a
+     * single multiplication rather than a stepped integration, so there
+     * is nothing to bound.
+     */
+    public ageStamp = 0;
+
+    private _reconcilingAge = false;
+
+    public getAge(): number {
+      this.reconcileAge();
+      return this.age;
+    }
     public setAge(value: number): void { this.age = value; }
+
+    /**
+     * Advance `age` by the game-time that has passed.
+     *
+     * ⭐ `age` is carried in **game days** rather than years, because the
+     * curve is authored in days and a lamb's whole juvenile period is
+     * shorter than a year: years would round the interesting part of
+     * every ruminant's life to zero.
+     */
+    public reconcileAge(): void {
+      if (this._reconcilingAge) return;
+      if (!StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)) return;
+      const nowS = WorldClockApi.getNow().rawValue();
+      if (this.ageStamp === 0) {
+        this.ageStamp = nowS;
+        return;
+      }
+      const elapsed = nowS - this.ageStamp;
+      if (elapsed <= 0) {
+        this.ageStamp = nowS;
+        return;
+      }
+      this._reconcilingAge = true;
+      try {
+        // ⚠ The DEAD do not get older. A corpse's age is the age it died
+        // at, which is what a forensic read of one is actually asking.
+        if (this.lifecycleState !== 'dead') {
+          this.age += elapsed / SECONDS_PER_GAME_DAY;
+        }
+        this.ageStamp = nowS;
+      } finally {
+        this._reconcilingAge = false;
+      }
+    }
+
+    public getAgeDays(): number {
+      this.reconcileAge();
+      return this.age;
+    }
+
+    public getLifeStage(): LifeStage | null {
+      const species = this.getSpecies();
+      if (!species) return null;
+      return species.lifeStageAt(this.getAgeDays());
+    }
+
+    public isMature(): boolean {
+      const stage = this.getLifeStage();
+      return stage === 'adult' || stage === 'aged';
+    }
 
     public getLifecycleState(): string { return this.lifecycleState; }
     public setLifecycleState(value: string): void { this.lifecycleState = value; }

@@ -1,0 +1,12 @@
+# The herdbook — one register, and ⭐⭐ it is kept by the TRADE.
+#
+# The row lives here and the documents it files live at
+# `/trade/ranching/herds/…`, on a branch this pack holds title to. That
+# is the security model rather than a filing convenience: a record whose
+# subject can edit it is worthless the moment anybody sells anything on
+# the strength of it.
+#
+# Real herdbooks are kept by breed societies for exactly this reason and
+# have been since Coates's Herd Book in 1822 — it worked because it was
+# independent of the men selling the bulls.
+class: /trade/ranching/idea/HerdRegistry

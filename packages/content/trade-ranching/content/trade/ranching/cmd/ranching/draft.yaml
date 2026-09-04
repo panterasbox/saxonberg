@@ -1,0 +1,32 @@
+verbs: [draft]
+controller: /trade/ranching/idea/cmd/ranching/DraftController
+description: "Cut one head out of a herd so you can look at it"
+help: |
+  `draft <n> [from <herd>]` cuts number *n* out of the tally and gives it
+  a body to be looked at in.
+
+  ⭐⭐ It was always there. A head is a deterministic function of the
+  herd's identity and its number, so drafting the same one twice gives
+  you the same animal — the same age, the same condition, the same
+  temper. Nothing is rolled and nothing is invented; you are looking at
+  an animal that already existed as a number in a book.
+
+  > **Identity is earned by being measured.**
+
+  ⚠ The stockman's own word is what moves it. Nothing promotes a head
+  automatically, and there is no "this one is interesting" hint: you
+  draft one because you decided to look at it, which is what makes the
+  management game about the three thin ones rather than about the mean.
+
+  `return` puts it back, and what you learned about it goes into the
+  book.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  - name: head
+    type: string
+    required: true
+  - name: herd
+    type: string
+    required: false

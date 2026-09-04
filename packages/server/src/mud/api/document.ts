@@ -49,6 +49,29 @@ const RELEASE_TRANSPORT_CALLERS = SecurityPolicies.FromModule(
   "/platform/idea/api/PressLogic#PressLogic",
 );
 
+/**
+ * ⚠⚠ The herd transport's gate — **the registry singleton itself, and
+ * nothing else.**
+ *
+ * The herdbook's security property is that a keeper can FILE against it
+ * and cannot REWRITE what it says: *you file; you do not hold the pen.*
+ * `save`'s ordinary gate admits the branch owner, which is the trade —
+ * so a keeper drafting a head out could not write, and granting them the
+ * branch would hand them the pen. A pinned transport is the way out, and
+ * it is the same one the press path takes for a comms director who is
+ * not a landowner.
+ *
+ * ⚠ It names a PACK path, which is normally the tell of a mis-cut. It is
+ * not one here: a document KIND is a platform act by construction (its
+ * consumer is code, and the installer needs a go-live hook), so naming
+ * the one consumer alongside the kind it exists for is the same act
+ * rather than a second one. `lint:gates` resolves the string, so a
+ * rename cannot orphan it silently.
+ */
+const HERD_TRANSPORT_CALLERS = SecurityPolicies.FromTemplate(
+  "/trade/ranching/idea/HerdRegistry",
+);
+
 const LOGIC_PATH = "/platform/idea/api/document";
 const LOGIC_CLASS_FILE = fileURLToPath(
   new URL("../platform/idea/api/DocumentLogic", import.meta.url),
@@ -111,6 +134,29 @@ export class DocumentApi {
     data: Record<string, unknown>,
   ): Promise<void> {
     return logic().saveRelease(publisher, path, data);
+  }
+
+  /**
+   * File or update a **herd** in the ranching trade's register — the
+   * herdbook (farmstead D20, P4).
+   *
+   * ⚠⚠ **An ownership bypass, and narrow only by construction.** It
+   * takes **no owner** (the register's branch is fixed inside), refuses
+   * any path outside the register, **pins the `kind`** so it cannot
+   * write anything else, and is **gated to the registry singleton**,
+   * which is where the validation of what a legitimate herd looks like
+   * lives.
+   *
+   * ⭐ Why it exists at all: a record about you must live on somebody
+   * else's branch, or its subject can rewrite it — and D79 makes the
+   * herdbook a **sales document**, which is the lemons fraud with the
+   * engine supplying the pen. Real herdbooks have been kept by breed
+   * societies rather than by the men selling the bulls since 1822, for
+   * exactly this reason.
+   */
+  @CallSecurity(HERD_TRANSPORT_CALLERS)
+  static saveHerd(path: string, data: Record<string, unknown>): Promise<void> {
+    return logic().saveHerd(path, data);
   }
 
   /**
