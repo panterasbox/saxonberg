@@ -309,10 +309,17 @@ async function main(): Promise<void> {
     ),
   );
   say(">", keeper);
+  // ⚠⚠ Do NOT guess a reason here. This line read "(the bar's par may be
+  // met)" for three green runs while the truth was the opposite — the par
+  // was maximally unmet and the keeper was structurally unable to order
+  // anything at all. A reported line that offers a benign explanation it
+  // cannot check is worse than one that says only what it saw.
   console.log(
     /wanting carriage/i.test(keeper)
       ? "   ⓘ the bar keeper HAS posted — carriage wanted out of the cash-and-carry"
-      : "   ⓘ nothing posted out of the cash-and-carry this beat (the bar's par may be met)",
+      : "   ⓘ NOTHING posted out of the cash-and-carry. This drive cannot see\n" +
+        "     why (the Lounge is off the map): the keeper may be off shift,\n" +
+        "     the house may be unfunded, or the loop may be broken. Check it.",
   );
 
   // ── 7. The goods yards, and the work on the boards ─────────────────
