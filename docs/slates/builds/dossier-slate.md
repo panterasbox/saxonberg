@@ -497,13 +497,54 @@ would quietly re-create the collision the projection exists to remove.
   slate's finding that *"the position itself is authored on the Business
   roster"* is the link. A wolf has no institution and never will, which is
   correct: a wolf mauling you is nobody's fault.
-- ⚠ **The victim mirror follows, but is an inference — flag rather than
-  assume.** If an extra's acts belong to its institution, harms *upon* an
-  extra plausibly land there too: killing a sentry is an offence against
-  the watch, which is roughly how real law reads assaulting an officer.
-  That resolves *"an extra cannot meaningfully be killed"* without
-  promotion. **Recommended, not decided** — the ruling given was about the
-  actor side.
+- ✅ **The victim mirror is DECIDED the same way (2026-09-04): harms upon
+  an extra land on the institution too.** Killing a sentry is an offence
+  against the watch, which is roughly how real law reads assaulting an
+  officer, and it resolves *"an extra cannot meaningfully be killed"*
+  without any promotion machinery. ⭐ The fictional payoff is free and
+  good: an institution accumulating harm rows **is a casualty list** —
+  *"the watch has lost four guards this season"* becomes a true emergent
+  fact, and attacking an institution's personnel becomes a legible act
+  against that institution rather than a series of unattributable
+  scuffles.
+
+### ⚠⚠ Correction — the projection does NOT cover accountability
+
+Stated last turn that *"every producer keeps working unchanged"* because
+they all key on identity. **That is wrong for the one ledger this decision
+is actually about**, and the cost estimate changes with it. Verified:
+
+| ledger | keys on | projection applies? |
+|---|---|---|
+| trait · transcript · access · reactions · channels · subjects | `getIdentityPath()` | ✅ free |
+| **accountability** | **`getTemplatePath()`** | ❌ **no** |
+
+`ConditionLogic` writes `victim: host.getTemplatePath() ?? host.stuffId`,
+and `CombatLogic` keys combatants, sides and initiators off
+`getTemplatePath()` in six places. So an `Extra` projecting its
+institution would attribute its *trait* rows and its *transcript* rows
+correctly and its **blame rows not at all** — the exact opposite of the
+intent.
+
+⭐ The fix is still small and still one idea — **the accountability
+producers key on `getIdentityPath()` like everything else** — but it is
+seven call sites rather than zero, and it must be in the build's scope
+rather than assumed away.
+
+### ⚠ A pre-existing inconsistency this exposes — worth checking, not yet a claim
+
+If accountability keys on `getTemplatePath()` while the identity
+projection exists for the sandbox, then a harm inside a circle files under
+the **vessel's** template path rather than the player's real identity —
+which contradicts the documented intent of the projection (*"PASS rows
+attribute to the real identity, never the vessel"*).
+
+⚠ **Stated as a question, because it has not been traced**: it depends on
+whether harms can be produced in-circle at all, and on whether in-circle
+blame is *meant* to reach the real person (a live question the sandbox
+slate already lists under *accountability/consent inside someone else's
+circle*). If harms can happen there, this is a shipped defect that has
+nothing to do with extras and should be filed on its own.
 
 ### ⚠ The victim mirror — and what checking the corpse actually found
 
@@ -624,12 +665,13 @@ consumes, failing closed and silent.
 
 ## Open questions
 
-0. ✅ **CLOSED 2026-09-04 — what an `Extra`'s deeds do.** They attribute
-   to the **institution**; where there is none, **nothing is written**. B
-   (the shared row) is now a rule against rather than a default, and the
-   mechanism is an identity **projection**, the sandbox `WireBody`'s
-   second consumer. ⚠ One inference left open inside it: whether harms
-   *upon* an extra land on the institution too.
+0. ✅ **CLOSED 2026-09-04 — what an `Extra`'s deeds do, and what is done
+   TO it.** Both attribute to the **institution**; where there is none,
+   **nothing is written**. B (the shared row) is a rule against rather
+   than a default, and the mechanism is an identity **projection**, the
+   sandbox `WireBody`'s second consumer. ⚠ It is *not* free: the
+   accountability producers key on `getTemplatePath()`, not
+   `getIdentityPath()`, so seven call sites move with it.
 1. ⭐ **One document, or a block on the row?** The provocation says
    *"single document"*. A block keeps one file per character and matches
    how `dispositions:` already works; a `DocumentKinds` entry (the closed
@@ -684,8 +726,10 @@ is settled by evidence rather than argument.
    projection** on `Extra` (Q0). Sequenced last only because nothing
    repeats a row *yet*; the day one does, it moves to the front. ⭐ The
    acceptance is behavioural and cheap to state: **an extra's deed lands
-   on its institution's ledger and on no row of its own**, and an extra
-   with no institution writes nothing anywhere.
+   on its institution's ledger and on no row of its own**, an extra with
+   no institution writes nothing anywhere, and **killing a sentry shows up
+   as a harm to the watch**. ⚠ Includes moving the seven accountability
+   producers onto `getIdentityPath()`.
 8. **The corpse identity** — `asIdentityPath` at the one mint site.
    ⭐⭐ **DECIDED 2026-09-04: this lands BEFORE the necropolis (#40)**, and
    it does not wait for the rest of this slate — it is one argument at one
