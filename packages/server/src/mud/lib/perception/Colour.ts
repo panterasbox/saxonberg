@@ -35,6 +35,20 @@
 import { DYE_COLOR_TAGS } from '@saxonberg/types';
 import type { ColorTag } from './Light';
 
+/**
+ * Linear light → sRGB, the standard piecewise transfer.
+ *
+ * ⚠ The reason a colour model needs this at all: everything above
+ * composes in LINEAR light, because that is the domain where filters
+ * multiply. Display bytes are encoded. Skipping the conversion is the
+ * single most common way a physically-correct colour pipeline produces
+ * visibly wrong output.
+ */
+function encodeSrgb(v: number): number {
+  const t = unit(v);
+  return t <= 0.0031308 ? 12.92 * t : 1.055 * Math.pow(t, 1 / 2.4) - 0.055;
+}
+
 /** Clamp to the unit interval; NaN reads as 0 rather than propagating. */
 function unit(v: number): number {
   if (!Number.isFinite(v)) return 0;
@@ -180,25 +194,34 @@ export class Colour {
   }
 
   /**
-   * How far this is from transmitting everything, `0..1` — the
-   * "is there any colour on this at all" read.
+   * **How much dye is on it**, `0..1` — the deepest absorption on any
+   * one band. 0 is undyed; 1 is a band taken out completely.
    *
-   * ⚠ Deliberately the MAX channel deviation rather than a mean: a
-   * strong blue is strongly coloured even though it still transmits
-   * plenty of blue, and a mean would call it half-dyed.
+   * ⚠⚠ **This is NOT saturation, and it was called that for one
+   * commit.** Saturation in every standard colour model measures
+   * distance from GREY; this measures distance from UNDYED. A neutral
+   * grey dye scores 0 on saturation and 0.5 here, and the two readings
+   * come apart exactly when somebody overdyes into mud. The name was
+   * the only wrong thing — every call site wanted dye load — but a
+   * method called `saturation` will eventually be read as saturation
+   * and used to answer a question it cannot answer.
+   *
+   * ⚠ Deliberately the MAX channel absorption rather than a mean: a
+   * strong blue is deeply dyed even though it still passes plenty of
+   * blue, and a mean would call it half-dyed.
    */
-  saturation(): number {
+  depth(): number {
     return Math.max(1 - this.r, 1 - this.g, 1 - this.b);
   }
 
   /**
    * How much light comes back overall, `0..1` — the dark/light read
-   * that {@link saturation} deliberately is not.
+   * that {@link depth} deliberately is not.
    *
    * ⚠ The two are independent and the difference bites: alum-madder
    * and iron-madder absorb green equally hard, so they have the SAME
-   * saturation, and what separates them is that iron transmits far
-   * less red. "Is it strongly coloured" and "is it dark" are different
+   * `depth`, and what separates them is that iron transmits far less
+   * red. "How much dye is on it" and "is it dark" are different
    * questions and a single number cannot answer both.
    */
   lightness(): number {
@@ -233,16 +256,28 @@ export class Colour {
   }
 
   /**
-   * `#rrggbb`, for the wire and the client swatch.
+   * `#rrggbb` — the ONE place RGB appears, and it is an output.
    *
-   * ⚠ The ONE place RGB appears, and it is an output. Transmittance
-   * maps to a displayed channel directly because a lit surface returns
-   * what it does not absorb — good enough for a swatch, and not a
-   * claim about radiometry.
+   * ⚠⚠ **Gamma-encoded, and the naive version was wrong.** These
+   * transmittances are LINEAR light: 0.5 means half the photons in
+   * that band get through. An sRGB byte is not linear — it carries the
+   * ~2.2 display transfer — so writing `Math.round(t * 255)` treats a
+   * linear value as though it were already encoded and renders every
+   * colour far too dark (0.5 linear became `0x80`; it should be
+   * `0xBC`). Cloth would have looked muddy and the cause would have
+   * been invisible, because "natural dyes are muted" is exactly the
+   * answer the model is *supposed* to give.
+   *
+   * The full sRGB piecewise transfer rather than a `pow(1/2.2)`
+   * approximation — it is four lines and it is the actual standard.
+   *
+   * ⚠ Still not a radiometric claim: a lit surface returning what it
+   * does not absorb is the right shape for a swatch and nothing more.
+   * No illuminant, no white balance, no spectral upsampling.
    */
   toHex(): string {
     const byte = (v: number): string =>
-      Math.round(v * 255)
+      Math.round(encodeSrgb(v) * 255)
         .toString(16)
         .padStart(2, '0');
     return `#${byte(this.r)}${byte(this.g)}${byte(this.b)}`;

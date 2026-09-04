@@ -278,7 +278,7 @@ export function DyedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       // ⚠ A stack of entries that carry no triple (pre-model rows, or a
       // mordant-only entry) folds to UNDYED, which is not a colour. Say
       // so rather than reporting white cloth.
-      return mixed.saturation() > 0 ? mixed : null;
+      return mixed.depth() > 0 ? mixed : null;
     }
 
     public getColorTag(): ColorTag | null {
@@ -365,7 +365,7 @@ function dyeColourAugmenter(
     DYE_DEFAULTS.LEGIBLE_AT,
   );
   const body =
-    mix.saturation() < legible * 2
+    mix.depth() < legible * 2
       ? `Dyed ${tag}, and washing out.`
       : `Dyed ${tag}.`;
   return `${text}\n\n${Mml.color(tag, body).toString()}`;

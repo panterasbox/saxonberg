@@ -122,13 +122,13 @@ describe('the single dyes read as their own prose', () => {
      * whole reason the two reads are separate methods.
      */
     expect(iron.lightness()).toBeLessThan(alum.lightness());
-    expect(iron.saturation()).toBeCloseTo(alum.saturation(), 6);
+    expect(iron.depth()).toBeCloseTo(alum.depth(), 6);
   });
 
   it('⭐ a vat BUILDS — each dip is nearer blue than the last', () => {
     const tags = [1, 2, 3, 4].map((n) => WOAD.atStrength(vatDepthAfter(n)));
     for (let i = 1; i < tags.length; i++) {
-      expect(tags[i]!.saturation()).toBeGreaterThan(tags[i - 1]!.saturation());
+      expect(tags[i]!.depth()).toBeGreaterThan(tags[i - 1]!.depth());
     }
     // ⚠ And a shallow dip is a PALE blue, not "grey". The pale band in
     // the palette is what makes that answerable — the reachable region
@@ -141,15 +141,15 @@ describe('the single dyes read as their own prose', () => {
 describe('fading is desaturation, and it falls out', () => {
   it('walks continuously back toward undyed as strength drops', () => {
     const strengths = [0.8, 0.6, 0.4, 0.2, 0.05];
-    const sats = strengths.map((s) => MADDER_ALUM.atStrength(s).saturation());
-    for (let i = 1; i < sats.length; i++) {
-      expect(sats[i]!).toBeLessThan(sats[i - 1]!);
+    const depths = strengths.map((s) => MADDER_ALUM.atStrength(s).depth());
+    for (let i = 1; i < depths.length; i++) {
+      expect(depths[i]!).toBeLessThan(depths[i - 1]!);
     }
   });
 
   it('⭐ strength 0 is the IDENTITY — a mordanted, undyed piece shows nothing', () => {
     const nothing = MADDER_ALUM.atStrength(0);
-    expect(nothing.saturation()).toBe(0);
+    expect(nothing.depth()).toBe(0);
     // Which is exactly why the mordant's zero-strength entry can sit on
     // the stack as a marker without colouring the cloth.
     expect(Colour.stack([nothing]).toHex()).toBe(Colour.UNDYED.toHex());
@@ -186,7 +186,7 @@ describe('the arithmetic itself', () => {
     const lit = MADDER_ALUM.atStrength(MORDANT_BATH);
     const dim = lit.dimmed(0.3);
     const dark = lit.dimmed(0);
-    expect(dim.saturation()).toBeGreaterThan(0);
+    expect(dim.depth()).toBeGreaterThan(0);
     // Fully dark: all three channels equal — no hue survives.
     expect(dark.r).toBeCloseTo(dark.g, 6);
     expect(dark.g).toBeCloseTo(dark.b, 6);
@@ -196,6 +196,25 @@ describe('the arithmetic itself', () => {
   it('toHex is a well-formed six-digit colour', () => {
     expect(Colour.UNDYED.toHex()).toBe('#ffffff');
     expect(MADDER_ALUM.toHex()).toMatch(/^#[0-9a-f]{6}$/);
+  });
+
+  it('⚠⚠ toHex GAMMA-ENCODES — linear light is not a display byte', () => {
+    /*
+     * The whole model composes in linear light, because that is the
+     * domain where filters multiply. Display bytes carry the sRGB
+     * transfer. `Math.round(t * 255)` conflates the two and renders
+     * everything far too dark — and the symptom would have been
+     * invisible, because "the cloth looks muddy" is exactly what a
+     * natural-dye palette is SUPPOSED to look like.
+     *
+     * Half the photons through is 0xBC, not 0x80.
+     */
+    expect(Colour.of(0.5, 0.5, 0.5).toHex()).toBe('#bcbcbc');
+    // The endpoints are fixed points of the transfer either way, which
+    // is exactly why the bug hid: every test that used toHex as an
+    // equality fingerprint still passed.
+    expect(Colour.of(1, 1, 1).toHex()).toBe('#ffffff');
+    expect(Colour.of(0, 0, 0).toHex()).toBe('#000000');
   });
 });
 

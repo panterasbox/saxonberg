@@ -532,7 +532,7 @@ function conspicuityOf(garment: Stuff): number {
    * madder red is not, and a washed-out garment goes quiet on its own
    * because fading IS desaturation.
    */
-  return clampSigned(weave + (garment.getColorMix()?.saturation() ?? 0));
+  return clampSigned(weave + (garment.getColorMix()?.depth() ?? 0));
 }
 
 function clampSigned(x: number): number {
