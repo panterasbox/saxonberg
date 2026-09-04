@@ -44,9 +44,7 @@ import type { Mobile } from '@saxonberg/server/mud/lib/spatial/Mobile';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type { Exitable } from '@saxonberg/server/mud/lib/boundary/Exitable';
-import type { CommandContributions } from '@saxonberg/server/mud/api/command';
-import type { EvictionContext } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
+import { VehicularMixin } from '../lib/Vehicular';
 
 // ⚠ `Sealable` is load-bearing, not decoration: `MixinApi.isOpenContainer`
 // answers false for a Sealable that is shut, and that ONE predicate is
@@ -91,16 +89,6 @@ const CoachChassis = SealableMixin(
   MobileMixin(ExitableVessel),
 ) as unknown as new (...args: any[]) => CoachChassisShape;
 
-const CoachBase = DrivableMixin(CoachChassis);
+const CoachBase = VehicularMixin(DrivableMixin(CoachChassis));
 
-export default class Coach extends CoachBase {
-  static commandContributions: CommandContributions = {
-    peers: ['system/transport/cmd/movement/journey.yaml'],
-    environment: ['system/transport/cmd/movement/journey.yaml'],
-  };
-
-  /** See {@link Barge.canEvict} — a parked coach is capital. */
-  public canEvict(_context: EvictionContext): VetoResult {
-    return { ok: false, reason: 'a parked vehicle is capital, not clutter' };
-  }
-}
+export default class Coach extends CoachBase {}

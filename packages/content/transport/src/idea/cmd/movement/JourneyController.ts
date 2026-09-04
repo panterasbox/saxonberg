@@ -23,6 +23,7 @@ import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MqlApi } from '@saxonberg/server/mud/api/mql';
+import { VEHICULAR_MIXIN } from '../../../lib/Vehicular';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { SchedulerApi } from '@saxonberg/server/mud/api/scheduler';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
@@ -298,11 +299,16 @@ export default class JourneyController extends CommandController<JourneyModel> {
 }
 
 /** A thing you can take a journey in: it affords this verb. */
+/**
+ * ⭐ A vehicle is a thing that SAYS it is one.
+ *
+ * This used to re-derive the category — `isHaulable ‖ (isDrivable ∧
+ * isMobile)` — which is a guard re-narrowing the host set, and the tell
+ * for a mixin trying to exist. A fourth kind of vehicle had to be
+ * remembered here, in a boolean, in a file nobody would think to open.
+ */
 function isVehicle(s: Stuff): boolean {
-  return (
-    MixinApi.isHaulable(s) ||
-    (MixinApi.isDrivable(s) && MixinApi.isMobile(s))
-  );
+  return MixinApi.isActive(s, VEHICULAR_MIXIN);
 }
 
 /** The last path segment, for prose. */

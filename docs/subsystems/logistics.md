@@ -164,6 +164,28 @@ this build exists to make real.
 
 ## The vehicles
 
+⭐⭐ **`VehicularMixin` is what makes them one kind.** A wagon, a barge
+and a coach are three unrelated compositions — `Haulable` and
+deliberately not `Mobile`; a `Drivable` vessel that steers itself; a
+sealed carriage — and identical to a traveller: something you take
+somewhere. The pack's own mixin (`/system/transport/lib/Vehicular`)
+carries the `journey` affordance, the residency veto, and the marker
+`MixinApi.isActive` narrows on.
+
+⚠ Before it, that identity was spelled three times and guessed a fourth:
+the affordance copied onto each class, the eviction veto on two of them
+(**a parked wagon was cullable and a parked barge was not**, for no
+reason anybody chose), and `JourneyController` re-deriving *"what counts
+as a vehicle"* as `isHaulable ‖ (isDrivable ∧ isMobile)`. ⭐ A guard that
+re-narrows the host set is a mixin trying to exist.
+
+⚠ It is the PACK's mixin, never the kernel's — the kernel must not know
+`journey` exists. `collectBucketDefs` reads `commandContributions` *"off
+the class and every mixin in its chain"*, so the affordance is collected;
+and narrowing uses the marker string with `isActive`, not `hasMixin`,
+because `MixinName` is a closed kernel union and **a pack must never
+need a kernel list edit**.
+
 | | composition | moves by |
 |---|---|---|
 | `HaulageRig` | `Bulkable(Haulable(Vessel))` | **towed** — and deliberately NOT `Mobile`. A wagon is pulled, and the shipped tow already carries it and its cargo as a unit. |

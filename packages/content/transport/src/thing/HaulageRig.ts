@@ -31,8 +31,8 @@
 
 import { Vessel } from '@saxonberg/server/mud/lib/stuff/Vessel';
 import { HaulableMixin } from '@saxonberg/server/mud/lib/slot/Haulable';
+import { VehicularMixin } from '../lib/Vehicular';
 import { BulkableMixin } from '@saxonberg/server/mud/lib/bulk/Bulkable';
-import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import {
@@ -43,7 +43,7 @@ import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/C
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
 
-const HaulageRigBase = BulkableMixin(HaulableMixin(Vessel));
+const HaulageRigBase = VehicularMixin(BulkableMixin(HaulableMixin(Vessel)));
 
 export default class HaulageRig extends HaulageRigBase {
   static fieldMeta: FieldMeta = {
@@ -135,12 +135,6 @@ export default class HaulageRig extends HaulageRigBase {
    * here, never because a core mixin says so — which is what lets a
    * second realm ship a second kind of cart with zero pack code.
    */
-  static commandContributions: CommandContributions = {
-    // `peers` and `environment`: the rig grants `journey` to whoever is
-    // standing beside it, and to anyone riding in it.
-    peers: ['system/transport/cmd/movement/journey.yaml'],
-    environment: ['system/transport/cmd/movement/journey.yaml'],
-  };
 }
 
 /** Is this authored string one of the shipped band names? */

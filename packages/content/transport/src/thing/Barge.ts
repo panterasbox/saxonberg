@@ -23,27 +23,10 @@ import { MobileMixin } from '@saxonberg/server/mud/lib/spatial/Mobile';
 import { DrivableMixin } from '@saxonberg/server/mud/lib/slot/Drivable';
 import { SlottedMixin } from '@saxonberg/server/mud/lib/slot/Slotted';
 import { BulkableMixin } from '@saxonberg/server/mud/lib/bulk/Bulkable';
-import type { CommandContributions } from '@saxonberg/server/mud/api/command';
-import type { EvictionContext } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
+import { VehicularMixin } from '../lib/Vehicular';
 
-const BargeBase = BulkableMixin(DrivableMixin(SlottedMixin(MobileMixin(Vessel))));
+const BargeBase = VehicularMixin(
+  BulkableMixin(DrivableMixin(SlottedMixin(MobileMixin(Vessel)))),
+);
 
-export default class Barge extends BargeBase {
-  static commandContributions: CommandContributions = {
-    peers: ['system/transport/cmd/movement/journey.yaml'],
-    environment: ['system/transport/cmd/movement/journey.yaml'],
-  };
-
-  /**
-   * ⚠ **Residency veto.** A vehicle standing on a road or tied up on a
-   * reach is *not* cold clutter — it is somebody's capital, parked
-   * exactly where they left it. The self-eviction sweep would otherwise
-   * cull an idle barge and the owner would come back to nothing, with no
-   * error anywhere. The shipped `Exit` precedent, applied to the one
-   * other kind of object that legitimately sits still for a long time.
-   */
-  public canEvict(_context: EvictionContext): VetoResult {
-    return { ok: false, reason: 'a moored vehicle is capital, not clutter' };
-  }
-}
+export default class Barge extends BargeBase {}

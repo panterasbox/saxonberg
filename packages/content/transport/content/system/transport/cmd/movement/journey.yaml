@@ -1,9 +1,12 @@
 # journey — order a trip along a lane, and read how it is going.
 #
 # Afforded by CONTENT: a rig, a barge or a coach contributes this view to
-# whoever is standing beside it or riding in it. There is no core mixin
-# that grants it, which is what lets a second realm ship a second kind of
-# cart with zero pack code.
+# whoever is standing beside it or riding in it. ⭐ The affordance lives
+# on the transport pack's own `VehicularMixin` — one place, composed by
+# all three — and NOT on any core mixin: the kernel must not know this
+# verb exists. A second realm still ships a second kind of cart with zero
+# pack code (a row naming an existing class); a new vehicle CLASS
+# composes `VehicularMixin` rather than copying statics.
 #
 # ⚠ Deliberately NOT `drive` and NOT `ride`. `drive` is taken twice over
 # — the kernel's one-leg passthrough, and trade-mining's "drive a heading"
