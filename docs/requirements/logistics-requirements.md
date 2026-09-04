@@ -110,7 +110,7 @@ the largest gap in this doc's first draft.
 |---|---|---|
 | **Pedagogy** | transport cost → land use; **capacity vs reach** — why technologies coexist rather than replace; the private record precedes the public one; custody, bailment and documents of title; rate discrimination as a table rather than an accusation; **why intermediaries exist** | ✅ |
 | **Creative expression** | a carrier business with a name, a mark and a published rate card; routes and schedules; a depot and what it holds | ⚠ thin — **you cannot make a wagon** (the wainwright gap, a non-goal) |
-| **Immersion / RP** | the road as a place you pass through; the carriage as a social space; the driver's hands full, so an escort is mechanically necessary | ⚠ **conditional on the corridor rooms earning their length** |
+| **Immersion / RP** | the road as a place you pass through; the carriage as a social space; the driver's hands full, so an escort is mechanically necessary | ✅ *after D18* — length is an **event budget**, so "earning their length" is a checkable instruction, not a hope |
 | **Gamification / self-improvement** | ⭐ three layers — **personal** (D15 teamstering), **economic** (porter → carter → carrier → operator, a career not a stat), and **collective** (D17 backhaul; reliability as scoped renown) | ✅ *after* D15–D17 |
 
 ⚠ **The first draft of this doc scored zero on the fourth lens** — no
@@ -525,6 +525,104 @@ middlemen.
 collective structures and are **out** (see Non-goals). Backhaul is in
 because it costs a field.
 
+### D18 — Road character is authored capital; traffic is derived flow
+
+⚠ **A road hierarchy cannot be derived here, and must not be faked.** In
+reality freeway → arterial → collector → local is the solution to a
+funnelling problem in *continuous 2D space*: infinitely many origins, and
+one wide shared road is cheaper than N narrow ones. This realm has ~100
+named nodes and about ten businesses. **There is no space to funnel**, so
+an authored hierarchy would be drawing the output of a process the world
+does not run.
+
+**But traffic is derivable, exactly, and D7 already ships the
+instrument.** Every haul is a bill of lading carrying an origin and a
+destination, so:
+
+> ⭐⭐⭐ **Edge traffic is a count over the paper, not a simulation
+> parameter.** The road and the reporting are one system read two ways.
+
+Nobody authors that the valley road is busy. It is busy because the ore
+goes down it, and **if the mine closes it stops being busy on its own.**
+
+⭐⭐ Which also settles where land value comes from without geometry:
+**centrality here is functional, not positional** — a node is busy
+because of what it *is*, not where it *is*. So the scarce positional
+good is not centrality but **frontage**: being on a corridor at all.
+Binary, which is why the crossroads is worth something, and the honest
+land-economics answer anyway.
+
+#### A road therefore differs along two independent axes
+
+| | source | carried by |
+|---|---|---|
+| **what it was built for** | ⭐ **authored** — capital and history | exit `speed`, mode gates, grade, surface |
+| **what it carries** | ⭐ **derived** — the flow count | bills of lading over that edge |
+
+> ⭐⭐ **And the gap between them is the story engine.** A fine road
+> nobody uses because the mine closed; a rut carrying more than it
+> should; a high street that was the only way through before the
+> cut-off. That is what "life on the road" stories are actually about,
+> and **neither half is faked** — one is content, one is arithmetic.
+
+#### ⭐⭐ Length is an event budget, not a distance
+
+The honest translation of road character into a container graph:
+
+> **Rooms are places something can happen. Edge duration is the
+> emptiness between them.**
+
+Both already expressible — exit `speed` / `defaultDurationMs` vary per
+edge — so the dial costs nothing:
+
+| road | rooms | edge duration | reads as |
+|---|---|---|---|
+| **the lonely stretch** | few | long | nothing for a long time, then something |
+| **the high street** | many | short | continuous incident, no privacy |
+| **the pass** | few | long, `wheeled` refused | a barrier with one way through |
+| **the towpath** | moderate | short | a walk you take rather than endure |
+
+⭐ This makes the immersion lens's caveat actionable rather than a hope:
+**if a corridor has five rooms, five things have to be true there.** A
+room on a road is a budget line, not filler.
+
+#### The tropes are room content; the engine only makes them bite
+
+Coaching inn, toll bar, milestone, ford, bridge, pass, crossroads, drove
+road, towpath, ferry, wayside shrine, the abandoned wagon. Authoring,
+not engine — with **one exemplar that is free**:
+
+⭐ **The ford.** Watershed already derives navigability from seasonal
+flow — *"nobody writes down a navigable reach; it is navigable and knows
+that changes with the season."* So a crossing passable in summer and
+impassable in spring flood is the **same mode gate reading a number the
+water system already computes.** A road that changes with the season,
+with no new mechanism.
+
+And **Rovere's road house** — *"six tables, full for three weeks a
+year"* — is already designed in Heart's Delight, waiting for a road to
+be on.
+
+#### ⭐ Land use: no seventh entry
+
+[freight-slate](../slates/builds/freight-slate.md) flagged *"check
+whether a road corridor fits the closed land-use vocabulary… cheap now,
+annoying later."* **It fits**, and the closed six stay closed:
+
+- **`civic`** — *"offices, parks and **the commons**"* — the public
+  highway;
+- **`wild`** — *"unserviced ground — **passage** and gathering only"* —
+  the unimproved track across nobody's ground.
+
+⭐⭐ And the **`civic` / `wild` split is already the toll-versus-
+obstruction distinction**: a gate on ground you hold is legitimate, a
+barricade on the commons is not. No mechanic, no new entry, decided.
+
+⚠ **Road wear from traffic is OUT** — improvements decaying with use is
+the turnpike's business model and belongs with maintenance, tolls and
+congestion in the contested road build. This build derives the traffic;
+it does not yet let anything erode.
+
 ---
 
 ## Constraints
@@ -643,10 +741,22 @@ because it costs a field.
 15g. A hauler at the far end of a corridor can list gigs whose
     **origin** is where they stand — the backhaul is findable.
 
+**The road as a place**
+
+15h. Two corridors with the **same total duration** are distinguishable
+    in play by room count and edge length — one lonely, one busy.
+15i. At least one crossing's passability **changes with the season**,
+    reading the watershed's derived flow rather than a new field.
+15j. A road corridor's parcel resolves to `civic` or `wild`; the closed
+    six are unchanged and no seventh use was added.
+
 **Reporting**
 
 16. MQL over bills of lading answers *what moved from X to Y in a given
     period* and *what a named carrier charged on a named route*.
+16a. ⭐ Edge traffic is **derivable from bills of lading** — *which
+    corridor segments carried the most this season* is a query, and no
+    traffic counter is stored anywhere.
 17. A depot's own records cover every consignment it handled and no
     others.
 
