@@ -29,7 +29,7 @@ describe('StuffApi.resolveClassFile', () => {
   it('a kernel root resolves into the kernel tree', () => {
     const r = StuffApi.resolveClassFile('/platform/thing/Thing');
     expect(r.origin).toBe('kernel');
-    expect(r.file.replace(/\\/g, '/')).toMatch(/\/src\/mud\/platform\/thing\/Prop\.ts$/);
+    expect(r.file.replace(/\\/g, '/')).toMatch(/\/src\/mud\/platform\/thing\/Thing\.ts$/);
   });
 
   it('a pack root resolves into the pack src/ and says so', () => {
