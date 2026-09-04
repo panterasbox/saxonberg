@@ -36,6 +36,9 @@ import Material from '@saxonberg/server/mud/lib/material/Material';
 import Condition from '@saxonberg/server/mud/platform/idea/Condition';
 import Weapon from '@saxonberg/server/mud/platform/thing/equipment/Weapon';
 import ButcherBlock from '../../../../thing/ButcherBlock';
+import BoningKnife from '../../../../thing/BoningKnife';
+import KitchenTool from '../../../../thing/KitchenTool';
+import ToolItem from '@saxonberg/server/mud/platform/thing/ToolItem';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import Provision from '@saxonberg/server/mud/platform/thing/Provision';
 import { Contamination } from '@saxonberg/server/mud/lib/material/Contaminable';
@@ -248,12 +251,39 @@ describe('butchery — the act, over the shipped rows', () => {
     expect(secondCarrot.getPathogenLoads()).toEqual({});
   });
 
-  it('⚠ a blade still BUTCHERS — cutting and carrying are different facts', () => {
-    // The verb gates on an edge, so any blade opens a carcass; what it
-    // does not do is remember what it found there.
-    const knife = makeStuff(() => new Weapon());
-    expect(MixinApi.isConstructed(knife)).toBe(true);
-    expect(MixinApi.isContaminable(knife)).toBe(false);
+  it('⭐⭐ a COOK\'s knife remembers; a pocket knife does not', () => {
+    // Both open a carcass — the verb gates on an EDGE, not on a class —
+    // and only one of them is food kit. This is the narrow class the
+    // `Weapon`-wide mixin was replaced by: a mace, a flail, a warhammer
+    // and a whip are none of them a cook's knife.
+    const boning = makeStuff(() => new BoningKnife());
+    const clasp = makeStuff(() => new Weapon());
+    expect(MixinApi.isConstructed(boning)).toBe(true);
+    expect(MixinApi.isConstructed(clasp)).toBe(true);
+    expect(MixinApi.isContaminable(boning)).toBe(true);
+    expect(MixinApi.isContaminable(clasp)).toBe(false);
+  });
+
+  it('…and the cook\'s knife carries it on to the next thing it touches', () => {
+    // D3's *"a board, a knife, a hand and a vessel"* — the knife half,
+    // which briefly went missing when the mixin came off `Weapon`.
+    const knife = makeStuff(() => new BoningKnife());
+    const carrot = makeStuff(() => new Provision());
+    knife.contaminate('salmonella', 1);
+    knife.transferContaminationTo(carrot);
+    expect(carrot.getPathogenLoad('salmonella')).toBeGreaterThan(0);
+    expect(knife.getPathogenLoad('salmonella')).toBeGreaterThan(0);
+  });
+
+  it('⭐ a kitchen tool can hold a load; a mining tool cannot', () => {
+    const sieve = makeStuff(() => new KitchenTool());
+    const shovel = makeStuff(() => new ToolItem());
+    expect(MixinApi.isContaminable(sieve)).toBe(true);
+    expect(MixinApi.isContaminable(shovel)).toBe(false);
+    // …and the craft offers the load to BOTH; only one can take it, which
+    // is the narrowing doing the work rather than a guard.
+    expect(MixinApi.isTool(sieve)).toBe(true);
+    expect(MixinApi.isTool(shovel)).toBe(true);
   });
 
   it('the freshly contaminated cut is ALREADY at the infectious dose', () => {

@@ -310,6 +310,14 @@ export class Contamination {
     b: PathogenLoads,
     amountB: number,
   ): PathogenLoads {
+    // ⚠ Tolerate a missing map. A DESTROYED host is an inert proxy whose
+    // every call no-ops to `undefined`, so a caller reading a load off an
+    // object that has just been consumed hands us nothing — and throwing
+    // `Cannot convert undefined or null to object` from deep inside a
+    // blend is a poor way to learn that. The caller's ordering is still
+    // the real fix; this is the seatbelt.
+    a = a ?? {};
+    b = b ?? {};
     const total = amountA + amountB;
     if (!(total > 0)) return { ...a };
     const out: PathogenLoads = {};
@@ -369,7 +377,7 @@ export class Contamination {
     let acc: PathogenLoads = {};
     let accWeight = 0;
     for (const part of parts) {
-      if (part.weight <= 0) continue;
+      if (part.weight <= 0 || !part.loads) continue;
       acc = Contamination.blend(acc, accWeight, part.loads, part.weight);
       accWeight += part.weight;
     }

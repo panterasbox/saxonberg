@@ -667,6 +667,42 @@ function pickItemInputs(
   return remaining <= 0 ? picked : null;
 }
 
+/**
+ * Move what the inputs were carrying onto the tools the working used.
+ *
+ * ⭐ The mechanism is the board's, generalized: a surface that worked on
+ * contaminated matter carries it to whatever it works on next. Which tools
+ * can hold a load is a CLASS decision (`KitchenTool` does, `ToolItem` does
+ * not), so this offers it to all of them and the host set decides.
+ */
+function contaminateTools(
+  usedTools: readonly Stuff[],
+  matched: readonly MatchedInput[],
+  matchedItems: readonly MatchedItemInput[],
+): void {
+  const targets = usedTools.filter((t) => MixinApi.isContaminable(t));
+  if (targets.length === 0) return;
+  const parts: { loads: PathogenLoads; weight: number }[] = [];
+  for (const m of matched) {
+    if (m.measureL > 0) {
+      parts.push({ loads: Contamination.loadsFor(m.slot), weight: m.measureL });
+    }
+  }
+  for (const m of matchedItems) {
+    parts.push({
+      loads: MixinApi.isContaminable(m.stuff) ? m.stuff.getPathogenLoads() : {},
+      weight: Math.max(0.1, m.count),
+    });
+  }
+  const carried = Contamination.blendAll(parts);
+  if (Contamination.isClean(carried)) return;
+  for (const tool of targets) {
+    if (!MixinApi.isContaminable(tool)) continue;
+    const have = tool.getPathogenLoads();
+    tool.setPathogenLoads(Contamination.blend(carried, 1, have, 1));
+  }
+}
+
 /** Stamp a working's spoilage outcome onto the output slot. */
 function applySpoilage(outSlot: BulkSlot, outcome: SpoilageOutcome): void {
   Freshness.stampLoad(outSlot, outcome.load);
@@ -1956,6 +1992,23 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
     craftedAt: WorldClockApi.getNow().rawValue(),
   });
 
+  // ⭐⭐ **A working DIRTIES the tools it was done with** — a press that
+  // pressed contaminated fruit is a dirty press, the board's route one
+  // instrument over.
+  //
+  // ⚠⚠ **Before the consume, and that ordering is load-bearing.** Placed
+  // after it, this read the inputs' loads off objects that had just been
+  // destructed — and a destroyed Stuff is an inert proxy whose every call
+  // no-ops to `undefined`, so it threw rather than quietly returning
+  // nothing. Consumption is what destroys the evidence; take it first.
+  //
+  // ⚠ Offered to every used tool and taken only by the ones that can HOLD
+  // it: `ContaminableMixin` is composed on food kit (`KitchenTool`), not
+  // on `ToolItem`, whose host set is a felling axe, a sledge and a shovel.
+  // A smith's hammer is offered the same contamination and is structurally
+  // unable to take it — the narrowing does the work, not a guard here.
+  contaminateTools(usedTools, matched, matchedItems);
+
   consumeBulkInputs(matched);
   consumeItemInputs(matchedItems);
 
@@ -1981,6 +2034,7 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
   // Tools wear on use — the durable-good half (a ToolItem composes
   // DurableMixin alongside ToolMixin).
   for (const t of usedTools) if (MixinApi.isDurable(t)) t.wear();
+
 
   // The evidence tail: advancement deed + watch-=-claim for witnesses
   // (a no-op for recipes authoring no discipline — every bar row).

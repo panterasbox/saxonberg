@@ -318,19 +318,37 @@ be one: the reconcile returns immediately on an empty map, so *no food a
 player owns ever becomes dangerous on its own*, at any temperature, over
 any span. That invariant is arithmetic rather than policy.
 
-**Hosts:** `Provision`, `CraftVessel`, and the cooking trade's own
-`ButcherBlock` — **food equipment**, and nothing else. ⚠ Not `Cutlery`,
-which touches a mouth rather than a carcass.
+**Hosts — food equipment, and nothing else.** Two kernel classes and three
+of the cooking trade's own:
 
-⚠⚠ **Not `ToolItem` either**, though it was composed there for one build on
-the argument that *"this can carry pathogens between things"* is true of a
-billhook and a kitchen sieve. It is — and it was the wrong question. That
-class's host set is a felling axe, a sledge, a pick, a pick-haft, a pinch
-bar, a smith's hammer, an assay kit and a shovel: **most tools in this game
-are mining and smithing kit that never meets food.** The attach point stays
-named — a `KitchenTool` the day a sieve genuinely needs to carry a load,
-the same way irrigation contamination composes onto `WateringCan` when
-someone wants it.
+| host | why it can hold a load | what puts one there |
+|---|---|---|
+| `Provision` | it IS the food | the gut spill; a craft's tangible output |
+| `CraftVessel` | a pot, a bowl, a platter — what food sits in | a fill from a dirty vessel |
+| `ButcherBlock` | the board you open a carcass on | the gut spill |
+| `BoningKnife` | a cook's blade — food kit, not a weapon | the gut spill |
+| `KitchenTool` | the sieve, the press — tools that work food | a craft dirties the tools it used |
+
+⚠ Not `Cutlery`, which touches a mouth rather than a carcass.
+
+⚠⚠ **And deliberately NOT the two kernel classes those last two descend
+from.** `ContaminableMixin` was composed on `Weapon` and on `ToolItem` for
+one build, on the argument that *"this can carry pathogens between things"*
+is true of a clasp knife and a kitchen sieve. It is — and it was the wrong
+question, because it is false of most of both host sets: a mace, a flail, a
+warhammer, a whip and a fire poker; a felling axe, a sledge, a pick, a
+pick-haft, a pinch bar, a smith's hammer, an assay kit and a shovel.
+`callable == visible == cared-about` settles it.
+
+⭐ **The answer was not to delete but to NARROW.** `BoningKnife` and
+`KitchenTool` are the food-work subclasses, and the split they express is
+the real one: **cutting and carrying are different facts.** `butcher` gates
+on an EDGE, so the store's clasp knife opens a carcass exactly as the
+kitchen's boning knife does — it just does not *remember* what it cut,
+because a pocket knife is a general tool and a cook's knife is food kit.
+Likewise a shovel is offered the same contamination a sieve is, at the same
+seam, and is structurally unable to take it. **The narrowing does the work,
+never a guard.**
 
 ⚠⚠ **And not `Weapon`.** It was composed there for one build so the clasp
 knife a player buys could carry pathogens off a carcass — which put
@@ -407,9 +425,12 @@ Discipline decides both the yield and the mess. ⚠ An expert still
 deposits a floor of it: the answer to this hazard has to be cooking and
 cold, never a good enough butcher.
 
-**Where it goes:** onto whatever the **block** touches next
-(`transferContaminationTo`), through every pour by mass, through both
-craft paths, and across **both arms of `eat`** into the body.
+**Where it goes:** onto the board and the blade at the butchering, onto
+the **tools a working used** (before the inputs are consumed — a destroyed
+Stuff is an inert proxy that answers `undefined`), onto whatever a dirty
+surface touches next (`transferContaminationTo`), through every pour by
+mass, through both craft paths, and across **both arms of `eat`** into the
+body.
 ⚠ That last bridge is the one that fails silently and completely — a
 pathogen that does not cross it leaves the suite green, the food
 contaminated and the eater fine.

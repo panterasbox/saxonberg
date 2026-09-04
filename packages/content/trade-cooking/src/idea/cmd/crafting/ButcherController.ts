@@ -215,6 +215,11 @@ export default class ButcherController extends CraftController<ButcherModel> {
     // meat — it just leaves nothing behind to contaminate the next job.
     const block = this.findBlock(giver);
     if (block) this.spillGut(block, mess);
+    // ⭐ …and the blade, **if it is a blade that can hold it.** A cook's
+    // boning knife remembers what it cut; a clasp knife out of a pocket
+    // does not, because it is a general tool and not food kit. Both open
+    // the carcass — the verb gates on an edge, not on a class.
+    this.spillGut(blade, mess);
 
     if (MixinApi.isAdvancing(giver)) {
       await giver.creditDeed({
