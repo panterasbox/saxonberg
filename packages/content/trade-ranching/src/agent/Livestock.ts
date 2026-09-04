@@ -11,8 +11,9 @@
  *  - a **back-reference to the register** — its herd and its index,
  *    which together ARE its identity. ⚠ The object is the transient
  *    thing here; the record is what persists.
- *  - the **`return` affordance**, because the act belongs to the animal
- *    you are standing next to.
+ *  - **`ProducingMixin`** — the taps, which are what you keep it FOR.
+ *  - the **act affordances**, because they belong to the animal you are
+ *    standing next to.
  *
  * ⭐ Ownership, chain-of-title and branding it inherits from `Creature`,
  * which gained `ChattelMixin` and `BrandedMixin` in this same wave —
@@ -27,10 +28,11 @@
 
 import { Creature } from '@saxonberg/server/mud/lib/creature/Creature';
 import { HandlingMixin } from '@saxonberg/server/mud/lib/husbandry/Handling';
+import { ProducingMixin } from '../lib/Producing';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 
-export default class Livestock extends HandlingMixin(Creature) {
+export default class Livestock extends ProducingMixin(HandlingMixin(Creature)) {
   /**
    * ⭐ The animal affords the acts you do TO an animal. ⚠ A row's
    * `commandContributions:` is dead silently — the affordance is a
@@ -41,6 +43,11 @@ export default class Livestock extends HandlingMixin(Creature) {
     peers: [
       'trade/ranching/cmd/ranching/return.yaml',
       'trade/ranching/cmd/ranching/handle.yaml',
+      'trade/ranching/cmd/ranching/milk.yaml',
+      'trade/ranching/cmd/ranching/shear.yaml',
+      'trade/ranching/cmd/ranching/gather.yaml',
+      'trade/ranching/cmd/ranching/butcher.yaml',
+      'trade/ranching/cmd/ranching/breed.yaml',
     ],
     environment: [],
   };

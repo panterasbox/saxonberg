@@ -1,0 +1,22 @@
+verbs: [shear]
+controller: /trade/ranching/idea/cmd/ranching/ShearController
+description: "Take the fleece off"
+help: |
+  Take the fleece off in one piece.
+
+  Wool grows continuously and comes off once, so there is no window to
+  miss and nothing to spoil. What neglect costs is QUALITY: a fleece left
+  two years is matted and full of second cuts and worth far less per
+  kilo — and the sheep has been carrying it through a summer.
+
+  ⭐ It is what the textiles chain has been waiting for. That trade's
+  wool has shipped with no animal behind it.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  - name: target
+    type: object
+    required: true
+    scope: ["reachable"]
+    requires: HandlingMixin

@@ -1,0 +1,23 @@
+verbs: [breed]
+controller: /trade/ranching/idea/cmd/ranching/BreedController
+description: "Put an animal in with the male, in season"
+help: |
+  ⭐⭐ Nobody wrote down a lambing date. A ewe is a short-day breeder, so
+  her season is stated in DAYLENGTH — and the calendar, which is real
+  orbital geometry, decides when that is. Add gestation and the lambs
+  come in late winter because that is when they come.
+
+  ⚠ The refusal names the daylength, not the month: *the days are still
+  too long, she will not take* is something you can act on.
+
+  ⭐ The young are seeded from the flock they came out of, so selection
+  has real traction — what you keep changes what you get.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  - name: target
+    type: object
+    required: true
+    scope: ["reachable"]
+    requires: HandlingMixin

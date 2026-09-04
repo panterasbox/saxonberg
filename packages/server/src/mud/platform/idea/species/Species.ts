@@ -137,6 +137,68 @@ export interface AgeCurveSpec {
   senescentAt: number;
 }
 
+/**
+ * ⭐⭐ **One tap — a renewable product, and how it FAILS** (farmstead
+ * D25, D93).
+ *
+ * Three renewable products, three genuine consequences, and no invented
+ * punishments. The behaviour is the whole spec:
+ *
+ * | | behaviour | neglect |
+ * |---|---|---|
+ * | **milk** | `expire` — taken twice a **game** day | she **dries off** for that lactation. ⚠ A large **slope**, not a cliff: the next lactation is unaffected |
+ * | **eggs** | `accrue` — collect whenever | they **spoil** in the nest past what a clutch will hold |
+ * | **wool** | `continuous` — grows, harvested once | a worse fleece, and a hot sheep |
+ *
+ * ⭐ **Accrual for the on-ramp, expiry for the committed** (D93). The
+ * forgiving end of the roster accrues and expiry is what you take on
+ * when you commit — which is why hens are the on-ramp and a dairy cow is
+ * a tyrant, and why that is a choice a player makes honestly rather than
+ * a gate.
+ *
+ * ⚠⚠ **A tap fills from the PRODUCTION SLICE of the energy budget** and
+ * mints nothing. Copy `Stock`'s reset *sweep*; never its `par`
+ * semantics, which is a faucet shape and would make matter from nothing.
+ */
+export interface TapSpec {
+  /** What comes out — the key the verbs and the register speak. */
+  key: string;
+  /** The row a take mints. */
+  yieldRow: string;
+  /** Units per GAME day at full production (D89 — never "daily"). */
+  perGameDay: number;
+  /** How it behaves when nobody comes. */
+  behaviour: 'accrue' | 'expire' | 'continuous';
+  /**
+   * Game-days after which an untaken `expire` tap gives up for the
+   * season, or an `accrue` tap starts losing what is standing.
+   */
+  windowDays: number;
+}
+
+/**
+ * ⭐ **Breeding: a photoperiod SEASON, not a date** (D26, D11).
+ *
+ * Ewes are short-day breeders and lamb in late winter; cattle are
+ * near-aseasonal; horses are long-day. **Lambing in spring is a
+ * consequence of the calendar rather than a flavour decision anybody
+ * authors** — the window is stated in daylength, and the calendar
+ * decides when that happens.
+ */
+export interface BreedingSpec {
+  /**
+   * The daylength band, as a fraction of the rotation, in which this
+   * species will conceive. A short-day breeder authors a LOW band; a
+   * near-aseasonal one authors `[0, 1]` and is never out of season.
+   */
+  daylightFrom: number;
+  daylightTo: number;
+  /** Gestation, in game days. */
+  gestationDays: number;
+  /** Young per birth. */
+  litter: number;
+}
+
 /** The life stages the curve resolves into, young to old. */
 export const LIFE_STAGES = ['newborn', 'juvenile', 'adult', 'aged'] as const;
 
@@ -218,6 +280,12 @@ export default class Species extends SingletonMixin(
    * — the driver reads it and does nothing.
    */
   protected ageCurve: AgeCurveSpec | null = null;
+
+  /** What this species produces while you keep it (D25). Empty = nothing. */
+  protected production: TapSpec[] = [];
+
+  /** When and how it breeds (D26), or `null` for a species that does not. */
+  protected breeding: BreedingSpec | null = null;
 
   /**
    * `'diurnal'`, `'nocturnal'`, `'crepuscular'`, `'cathemeral'`,
@@ -367,6 +435,8 @@ export default class Species extends SingletonMixin(
     lifespanMin: { persistent: true },
     lifespanMax: { persistent: true },
     ageCurve: { persistent: true, authorable: true },
+    production: { persistent: true, authorable: true },
+    breeding: { persistent: true, authorable: true },
     circadianBand: { persistent: true },
     diet: { persistent: true },
     visionProfile: { persistent: true },
@@ -466,6 +536,33 @@ export default class Species extends SingletonMixin(
   public getReproductiveMode(): string { return this.reproductiveMode; }
   public setReproductiveMode(value: string): void {
     this.reproductiveMode = value;
+  }
+
+  public getProduction(): readonly TapSpec[] { return this.production; }
+  public setProduction(value: TapSpec[]): void {
+    this.production = Array.isArray(value) ? value : [];
+  }
+
+  public getBreeding(): BreedingSpec | null { return this.breeding; }
+  public setBreeding(value: BreedingSpec | null): void {
+    this.breeding = value ?? null;
+  }
+
+  /**
+   * ⭐ Is `daylightFraction` inside this species' breeding window?
+   *
+   * ⚠ A band, not a date, and it wraps: a short-day breeder's window is
+   * `[0, 0.42]` and a long-day breeder's is `[0.55, 1]`, so the test is
+   * a plain interval — but a species authoring `from > to` means a
+   * window that crosses the solstice, and that is a real shape too.
+   */
+  public breedsAtDaylight(daylightFraction: number): boolean {
+    const b = this.breeding;
+    if (!b) return false;
+    const { daylightFrom: from, daylightTo: to } = b;
+    return from <= to
+      ? daylightFraction >= from && daylightFraction <= to
+      : daylightFraction >= from || daylightFraction <= to;
   }
 
   public getAgeCurve(): AgeCurveSpec | null { return this.ageCurve; }

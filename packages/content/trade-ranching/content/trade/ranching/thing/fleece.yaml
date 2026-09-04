@@ -1,0 +1,18 @@
+# A fleece — ⭐⭐ what closes textiles' sourceless wool.
+#
+# `wool.yaml` ships in the commons with `biologicalSource: null`, and the
+# textiles trade's scutching controller was written so that naming a flax
+# row in it would have been *the one line that stops wool*. This is the
+# animal it was waiting for; the material row now names the species it
+# came off.
+class: /platform/thing/Provision
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a fleece
+  primaryKeyword: fleece
+  keywords: [fleece, wool]
+  longDescription: >-
+    A whole fleece rolled cut-side out and tied with its own neck wool,
+    greasy with lanolin and smelling of the animal.
+  _materialPath: /stuff/idea/material/textile/wool
+  mass: 3

@@ -1,0 +1,23 @@
+# Egg — the on-ramp's whole economy, and ⭐ the reason a hen teaches
+# photoperiod on day one.
+#
+# ⚠ It lives in the COMMONS. A bird lays whether or not anybody keeps it.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: egg
+  appearance: brown-shelled and still warm
+  keywords: [egg, eggs]
+  density: 1031
+  specificHeat: 3200
+  thermalConductivity: 0.44
+  electricalConductivity: 0.3
+  waterAbsorptionCapacity: 0
+  hardness: 2
+  toughness: 1
+  edibility: true
+  nutrients: ["protein", "fat", "water"]
+  nutrientAmounts: { protein: 126000, fat: 106000, water: 750000 }
+  toxicity: []
+  tags: ["food", "protein", "perishable", "once-living"]
+  composition: []
