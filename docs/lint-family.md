@@ -164,8 +164,13 @@ configured**.
   file vitest runs. Scanning only `*.test.ts` silently missed two
   `.test.js` files, and the check meant to catch that was itself
   filtered through `grep test.ts` — so it confirmed the undercount
-  instead of exposing it. This asks vitest directly, across both
-  configs, unfiltered.
+  instead of exposing it. This asks vitest directly, unfiltered, across
+  **every** config: the server's two **and each capability pack's own**.
+  ⚠ It asked only the server's two until 2026-09-03, so all 80 pack test
+  files read as phantoms and the gate failed on master — while those
+  suites were running and passing the whole time (a pack ships its own
+  `vitest.config.ts` + `test` script; root `pnpm -r test` runs them).
+  The walk side had always read `packSources()`; now both sides do.
 - **`lint:test-content`** — kernel tests naming shipped content
   (`/world/<locality>`) are a **shrinking allowlist**: a listed one
   warns, a new one fails, and a listed path that no longer offends is
