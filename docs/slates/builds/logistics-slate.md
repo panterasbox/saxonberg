@@ -834,6 +834,110 @@ and neither decision was made with the other in mind.**
 
 ---
 
+# Part 11.5 — Warehousing: the other half of logistics
+
+**Captured 2026-09-03**, out of *"what about the other side of logistics
+which is warehousing… what is a warehouse. It's just a really really big
+container. But that bigness gives it certain properties and needs."*
+
+> **Status: design captured, deliberately DEFERRED.** The logistics build
+> ships the receipt and the bailee's duty and nothing else of this. → the
+> **warehouse build**.
+
+## ⭐⭐ A small container is a thing; a big one is a PLACE
+
+Bigness is not a container property. It is **the point at which you stop
+holding a thing and start standing in it** — and the engine already has
+that ladder: `Vessel` → `ExitableVessel` (*"anything with navigable
+interior is a Vessel"*) → `Location`.
+
+Which means "warehouse" is **three things fused into one word**:
+
+| | what it is | ships? |
+|---|---|---|
+| **the space** | a room you walk into, with weather, light and a door | ✅ |
+| **the stock** | fungible goods as `Globbable` stacks / a `Stock` counter — never 10,000 objects | ✅ |
+| **the institution** | ⭐ the **bailee** — the business that keeps the room and answers for what is in it | D8 |
+
+⭐ So the warehouse *object* is not the building. It is the business that
+keeps it — the same split as the bar being a room and Dave's Bar being a
+`Business`.
+
+## What bigness actually changes
+
+| property | why it follows from size |
+|---|---|
+| ⭐⭐⭐ **contents stop being perceived and become RECORDED** | you cannot `look in` a warehouse; you consult its ledger |
+| **finding takes time** | a pile with no addressing is not storage — bins, aisles, racks |
+| **the bottom does not come out** | stacking order; FIFO vs LIFO; rotation, which perishables punish |
+| **capacity binds in several dimensions** | floor, height, mass, and **segregation** — fuel not beside grain |
+| **conditions apply to everything inside** | it is a space, so contents inherit temperature, damp, vermin |
+| **it needs labor** | break bulk is work; *"you do not blockade a road, you strike a depot"* |
+| **it is pilfered, not robbed** | small amounts over time, invisible **except against the record** |
+
+## ⭐⭐⭐ The spine: record versus reality
+
+> **The gap between the ledger and the goods is the entire discipline** —
+> cycle counts, shrinkage, the annual stocktake.
+
+And it is the same shape as [measurement.md](../../measurement.md)'s
+layer 1: **the record is a claim about the world, not the world.**
+
+⚠ **Which is exactly why it cannot ship in the logistics build.** A
+record-versus-reality mechanic needs something to *cause* divergence, and
+in that build's scope spoilage is a non-goal, theft-at-scale is not
+modelled, and counting is not fallible. **A stocktake that always
+balances is inert content.** The divergence and the gap ship together or
+not at all.
+
+## ⚠ The capacity finding
+
+**Capacity in this engine is a property of a BEARER'S BODY**
+(`bodyMass × CAPACITY_FRACTION × …`), and a warehouse has no bearer — so
+*full* is unrepresentable for discrete goods. Three capacity mechanisms
+ship and none of them covers this:
+
+| mechanism | meters |
+|---|---|
+| `Bulkable.interiorCapacity` | continuous matter, nullable litres — ⭐ already correct for grain, ore and liquid |
+| `SlotSpec.capacity` | fitted items per slot, a count |
+| encumbrance | what a **body** can bear |
+
+⭐ **The seam for the missing one already exists**: `ContainmentApi.placeOn`
+consults **`surface.canRest(item)`** — a predicate on the host, which is
+the OO-correct shape. And CLAUDE.md already settles the failure mode: a
+full warehouse is a **legitimate world state**, not a contract violation,
+so it is a **validator** concern and `ContainmentApi.move` is never
+touched.
+
+### ⭐⭐ The metric is MASS, and the evidence decides it
+
+| metric | verdict |
+|---|---|
+| **volume** | ❌ **`volume:` is authored in exactly ONE content file; `mass:` in 126.** Volume would need authoring on every shipped item — the "missing enabling data fails closed and silent" trap. |
+| **count of top-level contents** | tempting — free, and ⭐ it makes D11's standards benefit arithmetic by rewarding crating. But ⚠ **gameable by nesting**: put everything in one crate and capacity is 1. |
+| ⭐ **mass** | ships, authored 126×, the summing walk exists (`getDraftLoad`), and **cannot be gamed** — mass sums through nesting. Its weakness (a barn fills with straw before it is heavy) is real but minor for this realm's dense goods. |
+
+**Decided: mass, in the warehouse build.** The count-rewards-crating story
+is genuinely good and belongs to the **standards build**, where its payoff
+lives.
+
+## The lenses
+
+| lens | warehousing |
+|---|---|
+| **Pedagogy** | ⭐⭐⭐ record vs reality; ⭐ **inventory is money you cannot spend** (carrying cost, and why just-in-time exists); rotation; segregation; the bailee's duty |
+| **Creative expression** | ⭐⭐ **how you arrange it IS the skill** — aisles, what is near the door, what is up high — expressed **in the world** rather than in a transcript, on the shipped furnishing substrate |
+| **Immersion / RP** | the place: dim, dusty, echoing. The night watchman; the clerk with the ledger. ⭐ **The stocktake as an event** — close for a day and count. |
+| **Gamification** | ⚠ ⭐ **warehousing may not want a discipline at all.** Teamstering is a personal craft; warehousing's real variance is **layout**, which is authored rather than learned. A `storekeeping` discipline buying count/locate *information* is defensible later — but the primary skill should stay in the world. |
+
+⭐ And "what does bigness **need**" is literally the archetype question —
+so much of this lands in D19's `depot` archetype for the cost of a file:
+a roof, dryness, `lightLux`, a door big enough, a `surface` to break bulk
+on, a scale, and `coldStorage` with no default.
+
+---
+
 # Part 11 — inventory: what ships, what is new
 
 ## Already shipped (verified in this pass)

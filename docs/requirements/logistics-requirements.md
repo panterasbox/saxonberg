@@ -188,6 +188,19 @@ Each names where it lands instead.
   road** — both non-goals. → the contested road / utilities build.
 - **Livery *content*.** The `livery` archetype ships (D19); the stable,
   its keeper and the feed economy are **ranching's**.
+- ⚠⚠ **Warehousing as a business** — container capacity, rent, shrinkage,
+  the stocktake, stock rotation, segregation, and stored-goods
+  conditions. ⭐ Its spine is **record versus reality**: at scale a
+  warehouse's contents stop being *perceived* and start being
+  *recorded*, and the gap between the ledger and the goods is the whole
+  discipline. **It must not ship here, because nothing in scope makes
+  the two diverge** — spoilage is a non-goal, theft-at-scale is not
+  modelled, and counting is not fallible, so the stocktake would always
+  balance. ⭐ **A stocktake that always balances is inert content**, the
+  same failure as a coach nobody rides. What ships instead is the
+  **receipt** (D7) and the **bailee's duty** (D8). → **the warehouse
+  build**; the design is captured in
+  [logistics-slate](../slates/builds/logistics-slate.md) § *Warehousing*.
 - ⚠ **A passenger service business** — a coach line, a timetable, a
   fleet, fares. The taxonomy is recorded (D21) and the `ride`
   experience ships, but **the market does not exist yet**: walking is
@@ -432,7 +445,33 @@ It sells two things that fail independently: **handling** (a transaction
 service — consolidation) and **storage** (a time service). Only the
 second carries the bailee's duty.
 
-Two ship: one at Terminus and the **site** at the valley crossroads.
+#### ⚠⚠ Correction (review, 2026-09-03): only HANDLING ships as a product
+
+An earlier draft promised both, *"failing independently (full but
+staffed; empty and understaffed)."* **Half of that is unrepresentable.**
+
+⭐ **Capacity in this engine is a property of a BEARER'S BODY** —
+`bodyMass × CAPACITY_FRACTION × conditionBandMargin × enduranceMargin` —
+and *"carry/drag/ride is emergent from mass vs. a bearer's capacity,
+never a type flag."* **A warehouse has no bearer**, so *full* cannot be
+expressed. (Continuous matter is the exception and is already right:
+`Bulkable.interiorCapacity` is a nullable litre capacity.)
+
+So, narrowed:
+
+| product | this build |
+|---|---|
+| **handling** — consolidation, break-bulk | ✅ **ships, and does real work from day one**: the pass refuses wheels (D1), so bulk genuinely breaks at the crossroads |
+| **storage** — holding goods over time | ⚠ **a receipt and a bailee's duty, NOT a priced scarce good.** Nothing fills up, charges rent, or turns anyone away. |
+
+⚠ **Discrete-containment capacity is therefore deferred**, and with it
+everything that makes storage a business — see the warehousing non-goal.
+The metric, when it lands, is **mass**: it is authored in 126 content
+files (volume in exactly one), the summing walk already exists, and
+unlike a count of contents it **cannot be gamed by nesting**.
+
+Two depots ship: one at Terminus and the **site** at the valley
+crossroads.
 
 ### D9 — Rates are a published card, and gigs may take it or negotiate
 
