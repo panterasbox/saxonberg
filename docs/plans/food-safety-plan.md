@@ -3,8 +3,9 @@
 Executes [food-safety-requirements.md](../requirements/food-safety-requirements.md).
 Adds a second, silent microbial population to the shipped spoilage core,
 moves water activity off the Material and onto the instance so
-preservation becomes an act, cuts the path from a killed animal to meat,
-and grows an ingested pathogen inside its host.
+preservation becomes an act, turns cooking from a temperature threshold
+into a temperature **held for a time**, cuts the path from a killed
+animal to meat, and grows an ingested pathogen inside its host.
 
 **Kind:** feature. **Lead end:** kernel-led — the growth law, the gauge
 and the condition reconcile all change. ⚠ A kernel-led build names its
@@ -94,13 +95,31 @@ degrades evidence while the cause stamp stays ground truth"* — on its
 own cadence, for its own purpose, and `Creature` composes no
 `FreshnessMixin`. See D15.
 
-**The species taxonomy** — a Species row carries `_parentCladePath`
-(e.g. the bullfrog's `/stuff/idea/species/animalia`), and the playable
-species sit under `.../animalia/chordata/mammalia/primates/hominidae/homo/`.
-⚠ There is **no `sapient` flag** anywhere; the distinction exists
-structurally in the clade tree and nowhere else. W3 either walks the
-clade or authors the flag — a decision with a real cost either way, and
-not one to make by accident.
+**The species taxonomy, and ⭐⭐ the flag D14 needs — which already
+exists.** A Species row carries `_parentCladePath` (e.g. the bullfrog's
+`/stuff/idea/species/animalia`), and the playable species sit under
+`.../animalia/chordata/mammalia/primates/hominidae/homo/`. It **also**
+carries `sentient: boolean` — `Species.ts:263`, persistent at
+`fieldMeta:326`, public `isSentient()` at :357 — documented as *"self-
+aware moral persons whose killing is a lawful act with consequences, as
+opposed to a beast whose culling is not,"* and already read through the
+shipped **`SpeciesApi.isSentient(stuff)`** (`SpeciesLogic.ts:84`), whose
+load-bearing consumer is combat's cull-vs-coup severity keying. All
+sixteen playable species author `sentient: true`.
+
+⭐⭐ **So D14's gate is one existing call — and the clade walk is not
+merely the more expensive limb, it is the WRONG one.**
+`species/constructa/metallica/tutor-bot/mk-iv.yaml` is `sentient: true`
+and sits nowhere near `hominidae`; a clade walk would cheerfully let a
+player butcher the tutor-bot. `sentient` is already the line this game
+draws for lawful killing, which is precisely the consistency D14's
+rationale claims for itself.
+
+⚠ An earlier revision of this plan asserted no such flag existed and
+left W3 to choose between walking the clade and authoring one. **It was
+wrong, and there is no choice to make.** Recorded rather than quietly
+deleted: the near-miss is that both limbs of a fork can be offered
+without either being checked against the tree.
 
 **Crafting & serviceware** — `CraftedMixin` stamps `maker` (a durable
 templatePath) at craft-resolve from the execution context.
@@ -108,6 +127,40 @@ templatePath) at craft-resolve from the execution context.
 `wash` ships as a platform verb
 (`content/platform/cmd/crafting/wash.yaml` +
 `platform/idea/cmd/crafting/WashController.ts`).
+
+**⚠⚠ The ingest seam — the one link this plan did not name.** Both arms
+of `eat` funnel into the same call,
+`BulkableApi.ingestSolid(giver, material, portion, payload)`
+(`platform/idea/cmd/bulk/EatController.ts:86` discrete, `:157` from a
+dish). The **dish** arm passes `Freshness.ingestPayloadOf(slot)` — the
+stored payload with the spoilage dose folded in. The **discrete** arm has
+no stored payload at all and synthesizes a transient one,
+`Freshness.withDose(null, material, load)` (:85), *"so a bowl of stew and
+the roast it came from poison by identical arithmetic."* That transient
+payload carries the spoilage dose **and nothing else** — no pathogen
+loads (they do not exist yet) and **no `maker`**. Every route from food
+into a body passes through these two lines. See W1, W2 and W4.
+
+**⚠⚠ Cooking is a THRESHOLD today, not a hold.**
+`CraftingLogic.outputMicrobialLoad` (:~690) resets the load to zero when
+the working's `effectiveHeatK` crossed the kill temperature and otherwise
+blends the inputs' loads by mass. A recipe declares `heatedToK`
+(`CraftingLogic.ts:1332`, `:1361`) and **no duration anywhere**; the heat
+gate at :1663 asks only whether the reachable furnace can supply it.
+`cook` is a one-shot craft-resolve
+(`trade-cooking/src/idea/cmd/crafting/CookController.ts`) with no
+engagement and no elapsed time. The Arrhenius kill in `Freshness.advance`
+runs on the **passive** reconcile and never executes during a craft. So
+requirement D5 has no home in this plan as written. See P7.
+
+**⚠ There is no butcher's knife, and the one knife a player can buy is a
+`Weapon`.** `Cutlery` is serviceware — a horn spoon, a table fork, a
+table knife, *"holding nothing, ever"* — not a working blade. The general
+store sells `clasp-knife.yaml`, class `/platform/thing/equipment/Weapon`,
+`constructionForm: bladed`. Every kitchen and work implement in the packs
+(`kitchen-sieve`, `fruit-press`, `billhook`, `tongs`, `shovel`, …) is a
+**`ToolItem`** — the class, which is one of `ToolMixin`'s six hosts and
+not the same set. See P8.
 
 **Content** — 30 of 107 materials tabulate `spoilActivationEnergy` +
 `waterActivity`. Salt ships at
@@ -151,15 +204,25 @@ host is `Provision` and whose whole design (`lint:perishable`, the
 material-gated inertness) is about *food that rots*.
 
 New `ContaminableMixin` in `lib/material/`, composed **per class** on
-the things that actually participate: `Provision`, `Cutlery`,
-`CraftVessel`, and the butchering implement/surface added in W3.
+the things that actually participate. `Provision` and `CraftVessel` are
+settled here; **which class carries the blade is P8**, and it is not the
+enumeration this section first wrote — `Cutlery` is serviceware and
+cannot butcher anything.
 
-⚠ **Not on `ToolMixin` wholesale** — that host set includes
+⚠ **Not on `ToolMixin` wholesale** — that mixin's host set includes
 `WateringCan` and `Tap`, and composing there would be the exact
 widening the cooking build spent four review rounds undoing. (Irrigation
 contamination is a real route and a real future consumer; it is not this
 build's, and the mixin composes onto a watering can the day someone
-wants it.)
+wants it.) ⭐ P8 keeps that refusal intact by composing on the **class**
+`ToolItem`, which is one of those six hosts and not the mixin.
+
+⚠ **A hand is not a host, and that is a cut.** D3 names *"a board, a
+knife, a hand and a vessel"*. `Creature` would be the carrier for a hand,
+which widens a host set of exactly 1 for a route no drive step exercises
+(step 13 is knife → vegetables, and `wash` already answers it). Recorded
+under Deferred seams rather than left looking covered — an unhosted
+requirement clause reads as delivered right up until the MR.
 
 ### P2a — ⚠ A vessel then carries TWO loads, and they are different facts
 
@@ -298,6 +361,102 @@ below `killSurvivalFraction`. Germination is not a separate mechanism —
 it is the population's rate turning positive again as the host cools
 below `germinationK`, which the shipped Newton cooling already drives.
 
+⚠ P6 alone does **not** deliver D5, because this arithmetic lives on the
+passive reconcile and a craft never runs it. P7 is the other half.
+
+### P7 — ⭐⭐ D5 is a recipe's `(heat × hold)` pair, not a new engagement
+
+**The second defect this review found.** Requirement D5 — *"a long hold
+at a lower heat and a brief moment at a higher one achieve the same
+kill… a simmer, a sear and a lazy warm-through become genuinely
+different acts"* — had no home in any wave. W2 listed it; P6 implements
+a rate in the passive reconcile; the craft path still **thresholds**
+(Grounding). A player could not express a hold at all.
+
+Three limbs:
+
+1. **the recipe gains a hold**, and craft-resolve integrates the kill
+   over `(heatedToK, holdS)`;
+2. **`cook` becomes a durative engagement** the player can cut short;
+3. leave the threshold and let D5 ride only the passive hearth path.
+
+**Lens 2 chose limb 1.** A sear and a simmer become two recipe rows with
+different `(heatedToK, holdS)` pairs — *different acts, authored as
+data*, which is exactly the "the ordinary case is entirely data" test the
+requirements set for this build. Limb 2 is honest and is a wave of its
+own (an engagement, an abort reason, a partial-cook output, a whole new
+failure surface); it is the right shape the day someone wants to pull a
+roast early, and nothing here forecloses it. Limb 3 does not deliver the
+requirement.
+
+So: `heatedToK` gains a sibling `holdS` on the recipe, and
+`outputMicrobialLoad` stops thresholding — it integrates the
+per-population death rate over the hold at the working's heat, which is
+the **same arithmetic P6 already builds**. One function, two callers: the
+craft calls it with the recipe's hold, the reconcile calls it with
+elapsed game-time. That shared call is the point; two kill curves that
+drift apart is the bug this avoids.
+
+⭐ **A recipe authoring no `holdS` behaves exactly as it does today** —
+which is what keeps requirement 19 true of all fourteen shipped recipes,
+and should be pinned by a test rather than assumed (the same identity W0
+pins for `moisture: 1.0`).
+
+⭐ The thermometer D5 asks for follows for free and is a **content row**:
+it reads the vessel's `ThermalMixin` temperature. ⚠ Check
+[instrumentation-slate](../slates/builds/instrumentation-slate.md) before
+designing its surface — it is a `measure` stanza on a shipped view, not a
+new verb.
+
+### P8 — ⚠⚠ The blade: compose on `ToolItem` + `Weapon`, gate the ACT on `bladed`
+
+**The third defect.** P2 named `Cutlery` and *"the butchering
+implement/surface added in W3"*, and neither can carry the drive:
+`Cutlery` is table serviceware, and drive step 13 requires **the same
+knife** to butcher and then chop vegetables, so the carrier cannot be a
+bespoke butchering class. The knife a player actually owns is a `Weapon`;
+the kitchen's implements are `ToolItem`s (Grounding).
+
+**Decided:** `ContaminableMixin` composes on `ToolItem` and `Weapon`
+alongside `Provision` and `CraftVessel`, and the **`butcher` verb gates
+on `constructionForm: 'bladed'`** — already authored on the clasp knife,
+and already the thing that opens a carcass.
+
+⭐ This keeps P2's refusal exactly intact rather than reopening it.
+`ToolItem` is a **class**, and one of `ToolMixin`'s six hosts;
+`WateringCan`, `Tap`, `Still`, `CookPot` and `CocktailShaker` are
+siblings and stay out. What P2 refused was a load on a mixin whose host
+set is wrong, not a broad host set for a mixin that describes every
+member of it honestly — *"this can carry pathogens between things"* is
+true of a billhook and a clasp knife and false of a tap.
+
+⚠ The two facts stay apart, and the split is the whole decision:
+**carrying** contamination is a property of a surface that touches food
+(the mixin, composed broadly); **butchering** is an affordance of an edge
+(the verb, gated on the construction). Collapsing them gives you either a
+sieve that can butcher or a knife that cannot chop.
+
+### P9 — Butchery yield is authored on the Species row
+
+Nothing said where *"a boar gives N cuts of what"* lives, and the
+requirements set the test explicitly: *"a second butcher, a second cured
+product and a second pathogen are all content rows."*
+
+**Decided:** a `butcheryYield` block on the **Species** row —
+`[{ cut: <template path>, units: n }]` — with the meat's material coming
+from the species' existing `_defaultMaterialPath`. The Species row is
+already the field guide for the animal (`diet`, `lifespanMin`,
+`naturalAttacks`, `vitalProfile`), already the row `SpeciesApi` reads,
+and already where `sentient` lives — so a new huntable animal is **one
+row**, and the second-instance test passes. A separate butchery `Idea`
+would add a row in strict 1:1 with the Species row plus a second
+catalogue to warm, for no gain.
+
+⚠ 23 animal species ship. W3 authors yields for the huntable ones near
+Hearthworks and **leaves the rest empty** — an empty yield is *"there is
+nothing here worth cutting,"* authored and worlded, not a crash and not a
+`TODO`.
+
 ---
 
 ## Host placement
@@ -305,7 +464,9 @@ below `germinationK`, which the shipped Newton cooling already drives.
 | new thing | host | what composing it claims |
 |---|---|---|
 | `CuredMixin` (`moisture`, `solute`) | `Provision` | "this matter has a water state that acts can change." True of all food; will be true of hide and timber. Does **not** claim it rots. |
-| `ContaminableMixin` (`_pathogenLoads`, stamp) | `Provision`, `Cutlery`, `CraftVessel`, W3's implement + surface | "this can carry pathogens between things." True of food and of anything that touches it. ⚠ Explicitly **not** `ToolMixin`'s six hosts. |
+| `ContaminableMixin` (`_pathogenLoads`, stamp) | `Provision`, `CraftVessel`, `ToolItem`, `Weapon` (P8) | "this can carry pathogens between things." True of food and of anything that touches it. ⚠ The **classes** — `ToolMixin`'s other five hosts (`WateringCan`, `Tap`, `Still`, `CookPot`, `CocktailShaker`) stay out. ⚠ Not `Cutlery` (serviceware, touches a mouth not a carcass) and **not** `Creature` (P2: the hand is cut). |
+| `holdS` on the recipe (P7) | the Recipe document, beside `heatedToK` | "a working has a duration, not only a temperature." Absent = today's behaviour exactly. |
+| `butcheryYield` (P9) | `Species` (Idea) | "a field guide says what an animal yields." Sits beside `diet` and `sentient`; empty = not butcherable. |
 | `pathogenBehavior` | `Condition` (Idea) | "an affliction can be a population, not only a burden." Sits beside `toxinBehavior`; rows opt in. |
 | pathogen arm of the reconcile | `VitalsMixin` (host set **1**: `Creature`) | "a body reconciles infections like it reconciles wounds." Plants excluded for free — `OrganismMixin` is the wider one and is untouched. |
 | `maker` on `BulkPayload` | the payload, by declaration merging from `lib/craft/` | "bulk matter remembers who made it," matching what `CraftedMixin` already claims for discrete. |
@@ -358,6 +519,14 @@ Material's tabulated `a_w`. That identity is what makes requirement 19
 true — every existing row in the Hearthworks pantry, the general store
 and Dave's Bar behaves on day one precisely as it does today — and it
 should be pinned by a test, not assumed.
+
+⚠ **Criterion 4 needs a surface, and W0 must name it.** *"Treated food
+is legible as treated, without a number"* is a rendering, and the cure
+state has none — it rides the **same augmenter the freshness bands
+already use** (`FRESHNESS_CHANNELS`, the D4 seam), adding a cured-state
+phrase to `look`/`smell`. ⚠⚠ It must NOT be a fifth freshness band: the
+population and the water state are different facts (P1), and one gauge
+reporting both is how the split gets quietly undone at render time.
 **Acceptance:** requirements 1–4. **Ends at** `feat(spoilage): water
 activity is per-instance — moisture and solute over the material base`.
 
@@ -366,15 +535,38 @@ activity is per-instance — moisture and solute over the material base`.
 Cure / dry / smoke recipes in `trade-cooking`; salt as a cure input;
 `maker` onto `BulkPayload`, stamped at craft-resolve from the execution
 context exactly as `CraftedMixin` does.
+
+⚠⚠ **And the stamp must reach the mouth.** `CraftedMixin` already carries
+`maker` on a discrete `Provision`, but `EatController`'s discrete arm
+synthesizes its payload with `Freshness.withDose(null, material, load)`
+and **drops everything the mixin knew** (Grounding). Drive step 15 — Odo
+serves a dish, the record names Odo — dies on that line. W1 widens the
+discrete→payload bridge to carry `maker`; W2 widens the same bridge for
+the pathogen loads. **One seam, two waves, and the second must not
+re-invent it.**
 **Acceptance:** requirement 5 (and the maker stamp W4's criterion 18
 depends on). **Ends at** `feat(cooking): curing, drying and smoking —
 salt stops being a seasoning`.
 
 ### W2 — The silent population
-**Implements** requirements D4, D5, D6, D10, D11, plan P2, P4, P6.
-`lib/material/Contaminable.ts`; `pathogenBehavior` on `Condition`;
-per-population inoculum and channels; Arrhenius kill rate with a spore
-survival floor; the pathogen half of the payload record.
+**Implements** requirements D4, D5, D6, D10, D11, plan P2, P4, P6, **P7**,
+**P8**.
+`lib/material/Contaminable.ts` (composed per P8); `pathogenBehavior` on
+`Condition`; per-population inoculum and channels; Arrhenius kill rate
+with a spore survival floor; the pathogen half of the payload record.
+
+⚠⚠ **The ingest bridge** — the pathogen loads must ride
+`BulkPayload` through **both** arms of `eat` into
+`BulkableApi.ingestSolid` (Grounding): the dish arm through
+`Freshness.ingestPayloadOf`, the discrete arm through the transient
+payload W1 already widened for `maker`. A pathogen that cannot cross this
+line is a build whose unit tests all pass and whose drive step 8 does
+nothing.
+
+⚠ **D5's other half (P7)** — `holdS` on the recipe, and
+`outputMicrobialLoad` integrating the kill over the hold instead of
+thresholding, sharing P6's one death-rate function. A recipe with no
+`holdS` must be byte-identical in behaviour to today.
 **Acceptance:** requirement 9 in full. ⚠ **Criterion 10 (a contaminated
 item is indistinguishable from a clean one) cannot be shown in W2** —
 nothing can contaminate anything until W3, so W2 proves it in tests
@@ -391,17 +583,31 @@ event-seeded, its own kill curve`.
 Discipline row; contamination on gut spillage scaled by competence;
 transfer on contact; `wash` clears a contaminated implement.
 
-⚠ **D14 — a sapient corpse is not butcherable.** The gate reads the
-species taxonomy (`_parentCladePath` on the Species row places `homo`
-under hominidae); whether it reads the clade walk or an authored flag is
-a W3 call, but the refusal must be a **worlded message**, not a
-validator's "you can't do that."
+⚠ **D14 — a sentient corpse is not butcherable.** The gate is
+**`SpeciesApi.isSentient(corpse)`**, shipped, already the line combat
+draws between a cull and a coup (Grounding). ⚠ **Not** a clade walk: the
+tutor-bot is sentient and is not a primate. The refusal must be a
+**worlded message**, not a validator's "you can't do that."
+
+⚠ **Two small exposures W3 needs**, both one-liners and both worth
+naming so they are not discovered as surprises:
+`Postmortem.sinceDeath()` is **`private`** and D15 reads it (expose the
+method — do not read the public `diedAtGameSec` field across objects,
+which is the inter-Stuff contract), and the yields come from P9's new
+`butcheryYield` on the Species rows, authored for the huntable animals
+near Hearthworks. The verb gates on `constructionForm: 'bladed'` (P8).
 
 **Acceptance:** requirements 6, 7, 8, 17. **Ends at** `feat(cooking):
 butchering — the clock starts at the kill`.
 
 ### W4 — In-host infection
 **Implements** requirements D1, D12, and the `ProgressionSpec` fill.
+⚠ **Where the infection starts:** `BulkableApi.ingestSolid` is the one
+place food becomes body (Grounding). The pathogen loads W2 put on the
+payload are read there, compared against `infectiousDose`, and seeded as
+an in-host Condition — the **intoxication** arm needs nothing new, because
+a formed toxin on the same payload already reaches metabolism today
+(P4a).
 The infection arm of `reconcileConditions`, shaped on `TraumaBehavior`;
 the Part-5 pathogen roster as Condition rows; symptoms off
 `observableSigns`; the accountability row at `ConditionApi.inflict`;
@@ -436,7 +642,8 @@ Each link fails closed and **silent**.
 | capability | verb | affordance | data | boot |
 |---|---|---|---|---|
 | curing / drying / smoking | existing craft verbs — no new verb | ⚠ the recipes must be **afforded by the vessel/implement class as a static**, never by a row's `commandContributions:` (residences build: that field is dead silently) | recipe rows + salt as input + `waterActivity` on cured outputs | recipes install with the pack |
-| butchering | `butcher` (new, `trade-cooking`) | ⚠ afforded by the **implement class**; a corpse affording its own butchering is the alternative and must be chosen deliberately | `Corpse` row, cut rows, the `butchery` Discipline row | pack install; ⚠ Discipline catalogue must **warm** the new row |
+| butchering | `butcher` (new, `trade-cooking`) | ⚠ afforded by the **implement class** (`ToolItem` / `Weapon`, P8), gated on `constructionForm: 'bladed'`; a corpse affording its own butchering is the alternative and stays open | `Corpse` row, cut rows, `butcheryYield` on the Species rows (P9), the `butchery` Discipline row | pack install; ⚠ Discipline catalogue must **warm** the new row |
+| ingestion → illness | `eat` / `drink` (shipped) | shipped | n/a | ⚠⚠ **not a boot risk — a bridge risk.** `BulkableApi.ingestSolid` must receive the pathogen loads on the payload from **both** arms of `eat`, or nothing that follows can fire |
 | contamination | none — it is a consequence | n/a | pathogen `Condition` rows | ⚠ `ConditionCatalogue` must warm them, or every read is null forever (`reference-ideas-inert-at-boot`, 3× recurrence) |
 | infection | `treat` / the medic path (shipped) | shipped | the roster rows + `resolution.by` | same catalogue warm |
 | washing | `wash` (shipped) | shipped on `Serviceable` | n/a | n/a |
@@ -470,12 +677,22 @@ All 19 mapped; no gap. ⚠ The three criteria that straddle two waves
 half-satisfies a criterion and moves on is how a build arrives at the MR
 with a hole in it.
 
+⚠ **11 and 12 are where D5 actually lands.** *"Cooked properly and eaten
+promptly"* vs *"cooked properly and left out"* both presuppose that
+"properly" is a heat **and** a hold (P7). Under today's threshold the two
+criteria are satisfiable by a build in which cooking is a single boolean,
+which would pass the letter and teach nothing.
+
 ---
 
 ## Test & gate strategy
 
 **Unit** — the arithmetic: the a_w derivation and its ramp, hurdle
-stacking, rehydration asymmetry, **the zero-load invariant**
+stacking, rehydration asymmetry, **the two day-one identities** (a
+`moisture: 1.0, solute: 0` instance derives the Material's tabulated
+`a_w` exactly; a recipe with no `holdS` kills exactly what today's
+threshold kills — together these are requirement 19, and both are
+assumptions until pinned), **the zero-load invariant**
 (criterion 9 — no food self-contaminates over arbitrary elapsed time at
 any temperature), the spore survival floor, blend-by-mass for all four
 scalars, the in-host curve. Criterion 10 is the
@@ -484,8 +701,10 @@ two-renderings-are-**equal** assertion — assert a contaminated item's
 words twice.
 
 **Only the drive can prove** — that the verbs are reachable, that the
-recipes are afforded, that the catalogue warmed, and that a player who
-does the wrong thing actually gets sick. *Tests build state; they never
+recipes are afforded, that the catalogue warmed, that the pathogen and
+the `maker` actually crossed the ingest bridge in the **discrete** arm as
+well as the dish arm, and that a player who does the wrong thing actually
+gets sick. *Tests build state; they never
 use it.* Nine builds shipped with one `drive(` commit between them;
 every build that was driven found defects the suite could not.
 ⭐ The requirements doc's steps **4, 8 and 13** are the three the unit
@@ -527,16 +746,35 @@ build phase, run before the MR opens, recorded below.
   class that cannot carry a load fails silently. Consider
   `lint:contaminable` in W2 — cheap, and the metal-chain lesson is that
   gates ship broken and silently pass.
-- **Calibration** is deferred (requirement D13) but the roster's bands
-  must be fitted against authored seeds, not invented.
-- ⚠ **No `sapient` flag exists** (Grounding). W3's D14 gate either walks
-  the clade tree or authors a new Species field. Walking is free and
-  couples the gate to taxonomy shape; a flag is explicit and touches
-  every species row. **Decide it deliberately in W3** — this is the kind
-  of choice that gets made by whichever is easier to type.
+- ⚠⚠ **The ingest bridge** (Grounding, W1/W2/W4). Every route from food
+  into a body is two lines in `EatController`, and the discrete arm's
+  transient payload drops everything the discrete mixins knew. A pathogen
+  or a `maker` that does not cross it fails **silently and completely**:
+  the suite is green, the food is contaminated, the eater is fine.
+- ⚠ **D5's kill is a threshold today** (P7). Not a risk so much as a
+  requirement that had no wave; recorded here because "cooking already
+  kills the population" reads true and is the reason it was missed.
+- ⚠ **`butchery` yields are content, and content can be forgotten.**
+  P9's `butcheryYield` is empty on 23 species by default. That is the
+  designed answer for a rat, and it is also how the boar ships
+  unbutcherable. Drive step 2 is the check.
+- **Calibration** — D13 is a *method*, not a deferral: the roster's bands
+  are **fitted against the authored seeds that already ship**, the way
+  the existing poisoning content was, and never invented. (An earlier
+  revision of this line said calibration was "deferred," which reads as
+  scope dropped.) What genuinely defers is *tuning*, and only after the
+  drive.
+- ⚠ **No `sapient` flag exists** — ~~a W3 decision~~ **RESOLVED, and it
+  was never a decision**: `Species.sentient` + `SpeciesApi.isSentient`
+  ship and already gate combat's cull-vs-coup (Grounding). Kept as a
+  struck line, not deleted, because the failure mode is the interesting
+  part: a fork was written with two costed limbs and neither limb was
+  checked against the tree first.
 - **Open, for the user:** the `CuredMixin` name (P1); whether butchering
-  is afforded by the implement or by the corpse (wiring table); and the
-  D14 gate above. All three are reversible; none blocks W0.
+  is afforded by the implement or by the corpse (wiring table). Both are
+  reversible; neither blocks W0. ⭐ **P7, P8 and P9 are decided rather
+  than opened** — each names the limb that chose and records the
+  alternative, so a veto costs one paragraph, not a redesign.
 
 ---
 
@@ -553,6 +791,12 @@ Clean attach points, each leaving a slate:
 - **`trade-butchery`** — P5's spin-out.
 - **Irrigation contamination** — `ContaminableMixin` composes onto
   `WateringCan` when someone wants it.
+- **Hands** — D3 names one; this build ships no host for it (P2). The
+  attach point is `Creature`, and the consumer is the disease build,
+  which needs a body-side carrier for transmission anyway.
+- **A durative `cook`** — P7 limb 2. The day someone wants to pull a
+  roast early, the engagement is the honest shape and `holdS` becomes its
+  default rather than its ceiling.
 - **Rancidity** — its own small law, not a term here.
 
 ---
@@ -572,7 +816,17 @@ Read first, in order:
 6. `packages/server/src/mud/lib/craft/Crafted.ts` — the maker stamp to
    mirror.
 7. `packages/server/src/mud/lib/craft/Serviceable.ts` + `WashController.ts`.
-8. `docs/subsystems/spoilage.md` — and requirement 24 against it.
+8. `packages/server/src/mud/platform/idea/cmd/bulk/EatController.ts` —
+   ⚠ **the ingest seam**, both arms (:86, :150–157). The plan shipped one
+   revision without this file in the list.
+9. `packages/server/src/mud/platform/idea/api/CraftingLogic.ts` —
+   `outputMicrobialLoad` + `applySpoilage`: the threshold P7 replaces,
+   and the formed-toxin deposit P4a's second producer joins.
+10. `packages/server/src/mud/platform/idea/species/Species.ts` —
+    `sentient` (:263, :357) and where P9's `butcheryYield` lands.
+11. `packages/server/src/mud/lib/mortality/Postmortem.ts` —
+    `sinceDeath()`, D15's input, currently `private`.
+12. `docs/subsystems/spoilage.md` — and the doc obligation in W5.
 
 ---
 
