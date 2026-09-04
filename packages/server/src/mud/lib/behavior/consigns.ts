@@ -17,46 +17,51 @@
  * hand holds a `purchases` position and carries the house card dealt at
  * hire (`EmploymentLogic`, 3d).
  *
- * ## ⭐⭐ The hand stopped TRAVELLING (logistics D11)
+ * ## ⭐⭐ The hand WALKS (logistics D11)
  *
- * It used to carry the floor stock to the distributor's counter and put
- * it up there, and **movement between the floor and the counter was a
- * `teleport`** — the same magic as the bar's `populates:` bottles, one
- * level up the chain.
+ * Movement between the floor and the counter used to be a `teleport` —
+ * the same magic as the bar's `populates:` bottles, one level up the
+ * chain. It is now a `journey` over the city lane, through the back door
+ * this build gave the floor, on the road this build authored.
  *
- * It does not walk instead. It **crates the goods and posts the work**,
- * and somebody else carries them — a player, or the carrier's own
- * carter as the fallback. That is a better reading of the goal than the
- * literal one: not *"the hand walks four rooms"* but ***"the hand does
- * not travel, because carriage is somebody's job."*** Which is the whole
- * point of the logistics build.
+ * ⚠⚠ **The plan expected it to post the work instead**, because every
+ * producer floor was an **exitless island** and walking was therefore
+ * impossible. This build removed that reason: the floors have doors now.
+ * With the island gone the honest answer is the plain one.
  *
- * ⚠ Two shipped facts made the literal reading impossible anyway: every
- * producer floor was an **exitless island**, and the keeper this brain's
- * sibling runs on stands in the Lounge, which a stated non-goal keeps
- * off the road map.
+ * ⭐ And the reason it matters WHICH one ships is the money.
+ * Consignment is sale-or-return: the producer is paid **on resale**, out
+ * of its own listing. A crate hauled to the counter by somebody else is
+ * a crate nobody has listed, and no shipped mechanism lets a carrier —
+ * or the distributor's clerk — list goods on the producer's behalf. So
+ * posting this leg would have quietly stopped paying six producers,
+ * which is a regression rather than a lesson. The **wholesale
+ * purchase** that would make a posted version honest is a real missing
+ * seam, named in [docs/subsystems/logistics.md].
  *
- * ⭐ The board is **on the floor**, so the hand posts without stepping
- * outside. The floor now has a DOOR — because a hauler has to come and
- * collect — and the hand never uses it.
+ * ⚠ The sibling `restocks` genuinely cannot walk — its host is the
+ * Saxonberg Lounge bar, and *"Saxonberg and the Lounge joining the
+ * map"* is a stated non-goal — so that one posts and a hauler buys and
+ * is reimbursed. Two brains, two shapes, and the difference is a fact
+ * about the map rather than a preference.
+ *
+ * ⭐ The floor still carries a works board: what the house wants moved
+ * that it cannot move itself hangs there, and the door is how a hauler
+ * gets to it.
  *
  * Not presence-gated and not ambient: the floor runs unwatched, and the
  * cadence is the authored one.
  *
  * config: `{ stock: string, shelf: string, ask: Record<string, number>,
- * defaultAsk?: number, batch?: number, board?: string, crate?: string,
- * carriage?: number }` — `stock` the outfit's own `Stock` (template
- * path), `shelf` the host counter the goods are FOR (template path),
- * `ask` minor units by census key, `defaultAsk` for a good whose key the
- * table lacks (default 10), `batch` goods per beat (default 6),
- * `board` the works board on this floor, `crate` the consignment
- * container row, and `carriage` what the house will pay to have a crate
- * moved (default: the NPC rate's minimum).
+ * defaultAsk?: number, batch?: number }` — `stock` the outfit's own
+ * `Stock` (template path), `shelf` the host counter (template path,
+ * materialized on demand), `ask` minor units by census key, `defaultAsk`
+ * for a good whose key the table lacks (default 10), `batch` goods per
+ * beat (default 6).
  */
 
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
-import { ContainmentApi } from '../../api/containment';
 import { CommandApi } from '../../api/command';
 import { AppApi } from '../../api/app';
 import { EmploymentApi } from '../../api/employment';
@@ -71,10 +76,6 @@ import type { Employed } from '../employment/Employed';
 
 const DEFAULT_BATCH = 6;
 const DEFAULT_ASK = 10;
-/** The consignment container a posted haul is about. */
-const DEFAULT_CRATE = '/trade/haulage/thing/supply-crate';
-/** What the house pays to have one crate moved, when the row says nothing. */
-const DEFAULT_CARRIAGE = 6;
 
 type Hand = Stuff & Mobile & Containable & Container & CommandGiver;
 
@@ -179,64 +180,60 @@ export const brain = class {
       .slice(0, Number.isFinite(headroom) ? headroom : undefined);
     if (carried.length === 0) return;
 
-    // ⭐⭐ **Crate it and post the work.** The hand does not travel: it
-    // puts the goods in a crate on its own floor and hangs a docket on
-    // the works board saying where they have to get to and what the
-    // house will pay to have them gone. Somebody else carries them.
-    const boardPath = ctx.config.board;
-    if (typeof boardPath !== 'string' || boardPath === '') return;
-    const cratePath =
-      typeof ctx.config.crate === 'string' && ctx.config.crate !== ''
-        ? ctx.config.crate
-        : DEFAULT_CRATE;
-
-    const crate = await StuffApi.clone(cratePath).catch(() => null);
-    if (!crate || !MixinApi.isContainer(crate) || !MixinApi.isContainable(crate)) {
-      return;
-    }
-    ContainmentApi.move(crate, home as Stuff & Container);
-    const crateKw = keywordOf(crate);
-    if (!crateKw) return;
-
-    // Load it — bounded, and `put` one at a time for the same greedy-
-    // binding reason `get 1` exists above.
-    let loaded = 0;
-    for (const good of carried) {
-      const kw = keywordOf(good);
-      if (!kw) continue;
-      await hand.forceCommand(`put ${kw} in ${crateKw}`);
-      if (MixinApi.isContainable(good) && good.getContainer() === crate) loaded += 1;
-    }
-    if (loaded === 0) {
-      // Nothing went in; do not leave an empty crate on the floor to be
-      // hauled for nothing.
-      await StuffApi.destruct(crate as unknown as Stuff);
-      return;
-    }
-
-    // ⚠ Stamped to the outfit, so the crate is the house's until it is
-    // handed over — custody will move, ownership will not.
-    if (MixinApi.isChattel(crate) && !crate.getChattelId()) {
-      await crate.stampChattel(outfit as unknown as Stuff);
-    }
-
-    // ⚠ `--bounty`: no claim step, escrow held from post, ANYONE may
-    // turn it in. That is what makes "a player who takes it is paid and
-    // the NPC does not also perform it" fall out — the gig is settled
-    // and gone by the time the carter looks.
+    // ⭐⭐ **It WALKS.** The hand goes to the counter, consigns as the
+    // house, and walks home — over the road this build authored, on the
+    // same `journey` a player drives, through the back door the floor
+    // now has.
     //
-    // ⚠⚠ And NO `--expires`. If the posting lapsed the escrow would
-    // revert and the distributor would go unsupplied, which is the exact
-    // regression D11 forbids. The window a hauler waits is the CARTER's
-    // patience, not the posting's lifetime.
-    const carriage = positiveInt(ctx.config.carriage, DEFAULT_CARRIAGE);
+    // ⚠⚠ This is the LITERAL reading of D11's *"stop teleporting"*, and
+    // it is available only because the build removed the reason it was
+    // ruled out. The plan's P2 chose *"post the work and let a hauler
+    // carry it"* because **every producer floor was an exitless
+    // island** — and this build gave each of them a door onto the goods
+    // yards. The island is gone, so the honest answer is the plain one.
+    //
+    // ⭐ The reason it MATTERS which one ships is the money. Consignment
+    // is sale-or-return: the producer is paid **on resale**, out of its
+    // own listing. A crate hauled to the counter by somebody else is a
+    // crate nobody has listed — and no shipped mechanism lets a carrier,
+    // or the distributor's clerk, list goods on the producer's behalf.
+    // Posting the leg would therefore have quietly stopped paying six
+    // producers, which is a regression rather than a lesson. The
+    // wholesale purchase that would make the posted version honest is a
+    // real missing seam, and it is named in the subsystem doc.
+    //
+    // ⚠ `restocks` cannot do this: its host is the Lounge bar, which a
+    // stated non-goal keeps off the road map. That leg posts, and the
+    // hauler buys and is reimbursed — which is why the two brains ended
+    // up different shapes.
+    const counterPath = counterRoom.getTemplatePath() ?? '';
     const homePath = home.getTemplatePath() ?? '';
-    const toPath = counterRoom.getTemplatePath() ?? '';
-    if (homePath === '' || toPath === '') return;
-    await hand.forceCommand('wallet use house');
-    await hand.forceCommand(
-      `job post ${crateKw} to ${toPath} for ${carriage} --bounty --business --from ${homePath}`,
-    );
+    if (counterPath === '' || homePath === '') return;
+
+    await walkTo(hand, counterPath);
+    if (hand.getContainer() !== counterRoom) {
+      // ⚠ Blocked means blocked. The goods stay in hand and the next
+      // beat tries again; nothing teleports around the problem, which is
+      // the entire point.
+      return;
+    }
+    try {
+      // Every beat, not once: a forced command reports no outcome here,
+      // and a hand dealt its card AFTER a failed first attempt must
+      // still trade as the house.
+      await hand.forceCommand('wallet use house');
+      for (const good of carried) {
+        const kw = keywordOf(good);
+        if (!kw) continue;
+        const ask = askFor(ctx.config, good);
+        await hand.forceCommand(`consign ${kw} --ask ${ask}`);
+      }
+    } finally {
+      // Home again, on its own feet. ⚠ In a `finally` for the reason the
+      // teleport was: a beat that dies at the counter must not leave the
+      // hand standing in somebody else's shop forever.
+      await walkTo(hand, homePath);
+    }
   }
 } satisfies BrainStatics;
 
@@ -271,4 +268,59 @@ function listingCap(): number {
 
 function positiveInt(v: unknown, fallback: number): number {
   return typeof v === 'number' && Number.isFinite(v) && v > 0 ? Math.floor(v) : fallback;
+}
+
+/**
+ * Walk to a room, one `go <direction>` at a time.
+ *
+ * ⚠ **`go`, not `journey`.** `journey` is afforded by a VEHICLE — content
+ * affords content — and a floor hand pushing goods by hand has none. So
+ * the hand walks the way a person without a cart walks, which is also
+ * the way a player would.
+ *
+ * ⭐ The route comes from the transport pack's `LaneCatalogue`, reached
+ * **by shape** and never by import (the `TravelNode` /
+ * `AnalyzeWaterController` idiom — the mudlib does not import packs). An
+ * install with no roads has a hand that simply does not travel, which is
+ * the honest degradation: without the pack there is nowhere to walk.
+ *
+ * ⚠ Bounded, and it stops on the first refused step. **Blocked means
+ * blocked**: the goods stay in hand and the next beat tries again.
+ * Nothing here routes around anything, because auto-routing would hide
+ * the geography the road was built to make real.
+ */
+async function walkTo(hand: Hand, targetPath: string): Promise<void> {
+  const here = hand.getContainer()?.getTemplatePath() ?? '';
+  if (here === '' || here === targetPath) return;
+
+  const catalogue = await StuffApi.singleton<Stuff>(
+    '/system/transport/idea/LaneCatalogue',
+  ).catch(() => null);
+  const planner = catalogue as unknown as {
+    planRoute?: (
+      from: string,
+      to: string,
+      lane: string,
+    ) => Promise<{ nodes: readonly string[] } | null>;
+  } | null;
+  if (!planner || typeof planner.planRoute !== 'function') return;
+
+  const route = await planner.planRoute(here, targetPath, 'city');
+  if (!route) return;
+
+  for (let i = 0; i + 1 < route.nodes.length; i += 1) {
+    const room = hand.getContainer();
+    if (!room || !MixinApi.isExitable(room)) return;
+    const next = route.nodes[i + 1]!;
+    let direction = '';
+    for (const [dir, exit] of room.getExits().entries()) {
+      if (exit.getDestinationTemplatePath() === next) {
+        direction = dir;
+        break;
+      }
+    }
+    if (direction === '') return;
+    await hand.forceCommand(`go ${direction}`);
+    if (hand.getContainer()?.getTemplatePath() !== next) return;
+  }
 }

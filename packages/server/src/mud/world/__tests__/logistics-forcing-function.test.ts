@@ -58,6 +58,19 @@ function yamlAt(rel: string): Record<string, unknown> {
 }
 
 describe('⭐ AC15 — the brains stop teleporting', () => {
+  it('⭐ `consigns` WALKS to the counter — the literal reading, now possible', () => {
+    // ⚠ The plan expected it to post the work instead, because every
+    // producer floor was an exitless island and walking was impossible.
+    // THIS BUILD REMOVED THAT REASON: the floors have doors. With the
+    // island gone, the plain answer is the honest one — and it is the
+    // one that keeps paying the producer, because consignment is
+    // sale-or-return and no shipped mechanism lets a carrier list goods
+    // on somebody else's behalf.
+    const code = codeOf(CONSIGNS);
+    expect(code).toMatch(/forceCommand\(`go \$\{/);
+    expect(code).toMatch(/planRoute/);
+  });
+
   it('⭐⭐ NEITHER brain calls `teleport`, anywhere, at all', () => {
     for (const [name, path] of [
       ['consigns', CONSIGNS],
@@ -83,7 +96,7 @@ describe('⭐ AC15 — the brains stop teleporting', () => {
       expect(verbs.length).toBeGreaterThan(0);
       for (const verb of verbs) {
         expect(
-          ['get', 'put', 'pour', 'wash', 'wallet', 'job', 'consign', 'drop'],
+          ['get', 'put', 'pour', 'wash', 'wallet', 'job', 'consign', 'drop', 'go'],
           `unexpected verb '${verb}'`,
         ).toContain(verb);
       }

@@ -308,15 +308,42 @@ transferred from NPCs to players.
 > **Post the work, let players take it, let the NPC cover the
 > residual.**
 
-- **`consigns`** crates its floor stock and posts the carriage on the
-  works board **on its own floor**. Pure carriage, no capital, band 0 —
-  the first rung.
 - **`restocks`** posts what the rail is short of and **receives** what a
   hauler leaves on the bench. The hauler buys at the supplier and is
-  reimbursed, so the distributor is still paid — a real second rung with
-  working capital.
+  reimbursed on delivery, so the distributor is still paid and the
+  consignors still see their resale.
 - **`hauls`** (the carter) covers any posting nobody took inside its
   window, on the **same `Journey` object** a player drives.
+- **`consigns`** ⚠ **walks**, and does not post. See below — the reason
+  is the money, and it is the build's one named economic seam.
+
+### ⚠⚠ Why the two brains ended up different shapes
+
+The plan expected both to post, because *"every producer floor is an
+exitless island"* made walking impossible. **This build removed that
+reason** — the floors have doors onto the goods yards now — so the
+question became which answer is honest, and it is not the same answer
+for both:
+
+| | can it walk? | what it does | why |
+|---|---|---|---|
+| `consigns` | **yes**, since this build | walks to the counter and consigns | consignment is **sale-or-return**: the producer is paid *on resale, out of its own listing*. A crate hauled there by somebody else is a crate **nobody has listed**, and no shipped mechanism lets a carrier — or the distributor's clerk — list goods on the producer's behalf. Posting this leg would have quietly stopped paying six producers. |
+| `restocks` | **no** | posts, and receives | its host is the Lounge bar, and *"Saxonberg and the Lounge joining the map"* is a stated non-goal. Its leg is closed by the hauler **buying and being reimbursed**. |
+
+⚠ **The surfaced seam: there is no wholesale purchase.** A distributor
+cannot buy a producer's goods outright, and a carrier cannot list goods
+it is only carrying. Until one of those exists, a producer→distributor
+leg cannot be a posted gig without silently unpaying the producer. It is
+one mechanism — `consign`-as-another-house, or a wholesale `buy` at the
+works — and it belongs to whichever build wants NPC producers to stop
+walking. **It is named rather than faked**, and the walking version
+regresses nothing.
+
+⚠ Consequently the labor market's **first rung is the venue-supply leg**,
+which needs enough float to buy one line. That is small but not zero, and
+it is honestly weaker than the plan's intent (a pure-carriage job needing
+no capital at all). The porter gig that would restore it is D16's, and it
+arrives with the wholesale purchase.
 
 Three things that buys at once:
 
@@ -354,17 +381,20 @@ exist**.
 `consigns` and `restocks` **stop teleporting**, and the resolution is
 not that they walk:
 
-> **`restocks` became a poster and a receiver. `consigns` became a
-> poster and a shipper. Neither NPC ever leaves its own floor again.**
+> **`restocks` became a poster and a receiver.** It never leaves the bar.
+> **`consigns` WALKS** — over the road this build authored, through the
+> back door this build gave its floor. Neither teleports.
 
 Two shipped facts and one non-goal ruled the literal reading out: every
 producer floor was an **exitless island**, and `restocks`' host is the
 Saxonberg Lounge bar, which *"Saxonberg and the Lounge joining the map"*
 keeps off the road.
 
-⭐ Which is the better reading anyway: not *"the keeper walks four
-rooms"* but *"the keeper does not travel, because carriage is somebody's
-job"* — the whole point of the build.
+⭐ For the keeper that is the better reading anyway: not *"she walks four
+rooms"* but *"she does not travel, because carriage is somebody's job."*
+For the producer's hand the plain reading became available the moment
+the door existed, and the money says to take it — see *"why the two
+brains ended up different shapes"* above.
 
 **What it cost:** one new room (the goods yards, behind Wharfside) and
 one door from each mainland producer floor onto it. The hands never use

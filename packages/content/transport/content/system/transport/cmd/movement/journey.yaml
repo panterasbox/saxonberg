@@ -46,8 +46,13 @@ args:
     required: false
     greedy: true
     prepositions: [to]
-options:
-  via:
-    short: v
+  # ⚠ An ARG with a preposition, not an option. `journey to the depot via
+  # spine` reads the way somebody would say it — and the greedy
+  # destination swallows everything up to the next preposition, so a
+  # bare `via` with nothing to bind it to is a parse error ("unexpected
+  # bareword 'via' after query"). Found by driving, on a help example
+  # this file was already advertising.
+  - name: via
     type: string
-    description: "Which lane to take (default: a lane both ends are on)."
+    required: false
+    prepositions: [via]

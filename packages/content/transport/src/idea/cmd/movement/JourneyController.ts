@@ -39,7 +39,7 @@ const TOPIC = 'act.move';
 interface JourneyModel extends CommandModel {
   /** `journey to <place>` — a place name, or a durable path. */
   destination?: string;
-  /** `--via <lane>` — a lane key. */
+  /** `via <lane>` — a lane key. */
   via?: string;
 }
 

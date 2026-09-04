@@ -156,12 +156,33 @@ async function cover(
   // batch cap above would then bound nothing at all. The `consigns`
   // brain learned this the expensive way (a profile put 54% of the
   // process in the resulting inventory walk).
-  const crate = crateFor(carter, gig);
-  if (!crate) return;
+  let crate = crateFor(carter, gig);
+
+  // ⭐⭐ **A SUPPLY order is bought, not collected.** The two legs of
+  // this economy are genuinely different acts:
+  //
+  //   - a PRODUCER's crate is already made and already the house's, so
+  //     the carriage is pure carriage — no capital, the labor market's
+  //     first rung;
+  //   - a VENUE's order names goods standing on somebody's counter, and
+  //     whoever fetches them **buys them and is reimbursed by the
+  //     reward**. That is what a supply run actually is, it keeps the
+  //     distributor paid and the consignors' resale intact, and it makes
+  //     a real second rung with working capital.
+  //
+  // ⚠ The keeper could not do this herself: `buy` happens at a counter
+  // and she no longer travels. So it is the hauler's, exactly as it
+  // would be for a player taking the same job.
+  if (!crate) {
+    crate = await buyAtOrigin(carter, gig);
+    if (!crate) return;
+  }
   const kw = keywordOf(crate);
   if (!kw) return;
-  await carter.forceCommand(`get 1 ${kw}`);
-  if (crate.getContainer() !== (carter as unknown as Stuff)) return;
+  if (crate.getContainer() !== (carter as unknown as Stuff)) {
+    await carter.forceCommand(`get 1 ${kw}`);
+    if (crate.getContainer() !== (carter as unknown as Stuff)) return;
+  }
 
   // 3 · Carry it. The same `Journey` a player drives — no second
   // movement implementation anywhere (AC14/AC5).
@@ -203,6 +224,45 @@ async function travel(
   // subject to every gate a person is.
   await carter.forceCommand(`journey to ${path} via ${lane}`);
   return carter.getContainer()?.getTemplatePath() === path;
+}
+
+/**
+ * Buy what the gig names, here, as the carrier's house — the supply
+ * leg's first act.
+ *
+ * ⚠ It buys ONE. A gig names one line, and a carter who bought a
+ * counter out would be doing something no player would be allowed to
+ * afford. Returns what is now in hand, or `null` if the counter refused
+ * (out of stock, or the house cannot pay — either way the gig stays on
+ * the board for somebody who can).
+ */
+async function buyAtOrigin(
+  carter: Carter,
+  gig: ContractRecord,
+): Promise<(Stuff & Containable) | null> {
+  const condition = gig.clause?.condition;
+  if (!condition || condition.item.kind !== 'template') return null;
+  const wanted = condition.item.path;
+
+  const here = carter.getContainer();
+  if (!here || !MixinApi.isContainer(here)) return null;
+  // The counter's own goods carry the keyword a `buy` binds on. Reading
+  // the exemplar rather than guessing means the carter asks for exactly
+  // what the gig named.
+  const exemplar = (here.getContents() as Stuff[]).find(
+    (s) => s.getTemplatePath() === wanted,
+  );
+  const kw = exemplar ? keywordOf(exemplar) : null;
+  if (!kw) return null;
+
+  await carter.forceCommand('wallet use house');
+  await carter.forceCommand(`buy ${kw}`);
+  const got = (carter.getContents() as Stuff[]).find(
+    (s) => s.getTemplatePath() === wanted,
+  );
+  return got && MixinApi.isContainable(got)
+    ? (got as Stuff & Containable)
+    : null;
 }
 
 /** The consignment this gig is about, standing at the origin. */
