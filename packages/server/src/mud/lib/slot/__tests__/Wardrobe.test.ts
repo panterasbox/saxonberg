@@ -12,7 +12,7 @@
 
 import '../../../../test-bootstrap';
 import { describe, it, expect, afterEach } from 'vitest';
-import { readFileSync, readdirSync, statSync, existsSync } from 'fs';
+import { readFileSync, readdirSync, statSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import YAML from 'yaml';
@@ -108,52 +108,98 @@ describe('WardrobeMixin — the variable-key escape hatch', () => {
 
 describe('the verb shape — sets ride a verb, they are not one', () => {
   /*
-   * ⚠⚠ This suite used to assert ZERO NEW VERBS, and that claim has been
-   * overtaken by a deliberate decision rather than eroded: `wear` and
-   * `wield` collapsed into `equip` (and `remove`/`doff`/`unwield` into
-   * `unequip`) because the covering ladder made ORDER the engine's
+   * ⚠⚠ This suite used to assert ZERO NEW VERBS. Two shipped since —
+   * `equip` and `unequip` — and that was a deliberate decision rather
+   * than erosion: the covering ladder makes ORDER the engine's
    * knowledge while the interface made the player rediscover it one
-   * refusal at a time. The vocabulary got SMALLER — four verbs became
-   * two, the old words kept as aliases — which is the spirit the
-   * original assertion was defending. See `equip-slate.md`.
+   * refusal at a time, so an orchestrator that dresses you
+   * innermost-first is the verb that owns a problem previously dumped
+   * on the person least equipped to solve it. See `equip-slate.md`.
    *
-   * What survives unchanged, and is what this really tested: a saved set
-   * is a SUBCOMMAND of the dressing verb, never a verb of its own.
+   * ⭐⭐ And the four precise verbs STAYED. A draft made them aliases —
+   * `equip` carrying `wear` and `wield`, `unequip` carrying
+   * `remove`/`doff`/`unwield` — which collapses two mixins into one arg
+   * and therefore **makes `wear sword` legal**, because an arg that
+   * admits both cannot refuse either. That is what these tests now
+   * pin: the narrow `requires:` per verb, which is the whole reason
+   * they are still separate views.
+   *
+   * What survives untouched, and is what this suite really tested: a
+   * saved set is a SUBCOMMAND of a dressing verb, never a verb of its
+   * own.
    */
-  it('`equip.yaml` carries wear/wield as ALIASES, with set/sets as subcommands', () => {
-    const doc = YAML.parse(
-      readFileSync(join(CMD_ROOT, 'inventory', 'equip.yaml'), 'utf-8'),
-    ) as {
-      verbs?: string[];
-      subcommands?: Record<string, unknown>;
-      fallthrough?: boolean;
-      args?: unknown[];
-    };
-    expect(doc.verbs).toEqual(['equip', 'wear', 'wield']);
+  function view(name: string): {
+    verbs?: string[];
+    controller?: string;
+    subcommands?: Record<string, unknown>;
+    fallthrough?: boolean;
+    args?: Array<{ required?: boolean; requires?: string }>;
+  } {
+    return YAML.parse(
+      readFileSync(join(CMD_ROOT, 'inventory', `${name}.yaml`), 'utf-8'),
+    ) as never;
+  }
+
+  it('`equip.yaml` is the orchestrator, with set/sets as subcommands', () => {
+    const doc = view('equip');
+    expect(doc.verbs).toEqual(['equip']);
     expect(Object.keys(doc.subcommands ?? {}).sort()).toEqual(['set', 'sets']);
     // ⚠ `fallthrough` is what keeps bare `equip <item>` working once the
     // verb has subcommands: an unrecognised first token binds against
     // `args:` instead of erroring.
     expect(doc.fallthrough).toBe(true);
-    expect(doc.args).toBeDefined();
     // ⭐ The target is OPTIONAL — bare `equip` is the whole-kit form and
     // the main path, which is the entire point of the verb.
-    expect((doc.args as Array<{ required?: boolean }>)[0]?.required).toBe(false);
+    expect(doc.args?.[0]?.required).toBe(false);
   });
 
-  it('`unequip.yaml` absorbs remove/doff/unwield', () => {
-    const doc = YAML.parse(
-      readFileSync(join(CMD_ROOT, 'inventory', 'unequip.yaml'), 'utf-8'),
-    ) as { verbs?: string[] };
-    expect(doc.verbs).toEqual(['unequip', 'remove', 'doff', 'unwield']);
+  it('`unequip.yaml` is the other direction, and only that', () => {
+    expect(view('unequip').verbs).toEqual(['unequip']);
   });
 
-  it('⚠ the four old views are GONE, not left shadowing the aliases', () => {
-    for (const stale of ['wear', 'wield', 'remove', 'unwield']) {
-      expect(
-        existsSync(join(CMD_ROOT, 'inventory', `${stale}.yaml`)),
-        `${stale}.yaml should have been removed`,
-      ).toBe(false);
+  it('⭐⭐ the four precise verbs keep their OWN narrow `requires:`', () => {
+    /*
+     * The reason they were not collapsed. `wear` may not be handed a
+     * sword and `wield` may not be handed a coat, and that refusal is
+     * the ARG's, which means it happens before any controller runs and
+     * reads as a grammar error rather than as a rule.
+     */
+    const narrow: Array<[string, string[], string]> = [
+      ['wear', ['wear'], 'WearableMixin'],
+      ['wield', ['wield'], 'WieldableMixin'],
+      ['remove', ['remove', 'doff'], 'WearableMixin'],
+      ['unwield', ['unwield'], 'WieldableMixin'],
+    ];
+    for (const [name, verbs, requires] of narrow) {
+      const doc = view(name);
+      expect(doc.verbs, name).toEqual(verbs);
+      expect(doc.args?.[0]?.requires, name).toBe(requires);
+      // ⚠ Each names exactly ONE thing, unlike the orchestrators.
+      expect(doc.args?.[0]?.required, name).toBe(true);
+    }
+    // ...whereas the orchestrators deliberately span both.
+    for (const name of ['equip', 'unequip']) {
+      expect(view(name).args?.[0]?.requires, name).toBe(
+        'WearableMixin|WieldableMixin',
+      );
+    }
+  });
+
+  it('⭐ six views, TWO controllers — the act is one implementation', () => {
+    /*
+     * What the verbs share is the covering ladder, the fit gate, the
+     * slot claim and the timing. Duplicating a controller per verb to
+     * express a grammar difference would be duplicating all of that,
+     * and it is how the two halves drift apart.
+     */
+    const on = (name: string): string => view(name).controller ?? '';
+    for (const name of ['equip', 'wear', 'wield']) {
+      expect(on(name), name).toBe('/platform/idea/cmd/inventory/EquipController');
+    }
+    for (const name of ['unequip', 'remove', 'unwield']) {
+      expect(on(name), name).toBe(
+        '/platform/idea/cmd/inventory/UnequipController',
+      );
     }
   });
 

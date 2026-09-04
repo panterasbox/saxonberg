@@ -1,9 +1,13 @@
 /**
- * UnequipController — `unequip`, the other direction.
+ * UnequipController — the undressing act, behind three grammars.
  *
- * Absorbs `remove` / `doff` / `unwield`, which are now aliases, for the
- * same reason `equip` absorbed `wear` and `wield`: taking your kit off
- * is one intention.
+ * ⭐⭐ **`unequip`, `remove`/`doff` and `unwield` all land here, and they
+ * are still three verbs** — the mirror of `EquipController`, and settled
+ * the same way. A draft made the precise words aliases of `unequip`; the
+ * cost was that one arg admitting `WearableMixin|WieldableMixin` cannot
+ * refuse either, so `remove sword` reads as legal. The words keep their
+ * own narrow `requires:` and share this implementation, because what
+ * differs is the GRAMMAR and not the act.
  *
  * ⭐ **Outermost-first, and that is the whole ordering claim.**
  * `wornStack()` is already outermost-first, so stripping is a walk down
@@ -102,6 +106,19 @@ export default class UnequipController extends CommandController<UnequipModel> {
       .send();
   }
 
+  /**
+   * ⭐ Which reading the wording takes. `unwield` insists on the held
+   * one, `remove`/`doff` on the worn one, and bare `unequip` asks the
+   * object — which is the only honest answer when the player did not
+   * say. It steers the SENTENCE only: the release itself is one call
+   * either way, because a slot is a slot.
+   */
+  private heldSpeak(target: Stuff, context: CommandContext): boolean {
+    if (context.verb === 'unwield') return true;
+    if (context.verb === 'remove' || context.verb === 'doff') return false;
+    return MixinApi.isWieldable(target) && !MixinApi.isWearable(target);
+  }
+
   /** One layer. Returns whether it actually came off. */
   private async takeOff(
     target: Stuff,
@@ -109,7 +126,7 @@ export default class UnequipController extends CommandController<UnequipModel> {
     giver: Stuff & Slotted,
     quiet: boolean,
   ): Promise<boolean> {
-    const wieldy = MixinApi.isWieldable(target) && !MixinApi.isWearable(target);
+    const wieldy = this.heldSpeak(target, context);
     /*
      * ⚠ The cursed gate, preserved verbatim from `remove`/`unwield`:
      * `tryReleaseFromSlots` refuses a cursed item AND dumps its charge

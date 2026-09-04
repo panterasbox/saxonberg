@@ -574,7 +574,7 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
      * `Container.contents`' **pack** half.
      *
      * ⭐ The two are a **partition of one set**, not two sets. A worn
-     * garment never left its wearer's contents (`WearController` only
+     * garment never left its wearer's contents (`EquipController` only
      * claims slots), so `contents` skips anything currently occupying a
      * slot on the host and `worn` picks exactly those up. Worn is
      * public — it is what you can see on somebody — which is why the

@@ -90,7 +90,7 @@ export default class Gus extends NPC {
       for (const path of WORN_OR_WIELDED) {
         const item = await StuffApi.clone<Stuff & Containable>(path);
         // A worn/wielded item lives in inventory AND a slot (the
-        // WearController / WieldController contract). Move in, then occupy
+        // EquipController contract). Move in, then occupy
         // each claimed slot.
         ContainmentApi.move(item, self);
         const slots = (item as unknown as SlotClaimer).getSlotClaim(

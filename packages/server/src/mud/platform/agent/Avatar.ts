@@ -1137,7 +1137,7 @@ export default class Avatar extends AvatarBase {
             );
             // A cranial implant lives in the avatar's possession AND the
             // slot — the worn/wielded contract (see `Gus.equipLoadout` /
-            // WearController). Move it in FIRST so it travels with the
+            // EquipController). Move it in FIRST so it travels with the
             // avatar and never lists as loose room contents, THEN occupy
             // the slot. (Occupy alone doesn't set containment, so a
             // freshly cloned implant would otherwise leak into the room.)

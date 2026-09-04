@@ -864,8 +864,8 @@ each subcommand can declare its own `args:` and `options:`:
 > ⭐ **A stanza on a shipped view is how you avoid minting a verb.**
 > Two shipped instances now: the metal chain's `measure strike` / `dip`
 > (whose controllers live in a *pack* while the view is the platform's),
-> and textiles' `wear set <name>` / `wear sets`, which put a whole
-> wardrobe affordance on the existing `wear` view and added **zero**
+> and textiles' `equip set <name>` / `equip sets`, which put a whole
+> wardrobe affordance on an existing dressing view and added **zero**
 > verbs. The second one is the pattern to copy when a feature wants a
 > noun-shaped operation on a verb that already exists: reach for
 > `subcommands:` + `fallthrough: true` before reaching for a word.

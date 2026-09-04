@@ -82,7 +82,7 @@ describe('Slotted × CombatReactive — the arming witnesses', () => {
   it('a two-slot (2H) claim fires once per slot — symmetric on release', () => {
     const item = makeStuff(() => new ReactiveItem());
     // The restore/wield chokepoint — the host's occupyAll is exactly what
-    // WieldController and the persistence spine's re-wear both call, so
+    // EquipController and the persistence spine's re-wear both call, so
     // a restored clone being armed fires the same witnesses.
     body.occupyAll(item, ['hand:left', 'hand:right']);
     expect(item.events).toEqual(['wielded:hand:left', 'wielded:hand:right']);

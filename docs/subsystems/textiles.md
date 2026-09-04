@@ -228,8 +228,11 @@ is just a worse card.
   whatever facts resolve, with phrasing **seeded rather than drawn**.
 - **The authored half stays authored** — bearing, manner, the scar live
   on `PersonaMixin`'s claimed layer, untouched.
-- **Getting dressed is one command**: `wear set <name>`, a **stanza** on
-  the shipped `wear` view. Zero new verbs. See [slot.md](./slot.md).
+- **Getting dressed is one command**: `equip set <name>`, a **stanza**
+  on a dressing view rather than a verb of its own. It shipped as `wear
+  set` and moved when `equip` landed — see
+  [equip-slate.md](../slates/builds/equip-slate.md) and
+  [slot.md](./slot.md).
 
 ---
 
@@ -293,9 +296,11 @@ seed ─▶ plant ─▶ SHEAF ─▶ pit ─▶ line ─▶ yarn ─▶ BOLT �
 ```
 
 **Three packs, four stages, eight verbs** — `scutch` `spin` `weave` ·
-`mordant` `dye` · `cut` `sew` `alter` — plus `measure customer` and
-`wear set` as **stanzas on shipped views**, so the whole build adds
-those eight and no more.
+`mordant` `dye` · `cut` `sew` `alter` — plus `measure customer` and the
+saved-set stanza, both **stanzas on shipped views**, so the chain itself
+adds those eight and no more. (`equip` / `unequip` shipped on the same
+branch and are not the chain's: they are the dressing surface, and the
+slate for them is [equip-slate.md](../slates/builds/equip-slate.md).)
 
 ⭐ **Preparation and finishing ship with ZERO verbs.**
 `FermentingMixin` runs the retting pit's clock and the bleaching green

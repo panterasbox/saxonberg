@@ -503,8 +503,8 @@ test('⭐ the textile chain — flax in the ground to a coat on a back', async (
     const { context, page } = await enterWorld(browser, s.state);
     await page.waitForTimeout(2500);
 
-    const worn = await cmd(page, 'wear all', 3400);
-    note(`wear all: ${worn.split('\n').slice(-1)[0]}`);
+    const worn = await cmd(page, 'equip', 3400);
+    note(`equip: ${worn.split('\n').slice(-1)[0]}`);
     // ⭐ A1: `worn` is a PROJECTION — it renders on the wearer's card,
     // and the same garment leaves `contents`.
     if (await lookFor(page, /WORN|wearing/i, 'look me')) {
@@ -524,7 +524,7 @@ test('⭐ the textile chain — flax in the ground to a coat on a back', async (
     if (m) note(`⭐ A5: ${m[1]} worn layer(s); DERIVED insulation ${m[2]} — no authored clo anywhere`);
     else note(`A5 read: ${derived.split('\n').slice(-1)[0]}`);
 
-    await cmd(page, 'wear sets', 2800);
+    await cmd(page, 'equip sets', 2800);
     await context.close();
   }
 

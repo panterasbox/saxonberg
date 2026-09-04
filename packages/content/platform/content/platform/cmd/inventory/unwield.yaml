@@ -1,0 +1,21 @@
+# The precise act: put ONE held thing up. `unequip` strips the lot.
+verbs: [unwield]
+controller: /platform/idea/cmd/inventory/UnequipController
+description: "Stop wielding a held item"
+help: |
+  Put up something you are holding.
+
+  ⚠ A cursed thing will not let your hand open.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresSlotted
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: target
+    type: object
+    required: true
+    scope: "inventory"
+    requires: WieldableMixin
+    validators:
+      - /lib/command/validators/mustBeInInventory

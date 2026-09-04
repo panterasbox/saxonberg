@@ -1,9 +1,21 @@
 /**
- * EquipController — `equip`, and getting kitted out is ONE act.
+ * EquipController — the dressing act, behind three grammars.
  *
- * Absorbs `wear` and `wield`, which are now aliases: worn and wielded
- * are two answers to one intention, and a player who wants their kit on
- * should not have to know which word a given object answers to.
+ * ⭐⭐ **`equip`, `wear` and `wield` all land here, and they are still
+ * three verbs.** An earlier draft collapsed them: `equip` took the other
+ * two as aliases, one arg spanning `WearableMixin|WieldableMixin`. It
+ * reads well and it costs a real distinction — a single arg that admits
+ * both mixins cannot refuse either, so **`wear sword` becomes legal**.
+ * The precise verbs keep their own narrow `requires:`, and what they
+ * share is this file: the gates (fit, ladder, slot) and the timing are
+ * ONE implementation, because what differs between the words is the
+ * GRAMMAR and not the act. Duplicating a controller to express that
+ * would be duplicating the covering ladder.
+ *
+ * ⭐ Which means the VERB is real input here, not decoration. A gauntlet
+ * is wearable and wieldable both; `wear gauntlet` puts it on, `wield
+ * gauntlet` takes it up, and bare `equip` prefers the worn reading. See
+ * {@link EquipController.claimAs}.
  *
  * ⭐⭐ **The reason the verb exists is ORDERING, not keystrokes.**
  * `wear`'s own help used to say *"a light thing will not go on OVER a
@@ -37,12 +49,14 @@
  * second two-hander — and silently omitting it is worse than any
  * refusal. One line for what went on, one for what did not and why.
  *
- * Grammar (`cmd/inventory/equip.yaml`):
+ * Grammar (`cmd/inventory/{equip,wear,wield}.yaml`):
  *   equip                      everything you carry, inside-out
  *   equip <thing>              one thing, worn or wielded
  *   equip <thing> --from <box> reach into a container you can see
  *   equip set <name>           a saved set   (`--save` to record one)
  *   equip sets                 list them
+ *   wear <wearable>            precise: this goes ON
+ *   wield <wieldable>          precise: this goes IN HAND
  */
 
 import { CommandController } from '../../../../lib/command/CommandController';
@@ -75,6 +89,26 @@ interface EquipModel extends CommandModel {
   save?: boolean;
   /** `set` / `sets`, from the view's `subcommands:`. */
   subcommand?: string;
+}
+
+/**
+ * ⭐ How the invoked verb reads a candidate.
+ *
+ * `wear` insists on the worn reading, `wield` on the held one, and
+ * `equip` takes whichever the object offers. It matters for exactly the
+ * things that are BOTH — a gauntlet, a bracer, a buckler strapped to the
+ * arm — where the word the player typed is the only thing that says
+ * which way they meant it.
+ */
+type EquipMode = 'wear' | 'wield' | 'either';
+
+/** The invoked verb, as a mode. Anything else is the orchestrator. */
+function modeOf(context: CommandContext): EquipMode {
+  return context.verb === 'wear'
+    ? 'wear'
+    : context.verb === 'wield'
+      ? 'wield'
+      : 'either';
 }
 
 /** Why a candidate was passed over — the skip report's vocabulary. */
@@ -140,6 +174,8 @@ export default class EquipController extends CommandController<EquipModel> {
       );
     }
 
+    const mode = modeOf(context);
+
     // `equip sets` — the wardrobe roster.
     if (model.subcommand === 'sets') {
       this.listSets(context);
@@ -159,7 +195,10 @@ export default class EquipController extends CommandController<EquipModel> {
      * the envelope before the first `await`, which is where a caller
      * that does not await expects to find it.
      */
-    if (model.target?.stuff && this.handsHauling(model.target.stuff, context, giver)) {
+    if (
+      model.target?.stuff &&
+      this.handsHauling(model.target.stuff, mode, context, giver)
+    ) {
       return;
     }
 
@@ -175,17 +214,33 @@ export default class EquipController extends CommandController<EquipModel> {
       return;
     }
     const one = model.target.stuff;
-    const skip = this.canEquip(one, giver);
+    const skip = this.canEquip(one, giver, mode);
     if (skip) {
-      this.refuseOne(one, skip, context, giver);
+      this.refuseOne(one, skip, mode, context, giver);
       return;
     }
+    /*
+     * ⚠ The success line follows the READING, not the verb — the shipped
+     * wording of each, kept: `wield` said *"You wield X"* and `wear` said
+     * *"You put on X"*, and a player who typed `equip gauntlet` should be
+     * told which of the two just happened rather than a word that covers
+     * both and says neither.
+     */
+    const held = this.claimAs(one, mode) === 'wield';
     await this.engage(one, context, giver, () => {
-      this.put(one, giver);
+      this.put(one, giver, mode);
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`You put on ${Mml.thing(one)}.`)
-        .toPeers(Mml.compose`${Mml.actor(giver)} puts on ${Mml.thing(one)}.`)
+        .toSelf(
+          held
+            ? Mml.compose`You wield ${Mml.thing(one)}.`
+            : Mml.compose`You put on ${Mml.thing(one)}.`,
+        )
+        .toPeers(
+          held
+            ? Mml.compose`${Mml.actor(giver)} wields ${Mml.thing(one)}.`
+            : Mml.compose`${Mml.actor(giver)} puts on ${Mml.thing(one)}.`,
+        )
         .send();
     });
   }
@@ -195,16 +250,18 @@ export default class EquipController extends CommandController<EquipModel> {
    * cart handle in your fists. Keyed on the giver being THE HAULER — a
    * mounted rider whose horse hauls is not, so their hands stay free.
    *
-   * ⭐ Gates the WIELD half only. A cart in your hands does not stop you
-   * pulling a hood up, and refusing the whole kit for it would be the
-   * collapse of `wear` and `wield` costing a distinction that matters.
+   * ⭐ Gates the WIELD half only, and the verb is what says which half
+   * this is. A cart in your hands does not stop you pulling a hood up —
+   * and it does not stop you `wear`ing a gauntlet either, though it
+   * absolutely stops you `wield`ing the same object.
    */
   private handsHauling(
     item: Stuff,
+    mode: EquipMode,
     context: CommandContext,
     giver: Stuff,
   ): boolean {
-    if (MixinApi.isWearable(item)) return false;
+    if (this.claimAs(item, mode) !== 'wield') return false;
     if (!MixinApi.isHauling(giver) || !giver.isHitched()) return false;
     MessageApi.scene(giver)
       .topic(TOPIC)
@@ -296,10 +353,10 @@ export default class EquipController extends CommandController<EquipModel> {
       for (let i = 0; i < remaining.length; i++) {
         const item = remaining[i]!;
         const hauling =
-          !MixinApi.isWearable(item) &&
+          this.claimAs(item, 'either') === 'wield' &&
           MixinApi.isHauling(giver) &&
           giver.isHitched();
-        const skip = hauling ? 'busy' : this.canEquip(item, giver);
+        const skip = hauling ? 'busy' : this.canEquip(item, giver, 'either');
         if (skip === null) {
           next = item;
           remaining.splice(i, 1);
@@ -322,7 +379,7 @@ export default class EquipController extends CommandController<EquipModel> {
       }
       const item = next;
       if (!MixinApi.isEngaged(giver)) {
-        this.put(item, giver);
+        this.put(item, giver, 'either');
         worn.push(item);
         continue; // no clock in play — keep going inline
       }
@@ -330,7 +387,7 @@ export default class EquipController extends CommandController<EquipModel> {
         actor: giver,
         durationMs: donDurationMs(item),
         onComplete: () => {
-          this.put(item, giver);
+          this.put(item, giver, 'either');
           worn.push(item);
           this.dressNext(remaining, worn, skipped, context, giver);
         },
@@ -396,29 +453,54 @@ export default class EquipController extends CommandController<EquipModel> {
 
   // ── one item ─────────────────────────────────────────────────────
 
-  /** Is this something `equip` has any business touching? */
+  /** Is this something the dressing verbs have any business touching? */
   private equippable(item: Stuff): boolean {
     return MixinApi.isWearable(item) || MixinApi.isWieldable(item);
+  }
+
+  /**
+   * ⭐ Which way this object goes on under the invoked verb — the one
+   * place the three grammars actually diverge.
+   *
+   * `wear` and `wield` each insist on their own mixin and answer `null`
+   * for anything else (the view's `requires:` refuses those long before
+   * they reach here; this is the belt to that braces). Bare `equip`
+   * prefers WORN when a thing is both, which is the shipped precedence
+   * — `getSlotClaim` was already read off `Wearable` first — and reads
+   * right: a gauntlet you `equip` alongside a sword should end up on
+   * your hand, not instead of the sword.
+   */
+  private claimAs(item: Stuff, mode: EquipMode): 'wear' | 'wield' | null {
+    const wearable = MixinApi.isWearable(item);
+    const wieldable = MixinApi.isWieldable(item);
+    if (mode === 'wear') return wearable ? 'wear' : null;
+    if (mode === 'wield') return wieldable ? 'wield' : null;
+    return wearable ? 'wear' : wieldable ? 'wield' : null;
   }
 
   /**
    * The gates, in the order the old `wear` applied them. Returns the
    * reason it cannot go on, or `null` when it can.
    */
-  private canEquip(item: Stuff, giver: Stuff & Slotted): SkipReason | null {
-    if (!this.equippable(item)) return 'no-slots';
+  private canEquip(
+    item: Stuff,
+    giver: Stuff & Slotted,
+    mode: EquipMode,
+  ): SkipReason | null {
+    const as = this.claimAs(item, mode);
+    if (as === null) return 'no-slots';
     const plan = SpeciesApi.tryGetBodyPlanPath(giver);
     if (!plan) return 'no-slots';
-    const slots = MixinApi.isWearable(item)
-      ? item.getSlotClaim(plan)
-      : MixinApi.isWieldable(item)
-        ? item.getSlotClaim(plan)
-        : [];
+    const slots = this.slotsFor(item, plan, as);
     if (slots.length === 0) return 'no-slots';
     // ⚠ The impossible fit is a HARD refusal, independent of the ladder:
     // a coat cut for a halfling fails on a NUMBER, so a heavy human and
     // a light dragonborn shade into each other correctly.
-    if (MixinApi.isWearable(item)) {
+    //
+    // ⭐ Both gates are the WORN reading's. A gauntlet taken up in the
+    // hand is not covering anything, so neither fit nor the ladder has
+    // anything to say about it.
+    if (as === 'wear' && MixinApi.isWearable(item)) {
       const fit = item.fitOn(giver);
       const refuseAbove = dial(AppSettingKeys.textilesFitRefuseAbove, 0.35);
       if (fit.measurable && (fit.wrongBody || fit.distance > refuseAbove)) {
@@ -430,14 +512,35 @@ export default class EquipController extends CommandController<EquipModel> {
     return null;
   }
 
+  /**
+   * The slots this object claims on that body, asked of the face the
+   * verb selected.
+   *
+   * ⚠ On something composing BOTH mixins the two faces read the same
+   * `slotClaims` field, so today they answer the same — the split is
+   * not what decides where a gauntlet lands. What the verb actually
+   * decides is in {@link EquipController.canEquip}: the fit gate and the
+   * covering ladder are the WORN reading's alone, and the hauling
+   * refusal is the HELD reading's. Asking the selected face here keeps
+   * the two readings from quietly becoming one call site if the mixins
+   * ever diverge.
+   */
+  private slotsFor(
+    item: Stuff,
+    plan: string,
+    as: 'wear' | 'wield',
+  ): readonly string[] {
+    if (as === 'wear') {
+      return MixinApi.isWearable(item) ? item.getSlotClaim(plan) : [];
+    }
+    return MixinApi.isWieldable(item) ? item.getSlotClaim(plan) : [];
+  }
+
   /** Claim the slots. Atomic via `occupyAll`. */
-  private put(item: Stuff, giver: Stuff & Slotted): void {
+  private put(item: Stuff, giver: Stuff & Slotted, mode: EquipMode): void {
     const plan = SpeciesApi.tryGetBodyPlanPath(giver) ?? '';
-    const slots = (
-      MixinApi.isWearable(item) || MixinApi.isWieldable(item)
-        ? item.getSlotClaim(plan)
-        : []
-    ) as readonly string[];
+    const as = this.claimAs(item, mode);
+    const slots = as === null ? [] : this.slotsFor(item, plan, as);
     giver.occupyAll(item as Parameters<typeof giver.occupyAll>[0], [...slots]);
   }
 
@@ -451,15 +554,14 @@ export default class EquipController extends CommandController<EquipModel> {
   private refuseOne(
     item: Stuff,
     reason: SkipReason,
+    mode: EquipMode,
     context: CommandContext,
     giver: Stuff & Slotted,
   ): void {
     if (reason === 'slot-full') {
       const plan = SpeciesApi.tryGetBodyPlanPath(giver) ?? '';
-      const slots =
-        MixinApi.isWearable(item) || MixinApi.isWieldable(item)
-          ? item.getSlotClaim(plan)
-          : [];
+      const as = this.claimAs(item, mode);
+      const slots = as === null ? [] : this.slotsFor(item, plan, as);
       const full = slots.find((sl) => giver.isSlotFull(sl)) ?? 'slot';
       MessageApi.scene(giver)
         .topic(TOPIC)
@@ -472,12 +574,18 @@ export default class EquipController extends CommandController<EquipModel> {
       });
       return;
     }
+    // ⚠ `wield`'s shipped no-slots line was about HANDS, not the body,
+    // and it stays that way: "doesn't fit your body" about a sword is
+    // the kind of answer that makes a player doubt the model.
+    const held = this.claimAs(item, mode) === 'wield';
     const line =
       reason === 'fit'
         ? Mml.compose`${Mml.thing(item)} was not cut for a body like yours — it will not go on.`
         : reason === 'layer'
           ? Mml.compose`${Mml.thing(item)} won't go on over ${this.outermostInWay(item, giver)}.`
-          : Mml.compose`${Mml.thing(item)} doesn't fit your body.`;
+          : held
+            ? Mml.compose`${Mml.thing(item)} doesn't fit your hands.`
+            : Mml.compose`${Mml.thing(item)} doesn't fit your body.`;
     MessageApi.scene(giver).topic(TOPIC).toSelf(line).send();
     context.note({
       kind: 'controller-rejected',

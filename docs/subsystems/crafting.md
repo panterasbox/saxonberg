@@ -896,8 +896,8 @@ capability packs and add **eight verbs and no more**:
 
 ⭐ Two more affordances ship as **stanzas on views that already exist** —
 `measure customer` on the platform's `measure` (the `measure strike`
-precedent) and `wear set` on `wear` — so a whole wardrobe and the
-tailor's fitting cost **zero verbs**.
+precedent) and the saved-set stanza on the dressing view — so a whole
+wardrobe and the tailor's fitting cost **zero verbs**.
 
 ⭐⭐ **Preparation and finishing ship with zero verbs at all.** Retting
 is a real slow bacterial ferment, so `FermentingMixin` runs it

@@ -1,14 +1,18 @@
-# The other direction. `remove` / `doff` / `unwield` are aliases.
+# The other direction — the orchestrator over `remove` and `unwield`.
 #
 # ⭐ Outermost-first: you cannot get a shirt out from under a hauberk,
 # and the player should not have to work that out any more than they
 # should have had to work out the way in.
-verbs: [unequip, remove, doff, unwield]
+#
+# ⚠ `remove` / `doff` / `unwield` stay their own verbs, with their own
+# narrow `requires:`. This one strips the lot.
+verbs: [unequip]
 controller: /platform/idea/cmd/inventory/UnequipController
 description: "Take off and put up your kit"
 help: |
   `unequip` on its own strips everything you have on, outermost first.
-  `unequip <thing>` takes off or puts up one thing.
+  `unequip <thing>` takes off or puts up one thing; `remove` and
+  `unwield` are there when you want to name which kind.
 
   ⭐ **It takes as long to get out of as it took to get into**, which is
   worth remembering before you go into deep water in mail.

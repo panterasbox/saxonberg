@@ -222,9 +222,11 @@ test('⭐ the tailor — measure, cut, sew, wear', async ({ browser }) => {
 
   console.log('INVENTORY: ' + (await cmd(w.page, 'inventory', 2600)).split('\n').slice(-8).join(' | '));
 
-  const worn = await cmd(w.page, 'wear all', 3600);
-  if (!refused(worn)) note('⭐ WEAR takes the made garment onto the body');
-  else note(`wear said: ${worn.split('\n').slice(-1)[0]}`);
+  // ⭐ Bare `equip` — the whole kit, innermost-first. `wear <thing>` is
+  // still its own verb for one precise garment; this is the orchestrator.
+  const worn = await cmd(w.page, 'equip', 3600);
+  if (!refused(worn)) note('⭐ EQUIP takes the made garment onto the body');
+  else note(`equip said: ${worn.split('\n').slice(-1)[0]}`);
 
   await cmd(w.page, 'look me', 3200);
   const self = await card(w.page);
@@ -235,7 +237,7 @@ test('⭐ the tailor — measure, cut, sew, wear', async ({ browser }) => {
     note('⚠ no worn projection on the self card');
   }
 
-  await cmd(w.page, 'wear sets', 2800);
+  await cmd(w.page, 'equip sets', 2800);
   report('THE TAILOR');
   await w.close();
 });

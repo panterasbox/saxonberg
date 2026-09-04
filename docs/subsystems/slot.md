@@ -142,7 +142,7 @@ the `Chair`/`sit` posture-slot side this gates.
 `isSlotFull(slot)` returns `count >= capacity`. `isSlotOccupied`
 returns `count > 0`.
 
-## ⭐ The wardrobe — `wear set`, and zero new verbs
+## ⭐ The wardrobe — `equip set`, and zero verbs of its own
 
 `WardrobeMixin` (`lib/slot/Wardrobe.ts`, composed by `Avatar`) holds
 named outfits as `wardrobes: Record<string, string[]>` — a set name to
@@ -171,18 +171,23 @@ has to be survivable and readable, and that starts here.
 
 ### ⚠ It is a STANZA, not a verb
 
-`wear set <name>` (with `--save`) and `wear sets` are `subcommands:` on
-the shipped `cmd/inventory/wear.yaml`, alongside its existing `args:` —
-the `measure strike` precedent, second instance. `fallthrough: true` is
-what keeps bare `wear <item>` working once the verb has subcommands: an
+`equip set <name>` (with `--save`) and `equip sets` are `subcommands:`
+on `cmd/inventory/equip.yaml`, alongside its existing `args:` — the
+`measure strike` precedent, second instance. `fallthrough: true` is what
+keeps bare `equip <item>` working once the verb has subcommands: an
 unrecognised first token binds against `args:` instead of erroring.
+
+⚠ It shipped as `wear set` and **moved to `equip` on the same branch**,
+when the orchestrator landed. The stanza is unchanged; it simply rides
+the verb that owns getting your whole kit on. See
+[equip-slate.md](../slates/builds/equip-slate.md).
 
 ⚠ **The requirement said *"`dress` is not taken"* and that premise was
 stale.** `medical/treat.yaml` has shipped `verbs: [treat, bind, dress]`
 since the medic build, where it means *dressing a wound*. So "unclaimed"
 was already false and the constraint as written is unsatisfiable. What
 it protects is checkable and is what the source-shape test asserts:
-**this build adds no verb**, so `dress` still resolves to exactly one
+**the wardrobe adds no verb**, so `dress` still resolves to exactly one
 view and that view is medical's.
 
 ## Mutation surface
@@ -226,7 +231,7 @@ view and that view is medical's.
 > Before the TPA reform **nothing in the game could put anything into a
 > non-body slot by any verb.**
 
-`equip` (worn and wielded alike) is body slots, `plant`/`repot` the plant slot,
+`equip`/`wear`/`wield` are body slots, `plant`/`repot` the plant slot,
 `mount` is conveyance, and the whole `device` category (`arm · disarm ·
 douse · fold · ignite · pump · switch · unfold`) drives no slot at all.
 So a battery bay, a lamp's oil reservoir and a mill's replaceable stone
@@ -323,11 +328,11 @@ go through Slotted/Slottable when you need the verbose form."
 
 ## Wear / wield / mount failure notes
 
-The slot-claiming verbs (`equip` — which `wear`/`wield` alias — and `mount`) emit a
+The slot-claiming verbs (`equip`/`wear`/`wield`, and `mount`) emit a
 `slot-occupied { host: StuffRef, slot: string, occupant?: StuffRef }`
 note onto the dispatch context when the required slot is already
-taken. `host` identifies who owns the slot — the actor for `equip`,
-the mount target for `mount`. `slot` is the canonical
+taken. `host` identifies who owns the slot — the actor for the dressing
+verbs, the mount target for `mount`. `slot` is the canonical
 body-plan slot name (`'hand:left'`, `'mount:1'`, …). `occupant` is
 the current occupant when known, omitted otherwise.
 

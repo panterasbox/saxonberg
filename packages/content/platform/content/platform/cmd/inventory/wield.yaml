@@ -1,0 +1,28 @@
+# ⭐ The precise act: take ONE thing up in your hands.
+#
+# Its own verb so `requires: WieldableMixin` stays narrow — `wield coat`
+# refuses. Shares `EquipController`; see wear.yaml for why.
+verbs: [wield]
+controller: /platform/idea/cmd/inventory/EquipController
+description: "Wield a weapon or held item from your inventory"
+help: |
+  Take up a weapon or tool in your hands. It stays in hand until you
+  `unwield` it or something takes it off you.
+
+  ⚠ You cannot wield anything while you are pulling a cart — your hands
+  are already full of the handle.
+
+  ⭐ `equip` will do this as part of getting your whole kit on.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresSlotted
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: target
+    type: object
+    required: true
+    scope: "inventory"
+    requires: WieldableMixin
+    validators:
+      - /lib/command/validators/mustBeInInventory

@@ -1,0 +1,45 @@
+# ⭐ The precise act: put ONE worn thing on.
+#
+# `equip` is the orchestrator over this and `wield` — it does the whole
+# kit in ladder order, reaches into containers, and replays saved sets.
+# This stays its own verb so the `requires:` can stay narrow: `wear
+# sword` should refuse, and it does, because the arg wants a
+# `WearableMixin` and a sword is not one.
+#
+# ⚠ Shares `EquipController` — the gates (fit, ladder, slot) and the
+# timing are one implementation. What differs between these verbs is the
+# GRAMMAR, not the act, and duplicating a controller to express that
+# would be duplicating the covering ladder.
+verbs: [wear]
+controller: /platform/idea/cmd/inventory/EquipController
+description: "Put on a wearable item from your inventory"
+help: |
+  Put on clothing, armor, or any wearable you're carrying. `wear` slots
+  the item onto the right part of your body and keeps it on until you
+  take it off.
+
+  The item has to be in your inventory and has to be something that can
+  actually be worn. You can layer — a coat over a shirt is fine, and
+  which of them goes on first is your call — but a light thing will not
+  go on OVER a heavy one, and a garment cut for a body unlike yours will
+  not go on at all.
+
+  ⭐ **It takes time**, and how long depends on the weight of the thing:
+  a shirt is a moment, a mail hauberk is minutes. Your hands are busy
+  while you do it; your voice is not.
+
+  ⭐⭐ To get a whole kit on without working out the order yourself, use
+  `equip` — it dresses you innermost-first, and `equip set <name>` puts
+  back an outfit you saved.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresSlotted
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: target
+    type: object
+    required: true
+    scope: "inventory"
+    requires: WearableMixin
+    validators:
+      - /lib/command/validators/mustBeInInventory

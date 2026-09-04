@@ -1,27 +1,31 @@
-# ⭐⭐ ONE verb for getting kitted out — worn and wielded together.
+# ⭐⭐ The ORCHESTRATOR over `wear` and `wield` — the whole kit at once.
 #
-# `wear` and `wield` are ALIASES here, not separate verbs. Worn and
-# wielded are two answers to one intention, and a player who wants their
-# kit on should not have to know which word a given object answers to.
+# ⚠ NOT an alias of them, and that was a live decision. An earlier draft
+# collapsed all four verbs into this one; it made `wear sword` legal,
+# because a single arg spanning both mixins cannot refuse either. The
+# four precise verbs keep their own narrow `requires:` — `wear` wants a
+# `WearableMixin`, `wield` a `WieldableMixin` — and `equip` sits on top
+# of them for the thing none of them can do.
 #
-# ⭐ The reason the verb exists is ORDERING. The covering ladder means a
-# light thing will not go on over a heavy one — a fact about the model
+# ⭐ What it does that they cannot is ORDERING. The covering ladder means
+# a light thing will not go on over a heavy one — a fact about the model
 # the engine knows exactly, and which the player used to rediscover one
-# refusal at a time. `equip` puts things on inside-out so nobody has to.
+# refusal at a time. `equip` puts things on innermost-first so nobody has
+# to work it out.
 #
-# ⚠ `wear sword` is legal now, and that is the accepted cost of the
-# collapse. A baldric IS worn; the precision lost is small against a
-# vocabulary that shrank from four verbs to two.
-verbs: [equip, wear, wield]
+# ⭐ It shares `EquipController` with `wear`/`wield`: the gates and the
+# timing are one implementation, and only the GRAMMAR differs.
+verbs: [equip]
 controller: /platform/idea/cmd/inventory/EquipController
-description: "Put on and take up your kit, in the right order"
+description: "Put your whole kit on, in the right order"
 help: |
   `equip` on its own puts on everything you are carrying that will go
   on — innermost first, so the layers land in an order that works. It
   tells you what went on, and it tells you what it left and why.
 
-  `equip <thing>` does one thing, whether that thing is worn or held.
-  `wear` and `wield` still work and mean the same.
+  `equip <thing>` does one thing, whether it is worn or held — and
+  `wear` / `wield` are still there when you want to be precise about
+  which.
 
   ⭐ **Getting dressed takes time.** A shirt is a moment; a mail hauberk
   is minutes, and the difference is the weight of the thing. Your hands

@@ -1,0 +1,26 @@
+# The precise act: take ONE worn thing off. `unequip` strips the lot.
+verbs: [remove, doff]
+controller: /platform/idea/cmd/inventory/UnequipController
+description: "Take off a worn item"
+help: |
+  Take off something you are wearing.
+
+  ⭐ It takes as long to get out of as it took to get into, which is
+  worth remembering before you go into deep water in mail.
+
+  ⚠ Some things will not come off.
+
+  `unequip` on its own strips everything, outermost first.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresSlotted
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: target
+    type: object
+    required: true
+    scope: "inventory"
+    requires: WearableMixin
+    validators:
+      - /lib/command/validators/mustBeInInventory

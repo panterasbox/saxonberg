@@ -166,11 +166,10 @@ mixin.
 
 ## Verbs
 
-⭐⭐ **Two verbs, not four.** `equip` and `unequip` are the dressing
-surface; `wear` · `wield` · `remove` · `doff` · `unwield` are **aliases**
-of them. Worn and wielded are two answers to one intention, and a player
-who wants their kit on should not have to know which word a given object
-answers to. See [equip-slate.md](../slates/builds/equip-slate.md).
+⭐⭐ **Six verbs, two controllers.** `equip` / `unequip` are the
+orchestrators; `wear` · `wield` · `remove` · `doff` · `unwield` are the
+precise acts and **keep their own views**. See
+[equip-slate.md](../slates/builds/equip-slate.md).
 
 | Verb | Action |
 |---|---|
@@ -179,6 +178,31 @@ answers to. See [equip-slate.md](../slates/builds/equip-slate.md).
 | `equip <X> --from <box>` | Draw from a container in reach first |
 | `equip set <name>` / `--save` / `equip sets` | The wardrobe stanza |
 | `unequip [<X>]` | Vacate claimed slots, **outermost-first** |
+| `wear <X>` / `remove <X>` | Precise: `requires: WearableMixin` |
+| `wield <X>` / `unwield <X>` | Precise: `requires: WieldableMixin` |
+
+### ⚠⚠ Why the precise verbs were NOT made aliases
+
+A draft collapsed all six into two, which reads well and costs a real
+distinction. An arg that admits `WearableMixin|WieldableMixin` **cannot
+refuse either**, so `wear sword` becomes legal — and the refusal that
+used to be the ARG's (a grammar error, before any controller runs)
+would become a rule, or nothing.
+
+So the split is the **grammar**, and the act is one implementation:
+`EquipController` and `UnequipController` each back three views. The
+gates (fit, the ladder, the slot) and the timing live in one place,
+because duplicating a controller to express a grammar difference is how
+two halves of one rule drift apart.
+
+⭐ The consequence is that **the invoked verb is real input**. A gauntlet
+is `Wearable` and `Wieldable` both: `wear gauntlet` puts it on, `wield
+gauntlet` takes it up, and bare `equip` prefers the worn reading (the
+shipped precedence — `getSlotClaim` was always read off `Wearable`
+first). `EquipController.claimAs` is the one place that decides, and
+`slotsFor` reads the claim off the face it selected. The fit gate and
+the covering ladder are the **worn** reading's alone: a gauntlet in the
+hand is not covering anything.
 
 ### ⭐⭐ Ordering is the reason the verb exists
 
@@ -212,18 +236,19 @@ no rollback exists or is needed.
 pieces on succeeded, and says what it left and why without emitting
 `controller-rejected`.
 
-Validators per verb (the controllers fail-fast on type narrows that
-shouldn't be reachable post-validator; user-facing rejection lives in
-these):
+Validators (the controllers fail-fast on type narrows that shouldn't be
+reachable post-validator; user-facing rejection lives in these):
 
-- All four verbs: verb-level `requiresAnimate`, `requiresSlotted`
-  (the actor's body needs slots to claim into).
-- `wear` / `wield`: target-level `mustBeInInventory`,
-  `mustBeWearable` / `mustBeWieldable`.
-- `remove` / `unwield`: same target-level shape — `mustBeWearable` /
-  `mustBeWieldable` is sufficient for "this is a wearable kind of
-  thing"; the controller's own per-slot scan surfaces "you aren't
-  wearing that" when nothing actually vacated.
+- Every verb: verb-level `requiresAnimate`, `requiresSlotted` (the
+  actor's body needs slots to claim into), `requiresEmbodied`.
+  `requiresConscious` on all but `wear`.
+- The four precise verbs: `required: true` target, `scope: inventory`,
+  `mustBeInInventory`, and the narrow `requires:` above.
+- `equip` / `unequip`: `required: false` (bare is the whole-kit form),
+  `requires: WearableMixin|WieldableMixin`; `equip` alone widens
+  `scope` to `[inventory, reachable]` for `--from`.
+- The controller's own per-slot scan surfaces "you aren't wearing that"
+  when nothing actually vacated.
 
 ## Hand slots are for activities, not storage
 

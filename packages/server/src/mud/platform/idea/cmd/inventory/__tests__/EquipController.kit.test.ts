@@ -23,6 +23,7 @@ import { describe, it, expect, afterEach } from 'vitest';
 import EquipController from '../EquipController';
 import UnequipController from '../UnequipController';
 import { WearableMixin } from '../../../../../lib/slot/Wearable';
+import { WieldableMixin } from '../../../../../lib/slot/Wieldable';
 import { SlottableMixin } from '../../../../../lib/slot/Slottable';
 import { WardrobeMixin } from '../../../../../lib/slot/Wardrobe';
 import { ConstructedMixin } from '../../../../../lib/material/Constructed';
@@ -49,7 +50,6 @@ import {
   stampTemplatePathForTest,
 } from '../../../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
-import type { Stuff } from '../../../../../lib/stuff/Stuff';
 
 class Garment extends WearableMixin(
   SlottableMixin(ConstructedMixin(ContainableMixin(Thing))),
@@ -61,6 +61,16 @@ class Wearer extends WardrobeMixin(
   SensorMixin(CommandGiverMixin(ContainerMixin(Character))),
 ) {
   static _mixinName = 'Wearer';
+}
+
+/**
+ * ⭐ Wearable AND wieldable — a gauntlet, a bracer, a buckler on a
+ * strap. The only object for which the invoked VERB is real input.
+ */
+class Gauntlet extends WieldableMixin(
+  WearableMixin(SlottableMixin(ConstructedMixin(ContainableMixin(Thing)))),
+) {
+  static _mixinName = 'Gauntlet';
 }
 
 /** A plain box to dress out of — the wardrobe stand-in. */
@@ -135,17 +145,17 @@ function garment(plan: string, fabric: string, keyword: string): Garment {
   return g;
 }
 
-function ctx(body: Wearer, loc: Location): CommandContext {
+function ctx(body: Wearer, loc: Location, verb = 'equip'): CommandContext {
   return CommandApi.createCommandContext({
     commandGiver: body as never,
     location: loc as never,
     commandSource: body as never,
-    commandText: 'equip',
+    commandText: verb,
     executionId: 't',
     commandId: 't',
-    verb: 'equip',
+    verb,
     command: CommandDefinition.fromYaml(
-      'verbs: [equip]\ncontroller: NoopController\ndescription: stub\n',
+      `verbs: [${verb}]\ncontroller: NoopController\ndescription: stub\n`,
       '<test>',
     ),
   });
@@ -266,5 +276,68 @@ describe('`unequip`', () => {
         (n) => (n as { reason?: string }).reason === 'nothing-worn',
       ),
     ).toBe(true);
+  });
+});
+
+describe('⭐⭐ the VERB is real input — `wear` vs `wield` on one object', () => {
+  /*
+   * The behavioural half of "keep the verbs distinct". A gauntlet is
+   * `Wearable` and `Wieldable` both, and only the word the player typed
+   * says which they meant. The gates follow the READING: fit and the
+   * covering ladder belong to the worn one, and a thing taken up in the
+   * hand is not covering anything, so neither has a vote.
+   *
+   * ⚠ Had the verbs been collapsed into `equip` as aliases, there would
+   * be no word to read — one arg spanning both mixins gives the
+   * controller no way to tell the two intentions apart.
+   */
+  function armoured(): { body: Wearer; loc: Location; gauntlet: Gauntlet } {
+    const { body, loc, plan } = standUp();
+    // Plate on the torso first: band 3, so nothing woven goes over it.
+    const cuirass = garment(plan, 'plate', 'cuirass');
+    ContainmentApi.move(cuirass as never, body as never);
+    body.occupyAll(cuirass as never, ['torso']);
+
+    const gauntlet = makeStuff(() => new Gauntlet());
+    gauntlet.setPrimaryKeyword('gauntlet');
+    gauntlet.setKeywords(['gauntlet']);
+    gauntlet.setShortDescription('a gauntlet');
+    gauntlet.setConstructionForm('woven');
+    gauntlet.setSlotClaims({ [plan]: ['torso'] });
+    stampTemplatePathForTest(gauntlet, `/stuff/thing/kit-${(seq += 1)}-gaunt`);
+    ContainmentApi.move(gauntlet as never, body as never);
+    return { body, loc, gauntlet };
+  }
+
+  it('⚠ `wear` runs the covering ladder and refuses under the plate', async () => {
+    const { body, loc, gauntlet } = armoured();
+    const c = ctx(body, loc, 'wear');
+    await makeStuff(() => new EquipController()).execute(
+      { target: { stuff: gauntlet as never, raw: 'gauntlet' } } as never,
+      c,
+    );
+    await settle();
+    expect(
+      c.getNotes().some(
+        (n) => (n as { reason?: string }).reason === 'layer-order',
+      ),
+    ).toBe(true);
+    expect(worn(body)).toEqual(['cuirass']);
+  });
+
+  it('⭐ `wield` skips it — a thing in your hand covers nothing', async () => {
+    const { body, loc, gauntlet } = armoured();
+    const c = ctx(body, loc, 'wield');
+    await makeStuff(() => new EquipController()).execute(
+      { target: { stuff: gauntlet as never, raw: 'gauntlet' } } as never,
+      c,
+    );
+    await settle();
+    expect(
+      c.getNotes().some(
+        (n) => (n as { reason?: string }).reason === 'layer-order',
+      ),
+    ).toBe(false);
+    expect(worn(body).sort()).toEqual(['cuirass', 'gauntlet']);
   });
 });

@@ -18,7 +18,9 @@ settled rather than open:
 
 > **User: "yeah dressing should cost time"**
 
-> **Status: design conversation, captured. Not requirements.**
+> **Status: BUILT, on `design/textiles` (MR !236).** The one open fork
+> — alias vs orchestrator — was settled against this slate's own
+> recommendation; see *"The old words stay their own verbs"* below.
 
 Related: [slot.md](../../subsystems/slot.md) (**the shipped substrate —
 read it first**: `Slotted`/`Slottable`, `accepts`, capacity),
@@ -91,24 +93,37 @@ Structurally this is `subcommands: {set, sets}` + `fallthrough: true` —
 **the shape `wear` already has** — so most of it is a rename plus two
 behaviours: **bare `equip`**, and **`from`**.
 
-## The old words become aliases
+## ⭐⭐ The old words stay their own verbs — SETTLED, against the first recommendation
 
-`wear` · `wield` · `remove` · `doff` · `unwield` alias into `equip` /
-`unequip`. Precedent is established: `examine` became a `look` alias and
-`pick` a `harvest` alias. The words people naturally type keep working
-while the number of *concepts* goes down, which is the actual complaint.
+This slate originally recommended aliasing: `wear` · `wield` · `remove`
+· `doff` · `unwield` folding into `equip` / `unequip`, on the `examine`
+→ `look` precedent, with the target arg widening to the alternation
+`WearableMixin|WieldableMixin`. **It was built that way and then
+reversed**, on the user's call:
 
-The `requires:` on the target arg widens to the alternation
-`WearableMixin|WieldableMixin`. `lint:arg-kinds` already supports that
-(an alternation reports its first member's refusal phrase), so the
-refusal wants one sentence true of both — *"{} isn't something you can
-put on or take up."*
+> **User: "keep the verbs distinct"**
 
-⚠ **One real cost, stated rather than buried: `wear sword` becomes
-legal.** Acceptable — a baldric *is* worn — but it is a genuine loss of
-precision, and the alternative (keep the four verbs, add `equip` purely
-as an orchestrator on top) is a live option if that reads badly. It
-costs a fifth verb to keep the precision.
+⭐ **The cost the slate had flagged as acceptable turned out to be the
+decisive one.** *"`wear sword` becomes legal"* is not a wording problem:
+an arg that admits both mixins **cannot refuse either**, so a refusal
+that today is the ARG's — a grammar error, raised before any controller
+runs — either becomes a hand-rolled rule inside the controller or
+becomes nothing at all. The alternation deletes a check rather than
+relocating it.
+
+**What ships: six views, two controllers.** `equip` / `unequip` are
+orchestrators; the four precise verbs keep their own narrow `requires:`
+and their own `required: true` target. All six point at
+`EquipController` / `UnequipController`, because **what differs between
+the words is the GRAMMAR and not the act** — the fit gate, the covering
+ladder, the slot claim and the timing are one implementation, and
+duplicating a controller per verb duplicates all of it.
+
+⭐ A consequence worth naming: **the invoked verb becomes real input.**
+A gauntlet is wearable and wieldable both, and only the word the player
+typed says which they meant. `wear gauntlet` puts it on, `wield
+gauntlet` takes it up, bare `equip` prefers the worn reading, and the
+fit/ladder gates apply to the worn reading alone.
 
 # ⭐ Naming: `equip`, not `outfit`
 
