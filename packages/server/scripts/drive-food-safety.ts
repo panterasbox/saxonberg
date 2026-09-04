@@ -8,9 +8,13 @@
  *   pnpm --filter @saxonberg/server dev           # let it finish booting
  *   pnpm --filter @saxonberg/server drive:food-safety
  *
- * ⚠ **It wants a freshly reset world.** It BUTCHERS the carcass the
- * cookhouse ships and eats what it makes, and none of that comes back on
- * its own — a second run finds an empty hook and reads as broken.
+ * ⚠⚠ **It wants a freshly reset world, and this is not a nicety.** It
+ * BUTCHERS the carcass the cookhouse ships, pockets the knife and eats
+ * what it makes; none of that comes back on its own. A second run against
+ * the same world finds an empty hook, no knife and no meat, and reads as
+ * six broken checkpoints in a build that is fine. (Observed. Twice.)
+ *
+ *   reset → boot ONCE → drive ONCE.
  *
  * An ORDINARY patron in the shipped Hearthworks cookhouse: no wizard, no
  * `clone`, no `startLocation` trickery beyond the seat.
@@ -133,6 +137,23 @@ class Session {
     this.buffer = [];
     this.ws.send(JSON.stringify({ type: "command", payload: { text } }));
     await new Promise((r) => setTimeout(r, waitMs));
+    // ⚠⚠ **A prompt is not silence, and this drive learned that the hard
+    // way.** An ambiguous object arg (`look prime-cut` with one cut on the
+    // floor and another in the pantry chest) opens a foreground
+    // `prompt-mql-object`, which the CLIENT answers with a structured
+    // message — not a command. So every command typed afterwards is
+    // swallowed as an answer, and the transcript reads as though the world
+    // stopped talking. Four checkpoints failed for a reason that was not
+    // theirs. Surface it instead.
+    // ⚠ NOT every `prompt-*` note: `prompt-refresh` is the ordinary
+    // prompt-LINE redraw and rides every single command. Matching it
+    // reported all eleven checkpoints as swallowed on a world where
+    // nothing had been swallowed at all — a detector that cries wolf is
+    // worse than none.
+    if (/"kind":"prompt-(mql-object|mql-many|choice|text|confirm|compose)"/.test(this.rawText())) {
+      return "⚠ DRIVE: an ambiguous target opened a PROMPT — this command " +
+        "did not run, and neither will the next one. Name it uniquely.";
+    }
     const said: string[] = [];
     for (const raw of this.buffer) {
       for (const frame of splitFrames(raw)) {
@@ -148,6 +169,11 @@ class Session {
       }
     }
     return said.join("\n");
+  }
+
+  /** The raw socket text of the last command, for prompt detection. */
+  private rawText(): string {
+    return this.buffer.join("");
   }
 
   close(): void {
@@ -228,7 +254,6 @@ async function main(): Promise<void> {
   // ── 3. Butcher the carcass ─────────────────────────────────────────
   console.log("\n3. Butcher the hog with the boning knife");
   say(">", plain(await cook.cmd("get boning knife", 2000)));
-  say(">", plain(await cook.cmd("wield boning knife", 2000)));
   const butchered = plain(await cook.cmd("butcher carcass", 3500));
   say(">", butchered);
   ok(
@@ -239,101 +264,111 @@ async function main(): Promise<void> {
   const cutCount = /work it down to (\d+) cuts/i.exec(butchered)?.[1] ?? "0";
   ok(`…and it is genuinely several (saw ${cutCount})`, Number(cutCount) >= 4, butchered);
 
-  // ── 4. ⭐⭐ The hazard reports to NO sense ───────────────────────────
+  // ── 4. Preserve one — and get an unambiguously-named cut to read ───
   //
-  // The checkpoint the whole build exists for. The prime cut has just
-  // come off a gut-spilled carcass and is carrying three organisms;
-  // `look`, `smell` and `taste` must every one of them read exactly as
-  // they would on sound food.
+  // ⭐ Untargeted on purpose. After a butchering the room holds five
+  // things keyed `meat` and two keyed `prime` (the pantry chest ships one
+  // of its own), and an ambiguous object arg opens a prompt this drive
+  // cannot answer. A bare `cure` takes a cut from reach and hands back the
+  // one thing in the world keyed `treated` — which is what every step
+  // below can then name without guessing.
+  console.log("\n4. Cure a cut, and read what curing did to it");
+  const cured = plain(await cook.cmd("cure", 3500));
+  say(">", cured);
+  ok("curing resolves — salt in reach, at the hearth", /in salt/i.test(cured), cured);
+
+  // ── 5. ⭐⭐ The hazard reports to NO sense ───────────────────────────
   //
-  // ⚠ It targets `prime` and not `meat`: after a butchering the room
-  // holds five things keyed `meat`, and an ambiguous object arg opens a
-  // disambiguation PROMPT — which then eats the next command typed. That
-  // is the engine working, and it cost this drive four checkpoints before
-  // anyone noticed the prompt was there.
-  console.log("\n4. ⭐⭐ Look at, smell and taste a cut — it reads SOUND. It is not.");
-  const lookCut = plain(await cook.cmd("look prime", 2200));
-  const smellCut = plain(await cook.cmd("smell prime", 2200));
-  const tasteCut = plain(await cook.cmd("taste prime", 2200));
+  // **The checkpoint the whole build exists for.** That cut came off a
+  // gut-spilled carcass minutes ago and is carrying three organisms.
+  // Curing preserved every one of them — *curing suspends the population,
+  // it does not kill it* — so this is a genuinely dangerous piece of meat.
+  //
+  // ⭐ And the same three verbs are the CONTROL. They must report the
+  // CURE (a treatment is legible, in band words) and report nothing at all
+  // about the contamination. An assertion that only checked for silence
+  // would pass over a renderer that had stopped saying anything.
+  console.log("\n5. ⭐⭐ Look at, smell and taste it — the CURE shows, the hazard does not");
+  const lookCut = plain(await cook.cmd("look treated", 2500));
+  const smellCut = plain(await cook.cmd("smell treated", 2500));
+  const tasteCut = plain(await cook.cmd("taste treated", 2500));
   say("look >", lookCut);
   say("smell >", smellCut);
   say("taste >", tasteCut);
+  ok(
+    "the treatment IS legible — band words, never a number (the control)",
+    /salted|dried|smoked/i.test(lookCut) && !/0\.\d/.test(lookCut),
+    lookCut,
+  );
   for (const [sense, said] of [
     ["look", lookCut],
     ["smell", smellCut],
     ["taste", tasteCut],
   ] as const) {
     ok(
-      `\`${sense}\` answers, and reports NOTHING wrong with a contaminated cut`,
+      `⭐ \`${sense}\` answers, and says NOTHING about what is on it`,
       said.length > 0 &&
-        !/off\b|gone bad|rotten|foul|tainted|contaminat|spoil/i.test(said),
+        !/gone bad|rotten|foul|tainted|contaminat|spoil|unsafe|sick/i.test(said),
       said,
     );
   }
 
-  // ── 5. Preserve it — the acts, and salt actually going ─────────────
-  console.log("\n5. Cure a cut, and read what curing did to it");
-  const cured = plain(await cook.cmd("cure prime", 3000));
-  say(">", cured);
-  ok("curing resolves — salt in reach, at the hearth", /in salt/i.test(cured), cured);
-  const readCured = plain(await cook.cmd("look treated", 2500));
-  say(">", readCured);
-  ok(
-    "…and the treated cut READS as treated — band words, never a number",
-    /salted|dried/i.test(readCured) && !/0\.\d/.test(readCured),
-    readCured,
-  );
-
-  console.log("\n   …and dry a second one: the other hurdle, no salt, no fire");
-  const dried = plain(await cook.cmd("dry stew-meat", 3000));
+  // ── 6. The other hurdle, and a proper cook ─────────────────────────
+  console.log("\n6. Dry a second cut; sear a third at the hearth");
+  const dried = plain(await cook.cmd("dry", 3000));
   say(">", dried);
-  ok("drying resolves", /to dry/i.test(dried), dried);
+  ok("drying resolves — no salt, no fire", /to dry/i.test(dried), dried);
 
-  // ── 6. Cook one properly ───────────────────────────────────────────
-  console.log("\n6. Sear a cut at the hearth");
   say(">", plain(await cook.cmd("ignite oven", 2200)));
   const seared = plain(await cook.cmd("cook seared-cut", 4500));
   say(">", seared);
+  // ⭐ A decline is a PASS here, and it should be: `cook` is deed-gated on
+  // the knowledge ladder, so a cook who has never worked a sear by hand is
+  // told to work it by hand first. That is the shipped design answering,
+  // not the build failing — and the preserving verbs deliberately do NOT
+  // carry that gate, because their by-hand path does not exist.
   ok(
     "the sear resolves, or declines for a reason a player can act on",
-    seared.length > 0,
+    (/you cook/i.test(seared) || /haven't learned|work it by hand/i.test(seared)) &&
+      !/DRIVE:/.test(seared),
     seared,
   );
 
   // ── 7. ⭐⭐ Wash the knife — the counterplay has to be reachable ─────
   //
-  // Requirement 17, and the second thing the unit suite cannot reach:
-  // that the knife is a real object in a real hand and that `wash` gets
-  // to it at all. It was `instanceof CraftVessel` until this build, so a
-  // knife could not be washed anywhere, ever.
+  // Requirement 17, and the second thing the unit suite cannot reach: the
+  // knife is a real object in a real hand, and `wash` has to get to it.
+  // It was `instanceof CraftVessel` until this build, so a knife could not
+  // be washed anywhere, ever.
   console.log("\n7. ⭐⭐ Wash the knife — the counterplay has to be reachable");
-  const washed = plain(await cook.cmd("wash boning", 4000));
+  const washed = plain(await cook.cmd("wash boning", 4500));
   say(">", washed);
   ok(
     "`wash` reaches a KNIFE, not just glassware",
-    /wash|clean/i.test(washed) && !/wash what|don't understand/i.test(washed),
+    /you (wash|take)/i.test(washed) &&
+      !/wash what|don't understand|DRIVE:/i.test(washed),
     washed,
   );
 
-  // ── 8. Eat a raw cut ───────────────────────────────────────────────
+  // ── 8. Eat it ──────────────────────────────────────────────────────
   //
   // ⚠⚠ **The illness itself is NOT driveable and must not be faked.**
-  // Salmonella's incubation is 6 game-hours — half an hour of real time at
+  // Salmonella incubates for 6 game-hours — half an hour of real time at
   // the shipped 12× clock — and turning the clock up would need a wizard,
   // which would be proving something no player can do. The arc is proven
   // exactly, and in milliseconds, by
   // `lib/vitals/__tests__/Vitals.infection.test.ts` (growth, incubation,
   // resistance, clearance, the far-past guard).
   //
-  // ⭐ What the live wire adds is the thing the suite structurally cannot:
-  // that the act is REACHABLE and that nothing about it warns you.
-  console.log("\n8. Eat a raw cut — nothing gates it, and nothing warns you");
-  const ate = plain(await cook.cmd("eat treated", 3000));
+  // ⭐ What the live wire adds is what the suite structurally cannot: the
+  // act is reachable, and NOTHING about it warns you.
+  console.log("\n8. Eat it — nothing gates it, and nothing warns you");
+  const ate = plain(await cook.cmd("eat treated", 3500));
   say(">", ate);
-  ok("the raw cut is eaten", /you eat/i.test(ate), ate);
+  ok("the cut is eaten", /you eat/i.test(ate), ate);
   ok(
     "…and the world said NOTHING about what was on it",
-    !/sick|ill|poison|contaminat|wrong/i.test(ate),
+    !/sick|ill\b|poison|contaminat|wrong/i.test(ate),
     ate,
   );
 

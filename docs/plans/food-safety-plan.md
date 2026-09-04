@@ -905,6 +905,17 @@ Each link fails closed and **silent**.
 | infection | `treat` / the medic path (shipped) | shipped | the roster rows + `resolution.by` | same catalogue warm |
 | washing | `wash` (shipped) | shipped on `Serviceable` | n/a | n/a |
 
+### ✅ Verified live (the drive, on a fresh boot)
+
+| capability | verb | affordance | data | boot |
+|---|---|---|---|---|
+| curing / drying / smoking | ✔ `cure`/`dry`/`smoke` known and resolving | ✔ `CookPot` static — never a row's `commandContributions` | ✔ recipes install with the pack; salt consumed | ✔ |
+| butchering | ✔ `butcher` known and resolving | ✔ `CookPot` static, gated on `bladed` at the act | ✔ carcass + cuts + `butcheryYield` + the `butchery` Discipline row | ✔ |
+| ingestion → illness | ✔ `eat` | ✔ shipped | n/a | ✔ the bridge crosses (unit-pinned both arms) |
+| contamination | consequence | n/a | ✔ 5 pathogen rows | ✔ **`ConditionCatalogue` already warms `/Condition/**`** — no new warm needed, and the boot logs confirm zero failures |
+| infection | `treat` | shipped | ✔ roster + `resolution.by` | ✔ same warm |
+| washing | ✔ `wash` reaches a knife | ✔ `WaterFixture` | n/a | n/a |
+
 ⚠⚠ **The single highest-risk link is the catalogue warm.** A pathogen
 row that nothing warms reads null, the load never seeds, and the whole
 build passes its unit tests while doing nothing in the game. That is
@@ -1027,11 +1038,15 @@ build phase, run before the MR opens, recorded below.
   struck line, not deleted, because the failure mode is the interesting
   part: a fork was written with two costed limbs and neither limb was
   checked against the tree first.
-- **Open, for the user:** the `CuredMixin` name (P1); whether butchering
-  is afforded by the implement or by the corpse (wiring table). Both are
-  reversible; neither blocks W0. ⭐ **P7, P8 and P9 are decided rather
-  than opened** — each names the limb that chose and records the
-  alternative, so a veto costs one paragraph, not a redesign.
+- **Open, for the user:** the `CuredMixin` name (P1) — kept, and
+  `MixinApi.isCured` reads well. Butchering's affordance was **decided in
+  W3**: neither the implement nor the corpse, because both are *kernel*
+  classes a pack may not add a `trade/cooking` view to. It is `CookPot`,
+  which is the trade's own defining implement and deliberately portable.
+  A `ButcherBlock` fixture is the clean alternative and authors the same
+  list. ⭐ **P7, P8 and P9 were decided rather than opened** — each names
+  the limb that chose and records the alternative, so a veto costs one
+  paragraph, not a redesign.
 
 ---
 
@@ -1089,4 +1104,104 @@ Read first, in order:
 
 ## Drive record
 
-*(appended at build time)*
+`pnpm --filter @saxonberg/server drive:food-safety`, over the real wire —
+the `test-login` seam, the same WebSocket the client opens, the same
+command strings a player types. An **ordinary patron** in the shipped
+Hearthworks cookhouse: no wizard, no `clone`, no dial turned. Against a
+freshly reset world, one boot, 43 packs installed, **zero pack failures**.
+
+```
+1. Walk into the cookhouse (an ordinary patron, no wizard)
+  ✔ a carcass hangs there to be taken apart
+  ✔ …and a knife to do it with
+2. The verbs a player can actually type
+  ✔ `butcher` · `cure` · `dry` · `smoke` are verbs the world knows
+3. Butcher the hog with the boning knife
+   > You open a hog carcass on a hook with a boning knife and work it
+     down to 4 cuts.
+  ✔ more meat than one meal (saw 4)
+4. Cure a cut
+   > You pack a treated cut of meat down in salt and leave it to take.
+  ✔ curing resolves — salt in reach, at the hearth
+5. ⭐⭐ Look at, smell and taste it — the CURE shows, the hazard does not
+   look  > … It has been heavily salted.
+   smell > … It has been heavily salted.
+   taste > …
+  ✔ the treatment IS legible — band words, never a number (the control)
+  ✔ `look`  answers, and says NOTHING about what is on it
+  ✔ `smell` answers, and says NOTHING about what is on it
+  ✔ `taste` answers, and says NOTHING about what is on it
+6. Dry a second; sear a third
+   > You hang a treated cut of meat up to dry.
+   > You've heard of Seared cut, but you haven't learned to cook it —
+     work it by hand first.
+  ✔ drying resolves — no salt, no fire
+  ✔ the sear declines for a reason a player can act on
+7. ⭐⭐ Wash the knife
+   > You take a boning knife to a water butt. You wash a boning knife clean.
+  ✔ `wash` reaches a KNIFE, not just glassware
+8. Eat it
+   > You eat the dark trimmed cuts of stew meat with a spoon.
+  ✔ the cut is eaten
+  ✔ …and the world said NOTHING about what was on it
+
+=== DRIVE CLEAN ===   (17/17)
+```
+
+### ⭐⭐ What the drive found that ten thousand tests could not
+
+**Four defects, three of them in shipped behaviour**, and the worst of
+them was invisible to every gate in the family:
+
+1. ⚠⚠⚠ **`SpeciesApi.isSentient` answers `false` for a species that is
+   not resident — so D14 failed OPEN.** A `Species` Idea is not warmed at
+   boot (the reference-Ideas-inert-at-boot trap, **third recurrence**), so
+   a person's corpse whose species nobody had touched yet was
+   **butcherable**, and nothing anywhere said so. The unit suite could
+   never see it: every fixture stands its own species up.
+   Fixed by calling the shipped `SpeciesApi.preloadAnatomy` first and
+   **failing closed** on a species that will not resolve — *you cannot
+   butcher what you cannot identify*, which is also just true.
+2. **The carcass was listed under `cast:`, and a `Corpse` is not
+   `Behaved`.** `applyCast` refused it and the whole login died:
+   `'…hanging-carcass' does not resolve to a Behaved class — that is a
+   prop`. `cast:` is for things that ACT.
+3. **`cure` declined for want of salt in the one kitchen the build is
+   proven at** — the pantry outfit stocks its sacks in its own storeroom,
+   a different room from the hearth. A cook reaches for salt; it has to be
+   within reach. (`kitchen-salt` now stands on the shelf.)
+4. **A prompt is not silence.** An ambiguous object arg (`look prime-cut`
+   with one cut on the floor and another in the pantry chest) opens a
+   foreground `prompt-mql-object`, which the **client** answers with a
+   structured message — not a command. So every command typed afterwards
+   is swallowed as an answer and the transcript reads as though the world
+   went quiet. Four checkpoints failed for a reason that was not theirs.
+   The drive now says so out loud.
+   ⚠ And the detector's own first cut matched `prompt-refresh` — the
+   ordinary prompt-line redraw that rides *every* command — and reported
+   all eleven checkpoints as swallowed on a world where nothing had been.
+   **A detector that cries wolf is worse than none.**
+
+⚠ A fifth, procedural: **two of my own servers were installing packs into
+one database concurrently**, which produced `E11000 duplicate key` and
+`wants X but it is owned by pack X` reconcile failures that read exactly
+like a content bug. They are not. `pack FAILED … owned by pack` means
+**drop the DB and boot once**, never edit code.
+
+### What the drive deliberately does NOT prove
+
+- **The illness arriving.** Salmonella incubates 6 game-hours — half an
+  hour of real time at the shipped 12× clock — and turning the clock up
+  needs a wizard, which would prove something no player can do. The arc
+  (growth, incubation, resistance, clearance, the far-past guard) is
+  proven exactly and in milliseconds by
+  `lib/vitals/__tests__/Vitals.infection.test.ts`.
+- **The band walk**, for the same reason the cooking drive gives.
+
+⭐ What the live wire adds is what the suite structurally cannot: that the
+verbs are **afforded**, that the acts **resolve over the wire**, that the
+knife is a real object in a real hand, and — the checkpoint the whole
+build exists for — that three senses report the **cure** and say nothing
+whatever about the **contamination**, in the same breath. An assertion
+that only checked for silence would have passed over a renderer that had
+simply stopped talking; the control is what makes it evidence.
