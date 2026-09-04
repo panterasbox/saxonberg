@@ -1,0 +1,15 @@
+# The drying rack — hooks and slats, and air.
+#
+# ⭐ It affords `dry`, and nothing else is needed: drying is the hurdle
+# that costs only time. ⚠ NOT `smoke` — a rack in the open air dries, a
+# rack in a chimney smokes, and the chimney is the difference.
+class: /trade/cooking/thing/DryingRack
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a drying rack
+  primaryKeyword: rack
+  keywords: [rack, drying, drying-rack, hooks]
+  longDescription: |
+    A tall frame of slats and iron hooks, set back from the fire where the air moves. Most of the hooks are empty. The two that are not hold something dark and shrunken that has been there long enough to stop smelling of anything.
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 25

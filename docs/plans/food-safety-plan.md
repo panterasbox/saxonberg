@@ -764,18 +764,27 @@ butchering — the clock starts at the kill`.
 > on the interface.
 >
 > **Decisions this wave made:**
-> - ⭐⭐ **`butcher` is afforded by `CookPot`**, not by the corpse and not
->   by the blade. Both of those read better and neither is available: a
+> - ⭐⭐ **`butcher` is afforded by a station, not by the corpse and not by
+>   the blade.** Both of those read better and neither is available: a
 >   `Corpse` and a `Weapon` are **kernel** classes, and a pack may not put
 >   a `trade/cooking` view in a kernel class's `commandContributions`.
 >   `Weapon` would also confer butchering on a mace — the controller would
 >   refuse, but *seeing a verb in your command set IS the affordance*.
->   The pot is the trade's own implement and is deliberately portable
->   ("reachable heat + a pot is a kitchen"), so a hunter who carries one
->   dresses in the field and one who does not carries the carcass home
->   with the clock already running — which is the right pressure. A
->   `ButcherBlock` fixture is the clean later addition and authors the
->   same list.
+>
+>   ⚠⚠ **First cut put it on `CookPot`, and that was wrong** — it handed
+>   anyone standing near a saucepan the power to take a hog apart, and
+>   stopped the class's name from predicting its own surface. The
+>   `wash`-on-`UnboundedReceptacle` mistake, whose own doc says it best:
+>   *an urn is not a degraded basin*. **Corrected in review** to one class
+>   per verb — `ButcherBlock` · `SaltingTrough` · `DryingRack` ·
+>   `SmokeChimney` — each named for what it performs, `peers`-only, fixed
+>   in place, keeping the fixture/instrument split (`wash`'s precedent:
+>   the station gives discoverability, something in reach gives
+>   capability). `CookPot` keeps `heat`/`cook`/`plate`.
+>
+>   ⭐ Fixing it bought a better story too: **you cannot field-dress a boar
+>   in the woods.** You carry it home to the block with the clock already
+>   running — which is exactly the pressure D15 exists to create.
 > - **D14's gate is `SpeciesApi.isSentient`**, and the refusal is worlded:
 >   *"You put the knife away… there is no cut of meat on this earth worth
 >   the road that starts here."* Not a clade walk — the tutor-bot is

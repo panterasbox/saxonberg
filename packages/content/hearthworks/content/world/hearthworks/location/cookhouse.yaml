@@ -72,11 +72,20 @@ data:
     - /trade/cooking/thing/fruit-press
     - /trade/cooking/thing/tallow-crock
     - /trade/cooking/thing/oil-bottle
-    # ⭐ The larder side of the kitchen. Butchering is learnable where the
-    # trade is practised — a cook should not have to hunt before they can
-    # find out what a knife does to a carcass — and a hog hands you far
-    # more meat than one sitting, which is exactly what turns preserving
-    # it from a curiosity into a decision.
+    # ⭐ The larder side of the kitchen — and it is four separate stations
+    # on purpose. Each affords exactly the verb it performs: you butcher at
+    # the block, salt in the trough, hang on the rack, and smoke in the
+    # chimney. They were all briefly conferred by the COOK POT, which
+    # handed a saucepan the power to take a hog apart; see `CookPot.ts`.
+    #
+    # ⭐⭐ Butchering is learnable where the trade is practised — a cook
+    # should not have to hunt before finding out what a knife does to a
+    # carcass — and a hog hands you far more meat than one sitting, which
+    # is what turns preserving it from a curiosity into a decision.
+    - /trade/cooking/thing/butcher-block
+    - /trade/cooking/thing/salting-trough
+    - /trade/cooking/thing/drying-rack
+    - /trade/cooking/thing/smoke-chimney
     - /trade/cooking/thing/boning-knife
     # ⚠ And the SALT, because a kitchen has salt. The live drive found
     # this: the pantry outfit stocks its sacks in its own storeroom, which

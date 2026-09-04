@@ -495,8 +495,28 @@ the present on-shift maker.
 - **`butcher`/`dress`** (trade-cooking) — take a dead animal apart. Gated
   on a reachable `constructionForm: 'bladed'` implement, refused on a
   sentient corpse, and the cuts carry the carcass's AGE (see
-  [spoilage.md](./spoilage.md)). Afforded by `CookPot`, which is portable:
-  a hunter who carries one dresses in the field.
+  [spoilage.md](./spoilage.md)).
+
+⭐⭐ **One verb, one station, and the class name predicts its surface.** The
+four larder verbs are each afforded by the fixture that performs them —
+`ButcherBlock` · `SaltingTrough` · `DryingRack` · `SmokeChimney` — with
+`CookPot` keeping only `heat`/`cook`/`plate`.
+
+⚠ They were all briefly conferred by **`CookPot`**, which handed anyone
+standing near a saucepan the power to take a hog apart, and stopped that
+class's name from predicting its own surface. It is the
+`wash`-on-`UnboundedReceptacle` mistake exactly — *an urn is not a
+degraded basin*, and a pot is not a degraded butcher's block. Pinned by
+`src/__tests__/kitchen-affordances.test.ts`, because **affordance is
+wiring and wiring needs its own assertion**.
+
+⭐ Each keeps the fixture/instrument split `wash` documents: the station
+gives DISCOVERABILITY, and something in reach gives capability — an edge
+for the block, salt for the trough, a cool fire for the chimney. And all
+four are `peers`-only and fixed in place, which has an honest consequence:
+**you cannot field-dress a boar in the woods.** You carry it home to the
+block with the clock already running, which is exactly the pressure the
+cuts' age model exists to create.
 - **`muddle`** — a `ManualBuild` step like `stir`; needs a reachable
   `muddler` capability; records `BuildMethod` `'muddled'`.
   `shake` already existed (`stir.yaml` is `verbs: [stir, shake]`); `mix`
