@@ -108,7 +108,7 @@ ever ships.
   `ManualBuildController.paceMs(baseMs, instrument, kinds)` divides a
   step's duration by the best rate offered. **`rate: 3` on a spinning
   wheel is shipped, tested machinery.**
-- **`FermentProfile`** rows carry `turnDays` + `turnedMaterial` — **that
+- **`MaturationProfile`** rows carry `turnDays` + `turnedMaterial` — **that
   is the over-ret failure**, zero kernel change, zero new verb.
 - **`Events`** is an open registry — but ⚠ **`EventApi` is for
   subjectless cross-cutting dispatch only** (session lifecycle, the
@@ -255,7 +255,7 @@ kernel edit**; content **never** authors a resist profile.
    band outside `padded`.
 2. **Non-resisting textile forms are template rows**, backed by
    `platform/idea/material/Fabric.ts` (`SingletonMixin(Idea)`, the
-   `FermentProfile` shape), rows at **`/stuff/idea/fabric/<key>`**:
+   `MaturationProfile` shape), rows at **`/stuff/idea/fabric/<key>`**:
 
    ⭐ **`fabric` is the term of art, and it is precisely scoped.**
    *"Fabric construction"* is the textile industry's own name for exactly
@@ -289,7 +289,7 @@ kernel edit**; content **never** authors a resist profile.
    `/system/arcana/idea/material/PotionMaterial` qualifies.
 
    ⭐ **The correct mechanism is the precedent the plan already named.**
-   `FermentProfileCatalogue` is *"the **self-warming** home"* of its
+   `MaturationProfileCatalogue` is *"the **self-warming** home"* of its
    roster, so `FabricCatalogue` (`platform/idea/FabricCatalogue.ts`)
    copies it:
 
@@ -774,7 +774,7 @@ row and makes wool's later arrival a pure addition.
 **The transfer uses shipped `pour`.** The harvest mints a **sheaf** — a
 `GradedReceptacle`-shaped row (`Branded(Crafted(Bulkable(Thing)))`)
 holding bulk `flax-straw`, graded by farming's weakest-link band. Grade
-rides `CraftedMixin` through `FermentingMixin`'s documented transfer seam.
+rides `CraftedMixin` through `MaturingMixin`'s documented transfer seam.
 ⚠ **B2 verifies this leg first**; named fallback is a `retting`
 `inputCategory` on a plain `Bulkable` pit charged by `fill` (the brewing
 wort path).
@@ -1265,7 +1265,7 @@ oxygen-poor vat, and then:
 The change in air is real, it is the most striking moment in the chain,
 and it is **free** — it is simply what indigo does.
 
-⭐⭐ **The vat is fermentation-shaped, so `FermentingMixin` models it —
+⭐⭐ **The vat is fermentation-shaped, so `MaturingMixin` models it —
 and the honest version is therefore a LIVING thing** (user, 2026-09-02).
 It is kept by feeding it, killed by too much oxygen or the wrong pH, and
 takes days to bring back. **The dyer's most valuable possession, and the
@@ -1751,7 +1751,7 @@ Content only, existing packs.
 - **Preparation — retting, with no verb.** ⚠ **The stage is `prepare`;
   retting is flax's instance of it** (P15 seam 1). Nothing here may name
   the stage "retting". A `RettingPit` (`Bulkable` + `Fermenting`) and a
-  `FermentProfile` row — `inputCategory: flax-straw`,
+  `MaturationProfile` row — `inputCategory: flax-straw`,
   `productMaterial: …/flax`, `ratePerDay`, `stallBelowK`/`damageAboveK`
   (cold water rets slower — real, and it makes season matter), **`turnDays`
   + `turnedMaterial: …/rotted-flax` as the over-ret failure.**
@@ -1819,7 +1819,7 @@ fight):
    discharged by measurement rather than assertion.
 
 - **Docs:** `textiles.md` § the chain, the tool ladder, the throughput
-  finding; `fermentation.md` § retting as a third customer.
+  finding; `maturation.md` § retting as a third customer.
 - **Proves it:** seed → sheaf → pit → line → yarn → cloth (AC 11), with a
   graded bolt at the end (AC 12).
 

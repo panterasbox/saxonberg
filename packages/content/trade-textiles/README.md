@@ -26,7 +26,7 @@ in, the entry point has to be the material.
 
 No controller, recipe id, category, doc heading or test name in this
 pack treats "retting" as the name of a stage. Wool **scours**, cotton
-**gins**, silk **reels**; each arrives later as its own `FermentProfile`
+**gins**, silk **reels**; each arrives later as its own `MaturationProfile`
 over its own material. Likewise the finishing stage: bleaching is
 linen's instance, fulling is wool's, and **`full` does not ship** —
 fulling works because wool scales interlock, linen cannot be fulled, and
@@ -61,7 +61,7 @@ attended. A wait is not labour.
 ## Zero verbs where the world does the work
 
 Preparation and finishing both ship with **no verb at all**.
-`FermentingMixin` runs the pit's clock; the bleaching green is the same
+`MaturingMixin` runs the pit's clock; the bleaching green is the same
 shape applied to weather. What you do is judge the moment — and the pit
 has a four-day grace before the rot goes into the cellulose and the
 fibre is ruined for good.

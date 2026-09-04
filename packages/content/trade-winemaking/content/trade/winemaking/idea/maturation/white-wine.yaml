@@ -1,9 +1,10 @@
 # White wine — the pressed-clear ferment: same chemistry as the red,
 # its own must category (no skin contact is a process fact).
-class: /platform/idea/ferment/FermentProfile
+class: /platform/idea/maturation/MaturationProfile
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: white-wine
+  mechanism: microbial
   inputCategory: white-must
   stallBelowK: 283
   happyK: 290

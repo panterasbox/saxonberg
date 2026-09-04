@@ -4,10 +4,11 @@
 # yeast dies (the stuck ferment). An OPEN finished batch turns to
 # vinegar over three days; racked to the floor, the residual is lees —
 # the culture (P12).
-class: /platform/idea/ferment/FermentProfile
+class: /platform/idea/maturation/MaturationProfile
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: red-wine
+  mechanism: microbial
   inputCategory: red-must
   stallBelowK: 283
   happyK: 291

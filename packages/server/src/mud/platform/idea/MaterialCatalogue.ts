@@ -1,6 +1,6 @@
 /**
  * MaterialCatalogue — the self-warming home of the authored material
- * roster (the FermentProfileCatalogue shape; the boot()-retirement
+ * roster (the MaturationProfileCatalogue shape; the boot()-retirement
  * direction: an operator-shaped warm does not belong on a consumer Api).
  *
  * `postRegister` stands up every authored `Material` row as a live

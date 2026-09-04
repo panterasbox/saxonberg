@@ -1,6 +1,6 @@
 /**
  * ParticipationStandings — the self-warming home of the participation standing aggregate — the consumer-influence quantity faucet
- * (the FermentProfileCatalogue shape; the boot()-retirement direction:
+ * (the MaturationProfileCatalogue shape; the boot()-retirement direction:
  * an operator-shaped warm does not belong on a consumer Api).
  *
  * `postRegister` warms the materialized aggregate read-cache

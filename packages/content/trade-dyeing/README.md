@@ -86,7 +86,7 @@ actually often.
 ```
 
 The change in air is free — it is simply what indigo does. The vat is
-fermentation-shaped, so `FermentingMixin` models it, and the honest
+fermentation-shaped, so `MaturingMixin` models it, and the honest
 version is therefore a **living thing**: kept by feeding it, killed by
 oxygen or the wrong pH, days to bring back. **The dyer's most valuable
 possession, and the thing that punishes neglect.** ⚠ A harsher failure

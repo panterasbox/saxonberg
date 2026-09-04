@@ -6,7 +6,7 @@
 # no undoing it — this material has no path back into the chain, and
 # that is the point of it.
 #
-# ⭐ It rides `FermentProfile.turnedMaterial`, exactly as vinegar does
+# ⭐ It rides `MaturationProfile.turnedMaterial`, exactly as vinegar does
 # off an open finished ale: the same shipped mechanism, no new one.
 class: /platform/idea/material/Material
 hydratorClass: /platform/idea/persistence/PersistentHydrator

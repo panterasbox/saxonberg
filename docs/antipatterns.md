@@ -3887,13 +3887,13 @@ await FermentApi.boot();
 ### GOOD (a self-warming catalogue, eager via the boot manifest)
 
 ```ts
-// platform/idea/FermentProfileCatalogue.ts
+// platform/idea/MaturationProfileCatalogue.ts
 public override async postRegister(): Promise<void> { await this.warm(); }
 ```
 
 ```yaml
 # packages/content/platform/pack.yaml
-- { template: /platform/idea/FermentProfileCatalogue, role: sync-read, reason: "…" }
+- { template: /platform/idea/MaturationProfileCatalogue, role: sync-read, reason: "…" }
 ```
 
 Decided 2026-09-01 (the fermentation MR review). The surviving

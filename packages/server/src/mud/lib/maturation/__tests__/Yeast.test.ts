@@ -10,7 +10,7 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Vat from '../../../platform/thing/Vat';
-import FermentProfile from '../../../platform/idea/ferment/FermentProfile';
+import MaturationProfile from '../../../platform/idea/maturation/MaturationProfile';
 import Material from '../../material/Material';
 import type { Crafted } from '../../craft/Crafted';
 import { WorldClockApi } from '../../../api/worldclock';
@@ -36,9 +36,9 @@ const ALE = `${ROOT}/material/test-ale`;
 const LEES = `${ROOT}/material/test-lees`;
 const COLD_WORT = `${ROOT}/material/test-cold-wort`;
 const LAGER = `${ROOT}/material/test-lager`;
-const WORT_PROFILE = `${ROOT}/ferment/test-ale`;
-const LAGER_PROFILE = `${ROOT}/ferment/test-lager`;
-const CULTURE_PROFILE = `${ROOT}/ferment/test-culture`;
+const WORT_PROFILE = `${ROOT}/maturation/test-ale`;
+const LAGER_PROFILE = `${ROOT}/maturation/test-lager`;
+const CULTURE_PROFILE = `${ROOT}/maturation/test-culture`;
 
 let stood = false;
 function standFixtures(): void {
@@ -70,7 +70,7 @@ function standFixtures(): void {
   // A boiled wort is STERILE: it waits 4 open days for wild flora,
   // or takes a pitch at once; its yeast dies above 310 K.
   makeStuffAtPath(() => {
-    const p = new FermentProfile();
+    const p = new MaturationProfile();
     p.setKey('test-ale');
     p.setInputCategory('test-wort');
     p.setStallBelowK(285);
@@ -88,7 +88,7 @@ function standFixtures(): void {
   // Lager: REQUIRES the cold strain, and refuses to work warm at all
   // (authored dormancy above 288 K) — the strain plus the cellar.
   makeStuffAtPath(() => {
-    const p = new FermentProfile();
+    const p = new MaturationProfile();
     p.setKey('test-lager');
     p.setInputCategory('test-cold-wort');
     p.setStallBelowK(275);
@@ -104,7 +104,7 @@ function standFixtures(): void {
 
   // The kept culture: lees in a jar, viability its aliveness.
   makeStuffAtPath(() => {
-    const p = new FermentProfile();
+    const p = new MaturationProfile();
     p.setKey('test-culture');
     p.setKind('culture');
     p.setStrain('test-ale-strain');
@@ -136,7 +136,7 @@ function fill(vat: Vat, materialPath: string, litres: number): void {
 function makeCultureJar(tempK: number): Vat {
   const jar = makeVat(tempK, 2);
   fill(jar, LEES, 1);
-  jar.getFermentPhase(); // key the culture batch
+  jar.getMaturationPhase(); // key the culture batch
   expect(jar.getBatchStrain()).toBe('test-ale-strain');
   return jar;
 }
@@ -167,12 +167,12 @@ describe('wild vs pitched (D14 — the lambic lag)', () => {
     const vat = makeVat(291);
     fill(vat, WORT, 50);
     vat.open();
-    vat.getFermentPhase();
+    vat.getMaturationPhase();
     setNow(3 * DAY);
     expect(vat.getFractionConverted()).toBe(0); // still waiting
     expect(vat.getBatchStrain()).toBe('');
     setNow(5 * DAY); // lag 4 landed inside this window
-    vat.getFermentPhase();
+    vat.getMaturationPhase();
     setNow(6 * DAY);
     expect(vat.getBatchStrain()).toBe('wild');
     expect(vat.getFractionConverted()).toBeGreaterThan(0);
@@ -181,18 +181,18 @@ describe('wild vs pitched (D14 — the lambic lag)', () => {
   it('a SEALED sterile wort never starts', () => {
     const vat = makeVat(291); // default closed
     fill(vat, WORT, 50);
-    vat.getFermentPhase();
+    vat.getMaturationPhase();
     setNow(20 * DAY);
     expect(vat.getFractionConverted()).toBe(0);
     expect(vat.getBatchStrain()).toBe('');
-    expect(vat.getFermentPhase()).toBe('active'); // waiting, not dead
+    expect(vat.getMaturationPhase()).toBe('active'); // waiting, not dead
   });
 
   it('a pitched wort starts at once, carrying the culture strain through the pour', () => {
     const jar = makeCultureJar(288);
     const vat = makeVat(291);
     fill(vat, WORT, 50);
-    vat.getFermentPhase();
+    vat.getMaturationPhase();
 
     const res = pour(jar, vat, 0.2);
     expect(res.applied).toBeCloseTo(0.2, 9);
@@ -209,7 +209,7 @@ describe('wild vs pitched (D14 — the lambic lag)', () => {
     const jar = makeCultureJar(288);
     const vat = makeVat(315); // above the culture killK 310
     fill(vat, WORT, 50);
-    vat.getFermentPhase();
+    vat.getMaturationPhase();
 
     const res = pour(jar, vat, 0.2);
     expect(res.applied).toBeCloseTo(0.2, 9); // the culture is spent…
@@ -247,9 +247,9 @@ describe("lager's gate (D14 — the cold strain plus the cold cellar)", () => {
     const wild = makeVat(283);
     fill(wild, COLD_WORT, 50);
     wild.open();
-    wild.getFermentPhase();
+    wild.getMaturationPhase();
     setNow(6 * DAY); // wild lag landed
-    wild.getFermentPhase();
+    wild.getMaturationPhase();
     setNow(10 * DAY);
     expect(wild.getBatchStrain()).toBe('wild');
     expect(wild.getFractionConverted()).toBe(0); // requiresStrain unmet
@@ -257,7 +257,7 @@ describe("lager's gate (D14 — the cold strain plus the cold cellar)", () => {
     // Warm: the right strain above stallAboveK converts nothing.
     const warm = makeVat(293);
     fill(warm, COLD_WORT, 50);
-    warm.getFermentPhase();
+    warm.getMaturationPhase();
     warm.applyForeignPour('pitch', 'test-cold-strain', 0.1);
     expect(warm.getBatchStrain()).toBe('test-cold-strain');
     setNow(12 * DAY);
@@ -266,7 +266,7 @@ describe("lager's gate (D14 — the cold strain plus the cold cellar)", () => {
     // Cold on the cold strain: it works.
     const cold = makeVat(282);
     fill(cold, COLD_WORT, 50);
-    cold.getFermentPhase();
+    cold.getMaturationPhase();
     cold.applyForeignPour('pitch', 'test-cold-strain', 0.1);
     setNow(14 * DAY);
     expect(cold.getFractionConverted()).toBeGreaterThan(0);
@@ -279,11 +279,11 @@ describe('the lees split at the rack (P12)', () => {
     fill(vat, WORT, 50);
     (vat as unknown as Crafted).setMaker('/stuff/agent/_test/brewer');
     vat.open();
-    vat.getFermentPhase();
+    vat.getMaturationPhase();
     setNow(1 * DAY); // wait — sterile wort: pitch it instead
     vat.applyForeignPour('pitch', 'test-ale-strain', 0.1);
     setNow(7 * DAY); // 0.2/day → finished
-    expect(vat.getFermentPhase()).toBe('finished');
+    expect(vat.getMaturationPhase()).toBe('finished');
     expect(vat.getBulkMaterialPath('interior')).toBe(ALE);
     const lees = vat.getLeesVolumeL();
     expect(lees).toBeCloseTo(50 * 0.04, 9);
@@ -300,7 +300,7 @@ describe('the lees split at the rack (P12)', () => {
 
     // What is left IS the culture: the residual re-keys off the lees
     // material, whose profile carries the strain.
-    expect(vat.getFermentPhase()).toBe('active');
+    expect(vat.getMaturationPhase()).toBe('active');
     expect(vat.getBulkMaterialPath('interior')).toBe(LEES);
     expect(vat.getBatchStrain()).toBe('test-ale-strain');
 
@@ -309,7 +309,7 @@ describe('the lees split at the rack (P12)', () => {
     const jar = makeVat(288, 2);
     const harvest = pour(vat, jar, 1);
     expect(harvest.applied).toBeCloseTo(1, 9);
-    expect(jar.getFermentPhase()).toBe('active');
+    expect(jar.getMaturationPhase()).toBe('active');
     expect(jar.getBatchStrain()).toBe('test-ale-strain');
     expect((jar as unknown as Crafted).getMaker()).toBe(
       '/stuff/agent/_test/brewer',

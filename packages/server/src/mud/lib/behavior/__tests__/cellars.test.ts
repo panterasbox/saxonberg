@@ -26,7 +26,7 @@ import BankCounter from '../../../platform/thing/BankCounter';
 import PaymentCard from '../../../platform/thing/PaymentCard';
 import ChattelRegistry from '../../../platform/idea/ChattelRegistry';
 import BusinessEntity from '../../../platform/idea/Business';
-import FermentProfile from '../../../platform/idea/ferment/FermentProfile';
+import MaturationProfile from '../../../platform/idea/maturation/MaturationProfile';
 import Material from '../../material/Material';
 import type { Crafted } from '../../craft/Crafted';
 import { EmploymentApi } from '../../../api/employment';
@@ -161,7 +161,7 @@ describe('the cellars beat — rack, cork, consign, home', () => {
     const root = `/stuff/idea/cellars-test-${seq}/idea`;
     MUST = `${root}/material/must`;
     RED = `${root}/material/red`;
-    PROFILE = `${root}/ferment/red`;
+    PROFILE = `${root}/maturation/red`;
     {
       makeStuffAtPath(() => {
         const m = new Material();
@@ -180,7 +180,7 @@ describe('the cellars beat — rack, cork, consign, home', () => {
         return m;
       }, RED);
       makeStuffAtPath(() => {
-        const p = new FermentProfile();
+        const p = new MaturationProfile();
         p.setKey('cellars-red');
         p.setInputCategory('cellars-must');
         p.setStallBelowK(283);
@@ -218,9 +218,9 @@ describe('the cellars beat — rack, cork, consign, home', () => {
     vat.setBulkMaterial('interior', must);
     vat.setBulkAmount('interior', Quantity.of(4, 'L'));
     (vat as unknown as Crafted).setMaker(VINTNER); // the founder's mark
-    vat.getFermentPhase(); // key the batch
+    vat.getMaturationPhase(); // key the batch
     now = BASE + 8 * DAY; // 0.2/day → finished, swapped to red
-    expect(vat.getFermentPhase()).toBe('finished');
+    expect(vat.getMaturationPhase()).toBe('finished');
     expect(vat.getBulkMaterialPath('interior')).toBe(RED);
 
     // Three empty bottles standing by (the vessel faucet's).
@@ -273,7 +273,7 @@ describe('the cellars beat — rack, cork, consign, home', () => {
             (c) => MixinApi.isBulkable(c) && c.isBulkEmpty('interior'),
           );
           const source = (here.getContents() as Stuff[]).find(
-            (c) => MixinApi.isFermenting(c),
+            (c) => MixinApi.isMaturing(c),
           );
           if (!held || !source) return;
           const from = BulkableApi.slotFor(source as never, undefined)!;
@@ -370,7 +370,7 @@ describe('the cellars beat — rack, cork, consign, home', () => {
   it('a beat with no ready vat and no grapes does nothing but look', async () => {
     vat.setBulkAmount('interior', Quantity.of(0, 'L'));
     vat.setBulkMaterial('interior', null);
-    expect(vat.getFermentPhase()).toBe('idle');
+    expect(vat.getMaturationPhase()).toBe('idle');
     await cellars.act(beatCtx());
     expect(lines.filter((l) => l.startsWith('fill')).length).toBe(0);
     expect(lines.filter((l) => l.startsWith('consign')).length).toBe(0);

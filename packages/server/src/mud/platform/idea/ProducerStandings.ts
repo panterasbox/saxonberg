@@ -1,6 +1,6 @@
 /**
  * ProducerStandings — the self-warming home of the producer standing aggregate — the make faucet, the third influence stock
- * (the FermentProfileCatalogue shape; the boot()-retirement direction:
+ * (the MaturationProfileCatalogue shape; the boot()-retirement direction:
  * an operator-shaped warm does not belong on a consumer Api).
  *
  * `postRegister` warms the materialized aggregate read-cache

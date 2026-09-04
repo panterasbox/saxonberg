@@ -1,10 +1,10 @@
 /**
- * FermentingMixin — the durative transform (fermentation D1/D2).
+ * MaturingMixin — the durative transform (fermentation D1/D2).
  *
  * A VESSEL capability, never a liquid's: bulk matter has no identity,
  * vessels do (the pot-as-bed precedent). The vat ferments whatever
  * sugar-bearing must its interior holds; which ferment runs, at what
- * rate, into what product is entirely the matched {@link FermentProfile}
+ * rate, into what product is entirely the matched {@link MaturationProfile}
  * row's — the authoring surface (a new drink is rows alone).
  *
  * **The shape is husbandry's, the equation is not** — *growth accretes,
@@ -62,14 +62,15 @@ import type { AnyConstructor } from '../../api/mixin';
 import type { MarkupAugmenter } from '../../api/mml';
 import type { Stuff } from '../stuff/Stuff';
 import type Material from '../material/Material';
-import type FermentProfile from './FermentProfile';
+import type MaturationProfile from './MaturationProfile';
+import { MATURATION_LINES } from './MaturationProfile';
 import type { Crafted } from '../craft/Crafted';
 import { Grade, type GradeBand } from '../craft/Grade';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { WorldClockApi } from '../../api/worldclock';
 import { ExecutionContextApi } from '../../api/execution-context';
-import FermentProfileRef from './FermentProfile';
+import MaturationProfileRef from './MaturationProfile';
 import { BiomeApi } from '../../api/biome';
 import { Quantity } from '../quantity';
 import { TemplatePaths } from '../paths';
@@ -78,7 +79,7 @@ import { TemplatePaths } from '../paths';
 export const FERMENT_PHASES = ['idle', 'active', 'finished', 'turned'] as const;
 
 /** A batch phase — one of {@link FERMENT_PHASES}. */
-export type FermentPhase = (typeof FERMENT_PHASES)[number];
+export type MaturationPhase = (typeof FERMENT_PHASES)[number];
 
 const SECONDS_PER_GAME_DAY = 86_400;
 
@@ -199,7 +200,7 @@ function clamp01(x: number): number {
 }
 
 /** Conversion rate (fraction/day) at `tempK` under `profile`. */
-function rateAt(profile: FermentProfile, tempK: number): number {
+function rateAt(profile: MaturationProfile, tempK: number): number {
   const above = profile.getStallAboveK();
   if (above !== null && tempK > above) return 0;
   const stall = profile.getStallBelowK();
@@ -211,17 +212,17 @@ function rateAt(profile: FermentProfile, tempK: number): number {
 }
 
 /** Damage satisfaction at `tempK`: 1 at/below the damage line. */
-function damageSat(profile: FermentProfile, tempK: number): number {
+function damageSat(profile: MaturationProfile, tempK: number): number {
   const damage = profile.getDamageAboveK();
   if (tempK <= damage) return 1;
   return clamp01(1 - (tempK - damage) / DAMAGE_RAMP_K);
 }
 
-export interface Fermenting {
+export interface Maturing {
   /** Integrate the batch over elapsed game-time (lazy; reads drive it). */
   reconcileFerment(): void;
   /** The batch phase (reconciles first). */
-  getFermentPhase(): FermentPhase;
+  getMaturationPhase(): MaturationPhase;
   /** Fraction of the starting sugar converted, 0..1 (reconciles first). */
   getFractionConverted(): number;
   /** The must's starting sugar, g/L — read off the input material at fill. */
@@ -238,9 +239,9 @@ export interface Fermenting {
   /** The monotone-min worst temperature stretch, 0..1 (reconciles first). */
   getWorstStretch(): number;
   /** The matched profile's key, `''` when none. */
-  getFermentProfileKey(): string;
+  getMaturationProfileKey(): string;
   /** The matched profile row, or `null`. */
-  getFermentProfile(): FermentProfile | null;
+  getMaturationProfile(): MaturationProfile | null;
   /** The strain the batch carries; `''` = sterile (reconciles first). */
   getBatchStrain(): string;
   /** Culture batches: aliveness 0..1 (reconciles first). */
@@ -263,13 +264,23 @@ export interface Fermenting {
  * State-derived prose through the reconcile-on-read getters, so an
  * absent owner's vat reads truthfully — and never a number.
  */
-function fermentAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
-  if (!MixinApi.isFermenting(host)) return text;
-  const phase = host.getFermentPhase();
+function maturationAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
+  if (!MixinApi.isMaturing(host)) return text;
+  const phase = host.getMaturationPhase();
+  const profile = host.getMaturationProfile();
+  /*
+   * ⚠ A host with no resolved profile falls back to microbial, which is
+   * the only honest default: it is what every consumer but the two
+   * textile ones is, and a wrong-but-plausible cellar line beats
+   * inventing a mechanism the row never claimed.
+   */
+  const lines = MATURATION_LINES[profile?.getMechanism() ?? 'microbial'];
   let line: string | null = null;
   if (phase === 'active') {
-    const profile = host.getFermentProfile();
     if (profile?.getKind() === 'culture') {
+      // ⭐ A culture is alive by definition, so it keeps the biological
+      // wording whatever the host's mechanism says — there is no such
+      // thing as a photochemical culture.
       const v = host.getViability();
       line =
         v <= 0
@@ -280,39 +291,39 @@ function fermentAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
     } else if (host.getBatchStrain() === '') {
       line = 'It sits sweet and silent — nothing is working it yet.';
     } else if (host.getFractionConverted() > 0) {
-      line = 'It bubbles steadily, a yeasty breath rising off it.';
+      line = lines.working;
     } else {
-      line = 'A first few beads track up through it.';
+      line = lines.starting;
     }
   } else if (phase === 'finished') {
-    line = 'It lies still — the work is done, and the air over it is clean.';
+    line = lines.finished;
   } else if (phase === 'turned') {
-    line = 'A sharp vinegar edge cuts the air over it.';
+    line = lines.turned;
   }
   if (!line) return text;
   return text && text.length > 0 ? `${text}\n\n${line}` : line;
 }
 
-export function FermentingMixin<TBase extends MixinConstructor>(Base: TBase) {
-  return class FermentingMixin extends Base implements Fermenting {
-    static _mixinName = 'FermentingMixin';
+export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
+  return class MaturingMixin extends Base implements Maturing {
+    static _mixinName = 'MaturingMixin';
 
-    static markupAugmenters: MarkupAugmenter[] = [fermentAugmenter];
+    static markupAugmenters: MarkupAugmenter[] = [maturationAugmenter];
 
     static __validateComposition__(ctor: AnyConstructor): void {
       const name = (ctor as { name?: string }).name ?? 'class';
       if (!MixinApi.hasMixin(ctor, Mixins.Bulkable)) {
         throw new Error(
-          `${name} composes FermentingMixin without BulkableMixin; ` +
+          `${name} composes MaturingMixin without BulkableMixin; ` +
             `the transform rides the vessel's interior bulk slot (D2).`,
         );
       }
     }
 
     static fieldMeta: FieldMeta = {
-      fermentClockStamp: { persistent: true, runtimeState: true },
-      fermentPhase: { persistent: true, runtimeState: true },
-      fermentProfileKey: { persistent: true, runtimeState: true },
+      maturationClockStamp: { persistent: true, runtimeState: true },
+      maturationPhase: { persistent: true, runtimeState: true },
+      maturationProfileKey: { persistent: true, runtimeState: true },
       batchMaterialPath: { persistent: true, runtimeState: true },
       startingSugarGPerL: { persistent: true, runtimeState: true },
       fractionConverted: { persistent: true, runtimeState: true },
@@ -325,11 +336,11 @@ export function FermentingMixin<TBase extends MixinConstructor>(Base: TBase) {
     };
 
     /** Game-seconds stamp of the last reconcile; `0` = never touched. */
-    public fermentClockStamp = 0;
+    public maturationClockStamp = 0;
     /** The batch phase. */
-    public fermentPhase: FermentPhase = 'idle';
+    public maturationPhase: MaturationPhase = 'idle';
     /** The matched profile's key; `''` = none matched. */
-    public fermentProfileKey = '';
+    public maturationProfileKey = '';
     /** The interior material path the current batch is keyed to. */
     public batchMaterialPath: string | null = null;
     /** Starting sugar, g/L, read off the input material at fill. */
@@ -356,7 +367,7 @@ export function FermentingMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     public reconcileFerment(): void {
       if (this._reconcilingFerment) return;
-      const nowS = this.fermentNowSeconds();
+      const nowS = this.maturationNowSeconds();
       if (nowS === null) return;
       this._reconcilingFerment = true;
       try {
@@ -367,8 +378,8 @@ export function FermentingMixin<TBase extends MixinConstructor>(Base: TBase) {
 
         // An emptied vessel is an ended batch.
         if (currentPath === null || amount <= 0) {
-          if (this.fermentPhase !== 'idle') this.resetBatch();
-          this.fermentClockStamp = nowS;
+          if (this.maturationPhase !== 'idle') this.resetBatch();
+          this.maturationClockStamp = nowS;
           return;
         }
         // A changed interior material is a fresh fill — a fresh batch.
@@ -387,13 +398,13 @@ export function FermentingMixin<TBase extends MixinConstructor>(Base: TBase) {
         // from the lees material's culture profile; the Crafted mark
         // untouched — the trace back to the harvested batch).
         if (
-          (this.fermentPhase === 'finished' ||
-            this.fermentPhase === 'turned') &&
+          (this.maturationPhase === 'finished' ||
+            this.maturationPhase === 'turned') &&
           this.leesVolumeL > 0 &&
           amount <= this.leesVolumeL + 1e-9
         ) {
           const leesPath =
-            FermentProfileRef.byKey(this.fermentProfileKey)?.getLeesMaterial() ??
+            MaturationProfileRef.byKey(this.maturationProfileKey)?.getLeesMaterial() ??
             '';
           if (leesPath !== '') {
             const lees = StuffApi.findByTemplatePath<Material>(leesPath);
@@ -408,22 +419,22 @@ export function FermentingMixin<TBase extends MixinConstructor>(Base: TBase) {
           }
         }
 
-        if (this.fermentClockStamp === 0) {
-          this.fermentClockStamp = nowS;
+        if (this.maturationClockStamp === 0) {
+          this.maturationClockStamp = nowS;
           return;
         }
-        const elapsed = nowS - this.fermentClockStamp;
+        const elapsed = nowS - this.maturationClockStamp;
         if (elapsed <= 0) {
-          this.fermentClockStamp = nowS;
+          this.maturationClockStamp = nowS;
           return;
         }
-        if (this.fermentPhase === 'idle' || this.fermentPhase === 'turned') {
-          this.fermentClockStamp = nowS;
+        if (this.maturationPhase === 'idle' || this.maturationPhase === 'turned') {
+          this.maturationClockStamp = nowS;
           return;
         }
-        const profile = FermentProfileRef.byKey(this.fermentProfileKey);
+        const profile = MaturationProfileRef.byKey(this.maturationProfileKey);
         if (!profile) {
-          this.fermentClockStamp = nowS;
+          this.maturationClockStamp = nowS;
           return;
         }
 
@@ -433,7 +444,7 @@ export function FermentingMixin<TBase extends MixinConstructor>(Base: TBase) {
         const days = elapsed / SECONDS_PER_GAME_DAY;
         const open = MixinApi.isSealable(self) ? self.isOpen() : true;
 
-        if (this.fermentPhase === 'active') {
+        if (this.maturationPhase === 'active') {
           if (profile.getKind() === 'culture') {
             this.reconcileCultureWindow(profile, tempK, days);
           } else {
@@ -481,24 +492,24 @@ export function FermentingMixin<TBase extends MixinConstructor>(Base: TBase) {
             }
             this.applyBatchGrade();
             if (this.fractionConverted >= 1) {
-              this.fermentPhase = 'finished';
+              this.maturationPhase = 'finished';
               this.leesVolumeL = amount * profile.getLeesFraction();
               this.ensureInteriorMaterial(profile.getProductMaterial());
             }
           }
-        } else if (this.fermentPhase === 'finished') {
+        } else if (this.maturationPhase === 'finished') {
           // Retry a product swap that couldn't land (material not live).
           this.ensureInteriorMaterial(profile.getProductMaterial());
           const turnedMaterial = profile.getTurnedMaterial();
           if (open && turnedMaterial) {
             this.turnedDays += days;
             if (this.turnedDays >= profile.getTurnDays()) {
-              this.fermentPhase = 'turned';
+              this.maturationPhase = 'turned';
               this.ensureInteriorMaterial(turnedMaterial);
             }
           }
         }
-        this.fermentClockStamp = nowS;
+        this.maturationClockStamp = nowS;
       } finally {
         this._reconcilingFerment = false;
       }
@@ -506,9 +517,9 @@ export function FermentingMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     // ---------- reads (each drives the reconcile) ----------
 
-    public getFermentPhase(): FermentPhase {
+    public getMaturationPhase(): MaturationPhase {
       this.reconcileFerment();
-      return this.fermentPhase;
+      return this.maturationPhase;
     }
 
     public getFractionConverted(): number {
@@ -542,12 +553,12 @@ export function FermentingMixin<TBase extends MixinConstructor>(Base: TBase) {
       return clamp01(this._worstStretch);
     }
 
-    public getFermentProfileKey(): string {
-      return this.fermentProfileKey;
+    public getMaturationProfileKey(): string {
+      return this.maturationProfileKey;
     }
 
-    public getFermentProfile(): FermentProfile | null {
-      return FermentProfileRef.byKey(this.fermentProfileKey);
+    public getMaturationProfile(): MaturationProfile | null {
+      return MaturationProfileRef.byKey(this.maturationProfileKey);
     }
 
     // ---------- batch lifecycle (host-internal) ----------
@@ -565,25 +576,25 @@ export function FermentingMixin<TBase extends MixinConstructor>(Base: TBase) {
       this.wildLagDays = 0;
       this.viability = 1;
       this.leesVolumeL = 0;
-      this.fermentClockStamp = nowS;
+      this.maturationClockStamp = nowS;
       const material = StuffApi.findByTemplatePath<Material>(materialPath);
       if (!material) {
         this.batchMaterialPath = null;
-        this.fermentProfileKey = '';
+        this.maturationProfileKey = '';
         this.startingSugarGPerL = 0;
-        this.fermentPhase = 'idle';
+        this.maturationPhase = 'idle';
         return;
       }
       this.batchMaterialPath = materialPath;
-      const profile = FermentProfileRef.forMaterial(material);
-      this.fermentProfileKey = profile?.getKey() ?? '';
+      const profile = MaturationProfileRef.forMaterial(material);
+      this.maturationProfileKey = profile?.getKey() ?? '';
       this.startingSugarGPerL = material.getNutrientAmounts()['sugar'] ?? 0;
       if (profile !== null && profile.getKind() === 'culture') {
         // A culture batch is alive from the fill (harvested lees): its
         // strain is the profile's, its "conversion" is viability, and
         // the mark carried in by the W0 seam is the TRACE back to the
         // harvested batch — deliberately not re-stamped.
-        this.fermentPhase = 'active';
+        this.maturationPhase = 'active';
         this.batchStrain = profile.getStrain();
         this.viability = 1;
         return;
@@ -612,8 +623,8 @@ export function FermentingMixin<TBase extends MixinConstructor>(Base: TBase) {
        * An unmatched material still idles, and an emptied vessel still
        * resets — the two things the phase actually means.
        */
-      this.fermentPhase = profile !== null ? 'active' : 'idle';
-      if (this.fermentPhase === 'active' && profile !== null) {
+      this.maturationPhase = profile !== null ? 'active' : 'idle';
+      if (this.maturationPhase === 'active' && profile !== null) {
         // Lag 0 = the must self-starts wild at the fill (skin bloom);
         // a lagged (sterile) must waits for a pitch or the wild lag.
         if (profile.getSpontaneousLagDays() === 0) {
@@ -624,8 +635,8 @@ export function FermentingMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     private resetBatch(): void {
-      this.fermentPhase = 'idle';
-      this.fermentProfileKey = '';
+      this.maturationPhase = 'idle';
+      this.maturationProfileKey = '';
       this.batchMaterialPath = null;
       this.startingSugarGPerL = 0;
       this.fractionConverted = 0;
@@ -644,7 +655,7 @@ export function FermentingMixin<TBase extends MixinConstructor>(Base: TBase) {
      * is live — never the wire. The recipe field records the ferment
      * itself; the band is the reconcile's (worst stretch).
      */
-    private stampBatchMark(profile: FermentProfile, nowS: number): void {
+    private stampBatchMark(profile: MaturationProfile, nowS: number): void {
       const self = this as unknown as Stuff;
       if (!MixinApi.isCrafted(self)) return;
       const crafted = self as Stuff & Crafted;
@@ -719,8 +730,8 @@ export function FermentingMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (affordance !== 'interior') return amount;
       this.reconcileFerment();
       if (
-        this.fermentPhase === 'finished' ||
-        this.fermentPhase === 'turned'
+        this.maturationPhase === 'finished' ||
+        this.maturationPhase === 'turned'
       ) {
         return Math.max(0, amount - this.leesVolumeL);
       }
@@ -738,7 +749,7 @@ export function FermentingMixin<TBase extends MixinConstructor>(Base: TBase) {
       strain: string,
     ): 'pitch' | 'feed' | null {
       this.reconcileFerment();
-      const profile = FermentProfileRef.byKey(this.fermentProfileKey);
+      const profile = MaturationProfileRef.byKey(this.maturationProfileKey);
       if (!profile) return null;
       if (profile.getKind() === 'culture') {
         const sugary =
@@ -747,7 +758,7 @@ export function FermentingMixin<TBase extends MixinConstructor>(Base: TBase) {
         return sugary ? 'feed' : null;
       }
       if (
-        this.fermentPhase === 'active' &&
+        this.maturationPhase === 'active' &&
         this.batchStrain === '' &&
         strain !== ''
       ) {
@@ -788,7 +799,7 @@ export function FermentingMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /** A culture batch's window: viability, not conversion (D14). */
     private reconcileCultureWindow(
-      profile: FermentProfile,
+      profile: MaturationProfile,
       tempK: number,
       days: number,
     ): void {
@@ -814,14 +825,14 @@ export function FermentingMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /** The kill ceiling of `strain`'s culture profile (pitch check). */
     private cultureKillKFor(strain: string): number {
-      const culture = FermentProfileRef.all().find(
+      const culture = MaturationProfileRef.all().find(
         (p) => p.getKind() === 'culture' && p.getStrain() === strain,
       );
       return culture?.getKillK() ?? DEFAULT_PITCH_KILL_K;
     }
 
     /** Game-seconds now, or `null` when no world clock is running. */
-    private fermentNowSeconds(): number | null {
+    private maturationNowSeconds(): number | null {
       if (!StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)) {
         return null;
       }

@@ -1,7 +1,7 @@
 # The retting pit at the Wharfside mill — a walled pool of still water.
 #
 # ⭐ ZERO VERBS. Put straw in it (`pour`), judge the moment, take it out.
-# `FermentingMixin` runs the clock, `Thermal` drifts it toward the room,
+# `MaturingMixin` runs the clock, `Thermal` drifts it toward the room,
 # and the season becomes an input without anybody authoring a season.
 #
 # ⚠ It stinks, and the fiction knows it: retting ponds were banned

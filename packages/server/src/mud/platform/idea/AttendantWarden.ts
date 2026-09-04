@@ -1,6 +1,6 @@
 /**
  * AttendantWarden — the self-warming home of the storefront-attention anti-grief guards — the lease idle-eviction sweep + the linkdead release
- * (the FermentProfileCatalogue shape; the boot()-retirement direction:
+ * (the MaturationProfileCatalogue shape; the boot()-retirement direction:
  * an operator-shaped sweep install does not belong on a consumer Api).
  *
  * `postRegister` arms the sweep(s) on the {@link AttendantLogic}

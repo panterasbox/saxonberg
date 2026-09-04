@@ -179,7 +179,7 @@ word list, a data table, `Construction.of`).
   SHIPPED composition fraction*, metal-chain slate).
 - **Retting is where you can ruin it.** Under-ret and the fibre will not
   separate; over-ret and it rots. A genuine skill window on a real clock,
-  and `FermentingMixin` already models exactly this shape.
+  and `MaturingMixin` already models exactly this shape.
 - **Dye stays orthogonal** to both axes — see Decision 7.
 - **It exposes a live bug.** `wool.yaml` authors `appearance: thick woven
   wool` — a *material* row asserting a *construction*. Raw fleece is not
@@ -317,7 +317,7 @@ Break, scutch and hackle are three motions with one decision between them
 (*remove more woody matter, lose some staple length*) — historically,
 collectively, *dressing* the flax. They fold into one act — named
 `scutch` rather than `dress`, for the collision reason below. Retting
-has a genuine decision (when to pull it) and `FermentingMixin` already
+has a genuine decision (when to pull it) and `MaturingMixin` already
 runs that clock, so like the fermentation build it may need **zero
 verbs**: put flax in a water tank, judge the moment, take it out.
 
@@ -1293,7 +1293,7 @@ Durable, Crafted; `repair`/`salvage`) ·
 [weather.md](../../subsystems/weather.md) (wetness) ·
 [husbandry.md](../../subsystems/husbandry.md) +
 [smallholding.md](../../subsystems/smallholding.md) (the crop faucet) ·
-[fermentation.md](../../subsystems/fermentation.md) (retting's clock) ·
+[maturation.md](../../subsystems/maturation.md) (retting's clock) ·
 [concealment.md](../../subsystems/concealment.md) +
 [stealth.md](../../subsystems/stealth.md) ·
 [perception.md](../../subsystems/perception.md) ·

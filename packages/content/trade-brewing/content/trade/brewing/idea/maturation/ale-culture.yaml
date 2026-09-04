@@ -1,9 +1,10 @@
 # The ale culture — barm in a jar, kept alive (D14): the brewer's house
 # strain, pitched by pour, fed with wort, slowed by the cellar.
-class: /platform/idea/ferment/FermentProfile
+class: /platform/idea/maturation/MaturationProfile
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: ale-culture
+  mechanism: microbial
   kind: culture
   strain: ale-yeast
   inputCategory: ale-lees

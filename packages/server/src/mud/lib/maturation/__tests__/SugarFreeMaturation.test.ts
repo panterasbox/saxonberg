@@ -5,8 +5,8 @@
  * real slow bacterial ferment — flax straw in standing water for a
  * fortnight, pectin hydrolysed off the bast bundles, and four days past
  * ready the rot is into the cellulose and the batch is grey ruin — so
- * it models on `FermentingMixin` exactly as a wine does, and the
- * textile pack ships it as a `FermentProfile` over a `Vat`.
+ * it models on `MaturingMixin` exactly as a wine does, and the
+ * textile pack ships it as a `MaturationProfile` over a `Vat`.
  *
  * It never started. `startBatch` read
  *
@@ -29,7 +29,7 @@
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Vat from '../../../platform/thing/Vat';
-import FermentProfile from '../../../platform/idea/ferment/FermentProfile';
+import MaturationProfile from '../../../platform/idea/maturation/MaturationProfile';
 import Material from '../../material/Material';
 import { WorldClockApi } from '../../../api/worldclock';
 import { StuffApi } from '../../../api/stuff';
@@ -48,7 +48,7 @@ const setNow = (s: number) => {
 const STRAW = '/stuff/idea/sugarfree-test/idea/material/test-straw';
 const FIBRE = '/stuff/idea/sugarfree-test/idea/material/test-fibre';
 const RUINED = '/stuff/idea/sugarfree-test/idea/material/test-ruined';
-const PROFILE = '/stuff/idea/sugarfree-test/idea/ferment/test-ret';
+const PROFILE = '/stuff/idea/sugarfree-test/idea/maturation/test-ret';
 
 let stood = false;
 function standFixtures(): void {
@@ -75,7 +75,7 @@ function standFixtures(): void {
     return m;
   }, RUINED);
   makeStuffAtPath(() => {
-    const p = new FermentProfile();
+    const p = new MaturationProfile();
     p.setKey('test-ret');
     p.setInputCategory('test-ret');
     p.setStallBelowK(283);
@@ -112,7 +112,7 @@ function fillWithStraw(v: Vat, litres = 20): void {
   // batch clock and returns zero, so a test that reads only once, late,
   // measures nothing. (Live this is invisible — anything that looks at
   // the vessel anchors it.)
-  void v.getFermentPhase();
+  void v.getMaturationPhase();
 }
 
 beforeEach(() => {
@@ -130,8 +130,8 @@ describe('a sugar-free ferment', () => {
   it('⭐⭐ goes ACTIVE on a matched profile, with no sugar anywhere', () => {
     const pit = makePit();
     fillWithStraw(pit);
-    expect(pit.getFermentPhase()).toBe('active');
-    expect(pit.getFermentProfileKey()).toBe('test-ret');
+    expect(pit.getMaturationPhase()).toBe('active');
+    expect(pit.getMaturationProfileKey()).toBe('test-ret');
     // The readouts are honest about there being no alcohol in this.
     expect(pit.getStartingSugarGPerL()).toBe(0);
     expect(pit.getAbvPercent()).toBe(0);
@@ -143,10 +143,10 @@ describe('a sugar-free ferment', () => {
     // Exactly `ratePerDay` — no sugar term anywhere in the integral.
     setNow(5 * DAY);
     expect(pit.getFractionConverted()).toBeCloseTo(0.5, 6);
-    expect(pit.getFermentPhase()).toBe('active');
+    expect(pit.getMaturationPhase()).toBe('active');
 
     setNow(11 * DAY);
-    expect(pit.getFermentPhase()).toBe('finished');
+    expect(pit.getMaturationPhase()).toBe('finished');
     expect(pit.getBulkMaterialPath('interior')).toBe(FIBRE);
   });
 
@@ -154,11 +154,11 @@ describe('a sugar-free ferment', () => {
     const pit = makePit();
     fillWithStraw(pit);
     setNow(11 * DAY);
-    expect(pit.getFermentPhase()).toBe('finished');
+    expect(pit.getMaturationPhase()).toBe('finished');
 
     // Four more days in the water and the rot is past the point of use.
     setNow(16 * DAY);
-    expect(pit.getFermentPhase()).toBe('turned');
+    expect(pit.getMaturationPhase()).toBe('turned');
     expect(pit.getBulkMaterialPath('interior')).toBe(RUINED);
   });
 
@@ -167,7 +167,7 @@ describe('a sugar-free ferment', () => {
     fillWithStraw(pit);
     setNow(11 * DAY);
     expect(pit.getFractionConverted()).toBe(0);
-    expect(pit.getFermentPhase()).toBe('active');
+    expect(pit.getMaturationPhase()).toBe('active');
   });
 
   it('an UNMATCHED material still idles — the phase keeps its meaning', () => {
@@ -175,7 +175,7 @@ describe('a sugar-free ferment', () => {
     const fibre = StuffApi.findByTemplatePath<Material>(FIBRE)!;
     pit.setBulkMaterial('interior', fibre);
     pit.setBulkAmount('interior', Quantity.of(20, 'L'));
-    expect(pit.getFermentPhase()).toBe('idle');
-    expect(pit.getFermentProfileKey()).toBe('');
+    expect(pit.getMaturationPhase()).toBe('idle');
+    expect(pit.getMaturationProfileKey()).toBe('');
   });
 });

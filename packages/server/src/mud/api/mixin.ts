@@ -89,7 +89,7 @@ import type { Metabolic } from '../lib/metabolism/Metabolic';
 import type { Thermal } from '../lib/thermal/Thermal';
 import type { Wet } from '../lib/wetness/Wet';
 import type { Growing } from '../lib/husbandry/Growing';
-import type { Fermenting } from '../lib/ferment/Fermenting';
+import type { Maturing } from '../lib/maturation/Maturing';
 import type { Plantable } from '../lib/husbandry/Plantable';
 import type { Cultivable } from '../lib/husbandry/Cultivable';
 import type { Combustible } from '../lib/fire/Combustible';
@@ -1037,8 +1037,8 @@ export class MixinApi {
    * A vessel that ferments what its interior holds — the durative
    * transform (the vat, the carboy, the conditioning bottle).
    */
-  public static isFermenting(obj: Stuff): obj is Stuff & Fermenting {
-    return this.hasMixin(obj, Mixins.Fermenting);
+  public static isMaturing(obj: Stuff): obj is Stuff & Maturing {
+    return this.hasMixin(obj, Mixins.Maturing);
   }
 
   /**

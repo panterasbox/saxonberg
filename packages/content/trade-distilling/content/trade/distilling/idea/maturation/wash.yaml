@@ -2,10 +2,11 @@
 # wild character out; the still leaves it behind). The foreshot
 # character is INERT authored prose (P10): the seam the deferred cuts
 # rung reads into metabolism's toxin dose.
-class: /platform/idea/ferment/FermentProfile
+class: /platform/idea/maturation/MaturationProfile
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: wash
+  mechanism: microbial
   inputCategory: distillers-wort
   stallBelowK: 283
   happyK: 290

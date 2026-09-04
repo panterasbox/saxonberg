@@ -7,7 +7,7 @@
 # stage", and why the profile matches on the MATERIAL's `retting` tag
 # rather than naming the flax row.
 #
-# ⭐ It needs NO VERB. `FermentingMixin` already runs this clock: put the
+# ⭐ It needs NO VERB. `MaturingMixin` already runs this clock: put the
 # straw in water, judge the moment, take it out. What rots is the pectin
 # gluing the bast bundles to the woody core — which is a real slow
 # bacterial ferment, so the engine that models a wine is the engine that
@@ -19,10 +19,15 @@
 # ⚠⚠ `turnDays` + `turnedMaterial` are the OVER-RET: the one failure in
 # the whole chain that you cause by not paying attention, and the only
 # one you cannot undo. Vinegar's mechanism, verbatim.
-class: /platform/idea/ferment/FermentProfile
+# ⭐ `mechanism: microbial` — and this one is TRUE fermentation, not a
+# borrowed shape: pectinolytic bacteria digest the pectin gluing the
+# bast bundles to the woody core. Its sibling `bleaching` is the one
+# that is not.
+class: /platform/idea/maturation/MaturationProfile
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: retting
+  mechanism: microbial
   inputCategory: retting
   # Cold water stalls it — the reason retting is a summer job.
   stallBelowK: 283

@@ -1,9 +1,9 @@
 /**
- * FermentProfileCatalogue — the self-warming roster (the boot()-
- * retirement shape): postRegister stands up every FermentProfile row
+ * MaturationProfileCatalogue — the self-warming roster (the boot()-
+ * retirement shape): postRegister stands up every MaturationProfile row
  * and skips foreign classes, the platform pack's boot manifest is what
  * makes it EAGER (asserted on the pack.yaml — the wiring is the part
- * that silently rots), and the query statics on FermentProfile match
+ * that silently rots), and the query statics on MaturationProfile match
  * by tag with the double-match diagnostic.
  */
 
@@ -11,9 +11,9 @@ import "../../../test-bootstrap";
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
-import FermentProfileCatalogue from '../idea/FermentProfileCatalogue';
-import FermentProfileConcrete from '../idea/ferment/FermentProfile';
-import FermentProfile from '../../lib/ferment/FermentProfile';
+import MaturationProfileCatalogue from '../idea/MaturationProfileCatalogue';
+import MaturationProfileConcrete from '../idea/maturation/MaturationProfile';
+import MaturationProfile from '../../lib/maturation/MaturationProfile';
 import Material from '../../lib/material/Material';
 import { StuffApi } from '../../api/stuff';
 import { Template } from '../../lib/stuff/Template';
@@ -28,21 +28,21 @@ afterEach(() => {
 });
 
 describe('the roster warm', () => {
-  it('postRegister stands up FermentProfile rows and skips foreign classes', async () => {
+  it('postRegister stands up MaturationProfile rows and skips foreign classes', async () => {
     vi.spyOn(Template, 'findByPathInfix').mockResolvedValue([
       {
-        path: '/stuff/idea/ferment/red-wine',
-        class: '/platform/idea/ferment/FermentProfile',
+        path: '/stuff/idea/maturation/red-wine',
+        class: '/platform/idea/maturation/MaturationProfile',
       },
       {
-        path: '/stuff/idea/ferment/not-a-profile',
+        path: '/stuff/idea/maturation/not-a-profile',
         class: '/platform/idea/material/ConsumableMaterial',
       },
     ] as never);
     vi.spyOn(StuffApi, 'loadClassByPath').mockImplementation(
       async (p: string) =>
-        p === '/platform/idea/ferment/FermentProfile'
-          ? (FermentProfileConcrete as never)
+        p === '/platform/idea/maturation/MaturationProfile'
+          ? (MaturationProfileConcrete as never)
           : (Material as never),
     );
     const stood: string[] = [];
@@ -51,10 +51,10 @@ describe('the roster warm', () => {
       return {} as never;
     });
 
-    const catalogue = makeStuff(() => new FermentProfileCatalogue());
+    const catalogue = makeStuff(() => new MaturationProfileCatalogue());
     await catalogue.postRegister();
-    expect(stood).toEqual(['/stuff/idea/ferment/red-wine']);
-    expect(Template.findByPathInfix).toHaveBeenCalledWith('/idea/ferment/');
+    expect(stood).toEqual(['/stuff/idea/maturation/red-wine']);
+    expect(Template.findByPathInfix).toHaveBeenCalledWith('/idea/maturation/');
   });
 
   it('the platform pack boots it eagerly (the wiring assert)', () => {
@@ -64,24 +64,24 @@ describe('the roster warm', () => {
       ),
       'utf-8',
     );
-    expect(src).toMatch(/template: \/platform\/idea\/FermentProfileCatalogue/);
+    expect(src).toMatch(/template: \/platform\/idea\/MaturationProfileCatalogue/);
   });
 });
 
-describe('the query statics (FermentProfile — no Api)', () => {
+describe('the query statics (MaturationProfile — no Api)', () => {
   it('matches by tag, warns + resolves deterministically on a double match', () => {
     makeStuffAtPath(() => {
-      const p = new FermentProfileConcrete();
+      const p = new MaturationProfileConcrete();
       p.setKey('b-profile');
       p.setInputCategory('doubled');
       return p;
-    }, '/stuff/idea/catalogue-test/idea/ferment/b-profile');
+    }, '/stuff/idea/catalogue-test/idea/maturation/b-profile');
     makeStuffAtPath(() => {
-      const p = new FermentProfileConcrete();
+      const p = new MaturationProfileConcrete();
       p.setKey('a-profile');
       p.setInputCategory('doubled-too');
       return p;
-    }, '/stuff/idea/catalogue-test/idea/ferment/a-profile');
+    }, '/stuff/idea/catalogue-test/idea/maturation/a-profile');
     const material = makeStuffAtPath(() => {
       const m = new Material();
       m.setName('doubled must');
@@ -90,8 +90,8 @@ describe('the query statics (FermentProfile — no Api)', () => {
     }, '/stuff/idea/catalogue-test/idea/material/doubled-must');
 
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    const match = FermentProfile.forMaterial(material);
-    expect(match).toBeInstanceOf(FermentProfile);
+    const match = MaturationProfile.forMaterial(material);
+    expect(match).toBeInstanceOf(MaturationProfile);
     expect(match!.getKey()).toBe('a-profile'); // lowest key, never a roll
     expect(warn).toHaveBeenCalledOnce();
     expect(String(warn.mock.calls[0])).toContain('authoring error');
@@ -104,6 +104,6 @@ describe('the query statics (FermentProfile — no Api)', () => {
       m.setTags(['liquid', 'water']);
       return m;
     }, '/stuff/idea/catalogue-test/idea/material/plain-water');
-    expect(FermentProfile.forMaterial(material)).toBeNull();
+    expect(MaturationProfile.forMaterial(material)).toBeNull();
   });
 });

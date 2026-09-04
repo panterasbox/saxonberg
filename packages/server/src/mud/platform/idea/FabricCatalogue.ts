@@ -106,7 +106,7 @@ export default class FabricCatalogue extends FabricCatalogueBase {
  *
  * ⚠ The `===` clause is load-bearing and the sibling catalogues do not
  * have it, for a reason worth stating: `MaterialCatalogue` and
- * `FermentProfileCatalogue` filter on `cls.prototype instanceof Base`
+ * `MaturationProfileCatalogue` filter on `cls.prototype instanceof Base`
  * alone, and that works ONLY because both have a `lib/` abstract base
  * plus a thin `platform/` concrete that rows actually name — so the
  * named class is always a STRICT subclass. `Fabric` is one class that

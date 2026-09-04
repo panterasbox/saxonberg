@@ -30,7 +30,7 @@
  * total across both sources, so a row's band is validated at hydration
  * (loudly) rather than at the moment somebody swings.
  *
- * Reference data, the `FermentProfile` shape: a singleton Idea per row,
+ * Reference data, the `MaturationProfile` shape: a singleton Idea per row,
  * stood up whole at boot by `FabricCatalogue.postRegister` (the roster
  * warm that closes the reference-Ideas-inert-at-boot rule), read by
  * SYNC seams. Rows live under any root's `idea/fabric/` subtree — the

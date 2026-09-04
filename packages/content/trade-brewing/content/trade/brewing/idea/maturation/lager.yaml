@@ -2,10 +2,11 @@
 # REQUIRES the lager strain (wild flora ferment nothing here), and it
 # refuses to work warm at all (authored dormancy above 287 K) — the
 # cold strain plus the cold cellar, because the biology says so. Slow.
-class: /platform/idea/ferment/FermentProfile
+class: /platform/idea/maturation/MaturationProfile
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: lager
+  mechanism: microbial
   inputCategory: lager-wort
   requiresStrain: lager-yeast
   spontaneousLagDays: 4

@@ -19,14 +19,27 @@
 # ⚠ Cold stalls it and heat does not damage it — the sun is the point.
 # There is no over-bleach failure: unlike the pit, leaving it out longer
 # only makes it whiter, and then stops.
-class: /platform/idea/ferment/FermentProfile
+# ⚠⚠ `mechanism: photochemical` — NOT a ferment, and the data now says
+# so. Grass-bleaching is UV and oxygen oxidising the residual colour
+# bodies; no organism is involved. It rides the maturation clock
+# because the SHAPE fits (lay it out, time does it, judge when to
+# stop), and textiles.md argues the same physics when it refuses a
+# glowlight — *bleaching is photochemistry; a glowlight is
+# illumination*. The engine used to render this green as bubbling
+# with a yeasty breath rising off it.
+class: /platform/idea/maturation/MaturationProfile
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: bleaching
+  mechanism: photochemical
   # The greige fibre's own tag — see `/stuff/idea/material/textile/linen`.
   inputCategory: greige
   stallBelowK: 280
   happyK: 293
+  # ⚠ 340K (67°C) is unreachable on an acre of open grass, which is how
+  # "heat does not damage it" is expressed in a schema with no null for
+  # this field. Stated rather than left as a bare number contradicting
+  # the comment above it.
   damageAboveK: 340
   # Far slower than the pit. Months, not a fortnight.
   ratePerDay: 0.02

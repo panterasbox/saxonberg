@@ -11,7 +11,7 @@
  * loading rides this pack's own `boot:` manifest, which is what a pack
  * declares instead of asking the kernel to list it.
  *
- * The `FermentProfileCatalogue` / `FabricCatalogue` shape verbatim,
+ * The `MaturationProfileCatalogue` / `FabricCatalogue` shape verbatim,
  * including the ⚠ `cls === Dyestuff` clause: those two filter on
  * `cls.prototype instanceof Base` alone and that works ONLY because
  * each has a `lib/` abstract base plus a thin concrete that rows name.

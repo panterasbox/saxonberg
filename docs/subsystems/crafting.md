@@ -941,7 +941,7 @@ precedent) and the saved-set stanza on the dressing view — so a whole
 wardrobe and the tailor's fitting cost **zero verbs**.
 
 ⭐⭐ **Preparation and finishing ship with zero verbs at all.** Retting
-is a real slow bacterial ferment, so `FermentingMixin` runs it
+is a real slow bacterial ferment, so `MaturingMixin` runs it
 unchanged; the bleaching green is that shape applied to weather. What
 you do is judge the moment — and the pit has four days' grace before
 `turnedMaterial` (vinegar's mechanism, verbatim) makes the fibre

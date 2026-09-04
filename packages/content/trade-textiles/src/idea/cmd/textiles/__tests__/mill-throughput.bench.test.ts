@@ -207,7 +207,7 @@ describe("the mill, at the SHIPPED tech level (spindle and hand loom)", () => {
     // can walk away from.
     const profile = YAML.parse(
       readFileSync(
-        join(PACK, "content", "trade", "textiles", "idea", "ferment", "retting.yaml"),
+        join(PACK, "content", "trade", "textiles", "idea", "maturation", "retting.yaml"),
         "utf-8",
       ),
     ) as { data: { ratePerDay: number; turnDays: number } };

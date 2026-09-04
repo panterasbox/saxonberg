@@ -1,6 +1,6 @@
 /**
  * SandboxWarden — the self-warming home of the sandbox orphan sweeper — after a restart every circle scope is sessionless and the first sweep discards all scoped rows (the discard doctrine)
- * (the FermentProfileCatalogue shape; the boot()-retirement direction:
+ * (the MaturationProfileCatalogue shape; the boot()-retirement direction:
  * an operator-shaped sweep install does not belong on a consumer Api).
  *
  * `postRegister` arms the sweep(s) on the {@link SandboxLogic}

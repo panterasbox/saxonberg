@@ -118,10 +118,10 @@ const MANIFEST: ReadonlyArray<{ site: string; classification: string }> = [
   // `MaterialCatalogue.postRegister` keeps a row by `instanceof Material` — resolving
   // the class wherever it lives (a capability pack's src/ included).
   { site: "platform/idea/MaterialCatalogue.ts::loadClassByPath", classification: "gated-direct" },
-  // `FermentProfileCatalogue.postRegister` keeps a row by
-  // `instanceof FermentProfile` (the MaterialLogic filter, homed on a
+  // `MaturationProfileCatalogue.postRegister` keeps a row by
+  // `instanceof MaturationProfile` (the MaterialLogic filter, homed on a
   // self-warming catalogue — the boot()-retirement direction).
-  { site: "platform/idea/FermentProfileCatalogue.ts::loadClassByPath", classification: "gated-direct" },
+  { site: "platform/idea/MaturationProfileCatalogue.ts::loadClassByPath", classification: "gated-direct" },
   // `FabricCatalogue.postRegister` keeps a row by `instanceof Fabric` —
   // the same self-warming shape one row up. ⚠ Its predicate carries an
   // extra `cls === Fabric` clause the siblings do not need: those have a

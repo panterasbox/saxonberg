@@ -349,7 +349,7 @@ export const Mixins = {
   Plantable: 'PlantableMixin',
   // The durative ferment — a VESSEL whose contents convert over
   // game-time (growth accretes, fermentation converts).
-  Fermenting: 'FermentingMixin',
+  Maturing: 'MaturingMixin',
   Behaved: 'BehavedMixin',
   Graded: 'GradedMixin',
   // A physical thing that wears out with use (the condition/wear gauge).

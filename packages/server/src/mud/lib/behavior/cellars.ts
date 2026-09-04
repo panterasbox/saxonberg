@@ -44,7 +44,7 @@ import type { Container } from '../spatial/Container';
 import type { Containable } from '../spatial/Containable';
 import type { Mobile } from '../spatial/Mobile';
 import type { CommandGiver } from '../command/CommandGiver';
-import type { Fermenting } from '../ferment/Fermenting';
+import type { Maturing } from '../maturation/Maturing';
 import { CommandApi } from '../../api/command';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
@@ -68,10 +68,10 @@ function positiveInt(v: unknown, fallback: number): number {
 }
 
 /** The floor's fermenting vats (category `vat` — never the bottles). */
-function vatsIn(room: Stuff & Container): (Stuff & Fermenting)[] {
-  const out: (Stuff & Fermenting)[] = [];
+function vatsIn(room: Stuff & Container): (Stuff & Maturing)[] {
+  const out: (Stuff & Maturing)[] = [];
   for (const c of room.getContents()) {
-    if (!MixinApi.isFermenting(c)) continue;
+    if (!MixinApi.isMaturing(c)) continue;
     if (!MixinApi.isBulkable(c) || c.getCategory() !== 'vat') continue;
     out.push(c);
   }
@@ -145,10 +145,10 @@ export const brain = class {
 
     // ── the bottling leg: a finished (or turned) vat pays out ──
     const ready = vats.find((v) => {
-      const phase = v.getFermentPhase();
+      const phase = v.getMaturationPhase();
       if (phase !== 'finished' && phase !== 'turned') return false;
       const bulk = v as Stuff &
-        Fermenting & { getBulkAvailable(a: 'interior'): number };
+        Maturing & { getBulkAvailable(a: 'interior'): number };
       return bulk.getBulkAvailable('interior') > 0.7;
     });
     if (ready) {
@@ -169,7 +169,7 @@ export const brain = class {
       str(ctx.config.buyKeyword, 'grapes'),
     );
     const inputMin = positiveInt(ctx.config.inputMin, DEFAULT_INPUT_MIN);
-    const idle = vats.find((v) => v.getFermentPhase() === 'idle');
+    const idle = vats.find((v) => v.getMaturationPhase() === 'idle');
     const lagerLeg = ctx.config.lagerLeg as
       | { recipe?: string; room?: string }
       | undefined;

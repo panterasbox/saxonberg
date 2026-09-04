@@ -1,7 +1,7 @@
 /**
  * MeasureDensityController — handler for `measure density <vessel>`.
  *
- * The hydrometer's read (fermentation D5): a Fermenting vessel answers
+ * The hydrometer's read (fermentation D5): a Maturing vessel answers
  * its batch's SPECIFIC GRAVITY — `1 + remaining sugar × 0.0004`, the
  * pure derived number D4's experiment plots (no gauge, no ambient UI;
  * the number costs the instrument and the trip to the cellar). Any
@@ -71,7 +71,7 @@ export default class MeasureDensityController extends CommandController<MeasureD
     }
 
     let gravity: number;
-    if (MixinApi.isFermenting(target)) {
+    if (MixinApi.isMaturing(target)) {
       gravity = target.getGravity();
     } else {
       const material = target.getBulkMaterial('interior');

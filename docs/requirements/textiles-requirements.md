@@ -241,7 +241,7 @@ cultivation is farming's mechanism; textiles' begins at the retting pit.
 | `measure` | the fitting — a **stanza** on the shipped `measure` view (P18) | tailoring |
 
 Break, scutch and hackle are three motions with one decision; they fold
-into `scutch`. **Retting needs no verb** — `FermentingMixin` already runs
+into `scutch`. **Retting needs no verb** — `MaturingMixin` already runs
 that clock; put flax in water, judge the moment, take it out.
 
 ⚠⚠ **CORRECTED 2026-09-02 — `full` does not ship.** Fulling works because
@@ -631,7 +631,7 @@ leatherwork's faucet) · [farming-slate](../slates/builds/farming-slate.md)
 [weather.md](../subsystems/weather.md) ·
 [husbandry.md](../subsystems/husbandry.md) ·
 [smallholding.md](../subsystems/smallholding.md) ·
-[fermentation.md](../subsystems/fermentation.md) ·
+[maturation.md](../subsystems/maturation.md) ·
 [concealment.md](../subsystems/concealment.md) ·
 [perception.md](../subsystems/perception.md) ·
 [card-surface.md](../subsystems/card-surface.md) ·

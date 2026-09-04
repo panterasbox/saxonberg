@@ -3,10 +3,11 @@
 # which is what sparkling IS. `sealedOnly` — an open vessel does
 # nothing; carbonation is a material-level fact the ferment produces
 # (D11: no kernel code may test how it got fizzy).
-class: /platform/idea/ferment/FermentProfile
+class: /platform/idea/maturation/MaturationProfile
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: sparkling-conditioning
+  mechanism: microbial
   inputCategory: white
   sealedOnly: true
   stallBelowK: 281

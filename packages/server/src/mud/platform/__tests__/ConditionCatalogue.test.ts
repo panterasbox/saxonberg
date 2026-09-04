@@ -1,6 +1,6 @@
 /**
  * ConditionCatalogue — the self-warming condition roster (the boot()-
- * retirement shape, FermentProfileCatalogue precedent).
+ * retirement shape, MaturationProfileCatalogue precedent).
  *
  * ## The bug the warm closes, and why it survived
  *

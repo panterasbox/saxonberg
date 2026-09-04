@@ -53,7 +53,7 @@ boot:
   - { template: /compact/executive, role: producer, reason: "appoint, the publish path and every organization-held title resolve it by templatePath" }
   - { template: /platform/idea/PressBoard, role: producer, reason: the news-ticker window warms from the release documents at postRegister, dependsOn: [/compact/press, /compact/executive] }
   - { template: /platform/idea/DisciplineCatalogue, role: sync-read, reason: the advancement Catalog's descriptor cache }
-  - { template: /platform/idea/FermentProfileCatalogue, role: sync-read, reason: "stands the ferment-profile roster up for the vat reconcile's sync match (the reference-Ideas-inert-at-boot rule, self-warming — no Api.boot)" }
+  - { template: /platform/idea/MaturationProfileCatalogue, role: sync-read, reason: "stands the maturation-profile roster up for the vat reconcile's sync match (the reference-Ideas-inert-at-boot rule, self-warming — no Api.boot)" }
   - { template: /platform/idea/CorpoCatalogue, role: sync-read, reason: the corpo/brand descriptor caches CorpoApi reads }
   - { template: /platform/idea/GovernmentCatalogue, role: sync-read, reason: the diegetic-government roster GovernmentApi reads }
   - { template: /platform/idea/SpellCatalogue, role: sync-read, reason: the authored spell roster MagicApi reads; validates every effect at postRegister }

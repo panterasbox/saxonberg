@@ -6,7 +6,7 @@
  * speak of**, and that is the finding worth recording: retting is a slow
  * bacterial ferment, so the engine that models a wine models this
  * unchanged. Put the straw in water, judge the moment, take it out —
- * `FermentingMixin` already runs that clock, so preparation ships with
+ * `MaturingMixin` already runs that clock, so preparation ships with
  * **zero verbs**.
  *
  * ⚠ It is `open` and unsealed, because a pit is. That matters: the

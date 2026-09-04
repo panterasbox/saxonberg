@@ -13,7 +13,7 @@
  * The change in air is real, it is the most striking moment in the
  * chain, and it is **free** — it is simply what indigo does.
  *
- * ⭐⭐ **The vat is fermentation-shaped, so `FermentingMixin` models it —
+ * ⭐⭐ **The vat is fermentation-shaped, so `MaturingMixin` models it —
  * and the honest version is therefore a LIVING thing.** It is kept by
  * feeding it, killed by too much oxygen or the wrong pH, and takes days
  * to bring back. **The dyer's most valuable possession, and the thing

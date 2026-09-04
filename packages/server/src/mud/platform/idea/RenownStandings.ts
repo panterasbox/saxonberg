@@ -1,6 +1,6 @@
 /**
  * RenownStandings — the self-warming home of the renown standing aggregate — the measured, signed 'quality' half of consumer influence
- * (the FermentProfileCatalogue shape; the boot()-retirement direction:
+ * (the MaturationProfileCatalogue shape; the boot()-retirement direction:
  * an operator-shaped warm does not belong on a consumer Api).
  *
  * `postRegister` warms the materialized aggregate read-cache

@@ -24,7 +24,7 @@ designed one) · substrates:
 the heat gate, `BulkPayload`) · [thermal](../../subsystems/thermal.md) ·
 [fire](../../subsystems/fire.md) ·
 [metabolism](../../subsystems/metabolism.md) (the ingest rung, meal
-chemistry) · [fermentation](../../subsystems/fermentation.md) (dough is a
+chemistry) · [fermentation](../../subsystems/maturation.md) (dough is a
 ferment — the baker's future substrate) ·
 [uncertainty.md](../../uncertainty.md) (the abstraction law, applied twice
 below).
@@ -152,7 +152,7 @@ cooking's to build. Cooking's stake once the tap flows:
   butter/ghee as the honest science of raising the smoke point by
   removing the milk solids that burn.
 - **Cheese and yogurt are ferments** — cultures, strains, cellar
-  aging: `FermentingMixin`, the third time this design reaches for
+  aging: `MaturingMixin`, the third time this design reaches for
   it. Cheese IS preservation (milk you can keep — acidity + a_w +
   cultures, hurdle stacking), so cheesemaking sits at the
   **fermentation/victualler junction**; cooking consumes it as an
@@ -255,7 +255,7 @@ check: **jam stays the victualler's** — sugar as *preservation intent*
 (the a_w lever applied to fruit); candy is sugar as *the product* —
 same physics term, different trade purpose, no new rule. Two notes held
 for that pack: leavening is literally a ferment, so a proofing dough
-rides `FermentingMixin` (cultures, strains — all shipped, a reuse not a
+rides `MaturingMixin` (cultures, strains — all shipped, a reuse not a
 mechanism); and an oven is just the dry method with low variance, so the
 method vocabulary below carries baking without extension.
 
@@ -772,7 +772,7 @@ sinks):
    its demand, the trade geography wakes.
 4. **The baker pack** — its own cycle: mill chain upstream, dough-as-
    ferment, staling as the goods clock.
-5. **The tending wave** — durative cooking (the `FermentingMixin` shape
+5. **The tending wave** — durative cooking (the `MaturingMixin` shape
    applied to the pot), `maxHeatK` scorching, doneness, combination
    methods (braise), the skill seam crafting.md already declares next,
    and free cooking. The abstraction law licenses one-shot `cook` until

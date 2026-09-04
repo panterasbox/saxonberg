@@ -1,16 +1,45 @@
-# Fermentation — the durative transform
+# Maturation — the durative transform
 
 **The liquid leg's kernel** (fermentation build, 2026-09-01): a batch
-converts over game-time under conditions. *Growth accretes,
-fermentation converts* — the husbandry SHAPE (reconcile lazily on
-read, staged, no far-past guard, no linkdead freeze) with a different
-equation: the mass is already present and what changes is what it IS.
+converts over game-time under conditions. *Growth accretes, maturation
+converts* — the husbandry SHAPE (reconcile lazily on read, staged, no
+far-past guard, no linkdead freeze) with a different equation: the mass
+is already present and what changes is what it IS.
 
-Kernel: `lib/ferment/` (`Fermenting.ts`, `FermentProfile.ts`),
-`platform/idea/ferment/FermentProfile` (the instanceable concrete —
+## ⭐⭐ It is MATURATION, and fermentation is one mechanism of it
+
+It shipped as `FermentingMixin` and was renamed once the substrate
+outgrew the name. The shape is *put it somewhere, time and conditions
+transform it, judge when to stop* — and fermentation is one mechanism
+with that shape, not the only one. Flax **retting** joined it (genuinely
+fermentation: pectinolytic bacteria digesting the pectin that glues bast
+fibre to the woody core) and so did **grass-bleaching linen**, which is
+not fermentation at all but photochemistry.
+
+⚠⚠ **A data model that asserts a false mechanism is a defect on a
+platform that teaches**, and this one asserted it in prose too: the
+sensory augmenter was written for a wine cellar and never asked who else
+composed the mixin, so a bleaching green — an acre of grass with linen
+pegged out in the sun — rendered *"It bubbles steadily, a yeasty breath
+rising off it."* A retting pit, whose entire authored character is that
+the smell arrives a second before you do, reported when finished that
+*"the air over it is clean."*
+
+⭐ So a profile now declares its **`mechanism`** — `microbial ·
+photochemical · chemical`, a closed vocabulary — and the prose reads it.
+Same move `Dyestuff.chemistry` already makes: one substrate, two
+chemistries, the DATA says which. **Nothing in the clock branches on
+it**; it steers only what the thing looks like while it works.
+
+⚠ Names that stayed: `getFractionConverted`, `batchStrain`, the `turned`
+phase. They are mechanism-neutral or belong to the microbial case, and
+renaming them would have been churn without a claim behind it.
+
+Kernel: `lib/maturation/` (`Maturing.ts`, `MaturationProfile.ts`),
+`platform/idea/maturation/MaturationProfile` (the instanceable concrete —
 the Material split), `platform/thing/Vat` (the one concrete every
-trade's vessel rows name), `platform/idea/FermentProfileCatalogue`
-(the self-warming roster — **no FermentApi**: the queries are statics
+trade's vessel rows name), `platform/idea/MaturationProfileCatalogue`
+(the self-warming roster — **no MaturationApi**: the queries are statics
 on the owning class, and an operator-shaped warm does not belong on a
 consumer Api). Zero new verbs: crush/mash/distil are
 recipes `order`ed off unpriced work boards (the kitchen-menu shape);
@@ -18,7 +47,7 @@ rack = `pour`, seal = `close`, bottle = `fill`, pitch/feed = `pour`.
 
 ## The transform rides the VESSEL (D2)
 
-`FermentingMixin` composes on a Bulkable host (composition-validated)
+`MaturingMixin` composes on a Bulkable host (composition-validated)
 — bulk matter has no identity, vessels do (the pot-as-bed precedent).
 `Vat` = `Fermenting(Crafted(Sealable(Thermal(Bulkable(Detailed(Thing))))))`;
 a carboy, a conditioning bottle and the cask are ROWS over it (sizes
@@ -33,7 +62,7 @@ payload rule).
 
 ## Profiles are the whole authoring surface (D1/D4)
 
-`FermentProfile` rows (any root's `idea/ferment/` subtree; matched by
+`MaturationProfile` rows (any root's `idea/maturation/` subtree; matched by
 the must's material TAGS against `inputCategory`; a double match is a
 warned authoring error resolved by lowest key — never a roll):
 temperature band (`stallBelowK`/`happyK`/`damageAboveK`), `ratePerDay`,
@@ -49,11 +78,11 @@ and the INERT `foreshotCharacter` (P10 — the deferred cuts rung's
 seam). **A new drink is rows alone** — proven by the cider test
 (`world/__tests__/fermentation-cider.test.ts`).
 
-`FermentProfileCatalogue.postRegister` stands the roster up, eager via
+`MaturationProfileCatalogue.postRegister` stands the roster up, eager via
 the platform pack's `boot:` manifest (`sync-read`) — the
 reference-Ideas-inert-at-boot rule, self-warming (the
 Discipline/Recipe catalogue shape rather than an `Api.boot()`
-sequencer line). `FermentProfile.forMaterial`/`.byKey`/`.all` read the
+sequencer line). `MaturationProfile.forMaterial`/`.byKey`/`.all` read the
 live population (the `everyMaterial` shape, no cache — statics on the
 owning class, no Api).
 
@@ -185,7 +214,7 @@ the analysis instead of rediscovering it:
   residual swaps to curd — no new mechanism; whey rides the P11
   byproduct economy (ricotta over it, feed); pressing a wheel is a
   recipe. **The gap: ripening a DISCRETE thing.** A wheel is a Crafted
-  Thing, and `FermentingMixin` requires a Bulkable interior — months in
+  Thing, and `MaturingMixin` requires a Bulkable interior — months in
   a cave has no mechanism (note whiskey does NOT share this gap: it
   ages as bulk in a Vat-family cask, a future aging profile). Aged
   cheese + cured meats are the follow-on build's question.
@@ -201,11 +230,11 @@ the analysis instead of rediscovering it:
 
 ## File map
 
-- `lib/ferment/Fermenting.ts` — the mixin: reconcile, batch detection,
+- `lib/maturation/Fermenting.ts` — the mixin: reconcile, batch detection,
   strain/culture/lees, the cellar air, the sensory augmenter
-- `lib/ferment/FermentProfile.ts` (+ the query statics) →
-  `platform/idea/ferment/FermentProfile`
-- `platform/idea/FermentProfileCatalogue.ts` (the roster's
+- `lib/maturation/MaturationProfile.ts` (+ the query statics) →
+  `platform/idea/maturation/MaturationProfile`
+- `platform/idea/MaturationProfileCatalogue.ts` (the roster's
   self-warming boot home; platform pack row + `boot:` entry)
 - `platform/thing/Vat.ts` — the concrete; seal/move window events
 - `platform/idea/api/BulkableLogic.ts` — `carryBatchIdentity` +
@@ -213,7 +242,7 @@ the analysis instead of rediscovering it:
 - `lib/behavior/cellars.ts` (+ `__tests__/`) — the producer beats
 - `platform/thing/instrument/Hydrometer.ts` +
   `platform/idea/cmd/perception/MeasureDensityController.ts`
-- Tests: `lib/ferment/__tests__/` (the transform, yeast),
+- Tests: `lib/maturation/__tests__/` (the transform, yeast),
   `world/__tests__/fermentation-{brewing,distilling,cider}.test.ts`
   (real rows), `lib/bulk/__tests__/GradeCarry.test.ts` (the seam)
 

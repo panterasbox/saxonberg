@@ -424,7 +424,7 @@ convenience instead of an investment.
 ---
 
 ⭐ **Preparation and finishing ship with ZERO verbs.**
-`FermentingMixin` runs the retting pit's clock and the bleaching green
+`MaturingMixin` runs the retting pit's clock and the bleaching green
 is the same shape applied to weather. What you do is judge the moment.
 
 ### ⚠ The two stage names that are not stage names
@@ -436,7 +436,7 @@ is the same shape applied to weather. What you do is judge the moment.
 
 Nothing in `trade-textiles` treats "retting" or "fulling" as the name of
 a stage. Wool scours, cotton gins, silk reels, a synthetic extrudes —
-each arrives later as its own `FermentProfile` over its own material,
+each arrives later as its own `MaturationProfile` over its own material,
 and the pack does not change.
 
 ### ⭐ Three seams cut so the ladder stays open
@@ -577,5 +577,5 @@ contradicting Kell, not extending it.
 [concealment.md](./concealment.md) · [stealth.md](./stealth.md) ·
 [magic-items.md](./magic-items.md) · [crafting.md](./crafting.md) ·
 [race.md](./race.md) · [encumbrance.md](./encumbrance.md) ·
-[fermentation.md](./fermentation.md) ·
+[maturation.md](./maturation.md) ·
 [content-packs.md](./content-packs.md)

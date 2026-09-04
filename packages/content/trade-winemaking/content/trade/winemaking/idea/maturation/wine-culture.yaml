@@ -2,10 +2,11 @@
 # over ~12 unfed days at room temperature, slower in the cellar, faster
 # on a warm shelf; feeding (a pour of must) restores it; above 310 K it
 # dies — the hot-pitch death, and why pasteurization works.
-class: /platform/idea/ferment/FermentProfile
+class: /platform/idea/maturation/MaturationProfile
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: wine-culture
+  mechanism: microbial
   kind: culture
   strain: wine-yeast
   inputCategory: wine-lees
