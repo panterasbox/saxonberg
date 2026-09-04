@@ -16,7 +16,11 @@ coverage/
 .next/
 out/
 *.tsbuildinfo
-.claude/
+# .claude/ — the process skills and agents are TRACKED (they are load-bearing
+# workflow docs); everything else under it stays local.
+.claude/*
+!.claude/skills/
+!.claude/agents/
 .mcp.json
 .eslintcache
 

@@ -78,12 +78,19 @@ behavior. Read the relevant doc before editing in its area.
   (deploy-time materialization, local stays `.env`), cost model, the
   AWS cleanup record, and the one-time standup runbook
 - [docs/workflow.md](./docs/workflow.md) — feature-cycle process:
-  slate → requirements → plan → build → MR iteration → pre-merge
-  sweep → merge. Defines the artifact taxonomy
+  slate → requirements → plan → build → review → pre-merge sweep →
+  merge. Defines the artifact taxonomy
   (slate/requirements/plan/subsystem), their lifetimes, and the
-  retirement rules at sweep time. Skills under `.claude/skills/`
-  (`/requirements`, `/mr-iterate`, `/finalize`) are thin entry
-  points to phases of this loop.
+  retirement rules at sweep time. ⭐ **The line: requirements = what
+  the PRODUCT needs, plan = what the CODE needs** — if a requirements
+  sentence names a class, a file or a method, it is in the wrong doc.
+  ⭐⭐ **The build phase's exit criterion is the DRIVE** (run the
+  requirements doc's drive script against the running game before the
+  MR opens — tests build state, they never use it). Planning runs on
+  **Fable** (the `planner` agent). Skills + agents are **tracked** at
+  `.claude/skills/` + `.claude/agents/` (`/requirements`, `/plan`,
+  `/finalize`; `/mr-iterate` retired 2026-09-03 — review is a
+  conversation).
 - [docs/settlement-model.md](./docs/settlement-model.md) — the
   settlement model: the **sixteen needs** every town must meet or import
   (which are also the archetype list), the site-driven vs exit-driven
