@@ -577,9 +577,38 @@ W1.
 **Exit gate:** a short delta note appended to this plan. **Any deviation
 that changes a P-decision is surfaced to the user before W1 starts.**
 
+### ✅ W0 done — the delta note
+
+Branch `build/logistics` off `design/logistics`, `origin/master` merged
+in (54 commits: cooking, food-safety and the `trade-hearth-cooking` →
+`trade-cooking` rename). Baseline: 25/25 lint gates green, `test:near`
+green.
+
+**Grounding re-verified on the merged tree — everything in § Grounding
+still holds.** Specifically: `Archetype.materialize(): Promise<Stuff &
+Container>` and `satisfies(space | space[])` unchanged, `VENUE_PATH` still
+the one binding to rooms; `Exit` has **no** duration field of any kind;
+`MobileMixin`'s only composer is still `Character`; `Condition` still
+refuses `Globbable` and `CONDITION_TEMPLATES` is still `["delivery"]`;
+36 packs.
+
+**Three deltas, none touching a P-decision:**
+
+1. ⚠ `pnpm install` after the merge — the `trade-hearth-cooking` →
+   `trade-cooking` rename left a stale `node_modules`-only directory
+   under `packages/content/`. Removed. (The standing rule: a pack
+   rename means `pnpm install`, or every pack suite fails at collection
+   with what reads like a repo defect.)
+2. `platform/thing/Prop.ts` became `platform/thing/Thing.ts` on master —
+   noted because the plan's file inventory says `platform/thing/Prop`.
+   Nothing in this build names it.
+3. Two **pre-existing** typecheck errors in content packs
+   (`arcana/src/lib/ManaPowered.ts:402`, `tpa`'s
+   `RegisterController.test.ts:161`). Not this build's, not touched.
+
 ---
 
-## Wave W1 — Kernel substrate A: the edge, and the honest teleport
+## ✅ Wave W1 — Kernel substrate A: the edge, and the honest teleport
 
 **Lands:** the one number a road needs, and the D14 defect fixed.
 
@@ -618,6 +647,38 @@ teleporting carries its rider; worn gear and pack still come along;
 **Exit gate:** `test:near`; `lib/spatial`, `lib/boundary`, `lib/slot`,
 `platform/thing/equipment` suites green; `lint:field-meta`, `lint:gates`,
 `lint:object-verbs`, `lint:imports` green. **AC18 is met and stays met.**
+
+### ✅ W1 done
+
+Shipped as planned. `test:near` 356/356, the four suites 523/523, 25/25
+lint gates.
+
+**Three decisions the plan left open, and what decided them:**
+
+1. ⭐ **`teleportBlockedBy()` is a public method on `Mobile`, not a
+   controller-private check.** Three verbs need the same answer
+   (`teleport`'s free-move fork, its ride fork, the wizard `goto` —
+   twice, for self and `--subject`), and a shared free function is
+   banned by CLAUDE.md's export discipline. *Verbs go on objects*
+   decided it: "what am I attached to?" is a question about the mover.
+   `teleport()` itself now asks the same method, so the pre-check and
+   the enforcement can never disagree.
+2. ⚠ **`goto --force` refuses too.** The plan said the wizard path
+   refuses; it did not say whether `--force` is an exemption. It is
+   not — `goto`'s raw fallback is exactly the code path that produced
+   the defect, and *an honest wizard path is the point of the fix*
+   (`resilience-posture`: friction and daylight, not a back door).
+3. **`edgeMinutes` rides the ONE-WAY exit path only**, alongside `media`
+   and `wheelPassable`, which is the shipped precedent and also the path
+   corridors actually use: the `valley-road` exemplar authors both sides
+   of every edge explicitly, so each side carries its own budget. The
+   bidirectional convenience path wires none of the three.
+
+**Surprise:** `Exit.bind` is participant-gated (`FromMixin(Exitable)` +
+a party-to-the-edge `where`), so a test module cannot call it. The
+delta-aware-bind assertion therefore lives in `ExitKind.test.ts`, which
+already has the kind-template + `applyExits` harness — the honest place
+for it anyway.
 
 ---
 

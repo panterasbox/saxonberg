@@ -79,6 +79,22 @@ export default class TeleportController extends CommandController<TeleportModel>
   async execute(model: TeleportModel, context: CommandContext): Promise<void> {
     const giver: Stuff = context.commandGiver;
 
+    // 0 · D14 — refuse what you are ATTACHED to, and name it, BEFORE any
+    //     fork spends anything. A bare `teleport` still renders the
+    //     board: reading a timetable is not travelling.
+    const wantsToMove = !!(model.destination?.raw || model.destination?.stuff);
+    if (wantsToMove && MixinApi.isMobile(giver)) {
+      const blocked = giver.teleportBlockedBy();
+      if (blocked) {
+        return this.fail(
+          context,
+          `you are attached to ${blocked} — unhitch or dismount first; ` +
+            `nothing here will carry it for you`,
+          'attached',
+        );
+      }
+    }
+
     // 1 · Free movement inside an extent you hold AUTHORIAL AUTHORITY
     //     over (D11). Needs a named destination — a bare `teleport` is
     //     always a request to read a board.

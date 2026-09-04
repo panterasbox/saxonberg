@@ -327,6 +327,20 @@ export const AppSettingKeys = {
   contractBreachRegardPenalty: "contract.breachRegardPenalty",
 
   /**
+   * Transport — game minutes for one baseline (unloaded, walk-mode)
+   * traverse of an edge whose `Exit.edgeMinutes` is null. ⚠ Nothing in
+   * the kernel reads it: ordinary movement stays instantaneous, and only
+   * the transport pack's Journey spends it.
+   */
+  transportDefaultEdgeMinutes: "transport.defaultEdgeMinutes",
+  /**
+   * Transport — the beat-interval multiplier for a rig loaded to
+   * capacity (1.0 empty, interpolated on the load fraction). The one
+   * dial that makes a heavy wagon genuinely slower.
+   */
+  transportLoadFactorAtCapacity: "transport.loadFactorAtCapacity",
+
+  /**
    * Attendant — the lease anti-grief sweep cadence (real-time ms). Griefing
    * is a real-time act, so the watchdog is real-time (the residency sweep
    * pattern), not game-time. See docs/subsystems/attendant.md.

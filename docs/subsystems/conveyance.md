@@ -228,27 +228,40 @@ surfaces at move time. Validators `mustBeHaulable` / `mustBeHauler`.
 - **Multi-actor coordination** (sailboat with crew) — beyond
   Drivable; activity-slate territory.
 
-### ⚠ Known defect: `teleport` does not ripple
+### `teleport` ripples what is on you and refuses what you are attached to
 
-**The conveyance ripple and the haulage tow both live in
-`Mobile.traverse` only.** `Mobile.teleport` is a bare
-`ContainmentApi.move` plus narration, so today:
-
-- **teleport while mounted → the mount stays behind**;
-- **teleport while hitched → the cart stays behind**, silently.
-
-This is an **oversight, not a policy** (surfaced 2026-07-31 by the
-"can freight ride the TPA?" question — see
+**The rule** (logistics D14, shipped 2026-09-03; surfaced 2026-07-31 by
+the "can freight ride the TPA?" question — see
 [freight-slate](../slates/builds/freight-slate.md) § *The TPA
-question*). The intended rule:
+question*):
 
 > **Teleport ripples what is *on* you and refuses what you are
 > *attached to* — and says why.**
 
-Worn gear and carried contents come along (otherwise teleport strips
-the traveller); being **mounted or hitched refuses the ride** with an
-honest message, per the enforcement slate's wall-mode-honesty rail.
-**Silent failure is the part to kill.**
+Three parts, all in `Mobile`:
+
+| | |
+|---|---|
+| **contents come along** | worn gear and a carried pack are *inside* the mover, so the move carries them — otherwise teleport would strip the traveller |
+| **slot occupants ripple** | a mount teleporting brings its rider. The `traverse` ripple's own shape: walk the immediate slot level, `seen`-deduped, `ContainmentApi.move` each occupant |
+| ⭐ **couplings REFUSE** | a **hitched** hauler and a **mounted** rider are coupled by a live-ref pair, not by containment. `Mobile.teleport` throws `TeleportRefused`, whose `blockedBy` names the cart or the mount |
+
+The question *"what am I attached to?"* is
+`Mobile.teleportBlockedBy(): string | null` — on the object, because it
+is a question about the mover, and because three verbs need the same
+answer. `teleport`'s free-move and ride forks and the wizard `goto` all
+pre-check it and emit a `controller-rejected` note with reason
+`attached`, so the throw is reserved for programmatic callers (the
+`ContainmentApi.move` convention).
+
+⚠ **The wizard `goto` refuses too, `--force` included.** An honest
+wizard path is the point of the fix rather than an exemption from it:
+`goto`'s raw fallback would separate a rider from a mount exactly as
+the defect did. Unhitch or dismount.
+
+**Silent failure was the part that got killed.** Before this,
+`Mobile.teleport` was a bare `ContainmentApi.move` plus narration: the
+rider arrived and the horse was simply gone, with nothing said.
 
 Note that this is a *ripple* defect only — it is **not** what keeps
 vehicles off the TPA network. Two independent gates already do that:

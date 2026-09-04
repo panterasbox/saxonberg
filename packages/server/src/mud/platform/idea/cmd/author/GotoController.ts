@@ -81,6 +81,21 @@ export default class GotoController extends CommandController<GotoModel> {
       );
     }
 
+    // D14 — the wizard path refuses too. An honest wizard path IS the
+    // point of the fix: the raw fallback below would move the rider and
+    // leave the horse exactly as the defect did, and `--force` is not an
+    // exemption from physics the author can see. Unhitch or dismount.
+    if (MixinApi.isMobile(giver)) {
+      const blocked = giver.teleportBlockedBy();
+      if (blocked) {
+        return this.fail(
+          context,
+          'attached',
+          `attached to ${blocked} — unhitch or dismount first`,
+        );
+      }
+    }
+
     // 1. Polished path.
     if (MixinApi.isMobile(giver)) {
       try {
@@ -142,6 +157,18 @@ export default class GotoController extends CommandController<GotoModel> {
     const veto = callTeleportHook(subject, dest);
     if (!model.force && veto && !veto.ok) {
       return this.fail(context, 'vetoed', `canTeleport veto: ${veto.reason}`);
+    }
+
+    if (MixinApi.isMobile(subject)) {
+      const blocked = subject.teleportBlockedBy();
+      if (blocked) {
+        return this.fail(
+          context,
+          'attached',
+          `${subject.getPresentation()} is attached to ${blocked} — ` +
+            `unhitch or dismount it first`,
+        );
+      }
     }
 
     const subjectName = subject.getPresentation();

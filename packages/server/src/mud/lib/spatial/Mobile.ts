@@ -67,6 +67,7 @@ import { ShellApi } from '../../api/shell';
 export interface Mobile {
   traverse(exit: Exit, mode: string): Promise<void>;
   teleport(destination: Stuff & Container, opts?: TeleportOptions): void;
+  teleportBlockedBy(): string | null;
   announceDeparture(from: Stuff & Container, exit?: Exit): void;
   announceArrival(to: Stuff & Container, exit?: Exit): void;
   /**
@@ -132,6 +133,28 @@ export interface Mobile {
  */
 export interface TeleportOptions {
   silent?: boolean;
+}
+
+/**
+ * Thrown by {@link Mobile.teleport} when the mover is ATTACHED to
+ * something a teleport cannot carry — hitched to a cart, or sitting in
+ * another host's mount slot.
+ *
+ * ⭐ The point of the type is the `blockedBy` phrase: the defect this
+ * replaced moved the rider and left the horse, silently. *Ripple what is
+ * ON you; refuse what you are ATTACHED to, and say what blocked it.*
+ * Programmatic contract violations throw (the `ContainmentApi.move`
+ * convention); the player-facing verbs pre-check and emit a
+ * `controller-rejected` note instead of letting this surface.
+ */
+export class TeleportRefused extends Error {
+  /** Presentation phrase for whatever blocked the ride. */
+  public readonly blockedBy: string;
+  constructor(message: string, blockedBy: string) {
+    super(message);
+    this.name = 'TeleportRefused';
+    this.blockedBy = blockedBy;
+  }
 }
 
 /**
@@ -564,13 +587,58 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
      * "appearing out of thin air" before a player has even seen the
      * location.
      */
+    /**
+     * D14 — what this mover is *attached* to such that a teleport would
+     * silently separate them, as a presentation phrase; `null` when the
+     * ride is clean.
+     *
+     * On the object rather than in a controller because it is a
+     * question about the mover, and because three verbs need the same
+     * answer: `teleport`'s free-move and ride forks, and the wizard
+     * `goto`. ⚠ The wizard path refuses too — an honest wizard path is
+     * the point of the fix, not an exemption from it.
+     */
+    teleportBlockedBy(): string | null {
+      return teleportBlocker(this as unknown as Stuff);
+    }
+
     teleport(destination: Stuff & Container, opts?: TeleportOptions): void {
       const silent = opts?.silent ?? false;
+      const self = this as unknown as Stuff;
+      // D14 — refuse what you are ATTACHED to, and name it. A hitched
+      // hauler and a mounted rider are both *coupled*: the coupling is a
+      // live ref that a silent one-sided move would leave dangling at
+      // one end and lying at the other. The mover finds out here rather
+      // than the horse finding out never.
+      const blocker = this.teleportBlockedBy();
+      if (blocker) {
+        throw new TeleportRefused(
+          `Mobile.teleport: cannot teleport while attached to ${blocker}`,
+          blocker
+        );
+      }
       const previous = (this as unknown as Containable).getContainer();
       if (!silent && previous) {
         this.announceDeparture(previous, undefined);
       }
       ContainmentApi.move(this as unknown as Stuff & Containable, destination);
+      // D14 — ripple what is ON you. The `traverse` ripple's own shape:
+      // walk the immediate slot level, `seen`-deduped, and carry each
+      // occupant. Worn gear and a pack are contents and came along with
+      // the move itself; a mount's rider and a saddlebag are slot
+      // occupants and would otherwise have been left standing.
+      if (MixinApi.isSlotted(self)) {
+        const seen = new Set<Stuff>();
+        for (const [, occupants] of self.getAllOccupants().entries()) {
+          for (const occupant of occupants) {
+            if (seen.has(occupant)) continue;
+            seen.add(occupant);
+            if (MixinApi.isContainable(occupant)) {
+              ContainmentApi.move(occupant, destination);
+            }
+          }
+        }
+      }
       if (!silent) {
         this.announceArrival(destination, undefined);
         // Auto-sense on arrival, same as `traverse`. Fire-and-forget
@@ -579,8 +647,7 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
         void this.autoSenseOnArrival().catch(() => {});
         this.autoIntroduceOnArrival();
       }
-      const mover = this as unknown as Stuff;
-      if (MixinApi.isHasInteractive(mover)) mover.refreshDisplays();
+      if (MixinApi.isHasInteractive(self)) self.refreshDisplays();
     }
 
     /**
@@ -918,3 +985,27 @@ function assertVeto(result: VetoResult | undefined, hookName: string): void {
   );
 }
 
+
+/**
+ * D14 — what, if anything, this mover is *attached* to such that a
+ * teleport would silently separate them. Returns a presentation phrase
+ * for the blocker, or `null` when the ride is clean.
+ *
+ * Two couplings exist, and both are live-ref pairs rather than
+ * containment: the haulage hitch (`Hauler._hauledCart` ↔
+ * `Haulable._hauledBy`) and a mount slot (the rider occupies a slot on
+ * the mount). Contents — worn gear, a pack — are NOT couplings and come
+ * along with the move; slot occupants ON the mover are rippled.
+ */
+function teleportBlocker(mover: Stuff): string | null {
+  if (MixinApi.isHauling(mover) && mover.isHitched()) {
+    const cart = mover.getHauledCart();
+    return cart ? cart.getPresentation() : 'a hitched cart';
+  }
+  if (MixinApi.isSlottable(mover)) {
+    for (const [host] of mover.occupiedSlots().entries()) {
+      return host.getPresentation();
+    }
+  }
+  return null;
+}

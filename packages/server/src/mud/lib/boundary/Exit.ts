@@ -152,6 +152,24 @@ export interface ExitOptions {
    * haulage terrain gate in `LocomotionApi.canTraverseExit`.
    */
   wheelPassable?: boolean;
+  /**
+   * Game minutes for ONE baseline traverse of this edge — unloaded, in
+   * walk mode. `null` (the default) means *use the corridor default*,
+   * the `transport.defaultEdgeMinutes` AppSetting.
+   *
+   * ⚠ **Nothing in the kernel reads this.** `go north` stays
+   * instantaneous, and it must: a duration on ordinary movement would
+   * put a real-time toll on every step in the game. It exists for the
+   * transport system's Journey, which spends it as
+   * `edgeMinutes × modeFactor(mode) × loadFactor(rig)`.
+   *
+   * ⭐ It is authored per EDGE rather than derived from `coords`
+   * distance, because **length here is an event budget, not a metric**:
+   * a lonely stretch is few rooms and long edges, and coordinates are
+   * grid membership rather than a distance. See
+   * [docs/subsystems/logistics.md].
+   */
+  edgeMinutes?: number | null;
 }
 
 /**
@@ -197,6 +215,7 @@ export default class Exit extends ConcealableMixin(Idea) {
     messageOut: { persistent: true },
     media: { persistent: true },
     wheelPassable: { persistent: true },
+    _edgeMinutes: { persistent: true },
     blocked: { persistent: true },
     muffled: { persistent: true },
     noFollow: { persistent: true },
@@ -455,6 +474,27 @@ export default class Exit extends ConcealableMixin(Idea) {
   }
 
   /**
+   * Game minutes for one baseline (unloaded, walk-mode) traverse of
+   * this edge; `null` → the `transport.defaultEdgeMinutes` corridor
+   * default. Read by the transport pack's Journey and by nothing in the
+   * kernel — see the `edgeMinutes` option's note.
+   */
+  protected _edgeMinutes: number | null = null;
+
+  public getEdgeMinutes(): number | null {
+    return this._edgeMinutes;
+  }
+  public setEdgeMinutes(value: number | null): void {
+    if (value !== null && (!Number.isFinite(value) || value < 0)) {
+      throw new TypeError(
+        'Exit.setEdgeMinutes: expected a non-negative number or null, ' +
+          `got ${String(value)}`
+      );
+    }
+    this._edgeMinutes = value;
+  }
+
+  /**
    * True iff a mode named `modeName` is admitted by this exit. Resolution:
    *   - Empty `media` → legacy default; admits only `'walk'`. Preserves
    *     pre-refactor behavior for exits constructed without an explicit
@@ -583,6 +623,7 @@ export default class Exit extends ConcealableMixin(Idea) {
     // default preserves backcompat for callers that don't pass it.
     this.setMedia(opts.media ?? []);
     this._wheelPassable = opts.wheelPassable ?? true;
+    this.setEdgeMinutes(opts.edgeMinutes ?? null);
   }
 
   /**
@@ -665,6 +706,9 @@ export default class Exit extends ConcealableMixin(Idea) {
     if (opts.media !== undefined) this.setMedia(opts.media);
     if (opts.wheelPassable !== undefined) {
       this._wheelPassable = opts.wheelPassable;
+    }
+    if (opts.edgeMinutes !== undefined) {
+      this.setEdgeMinutes(opts.edgeMinutes);
     }
   }
 

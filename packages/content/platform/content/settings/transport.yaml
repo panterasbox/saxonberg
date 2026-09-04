@@ -1,0 +1,21 @@
+# transport — application settings shipped by the platform pack (the
+# `settings` kind: merge-missing — a key the app_settings singleton lacks is
+# merged in; a value the operator changed via `config` is never touched).
+#
+# ⚠ These are the CORRIDOR defaults, not a per-edge number: an edge that
+# wants its own budget carries `edgeMinutes` on the exit. Nothing in the
+# kernel reads either — `go north` stays instantaneous; only the transport
+# system's Journey spends them. See docs/subsystems/logistics.md.
+settings:
+  # Game minutes for one baseline (unloaded, walk-mode) traverse of an edge
+  # that names no `edgeMinutes` of its own. At the 12x clock, five game
+  # minutes is 25 real seconds.
+  - key: transport.defaultEdgeMinutes
+    value: "5"
+
+  # The beat-interval multiplier for a rig loaded to capacity. 1.0 empty ->
+  # this at capacity, interpolated linearly on the load fraction, so a heavy
+  # wagon is genuinely slower and D5's spine table falls out of the per-edge
+  # budgets rather than being asserted.
+  - key: transport.loadFactorAtCapacity
+    value: "1.5"
