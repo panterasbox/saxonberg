@@ -3,7 +3,7 @@
 # is the only way a kitchen gets a fat that is not rendered off an animal,
 # and the two fats have different smoke points, which is what makes the
 # choice between them a real one.
-class: /platform/thing/ToolItem
+class: /trade/cooking/thing/KitchenTool
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a fruit press

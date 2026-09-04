@@ -104,6 +104,18 @@ producers are the harm sources **that know consent**:
 - **The ambush kill needs no new producer** — it routes through combat's
   normal death path with `consented: false` (imposed terms), so crime
   derives through the same ledger.
+- ⭐ **The bad meal** (the food-safety build) — a single `harm` row
+  appended at the ingest (`Metabolic.noteMealAccountability`), on the
+  trap's producer shape verbatim, when a `BulkPayload` carries a `maker`
+  and the maker is **somebody else**. That last clause is the whole point:
+  eating your own risky food is a private gamble; putting it in front of a
+  paying customer is a choice about another person, and without the row
+  the two acts would be indistinguishable. See
+  [spoilage.md](./spoilage.md) and [metabolism.md](./metabolism.md).
+
+  ⚠ The maker rides the **payload**, not the vessel. A dish reaches a body
+  as `(material, litres, payload)` and the eater never sees the bowl, so
+  the vessel's own `CraftedMixin` stamp could not answer for it.
 
 ## Reserved consumers (named, not built)
 

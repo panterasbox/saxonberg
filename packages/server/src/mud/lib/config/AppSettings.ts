@@ -1114,9 +1114,13 @@ export const AppSettingKeys = {
   /** Spoilage — at/above this temperature (K) the flora dies exponentially
    * instead of growing. This is the temperature cooking has to reach. */
   freshnessKillK: "freshness.killK",
-  /** Spoilage — the exponential death rate (per game-hour) above the kill
-   * temperature. */
+  /** Spoilage — the exponential death rate (per game-hour) AT the kill
+   * temperature; it climbs from there (see below). */
   freshnessKillRatePerHour: "freshness.killRatePerHour",
+  /** Spoilage — activation energy (J/mol) of the DEATH curve: what makes
+   * the kill a rate rather than a threshold, so a long hold at a lower heat
+   * and a brief moment at a higher one do the same work. */
+  freshnessKillActivationEnergy: "freshness.killActivationEnergy",
   /** Spoilage — the water activity (a_w) below which nothing grows at all:
    * why salt, sugar, honey and spirits keep, with no shelf-stable flag. */
   freshnessAwFloor: "freshness.awFloor",
@@ -1138,6 +1142,28 @@ export const AppSettingKeys = {
   /** Spoilage — the ptomaine dose (mg) a fully rotten serving carries; the
    * curve between the onset and here is superlinear, never a step. */
   freshnessDoseScaleMg: "freshness.dose.scaleMg",
+
+  /* ────────────────────────── cure (water state) ────────────────────────── */
+  /**
+   * Curing — the per-instance water state (`CuredMixin`): `moisture` and
+   * `solute`, which multiply the Material's tabulated `a_w` into the
+   * effective one the growth law reads. Drying reverses toward the ambient
+   * equilibrium; curing never does. The bands below are PRESENTATION
+   * cutoffs for the cured-state line — never a number a player sees.
+   * See docs/subsystems/spoilage.md.
+   */
+  /** Curing — fraction of the moisture gap a dried thing closes per game-hour. */
+  cureRehydrationPerHour: "cure.rehydrationPerHour",
+  /** Curing — the relative humidity (%) assumed where nothing authors one. */
+  cureAmbientHumidity: "cure.ambientHumidity",
+  /** Curing — moisture at/below which a thing reads thoroughly dried. */
+  cureBandDriedAt: "cure.band.driedAt",
+  /** Curing — moisture below which a thing reads partly dried. */
+  cureBandDryingAt: "cure.band.dryingAt",
+  /** Curing — solute at/above which a thing reads heavily salted. */
+  cureBandCuredAt: "cure.band.curedAt",
+  /** Curing — solute above which a thing reads lightly salted. */
+  cureBandCuringAt: "cure.band.curingAt",
 
   /* ────────────────────────── husbandry (living world phase 1) ────────────────────────── */
   /**

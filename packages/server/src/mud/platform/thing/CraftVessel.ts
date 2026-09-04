@@ -49,6 +49,7 @@ import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { BlendLabel } from '../../lib/metabolism/BlendLabel';
 import { VesselKindMixin } from '../../lib/bulk/VesselKind';
 import { ServiceableMixin } from '../../lib/craft/Serviceable';
+import { ContaminableMixin } from '../../lib/material/Contaminable';
 
 /** Water's numbers — the fallbacks when the ice material authored none. */
 const DEFAULT_MELT_K = 273;
@@ -102,10 +103,19 @@ const SoiledWriters = SecurityPolicies.AnyOf(
 // and still wrong at both ends. Same shape as the spoilage gauge on the
 // generic `Thing`: the fix is a class named for the concept, not a wider
 // base. See `platform/thing/ServingVessel.ts`.
-const CraftVesselBase = ServiceableMixin(
+// ⚠⚠ **A vessel carries TWO loads, and they are different facts.** Its
+// CONTENTS carry their own pathogen loads on the bulk payload; this mixin
+// gives the vessel a SURFACE load as well. A dirty pot and a bad stew are
+// genuinely different things, and only one of them survives emptying the
+// pot — which is exactly why filling a dirty vessel contaminates what goes
+// in, emptying it does not clean it, and washing it clears the surface and
+// never the contents.
+const CraftVesselBase = ContaminableMixin(
+  ServiceableMixin(
   VesselKindMixin(
   CraftedMixin(
     ThermalMixin(BulkableMixin(ContainerMixin(DetailedMixin(Thing)))),
+  ),
   ),
   ),
 );
@@ -163,6 +173,15 @@ export default class CraftVessel extends CraftVesselBase {
     slot.setPayload(null);
     for (const c of [...this.getContents()]) StuffApi.destruct(c);
     this.clearIce();
+    // ⭐⭐ **And the SURFACE.** A vessel carries two loads — what is in it
+    // and what is on it — and only the first goes down the sink with the
+    // dregs. This clearing lived in `WashController` alone for one build,
+    // which meant `wash()` claimed to make a pot clean while leaving
+    // salmonella on it: any other caller (a dishwasher, an NPC's cleanup
+    // brain, a `wash all`) got a lie. A method that says "washed" has to
+    // mean it. Found by a test that called `wash()` directly rather than
+    // through the verb.
+    this.clearContamination();
     super.wash();
   }
 

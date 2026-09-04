@@ -303,6 +303,21 @@ export class BiomeLogic extends ApiLogic {
     );
   }
 
+  /** See {@link BiomeApi.localHumidityFor}. */
+  @CallSecurity(BiomeApiCallers)
+  public localHumidityFor(scope: Stuff & Container): number | null {
+    const { hit } = syncChainWalk<Quantity<'%'>>(
+      scope,
+      undefined,
+      (b) => b.getDefaultHumidity(),
+      (a, k) => readDetailMap<Quantity<'%'>>(a._detailHumidities, k),
+      (a) => a._humidity,
+    );
+    if (hit !== null) return hit.value.rawValue();
+    const universal = rootBiome().getDefaultHumidity();
+    return universal === null ? null : universal.rawValue();
+  }
+
   /** See {@link BiomeApi.resolveWindFor}. */
   @CallSecurity(BiomeApiCallers)
   public async resolveWindFor(
@@ -840,20 +855,30 @@ async function traceResolveStringFor(
 }
 
 /**
- * The full six-step chain. Iterative (depth-capped per containment
- * safety); awaits the Zone field-inheritance walk at step 5.
+ * Steps 1–4 of the chain: the containment walk over per-detail overrides,
+ * room/vessel-scope overrides and biome defaults. **Synchronous** — every
+ * one of those reads is — which is what lets a reconcile-on-read gauge
+ * (the cure's rehydration, which runs off a getter and cannot await) ask
+ * the same question the full resolve asks, without duplicating the walk.
+ *
+ * Returns the hit when one of those tiers answered, plus the walk state
+ * ({@link runChainWalk}'s steps 5–6 need the outermost scope and the
+ * ancestor chain).
  */
-async function runChainWalk<V>(
+function syncChainWalk<V>(
   scope: Stuff & Container,
   detailKey: string | undefined,
-  fieldBare: string,
   biomeGetter: (b: Biome) => V | null,
   detailGetter: (
     a: Stuff & Container & Atmospheric,
     detailKey: string,
   ) => { value: V; matchedKey: string } | null,
   ownGetter: (a: Stuff & Container & Atmospheric) => V | null,
-): Promise<AtmosphericTrace<V>> {
+): {
+  hit: AtmosphericTrace<V> | null;
+  outermost: Stuff & Container;
+  ancestorChain: string[];
+} {
   const ancestorChain: string[] = [];
   let cursor: (Stuff & Container) | null = scope;
   let outermost: Stuff & Container = scope;
@@ -873,9 +898,13 @@ async function runChainWalk<V>(
         const hit = detailGetter(a, detailKey);
         if (hit !== null) {
           return {
-            value: hit.value,
-            source: hit.matchedKey === detailKey ? 'detail' : 'detail-prefix',
-            sourcePath: cursorPath,
+            hit: {
+              value: hit.value,
+              source: hit.matchedKey === detailKey ? 'detail' : 'detail-prefix',
+              sourcePath: cursorPath,
+              ancestorChain,
+            },
+            outermost,
             ancestorChain,
           };
         }
@@ -885,9 +914,13 @@ async function runChainWalk<V>(
       const own = ownGetter(a);
       if (own !== null && own !== undefined) {
         return {
-          value: own,
-          source: 'room',
-          sourcePath: cursorPath,
+          hit: {
+            value: own,
+            source: 'room',
+            sourcePath: cursorPath,
+            ancestorChain,
+          },
+          outermost,
           ancestorChain,
         };
       }
@@ -899,12 +932,16 @@ async function runChainWalk<V>(
         if (fromBiome !== null) {
           const biomeOwnPath = biome.getTemplatePath();
           return {
-            value: fromBiome.value,
-            source:
-              biomeOwnPath === fromBiome.biomePath
-                ? 'biome'
-                : 'biome-ancestor',
-            sourcePath: fromBiome.biomePath,
+            hit: {
+              value: fromBiome.value,
+              source:
+                biomeOwnPath === fromBiome.biomePath
+                  ? 'biome'
+                  : 'biome-ancestor',
+              sourcePath: fromBiome.biomePath,
+              ancestorChain,
+            },
+            outermost,
             ancestorChain,
           };
         }
@@ -916,6 +953,33 @@ async function runChainWalk<V>(
     cursor = next;
     isInnermost = false;
   }
+
+  return { hit: null, outermost, ancestorChain };
+}
+
+/**
+ * The full six-step chain. Iterative (depth-capped per containment
+ * safety); awaits the Zone field-inheritance walk at step 5.
+ */
+async function runChainWalk<V>(
+  scope: Stuff & Container,
+  detailKey: string | undefined,
+  fieldBare: string,
+  biomeGetter: (b: Biome) => V | null,
+  detailGetter: (
+    a: Stuff & Container & Atmospheric,
+    detailKey: string,
+  ) => { value: V; matchedKey: string } | null,
+  ownGetter: (a: Stuff & Container & Atmospheric) => V | null,
+): Promise<AtmosphericTrace<V>> {
+  const { hit, outermost, ancestorChain } = syncChainWalk<V>(
+    scope,
+    detailKey,
+    biomeGetter,
+    detailGetter,
+    ownGetter,
+  );
+  if (hit !== null) return hit;
 
   // Step 5 — spatial zone default. Outer Location's zone via
   // Zone.lookupField with the `atmosphere.<field>` suffix.

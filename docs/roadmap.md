@@ -16,14 +16,18 @@ that shapes every slate.
 > that *grow, are kept, sicken, spoil and are worked* (farming · ranching ·
 > pets · preservation · disease · the health vertical · stewardship · seasonal
 > labor). This doc organizes **by area**; that one organizes **by order**, and
-> is narrower and newer where they overlap. **Phases 1 and 2 are shipped:**
+> is narrower and newer where they overlap. **Phases 1–3 are shipped:**
 > the houseplant / growth model
 > ([husbandry.md](./subsystems/husbandry.md)) and Hinkley Hills — ground
 > you own, the garden bed, the harvest and land use
 > ([smallholding.md](./subsystems/smallholding.md)). **Farming Stage A
 > then rode phase 2's substrate (2026-09-01):** the fruit cycle /
 > perennial tap, the ten grown families, the farmers market, and the
-> first production brain (`farms`, shipped in trade-farming). **Stage B
+> first production brain (`farms`, shipped in trade-farming). **Phase 3
+> shipped 2026-09-04** — the food-safety build: the silent second
+> population, the water state that curing and drying change, butchering,
+> and the *growth term* phase 6 inherits already working
+> ([spoilage.md](./subsystems/spoilage.md)). **Stage B
 > (Heart's Delight) is no longer gated on residences** — Waves 0–5 landed
 > (`HoldingWarren`/`PlatPlan`/`HoldingProgramme`, D17 identity), and B0
 > re-grounds. ⚠ It is now gated on **winter**, which does not exist for
@@ -677,6 +681,16 @@ onboarding → dorm + authoring), each thin-engine / content-heavy:
 Tactical work that doesn't need a slate. Pull these in
 opportunistically.
 
+- ⚠⚠ **The Hearthworks has no inbound exit.** Found by the food-safety
+  drive, in a live browser, by trying to walk there: the TPA board offers
+  only Terminus and nothing connects onward, so both Hearthworks venues —
+  the cookhouse and the forge, and therefore the whole cooking, smithing
+  and preserving surface — are reachable **solely** through a seat's
+  `startLocation`. Every one of those builds proved itself in a room no
+  ordinary player can get to. The fix is content, not code: an exit or a
+  TPA node. ⭐ The general lesson is the one worth keeping — **a venue can
+  pass every gate a build has and still be unreachable**, because
+  reachability of the *place* is nobody's acceptance criterion.
 - **Interactive prompt stack (Framework 11)** — *shipped*. Server
   (`PromptApi` choice / confirm / text / mqlObject / mqlMany +
   cardinality disambiguation; see

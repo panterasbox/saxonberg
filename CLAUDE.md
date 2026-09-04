@@ -218,7 +218,7 @@ behavior. Read the relevant doc before editing in its area.
   - [husbandry.md](./docs/subsystems/husbandry.md) — the growth model: GrowingMixin reconcile-on-read (no far-past guard), min-of-four limiting factor, the pot-as-N=1-bed object shape, the houseplant
   - [smallholding.md](./docs/subsystems/smallholding.md) — ground you own: CultivableMixin (a pot is a bed with one slot), soil's own checkpoint, land use's closed six, weakest-link harvest grade, `title`, PlatBook/PlatWarren/LotGateExit, Hinkley Hills
   - [mining.md](./docs/subsystems/mining.md) — ground you cut: the Deposit field (seeded, never drawn), WorkingMixin's four reads, MineWarren carve/shore/promote, the damps + the canary, grade end-to-end to the smelt
-  - [spoilage.md](./docs/subsystems/spoilage.md) — food that goes off: the microbial LOAD (`μ = μ_max · f_T · f_aw`, Arrhenius over a per-Material activation energy), FreshnessMixin on `Provision`, the bands, the kill's formed toxin, `lint:perishable`
+  - [spoilage.md](./docs/subsystems/spoilage.md) — food that goes off, and the food that hurts you: ⭐⭐ **spoilage is a CLOCK, contamination is an EVENT** — the microbial LOAD (`μ = μ_max · f_T · f_aw`) with FreshnessMixin on `Provision`, the bands, the kill as an Arrhenius RATE held for a recipe's `holdS`; the per-instance water state (`CuredMixin` — `a_w = base · moisture · (1 − solute)`, hurdles that stack, drying reverses and curing does not); and the SILENT second population (`ContaminableMixin` — event-seeded, no sense reports it, its own kill curve + spore floor, `infect` vs `intoxicate`) with butchering as its one source; `lint:perishable` + `lint:pathogens`
   - [thermal.md](./docs/subsystems/thermal.md) — heat exchange: ThermalMixin Newton cooling, the thermos/campfire, ThermalRegulation
   - [respiration.md](./docs/subsystems/respiration.md) — air exchange + asphyxiation: the crisis engagement drain, `breathableMedia`, AirTank
   - [shell-workspace.md](./docs/subsystems/shell-workspace.md) — WorkspaceMixin cwd state, `workspace.tree`, read/write verb suite, SourceTreeApi
@@ -732,7 +732,8 @@ reason.
   (`pour`/`stir`/`heat`/`repair`/`salvage`/`wash`/`make`) and
   `retail/menu`+`order`; a trade's own steps ship in its capability pack
   (`trade-hospitality`: `muddle`/`strain`/`garnish`/`mix`/`serve`;
-  `trade-cooking`: `cook`/`plate`; `trade-smithing`:
+  `trade-cooking`: `cook`/`plate`/`cure`/`dry`/`smoke`/`butcher`;
+  `trade-smithing`:
   `forge`/`hammer`/`quench`/`sharpen`; `trade-mining`:
   `hew`/`drive`(`drift`)/`sink`/`raise`/`shore`/`stake`; `trade-fuel`:
   `char`; `trade-smelting`: `smelt`) under `content/<root>/cmd/` +

@@ -39,3 +39,12 @@ data:
     scotopicMin: very-dim
     photopicMax: bright
     bandShift: 1
+  # ⚠ A pit pony is a working animal and a colleague, and butchering one is
+  # a thing a mining crew would have opinions about. It is still an animal
+  # and the game does not pretend otherwise: a horse is a great deal of
+  # meat, and a dead one below ground is not going to walk out.
+  #
+  # ⭐ That the game LETS you and the crew MINDS is the honest shape. The
+  # only refusal this build hard-codes is a sentient one (D14).
+  butcheryYield:
+    - { cut: /stuff/thing/items/stew-meat, units: 12 }

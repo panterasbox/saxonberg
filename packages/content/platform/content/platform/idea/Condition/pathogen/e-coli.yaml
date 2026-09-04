@@ -1,0 +1,33 @@
+# E. coli — the low-dose one. Fewer cells will do it than any other row
+# here, which is why a knife that touched a carcass and then a salad is a
+# real route and not a technicality.
+#
+# Like salmonella it makes no spores: heat removes it. Unlike salmonella it
+# is slower to show and worse when it does.
+class: /platform/idea/Condition
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: coliform infection
+  signature: []
+  progression:
+    intervalMs: 1800000
+  resolution:
+    by: rest
+  observableSigns: [cramping, pallid, dehydrated]
+  contagion: null
+  pathogenBehavior:
+    reach: infect
+    muMaxPerHour: 0.8
+    activationEnergy: 85000
+    referenceK: 303
+    minGrowthK: 280
+    killK: 330
+    killRatePerHour: 8
+    killActivationEnergy: 200000
+    killSurvivalFraction: 0
+    awFloor: 0.95
+    inoculum: 0.02
+    infectiousDose: 0.01
+    channels: []
+    inHostPerHour: 0.3
+    incubationSec: 43200

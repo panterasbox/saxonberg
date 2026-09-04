@@ -346,6 +346,15 @@ export const Mixins = {
   // The cross-cutting spoilage gauge — any Thing can go off (inert until
   // its Material tabulates a spoilage activation energy).
   Fresh: 'FreshnessMixin',
+  // The per-instance water state — drying and curing, the levers that
+  // move a thing's effective water activity off its Material's tabulated
+  // base. NOT the spoilage gauge: this is the matter, that is the
+  // population living in it.
+  Cured: 'CuredMixin',
+  // The SECOND population — event-seeded, silent, and carried between
+  // objects rather than grown from nothing. Not the spoilage gauge: that
+  // is a clock, this is a consequence.
+  Contaminable: 'ContaminableMixin',
   // The living-world growth model — a cultivated thing that grows.
   Growing: 'GrowingMixin',
   // Ground that holds plants: soil + N plant slots. A pot is this at N = 1;

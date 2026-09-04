@@ -1,0 +1,47 @@
+# ⭐⭐ Perfringens — THE lesson nobody believes until it happens to them.
+#
+# A spore-former: `killSurvivalFraction: 0.02` means cooking reduces it and
+# can never remove it. Two per cent survives a rolling boil, and then —
+# this is the part — as the dish cools back under `germinationK` the
+# survivors' growth rate turns positive again and they multiply faster than
+# anything else in the roster (`muMaxPerHour: 2.4`, and that is honest:
+# it is the fastest-growing food pathogen there is).
+#
+# So a dish cooked PROPERLY and eaten at once is safe, and the same dish
+# cooked properly and left on the table overnight is not. It is the most
+# common real food poisoning in the world, and nothing about it is visible.
+#
+# ⚠ Its `minGrowthK: 285` is the counterplay, and it is why a cold cellar
+# earns its keep: below 12 °C the survivors simply sit there. Cool it fast
+# and the whole mechanism never starts.
+class: /platform/idea/Condition
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: perfringens poisoning
+  signature: []
+  progression:
+    intervalMs: 1800000
+  resolution:
+    by: rest
+  observableSigns: [cramping, sweating]
+  contagion: null
+  pathogenBehavior:
+    reach: infect
+    muMaxPerHour: 2.4
+    activationEnergy: 110000
+    referenceK: 303
+    minGrowthK: 285
+    killK: 333
+    # Below this the surviving spores germinate — a cooling dish crosses
+    # it on the way down, which is the whole mechanism.
+    germinationK: 325
+    killRatePerHour: 6
+    killActivationEnergy: 200000
+    killSurvivalFraction: 0.02
+    awFloor: 0.95
+    inoculum: 0.01
+    # High on purpose: it takes real neglect, not a moment's inattention.
+    infectiousDose: 0.2
+    channels: []
+    inHostPerHour: 0.2
+    incubationSec: 28800

@@ -119,6 +119,25 @@ export interface RecipeGarnish {
 /** How a drink takes ice: `cubes` / `crushed` in the glass, or `none`. */
 export type RecipeIce = 'cubes' | 'crushed' | 'none';
 
+/**
+ * ⭐ **What a preserving act does to the output's water state** — the
+ * curing/drying half of the recipe, in the two axes `CuredMixin` carries.
+ *
+ * Absolute targets, not deltas, and applied as the STRONGER of what the
+ * matter already had: `moisture` takes the lower, `solute` the higher. So
+ * salting a cut and then drying it stacks (each act names one axis and
+ * leaves the other alone), and re-running a weaker cure never un-cures.
+ *
+ * Absent ⇒ the working changes nothing about the matter's water, which is
+ * every recipe shipped before this one.
+ */
+export interface RecipeCure {
+  /** Target moisture `[0, 1]` — drying. Omitted ⇒ untouched. */
+  moisture?: number;
+  /** Target solute `[0, 1]` — salting. Omitted ⇒ untouched. */
+  solute?: number;
+}
+
 export class Recipe {
   /**
    * ⭐ **How to FIND a recipe is open; what it takes is level 1.**
@@ -155,6 +174,7 @@ export class Recipe {
     outputMaterial: { persistent: true, spoiler: 1, spoilerName: 0 },
     baseGradeBand: { persistent: true, spoiler: 1, spoilerName: 0 },
     requiresHeatK: { persistent: true, spoiler: 1, spoilerName: 0 },
+    holdS: { persistent: true, spoiler: 1, spoilerName: 0 },
     medium: { persistent: true, spoiler: 1, spoilerName: 0 },
     outputResidue: { persistent: true, spoiler: 1, spoilerName: 0 },
     outputApplication: { persistent: true, spoiler: 1, spoilerName: 0 },
@@ -163,6 +183,7 @@ export class Recipe {
     difficulty: { persistent: true, spoiler: 1, spoilerName: 0 },
     garnish: { persistent: true, spoiler: 1, spoilerName: 0 },
     ice: { persistent: true, spoiler: 1, spoilerName: 0 },
+    cure: { persistent: true, spoiler: 1, spoilerName: 0 },
   };
 
   /** The document's path (`/generic-objects/recipes/martini`). */
@@ -194,6 +215,25 @@ export class Recipe {
 
   /** Minimum reachable heat (K) to resolve; 0 = no heat gate. */
   requiresHeatK: number = 0;
+
+  /**
+   * ⭐⭐ **How long the working HOLDS the food at `requiresHeatK`**, in
+   * game-seconds — the other half of "hot enough", and what turns a
+   * threshold into an act.
+   *
+   * The kill is a rate: a long hold at a lower heat and a brief moment at
+   * a higher one do the same work, and a lazy warm-through barely over the
+   * line does neither however long you leave it. Authoring the pair
+   * `(requiresHeatK, holdS)` is what makes a sear, a simmer and a
+   * warm-through three different recipes rather than one boolean.
+   *
+   * ⭐ **Absent (`0`) means "the working was as long as it needed"** —
+   * byte-identical to the behaviour before holds existed, which is what
+   * keeps every recipe already in the world cooking exactly as it did. A
+   * number is a claim that the hold was NOT sufficient, and is therefore
+   * always a deliberate authoring act.
+   */
+  holdS: number = 0;
 
   /**
    * The heat-carrying medium (`water` / `fat`); empty ⇒ dry. See
@@ -236,6 +276,9 @@ export class Recipe {
   /** Ice in the glass at the fill (`none` — the stored default — ⇒ no ice). */
   ice: RecipeIce = 'none';
 
+  /** What the working does to the output's water state; null ⇒ nothing. */
+  cure: RecipeCure | null = null;
+
   /**
    * Hydrate from a `kind: 'recipe'` document. Validates what the retired
    * `RecipeSeeder` validated — a non-empty `inputSlots` and a string
@@ -272,6 +315,7 @@ export class Recipe {
     r.outputMaterial = str(data.outputMaterial);
     r.baseGradeBand = str(data.baseGradeBand);
     r.requiresHeatK = num(data.requiresHeatK);
+    r.holdS = num(data.holdS);
     r.medium = Recipe.mediumFrom(data.medium, r.recipeId);
     r.outputApplication = str(data.outputApplication);
     r.outputPortionL = num(data.outputPortionL);
@@ -281,7 +325,41 @@ export class Recipe {
     r.garnish = Recipe.garnishFrom(data.garnish, r.recipeId);
     r.ice = Recipe.iceFrom(data.ice, r.recipeId);
     r.outputResidue = Recipe.residueFrom(data.outputResidue, r.recipeId);
+    r.cure = Recipe.cureFrom(data.cure, r.recipeId);
     return r;
+  }
+
+  /**
+   * Validate an authored `cure` block (`{ moisture?, solute? }`). A typo
+   * must fail at READ — an ignored `solut:` would ship a curing recipe
+   * that silently preserves nothing, which is the exact failure class
+   * this codebase keeps catching in the drive instead of at CI.
+   */
+  private static cureFrom(v: unknown, id: string): RecipeCure | null {
+    if (v == null) return null;
+    if (typeof v !== 'object' || Array.isArray(v)) {
+      throw new Error(`Recipe '${id}': 'cure' must be { moisture?, solute? }`);
+    }
+    const c = v as Record<string, unknown>;
+    const out: RecipeCure = {};
+    for (const axis of ['moisture', 'solute'] as const) {
+      const raw = c[axis];
+      if (raw === undefined) continue;
+      if (typeof raw !== 'number' || !Number.isFinite(raw) || raw < 0 || raw > 1) {
+        throw new Error(
+          `Recipe '${id}': 'cure.${axis}' must be a number in [0, 1]`,
+        );
+      }
+      out[axis] = raw;
+    }
+    for (const key of Object.keys(c)) {
+      if (key !== 'moisture' && key !== 'solute') {
+        throw new Error(
+          `Recipe '${id}': 'cure' has no '${key}' axis (moisture | solute)`,
+        );
+      }
+    }
+    return Object.keys(out).length > 0 ? out : null;
   }
 
   /** Validate an authored `outputResidue` block (`{ template, count? }`). */
@@ -358,6 +436,7 @@ export class Recipe {
       outputMaterial: this.outputMaterial,
       baseGradeBand: this.baseGradeBand,
       requiresHeatK: this.requiresHeatK,
+      holdS: this.holdS,
       medium: this.medium,
       outputApplication: this.outputApplication,
       outputPortionL: this.outputPortionL,
@@ -366,6 +445,7 @@ export class Recipe {
       discipline: this.discipline,
       garnish: this.garnish ? { ...this.garnish } : null,
       ice: this.ice,
+      cure: this.cure ? { ...this.cure } : null,
     };
   }
 
@@ -392,6 +472,16 @@ export class Recipe {
   }
   getRequiresHeatK(): number {
     return this.requiresHeatK;
+  }
+
+  /** How long the working holds the food at its heat; `0` ⇒ as long as needed. */
+  getHoldS(): number {
+    return this.holdS;
+  }
+
+  /** What the working does to the output's water state; `null` ⇒ nothing. */
+  getCure(): RecipeCure | null {
+    return this.cure ? { ...this.cure } : null;
   }
 
   /** The heat-carrying medium, or `null` for a dry method. */

@@ -1,0 +1,31 @@
+# Salt-cure — a cut of meat packed down in salt. The salting hurdle:
+# `solute` binds up the water a microbe needs, so the same cut in the same
+# place keeps far longer.
+#
+# ⚠ NO heat gate and no `cure.moisture`. Curing suspends the population,
+# it does not kill it, and it does not dry anything either — so a
+# contaminated cut cured today is a contaminated cut in a season, which is
+# the lesson the drive turns on. Drying is a separate act and they stack.
+recipeId: salt-cure
+name: Salt-cured cut
+keywords: ["salt-cure", "cure", "salted", "salt"]
+discipline: cooking
+difficulty: standard
+inputSlots:
+- slot: meat
+  category: meat
+  minGrade: fair
+  kind: item
+  count: 1
+- slot: salt
+  category: salt
+  minGrade: fair
+  measureL: 0.2
+toolCapabilities: []
+outputApplication: tangible
+outputTemplate: /trade/cooking/thing/treated-cut
+# The water state the working leaves behind. Absolute targets, applied as
+# the STRONGER of each axis — so salting a cut you already dried keeps the
+# drying, and re-salting an already-salted one changes nothing.
+cure:
+  solute: 0.55

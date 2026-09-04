@@ -15,6 +15,8 @@ import type {
 import { CLOSURE_ORDER, BULK_VOLUME_UNIT } from '../../../lib/bulk/Bulkable';
 import type Material from '../../../lib/material/Material';
 import { Freshness } from '../../../lib/material/Freshness';
+import { Cure } from '../../../lib/material/Cured';
+import { Contamination } from '../../../lib/material/Contaminable';
 import type { MqlQuantity } from '../../../api/mql';
 import { Quantity } from '../../../lib/quantity';
 import { MessageApi } from '../../../api/message';
@@ -304,6 +306,18 @@ export class BulkableLogic extends ApiLogic {
     // launder it: the pour-to-reset exploit.
     const fromLoad = Freshness.loadOf(from);
     const toLoadBefore = to !== null ? Freshness.loadOf(to) : 0;
+    // ⭐ The water state rides the matter exactly as the load does, and
+    // for the same reason: tipping brine into fresh stock partly cures
+    // the stock, and tipping fresh stock into brine dilutes it. Reading
+    // both BEFORE the debit matters — a full drain clears the payload.
+    const fromCure = Cure.stateFor(from);
+    const toCureBefore = to !== null ? Cure.stateFor(to) : null;
+    // ⚠⚠ And the silent population, by the same mass-weighted rule. A
+    // pathogen that did not blend on the pour would make decanting a
+    // laundry: tip the bad stew into a clean pot and it comes out safe.
+    const fromPathogens = Contamination.loadsFor(from);
+    const toPathogensBefore =
+      to !== null ? Contamination.loadsFor(to) : {};
     const fromPayload = from.getPayload();
     const toWasEmpty = to !== null && to.isEmpty();
     from.debit(applied);
@@ -331,6 +345,49 @@ export class BulkableLogic extends ApiLogic {
           to,
           Freshness.blendLoads(fromLoad, applied, toLoadBefore, toAmountBefore),
         );
+      }
+      if (fromCure !== null || toCureBefore !== null) {
+        Cure.stampState(
+          to,
+          Cure.blend(fromCure, applied, toCureBefore, toAmountBefore),
+        );
+      }
+      // ⭐⭐ **A dirty vessel contaminates what you fill it with**, and its
+      // SURFACE load is a different fact from its contents'. A pot that
+      // held a bad stew keeps that load on the pot; only one of the two
+      // survives emptying it. Three behaviours fall out of that split and
+      // all three are the point:
+      //
+      //   - filling a contaminated vessel contaminates the contents (here);
+      //   - **emptying does not clean** — the surface load rides on the
+      //     mixin, which a transfer never touches, so one unwashed pot is a
+      //     chain of poisonings;
+      //   - **washing clears the surface and never the contents** —
+      //     `wash` calls `clearContamination()` on the vessel alone.
+      //     Washing a pot of bad stew is not a cure for the stew.
+      const surface =
+        toHolder !== null && MixinApi.isContaminable(toHolder)
+          ? toHolder.getPathogenLoads()
+          : {};
+      const blended = Contamination.blend(
+        fromPathogens,
+        applied,
+        toPathogensBefore,
+        toAmountBefore,
+      );
+      // ⚠ The surface goes in at FULL strength, not mass-weighted: what is
+      // on the pot is on everything the pot touches, however little you
+      // poured. Dilution is a property of mixing two bodies of matter, and
+      // a smear on the wall is not one of them.
+      const withSurface = Contamination.isClean(surface)
+        ? blended
+        : Contamination.blend(surface, 1, blended, 0);
+      if (
+        !Contamination.isClean(fromPathogens) ||
+        !Contamination.isClean(toPathogensBefore) ||
+        !Contamination.isClean(surface)
+      ) {
+        Contamination.stampLoads(to, withSurface);
       }
     }
 

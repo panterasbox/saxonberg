@@ -16,6 +16,8 @@ import Thing from '../../lib/stuff/Thing';
 import { DetailedMixin } from '../../lib/description/Detailed';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
 import { FreshnessMixin } from '../../lib/material/Freshness';
+import { CuredMixin } from '../../lib/material/Cured';
+import { ContaminableMixin } from '../../lib/material/Contaminable';
 import { CraftedMixin } from '../../lib/craft/Crafted';
 import type { Crafted } from '../../lib/craft/Crafted';
 
@@ -24,8 +26,17 @@ import type { Crafted } from '../../lib/craft/Crafted';
 // reads its host's temperature, which is why the two travel together.
 // Neither is on `Thing`: see `lib/stuff/Thing.ts` for why, and
 // `lint:perishable` for what makes the narrowing safe.
+// ⭐ Contaminable and Cured beside Freshness, NOT folded into it. Three
+// different facts about one cut of meat: what is growing in it on its own
+// (Freshness), how much water it has to grow in (Cured), and what somebody
+// PUT in it (Contaminable — an event, never a clock).
+// ⭐ Cured beside Freshness, NOT folded into it. The spoilage gauge
+// carries a population living in the matter; the cure carries the
+// matter's own water state, and only one of them is true of a hide or a
+// plank. They coincide on `Provision` today and the split is what lets a
+// tannery dry a skin without claiming it ferments.
 const ProvisionBase = CraftedMixin(
-  FreshnessMixin(ThermalMixin(DetailedMixin(Thing))),
+  ContaminableMixin(CuredMixin(FreshnessMixin(ThermalMixin(DetailedMixin(Thing))))),
 );
 
 /**

@@ -88,6 +88,8 @@ import type { Metabolic } from '../lib/metabolism/Metabolic';
 import type { Thermal } from '../lib/thermal/Thermal';
 import type { Wet } from '../lib/wetness/Wet';
 import type { Fresh } from '../lib/material/Freshness';
+import type { Cured } from '../lib/material/Cured';
+import type { Contaminable } from '../lib/material/Contaminable';
 import type { Growing } from '../lib/husbandry/Growing';
 import type { Fermenting } from '../lib/ferment/Fermenting';
 import type { Plantable } from '../lib/husbandry/Plantable';
@@ -1035,6 +1037,25 @@ export class MixinApi {
    */
   public static isFresh(obj: Stuff): obj is Stuff & Fresh {
     return this.hasMixin(obj, Mixins.Fresh);
+  }
+
+  /**
+   * A host carrying the per-instance **water state** — the drying /
+   * curing axis. Distinct from {@link isFresh}: that is the population
+   * living in the matter, this is the matter's own available water.
+   */
+  public static isCured(obj: Stuff): obj is Stuff & Cured {
+    return this.hasMixin(obj, Mixins.Cured);
+  }
+
+  /**
+   * A host that can carry pathogens — food, and anything that touches
+   * food. ⚠ Composing it claims only that a load CAN be put here; a host
+   * that nothing contaminated reads `{}` for ever, because contamination
+   * is an event and never a clock.
+   */
+  public static isContaminable(obj: Stuff): obj is Stuff & Contaminable {
+    return this.hasMixin(obj, Mixins.Contaminable);
   }
 
   public static isGrowing(obj: Stuff): obj is Stuff & Growing {
