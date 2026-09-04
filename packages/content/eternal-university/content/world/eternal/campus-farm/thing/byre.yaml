@@ -1,7 +1,7 @@
 # ⭐ The byre archetype's SHELTER slot, bound. D12's winter stated as a
 # place rather than as a season: somewhere out of the weather is what
 # makes a hard winter survivable.
-class: /platform/thing/Prop
+class: /platform/thing/Thing
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a low stone byre

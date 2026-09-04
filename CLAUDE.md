@@ -883,8 +883,8 @@ platform/thing/FoldingChair` is ordinary OO and correct. Only classes that are
 **When a substrate class is also cloned generically, split it.** The
 abstract base stays in `lib/`; a thin concrete subclass in `platform/`
 absorbs the clones, and templates name that. Nine exist:
-`platform/thing/Prop` (← `lib/stuff/Thing`), `platform/agent/Corpse` (←
-`Creature`), and `platform/agent/NPC`, `platform/location/CartesianLocation`,
+`platform/agent/Corpse` (← `Creature`), and `platform/thing/Thing`,
+`platform/agent/NPC`, `platform/location/CartesianLocation`,
 `platform/location/SingletonCartesianLocation`,
 `platform/thing/Vessel`, `platform/idea/Exit`, `platform/idea/material/Material`, `platform/idea/Biome`, which
 deliberately share their base's name (the import aliases it; the module

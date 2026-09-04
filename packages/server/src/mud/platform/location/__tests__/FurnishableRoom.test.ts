@@ -96,7 +96,7 @@ describe("FurnishableRoom", () => {
     ];
     // A `domain` row per fixture — `applyProps` resolves each spec
     // through `Template.findByPath` before cloning it.
-    const rows = paths.map((path) => ({ _id: path, path, class: "/platform/thing/Prop" }));
+    const rows = paths.map((path) => ({ _id: path, path, class: "/platform/thing/Thing" }));
     vi.spyOn(PersistenceManager, "get").mockReturnValue({
       find: vi.fn(async (_c: string, q: Record<string, unknown>) =>
         rows.filter((r) => r.path === q.path),

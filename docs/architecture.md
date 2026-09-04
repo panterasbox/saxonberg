@@ -132,8 +132,9 @@ adding.
   nothing clones (`Stuff`, `Thing`, `Location`, `Zone`, `Character`,
   `Creature`, `Modality`). Overridable. When one of these is *also*
   being cloned generically, it splits: the base stays here and a thin
-  concrete subclass in `platform/<branch>/` takes the clones (`Thing` →
-  `platform/thing/Prop`, `lib/location/CartesianLocation` →
+  concrete subclass in `platform/<branch>/` takes the clones
+  (`lib/stuff/Thing` → `platform/thing/Thing`,
+  `lib/location/CartesianLocation` →
   `platform/location/CartesianLocation`).
 - **Framework attachments** — objects that ride a Stuff, model nothing
   on their own, and are never template-backed. `lib/stuff/Shadow` is

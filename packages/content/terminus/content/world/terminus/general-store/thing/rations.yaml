@@ -3,7 +3,7 @@
 # routes its carbohydrates to satiation and consumes the pack. Deliberately a
 # discrete "pack", NOT a Globbable stack — a chattel stamp needs a discrete
 # instance, so it can be bought and consigned.
-class: /platform/thing/Prop
+class: /platform/thing/Thing
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a wrapped ration pack

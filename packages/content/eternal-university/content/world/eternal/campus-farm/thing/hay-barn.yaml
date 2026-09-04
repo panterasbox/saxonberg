@@ -2,7 +2,7 @@
 # winter feed budget made a place rather than a number. ⚠ It is also
 # where the hay fire lives: a stack put up wet heats, and this is what it
 # heats.
-class: /platform/thing/Prop
+class: /platform/thing/Thing
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a hay barn

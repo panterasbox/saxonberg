@@ -2,7 +2,7 @@
 # dear to clear and CHEAP TO FENCE, because the wall is the field's own
 # stones stacked at the edge. Zero waste, historically exact, and it
 # inverts an expectation in a way a player remembers.
-class: /platform/thing/Prop
+class: /platform/thing/Thing
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a drystone wall

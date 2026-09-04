@@ -405,7 +405,7 @@ describe('StuffApi', () => {
             await new Promise((r) => setTimeout(r, 5));
             const t = new LeafTemplate();
             t.path = path;
-            t.class = '/platform/thing/Prop';
+            t.class = '/platform/thing/Thing';
             t.hydratorClass = HYDRATOR;
             t.data = {};
             return t;

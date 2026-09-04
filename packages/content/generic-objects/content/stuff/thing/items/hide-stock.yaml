@@ -1,7 +1,7 @@
 # Tanned hide stock — the soft-goods input (the jerkin's `hide` category
 # slot; the tailoring branch's attach point) and the mending-repair
 # donor material.
-class: /platform/thing/Prop
+class: /platform/thing/Thing
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a folded tanned hide

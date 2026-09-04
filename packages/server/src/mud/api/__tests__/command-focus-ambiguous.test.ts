@@ -35,7 +35,7 @@ import { MqlApi } from '../mql';
 import { PromptApi } from '../prompt';
 import { ShadowApi } from '../shadow';
 import { StuffApi } from '../stuff';
-import Prop from '../../platform/thing/Prop';
+import Thing from '../../platform/thing/Thing';
 import { makeHarness, type Harness } from './card-harness';
 
 /** Mirrors the shipped `look.yaml`: drill-first scope, extend, prompt. */
@@ -97,7 +97,7 @@ function offeredMatches(h: Harness): { stuffId: string; displayName: string }[] 
 
 describe('focus after a disambiguation prompt', () => {
   let h: Harness;
-  let bottles: Prop[];
+  let bottles: Thing[];
 
   beforeEach(async () => {
     StuffApi.clearAll();
@@ -110,7 +110,7 @@ describe('focus after a disambiguation prompt', () => {
     // eleven; three is the same fact.
     bottles = [];
     for (let i = 0; i < 3; i++) {
-      const b = await StuffApi.create(() => new Prop());
+      const b = await StuffApi.create(() => new Thing());
       b.setShortDescription('a bottle of gin');
       b.addKeyword('gin');
       ContainmentApi.move(
@@ -120,7 +120,7 @@ describe('focus after a disambiguation prompt', () => {
       bottles.push(b);
     }
 
-    const lamp = await StuffApi.create(() => new Prop());
+    const lamp = await StuffApi.create(() => new Thing());
     lamp.setShortDescription('a brass lamp');
     lamp.addKeyword('lamp');
     ContainmentApi.move(

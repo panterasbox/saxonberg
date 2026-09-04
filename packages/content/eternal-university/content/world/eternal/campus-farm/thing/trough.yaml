@@ -3,7 +3,7 @@
 # same way. This place answers with a pipe from uphill. Another would
 # answer with a well, a pond, a stream or roof catchment, and the
 # archetype would be equally satisfied.
-class: /platform/thing/Prop
+class: /platform/thing/Thing
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a stone water trough

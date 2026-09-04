@@ -38,7 +38,7 @@ import YAML from 'yaml';
 import SingletonCartesianLocation from '../location/SingletonCartesianLocation';
 import Chair from '../thing/Chair';
 import Oven from '../thing/Oven';
-import Prop from '../thing/Prop';
+import ConcreteThing from '../thing/Thing';
 import UnboundedReceptacle from '../thing/UnboundedReceptacle';
 import Thing from '../../lib/stuff/Thing';
 import { SurfacedMixin } from '../../lib/spatial/Surfaced';
@@ -158,8 +158,8 @@ function tap(): UnboundedReceptacle {
   t.setShortDescription('a cold tap');
   return t;
 }
-function toilet(): Prop {
-  const p = makeStuff(() => new Prop());
+function toilet(): ConcreteThing {
+  const p = makeStuff(() => new ConcreteThing());
   p.setShortDescription('a toilet');
   p.setPrimaryKeyword('toilet');
   p.setKeywords(['toilet', 'lavatory']);

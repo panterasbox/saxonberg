@@ -31,7 +31,7 @@ import {
 const PACK_FILE = 'file:///proj/packages/content/arcana/src/thing/Wand.ts';
 const PACK_TEST =
   'file:///proj/packages/content/arcana/src/__tests__/Wand.test.ts';
-const KERNEL_FILE = 'file:///proj/packages/server/src/mud/platform/thing/Prop.ts';
+const KERNEL_FILE = 'file:///proj/packages/server/src/mud/platform/thing/Thing.ts';
 
 describe('isPackSourcePath', () => {
   it('recognises packages/content/<pkg>/src/', () => {
