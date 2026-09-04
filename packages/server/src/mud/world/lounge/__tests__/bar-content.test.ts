@@ -92,15 +92,24 @@ describe("Dave's Bar — the rail is bought, never populated (libations D14)", (
     expect(lines?.find((l) => l.category === "ice")?.unit).toBe("kg");
   });
 
-  it("Mara runs the restocks brain, and its config names only the bar's own fixtures", () => {
+  it("Mara runs the restocks brain, and its config names only fixtures in her OWN ROOM", () => {
     const behaviors = loadLounge("agent/mara.yaml").data?.behaviors as
-      | { brain: string; config?: Record<string, string> }[]
+      | { brain: string; config?: Record<string, unknown> }[]
       | undefined;
     const restocks = behaviors?.find((b) => b.brain === "/lib/behavior/restocks");
+    // ⭐ Logistics D11 added three keys and took none away, and the
+    // invariant this test exists for is unchanged and now stronger: the
+    // config still names nothing outside the bar. The board she posts on
+    // and the bench a hauler drops onto stand beside her — the supplier
+    // is still never config, it comes from each par line, and she never
+    // leaves the room at all.
     expect(restocks?.config).toEqual({
       shelf: "/trade/hospitality/thing/back-bar",
       rack: "/trade/hospitality/thing/glass-rack",
       bin: "/trade/hospitality/thing/ice-bin",
+      board: "/trade/haulage/thing/works-board",
+      bench: "/trade/haulage/thing/receiving-bench",
+      reward: 30,
     });
   });
 
