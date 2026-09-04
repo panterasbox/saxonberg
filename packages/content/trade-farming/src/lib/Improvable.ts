@@ -202,12 +202,14 @@ export function ImprovableMixin<TBase extends MixinConstructor<Stuff>>(Base: TBa
         'trade/farming/cmd/farming/ditch.yaml',
         'trade/farming/cmd/farming/lime.yaml',
         'trade/farming/cmd/farming/forage.yaml',
+        'trade/farming/cmd/farming/plough.yaml',
       ],
       inventory: [
         'trade/farming/cmd/farming/grub.yaml',
         'trade/farming/cmd/farming/ditch.yaml',
         'trade/farming/cmd/farming/lime.yaml',
         'trade/farming/cmd/farming/forage.yaml',
+        'trade/farming/cmd/farming/plough.yaml',
       ],
     };
 

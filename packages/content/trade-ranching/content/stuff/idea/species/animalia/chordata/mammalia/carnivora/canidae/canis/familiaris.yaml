@@ -1,0 +1,48 @@
+# The farm dog — ⭐⭐ **the exception that proves the automation ladder**
+# (D42).
+#
+# The ladder is *by hand* (attention) → *hired NPC* (wages) → *script*
+# (compute), under the rule that **automation maintains your assets and
+# cannot maintain your relationships.** The dog is a fourth rung and it
+# costs **a relationship** — and it does real economic work, which means
+# a poorly bonded dog works badly.
+#
+# ⭐ So bond acquires an economic consequence **without giving any
+# livestock a bond stat**: the slate's divergence survives intact, and
+# the pet gets a job. This is the one place pets and livestock touch
+# mechanically, and it is why the family is one substrate.
+#
+# ⚠ And it has THREE jobs, not one: it herds (D41), it guards against
+# predators (D50 — a dog in the hen house is why the fox does not come),
+# and it keeps deer off the crop. All three are the same animal being
+# where it is.
+class: /platform/idea/species/Species
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  binomial: Canis familiaris
+  commonNames: ["dog", "collie", "sheepdog", "hound", "bitch"]
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/quadruped
+  _parentCladePath: /stuff/idea/species/animalia
+  _defaultMaterialPath: /stuff/idea/material/tissue/flesh
+  vitalProfile:
+    coreTemperature: { baseline: 312, survivableMin: 303, survivableMax: 317 }
+    heartRate: { baseline: 100, survivableMin: 50, survivableMax: 250 }
+    respiratoryRate: { baseline: 24, survivableMin: 8, survivableMax: 90 }
+    bloodPressureSystolic: { baseline: 133, survivableMin: 75, survivableMax: 210 }
+    bloodPressureDiastolic: { baseline: 75, survivableMin: 40, survivableMax: 140 }
+    spo2: { baseline: 97, survivableMin: 68, survivableMax: 100 }
+    bloodVolume: { baseline: 1.6, survivableMin: 1.1, survivableMax: 2.2 }
+  lifecycleStates: ["alive", "dead"]
+  sexDeterminationSystem: xy
+  reproductiveMode: sexual
+  lifespanMin: 0
+  lifespanMax: 15
+  circadianBand: diurnal
+  diet: carnivore
+  ageCurve: { weanedAt: 20, matureAt: 200, agedAt: 1200, senescentAt: 1800 }
+  breeding: { daylightFrom: 0, daylightTo: 1, gestationDays: 25, litter: 5 }
+  production: []
+  longDescription: >-
+    A rough-coated collie with one ear up, lying flat with its chin on
+    its paws and its eyes on the stock. It has not blinked in a while.
+  nameBankKeys: []

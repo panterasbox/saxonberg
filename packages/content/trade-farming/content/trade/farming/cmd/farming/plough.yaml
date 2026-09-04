@@ -1,0 +1,24 @@
+verbs: [plough, plow]
+controller: /trade/farming/idea/cmd/farming/PloughController
+description: "Turn ground over with a plough"
+help: |
+  Set the share in and open a furrow.
+
+  ⭐⭐ **By hand it is punishing; with an ox it is work.** Draught power
+  is body mass — a man is about seventy kilos and an ox about seven
+  hundred, so an ox is worth about ten of you, and nobody wrote that ratio
+  down: it is what the two animals weigh.
+
+  That is what makes an ox a real investment rather than an upgrade. ⚠ And
+  an ox eats whether or not it works, which is the honest economics of
+  the thing: you are buying a depreciating asset that consumes.
+
+  Any beast big enough to pull, standing in the field with you while you
+  have a plough in your hands, is in the traces. A hen is not.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  - name: detail
+    type: string
+    required: false

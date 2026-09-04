@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "The ranching trade — keeping animals: the herdbook as a filed register, the boundary acts (draft/return), handling, and the trade's own disciplines.",
+  "description": "The ranching trade \u2014 keeping animals: the herdbook as a filed register, the boundary acts (draft/return), handling, and the trade's own disciplines.",
   "dependencies": {
     "@saxonberg/content-base-library": "workspace:*",
     "@saxonberg/content-platform": "workspace:*",
@@ -19,6 +19,7 @@
   },
   "devDependencies": {
     "typescript": "^5.4.0",
-    "vitest": "^2.0.0"
+    "vitest": "^2.0.0",
+    "yaml": "^2.8.2"
   }
 }

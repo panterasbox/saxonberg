@@ -1,0 +1,20 @@
+# An ox — ⭐⭐ a genuine capital investment, and the reason is arithmetic
+# rather than a stat: it weighs seven hundred kilos.
+#
+# Draught power is body mass (D40), so an ox is worth about ten people in
+# the traces — and nobody wrote that ratio down. ⚠ And it eats whether or
+# not it works, which is the honest economics of a depreciating asset
+# that consumes, and falls out of it being an animal.
+class: /trade/ranching/agent/Livestock
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a red ox
+  primaryKeyword: ox
+  keywords: [ox, bullock, beast]
+  longDescription: >-
+    A deep red ox with a yoke-worn patch across the shoulders, standing
+    square and entirely still with a look of enormous patience.
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/artiodactyla/bovidae/bos/taurus
+  lifecycleState: alive
+  mass: 700
+  handling: 0.8

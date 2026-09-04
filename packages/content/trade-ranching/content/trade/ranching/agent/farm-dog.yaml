@@ -1,0 +1,24 @@
+# A farm dog — ⭐ the fourth rung of the automation ladder, and the only
+# one that costs a relationship.
+#
+# ⚠ It composes the same `Livestock` class every other kept animal does,
+# and that is deliberate: a dog is not a special case of an animal, it is
+# an animal with a job. Its `handling` is what the job runs on, so a dog
+# nobody has worked with works badly — which is the bond acquiring an
+# economic consequence without any livestock acquiring a bond stat.
+class: /trade/ranching/agent/Livestock
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a rough-coated collie
+  primaryKeyword: dog
+  keywords: [dog, collie, sheepdog]
+  longDescription: >-
+    A rough-coated collie with one ear up, lying flat with its chin on
+    its paws and its eyes on the stock. It has not blinked in a while.
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/carnivora/canidae/canis/familiaris
+  lifecycleState: alive
+  handling: 0.55
+  behaviors:
+    - brain: /trade/ranching/behavior/herds
+      cadenceMs: 300000
+      config: {}
