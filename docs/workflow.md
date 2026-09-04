@@ -51,6 +51,11 @@ backlog). Optionally a fresh idea not yet sloated.
 trade-offs. Pull in related subsystem docs and antipatterns as the
 conversation surfaces them.
 
+⭐ **Run the five lenses** ([design-lenses.md](./design-lenses.md)) over
+the scope before converging, and carry a short lens pass into the
+artifact. Lenses 1 (pedagogy) and 2 (author expressiveness) decide
+forks — when they do, decide, don't ask.
+
 **Output.** A formal requirements doc at
 `docs/requirements/<feature>-requirements.md` that the user and
 Claude both agree on. Closed scope, no open questions left for the

@@ -1,5 +1,11 @@
 # Design lenses
 
+> ⚠ **Not the project's own five lenses.** The rubric every high-level
+> design is interrogated with — pedagogy · creative expression ·
+> immersion & roleplay · values · epochs — lives at
+> [../design-lenses.md](../design-lenses.md). *That* is the decision
+> rule; *this* directory is a borrowed analysis toolkit.
+
 A working set of design analyses, one per file, that look at this
 game through Jesse Schell's *lenses* — the small bundles of questions
 from *The Art of Game Design: A Book of Lenses*, each of which asks
