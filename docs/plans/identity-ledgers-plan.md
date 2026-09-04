@@ -127,6 +127,14 @@ has never been exercised (§ W1).
   buyer / **the** claims recorder"*.
 - **Every NPC row is instanced exactly once today.** Individual identity
   therefore holds *by accident*, enforced by nothing.
+  ⚠ **Verify it the right way**, because two obvious checks give the wrong
+  answer: several agent paths appear 2–3 times across content (a `cast:`
+  entry *plus* an employment-roster reference in a `business.yaml`), and
+  filtering on `class: /platform/location/` misses rooms with
+  content-defined location classes (the lounge bar). The honest
+  discriminator is the **list item** — `- /…/agent/x` instantiates,
+  `key: /…/agent/x` refers. On that test: **40 distinct agent paths, each
+  appearing exactly once.**
 - `SingletonMixin` is composed by `Condition`, `Material`, `Clade`,
   `LocomotionMode`, `CombatFormation` — **and no agent class.**
 - `platform/agent/NPC.ts` is `export default class NPC extends NpcBase {}`
@@ -402,8 +410,9 @@ gate refuses a sixth.
 2. ⚠ **The scheme must survive two things**: `reembody` (one person can
    leave several corpses) and an `Extra`'s shared deceased key (two dead
    sentries). **Key on the deceased *and the moment*** — and pick the
-   raw stamp over the projection for the deceased half, so the watch's
-   dead do not all key under the watch.
+   deceased's own identity for that half — under D7 an `Extra` keeps its
+   own identity, so the watch's dead do not collapse together and no raw
+   stamp is needed.
    Suggested: `${corpseRoot}/${sanitised(deceasedKey)}/${diedAtGameSec}`,
    with a disambiguator if two die in one game-second.
 
@@ -415,8 +424,10 @@ different identity paths; a reembodied player's two corpses do too.
 
 1. `platform/agent/Extra.ts` and `platform/agent/Cast.ts` over the
    `lib/npc/NPC` substrate; `platform/agent/NPC.ts` retires (D5).
-2. `Cast = SingletonMixin(…)`; `Extra` carries the institution pointer and
-   the `getIdentityPath()` projection (D7).
+2. `Cast = SingletonMixin(…)`. ⚠ **Neither class touches
+   `getIdentityPath()`** — D7 replaced the projection with a second
+   derived attribution, so identity resolution is unchanged by this
+   build.
 3. **Classify the 42 rows** by the article rule — 25 named + 6
    definite-article individuals → `Cast`; the indefinite role-fillers →
    `Extra`. Small enough to do by hand and to review.

@@ -449,43 +449,33 @@ institution cannot absorb — a killing, a fraud — is then the signal that
 **an author should have written a Cast row**, and the world telling you so
 is a better outcome than the engine papering over it.
 
-#### ⭐⭐⭐ And the mechanism ships already — the WireBody is the precedent
+#### ⚠⚠ SUPERSEDED — the mechanism is NOT an identity projection
 
-`getIdentityPath()` is not a field read. It is an **overridable projection
-method**, and the codebase already has one consumer of that:
+*This section originally argued that an `Extra` should override
+`getIdentityPath()` to return its institution, on the sandbox `WireBody`
+precedent. **That was wrong and has been replaced** — see
+[identity-ledgers-plan](../../plans/identity-ledgers-plan.md) § D7.*
 
-> *"A projection vessel (the sandbox `WireBody`) overrides the METHOD to
-> return the real identity's path … so in-circle derive-on-read composes
-> the player's real history and PASS rows attribute to the real identity,
-> never the vessel. (The registry index deliberately reads the raw SLOT,
-> not this method — a vessel must never index under the identity it
-> projects.)"*
+Two things broke it:
 
-⭐ **An `Extra` is the same shape, pointed at an institution instead of a
-player.** Override `getIdentityPath()` to return the office / business /
-watch it acts for, and:
+1. **It made "who do you act for" an Extra-only concept**, when it is the
+   whole of the office model. A `Cast` member acts for an institution
+   too — Odile's bad ruling is her act *and* the Registry's failure.
+2. **The ledger already had the right shape.**
+   `AccountabilityEvent.directedBy` is *"the party bearing command
+   responsibility … **derived, never stamped**"*, surfaced by
+   `deriveBlame`. Institutional attribution is a **second attribution**,
+   not an identity trick — so overriding an identity method with a policy
+   meaning was solving it at the wrong layer.
 
-- **every producer keeps working unchanged.** `accountability` is
-  deliberately *producers-not-chokepoint* — many call sites write rows —
-  so a per-producer rule would have to be added in N places and would rot.
-  A projection is one method on one class and every producer inherits it.
-- **the shared row can never be written to**, because nothing ever
-  resolves to it. B becomes structurally unreachable rather than merely
-  discouraged.
-- **A falls out of the same line.** No institution ⇒ the projection
-  returns **`null`**, which the signature already permits
-  (`getIdentityPath(): string | null`) and several readers already
-  tolerate. *No writes otherwise* is the null case, not a second rule.
-- **indexing is already safe.** `Stuff._identityStampOf` is the raw slot
-  the registry keys on, and it exists precisely so a projection cannot
-  file a vessel under the identity it projects. That guard was written for
-  the sandbox and is exactly what this needs.
+⭐ The surviving statement, which is the one worth keeping: **an `Extra`
+has no identity of its own, so its institutional attribution is the only
+one it has.** Same field on both classes, different arity.
 
-⚠ The one thing to check rather than assume: the readers that do
-`getIdentityPath() ?? somethingElse` (reactions, channels, subjects) —
-their fallbacks were written for *"this has no identity yet"*, not for
-*"this deliberately has none"*, and a fallback to `''` or an `ownerId`
-would quietly re-create the collision the projection exists to remove.
+⭐⭐ And the institution mostly **resolves** rather than being authored —
+an authored override, else the employer off the shipped `Business`
+roster, else `ParcelApi.ownerOf(<declared home>)`, else `null`. Plan §
+D7a.
 
 #### The consequences, stated because they are positions and not details
 
@@ -508,16 +498,16 @@ would quietly re-create the collision the projection exists to remove.
   against that institution rather than a series of unattributable
   scuffles.
 
-### ⚠⚠ Correction — the projection does NOT cover accountability
+### ⚠⚠ Accountability is the outlier — and the reason this is not free
 
 Stated last turn that *"every producer keeps working unchanged"* because
 they all key on identity. **That is wrong for the one ledger this decision
 is actually about**, and the cost estimate changes with it. Verified:
 
-| ledger | keys on | projection applies? |
+| ledger | keys on | identity-consistent? |
 |---|---|---|
-| trait · transcript · access · reactions · channels · subjects | `getIdentityPath()` | ✅ free |
-| **accountability** | **`getTemplatePath()`** | ❌ **no** |
+| trait · transcript · access · reactions · channels · subjects | `getIdentityPath()` | ✅ |
+| **accountability** | **`getTemplatePath()`** | ❌ **the outlier** |
 
 `ConditionLogic` writes `victim: host.getTemplatePath() ?? host.stuffId`,
 and `CombatLogic` keys combatants, sides and initiators off
@@ -697,8 +687,9 @@ consumes, failing closed and silent.
 0. ✅ **CLOSED 2026-09-04 — what an `Extra`'s deeds do, and what is done
    TO it.** Both attribute to the **institution**; where there is none,
    **nothing is written**. B (the shared row) is a rule against rather
-   than a default, and the mechanism is an identity **projection**, the
-   sandbox `WireBody`'s second consumer. ⚠ It is *not* free: the
+   than a default. ⚠ The mechanism is **not** an identity projection —
+   that first answer was wrong; it is a **second derived attribution**
+   beside `directedBy` (plan § D7/D7c). It is also not free: the
    accountability producers key on `getTemplatePath()`, not
    `getIdentityPath()`, so seven call sites move with it.
 1. ⭐ **One document, or a block on the row?** The provocation says
@@ -751,8 +742,8 @@ is settled by evidence rather than argument.
 5. **The materialized trio** — whichever limb Q2 takes.
 6. **Body/condition claims** — the clinic's slice, once Q3 is settled.
 7. **`Extra` / `Cast` + `lint:identity`** — the class split, which is
-   `SingletonMixin(NPC)` plus the lint, plus the **institution
-   projection** on `Extra` (Q0). Sequenced last only because nothing
+   `SingletonMixin(NPC)` plus the lint, plus the **institution resolve
+   and the second attribution** (Q0; plan § D7a/D7c). Sequenced last only because nothing
    repeats a row *yet*; the day one does, it moves to the front. ⭐ The
    acceptance is behavioural and cheap to state: **an extra's deed lands
    on its institution's ledger and on no row of its own**, an extra with
