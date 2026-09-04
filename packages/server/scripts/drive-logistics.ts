@@ -295,6 +295,26 @@ async function main(): Promise<void> {
     ),
     jobs + back);
 
+  // ⭐⭐ The ONE posting brain, read from the road. `restocks` is the only
+  // NPC that posts (the producer hands walk), its board is in the bar,
+  // and the bar is off the map — but a gig's ORIGIN is the supplier's
+  // counter, which is in Terminus. `jobs --origin <path>` therefore
+  // reads the keeper's own orders from anywhere, which is exactly the
+  // backhaul question a hauler asks. ⓘ Reported, never asserted: whether
+  // she is short right now is the world's business, not the drive's.
+  const keeper = plain(
+    await p.cmd(
+      "jobs --origin /world/terminus/counting-houses/cash-and-carry",
+      2500,
+    ),
+  );
+  say(">", keeper);
+  console.log(
+    /wanting carriage/i.test(keeper)
+      ? "   ⓘ the bar keeper HAS posted — carriage wanted out of the cash-and-carry"
+      : "   ⓘ nothing posted out of the cash-and-carry this beat (the bar's par may be met)",
+  );
+
   // ── 7. The goods yards, and the work on the boards ─────────────────
   console.log("\n7. ⭐⭐ The goods yards — where the switchover landed");
   say("> west", await go("west"));
@@ -312,12 +332,14 @@ async function main(): Promise<void> {
     /floor|still|rack/i.test(floor), floor);
   const works = plain(await p.cmd("look works-board", 2000));
   say(">", works);
-  ok("the floor has a works board on it (the hand posts without leaving)",
+  ok("the floor has a works board on it (for the PEOPLE on it — the hand walks)",
     /works board|dockets|pegs/i.test(works), works);
 
-  // ⚠ Whether anything is ON it depends on the producer beat, which is
-  // four game-minutes away — reported, never asserted, because a drive
-  // that failed on a cadence would be measuring the clock.
+  // ⚠ Expected BARE on a fresh realm, and that is not a defect: no NPC
+  // posts to a producer floor's board. The hand walks its own goods to
+  // the counter; the only posting brain is the bar keeper, and her board
+  // is in the bar. This reads the board to prove it is readable — what
+  // is on it is a player's business.
   const posted = plain(await p.cmd("jobs", 2500));
   say("> jobs", posted);
   console.log(

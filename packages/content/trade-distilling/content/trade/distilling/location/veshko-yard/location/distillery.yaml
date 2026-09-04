@@ -34,9 +34,14 @@ data:
       media: [ground]
       edgeMinutes: 2
   props:
-    # ⭐ The works board, ON the floor. The hand posts what wants moving
-    # without stepping outside — which is what makes D11's resolution
-    # literal: neither NPC ever leaves its own floor again.
+    # ⭐ The works board, ON the floor — and it is for PEOPLE.
+    #
+    # ⚠ It shipped with a different reason: the hand was going to post
+    # what wanted moving instead of travelling. The hand WALKS instead
+    # (D11's literal reading, once the floor had a door), so nothing on
+    # this board is posted by an NPC. It is where the outfit's own
+    # proprietor posts carriage, and it is what a hauler standing here
+    # reads — including `jobs --origin here`, the backhaul.
     - /trade/haulage/thing/works-board
     - /trade/distilling/thing/racking
     - /trade/distilling/location/veshko-yard/thing/stock

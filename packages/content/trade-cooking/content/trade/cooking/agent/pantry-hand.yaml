@@ -23,20 +23,16 @@ data:
       config:
         stock: /trade/cooking/thing/pantry-stock
         shelf: /trade/distribution/thing/counter
-        # ⭐ The board this floor posts to, and what the house will pay to
-        # have one crate moved. ⚠ The CARRIAGE is the whole price — the
-        # goods are already the house's, and the hauler is being paid to
-        # move them, not to buy them. That is why this leg needs no
-        # capital at all and is the labor market's FIRST RUNG.
-        board: /trade/haulage/thing/works-board
-        crate: /trade/haulage/thing/supply-crate
-        carriage: 6
-        # ⚠ Retuned by logistics D11: a CRATE, not six loose goods. The
-
-        # carriage is per consignment, so a bigger crate is the same haul
-
-        # and the loop closes in fewer trips.
-
+        # ⚠⚠ `board`, `crate` and `carriage` USED to sit here — the
+        # posting version of this beat, from before the hand could
+        # walk. `consigns` reads none of them, so they were three keys
+        # that looked like configuration and were configuration of
+        # nothing. Removed rather than left: a dead key in a row is the
+        # quietest lie a content tree can tell.
+        #
+        # ⚠ Retuned by logistics D11 all the same: twelve a beat, not six
+        # loose goods, because a walk to the counter and back is the same
+        # walk whatever the hand is carrying.
         batch: 12
         ask:
           pantry:sugar: 8

@@ -1,7 +1,9 @@
 # the pantry outfit's floor — the yard: the outfit's Stock (the floor rows' home
 # `container:` — the sweep stands them at target here) and the hand whose
 # `consigns` beat carries them to the cash-and-carry. ⭐ It has a DOOR now (logistics D11): a hauler has to be able to
-# reach the crate the hand posts about. The hand never uses it.
+# reach the crate the hand carries out. ⚠ The hand DOES use it — it walks
+# out this way to the counter and back (D11's literal reading, which
+# this build made possible by giving the floor a door at all).
 # An ordinary location, not a FurnishableRoom: that class is the
 # FURNISHING archetypes' base. A trade floor's durability lives on its
 # persistable fixtures (the Stock, the racking, the counter) — the
@@ -33,9 +35,14 @@ data:
       media: [ground]
       edgeMinutes: 2
   props:
-    # ⭐ The works board, ON the floor. The hand posts what wants moving
-    # without stepping outside — which is what makes D11's resolution
-    # literal: neither NPC ever leaves its own floor again.
+    # ⭐ The works board, ON the floor — and it is for PEOPLE.
+    #
+    # ⚠ It shipped with a different reason: the hand was going to post
+    # what wanted moving instead of travelling. The hand WALKS instead
+    # (D11's literal reading, once the floor had a door), so nothing on
+    # this board is posted by an NPC. It is where the outfit's own
+    # proprietor posts carriage, and it is what a hauler standing here
+    # reads — including `jobs --origin here`, the backhaul.
     - /trade/haulage/thing/works-board
     - /trade/cooking/thing/pantry-stock
   cast:

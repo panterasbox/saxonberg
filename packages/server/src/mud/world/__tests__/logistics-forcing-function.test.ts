@@ -140,7 +140,20 @@ describe('the content the switchover needed', () => {
     }
   });
 
-  it('every producer floor has a WORKS BOARD, so the hand posts without stepping outside', () => {
+  it('every producer floor has a WORKS BOARD — for the PEOPLE on it, since the hand walks', () => {
+    /*
+     * ⚠⚠ The board shipped for a different reason: the hand was going to
+     * post what wanted moving rather than travel. It WALKS instead (the
+     * literal reading, once the floor had a door), so **no NPC posts to
+     * these boards** — `restocks` is the only brain that posts anywhere,
+     * and its board is the bar's.
+     *
+     * They stay, and the reason is better than the old one: a floor
+     * without a board is a place a player who owns the outfit cannot
+     * post carriage from, and a hauler standing on it cannot ask
+     * `jobs --origin here` — the backhaul, which is the whole
+     * coordination lesson.
+     */
     const floors = [
       'trade-bottling/content/trade/bottling/location/bottling-floor.yaml',
       'trade-cooking/content/trade/cooking/location/pantry-floor.yaml',
