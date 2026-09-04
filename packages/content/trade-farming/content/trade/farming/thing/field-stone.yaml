@@ -1,0 +1,20 @@
+# Field stone — ⭐ **the cleared stone IS the wall** (D56).
+#
+# Stony ground is expensive to clear and cheap to fence, which inverts an
+# expectation in a way a player remembers and is historically exact: the
+# stone walls of Ireland and New England are the fields' own stones,
+# stacked at the edge because there was nowhere else to put them. Zero
+# waste, and the fencing a holding needs anyway comes out of the job it
+# already had to do.
+class: /platform/thing/Provision
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a heap of field stone
+  primaryKeyword: stone
+  keywords: [stone, stones, field-stone, rubble]
+  longDescription: >-
+    Rough grey stone off the ground it was in, every piece a different
+    size and none of them square. It is heavy out of all proportion to
+    how much of it there looks to be.
+  _materialPath: /stuff/idea/material/rock/granite
+  mass: 22

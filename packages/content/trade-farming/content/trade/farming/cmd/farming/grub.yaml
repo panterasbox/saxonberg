@@ -1,0 +1,31 @@
+verbs: [grub]
+controller: /trade/farming/idea/cmd/farming/GrubController
+description: "Grub out rough ground — thorn, root and stone — until it will take a crop"
+help: |
+  The heaviest work on the farm, and the real word for it. You cut into
+  the thorn and bramble and lever out what is under them.
+
+  ⭐ Newly plotted ground is NOT a field. It is a claim on rough ground,
+  and grubbing is what turns one into the other — the gate on sowing
+  anything at all. You can sow sour, wet ground and get a bad crop, which
+  is a lesson. You cannot sow a thicket.
+
+  ⭐⭐ The stone you turn out is the WALL. Stony ground is dear to clear
+  and cheap to fence, which is why the stone walls of Ireland and New
+  England are the fields' own stones stacked at the edge. Limy ground
+  gives up marl as well — calcareous clay, which is what you carry to a
+  sour field and spread with `lime`.
+
+  ⚠ And it spends the wild. Every swathe you grub out is forage that is
+  not there any more. You are turning a commons into a farm, and the
+  arithmetic of whether you can afford to is yours to do.
+
+  How long it takes is the ground's business, not yours: steep is slower,
+  stony is slower still. Needs a spade.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  - name: detail
+    type: string
+    required: false
