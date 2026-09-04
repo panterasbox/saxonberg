@@ -265,6 +265,45 @@ describe("work verbs", () => {
     });
   });
 
+  it("⭐⭐⭐ a kind with MANY live instances posts — the common case", async () => {
+    /*
+     * ⚠⚠ The whole point of a kind-bound gig is a kind, and a kind you
+     * order is one there are lots of. `ContractApi.post` used
+     * `StuffApi.findByTemplatePath` for its Globbable check, and that
+     * form THROWS on more than one live instance — so ordering anything
+     * ordinary threw `expected singleton, found N` from inside a forced
+     * NPC command, where nothing surfaces it.
+     *
+     * A live drive is what caught it: the bar keeper issued twelve
+     * postings for twelve short lines and filed NOTHING, silently,
+     * because twelve bottles of gin exist in the world.
+     */
+    for (let i = 0; i < 12; i++) {
+      const dup = makeStuffAtPath(() => new TestCrate(), CRATE);
+      dup.setKeywords(["crate"]);
+      ContainmentApi.move(dup as never, room);
+    }
+    const c = ctx(poster);
+    await asGiver(poster, () =>
+      job().execute(
+        {
+          subcommand: "post",
+          destination: DEST,
+          reward: 25,
+          item: CRATE,
+          bounty: true,
+        } as never,
+        c,
+      ),
+    );
+    expect(c.note).not.toHaveBeenCalled();
+    const gigs = await ContractApi.openGigsOn(BOARD);
+    expect(gigs[gigs.length - 1]?.clause?.condition.item).toEqual({
+      kind: "template",
+      path: CRATE,
+    });
+  });
+
   it("⚠ a kind that is nothing is refused — the escrow would sit forever", async () => {
     const c = ctx(poster);
     await asGiver(poster, () =>

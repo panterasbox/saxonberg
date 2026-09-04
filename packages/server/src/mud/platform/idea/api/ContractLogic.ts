@@ -150,7 +150,12 @@ async function saveRecord(record: ContractRecord): Promise<void> {
  * demand). Null when the path names nothing buildable.
  */
 async function resolveDestination(path: string): Promise<Stuff | null> {
-  const live = StuffApi.findByTemplatePath(path);
+  // ⚠ The multi-instance form, for the same reason the item check uses
+  // it: fixtures are SHARED ROWS. One `/trade/haulage/thing/receiving-
+  // bench` row stands in every venue that receives goods, so the
+  // singleton lookup throws the day a second venue has one — and the
+  // throw would land inside a forced NPC command, where it is invisible.
+  const live = StuffApi.findAllByTemplatePath(path)[0];
   if (live) return live;
   try {
     return await StuffApi.singletonOrClone<Stuff>(path);
@@ -403,7 +408,19 @@ async function postImpl(spec: GigSpec): Promise<PostGigResult> {
 
   // A fungible stack can never satisfy a gig (no stable identity).
   if (spec.condition.item.kind === "template") {
-    const exemplar = StuffApi.findByTemplatePath(spec.condition.item.path);
+    // ⚠⚠ `findAllByTemplatePath`, NEVER `findByTemplatePath` — the
+    // singleton form THROWS when a path has more than one live instance,
+    // and a kind-bound gig names a kind, which is to say the common case
+    // is many. A live drive caught this: twelve bottles of gin exist, so
+    // every one of the keeper's twelve postings died with
+    // `expected singleton, found 12` — a controller-error, swallowed by
+    // the forced command, leaving a bar that ordered nothing and said
+    // nothing. It was latent until an order could name a kind the poster
+    // was not holding; then it broke every kind-bound gig in the realm,
+    // players included.
+    const exemplar = StuffApi.findAllByTemplatePath(
+      spec.condition.item.path,
+    )[0];
     if (exemplar && MixinApi.isGlobbable(exemplar)) {
       return { ok: false, reason: "fungible goods can't be contracted" };
     }
