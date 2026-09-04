@@ -18,7 +18,7 @@ describe('ReservedMixin — biological reserves', () => {
   beforeEach(() => installV1QuantityMarshallers());
   afterEach(() => StuffApi.clearAll());
 
-  it('a living body starts with the three biological reserves at full', () => {
+  it('a living body starts with the four biological reserves installed', () => {
     const c = makeStuff(() => new Creature());
     expect([...c.getReserves().keys()].sort()).toEqual(
       [...BIOLOGICAL_RESERVE_KEYS].sort(),

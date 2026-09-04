@@ -216,6 +216,33 @@ export const METABOLIC_DEFAULTS = {
 
   /** Lethal accrual (game-seconds floored) before the death seam fires. */
   STARVATION_LETHAL_SEC: 24 * 3600,
+
+  /**
+   * ⭐⭐ **The partition leg** (farmstead D24/P7) — how fast the body
+   * banks and spends its own flesh.
+   *
+   * `satiation` is HOURS and `flesh` is MONTHS, and these two numbers are
+   * what make that sentence true. A body living at nothing loses its
+   * whole fat cover in about **90 game days** (three game months, a real
+   * week at the shipped scale); a body living in surplus puts it back in
+   * about **150**. ⚠ Losing is faster than gaining, which is both
+   * physiologically true and the honest way round for a game: you can
+   * ruin an animal in a hard winter far quicker than you can fatten it.
+   */
+  FLESH_LOSS_PER_MIN: 100 / (90 * 24 * 60),
+  FLESH_GAIN_PER_MIN: 100 / (150 * 24 * 60),
+
+  /**
+   * The satiation level above which intake is genuinely surplus, and the
+   * level at/below which the body is drawing on itself.
+   *
+   * ⚠ The gap between them is not hysteresis — it is **maintenance**. A
+   * body between 25 and 70 is eating what it needs and doing neither, so
+   * the ordinary state of an adequately fed animal is *no change*, which
+   * is what stops flesh drifting in one direction forever.
+   */
+  FLESH_SURPLUS_AT: 70,
+  FLESH_DEFICIT_AT: 25,
   /** Dehydration kills faster than starvation. */
   DEHYDRATION_LETHAL_SEC: 8 * 3600,
 
@@ -252,6 +279,7 @@ const CONDITION_PATHS: Record<string, string> = {
   starvation: TemplatePaths.metabolismStarvation,
   dehydration: TemplatePaths.metabolismDehydration,
   collapse: TemplatePaths.metabolismCollapse,
+  emaciation: TemplatePaths.metabolismEmaciation,
 };
 
 /** Lethal accrual per floor-effect (game-seconds); absent = non-lethal. */
@@ -523,7 +551,15 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
       // Far-past guard: a gap this long means absence (logout/relog, a
       // paused server) — drop it, integrate nothing.
-      if (elapsed > D.MAX_REASONABLE_GAP_SEC) {
+      //
+      // ⚠⚠ **Not for a body somebody OWNS** (farmstead W7). The family
+      // clock's rule is that owned things integrate the full elapsed gap
+      // and *only the inhabited body gets the guard*: it exists because
+      // real-life absence must never starve YOU. A kept animal
+      // inheriting it would gain nothing across any absence longer than
+      // lunch, and the whole winter-feed budget — the thing the design
+      // is built on — would quietly never bite.
+      if (elapsed > D.MAX_REASONABLE_GAP_SEC && !this.integratesLongAbsence()) {
         this.metabolicClockStamp = nowS;
         return;
       }
@@ -565,6 +601,32 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
+     * @hook Does this body integrate an absence longer than the far-past
+     * guard?
+     *
+     * ⭐ **The answer is "yes iff somebody owns it."** A player's body is
+     * protected because their absence is real life; an NPC in a tavern is
+     * protected because nobody is responsible for feeding it and starving
+     * the world's cast across a server restart would be a bug rather than
+     * a lesson. **A kept animal is neither** — it is somebody's, they took
+     * it on, and the whole of D29 (*one mortality rule for every kept
+     * animal*) rests on its clock running while they are away.
+     *
+     * ⚠ Ownership is read through the chattel stamp, which is a
+     * **synchronous** check by design: this sits on the reconcile-on-read
+     * path and must not await anything.
+     *
+     * ⚠ In the wave this shipped in, `ChattelMixin` was still Thing-only,
+     * so nothing answered true and the behaviour was byte-identical. It
+     * starts mattering the moment livestock exist, which is the wave
+     * after — deliberate sequencing, not an accident.
+     */
+    protected integratesLongAbsence(): boolean {
+      const self = this as unknown as Stuff;
+      return MixinApi.isChattel(self) && self.isStamped();
+    }
+
+    /**
      * One integration slice (game-seconds), flows in fixed order:
      * (1) digestion absorption, (2) basal drain, (3) coupled recovery.
      * (Wave 2 inserts toxin clearance at step 4.) Each slice is small
@@ -577,6 +639,65 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
       this.basalDrain(stepMin);
       this.coupledRecovery(stepMin);
       this.clearBurdens(stepMin);
+      this.partitionFlesh(stepMin);
+    }
+
+    /**
+     * Step 5 — ⭐⭐ **the bottom line of the partitioning cascade.**
+     *
+     * Intake is spent in priority order — maintenance, thermoregulation,
+     * growth, production, reproduction — and what is left over is the
+     * only thing that can be banked. So this runs LAST in the slice, on
+     * whatever satiation survived the four steps above it, and that
+     * ordering is the mechanism rather than a convention: **production
+     * dies before condition does**, because production is spent earlier
+     * and the store is what remains.
+     *
+     * > **`satiation` is hours; `flesh` is months.** Satiation is the
+     * > flow; flesh is the stock the flow deposits into.
+     *
+     * ⚠ It deliberately does **not** feed back into satiation. A body
+     * with fat on it still starves in a day of nothing at all — the
+     * acute arc is untouched, and its lethal clock is unchanged. What
+     * chronic shortfall buys you is `emaciation`, which is not lethal
+     * and is far worse: `VitalsMixin`'s derived condition band already
+     * adds load for every floored biological reserve, so a wasted body
+     * is a degraded body **with no new wiring at all**.
+     *
+     * ⚠ A body carrying no `flesh` reserve (anything that predates this,
+     * anything not alive) is a no-op, not a zero.
+     */
+    protected partitionFlesh(stepMin: number): void {
+      const self = this as unknown as MetabolicHost;
+      if (!(this as unknown as Reserved).hasReserve("flesh")) return;
+      const D = METABOLIC_DEFAULTS;
+      const satiation = this.reserveCurrent("satiation");
+      if (satiation >= D.FLESH_SURPLUS_AT) {
+        // Surplus deposits — and only in proportion to how much surplus
+        // there is, so a body that is merely comfortable gains nothing.
+        const surplus =
+          (satiation - D.FLESH_SURPLUS_AT) / (100 - D.FLESH_SURPLUS_AT);
+        self.adjustReserve(
+          "flesh",
+          Quantity.of(D.FLESH_GAIN_PER_MIN * stepMin * surplus, "%"),
+        );
+        return;
+      }
+      if (satiation <= D.FLESH_DEFICIT_AT) {
+        // A shortfall withdraws, and the deeper the shortfall the faster
+        // — an animal on half rations wastes slowly and one on nothing
+        // wastes fast.
+        const deficit =
+          D.FLESH_DEFICIT_AT <= 0
+            ? 1
+            : (D.FLESH_DEFICIT_AT - satiation) / D.FLESH_DEFICIT_AT;
+        self.adjustReserve(
+          "flesh",
+          Quantity.of(-D.FLESH_LOSS_PER_MIN * stepMin * deficit, "%"),
+        );
+      }
+      // Between the two: maintenance. Nothing happens, which is the
+      // ordinary state of an adequately fed animal.
     }
 
     /**

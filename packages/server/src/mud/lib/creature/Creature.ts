@@ -158,6 +158,39 @@ const CreatureBase = PostmortemMixin(
 );
 
 /**
+ * The body-condition bands, thin to fat — ⭐ a CLOSED, ordinal
+ * vocabulary, and the words a stockman actually uses.
+ */
+export const BODY_CONDITION_BANDS = [
+  'emaciated',
+  'thin',
+  'good',
+  'fleshy',
+  'fat',
+] as const;
+
+export type BodyConditionBand = (typeof BODY_CONDITION_BANDS)[number];
+
+/**
+ * ⭐ Exhaustive by construction: a sixth band cannot be added without
+ * writing its sentence, so the coverage half of the band contract is
+ * enforced by the compiler rather than by a memo.
+ *
+ * ⚠ What the compiler cannot check is whether adjacent bands are
+ * DISTINGUISHABLE in prose — the half that actually matters, because two
+ * bands that read alike collapse the whole opacity ladder silently. The
+ * reviewer's test: *can a reader who does not know the number tell this
+ * band from the one on either side of it?*
+ */
+const BODY_CONDITION_PHRASE: Readonly<Record<BodyConditionBand, string>> = {
+  emaciated: 'wasted — every rib and the points of the hips standing out, and the coat gone staring',
+  thin: 'thin; you can count the ribs at a glance and the backbone is a ridge',
+  good: 'in good flesh — the ribs felt rather than seen',
+  fleshy: 'well covered, running to fat over the tail head',
+  fat: 'fat, and carrying more of it than is good for anything',
+};
+
+/**
  * Creature concrete class — a living body. `Character` extends this
  * and adds agency. `Agent` already registers the top-level branch;
  * `Creature` does not re-register.
@@ -194,6 +227,60 @@ export class Creature extends CreatureBase {
   /** The hydration reserve (the tighter recovery leash), reconciled. */
   public getHydration(): Reserve {
     return this.getReserve('hydration')!;
+  }
+
+  /**
+   * ⭐⭐ **The flesh reserve — body condition, which is fat cover, which
+   * is a STOCK.**
+   *
+   * > **`satiation` is hours; `flesh` is months.** Satiation is the flow;
+   * > this is the stock the flow deposits into.
+   *
+   * ⚠ It is the raw number, and almost nobody should be reading it. What
+   * a person standing in front of an animal gets is
+   * {@link Creature.bodyConditionBand} — *by eye* a coarse band, and a
+   * precise score only by laying hands on it, because real body condition
+   * scoring is palpation of spine and ribs. **Precision costs an act.**
+   */
+  public getFlesh(): Reserve {
+    return this.getReserve('flesh')!;
+  }
+
+  /**
+   * ⭐ **The band, which is what a reader actually gets** (D24).
+   *
+   * The reserve is stored and the band is derived — the same relationship
+   * soil moisture already has, and the honest-opacity model exactly: one
+   * real number underneath, three fidelities of reading over it.
+   *
+   * ⚠ **Not `getConditionBand`, and the collision is why this is named
+   * `flesh` at all.** `VitalsMixin.getConditionBand` already means
+   * something different and correct — how degraded a body is RIGHT NOW
+   * from floored reserves and open wounds. Body condition is weeks of
+   * nutrition. Two real concepts, one English word, so the shipped one
+   * keeps it. *"In good flesh"* is stockman's language for precisely
+   * this and sits beside satiation and hydration without reading like a
+   * stat.
+   */
+  public bodyConditionBand(): BodyConditionBand {
+    const flesh = this.getReserve('flesh');
+    if (!flesh) return 'good';
+    const capacity = flesh.capacity.rawValue();
+    const fraction = capacity > 0 ? flesh.current.rawValue() / capacity : 0;
+    if (fraction < 0.12) return 'emaciated';
+    if (fraction < 0.3) return 'thin';
+    if (fraction < 0.72) return 'good';
+    if (fraction < 0.9) return 'fleshy';
+    return 'fat';
+  }
+
+  /**
+   * What that band looks like — ⭐ **a percept, never a number in
+   * words** (D86). A reader sees the animal and infers the husbandry;
+   * they are not handed a gauge with a costume on.
+   */
+  public bodyConditionPhrase(): string {
+    return BODY_CONDITION_PHRASE[this.bodyConditionBand()];
   }
 
   /**
