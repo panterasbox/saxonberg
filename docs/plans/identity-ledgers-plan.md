@@ -165,13 +165,34 @@ identically either way, so separation buys no safety. Player dossiers stay
 with char-gen. *Revisit only if a dossier must be edited independently of
 its row (a CMS surface).* → slate Q1 closed.
 
-**D2 — the materialized trio gets SEED-AND-FOLD, not a rewrite.** Seeding
-triggers a recompute. Making `renownOf` derive from its log like
-`transcripts` does is the honest fix and is **not this build's** — the
-boot-warmed map exists for a performance reason nobody has restated, and
-taking that on would double the build. ⚠ But `lint:dossiers` (W6) must
-cover the trio, so the trap cannot silently recur. → slate Q2 closed;
-deferred seam recorded.
+**D2 — the materialized trio is OUT OF SCOPE ENTIRELY. Nothing seeds an
+NPC's renown.**
+
+⚠ *Revised. An earlier form of this decision said "seed-and-fold, not a
+rewrite" and put the trio in `lint:dossiers`' coverage. That was scope
+this build never needed, and it pointed at a doctrine violation.*
+
+`renown.md`'s own text: *"This subsystem ships the substrate … it wires
+**no consumer** — governance influence, NPC behaviour, and
+disguise/notoriety read `RenownApi.renownOf` **later**."* The live callers
+are a `standing` verb and a profile card (both **display**),
+`ConsumerLogic`'s `renownOf × participationOf` (the **influence stock** —
+players and the Compact), and `Avatar`. **Nothing reads an NPC's renown to
+do anything.**
+
+⭐⭐⭐ And seeding it would be *wrong*, not merely wasteful. Renown's
+governing stance is **"measure, don't assign — renown is an *output you
+observe*, never an *input you set*."** A written reputation is an assigned
+output by definition.
+
+⇒ **The dossier says what a person can DO and where they CAME FROM, never
+what they are THOUGHT OF.** Reputation is earned, by players, in the
+Compact. Cut from the dossier sketch, cut from `lint:dossiers`' coverage,
+cut from W6.
+
+⚠ The materialized trap itself is **real and stays documented** — it is a
+*player*-seeding hazard (it cost the S1 drive), and it bites whoever seeds
+a player next, not this build. → slate Q2 reopened as *not ours*.
 
 **D3 — a seeded illness is a THIRD SHAPE and is out of scope.** A claim
 forces `when = null`; an affliction's `symptomsAt` is exactly a *when*. So
@@ -492,14 +513,15 @@ the asymmetric gate: refused for another player, answered for anyone else.
 **Acceptance:** a player who asks reads Dave as good at bartending, and is
 refused when asking about another player.
 
-### W6 — `lint:dossiers` + the trio's fold
+### W6 — `lint:dossiers`
 
 Assert-vs-derive: seed what the dossier `asserting:` says and check the
 derived band agrees. ⭐ This is the only thing that stops a dossier
 drifting back into a stat sheet, because a declared value cannot disagree
 with itself and a seeded history can. Census-then-ratchet: gate today's
-count as the ceiling. ⚠ **Must cover the materialized trio** (D2), so the
-S1 drive's silent failure becomes a build error.
+count as the ceiling. ⚠ **Does not cover reputation, participation or
+influence** — D2: an author never writes those for an NPC, so there is
+nothing to check.
 
 ---
 

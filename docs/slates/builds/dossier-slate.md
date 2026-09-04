@@ -140,7 +140,26 @@ this whole subsystem leans on."*
 that fork, and answered it **seed**. The reason a floor felt necessary is
 that nobody had the claim marker in view.
 
-### Grade 2 — ⚠⚠ actively booby-trapped
+### Grade 2 — ⚠⚠ actively booby-trapped — ⭐ **but NOT this problem**
+
+> **Revised 2026-09-04.** These three are listed here because they *look*
+> like the same gap. They are not, and treating them as one cost this
+> design a wrong decision before it was caught.
+>
+> `renown.md`: *"it wires **no consumer** — governance influence, NPC
+> behaviour, and disguise/notoriety read `renownOf` **later**."* The live
+> callers are two display surfaces, the political-influence stock, and
+> `Avatar`. **Nothing reads an NPC's reputation to do anything.**
+>
+> ⭐⭐⭐ And seeding one would violate the subsystem's stated stance —
+> **"measure, don't assign: an output you observe, never an input you
+> set."** A written reputation is an assigned output by definition.
+>
+> ⇒ **A dossier says what a person can DO and where they CAME FROM, never
+> what they are THOUGHT OF.** Reputation is earned, by players, in the
+> Compact. The trap below is real and stays recorded — it is a
+> **player**-seeding hazard, and it will bite whoever seeds a player next.
+
 
 `RenownApi.renownOf` reads `RenownStanding.cached()`, an in-memory map
 warmed at boot from the **`renown` collection** — the *materialized*
@@ -185,6 +204,17 @@ And its resolution:
 
 > ⭐⭐ **Role and temperament are the ARCHETYPE. Standing is the INSTANCE.**
 
+⚠ **A word collision worth heading off.** cast-archetype uses *"standing"*
+in its plain sense — *where you stand*: what you hold, what happened to
+you, who you are bound to. But **`standing` is a taken term** in this
+codebase: it is the derived reputation figure a `standing` verb reports
+and the political-influence stock consumes. Reading the two together
+implies NPCs participate in the Compact's influence economy, which they do
+not and should not (Grade 2). **This slate therefore says
+"circumstance"** for cast-archetype's axis — *what is true of this person
+that they did not choose*, which is that slate's own definition. The
+rename is local to this document; cast-archetype keeps its word.
+
 It then made standing **three pointers into shipped registries** — history
 → a chronicle prologue ref; holdings → a title or a seat; relationship → a
 bond — explicitly so the archetype would not become a dumping ground.
@@ -225,11 +255,10 @@ competence:                  # → transcript claims
   - { discipline: mixology,   asserting: practised }
 history:                     # → condition / body claims
   - { condition: healed-fracture, part: left-wrist, era: "long ago" }
-standing:                    # → pointers, per cast-archetype Change 2
+circumstance:                # → pointers, per cast-archetype Change 2
   holdings: [ /world/rejection/parcel/bar ]
   bonds:    [ { to: /world/rejection/agent/mara, kind: employs } ]
-renown:                      # → seeded events AND a fold, see below
-  - { scope: rejection, asserting: known }
+# ⚠ NO reputation block, deliberately — see Grade 2.
 ```
 
 Four properties that matter more than the shape:

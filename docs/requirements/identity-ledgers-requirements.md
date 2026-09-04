@@ -32,10 +32,11 @@ was seeded from an authored history rather than set as a slider, and a
 record of who they are that distinguishes *a deed they did* from *a claim
 about their past*.
 
-**The world already keeps books.** Standing, participation, influence,
-blame, personality, credentials, competence — each is derived from an
-append-only record rather than stored as a number. Two of those records
-already accept authored history; the rest do not.
+**The world already keeps books.** Blame, personality, credentials,
+competence and reputation are each derived from an append-only record
+rather than stored as a number. Two of those records already accept
+authored history; the rest do not. ⚠ **Reputation is deliberately not one
+of them** — see the non-goal.
 
 **People already belong to things.** Businesses have rosters and
 positions. Offices have seats. Ground has title, and the owner of a piece
@@ -92,12 +93,22 @@ those readings currently have no way to be requested.
   design has failed. → nowhere, deliberately.
 - **Authoring histories for players.** Character creation already seeds a
   player's opening claims and keeps that path. → char-gen.
-- **Making the three standings that are currently *computed and cached*
-  derive on read like the rest.** Honest, and it would double this build.
-  → their own subsystem work; dossier-slate Q2.
+- **Making the three cached figures (reputation, participation, influence)
+  derive on read like the rest.** A real inconsistency, and ⭐ **out of
+  scope for a reason better than cost: none of the three is a thing an
+  author should be writing for an NPC anyway** (see below). → their own
+  subsystem work; dossier-slate Q2.
 - **An illness a character is written as already having.** It is a third
   shape — an asserted event with an asserted *time* — and belongs to the
   build that needs it. → the clinic (`medic-judgment-slate`).
+- ⭐⭐ **Reputation for characters nobody has played.** A written history
+  says what somebody *can do* and *where they came from* — never what they
+  are *thought of*. Reputation's own governing stance is **measure, don't
+  assign: an output you observe, never an input you set**, and it wires no
+  behavioural consumer at all today; its one mechanical reader is the
+  political-influence stock, which is a players-and-the-Compact concern.
+  Writing a reputation for an NPC would therefore be both unnecessary and
+  a doctrine violation. → nowhere, deliberately.
 - **Histories for businesses and organizations.** → dossier-slate Q4.
 - **Backstory written by a language model.** This build makes the artifact
   such a thing would write. → `llm-npc-design`.
@@ -212,9 +223,9 @@ good at it — is the property this project keeps chasing.
 
 **Values** — the question a written history forces on an author is **"is
 this one somebody?"**, and it has a cost either way: a person can be
-wronged and must be answered for; a role cannot and need not. Standing is
-conferred by the institution that fields you, which is what an institution
-is for.
+wronged and must be answered for; a role cannot and need not. ⭐ And the
+answer to *who answers for you* is the institution that fields you, which
+is what an institution is for.
 
 **Epochs** — holds without modification. A legion answers for its
 legionaries exactly as a modern force answers for its officers; only the
