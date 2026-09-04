@@ -51,10 +51,16 @@ data:
     - /world/eternal/campus-farm/thing/hay-barn
     - /world/eternal/campus-farm/thing/midden
     - /world/eternal/campus-farm/thing/handcart
+    # ⭐ `props:` lays the tools down ONCE, at the yard's birth — which is
+    # all initial furnishing is for, and it is why four loose tools were
+    # four tools the first visitor could keep. The RACK is what puts them
+    # back: it adopts whatever it finds beside it and maintains it from
+    # there. Both are needed, and each does the half it is good at.
+    - /world/eternal/campus-farm/thing/tool-rack
     - /trade/farming/thing/spade
-    - /trade/farming/thing/plough
     - /trade/farming/thing/soil-kit
     - /trade/farming/thing/scythe
+    - /trade/farming/thing/plough
   exits:
     field:
       destination: /world/eternal/campus-field/location/home-field

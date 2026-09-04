@@ -1,0 +1,36 @@
+# ⭐⭐ **The tool rack** — and the reason the college's spade is still
+# here tomorrow.
+#
+# The four tools used to be `props:` on the yard. `props:` is INITIAL
+# FURNISHING: laid down once at the room's birth and deliberately never
+# topped up, because the same mechanism fills a crate with grapefruits
+# and a content edit is not a faucet. So the first person to pocket the
+# spade, kit, scythe and plough owned the college's entire tool set, and
+# nobody else could work here ever again. Two runs of the live drive
+# found it — the second one arrived to an empty yard.
+#
+# ⭐ The rack RECLAIMS rather than restocks. A tool left lying in the
+# field comes back on the repop sweep; a tool in somebody's hands is left
+# alone, because they are using it; a tool is only replaced when it has
+# ceased to exist. So the college owns four tools, and the way to get a
+# fifth spade out of it is to destroy the fourth — which is not an
+# exploit, it is the college buying a spade because somebody lost one.
+#
+# ⚠ It is a FIXTURE. A rack you could pocket would be the obvious way
+# around all of the above.
+class: /trade/farming/thing/ToolRack
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a tool rack
+  primaryKeyword: rack
+  keywords: [rack, tools, pegs]
+  longDescription: >-
+    A row of iron pegs driven into the byre wall under the overhang, with
+    a shelf under them for the small things. Every peg has a shape worn
+    pale into the whitewash behind it, so you can see what is missing
+    before you have finished counting.
+  toolRows:
+    - /trade/farming/thing/spade
+    - /trade/farming/thing/soil-kit
+    - /trade/farming/thing/scythe
+    - /trade/farming/thing/plough

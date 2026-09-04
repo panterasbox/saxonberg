@@ -130,6 +130,12 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
   // because the field it looked for no longer existed anywhere. A gate
   // that passes by not looking is worse than no gate. If these are ever
   // renamed again, this list is what has to move with them.
+  // ⭐ The tool rack's roster: the template paths of the tools it is
+  // responsible for putting back. A plain array of paths, like `props:`,
+  // and flagged by clause (d) the moment it shipped.
+  if (Array.isArray(data.toolRows)) {
+    for (const row of data.toolRows) push('toolRows', row);
+  }
   for (const field of ['props', 'cast'] as const) {
     const entries = data[field];
     if (!Array.isArray(entries)) continue;
