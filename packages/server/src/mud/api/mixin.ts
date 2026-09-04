@@ -90,6 +90,7 @@ import type { Wet } from '../lib/wetness/Wet';
 import type { Growing } from '../lib/husbandry/Growing';
 import type { Fermenting } from '../lib/ferment/Fermenting';
 import type { Plantable } from '../lib/husbandry/Plantable';
+import type { Soil } from '../lib/husbandry/Soil';
 import type { Cultivable } from '../lib/husbandry/Cultivable';
 import type { Combustible } from '../lib/fire/Combustible';
 import type { Meltable } from '../lib/thermal/Meltable';
@@ -1045,18 +1046,29 @@ export class MixinApi {
   }
 
   /**
+   * Ground with SOIL in it — the moisture/nutrient reserves and their
+   * reconcile window. A pot, a bed and a field all answer yes; only the
+   * first two are also {@link isCultivable}, because a field's crop does
+   * not sit in a plant slot.
+   */
+  public static isSoil(obj: Stuff): obj is Stuff & Soil {
+    return this.hasMixin(obj, Mixins.Soil);
+  }
+
+  /**
    * Ground that holds plants — a pot (N = 1) or a garden bed (N > 1).
    * The narrowing that replaced `instanceof PlantPot` across the
    * cultivation verbs.
    *
    * Narrows to the WHOLE composed surface, not just `Cultivable`:
-   * `CultivableMixin`'s base constraint already requires Container +
-   * Bulkable + Slotted, so a cultivable provably has them, and a caller
-   * that needs `occupy`/`vacate` should not have to narrow twice.
+   * `CultivableMixin`'s base constraint already requires Soil + Container
+   * + Bulkable + Slotted, so a cultivable provably has them, and a caller
+   * that needs `occupy`/`vacate` — or `reconcileSoil` — should not have to
+   * narrow twice.
    */
   public static isCultivable(
     obj: Stuff
-  ): obj is Stuff & Cultivable & Container & Bulkable & Slotted {
+  ): obj is Stuff & Cultivable & Soil & Container & Bulkable & Slotted {
     return this.hasMixin(obj, Mixins.Cultivable);
   }
 

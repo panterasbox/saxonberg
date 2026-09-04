@@ -158,7 +158,9 @@ describe("RegisterController — AC14, registering costs nothing", () => {
     );
 
     expect(
-      c.getNotes().some((n) => n.reason === "not-arrival"),
+      c.getNotes().some(
+        (n) => n.kind === "controller-rejected" && n.reason === "not-arrival",
+      ),
     ).toBe(true);
     expect(travelCredential(giver).getCredential("travel")!.isRegistered(NODE)).toBe(false);
     expect(settle).not.toHaveBeenCalled();

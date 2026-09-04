@@ -49,6 +49,7 @@ import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
 import type { Cultivable } from './Cultivable';
+import type { Soil } from './Soil';
 import type { Slotted } from '../slot/Slotted';
 import type { Bulkable } from '../bulk/Bulkable';
 import type { Difficulty } from '../advancement/ActSignature';
@@ -233,7 +234,7 @@ export interface Growing {
    * class: *a pot is a bed with one slot*, and the plant has no business
    * knowing which it is sitting in.
    */
-  getBed(): (Stuff & Cultivable & Container & Bulkable & Slotted) | null;
+  getBed(): (Stuff & Cultivable & Soil & Container & Bulkable & Slotted) | null;
   /**
    * How hard it is to move this to another pot — the `horticulture`
    * difficulty the `repot` verb credits. Root disturbance scales with
@@ -534,7 +535,7 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
      * and it makes an unslotted grower read `null` instead of throwing.
      */
     public getBed():
-      | (Stuff & Cultivable & Container & Bulkable & Slotted)
+      | (Stuff & Cultivable & Soil & Container & Bulkable & Slotted)
       | null {
       const self = this as unknown as Stuff;
       if (!MixinApi.isSlottable(self)) return null;

@@ -339,6 +339,11 @@ export const Mixins = {
   Wet: 'WetMixin',
   // The living-world growth model — a cultivated thing that grows.
   Growing: 'GrowingMixin',
+  // Soil that keeps its own time: a moisture + nutrient reserve, a
+  // reconcile window, and the sky edge that credits rain. Host constraint
+  // is `Stuff & Reserved` alone, so a LOCATION composes it — which is why
+  // it is not part of Cultivable.
+  Soil: 'SoilMixin',
   // Ground that holds plants: soil + N plant slots. A pot is this at N = 1;
   // a garden bed is the same surface with a bigger N.
   Cultivable: 'CultivableMixin',
@@ -552,6 +557,7 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
 
   // Growing things.
   SlottableMixin: "{} doesn't sit in anything",
+  SoilMixin: "{} has no soil in it",
   CultivableMixin: "{} isn't ground you can plant in",
   GrowingMixin: "{} isn't growing",
   PlantableMixin: "{} isn't something you can plant",
