@@ -214,9 +214,77 @@ for this act*. So:
 Extra has no identity of its own, so its institutional attribution is the
 only one it has."** Same field on both classes; different arity.
 
-⚠ `directedBy` is command responsibility *for the actor*. The victim side
-needs the mirror. Generalize the pair rather than inventing a third
-concept — the shape is shipped, the coverage is not.
+**D7c — the generalization: every attribution has a PERSON and a PARTY.**
+
+The row already names two persons — `killer` and `victim` (`BlameVerdict`
+adds `initiator`). What it lacks is their two *parties*.
+
+⚠ First, do **not** fold this into `directedBy`. They are different
+concepts that happen to compose:
+
+| | |
+|---|---|
+| **`directedBy`** (shipped) | **episodic** — a captain's recorded directive began *this act* |
+| **the institution** (new) | **standing** — this person is fielded by X, order or no order |
+
+A guard acting for the watch was not *directed* by the watch on this
+occasion. Conflating them would make every institutional act read as a
+command, which is exactly the "the state ordered it" claim the governance
+design is careful never to make by accident.
+
+#### The shape
+
+⭐ **The single-attribution case collapses into the existing field; only
+the two-attribution case needs the mirror.** That is what makes this add
+two fields rather than a parallel ledger:
+
+| actor / victim is | `killer` / `victim` carries | `killerFor` / `victimFor` |
+|---|---|---|
+| **`Cast`** (a person, who also belongs to something) | the person | **the institution** |
+| **sentient `Extra`** | **the institution** — it is the only attribution there is (D7) | — |
+| **non-sentient `Extra`** (a wolf) | the row path — *"a wolf"* is the honest unit | — |
+
+⚠⚠ **No new empty-string sink.** W1 removes `?? ""`, and nothing here
+reintroduces it: every case above names something real, and D7b's lint
+guarantees the one case that could not (a sentient Extra answering to
+nobody) never reaches the ledger.
+
+#### ⭐⭐ The asymmetry, and it is the interesting part
+
+`commandResponsible` is **crime-gated** —
+`crime ? (first.directedBy ?? '') : ''` — because naming a commander on a
+lawful duel is noise.
+
+**`victimFor` must NOT be gated the same way.** A lawful duel that kills a
+guard is no crime against the watch, but it is still **a guard the watch
+lost.** So:
+
+> **The actor-side party is about BLAME and is crime-gated. The
+> victim-side party is about LOSS and is never gated.**
+
+⭐ That is what gives the casualty list its teeth: `victimFor` accumulates
+whether or not anyone did anything wrong, which is precisely what a
+casualty list is. Gate it on crime and the watch only ever counts its
+murdered, never its fallen.
+
+#### ⚠ Where this pushes back on "no writes otherwise" — CONFIRM
+
+The ruling was *"extras attribute to the institution, no writes
+otherwise."* Taken literally, a wolf (no institution) writes nothing —
+but **combat rows are not only blame rows.** `opened` / `death` carry the
+session, the terms and consent, and combat needs them to work at all.
+
+So the reading this plan builds on, which is narrower than the words:
+
+> **"No writes otherwise" means no writes to an INDIVIDUAL ledger that is
+> not an individual** — never that the row is suppressed. A wolf's row is
+> still written; its `killer` is *"a wolf"*, which is the honest
+> granularity and not a collision, because which wolf genuinely does not
+> matter.
+
+⚠ If the intent was the stronger reading — suppress the row entirely —
+say so, because it lands on combat bookkeeping rather than on blame, and
+that is a different build.
 
 **D7a — the institution RESOLVES; it is not usually authored.** A
 three-tier chain in the shape this codebase uses everywhere
@@ -270,7 +338,8 @@ The largest source of post-MR rewrites in this repo. Decided here.
 |---|---|---|
 | the institution **resolve** (D7a's three tiers) | **`lib/npc/NPC` substrate** — both classes need it | it is not an Extra concept; Cast attributes to its institution too, alongside itself |
 | the optional authored `institution:` override | same host — an **identity path-string**, not a live ref | must survive reclone and must not keep a business resident; see `ref-shapes.md` before writing `fieldMeta` |
-| the second attribution on the row | **`AccountabilityEvent`** — generalize `directedBy` + its victim-side mirror | ⭐ derived-never-stamped already, and `deriveBlame` already surfaces it |
+| the party pair `killerFor` / `victimFor` | **`AccountabilityEvent`** — two new persistent fields beside `directedBy`, ⚠ **not** folded into it (D7c: standing ≠ episodic) | derived at write time from D7a's chain; `''` when the actor/victim is not a person with a party |
+| surfacing them | **`BlameVerdict`** — beside `commandResponsible` | ⚠ `victimFor` is **not** crime-gated; `commandResponsible` stays as it is |
 | `SingletonMixin` | **`Cast`** | `Cast = SingletonMixin(NPC-substrate)`; the throw at second clone *is* the enforcement |
 | `dispositions: ClaimSeed[]` | **stays on `BehavedMixin`** | ⚠ do not move it. Both Extra and Cast have brains, and an Extra's archetype resolves as a *lens* from the same declared data — the field is right where it is |
 | the rest of the dossier (prologue · competence · standing) | **`Cast`** | the claim is true of exactly `Cast`; a mixin would need a host set of one. ⚠ Not `BehavedMixin` — that would put it on every Extra |
@@ -351,8 +420,12 @@ different identity paths; a reembodied player's two corpses do too.
 3. **Classify the 42 rows** by the article rule — 25 named + 6
    definite-article individuals → `Cast`; the indefinite role-fillers →
    `Extra`. Small enough to do by hand and to review.
-4. The institution resolve (D7a) on the substrate, and the second
-   attribution on the harm row (D7).
+4. The institution resolve (D7a) on the substrate; the `killerFor` /
+   `victimFor` pair on `AccountabilityEvent` and `BlameVerdict` (D7c),
+   with the collapse table decided there.
+   ⭐ **A cheap acceptance for the asymmetry:** kill a guard in a *lawful*
+   duel and the watch still counts the loss; the same row names no
+   commander.
 5. `pnpm lint:identity` — a dossier on an `Extra` is an error; a `Cast`
    row is a singleton; a proper `name:` on an `Extra` is an error; ⭐ and
    **a sentient `Extra` resolving to no institution is an error** (D7b).
