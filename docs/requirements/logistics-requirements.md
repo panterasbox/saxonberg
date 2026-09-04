@@ -74,8 +74,8 @@ navigability, [encumbrance](../subsystems/encumbrance.md),
 - **G4 — The player-operable rungs of the cost surface exist.** Back
   and handcart ship; this build adds **wagon + team** and **barge**, and
   the load model that lets them carry crates and grain.
-- **G5 — Goods travel without their owner.** Consigning to a carrier
-  produces a **bill of lading**; the goods are then in a real container,
+- **G5 — Goods travel without their owner.** Handing goods to a carrier
+  (`ship`, D8) produces a **bill of lading**; the goods are then in a real container,
   in a real place, genuinely at risk, and the shipper is elsewhere.
 - **G6 — Haulage is a business.** A carrier publishes a **rate card**,
   takes work through the shipped gig board, employs drivers, and is paid
@@ -390,8 +390,9 @@ encumbrance surface, not a cargo-slot count.
 
 ### D7 — The bill of lading, and the warehouse receipt beside it
 
-Consigning to a carrier produces a **bill of lading**: what, how much,
-from where, to where, whose, and at what declared value.
+Handing goods to a carrier — `ship <goods> to <destination>`, D8 — produces
+a **bill of lading**: what, how much, from where, to where, whose, and at
+what declared value.
 
 > **It is not a reporting feature. It is the paper a carrier needs to
 > prove what they took and a shipper needs to prove what they sent** —
@@ -1019,7 +1020,7 @@ and this realm is a basin you cross in five real minutes.
 
 **The trade**
 
-10. Consigning goods to a carrier produces a bill of lading naming what,
+10. `ship <goods> to <destination>` produces a bill of lading naming what,
     how much, from, to, whose and declared value; the goods are in the
     carrier's vehicle and the shipper is not.
 11. A depot issues a warehouse receipt; a **bearer** receipt can be

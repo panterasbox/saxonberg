@@ -219,8 +219,9 @@ lands the doors, the retune and the rewrite together.
 
 ### P1 — Edge duration is one new authored field on `Exit`
 
-D5 and D18 both spend a dial that does not exist. It is genuinely cheap, but
-it is a **kernel edit that has to be planned, not assumed**:
+An earlier revision of D5 and D18 spent a dial that does not exist; **both
+now carry the correction** and point here. It is genuinely cheap, but it is
+a **kernel edit that has to be planned, not assumed**:
 
 `Exit` gains `edgeMinutes?: number` — **game minutes** for one baseline,
 unloaded, walk-mode traverse of this edge — with `fieldMeta: { persistent:
@@ -840,7 +841,7 @@ unassisted. This is the wave whose gate the whole build leans on.
 
 **Tests**
 A loaded wagon's end-to-end spine transit is in band and scales with load
-(**AC9**, and see *Questions* #1 on what the band should say); a passenger in
+(**AC9** — the band is 1.5–2 game hours, resolved at review); a passenger in
 an **open** wagon perceives the road and one in a **sealed** coach does not,
 via `MixinApi.isOpenContainer` alone (**AC8**); a passenger boards with `go
 <coach>`, holds no engagement, and alights at a stop (**AC15o**); the
@@ -911,7 +912,7 @@ the same act better):
   number is ever shown or stored.
 
 **Tests**
-Consigning to a carrier produces a bill of lading with all six fields; the
+`ship <goods> to <destination>` produces a bill of lading with all six fields; the
 goods are in the carrier's vehicle and the shipper is not (**AC10**); a
 **bearer** receipt can be taken from its holder and a **registered** one
 cannot (**AC11**); a non-employee reads a published rate card and two
@@ -931,7 +932,8 @@ needs its line in CLAUDE.md's category list. CLAUDE.md is a swept index
 file per the worktree rules — leave it to `/finalize`, do not race it.
 
 **Exit gate:** trade-haulage vitest + transport vitest + `test:near` + the
-full lint family. ⚠ **`requiresWizard` appears nowhere** — the warehouseman
+full lint family; fresh-DB boot installs **38 packs**. ⚠ **`requiresWizard`
+appears nowhere** — the warehouseman
 and the dispatcher are **seats**; if a stand-in seems needed, that is a
 missing seat and gets filed as a finding, never a wizard check.
 
@@ -1134,7 +1136,7 @@ edit it.
 | 1–4 the realm is contiguous | W4 |
 | 5–7 the journey, the abort taxonomy, the hands | W3 |
 | 8 open vs sealed perception | W5 |
-| 9 loaded transit time (⚠ see *Questions* #1) | W3 (mechanism), W5 (numbers) |
+| 9 loaded transit time | W3 (mechanism), W5 (numbers) |
 | 10–13 the paper, the receipt, the card, the gig | W6 |
 | 14 the `hauls` brain on the same Journey | W6 |
 | **15 the forcing function** | **W8** |
@@ -1143,7 +1145,7 @@ edit it.
 | 15h–15j road character, the ford, land use | W4, W9 |
 | 15k–15m archetypes | W2 (substrate), W4/W5/W6 (content) |
 | 15n–15o computed routes, the passenger | W3, W5 |
-| 16, 16a, 17 reporting (⚠ see *Questions* #3) | W9 |
+| 16, 16a, 17 reporting | W9 |
 | 18 the teleport defect | W1 |
 | 19–22 docs, lints, no new collection, the live drive | W2 (21), W9 |
 
@@ -1198,40 +1200,33 @@ rather than adding one.
 
 ---
 
-## ⚠⚠ Questions for the user
+## ✅ Questions for the user — ALL RESOLVED AT REVIEW (2026-09-03)
 
-Four things in the requirements did not survive analysis. **None blocks
-W0–W2; all four want an answer before the wave that needs them.**
+⚠ **Nothing in this section is open.** It is kept as the record of what
+was asked and answered; a build agent needs no decision from it.
 
-**1. ⚠⚠ AC9 contradicts D5, and AC9 is stale.**
-D5's table puts the loaded spine at **~90 game minutes ≈ 7.5 real minutes**.
-AC9 asks for **"6–12 game hours."** At the 12× clock, 6–12 game hours is
-30–60 *real* minutes — **exactly the discarded 30–60-real-minute draft D5
-itself corrects**, relabelled from real hours to game hours. Recommended
-rewrite: *"A loaded wagon's end-to-end spine transit measures 1.5–2 game
-hours (7.5–10 real minutes), and scales with load."* Needed before **W5**.
+| # | question | resolved |
+|---|---|---|
+| **1** | AC9 said "6–12 game hours", contradicting D5's ~90 game minutes | ✅ **AC9 rewritten** to 1.5–2 game hours (7.5–10 real min); D5's table governs |
+| **2** | D11's forcing function vs the Lounge non-goal | ✅ **P2 adopted into D11**: the brains stop *travelling*, not just teleporting; the Lounge leg rides the TPA lane |
+| **3** | AC16 said "MQL"; MQL cannot see documents | ✅ **D12 and AC16 reworded** to "a query"; the queries live on `WaybillRegistry`, surfaced as `house freight` / `house traffic` |
+| **4a** | the corridor room budget | ✅ **kept as planned** (§ W4) |
+| **4b** | the `journey` verb name | ✅ **kept as planned** (P5) |
 
-**2. ⚠ D11 vs. the Lounge non-goal (P2).** AC15 names Dave's Bar; the
-non-goals exclude the Lounge from the map. Confirm the recommended
-resolution — *the brains post rather than travel, and the lounge leg is the
-TPA lane, which D2 already defines as a lane* — or say which half gives.
-Needed before **W7**.
+Two further changes landed at review and are already folded into the
+decisions above — do not re-derive them:
 
-**3. ⚠ AC16/16a/17 say "MQL"; MQL cannot see documents.** MQL's seeds
-resolve `Stuff`, and `MqlMatch` wraps `Stuff`; a document seed means editing
-the sealed `api/mql/**` subdir and widening the result type across every
-consumer. Recommended: keep D12 exactly as written in spirit — the paper is
-the datum, there is no store and no aggregate — and ship the queries as
-`house freight` / `house traffic` stanzas over `WaybillRegistry`, with AC16
-reworded from *"MQL over bills of lading"* to *"a query over bills of
-lading."* If you want literal MQL, it is its own wave and probably its own
-build. Needed before **W9**.
+- **P9 was rewritten.** D8's *"no new verb"* clause was **withdrawn**;
+  carriage ships as **`ship <goods> to <destination>`** in
+  `trade-haulage`, in its own `haulage` category. Retail's `consign` is
+  untouched, which **removed** a kernel edit from W2.
+  ⚠ There is **no closed command-category list in code** (help derives
+  categories), so `haulage` needs only its CLAUDE.md prose line — a
+  `/finalize` sweep item, not a build item.
+- **D8 was narrowed.** Only **handling** ships as a product. Storage is a
+  receipt and a bailee's duty, **not a priced scarce good** — discrete
+  containment has no capacity in this engine (capacity is a property of a
+  *bearer's body*, and a warehouse has no bearer). Warehousing is a
+  non-goal; its design is captured in the slate's § *Warehousing*, and
+  the metric when it lands is **mass**.
 
-**4. Two smaller ones, defaults taken unless you say otherwise.**
-(a) **The corridor room budget** — 4 rooms Terminus→crossroads, 5
-crossroads→Rejection, 3 on the estuary. Each is a budget line with a named
-reason (§ W4); say the word if you want a different shape or want to name
-them yourself.
-(b) **The `journey` verb name** (P5) — chosen because `drive` is taken twice
-and `ride` means *steer your mount*. `haul`, `run` and `convoy` were the
-alternatives; `haul` reads better but is trade-flavoured for a system verb.
