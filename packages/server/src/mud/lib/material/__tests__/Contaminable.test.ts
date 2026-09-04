@@ -353,10 +353,19 @@ describe('ContaminableMixin — the population no sense reports', () => {
 
   // ---- the host set (P8) ----
 
-  it('⭐ the hosts are FOOD EQUIPMENT — food, and the kit that works on it', () => {
+  it('⭐ the hosts are FOOD EQUIPMENT — food, and the vessels that hold it', () => {
     expect(MixinApi.isContaminable(makeStuff(() => new Provision()))).toBe(true);
-    expect(MixinApi.isContaminable(makeStuff(() => new ToolItem()))).toBe(true);
     expect(MixinApi.isContaminable(makeStuff(() => new CraftVessel()))).toBe(true);
+  });
+
+  it('⚠⚠ NOT `ToolItem` — most tools in this game are mining kit', () => {
+    // Composed here for one build on the argument that "this can carry
+    // pathogens between things" is true of a billhook and a kitchen sieve.
+    // It is — and it was the wrong question. The host set is a felling
+    // axe, a sledge, a pick, a pick-haft, a pinch bar, a smith's hammer,
+    // an assay kit and a shovel. ⭐ Nor did it ever DO anything: no
+    // producer writes a load to a tool.
+    expect(MixinApi.isContaminable(makeStuff(() => new ToolItem()))).toBe(false);
   });
 
   it('⚠⚠ NOT `Weapon` — most weapons are never used on food', () => {

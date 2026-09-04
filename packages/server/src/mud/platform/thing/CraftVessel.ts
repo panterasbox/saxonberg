@@ -173,6 +173,15 @@ export default class CraftVessel extends CraftVesselBase {
     slot.setPayload(null);
     for (const c of [...this.getContents()]) StuffApi.destruct(c);
     this.clearIce();
+    // ⭐⭐ **And the SURFACE.** A vessel carries two loads — what is in it
+    // and what is on it — and only the first goes down the sink with the
+    // dregs. This clearing lived in `WashController` alone for one build,
+    // which meant `wash()` claimed to make a pot clean while leaving
+    // salmonella on it: any other caller (a dishwasher, an NPC's cleanup
+    // brain, a `wash all`) got a lie. A method that says "washed" has to
+    // mean it. Found by a test that called `wash()` directly rather than
+    // through the verb.
+    this.clearContamination();
     super.wash();
   }
 

@@ -318,10 +318,19 @@ be one: the reconcile returns immediately on an empty map, so *no food a
 player owns ever becomes dangerous on its own*, at any temperature, over
 any span. That invariant is arithmetic rather than policy.
 
-**Hosts:** `Provision`, `CraftVessel`, `ToolItem`, and the trade's own
-`ButcherBlock` — **food equipment**, and nothing else. ⚠ The **classes**,
-never `ToolMixin` (whose host set includes a tap and a watering can), and
-not `Cutlery`, which touches a mouth rather than a carcass.
+**Hosts:** `Provision`, `CraftVessel`, and the cooking trade's own
+`ButcherBlock` — **food equipment**, and nothing else. ⚠ Not `Cutlery`,
+which touches a mouth rather than a carcass.
+
+⚠⚠ **Not `ToolItem` either**, though it was composed there for one build on
+the argument that *"this can carry pathogens between things"* is true of a
+billhook and a kitchen sieve. It is — and it was the wrong question. That
+class's host set is a felling axe, a sledge, a pick, a pick-haft, a pinch
+bar, a smith's hammer, an assay kit and a shovel: **most tools in this game
+are mining and smithing kit that never meets food.** The attach point stays
+named — a `KitchenTool` the day a sieve genuinely needs to carry a load,
+the same way irrigation contamination composes onto `WateringCan` when
+someone wants it.
 
 ⚠⚠ **And not `Weapon`.** It was composed there for one build so the clasp
 knife a player buys could carry pathogens off a carcass — which put
@@ -341,9 +350,22 @@ on the board you cut raw meat on.*
 ⚠⚠ **A vessel carries TWO loads and they are different facts.** Its
 contents carry their own on the bulk payload; the mixin gives the vessel
 a *surface* load as well. A dirty pot and a bad stew are genuinely
-different things, and only one of them survives emptying the pot — which
-is why filling a dirty vessel contaminates what goes in, emptying it does
-not clean it, and washing clears the surface and never the contents.
+different things, and only one of them survives emptying the pot. All
+three consequences are live and pinned by
+`__tests__/VesselContamination.test.ts`:
+
+1. **Filling a contaminated vessel contaminates its contents** — folded in
+   at the transfer, at full strength rather than mass-weighted, because
+   what is on the pot is on everything the pot touches however little you
+   poured.
+2. **Emptying does not clean.** The surface load rides on the mixin, which
+   a transfer never touches, so one unwashed pot is a chain of poisonings.
+3. **Washing clears the surface, never the contents.** ⚠ `CraftVessel.wash()`
+   does this itself. It lived in `WashController` alone for one build,
+   which meant `wash()` claimed to make a pot clean while leaving
+   salmonella on it — every other caller (a dishwasher, an NPC cleanup
+   brain, a `wash all`) got a lie. A method that says "washed" has to mean
+   it.
 
 Every constant comes from the organism's own `Condition` row rather than
 a dial, because these differ from each other in exactly the ways that

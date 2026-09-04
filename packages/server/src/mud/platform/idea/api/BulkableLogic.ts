@@ -352,19 +352,42 @@ export class BulkableLogic extends ApiLogic {
           Cure.blend(fromCure, applied, toCureBefore, toAmountBefore),
         );
       }
+      // ⭐⭐ **A dirty vessel contaminates what you fill it with**, and its
+      // SURFACE load is a different fact from its contents'. A pot that
+      // held a bad stew keeps that load on the pot; only one of the two
+      // survives emptying it. Three behaviours fall out of that split and
+      // all three are the point:
+      //
+      //   - filling a contaminated vessel contaminates the contents (here);
+      //   - **emptying does not clean** — the surface load rides on the
+      //     mixin, which a transfer never touches, so one unwashed pot is a
+      //     chain of poisonings;
+      //   - **washing clears the surface and never the contents** —
+      //     `wash` calls `clearContamination()` on the vessel alone.
+      //     Washing a pot of bad stew is not a cure for the stew.
+      const surface =
+        toHolder !== null && MixinApi.isContaminable(toHolder)
+          ? toHolder.getPathogenLoads()
+          : {};
+      const blended = Contamination.blend(
+        fromPathogens,
+        applied,
+        toPathogensBefore,
+        toAmountBefore,
+      );
+      // ⚠ The surface goes in at FULL strength, not mass-weighted: what is
+      // on the pot is on everything the pot touches, however little you
+      // poured. Dilution is a property of mixing two bodies of matter, and
+      // a smear on the wall is not one of them.
+      const withSurface = Contamination.isClean(surface)
+        ? blended
+        : Contamination.blend(surface, 1, blended, 0);
       if (
         !Contamination.isClean(fromPathogens) ||
-        !Contamination.isClean(toPathogensBefore)
+        !Contamination.isClean(toPathogensBefore) ||
+        !Contamination.isClean(surface)
       ) {
-        Contamination.stampLoads(
-          to,
-          Contamination.blend(
-            fromPathogens,
-            applied,
-            toPathogensBefore,
-            toAmountBefore,
-          ),
-        );
+        Contamination.stampLoads(to, withSurface);
       }
     }
 
