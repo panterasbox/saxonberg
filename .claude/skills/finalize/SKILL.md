@@ -43,18 +43,25 @@ are a fresh reviewer who has not seen the build*. Look for:
   ("Idempotent in spirit"), TODOs without owners, dead helpers
   left over from a removed approach.
 - **Antipattern violations.** Cross-reference
-  `docs/antipatterns.md`. Direct calls into mechanism where an Api
+  `docs/antipatterns.md` — 84 sections, so consult it **for the areas
+  the diff touches** rather than walking all of it. The judgment-greps
+  below are the recurring few; ⭐ when one keeps recurring, the fix is
+  to give it a census and a ratchet (`docs/lint-family.md`), not to add
+  another paragraph here. Direct calls into mechanism where an Api
   method exists. Field-shaped inter-Stuff access. `obj.destroy()`
   instead of `StuffApi.destruct`. Two-word verbs. Etc.
 
-  Part of this is mechanized — run the lint family and treat any
-  failure as a blocker:
+  Part of this is mechanized — run the **whole** lint family and treat
+  any failure as a blocker:
 
   ```bash
-  pnpm -C packages/server lint:module-scope   # no import-time executable statements
-  pnpm -C packages/server lint:world-scan     # no bespoke getAllObjects() scans (use MQL)
-  pnpm -C packages/server lint:thin-forwarder # no Api method that only forwards a param's method
+  pnpm -C packages/server lint:family
   ```
+
+  ⚠ Do not name a subset here. The roster is derived from
+  `package.json`, so this one command always runs every gate; the
+  three-gate list this skill used to carry named 3 of 25. Per-gate
+  rationale: `docs/lint-family.md`.
 
   The rest is judgment-grep — the lints can't catch these, so eyeball
   the branch diff for them:
@@ -73,7 +80,7 @@ are a fresh reviewer who has not seen the build*. Look for:
     statically-describable fixture/item/NPC/room wants a template +
     seed instead. See `docs/antipatterns.md § StuffApi.create()
     Instead of a Template`.
-  - **A `*Logic` tier that holds no logic.** A new `obj/api/<X>Logic.ts`
+  - **A `*Logic` tier that holds no logic.** A new `platform/idea/api/<X>Logic.ts`
     whose every method is a verbatim forward to a registry/state
     singleton — collapse it (facade → registry direct). See
     `docs/antipatterns.md § A *Logic Tier That Holds No Logic`.
