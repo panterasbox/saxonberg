@@ -1,10 +1,20 @@
-# The cutting table — the long bench, the shears and the chalk.
-class: /trade/tailoring/thing/CuttingTable
+# The cutting table — the long bench, and the tool ladder's rung ONE
+# for cutting.
+#
+# ⭐ It is a `CuttingTool` like the shears are, differing only in
+# `rate` and `control` — a tool variant is pure seed data. What it sells
+# you is not permission to cut (shears do that anywhere) but SPEED and
+# a `control: fine` that saves the unit of cloth a knee-laid pattern
+# wastes.
+class: /trade/tailoring/thing/CuttingTool
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a cutting table
   primaryKeyword: table
-  keywords: [table, bench, cutting, shears]
+  # ⚠ `shears` REMOVED as a keyword: shears are their own object now
+  # (the rung-zero cutting tool), and two things in one room answering
+  # to the same word is how `get shears` picks up a 60kg bench.
+  keywords: [table, bench, cutting]
   longDescription: |
     Longer than a bed and scarred all over in short straight lines from a hundred years of shears. There is a chalk on a string, a yardstick let into the near edge, and a bowl of pins nobody has ever counted.
   capabilities:

@@ -129,9 +129,26 @@ export abstract class ManualBuildController<
   }
 
   /**
-   * A reachable tool offering `cap` — held kit first, then the room
-   * (the emergent-reachability model; mirrors the craft gather walk's
-   * two legs, deliberately NOT the opened-container descent).
+   * The BEST reachable tool offering `cap` — held kit and the room
+   * together (the emergent-reachability model; mirrors the craft gather
+   * walk's two legs, deliberately NOT the opened-container descent).
+   *
+   * ⚠⚠ **Best by rate, not first found, and the difference was a bug in
+   * every trade.** This used to return the first candidate with held
+   * kit scanned first — so carrying a drop spindle into a room with a
+   * spinning wheel picked the SPINDLE, and the same for a sewing kit
+   * beside a sewing machine, or shears at a cutting table. The whole
+   * build's tool ladder is "rung zero is portable and bad; rung one is
+   * fixed and good", and first-found inverted it: **carrying your cheap
+   * tool made you worse off than leaving it at home.** Nothing said so,
+   * because a slower step is not an error.
+   *
+   * ⭐ Ties keep held-first, so nothing changes where the rungs are
+   * equal — the fix is strictly "pick the better one when they differ".
+   *
+   * ⚠ Ranked on RATE only. `control` is a separate axis a step may read
+   * for quality (see `cut`'s waste), and folding the two into one score
+   * would silently trade somebody's cloth for their time.
    */
   protected findCapability(
     giver: Stuff,
@@ -145,10 +162,17 @@ export abstract class ManualBuildController<
         candidates.push(...loc.getContents());
       }
     }
+    let best: (Stuff & Tooled) | null = null;
+    let bestRate = -Infinity;
     for (const c of candidates) {
-      if (MixinApi.isTool(c) && c.hasCapability(cap)) return c;
+      if (!MixinApi.isTool(c) || !c.hasCapability(cap)) continue;
+      const rate = c.capabilityRate(cap);
+      if (rate > bestRate) {
+        best = c;
+        bestRate = rate;
+      }
     }
-    return null;
+    return best;
   }
 
   /**

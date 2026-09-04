@@ -343,9 +343,50 @@ used to be a single list copied verbatim onto two rows:
 | platform `boil` | the FURNACE — you cannot boil without a heat source | `FurnaceMixin` (oven, kiln, forge) |
 | smithing `hammer`, `quench`, `forge` + platform `repair`, `salvage` | the ANVIL | `/trade/smithing/thing/Anvil` |
 | platform `repair`, `salvage` | mending capital | `/platform/thing/MendingTool` (sewing kit, sewing machine) |
+| tailoring `cut` | the SHEARS — and the bench is the same class, faster | `/trade/tailoring/thing/CuttingTool` (shears, cutting table) |
+| tailoring `sew`, `alter` + platform `repair`, `salvage` | the NEEDLE | `/trade/tailoring/thing/SewingTool` (needle-case) |
 | smithing `sharpen` | the STONE, **carried only** | `/trade/smithing/thing/Whetstone` |
 | platform `water` | the CAN, **carried only** | `/platform/thing/WateringCan` |
 | `striking` · `strainer` · `juicer` · `tap` · `bar-spoon` · `still` | — | bare kinds: recipe-side requirements, no verbs |
+
+⚠⚠ **Tailoring was the one trade that broke this rule, and it broke it
+for a whole build.** `cut`, `sew` and `alter` were all declared on
+`CuttingTable` — a room fixture. `cut` at least happens *on* a table;
+`sew` does not happen on furniture at all, and the split ran wrong in
+both directions: a player holding a sewing kit in a field was offered no
+`sew`, and a player standing at the shipped sewing MACHINE — the rate-3
+tool this table's last row exists to demonstrate — was offered none
+either. The kit carried the capability, the table carried the
+affordance, and neither carried both. Fixed by applying the rule above
+rather than by inventing anything: two instrument classes, and both
+rungs as rows over each.
+
+⭐ **A `SewingTool` extends `MendingTool`**, so a needle-case mends as
+well as sews. ⚠ It must **restate** `repair`/`salvage`: `bucketFilenames`
+unions a class's own contributions with every *mixin* in its chain, but
+a base **class** is not a mixin and `getContributions` is a plain
+property read — so a subclass's static shadows its base's outright.
+**Mixins union; base classes shadow.**
+
+### ⚠⚠ The tool ladder ranks on RATE, and used to rank on luck
+
+Every trade here is the same shape: **rung zero is portable and bad,
+rung one is fixed and good** — spindle/wheel, hand-loom/broad-loom,
+household-vat/dye-vat, sewing-kit/sewing-machine, shears/cutting-table.
+
+`ManualBuildController.findCapability` scanned held kit first and
+returned the **first** match, so **carrying your cheap tool made you
+worse off than leaving it at home**: walk into a workshop with a spindle
+in your pack and you spun at the spindle's rate beside an idle wheel.
+Nothing reported it and nothing could have — a slower step is not an
+error, it completes and produces the right goods, and the only symptom
+is a number nobody sees. It now picks the best rate, held-first on ties,
+so no equal-rung arrangement moves.
+
+⚠ Ranked on **rate only**. `control` is a separate axis a step may read
+for quality — `cut` charges a unit of cloth for a `coarse` instrument,
+which is what makes a bench worth walking to — and folding the two into
+one score would silently trade somebody's cloth for their time.
 
 **Carried vs reachable is the bucket, not a second word.** A class
 declaring both `environment` and `peers` is reachable (carried or on the

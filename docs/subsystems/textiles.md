@@ -393,6 +393,36 @@ what needs the permission** — `measure strike` already needs a
 surveyor's compass, and by eye you would get a rough figure at worse
 resolution. That is a slate, not a rename.
 
+### ⭐⭐ The tooling: every verb has two rungs, and the instrument affords it
+
+| verb | rung 0 — portable, bad | rung 1 — fixed, good |
+|---|---|---|
+| `scutch` | scutching board | — |
+| `spin` | drop-spindle | spinning-wheel (rate 3, fine) |
+| `weave` | hand-loom | broad-loom |
+| `dye` | household-vat | dye-vat · woad-vat |
+| `cut` | **shears** (rate 1, coarse) | cutting-table (rate 2, fine) |
+| `sew` · `alter` | **needle-case** (rate 1, coarse) | the store's sewing-machine (rate 3, fine) |
+
+⚠⚠ **Tailoring shipped without any of this and had to be corrected.**
+All three of its verbs were declared on `CuttingTable` — a room fixture
+— against `crafting.md`'s own rule that *"the working verbs are
+instrument-conferred… on the class of the thing that performs the act"*.
+So `cut` was impossible outside a shop, there was no rung zero at all,
+and `sew` was afforded by furniture while its capability lived in a kit
+the affordance never mentioned. See
+[crafting.md](./crafting.md) § *Split by what performs the act*.
+
+⭐ **What the bench sells is cloth, not permission.** Shears cut the
+same shirt anywhere; `cut` charges **one extra unit of cloth** for a
+`coarse` instrument, and the table's `control: fine` buys it back. A
+cloth cost rather than a time cost on purpose — a bolt is capital
+(~20 unskilled days), `cut`'s whole tight/generous axis is already
+denominated in cloth, and charging minutes would have made the bench a
+convenience instead of an investment.
+
+---
+
 ⭐ **Preparation and finishing ship with ZERO verbs.**
 `FermentingMixin` runs the retting pit's clock and the bleaching green
 is the same shape applied to weather. What you do is judge the moment.

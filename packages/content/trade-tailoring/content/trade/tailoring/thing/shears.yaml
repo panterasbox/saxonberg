@@ -1,0 +1,24 @@
+# Shears — the tool ladder's rung ZERO for cutting.
+#
+# ⭐⭐ The reason this row exists at all: `cut` used to be afforded by
+# the CUTTING TABLE, so cutting cloth was impossible anywhere but a
+# shop. Shears and a length of cloth are enough to cut a shirt out in a
+# field — the reason not to is that you waste cloth doing it, not that
+# the world forbids it. Same shape as the drop spindle against the
+# wheel, and the sewing kit against the machine: same capability kind,
+# different parameters, NO class beyond the tool.
+#
+# ⚠ `control: coarse` is load-bearing, not flavour — `cut` reads it and
+# charges a unit of cloth for a pattern laid out on your knee.
+class: /trade/tailoring/thing/CuttingTool
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a pair of shears
+  primaryKeyword: shears
+  keywords: [shears, scissors, snips]
+  longDescription: |
+    Iron, a hand span long, with a bow spring at the hinge and one blade worn brighter than the other. They will cut anything soft, and they do not care what you have laid it on.
+  capabilities:
+    - { kind: cutting, rate: 1, control: coarse }
+  _materialPath: /stuff/idea/material/element/iron
+  mass: 0.5

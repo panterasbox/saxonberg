@@ -161,3 +161,70 @@ describe("the shipped garments", () => {
     expect(recipe.inputSlots[0]!.category).toBe("hide");
   });
 });
+
+describe("⭐⭐ the instrument affords the verb, never the furniture", () => {
+  /*
+   * The build's other trades already worked this way — `spin` comes
+   * from `SpinningTool` (a drop spindle OR a wheel), `weave` from
+   * `Loom` (a hand loom OR a broad loom) — and tailoring was the one
+   * place three verbs hung off a room fixture. That made `cut`
+   * impossible outside a shop and, worse, split affordance from
+   * capability: a player holding a sewing kit in a field was offered no
+   * `sew`, and a player standing at the shipped sewing MACHINE was
+   * offered none either.
+   */
+  it("`cut` is afforded by the CUTTING TOOL, and both rungs are rows over it", () => {
+    const shears = row("thing", "shears");
+    const table = row("thing", "cutting-table");
+    expect(shears.__class).toBe("/trade/tailoring/thing/CuttingTool");
+    expect(table.__class).toBe("/trade/tailoring/thing/CuttingTool");
+  });
+
+  it("⭐ the two rungs differ ONLY in rate and control — a variant is seed data", () => {
+    const caps = (r: Record<string, unknown>): Record<string, unknown> =>
+      (r.capabilities as Record<string, unknown>[])[0]!;
+    const shears = caps(row("thing", "shears"));
+    const table = caps(row("thing", "cutting-table"));
+    expect(shears.kind).toBe("cutting");
+    expect(table.kind).toBe("cutting");
+    // Portable and bad; fixed and good. The whole ladder in four values.
+    expect(shears.rate).toBe(1);
+    expect(shears.control).toBe("coarse");
+    expect(table.rate).toBe(2);
+    expect(table.control).toBe("fine");
+  });
+
+  it("`sew`/`alter` are afforded by a NEEDLE, which also mends", () => {
+    const kit = row("thing", "needle-case");
+    expect(kit.__class).toBe("/trade/tailoring/thing/SewingTool");
+    // The `mending` kind is what `sew` resolves to pace the step, so the
+    // general store's kit and machine still speed a tailor up without
+    // either pack pointing at the other.
+    const cap = (kit.capabilities as Record<string, unknown>[])[0]!;
+    expect(cap.kind).toBe("mending");
+  });
+
+  it("⚠⚠ the tailor's own shop can still sew — the needle is IN it", () => {
+    /*
+     * The regression this exists for: taking `sew` off the cutting
+     * table removes it from every room that has only a table. The shop
+     * is the first casualty and the least likely to be noticed, because
+     * the verb simply stops being offered rather than failing.
+     */
+    const shop = YAML.parse(
+      readFileSync(join(TAILORING, "location", "shop.yaml"), "utf-8"),
+    ) as { data?: { props?: string[] } };
+    const props = shop.data?.props ?? [];
+    expect(props).toContain("/trade/tailoring/thing/needle-case");
+    expect(props).toContain("/trade/tailoring/thing/cutting-table");
+  });
+
+  it("⚠ nothing in the shop answers to `shears` twice", () => {
+    // The table used to carry `shears` as a keyword. With a real pair of
+    // shears in the same room that is how `get shears` picks up a 60kg
+    // bench.
+    const table = row("thing", "cutting-table");
+    expect(table.keywords as string[]).not.toContain("shears");
+    expect(row("thing", "shears").keywords as string[]).toContain("shears");
+  });
+});

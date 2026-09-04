@@ -1,0 +1,25 @@
+# A needle-case — the tool ladder's rung ZERO for sewing.
+#
+# ⭐⭐ You sew with a NEEDLE. `sew` and `alter` used to be afforded by
+# the cutting table, which is furniture; a player with a kit in a field
+# was offered no `sew` at all, and a player standing at the general
+# store's sewing MACHINE was offered none either. This is the trade's
+# own instrument, and its up-market variants are that shop's kit and
+# machine — which still pace the step, because the step ranks on the
+# `mending` capability and does not care which class carries it.
+#
+# ⚠ It mends as well as sews (`SewingTool extends MendingTool`), which
+# is why it needs no separate `repair` affordance: a thing that can sew
+# a coat together can obviously mend one.
+class: /trade/tailoring/thing/SewingTool
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a needle-case
+  primaryKeyword: needle-case
+  keywords: [needle-case, needlecase, case, needle, needles, thread]
+  longDescription: |
+    A turned boxwood tube the length of a finger, stopped at both ends. Inside: needles graded fine to sailmaker's, a hank of waxed linen thread, and a thimble worn through at the crown.
+  capabilities:
+    - { kind: mending, rate: 1, control: coarse }
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 0.15

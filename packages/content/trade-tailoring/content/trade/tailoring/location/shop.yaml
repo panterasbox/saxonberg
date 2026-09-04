@@ -31,6 +31,14 @@ data:
   props:
     - /trade/tailoring/thing/tailor-counter
     - /trade/tailoring/thing/cutting-table
+    # ⚠⚠ The needle-case is NOT decoration. `sew` and `alter` are
+    # afforded by the instrument now, not by the cutting table, so
+    # without a needle in the room the tailor's own shop could not sew.
+    - /trade/tailoring/thing/needle-case
+    # ⭐ And the shop sells the rung-zero pair, which is what a tailor's
+    # shop actually sold. With both in the room `findCapability` ranks
+    # on rate and picks the TABLE, which is the whole point of the fix.
+    - /trade/tailoring/thing/shears
     - /trade/tailoring/thing/measure-book
   cast:
     - /trade/tailoring/agent/tailor

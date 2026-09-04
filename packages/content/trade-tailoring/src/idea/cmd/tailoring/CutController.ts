@@ -75,12 +75,41 @@ export default class CutController extends ManualBuildController<CutModel> {
 
     // ⚠ Tight cuts LESS cloth and leaves no allowance; generous costs
     // more and buys a future alteration. The middle is the default.
-    const units = model.tight ? 2 : model.generous ? 4 : 3;
+    const pattern = model.tight ? 2 : model.generous ? 4 : 3;
     const allowance = model.tight ? 0 : model.generous ? 2 : 1;
+
+    const instrument = this.findCapability(giver, 'cutting');
+    /*
+     * ⭐⭐ **Coarse cutting costs CLOTH, and that is what the table is
+     * for.** `cut` used to be afforded by the cutting table, so cutting
+     * anywhere else was impossible rather than expensive — which is the
+     * wrong shape for this build, where rung zero is always *possible
+     * and bad*. Shears on your knee cut the same shirt and eat an extra
+     * unit getting there; the table's `control: fine` is what buys it
+     * back.
+     *
+     * ⭐ A CLOTH cost rather than a time cost, deliberately. A bolt is
+     * capital (~20 unskilled days), so wasting one is the decision that
+     * bites, and `cut`'s whole tight/generous axis is already
+     * denominated in cloth. Charging minutes instead would have made
+     * the table a convenience; charging cloth makes it an investment.
+     *
+     * ⚠ Absent instrument counts as coarse — you can tear a pattern out
+     * by hand and it is exactly as wasteful as it sounds.
+     */
+    const fine =
+      instrument !== null &&
+      MixinApi.isTool(instrument) &&
+      instrument.capabilityControl('cutting') === 'fine';
+    const spoilage = fine ? 0 : 1;
+    const units = pattern + spoilage;
+
     if (cloth.getQuantity() < units) {
       this.declineStep(
         context,
-        Mml.compose`There is not enough cloth there — that pattern wants ${String(units)}.`,
+        spoilage > 0
+          ? Mml.compose`There is not enough cloth there — that pattern wants ${String(pattern)}, and cutting it without a proper bench will cost you ${String(units)}.`
+          : Mml.compose`There is not enough cloth there — that pattern wants ${String(units)}.`,
         'too-little-cloth',
       );
       return;
@@ -92,7 +121,6 @@ export default class CutController extends ManualBuildController<CutModel> {
     const subject = model.for?.stuff ?? null;
     const measured = subject ? measurementsOf(subject) : null;
 
-    const instrument = this.findCapability(giver, 'cutting');
     const durationMs = this.paceMs(
       dial(CutController.BASE_MS_KEY, CutController.BASE_MS),
       instrument as Stuff | null,
@@ -102,8 +130,12 @@ export default class CutController extends ManualBuildController<CutModel> {
     this.engageStep(context, {
       durationMs,
       beginSelf: measured
-        ? Mml.compose`You chalk the pattern out on ${Mml.thing(cloth)} to ${Mml.actor(subject!)}'s measure.`
-        : Mml.compose`You chalk a stock pattern out on ${Mml.thing(cloth)}.`,
+        ? spoilage > 0
+          ? Mml.compose`You lay ${Mml.thing(cloth)} out as flat as you can manage and mark it to ${Mml.actor(subject!)}'s measure. Without a bench under it, some of this is going to be waste.`
+          : Mml.compose`You chalk the pattern out on ${Mml.thing(cloth)} to ${Mml.actor(subject!)}'s measure.`
+        : spoilage > 0
+          ? Mml.compose`You lay ${Mml.thing(cloth)} out as flat as you can manage and mark a stock pattern on it. Without a bench under it, some of this is going to be waste.`
+          : Mml.compose`You chalk a stock pattern out on ${Mml.thing(cloth)}.`,
       beginPeers: Mml.compose`${Mml.actor(giver)} chalks a pattern out on a length of cloth.`,
       onComplete: () => {
         void finish(context, cloth, units, allowance, measured);
