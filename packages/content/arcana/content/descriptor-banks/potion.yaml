@@ -13,7 +13,12 @@
 # hygiene and prose that reads cleanly.
 primaryAxis: colour
 primary:
-  [azure, crimson, viridian, saffron, violet, umber, ochre, magenta,
+  # ⚠ `saffron` was removed here by the farmstead build, and the gate is
+  # why: saffron became a real MATERIAL, and a descriptor that names a
+  # material is a parser ambiguity (`look at saffron` would have two
+  # answers) and a modelling lie besides. The colour survives as
+  # `ochre`; the substance is now a thing you can grow.
+  [azure, crimson, viridian, violet, umber, ochre, magenta,
    cerulean, russet, chartreuse, indigo]
 secondaryAxis: clarity
 secondary:

@@ -1,0 +1,51 @@
+# The hen — ⭐⭐ **the on-ramp.** A hen is to ranching what the houseplant
+# is to farming: cheap, forgiving, and it teaches the whole build's
+# keystone signal on day one.
+#
+# ⭐ Laying STOPS in short days. Nothing is wrong with the bird, nobody
+# told the player it would happen, and the fix — a lit hen house — is a
+# real thing to build with a real fuel bill behind it. Photoperiod
+# teaches itself, on the cheapest animal in the game, in the first
+# fortnight anybody keeps one.
+#
+# ⚠ And it accrues rather than expires, which is D93 and the same reason
+# it is the on-ramp: a hen forgives an absence that a dairy cow does not.
+class: /platform/idea/species/Species
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  binomial: Gallus domesticus
+  commonNames: ["hen", "chicken", "fowl", "cockerel", "pullet", "bird"]
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/biped
+  _parentCladePath: /stuff/idea/species/animalia
+  _defaultMaterialPath: /stuff/idea/material/tissue/flesh
+  vitalProfile:
+    coreTemperature: { baseline: 314, survivableMin: 305, survivableMax: 320 }
+    heartRate: { baseline: 275, survivableMin: 120, survivableMax: 450 }
+    respiratoryRate: { baseline: 25, survivableMin: 10, survivableMax: 80 }
+    bloodPressureSystolic: { baseline: 140, survivableMin: 80, survivableMax: 220 }
+    bloodPressureDiastolic: { baseline: 90, survivableMin: 45, survivableMax: 150 }
+    spo2: { baseline: 97, survivableMin: 68, survivableMax: 100 }
+    bloodVolume: { baseline: 0.2, survivableMin: 0.15, survivableMax: 0.3 }
+  lifecycleStates: ["alive", "dead"]
+  sexDeterminationSystem: zw
+  reproductiveMode: sexual
+  lifespanMin: 0
+  lifespanMax: 8
+  circadianBand: diurnal
+  diet: omnivore
+  ageCurve: { weanedAt: 10, matureAt: 60, agedAt: 500, senescentAt: 800 }
+  # ⚠ A LONG-day layer: she comes into lay as the days lengthen and goes
+  # off as they shorten. The third distinct photoperiod response in the
+  # roster, and between the three of them the signal is unmistakable.
+  breeding: { daylightFrom: 0.5, daylightTo: 1, gestationDays: 3, litter: 6 }
+  production:
+    - key: eggs
+      yieldRow: /trade/ranching/thing/eggs
+      perGameDay: 0.05
+      behaviour: accrue
+      windowDays: 12
+  longDescription: >-
+    A brown hen with a comb flopped over one eye, moving in the short
+    decisive bursts of something that has never once thought anything
+    through.
+  nameBankKeys: []

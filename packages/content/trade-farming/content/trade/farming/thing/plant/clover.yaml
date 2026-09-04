@@ -1,0 +1,30 @@
+# Clover — ⭐⭐ and its `nutrientDraw` is ZERO, which is the whole of
+# D15 in one authored number.
+#
+# It does not take nitrogen out of the ground because it takes it out of
+# the AIR. That one field, set to nothing, is why the legume rotation is
+# derivable from the ledger rather than granted as a bonus.
+class: /platform/thing/Plant
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a ley of clover
+  primaryKeyword: clover
+  keywords: [clover, crop]
+  longDescription: |
+    White clover threading thick through the grass, its heads working with bees, and the whole sward a deeper green than the field beside it.
+  _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/fabales/fabaceae/trifolium/repens
+  material: /stuff/idea/material/tissue/plant-tissue
+  lifecycleState: alive
+  seedTemplatePath: /trade/farming/thing/seed/clover
+  harvestTemplatePath: /trade/farming/thing/crop/clover
+  nutrientDraw: 0
+  profile:
+    moistureHappyAt: 0.3
+    moistureWiltAt: 0.05
+    litresPerGameDay: 0.14
+    luxHappyAt: 200
+    luxDarkAt: 20
+    coldStopK: 278
+    warmHappyK: 289
+    rootDemand: { seedling: 0.2, young: 1.0, established: 2.0, mature: 3.0 }
+    daysToStage: { young: 10, established: 30, mature: 60 }

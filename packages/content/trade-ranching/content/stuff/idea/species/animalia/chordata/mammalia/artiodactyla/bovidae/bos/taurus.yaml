@@ -1,0 +1,51 @@
+# Cattle — ⭐ the investment that makes the winter-feed budget bite, and
+# the animal the cooking chain has been waiting for.
+#
+# ⭐⭐ At the demanding end of D92's ladder: a dairy cow wants milking
+# twice a GAME day, no exceptions, and dairy being the most demanding
+# farming there is happens to be true. That is priced honestly and never
+# gated — a player who cannot keep one keeps hens, and is not told they
+# are not ranching.
+#
+# ⚠ Near-ASEASONAL, which is the whole reason it reads differently from
+# the sheep: her window is the whole year, so calving is a decision
+# rather than a date, and the calendar teaches by CONTRAST between the
+# two species rather than by a rule about either.
+class: /platform/idea/species/Species
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  binomial: Bos taurus
+  commonNames: ["cow", "cattle", "heifer", "bull", "calf", "ox", "beast"]
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/quadruped
+  _parentCladePath: /stuff/idea/species/animalia
+  _defaultMaterialPath: /stuff/idea/material/tissue/flesh
+  vitalProfile:
+    coreTemperature: { baseline: 311, survivableMin: 302, survivableMax: 316 }
+    heartRate: { baseline: 65, survivableMin: 35, survivableMax: 160 }
+    respiratoryRate: { baseline: 26, survivableMin: 10, survivableMax: 70 }
+    bloodPressureSystolic: { baseline: 135, survivableMin: 80, survivableMax: 210 }
+    bloodPressureDiastolic: { baseline: 85, survivableMin: 45, survivableMax: 140 }
+    spo2: { baseline: 97, survivableMin: 68, survivableMax: 100 }
+    bloodVolume: { baseline: 40, survivableMin: 30, survivableMax: 48 }
+  lifecycleStates: ["alive", "dead"]
+  sexDeterminationSystem: xy
+  reproductiveMode: sexual
+  lifespanMin: 0
+  lifespanMax: 22
+  circadianBand: diurnal
+  diet: herbivore
+  # ⚠ Twice the sheep's generation interval, compressed by the same
+  # factor. The RATIO is the teachable term and it is exact.
+  ageCurve: { weanedAt: 60, matureAt: 300, agedAt: 1800, senescentAt: 2600 }
+  breeding: { daylightFrom: 0, daylightTo: 1, gestationDays: 120, litter: 1 }
+  production:
+    - key: milk
+      yieldRow: /trade/ranching/thing/milk
+      perGameDay: 22
+      behaviour: expire
+      windowDays: 0.6
+  longDescription: >-
+    A deep-bodied cow with a hip bone you could hang a hat on, chewing
+    steadily and entirely unbothered by you. Nothing on the farm is
+    heavier or, when she has a calf at foot, more dangerous.
+  nameBankKeys: []

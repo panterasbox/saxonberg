@@ -1,0 +1,14 @@
+# Clover hay — ⭐ better feed than grass hay, and that is not a bonus:
+# it is more protein, which is more nitrogen, which is the same number
+# the field lost when it was cut. Feed value and fertility are one
+# accounting.
+class: /platform/thing/Crop
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a cut of clover hay
+  primaryKeyword: clover
+  keywords: [clover, crop]
+  longDescription: |
+    Clover hay, leafier and sweeter-smelling than grass hay, and worth more per pound to anything that eats it.
+  material: /stuff/idea/material/food/root-vegetable
+  mass: 20

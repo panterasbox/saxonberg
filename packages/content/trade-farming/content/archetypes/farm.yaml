@@ -1,0 +1,41 @@
+# ⭐⭐ The FARM archetype — what a working farm NEEDS, stated in
+# capabilities the kernel already checks, never in furniture.
+#
+# ⭐ **This file is the whole of AC 62, and it is satisfied by
+# construction**: an archetype is a YAML row and nothing else, so *the
+# campus farm needs zero pack code* is a property of the format rather
+# than a discipline anybody has to keep. If binding one ever needs
+# `src/`, the archetype is the wrong shape and that is a finding to
+# report rather than a problem to code around.
+#
+# ⚠⚠ **Reported, never enforced.** A farm missing a slot is a legal,
+# visible state, and **nothing multiplies off a satisfaction**. This is
+# the no-gauge rule at venue scale and it is the single easiest thing in
+# the build to get wrong, because a satisfaction score is the obvious
+# next step and it is forbidden.
+#
+# ⭐ **`water` ships with NO DEFAULT, and that is the demonstration** —
+# the `light`-in-a-mine move. Every farm needs water and **no two places
+# answer the same way**: a stream, a well, a cistern, a pond, roof
+# catchment, or a piped supply off the shipped conduit ladder. The
+# archetype names none of them.
+#
+# The defaults that ARE here name `trade-farming` rows only where the
+# trade genuinely owns the implement. Whose barn and whose ox is a fact
+# about the PLACE, so those bind at the locality — exactly as haulage
+# does for the mine.
+archetypeId: farm
+label: a working farm
+industry: farming
+capabilities:
+  # Ground, at the scale zoning admits for a field rather than a bed.
+  - { key: ground, needs: { cultivation: field } }
+  # ⭐ The divergence slot. No default, on purpose.
+  - { key: water, needs: { bulkSource: water } }
+  # Somewhere the crop goes that is not the weather.
+  - { key: storage, needs: { presence: barn } }
+  # ⚠ The IMPLEMENT is the trade's; the animal pulling it is the place's.
+  - { key: traction, needs: { tool: ploughing }, default: /trade/farming/thing/plough }
+  - { key: groundwork, needs: { tool: digging }, default: /trade/farming/thing/spade }
+  # A way to market. A farm that cannot sell is a garden.
+  - { key: market, needs: { presence: cart } }

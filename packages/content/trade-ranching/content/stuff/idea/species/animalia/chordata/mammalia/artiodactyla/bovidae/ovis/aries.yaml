@@ -1,0 +1,55 @@
+# The sheep — ⭐ and it is here because textiles ships a `wool.yaml` with
+# no animal behind it.
+#
+# ⭐⭐ Its place on D92's commitment ladder is **seasonal**: a flock
+# grazes itself, and what it asks of you is lambing and shearing, twice a
+# year, hard. That is a genuinely different demand from a dairy cow's
+# twice a game day, and a player's own real-life cadence is what decides
+# which they can keep.
+#
+# ⚠ A SHORT-DAY breeder, and that one line is where the calendar becomes
+# husbandry: the ewes come into season as the days shorten, so lambing
+# lands in late winter — not because anybody authored a date, but because
+# the orbit did.
+#
+# ⚠ The row lives in the COMMONS. A sheep exists whether or not anybody
+# ranches; the husbandry is the trade, the animal is a thing in the world.
+class: /platform/idea/species/Species
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  binomial: Ovis aries
+  commonNames: ["sheep", "ewe", "ram", "lamb", "hogget"]
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/quadruped
+  _parentCladePath: /stuff/idea/species/animalia
+  _defaultMaterialPath: /stuff/idea/material/tissue/flesh
+  vitalProfile:
+    coreTemperature: { baseline: 312, survivableMin: 303, survivableMax: 317 }
+    heartRate: { baseline: 75, survivableMin: 40, survivableMax: 200 }
+    respiratoryRate: { baseline: 20, survivableMin: 8, survivableMax: 60 }
+    bloodPressureSystolic: { baseline: 120, survivableMin: 70, survivableMax: 200 }
+    bloodPressureDiastolic: { baseline: 80, survivableMin: 40, survivableMax: 135 }
+    spo2: { baseline: 97, survivableMin: 68, survivableMax: 100 }
+    bloodVolume: { baseline: 4, survivableMin: 3, survivableMax: 5 }
+  lifecycleStates: ["alive", "dead"]
+  sexDeterminationSystem: xy
+  reproductiveMode: sexual
+  lifespanMin: 0
+  lifespanMax: 12
+  circadianBand: diurnal
+  diet: herbivore
+  # ⭐ Compressed absolute scale, RATIOS preserved: a ewe is breedable at
+  # about half the age a heifer is, which is exactly why sheep improve
+  # faster than cattle and why `R = h²·S / L` is learnable here.
+  ageCurve: { weanedAt: 30, matureAt: 150, agedAt: 900, senescentAt: 1400 }
+  breeding: { daylightFrom: 0, daylightTo: 0.44, gestationDays: 60, litter: 2 }
+  production:
+    - key: wool
+      yieldRow: /trade/ranching/thing/fleece
+      perGameDay: 0.008
+      behaviour: continuous
+      windowDays: 0
+  longDescription: >-
+    A blocky ewe with a fleece gone yellow at the tips and a startlingly
+    level stare. She keeps one eye on you and both feet pointed at the
+    gate.
+  nameBankKeys: []

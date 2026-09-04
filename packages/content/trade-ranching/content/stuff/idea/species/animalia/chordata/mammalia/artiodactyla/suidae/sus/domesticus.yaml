@@ -1,0 +1,38 @@
+# The pig — ⭐ **the waste converter**, and it is here for a reason that
+# is entirely about somebody else's leftovers.
+#
+# `spent-grain` ships in BOTH trade-brewing and trade-distilling with
+# nowhere to go. A pig is where it goes, which is what pigs have always
+# been for: the animal that turns what nothing else will eat into meat.
+# It is the clearest instance in the build of a byproduct finding its
+# consumer rather than a consumer being invented for it.
+class: /platform/idea/species/Species
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  binomial: Sus domesticus
+  commonNames: ["pig", "sow", "boar", "hog", "piglet", "swine"]
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/quadruped
+  _parentCladePath: /stuff/idea/species/animalia
+  _defaultMaterialPath: /stuff/idea/material/tissue/flesh
+  vitalProfile:
+    coreTemperature: { baseline: 312, survivableMin: 303, survivableMax: 317 }
+    heartRate: { baseline: 80, survivableMin: 40, survivableMax: 200 }
+    respiratoryRate: { baseline: 18, survivableMin: 8, survivableMax: 55 }
+    bloodPressureSystolic: { baseline: 125, survivableMin: 75, survivableMax: 200 }
+    bloodPressureDiastolic: { baseline: 80, survivableMin: 42, survivableMax: 135 }
+    spo2: { baseline: 97, survivableMin: 68, survivableMax: 100 }
+    bloodVolume: { baseline: 5, survivableMin: 4, survivableMax: 7 }
+  lifecycleStates: ["alive", "dead"]
+  sexDeterminationSystem: xy
+  reproductiveMode: sexual
+  lifespanMin: 0
+  lifespanMax: 15
+  circadianBand: diurnal
+  diet: omnivore
+  ageCurve: { weanedAt: 20, matureAt: 130, agedAt: 900, senescentAt: 1300 }
+  breeding: { daylightFrom: 0, daylightTo: 1, gestationDays: 38, litter: 8 }
+  production: []
+  longDescription: >-
+    A long-backed sow with a straight tail and small clever eyes, working
+    the ground over with her snout in a way that is clearly systematic.
+  nameBankKeys: []

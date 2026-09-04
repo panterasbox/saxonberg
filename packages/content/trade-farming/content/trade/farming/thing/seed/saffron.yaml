@@ -1,0 +1,11 @@
+# Seed for saffron — the same discrete-Thing shape every shipped seed has.
+class: /platform/thing/Seed
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a tray of saffron corms
+  primaryKeyword: seed
+  keywords: [seed, seeds, saffron]
+  longDescription: |
+    Papery brown corms the size of a thumbnail, each with a dry tuft where last year's leaves were.
+  growsIntoPath: /trade/farming/thing/plant/saffron
+  _speciesPath: /stuff/idea/species/plantae/tracheophyta/liliopsida/asparagales/iridaceae/crocus/sativus

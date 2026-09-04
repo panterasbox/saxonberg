@@ -154,6 +154,26 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
    * `analyze chemistry`, `containsElementOf`, the flat element map —
    * would have been quietly wrong about what the material IS.
    */
+  /**
+   * ⭐ `production[].yieldRow` — a species' TAPS (farmstead D25). Each
+   * names the row a take mints, resolved live at the moment somebody
+   * milks or shears or gathers, so a rowless one is an animal that
+   * produces nothing for a reason no author could find: the take
+   * succeeds, the reserve empties, and nothing appears.
+   *
+   * ⚠ The census gate caught this on the wave that introduced it, which
+   * is exactly what it exists for — a nested path-shaped value in a new
+   * authored field is the shape that went blind once already.
+   */
+  const production = data.production;
+  if (Array.isArray(production)) {
+    for (const tap of production) {
+      if (tap && typeof tap === 'object') {
+        push('production.yieldRow', (tap as Record<string, unknown>).yieldRow);
+      }
+    }
+  }
+
   const composition = data.composition;
   if (Array.isArray(composition)) {
     for (const part of composition) {

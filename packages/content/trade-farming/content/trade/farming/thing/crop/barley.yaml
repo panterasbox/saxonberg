@@ -1,0 +1,13 @@
+# A sack of barley — ⭐ what malt is MADE from, and until now the malt
+# row had nothing behind it at all. Brewing and distilling have both been
+# drawing it from nowhere; this is the crop that closes both.
+class: /platform/thing/Crop
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a sack of barley
+  primaryKeyword: barley
+  keywords: [barley, crop]
+  longDescription: |
+    Threshed grain, still with a little chaff in it, heavy in the sack and cool to the hand.
+  material: /stuff/idea/material/food/barley-grain
+  mass: 25

@@ -779,6 +779,9 @@ importers:
       vitest:
         specifier: ^2.0.0
         version: 2.1.9(@types/node@20.19.28)(jsdom@25.0.1)
+      yaml:
+        specifier: ^2.8.2
+        version: 2.9.0
 
   packages/content/trade-fuel:
     dependencies:

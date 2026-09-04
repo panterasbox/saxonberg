@@ -133,10 +133,22 @@ const MANURE_OM_PER_KG_EATEN = 0.35;
 
 /**
  * Percentage points of nitrogen a fully clover-dominant sward fixes per
- * GAME day (D89). A good clover ley fixes on the order of 150 kg N/ha a
- * year, which on this reserve's scale is a few points a season.
+ * GAME day (D89).
+ *
+ * ⭐⭐ **Derived from the historical fact rather than tuned to a target**:
+ * *a clover ley fixes about as much nitrogen in a season as a cereal
+ * crop takes off, and a bit more.* That surplus is the entire reason the
+ * four-course displaced the fallow year, and it is why yields ROSE
+ * rather than merely held.
+ *
+ * The arithmetic: a cereal course draws 18 points here, a season of ley
+ * runs ~90 game days, and *a bit more than one cereal* is ~24 points —
+ * so 24 / 90 ≈ 0.27. ⚠ Setting it any lower makes the rotation run the
+ * ground down, which the control case in `rotation.test.ts` asserts is
+ * what happens WITHOUT the ley; setting it higher would make fertility
+ * free.
  */
-const N_FIXED_PER_GAME_DAY = 0.06;
+const N_FIXED_PER_GAME_DAY = 0.27;
 
 /**
  * The base temperature a temperate sward stops growing at, in kelvin

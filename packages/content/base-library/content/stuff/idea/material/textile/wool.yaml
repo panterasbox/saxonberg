@@ -23,4 +23,10 @@ data:
   tags: ["textile", "fibre", "organic", "insulating", "once-living"]
   composition: []
   chemistry: null
-  biologicalSource: null
+  # ⭐⭐ It came off a SHEEP, and it says so. This row shipped with
+  # `biologicalSource: null` and a scutching controller deliberately
+  # written so that naming a flax row in it would have been *the one line
+  # that stops wool* — the faucet the farmstead build exists to close.
+  biologicalSource:
+    speciesPath: /stuff/idea/species/animalia/chordata/mammalia/artiodactyla/bovidae/ovis/aries
+    tissueType: fleece

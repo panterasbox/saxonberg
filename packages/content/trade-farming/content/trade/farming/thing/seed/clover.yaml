@@ -1,0 +1,11 @@
+# Seed for clover — the same discrete-Thing shape every shipped seed has.
+class: /platform/thing/Seed
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a bag of clover seed
+  primaryKeyword: seed
+  keywords: [seed, seeds, clover]
+  longDescription: |
+    Small hard yellow seed, dusty and slippery, the kind that goes everywhere the moment the bag is open.
+  growsIntoPath: /trade/farming/thing/plant/clover
+  _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/fabales/fabaceae/trifolium/repens

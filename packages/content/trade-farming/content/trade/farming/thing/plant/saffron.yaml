@@ -1,0 +1,27 @@
+# Saffron crocus — ⭐ tiny land, enormous labour. The inverse of barley
+# in every term, which is the agricultural-economics lesson the build
+# could not otherwise teach.
+class: /platform/thing/Plant
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a bed of saffron crocus
+  primaryKeyword: saffron
+  keywords: [saffron, crop]
+  longDescription: |
+    Low purple flowers open in the cold, three crimson threads standing out of every throat.
+  _speciesPath: /stuff/idea/species/plantae/tracheophyta/liliopsida/asparagales/iridaceae/crocus/sativus
+  material: /stuff/idea/material/tissue/plant-tissue
+  lifecycleState: alive
+  seedTemplatePath: /trade/farming/thing/seed/saffron
+  harvestTemplatePath: /trade/farming/thing/crop/saffron
+  nutrientDraw: 4
+  profile:
+    moistureHappyAt: 0.3
+    moistureWiltAt: 0.05
+    litresPerGameDay: 0.14
+    luxHappyAt: 200
+    luxDarkAt: 20
+    coldStopK: 278
+    warmHappyK: 289
+    rootDemand: { seedling: 0.2, young: 1.0, established: 2.0, mature: 3.0 }
+    daysToStage: { young: 15, established: 45, mature: 90 }
