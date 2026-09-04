@@ -24,6 +24,8 @@ import { ExecutionContextApi } from "../../../../../api/execution-context";
 import { Idea } from "../../../../../lib/stuff/Idea";
 import { ContainerMixin } from "../../../../../lib/spatial/Container";
 import { ContainableMixin } from "../../../../../lib/spatial/Containable";
+import { ChattelMixin } from "../../../../../lib/chattel/Chattel";
+import ChattelRegistry from "../../../ChattelRegistry";
 import { CommandGiverMixin } from "../../../../../lib/command/CommandGiver";
 import { SensorMixin } from "../../../../../lib/message/Sensor";
 import type { CommandContext } from "../../../../../api/command";
@@ -49,6 +51,10 @@ class TestRoom extends ContainerMixin(Idea) {
 }
 class TestCrate extends ContainableMixin(Idea) {
   static _mixinName = "TestCrate";
+}
+/** A crate somebody OWNS — the `--kind` case turns on the mark. */
+class MarkedCrate extends ChattelMixin(ContainableMixin(Idea)) {
+  static _mixinName = "MarkedCrate";
 }
 
 const BOARD = "/world/terminus/terminal/thing/job-board";
@@ -105,6 +111,11 @@ describe("work verbs", () => {
     installV1QuantityMarshallers();
     installBankingHarness();
     muteScenes();
+    // A mark needs the registry that keeps the chain of title.
+    await makeStuffAtPath(
+      () => new ChattelRegistry(),
+      "/platform/idea/ChattelRegistry",
+    ).postRegister();
     room = makeStuffAtPath(() => new TestRoom(), HERE);
     dest = makeStuffAtPath(() => new TestRoom(), DEST);
     board = makeStuffAtPath(() => new JobBoard(), BOARD);
@@ -186,6 +197,38 @@ describe("work verbs", () => {
     expect(record?.clause?.condition.destinationPath).toBe(DEST);
     // Exclusive by default: funds checked, not yet escrowed.
     expect(BankingApi.escrowBalanceOf(id).minor).toBe(0);
+  });
+
+  it("⭐ a MARKED exemplar binds the gig to that instance — deliver THIS crate", async () => {
+    const marked = makeStuffAtPath(() => new MarkedCrate(), "/obj/test/marked-crate");
+    marked.setKeywords?.(["crate"]);
+    ContainmentApi.move(marked as never, room);
+    await asGiver(poster, () => marked.stampChattel(poster));
+    const id = await postGig({ item: { stuff: marked, raw: "crate" } });
+    const record = await ContractApi.contractById(id);
+    expect(record?.clause?.condition.item.kind).toBe("chattel");
+  });
+
+  it("⭐⭐ `--kind` reads the SAME exemplar as a kind — any one of these will do", async () => {
+    /*
+     * ⚠⚠ The flag exists because of a real defect. The `restocks` keeper
+     * points at a bottle already on her own rail to say what the bar is
+     * short of — and every bottle a bar owns is marked, because the bar
+     * bought it. Without `--kind` the order read "deliver the bottle you
+     * are looking at", which is nobody's work, and the bar never
+     * restocked. Pointing at a thing is how you name a kind when you
+     * have no other way to name one.
+     */
+    const marked = makeStuffAtPath(() => new MarkedCrate(), "/obj/test/marked-crate");
+    marked.setKeywords?.(["crate"]);
+    ContainmentApi.move(marked as never, room);
+    await asGiver(poster, () => marked.stampChattel(poster));
+    const id = await postGig({ item: { stuff: marked, raw: "crate" }, kind: true });
+    const record = await ContractApi.contractById(id);
+    expect(record?.clause?.condition.item).toEqual({
+      kind: "template",
+      path: "/obj/test/marked-crate",
+    });
   });
 
   it("post --bounty escrows immediately", async () => {
