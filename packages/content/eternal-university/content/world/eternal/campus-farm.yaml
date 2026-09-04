@@ -17,3 +17,13 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: the campus farm
   cellSize: 20.0
+  # ⚠⚠ **The address, and it is load-bearing twice over.** Without it the
+  # farm resolved NO covering Locality — `analyze address` said *"global
+  # / off-grid"* — so it got no daylight (0 lux at noon under a sky that
+  # said "daylight over the university farmyard"), and the soil field was
+  # seeded off the EMPTY STRING, exactly as the Ferrow orebody was before
+  # Rejection's zone declared one.
+  #
+  # ⭐ It goes on the ZONE rather than room by room because a field
+  # PLOTTED here is minted at runtime and can declare nothing for itself.
+  address: terminus/city/campus/farm

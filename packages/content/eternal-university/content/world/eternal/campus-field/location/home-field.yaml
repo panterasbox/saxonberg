@@ -27,6 +27,28 @@ data:
     down to a clover ley that is a shade greener than it has any business
     being. The gate back to the yard hangs true.
   coords: { x: 0, y: 0, z: 0 }
+  # ⭐ A meadow, which is the biome a ley in grass actually is — and
+  # being SkyExposed is doing real work rather than set dressing: the
+  # soil's own sky edge (rain, daylight, the season) is gated on it, and
+  # so is being able to see the field at all.
+  _biomePath: /stuff/idea/biome/outdoor/meadow
+  # ⚠⚠ **And the room has to author its own ambient light.** A biome makes
+  # a place SkyExposed — which is what the soil's sky edge and the weather
+  # read — but it does NOT hand it any lux. A room that authors no ambient
+  # is PITCH BLACK, forever, and the tell is every object in it reading
+  # "something": `analyze sky` said *"daylight over the university
+  # farmyard, sun altitude 47°"* while `analyze light` said *"0 lux,
+  # contributing sources: none"* and `get spade` said *"you don't see any
+  # 'spade' here"*. Daylight numbers are the Hinkley stop's.
+  # ⭐ **Lux is lumen over AREA, and a farm is big.** The shipped outdoor
+  # convention is the Hinkley stop's 600 lumen — but that room's zone
+  # runs 6-metre cells, and this one runs 20-metre cells, so the same
+  # number lands 3 lux here against its 66 and everything still reads as
+  # "something". 40 000 lumen over ~400 m² is about 100 lux: a bright
+  # overcast day, and comfortably clear of the threshold where a person
+  # can pick a spade out of a yard.
+  ambientIntensity: 40000
+  ambientColorTemperature: 5800
   groundSpotX: 4
   groundSpotY: 7
   areaM2: 400

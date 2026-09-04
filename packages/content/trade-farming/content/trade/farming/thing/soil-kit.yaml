@@ -6,7 +6,7 @@
 # undo and entirely wasted if the ground did not need it. That is the
 # whole argument for owning this: not a better number, but the difference
 # between spending on lime and guessing.
-class: /platform/thing/ToolItem
+class: /trade/farming/thing/SoilKit
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   primaryKeyword: kit

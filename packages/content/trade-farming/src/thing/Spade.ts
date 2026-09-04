@@ -26,7 +26,21 @@ export default class Spade extends ToolItem {
    */
   static commandContributions: CommandContributions = {
     self: ['trade/farming/cmd/farming/plot.yaml'],
-    peers: [],
-    environment: [],
+    // ⚠⚠ **And it lights up `measure` too, which it did not until a live
+    // drive.** The doc comment above cited the right rule — *"the same
+    // relationship `SurveyInstrument` has to `measure`"* — and then wired
+    // only `plot`, so `measure texture` answered **"I don't understand
+    // 'measure'"** to a player standing in a field with a spade in their
+    // hands. Two of the survey ladder's four rungs were unreachable and
+    // every test passed, because a controller test calls the controller.
+    //
+    // ⭐ The `SurveyInstrument` shape exactly: the whole view on
+    // `environment` + `peers`, so the instrument lights the verb up by
+    // being in reach and each channel's controller checks the capability
+    // it actually needs. That is why `measure texture` can say *"you
+    // would need something to open the ground with"* rather than simply
+    // not existing — **the failure stays legible**.
+    peers: ['platform/cmd/perception/measure.yaml'],
+    environment: ['platform/cmd/perception/measure.yaml'],
   };
 }

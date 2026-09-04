@@ -17,6 +17,30 @@ data:
     corner, with a cracked stone lid over the tank beneath it. Somebody has swept the middle of it and given up on the edges.
     A gate at the top of the yard opens onto the home field.
   coords: { x: 0, y: 0, z: 0 }
+  # ⚠⚠ **A yard under the open sky, and it has to SAY so.** Light is not
+  # a default: a room with no biome is `SkyExposed: false`, gets no
+  # daylight ever, and reads 0 lux at noon — which a live drive found
+  # here, with every object in the yard rendering as "something" and
+  # `get spade` answering *"you don't see any 'spade' here"* at midday.
+  # A teaching farm nobody can see.
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  # ⚠⚠ **And the room has to author its own ambient light.** A biome makes
+  # a place SkyExposed — which is what the soil's sky edge and the weather
+  # read — but it does NOT hand it any lux. A room that authors no ambient
+  # is PITCH BLACK, forever, and the tell is every object in it reading
+  # "something": `analyze sky` said *"daylight over the university
+  # farmyard, sun altitude 47°"* while `analyze light` said *"0 lux,
+  # contributing sources: none"* and `get spade` said *"you don't see any
+  # 'spade' here"*. Daylight numbers are the Hinkley stop's.
+  # ⭐ **Lux is lumen over AREA, and a farm is big.** The shipped outdoor
+  # convention is the Hinkley stop's 600 lumen — but that room's zone
+  # runs 6-metre cells, and this one runs 20-metre cells, so the same
+  # number lands 3 lux here against its 66 and everything still reads as
+  # "something". 40 000 lumen over ~400 m² is about 100 lux: a bright
+  # overcast day, and comfortably clear of the threshold where a person
+  # can pick a spade out of a yard.
+  ambientIntensity: 40000
+  ambientColorTemperature: 5800
   props:
     - /world/eternal/campus-farm/thing/byre
     - /world/eternal/campus-farm/thing/yard-wall

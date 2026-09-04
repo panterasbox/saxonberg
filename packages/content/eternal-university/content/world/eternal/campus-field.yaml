@@ -17,6 +17,10 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: the home field
   cellSize: 20.0
+  # ⭐ The SAME address as the yard, deliberately: the soil seed is
+  # derived from the Locality, so one address means one continuous field
+  # of ground across the whole farm rather than a seam at the gate.
+  address: terminus/city/campus/farm
   # ⭐ The ground under this zone. Inherited by the ordinary `lookupField`
   # walk, so every field cut here — the authored home field and any
   # future plotted one — reads the same dirt.
