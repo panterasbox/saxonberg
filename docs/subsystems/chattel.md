@@ -120,16 +120,37 @@ Composed at the **`Thing`** tier (the movable-good tier), so every
 portable inanimate object gets per-instance identity for free
 (pets/apartments/ranching/retail all want it).
 
-### Discrete goods only
+### Discrete goods only — and what a LOT is
 
 The stamp is coherent only on a **discrete** instance. A `Globbable`
 fungible stack is structurally incompatible — a split of a stack of five
 has no answer for which unit keeps the id, and a merge equates identities.
 So chattel is **discrete-goods only**: `stampChattel`/`transferChattel`/
-`ownerOf` **refuse a glob** (a clear no-op, not a silent mint), a glob's
-`_chattelId` stays empty, and fungible stacks are **owned-by-possession**
+`ownerOf` **refuse a fungible stack** (a clear no-op, not a silent mint),
+its `_chattelId` stays empty, and stacks are **owned-by-possession**
 (whoever holds them). Coins are the money substrate, conserved by the
 banking ledger, not the ownership registry.
+
+⭐⭐ **A STACK cannot bear title; a LOT OF ONE can.** Read the objection
+above closely: *both* halves of it are about a stack that is still a
+stack, and neither survives at quantity one — there is nothing to split,
+and a merge is refused outright. So the gate is `isFungibleStack`
+(`Globbable` **and** `getQuantity() > 1`), not `Globbable`, and it is
+paired with one invariant in `GlobbableMixin.canMergeWith`: **a titled
+stack does not merge.** That pairing is what keeps "a merge equates
+identities" from ever arising, and it is why the narrowing is a
+refinement rather than a loophole. An untitled glob merges exactly as it
+always did.
+
+⚠ It is not a nicety. `consign` refused every glob, so a mill could weave
+cloth it could never sell: a live drive of the textile chain ended on
+`controller-rejected:fungible(bolt)`. A bolt is a glob **on purpose** —
+`canMergeWith` is narrowed to grade + form + dye stack so two dye lots
+never merge — and a good whose fungibility is load-bearing was thereby
+barred from the sale layer entirely. Consigning now takes ONE unit off
+the stack and titles it: the lot on the shelf is a thing with an owner,
+the rest of the stack stays owned-by-possession in the seller's hands.
+See `ConsignController`.
 
 ## The trio (mirrors the parcel trio)
 

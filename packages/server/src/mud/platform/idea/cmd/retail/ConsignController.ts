@@ -7,11 +7,15 @@
  * target; ownership is never on the listing.
  *
  * Gates (anti-grief + honesty): you must own the good (`ChattelApi.ownerOf`,
- * not the listing); it must be a discrete good (a fungible stack is
- * owned-by-possession, never consigned); you must hold a bank account (the
- * payout target — nudge to Goodkin otherwise); and you must be under the
- * per-consignor listing cap (the shared-shelf guard, the withdrawal-quota
- * sibling).
+ * not the listing); you must hold a bank account (the payout target — nudge
+ * to Goodkin otherwise); and you must be under the per-consignor listing cap
+ * (the shared-shelf guard, the withdrawal-quota sibling).
+ *
+ * ⭐⭐ **A stack goes up ONE UNIT at a time.** A stack is
+ * owned-by-possession and cannot bear title, but a lot of one can (see
+ * `ChattelLogic`): consigning takes a unit off, titles it, and leaves the
+ * rest in your hands. That is what lets a mill sell cloth, which is a glob
+ * on purpose so two dye lots never merge.
  *
  * ⭐ **Consigning as the house.** With a business's operating account
  * active in the wallet (`wallet use house`), you consign **as that
@@ -81,13 +85,35 @@ export default class ConsignController extends CommandController<ConsignModel> {
       return;
     }
 
-    // Discrete-goods only — a fungible stack is owned-by-possession.
-    if (MixinApi.isGlobbable(item)) {
-      this.reject(giver, context, Mml.compose`You can't consign a loose stack.`, {
-        kind: "controller-rejected",
-        reason: "fungible",
-        detail: model.thing,
-      });
+    /*
+     * ⭐⭐ **A stack goes up ONE UNIT at a time.**
+     *
+     * This used to refuse every `Globbable` outright — a true statement
+     * about a STACK and the wrong conclusion about a SALE. A bolt of
+     * cloth is a glob on purpose (two dye lots must never merge), so the
+     * rule meant a mill could weave cloth it could never sell: a live
+     * drive of the textile chain ended on
+     * `controller-rejected:fungible(bolt)`.
+     *
+     * The resolution is upstream, in the chattel rule itself: a STACK
+     * cannot bear title, a LOT OF ONE can, and a titled lot does not
+     * merge. So consigning takes one unit off, titles it, and leaves the
+     * rest of the stack in the seller's hands owned-by-possession.
+     *
+     * ⚠ The split happens LAST, after every gate — ownership, account,
+     * cap. A stack divided by a consignment that then refuses is a stack
+     * the caller has to put back together.
+     */
+    const glob = MixinApi.isGlobbable(item) ? item : null;
+    if (glob && !glob.canSplit(1)) {
+      // The veto seam's own reasons — a shadowed or adorned stack has
+      // per-instance state that does not divide.
+      this.reject(
+        giver,
+        context,
+        Mml.compose`${Mml.thing(item)} won't divide into lots.`,
+        { kind: "controller-rejected", reason: "unsplittable", detail: model.thing },
+      );
       return;
     }
 
@@ -166,22 +192,35 @@ export default class ConsignController extends CommandController<ConsignModel> {
       return;
     }
 
+    // Take one unit off the stack. `split` short-circuits to the source
+    // when the lot IS the whole stack, so a one-unit stack and a
+    // discrete good travel the same path from here.
+    const listed = glob
+      ? ((await glob.split(1)) as unknown as Stuff &
+          Containable & { getChattelId(): string })
+      : item;
+
     // Establish the title if the good is unstamped (author-owned) — a
-    // consignment needs a durable chattel id to key the listing on.
-    if (!item.getChattelId()) {
-      await (item as unknown as Stuff & Chattel).stampChattel(principal);
+    // consignment needs a durable chattel id to key the listing on. A
+    // freshly split lot is always unstamped: identity is per-instance
+    // and is not among the glob-identity fields a split copies.
+    if (!listed.getChattelId()) {
+      await (listed as unknown as Stuff & Chattel).stampChattel(principal);
     }
 
     // Custody → the shop's shelf; the owner-stamp stays put.
-    ContainmentApi.move(item, shelf as unknown as Stuff & Container);
-    shelf.recordListing(item.getChattelId(), consignorKey, ask);
+    ContainmentApi.move(listed, shelf as unknown as Stuff & Container);
+    shelf.recordListing(listed.getChattelId(), consignorKey, ask);
 
+    const kept = glob && listed !== item ? glob.getQuantity() : 0;
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(
-        Mml.compose`You put ${Mml.thing(item)} up for sale at ${Money.of(ask, Currency.compact()).render()}. It's still yours until it sells.`,
+        kept > 0
+          ? Mml.compose`You put ${Mml.thing(listed)} up for sale at ${Money.of(ask, Currency.compact()).render()}, and keep ${String(kept)} back. It's still yours until it sells.`
+          : Mml.compose`You put ${Mml.thing(listed)} up for sale at ${Money.of(ask, Currency.compact()).render()}. It's still yours until it sells.`,
       )
-      .toPeers(Mml.compose`${Mml.actor(giver)} sets ${Mml.thing(item)} on the consignment shelf.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} sets ${Mml.thing(listed)} on the consignment shelf.`)
       .send();
   }
 

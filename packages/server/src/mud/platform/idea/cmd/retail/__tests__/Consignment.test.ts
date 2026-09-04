@@ -17,6 +17,7 @@ import ConsignController from "../ConsignController";
 import ReclaimController from "../ReclaimController";
 import ConsignmentShelf from "../../../../thing/ConsignmentShelf";
 import Thing from "../../../../../lib/stuff/Thing";
+import { GlobbableMixin } from "../../../../../lib/stuff/Globbable";
 import BankCounter from "../../../../thing/BankCounter";
 import PaymentCard from "../../../../thing/PaymentCard";
 import ChattelRegistry from "../../../ChattelRegistry";
@@ -68,6 +69,7 @@ async function makeStoreBusiness(): Promise<string> {
   return EmploymentApi.operatingAccountOf(biz);
 }
 const TORCH = "/obj/test/Torch";
+const BALE = "/obj/test/Bale";
 
 class TestGiver extends SensorMixin(
   CommandGiverMixin(ContainerMixin(ContainableMixin(NamedMixin(Idea)))),
@@ -76,6 +78,11 @@ class TestGiver extends SensorMixin(
 }
 
 class Torch extends Thing {}
+
+/** A fungible good — the shape a bolt of cloth has. */
+class Bale extends GlobbableMixin(Thing) {
+  static _mixinName = "Bale";
+}
 
 function asOwner<T>(owner: Stuff, fn: () => Promise<T>): Promise<T> {
   return withRootContext(null, "consign.test", () => {
@@ -346,5 +353,134 @@ describe("Consignment — sell loop over real ownership", () => {
     expect(torch.getContainer()).toBe(alice); // custody back
     expect((await torch.chattelOwner())).toEqual({ kind: "player", templatePath: "/platform/agent/Avatar/alice" });
     expect(shelf.activeListingCount("/platform/agent/Avatar/alice")).toBe(0);
+  });
+
+  /*
+   * ⭐⭐ A STACK GOES UP A LOT AT A TIME.
+   *
+   * `consign` refused every `Globbable` outright — a true statement
+   * about a stack ("owned-by-possession") and the wrong conclusion
+   * about a sale. A bolt of cloth is a glob ON PURPOSE (two dye lots
+   * must never merge), so the rule meant a mill could weave cloth it
+   * could never sell: a live drive of the textile chain ended on
+   * `controller-rejected:fungible(bolt)`.
+   *
+   * A LOT is a discrete good. It carries the stack's identity fields
+   * and gets a chattel id of its own the moment it is listed.
+   */
+  // ⚠ A UNIQUE path per bale: `makeStuffAtPath` registers one instance
+  // per path, so a second bale at the same path destroys the first.
+  let baleSeq = 0;
+  function ownedBale(owner: Stuff, quantity: number): Bale {
+    const path = `${BALE}${(baleSeq += 1)}`;
+    const bale = makeStuffAtPath(() => {
+      const b = new Bale();
+      b.setKeywords(["bale"]);
+      return b;
+    }, path);
+    bale.setQuantity(quantity);
+    ContainmentApi.move(bale as never, owner as never);
+    return bale;
+  }
+
+  it("⭐⭐ consigns ONE unit off a stack and leaves the rest in hand", async () => {
+    const loc = makeStuff(() => new Location());
+    const shelf = makeStuffAtPath(() => new ConsignmentShelf(), SHELF);
+    ContainmentApi.move(shelf as never, loc as never);
+    const alice = await fundedAvatar("/platform/agent/Avatar/alice", 0);
+    const bale = ownedBale(alice, 5);
+
+    await asOwner(alice, () =>
+      makeStuff(() => new ConsignController()).execute(
+        { thing: "bale", ask: "7" },
+        ctx(alice, loc, shelf, "consign"),
+      ),
+    );
+
+    // The stack stays with Alice, one short.
+    expect(bale.getQuantity()).toBe(4);
+    expect(bale.getContainer()).toBe(alice);
+    // …and a one-unit lot is on the shelf, listed.
+    expect(shelf.activeListingCount("/platform/agent/Avatar/alice")).toBe(1);
+    const lot = (shelf.getContents() as Stuff[]).find(
+      (c) => (c.getTemplatePath() ?? "").startsWith(BALE),
+    ) as Bale | undefined;
+    expect(lot, "a lot on the shelf").toBeTruthy();
+    expect(lot!.getQuantity()).toBe(1);
+    expect(lot).not.toBe(bale);
+    // ⭐ The lot is a THING now: its own chattel id, owned by the consignor.
+    expect(lot!.getChattelId()).toBeTruthy();
+    expect(lot!.getChattelId()).not.toBe(bale.getChattelId());
+    expect(await lot!.chattelOwner()).toEqual({
+      kind: "player",
+      templatePath: "/platform/agent/Avatar/alice",
+    });
+  });
+
+  it("⭐⭐ a TITLED lot does not merge — that is what makes the rule safe", async () => {
+    const loc = makeStuff(() => new Location());
+    const shelf = makeStuffAtPath(() => new ConsignmentShelf(), SHELF);
+    ContainmentApi.move(shelf as never, loc as never);
+    const alice = await fundedAvatar("/platform/agent/Avatar/alice", 0);
+    const bale = ownedBale(alice, 5);
+
+    // (That untitled globs still merge normally is the Globbable
+    // suite's own `canMergeWith` coverage — the veto below is the only
+    // new reason a merge can be refused.)
+
+    await asOwner(alice, () =>
+      makeStuff(() => new ConsignController()).execute(
+        { thing: "bale", ask: "7" },
+        ctx(alice, loc, shelf, "consign"),
+      ),
+    );
+    const lot = (shelf.getContents() as Stuff[]).find(
+      (c) => (c.getTemplatePath() ?? "").startsWith(BALE),
+    ) as Bale;
+
+    // The lot has an owner in the registry now, so folding it into a
+    // stack would silently destroy a title. It refuses, both ways.
+    expect(lot.getChattelId()).toBeTruthy();
+    expect(lot.canMergeWith(bale as unknown as Stuff)).toBe(false);
+    expect(bale.canMergeWith(lot as unknown as Stuff)).toBe(false);
+  });
+
+  it("⚠ a STACK still cannot be stamped — only a lot of one", async () => {
+    const alice = await fundedAvatar("/platform/agent/Avatar/alice", 0);
+    const stack = ownedBale(alice, 4);
+    const stamped = await asOwner(alice, () => stack.stampChattel(alice));
+    expect(stamped.ok).toBe(false);
+    expect(stack.getChattelId()).toBe("");
+
+    const single = ownedBale(alice, 1);
+    const ok = await asOwner(alice, () => single.stampChattel(alice));
+    expect(ok.ok).toBe(true);
+    expect(single.getChattelId()).toBeTruthy();
+  });
+
+  it("⚠⚠ a refused consignment never splits the stack", async () => {
+    // The gates run BEFORE the split for exactly this reason: a stack
+    // divided by a consignment that then declines is a stack the caller
+    // has to put back together. `broke` holds no account.
+    const loc = makeStuff(() => new Location());
+    const shelf = makeStuffAtPath(() => new ConsignmentShelf(), SHELF);
+    ContainmentApi.move(shelf as never, loc as never);
+    const broke = makeStuffAtPath(
+      () => new TestGiver(),
+      "/platform/agent/Avatar/broke",
+    );
+    ContainmentApi.move(broke as never, loc as never);
+    const bale = ownedBale(broke as unknown as Stuff, 4);
+
+    await asOwner(broke as unknown as Stuff, () =>
+      makeStuff(() => new ConsignController()).execute(
+        { thing: "bale", ask: "9" },
+        ctx(broke, loc, shelf, "consign"),
+      ),
+    );
+
+    expect(bale.getQuantity()).toBe(4);
+    expect(bale.getContainer()).toBe(broke);
+    expect(shelf.activeListingCount("/platform/agent/Avatar/broke")).toBe(0);
   });
 });

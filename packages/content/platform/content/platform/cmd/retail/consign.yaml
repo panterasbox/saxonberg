@@ -7,6 +7,12 @@ help: |
   own it until it sells; when someone buys it the shop takes a
   commission and the rest lands in your bank account. Take it back any
   time it hasn't sold with `reclaim`.
+
+  ⭐ **A stack goes up ONE UNIT at a time.** Consigning off a stack of
+  cloth or candles takes a single unit and leaves the rest in your hands.
+  That unit becomes a thing in its own right the moment you list it —
+  which is what lets the shelf hold it, the ledger pay you for it, and
+  you `reclaim` it unsold. Put another up when it sells.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious

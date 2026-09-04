@@ -55,6 +55,32 @@ const ChattelCallers = SecurityPolicies.AnyOf(
 const GLOB_REFUSAL =
   "fungible stacks are owned by possession, not stamped";
 
+/**
+ * ⭐⭐ **A STACK cannot bear title; a LOT OF ONE can.**
+ *
+ * The discrete-goods rule exists for one reason, and the doc states it
+ * exactly: *"a split of a stack of five has no answer for which unit
+ * keeps the id, and a merge equates identities."* Both halves of that
+ * objection are about a stack that is still a stack. Neither survives
+ * at quantity ONE — there is nothing to split, and a merge is refused
+ * outright by the veto below.
+ *
+ * ⚠ It mattered: `consign` refused every glob, so a mill could weave
+ * cloth it could never sell. A bolt is a glob ON PURPOSE (two dye lots
+ * must never merge), and a good whose fungibility is load-bearing was
+ * thereby barred from the sale layer entirely. Taking ONE unit off the
+ * stack and titling it is what a consignment actually is: the lot is a
+ * thing, the rest of the stack stays owned-by-possession.
+ *
+ * Paired invariant, in `GlobbableMixin.canMergeWith`: a titled stack
+ * does not merge. That is what keeps "a merge equates identities" from
+ * ever arising, and it is why this narrowing is safe rather than a
+ * loophole.
+ */
+function isFungibleStack(item: Stuff): boolean {
+  return MixinApi.isGlobbable(item) && item.getQuantity() > 1;
+}
+
 let registryRef: ChattelRegistry | null = null;
 function lookupRegistry(): ChattelRegistry | null {
   if (registryRef) return registryRef;
@@ -93,8 +119,9 @@ export class ChattelLogic extends ApiLogic {
    * `ChattelRegistry` ungated-privates pattern.
    */
   private async resolveOwner(item: Stuff): Promise<ChattelOwner | null> {
-    // A glob is owned-by-possession — never stamped, so never resolved.
-    if (MixinApi.isGlobbable(item)) return null;
+    // A STACK is owned-by-possession — never stamped, so never resolved.
+    // A titled lot of one resolves like any other discrete good.
+    if (isFungibleStack(item)) return null;
     const reg = lookupRegistry();
     if (reg && MixinApi.isChattel(item)) {
       const id = (item as Stuff & Chattel).getChattelId();
@@ -294,7 +321,7 @@ export class ChattelLogic extends ApiLogic {
     item: Stuff,
     owner: ChattelOwner,
   ): Promise<ChattelStampResult> {
-    if (MixinApi.isGlobbable(item)) return { ok: false, reason: GLOB_REFUSAL };
+    if (isFungibleStack(item)) return { ok: false, reason: GLOB_REFUSAL };
     if (!MixinApi.isChattel(item)) {
       return { ok: false, reason: "not a chattel-bearing good" };
     }
@@ -311,7 +338,7 @@ export class ChattelLogic extends ApiLogic {
     item: Stuff,
     newOwner: ChattelOwner,
   ): Promise<ChattelStampResult> {
-    if (MixinApi.isGlobbable(item)) return { ok: false, reason: GLOB_REFUSAL };
+    if (isFungibleStack(item)) return { ok: false, reason: GLOB_REFUSAL };
     if (!MixinApi.isChattel(item)) {
       return { ok: false, reason: "not a chattel-bearing good" };
     }

@@ -208,6 +208,20 @@ export function GlobbableMixin<TBase extends MixinConstructor<Stuff>>(
       if (self.getTemplatePath() !== other.getTemplatePath()) return false;
       if (hasAnyShadow(self) || hasAnyShadow(other)) return false;
       if (hasAnyAdornment(self) || hasAnyAdornment(other)) return false;
+      /*
+       * ⭐⭐ A TITLED lot does not merge.
+       *
+       * The chattel rule is "a stack cannot bear title; a lot of one
+       * can" — which is only safe while merging cannot equate two
+       * identities. That is this line. A one-unit stack somebody has
+       * put up for sale is a THING with an owner in the registry;
+       * folding it into another stack would silently destroy a title.
+       *
+       * ⚠ Reads the id, not the mixin: an untitled glob merges exactly
+       * as it always did, so nothing about ordinary fungible goods
+       * changes.
+       */
+      if (titled(self) || titled(other)) return false;
 
       // Union of both classes' globIdentityFields. Equal values required
       // for every field. Reads through the public getter pattern (per
@@ -312,6 +326,17 @@ function globLogic(): GlobbableLogic {
     '/platform/idea/api/glob',
     () => new GlobbableLogic(),
   );
+}
+
+/** Does this good carry a chattel id — i.e. has somebody titled it? */
+function titled(stuff: Stuff): boolean {
+  const asChattel = stuff as unknown as { getChattelId?(): string };
+  // ⚠ `?? ''` — a DESTROYED Stuff's inert surface returns undefined from
+  // every no-op'd method, and a merge check can legitimately run against
+  // one that a caller still holds a strong ref to.
+  return typeof asChattel.getChattelId === 'function'
+    ? (asChattel.getChattelId() ?? '').length > 0
+    : false;
 }
 
 /**
