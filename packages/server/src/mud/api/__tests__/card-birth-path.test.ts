@@ -156,11 +156,18 @@ describe('a card is born on the server, or not at all', () => {
      * ARRIVAL auto-senses — walking into a room is how most room cards
      * are born, and nobody types a command for that either.
      *
+     * ⭐ `analyze soil` is the second pack site and the deliberate edit
+     * this assertion exists to force. It is the same shape as the first
+     * — a survey card that is a PROJECTION of the reader's own beliefs
+     * about a piece of country, born from a command they typed — and
+     * both ride the `survey` kind `analyze` already declares.
+     *
      * Asserted as a SET so a new one is a deliberate edit here rather
      * than a silent widening.
      */
     expect(sites.sort()).toEqual(
       [
+        'content/trade-farming/src/idea/cmd/perception/AnalyzeSoilController.ts:open',
         'content/trade-mining/src/idea/cmd/perception/AnalyzeGroundController.ts:open',
         'mud/platform/agent/Avatar.ts:applyCardArrangement',
         'mud/lib/display/Display.ts:pushCard',

@@ -398,12 +398,35 @@ authored rows in an existing pack, and the university pack is its home. ⚠ If i
 turns out to need `src/`, **stop and report** — that is the archetype failing its
 test, and it is a design finding, not a licence to add code.
 
-### P11 — `analyze ground` gains a second reading, no new verb
+### P11 — a second CHANNEL on `analyze`, no new verb
 
 The stanza ships and `trade-mining` owns `AnalyzeGroundController`. Farmland is a
 second channel on it (the instrumentation split), and **the ribbon test is a
 separate physical act** with a tool prerequisite — a procedure is a verb, a
 reading is a channel.
+
+**⚠ Settled in W2, and it is a departure from AC 2's wording.** The channel is
+**`analyze soil`**, not a second reading inside `analyze ground`. The
+requirements say *"`analyze ground` on a field returns a soil reading"*; what
+ships returns it under a sibling subcommand. Three reasons, in order of weight:
+
+1. **The pack cut forbids the literal reading.** `AnalyzeGroundController` is
+   `trade-mining`'s. Teaching it soil puts farming code in the mining pack; the
+   alternative — shape-dispatch through it, the `analyze water` trick — makes
+   **farmland unreadable in any install without a mine in it**, which is a worse
+   bug than the one it fixes.
+2. **They are genuinely different channels.** An orebody is a plane in the rock
+   solved from strike and dip with a surveyor's compass and the `geology`
+   discipline. Soil is texture, sourness and an improvement bill, read with a
+   spade and a test kit under `soil-science`. They share the verb and nothing
+   else, which is exactly what a channel is.
+3. **P11's own headline survives intact** — `analyze` is shipped, and a stanza
+   is a channel, not a verb. The build still adds no verb.
+
+⭐ **AC 2's substance is unaffected**, and that is the test that matters: the
+free read is a band, the ribbon test returns a texture class, the instrument
+returns a number with an error bar, and two players who have sampled differently
+see different surveys of one piece of ground. Only the subcommand's name moved.
 
 ### P12 — the archetypes: TWO rows, no code, and one deliberate empty slot
 

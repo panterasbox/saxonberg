@@ -1,0 +1,34 @@
+# Soil science — reading the ground, and ⭐ the discipline that makes soil
+# a career instead of scenery.
+#
+# The field-substrate slate's law: *a field you read for free is scenery;
+# a field you pay to read is a career.* So there is a ladder — a coarse
+# honest band for free on `look`, the ribbon test for a spade and a
+# moment, an instrument for capital, and the whole holding for many
+# samples — and this is what climbs it.
+#
+# ⚠ It buys RESOLUTION and the availability of an inference, never the
+# ground. `pH 6.4 ± 0.8` and `pH 6.4 ± 0.1` are the same dirt read by two
+# people, and the underlying figure is identical for both. A better
+# agronomist does not get better soil; he knows which field to buy.
+#
+# ⚠ It is earned by SAMPLING, at difficulty read off the ground itself —
+# the two ends of the texture scale are unmistakable in the hand and the
+# middle three are where people actually disagree, so sampling loam
+# teaches you something and sampling a sandpit does not. Nothing anywhere
+# gates on the band.
+class: /platform/idea/Discipline
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: soil-science
+  channel: skill
+  label: Soil science
+  iscedf: "0811"  # ISCED-F 2013: crop and livestock production
+  description: >-
+    Reading ground. What a soil is made of, how it holds water and lets it
+    go, whether it is sour, and — the question that actually decides
+    things — what it would cost to bring into cultivation. Improves by
+    sampling; it changes what you can work out, never what the ground
+    holds.
+  specializes:
+    - agriculture

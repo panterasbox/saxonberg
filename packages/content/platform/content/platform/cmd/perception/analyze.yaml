@@ -210,6 +210,40 @@ subcommands:
         default: "here"
         scope: ["reachable"]
         requires: ContainerMixin
+  # ⚠ The controller ships in `trade-farming`. ⭐ It is a SECOND CHANNEL
+  # on this verb, deliberately not a second reading inside `ground`: an
+  # orebody is a plane in the rock solved from strike and dip, and soil is
+  # texture, sourness and what it costs to bring in. Different
+  # instruments, different arithmetic, different discipline — and folding
+  # them together would put farming code in the mining pack and make
+  # farmland unreadable in any install without a mine in it.
+  soil:
+    description: "Read what your soil samples ADD UP TO — the ground you have walked, and what it will cost to bring in"
+    help: |
+      Put your own spadefuls together. Every `measure texture` and
+      `measure acidity` you have taken on this piece of country is
+      written down; this is what they amount to.
+
+      ⭐ The map is a record of YOUR sampling, not of the world. Land you
+      have worked for years, you know. Land you just bought, you do not —
+      which is why buying land is a risk and an honest surveyor is worth
+      paying.
+
+      ⭐ And the bottom line is what the ground costs to bring IN, never
+      what it yields. Stony ground is dear to clear and cheap to fence;
+      wet ground wants ditching; sour ground wants lime. That is why some
+      land has been farmed for a thousand years and some was never farmed
+      at all.
+
+      Opens the survey card, which is your field book.
+    examples:
+      - cmd: analyze soil
+        note: Read your own soil notes for this ground
+    controller: /trade/farming/idea/cmd/perception/AnalyzeSoilController
+    args:
+      - name: detail
+        type: string
+        required: false
   # ⚠ The controller ships in `trade-mining` — see the note on
   # `measure`'s `strike` stanza for why, and for what happens in an
   # install without that pack.

@@ -164,6 +164,56 @@ subcommands:
       - name: detail
         type: string
         required: false
+  # ⚠ The controllers ship in `trade-farming` — the same arrangement as
+  # `strike`/`dip` above and for the same reasons: they gate on a farming
+  # tool, they band by the `soil-science` Discipline, and they speak
+  # farming prose.
+  texture:
+    description: "The ribbon test — roll a wet pinch of soil between your fingers and name what it is (needs something to dig with)"
+    help: |
+      Open the ground with a spade, wet a pinch of the soil in your palm
+      and roll it out between finger and thumb. How long a ribbon it
+      makes before it breaks, and whether it feels gritty or floury or
+      greasy, IS the texture class — this is the real field procedure and
+      it needs no laboratory.
+
+      ⭐ Texture is the one thing about a field you cannot change. A bed
+      you filled is whatever you carried there; the earth is the earth.
+      So this reading tells you what you were dealt, and `analyze soil`
+      is what several of them add up to.
+
+      It takes a spade and a moment. It does not take an instrument, and
+      a beginner's answer is the same as an expert's — which is why it is
+      the rung anybody can reach.
+    examples:
+      - cmd: measure texture
+        note: Take a spadeful where you stand and read it
+    controller: /trade/farming/idea/cmd/perception/MeasureTextureController
+    args:
+      - name: detail
+        type: string
+        required: false
+  acidity:
+    description: "Read the soil's pH off a test kit, with the error band your eye earns"
+    help: |
+      Work a pinch of soil into a soil kit and read the acidity off it.
+
+      ⭐ Sourness is invisible. Sour ground looks exactly like sweet
+      ground, grows a visibly poor crop, and the fix — lime — is dear,
+      slow to undo and wasted if the ground did not need it. That is the
+      whole reason to own an instrument.
+
+      Competence buys the error bar and nothing else: the ground has one
+      pH, and `6.4 ± 0.8` and `6.4 ± 0.1` are the same dirt read by two
+      people. Several readings average, and the bar narrows.
+    examples:
+      - cmd: measure acidity
+        note: Test the ground you are standing on
+    controller: /trade/farming/idea/cmd/perception/MeasureAcidityController
+    args:
+      - name: detail
+        type: string
+        required: false
   dip:
     description: "Read how steeply an ore body falls, off an exposed vein (needs a surveyor's instrument)"
     help: |

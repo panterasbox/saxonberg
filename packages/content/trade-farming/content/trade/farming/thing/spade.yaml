@@ -1,0 +1,21 @@
+# A garden spade — the second rung of the survey ladder, and the cheapest
+# instrument in the game because it is not an instrument.
+#
+# ⚠ Deliberately NOT the mine's shovel. A shovel moves what you broke and
+# has a short handle because a long one has nowhere to go in a drift; a
+# spade cuts a clean face in soil and is worked with a foot. Same
+# `digging` capability, different tool, different trade — which is the
+# shipped rule that code is shared and content is copied.
+class: /platform/thing/ToolItem
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  primaryKeyword: spade
+  keywords: ["spade", "garden-spade", "digging-spade"]
+  shortDescription: a garden spade
+  longDescription: >-
+    A flat steel blade with a rolled tread along its shoulder, worn
+    bright on one side where a boot has gone against it ten thousand
+    times. The ash shaft has taken the shape of somebody's hands.
+  mass: 1.9
+  capabilities: ["digging"]
+  _materialPath: /stuff/idea/material/element/iron

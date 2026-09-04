@@ -1,0 +1,22 @@
+# A soil test kit — the instrument rung, and the answer to the one soil
+# property that is invisible.
+#
+# ⭐ Sourness looks like nothing. A sour field looks exactly like a sweet
+# one, grows a visibly poor crop, and the fix — lime — is dear, slow to
+# undo and entirely wasted if the ground did not need it. That is the
+# whole argument for owning this: not a better number, but the difference
+# between spending on lime and guessing.
+class: /platform/thing/ToolItem
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  primaryKeyword: kit
+  keywords: ["kit", "soil-kit", "soil-test-kit", "test-kit"]
+  shortDescription: a soil test kit
+  longDescription: >-
+    A shallow wooden case holding a rack of little glass tubes, a stopper
+    of indicator solution gone slightly cloudy, and a printed card of
+    colours running from a hot pink through green to a heavy blue. The
+    card is water-stained along one edge.
+  mass: 0.6
+  capabilities: ["soil-testing"]
+  _materialPath: /stuff/idea/material/wood/oak
