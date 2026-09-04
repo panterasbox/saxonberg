@@ -591,6 +591,61 @@ re-invent it.**
 depends on). **Ends at** `feat(cooking): curing, drying and smoking —
 salt stops being a seasoning`.
 
+> ✅ **DONE.** Three recipes (`salt-cure` · `air-dry` · `smoke-cure`),
+> one output row (`/trade/cooking/thing/treated-cut`), three verbs
+> (`cure`/`salt`, `dry`/`hang`, `smoke`) over one `PreserveController`
+> base in the pack, afforded by `CookPot` beside `cook`/`plate`.
+> `Recipe` gains a `cure: { moisture?, solute? }` block; `maker` is
+> declared onto `BulkPayload` from `lib/craft/Crafted.ts` and stamped at
+> craft-resolve.
+>
+> **Decisions this wave made:**
+> - ⭐⭐ **The preserving acts are VERBS, not `cook <recipe>`.** The plan's
+>   wiring table said "existing craft verbs — no new verb"; that is not
+>   reachable in practice, because `cook` is **deed-gated** on a can-make
+>   deed earned by working a recipe by hand, and the cooking branch's
+>   by-hand path banks contributions into a pot — the wrong shape for a
+>   transform that turns one discrete cut into another. A gate whose key
+>   does not exist is a lock. The requirements are the tie-breaker: they
+>   call these **acts**, and list "no verb preserves anything" as the gap
+>   the build exists to close. So: three verbs in the pack that affords
+>   them (CLAUDE.md, *"a verb lives with the pack whose content affords
+>   it"*), **not** deed-gated (they follow `order`, not `cook`).
+> - **One `PreserveController` base + three six-line subclasses**, each
+>   naming only a recipe id and its prose. A fourth treatment is a recipe
+>   row plus six lines; a fourth *strength* is a recipe row alone.
+> - ⭐ **`CraftRequest.target`** — a new, general field: the item an act is
+>   performed ON, preferred for any input slot it satisfies. Without it
+>   `dry` could pick a plain cut off the table instead of the one you had
+>   just salted, and **criterion 2 (hurdles stack) would be
+>   unreachable by a player** even though the arithmetic supported it.
+>   A preference, not a gate.
+> - ⭐ **`applyTangibleOutput` now carries the matter's own state through
+>   the transform** — the microbial load (killed by the working's heat or
+>   blended through) and the water state (input's, then the recipe's
+>   treatment, stronger-axis-wins). It carried neither before, which was
+>   invisible while every tangible recipe made a metal tool out of ore
+>   and would have made curing a way to **launder rotten meat**.
+> - **ONE output row for every treatment**, not one per state. The state
+>   lives on the instance (W0), the material flows from the input, so a
+>   treated cut of beef is still beef and can be treated again.
+> - **`smoke-cure` requires 320 K — 13 K under the kill.** Smoking must
+>   preserve without sterilising, or "cure it or cook it" collapses into
+>   one lesson. That number is a decision, not a dial.
+> - **The discrete ingest bridge is one private method**,
+>   `EatController.ingestPayloadFor` — the seam W2 widens again for the
+>   pathogen loads rather than re-inventing. It carries the spoilage dose
+>   and now the `maker`.
+>
+> **Surprise:** `tsc -p packages/server` reports two **pre-existing** type
+> errors in `packages/content` (`arcana/src/lib/ManaPowered.ts:402`,
+> `tpa/src/__tests__/RegisterController.test.ts:161`) and **still exits
+> 0** — a gate that ships broken and silently passes, the metal-chain
+> lesson again. Neither is this build's; flagged in the MR.
+>
+> Gates: all 25 green · `test:near` 338 files / 3612 tests · trade-cooking
+> 16/16.
+
 ### W2 — The silent population
 **Implements** requirements D4, D5, D6, D10, D11, plan P2, P4, P6, **P7**,
 **P8**.

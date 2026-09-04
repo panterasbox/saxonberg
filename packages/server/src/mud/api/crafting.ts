@@ -48,6 +48,18 @@ export interface CraftRequest {
   makerMode: MakerMode;
   /** Optional `with <brand>` input choice — a keyword matched against present inputs. */
   brand?: string;
+  /**
+   * ⭐ **The item the act is performed ON**, already resolved by the
+   * controller — preferred for any item slot it satisfies.
+   *
+   * A recipe-named craft (`cook stew`) picks its own inputs out of reach
+   * and nobody minds which lime it took. An act performed on a *particular
+   * thing* is different: `dry the cut I just salted` must not pick the
+   * plain one off the table, or hurdles could not be stacked at all. A
+   * preference, not a gate — a target that satisfies no slot simply
+   * doesn't win one, and the ordinary pick runs.
+   */
+  target?: Stuff;
 }
 
 /** Why a craft was infeasible (rendered diegetically by the controller). */

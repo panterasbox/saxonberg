@@ -49,6 +49,30 @@ function resolveMakerName(maker: string): string | null {
   return stuff.getPresentation();
 }
 
+/**
+ * ⭐⭐ **Bulk matter remembers who made it** — the same claim
+ * {@link CraftedMixin} makes for a discrete crafted thing, declared onto
+ * the blend payload from the folder that owns the concept (the
+ * `Freshness` / `BlendLabel` precedent; `lib/bulk` never learns the word
+ * "maker").
+ *
+ * ⚠ **Why the vessel's own stamp is not enough.** A served dish reaches a
+ * body as `(material, litres, payload)` — the eater never sees the bowl.
+ * So harm from a meal could name nothing, and serving a contaminated dish
+ * to a paying customer was indistinguishable from eating it alone at
+ * home. This is the field that makes the difference legible.
+ *
+ * An identity ref (a `templatePath` string), stamped at craft-resolve from
+ * the execution-derived maker — never a wire value, exactly like the
+ * discrete mark.
+ */
+declare module '../bulk/Bulkable' {
+  interface BulkPayload {
+    /** The maker's durable `templatePath`; absent on matter nobody made. */
+    maker?: string;
+  }
+}
+
 export interface CraftedStamp {
   maker: string;
   grade: import('./Grade').Grade;

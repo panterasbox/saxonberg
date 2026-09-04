@@ -42,10 +42,20 @@ import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 // Every strand of it is one a pot genuinely wants — see the class doc.
 const CookPotBase = ManualBuildMixin(ToolMixin(DurableMixin(ServingVessel)));
 
+// ⭐ The preserving acts ride the same affordance, and that is a claim
+// about where the trade is practised rather than a shortcut: curing,
+// drying and smoking are kitchen work — the salt, the meat and the fire
+// are all here — and the CELLAR is where the result is kept, which is
+// exactly the lesson the drying hurdle teaches. A bespoke salting tub or
+// drying rack would confer the same three verbs in the same room; when
+// somebody wants one, it authors this same list.
 const HEARTH = [
   'platform/cmd/crafting/heat.yaml',
   'trade/cooking/cmd/crafting/cook.yaml',
   'trade/cooking/cmd/crafting/plate.yaml',
+  'trade/cooking/cmd/crafting/cure.yaml',
+  'trade/cooking/cmd/crafting/dry.yaml',
+  'trade/cooking/cmd/crafting/smoke.yaml',
 ];
 
 export default class CookPot extends CookPotBase {

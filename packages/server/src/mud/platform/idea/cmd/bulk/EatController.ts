@@ -15,6 +15,8 @@ import { CommandController } from "../../../../lib/command/CommandController";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
 import type { CommandContext, CommandModel } from "../../../../api/command";
 import type { MqlOneResult } from "../../../../api/mql";
+import type Material from "../../../../lib/material/Material";
+import type { BulkPayload } from "../../../../lib/bulk/Bulkable";
 import { BulkableApi } from "../../../../api/bulk";
 import { MessageApi } from "../../../../api/message";
 import { MixinApi } from "../../../../api/mixin";
@@ -76,13 +78,7 @@ export default class EatController extends CommandController<EatModel> {
     }
 
     const portion = METABOLIC_DEFAULTS.EAT_PORTION_LITRES;
-    // ⭐ The discrete half of the spoilage reach: a solid item carries its
-    // gauge on its own `FreshnessMixin` fields rather than on a blend
-    // payload, so the dose is folded into a TRANSIENT payload here — the
-    // same `withDose` `Freshness.ingestPayloadOf` uses, so a bowl
-    // of stew and the roast it came from poison by identical arithmetic.
-    const load = MixinApi.isFresh(target) ? target.getMicrobialLoad() : 0;
-    const payload = Freshness.withDose(null, material, load);
+    const payload = this.ingestPayloadFor(target, material);
     const accepted = BulkableApi.ingestSolid(giver, material, portion, payload);
 
     // Discrete item is all-or-nothing: only a full portion consumes it.
@@ -120,6 +116,33 @@ export default class EatController extends CommandController<EatModel> {
       )
       .send();
     await StuffApi.destruct(target);
+  }
+
+  /**
+   * ⚠⚠ **The discrete arm of the ingest bridge — every route from a solid
+   * item into a body passes through here.**
+   *
+   * A dish carries its per-instance facts on a stored `BulkPayload` and
+   * `Freshness.ingestPayloadOf` hands them over whole. A discrete item has
+   * no payload at all: its facts live on its own mixins, and the payload
+   * is SYNTHESIZED here so a bowl of stew and the roast it came from
+   * poison — and attribute — by identical arithmetic.
+   *
+   * ⚠ Anything a discrete item knows that must reach the mouth has to be
+   * copied across this line, and a fact that isn't fails **silently and
+   * completely**: the suite stays green, the food is bad, the eater is
+   * fine. Two are carried today — the spoilage dose the microbial load has
+   * earned, and the maker, without which harm from a meal can name nobody.
+   */
+  private ingestPayloadFor(
+    target: Stuff,
+    material: Material,
+  ): BulkPayload | null {
+    const load = MixinApi.isFresh(target) ? target.getMicrobialLoad() : 0;
+    let payload = Freshness.withDose(null, material, load);
+    const maker = MixinApi.isCrafted(target) ? target.getMaker() : '';
+    if (maker) payload = { ...(payload ?? {}), maker };
+    return payload;
   }
 
   /** A vessel holding edible matter — a bowl of stew, a plate of roast. */

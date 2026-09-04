@@ -56,6 +56,7 @@ import RecipeCatalogue from '@saxonberg/server/mud/platform/idea/RecipeCatalogue
 import Oven from '@saxonberg/server/mud/platform/thing/Oven';
 import CookPot from '../thing/CookPot';
 import { BlendIdentity } from '@saxonberg/server/mud/lib/craft/BlendIdentity';
+import { Freshness } from '@saxonberg/server/mud/lib/material/Freshness';
 
 const ROOT = '/trade/cooking';
 const CONTENT = fileURLToPath(new URL('../../../', import.meta.url)); // packages/content/
@@ -375,6 +376,106 @@ describe('⭐ the three-media root spine', () => {
       nameOf(fried.output),
     ]);
     expect(names.size).toBe(3);
+  }, 60_000);
+});
+
+describe('⭐ the preserving acts — over the shipped rows, through the real resolve', () => {
+  beforeAll(async () => {
+    kitchen = makeStuff(() => new TestKitchen()) as unknown as Stuff & Container;
+    cook = makeStuff(() => new TestCook());
+    ContainmentApi.move(cook as never, kitchen as never);
+    ContainmentApi.move(hearth() as never, kitchen as never);
+    await stock(`${ROOT}/thing/cook-pot`);
+    for (let i = 0; i < 8; i++) await stock('/stuff/thing/items/stew-meat');
+    await fill(`${ROOT}/thing/salt-sack`, `${ROOT}/idea/material/salt`, 4);
+  }, 60_000);
+
+  const cureOf = (s: Stuff) =>
+    MixinApi.isCured(s) ? s.getCureState() : null;
+
+  it('the catalogue knows the three preserving rows', () => {
+    const cat = StuffApi.findByTemplatePath<RecipeCatalogue>(
+      '/platform/idea/RecipeCatalogue',
+    )!;
+    for (const id of ['salt-cure', 'air-dry', 'smoke-cure']) {
+      expect(cat.knows(id), id).toBe(true);
+    }
+  });
+
+  it('⭐ curing raises the solute, and CONSUMES the salt (criterion 5)', async () => {
+    const sack = kitchen
+      .getContents()
+      .find((s) => s.getTemplatePath() === `${ROOT}/thing/salt-sack`)!;
+    const before = litres(sack);
+    const out = await craftAs(cook, { recipeRef: 'salt-cure', makerMode: 'self' });
+    expect(out.ok, JSON.stringify(out)).toBe(true);
+    if (!out.ok) return;
+    expect(cureOf(out.output)?.solute).toBeGreaterThan(0.5);
+    expect(litres(sack)).toBeLessThan(before);
+  }, 60_000);
+
+  it('drying lowers the moisture, and needs neither salt nor fire', async () => {
+    const out = await craftAs(cook, { recipeRef: 'air-dry', makerMode: 'self' });
+    expect(out.ok, JSON.stringify(out)).toBe(true);
+    if (!out.ok) return;
+    expect(cureOf(out.output)?.moisture).toBeLessThan(0.4);
+    expect(cureOf(out.output)?.solute).toBe(0);
+  }, 60_000);
+
+  it('⭐⭐ the hurdles STACK across two acts — dry what you salted (criterion 2)', async () => {
+    const salted = await craftAs(cook, {
+      recipeRef: 'salt-cure',
+      makerMode: 'self',
+    });
+    expect(salted.ok).toBe(true);
+    if (!salted.ok) return;
+    ContainmentApi.move(salted.output as never, kitchen as never);
+    // ⚠ The TARGET is what makes this a stack rather than a coincidence:
+    // without it the dry could pick a plain cut off the table instead.
+    const both = await craftAs(cook, {
+      recipeRef: 'air-dry',
+      makerMode: 'self',
+      target: salted.output,
+    });
+    expect(both.ok, JSON.stringify(both)).toBe(true);
+    if (!both.ok) return;
+    const cure = cureOf(both.output)!;
+    expect(cure.solute).toBeGreaterThan(0.5); // the salt survived the dry
+    expect(cure.moisture).toBeLessThan(0.4);
+  }, 60_000);
+
+  it('⭐⭐ a served dish REMEMBERS WHO MADE IT, on the payload (D8)', async () => {
+    // ⚠ Not on the vessel — on the PAYLOAD. A dish reaches a body as
+    // `(material, litres, payload)` and the eater never sees the bowl, so
+    // the vessel's own `CraftedMixin` stamp cannot answer for harm from
+    // the meal. This is the field that makes "the record names the cook"
+    // possible at all.
+    await stock('/stuff/thing/items/plated-dish');
+    await stock('/stuff/thing/items/root-vegetables');
+    await stock('/stuff/thing/items/root-vegetables');
+    // A cook with a durable identity path — the maker's mark IS a path.
+    const odo = makeStuffAtPath(
+      () => new TestCook(),
+      '/trade/cooking/agent/_test/odo',
+    );
+    ContainmentApi.move(odo as never, kitchen as never);
+    const out = await craftAs(odo, { recipeRef: 'roasted-roots', makerMode: 'self' });
+    expect(out.ok, JSON.stringify(out)).toBe(true);
+    if (!out.ok) return;
+    const payload = slot(out.output).getPayload();
+    expect(payload?.maker).toBe('/trade/cooking/agent/_test/odo');
+  }, 60_000);
+
+  it('⚠ smoking preserves WITHOUT sterilising — its fire is under the kill', async () => {
+    const cat = StuffApi.findByTemplatePath<RecipeCatalogue>(
+      '/platform/idea/RecipeCatalogue',
+    )!;
+    const smoke = cat.allRecipes().find((r) => r.getRecipeId() === 'smoke-cure')!;
+    expect(smoke.getRequiresHeatK()).toBeLessThan(Freshness.killTemperatureK());
+    const out = await craftAs(cook, { recipeRef: 'smoke-cure', makerMode: 'self' });
+    expect(out.ok, JSON.stringify(out)).toBe(true);
+    if (!out.ok) return;
+    expect(cureOf(out.output)?.moisture).toBeLessThan(0.6);
   }, 60_000);
 });
 

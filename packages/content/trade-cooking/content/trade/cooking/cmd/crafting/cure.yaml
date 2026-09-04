@@ -1,0 +1,29 @@
+verbs: [cure, salt]
+controller: /trade/cooking/idea/cmd/crafting/CureController
+description: "Pack a cut down in salt so it keeps"
+help: |
+  `cure <cut>` — pack a cut of meat down in salt. You need salt in reach
+  (a sack in the pantry does it) and it is consumed.
+
+  Salting binds up the water a microbe needs, so a salted cut keeps far
+  longer in the same place. It stacks with drying: `cure` a cut and then
+  `dry` the same cut and it keeps better than either alone.
+
+  ⚠ Curing suspends the population; it does not kill it. A cured cut that
+  was already contaminated is still contaminated a season later. Cook it.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: target
+    type: object
+    required: false
+    scope: "reachable"
+    # ⭐ `any`, deliberately: what you may preserve is decided by the
+    # RECIPE's input slot (a `meat`-tagged material today), not by a mixin
+    # named here. A pack that ships a fish or a hide authors the row and
+    # this file never learns the word.
+    requires: any
+    validators:
+      - /lib/command/validators/canReach
