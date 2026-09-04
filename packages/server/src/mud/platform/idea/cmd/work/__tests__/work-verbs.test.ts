@@ -24,6 +24,7 @@ import { ExecutionContextApi } from "../../../../../api/execution-context";
 import { Idea } from "../../../../../lib/stuff/Idea";
 import { ContainerMixin } from "../../../../../lib/spatial/Container";
 import { ContainableMixin } from "../../../../../lib/spatial/Containable";
+import { PerceptibleMixin } from "../../../../../lib/description/Perceptible";
 import { ChattelMixin } from "../../../../../lib/chattel/Chattel";
 import ChattelRegistry from "../../../ChattelRegistry";
 import { CommandGiverMixin } from "../../../../../lib/command/CommandGiver";
@@ -49,11 +50,15 @@ class Person extends SensorMixin(
 class TestRoom extends ContainerMixin(Idea) {
   static _mixinName = "TestRoom";
 }
-class TestCrate extends ContainableMixin(Idea) {
+// ⚠ Perceptible and keyworded, because `job post` resolves its item the
+// way `destination` always has — reachable-first by name, falling back to
+// reading the string as a KIND's path. A fixture whose crate cannot be
+// SEEN would only ever exercise the fallback.
+class TestCrate extends ContainableMixin(PerceptibleMixin(Idea)) {
   static _mixinName = "TestCrate";
 }
 /** A crate somebody OWNS — the `--kind` case turns on the mark. */
-class MarkedCrate extends ChattelMixin(ContainableMixin(Idea)) {
+class MarkedCrate extends ChattelMixin(ContainableMixin(PerceptibleMixin(Idea))) {
   static _mixinName = "MarkedCrate";
 }
 
@@ -122,6 +127,7 @@ describe("work verbs", () => {
     poster = makeStuffAtPath(() => new Person(), POSTER);
     courier = makeStuffAtPath(() => new Person(), COURIER);
     crate = makeStuffAtPath(() => new TestCrate(), CRATE);
+    crate.setKeywords(["crate"]);
     ContainmentApi.move(board as never, room);
     ContainmentApi.move(poster, room);
     ContainmentApi.move(courier, room);
@@ -160,7 +166,7 @@ describe("work verbs", () => {
       job().execute(
         {
           subcommand: "post",
-          item: { stuff: crate, raw: "crate" },
+          item: "crate",
           destination: DEST,
           reward: 25,
           ...extra,
@@ -201,10 +207,10 @@ describe("work verbs", () => {
 
   it("⭐ a MARKED exemplar binds the gig to that instance — deliver THIS crate", async () => {
     const marked = makeStuffAtPath(() => new MarkedCrate(), "/obj/test/marked-crate");
-    marked.setKeywords?.(["crate"]);
+    marked.setKeywords(["marked"]);
     ContainmentApi.move(marked as never, room);
     await asGiver(poster, () => marked.stampChattel(poster));
-    const id = await postGig({ item: { stuff: marked, raw: "crate" } });
+    const id = await postGig({ item: "marked" });
     const record = await ContractApi.contractById(id);
     expect(record?.clause?.condition.item.kind).toBe("chattel");
   });
@@ -220,15 +226,63 @@ describe("work verbs", () => {
      * have no other way to name one.
      */
     const marked = makeStuffAtPath(() => new MarkedCrate(), "/obj/test/marked-crate");
-    marked.setKeywords?.(["crate"]);
+    marked.setKeywords(["marked"]);
     ContainmentApi.move(marked as never, room);
     await asGiver(poster, () => marked.stampChattel(poster));
-    const id = await postGig({ item: { stuff: marked, raw: "crate" }, kind: true });
+    const id = await postGig({ item: "marked", kind: true });
     const record = await ContractApi.contractById(id);
     expect(record?.clause?.condition.item).toEqual({
       kind: "template",
       path: "/obj/test/marked-crate",
     });
+  });
+
+  it("⭐⭐ a KIND'S PATH orders what you have none of to point at", async () => {
+    /*
+     * The case that matters: a venue orders precisely what it has run
+     * out of, so there is nothing on its shelf to name. Without this a
+     * bar that ships with an empty rail can never order anything and
+     * never opens at all.
+     */
+    const c = ctx(poster);
+    await asGiver(poster, () =>
+      job().execute(
+        {
+          subcommand: "post",
+          destination: DEST,
+          reward: 25,
+          item: CRATE,
+          bounty: true,
+        } as never,
+        c,
+      ),
+    );
+    expect(c.note).not.toHaveBeenCalled();
+    const gigs = await ContractApi.openGigsOn(BOARD);
+    expect(gigs[gigs.length - 1]?.clause?.condition.item).toEqual({
+      kind: "template",
+      path: CRATE,
+    });
+  });
+
+  it("⚠ a kind that is nothing is refused — the escrow would sit forever", async () => {
+    const c = ctx(poster);
+    await asGiver(poster, () =>
+      job().execute(
+        {
+          subcommand: "post",
+          destination: DEST,
+          reward: 25,
+          item: "/obj/test/no-such-thing",
+          bounty: true,
+        } as never,
+        c,
+      ),
+    );
+    expect(c.note).toHaveBeenCalledWith(
+      expect.objectContaining({ reason: "contract-refused" }),
+    );
+    expect(await ContractApi.openGigsOn(BOARD)).toHaveLength(0);
   });
 
   it("post --bounty escrows immediately", async () => {

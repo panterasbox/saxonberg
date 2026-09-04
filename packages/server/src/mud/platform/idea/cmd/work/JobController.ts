@@ -18,7 +18,6 @@
 
 import { CommandController } from "../../../../lib/command/CommandController";
 import type { CommandContext, CommandModel } from "../../../../api/command";
-import type { MqlOneResult } from "../../../../api/mql";
 import { MessageApi } from "../../../../api/message";
 import { MixinApi } from "../../../../api/mixin";
 import { MqlApi } from "../../../../api/mql";
@@ -34,8 +33,12 @@ const TOPIC = "act.deed";
 const SHORT_ID_LEN = 8;
 
 interface JobModel extends CommandModel {
-  /** `post`: the item exemplar (reachable). */
-  item?: MqlOneResult;
+  /**
+   * `post`: what to deliver — a reachable thing by name, or a KIND by
+   * its path when you have none of it to point at (the `destination`
+   * rule, and for the same reason).
+   */
+  item?: string;
   /** `post`: the destination (name reachable-first, else a path). */
   destination?: string;
   /** `post`: the reward, minor units (a string arg; coerced here). */
@@ -52,6 +55,7 @@ interface JobModel extends CommandModel {
    * own shelf to say what you want more of.
    */
   kind?: boolean;
+
   expires?: number;
   /**
    * ⭐ browse: list gigs whose ORIGIN is here rather than what hangs on
@@ -183,14 +187,17 @@ export default class JobController extends CommandController<JobModel> {
     context: CommandContext,
     board: JobBoard,
   ): Promise<void> {
-    const item = model.item?.stuff ?? null;
-    if (!item) {
-      return this.fail(
-        context,
-        `There's no '${model.item?.raw ?? "item"}' here to post about.`,
-        "no-item",
-      );
+    const rawItem = (model.item ?? "").trim();
+    if (!rawItem) {
+      return this.fail(context, "Post about what?", "no-item");
     }
+    // Reachable first, exactly as `destination` resolves: what you can
+    // point at is what you meant. Failing that, the string IS the kind.
+    const item =
+      MqlApi.resolveMany(rawItem, {
+        commandGiver: context.commandGiver,
+        scope: "reachable",
+      }).stuff[0] ?? null;
     const reward = Number(model.reward);
 
     // Instance-bound when the exemplar carries a chattel id (deliver THIS
@@ -199,13 +206,26 @@ export default class JobController extends CommandController<JobModel> {
     // her rail to say what is short, and every such bottle is marked
     // (she bought it) — so without the flag the order would read
     // "deliver the bottle you are looking at", which is nobody's work.
-    const chattelId =
-      model.kind !== true && MixinApi.isChattel(item)
-        ? item.getChattelId()
-        : "";
-    const itemRef: ConditionData["item"] = chattelId
-      ? { kind: "chattel", chattelId }
-      : { kind: "template", path: item.getTemplatePath() ?? "" };
+    //
+    // ⭐ `--of` skips the exemplar entirely and names the kind. It has
+    // to be a kind that EXISTS, or the gig could never be satisfied and
+    // the escrow would sit until somebody abandoned it.
+    // ⚠ Whether the named kind EXISTS is `ContractApi.post`'s to say, not
+    // this controller's — a gig for a kind nothing can ever be would sit
+    // holding its escrow forever, and that must be refused however the
+    // Api is called.
+    let itemRef: ConditionData["item"];
+    if (!item) {
+      itemRef = { kind: "template", path: rawItem };
+    } else {
+      const chattelId =
+        model.kind !== true && MixinApi.isChattel(item)
+          ? item.getChattelId()
+          : "";
+      itemRef = chattelId
+        ? { kind: "chattel", chattelId }
+        : { kind: "template", path: item.getTemplatePath() ?? "" };
+    }
 
     // Destination: a reachable thing by name first, else treat the string
     // as a template path — ContractApi re-validates either way.

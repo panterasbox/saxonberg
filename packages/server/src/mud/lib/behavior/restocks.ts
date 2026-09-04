@@ -270,12 +270,23 @@ function positiveInt(v: unknown, fallback: number): number {
  * Post one carriage order per short line, on the works board the keeper
  * stands beside.
  *
- * ⚠ **The exemplar is a unit already on the shelf**, because `job post`
- * takes an object the poster can REACH and a keeper cannot reach the
- * supplier's stock. That also means a line at literal zero cannot be
- * ordered — which is why the par levels are set so a line goes short
- * long before it goes empty, and why the retune was part of this
- * decision rather than left to discovery.
+ * ⚠⚠ **How the order names what it wants.** A unit already on the rail
+ * is the best answer: point at it and say `--kind`, so the order reads
+ * *a bottle of this* rather than *this bottle* (every bottle a bar owns
+ * is chattel-marked, because the bar bought it).
+ *
+ * ⭐⭐ But a bar that has RUN DRY has nothing to point at — and that is
+ * exactly when it most wants a delivery. The rail-only version could
+ * therefore never order a line at literal zero, which on a fresh realm
+ * is every line: **Dave's Bar shipped unable to open.** The par line's
+ * own `exemplar` names the kind (`job post --of <kind>`), which is the
+ * proprietor's decision anyway — *which* gin this bar stocks. A line
+ * with no `exemplar` still behaves the old way, and can only be
+ * re-ordered while a unit is on the shelf.
+ *
+ * ⭐ `job post` takes its item as a STRING, resolved reachable-first and
+ * falling back to a kind's path — the same rule its `destination` has
+ * always used, and for the same reason: what you name may not be here.
  *
  * ⚠⚠ `--bounty` and NO `--expires`. A bounty escrows at post and has no
  * claim step, so **anyone may turn it in and the first to do so is
@@ -309,12 +320,19 @@ async function order(
 
     for (const line of lines) {
       if (budget <= 0) break;
-      const exemplar = exemplarFor(keeper, line);
-      if (!exemplar) continue;
-      const kw = keywordOf(exemplar);
-      if (!kw) continue;
+      // What to name in the order, and how. A unit on the rail is the
+      // best answer — point at it and say `--kind`. With the rail bare
+      // there is nothing to point at, so the par line's own `exemplar`
+      // names the kind directly.
+      const onHand = exemplarFor(keeper, line);
+      const kind = onHand?.getTemplatePath() ?? line.line.exemplar;
+      if (!kind) continue;
       // Already on the board and still un-carried: wait for it.
-      if (pending.has(exemplar.getTemplatePath() ?? '')) continue;
+      if (pending.has(kind)) continue;
+      // What she names: the unit on the rail by keyword, or the kind by
+      // its path when there is nothing to point at.
+      const naming = onHand ? keywordOf(onHand) : kind;
+      if (!naming) continue;
       if (!traded) {
         // Every beat, not once: a forced command reports no outcome, and
         // a keeper dealt her card after a failed first attempt must still
@@ -323,10 +341,10 @@ async function order(
         traded = true;
       }
       await keeper.forceCommand(
-        `job post ${kw} to ${opts.benchPath} for ${opts.reward} ` +
-          `--kind --bounty --business --from ${fromPath}`,
+        `job post ${naming} to ${opts.benchPath} for ${opts.reward} ` +
+          `${onHand ? '--kind ' : ''}--bounty --business --from ${fromPath}`,
       );
-      pending.add(exemplar.getTemplatePath() ?? '');
+      pending.add(kind);
       budget -= 1;
     }
   }

@@ -304,19 +304,6 @@ describe("the keeper's back loop — Mara orders Dave's Bar's rail in, and recei
     return out;
   }
 
-  /** Everything the keeper can reach: her own hands, the room, and one
-   * level into the room's open containers (the rail, the rack, the
-   * bench) — the scope `job post`'s `item` arg declares. */
-  function reachable(who: Hand): Stuff[] {
-    const here = who.getContainer() as Location;
-    const out: Stuff[] = [...(who.getContents() as Stuff[])];
-    for (const c of here.getContents() as Stuff[]) {
-      out.push(c);
-      if (MixinApi.isContainer(c)) out.push(...(c.getContents() as Stuff[]));
-    }
-    return out;
-  }
-
   /** Rejection reasons the dispatcher's own `job post` collected. */
   let posted: string[] = [];
 
@@ -348,19 +335,15 @@ describe("the keeper's back loop — Mara orders Dave's Bar's rail in, and recei
         // — parsed the way the binder would, then straight onto the real
         // controller with the BOARD as the command source (it affords the
         // verb to its peers, so that is exactly how a typed line arrives).
-        const m =
-          /^job post (\S+) to (\S+) for (\d+)(.*)$/.exec(text);
+        const m = /^job post (\S+) to (\S+) for (\d+)(.*)$/.exec(text);
         expect(m, `unparsed: ${text}`).not.toBeNull();
-        const [, kw, destination, reward, flags] = m!;
-        const item = reachable(who).find(
-          (thing) => MixinApi.isPerceptible(thing) && thing.hasKeyword(kw!),
-        );
+        const [, named, destination, reward, flags] = m!;
         const c = ctx(who, here, board, text);
         await asPrincipal(who, () =>
           makeStuff(() => new JobController()).execute(
             {
               subcommand: 'post',
-              item: { stuff: item, raw: kw },
+              item: named,
               destination,
               reward,
               kind: flags!.includes('--kind'),
@@ -464,6 +447,65 @@ describe("the keeper's back loop — Mara orders Dave's Bar's rail in, and recei
     expect(lines).toEqual([]);
     expect(await gigs()).toHaveLength(1);
     expect(BankingApi.balanceOf(barAccount).minor).toBe(200 - REWARD);
+  });
+
+  it('⭐⭐⭐ A COLD RAIL still orders — the bar can OPEN', async () => {
+    /*
+     * ⚠⚠⚠ The state a fresh realm boots into, and the one this build
+     * shipped broken until the drive's own informational line gave it
+     * away: the bar row carries NO bottles on purpose, so every supplied
+     * line is at literal zero — and an order names an item the poster
+     * can reach. With nothing on the rail to point at, the keeper
+     * ordered nothing, forever. **Dave's Bar could not open.**
+     *
+     * The par line names what the house stocks, and the order names the
+     * KIND (`--of`). Which gin this bar buys is the proprietor's
+     * decision anyway, so it is authored where the level is.
+     */
+    await BankingApi.float(barAccount, Money.of(200, Currency.compact()));
+    barBiz.setParLine({
+      category: 'gin',
+      level: 1.5,
+      unit: 'L',
+      supplier: DISTRIBUTION,
+      exemplar: '/trade/distilling/thing/gin',
+    });
+    // The kind has to BE something — a live one at that path is proof.
+    ginBottle();
+    const lines = installDispatcher();
+
+    await restocks.act(brainCtx());
+
+    expect(lines).toEqual([
+      'wallet use house',
+      `job post /trade/distilling/thing/gin to ${BENCH} for ${REWARD} ` +
+        `--bounty --business --from ${CASH_AND_CARRY}`,
+    ]);
+    expect(posted).toEqual([]);
+    const open = await gigs();
+    expect(open).toHaveLength(1);
+    expect(open[0]!.clause?.condition.item).toEqual({
+      kind: 'template',
+      path: '/trade/distilling/thing/gin',
+    });
+    expect(BankingApi.escrowBalanceOf(open[0]!.contractId).minor).toBe(REWARD);
+  });
+
+  it('⚠ a kind that is NOTHING is refused — the escrow would sit forever', async () => {
+    await BankingApi.float(barAccount, Money.of(200, Currency.compact()));
+    barBiz.setParLine({
+      category: 'gin',
+      level: 1.5,
+      unit: 'L',
+      supplier: DISTRIBUTION,
+      exemplar: '/trade/distilling/thing/no-such-spirit',
+    });
+    const lines = installDispatcher();
+    await restocks.act(brainCtx());
+    expect(lines).toHaveLength(2);
+    expect(posted).toEqual(['contract-refused']);
+    expect(await gigs()).toHaveLength(0);
+    expect(BankingApi.balanceOf(barAccount).minor).toBe(200);
   });
 
   it('⭐ the receiving beat: what a hauler left on the bench is taken and shelved', async () => {

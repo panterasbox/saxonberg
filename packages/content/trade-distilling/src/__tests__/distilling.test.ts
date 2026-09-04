@@ -470,7 +470,7 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
       if (verb === 'go') {
         // ⭐ The walk. `go <dir>` off the room's own exits — the hand
         // travels on its feet through the door the floor now has.
-        const exit = here.getExits().get(rest[0]!);
+        const exit = (here as unknown as TestRoom).getExits().get(rest[0]!);
         const dest = exit
           ? StuffApi.findByTemplatePath(exit.getDestinationTemplatePath() ?? '')
           : null;

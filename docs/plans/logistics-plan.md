@@ -1592,6 +1592,46 @@ never shipped, and **nothing failed**:
   cannot post carriage from, and where a hauler cannot ask
   `jobs --origin here`.
 
+### ⭐⭐⭐ The cold-start deadlock — what the drive's ⓘ LINE was telling us
+
+The drive was green three times, and its one informational line said
+*"nothing posted out of the cash-and-carry this beat (the bar's par may
+be met)."* **The par was not met — it was maximally unmet**, and the
+line was reporting a build-introduced deadlock rather than a quiet
+world:
+
+> An order names an item the poster can reach. The bar ships with an
+> EMPTY rail on purpose. So on a fresh realm every supplied line sits at
+> literal zero, the keeper has nothing to point at, and she orders
+> nothing — forever. **Dave's Bar could not open.**
+
+The pre-D11 keeper never hit this: she walked to the counter and typed
+`buy gin`, which names a good *there*. Making her a poster moved the
+naming to her own room and took the bootstrap with it. The brain's own
+comment even records the shape of the bug — *"a line at literal zero
+cannot be ordered"* — and concluded the par retune was enough. It is
+enough in the steady state and no help at all at boot.
+
+**The fix, in three parts:**
+
+1. `ParLine` gains `exemplar` — the template path the house orders when
+   it has none to point at. ⭐ Authored beside the level because it is
+   the same kind of decision: *which* gin this bar stocks.
+2. `job post`'s item becomes a **string**, resolved reachable-first and
+   falling back to reading it as a kind's path — ⭐ which is exactly the
+   rule its own `destination` argument has always used, in the same
+   subcommand. (An optional positional was tried first; the binder
+   refuses a required arg after an optional one, and it was right to.)
+3. `ContractApi.post` refuses a kind that is nothing — a live instance
+   at the path is proof, the template row the fallback — because that
+   gig's escrow would sit until somebody abandoned it.
+
+⚠ **Eight of the lounge's par lines carry no exemplar**, and they are the
+eight whose category no shipped row produces: the two vermouths, the
+three wines by colour, ale, lager and vinegar. Those lines could never
+have been satisfied by any order; the gap is named in the row rather
+than papered over with a wrong path.
+
 ### The drive record (2026-09-04, fresh DB)
 
 **GREEN on every checkpoint**, twice: contiguity Terminus→Rejection on

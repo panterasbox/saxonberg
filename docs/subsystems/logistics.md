@@ -367,6 +367,20 @@ has something on the shelf — so an order aimed at the shelf would be
 refused precisely when the venue most wanted it. The bench is empty by
 construction.
 
+⭐⭐⭐ **A venue orders what it has NONE of — which is the whole point.**
+An order names an item, and `job post` resolves that name the way its
+`destination` always has: reachable-first, falling back to reading the
+string as a **kind's path**. That fallback is not a convenience. A bar
+ships with an empty rail on purpose (nothing is spawned into a shelf),
+so on a fresh realm every supplied line is at literal zero — and a
+keeper who can only point at what she has could order nothing, forever.
+**Dave's Bar could not open.** The par line's `exemplar` names the kind,
+which is the proprietor's decision anyway: *which* gin this bar stocks.
+
+⚠ A gig for a kind that is nothing would hold its escrow until somebody
+abandoned it, so `ContractApi.post` refuses one — a live instance at the
+path is proof enough, the template row is the fallback.
+
 ⚠⚠ **A bounty with no expiry needs two guards, and both are load-bearing:**
 
 - **`job post --kind`.** A posting binds to the exemplar's *instance*

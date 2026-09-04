@@ -44,6 +44,12 @@ subcommands:
       arrive — right when the thing is yours and already marked. Add
       `--kind` when any one of the same sort will do: a bar restocking
       its rail wants *a* bottle of gin, not the bottle it is pointing at.
+
+      ⭐ And when you have NONE of it to point at — which is the usual
+      case for the thing you most want delivered — name the kind itself
+      by its path. A bar that has run dry orders gin precisely because
+      there is no gin here to point at, and a kind named that way is
+      always kind-bound.
     examples:
       - cmd: job post crate to the bar for 25
         note: Post an exclusive delivery gig, 25 credits on completion
@@ -51,12 +57,17 @@ subcommands:
         note: Name where the goods are collected, so a hauler can find the backhaul
       - cmd: job post gin to the bench for 24 --kind --bounty --business
         note: Any bottle of gin will do — the exemplar just says which kind
+      - cmd: job post /trade/distilling/thing/gin to the bench for 24
+        note: Nothing here to point at — name the kind and order it anyway
     args:
+      # ⚠ A STRING, not an object — the `destination` precedent two args
+      # down, and for the same reason: what you name may not be here.
+      # The controller resolves it reachable-first and falls back to
+      # reading it as a kind's path, which is the only way to order the
+      # thing you have run out of.
       - name: item
-        type: object
+        type: string
         required: true
-        scope: "reachable"
-        requires: ContainableMixin
       - name: destination
         type: string
         required: true

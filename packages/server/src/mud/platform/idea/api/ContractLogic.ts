@@ -17,6 +17,7 @@ import { ApiLogic } from "../../../lib/stuff/ApiLogic";
 import { CallSecurity, Unshadowable } from "../../../lib/security/decorators";
 import { SecurityPolicies } from "../../../lib/security/SecurityPolicies";
 import { StuffApi } from "../../../api/stuff";
+import { Template } from "../../../lib/stuff/Template";
 import { MixinApi } from "../../../api/mixin";
 import { Currency, BankingApi, Money, Account } from "../../../api/banking";
 import { PlayerApi } from "../../../api/player";
@@ -405,6 +406,19 @@ async function postImpl(spec: GigSpec): Promise<PostGigResult> {
     const exemplar = StuffApi.findByTemplatePath(spec.condition.item.path);
     if (exemplar && MixinApi.isGlobbable(exemplar)) {
       return { ok: false, reason: "fungible goods can't be contracted" };
+    }
+    // ⭐ And the kind has to BE something. A poster naming a kind it has
+    // none of (`job post --of <kind>`, which is how a venue that has run
+    // dry orders anything at all) can name a path that is nothing at
+    // all — and that gig could never be satisfied, so its escrow would
+    // sit until somebody abandoned it.
+    //
+    // ⚠ A live instance IS the proof, checked first: if the world holds
+    // one of these, the kind plainly exists and no store round-trip is
+    // needed. The template row is the fallback, and it is the only path
+    // a blind `--of` can take.
+    if (!exemplar && !(await Template.findByPath(spec.condition.item.path))) {
+      return { ok: false, reason: "there's no such kind" };
     }
   }
 
