@@ -8,7 +8,13 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a skein of linen yarn
   primaryKeyword: yarn
-  keywords: [yarn, skein, thread, linen]
+  # ⚠⚠ NOT `linen`. `line` is a PREFIX of it, and the resolver matches on
+  # prefixes — so a spinner holding both line and this answered `spin
+  # line` with THIS, and the mill deadlocked at
+  # `controller-rejected:not-spinnable` forever. A player holding both
+  # hits exactly the same wall. The MATERIAL is linen; the OBJECTS are
+  # yarn and cloth, and they answer to what they are.
+  keywords: [yarn, skein, thread, spun]
   longDescription: |
     A wound skein, even along its whole length if whoever drew it knew what they were doing, and thin in places if they did not.
   _materialPath: /stuff/idea/material/textile/linen

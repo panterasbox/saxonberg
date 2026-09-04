@@ -29,6 +29,9 @@ data:
   ambientColorTemperature: 4200
   props:
     - /trade/textiles/thing/mill-stock
+    # ⭐ The INPUT shelf, beside the output one. See bale-store.yaml for
+    # why the mill needs two and why nothing consigns from this one.
+    - /trade/textiles/thing/bale-store
     - /trade/textiles/thing/retting-pit
     - /trade/textiles/thing/bleaching-green
     - /trade/textiles/thing/scutching-board

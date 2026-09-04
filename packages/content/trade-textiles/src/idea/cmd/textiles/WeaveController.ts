@@ -166,7 +166,11 @@ async function outcomeBand(
   yarn: Stuff,
   form: string,
 ): Promise<string> {
-  const base = MixinApi.isGraded(yarn) ? yarn.getGradeBand() : 'fair';
+  const raw = MixinApi.isGraded(yarn) ? yarn.getGradeBand() : '';
+  // ⚠ Validated — `Grade.of` throws on anything else, and the throw would
+  // land inside the mint's try/catch: yarn consumed, no bolt, no word to
+  // the weaver. See ScutchController's `bandOf`.
+  const base = Grade.isBand(raw) ? raw : 'fair';
   if (form !== CLOSE) return base;
   const asActor = giver as unknown as {
     competenceBandFor?(key: string): Promise<CompetenceBandName>;

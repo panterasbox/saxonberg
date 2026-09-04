@@ -16,7 +16,13 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a bolt of linen
   primaryKeyword: bolt
-  keywords: [bolt, cloth, linen, web]
+  # ⚠⚠ NOT `linen`. `line` is a PREFIX of it, and the resolver matches on
+  # prefixes — so a spinner holding both line and this answered `spin
+  # line` with THIS, and the mill deadlocked at
+  # `controller-rejected:not-spinnable` forever. A player holding both
+  # hits exactly the same wall. The MATERIAL is linen; the OBJECTS are
+  # yarn and cloth, and they answer to what they are.
+  keywords: [bolt, cloth, web, length]
   longDescription: |
     Cloth folded flat over a board, the selvedge straight and the cut end still fraying. Hold it to the light and you can count the threads, which is exactly how anybody decides what it is worth.
   _materialPath: /stuff/idea/material/textile/linen

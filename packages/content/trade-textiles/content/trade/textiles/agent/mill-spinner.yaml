@@ -17,3 +17,26 @@ data:
     She has not looked at the wheel in eleven years. The thread comes off it even because her fingers know it, which leaves the whole of her attention for whatever is being argued about along the bench.
   dispositions:
     - { disposition: diligence, valence: 55 }
+  # ⭐⭐ The floor's PRODUCER beat. Sefa works the whole ladder — scutch,
+  # spin, weave — and shelves the bolts in the mill's stock, where Adren's
+  # `consigns` beat finds them and carries them to the general store.
+  #
+  # ⭐ The two seats stay meaningful: the spinner MAKES, the weaver
+  # CARRIES (his position is the one with `purchases: true`, which is
+  # what trading as the house needs). One hand runs all three acts rather
+  # than splitting them across the pair because line and yarn would then
+  # have to change hands, and the only shared container on this floor is
+  # the stock — which `consigns` drains to a shop counter, so a spinner
+  # shelving yarn there would have it sold as cloth. A real two-hand
+  # split wants a work bench neither beat consigns from; that is the next
+  # wave, not this one.
+  #
+  # ⚠ 90 s against the consigning beat's 120 s: the floor should run a
+  # little ahead of the cart, or the cart arrives to an empty shelf.
+  behaviors:
+    - brain: /trade/textiles/behavior/weaves
+      trigger: cadence:90s
+      config:
+        floor: /trade/textiles/location/mill
+        stock: /trade/textiles/thing/mill-stock
+        batch: 4

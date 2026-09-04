@@ -177,7 +177,7 @@ async function finish(
     // flax is what the flax is, and no amount of skill lengthens a
     // staple.
     if (MixinApi.isGraded(yarn) && MixinApi.isGraded(stock)) {
-      yarn.setGrade(Grade.of(stock.getGradeBand()));
+      yarn.setGrade(Grade.of(bandOf(stock)));
     }
     const asStock = yarn as unknown as { setYarnCount?(n: number): void };
     asStock.setYarnCount?.(count);
@@ -200,6 +200,26 @@ async function finish(
   } catch (err) {
     console.warn('SpinController: could not mint yarn:', err);
   }
+}
+
+/**
+ * The band a source carries, or the neutral middle.
+ *
+ * ⚠⚠ **Validated, because `Grade.of` THROWS on anything else** — and a
+ * live drive found what that costs. A `Graded` host whose `gradeBand`
+ * is somehow unset reads back `undefined`; `Grade.of(undefined)` raises
+ * a `RangeError`; the raise lands inside the try/catch that wraps the
+ * whole mint, so the fibre was already consumed, nothing was made, and
+ * the actor was told nothing at all. A spinner watched her line vanish
+ * eight times in a row with no message and no error a player could see.
+ *
+ * Carrying a grade is a NICETY; making the thing is the point. So a
+ * band that cannot be read falls back to the middle rather than taking
+ * the product down with it.
+ */
+function bandOf(source: Stuff): string {
+  const raw = MixinApi.isGraded(source) ? source.getGradeBand() : '';
+  return Grade.isBand(raw) ? raw : 'fair';
 }
 
 /** Line and tow both spin; shive and cloth do not. */

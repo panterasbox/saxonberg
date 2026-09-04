@@ -1,0 +1,59 @@
+# A bale of retted flax — what arrives at the mill door.
+#
+# ⭐⭐ **The mill buys RETTED flax, and that is the historical fact, not
+# a convenience.** Dew- and pond-retting happened where the flax grew:
+# it wants a fortnight, standing water and somebody to walk out and feel
+# it every day, and no spinning mill ever tied its floor to that clock.
+# The mill bought the stuff already rotted off the stem and went
+# straight to the knife.
+#
+# It is also why the retting pit on the mill floor stays a PLAYER's
+# tool. Retting is the one stage in this chain whose craft is judgement
+# — ready at a fortnight, RUINED four days later — and handing that to
+# an NPC's cadence would be handing away the only decision preparation
+# has. The hand scutches, spins and weaves; the pit waits for a person.
+#
+# ⚠⚠ **This row is a FAUCET, and it is the seam a farmer displaces.**
+# `regionTarget` keeps a couple of bales standing on the floor, the way
+# `malt-sack` stands on the distributor's counter for the brewers — the
+# shipped shape for a trade's raw input. It abstracts the carts coming
+# down from the flax fields, and the honest reading of the abstraction
+# law is that it is legitimate exactly as long as nobody is being
+# deprived of the activity: a player who grows flax still rets and works
+# their own, and the next step is the mill BUYING sheaves off the market
+# (a `restocks`-shaped trip) so a real grower's crop displaces this.
+# Until somebody is farming flax for sale, the alternative is not a
+# purer economy — it is a mill that stands idle and a chain nobody can
+# buy into.
+class: /platform/thing/GradedReceptacle
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a bale of retted flax
+  primaryKeyword: bale
+  # ⚠ NOT `stricks` — `line` answers to `strick`, and a bale that
+  # answers to it too puts the wrong thing under the spinner's hand.
+  keywords: [bale, retted, bundle, flaxbale]
+  longDescription: |
+    Waist-high and bound twice with cord, the stems gone grey-brown and gone soft at the joint where the water got into them. It smells of pond. Pull a stem and the woody core cracks away from the fibre in your fingers, which is the whole point and the whole test.
+  # ⭐ Linen — the retting PRODUCT, the material carrying the `fibre`
+  # tag that `scutch` gates on. Not `flax-straw`: straw is what goes
+  # INTO a pit, and the scutch refusal for it is one of the better lines
+  # in the trade ("It wants a pit and a fortnight before it wants a
+  # knife").
+  material: /stuff/idea/material/textile/linen
+  mass: 6
+  interiorBulk: true
+  interiorCapacity: 14
+  interiorMaterial: /stuff/idea/material/textile/linen
+  interiorAmount: 12
+  closure: open
+  gradeBand: fair
+  # ⚠ NO `censusKey` / `regionTarget` / `container`. That is the OTHER
+  # shipped faucet — the spawn table — and it wants a `Circulating`
+  # class and distributes a good across regions by material tags, which
+  # is the right machinery for a branded bottle finding its way into
+  # shops and the wrong machinery for "keep two bales standing in this
+  # one shed". The bale is kept by the bale store's `stockLines` + `par`
+  # instead: the same reset the general store's shelves run on, local
+  # and deterministic. Tried the census way first and the sweep drew
+  # nothing, which is the sweep being right about what it is for.
