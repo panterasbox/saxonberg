@@ -1,7 +1,7 @@
 /**
  * CraftVessel — **the vessel a craft's bulk output lands in**: claimed
  * from a pool, filled, marked used, washed, claimed again. A bar glass is
- * the obvious case, but so are hearth-cooking's syrup bottle and the
+ * the obvious case, but so are cooking's syrup bottle and the
  * house juice bottles — this is not a drink class, it is the shape every
  * claimable vessel is a row over.
  *
@@ -46,6 +46,9 @@ import { BulkableApi } from '../../api/bulk';
 import { StuffApi } from '../../api/stuff';
 import { CallSecurity } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
+import { BlendLabel } from '../../lib/metabolism/BlendLabel';
+import { VesselKindMixin } from '../../lib/bulk/VesselKind';
+import { ServiceableMixin } from '../../lib/craft/Serviceable';
 
 /** Water's numbers — the fallbacks when the ice material authored none. */
 const DEFAULT_MELT_K = 273;
@@ -84,25 +87,36 @@ const SoiledWriters = SecurityPolicies.AnyOf(
   SecurityPolicies.FromTemplate('/platform/idea/persistence/*Hydrator'),
 );
 
-const CraftVesselBase = CraftedMixin(
-  ThermalMixin(BulkableMixin(ContainerMixin(DetailedMixin(Thing)))),
+// ⚠ **`PalatableMixin` is NOT here — it is on `ServingVessel`.** It sat
+// on this class for one build, on the argument that this is "a vessel
+// somebody made something in". That is true and still too wide: what a
+// trade WORKS in and what a portion REACHES A PERSON in are different
+// classes, and the rows say so. A wort bucket, a must bucket, a tallow
+// crock and a **wash bucket** are all `CraftVessel`s, and so is the
+// cutlery — so a table knife and a bucket of dirty wash water both read
+// as things you taste.
+//
+// ⭐ The tell was in `Palatable.ts`'s own doc block, which listed its
+// hosts as "dishes, platters, the cook pot, the bar's glasses, the syrup
+// and oil bottles" — a list already narrower than where it was composed,
+// and still wrong at both ends. Same shape as the spoilage gauge on the
+// generic `Thing`: the fix is a class named for the concept, not a wider
+// base. See `platform/thing/ServingVessel.ts`.
+const CraftVesselBase = ServiceableMixin(
+  VesselKindMixin(
+  CraftedMixin(
+    ThermalMixin(BulkableMixin(ContainerMixin(DetailedMixin(Thing)))),
+  ),
+  ),
 );
 
 export default class CraftVessel extends CraftVesselBase {
   static fieldMeta: FieldMeta = {
-    soiled: { persistent: true, runtimeState: true },
-    technique: { persistent: true, runtimeState: true },
     iceKg: { persistent: true, runtimeState: true },
     iceForm: { persistent: true, runtimeState: true },
     iceMeltK: { persistent: true, runtimeState: true },
     iceLatentJPerKg: { persistent: true, runtimeState: true },
   };
-
-  /** Used since its last wash — a soiled glass is never claimed. */
-  public soiled: boolean = false;
-
-  /** How the drink in it was worked (`''` = not yet filled). */
-  public technique: string = '';
 
   /** Ice in the glass (kg); 0 = none. */
   public iceKg: number = 0;
@@ -118,21 +132,6 @@ export default class CraftVessel extends CraftVesselBase {
 
   /** Reentry guard for the ice plateau (see `reconcileThermal`). */
   private _iceReconciling = false;
-
-  // ---- soiled ----
-  // `category` (the glassware par key: `coupe`, `rocks`, …) lives on
-  // `BulkableMixin` — it is the VESSEL KIND, shared with cans, kegs and
-  // sacks, and it is what ties an empty vessel to the product that is
-  // that vessel filled.
-
-  isSoiled(): boolean {
-    return this.soiled;
-  }
-  /** Mark used (the fill) or clean (the wash). */
-  @CallSecurity(SoiledWriters)
-  setSoiled(value: boolean): void {
-    this.soiled = value;
-  }
 
   /**
    * Wash it: tip the dregs, destroy whatever was garnishing it, drop the
@@ -150,7 +149,7 @@ export default class CraftVessel extends CraftVesselBase {
    * Named for the vessel, not the glass: a syrup bottle and a juice
    * bottle are `CraftVessel`s too.
    */
-  wash(): void {
+  override wash(): void {
     const slot = this.getBulk('interior');
     if (!slot.isEmpty()) {
       BulkableApi.transfer(slot, null, {
@@ -164,22 +163,12 @@ export default class CraftVessel extends CraftVesselBase {
     slot.setPayload(null);
     for (const c of [...this.getContents()]) StuffApi.destruct(c);
     this.clearIce();
-    this.setTechnique('');
-    this.soiled = false;
+    super.wash();
   }
 
-  /** Clean and empty — claimable for a fill. */
-  isClaimable(): boolean {
-    return !this.soiled && this.isBulkEmpty('interior') && this.iceKg <= 0;
-  }
-
-  // ---- technique ----
-
-  getTechnique(): string {
-    return this.technique;
-  }
-  setTechnique(value: string): void {
-    this.technique = value;
+  /** Clean AND empty AND iceless — claimable for a fill. */
+  override isClaimable(): boolean {
+    return super.isClaimable() && this.isBulkEmpty('interior') && this.iceKg <= 0;
   }
 
   // ---- ice ----
@@ -291,7 +280,10 @@ export default class CraftVessel extends CraftVesselBase {
       if (this.iceKg > 0) {
         parts.push(this.iceForm === 'crushed' ? 'over crushed ice' : 'on the rocks');
       }
-      const tags = this.getBulkPayload('interior')?.tags ?? [];
+      const tags = BlendLabel.tagsOf(
+        this.getBulkPayload('interior'),
+        this.getBulkMaterial('interior'),
+      );
       if (tags.includes('carbonated')) parts.push('fizzing');
     }
     const contents = this.getContents();

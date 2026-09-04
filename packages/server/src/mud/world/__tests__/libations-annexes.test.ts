@@ -19,7 +19,7 @@
 import '../../../test-bootstrap';
 import { describe, it, expect } from 'vitest';
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
-import { join, relative } from 'node:path';
+import { join, sep, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parse } from 'yaml';
 import { Recipe } from '../../lib/craft/Recipe';
@@ -29,7 +29,7 @@ import Crate from '../../platform/thing/Crate';
 import CartesianZone from '../../platform/idea/location/CartesianZone';
 
 const PACKS = fileURLToPath(new URL('../../../../../content/', import.meta.url));
-const ANNEXES = ['trade-brewing', 'trade-winemaking', 'trade-bottling', 'trade-farming', 'trade-hearth-cooking'];
+const ANNEXES = ['trade-brewing', 'trade-winemaking', 'trade-bottling', 'trade-farming', 'trade-cooking'];
 /** The two corpo-owned yards: distilling's rows, owned via `parentOrganization`. */
 const VESHKO = '/trade/distilling/location/veshko-yard';
 const HOLLIS = '/trade/distilling';
@@ -125,7 +125,7 @@ describe('libations annexes — the floor rows fit the faucet', () => {
     }
     // bottling ships 9: seven mixers + the ice bag + the can of cola (the
     // 330 mL can is its own price point, not a smaller bottle).
-    // hearth-cooking: three sacks + the syrup bottle (the bar's syrup line is bought, not cooked)
+    // cooking: three sacks + the syrup bottle (the bar's syrup line is bought, not cooked)
     // farming 10: the eight bar-fruit crates + the grape and juniper
     // crates. Winemaking and brewing: 0 — the switchover (their goods
     // are brain-made from empties now).
@@ -242,17 +242,30 @@ describe('libations annexes — the serving recipes and the zone', () => {
     const files = ANNEXES.flatMap((p) => {
       const dir = join(PACKS, p, 'content', 'recipes');
       return existsSync(dir) ? walk(dir) : [];
-    }).filter((f) => !/(toasted-ration|root-mash|fine-roast|hearty-stew|crush|white-crush|mash|dry-vermouth|sweet-vermouth)\.yaml$/.test(f));
-    expect(files.length).toBe(1 + 3 + 1 + 1);
+      // ⚠ The exclusion list is the COOKING roster, and it grows: the
+      // cooking build took it from four recipes to fourteen. Excluding
+      // by the cooking pack's directory rather than by name keeps this
+      // assertion about the annexes' own serving recipes, which is what
+      // it is for — a name list here means every cooking recipe added
+      // anywhere breaks a libations test for no reason.
+    }).filter(
+      (f) =>
+        !f.includes(`${sep}trade-cooking${sep}`) &&
+        !/(crush|white-crush|mash|dry-vermouth|sweet-vermouth)\.yaml$/.test(f),
+    );
+    expect(files.length).toBe(1 + 3 + 1);
     for (const f of files) {
       const r = Recipe.fromData(parse(readFileSync(f, 'utf8')) as Record<string, unknown>);
       expect(r.outputApplication, f).toBe('bulk');
-      expect(r.outputTemplate.startsWith('/trade/hospitality/thing/') || r.outputTemplate === '/trade/hearth-cooking/thing/syrup-bottle', f).toBe(true);
+      expect(r.outputTemplate.startsWith('/trade/hospitality/thing/'), f).toBe(true);
     }
-    const syrup = Recipe.fromData(parse(readFileSync(join(PACKS, 'trade-hearth-cooking/content/recipes/simple-syrup.yaml'), 'utf8')) as Record<string, unknown>);
+    const syrup = Recipe.fromData(parse(readFileSync(join(PACKS, 'trade-cooking/content/recipes/simple-syrup.yaml'), 'utf8')) as Record<string, unknown>);
     expect(syrup.requiresHeatK).toBe(340);
     expect(syrup.outputPortionL).toBe(0.5);
-    expect(syrup.inputSlots[0]).toMatchObject({ kind: 'item', category: 'sugar', count: 1 });
+    // ⚠ Sugar is a BULK good in a sack — the slot asked for `kind: item`
+    // and there has never been a discrete sugar item, so the shipped
+    // recipe could not resolve at all until the cooking build cooked it.
+    expect(syrup.inputSlots[0]).toMatchObject({ category: 'sugar', measureL: 0.25 });
     const mixer = Recipe.fromData(parse(readFileSync(join(PACKS, 'trade-bottling/content/recipes/soft-drink.yaml'), 'utf8')) as Record<string, unknown>);
     expect(mixer.ice).toBe('cubes');
   });

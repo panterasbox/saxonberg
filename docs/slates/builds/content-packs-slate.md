@@ -1531,7 +1531,7 @@ cleanest pack candidate in the tree.
 
 - `dependsOn: base-library` — iron, firewood, hide are materials.
 - `dependsOn: generic-objects` — ⭐⭐ **every recipe's `outputTemplate`
-  is another pack's row** (`/stuff/thing/arms/fire-poker`, `/trade/hearth-cooking/thing/cook-pot`,
+  is another pack's row** (`/stuff/thing/arms/fire-poker`, `/trade/cooking/thing/cook-pot`,
   `/stuff/thing/gear/smiths-hammer`, `/stuff/thing/armor/hide-jerkin`,
   `/stuff/thing/items/plated-dish`). Cross-pack template references are
   LOAD-BEARING from pack one — the installer needs a reference check
@@ -1787,7 +1787,7 @@ derive-don't-author-twice.
 - **Part 6's roster** re-reads as industry packs; each picks a
   reference venue.
 - **A12.1's hearthworks bill re-cuts**: smithing industry +
-  hearth-cooking industry + hearthworks-the-venue (which composes
+  cooking industry + hearthworks-the-venue (which composes
   both). Recipes/stations/positions → the industries; Business, NPCs,
   wages, rooms → the venue. The systemic-tier detector (wage/mint)
   attaches to venues; industries are argued on what their recipes mint.
@@ -1994,7 +1994,7 @@ plus three decisions it forced.
 | Pack | Ships |
 |---|---|
 | **`/trade/smithing/`** | recipes fire-poker · smiths-hammer · belt-knife · cook-pot · leather-jerkin; station templates anvil · whetstone (→ `/trade/smithing/thing/…`); stock iron-ingot · spare-ingot; the *smith* position def; archetype *smithy = heat ≥ forge-temp · striking surface · work surface · fuel store* |
-| **`/trade/hearth-cooking/`** | recipes toasted-ration · root-mash; stock prime-cut · stew-meat · ration-stock · root-vegetables *(interim — see A16.3)*; the *cook* position def; archetype *kitchen = heat · pot · pantry* |
+| **`/trade/cooking/`** | recipes toasted-ration · root-mash; stock prime-cut · stew-meat · ration-stock · root-vegetables *(interim — see A16.3)*; the *cook* position def; archetype *kitchen = heat · pot · pantry* |
 | **`/world/hearthworks/`** (venue) | rooms (smithy · cookhouse · cellar · woodshed · forge-floor); the Business (roster, **wage rates**, `banksAt: goodkin`); the two NPCs (the CAST — the position is industry, *this* smith is venue); menu **contents**; `populates:` compositions; `requires.title`; ⚠ **the inbound exit it has never had** |
 
 **What the cut revealed:**
@@ -2003,7 +2003,7 @@ plus three decisions it forced.
    CookPot are fire-substrate COMMONS (`/obj/`) — smelting is the phase
    engine, not a recipe. The capability floor makes it natural: the
    archetype *requires heat*, `default: /stuff/thing/Forge`. Corollary:
-   smithing's cook-pot recipe outputs `/trade/hearth-cooking/thing/cook-pot` — a commons
+   smithing's cook-pot recipe outputs `/trade/cooking/thing/cook-pot` — a commons
    template — so smithing-makes-cooking's-tools creates **no pack
    edge**. ⭐ Recipes that output commons goods are chain-neutral.
 2. **Menu genericization is mostly done** — SmithyMenu/KitchenMenu are
@@ -2045,7 +2045,7 @@ wherever butchery happens — commons (generic-objects / a core-goods
 flavor; the user's instinct: *"those feel like something that will come
 in via like a core-materials pack"*). Industry-shipped is only the
 genuinely introduced: charcoal is the energy trade's, coal is mining's.
-A16.1's hearth-cooking stock rows are interim under this rule too. The
+A16.1's cooking stock rows are interim under this rule too. The
 consumer-custody rule from the re-cut conversation is dead — nothing
 used it yet.
 
@@ -2723,7 +2723,7 @@ personality — the correct residue of the razor.
   grammar) — the industry≠venue promise demonstrated live: one trade,
   multiple venues, opposite vibes; hearthworks composes THREE trades.
 - **Boundary**: hospitality = SERVING (counter, order, attendant,
-  tip); hearth-cooking = PRODUCTION. A bar that cooks composes both —
+  tip); cooking = PRODUCTION. A bar that cooks composes both —
   the line the shipped kitchen-vs-counter code already draws.
 - **Sequencing**: cut now (third trade pack) rather than
   pre-industry-then-adopt — the kit is mature and two venues already
@@ -2950,7 +2950,7 @@ something true on its own; this supersedes the A12-era three-wave cut.
   Batched path surgery while everything is goto-only cheap:
   `/world/`→`/world/`, the `/trade/` sixth branch, the hearthworks
   re-cut, orphan-row cleanup. Then on the fresh namespace: smithing ·
-  hearth-cooking · hospitality · the saxonberg-lounge + hearthworks
+  cooking · hospitality · the saxonberg-lounge + hearthworks
   venue packs with the A23 verdicts applied (Offstage → employment,
   TipJar → hospitality, MechanicalMovement → lib, residue deletes) ·
   the archetype aggregator + test-venue generator · hearthworks' first

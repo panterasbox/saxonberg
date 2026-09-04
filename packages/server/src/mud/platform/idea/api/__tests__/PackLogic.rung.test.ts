@@ -84,14 +84,14 @@ describe('the rung check', () => {
   });
 
   it('a data pack whose rows name kernel classes under its own claim passes (resolution origin, not prefix)', async () => {
-    const root = writePack('venue', [ROW('trade/venue/thing/x.yaml', '/platform/thing/Prop')], {
+    const root = writePack('venue', [ROW('trade/venue/thing/x.yaml', '/platform/thing/Thing')], {
       root: '/trade/venue',
       manifest: { requires: { title: [{ extent: '/trade/venue' }] } },
     });
     const [r] = await PackApi.install([root]);
     expect(r!.failure).toBeNull();
     expect(r!.rung).toBe('data');
-    expect(r!.classOrigins['/platform/thing/Prop']).toBe('kernel');
+    expect(r!.classOrigins['/platform/thing/Thing']).toBe('kernel');
   });
 
   it("a pack naming another pack's class without the dependency line fails, naming both", async () => {
@@ -146,7 +146,7 @@ describe('the rung check', () => {
   });
 
   it('a manifest that still carries dependsOn fails at read (derived from package.json now)', async () => {
-    const root = writePack('old', [ROW('old/thing/x.yaml', '/platform/thing/Prop')], {
+    const root = writePack('old', [ROW('old/thing/x.yaml', '/platform/thing/Thing')], {
       manifest: { dependsOn: ['platform'] },
     });
     await expect(PackApi.install([root])).rejects.toThrow(/unknown key 'dependsOn'/);

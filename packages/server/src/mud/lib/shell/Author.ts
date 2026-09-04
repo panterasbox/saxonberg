@@ -124,6 +124,32 @@ export function AuthorMixin<TBase extends MixinConstructor>(Base: TBase) {
         // her staff, never wizardness), so an author who is not on the
         // executive sees the verb but can't run it.
         'platform/cmd/author/pack.yaml',
+        // The app-settings surface — `config [key [value]]`.
+        //
+        // ⚠⚠ **Afforded here under protest: its GATE is on the wrong
+        // axis.** `config.yaml` carries `requiresWizard`, and what it
+        // actually reaches is 361 BALANCE DIALS — `freshness.muMaxPerHour`,
+        // `combat.*`, `response.*`. None of that is TypeScript access, and
+        // `requiresWizard` is the code-trust axis and nothing else. There
+        // is simply no authority modelled for "who may retune the world",
+        // and *a missing authority is not a grant* (access.md) — so the
+        // gate defaulted to the nearest strong thing to hand, which is the
+        // anti-pattern, not the answer. **The seat is missing and wants
+        // building; do not read this line as an endorsement.**
+        //
+        // Contributed anyway because the alternative is worse: the verb
+        // was reachable by NOBODY (below), and an unreachable verb hides
+        // the gate question entirely.
+        //
+        // ⚠⚠ It was afforded NOWHERE until a live drive tried to type
+        // it: view shipped, controller shipped, `ConfigController.test`
+        // green — and green because it loads `config.yaml` by path and
+        // calls the controller directly, so it never asked the binder
+        // whether anyone could reach the verb. Same shape as `eat` and
+        // `vomit` in this same build, and `feel`/`taste` before them:
+        // **missing enabling data fails CLOSED and SILENT**, and only a
+        // drive types the word.
+        'platform/cmd/system/config.yaml',
         // Author-diagnostics reader — `errors list/raw/clear` over the
         // diagnostics store (compile / runtime / console). Afforded here;
         // what you see is what you hold (`DiagnosticApi.list` filters to

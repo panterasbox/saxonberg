@@ -1,0 +1,30 @@
+# The third of the three-media root spine: the SAME roots, boiled at 373,
+# roasted at 430, and fried in fat at 440. Three methods, three dishes,
+# one ingredient, and nothing in the engine that knows the words "boil",
+# "roast" or "fry" — only what each medium can carry.
+recipeId: pan-fried-roots
+name: Pan-Fried Roots
+keywords:
+- pan-fried-roots
+- fried-roots
+inputSlots:
+- slot: fat
+  category: fat
+  minGrade: fair
+  kind: bulk
+  measureL: 0.05
+- slot: roots
+  category: vegetable
+  minGrade: fair
+  kind: item
+  count: 2
+toolCapabilities:
+- pot
+outputTemplate: /stuff/thing/items/plated-dish
+outputAppearance: roots fried crisp and glossy at the edges
+outputApplication: edible
+outputPortionL: 0.35
+requiresHeatK: 440
+medium: fat
+difficulty: standard
+discipline: cooking

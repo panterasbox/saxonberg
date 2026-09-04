@@ -37,6 +37,7 @@ import Ingot from '../../../platform/thing/Ingot';
 import Forge from '../../../platform/thing/Forge';
 import Oven from '../../../platform/thing/Oven';
 import Chest from '../../../platform/thing/Chest';
+import WaterFixture from '../../../platform/thing/WaterFixture';
 import Dish from '../../../platform/thing/Dish';
 import Weapon from '../../../platform/thing/equipment/Weapon';
 import ToolItem from '../../../platform/thing/ToolItem';
@@ -58,6 +59,8 @@ import {
   makeStuffAtPath,
 } from '../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
+import { BlendLabel } from '../../../lib/metabolism/BlendLabel';
+import { BlendIdentity } from '../../../lib/craft/BlendIdentity';
 
 /**
  * The three trade packs that ship every recipe (content packs wave 4a/4b):
@@ -65,7 +68,7 @@ import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__
  * catalogue is path-agnostic — it serves every `recipe` document whoever
  * installed it.
  */
-const RECIPE_DIRS = ['trade-smithing', 'trade-hearth-cooking', 'trade-hospitality'].map((pack) =>
+const RECIPE_DIRS = ['trade-smithing', 'trade-cooking', 'trade-hospitality'].map((pack) =>
   fileURLToPath(new URL(`../../../../../../content/${pack}/content/recipes/`, import.meta.url)),
 );
 /** A shipped row's `data` block, read from a pack by content-relative path. */
@@ -121,6 +124,14 @@ function loadPackMaterial(rel: string, platform = false): Material {
     if (d.nutrientAmounts) {
       m.setNutrientAmounts(d.nutrientAmounts as Record<string, number>);
     }
+    // The medium's phase ceiling — a wet recipe's effective heat is capped
+    // at the water's boiling point, so this is load-bearing, not colour.
+    if (typeof d.boilingPoint === 'number') {
+      m.setBoilingPoint(Quantity.of(d.boilingPoint, 'K'));
+    }
+    if (typeof d.smokePoint === 'number') {
+      m.setSmokePoint(Quantity.of(d.smokePoint, 'K'));
+    }
     return m;
   }, `${platform ? '/platform' : '/stuff'}/idea/material/${rel}`) as unknown as Material;
 }
@@ -167,6 +178,32 @@ function makeTool(cap: string): ToolItem {
   const t = makeStuff(() => new ToolItem());
   t.setCapabilities([cap]);
   return t;
+}
+
+/**
+ * ⭐ A water source, because a wet recipe now REQUIRES one: `medium: water`
+ * matches an input carrying the water tag, so a cookhouse with nothing wet
+ * in it cannot boil a stew. The shipped row is
+ * `/stuff/thing/fixture/water-butt`; this is its shape.
+ */
+function waterButt(): WaterFixture {
+  const w = makeStuff(() => new WaterFixture());
+  (w as unknown as { interiorBulk: boolean }).interiorBulk = true;
+  (w as unknown as { interiorMaterial: string }).interiorMaterial =
+    '/stuff/idea/material/bulk/water';
+  return w;
+}
+
+/**
+ * Clean dinnerware of the given kind, at its shipped commons path — the
+ * pool a served meal is CLAIMED from. `makeStuffAtPath` keys the template
+ * path the claim matches on when the row declares no kind.
+ */
+function dish(path: string, capacityL: number): Dish {
+  const d = makeStuffAtPath(() => new Dish(), path) as unknown as Dish;
+  (d as unknown as { interiorBulk: boolean }).interiorBulk = true;
+  d.setInteriorCapacity(Quantity.of(capacityL, 'L'));
+  return d;
 }
 
 function stock(materialPath: string, massKg: number): Thing {
@@ -241,6 +278,8 @@ beforeEach(async () => {
   loadPackMaterial('food/trail-ration');
   loadPackMaterial('food/root-vegetable');
   loadPackMaterial('food/stew-meat');
+  // The wet medium itself — `hearty-stew` declares `medium: water`.
+  loadPackMaterial('bulk/water');
   loadPackMaterial('cooked', true);
 
   // Output templates cloned by the roster (the real classes, minted here
@@ -256,12 +295,10 @@ beforeEach(async () => {
       w.setLength(Quantity.of(0.2, 'm'));
       return w as never;
     }
-    if (path === '/stuff/thing/items/plated-dish') {
-      const d = makeStuff(() => new Dish());
-      (d as unknown as { interiorBulk: boolean }).interiorBulk = true;
-      d.setInteriorCapacity(Quantity.of(0.6, 'L'));
-      return d as never;
-    }
+    // ⚠ No dinnerware clones here any more: a served meal is CLAIMED from
+    // the crockery in reach (`Dish extends CraftVessel`), which is why
+    // `standUpCookhouse` stocks a shelf of it.
+
     throw new Error(`unexpected clone ${path}`);
   });
 
@@ -300,7 +337,7 @@ describe('the venue menus', () => {
     // ⭐ The working verbs ride the instruments, and there is exactly ONE
     // record of that: `static commandContributions` on the class. A
     // trade's own instrument verbs live on that trade's pack classes
-    // (`/trade/smithing/thing/Anvil`, `/trade/hearth-cooking/thing/CookPot`)
+    // (`/trade/smithing/thing/Anvil`, `/trade/cooking/thing/CookPot`)
     // and are asserted in those packs' suites — which is precisely why
     // no kernel test can name them, and why the kernel can never name a
     // trade's view. What the KERNEL owns is the build vessel: `pour` and
@@ -397,6 +434,11 @@ describe('the cookhouse, served', () => {
     ContainmentApi.move(makeOven(true), room);
     const pot = makeStuff(() => new TestPot());
     ContainmentApi.move(pot, room);
+    ContainmentApi.move(waterButt(), room);
+    // The crockery shelf — the stew comes out in a bowl, the roast on a
+    // platter, and both are claimed rather than conjured.
+    ContainmentApi.move(dish('/stuff/thing/items/bowl', 0.6), room);
+    ContainmentApi.move(dish('/stuff/thing/items/platter', 0.8), room);
     const chest = makeStuff(() => new Chest());
     ContainmentApi.move(chest, room);
     ContainmentApi.move(stock('/stuff/idea/material/food/root-vegetable', 0.6), chest);
@@ -426,12 +468,12 @@ describe('the cookhouse, served', () => {
     // (macros in = macros out; the fixed-vocabulary rule live).
     expect(slot.getMaterialPath()).toBe('/platform/idea/material/cooked');
     const payload = slot.getPayload()!;
-    expect(payload.name).toBe('Hearty Stew');
-    expect(payload.nutrientAmounts).toMatchObject({
+    expect(BlendIdentity.nameOf(payload, null)).toBe('Hearty Stew');
+    expect(BlendLabel.amountsOf(payload, null)).toMatchObject({
       carb: expect.any(Number),
       protein: expect.any(Number),
     });
-    expect(payload.edible).toBe(true);
+    expect(BlendLabel.isEdible(payload, null)).toBe(true);
     expect(slot.getAmount().rawValue()).toBeCloseTo(0.4, 9);
 
     // The macros route through the shipped metabolism ingest — the

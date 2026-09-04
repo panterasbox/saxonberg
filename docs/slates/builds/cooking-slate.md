@@ -1488,11 +1488,21 @@ is banned by the fiction's own physics, not by a designer's ruling.
 
 ### Magic CAN move energy — so it is a rung on the heat ladder
 
-- **Heat is the cheapest delivery form** the price list has
-  (η = 0.85 — *"thermalisation is the cheapest thing energy can
-  do"*), so the mage-heated pan is about the cheapest spell there is:
-  the **arcane rung of Part 7's fuel ladder** — no wood, no smoke, no
-  supply line, but the caster pays.
+- ⚠ **CORRECTED 2026-09-03 (caught by build-1's textiles session):
+  magic LIGHTS the fire; it does not BE the fire.** The first cut of
+  this bullet read η = 0.85 (*"thermalisation is the cheapest thing
+  energy can do"*) as making the mage-heated pan an arcane rung of
+  Part 7's fuel ladder. That confuses the efficiency of **one delivery**
+  with the economics of **sustained** delivery. Kell's economic
+  corollary is explicit — *"magic is excellent at what happens ONCE and
+  poor at what must be HELD"* — and it names this exact case:
+  **"furnace over firebolt for sustained heat."** Cooking needs *held*
+  heat for minutes to hours, so a magically-run range is uneconomic by
+  the fiction's own rules.
+  ⭐ What magic IS good for here is the **impulse**: ignition. Lighting
+  a fire with no tinder, in the rain, instantly — a real convenience
+  that still leaves you needing fuel to cook. Magic is not a rung on
+  the fuel ladder; it is a **firelighter**.
 - ⭐ **The price list already wrote the joke**: losses dissipate *in
   the caster*, so casting warms you — *"novices run hot and masters
   stay cool… a novice at 0.35 dissipates six times what a master at

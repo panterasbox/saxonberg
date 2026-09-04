@@ -339,7 +339,7 @@ used to be a single list copied verbatim onto two rows:
 | hospitality `strain` | the STRAINER | `/trade/hospitality/thing/Strainer` |
 | hospitality `mix`, `serve`, `garnish` | the STATION — whole-drink acts at the bar | `/trade/hospitality/thing/BarStation` (back-bar, well) |
 | hospitality `muddle` | the MUDDLER | `/trade/hospitality/thing/Muddler` |
-| hearth-cooking `cook`, `plate`, platform `heat` | the POT | `/trade/hearth-cooking/thing/CookPot` |
+| cooking `cook`, `plate`, platform `heat` | the POT | `/trade/cooking/thing/CookPot` |
 | platform `boil` | the FURNACE — you cannot boil without a heat source | `FurnaceMixin` (oven, kiln, forge) |
 | smithing `hammer`, `quench`, `forge` + platform `repair`, `salvage` | the ANVIL | `/trade/smithing/thing/Anvil` |
 | platform `repair`, `salvage` | mending capital | `/platform/thing/MendingTool` (sewing kit, sewing machine) |
@@ -373,10 +373,10 @@ it: `make`, `heat`, `boil`, `pour`, `stir`/`shake`, `repair`, `salvage`,
 heats and boils; a basin washes; mending is any trade's); `menu`/`order` are platform
 **retail** (a menu is commerce, any venue); `muddle`, `strain`,
 `garnish`, `mix`, `serve` are `trade-hospitality`'s; `cook`, `plate`
-are `trade-hearth-cooking`'s; `forge`, `hammer`, `quench`, `sharpen`
+are `trade-cooking`'s; `forge`, `hammer`, `quench`, `sharpen`
 are `trade-smithing`'s — each a capability pack with its controllers in
 `src/idea/cmd/crafting/` and the tests beside them. The kitchen bundle
-and the cook-pot row are hearth-cooking's too (the bundle collects the
+and the cook-pot row are cooking's too (the bundle collects the
 trade's instruments).
 
 `FurnaceMixin` statically confers `heat` (with `ignite`/`douse`/`pump`)
@@ -503,8 +503,8 @@ refilled — walked past in favour of one nobody had drunk from — so an
 emptied vessel was economically dead the moment it was emptied, and the
 returns loop was blocked at its first step. The claimed glass is marked
 `soiled` at fill; `serve`/`order` hand over the claimed glass. `tangible`
-/ `edible` outputs keep cloning (smithing's transform and cooking's
-plate are the next pools). Breakage needs no mechanism: `throw` /
+outputs still clone (smithing's transform); **`edible` outputs claim from
+the same pool** since the cooking build — see *Dinnerware is a pool* below. Breakage needs no mechanism: `throw` /
 `StuffApi.destruct` remove a glass and the par sheet reports the
 shortfall.
 
@@ -512,8 +512,11 @@ shortfall.
 Thing)))))` — a `Container` so a garnish is a thing *in* the glass and
 leaves with it (`Surfaced` was rejected: a resting item's container is
 the room, so a handed-over glass would leave its olive behind); `Thermal`
-so the temperature is real. Fields: `soiled` (`isSoiled()`; `setSoiled`
-gated to `CraftingLogic`), `category` (the glassware par key — `coupe`,
+so the temperature is real. Fields: `soiled` (`isSoiled()`; **`soil()`** is the public
+one-way act anyone who USES a vessel may call, and `wash()` the only road
+back — the raw `setSoiled` stays gated to `CraftingLogic` + the two
+Hydrator arms precisely because it is the only other way to set it
+`false`), `category` (the glassware par key — `coupe`,
 `rocks`, …; `getCategory()`), `iceKg`, `iceForm`, `technique`. Glass
 rows: `class: /platform/thing/CraftVessel`, `category`, `interiorBulk:
 true`, `interiorCapacity`.
@@ -586,7 +589,7 @@ holding a real (non-blend) material — a recipe with authored
 a pool glass; and such a recipe **tops up** a reachable bottle of the
 same template already holding that material (one juice bottle a day,
 not one per lime). `press-{lime,lemon,orange,grapefruit}` (tool `juicer`,
-`kind: item` produce, `outputPortionL`) and hearth-cooking's
+`kind: item` produce, `outputPortionL`) and cooking's
 `simple-syrup` (sugar + water, `requiresHeatK: 340`, tool `pot`) are
 ordinary `bulk` recipes over this.
 
@@ -707,12 +710,12 @@ homed by what they *are*:
   `Bottle` (the stock vessel — [retail.md](./retail.md)), `Crate`,
   `CocktailShaker` (the build vessel), `NeonSign`, `TipJar`. ⭐ A class
   named for ONE trade's fixture ships in that trade's pack, not here —
-  `GlassRack` is hospitality's, `CookPot` hearth-cooking's, `SpiritBottle`
+  `GlassRack` is hospitality's, `CookPot` cooking's, `SpiritBottle`
   and `Still` distilling's. See [content-packs.md](./content-packs.md) § *Where a class lives*.
 - **Singleton** → `obj/`: `RecipeCatalogue`.
 - **Recipes** live where the trade that introduces them lives (content
   packs wave 4a/4b): `trade-smithing` ships the smithing five at
-  `/trade/smithing/recipes/<id>`, `trade-hearth-cooking` its four
+  `/trade/smithing/recipes/<id>`, `trade-cooking` its four
   (toasted-ration, root-mash, fine-roast, hearty-stew),
   `trade-hospitality` the bar's 21 cocktails + coffee and the four
   presses, each stub trade its serving recipe (`pint`, `glass-of-{red,
@@ -733,7 +736,7 @@ tv, remote) and `agent/` (dave, mara). **The `Bar` populates NO bottle**
 — the rail is stocked by Mara's `restocks` brain buying at the
 distributor ([retail.md](./retail.md), [employment.md](./employment.md)).
 Every libation `Material` lives with the trade whose PROCESS makes it
-(`/trade/{distilling,brewing,winemaking,bottling,produce,hearth-cooking}/idea/material/`);
+(`/trade/{distilling,brewing,winemaking,bottling,produce,cooking}/idea/material/`);
 base-library keeps water, air, salt-water. `trade-hospitality/content/
 archetypes/hospitality.yaml` is the venue archetype its own `menu.test.ts`
 materializes a bar from (`archetype.materialize()`) to order all 24
@@ -861,6 +864,194 @@ form: `/platform/thing/Provision` (`GradedMixin(DetailedMixin(Thing))`) — the
 discrete sibling of the graded bottle; a *fine* prime cut is what the
 fine-roast's `minGrade: fine` slot demands (the grade spread on solid
 stock).
+
+## ⭐ The cooking branch: method, dinnerware, cutlery, palate
+
+The cooking build (2026-09-03). Four things, and the first is the one
+that decides the other three.
+
+### The MEDIUM — why boiling cannot brown, and no table says so
+
+`Recipe.medium` is `water` | `fat` | absent (dry), and it does exactly
+two things:
+
+1. the recipe must actually HAVE an input carrying the medium's **tag**
+   (`water` ships on water; a cooking fat authors `fat`) — you cannot boil
+   without water. Absence declines through the ordinary
+   `insufficient-input` shape, with no new reason word;
+2. the effective heat becomes `min(fire, the medium's phase ceiling)` —
+   `Material.boilingPoint` for water, the new `Material.smokePoint` for a
+   fat.
+
+⭐ **`boil`, `simmer`, `poach`, `fry` and `roast` are not engine words and
+never become any.** A wet recipe demanding 450 K declines
+`insufficient-heat` at an 800 K hearth because the WATER stops at 373; the
+same demand in tallow (smoking at 478 K) is simply cooked. The three-media
+root-vegetable spine — the same two roots boiled at 373, roasted dry at
+430, fried in fat at 440 — is three dishes out of one ingredient with no
+method table anywhere. Syrup's elevated boiling point needs no special
+case: it rides its own row.
+
+An unknown medium word **throws at `Recipe.fromData`**: a typo must not
+silently cook a stew over an uncapped fire. The by-hand `matchBuild`
+clamps identically (`resolveMediumCaps` pre-resolves the banked media so
+the reverse-match stays synchronous), so the same meat banked with water
+comes out the 373 K stew even at 800 K, and banked without it comes out a
+dry roast.
+
+⚠ **A cook reaches for a fat that will take the heat.** The medium pick is
+two passes: prefer a candidate whose ceiling clears the recipe, else take
+the best there is so the gate still says `insufficient-heat` rather than
+the lie `insufficient-input` over a full bottle. Three readings, all
+correct — a fat that works, a fat that cannot, no fat at all.
+
+⭐ **The working heat is not the room's heat.** The gate asks what the
+setup can SUPPLY; what the food was held at is the recipe's own demand.
+That second number is what the spoilage kill and the heat-labile toxin
+kill read (see [spoilage.md](./spoilage.md)).
+
+⚠⚠ A working that reaches the kill temperature starts the dish sterile
+AND deposits the dose its inputs' spoilage had already earned as a formed
+toxin. Cooking rotten meat gives you a dish that keeps and poisons you —
+never a free lunch.
+
+### Dinnerware is a POOL, not a mint
+
+`Dish extends CraftVessel`. The two were parallel implementations of one
+thing — claimed, filled, marked used, washed, claimed again — except that
+Dish had none of it, so every plated meal CLONED a plate into the world
+and nobody ever washed up. Bussing was real work at the bar and free in
+the kitchen, for no reason but that the classes were written a month
+apart. Dish's whole remaining delta is `NutritionLabelMixin`.
+
+Three commons dinnerware kinds — `plate`, `bowl`, `platter` — and a
+recipe's output row names which one its dish comes out in, so the method
+shows up on the table.
+
+⭐ **`CookPot` is a `CraftVessel` too**, which is what makes
+*pot-as-last-resort* a claim rather than a special case: with no clean
+crockery in reach, dinner lands in the pot it was cooked in and you eat
+standing over the fire. Every strand is one a pot wants — Bulkable holds
+the stew, Container holds what you dropped in, Thermal gives it a
+temperature, soiled/wash because you wash a pot.
+
+⚠ **The bar's `no-glass` stays HARD.** No clean coupe, no martini. Dinner
+is not cancelled for want of a bowl; a round of drinks is. The asymmetry
+is deliberate.
+
+⚠ A pot full of dinner must not become stock. The generic cooked base is
+excluded from the gather's intermediate test alongside the mixed one, so
+a served bowl (and a full pot) is never a bulk SOURCE. Dish-as-ingredient
+is out of scope for v1.
+
+### Cutlery — it reads, it never gates
+
+`lib/bulk/Utensil.ts` is a small enumerated kernel vocabulary (`spoon` ·
+`fork` · `table-knife`, in preference order). `eat` claims the first clean
+one in reach — held kit before the table — dirties it, and says so; with
+nothing to hand you eat with your fingers. ⚠ **Same act, same nutrition,
+same grade; only the sentence differs.** Food you can only eat with the
+right implement is a lock dressed up as flavour, and this must never
+become one.
+
+A utensil is an ordinary `CraftVessel` with its interior slot never
+filled — serviceware without contents — so it is claimed, soiled, washed
+at the basin and counted on the par like any other vessel. The kernel has
+to know the list because `eat` cannot ask "is this a spoon?" without one;
+enumerating it makes adding a kind a diff a reviewer sees.
+
+### The palate — taste is DERIVED, and it reads you
+
+`taste <dish>` renders on the taste channel only, and what it says depends
+on the taster's competence **in the discipline that made the thing**
+(`BulkPayload.discipline`, recorded from the recipe) — so a cocktail reads
+through the bartender's craft and a stew through the cook's, and the
+kernel never knows a discipline word. A blend no recipe made records none
+and reads at the floor:
+
+| band | what you get |
+|---|---|
+| untrained / novice | the dominant basic tastes |
+| competent | …and the ingredients, by name |
+| proficient / expert | …and the grade of the making |
+
+⭐ **No dish anywhere authors what it tastes like.** `BulkPayload` carries
+`parts` (the ingredients, by their Materials' names) and `tastes` (the
+union of their basic tastes), both derived at the craft; change what goes
+in and the reading changes with nothing else edited. `Material.tastes` is
+a CLOSED five-word set — sweet · salty · sour · bitter · umami, the
+physiology's own list, not a flavour-note bank. A per-dish flavour string
+is the retired per-dish-material anti-pattern wearing a different hat.
+
+The competence read is the SYNC digest cache, and a cold cache reads as
+the floor band — honest rather than defective: an unexercised palate IS a
+novice palate. ⚠ Never a gate: every band tastes the food.
+
+⚠⚠ **It lives on `PalatableMixin` (`lib/metabolism/Palatable.ts`),
+composed on `ServingVessel`** — a vessel a made portion reaches a person
+in. It took two wrong hosts to get there, and both were defended with a
+sentence that was true:
+
+1. **`BulkableMixin`** — which put a taste-palate augmenter on `Floor`
+   (puddles), `GardenBed`, `PlantPot`, `AirTank` and `WateringCan`, made
+   it re-derive "…but only a food vessel with contents" in four guard
+   lines, and dragged `lib/advancement` into the bulk substrate.
+   **Firing on hosts you then have to guard your way back out of is the
+   tell that a mixin is on the wrong host.**
+2. **`CraftVessel`** — "everything somebody made something in". Also
+   true, and still too wide: that class is the wort bucket, the must
+   bucket, the tallow crock, the **wash bucket** and the cutlery too, so
+   a table knife and a bucket of dirty water read as things you taste.
+   ⭐ **The second tell is quieter and worth learning:** the doc block
+   listed its own hosts as "dishes, platters, the cook pot, the bar's
+   glasses, the syrup and oil bottles" — a list already narrower than
+   where the mixin composed, and still wrong at both ends. **When a
+   comment has to enumerate a subset of its own hosts, the subset is the
+   class.**
+
+`ServingVessel extends CraftVessel`: the shared half is claim · soil ·
+wash · par, which a wort bucket and a coupe both do. The palate is the
+half only one of them has.
+
+### ✅ The serviceware tier
+
+```
+CraftVessel        + VesselKind + Serviceable   a trade's working vessel
+  │                                             wort/must/wash bucket,
+  │                                             tallow crock, oil bottle
+  │
+  └─ ServingVessel + Palatable        a made portion reaches a person IN it
+       │                              the 9 glasses, syrup + juice bottles
+       ├─ Dish     + NutritionLabel
+       └─ CookPot  (trade-cooking)
+
+Cutlery            + Serviceable + CutleryMixin   what you eat WITH
+                                                  spoon · fork · table-knife
+```
+
+⭐ **`ServiceableMixin` (`lib/craft/Serviceable.ts`) is the half a coupe
+and a horn spoon genuinely share** — claimed clean, dirtied by use,
+washed at the basin, counted on the house par. `CraftVessel` overrides
+`wash()` and `isClaimable()` to add the dregs, the ice and the slot, so
+**neither needs a guard**.
+
+⚠⚠ **What it fixed.** The cutlery was a `CraftVessel` — its row argued
+for it, correctly, on the claim/soil/wash/par behaviour — and paid three
+prices: an interior bulk slot it never fills, an ice charge, and a
+`wash()` that opened with *"⚠ … `getBulk` THROWS on a host that has no
+such slot"*. **A method that throws on part of its own host set is the
+host set being wrong.**
+
+⭐⭐ **And the root cause was one field in the wrong place.** The utensil
+kind was stored in `category`, which lived on `BulkableMixin` — so *"this
+is a spoon"* required *"this is a bulk vessel"*, and `eat` found one by
+asking `MixinApi.isBulkable` and then duck-typing `isClaimable`/`soil` off
+a `Partial<{…}>`. `category` was right where it was: it is the VESSEL
+kind, shared with vats and kegs, and a vat has one without being
+serviceware. The cutlery was borrowing a vocabulary that was never about
+it. `utensilKind` on `CutleryMixin` is the one that is, and `eat` now
+narrows on `isCutlery` + `isServiceable`.
+
 
 ## Deferred (non-goals)
 

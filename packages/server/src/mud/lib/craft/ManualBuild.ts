@@ -60,6 +60,16 @@ export interface BuildContribution {
   kind?: 'bulk' | 'item';
   /** Units banked — item contributions only (default 1). */
   count?: number;
+  /**
+   * ⭐ The contribution's **microbial load** at the moment it was banked.
+   *
+   * A build buffer is a snapshot — the bottle it was poured from may be
+   * drained and the ingredient destructed by the time the mint runs — so
+   * the spoilage has to be captured with the matter, or the by-hand route
+   * would launder it: pour a spoiled stock into a pot, mint, get a clean
+   * dish. Absent ⇒ nothing perishable was banked.
+   */
+  freshnessLoad?: number;
   /** The source Material's full tag set — item contributions only. A
    * recipe's item slot matches when its category appears here (the same
    * by-tag rule `craftImpl`'s gather matching uses), since a discrete
@@ -172,6 +182,7 @@ export function ManualBuildMixin<TBase extends MixinConstructor>(Base: TBase) {
         count: 1,
         tags: [...material.getTags()],
         materialPath: material.getTemplatePath() ?? undefined,
+        freshnessLoad: MixinApi.isFresh(host) ? host.getMicrobialLoad() : 0,
       });
       return true;
     }

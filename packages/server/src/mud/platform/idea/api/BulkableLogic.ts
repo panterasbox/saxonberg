@@ -14,6 +14,7 @@ import type {
 } from '../../../lib/bulk/Bulkable';
 import { CLOSURE_ORDER, BULK_VOLUME_UNIT } from '../../../lib/bulk/Bulkable';
 import type Material from '../../../lib/material/Material';
+import { Freshness } from '../../../lib/material/Freshness';
 import type { MqlQuantity } from '../../../api/mql';
 import { Quantity } from '../../../lib/quantity';
 import { MessageApi } from '../../../api/message';
@@ -296,7 +297,13 @@ export class BulkableLogic extends ApiLogic {
         : null;
 
     // 5. Apply. Capture the source's blend payload BEFORE the debit — a
-    // full drain clears it with the material.
+    // full drain clears it with the material. ⭐ Same for the spoilage
+    // gauge, which rides the MATTER — and which, unlike the payload
+    // (identity, riding into an EMPTY destination only), blends by mass on
+    // EVERY pour. Otherwise decanting a spoiled pot into a fresh one would
+    // launder it: the pour-to-reset exploit.
+    const fromLoad = Freshness.loadOf(from);
+    const toLoadBefore = to !== null ? Freshness.loadOf(to) : 0;
     const fromPayload = from.getPayload();
     const toWasEmpty = to !== null && to.isEmpty();
     from.debit(applied);
@@ -316,6 +323,15 @@ export class BulkableLogic extends ApiLogic {
         carryBatchIdentity(fromHolder, toHolder);
       }
       to.setAmount(to.getAmount().add(Quantity.of(applied, 'L')));
+      // Mass(volume)-weighted blend of the two loads. A pour into an empty
+      // slot just carries the source's load across (the arithmetic degrades
+      // to that on its own when `toAmountBefore` is 0).
+      if (to.getPayload()?.freshness || fromLoad > 0) {
+        Freshness.stampLoad(
+          to,
+          Freshness.blendLoads(fromLoad, applied, toLoadBefore, toAmountBefore),
+        );
+      }
     }
 
     // 6. Thermal coupling (gated). Same material both sides (enforced at

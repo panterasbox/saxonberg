@@ -1,0 +1,29 @@
+# Olive oil — the pressed fruit, the other cooking fat, and the one a
+# grove rather than a butcher supplies. Same `fat` medium tag as tallow;
+# a LOWER smoke point, which is the lesson: the two fats are not
+# interchangeable, and which one a recipe can be worked in is decided by
+# one tabulated number rather than by a rule anybody wrote.
+class: /platform/idea/material/ConsumableMaterial
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: olive oil
+  appearance: green-gold olive oil
+  keywords: [oil, olive-oil, olive]
+  density: 915
+  thermalConductivity: 0.17
+  specificHeat: 2000
+  # ⭐ Virgin olive oil smokes at about 190 °C (463 K) — fifteen kelvin
+  # under tallow, and enough to decide a recipe.
+  smokePoint: 463
+  # Oil keeps for months (it goes rancid by oxidation, which is not a
+  # microbial story and the gauge is honest to say nothing about it).
+  spoilActivationEnergy: 40000
+  waterActivity: 0.25
+  edibility: true
+  nutrients: [fat]
+  nutrientAmounts:
+    fat: 90000
+  toxicity: []
+  tags: [liquid, food, fat, cooking-fat, pressed]
+  composition: []
+  biologicalSource: null

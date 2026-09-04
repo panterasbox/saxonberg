@@ -83,7 +83,7 @@ Counts are from the 2026-08-21 audits; ⚠ marks packs not yet drilled.
 | **corpo** ✅confirmed | 5 corpos + brands + their boot entries; a content pack (A27, user); lounge (neon, goodkin) and hearthworks (banksAt) depend on it |
 | **wiki-starter** ⚠ | 4 wiki pages (CAS exemplar) |
 | **smithing** 🔨 | 5 recipes · anvil/whetstone/ingot templates · smith position def ⚠ · smithy archetype |
-| **hearth-cooking** 🔨 | 2 recipes · food stock (interim) · cook position def ⚠ · kitchen archetype |
+| **cooking** 🔨 | 2 recipes · food stock (interim) · cook position def ⚠ · kitchen archetype |
 | **hearthworks (venue)** 🔨 | 4 room templates + adornment · Business template · 2 NPC templates · menu contents · requires.title · ⚠ the inbound exit |
 | **saxonberg-lounge** 🔨 | the venue AFTER two cuts: pack zero takes the landing shell + startLocation default (socket/furniture razor); /trade/hospitality takes the bar kit. Keeps: rooms/warren, cast (5 NPCs), Business+prices, neon/corpo ties, pizza, TVs, terminal (→ lazify), offstage/wire-alcove; 14-class graduation audit (audited A29: Menu dies, 4 compositions genericize, Offstage → employment, TipJar → hospitality, 6 local + terminal boot entry) |
 | **hospitality** (trade) 🔨 | the first SERVICE trade: bar-counter Attendant station, glassware kit, cocktail recipes+scripts (adopted from venue-local), bartender position, bar archetype, tip-jar template. Two venues compose it day one (Dave's Bar + hearthworks cookhouse). Serving vs cooking = counter vs kitchen |

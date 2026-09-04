@@ -24,7 +24,7 @@ import { MqlSubscriptionApi } from '../mql-subscription';
 import { ContainmentApi } from '../containment';
 import { CARDS } from '../../lib/connection/Cards';
 import SingletonCartesianLocation from '../../platform/location/SingletonCartesianLocation';
-import Prop from '../../platform/thing/Prop';
+import Thing from '../../platform/thing/Thing';
 import { makeHarness, makeContext, type Harness } from './card-harness';
 
 async function makeRoom(name: string): Promise<SingletonCartesianLocation> {
@@ -123,7 +123,7 @@ describe('static and live are different KINDS of answer', () => {
     expect(instanceId).not.toBeNull();
 
     // Something arrives IN the lounge. Nothing else happens.
-    const lamp = await StuffApi.create(() => new Prop());
+    const lamp = await StuffApi.create(() => new Thing());
     lamp.setShortDescription('a brass lamp');
     ContainmentApi.move(lamp, lounge);
     await MqlSubscriptionApi._drainScheduledForTesting();
@@ -211,7 +211,7 @@ describe('static and live are different KINDS of answer', () => {
     expect(records.map((r) => r.displayName)).toEqual(['the lounge']);
 
     // Something arrives in the room: same subject, new reading.
-    const lamp = await StuffApi.create(() => new Prop());
+    const lamp = await StuffApi.create(() => new Thing());
     lamp.setShortDescription('a brass lamp');
     ContainmentApi.move(lamp, lounge);
     await MqlSubscriptionApi._drainScheduledForTesting();

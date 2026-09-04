@@ -22,6 +22,9 @@ const FIXTURE_A = "/world/test/emp/fixture-a";
 const FIXTURE_B = "/world/test/emp/fixture-b";
 const BIZ_A = "/world/test/emp/business-a";
 const BIZ_B = "/world/test/emp/business-b";
+const FIXTURE_C = "/world/test/emp/fixture-c";
+const BIZ_C = "/world/test/emp/business-c";
+const ABSENT_COOK = "/world/test/emp/absent-cook";
 
 const docs: Doc[] = [
   { path: PH, class: PH, data: {} },
@@ -37,6 +40,25 @@ const docs: Doc[] = [
     class: "/platform/idea/Business",
     hydratorClass: PH,
     data: { proprietorPath: "", positions: [], operatingLocations: [FIXTURE_B] },
+  },
+  // A rostered venue whose assignee is NOT live — the shape every cast-staffed
+  // venue has until residency spawns the NPC.
+  {
+    path: BIZ_C,
+    class: "/platform/idea/Business",
+    hydratorClass: PH,
+    data: {
+      proprietorPath: "",
+      positions: [{ key: "cook", label: "minding the hearth", wageRate: 4, confers: ["MakerMixin"] }],
+      rosterSlots: [
+        {
+          positionKey: "cook",
+          assignee: ABSENT_COOK,
+          schedule: [{ days: [0, 1, 2, 3, 4, 5, 6], hours: [0, 24] }],
+        },
+      ],
+      operatingLocations: [FIXTURE_C],
+    },
   },
 ];
 
@@ -73,5 +95,30 @@ describe("EmploymentApi.ensureOperatorAt (derived standup)", () => {
 
   it("returns null when no authored Business operates the path", async () => {
     expect(await EmploymentApi.ensureOperatorAt("/world/test/emp/nowhere")).toBeNull();
+  });
+
+  it("⭐⭐ runs the roster pass for an ALREADY-LIVE venue, not only a fresh one", async () => {
+    // ⚠ This is the whole bug. The roster resolves against the assignees
+    // live at the moment of the pass, and a cast NPC is spawned by residency
+    // only when a player walks in — so the boot pass skips them and the
+    // venue is already live by the time anybody needs them. `ensureOperatorAt`
+    // used to `return live` before running any pass, so the one venue that
+    // needed it never got it: the Hearthworks cook stood at his own hearth
+    // with no employment record, nothing conferred `MakerMixin`, and `order`
+    // answered "There's no one on hand to make that" for a whole game-hour.
+    //
+    // Observed through the pass's own report about an unresolvable assignee:
+    // it must fire on the SECOND call too, when the Business is already live.
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    const missed = (): number =>
+      warn.mock.calls.filter((c) => String(c[0]).includes(ABSENT_COOK)).length;
+
+    await EmploymentApi.ensureOperatorAt(FIXTURE_C); // stands it up + passes
+    const afterStandup = missed();
+    expect(afterStandup).toBeGreaterThan(0);
+
+    expect(EmploymentApi.businessAt(FIXTURE_C)).toBeTruthy(); // now live
+    await EmploymentApi.ensureOperatorAt(FIXTURE_C);
+    expect(missed()).toBeGreaterThan(afterStandup);
   });
 });

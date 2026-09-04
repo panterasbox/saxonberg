@@ -307,6 +307,9 @@ export const Mixins = {
   Forkable: 'ForkableMixin',
   Globbable: 'GlobbableMixin',
   Bulkable: 'BulkableMixin',
+  VesselKind: 'VesselKindMixin',
+  Cutlery: 'CutleryMixin',
+  Serviceable: 'ServiceableMixin',
   UnboundedSource: 'UnboundedSourceMixin',
   Engaged: 'EngagedMixin',
   Atmospheric: 'AtmosphericMixin',
@@ -332,11 +335,17 @@ export const Mixins = {
   Identifiable: 'IdentifiableMixin',
   Metabolic: 'MetabolicMixin',
   NutritionLabel: 'NutritionLabelMixin',
+  // The derived taste reading, projected through the taster's own
+  // competence in the discipline that MADE the thing.
+  Palatable: 'PalatableMixin',
   Thermal: 'ThermalMixin',
   ThermalRegulation: 'ThermalRegulationMixin',
   Respiration: 'RespirationMixin',
   // The cross-cutting wetness gauge — any Thing / body can be wet.
   Wet: 'WetMixin',
+  // The cross-cutting spoilage gauge — any Thing can go off (inert until
+  // its Material tabulates a spoilage activation energy).
+  Fresh: 'FreshnessMixin',
   // The living-world growth model — a cultivated thing that grows.
   Growing: 'GrowingMixin',
   // Ground that holds plants: soil + N plant slots. A pot is this at N = 1;

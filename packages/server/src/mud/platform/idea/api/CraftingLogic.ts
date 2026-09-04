@@ -19,7 +19,14 @@ import {
   type Difficulty,
 } from '../../../lib/advancement/ActSignature';
 import type Material from '../../../lib/material/Material';
-import { Recipe, type RecipeInputSlot } from '../../../lib/craft/Recipe';
+import { Freshness } from '../../../lib/material/Freshness';
+import type { ToxinTag } from '../../../lib/metabolism/Metabolic';
+import {
+  Recipe,
+  RECIPE_MEDIA,
+  type RecipeInputSlot,
+  type RecipeMedium,
+} from '../../../lib/craft/Recipe';
 import { Template } from '../../../lib/stuff/Template';
 import {
   Techniques,
@@ -185,7 +192,7 @@ interface GatheredMatter {
  */
 interface PoolGlass {
   isClaimable(): boolean;
-  setSoiled(value: boolean): void;
+  soil(): void;
   setTechnique(value: string): void;
   setIce(kg: number, form: string, meltK?: number, latentJPerKg?: number): void;
   clearIce(): void;
@@ -236,7 +243,7 @@ function claimGlass(
 ): Stuff | null {
   const want = recipe.getOutputTemplate();
   const kindOf = (g: Stuff): string =>
-    MixinApi.isBulkable(g) ? g.getCategory() : '';
+    MixinApi.isVesselKind(g) ? g.getCategory() : '';
   const matches = (g: Stuff): boolean =>
     wantKind ? kindOf(g) === wantKind : g.getTemplatePath() === want;
   // A house-made intermediate (an authored `outputMaterial`: pressed
@@ -261,6 +268,38 @@ function claimGlass(
         ? pool.isClaimable()
         : MixinApi.isBulkable(g) && g.isBulkEmpty('interior');
     if (claimable) return g;
+  }
+  return null;
+}
+
+/**
+ * ⭐ **The last-resort cook vessel** — the pot the food was made in.
+ *
+ * Reached only when the dish pool has nothing clean: a meal must land
+ * SOMEWHERE, and "no clean bowl" cancelling dinner would be a worse lie
+ * than eating out of the pot. Prefers a vessel that was actually used as
+ * an instrument for this craft (the matched `pot`), then any claimable
+ * pool vessel in reach.
+ *
+ * ⚠ It must be soiled by the fill like any other claim, or the fallback
+ * would sit outside the wash loop and the pot would never need cleaning.
+ * `finishGlass` / `mintVessel` do that for every vessel alike.
+ */
+function claimCookVessel(
+  gathered: GatheredMatter,
+  usedTools: readonly (Stuff & Tooled)[],
+): Stuff | null {
+  const claimable = (v: Stuff): boolean => {
+    const pool = asPoolGlass(v);
+    return typeof pool.isClaimable === 'function'
+      ? pool.isClaimable()
+      : MixinApi.isBulkable(v) && v.isBulkEmpty('interior');
+  };
+  for (const tool of usedTools) {
+    if (MixinApi.isBulkable(tool) && claimable(tool)) return tool;
+  }
+  for (const g of gathered.glasses) {
+    if (claimable(g)) return g;
   }
   return null;
 }
@@ -319,7 +358,13 @@ async function collectCandidate(c: Stuff, into: GatheredMatter): Promise<void> {
       slot !== undefined &&
       !c.isBulkEmpty('interior') &&
       mpath !== '' &&
-      mpath !== GENERIC_MIXED_MATERIAL;
+      mpath !== GENERIC_MIXED_MATERIAL &&
+      // ⚠ …and the COOKED base for the same reason as the mixed one: a
+      // plated stew (and a pot with dinner still in it) holds a derived
+      // blend, not stock. Dish-as-ingredient is out of scope for v1, and
+      // without this line a served bowl would quietly become a bulk
+      // source the moment `CookPot` joined the vessel pool.
+      mpath !== GENERIC_COOKED_MATERIAL;
     if (!intermediate) {
       into.glasses.push(c);
       return;
@@ -462,11 +507,58 @@ function carriesBrand(stuff: Stuff, brandKey: string): boolean {
  * then highest grade. `claimed` tracks per-bottle draw so two slots of the
  * same category don't double-claim the same litres.
  */
+/**
+ * ⭐ **The medium's phase ceiling** — the heat a cooking medium can carry
+ * into the food, however hot the fire is. Water pins at its **boiling
+ * point** (the excess goes into steam, not into the stew); a fat pins at
+ * its **smoke point** (past it the fat breaks down, which is a different
+ * thing happening, not a hotter version of this one).
+ *
+ * `0` when the material tabulates none — no cap, the fire wins. Syrup's
+ * elevated boiling point needs no special case: it rides its own row.
+ */
+function mediumCapK(medium: RecipeMedium, material: Material | null): number {
+  if (!material) return 0;
+  const cap =
+    medium === 'fat'
+      ? material.getSmokePoint().rawValue()
+      : material.getBoilingPoint().rawValue();
+  return cap > 0 ? cap : 0;
+}
+
+/**
+ * The matched input actually carrying the medium — found by the medium's
+ * own TAG on the Material (`water` ships on water; a cooking fat authors
+ * `fat`), never by slot name. No such input ⇒ the recipe cannot be worked
+ * at all: you cannot boil without water.
+ */
+function findMediumMaterial(
+  medium: RecipeMedium,
+  matched: readonly MatchedInput[],
+  matchedItems: readonly MatchedItemInput[],
+): Material | null {
+  for (const m of matched) {
+    if (m.material?.hasTag(medium)) return m.material;
+  }
+  for (const m of matchedItems) if (m.material.hasTag(medium)) return m.material;
+  return null;
+}
+
+/** Whether a medium candidate's phase ceiling clears the recipe's demand. */
+function capClears(
+  floor: { medium: RecipeMedium; minK: number },
+  material: Material,
+): boolean {
+  const cap = mediumCapK(floor.medium, material);
+  return cap === 0 || cap >= floor.minK;
+}
+
 function pickCandidate(
   inSlot: RecipeInputSlot,
   bottles: BottleCandidate[],
   claimed: Map<Stuff, number>,
   brandKey: string | null,
+  mediumFloor: { medium: RecipeMedium; minK: number } | null = null,
 ): BottleCandidate | null {
   const minGrade = Grade.of(inSlot.minGrade);
   const need = inSlot.measureL ?? 0;
@@ -475,7 +567,17 @@ function pickCandidate(
       b.material !== null &&
       b.material.hasTag(inSlot.category) &&
       b.grade.compareTo(minGrade) >= 0 &&
-      b.slot.available() - (claimed.get(b.stuff) ?? 0) >= need - EPS,
+      b.slot.available() - (claimed.get(b.stuff) ?? 0) >= need - EPS &&
+      // ⭐ **A cook reaches for a fat that will take the heat.** Without
+      // this the rail rule below (take the cheapest sufficient) picks the
+      // first liquid carrying the medium's tag, and a bottle of olive oil
+      // standing beside a crock of tallow makes a 470 K cutlet decline —
+      // saying "not hot enough" about a fire that was, and a fat that
+      // would have been. A medium that cannot carry the recipe's heat is
+      // not a cheaper option; it is not an option.
+      (mediumFloor === null ||
+        !b.material.hasTag(mediumFloor.medium) ||
+        capClears(mediumFloor, b.material)),
   );
   if (eligible.length === 0) return null;
   eligible.sort((x, y) => {
@@ -550,6 +652,123 @@ function pickItemInputs(
   return remaining <= 0 ? picked : null;
 }
 
+/** Stamp a working's spoilage outcome onto the output slot. */
+function applySpoilage(outSlot: BulkSlot, outcome: SpoilageOutcome): void {
+  Freshness.stampLoad(outSlot, outcome.load);
+  const formed = outcome.formed;
+  if (!formed) return;
+  const payload = outSlot.getPayload();
+  if (!payload) return;
+  // ⭐ A FORMED toxin — it arose in the working, it did not arrive in an
+  // ingredient, so it cannot derive from the composition and is carried.
+  // ⚠ It is also deliberately past the heat filter: the kill stops the
+  // growth, it does not un-poison what the growth already produced.
+  const formedToxins = (payload.formedToxins ?? []).map((t) => ({ ...t }));
+  const existing = formedToxins.find((t) => t.type === formed.type);
+  if (existing) existing.amount += formed.amount;
+  else formedToxins.push({ ...formed });
+  outSlot.setPayload({ ...payload, formedToxins });
+}
+
+/**
+ * What a working did to the spoilage its inputs brought: the load the
+ * output starts from, and the formed toxin the killed population left.
+ */
+interface SpoilageOutcome {
+  load: number;
+  formed: ToxinTag | null;
+}
+
+/**
+ * ⭐ **What the working did to the spoilage the inputs brought with them.**
+ *
+ * Two different facts, and keeping them apart is the point:
+ *
+ *   - **the load** — reset to nothing when the working reached the kill
+ *     temperature (cooking kills what is there), else the inputs' loads
+ *     blended by mass, because a lazy warm-through launders nothing;
+ *   - **the rate afterward** — NOT set here at all. It comes from the
+ *     OUTPUT material's own constants, and `/platform/idea/material/cooked`
+ *     tabulates the fastest rate in the library. A cooked dish starts
+ *     sterile and goes off faster than the raw stock it was made from,
+ *     which is exactly what leftovers do.
+ *
+ * Bulk draws weigh by litres and discrete inputs by mass — near enough the
+ * same units for food, and the blend is the same one a pour uses.
+ */
+function outputMicrobialLoad(
+  effectiveHeatK: number,
+  matched: readonly MatchedInput[],
+  matchedItems: readonly MatchedItemInput[],
+): SpoilageOutcome {
+  let weighted = 0;
+  let total = 0;
+  for (const m of matched) {
+    const w = m.measureL;
+    if (w <= 0) continue;
+    weighted += Freshness.loadOf(m.slot) * w;
+    total += w;
+  }
+  for (const m of matchedItems) {
+    const unitKg = MixinApi.isTangible(m.stuff)
+      ? m.stuff.getMass().rawValue()
+      : 0;
+    const w = (unitKg > 0 ? unitKg : 0.1) * m.count;
+    const load = MixinApi.isFresh(m.stuff) ? m.stuff.getMicrobialLoad() : 0;
+    weighted += load * w;
+    total += w;
+  }
+  return resolveSpoilage(effectiveHeatK, total > 0 ? weighted / total : 0);
+}
+
+/**
+ * The by-hand twin of {@link outputMicrobialLoad}, over a build buffer's
+ * banked snapshot rather than live inputs. Same two facts, same order:
+ * the kill wins, else the banked loads blend by mass.
+ */
+function buildMicrobialLoad(
+  effectiveHeatK: number,
+  contributions: readonly BuildContribution[],
+): SpoilageOutcome {
+  let weighted = 0;
+  let total = 0;
+  for (const c of contributions) {
+    const w = c.kind === 'item' ? 0.1 * (c.count ?? 1) : c.measureL;
+    if (w <= 0) continue;
+    weighted += (c.freshnessLoad ?? 0) * w;
+    total += w;
+  }
+  return resolveSpoilage(effectiveHeatK, total > 0 ? weighted / total : 0);
+}
+
+/**
+ * ⭐⭐ **What the kill actually leaves behind.**
+ *
+ * Heat destroys the population; it does NOT destroy what the population
+ * already made. So a working that reaches the kill temperature takes the
+ * load to zero — the dish starts sterile and ages from there at its own
+ * material's rate — and *deposits the dose that load had already earned*
+ * into the output as a real, formed toxin, authoring no `labileAtK` so
+ * nothing later destroys it either.
+ *
+ * ⚠ Without this half, cooking rotten meat produced a clean dinner: the
+ * load reset, the derived dose went with it, and "cooking spoiled food
+ * does not make it safe" was true only of the hand-authored doses. A
+ * live drive is what found it — the whole point of standing the kitchen
+ * up rather than trusting the suite.
+ */
+function resolveSpoilage(
+  effectiveHeatK: number,
+  blended: number,
+): SpoilageOutcome {
+  if (effectiveHeatK < Freshness.killTemperatureK()) {
+    // A lazy warm-through launders nothing: the load rides straight
+    // through and the dose stays derived from it at the ingest.
+    return { load: blended, formed: null };
+  }
+  return { load: 0, formed: Freshness.doseFor(blended) };
+}
+
 /**
  * Derive a blend's {@link BulkPayload} from its consumed inputs —
  * **macros in = macros out** (the fixed-vocabulary rule's engine): union
@@ -562,42 +781,45 @@ function pickItemInputs(
  * from the generic blend material for an off-spec build.
  */
 function deriveBlendPayload(
-  name: string,
+  recipeId: string,
   appearance: string,
   keywords: readonly string[],
   parts: { material: Material; servings: number }[],
+  effectiveHeatK = 0,
 ): BulkPayload {
-  const nutrients = new Set<string>();
-  const nutrientAmounts: Record<string, number> = {};
-  const toxins = new Map<string, number>();
-  const tags = new Set<string>();
-  let edible = false;
+  // ⭐ The composition: what went in, by PATH, with its servings summed
+  // per material and first-seen order kept. Every derived fact below —
+  // the tastes, the tags, the label — is a function of exactly this, and
+  // carrying it properly is what lets each subsystem compute its own
+  // instead of being handed the answer. See the bulk-decomposition plan.
+  const composition = new Map<string, number>();
   for (const part of parts) {
-    if (part.material.getEdibility() === true) edible = true;
-    for (const tag of part.material.getTags()) tags.add(tag);
-    for (const tag of part.material.getNutrients()) nutrients.add(tag);
-    const amounts = part.material.getNutrientAmounts();
-    for (const [tag, mg] of Object.entries(amounts)) {
-      nutrientAmounts[tag] = (nutrientAmounts[tag] ?? 0) + mg * part.servings;
-    }
-    for (const tox of part.material.getToxicity()) {
-      if (tox.amount <= 0) continue;
-      toxins.set(
-        tox.type,
-        (toxins.get(tox.type) ?? 0) + tox.amount * part.servings,
-      );
+    const partPath = part.material.getTemplatePath();
+    if (partPath) {
+      composition.set(partPath, (composition.get(partPath) ?? 0) + part.servings);
     }
   }
-  const payload: BulkPayload = {
-    name,
-    nutrients: [...nutrients],
-    nutrientAmounts,
-    toxicity: [...toxins].map(([type, amount]) => ({ type, amount })),
-    edible,
-  };
+  // ⚠⚠ The nutrition, the toxins and the edibility are NOT computed here
+  // any more — they are functions of the composition below, and
+  // `BlendLabel` computes them on read. What IS recorded is the heat the
+  // working reached, because the heat-labile kill depends on it and no
+  // amount of looking at the ingredients recovers it.
+  // ⭐ Five facts, and every one of them irreducible: what recipe made it,
+  // what went in, how hot the working got, what the making formed. (The
+  // fifth, `freshness`, is live state the gauge stamps.) The name, the
+  // appearance, the keywords, the discipline, the tags, the nutrition and
+  // the tastes are all READ off these — see BlendIdentity and BlendLabel.
+  const payload: BulkPayload = {};
+  if (recipeId) payload.recipeId = recipeId;
   if (appearance) payload.appearance = appearance;
   if (keywords.length > 0) payload.keywords = [...keywords];
-  if (tags.size > 0) payload.tags = [...tags];
+  if (effectiveHeatK > 0) payload.cookedAtK = effectiveHeatK;
+  if (composition.size > 0) {
+    payload.composition = [...composition].map(([materialPath, servings]) => ({
+      materialPath,
+      servings,
+    }));
+  }
   return payload;
 }
 
@@ -694,7 +916,7 @@ async function finishGlass(
     }
   }
   if (typeof pool.setTechnique === 'function') pool.setTechnique(technique);
-  if (typeof pool.setSoiled === 'function') pool.setSoiled(true);
+  if (typeof pool.soil === 'function') pool.soil();
 }
 
 /**
@@ -710,6 +932,7 @@ async function applyBulkOutput(
   recipe: Recipe,
   matched: MatchedInput[],
   matchedItems: MatchedItemInput[] = [],
+  effectiveHeatK = 0,
 ): Promise<void> {
   const outSlot = BulkableApi.slotFor(output, undefined);
   if (!outSlot) {
@@ -741,7 +964,7 @@ async function applyBulkOutput(
   outSlot.setAmount(Quantity.of(totalL, 'L'));
   outSlot.setPayload(
     deriveBlendPayload(
-      recipe.getName(),
+      recipe.getRecipeId(),
       recipe.getOutputAppearance(),
       recipe.getKeywords(),
       [
@@ -750,7 +973,15 @@ async function applyBulkOutput(
         ),
         ...matchedItems.map((m) => ({ material: m.material, servings: m.count })),
       ],
+      effectiveHeatK,
     ),
+  );
+  // A cold bar mix carries its inputs' spoilage through unchanged — a
+  // daiquiri made with yesterday's lime juice is made with yesterday's
+  // lime juice, and nothing about shaking it says otherwise.
+  applySpoilage(
+    outSlot,
+    outputMicrobialLoad(effectiveHeatK, matched, matchedItems),
   );
 }
 
@@ -798,7 +1029,9 @@ function applyTangibleOutput(
 async function applyEdibleOutput(
   output: Stuff,
   recipe: Recipe,
+  matched: MatchedInput[],
   matchedItems: MatchedItemInput[],
+  effectiveHeatK: number,
 ): Promise<void> {
   const outSlot = BulkableApi.slotFor(output, undefined);
   if (!outSlot) {
@@ -807,6 +1040,13 @@ async function applyEdibleOutput(
         `Bulkable`,
     );
   }
+  // ⭐ The serve SOILS the vessel — dish, platter or the pot itself. A
+  // claimed vessel that nobody marked used would be re-claimable forever
+  // and the whole wash loop would be decorative; and a pot exempted from
+  // it could serve dinner every night and never need cleaning.
+  const pool = asPoolGlass(output);
+  if (typeof pool.soil === 'function') pool.soil();
+
   const authored = recipe.getOutputMaterial();
   if (authored) {
     const material = await StuffApi.singleton<Material>(authored);
@@ -817,6 +1057,10 @@ async function applyEdibleOutput(
     }
     outSlot.setMaterial(material);
     outSlot.setAmount(Quantity.of(recipe.getOutputPortionL(), 'L'));
+    applySpoilage(
+      outSlot,
+      outputMicrobialLoad(effectiveHeatK, matched, matchedItems),
+    );
     return;
   }
   // The derived default: the generic cooked base + macros summed from
@@ -826,11 +1070,16 @@ async function applyEdibleOutput(
   outSlot.setAmount(Quantity.of(recipe.getOutputPortionL(), 'L'));
   outSlot.setPayload(
     deriveBlendPayload(
-      recipe.getName(),
+      recipe.getRecipeId(),
       recipe.getOutputAppearance(),
       recipe.getKeywords(),
       matchedItems.map((m) => ({ material: m.material, servings: m.count })),
+      effectiveHeatK,
     ),
+  );
+  applySpoilage(
+    outSlot,
+    outputMicrobialLoad(effectiveHeatK, matched, matchedItems),
   );
 }
 
@@ -914,16 +1163,54 @@ function matchBuild(
   recipes: readonly Recipe[],
   contributions: readonly BuildContribution[],
   heatedToK = 0,
+  mediumCaps: ReadonlyMap<RecipeMedium, number> = new Map(),
 ): Recipe | null {
   let best: Recipe | null = null;
   for (const recipe of recipes) {
-    if (recipe.getRequiresHeatK() > heatedToK) continue; // never worked hot enough
+    // The medium clamp, the by-hand twin of `craftImpl`'s: a recipe
+    // worked THROUGH water was never worked hotter than the water got,
+    // no matter what the build's latched heat says. `mediumCaps` is
+    // pre-resolved by the async caller so this stays synchronous — the
+    // key is present iff SOMETHING banked carries the medium's tag, and
+    // its value is that medium's ceiling (0 = it tabulates none).
+    const medium = recipe.getMedium();
+    let effectiveK = heatedToK;
+    if (medium) {
+      if (!mediumCaps.has(medium)) continue; // no water banked, no boiling
+      const cap = mediumCaps.get(medium)!;
+      if (cap > 0 && cap < effectiveK) effectiveK = cap;
+    }
+    if (recipe.getRequiresHeatK() > effectiveK) continue; // never worked hot enough
     if (!buildSatisfies(recipe, contributions)) continue;
     if (!best || recipe.getRequiresHeatK() > best.getRequiresHeatK()) {
       best = recipe;
     }
   }
   return best;
+}
+
+/**
+ * Pre-resolve the media the buffer actually banked, so the synchronous
+ * {@link matchBuild} can clamp per recipe. A key is present iff some
+ * banked contribution's Material carries that medium's tag; the value is
+ * the HIGHEST ceiling among them — bank both tallow and butter and you
+ * are assumed to reach for the one that takes the heat.
+ */
+async function resolveMediumCaps(
+  contributions: readonly BuildContribution[],
+): Promise<Map<RecipeMedium, number>> {
+  const caps = new Map<RecipeMedium, number>();
+  for (const c of contributions) {
+    if (!c.materialPath) continue;
+    const material = await StuffApi.singleton<Material>(c.materialPath);
+    for (const medium of RECIPE_MEDIA) {
+      if (!material.hasTag(medium)) continue;
+      const cap = mediumCapK(medium, material);
+      const seen = caps.get(medium);
+      caps.set(medium, seen === undefined ? cap : Math.max(seen, cap));
+    }
+  }
+  return caps;
 }
 
 /** Whether `contributions` exactly cover `recipe`'s slots (no leftovers). */
@@ -1038,10 +1325,12 @@ async function mintFromBuildImpl(req: BuildMintRequest): Promise<CraftOutcome> {
     return { ok: false, reason: 'insufficient-input', detail: 'empty-build' };
   }
   const catalogue = await requireCatalogue();
+  const mediumCaps = await resolveMediumCaps(req.contributions);
   const recipe = matchBuild(
     catalogue.allRecipes(),
     req.contributions,
     req.heatedToK ?? 0,
+    mediumCaps,
   );
 
   // Weakest-link grade over the buffer, floored at a matched recipe's base.
@@ -1066,7 +1355,16 @@ async function mintFromBuildImpl(req: BuildMintRequest): Promise<CraftOutcome> {
   if (req.workpiece) {
     return mintWorkpiece(req.workpiece, recipe, grade, makerPath, makerStuff);
   }
-  return mintVessel(req, recipe, grade, makerPath, makerStuff);
+  // The same clamp the reverse-match applied, kept for the output step:
+  // what the working actually reached is what killed (or did not kill)
+  // the spoilage and the heat-labile doses.
+  let effectiveHeatK = req.heatedToK ?? 0;
+  const mintMedium = recipe?.getMedium() ?? null;
+  if (mintMedium) {
+    const cap = mediumCaps.get(mintMedium) ?? 0;
+    if (cap > 0 && cap < effectiveHeatK) effectiveHeatK = cap;
+  }
+  return mintVessel(req, recipe, grade, makerPath, makerStuff, effectiveHeatK);
 }
 
 /**
@@ -1181,6 +1479,7 @@ async function mintVessel(
   grade: Grade,
   makerPath: string,
   makerStuff: Stuff | null,
+  effectiveHeatK: number,
 ): Promise<CraftOutcome> {
   const vessel = req.vessel;
   if (!vessel) {
@@ -1239,14 +1538,23 @@ async function mintVessel(
       });
     }
     outSlot.setPayload(
+      // ⚠ No recipe here is the by-hand path: the working has a material
+      // and no recipe, so the identity falls back to the Material exactly
+      // as `BlendIdentity` does for water in a butt.
       deriveBlendPayload(
-        recipe ? recipe.getName() : material.getName(),
+        recipe ? recipe.getRecipeId() : '',
         recipe ? recipe.getOutputAppearance() : '',
         recipe ? recipe.getKeywords() : material.getKeywords(),
         parts,
+        effectiveHeatK,
       ),
     );
   }
+  // The spoilage the buffer brought with it: killed off if the working
+  // actually got hot enough, otherwise blended through (a lazy
+  // warm-through launders nothing) — and either way, what the killed
+  // population already made stays in the dish.
+  applySpoilage(outSlot, buildMicrobialLoad(effectiveHeatK, req.contributions));
 
   // The working finishes the glass: chill + dilution, the technique
   // stamp, the soil mark. Ice and garnish are the hand's own steps
@@ -1309,6 +1617,12 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
   const matched: MatchedInput[] = [];
   const matchedItems: MatchedItemInput[] = [];
   const grades: Grade[] = [];
+  // The medium a bulk slot may satisfy this recipe with: one that can
+  // actually carry the heat the recipe asks for (see `pickCandidate`).
+  const recipeMedium = recipe.getMedium();
+  const mediumFloor = recipeMedium
+    ? { medium: recipeMedium, minK: recipe.getRequiresHeatK() }
+    : null;
   for (const inSlot of recipe.getInputSlots()) {
     if (Recipe.isItemSlot(inSlot)) {
       const picks = pickItemInputs(inSlot, items, claimedUnits, brandKey);
@@ -1319,7 +1633,16 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
       for (const p of picks) grades.push(p.grade);
       continue;
     }
-    const cand = pickCandidate(inSlot, bottles, claimed, brandKey);
+    // ⭐ Two passes, and the second is what makes the DECLINE honest.
+    // First look for a medium that can actually carry the recipe's heat —
+    // a cook reaches past the olive oil for the tallow. If none can, take
+    // the best there is anyway, so the heat gate below says
+    // `insufficient-heat` ("that oil will not take it") rather than
+    // `insufficient-input` ("you have no fat"), which would be a lie told
+    // over a full bottle.
+    const cand =
+      pickCandidate(inSlot, bottles, claimed, brandKey, mediumFloor) ??
+      pickCandidate(inSlot, bottles, claimed, brandKey);
     if (!cand) {
       return { ok: false, reason: 'insufficient-input', detail: inSlot.category };
     }
@@ -1340,14 +1663,39 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
   // The heat gate (the reachable-heat crafting-control seam consumed): a
   // recipe requiring heat declines when the hottest reachable furnace
   // doesn't clear it — a cold forge is a diegetic decline, not a flag.
+  //
+  // ⭐ …and the fire is only half of it. A recipe working THROUGH a medium
+  // gets whichever is lower, the fire or what the medium can carry: a wet
+  // recipe demanding 450 K declines at a roaring forge because the water
+  // stops at 373. Boiling cannot brown, and no table anywhere says so.
+  let effectiveHeatK = MixinApi.isThermal(maker) ? maker.reachableHeatK() : 0;
+  const medium = recipeMedium;
+  if (medium) {
+    const mediumMaterial = findMediumMaterial(medium, matched, matchedItems);
+    if (!mediumMaterial) {
+      // No water in reach is an ordinary missing input, said in the
+      // ordinary way — no new reason word for "you have no water".
+      return { ok: false, reason: 'insufficient-input', detail: medium };
+    }
+    const cap = mediumCapK(medium, mediumMaterial);
+    if (cap > 0 && cap < effectiveHeatK) effectiveHeatK = cap;
+  }
   const requiresHeatK = recipe.getRequiresHeatK();
-  if (requiresHeatK > 0 && (MixinApi.isThermal(maker) ? maker.reachableHeatK() : 0) < requiresHeatK) {
+  if (requiresHeatK > 0 && effectiveHeatK < requiresHeatK) {
     return {
       ok: false,
       reason: 'insufficient-heat',
       detail: `${requiresHeatK}`,
     };
   }
+  // ⭐ **What the FOOD reached, as against what the room could deliver.**
+  // The gate above asks whether the setup can supply the recipe's heat;
+  // this is the temperature the dish was actually held at, and it is the
+  // recipe's own demand — a stew simmered beside a roaring forge was
+  // simmered, not forged. It is what decides the spoilage kill and the
+  // heat-labile doses, so conflating the two would have every dish cooked
+  // at the hottest thing in the room.
+  const workingHeatK = requiresHeatK;
 
   // Derive grade (weakest-link, floored at the recipe base if any,
   // then at any used control-bearing instrument's band — skill embedded
@@ -1391,25 +1739,52 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
   // the next pools). Then apply its properties (dispatched on the
   // recipe's output-application kind), stamp, consume, wear.
   let output: Stuff;
-  if (application === 'bulk') {
-    const glass = claimGlass(
-      { bottles, tools, items, glasses },
-      recipe,
-      await outputVesselKind(recipe),
-    );
-    if (!glass) {
+  if (application === 'bulk' || application === 'edible') {
+    const pool = { bottles, tools, items, glasses };
+    const glass = claimGlass(pool, recipe, await outputVesselKind(recipe));
+    if (glass) {
+      output = glass;
+    } else if (application === 'bulk') {
+      // The bar's asymmetry, and it stays hard: no clean coupe, no
+      // martini. Glassware is the constraint that makes bussing work.
       return { ok: false, reason: 'no-glass', detail: recipe.getOutputTemplate() };
+    } else {
+      // ⭐ **Pot as last resort.** Dinner is not cancelled for want of
+      // crockery — the meal lands in the vessel it was cooked in and you
+      // eat standing over the fire. That is the campfire case, and it is
+      // why `CookPot` is a `CraftVessel`: the pot is a member of the same
+      // pool, so this is a claim, not a special case.
+      const pot = claimCookVessel(pool, usedTools);
+      if (!pot) {
+        return {
+          ok: false,
+          reason: 'no-glass',
+          detail: recipe.getOutputTemplate(),
+        };
+      }
+      output = pot;
     }
-    output = glass;
   } else {
     output = await StuffApi.clone<Stuff>(recipe.getOutputTemplate());
   }
   if (application === 'tangible') {
     applyTangibleOutput(output, recipe, matchedItems);
   } else if (application === 'edible') {
-    await applyEdibleOutput(output, recipe, matchedItems);
+    await applyEdibleOutput(
+      output,
+      recipe,
+      matched,
+      matchedItems,
+      workingHeatK,
+    );
   } else {
-    await applyBulkOutput(output, recipe, matched, matchedItems);
+    await applyBulkOutput(
+      output,
+      recipe,
+      matched,
+      matchedItems,
+      workingHeatK,
+    );
     const outSlot = BulkableApi.slotFor(output, undefined)!;
     await finishGlass(
       output,

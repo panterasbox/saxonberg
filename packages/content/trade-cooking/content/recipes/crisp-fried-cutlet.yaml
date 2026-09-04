@@ -1,0 +1,33 @@
+# ⭐ **The smoke-point margin, and the roster's sharpest lesson.** 470 K is
+# above olive oil's smoke point (463) and below tallow's (478), so this
+# dish can be made in one fat and not the other — and the decline is
+# `insufficient-heat`, which is exactly right: the fire is willing, the
+# oil is not.
+#
+# Nobody authored that. Two tabulated smoke points and one number here.
+recipeId: crisp-fried-cutlet
+name: Crisp-Fried Cutlet
+keywords:
+- crisp-fried-cutlet
+- cutlet
+inputSlots:
+- slot: fat
+  category: fat
+  minGrade: fair
+  kind: bulk
+  measureL: 0.08
+- slot: meat
+  category: meat
+  minGrade: fair
+  kind: item
+  count: 1
+toolCapabilities:
+- pot
+outputTemplate: /stuff/thing/items/plated-dish
+outputAppearance: a cutlet fried hard and crackling, spitting as it lands
+outputApplication: edible
+outputPortionL: 0.35
+requiresHeatK: 470
+medium: fat
+difficulty: hard
+discipline: cooking

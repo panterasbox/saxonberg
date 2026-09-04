@@ -1,6 +1,6 @@
 # A ration pack in the pantry — the toasted-ration recipe's input (the
 # store's ration tier, one shelf over).
-class: /platform/thing/Prop
+class: /platform/thing/Provision
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a wrapped ration pack

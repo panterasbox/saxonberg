@@ -64,7 +64,7 @@ export default class ReloadController extends CommandController<ReloadModel> {
       // identity field. Two distinct lookups, hence the split.
       path = stuff instanceof Template ? stuff.path : stuff.getTemplatePath();
     } else if (model.target) {
-      // A class-namespace path (`/system/arcana/thing/Wand`, `/platform/thing/Prop`)
+      // A class-namespace path (`/system/arcana/thing/Wand`, `/platform/thing/Thing`)
       // resolves through the one class→file resolver, so a capability
       // pack's class reloads exactly as a kernel one does; anything
       // else is the workspace-logical join it always was.

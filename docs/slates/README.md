@@ -19,6 +19,12 @@ opening a cycle for).
 | [`tails/`](./tails/) | **Deferred tails of shipped subsystems.** The load-bearing substrate already exists in `docs/subsystems/`; what remains is Wave-N enhancement. Not a build — pulled into a build's branch or a subsystem cycle when a consumer needs it. |
 | [`deferred-rpg/`](./deferred-rpg/) | **Game-design behind the platform line** (RPG rules, progression, combat). Captured, intentionally not near-term — "no" here usually means "not this phase." |
 
+⭐ **Every slate carries a lens pass.** A design is not ready until it
+has been interrogated against the five —
+[../design-lenses.md](../design-lenses.md): pedagogy · creative
+expression · immersion & roleplay · values · epochs. Lenses 1 and 2
+decide forks; a heading that is hard to fill is the finding.
+
 ---
 
 ## Builds (`builds/`)

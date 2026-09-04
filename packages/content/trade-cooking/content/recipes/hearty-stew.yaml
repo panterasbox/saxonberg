@@ -1,0 +1,39 @@
+recipeId: hearty-stew
+name: Hearty Stew
+keywords:
+- stew
+- hearty-stew
+inputSlots:
+# ⭐ The water slot is not decoration: `medium: water` requires an input
+# actually carrying the `water` tag, so a stew declines for want of water
+# the same diegetic way it declines for want of meat. (It also caps the
+# effective heat at water's boiling point — see `medium` below.)
+- slot: water
+  category: water
+  minGrade: fair
+  kind: bulk
+  measureL: 0.5
+- slot: roots
+  category: vegetable
+  minGrade: fair
+  kind: item
+  count: 2
+- slot: meat
+  category: meat
+  minGrade: fair
+  kind: item
+  count: 1
+toolCapabilities:
+- pot
+outputTemplate: /stuff/thing/items/bowl
+outputAppearance: a thick brown stew, roots and meat in a dark gravy
+outputApplication: edible
+outputPortionL: 0.4
+requiresHeatK: 373
+# ⭐ Worked THROUGH water, so the effective heat is capped at water's
+# boiling point (373 K) however hot the hearth is. A stew is a stew at a
+# campfire and at a forge — which is why browning is a DIFFERENT recipe,
+# not a hotter version of this one.
+medium: water
+difficulty: standard
+discipline: cooking

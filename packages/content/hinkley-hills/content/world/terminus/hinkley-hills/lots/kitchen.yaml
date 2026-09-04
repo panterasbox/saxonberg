@@ -1,6 +1,6 @@
 # The kitchen — a keyed room of every Hinkley holding (residences D16),
 # citing the GENERIC fixtures (range, counter, larder — the archetype
-# needs' carriers) rather than trade-hearth-cooking's venue row, so the
+# needs' carriers) rather than trade-cooking's venue row, so the
 # suburb doesn't buy a cross-pack dependency for a stove. It authors a
 # finite `air` reserve because it is the room you deliberately run a
 # fire in — a lit range behind a closed door burns incomplete (D12's

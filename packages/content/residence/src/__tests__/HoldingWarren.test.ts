@@ -20,7 +20,7 @@ import { OuterWarren } from '@saxonberg/server/mud/lib/location/OuterWarren';
 import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';
 import { PostRegistrationMixin } from '@saxonberg/server/mud/lib/stuff/PostRegistration';
 import FurnishableRoom from '@saxonberg/server/mud/platform/location/FurnishableRoom';
-import Prop from '@saxonberg/server/mud/platform/thing/Prop';
+import Thing from '@saxonberg/server/mud/platform/thing/Thing';
 import Avatar from '@saxonberg/server/mud/platform/agent/Avatar';
 import ParcelRegistry from '@saxonberg/server/mud/platform/idea/ParcelRegistry';
 import GroupRegistry from '@saxonberg/server/mud/platform/idea/GroupRegistry';
@@ -130,7 +130,7 @@ function seedDomain(): void {
   add(ROOM_B, '/platform/location/FurnishableRoom', {
     shortDescription: 'a bedroom',
   });
-  add('/world/prog-test/coatrack', '/platform/thing/Prop', {
+  add('/world/prog-test/coatrack', '/platform/thing/Thing', {
     shortDescription: 'a coat rack',
   });
   add(STREET, '/platform/location/FurnishableRoom', {
@@ -265,7 +265,7 @@ describe('the residential programme (D16)', () => {
     ).toBe(`${LOT1}/hall`);
     // Born-with fixture landed once.
     expect(
-      entry.getContents().some((c) => c instanceof Prop),
+      entry.getContents().some((c) => c instanceof Thing),
     ).toBe(true);
     // Wired: hall → bedroom, and back.
     const hallEx = entry as unknown as Exitable;
@@ -315,7 +315,7 @@ describe('the residential programme (D16)', () => {
     expect(reborn.isDestroyed()).toBe(false);
     expect(reborn.getTemplatePath()).toBe(ROOM_A);
     expect(
-      reborn.getContents().some((c) => c instanceof Prop),
+      reborn.getContents().some((c) => c instanceof Thing),
     ).toBe(true);
   });
 

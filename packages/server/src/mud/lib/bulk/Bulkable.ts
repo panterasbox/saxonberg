@@ -106,28 +106,113 @@ export const BULK_VOLUME_UNIT = 'L' as const;
  * Plain JSON-able record (the `reserves` precedent) — round-trips
  * through the default Hydrator with no marshaller.
  */
+/**
+ * One ingredient of a blend: which Material, and how many servings of it
+ * went in. `servings` is the craft's own unit — the same number the
+ * nutrition label already multiplies by — so a per-litre reading is an
+ * honest division rather than a guess.
+ */
+export interface BlendPart {
+  /** templatePath of the ingredient Material. */
+  materialPath: string;
+  /** Servings of it consumed into this blend. */
+  servings: number;
+}
+
+/**
+ * ⭐⭐ **What a blend IS, and nothing else.** Two facts live here —
+ * `recipeId` (what made it) and `composition` (what went in) — plus
+ * `cookedAtK`, which the making could not otherwise recover.
+ *
+ * ⚠ Other subsystems add their own carried facts by DECLARATION MERGING
+ * from their own folders, which is how a value object gets the thing a
+ * class gets from a mixin: `formedToxins` is declared by
+ * `lib/metabolism`, `freshness` by `lib/material/Freshness`. That is why
+ * `lib/bulk` imports no subsystem — continuous volume is all this file
+ * knows about, and `pnpm lint:imports` is what keeps it that way.
+ */
 export interface BulkPayload {
-  /** Display name ("hearty stew") — the blend's `Material.name`. */
-  name: string;
-  /** Optional appearance prose — the blend's `Material.appearance`. */
-  appearance?: string;
-  /** Resolution keywords (`look stew`) — the blend's keywords. */
-  keywords?: string[];
-  /** Nutrient routing tags (metabolism's per-litre routes). */
-  nutrients: string[];
-  /** Label amounts (tag → mg per serving) — display, like Material's. */
-  nutrientAmounts: Record<string, number>;
-  /** Per-serving toxin doses (each ingest is one serving). */
-  toxicity: { type: string; amount: number }[];
-  /** Whether the blend is edible (the label + eat gates read this). */
-  edible: boolean;
   /**
-   * The union of the consumed inputs' Material tags — what the blend
-   * *is made of* rides with it (a soda-water input makes the drink
-   * `carbonated`; the presentation reads it). Absent on a payload that
-   * derived nothing.
+   * ⭐⭐ **The recipe that made this** — and with it the blend's whole
+   * identity. `name`, `appearance`, `keywords` and `discipline` were four
+   * copied strings here; they are none of them functions of the
+   * ingredients (you cannot get "hearty stew" out of root-vegetable plus
+   * stew-meat) and none of them the Material's either, because the craft
+   * sets a blend's material to a GENERIC base. **A blend has no Material
+   * of its own** — but it does have a recipe, and `recipeId` is canonical
+   * and unique-indexed. See `lib/craft/BlendIdentity.ts`.
+   *
+   * Absent on bulk that no recipe made: water in a butt, a puddle, a
+   * discrete ration's shadow. Those have a Material, and every reader
+   * falls back to it.
    */
-  tags?: string[];
+  recipeId?: string;
+  /**
+   * ⚠⚠ **The one presentation string still carried, and the reason is a
+   * boundary, not an oversight.** The blend's appearance is the RECIPE's
+   * (`getOutputAppearance`), like its name and keywords — but unlike
+   * those, it is rendered by `bulkContentsAugmenter` **in this file**
+   * ("It holds a thick brown stew…"), and `lib/bulk` may not import
+   * `lib/craft` to ask. Reaching for `BlendIdentity` here was tried: it
+   * put back the exact `lib/bulk` → `lib/craft` edge the decomposition
+   * exists to remove, and it was circular besides.
+   *
+   * ⭐ Dropping it instead was tried too, and that is the instructive
+   * half: every dish silently began reading "a portion of plain cooked
+   * fare" — the generic base's appearance — and **the live drive still
+   * passed**, because its check was `/holds|stew/i`. An empty derivation
+   * and a wrong one look identical unless the assertion names the
+   * sentence.
+   */
+  appearance?: string;
+  /**
+   * ⚠⚠ Carried for the same reason as `appearance`, and learned the same
+   * way: derived keywords silently broke RESOLUTION. `look stew` answered
+   * *"You don't see any 'stew' here"* because the blend's keywords came
+   * back as the generic base material's, and every later check in the
+   * drive failed as a cascade off that one miss.
+   *
+   * ⭐ The lesson is about which facts a substrate may outsource. Name and
+   * discipline are READ by callers and degrade gracefully if a lookup
+   * misses; keywords are how the thing is FOUND, so a miss is not a
+   * degraded reading, it is an object that has stopped existing.
+   */
+  keywords?: string[];
+  /**
+   * ⭐ The temperature (K) the working actually REACHED — history, not
+   * composition, and the reason it must be carried. The heat-labile kill
+   * depends on it: a toxin the author marked labile is destroyed once the
+   * working got that hot. ⚠⚠ It used to be applied at blend time and
+   * thrown away, which was only safe because the answer was frozen with
+   * it; deriving the toxins without carrying the heat would bring a
+   * cooked-off dose back from the dead. `0` / absent = never heated.
+   */
+  cookedAtK?: number;
+  /**
+   * ⭐⭐ **The composition — what went in, and how much.** Material PATHS
+   * with their servings, in the order first consumed, summed per
+   * material. Absent on a blend that derived nothing.
+   *
+   * ⚠ This was `parts: string[]`, *"the ingredients by their Materials'
+   * display names"* — and a name is not a handle. Nothing could ask a
+   * name for a taste, a toxin or a tag, so every subsystem had to be
+   * handed its answer pre-computed, and the only place to put those
+   * answers was this type: `tastes`, `tags`, the whole nutrition label.
+   * That is how a continuous-volume payload came to carry seven
+   * subsystems' vocabulary and why `lib/bulk` imports `lib/metabolism`.
+   *
+   * ⭐ With paths and servings, each subsystem derives its own facts on
+   * read, in its own folder. See `docs/subsystems/bulk.md` §
+   * `BulkPayload`.
+   */
+  composition?: BlendPart[];
+
+  /*
+   * ⚠ These three are DATA the craft writes; the reading that uses them
+   * lives on `PalatableMixin` (`lib/metabolism/Palatable.ts`), composed
+   * on `CraftVessel`. It sat on `BulkableMixin` for one build, which put
+   * a taste-palate augmenter on floors, garden beds and air tanks.
+   */
 }
 
 
@@ -244,6 +329,13 @@ export class BulkSlot {
   setAmount(amount: Quantity<'L'>): void {
     this.host.setBulkAmount(this.affordance, amount);
   }
+
+  // ⚠ The spoilage gauge that rides this slot's matter is NOT here. A slot
+  // stores it (`BulkPayload.freshness`) and the SPOILAGE subsystem reads
+  // and writes it: `Freshness.loadOf(slot)` / `.stampLoad(slot, n)` /
+  // `.ingestPayloadOf(slot)`. Bulk carries the field the way it carries
+  // `nutrients` and `toxicity` — as data, without knowing the subsystem
+  // that means something by it.
 }
 
 /** Public shape contributed by BulkableMixin. */
@@ -261,8 +353,6 @@ export interface Bulkable {
    * that shared string IS the relationship, since template inheritance
    * does not exist.
    */
-  getCategory(): string;
-  setCategory(value: string): void;
   hasInteriorBulk(): boolean;
   hasSurfaceBulk(): boolean;
   /**
@@ -401,11 +491,7 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
      */
     public closure: ClosureLevel = 'liquidTight';
 
-    /** The vessel kind (`coupe`, `can`, `keg`, `sack`). See {@link Bulkable.getCategory}. */
-    public category: string = '';
-
     static fieldMeta: FieldMeta = {
-      category: { persistent: true, authorable: true },
       interiorBulk: { persistent: true, authorable: true },
       surfaceBulk: { persistent: true, authorable: true },
       interiorMaterial: { persistent: true, authorable: true, authorPicker: 'Material' },
@@ -439,13 +525,6 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
         },
       },
     ];
-
-    getCategory(): string {
-      return this.category;
-    }
-    setCategory(value: string): void {
-      this.category = value;
-    }
 
     // ---- accessor pairs (strict-Quantity invariants, Pattern D) ----
     protected get interiorAmount(): Quantity<'L'> {
@@ -588,6 +667,10 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
         const described = (material as unknown as Stuff).describeFor(viewer);
         if (described) return described;
       }
+      // The blend's own appearance when it has one, else the matter's.
+      // ⚠ Read off the payload rather than through `BlendIdentity`,
+      // because `lib/bulk` may not import `lib/craft` — see the field's
+      // comment for why that is a boundary and not an oversight.
       return slot.getPayload()?.appearance ?? material.getAppearance() ?? null;
     }
 
@@ -720,7 +803,9 @@ function bulkContentsAugmenter(
       // unbroken" off its authored row, which is a lie the moment
       // somebody drinks it. Only the interior slot, and only when the
       // row declared what kind of vessel it is.
-      const kind = host.getCategory();
+      // ⚠ The kind is no longer Bulkable's — a puddle has volume and no
+      // par key — so the substrate asks whether this host has one.
+      const kind = MixinApi.isVesselKind(host) ? host.getCategory() : '';
       if (affordance === 'interior' && kind) {
         lines.push(`The ${kind} is empty.`);
       }
