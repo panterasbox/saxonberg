@@ -72,9 +72,34 @@ lane or `Route` shape may assume a player.
 | `spine` | `wheeled` | the wagon's road, Terminus → the crossroads. Stops at the pass. |
 | `estuary` | `sailed` | below the confluence only — the gorge is authored as *"steep enough that no boat has ever been up it"*, and the lane inherits that rather than restating it |
 | `city` | `walk` | the whole of Terminus, induced with **no content change at all** |
-| `tpa` | — | ⭐⭐ **the limit case**: authored edges, no intermediate stops, no duration. Teleportation stops being a special treatment and becomes the far end of one axis. |
+| `ferrow-tram` | — | ⭐⭐ **the AUTHORED-edge case**: rails are not doors, so there is nothing to induce from and the edges are written down. The proof that *"rail is a data addition"* — a realm ships a row and no code. |
 
 ---
+
+### ⚠⚠ There is no `tpa` lane, and deleting it is the lesson
+
+One shipped as *"the limit case — teleportation is a lane with stop
+density and duration driven to zero"*, and the claim is still true and
+still worth making. The ROW was a mistake:
+
+- **The terminals already are the graph.** A `TpaTerminal` carries
+  `routes:` with **fares**; the lane restated the same three legs with no
+  fares, naming ROOMS where the terminals name TERMINALS — two encodings
+  of one fact, at different granularities, in different packs.
+- ⭐ **And nothing read it.** Every brain that plans a route names
+  `city`; `journey ... via tpa` cannot work because `journey` requires a
+  vehicle and there is none in a terminal hall. So the two records could
+  disagree forever and no consumer would ever notice.
+
+⭐⭐ The demonstration it was carrying — *an authored-edge lane, for ways
+that are not walkable exits* — moved to the **Ferrow tramway**, where it
+is load-bearing: a tram sits on the rails and a player can travel them.
+
+🔬 **Logged, not done:** *derive* a TPA lane from the terminals' own
+`routes:` over the `TravelNode` shape, so the network has one record and
+`journey`-over-the-Line becomes coherent if it is ever wanted. That is a
+change to how lanes compile, and it needs the terminal→room mapping the
+two encodings currently disagree about.
 
 ## The Route: nodes plus a stop set
 

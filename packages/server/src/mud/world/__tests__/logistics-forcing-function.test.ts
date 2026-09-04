@@ -179,11 +179,13 @@ describe('the content the switchover needed', () => {
     expect(data.props).toContain('/trade/haulage/thing/works-board');
     expect(data.props).toContain('/trade/haulage/thing/receiving-bench');
 
-    const tpa = yamlAt('world-seed/content/stuff/idea/Lane/tpa.yaml');
-    const lane = (tpa.data ?? {}) as { edges?: Array<{ to?: string }> };
-    expect((lane.edges ?? []).map((e) => e.to)).toContain(
-      '/world/lounge/location/bar',
-    );
+    // ⚠⚠ There is no lane into the Lounge, and there never really was.
+    // A `tpa` lane row listed the leg and **nothing read it**: the
+    // Authority's terminals are its own graph, `journey` needs a vehicle
+    // and there is none in a terminal hall, and every brain that plans a
+    // route names `city`. The row was deleted rather than left as a
+    // second record of somebody else's facts. The Lounge is served the
+    // way it always was — the keeper ORDERS, and a hauler carries.
   });
 
   it('⚠ the par sheet was RETUNED, as part of the decision', () => {

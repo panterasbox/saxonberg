@@ -42,6 +42,12 @@ data:
       destination: /world/rejection/kestrel-road/yard-gate
       media: [ground]
       edgeMinutes: 3
+  props:
+    # ⭐ The tram that makes the rails a lane you can travel. The prose
+    # above has always said "a rail line that runs twenty yards and
+    # stops"; this is the box that runs on it, and `/stuff/idea/Lane/
+    # ferrow-tram` is the twenty yards.
+    - /system/transport/thing/ore-tram
   details:
     outcrop:
       keywords: [outcrop, stain, green, band, rock, malachite]

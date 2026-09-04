@@ -519,6 +519,9 @@ importers:
       '@saxonberg/content-trade-smelting':
         specifier: workspace:*
         version: link:../trade-smelting
+      '@saxonberg/content-transport':
+        specifier: workspace:*
+        version: link:../transport
       '@saxonberg/server':
         specifier: workspace:*
         version: link:../../server

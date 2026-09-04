@@ -89,13 +89,18 @@ describe('a lane induces its edges from the exits', () => {
     expect((await catalogue().laneOf('river'))!.nodes).toHaveLength(4);
   });
 
-  it('⭐ an AUTHORED-edge lane needs no exits at all (the rail/TPA proof)', async () => {
+  it('⭐ an AUTHORED-edge lane needs no exits at all (the RAIL proof)', async () => {
     // No rooms, no exits, no seeds — the edges ARE the authoring. This is
     // what "rail is a data addition" means: a realm ships rows, not code.
+    // ⚠ The shipped example is the Ferrow tramway. It used to be the
+    // `tpa` lane, which was deleted: the Authority's terminals already
+    // ARE its graph (`routes:`, with fares), so the lane restated the
+    // same legs at a different granularity in another pack, and NOTHING
+    // read it — nobody could have noticed the two disagreeing.
     installRooms(new Map());
     installRows([
       {
-        key: 'tpa',
+        key: 'tram',
         mode: '',
         edges: [
           { from: '/test/terminal/a', to: '/test/terminal/b' },
@@ -103,7 +108,7 @@ describe('a lane induces its edges from the exits', () => {
         ],
       },
     ]);
-    const lane = (await catalogue().laneOf('tpa'))!;
+    const lane = (await catalogue().laneOf('tram'))!;
     expect(lane.authored).toBe(true);
     expect(lane.nodes.sort()).toEqual([
       '/test/terminal/a',
@@ -113,7 +118,7 @@ describe('a lane induces its edges from the exits', () => {
     const route = await catalogue().planRoute(
       '/test/terminal/a',
       '/test/terminal/c',
-      'tpa',
+      'tram',
     );
     expect(route!.nodes).toHaveLength(3);
   });

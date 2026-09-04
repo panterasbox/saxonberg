@@ -1,0 +1,44 @@
+# The Ferrow tramway — ⭐⭐ **the worked example of an AUTHORED lane**, and
+# the reason the `edges:` escape hatch is a fact rather than a hope.
+#
+# Every other lane in the realm INDUCES: `spine` and `city` name a
+# `mode: wheeled` and let the exits that admit wheels be the lane;
+# `estuary` does the same over `sailed`. That is the ordinary case and it
+# is the better one. But a lane whose ways are not walkable exits cannot
+# induce from anything, and **rails are the case that proves it**: a tram
+# runs between two points on iron somebody laid, and the rails are not a
+# door. So the edges are written down.
+#
+# ⭐ That is the same hatch a railway would use, which is what makes
+# *"rail is a data addition"* checkable: a realm that wants a line ships
+# a row like this one and no code at all. It replaces the `tpa` lane,
+# which claimed the same demonstration and was **read by nothing** — the
+# TPA's terminals already ARE its graph (`routes:`, with fares), so the
+# lane restated the same legs at a different granularity, in another
+# pack, where no consumer could ever notice them disagreeing.
+#
+# ⚠ It is DELIBERATELY tiny and deliberately internal to the mine. A rail
+# line between the pithead and the city would run around the pass, and
+# breaking bulk at the pass is the lesson the whole corridor exists to
+# teach. This one goes from the adit to the yard: twenty yards, the
+# distance the pithead's own prose has always said the rails run.
+#
+# `operator: ""` — nobody runs it. It is the mine's own iron, laid by
+# whoever cut the adit, and free to anybody standing at either end.
+class: /system/transport/idea/Lane
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: ferrow-tram
+  name: the Ferrow tramway
+  # ⚠ No mode, and that is the point: there is nothing to induce from.
+  mode: ""
+  seeds: []
+  edges:
+    - { from: /world/rejection/location/adit, to: /world/rejection/location/pithead-yard }
+    - { from: /world/rejection/location/pithead-yard, to: /world/rejection/location/adit }
+  # Both ends are stops: a tramway with a halt in the middle would be a
+  # different lane, and this one is two points and the iron between them.
+  stops:
+    - /world/rejection/location/adit
+    - /world/rejection/location/pithead-yard
+  operator: ""

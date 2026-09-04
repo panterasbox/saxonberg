@@ -1,0 +1,27 @@
+# An ore tram — a tipping box on flanged wheels, and the vehicle that
+# makes the Ferrow tramway a lane somebody can actually travel.
+#
+# ⭐ It is a `HaulageRig` and nothing else: a tram differs from a wagon in
+# `mass`, in `draftFactor` and in running on iron, and the first two are
+# data. Rails are the LANE's business, never the vehicle's — which is why
+# this needs no class, and why a second realm's tramway needs none.
+#
+# ⚠ Heavy and low-friction: a loaded tram is brutal to start and easy to
+# keep going, so its `draftFactor` is well under a wagon's even though
+# the thing itself weighs more. That is what rails are FOR, and it is the
+# whole of the difference, expressed as a number.
+class: /system/transport/thing/HaulageRig
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: an ore tram
+  primaryKeyword: tram
+  keywords: ["tram", "ore-tram", "box"]
+  longDescription: |
+    A tipping box of riveted plate on four flanged wheels, sitting on the rails with its tipping catch dropped. The inside is polished bright by everything that has ever been shovelled out of it; the outside has not been painted in living memory.
+  mass: 220
+  # ⚠ Under a dray's 0.03? No — rails cut ROLLING resistance, and a dray
+  # already rolls. What a tram buys is that its own great weight costs
+  # almost nothing to move once it is moving; what it costs is that it
+  # cannot leave the iron. The lane is the constraint, not the number.
+  draftFactor: 0.05
+  interiorCapacity: 900
