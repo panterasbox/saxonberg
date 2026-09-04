@@ -29,7 +29,7 @@ import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Vitals } from '../../../../lib/vitals/Vitals';
 import type { Dressing } from '../../../../lib/vitals/Dressing';
 import { TRAUMA_BEHAVIOR } from '../../Condition';
-import type { Trauma } from '../../Condition';
+import type { Trauma, AfflictionRecord } from '../../Condition';
 import type { Difficulty, Outcome } from '../../../../lib/advancement/ActSignature';
 
 const TOPIC = 'act.deed';
@@ -220,6 +220,71 @@ export default class TreatController extends CommandController<TreatModel> {
         isSelf
           ? Mml.compose`${Mml.actor(giver)} dresses a wound.`
           : Mml.compose`${Mml.actor(giver)} dresses a wound on ${Mml.actor(target)}.`
+      )
+      .send();
+  }
+
+  /**
+   * ⭐ **Tend an illness.** Not a cure and not a coin flip: the medic's
+   * competence knocks the population back, and how far depends on how good
+   * they are. A capable one clears it outright; a novice buys the body
+   * time it would not otherwise have had.
+   *
+   * ⚠ No dressing is spent — you do not bandage dysentery — and no new
+   * pharmacology arrives with it. What a medic changes is which way the
+   * race between growth and clearance is already going, which is exactly
+   * the shape the requirements asked for: this build **creates demand for
+   * a diagnostician and deliberately supplies none.**
+   */
+  private async tendInfection(
+    target: Stuff & Vitals,
+    infection: AfflictionRecord,
+    isSelf: boolean,
+    context: CommandContext,
+  ): Promise<void> {
+    const giver = context.commandGiver;
+    const band = MixinApi.isAdvancing(giver)
+      ? await giver.competenceBandFor('medicine')
+      : CompetenceBand.FLOOR;
+    const score = BAND_SCORE[band] ?? 0;
+    const outcome: Outcome =
+      score >= 3
+        ? 'critical'
+        : score >= 2
+          ? 'success'
+          : score >= 1
+            ? 'partial'
+            : 'failure';
+    // Knock the population back by what the hand is worth. A failure is a
+    // failure: you sat with them, and nothing changed.
+    const knock = [0, 0.35, 0.6, 0.85, 1][score] ?? 0;
+    const before = infection.pathogenLoad ?? 0;
+    infection.pathogenLoad = Math.max(0, before * (1 - knock));
+    const cleared = infection.pathogenLoad <= 0.01;
+    if (cleared) target.relieve(infection);
+
+    if (MixinApi.isAdvancing(giver)) {
+      await giver.creditDeed({
+        discipline: 'medicine',
+        difficulty: 'standard',
+        outcome,
+      });
+    }
+
+    const who = isSelf ? 'yourself' : target.getPresentation();
+    MessageApi.scene(giver)
+      .topic(TOPIC)
+      .toSelf(
+        cleared
+          ? Mml.compose`You get water and rest into ${who}, and the worst of it passes.`
+          : knock > 0
+            ? Mml.compose`You do what can be done for ${who}. It is not nothing.`
+            : Mml.compose`You sit with ${who} for a while. You are not sure it helped.`,
+      )
+      .toPeers(
+        isSelf
+          ? Mml.compose`${Mml.actor(giver)} tends themselves.`
+          : Mml.compose`${Mml.actor(giver)} tends ${Mml.actor(target as unknown as Stuff)}.`,
       )
       .send();
   }

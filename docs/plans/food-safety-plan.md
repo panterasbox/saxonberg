@@ -823,6 +823,57 @@ already-authored cadences.
 11–13. **Ends at** `feat(vitals): infections grow in the host —
 ProgressionSpec filled`.
 
+> ✅ **DONE.** `AfflictionRecord` gains `pathogenLoad` + `symptomsAt`;
+> `Metabolic.exposeToPathogens` seeds an infection at the one place food
+> becomes body; `VitalsMixin.reconcileConditions` grows it; `treat` tends
+> it; and `ProgressionSpec` finally moves a stage.
+>
+> **Decisions this wave made:**
+> - ⭐⭐ **The seed is in `Metabolic.ingest`, not in `BulkableApi`.** The
+>   plan named `ingestSolid`, but that is a four-line duck-typed forwarder
+>   into `eater.ingest` — putting the pathogen read there would teach
+>   `lib/bulk` the word. `routeIntake` already resolves `Condition` rows
+>   and calls `afflict` for toxins, one line away, so the living half sits
+>   beside the burden half in the module that owns "what a meal does to
+>   you". Every route (`eat` both arms, `drink`, `sip`) passes through it.
+> - ⭐ **The `intoxicate` arm needed nothing at all**, exactly as P4a
+>   predicted: the poison was made in the food before you picked it up and
+>   rides in as a formed toxin. Only `infect` seeds a record.
+> - ⭐⭐ **Nothing new kills anyone (criterion 16): a severe infection
+>   drains HYDRATION.** That is what dysentery does, and dehydration
+>   already has a lethal cascade with a rescuable dying window at the end
+>   of it. No new death path, no new dying driver.
+> - **D12 is one band read** — `infectionResistance(getConditionBand())`,
+>   scaling clearance only. No immune memory, no exposure history, no
+>   per-pathogen resistance; those are the disease build's.
+> - ⭐ **`treat` gained an illness arm, and it consumes no dressing** — you
+>   do not bandage dysentery. The medic's band knocks the population back
+>   (an expert clears it, a novice buys time). Criterion 15's *legibility*
+>   half already worked for free: `assess` reads `observableSigns` off the
+>   row and a competent medic gets the name where a novice gets "unwell".
+> - **`ProgressionSpec` fill is gated to what nothing else drives.** A
+>   toxin's stage is a live band read off its burden; a dwell counter
+>   fighting it would make the answer depend on which arm ran last. So a
+>   row carrying a `toxinBehavior` is skipped, on purpose.
+> - **The harm row fires only when the cook is somebody ELSE** (D8's whole
+>   point: eating your own risky food is a private gamble). Producer shape
+>   copied verbatim from the trap's — the ledger records facts and derives
+>   blame on read.
+>
+> **Two surprises, both worth the next reader's time:**
+> - ⚠ **Game-time is not the test provider's time.** The world clock
+>   re-anchors and scales, so the number a test feeds the provider and the
+>   number `getNow()` returns differ by an offset AND a factor. Every
+>   existing clock test only compares deltas, so it never mattered — until
+>   an **absolute** game-time (`symptomsAt`) appeared. The test helpers now
+>   read the clock instead of assuming it.
+> - ⚠ **The far-past guard means a test must LIVE through time, not jump
+>   it.** Every arm but the dying clock drops a gap over four game-hours,
+>   so a test that steps a day in one bound is testing the guard. The
+>   `live()` helper exists for that and says so.
+>
+> Gates: 26 green · `test:near` 384 files / 3971 tests.
+
 ### W5 — Docs, gates and the drive
 Subsystem doc updates; the `CLAUDE.md` map line (**one line**); the
 requirements doc's drive script run against the live game and recorded
