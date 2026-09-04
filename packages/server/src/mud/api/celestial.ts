@@ -274,6 +274,54 @@ export class CelestialApi {
     return logic().sunriseHourAngleDeg(profile, latitudeDegrees, t);
   }
 
+  /**
+   * ⭐⭐ **Daylength at a place — the keystone signal, and it drives three
+   * systems** (farmstead D11).
+   *
+   * Crop dormancy and bolting (the signal real plants use), hens going
+   * off lay in short days, and the breeding season — ewes are short-day
+   * breeders and lamb in late winter, cattle are near-aseasonal, horses
+   * are long-day. **Lambing in spring is a consequence of the calendar,
+   * not a flavour decision anybody authors.**
+   *
+   * ⭐ And it is arithmetic on two calls this Api already had: the
+   * declination comes from real orbital geometry, the hour angle at
+   * altitude 0 falls out of it, and daylength is `2·H0/360` of a
+   * rotation. Nothing new is modelled; the number was derivable all
+   * along and nobody had ever asked for it.
+   */
+  public static async daylightAt(
+    location: Stuff,
+    time?: Quantity<'s'>
+  ): Promise<Quantity<'s'>> {
+    return logic().daylightAt(location, time);
+  }
+
+  /**
+   * Daylength as a fraction of the rotation, `[0, 1]` — the form a
+   * growth model or a laying hen actually wants, since what matters to
+   * both is *long days or short*, never how many hours a day has.
+   */
+  public static async daylightFractionAt(
+    location: Stuff,
+    time?: Quantity<'s'>
+  ): Promise<number> {
+    return logic().daylightFractionAt(location, time);
+  }
+
+  /**
+   * The pure form: daylength in seconds for an explicit profile and
+   * latitude. The synchronous twin of {@link CelestialApi.daylightAt},
+   * for a caller that already holds a profile.
+   */
+  public static daylightSecondsFor(
+    profile: CelestialProfile,
+    latitudeDegrees: number,
+    t: number
+  ): number {
+    return logic().daylightSecondsFor(profile, latitudeDegrees, t);
+  }
+
   /** Second-of-day of sunrise, or null on a polar day / night. */
   public static sunriseSecOfDay(
     profile: CelestialProfile,

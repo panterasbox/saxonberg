@@ -72,6 +72,8 @@ import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
+import { BiomeApi } from '@saxonberg/server/mud/api/biome';
+import { CelestialApi } from '@saxonberg/server/mud/api/celestial';
 import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
@@ -112,6 +114,26 @@ const DEFAULT_FORAGE_ROW = '/trade/farming/thing/wild-greens';
 
 const SECONDS_PER_GAME_DAY = 86_400;
 
+/**
+ * The base temperature a temperate sward stops growing at, in kelvin
+ * (~5 °C).
+ *
+ * ⭐ Not a dial: it is the base every growing-degree-day sum in agronomy
+ * is measured against, which is why grass growth is genuinely over in
+ * December and genuinely away in April, and why nobody has to author
+ * that it is December.
+ */
+const GRASS_BASE_K = 278;
+
+/** Kelvin at/above which temperature stops limiting a sward (~18 °C). */
+const GRASS_HAPPY_K = 291;
+
+/** Daylength fraction at/below which a temperate sward stops (≈8 h). */
+const DAYLIGHT_STOP = 0.33;
+
+/** Daylength fraction at/above which daylength stops limiting (≈13 h). */
+const DAYLIGHT_HAPPY = 0.54;
+
 // The ground half — composed FIRST and separately, because soil's host
 // constraint is `Stuff & Reserved` alone. Naming the intermediate stack
 // is not cosmetic: inference through this many nested generic mixin
@@ -139,6 +161,8 @@ export default class Field extends FieldBase {
     forageRows: { persistent: true, authorable: true },
     forageTaken: { persistent: true },
     forageStamp: { persistent: true },
+    _ambientK: { persistent: true, runtimeState: true },
+    _daylightFraction: { persistent: true, runtimeState: true },
   };
 
   /**
@@ -321,7 +345,82 @@ export default class Field extends FieldBase {
     if (nitrogen !== null) {
       factors.push(clampUnit(0.25 + nitrogen * 1.5));
     }
+    // ⭐⭐ WINTER, and it is two facts about a place rather than a mode
+    // (D10): it is cold, and the days are short. Both are resolved
+    // asynchronously and cached, so both carry the same tri-state —
+    // ⚠ unresolved reads as UNLIMITED, never as frozen.
+    if (this._ambientK > 0) {
+      // GRASS_BASE_K is the base temperature every growing-degree-day sum
+      // in agronomy is measured against, and it is why a sward stops in
+      // December without anybody writing down that it is December.
+      factors.push(
+        clampUnit((this._ambientK - GRASS_BASE_K) / (GRASS_HAPPY_K - GRASS_BASE_K)),
+      );
+    }
+    if (this._daylightFraction >= 0) {
+      // ⭐ Photoperiod, not irradiance. Short days limit a temperate
+      // sward well before the light gets dim, which is why growth is
+      // over in October and not in the first hard frost.
+      factors.push(
+        clampUnit(
+          (this._daylightFraction - DAYLIGHT_STOP) / (DAYLIGHT_HAPPY - DAYLIGHT_STOP),
+        ),
+      );
+    }
     return factors.length === 0 ? 1 : Math.min(...factors);
+  }
+
+  /**
+   * The cached ambient, kelvin. ⚠ `-1` = never resolved, which reads as
+   * *not temperature-limited* and NOT as absolute zero.
+   */
+  public _ambientK = -1;
+
+  /** The cached daylength as a fraction of the rotation; `-1` = never. */
+  public _daylightFraction = -1;
+
+  /** The in-flight season resolve, or `null` — coalesces callers. */
+  private _seasonPromise: Promise<void> | null = null;
+
+  /**
+   * Resolve how cold it is and how long the day is, here, now.
+   *
+   * ⭐ Both are properties of the PLACE and of the moment, and neither is
+   * a season flag: the same call in the same field answers differently in
+   * June and December because the declination moved, and answers
+   * differently under glass because the temperature did. That is D10's
+   * *"winter is not a mode"* made mechanical — and it is why a heated
+   * greenhouse needs no architectural unlock, only a fuel bill.
+   *
+   * The one `await` on this edge, kept off the read path (the
+   * `ThermalMixin.restamp` shape). Cheap enough to run on every soil
+   * reconcile kick and idempotent within a flight.
+   */
+  public restampSeason(): Promise<void> {
+    const inFlight = this._seasonPromise;
+    if (inFlight !== null) return inFlight;
+    const started = this.resolveSeason();
+    this._seasonPromise = started;
+    return started;
+  }
+
+  private async resolveSeason(): Promise<void> {
+    try {
+      const self = this as unknown as Stuff & Container;
+      const k = await BiomeApi.resolveTemperatureFor(self);
+      const value = k?.rawValue();
+      if (typeof value === 'number' && Number.isFinite(value) && value > 0) {
+        this._ambientK = value;
+      }
+      this._daylightFraction = await CelestialApi.daylightFractionAt(
+        self as unknown as Stuff,
+      );
+    } catch {
+      // ⚠ A failed walk leaves BOTH unresolved rather than resolving
+      // either to something. Unknown must never read as winter.
+    } finally {
+      this._seasonPromise = null;
+    }
   }
 
   /**
@@ -441,6 +540,20 @@ export default class Field extends FieldBase {
   public installFieldReserves(sample: GroundSample): void {
     this.installSoilReserves(sample);
     this.installSward();
+    // Learn where — and when — it is, the moment it exists.
+    void this.restampSeason();
+  }
+
+  /**
+   * Settle both of soil's checkpoints AND the season edge. A field is a
+   * place, so it is never "moved"; registration and the first read are
+   * the only moments it can learn about itself.
+   */
+  public override settleSoilPlacement(): void {
+    super.settleSoilPlacement();
+    if (this._ambientK < 0 || this._daylightFraction < 0) {
+      void this.restampSeason();
+    }
   }
 }
 

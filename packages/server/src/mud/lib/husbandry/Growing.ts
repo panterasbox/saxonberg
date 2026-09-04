@@ -58,6 +58,7 @@ import { StuffApi } from '../../api/stuff';
 import { WorldClockApi } from '../../api/worldclock';
 import { AppApi } from '../../api/app';
 import { PerceptionApi } from '../../api/perception';
+import { BiomeApi } from '../../api/biome';
 import { AppSettingKeys } from '../config/AppSettings';
 import { TemplatePaths } from '../paths';
 import { Quantity } from '../quantity';
@@ -89,6 +90,7 @@ export type LimitingFactor =
   | 'light'
   | 'root'
   | 'nutrient'
+  | 'cold'
   | null;
 
 /**
@@ -108,6 +110,30 @@ export interface GrowthProfileData {
   luxHappyAt: number;
   /** Lux at/below which light satisfaction is 0. */
   luxDarkAt: number;
+  /**
+   * ⭐ **Winter is not a mode; it is cold and short days at a place**
+   * (farmstead D10). Kelvin at/below which growth stops — the base
+   * temperature every agronomist's growing-degree-day sum is measured
+   * against, and about 278 K (5 °C) for a temperate grass or cereal.
+   *
+   * Three consequences fall out of it being a temperature rather than a
+   * season flag, and all three are the point:
+   *
+   *   - the dorm houseplant does not die every real month, because a
+   *     heated room in February is a warm place;
+   *   - ⭐ **the greenhouse falls out for free** — somewhere warm and lit
+   *     in winter is an *economic* decision against the shipped fuel
+   *     chain rather than an architectural unlock;
+   *   - the mechanism is identical indoors, outdoors, under glass and
+   *     underground, so an author extends it without asking for a flag.
+   *
+   * ⚠ Optional. A profile authoring neither this nor {@link warmHappyK}
+   * is never cold-limited, which is how every plant that shipped before
+   * winter existed keeps behaving exactly as it did.
+   */
+  coldStopK?: number;
+  /** Kelvin at/above which warmth satisfaction is 1 (~288 K temperate). */
+  warmHappyK?: number;
   /** Litres of soil each stage's roots demand (the pot ceiling). */
   rootDemand: Record<GrowthStage, number>;
   /** Cumulative well-kept game-days to reach each post-seedling stage. */
@@ -310,6 +336,7 @@ const CAUSE_PHRASE: Record<Exclude<LimitingFactor, null>, string> = {
   light: 'It is not getting enough light.',
   root: 'It has outgrown its pot.',
   nutrient: 'The soil is spent.',
+  cold: 'It is too cold here for it to be doing anything.',
 };
 
 /**
@@ -369,6 +396,7 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
       _flowering: { persistent: true },
       _seedSet: { persistent: true },
       _lastLux: { persistent: true },
+      _lastAmbientK: { persistent: true, runtimeState: true },
       _worstLimiting: { persistent: true },
       _fruitFill: { persistent: true },
       profile: { persistent: true },
@@ -394,6 +422,23 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
     public _maturity = 0;
     /** Current stage — one of {@link GROWTH_STAGES}. */
     public growthStage: string = 'seedling';
+    /**
+     * The ambient temperature this plant last resolved, in kelvin.
+     *
+     * ⚠⚠ **`-1` means UNRESOLVED, and it reads as *not cold-limited*,
+     * never as absolute zero.** Resolving the temperature at a place is
+     * asynchronous (the biome chain) and this reconcile is synchronous,
+     * so there is a window — sometimes across a restart — in which a
+     * plant genuinely does not know how cold it is. The soil's rain edge
+     * carries the same tri-state for the same reason, and this codebase
+     * has been bitten three times by a cache nothing warms reading a
+     * default forever while hand-built tests stayed green.
+     */
+    public _lastAmbientK = -1;
+
+    /** The in-flight warmth resolve, or `null` — coalesces callers. */
+    private _warmthPromise: Promise<void> | null = null;
+
     /** Latched at `mature` in thriving condition; cleared on falling back. */
     public _flowering = false;
     /** This flowering episode has already set its seed. */
@@ -576,11 +621,19 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
       const satLight = this.satLight(this.sampleLux());
       const satRoot = this.satRoot();
       const satNutrient = this.satNutrient();
-      const limiting = Math.min(satWater, satLight, satRoot, satNutrient);
+      const satWarmth = this.satWarmth();
+      const limiting = Math.min(
+        satWater,
+        satLight,
+        satRoot,
+        satNutrient,
+        satWarmth,
+      );
       if (limiting >= dial(AppSettingKeys.husbandryGoodAt, 0.6)) return null;
       if (limiting === satWater) return 'water';
       if (limiting === satLight) return 'light';
       if (limiting === satRoot) return 'root';
+      if (limiting === satWarmth) return 'cold';
       return 'nutrient';
     }
 
@@ -628,8 +681,12 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
         this.growthClockStamp = nowS;
         this._lastLux = this.sampleLux();
         this.soilMoisture();
+        void this.restampWarmth();
         return;
       }
+      // Ground that has never resolved how cold it is keeps asking. The
+      // read path never awaits; until it lands, warmth is unmodelled.
+      if (this._lastAmbientK < 0) void this.restampWarmth();
 
       const elapsed = nowS - this.growthClockStamp;
       if (elapsed <= 0) {
@@ -666,6 +723,10 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
         // right figure for a window this plant is integrating whole.
         const satWater = this.satWater(this.meanSoilMoisture());
         const satNutrient = this.satNutrient();
+        // ⭐ Sampled once for the window like light and water: the season
+        // does not turn inside one integration step, and the plant is
+        // integrating the window whole.
+        const satWarmth = this.satWarmth();
 
         for (let i = 0; i < steps; i++) {
           const limiting = Math.min(
@@ -673,6 +734,7 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
             satLight,
             satRoot,
             satNutrient,
+            satWarmth,
           );
           if (limiting < this._worstLimiting) this._worstLimiting = limiting;
           // Exponential relaxation toward the limiting satisfaction; the
@@ -702,6 +764,69 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
     public noteEnvironmentChanged(): void {
       this.reconcileGrowth();
       this._lastLux = this.sampleLux();
+      // Carrying a pot from a cold yard into a warm kitchen changes the
+      // temperature as surely as it changes the light.
+      void this.restampWarmth();
+    }
+
+    /**
+     * Resolve the ambient temperature where this plant is standing.
+     *
+     * The one `await` on the warmth edge, kept off the read path — the
+     * shape `ThermalMixin.restamp` established for `lastAmbientK` and
+     * the soil's sky edge repeats, for the same reason: a
+     * reconcile-on-read consumer must not await a walk. Holding the
+     * PROMISE rather than a boolean makes a second caller coalesce onto
+     * the first.
+     */
+    public restampWarmth(): Promise<void> {
+      const inFlight = this._warmthPromise;
+      if (inFlight !== null) return inFlight;
+      const started = this.resolveWarmth();
+      this._warmthPromise = started;
+      return started;
+    }
+
+    private async resolveWarmth(): Promise<void> {
+      try {
+        const self = this as unknown as Stuff;
+        if (!MixinApi.isContainable(self)) return;
+        let env: Stuff | null = self.getContainer();
+        for (let hops = 0; hops < MAX_LIGHT_HOPS && env !== null; hops++) {
+          if (MixinApi.isContainer(env)) {
+            const k = await BiomeApi.resolveTemperatureFor(env as Stuff & Container);
+            const value = k?.rawValue();
+            if (typeof value === 'number' && Number.isFinite(value) && value > 0) {
+              this._lastAmbientK = value;
+              return;
+            }
+          }
+          env = MixinApi.isContainable(env) ? env.getContainer() : null;
+        }
+      } catch {
+        // ⚠ A failed walk leaves the ambient UNRESOLVED rather than
+        // resolving it to something: unknown must never read as cold.
+      } finally {
+        this._warmthPromise = null;
+      }
+    }
+
+    /**
+     * Warmth satisfaction — ⭐ **the whole of winter, on the plant side.**
+     *
+     * `1` when the profile declares no cold response, and `1` while the
+     * ambient is unresolved: **unmodelled is not zero**, which is the
+     * same rule the nutrient seam already keeps (a pot authors no
+     * nitrogen and is therefore never nutrient-limited).
+     */
+    protected satWarmth(): number {
+      const profile = this.profile;
+      if (!profile) return 1;
+      const stop = profile.coldStopK;
+      const happy = profile.warmHappyK;
+      if (stop === undefined && happy === undefined) return 1;
+      if (this._lastAmbientK < 0) return 1;
+      return ramp(this._lastAmbientK, stop ?? 278, happy ?? (stop ?? 278) + 10);
     }
 
     // ---------- host seams ----------

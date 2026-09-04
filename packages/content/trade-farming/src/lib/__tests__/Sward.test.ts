@@ -185,3 +185,101 @@ describe('the sward', () => {
     expect(verbs).toContain('mow');
   });
 });
+
+/**
+ * Winter, on the field side (W6 / D10–D12). ⭐ Sward growth reaches
+ * **zero** in winter, and it does so because the ground is cold and the
+ * days are short — never because a flag said `winter`.
+ */
+describe('the sward in winter', () => {
+  let clock: ReturnType<typeof vi.spyOn>;
+  let base: number;
+
+  class Seasonal extends SwardMixin(ReservedMixin(Idea)) {
+    public ambientK = -1;
+    public daylight = -1;
+    public override swardAreaM2(): number {
+      return AREA;
+    }
+    public override swardGrowthFactor(): number {
+      const factors: number[] = [];
+      if (this.ambientK > 0) factors.push(clamp((this.ambientK - 278) / 13));
+      if (this.daylight >= 0) factors.push(clamp((this.daylight - 0.33) / 0.21));
+      return factors.length === 0 ? 1 : Math.min(...factors);
+    }
+  }
+
+  const seasonal = (ambientK: number, daylight: number): Seasonal => {
+    const p = makeStuff(() => {
+      const s = new Seasonal();
+      s.ambientK = ambientK;
+      s.daylight = daylight;
+      return s;
+    });
+    p.installSward();
+    p.standingDryMatterKg();
+    return p;
+  };
+
+  beforeEach(() => {
+    makeStuffAtPath(() => new WorldClockRegistry(), '/platform/idea/WorldClockRegistry');
+    base = WorldClockApi.getNow().rawValue();
+    clock = vi.spyOn(WorldClockApi, 'getNow');
+    clock.mockReturnValue(Quantity.of(base, 's'));
+  });
+  afterEach(() => {
+    vi.restoreAllMocks();
+    StuffApi.clearAll();
+  });
+
+  it('⭐⭐ growth reaches ZERO in winter — cold ground, short days', () => {
+    // 271 K and nine hours of daylight: a January field at 40°.
+    const winter = seasonal(271, 9 / 24);
+    const before = winter.standingDryMatterKg();
+    clock.mockReturnValue(Quantity.of(base + 90 * DAY, 's'));
+    expect(winter.standingDryMatterKg()).toBeCloseTo(before, 6);
+  });
+
+  it('⭐ and away in spring, from the same field with nothing else changed', () => {
+    const spring = seasonal(288, 13 / 24);
+    const before = spring.standingDryMatterKg();
+    clock.mockReturnValue(Quantity.of(base + 90 * DAY, 's'));
+    expect(spring.standingDryMatterKg()).toBeGreaterThan(before * 1.4);
+  });
+
+  it('⭐ EITHER limit alone stops it — the minimum, never a product', () => {
+    // Warm but dark (a mild wet December, seven and a half hours) and
+    // cold but bright (a hard April frost) both stop growth, which is
+    // what a minimum means.
+    const warmDark = seasonal(291, 7.5 / 24);
+    const coldBright = seasonal(272, 15 / 24);
+    const b1 = warmDark.standingDryMatterKg();
+    const b2 = coldBright.standingDryMatterKg();
+    clock.mockReturnValue(Quantity.of(base + 60 * DAY, 's'));
+    expect(warmDark.standingDryMatterKg()).toBeCloseTo(b1, 6);
+    expect(coldBright.standingDryMatterKg()).toBeCloseTo(b2, 6);
+  });
+
+  it('⚠⚠ UNRESOLVED is not winter — a field that has not looked still grows', () => {
+    const unknown = seasonal(-1, -1);
+    const before = unknown.standingDryMatterKg();
+    clock.mockReturnValue(Quantity.of(base + 60 * DAY, 's'));
+    expect(unknown.standingDryMatterKg()).toBeGreaterThan(before);
+  });
+
+  it('⚠ D12: winter STOPS the field and does not touch the mouths', () => {
+    // The animals go on eating through a winter that grows nothing,
+    // which is why the feed budget exists and why husbandry does not
+    // stop when farming does.
+    const winter = seasonal(271, 9 / 24);
+    (winter as unknown as { swardGrazingDemandPerGameDay(): number })
+      .swardGrazingDemandPerGameDay = () => 2;
+    const before = winter.standingDryMatterKg();
+    clock.mockReturnValue(Quantity.of(base + 20 * DAY, 's'));
+    expect(winter.standingDryMatterKg()).toBeLessThan(before);
+  });
+});
+
+function clamp(v: number): number {
+  return v < 0 ? 0 : v > 1 ? 1 : v;
+}
