@@ -416,7 +416,7 @@ And the pair is enforceable, which is the point of making them classes:
 > is an `Extra` row instanced more than once while carrying anything that
 > writes to a ledger.
 
-### ⚠ The open half — what happens when an extra ACTS
+### ✅ DECIDED — what happens when an extra ACTS
 
 The lens settles what an extra *is like*. It says nothing about what an
 extra's **deeds** do, and that is undecided. Four limbs:
@@ -433,9 +433,14 @@ this is left undecided, because sharing a row is sharing a ledger. So
 whichever limb is taken must be a decision the class *encodes*, never a
 fallback nobody chose.
 
-**Lean: C by default, A for the residue** — and with D dropped, C is
-carrying more weight than it was, which is the honest reading anyway. A
-guard arresting you *is the watch* arresting you — not a compromise for want of
+> **User: "extras attribute to the institution, no writes otherwise."**
+
+**Settled: C, with A as the residue. B is now a RULE against, not a
+default** — an extra's acts must never reach its own row, and since
+sharing a row is sharing a ledger, that has to be *actively* arranged
+rather than left alone.
+
+A guard arresting you *is the watch* arresting you — not a compromise for want of
 identity, but how institutions work, and it holds from a Roman legion to a
 modern police force (lens 5). It also gives institutions reputations
 rather than having individuals accumulate them on the institution's
@@ -443,6 +448,62 @@ behalf, which is what the governance design wants anyway. An act the
 institution cannot absorb — a killing, a fraud — is then the signal that
 **an author should have written a Cast row**, and the world telling you so
 is a better outcome than the engine papering over it.
+
+#### ⭐⭐⭐ And the mechanism ships already — the WireBody is the precedent
+
+`getIdentityPath()` is not a field read. It is an **overridable projection
+method**, and the codebase already has one consumer of that:
+
+> *"A projection vessel (the sandbox `WireBody`) overrides the METHOD to
+> return the real identity's path … so in-circle derive-on-read composes
+> the player's real history and PASS rows attribute to the real identity,
+> never the vessel. (The registry index deliberately reads the raw SLOT,
+> not this method — a vessel must never index under the identity it
+> projects.)"*
+
+⭐ **An `Extra` is the same shape, pointed at an institution instead of a
+player.** Override `getIdentityPath()` to return the office / business /
+watch it acts for, and:
+
+- **every producer keeps working unchanged.** `accountability` is
+  deliberately *producers-not-chokepoint* — many call sites write rows —
+  so a per-producer rule would have to be added in N places and would rot.
+  A projection is one method on one class and every producer inherits it.
+- **the shared row can never be written to**, because nothing ever
+  resolves to it. B becomes structurally unreachable rather than merely
+  discouraged.
+- **A falls out of the same line.** No institution ⇒ the projection
+  returns **`null`**, which the signature already permits
+  (`getIdentityPath(): string | null`) and several readers already
+  tolerate. *No writes otherwise* is the null case, not a second rule.
+- **indexing is already safe.** `Stuff._identityStampOf` is the raw slot
+  the registry keys on, and it exists precisely so a projection cannot
+  file a vessel under the identity it projects. That guard was written for
+  the sandbox and is exactly what this needs.
+
+⚠ The one thing to check rather than assume: the readers that do
+`getIdentityPath() ?? somethingElse` (reactions, channels, subjects) —
+their fallbacks were written for *"this has no identity yet"*, not for
+*"this deliberately has none"*, and a fallback to `''` or an `ownerId`
+would quietly re-create the collision the projection exists to remove.
+
+#### The consequences, stated because they are positions and not details
+
+- **An extra with no institution is un-blameable.** A masterless sellsword
+  kills you and nothing is written anywhere. That is the decision working,
+  not a hole: if you want a blameable sellsword, **author a Cast row.**
+- **The institution needs a pointer, and mostly it already has one.** An
+  employed extra reaches its `Business` through the roster — the archetype
+  slate's finding that *"the position itself is authored on the Business
+  roster"* is the link. A wolf has no institution and never will, which is
+  correct: a wolf mauling you is nobody's fault.
+- ⚠ **The victim mirror follows, but is an inference — flag rather than
+  assume.** If an extra's acts belong to its institution, harms *upon* an
+  extra plausibly land there too: killing a sentry is an offence against
+  the watch, which is roughly how real law reads assaulting an officer.
+  That resolves *"an extra cannot meaningfully be killed"* without
+  promotion. **Recommended, not decided** — the ruling given was about the
+  actor side.
 
 ### ⚠ The victim mirror — and what checking the corpse actually found
 
@@ -563,10 +624,12 @@ consumes, failing closed and silent.
 
 ## Open questions
 
-0. ⚠ **What an `Extra`'s deeds do** — limbs A–D in § *The identity rung*.
-   The lean is C (the institution) + D (promotion) + A (the residue), and
-   the reason it is urgent rather than tidy is that **B is what happens if
-   nobody decides**. The victim mirror settles here too.
+0. ✅ **CLOSED 2026-09-04 — what an `Extra`'s deeds do.** They attribute
+   to the **institution**; where there is none, **nothing is written**. B
+   (the shared row) is now a rule against rather than a default, and the
+   mechanism is an identity **projection**, the sandbox `WireBody`'s
+   second consumer. ⚠ One inference left open inside it: whether harms
+   *upon* an extra land on the institution too.
 1. ⭐ **One document, or a block on the row?** The provocation says
    *"single document"*. A block keeps one file per character and matches
    how `dispositions:` already works; a `DocumentKinds` entry (the closed
@@ -617,9 +680,12 @@ is settled by evidence rather than argument.
 5. **The materialized trio** — whichever limb Q2 takes.
 6. **Body/condition claims** — the clinic's slice, once Q3 is settled.
 7. **`Extra` / `Cast` + `lint:identity`** — the class split, which is
-   `SingletonMixin(NPC)` plus the lint. Sequenced last only because
-   nothing repeats a row *yet*; the day one does, it moves to the front.
-   ⚠ Q0 gates it.
+   `SingletonMixin(NPC)` plus the lint, plus the **institution
+   projection** on `Extra` (Q0). Sequenced last only because nothing
+   repeats a row *yet*; the day one does, it moves to the front. ⭐ The
+   acceptance is behavioural and cheap to state: **an extra's deed lands
+   on its institution's ledger and on no row of its own**, and an extra
+   with no institution writes nothing anywhere.
 8. **The corpse identity** — `asIdentityPath` at the one mint site.
    ⭐⭐ **DECIDED 2026-09-04: this lands BEFORE the necropolis (#40)**, and
    it does not wait for the rest of this slate — it is one argument at one
