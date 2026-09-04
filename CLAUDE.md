@@ -17,6 +17,21 @@ product vision see [docs/vision.md](./docs/vision.md).
 The `docs/` tree is the source of truth for architecture and subsystem
 behavior. Read the relevant doc before editing in its area.
 
+- ⭐⭐⭐ [docs/design-lenses.md](./docs/design-lenses.md) — **THE FIVE
+  LENSES every high-level design is interrogated with**, and the
+  standing rule for any fork: 1 **pedagogy** (what Discipline does it
+  exercise; is the world derivable) · 2 **creative expression** (the
+  ordinary case with no code, the bespoke case without breaking) ·
+  3 **immersion & roleplay** (RP *emerges* from an honest sim — the GTA
+  property; never a gauge) · 4 **gamification & self-improvement**
+  (values, not knowledge: what choice does it force, and who confers
+  standing) · 5 **technology & magic** (the mechanism holds from ancient
+  Rome to New York; only the dynamics change — magic and future tech are
+  one axis). A **scorecard, not a gate**: 1 and 2 decide forks, and
+  ⭐ **when they decide one, don't ask — pick it and say which limb
+  chose.** Run the pass at the slate and at requirements. ⚠ NOT
+  [docs/lenses/](./docs/lenses/README.md), which is the borrowed Schell
+  deck.
 - [docs/architecture.md](./docs/architecture.md) — three-layer
   architecture, Manager vs Api, mixin organization, file structure
 - [docs/antipatterns.md](./docs/antipatterns.md) — patterns to avoid,
