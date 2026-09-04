@@ -1,0 +1,24 @@
+# The dispatcher — keeps the book, and knows where everything is without
+# looking at it.
+class: /platform/agent/NPC
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sensitivus
+  lifecycleState: alive
+  primaryKeyword: dispatcher
+  keywords: [dispatcher, clerk, book]
+  shortDescription: the dispatcher
+  longDescription: >-
+    A small, unhurried man with a pencil behind each ear and a ledger
+    open on a slope-desk that he does not appear to consult. He knows
+    what is on the road, what is in the shed, and what is late, and he
+    tells you the third one first.
+  behaviors:
+    - brain: /lib/behavior/idles
+      trigger: cadence:44s
+      config:
+        pool:
+          - { kind: free, value: "rules a line under something and does not write anything under it." }
+          - { kind: free, value: "says, \"Anything that is not on the paper did not happen. That is not me being difficult.\"" }
+          - { kind: free, value: "looks out at the weather, then back at the book, and changes a number." }
+          - { kind: free, value: "says, \"Ore down, manufactures up, and nobody wants to go back empty. That is the whole trade.\"" }

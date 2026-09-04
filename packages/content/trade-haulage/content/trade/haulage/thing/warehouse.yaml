@@ -1,0 +1,15 @@
+# The warehouse — the bailee's shed.
+#
+# ⚠ It has no capacity, and that is the design rather than an omission:
+# capacity in this engine is a property of a bearer's BODY, and a shed
+# has no bearer. Nothing fills up, charges rent or turns anyone away.
+# What ships is the RECEIPT and the DUTY. See the warehousing non-goal.
+class: /trade/haulage/thing/Warehouse
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the goods shed
+  primaryKeyword: shed
+  keywords: [shed, warehouse, store, goods]
+  longDescription: |
+    A long timber shed open at both ends, with a raised plank floor at cart-bed height and a chalked grid on the boards dividing it into bays. Most of the bays have something in them and every one of those has a docket nailed to the post beside it.
+  baileePath: /trade/haulage/idea/depot-business

@@ -1,0 +1,53 @@
+# ship — hand goods to a carrier for carriage, and get the paper.
+#
+# ⚠⚠ **Not `consign`.** Retail's `consign <thing> --ask <coin>` creates a
+# priced LISTING with a commission split; this creates a BILL OF LADING —
+# a destination, a custody chain, no price and no buyer. They share an
+# English word and nothing else.
+#
+# ⭐⭐ And keeping them apart is what makes `ship … to Rejection` then
+# `consign … --ask` at the far end COMPOSE — which is the transport
+# spread, and the whole reason anybody would move anything.
+#
+# Its own `haulage` category, on the metal chain's precedent: a trade's
+# own acts get their own category.
+verbs: [ship]
+controller: /trade/haulage/idea/cmd/haulage/ShipController
+description: "Hand goods to the carrier for carriage, and take the bill of lading."
+help: |
+  Tender goods at a shipping desk:
+
+    ship crate to the pithead yard
+    ship crate to Rejection --worth 120
+
+  The carrier takes custody; you keep ownership, and the bill of lading
+  is what proves both. It records what, how much, from where, to where,
+  whose, and what you declared it worth — which is the paper you will
+  want if it does not arrive.
+
+  ⭐ Goods you ship somewhere and sell THERE are worth more than goods
+  you sell here. That difference is the whole of why carriage is a
+  business: `ship` them out, and `consign` them at the far end.
+
+  Loose goods (a stack of anything) cannot be shipped as they are: a
+  merging stack has no identity, so nothing could say which of it
+  arrived. Crate them, and the bill will say what is in the crate.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  - name: goods
+    type: object
+    required: true
+    scope: ["$focus", "reachable"]
+    requires: ContainableMixin
+  - name: destination
+    type: string
+    required: true
+    greedy: true
+    prepositions: [to]
+options:
+  worth:
+    short: w
+    type: number
+    description: "Declared value, for the bill of lading."

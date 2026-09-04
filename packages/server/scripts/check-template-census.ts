@@ -221,6 +221,30 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
   }
   push('operator', data.operator);
   /*
+   * ⭐ A conveyance's VEHICULAR MODE — the `LocomotionMode` row a barge or
+   * a coach engages when driven. `Drivable` stores it as an identity ref
+   * (a template path) and `LocomotionApi.resolveHostMode` **throws** on a
+   * Drivable whose mode is null, so a row naming a mode that does not
+   * exist is a vehicle that refuses to move the first time somebody
+   * drives it — with a message about the content author's bug rather
+   * than about the road.
+   */
+  push('vehicularMode', data.vehicularMode);
+  /*
+   * ⭐ The haulage desk's three citations. A depot counter names the
+   * CARRIER whose paper it files and the SHED it puts goods in; a
+   * warehouse names the BAILEE that owes the duty of care for them.
+   *
+   * All three resolve live, and all three fail QUIETLY when they name
+   * nothing: a counter with no carrier refuses every tender with "this
+   * counter acts for no carrier", and a shed with no bailee throws on
+   * the first deposit — both a long way from the row an author
+   * mistyped. Censusing them turns a live puzzle into a build error.
+   */
+  for (const f of ['carrierPath', 'holdPath', 'baileePath'] as const) {
+    push(f, data[f]);
+  }
+  /*
    * The warren's own citation: the working TYPE it clones per cell.
    *
    * ⚠ `typeRows` is a plain map of kind → path, which clause (d)'s

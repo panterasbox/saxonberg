@@ -1,0 +1,25 @@
+id: trade-haulage
+version: 0.1.0          # reserved; nothing reads/enforces it (non-goal: version machinery)
+root: /trade/haulage
+description: >-
+  Haulage — carriage as a TRADE. The ways themselves are a system
+  (`/system/transport`: a road exists with nobody employed by it); this
+  pack is what somebody practises on them and can quit.
+
+  It owns the carrier and its depot, the **bill of lading** every
+  completed carriage files, the **warehouse receipt** a bailee issues,
+  the **rate card** a carrier publishes and a stranger may read, the
+  `ship` verb at a counter, the `teamstering` discipline, and the `hauls`
+  brain that covers the work nobody took.
+
+  ⭐ **The NPC hauler is the reserve supply, so it sets the wage.** A
+  player cannot charge more than the NPC costs and need not accept less
+  — the reservation wage, doing real work in the realm's first labor
+  market.
+requires:
+  groups:
+    - name: haulage
+      purpose: the haulage trade's own body — carriers, carters, depots
+      owner: { office: prime-minister }
+  title:
+    - { extent: /trade/haulage, holder: { group: haulage } }

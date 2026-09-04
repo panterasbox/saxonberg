@@ -341,6 +341,25 @@ export const AppSettingKeys = {
   transportLoadFactorAtCapacity: "transport.loadFactorAtCapacity",
 
   /**
+   * ⭐⭐ Haulage — **the NPC hauler's rate**, in minor units per kilogram
+   * carried. The RESERVATION WAGE of the realm's first labor market: the
+   * NPC carter is the reserve supply, so a player cannot charge more
+   * than he costs and need not accept less. The values are authored in
+   * the haulage pack's own settings file, with the reasoning beside
+   * them.
+   */
+  haulageNpcRatePerKgMinor: "haulage.npcRatePerKgMinor",
+  /** Haulage — the flat handling charge on any carriage, however small. */
+  haulageNpcMinimumMinor: "haulage.npcMinimumMinor",
+  /**
+   * ⭐ Haulage — how long a posted supply gig waits for a player before
+   * the NPC covers it, in GAME HOURS. **The window IS the labor market**:
+   * too short and nobody ever sees a job, too long and a bar runs dry
+   * waiting for somebody who was never coming.
+   */
+  haulageGigWindowGameHours: "haulage.gigWindowGameHours",
+
+  /**
    * Attendant — the lease anti-grief sweep cadence (real-time ms). Griefing
    * is a real-time act, so the watchdog is real-time (the residency sweep
    * pattern), not game-time. See docs/subsystems/attendant.md.

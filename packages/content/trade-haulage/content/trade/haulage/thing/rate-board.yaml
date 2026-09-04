@@ -1,0 +1,25 @@
+# ⭐⭐ The rate board — the tariff on the wall, and the whole of AC12's
+# "readable by a non-employee".
+#
+# A board you READ, not a verb on somebody's books: `house` is your own
+# books and would have been exactly the wrong shape. Reading is a thing
+# everybody can already do, so a stranger with no employment, no
+# membership and no business of their own can price a route by standing
+# in front of this.
+#
+# ⚠ The text is DERIVED from the carrier's current card, never authored —
+# an authored board would drift the moment a carrier republished, and a
+# tariff nobody can trust is worse than none.
+class: /trade/haulage/thing/RateBoard
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the rate board
+  primaryKeyword: board
+  keywords: [board, rates, tariff, prices, card]
+  longDescription: |
+    A slate-framed board on the wall behind the counter with a printed card behind glass, and a hinge on the frame so the card can be changed without taking it down. Somebody has hung last season's card underneath, which is either honesty or oversight.
+  carrierPath: /trade/haulage/idea/carrier-business
+  markForm: inked
+  markScript: common
+  markText: |
+    RATES — posted, and the same for everybody who reads them.

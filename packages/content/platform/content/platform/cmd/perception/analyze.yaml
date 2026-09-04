@@ -103,6 +103,24 @@ subcommands:
       substances and proportions that compose it. The target must
       be tangible and within reach.
     controller: /platform/idea/cmd/perception/AnalyzeChemistryController
+  # ⭐ The haulage readout. See `measure passage` for the ⚠ about an
+  # install without `trade-haulage`.
+  load:
+    description: "Read how a rig is loaded — what it pulls like, what is aboard, how it will ride (teamstering)"
+    help: |
+      Look over a loaded rig before you set off.
+
+      What it PULLS LIKE is the same number for everybody. What else you
+      can see rises with teamstering: a novice knows what is aboard, a
+      competent teamster reads the body as well, and a proficient one
+      knows what it is going to do on a camber.
+
+      ⚠ Nothing here changes the load, the draft or what the rig can
+      carry. Competence buys what you knew going in, never the outcome.
+    examples:
+      - cmd: analyze load
+        note: Before the last climb, with the wagon full
+    controller: /trade/haulage/idea/cmd/perception/AnalyzeLoadController
     args:
       - name: target
         type: object

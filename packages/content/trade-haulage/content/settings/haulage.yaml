@@ -1,0 +1,38 @@
+# haulage — the trade's own dials, shipped by the pack that owns the
+# trade (the `settings` kind: merge-missing — a key the app_settings
+# singleton lacks is merged in; a value the operator changed via `config`
+# is never touched).
+#
+# ⓘ The `AppSettingKeys` CONSTANTS stay in the kernel — that is the house
+# pattern, not residue (the water and tpa packs' dials live there too and
+# the packs import them). A key NAME is shared vocabulary, so a typo
+# fails; the VALUES are authored here.
+settings:
+  # ⭐⭐ **The NPC hauler's rate — the reservation wage for the realm's
+  # first labor market**, authored as data with this comment saying so,
+  # never a constant somebody picked in a source file.
+  #
+  # The carter is the RESERVE SUPPLY: he covers the haul nobody took, so
+  # **a player cannot charge more than he costs and need not accept
+  # less.** Move this number and the whole first rung of the labor
+  # market moves with it — which is exactly why it is a dial and exactly
+  # why it is commented.
+  #
+  # Against the shipped anchors (stipend 20; wages 4-6 per game-hour;
+  # torch 2, rations 3, lantern 10): a barrow-load across the city is
+  # pocket money; a wagonload up the Delight is most of a day's wage.
+  - key: haulage.npcRatePerKgMinor
+    value: "0.4"
+
+  # The flat handling charge on any carriage, however small — the reason
+  # somebody with one crate still pays for a clerk's attention. It is
+  # what keeps a one-item haul from being free labour.
+  - key: haulage.npcMinimumMinor
+    value: "3"
+
+  # ⭐ How long a posted supply gig waits for a player before the NPC
+  # covers it, in GAME HOURS. The window IS the labor market: too short
+  # and nobody ever sees a job, too long and a bar runs dry waiting for
+  # somebody who was never coming.
+  - key: haulage.gigWindowGameHours
+    value: "6"

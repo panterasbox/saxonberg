@@ -1057,7 +1057,7 @@ and the coach get their rows in W5.
 
 ---
 
-## Wave W5 — The rungs of the cost surface: wagon, team, barge, coach
+## ✅ Wave W5 — The rungs of the cost surface: wagon, team, barge, coach
 
 **Files**
 
@@ -1096,9 +1096,55 @@ and any surprise is surfaced before W6.
 buy a wagon, hitch a team, `journey to the crossroads`, watch it pass through
 each room.
 
+### ✅ W5 done
+
+Five vehicle rows, a draft horse and its species, three archetypes, and
+the entry rung on a shelf. Transport pack green. The boot's *"transport
+ships N classes no row names"* line dropped to the three `lib/journey/*`
+files — substrate that is only ever inherited, the same residue `tpa`
+and `trade-mining` carry.
+
+**Five decisions the plan left open, and what decided them:**
+
+1. ⚠⚠ **The `Coach` must NOT compose `SlottedMixin`.** `ExitableVessel`
+   already composes `Adornable`, which *is* `SlottedMixin` with an
+   override — so adding one applies it twice and throws
+   `FinalViolationError: Coach overrides final method
+   SlottedMixin.occupyAll` **at class-stamp time, before a single test
+   runs.** The `Barge` needs its own because a plain `Vessel` has none.
+   Two vehicles, two bases, and the difference is not cosmetic.
+2. ⚠ **The `Coach` does NOT compose `SeatedDrivableMixin`** either, and
+   this one is a finding: the seated override resolves the controller
+   slot by finding a **driver-role seat OBJECT in the vessel's
+   contents** and *throws* when there is none — so a coach shipping no
+   box seat would refuse to be driven the first time anybody tried, with
+   an error about the content author rather than about the road. A bare
+   row drives off `controllerSlot` on its own frame.
+3. ⚠ **`Coach`'s chassis needs an explicit constructor cast.**
+   TypeScript loses an anonymous mixin base's members through a nested
+   generic factory (the limitation `BusinessMixin` documents), so
+   `DrivableMixin`'s `Stuff & Slotted` constraint cannot see a `Slotted`
+   that is genuinely there. ⚠ The cast target is a **concrete
+   constructor**, not the `MixinConstructor` alias: that alias is a
+   union of `new` and `abstract new`, and `class extends <union>` loses
+   the instance type altogether — the class comes out not even
+   assignable to `Stuff`.
+4. **The barge and the coach are NOT on the general-store shelf.** A
+   boat in a general store is silly enough to cost more than the
+   convenience is worth; the land rigs are there (with the wainwright
+   gap noted in the row), and the water craft belong at the depot.
+5. **The handcart is 8 credits**, inside a 20-credit stipend with change
+   for rations. That is the number AC15a turns on, and it is the reason
+   the whole ladder above it can be steep.
+
+**Surprise:** the shipped `handcart` template existed since the
+encumbrance build and was **placed nowhere and sold nowhere** — the
+mechanism correct, the enabling data absent, the failure silent. Exactly
+the shape the drives keep finding.
+
 ---
 
-## Wave W6 — The trade: the carrier, the paper, the depot, `teamstering`
+## ✅ Wave W6 — The trade: the carrier, the paper, the depot, `teamstering`
 
 **Files** (`packages/content/trade-haulage/`)
 
@@ -1198,6 +1244,68 @@ full lint family; fresh-DB boot installs **38 packs**. ⚠ **`requiresWizard`
 appears nowhere** — the warehouseman
 and the dispatcher are **seats**; if a stand-in seems needed, that is a
 missing seat and gets filed as a finding, never a wizard check.
+
+### ✅ W6 done
+
+`trade-haulage` ships: the two registries, the depot (counter + shed +
+board), the bearer receipt, `ship`, `teamstering`, the two
+instrumentation stanzas, the businesses and the cast. Both pack suites
+green, `test:near` 4271/4271, 25/25 lint gates, fresh-DB boot **38
+packs** with no `FAILED` line. `requiresWizard` appears nowhere in
+either new pack.
+
+**The two decisions the plan DEFERRED to this wave, decided:**
+
+1. ⭐⭐ **A rate card is read off a BOARD on the wall, not off a verb.**
+   AC12 needs a *stranger* — no employment, no membership, no business
+   of their own — to price a route, and `house` is your own books, which
+   would have been exactly the wrong shape. `RateBoard` composes the
+   shipped `MarkedMixin`, so **reading is a thing everybody can already
+   do**, the perception gate comes free (a board in the dark is a blank,
+   which is correct), and a second carrier's board is a content row and
+   no code. ⚠ Its text is **derived on read** from the current card — an
+   authored board would drift the moment a carrier republished, and a
+   tariff nobody can trust is worse than none.
+2. **The two pricing mechanisms coexist and price DIFFERENT ACTS**, said
+   explicitly in `RateCardRegistry`'s header so a later reader does not
+   try to unify them: the **card** is the carrier naming a price in
+   advance and serving all comers at it (you tender at a counter); the
+   **gig board** is the shipper naming a price per job (you hire
+   somebody directly). Both are real, both are historical, and neither
+   is a degenerate case of the other.
+
+**Four further decisions the plan left open:**
+
+3. ⭐⭐ **The rig-size band gate is a FIELD PAIR on the shipped
+   `HaulageRig`, not a trade subclass.** The plan implied a trade-side
+   class; that would have made **`transport` depend on `trade-haulage`,
+   which already depends on `transport`** — a cycle, caught by writing
+   it. Instead the rig carries `requiredDiscipline` + `requiredBand` and
+   **never interprets the key** (asserted): the wagon's row says
+   `teamstering`, exactly as `Drivable` is handed a `vehicularMode`
+   path. *A content word in the code would have been the mistake; the
+   data carries it.*
+4. **`Haulable.canHitch(hauler, actor)` is a new optional kernel hook**,
+   consulted by shape (the `callTraverseHook` idiom) — *refusing to be
+   coupled is a question about the cart.* ⚠ **The ACTOR's competence
+   decides, not the hauler's**: a horse has no transcript, and the
+   person putting it in the shafts is the one who does or does not know
+   how. `HitchController.execute` became **async** to await it; the four
+   shipped hitch tests that called `execute` without awaiting were
+   updated (the dispatcher always awaited — the tests did not).
+5. ⚠ **Team SIZE is the design's axis and the RIG is its proxy today.**
+   D15 says a novice handles a single-horse cart and a competent
+   teamster a four-horse team; the shipped haulage substrate couples
+   **one** hauler to **one** cart, so *how many horses* is not a
+   quantity the world has. A wagon IS the four-horse job. Recorded on
+   the field so it moves when teams become plural.
+6. **`DocumentApi.saveAsBusiness`'s three rails held under a second
+   consumer** — both registries file through it and nothing needed
+   widening.
+
+⚠ **AC13 / AC14 move to W7** with the gig substrate and the `hauls`
+brain, per the plan's own file lists (the W6 test list named them a wave
+early).
 
 ---
 

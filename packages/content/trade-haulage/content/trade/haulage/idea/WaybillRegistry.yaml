@@ -1,0 +1,9 @@
+# /trade/haulage/idea/WaybillRegistry — the singleton that files the
+# paper.
+#
+# Pure data: it holds no authored state, because everything it knows it
+# reads back out of the document store. Lazily cloned on first use by
+# whatever files or reads a bill — there is deliberately no boot step to
+# forget.
+class: /trade/haulage/idea/WaybillRegistry
+data: {}

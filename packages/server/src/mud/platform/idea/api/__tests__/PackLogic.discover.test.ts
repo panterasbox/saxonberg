@@ -57,9 +57,9 @@ describe('discovery', () => {
 });
 
 describe('the shipped packs (real discovery, no install)', () => {
-  it('thirty-seven ship; the trade packs order after generic-objects (wave 4a); the venues after their trades (wave 4b); the localities after residence (residences D18); every consigner after distribution (fermentation D10); the localities after water (watershed W9); the metal chain after ITS trades; every locality with a terminal after tpa (the TPA reform)', () => {
+  it('thirty-eight ship; the trade packs order after generic-objects (wave 4a); the venues after their trades (wave 4b); the localities after residence (residences D18); every consigner after distribution (fermentation D10); the localities after water (watershed W9); the metal chain after ITS trades; every locality with a terminal after tpa (the TPA reform)', () => {
     const ids = PackApi.contentRoots().map((root) => root.split('/').slice(-2)[0]!);
-    expect(ids).toHaveLength(37);
+    expect(ids).toHaveLength(38);
     expect(ids[0]).toBe('platform');
     for (const trade of ['trade-smithing', 'trade-cooking', 'trade-hospitality', 'trade-distilling']) {
       expect(ids.indexOf(trade)).toBeGreaterThan(ids.indexOf('generic-objects'));
@@ -114,8 +114,12 @@ describe('the shipped packs (real discovery, no install)', () => {
     // transport system's `FordExit` — so both install after the pack
     // that ships the classes. The mechanism is the system's; a road up
     // somebody's valley is the realm's.
-    for (const namer of ['world-seed', 'terminus']) {
+    for (const namer of ['world-seed', 'terminus', 'trade-haulage']) {
       expect(ids.indexOf(namer)).toBeGreaterThan(ids.indexOf('transport'));
     }
+    // …and the depot's rows are the trade's while the QUAY is the
+    // locality's, so Terminus installs after the trade whose counter and
+    // shed it stands.
+    expect(ids.indexOf('terminus')).toBeGreaterThan(ids.indexOf('trade-haulage'));
   });
 });

@@ -1,0 +1,29 @@
+# The dray — a low flat wagon with no sides, for what will not go in a
+# box: timber, barrels, dressed stone.
+#
+# The same class as the wagon. Lighter, easier to load and unload from
+# either side, and it holds less.
+class: /system/transport/thing/HaulageRig
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  # A dray is a working rig: a novice teamster handles one.
+  #
+  # ⚠⚠ The KEY is data and the transport system never interprets it: a
+  # road exists with nobody employed by it, and which trade answers for
+  # handling a rig is that trade's business. A content word in the code
+  # would have been the mistake — and it would also have made the
+  # transport pack depend on the haulage pack, which already depends on
+  # it. The data carries it.
+  requiredDiscipline: teamstering
+  requiredBand: novice
+  shortDescription: a low flat dray
+  primaryKeyword: dray
+  keywords: [dray, wagon, flat, cart]
+  longDescription: |
+    A flat bed on four low wheels with no sides at all, only a row of iron stanchion sockets down each edge and a coil of rope through the front two. Barrels roll onto it and off it without anybody lifting anything, which is the whole idea.
+  mass: 140
+  draftFactor: 0.03
+  handedness: 2
+  passageMode: wheeled
+  interiorBulk: true
+  interiorCapacity: 400

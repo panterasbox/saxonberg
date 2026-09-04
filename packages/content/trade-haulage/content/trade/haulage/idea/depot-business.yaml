@@ -1,0 +1,30 @@
+# The depot — the INTERFACE, where a lane touches the local economy.
+#
+# ⚠ It sells exactly ONE product, and the narrowing is deliberate:
+#
+#   - **handling** (consolidation, break-bulk) — ✅ ships, and does real
+#     work from day one, because the pass refuses wheels and bulk
+#     genuinely breaks at the crossroads;
+#   - **storage** — ⚠ a receipt and a bailee's DUTY, never a priced
+#     scarce good. Capacity in this engine is a property of a bearer's
+#     BODY and a warehouse has no bearer, so *full* is unrepresentable:
+#     nothing fills up, charges rent, or turns anyone away. A stocktake
+#     that always balances is inert content.
+class: /platform/idea/Business
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  appointingAuthority:
+    kind: entity
+    path: /trade/haulage/agent/warehouseman
+  positions:
+    - key: warehouseman
+      label: on the depot counter
+      wageRate: 5
+  rosterSlots:
+    - positionKey: warehouseman
+      assignee: /trade/haulage/agent/warehouseman
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 20] }
+  banksAt: goodkin
+  operatingLocations:
+    - /world/terminus/estuary/lower-towpath

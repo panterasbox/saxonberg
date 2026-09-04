@@ -1,0 +1,45 @@
+# The wagon — the four-wheeled road rig, and the rung above a barrow.
+#
+# ⭐ **A rig is DATA, not a subclass.** The shipped `Handcart` note said
+# it first — *"variety (a heavy wagon, a light barrow, a dragged sledge)
+# is content + data, not subclassing"* — and this file, `dray.yaml` and
+# `sledge.yaml` are that claim honoured: one class, three rigs, and the
+# only differences are `mass`, `draftFactor` and prose.
+#
+# `draftFactor: 0.03` — well-wheeled on a made road, better than the
+# handcart's 0.04 because bigger wheels roll easier. Capacity is not a
+# slot count anywhere: cargo goes in as `Container` contents and grain
+# and ore go in the `Bulkable` interior, and what a team can move is the
+# encumbrance substrate's answer to mass, not a number here.
+#
+# ⭐ **`sealed: false` is why a passenger sees the road.** An open
+# container is an open container, and `MixinApi.isOpenContainer` is the
+# single rule `canReach`, the MQL `peers` walk and `VisionModality` all
+# ask. Nothing in the transport pack implements perception (D3/AC8).
+class: /system/transport/thing/HaulageRig
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  # ⭐ A wagon and a team is the four-horse job, and it is the CAPABILITY half of teamstering — a different act, not the same act done better.
+  #
+  # ⚠⚠ The KEY is data and the transport system never interprets it: a
+  # road exists with nobody employed by it, and which trade answers for
+  # handling a rig is that trade's business. A content word in the code
+  # would have been the mistake — and it would also have made the
+  # transport pack depend on the haulage pack, which already depends on
+  # it. The data carries it.
+  requiredDiscipline: teamstering
+  requiredBand: competent
+  shortDescription: a four-wheeled wagon
+  primaryKeyword: wagon
+  keywords: [wagon, cart, rig, waggon]
+  longDescription: |
+    A plank-bed wagon on four iron-shod wheels, the fore pair on a turning bolster, with a hooped tilt frame over the bed and no cloth on it. The shafts are long enough for two abreast. Someone has painted a number on the tailboard and someone else has painted over it.
+  mass: 180
+  draftFactor: 0.03
+  handedness: 2
+  passageMode: wheeled
+  # The Bulkable interior: continuous matter — grain, ore, water — in
+  # litres, beside the discrete cargo the Vessel already holds. Half of
+  # freight is not countable, and neither half needed a new mechanism.
+  interiorBulk: true
+  interiorCapacity: 900

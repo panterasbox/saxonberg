@@ -1,0 +1,30 @@
+# The carter — ⭐⭐ **the reserve supply, and therefore the wage.**
+#
+# He covers the haul nobody took. That single fact is what makes this the
+# realm's first labor market rather than a job board: a player cannot
+# charge more than he costs, and need not accept less. The reservation
+# wage, doing real work.
+#
+# ⚠ He runs on the SAME `Journey` object a player drives. There is no
+# second implementation, so a background haul is visibly a job a player
+# could have taken and didn't.
+class: /platform/agent/NPC
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sensitivus
+  lifecycleState: alive
+  primaryKeyword: carter
+  keywords: [carter, driver, teamster]
+  shortDescription: the carter
+  longDescription: >-
+    Weather-cut, deliberate, and dressed for standing still in the cold
+    for a long time. He walks at the horse's head rather than riding,
+    which tells you what he thinks about the state of the road.
+  behaviors:
+    - brain: /lib/behavior/idles
+      trigger: cadence:60s
+      config:
+        pool:
+          - { kind: free, value: "checks a strap that did not need checking." }
+          - { kind: free, value: "says, \"Empty back is the whole of what is wrong with this trade. Half the work, all of the cost.\"" }
+          - { kind: free, value: "looks at the sky the way somebody does who has to be somewhere by dark." }

@@ -1,0 +1,28 @@
+# The HAULAGE-RIG archetype — ⭐⭐ **an archetype that builds a wagon
+# rather than a room** (AC15k).
+#
+# `materializesOnto` is the substrate change D19 asked for, and this is
+# the row that proves it: `Archetype.materialize()` has always returned
+# `Stuff & Container`, and the only thing binding archetypes to locations
+# was one constant. Making it an authored field turns a venue scaffold
+# into a general one.
+#
+# `surveyScope: off-room` — a rig is surveyed by NAMING it, never by
+# standing somewhere. Without that, this line would print in every
+# bedroom in the game.
+#
+# ⭐ The needs are existing vocabulary, and the proof that it already
+# reaches conveyances is that it was already being used for them: the
+# mining archetype's `haulage: { presence: pony }`.
+archetypeId: haulage-rig
+label: a haulage rig
+materializesOnto: /system/transport/thing/wagon
+surveyScope: off-room
+capabilities:
+  # The team. `presence` is what the mining archetype asks for a pit
+  # pony with, and a rig with nothing in the shafts is a rig that is not
+  # going anywhere.
+  - { key: team, needs: { presence: draft }, default: /system/transport/agent/draft-horse }
+  # Somewhere to load from — a tailboard, a bench, a bed you can set a
+  # crate down on.
+  - { key: loading, needs: { surface: true } }

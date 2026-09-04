@@ -1,0 +1,37 @@
+# ⭐⭐ The carrier — and it is a BUSINESS, not a background process.
+#
+# `EngagedMixin` is on `Character`, so every moving vehicle in this
+# realm has somebody driving it. Background freight therefore runs on
+# a payroll: wages are a real cost line, and industrial action against a
+# carrier stops something. That is the consequence of *no ghost
+# logistics*, and it is wanted.
+#
+# ⭐ It is also the **reserve supply**, which is the load-bearing
+# economics of the whole labor market: the carter covers what nobody
+# took, so **a player cannot charge more than the NPC costs and need not
+# accept less**. The market-maker of last resort.
+class: /platform/idea/Business
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  appointingAuthority:
+    kind: entity
+    path: /trade/haulage/agent/dispatcher
+  positions:
+    - key: dispatcher
+      label: keeping the book
+      wageRate: 6
+    - key: carter
+      label: on the road
+      wageRate: 5
+  rosterSlots:
+    - positionKey: dispatcher
+      assignee: /trade/haulage/agent/dispatcher
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 20] }
+    - positionKey: carter
+      assignee: /trade/haulage/agent/carter
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [0, 24] }
+  banksAt: goodkin
+  operatingLocations:
+    - /world/terminus/estuary/lower-towpath

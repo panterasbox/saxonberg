@@ -1,0 +1,21 @@
+# The depot counter — the shipping desk, the attendant queue, and the
+# place `ship` lights up.
+#
+# ⭐ Afforded by CONTENT: this row's class contributes the verb to
+# whoever is standing at it. A second depot in a second town is this
+# file again with a different `carrierPath`, and zero pack code.
+class: /trade/haulage/thing/DepotCounter
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the depot counter
+  primaryKeyword: counter
+  keywords: [counter, desk, shipping, depot]
+  longDescription: |
+    A plank counter with a brass rail along the customer side, worn through in two places where elbows go. Behind it a slope-desk, a ledger, a spike of dockets and a rack of blank bills of lading. A chalked board above lists what is going where, and half of it has been rubbed out and rewritten since this morning.
+  discipline: fifo
+  attendDurationMs: 0
+  staffingPolicy: self-service
+  serverPositionKeys: [warehouseman]
+  businessPath: /trade/haulage/idea/depot-business
+  carrierPath: /trade/haulage/idea/carrier-business
+  holdPath: /trade/haulage/thing/warehouse

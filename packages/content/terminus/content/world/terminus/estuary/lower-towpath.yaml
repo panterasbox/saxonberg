@@ -27,6 +27,22 @@ data:
       destination: /world/terminus/estuary/reach
       media: [ground, water]
       edgeMinutes: 4
+  # ⭐ The Terminus depot stands here, on the quay, where the water lane
+  # and the wheeled road both reach. A depot is the INTERFACE — where a
+  # lane touches the local economy — and the place it belongs is where
+  # two lanes meet, which is what makes this room rather than the market
+  # square the right ground for it.
+  #
+  # ⚠ The counter, the shed and the two businesses are the HAULAGE
+  # trade's rows; only the PLACE is Terminus's. Trade = mechanism,
+  # locality = expression.
+  props:
+    - /trade/haulage/thing/depot-counter
+    - /trade/haulage/thing/warehouse
+    - /trade/haulage/thing/rate-board
+  cast:
+    - /trade/haulage/agent/warehouseman
+    - /trade/haulage/agent/dispatcher
   details:
     rings:
       keywords: [rings, ring, mooring, iron]
@@ -36,6 +52,14 @@ data:
       keywords: [crane, frame, jib, gantry]
       description: |
         A timber A-frame with an iron sheave at the head and no rope through it. Somebody took the rope. The frame is sound and would work again tomorrow.
+    board:
+      keywords: [board, rates, tariff, prices]
+      description: |
+        A slate-framed board behind the counter with the carrier's card behind glass — what they charge, by road, by weight, by what it is. Anybody can stand here and read it, which is the point of hanging it up. Last season's card is pinned underneath.
+    depot:
+      keywords: [depot, counter, shed, office, warehouse]
+      description: |
+        A timber goods shed open at both ends with a plank floor at cart-bed height, and beside it a counter under an awning with a brass rail worn through in two places. A chalked board above the counter lists what is going where. Half of it has been rubbed out and rewritten since this morning, which is either efficiency or chaos and nobody who works here will say which.
     water:
       keywords: [water, river, kestrel, deep]
       description: |

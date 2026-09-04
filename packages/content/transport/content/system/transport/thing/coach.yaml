@@ -1,0 +1,33 @@
+# The coach — ⭐ **the consumer `ExitableVessel` has been waiting for.**
+#
+# CLAUDE.md records that class as *"deferred until a consumer needs a
+# concrete class"*, and the whole of its machinery — the synthesized
+# `out` exit, the `go <coach>` entry, a defining door — is exactly a
+# carriage. It has been shipped and unused since the boundary build.
+#
+# ⚠ **Sealable, and shut it is opaque** (AC8): a passenger in an open
+# wagon perceives the road, one in a shut coach does not, and the
+# difference is `MixinApi.isOpenContainer` rather than any code here.
+# Which is also why the interior carries its own lamp — **unlit is pitch
+# black**, and every object in a dark carriage reads as *"something"*.
+#
+# ⭐ A passenger needs no new verb: boarding is the shipped `go coach`,
+# alighting is `out`, and a passenger holds no engagement at all — the
+# journey is the driver's `hands`.
+class: /system/transport/thing/Coach
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a road coach
+  primaryKeyword: coach
+  keywords: [coach, carriage, cab]
+  longDescription: |
+    A boxed body slung on leather braces over four wheels, with a door on each side, a glazed light above each door, and a driver's box out front under a folding hood. Inside, two bench seats face each other across a footwell with a lamp bracket between them.
+  mass: 700
+  controllerSlot: "driver:1"
+  vehicularMode: /platform/idea/LocomotionMode/wheeled
+  # Shut by default. A coach with its doors open is a wagon with a roof;
+  # a coach with them shut is a room that is moving, and the difference
+  # is what you can see out of.
+  open: false
+  ambientIntensity: 40
+  ambientColorTemperature: 2400

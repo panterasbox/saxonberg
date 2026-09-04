@@ -35,6 +35,7 @@ import type { Container } from '../spatial/Container';
 import type { Tangible } from '../material/Tangible';
 import type { LocomotionMode } from '../../platform/idea/LocomotionMode';
 import type { Hauler } from './Hauler';
+import type { VetoResult } from '../errors';
 import { LocomotionApi } from '../../api/locomotion';
 import { MixinApi } from '../../api/mixin';
 
@@ -98,6 +99,30 @@ export interface Haulable {
   getHauledBy(): (Stuff & Hauler) | null;
   /** Pairing setter (haulage-family internal — keep both sides in sync). */
   setHauledBy(hauler: (Stuff & Hauler) | null): void;
+
+  /**
+   * Optional pre-hitch veto: *may this hauler, coupled by this actor,
+   * take me?*
+   *
+   * ⭐ **On the CART, because refusing to be coupled is a question about
+   * the cart.** Nothing in the kernel implements it; `HitchController`
+   * consults it by shape (the `callTraverseHook` idiom) so any
+   * `Haulable` may refuse without a mixin change anywhere.
+   *
+   * The haulage trade's rig uses it to band-gate rig size on
+   * `teamstering` — *competence is access*, the magic `requiredBand`
+   * precedent. ⚠ It is the ACTOR's competence that decides, not the
+   * hauler's: a horse has no transcript, and the person putting it in
+   * the shafts is the one who does or does not know how.
+   *
+   * ⚠ It may be **async**: the band read behind the trade's own use of
+   * it is, and `HitchController` awaits. A veto that has to consult
+   * anything durable would otherwise have to fail open.
+   *
+   * @hook Consulted by `HitchController` before coupling. Return
+   *   `{ ok: false, reason }` to refuse with an honest message.
+   */
+  canHitch?(hauler: Stuff, actor: Stuff): VetoResult | Promise<VetoResult>;
 }
 
 export function HaulableMixin<

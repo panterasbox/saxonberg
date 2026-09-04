@@ -1,0 +1,46 @@
+# Teamstering — the haulage trade's discipline, and ⭐ **the reason
+# hauling is a trade you can get better at rather than unskilled labour
+# forever.**
+#
+# ⚠ An earlier draft of the requirements had NO disciplines at all, which
+# said exactly that. The gamification lens caught it.
+#
+# It buys two things, and the split is the standing rule — *competence
+# buys information, not outcomes*:
+#
+#   - **information** — passage judgement (*will my rig make that turn*)
+#     and load-fit readouts, BEFORE you commit. The geology error-bar
+#     ladder: it never changes the outcome, only what you knew going in.
+#   - **capability** — BIGGER RIGS. A novice handles a single-horse cart;
+#     a competent teamster handles a team. That is a *different act*, not
+#     the same act done better — the known-of → can-make ladder, never
+#     the odometer failure.
+#
+# ⚠⚠ **No conferral makes the same act better.** A competent teamster's
+# wagon is not faster on the same road with the same load. Asserted in
+# the suite, because it is the one thing that would quietly turn a
+# discipline into a stat.
+#
+# ⭐ **Band 0 must be able to earn.** A single-horse cart and a barrow
+# are band 0, and the entry gig fits on a back. If teamstering gated
+# entry it would stop being the labor market that takes a brand-new
+# player, which is the entire point of the build.
+#
+# ⚠ **Draft animals ride this discipline**, not husbandry. The freight
+# slate lists *"husbandry (existing)"* for draft beasts and that is an
+# ERROR in the slate: all 46 shipped Disciplines were checked and animal
+# handling is not among them.
+class: /platform/idea/Discipline
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: teamstering
+  channel: skill
+  label: Teamstering
+  iscedf: "1041"  # ISCED-F 2013: transport services
+  description: >-
+    Hitching, load balance, passage judgement, and handling a team.
+    Knowing before you set off whether the rig will make the turn, and
+    whether what you have put in it is going to ride or shift. Improves
+    by hauling; it changes what you can judge and what size of team you
+    can hold, never how fast the same wagon goes.
+  requires: []

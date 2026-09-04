@@ -164,6 +164,28 @@ subcommands:
       - name: detail
         type: string
         required: false
+  # ⭐ The haulage readout, on the same instrumentation split and with
+  # the same ⚠: without `trade-haulage` installed it dies on dispatch
+  # with a legible `controller-error`, never a crash.
+  passage:
+    description: "Judge whether a rig gets through the ways out of here (teamstering)"
+    help: |
+      Look over the ways out of where you stand and judge, before you
+      commit, whether a rig goes through each of them.
+
+      ⚠ The ANSWER is the same for everybody — a wheel gate is a wheel
+      gate, and no amount of teamstering makes a wagon fit a stair. What
+      competence buys is CONFIDENCE: a novice would not like to promise;
+      a proficient teamster will tell you to within a hand, and which
+      wheel binds first.
+    examples:
+      - cmd: measure passage
+        note: Before you take the rig up the last climb
+    controller: /trade/haulage/idea/cmd/perception/MeasurePassageController
+    args:
+      - name: detail
+        type: string
+        required: false
   dip:
     description: "Read how steeply an ore body falls, off an exposed vein (needs a surveyor's instrument)"
     help: |
