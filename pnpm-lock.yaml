@@ -107,6 +107,9 @@ importers:
       '@saxonberg/content-trade-winemaking':
         specifier: workspace:*
         version: link:packages/content/trade-winemaking
+      '@saxonberg/content-transport':
+        specifier: workspace:*
+        version: link:packages/content/transport
       '@saxonberg/content-water':
         specifier: workspace:*
         version: link:packages/content/water
@@ -995,6 +998,31 @@ importers:
       '@saxonberg/types':
         specifier: workspace:*
         version: link:../../types
+
+  packages/content/transport:
+    dependencies:
+      '@saxonberg/content-base-library':
+        specifier: workspace:*
+        version: link:../base-library
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:../platform
+      '@saxonberg/server':
+        specifier: workspace:*
+        version: link:../../server
+      '@saxonberg/types':
+        specifier: workspace:*
+        version: link:../../types
+    devDependencies:
+      typescript:
+        specifier: ^5.4.0
+        version: 5.9.3
+      vitest:
+        specifier: ^2.0.0
+        version: 2.1.9(@types/node@20.19.28)(jsdom@25.0.1)
+      yaml:
+        specifier: ^2.8.2
+        version: 2.9.0
 
   packages/content/water:
     dependencies:

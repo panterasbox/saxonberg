@@ -786,7 +786,7 @@ never lists by prefix.
 
 ---
 
-## Wave W3 — The `transport` pack: lanes, routes, the Journey
+## ✅ Wave W3 — The `transport` pack: lanes, routes, the Journey
 
 **Lands:** the whole system, provable over a synthetic fixture world with no
 shipped content wired to it. This is the wave that de-risks everything after
@@ -849,6 +849,68 @@ duration scales with `loadFactor` (**AC9**).
 escape, no undeclared pack-to-pack import), `lint:instanceable`,
 `lint:untitled`, `lint:census`, `lint:module-scope` green. Fresh-DB boot
 installs 37 packs.
+
+### ✅ W3 done
+
+Transport pack vitest 27/27, `test:near` 3990/3990, 25/25 lint gates,
+**fresh-DB boot installs 37 packs with no `FAILED` line**.
+
+**Six decisions the plan left open, and what decided them:**
+
+1. ⚠⚠ **`Lane` gained a `seeds[]` field the plan did not name.** Rooms
+   load lazily, so *"walk every reachable room's exits"* has nowhere to
+   start. One authored room path per lane buys the whole induced
+   subgraph — and *you still do not draw a road*: the pass proof
+   (`Lane.test.ts`) sets **one bit on one exit** and the wagon's
+   reachable world shrinks by itself, with the walk lane untouched.
+2. ⭐⭐ **The emission is a one-game-minute METRONOME, not a per-leg
+   timer.** The plan wanted "one `ScheduledEmission` whose interval is
+   recomputed per leg"; the framework **fixes an emission's interval at
+   start** (`SchedulerRegistry` schedules `WorldClockApi.every` once), so
+   that is unrepresentable. Instead each leg spends a budget
+   (`edgeMinutes × modeFactor × loadFactor`) a tick at a time, which is
+   the same behaviour with one timer and no rescheduling — and it puts
+   the per-leg re-validation exactly at the leg boundary, where D4 wants
+   it.
+3. ⭐ **`SchedulerApi.complete(engagement)` is the one framework touch**
+   freight-slate warned about, and it is on the **kernel** rather than a
+   private `finish()` in the pack: a pack cannot deregister from the
+   gated `SchedulerRegistry`, and *arrival vs being stopped* is a
+   distinction every sustained engagement needs, not just this one.
+   Before it, `cancel` was a sustained engagement's only exit.
+4. **`vehicle-disabled` fires when the rig comes OFF THE HITCH**, and a
+   *destroyed* vehicle aborts `host-destroyed` through the framework's
+   own host subscription. Both are distinguishable in the envelope
+   (AC6), `host-destroyed` is the more precise of the two, and checking
+   the hitch at the leg boundary is what makes the shipped **breakaway**
+   gate legible — an overloaded rig that breaks away ends the journey
+   naming the vehicle instead of the driver walking on with the cargo
+   standing in the road behind them.
+5. **The Journey's mover is the vehicle when it is Mobile, else the
+   hitched driver** — one object, both vehicle shapes, and still exactly
+   one `traverse` per leg (AC5).
+6. **`AppApi.setting` reads are guarded.** It *throws* on an unwarmed
+   cache, so an unguarded dial would turn a boot-order edge into a
+   mysteriously dead journey. The code-side floor equals the shipped
+   value, so this cannot mask a wrong setting — only an absent one.
+
+**Two surprises worth keeping:**
+
+- ⚠ **The scheduler dispatches `onAbort` through the class it captured at
+  start** (`cls.prototype.onAbort.call(e)`), so an instance spy is never
+  consulted. Every abort assertion here spies the **prototype**. Cost an
+  hour; noted in `Journey.test.ts` so it costs nobody else one.
+- ⚠⚠ **`Scene.toSelf` throws when the actor is not a `Sensor`** — and the
+  `hauls` brain (W7) drives journeys with NPC carters. Unguarded, *every
+  background haul in the realm* would throw on arrival, swallowed by the
+  emission guard but filing a diagnostic every time. Arrival narration is
+  now `isSensor`-guarded, the same question `sendCompletedEnvelope` asks.
+  **The fixture found this, not the suite's assertions.**
+
+⚠ The boot logs `pack 'transport' ships 7 class(es) no row of any
+installed pack names` — expected at W3 and **cleared by W5**, which ships
+the rows. The same warning stands today for `arcana`, `residence`,
+`tpa`, `trade-mining` and `eternal-university`.
 
 ---
 

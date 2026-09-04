@@ -1,0 +1,27 @@
+id: transport
+version: 0.1.0          # reserved; nothing reads/enforces it (non-goal: version machinery)
+root: /system/transport
+description: >-
+  Transport — the ways, as distinct from the hauling. A road and a river
+  exist with nobody employed by them, which is exactly the `/system/`
+  test; who carries what across them for money is `trade-haulage`'s.
+
+  This pack owns the `Lane` (an edge set over the shared node graph, and
+  a mode's admittance is what induces it), the `LaneCatalogue` that
+  compiles the realm's lanes, the `Route` value object (nodes plus a stop
+  set, authored OR computed and indistinguishable to anything downstream),
+  the `Journey` sustained engagement whose every beat issues the same
+  `traverse` a player's `go` does, and the three vehicle shapes — the
+  towed rig, the self-propelled barge, the coach with a navigable
+  interior.
+
+  ⭐ Nothing here is specific to one realm: a lane over somebody's valley
+  is a fact about their world and lives in the commons beside the rivers,
+  exactly as a `Watercourse` row does.
+requires:
+  groups:
+    - name: transport
+      purpose: the transport pack's own body — the ways and what runs on them
+      owner: { office: prime-minister }
+  title:
+    - { extent: /system/transport, holder: { group: transport } }

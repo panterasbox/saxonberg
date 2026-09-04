@@ -166,6 +166,20 @@ export class SchedulerApi {
     logic().cancel(engagement, reason);
   }
 
+  /**
+   * End a **sustained** engagement on its own terms — the work is done
+   * rather than interrupted.
+   *
+   * ⭐ `cancel` used to be the only exit an untimed engagement had, so
+   * *arriving* and *being stopped* were the same event in the envelope.
+   * A journey's arrival is a completion (logistics D4), and an
+   * engagement that can only ever abort cannot say so. Timed activities
+   * are unaffected — their own timer already completes them.
+   */
+  public static complete(engagement: Engagement): void {
+    logic().complete(engagement);
+  }
+
   public static cancelAll(actor: Stuff & Engaged): void {
     logic().cancelAll(actor);
   }

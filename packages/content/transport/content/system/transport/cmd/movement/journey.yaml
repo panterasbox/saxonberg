@@ -1,0 +1,53 @@
+# journey — order a trip along a lane, and read how it is going.
+#
+# Afforded by CONTENT: a rig, a barge or a coach contributes this view to
+# whoever is standing beside it or riding in it. There is no core mixin
+# that grants it, which is what lets a second realm ship a second kind of
+# cart with zero pack code.
+#
+# ⚠ Deliberately NOT `drive` and NOT `ride`. `drive` is taken twice over
+# — the kernel's one-leg passthrough, and trade-mining's "drive a heading"
+# — and `ride` means STEER YOUR MOUNT, not "be a passenger". Overloading
+# either is how a live dispatch bug gets shipped.
+#
+# ⚠ There is no `journey stop`: stopping is the shipped `cancel`.
+verbs: [journey]
+controller: /system/transport/idea/cmd/movement/JourneyController
+description: "Take a vehicle along a lane to somewhere, or read the trip you are on."
+help: |
+  Order a trip, or read the one you are on.
+
+    journey to the crossroads
+    journey to the depot via spine
+    journey
+
+  Naming a place plans the route and sets off. The vehicle is really in
+  every room it passes through, so a busy road looks busy — and so
+  somebody can be waiting on it.
+
+  Your HANDS are on the reins for the whole trip: you cannot fight while
+  you are driving, which is why a valuable load travels with an escort.
+  Passengers hold nothing at all — they board with `go <vehicle>` and get
+  off with `out`, and if the vehicle is open they watch the road go by.
+
+  Bare `journey` reads the trip: where you are, how far is left, and
+  roughly how long. A blocked road stops you where you stand — the
+  journey does not find a way around, because that would hide the
+  geography. Re-issue when the way is clear.
+
+  To stop early, `cancel`.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: destination
+    type: string
+    required: false
+    greedy: true
+    prepositions: [to]
+options:
+  via:
+    short: v
+    type: string
+    description: "Which lane to take (default: a lane both ends are on)."
