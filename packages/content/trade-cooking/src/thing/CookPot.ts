@@ -56,6 +56,23 @@ const HEARTH = [
   'trade/cooking/cmd/crafting/cure.yaml',
   'trade/cooking/cmd/crafting/dry.yaml',
   'trade/cooking/cmd/crafting/smoke.yaml',
+  // ⭐⭐ **`butcher` too, and the pot is the right carrier for a reason.**
+  // The verb has to appear where the act is possible, and both candidates
+  // that felt more natural are kernel classes a pack may not touch: a
+  // `Corpse` cannot name a `trade/cooking` view, and neither can `Weapon`
+  // (which would also confer butchering on a mace — the controller would
+  // refuse, but *seeing a verb in your command set IS the affordance*).
+  //
+  // A pot is the cooking trade's own defining implement and it is
+  // deliberately PORTABLE capital — "reachable heat + a pot is a kitchen"
+  // is this class's own doc. So a hunter who carries one can dress a kill
+  // in the field, and a hunter who does not carries the carcass home
+  // instead, with the clock already running. That is the right pressure.
+  //
+  // ⚠ The alternative — a `ButcherBlock` fixture in the pack, standing in
+  // the cookhouse — is a clean later addition and confers the same verb by
+  // authoring the same list.
+  'trade/cooking/cmd/crafting/butcher.yaml',
 ];
 
 export default class CookPot extends CookPotBase {

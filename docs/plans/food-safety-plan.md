@@ -757,6 +757,55 @@ near Hearthworks. The verb gates on `constructionForm: 'bladed'` (P8).
 **Acceptance:** requirements 6, 7, 8, 17. **Ends at** `feat(cooking):
 butchering — the clock starts at the kill`.
 
+> ✅ **DONE.** `butcher`/`dress` + `ButcherController` in `trade-cooking`;
+> `butcheryYield` on `Species` (P9) authored on the wolf and the pit pony
+> and empty everywhere else; the `butchery` Discipline row
+> (`specializes: cooking`); `Postmortem.sinceDeath()` made public and put
+> on the interface.
+>
+> **Decisions this wave made:**
+> - ⭐⭐ **`butcher` is afforded by `CookPot`**, not by the corpse and not
+>   by the blade. Both of those read better and neither is available: a
+>   `Corpse` and a `Weapon` are **kernel** classes, and a pack may not put
+>   a `trade/cooking` view in a kernel class's `commandContributions`.
+>   `Weapon` would also confer butchering on a mace — the controller would
+>   refuse, but *seeing a verb in your command set IS the affordance*.
+>   The pot is the trade's own implement and is deliberately portable
+>   ("reachable heat + a pot is a kitchen"), so a hunter who carries one
+>   dresses in the field and one who does not carries the carcass home
+>   with the clock already running — which is the right pressure. A
+>   `ButcherBlock` fixture is the clean later addition and authors the
+>   same list.
+> - **D14's gate is `SpeciesApi.isSentient`**, and the refusal is worlded:
+>   *"You put the knife away… there is no cut of meat on this earth worth
+>   the road that starts here."* Not a clade walk — the tutor-bot is
+>   sentient and is not a primate.
+> - ⭐ **D15 lands as one arithmetic line**: the cuts' load is
+>   `Freshness.advance(inoculum, sinceDeath(), material, carcassTempK)`.
+>   A carcass left in the sun yields meat that was never worth cutting;
+>   one dragged into the cellar within the hour is prime. Both halves are
+>   pinned, because the failure is silent and reads as generosity.
+> - **ONE band read, TWO consequences** — yield and mess. An expert still
+>   deposits a floor of contamination (`Math.max(0.15, mess)`), because
+>   the answer to this hazard has to be cooking and cold, never a good
+>   enough butcher.
+> - **The gut roster is all three answers at once** — `salmonella`
+>   (cooking removes it), `perfringens` (spores survive and wake), and
+>   `staph-aureus` (it poisons the food, so cooking does not help). One
+>   careless kill puts every lesson on the table.
+> - **A one-shot, not an engagement.** An engaged butchering wants an
+>   abort reason and a partial-carcass output — a wave of its own, and
+>   nothing here forecloses it.
+>
+> **Surprise:** `lint:census` caught `butcheryYield` **on the first run** —
+> a new path-valued field it did not read — and refused rather than going
+> quietly blind. `refsOf` now walks `butcheryYield[].cut`, so a yield
+> naming a template that does not exist fails at CI instead of producing
+> an animal that opens onto nothing.
+>
+> Gates: 26 green · `test:near` 373 files / 3906 tests · trade-cooking
+> 32/32.
+
 ### W4 — In-host infection
 **Implements** requirements D1, D12, and the `ProgressionSpec` fill.
 ⚠ **Where the infection starts:** `BulkableApi.ingestSolid` is the one

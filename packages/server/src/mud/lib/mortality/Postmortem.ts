@@ -49,6 +49,22 @@ export interface Postmortem {
   getDecayStage(): DecayStage;
   /** How readable the forensic record still is, 1 → 0. */
   getForensicReadability(): number;
+  /**
+   * Elapsed game-seconds since death, or `null` while this body lives.
+   *
+   * ⭐ **Public because a knife must not reset a clock that has been
+   * running since the animal died.** Butchering derives the cuts' initial
+   * microbial state from this: a carcass left in the sun is meat that was
+   * never worth cutting, and one dragged into the cellar within the hour
+   * is prime. *Field dressing is time-critical* is the first thing any
+   * hunter learns.
+   *
+   * ⚠ The two clocks stay SEPARATE. This one is forensic — it bands
+   * decomposition for an examiner on its own cadence — and the spoilage
+   * gauge reads it as an input. Nothing fuses them, and `Creature`
+   * composes no `FreshnessMixin`.
+   */
+  sinceDeath(): number | null;
 }
 
 export function PostmortemMixin<TBase extends MixinConstructor<Stuff>>(
@@ -78,7 +94,7 @@ export function PostmortemMixin<TBase extends MixinConstructor<Stuff>>(
      * a body left for a week SHOULD be a week gone when someone finds it.
      * The same reasoning as the dying clock, one step further on.
      */
-    private sinceDeath(): number | null {
+    public sinceDeath(): number | null {
       if (this.diedAtGameSec === 0) return null;
       if (!StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)) {
         return null;

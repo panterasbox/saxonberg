@@ -154,6 +154,23 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
    * `analyze chemistry`, `containsElementOf`, the flat element map —
    * would have been quietly wrong about what the material IS.
    */
+  /*
+   * ⭐ `butcheryYield[].cut` — what a species' carcass yields to a knife.
+   * Each line names the Provision template a cut clones from, resolved
+   * live at the butchering, so a rowless one is an animal that opens onto
+   * nothing: the act reports success and produces no meat, with nothing
+   * anywhere to say why. Exactly the shape of the `composition` gap two
+   * paragraphs down, found the same way — by this gate refusing a new
+   * path-valued field it did not read.
+   */
+  const butchery = data.butcheryYield;
+  if (Array.isArray(butchery)) {
+    for (const line of butchery) {
+      if (line && typeof line === 'object') {
+        push('butcheryYield.cut', (line as Record<string, unknown>).cut);
+      }
+    }
+  }
   const composition = data.composition;
   if (Array.isArray(composition)) {
     for (const part of composition) {

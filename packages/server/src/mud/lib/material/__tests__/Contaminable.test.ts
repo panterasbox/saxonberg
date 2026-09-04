@@ -37,6 +37,7 @@ import { Quantity } from '../../quantity';
 import { TemplatePathPrefixes } from '../../paths';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
+import type { SenseChannel } from '../../description/Perceiver';
 import '../../../platform/idea/WorldClockRegistry';
 
 const HOUR = 3600;
@@ -199,12 +200,31 @@ describe('ContaminableMixin — the population no sense reports', () => {
     dirty.contaminate('sporing');
     expect(dirty.getPathogenLoad('vegetative')).toBeGreaterThan(0);
 
-    for (const filter of [undefined, ['vision'], ['smell'], ['taste']]) {
+    // `getMarkupLong` is the seam every sense verb renders through — the
+    // one every `markupAugmenters` contributor folds into.
+    const channels = [
+      undefined,
+      ['vision'],
+      ['smell'],
+      ['taste'],
+    ] as const satisfies readonly (readonly SenseChannel[] | undefined)[];
+    for (const filter of channels) {
       const opts = filter ? { filter } : undefined;
-      expect(dirty.getLongDescription(clean, opts)).toBe(
-        clean.getLongDescription(clean, opts),
+      expect(dirty.getMarkupLong(clean, opts)).toBe(
+        clean.getMarkupLong(clean, opts),
       );
     }
+  });
+
+  it('⚠ …and the comparison is not vacuous — the SAME seam does report a cure', () => {
+    // The equality above would pass over a renderer that said nothing at
+    // all. This is the control: a treatment IS legible through exactly the
+    // seam the contamination is invisible through.
+    const plain = food();
+    const salted = food();
+    salted.treat({ solute: 0.6 });
+    expect(salted.getMarkupLong(plain)).not.toBe(plain.getMarkupLong(plain));
+    expect(salted.getMarkupLong(plain)).toMatch(/salted/);
   });
 
   it('…and the mixin ships no augmenter at all, which is why', () => {
