@@ -53,6 +53,7 @@ import type { Stuff } from '../stuff/Stuff';
 import type Material from './Material';
 import type { ToxinTag } from '../metabolism/Metabolic';
 import type { BulkPayload, BulkSlot } from '../bulk/Bulkable';
+import { Cure, type CureState } from './Cured';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { WorldClockApi } from '../../api/worldclock';
@@ -200,7 +201,11 @@ export class Freshness {
    * floor. Returns a NEGATIVE rate above the kill temperature — the
    * population is dying, and the caller integrates that as decay.
    */
-  public static growthRate(material: Material | null, tempK: number): number {
+  public static growthRate(
+    material: Material | null,
+    tempK: number,
+    cure: CureState | null = null,
+  ): number {
     if (!material) return 0;
     const ea = material.getSpoilActivationEnergy().rawValue();
     if (!(ea > 0)) return 0; // inert: nothing tabulated, nothing rots
@@ -217,7 +222,7 @@ export class Freshness {
       return 0; // the water is ice — a pause, not a reset
     }
 
-    const aw = Freshness.waterActivityOf(material);
+    const aw = Freshness.waterActivityOf(material, cure);
     const floor = dial(AppSettingKeys.freshnessAwFloor, FRESHNESS_DEFAULTS.AW_FLOOR);
     if (aw <= floor) return 0; // salt, sugar, honey, spirits
     // A linear ramp above the floor: full rate at a_w = 1, nothing at the
@@ -237,11 +242,35 @@ export class Freshness {
     return muMax * fT * fAw;
   }
 
-  /** The material's own water activity, or the perishable default. */
-  public static waterActivityOf(material: Material): number {
-    const aw = material.getWaterActivity();
-    if (aw > 0) return clamp01(aw);
-    return dial(AppSettingKeys.freshnessAwDefault, FRESHNESS_DEFAULTS.AW_DEFAULT);
+  /**
+   * The water activity of a *particular piece* of this matter: the
+   * Material's tabulated base (or the perishable default), scaled by the
+   * per-instance water state.
+   *
+   *   `a_w = a_w(material) · moisture · (1 − solute)`
+   *
+   * ⭐ **Multiplicative, which is what makes hurdles stack.** Drying and
+   * salting are the same lever seen twice — take away the water, or bind
+   * what is left — so doing both beats doing either, and partial treatment
+   * earns partial benefit, with nobody enumerating "salt cod" anywhere.
+   *
+   * ⭐ `moisture: 1, solute: 0` is the **identity**. That is why every row
+   * already in the world reads exactly as it did before the cure axis
+   * existed, and it is pinned by a test rather than assumed.
+   */
+  public static waterActivityOf(
+    material: Material,
+    cure: CureState | null = null,
+  ): number {
+    const tabulated = material.getWaterActivity();
+    const base =
+      tabulated > 0
+        ? clamp01(tabulated)
+        : dial(AppSettingKeys.freshnessAwDefault, FRESHNESS_DEFAULTS.AW_DEFAULT);
+    if (!cure) return base;
+    const moisture = clamp01(cure.moisture);
+    const solute = clamp01(cure.solute);
+    return clamp01(base * moisture * (1 - solute));
   }
 
   /**
@@ -270,9 +299,10 @@ export class Freshness {
     elapsedS: number,
     material: Material | null,
     tempK: number,
+    cure: CureState | null = null,
   ): number {
     if (!(elapsedS > 0)) return clamp01(load);
-    const mu = Freshness.growthRate(material, tempK);
+    const mu = Freshness.growthRate(material, tempK, cure);
     if (mu === 0) return clamp01(load);
     const hours = elapsedS / FRESHNESS_DEFAULTS.SECONDS_PER_HOUR;
 
@@ -472,13 +502,19 @@ export class Freshness {
       slot.setPayload({ ...payload, freshness: { ...gauge, stamp: nowS } });
       return gauge.load;
     }
+    // ⚠ The water state FIRST, and reconciled: a blend that has been
+    // rehydrating in a damp cellar spoils at the a_w it has NOW, and
+    // `Cure.stateFor` may rewrite the payload — so read it before the
+    // freshness write, or the write below stamps over it.
+    const cure = Cure.stateFor(slot);
     const load = Freshness.advance(
       gauge.load,
       nowS - gauge.stamp,
       slot.getMaterial(),
       Freshness.hostTemperatureK(slot.getHolder()),
+      cure,
     );
-    slot.setPayload({ ...payload, freshness: { load, stamp: nowS } });
+    slot.setPayload({ ...slot.getPayload(), freshness: { load, stamp: nowS } });
     return load;
   }
 
@@ -638,6 +674,7 @@ export function FreshnessMixin<TBase extends MixinConstructor<Stuff>>(
           elapsed,
           material,
           Freshness.hostTemperatureK(self),
+          MixinApi.isCured(self) ? self.getCureState() : null,
         );
         this.freshnessClockStamp = nowS;
       } finally {

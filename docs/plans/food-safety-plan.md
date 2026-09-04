@@ -530,6 +530,49 @@ reporting both is how the split gets quietly undone at render time.
 **Acceptance:** requirements 1–4. **Ends at** `feat(spoilage): water
 activity is per-instance — moisture and solute over the material base`.
 
+> ✅ **DONE.** `lib/material/Cured.ts` ships `CureState` (`moisture` +
+> `solute`), the `Cure` policy statics and `CuredMixin`, composed on
+> `Provision` inside `CraftedMixin`. `Freshness.waterActivityOf` /
+> `growthRate` / `advance` all take an optional cure and derive
+> `a_w = a_w(material) · moisture · (1 − solute)`; the transfer blend in
+> `BulkableLogic` moves the water state by mass beside the load.
+>
+> **Decisions this wave made:**
+> - **The formula is multiplicative** (`base · moisture · (1 − solute)`),
+>   which is what makes drying and salting stack rather than compete and
+>   makes `moisture: 1, solute: 0` the exact identity. Pinned by the first
+>   two tests in `Cured.test.ts` — requirement 19's day-one half.
+> - ⭐⭐ **The passive arm is ONE-WAY: it only ever RAISES moisture.**
+>   Nothing dries by itself. A two-way equilibrium would have quietly
+>   preserved every ration in the pantry (breaking requirement 19) and
+>   would have made drying a thing that happens rather than a thing you
+>   do. Rehydration toward the ambient equilibrium delivers criterion 3's
+>   asymmetry on its own; curing simply has no passive arm.
+> - **A treatment takes the STRONGER of each axis** (`min` moisture,
+>   `max` solute), so re-running a weaker cure never un-cures — the
+>   asymmetry as arithmetic rather than as a guard, and what lets two
+>   separate acts (salt it, then dry it) stack.
+> - **Ambient dampness is read synchronously** through a new
+>   `BiomeApi.localHumidityFor`, which walks the containment chain's
+>   authored overrides + biome defaults and terminates at the root biome.
+>   `BiomeLogic.runChainWalk`'s steps 1–4 were extracted into
+>   `syncChainWalk` so the two share one walk; the sync read deliberately
+>   skips the async Zone tier and the weather deviation, and says so.
+>   A reconcile-on-read gauge runs off a getter and cannot await.
+> - **Criterion 4 rides its OWN augmenter** on `CuredMixin`, filtered to
+>   the same `vision`/`smell` channels the freshness band uses — a
+>   separate line, never a fifth band. Two axes, band words, no numbers.
+> - **`Cured.ts` duplicates the six-line `nowSeconds` clock guard** rather
+>   than importing `Freshness`, to keep `lib/material` acyclic:
+>   `Freshness` reads the cure state, so the dependency runs one way.
+>
+> **Surprise:** the sparse-storage ordering fell out for free — an
+> untreated instance has nothing to regain, so `reconcileCure` returns
+> before it touches the clock and a `look` at a shipped pantry cut writes
+> no stamp at all. Pinned by a test.
+>
+> Gates: all 25 green · `pnpm test:near` 326 files / 3516 tests green.
+
 ### W1 — The preservation crafts, and the maker stamp
 **Implements** requirements 5, D8.
 Cure / dry / smoke recipes in `trade-cooking`; salt as a cure input;

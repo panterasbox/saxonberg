@@ -1139,6 +1139,28 @@ export const AppSettingKeys = {
    * curve between the onset and here is superlinear, never a step. */
   freshnessDoseScaleMg: "freshness.dose.scaleMg",
 
+  /* ────────────────────────── cure (water state) ────────────────────────── */
+  /**
+   * Curing — the per-instance water state (`CuredMixin`): `moisture` and
+   * `solute`, which multiply the Material's tabulated `a_w` into the
+   * effective one the growth law reads. Drying reverses toward the ambient
+   * equilibrium; curing never does. The bands below are PRESENTATION
+   * cutoffs for the cured-state line — never a number a player sees.
+   * See docs/subsystems/spoilage.md.
+   */
+  /** Curing — fraction of the moisture gap a dried thing closes per game-hour. */
+  cureRehydrationPerHour: "cure.rehydrationPerHour",
+  /** Curing — the relative humidity (%) assumed where nothing authors one. */
+  cureAmbientHumidity: "cure.ambientHumidity",
+  /** Curing — moisture at/below which a thing reads thoroughly dried. */
+  cureBandDriedAt: "cure.band.driedAt",
+  /** Curing — moisture below which a thing reads partly dried. */
+  cureBandDryingAt: "cure.band.dryingAt",
+  /** Curing — solute at/above which a thing reads heavily salted. */
+  cureBandCuredAt: "cure.band.curedAt",
+  /** Curing — solute above which a thing reads lightly salted. */
+  cureBandCuringAt: "cure.band.curingAt",
+
   /* ────────────────────────── husbandry (living world phase 1) ────────────────────────── */
   /**
    * Husbandry — the growth model's dials (GrowingMixin). Growth is

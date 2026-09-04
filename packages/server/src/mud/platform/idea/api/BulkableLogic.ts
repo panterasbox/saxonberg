@@ -15,6 +15,7 @@ import type {
 import { CLOSURE_ORDER, BULK_VOLUME_UNIT } from '../../../lib/bulk/Bulkable';
 import type Material from '../../../lib/material/Material';
 import { Freshness } from '../../../lib/material/Freshness';
+import { Cure } from '../../../lib/material/Cured';
 import type { MqlQuantity } from '../../../api/mql';
 import { Quantity } from '../../../lib/quantity';
 import { MessageApi } from '../../../api/message';
@@ -304,6 +305,12 @@ export class BulkableLogic extends ApiLogic {
     // launder it: the pour-to-reset exploit.
     const fromLoad = Freshness.loadOf(from);
     const toLoadBefore = to !== null ? Freshness.loadOf(to) : 0;
+    // ⭐ The water state rides the matter exactly as the load does, and
+    // for the same reason: tipping brine into fresh stock partly cures
+    // the stock, and tipping fresh stock into brine dilutes it. Reading
+    // both BEFORE the debit matters — a full drain clears the payload.
+    const fromCure = Cure.stateFor(from);
+    const toCureBefore = to !== null ? Cure.stateFor(to) : null;
     const fromPayload = from.getPayload();
     const toWasEmpty = to !== null && to.isEmpty();
     from.debit(applied);
@@ -330,6 +337,12 @@ export class BulkableLogic extends ApiLogic {
         Freshness.stampLoad(
           to,
           Freshness.blendLoads(fromLoad, applied, toLoadBefore, toAmountBefore),
+        );
+      }
+      if (fromCure !== null || toCureBefore !== null) {
+        Cure.stampState(
+          to,
+          Cure.blend(fromCure, applied, toCureBefore, toAmountBefore),
         );
       }
     }
