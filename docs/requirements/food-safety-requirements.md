@@ -1,475 +1,419 @@
 # Food safety — requirements
 
-Food already goes off in a way you can smell. This build adds the thing
-that actually hurts you: **a second microbial population that is
-invisible to every sense**, that no clock starts on its own, and that
-grows inside you after you swallow it. Alongside it, the counterplay the
-[preservation slate](../slates/builds/preservation-slate.md) has been
-waiting on since 2026-07-31 — salting, drying and curing, made possible
-by moving water activity off the Material and onto the instance.
+**Kind:** feature
+**Leads from:** kernel — first consumer is the **Hearthworks cookhouse**
+(the kitchen the cooking build stood up: hearth, pantry chest, cellar,
+Odo on shift), shipping in this build.
 
-Seeded by [food-safety-slate](../slates/builds/food-safety-slate.md),
-which absorbs the *endeavour* half of
-[preservation-slate](../slates/builds/preservation-slate.md) (its
-*mechanism* half shipped with the cooking build, MR !231 →
-[spoilage.md](../subsystems/spoilage.md)). The two shipped rules this
-build sits between:
+Food already goes off in a way you can smell. This build adds the thing
+that actually hurts you: **a hazard none of your senses report**, that
+never appears on its own, and that grows inside you after you swallow
+it. Alongside it, the counterplay the
+[preservation slate](../slates/builds/preservation-slate.md) has been
+waiting on since 2026-07-31 — salting, drying and curing — and the act
+that creates the pressure both answer: **butchering**, where a kill
+hands you more meat than you can eat with a clock already running.
+
+Seeded by [food-safety-slate](../slates/builds/food-safety-slate.md).
+The two rules this build sits between:
 
 > *Heat kills the population; it does not destroy what the population
 > made.* — [spoilage.md](../subsystems/spoilage.md), shipped
 >
 > **Curing suspends the population; it does not kill it.** — this build
 
-Neither half of "cook it or cure it" is safe alone. Knowing which one a
-given piece of food needs is the curriculum.
+Neither half of "cook it or cure it" is safe alone, and knowing which
+one a given piece of food needs is the curriculum.
+
+---
+
+## What already exists
+
+**Verbs a player has today** near this ground: `cook`, `plate`, `eat`,
+`drink`, `taste`, `smell`, `look`, `wash`, `make`, `pour`, `heat`,
+`stir`, `harvest`/`pick`, `buy`, `serve`, `order`, `menu`, `treat`.
+**No verb takes an animal apart, and no verb preserves anything.**
+
+**Trades and packs** holding adjacent ground: `trade-cooking` (14
+recipes, and salt — which ships as a *seasoning* and preserves nothing),
+`trade-hospitality`, `trade-brewing`/`-winemaking`/`-distilling` (the
+fermentation family), and the Hearthworks venue.
+
+**Subsystems already true of this space:** spoilage (the microbial
+growth law, the four bands, the smell, the poisoning dose — all shipped
+with the cooking build), metabolism (the ingest path, toxins, the vomit
+window), thermal (a cold cellar and a warm windowsill are already
+different answers), fermentation (deliberate microbial growth, cultures,
+strains), harm and mortality (the medic vertical, the rescuable dying
+clock).
+
+**Disciplines** — 48 in the catalogue, including `cooking`, `medicine`,
+`agriculture`, `horticulture`, `fermenting`, `recipe-knowledge`,
+`hospitality-catering`. **There is no `butchery` and nothing about food
+safety.**
+
+**Content** — 30 of 107 materials rot on the shipped curve. A `Corpse`
+exists as a real object (searchable, carryable, decaying) and 23 animal
+species ship, so there is prey. Nothing turns a corpse into food.
+
+**Overlapping slates** — preservation (the parent), fridge and
+hearth-and-larder (cold storage, the larder, the compost heap),
+rendering (the knacker's non-meat outputs), ranching (livestock, and it
+explicitly leaves the butchering seam open), disease (transmission),
+pharma (medicine), sanitation.
+
+> **Therefore what is genuinely new here is four things:** a hazard that
+> no sense reports · a water state a player can *change* (rather than a
+> fixed property of each ingredient) · a path from a killed animal to
+> meat · and an illness that incubates and then grows in you.
 
 ---
 
 ## Goals
 
-- **Water activity is a per-instance property**, so the same material
-  can be fresh, dried, cured, or both — and hurdle stacking works
-  without a combinatorial explosion of Material rows.
-- **Preservation is an act a player performs.** Curing, drying and
-  smoking exist as crafts; salt stops being a seasoning and becomes the
-  keystone commodity mining already decided it was.
-- **A second, silent microbial population** rides the shipped growth
-  law, emits on no sense channel, and starts at zero until an event
-  seeds it.
-- **Contamination is an event with a source.** Butchering is that
-  source: a path from a killed animal to meat, with the clock starting
-  at the kill and the yield answering to skill.
-- **Cross-contamination is real and object-scoped** — a board, a knife,
-  a hand — and the shipped `wash` verb becomes the counterplay.
-- **An ingested pathogen grows inside its host**, filling the reserved
-  `ProgressionSpec` slot, with symptoms banding off the load and the
-  shipped rescuable `dying` clock as the ceiling.
-- **Thermal death answers to temperature.** `killRatePerHour` stops
-  being flat, making a simmer and a sear different acts and giving the
-  thermometer a job.
-- **A served dish is attributable.** Bulk food records who made it, so
-  the accountability ledger can express who poisoned whom.
-- **The cause is knowable by procedure, never by sense** — and the
-  procedure is teachable, which is what keeps an invisible hazard from
-  being unfair.
+- **A player can change how well a thing keeps.** Salting, drying and
+  curing are acts with lasting effects, and they stack — salt cod is
+  drying *and* salting, and keeps better than either.
+- **Salt becomes the keystone commodity** mining already decided it was,
+  by finally doing something.
+- **A second hazard exists that no sense reports** — not visible, not
+  smellable, not tasteable — and it never appears on its own.
+- **Contamination has a source you can point at**: butchering, and the
+  board or knife that touched it afterwards.
+- **A kill forces the preservation decision**, because it hands you far
+  more meat than you can eat before it turns.
+- **Cooking is a temperature held for a time**, not a threshold crossed,
+  so a simmer and a sear are different acts.
+- **Getting sick happens later, elsewhere, and is diagnosable by another
+  person** rather than by staring at the food.
+- **A served dish is attributable**, so poisoning a customer is a
+  different act from poisoning yourself.
+- **The rules are learnable and sufficient.** A player who understands
+  them can stay safe without ever inspecting anything.
 
 ## Non-goals
 
-- **Transmission.** `ContagionSpec` is left untouched; no room-to-room
-  spread, no vectors, no host range. That is
-  [disease-slate](../slates/builds/disease-slate.md)'s, and it
-  correctly requires a **push** tick (nobody reads an empty room) that
-  this build's reconcile-on-read shape cannot provide.
-- **Acquired immunity / prior exposure.** Needs a memory model; the
-  disease build's.
-- **Room-borne contamination.** A filthy kitchen as a load-bearing
-  surface is the push-tick shape again. Objects only.
-- **Molds and fungi.** A genuine third microbial idiom (visible,
-  surface-borne, spreading by contact, sometimes desirable). Deferred
-  whole, with aflatoxin and ergot held for it — see slate Part 10.
-- **Medicine and pharmacology.** This build *creates* the demand for a
-  diagnostician and deliberately does not supply one.
-  [pharma-slate](../slates/builds/pharma-slate.md) owns it, and
-  penicillin wants the mold build first.
-- **Rancidity / oxidative staling.** Not a microbial story; wants its
-  own small law. The deferral is already recorded in
-  [spoilage.md](../subsystems/spoilage.md).
-- **Acidity (`f_pH`).** The fourth and last lever, still absent, still a
-  `FermentProfile` row plus a read when a consumer wants pickling.
-- **Oxygen / sealing physics.** Sealing stays binary. Botulinum arrives
-  as a toxin row, not as an aerobe/anaerobe flora split.
+- **Transmission** — no catching it from another person, no vectors,
+  no contagious kitchens. → [disease-slate](../slates/builds/disease-slate.md).
+- **Acquired immunity / prior exposure.** → the disease build.
+- **A contaminated *room*** — a filthy kitchen as a hazard in itself.
+  → the disease build (it needs the same push mechanism transmission
+  does).
+- **Molds and fungi**, including the blue-cheese and koji side, aflatoxin
+  and ergot. → food-safety-slate Part 10, as its own build.
+- **Medicine and pharmacology.** This build *creates* demand for a
+  diagnostician and deliberately supplies none.
+  → [pharma-slate](../slates/builds/pharma-slate.md), after molds.
+- **Rancidity / staling** (oil, nuts, coffee) — not a microbial story.
+  → nowhere yet, deliberately; it wants its own small law and has no
+  slate.
+- **Pickling and anything sour** — the acidity lever.
+  → preservation-slate's remaining term, riding the fermentation
+  subsystem when a consumer wants it.
+- **Canning and sealed-jar physics.** Sealing stays the simple thing it
+  is today. → preservation-slate, explicitly deferred there.
 - **Livestock, herds, husbandry.** This build takes only the *hunting*
-  side of the seam [ranching-slate](../slates/builds/ranching-slate.md)
-  explicitly left open.
-- **Rendering the non-meat carcass** (hide, bone, fat beyond the shipped
-  `render-tallow`). Adjacent;
-  [rendering-slate](../slates/builds/rendering-slate.md)'s.
+  side. → [ranching-slate](../slates/builds/ranching-slate.md).
+- **The rest of the carcass** — hide, bone, fat past what already
+  renders. → [rendering-slate](../slates/builds/rendering-slate.md).
+
+## Placement
+
+**The kernel owns the hazard; `trade-cooking` owns the acts.**
+
+The microbial law, the water state and the illness are **kernel** —
+they are true of food everywhere, in any locality, whether or not anyone
+practises a trade. That is the `/system`-shaped test applied to the
+kernel's own substrate: a ration rots in an empty room.
+
+The **acts** are `trade-cooking`'s: curing, drying, smoking and
+butchering are things a person *does*, they ship with the pack that
+affords them, and their rows live under `/trade/cooking/`. The
+`butchery` Discipline is platform-level, because a skill is not a pack's
+property.
+
+⭐ **Does a second instance need code?** No. A second kitchen, a second
+butcher, a second cured product and a second pathogen are all **content
+rows** — a recipe, a Discipline reference, a material, an affliction.
+Nothing in this build makes the *next* one a code change, which is the
+test that says the mechanism and the expression were separated
+correctly.
+
+**Butchering stays in `trade-cooking` for now** rather than taking a
+pack of its own: it would be a pack holding one verb, and the victualler
+is one trade at this tier. When ranching brings volume, `trade-butchery`
+spins out — and because the Discipline already exists separately, that
+move carries a verb, not a skill model.
+
+## Collisions
+
+- ⚠⚠ **Corpses already exist, and combat already makes them.** The
+  bar-fight build produces bodies in a *social venue*. A butchering act
+  that reads "a corpse" would let a player take apart a patron in Dave's
+  Bar. **Settled in D14 below: you cannot butcher a person.**
+- **The Hearthworks pantry chest** already holds the food rows this
+  build changes (`stew-meat`, `root-vegetables`, `prime-cut`, rations).
+  They gain a water state; nothing in the chest should read differently
+  on day one.
+- **The Hearthworks cellar** is already cold and already holds a
+  fermentation vat. Cold storage becomes *useful* here rather than
+  decorative — and the vat's deliberate microbial growth must not be
+  confused with the undeliberate kind. (The unresolved collision between
+  those two is recorded in `spoilage.md` and stays out of scope.)
+- **Odo the cook** works a shift in that kitchen. Anything he makes is
+  now food someone can be poisoned by, which is the point, and his own
+  practice should be sound.
+- **Dave's Bar serves food.** The attribution goal means a bartender who
+  serves a bad dish is now visible as having done so.
+- **The general store sells provisions.** Bought food must arrive sound;
+  a shop is not a contamination source.
+- **The medic vertical** gains its second customer, having been built
+  for combat wounds.
 
 ---
 
 ## Surface decisions
 
-### D1 — The infection gauge composes nowhere new
+*(Decision numbers are stable and cited by the plan.)*
 
-**Question:** where does a host-side infection state live —
-`OrganismMixin`, `VitalsMixin`, or its own mixin?
+### D1 — Only animals get sick from food
 
-**Answer: there is no host question.** `VitalsMixin` composes onto
-exactly **one** class, `Creature`, and `reconcileConditions` — the
-game-time, reconcile-on-read driver that already runs wounds — is
-already there. The infection is a **new arm of the existing
-reconcile**, over the existing `conditions` record. No new mixin, no new
-host set, no new persistence field group.
+The illness is a bodily condition, so it reaches creatures and not
+plants. A player, an NPC and a hunted animal can all be poisoned; a
+crop cannot.
 
-⭐ The count is the answer, per the four-round lesson from MR !231:
-*answer it with the host-set count, not by argument.*
+### D2 — Spoilage and contamination travel together
 
-Corollary worth stating: `OrganismMixin` is the wider one (`Creature` +
-`Plant`), so **a plant cannot get food poisoning**, which is correct and
-falls out rather than needing a guard.
+Pouring, decanting, mixing and blending move **both** hazards with the
+matter, mass-weighted, exactly as spoilage already moves. Tipping a bad
+stew into a clean pot does not clean it, and tipping half of it into a
+good pot spoils the good one rather than laundering the bad.
 
-### D2 — The pathogen load extends the existing `freshness` record
+### D3 — Contamination spreads between objects, not through rooms
 
-**Question:** does the second population ride a sibling field on
-`BulkPayload`, or the existing one?
+A board, a knife, a hand and a vessel can carry it from one thing to
+another. Rooms carry nothing. Washing clears it.
 
-**Answer: it extends the existing record.** The shipped shape is
-`freshness?: { load: number; stamp: number }`, declared onto
-`BulkPayload` from `lib/material/Freshness.ts` by declaration merging.
-The second population goes **inside** that record.
+### D4 — Contamination is undetectable, and the risk is still legible
 
-**Because the stamp must be shared.** Two sibling fields means two
-stamps, which can drift; a drifted stamp means the two populations
-integrate over different elapsed windows from the same clock read, and
-a cook could launder one by touching the other. One stamp, one reconcile
-pass, both populations advanced together.
+There is **no reading, no smell, no taste and no tell** — a contaminated
+item is indistinguishable from a clean one by every sense.
 
-### D3 — Cross-contamination is object-scoped
+⭐ What keeps that fair is that the *risk* is legible even though the
+*hazard* is not: a player can see that the meat is raw, that the board
+was used for gutting, that the stew has been out since morning. **The
+information is in what you did, not in the object** — so a careful
+player is reasoning, not guessing. *Invisible to the senses, knowable by
+procedure.*
 
-A pathogen load may sit on any object that touches food — a board, a
-knife, a hand, a vessel. **Rooms carry nothing.** A room-borne load is
-the push-tick shape `disease-slate` reserved, and taking it here would
-breach the transmission boundary through the back door.
+### D5 — Cooking is a temperature held for a time
 
-The counterplay is the **shipped `wash` verb** over `ServiceableMixin`,
-which landed with the cooking build's serviceware tier. It is about to
-mean something.
+A long hold at a lower heat and a brief moment at a higher one achieve
+the same kill. A simmer, a sear and a lazy warm-through become
+genuinely different acts, and a thermometer becomes worth owning.
 
-### D4 — No sense channel for contamination; the risk is legible from history
+### D6 — No food ever becomes dangerous on its own
 
-**Question:** can a player perceive contamination at all, or is
-procedure the only route?
+> **Spoilage is a clock. Contamination is an event.**
 
-**Answer: procedure only — no channel, no augmenter, no tell.** The
-shipped `FRESHNESS_CHANNELS = ['vision', 'smell']` becomes a property of
-the population; the pathogen's list is **empty**.
+Food left alone spoils — it never becomes *contaminated*. Something has
+to have happened to it: an animal opened, a dirty implement, a surface.
+This is what keeps an invisible hazard from being a tax on existing.
 
-⭐ **What dissolves the fairness worry is that the risk is legible even
-though the load is not.** A player can see that the meat is raw, that
-the board was used to gut something, that the stew has been sitting out
-since morning. **The information is in what you did, not in the
-object** — so a careful player is not guessing, they are reasoning. That
-is derivability, and it is the whole lesson: *invisible to the senses,
-knowable by procedure.*
+### D7 — The same ingredient can be fresh, dried, cured, or both
 
-### D5 — Thermal death becomes temperature-dependent
+How well a thing keeps stops being a fixed fact about that kind of food
+and becomes a **state of the individual thing** that acts can change.
 
-`Freshness.growthRate` currently returns a **flat** negative dial above
-`killK` (`Freshness.ts:208`), so every temperature past the threshold
-kills at one rate. It becomes Arrhenius, symmetric with the growth term
-directly above it.
+Drying and salting are the same mechanism seen twice — both take away
+the water a microbe can use — so they stack rather than competing, and
+partial treatment earns partial benefit.
 
-**Because the actual lesson is that it is not a temperature, it is a
-temperature held for a time.** A long hold at 60 °C and an instant at
-71 °C are the same kill; a flat rate cannot say that, and without it the
-thermometer and the hold time are decoration.
+**Asymmetry:** drying reverses and curing does not. Something dried
+slowly softens again in a damp place; something salted never un-salts.
+This is why a dry store is worth building.
 
-### D6 — The inoculum becomes per-population
+*Alternative considered:* a separate kind of food per state (fresh pork,
+salt pork). Honest for one change, and it explodes the moment hurdles
+stack — which is precisely what the trade practises.
 
-`advance()` floors the load at the seed population whenever the rate is
-positive (`Math.max(clamp01(load), Freshness.inoculum())`). Correct for
-spoilage — the flora really is everywhere — and **fatal for pathogens**,
-which would spontaneously appear in every piece of food in the world.
+### D8 — A served dish remembers who made it
 
-The inoculum moves from a global dial to a property of the population,
-and the pathogen's is **zero**.
+Prepared food carries its maker the way a crafted object already does,
+so that harm from a meal can name a person. Without this, serving
+contaminated food to a paying customer is indistinguishable from eating
+it alone at home.
 
-> ⭐⭐⭐ **Spoilage is a clock. Contamination is an event.** This is the
-> design's spine and the reason it is not miserable: food never
-> spontaneously becomes dangerous. Something *happened* to it.
+### D9 — Butchering is a skill of its own
 
-It is also the Law-2 clearance, twice over — preservation-slate's *"the
-clock starts at an act, never at ownership"* holds even harder here,
-because the pathogen clock does not start at all without one.
+A new `butchery` Discipline, a specialization of cooking. Yield and
+cleanliness both answer to it — gut spillage is the dominant real
+contamination route and it is exactly what an unskilled butcher does.
 
-### D7 — Two per-instance scalars, and not on `WetMixin`
+### D10 — Botulism is a poison, not an infection
 
-`Freshness.waterActivityOf(material)` takes a Material and nothing else
-(`Freshness.ts:241`), which is why salting cannot touch it. It gains a
-per-instance carrier holding **two** scalars:
+Some hazards make a toxin rather than infecting you, and the two behave
+differently: boiling destroys *this* poison but not the one in rotten
+food. That distinction is already expressible and gets used rather than
+flattened.
 
-- **`moisture`** — water content relative to the material's native value
-  (1.0 = as-harvested, lower = dried).
-- **`solute`** — cure loading actually taken up (salt, sugar, honey).
+### D11 — Some organisms survive cooking and wake as food cools
 
-`a_w` derives from both plus the material's tabulated base. Both land
-symmetrically on **both halves** of the shipped gauge — the mixin's
-`fieldMeta` and the `BulkPayload` record — because brined pork is bulk
-and a hanging ham is not, and both blend by mass on transfer exactly as
-the load already does.
+A properly cooked dish left out overnight can make you ill. This is the
+most common real food poisoning there is, and it is the lesson nobody
+believes until it happens to them.
 
-**Two and not one collapsed effective-a_w**, because of a reversibility
-asymmetry a single scalar cannot express: **drying comes back and curing
-does not.** Jerky in a damp cellar rehydrates; a salted ham does not
-un-salt.
+### D12 — Resistance is thin
 
-⚠ **And not on `WetMixin`**, which
-[preservation-slate](../slates/builds/preservation-slate.md) proposed as
-*"free — already universal"*. It models **surface** saturation and
-**drains toward ambient by design**. Hang a_w on it and a dried fish
-walks through fog and comes back fresh. The honest coupling runs the
-other way and is weaker: humid storage slowly *raises* `moisture`, which
-is what makes a dry store worth building.
+How well a body fights an infection depends on its condition, roughly.
+No immune memory, no exposure history, no per-pathogen resistances.
 
-### D8 — `BulkPayload` gains a maker
+### D13 — Severity is fitted to what already ships
 
-**Verified gap.** `CraftedMixin` already stamps a `maker` (the maker's
-durable templatePath, derived at craft-resolve from the execution
-context) on discrete crafted items. `BulkPayload` carries `recipeId`,
-`appearance`, `keywords`, `cookedAtK` and `composition` — **and no
-maker**. A dish in a pot does not know who cooked it.
+The existing poisoning content was calibrated against authored
+afflictions rather than invented, and the two agreed without either
+being tuned to the other. New illnesses are fitted the same way.
 
-It needs one, because `ConditionApi.inflict` takes an optional
-`accountability` supplied **by the producer** (*"the ledgers never
-infer"*), and a food-poisoning affliction cannot fill that row if the
-food has forgotten who made it. Without this, serving contaminated food
-to a paying customer is mechanically identical to eating it alone, and
-lens 4 has nothing to say.
+### D14 — ⚠ You cannot butcher a person
 
-Same declaration-merging seam as `freshness`; same rule as the cooking
-build's — **the payload carries what cannot be derived**.
+Raised by the collision above. Butchering applies to animals; a sapient
+corpse is not a source of meat, and the species roster already places
+people and animals in a taxonomy that can say which is which.
 
-### D9 — Mint a `butchery` Discipline, specializing `cooking`
-
-The yield and cleanliness of a butchering act answer to skill: gut
-spillage is the dominant real contamination route, and it is precisely
-what a bad butcher does. A Discipline is the project's unit of skill, so
-the act needs one or it teaches nothing.
-
-`specializes:` is a shipped field on the `Discipline` schema (used by
-`blades`, `bartending`, `horticulture`, `retail-sales` and others), so
-this is a **content row**, not a new tree — the same move
-`baking specializes: cooking` settled in
-[trade-roster-slate](../slates/builds/trade-roster-slate.md).
-
-### D10 — Botulinum is a toxin, not an infection
-
-*C. botulinum* does not touch the in-host path. It rides the **shipped**
-`formedToxins` channel and, because botulinum toxin is genuinely
-heat-labile, the **shipped** `labileAtK` field — which already
-distinguishes a raw bean's lectin (labile) from ptomaine (not).
-
-> Two reaches coexisting is the model being right about a real
-> distinction: **some things poison you, some things infect you, and
-> boiling fixes exactly one of them.**
-
-### D11 — Spore-formers get two constants, and the danger zone is free
-
-The danger zone is **not a new concept**: it is the region where
-`growthRate > 0`, between `freezingK` (273 K) and `killK` (333 K), and
-`ThermalMixin` already does Newton cooling. A pot left out cools through
-it on wholly shipped machinery.
-
-A spore-former needs exactly two authored constants — a **survival
-fraction** through the kill step and a **germination threshold** — to
-make *"cool it fast"* a real mechanic. That yields the most common real
-food poisoning there is: **you get sick from food you cooked
-properly.**
-
-### D12 — Host resistance stays thin
-
-A scalar read off vitals/nutrition, matching disease-slate's *"good
-husbandry **is** immunity"* in shape without building it. No immune
-memory, no exposure history.
-
-### D13 — Calibration is fitted, not invented
-
-Deferred to a running game as ever, but with the discipline the shipped
-work already demonstrated: the ptomaine dose curve was fitted against
-the **authored** `ptomaine` seed's bands and clearance rate, and the two
-agreed without either being tuned to the other. Pathogen bands are
-fitted against authored Condition seeds the same way.
+This is a **values** decision, not a squeamishness one, and it is
+consistent with the position the game already takes elsewhere (sentient
+sacrifice is authored as evil). The refusal should read as the world
+having a view, not as a missing feature.
 
 ---
 
 ## Lens pass
 
-**1 · Pedagogy.** Disciplines exercised: **`cooking`** (the kill step —
-temperature *and hold time*, now that D5 makes the distinction real),
-**`butchery`** (new, D9 — clean separation as a skill), and
-**`medicine`** (diagnosis, D4's procedure). Everything derives from one
-equation the player can internalise: a population grows between two
-temperatures, faster when warm and wet, and dies above 60 °C. From that
-alone a player can predict that a cured ham keeps, that a cooked stew
-left out is worse than the raw stock was, and that boiling fixes
-botulism but not staph. ⭐ Nothing is rolled: **which** pathogen a
-carcass carries is environmental (a fact about the world, legitimate per
-[uncertainty.md](../uncertainty.md)); **what your knife did** is not.
+**1 · Pedagogy.** Disciplines exercised: **`cooking`** (temperature *and
+hold time*, now that D5 makes the distinction real), **`butchery`**
+(new — clean separation as a skill), **`medicine`** (diagnosis and
+treatment). Everything derives from one law a player can internalise: a
+population grows between two temperatures, faster when warm and wet, and
+dies above a threshold that is really a rate. From that alone a player
+predicts that a cured ham keeps, that a cooked stew left out is worse
+than the raw stock was, and that boiling fixes botulism but not staph.
+⭐ Nothing is rolled: **which** hazard a carcass carries is a fact about
+the world (legitimate); **what your knife did** is not.
 
-**2 · Expression.** The ordinary case is entirely data: a new pathogen
-is a `Condition` row plus constants; a new cure is a recipe; a new
-perishable is a Material with an `Ea`, an `a_w`, and now a moisture
-response. **No code for any of it.** The bespoke case is the hurdle
-stack — an author combining salt, smoke and time gets a correct answer
-without anyone having enumerated "salt cod", because the levers compose.
-⚠ The one gap: the spore constants (D11) are engine-side, so a
-*genuinely novel* survival mechanism would still need a kernel edit. Two
-constants is a narrow enough surface to accept.
+**2 · Expression.** The ordinary case is entirely data — a new hazard, a
+new cure, a new perishable are all rows. **No code for any of them.**
+The bespoke case is hurdle stacking: an author combining salt, smoke and
+time gets a correct answer without anyone having enumerated "salt cod",
+because the levers compose. ⚠ **The gap:** an organism whose survival
+works in a genuinely novel way (not a rate, not a threshold) would still
+need engine work. Narrow enough to accept, and named rather than
+papered over.
 
-**3 · Immersion.** The whole build refuses a gauge — there is no
-contamination meter, and by D4 there is no reading at all. What the
-simulation affords without scripting: hanging meat in a cold cellar
-because you understand why; keeping a separate board because you got
-burned once; a cook who insists on washing between jobs, and a customer
-who notices. ⭐ The strongest immersion property is that **the anxiety is
-real and correctly placed** — you are not watching a number approach a
+**3 · Immersion.** The build refuses a gauge — there is no contamination
+meter and by D4 no reading at all. What the simulation affords without
+scripting: hanging meat in a cold cellar because you understand why;
+keeping a separate board because you got burned once; a cook who insists
+on washing between jobs, and a customer who notices. ⭐ The anxiety is
+real and correctly placed — you are not watching a number approach a
 threshold, you are remembering what you did with that knife.
 
 **4 · Values.** The choice forced is **whether to serve it.** Eating
 your own risky food is a private gamble; putting it on a menu is a
-choice about other people, and D8 is what makes the difference legible.
-Who confers standing: the **polity, through the shipped accountability
-ledger** — `accountability_events` with derive-on-read blame, filled by
-the producer at `ConditionApi.inflict`. A cook who poisons patrons is
-visible as having done so, without a reputation stat and without anyone
-scripting a consequence. ⭐ This is the reason food safety is a *civic*
-system and not merely a survival one.
+choice about other people, and D8 makes the difference legible. Who
+confers standing: **the polity**, through the harm record that already
+exists — a cook who poisons patrons is visible as having done so,
+without a reputation stat and without anyone scripting a consequence.
+D14 is the same lens answering a second question. ⭐ This is why food
+safety is a *civic* system and not merely a survival one.
 
-**5 · Epochs.** The mechanism is microbial growth and thermal death,
-which is identical in prehistory and in a modern kitchen. What changes
-is **dynamics only**: the medieval rung has salt, smoke, and a cold
-cellar; the industrial rung adds canning; the modern rung adds
-refrigeration and pasteurisation; the future rung adds irradiation.
-Every one of those is a parameter on the existing levers — none is a
-different machine. ⭐ Nothing about the cellar has to be rewritten to
-become a fridge; `AtmosphericMixin` already carries the override, and
-temperature is temperature.
+**5 · Epochs.** The mechanism — microbial growth and thermal death — is
+identical in prehistory and in a modern kitchen. Only the *dynamics*
+change: the medieval rung has salt, smoke and a cold cellar; the
+industrial rung adds canning; the modern rung adds refrigeration and
+pasteurisation; the future rung adds irradiation. Every one is a
+parameter on levers this build ships. ⭐ Nothing about the cellar has to
+be rewritten to become a fridge.
 
 ---
 
-## Constraints
+## The drive
 
-- ⚠⚠ **`ContagionSpec` must not be touched.** It is the scope boundary
-  and the disease build's property. A reviewer should be able to confirm
-  the boundary held by `git diff` on one interface.
-- **`ProgressionSpec` is currently a stub** —
-  `{ intervalMs: number }` with *"no live scheduler is built here"*.
-  Three shipped Conditions (`starvation` 1 h, `dehydration` 30 min,
-  `recovering` 1 h) already author a cadence that **nothing reads**.
-  Filling the slot must fix those three, not leave them dead beside a
-  new path.
-- **Reconcile-on-read, game-time, no scheduler**, matching
-  `reconcileConditions`. ⚠ And matching
-  [spoilage.md](../subsystems/spoilage.md)'s **two deliberate
-  divergences**: no far-past guard and no linkdead freeze on the food
-  side. In-host, the existing condition behaviour governs.
-- ⚠⚠ **The sparse-storage ordering must be preserved.**
-  `reconcileFreshness` checks perishability *before* reading the clock,
-  so inert matter reads and writes nothing. A second population must not
-  re-introduce a write on first look at an anvil — this shipped wrong
-  for one review round already.
-- **No new Mongo collections.** Per project rule; the load rides
-  existing per-instance state and the existing `conditions` record.
-- **No migrations.** A field-shape change means dropping the dev DB.
-- ⚠ **`requiresWizard` is TypeScript access only.** No verb, validator
-  or test in this build may reach for the wizard axis; a blocked gate is
-  a finding about a missing seat, not a licence.
-- **Banding is presentation.** Bands are never a number to the player;
-  the shipped band vocabulary is the model.
-- ⚠ **Do not widen a mixin to serve rows.** If a class turns out to be
-  the wrong host, move the rows. Count hosts first
-  (`grep -rl "XMixin("`).
-- **The fermentation/spoilage collision on `Vat` is inherited, not
-  resolved.** It stays open (see Findings); nothing in this build may
-  tabulate a spoilage constant on a fermentable without settling it.
+Run in the live game, at the Hearthworks, before the MR opens.
+
+1. **Hunt.** Kill an animal in the wild near Hearthworks. → It leaves a
+   body.
+2. **Butcher it** with a knife. → Several cuts of meat, far more than one
+   meal. The cuts read as fresh. A first-time butcher makes a mess of it
+   and gets less than a practised one would.
+3. **Try to butcher a person.** (An NPC corpse, or a fallen patron.) →
+   Refused, in the world's voice.
+4. **Look at, smell and taste one cut.** → It reads sound. *It is not.*
+   Nothing in this build will ever tell you otherwise.
+5. **Salt a second cut** and **hang a third to dry** in the cellar. →
+   Both read as treated. Salt is consumed.
+6. **Salt and dry a fourth.** → Reads as more thoroughly preserved than
+   either alone.
+7. **Cook the first cut properly** on the hearth and **eat it at once.**
+   → A good meal. No illness, ever.
+8. **Cook a fifth cut properly, leave it on the table overnight**, and
+   eat it in the morning. → It smells fine. **You get sick some hours
+   later**, well after the meal.
+9. **Wait out the illness**, or have another player `treat` you. →
+   Symptoms are legible to them; treatment resolves it.
+10. **Take the untreated illness to its end** on a spare character. →
+    The existing dying arc, rescuable, with no new death path.
+11. **Leave the salted cut a full season**, then eat it raw. → Still
+    preserved. **Still makes you ill** — curing kept the hazard as well
+    as the meat.
+12. **Cook that same cured cut** and eat it. → Fine.
+13. **Butcher with a dirty knife, then chop vegetables with it**, and
+    eat them raw. → Illness, from food that never touched the animal.
+14. **`wash` the knife, repeat.** → Fine.
+15. **As Odo on shift, serve a bad dish to a patron.** → The patron
+    sickens, and the record names Odo.
+
+⚠ Steps 4, 8 and 13 are the three the unit suite cannot prove and the
+whole build exists for.
 
 ---
 
 ## Acceptance criteria
 
-**Water activity & preservation**
+Observable from outside the code, by a person playing.
 
-1. A perishable's effective `a_w` derives from per-instance `moisture`
-   and `solute` over the Material's tabulated base, on **both** the
-   mixin gauge and the `BulkPayload` record.
-2. Drying and salting the same material reach a comparable `a_w` by
-   different routes, and **stack**: a salt-and-dry cure reaches a lower
-   `a_w` than either alone.
-3. Rehydration is asymmetric — humid storage raises `moisture` over
-   time; nothing lowers `solute`. A test pins that a cured item cannot
-   be un-cured by weather.
-4. `moisture` and `solute` blend by mass on transfer, like the load.
-5. At least one cure, one dry and one smoke recipe ship, and salt is an
-   input to the cure.
-6. Tests cover the a_w ramp at the floor: partial curing scales the rate
-   proportionally, and crossing 0.60 stops growth entirely.
-
-**The pathogen population**
-
-7. A pathogen load emits on **no** sense channel — `look`, `smell` and
-   `taste` on a contaminated-but-fresh item are byte-identical to the
-   same item clean. A test asserts the two renderings are **equal**
-   rather than asserting the words twice.
-8. A zero pathogen load stays zero over arbitrary elapsed time at any
-   temperature. **No food is ever spontaneously contaminated.**
-9. Thermal death rate rises with temperature; a long hold at a low
-   supra-kill temperature and a short hold at a high one reach the same
-   surviving fraction.
-10. Spore-formers survive a kill step at their authored fraction and
-    germinate when the host cools below their threshold — a stew cooked
-    properly, then left out, ends contaminated.
-11. Curing a contaminated item **suspends and does not clear** its
-    pathogen load; the item is shelf-stable and still dangerous after an
-    arbitrary interval.
-12. The two populations advance from **one** shared stamp in one
-    reconcile pass.
-
-**Butchering & contamination events**
-
-13. A `Corpse` yields cuts; the cuts carry a running freshness clock
-    from the moment of the kill.
-14. Butchering yield and contamination answer to the `butchery`
-    Discipline, which ships as a row specializing `cooking`.
-15. A contaminated implement transfers load to food it processes, and
-    `wash` clears it.
-16. A `butchery` Discipline row exists and is exercised at butcher-resolve.
-
-**In-host infection**
-
-17. An ingested pathogen produces **no immediate symptom**, then bands
-    into an affliction after an incubation that emerges from the growth
-    curve rather than from a tuned delay.
-18. `ProgressionSpec` is consumed, and `starvation`, `dehydration` and
-    `recovering` progress on their already-authored cadences.
-19. A severe untreated infection drives vitals into the shipped
-    rescuable `dying` arc; nothing in this build adds a death path.
-20. `ContagionSpec` is unmodified — verifiable by diff.
-21. Treatment resolves through the authored `resolution.by` seam.
-
-**Attribution**
-
-22. `BulkPayload` carries a `maker`, stamped at craft-resolve from the
-    execution context like `CraftedMixin`'s.
-23. A food-poisoning affliction traceable to a served dish supplies an
-    `accountability` row naming that maker.
-
-**Docs & gates**
-
-24. `docs/subsystems/spoilage.md` is updated — it currently states the
-    gauge is one population and that the onset sits inside the tainted
-    band so *"the gauge teaches before it punishes"*. That remains true
-    of the spoilage flora and is now **false of the system**; the doc
-    must say both.
-25. A subsystem doc covers the pathogen half, the preservation levers,
-    and butchering — either as a new doc or as sections owned by
-    existing ones, with the `CLAUDE.md` map entry a **single line**.
-26. `pnpm lint:perishable` still passes, and the lint family is green.
-27. The live drive runs the acceptance story end to end: **kill →
-    butcher → too much meat → cure some, cook some, leave some → the
-    cured keeps, the left-out spoils visibly, and the contaminated one
-    makes you sick hours later with nothing having warned you.**
-
----
-
-## Findings inherited (not this build's to fix)
-
-- **`Condition`'s class docstring is stale** — *"ZERO content ships —
-  the class + field shape only; the catalog is a later wave."* Fifteen
-  rows ship. Cheap to correct in passing; not a goal.
-- **The fermentation/spoilage collision on `Vat`** —
-  [spoilage.md](../subsystems/spoilage.md) calls it *"luck resting on a
-  decision, not a guard."* Now on its second slate. It belongs to
-  whoever builds `f_pH`.
+1. A player can salt or dry an ingredient, and it keeps visibly longer
+   than an untreated one in the same place.
+2. Salting and drying the same item **stack** — better than either
+   alone — and partial treatment gives partial benefit.
+3. A dried thing left somewhere damp slowly softens back; a salted thing
+   never un-salts.
+4. Treated food is legible as treated, without a number.
+5. Salt is consumed by curing and is worth buying.
+6. A player can butcher a killed animal and gets more meat than one
+   meal.
+7. A player **cannot** butcher a person, and the refusal reads as the
+   world's position.
+8. An unskilled butcher yields less and contaminates more than a skilled
+   one.
+9. **No food a player owns ever becomes dangerous without something
+   having happened to it.**
+10. A contaminated item is indistinguishable from a clean one by `look`,
+    `smell` and `taste`.
+11. Food cooked properly and eaten promptly never makes anyone ill.
+12. Food cooked properly, left out overnight and eaten next day **does**.
+13. Contaminated meat that is cured and eaten a season later still makes
+    you ill; cooking that same cured meat makes it safe.
+14. Illness arrives hours after the meal, not at the table.
+15. A sick player's symptoms are legible to another player, who can
+    treat them.
+16. Severe untreated illness reaches the existing dying arc; nothing new
+    kills anyone.
+17. A dirty implement carries the hazard to whatever it touches next,
+    and `wash` clears it.
+18. When a cook serves food that sickens a patron, the record shows who
+    made it.
+19. Nothing in the Hearthworks pantry, the general store or Dave's Bar
+    behaves differently on day one for a player who does nothing new.
 
 ---
 
@@ -489,10 +433,13 @@ temperature is temperature.
 · [vitals.md](../subsystems/vitals.md) · [harm.md](../subsystems/harm.md)
 · [mortality.md](../subsystems/mortality.md)
 · [thermal.md](../subsystems/thermal.md)
-· [crafting.md](../subsystems/crafting.md) · [bulk.md](../subsystems/bulk.md)
+· [crafting.md](../subsystems/crafting.md)
 · [accountability.md](../subsystems/accountability.md)
 · [advancement.md](../subsystems/advancement.md)
+· [race.md](../subsystems/race.md) (the taxonomy D14 reads)
 
 **Doctrine** — [design-lenses.md](../design-lenses.md)
 · [uncertainty.md](../uncertainty.md) · [measurement.md](../measurement.md)
-· [antipatterns.md](../antipatterns.md)
+
+**In flight** — [food-safety-plan.md](../plans/food-safety-plan.md)
+(the engineering half).
