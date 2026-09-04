@@ -138,6 +138,21 @@ agent, keeps the plan in the canonical shape.
 **Activity.** Clear context. Fresh agent reads the plan (and any
 subsystem docs the plan references). Implement.
 
+⭐⭐ **The build does not stop.** It runs to the MR: decide what needs
+deciding, record it in the plan and the MR description, keep going. Not
+at a wave boundary, not to report progress, not to confirm something the
+plan already settled. Undecided things resolve in order — requirements,
+plan, [design-lenses.md](./design-lenses.md), `CLAUDE.md` +
+antipatterns, then the nearest existing pattern in the code.
+
+⚠ The `CLAUDE.md` rules that read *"stop and get sign-off"* (a new
+module category, a fresh `eslint-disable`, a new Mongo collection) are
+**constraints, not checkpoints** — the compliant path exists and the doc
+names it: *"the answer is almost always 'fold it in.'"* The only real
+stops are a worktree hazard, a credential you cannot get, an
+irreversible act outside the plan's scope, and the rare case where no
+compliant path exists at all.
+
 **The build is a wave loop, not a single act.** Every build in the
 recent history decomposes into `W0…Wn` (or `Stage A / Stage B` when it
 straddles kernel and content) with **one commit per wave**, and the
@@ -166,8 +181,11 @@ When the drive passes, **push the branch and open the MR** against
 `master` — no need to ask first. Pushing and MR creation are not gated
 on the user; only the merge is.
 
-**No skill.** A good plan is self-bootstrapping; the user opens a
-fresh session, points at the plan path, and the build proceeds.
+**Skill.** `/build <plan-path>` — orients the worktree, runs the wave
+loop, keeps the plan current as each wave lands, runs the suite once,
+drives the feature, opens the MR and reports the number. It exists so
+the completion contract is something the agent *holds* rather than
+something the user retypes every cycle.
 
 ⚠ **Run the full suite once per build, not three or four times.** Use
 `pnpm test:near` for the mid-build loop and `pnpm test` before opening
@@ -310,7 +328,7 @@ Observed from the recent history (`spawn-save`, `spacial`, `glob`,
 |---|---|---|
 | 1 — Ideation → requirements | `/requirements` | Loads slate(s); the product survey, the lens pass, the collision question, the drive script; ends with the artifact written |
 | 2 — Requirements → plan | `/plan` | Grounds in the code, invokes the **Fable** `planner` agent, keeps the plan in shape |
-| 3 — Build | *(none)* | Fresh context reads the plan; wave loop; **drive it before the MR** |
+| 3 — Build | `/build` | Fresh context reads the plan; wave loop; **does not stop**; drives it; opens the MR |
 | 4 — MR iteration | *(none)* | A conversation. Classify: local fix · wave · placement error (→ back to Phase 2) |
 | 5 — Sweep | `/finalize` | Branch-wide code+doc sweep, the drive check, retire ephemerals, commit |
 | 6 — Merge | *(none)* | User merges |

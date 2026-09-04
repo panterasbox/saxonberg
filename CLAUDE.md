@@ -93,8 +93,10 @@ behavior. Read the relevant doc before editing in its area.
   MR opens — tests build state, they never use it). Planning runs on
   **Fable** (the `planner` agent). Skills + agents are **tracked** at
   `.claude/skills/` + `.claude/agents/` (`/requirements`, `/plan`,
-  `/finalize`; `/mr-iterate` retired 2026-09-03 — review is a
-  conversation).
+  `/build`, `/finalize`; `/mr-iterate` retired 2026-09-03 — review is a
+  conversation). ⭐⭐ **`/build` does not stop** — it runs to the MR,
+  deciding what needs deciding and recording it; the "stop and get
+  sign-off" rules are constraints to route around, not checkpoints.
 - [docs/settlement-model.md](./docs/settlement-model.md) — the
   settlement model: the **sixteen needs** every town must meet or import
   (which are also the archetype list), the site-driven vs exit-driven
