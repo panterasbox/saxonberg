@@ -64,6 +64,39 @@ not a wave of their own:**
 | `archetype` is a shipped **document kind**; rows are pure YAML under `content/archetypes/`; `ArchetypeCatalogue` warms them read-only | `DocumentKinds.ts:64`, `platform/idea/ArchetypeCatalogue.ts`, `trade-mining/content/archetypes/mining.yaml` | **AC 62 is satisfied by construction** (P12) |
 | ⚠ **`cordwood.yaml` says "hazel" and carries `_materialPath: …/wood/oak`**, and **oak is the only wood material** | `trade-fuel/…/thing/cordwood.yaml` | a one-line fix to take in passing (W0) |
 
+### W0 grounding log — what moved (2026-09-03)
+
+Every row above re-verified against the merged tree. **Fifteen of sixteen
+hold unchanged.** One premise did not, and it is the plan's own opening
+sentence rather than a table row:
+
+⚠ **Neither !236 (textiles) nor !231 (cooking) has merged.** Both are open;
+`origin/master` at `a807a6361` is **docs-only** ahead of the branch point, so
+the merge carried no code fallout at all. Three consequences, all confined to
+W9's downstream ends:
+
+| assumed | actual | what W9 does instead |
+|---|---|---|
+| `tannin.yaml` ships (textiles) | no tannin, no `trade-dyeing` | hide ships as a **material + a thing**; tanning stays the seam it already was. Nothing in tier 1–2 tans. |
+| the cooking chain is `trade-cooking` | still `trade-hearth-cooking` | meat and tallow land in the shipped pack under its shipped name |
+| wool reaches "the textiles chain" | no `trade-textiles` | wool reaches the shipped **`base-library` `wool` material**, which gains `biologicalSource` — the half of AC 12 that is actually checkable here |
+
+⭐ **This is a narrowing of AC 12's reach, not a weakening of it.** The
+criterion's testable claim — *a real animal's produce enters a chain that
+already exists, and the material row names the species it came from* — is
+unaffected; only the identity of the receiving pack changed. When either MR
+lands, the receiving rows are content edits.
+
+Two smaller notes:
+
+- `CultivableMixin` has a **third file naming it** — `water`'s `StorageNode`
+  — but only in a docstring cross-reference. Composers are still exactly
+  `PlantPot` and `GardenBed`, as the table says.
+- `cordwood.yaml` fixed as instructed (hazel → oak), plus the article in the
+  same sentence.
+
+---
+
 ---
 
 ## Plan-level decisions

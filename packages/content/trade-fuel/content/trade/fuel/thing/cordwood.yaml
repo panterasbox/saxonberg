@@ -8,7 +8,7 @@ data:
   shortDescription: a length of cordwood
   primaryKeyword: cordwood
   keywords: [cordwood, wood, pole, billet]
-  longDescription: "A straight length of hazel, barked and cut to a arm's length."
+  longDescription: "A straight length of oak, barked and cut to an arm's length."
   _materialPath: /stuff/idea/material/wood/oak
   gradeBand: fair
   mass: 3.2
