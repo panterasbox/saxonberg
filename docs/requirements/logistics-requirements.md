@@ -172,7 +172,20 @@ Each names where it lands instead.
   [conveyance.md](../subsystems/conveyance.md) § *What v1 doesn't
   cover*; all stay gaps.
 - **Refrigerated transport and spoilage in transit.** → the
-  preservation thread.
+  preservation thread. (The `coldStorage` need already exists, so the
+  reefer is a conveyance archetype away — but the spoilage it would
+  protect against is not this build's.)
+- ⚠ **The easement / right-of-way.** The freight slate names it as the
+  corridor's *second product* — utilities follow roads because of
+  rights-of-way — and ⭐ **Heart's Delight's entire founding is a
+  right-of-way grant**: Halloran gives the best of his ground for the
+  rail. So this is **load-bearing narrative content with no
+  mechanism.** It stays that way here: with the corridor subdivided as
+  its own parcel (D20), the *road* needs no easement, and easements are
+  required only for **rail across a farm** and **utilities under the
+  road** — both non-goals. → the contested road / utilities build.
+- **Livery *content*.** The `livery` archetype ships (D19); the stable,
+  its keeper and the feed economy are **ranching's**.
 - ⚠ **The Delight/Kestrel inconsistency.**
   [hearts-delight](../staging/hearts-delight.md) says Rejection's fouling
   reaches the valley; the hydrology has the two tributaries meeting only
@@ -623,6 +636,97 @@ the turnpike's business model and belongs with maintenance, tolls and
 congestion in the contested road build. This build derives the traffic;
 it does not yet let anything erode.
 
+### D19 — The archetype roster, and archetypes come off locations
+
+Two findings in the shipped substrate make this cheap:
+
+- ⭐ **`Archetype.materialize()` already returns `Stuff & Container`**,
+  not a room. The only thing binding archetypes to locations is one
+  constant, `VENUE_PATH = '/platform/location/venue'`.
+- ⭐⭐ **The checker already evaluates over the union of one or more
+  spaces** (`Archetype.ts` — *"evaluated over the union of one or more
+  spaces' direct contents"*, `space` may be an array). **An archetype
+  checked across many rooms is already free.**
+
+**The one substrate change:** the archetype **declares what it
+materializes onto**, defaulting to the current venue row so nothing
+shipped changes. That is a constant becoming an authored field.
+
+#### ⚠ A road segment is not an archetype; a corridor is
+
+There is no capability a single road room must have, and a road's real
+properties (`speed`, mode gates, grade) live on the **exit**, not the
+room. But a corridor has needs across its whole length, and the
+multi-space checker already answers them:
+
+| slot | need | note |
+|---|---|---|
+| shelter | `seating` / `presence` | the road house — Rovere's is already designed and waiting for a road |
+| water | `bulkSource: water` | for teams; the reason wells sit on roads |
+| light | `lightLux` | ⭐ **no default, on purpose** — the mining archetype's divergence trick. One road answers with lamps, another with nothing, and **the dark stretch is the point.** |
+| crossing | `presence` | the ford or the bridge |
+
+⭐ *Reported, never enforced* is exactly right here: a corridor with no
+shelter is a **legal, visible state**, and the report names the gap.
+**This is what turns D18's *"if a corridor has five rooms, five things
+have to be true there"* from an instruction into a checkable artifact.**
+
+**One corridor archetype, not several.** Towpath, pass, high street and
+drove road differ in **instance data**, per the standing second-variant
+probe.
+
+#### The roster
+
+| archetype | kind | note |
+|---|---|---|
+| **`corridor`** | many spaces | above |
+| **`depot`** | premises | D8's counter, storage, a loading `surface`, a scale, light |
+| **`haulage-rig`** | ⭐ a conveyance | `presence` (the team), cargo capacity, a loading `surface` |
+| **`passenger-conveyance`** | ⭐ a conveyance | `seating`, `lightLux` (the night coach's lamp) |
+| **`livery`** | premises | ⚠ **the archetype file ships; the content does not.** Feed, water, shelter for a team — but a stable is husbandry-adjacent and **ranching brings the content**. |
+
+⭐ The needs vocabulary needs no additions, and the proof it already
+reaches this domain is that **it is already being used for it**: the
+mining archetype's `haulage: { presence: pony }`.
+
+⭐ And one closure worth naming: the kitchen archetype says
+`coldStorage` has no default and is *"expected to go unmet… that is the
+reason to want a cold box later."* **A refrigerated wagon is that cold
+box, arriving as a conveyance instead of a cupboard** — though the
+reefer itself waits on the preservation thread (see Non-goals).
+
+### D20 — What lives at zone level, and what at parcel level
+
+**Zone: nothing new.** The watershed build already made a `valley-road`
+zone to carry elevation, and `lookupField`'s outward walk handles every
+whole-corridor fact there is — elevation, biome, exposure. Per-edge
+facts belong on exits. **No logistics field wants zone-level
+inheritance**, and inventing one would be the mixin-on-the-wrong-host
+mistake in field form.
+
+⚠ **But the lane is not a zone and needs a home.** ⭐⭐ **The
+`Watercourse` precedent is exact and should be copied rather than
+reinvented**: `/system/water/idea/Watercourse` is the mechanism and
+`/stuff/idea/Watercourse/kestrel` is a river in somebody's world, with
+*"topology authored · direction derived · a compiled reachability
+set."* **A `Route` is that same object with a stop set** — the class in
+the transport system's pack, the instances in the commons. This is
+D13's axis assignment made concrete, and it is a precedent rather than
+an invention.
+
+**Parcel: the corridor is subdivided as its own parcel**, land use
+`civic` per D18, using the shipped `ParcelApi.subdivide`. That is what
+makes toll-versus-obstruction resolvable later, and it means the road
+across somebody's flats is **the road's ground, not theirs**.
+
+⭐ **The jurisdictional gap needs nothing built.**
+`AddressApi.coverageChainOf` already returns an empty chain for ground
+no locality covers, so the freight slate's *"banditry lives in
+jurisdictional gaps"* is **derivable today**.
+
+⚠ **The easement is a real gap and is deliberately not filled** — see
+Non-goals.
+
 ---
 
 ## Constraints
@@ -749,6 +853,16 @@ it does not yet let anything erode.
     reading the watershed's derived flow rather than a new field.
 15j. A road corridor's parcel resolves to `civic` or `wild`; the closed
     six are unchanged and no seventh use was added.
+
+**Archetypes**
+
+15k. An archetype materializes onto a **non-location container** — a
+    `haulage-rig` builds a vehicle, not a room — and the shipped venue
+    archetypes are unchanged by the substrate change.
+15l. The `corridor` archetype reports against **all of a corridor's
+    rooms at once**, and a corridor missing shelter reports the gap
+    without anything being blocked or penalised.
+15m. The needs vocabulary is **unchanged** — no ninth need was added.
 
 **Reporting**
 
