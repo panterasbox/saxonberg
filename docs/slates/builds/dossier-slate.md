@@ -556,10 +556,24 @@ does the extras work would silently switch on the path that filter was
 written to defend — so the filter must be *verified under a real in-circle
 killing* with the change, not after it.
 
-**Not this slate's to fix → issue #42.** What was deliberately left
-untraced there and should not be guessed: what a `WireBody`'s own
-`getTemplatePath()` actually resolves to, which decides whether today's
-behaviour is exploitable, inert, or accidentally correct.
+**Not this slate's to fix → issue #42**, where it is now traced to the
+bottom. The answer, because it changes this slate's risk:
+
+> A `WireBody` is minted by **`StuffApi.create`**, which passes `null`
+> where `clone` passes a template path — so its `getTemplatePath()` is
+> **`null`**, and `CombatLogic.durableIdOf` turns that into **`""`**
+> (`ConditionLogic` disagrees and uses the transient `stuffId`).
+
+⭐ So in-circle blame is **inert but wrong**: not exploitable, because a
+row keyed `""` never reaches a real person's key at all — which *confirms*
+that `deriveBlame`'s circle filter has never had to hold. The PASS(mark)
+*"identity-real"* contract is simply not implemented.
+
+⚠⚠ **And that sharpens the warning above rather than softening it.** The
+seven-call-site change this slate needs is the exact moment those rows
+start landing on real identities — so it is the moment the filter has to
+work, having never once been exercised by a row it could match. **#42
+lands first**, with the test.
 
 ### ⚠ The victim mirror — and what checking the corpse actually found
 
