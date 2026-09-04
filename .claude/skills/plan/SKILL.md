@@ -24,11 +24,22 @@ questions`, and that was a Phase 1 failure being paid for in Phase 2.
 
 ## ⭐⭐ Planning runs on Fable
 
-Project convention: **Opus for most things, Fable for planning.** The
-`planner` agent (`.claude/agents/planner.md`) carries `model: fable`
-and the planning contract. Invoke it for the authoring pass rather
-than writing the plan inline — that is the whole reason this phase is
-a skill.
+Project convention: **Opus for most things, Fable for planning.**
+
+**The mechanism, and it matters:** spawn the `planner` agent
+(`Agent` tool, `subagent_type: "planner"`). That agent definition
+(`.claude/agents/planner.md`) carries `model: fable`, so **Fable is
+scoped to the subagent** — the session stays on whatever the user
+selected (`~/.claude/settings.json` → `opus[1m]`), and every other
+phase is on Opus without anything having to switch back.
+
+⚠ **Do not switch the session model to plan.** `/model fable` would
+persist past this phase and quietly carry into build and review;
+scoping it to the agent is what makes the convention self-cleaning.
+
+⚠ **And actually spawn it** — writing the plan inline is the silent
+failure here. It looks identical in the transcript and the convention
+simply doesn't happen. That is the whole reason this phase is a skill.
 
 ## What to do
 
