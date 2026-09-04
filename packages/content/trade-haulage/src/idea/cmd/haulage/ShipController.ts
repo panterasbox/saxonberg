@@ -29,7 +29,7 @@ import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import { MqlApi } from '@saxonberg/server/mud/api/mql';
+import { AddressApi } from '@saxonberg/server/mud/api/address';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import DepotCounter from '../../../thing/DepotCounter';
@@ -83,11 +83,16 @@ export default class ShipController extends CommandController<ShipModel> {
     if (raw.length === 0) {
       return this.fail(context, 'Ship it where?', 'no-destination');
     }
-    const destination = this.resolvePlace(raw, context);
+    const destination = AddressApi.resolvePlace(
+      raw,
+      giver,
+      context.location?.getTemplatePath() ?? '',
+    );
     if (destination.length === 0) {
       return this.fail(
         context,
-        `Nobody here has heard of '${raw}'.`,
+        `Nobody here has heard of '${raw}'. The clerk ships to places ` +
+          `by name — try the name of a town or district.`,
         'unknown-destination',
       );
     }
@@ -113,21 +118,6 @@ export default class ShipController extends CommandController<ShipModel> {
         Mml.compose`${Mml.actor(giver)} hands ${Mml.thing(goods)} over the shipping desk.`,
       )
       .send();
-  }
-
-  /**
-   * A place the player named, as a durable path: a reachable thing
-   * resolves by name, anything else is taken as a path verbatim (the
-   * `job post` destination rule, reused).
-   */
-  private resolvePlace(raw: string, context: CommandContext): string {
-    const hit = MqlApi.resolveMany(raw, {
-      commandGiver: context.commandGiver,
-      scope: 'reachable',
-    }).stuff[0];
-    const path = hit?.getTemplatePath() ?? '';
-    if (path.length > 0) return path;
-    return raw.startsWith('/') ? raw : '';
   }
 
   private fail(

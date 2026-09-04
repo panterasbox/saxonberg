@@ -20,6 +20,7 @@ import { CommandController } from "../../../../lib/command/CommandController";
 import type { CommandContext, CommandModel } from "../../../../api/command";
 import { MessageApi } from "../../../../api/message";
 import { MixinApi } from "../../../../api/mixin";
+import { AddressApi } from "../../../../api/address";
 import { MqlApi } from "../../../../api/mql";
 import { Mml } from "../../../../api/mml";
 import { ContractApi } from "../../../../api/contract";
@@ -110,7 +111,7 @@ export default class JobController extends CommandController<JobModel> {
     // — so it reads by origin rather than by board.
     const originRaw = (model.origin ?? "").trim();
     if (originRaw) {
-      const originPath = this.resolvePlace(originRaw, context);
+      const originPath = this.place(originRaw, context);
       const back = await ContractApi.openGigsFrom(originPath);
       if (back.length === 0) {
         this.send(
@@ -144,19 +145,18 @@ export default class JobController extends CommandController<JobModel> {
   }
 
   /**
-   * A place the player named, as a durable path: `here` is the room they
-   * stand in, a reachable thing resolves by name, and anything else is
-   * taken as a path verbatim (the `post` destination rule, reused).
+   * A place the player named, as a durable path — ⭐ the ONE ladder, on
+   * `AddressApi`. It used to be a private copy here that knew only
+   * `here`, reachable and a path; `ship` grew a second, different copy,
+   * and the two drifted until one of them could not name a remote
+   * destination at all.
    */
-  private resolvePlace(raw: string, context: CommandContext): string {
-    if (raw.toLowerCase() === "here") {
-      return context.location?.getTemplatePath() ?? "";
-    }
-    const reachable = MqlApi.resolveMany(raw, {
-      commandGiver: context.commandGiver,
-      scope: "reachable",
-    }).stuff[0];
-    return reachable?.getTemplatePath() ?? raw;
+  private place(raw: string, context: CommandContext): string {
+    return AddressApi.resolvePlace(
+      raw,
+      context.commandGiver,
+      context.location?.getTemplatePath() ?? "",
+    );
   }
 
   private describeGig(gig: ContractRecord, giverKey: string): string {
@@ -230,7 +230,7 @@ export default class JobController extends CommandController<JobModel> {
     // Destination: a reachable thing by name first, else treat the string
     // as a template path — ContractApi re-validates either way.
     const raw = (model.destination ?? "").trim();
-    const destinationPath = this.resolvePlace(raw, context);
+    const destinationPath = this.place(raw, context);
 
     // Where the work starts. Omitted ⇒ ContractApi derives it from the
     // poster's own environment, which is right for an NPC posting from
@@ -243,7 +243,7 @@ export default class JobController extends CommandController<JobModel> {
       rewardMinor: reward,
       claimMode: model.bounty ? "open-bounty" : "exclusive",
       asBusiness: model.business === true,
-      ...(fromRaw ? { originPath: this.resolvePlace(fromRaw, context) } : {}),
+      ...(fromRaw ? { originPath: this.place(fromRaw, context) } : {}),
       ...(model.expires ? { expiresGameHours: Number(model.expires) } : {}),
     });
     if (!result.ok) {

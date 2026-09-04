@@ -24,8 +24,8 @@
  *      where bulk breaks, and why the crossroads depot exists.
  *   3. **The road is a place.** Read the milestone, the ford, the LAST
  *      WATER, the board on the gate.
- *   4. ⭐ **The depot works.** `ship` a crate at the counter, and read
- *      the rate board a stranger is allowed to read.
+ *   4. ⭐ **The depot works.** `ship` something to a place named by NAME
+ *      (not by a path), and read the rate board a stranger may read.
  *   5. ⭐⭐ **The labor market is visible.** Read the works board on a
  *      producer floor and see what wants moving, and ask the far end
  *      what wants moving back.
@@ -282,6 +282,32 @@ async function main(): Promise<void> {
   say(">", board);
   ok("⭐ a stranger can read the tariff (AC12)",
     /RATES|rate|carrier/i.test(board), board);
+
+  // ⭐⭐ SHIP something. This drive's own header claimed it did from the
+  // day it was written, and it never did — it only read the board. The
+  // gap hid a verb whose destination could not name a remote place at
+  // all: `resolvePlace` was MQL-`reachable`-or-a-literal-path, and a
+  // shipment's destination is by definition out of reach, so both
+  // examples in `ship`'s own help were unusable. A checkpoint that
+  // describes an act nobody performs is worse than no checkpoint.
+  say("> unhitch", await p.cmd("unhitch", 2000));
+  const shipped = plain(
+    await p.cmd("ship handcart to Rejection --worth 12", 2500),
+  );
+  say("> ship handcart to Rejection", shipped);
+  // ⭐ The assertion is about the DESTINATION, precisely: whatever else
+  // the desk says about the goods, it must not answer that it has never
+  // heard of the place. That answer is what a remote destination got
+  // for this verb's whole life, because `resolvePlace` could only name
+  // what was reachable or spelled as a template path.
+  ok("⭐⭐ `ship … to Rejection` — a remote place NAMED, not path-spelled",
+    !/heard of/i.test(shipped), shipped);
+  const nowhere = plain(
+    await p.cmd("ship handcart to Narnia-on-Sea --worth 12", 2000),
+  );
+  say("> ship handcart to Narnia-on-Sea", nowhere);
+  ok("⚠ …and a place nobody has heard of is still refused by name",
+    /heard of/i.test(nowhere), nowhere);
 
   // ── 6. The labor market ────────────────────────────────────────────
   console.log("\n6. ⭐⭐ The labor market — what wants moving, and back");

@@ -17,8 +17,13 @@ description: "Hand goods to the carrier for carriage, and take the bill of ladin
 help: |
   Tender goods at a shipping desk:
 
-    ship crate to the pithead yard
+    ship crate to Rejection
     ship crate to Rejection --worth 120
+
+  ⭐ Name the destination by the NAME OF THE PLACE — a town or district,
+  the way a bill of lading names a consignee. (Its address in the
+  namespace works too, and so does anything you can point at from the
+  desk.)
 
   The carrier takes custody; you keep ownership, and the bill of lading
   is what proves both. It records what, how much, from where, to where,
