@@ -1188,6 +1188,61 @@ one database concurrently**, which produced `E11000 duplicate key` and
 like a content bug. They are not. `pack FAILED … owned by pack` means
 **drop the DB and boot once**, never edit code.
 
+### ⭐⭐ And again in a LIVE BROWSER
+
+Re-driven through the real client (Vite on :5173, the real WebSocket, the
+real front door: dev login → character select → *Enter*). No script, no
+wire pokes — every line below was typed into the command box.
+
+```
+get boning knife → You pick up a boning knife.
+butcher carcass  → You open a hog carcass on a hook with a boning knife
+                   and work it down to 4 cuts.
+cure             → You pack a treated cut of meat down in salt…
+smell treated    → a treated cut of meat · It has been heavily salted.
+taste treated    → a treated cut of meat
+dry              → You hang a treated cut of meat up to dry.
+wash boning      → You take a boning knife to a water butt.
+                   You wash a boning knife clean.
+eat treated      → You eat the dark trimmed cuts of stew meat with a spoon.
+butcher Odo      → Odo the cook is not a carcass.
+```
+
+⭐ **The D4 checkpoint holds on BOTH surfaces.** The transcript and the
+inspection **card** each report the cure — *"It has been heavily
+salted."* — and neither says one word about the salmonella, perfringens
+and staph on it. The raw prime cut's card is barer still: a description,
+`MASS 0.5 kg`, and an interface list that openly includes
+**`Contaminable`**. *The mechanism is discoverable; the hazard is not* —
+which is exactly the reading the spoiler-field snapshot commit argued for,
+now visible rather than asserted.
+
+Three things only the browser could show:
+
+- **`SKILL butchery · novice`** appears in the top bar. The deed credited
+  and the client's skill widget picked the new Discipline up end-to-end,
+  with nothing asking it to.
+- ⭐ **The disambiguation prompt is a first-class affordance, and the
+  headless limitation was the DRIVE's, not the game's.** `look prime`
+  renders clickable choice buttons, a *"a question for you"* card, and an
+  input that switches to *"Click a choice above, or Esc to return to
+  commands"*. Clicking one resolves to *"which target? → a prime cut of
+  meat"* and the card marks itself **answered · settled**. Read the
+  finding above with that correction attached.
+- Zero console errors; zero server errors through the whole session.
+
+⚠ **What the browser could NOT reach: D14's sentient refusal.** It needs a
+*dead person*, and there is no sapient corpse in the Hearthworks. The gate
+is unit-pinned and was this drive's worst find; seeing the message live
+needs a kill, which is a combat drive.
+
+⚠⚠ **And a real content gap the browser found by trying to walk there:
+the Hearthworks has NO INBOUND EXIT.** The TPA board offers only Terminus
+and nothing connects onward, so the cookhouse is reachable *solely*
+through a seat (`startLocation`). Fine for a drive; it means no ordinary
+player can get to any of this yet. Not this build's to fix — the venue
+shipped that way — but it is the first thing the next one should.
+
 ### What the drive deliberately does NOT prove
 
 - **The illness arriving.** Salmonella incubates 6 game-hours — half an
