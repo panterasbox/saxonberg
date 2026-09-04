@@ -503,10 +503,18 @@ export default class Material extends SingletonMixin(
    * faster when it gets warm.
    *
    * ⚠ **`0` (the default) means the material does not spoil at all** —
-   * iron, stone, glass, and every non-food in the library. That is the
-   * whole inertness rule: the gauge composes onto every `Thing`, and a
-   * host whose material tabulates nothing here never advances past zero.
-   * There is no `perishable: true` flag to forget to set.
+   * iron, stone, glass, and every non-food in the library. There is no
+   * `perishable: true` flag to forget to set: **the distinction is the
+   * material, not a flag.**
+   *
+   * ⚠ This paragraph used to add "the gauge composes onto every `Thing`",
+   * which stopped being true when `FreshnessMixin` was narrowed to
+   * `Provision`. The inertness rule survives the narrowing — a value of
+   * `0` still means nothing advances — but the *reason* a non-food does
+   * not rot is now that it is not a food class at all, and
+   * `pnpm lint:perishable` is what stops a perishable material being
+   * authored onto a class that cannot rot. See
+   * [docs/subsystems/spoilage.md]
    */
   private _spoilActivationEnergy: Quantity<'J/mol'> = Quantity.of(0, 'J/mol');
 
