@@ -175,6 +175,16 @@ export interface Sward {
    * graze row, and this hook is where that fact enters.
    */
   swardGrazingDemandPerGameDay(): number;
+  /**
+   * @hook Called once per reconcile with what the mouths actually ate
+   * and how long the window was.
+   *
+   * ⭐⭐ **This is where D7's graze row becomes the nitrogen ledger.**
+   * The sward knows what was eaten; only the host knows whether that
+   * matters — and for a field it matters enormously, because what an
+   * animal eats standing on the ground comes back onto the ground.
+   */
+  onSwardIntegrated(dryMatterEatenKg: number, days: number): void;
 }
 
 export function SwardMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
@@ -228,6 +238,11 @@ export function SwardMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
 
     public swardGrazingDemandPerGameDay(): number {
       return 0;
+    }
+
+    /** See {@link Sward.onSwardIntegrated}. */
+    public onSwardIntegrated(_dryMatterEatenKg: number, _days: number): void {
+      /* nothing by default — a paddock that is only grass is only grass */
     }
 
     // ---------- state ----------
@@ -372,6 +387,9 @@ export function SwardMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
         }
         this.swardGrazedKg = grazed;
         this.swardStamp = nowS;
+        // ⚠ AFTER the stamp, so a host that reads its own soil in the
+        // hook cannot re-enter this reconcile through it.
+        this.onSwardIntegrated(grazed, days);
       } finally {
         this._reconcilingSward = false;
       }

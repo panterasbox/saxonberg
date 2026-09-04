@@ -64,7 +64,14 @@
 import CartesianLocation from '@saxonberg/server/mud/platform/location/CartesianLocation';
 import { PersistableMixin } from '@saxonberg/server/mud/lib/persistence/Persistable';
 import { WarrenMemberMixin } from '@saxonberg/server/mud/lib/location/WarrenMember';
-import { SoilMixin, SOIL_MOISTURE_RESERVE_KEY, SOIL_NITROGEN_RESERVE_KEY, SOIL_RESERVE_THEME } from '@saxonberg/server/mud/lib/husbandry/Soil';
+import {
+  SoilMixin,
+  SOIL_MOISTURE_RESERVE_KEY,
+  SOIL_NITROGEN_RESERVE_KEY,
+  SOIL_ORGANIC_MATTER_RESERVE_KEY,
+  SOIL_STRUCTURE_RESERVE_KEY,
+  SOIL_RESERVE_THEME,
+} from '@saxonberg/server/mud/lib/husbandry/Soil';
 import { ReservedMixin, Reserve } from '@saxonberg/server/mud/lib/reserve';
 import { ImprovableMixin } from '../lib/Improvable';
 import { SwardMixin } from '../lib/Sward';
@@ -115,6 +122,23 @@ const DEFAULT_FORAGE_ROW = '/trade/farming/thing/wild-greens';
 const SECONDS_PER_GAME_DAY = 86_400;
 
 /**
+ * Percentage points of organic matter a kilogram of eaten dry matter
+ * returns to the field as dung.
+ *
+ * ⭐ Most of what a ruminant eats comes straight back out — the
+ * retention is single digits — which is exactly why grazing cycles
+ * fertility in place and why the mouths are what fertility follows.
+ */
+const MANURE_OM_PER_KG_EATEN = 0.35;
+
+/**
+ * Percentage points of nitrogen a fully clover-dominant sward fixes per
+ * GAME day (D89). A good clover ley fixes on the order of 150 kg N/ha a
+ * year, which on this reserve's scale is a few points a season.
+ */
+const N_FIXED_PER_GAME_DAY = 0.06;
+
+/**
  * The base temperature a temperate sward stops growing at, in kelvin
  * (~5 °C).
  *
@@ -158,6 +182,7 @@ export default class Field extends FieldBase {
     groundSpotX: { persistent: true, authorable: true },
     groundSpotY: { persistent: true, authorable: true },
     areaM2: { persistent: true, authorable: true },
+    legumeFraction: { persistent: true, authorable: true },
     forageRows: { persistent: true, authorable: true },
     forageTaken: { persistent: true },
     forageStamp: { persistent: true },
@@ -187,6 +212,22 @@ export default class Field extends FieldBase {
 
   /** Square metres of ground. The land draw, and the rain catchment. */
   public areaM2 = 0;
+
+  /**
+   * ⭐ **What fraction of the sward is clover** (D43) — the one plant
+   * that is simultaneously the legume that fixes nitrogen, among the
+   * best forage there is, and the classic bee plant. One row satisfying
+   * three decisions without a special case anywhere.
+   */
+  public legumeFraction = 0;
+
+  public getLegumeFraction(): number {
+    return this.legumeFraction;
+  }
+
+  public setLegumeFraction(value: number): void {
+    this.legumeFraction = value < 0 ? 0 : value > 1 ? 1 : value;
+  }
 
   /**
    * ⭐ **The forage TABLE, authored** (D61) — *authors write the table,
@@ -283,6 +324,29 @@ export default class Field extends FieldBase {
   }
 
   // ---------- the two hooks SoilMixin asks of its host ----------
+
+  /**
+   * ⭐ **Sand leaks and clay holds** — D2's multiplication, made
+   * concrete: the seeded character setting the curve a derived reserve
+   * moves along.
+   *
+   * ⚠ It resolves the sample on every call rather than caching one,
+   * because the sample is a pure function and a cache would be a second
+   * place for the ground's character to live.
+   */
+  public override soilLeachRate(): number {
+    const sample = this.lastSample;
+    if (!sample) return super.soilLeachRate();
+    return 0.0006 * GroundCharacter.leachFactor(sample.texture);
+  }
+
+  /**
+   * The most recently resolved ground sample, or `null`. ⚠ Not
+   * persisted and not authoritative — a read cache for the sync paths
+   * (`soilLeachRate`, poaching) that cannot resolve a locality
+   * themselves. Everything that can resolve, resolves.
+   */
+  private lastSample: GroundSample | null = null;
 
   /**
    * ⭐ **A field IS a place, so it is its own watershed scope.** The
@@ -448,6 +512,77 @@ export default class Field extends FieldBase {
     return demand;
   }
 
+  /**
+   * ⭐⭐ **The ledger, closed, in four lines.**
+   *
+   * Every game day this field integrates: the mouths standing on it put
+   * back most of what they ate (as organic matter, which mineralises);
+   * the clover in the sward fixes nitrogen out of the air; and hooves on
+   * wet ground destroy structure. Rain takes nitrate away on the soil's
+   * own rain edge, and harvest takes it away at the scythe.
+   *
+   * **No path credits nitrogen from nowhere.** The two openings are the
+   * real ones — fixation in, leaching out — and both are named.
+   */
+  public override onSwardIntegrated(dryMatterEatenKg: number, days: number): void {
+    if (dryMatterEatenKg > 0) {
+      this.cycleGrazedNitrogen(dryMatterEatenKg);
+      // Hooves. Intensity is what they ate, because that is how long
+      // they stood here — and the damage is the WEATHER's multiplier.
+      this.poachByOccupants(dryMatterEatenKg * 0.02);
+    }
+    this.fixLegumeNitrogen(days);
+  }
+
+  // ---------- ⭐⭐ the nitrogen ledger, at BOTH ends ----------
+
+  /**
+   * ⭐⭐ **Fertility follows the mouths, and this is the line that makes
+   * it true** (D7, D14).
+   *
+   * An animal standing on the field eats its nitrogen and gives most of
+   * it straight back where it stands — a ruminant retains only a small
+   * fraction of what it eats. So **grazing cycles nitrogen in place** and
+   * mowing exports it, and the difference between the two land uses is
+   * this one call and no enum anywhere.
+   *
+   * ⭐ It goes back as **organic matter**, not as nitrogen: dung is not
+   * fertiliser, it is what fertiliser slowly comes out of. That single
+   * choice is what makes a grazed ley build the ground over years rather
+   * than merely not depleting it.
+   */
+  public cycleGrazedNitrogen(dryMatterEatenKg: number): number {
+    if (!Number.isFinite(dryMatterEatenKg) || dryMatterEatenKg <= 0) return 0;
+    return this.addOrganicMatter(dryMatterEatenKg * MANURE_OM_PER_KG_EATEN);
+  }
+
+  /**
+   * ⭐ **Legumes fix nitrogen out of the ATMOSPHERE** (D15, D43) — a
+   * genuine faucet in reality, and the one that makes the legume
+   * rotation derivable rather than a "+N bonus".
+   *
+   * ⚠ `legumeFraction` is what is actually GROWING in the sward, so it
+   * falls when the clover is grazed out and rises when it is not — which
+   * is why a well-managed ley fertilises itself and an abused one stops.
+   */
+  public fixLegumeNitrogen(days: number): number {
+    if (this.legumeFraction <= 0 || days <= 0) return 0;
+    return this.fixNitrogen(this.legumeFraction * N_FIXED_PER_GAME_DAY * days);
+  }
+
+  /**
+   * ⚠⚠ **Poaching — the one interlock that runs ranching→farming as
+   * HARM** (D17). Everything else in this build has the animals
+   * improving the ground; hooves on wet clay destroy its structure, and
+   * that is what makes *"put the herd on the tired field"* a judgement
+   * rather than a free move.
+   */
+  public poachByOccupants(intensity: number): number {
+    const sample = this.lastSample;
+    if (!sample) return 0;
+    return this.poach(intensity, GroundCharacter.poachingFactor(sample.texture));
+  }
+
   // ---------- minting ----------
 
   /**
@@ -487,6 +622,34 @@ export default class Field extends FieldBase {
         ),
       );
     }
+    if (!host.hasReserve(SOIL_ORGANIC_MATTER_RESERVE_KEY)) {
+      host.setReserve(
+        new Reserve(
+          SOIL_ORGANIC_MATTER_RESERVE_KEY,
+          Quantity.of(100, '%'),
+          // ⭐ Rough ground that has never been worked carries a fair
+          // amount, because nobody has been taking anything off it. The
+          // first crops off newly-broken land really were the best ones,
+          // and the disappointment that follows is the lesson.
+          Quantity.of(40, '%'),
+          SOIL_RESERVE_THEME,
+          null,
+        ),
+      );
+    }
+    if (!host.hasReserve(SOIL_STRUCTURE_RESERVE_KEY)) {
+      host.setReserve(
+        new Reserve(
+          SOIL_STRUCTURE_RESERVE_KEY,
+          Quantity.of(100, '%'),
+          // Undisturbed ground has good structure. What happens to it
+          // afterwards is the holder's business.
+          Quantity.of(85, '%'),
+          SOIL_RESERVE_THEME,
+          null,
+        ),
+      );
+    }
     if (!host.hasReserve(SOIL_NITROGEN_RESERVE_KEY)) {
       host.setReserve(
         new Reserve(
@@ -511,7 +674,9 @@ export default class Field extends FieldBase {
    *   ordinary case — see {@link GroundCharacter.resolve})
    */
   public groundSample(model: GroundCharacter | null, seed: number): GroundSample {
-    return GroundCharacter.resolve(model, this.getGroundSpot(), seed);
+    const sample = GroundCharacter.resolve(model, this.getGroundSpot(), seed);
+    this.lastSample = sample;
+    return sample;
   }
 
   /**

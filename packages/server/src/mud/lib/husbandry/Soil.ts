@@ -67,10 +67,70 @@ import type Locality from "../../platform/idea/Locality";
 
 const SECONDS_PER_GAME_DAY = 86_400;
 
+/**
+ * The fraction of newly-worked organic matter available as nitrogen
+ * immediately. ⭐ Small on purpose: most of muck's value is next year's
+ * and the year after's, which is what makes it an investment rather than
+ * a fertiliser.
+ */
+const IMMEDIATE_MINERALIZATION = 0.15;
+
+/**
+ * Fraction of standing organic matter that mineralises into nitrogen per
+ * GAME day (D89). ⭐ Slow — a fifth of it a game year — which is what
+ * *the long game* means, and the mechanical reason **land you farmed
+ * well is better land**.
+ */
+const MINERALIZATION_PER_GAME_DAY = 0.0006;
+
+/**
+ * Fraction of the structure deficit that rest and roots rebuild per GAME
+ * day. ⚠ Far slower than poaching destroys it, and that asymmetry is
+ * what makes a wet autumn expensive for years.
+ */
+const STRUCTURE_RECOVERY_PER_GAME_DAY = 0.002;
+
 /** The soil's water reserve key (theme `cultivation`). */
 export const SOIL_MOISTURE_RESERVE_KEY = "moisture";
 /** The soil's nutrient reserve key — nitrogen, the limiting nutrient. */
 export const SOIL_NITROGEN_RESERVE_KEY = "nitrogen";
+
+/**
+ * ⭐ **Organic matter — the long game**, and the reserve that earns its
+ * place on its own (D16).
+ *
+ * Slow, built by exactly what ranching produces, and the mechanical
+ * reason **land you farmed well is better land**: permanence you can
+ * sell, and the reason your own survey record is worth having. It
+ * mineralises slowly into nitrogen, which is why muck applied this year
+ * is still feeding the field in three.
+ */
+export const SOIL_ORGANIC_MATTER_RESERVE_KEY = "organicMatter";
+
+/**
+ * ⭐ **Structure — why you do not graze wet clay** (D16, D17).
+ *
+ * Built by rest and roots; destroyed by hooves on wet ground. It is the
+ * one interlock that runs ranching→farming as a HARM rather than a
+ * benefit, which is what makes *"put the herd on the tired field"* a
+ * judgement rather than a free move.
+ */
+export const SOIL_STRUCTURE_RESERVE_KEY = "structure";
+
+/**
+ * ⭐⭐ **Crude protein is nitrogen × 6.25** (D14) — how feed is actually
+ * valued and sold, and the constant that makes soil fertility and
+ * dietary protein **one accounting**.
+ *
+ * The engine had both halves and had never connected them: soil carries
+ * a nitrogen reserve, and `Material` carries `nutrients` /
+ * `nutrientAmounts` where `stew-meat` authors `protein: 26000`. This is
+ * the join, and it closes the faucet **mechanically** — harvested matter
+ * carries away the nitrogen it took — and **pedagogically**, because the
+ * player watches fertility become feed value become growth become
+ * fertility.
+ */
+export const PROTEIN_PER_NITROGEN = 6.25;
 
 /** The theme every soil reserve carries. */
 export const SOIL_RESERVE_THEME = "cultivation";
@@ -116,6 +176,30 @@ export interface Soil {
   feedSoil(fraction: number): number;
   /** Draw nutrient out — what a harvested crop exports. */
   drawNutrient(fraction: number): number;
+  /** Organic matter as a fraction `[0, 1]`, or `null` when unmodelled. */
+  organicMatterFraction(): number | null;
+  /** Structure as a fraction `[0, 1]`, or `null` when unmodelled. */
+  structureFraction(): number | null;
+  /**
+   * Work organic matter in — muck, compost, residues, green manure.
+   * ⭐ It credits NITROGEN as well, but only a little of it now: the
+   * rest mineralises over years, which is why a well-mucked field is
+   * still feeding you in three.
+   */
+  addOrganicMatter(fraction: number): number;
+  /**
+   * ⚠ **Poach the ground** (D17) — hooves on wet soil. Destroys
+   * structure in proportion to how WET it is and how fine the texture,
+   * so the same herd on the same field is harmless in August and ruinous
+   * in November.
+   */
+  poach(intensity: number, poachingFactor: number): number;
+  /**
+   * ⭐ Nitrogen fixed out of the ATMOSPHERE by legumes in the sward
+   * (D15) — a genuine faucet in reality, and the one that makes the
+   * legume rotation derivable rather than a bonus.
+   */
+  fixNitrogen(fraction: number): number;
 
   // ---------- the sky edge ----------
 
@@ -156,6 +240,13 @@ export interface Soil {
    * `0` — ground the sky cannot find is watered by hand.
    */
   soilCatchmentAreaM2(): number;
+  /**
+   * @hook Fraction of the standing nitrogen a millimetre of rain carries
+   * past the roots. ⭐ The host answers, because only the host knows its
+   * own TEXTURE: sand leaks and clay holds. That is D2's multiplication
+   * made concrete — the seeded character modulating a derived reserve.
+   */
+  soilLeachRate(): number;
 }
 
 /**
@@ -221,6 +312,15 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
     /** See {@link Soil.soilCatchmentAreaM2}. */
     public soilCatchmentAreaM2(): number {
       return 0;
+    }
+
+    /**
+     * See {@link Soil.soilLeachRate}. The default is a loam's, so ground
+     * that models no texture still leaks at a believable rate rather
+     * than at none.
+     */
+    public soilLeachRate(): number {
+      return 0.0006;
     }
 
     // ---------- soil state: its OWN checkpoint ----------
@@ -314,6 +414,7 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
         } else if (capacity > 0) {
           this._soilMeanMoisture = clamp01(start / capacity);
         }
+        this.integrateNutrientCycle(elapsed / SECONDS_PER_GAME_DAY);
         this.soilClockStamp = nowS;
       } finally {
         this._reconcilingSoil = false;
@@ -520,6 +621,29 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
         litres,
         "L",
       );
+      // ⭐⭐ **The honest opening OUT** (D15): rain carries nitrate past
+      // the roots. It is why fertility does not accumulate to infinity,
+      // why you incorporate manure rather than leaving it on top, and
+      // why you do not spread before a storm.
+      //
+      // ⚠ It LEAVES the ledger, and where it goes is a civics build's —
+      // agricultural runoff is the classic nonpoint-source case, with a
+      // downstream victim who can name the upstream cause (D18), and
+      // shipping a shallow version here would spend a good idea cheaply.
+      const nitrogen = this.soilHost.getReserve(SOIL_NITROGEN_RESERVE_KEY);
+      if (nitrogen && areaM2 > 0) {
+        const mm = litres / areaM2;
+        const lost = Math.min(
+          nitrogen.current.rawValue(),
+          nitrogen.current.rawValue() * mm * this.soilLeachRate(),
+        );
+        if (lost > 0) {
+          this.soilHost.adjustReserve(
+            SOIL_NITROGEN_RESERVE_KEY,
+            Quantity.of(-lost, "%"),
+          );
+        }
+      }
     }
 
     /** Root-zone moisture `[0, 1]`, reconciled; null when unauthored. */
@@ -535,8 +659,19 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
       return this._soilMeanMoisture < 0 ? current : this._soilMeanMoisture;
     }
 
-    /** Nutrient level `[0, 1]`; null when this ground authors none. */
+    /**
+     * Nutrient level `[0, 1]`; null when this ground authors none.
+     *
+     * ⚠ It RECONCILES, and that was a real bug before the ledger
+     * existed: with nothing but `feed` and `drawNutrient` moving it, a
+     * stale read was indistinguishable from a fresh one. Now that
+     * organic matter mineralises INTO this reserve over game-time, a
+     * read that skipped the reconcile would report last week's
+     * fertility — and the test that caught it was the one asserting
+     * muck is an investment.
+     */
     public nutrientFraction(): number | null {
+      if (!this._reconcilingSoil) this.reconcileSoil();
       return this.reserveFraction(SOIL_NITROGEN_RESERVE_KEY);
     }
 
@@ -549,6 +684,108 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
       if (!Number.isFinite(litres) || litres <= 0) return 0;
       this.reconcileSoil();
       return this.creditReserve(SOIL_MOISTURE_RESERVE_KEY, litres, "L");
+    }
+
+    /** See {@link Soil.organicMatterFraction}. */
+    public organicMatterFraction(): number | null {
+      this.reconcileSoil();
+      return this.reserveFraction(SOIL_ORGANIC_MATTER_RESERVE_KEY);
+    }
+
+    /** See {@link Soil.structureFraction}. */
+    public structureFraction(): number | null {
+      this.reconcileSoil();
+      return this.reserveFraction(SOIL_STRUCTURE_RESERVE_KEY);
+    }
+
+    /** See {@link Soil.addOrganicMatter}. */
+    public addOrganicMatter(fraction: number): number {
+      if (!Number.isFinite(fraction) || fraction <= 0) return 0;
+      this.reconcileSoil();
+      const applied = this.creditReserve(
+        SOIL_ORGANIC_MATTER_RESERVE_KEY,
+        fraction,
+        "%",
+      );
+      // ⭐ A little of it is available NOW and most of it is not. That
+      // one line is why muck is a long investment rather than a
+      // fertiliser — and why a synthetic-nitrogen tier would mean
+      // something to a player who has spent a winter short of it.
+      this.creditReserve(
+        SOIL_NITROGEN_RESERVE_KEY,
+        applied * IMMEDIATE_MINERALIZATION,
+        "%",
+      );
+      return applied;
+    }
+
+    /** See {@link Soil.poach}. */
+    public poach(intensity: number, poachingFactor: number): number {
+      if (!Number.isFinite(intensity) || intensity <= 0) return 0;
+      const reserved = this.soilHost;
+      const structure = reserved.getReserve(SOIL_STRUCTURE_RESERVE_KEY);
+      if (!structure) return 0;
+      this.reconcileSoil();
+      // ⚠⚠ WETNESS is the multiplier, and it is the whole rule. Dry
+      // ground takes hooves; saturated ground is destroyed by them —
+      // which is why *put the herd on the tired field* is a judgement
+      // about the WEATHER rather than about the field.
+      const wetness = this.reserveFraction(SOIL_MOISTURE_RESERVE_KEY) ?? 0;
+      const damage = intensity * poachingFactor * wetness * wetness;
+      if (damage <= 0) return 0;
+      const taken = Math.min(damage, structure.current.rawValue());
+      reserved.adjustReserve(
+        SOIL_STRUCTURE_RESERVE_KEY,
+        Quantity.of(-taken, "%"),
+      );
+      return taken;
+    }
+
+    /** See {@link Soil.fixNitrogen}. */
+    public fixNitrogen(fraction: number): number {
+      if (!Number.isFinite(fraction) || fraction <= 0) return 0;
+      return this.creditReserve(SOIL_NITROGEN_RESERVE_KEY, fraction, "%");
+    }
+
+    /**
+     * ⭐⭐ **The two slow reserves, integrated** — and between them they
+     * are why the ledger CLOSES rather than merely balancing.
+     *
+     * Organic matter mineralises into nitrogen a little at a time over
+     * years; structure rebuilds toward whole, slower than hooves take it
+     * away. Neither is a faucet: every gram of nitrogen arriving here
+     * came out of organic matter somebody put in.
+     *
+     * ⚠ Called from inside the soil reconcile's own guard, so it reads
+     * raw reserves rather than the fraction accessors, which reconcile.
+     */
+    private integrateNutrientCycle(days: number): void {
+      if (days <= 0) return;
+      const reserved = this.soilHost;
+      const om = reserved.getReserve(SOIL_ORGANIC_MATTER_RESERVE_KEY);
+      if (om) {
+        const released = om.current.rawValue() * MINERALIZATION_PER_GAME_DAY * days;
+        const taken = Math.min(released, om.current.rawValue());
+        if (taken > 0) {
+          reserved.adjustReserve(
+            SOIL_ORGANIC_MATTER_RESERVE_KEY,
+            Quantity.of(-taken, "%"),
+          );
+          this.creditReserve(SOIL_NITROGEN_RESERVE_KEY, taken, "%");
+        }
+      }
+      const structure = reserved.getReserve(SOIL_STRUCTURE_RESERVE_KEY);
+      if (structure) {
+        const deficit =
+          structure.capacity.rawValue() - structure.current.rawValue();
+        if (deficit > 0) {
+          this.creditReserve(
+            SOIL_STRUCTURE_RESERVE_KEY,
+            deficit * STRUCTURE_RECOVERY_PER_GAME_DAY * days,
+            "%",
+          );
+        }
+      }
     }
 
     /** Feed the soil; returns the fraction actually absorbed. */

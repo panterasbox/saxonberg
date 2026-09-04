@@ -41,16 +41,31 @@ import { SWARD_RESIDUAL_FRACTION } from '../../../lib/Sward';
 const HAY_ROW = '/trade/farming/thing/hay';
 
 /**
- * Percentage points of the nitrogen reserve exported per kilogram of dry
- * matter carried off the field.
+ * ⭐⭐ **Crude protein is nitrogen × 6.25** — how feed is actually valued
+ * and sold, and the constant that makes soil fertility and dietary
+ * protein ONE accounting (D14).
  *
- * ⚠ A provisional coefficient, and W10 replaces it with the real one:
- * crude protein is nitrogen × 6.25, so what a crop carries away in
- * nitrogen is derivable from what it carries away in protein rather than
- * declared. What must be true NOW is only the direction — hay leaves the
- * field poorer than grazing it did — and that is what this asserts.
+ * Hay's own material row authors its protein in mg/kg, exactly as every
+ * food does. So what a cut carries off the field is **derived from what
+ * it is worth as feed**, and the two halves the engine has always had
+ * separately — a soil `nitrogen` reserve, and `Material.nutrientAmounts`
+ * — are finally the same number seen twice.
+ *
+ * ⭐ Which is *why* understocking hurts: stemmy grass is low-protein
+ * grass, so a sward that got ahead of the herd is both worse feed and a
+ * smaller export. One fact, two consequences, no second rule.
  */
-const N_POINTS_PER_KG_DM = 0.08;
+const HAY_PROTEIN_MG_PER_KG = 120_000;
+
+/** mg of nitrogen per mg of crude protein. */
+const NITROGEN_PER_PROTEIN = 1 / 6.25;
+
+/**
+ * Percentage points of the field's nitrogen reserve one gram of exported
+ * nitrogen represents. The reserve is a `%` scale over the field's whole
+ * root zone, so this is the units bridge and nothing more.
+ */
+const RESERVE_POINTS_PER_G_N = 0.0004;
 
 export default class MowController extends FieldWorkController {
   async execute(_model: CommandModel, context: CommandContext): Promise<void> {
@@ -107,9 +122,11 @@ export default class MowController extends FieldWorkController {
       return;
     }
 
-    // ⭐⭐ THE line. The crop carried its nitrogen away with it, and this
-    // is the only place in the build where it leaves the field.
-    const exported = field.drawNutrient(taken * N_POINTS_PER_KG_DM);
+    // ⭐⭐ THE line, and it is now derived rather than declared: the
+    // crop carried its own protein away, and protein IS nitrogen × 6.25.
+    const proteinG = (taken * HAY_PROTEIN_MG_PER_KG) / 1000;
+    const nitrogenG = proteinG * NITROGEN_PER_PROTEIN;
+    const exported = field.drawNutrient(nitrogenG * RESERVE_POINTS_PER_G_N);
 
     let hay: Stuff | null = null;
     try {
