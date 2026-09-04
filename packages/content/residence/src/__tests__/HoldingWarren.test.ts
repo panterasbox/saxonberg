@@ -609,3 +609,101 @@ describe('the maintenance act (D4/D5)', () => {
     expect(verbs).toContain('maintain');
   });
 });
+
+/** The holding a room belongs to — the walk `plot` makes to find it. */
+function holdingOf(room: MemberStuff): HoldingWarren {
+  const warren = MixinApi.isWarrenMember(room as unknown as Stuff)
+    ? (room as unknown as { getWarren(): unknown }).getWarren()
+    : null;
+  if (!warren) throw new Error('room is in no warren');
+  return warren as unknown as HoldingWarren;
+}
+
+describe('⭐ admitPlot — the break-ground seam (farmstead W3)', () => {
+  beforeEach(() => {
+    reset();
+    installStore();
+  });
+  afterEach(reset);
+
+  /**
+   * The class has always said the member contract is *"open to
+   * runtime-added members (the cross-build interface with farming's
+   * break-ground act)"*. Until this build that was a docstring and a
+   * `wake()` that iterated only the authored rooms.
+   */
+  it('hangs a room the holder MADE off the holding, wired both ways', async () => {
+    seedLot();
+    await bootRegistries();
+    const w = await institution();
+    // ⚠ `admit` answers the ENTRY ROOM, not the holding. The holding is
+    // what that room is a member OF — which is the same walk `plot` does.
+    const holding = holdingOf(await w.admit(LOT1));
+
+    const field = await holding.admitPlot({
+      leaf: 'top-meadow',
+      room: ROOM_B,
+      direction: 'top-meadow',
+      opposite: 'out',
+      from: 'hall',
+    });
+    expect(field).not.toBeNull();
+
+    const hall = holding.roomForLeaf('hall') as unknown as Stuff & Exitable;
+    expect(hall.getExit('top-meadow')).toBeTruthy();
+    expect(
+      (field as unknown as Stuff & Exitable).getExit('out'),
+    ).toBeTruthy();
+  });
+
+  it('⭐ it PERSISTS, by the same machinery that stands up a hall', async () => {
+    seedLot();
+    await bootRegistries();
+    const w = await institution();
+    // ⚠ `admit` answers the ENTRY ROOM, not the holding. The holding is
+    // what that room is a member OF — which is the same walk `plot` does.
+    const holding = holdingOf(await w.admit(LOT1));
+    await holding.admitPlot({
+      leaf: 'top-meadow',
+      room: ROOM_B,
+      direction: 'top-meadow',
+      from: 'hall',
+      extra: { plottedAreaM2: 400 },
+    });
+
+    // The floorplan is persistent, so the new entry rides the same
+    // record the authored rooms do — no second ledger, no new
+    // collection, no per-caller bookkeeping.
+    const entry = holding.floorplanEntryOf('top-meadow');
+    expect(entry).toMatchObject({ leaf: 'top-meadow', room: ROOM_B, plottedAreaM2: 400 });
+
+    // …and a fresh wake stands it back up alongside the authored ones.
+    // ⚠ The marshaller rows are Stuff too, so a clean process has to
+    // re-install them — which is what a real restart does at boot.
+    StuffApi.clearAll();
+    ParcelApi._resetRegistryRefForReload();
+    installV1QuantityMarshallers();
+    await bootRegistries();
+    const w2 = await institution();
+    const back = holdingOf(await w2.admit(LOT1));
+    expect(back.floorplanEntryOf('top-meadow')).not.toBeNull();
+    expect(back.roomForLeaf('top-meadow')).not.toBeNull();
+  });
+
+  it('refuses a leaf that is taken, and leaves no half-entry behind', async () => {
+    seedLot();
+    await bootRegistries();
+    const w = await institution();
+    // ⚠ `admit` answers the ENTRY ROOM, not the holding. The holding is
+    // what that room is a member OF — which is the same walk `plot` does.
+    const holding = holdingOf(await w.admit(LOT1));
+
+    expect(await holding.admitPlot({ leaf: 'hall', room: ROOM_B, direction: 'x' })).toBeNull();
+    // A row that cannot clone must not leave an entry the next wake
+    // would retry forever.
+    expect(
+      await holding.admitPlot({ leaf: 'nowhere', room: '/world/prog-test/no-such-row', direction: 'x' }),
+    ).toBeNull();
+    expect(holding.floorplanEntryOf('nowhere')).toBeNull();
+  });
+});

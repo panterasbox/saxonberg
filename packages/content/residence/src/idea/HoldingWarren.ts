@@ -233,6 +233,95 @@ export default class HoldingWarren extends ProgrammeBase {
     return leaf ? `${extent}/${leaf}` : extent;
   }
 
+  // ── ⭐ runtime-added members: the break-ground seam ──────────────
+
+  /**
+   * ⭐⭐ **Admit a room the holder MADE, not one the programme authored.**
+   *
+   * This class has always said the member contract is *"open to
+   * runtime-added members (the cross-build interface with farming's
+   * break-ground act) — the floorplan is the INITIAL mint, never the
+   * closed set."* This is that promise, made real. It was a docstring
+   * and a `wake()` that iterated only the authored rooms.
+   *
+   * The mechanism is deliberately the smallest one available: it appends
+   * to `floorplan`, which is already **persistent**, and then wakes the
+   * one new entry. So a plotted field survives a reboot by the same
+   * machinery that stands up a hall and a kitchen, with no second
+   * ledger, no new collection and no per-caller bookkeeping.
+   *
+   * ⚠ **Duck-typed on purpose.** The caller is `trade-farming`'s `plot`
+   * and it must not import this pack — a trade does not depend on the
+   * residence system to put a field on ground somebody holds. It finds
+   * this method by the shape the object answers, exactly as
+   * `analyze water` finds a waterworks. Both sides document the shape;
+   * neither imports the other.
+   *
+   * @param spec the new room: its `leaf` under the holding extent, the
+   *   `room` ROW it clones from (D17 — always a real row), the
+   *   `direction` you leave the holding's entry room by to reach it, the
+   *   `opposite` you come back through, and any extra authored fields
+   *   the caller wants carried on the entry (they persist untouched).
+   * @returns the live member, or `null` when the holding cannot key it
+   *   or the leaf is already taken.
+   */
+  public async admitPlot(spec: {
+    leaf: string;
+    room: string;
+    direction: string;
+    opposite?: string;
+    from?: string;
+    extra?: Record<string, unknown>;
+  }): Promise<MemberStuff | null> {
+    if (!spec.leaf || !spec.room) return null;
+    if (!this.holdingKey()) return null;
+    const taken = (this.floorplan ?? []).some((r) => r.leaf === spec.leaf);
+    if (taken) return null;
+
+    // The edge is declared on the NEW room's own spec, pointing back at
+    // the room you came from — which is how `getFloorplanExits` reads
+    // them, and it means `wake()` re-wires the gate on every boot with
+    // no special case.
+    const entry: Record<string, unknown> = {
+      ...(spec.extra ?? {}),
+      leaf: spec.leaf,
+      room: spec.room,
+      exits: [
+        {
+          to: spec.from ?? '',
+          direction: spec.opposite ?? 'out',
+          opposite: spec.direction,
+        },
+      ],
+    };
+    this.floorplan = [...(this.floorplan ?? []), entry];
+
+    // ⚠ Leave no half-entry behind. A floorplan row whose room will not
+    // clone is not a one-off failure — it is retried on EVERY wake,
+    // forever, and the holding never finishes standing up. Rolling back
+    // is what makes a bad row a refusal instead of a permanent limp.
+    let room: MemberStuff | null = null;
+    try {
+      room = await this.wakeRoom({ leaf: spec.leaf, room: spec.room });
+    } catch {
+      room = null;
+    }
+    if (!room) {
+      this.floorplan = (this.floorplan ?? []).filter((r) => r.leaf !== spec.leaf);
+      return null;
+    }
+    for (const edge of this.getFloorplanExits()) {
+      if (edge.from === spec.leaf) await this.wireEdge(edge);
+    }
+    await PersistableApi.capture(this as unknown as Stuff, this.holdingKey() ?? undefined);
+    return room;
+  }
+
+  /** The raw floorplan entry for a leaf — what `admitPlot` stored on it. */
+  public floorplanEntryOf(leaf: string): Record<string, unknown> | null {
+    return (this.floorplan ?? []).find((r) => r.leaf === leaf) ?? null;
+  }
+
   // ── wake / membership ───────────────────────────────────────────
 
   /**

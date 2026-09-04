@@ -6,7 +6,7 @@
 # spade cuts a clean face in soil and is worked with a foot. Same
 # `digging` capability, different tool, different trade — which is the
 # shipped rule that code is shared and content is copied.
-class: /platform/thing/ToolItem
+class: /trade/farming/thing/Spade
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   primaryKeyword: spade

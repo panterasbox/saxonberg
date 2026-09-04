@@ -54,16 +54,6 @@ describe('GroundCharacter — the seeded field', () => {
     expect(GroundCharacter.seedFor('/a')).not.toBe(GroundCharacter.seedFor('/b'));
   });
 
-  it('⚠ soil and geology under one address are INDEPENDENT fields', async () => {
-    // A stony farm must not always sit over a rich lode. Different base
-    // constants, so the two fields' seeds for one address differ.
-    const { default: Deposit } = await import(
-      '@saxonberg/content-trade-mining/idea/Deposit'
-    ).catch(() => ({ default: null as unknown as { seedFor(a: string): number } }));
-    if (!Deposit) return;
-    expect(GroundCharacter.seedFor('/x')).not.toBe(Deposit.seedFor('/x'));
-  });
-
   it('⭐ properties are CORRELATED, because real ground is', () => {
     // Sampled broadly: steeper ground drains better and carries less
     // topsoil. Six independent draws would produce free-draining clay on

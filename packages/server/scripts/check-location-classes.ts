@@ -434,16 +434,30 @@ export function unzonedCoords(rows: readonly Row[]): string[] {
  * is asserted to be exactly those, so a row on any other class cannot
  * join it. This one answers *who stamps the cell* and is class-agnostic.
  *
- * The four here are the mine's working TYPES — a face, a fall, a
+ * The first four are the mine's working TYPES — a face, a fall, a
  * junction, a stope. `MineWarren.carve()` clones one per cell and
  * `placeInGrid` stamps the coordinates, which is precisely the
  * warren-manages-them-dynamically case.
+ *
+ * ⭐ The fifth is the FIELD, and it is the same case reached from the
+ * other side. `HoldingWarren.admitPlot` clones one per `plot` and hangs
+ * it off the holding's floorplan; a holding's rooms are not on the
+ * street's grid (*a lot's room is NOT on the street's grid* — the
+ * residences rule), so there is no cell for a row to author.
+ *
+ * ⚠ Worth being precise about, because the exemption is not "a field has
+ * no position": a field's position on the SOIL field is `groundSpot`,
+ * stamped at plot time from where the plotter was standing, which is
+ * what makes surveying before you commit predict anything. It is
+ * assigned at runtime by the act, which is exactly what this roster is
+ * for.
  */
 export const WARREN_PLACED = [
   "rejection/content/world/rejection/ferrow/face.yaml",
   "rejection/content/world/rejection/ferrow/fall.yaml",
   "rejection/content/world/rejection/ferrow/junction.yaml",
   "rejection/content/world/rejection/ferrow/stope.yaml",
+  "trade-farming/content/trade/farming/location/field.yaml",
 ];
 
 export function unplottedLocations(rows: readonly Row[]): string[] {

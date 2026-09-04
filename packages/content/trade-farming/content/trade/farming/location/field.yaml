@@ -1,0 +1,21 @@
+# A field — ⭐ the thing this game did not have.
+#
+# ⚠ ONE row, and it is a KIND of place rather than a place: every plotted
+# field in the world is a keyed instance of this, the way every carved
+# working in a mine is a keyed instance of a face or a stope. What makes
+# one field different from another is its GROUND — seeded from where it
+# was plotted — and what its holder has done to it, neither of which is
+# authored here.
+#
+# It carries no `coords:` because a warren places it: a field is a member
+# of the holding it was broken out of, and a holding's rooms are not on
+# the street's grid. Its position on the soil field is `groundSpot`,
+# stamped at plot time from where the plotter was standing.
+class: /trade/farming/location/Field
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a field
+  longDescription: >-
+    Open ground under open sky, walked out to its edges and turned. The
+    line of the first sod is still visible along one side.
+  keywords: [field, ground, land]

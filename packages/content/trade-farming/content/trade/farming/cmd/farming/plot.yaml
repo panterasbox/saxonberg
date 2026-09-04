@@ -1,0 +1,33 @@
+verbs: [plot]
+controller: /trade/farming/idea/cmd/farming/PlotController
+description: "Break a new field out of ground you already hold"
+help: |
+  `plot [<name>]` marks out a piece of the ground you are standing on and
+  makes it a field. Give it a name and that is what the gate to it is
+  called — the top meadow, the wet corner, Long Acre. Farms have always
+  named their fields, and the names are how you tell somebody where to
+  put the sheep.
+
+  ⭐ A field is PLOTTED, not bought. `title buy` is choosing from a
+  catalogue of lots somebody laid out; plotting is what you do to land
+  that is already yours.
+
+  ⭐ And you can look before you leap. The ground was always there, so
+  `measure texture`, `measure acidity` and `analyze soil` all work
+  BEFORE you commit — and the field you plot carries the ground you
+  sampled. Where you break is a decision, informed by work you chose to
+  do, or a gamble you chose to take.
+
+  ⚠ Newly plotted ground is not a farm. It is a claim on rough ground;
+  what it costs to bring in depends on what the ground turns out to be.
+
+  It refuses ground that is not yours, ground zoned for anything smaller
+  than a field, and a holding with no room left in its yard. It needs a
+  spade in your hands.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  - name: name
+    type: string
+    required: false

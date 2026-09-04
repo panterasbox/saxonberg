@@ -151,6 +151,15 @@ export abstract class SoilChannelController<
    * missing feature — you cannot take a soil sample in an idea.
    */
   protected spotOf(place: Stuff & Container): Spot | null {
+    // ⭐ A FIELD answers first, and it has to: a field is a warren member
+    // and a warren member is on nobody's grid, so every field in the
+    // world would read `[0, 0]` and sample the same dirt. Its
+    // `groundSpot` is stamped at plot time from where the plotter stood,
+    // which is what makes surveying before you commit predictive.
+    const stamped = (place as unknown as {
+      getGroundSpot?(): readonly [number, number];
+    }).getGroundSpot?.();
+    if (stamped) return [stamped[0], stamped[1]];
     const c = (place as unknown as {
       getCoordinates?(): [number, number, number];
     }).getCoordinates?.();
@@ -281,7 +290,13 @@ export abstract class SoilChannelController<
    */
   protected async groundIdOf(place: Stuff & Container): Promise<string> {
     const locality = await AddressApi.resolveLocalityFor(place);
-    return locality?.getAddress() ?? 'unnamed ground';
+    const address = locality?.getAddress();
+    if (address) return address;
+    // ⚠ Unaddressed ground still has to key SOMEWHERE distinct, or two
+    // hermits' clearings share one field book. The persistence key is
+    // the next most durable identity; the template path is the floor.
+    const keyed = MixinApi.isPersistable(place) ? place.getPersistenceKey() : null;
+    return keyed ?? place.getTemplatePath() ?? 'unnamed ground';
   }
 }
 
