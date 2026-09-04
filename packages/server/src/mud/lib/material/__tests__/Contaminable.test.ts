@@ -333,31 +333,45 @@ describe('ContaminableMixin — the population no sense reports', () => {
   // ---- criterion 17: the route between objects ----
 
   it('⭐ a dirty implement carries it to whatever it touches next', () => {
-    const knife = makeStuff(() => new Weapon());
+    const pot = makeStuff(() => new CraftVessel());
     const carrot = food();
-    knife.contaminate('vegetative');
-    knife.transferContaminationTo(carrot);
+    pot.contaminate('vegetative');
+    pot.transferContaminationTo(carrot);
     expect(carrot.getPathogenLoad('vegetative')).toBeGreaterThan(0);
-    // ⚠ …and the knife keeps what it had. Wiping it on a carrot is not
-    // washing it.
-    expect(knife.getPathogenLoad('vegetative')).toBeGreaterThan(0);
+    // ⚠ …and the implement keeps what it had. Wiping it on a carrot is
+    // not washing it.
+    expect(pot.getPathogenLoad('vegetative')).toBeGreaterThan(0);
   });
 
   it('…and washing it clears the load outright, back to the clean default', () => {
-    const knife = makeStuff(() => new Weapon());
-    knife.contaminate('vegetative');
-    knife.clearContamination();
-    expect(knife.getPathogenLoads()).toEqual({});
-    expect(knife.pathogenClockStamp).toBe(0);
+    const pot = makeStuff(() => new CraftVessel());
+    pot.contaminate('vegetative');
+    pot.clearContamination();
+    expect(pot.getPathogenLoads()).toEqual({});
+    expect(pot.pathogenClockStamp).toBe(0);
   });
 
   // ---- the host set (P8) ----
 
-  it('⭐ the hosts are food and the things that touch food — and nothing else', () => {
+  it('⭐ the hosts are FOOD EQUIPMENT — food, and the kit that works on it', () => {
     expect(MixinApi.isContaminable(makeStuff(() => new Provision()))).toBe(true);
     expect(MixinApi.isContaminable(makeStuff(() => new ToolItem()))).toBe(true);
-    expect(MixinApi.isContaminable(makeStuff(() => new Weapon()))).toBe(true);
     expect(MixinApi.isContaminable(makeStuff(() => new CraftVessel()))).toBe(true);
+  });
+
+  it('⚠⚠ NOT `Weapon` — most weapons are never used on food', () => {
+    // It was composed there for one build so the clasp knife a player buys
+    // could carry pathogens off a carcass — which put `getPathogenLoad()`
+    // on the author surface of a mace, a flail, a warhammer and a whip.
+    // The claim "this can carry pathogens between things" is FALSE of most
+    // of that host set, and `callable == visible == cared-about` settles
+    // it. The carrying lives on the butcher's BLOCK instead, which is the
+    // canonical cross-contamination vector anyway.
+    //
+    // ⭐ Butchering is unaffected: the verb still gates on an EDGE
+    // (`constructionForm: bladed`), so any blade opens a carcass. Cutting
+    // and carrying are different facts.
+    expect(MixinApi.isContaminable(makeStuff(() => new Weapon()))).toBe(false);
   });
 
   it('⚠ NOT `Cutlery` — serviceware touches a mouth, not a carcass', () => {

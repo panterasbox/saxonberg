@@ -34,7 +34,6 @@ import { ConstructedMixin } from '../../../lib/material/Constructed';
 import { DurableMixin } from '../../../lib/material/Durable';
 import { KeenMixin } from '../../../lib/material/Keen';
 import { CraftedMixin } from '../../../lib/craft/Crafted';
-import { ContaminableMixin } from '../../../lib/material/Contaminable';
 import { SlottableMixin } from '../../../lib/slot/Slottable';
 import { WieldableMixin } from '../../../lib/slot/Wieldable';
 import { MixinApi } from '../../../api/mixin';
@@ -57,24 +56,28 @@ import type { FieldMeta } from '../../../lib/mixin';
 // KeenMixin adds the fast-cycling working-surface (edge) axis alongside
 // Durable's structural condition — read only on edge/point delivery, so
 // it's inert for hafted/blunt forms.
-// ⚠ **Contaminable, because the knife a player actually owns is a Weapon.**
-// The only blade in the general store is `clasp-knife`, class `Weapon`,
-// `constructionForm: bladed` — and it is the thing that opens a carcass and
-// then chops the vegetables. `Cutlery` is table serviceware and holds
-// nothing, ever; a bespoke butchering class would fail the drive, which
-// requires the SAME knife to do both jobs.
+// ⚠⚠ **NOT `ContaminableMixin`, and that is a correction.** It was composed
+// here for one build so that the clasp knife a player buys could carry
+// pathogens off a carcass — which put `getPathogenLoad()` on the documented
+// author surface of a mace, a flail, a warhammer and a whip. Most weapons
+// are never used on food, so the claim *"this can carry pathogens between
+// things"* is false of most of this host set, and the governing
+// `callable == visible == cared-about` invariant says that settles it.
 //
-// ⭐ The two facts stay apart, and that split is the decision: **carrying**
-// contamination is a property of a surface that touches food (this mixin,
-// composed broadly), while **butchering** is an affordance of an edge (the
-// verb, gated on `constructionForm`). Collapse them and you get either a
-// sieve that can butcher or a knife that cannot chop.
-const WeaponBase = ContaminableMixin(
-  WieldableMixin(
-    SlottableMixin(
-      KeenMixin(
-        CraftedMixin(DurableMixin(ConstructedMixin(DetailedMixin(Thing)))),
-      ),
+// ⭐ The carrying moved to where it is TRUE and where the real lesson lives:
+// the **butcher's block** (`/trade/cooking/thing/ButcherBlock`). A board is
+// the canonical cross-contamination vector in any food-safety training —
+// *do not prep vegetables on the board you cut raw meat on* — and it is a
+// pack class, so nothing in the kernel had to widen.
+//
+// The split that survives, and it is the same one: **butchering** is an
+// affordance of an edge (the verb, gated on `constructionForm: bladed`, so
+// any blade still opens a carcass), while **carrying** is a property of food
+// equipment. A blade does the cutting; it is not food kit.
+const WeaponBase = WieldableMixin(
+  SlottableMixin(
+    KeenMixin(
+      CraftedMixin(DurableMixin(ConstructedMixin(DetailedMixin(Thing)))),
     ),
   ),
 );

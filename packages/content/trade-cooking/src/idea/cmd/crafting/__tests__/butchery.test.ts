@@ -35,6 +35,8 @@ import Species from '@saxonberg/server/mud/platform/idea/species/Species';
 import Material from '@saxonberg/server/mud/lib/material/Material';
 import Condition from '@saxonberg/server/mud/platform/idea/Condition';
 import Weapon from '@saxonberg/server/mud/platform/thing/equipment/Weapon';
+import ButcherBlock from '../../../../thing/ButcherBlock';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import Provision from '@saxonberg/server/mud/platform/thing/Provision';
 import { Contamination } from '@saxonberg/server/mud/lib/material/Contaminable';
 import type { PathogenBehavior } from '@saxonberg/server/mud/lib/material/Contaminable';
@@ -228,17 +230,30 @@ describe('butchery — the act, over the shipped rows', () => {
     expect(expert.getPathogenLoad('salmonella')).toBeGreaterThan(0);
   });
 
-  it('⭐⭐ the knife carries it to whatever it touches next; `wash` clears it', () => {
-    const knife = makeStuff(() => new Weapon());
+  it('⭐⭐ the BLOCK carries it to whatever it touches next; `wash` clears it', () => {
+    // ⚠ The block, not the blade. This was on `Weapon` for one build so
+    // the store's clasp knife could carry it — which handed a mace, a
+    // flail and a whip a pathogen-load surface they will never use. A
+    // board is food equipment and is the canonical vector besides: *do not
+    // prep vegetables on the board you cut raw meat on.*
+    const block = makeStuff(() => new ButcherBlock());
     const carrot = makeStuff(() => new Provision());
-    knife.contaminate('salmonella', 1);
-    knife.transferContaminationTo(carrot);
+    block.contaminate('salmonella', 1);
+    block.transferContaminationTo(carrot);
     expect(carrot.getPathogenLoad('salmonella')).toBeGreaterThan(0);
 
     const secondCarrot = makeStuff(() => new Provision());
-    knife.clearContamination();
-    knife.transferContaminationTo(secondCarrot);
+    block.clearContamination();
+    block.transferContaminationTo(secondCarrot);
     expect(secondCarrot.getPathogenLoads()).toEqual({});
+  });
+
+  it('⚠ a blade still BUTCHERS — cutting and carrying are different facts', () => {
+    // The verb gates on an edge, so any blade opens a carcass; what it
+    // does not do is remember what it found there.
+    const knife = makeStuff(() => new Weapon());
+    expect(MixinApi.isConstructed(knife)).toBe(true);
+    expect(MixinApi.isContaminable(knife)).toBe(false);
   });
 
   it('the freshly contaminated cut is ALREADY at the infectious dose', () => {

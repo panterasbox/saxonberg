@@ -203,9 +203,18 @@ export default class ButcherController extends CraftController<ButcherModel> {
       }
     }
 
-    // ⚠ The knife carries it away with it. That is the route criterion 17
-    // is about, and it is the reason `wash` matters.
-    this.spillGut(blade, mess);
+    // ⚠⚠ **The BLOCK carries it away, not the blade.** A board is the
+    // canonical cross-contamination vector — *do not prep vegetables on
+    // the board you cut raw meat on* — and it is food equipment, where a
+    // mace and a whip are not. That is the route criterion 17 is about,
+    // and it is the reason `wash` matters.
+    //
+    // ⭐ `null` when nobody is working at a block: the verb is afforded by
+    // one, but the controller stays more permissive than its affordance
+    // (the `wash` rule), so a butchering done somewhere else still yields
+    // meat — it just leaves nothing behind to contaminate the next job.
+    const block = this.findBlock(giver);
+    if (block) this.spillGut(block, mess);
 
     if (MixinApi.isAdvancing(giver)) {
       await giver.creditDeed({
@@ -257,23 +266,43 @@ export default class ButcherController extends CraftController<ButcherModel> {
 
   /**
    * The first bladed thing in reach — held first, then the room. ⭐ The
-   * gate is the CONSTRUCTION, not the class: a clasp knife is a `Weapon`
-   * and a boning knife would be a `ToolItem`, and both open a carcass
-   * because both are an edge.
+   * gate is the CONSTRUCTION, not the class: a clasp knife off the general
+   * store's shelf opens a carcass exactly as the kitchen's boning knife
+   * does, because both are an edge.
    */
   private findBlade(giver: Stuff): Stuff | null {
+    for (const candidate of this.reachOf(giver)) {
+      if (!MixinApi.isConstructed(candidate)) continue;
+      if (candidate.getConstructionForm() !== 'bladed') continue;
+      return candidate;
+    }
+    return null;
+  }
+
+  /**
+   * The work surface in reach that can hold what the gut spills — the
+   * butcher's block. ⚠ Found by what it CAN DO (`Contaminable` + a
+   * surface), never by class name: a second venue's slab or a shambles
+   * bench answers the same way without this file learning its name.
+   */
+  private findBlock(giver: Stuff): Stuff | null {
+    for (const candidate of this.reachOf(giver)) {
+      if (!MixinApi.isContaminable(candidate)) continue;
+      if (!MixinApi.isSurfaced(candidate)) continue;
+      return candidate;
+    }
+    return null;
+  }
+
+  /** Held kit first, then the room — the two-leg reach the trade uses. */
+  private reachOf(giver: Stuff): Stuff[] {
     const reach: Stuff[] = [];
     if (MixinApi.isContainer(giver)) reach.push(...giver.getContents());
     if (MixinApi.isContainable(giver)) {
       const here = giver.getContainer();
       if (here && MixinApi.isContainer(here)) reach.push(...here.getContents());
     }
-    for (const candidate of reach) {
-      if (!MixinApi.isConstructed(candidate)) continue;
-      if (candidate.getConstructionForm() !== 'bladed') continue;
-      return candidate;
-    }
-    return null;
+    return reach;
   }
 
   private decline(

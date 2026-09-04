@@ -318,10 +318,25 @@ be one: the reconcile returns immediately on an empty map, so *no food a
 player owns ever becomes dangerous on its own*, at any temperature, over
 any span. That invariant is arithmetic rather than policy.
 
-**Hosts:** `Provision`, `CraftVessel`, `ToolItem`, `Weapon` — food, and
-the things that touch food. ⚠ The **classes**, never `ToolMixin` (whose
-host set includes a tap and a watering can), and not `Cutlery`, which
-touches a mouth rather than a carcass.
+**Hosts:** `Provision`, `CraftVessel`, `ToolItem`, and the trade's own
+`ButcherBlock` — **food equipment**, and nothing else. ⚠ The **classes**,
+never `ToolMixin` (whose host set includes a tap and a watering can), and
+not `Cutlery`, which touches a mouth rather than a carcass.
+
+⚠⚠ **And not `Weapon`.** It was composed there for one build so the clasp
+knife a player buys could carry pathogens off a carcass — which put
+`getPathogenLoad()` on the documented author surface of a mace, a flail, a
+warhammer and a whip. *Most weapons are never used on food*, so the claim
+the mixin makes is false of most of that host set, and
+`callable == visible == cared-about` settles it.
+
+⭐ **Cutting and carrying are different facts, and only one of them is a
+weapon's.** `butcher` still gates on an **edge**
+(`constructionForm: bladed`), so any blade opens a carcass — the store's
+clasp knife included. What the blade does not do is remember what it found
+there. The carrying lives on the **block**, which is food equipment and is
+the canonical cross-contamination vector besides: *do not prep vegetables
+on the board you cut raw meat on.*
 
 ⚠⚠ **A vessel carries TWO loads and they are different facts.** Its
 contents carry their own on the bulk payload; the mixin gives the vessel
@@ -370,7 +385,7 @@ Discipline decides both the yield and the mess. ⚠ An expert still
 deposits a floor of it: the answer to this hazard has to be cooking and
 cold, never a good enough butcher.
 
-**Where it goes:** onto whatever the knife touches next
+**Where it goes:** onto whatever the **block** touches next
 (`transferContaminationTo`), through every pour by mass, through both
 craft paths, and across **both arms of `eat`** into the body.
 ⚠ That last bridge is the one that fails silently and completely — a
@@ -378,8 +393,8 @@ pathogen that does not cross it leaves the suite green, the food
 contaminated and the eater fine.
 
 **Where it ends:** `wash` clears a surface outright. ⚠ Which needed the
-verb widened: it was `instanceof CraftVessel`, so a knife — the one
-implement that most needs washing — could not be washed at all.
+verb widened: it was `instanceof CraftVessel`, so nothing but glassware
+could be washed — not a block, not a pot's surface, not a tool.
 
 ## In the body
 

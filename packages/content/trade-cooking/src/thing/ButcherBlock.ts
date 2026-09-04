@@ -28,9 +28,23 @@
  */
 
 import Surface from '@saxonberg/server/mud/platform/thing/Surface';
+import { ContaminableMixin } from '@saxonberg/server/mud/lib/material/Contaminable';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 
-export default class ButcherBlock extends Surface {
+/**
+ * ⭐⭐ **The block is what CARRIES what the gut spilled**, and it is the
+ * canonical cross-contamination vector in any food-safety training: *do
+ * not prep vegetables on the board you cut raw meat on.*
+ *
+ * ⚠ This lived on `Weapon` for one build, so the clasp knife a player buys
+ * could carry it — which put `getPathogenLoad()` on the author surface of
+ * a mace, a flail and a whip. Most weapons never touch food, so the claim
+ * was false of most of that host set. Here it is true of every member:
+ * a butcher's block is food equipment and nothing else.
+ */
+const ButcherBlockBase = ContaminableMixin(Surface);
+
+export default class ButcherBlock extends ButcherBlockBase {
   static commandContributions: CommandContributions = {
     peers: ['trade/cooking/cmd/crafting/butcher.yaml'],
   };

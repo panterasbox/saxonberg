@@ -428,13 +428,24 @@ and already the thing that opens a carcass.
 siblings and stay out. What P2 refused was a load on a mixin whose host
 set is wrong, not a broad host set for a mixin that describes every
 member of it honestly — *"this can carry pathogens between things"* is
-true of a billhook and a clasp knife and false of a tap.
+true of a billhook and a kitchen sieve and false of a tap.
 
-⚠ The two facts stay apart, and the split is the whole decision:
-**carrying** contamination is a property of a surface that touches food
-(the mixin, composed broadly); **butchering** is an affordance of an edge
-(the verb, gated on the construction). Collapsing them gives you either a
-sieve that can butcher or a knife that cannot chop.
+⚠⚠ **And it is false of a WEAPON, which is where this decision went wrong
+and was corrected in review.** *Most weapons are never used on food*: a
+mace, a flail, a warhammer and a whip all got `getPathogenLoad()` on their
+documented author surface so that the one clasp knife in the store could
+carry a load. That is the same widening P2 refused, one class along, and
+`callable == visible == cared-about` settles it. The carrying moved to the
+trade's own `ButcherBlock`.
+
+⭐ **The split survives and is sharper for it: cutting and carrying are
+different facts.** `butcher` still gates on an **edge** (the construction,
+so any blade opens a carcass — the store's clasp knife included); what a
+blade does not do is *remember what it found there*. Carrying is a
+property of **food equipment**. And the block is the better vector anyway:
+*do not prep vegetables on the board you cut raw meat on* is the lesson
+every food-safety course leads with, and the knife was never the canonical
+one.
 
 ### P9 — Butchery yield is authored on the Species row
 
