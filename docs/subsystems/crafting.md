@@ -423,6 +423,11 @@ emitting via `ctx.note` + `MessageApi.scene`.
 - **`forge <item> [with <metal>]`** / **`cook <dish>`** — the branch
   one-shots: maker = **giver**, **deed-gated** on the knowledge ladder
   (below); `with` steers the stock pick exactly as the bar's brand.
+  ⭐ A `CraftRequest` may also carry a **`target`** — the item an act is
+  performed ON, preferred for any input slot it satisfies. Without it,
+  `dry` would pick a plain cut off the table instead of the one you had
+  just salted, and hurdle-stacking would be unreachable by a player.
+  A preference, not a gate.
 - **`sharpen <blade>`** / **`repair <item>`** / **`salvage <item>`** —
   the maintenance acts (see the lifecycle below). Standalone diegetic
   verbs per the subcommand sieve; any future introspective growth
@@ -457,6 +462,15 @@ the present on-shift maker.
   [antipatterns.md](../antipatterns.md) § *Keywords Where You Mean
   Identity*.
 
+  ⚠⚠ **And it is no longer a glassware verb.** It was
+  `instanceof CraftVessel`, so a **knife** could not be washed at all —
+  which the food-safety build made load-bearing, because a knife that has
+  been in a carcass is the one implement that most needs it and washing is
+  the whole counterplay to cross-contamination. It now accepts anything
+  `Serviceable` (the soil mark) or `Contaminable` (the pathogen load), and
+  a target may be either or both. ⚠ It clears a **surface** and never
+  contents: washing a pot of bad stew is not a cure for the stew.
+
   ⭐ **The effect is `vessel.wash()` on `CraftVessel`**, not an Api call.
   It tips the dregs, destroys any garnish inside, drops the ice and the
   technique stamp, and marks it clean. It was `CraftingApi.washGlass`
@@ -468,6 +482,21 @@ the present on-shift maker.
   the glass, because a syrup bottle and a juice bottle are
   `CraftVessel`s too. Bussing is `get <glass>` / `put <glass> in rack` —
   shipped verbs.
+- **`cure`/`salt`**, **`dry`/`hang`**, **`smoke`** (trade-cooking) — the
+  **preserving acts**, one `PreserveController` base and three six-line
+  subclasses that name only a recipe id and their prose. Each recipe
+  authors a `cure: { moisture?, solute? }` block applied to the output's
+  water state as the **stronger** of each axis, so a weaker second
+  treatment never un-cures and two separate acts stack (salt it, then dry
+  it). ⚠ **Not deed-gated**, unlike `cook`: the can-make deed is earned by
+  a faithful by-hand build, and the cooking branch's by-hand path banks
+  into a pot — the wrong shape for a discrete transform. A gate whose key
+  does not exist is a lock, so these follow `order`.
+- **`butcher`/`dress`** (trade-cooking) — take a dead animal apart. Gated
+  on a reachable `constructionForm: 'bladed'` implement, refused on a
+  sentient corpse, and the cuts carry the carcass's AGE (see
+  [spoilage.md](./spoilage.md)). Afforded by `CookPot`, which is portable:
+  a hunter who carries one dresses in the field.
 - **`muddle`** — a `ManualBuild` step like `stir`; needs a reachable
   `muddler` capability; records `BuildMethod` `'muddled'`.
   `shake` already existed (`stir.yaml` is `verbs: [stir, shake]`); `mix`

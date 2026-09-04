@@ -21,6 +21,7 @@
     "dev": "node scripts/dev-preflight.mjs 2010 server && AUTH_MODE=test tsx watch src/preload.js",
     "reset:db": "tsx scripts/reset-db.ts",
     "drive:cooking": "tsx scripts/drive-cooking.ts",
+    "drive:food-safety": "tsx scripts/drive-food-safety.ts",
     "build": "tsc",
     "start": "tsx src/preload.js",
     "test": "vitest run",

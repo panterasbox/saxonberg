@@ -1,0 +1,27 @@
+# The kitchen's boning knife — a real bladed `Weapon`, like the store's
+# clasp knife, because that is what a knife IS.
+#
+# ⭐⭐ It is the SAME class a player's own knife is, deliberately. Drive
+# step 13 turns on one knife doing two jobs — butcher with it, then chop
+# vegetables with it, and eat them raw — so the carrier could never be a
+# bespoke butchering class. What makes it able to open a carcass is its
+# `constructionForm: bladed`, and what makes it able to carry what it finds
+# there is `ContaminableMixin`, which every `Weapon` composes.
+#
+# ⚠ Which is the whole split: CARRYING contamination is a property of a
+# surface that touches food; BUTCHERING is an affordance of an edge.
+class: /platform/thing/equipment/Weapon
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a boning knife
+  primaryKeyword: knife
+  keywords: [knife, boning, blade, boning-knife]
+  longDescription: |
+    A thin, slightly flexible blade with a scarred beechwood handle, kept sharp because a dull one is how you cut yourself. It has been between more joints than anyone has counted.
+  _materialPath: /stuff/idea/material/alloy/steel
+  constructionForm: bladed
+  gradeBand: fine
+  mass: 0.15
+  length: 0.15
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": ["hand:right"]

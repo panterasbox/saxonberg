@@ -72,5 +72,20 @@ data:
     - /trade/cooking/thing/fruit-press
     - /trade/cooking/thing/tallow-crock
     - /trade/cooking/thing/oil-bottle
+    # ⭐ The larder side of the kitchen. Butchering is learnable where the
+    # trade is practised — a cook should not have to hunt before they can
+    # find out what a knife does to a carcass — and a hog hands you far
+    # more meat than one sitting, which is exactly what turns preserving
+    # it from a curiosity into a decision.
+    - /trade/cooking/thing/boning-knife
+    # ⚠ And the SALT, because a kitchen has salt. The live drive found
+    # this: the pantry outfit stocks its sacks in its own storeroom, which
+    # is not in reach of the hearth, so `cure` declined with "there isn't
+    # enough salt" in the one room the whole build is proven at.
+    - /trade/cooking/thing/kitchen-salt
+    # ⚠ The carcass is a PROP, not cast, and the live drive is what said
+    # so: `applyCast` refuses anything that is not `Behaved`, and a corpse
+    # has no brain by construction. `cast:` is for things that ACT.
+    - /trade/cooking/agent/hanging-carcass
   cast:
     - /world/hearthworks/agent/cook

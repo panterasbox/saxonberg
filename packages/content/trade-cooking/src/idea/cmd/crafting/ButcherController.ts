@@ -117,6 +117,28 @@ export default class ButcherController extends CraftController<ButcherModel> {
       );
     }
 
+    // ⚠⚠⚠ **Warm the species before asking it anything, and FAIL CLOSED
+    // if it will not resolve.** The live drive found this, and it is the
+    // worst defect in the build: a `Species` Idea is not warmed at boot
+    // (the reference-Ideas-inert-at-boot trap, third recurrence), and
+    // `SpeciesApi.isSentient` answers **false** for a species that is not
+    // resident — so D14 failed OPEN. A person's corpse whose species
+    // nobody had touched yet was butcherable, and nothing anywhere said
+    // so.
+    //
+    // `preloadAnatomy` is the shipped ensure — the same one combat calls —
+    // and the null branch below is the belt: you cannot butcher what you
+    // cannot identify, which is also just true.
+    await SpeciesApi.preloadAnatomy(body);
+    const species = body.getSpecies();
+    if (!species) {
+      return this.decline(
+        context,
+        Mml.compose`You look at ${Mml.thing(body)} and cannot make out what it was. You are not putting a knife into that.`,
+        'unidentified-species',
+      );
+    }
+
     // ⚠⚠ D14. The world's own position, said in the world's voice.
     if (SpeciesApi.isSentient(body)) {
       return this.decline(
@@ -135,8 +157,7 @@ export default class ButcherController extends CraftController<ButcherModel> {
       );
     }
 
-    const species = body.getSpecies();
-    const yields = species?.getButcheryYield() ?? [];
+    const yields = species.getButcheryYield();
     if (yields.length === 0) {
       // ⭐ Not an error and not a TODO. An empty yield is authored, and it
       // says *there is nothing here worth cutting* — the right answer for

@@ -3,19 +3,50 @@
 Food goes off, and the reason it goes off is a **population**, not a
 timer.
 
-Every `Thing` carries a `microbial load` in `[0, 1]` — the fraction of
-its spoilage flora's carrying capacity that has actually grown. The band
-a player reads (`fresh` / `tainted` / `spoiled` / `rotten`), the smell on
-a `look`, and the ptomaine dose an ingest folds in are all **derived**
-from that one number. Nobody anywhere authors "this stew is off".
+⭐⭐ **There are TWO populations, and the difference between them is the
+whole subject.**
 
-Source: `lib/material/Freshness.ts` (the mixin + the shared arithmetic),
-`lib/material/Material.ts` (the two tabulated constants), the
-`freshness.*` dials in `lib/config/AppSettings.ts` and their seeds in the
-platform pack's `content/settings/freshness.yaml`. Read alongside
+> **Spoilage is a CLOCK. Contamination is an EVENT.**
+
+- The **spoilage flora** grows on its own, everywhere, forever. It is
+  what makes a ration go off in a pack, and it *tells you*: the band, the
+  smell, the ptomaine. By the time it can hurt you it has been warning
+  you for a while. This is `FreshnessMixin`.
+- The **pathogens** never appear on their own. Something has to have
+  *happened* — an animal opened, a dirty knife, a board — and once one is
+  there, **no sense reports it at all**: no reading, no smell, no taste,
+  no tell. This is `ContaminableMixin`.
+
+And a third fact, which is about the matter rather than about anything
+living in it: how much water is actually available to grow in. That is
+`CuredMixin`, and it is what drying and salting change.
+
+Every `Provision` carries all three, and they are three different
+questions about one cut of meat: *what is growing in it on its own*,
+*what somebody put in it*, and *how much water either of them has to work
+with*.
+
+⚠⚠ **The doc used to say the gauge "teaches before it punishes"** — that
+the dose onset sits inside the tainted band on purpose, so you get a
+smell warning before you get a dose. **That is still exactly true of the
+spoilage flora, and it is false of the system.** The second population
+punishes without teaching, by design, and what keeps *that* fair is a
+different thing entirely: the *risk* is legible even though the *hazard*
+is not. You can see that the meat is raw, that the board was used for
+gutting, that the stew has been out since morning. **Invisible to the
+senses, knowable by procedure.**
+
+Source: `lib/material/Freshness.ts` (the spoilage mixin + the shared
+arithmetic), `lib/material/Contaminable.ts` (the silent population),
+`lib/material/Cured.ts` (the water state), `lib/material/Material.ts`
+(the two tabulated constants), the `freshness.*` / `cure.*` dials in
+`lib/config/AppSettings.ts` and their seeds in the platform pack's
+`content/settings/`. The pathogen roster is authored as `Condition` rows
+under `/platform/idea/Condition/pathogen/`. Read alongside
 [thermal.md](./thermal.md) (the gauge asks its host what temperature it
-is), [metabolism.md](./metabolism.md) (where the dose lands) and
-[bulk.md](./bulk.md) (the blend half of the gauge).
+is), [metabolism.md](./metabolism.md) (where the dose lands and where an
+infection starts), [vitals.md](./vitals.md) (where an infection grows)
+and [bulk.md](./bulk.md) (the blend half of every gauge here).
 
 ## The rate law
 
@@ -174,11 +205,29 @@ nutrition.
 
 ## What cooking does to it
 
-Two different facts, and keeping them apart is the design:
+⭐⭐ **"Hot enough" is a RATE, not a line you cross.** The death rate is
+Arrhenius over `freshness.killK`: at the kill temperature it is the
+tabulated base rate and it climbs steeply from there. So a long hold at a
+lower heat and a brief moment at a higher one achieve the same kill —
+which makes a **sear**, a **simmer** and a **lazy warm-through** three
+genuinely different acts rather than one boolean.
 
-- **The load** is reset to nothing when the working reached
-  `freshness.killK`; below it, the inputs' loads blend through by mass.
-  A lazy warm-through launders nothing.
+A recipe expresses that as the pair `(requiresHeatK, holdS)`.
+
+⭐ **`holdS` absent means "the working was as long as it needed"** —
+byte-identical to the threshold this replaced, which is what keeps every
+recipe authored before holds existed cooking exactly as it did. A number
+is a claim that the hold was *not* sufficient, and is therefore always a
+deliberate authoring act. `seared-cut` (500 K / 10 s) and
+`warmed-through` (335 K / 120 s) are the shipped pair; the second is
+authored as a trap, and it is the row that makes the lesson a thing a
+player can be wrong about.
+
+Then, two different facts, and keeping them apart is the design:
+
+- **The load** falls at that rate over the hold — to nothing when the
+  recipe authors no hold; below `killK`, the inputs' loads blend through
+  by mass. A lazy warm-through launders nothing.
 - ⭐⭐ **…and the dose that load had already earned is deposited into the
   dish as a real, FORMED toxin** — authoring no `labileAtK`, so nothing
   later destroys it either. Heat kills the population; it does not
@@ -209,6 +258,153 @@ held at is the recipe's own demand. A stew simmered beside a roaring
 forge was simmered, not forged, and conflating the two would have every
 dish in a kitchen cooked at the hottest thing in the room.
 
+## The water state — what drying and curing actually change
+
+`CuredMixin` (`lib/material/Cured.ts`) carries two scalars that describe
+the **matter**, not anything living in it:
+
+- **`moisture`** `[0, 1]` — how much of the material's own water is still
+  in it. `1` is as-harvested. Drying lowers it.
+- **`solute`** `[0, 1]` — how much of the remaining water is bound up by
+  dissolved salt or sugar. `0` is untreated. Curing raises it.
+
+Water activity then derives, **multiplicatively**:
+
+```
+a_w = a_w(material) · moisture · (1 − solute)
+```
+
+⭐ **The multiplication is the whole design.** It is real hurdle
+technology: drying and salting are the same lever seen twice — take the
+water away, or bind what is left — so they **stack** rather than compete,
+and partial treatment earns partial benefit, with nobody enumerating
+"salt cod" anywhere.
+
+⭐ `moisture: 1, solute: 0` is the **identity**, which is why every row
+that shipped before the axis existed keeps exactly as well as its
+Material always said it would. It is pinned by a test, not assumed.
+
+**The asymmetry, and it is the lesson.** Curing does not reverse: salt
+that went in stays in, and `solute` has no passive arm at all. Drying
+does — a dried thing left somewhere damp climbs back toward the ambient
+equilibrium, read synchronously through `BiomeApi.localHumidityFor`. So a
+dry store is worth building and a steamy kitchen is the worst place to
+hang a ham.
+
+⚠ **The passive arm only ever RAISES moisture.** Nothing dries on its
+own: drying is an *act*, and a gauge that quietly dried everything in the
+pantry would both undo that and change how every shipped row behaves. An
+untreated instance therefore reads and writes **nothing** — the reconcile
+returns before it touches the clock.
+
+⚠ Composed **beside** `FreshnessMixin`, never folded into it. Leather,
+timber and grain are all dried and none of them rot on a microbial curve;
+folding water activity into the spoilage gauge would make a tannery
+compose a microbial load in order to express drying.
+
+The acts are `trade-cooking`'s: `cure` (salt, consumed from a sack),
+`dry` (time only), `smoke` (a fire, deliberately **13 K under the kill**
+so that smoking preserves without sterilising). Each is a recipe row with
+a `cure: { moisture?, solute? }` block, applied as the **stronger** of
+each axis — so a weaker second treatment never un-cures, and two separate
+acts stack.
+
+## The silent population
+
+`ContaminableMixin` (`lib/material/Contaminable.ts`) carries
+`Record<pathogenKey, load>` and it is **`{}` until something put a load
+there**. There is no seeding path in the file and there is not meant to
+be one: the reconcile returns immediately on an empty map, so *no food a
+player owns ever becomes dangerous on its own*, at any temperature, over
+any span. That invariant is arithmetic rather than policy.
+
+**Hosts:** `Provision`, `CraftVessel`, `ToolItem`, `Weapon` — food, and
+the things that touch food. ⚠ The **classes**, never `ToolMixin` (whose
+host set includes a tap and a watering can), and not `Cutlery`, which
+touches a mouth rather than a carcass.
+
+⚠⚠ **A vessel carries TWO loads and they are different facts.** Its
+contents carry their own on the bulk payload; the mixin gives the vessel
+a *surface* load as well. A dirty pot and a bad stew are genuinely
+different things, and only one of them survives emptying the pot — which
+is why filling a dirty vessel contaminates what goes in, emptying it does
+not clean it, and washing clears the surface and never the contents.
+
+Every constant comes from the organism's own `Condition` row rather than
+a dial, because these differ from each other in exactly the ways that
+matter:
+
+| what it says | why it is not a dial |
+|---|---|
+| its own temperature floor, ceiling and Arrhenius steepness | a cold cellar stops one and not another |
+| its own **water-activity floor** | *Staph aureus* grows at 0.86, which is why it is the cured-ham organism and why salting alone is not an answer to it |
+| a **survival fraction** | the spore-formers: boiling REDUCES them and never removes them |
+| a **germination ceiling** | as a cooked dish cools past it, the survivors' rate turns positive again |
+| a **reach** — `infect` or `intoxicate` | one grows in you; the other already made a poison, and killing it does not unmake that |
+
+⭐⭐ **`reach` and spore-forming are not alternatives**, and a build that
+treats them as a two-way choice cannot author the shipped roster:
+*C. botulinum* is a spore-former whose survivors germinate as food cools
+and *then* produce a toxin. Both mechanisms, one row.
+
+**The roster** (five rows, and between them every answer is on the table):
+
+| row | reach | what it teaches |
+|---|---|---|
+| `salmonella` | infect | cooking removes it **entirely** — so cook it and eat it promptly, and curing preserves every cell that was already there |
+| `e-coli` | infect | the lowest dose in the roster: a knife that touched a carcass and then a salad is a real route |
+| `perfringens` | infect | spores survive the pot and **wake as the dish cools** — the most common real food poisoning there is, and the lesson nobody believes until it happens to them |
+| `staph-aureus` | intoxicate | a heat-**stable** toxin: kill the population, keep the poison. Boiling does not save you |
+| `botulinum` | intoxicate | spore-former **and** toxin-maker, and its toxin IS heat-labile (358 K). Boiling fixes this one and not the other |
+
+⚠⚠ **`lint:pathogens` is what keeps the roster honest**, and it catches
+the silent case: an `intoxicate` row whose `toxin.type` resolves to no
+`Condition` deposits a dose that `resolveToxinBehavior` returns null for
+and the caller skips — green suite, poisoned food, healthy eater. It also
+refuses a non-empty `channels`.
+
+**Where a load comes from:** `butcher`, and nothing else in this build.
+Gut spillage is the dominant real contamination route and it is exactly
+what an unskilled hand does, so one band read of the `butchery`
+Discipline decides both the yield and the mess. ⚠ An expert still
+deposits a floor of it: the answer to this hazard has to be cooking and
+cold, never a good enough butcher.
+
+**Where it goes:** onto whatever the knife touches next
+(`transferContaminationTo`), through every pour by mass, through both
+craft paths, and across **both arms of `eat`** into the body.
+⚠ That last bridge is the one that fails silently and completely — a
+pathogen that does not cross it leaves the suite green, the food
+contaminated and the eater fine.
+
+**Where it ends:** `wash` clears a surface outright. ⚠ Which needed the
+verb widened: it was `instanceof CraftVessel`, so a knife — the one
+implement that most needs washing — could not be washed at all.
+
+## In the body
+
+An ingested `infect` population at or above its `infectiousDose` becomes
+an `AfflictionRecord` carrying a live `pathogenLoad`, seeded in
+`Metabolic.ingest` (the one place food becomes body) and grown by
+`VitalsMixin.reconcileConditions`. See [vitals.md](./vitals.md).
+
+⭐ **Nothing shows until the incubation is up.** Illness arrives hours
+after the meal, not at the table — which is the entire pedagogy: the
+information is in what you *did*, so a player has to reason backwards
+rather than forwards from what they feel.
+
+⭐ **Nothing new kills anyone.** A severe infection drains hydration —
+what dysentery actually does — and dehydration already has a lethal
+cascade with a rescuable dying window at the end of it.
+
+⭐ **The record names the cook.** A dish reaches a body as
+`(material, litres, payload)` and the eater never sees the bowl, so the
+maker rides on the **payload** (`lib/craft/Crafted.ts` declares it) and an
+accountability row is written when the maker is somebody else. Eating
+your own risky food is a private gamble; putting it in front of a paying
+customer is a choice about another person, and the ledger is what makes
+the two different acts.
+
 ## What a player sees
 
 A band phrase on `look` and `smell`, never a number — the
@@ -216,6 +412,20 @@ banding-is-presentation rule. A fresh (or inert) thing says nothing at
 all. The augmenter is channel-filtered: you *see* that something has
 turned and you *smell* it, so a `taste` gets the palate line
 ([crafting.md](./crafting.md)) rather than a duplicate of the smell.
+
+A **treated** thing gets its own line on the same two channels — *"It has
+been thoroughly dried and heavily salted."* Two axes, band words, no
+number. ⚠ It is deliberately a **separate line and not a fifth freshness
+band**: the population and the water state are different facts, and one
+gauge reporting both is how the split gets quietly undone at render time.
+
+⭐⭐ **And a contaminated thing says NOTHING**, on any channel, ever.
+`ContaminableMixin` ships no `markupAugmenters` at all, and the pathogen
+rows author `channels: []` — which `lint:pathogens` enforces, so the
+silence is a gate rather than a habit. The test that pins it asserts that
+a contaminated item's rendering **equals** a clean one's, with a control
+alongside proving the same seam does report a cure; asserting the words
+twice would have passed a build whose renderer said nothing at all.
 
 ## Dials
 
@@ -230,7 +440,8 @@ dialled here — a global "meat spoils faster" knob would erase the point.
 | `freshness.referenceK` | 303 | the Arrhenius reference, where `f_T = 1` |
 | `freshness.freezingK` | 273 | at/below, growth pauses |
 | `freshness.killK` | 333 | at/above, the flora dies |
-| `freshness.killRatePerHour` | 6 | the death rate above the kill temperature |
+| `freshness.killRatePerHour` | 6 | the death rate AT the kill temperature |
+| `freshness.killActivationEnergy` | 200000 | the steepness of the death curve — what makes the kill a rate |
 | `freshness.awFloor` | 0.60 | the water-activity growth floor |
 | `freshness.awDefault` | 0.97 | assumed a_w for a perishable that tabulates none |
 | `freshness.inoculum` | 0.002 | the seed population growth starts from |
@@ -238,6 +449,9 @@ dialled here — a global "meat spoils faster" knob would erase the point.
 | `freshness.band.{tainted,spoiled,rotten}At` | 0.25 / 0.6 / 0.85 | the band thresholds |
 | `freshness.dose.onsetLoad` | 0.3 | below this an ingest carries no dose at all |
 | `freshness.dose.scaleMg` | 900 | the dose a fully rotten serving carries |
+| `cure.rehydrationPerHour` | 0.02 | fraction of the moisture gap a dried thing closes per game-hour |
+| `cure.ambientHumidity` | 60 | the relative humidity (%) assumed where nothing authors one |
+| `cure.band.{dried,drying,cured,curing}At` | 0.5 / 0.85 / 0.35 / 0.05 | presentation cutoffs for the cured-state line |
 
 ## Calibration (what a player actually feels)
 
@@ -258,8 +472,12 @@ not moved to suit the curve. Burden ≈ `dose × potency / bodyMass`, at the
 Which reads: **tainted food is unpleasant and harmless**, spoiled food
 costs you an afternoon, and rotten food is a real poisoning that takes
 most of a day to clear. The onset sits *inside* the tainted band on
-purpose — you get a smell warning before you get a dose, so the gauge
+purpose — you get a smell warning before you get a dose, so **this gauge**
 teaches before it punishes.
+
+⚠⚠ **Which is true of the flora and NOT of the system.** The second
+population gives no warning at all, and never will; see the header. Read
+the two claims together or the doc actively misleads.
 
 ⭐ The authored `spoiled-ration` (700 mg) lands at severity 2 and ~8 h,
 which is a load of ≈0.92 — "rotten", exactly what that row's name and
