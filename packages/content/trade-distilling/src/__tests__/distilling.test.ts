@@ -79,6 +79,7 @@ import { MobileMixin } from '@saxonberg/server/mud/lib/spatial/Mobile';
 import { NamedMixin } from '@saxonberg/server/mud/lib/description/Named';
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import Location from '@saxonberg/server/mud/lib/stuff/Location';
+import { ExitableMixin } from '@saxonberg/server/mud/lib/boundary/Exitable';
 import { brain as consigns } from '@saxonberg/server/mud/lib/behavior/consigns';
 import type { BrainContext } from '@saxonberg/server/mud/lib/behavior/brain';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
@@ -104,6 +105,42 @@ const HOST_BIZ = '/stuff/test/distilling/host-business';
 const OUTFIT = '/stuff/test/distilling/outfit';
 const FLOOR_STOCK = '/stuff/test/distilling/floor-stock';
 const CARD = '/stuff/thing/PaymentCard';
+const FLOOR_ROOM = '/stuff/test/distilling/floor';
+const COUNTER_ROOM = '/stuff/test/distilling/cash-and-carry';
+/**
+ * ⭐⭐ The transport pack's catalogue, stubbed BY SHAPE at its own path.
+ *
+ * Logistics D11: `consigns` walks now, and it plans the walk by asking
+ * whatever answers at `/system/transport/idea/LaneCatalogue` for a
+ * `planRoute`. The kernel brain must not import a pack, and this pack
+ * must not depend on transport — so the seam is a duck-typed singleton
+ * lookup, and this fixture stands in the place the real catalogue does.
+ * If the shape ever drifts, the walk silently stops happening, which is
+ * exactly what these two tests would then catch.
+ */
+const LANE_CATALOGUE = '/system/transport/idea/LaneCatalogue';
+
+/** A room with doors — the base `Location` is not `Exitable`, and the
+ * shipped rooms this fixture stands for (`SingletonCartesianLocation`)
+ * are. The floor needs one because the hand WALKS to the counter now. */
+class TestRoom extends ExitableMixin(Location) {
+  static _mixinName = 'TestRoom';
+}
+
+/** A stand-in for the transport pack's `LaneCatalogue` — the two-room
+ * route this fixture needs, and nothing else. */
+class TestLaneCatalogue extends Idea {
+  static _mixinName = 'TestLaneCatalogue';
+  async planRoute(
+    from: string,
+    to: string,
+  ): Promise<{ nodes: readonly string[] } | null> {
+    const known = [FLOOR_ROOM, COUNTER_ROOM];
+    return known.includes(from) && known.includes(to) && from !== to
+      ? { nodes: [from, to] }
+      : null;
+  }
+}
 
 class TestHand extends EmployedMixin(
   MobileMixin(
@@ -300,8 +337,8 @@ describe('trade-distilling — the sweep stands the floor at target from the shi
 });
 
 describe('trade-distilling — the outfit consigns as itself, and the house card at hire', () => {
-  let floorRoom: Location;
-  let counterRoom: Location;
+  let floorRoom: TestRoom;
+  let counterRoom: TestRoom;
   let counter: Stock;
   let floorStock: Stock;
   let outfit: BusinessEntity;
@@ -344,8 +381,18 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
       return b;
     }, BANK);
 
-    floorRoom = makeStuffAtPath(() => new Location(), '/stuff/test/distilling/floor');
-    counterRoom = makeStuffAtPath(() => new Location(), '/stuff/test/distilling/cash-and-carry');
+    floorRoom = makeStuffAtPath(() => new TestRoom(), FLOOR_ROOM);
+    counterRoom = makeStuffAtPath(() => new TestRoom(), COUNTER_ROOM);
+    // ⭐ The DOOR. Every producer floor got one in the logistics build,
+    // and it is why the hand can walk instead of teleporting: an
+    // exitless island has no honest answer but magic.
+    await floorRoom.applyExits({
+      out: { destination: COUNTER_ROOM, media: ['ground'], edgeMinutes: 4 },
+    });
+    await counterRoom.applyExits({
+      back: { destination: FLOOR_ROOM, media: ['ground'], edgeMinutes: 4 },
+    });
+    makeStuffAtPath(() => new TestLaneCatalogue(), LANE_CATALOGUE);
     counter = makeStuffAtPath(() => {
       const s = new Stock();
       s.stockLines = [];
@@ -368,14 +415,14 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
     const host = makeStuffAtPath(() => new BusinessEntity(), HOST_BIZ);
     host.proprietorPath = '';
     host.positions = [{ key: 'clerk', label: 'clerking', wageRate: 5, confers: [] }];
-    host.operatingLocations = [COUNTER, '/stuff/test/distilling/cash-and-carry'];
+    host.operatingLocations = [COUNTER, COUNTER_ROOM];
     host.banksAt = BankingApi.defaultCustodianBank();
     hostAccount = await EmploymentApi.operatingAccountOf(host);
 
     outfit = makeStuffAtPath(() => new BusinessEntity(), OUTFIT);
     outfit.proprietorPath = '';
     outfit.positions = [{ key: 'hand', label: 'running the floor', wageRate: 3, confers: [], purchases: true }];
-    outfit.operatingLocations = ['/stuff/test/distilling/floor', FLOOR_STOCK];
+    outfit.operatingLocations = [FLOOR_ROOM, FLOOR_STOCK];
     outfit.banksAt = BankingApi.defaultCustodianBank();
     outfitAccount = await EmploymentApi.operatingAccountOf(outfit);
   });
@@ -418,6 +465,18 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
         const stock = here.getContents().find((c): c is Stock => c instanceof Stock);
         const item = stock?.getContents().find((c) => MixinApi.isPerceptible(c) && c.hasKeyword(kw));
         if (item) ContainmentApi.move(item as never, giver as never);
+        return;
+      }
+      if (verb === 'go') {
+        // ⭐ The walk. `go <dir>` off the room's own exits — the hand
+        // travels on its feet through the door the floor now has.
+        const exit = here.getExits().get(rest[0]!);
+        const dest = exit
+          ? StuffApi.findByTemplatePath(exit.getDestinationTemplatePath() ?? '')
+          : null;
+        if (dest && MixinApi.isContainer(dest)) {
+          ContainmentApi.move(giver as never, dest as never);
+        }
         return;
       }
       if (verb === 'wallet') {
@@ -525,7 +584,14 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
     } as unknown as BrainContext;
     await consigns.act(brainCtx);
     // One lifted, one listed; the second bottle never left the floor.
-    expect(lines).toEqual(['get 1 gin', 'wallet use house', 'consign gin --ask 10']);
+    expect(lines).toEqual([
+      'get 1 gin',
+      'go out',
+      'wallet use house',
+      'consign gin --ask 10',
+      'go back',
+    ]);
+    expect(hand.getContainer()).toBe(floorRoom);
     expect(vodka.getContainer()).toBe(floorStock);
     expect(counter.activeListingCount(OUTFIT)).toBe(1);
     // The cap is full: the next beat lifts nothing and issues no verb.
@@ -555,8 +621,20 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
     } as unknown as BrainContext;
     await consigns.act(brainCtx);
 
-    // The verbs, in order: two gets, the wallet once, two consigns at the asks.
-    expect(lines).toEqual(['get 1 gin', 'get 1 vodka', 'wallet use house', 'consign gin --ask 14', 'consign vodka --ask 10']);
+    // ⭐⭐ The verbs, in order: two gets on the floor, the WALK to the
+    // counter, the wallet once, two consigns at the asks, and the walk
+    // HOME. Logistics D11 — there is no `teleport` in this brain at all,
+    // and every line here is one a player could type.
+    expect(lines).toEqual([
+      'get 1 gin',
+      'get 1 vodka',
+      'go out',
+      'wallet use house',
+      'consign gin --ask 14',
+      'consign vodka --ask 10',
+      'go back',
+    ]);
+    expect(hand.getContainer()).toBe(floorRoom);
     // Custody moved to the counter; the listing names the OUTFIT as consignor;
     // the good is stamped to the outfit (an organization, never the hand).
     expect(gin.getContainer()).toBe(counter);
