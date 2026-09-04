@@ -140,42 +140,49 @@ this whole subsystem leans on."*
 that fork, and answered it **seed**. The reason a floor felt necessary is
 that nobody had the claim marker in view.
 
-### Grade 2 — ⚠⚠ actively booby-trapped — ⭐ **but NOT this problem**
+### Grade 2 — ⚠⚠ actively booby-trapped
 
-> **Revised 2026-09-04.** These three are listed here because they *look*
-> like the same gap. They are not, and treating them as one cost this
-> design a wrong decision before it was caught.
->
-> `renown.md`: *"it wires **no consumer** — governance influence, NPC
-> behaviour, and disguise/notoriety read `renownOf` **later**."* The live
-> callers are two display surfaces, the political-influence stock, and
-> `Avatar`. **Nothing reads an NPC's reputation to do anything.**
->
-> ⭐⭐⭐ And seeding one would violate the subsystem's stated stance —
-> **"measure, don't assign: an output you observe, never an input you
-> set."** A written reputation is an assigned output by definition.
->
-> ⇒ **A dossier says what a person can DO and where they CAME FROM, never
-> what they are THOUGHT OF.** Reputation is earned, by players, in the
-> Compact. The trap below is real and stays recorded — it is a
-> **player**-seeding hazard, and it will bite whoever seeds a player next.
+> **Revised twice, 2026-09-04.** First reading: *"these are the same gap,
+> seed and fold all three."* Second: *"cut all three, seeding reputation
+> violates measure-don't-assign."* Both wrong, and the second was wrong on
+> a bad argument. The settled reading is below, and the vocabulary is what
+> decides it.
 
+⭐ **`standing` is not a synonym for renown — it is the PRODUCT:**
 
-`RenownApi.renownOf` reads `RenownStanding.cached()`, an in-memory map
-warmed at boot from the **`renown` collection** — the *materialized*
-standings. It does **not** read `renown_events`. So writing rows into the
-log changes nothing until a recompute folds them, and a bare restart
-re-warms from a collection the seeding never wrote.
+```
+standing = max(0, renownOf) × participationOf
+```
 
-The warning is copy-pasted verbatim into **three** subsystem docs, and it
-is there because it cost a whole live drive:
+| | is | for an NPC |
+|---|---|---|
+| **renown** | the **quality** half — measured reputation | ✅ seedable, as events |
+| **participation** | the **quantity** half — turning up | ❌ nobody turns up for an NPC |
+| **standing** | the Compact's influence stock | ❌ zero, **by arithmetic** |
+
+⭐⭐⭐ **The Compact stays players-only with no rule enforcing it.** Dave can
+be famous in the lounge and politically weightless, because his
+participation is zero and zero times anything is zero. No gate to forget,
+no special case to drift.
+
+**On *"measure, don't assign"*.** It forbids writing the **figure**. It
+does not forbid authoring the **events** a figure derives from — which is
+this slate's founding move everywhere else. Seeding renown is the same act
+as seeding a disposition or a prologue, and is legitimate for the same
+reason.
+
+⚠ **But the trap is real and now in scope for renown.**
+`RenownApi.renownOf` reads a boot-warmed map from the **materialized**
+`renown` collection, not from `renown_events`. So seeding the log moves
+nothing until a recompute folds it, and a bare restart re-warms from a
+collection the seeding never wrote.
 
 > ⚠ *"This is the trap that made a correctly-seeded character still read
 > `dormant` through a whole live drive of the S1 build."*
 
-A recompute does exist (`RenownLogic`, on a real-time `ScheduleApi`
-cadence). What is missing is that seeding does not trigger it, and boot
-does not re-derive.
+`RenownLogic`'s recompute is the fold; seeding must trigger it.
+**Participation and influence stay untouched**, so their share of the trap
+stays somebody else's.
 
 ### Grade 3 — fragmented
 
@@ -258,7 +265,10 @@ history:                     # → condition / body claims
 circumstance:                # → pointers, per cast-archetype Change 2
   holdings: [ /world/rejection/parcel/bar ]
   bonds:    [ { to: /world/rejection/agent/mara, kind: employs } ]
-# ⚠ NO reputation block, deliberately — see Grade 2.
+renown:                      # → seeded events + a fold (Grade 2)
+  - { scope: rejection, asserting: known }
+# ⚠ no participation, ever — that zero is what keeps an NPC out of the
+# Compact, and it wants no rule to hold.
 ```
 
 Four properties that matter more than the shape:

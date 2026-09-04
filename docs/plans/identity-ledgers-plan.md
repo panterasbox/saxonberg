@@ -165,34 +165,45 @@ identically either way, so separation buys no safety. Player dossiers stay
 with char-gen. *Revisit only if a dossier must be edited independently of
 its row (a CMS surface).* → slate Q1 closed.
 
-**D2 — the materialized trio is OUT OF SCOPE ENTIRELY. Nothing seeds an
-NPC's renown.**
+**D2 — RENOWN is seedable; PARTICIPATION and STANDING are not.**
 
-⚠ *Revised. An earlier form of this decision said "seed-and-fold, not a
-rewrite" and put the trio in `lint:dossiers`' coverage. That was scope
-this build never needed, and it pointed at a doctrine violation.*
+⚠ *Revised twice. First form said "seed-and-fold the trio" (too much);
+second said "cut the trio entirely, seeding renown is a doctrine
+violation" (too little, and the doctrine argument was wrong). This is the
+settled form.*
 
-`renown.md`'s own text: *"This subsystem ships the substrate … it wires
-**no consumer** — governance influence, NPC behaviour, and
-disguise/notoriety read `RenownApi.renownOf` **later**."* The live callers
-are a `standing` verb and a profile card (both **display**),
-`ConsumerLogic`'s `renownOf × participationOf` (the **influence stock** —
-players and the Compact), and `Avatar`. **Nothing reads an NPC's renown to
-do anything.**
+⭐ **The vocabulary, exactly, because conflating it caused both errors.**
+`ConsumerLogic.standingOfImpl` is literally:
 
-⭐⭐⭐ And seeding it would be *wrong*, not merely wasteful. Renown's
-governing stance is **"measure, don't assign — renown is an *output you
-observe*, never an *input you set*."** A written reputation is an assigned
-output by definition.
+```
+standing = max(0, renownOf) × participationOf
+```
 
-⇒ **The dossier says what a person can DO and where they CAME FROM, never
-what they are THOUGHT OF.** Reputation is earned, by players, in the
-Compact. Cut from the dossier sketch, cut from `lint:dossiers`' coverage,
-cut from W6.
+| | is | for an NPC |
+|---|---|---|
+| **renown** | the **quality** half — measured reputation, per scope | ✅ **seedable** |
+| **participation** | the **quantity** half — engagement over time | ❌ never written |
+| **standing** | their **product** — the Compact's influence stock | ❌ falls out at zero |
 
-⚠ The materialized trap itself is **real and stays documented** — it is a
-*player*-seeding hazard (it cost the S1 drive), and it bites whoever seeds
-a player next, not this build. → slate Q2 reopened as *not ours*.
+⭐⭐⭐ **So the Compact stays players-only by ARITHMETIC.** An NPC with real
+renown and no participation has a standing of exactly zero — no rule, no
+special case, no gate to forget. Dave can be famous in the lounge and
+politically weightless, and nothing had to be written to make that true.
+
+**On the doctrine.** *"Measure, don't assign — renown is an output you
+observe, never an input you set"* forbids writing the **figure**. It does
+not forbid authoring the **events** the figure derives from — which is the
+dossier's founding move everywhere else (*seed evidence, not a stat*), and
+is what makes renown seeding legitimate rather than a violation. The
+`asserting:` value is an author's claim that `lint:dossiers` checks; the
+engine only ever sees seeded events.
+
+⚠ **Which means the fold IS needed, for renown alone.** Seeding
+`renown_events` moves nothing until a recompute folds it into the
+materialized standings, and a bare restart re-warms from a collection the
+seeding never wrote — the trap that cost the S1 drive a whole run. Seeding
+must trigger the recompute. **Participation and influence stay untouched**,
+so their share of that trap stays somebody else's.
 
 **D3 — a seeded illness is a THIRD SHAPE and is out of scope.** A claim
 forces `when = null`; an affliction's `symptomsAt` is exactly a *when*. So
@@ -513,15 +524,16 @@ the asymmetric gate: refused for another player, answered for anyone else.
 **Acceptance:** a player who asks reads Dave as good at bartending, and is
 refused when asking about another player.
 
-### W6 — `lint:dossiers`
+### W6 — `lint:dossiers` + the renown fold
 
 Assert-vs-derive: seed what the dossier `asserting:` says and check the
 derived band agrees. ⭐ This is the only thing that stops a dossier
 drifting back into a stat sheet, because a declared value cannot disagree
 with itself and a seeded history can. Census-then-ratchet: gate today's
-count as the ceiling. ⚠ **Does not cover reputation, participation or
-influence** — D2: an author never writes those for an NPC, so there is
-nothing to check.
+count as the ceiling. ⚠ **Covers renown** (D2) — an asserted renown that
+does not derive is exactly the S1 drive's silent failure turned into a
+build error. **Does not cover participation or influence**: an author
+never writes those, so there is nothing to check.
 
 ---
 

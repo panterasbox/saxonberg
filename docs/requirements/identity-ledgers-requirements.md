@@ -35,8 +35,12 @@ about their past*.
 **The world already keeps books.** Blame, personality, credentials,
 competence and reputation are each derived from an append-only record
 rather than stored as a number. Two of those records already accept
-authored history; the rest do not. ⚠ **Reputation is deliberately not one
-of them** — see the non-goal.
+authored history; the rest do not.
+
+⭐ **And political weight is not a book of its own** — it is *reputation ×
+how much you turn up*. That matters here, because it means being known and
+having a say are already separate things, and this build only touches the
+first.
 
 **People already belong to things.** Businesses have rosters and
 positions. Offices have seats. Ground has title, and the owner of a piece
@@ -93,22 +97,22 @@ those readings currently have no way to be requested.
   design has failed. → nowhere, deliberately.
 - **Authoring histories for players.** Character creation already seeds a
   player's opening claims and keeps that path. → char-gen.
-- **Making the three cached figures (reputation, participation, influence)
-  derive on read like the rest.** A real inconsistency, and ⭐ **out of
-  scope for a reason better than cost: none of the three is a thing an
-  author should be writing for an NPC anyway** (see below). → their own
-  subsystem work; dossier-slate Q2.
+- **Making the cached figures derive on read like the rest of the books.**
+  A real inconsistency, and out of scope. ⚠ **One consequence is in scope
+  anyway:** because those figures are computed and cached rather than read
+  live, a written history has to *ask* to be counted, or it silently is
+  not — which cost a whole test-drive once. → their own subsystem work;
+  dossier-slate Q2.
 - **An illness a character is written as already having.** It is a third
   shape — an asserted event with an asserted *time* — and belongs to the
   build that needs it. → the clinic (`medic-judgment-slate`).
-- ⭐⭐ **Reputation for characters nobody has played.** A written history
-  says what somebody *can do* and *where they came from* — never what they
-  are *thought of*. Reputation's own governing stance is **measure, don't
-  assign: an output you observe, never an input you set**, and it wires no
-  behavioural consumer at all today; its one mechanical reader is the
-  political-influence stock, which is a players-and-the-Compact concern.
-  Writing a reputation for an NPC would therefore be both unnecessary and
-  a doctrine violation. → nowhere, deliberately.
+- ⭐⭐ **A place in the Compact.** A character nobody has played may be
+  **well known** — that is a fact about the world and this build writes
+  it. What they may never have is **political weight**. ⭐ And that needs
+  no rule: political weight is *reputation × participation*, participation
+  is earned by turning up, and nobody turns up on an NPC's behalf — so it
+  is zero, and so is the product. **The Compact stays players-only by
+  arithmetic.** → nowhere, deliberately; the arithmetic is the guarantee.
 - **Histories for businesses and organizations.** → dossier-slate Q4.
 - **Backstory written by a language model.** This build makes the artifact
   such a thing would write. → `llm-npc-design`.
