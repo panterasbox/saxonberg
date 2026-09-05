@@ -367,6 +367,75 @@ describe('sandbox crossing', () => {
     expect(AccountabilityEvent.deriveBlame([staged(true)])).toBeNull();
   });
 
+  /**
+   * ⭐ **Issue #40's blocker: every corpse shared one identity.**
+   *
+   * `mintCorpseFrom` cloned the authored corpse template and stamped no
+   * identity, so every body in the world was the same object to every
+   * identity-keyed ledger. Per-instance facts survived as hydrated
+   * *fields*, which is exactly why nothing looked broken.
+   *
+   * The scheme has to survive one person leaving SEVERAL corpses, which
+   * is what this drives: two deaths, one identity, two bodies.
+   */
+  it('two corpses of the same person are told apart', async () => {
+    const { avatar } = await makeRig();
+    const minted: (string | undefined)[] = [];
+
+    const realClone = StuffApi.clone.bind(StuffApi);
+    vi.spyOn(StuffApi, 'clone').mockImplementation((async (
+      path: string,
+      container?: unknown,
+      opts?: { asIdentityPath?: string },
+    ) => {
+      if (path === TemplatePaths.mortalityCorpse) {
+        minted.push(opts?.asIdentityPath);
+        // ⚠ The stand-in has to STAMP, not just record. The scheme's
+        // same-second disambiguator asks the registry whether that
+        // identity is already taken, so a mock that swallows the stamp
+        // silently tests the wrong branch — the ordinal would never fire
+        // and two corpses would look distinct in the test while
+        // colliding in the world.
+        const c = await StuffApi.create(() => new Creature());
+        if (opts?.asIdentityPath) {
+          Stuff._stampIdentityPath(c, opts.asIdentityPath);
+          StuffApi.unregister(c);
+          StuffApi.register(c);
+        }
+        return c;
+      }
+      return realClone(path, container as never, opts as never);
+    }) as unknown as typeof StuffApi.clone);
+
+    const dieInCircle = async (): Promise<void> => {
+      await SandboxApi.enter(avatar);
+      const vessel = SandboxApi.activeBodyFor(PLAYER)!;
+      await ExecutionContextApi.runRoot(
+        null,
+        'test.circle-death',
+        () => ConditionApi.die(vessel, 'slain'),
+        { circleScope: SCOPE },
+      );
+    };
+
+    await dieInCircle();
+    await dieInCircle();
+
+    expect(minted).toHaveLength(2);
+    // Both are real identities — not `undefined`, which is what every
+    // corpse in the game had.
+    expect(minted[0]).toBeTruthy();
+    expect(minted[1]).toBeTruthy();
+    // Both name the deceased…
+    for (const id of minted) {
+      expect(id).toContain(Avatar.getTemplatePath(PLAYER).replace(/^\//, ''));
+    }
+    // …and they are not the same body. (Same game-second in a test world
+    // whose clock does not advance — so this is the ORDINAL branch, which
+    // is the case a moment-only scheme would have got wrong.)
+    expect(minted[0]).not.toBe(minted[1]);
+  });
+
   it('reconnect inside grace lands on the SAME wire body, in the circle', async () => {
     const { avatar, interactive } = await makeRig();
     await SandboxApi.enter(avatar);

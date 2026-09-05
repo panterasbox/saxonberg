@@ -512,6 +512,56 @@ async function divideBody(avatar: PlayerBody, cause: string): Promise<void> {
 }
 
 /**
+ * ⭐ **A corpse's own identity — issue #40's blocker.**
+ *
+ * Every corpse used to share ONE identity (the template path
+ * `/stuff/agent/Corpse`), because nothing stamped one. Per-instance facts
+ * survived as hydrated *fields*, which is why nothing looked broken — but
+ * every identity-keyed ledger saw one object. Two bodies in a room were
+ * one body to the chronicle, to belief, to chattel, to anything that
+ * asks *whose is this*. A necropolis that cannot tell two bodies apart is
+ * not a necropolis.
+ *
+ * The scheme is `OuterWarren`'s: a root plus a derived key
+ * (`${corpseRoot}/${deceased}/${diedAtGameSec}`, the deceased's leading
+ * slash dropped so the two paths compose into segments).
+ *
+ * ⚠ **It has to survive two things**, and the second is the one that
+ * catches people:
+ *
+ *   - `reembody` — one person can leave several corpses over a life, so
+ *     the deceased's key alone is not enough. The **moment** is the
+ *     second half.
+ *   - a shared deceased key — under D7 an `Extra` keeps its own identity,
+ *     so two dead sentries genuinely share the first half. Different
+ *     seconds separate them; the same second falls through to the
+ *     ordinal, which is the only remaining honest distinction.
+ *
+ * A body with no identity at all (a bare fixture) gets no minted identity
+ * — the corpse then behaves exactly as every corpse did before, rather
+ * than minting a key on `stuffId` that no reader could query after a
+ * reboot.
+ */
+function corpseIdentityFor(body: Stuff, nowS: number): string | undefined {
+  const deceased = body.getIdentityPath();
+  if (!deceased) return undefined;
+  const base =
+    `${TemplatePaths.mortalityCorpse}/` +
+    `${deceased.replace(/^\/+/, '')}/${nowS}`;
+  // Two deaths in one game-second: the ordinal is the disambiguator. A
+  // reaped corpse leaves the index, so keys are recycled rather than
+  // monotonic — which is correct, because identity is about telling live
+  // bodies apart, not about an audit trail (that is the chronicle's job).
+  if (StuffApi.findAllByTemplatePath(base).length === 0) return base;
+  for (let n = 2; ; n++) {
+    const candidate = `${base}-${n}`;
+    if (StuffApi.findAllByTemplatePath(candidate).length === 0) {
+      return candidate;
+    }
+  }
+}
+
+/**
  * Mint a corpse carrying a body's material state and its loadout.
  *
  * Cloned from the authored corpse template, then configured from the body
@@ -550,6 +600,7 @@ async function mintCorpseFrom(
       causeOfDeath: cause,
       diedAtGameSec: nowS,
     },
+    asIdentityPath: corpseIdentityFor(body, nowS),
   });
   if (!MixinApi.isVitals(corpse)) {
     throw new Error(
