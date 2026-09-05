@@ -12,7 +12,7 @@
  */
 
 import { existsSync, readdirSync, readFileSync, statSync } from "fs";
-import { dirname, join } from "path";
+import { dirname, join, relative, resolve } from "path";
 import { fileURLToPath } from "url";
 import YAML from "yaml";
 
@@ -91,6 +91,104 @@ export function classFileOf(
   const hit = packOfClassPath(classPath, sources);
   if (hit) return join(hit.pack.srcDir, classPath.slice(hit.root.length + 1) + ".ts");
   return join(mudDir, classPath.slice(1) + ".ts");
+}
+
+/**
+ * Whether the class at `classPath` composes `mixin`, transitively through
+ * its bases — text over each `extends` expression in the file, then each
+ * identifier in it resolved through that file's own imports.
+ *
+ * ⭐ The point is that a combination written tomorrow
+ * (`CastMixin(MakerMixin(NPC))`) is covered without any gate being told
+ * about it. An enumerated list of "the Cast classes" is exactly the
+ * shape that rotted into `lint:family` being derived in the first place.
+ *
+ * ⚠ It matches EVERY `class X extends …` in the file, not only an
+ * exported one: `/platform/idea/Business` resolves to a bare
+ * `class BusinessEntity` that the module exports as its default further
+ * down (the `Bank`→`BankCounter` naming convention). Anchoring on
+ * `export` silently read that file as composing nothing.
+ */
+export function composesMixin(
+  classPath: string,
+  mixin: string,
+  sources: readonly PackSource[],
+  cache: Map<string, boolean> = new Map(),
+  seen: Set<string> = new Set(),
+): boolean {
+  const key = `${mixin}|${classPath}`;
+  const cached = cache.get(key);
+  if (cached !== undefined) return cached;
+  if (seen.has(key)) return false;
+  seen.add(key);
+
+  const file = classFileOf(classPath, sources);
+  if (!existsSync(file)) return false;
+  const source = readFileSync(file, "utf8");
+  const exprs = [...source.matchAll(/\bclass\s+\w+\s+extends\s+([^{]+)\{/g)]
+    .map((m) => m[1] ?? "")
+    .filter(Boolean);
+  if (exprs.length === 0) return false;
+  const wanted = new RegExp(`\\b${mixin}\\b`);
+  for (const expr of exprs) {
+    if (wanted.test(expr)) {
+      cache.set(key, true);
+      return true;
+    }
+  }
+  for (const expr of exprs) {
+    for (const id of new Set(expr.match(/[A-Za-z_$][\w$]*/g) ?? [])) {
+      const base = importedClassPath(source, id, file, sources);
+      if (base && composesMixin(base, mixin, sources, cache, seen)) {
+        cache.set(key, true);
+        return true;
+      }
+    }
+  }
+  cache.set(key, false);
+  return false;
+}
+
+/** The class path a source file backs — the inverse of `classFileOf`. */
+export function classPathOfFile(
+  file: string,
+  sources: readonly PackSource[],
+  mudDir: string = MUD,
+): string | null {
+  for (const pack of sources) {
+    if (file.startsWith(pack.srcDir + "/")) {
+      const rel = relative(pack.srcDir, file).replace(/\.ts$/, "");
+      return `${pack.roots[0]}/${rel}`;
+    }
+  }
+  if (file.startsWith(mudDir + "/")) {
+    return "/" + relative(mudDir, file).replace(/\.ts$/, "");
+  }
+  return null;
+}
+
+/** Resolve an imported identifier to the class path its module backs. */
+function importedClassPath(
+  source: string,
+  id: string,
+  file: string,
+  sources: readonly PackSource[],
+): string | null {
+  const re = /import\s+([^;]*?)\s+from\s+[\'"]([^\'"]+)[\'"]/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(source))) {
+    const clause = m[1] ?? "";
+    const spec = m[2] ?? "";
+    if (!new RegExp(`\\b${id}\\b`).test(clause)) continue;
+    if (spec.startsWith("@saxonberg/server/mud/")) {
+      return "/" + spec.slice("@saxonberg/server/mud/".length);
+    }
+    if (spec.startsWith(".")) {
+      return classPathOfFile(resolve(dirname(file), spec) + ".ts", sources);
+    }
+    return null;
+  }
+  return null;
 }
 
 /** Every `.ts` module under a pack's `src/`, `__tests__` excluded. */

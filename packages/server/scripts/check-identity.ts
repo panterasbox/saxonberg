@@ -69,7 +69,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from 'fs';
 import { dirname, join, relative, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import YAML from 'yaml';
-import { classFileOf, packOfClassPath, packSources, MUD } from './pack-roots';
+import { composesMixin, packSources } from './pack-roots';
 
 const SERVER_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const REPO_ROOT = resolve(SERVER_ROOT, '../..');
@@ -126,89 +126,14 @@ function contentRows(): Row[] {
 
 /* ─────────────────────────── rung resolution ─────────────────────── */
 
-/** The class path a source file backs — the inverse of `classFileOf`. */
-function classPathOfFile(file: string): string | null {
-  for (const pack of SOURCES) {
-    if (file.startsWith(pack.srcDir + '/')) {
-      const rel = relative(pack.srcDir, file).replace(/\.ts$/, '');
-      return `${pack.roots[0]}/${rel}`;
-    }
-  }
-  if (file.startsWith(MUD + '/')) {
-    return '/' + relative(MUD, file).replace(/\.ts$/, '');
-  }
-  return null;
-}
-
-/** Resolve an imported identifier to the class path its module backs. */
-function importedClassPath(source: string, id: string, file: string): string | null {
-  const re = /import\s+([^;]*?)\s+from\s+['"]([^'"]+)['"]/g;
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(source))) {
-    const clause = m[1] ?? '';
-    const spec = m[2] ?? '';
-    if (!new RegExp(`\\b${id}\\b`).test(clause)) continue;
-    if (spec.startsWith('@saxonberg/server/mud/')) {
-      return '/' + spec.slice('@saxonberg/server/mud/'.length);
-    }
-    if (spec.startsWith('.')) {
-      return classPathOfFile(resolve(dirname(file), spec) + '.ts');
-    }
-    return null;
-  }
-  return null;
-}
-
 const rungCache = new Map<string, boolean>();
 
 /**
- * Whether `classPath` composes `mixin`, transitively through its bases.
- * Text over the `extends` expression, then each identifier in it resolved
- * through the file's own imports — so a combination written tomorrow
- * (`CastMixin(MakerMixin(NPC))`) is covered without this file being told.
+ * Whether a class composes `mixin`. ⭐ Resolved from the class FILE, not
+ * from a list — see `composesMixin`, which `lint:dossiers` shares.
  */
-function composes(
-  classPath: string,
-  mixin: string,
-  seen = new Set<string>(),
-): boolean {
-  const key = `${mixin}|${classPath}`;
-  const cached = rungCache.get(key);
-  if (cached !== undefined) return cached;
-  if (seen.has(key)) return false;
-  seen.add(key);
-
-  const file = classFileOf(classPath, SOURCES);
-  if (!existsSync(file)) return false;
-  const source = readFileSync(file, 'utf8');
-  // ⚠ Every `class X extends …` in the file, not just an exported one:
-  // `/platform/idea/Business` resolves to a bare `class BusinessEntity`
-  // that the module exports as its default further down (the
-  // `Bank`→`BankCounter` naming convention). Anchoring on `export`
-  // silently read that file as composing nothing.
-  const exprs = [...source.matchAll(/\bclass\s+\w+\s+extends\s+([^{]+)\{/g)]
-    .map((m) => m[1] ?? '')
-    .filter(Boolean);
-  if (exprs.length === 0) return false;
-  const wanted = new RegExp(`\\b${mixin}\\b`);
-  for (const expr of exprs) {
-    if (wanted.test(expr)) {
-      rungCache.set(key, true);
-      return true;
-    }
-  }
-  for (const expr of exprs) {
-    for (const id of new Set(expr.match(/[A-Za-z_$][\w$]*/g) ?? [])) {
-      const base = importedClassPath(source, id, file);
-      if (base && composes(base, mixin, seen)) {
-        rungCache.set(key, true);
-        return true;
-      }
-    }
-  }
-  rungCache.set(key, false);
-  return false;
-}
+const composes = (classPath: string, mixin: string): boolean =>
+  composesMixin(classPath, mixin, SOURCES, rungCache);
 
 const isCastClass = (classPath: string): boolean =>
   composes(classPath, 'CastMixin');

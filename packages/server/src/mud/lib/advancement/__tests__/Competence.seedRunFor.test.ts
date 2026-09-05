@@ -18,10 +18,9 @@
 
 import '../../../../test-bootstrap';
 import { describe, it, expect } from 'vitest';
-import { seedRunFor } from '../Cast';
-import { Competence } from '../../advancement/Competence';
-import { COMPETENCE_BANDS } from '../../advancement/CompetenceBand';
-import type { Difficulty } from '../../advancement/ActSignature';
+import { Competence } from '../Competence';
+import { COMPETENCE_BANDS } from '../CompetenceBand';
+import type { Difficulty } from '../ActSignature';
 
 function fold(difficulty: Difficulty, count: number): string {
   return Competence.bandOf(
@@ -36,7 +35,7 @@ function fold(difficulty: Difficulty, count: number): string {
 describe('seedRunFor — an asserted band becomes evidence that derives it', () => {
   it('every band in the vocabulary is reachable', () => {
     for (const band of COMPETENCE_BANDS) {
-      const run = seedRunFor(band);
+      const run = Competence.seedRunFor(band);
       expect(run, band).not.toBeNull();
       expect(fold(run!.difficulty, run!.count), band).toBe(band);
     }
@@ -44,7 +43,7 @@ describe('seedRunFor — an asserted band becomes evidence that derives it', () 
 
   it('prefers the gentlest difficulty that honestly warrants the claim', () => {
     // A competent bartender has worked a great many ordinary shifts.
-    expect(seedRunFor('competent')!.difficulty).toBe('easy');
+    expect(Competence.seedRunFor('competent')!.difficulty).toBe('easy');
   });
 
   it('⭐ you do not become an expert by doing ordinary things very often', () => {
@@ -52,10 +51,10 @@ describe('seedRunFor — an asserted band becomes evidence that derives it', () 
     // design showing through. `easy` evidence saturates below
     // `proficient`, so the search is forced upward.
     expect(fold('easy', 40)).toBe('competent');
-    expect(seedRunFor('expert')!.difficulty).toBe('hard');
+    expect(Competence.seedRunFor('expert')!.difficulty).toBe('hard');
   });
 
   it('the floor band needs no evidence at all', () => {
-    expect(seedRunFor('untrained')!.count).toBe(0);
+    expect(Competence.seedRunFor('untrained')!.count).toBe(0);
   });
 });

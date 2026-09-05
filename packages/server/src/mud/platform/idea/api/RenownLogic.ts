@@ -12,6 +12,12 @@ import type {
 import RenownStanding, {
   COMPACT_WIDE,
 } from '../../../lib/standing/RenownStanding';
+import {
+  Band,
+  DEFAULT_BAND_THRESHOLDS,
+  type BandName,
+  type BandThreshold,
+} from '../../../lib/standing/Band';
 import { AppApi } from '../../../api/app';
 import { AppSettingKeys } from '../../../lib/config/AppSettings';
 import { SoulApi } from '../../../api/soul';
@@ -377,6 +383,108 @@ function scoreEvents(
   return (reactionTotal + reception) * vf.qualityWeight;
 }
 
+/**
+ * ⭐⭐ **Seed a subject's standing to an asserted band** — the dossier's
+ * renown channel, and the one that had to earn its place.
+ *
+ * **The doctrine, precisely.** *"Measure, don't assign — renown is an
+ * output you observe, never an input you set"* forbids writing the
+ * **figure**. It does not forbid authoring the **events** the figure
+ * derives from, which is the dossier's founding move everywhere else
+ * (seed evidence, not a stat). So this appends `reception` rows — the
+ * ordinary passive being-heard signal — until the CURRENT value function
+ * derives the asserted band, and never touches a standing row directly.
+ *
+ * ⚠⚠ **And the fold is why this is not just an append.**
+ * `RenownApi.renownOf` reads a warmed map off the **materialized**
+ * `renown` collection, not off `renown_events`. Seeding the log moves
+ * nothing until a recompute folds it — and a bare restart re-warms from
+ * a collection the seeding never wrote. That trap cost a whole test-drive
+ * once. So seeding schedules the fold, debounced: 33 characters seeding
+ * at boot produce ONE recompute, not 33.
+ *
+ * ⚠ The search runs against the live value function and emote valences,
+ * so it cannot be a table — the same reason competence seeding searches
+ * the estimator rather than tabulating it.
+ */
+const SEED_RENOWN_CAP = 200;
+
+/** Debounce so a boot's worth of seeding folds once. */
+const SEED_FOLD_DELAY_MS = 1_000;
+let pendingSeedFold: ScheduleHandle | null = null;
+
+function scheduleSeedFold(): void {
+  if (pendingSeedFold) ScheduleApi.cancel(pendingSeedFold);
+  pendingSeedFold = ScheduleApi.schedule(SEED_FOLD_DELAY_MS, () => {
+    pendingSeedFold = null;
+    void recomputeImpl().catch((err) =>
+      console.error('RenownLogic: seed fold failed', err)
+    );
+  });
+}
+
+/** The band cutoffs from AppSettings, or the built-in fallback. */
+function seedBandThresholds(): readonly BandThreshold[] {
+  try {
+    const raw = AppApi.setting(AppSettingKeys.influenceBandThresholds);
+    if (!raw) return DEFAULT_BAND_THRESHOLDS;
+    const parsed = JSON.parse(raw) as BandThreshold[];
+    return Array.isArray(parsed) && parsed.length > 0
+      ? parsed
+      : DEFAULT_BAND_THRESHOLDS;
+  } catch {
+    return DEFAULT_BAND_THRESHOLDS;
+  }
+}
+
+async function seedToImpl(
+  subjectId: string,
+  scope: RenownScope,
+  band: BandName
+): Promise<number> {
+  if (!active() || !subjectId) return 0;
+  const vf = loadValueFunction();
+  const valences = await loadEmoteValences();
+  const thresholds = seedBandThresholds();
+  const nowS = WorldClockApi.getNow().rawValue();
+
+  // Existing evidence counts — a seeded history is added to a lived one,
+  // never a replacement, and re-seeding a subject who already reads at
+  // the band writes nothing.
+  const existing = (await RenownEvent.find<RenownEvent>({
+    subject: subjectId,
+  })).filter((e) => inScope(e, scope));
+  const rows = [...existing];
+  const reached = (): boolean =>
+    Band.fromScalar(scoreEvents(rows, nowS, vf, valences), thresholds).name ===
+    band;
+  if (reached()) return 0;
+
+  let written = 0;
+  for (let i = 0; i < SEED_RENOWN_CAP && !reached(); i++) {
+    const ev = new RenownEvent();
+    ev.subject = subjectId;
+    // ⭐ The source is the subject's own scope rather than a person: an
+    // authored reputation is not somebody in particular having heard of
+    // you, it is the world having done so.
+    ev.source = scope ?? COMPACT_WIDE;
+    ev.kind = 'reception';
+    ev.signal = { seeded: true };
+    ev.locality = scope;
+    ev.groups = [];
+    ev.at = nowS;
+    ev.realAt = Date.now();
+    rows.push(ev);
+    written++;
+  }
+  // ⚠ Only write once the search has settled — an aborted search must
+  // not leave half a reputation on disk.
+  if (!reached()) return 0;
+  for (const ev of rows.slice(existing.length)) await ev.save();
+  if (written) scheduleSeedFold();
+  return written;
+}
+
 /** Map a query scope to its stored key (`null` → Compact-wide sentinel). */
 function scopeKey(scope: RenownScope): string {
   return scope ?? COMPACT_WIDE;
@@ -587,6 +695,16 @@ export class RenownLogic extends ApiLogic {
   @CallSecurity(RenownApiCallers)
   public async recompute(): Promise<void> {
     return recomputeImpl();
+  }
+
+  /** See {@link RenownApi.seedTo}. */
+  @CallSecurity(RenownApiCallers)
+  public async seedTo(
+    subjectId: string,
+    scope: RenownScope,
+    band: BandName
+  ): Promise<number> {
+    return seedToImpl(subjectId, scope, band);
   }
 
   /** See {@link RenownApi.renownOf}. */

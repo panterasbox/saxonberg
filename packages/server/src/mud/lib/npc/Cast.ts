@@ -49,17 +49,32 @@ import type { FieldMeta, MixinConstructor } from '../mixin';
 import { SingletonMixin } from '../stuff/Singleton';
 import { MixinApi } from '../../api/mixin';
 import { Competence } from '../advancement/Competence';
-import {
-  CompetenceBand,
-  type CompetenceBandName,
-} from '../advancement/CompetenceBand';
-import type { Difficulty } from '../advancement/ActSignature';
+import type { CompetenceBandName } from '../advancement/CompetenceBand';
 import type { Stuff } from '../stuff/Stuff';
+import { RenownApi } from '../../api/renown';
+import type { BandName } from '../standing/Band';
 
 /** One asserted competence: a Discipline and the band it should read as. */
 export interface CompetenceClaim {
   discipline: string;
   asserting: CompetenceBandName;
+}
+
+/**
+ * One asserted reputation: how well known, and where. `scope` omitted =
+ * Compact-wide.
+ *
+ * ⭐⭐ **This does NOT give an NPC a place in the Compact, and it needs no
+ * rule to hold.** Political weight is `max(0, renown) × participation`;
+ * participation is the quantity half, earned by turning up, and nobody
+ * turns up on an NPC's behalf. So Dave can be famous in the lounge and
+ * politically weightless, and the product is exactly zero — no gate to
+ * forget, no special case to maintain. **The Compact stays players-only
+ * by ARITHMETIC.**
+ */
+export interface RenownClaim {
+  scope?: string;
+  asserting: BandName;
 }
 
 /** Public method surface. The dossier fields are Hydrator-facing. */
@@ -70,64 +85,8 @@ export interface Cast {
   getPrologue(): readonly string[];
   /** The authored competence assertions. */
   getCompetenceClaims(): readonly CompetenceClaim[];
-}
-
-/**
- * ⭐⭐ **The ladder that turns an asserted band into evidence** — and the
- * reason it is SEARCHED rather than tabulated.
- *
- * D4: a competence claim is **seeded evidence**, not a declared floor.
- * Advancement named this fork and could not settle it ("which differ on
- * whether `bandOf` stays a pure derivation"); the chronicle/trait
- * precedent had already answered it — seed evidence, mark it `claim`, and
- * the derivation stays pure. A floor felt necessary only because nobody
- * had the claim marker in view.
- *
- * So the seeder appends `claim` rows until `Competence.bandOf` *derives*
- * the asserted band, reading the shipped estimator rather than a table of
- * numbers. Re-legislate the estimator and the seeds follow — the same
- * property that makes the ledger re-scorable.
- *
- * ⚠⚠ **And the search is not decoration: a fixed difficulty CANNOT reach
- * every band.** Measured against the shipped constants, a run of `easy`
- * successes **saturates at θ≈0.612** — it can never reach `proficient`,
- * however many you write — while `hard` reaches `expert` in four. That is
- * the estimator's desirable-difficulty design showing through, and it
- * means something true about the world: ⭐ **you do not become an expert
- * by doing ordinary things very often.** Difficulties are tried in
- * ASCENDING order so a character's seeded history is the gentlest one
- * that honestly warrants the claim — a competent bartender has worked a
- * great many ordinary shifts; an expert one has done hard things.
- */
-const SEED_DIFFICULTIES: readonly Difficulty[] = [
-  'easy',
-  'standard',
-  'hard',
-  'formidable',
-];
-
-/** How many rows the search will append before giving up on a band. */
-const SEED_CAP = 40;
-
-/**
- * The shortest run of `(difficulty, success)` rows whose fold lands
- * exactly on `band`, or `null` when no run reaches it.
- */
-export function seedRunFor(
-  band: CompetenceBandName,
-): { difficulty: Difficulty; count: number } | null {
-  if (band === CompetenceBand.FLOOR) return { difficulty: 'easy', count: 0 };
-  for (const difficulty of SEED_DIFFICULTIES) {
-    const evidence: { difficulty: Difficulty; outcome: 'success'; when: null }[] =
-      [];
-    for (let n = 1; n <= SEED_CAP; n++) {
-      evidence.push({ difficulty, outcome: 'success', when: null });
-      if (Competence.bandOf(evidence) === band) {
-        return { difficulty, count: n };
-      }
-    }
-  }
-  return null;
+  /** The authored reputation assertions. */
+  getRenownClaims(): readonly RenownClaim[];
 }
 
 export function CastMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -138,6 +97,7 @@ export function CastMixin<TBase extends MixinConstructor>(Base: TBase) {
       archetype: { persistent: true, authorable: true },
       prologue: { persistent: true, authorable: true },
       competence: { persistent: true, authorable: true },
+      renown: { persistent: true, authorable: true },
     };
 
     /**
@@ -154,6 +114,14 @@ export function CastMixin<TBase extends MixinConstructor>(Base: TBase) {
     /** Authored competence assertions — `{discipline, asserting}`. */
     public competence: CompetenceClaim[] = [];
 
+    /**
+     * Authored reputation assertions — `{scope?, asserting}`. ⚠ There is
+     * deliberately no `participation:` here and never will be: that zero
+     * is what keeps an authored character out of the Compact, and it
+     * wants no rule to hold.
+     */
+    public renown: RenownClaim[] = [];
+
     public getArchetype(): string {
       return this.archetype;
     }
@@ -164,6 +132,10 @@ export function CastMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     public getCompetenceClaims(): readonly CompetenceClaim[] {
       return this.competence;
+    }
+
+    public getRenownClaims(): readonly RenownClaim[] {
+      return this.renown;
     }
 
     public async postRegister(context?: unknown): Promise<void> {
@@ -200,11 +172,31 @@ export function CastMixin<TBase extends MixinConstructor>(Base: TBase) {
         }
       }
 
+      if (this.renown.length) {
+        const subject = self.getIdentityPath();
+        if (subject) {
+          for (const claim of this.renown) {
+            // ⭐ Idempotent by CONSTRUCTION rather than by a guard: the
+            // seeder counts the evidence already on the log and writes
+            // only what the assertion still needs, so a re-clone or a
+            // reboot adds nothing. That is a stronger property than the
+            // skip-if-any-claim-exists check the other two channels use,
+            // and it is available here because renown's evidence is
+            // quantitative.
+            await RenownApi.seedTo(
+              subject,
+              claim.scope ?? null,
+              claim.asserting,
+            );
+          }
+        }
+      }
+
       if (this.competence.length && MixinApi.isAdvancing(self)) {
         const existing = await self.transcriptEntries();
         if (!existing.some((e) => e.kind === 'claim')) {
           for (const claim of this.competence) {
-            const run = seedRunFor(claim.asserting);
+            const run = Competence.seedRunFor(claim.asserting);
             if (!run) continue;
             for (let i = 0; i < run.count; i++) {
               await self.creditSignature(

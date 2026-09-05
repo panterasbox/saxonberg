@@ -35,6 +35,20 @@ import type { Difficulty, Outcome } from "./ActSignature";
 import { CompetenceBand, type CompetenceBandName } from "./CompetenceBand";
 
 /**
+ * Difficulties the seeder tries, in ASCENDING order — see
+ * {@link Competence.seedRunFor}.
+ */
+const SEED_DIFFICULTIES: readonly Difficulty[] = [
+  "easy",
+  "standard",
+  "hard",
+  "formidable",
+];
+
+/** How many rows the seed search appends before giving up on a band. */
+const SEED_CAP = 40;
+
+/**
  * The minimal evidence shape the estimator folds — structurally satisfied
  * by a `TranscriptEntry`. Kept Document-free so the estimator stays a pure
  * value-object.
@@ -132,5 +146,44 @@ export class Competence {
   /** The band a Discipline's evidence currently warrants — the only surface. */
   public static bandOf(evidence: readonly Evidence[]): CompetenceBandName {
     return Competence.derive(evidence).band;
+  }
+
+  /**
+   * ⭐⭐ **The inverse: what evidence would warrant this band.** The
+   * shortest run of `(difficulty, success)` rows whose fold lands
+   * exactly on `band`, or `null` when no run reaches it.
+   *
+   * This is the dossier seeder's ladder, and it lives HERE — beside the
+   * estimator it inverts — so the two can never drift. D4 settled that a
+   * competence claim is *seeded evidence*, not a declared floor: seed
+   * evidence, mark it `claim`, and `bandOf` stays a pure derivation.
+   * Re-legislate the constants above and the seeds follow, which is the
+   * same re-scorability every ledger in this codebase has.
+   *
+   * ⚠⚠ **It is searched rather than tabulated because a fixed difficulty
+   * cannot reach every band.** Against the shipped constants a run of
+   * `easy` successes saturates at θ≈0.612 — it can never reach
+   * `proficient`, however many you write — while `hard` reaches `expert`
+   * in four. A table would have silently produced a character who
+   * asserts `expert` and reads `competent`.
+   *
+   * ⭐ Difficulties ascend, so the seeded history is the gentlest one
+   * that honestly warrants the claim — and the arithmetic then says
+   * something true about the world: **you do not become an expert by
+   * doing ordinary things very often.** Nobody wrote that rule; it is the
+   * desirable-difficulty design showing through.
+   */
+  public static seedRunFor(
+    band: CompetenceBandName,
+  ): { difficulty: Difficulty; count: number } | null {
+    if (band === CompetenceBand.FLOOR) return { difficulty: "easy", count: 0 };
+    for (const difficulty of SEED_DIFFICULTIES) {
+      const evidence: Evidence[] = [];
+      for (let n = 1; n <= SEED_CAP; n++) {
+        evidence.push({ difficulty, outcome: "success", when: null });
+        if (Competence.bandOf(evidence) === band) return { difficulty, count: n };
+      }
+    }
+    return null;
   }
 }
