@@ -38,7 +38,7 @@ import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import HerdRegistry from '../../HerdRegistry';
 import { RANCHING_TOPIC, HERD_REGISTRY_PATH } from './DraftController';
 import { STOCKMANSHIP } from './HandleController';
-import type Livestock from '../../../agent/Livestock';
+import Livestock from '../../../agent/Livestock';
 
 /**
  * ⭐ **The whole carcass, and every part goes somewhere that already
@@ -60,8 +60,18 @@ interface ButcherModel extends CommandModel {
 export default class ButcherController extends CommandController<ButcherModel> {
   async execute(model: ButcherModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
-    const animal = model.target?.stuff as Livestock | undefined;
-    if (!animal || typeof animal.getHandling !== 'function') {
+    const target = model.target?.stuff;
+    // ⚠⚠ **`instanceof Livestock`, not "does it have a handling score."**
+    // The old guard admitted anything handleable, which is every domestic
+    // animal on the farm — so the sheepdog was butcherable. Handling is
+    // what makes an animal WORKABLE; being stock is what makes it meat,
+    // and only the class that carries the herd binding is that.
+    //
+    // ⭐ The ox stays butcherable and stays a `Livestock`: it ploughs all
+    // its life and is beef at the end, which is the unsentimental fact
+    // the design likes. A working dog is not, and never was.
+    const animal = target instanceof Livestock ? target : undefined;
+    if (!animal) {
       this.decline(context, Mml.compose`That is not something you butcher.`, 'not-livestock');
       return;
     }

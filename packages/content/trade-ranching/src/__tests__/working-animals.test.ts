@@ -20,6 +20,9 @@ import { Creature } from '@saxonberg/server/mud/lib/creature/Creature';
 import { makeStuff } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { brain as herds } from '../behavior/herds';
+import { CommandApi } from '@saxonberg/server/mud/api/command';
+import Livestock from '../agent/Livestock';
+import WorkingAnimal from '../agent/WorkingAnimal';
 
 const CONTENT = new URL('../../content/trade/ranching/', import.meta.url);
 const row = (rel: string): Record<string, unknown> =>
@@ -51,6 +54,78 @@ describe('⭐⭐ draught power is body mass, and nothing else', () => {
       'utf8',
     );
     expect(raw).toContain('class: /trade/ranching/agent/Livestock');
+  });
+
+  it('⭐ the ox is livestock AND a working animal, and keeps `butcher`', () => {
+    // ⚠⚠ The roles OVERLAP, which is why they are not a taxonomy: the ox
+    // ploughs all its life and is beef at the end. If livestock / working
+    // animal / pet were exclusive classes, this row would need a fourth
+    // one. It does not — it is a `Livestock` that happens to weigh 700 kg,
+    // and `plough` reads the mass rather than the class.
+    const raw = readFileSync(fileURLToPath(new URL('agent/ox.yaml', CONTENT)), 'utf8');
+    expect(raw).toContain('class: /trade/ranching/agent/Livestock');
+    const butcher = CommandApi.collectContributions(Livestock, 'peers')
+      .map((d) => d.verbs)
+      .flat();
+    expect(butcher).toContain('butcher');
+  });
+});
+
+/**
+ * ⚠⚠ **The collie was modelled as `Livestock` and it is not livestock.**
+ *
+ * The tell was already in the code: five of the seven verbs `Livestock`
+ * afforded re-narrowed their target at execute time, because the class
+ * promised a verb set its instances did not uniformly satisfy. A guard
+ * that re-narrows the host set is the tell that the affordance is on the
+ * wrong host — so the verbs moved onto the capabilities that were already
+ * gating them, and the dog moved off the class.
+ */
+describe('⭐⭐ a working animal is not livestock', () => {
+  it('the collie is a WorkingAnimal, not a head of stock', () => {
+    const raw = readFileSync(
+      fileURLToPath(new URL('agent/farm-dog.yaml', CONTENT)),
+      'utf8',
+    );
+    expect(raw).toContain('class: /trade/ranching/agent/WorkingAnimal');
+    expect(raw).not.toContain('agent/Livestock');
+  });
+
+  it('⚠⚠ and it is NOT butcherable — the old guard admitted any handled beast', () => {
+    const verbs = CommandApi.collectContributions(WorkingAnimal, 'peers')
+      .map((d) => d.verbs)
+      .flat();
+    expect(verbs).not.toContain('butcher');
+    // …nor the acts that need a herd behind them.
+    expect(verbs).not.toContain('return');
+    expect(verbs).not.toContain('breed');
+  });
+
+  it('⭐ it offers no taps, because it has none — a dog is not sheared', () => {
+    const verbs = CommandApi.collectContributions(WorkingAnimal, 'peers')
+      .map((d) => d.verbs)
+      .flat();
+    for (const v of ['milk', 'shear', 'gather']) expect(verbs).not.toContain(v);
+  });
+
+  it('⭐⭐ but it IS handled — which is what a dog and a milk cow share', () => {
+    const dog = CommandApi.collectContributions(WorkingAnimal, 'peers')
+      .map((d) => d.verbs)
+      .flat();
+    const cow = CommandApi.collectContributions(Livestock, 'peers')
+      .map((d) => d.verbs)
+      .flat();
+    expect(dog).toContain('handle');
+    expect(cow).toContain('handle');
+  });
+
+  it('and a head of stock still offers its taps — the move cost nothing', () => {
+    const verbs = CommandApi.collectContributions(Livestock, 'peers')
+      .map((d) => d.verbs)
+      .flat();
+    for (const v of ['milk', 'shear', 'gather', 'handle', 'return', 'breed', 'butcher']) {
+      expect(verbs).toContain(v);
+    }
   });
 });
 

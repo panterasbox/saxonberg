@@ -6,7 +6,7 @@
 # an animal with a job. Its `handling` is what the job runs on, so a dog
 # nobody has worked with works badly — which is the bond acquiring an
 # economic consequence without any livestock acquiring a bond stat.
-class: /trade/ranching/agent/Livestock
+class: /trade/ranching/agent/WorkingAnimal
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a rough-coated collie

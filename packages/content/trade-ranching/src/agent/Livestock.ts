@@ -28,6 +28,7 @@
 
 import { Creature } from '@saxonberg/server/mud/lib/creature/Creature';
 import { HandlingMixin } from '@saxonberg/server/mud/lib/husbandry/Handling';
+import { HandledMixin } from '../lib/Handled';
 import { PerceptibleMixin } from '@saxonberg/server/mud/lib/description/Perceptible';
 import { ProducingMixin } from '../lib/Producing';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
@@ -49,22 +50,33 @@ import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
  * description. `handle beast` said *"that is not an animal you can work
  * with"* about the animal standing in front of you. Found by driving it.
  */
-export default class Livestock extends ProducingMixin(
-  HandlingMixin(PerceptibleMixin(Creature)),
-) {
+const LivestockBase = ProducingMixin(
+  HandledMixin(HandlingMixin(PerceptibleMixin(Creature))),
+);
+
+export default class Livestock extends LivestockBase {
   /**
-   * ⭐ The animal affords the acts you do TO an animal. ⚠ A row's
-   * `commandContributions:` is dead silently — the affordance is a
-   * static on a class.
+   * ⭐⭐ **Only the acts that are true of a head of STOCK.**
+   *
+   * `handle` comes from `HandledMixin` and the three taps come from
+   * `ProducingMixin`, because those are things an animal HAS rather than
+   * things a class IS — a sheepdog is handled and gives nothing, a milk
+   * cow is both. What is left here is the short list that genuinely
+   * needs a herd behind it or a carcass in front of it:
+   *
+   *   - `return` — put it back in the tally it was cut out of;
+   *   - `breed`  — the herd's own reproduction;
+   *   - `butcher`— it is beef at the end, and that is the unsentimental
+   *     fact the design likes. ⚠ A working dog is NOT this, which is the
+   *     whole reason the collie stopped being a `Livestock`.
+   *
+   * ⚠ A row's `commandContributions:` is dead silently — the affordance
+   * is a static on a class.
    */
   static commandContributions: CommandContributions = {
     self: [],
     peers: [
       'trade/ranching/cmd/ranching/return.yaml',
-      'trade/ranching/cmd/ranching/handle.yaml',
-      'trade/ranching/cmd/ranching/milk.yaml',
-      'trade/ranching/cmd/ranching/shear.yaml',
-      'trade/ranching/cmd/ranching/gather.yaml',
       'trade/ranching/cmd/ranching/butcher.yaml',
       'trade/ranching/cmd/ranching/breed.yaml',
     ],

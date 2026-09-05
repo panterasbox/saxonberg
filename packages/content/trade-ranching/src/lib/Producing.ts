@@ -42,6 +42,7 @@ import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type Species from '@saxonberg/server/mud/platform/idea/species/Species';
 import type { TapSpec } from '@saxonberg/server/mud/platform/idea/species/Species';
+import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 
 const SECONDS_PER_GAME_DAY = 86_400;
 
@@ -88,6 +89,33 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
 ) {
   return class ProducingMixin extends Base implements Producing {
     static _mixinName = PRODUCING_MIXIN;
+
+    /**
+     * ⭐⭐ **The taps afford the tap verbs, and nothing else does.**
+     *
+     * They used to hang off the `Livestock` CLASS, which promised
+     * `milk`, `shear` and `gather` on every animal in the trade whether
+     * or not it gave anything — so a sheepdog offered `shear` and a
+     * plough ox offered `milk`, and each controller had to un-promise it
+     * at execute time (*"that is not an animal that gives anything"*).
+     * **A guard that re-narrows the host set is the tell that the
+     * affordance is on the wrong host**; the question the controller was
+     * asking late is the question the affordance should ask early.
+     *
+     * ⚠ The verbs are still just as gated — a dry cow declines the same
+     * way it always did. What changed is that an animal with no taps
+     * never offers them, so *"you can't milk that"* stops being a
+     * sentence the game has to say about a dog.
+     */
+    static commandContributions: CommandContributions = {
+      self: [],
+      peers: [
+        'trade/ranching/cmd/ranching/milk.yaml',
+        'trade/ranching/cmd/ranching/shear.yaml',
+        'trade/ranching/cmd/ranching/gather.yaml',
+      ],
+      environment: [],
+    };
 
     static fieldMeta: FieldMeta = {
       tapState: { persistent: true },

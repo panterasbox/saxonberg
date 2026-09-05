@@ -272,6 +272,64 @@ does not come), and it keeps deer off the crop.
 draft, the cull, the paddock move. That is the batchable test's other
 side.
 
+### ⭐⭐ Three ROLES, not three kinds of object
+
+The collie shipped as a `Livestock` and is not one. The tell was already
+in the code: **five of the seven verbs `Livestock` afforded re-narrowed
+their target at execute time** — *"that is not an animal that gives
+anything"*, *"that is not an animal you can breed"* — because the class
+promised a verb set its own instances did not uniformly satisfy. ⚠ And
+`butcher`'s guard was *"does it have a handling score"*, which a sheepdog
+does, so the sheepdog was butcherable.
+
+> **A guard that re-narrows the host set is the tell that the affordance
+> is on the wrong host.** The question a controller asks late is the
+> question the affordance should have asked early.
+
+| | kept for | the axis |
+|---|---|---|
+| **livestock** | what it yields or becomes | the **taps**, and the carcass |
+| **working animal** | what it does | its **skill** |
+| **pet** | itself | the **bond** ([pets-slate](../slates/builds/pets-slate.md)) |
+
+⚠⚠ **They overlap, which is why this is not a taxonomy.** The ox is
+livestock *and* a working animal — it ploughs all its life and is beef at
+the end — so it stays a `Livestock` and keeps `butcher`, and `plough`
+reads its **mass** rather than its class. A collie is a working animal
+and, in most households, also a pet. A prize bull is livestock and
+breeding stock. Exclusive classes would need a fourth one immediately.
+
+What makes the roles separable is that **the verbs live on capabilities**:
+
+| verb | afforded by | because |
+|---|---|---|
+| `milk` `shear` `gather` | `ProducingMixin` | it has taps |
+| `handle` | `HandledMixin` | it has a temper you can find out |
+| `return` `breed` `butcher` | `Livestock` | it needs a herd behind it or a carcass in front |
+
+So `WorkingAnimal` adds nothing but a name and an **absence**, and the
+absence is the point.
+
+⚠ `HandledMixin` is the affordance half only — the kernel owns the
+mechanism (`lib/husbandry/Handling`) and cannot name a pack's command
+view. It does **not** compose `HandlingMixin`: nesting a factory inside a
+factory collapses TypeScript's inference through the chain, so the two go
+side by side at the call site.
+
+⚠⚠ And it carries `static _mixinName`, which is load-bearing and whose
+absence failed **silently in one direction only**: affordances are
+collected off a class's own static plus every *registered* mixin, so
+`WorkingAnimal` (no own static) inherited `handle` and looked correct
+while `Livestock` (own static) shadowed it and lost the verb. One host
+working is exactly how this hides.
+
+⭐ **The skill axis is not built.** A working animal is an animal with a
+**transcript** ([advancement.md](./advancement.md)) — which is what
+separates *training* from *taming* — and `pets-slate` already assumes a
+dog holds competence bands in retrieval or guarding, with `stockmanship`
+shipped as a Discipline. That is a follow-on, and it belongs beside pets
+rather than inside ranching.
+
 ---
 
 ## Hazard (D45–D52)
