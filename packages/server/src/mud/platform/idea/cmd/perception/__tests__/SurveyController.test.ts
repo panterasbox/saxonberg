@@ -47,6 +47,7 @@ import { installV1QuantityMarshallers } from '../../../../../lib/persistence/__t
 import type { CommandContext, CommandModel } from '../../../../../api/command';
 import type { StoredDocument } from '../../../../../lib/document/StoredDocument';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
+import { Idea } from '../../../../../lib/stuff/Idea';
 import type { Container } from '../../../../../lib/spatial/Container';
 import type { Containable } from '../../../../../lib/spatial/Containable';
 
@@ -216,6 +217,26 @@ const survey = async (
   return ctx;
 };
 
+/**
+ * ⭐ Stand a lane catalogue at the transport pack's own path, answering
+ * the one method `survey` asks for. The controller finds it BY SHAPE —
+ * the kernel imports no pack — so a fixture stands in the same way the
+ * real one does.
+ */
+function installLane(nodes: (Stuff & Container)[]): void {
+  const paths = nodes.map((n) => n.getTemplatePath() ?? '');
+  class StubLaneCatalogue extends Idea {
+    static _mixinName = 'StubLaneCatalogue';
+    async lanesAt(path: string): Promise<{ nodes: string[] }[]> {
+      return paths.includes(path) ? [{ nodes: paths }] : [];
+    }
+  }
+  makeStuffAtPath(
+    () => new StubLaneCatalogue() as unknown as Stuff,
+    '/system/transport/idea/LaneCatalogue',
+  );
+}
+
 describe('survey', () => {
   beforeEach(async () => {
     installV1QuantityMarshallers();
@@ -329,11 +350,19 @@ describe('survey', () => {
 
   it("a `corridor` archetype reports over ALL of a corridor's rooms at once (AC15l)", async () => {
     await warmWith([scopedDoc('corridor', 'a way', 'corridor')]);
-    const zone = makeStuff(() => new CartesianZone());
-    const here = makeStuff(() => new SingletonCartesianLocation());
-    const along = makeStuff(() => new SingletonCartesianLocation());
-    zone.addLocation(here, 0, 0, 0);
-    zone.addLocation(along, 0, 1, 0);
+    const here = makeStuffAtPath(
+      () => new SingletonCartesianLocation(),
+      '/test/way/here',
+    );
+    const along = makeStuffAtPath(
+      () => new SingletonCartesianLocation(),
+      '/test/way/along',
+    );
+    // ⚠ A LANE, not a zone. A zone is not a way — it used to be the unit
+    // here, and it was wrong in both directions (a one-room courtyard
+    // reported a corridor that is a spot; a city-sized zone would report
+    // water because a fountain exists a quarter-mile off).
+    installLane([here, along]);
     // The shelter is a room AWAY — the union is the point.
     ContainmentApi.move(
       bed() as unknown as Stuff & Containable,
@@ -347,9 +376,11 @@ describe('survey', () => {
 
   it('a corridor missing its shelter reports the gap and blocks nothing', async () => {
     await warmWith([scopedDoc('corridor', 'a way', 'corridor')]);
-    const zone = makeStuff(() => new CartesianZone());
-    const here = makeStuff(() => new SingletonCartesianLocation());
-    zone.addLocation(here, 0, 0, 0);
+    const here = makeStuffAtPath(
+      () => new SingletonCartesianLocation(),
+      '/test/way/lonely',
+    );
+    installLane([here]);
     vi.spyOn(BiomeApi, 'isSkyExposed').mockReturnValue(true);
 
     const ctx = await survey(
@@ -360,6 +391,38 @@ describe('survey', () => {
     expect(captured).toContain('wants shelter');
     // Reported, never enforced: nothing was rejected and nothing penalised.
     expect(ctx.note).not.toHaveBeenCalled();
+  });
+
+  it('⭐⭐ outdoors but on NO WAY reports no corridor line at all', async () => {
+    /*
+     * ⚠⚠ The case that made the zone wrong. This used to resolve the
+     * room's ZONE, so any sky-exposed room answered corridor questions
+     * about whatever it was zoned with — a courtyard reported a
+     * "corridor" that is one spot, and a room in a city-sized zone would
+     * have reported *the corridor has water* because a fountain exists a
+     * quarter-mile away. A zone is not a way.
+     *
+     * ⭐ A lane IS the way, so a place that is not on one is not asked.
+     */
+    await warmWith([scopedDoc('corridor', 'a way', 'corridor')]);
+    const courtyard = makeStuffAtPath(
+      () => new SingletonCartesianLocation(),
+      '/test/way/courtyard',
+    );
+    // A lane exists in the realm — it just does not run through here.
+    installLane([
+      makeStuffAtPath(
+        () => new SingletonCartesianLocation(),
+        '/test/way/elsewhere',
+      ),
+    ]);
+    vi.spyOn(BiomeApi, 'isSkyExposed').mockReturnValue(true);
+
+    await survey(
+      makeStuff(() => new SingletonCartesianLocation()),
+      courtyard,
+    );
+    expect(captured).not.toContain('a way');
   });
 
   it('is afforded actor-side, beside `look`', () => {

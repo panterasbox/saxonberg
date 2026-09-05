@@ -10,7 +10,16 @@
 #
 # `surveyScope: corridor` is what makes that happen, and it is also what
 # keeps this line out of every bedroom in the game: it reports only where
-# you are standing outdoors, on a way, and then over the whole zone.
+# you are standing outdoors ON A LANE, and then over that lane's whole
+# length.
+#
+# ⚠⚠ It resolved the room's ZONE until review caught it. A zone is not a
+# way, and it was wrong in both directions — a one-room outdoor courtyard
+# reported a "corridor" that is a spot, and a city-sized zone would have
+# reported *the corridor has water* because a fountain existed a
+# quarter-mile off. The shipped roads read correctly only because they
+# happen to be zoned one-road-per-zone, which is an authoring
+# coincidence. The lane IS the way, and the kernel reaches it by shape.
 #
 # **One corridor archetype, not several.** Towpath, pass, high street and
 # drove road differ in INSTANCE DATA — what the corridor actually has —

@@ -567,6 +567,22 @@ the contrast is the point.
 
 ## Archetypes
 
+⚠⚠ **A corridor is asked over its LANE, not its zone.** `surveyScope:
+corridor` reports the archetype across a whole way at once, and the
+question *"which rooms are the way?"* was first answered with the room's
+zone — because the kernel could reach a zone and could not import the
+transport pack. That is the unit that was reachable, not the unit that
+was right: a one-room outdoor courtyard reported a corridor that is a
+spot, and a city-sized zone would report *the corridor has water*
+because a fountain exists a quarter-mile away. The shipped roads read
+correctly only because they happen to be zoned one-road-per-zone.
+
+⭐ It resolves `LaneCatalogue.lanesAt(here)` **by shape** now — the
+duck-typed singleton lookup `consigns` already uses — so the kernel
+still imports no pack, a crossroads on two ways is asked about both, and
+**outdoor ground that is on no lane is asked nothing at all**, which is
+the behaviour a courtyard should have had from the start.
+
 Two substrate fields, and the second is not optional:
 
 - **`materializesOnto`** — ⭐ an archetype builds a **wagon**, not a

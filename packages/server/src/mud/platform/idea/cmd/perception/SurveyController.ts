@@ -41,6 +41,13 @@ import { Mml } from '../../../../api/mml';
 const CATALOGUE_PATH = '/platform/idea/ArchetypeCatalogue';
 
 /**
+ * The transport pack's lane catalogue, reached BY SHAPE. The kernel does
+ * not import a pack; a realm without transport installed simply has no
+ * ways, and `survey` reports no corridor line.
+ */
+const LANE_CATALOGUE_PATH = '/system/transport/idea/LaneCatalogue';
+
+/**
  * The holding half of the read, duck-typed. A programme is a Warren that
  * also answers for the condition of the shell and who owes it.
  */
@@ -52,7 +59,10 @@ interface HoldingShape {
 }
 
 export default class SurveyController extends CommandController {
-  execute(_model: CommandModel, context: CommandContext): void {
+  async execute(
+    _model: CommandModel,
+    context: CommandContext,
+  ): Promise<void> {
     const actor = context.commandGiver;
     const room = context.location;
     if (!room || !MixinApi.isContainer(room)) {
@@ -76,10 +86,9 @@ export default class SurveyController extends CommandController {
         )
       : [room as Stuff & Container];
 
-    // The corridor space set: every room of the zone the actor stands in,
-    // resolved BY ZONE rather than by lane, so this controller imports no
-    // pack and the shipped zones are read rather than extended.
-    const wayside = this.waysideSpaces(room as Stuff & Container);
+    // The corridor space set: every room of every WAY through here,
+    // resolved by lane and reached by shape (see `waysideSpaces`).
+    const wayside = await this.waysideSpaces(room as Stuff & Container);
 
     const lines: string[] = [];
     lines.push(
@@ -169,19 +178,70 @@ export default class SurveyController extends CommandController {
    * bedroom, a bar and a brewing floor do not, which is what keeps five
    * new lines off every `survey` in the game.
    *
-   * ⚠ An outdoor square DOES answer, and that is correct rather than
-   * noise: D18's own table calls the high street a corridor, and *is
-   * there shelter, water, a crossing, light here* is a fair question to
-   * ask of any public outdoor ground. Reported, never enforced.
+   * ⚠ An outdoor square on a WAY does answer, and that is correct
+   * rather than noise: D18's own table calls the high street a
+   * corridor, and *is there shelter, water, a crossing, light along
+   * here* is a fair question to ask of any public way. An outdoor
+   * square that is on no lane answers nothing, which is the fix — it
+   * used to answer for its whole zone whether or not that zone was a
+   * road. Reported, never enforced.
    */
-  private waysideSpaces(room: Stuff & Container): (Stuff & Container)[] | null {
+  private async waysideSpaces(
+    room: Stuff & Container,
+  ): Promise<(Stuff & Container)[] | null> {
+    // Cheap pre-filter: a corridor is outdoor ground. An interior room
+    // never asks corridor questions, which is what keeps four lines off
+    // every bedroom in the game.
     if (!BiomeApi.isSkyExposed(room)) return null;
-    const zone = room.getZone();
-    if (!zone) return [room];
-    const rooms = [...zone.getLocations()]
-      .map((l) => l as unknown as Stuff)
-      .filter((l): l is Stuff & Container => MixinApi.isContainer(l));
-    return rooms.length > 0 ? rooms : [room];
+    const here = room.getTemplatePath() ?? '';
+    if (here === '') return null;
+
+    /*
+     * ⚠⚠ **The way is the LANE, not the zone.**
+     *
+     * This resolved the zone's rooms, and said so in its own comment:
+     * *"by zone rather than by lane, so this controller imports no
+     * pack"*. That is the tail wagging the dog — the unit that was
+     * reachable rather than the unit that was right — and a zone is not
+     * a way. It was wrong in BOTH directions: a one-room zone (an
+     * outdoor courtyard) reported a "corridor" that is a spot, and a
+     * city-sized zone would report *the corridor has water* because a
+     * fountain exists a quarter-mile away. The shipped roads read
+     * correctly only because they happen to be zoned one-road-per-zone,
+     * which is an authoring coincidence and would break silently.
+     *
+     * ⭐ A lane IS the way — the subgraph of exits admitting one mode —
+     * and the kernel reaches it BY SHAPE, the duck-typed singleton
+     * lookup `consigns` already uses for the same catalogue. No import,
+     * no pack dependency, and it degrades exactly right: standing
+     * outdoors on no road answers `null`, so the corridor lines vanish
+     * instead of being asked about a place that is not a way.
+     */
+    const catalogue = await StuffApi.singleton<Stuff>(
+      LANE_CATALOGUE_PATH,
+    ).catch(() => null);
+    const asLanes = catalogue as unknown as {
+      lanesAt?: (path: string) => Promise<readonly { nodes: string[] }[]>;
+    } | null;
+    if (!asLanes || typeof asLanes.lanesAt !== 'function') return null;
+
+    const lanes = await asLanes.lanesAt(here);
+    if (lanes.length === 0) return null;
+
+    // The union of every way through here — a crossroads is on two, and
+    // its needs are the needs of both.
+    const paths = new Set<string>();
+    for (const lane of lanes) for (const n of lane.nodes) paths.add(n);
+
+    const rooms: (Stuff & Container)[] = [];
+    for (const path of paths) {
+      // ⚠ The multi-instance form: a shared fixture row stands in many
+      // places, and the singleton lookup THROWS on more than one live
+      // instance (the lesson `job post` paid for).
+      const live = StuffApi.findAllByTemplatePath(path)[0];
+      if (live && MixinApi.isContainer(live)) rooms.push(live);
+    }
+    return rooms.length > 0 ? rooms : null;
   }
 
   /** The room's holding, when it belongs to one and it answers for a shell. */
