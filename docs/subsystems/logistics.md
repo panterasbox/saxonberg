@@ -620,15 +620,16 @@ move would leave the coupling dangling at one end and lying at the
 other. `unhitch` and `Slotted.vacate` are the chokepoints, so both ends
 come apart together.
 
-> **Teleport ripples what is *on* you and refuses what you are
-> *attached to* — and says why.**
+> **Teleport ripples what is *on* you and severs what you are *attached
+> to* — and says so.**
 
 Worn gear and a pack are contents and come along; slot occupants ripple
 (a mount teleporting brings its rider); a **hitched** hauler and a
-**mounted** rider are *coupled* and the ride is refused, naming what
-blocked it. `Mobile.teleportBlockedBy()` is the shared question, and the
-wizard `goto` refuses too — `--force` included, because an honest wizard
-path is the point of the fix rather than an exemption from it.
+**mounted** rider are *coupled* by a live-ref pair the move cannot
+carry, so the coupling is slipped and both sides are told. The wizard
+`goto` behaves identically — relocating a coupled object leaves what it
+was coupled to standing, which is what "relocate this object" should
+mean.
 
 ---
 

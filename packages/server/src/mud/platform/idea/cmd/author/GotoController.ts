@@ -151,17 +151,10 @@ export default class GotoController extends CommandController<GotoModel> {
       return this.fail(context, 'vetoed', `canTeleport veto: ${veto.reason}`);
     }
 
-    if (MixinApi.isMobile(subject)) {
-      const blocked = subject.teleportBlockedBy();
-      if (blocked) {
-        return this.fail(
-          context,
-          'attached',
-          `${subject.getPresentation()} is attached to ${blocked} — ` +
-            `unhitch or dismount it first`,
-        );
-      }
-    }
+    // ⭐ Relocating something that is coupled is fine: `teleport` slips
+    // the hitch (or the seat) and tells both sides. An author moving a
+    // hitched cart gets the cart, and the horse is left standing where
+    // it was — which is what "relocate this object" should mean.
 
     const subjectName = subject.getPresentation();
     const destName = dest.getPresentation();

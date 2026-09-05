@@ -244,20 +244,19 @@ Three parts, all in `Mobile`:
 |---|---|
 | **contents come along** | worn gear and a carried pack are *inside* the mover, so the move carries them — otherwise teleport would strip the traveller |
 | **slot occupants ripple** | a mount teleporting brings its rider. The `traverse` ripple's own shape: walk the immediate slot level, `seen`-deduped, `ContainmentApi.move` each occupant |
-| ⭐ **couplings REFUSE** | a **hitched** hauler and a **mounted** rider are coupled by a live-ref pair, not by containment. `Mobile.teleport` throws `TeleportRefused`, whose `blockedBy` names the cart or the mount |
+| ⭐ **couplings SEVER** | a **hitched** hauler and a **mounted** rider are coupled by a live-ref pair, not by containment, so the move cannot carry them. `Mobile.teleport` slips the coupling through `unhitch` / `Slotted.vacate` — both ends together — and announces it |
 
-The question *"what am I attached to?"* is
-`Mobile.teleportBlockedBy(): string | null` — on the object, because it
-is a question about the mover, and because three verbs need the same
-answer. `teleport`'s free-move and ride forks and the wizard `goto` all
-pre-check it and emit a `controller-rejected` note with reason
-`attached`, so the throw is reserved for programmatic callers (the
-`ContainmentApi.move` convention).
+⚠⚠ It USED to refuse: `Mobile.teleport` threw `TeleportRefused` and
+three verbs pre-checked a `teleportBlockedBy()` predicate. That was
+correct about the data and wrong about the world — it made the spell
+feel broken rather than the wagon feel heavy, and ⭐ *"you cannot
+teleport while holding a rope"* is not a rule anybody would write on
+purpose. The predicate, the error class and every pre-check are gone.
 
-⚠ **The wizard `goto` refuses too, `--force` included.** An honest
-wizard path is the point of the fix rather than an exemption from it:
-`goto`'s raw fallback would separate a rider from a mount exactly as
-the defect did. Unhitch or dismount.
+⭐ **You go; what you were attached to does not.** The wagon stands
+where it stood and is not lost — a parked vehicle vetoes residency
+eviction — and both sides are told, because a player who teleports away
+from their cart and is not told has been robbed by a mechanic.
 
 **Silent failure was the part that got killed.** Before this,
 `Mobile.teleport` was a bare `ContainmentApi.move` plus narration: the

@@ -67,7 +67,6 @@ import { ShellApi } from '../../api/shell';
 export interface Mobile {
   traverse(exit: Exit, mode: string): Promise<void>;
   teleport(destination: Stuff & Container, opts?: TeleportOptions): void;
-  teleportBlockedBy(): string | null;
   announceDeparture(from: Stuff & Container, exit?: Exit): void;
   announceArrival(to: Stuff & Container, exit?: Exit): void;
   /**
@@ -577,10 +576,6 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
      * `goto`. ⚠ The wizard path refuses too — an honest wizard path is
      * the point of the fix, not an exemption from it.
      */
-    teleportBlockedBy(): string | null {
-      return teleportBlocker(this as unknown as Stuff);
-    }
-
     teleport(destination: Stuff & Container, opts?: TeleportOptions): void {
       const silent = opts?.silent ?? false;
       const self = this as unknown as Stuff;
@@ -994,29 +989,6 @@ function assertVeto(result: VetoResult | undefined, hookName: string): void {
 }
 
 
-/**
- * D14 — what, if anything, this mover is *attached* to such that a
- * teleport would silently separate them. Returns a presentation phrase
- * for the blocker, or `null` when the ride is clean.
- *
- * Two couplings exist, and both are live-ref pairs rather than
- * containment: the haulage hitch (`Hauler._hauledCart` ↔
- * `Haulable._hauledBy`) and a mount slot (the rider occupies a slot on
- * the mount). Contents — worn gear, a pack — are NOT couplings and come
- * along with the move; slot occupants ON the mover are rippled.
- */
-function teleportBlocker(mover: Stuff): string | null {
-  if (MixinApi.isHauling(mover) && mover.isHitched()) {
-    const cart = mover.getHauledCart();
-    return cart ? cart.getPresentation() : 'a hitched cart';
-  }
-  if (MixinApi.isSlottable(mover)) {
-    for (const [host] of mover.occupiedSlots().entries()) {
-      return host.getPresentation();
-    }
-  }
-  return null;
-}
 
 /**
  * Sever whatever `mover` is coupled to, and name it for the prose.

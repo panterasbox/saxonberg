@@ -136,7 +136,6 @@ describe('Mobile.teleport — D14', () => {
   it('a silent spawn is unaffected — a fresh avatar is never hitched', () => {
     const { locA } = tworoom();
     const mover = makeStuff(() => new MobileHauler());
-    expect(mover.teleportBlockedBy()).toBeNull();
     mover.teleport(locA, { silent: true });
     expect(mover.getContainer()).toBe(locA);
   });
