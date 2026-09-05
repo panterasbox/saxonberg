@@ -42,8 +42,9 @@ export type Doc = Record<string, unknown> & {
  */
 export function installStore(docs: Doc[]): Doc[] {
   const store: Doc[] = docs.map((d, i) => ({ _id: String(i + 1), ...d }));
-  // ⚠⚠ **Every OTHER collection, and it is not optional any more.** This
-  // stub used to answer `[]` to every non-content read while happily
+  // ⚠⚠ **Which collection each row belongs to, tracked BESIDE the row.**
+  //
+  // This stub used to answer `[]` to every non-content read while happily
   // accepting the writes, and to have no `isConnected` at all. The moment
   // a standup test stood up a character carrying authored `dispositions:`
   // or a dossier, the seeder asked whether persistence was connected and
@@ -51,57 +52,65 @@ export function installStore(docs: Doc[]): Doc[] {
   // all of them about doors and exits, failing on a ledger they never
   // meant to touch.
   //
-  // ⭐ Keeping the rows means a seeder's own idempotency check
-  // ("skip if a claim already exists") reads back what it wrote, so a
-  // re-standup behaves here the way it behaves in the world. A stub that
-  // swallows writes and returns nothing makes every write path look
-  // idempotent and every read path look empty.
-  const others = new Map<string, Doc[]>();
-  const bucket = (collection: string): Doc[] => {
-    const existing = others.get(collection);
-    if (existing) return existing;
-    const fresh: Doc[] = [];
-    others.set(collection, fresh);
-    return fresh;
-  };
+  // ⚠ The ownership map is a Map rather than a field on the doc for one
+  // reason: **the returned array is the test's window on everything the
+  // store holds**, and several tests read a snapshot row straight out of
+  // it. Bucketing into separate arrays hid those rows; stamping a
+  // `__collection` key on the doc would have leaked into every
+  // whole-document assertion. One array, one side-table.
+  //
+  // ⭐ Keeping the rows means a seeder's own idempotency check ("skip if
+  // a claim already exists") reads back what it wrote, so a re-standup
+  // behaves here the way it behaves in the world. A stub that swallows
+  // writes and returns nothing makes every write path look idempotent
+  // and every read path look empty.
+  const owner = new Map<Doc, string>();
+  for (const d of store) owner.set(d, Cols.Content);
+
   const save = vi.fn(async (collection: string, doc: Doc) => {
-    const target = collection === Cols.Content ? store : bucket(collection);
     const copy = { ...doc };
     if (copy._id) {
-      const idx = target.findIndex((d) => d._id === copy._id);
-      if (idx >= 0) target[idx] = copy;
-      else target.push(copy);
+      const idx = store.findIndex((d) => d._id === copy._id);
+      if (idx >= 0) {
+        owner.delete(store[idx]!);
+        store[idx] = copy;
+      } else store.push(copy);
+      owner.set(copy, collection);
       return copy._id!;
     }
-    copy._id = `${collection}:${target.length + 1}`;
-    target.push(copy);
+    copy._id = String(store.length + 1);
+    store.push(copy);
+    owner.set(copy, collection);
     return copy._id;
   });
+
+  /**
+   * Enough of a matcher for the ledgers' owner-scoped reads. ⚠ A query
+   * operator it does not understand matches NOTHING rather than
+   * everything — a test can never pass here by over-matching.
+   */
   const matches = (doc: Doc, query: Record<string, unknown>): boolean =>
     Object.entries(query).every(([k, v]) => {
-      // Enough of a matcher for the ledgers' owner-scoped reads; a query
-      // operator this does not understand matches nothing rather than
-      // everything, so a test can never pass by over-matching.
       if (v !== null && typeof v === "object") return false;
       return (doc as Record<string, unknown>)[k] === v;
     });
+
   const find = vi.fn(
     async (collection: string, query: Record<string, unknown>) => {
+      const rows = store.filter((d) => owner.get(d) === collection);
       if (collection !== Cols.Content) {
-        const rows = others.get(collection) ?? [];
         return Object.keys(query).length === 0
-          ? rows.slice()
+          ? rows
           : rows.filter((d) => matches(d, query));
       }
       if (typeof query.path === "string") {
-        return store.filter((d) => d.path === query.path);
+        return rows.filter((d) => d.path === query.path);
       }
-      return store.slice();
+      return rows;
     },
   );
-  const findById = vi.fn(async (collection: string, id: string) => {
-    const target = collection === Cols.Content ? store : bucket(collection);
-    return target.find((d) => d._id === id) ?? null;
+  const findById = vi.fn(async (_c: string, id: string) => {
+    return store.find((d) => d._id === id) ?? null;
   });
   vi.spyOn(PM, "get").mockReturnValue({
     save,
