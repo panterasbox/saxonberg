@@ -166,6 +166,7 @@ import type { Bank } from '../lib/banking/Bank';
 import type { Business } from '../platform/idea/Business';
 import type { Organization } from '../lib/employment/Organization';
 import type { Publisher } from '../lib/press/Publisher';
+import type { Registrar } from '../lib/document/Register';
 import type { Attendant } from '../lib/attendant/Attendant';
 import type { Employed } from '../lib/employment/Employed';
 import type { Combatant } from '../lib/combat/Combatant';
@@ -1394,6 +1395,14 @@ export class MixinApi {
    */
   public static isPublisher(obj: Stuff): obj is Stuff & Publisher {
     return this.hasMixin(obj, Mixins.Publisher);
+  }
+
+  /**
+   * A **register** — a body that keeps a book about somebody else, and
+   * may file into its own branch of the document store (`Registrar`).
+   */
+  public static isRegistrar(obj: Stuff): obj is Stuff & Registrar {
+    return this.hasMixin(obj, Mixins.Registrar);
   }
 
   /** A standalone employing Business (the `BusinessMixin` marker). */

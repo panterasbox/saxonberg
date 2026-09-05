@@ -14,6 +14,11 @@ import type { Stuff } from "../../../lib/stuff/Stuff";
 import type { Publisher } from "../../../lib/press/Publisher";
 import { RELEASE_DOCUMENT_KIND } from "../../../lib/press/Release";
 import { CommandApi } from "../../../api/command";
+import type { Registrar } from '../../../lib/document/Register';
+import {
+  DECLARED_DOCUMENT_KINDS,
+  type DeclaredDocumentKind,
+} from '../../../lib/document/DocumentKinds';
 
 const DocumentApiCallers = SecurityPolicies.FromModule("/api/document#DocumentApi",
 );
@@ -29,15 +34,6 @@ const DocumentApiCallers = SecurityPolicies.FromModule("/api/document#DocumentAp
  * a REST `tagActingAuthor` stamp), the anti-spoof source for the owner of
  * a write (memory: gated-api-actor-from-context). Never a parameter.
  */
-/** The herd register's branch — see {@link saveHerdImpl}. */
-const HERD_REGISTER_PREFIX = '/trade/ranching/herds';
-
-/** What a filed herd is owned BY: the trade, never the keeper. */
-const HERD_REGISTER_OWNER = '/trade/ranching';
-
-/** The kind a herd write is pinned to. */
-const HERD_DOCUMENT_KIND = 'herd';
-
 function actingAuthor(): Stuff | null {
   return (ExecutionContextApi.getActingAuthor() as Stuff | null) ?? null;
 }
@@ -249,20 +245,56 @@ function codeFieldsChanged(
  * declared for is the same act, not a second one. `lint:gates` resolves
  * the string, so a rename cannot silently orphan it.
  */
-async function saveHerdImpl(
+/**
+ * ⚠⚠ **Everything this refuses, it refuses structurally.** No allowlist,
+ * no pack name: the branch, the owner and the kind all come off the
+ * register, and the register may only administer a branch it lives under.
+ */
+async function saveToRegisterImpl(
+  register: Stuff & Registrar,
   path: string,
   data: Record<string, unknown>,
 ): Promise<void> {
-  if (!path.startsWith(`${HERD_REGISTER_PREFIX}/`)) {
+  if (!MixinApi.isRegistrar(register)) {
+    throw new Error('DocumentApi.saveToRegister: that is not a register');
+  }
+  const owner = register.getRegisterOwner();
+  const prefix = register.getRegisterPrefix();
+  const kind = register.getRegisterKind();
+  const seat = register.getTemplatePath() ?? '';
+
+  if (owner.length === 0 || prefix.length === 0 || kind.length === 0) {
     throw new Error(
-      `DocumentApi.saveHerd: ${path} is not in the herd register ` +
-        `(${HERD_REGISTER_PREFIX})`,
+      'DocumentApi.saveToRegister: the register declares no branch, owner or kind',
     );
   }
+  // ⭐⭐ **A register keeps its OWN book.** The owner has to be a branch
+  // the register itself sits under, or a class could declare itself
+  // registrar of somebody's home directory and file over it.
+  if (seat !== owner && !seat.startsWith(`${owner}/`)) {
+    throw new Error(
+      `DocumentApi.saveToRegister: ${seat} does not sit under ${owner}, ` +
+        'so it does not keep that branch\'s book',
+    );
+  }
+  if (prefix !== owner && !prefix.startsWith(`${owner}/`)) {
+    throw new Error(
+      `DocumentApi.saveToRegister: ${prefix} is not under ${owner}`,
+    );
+  }
+  if (!path.startsWith(`${prefix}/`)) {
+    throw new Error(`DocumentApi.saveToRegister: ${path} is not in ${prefix}`);
+  }
+  // ⚠ The kind is pinned to the register's one kind, and must be a kind
+  // the platform knows — a register cannot invent a vocabulary.
+  if (!DECLARED_DOCUMENT_KINDS.includes(kind as DeclaredDocumentKind)) {
+    throw new Error(`DocumentApi.saveToRegister: ${kind} is not a document kind`);
+  }
+
   const doc = (await StoredDocument.findByPath(path)) ?? new StoredDocument();
   doc.path = path;
-  doc.owner = HERD_REGISTER_OWNER;
-  doc.kind = HERD_DOCUMENT_KIND;
+  doc.owner = owner;
+  doc.kind = kind;
   doc.data = data;
   await doc.save();
 }
@@ -378,16 +410,17 @@ export class DocumentLogic extends ApiLogic {
   }
 
   /**
-   * See {@link DocumentApi.saveHerd}. ⚠⚠ The second ownership bypass,
-   * and the narrowing lives on the **Api static** for `saveRelease`'s
-   * reason exactly.
+   * See {@link DocumentApi.saveToRegister}. ⚠⚠ The second ownership
+   * bypass, and the narrowing lives on the **Api static** for
+   * `saveRelease`'s reason exactly.
    */
   @CallSecurity(DocumentApiCallers)
-  public async saveHerd(
+  public async saveToRegister(
+    register: Stuff & Registrar,
     path: string,
     data: Record<string, unknown>,
   ): Promise<void> {
-    return saveHerdImpl(path, data);
+    return saveToRegisterImpl(register, path, data);
   }
 
   /** See {@link DocumentApi.save}. */

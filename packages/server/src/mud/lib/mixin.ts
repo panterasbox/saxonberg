@@ -386,6 +386,7 @@ export const Mixins = {
   // reach of what it publishes, its feed branch, and which of its
   // positions may publish through it.
   Publisher: 'PublisherMixin',
+  Registrar: 'RegistrarMixin',
   // Attendant — the universal storefront-attention substrate: a service-point
   // fixture holding the queue + being-attended leases (a server's attention).
   Attendant: 'AttendantMixin',

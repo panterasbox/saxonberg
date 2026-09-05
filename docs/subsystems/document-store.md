@@ -183,6 +183,50 @@ rather than the stored rows.
 kinds that land in `documents`, then routes these into a collection.
 Same shape, same installer, same stated reasons, different store.
 
+### ⭐⭐ The register transport — a shape, not a name
+
+*"Who keeps this register?"* has a mechanical answer as well as a design
+one, and it is `Registrar` (`lib/document/Register.ts`).
+
+A register needs a write the ordinary gate cannot give it: `save` admits
+the **branch owner**, and the whole point of a register is that the
+**subject is not the owner** — *you file; you do not hold the pen.* A
+keeper filing a head against the herdbook is not the ranching trade, and
+granting them the branch would hand them the pen.
+
+> ⚠⚠ **The first cut was a pinned `saveHerd`, with
+> `/trade/ranching/herds`, `/trade/ranching` and a
+> `FromTemplate('/trade/ranching/idea/HerdRegistry')` gate AS KERNEL
+> CONSTANTS.** That is a pack's namespace hardcoded in the engine — the
+> thing the pack system exists to prevent — and it did not survive the
+> second register: a studbook, a claims book or a land registry each
+> wanted another method and another three constants.
+
+So the kernel learns the **shape**, exactly as `saveRelease` learns
+`Publisher` rather than a press path. A register declares three things
+and the transport derives everything from them:
+
+| declaration | the herdbook's |
+|---|---|
+| `getRegisterPrefix()` | `/trade/ranching/herds` |
+| `getRegisterOwner()` | `/trade/ranching` |
+| `getRegisterKind()` | `herd` (a `DocumentKinds` entry — a register cannot invent a vocabulary) |
+
+⭐ **What stops a class declaring itself registrar of your home
+directory is structural, not an allowlist:**
+
+> **the owner must be a prefix of the register's own template path, and
+> the register's branch must lie under that owner.**
+
+`/trade/ranching/idea/HerdRegistry` may own `/trade/ranching` and file
+under `/trade/ranching/herds`; it may not own `/home/somebody`. The
+capability is *"the society keeps its own book"* — expressible without
+the kernel knowing which societies exist.
+
+⚠ And the caller contract is relational: `FromMixin(Registrar, { where:
+caller === register })` — the register must be the thing calling, and it
+must be writing for itself. Nobody else can reach the transport at all.
+
 ### ⭐⭐ A cross-cutting register is not a new namespace
 
 The recurring ask is a global ledger — *every herd in the world*, every
@@ -224,8 +268,11 @@ A thin gated forwarding shell over a hot-reloadable logic singleton at
 - `DocumentApi.delete(path)` → the same gate as `save`; no provenance row
   (a deletion is not authorship); returns whether a row existed. The
   emote catalogue's `delete` rides it.
-- ⚠⚠ `DocumentApi.saveRelease(publisher, path, data)` — **the named write
+- ⚠⚠ `DocumentApi.saveRelease(publisher, path, data)` — **a named write
   transport**, and an ownership bypass by construction. See below.
+- ⚠⚠ `DocumentApi.saveToRegister(register, path, data)` — the **generic**
+  one: a `Registrar` files into the branch it keeps the book for. See
+  *The register transport* below.
 
 The acting **owner is always derived from `ExecutionContextApi`** (the
 in-world command-frame giver, or a transport's `tagActingAuthor` stamp),

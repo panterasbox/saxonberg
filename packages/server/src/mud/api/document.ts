@@ -30,6 +30,8 @@ import { HotReloadApi } from "./hot-reload";
 import { DocumentLogic } from "../platform/idea/api/DocumentLogic";
 import { fileURLToPath } from "url";
 import { CallSecurity } from "../lib/security/decorators";
+import { Mixins } from '../lib/mixin';
+import type { Registrar } from '../lib/document/Register';
 import { SecurityPolicies } from "../lib/security/SecurityPolicies";
 import { SecurityApi } from './security';
 
@@ -50,26 +52,29 @@ const RELEASE_TRANSPORT_CALLERS = SecurityPolicies.FromModule(
 );
 
 /**
- * ⚠⚠ The herd transport's gate — **the registry singleton itself, and
- * nothing else.**
+ * ⚠⚠ The register transport's gate — **the register itself, writing its
+ * own book, and nothing else.**
  *
- * The herdbook's security property is that a keeper can FILE against it
+ * A register's security property is that a subject can FILE against it
  * and cannot REWRITE what it says: *you file; you do not hold the pen.*
- * `save`'s ordinary gate admits the branch owner, which is the trade —
- * so a keeper drafting a head out could not write, and granting them the
- * branch would hand them the pen. A pinned transport is the way out, and
- * it is the same one the press path takes for a comms director who is
- * not a landowner.
+ * `save`'s ordinary gate admits the branch owner, which for a herdbook is
+ * the trade — so a keeper drafting a head out could not write, and
+ * granting them the branch would hand them the pen.
  *
- * ⚠ It names a PACK path, which is normally the tell of a mis-cut. It is
- * not one here: a document KIND is a platform act by construction (its
- * consumer is code, and the installer needs a go-live hook), so naming
- * the one consumer alongside the kind it exists for is the same act
- * rather than a second one. `lint:gates` resolves the string, so a
- * rename cannot orphan it silently.
+ * ⭐ This used to be `FromTemplate('/trade/ranching/idea/HerdRegistry')`,
+ * with the ranching branch and its owner as kernel constants beside it.
+ * That is a pack's namespace hardcoded in the engine — the thing the pack
+ * system exists to prevent — and it did not survive the second register.
+ * The contract is now **relational and nameless**: the caller must be a
+ * `Registrar`, and it must be the register it is writing for.
+ *
+ * ⚠ Declaring yourself a registrar buys nothing on its own: the impl
+ * refuses any branch the register does not itself live under. See
+ * {@link Registrar}.
  */
-const HERD_TRANSPORT_CALLERS = SecurityPolicies.FromTemplate(
-  "/trade/ranching/idea/HerdRegistry",
+const REGISTER_TRANSPORT_CALLERS = SecurityPolicies.FromMixin(
+  Mixins.Registrar,
+  { where: (caller, _target, _method, args) => caller === args[0] },
 );
 
 const LOGIC_PATH = "/platform/idea/api/document";
@@ -137,26 +142,30 @@ export class DocumentApi {
   }
 
   /**
-   * File or update a **herd** in the ranching trade's register — the
-   * herdbook (farmstead D20, P4).
+   * File or update a document in a **register** — a book a society keeps
+   * about somebody else (`Registrar`).
    *
-   * ⚠⚠ **An ownership bypass, and narrow only by construction.** It
-   * takes **no owner** (the register's branch is fixed inside), refuses
-   * any path outside the register, **pins the `kind`** so it cannot
-   * write anything else, and is **gated to the registry singleton**,
-   * which is where the validation of what a legitimate herd looks like
-   * lives.
+   * ⚠⚠ **An ownership bypass, and narrow by CONSTRUCTION rather than by
+   * allowlist.** It takes no owner and no kind: both are declared by the
+   * register, the path must lie in the register's own branch, and the
+   * register may only administer a branch it itself lives under. So it
+   * cannot write anything a register was not already entitled to write,
+   * and the kernel never learns which registers exist.
    *
-   * ⭐ Why it exists at all: a record about you must live on somebody
-   * else's branch, or its subject can rewrite it — and D79 makes the
-   * herdbook a **sales document**, which is the lemons fraud with the
-   * engine supplying the pen. Real herdbooks have been kept by breed
-   * societies rather than by the men selling the bulls since 1822, for
-   * exactly this reason.
+   * ⭐ Why registers exist at all: a record about you must live on
+   * somebody else's branch, or its subject can rewrite it — and a
+   * herdbook is a **sales document**, which makes a self-kept one the
+   * lemons fraud with the engine supplying the pen. Real herdbooks have
+   * been kept by breed societies rather than by the men selling the bulls
+   * since 1822, for exactly this reason.
    */
-  @CallSecurity(HERD_TRANSPORT_CALLERS)
-  static saveHerd(path: string, data: Record<string, unknown>): Promise<void> {
-    return logic().saveHerd(path, data);
+  @CallSecurity(REGISTER_TRANSPORT_CALLERS)
+  static saveToRegister(
+    register: Stuff & Registrar,
+    path: string,
+    data: Record<string, unknown>,
+  ): Promise<void> {
+    return logic().saveToRegister(register, path, data);
   }
 
   /**

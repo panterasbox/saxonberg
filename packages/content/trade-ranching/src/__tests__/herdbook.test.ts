@@ -26,6 +26,7 @@ import HerdRegistry, {
 } from '../idea/HerdRegistry';
 import { HeadSeed } from '../lib/HeadSeed';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import { DocumentApi } from '@saxonberg/server/mud/api/document';
 import { StoredDocument } from '@saxonberg/server/mud/lib/document/StoredDocument';
 import { Document } from '@saxonberg/server/mud/lib/persistence/Document';
 import { PersistenceManager } from '@saxonberg/server/mud/lib/persistence/__tests__/backend-store';
@@ -465,5 +466,82 @@ describe('breeding is a record, not a birth', () => {
     // A record that predates the field still reads sanely rather than 0.
     await reg.file({ ...HERD, herdId: 'old-book', foundingMeanAgeDays: 0 });
     expect((await reg.read('old-book'))!.foundingMeanAgeDays).toBeGreaterThan(0);
+  });
+});
+
+
+/**
+ * ⚠⚠ **A register keeps its OWN book**, and that is now the whole of the
+ * gate.
+ *
+ * `DocumentApi` used to carry a `saveHerd` with `/trade/ranching/herds`,
+ * `/trade/ranching` and a `FromTemplate` naming this class **as kernel
+ * constants** — a pack's namespace hardcoded in the engine. The kernel
+ * learns the shape now, and what stops a class declaring itself registrar
+ * of somebody's home directory is structural: the owner must be a branch
+ * the register itself sits under.
+ */
+describe('the register transport is nameless and structural', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    StuffApi.clearAll();
+    installStore();
+  });
+  afterEach(() => {
+    vi.restoreAllMocks();
+    StuffApi.clearAll();
+  });
+
+  it('⭐ the herdbook declares its own branch, owner and kind', () => {
+    const r = registry();
+    expect(r.getRegisterPrefix()).toBe(HERD_PREFIX);
+    expect(r.getRegisterOwner()).toBe('/trade/ranching');
+    expect(r.getRegisterKind()).toBe(HERD_KIND);
+    // ⭐ And it sits under the branch it owns — which is what makes the
+    // declaration mean anything.
+    expect(r.getTemplatePath()!.startsWith(`${r.getRegisterOwner()}/`)).toBe(true);
+  });
+
+  it('⚠⚠ a register that does NOT sit under its claimed owner is refused', async () => {
+    // The attack the old allowlist was standing in for: declare yourself
+    // registrar of a branch you have no business in.
+    const rogue = makeStuffAtPath(
+      () => new HerdRegistry(),
+      '/home/iris/idea/NotAReallyARegister',
+    ) as HerdRegistry;
+    rogue.setRegisterOwner('/trade/ranching');
+    rogue.setRegisterPrefix(HERD_PREFIX);
+    rogue.setRegisterKind(HERD_KIND);
+
+    await expect(
+      rogue.file({ ...HERD, herdId: 'stolen' }),
+    ).rejects.toThrow(/does not sit under/i);
+  });
+
+  it('⚠ and a path outside the register\'s own branch is refused', async () => {
+    const r = registry();
+    // Same register, different declared branch: the write it then makes
+    // does not land in it, and the kernel says so.
+    r.setRegisterPrefix('/trade/ranching/somewhere-else');
+    await expect(r.file({ ...HERD, herdId: 'astray' })).rejects.toThrow(
+      /is not in/i,
+    );
+  });
+
+  it('⚠⚠ and NOBODY but the register can reach the transport', () => {
+    // The relational half of the contract: the caller must be a
+    // `Registrar` AND must be the register it is writing for. A test —
+    // or a controller, or another pack — calling it directly is denied
+    // before any of the structural checks run.
+    const r = registry();
+    // ⚠ Denied SYNCHRONOUSLY — the gate refuses before the method body
+    // runs at all, so there is no promise to reject.
+    expect(() =>
+      DocumentApi.saveToRegister(
+        r as unknown as Parameters<typeof DocumentApi.saveToRegister>[0],
+        `${HERD_PREFIX}/anything`,
+        {},
+      ),
+    ).toThrow(/denied/i);
   });
 });

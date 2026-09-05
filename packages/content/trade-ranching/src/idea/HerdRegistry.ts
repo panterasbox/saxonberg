@@ -51,6 +51,11 @@
 
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import { DocumentApi } from '@saxonberg/server/mud/api/document';
+import {
+  RegistrarMixin,
+  type Registrar,
+} from '@saxonberg/server/mud/lib/document/Register';
+import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { EvictionContext } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
 
@@ -64,6 +69,9 @@ export const HERD_PREFIX = '/trade/ranching/herds';
 
 /** The document kind the platform declares for a filed herd. */
 export const HERD_KIND = 'herd';
+
+/** The branch the register's documents are OWNED by: the trade. */
+export const HERD_OWNER = '/trade/ranching';
 
 /**
  * Mean age in game days of founding head when a record does not say.
@@ -169,7 +177,28 @@ export interface HeadOverlay {
   note?: string;
 }
 
-export default class HerdRegistry extends Idea {
+export default class HerdRegistry extends RegistrarMixin(Idea) {
+  /**
+   * ⭐⭐ **The three declarations that used to be kernel constants.**
+   *
+   * `DocumentApi` had a `saveHerd` with `/trade/ranching/herds`,
+   * `/trade/ranching` and a `FromTemplate` gate naming this class — a
+   * pack's namespace hardcoded in the engine, which is the thing the pack
+   * system exists to prevent, and which would have needed another method
+   * and another three constants for the second register.
+   *
+   * The kernel learns the SHAPE now (`Registrar`) and the pack says what
+   * its own book is. ⚠ Declaring it buys nothing on its own: the kernel
+   * refuses any branch this class does not itself sit under, so a
+   * register can only ever keep **its own** book.
+   */
+  constructor() {
+    super();
+    this.registerPrefix = HERD_PREFIX;
+    this.registerOwner = HERD_OWNER;
+    this.registerKind = HERD_KIND;
+  }
+
   /**
    * ⚠ A registry is not a cache. Nothing here is stored on the instance
    * — every read goes to the document store — so eviction would only
@@ -202,13 +231,15 @@ export default class HerdRegistry extends Idea {
       );
     }
     const path = pathOf(herd.herdId);
-    // ⚠⚠ `saveHerd`, not `save`. The ordinary write gate admits the
-    // BRANCH OWNER, which here is the trade — so a keeper drafting a
+    // ⚠⚠ `saveToRegister`, not `save`. The ordinary write gate admits
+    // the BRANCH OWNER, which here is the trade — so a keeper drafting a
     // head out could not write, and granting them the branch would hand
-    // them the pen the whole design is about them not having. The pinned
-    // transport gives them the one thing they need (file, and record
-    // what happened) and none of what they must not have.
-    await DocumentApi.saveHerd(path, { ...herd });
+    // them the pen the whole design is about them not having. The
+    // register transport gives them the one thing they need (file, and
+    // record what happened) and none of what they must not have.
+    await DocumentApi.saveToRegister(this as unknown as Stuff & Registrar, path, {
+      ...herd,
+    });
     return path;
   }
 
@@ -246,7 +277,11 @@ export default class HerdRegistry extends Idea {
 
   /** Overwrite a filed herd. */
   public async update(herd: HerdRecord): Promise<void> {
-    await DocumentApi.saveHerd(pathOf(herd.herdId), { ...herd });
+    await DocumentApi.saveToRegister(
+      this as unknown as Stuff & Registrar,
+      pathOf(herd.herdId),
+      { ...herd },
+    );
   }
 
   // ---------- the boundary acts ----------
