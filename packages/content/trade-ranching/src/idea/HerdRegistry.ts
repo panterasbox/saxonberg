@@ -65,6 +65,16 @@ export const HERD_PREFIX = '/trade/ranching/herds';
 /** The document kind the platform declares for a filed herd. */
 export const HERD_KIND = 'herd';
 
+/**
+ * Mean age in game days of founding head when a record does not say.
+ *
+ * ⚠ Not newborns and not ancient: a little over a year, which is the age
+ * of stock somebody would actually have bought. Authored per herd on the
+ * herdbook row; this is only the fallback for a record that predates the
+ * field.
+ */
+export const DEFAULT_FOUNDING_MEAN_AGE_DAYS = 400;
+
 /** One head that has been drafted out and is currently its own object. */
 export interface DraftedHead {
   /** The index within the herd — its identity, and it never changes. */
@@ -103,6 +113,20 @@ export interface HerdRecord {
   homeExtent: string;
   /** Game-seconds the herd was founded. Dates the record (D79). */
   founded: number;
+  /**
+   * ⭐ **Mean age in game days of the FOUNDING head, at founding.**
+   *
+   * A herd is not bought as newborns and it does not stay one age. Every
+   * head used to read as a flat 400 days old forever, whatever the world
+   * clock said — so a herd founded a game-decade ago drafted yearlings,
+   * and a lamb "born" a minute ago drafted mature. Age is now derived:
+   * this plus the game time elapsed since {@link founded}, with the
+   * seeded spread as the variation around it.
+   *
+   * ⚠ A head with its own `bornAt` in the overlay ignores this — see
+   * {@link HeadOverlay.bornAt}.
+   */
+  foundingMeanAgeDays: number;
   /** Heads currently drafted out into their own objects. */
   drafted: DraftedHead[];
   /**
@@ -122,6 +146,25 @@ export interface HeadOverlay {
   handling?: number;
   /** Age in game days at the moment it was last returned. */
   ageDays?: number;
+  /**
+   * ⭐ Game-seconds this head was BORN, when it was born into the record
+   * rather than founded with it. Absent for founding head, whose age
+   * comes from {@link HerdRecord.foundingMeanAgeDays}.
+   *
+   * ⚠ **Nothing writes this yet**, and that is deliberate: it is the
+   * seam breeding lands on. When gestation is built, `calved` writes a
+   * `bornAt` and the head is a lamb because it is one — no special case
+   * at the draft, because the derive already reads this first.
+   */
+  bornAt?: number;
+  /**
+   * ⭐ Game-seconds she was last **served** — put to the male, in season.
+   *
+   * The herdbook's own ruled columns are *number, dam, born, served,
+   * calved*, and this is the fourth of them. `breed` writes it. The
+   * follow-on that builds gestation turns it into the fifth.
+   */
+  served?: number;
   /** Free note — why this head is remembered at all. */
   note?: string;
 }
@@ -298,6 +341,10 @@ function herdOf(data: unknown): HerdRecord | null {
     holderRef: typeof d.holderRef === 'string' ? d.holderRef : '',
     homeExtent: typeof d.homeExtent === 'string' ? d.homeExtent : '',
     founded: typeof d.founded === 'number' ? d.founded : 0,
+    foundingMeanAgeDays:
+      typeof d.foundingMeanAgeDays === 'number' && d.foundingMeanAgeDays > 0
+        ? d.foundingMeanAgeDays
+        : DEFAULT_FOUNDING_MEAN_AGE_DAYS,
     drafted: Array.isArray(d.drafted) ? (d.drafted as DraftedHead[]) : [],
     overlay:
       typeof d.overlay === 'object' && d.overlay !== null

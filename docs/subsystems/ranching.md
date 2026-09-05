@@ -219,9 +219,41 @@ stated in daylength and the calendar decides when that happens, so
 **lambing in spring is a consequence of the calendar** rather than a
 flavour decision. The refusal names the daylength, because *"the days are
 still too long, she will not take"* is something a player can act on.
-Offspring are seeded from the herd they came out of — heredity's shape
-before the genome exists — and the shared genome later replaces the
-seeding function underneath an unchanged surface.
+Nobody authors a lambing date, and that is the whole idea.
+
+### ⚠⚠ What `breed` does: it writes SERVED
+
+The herdbook's ruled columns are *number, dam, born, served, **calved***.
+`breed` writes the **fourth** — she was put to the male, in season, and
+the book records the date. **The tally does not move**, because nothing
+has gestated.
+
+> ⚠ The first cut incremented the tally the instant the verb was typed,
+> while telling the player *"it will be 145 days"* — so gestation was
+> **announced and not modelled**, the offspring were born adult (every
+> head read as a flat 400 days old forever), and the herd was an
+> unbounded faucet for the length of a season. It also claimed the
+> offspring's character was *"seeded from its parentage, which gives
+> selection real traction"*, and that was **false**: the new head was
+> `hash(herdId#index)` and the parentage was a free-text note nothing
+> read. Breeding the best ewe and the worst gave statistically identical
+> lambs.
+
+⭐ **Ages DERIVE, in two branches, and the order is the design.** A head
+with `bornAt` in the overlay is as old as the time since; otherwise it is
+founding stock, and its age is the herd's own `foundingMeanAgeDays`
+**plus the game time elapsed since `founded`**. The herd gets older the
+way everything else does. ⚠ Nothing writes `bornAt` yet — it is read
+first precisely so that the day gestation lands, a lamb is a lamb with no
+special case at the draft.
+
+**What is NOT built, and belongs to the breeding follow-on:** gestation
+(the wait between *served* and *calved*), birth, and heredity of any
+kind. The design for all three is in
+[ranching-slate § Breeding](../slates/builds/ranching-slate.md) — the
+short version being that the animal breeder's equation is
+`R = h²·S / L`, and it is the **generation interval `L`** that makes
+animal breeding a different lesson from farming's.
 
 **Slaughter is sober and complete.** No minigame, no guilt meter, no
 confirmation ritual: **make waste the thing that feels bad, not the

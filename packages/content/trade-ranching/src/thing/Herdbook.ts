@@ -53,7 +53,9 @@ import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
-import HerdRegistry from '../idea/HerdRegistry';
+import HerdRegistry, {
+  DEFAULT_FOUNDING_MEAN_AGE_DAYS,
+} from '../idea/HerdRegistry';
 
 const HerdbookBase = PostRegistrationMixin(FixtureMixin(DetailedMixin(Thing)));
 
@@ -78,6 +80,7 @@ export default class Herdbook extends HerdbookBase {
     herdName: { persistent: true, authorable: true },
     speciesPath: { persistent: true, authorable: true },
     tally: { persistent: true, authorable: true },
+    foundingMeanAgeDays: { persistent: true, authorable: true },
     holderRef: { persistent: true, authorable: true },
     homeExtent: { persistent: true, authorable: true },
   };
@@ -93,6 +96,16 @@ export default class Herdbook extends HerdbookBase {
 
   /** How many head the herd was founded with. */
   protected tally: number = 0;
+
+  /**
+   * ⭐ How old the founding head were, on average, in game days.
+   *
+   * A venue fact: *"we bought six three-year-old cows"* is a different
+   * herd from six yearlings, and it is the herd's own history rather
+   * than the species'. Ages derive from this plus elapsed game time, so
+   * the herd gets older the way everything else does.
+   */
+  protected foundingMeanAgeDays: number = DEFAULT_FOUNDING_MEAN_AGE_DAYS;
 
   /** Who owns them — a `ParcelOwner`-shaped principal ref. */
   protected holderRef: string = '';
@@ -110,6 +123,12 @@ export default class Herdbook extends HerdbookBase {
   public setSpeciesPath(value: string): void { this.speciesPath = value ?? ''; }
 
   public getTally(): number { return this.tally; }
+
+  public getFoundingMeanAgeDays(): number { return this.foundingMeanAgeDays; }
+  public setFoundingMeanAgeDays(value: number): void {
+    this.foundingMeanAgeDays =
+      Number.isFinite(value) && value > 0 ? value : DEFAULT_FOUNDING_MEAN_AGE_DAYS;
+  }
   public setTally(value: number): void {
     this.tally = Number.isFinite(value) && value > 0 ? Math.floor(value) : 0;
   }
@@ -146,6 +165,7 @@ export default class Herdbook extends HerdbookBase {
       name: this.herdName || this.herdId,
       speciesPath: this.speciesPath,
       tally: this.tally,
+      foundingMeanAgeDays: this.foundingMeanAgeDays,
       holderRef: this.holderRef,
       homeExtent: this.homeExtent,
       founded: this.foundedNow(),

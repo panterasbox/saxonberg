@@ -24,6 +24,8 @@ import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
+import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import type Species from '@saxonberg/server/mud/platform/idea/species/Species';
@@ -32,6 +34,8 @@ import { HeadSeed } from '../../../lib/HeadSeed';
 import type Livestock from '../../../agent/Livestock';
 
 export const RANCHING_TOPIC = 'act.deed';
+
+const SECONDS_PER_GAME_DAY = 86_400;
 
 /** The row a drafted head is minted from. */
 const LIVESTOCK_ROW = '/trade/ranching/agent/livestock';
@@ -116,9 +120,7 @@ export default class DraftController extends CommandController<DraftModel> {
     const sample = HeadSeed.sample(
       {
         herdId: herd.herdId,
-        // The herd's mean age moves with the world clock through each
-        // head's own reconcile; what is seeded is the SPREAD around it.
-        meanAgeDays: 400,
+        meanAgeDays: this.meanAgeOf(herd, index),
         femaleFraction: 0.85,
       },
       index,
@@ -148,6 +150,40 @@ export default class DraftController extends CommandController<DraftModel> {
       );
     }
     return animal;
+  }
+
+  /**
+   * ⭐⭐ **How old this head is, derived — not a number in the code.**
+   *
+   * Every head used to read as a flat 400 days whatever the world clock
+   * said, so a herd founded a game-decade ago still drafted yearlings.
+   * Two branches, and the order is the design:
+   *
+   *  1. **`bornAt`** — this head was born into the record, so its age is
+   *     the time since. ⚠ Nothing writes it yet; it is the seam
+   *     gestation lands on, and it is read FIRST so that when breeding
+   *     arrives a lamb is a lamb with no special case at the draft.
+   *  2. otherwise it is founding stock: the herd's own
+   *     `foundingMeanAgeDays` **plus the game time elapsed since it was
+   *     founded**. The herd gets older the way everything else does.
+   *
+   * ⚠ The SPREAD stays seeded either way — this is the mean the spread
+   * is around, so head 3 is still reliably the older one.
+   */
+  private meanAgeOf(herd: HerdRecord, index: number): number {
+    const nowS = this.nowSeconds();
+    const bornAt = herd.overlay[String(index)]?.bornAt;
+    if (typeof bornAt === 'number' && bornAt > 0) {
+      return Math.max(0, (nowS - bornAt) / SECONDS_PER_GAME_DAY);
+    }
+    const since = Math.max(0, (nowS - herd.founded) / SECONDS_PER_GAME_DAY);
+    return herd.foundingMeanAgeDays + since;
+  }
+
+  /** Game-seconds now, or `0` when there is no world clock yet. */
+  private nowSeconds(): number {
+    if (!StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)) return 0;
+    return WorldClockApi.getNow().rawValue();
   }
 
   /**

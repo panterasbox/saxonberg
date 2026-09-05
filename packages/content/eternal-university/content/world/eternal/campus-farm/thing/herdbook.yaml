@@ -47,6 +47,11 @@ data:
   herdName: the college herd
   speciesPath: /stuff/idea/species/animalia/chordata/mammalia/artiodactyla/bovidae/bos/taurus
   tally: 6
+  # ⭐ Three-year-olds: a college does not buy calves, it buys cows in
+  # milk. Ages DERIVE from this plus the game time since founding, so the
+  # herd gets older the way everything else does — the alternative was a
+  # flat 400 days forever, which is what shipped first.
+  foundingMeanAgeDays: 1100
   # The farm is the university's, so the herd is too — the same office
   # that appoints its labourer.
   holderRef: organization:/stuff/idea/Government/eternal-university
@@ -55,4 +60,4 @@ data:
     numbers:
       keywords: [numbers, columns, entries, hand]
       description: |
-        The numbers run one to six and the columns beside them are mostly blank, because nobody has been keeping it up. Number four is crossed out and rewritten, which means either a mistake or a change of mind about which animal that was, and there is nobody left here to ask.
+        The numbers run one to six and the columns beside them are mostly blank, because nobody has been keeping it up. Number four is crossed out and rewritten, which means either a mistake or a change of mind about which animal that was, and there is nobody left here to ask. Nothing at all is written under CALVED.

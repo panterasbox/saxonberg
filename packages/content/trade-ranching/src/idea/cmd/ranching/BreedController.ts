@@ -7,11 +7,26 @@
  * is real orbital geometry, decides when that happens. Add gestation and
  * the lambs arrive in late winter because that is when they arrive.
  *
- * ⭐ **Breeding without heredity is multiplication**, so the offspring's
- * character is seeded from its **parentage** — the same field trick on a
- * different key. That gives selection real traction and approximately
- * correct response-to-selection, and the shared genome later replaces
- * the seeding function underneath an unchanged surface.
+ * ## ⚠⚠ It writes SERVED. It does not make lambs.
+ *
+ * The first cut incremented the tally the instant you typed the verb,
+ * while telling you *"it will be 145 days"* — so gestation was announced
+ * and not modelled, the offspring were born adult, and the herd was an
+ * unbounded faucet for the length of a season. It also claimed the
+ * offspring's character was *"seeded from its parentage… which gives
+ * selection real traction"*, and that was simply false: the new head was
+ * `hash(herdId#index)` and the parentage was a free-text note nothing
+ * read. Breeding your best ewe and your worst gave statistically
+ * identical lambs.
+ *
+ * ⭐ So this act now does the one true thing: **she is put to the male,
+ * in season, and the book records it.** The herdbook's own ruled columns
+ * are *number, dam, born, served, calved* — this writes the fourth. The
+ * follow-on that owns gestation and heredity turns it into the fifth,
+ * and lands on `bornAt` and `dam`, both of which already exist as seams.
+ *
+ * ⭐⭐ What survives whole is the best idea in the feature: **nobody
+ * authors a lambing date.**
  *
  * ⚠ The refusal names the SEASON, and it names it in daylength rather
  * than in a month, because that is the fact: *"the days are still too
@@ -27,6 +42,8 @@ import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { CelestialApi } from '@saxonberg/server/mud/api/celestial';
+import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
+import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
 import HerdRegistry from '../../HerdRegistry';
 import { RANCHING_TOPIC, HERD_REGISTRY_PATH } from './DraftController';
 import type Livestock from '../../../agent/Livestock';
@@ -84,7 +101,7 @@ export default class BreedController extends CommandController<BreedModel> {
     if (!herdId) {
       this.decline(
         context,
-        Mml.compose`She is not in anybody's herd, so there is nothing to write the lambs into.`,
+        Mml.compose`She is not in anybody's herd, so there is nothing to write it in.`,
         'not-in-herd',
       );
       return;
@@ -96,34 +113,38 @@ export default class BreedController extends CommandController<BreedModel> {
       return;
     }
 
-    // ⭐⭐ The tally grows, and the new head is seeded from the herd's
-    // identity and its new index — so its character is a function of the
-    // flock it came out of, which is heredity's shape even before the
-    // genome exists. `overlay` carries the parentage note so a later
-    // build can replace the seeding function without changing the
-    // surface or losing the pedigree.
-    const firstBorn = herd.tally;
-    const born = Math.max(1, Math.round(spec.litter));
+    // ⚠⚠ **The TALLY DOES NOT MOVE.** Nothing is born here, because
+    // nothing has gestated: what happened is that she was served, and
+    // the only honest record of it is the date.
+    const index = animal.getHeadIndex();
+    const key = String(index);
+    const nowS = this.nowSeconds();
     await registry.update({
       ...herd,
-      tally: herd.tally + born,
       overlay: {
         ...herd.overlay,
-        ...Object.fromEntries(
-          Array.from({ length: born }, (_, i) => [
-            String(firstBorn + i),
-            { note: `out of head ${animal.getHeadIndex()}` },
-          ]),
-        ),
+        [key]: { ...(herd.overlay[key] ?? {}), served: nowS },
       },
     });
 
     MessageApi.scene(giver)
       .topic(RANCHING_TOPIC)
       .toSelf(
-        Mml.compose`She takes. It will be ${spec.gestationDays} days, and the book says ${born > 1 ? `${born} of them` : 'one'} out of number ${animal.getHeadIndex()}.`,
+        // ⚠ It says what it DID. The gestation figure is the species'
+        // and it is worth telling a keeper, but it is framed as the wait
+        // it is rather than as a delivery that has already happened.
+        Mml.compose`She takes. You write number ${index} in the book as served — ${spec.gestationDays} days, if she holds.`,
+      )
+      .toPeers(
+        Mml.compose`${Mml.actor(giver)} puts one of the stock to the male and writes it in the book.`,
       )
       .send();
+  }
+
+  /** Game-seconds now, or `0` when there is no world clock yet. */
+  private nowSeconds(): number {
+    if (!StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)) return 0;
+    return WorldClockApi.getNow().rawValue();
   }
 
   protected async registry(): Promise<HerdRegistry> {

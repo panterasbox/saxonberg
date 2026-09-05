@@ -112,6 +112,7 @@ const HERD: HerdRecord = {
   name: 'the Kestrel flock',
   speciesPath: '/stuff/idea/species/_test/sheep',
   tally: 40,
+  foundingMeanAgeDays: 400,
   holderRef: 'player:/platform/agent/Avatar/iris',
   homeExtent: '/world/test/lot-1',
   founded: 1_000,
@@ -402,5 +403,67 @@ describe('a drafted head is addressable', () => {
     const beast = await StuffApi.create(() => new Livestock());
     beast.setSpecies(loose);
     expect(beast.getSpecies()).toBeNull();
+  });
+});
+
+
+/**
+ * ⚠⚠ **`breed` writes SERVED, and the tally does not move.**
+ *
+ * The first cut incremented the tally the instant the verb was typed
+ * while announcing a gestation of 145 days — so the lambs existed
+ * immediately, were born adult (every head read as a flat 400 days), and
+ * the herd was an unbounded faucet for the length of a season. It also
+ * claimed heredity it did not have: the new head was `hash(herdId#index)`
+ * and the parentage was a note nothing read.
+ *
+ * These tests hold the two facts that keep it honest.
+ */
+describe('breeding is a record, not a birth', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    StuffApi.clearAll();
+    installStore();
+  });
+  afterEach(() => {
+    vi.restoreAllMocks();
+    StuffApi.clearAll();
+  });
+
+  it('⚠⚠ the overlay carries `served`, and the record has no birth to make', async () => {
+    const reg = registry();
+    await reg.file(HERD);
+    const herd = (await reg.read(HERD.herdId))!;
+    const before = herd.tally;
+
+    // What `breed` does, in one write: the fourth ruled column.
+    herd.overlay['3'] = { ...(herd.overlay['3'] ?? {}), served: 12_345 };
+    await reg.update(herd);
+
+    const after = (await reg.read(HERD.herdId))!;
+    expect(after.overlay['3']?.served).toBe(12_345);
+    // ⭐ The tally is untouched. Nothing was born, because nothing has
+    // gestated — that is the follow-on's whole job.
+    expect(after.tally).toBe(before);
+  });
+
+  it('⭐ `bornAt` round-trips — the seam gestation lands on', async () => {
+    const reg = registry();
+    await reg.file(HERD);
+    const herd = (await reg.read(HERD.herdId))!;
+    herd.overlay['7'] = { bornAt: 999_000 };
+    await reg.update(herd);
+    expect((await reg.read(HERD.herdId))!.overlay['7']?.bornAt).toBe(999_000);
+    // ⚠ Nothing WRITES it yet, and that is deliberate. It is read first
+    // by the age derive, so a lamb is a lamb the day breeding writes one.
+  });
+
+  it('⭐⭐ a herd carries what its founding head were, so age can DERIVE', async () => {
+    const reg = registry();
+    await reg.file({ ...HERD, foundingMeanAgeDays: 1100 });
+    expect((await reg.read(HERD.herdId))!.foundingMeanAgeDays).toBe(1100);
+    // A record that predates the field still reads sanely rather than 0.
+    await reg.file({ ...HERD, herdId: 'old-book', foundingMeanAgeDays: 0 });
+    expect((await reg.read('old-book'))!.foundingMeanAgeDays).toBeGreaterThan(0);
   });
 });

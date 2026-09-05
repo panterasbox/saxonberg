@@ -1,7 +1,9 @@
 # Ranching slate (working doc) — livestock, husbandry, and the animal economy
 
 > **Status: conventions + the core loop DECIDED (2026-07-30/31 design sessions);
-> disease, breeding depth, and herd UX still open.** Ranching is the
+> disease DESIGNED; ⭐ breeding BRIEFED (§ Breeding — everything we know,
+> 2026-09-05, after the farmstead build shipped it and it was cut back to
+> honesty); herd UX still open.** Ranching is the
 > **economic** half of owned animals: raising livestock (managed as herds, not
 > befriended as individuals) for renewable products — milk, eggs, wool, meat,
 > hide, draft labor, breeding stock.
@@ -625,6 +627,123 @@ way:
 selection intensity matters so much more when a generation costs seasons. Real,
 computable, and it makes the two halves of the Grange feel like one discipline
 taught at two speeds.
+
+---
+
+## Breeding — everything we know **[the follow-on's brief]**
+
+*(Written 2026-09-05, after the farmstead build shipped `breed` and it was
+cut back to honesty. This section is the design; the shipped surface is
+[ranching.md § Breeding](../../subsystems/ranching.md).)*
+
+### What shipped, and what it is allowed to claim
+
+`breed` **writes SERVED**: she was put to the male, in season, and the
+herdbook records the date. The tally does not move.
+
+⚠⚠ The first cut did more and it was wrong in three ways at once, all of
+which are worth remembering because they are the traps this follow-on
+walks back into:
+
+1. **Gestation was announced and not modelled** — the message said *"it
+   will be 145 days"* and the lambs were in the tally in the same tick.
+2. **Heredity was claimed and absent** — the offspring's character was
+   `hash(herdId#index)`; the parentage was a free-text note nothing read.
+   Breeding the best ewe and the worst gave statistically identical
+   lambs, under a docstring asserting *"selection has real traction"*.
+3. **Offspring were born adult** — every head read a flat 400 days, so a
+   lamb was immediately breedable and the herd was an unbounded faucet
+   for the length of a season.
+
+⭐ **What survived whole is the best idea in the feature, and the
+follow-on must not redesign it:** nobody authors a lambing date. A ewe is
+a short-day breeder, her window is stated in **daylength**, and the
+calendar is real orbital geometry — so lambs arrive in late winter
+because that is when they arrive. The refusal names the daylength, not
+the month: *"the days are still too long, she will not take"* is
+actionable; *"it is not April"* is not.
+
+### ⭐⭐ The two axes, and they are separable
+
+**Time** and **genetics** are different builds' worth of work and they do
+not depend on each other. Either can land first.
+
+#### Axis 1 — time (gestation, birth, the generation interval)
+
+The seams exist and are deliberately unwritten:
+
+| seam | shipped | what breeding does with it |
+|---|---|---|
+| `HeadOverlay.served` | ✅ written by `breed` | the clock starts here |
+| `HeadOverlay.bornAt` | ✅ read, never written | `calved` writes it; a head with one is as old as the time since |
+| `HerdRecord.foundingMeanAgeDays` | ✅ | founding stock ages from here + elapsed |
+| `Species.BreedingSpec.gestationDays` | ✅ authored | the wait |
+
+⭐ The birth itself should be **reconcile-on-read, not an event** — the
+house pattern everywhere else in this build. A herd read after
+`served + gestation` has calved; nobody schedules anything, and a herd
+nobody looks at costs nothing. The tally grows and the new indices carry
+`bornAt`, which the age derive already reads FIRST, so a lamb is a lamb
+at the draft with no special case.
+
+⚠ **Two things the tally cannot express and the follow-on must decide:**
+a birth that failed, and a dam that died carrying. The overlay is the
+place for both (it is already the herd's sparse memory), and *"she did
+not hold"* must be a possible outcome or the season gate is the only
+risk in the whole loop.
+
+⭐⭐ **The generation interval `L` is the payoff**, and it is why this is
+worth building at all: the animal breeder's equation is **`R = h²·S / L`**
+against farming's `R = h²·S`. That single divided term is *why* animal
+breeding is slow, why selection intensity matters more when a generation
+costs seasons, and why the Grange's two halves are one discipline taught
+at two speeds. **A gestation you can feel is what makes `L` legible.**
+
+#### Axis 2 — genetics (heredity, and what selection can actually move)
+
+⚠⚠ **Do not re-do the note-in-the-overlay version.** Parentage that
+nothing reads is worse than no parentage, because it reads as designed.
+
+The shape is already decided elsewhere and this build must consume it,
+not fork it: the **shared genome / reaction-norm layer is
+husbandry-wide** (§ The farming coupling), genes bend the same curves for
+a crop's `GrowthParams` and an animal's vital-profile parameters, and
+**aquaculture is the third consumer with pet breeding a latent fourth**.
+Build it once.
+
+What ranching adds on top:
+
+- **`dam` is the herdbook's second ruled column and it is not written
+  yet.** Parentage belongs on the record, because the record is what a
+  BUYER trusts (D79) — a pedigree the seller can edit is worth nothing.
+- **Heritability `h²` must be per-trait**, or selection is a single
+  slider. Frame and yield are moderately heritable; temperament less so;
+  condition is almost entirely management. That spread *is* the lesson —
+  a keeper who tries to breed their way out of bad feeding should fail.
+- **The seeded head is the floor, not the ceiling.** `HeadSeed` gives
+  every head a stable character from `(herdId, index)`. Heredity replaces
+  the *seeding function* for born heads while founding stock keeps
+  theirs — so a herd has a founding population with variance, which is
+  exactly what selection needs to bite on.
+
+### ⭐ Records are the selection game
+
+Already decided in § The five shared conventions, and breeding is what
+makes it true: **you promote an animal out of the aggregate herd into
+individual identity precisely when you start recording it as a selection
+candidate.** *Identity is earned by being measured.* A keeper who never
+drafts, never handles and never writes anything down cannot select,
+because they do not know which one is the good one — and that is the
+honest reason the herdbook exists rather than a UI for it.
+
+### Scope note
+
+⚠ Breeding is **its own build**. It is not a wave of something else: it
+needs time, it needs genetics, it needs a failure mode, and it touches
+farming and pets through the shared genome. The farmstead build's
+contribution is the season gate, the maturity gate, the record, and four
+named seams — and the discipline of having cut the rest rather than
+shipping a claim.
 
 ---
 
