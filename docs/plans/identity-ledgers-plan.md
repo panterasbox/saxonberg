@@ -481,6 +481,11 @@ assert it).
 **Acceptance:** the five previously-dropped authored traits are live; the
 gate refuses a sixth.
 
+✅ **DONE** (`194d3570`). The gate also catches an **out-of-band valence**
+— the estimator clamps to ±100, so an authored 500 reads as 100 and
+nothing says so. Proved it fails first: a misspelt `trait:dilligence`
+guard and a valence of 700 on Mara both failed, then restored.
+
 ### W1 — accountability keys on identity (#42)
 
 ⚠⚠ **This wave gates W3 and must not be reordered.**
@@ -518,6 +523,35 @@ gate refuses a sixth.
 **Acceptance:** an in-circle harm files under the player's real identity
 **and** derives no blame; `blameFor("")` is unreachable.
 
+✅ **DONE** (`552097f5`). ⚠⚠ **Two grounding corrections, both found by
+writing the test:**
+
+1. **The #42 trace above is STALE.** A `WireBody` is no longer unstamped
+   — `SandboxApi.enter` stamps it `/platform/agent/Avatar/<id>/wire`. So
+   in-circle harm was not pooling under `""`; it filed under the
+   **vessel**, a key no reader ever asks about. Same size, different
+   shape — and the plan's ⚠⚠ claim survives *for a better reason*:
+   `deriveBlame`'s circle filter had never been exercised by a row it
+   could match because no in-circle row was ever keyed on a real
+   identity.
+2. ⭐ **`ConditionApi.die` RETURNED before the ledger write on the circle
+   path**, so an in-circle death wrote no row at all — `sandbox.md`'s
+   PASS(mark) row dropped the one thing it promises to keep. The append
+   is hoisted above the circle branch.
+
+**Five producers, not two**, and five different fallbacks (`?? ''`,
+`?? 'stuff:<id>'`, `?? stuffId`, a bare skip, one already identity-first)
+— CombatLogic, ConditionLogic, MagicLogic, `Hazard`, `Metabolic`.
+
+⭐ **The empty-string sink closes at the APPEND SEAM**, not only at the
+producers: a later producer would reintroduce it otherwise.
+`AccountabilityLogic.record` refuses a terminal row naming no victim,
+loudly. The **actor** fields are deliberately not checked —
+`AccountabilityEvent.NOBODY` is a true claim there.
+
+Fixed in passing: `safeSideOf` keyed a solo side on `?? ''`, so two
+unidentified combatants read as **allies**.
+
 ### W2 — corpse identity (#40's blocker)
 
 1. `mintCorpseFrom` passes `asIdentityPath` — `OuterWarren`'s
@@ -534,6 +568,14 @@ gate refuses a sixth.
 **Acceptance:** two corpses of the same species from the same room have
 different identity paths; a reembodied player's two corpses do too.
 **Unblocks #40.**
+
+✅ **DONE** (`31af33a8`). Scheme as suggested. ⚠ The same-second ordinal
+asks the **registry** whether the key is taken — which is what makes it
+survive a reboot as well as a battle, and is why the test's corpse
+stand-in had to **stamp** the identity rather than swallow it. A mock
+that only records the path tests the wrong branch: the ordinal never
+fires, two corpses look distinct in the test, and they collide in the
+world.
 
 ### W3 — `Extra` / `Cast`
 
@@ -570,6 +612,52 @@ different identity paths; a reembodied player's two corpses do too.
 **Acceptance (behavioural):** killing a sentry shows up as a harm to the
 watch; Odile's act shows up as **both** hers and the Registry's; a wolf's
 mauling attributes to nobody and raises nothing.
+
+✅ **DONE** (`c96af35d`). 33 `Cast` / 6 `Extra` — one more Cast than the
+plan's 32, because the duelist moved (below).
+
+**D10 — the institution chain ships with TWO tiers, and is SYNC.** Tier 3
+(`ParcelApi.ownerOf`) is deferred: it is async and combat appends in the
+*synchronous* prefix deliberately (the coup reads the ledger in the same
+turn as the killing blow); its only input is `_domicileAddress`, authored
+on exactly ONE row in the world (Odile), who is employed so tier 2
+answers first; and two of the three owner kinds would be wrong anyway — a
+wizard `group` and a `player` are not institutions.
+⭐ **Tier 2 was FREE**: `EmployedMixin.getActiveEmployment()` is already
+the person→organization read the plan expected to have to write.
+
+**D11 — `lint:identity` credits only a BUSINESS roster.** The roster tick
+enumerates `mixin.BusinessMixin`, so a plain Organization's
+`rosterSlots:` materializes no Employment record; crediting one would
+make the gate pass while the runtime resolve returned `null`.
+
+**Host: `AffiliatedMixin` sits on `Character`, not on `lib/npc/NPC`.**
+*Every attribution has a person and a party* is true of a player too, and
+an Avatar is neither rung.
+
+**Content — D7b fired on three sentient Extras, exactly as predicted:**
+
+| row | fix |
+|---|---|
+| the sentry | **the Watch of the Last Counted Mile** — a new Organization under the settlement charter the crossroads prose already names |
+| the sellsword | **the Long Road Company**, a free company |
+| the duelist | ⭐ **moved to `Cast`, still nameless.** The rung is *name OR the definite article*, and the board bills him singularly among four wolfshead. Beat inventing an institution that fields an outlaw |
+
+⚠⚠ Both new Organizations needed a `boot:` entry — **the reference-Idea
+trap, fifth firing.** The attribution works without warming (an
+`institution:` is a path string), which is exactly why it would have been
+silent.
+
+**The reader shipped here** (plan item 6): `chronicle` takes an optional
+subject — your own, a person in reach (refused for another *player*), or
+a body of people. ⭐ A single greedy **string** arg, resolved in the
+controller: an organization is an `Idea`, so `scope: reachable` finds
+none of them, and an object arg with `requires: A|B` would have deleted a
+check ([arg-alternation-deletes-a-check]).
+
+⚠ `lint:census` refused the new `institution` field until `refsOf` read
+it — so a **rowless** institution is a build error too. `lint:identity`
+proves the field is present; the census proves it resolves.
 
 ---
 
