@@ -190,7 +190,7 @@ async function cover(
 
   // 4 · Put it down where it was wanted, and turn the gig in. The
   // completion pays the escrow to the carter's employer and announces
-  // `contract.settled`, which is what files the bill of lading — so the
+  // the issuer's `onContractSettled`, which files the bill of lading — so the
   // brain's carriage is on the paper exactly like a counter tender's.
   await carter.forceCommand(`drop ${kw}`);
   await carter.forceCommand(`job complete ${gig.contractId.slice(0, 8)}`);

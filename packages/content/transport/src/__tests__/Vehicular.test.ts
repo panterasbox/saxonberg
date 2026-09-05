@@ -49,10 +49,11 @@ describe('VehicularMixin', () => {
   it('⚠⚠ ALL THREE veto residency eviction — the wagon did not, and that was the drift', () => {
     for (const [label, make] of kinds) {
       const v = makeStuff(make as () => Stuff) as Stuff & {
-        canEvict(c: EvictionContext): { ok: boolean; reason?: string };
+        canEvict(c: EvictionContext): { ok: true } | { ok: false; reason: string };
       };
       const veto = v.canEvict({} as EvictionContext);
       expect(veto.ok, label).toBe(false);
+      if (veto.ok) continue;
       expect(veto.reason, label).toMatch(/capital, not clutter/);
     }
   });

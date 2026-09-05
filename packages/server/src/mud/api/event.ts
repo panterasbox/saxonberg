@@ -392,7 +392,6 @@ export class EventApi {
       // event), exactly as the `Diagnostic` entry above describes. The
       // gate on `ContractLogic.complete` is the real restriction: the
       // event is announced only after money has actually moved.
-      [Events.ContractSettled]: EventApi.emittableBy(),
     };
     return EventApi.#defaultPolicies;
   }

@@ -10,7 +10,11 @@
 # economics of the whole labor market: the carter covers what nobody
 # took, so **a player cannot charge more than the NPC costs and need not
 # accept less**. The market-maker of last resort.
-class: /platform/idea/Business
+# ⭐ Its OWN class, and the only thing it adds is that it files paper:
+# a settled gig it posted means somebody carried something somewhere.
+# See `CarrierBusiness` — ordinary inheritance over the `@hook`, in place
+# of the global bus event this used to need.
+class: /trade/haulage/idea/CarrierBusiness
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   appointingAuthority:

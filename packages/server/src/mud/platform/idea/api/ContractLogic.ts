@@ -25,8 +25,6 @@ import { EmploymentApi } from "../../../api/employment";
 import type { Business as BusinessShape } from "../Business";
 import { ExecutionContextApi } from "../../../api/execution-context";
 import { WorldClockApi } from "../../../api/worldclock";
-import { EventApi } from "../../../api/event";
-import { Events, type ContractSettledEvent } from "../../../lib/events";
 import { PersistApi } from "../../../api/persist";
 import { SecurityApi } from "../../../api/security";
 import { AppApi } from "../../../api/app";
@@ -701,34 +699,35 @@ async function completeImpl(contractId: string): Promise<CompleteResult> {
   await BankingApi.escrowClose(contractId);
 
   /*
-   * ⭐ Announce it. A settled gig is a fact several subsystems want and
-   * none of them is the contract substrate's business — so this says
-   * what happened and names nobody who might care.
+   * ⭐⭐ Tell the ISSUER, and nobody else.
    *
-   * The haulage trade listens, because **a player who claims a haul gig
-   * and delivers it has to file the same bill of lading `ship` at a
-   * counter does.** D16 makes the GIG the dominant carriage path, so
-   * paper filed only by the counter and the NPC brain would leave the
-   * whole freight-reporting spine blind to most freight in the realm,
-   * and *"edge traffic is a count over the paper"* would count only
-   * counter traffic.
+   * A settled gig is a fact some trades act on — haulage files a bill of
+   * lading, because **a player who claims a haul gig and delivers it has
+   * to file the same paper `ship` at a counter does**, and D16 makes the
+   * gig the dominant carriage path. The contract substrate has no
+   * business knowing which trades those are, so it calls a `@hook` on
+   * the business that posted the work and names no trade.
    *
-   * ⚠ Durable keys only: a listener that files paper must not need a
-   * live Stuff, and must not be handed one that has since died.
+   * ⚠⚠ This was a global bus event (`contract.settled`) with exactly one
+   * emitter and one subscriber, and it cost the kernel three pieces of
+   * vocabulary to serve one pack — an `Events` entry, an interface
+   * shaped around that pack's fields, and an `emittableBy()` policy left
+   * OPEN so anything could forge the announcement. The hook is narrower
+   * in every direction and the kernel learns no new nouns.
+   *
+   * ⚠ Fire-and-forget, and it must stay that way: the money has already
+   * moved. A throwing override must not unwind a completed contract.
    */
-  EventApi.emit<ContractSettledEvent>(Events.ContractSettled, {
-    contractId,
-    boardPath: fresh.boardPath,
-    origin: fresh.origin,
-    destination: fresh.clause?.condition.destinationPath ?? "",
-    issuer: fresh.issuer.templatePath,
-    settledBy: key,
-    itemPath:
-      fresh.clause?.condition.item.kind === "template"
-        ? fresh.clause.condition.item.path
-        : "",
-    paidMinor: record.rewardMinor,
-  });
+  const issuerBusiness = StuffApi.findAllByTemplatePath(
+    fresh.issuer.templatePath,
+  )[0];
+  if (issuerBusiness && MixinApi.isBusiness(issuerBusiness)) {
+    void issuerBusiness
+      .onContractSettled(fresh)
+      .catch((err) =>
+        console.error('ContractLogic: onContractSettled failed', err),
+      );
+  }
   return { ok: true, paidMinor: record.rewardMinor };
 }
 

@@ -53,47 +53,9 @@ export const Events = {
   StreamStateChanged: 'stream.stateChanged',
   RelayMessage: 'stream.relayMessage',
   Diagnostic: 'diagnostic.recorded',
-  /**
-   * ⭐ A gig **settled** — the work was turned in, verified and paid.
-   *
-   * Announced rather than acted on, and that is the point: a completed
-   * contract is a fact several subsystems want and none of them is the
-   * contract substrate's business. The haulage trade listens so that
-   * **a player who claims a haul gig and delivers it files the same bill
-   * of lading** `ship` at a counter does — and without it the whole
-   * freight-reporting spine would be blind to the DOMINANT carriage
-   * path, since the gig is where most freight moves.
-   *
-   * ⚠ The kernel names no trade here. It says a contract settled, and
-   * whoever cares subscribes.
-   */
-  ContractSettled: 'contract.settled',
 } as const;
 
 export type EventName = (typeof Events)[keyof typeof Events];
-
-/**
- * {@link Events.ContractSettled} — what a settled gig announces about
- * itself. Durable keys only, so a listener that files paper needs no
- * live Stuff and cannot be handed one that has since been destroyed.
- */
-export interface ContractSettledEvent {
-  contractId: string;
-  /** The board it hung on. */
-  boardPath: string;
-  /** Where the work started, or `''` when the posting named none. */
-  origin: string;
-  /** Where it had to end up — the delivery condition's destination. */
-  destination: string;
-  /** Who posted (and funded) it — a durable player / business path. */
-  issuer: string;
-  /** Who turned it in. */
-  settledBy: string;
-  /** The item the condition named, as a template path (`''` if chattel-bound). */
-  itemPath: string;
-  /** What was paid, in minor units. */
-  paidMinor: number;
-}
 
 /**
  * Payload shape for the four `module.*` lifecycle events emitted by

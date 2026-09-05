@@ -42,8 +42,7 @@
 
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import { PostRegistrationMixin } from '@saxonberg/server/mud/lib/stuff/PostRegistration';
-import { EventApi } from '@saxonberg/server/mud/api/event';
-import { Events, type ContractSettledEvent } from '@saxonberg/server/mud/lib/events';
+import type { ContractRecord } from '@saxonberg/server/mud/lib/employment/ContractRecord';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { DocumentApi } from '@saxonberg/server/mud/api/document';
@@ -151,8 +150,9 @@ export default class WaybillRegistry extends PostRegistrationMixin(Idea) {
    *
    * `ship` at a counter and the `hauls` brain file directly. **A player
    * who claims a haul gig and delivers it** goes through the contract
-   * substrate, which announces `contract.settled` and names no trade —
-   * so this is where the third path joins the other two.
+   * substrate, which calls `onContractSettled` on the ISSUER and names
+   * no trade — `CarrierBusiness` overrides it and calls in here, which
+   * is where the third path joins the other two.
    *
    * ⚠ Without it the reporting spine (D12, D18, AC16, AC16a, AC17) is
    * blind to the DOMINANT carriage path: D16 makes the gig where most
@@ -163,24 +163,50 @@ export default class WaybillRegistry extends PostRegistrationMixin(Idea) {
    * a bounty to fetch something from wherever is not carriage, and a
    * bill with no `from` on it is not a bill.
    */
+  /**
+   * ⚠⚠ There is no subscription here any more, and that is the point.
+   *
+   * This registry used to listen on a global `contract.settled` bus
+   * event so a player's delivered gig filed the same paper `ship` does.
+   * The fact is still needed; the BUS was not. It had one emitter and
+   * one subscriber, and it cost the kernel an `Events` entry, an event
+   * interface shaped around this pack's fields, and an `emittableBy()`
+   * policy left OPEN so anything could forge the announcement.
+   *
+   * ⭐ The substrate now calls `onContractSettled` on **the issuer**,
+   * which for a haul gig is `CarrierBusiness` — ordinary inheritance
+   * over a `@hook`, so only the party that posted the work hears, and a
+   * mistyped override fails to compile instead of silently never
+   * running.
+   */
   public async postRegister(): Promise<void> {
-    EventApi.on<ContractSettledEvent>(Events.ContractSettled, (payload) => {
-      void this.fileForGig(payload);
-    });
+    // Nothing to wire: the carrier calls in.
   }
 
-  /** File the bill a settled haul gig earns. */
-  public async fileForGig(gig: ContractSettledEvent): Promise<void> {
-    if (gig.origin === '' || gig.destination === '') return;
-    const carrier = await this.resolveBusiness(gig.issuer);
+  /**
+   * File the bill a settled haul gig earns. Called by
+   * {@link CarrierBusiness.onContractSettled}.
+   *
+   * ⚠ It files only for gigs that named an ORIGIN and a destination — a
+   * bounty to fetch something from wherever is not carriage, and a bill
+   * with no `from` on it is not a bill.
+   */
+  public async fileForSettledGig(gig: ContractRecord): Promise<void> {
+    const destination = gig.clause?.condition.destinationPath ?? '';
+    const itemPath =
+      gig.clause?.condition.item.kind === 'template'
+        ? gig.clause.condition.item.path
+        : '';
+    if (gig.origin === '' || destination === '') return;
+    const carrier = await this.resolveBusiness(gig.issuer.templatePath);
     if (!carrier) return;
     await this.file(carrier, {
-      what: leafOf(gig.itemPath) || 'a consignment',
-      goodsPath: gig.itemPath,
+      what: leafOf(itemPath) || 'a consignment',
+      goodsPath: itemPath,
       howMuch: '1',
       from: gig.origin,
-      to: gig.destination,
-      shipper: gig.issuer,
+      to: destination,
+      shipper: gig.issuer.templatePath,
       declaredValueMinor: 0,
       // ⚠ The legs are the ONE thing a gig cannot know: nobody recorded
       // which way the carrier went, and inventing a route would put a

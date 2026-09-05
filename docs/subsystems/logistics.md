@@ -95,6 +95,14 @@ still worth making. The ROW was a mistake:
 that are not walkable exits* — moved to the **Ferrow tramway**, where it
 is load-bearing: a tram sits on the rails and a player can travel them.
 
+🔬 **Also logged, not done:** stop filing a bill for a settled gig at all
+and DERIVE freight-from-gigs on read, the way this codebase derives
+almost everything else. It would delete a whole write path. ⚠ The cost is
+the coverage property: a bill is path-keyed under the filing business's
+own branch, so *private books do not aggregate* — and a settled contract
+lives in a global collection instead. That is a data-model change and it
+wants its own conversation.
+
 🔬 **Logged, not done:** *derive* a TPA lane from the terminals' own
 `routes:` over the `TravelNode` shape, so the network has one record and
 `journey`-over-the-Line becomes coherent if it is ever wanted. That is a
@@ -287,7 +295,12 @@ new condition template, no vocabulary edit, no engine seam.
 ⚠⚠ **It is filed by the CARRIAGE, not by the verb.** `ship` at a
 counter, the `hauls` brain, and **a player who claimed a gig and
 delivered it** all file the same paper — the third through the
-`contract.settled` bus event, which names no trade. D16 makes the gig the
+issuer's `onContractSettled` `@hook`, which names no trade. ⭐ It was a
+global `contract.settled` bus event with one emitter and one subscriber,
+which cost the kernel an `Events` entry, an interface shaped around this
+pack's fields, and an `emittableBy()` policy left OPEN so anything could
+forge the announcement; the substrate now tells **the issuer and nobody
+else**, and `CarrierBusiness` overrides. D16 makes the gig the
 dominant path, so paper filed only by the first two would leave the whole
 reporting spine blind to most freight in the realm.
 
