@@ -371,6 +371,47 @@ depot.
 
 ## The labor market
 
+### ⭐⭐ Which verb moves a thing? Four answers, and they are different markets
+
+| you want | verb | the market it is |
+|---|---|---|
+| to take it yourself | `journey to <stop>` | no market — your time, your rig, your risk |
+| a carrier to take it, for a posted tariff | `ship <goods> to <place>` | a **freight company**: you hand over custody, get a bill of lading, and pay the rate on the board |
+| *anyone* to take it, for a price you set | `job post deliver … for <n>` | a **spot market**: escrow up front, first to satisfy it is paid |
+| *anyone* to bring you N of something | `job post supply <n> <kind> … for <n>` | the same spot market, denominated in QUANTITY |
+| somebody in a seat, ongoing | `appoint <who> to <position> at <org>` | **employment** — a wage, a roster, a chart |
+
+⚠ `job` and `appoint` are the pair most often confused, and the names
+point the wrong way: *"job"* sounds like employment and *"appoint"*
+sounds ceremonial. It is the reverse — `appoint` fills a seat, `job`
+posts piecework.
+
+### The condition vocabulary is CLOSED, and that is the wall
+
+A gig may only be posted if its condition is a member of
+`CONDITION_TEMPLATES` — today `delivery` and `supply`. The rule is not
+tidiness: **escrow holds real money from the moment the gig goes up**, so
+completion must be checkable by the engine at turn-in with nobody
+adjudicating. *"Bring me ten iron ore"* is checkable. *"Guard my shop"*
+and *"be nice to Mara"* are not, and are refused rather than
+half-supported.
+
+⭐⭐ **`supply` is why there is no extraction template**, and the
+reasoning generalises. *"Go mine ten iron ore"* looks like a condition
+about mining; it is not. Verifying that YOU mined it needs provenance on
+every lump — expensive — and it is bad economics besides, because it
+would forbid filling the contract by **buying**, which is a legitimate
+way to fill one and the thing that makes a spot market liquid. **How you
+sourced it is your business.** Mining, salvage, purchase and hoarding
+collapse into one predicate the engine can count.
+
+⭐ The condition is a **phrase**, not a flag and not a subcommand:
+`post`/`claim`/`complete`/`abandon` are what you are DOING, the phrase is
+what the work IS — two axes, two slots. A third template adds a phrase
+form and changes nothing else. It is also what retired `--kind`: one
+grammar was doing two jobs and needed a flag to say which, and now
+`deliver <that crate>` and `supply 1 <kind>` are two sentences.
+
 ⭐⭐ **The build's second purpose, and the pattern every NPC-run sector
 will reuse.** Hauling has no skill floor, universal demand, and is
 perfectly parcelable — so it is the first labor market that can be

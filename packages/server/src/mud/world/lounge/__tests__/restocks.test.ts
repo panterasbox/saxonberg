@@ -335,18 +335,18 @@ describe("the keeper's back loop — Mara orders Dave's Bar's rail in, and recei
         // — parsed the way the binder would, then straight onto the real
         // controller with the BOARD as the command source (it affords the
         // verb to its peers, so that is exactly how a typed line arrives).
-        const m = /^job post (\S+) to (\S+) for (\d+)(.*)$/.exec(text);
+        // `job post <condition phrase> for <n> [flags]` — the phrase is
+        // greedy up to `for`, exactly as the binder hands it over.
+        const m = /^job post (.+?) for (\d+)(.*)$/.exec(text);
         expect(m, `unparsed: ${text}`).not.toBeNull();
-        const [, named, destination, reward, flags] = m!;
+        const [, condition, reward, flags] = m!;
         const c = ctx(who, here, board, text);
         await asPrincipal(who, () =>
           makeStuff(() => new JobController()).execute(
             {
               subcommand: 'post',
-              item: named,
-              destination,
+              condition,
               reward,
-              kind: flags!.includes('--kind'),
               bounty: flags!.includes('--bounty'),
               business: flags!.includes('--business'),
               ...(/--from (\S+)/.exec(flags!)
@@ -419,7 +419,7 @@ describe("the keeper's back loop — Mara orders Dave's Bar's rail in, and recei
 
     expect(lines).toEqual([
       'wallet use house',
-      `job post gin to ${BENCH} for ${REWARD} --kind --bounty --business --from ${CASH_AND_CARRY}`,
+      `job post supply 1 gin to ${BENCH} for ${REWARD} --bounty --business --from ${CASH_AND_CARRY}`,
     ]);
     expect(posted).toEqual([]);
     expect(mara.getContainer()).toBe(bar);
@@ -478,8 +478,8 @@ describe("the keeper's back loop — Mara orders Dave's Bar's rail in, and recei
 
     expect(lines).toEqual([
       'wallet use house',
-      `job post /trade/distilling/thing/gin to ${BENCH} for ${REWARD} ` +
-        `--bounty --business --from ${CASH_AND_CARRY}`,
+      `job post supply 2 /trade/distilling/thing/gin to ${BENCH} ` +
+        `for ${REWARD} --bounty --business --from ${CASH_AND_CARRY}`,
     ]);
     expect(posted).toEqual([]);
     const open = await gigs();
@@ -543,7 +543,7 @@ describe("the keeper's back loop — Mara orders Dave's Bar's rail in, and recei
     // visible rather than swallowed.
     expect(lines).toEqual([
       'wallet use house',
-      `job post gin to ${BENCH} for ${REWARD} --kind --bounty --business --from ${CASH_AND_CARRY}`,
+      `job post supply 1 gin to ${BENCH} for ${REWARD} --bounty --business --from ${CASH_AND_CARRY}`,
     ]);
     expect(posted).toEqual(['contract-refused']);
     expect(await gigs()).toHaveLength(0);

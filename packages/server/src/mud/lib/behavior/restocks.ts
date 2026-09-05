@@ -340,9 +340,29 @@ async function order(
         await keeper.forceCommand('wallet use house');
         traded = true;
       }
+      /*
+       * ⭐⭐ ONE gig per short line, for the QUANTITY the line is short.
+       *
+       * It used to post one single-item bounty per line — twelve of them
+       * a beat, twelve escrows — because a contract could not say "six
+       * litres of gin": the par sheet is denominated in quantities and
+       * the condition vocabulary had only `delivery`, which is one of
+       * something. `supply` is that missing sentence, and the keeper is
+       * the reason it exists.
+       *
+       * ⚠ The shortfall is in the LINE's unit (litres, kilos, count) and
+       * a gig counts DISCRETE things, so this asks for whole units of
+       * the exemplar kind and rounds up — under-ordering leaves the rail
+       * short for another whole beat, and one bottle spare is cheaper
+       * than that.
+       */
+      const wanted = Math.max(
+        1,
+        Math.ceil(line.shortfall / unitsPer(line, onHand)),
+      );
       await keeper.forceCommand(
-        `job post ${naming} to ${opts.benchPath} for ${opts.reward} ` +
-          `${onHand ? '--kind ' : ''}--bounty --business --from ${fromPath}`,
+        `job post supply ${wanted} ${naming} to ${opts.benchPath} ` +
+          `for ${opts.reward} --bounty --business --from ${fromPath}`,
       );
       pending.add(kind);
       budget -= 1;
@@ -404,6 +424,28 @@ async function unpackBench(
     taken.push(item);
   }
   return taken;
+}
+
+/**
+ * How much of a line ONE of `exemplar` covers, in the line's own unit —
+ * so a shortfall of 6 litres becomes 8 bottles of 0.75 L.
+ *
+ * ⚠ With NO exemplar (the cold rail, which is every line on a fresh
+ * realm) the size is unknowable without cloning one, so it orders by the
+ * line's unit and lets the next beat correct. Over-ordering by a bottle
+ * costs a bottle; under-ordering costs a whole beat with the rail still
+ * short.
+ */
+function unitsPer(line: StockSheetLine, exemplar: Stuff | null): number {
+  if (line.line.unit === 'count') return 1;
+  if (!exemplar || !MixinApi.isBulkable(exemplar)) return 1;
+  if (!exemplar.hasInteriorBulk()) return 1;
+  const litres = exemplar.getBulkAmount('interior').rawValue();
+  if (litres <= 0) return 1;
+  if (line.line.unit === 'L') return litres;
+  const density =
+    exemplar.getBulkMaterial('interior')?.getDensity().rawValue() ?? 1000;
+  return (litres / 1000) * density;
 }
 
 /**

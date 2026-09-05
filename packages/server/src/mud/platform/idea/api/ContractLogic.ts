@@ -169,6 +169,59 @@ async function resolveDestination(path: string): Promise<Stuff | null> {
  * delivered) plus, for a Surfaced fixture, the items resting on it. Each
  * candidate is confirmed with the authoritative `Condition.holdsFor`.
  */
+/**
+ * How many delivered matching items are at `dest` — the `supply` tally.
+ *
+ * ⭐ The same walk as {@link findDeliveredItemAt}, counting instead of
+ * short-circuiting. It is a separate function rather than a flag because
+ * the two questions differ in cost: delivery stops at the first hit and
+ * supply cannot.
+ *
+ * ⚠ `Globbable` goods are refused by `matchesItem`, so this counts
+ * DISCRETE things — ten lumps of ore, not a merged stack of ten. That is
+ * the same identity rule crates exist for, and it is why a supply gig
+ * for something fungible is unpostable rather than unverifiable.
+ */
+function countDeliveredItemsAt(
+  dest: Stuff,
+  condition: ConditionData,
+  depth = 0,
+): number {
+  let found = 0;
+  if (MixinApi.isSurfaced(dest)) {
+    for (const item of dest.getResting()) {
+      if (
+        Condition.matchesItem(condition, item) &&
+        Condition.holdsFor(condition, item)
+      ) {
+        found += 1;
+      }
+    }
+  }
+  if (depth > MAX_SEARCH_DEPTH || !MixinApi.isContainer(dest)) return found;
+  for (const item of dest.getContents()) {
+    if (item instanceof Creature) continue;
+    if (
+      Condition.matchesItem(condition, item) &&
+      Condition.holdsFor(condition, item)
+    ) {
+      found += 1;
+    }
+    found += countDeliveredItemsAt(item, condition, depth + 1);
+  }
+  return found;
+}
+
+/** Whether the condition is satisfied at `dest` — one, or a tally. */
+function conditionHoldsAt(dest: Stuff, condition: ConditionData): boolean {
+  if (condition.template === 'supply') {
+    return (
+      countDeliveredItemsAt(dest, condition) >= Condition.countOf(condition)
+    );
+  }
+  return findDeliveredItemAt(dest, condition) !== null;
+}
+
 function findDeliveredItemAt(
   dest: Stuff,
   condition: ConditionData,
@@ -438,7 +491,7 @@ async function postImpl(spec: GigSpec): Promise<PostGigResult> {
   }
 
   // A pre-satisfied gig is degenerate — the work is already done.
-  if (findDeliveredItemAt(dest, spec.condition)) {
+  if (conditionHoldsAt(dest, spec.condition)) {
     return { ok: false, reason: "that condition already holds" };
   }
 
@@ -605,7 +658,7 @@ async function fulfillImpl(contractId: string): Promise<FulfillResult> {
   }
   // The engine checks NOW (strict possession included) — the player
   // petitions, the state decides.
-  if (!findDeliveredItemAt(dest, condition)) {
+  if (!conditionHoldsAt(dest, condition)) {
     return { ok: false, reason: "the delivery isn't done" };
   }
   // The engine-sealed proof-of-delivery: no money, no state transition.
@@ -634,7 +687,7 @@ async function completeImpl(contractId: string): Promise<CompleteResult> {
   // row whose actor is the completer (the payout survives state drift).
   let verified = false;
   const dest = await resolveDestination(condition.destinationPath);
-  if (dest && findDeliveredItemAt(dest, condition)) verified = true;
+  if (dest && conditionHoldsAt(dest, condition)) verified = true;
   if (!verified && (await hasValidFulfilledRow(record, key))) verified = true;
   if (!verified) return { ok: false, reason: "the delivery isn't done" };
 

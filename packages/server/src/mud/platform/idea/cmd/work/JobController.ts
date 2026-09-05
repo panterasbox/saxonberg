@@ -35,28 +35,17 @@ const SHORT_ID_LEN = 8;
 
 interface JobModel extends CommandModel {
   /**
-   * `post`: what to deliver — a reachable thing by name, or a KIND by
-   * its path when you have none of it to point at (the `destination`
-   * rule, and for the same reason).
+   * `post`: the condition PHRASE — `deliver <thing> to <place>` or
+   * `supply <n> <kind> to <place>`. Greedy up to `for`, parsed here
+   * against the closed template vocabulary.
    */
-  item?: string;
-  /** `post`: the destination (name reachable-first, else a path). */
-  destination?: string;
+  condition?: string;
   /** `post`: the reward, minor units (a string arg; coerced here). */
   reward?: string;
   /** `post`: where the work STARTS (name reachable-first, else a path). */
   from?: string;
   bounty?: boolean;
   business?: boolean;
-  /**
-   * ⭐ `post --kind`: bind the gig to the exemplar's KIND, not to the
-   * exemplar. A marked item is instance-bound by default (deliver THIS
-   * crate), which is the right reading when you are pointing at your own
-   * goods — and the wrong one when you are pointing at a bottle on your
-   * own shelf to say what you want more of.
-   */
-  kind?: boolean;
-
   expires?: number;
   /**
    * ⭐ browse: list gigs whose ORIGIN is here rather than what hangs on
@@ -145,6 +134,136 @@ export default class JobController extends CommandController<JobModel> {
   }
 
   /**
+   * Parse the condition PHRASE into an engine-verifiable condition.
+   *
+   * ```
+   * deliver <thing> to <place>        → { delivery, item, destination }
+   * supply <n> <kind> to <place>      → { supply, item, destination, count }
+   * ```
+   *
+   * ⭐⭐ The condition is a phrase rather than a flag or a subcommand
+   * because it is **what the work IS**, while `post`/`claim`/`complete`/
+   * `abandon` are what you are DOING about it — two axes, two slots. A
+   * third template adds a form here and changes nothing else.
+   *
+   * ⚠ This is also what retired `--kind`. One grammar was doing two
+   * jobs, so a flag had to say which; now `supply 10 gin` is obviously a
+   * kind and `deliver <that crate>` is obviously an instance, and the
+   * flag has nothing left to disambiguate.
+   */
+  private parseCondition(
+    raw: string,
+    context: CommandContext,
+  ):
+    | {
+        template: "delivery" | "supply";
+        itemRef: ConditionData["item"];
+        destinationPath: string;
+        count: number;
+      }
+    | { error: string; reason: string } {
+    const words = raw.trim().split(/\s+/).filter(Boolean);
+    const verb = (words.shift() ?? "").toLowerCase();
+    if (verb !== "deliver" && verb !== "supply") {
+      return {
+        error:
+          `Post what? Say what has to be true — ` +
+          `\`deliver <thing> to <place>\` or ` +
+          `\`supply <n> <kind> to <place>\`.`,
+        reason: "no-condition",
+      };
+    }
+    // The destination is everything after `to`; the subject is what is
+    // left in front of it.
+    const at = words.findIndex((w) => w.toLowerCase() === "to");
+    if (at < 0 || at === 0 || at === words.length - 1) {
+      return {
+        error: `Deliver it WHERE? Name a place after \`to\`.`,
+        reason: "no-destination",
+      };
+    }
+    const subject = words.slice(0, at);
+    const destinationPath = this.place(words.slice(at + 1).join(" "), context);
+    if (destinationPath.length === 0) {
+      return {
+        error: `Nobody here has heard of that place.`,
+        reason: "unknown-destination",
+      };
+    }
+
+    if (verb === "supply") {
+      const count = Number(subject.shift());
+      if (!Number.isInteger(count) || count < 1) {
+        return {
+          error: `Supply how many? \`supply 10 iron-ore to <place>\`.`,
+          reason: "no-count",
+        };
+      }
+      const kind = this.kindOf(subject.join(" "), context);
+      if (kind.length === 0) {
+        return { error: `There is no such thing.`, reason: "no-item" };
+      }
+      return {
+        template: "supply",
+        itemRef: { kind: "template", path: kind },
+        destinationPath,
+        count,
+      };
+    }
+
+    // `deliver` — point at it. A MARKED thing means THAT one; anything
+    // else means its kind.
+    const rawItem = subject.join(" ");
+    const item =
+      MqlApi.resolveMany(rawItem, {
+        commandGiver: context.commandGiver,
+        scope: "reachable",
+      }).stuff[0] ?? null;
+    if (!item) {
+      const kind = this.kindOf(rawItem, context);
+      if (kind.length === 0) {
+        return {
+          error: `There's no '${rawItem}' here to post about.`,
+          reason: "no-item",
+        };
+      }
+      return {
+        template: "delivery",
+        itemRef: { kind: "template", path: kind },
+        destinationPath,
+        count: 1,
+      };
+    }
+    const chattelId = MixinApi.isChattel(item) ? item.getChattelId() : "";
+    return {
+      template: "delivery",
+      itemRef: chattelId
+        ? { kind: "chattel", chattelId }
+        : { kind: "template", path: item.getTemplatePath() ?? "" },
+      destinationPath,
+      count: 1,
+    };
+  }
+
+  /**
+   * A KIND, as a durable path: something reachable resolves to its
+   * template, and anything else is read as a path. ⚠ `ContractApi.post`
+   * re-validates that the kind is really something — a gig for a kind
+   * that is nothing would hold its escrow forever.
+   */
+  private kindOf(raw: string, context: CommandContext): string {
+    const trimmed = raw.trim();
+    if (trimmed.length === 0) return "";
+    const hit = MqlApi.resolveMany(trimmed, {
+      commandGiver: context.commandGiver,
+      scope: "reachable",
+    }).stuff[0];
+    const path = hit?.getTemplatePath() ?? "";
+    if (path.length > 0) return path;
+    return trimmed.startsWith("/") ? trimmed : "";
+  }
+
+  /**
    * A place the player named, as a durable path — ⭐ the ONE ladder, on
    * `AddressApi`. It used to be a private copy here that knew only
    * `here`, reachable and a path; `ship` grew a second, different copy,
@@ -187,59 +306,29 @@ export default class JobController extends CommandController<JobModel> {
     context: CommandContext,
     board: JobBoard,
   ): Promise<void> {
-    const rawItem = (model.item ?? "").trim();
-    if (!rawItem) {
-      return this.fail(context, "Post about what?", "no-item");
+    const parsed = this.parseCondition(model.condition ?? "", context);
+    if ("error" in parsed) {
+      return this.fail(context, parsed.error, parsed.reason);
     }
-    // Reachable first, exactly as `destination` resolves: what you can
-    // point at is what you meant. Failing that, the string IS the kind.
-    const item =
-      MqlApi.resolveMany(rawItem, {
-        commandGiver: context.commandGiver,
-        scope: "reachable",
-      }).stuff[0] ?? null;
+    const { itemRef, destinationPath, template, count } = parsed;
     const reward = Number(model.reward);
 
-    // Instance-bound when the exemplar carries a chattel id (deliver THIS
-    // crate); else kind-bound on its template. ⚠ `--kind` forces the
-    // kind reading: the `restocks` keeper points at a bottle already on
-    // her rail to say what is short, and every such bottle is marked
-    // (she bought it) — so without the flag the order would read
-    // "deliver the bottle you are looking at", which is nobody's work.
-    //
-    // ⭐ `--of` skips the exemplar entirely and names the kind. It has
-    // to be a kind that EXISTS, or the gig could never be satisfied and
-    // the escrow would sit until somebody abandoned it.
-    // ⚠ Whether the named kind EXISTS is `ContractApi.post`'s to say, not
-    // this controller's — a gig for a kind nothing can ever be would sit
-    // holding its escrow forever, and that must be refused however the
-    // Api is called.
-    let itemRef: ConditionData["item"];
-    if (!item) {
-      itemRef = { kind: "template", path: rawItem };
-    } else {
-      const chattelId =
-        model.kind !== true && MixinApi.isChattel(item)
-          ? item.getChattelId()
-          : "";
-      itemRef = chattelId
-        ? { kind: "chattel", chattelId }
-        : { kind: "template", path: item.getTemplatePath() ?? "" };
-    }
-
-    // Destination: a reachable thing by name first, else treat the string
-    // as a template path — ContractApi re-validates either way.
-    const raw = (model.destination ?? "").trim();
-    const destinationPath = this.place(raw, context);
-
-    // Where the work starts. Omitted ⇒ ContractApi derives it from the
+    // Where the work STARTS. Omitted ⇒ ContractApi derives it from the
     // poster's own environment, which is right for an NPC posting from
     // its floor and for a player posting at the board they stand at.
     const fromRaw = (model.from ?? "").trim();
 
     const result = await ContractApi.post({
       boardPath: board.getTemplatePath() ?? "",
-      condition: { template: "delivery", item: itemRef, destinationPath },
+      condition: {
+        template,
+        item: itemRef,
+        destinationPath,
+        // ⚠ Always on a supply, even at 1: `validate` requires it, and
+        // omitting it "because 1 is the default" made `supply 1` — the
+        // one-of-a-kind case that replaced `--kind` — refuse itself.
+        ...(template === "supply" ? { count } : {}),
+      },
       rewardMinor: reward,
       claimMode: model.bounty ? "open-bounty" : "exclusive",
       asBusiness: model.business === true,

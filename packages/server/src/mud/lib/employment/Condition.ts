@@ -29,8 +29,29 @@ import { MixinApi } from "../../api/mixin";
 import { Creature } from "../creature/Creature";
 import type { Stuff } from "../stuff/Stuff";
 
-/** The closed, engine-verifiable condition-template vocabulary (v1). */
-export const CONDITION_TEMPLATES = ["delivery"] as const;
+/**
+ * The closed, engine-verifiable condition-template vocabulary.
+ *
+ * | | what must be true at turn-in |
+ * |---|---|
+ * | `delivery` | **this** thing (or one of this kind) is at the destination |
+ * | `supply` | **`count` of this kind** are at the destination |
+ *
+ * ⭐⭐ `supply` is the quantity contract, and it is why *"go mine ten
+ * iron ore"* needs no extraction template. Requiring that YOU mined it
+ * would mean provenance on every lump — expensive to verify, and bad
+ * economics besides: it would forbid filling a supply contract by
+ * BUYING, which is a legitimate way to fill one and the thing that makes
+ * a spot market liquid. **How you sourced it is your business.** Mining,
+ * salvage, purchase and hoarding all collapse into one predicate the
+ * engine can simply count.
+ *
+ * ⚠ Every member must be checkable by the engine at turn-in with no
+ * human adjudicating, because escrow holds real money. That is the wall
+ * fuzzier intents ("guard my shop", "be nice to Mara") sit behind, and
+ * it is the reason this list is closed rather than authored.
+ */
+export const CONDITION_TEMPLATES = ["delivery", "supply"] as const;
 
 export type ConditionTemplate = (typeof CONDITION_TEMPLATES)[number];
 
@@ -46,6 +67,11 @@ export interface ConditionData {
   item: ConditionItemRef;
   /** The destination's durable `templatePath` (a Container/Surfaced). */
   destinationPath: string;
+  /**
+   * `supply` only: how many must arrive. Absent (or 1) for `delivery`,
+   * which is the one-of-something case.
+   */
+  count?: number;
 }
 
 /** How deep the upward ancestor walk goes (a chest inside a room is 2). */
@@ -73,7 +99,24 @@ export class Condition {
       return "item must be template- or chattel-bound";
     }
     if (!d.destinationPath) return "condition needs a destinationPath";
+    if (d.template === "supply") {
+      const n = d.count;
+      if (typeof n !== "number" || !Number.isInteger(n) || n < 1) {
+        return "a supply condition needs a whole count of at least 1";
+      }
+      // ⚠ A supply gig is kind-bound by construction: "ten of THIS one"
+      // is not a thing anybody can mean, and a chattel id names exactly
+      // one object.
+      if (item.kind !== "template") {
+        return "a supply condition counts a KIND, not one marked item";
+      }
+    }
     return null;
+  }
+
+  /** How many the condition asks for — 1 unless it is a counted supply. */
+  public static countOf(data: ConditionData): number {
+    return data.template === "supply" ? Math.max(1, data.count ?? 1) : 1;
   }
 
   /**

@@ -68,6 +68,7 @@ const DEST = "/world/test/bar";
 const CRATE = "/obj/test/crate";
 const POSTER = "/platform/agent/Avatar/poster";
 const COURIER = "/platform/agent/Avatar/courier";
+const MARKED_CRATE = "/obj/test/marked-crate";
 
 let sent: string[];
 
@@ -166,8 +167,7 @@ describe("work verbs", () => {
       job().execute(
         {
           subcommand: "post",
-          item: "crate",
-          destination: DEST,
+          condition: `deliver crate to ${DEST}`,
           reward: 25,
           ...extra,
         } as never,
@@ -206,35 +206,69 @@ describe("work verbs", () => {
   });
 
   it("⭐ a MARKED exemplar binds the gig to that instance — deliver THIS crate", async () => {
-    const marked = makeStuffAtPath(() => new MarkedCrate(), "/obj/test/marked-crate");
+    const marked = makeStuffAtPath(() => new MarkedCrate(), MARKED_CRATE);
     marked.setKeywords(["marked"]);
     ContainmentApi.move(marked as never, room);
     await asGiver(poster, () => marked.stampChattel(poster));
-    const id = await postGig({ item: "marked" });
+    const id = await postGig({ condition: `deliver marked to ${DEST}` });
     const record = await ContractApi.contractById(id);
     expect(record?.clause?.condition.item.kind).toBe("chattel");
   });
 
-  it("⭐⭐ `--kind` reads the SAME exemplar as a kind — any one of these will do", async () => {
+  it("⭐⭐ ONE of a kind is `supply 1` — `deliver` always means THAT one", async () => {
     /*
-     * ⚠⚠ The flag exists because of a real defect. The `restocks` keeper
-     * points at a bottle already on her own rail to say what the bar is
-     * short of — and every bottle a bar owns is marked, because the bar
-     * bought it. Without `--kind` the order read "deliver the bottle you
-     * are looking at", which is nobody's work, and the bar never
-     * restocked. Pointing at a thing is how you name a kind when you
-     * have no other way to name one.
+     * ⭐ This is what retired `--kind`. One grammar was doing two jobs,
+     * so a flag had to say which; now the two readings have two
+     * sentences. `deliver` points — and a marked thing is somebody's, so
+     * pointing at it means THAT one. `supply n` counts a kind, and one
+     * of a kind is just `supply 1`.
      */
-    const marked = makeStuffAtPath(() => new MarkedCrate(), "/obj/test/marked-crate");
-    marked.setKeywords(["marked"]);
+    const marked = makeStuffAtPath(() => new MarkedCrate(), MARKED_CRATE);
     ContainmentApi.move(marked as never, room);
     await asGiver(poster, () => marked.stampChattel(poster));
-    const id = await postGig({ item: "marked", kind: true });
-    const record = await ContractApi.contractById(id);
+
+    const kindBound = await postGig({
+      condition: `supply 1 ${MARKED_CRATE} to ${DEST}`,
+    });
+    const record = await ContractApi.contractById(kindBound);
     expect(record?.clause?.condition.item).toEqual({
       kind: "template",
-      path: "/obj/test/marked-crate",
+      path: MARKED_CRATE,
     });
+    expect(record?.clause?.condition.template).toBe("supply");
+  });
+
+  it("⭐⭐⭐ `supply n` counts — n must ARRIVE before it settles", async () => {
+    const id = await postGig({
+      condition: `supply 3 ${CRATE} to ${DEST}`,
+      bounty: true,
+    });
+    const record = await ContractApi.contractById(id);
+    expect(record?.clause?.condition.count).toBe(3);
+
+    // Two is not three: the turn-in is refused while the tally is short.
+    for (let i = 0; i < 2; i++) {
+      const c = makeStuffAtPath(() => new TestCrate(), CRATE);
+      c.setKeywords(["crate"]);
+      ContainmentApi.move(c as never, dest);
+    }
+    const short = ctx(courier);
+    await asGiver(courier, () =>
+      job().execute({ subcommand: "complete", id: id.slice(0, 8) } as never, short),
+    );
+    expect(short.note).toHaveBeenCalledWith(
+      expect.objectContaining({ reason: "contract-refused" }),
+    );
+
+    // The third arrives and it settles.
+    const third = makeStuffAtPath(() => new TestCrate(), CRATE);
+    third.setKeywords(["crate"]);
+    ContainmentApi.move(third as never, dest);
+    const done = ctx(courier);
+    await asGiver(courier, () =>
+      job().execute({ subcommand: "complete", id: id.slice(0, 8) } as never, done),
+    );
+    expect(done.note).not.toHaveBeenCalled();
   });
 
   it("⭐⭐ a KIND'S PATH orders what you have none of to point at", async () => {
@@ -249,9 +283,8 @@ describe("work verbs", () => {
       job().execute(
         {
           subcommand: "post",
-          destination: DEST,
+          condition: `deliver ${CRATE} to ${DEST}`,
           reward: 25,
-          item: CRATE,
           bounty: true,
         } as never,
         c,
@@ -288,9 +321,8 @@ describe("work verbs", () => {
       job().execute(
         {
           subcommand: "post",
-          destination: DEST,
+          condition: `deliver ${CRATE} to ${DEST}`,
           reward: 25,
-          item: CRATE,
           bounty: true,
         } as never,
         c,
@@ -310,9 +342,8 @@ describe("work verbs", () => {
       job().execute(
         {
           subcommand: "post",
-          destination: DEST,
+          condition: `deliver /obj/test/no-such-thing to ${DEST}`,
           reward: 25,
-          item: "/obj/test/no-such-thing",
           bounty: true,
         } as never,
         c,

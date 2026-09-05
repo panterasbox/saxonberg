@@ -6,12 +6,13 @@ help: |
   is locked when the gig goes up, so the stakes are real. Bare `job` (or
   `jobs`) lists what's open on this board.
 
-  Post work with `job post <item> to <destination> for <reward>` — a
-  delivery gig, funded from your own account (or your business's with
-  `--business`). Add `--bounty` for an open bounty anyone can turn in
-  (the reward escrows immediately); otherwise the gig is exclusive — one
-  courier claims it and the escrow locks at claim. A claim lapses back
-  to open if it sits too long, so squatting can't block a board.
+  Post work with `job post <what has to be true> for <reward>` — either
+  `deliver <thing> to <place>` or `supply <n> <kind> to <place>` — funded
+  from your own account (or your business's with `--business`). Add
+  `--bounty` for an open bounty anyone can turn in (the reward escrows
+  immediately); otherwise the gig is exclusive — one courier claims it
+  and the escrow locks at claim. A claim lapses back to open if it sits
+  too long, so squatting can't block a board.
 
   `job claim <id>` takes an exclusive gig; `job complete [id]` turns work
   in at the board — the engine checks the state of the world right then
@@ -34,44 +35,48 @@ options:
     description: "List work starting HERE (or at a named place) — the backhaul."
 subcommands:
   post:
-    description: "Post a delivery gig, reward held in escrow"
+    description: "Post a piece of work, reward held in escrow"
     help: |
-      Post a gig to this board: name the item, the destination with `to`,
-      and the reward with `for`. Delivery is the v1 shape — the engine
-      verifies the drop itself, so only verifiable work can be posted.
+      Post work to this board. The shape is always **what has to be true,
+      then what you will pay**:
 
-      You name ONE item, and by default that exact item is what has to
-      arrive — right when the thing is yours and already marked. Add
-      `--kind` when any one of the same sort will do: a bar restocking
-      its rail wants *a* bottle of gin, not the bottle it is pointing at.
+        job post deliver <thing> to <place> for <reward>
+        job post supply <n> <kind> to <place> for <reward>
 
-      ⭐ And when you have NONE of it to point at — which is the usual
-      case for the thing you most want delivered — name the kind itself
-      by its path. A bar that has run dry orders gin precisely because
-      there is no gin here to point at, and a kind named that way is
-      always kind-bound.
+      ⭐ `deliver` is one named thing arriving somewhere — point at it,
+      and if it is marked as yours the gig means THAT one. `supply` is a
+      quantity of a KIND arriving somewhere, and how the courier sourced
+      it is their business: mined, salvaged, bought or dug out of a
+      cupboard all count. That is deliberate — a supply contract you
+      could only fill by mining would have no market in it.
+
+      ⚠ Only work the engine can CHECK can be posted, because the reward
+      is real money held in escrow from the moment it goes up. "Deliver
+      this" and "bring me ten of these" are checkable; "guard my shop"
+      and "be nice to Mara" are not, and are refused rather than
+      half-supported.
+
+      Name a place by the name it is known by — a town or district — or
+      point at something you can reach.
     examples:
-      - cmd: job post crate to the bar for 25
-        note: Post an exclusive delivery gig, 25 credits on completion
-      - cmd: job post crate to the depot for 30 --from the brewing floor
+      - cmd: job post deliver crate to the bar for 25
+        note: One named thing, one destination
+      - cmd: job post supply 10 iron-ore to the smelter for 200
+        note: Ten of a kind — however the courier comes by them
+      - cmd: job post supply 6 gin to the bench for 30 --bounty --business
+        note: A bar ordering its rail in, funded by the house
+      - cmd: job post deliver crate to the depot for 30 --from the brewing floor
         note: Name where the goods are collected, so a hauler can find the backhaul
-      - cmd: job post gin to the bench for 24 --kind --bounty --business
-        note: Any bottle of gin will do — the exemplar just says which kind
-      - cmd: job post /trade/distilling/thing/gin to the bench for 24
-        note: Nothing here to point at — name the kind and order it anyway
     args:
-      # ⚠ A STRING, not an object — the `destination` precedent two args
-      # down, and for the same reason: what you name may not be here.
-      # The controller resolves it reachable-first and falls back to
-      # reading it as a kind's path, which is the only way to order the
-      # thing you have run out of.
-      - name: item
+      # ⚠ The condition is a PHRASE, greedy up to `for`, parsed by the
+      # controller against the closed template vocabulary. It is not a
+      # flag and not a subcommand: `post` is the lifecycle axis (beside
+      # `claim`/`complete`/`abandon`) and the condition is what the work
+      # IS. A third template adds a phrase form here and nothing else.
+      - name: condition
         type: string
         required: true
-      - name: destination
-        type: string
-        required: true
-        prepositions: [to]
+        greedy: true
       # A string, coerced in the controller (the tip/pay amount precedent
       # — positional args don't coerce type:number).
       - name: reward
@@ -86,10 +91,6 @@ subcommands:
       business:
         type: boolean
         description: "Post as your business (escrow from its account)."
-      kind:
-        short: k
-        type: boolean
-        description: "Any item of this KIND, not this exact one."
       from:
         short: f
         type: string
