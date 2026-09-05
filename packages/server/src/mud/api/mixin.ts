@@ -79,7 +79,6 @@ import type { Tangible } from '../lib/material/Tangible';
 import type { Constructed } from '../lib/material/Constructed';
 import type { Dyed } from '../lib/material/Dyed';
 import type { Organism } from '../lib/species/Organism';
-import type { Sexed } from '../lib/character/Sexed';
 import type { Vitals } from '../lib/vitals/Vitals';
 import type { Postmortem } from '../lib/mortality/Postmortem';
 import type { Incorporeal } from '../lib/mortality/Incorporeal';
@@ -985,9 +984,6 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.Organism);
   }
 
-  public static isSexed(obj: Stuff): obj is Stuff & Sexed {
-    return this.hasMixin(obj, Mixins.Sexed);
-  }
 
   public static isVitals(obj: Stuff): obj is Stuff & Vitals {
     return this.hasMixin(obj, Mixins.Vitals);

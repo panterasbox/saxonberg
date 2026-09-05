@@ -245,7 +245,6 @@ export const Mixins = {
   Perception: 'PerceptionMixin',
   Tangible: 'TangibleMixin',
   Organism: 'OrganismMixin',
-  Sexed: 'SexedMixin',
   Vitals: 'VitalsMixin',
   // What a body does after it stops: the decay clock, the forensic
   // readability curve, and the eviction veto that keeps a corpse in the

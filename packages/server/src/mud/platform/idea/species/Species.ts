@@ -154,7 +154,7 @@ export default class Species extends SingletonMixin(
   /**
    * `'xy'`, `'zw'`, `'environmental'`, `'haplodiploid'`,
    * `'hermaphroditic-simultaneous'`, `'hermaphroditic-sequential'`,
-   * `'dioecious'`, `'monoecious'`, `'none'`. `SexedMixin` (Item 7)
+   * `'dioecious'`, `'monoecious'`, `'none'`. `OrganismMixin`'s sex surface
    * looks up the valid sex set from this field.
    */
   protected sexDeterminationSystem: string = '';

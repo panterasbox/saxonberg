@@ -39,7 +39,6 @@ import { Agent } from '../stuff/Agent';
 import { PropertiedMixin } from '../stuff/Propertied';
 import { NamedMixin } from '../description/Named';
 import { OrganismMixin } from '../species/Organism';
-import { SexedMixin } from '../character/Sexed';
 import { SlottedMixin } from '../slot/Slotted';
 import { BodyPlanSlotsMixin } from '../slot/BodyPlanSlots';
 import { PosedMixin } from '../character/Posed';
@@ -134,7 +133,6 @@ const CreatureBase = PostmortemMixin(
                         SlottableMixin(
                         BodyPlanSlotsMixin(
                           SlottedMixin(
-                            SexedMixin(
                               OrganismMixin(
                                 NamedMixin(PropertiedMixin(Agent))
                               )
@@ -154,7 +152,7 @@ const CreatureBase = PostmortemMixin(
     )
   )
   )
-  )
+  
 );
 
 /**

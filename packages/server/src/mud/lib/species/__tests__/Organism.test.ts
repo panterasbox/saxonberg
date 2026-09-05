@@ -56,7 +56,7 @@ describe('OrganismMixin', () => {
     expect(organism.getLifecycleState()).toBe('alive');
   });
 
-  it('getSex returns null when SexedMixin is not composed', () => {
+  it('getSex returns null until a sex is set', () => {
     const organism = makeStuff(() => new OrganismThing());
     expect(organism.getSex()).toBeNull();
   });
