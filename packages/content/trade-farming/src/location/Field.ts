@@ -77,12 +77,9 @@ import { ImprovableMixin } from '../lib/Improvable';
 import { SwardMixin } from '../lib/Sward';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import { StuffApi } from '@saxonberg/server/mud/api/stuff';
-import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { BiomeApi } from '@saxonberg/server/mud/api/biome';
 import { AddressApi } from '@saxonberg/server/mud/api/address';
 import { CelestialApi } from '@saxonberg/server/mud/api/celestial';
-import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
@@ -103,24 +100,6 @@ import GroundCharacter, {
  * what stops it being a balance dial pretending to be physics.
  */
 const LITRES_PER_M2_LOAM = 45;
-
-/**
- * Square metres of rough ground behind one handful of forage.
- *
- * ⭐ Deliberately poor: wild forage is **immediate, zero-capital and
- * low-yield per acre**, and farming is the opposite on all three. A
- * 400 m² field fully wild carries eight handfuls; the same ground under a
- * crop is worth many times that, and it takes a season and a spade.
- */
-const M2_PER_HANDFUL = 50;
-
-/** Handfuls that grow back per GAME day (D89 — never an unqualified day). */
-const HANDFULS_REGROWN_PER_GAME_DAY = 1.5;
-
-/** The row rough ground yields when its own table is unauthored. */
-const DEFAULT_FORAGE_ROW = '/trade/farming/thing/wild-greens';
-
-const SECONDS_PER_GAME_DAY = 86_400;
 
 /**
  * Percentage points of organic matter a kilogram of eaten dry matter
@@ -196,9 +175,6 @@ export default class Field extends FieldBase {
     groundSpotY: { persistent: true, authorable: true },
     areaM2: { persistent: true, authorable: true },
     legumeFraction: { persistent: true, authorable: true },
-    forageRows: { persistent: true, authorable: true },
-    forageTaken: { persistent: true },
-    forageStamp: { persistent: true },
     _ambientK: { persistent: true, runtimeState: true },
     _daylightFraction: { persistent: true, runtimeState: true },
   };
@@ -242,81 +218,6 @@ export default class Field extends FieldBase {
     this.legumeFraction = value < 0 ? 0 : value > 1 ? 1 : value;
   }
 
-  /**
-   * ⭐ **The forage TABLE, authored** (D61) — *authors write the table,
-   * the world computes the stock*, which is `discovery-slate`'s model
-   * consumed rather than redesigned. Empty falls back to the shipped
-   * generic, so unauthored rough ground still pays something.
-   */
-  public forageRows: string[] = [];
-
-  /** Handfuls taken since the stock last stood full. */
-  public forageTaken = 0;
-
-  /** Game-seconds stamp of the last forage regrowth; `0` = never. */
-  public forageStamp = 0;
-
-  public getForageRows(): string[] {
-    return this.forageRows.length > 0 ? this.forageRows : [DEFAULT_FORAGE_ROW];
-  }
-
-  public setForageRows(value: string[]): void {
-    this.forageRows = Array.isArray(value) ? value : [];
-  }
-
-  /**
-   * How many handfuls this ground has standing, right now.
-   *
-   * ⚠ **Derive-on-read, so unvisited ground costs nothing** — the
-   * slate's rule, and the reason a world of rough ground is free. The
-   * ceiling is `wildness × area`, so **the forage declines as you
-   * clear**: the neolithic transition, in one expression.
-   */
-  public forageAvailable(wildness: number): number {
-    this.regrowForage();
-    const ceiling = (wildness * this.areaM2) / M2_PER_HANDFUL;
-    return Math.max(0, ceiling - this.forageTaken);
-  }
-
-  /** Take `n` handfuls; returns how many were actually there. */
-  public takeForage(n: number): number {
-    if (!Number.isFinite(n) || n <= 0) return 0;
-    this.regrowForage();
-    this.forageTaken += n;
-    return n;
-  }
-
-  /**
-   * Let what was taken grow back, over elapsed game-time.
-   *
-   * ⭐ **Depletion is a choice, not a tragedy** (the slate's rule): a
-   * picked-over hedge comes back, so over-gathering costs you today and
-   * nothing next month. The regrowth is absolute rather than
-   * proportional, so ground picked to nothing recovers at the same rate
-   * as ground barely touched — which is what a hedgerow does.
-   */
-  private regrowForage(): void {
-    const nowS = this.forageNow();
-    if (nowS === null) return;
-    if (this.forageStamp === 0) {
-      this.forageStamp = nowS;
-      return;
-    }
-    const elapsed = nowS - this.forageStamp;
-    if (elapsed <= 0) {
-      this.forageStamp = nowS;
-      return;
-    }
-    const days = elapsed / SECONDS_PER_GAME_DAY;
-    this.forageTaken = Math.max(0, this.forageTaken - days * HANDFULS_REGROWN_PER_GAME_DAY);
-    this.forageStamp = nowS;
-  }
-
-  /** Game-seconds now, or null when no world clock (pre-boot / tests). */
-  private forageNow(): number | null {
-    if (!StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)) return null;
-    return WorldClockApi.getNow().rawValue();
-  }
 
   public getFieldName(): string { return this.fieldName; }
   public setFieldName(value: string): void { this.fieldName = value; }

@@ -28,12 +28,16 @@
  *
  * ## ⚠⚠ The key is `sward`, and NOT `forage`
  *
- * Two different things share the English word and they land one wave
- * apart. What a *person* gathers off rough ground is **forage** (D61,
- * `Field.forageAvailable`); the standing grass a *cow* eats is the
+ * Two different things share the English word. What a *person* gathers
+ * off rough ground is **forage**; the standing grass a *cow* eats is the
  * **sward**, which is the word the design uses throughout — *sward
  * height*, *the residual*, *the sward*. Different stock, different
  * mechanism, different consumer.
+ *
+ * ⚠ Forage is **not in this build** — D61 shipped half a system and was
+ * cut. The distinction is recorded here anyway, because the follow-on
+ * that builds foraging will land beside this key and the first question
+ * it has to answer is *why is this not the sward*.
  *
  * ## ⭐ Residual and recovery — the one genuinely new mechanic (D9)
  *

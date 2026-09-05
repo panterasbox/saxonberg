@@ -267,12 +267,12 @@ that the real sizing call would then find present and skip.
 
 ---
 
-## The plot lifecycle (D54–D61)
+## The plot lifecycle (D54–D60)
 
 > **ground → claim → clear → treat → establish → maintain → *revert*.**
 
-`plot` is step two. Four acts, all real words for real jobs: **`grub`**
-(thorn, root and stone), **`ditch`**, **`lime`**, **`forage`**. Terracing
+`plot` is step two. Three acts, all real words for real jobs: **`grub`**
+(thorn, root and stone), **`ditch`**, **`lime`**. Terracing
 is priced and has no verb: steep ground simply costs more to grub and
 never comes fully into heart, which is honest — most steep ground never
 was terraced either.
@@ -285,10 +285,24 @@ was terraced either.
   trade. ⚠ Burnt lime is a **stated seam**: `lime` asks for the `liming`
   TAG, never for a row, so a kiln's output works the day somebody ships
   one and nothing today references a row that does not exist.
-- ⭐⭐ **`forage` is D61 and it cost one expression**: wildness is
-  `1 − clearing progress`, so *the forage declines as you clear* — the
-  neolithic transition as a cashflow decision. A reverted farm is
-  forageable again for free.
+> ### ⚠⚠ D61 (`forage`) is CUT
+>
+> Rough ground was to be forageable, with the forage declining as you
+> cleared it — *the neolithic transition as a cashflow decision*. It was
+> a late requirements addendum that borrowed its design wholesale from
+> [discovery-slate](../slates/builds/discovery-slate.md), and what
+> shipped was one verb reachable **only on ground you had already
+> plotted**, drawing on a table no row authored, yielding one item
+> nothing consumed. The decision it was supposed to dramatise — gather or
+> clear — barely existed, because there was no unclaimed wilderness to
+> gather from.
+>
+> **A system half-built is worse than a system absent: it reads as
+> designed.** So the verb, its view, its controller, `wild-greens` and
+> `Improvable.wildness()` are gone, and foraging is a follow-on that owns
+> the whole thing — wilderness included. Clearing is pure cost again,
+> which is what clearing a thicket is.
+
 - ⭐ **It goes back** (D58), and the ordering is the lesson: scrub
   returns fastest, drains silt up over years, lime leaches slowest. A
   derelict farm reads as *wild again* long before *sour again*. ⚠ No
@@ -318,6 +332,8 @@ player derives rather than a rule they are told.
 
 ⚠⚠ The key is **`sward`, not `forage`**. What a *person* gathers off
 rough ground is forage; the standing grass a *cow* eats is the sward.
+Forage is **not in this build** — see below — and the distinction is
+recorded because the follow-on will land beside this key.
 
 ### ⭐ Residual and recovery (D9)
 

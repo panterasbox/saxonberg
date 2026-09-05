@@ -15,6 +15,17 @@
  *     drains silt up later and the lime leaches last — which is what
  *     walking onto an abandoned farm actually looks like, and what puts
  *     derelict holdings in the world as buyable places.
+ *
+ * ⚠⚠ **D61's `forage` is CUT and is not coming back through the side
+ * door.** Foraging was a late requirements addendum that borrowed its
+ * design wholesale from `discovery-slate` and then shipped one verb
+ * reachable only on ground you had already plotted, yielding one item
+ * nothing consumed. A system half-built is worse than a system absent —
+ * it reads as designed. `wildness()` went with it, because `1 − clearing
+ * progress` had exactly one consumer and no meaning without one.
+ *
+ * The affordance test asserts `forage` is ABSENT deliberately: this is
+ * the file that would notice it creeping back before anybody drove it.
  */
 
 import '@saxonberg/server/test-bootstrap';
@@ -130,22 +141,14 @@ describe('the improvement axis', () => {
     for (const p of seen) expect(p).not.toMatch(/\d/);
   });
 
-  it('⭐ wildness is the complement of clearing — D61 falls out for free', () => {
-    const b = bill();
-    const g = make();
-    expect(g.wildness(b)).toBe(1);
-    g.bankWork('clearing', (b.clearing + b.stonePicking) / 2, b);
-    expect(g.wildness(b)).toBeCloseTo(0.5, 2);
-    work(g, 'clearing', b);
-    expect(g.wildness(b)).toBe(0);
-  });
-
   it('the ground affords its own acts — a static on the class, not a row', () => {
     // ⚠ A row's `commandContributions:` is dead silently.
     const verbs = CommandApi.collectContributions(TestGround, 'self')
       .map((d) => d.verbs)
       .flat();
-    for (const v of ['grub', 'ditch', 'lime', 'forage']) expect(verbs).toContain(v);
+    for (const v of ['grub', 'ditch', 'lime']) expect(verbs).toContain(v);
+    // ⚠ `forage` is deliberately NOT here — see the note on this file.
+    expect(verbs).not.toContain('forage');
   });
 });
 
@@ -192,13 +195,16 @@ describe('⭐⭐ it goes back (D58)', () => {
     expect(g.progressOn('draining', b)).toBeLessThan(g.progressOn('liming', b));
   });
 
-  it('⭐ reverted ground is FORAGEABLE again — the derelict farm’s second life', () => {
+  it('⭐ reverted ground is ROUGH again — the derelict farm’s second life', () => {
+    // Clearing undone is the whole of why buying a derelict holding
+    // cheap works: the ground you paid nothing for is a thicket again,
+    // and grubbing it is a bill somebody has to pay a second time.
     const b = bill();
     const g = make();
     work(g, 'clearing', b);
-    expect(g.wildness(b)).toBe(0);
+    expect(g.progressOn('clearing', b)).toBe(1);
     advance(400);
-    expect(g.wildness(b)).toBeGreaterThan(0.5);
+    expect(g.progressOn('clearing', b)).toBeLessThan(0.5);
   });
 
   it('⚠ reversion has NO far-past guard — land reverts over the whole absence', () => {

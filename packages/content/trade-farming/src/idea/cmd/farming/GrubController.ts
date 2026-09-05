@@ -23,10 +23,13 @@
  * player who wants to sweeten a sour field digs it out of a sweet one and
  * carries it, which is exactly what marling was.
  *
- * ⚠ **Clearing spends the forage** (D61). Wildness is `1 − clearing
- * progress`, so every act of grubbing makes this ground pay a little less
- * to gather from. *The neolithic transition, expressed as a cashflow
- * decision* — and nothing narrates it, because the numbers do.
+ * ⚠ Clearing used to SPEND something (D61: rough ground was forageable,
+ * and grubbing it out made it pay less to gather from). That half is
+ * **cut** — foraging shipped as one verb reachable only on ground you
+ * had already plotted, yielding one item nothing consumed, and a system
+ * half-built reads as designed. Grubbing is pure cost again until the
+ * follow-on builds foraging properly, which is honest: it is what
+ * clearing a thicket is.
  */
 
 import { FieldWorkController, FIELD_TOPIC, LABOUR_PER_ACT } from './FieldWorkController';

@@ -241,12 +241,16 @@ Key **`sward`**, theme `cultivation`. Grown by the soil reconcile
 **Residual and recovery (D9) is a floor on the reserve below which the regrowth
 *rate* is penalised until it rebuilds** — not a second stock.
 
-⚠⚠ **NOT keyed `forage`, and the reason matters.** D61's reclamation income is
-**wild foraging** — `discovery-slate`'s gathering stock, a *derived* field over
-ground nobody has cleared — and it lands in **W4, one wave before this one**. Two
-different things share the English word, in adjacent waves. The standing grass is
-the **sward** (which is the word the design already uses throughout: *sward
-height*, *residual*, *the sward*), and `forage` stays the gathering sense.
+⚠⚠ **NOT keyed `forage`, and the reason matters.** Two different things share
+the English word: **wild foraging** is `discovery-slate`'s gathering stock, a
+*derived* field over ground nobody has cleared, while the standing grass a cow
+eats is the **sward** — which is the word the design already uses throughout
+(*sward height*, *residual*, *the sward*). `forage` stays the gathering sense.
+
+⚠ D61 tried to ship that gathering sense in W4 and **was cut after review** (see
+W4). The naming discipline survives it intact, and is worth more now than it was:
+the follow-on that builds foraging properly will land beside this key, and the
+first question it has to answer is *why is this not the sward*.
 
 ⚠ **And it is not "the third reserve".** By **D16** the soil carries **four**
 derived reserves — `moisture`, `nitrogen` (shipped) plus **`organicMatter` and
@@ -515,17 +519,29 @@ a field on agricultural ground you hold, walk to it through its gate (AC 1).
 
 ### W4 — Reclamation: clear, treat, improve, revert
 
-D54–D61. The improvement axis (P2's class gains it), clearing, the stone→wall
-closure, reversion when unmaintained, **D106's disposability check**, and
-**wild forage as the reclamation income** (D61 — consuming `discovery-slate`'s
-model, not redesigning it; ⚠ this is gathering, *not* W5's `sward` reserve). **Green:** newly
-plotted ground is **not plantable**; two plots of different character demand
-measurably different work; leaving a field alone takes it back (AC 21, 22, 28).
+D54–D60. The improvement axis (P2's class gains it), clearing, the stone→wall
+closure, reversion when unmaintained, and **D106's disposability check**.
+**Green:** newly plotted ground is **not plantable**; two plots of different
+character demand measurably different work; leaving a field alone takes it back
+(AC 21, 22, 28).
+
+> ⚠⚠ **D61 (`forage`) was built and then CUT**, after review, once it was
+> looked at rather than read about. It shipped as one verb reachable **only on
+> ground you had already plotted**, drawing on a table no row authored, yielding
+> one item nothing consumed — so the decision it existed to dramatise (gather or
+> clear) was not actually available to anybody. It also borrowed its whole design
+> from `discovery-slate` and owned none of it.
+>
+> **A system half-built is worse than a system absent: it reads as designed.**
+> The verb, its view, its controller row, `wild-greens` and
+> `Improvable.wildness()` are removed. Foraging is a follow-on that owns the
+> whole thing, wilderness included — and it should start from
+> `discovery-slate`, not from here.
 
 ### W5 — The sward and the derived land uses
 
-P5, D7–D9. Standing biomass on the **`sward`** reserve ⚠ (*not* `forage` — that
-word is W4's wild gathering; see P5), growth, grazing draw by occupants, cutting hay,
+P5, D7–D9. Standing biomass on the **`sward`** reserve ⚠ (*not* `forage` — a
+different thing sharing the English word, and now a follow-on; see P5), growth, grazing draw by occupants, cutting hay,
 residual and recovery. **No `use` field anywhere.** **Green:** graze below
 residual and recovery measurably slows; hay cut and carried leaves the field
 poorer than grazing it did (AC 5).

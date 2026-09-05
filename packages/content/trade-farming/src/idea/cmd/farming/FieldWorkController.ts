@@ -1,6 +1,6 @@
 /**
  * FieldWorkController — the shared base for the reclamation acts
- * (`grub`, `ditch`, `lime`) and for `forage`.
+ * (`grub`, `ditch`, `lime`).
  *
  * It holds exactly what they share: **standing in a field**, resolving
  * that field's seeded character and the improvement bill it implies, and

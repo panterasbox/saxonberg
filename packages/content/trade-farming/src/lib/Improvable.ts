@@ -162,12 +162,6 @@ export interface Improvable {
    * bad crop, which is a lesson. You cannot sow a thicket.
    */
   isPlantable(cost: ImprovementCost): boolean;
-  /**
-   * ⭐ **D61 — wilderness is forageable, and clearing spends it.** `1`
-   * on untouched ground, falling to `0` as it is grubbed out. *The
-   * neolithic transition, expressed as a cashflow decision.*
-   */
-  wildness(cost: ImprovementCost): number;
   /** Reconcile reversion over elapsed game-time. Sync, read-triggered. */
   reconcileImprovement(): void;
 }
@@ -181,10 +175,10 @@ export function ImprovableMixin<TBase extends MixinConstructor<Stuff>>(Base: TBa
      * the only thing that makes them exist.**
      *
      * ⚠ A row's `commandContributions:` is dead silently — the affordance
-     * is a STATIC ON A CLASS. Without this block `grub`, `ditch`, `lime`
-     * and `forage` parse as nothing at all: *"I don't understand
-     * 'grub'."* Two builds in this repo shipped exactly that failure and
-     * only found it by driving the world.
+     * is a STATIC ON A CLASS. Without this block `grub`, `ditch` and
+     * `lime` parse as nothing at all: *"I don't understand 'grub'."* Two
+     * builds in this repo shipped exactly that failure and only found it
+     * by driving the world.
      *
      * `self` and `inventory` rather than `peers`: these acts belong to
      * the ground you are STANDING IN. Walking into a field lights them
@@ -201,14 +195,12 @@ export function ImprovableMixin<TBase extends MixinConstructor<Stuff>>(Base: TBa
         'trade/farming/cmd/farming/grub.yaml',
         'trade/farming/cmd/farming/ditch.yaml',
         'trade/farming/cmd/farming/lime.yaml',
-        'trade/farming/cmd/farming/forage.yaml',
         'trade/farming/cmd/farming/plough.yaml',
       ],
       inventory: [
         'trade/farming/cmd/farming/grub.yaml',
         'trade/farming/cmd/farming/ditch.yaml',
         'trade/farming/cmd/farming/lime.yaml',
-        'trade/farming/cmd/farming/forage.yaml',
         'trade/farming/cmd/farming/plough.yaml',
       ],
     };
@@ -293,10 +285,6 @@ export function ImprovableMixin<TBase extends MixinConstructor<Stuff>>(Base: TBa
 
     public isPlantable(cost: ImprovementCost): boolean {
       return this.progressOn('clearing', cost) >= 1;
-    }
-
-    public wildness(cost: ImprovementCost): number {
-      return 1 - this.progressOn('clearing', cost);
     }
 
     /**
