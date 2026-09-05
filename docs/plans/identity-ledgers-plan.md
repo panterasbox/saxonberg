@@ -652,12 +652,23 @@ ship today):
 | **brewing** | Tamsin Roke, the brewer's hand | **0721**, beside `fermenting`/`distilling` |
 | **winemaking** | Ilse Marrow, the vintner's hand | **0721**, same |
 
-⚠ **Brewing and winemaking need a judgment call, not a reflex.** Both
-anchor to the *same* code as the shipped `fermenting`. Either they are
-specializations worth naming (there is precedent — `distilling` is already
-split out at 0721) or `fermenting` covers them and two hands simply
-practise it. **Decide once, apply to both**; splitting one and not the
-other is the outcome to avoid.
+✅ **Brewing and winemaking are SPECIALIZATIONS — decided 2026-09-04**,
+under the standing preference now recorded in
+[advancement.md](../subsystems/advancement.md) § *Prefer specializations*:
+**split when the sim already tells the practices apart.** Three trade
+packs, three floors, three profiles, three sets of verbs — the game
+distinguishes them completely, so the register should too. Both
+`specializes: [fermenting]`.
+
+⚠ **Sharing an ISCED-F code does not argue against the split.**
+`distilling` already sits at 0721 beside `fermenting`. A shared code means
+the same *field*; it does not mean the same *practice*. The anchor answers
+*"is this a field of study at all?"* — the divergence test answers *"is it
+its own branch?"*
+
+⭐ And the same preference applies to the rest of this wave: **let a branch
+diverge the moment the game earns it** rather than waiting for the
+full Discipline-tree pass, which is planned and is nobody's build yet.
 
 ✅ **Checked (2026-09-04) — `colliery`'s anchor is CORRECT, and the
 suspicion was wrong.** This world's collier is unambiguously the

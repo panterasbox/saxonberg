@@ -70,6 +70,44 @@ warming a `Map<key, DisciplineDescriptor>` in `postRegister` from
 this increment. Unlike `TopicCatalogue` there is no derived fallback: a
 Discipline either exists in the canon or it does not.
 
+### ⭐⭐ Prefer SPECIALIZATIONS — the standing preference (2026-09-04)
+
+> **User: "in general I want a lot of specializations — more than we've
+> been building up to this point … let things diverge when the game allows
+> for it."**
+
+The catalog is a *"field of study/practice **at any grain**"*, and
+`specializes` already runs four deep (`mixology` → `bartending` →
+`catering` → `services`). The tree is built for depth; it has simply not
+been used that way. **The default is now to split, not to lump.**
+
+⭐ **The test is "when the game allows for it" — and that is checkable:**
+
+> **Specialize when the SIM already tells the two practices apart.** A
+> different verb, a different instrument, a different failure mode, a
+> different trade pack. If the world already distinguishes them, the
+> register of learnable crafts should say so too.
+
+Worked both ways:
+
+- **Brewing / winemaking / distilling** — three trade packs, three floors,
+  three profiles, three sets of verbs. The game distinguishes them
+  completely, so they are **three Disciplines**, not one `fermenting`.
+  (`distilling` was already split out; the other two follow.)
+- **A pantry hand vs a bottling hand** — same brain, same act, no
+  mechanical difference. **Not** Disciplines. Those are *positions*, and
+  positions live on a Business roster.
+
+⚠ **The ISCED-F anchor does not gate the split** — `distilling`,
+`fermenting`, brewing and winemaking all sit at **0721**. Sharing a code
+means they are the same *field*; it does not mean they are the same
+*practice*. The anchor answers *"is this a field of study at all?"*; this
+test answers *"is it its own branch?"* Two questions, both worth asking.
+
+⚠ A full pass over every Discipline tree in the game is planned and is not
+any one build's — until then, **let a branch diverge the moment the game
+earns it** rather than waiting for the pass.
+
 ## Transcript — a sibling store, not a chronicle realm
 
 `TranscriptEntry` (`lib/advancement/TranscriptEntry.ts`) is a plain
