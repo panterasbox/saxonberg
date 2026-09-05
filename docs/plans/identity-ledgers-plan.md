@@ -659,14 +659,25 @@ split out at 0721) or `fermenting` covers them and two hands simply
 practise it. **Decide once, apply to both**; splitting one and not the
 other is the outcome to avoid.
 
-⚠⚠ **And one to verify rather than assume:** `colliery` is anchored at
-**0722** (*Materials — glass, paper, plastic and wood*), while mining and
-extraction is **0724**. If this world's collier is the charcoal-burner
-(which `trade-fuel`'s `char` verb suggests) then 0722 is defensible and
-mining is a genuinely separate gap. If the collier is a coal miner, the
-anchor is simply wrong. ⭐ **A wrong ISCED-F code is exactly the silent
-error the anchor exists to prevent**, so check it before adding a sibling
-next to it.
+✅ **Checked (2026-09-04) — `colliery`'s anchor is CORRECT, and the
+suspicion was wrong.** This world's collier is unambiguously the
+charcoal-burner: keywords `[collier, burner]`, *"listens to the clamp"*,
+a bar for opening vents, and her own line — *"Too much air and you get
+ash. Too little and you get firewood."* The Discipline says it plainly
+(*"Charring wood. Stacking a clamp, sealing it, and holding the
+draught"*), and the row writes the code's meaning inline:
+`iscedf: "0722"  # materials (glass, paper, plastic and wood)`.
+
+⭐ **Which sharpens the mining gap instead of dissolving it.** The collier
+chars **wood**; the hewer and onsetter cut **rock**. Genuinely different
+fields, correctly different codes — `colliery` (0722) and `mining` (0724)
+are siblings, not duplicates. Add mining beside it with confidence.
+
+⭐⭐ **And treat the catalogue as more careful than it looks.** Every
+anchor checked so far is deliberate, several carry their meaning as an
+inline comment, and the one that looked wrong was right. A new Discipline
+should meet that standard — the code named, its meaning written beside
+it — rather than assuming the existing rows are loose.
 
 **3. ⭐⭐ Spread the bands, or the reading means nothing.** The vocabulary
 is `untrained · novice · competent · proficient · expert`. If every
