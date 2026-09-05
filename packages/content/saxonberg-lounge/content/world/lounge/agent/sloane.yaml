@@ -24,6 +24,18 @@ data:
     - { disposition: composure, valence: 70 }
     - { disposition: honesty, valence: -70 }
     - { disposition: compassion, valence: 70 }
+  # ── the dossier ─────────────────────────────────────────────────
+  # Evidence, never values: each entry below expands into the same rows a
+  # lived history would have written, marked `claim`. Seeded once at
+  # postRegister and skipped if any claim already exists, so a reclone or
+  # a reboot cannot mint a second history.
+  # ⚠ A best-guess pass, explicitly provisional — the considered version
+  # is a content pass of its own before go-live.
+  archetype: barkeep
+  competence:
+    - { discipline: bartending, asserting: competent }
+    - { discipline: mixology, asserting: competent }
+    - { discipline: awareness, asserting: competent }
   behaviors:
     - brain: /lib/behavior/shifts
       trigger: cadence:30s

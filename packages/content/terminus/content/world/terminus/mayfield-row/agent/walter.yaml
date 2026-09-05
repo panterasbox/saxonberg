@@ -23,6 +23,17 @@ data:
     # The landlord-shell term says the walls and the weather are his.
     # The kit is what lets him mean it.
     - /system/residence/thing/householders-kit
+  # ── the dossier ─────────────────────────────────────────────────
+  # Evidence, never values: each entry below expands into the same rows a
+  # lived history would have written, marked `claim`. Seeded once at
+  # postRegister and skipped if any claim already exists, so a reclone or
+  # a reboot cannot mint a second history.
+  # ⚠ A best-guess pass, explicitly provisional — the considered version
+  # is a content pass of its own before go-live.
+  archetype: house-manager
+  competence:
+    - { discipline: business-administration, asserting: competent }
+    - { discipline: personal-services, asserting: competent }
   behaviors:
     # The shell round (residences D5). `landlord-shell` is a claim about
     # who is responsible; this is the agency that performs it. What a

@@ -74,7 +74,7 @@ const CONTENT = join(REPO_ROOT, 'packages/content');
  * falls — that is the ratchet, and it is what makes stopping the growth
  * affordable before anyone has time to fill every row in.
  */
-const UNDOSSIERED_CAST_CEILING = 33;
+const UNDOSSIERED_CAST_CEILING = 0;
 
 const STANDING_BANDS = DEFAULT_BAND_THRESHOLDS.map((t) => t.name);
 

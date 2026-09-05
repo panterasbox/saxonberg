@@ -14,6 +14,16 @@ data:
     A cheerful, round-faced man in a red company cap who whistles the Hollis jingle without noticing and stacks cases label-out.
   dispositions:
     - { disposition: sociability, valence: 50 }
+  # ── the dossier ─────────────────────────────────────────────────
+  # Evidence, never values: each entry below expands into the same rows a
+  # lived history would have written, marked `claim`. Seeded once at
+  # postRegister and skipped if any claim already exists, so a reclone or
+  # a reboot cannot mint a second history.
+  # ⚠ A best-guess pass, explicitly provisional — the considered version
+  # is a content pass of its own before go-live.
+  archetype: hand
+  competence:
+    - { discipline: distilling, asserting: novice }
   behaviors:
     - brain: /lib/behavior/consigns
       trigger: cadence:90s

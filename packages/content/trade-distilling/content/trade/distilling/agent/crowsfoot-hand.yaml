@@ -19,6 +19,16 @@ data:
   dispositions:
     - { disposition: diligence, valence: 70 }
     - { disposition: sociability, valence: -40 }
+  # ── the dossier ─────────────────────────────────────────────────
+  # Evidence, never values: each entry below expands into the same rows a
+  # lived history would have written, marked `claim`. Seeded once at
+  # postRegister and skipped if any claim already exists, so a reclone or
+  # a reboot cannot mint a second history.
+  # ⚠ A best-guess pass, explicitly provisional — the considered version
+  # is a content pass of its own before go-live.
+  archetype: hand
+  competence:
+    - { discipline: distilling, asserting: novice }
   behaviors:
     # The producing beat (fermentation W6): mash bought malt off the
     # still book, ferment the wash, RUN THE STILL when a back finishes

@@ -1,0 +1,31 @@
+# Mining — cutting rock, and the discipline the metal chain shipped
+# without.
+#
+# ⚠ `hew` / `drive` / `sink` / `raise` / `shore` / `stake` all landed with
+# no Discipline behind them, so a hewer who had cut a hundred yards of
+# drift read as untrained at cutting rock. That is the gap the identity
+# build's content pass found by trying to say what the hewer is good at
+# and having no word for it.
+#
+# ⭐ **A Discipline is a FIELD OF STUDY, not a job title**, and the
+# ISCED-F anchor is what keeps the register from filling up with
+# positions. "Onsetter" anchors to nothing and correctly gets none — a
+# hand practises their trade's discipline. Mining anchors to a real
+# field.
+#
+# ⚠ And it is a SIBLING of `colliery` (0722, materials — wood), not a
+# duplicate: the collier chars **wood**, the hewer and the onsetter cut
+# **rock**. Genuinely different fields, correctly different codes.
+class: /platform/idea/Discipline
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: mining
+  channel: skill
+  label: Mining
+  iscedf: "0724"  # ISCED-F 2013: mining and extraction
+  description: >-
+    Cutting ground and keeping it up. Reading a face for where the band
+    runs, driving a level that stays straight, shoring behind you before
+    it asks, and knowing which way the air is going. Improves by doing,
+    and the ground is an unforgiving marker.
+  requires: []

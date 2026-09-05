@@ -14,6 +14,21 @@ data:
     A dry, unhurried man behind the counter with ink to the second
     knuckle and a pair of spectacles pushed up into his hair. He does not
     look up until you say something, and then he looks up completely.
+  # ── the dossier ─────────────────────────────────────────────────
+  # Evidence, never values: each entry below expands into the same rows a
+  # lived history would have written, marked `claim`. Seeded once at
+  # postRegister and skipped if any claim already exists, so a reclone or
+  # a reboot cannot mint a second history.
+  # ⚠ A best-guess pass, explicitly provisional — the considered version
+  # is a content pass of its own before go-live.
+  archetype: registrar
+  competence:
+    - { discipline: business-admin-law, asserting: competent }
+    - { discipline: business-administration, asserting: competent }
+  dispositions:
+    - { disposition: patience, valence: 65 }
+    - { disposition: candor, valence: 45 }
+    - { disposition: sociability, valence: -40 }
   behaviors:
     - brain: /lib/behavior/idles
       trigger: cadence:40s

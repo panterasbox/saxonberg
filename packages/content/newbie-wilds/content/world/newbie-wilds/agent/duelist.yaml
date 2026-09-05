@@ -41,6 +41,23 @@ data:
   # aren't Environments, so they carry posture in fields, not settings.
   standingLethality: lethal
   standingStopCondition: death
+  # ── the dossier ─────────────────────────────────────────────────
+  # Evidence, never values: each entry below expands into the same rows a
+  # lived history would have written, marked `claim`. Seeded once at
+  # postRegister and skipped if any claim already exists, so a reclone or
+  # a reboot cannot mint a second history.
+  # ⚠ A best-guess pass, explicitly provisional — the considered version
+  # is a content pass of its own before go-live.
+  archetype: duellist
+  prologue:
+    - "Has done this many times, and expects to do it many more."
+  competence:
+    - { discipline: blades, asserting: proficient }
+    - { discipline: melee-combat, asserting: proficient }
+  dispositions:
+    - { disposition: composure, valence: 80 }
+    - { disposition: honesty, valence: 60 }
+    - { disposition: warmth, valence: -20 }
   behaviors:
     # Take up the knife on the duelling-stone and keep it in hand.
     - brain: /lib/behavior/arms

@@ -65,6 +65,23 @@ data:
   # via `claim` evidence / a connected fixture when the trait layer is wired
   # live (see docs/subsystems/trait.md); the behaviour floor below is the
   # Phase-4 deliverable.
+  # ── the dossier ─────────────────────────────────────────────────
+  # Evidence, never values: each entry below expands into the same rows a
+  # lived history would have written, marked `claim`. Seeded once at
+  # postRegister and skipped if any claim already exists, so a reclone or
+  # a reboot cannot mint a second history.
+  # ⚠ A best-guess pass, explicitly provisional — the considered version
+  # is a content pass of its own before go-live.
+  archetype: crossing-guard
+  prologue:
+    - "The vest has gone soft at the seams; he has been on this corner a long time."
+  competence:
+    - { discipline: guarding, asserting: proficient }
+    - { discipline: awareness, asserting: competent }
+  dispositions:
+    - { disposition: warmth, valence: 70 }
+    - { disposition: diligence, valence: 70 }
+    - { disposition: boldness, valence: 30 }
   behaviors:
     # Idle business — a MIXED pool (free-form emotes + the odd spoken line)
     # sampled on a cadence: pacing, the paddle-check, tidying his kit, a sharp

@@ -14,6 +14,21 @@ data:
     A broad woman in a leather apron with a jeweller's glass on a cord and
     green under her nails that will not come off. She weighs everything
     twice and writes down the second figure.
+  # ── the dossier ─────────────────────────────────────────────────
+  # Evidence, never values: each entry below expands into the same rows a
+  # lived history would have written, marked `claim`. Seeded once at
+  # postRegister and skipped if any claim already exists, so a reclone or
+  # a reboot cannot mint a second history.
+  # ⚠ A best-guess pass, explicitly provisional — the considered version
+  # is a content pass of its own before go-live.
+  archetype: ore-buyer
+  competence:
+    - { discipline: appraisal, asserting: proficient }
+    - { discipline: retail-sales, asserting: competent }
+    - { discipline: geology, asserting: competent }
+  dispositions:
+    - { disposition: diligence, valence: 70 }
+    - { disposition: trust, valence: -40 }
   behaviors:
     - brain: /lib/behavior/idles
       trigger: cadence:45s

@@ -11,6 +11,20 @@ data:
     A tall, deliberate man with no eyebrows and burn scars on both
     forearms in the same place. He watches the colour in the shaft the way
     other people watch a clock.
+  # ── the dossier ─────────────────────────────────────────────────
+  # Evidence, never values: each entry below expands into the same rows a
+  # lived history would have written, marked `claim`. Seeded once at
+  # postRegister and skipped if any claim already exists, so a reclone or
+  # a reboot cannot mint a second history.
+  # ⚠ A best-guess pass, explicitly provisional — the considered version
+  # is a content pass of its own before go-live.
+  archetype: smelterman
+  competence:
+    - { discipline: smelting, asserting: proficient }
+    - { discipline: geology, asserting: competent }
+  dispositions:
+    - { disposition: patience, valence: 70 }
+    - { disposition: diligence, valence: 65 }
   behaviors:
     - brain: /lib/behavior/idles
       trigger: cadence:42s

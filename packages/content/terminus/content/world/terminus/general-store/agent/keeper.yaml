@@ -17,6 +17,20 @@ data:
   dispositions:
     - { disposition: diligence, valence: 70 }
     - { disposition: temperance, valence: 55 }
+  # ── the dossier ─────────────────────────────────────────────────
+  # Evidence, never values: each entry below expands into the same rows a
+  # lived history would have written, marked `claim`. Seeded once at
+  # postRegister and skipped if any claim already exists, so a reclone or
+  # a reboot cannot mint a second history.
+  # ⚠ A best-guess pass, explicitly provisional — the considered version
+  # is a content pass of its own before go-live.
+  archetype: storekeeper
+  prologue:
+    - "Sold gear to three generations of delvers."
+  competence:
+    - { discipline: retail-sales, asserting: proficient }
+    - { discipline: appraisal, asserting: proficient }
+    - { discipline: business-administration, asserting: competent }
   behaviors:
     - brain: /lib/behavior/introduces
       trigger: arrival

@@ -1,0 +1,29 @@
+# Guarding — keeping a post, and what a picket actually knows.
+#
+# ⚠ The watchpost sentry and Gus the crossing guard both do this for a
+# living and the world had no word for it, so both read as untrained at
+# the one thing they exist to do.
+#
+# ⭐ It pairs with the institution rule (D7b): *the watch is the body the
+# sentry needs to answer to anyway*, so authoring the watch and authoring
+# this landed in the same pass. That is the design working — the gate
+# narrowed "why did my crime vanish" to "who fields this picket?", and
+# answering it turned out to require naming the craft as well as the body.
+#
+# ⚠ `stealth` already sits at 1032. That is a SIBLING, not a clash — and
+# a pointed one: hiding from a watch and keeping one are the same field
+# studied from opposite ends, which is exactly what a shared ISCED-F code
+# means. A shared code says same *field*; it never says same *practice*.
+class: /platform/idea/Discipline
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: guarding
+  channel: skill
+  label: Guarding
+  iscedf: "1032"  # ISCED-F 2013: protection of persons and property
+  description: >-
+    Holding ground somebody has to be able to cross. Reading an approach,
+    challenging before it becomes a fight, knowing what a crowd is about
+    to do a moment before it does it, and staying awake through the part
+    where nothing happens. Improves by doing, mostly by standing there.
+  requires: []

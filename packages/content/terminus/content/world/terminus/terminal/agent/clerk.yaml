@@ -35,6 +35,19 @@ data:
     - { disposition: ambition, valence: -60 }
     - { disposition: diligence, valence: 70 }
     - { disposition: patience, valence: 40 }
+  # ── the dossier ─────────────────────────────────────────────────
+  # Evidence, never values: each entry below expands into the same rows a
+  # lived history would have written, marked `claim`. Seeded once at
+  # postRegister and skipped if any claim already exists, so a reclone or
+  # a reboot cannot mint a second history.
+  # ⚠ A best-guess pass, explicitly provisional — the considered version
+  # is a content pass of its own before go-live.
+  archetype: ticket-clerk
+  prologue:
+    - "Has seen every way a journey can go wrong, and has a form for each of them."
+  competence:
+    - { discipline: business-administration, asserting: competent }
+    - { discipline: personal-services, asserting: competent }
   behaviors:
     # Name herself to newcomers (the NPC auto-introduce half).
     - brain: /lib/behavior/introduces

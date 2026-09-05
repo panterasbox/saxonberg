@@ -12,6 +12,22 @@ data:
     Black to the elbow and grey in the face, with a long iron bar she uses
     to stop and open vents and which she is never more than an arm's
     length from. She listens to the clamp more than she looks at it.
+  # ── the dossier ─────────────────────────────────────────────────
+  # Evidence, never values: each entry below expands into the same rows a
+  # lived history would have written, marked `claim`. Seeded once at
+  # postRegister and skipped if any claim already exists, so a reclone or
+  # a reboot cannot mint a second history.
+  # ⚠ A best-guess pass, explicitly provisional — the considered version
+  # is a content pass of its own before go-live.
+  archetype: collier
+  prologue:
+    # From the row's own header — not invented for the dossier.
+    - "Has not had a full night's sleep in a decade; the clamp does not keep hours."
+  competence:
+    - { discipline: colliery, asserting: expert }
+  dispositions:
+    - { disposition: patience, valence: 70 }
+    - { disposition: diligence, valence: 75 }
   behaviors:
     - brain: /lib/behavior/idles
       trigger: cadence:38s

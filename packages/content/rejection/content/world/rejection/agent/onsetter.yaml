@@ -17,6 +17,19 @@ data:
     An old man on a stool at the adit mouth with a tally board on his knee
     and a jar of glowcap hooked to his belt. He counts people in and he
     counts people out, and the second number is the one he cares about.
+  # ── the dossier ─────────────────────────────────────────────────
+  # Evidence, never values: each entry below expands into the same rows a
+  # lived history would have written, marked `claim`. Seeded once at
+  # postRegister and skipped if any claim already exists, so a reclone or
+  # a reboot cannot mint a second history.
+  # ⚠ A best-guess pass, explicitly provisional — the considered version
+  # is a content pass of its own before go-live.
+  archetype: onsetter
+  competence:
+    - { discipline: mining, asserting: competent }
+  dispositions:
+    - { disposition: compassion, valence: 60 }
+    - { disposition: diligence, valence: 70 }
   behaviors:
     - brain: /lib/behavior/idles
       trigger: cadence:50s

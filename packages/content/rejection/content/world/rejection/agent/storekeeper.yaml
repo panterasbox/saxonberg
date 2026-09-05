@@ -12,6 +12,23 @@ data:
     A small, cheerful, entirely unsentimental person who has sold the same
     six things to the same kind of people for twenty years and has never
     once been surprised.
+  # ── the dossier ─────────────────────────────────────────────────
+  # Evidence, never values: each entry below expands into the same rows a
+  # lived history would have written, marked `claim`. Seeded once at
+  # postRegister and skipped if any claim already exists, so a reclone or
+  # a reboot cannot mint a second history.
+  # ⚠ A best-guess pass, explicitly provisional — the considered version
+  # is a content pass of its own before go-live.
+  archetype: storekeeper
+  prologue:
+    - "Sold the same six things to the same kind of people for twenty years."
+  competence:
+    - { discipline: retail-sales, asserting: competent }
+    - { discipline: business-administration, asserting: novice }
+  dispositions:
+    - { disposition: sociability, valence: 50 }
+    - { disposition: compassion, valence: -40 }
+    - { disposition: composure, valence: 70 }
   behaviors:
     - brain: /lib/behavior/idles
       trigger: cadence:35s

@@ -32,6 +32,21 @@ data:
     - { disposition: diligence, valence: 75 }
     - { disposition: patience, valence: 50 }
     - { disposition: ambition, valence: -30 }
+  # ── the dossier ─────────────────────────────────────────────────
+  # Evidence, never values: each entry below expands into the same rows a
+  # lived history would have written, marked `claim`. Seeded once at
+  # postRegister and skipped if any claim already exists, so a reclone or
+  # a reboot cannot mint a second history.
+  # ⚠ A best-guess pass, explicitly provisional — the considered version
+  # is a content pass of its own before go-live.
+  archetype: registrar
+  prologue:
+    - "Took the registry counter, and then the magistrate's desk as well, because there was nobody else to sit it."
+  competence:
+    - { discipline: business-admin-law, asserting: proficient }
+    - { discipline: business-administration, asserting: proficient }
+  renown:
+    - { asserting: familiar }
   behaviors:
     - brain: /lib/behavior/introduces
       trigger: arrival

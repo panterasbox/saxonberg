@@ -42,34 +42,72 @@ export type Doc = Record<string, unknown> & {
  */
 export function installStore(docs: Doc[]): Doc[] {
   const store: Doc[] = docs.map((d, i) => ({ _id: String(i + 1), ...d }));
-  const save = vi.fn(async (_c: string, doc: Doc) => {
+  // ⚠⚠ **Every OTHER collection, and it is not optional any more.** This
+  // stub used to answer `[]` to every non-content read while happily
+  // accepting the writes, and to have no `isConnected` at all. The moment
+  // a standup test stood up a character carrying authored `dispositions:`
+  // or a dossier, the seeder asked whether persistence was connected and
+  // the stub threw `isConnected is not a function` — six locality tests,
+  // all of them about doors and exits, failing on a ledger they never
+  // meant to touch.
+  //
+  // ⭐ Keeping the rows means a seeder's own idempotency check
+  // ("skip if a claim already exists") reads back what it wrote, so a
+  // re-standup behaves here the way it behaves in the world. A stub that
+  // swallows writes and returns nothing makes every write path look
+  // idempotent and every read path look empty.
+  const others = new Map<string, Doc[]>();
+  const bucket = (collection: string): Doc[] => {
+    const existing = others.get(collection);
+    if (existing) return existing;
+    const fresh: Doc[] = [];
+    others.set(collection, fresh);
+    return fresh;
+  };
+  const save = vi.fn(async (collection: string, doc: Doc) => {
+    const target = collection === Cols.Content ? store : bucket(collection);
     const copy = { ...doc };
     if (copy._id) {
-      const idx = store.findIndex((d) => d._id === copy._id);
-      if (idx >= 0) store[idx] = copy;
-      else store.push(copy);
+      const idx = target.findIndex((d) => d._id === copy._id);
+      if (idx >= 0) target[idx] = copy;
+      else target.push(copy);
       return copy._id!;
     }
-    copy._id = String(store.length + 1);
-    store.push(copy);
+    copy._id = `${collection}:${target.length + 1}`;
+    target.push(copy);
     return copy._id;
   });
+  const matches = (doc: Doc, query: Record<string, unknown>): boolean =>
+    Object.entries(query).every(([k, v]) => {
+      // Enough of a matcher for the ledgers' owner-scoped reads; a query
+      // operator this does not understand matches nothing rather than
+      // everything, so a test can never pass by over-matching.
+      if (v !== null && typeof v === "object") return false;
+      return (doc as Record<string, unknown>)[k] === v;
+    });
   const find = vi.fn(
     async (collection: string, query: Record<string, unknown>) => {
-      if (collection !== Cols.Content) return [];
+      if (collection !== Cols.Content) {
+        const rows = others.get(collection) ?? [];
+        return Object.keys(query).length === 0
+          ? rows.slice()
+          : rows.filter((d) => matches(d, query));
+      }
       if (typeof query.path === "string") {
         return store.filter((d) => d.path === query.path);
       }
       return store.slice();
     },
   );
-  const findById = vi.fn(async (_c: string, id: string) => {
-    return store.find((d) => d._id === id) ?? null;
+  const findById = vi.fn(async (collection: string, id: string) => {
+    const target = collection === Cols.Content ? store : bucket(collection);
+    return target.find((d) => d._id === id) ?? null;
   });
   vi.spyOn(PM, "get").mockReturnValue({
     save,
     find,
     findById,
+    isConnected: () => true,
   } as unknown as PM);
   return store;
 }

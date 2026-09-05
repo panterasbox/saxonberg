@@ -26,6 +26,16 @@ data:
   dispositions:
     - { disposition: diligence, valence: 65 }
     - { disposition: patience, valence: 35 }
+  # ── the dossier ─────────────────────────────────────────────────
+  # Evidence, never values: each entry below expands into the same rows a
+  # lived history would have written, marked `claim`. Seeded once at
+  # postRegister and skipped if any claim already exists, so a reclone or
+  # a reboot cannot mint a second history.
+  # ⚠ A best-guess pass, explicitly provisional — the considered version
+  # is a content pass of its own before go-live.
+  archetype: teller
+  competence:
+    - { discipline: business-administration, asserting: competent }
   behaviors:
     - brain: /lib/behavior/introduces
       trigger: arrival
