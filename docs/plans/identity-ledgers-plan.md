@@ -1,7 +1,7 @@
 # Identity & its ledgers — implementation plan
 
 **Kind:** refactor/sweep + infra · **Leads from:** kernel
-**First consumer:** the Terminus cast (31 rows that already exist), then
+**First consumer:** the shipped cast (39 characters that already exist), then
 the clinic build (`medic-judgment-slate`) and the necropolis (#40).
 
 **Requirements:**
@@ -124,7 +124,14 @@ has never been exercised (§ W1).
 
 ### The corpus
 
-- **42 agent rows; 25 carry a proper `name:`.** Of the 17 that do not,
+- **39 characters; 26 carry a proper `name:`.**
+  ⚠⚠ **Census it by BRAIN, never by path.** An earlier count said "42
+  agent rows, 25 named" from `find -path '*agent*'`. That used a *path* as
+  a proxy for a *kind* and was wrong in both directions: it swept in four
+  non-characters (a corpse, a hog carcass, a key ring, a char-gen seed)
+  and **missed Odile**, whose row is `terminus/registry/clerk.yaml` with
+  no `agent/` segment. The honest discriminator is `behaviors:` — 39 rows
+  have a brain, and exactly one of them lives outside an `agent/` path. Of the 17 that do not,
   the shortDescriptions split on the article: *"**a** sentry / **a**
   sellsword / **a** hewer on tutwork"* vs *"**the** collier / **the**
   smelterman / **the** onsetter / **the** storekeeper / **the** ore
@@ -269,7 +276,7 @@ both rename — the `Corpse` precedent.
 ⚠⚠ **A correlation trap to refuse.** All 7 `Crafter` rows carry a proper
 name (Dave, Mara, Sloane, Remy, Augie, Odo, Berta) and the 1 `Mercenary`
 does not — so capability and identity look perfectly correlated. **They
-are not.** That is a 42-row accident of the same species as *instanced
+are not.** That is a 39-row accident of the same species as *instanced
 exactly once*, and collapsing the axes on the strength of it would bake
 the accident into the type system. Keep them orthogonal even though every
 current row could be filed either way.
@@ -515,7 +522,7 @@ different identity paths; a reembodied player's two corpses do too.
    `getIdentityPath()`** — D7 replaced the projection with a second
    derived attribution, so identity resolution is unchanged by this
    build.
-3. **Classify the 42 rows** by the article rule — 25 named + 6
+3. **Classify the 39 characters** by the article rule — 25 named + 6
    definite-article individuals → `Cast`; the indefinite role-fillers →
    `Extra`. Small enough to do by hand and to review.
 4. The institution resolve (D7a) on the substrate; the `killerFor` /
@@ -588,6 +595,80 @@ never writes those, so there is nothing to check.
 
 ---
 
+### W7 — ⭐ the content pass: give all 39 characters actual data
+
+> **In scope by decision (2026-09-04).** *"A basic pass over our NPCs …
+> whatever stands out as obvious, try to actually wire it up … a best-guess
+> attempt at giving these guys some actual data."*
+>
+> ⚠ **Explicitly NOT a considered NPC design.** A full content pass over
+> every template is planned separately, before go-live. This wave's job is
+> to make the substrate *load-bearing* rather than theoretical, and to find
+> what breaks when 39 real characters go through it.
+
+**1. Reclassify every row.** 32 `Cast` (26 named + 6 definite-article
+individuals — *the* collier, *the* smelterman, *the* onsetter, *the*
+storekeeper, *the* ore buyer, *the* claims recorder) and 7 `Extra` (the
+duelist, the sellsword, the sentry, the hewer on tutwork, plus the wolf,
+the canary and the pit pony).
+
+⚠ **Three misfiled rows will surface** and are not this wave's to fix
+beyond noting: a key ring classed `Key`, a hog carcass and a corpse — all
+sitting under `agent/` directories and none of them characters.
+
+⚠ **Animals are `Extra` and must stay blameless.** They are the control
+for D7b: non-sentient, no institution, nobody answerable. The canary in
+particular is an *instrument* (the damps detector) wearing a bird.
+
+**2. Competence from the job.** Mostly mechanical — the row already says
+what it does, and the roster of Disciplines already exists: cooking ·
+smithing · bartending · mixology · colliery · smelting · appraisal ·
+retail-sales · business-admin-law · business-administration · distilling ·
+fermenting · agriculture · horticulture · melee-combat · blades ·
+awareness · services · geology.
+
+⚠ **Expect one gap immediately:** the metal chain shipped `hew`/`drive`/
+`sink`/`shore` but there is **no mining Discipline** — `colliery` and
+`geology` are the nearest. Do not invent one in this wave; record it.
+
+**3. ⭐⭐ Spread the bands, or the reading means nothing.** The vocabulary
+is `untrained · novice · competent · proficient · expert`. If every
+professional lands on `competent`, the whole feature says only "NPCs are
+adults."
+
+> **The curve is the design.** A *hand* is junior — that is what the word
+> means, and eight rows say it in their own shortDescription (a bottling
+> hand, a pantry hand, a yard hand). A keeper, a smith, a registrar is
+> established. **`expert` should be rare enough to be worth remarking on**
+> — the bar Dave built his reputation on, Berta at the forge, the collier
+> with his decade. Most of the cast is `competent`; the hands sit below;
+> the Extras have nothing at all.
+
+**4. Dispositions where the prose already says so.** 22 rows carry them
+already. For the rest, take two or three axes straight from the existing
+longDescription rather than inventing character — *"cheerful"*, *"brisk"*,
+*"still, attentive"* are already written down. ⚠ Now including `candor`
+and `warmth`, which W0 made real.
+
+**5. A prologue line only where the row already implies one.** Odile *is*
+the city's whole civil service; the collier has his decade. ⚠ **Do not
+invent history** — an empty prologue is honest and a fabricated one is
+content debt that the later pass has to detect and undo.
+
+**6. Institutions resolve, mostly.** Tiers 2 and 3 (employer, then parcel
+owner) should cover the employed cast for free. ⚠ Whatever falls to
+`null` **and is sentient** is D7b's lint firing, and the answer is
+authoring the institution — the sentry's watch being the known case.
+
+**Acceptance:** the drive's steps 2–4 read real bands off real characters;
+`lint:identity` and `lint:dossiers` both pass over the whole corpus; and
+the band histogram is a *curve*, not a spike at `competent`.
+
+⭐ **This wave is the build's real test.** Every previous wave can pass its
+tests with one hand-made fixture; this one runs the substrate over 39
+characters nobody wrote with it in mind, which is where the assumptions
+break.
+
 ## Reachability wiring
 
 | link | this build |
@@ -631,7 +712,7 @@ never writes those, so there is nothing to check.
   `renown.md` / `participation.md` / `influence.md`.
 - **A seeded illness with an asserted time** (D3). → the clinic build.
 - **Dossiers for businesses / organizations.** → dossier-slate Q4.
-- **Retro-fitting histories onto the existing 41 characters.** Substrate
+- **A full, considered history for every character.** Substrate
   here; the authoring is a content pass.
 
 ---
@@ -641,8 +722,8 @@ never writes those, so there is nothing to check.
 `lib/stuff/Stuff.ts` · `api/stuff.ts` · `platform/agent/{NPC,Cast,Extra}.ts` ·
 `platform/agent/sandbox/WireBody.ts` · `platform/idea/api/{CombatLogic,ConditionLogic,SandboxLogic,RenownLogic}.ts` ·
 `lib/trait/{Disposition,Dispositioned}.ts` · `lib/behavior/Behaved.ts` ·
-`lib/npc/tree.ts` · `lib/stuff/Singleton.ts` · the 42 rows under
-`packages/content/*/content/**/agent/`.
+`lib/npc/tree.ts` · `lib/stuff/Singleton.ts` · the **39 character rows**
+(⚠ *not* `**/agent/*.yaml` — see the census note in Grounding).
 
 ## Drive record
 

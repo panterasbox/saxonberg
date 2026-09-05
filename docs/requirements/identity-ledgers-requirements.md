@@ -50,7 +50,7 @@ they were a person — and, when a captain gave the order, that the captain
 answers too.
 
 **Characters are already told apart in the prose, consistently and
-without being asked to be.** Of the 42 written characters, 25 carry a
+without being asked to be.** Of the 39 written characters, 26 carry a
 proper name. The rest split on the article: *a* sentry, *a* sellsword, *a*
 hewer on tutwork — against *the* collier, *the* smelterman, *the*
 storekeeper. Authors have been marking who is a person and who is a role
@@ -82,6 +82,9 @@ those readings currently have no way to be requested.
   them**, so a body of guards can be seen to have lost guards.
 - ⭐ **A player can ask these questions about somebody else.** Not only
   about themselves.
+- **Every character in the world already has something true written about
+  them** when this lands — not an empty substrate waiting for content. ⚠
+  Best-guess, and explicitly provisional.
 - **Nothing an author writes is silently ignored.** Where a written
   personality, history or affiliation cannot be honoured, the world says
   so at build time rather than dropping it.
@@ -90,8 +93,13 @@ those readings currently have no way to be requested.
 
 ## Non-goals
 
-- **Writing histories for the existing 41 characters.** The substrate
-  here; the authoring is a content pass. → a follow-on content pass.
+- **A full, considered history for every character.** ⭐ **A best-guess
+  pass over all 39 IS in scope** — obvious competence from the job,
+  personality from the prose already written, a prologue line only where
+  the row already implies one. What is *not* in scope is the considered
+  version: every template gets revisited in a content pass before go-live,
+  and this one exists to make the substrate load-bearing rather than
+  theoretical. → that later pass.
 - **A character sheet an author fills in with numbers.** If any part of a
   written history is read directly rather than believed-as-events, the
   design has failed. → nowhere, deliberately.
@@ -297,6 +305,11 @@ Observable from outside the code, by a person playing.
 - ⭐ **Nothing an author wrote is being dropped**: a written personality
   trait, affiliation or history that the world cannot honour fails the
   build rather than disappearing.
+- ⭐⭐ **Asking a dozen different characters what they are good at gives a
+  RANGE of answers, not the same one twelve times.** A hand reads junior,
+  a keeper established, and only two or three people in the world read as
+  the best at anything. If the whole cast lands on one band the feature
+  says only *"these are adults"* and has failed.
 
 ---
 

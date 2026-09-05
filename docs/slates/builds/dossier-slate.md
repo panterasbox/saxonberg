@@ -367,8 +367,9 @@ happens.
 
 ### ⭐⭐ The grammar already encodes it, and nobody planned that
 
-42 agent rows ship. **25 carry a proper `name:`.** Of the 17 that do not,
-the shortDescriptions split on the **article**, cleanly and consistently:
+39 characters ship. **26 carry a proper `name:`.** Of the 13 that do not,
+the shortDescriptions split on the **article**, cleanly and consistently
+(the remaining three are animals):
 
 | | rows |
 |---|---|
@@ -382,7 +383,7 @@ who happens to be referred to by their job, with a decade without sleep as
 his defining fact — and he has no name field at all.
 
 So the test is **singleton-ness**; a proper name is strong evidence of it,
-not the gate. 25 named + 6 definite-article individuals = **31 Cast**; the
+not the gate. 26 named + 6 definite-article individuals = **32 Cast**; the
 handful of indefinite role-fillers are the **Extras**. The whole corpus
 classifies by hand today.
 
