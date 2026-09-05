@@ -37,6 +37,7 @@ import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { ConditionApi } from '../../api/condition';
 import { AccountabilityApi } from '../../api/accountability';
+import AccountabilityEvent from '../accountability/AccountabilityEvent';
 import { SpeciesApi } from '../../api/species';
 import { PerceptionApi } from '../../api/perception';
 import { LocomotionApi } from '../../api/locomotion';
@@ -401,7 +402,11 @@ export function HazardMixin<TBase extends MixinConstructor>(Base: TBase) {
     private noteHarmAccountability(mover: Stuff): void {
       const placer = this.placedBy;
       if (!placer) return;
-      const victimId = mover.getTemplatePath();
+      // The IDENTITY, not the template path — a sandbox vessel has no
+      // template row at all, and a trap sprung in a circle must file
+      // under the real person (the row carries the circle mark, and
+      // `deriveBlame` is what refuses to convict on it).
+      const victimId = AccountabilityEvent.partyIdOf(mover);
       if (!victimId) return;
       const self = this as unknown as Stuff;
       let sentient = false;

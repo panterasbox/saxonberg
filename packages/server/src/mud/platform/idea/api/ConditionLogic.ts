@@ -25,7 +25,9 @@ import { PlayerApi } from '../../../api/player';
 import { AccountabilityApi } from '../../../api/accountability';
 import { SpeciesApi } from '../../../api/species';
 import { SecurityApi } from '../../../api/security';
-import type { AccountabilityFields } from '../../../lib/accountability/AccountabilityEvent';
+import AccountabilityEvent, {
+  type AccountabilityFields,
+} from '../../../lib/accountability/AccountabilityEvent';
 import type { DeathSpec } from '../../../api/condition';
 import { Channels } from '../../../lib/material/Channel';
 import type { Channel } from '../../../lib/material/Channel';
@@ -335,6 +337,24 @@ async function dieImpl(
     //    material half, and the identity walks off as a shade.
     const player = playerBodyOf(host);
 
+    // The accountability row is a SYNCHRONOUS fire-and-forget append, and
+    // it stays in the sync prefix deliberately: a consumer that reads the
+    // ledger in the same turn as the killing blow (combat's own coup
+    // choreography does) must not race the write.
+    //
+    // ⚠⚠ **It is hoisted ABOVE the circle branch, which used to `return`
+    // before reaching it.** `sandbox.md` classes `accountability_events`
+    // PASS(mark) — *"Identity-real … what happened to YOU stays yours"* —
+    // and a death inside a circle wrote no row at all, so the one thing
+    // the policy promises to keep was the one thing dropped. The mark is
+    // stamped by the persistence layer from the ambient circle context,
+    // and `deriveBlame` is what refuses to convict on it: recorded, and
+    // structurally incapable of being evidence.
+    AccountabilityApi.record(
+      (attribution as AccountabilityFields | undefined) ??
+        environmentalRow(host),
+    );
+
     // A death inside a holodeck circle is REAL there and discarded with
     // it — which is the point of a holodeck, and what lets an author test
     // a lethal trap on themselves. The body leaves a circle-scoped corpse
@@ -365,15 +385,6 @@ async function dieImpl(
         if (nowS !== null) host.markDeceasedAt(nowS);
       }
     }
-
-    // The accountability row is a SYNCHRONOUS fire-and-forget append, and
-    // it stays in the sync prefix deliberately: a consumer that reads the
-    // ledger in the same turn as the killing blow (combat's own coup
-    // choreography does) must not race the write.
-    AccountabilityApi.record(
-      (attribution as AccountabilityFields | undefined) ??
-        environmentalRow(host),
-    );
 
     // ── async tail ──────────────────────────────────────────────────
     await recordDeathDeed(host, cause);
@@ -804,10 +815,16 @@ function environmentalRow(host: Stuff): AccountabilityFields {
   return {
     kind: 'death',
     sessionId: SecurityApi.uuid(),
-    initiator: '',
-    opponent: '',
-    victim: host.getTemplatePath() ?? host.stuffId,
-    killer: '',
+    // ⭐ `NOBODY` on all three actor fields is the CLAIM this row makes —
+    // an environmental death is nobody's doing. It is the one legitimate
+    // empty party id in the ledger.
+    initiator: AccountabilityEvent.NOBODY,
+    opponent: AccountabilityEvent.NOBODY,
+    // The victim is keyed on IDENTITY, like every other ledger. The
+    // `?? stuffId` fallback is gone: an unidentifiable victim is refused
+    // by the append seam rather than filed under a shared key.
+    victim: AccountabilityEvent.partyIdOf(host) ?? AccountabilityEvent.NOBODY,
+    killer: AccountabilityEvent.NOBODY,
     consented: false,
     sentient: SpeciesApi.isSentient(host),
   };

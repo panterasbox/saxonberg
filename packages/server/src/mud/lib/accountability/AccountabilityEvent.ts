@@ -34,9 +34,27 @@
  *                  consent (default non-consented), and sentience. Its
  *                  crime rule is the terms-free `!consented && sentient`.
  *
- * Durable ids are `templatePath`s (an Avatar's `/platform/agent/Avatar/<id>`, an
- * NPC's template path) — the same durable keying renown/provenance use,
- * so a victim's blame survives a reclone.
+ * ⭐ **Durable ids are IDENTITIES** (`Stuff.getIdentityPath()`) — the same
+ * key trait, transcript, chronicle, access, reactions and channels
+ * attribute to. It is `getTemplatePath()` for every ordinary object, so
+ * an NPC's key is unchanged; it differs exactly where identity is
+ * *minted* or *projected*, which is where this ledger used to be wrong:
+ *
+ *   - a sandbox `WireBody` has **no template row at all**, so the former
+ *     `getTemplatePath() ?? ''` filed every in-circle combatant under the
+ *     empty string. `deriveBlame`'s circle filter — the thing that stops
+ *     a staged killing minting a real crime row — had therefore never
+ *     been exercised by a row it could match (issue #42);
+ *   - five producers had **five different fallbacks** for the same
+ *     concept (`?? ''`, `?? 'stuff:<id>'`, `?? stuffId`, a bare skip, and
+ *     one that already read identity first).
+ *
+ * There is now one read — {@link AccountabilityEvent.partyIdOf} — and no
+ * fallback. The empty string means exactly one thing on a row:
+ * {@link AccountabilityEvent.NOBODY}, an act with no responsible party
+ * (an environmental death). A **terminal** row may never carry an empty
+ * `victim`; the append seam refuses one, so `blameFor('')` is
+ * unreachable rather than merely unlikely.
  */
 
 import { Document } from '../persistence/Document';
@@ -128,6 +146,31 @@ export interface AccountabilityFields {
 
 export default class AccountabilityEvent extends Document {
   static collectionName = Collections.AccountabilityEvents;
+
+  /**
+   * The party id meaning **nobody** — an act with no responsible party.
+   * An environmental death (cold, hunger, a fall) writes it for
+   * `initiator` / `opponent` / `killer` deliberately, which is why those
+   * fields cannot simply be required. It is never legal on a terminal
+   * row's `victim`: a harm with no victim is not a harm.
+   */
+  static readonly NOBODY = '';
+
+  /**
+   * ⭐ **The one read every producer keys on.** A subject's durable party
+   * id is its {@link Stuff.getIdentityPath} — identical to its template
+   * path for every ordinary object, the minted path for an Avatar, and
+   * the *projected real* identity for a sandbox vessel that has no
+   * template row of its own.
+   *
+   * `null` when the subject has neither a minted identity nor a template
+   * row (a bare test fixture). ⚠ **Callers must not substitute the empty
+   * string for it** — that is `NOBODY`, which is a different claim. A
+   * producer that cannot resolve a party skips the row.
+   */
+  static partyIdOf(subject: { getIdentityPath(): string | null }): string | null {
+    return subject.getIdentityPath();
+  }
   /**
    * The epistemic wire mark the persistence layer stamps on a row written
    * from circle context (sandbox.md's PASS(mark) row).

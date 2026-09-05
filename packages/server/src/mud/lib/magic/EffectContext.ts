@@ -33,6 +33,7 @@
  */
 
 import type { Stuff } from '../stuff/Stuff';
+import AccountabilityEvent from '../accountability/AccountabilityEvent';
 import type { MagicNoun, MagicVerb } from './Grid';
 import type { MagicProvenance } from './Grid';
 
@@ -76,11 +77,16 @@ export interface EffectContext {
 /** Thin static holder — the two construction shapes. */
 export class EffectContexts {
   /**
-   * The durable id the ledgers key on — a `templatePath` where one
-   * exists, else a stable per-instance fallback.
+   * The durable id the ledgers key on — the subject's **identity**
+   * (`AccountabilityEvent.partyIdOf`), which is what trait, transcript,
+   * chronicle and accountability all attribute to. Falls back to a
+   * stable per-instance key only for a subject with no identity at all,
+   * because a provenance tag is a *label on an effect*, not a ledger
+   * key: it never reaches `blameFor`, and an untagged effect would lose
+   * its origin entirely.
    */
   public static durableIdOf(s: Stuff): string {
-    return s.getTemplatePath() ?? `stuff:${s.stuffId}`;
+    return AccountabilityEvent.partyIdOf(s) ?? `stuff:${s.stuffId}`;
   }
 
   /**

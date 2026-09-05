@@ -52,6 +52,7 @@ import { TemplatePaths, TemplatePathPrefixes } from "../paths";
 import { BlendLabel } from './BlendLabel';
 import { Contamination } from '../material/Contaminable';
 import { AccountabilityApi } from '../../api/accountability';
+import AccountabilityEvent from '../accountability/AccountabilityEvent';
 import { SpeciesApi } from '../../api/species';
 import { BlendIdentity } from '../../lib/craft/BlendIdentity';
 
@@ -1123,7 +1124,10 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
       const maker = payload?.maker;
       if (!maker) return;
       const self = this as unknown as Stuff;
-      const victimId = self.getIdentityPath() ?? self.getTemplatePath();
+      // `partyIdOf` IS `getIdentityPath()`; the second half of the old
+      // expression was dead (identity already falls back to the template
+      // path) and read as though the two were different keys.
+      const victimId = AccountabilityEvent.partyIdOf(self);
       if (!victimId || victimId === maker) return;
       let sentient = false;
       try {

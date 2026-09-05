@@ -53,6 +53,7 @@ import { FireApi } from '../../../api/fire';
 import { BulkableApi } from '../../../api/bulk';
 import { ContainmentApi } from '../../../api/containment';
 import { AccountabilityApi } from '../../../api/accountability';
+import AccountabilityEvent from '../../../lib/accountability/AccountabilityEvent';
 import { CombatApi } from '../../../api/combat';
 import {
   RangeBand,
@@ -1287,13 +1288,18 @@ function appendHarmRow(actor: Stuff, victim: Stuff): void {
   // double-booking a harm row would double-count the same hurt.
   const actorSession = CombatApi.sessionFor(actor);
   if (actorSession && actorSession === CombatApi.sessionFor(victim)) return;
+  const actorId = durableIdOf(actor);
+  const victimId = durableIdOf(victim);
+  // No durable identity for the victim → no row. The empty string is
+  // `NOBODY`, which would be a false claim on a harm row.
+  if (!victimId) return;
   AccountabilityApi.record({
     kind: 'harm',
     sessionId: `magic:${actor.stuffId}:${Date.now()}`,
-    initiator: durableIdOf(actor),
-    opponent: durableIdOf(victim),
-    victim: durableIdOf(victim),
-    killer: durableIdOf(actor),
+    initiator: actorId ?? AccountabilityEvent.NOBODY,
+    opponent: victimId,
+    victim: victimId,
+    killer: actorId ?? AccountabilityEvent.NOBODY,
     consented: false,
     sentient: SpeciesApi.isSentient(victim),
   });
@@ -1952,9 +1958,15 @@ function deliveryScene(s: Stuff | undefined): Stuff | null {
   return null;
 }
 
-/** The durable id the accountability/renown ledgers key on. */
-function durableIdOf(s: Stuff): string {
-  return s.getTemplatePath() ?? `stuff:${s.stuffId}`;
+/**
+ * The durable id the accountability/renown ledgers key on — the
+ * **identity**, one read, no fallback (`AccountabilityEvent.partyIdOf`).
+ * The former `?? 'stuff:<id>'` was one of five different substitutions
+ * for the same concept across five producers, and the only one that
+ * minted a key nothing else in the world could ever match.
+ */
+function durableIdOf(s: Stuff): string | null {
+  return AccountabilityEvent.partyIdOf(s);
 }
 
 /** The spell's own targeting demand — the command scope resolved
@@ -2216,7 +2228,7 @@ function sustainedRecord(
   // can re-buy it. That is a derivation, not a rule: it is exactly why
   // long-lived sustained effects are forged as rings and not bottled.
   const sustainedBy = MixinApi.isCharged(ctx.source)
-    ? durableIdOf(ctx.source)
+    ? (durableIdOf(ctx.source) ?? undefined)
     : undefined;
   return {
     kind: 'sustained',

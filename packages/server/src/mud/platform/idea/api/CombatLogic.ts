@@ -26,7 +26,7 @@ import { ShellApi } from "../../../api/shell";
 import { AppSettingKeys } from "../../../lib/config/AppSettings";
 import { AccountabilityApi } from "../../../api/accountability";
 import type { AccountabilityFields } from "../../../api/accountability";
-import type AccountabilityEvent from "../../../lib/accountability/AccountabilityEvent";
+import AccountabilityEvent from "../../../lib/accountability/AccountabilityEvent";
 import { Coup, COMBAT_COUP_TYPE } from "../../../lib/combat/Coup";
 import type { Sensor } from "../../../lib/message/Sensor";
 import type {
@@ -1218,7 +1218,7 @@ function bandFromOpts(
   combatant: Stuff,
   opts?: CombatOpenOptions,
 ): CompetenceBandName {
-  const key = combatant.getTemplatePath();
+  const key = combatant.getIdentityPath();
   if (opts?.competenceBands && key) {
     const band = opts.competenceBands.get(key);
     if (band) return band;
@@ -1233,7 +1233,9 @@ function safeSideOf(combatant: Stuff): string {
   try {
     return PartyApi.sideOf(combatant);
   } catch {
-    return `solo:${combatant.getTemplatePath() ?? ""}`;
+    // ⚠ `stuffId`, not `""`: two unidentified combatants sharing an empty
+    // solo key would read as ALLIES.
+    return `solo:${combatant.getIdentityPath() ?? combatant.stuffId}`;
   }
 }
 
@@ -3384,9 +3386,13 @@ function handleDown(
 function killImpl(
   target: Stuff,
   cause: string,
-  row: AccountabilityFields,
+  row: AccountabilityFields | null,
 ): void {
-  void ConditionApi.die(target, cause, { accountability: row });
+  // A null row means the victim resolved to no durable identity (a bare
+  // fixture). `ConditionApi.die` then writes its own environmental row —
+  // the death still happens and is still recorded; it simply names
+  // nobody, which is truthful rather than pooled under the empty string.
+  void ConditionApi.die(target, cause, { accountability: row ?? undefined });
 }
 
 /** End the fight if trauma has driven a combatant unconscious or dead
@@ -3887,9 +3893,19 @@ const COMMAND_DISCIPLINE = "command";
 
 /* ───────────────────────── blame ledger ───────────────────────── */
 
-/** A combatant's durable id — the `templatePath` (the renown/provenance key). */
-function durableIdOf(s: Stuff): string {
-  return s.getTemplatePath() ?? "";
+/**
+ * A combatant's durable party id — the **identity**, which is what every
+ * other ledger keys on and what this one keys on since #42. `null` when
+ * the combatant has neither a minted identity nor a template row; a
+ * producer that gets `null` skips the append rather than filing the row
+ * under the empty string (see `AccountabilityEvent.partyIdOf`).
+ *
+ * ⚠ The docstring this replaced called `templatePath` *"the
+ * renown/provenance key"*, which is false — both key on identity — and is
+ * plausibly how the divergence survived review.
+ */
+function durableIdOf(s: Stuff): string | null {
+  return AccountabilityEvent.partyIdOf(s);
 }
 
 /**
@@ -3983,7 +3999,7 @@ async function snapshotBandsImpl(
 ): Promise<CombatOpenOptions> {
   const competenceBands = new Map<string, CompetenceBandName>();
   for (const c of combatants) {
-    const key = c.getTemplatePath();
+    const key = c.getIdentityPath();
     if (!key) continue;
     try {
       competenceBands.set(
@@ -4172,7 +4188,7 @@ async function initiateImpl(
   }
 
   const terms = CombatTerms.agreed(
-    initiator.getTemplatePath() ?? "",
+    initiator.getIdentityPath() ?? AccountabilityEvent.NOBODY,
     resolved,
     consented,
   );
@@ -4345,10 +4361,16 @@ function recordOpening(
   terms: CombatTerms,
 ): void {
   const sentient = safeIsSentient(defender);
+  const initiatorId = durableIdOf(initiator);
+  const opponentId = durableIdOf(defender);
+  // Neither party is attributable → no opening row and no crime marker.
+  // Skipping is the honest outcome: the alternative filed both under the
+  // empty string, where every unattributable fight in the world pooled.
+  if (!initiatorId || !opponentId) return;
   const base = {
     sessionId: session.sessionId,
-    initiator: durableIdOf(initiator),
-    opponent: durableIdOf(defender),
+    initiator: initiatorId,
+    opponent: opponentId,
     lethality: terms.lethality,
     stopCondition: terms.stopCondition,
     consented: terms.consented,
@@ -4381,7 +4403,12 @@ function buildDeathRow(
   killer: Stuff,
   victim: Stuff,
   directedBy = "",
-): AccountabilityFields {
+): AccountabilityFields | null {
+  // A death row that cannot name its victim is refused by the append
+  // seam anyway; returning null here lets `ConditionApi.die` fall through
+  // to its own environmental row rather than dropping the death entirely.
+  const victimId = durableIdOf(victim);
+  if (!victimId) return null;
   const terms = termsFor(session, killer, victim);
   let formationPath = "";
   try {
@@ -4393,9 +4420,9 @@ function buildDeathRow(
     kind: "death",
     sessionId: session.sessionId,
     initiator: terms.initiator,
-    opponent: durableIdOf(killer),
-    victim: durableIdOf(victim),
-    killer: durableIdOf(killer),
+    opponent: durableIdOf(killer) ?? AccountabilityEvent.NOBODY,
+    victim: victimId,
+    killer: durableIdOf(killer) ?? AccountabilityEvent.NOBODY,
     lethality: terms.lethality,
     stopCondition: terms.stopCondition,
     consented: terms.consented,
@@ -4543,7 +4570,10 @@ function orderCoupImpl(captain: Stuff): { ok: boolean; reason?: string } {
       pending.session,
       pending.executioner,
       victim,
-      durableIdOf(captain),
+      // `directedBy` is legitimately NOBODY when unbidden, so an
+      // unresolvable captain degrades to "unbidden" rather than skipping
+      // the coup — the row is about the death, not the directive.
+      durableIdOf(captain) ?? AccountabilityEvent.NOBODY,
     );
     return { ok: true };
   }

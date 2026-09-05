@@ -24,6 +24,33 @@ function gameNow(): number {
   }
 }
 
+/**
+ * ⚠⚠ The empty-string sink, closed.
+ *
+ * `blameFor(victimId)` keys on `victim`. While producers substituted `''`
+ * for an unresolvable durable id, every such harm accumulated under one
+ * key — a shared bucket that `blameFor('')` would have read as one
+ * person's history. This refuses a terminal row that names no victim
+ * rather than writing it, so the bucket cannot exist.
+ *
+ * ⭐ `initiator` / `opponent` / `killer` are deliberately NOT checked:
+ * `AccountabilityEvent.NOBODY` is a meaningful value for all three (an
+ * environmental death is nobody's doing). Only the victim of a terminal
+ * row must be somebody.
+ */
+function refusalReason(fields: AccountabilityFields): string | null {
+  if (fields.kind !== 'death' && fields.kind !== 'harm') return null;
+  if (fields.victim && fields.victim !== AccountabilityEvent.NOBODY) {
+    return null;
+  }
+  return (
+    `a '${fields.kind}' row with no victim (session ` +
+    `'${fields.sessionId}') — the producer could not resolve a durable ` +
+    `identity and must skip the append rather than key the row on the ` +
+    `empty string`
+  );
+}
+
 /** Build and persist one row from the supplied fields (defaulting the
  * combat-only + clock fields). */
 async function appendRow(fields: AccountabilityFields): Promise<void> {
@@ -74,6 +101,14 @@ export class AccountabilityLogic extends ApiLogic {
    * never blocks the producing beat (a fight, a trap spring). */
   @CallSecurity(AccountabilityApiCallers)
   public record(fields: AccountabilityFields): void {
+    const refusal = refusalReason(fields);
+    if (refusal) {
+      // Loud, not silent — the whole point of removing the `?? ''` sink
+      // is that an unattributable harm becomes visible instead of
+      // accumulating under a shared key.
+      console.error(`AccountabilityApi.record refused ${refusal}.`);
+      return;
+    }
     void appendRow(fields).catch(() => {
       /* the ledger is best-effort; a write failure never breaks the beat */
     });
