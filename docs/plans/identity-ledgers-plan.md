@@ -391,9 +391,16 @@ three-tier chain in the shape this codebase uses everywhere
 longest-prefix):
 
 1. an authored `institution:` field — explicit wins;
-2. else **the employer**, off the shipped `Business` roster (⭐ the
-   archetype slate's own finding: *"the position itself is authored on the
-   Business roster"*, so employed NPCs need no new field at all);
+2. else **the employer** — ⚠⚠ **the data exists but the READ does not.**
+   An `Employment` record carries `organizationPath` + its holder, and
+   `OrganizationMixin` offers `holdersOf(positionKey)` — **organization →
+   people**. There is no `employerOf(subject)`: `EmploymentApi` has
+   `businessAt(locationPath)` and `businessOfProprietor(subject)`, and the
+   latter is proprietor-only. So tier 2 needs a small reverse lookup added
+   over employment records. **Cheap, but not free — do not plan it as
+   free.** ⭐ A fallback if it proves awkward: `businessAt(<declared
+   home>)` collapses tiers 2 and 3 into one *"where do you belong → what
+   is there"*;
 3. else **`ParcelApi.ownerOf(<declared home>)`** — longest-prefix over the
    parcel registry, returning a `ParcelOwner` that dispatches on
    group / player / **organization**. The same call `AccessApi` already
@@ -480,6 +487,22 @@ gate refuses a sixth.
 
 1. Both producers read `getIdentityPath()`. One shared helper; delete the
    second fallback.
+
+   ⚠⚠ **SIX party keys move, and FOUR look-alikes must NOT.** A blanket
+   find-and-replace over `getTemplatePath()` corrupts three unrelated
+   reads *silently*, because every one of them is also a string:
+
+   | move — a PARTY | leave — not a party |
+   |---|---|
+   | `CombatLogic:1221` the combat key | `CombatLogic:~3870` the **species** flavour key (`sp.getTemplatePath()` → `"wolf"`) |
+   | `:1236` the solo key | `ConditionLogic:453` `where` — a **location** |
+   | `:~3892` `durableIdOf` | `:532` the deceased's **species** |
+   | `:3986` the combatant key | `:785` the **container** path |
+   | `:4175` `initiator` | |
+   | `ConditionLogic:809` `victim` | |
+
+   ⭐ Grep gives 6 hits in `CombatLogic` and 4 in `ConditionLogic`; only
+   **5 + 1** are identities. Read each one.
 2. **Remove `?? ""`.** An unresolvable durable id is a bug at the call
    site, not a row keyed on the empty string. Throw or skip loudly.
 3. Fix `durableIdOf`'s docstring — it calls `templatePath` *"the
