@@ -17,7 +17,7 @@ data:
     A gangly young man in a canvas apron two sizes too big, sleeves shoved up, a pencil behind one ear and another lost somewhere in his hair. He knows the stock the way some people know a song — which torch burns longer, which lantern's worth the extra coin — and he'll tell you, unasked, at length, and usually he's right.
   dispositions:
     - { disposition: diligence, valence: 55 }
-    - { disposition: gregariousness, valence: 60 }
+    - { disposition: sociability, valence: 60 }
   behaviors:
     - brain: /lib/behavior/introduces
       trigger: arrival

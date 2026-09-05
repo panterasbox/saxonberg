@@ -55,6 +55,7 @@
     "lint:pathogens": "tsx scripts/check-pathogens.ts",
     "lint:arg-kinds": "tsx scripts/check-arg-kinds.ts --lint",
     "lint:descriptors": "tsx scripts/check-descriptor-banks.ts",
+    "lint:dispositions": "tsx scripts/check-dispositions.ts",
     "lint:topics": "tsx scripts/check-topic-keys.ts --lint",
     "lint:test-bootstrap": "tsx scripts/check-test-bootstrap.ts --lint",
     "lint:test-content": "tsx scripts/check-test-content.ts --lint",

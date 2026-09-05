@@ -37,7 +37,7 @@ data:
   dispositions:
     - { disposition: compassion, valence: 55 }
     - { disposition: patience, valence: 60 }
-    - { disposition: greed, valence: 30 }
+    - { disposition: generosity, valence: -30 }
   behaviors:
     - brain: /lib/behavior/introduces
       trigger: arrival
