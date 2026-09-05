@@ -4,7 +4,7 @@
 # the ONE lethal hazard in this build, and it is lethal because it comes
 # with a free continuous warning, an obvious unilateral escape (walk out
 # — every exit stays open) and no rescue requirement.
-class: /platform/agent/NPC
+class: /platform/agent/Extra
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   _speciesPath: /stuff/idea/species/animalia/chordata/aves/passeriformes/fringillidae/serinus/canaria

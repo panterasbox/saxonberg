@@ -2,7 +2,7 @@
 # ENTERS the venue. He buys out of the smelter's ingot revenue, which is
 # ordinary circulation: there is no endowment and no lending tier behind
 # him, because this build removed the need for one by building the trade.
-class: /platform/agent/NPC
+class: /platform/agent/Cast
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sensitivus

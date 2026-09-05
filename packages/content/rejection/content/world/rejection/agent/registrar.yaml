@@ -2,7 +2,7 @@
 # anything: first come is the whole rule, and `stake` enforces it against
 # the register rather than against his judgment. That is the point of a
 # register.
-class: /platform/agent/NPC
+class: /platform/agent/Cast
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sensitivus

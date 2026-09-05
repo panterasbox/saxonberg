@@ -172,6 +172,8 @@ import type { Organization } from '../lib/employment/Organization';
 import type { Publisher } from '../lib/press/Publisher';
 import type { Attendant } from '../lib/attendant/Attendant';
 import type { Employed } from '../lib/employment/Employed';
+import type { Affiliated } from '../lib/accountability/Affiliated';
+import type { Cast } from '../lib/npc/Cast';
 import type { Combatant } from '../lib/combat/Combatant';
 import type { CombatReactive } from '../lib/combat/CombatReactive';
 import type { PartyMember } from '../lib/party/PartyMember';
@@ -1434,6 +1436,21 @@ export class MixinApi {
   /** An actor that can hold employment relationships (`EmployedMixin`). */
   public static isEmployed(obj: Stuff): obj is Stuff & Employed {
     return this.hasMixin(obj, Mixins.Employed);
+  }
+
+  /** An actor that a standing institution fields (`AffiliatedMixin`). */
+  public static isAffiliated(obj: Stuff): obj is Stuff & Affiliated {
+    return this.hasMixin(obj, Mixins.Affiliated);
+  }
+
+  /**
+   * A character who is **somebody** rather than a role anybody fills
+   * (`CastMixin`) — the identity rung. Its absence is the `Extra` rung;
+   * there is no `isExtra`, because "not cast" is the honest statement and
+   * a second predicate would invite the two to disagree.
+   */
+  public static isCast(obj: Stuff): obj is Stuff & Cast {
+    return this.hasMixin(obj, Mixins.Cast);
   }
 
   /** An actor that can fight (`CombatantMixin`). */

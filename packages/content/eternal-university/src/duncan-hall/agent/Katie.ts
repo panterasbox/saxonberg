@@ -29,10 +29,11 @@
  */
 
 import NPC from '@saxonberg/server/mud/lib/npc/NPC';
+import { CastMixin } from '@saxonberg/server/mud/lib/npc/Cast';
 import { PopulatesMixin } from '@saxonberg/server/mud/lib/stuff/Populates';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 
-export default class Katie extends PopulatesMixin(NPC) {
+export default class Katie extends CastMixin(PopulatesMixin(NPC)) {
   /**
    * The operator escape hatch for the dorm landlord verbs. Katie IS the
    * front desk, so she affords `provision`/`unprovision` to co-located

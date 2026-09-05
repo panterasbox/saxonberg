@@ -13,7 +13,7 @@
 # the business keeps the ground and the ore, and `hew` stamps the lump to
 # the co-op rather than to him. That is not a special case in the brain —
 # it is the chattel rule reading his shift.
-class: /platform/agent/NPC
+class: /platform/agent/Extra
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sensitivus

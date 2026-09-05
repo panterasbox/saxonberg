@@ -1300,6 +1300,8 @@ function appendHarmRow(actor: Stuff, victim: Stuff): void {
     opponent: victimId,
     victim: victimId,
     killer: actorId ?? AccountabilityEvent.NOBODY,
+    killerFor: AccountabilityEvent.partyForOf(actor),
+    victimFor: AccountabilityEvent.partyForOf(victim),
     consented: false,
     sentient: SpeciesApi.isSentient(victim),
   });

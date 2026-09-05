@@ -4371,6 +4371,8 @@ function recordOpening(
     sessionId: session.sessionId,
     initiator: initiatorId,
     opponent: opponentId,
+    killerFor: AccountabilityEvent.partyForOf(initiator),
+    victimFor: AccountabilityEvent.partyForOf(defender),
     lethality: terms.lethality,
     stopCondition: terms.stopCondition,
     consented: terms.consented,
@@ -4430,6 +4432,11 @@ function buildDeathRow(
     formationPath,
     killerRole: safeRoleOf(killer),
     directedBy,
+    // The second attribution. ⭐ `victimFor` is what lets the watch count
+    // its fallen as well as its murdered — `deriveBlame` gates
+    // `killerFor` on crime and leaves this one ungated, deliberately.
+    killerFor: AccountabilityEvent.partyForOf(killer),
+    victimFor: AccountabilityEvent.partyForOf(victim),
   };
 }
 

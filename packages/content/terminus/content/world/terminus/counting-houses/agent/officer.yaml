@@ -12,7 +12,7 @@
 # not the doing, and enrols you into the Circle (the `bank-circle` effect sets
 # the recognized-standing marker → the raised withdrawal quota) with the
 # Enclave-housing steer — the velvet cage in one gesture.
-class: /platform/agent/NPC
+class: /platform/agent/Cast
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Halloran

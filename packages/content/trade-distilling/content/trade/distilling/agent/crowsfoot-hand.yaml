@@ -4,7 +4,7 @@
 # house`, `consign … --ask` — carrying the floor stock to the
 # cash-and-carry counter and consigning it AS the outfit. The annex names
 # the host: the counter path is this config's, never the trade's.
-class: /platform/agent/NPC
+class: /platform/agent/Cast
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Wren Ashby

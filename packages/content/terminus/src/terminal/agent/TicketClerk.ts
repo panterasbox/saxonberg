@@ -20,9 +20,10 @@
  */
 
 import { NPC } from "@saxonberg/server/mud/lib/npc/NPC";
+import { CastMixin } from "@saxonberg/server/mud/lib/npc/Cast";
 import type { CommandContributions } from "@saxonberg/server/mud/api/command";
 
-export default class TicketClerk extends NPC {
+export default class TicketClerk extends CastMixin(NPC) {
   /** Affords `procure card` to co-located players (the `self`-neighbor push). */
   static commandContributions: CommandContributions = {
     peers: ["system/tpa/cmd/tpa/procure-card.yaml"],

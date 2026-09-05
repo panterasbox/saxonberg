@@ -1,6 +1,6 @@
 # Bram Hollis (no relation, he says) — Hollis Bottling's hand; dealt the
 # house card at hire, consigns the private-label rows AS Hollis Bottling.
-class: /platform/agent/NPC
+class: /platform/agent/Cast
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Bram Tull

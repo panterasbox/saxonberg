@@ -3,7 +3,7 @@
 # brain drives the literal verbs — `get`, `wallet use house`, `consign …
 # --ask` — carrying the stock to the cash-and-carry counter and consigning
 # it AS the outfit. The counter path is this config's, never the trade's.
-class: /platform/agent/NPC
+class: /platform/agent/Cast
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Wen Hartley

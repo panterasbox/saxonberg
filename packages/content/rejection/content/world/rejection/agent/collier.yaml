@@ -1,6 +1,6 @@
 # The collier — the fuel yard's one hand, and the person who has not had a
 # full night's sleep in a decade.
-class: /platform/agent/NPC
+class: /platform/agent/Cast
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sensitivus

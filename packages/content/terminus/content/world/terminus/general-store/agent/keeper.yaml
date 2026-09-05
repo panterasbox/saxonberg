@@ -2,7 +2,7 @@
 # the roster: she covers the till unpaid (the proprietor draws no wage), an old
 # hand who's outfitted three generations of delvers and buried some of them.
 # Dry, fair, unsentimental about money and quietly sentimental about the trade.
-class: /platform/agent/NPC
+class: /platform/agent/Cast
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Odell Marrow

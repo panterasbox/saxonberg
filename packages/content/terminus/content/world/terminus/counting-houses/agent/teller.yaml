@@ -4,7 +4,7 @@
 # counter loop closes on her). The one deepening: a faint tell that the warmth
 # is corporate-issued — a Goodkin script she's said ten thousand times, and
 # you can hear the seam if you listen. Human (canon).
-class: /platform/agent/NPC
+class: /platform/agent/Cast
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Wenna

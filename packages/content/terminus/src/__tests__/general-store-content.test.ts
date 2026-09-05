@@ -91,8 +91,15 @@ describe("general-store content integrity", () => {
     expect(load(STORE_DIR, "business.yaml").class).toBe(
       "/platform/idea/Business",
     );
-    expect(load(STORE_DIR, "agent/clerk.yaml").class).toBe("/platform/agent/NPC");
-    expect(load(STORE_DIR, "agent/keeper.yaml").class).toBe("/platform/agent/NPC");
+    // Both are named people (Pemby, Odell Marrow), so both sit on the
+    // Cast rung — one live instance per row, enforced by the throw at the
+    // second clone rather than by the 39-row accident that used to hold.
+    expect(load(STORE_DIR, "agent/clerk.yaml").class).toBe(
+      "/platform/agent/Cast",
+    );
+    expect(load(STORE_DIR, "agent/keeper.yaml").class).toBe(
+      "/platform/agent/Cast",
+    );
   });
 
   // The real, discrete item classes the store sells — each extends `Thing`

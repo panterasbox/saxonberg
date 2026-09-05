@@ -422,6 +422,10 @@ export function HazardMixin<TBase extends MixinConstructor>(Base: TBase) {
         opponent: victimId,
         victim: victimId,
         killer: placer,
+        // The placer is a durable id string, not a live Stuff — a trap
+        // outlives whoever set it, which is the whole point of a trap.
+        // So only the victim's party resolves here.
+        victimFor: AccountabilityEvent.partyForOf(mover),
         consented: false,
         sentient,
       });

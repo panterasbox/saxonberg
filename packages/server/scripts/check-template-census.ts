@@ -119,6 +119,12 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     // find. Read here rather than added to `UNREAD_PATH_FIELDS`,
     // because that list only ever shrinks.
     'mainsRef', 'bornWithCell',
+    // ⭐ `institution` (identity ledgers W3) — the standing party that
+    // fields a character, and the ONLY attribution a role's harms carry.
+    // A rowless one is a sentient Extra whose crimes name a body that
+    // does not exist: `lint:identity` proves the field is *present*, and
+    // this proves it *resolves*. The two gates are halves of one claim.
+    'institution',
   ] as const) {
     push(f, data[f]);
   }

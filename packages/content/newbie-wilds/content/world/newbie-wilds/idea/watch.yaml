@@ -1,0 +1,49 @@
+# ⭐ The Watch of the Last Counted Mile — the body that fields the picket
+# at the watchpost, and the thing this frontier had been implying and
+# never saying.
+#
+# ⚠⚠ It exists because `lint:identity` refused to ship without it, and
+# that refusal is the design working. The sentry is a ROLE — no name, no
+# employer, standing on untitled ground — so it had no identity of its
+# own to attribute a harm to, and its own row documents the behaviour at
+# risk: "a player who ambushes the sentry under lethal terms gets the
+# imposed-terms crime marker." That marker named nobody. It worked only
+# because there happens to be exactly one sentry, so the shared row WAS
+# an individual — precisely the accident the identity build exists to
+# stop relying on.
+#
+# The fix is content, not a weakened rule: a crime against a picket is a
+# crime against the watch that fielded them, and the watch counts its
+# losses whether or not anybody did anything wrong (`victimFor` is not
+# crime-gated — a lawful duel that kills a guard is still a guard the
+# watch lost).
+#
+# The prose named it first. The crossroads hub already carries "NOTICES ·
+# by order of the settlement charter", a charter office with a lantern
+# burning in broad day, and a Warden in the doorway with a ledger. This
+# is that office's arm on the road.
+#
+# ⚠ An Organization, NOT a Business: the watch does not trade. Which is
+# also why the sentry states `institution:` outright rather than leaning
+# on a roster — only a Business roster materializes an Employment record
+# (the tick enumerates `mixin.BusinessMixin`), so an Organization roster
+# would resolve to nothing at runtime while looking correct on disk.
+# `rosterSlots` stays empty and honest; the seat is here so a player the
+# Warden swears in has somewhere to be sworn to.
+class: /platform/idea/Organization
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  # The frontier's own body holds this ground (pack.yaml's title claim),
+  # so the committee over it appoints — nobody owns a watch.
+  appointingAuthority:
+    kind: committee
+    parcel: /world/newbie-wilds
+  positions:
+    - key: picket
+      label: keeping the watchpost at the treeline
+      wageRate: 0
+      confers: []
+  rosterSlots: []
+  label: "the Watch of the Last Counted Mile"
+  realm: world
+  visibility: members

@@ -6,11 +6,20 @@
 # death (the `combat.lethality` posture in `persistentStore`), so a lethal
 # challenge is one he has already agreed to — a lawful duel, no crime. The
 # same stroke against an unwilling townsperson would be murder; consent is
-# the whole moral hinge. Generic-but-carved (no proper name — the board
-# never gives him one; Visible.shortDescription per the NamedMixin rule).
+# the whole moral hinge.
+#
+# ⭐ **Cast, and still nameless.** The board never gives him a name and
+# this row never will — but the identity rung is *name OR the definite
+# article*, and the notice bills him singularly among four wolfshead:
+# "a gentleman out of the fog who works with a knife". He is one specific
+# outlaw, not a type anybody could fill, which is precisely what the
+# definite article is for (*the* collier, *the* smelterman, *the*
+# gentleman). Being somebody is also what makes murdering him a wrong
+# against HIM — the alternative was to invent an institution that fields
+# an outlaw, which is a contradiction.
 # Brain-driven in combat by the session's default combatant brain; his
 # `arms` brain takes the knife off the duelling-stone and wields it.
-class: /platform/agent/NPC
+class: /platform/agent/Cast
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
@@ -20,7 +29,7 @@ data:
     - duelist
     - gentleman
     - man
-  shortDescription: a gentleman out of the fog
+  shortDescription: the gentleman out of the fog
   longDescription: |
     A gentleman, out of the fog and unhurried, dressed a little too well for a wet hollow in the wilds — a long coat gone grey at the hems, gloves, a collar buttoned against the damp. He carries himself with the small, complete stillness of someone who has done this many times and expects to do it many more. When he inclines his head at you it is genuinely courteous, and it is not an apology.
 

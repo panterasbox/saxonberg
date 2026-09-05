@@ -69,9 +69,57 @@ async function appendRow(fields: AccountabilityFields): Promise<void> {
   ev.formationPath = fields.formationPath ?? '';
   ev.killerRole = fields.killerRole ?? '';
   ev.directedBy = fields.directedBy ?? '';
+  ev.killerFor = fields.killerFor ?? '';
+  ev.victimFor = fields.victimFor ?? '';
   ev.at = fields.at ?? gameNow();
   ev.realAt = fields.realAt ?? Date.now();
   await ev.save();
+}
+
+/**
+ * ⭐ **An institution's record** — what a body of people has lost, and
+ * what it is blamed for.
+ *
+ * The ledger already derived *who answers for a harm*; nothing
+ * player-facing could ever read it, so *"the watch counts its losses"*
+ * was a claim nobody in the game could check. This is the read behind
+ * that.
+ *
+ * ⚠⚠ **The two halves are gated differently, and that asymmetry is the
+ * design.** `blamed` counts only rows that derive as a **crime** —
+ * naming an institution over a lawful duel is noise, exactly as
+ * `commandResponsible` is crime-gated. `losses` counts every terminal
+ * row, crime or not: *a lawful duel that kills a guard is no crime
+ * against the watch, and it is still a guard the watch lost.* A body
+ * that could only count its murdered and never its fallen would be the
+ * wrong instrument.
+ *
+ * Circle-marked rows are dropped on both sides — `deriveBlame`'s rule,
+ * applied here for the same reason: a killing staged in a private circle
+ * is not evidence about anyone, and that must include an institution.
+ */
+async function institutionRecordImpl(
+  partyId: string,
+): Promise<{ losses: AccountabilityEvent[]; blamed: AccountabilityEvent[] }> {
+  if (!partyId) return { losses: [], blamed: [] };
+  const rows = await AccountabilityEvent.find<AccountabilityEvent>({
+    $or: [{ victimFor: partyId }, { killerFor: partyId }],
+  });
+  const terminal = rows.filter(
+    (r) => !r.circleScope && (r.kind === 'death' || r.kind === 'harm'),
+  );
+  const byTime = (a: AccountabilityEvent, b: AccountabilityEvent): number =>
+    a.realAt - b.realAt;
+  return {
+    losses: terminal.filter((r) => r.victimFor === partyId).sort(byTime),
+    blamed: terminal
+      .filter(
+        (r) =>
+          r.killerFor === partyId &&
+          (AccountabilityEvent.deriveBlame([r])?.crime ?? false),
+      )
+      .sort(byTime),
+  };
 }
 
 async function blameForImpl(victimId: string): Promise<BlameVerdict | null> {
@@ -124,6 +172,14 @@ export class AccountabilityLogic extends ApiLogic {
   @CallSecurity(AccountabilityApiCallers)
   public async crimeFor(victimId: string): Promise<boolean> {
     return (await blameForImpl(victimId))?.crime ?? false;
+  }
+
+  /** See {@link AccountabilityApi.institutionRecordFor}. */
+  @CallSecurity(AccountabilityApiCallers)
+  public async institutionRecordFor(
+    partyId: string,
+  ): Promise<{ losses: AccountabilityEvent[]; blamed: AccountabilityEvent[] }> {
+    return institutionRecordImpl(partyId);
   }
 
   /** See {@link AccountabilityApi.eventsForSession}. */

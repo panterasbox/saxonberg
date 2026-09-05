@@ -84,6 +84,20 @@ export class AccountabilityApi {
     return logic().crimeFor(victimId);
   }
 
+  /**
+   * The record of a **party** — an institution rather than a person: the
+   * terminal harms it counted as **losses** (`victimFor`, never
+   * crime-gated — a body counts its fallen as well as its murdered) and
+   * the ones it is **blamed** for (`killerFor`, crime-gated, because
+   * naming an employer over a lawful duel is noise). Circle-marked rows
+   * are excluded on both sides.
+   */
+  public static institutionRecordFor(
+    partyId: string,
+  ): Promise<{ losses: AccountabilityEvent[]; blamed: AccountabilityEvent[] }> {
+    return logic().institutionRecordFor(partyId);
+  }
+
   /** Every attribution row for a session (read/analytics; ordered by realAt). */
   public static eventsForSession(
     sessionId: string,

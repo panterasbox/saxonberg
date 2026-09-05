@@ -1,7 +1,7 @@
 # Petra Volkova — Veshko Distilling's hand. Dealt the house card at hire; the
 # `consigns` brain carries the yard's product to the cash-and-carry counter
 # and lists it AS Veshko Distilling. The annex names the host.
-class: /platform/agent/NPC
+class: /platform/agent/Cast
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Petra Volkova

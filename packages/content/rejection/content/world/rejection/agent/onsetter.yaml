@@ -5,7 +5,7 @@
 # design promise and a player should be told it: ground will stop you
 # working and will not kill you; air will kill you and will warn you
 # first. Everything else follows from those two sentences.
-class: /platform/agent/NPC
+class: /platform/agent/Cast
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sensitivus

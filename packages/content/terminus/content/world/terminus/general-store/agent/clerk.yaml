@@ -3,7 +3,7 @@
 # a paid pair of hands rather than a gate. Cheerful, encyclopaedic about which
 # torch burns longer. No employment block on the NPC — the Business roster is
 # the single source of truth (the tick lazy-materializes the record).
-class: /platform/agent/NPC
+class: /platform/agent/Cast
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Pemby

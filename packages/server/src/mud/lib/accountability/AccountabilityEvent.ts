@@ -58,6 +58,8 @@
  */
 
 import { Document } from '../persistence/Document';
+import { MixinApi } from '../../api/mixin';
+import type { Stuff } from '../stuff/Stuff';
 import { Collections } from '../persistence/Collections';
 import type { Lethality, StopCondition } from '../combat/CombatTerms';
 import type { FieldMeta } from '../mixin';
@@ -91,6 +93,26 @@ export interface BlameVerdict {
    * (guard/law/court) read this; the engine only records the facts.
    */
   commandResponsible: string;
+  /**
+   * The standing institution that fielded the **killer**, or `''`.
+   *
+   * ⚠ **Crime-gated, exactly like `commandResponsible`** — this is a
+   * BLAME question, and naming somebody's employer on a lawful duel is
+   * noise.
+   */
+  killerFor: string;
+  /**
+   * The standing institution that fielded the **victim**, or `''`.
+   *
+   * ⭐⭐ **NOT crime-gated, and that asymmetry is the interesting part.**
+   * A lawful duel that kills a guard is no crime against the watch, but
+   * it is still *a guard the watch lost*. The actor-side party is about
+   * blame; the victim-side party is about **loss**, and a casualty list
+   * accumulates whether or not anybody did anything wrong. Gate it on
+   * crime and a body of people could only ever count its murdered, never
+   * its fallen — the wrong instrument.
+   */
+  victimFor: string;
 }
 
 /**
@@ -138,6 +160,18 @@ export interface AccountabilityFields {
    * responsibility — `deriveBlame` surfaces it on a crime verdict.
    */
   directedBy?: string;
+  /**
+   * The standing institution that fields the actor (`''` when none).
+   *
+   * ⚠ **Not `directedBy`.** That is *episodic* — a captain's recorded
+   * directive began THIS act. This is *standing* — the actor is fielded
+   * by X, order or no order. A guard acting for the watch was not
+   * ordered by the watch on this occasion, and conflating the two would
+   * make every institutional act read as a command.
+   */
+  killerFor?: string;
+  /** The standing institution that fields the victim (`''` when none). */
+  victimFor?: string;
   /** Game-time SECONDS witness. */
   at?: number;
   /** Real-time epoch MILLISECONDS — the ordering key for earliest-row. */
@@ -171,6 +205,31 @@ export default class AccountabilityEvent extends Document {
   static partyIdOf(subject: { getIdentityPath(): string | null }): string | null {
     return subject.getIdentityPath();
   }
+
+  /**
+   * ⭐ **The second attribution: the standing party that fields this
+   * subject**, or {@link AccountabilityEvent.NOBODY}.
+   *
+   * Every attribution has a **person** and a **party**, and the
+   * single-party case collapses into the existing field rather than
+   * needing a parallel ledger:
+   *
+   * | the subject is | `killer`/`victim` carries | `killerFor`/`victimFor` |
+   * |---|---|---|
+   * | **`Cast`** — a person who also belongs to something | the person | the institution |
+   * | **sentient `Extra`** — a role | the role's own row | the institution |
+   * | **non-sentient `Extra`** — a wolf | the row path | `NOBODY` |
+   *
+   * ⚠ An `Extra` keeps its **own** identity (two dead sentries must not
+   * collapse into one corpse), so this is genuinely a *second*
+   * attribution rather than a projection that overwrites the first —
+   * which is what an earlier draft of the design got wrong.
+   */
+  static partyForOf(subject: Stuff): string {
+    return MixinApi.isAffiliated(subject)
+      ? (subject.institutionPath() ?? AccountabilityEvent.NOBODY)
+      : AccountabilityEvent.NOBODY;
+  }
   /**
    * The epistemic wire mark the persistence layer stamps on a row written
    * from circle context (sandbox.md's PASS(mark) row).
@@ -200,6 +259,8 @@ export default class AccountabilityEvent extends Document {
     formationPath: { persistent: true },
     killerRole: { persistent: true },
     directedBy: { persistent: true },
+    killerFor: { persistent: true },
+    victimFor: { persistent: true },
     at: { persistent: true },
     realAt: { persistent: true },
     circleScope: { persistent: true },
@@ -230,6 +291,10 @@ export default class AccountabilityEvent extends Document {
   killerRole = '';
   /** Durable id of the directing captain, or `''` (unbidden). */
   directedBy = '';
+  /** The standing institution fielding the actor, or `''`. */
+  killerFor = '';
+  /** The standing institution fielding the victim, or `''`. */
+  victimFor = '';
   /** Game-time SECONDS witness. */
   at = 0;
   /** Real-time epoch MILLISECONDS — earliest-row ordering key. */
@@ -294,6 +359,10 @@ export default class AccountabilityEvent extends Document {
       // crime rule itself is untouched — this is an additional derived
       // fact, not a new culpability condition.
       commandResponsible: crime ? (first.directedBy ?? '') : '',
+      // Blame is crime-gated; loss is not. See the field docs — this is
+      // the whole reason the pair is two fields and not one.
+      killerFor: crime ? (first.killerFor ?? '') : '',
+      victimFor: first.victimFor ?? '',
     };
   }
 }

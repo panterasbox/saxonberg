@@ -1142,6 +1142,9 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
         opponent: victimId,
         victim: victimId,
         killer: maker,
+        // Same as the trap: the maker is a durable id carried on the
+        // payload, not a live Stuff to ask.
+        victimFor: AccountabilityEvent.partyForOf(self),
         consented: false,
         sentient,
       });

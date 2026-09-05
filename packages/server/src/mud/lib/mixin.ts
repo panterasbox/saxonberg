@@ -391,6 +391,15 @@ export const Mixins = {
   Organization: 'OrganizationMixin',
   Business: 'BusinessMixin',
   Employed: 'EmployedMixin',
+  // Accountability — the standing party that fields a character (which is
+  // NOT the episodic `directedBy`: a guard acting for the watch was not
+  // ordered by the watch on this occasion).
+  Affiliated: 'AffiliatedMixin',
+  // Cast — the IDENTITY rung. A character who is somebody (a name, or the
+  // definite article) rather than a role anybody could fill. Carries
+  // `SingletonMixin` (one live instance per row: the throw at the second
+  // clone IS the enforcement) plus the authored dossier.
+  Cast: 'CastMixin',
   // Press — an organization that publishes: the realm it speaks in, the
   // reach of what it publishes, its feed branch, and which of its
   // positions may publish through it.
@@ -566,6 +575,7 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   // Bodies & behavior.
   VitalsMixin: "{} isn't alive",
   BehavedMixin: "{} has nothing to say",
+  CastMixin: "{} is a role, not a person",
   PosturedMixin: "you can't change posture on {}",
 
   // Growing things.

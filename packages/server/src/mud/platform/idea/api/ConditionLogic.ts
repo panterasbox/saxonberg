@@ -876,6 +876,10 @@ function environmentalRow(host: Stuff): AccountabilityFields {
     // by the append seam rather than filed under a shared key.
     victim: AccountabilityEvent.partyIdOf(host) ?? AccountabilityEvent.NOBODY,
     killer: AccountabilityEvent.NOBODY,
+    // ⭐ The loss is counted even though nobody is to blame. The watch
+    // loses a guard to a blizzard exactly as it loses one to a duel.
+    killerFor: AccountabilityEvent.NOBODY,
+    victimFor: AccountabilityEvent.partyForOf(host),
     consented: false,
     sentient: SpeciesApi.isSentient(host),
   };

@@ -1,6 +1,6 @@
 # The storekeeper at Provisioning — where money leaves, and where the
 # light dependency gets taught out loud.
-class: /platform/agent/NPC
+class: /platform/agent/Cast
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sensitivus
