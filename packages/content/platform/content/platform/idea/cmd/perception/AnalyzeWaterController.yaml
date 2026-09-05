@@ -1,5 +1,0 @@
-# The `analyze water` controller's seed. It reads a supply over a SHAPE
-# rather than importing the water pack, so this row is the platform's
-# even though everything it describes is the pack's.
-class: /platform/idea/cmd/perception/AnalyzeWaterController
-data: {}

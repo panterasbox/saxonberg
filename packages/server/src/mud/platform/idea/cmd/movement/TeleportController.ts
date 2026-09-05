@@ -23,8 +23,8 @@
  * 4 are implemented here, on kernel capabilities alone (`AccessApi`,
  * `MagicApi`, the cast pipeline). Forks 2 and 3 are handed to whatever
  * travel node is standing here, over the {@link TravelNode} SHAPE —
- * never an import. `AnalyzeWaterController` reads the water pack's
- * works the same way.
+ * never an import. Water's `SupplyReporting` is the same seam: a
+ * waterworks is read by the shape it answers, never by its class.
  *
  * ⭐ **The order is load-bearing.** Deciding the board on "was a stop
  * named", before any clearance read, is what makes a departures board a

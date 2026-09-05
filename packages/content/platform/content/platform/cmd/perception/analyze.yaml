@@ -184,7 +184,11 @@ subcommands:
         note: Read the river the place you are standing drains to
       - cmd: analyze water the city intake
         note: Read a waterworks' head, capacity and state
-    controller: /platform/idea/cmd/perception/AnalyzeWaterController
+    # ⭐ The controller is the WATER pack's — the instrumentation split,
+    # the same one that puts `analyze soil`'s in `trade-farming`. The
+    # stanza is the platform's because `analyze` is one verb; what it
+    # reads belongs to whoever owns the subject matter.
+    controller: /system/water/idea/cmd/perception/AnalyzeWaterController
     args:
       - name: target
         type: object

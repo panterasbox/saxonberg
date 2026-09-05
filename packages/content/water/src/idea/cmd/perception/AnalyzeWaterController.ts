@@ -12,50 +12,48 @@
  *    its head, its capacity, whether it runs on gravity or on a pump
  *    and what the pump costs, and why it is not delivering if it is not.
  *
- * ⚠ **The kernel does not import the water pack.** Both readings go
- * over shapes: a supply answers `supplyReport`
- * ({@link SupplyReporting}), and the drainage is reached by MQL class
- * name rather than by module — the `HoldingView` seam the residences
- * build established. A world with no water pack installed gets an
- * honest "nothing here knows about water", never a crash.
+ * ⭐⭐ **It lives in the WATER pack, and it used to live in the kernel.**
+ *
+ * The instrumentation split says a channel's STANZA goes on the
+ * platform's shipped `measure`/`analyze` view while its CONTROLLER lives
+ * with whoever owns the subject matter — which is how `analyze soil`
+ * sits in `trade-farming` and `measure strike` in `trade-mining`. This
+ * one was the platform's, and the tell was a kernel constant naming
+ * `/system/water/idea/WatercourseCatalogue`: **the engine does not know
+ * which systems exist.**
+ *
+ * ⚠ The kernel's own shape-reading seam is untouched and still right —
+ * `SupplyReporting` is plain data in, plain data out, so anything that
+ * carries water anywhere answers `analyze water <target>` whether or not
+ * this pack has ever heard of it. What moved is only the half that was
+ * always about THIS system: the bare reading, which asks the drainage
+ * catalogue what is passing here.
+ *
+ * ⭐ And inside the pack the catalogue is simply imported. The structural
+ * `DrainageView` shim existed to keep the kernel from naming a pack
+ * class; a pack naming its own class needs no shim, and the all-optional
+ * interface it required was a cost paid for a boundary that is no longer
+ * being crossed.
  */
 
-import { CommandController } from '../../../../lib/command/CommandController';
-import type { CommandContext, CommandModel } from '../../../../api/command';
-import type { Stuff } from '../../../../lib/stuff/Stuff';
-import type { Container } from '../../../../lib/spatial/Container';
-import { MixinApi } from '../../../../api/mixin';
-import { MessageApi } from '../../../../api/message';
-import { AddressApi } from '../../../../api/address';
-import { StuffApi } from '../../../../api/stuff';
-import { WorldClockApi } from '../../../../api/worldclock';
-import { Mml } from '../../../../api/mml';
-import type { SupplyReporting } from '../../../../lib/supply/SupplyState';
+import { CommandController } from '@saxonberg/server/mud/lib/command/CommandController';
+import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
+import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { MessageApi } from '@saxonberg/server/mud/api/message';
+import { AddressApi } from '@saxonberg/server/mud/api/address';
+import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
+import { Mml } from '@saxonberg/server/mud/api/mml';
+import type { SupplyReporting } from '@saxonberg/server/mud/lib/supply/SupplyState';
+import WatercourseCatalogue from '../../WatercourseCatalogue';
 
 interface AnalyzeWaterModel extends CommandModel {
   target?: Stuff;
 }
 
-/**
- * The drainage catalogue's shape, met structurally.
- *
- * Every member optional: the catalogue is a pack object, and a realm
- * that ships no water pack simply answers nothing. Reading it by shape
- * is what keeps `lint:imports` honest — the kernel asks a question, it
- * does not reach into a pack to get the answer.
- */
-interface DrainageView {
-  flowAt?: (
-    ref: string,
-    nowS: number,
-  ) => Promise<{
-    m3s: number;
-    meltM3S: number;
-    snowpackMm: number;
-    navigable: boolean;
-  } | null>;
-}
-
+/** The catalogue's identity path — the pack's own, in the pack. */
 const CATALOGUE_PATH = '/system/water/idea/WatercourseCatalogue';
 
 export default class AnalyzeWaterController extends CommandController<AnalyzeWaterModel> {
@@ -176,9 +174,12 @@ export default class AnalyzeWaterController extends CommandController<AnalyzeWat
    * has no row, `singleton` throws, and the honest "nothing here knows
    * about water" is then TRUE rather than an artifact.
    */
-  private async drainage(): Promise<DrainageView | null> {
+  private async drainage(): Promise<WatercourseCatalogue | null> {
+    const resident =
+      StuffApi.findByTemplatePath<WatercourseCatalogue>(CATALOGUE_PATH);
+    if (resident) return resident;
     try {
-      return (await StuffApi.singleton(CATALOGUE_PATH)) as unknown as DrainageView;
+      return await StuffApi.singleton<WatercourseCatalogue>(CATALOGUE_PATH);
     } catch {
       return null;
     }

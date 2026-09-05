@@ -18,27 +18,27 @@
  *     times, and the test below deliberately does NOT pre-create it.
  */
 
-import '../../../../../../test-bootstrap';
+import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import AnalyzeWaterController from '../AnalyzeWaterController';
-import { StuffApi } from '../../../../../api/stuff';
-import { WorldClockApi } from '../../../../../api/worldclock';
-import { CommandApi } from '../../../../../api/command';
-import type { CommandContext } from '../../../../../api/command';
-import { CommandDefinition } from '../../../../../lib/command/CommandDefinition';
-import { ContainmentApi } from '../../../../../api/containment';
-import Location from '../../../../../lib/stuff/Location';
-import Thing from '../../../../../lib/stuff/Thing';
-import { Idea } from '../../../../../lib/stuff/Idea';
-import { CommandGiverMixin } from '../../../../../lib/command/CommandGiver';
-import { SensorMixin } from '../../../../../lib/message/Sensor';
-import { ContainerMixin } from '../../../../../lib/spatial/Container';
-import { ContainableMixin } from '../../../../../lib/spatial/Containable';
-import type { Stuff } from '../../../../../lib/stuff/Stuff';
+import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
+import { CommandApi } from '@saxonberg/server/mud/api/command';
+import type { CommandContext } from '@saxonberg/server/mud/api/command';
+import { CommandDefinition } from '@saxonberg/server/mud/lib/command/CommandDefinition';
+import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
+import Location from '@saxonberg/server/mud/lib/stuff/Location';
+import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
+import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
+import { CommandGiverMixin } from '@saxonberg/server/mud/lib/command/CommandGiver';
+import { SensorMixin } from '@saxonberg/server/mud/lib/message/Sensor';
+import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
+import { ContainableMixin } from '@saxonberg/server/mud/lib/spatial/Containable';
+import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import {
   makeStuff,
   makeStuffAtPath,
-} from '../../../../../lib/security/__tests__/test-setup';
+} from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 
 class TestActor extends CommandGiverMixin(
   SensorMixin(ContainerMixin(ContainableMixin(Idea))),
@@ -156,7 +156,7 @@ describe('⚠⚠ the catalogue is resolved CREATINGLY — nothing pre-warms it',
         'kestrel:confluence';
       return l as unknown as Idea;
     }, '/stuff/idea/Locality/_analyze-test');
-    const { AddressApi } = await import('../../../../../api/address');
+    const { AddressApi } = await import('@saxonberg/server/mud/api/address');
     vi.spyOn(AddressApi, 'resolveLocalityFor').mockResolvedValue(
       locality as never,
     );

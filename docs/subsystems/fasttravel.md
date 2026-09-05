@@ -41,8 +41,9 @@ and structurally the kernel's. Three things moved:
 
    So the verb is kernel and the network is a pack's, meeting over the
    **`TravelNode` shape** (`lib/travel/TravelNode.ts`) — plain data in,
-   plain data out, never an import. `AnalyzeWaterController` reads the
-   water pack's works exactly this way.
+   plain data out, never an import. Water's `SupplyReporting` is the
+   same seam — a waterworks is read by the shape it answers, and the
+   asker never names its class.
 
 ## Where the code is
 
