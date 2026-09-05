@@ -64,6 +64,8 @@ export interface RecordOptions {
 export interface ClaimSeed {
   disposition: string;
   valence: number;
+  /** The minting archetype, stamped on the row. */
+  archetype?: string;
 }
 
 /** Public shape provided by DispositionedMixin. */
@@ -152,6 +154,7 @@ async function buildAndSave(
   entry.disposition = fields.disposition;
   entry.valence = fields.valence;
   entry.tags = fields.tags ?? [];
+  entry.archetype = fields.archetype ?? '';
   await entry.save();
   // No live consumer to notify: trait position is deliberately absent
   // from the standing dashboard (see Avatar.subscribableFields).
@@ -380,6 +383,7 @@ export function DispositionedMixin<TBase extends MixinConstructor>(
           kind: 'claim',
           disposition: seed.disposition,
           valence: seed.valence,
+          archetype: seed.archetype,
         });
       }
     }

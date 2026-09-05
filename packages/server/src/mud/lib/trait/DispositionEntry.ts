@@ -45,6 +45,8 @@ import type { FieldMeta } from "../mixin";
  */
 export interface DispositionEntryFields {
   kind?: "deed" | "claim";
+  /** The minting archetype (claims only) — see the field doc. */
+  archetype?: string;
   /** The opposed-pair axis's durable `key` (e.g. `'sociability'`). */
   disposition: string;
   /** Signed magnitude toward the axis's positive pole. */
@@ -63,6 +65,7 @@ export default class DispositionEntry extends Document {
     disposition: { persistent: true },
     valence: { persistent: true },
     tags: { persistent: true },
+    archetype: { persistent: true },
   };
 
   /** Durable owner key (the character's `templatePath`) — indexed. */
@@ -77,4 +80,21 @@ export default class DispositionEntry extends Document {
   valence = 0;
   /** Open vocabulary — persisted but inert in v1. */
   tags: string[] = [];
+
+  /**
+   * ⭐⭐ **Which archetype minted this row** — `""` for anything a
+   * character actually did.
+   *
+   * `kind` separates *authored* from *earned*. It does **not** separate
+   * an **archetype claim** from a **deviation claim**, and those are
+   * different things: an author who writes "a bartender, but unusually
+   * blunt" is stating a departure from a baseline, and
+   * `deviation = current derived − archetype baseline` is uncomputable
+   * without knowing which baseline.
+   *
+   * ⚠ It costs one field now and is **unrecoverable later**: provenance
+   * separability cannot be retrofitted, because unwinding a sum with no
+   * seams is not possible afterwards at any price.
+   */
+  archetype = "";
 }

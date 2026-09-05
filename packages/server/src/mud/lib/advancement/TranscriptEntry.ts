@@ -50,6 +50,8 @@ export interface TranscriptEntryFields {
   /** Game-time seconds; defaults to "now" when omitted. */
   when?: number | null;
   tags?: string[];
+  /** The minting archetype (claims only) — see the field doc. */
+  archetype?: string;
 }
 
 export default class TranscriptEntry extends Document {
@@ -62,6 +64,7 @@ export default class TranscriptEntry extends Document {
     difficulty: { persistent: true },
     outcome: { persistent: true },
     tags: { persistent: true },
+    archetype: { persistent: true },
   };
 
   /** Durable owner key (the character's `templatePath`) — indexed. */
@@ -78,4 +81,20 @@ export default class TranscriptEntry extends Document {
   outcome: Outcome = "failure";
   /** Open vocabulary — persisted but inert in v1. */
   tags: string[] = [];
+  /**
+   * ⭐⭐ **Which archetype minted this row** — `""` for anything a
+   * character actually did.
+   *
+   * `kind` separates *authored* from *earned*. It does **not** separate
+   * an **archetype claim** from a **deviation claim**, and those are
+   * different things: an author who writes "a bartender, but unusually
+   * blunt" is stating a departure from a baseline, and
+   * `deviation = current derived − archetype baseline` is uncomputable
+   * without knowing which baseline.
+   *
+   * ⚠ It costs one field now and is **unrecoverable later**: provenance
+   * separability cannot be retrofitted, because unwinding a sum with no
+   * seams is not possible afterwards at any price.
+   */
+  archetype = "";
 }

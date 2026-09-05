@@ -17,7 +17,7 @@ describe("DispositionEntry", () => {
     expect(Collections.DispositionEvents).toBe("disposition_events");
   });
 
-  it("persists owner/kind/when/disposition/valence/tags", () => {
+  it("persists owner/kind/when/disposition/valence/tags/archetype", () => {
     expect(MixinApi.getAllPersistentFields(DispositionEntry)).toEqual([
       "owner",
       "kind",
@@ -25,6 +25,11 @@ describe("DispositionEntry", () => {
       "disposition",
       "valence",
       "tags",
+      // ⭐ Which archetype minted a claim row. `kind` separates authored
+      // from earned; it does NOT separate an archetype claim from a
+      // deviation claim, and `deviation = derived − baseline` is
+      // uncomputable without knowing the baseline.
+      "archetype",
     ]);
   });
 
