@@ -45,13 +45,13 @@
  * is escaped (`Mml.escape`) before composition.
  */
 
-import { CommandController } from '../../../../lib/command/CommandController';
+import { RecordControllerBase } from './RecordControllerBase';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
-import { MqlApi } from '../../../../api/mql';
 import { Mml } from '../../../../api/mml';
 import { AccountabilityApi } from '../../../../api/accountability';
+import { StuffApi } from '../../../../api/stuff';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 
 /** Identity-family self readout — reuse, don't invent a topic. */
@@ -61,7 +61,7 @@ interface ChronicleModel extends CommandModel {
   subject?: string;
 }
 
-export default class ChronicleController extends CommandController<ChronicleModel> {
+export default class ChronicleController extends RecordControllerBase<ChronicleModel> {
   async execute(model: ChronicleModel, context: CommandContext): Promise<void> {
     const actor = context.commandGiver as unknown as Stuff;
     const asked = (model.subject ?? '').trim();
@@ -71,72 +71,37 @@ export default class ChronicleController extends CommandController<ChronicleMode
       return;
     }
 
-    // A person in reach first — the common case, and the one a player
-    // means when they type a keyword they can see in the room.
-    const person = MqlApi.resolveMany(asked, {
-      commandGiver: context.commandGiver,
-      scope: 'reachable',
-    }).stuff.find((s) => MixinApi.isPersona(s));
-    if (person) {
-      if (person !== actor && person.getPlayerId() !== null) {
-        this.fail(
-          context,
-          `${person.getPresentation()}'s story is theirs to tell.`,
-          'chronicle-is-their-own',
-        );
-        return;
-      }
-      await this.renderChronicle(person, actor, context, person === actor);
+    // ⭐ One resolution, shared with `competence` — see
+    // `RecordControllerBase`. It is not "whatever MQL returns first":
+    // the live drive found `chronicle the watch` answering with *a
+    // watchful sentry* because MQL matches a prefix.
+    const subject = this.resolveSubject(asked, context);
+    if (!subject) {
+      this.say(
+        context,
+        `Nobody here goes by "${asked}", and no body of people either.`,
+        'chronicle-no-subject',
+      );
       return;
     }
-
-    const body = this.findInstitution(asked, actor);
-    if (body) {
-      await this.renderInstitution(body, actor, context);
+    if (subject.kind === 'body') {
+      await this.renderInstitution(subject.stuff, actor, context);
       return;
     }
-
-    this.fail(
-      context,
-      `Nobody here goes by "${asked}", and no body of people either.`,
-      'chronicle-no-subject',
-    );
-  }
-
-  private fail(context: CommandContext, message: string, reason: string): void {
-    MessageApi.scene(context.commandGiver)
-      .topic(TOPIC)
-      .toSelf(Mml.compose`${message}`)
-      .send();
-    context.note({ kind: 'controller-rejected', reason, detail: message });
-  }
-
-  /**
-   * A live organization by label or path. ⚠ System-scoped on purpose:
-   * an organization is an `Idea`, not a thing standing in a room, so
-   * "reachable" would find none of them — and a body of people is not
-   * something a viewer's fog hides.
-   */
-  private findInstitution(asked: string, actor: Stuff): Stuff | null {
-    const needle = asked.toLowerCase().replace(/^the\s+/, '');
-    const candidates = MqlApi.resolveMany('world:[mixin.OrganizationMixin]', {
-      commandGiver: null,
-      scope: 'world',
-    }).stuff;
-    void actor;
-    for (const org of candidates) {
-      const path = (org.getTemplatePath() ?? '').toLowerCase();
-      const label = MixinApi.isPublisher(org)
-        ? org.getLabel().toLowerCase()
-        : org.getPresentation().toLowerCase();
-      if (
-        label.replace(/^the\s+/, '').includes(needle) ||
-        path.endsWith(`/${needle}`)
-      ) {
-        return org;
-      }
+    const person = subject.stuff;
+    if (person !== actor && person.getPlayerId() !== null) {
+      this.say(
+        context,
+        `${person.getPresentation()}'s story is theirs to tell.`,
+        'chronicle-is-their-own',
+      );
+      return;
     }
-    return null;
+    await this.renderChronicle(person, actor, context, person === actor);
+  }
+
+  private say(context: CommandContext, message: string, reason: string): void {
+    this.fail(context, message, reason, TOPIC);
   }
 
   private async renderChronicle(
@@ -146,7 +111,7 @@ export default class ChronicleController extends CommandController<ChronicleMode
     isSelf: boolean,
   ): Promise<void> {
     if (!MixinApi.isPersona(subject)) {
-      this.fail(
+      this.say(
         context,
         `${subject.getPresentation()} keeps no chronicle.`,
         'chronicle-no-persona',
@@ -175,14 +140,22 @@ export default class ChronicleController extends CommandController<ChronicleMode
     if (claims.length) {
       blocks.push(Mml.strong('Prologue').toString());
       blocks.push(
-        Mml.unorderedList(claims.map((c) => Mml.fromMarkup(c.text))).toString()
+        // ⚠ `Mml.li` per entry. `unorderedList` wraps a sequence of `<li>`
+        // items — handed bare bodies it emits one run-together blob, which
+        // nobody noticed while a prologue was a single line and which the
+        // live drive made obvious the moment a character had three.
+        Mml.unorderedList(
+          claims.map((c) => Mml.li(Mml.fromMarkup(c.text))),
+        ).toString()
       );
     }
 
     if (deeds.length) {
       blocks.push(Mml.strong('Deeds').toString());
       blocks.push(
-        Mml.unorderedList(deeds.map((d) => Mml.fromMarkup(d.text))).toString()
+        Mml.unorderedList(
+          deeds.map((d) => Mml.li(Mml.fromMarkup(d.text))),
+        ).toString()
       );
     }
 
@@ -215,11 +188,26 @@ export default class ChronicleController extends CommandController<ChronicleMode
     context: CommandContext,
   ): Promise<void> {
     const path = body.getTemplatePath() ?? '';
-    const name = MixinApi.isPublisher(body)
-      ? body.getLabel()
-      : body.getPresentation();
+    const name = this.labelOf(body);
     void context;
     const record = await AccountabilityApi.institutionRecordFor(path);
+
+    /**
+     * ⚠ **A durable id is a PATH, and a player must never read one.** The
+     * live drive printed "/world/newbie-wilds/agent/sentry — to
+     * /platform/agent/Avatar/7tbTQQ…", which is a filesystem, not a
+     * casualty list. Resolve it to whoever is standing (the registry
+     * indexes on identity, so this is the same key), and fall back to the
+     * path's leaf when they are gone — a body that died IS gone, and its
+     * post is still the honest name for it.
+     */
+    const nameOf = (id: string): string => {
+      if (!id) return 'nobody';
+      const live = StuffApi.findAllByTemplatePath(id)[0];
+      if (live) return live.getPresentation();
+      const leaf = id.split('/').filter(Boolean).pop() ?? id;
+      return leaf.replace(/[-_]/g, ' ');
+    };
 
     const blocks: string[] = [Mml.strong(name).toString()];
     if (record.losses.length) {
@@ -232,11 +220,13 @@ export default class ChronicleController extends CommandController<ChronicleMode
       blocks.push(
         Mml.unorderedList(
           record.losses.map((r) =>
-            Mml.compose`${
-              r.killer
-                ? `${r.victim} — to ${r.killer}.`
-                : `${r.victim} — to nobody in particular.`
-            }`,
+            Mml.li(
+              Mml.compose`${
+                r.killer
+                  ? `${nameOf(r.victim)} — to ${nameOf(r.killer)}.`
+                  : `${nameOf(r.victim)} — to nobody in particular.`
+              }`,
+            ),
           ),
         ).toString(),
       );
@@ -247,8 +237,10 @@ export default class ChronicleController extends CommandController<ChronicleMode
       );
       blocks.push(
         Mml.unorderedList(
-          record.blamed.map(
-            (r) => Mml.compose`${`${r.victim} — by ${r.killer || 'one of theirs'}.`}`,
+          record.blamed.map((r) =>
+            Mml.li(
+              Mml.compose`${`${nameOf(r.victim)} — by ${r.killer ? nameOf(r.killer) : 'one of theirs'}.`}`,
+            ),
           ),
         ).toString(),
       );

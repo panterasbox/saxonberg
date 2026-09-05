@@ -22,6 +22,7 @@
     "reset:db": "tsx scripts/reset-db.ts",
     "drive:cooking": "tsx scripts/drive-cooking.ts",
     "drive:food-safety": "tsx scripts/drive-food-safety.ts",
+    "drive:identity": "tsx scripts/drive-identity.ts",
     "build": "tsc",
     "start": "tsx src/preload.js",
     "test": "vitest run",

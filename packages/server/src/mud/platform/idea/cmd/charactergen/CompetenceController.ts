@@ -29,9 +29,8 @@
  * behaves the same without being enumerated here.
  */
 
-import { CommandController } from "../../../../lib/command/CommandController";
+import { RecordControllerBase } from "./RecordControllerBase";
 import { MixinApi } from "../../../../api/mixin";
-import { MqlApi } from "../../../../api/mql";
 import type { CommandContext, CommandModel } from "../../../../api/command";
 import { MessageApi } from "../../../../api/message";
 import { Mml } from "../../../../api/mml";
@@ -44,7 +43,7 @@ interface CompetenceModel extends CommandModel {
   subject?: string;
 }
 
-export default class CompetenceController extends CommandController<CompetenceModel> {
+export default class CompetenceController extends RecordControllerBase<CompetenceModel> {
   async execute(
     model: CompetenceModel,
     context: CommandContext,
@@ -54,23 +53,35 @@ export default class CompetenceController extends CommandController<CompetenceMo
 
     let subject: Stuff = actor;
     if (asked) {
-      const found = MqlApi.resolveMany(asked, {
-        commandGiver: context.commandGiver,
-        scope: "reachable",
-      }).stuff[0];
+      // ⭐ Shared with `chronicle` — see `RecordControllerBase`. The live
+      // drive found `competence dave` answering with **Dave's Bar**, the
+      // Business Idea whose name also contains "dave", and reporting
+      // that a bar knows nothing about bartending.
+      const found = this.resolveSubject(asked, context);
       if (!found) {
-        this.fail(context, `Nobody here goes by "${asked}".`, "no-subject");
+        this.say(context, `Nobody here goes by "${asked}".`, "no-subject");
         return;
       }
-      if (found !== actor && found.getPlayerId() !== null) {
-        this.fail(
+      if (found.kind === "body") {
+        // ⭐ A body of people has a record (`chronicle`), not a
+        // competence: an institution does not practise, its people do.
+        this.say(
           context,
-          `What ${found.getPresentation()} can do is theirs to show you.`,
+          `${this.labelOf(found.stuff)} is a body of people, not somebody ` +
+            `who practises. Try \`chronicle\` for its record.`,
+          "competence-not-a-person",
+        );
+        return;
+      }
+      if (found.stuff !== actor && found.stuff.getPlayerId() !== null) {
+        this.say(
+          context,
+          `What ${found.stuff.getPresentation()} can do is theirs to show you.`,
           "competence-is-their-own",
         );
         return;
       }
-      subject = found;
+      subject = found.stuff;
     }
 
     const isSelf = subject === actor;
@@ -95,10 +106,13 @@ export default class CompetenceController extends CommandController<CompetenceMo
       );
     } else {
       blocks.push(
+        // ⚠ `Mml.li` per band — see the note in `ChronicleController`.
         Mml.unorderedList(
           bands.map((b) =>
-            Mml.fromMarkup(
-              `${Mml.escape(b.discipline)} — ${Mml.strong(b.band).toString()}`
+            Mml.li(
+              Mml.fromMarkup(
+                `${Mml.escape(b.discipline)} — ${Mml.strong(b.band).toString()}`
+              )
             )
           )
         ).toString()
@@ -109,15 +123,7 @@ export default class CompetenceController extends CommandController<CompetenceMo
     MessageApi.scene(actor).topic(TOPIC).toSelf(body).send();
   }
 
-  private fail(
-    context: CommandContext,
-    message: string,
-    reason: string,
-  ): void {
-    MessageApi.scene(context.commandGiver)
-      .topic(TOPIC)
-      .toSelf(Mml.compose`${message}`)
-      .send();
-    context.note({ kind: "controller-rejected", reason, detail: message });
+  private say(context: CommandContext, message: string, reason: string): void {
+    this.fail(context, message, reason, TOPIC);
   }
 }

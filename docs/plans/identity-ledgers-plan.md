@@ -672,6 +672,19 @@ later"* — `deviation = current derived − archetype baseline` is
 uncomputable without it, and provenance separability cannot be
 retrofitted.
 
+✅ **DONE** (`913770de`). `CastMixin` carries `archetype` / `prologue` /
+`competence` / `renown`; the stamp lands on `DispositionEntry`,
+`ChronicleEntry` and `TranscriptEntry`.
+
+⚠ **`circumstance:` was CUT, and deliberately** (D12). The slate sketched
+it as *pointers* — `holdings: [/world/rejection/parcel/bar]`,
+`bonds: [{to: …, kind: employs}]`. A holding is a **parcel title**, which
+the pack installer's `requires.title` already grants, so authoring it
+here would create a second source of truth for who owns the bar; a bond
+has **no substrate at all** yet. Both are pointers into systems that
+already own them, so the field would be either a duplicate or a dangling
+declaration. → deferred seam.
+
 ### W5 — competence claims, and a way to ask
 
 D4, with Dave as the first consumer.
@@ -693,7 +706,39 @@ the asymmetric gate: refused for another player, answered for anyone else.
 **Acceptance:** a player who asks reads Dave as good at bartending, and is
 refused when asking about another player.
 
-### W6 — `lint:dossiers` + the renown fold
+✅ **DONE** (`913770de`). ⭐ **D4 is proved rather than asserted**: the
+seeder appends `claim` rows until the SHIPPED estimator derives the
+asserted band (`Competence.seedRunFor`, which lives beside the estimator
+it inverts so the two cannot drift).
+
+⚠⚠ **The run is SEARCHED, not tabulated, and it had to be.** Measured
+against the shipped constants a run of `easy` successes saturates at
+θ≈0.612 — it can never reach `proficient`, however many you write — while
+`hard` reaches `expert` in four. A fixed-difficulty ladder would have
+silently produced a character who asserts `expert` and reads `competent`.
+⭐ And the arithmetic then says something true: **you do not become an
+expert by doing ordinary things very often.**
+
+### W6 — `lint:dossiers` + the renown fold ✅ **DONE** (`5997a548`)
+
+`RenownApi.seedTo` appends `reception` evidence until the current value
+function derives the asserted band, then schedules the fold **debounced**
+— 33 characters seeding at boot produce ONE recompute. ⭐ Idempotent by
+CONSTRUCTION: it counts the evidence already on the log and writes only
+what the assertion still needs.
+
+⚠ **`lint:dossiers` deliberately does NOT fold renown.** Its derive is
+not a pure function of its seeds (AppSettings' value function, the Emote
+documents' valences, the world clock) — so the build-time fold that makes
+the competence check worth having is unavailable. Vocabulary is checked
+at build time; the arithmetic at seed time, where `seedTo` writes nothing
+at all if it cannot reach the band.
+
+⚠ `composesMixin` moved to `scripts/pack-roots.ts`. The first ratchet
+draft used `cls.endsWith('/Cast')` and silently missed every pack-owned
+character class — Katie, Walter, the Realtor, the ticket clerk, Gus:
+five people the census counted as not existing.
+
 
 Assert-vs-derive: seed what the dossier `asserting:` says and check the
 derived band agrees. ⭐ This is the only thing that stops a dossier
@@ -833,6 +878,22 @@ authoring the institution — the sentry's watch being the known case.
 **Acceptance:** the drive's steps 2–4 read real bands off real characters;
 `lint:identity` and `lint:dossiers` both pass over the whole corpus; and
 the band histogram is a *curve*, not a spike at `competent`.
+
+✅ **DONE** (`9797d262`). 33 dossiers, 66 competence assertions, ratchet
+at 0, and the histogram is a curve:
+
+    competent 31 · proficient 17 · novice 15 · expert 3
+
+Four Disciplines added, each ISCED-F anchored: **mining** 0724,
+**guarding** 1032, **brewing** / **winemaking** 0721 (specializations of
+`fermenting`). Prologues on 10 of 33 — only where the row already implied
+one. Dispositions for the 8 rows that had none, from prose already
+written.
+
+⚠ **What running it over real content broke:** the shared `installStore`
+test stub answered `[]` to every non-content read while accepting the
+writes and had no `isConnected` at all, so six locality tests failed on a
+ledger they never meant to touch. Fixed in the helper.
 
 ⭐ **This wave is the build's real test.** Every previous wave can pass its
 tests with one hand-made fixture; this one runs the substrate over 39
