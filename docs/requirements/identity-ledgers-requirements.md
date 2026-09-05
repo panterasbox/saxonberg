@@ -85,6 +85,11 @@ those readings currently have no way to be requested.
 - **Every character in the world already has something true written about
   them** when this lands — not an empty substrate waiting for content. ⚠
   Best-guess, and explicitly provisional.
+- ⭐ **A character whose craft the world has no name for gets one.** Two
+  people cut rock underground and the world has no word for what they
+  know; that gap closes here. ⚠ **But only where the thing is genuinely a
+  field somebody could study** — a *job* is not a field, and the register
+  of learnable crafts must not fill up with position titles.
 - **Nothing an author writes is silently ignored.** Where a written
   personality, history or affiliation cannot be honoured, the world says
   so at build time rather than dropping it.

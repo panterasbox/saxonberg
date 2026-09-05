@@ -627,9 +627,46 @@ retail-sales · business-admin-law · business-administration · distilling ·
 fermenting · agriculture · horticulture · melee-combat · blades ·
 awareness · services · geology.
 
-⚠ **Expect one gap immediately:** the metal chain shipped `hew`/`drive`/
-`sink`/`shore` but there is **no mining Discipline** — `colliery` and
-`geology` are the nearest. Do not invent one in this wave; record it.
+**2a. ⭐ Missing Disciplines are IN SCOPE — and the ISCED-F anchor is what
+keeps that from becoming a job-title dump.**
+
+Every shipped Discipline names an **ISCED-F field-of-study code** — its
+*"honest anchor"* — and specializes a parent (`mixology` → `bartending` →
+`catering` → `services`). That gives a clean, non-negotiable test:
+
+> **A Discipline is a FIELD OF STUDY, not a JOB TITLE.** If you cannot
+> anchor it to a real ISCED-F code, it is not a Discipline — it is a
+> position, and positions live on a Business roster.
+
+⭐ The test settles the hard cases immediately: *"pantry hand"* anchors to
+nothing and correctly gets none (a hand practises their trade's
+Discipline); *mining* anchors to a real field and gets one.
+
+**Known gaps against the 39-character corpus** (30 non-magic Disciplines
+ship today):
+
+| gap | who needs it | likely anchor |
+|---|---|---|
+| **mining** | the hewer, the onsetter — the metal chain shipped `hew`/`drive`/`sink`/`shore` with no Discipline behind them | ISCED-F **0724** *Mining and extraction* |
+| **guarding / the watch** | the sentry and Gus — ⭐ and it pairs with D7b, since *the watch is the institution the sentry needs anyway* | **1032** *Protection of persons and property* (⚠ `stealth` already sits there — a sibling, not a clash) |
+| **brewing** | Tamsin Roke, the brewer's hand | **0721**, beside `fermenting`/`distilling` |
+| **winemaking** | Ilse Marrow, the vintner's hand | **0721**, same |
+
+⚠ **Brewing and winemaking need a judgment call, not a reflex.** Both
+anchor to the *same* code as the shipped `fermenting`. Either they are
+specializations worth naming (there is precedent — `distilling` is already
+split out at 0721) or `fermenting` covers them and two hands simply
+practise it. **Decide once, apply to both**; splitting one and not the
+other is the outcome to avoid.
+
+⚠⚠ **And one to verify rather than assume:** `colliery` is anchored at
+**0722** (*Materials — glass, paper, plastic and wood*), while mining and
+extraction is **0724**. If this world's collier is the charcoal-burner
+(which `trade-fuel`'s `char` verb suggests) then 0722 is defensible and
+mining is a genuinely separate gap. If the collier is a coal miner, the
+anchor is simply wrong. ⭐ **A wrong ISCED-F code is exactly the silent
+error the anchor exists to prevent**, so check it before adding a sibling
+next to it.
 
 **3. ⭐⭐ Spread the bands, or the reading means nothing.** The vocabulary
 is `untrained · novice · competent · proficient · expert`. If every
