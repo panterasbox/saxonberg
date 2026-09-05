@@ -960,6 +960,103 @@ break.
 
 The script is **requirements § The drive** — twelve steps, run against a
 freshly reset world (written history is laid down once at birth, so a
-stale world lies at every checkpoint).
+stale world lies at every checkpoint). It is tracked at
+`packages/server/scripts/drive-identity.ts`
+(`pnpm --filter @saxonberg/server drive:identity`).
 
-*(The record is appended here at build time — the exit criterion.)*
+### ✅ ALL 18 CHECKPOINTS PASSED — 2026-09-05, fresh DB, 0 boot errors
+
+The transcript that matters:
+
+```
+> competence odile
+Odile — competence
+  · business-admin-law — proficient
+  · business-administration — proficient
+
+> chronicle odile
+Odile
+Prologue
+  · Took the registry counter, and then the magistrate's desk as
+    well, because there was nobody else to sit it.
+
+> competence dave
+Dave — competence
+  · bartending — expert
+  · business-administration — competent
+  · mixology — competent
+
+> competence <another player, standing right there>
+What drive-identity-d can do is theirs to show you.
+
+> competence sentry
+a watchful sentry — competence
+Nothing is on the record about what a watchful sentry can do.
+
+> attack sentry --lethal
+You square off against a watchful sentry.
+
+> chronicle the watch
+the Watch of the Last Counted Mile
+Lost: 1 person.
+  · a watchful sentry — to drive-identity-c.
+
+> competence watch
+the Watch of the Last Counted Mile is a body of people, not somebody
+who practises. Try `chronicle` for its record.
+```
+
+⭐ **The watch counted its loss, and named the post rather than an
+individual.** That is the requirements' headline, and it is the thing no
+unit test could have told us.
+
+### ⭐⭐ What the drive found that 10,040 tests did not — four defects
+
+Three were this build's, and every one of them would have shipped:
+
+1. **`competence dave` answered "Dave's Bar"** — the Business Idea, whose
+   `name` also contains *dave*. The world reported that a bar knows
+   nothing about bartending.
+2. **`chronicle the watch` answered "a watchful sentry"** — MQL matches a
+   prefix and *watch* is a prefix of *watchful*, so the watch was
+   unreachable behind the sentry that answers to it.
+   ⭐ **One rule fixed both**: a subject must be addressed by a word it
+   CALLS ITSELF — a person by a word of their presentation, a body of
+   people by a word of its label. Shared on `RecordControllerBase`.
+3. **The casualty list printed FILESYSTEM PATHS at a player** —
+   `/world/newbie-wilds/agent/sentry — to /platform/agent/Avatar/7tbTQQ…`.
+   A durable id is a key, never prose.
+4. **`Mml.unorderedList` was handed bare bodies, not `<li>` items**, so
+   three competence bands rendered as one run-together blob. Pre-existing
+   in `chronicle`, invisible while a prologue was one line.
+
+⚠ **And the drive's own step 5 was passing on the wrong branch.** It
+asked about a player standing in another locality and accepted *"Nobody
+here goes by…"* — the not-present answer, not the refusal — so it would
+have gone on passing with the gate deleted. Two characters now stand at
+the same bar, and the bystander **introduces themselves** first: an
+un-introduced player reads as *a human*, so there is no name to ask about
+until they give one. That is the belief layer working, and it is why the
+question cannot be asked by login handle.
+
+### ⚠⚠ One finding that is NOT this build's — issue #43
+
+`attack the sentry` · `look the sentry` · `assess the sentry` all answer
+*"That doesn't match any known command shape"*. **A definite article
+breaks every non-greedy `type: object` arg in the game**; `get the kit`
+works only because its arg is greedy. `attack the wolf` is the documented
+example in the verb's own help.
+
+Pre-existing, general, and it belongs to command-parsing — filed rather
+than patched here, because changing arg resolution blind moves every verb
+in the game. ⭐ It is also why this build's two readings take a greedy
+STRING arg: `chronicle the watch` parses.
+
+### Reachability, re-checked
+
+| link | state |
+|---|---|
+| **verb** | `chronicle <subject>` + `competence <subject>` — both views updated, both driven live ✅ |
+| **affordance** | none new ✅ |
+| **data** | 33 dossiers; `lint:dossiers` ratchets dossier-less Cast rows at **0** ✅ |
+| **boot** | ⚠⚠ **the reference-Idea trap fired for the fifth time** — the two new Organizations needed `boot:` entries in `newbie-wilds/pack.yaml`. The attribution works without warming (an `institution:` is a path string), which is exactly why the omission would have been silent. `DisciplineCatalogue` warms BY CLASS, so the four new Disciplines needed nothing ✅ |
