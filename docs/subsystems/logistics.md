@@ -598,6 +598,28 @@ shelter is `seating`, water is a `bulkSource`, a crossing is a
 
 ## The teleport defect, fixed
 
+⭐⭐ **Coupling does not block a teleport; a teleport severs it.** The
+first fix REFUSED — a hitched hauler or a seated rider could not
+teleport at all — and that was correct about the data and wrong about
+the world. It made the spell feel broken rather than the wagon feel
+heavy, and *"you cannot teleport while holding a rope"* is not a rule
+anybody would write on purpose.
+
+What happens instead is the honest thing: **you go, and what you were
+attached to does not.** The hitch slips, the wagon stands where it
+stood, the saddle is left; both sides are told, because a player who
+teleports away from their wagon and is not told has been robbed by a
+mechanic, while one who is told has made a choice.
+
+⭐ Freight still does not teleport, so the cost surface is untouched —
+and nothing is lost, because a parked vehicle vetoes residency eviction
+(`VehicularMixin`), so the wagon is there when you walk back for it.
+
+⚠ The severing is what the refusal was really protecting: a one-sided
+move would leave the coupling dangling at one end and lying at the
+other. `unhitch` and `Slotted.vacate` are the chokepoints, so both ends
+come apart together.
+
 > **Teleport ripples what is *on* you and refuses what you are
 > *attached to* — and says why.**
 

@@ -8,7 +8,7 @@
 
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { MobileMixin, TeleportRefused } from '../Mobile';
+import { MobileMixin } from '../Mobile';
 import { ContainableMixin } from '../Containable';
 import { ContainerMixin } from '../Container';
 import { SlottedMixin } from '../../slot/Slotted';
@@ -57,7 +57,17 @@ describe('Mobile.teleport — D14', () => {
   beforeEach(() => installV1QuantityMarshallers());
   afterEach(() => StuffApi.clearAll());
 
-  it('refuses while hitched, and names the cart', () => {
+  it('⭐⭐ teleporting while HITCHED slips the hitch — you go, the cart stays', () => {
+    /*
+     * ⚠ It used to REFUSE, which was correct about the data and wrong
+     * about the world: it made the spell feel broken rather than the
+     * wagon feel heavy, and *"you cannot teleport while holding a rope"*
+     * is not a rule anybody would write on purpose.
+     *
+     * ⭐ Freight still does not teleport — the cost surface is untouched
+     * — and the cart is not lost: a parked vehicle vetoes residency
+     * eviction, so it is there when you walk back for it.
+     */
     const { locA, locB } = tworoom();
     const mover = makeStuff(() => new MobileHauler());
     ContainmentApi.move(mover, locA);
@@ -65,19 +75,16 @@ describe('Mobile.teleport — D14', () => {
     ContainmentApi.move(c, locA);
     mover.hitch(c);
 
-    expect(mover.teleportBlockedBy()).toBe(c.getPresentation());
-    expect(() => mover.teleport(locB)).toThrow(TeleportRefused);
-    try {
-      mover.teleport(locB);
-    } catch (err) {
-      expect((err as TeleportRefused).blockedBy).toBe(c.getPresentation());
-    }
-    // Nothing moved — the refusal is before the move, not after it.
-    expect(mover.getContainer()).toBe(locA);
+    mover.teleport(locB);
+
+    expect(mover.getContainer()).toBe(locB);
+    // The cart stayed, and the coupling is severed at BOTH ends — the
+    // dangling ref is what the refusal was really protecting against.
     expect(c.getContainer()).toBe(locA);
+    expect(mover.isHitched()).toBe(false);
   });
 
-  it('refuses while mounted, and names the mount', () => {
+  it('⭐ teleporting while MOUNTED leaves the saddle — and vacates the slot', () => {
     const { locA, locB } = tworoom();
     const mount = makeStuff(() => new Mount());
     mount.setStaticSlots([{ name: 'mount:1', accepts: 'SlottableMixin' }]);
@@ -86,9 +93,13 @@ describe('Mobile.teleport — D14', () => {
     ContainmentApi.move(rider, locA);
     mount.occupy(rider, 'mount:1');
 
-    expect(rider.teleportBlockedBy()).toBe(mount.getPresentation());
-    expect(() => rider.teleport(locB)).toThrow(/attached to/);
-    expect(rider.getContainer()).toBe(locA);
+    rider.teleport(locB);
+
+    expect(rider.getContainer()).toBe(locB);
+    expect(mount.getContainer()).toBe(locA);
+    // ⚠ The slot is free, not still claiming a rider who is elsewhere.
+    expect(rider.occupiedSlots().size).toBe(0);
+    expect(mount.getAllOccupants().get('mount:1') ?? []).toHaveLength(0);
   });
 
   it('a MOUNT teleporting carries its rider', () => {
@@ -100,8 +111,8 @@ describe('Mobile.teleport — D14', () => {
     ContainmentApi.move(rider, locA);
     mount.occupy(rider, 'mount:1');
 
-    // The mount is not attached to anything — it is the one attached TO.
-    expect(mount.teleportBlockedBy()).toBeNull();
+    // The mount is not attached to anything — it is the one attached TO,
+    // so nothing is severed and the rider rides along.
     mount.teleport(locB);
 
     expect(mount.getContainer()).toBe(locB);

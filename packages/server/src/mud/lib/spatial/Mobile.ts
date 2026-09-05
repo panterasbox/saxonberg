@@ -135,27 +135,6 @@ export interface TeleportOptions {
   silent?: boolean;
 }
 
-/**
- * Thrown by {@link Mobile.teleport} when the mover is ATTACHED to
- * something a teleport cannot carry — hitched to a cart, or sitting in
- * another host's mount slot.
- *
- * ⭐ The point of the type is the `blockedBy` phrase: the defect this
- * replaced moved the rider and left the horse, silently. *Ripple what is
- * ON you; refuse what you are ATTACHED to, and say what blocked it.*
- * Programmatic contract violations throw (the `ContainmentApi.move`
- * convention); the player-facing verbs pre-check and emit a
- * `controller-rejected` note instead of letting this surface.
- */
-export class TeleportRefused extends Error {
-  /** Presentation phrase for whatever blocked the ride. */
-  public readonly blockedBy: string;
-  constructor(message: string, blockedBy: string) {
-    super(message);
-    this.name = 'TeleportRefused';
-    this.blockedBy = blockedBy;
-  }
-}
 
 /**
  * Bodies returned by movement-message resolution. Either or both may
@@ -605,19 +584,48 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
     teleport(destination: Stuff & Container, opts?: TeleportOptions): void {
       const silent = opts?.silent ?? false;
       const self = this as unknown as Stuff;
-      // D14 — refuse what you are ATTACHED to, and name it. A hitched
-      // hauler and a mounted rider are both *coupled*: the coupling is a
-      // live ref that a silent one-sided move would leave dangling at
-      // one end and lying at the other. The mover finds out here rather
-      // than the horse finding out never.
-      const blocker = this.teleportBlockedBy();
-      if (blocker) {
-        throw new TeleportRefused(
-          `Mobile.teleport: cannot teleport while attached to ${blocker}`,
-          blocker
-        );
-      }
+      /*
+       * ⭐⭐ **Coupling does not BLOCK a teleport; it is severed by one.**
+       *
+       * A hitched hauler and a mounted rider are both *coupled*, and a
+       * silent one-sided move would leave the coupling dangling at one
+       * end and lying at the other. The first fix was to refuse the
+       * teleport outright — which is correct about the data and wrong
+       * about the world: it makes the spell feel broken rather than
+       * making the wagon feel heavy, and *"you cannot teleport while
+       * holding a rope"* is not a rule anybody would write on purpose.
+       *
+       * ⭐ What actually happens is the honest thing: **you go, and what
+       * you were attached to does not.** The hitch slips and the wagon
+       * stands where it stood; you leave the saddle behind. Freight
+       * still does not teleport — the cost surface is untouched — and
+       * nothing is lost, because a parked vehicle vetoes residency
+       * eviction (`VehicularMixin`), so it is there when you walk back.
+       *
+       * ⚠ It is ANNOUNCED, on both sides. A player who teleports away
+       * from their wagon and is not told has been robbed by a mechanic;
+       * one who is told has made a choice.
+       */
+      const detached = detachForTeleport(self);
       const previous = (this as unknown as Containable).getContainer();
+      if (!silent && previous && detached) {
+        // ⚠⚠ `toSelf` THROWS for a non-Sensor actor, and a teleporting
+        // mover need not be one — a cart shunted by a script is Mobile
+        // and senses nothing. This is the third time this build has hit
+        // that edge, so it is guarded rather than assumed: the room is
+        // always told, and the mover is told if it can hear.
+        const scene = MessageApi.scene(self)
+          .topic('act.move')
+          .toPeers(Mml.compose`${Mml.actor(self)} slips free of ${detached}.`);
+        if (MixinApi.isSensor(self)) {
+          scene.toSelf(
+            Mml.text(
+              `\nYou slip free of ${detached}, and it stays where it stands.\n`,
+            ),
+          );
+        }
+        scene.send();
+      }
       if (!silent && previous) {
         this.announceDeparture(previous, undefined);
       }
@@ -1005,6 +1013,40 @@ function teleportBlocker(mover: Stuff): string | null {
   if (MixinApi.isSlottable(mover)) {
     for (const [host] of mover.occupiedSlots().entries()) {
       return host.getPresentation();
+    }
+  }
+  return null;
+}
+
+/**
+ * Sever whatever `mover` is coupled to, and name it for the prose.
+ * `null` when it was coupled to nothing.
+ *
+ * ⭐ Both couplings are one-per-mover by construction — you pull one
+ * cart and you sit in one seat — so this severs at most one thing and
+ * has one name to report.
+ *
+ * ⚠ It severs from the MOVER's side only. A cart that is being pulled
+ * and a seat that is occupied both keep their own state through their
+ * own chokepoints (`unhitch`, `Slotted.vacate`), which is what stops
+ * this leaving a half-broken coupling — the exact failure the refusal
+ * was protecting against.
+ */
+function detachForTeleport(mover: Stuff): string | null {
+  if (MixinApi.isHauling(mover) && mover.isHitched()) {
+    const cart = mover.getHauledCart();
+    const name = cart ? cart.getPresentation() : 'the cart';
+    mover.unhitch();
+    return name;
+  }
+  if (MixinApi.isSlottable(mover)) {
+    // ⚠ A mover can hold several slots on ONE host (a rider in a seat
+    // that also claims a stirrup), so vacate every slot that host holds
+    // — the `Slottable` teardown's own shape. One host, one name.
+    for (const [host, slotNames] of mover.occupiedSlots().entries()) {
+      const name = host.getPresentation();
+      for (const slotName of slotNames) host.vacate(slotName, mover);
+      return name;
     }
   }
   return null;

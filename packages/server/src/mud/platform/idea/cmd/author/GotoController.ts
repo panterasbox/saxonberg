@@ -82,19 +82,11 @@ export default class GotoController extends CommandController<GotoModel> {
     }
 
     // D14 — the wizard path refuses too. An honest wizard path IS the
-    // point of the fix: the raw fallback below would move the rider and
-    // leave the horse exactly as the defect did, and `--force` is not an
-    // exemption from physics the author can see. Unhitch or dismount.
-    if (MixinApi.isMobile(giver)) {
-      const blocked = giver.teleportBlockedBy();
-      if (blocked) {
-        return this.fail(
-          context,
-          'attached',
-          `attached to ${blocked} — unhitch or dismount first`,
-        );
-      }
-    }
+    // ⭐ Coupling no longer refuses the move: `Mobile.teleport` severs
+    // the hitch (or the seat) and announces it on both sides. What the
+    // raw fallback below must NOT do is move a coupled mover without
+    // that severing — which is the defect the refusal was standing in
+    // for — so the fallback checks and detaches too.
 
     // 1. Polished path.
     if (MixinApi.isMobile(giver)) {
