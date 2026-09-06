@@ -266,3 +266,35 @@ This is the trap that made a correctly-seeded character still read
 `participation` and `producer`. `transcripts` and `disposition_events`
 are the opposite — they derive on read straight from the log, so seeded
 rows are live as soon as the fold runs.
+
+## Seeding an authored reputation — `RenownApi.seedTo` (2026-09)
+
+An authored character may be **well known**. `seedTo(subjectId, scope,
+band)` appends `reception` evidence until the *current* value function
+derives the asserted band, then schedules the fold.
+
+⚠ **It writes EVENTS, never a standing.** *"Measure, don't assign"*
+forbids writing the **figure**; it does not forbid authoring the
+**events** the figure derives from, which is the dossier's founding move
+everywhere else ([identity.md](./identity.md)).
+
+⚠⚠ **And it schedules the fold, debounced.** `renownOf` reads the warmed
+map off the **materialized** `renown` collection, not off `renown_events`
+— so seeding the log moves nothing until a recompute, and a bare restart
+re-warms from a collection the seeding never wrote. That trap cost a
+whole test-drive once. 33 characters seeding at boot produce **one**
+recompute, not 33.
+
+⭐ **Idempotent by construction rather than by a guard**: the seeder
+counts the evidence already on the log and writes only what the assertion
+still needs, so a re-clone adds nothing. That is stronger than the
+skip-if-any-claim check the other dossier channels use, and it is
+available here because renown's evidence is quantitative. An aborted
+search writes nothing at all.
+
+⭐⭐ **And this does NOT give an authored character a place in the
+Compact**, with no rule needed: `standing = max(0, renown) ×
+participation`, participation is earned by turning up, and nobody turns
+up on an NPC's behalf. The product is exactly zero. **The Compact stays
+players-only by arithmetic.**
+

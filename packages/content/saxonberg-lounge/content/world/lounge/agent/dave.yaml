@@ -34,6 +34,23 @@ data:
     - { disposition: ambition, valence: -70 }
     - { disposition: boldness, valence: 70 }
     - { disposition: humility, valence: -70 }
+  # ── the dossier ─────────────────────────────────────────────────
+  # Evidence, never values: each entry below expands into the same rows a
+  # lived history would have written, marked `claim`. Seeded once at
+  # postRegister and skipped if any claim already exists, so a reclone or
+  # a reboot cannot mint a second history.
+  # ⚠ A best-guess pass, explicitly provisional — the considered version
+  # is a content pass of its own before go-live.
+  archetype: proprietor
+  prologue:
+    - "Did a little acting once, drifted through a lot of odd jobs, and finally settled down to open his own bar."
+    - "Kept the rail himself for years before there were staff to hand it to."
+  competence:
+    - { discipline: bartending, asserting: expert }
+    - { discipline: mixology, asserting: competent }
+    - { discipline: business-administration, asserting: competent }
+  renown:
+    - { asserting: familiar }
   behaviors:
     # Intrinsic auto-introduce: name themselves to newcomers so patrons
     # learn who they are (the NPC half of the auto-introduce feature).

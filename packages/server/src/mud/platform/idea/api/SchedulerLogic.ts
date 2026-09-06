@@ -130,6 +130,12 @@ export class SchedulerLogic extends ApiLogic {
     resolveRegistry().cancel(engagement, reason);
   }
 
+  /** See {@link SchedulerApi.complete}. */
+  @CallSecurity(SchedulerApiCallers)
+  public complete(engagement: Engagement): void {
+    resolveRegistry().complete(engagement);
+  }
+
   /** See {@link SchedulerApi.cancelAll}. */
   @CallSecurity(SchedulerApiCallers)
   public cancelAll(actor: Stuff & Engaged): void {

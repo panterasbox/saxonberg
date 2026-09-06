@@ -34,12 +34,32 @@
  *                  consent (default non-consented), and sentience. Its
  *                  crime rule is the terms-free `!consented && sentient`.
  *
- * Durable ids are `templatePath`s (an Avatar's `/platform/agent/Avatar/<id>`, an
- * NPC's template path) — the same durable keying renown/provenance use,
- * so a victim's blame survives a reclone.
+ * ⭐ **Durable ids are IDENTITIES** (`Stuff.getIdentityPath()`) — the same
+ * key trait, transcript, chronicle, access, reactions and channels
+ * attribute to. It is `getTemplatePath()` for every ordinary object, so
+ * an NPC's key is unchanged; it differs exactly where identity is
+ * *minted* or *projected*, which is where this ledger used to be wrong:
+ *
+ *   - a sandbox `WireBody` has **no template row at all**, so the former
+ *     `getTemplatePath() ?? ''` filed every in-circle combatant under the
+ *     empty string. `deriveBlame`'s circle filter — the thing that stops
+ *     a staged killing minting a real crime row — had therefore never
+ *     been exercised by a row it could match (issue #42);
+ *   - five producers had **five different fallbacks** for the same
+ *     concept (`?? ''`, `?? 'stuff:<id>'`, `?? stuffId`, a bare skip, and
+ *     one that already read identity first).
+ *
+ * There is now one read — {@link AccountabilityEvent.partyIdOf} — and no
+ * fallback. The empty string means exactly one thing on a row:
+ * {@link AccountabilityEvent.NOBODY}, an act with no responsible party
+ * (an environmental death). A **terminal** row may never carry an empty
+ * `victim`; the append seam refuses one, so `blameFor('')` is
+ * unreachable rather than merely unlikely.
  */
 
 import { Document } from '../persistence/Document';
+import { MixinApi } from '../../api/mixin';
+import type { Stuff } from '../stuff/Stuff';
 import { Collections } from '../persistence/Collections';
 import type { Lethality, StopCondition } from '../combat/CombatTerms';
 import type { FieldMeta } from '../mixin';
@@ -73,6 +93,26 @@ export interface BlameVerdict {
    * (guard/law/court) read this; the engine only records the facts.
    */
   commandResponsible: string;
+  /**
+   * The standing institution that fielded the **killer**, or `''`.
+   *
+   * ⚠ **Crime-gated, exactly like `commandResponsible`** — this is a
+   * BLAME question, and naming somebody's employer on a lawful duel is
+   * noise.
+   */
+  killerFor: string;
+  /**
+   * The standing institution that fielded the **victim**, or `''`.
+   *
+   * ⭐⭐ **NOT crime-gated, and that asymmetry is the interesting part.**
+   * A lawful duel that kills a guard is no crime against the watch, but
+   * it is still *a guard the watch lost*. The actor-side party is about
+   * blame; the victim-side party is about **loss**, and a casualty list
+   * accumulates whether or not anybody did anything wrong. Gate it on
+   * crime and a body of people could only ever count its murdered, never
+   * its fallen — the wrong instrument.
+   */
+  victimFor: string;
 }
 
 /**
@@ -120,6 +160,18 @@ export interface AccountabilityFields {
    * responsibility — `deriveBlame` surfaces it on a crime verdict.
    */
   directedBy?: string;
+  /**
+   * The standing institution that fields the actor (`''` when none).
+   *
+   * ⚠ **Not `directedBy`.** That is *episodic* — a captain's recorded
+   * directive began THIS act. This is *standing* — the actor is fielded
+   * by X, order or no order. A guard acting for the watch was not
+   * ordered by the watch on this occasion, and conflating the two would
+   * make every institutional act read as a command.
+   */
+  killerFor?: string;
+  /** The standing institution that fields the victim (`''` when none). */
+  victimFor?: string;
   /** Game-time SECONDS witness. */
   at?: number;
   /** Real-time epoch MILLISECONDS — the ordering key for earliest-row. */
@@ -128,6 +180,61 @@ export interface AccountabilityFields {
 
 export default class AccountabilityEvent extends Document {
   static collectionName = Collections.AccountabilityEvents;
+
+  /**
+   * The party id meaning **nobody** — an act with no responsible party.
+   * An environmental death (cold, hunger, a fall) writes it for
+   * `initiator` / `opponent` / `killer` deliberately, which is why those
+   * fields cannot simply be required. It is never legal on a terminal
+   * row's `victim`: a harm with no victim is not a harm.
+   */
+  static readonly NOBODY = '';
+
+  /**
+   * ⭐ **The one read every producer keys on.** A subject's durable party
+   * id is its {@link Stuff.getIdentityPath} — identical to its template
+   * path for every ordinary object, the minted path for an Avatar, and
+   * the *projected real* identity for a sandbox vessel that has no
+   * template row of its own.
+   *
+   * `null` when the subject has neither a minted identity nor a template
+   * row (a bare test fixture). ⚠ **Callers must not substitute the empty
+   * string for it** — that is `NOBODY`, which is a different claim. A
+   * producer that cannot resolve a party skips the row.
+   */
+  static partyIdOf(subject: { getIdentityPath(): string | null }): string | null {
+    return subject.getIdentityPath();
+  }
+
+  /**
+   * ⭐ **The second attribution: the standing party that fields this
+   * subject**, or {@link AccountabilityEvent.NOBODY}.
+   *
+   * Every attribution has a **person** and a **party**, and the
+   * single-party case collapses into the existing field rather than
+   * needing a parallel ledger:
+   *
+   * | the subject is | `killer`/`victim` carries | `killerFor`/`victimFor` |
+   * |---|---|---|
+   * | **`Cast`** — a person who also belongs to something | the person | the institution |
+   * | **sentient `Extra`** — a role | the role's own row | the institution |
+   * | **non-sentient `Extra`** — a wolf | the row path | `NOBODY` |
+   *
+   * ⚠ An `Extra` keeps its **own** identity (two dead sentries must not
+   * collapse into one corpse), so this is genuinely a *second*
+   * attribution rather than a projection that overwrites the first —
+   * which is what an earlier draft of the design got wrong.
+   *
+   * The read itself is {@link Employed.institutionPath} — authored
+   * `institution:`, else the employer, else nobody. It lives on
+   * `EmployedMixin` because both of its tiers are authored-or-employment;
+   * see that mixin's doc for why it is not a mixin of its own.
+   */
+  static partyForOf(subject: Stuff): string {
+    return MixinApi.isEmployed(subject)
+      ? (subject.institutionPath() ?? AccountabilityEvent.NOBODY)
+      : AccountabilityEvent.NOBODY;
+  }
   /**
    * The epistemic wire mark the persistence layer stamps on a row written
    * from circle context (sandbox.md's PASS(mark) row).
@@ -157,6 +264,8 @@ export default class AccountabilityEvent extends Document {
     formationPath: { persistent: true },
     killerRole: { persistent: true },
     directedBy: { persistent: true },
+    killerFor: { persistent: true },
+    victimFor: { persistent: true },
     at: { persistent: true },
     realAt: { persistent: true },
     circleScope: { persistent: true },
@@ -187,6 +296,10 @@ export default class AccountabilityEvent extends Document {
   killerRole = '';
   /** Durable id of the directing captain, or `''` (unbidden). */
   directedBy = '';
+  /** The standing institution fielding the actor, or `''`. */
+  killerFor = '';
+  /** The standing institution fielding the victim, or `''`. */
+  victimFor = '';
   /** Game-time SECONDS witness. */
   at = 0;
   /** Real-time epoch MILLISECONDS — earliest-row ordering key. */
@@ -251,6 +364,10 @@ export default class AccountabilityEvent extends Document {
       // crime rule itself is untouched — this is an additional derived
       // fact, not a new culpability condition.
       commandResponsible: crime ? (first.directedBy ?? '') : '',
+      // Blame is crime-gated; loss is not. See the field docs — this is
+      // the whole reason the pair is two fields and not one.
+      killerFor: crime ? (first.killerFor ?? '') : '',
+      victimFor: first.victimFor ?? '',
     };
   }
 }

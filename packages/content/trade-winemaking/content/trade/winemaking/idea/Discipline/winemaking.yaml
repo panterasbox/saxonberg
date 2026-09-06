@@ -1,0 +1,24 @@
+# Winemaking — the fruit leg, split from `fermenting`.
+#
+# ✅ A SPECIALIZATION for the same reason as `brewing`, and decided in the
+# same pass: the sim already tells the practices apart, so the register
+# should. See advancement.md § Prefer specializations.
+#
+# ⭐ The divergence is not cosmetic here: a vintner works a crush, a lees
+# split and a vintage that is one batch a year; a brewer works a mash and
+# a boil and can start again on Tuesday. Same field, different craft.
+class: /platform/idea/Discipline
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: winemaking
+  channel: skill
+  label: Winemaking
+  iscedf: "0721"  # ISCED-F 2013: food processing
+  description: >-
+    The fruit leg. Judging a crush, working the cap, deciding when to
+    press and what to do with the lees, and living with the fact that the
+    vintage is the vintage. Improves by doing, once a year at a time.
+  requires:
+    - recipe-knowledge
+  specializes:
+    - fermenting

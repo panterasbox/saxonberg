@@ -28,11 +28,17 @@ owner-keyed Transcript.
 
 ### The roster — `lib/trait/Disposition.ts`
 
-17 opposed-pair axes: CK3's *personality* core (13 direct keepers), 3
+19 opposed-pair axes: CK3's *personality* core (13 direct keepers), 3
 reframed for this world (`boldness` ← Brave/Craven; `fairness` ←
 Just/Arbitrary; `worldview` ← Cynical/Zealous, recast idealistic/cynical
-with no faith hook), and 1 native addition (`curiosity` ← Curious/Incurious,
-central to a learning game). Everything CK3 handled via its *other* trait
+with no faith hook), and 3 native additions — `curiosity`
+(Curious/Incurious, central to a learning game), plus `candor`
+(Candid/Guarded) and `warmth` (Warm/Aloof), **added 2026-09-04 because
+content had already authored them and the roster was silently dropping
+them.** Candor is not honesty (truth vs lie, against forthcoming vs
+withholding — a guarded person tells you nothing and lies about none of
+it); warmth is neither sociability (how much company you seek) nor
+compassion (how you answer suffering). Everything CK3 handled via its *other* trait
 categories is left to Saxonberg's own systems (education → advancement,
 congenital → race, health → vitals). Each axis has a durable `key` and two
 pole labels; `DISPOSITION_KEYS` is the validation array. **Polarity:** a
@@ -221,3 +227,33 @@ the psychology slate's framing and contradicts its stated premise that
 free." Whether those verbs keep self-reporting is a **product decision
 the psychology build has to make**; it is called out here so it is
 found deliberately rather than rediscovered.
+
+## The identity build (2026-09)
+
+Two things landed here from `design/dossier` (MR !248):
+
+- ⭐ **`lint:dispositions`** — an authored `dispositions:` seed naming an
+  axis that does not exist is written, read back, matched against
+  nothing, and contributes to no trait position, **silently**. Five
+  authored valences across four rows were landing nowhere; two were real
+  vocabulary gaps (`candor`, `warmth`, added), two were renames (`greed` →
+  `generosity: -N`, `gregariousness` → `sociability`). The gate also
+  catches an **out-of-band valence**, which the estimator clamps — so an
+  authored 500 reads as 100 and nothing says so.
+
+  ⚠ It is a **move, not an invention**: `lib/npc/tree.ts` already
+  validated `trait:<key>` dialogue guards against `DISPOSITION_AXES`, for
+  one consumer at one seam. The gate applies the same vocabulary to the
+  **seeding** path, at build time, across every shipped pack.
+
+- ⭐⭐ **`DispositionEntry.archetype`** — which archetype minted a claim
+  row. `kind` separates *authored* from *earned*; it does not separate an
+  **archetype claim** from a **deviation claim**, and
+  `deviation = current derived − archetype baseline` is uncomputable
+  without knowing the baseline. ⚠ One field now, **unrecoverable later**.
+  See [identity.md](./identity.md).
+
+⚠ `dispositions:` stays on **`BehavedMixin`**, deliberately: both
+identity rungs have brains, and *a role-filler still has a personality* —
+it simply never changes. A role is a mask, not a life.
+

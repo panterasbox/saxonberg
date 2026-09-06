@@ -49,10 +49,15 @@ describe("Dave's Bar cast seeds", () => {
   });
 
   it('every cast member uses a shared archetype class (no bespoke per-NPC subclass)', () => {
-    // The cast composes behavior as data over a shared class — the thin
-    // `NPC`, or `Crafter` (`MakerMixin(NPC)`) for the bar staff, whom the
-    // crafting lane made order-fulfillers. Never a per-NPC subclass.
-    const allowed = ['/platform/agent/NPC', '/platform/agent/Crafter'];
+    // The cast composes behavior as data over a shared class — one of the
+    // two identity rungs (`Cast` / `Extra`), or `Crafter`
+    // (`CastMixin(MakerMixin(NPC))`) for the bar staff, whom the crafting
+    // lane made order-fulfillers. Never a per-NPC subclass.
+    const allowed = [
+      '/platform/agent/Cast',
+      '/platform/agent/Extra',
+      '/platform/agent/Crafter',
+    ];
     for (const f of castFiles()) {
       expect(allowed, f).toContain(load(f).class);
     }

@@ -685,6 +685,15 @@ onboarding → dorm + authoring), each thin-engine / content-heavy:
 Tactical work that doesn't need a slate. Pull these in
 opportunistically.
 
+- ✅ **Every corpse gets its own identity** — shipped by the identity
+  build (`design/dossier`, MR !248), ahead of #40 by decision.
+  `mintCorpseFrom` passes `asIdentityPath` with `OuterWarren`'s
+  scheme-derived pattern, and it survives the two things the item flagged:
+  `reembody` (one person, several corpses — the *moment* is the second
+  half of the key) and a shared `Extra` deceased key (same second falls
+  through to an ordinal, asked of the registry so it survives a reboot).
+  **#40 is unblocked.** See
+  [mortality.md](./subsystems/mortality.md) § *A corpse's own identity*.
 - ⚠⚠ **The Hearthworks has no inbound exit.** Found by the food-safety
   drive, in a live browser, by trying to walk there: the TPA board offers
   only Terminus and nothing connects onward, so both Hearthworks venues —

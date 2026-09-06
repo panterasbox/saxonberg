@@ -127,6 +127,53 @@ growing the day it is noticed, without being fixed first.
   `globIdentityFields` returning, every entry well-formed. Registration
   only validates classes it loads; this sees the whole tree.
 
+### The identity build's three (2026-09)
+
+Each guards a failure that is **closed and silent** — the family's
+recurring shape.
+
+- **`lint:dispositions`** — an authored `dispositions:` seed naming an
+  axis that does not exist is written, read back, matched against
+  nothing, and contributes to no trait position. Measured before it
+  existed: **five authored valences across four rows landing nowhere.**
+  It also catches an out-of-band valence, which the estimator clamps — so
+  an authored 500 reads as 100 and nothing says so. ⚠ A **move**, not an
+  invention: `lib/npc/tree.ts` already validated the same vocabulary for
+  dialogue guards, at one seam, for one consumer.
+- **`lint:identity`** — the world must agree with the prose. A proper
+  name on an `Extra`; a definite article on an `Extra` (or an indefinite
+  one on a nameless `Cast`); a `Cast` row instantiated twice (which
+  `SingletonMixin` would turn into a *boot* failure, worse to debug); a
+  dossier on an `Extra`; and ⭐⭐ **a sentient `Extra` that answers to
+  nobody** — if hurting something is a crime, the victim must be
+  *someone*.
+  ⭐ The rung is resolved **from the class FILE**, not from a list: a
+  row's `class:` resolves through `classFileOf` and its `extends`
+  expression is walked through its own imports until `CastMixin` turns
+  up. So a combination written tomorrow is covered the day it is written.
+  ⚠ The first draft used `cls.endsWith('/Cast')` and silently missed
+  every pack-owned character class — five people the census counted as
+  not existing.
+- **`lint:dossiers`** — ⭐ **assert-vs-derive.** `Competence.seedRunFor`
+  is run for real and its fold compared to the author's `asserting:`.
+  This is the only thing stopping a dossier drifting back into a stat
+  sheet, because *a declared value cannot disagree with itself and a
+  seeded history can*. Also: a dossier with no `archetype:` (the stamp is
+  **unrecoverable later**), an unknown Discipline, a band outside its
+  vocabulary, and a **census-then-ratchet** on dossier-less `Cast` rows —
+  censused at 33, driven to **0** by the content pass in the same build.
+
+⚠ `lint:dossiers` deliberately does **not** fold renown: its derive is
+not a pure function of its seeds (AppSettings' value function, the Emote
+documents' valences, the world clock), so the build-time fold that makes
+the competence check worth having is unavailable. Vocabulary is checked
+here; the arithmetic at seed time, where `RenownApi.seedTo` writes
+nothing at all if it cannot reach the band.
+
+⭐ `composesMixin` / `classPathOfFile` live in `scripts/pack-roots.ts` —
+the family's shared reader — because both new gates need to answer *does
+this class compose X?* from the class file.
+
 ## Domain honesty — the gates that buy a narrowing
 
 These exist because the failure they prevent is **silent and looks

@@ -34,6 +34,10 @@ data:
     - merc
     - woman
   shortDescription: a lean sellsword with a blade for hire
+  # She belongs to no lord and to one company. Recruited by role rather
+  # than by name, so the company is the only party a wrong against her
+  # can land on.
+  institution: /world/newbie-wilds/idea/long-road
   longDescription: |
     A lean woman in travelled leathers who has the loose, economical stand of someone who has waited at a lot of crossroads for a lot of work. There is a blade within easy reach and her eyes go to the treeline and back on a slow, habitual circuit — not nervous, just counting exits. She'll take a side for a while, if you ask her into yours and there's a fight worth the walk.
 

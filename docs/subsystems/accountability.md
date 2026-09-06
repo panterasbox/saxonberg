@@ -21,8 +21,35 @@ piece the concealment/stealth vertical rests on.
 IS the fact — the `RenownEvent` / `AuthoringEvent` precedent, not Stuff),
 one row per attribution act in the `accountability_events` collection
 (renamed from `combat_attribution_events`; pre-release, a trivial dev-DB
-reseed). Keyed on the victim's durable `templatePath`, so blame survives a
-reclone.
+reseed). Keyed on the victim's durable **identity**
+(`Stuff.getIdentityPath()`), so blame survives a reclone.
+
+⚠⚠ **It keyed on `getTemplatePath()` until the identity build**, alone
+among the ledgers — trait, transcript, chronicle, access, reactions,
+channels and subjects all attribute to identity. The two are
+byte-identical for every ordinary object and diverge exactly where
+identity is *minted* or *projected*, which is where this ledger was
+wrong: a sandbox `WireBody` is stamped `/platform/agent/Avatar/<id>/wire`
+while *projecting* the player's real identity, so an in-circle harm filed
+under the **vessel** — invisible to `blameFor(realIdentity)`, and
+unreachable by the one reader that cares.
+
+⭐ There is now **one read and no fallback** —
+{@link AccountabilityEvent.partyIdOf}. Five producers had five different
+substitutions for the same concept (`?? ''`, `?? 'stuff:<id>'`,
+`?? stuffId`, a bare skip, and one that already read identity first), and
+the `?? ''` one pooled every unattributable harm in the world under a
+single key that `blameFor('')` would have read back as one person's
+history.
+
+⚠ **The empty string now means exactly one thing on a row:**
+`AccountabilityEvent.NOBODY` — an act with no responsible party. An
+environmental death writes it for `initiator` / `opponent` / `killer`
+deliberately, which is why those fields cannot simply be required. The
+**append seam refuses** a terminal row whose `victim` is empty (loudly,
+and without writing), so the shared bucket does not exist to be read.
+Closing it at the seam rather than only at the producers is what stops the
+next producer reintroducing it.
 
 Four row **kinds** (the closed `AccountabilityKind` vocabulary):
 
@@ -66,6 +93,50 @@ directed formation implies command responsibility; the guard/law/court
 consumers derive what to do about it. See
 [combat-formations.md](./combat-formations.md).
 
+### ⭐⭐ Every attribution has a PERSON and a PARTY
+
+The identity build added the second half. The row already named two
+persons (`killer` and `victim`); `killerFor` and `victimFor` name their
+two **parties** — the standing institution that fields each of them,
+resolved at write time from {@link Employed.institutionPath} (an authored
+`institution:`, else the employer, else nobody).
+
+⚠⚠ **This is NOT `directedBy`, and folding them together would be a lie
+the governance design is careful never to tell by accident:**
+
+| | |
+|---|---|
+| `directedBy` | **episodic** — a captain's recorded directive began *this act* |
+| `killerFor` / `victimFor` | **standing** — this actor is fielded by X, order or no order |
+
+A guard acting for the watch was not *directed* by the watch on this
+occasion. Conflating them would make every institutional act read as a
+command.
+
+**The single-attribution case collapses into the existing field**, which
+is what makes this two fields rather than a parallel ledger:
+
+| the subject is | `killer`/`victim` carries | `killerFor`/`victimFor` |
+|---|---|---|
+| **`Cast`** — a person who also belongs to something | the person | the institution |
+| **sentient `Extra`** — a role | the role's own row | the institution, the only attribution it has |
+| **non-sentient `Extra`** — a wolf | the row path (*"a wolf"* is the honest unit) | `NOBODY` |
+
+⭐⭐ **And the two are gated differently. That asymmetry is the design.**
+`killerFor` is **crime-gated**, exactly like `commandResponsible` —
+naming somebody's employer over a lawful duel is noise. `victimFor` is
+**never gated**: a lawful duel that kills a guard is no crime against the
+watch, and it is still *a guard the watch lost*. The actor side is about
+**blame**; the victim side is about **loss**. Gate it on crime and a body
+of people could only ever count its murdered, never its fallen — the
+wrong instrument.
+
+⚠ An `Extra` keeps its **own** identity (two dead sentries must not
+collapse into one corpse), so the institution is genuinely a *second*
+attribution rather than a projection that overwrites the first — which is
+what an earlier draft of the design got wrong. See
+[chronicle.md](./chronicle.md) for the `Cast` / `Extra` rungs.
+
 ## Surface — `AccountabilityApi` / `AccountabilityLogic`
 
 The gated pair (`api/accountability.ts` forwarding shell +
@@ -78,10 +149,17 @@ The gated pair (`api/accountability.ts` forwarding shell +
 - `blameFor(victimId)` — the derived `BlameVerdict | null`.
 - `crimeFor(victimId)` — the boolean shortcut (`blame?.crime ?? false`).
 - `eventsForSession(sessionId)` — a producer's whole chain, `realAt`-ordered.
+- ⭐ `institutionRecordFor(partyId)` — **a body of people's record**: the
+  terminal harms it counted as `losses` (`victimFor`, never crime-gated)
+  and the ones it is `blamed` for (`killerFor`, crime-gated). Circle-marked
+  rows are dropped on both sides. It exists because blame was derived and
+  **nothing player-facing showed it**, so *"the watch counts its losses"*
+  was a claim nobody in the game could check; `chronicle <a body of
+  people>` is the reader ([chronicle.md](./chronicle.md)).
 
-Actor / consent / sentience ride in the row fields (durable
-`templatePath`s), set by the **producer that knows them** — never inferred
-in the ledger.
+Actor / consent / sentience ride in the row fields (durable **identity**
+paths), set by the **producer that knows them** — never inferred in the
+ledger.
 
 ## Producers (not a single chokepoint)
 
@@ -156,3 +234,26 @@ and then silently dropped, because `fromDocument` only reads declared
 fields) and stripped from field-side documents, so an ordinary row is
 byte-identical to what it was. A killing staged in a private circle is not
 evidence about anyone.
+
+## The identity build (2026-09) — what a ledger attributes to
+
+`design/dossier`, MR !248. Three changes, and the first two were the same
+bug seen from different sides:
+
+1. **Keying moved to identity** (issue #42), with one read and no
+   fallback, and the empty-string sink closed at the append seam. See the
+   top of this doc.
+2. ⭐ **`ConditionApi.die` RETURNED before the ledger write on the circle
+   path**, so an in-circle death wrote **no row at all** —
+   [sandbox.md](./sandbox.md)'s PASS(mark) classification (*"Identity-real
+   … what happened to YOU stays yours"*) was dropping the one thing it
+   promises to keep. The append is hoisted above the circle branch.
+   ⚠⚠ Together with (1) this is what makes `deriveBlame`'s circle filter
+   **load-bearing**: it had never been exercised by a row it could match,
+   because no in-circle row was ever keyed on a real identity.
+3. **`killerFor` / `victimFor`** — the party half of every attribution,
+   and `institutionRecordFor` to read it.
+
+⚠ Fixed in passing, and worth knowing about: `CombatLogic.safeSideOf`
+keyed a solo side on `getTemplatePath() ?? ''`, so **two unidentified
+combatants read as ALLIES**. It keys on `stuffId` now.

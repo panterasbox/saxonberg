@@ -1,0 +1,78 @@
+# The goods yards — the back of the working city, where every trade
+# floor opens onto the same piece of ground.
+#
+# ⭐ It is the reason the producer floors have doors at all, and the
+# doors are the reason a hauler can do the job the hands post. Nothing
+# is made here; everything passes through.
+class: /platform/location/SingletonCartesianLocation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the goods yards
+  primaryKeyword: yards
+  alternateNames: [yard, goods, backs, loading]
+  _address: terminus/city/wharfside/goods-yards
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  ambientIntensity: 520
+  ambientColorTemperature: 5600
+  longDescription: |
+    A long cobbled strip behind the working city with doors down both sides and a gutter running the length of it. Every trade on this side of Terminus has a back door here, and every one of them is a different height off the ground because they were all built by different people who were not talking to each other.
+
+    Barrows stand where they were left. There is a smell of six industries at once, and a permanent argument about whose pallets those are.
+  coords:
+    x: 0
+    y: 0
+    z: 0
+  exits:
+    east:
+      destination: /world/terminus/wharfside/bank
+      media: [ground]
+      edgeMinutes: 3
+    # ⚠ Each of these has its far half authored in the trade's own pack.
+    # Neither pack reaches into the other's files.
+    northwest:
+      destination: /trade/bottling/location/bottling-floor
+      media: [ground]
+      edgeMinutes: 2
+    north:
+      destination: /trade/cooking/location/pantry-floor
+      media: [ground]
+      edgeMinutes: 2
+    northeast:
+      destination: /trade/distilling/location/crowsfoot-floor
+      media: [ground]
+      edgeMinutes: 2
+    southeast:
+      destination: /trade/distilling/location/hollis-floor
+      media: [ground]
+      edgeMinutes: 2
+    south:
+      destination: /trade/distilling/location/veshko-yard/location/distillery
+      media: [ground]
+      edgeMinutes: 2
+    southwest:
+      destination: /trade/farming/location/farm
+      media: [ground]
+      edgeMinutes: 4
+  # ⭐ The carrier's people wait here, because this is where the work is.
+  # The rows are the haulage TRADE's; only the place is Terminus's.
+  cast:
+    - /trade/haulage/agent/carter
+  props:
+    - /system/transport/thing/wagon
+    # ⭐ The yards' board. Every trade on this side of the city posts on
+    # its own floor; this is where a hauler stands to see all of it at
+    # once, which is what an intermediary is FOR.
+    - /trade/haulage/thing/works-board
+  details:
+    doors:
+      keywords: [doors, door, backs, entrances]
+      description: |
+        Six of them, no two alike: a roller shutter, a pair of timber leaves with a wicket cut in one, a loading bay with a lip you could break an ankle on, and three that are just doors. Each has something chalked beside it that only the people who work behind it can read.
+    barrows:
+      keywords: [barrows, barrow, carts, handcarts, pallets]
+      description: |
+        A dozen of them along the wall, most empty, one loaded and roped and evidently waiting for somebody who has not come. Nobody owns the ones by the gutter; everybody owns the ones by the doors.
+    gutter:
+      keywords: [gutter, drain, channel, water]
+      description: |
+        A stone channel down the middle carrying whatever the six industries put into it, which today is mostly water and something that smells like grain. It runs east, towards the river, because everything here does.

@@ -1,0 +1,45 @@
+# The lower climb — where the road stops being a valley road.
+#
+# ⚠ Its EAST exit is the far half of the pair the terminus pack authors
+# at the crossroads. Both sides are written out explicitly; neither pack
+# reaches into the other's files.
+class: /platform/location/SingletonCartesianLocation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the lower climb
+  primaryKeyword: climb
+  alternateNames: [road, hill, zigzag]
+  _address: terminus/rejection/road/lower-climb
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  ambientIntensity: 600
+  ambientColorTemperature: 5800
+  longDescription: |
+    The road leaves the flat within a hundred paces and starts to work. Two long zigzags take it up the face of the hill, cut into the slope with the spoil thrown out on the downhill side and revetted with dry stone that is failing in three places.
+
+    It is still a road. Carts come up here, slowly, and there are the ruts to prove it. Behind and below, the crossroads and the whole of the valley beyond it.
+  coords:
+    x: 0
+    y: 0
+    z: 0
+  exits:
+    east:
+      destination: /world/terminus/delight-road/crossroads
+      media: [ground]
+      edgeMinutes: 10
+    west:
+      destination: /world/rejection/kestrel-road/upper-climb
+      media: [ground]
+      edgeMinutes: 10
+  details:
+    revetment:
+      keywords: [revetment, wall, stone, dry-stone, failing]
+      description: |
+        Dry-stone, laid without mortar, holding the outside edge of the road up over the drop. Three bellies in it have been shored with timber and one has not been shored with anything. Whoever is responsible for this road is responsible for it up to about here.
+    ruts:
+      keywords: [ruts, tracks, wheels, cart]
+      description: |
+        Deep, and stopping abruptly at the top of the second zigzag where a driver evidently thought better of the next bit and turned round. There is a wide place there worn by exactly that decision, repeated.
+    valley:
+      keywords: [valley, view, crossroads, below, flats]
+      description: |
+        The whole of the Delight laid out, the road across it dead straight, and the crossroads a pale square at the near end. From up here you can see that the yard down there is the only flat hard ground for a day in any direction.

@@ -1,0 +1,29 @@
+# Brewing — the grain leg, split from `fermenting`.
+#
+# ✅ **A SPECIALIZATION, decided under the standing preference in
+# advancement.md § Prefer specializations: split when the sim already
+# tells the practices apart.** Three trade packs, three floors, three
+# ferment profiles, three sets of verbs — the game distinguishes brewing
+# from winemaking from distilling completely, so the register should too.
+#
+# ⚠ **Sharing an ISCED-F code does not argue against the split.**
+# `distilling` already sits at 0721 beside `fermenting`. A shared code
+# means the same *field*; it does not mean the same *practice*. The anchor
+# answers "is this a field of study at all?"; the divergence test answers
+# "is it its own branch?"
+class: /platform/idea/Discipline
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: brewing
+  channel: skill
+  label: Brewing
+  iscedf: "0721"  # ISCED-F 2013: food processing
+  description: >-
+    The grain leg. Mashing for the sugars you meant to get, holding a
+    boil, pitching into wort at the temperature it wants, and reading a
+    beer through the cloudy middle where it tastes like nothing. Improves
+    by doing.
+  requires:
+    - recipe-knowledge
+  specializes:
+    - fermenting

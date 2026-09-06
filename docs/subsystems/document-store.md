@@ -29,6 +29,17 @@ world content, not player state. `release` is press-owned; `wiki` is
 deliberately not a document kind (a page has a revision log and a CAS
 edit path of its own).
 
+⭐⭐ **The logistics build added three, all on the `water-right`
+pattern**: `bill-of-lading`, `warehouse-receipt` and `rate-card` — all
+path-keyed, `onVanish: 'keep'`, and filed **under the filing business's
+own branch**. That last part is the design rather than the plumbing:
+a depot's records cover exactly what it handled and nothing else, which
+is the honest consequence of shipping without customs — ⭐ *private
+books do not aggregate*, and the first institution that can see across
+is not the state but the depot, whose coverage is its market share.
+⚠ `DocumentApi.saveAsBusiness` is the gate: derived owner, a path under
+the business's branch, and a closed kind allowlist.
+
 ⭐ **`water-right` is the worked example of why the vocabulary is closed**
 (water build). A prior-appropriation right is a *record* — dated,
 transferable, and meaningless if it can be quietly lost — so it is

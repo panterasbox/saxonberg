@@ -96,6 +96,7 @@ async function buildAndSave(
   entry.who = fields.who ?? [];
   entry.tags = fields.tags ?? [];
   entry.key = fields.key ?? null;
+  entry.archetype = fields.archetype ?? '';
   await entry.save();
 }
 
@@ -307,6 +308,7 @@ export function PersonaMixin<TBase extends MixinConstructor>(Base: TBase) {
           kind: 'claim',
           text: seed.text,
           order: seed.order,
+          archetype: seed.archetype,
         });
       }
     }

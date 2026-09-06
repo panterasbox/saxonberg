@@ -37,11 +37,25 @@ diegetic witness. Two shapes:
 
 **The contract boundary**: a clause may only be escrowed if its
 condition is engine-verifiable — `Condition.validate` admits only the
-**closed template vocabulary** (`CONDITION_TEMPLATES`, v1:
-`delivery`). Free-form intents (and free-form MQL — the anti-grief
+**closed template vocabulary** (`CONDITION_TEMPLATES`: `delivery`,
+`supply`). Free-form intents (and free-form MQL — the anti-grief
 boundary) are rejected from the system-backed path. The vocabulary is
-the extension seam later builds widen (`cull`, `escort`, `restock` —
-each one new `holdsFor` predicate, never a new engine seam).
+the extension seam later builds widen (`cull`, `escort` — each one new
+`holdsFor` predicate, never a new engine seam).
+
+⭐⭐ **`supply` is the quantity contract** (logistics): *n of a kind, or
+n of a UNIT of a category, at destination Y*. The second form is the
+important one — `6 L of gin` is filled by a demijohn, a keg or eight
+bottles, because a contract should say **what the business wants, not
+the packaging somebody imagined it arriving in**. The tally measures
+rather than counts, through the one shared matcher
+(`lib/employment/CategoryMeasure`).
+
+⭐ And it is why there is no `mine`/`extract` template. *"Go mine ten
+iron ore"* is `supply 10 iron-ore`: verifying that YOU mined it would
+need provenance on every lump, and would forbid filling the contract by
+BUYING — which is a legitimate way to fill one and the thing that makes
+a spot market liquid. **How you sourced it is your business.**
 
 **Delivery** (`lib/employment/Condition.ts`): *item X rests in/on
 destination Y*. The item ref is instance-bound (`chattel`, the durable
@@ -96,6 +110,20 @@ posts from their **primary** account; `--business` resolves
 `EmploymentApi.businessOfProprietor(actor)` (an NPC proprietor
 dispatches the same verb) and escrows from the Business account.
 
+## ⭐ A gig carries its ORIGIN
+
+`ContractRecord.origin` — where the work STARTS, defaulted from the
+poster's own environment and overridable with `job post … --from`. It is
+**descriptive, never a gate**: nothing about completion consults it, so
+a courier who solves the problem their own way (walked, bought it there,
+had one at home) is paid exactly the same.
+
+⭐ What it buys is `jobs --origin <place>` — the **backhaul** read: a
+hauler at the far end of a corridor asking what wants moving back. *You
+cannot solve your own backhaul*, which is a coordination problem with
+visible waste and the cleanest teachable case of why intermediaries
+exist.
+
 ## Claim modes
 
 - **Exclusive** (the delivery default): `claim` escrows and locks the
@@ -144,6 +172,24 @@ the crate into the destination and asserts *nothing settles*.)
    gets an account opened at the bank custodying the escrow
    (payer-derived) — then the CAS state flip, escrow release, `settled`
    recording attribution both ways, `escrowClose`.
+
+## ⭐ The issuer is told, and nobody else
+
+When a gig settles, `ContractLogic` calls **`onContractSettled(record)`
+on the issuer** — a `@hook` on `BusinessTrade` with a no-op terminal
+(the `Stuff.onDestruct` shape). Haulage's `CarrierBusiness` overrides it
+to file a bill of lading, because *a player who claims a haul gig and
+delivers it must file the same paper `ship` at a counter does*.
+
+⚠⚠ It was a global `contract.settled` bus event, with exactly ONE
+emitter and ONE subscriber, and the kernel paid three times for it: an
+`Events` entry, an interface shaped around one pack's fields, and an
+`emittableBy()` policy left OPEN so anything could forge the
+announcement. The hook is narrower in every direction — only the party
+that posted the work hears, nothing can announce on its behalf, and the
+kernel learns no new nouns. ⚠ Fire-and-forget by contract: the money has
+moved before it runs, so a throwing override must not unwind a settled
+contract.
 
 ## Expiry is lazy (observe-first)
 

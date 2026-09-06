@@ -9,8 +9,8 @@
  * `Creature` (`lib/creature/Creature.ts`).
  *
  * Composition (agency, inner→outer on `Creature`):
- *   BeliefStore + Persona + Gendered + Sensor + Perceiver + Perception +
- *   Vocal + Soul + Engaged + Hauler + Mobile + CommandGiver
+ *   Employed + BeliefStore + Persona + Gendered + Sensor + Perceiver +
+ *   Perception + Vocal + Soul + Engaged + Hauler + Mobile + CommandGiver
  *
  * Commands are inherited from mixins and subclasses:
  * - ContainerMixin (on Creature) provides: inventory, get, drop
@@ -81,6 +81,11 @@ import type { FieldMeta } from '../mixin';
 //   all — it reads nothing from the other mixins, so position is free;
 //   placing it at the base of the agency stack keeps every PC and NPC
 //   (the viewer types) carrying it.
+// - EmployedMixin carries "who answers for you" (`institutionPath`) as
+//   well as the employment records — the harm ledger's `killerFor` /
+//   `victimFor`. On Character rather than on NPC deliberately: "every
+//   attribution has a person and a party" is true of a player too, and
+//   an Avatar is neither Cast nor Extra.
 // - AdvancementMixin sits OUTERMOST, above CommandGiverMixin: it pushes
 //   competence-conferred verbs onto the giver's affordance stack, so it
 //   needs CommandGiver's surface (pushCommandSource/popCommandSource) in

@@ -134,6 +134,7 @@ export interface TeleportOptions {
   silent?: boolean;
 }
 
+
 /**
  * Bodies returned by movement-message resolution. Either or both may
  * be absent — Mobile fills in defaults for any audience the resolver
@@ -564,13 +565,83 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
      * "appearing out of thin air" before a player has even seen the
      * location.
      */
+    /**
+     * D14 — what this mover is *attached* to such that a teleport would
+     * silently separate them, as a presentation phrase; `null` when the
+     * ride is clean.
+     *
+     * On the object rather than in a controller because it is a
+     * question about the mover, and because three verbs need the same
+     * answer: `teleport`'s free-move and ride forks, and the wizard
+     * `goto`. ⚠ The wizard path refuses too — an honest wizard path is
+     * the point of the fix, not an exemption from it.
+     */
     teleport(destination: Stuff & Container, opts?: TeleportOptions): void {
       const silent = opts?.silent ?? false;
+      const self = this as unknown as Stuff;
+      /*
+       * ⭐⭐ **Coupling does not BLOCK a teleport; it is severed by one.**
+       *
+       * A hitched hauler and a mounted rider are both *coupled*, and a
+       * silent one-sided move would leave the coupling dangling at one
+       * end and lying at the other. The first fix was to refuse the
+       * teleport outright — which is correct about the data and wrong
+       * about the world: it makes the spell feel broken rather than
+       * making the wagon feel heavy, and *"you cannot teleport while
+       * holding a rope"* is not a rule anybody would write on purpose.
+       *
+       * ⭐ What actually happens is the honest thing: **you go, and what
+       * you were attached to does not.** The hitch slips and the wagon
+       * stands where it stood; you leave the saddle behind. Freight
+       * still does not teleport — the cost surface is untouched — and
+       * nothing is lost, because a parked vehicle vetoes residency
+       * eviction (`VehicularMixin`), so it is there when you walk back.
+       *
+       * ⚠ It is ANNOUNCED, on both sides. A player who teleports away
+       * from their wagon and is not told has been robbed by a mechanic;
+       * one who is told has made a choice.
+       */
+      const detached = detachForTeleport(self);
       const previous = (this as unknown as Containable).getContainer();
+      if (!silent && previous && detached) {
+        // ⚠⚠ `toSelf` THROWS for a non-Sensor actor, and a teleporting
+        // mover need not be one — a cart shunted by a script is Mobile
+        // and senses nothing. This is the third time this build has hit
+        // that edge, so it is guarded rather than assumed: the room is
+        // always told, and the mover is told if it can hear.
+        const scene = MessageApi.scene(self)
+          .topic('act.move')
+          .toPeers(Mml.compose`${Mml.actor(self)} slips free of ${detached}.`);
+        if (MixinApi.isSensor(self)) {
+          scene.toSelf(
+            Mml.text(
+              `\nYou slip free of ${detached}, and it stays where it stands.\n`,
+            ),
+          );
+        }
+        scene.send();
+      }
       if (!silent && previous) {
         this.announceDeparture(previous, undefined);
       }
       ContainmentApi.move(this as unknown as Stuff & Containable, destination);
+      // D14 — ripple what is ON you. The `traverse` ripple's own shape:
+      // walk the immediate slot level, `seen`-deduped, and carry each
+      // occupant. Worn gear and a pack are contents and came along with
+      // the move itself; a mount's rider and a saddlebag are slot
+      // occupants and would otherwise have been left standing.
+      if (MixinApi.isSlotted(self)) {
+        const seen = new Set<Stuff>();
+        for (const [, occupants] of self.getAllOccupants().entries()) {
+          for (const occupant of occupants) {
+            if (seen.has(occupant)) continue;
+            seen.add(occupant);
+            if (MixinApi.isContainable(occupant)) {
+              ContainmentApi.move(occupant, destination);
+            }
+          }
+        }
+      }
       if (!silent) {
         this.announceArrival(destination, undefined);
         // Auto-sense on arrival, same as `traverse`. Fire-and-forget
@@ -579,8 +650,7 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
         void this.autoSenseOnArrival().catch(() => {});
         this.autoIntroduceOnArrival();
       }
-      const mover = this as unknown as Stuff;
-      if (MixinApi.isHasInteractive(mover)) mover.refreshDisplays();
+      if (MixinApi.isHasInteractive(self)) self.refreshDisplays();
     }
 
     /**
@@ -918,3 +988,38 @@ function assertVeto(result: VetoResult | undefined, hookName: string): void {
   );
 }
 
+
+
+/**
+ * Sever whatever `mover` is coupled to, and name it for the prose.
+ * `null` when it was coupled to nothing.
+ *
+ * ⭐ Both couplings are one-per-mover by construction — you pull one
+ * cart and you sit in one seat — so this severs at most one thing and
+ * has one name to report.
+ *
+ * ⚠ It severs from the MOVER's side only. A cart that is being pulled
+ * and a seat that is occupied both keep their own state through their
+ * own chokepoints (`unhitch`, `Slotted.vacate`), which is what stops
+ * this leaving a half-broken coupling — the exact failure the refusal
+ * was protecting against.
+ */
+function detachForTeleport(mover: Stuff): string | null {
+  if (MixinApi.isHauling(mover) && mover.isHitched()) {
+    const cart = mover.getHauledCart();
+    const name = cart ? cart.getPresentation() : 'the cart';
+    mover.unhitch();
+    return name;
+  }
+  if (MixinApi.isSlottable(mover)) {
+    // ⚠ A mover can hold several slots on ONE host (a rider in a seat
+    // that also claims a stirrup), so vacate every slot that host holds
+    // — the `Slottable` teardown's own shape. One host, one name.
+    for (const [host, slotNames] of mover.occupiedSlots().entries()) {
+      const name = host.getPresentation();
+      for (const slotName of slotNames) host.vacate(slotName, mover);
+      return name;
+    }
+  }
+  return null;
+}

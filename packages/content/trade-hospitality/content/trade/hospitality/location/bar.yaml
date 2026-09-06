@@ -2,8 +2,10 @@
 # row a venue instances or copies by reference (template inheritance does
 # not exist: a venue with its own class — Dave's Bar — lists the same
 # fixtures in its own `props:`). Every station the menu exposes, and
-# NO bottles: the rail is stocked by buying (the keeper's `restocks` beat
-# at the cash-and-carry), never by `populates` magic.
+# NO bottles: the rail is stocked by ORDERING (the keeper's `restocks`
+# beat posts a carriage bounty and clears the receiving bench onto the
+# rail — logistics D11; she stopped travelling to the supplier), never by
+# `populates` magic.
 # An ordinary location, not a FurnishableRoom: that class is the
 # FURNISHING archetypes' base. A trade floor's durability lives on its
 # persistable fixtures (the Stock, the racking, the counter) — the

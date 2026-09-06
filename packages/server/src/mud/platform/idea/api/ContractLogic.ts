@@ -17,10 +17,12 @@ import { ApiLogic } from "../../../lib/stuff/ApiLogic";
 import { CallSecurity, Unshadowable } from "../../../lib/security/decorators";
 import { SecurityPolicies } from "../../../lib/security/SecurityPolicies";
 import { StuffApi } from "../../../api/stuff";
+import { Template } from "../../../lib/stuff/Template";
 import { MixinApi } from "../../../api/mixin";
 import { Currency, BankingApi, Money, Account } from "../../../api/banking";
 import { PlayerApi } from "../../../api/player";
 import { EmploymentApi } from "../../../api/employment";
+import type { Business as BusinessShape } from "../Business";
 import { ExecutionContextApi } from "../../../api/execution-context";
 import { WorldClockApi } from "../../../api/worldclock";
 import { PersistApi } from "../../../api/persist";
@@ -77,7 +79,36 @@ function dial(key: string, fallback: number): number {
 
 /** The acting principal as a live Stuff, or null (unattributable). */
 function actor(): Stuff | null {
-  return (ExecutionContextApi.getActingAuthor() as Stuff | null) ?? null;
+  const author = ExecutionContextApi.getActingAuthor() as Stuff | null;
+  if (author) return author;
+
+  /*
+   * ⭐ An NPC driving ITSELF.
+   *
+   * `getActingAuthor` refuses any chain containing a forced frame, and
+   * that is right for AUTHORSHIP: a forced command may have been made to
+   * run by somebody else, and a provenance row that named the wrong
+   * person would be worse than none.
+   *
+   * But it made contracts the outlier in the economy. Every other
+   * economic act an NPC performs — `buy` and `consign`, both of which
+   * move real money — resolves its principal from the command GIVER and
+   * the wallet's active account, and works. ⚠⚠ Found by DRIVING: the
+   * supply brains' `job post` came back *"no attributable poster"* and
+   * the whole labor market was inert, on a build whose second purpose is
+   * that labor market. No unit test would have caught it, because no
+   * unit test posts through a brain.
+   *
+   * ⚠ The narrowing is what makes it safe: a chain whose frames do not
+   * all share ONE giver is still unattributable, so a forced command
+   * somebody else caused is refused exactly as it was.
+   */
+  const commands = ExecutionContextApi.getCommandStack();
+  if (commands.length === 0) return null;
+  const givers = new Set(commands.map((c) => c.context.commandGiver));
+  return givers.size === 1
+    ? ((commands[0]!.context.commandGiver as Stuff) ?? null)
+    : null;
 }
 
 /** The acting principal's durable key, or "". */
@@ -117,7 +148,12 @@ async function saveRecord(record: ContractRecord): Promise<void> {
  * demand). Null when the path names nothing buildable.
  */
 async function resolveDestination(path: string): Promise<Stuff | null> {
-  const live = StuffApi.findByTemplatePath(path);
+  // ⚠ The multi-instance form, for the same reason the item check uses
+  // it: fixtures are SHARED ROWS. One `/trade/haulage/thing/receiving-
+  // bench` row stands in every venue that receives goods, so the
+  // singleton lookup throws the day a second venue has one — and the
+  // throw would land inside a forced NPC command, where it is invisible.
+  const live = StuffApi.findAllByTemplatePath(path)[0];
   if (live) return live;
   try {
     return await StuffApi.singletonOrClone<Stuff>(path);
@@ -133,6 +169,63 @@ async function resolveDestination(path: string): Promise<Stuff | null> {
  * delivered) plus, for a Surfaced fixture, the items resting on it. Each
  * candidate is confirmed with the authoritative `Condition.holdsFor`.
  */
+/**
+ * How much of what the condition asks for is delivered at `dest` — the
+ * `supply` tally. ⭐ A COUNT of things for a kind, and a measured
+ * QUANTITY for a category: six litres of gin is six litres whether it
+ * arrived in one demijohn or eight bottles, which is the whole point of
+ * letting a contract say what the business wants.
+ *
+ * ⭐ The same walk as {@link findDeliveredItemAt}, counting instead of
+ * short-circuiting. It is a separate function rather than a flag because
+ * the two questions differ in cost: delivery stops at the first hit and
+ * supply cannot.
+ *
+ * ⚠ `Globbable` goods are refused by `matchesItem`, so this counts
+ * DISCRETE things — ten lumps of ore, not a merged stack of ten. That is
+ * the same identity rule crates exist for, and it is why a supply gig
+ * for something fungible is unpostable rather than unverifiable.
+ */
+function countDeliveredItemsAt(
+  dest: Stuff,
+  condition: ConditionData,
+  depth = 0,
+): number {
+  let found = 0;
+  if (MixinApi.isSurfaced(dest)) {
+    for (const item of dest.getResting()) {
+      if (
+        Condition.matchesItem(condition, item) &&
+        Condition.holdsFor(condition, item)
+      ) {
+        found += Condition.contributionOf(condition, item);
+      }
+    }
+  }
+  if (depth > MAX_SEARCH_DEPTH || !MixinApi.isContainer(dest)) return found;
+  for (const item of dest.getContents()) {
+    if (item instanceof Creature) continue;
+    if (
+      Condition.matchesItem(condition, item) &&
+      Condition.holdsFor(condition, item)
+    ) {
+      found += Condition.contributionOf(condition, item);
+    }
+    found += countDeliveredItemsAt(item, condition, depth + 1);
+  }
+  return found;
+}
+
+/** Whether the condition is satisfied at `dest` — one, or a tally. */
+function conditionHoldsAt(dest: Stuff, condition: ConditionData): boolean {
+  if (condition.template === 'supply') {
+    return (
+      countDeliveredItemsAt(dest, condition) >= Condition.countOf(condition)
+    );
+  }
+  return findDeliveredItemAt(dest, condition) !== null;
+}
+
 function findDeliveredItemAt(
   dest: Stuff,
   condition: ConditionData,
@@ -298,9 +391,32 @@ async function resolveIssuer(
   | { ok: false; reason: string }
 > {
   if (asBusiness) {
-    const business = EmploymentApi.businessOfProprietor(poster);
+    /*
+     * ⭐ The PROPRIETOR, or somebody who buys for the house.
+     *
+     * It used to be the proprietor alone, which made posting the one
+     * economic act an employee could not do on the house's behalf —
+     * `buy` and `consign … --ask` both already spend the house's money
+     * through `buysFor` and the wallet's active account, and both are
+     * how every producer floor in the realm works.
+     *
+     * ⚠⚠ Found by DRIVING: the supply brains' postings came back *"you
+     * don't run a business"* on every floor at once, because a floor
+     * hand holds a `purchases` position and not the proprietorship. The
+     * whole labor market was inert behind it.
+     *
+     * **The seat is the authority.** A purchasing clerk posting work
+     * their house funds is exactly what a purchasing clerk does, and it
+     * carries the same authority `consign` already grants them.
+     */
+    const business =
+      EmploymentApi.businessOfProprietor(poster) ??
+      (await buysForOf(poster));
     if (!business) {
-      return { ok: false, reason: "you don't run a business" };
+      return {
+        ok: false,
+        reason: "you don't run a business, and you buy for nobody",
+      };
     }
     let accountId: string;
     try {
@@ -347,14 +463,39 @@ async function postImpl(spec: GigSpec): Promise<PostGigResult> {
 
   // A fungible stack can never satisfy a gig (no stable identity).
   if (spec.condition.item.kind === "template") {
-    const exemplar = StuffApi.findByTemplatePath(spec.condition.item.path);
+    // ⚠⚠ `findAllByTemplatePath`, NEVER `findByTemplatePath` — the
+    // singleton form THROWS when a path has more than one live instance,
+    // and a kind-bound gig names a kind, which is to say the common case
+    // is many. A live drive caught this: twelve bottles of gin exist, so
+    // every one of the keeper's twelve postings died with
+    // `expected singleton, found 12` — a controller-error, swallowed by
+    // the forced command, leaving a bar that ordered nothing and said
+    // nothing. It was latent until an order could name a kind the poster
+    // was not holding; then it broke every kind-bound gig in the realm,
+    // players included.
+    const exemplar = StuffApi.findAllByTemplatePath(
+      spec.condition.item.path,
+    )[0];
     if (exemplar && MixinApi.isGlobbable(exemplar)) {
       return { ok: false, reason: "fungible goods can't be contracted" };
+    }
+    // ⭐ And the kind has to BE something. A poster naming a kind it has
+    // none of (`job post --of <kind>`, which is how a venue that has run
+    // dry orders anything at all) can name a path that is nothing at
+    // all — and that gig could never be satisfied, so its escrow would
+    // sit until somebody abandoned it.
+    //
+    // ⚠ A live instance IS the proof, checked first: if the world holds
+    // one of these, the kind plainly exists and no store round-trip is
+    // needed. The template row is the fallback, and it is the only path
+    // a blind `--of` can take.
+    if (!exemplar && !(await Template.findByPath(spec.condition.item.path))) {
+      return { ok: false, reason: "there's no such kind" };
     }
   }
 
   // A pre-satisfied gig is degenerate — the work is already done.
-  if (findDeliveredItemAt(dest, spec.condition)) {
+  if (conditionHoldsAt(dest, spec.condition)) {
     return { ok: false, reason: "that condition already holds" };
   }
 
@@ -367,6 +508,10 @@ async function postImpl(spec: GigSpec): Promise<PostGigResult> {
   record.contractId = contractId;
   record.state = "open";
   record.boardPath = spec.boardPath;
+  // Where the work starts. An explicit `--from` wins; otherwise the
+  // poster's own environment, which is the right answer for an NPC
+  // posting from its floor and costs the caller nothing.
+  record.origin = spec.originPath ?? originOfPoster(poster);
   record.issuer = issuer.party;
   record.issuerAccountId = issuer.accountId;
   record.claimMode = spec.claimMode;
@@ -517,7 +662,7 @@ async function fulfillImpl(contractId: string): Promise<FulfillResult> {
   }
   // The engine checks NOW (strict possession included) — the player
   // petitions, the state decides.
-  if (!findDeliveredItemAt(dest, condition)) {
+  if (!conditionHoldsAt(dest, condition)) {
     return { ok: false, reason: "the delivery isn't done" };
   }
   // The engine-sealed proof-of-delivery: no money, no state transition.
@@ -546,7 +691,7 @@ async function completeImpl(contractId: string): Promise<CompleteResult> {
   // row whose actor is the completer (the payout survives state drift).
   let verified = false;
   const dest = await resolveDestination(condition.destinationPath);
-  if (dest && findDeliveredItemAt(dest, condition)) verified = true;
+  if (dest && conditionHoldsAt(dest, condition)) verified = true;
   if (!verified && (await hasValidFulfilledRow(record, key))) verified = true;
   if (!verified) return { ok: false, reason: "the delivery isn't done" };
 
@@ -609,18 +754,73 @@ async function completeImpl(contractId: string): Promise<CompleteResult> {
     txId,
   });
   await BankingApi.escrowClose(contractId);
+
+  /*
+   * ⭐⭐ Tell the ISSUER, and nobody else.
+   *
+   * A settled gig is a fact some trades act on — haulage files a bill of
+   * lading, because **a player who claims a haul gig and delivers it has
+   * to file the same paper `ship` at a counter does**, and D16 makes the
+   * gig the dominant carriage path. The contract substrate has no
+   * business knowing which trades those are, so it calls a `@hook` on
+   * the business that posted the work and names no trade.
+   *
+   * ⚠⚠ This was a global bus event (`contract.settled`) with exactly one
+   * emitter and one subscriber, and it cost the kernel three pieces of
+   * vocabulary to serve one pack — an `Events` entry, an interface
+   * shaped around that pack's fields, and an `emittableBy()` policy left
+   * OPEN so anything could forge the announcement. The hook is narrower
+   * in every direction and the kernel learns no new nouns.
+   *
+   * ⚠ Fire-and-forget, and it must stay that way: the money has already
+   * moved. A throwing override must not unwind a completed contract.
+   */
+  const issuerBusiness = StuffApi.findAllByTemplatePath(
+    fresh.issuer.templatePath,
+  )[0];
+  if (issuerBusiness && MixinApi.isBusiness(issuerBusiness)) {
+    void issuerBusiness
+      .onContractSettled(fresh)
+      .catch((err) =>
+        console.error('ContractLogic: onContractSettled failed', err),
+      );
+  }
   return { ok: true, paidMinor: record.rewardMinor };
 }
 
 async function openGigsOnImpl(boardPath: string): Promise<ContractRecord[]> {
   if (!active()) return [];
-  const live = await ContractRecord.findLiveByBoard(boardPath);
+  return liveAfterExpiry(await ContractRecord.findLiveByBoard(boardPath));
+}
+
+async function openGigsFromImpl(
+  originPath: string,
+): Promise<ContractRecord[]> {
+  if (!active() || originPath.length === 0) return [];
+  return liveAfterExpiry(await ContractRecord.findLiveByOrigin(originPath));
+}
+
+/** Lazy expiry over a candidate set — the one place the sweep-free rule lives. */
+async function liveAfterExpiry(
+  live: ContractRecord[],
+): Promise<ContractRecord[]> {
   const out: ContractRecord[] = [];
   for (const record of live) {
     const fresh = await expireStale(record);
     if (fresh.state === "open" || fresh.state === "claimed") out.push(fresh);
   }
   return out;
+}
+
+/**
+ * The poster's own environment as a durable path — the default origin.
+ * `""` when the poster is nowhere addressable, which reads as *this gig
+ * names no origin* rather than as an error: a bounty for something to be
+ * fetched from wherever is a legitimate posting.
+ */
+function originOfPoster(poster: Stuff): string {
+  if (!MixinApi.isContainable(poster)) return "";
+  return poster.getContainer()?.getTemplatePath() ?? "";
 }
 
 @Unshadowable
@@ -653,6 +853,12 @@ export class ContractLogic extends ApiLogic {
   @CallSecurity(ContractApiCallers)
   public async complete(contractId: string): Promise<CompleteResult> {
     return completeImpl(contractId);
+  }
+
+  /** See {@link ContractApi.openGigsFrom}. */
+  @CallSecurity(ContractApiCallers)
+  public async openGigsFrom(originPath: string): Promise<ContractRecord[]> {
+    return openGigsFromImpl(originPath);
   }
 
   /** See {@link ContractApi.openGigsOn}. */
@@ -692,4 +898,26 @@ export class ContractLogic extends ApiLogic {
     if (!active()) return [];
     return ContractEvent.findByContractId(contractId);
   }
+}
+
+/**
+ * The business this poster buys for — the house whose account a
+ * purchasing seat may spend. One, or the one operating where the poster
+ * stands; ambiguity is refused rather than guessed at.
+ */
+async function buysForOf(
+  poster: Stuff,
+): Promise<(Stuff & BusinessShape) | null> {
+  if (!MixinApi.isEmployed(poster)) return null;
+  const houses = await poster.buysFor();
+  if (houses.length === 0) return null;
+  if (houses.length === 1) return houses[0] as Stuff & BusinessShape;
+  const here = MixinApi.isContainable(poster)
+    ? (poster.getContainer()?.getTemplatePath() ?? "")
+    : "";
+  return (
+    (houses.find((b) => b.getOperatingLocations().includes(here)) as
+      | (Stuff & BusinessShape)
+      | undefined) ?? null
+  );
 }

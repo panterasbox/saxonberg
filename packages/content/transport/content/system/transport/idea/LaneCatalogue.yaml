@@ -1,0 +1,14 @@
+# /system/transport/idea/LaneCatalogue — the singleton that compiles the
+# realm's ways.
+#
+# Pure data: it holds no authored state, because everything it knows it
+# reads from the `Lane` and `Route` rows in the commons and from the
+# exits of the rooms they run through. Lazily cloned on first use by
+# whatever asks a question about a road — there is deliberately no boot
+# step to forget.
+#
+# No `hydratorClass`: there is no `data` to apply, and declaring one with
+# nothing to hydrate is what `lint:instanceable` invariant 5 exists to
+# catch.
+class: /system/transport/idea/LaneCatalogue
+data: {}

@@ -25,7 +25,24 @@ data:
     A hangar of a floor: column stills in a row behind a chain-link fence, forklifts, and pallets of grey-labelled Volk under sodium light. Everything is stencilled.
   ambientIntensity: 30
   ambientColorTemperature: 3800
+  exits:
+    # ⭐ The back door onto the goods yards — the one room the D11
+    # switchover cost. The hand does not travel; a HAULER comes in this
+    # way to collect what the hand crated and posted about.
+    north:
+      destination: /world/terminus/goods-yards/yard
+      media: [ground]
+      edgeMinutes: 2
   props:
+    # ⭐ The works board, ON the floor — and it is for PEOPLE.
+    #
+    # ⚠ It shipped with a different reason: the hand was going to post
+    # what wanted moving instead of travelling. The hand WALKS instead
+    # (D11's literal reading, once the floor had a door), so nothing on
+    # this board is posted by an NPC. It is where the outfit's own
+    # proprietor posts carriage, and it is what a hauler standing here
+    # reads — including `jobs --origin here`, the backhaul.
+    - /trade/haulage/thing/works-board
     - /trade/distilling/thing/racking
     - /trade/distilling/location/veshko-yard/thing/stock
   cast:

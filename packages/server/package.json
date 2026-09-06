@@ -22,6 +22,7 @@
     "reset:db": "tsx scripts/reset-db.ts",
     "drive:cooking": "tsx scripts/drive-cooking.ts",
     "drive:food-safety": "tsx scripts/drive-food-safety.ts",
+    "drive:identity": "tsx scripts/drive-identity.ts",
     "build": "tsc",
     "start": "tsx src/preload.js",
     "test": "vitest run",
@@ -45,7 +46,9 @@
     "lint:object-verbs": "tsx scripts/check-object-verbs.ts",
     "lint:pm": "tsx scripts/check-pm-access.ts",
     "lint:imports": "tsx scripts/check-mud-imports.ts",
+    "lint:identity": "tsx scripts/check-identity.ts",
     "lint:does-nothing": "tsx scripts/check-does-nothing.ts",
+    "lint:dossiers": "tsx scripts/check-dossiers.ts",
     "lint:inert-weapon": "tsx scripts/check-inert-weapon.ts",
     "lint:combat-dynamics": "tsx scripts/check-combat-dynamics.ts",
     "lint:instanceable": "tsx scripts/check-instanceable-placement.ts",
@@ -55,12 +58,14 @@
     "lint:pathogens": "tsx scripts/check-pathogens.ts",
     "lint:arg-kinds": "tsx scripts/check-arg-kinds.ts --lint",
     "lint:descriptors": "tsx scripts/check-descriptor-banks.ts",
+    "lint:dispositions": "tsx scripts/check-dispositions.ts",
     "lint:topics": "tsx scripts/check-topic-keys.ts --lint",
     "lint:test-bootstrap": "tsx scripts/check-test-bootstrap.ts --lint",
     "lint:test-content": "tsx scripts/check-test-content.ts --lint",
     "lint:schema": "tsx scripts/check-schema-docs.ts --lint",
     "lint:untitled": "tsx scripts/check-untitled-paths.ts --lint",
-    "lint:test-bootstrap:verify": "tsx scripts/check-test-bootstrap.ts --verify"
+    "lint:test-bootstrap:verify": "tsx scripts/check-test-bootstrap.ts --verify",
+    "drive:logistics": "tsx scripts/drive-logistics.ts"
   },
   "dependencies": {
     "@saxonberg/types": "workspace:*",

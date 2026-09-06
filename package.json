@@ -28,6 +28,7 @@
     "@saxonberg/content-trade-brewing": "workspace:*",
     "@saxonberg/content-trade-distilling": "workspace:*",
     "@saxonberg/content-trade-farming": "workspace:*",
+    "@saxonberg/content-trade-haulage": "workspace:*",
     "@saxonberg/content-trade-fuel": "workspace:*",
     "@saxonberg/content-trade-cooking": "workspace:*",
     "@saxonberg/content-trade-hospitality": "workspace:*",
@@ -36,6 +37,7 @@
     "@saxonberg/content-trade-smelting": "workspace:*",
     "@saxonberg/content-trade-smithing": "workspace:*",
     "@saxonberg/content-trade-winemaking": "workspace:*",
+    "@saxonberg/content-transport": "workspace:*",
     "@saxonberg/content-water": "workspace:*",
     "@saxonberg/content-wiki-starter": "workspace:*",
     "@saxonberg/content-world-seed": "workspace:*"

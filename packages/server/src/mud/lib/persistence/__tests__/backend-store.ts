@@ -42,25 +42,71 @@ export type Doc = Record<string, unknown> & {
  */
 export function installStore(docs: Doc[]): Doc[] {
   const store: Doc[] = docs.map((d, i) => ({ _id: String(i + 1), ...d }));
-  const save = vi.fn(async (_c: string, doc: Doc) => {
+  // ⚠⚠ **Which collection each row belongs to, tracked BESIDE the row.**
+  //
+  // This stub used to answer `[]` to every non-content read while happily
+  // accepting the writes, and to have no `isConnected` at all. The moment
+  // a standup test stood up a character carrying authored `dispositions:`
+  // or a dossier, the seeder asked whether persistence was connected and
+  // the stub threw `isConnected is not a function` — six locality tests,
+  // all of them about doors and exits, failing on a ledger they never
+  // meant to touch.
+  //
+  // ⚠ The ownership map is a Map rather than a field on the doc for one
+  // reason: **the returned array is the test's window on everything the
+  // store holds**, and several tests read a snapshot row straight out of
+  // it. Bucketing into separate arrays hid those rows; stamping a
+  // `__collection` key on the doc would have leaked into every
+  // whole-document assertion. One array, one side-table.
+  //
+  // ⭐ Keeping the rows means a seeder's own idempotency check ("skip if
+  // a claim already exists") reads back what it wrote, so a re-standup
+  // behaves here the way it behaves in the world. A stub that swallows
+  // writes and returns nothing makes every write path look idempotent
+  // and every read path look empty.
+  const owner = new Map<Doc, string>();
+  for (const d of store) owner.set(d, Cols.Content);
+
+  const save = vi.fn(async (collection: string, doc: Doc) => {
     const copy = { ...doc };
     if (copy._id) {
       const idx = store.findIndex((d) => d._id === copy._id);
-      if (idx >= 0) store[idx] = copy;
-      else store.push(copy);
+      if (idx >= 0) {
+        owner.delete(store[idx]!);
+        store[idx] = copy;
+      } else store.push(copy);
+      owner.set(copy, collection);
       return copy._id!;
     }
     copy._id = String(store.length + 1);
     store.push(copy);
+    owner.set(copy, collection);
     return copy._id;
   });
+
+  /**
+   * Enough of a matcher for the ledgers' owner-scoped reads. ⚠ A query
+   * operator it does not understand matches NOTHING rather than
+   * everything — a test can never pass here by over-matching.
+   */
+  const matches = (doc: Doc, query: Record<string, unknown>): boolean =>
+    Object.entries(query).every(([k, v]) => {
+      if (v !== null && typeof v === "object") return false;
+      return (doc as Record<string, unknown>)[k] === v;
+    });
+
   const find = vi.fn(
     async (collection: string, query: Record<string, unknown>) => {
-      if (collection !== Cols.Content) return [];
-      if (typeof query.path === "string") {
-        return store.filter((d) => d.path === query.path);
+      const rows = store.filter((d) => owner.get(d) === collection);
+      if (collection !== Cols.Content) {
+        return Object.keys(query).length === 0
+          ? rows
+          : rows.filter((d) => matches(d, query));
       }
-      return store.slice();
+      if (typeof query.path === "string") {
+        return rows.filter((d) => d.path === query.path);
+      }
+      return rows;
     },
   );
   const findById = vi.fn(async (_c: string, id: string) => {
@@ -70,6 +116,7 @@ export function installStore(docs: Doc[]): Doc[] {
     save,
     find,
     findById,
+    isConnected: () => true,
   } as unknown as PM);
   return store;
 }

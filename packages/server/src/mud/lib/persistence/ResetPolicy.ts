@@ -112,7 +112,10 @@ export const RESET_DISPOSITIONS: Readonly<
       'views) — pack-installed world content (the expression / ' +
       'generic-objects / species-and-names / platform / saxonberg-lounge ' +
       'packs), reference data not player state; wiping it would empty the ' +
-      'soul vocabulary at 04:00 until a reboot re-installed it',
+      'soul vocabulary at 04:00 until a reboot re-installed it; and the ' +
+      'RUNTIME-WRITTEN record kinds (water rights, bills of lading, ' +
+      'warehouse receipts, rate cards) — a record of something that ' +
+      'happened, which nothing may erase because a night went by',
   },
   [Collections.ForumBoards]: { verb: 'wipe' },
   [Collections.ForumEntries]: { verb: 'wipe' },

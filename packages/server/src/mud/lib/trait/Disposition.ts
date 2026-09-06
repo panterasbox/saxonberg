@@ -40,9 +40,30 @@ export interface DispositionAxis {
 /**
  * The opposed-pair roster. 13 direct CK3 keepers + 3 reframed
  * (`boldness` ← Brave/Craven; `fairness` ← Just/Arbitrary; `worldview` ←
- * Cynical/Zealous, recast as idealistic/cynical with no faith hook) + 1
- * native addition (`curiosity`). 17 axes — "~15" in the slate was
- * approximate; all 13 direct keepers are retained deliberately.
+ * Cynical/Zealous, recast as idealistic/cynical with no faith hook) + 3
+ * native additions (`curiosity`, `candor`, `warmth`). 19 axes — "~15" in
+ * the slate was approximate; all 13 direct keepers are retained
+ * deliberately.
+ *
+ * ⭐ **`candor` and `warmth` were added 2026-09-04 because content had
+ * already authored them.** The cast-archetype stress test walked all 41
+ * shipped characters and found five uses of four keys that resolved to
+ * no axis — `greed` (a sign-flipped `generosity`), `gregariousness` (a
+ * synonym for `sociability`), and these two, which had **no clean
+ * equivalent anywhere in the roster.** Two authors independently reached
+ * for the same two words, which is the strongest evidence available that
+ * the vocabulary was short rather than that the authors were careless.
+ *
+ * ⚠ Neither duplicates a neighbour, and the distinctions are the reason
+ * they are separate axes rather than aliases:
+ *
+ *   - **`candor` is not `honesty`.** Honesty is truth vs lie; candor is
+ *     forthcoming vs withholding. A guarded person tells you nothing and
+ *     lies about none of it.
+ *   - **`warmth` is not `sociability`, and not `compassion`.**
+ *     Sociability is how much company you seek; compassion is how you
+ *     answer suffering; warmth is how you treat the person in front of
+ *     you when neither is in play.
  */
 export const DISPOSITION_AXES: readonly DispositionAxis[] = [
   // ── direct keepers ──
@@ -63,8 +84,12 @@ export const DISPOSITION_AXES: readonly DispositionAxis[] = [
   { key: "boldness", positive: "Bold", negative: "Cautious" },
   { key: "fairness", positive: "Fair", negative: "Arbitrary" },
   { key: "worldview", positive: "Idealistic", negative: "Cynical" },
-  // ── native addition (a learning game) ──
+  // ── native additions ──
+  // (a learning game)
   { key: "curiosity", positive: "Curious", negative: "Incurious" },
+  // (authored by content before the roster admitted them — see above)
+  { key: "candor", positive: "Candid", negative: "Guarded" },
+  { key: "warmth", positive: "Warm", negative: "Aloof" },
 ];
 
 /** The validation array — every recognized axis key, in roster order. */

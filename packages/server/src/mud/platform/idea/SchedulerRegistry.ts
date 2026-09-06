@@ -287,6 +287,38 @@ export default class SchedulerRegistry extends Idea {
     this.terminate(engagement, reason);
   }
 
+  /**
+   * End a **sustained** engagement on its own terms — the work is done
+   * rather than interrupted.
+   *
+   * ⭐ Before this, `cancel` was the only exit a `SustainedEngagement`
+   * had, so *arriving* and *being stopped* were the same event in the
+   * envelope. A journey's arrival is a completion (logistics D4), and an
+   * engagement that can only ever abort cannot say so.
+   *
+   * A durative activity's own timer path is untouched: this is for the
+   * untimed case, where nothing but the engagement itself knows it has
+   * finished. `onComplete` is dispatched when the class defines one
+   * (with the same throw→abort safety net the timer path uses); a class
+   * without one simply gets the completed envelope.
+   */
+  @CallSecurity(SchedulerApiCallers)
+  public complete(engagement: Engagement): void {
+    if (!engagement || !engagement.engagementId) return;
+    if (!this.engagementsById.has(engagement.engagementId)) return;
+    this.clearTimersAndSubs(engagement.engagementId);
+    this.deregister(engagement);
+    const cls = this.activityRegistry.get(engagement.type);
+    const hasComplete =
+      typeof (cls?.prototype as Partial<DurativeActivity> | undefined)
+        ?.onComplete === 'function';
+    if (hasComplete) {
+      this.safeInvokeComplete(engagement as DurativeActivity);
+      return;
+    }
+    this.sendCompletedEnvelope(engagement);
+  }
+
   @CallSecurity(SchedulerApiCallers)
   public cancelAll(actor: Stuff & Engaged): void {
     for (const e of actor.getEngagements()) {

@@ -1,0 +1,15 @@
+# The goods yards — ⚠ **the one room the switchover cost.**
+#
+# D11's resolution is that the NPCs stop TRAVELLING, not that they walk:
+# a hand crates its stock and posts the work, and somebody else carries
+# it. But **a hauler has to be able to get to the crate**, and every
+# producer floor in the realm shipped as an exitless island with the
+# comment *"No exits: the hand teleports."*
+#
+# So: one room behind Wharfside, and one door from each mainland floor
+# onto it. The hands never use those doors. The haulers do.
+class: /platform/idea/location/CartesianZone
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: The Goods Yards
+  cellSize: 12.0
