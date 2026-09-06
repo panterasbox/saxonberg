@@ -119,6 +119,7 @@ export const DOCUMENT_KINDS = {
    * herd looks like is the ranching pack's.
    */
   herd: { kind: 'herd', naturalKey: null, contentDir: 'herds', ext: 'yaml', onVanish: 'keep' },
+  /**
    * A **bill of lading** — what, how much, from where, to where, whose,
    * and at what declared value, filed by a completed carriage.
    *
