@@ -4,7 +4,7 @@
 # consigns them AS the mill: `purchases: true` on the weaver position
 # means the house card is dealt at hire, so each sale splits to the
 # mill's operating account.
-class: /platform/agent/NPC
+class: /platform/agent/Cast
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Adren Coll
@@ -18,6 +18,11 @@ data:
     Broad across the shoulders from the beater and deaf in one ear from the loom. He keeps a chalked tally on the frame of how many bolts are owed to how many spinners, and he is never wrong about it.
   dispositions:
     - { disposition: diligence, valence: 65 }
+  # ── the dossier ─────────────────────────────────────────────────
+  # ⚠ `lint:dossiers` (identity-ledgers). See the spinner beside him.
+  archetype: hand
+  competence:
+    - { discipline: textiles, asserting: competent }
   behaviors:
     - brain: /lib/behavior/consigns
       trigger: cadence:120s

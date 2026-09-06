@@ -3,7 +3,7 @@
 # ⚠ She does the slowest step in the trade for the lowest wage in the
 # shop, which is not an oversight and is not hers to fix. It is the fact
 # the whole build is arranged to let a player notice.
-class: /platform/agent/NPC
+class: /platform/agent/Cast
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Sefa Roke
@@ -33,6 +33,18 @@ data:
   #
   # ⚠ 90 s against the consigning beat's 120 s: the floor should run a
   # little ahead of the cart, or the cart arrives to an empty shelf.
+  # ── the dossier ─────────────────────────────────────────────────
+  # ⚠ `lint:dossiers` (identity-ledgers): a Cast row is a named person,
+  # and a named person the ledgers cannot attribute to is the gate's
+  # whole reason. `hand` is the shipped archetype for floor labour.
+  #
+  # ⭐ Competent, not proficient. She is good at the wheel and the mill
+  # is where she does it; the build's own bench says the spinner is the
+  # bottleneck job AND the worst paid, and inflating her band would
+  # quietly argue with that finding.
+  archetype: hand
+  competence:
+    - { discipline: textiles, asserting: competent }
   behaviors:
     - brain: /trade/textiles/behavior/weaves
       trigger: cadence:90s

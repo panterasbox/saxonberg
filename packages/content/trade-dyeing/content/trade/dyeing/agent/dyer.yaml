@@ -4,7 +4,7 @@
 # write down in eleven years, which is the whole of what this trade's
 # competence is: not a brighter colour, but the same colour twice and a
 # vat that is still alive next spring.
-class: /platform/agent/NPC
+class: /platform/agent/Cast
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Ilva Marrow

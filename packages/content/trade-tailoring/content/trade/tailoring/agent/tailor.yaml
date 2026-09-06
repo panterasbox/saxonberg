@@ -5,7 +5,7 @@
 # knows is grade, condition, fit, colour and mark; what Vasca makes of
 # them is Vasca's, and another shopkeeper could reasonably make
 # something else of the same facts.
-class: /platform/agent/NPC
+class: /platform/agent/Cast
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Vasca Idrin
@@ -19,6 +19,21 @@ data:
     Pins down one cuff, a tape round her neck, and the particular way of looking at somebody that means she is not looking at their face. She has your measurements written down somewhere, and if she has not, she would like to.
   dispositions:
     - { disposition: diligence, valence: 70 }
+  # ── the dossier ─────────────────────────────────────────────────
+  # ⚠ Required by `lint:dossiers` since the identity-ledgers build: a
+  # Cast row with no dossier is a named person the ledgers cannot
+  # attribute anything to. The `archetype:` stamp is the load-bearing
+  # half — `deviation = current derived − archetype baseline` is
+  # uncomputable without it, and it is unrecoverable later.
+  #
+  # ⭐ Vasca RUNS the shop, which is what `proprietor` means here; the
+  # counter's `serverPositionKeys: [tailor]` is the seat, not the rung.
+  # Proficient at the trade and merely competent at cloth itself — she
+  # buys her bolts from the mill and says so.
+  archetype: proprietor
+  competence:
+    - { discipline: tailoring, asserting: proficient }
+    - { discipline: textiles, asserting: competent }
   behaviors:
     - brain: /trade/tailoring/behavior/tailors
       trigger: cadence:180s
