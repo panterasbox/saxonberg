@@ -22,6 +22,8 @@
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import { StuffApi } from '../../api/stuff';
+import { MixinApi } from '../../api/mixin';
+import type { Stuff } from '../stuff/Stuff';
 import { WorldClockApi } from '../../api/worldclock';
 import { TemplatePaths } from '../paths';
 import type Species from '../../platform/idea/species/Species';
@@ -33,18 +35,22 @@ export interface Organism {
   getSpecies(): Species | null;
   setSpecies(value: Species | null): void;
   getAge(): number;
+  /** Back-date the birthday so this body is `value` game days old. */
   setAge(value: number): void;
-  /**
-   * ⭐ **The maturation driver** (farmstead D23) — reconcile-on-read
-   * against world time. `age` and `lifecycleState` have been persistent
-   * fields with **no driver** since the race build; this is it.
-   */
-  reconcileAge(): void;
-  /** Age in GAME DAYS, reconciled — the unit the age curve speaks. */
+  /** ⭐ Game-seconds this organism was born; `0` = unknown. */
+  getBornAt(): number;
+  setBornAt(value: number): void;
+  /** ⭐ Game-seconds it died; `0` while it lives. The dead stop ageing. */
+  getDiedAt(): number;
+  /** Age in GAME DAYS — `(diedAt ?? now) − bornAt`, derived, never stored. */
   getAgeDays(): number;
-  /** The life stage, or `null` for a species with no authored curve. */
+  /**
+   * The life stage, or `null`. ⚠⚠ **Always `null` for a body somebody
+   * plays** — a player's age is seniority and must never be an input to
+   * a capability. Also `null` for a species with no authored curve.
+   */
   getLifeStage(): LifeStage | null;
-  /** Has it reached breeding age? `false` when unmodelled. */
+  /** Has it reached breeding age? `false` when unmodelled or played. */
   isMature(): boolean;
   getLifecycleState(): string;
   setLifecycleState(value: string): void;
@@ -63,8 +69,8 @@ export function OrganismMixin<TBase extends MixinConstructor>(Base: TBase) {
     static _mixinName = 'OrganismMixin';
     static fieldMeta: FieldMeta = {
       _speciesPath: { persistent: true, authorable: true, authorPicker: 'Species' },
-      age: { persistent: true, authorable: true },
-      ageStamp: { persistent: true },
+      bornAt: { persistent: true, authorable: true },
+      diedAt: { persistent: true },
       lifecycleState: { persistent: true, runtimeState: true },
     };
 
@@ -76,10 +82,39 @@ export function OrganismMixin<TBase extends MixinConstructor>(Base: TBase) {
     public _speciesPath: string | null = null;
 
     /**
-     * Years (or species-appropriate units; v1 doesn't enforce). 0 at
-     * birth/clone-time. Aging is deferred to follow-on builds.
+     * ⭐⭐ **The birthday — a DATE, in game-seconds, and not a counter.**
+     *
+     * Age is `now − bornAt`, derived on read and stored nowhere. That is
+     * not a micro-optimisation; it is what makes the whole question
+     * behave:
+     *
+     *  - ⚠ **There is nothing to farm.** An accumulating counter rewards
+     *    leaving a character logged in, or logged out, or simply
+     *    existing — which is why the first cut needed an absence guard
+     *    and a debate about whose clock stops. Arithmetic on a fixed date
+     *    has no such question: you are as old as the world is, minus when
+     *    you arrived, and no amount of parking changes the subtraction.
+     *  - ⭐ **A long absence is a non-event**, so `reconcileAge` and its
+     *    far-past guard are both gone. Nothing to integrate, nothing to
+     *    drop, no stepped walk to bound.
+     *  - ⭐ It is the same primitive the herdbook already uses for a head
+     *    born into the record (`HeadOverlay.bornAt`), so a lamb and a
+     *    person are old in one way.
+     *
+     * `0` means unknown — a fixture, or a body nobody dated.
      */
-    public age: number = 0;
+    public bornAt: number = 0;
+
+    /**
+     * Game-seconds this organism died, or `0` while it lives.
+     *
+     * ⭐ **The dead do not get older**, which a counter got right by
+     * skipping and a derive has to get right by remembering: a corpse's
+     * age is the age it died at, which is exactly what a forensic read of
+     * one is asking. Stamped by {@link setLifecycleState}, so every path
+     * into `dead` records it without a second call to forget.
+     */
+    public diedAt: number = 0;
 
     /**
      * Current lifecycle state — one of the species' valid set
@@ -119,66 +154,68 @@ export function OrganismMixin<TBase extends MixinConstructor>(Base: TBase) {
       this._speciesPath = value?.getTemplatePath() ?? null;
     }
 
-    /**
-     * Game-seconds stamp of the last age reconcile; `0` = never touched.
-     *
-     * ⚠ **No far-past guard, and that is the point.** Absence does not
-     * stop a calf becoming a cow, and a driver that dropped long gaps
-     * would make every animal in the world permanently a calf. Long
-     * absences are bounded by arithmetic, not by a time cap: this is a
-     * single multiplication rather than a stepped integration, so there
-     * is nothing to bound.
-     */
-    public ageStamp = 0;
-
-    private _reconcilingAge = false;
-
-    public getAge(): number {
-      this.reconcileAge();
-      return this.age;
-    }
-    public setAge(value: number): void { this.age = value; }
-
-    /**
-     * Advance `age` by the game-time that has passed.
-     *
-     * ⭐ `age` is carried in **game days** rather than years, because the
-     * curve is authored in days and a lamb's whole juvenile period is
-     * shorter than a year: years would round the interesting part of
-     * every ruminant's life to zero.
-     */
-    public reconcileAge(): void {
-      if (this._reconcilingAge) return;
-      if (!StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)) return;
-      const nowS = WorldClockApi.getNow().rawValue();
-      if (this.ageStamp === 0) {
-        this.ageStamp = nowS;
-        return;
-      }
-      const elapsed = nowS - this.ageStamp;
-      if (elapsed <= 0) {
-        this.ageStamp = nowS;
-        return;
-      }
-      this._reconcilingAge = true;
-      try {
-        // ⚠ The DEAD do not get older. A corpse's age is the age it died
-        // at, which is what a forensic read of one is actually asking.
-        if (this.lifecycleState !== 'dead') {
-          this.age += elapsed / SECONDS_PER_GAME_DAY;
-        }
-        this.ageStamp = nowS;
-      } finally {
-        this._reconcilingAge = false;
-      }
+    public getBornAt(): number { return this.bornAt; }
+    public setBornAt(value: number): void {
+      this.bornAt = Number.isFinite(value) && value > 0 ? value : 0;
     }
 
+    public getDiedAt(): number { return this.diedAt; }
+
+    /**
+     * Age in **game days** — derived, never stored.
+     *
+     * ⭐ Days rather than years because the curve is authored in days and
+     * a lamb's whole juvenile period is shorter than a year: years would
+     * round the interesting part of every ruminant's life to zero.
+     *
+     * ⚠ A body with no birthday reads `0` rather than guessing. Unknown
+     * is a real answer.
+     */
     public getAgeDays(): number {
-      this.reconcileAge();
-      return this.age;
+      if (this.bornAt <= 0) return 0;
+      const end = this.diedAt > 0 ? this.diedAt : nowSeconds();
+      if (end <= 0) return 0;
+      return Math.max(0, (end - this.bornAt) / SECONDS_PER_GAME_DAY);
     }
 
+    public getAge(): number { return this.getAgeDays(); }
+
+    /**
+     * Set the age directly, in game days — sugar that back-dates the
+     * birthday. ⚠ Kept because *"this animal is about four hundred days
+     * old"* is how a herd is founded and how a fixture is written; the
+     * stored fact is still the date.
+     */
+    public setAge(value: number): void {
+      const now = nowSeconds();
+      if (now <= 0) return;
+      this.bornAt = Math.max(1, now - Math.max(0, value) * SECONDS_PER_GAME_DAY);
+    }
+
+    /**
+     * The species' life stage at this age, or `null`.
+     *
+     * ⚠⚠ **`null` for a body somebody PLAYS, always — and that is the
+     * whole of the player/NPC split.**
+     *
+     * A player and an innkeeper can be the same species row, so the
+     * curve cannot be what tells them apart. What tells them apart is
+     * that **we do not model a player character's biological arc**: their
+     * age is seniority, a thing to say out loud, and it must never become
+     * an input to a capability. If it did, the reward for leaving a
+     * character parked would be real, and that is the one outcome this
+     * design exists to refuse.
+     *
+     * ⭐ The number stays readable — `getAgeDays()` answers for anybody,
+     * because a birthday is worth celebrating. It is the CONSEQUENCE
+     * that stops here.
+     *
+     * For everyone else the ordinary rule holds: `null` also means the
+     * species has no authored curve, which is *this species does not age
+     * in this game* rather than *it ages instantly*.
+     */
     public getLifeStage(): LifeStage | null {
+      if (MixinApi.isHasInteractive(this as unknown as Stuff)) return null;
       const species = this.getSpecies();
       if (!species) return null;
       return species.lifeStageAt(this.getAgeDays());
@@ -190,7 +227,19 @@ export function OrganismMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     public getLifecycleState(): string { return this.lifecycleState; }
-    public setLifecycleState(value: string): void { this.lifecycleState = value; }
+
+    /**
+     * ⚠ Stamps {@link diedAt} on the way into `dead`, so a corpse's age
+     * freezes at the age it died. Every path into death goes through
+     * here, which is why the stamp lives on the setter rather than in
+     * the one caller that remembered.
+     */
+    public setLifecycleState(value: string): void {
+      if (value === 'dead' && this.lifecycleState !== 'dead' && this.diedAt === 0) {
+        this.diedAt = nowSeconds();
+      }
+      this.lifecycleState = value;
+    }
 
     /* Lifecycle predicates — object-owned sugar over `lifecycleState`
      * (the `destroyed` state has no predicate here: `isDestroyed` is
@@ -233,4 +282,13 @@ export function OrganismMixin<TBase extends MixinConstructor>(Base: TBase) {
       return null;
     }
   };
+}
+
+/**
+ * Game-seconds now, or `0` before there is a world clock (fixtures,
+ * pre-boot). ⚠ `0` reads as *unknown age*, never as *newborn*.
+ */
+function nowSeconds(): number {
+  if (!StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)) return 0;
+  return WorldClockApi.getNow().rawValue();
 }

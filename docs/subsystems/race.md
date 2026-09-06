@@ -531,9 +531,57 @@ Composing `OrganismMixin` declares: "this Stuff is a member of a
 Species, with biological state." The mixin carries:
 
 - `_speciesPath: string | null` — cross-reference to Species
-- `age: number`
+- `bornAt: number` — the birthday, in game-seconds
+- `diedAt: number` — `0` while it lives
 - `lifecycleState: string` — initial value from the leaf template's
   `data`
+
+### ⭐⭐ Age is a DATE, and what it confers is the whole design
+
+`getAgeDays()` is `(diedAt ?? now) − bornAt`, derived on read and stored
+nowhere. There is no counter and no reconcile, and that is not a
+micro-optimisation:
+
+- ⚠ **There is nothing to farm.** An accumulating counter rewards leaving
+  a character logged in, or logged out, or simply existing — which is why
+  the first cut needed an absence guard and an argument about whose clock
+  stops. Arithmetic on a fixed date has no such question.
+- ⭐ **A long absence is a non-event.** Nothing to integrate, nothing to
+  drop, no stepped walk to bound.
+- ⭐ It is the same primitive the herdbook uses for a head born into the
+  record (`HeadOverlay.bornAt`), so a lamb and a person are old in one
+  way.
+- ⚠ **The dead stop.** `setLifecycleState('dead')` stamps `diedAt`, so a
+  corpse's age is the age it died at — which is what a forensic read of
+  one is asking, and a fact the old counter got by skipping.
+
+**What differs between a player and an NPC is not the clock. It is what
+reads it.**
+
+| | the fact | what reads it | what it confers |
+|---|---|---|---|
+| **player** | `bornAt` | the birthday, milestones, seniority | **nothing, ever** |
+| **NPC** | `bornAt` + the species' `ageCurve` | life stage, and in time capability and lifespan | ability |
+| **livestock** | `bornAt` (or the herd's founding) + curve | maturity, breeding, cull, the generation interval | the management game |
+
+⚠⚠ **A played human and an innkeeper are the same species row**, so the
+authored curve cannot be what tells them apart. `getLifeStage()` returns
+`null` for a body somebody plays — always — because **we do not model a
+player character's biological arc**. Their age is seniority: a number to
+say out loud, never an input to a capability. That is what makes parking
+a character worth exactly nothing, and it is why the number can be honest
+wall-clock time rather than something defended against being farmed.
+
+⭐ The number stays readable for everybody. It is the *consequence* that
+stops, never the telling — a birthday is worth having.
+
+⚠ **Not built:** lifespans that bite. Every playable species already
+authors `lifespanMin`/`lifespanMax` and almost nothing reads them; making
+them real means NPCs die of old age, which is a content-loss question
+(*does the innkeeper die, and who replaces her?*) that belongs with
+[mortality.md](./mortality.md) and wants deciding on purpose rather than
+inheriting. The mechanism is ready — `ageCurve` + `lifeStageAt` is
+general, and extending it is authoring rather than engineering.
 
 `OrganismMixin` is composed:
 
