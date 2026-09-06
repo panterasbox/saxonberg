@@ -20,6 +20,9 @@ data:
   longDescription: |
     A turned boxwood tube the length of a finger, stopped at both ends. Inside: needles graded fine to sailmaker's, a hank of waxed linen thread, and a thimble worn through at the crown.
   capabilities:
-    - { kind: mending, rate: 1, control: coarse }
+    # ⚠ A GRADE BAND (poor · fair · fine · exceptional · masterful).
+    # This said `coarse`, which is not one, and the server would not
+    # boot on it — see shears.yaml for the whole note.
+    - { kind: mending, rate: 1, control: fair }
   _materialPath: /stuff/idea/material/wood/oak
   mass: 0.15

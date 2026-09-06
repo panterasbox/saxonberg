@@ -44,6 +44,7 @@
 import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
 import { DetailedMixin } from '@saxonberg/server/mud/lib/description/Detailed';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
+import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 
 /**
  * One remembered subject. Flat scalars in a list — the
@@ -61,6 +62,29 @@ export interface BookEntry {
 }
 
 export default class MeasureBook extends DetailedMixin(Thing) {
+  /*
+   * ⚠⚠ THE BOOK IS THE INSTRUMENT, and without this static the whole
+   * `measure figure` stanza is unreachable: the controller, the view
+   * stanza, the help text and the two acceptance tests all existed and
+   * `measure figure` still answered "I don't understand 'measure'" while
+   * standing in the tailor's shop HOLDING the book. Found by driving.
+   *
+   * ⚠ An affordance is a STATIC ON A CLASS. A row's
+   * `commandContributions:` is dead silently — the sibling
+   * `trade-mining` pack says so in `lib/Working.ts` and this pack
+   * shipped the bug anyway.
+   *
+   * Mirrors `trade-mining`'s `SurveyInstrument`, which affords the same
+   * platform view for `measure strike` / `measure dip`: `environment` so
+   * the book on the counter affords it, `peers` so a tailor measuring a
+   * customer affords it to them too.
+   */
+  static commandContributions: CommandContributions = {
+    self: [],
+    environment: ['platform/cmd/perception/measure.yaml'],
+    peers: ['platform/cmd/perception/measure.yaml'],
+  };
+
   static fieldMeta: FieldMeta = {
     entries: { persistent: true, authorable: true },
   };

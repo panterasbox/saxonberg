@@ -27,6 +27,7 @@ import { StuffApi } from '../../api/stuff';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
 import { Quantity } from '../quantity';
+import type { CommandContributions } from '../../api/command';
 
 export interface Wearable extends Slottable {
   getSlotClaim(bodyPlanPath: string): readonly string[];
@@ -205,6 +206,43 @@ export function WearableMixin<
 >(Base: TBase) {
   return class WearableMixin extends Base {
     static _mixinName = 'WearableMixin';
+
+    /**
+     * ⚠⚠ A wearable in reach affords `wear`/`remove`, and either kind of
+     * equippable affords the `equip`/`unequip` orchestrators — the
+     * `WieldableMixin` pattern beside it, and the `get`/`drop` pattern on
+     * `ContainerMixin` before that.
+     *
+     * ⭐⭐ Without this the four verbs are UNREACHABLE. `help wear`
+     * printed a full entry and `wear <anything>` answered "I don't
+     * understand 'wear'" — because `help` reads the catalogue and
+     * dispatch needs the verb AFFORDED. Nothing in the tree contributed
+     * `wear.yaml`, `remove.yaml`, `equip.yaml` or `unequip.yaml`.
+     *
+     * ⚠ `wear`/`remove` were dead on master too, not just here — the
+     * wardrobe stanza (`wear set`) rode a verb nobody could type. Found
+     * by DRIVING; no test catches it, because a controller test skips
+     * the binder and an affordance is wiring.
+     */
+    static commandContributions: CommandContributions = {
+      self: [],
+      peers: [],
+      // ⭐ `inventory` is the load-bearing axis: you put on what you are
+      // CARRYING. `environment` too, so a coat on the floor affords the
+      // verb you would reach for looking at it.
+      inventory: [
+        'platform/cmd/inventory/wear.yaml',
+        'platform/cmd/inventory/remove.yaml',
+        'platform/cmd/inventory/equip.yaml',
+        'platform/cmd/inventory/unequip.yaml',
+      ],
+      environment: [
+        'platform/cmd/inventory/wear.yaml',
+        'platform/cmd/inventory/remove.yaml',
+        'platform/cmd/inventory/equip.yaml',
+        'platform/cmd/inventory/unequip.yaml',
+      ],
+    };
     static fieldMeta: FieldMeta = {
       slotClaims: { persistent: true, authorable: true },
       cutToBodyPlan: { persistent: true, authorable: true },

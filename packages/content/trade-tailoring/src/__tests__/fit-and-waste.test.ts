@@ -216,10 +216,21 @@ describe("⭐⭐ the instrument affords the verb, never the furniture", () => {
     expect(shears.kind).toBe("cutting");
     expect(table.kind).toBe("cutting");
     // Portable and bad; fixed and good. The whole ladder in four values.
+    //
+    // ⚠⚠ `control` is a GRADE BAND — poor · fair · fine · exceptional ·
+    // masterful — and this test pinned `coarse`, which is not one of
+    // them. It passed because it reads the YAML and never HYDRATES it;
+    // the hydrator throws on an unknown band, so the server would not
+    // boot, and a cold boot is what found it. A test that reads authored
+    // data without instantiating it can assert a value the engine will
+    // never accept.
     expect(shears.rate).toBe(1);
-    expect(shears.control).toBe("coarse");
+    expect(shears.control).toBe("fair");
     expect(table.rate).toBe(2);
     expect(table.control).toBe("fine");
+    for (const band of [shears.control, table.control]) {
+      expect(["poor", "fair", "fine", "exceptional", "masterful"]).toContain(band);
+    }
   });
 
   it("`sew`/`alter` are afforded by a NEEDLE, which also mends", () => {
@@ -256,3 +267,30 @@ describe("⭐⭐ the instrument affords the verb, never the furniture", () => {
     expect(row("thing", "shears").keywords as string[]).toContain("shears");
   });
 });
+
+describe("⚠⚠ the instrument affords the verb — and this one did not", () => {
+  it("the measure book contributes the platform `measure` view", () => {
+    // ⭐⭐ Found by DRIVING, not by testing. `measure figure` had a
+    // controller, a view stanza, help text and passing unit tests, and
+    // answered "I don't understand 'measure'" to a player standing in
+    // the tailor's shop HOLDING the book — because nothing afforded the
+    // verb. An affordance is a STATIC ON A CLASS; a row's
+    // `commandContributions:` is dead silently.
+    //
+    // Affordance is WIRING, and wiring needs its own assertion — the
+    // `kitchen-affordances` precedent. Mirrors trade-mining's
+    // `SurveyInstrument`, which affords the same view for `measure
+    // strike` / `measure dip`.
+    const contributed = [
+      ...(MeasureBook.commandContributions.environment ?? []),
+      ...(MeasureBook.commandContributions.peers ?? []),
+    ];
+    expect(contributed).toContain("platform/cmd/perception/measure.yaml");
+  });
+
+  it("a measure book still records what it is for", () => {
+    const book = makeStuff(() => new MeasureBook());
+    expect(book.getEntries()).toEqual([]);
+  });
+});
+

@@ -8,8 +8,18 @@
 # wheel, and the sewing kit against the machine: same capability kind,
 # different parameters, NO class beyond the tool.
 #
-# ⚠ `control: coarse` is load-bearing, not flavour — `cut` reads it and
-# charges a unit of cloth for a pattern laid out on your knee.
+# ⚠ `control` is load-bearing, not flavour — `cut` reads it and charges a
+# unit of cloth for a pattern laid out on your knee, and `CraftingLogic`
+# uses it to raise the output's grade floor.
+#
+# ⚠⚠ It is a GRADE BAND, and the vocabulary is closed:
+# poor · fair · fine · exceptional · masterful. This row said `coarse`,
+# which is not one of them — a word that describes the tool honestly and
+# means nothing to the engine. The grade reader GUARDS
+# (`if (band && Grade.isBand(band))`) and silently ignored it, so the
+# only thing that ever complained was the hydrator, on a real clone: the
+# server would not boot. `fair` is the band below `fine` and is what
+# `coarse` was reaching for.
 class: /trade/tailoring/thing/CuttingTool
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
@@ -19,6 +29,6 @@ data:
   longDescription: |
     Iron, a hand span long, with a bow spring at the hinge and one blade worn brighter than the other. They will cut anything soft, and they do not care what you have laid it on.
   capabilities:
-    - { kind: cutting, rate: 1, control: coarse }
+    - { kind: cutting, rate: 1, control: fair }
   _materialPath: /stuff/idea/material/element/iron
   mass: 0.5
