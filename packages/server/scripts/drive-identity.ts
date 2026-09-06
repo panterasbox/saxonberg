@@ -294,10 +294,21 @@ async function main(): Promise<void> {
   // if the gate were deleted. So a second character stands at the same
   // bar and the question is asked about them by name.
   const bystander = await Session.open("drive-identity-d", BAR);
-  const who = await b.cmd("look");
-  const other = /drive-identity-d/i.test(who) ? "drive-identity-d" : "";
-  const refusal = await b.cmd(`competence ${other || "drive-identity-d"}`);
-  say("competence <another player, standing right there>", refusal);
+  // ⭐ And they have to INTRODUCE themselves first, which is the belief
+  // layer working: an un-introduced player reads as *a human*, so there
+  // is no name to ask about until they give one. That is also why the
+  // question cannot be asked by login handle — the world has never heard
+  // it.
+  const said = await bystander.cmd("introduce", 2500);
+  say("the bystander introduces themselves", said);
+  ok(
+    "5a · until they introduce themselves there is no name to ask about",
+    /introduce yourself as/i.test(said),
+    said,
+  );
+  const other = "drive-identity-d";
+  const refusal = await b.cmd(`competence ${other}`, 2500);
+  say(`competence ${other} (another player, standing right there)`, refusal);
   ok(
     "5 · asking about another player is REFUSED (not merely absent)",
     /theirs to show you/i.test(refusal),
