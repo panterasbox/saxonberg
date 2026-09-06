@@ -1,0 +1,19 @@
+# A green hide — ⚠ and it is a SEAM rather than a product.
+#
+# Hide becomes leather by tanning, and tanning wants tannin, which is the
+# dyeing trade's. That trade is not in this tree yet, so the hide ships
+# and nothing tans it — which is honest: it is a real thing off a real
+# animal, it stores, it sells, and the day the tannery arrives it is
+# already waiting. ⚠ What must NOT happen is a `leather` row minted here
+# out of nothing, which would close the loop with a faucet.
+class: /platform/thing/Provision
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a green hide
+  primaryKeyword: hide
+  keywords: [hide, skin, pelt]
+  longDescription: >-
+    A whole hide, flesh side up and still warm, salted along the edges.
+    It wants to be in a tanpit within the week or it is worth nothing.
+  _materialPath: /stuff/idea/material/organic/leather
+  mass: 25

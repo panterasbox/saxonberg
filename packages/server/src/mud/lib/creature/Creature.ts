@@ -56,6 +56,8 @@ import { RespirationMixin } from '../respiration/Respiration';
 import { DisguisableMixin } from '../disguise/Disguisable';
 import { ConcealableMixin } from '../concealment/Concealable';
 import { SlottableMixin } from '../slot/Slottable';
+import { ChattelMixin } from '../chattel/Chattel';
+import { BrandedMixin } from '../corpo/Branded';
 import { PostmortemMixin } from '../mortality/Postmortem';
 import { Quantity } from '../quantity';
 
@@ -97,6 +99,27 @@ import { Quantity } from '../quantity';
 // driven and drives `spo2`; thermal overrides getVitalSign for
 // `coreTemperature` only — neither reads the other's sign.)
 // LoadBearingMixin sits outermost — the encumbrance gauge reads
+// ⭐⭐ `ChattelMixin` and `BrandedMixin` compose OUTERMOST, and their
+// arrival here is the whole of D22 and D98.
+//
+// Chattel was composed in exactly one place — `lib/stuff/Thing.ts` — and
+// `Creature` descends from `Agent`, so **nothing alive was ownable**:
+// `ChattelApi.stamp` refused a cow. The gate is structural
+// (`MixinApi.isChattel`), not tier-based, so one composition line gives
+// livestock, pets and future aquaculture per-instance ownership with
+// chain-of-title out of shipped code — and it retires the pets slate's
+// sketched `CompanionMixin` + `ownerPath` before it was written.
+//
+// ⭐ Chain-of-title is also rustling's answer (D98): a stolen animal
+// keeps its provenance and cannot be sold cleanly, so fencing is the
+// hard part, exactly as in life. And `BrandedMixin` was composed only on
+// Things (a neon sign, a graded receptacle) — **branding livestock is
+// what marks were invented for** — and it reaches the Creature stack by
+// the same one-line move.
+//
+// Both are additive attribute mixins with no ordered relationship to the
+// body stack below; outermost keeps them clear of it.
+//
 // Container + Slotted + Tangible (Agent) + Reserved + Vitals, so it
 // must compose outer of all of them (same placement logic as Vitals
 // outer of Reserved).
@@ -108,7 +131,9 @@ import { Quantity } from '../quantity';
 // clock, so its placement is immaterial to the ordered body stack, and
 // being outermost puts its `canEvict` veto ahead of the others — a corpse
 // objects to being collected before any inner layer gets a say.
-const CreatureBase = PostmortemMixin(
+const CreatureBase = ChattelMixin(
+  BrandedMixin(
+  PostmortemMixin(
   ConcealableMixin(
   LoadBearingMixin(
     ContainerMixin(
@@ -155,7 +180,42 @@ const CreatureBase = PostmortemMixin(
   )
   )
   )
+  )
+  )
 );
+
+/**
+ * The body-condition bands, thin to fat — ⭐ a CLOSED, ordinal
+ * vocabulary, and the words a stockman actually uses.
+ */
+export const BODY_CONDITION_BANDS = [
+  'emaciated',
+  'thin',
+  'good',
+  'fleshy',
+  'fat',
+] as const;
+
+export type BodyConditionBand = (typeof BODY_CONDITION_BANDS)[number];
+
+/**
+ * ⭐ Exhaustive by construction: a sixth band cannot be added without
+ * writing its sentence, so the coverage half of the band contract is
+ * enforced by the compiler rather than by a memo.
+ *
+ * ⚠ What the compiler cannot check is whether adjacent bands are
+ * DISTINGUISHABLE in prose — the half that actually matters, because two
+ * bands that read alike collapse the whole opacity ladder silently. The
+ * reviewer's test: *can a reader who does not know the number tell this
+ * band from the one on either side of it?*
+ */
+const BODY_CONDITION_PHRASE: Readonly<Record<BodyConditionBand, string>> = {
+  emaciated: 'wasted — every rib and the points of the hips standing out, and the coat gone staring',
+  thin: 'thin; you can count the ribs at a glance and the backbone is a ridge',
+  good: 'in good flesh — the ribs felt rather than seen',
+  fleshy: 'well covered, running to fat over the tail head',
+  fat: 'fat, and carrying more of it than is good for anything',
+};
 
 /**
  * Creature concrete class — a living body. `Character` extends this
@@ -197,6 +257,60 @@ export class Creature extends CreatureBase {
   }
 
   /**
+   * ⭐⭐ **The flesh reserve — body condition, which is fat cover, which
+   * is a STOCK.**
+   *
+   * > **`satiation` is hours; `flesh` is months.** Satiation is the flow;
+   * > this is the stock the flow deposits into.
+   *
+   * ⚠ It is the raw number, and almost nobody should be reading it. What
+   * a person standing in front of an animal gets is
+   * {@link Creature.bodyConditionBand} — *by eye* a coarse band, and a
+   * precise score only by laying hands on it, because real body condition
+   * scoring is palpation of spine and ribs. **Precision costs an act.**
+   */
+  public getFlesh(): Reserve {
+    return this.getReserve('flesh')!;
+  }
+
+  /**
+   * ⭐ **The band, which is what a reader actually gets** (D24).
+   *
+   * The reserve is stored and the band is derived — the same relationship
+   * soil moisture already has, and the honest-opacity model exactly: one
+   * real number underneath, three fidelities of reading over it.
+   *
+   * ⚠ **Not `getConditionBand`, and the collision is why this is named
+   * `flesh` at all.** `VitalsMixin.getConditionBand` already means
+   * something different and correct — how degraded a body is RIGHT NOW
+   * from floored reserves and open wounds. Body condition is weeks of
+   * nutrition. Two real concepts, one English word, so the shipped one
+   * keeps it. *"In good flesh"* is stockman's language for precisely
+   * this and sits beside satiation and hydration without reading like a
+   * stat.
+   */
+  public bodyConditionBand(): BodyConditionBand {
+    const flesh = this.getReserve('flesh');
+    if (!flesh) return 'good';
+    const capacity = flesh.capacity.rawValue();
+    const fraction = capacity > 0 ? flesh.current.rawValue() / capacity : 0;
+    if (fraction < 0.12) return 'emaciated';
+    if (fraction < 0.3) return 'thin';
+    if (fraction < 0.72) return 'good';
+    if (fraction < 0.9) return 'fleshy';
+    return 'fat';
+  }
+
+  /**
+   * What that band looks like — ⭐ **a percept, never a number in
+   * words** (D86). A reader sees the animal and infers the husbandry;
+   * they are not handed a gauge with a costume on.
+   */
+  public bodyConditionPhrase(): string {
+    return BODY_CONDITION_PHRASE[this.bodyConditionBand()];
+  }
+
+  /**
    * Mass override that lazy-seeds the body-grounded default. When the
    * instance authored no mass of its own (still `0`), resolve
    * `species → bodyPlan → baseMass` and adopt it; an explicitly-authored
@@ -226,7 +340,25 @@ export class Creature extends CreatureBase {
    * is the single place the body-grounded default is applied.
    */
   protected seedMassFromBodyPlan(): Quantity<'kg'> | null {
-    const baseMass = this.getSpecies()?.getBodyPlan()?.getBaseMass();
+    const species = this.getSpecies();
+    /*
+     * ⭐ The SPECIES answers first, and the body plan is the fallback.
+     *
+     * `baseMass` is a body-SHAPE default — every quadruped shares one
+     * number, so it cannot tell a cow from a collie — and a plan that
+     * authors none leaves the body at zero. `quadruped` and `avian` both
+     * did, so every four-legged and every winged animal massed nothing
+     * until 2026-09-06. The species' own `adultMass`, walked down its
+     * maturation curve, is the honest number; the plan's default stands
+     * for a species that does not state one.
+     */
+    const speciesMass = species?.massAt(this.getAgeDays());
+    if (speciesMass !== undefined && speciesMass > 0) {
+      const seeded = Quantity.of(speciesMass, 'kg');
+      this.setMass(seeded);
+      return seeded;
+    }
+    const baseMass = species?.getBodyPlan()?.getBaseMass();
     if (baseMass !== undefined && baseMass > 0) {
       const seeded = Quantity.of(baseMass, 'kg');
       this.setMass(seeded);

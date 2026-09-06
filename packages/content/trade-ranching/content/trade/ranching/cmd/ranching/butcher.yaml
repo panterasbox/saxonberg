@@ -1,0 +1,25 @@
+verbs: [butcher]
+controller: /trade/ranching/idea/cmd/ranching/ButcherController
+description: "Kill and dress an animal, using all of it"
+help: |
+  Quick, and then a long afternoon's work.
+
+  ⭐ The animal is used ENTIRELY — meat and offal, tallow for the render
+  pot, hide for leather, bone and horn. Nothing is wasted, and waste is
+  the thing that is meant to feel bad here rather than the killing.
+
+  ⚠ What comes off is the animal's, not the verb's: a beast in poor
+  flesh dresses out light. Finish it before you kill it.
+
+  There is no confirmation and no ceremony. A number in the herdbook is
+  easy to cull and an animal you named is not, and that is a fact about
+  you rather than a rule.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  - name: target
+    type: object
+    required: true
+    scope: ["reachable"]
+    requires: HandlingMixin

@@ -278,9 +278,21 @@ test).
   never about the clock — it was about the **shape of the consequence**:
   - The pet's **bond** drifts while you're gone, and at the floor it goes feral
     and leaves — a recoverable, story-generating loss.
-  - The pet's condition curve is **asymptotic toward "miserable but alive."** It
-    never starves to death. (A *ranch* animal does die of neglect — that's the
-    economic stake, and it has a paid mitigation. Deliberate divergence.)
+  - ~~The pet's condition curve is **asymptotic toward "miserable but alive."**
+    It never starves to death.~~ **CORRECTED by the farmstead build (D29):
+    there is ONE mortality rule for every kept animal, and a pet is not
+    exempt from it.**
+
+    > What protects a pet is the **automation ladder**, not a carve-out. A
+    > hired hand, a kennel, a neighbour — the material floor is cheap and
+    > delegable, and that is the mitigation. An exemption would have said
+    > *this animal's biology is different because you like it*, which is
+    > the one thing the design cannot afford to say while a cow two rooms
+    > away starves on the same clock.
+
+    ⭐ The time-respect goal survives intact, and better: the consequence
+    is still shaped rather than punitive, but it is shaped by something
+    the player can *act on* rather than by an engine exception.
   - **Automation maintains your assets; it cannot maintain your
     relationships.** A hired hand or kennel keeps the animal fed and healthy —
     the material floor is cheap and delegable. **Bond is only earned in

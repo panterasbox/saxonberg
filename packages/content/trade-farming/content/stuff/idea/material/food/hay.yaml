@@ -1,0 +1,41 @@
+# Hay — cut herbage, dried until it keeps. Grass, clover and whatever
+# else was in the sward, mown green and cured in the field.
+#
+# ⭐⭐ **It has no `spoilActivationEnergy`, and that is the whole point of
+# hay.** Drying is the preservation: a rick made properly sits in a barn
+# from the cut until the spring without a microbe getting a foothold,
+# which is exactly why anybody ever went to the trouble of making it.
+# Grass that was not dried is not hay — it is silage, a different
+# endeavour on a different mechanism, and this row does not model it.
+#
+# ⚠ Hay's failure is therefore NOT rot. Baled above a moisture threshold
+# it self-heats and fires the barn (`SelfHeatingMixin`) — a physical
+# runaway, not a microbial clock, and the reason the two mechanisms stay
+# separate. See docs/subsystems/soil.md and docs/subsystems/spoilage.md.
+class: /platform/idea/material/ConsumableMaterial
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: hay
+  appearance: dry stems and leaf, still faintly green, smelling of summer
+  keywords: [hay, fodder, forage, grass, herbage]
+  # Baled: loose hay runs near 70, a tight bale near 250.
+  density: 160
+  # ⚠ Load-bearing for the barn fire: hay is an INSULATOR, which is why a
+  # big rick cooks and a small one does not — the middle cannot lose the
+  # heat it makes.
+  thermalConductivity: 0.05
+  specificHeat: 1900
+  # True of stock, and of a person in a bad enough winter. Mostly fibre,
+  # so the carbohydrate a body can actually get at is a fraction of a
+  # root's.
+  edibility: true
+  tastes: [sweet]
+  # ⭐ Under the 0.60 floor nothing grows. Properly cured hay sits below
+  # it by construction; that IS what "cured" means here.
+  waterActivity: 0.55
+  nutrients: [carb]
+  nutrientAmounts:
+    carb: 7000
+  tags: [fodder, dried]
+  composition: []
+  biologicalSource: null

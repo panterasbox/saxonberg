@@ -1,0 +1,21 @@
+# Saffron — ⭐ the most expensive agricultural product by weight in the
+# world, and the reason is entirely LABOUR: roughly 150 flowers per gram,
+# every stigma pulled by hand.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: saffron
+  appearance: fine red threads with an orange bloom on them
+  keywords: [saffron, threads]
+  density: 300
+  specificHeat: 1500
+  thermalConductivity: 0.08
+  electricalConductivity: 1.0e-11
+  waterAbsorptionCapacity: 20
+  hardness: 1
+  toughness: 1
+  edibility: true
+  nutrients: []
+  toxicity: []
+  tags: ["food", "spice", "dye", "luxury", "labour-intensive"]
+  composition: []

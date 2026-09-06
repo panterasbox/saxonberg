@@ -252,6 +252,35 @@ yard (`trade-distilling/content/trade/distilling/location/veshko-yard.yaml`) is 
 author one (`spirit:vodka: 24`, whiskey/rum/gin 12). `blessingOdds` is
 still undeclared. See [residency.md](./residency.md).
 
+## ⚠⚠ Every name any code looks up must be DECLARED
+
+The `stocks` failure above is not an anecdote, it is a **recurring class**
+— the hydrator discards an undeclared key with no error and no warning,
+so a reader shipped against a field nobody declared answers `null`
+forever and looks finished. It has now happened five times:
+
+| field | reader | how long it was dead |
+|---|---|---|
+| `stocks` / `favours` | the residency spawn sweep | until libations |
+| `address` | `AddressLogic`'s documented step 2 | never worked |
+| `deposit` | `Working.getDeposit` | found by a live drive |
+| `groundCharacter` | `Field` + three farming verbs | found by a cold boot |
+| `celestialProfile`, `suppressesMagic` | `CelestialLogic`, `MagicLogic` | never worked |
+
+`SpatialZone`'s spatial fields (`stocks`, `favours`, `blessingOdds`,
+`address`, `deposit`, `groundCharacter`, `celestialProfile`,
+`suppressesMagic`) are declared **there** rather than on `Zone` for the
+reason the first two were: a `FolderZone` is a namespace root, and *"the
+street address of `/wiki`"* is not a question.
+
+⭐ **The gate reads it from both ends.**
+`lib/zone/__tests__/SpatialZone.authoredFields.test.ts` asserts that every
+key a shipped zone row authors is declared **and** that every literal
+name any source file passes to `lookupField` is declared by some zone
+class the shipped rows name. The second half is what catches a reader
+that shipped before its field; it is derived from content, never from a
+list in the test.
+
 ## Authoring guidelines
 
 The cardinal-only-intra-zone invariant and the zone-derivation rule

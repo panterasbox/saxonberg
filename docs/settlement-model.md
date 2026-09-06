@@ -73,7 +73,7 @@ archetype list are the same list.
 | tier | need | the venue | state |
 |---|---|---|---|
 | **survive** | food, raw | farm · market garden | `trade-farming` |
-| | food, prepared | cookhouse · eatery | `trade-hearth-cooking` |
+| | food, prepared | cookhouse · eatery | `trade-cooking` |
 | | food, retail | general store | ✅ ships |
 | | water | well · standpipe · tank | `water` |
 | | ⭐ **waste** | ⭐ *the other side of water* — drain · midden · the noxious trades | `water`'s Conduit ladder: *a sewer is the same object reversed* |

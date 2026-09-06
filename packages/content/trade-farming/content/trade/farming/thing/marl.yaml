@@ -1,0 +1,26 @@
+# Marl — calcareous clay, and ⭐ the pH lever that needs no other trade.
+#
+# Digging marl from a pit and spreading it on light land was THE land
+# improvement of its era, and marl pits are still visible in the corners
+# of old fields. It carries lime and clay together, it is brutally
+# labour-intensive, and it lands exactly on D55: ground quality is the
+# cost of improvement. This is how a player buys their way up the
+# seeded-character ladder — by digging.
+#
+# ⚠ Deliberately the source this build ships, INSTEAD of burnt lime.
+# Burnt lime wants limestone, a kiln and fuel — the metal chain's, and
+# not here. Authoring a sack of lime nobody makes would be the *missing
+# enabling data fails closed and silent* trap, which this repo has been
+# bitten by twice.
+class: /platform/thing/Provision
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a barrowload of marl
+  primaryKeyword: marl
+  keywords: [marl, clay, calcareous-clay]
+  longDescription: >-
+    Pale grey-white clay, greasy to the touch and studded with the
+    broken shells of something that lived here a very long time ago. It
+    dries to a crumbly white and works into the ground over a winter.
+  _materialPath: /stuff/idea/material/mineral/marl
+  mass: 18

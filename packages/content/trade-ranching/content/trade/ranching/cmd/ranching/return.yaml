@@ -1,0 +1,23 @@
+verbs: [return]
+controller: /trade/ranching/idea/cmd/ranching/ReturnController
+description: "Turn a drafted head back in with the rest, and write it up"
+help: |
+  `return <animal>` puts a drafted head back in the tally.
+
+  ⚠ The animal stops being an object. That is not a loss — its identity
+  was the record and not the flesh, and what became of it goes into the
+  book: its condition, how it takes to being worked, how old it is now.
+  Draft it again tomorrow and you get the same animal, a day older and
+  exactly as thin as you left it.
+
+  An animal that was never in anybody's tally — a pet, a single milk cow,
+  the ox — has nothing to go back to, and says so.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  - name: target
+    type: object
+    required: true
+    scope: ["reachable"]
+    requires: HandlingMixin

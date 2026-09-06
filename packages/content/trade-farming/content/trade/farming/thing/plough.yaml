@@ -1,0 +1,23 @@
+# A plough — ⭐ and it is the archetype's `traction` DEFAULT because the
+# trade genuinely owns the implement, while the animal pulling it binds
+# at the locality. Whose ox is a fact about the place; what a plough is
+# is a fact about farming.
+#
+# ⚠ It is heavy on purpose. Ploughing costs draught power, and by hand it
+# is punishing — which is what makes an ox a genuine capital investment
+# and the first rung of a mechanisation ladder nobody authors ahead of
+# demand.
+class: /platform/thing/ToolItem
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  primaryKeyword: plough
+  keywords: ["plough", "plow", "ard"]
+  shortDescription: a wooden plough
+  longDescription: >-
+    An ash beam with an iron share and a mouldboard worn bright as a
+    mirror on one face and rusted on the other. There are two handles
+    polished by hands and a hitch at the front for something stronger
+    than you.
+  mass: 42
+  capabilities: ["ploughing"]
+  _materialPath: /stuff/idea/material/wood/oak

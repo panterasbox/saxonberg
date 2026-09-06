@@ -15,6 +15,11 @@ import type { Publisher } from "../../../lib/press/Publisher";
 import type { Business } from "../Business";
 import { RELEASE_DOCUMENT_KIND } from "../../../lib/press/Release";
 import { CommandApi } from "../../../api/command";
+import type { Registrar } from '../../../lib/document/Register';
+import {
+  DECLARED_DOCUMENT_KINDS,
+  type DeclaredDocumentKind,
+} from '../../../lib/document/DocumentKinds';
 
 const DocumentApiCallers = SecurityPolicies.FromModule("/api/document#DocumentApi",
 );
@@ -289,6 +294,96 @@ function codeFieldsChanged(
   return JSON.stringify(codeFieldsOf(prev)) !== JSON.stringify(codeFieldsOf(next));
 }
 
+/**
+ * Write a **herd** document, owned by the ranching trade's own branch.
+ *
+ * ⚠⚠ **An ownership bypass by construction**, and — exactly as
+ * `saveRelease` is — narrow only because of the shape of its signature
+ * plus its gate. `save` gates on self-home / covering title, which
+ * admits the *branch owner*; the herdbook's whole point is that its
+ * subject is **not** the branch owner:
+ *
+ * > **You file; you do not hold the pen.**
+ *
+ * A keeper must be able to draft a head out and turn it back in — which
+ * writes the record — while remaining unable to rewrite what the record
+ * SAYS about their animals. Routing those writes through a pinned
+ * transport is how that is arranged, and it is the same arrangement the
+ * press path makes for a comms director who is not a landowner.
+ *
+ * Four things keep it honest, and all four are load-bearing:
+ *
+ *   1. **It takes no owner.** The owner is the registry branch, fixed
+ *      here, so there is no parameter to lie in.
+ *   2. **It refuses a path outside the register.** A caller cannot stamp
+ *      the trade's ownership anywhere else in the tree.
+ *   3. **The `kind` is pinned here, not passed.** It cannot write
+ *      anything but a herd.
+ *   4. **The caller is gated to the registry singleton itself**, which
+ *      is where the validation of what a legitimate herd looks like
+ *      lives.
+ *
+ * ⚠ The kernel names a pack path in that gate, which is ordinarily the
+ * tell of a mis-cut. It is not one here: a document KIND is a platform
+ * act by construction (its consumer is code and the installer needs a
+ * go-live hook), and naming the one consumer alongside the kind it was
+ * declared for is the same act, not a second one. `lint:gates` resolves
+ * the string, so a rename cannot silently orphan it.
+ */
+/**
+ * ⚠⚠ **Everything this refuses, it refuses structurally.** No allowlist,
+ * no pack name: the branch, the owner and the kind all come off the
+ * register, and the register may only administer a branch it lives under.
+ */
+async function saveToRegisterImpl(
+  register: Stuff & Registrar,
+  path: string,
+  data: Record<string, unknown>,
+): Promise<void> {
+  if (!MixinApi.isRegistrar(register)) {
+    throw new Error('DocumentApi.saveToRegister: that is not a register');
+  }
+  const owner = register.getRegisterOwner();
+  const prefix = register.getRegisterPrefix();
+  const kind = register.getRegisterKind();
+  const seat = register.getTemplatePath() ?? '';
+
+  if (owner.length === 0 || prefix.length === 0 || kind.length === 0) {
+    throw new Error(
+      'DocumentApi.saveToRegister: the register declares no branch, owner or kind',
+    );
+  }
+  // ⭐⭐ **A register keeps its OWN book.** The owner has to be a branch
+  // the register itself sits under, or a class could declare itself
+  // registrar of somebody's home directory and file over it.
+  if (seat !== owner && !seat.startsWith(`${owner}/`)) {
+    throw new Error(
+      `DocumentApi.saveToRegister: ${seat} does not sit under ${owner}, ` +
+        'so it does not keep that branch\'s book',
+    );
+  }
+  if (prefix !== owner && !prefix.startsWith(`${owner}/`)) {
+    throw new Error(
+      `DocumentApi.saveToRegister: ${prefix} is not under ${owner}`,
+    );
+  }
+  if (!path.startsWith(`${prefix}/`)) {
+    throw new Error(`DocumentApi.saveToRegister: ${path} is not in ${prefix}`);
+  }
+  // ⚠ The kind is pinned to the register's one kind, and must be a kind
+  // the platform knows — a register cannot invent a vocabulary.
+  if (!DECLARED_DOCUMENT_KINDS.includes(kind as DeclaredDocumentKind)) {
+    throw new Error(`DocumentApi.saveToRegister: ${kind} is not a document kind`);
+  }
+
+  const doc = (await StoredDocument.findByPath(path)) ?? new StoredDocument();
+  doc.path = path;
+  doc.owner = owner;
+  doc.kind = kind;
+  doc.data = data;
+  await doc.save();
+}
+
 async function saveImpl(
   path: string,
   kind: string,
@@ -400,8 +495,23 @@ export class DocumentLogic extends ApiLogic {
   }
 
   /**
-   * See {@link DocumentApi.saveAsBusiness}. ⚠⚠ The second ownership
-   * bypass; its three rails are in `saveAsBusinessImpl`.
+   * See {@link DocumentApi.saveToRegister}. ⚠⚠ One of the three
+   * ownership bypasses (`saveRelease`, `saveAsBusiness`, this), and the
+   * narrowing lives on the **Api static** for `saveRelease`'s reason
+   * exactly.
+   */
+  @CallSecurity(DocumentApiCallers)
+  public async saveToRegister(
+    register: Stuff & Registrar,
+    path: string,
+    data: Record<string, unknown>,
+  ): Promise<void> {
+    return saveToRegisterImpl(register, path, data);
+  }
+
+  /**
+   * See {@link DocumentApi.saveAsBusiness}. ⚠⚠ One of the three
+   * ownership bypasses; its own three rails are in `saveAsBusinessImpl`.
    */
   @CallSecurity(DocumentApiCallers)
   public async saveAsBusiness(

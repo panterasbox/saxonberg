@@ -1,0 +1,37 @@
+# Saffron — ⭐ the labour-intensive smallholder crop, and the inverse of
+# everything else in this build (D44).
+#
+# Grain, cattle and hay all want ACRES, on a world whose land scale is
+# the thousand-square-metre lot — which leaves a smallholder with hens,
+# vegetables and nothing of value to grow.
+#
+# Saffron is the most expensive agricultural product by weight in the
+# world because it is the hand-picked stigmas of a crocus and takes
+# roughly **150 flowers per gram**. Its value comes from LABOUR
+# INTENSITY, not land — the exact inverse of grain, which is
+# land-intensive and labour-light. That contrast is a real
+# agricultural-economics distinction the build could not otherwise teach,
+# and it hands a player with a small plot and time to spend a genuine
+# career on ground too small for a cow.
+#
+# ⭐ And the fact that unifies flowers generally, worth carrying: **a
+# flower is a plant's advertisement to a pollinator.** Colour, scent and
+# nectar exist to attract an insect — so dye, perfume, flavour, medicine
+# and ornament are all human interception of a signal that was never
+# meant for us.
+class: /platform/idea/species/Species
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  binomial: Crocus sativus
+  commonNames: ["saffron", "saffron crocus", "crocus"]
+  _parentCladePath: /stuff/idea/species/plantae
+  _defaultMaterialPath: /stuff/idea/material/tissue/plant-tissue
+  lifecycleStates: ["alive", "dead"]
+  reproductiveMode: asexual
+  lifespanMin: 0
+  lifespanMax: 6
+  diet: none
+  longDescription: >-
+    Low purple crocus flowers with three crimson threads standing out of
+    each throat, and the whole field of them worth less than the threads.
+  nameBankKeys: []

@@ -1,0 +1,15 @@
+# Eggs — the on-ramp's income, and small on purpose.
+#
+# ⭐ A hen is to ranching what the houseplant is to farming: cheap,
+# forgiving, and it teaches photoperiod on day one, because the laying
+# stops in short days and nothing is wrong with the bird.
+class: /platform/thing/Provision
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a clutch of eggs
+  primaryKeyword: eggs
+  keywords: [eggs, egg, clutch]
+  longDescription: >-
+    Brown and dirty and still warm, with a feather stuck to one of them.
+  _materialPath: /stuff/idea/material/food/egg
+  mass: 0.5

@@ -4518,13 +4518,22 @@ export interface MixinDetail {
  * are the API projector's graded kinds); `collection` is the third
  * projector — one topic per Mongo collection, from its authored schema
  * doc, so a player can read how the persistence layer works.
+ *
+ * ⭐⭐ `concept` is the fourth, and it is the only one that is not
+ * harvested from something that exists for another reason. Every other
+ * kind answers *what can I call, and what does it do*; this one answers
+ * **what IS this** — what nitrogen is, what a body condition score
+ * means, why a sward has a residual. `help api` is the author surface;
+ * player help is a different thing, and a world with an agronomy in it
+ * owes both.
  */
 export type HelpKind =
   | 'command'
   | 'api'
   | 'mixin'
   | 'type'
-  | 'collection';
+  | 'collection'
+  | 'concept';
 
 /** The typed edges between help topics — see {@link HelpRelation}. */
 export type HelpRelationKind =

@@ -47,6 +47,7 @@ import { EmploymentApi } from '@saxonberg/server/mud/api/employment';
 import { AppSettingKeys } from '@saxonberg/server/mud/lib/config/AppSettings';
 import type { CommandGiver } from '@saxonberg/server/mud/lib/command/CommandGiver';
 import type { Cultivable } from '@saxonberg/server/mud/lib/husbandry/Cultivable';
+import type { Soil } from '@saxonberg/server/mud/lib/husbandry/Soil';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Mobile } from '@saxonberg/server/mud/lib/spatial/Mobile';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
@@ -98,7 +99,7 @@ export const brain = class {
 
     // ── the front half: tend and pick, at home ──
     const grounds = (home.getContents() as Stuff[])
-      .filter((g): g is Stuff & Cultivable => MixinApi.isCultivable(g))
+      .filter((g): g is Stuff & Cultivable & Soil => MixinApi.isCultivable(g))
       .slice(0, GROUNDS_CAP);
     let picked = 0;
     for (const ground of grounds) {
@@ -199,7 +200,7 @@ export const brain = class {
 } satisfies BrainStatics;
 
 /** Ripe, growing occupants of a ground — what `pick <ground>` will find. */
-function ripeCount(ground: Stuff & Cultivable): number {
+function ripeCount(ground: Stuff & Cultivable & Soil): number {
   return (ground.getPlants() as Stuff[]).filter(
     (p) => MixinApi.isGrowing(p) && p.isHarvestable(),
   ).length;

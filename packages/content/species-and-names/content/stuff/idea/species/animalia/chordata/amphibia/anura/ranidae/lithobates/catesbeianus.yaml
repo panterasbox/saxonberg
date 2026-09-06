@@ -6,6 +6,8 @@ data:
   binomial: Lithobates catesbeianus
   commonNames: ["bullfrog", "frog"]
   _bodyPlanPath: /stuff/idea/species/BodyPlan/quadruped
+  # ⭐ Adult liveweight in kg. A grown bullfrog, which is a heavy frog and still half a kilo.
+  adultMass: 0.5
   _parentCladePath: /stuff/idea/species/animalia
   _defaultMaterialPath: /stuff/idea/material/tissue/flesh
   vitalProfile:

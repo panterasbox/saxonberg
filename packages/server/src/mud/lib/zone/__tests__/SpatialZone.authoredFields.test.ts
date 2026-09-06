@@ -120,6 +120,75 @@ describe('a zone row cannot author a field the hydrator will discard', () => {
     expect(declared.has('deposit')).toBe(true);
     // `address` — AddressLogic's documented step 2, unreachable until now.
     expect(declared.has('address')).toBe(true);
+    // `groundCharacter` — the third. `trade-farming` shipped three
+    // controllers reading it and no zone class declaring it, so the
+    // authored half of the soil field was unreachable. Found the same
+    // way `deposit` was: by cold-booting and reading the diagnostics.
+    expect(declared.has('groundCharacter')).toBe(true);
+  });
+
+  /**
+   * ⭐⭐ **The general form of the bug, and the reason it happened a third
+   * time.** The scan above reads shipped ROWS, so it can only catch a
+   * field somebody actually authored. `groundCharacter` was authored
+   * nowhere — the READER shipped first, against a field that did not
+   * exist, and the row that would have tripped the gate was never
+   * written because the feature looked finished.
+   *
+   * So this reads the other end: every literal name any code asks
+   * `lookupField` for must be declared on some zone class. The declared
+   * set is DERIVED from the classes shipped rows actually name (never a
+   * list here — the mistake this file exists to catch).
+   */
+  it('⭐⭐ every field NAME any code looks up is declared somewhere', async () => {
+    const zoneClasses = new Set<string>();
+    for (const { doc } of shippedRows()) {
+      const cls = typeof doc.class === 'string' ? doc.class : '';
+      if (/Zone$/.test(cls)) zoneClasses.add(cls);
+    }
+    const declared = new Set<string>();
+    for (const cls of zoneClasses) {
+      for (const key of (await fieldsOf(cls)) ?? []) declared.add(key);
+    }
+    expect(zoneClasses.size).toBeGreaterThanOrEqual(2);
+
+    const looked = new Map<string, string>();
+    const walkSrc = (dir: string, rel: string): void => {
+      for (const entry of readdirSync(dir)) {
+        const full = join(dir, entry);
+        if (statSync(full).isDirectory()) {
+          if (entry === 'node_modules' || entry === '__tests__') continue;
+          walkSrc(full, `${rel}/${entry}`);
+          continue;
+        }
+        if (!entry.endsWith('.ts')) continue;
+        const src = readFileSync(full, 'utf8');
+        for (const m of src.matchAll(
+          /lookupField(?:<[^>]*>)?\(\s*['"]([A-Za-z0-9_]+)['"]/g,
+        )) {
+          looked.set(m[1]!, `${rel}/${entry}`);
+        }
+      }
+    };
+    walkSrc(join(HERE, '..', '..', '..'), 'server/mud');
+    for (const pack of readdirSync(CONTENT)) {
+      const src = join(CONTENT, pack, 'src');
+      try {
+        if (statSync(src).isDirectory()) walkSrc(src, `${pack}/src`);
+      } catch {
+        // A content-only pack ships no `src/`.
+      }
+    }
+
+    // ⚠ A scan that matched nothing would pass identically.
+    expect(looked.size).toBeGreaterThanOrEqual(4);
+    const offenders = [...looked]
+      .filter(([name]) => !declared.has(name))
+      .map(([name, file]) => `${name} (read by ${file})`);
+    expect(
+      offenders,
+      `lookupField names no zone class declares:\n  ${offenders.join('\n  ')}`,
+    ).toEqual([]);
   });
 
   it('⭐ and the resolver step they feed reads them off a SpatialZone', () => {
@@ -130,8 +199,10 @@ describe('a zone row cannot author a field the hydrator will discard', () => {
     // is not a question.
     expect(meta.address).toBeDefined();
     expect(meta.deposit).toBeDefined();
+    expect(meta.groundCharacter).toBeDefined();
     const base = (Zone as unknown as { fieldMeta: Record<string, unknown> }).fieldMeta;
     expect(base.address).toBeUndefined();
     expect(base.deposit).toBeUndefined();
+    expect(base.groundCharacter).toBeUndefined();
   });
 });

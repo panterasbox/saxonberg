@@ -1,0 +1,24 @@
+# Barley — ⭐ and it closes THREE faucets at once.
+#
+# Nothing in this game grew grain: fruit, mint, one carrot. And
+# `malt.yaml` ships in base-library with **no crop behind it**, so
+# brewing and distilling have both been drawing malt from nowhere.
+# Barley closes brewing, closes distilling, feeds pigs and hens, and is
+# the classic arable partner to a grass ley — which gives the rotation's
+# arable half something to be.
+class: /platform/idea/species/Species
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  binomial: Hordeum vulgare
+  commonNames: ["barley", "bere", "corn"]
+  _parentCladePath: /stuff/idea/species/plantae
+  _defaultMaterialPath: /stuff/idea/material/tissue/plant-tissue
+  lifecycleStates: ["alive", "dead"]
+  reproductiveMode: sexual
+  lifespanMin: 0
+  lifespanMax: 1
+  diet: none
+  longDescription: >-
+    Barley in the ear, whiskered with long awns that catch the light and
+    go over all at once when the wind crosses the field.
+  nameBankKeys: []

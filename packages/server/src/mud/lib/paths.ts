@@ -81,6 +81,14 @@ export const TemplatePaths = {
   metabolismStarvation: "/platform/idea/Condition/metabolism/starvation",
   metabolismDehydration: "/platform/idea/Condition/metabolism/dehydration",
   metabolismCollapse: "/platform/idea/Condition/metabolism/collapse",
+  /**
+   * ⚠ The floor effect of `flesh`, and deliberately **not lethal**.
+   * Starvation is what kills you in a day; emaciation is what months of
+   * living below maintenance leave behind, and an emaciated animal is a
+   * sick animal rather than a dying one. It reaches the death seam only
+   * through the acute conditions it makes more likely.
+   */
+  metabolismEmaciation: "/platform/idea/Condition/metabolism/emaciation",
   /** The body a player's death leaves behind (mortality.md). */
   mortalityCorpse: "/stuff/agent/Corpse",
   /** What coming back the cheap way costs you (mortality.md). */

@@ -1,0 +1,25 @@
+verbs: [milk]
+controller: /trade/ranching/idea/cmd/ranching/MilkController
+description: "Milk a beast out"
+help: |
+  Settle in against her flank and milk her out.
+
+  ⭐ Twice a GAME day, and that is not a figure of speech: a game day is
+  two real hours at the shipped clock, so a dairy cow is the most
+  demanding thing on the roster and is meant to be.
+
+  ⚠ Leave her too long and she DRIES OFF for that lactation. A season's
+  income gone; the animal fine; the next lactation unaffected. That is a
+  slope and not a cliff — but it is a long slope, and it is the price of
+  keeping the animal that pays best.
+
+  Dairy being the most demanding farming there is happens to be true.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  - name: target
+    type: object
+    required: true
+    scope: ["reachable"]
+    requires: HandlingMixin

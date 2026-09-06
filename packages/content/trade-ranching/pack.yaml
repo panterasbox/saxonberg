@@ -1,0 +1,30 @@
+id: trade-ranching
+version: 0.1.0          # reserved; nothing reads/enforces it
+root: /trade/ranching
+description: >-
+  The ranching trade — keeping animals, as distinct from the animals
+  themselves. ⭐ The signature claim is *pasture is a field*, so the
+  ground an animal stands on is `trade-farming`'s and this pack depends
+  on it; what it owns is the KEEPING. The herdbook as a filed register on
+  a branch titled to this trade (you file; you do not hold the pen), the
+  boundary acts that move a head between the tally and its own page
+  (`draft` and `return`), handling as a thing you do rather than a stat
+  you have, and the trade's own disciplines.
+  ⚠ The SPECIES rows are NOT here. A sheep exists whether or not anybody
+  ranches; the husbandry is the trade and the animal is a thing in the
+  world, so the rows live in the commons taxonomy with every other
+  species. A second ranching locality needs ZERO pack code — that is the
+  falsifiable line.
+requires:
+  groups:
+    - name: ranching
+      purpose: the ranching trade's own body — and the keeper of the herdbook
+      owner: { office: prime-minister }
+  title:
+    # ⭐⭐ This claim is the security model, not a filing convenience.
+    # Herds live at /trade/ranching/herds/… — a branch titled to the
+    # TRADE rather than to the animals' owner — because a record whose
+    # subject can edit it is worthless the moment anybody sells anything
+    # on the strength of it. Real herdbooks are kept by breed societies
+    # for exactly this reason, and have been since 1822.
+    - { extent: /trade/ranching, holder: { group: ranching } }

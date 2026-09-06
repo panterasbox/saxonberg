@@ -1,0 +1,24 @@
+# ⚠ The one place the animals HARM the farm.
+class: /platform/idea/HelpConcept
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: structure
+  title: Soil structure
+  summary: Why you do not put stock on wet clay.
+  keywords: [structure, poaching, tilth, compaction, poached]
+  seeAlso: [organic-matter, ground-character]
+  body: |
+    Good soil is not a solid: it is crumbs with air between them. Roots
+    grow through the gaps, water drains through them, and a spade goes in.
+
+    Hooves on WET ground destroy that. The same herd on the same field is
+    harmless in August and ruinous in November, because it is the water
+    that does it — the ground has no strength when it is saturated and the
+    crumbs are simply squashed flat.
+
+    ⚠ It rebuilds far slower than it is wrecked. A wet autumn is expensive
+    for years, and *put the herd on the tired field* is therefore a
+    judgement about the WEATHER rather than about the field.
+
+    Heavy ground poaches worse than light ground, which is one of the
+    things your survey is telling you.

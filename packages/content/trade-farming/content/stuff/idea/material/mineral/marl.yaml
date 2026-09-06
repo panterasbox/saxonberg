@@ -1,0 +1,31 @@
+# Marl — calcareous clay, and ⭐ the material that carries the `liming`
+# tag this build actually ships a source for.
+#
+# Lime and clay together, dug from a pit rather than burnt in a kiln. It
+# is a real material with a real place in agricultural history: marling
+# light land was the improvement of its era, cheap in money and brutal in
+# labour, and the pits are still there in the corners of old fields.
+#
+# ⚠ The `liming` tag is an OPEN vocabulary. Burnt lime will answer it the
+# day somebody ships a kiln recipe, and `lime` will spread that too with
+# no edit — because the verb asks for the tag, never for a row.
+#
+# ⚠ It lives in the COMMONS (`/stuff/idea/material`) rather than under
+# `/trade/farming`, because marl is a fact about the ground and not about
+# the trade: the mine digs through it and the potter has an opinion about
+# it, whether or not anybody is farming.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: marl
+  density: 1900
+  specificHeat: 880
+  thermalConductivity: 1.1
+  electricalConductivity: 1.0e-8
+  waterAbsorptionCapacity: 0.35
+  # Soft — you cut it with a spade, which is the whole reason it was ever
+  # a poor man's improvement.
+  hardness: 5
+  toughness: 2
+  edibility: false
+  tags: ["mineral", "clay", "calcareous", "liming", "soil-amendment"]

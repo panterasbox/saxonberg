@@ -274,7 +274,7 @@ one shared one.
 | **Weather** | seeded | **shipped** — the reference implementation |
 | **Foraging stock** | derived | **designed** ([discovery-slate](./discovery-slate.md)) |
 | **Mine geology** — hardness, grade, features | seeded | ⭐ **SHIPPED** ([mining](../../subsystems/mining.md)) — the `Deposit` Idea, one resolved read, seed derived from the covering Locality's address |
-| **Soil quality** | seeded (probably) | **deferred** — farming's six-reserve soil "derives from **place**"; their district ground-character seam is the placeholder |
+| **Soil quality** | seeded | ⭐ **SHIPPED** (farmstead W2) — `trade-farming`'s `GroundCharacter`, the third seeded field. It also answers this slate's own open question: **seeded and derived compose, by multiplication** — character sets the curve, the reserves are the position on it. ⚠ Two things it does that `Deposit` does not, both because dirt is not rock: the model is OPTIONAL (a total function under a sparse graph — an orebody is a claim somebody makes, dirt is just there), and the properties are CORRELATED and SMOOTH (six independent draws would give free-draining clay on a flat bottom). And the hash-and-mix was re-implemented a fourth time, same ruling. |
 | **The water table** | seeded | **needed** — it is the adit-level boundary that decides where the drainage commons begins, *and* the oxide/sulfide boundary. ⭐ One field, two systems. |
 | **Air at depth** | seeded (degenerate — a function of `z` alone) | **designed**, just not called a field |
 | **The pre-Fallow aether in the deep** | seeded | **deferred** — the Hush is a *feature seed*, which is why it is discovered by digging rather than placed on a map |

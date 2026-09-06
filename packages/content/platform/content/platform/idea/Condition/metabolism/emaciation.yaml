@@ -1,0 +1,31 @@
+# Emaciation — the floor effect of the `flesh` reserve, and ⭐ the slow
+# twin of starvation.
+#
+# ⚠ The two are different conditions on different clocks and the
+# distinction is the whole reason `flesh` exists as a reserve of its own:
+# `satiation` is HOURS and `flesh` is MONTHS. Starvation is what kills a
+# body in a day of nothing at all; emaciation is what a season of living
+# below maintenance leaves behind — the thin ewe at the back of the
+# flock, the cow that will not hold a calf, the beggar.
+#
+# ⚠⚠ **Not lethal, and that is not a softening.** It carries no entry in
+# metabolism's `LETHAL_SEC`, so it never progresses to the death seam on
+# its own. What it does instead is real and worse: `VitalsMixin`'s derived
+# condition band already adds load for every floored biological reserve,
+# so an emaciated body is a degraded body — slower, weaker, and (once
+# living-world phase 6 reads this as its resistance term) far likelier to
+# take the acute thing that does kill it. Good husbandry is immunity.
+#
+# Resolution is `food`, like starvation's, because the answer is the same
+# answer — only it takes a season rather than a meal.
+class: /platform/idea/Condition
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: emaciation
+  signature: []
+  progression:
+    intervalMs: 86400000
+  resolution:
+    by: food
+  observableSigns: [thin, sharp-hipped, staring-coat, ribby]
+  contagion: null

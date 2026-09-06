@@ -1,0 +1,16 @@
+# Tallow — rendered fat, and ⭐ the cooking chain's `render-tallow` recipe
+# finally has something to render.
+#
+# That recipe shipped with no animal behind it. This is the animal's half
+# of it, and the mass is the carcass's rather than a number anybody typed.
+class: /platform/thing/Provision
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a pail of fat
+  primaryKeyword: fat
+  keywords: [fat, tallow, suet]
+  longDescription: >-
+    Hard white fat off the kidneys and the loin, cut away clean. It will
+    render down to something that keeps for a year and burns for longer.
+  _materialPath: /stuff/idea/material/food/animal-fat
+  mass: 3

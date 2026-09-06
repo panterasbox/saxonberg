@@ -1,0 +1,28 @@
+verbs: [handle]
+controller: /trade/ranching/idea/cmd/ranching/HandleController
+description: "Work an animal quietly — and find out what condition it is really in"
+help: |
+  `handle <animal>` works the animal and runs a hand down its spine and
+  over its ribs and hips.
+
+  ⭐⭐ Two things happen and they are deliberately one act. The animal
+  gets easier to work with — earned by contact, lost by neglect, and the
+  first session is worth far more than the twentieth. And you get a
+  PRECISE body-condition score, because that is what body condition
+  scoring is: palpation. By eye you get *thin*, *good*, *fat*. With your
+  hands you get a number.
+
+  So the person who handles their stock is the person who knows what
+  condition it is in, and neither of those is bought separately.
+
+  ⚠ A flighty animal is dangerous to work. That is why quiet stock
+  handling exists in the real world, and it is not a yield percentage.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  - name: target
+    type: object
+    required: true
+    scope: ["reachable"]
+    requires: HandlingMixin

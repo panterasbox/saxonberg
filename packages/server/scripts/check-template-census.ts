@@ -136,6 +136,12 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
   // because the field it looked for no longer existed anywhere. A gate
   // that passes by not looking is worse than no gate. If these are ever
   // renamed again, this list is what has to move with them.
+  // ⭐ The tool rack's roster: the template paths of the tools it is
+  // responsible for putting back. A plain array of paths, like `props:`,
+  // and flagged by clause (d) the moment it shipped.
+  if (Array.isArray(data.toolRows)) {
+    for (const row of data.toolRows) push('toolRows', row);
+  }
   for (const field of ['props', 'cast'] as const) {
     const entries = data[field];
     if (!Array.isArray(entries)) continue;
@@ -160,6 +166,26 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
    * `analyze chemistry`, `containsElementOf`, the flat element map —
    * would have been quietly wrong about what the material IS.
    */
+  /**
+   * ⭐ `production[].yieldRow` — a species' TAPS (farmstead D25). Each
+   * names the row a take mints, resolved live at the moment somebody
+   * milks or shears or gathers, so a rowless one is an animal that
+   * produces nothing for a reason no author could find: the take
+   * succeeds, the reserve empties, and nothing appears.
+   *
+   * ⚠ The census gate caught this on the wave that introduced it, which
+   * is exactly what it exists for — a nested path-shaped value in a new
+   * authored field is the shape that went blind once already.
+   */
+  const production = data.production;
+  if (Array.isArray(production)) {
+    for (const tap of production) {
+      if (tap && typeof tap === 'object') {
+        push('production.yieldRow', (tap as Record<string, unknown>).yieldRow);
+      }
+    }
+  }
+
   /*
    * ⭐ `butcheryYield[].cut` — what a species' carcass yields to a knife.
    * Each line names the Provision template a cut clones from, resolved
@@ -177,6 +203,7 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
       }
     }
   }
+
   const composition = data.composition;
   if (Array.isArray(composition)) {
     for (const part of composition) {
@@ -323,7 +350,15 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     // exactly its job on a build that had not met it yet.
     'oreRow', 'warrenPath', 'zonePath', 'mineExtent', 'aditPath',
     // The zone's ground model, and the collier's three outcomes.
-    'deposit', 'charcoalTemplate', 'brandsTemplate', 'ashTemplate',
+    'deposit', 'groundCharacter', 'charcoalTemplate', 'brandsTemplate',
+    'ashTemplate',
+    // The herdbook: the species every head belongs to, and the ground
+    // the herd claims as home. ⭐ `speciesPath` here is the UNPREFIXED
+    // twin of `_speciesPath` (line 113) — a herdbook is not a creature,
+    // so it carries the citation rather than the instruction — and
+    // `homeExtent` names a real zone, which is the jurisdictional anchor
+    // straying is derived against. Both flagged by clause (d).
+    'speciesPath', 'homeExtent',
     'gangueMaterialPath',
   ] as const) {
     push(scalar, data[scalar]);

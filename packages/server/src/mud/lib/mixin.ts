@@ -357,6 +357,15 @@ export const Mixins = {
   Contaminable: 'ContaminableMixin',
   // The living-world growth model — a cultivated thing that grows.
   Growing: 'GrowingMixin',
+  // Soil that keeps its own time: a moisture + nutrient reserve, a
+  // reconcile window, and the sky edge that credits rain. Host constraint
+  // is `Stuff & Reserved` alone, so a LOCATION composes it — which is why
+  // it is not part of Cultivable.
+  Soil: 'SoilMixin',
+  // How easy an animal is to work with — earned by contact, lost by
+  // neglect, and a SAFETY mechanic before it is an efficiency one. In
+  // the kernel because pets will want it and pets is not ranching.
+  Handling: 'HandlingMixin',
   // Ground that holds plants: soil + N plant slots. A pot is this at N = 1;
   // a garden bed is the same surface with a bigger N.
   Cultivable: 'CultivableMixin',
@@ -404,6 +413,7 @@ export const Mixins = {
   // reach of what it publishes, its feed branch, and which of its
   // positions may publish through it.
   Publisher: 'PublisherMixin',
+  Registrar: 'RegistrarMixin',
   // Attendant — the universal storefront-attention substrate: a service-point
   // fixture holding the queue + being-attended leases (a server's attention).
   Attendant: 'AttendantMixin',
@@ -580,6 +590,8 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
 
   // Growing things.
   SlottableMixin: "{} doesn't sit in anything",
+  SoilMixin: "{} has no soil in it",
+  HandlingMixin: "{} isn't an animal you can work with",
   CultivableMixin: "{} isn't ground you can plant in",
   GrowingMixin: "{} isn't growing",
   PlantableMixin: "{} isn't something you can plant",
