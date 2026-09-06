@@ -1,7 +1,7 @@
 # A takeable scrap of gutter litter — a real Thing, loose on the stone by the
 # bin. Generic object (Visible.shortDescription, never Named); pick it up,
 # read it, drop it in the bin. Its readable face is a Detailed sub-feature.
-class: /platform/thing/Prop
+class: /platform/thing/Thing
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a crumpled ticket stub

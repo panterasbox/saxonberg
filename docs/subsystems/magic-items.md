@@ -16,6 +16,18 @@ and the user spends it.
 
 ---
 
+
+> ⚠ **`descriptor_banks` should be a document kind, by its own class
+> comment** (collection audit, 2026-09-03): *"the `NameBank` shape
+> **verbatim**, and for the same reasons … bulk authored **content**, not
+> code."* ⭐ `name-bank` **is** a `DOCUMENT_KIND`; `descriptor-bank` is
+> not — and `PackLogic` parses `content/descriptor-banks/*.yaml` right
+> beside the kinds that land in `documents`, then routes these into a
+> collection. Same shape, same installer, same stated reasons, different
+> store. Adding the kind is a **platform act** (the vocabulary is closed
+> on purpose). See [document-store.md § When a collection should be a
+> document instead](./document-store.md).
+
 ## The effect context — one parameter was doing four jobs
 
 The shipped pipeline threaded a single `caster` through every executor,

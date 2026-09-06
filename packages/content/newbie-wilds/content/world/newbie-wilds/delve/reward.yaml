@@ -3,7 +3,7 @@
 # the concealed cache in corridor 1 is a bonus and not the objective. This is
 # the content-discipline invariant made content — the reward that proves no
 # critical thing hides behind a perception wall.
-class: /platform/thing/Prop
+class: /platform/thing/Thing
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a dull metal offering bowl

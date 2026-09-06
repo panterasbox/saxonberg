@@ -22,6 +22,7 @@ import { PerceptionApi } from '../perception';
 import type { Detail } from '../../lib/description/Detailed';
 import type { BulkAffordance } from '../../lib/bulk/Bulkable';
 import type { MqlMatch, MqlMatchVia } from './types';
+import { BlendIdentity } from '../../lib/craft/BlendIdentity';
 
 /**
  * One search target inside a scope. Each candidate represents a
@@ -326,8 +327,8 @@ function pushBulkMaterials(out: ScopeCandidate[], host: Stuff): void {
     const payload = slot.getPayload();
     out.push({
       stuff: host,
-      name: payload?.name ?? material.getName(),
-      keywords: payload?.keywords ?? material.getKeywords(),
+      name: BlendIdentity.nameOf(payload, material),
+      keywords: [...BlendIdentity.keywordsOf(payload, material)],
       via: { bulk: { affordance } },
     });
   }

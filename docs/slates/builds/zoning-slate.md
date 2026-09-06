@@ -164,6 +164,47 @@ magazine, the lazaretto, the rendering works, the gallows.
 > annexed until 1889 — and the reason was jurisdictional: **outside the
 > city's ordinances, its taxes, and its nuisance suits.**
 
+### ⭐⭐⭐ And the reason underneath all of it is DENSITY
+
+> **Zoning exists because of density, not because of order. At 3 m cells
+> everyone smells your forge. At 200 m nobody does.**
+
+Which is the shipped stewardship test — *does this activity consume shared
+capacity, or **spill** onto people who did not consent?* — applied at
+density. Saxonberg can **demonstrate** it rather than assert it, because it
+has settlements at four cell sizes (city 3 m · suburb 6 m · pithead 10 m ·
+valley 200 m).
+
+**The worked case: may you keep a workshop in your own yard?** (Manor
+Lords' **burgage plot** — a house *plus its backyard*, where the backyard
+takes an extension: garden, animals, or a **workshop**. The residential
+parcel is the production unit, which is how pre-industrial artisans
+actually worked.)
+
+| | home workshop? | why |
+|---|---|---|
+| **Rejection** | ⭐ no zoning at all — work anywhere | frontier; nobody has authority to say otherwise |
+| **the village / valley** | **yes** — the burgage plot | density too low for anyone to be bothered |
+| **Terminus** | **no** — trade goes to the workshop district | your forge is everyone's forge |
+
+⭐⭐ **A real player decision with a real trade-off**: be a smith in the
+city and pay for industrial premises, or be a smith in the valley and work
+from your yard. Neither is the right answer, and **that is the Tiebout
+axis** — you feel it by moving.
+
+⚠ And the boundary case is **home occupation**, which real zoning solves:
+*you may work from home, but not with employees, signage, customer traffic
+or noise.* **The nuisance is regulated, not the work.** (It also resolves
+Hinkley's death-man tension — Prentice is actionable not because he
+produces but because customers come to the house.)
+
+⭐ **What land use needs is not a seventh use — it is INTENSITY**, which is
+the **allowance cascade**: designed, documented, and currently inert. It is
+the dial that lets `residential` mean *a bed and a workbench* in one polity
+and *a bed only* in another, **with the locality setting it.**
+
+Full model: [../../settlement-model.md](../../settlement-model.md).
+
 ### Site-driven — the other half
 
 Not exit at all, and worth keeping distinct because the politics

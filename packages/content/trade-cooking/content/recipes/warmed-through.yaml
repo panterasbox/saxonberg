@@ -1,0 +1,31 @@
+# ⚠⚠ Warmed through — the TRAP, and it is authored as one.
+#
+# It is cheap, it is quick, and a banked fire does it: 335 K is two degrees
+# over the temperature at which the flora starts dying, so by the letter of
+# every rule a player has been told, this dish "has been cooked".
+#
+# It has not. The kill is a RATE, and two minutes at two degrees over the
+# line kills less than half of what is in it. A long hold at a lower heat
+# and a brief moment at a higher one achieve the same kill — and a lazy
+# warm-through achieves neither, however comfortable it feels.
+#
+# ⭐ This row is why `holdS` exists. Under a threshold, "cooked" was a
+# boolean and this dish was indistinguishable from a sear.
+recipeId: warmed-through
+name: Warmed-through cut
+keywords: ["warmed-through", "warmed", "reheat"]
+discipline: cooking
+difficulty: easy
+inputSlots:
+- slot: meat
+  category: meat
+  minGrade: fair
+  kind: item
+  count: 1
+toolCapabilities: ["pot"]
+outputTemplate: /stuff/thing/items/bowl
+outputAppearance: a cut warmed through, grey and unbrowned
+outputApplication: edible
+outputPortionL: 0.4
+requiresHeatK: 335
+holdS: 120

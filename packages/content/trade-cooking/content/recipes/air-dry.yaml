@@ -1,0 +1,23 @@
+# Air-dry — a cut hung up until the water has gone out of it. The other
+# face of the same lever salting pulls: take the water away rather than
+# binding it, so the two multiply.
+#
+# No salt, no fire, no tool — which is what makes it the poor man's
+# preservation, and what makes a dry store worth building, because this is
+# the hurdle that gives its benefit back in damp air.
+recipeId: air-dry
+name: Air-dried cut
+keywords: ["air-dry", "dry", "dried", "hang"]
+discipline: cooking
+difficulty: easy
+inputSlots:
+- slot: meat
+  category: meat
+  minGrade: fair
+  kind: item
+  count: 1
+toolCapabilities: []
+outputApplication: tangible
+outputTemplate: /trade/cooking/thing/treated-cut
+cure:
+  moisture: 0.35

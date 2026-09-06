@@ -260,7 +260,7 @@ describe('PackLogic — reconcile (fixture packs, stubbed class resolution)', ()
     rows.push({
       _id: 'other-1',
       path: '/world/some/player/sword',
-      class: '/platform/thing/Prop',
+      class: '/platform/thing/Thing',
       data: { name: 'sword' },
     });
     const root = writePack('p', [{ rel: 'stuff/idea/material/spirit/gin.yaml' }]);

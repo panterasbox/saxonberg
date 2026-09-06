@@ -19,6 +19,28 @@
 > granularity is the player's dial, not our constant** — subdivision trades
 > utilization against attention exactly as it does in real grazing management.
 
+> ⚠⚠ **SEAM NOTE for the build (2026-09-03) — leave the carcass open.**
+> The [rendering slate](./rendering-slate.md) (knacker → tanner →
+> chandler) is **gated on this build**, and it is the only genuinely new
+> trade the settlement pass produced. Ranching does not need it and must
+> not author it — but it *produces its input*, so three things want
+> getting right here:
+>
+> - ⭐ **A dead animal should decompose into NAMED MATERIALS** — `hide`,
+>   a fat/tallow precursor, `tissue/bone`, `tissue/muscle` — rather than
+>   into a generic corpse or nothing. `tissue/*` already ships; **fat
+>   does not.**
+> - ⭐⭐ **A carcass is worth something to somebody**, which is what makes
+>   **culling a decision rather than a loss.** That is a ranching-side
+>   economics question the moment stock can die, and it is much cheaper to
+>   get right now than to retrofit.
+> - ⚠ **Do not author a knacker, a tannery or a chandler here.** Cut at
+>   process, per the metal chain.
+>
+> The evidence it is real: `organic/leather` ships as a material and so do
+> `hide-stock`, `hide-jerkin`, `leather-boots` and `leather-whip` — **and
+> nothing makes leather.** Seed backwards from shipped sinks.
+
 See also: [farming-slate](./farming-slate.md) (**the primary sibling** — same
 guild, same production family; the feed loop + the shared genome) ·
 [pets-slate](./pets-slate.md) (the *substrate* sibling — an owned animal, but a

@@ -297,7 +297,7 @@ describe('the seeding aperture (Wave 4)', () => {
       {
         _id: { toString: () => 't1' },
         path: '/obj/sandbox-test/trinket',
-        class: '/platform/thing/Prop',
+        class: '/platform/thing/Thing',
         data: {},
       },
     ];

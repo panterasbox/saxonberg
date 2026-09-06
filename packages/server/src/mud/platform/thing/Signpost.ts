@@ -20,7 +20,7 @@
  * substrate eventually grows in (evidence, provenance, forgery).
  */
 
-import Prop from './Prop';
+import Thing from './Thing';
 import { MarkedMixin } from '../../lib/description/Marked';
 
-export default class Signpost extends MarkedMixin(Prop) {}
+export default class Signpost extends MarkedMixin(Thing) {}

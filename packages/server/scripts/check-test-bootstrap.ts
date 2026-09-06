@@ -227,12 +227,12 @@ if (argv.includes("--verify")) {
   // Ask vitest what it actually runs, across BOTH configs, and compare
   // with what this script walked. No filtering on the way in — the
   // point is to catch files this script's own patterns cannot see.
-  const listed = (config?: string): string[] => {
+  const listed = (cwd: string, config?: string): string[] => {
     const args = ["exec", "vitest", "list", "--filesOnly"];
     if (config) args.push("--config", config);
     try {
       return execFileSync("pnpm", args, {
-        cwd: SERVER_DIR,
+        cwd,
         encoding: "utf8",
         stdio: ["ignore", "pipe", "ignore"],
         maxBuffer: 32 * 1024 * 1024,
@@ -240,13 +240,26 @@ if (argv.includes("--verify")) {
         .split("\n")
         .map((s) => s.trim())
         .filter(Boolean)
-        .map((s) => relative(SERVER_DIR, s.startsWith("/") ? s : join(SERVER_DIR, s)));
+        .map((s) => relative(SERVER_DIR, s.startsWith("/") ? s : join(cwd, s)));
     } catch {
       return [];
     }
   };
 
-  const actual = new Set([...listed(), ...listed("vitest.gym.config.ts")]);
+  // ⚠ Ask EVERY config, not just the server's two. Each capability pack
+  // ships its own `vitest.config.ts` and `test` script, and root
+  // `pnpm -r test` runs them — so a pack's tests are real, running tests
+  // that the server's configs have never listed. TEST_ROOTS above has
+  // always walked pack `src/`; the verify side did not, so all 80 pack
+  // test files were reported as phantoms and this gate failed on master
+  // while four packs' suites (water, trade-mining, trade-smelting,
+  // trade-smithing — 26 files, 279 tests) were passing perfectly well.
+  // The walk side and the vitest side now read the same `packSources()`.
+  const actual = new Set([
+    ...listed(SERVER_DIR),
+    ...listed(SERVER_DIR, "vitest.gym.config.ts"),
+    ...packSources().flatMap((p) => listed(dirname(p.srcDir))),
+  ]);
   const walked = new Set(testFiles.map(rel));
 
   const unseen = [...actual].filter((f) => !walked.has(f));
@@ -263,7 +276,12 @@ if (argv.includes("--verify")) {
     process.exit(1);
   }
   if (phantom.length > 0) {
-    console.error("\nHarmless but stale — the gate is judging dead files.");
+    console.error(
+      "\nA file no config runs: either a dead file, or a test nobody"
+    );
+    console.error(
+      "executes. Check the owning package ships a vitest config + `test`."
+    );
     process.exit(1);
   }
   console.log("ok — the gate sees exactly what vitest runs.");

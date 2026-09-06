@@ -104,7 +104,7 @@ Prod is `tsx` too (`deployment.md § Runtime shape`: the server runs from
 TypeScript source; `pnpm build` is a typecheck gate, not the runtime),
 so there is no built-JS path to plan for: the same `.ts` resolution
 holds in dev, test and prod. `reload <target>` accepts a **class path**
-(`/platform/thing/Prop`, `/system/arcana/thing/Wand`) and resolves it through
+(`/platform/thing/Thing`, `/system/arcana/thing/Wand`) and resolves it through
 `StuffApi.resolveClassFile` — the kernel tree, or a capability pack's
 `src/` (content-packs.md § The capability rung) — before falling back to
 the workspace-logical join; `pack sync <id>` reloads a pack's changed

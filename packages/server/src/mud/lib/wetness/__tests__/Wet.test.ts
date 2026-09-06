@@ -147,25 +147,21 @@ describe('WetMixin — the wetness gauge', () => {
 
   it('a wet object shows a band line in its long description (not a number)', () => {
     const t = makeStuff(() => new WetThing());
+    // ⚠ Fold EVERY augmenter the chain contributes, the way the render does
+    // (`MixinApi.getAllMarkupAugmenters`). Indexing position 0 used to work
+    // and stopped the moment a second attribute mixin joined `Thing` — the
+    // aggregate has no stable order to index into.
+    const augment = (host: WetThing): string =>
+      MixinApi.getAllMarkupAugmenters(
+        (host as unknown as { constructor: never }).constructor,
+      ).reduce((text, fn) => fn(text, host, host), 'A plain cloak.');
+
     // Dry: no wetness line appended.
-    const dryText = (
-      t as unknown as {
-        constructor: {
-          markupAugmenters: Array<(s: string, h: unknown, v: unknown) => string>;
-        };
-      }
-    ).constructor.markupAugmenters[0]!('A plain cloak.', t, t);
-    expect(dryText).toBe('A plain cloak.');
+    expect(augment(t)).toBe('A plain cloak.');
 
     // Soaked: a band phrase, never the raw saturation number.
     t.wet(0.9);
-    const wetText = (
-      t as unknown as {
-        constructor: {
-          markupAugmenters: Array<(s: string, h: unknown, v: unknown) => string>;
-        };
-      }
-    ).constructor.markupAugmenters[0]!('A plain cloak.', t, t);
+    const wetText = augment(t);
     expect(wetText).toContain('soaked');
     expect(wetText).not.toMatch(/0\.9|0\.[0-9]/); // no raw number
   });

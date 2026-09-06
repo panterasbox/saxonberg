@@ -1,0 +1,43 @@
+# ⭐⭐ Staph aureus — the population that POISONS the food rather than
+# infecting you, and the reason "cook it" is not a universal answer.
+#
+# `reach: intoxicate`. It deposits a formed toxin in the food as it grows,
+# and that toxin authors NO `labileAtK` — so it survives anything a kitchen
+# does. Kill the population and the poison stays exactly where it was.
+# *Heat kills the population; it does not destroy what the population
+# made*, stated as two authored numbers.
+#
+# ⚠ Its `awFloor: 0.86` is the lowest in the roster: it grows where almost
+# nothing else can, which is why in the real world it is the cured-ham
+# organism and why salting alone is not an answer to it. (The cures this
+# build ships go well below that, so the property is authored and correct
+# and waits for a lighter cure to exercise it.)
+class: /platform/idea/Condition
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: staphylococcal food poisoning
+  signature: []
+  progression: null
+  resolution:
+    by: rest
+  observableSigns: [nauseous, pallid, sweating]
+  contagion: null
+  pathogenBehavior:
+    reach: intoxicate
+    muMaxPerHour: 1.2
+    activationEnergy: 95000
+    referenceK: 303
+    minGrowthK: 280
+    killK: 331
+    killRatePerHour: 8
+    killActivationEnergy: 200000
+    killSurvivalFraction: 0
+    awFloor: 0.86
+    inoculum: 0.02
+    infectiousDose: 0.15
+    channels: []
+    toxin:
+      type: staph-toxin
+      scaleMg: 600
+      # ⚠ NO `labileAtK`. That absence is the decision: boiling does not
+      # save you from this one.

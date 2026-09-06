@@ -29,10 +29,16 @@ import { DetailedMixin } from '../../lib/description/Detailed';
 import { SealableMixin } from '../../lib/spatial/Sealable';
 import { CirculatingMixin } from '../../lib/residency/Circulating';
 import { Quantity } from '../../lib/quantity';
+import { VesselKindMixin } from '../../lib/bulk/VesselKind';
 
 const GLASS = '/stuff/idea/material/glass/glass';
 
-const BottleBase = CirculatingMixin(SealableMixin(DetailedMixin(GradedReceptacle)));
+// ⭐ `VesselKind` — the par key (`bottle`, `flask`, `demijohn`). It used
+// to ride `BulkableMixin`, which handed one to every puddle and garden
+// bed; it is composed by the classes that actually have a kind now.
+const BottleBase = VesselKindMixin(
+  CirculatingMixin(SealableMixin(DetailedMixin(GradedReceptacle))),
+);
 
 export default class Bottle extends BottleBase {
   constructor() {

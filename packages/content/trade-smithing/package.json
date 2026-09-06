@@ -7,7 +7,7 @@
   "dependencies": {
     "@saxonberg/content-generic-objects": "workspace:*",
     "@saxonberg/content-platform": "workspace:*",
-    "@saxonberg/content-trade-hearth-cooking": "workspace:*",
+    "@saxonberg/content-trade-cooking": "workspace:*",
     "@saxonberg/server": "workspace:*",
     "@saxonberg/types": "workspace:*"
   },

@@ -1,13 +1,19 @@
-# The plated dish — the edible output form every cooking recipe fills:
-# `applyEdibleOutput` sets its bulk slot to the recipe's authored food
-# Material at the portion, and stamps the maker's mark. The NutritionLabel
-# renders the honest macros; getLong appends the quality verdict.
+# The plated dish — a flat plate, and one of the three dinnerware kinds a
+# cooking recipe's output row names. It is CLAIMED from the pool like a bar
+# glass (`Dish extends CraftVessel`), filled by `applyEdibleOutput`, soiled
+# by the serve and washed at a basin — never minted per meal. The
+# NutritionLabel renders the honest macros; getLong appends the working and
+# the quality verdict.
 class: /platform/thing/Dish
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a plated dish
   primaryKeyword: dish
   keywords: [dish, plate, meal, serving]
+  # ⭐ The vessel kind — what the pool matches on and what the house par
+  # counts by. A washed plate and a factory-fresh one are the same input
+  # to a fill, which is the whole returns loop.
+  category: plate
   longDescription: |
     A deep ceramic dish, plain and clean, waiting for a meal.
   _materialPath: /stuff/idea/material/ceramic/ceramic

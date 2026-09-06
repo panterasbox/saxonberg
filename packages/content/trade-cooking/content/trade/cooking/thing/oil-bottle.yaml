@@ -1,0 +1,15 @@
+# An oil bottle — what the press fills. Same claimed-not-cloned pool as
+# the syrup bottle and the tallow crock; `category` is what ties the empty
+# bottle to the product that is it filled.
+class: /platform/thing/CraftVessel
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: an oil bottle
+  longDescription: A dark green bottle with a long neck and a cork, greasy at the lip whatever anybody does about it.
+  primaryKeyword: oil-bottle
+  keywords: [oil-bottle, bottle, oil]
+  category: oil-bottle
+  interiorBulk: true
+  interiorCapacity: 0.5
+  _materialPath: /stuff/idea/material/glass/glass
+  mass: 0.5

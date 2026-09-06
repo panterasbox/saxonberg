@@ -20,7 +20,6 @@ import { MixinApi } from "../../../../api/mixin";
 import { MessageApi } from "../../../../api/message";
 import { Mml } from "../../../../api/mml";
 import { BulkableApi } from "../../../../api/bulk";
-import CraftVessel from "../../../thing/CraftVessel";
 
 const TOPIC = "act.deed";
 const WASH_MS = 3000;
@@ -33,15 +32,28 @@ export default class WashController extends ManualBuildController<WashModel> {
   execute(model: WashModel, context: CommandContext): void {
     const giver = context.commandGiver;
     const glass = model.glass?.stuff ?? null;
-    // ⚠⚠ TWO CONCEPTS SHARE THE WORD "washed", and they must not be
-    // folded together. `CraftVessel.soiled` is *is this glass claimable
-    // for a fill* — binary by necessity, owned by crafting. What
-    // laundering does to a garment is *how much colour is still bound*.
-    // The vessel branch is untouched; a garment takes the other one.
-    if (!(glass instanceof CraftVessel)) {
-      if (glass && MixinApi.isDyed(glass)) {
-        return this.launderGarment(glass, context);
-      }
+    // ⭐ **Washing is not a glassware verb.** It was `instanceof
+    // CraftVessel`, which is why a knife could not be washed at all — and
+    // a knife is the one implement in the kitchen that most needs it, the
+    // whole counterplay to cross-contamination. Anything that gets
+    // SOILED or gets DIRTY can be washed; the two are separate facts and
+    // a target may be either or both.
+    const serviceable =
+      glass !== null && MixinApi.isServiceable(glass) ? glass : null;
+    const contaminable =
+      glass !== null && MixinApi.isContaminable(glass) ? glass : null;
+    // ⚠⚠ AND A THIRD FACT, which the textiles build added: TWO CONCEPTS
+    // SHARE THE WORD "washed" and they must not be folded together.
+    // Soil and contamination are *is this claimable / is it dirty* —
+    // binary by necessity. What laundering does to a garment is *how
+    // much colour is still bound*, which is continuous and is where the
+    // dyer's craft is measured. A dyed thing that is neither serviceware
+    // nor a contamination carrier is a garment, and takes that path.
+    const dyed = glass !== null && MixinApi.isDyed(glass) ? glass : null;
+    if (dyed !== null && serviceable === null && contaminable === null) {
+      return this.launderGarment(dyed, context);
+    }
+    if (glass === null || (serviceable === null && contaminable === null)) {
       this.declineStep(context, Mml.compose`Wash what?`, "no-glass");
       return;
     }
@@ -59,7 +71,21 @@ export default class WashController extends ManualBuildController<WashModel> {
       durationMs: WASH_MS,
       beginSelf: Mml.compose`You take ${Mml.thing(glass)} to ${Mml.thing(water)}.`,
       onComplete: () => {
-        glass.wash();
+        // The serviceware half: dregs out, garnish out, ice tipped, the
+        // soil mark cleared so the pool will claim it again.
+        serviceable?.wash();
+        // ⭐⭐ The contamination half, and it is the counterplay the whole
+        // build turns on. ⚠ It clears the SURFACE and never the contents:
+        // washing a pot of bad stew is not a cure for the stew. (On a
+        // `CraftVessel` the serviceware wash has already tipped the dregs,
+        // so the ordering is not load-bearing — but the two acts are
+        // different and the comment is what keeps them apart.)
+        contaminable?.clearContamination();
+        // ⚠ A dyed apron is serviceware AND cloth. It took this branch
+        // for the soil, so the colour half is folded in here rather than
+        // silently skipped — the fade is the same either way, only the
+        // line the player reads differs.
+        dyed?.launder();
         MessageApi.scene(giver)
           .topic(TOPIC)
           .toSelf(Mml.compose`You wash ${Mml.thing(glass)} clean.`)

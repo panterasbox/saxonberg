@@ -31,6 +31,7 @@
  */
 
 import type { MixinConstructor, FieldMeta } from "../mixin";
+import type { CommandContributions } from "../../api/command";
 import type { Stuff } from "../stuff/Stuff";
 import { Quantity } from "../quantity";
 import type { Unit } from "../quantity";
@@ -48,6 +49,11 @@ import { MixinApi } from "../../api/mixin";
 import { StuffApi } from "../../api/stuff";
 import { WorldClockApi } from "../../api/worldclock";
 import { TemplatePaths, TemplatePathPrefixes } from "../paths";
+import { BlendLabel } from './BlendLabel';
+import { Contamination } from '../material/Contaminable';
+import { AccountabilityApi } from '../../api/accountability';
+import { SpeciesApi } from '../../api/species';
+import { BlendIdentity } from '../../lib/craft/BlendIdentity';
 
 /* ─────────────────────────── toxin model (types) ─────────────────────────── */
 //
@@ -64,6 +70,24 @@ export interface ToxinTag {
   type: string;
   /** Dose per serving (mg for solids / derived for liquids). */
   amount: number;
+  /**
+   * ⭐ **Heat-labile above this temperature (K)** — the working destroys
+   * the dose. Absent (the default) ⇒ the toxin survives anything a kitchen
+   * does to it.
+   *
+   * It rides the TAG the food authors, not the `Condition` seed, because
+   * lability is a fact about the *substance*: a raw bean's lectin is
+   * destroyed by boiling and a bean's cook needs to know at what
+   * temperature, while nothing about the body's response to it changes.
+   *
+   * ⚠ **Alcohol authors none, and honestly survives the pot.** So does
+   * the ptomaine a spoiled input already accumulated: cooking spoiled food
+   * does not un-poison it. That is real microbiology — heat stops the
+   * growth, it does not destroy the toxin the growth already produced —
+   * and it is the reason the kill has to be selective rather than a
+   * blanket "cooking makes food safe".
+   */
+  labileAtK?: number;
 }
 
 /** One severity rung of a toxin's banded condition. */
@@ -377,6 +401,27 @@ function assertRecordOfNonNeg(value: Record<string, number>, what: string): void
 export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class MetabolicMixin extends Base implements Metabolic {
     static _mixinName = "MetabolicMixin";
+
+    /**
+     * ⭐⭐ **`eat` and `vomit` live on the BODY**, because a body with a
+     * digestion buffer is exactly what can do either. `drink`/`sip` are
+     * the vessel's (you drink from a thing), and eating is the same act
+     * from the other side: the target is chosen at dispatch, the
+     * capability is yours.
+     *
+     * ⚠⚠ **Both verbs shipped with NO affordance at all.** The views
+     * existed, the controllers existed, the tests instantiated the
+     * controllers directly — and no player could ever type `eat`, in any
+     * room, at any food, because nothing anywhere contributed them. A
+     * live drive typed `eat stew` at a bowl of stew and the world said
+     * *"I don't understand 'eat'"*. This is the `feel`/`taste` failure of
+     * the libations build repeating exactly: missing enabling data fails
+     * CLOSED and SILENT, and a controller test skips the binder that
+     * would have caught it.
+     */
+    static commandContributions: CommandContributions = {
+      self: ["platform/cmd/bulk/eat.yaml", "platform/cmd/bulk/vomit.yaml"],
+    };
 
     static fieldMeta: FieldMeta = {
       digestionPools: { persistent: true, runtimeState: true },
@@ -967,7 +1012,7 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
       else this.liquidVolume = current + accepted;
 
       this.routeIntake(material, accepted, payload);
-      this.lastMealLabel = payload?.name ?? material.getName();
+      this.lastMealLabel = BlendIdentity.nameOf(payload, material);
       return accepted;
     }
 
@@ -986,7 +1031,7 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
       const pools = this.digestionPools;
       // Nutrient tags scale by accepted volume. A blend payload speaks
       // for the actual meal; the material row is its generic base.
-      for (const tag of payload?.nutrients ?? material.getNutrients()) {
+      for (const tag of BlendLabel.nutrientsOf(payload, material)) {
         const route = this.routeTag(tag);
         if (!route) continue;
         pools[tag] = (pools[tag] ?? 0) + route.yieldPerLitre * litres;
@@ -994,10 +1039,108 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
       // Toxin tags add their per-serving dose to the pool (each ingest
       // is one serving). The dose absorbs into the burden over time — so
       // the un-absorbed dose is what `vomit` can still dump.
-      for (const tox of payload?.toxicity ?? material.getToxicity()) {
+      for (const tox of BlendLabel.toxicityOf(payload, material)) {
         if (tox.amount <= 0) continue;
         pools[tox.type] = (pools[tox.type] ?? 0) + tox.amount;
       }
+      // ⚠⚠ **And the living half.** A toxin is a dose that routes into a
+      // pool; a pathogen is a population that has to be handed to the body
+      // as something that GROWS. Same seam, one line apart, because this
+      // is the one place food becomes body.
+      this.exposeToPathogens(payload);
+    }
+
+    /**
+     * ⭐⭐ **Where an infection starts.** Every route from food into a
+     * body — the discrete arm of `eat`, the dish arm, `drink`, `sip` —
+     * arrives at `ingest`, so this is the one place the pathogen loads on
+     * the payload become a thing happening inside somebody.
+     *
+     * Two arms, and only one of them needs anything here:
+     *
+     *   - **`infect`** — the population is handed to the body as an
+     *     `AfflictionRecord` carrying a live `pathogenLoad`, incubating
+     *     until `symptomsAt`. `VitalsMixin` grows it from there.
+     *   - **`intoxicate`** — nothing to do. The poison was made in the
+     *     FOOD before you ever picked it up, and it has already ridden in
+     *     as a formed toxin through the loop above. Killing the population
+     *     does not unmake it, which is why cooking is not a universal
+     *     answer.
+     *
+     * ⚠ A load under the organism's `infectiousDose` does nothing at all.
+     * That is not leniency — it is the difference between "there are some
+     * on it" and "you have eaten enough of them", and it is what makes
+     * cooking-then-eating-promptly a real answer rather than a hope.
+     */
+    protected exposeToPathogens(payload: BulkPayload | null): void {
+      const loads = payload?.pathogens;
+      if (!loads) return;
+      const self = this as unknown as MetabolicHost;
+      const nowS = StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)
+        ? WorldClockApi.getNow().rawValue()
+        : 0;
+      for (const [key, load] of Object.entries(loads)) {
+        const behavior = Contamination.behaviorOf(key);
+        if (!behavior || behavior.reach !== 'infect') continue;
+        if (load < behavior.infectiousDose) continue;
+        const path = TemplatePathPrefixes.pathogenCondition + key;
+        const existing = this.findAffliction(path);
+        if (existing) {
+          // Already carrying it: a second bad meal makes it worse rather
+          // than starting a second illness.
+          existing.pathogenLoad = Math.min(
+            1,
+            (existing.pathogenLoad ?? 0) + load,
+          );
+          continue;
+        }
+        self.afflict({
+          kind: 'affliction',
+          templatePath: path,
+          stage: 0,
+          elapsed: 0,
+          pathogenLoad: Math.min(1, load),
+          symptomsAt: nowS + (behavior.incubationSec ?? 0),
+        });
+        this.noteMealAccountability(payload);
+      }
+    }
+
+    /**
+     * ⭐⭐ **The record names the cook (criterion 18).**
+     *
+     * ⚠ Only when the cook is somebody else. Eating your own risky food is
+     * a private gamble; putting it in front of a paying customer is a
+     * choice about another person, and D8 exists precisely so the two are
+     * different acts. A row against yourself would flatten them back
+     * together.
+     *
+     * The producer shape is the trap's, verbatim (`Hazard.
+     * noteHarmAccountability`): the ledger records the FACTS and derives
+     * blame on read. Nothing here decides whether it was a crime.
+     */
+    protected noteMealAccountability(payload: BulkPayload | null): void {
+      const maker = payload?.maker;
+      if (!maker) return;
+      const self = this as unknown as Stuff;
+      const victimId = self.getIdentityPath() ?? self.getTemplatePath();
+      if (!victimId || victimId === maker) return;
+      let sentient = false;
+      try {
+        sentient = SpeciesApi.isSentient(self);
+      } catch {
+        sentient = false;
+      }
+      AccountabilityApi.record({
+        kind: 'harm',
+        sessionId: `meal:${self.stuffId}:${maker}`,
+        initiator: maker,
+        opponent: victimId,
+        victim: victimId,
+        killer: maker,
+        consented: false,
+        sentient,
+      });
     }
 
     /**

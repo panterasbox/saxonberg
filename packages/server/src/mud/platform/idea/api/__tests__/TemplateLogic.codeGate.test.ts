@@ -32,7 +32,7 @@ import {
 import { PersistenceManager } from "../../../../../backend/PersistenceManager";
 
 const LEAF = "/platform/location/SingletonCartesianLocation";
-const OTHER_LEAF = "/platform/thing/Prop";
+const OTHER_LEAF = "/platform/thing/Thing";
 const FOLDER = "/platform/idea/FolderZone";
 const HYDRATOR = "/platform/idea/persistence/PersistentHydrator";
 const OTHER_HYDRATOR = "/lib/persistence/SomeOtherHydrator";

@@ -29,10 +29,17 @@ import { MaturingMixin } from '../../lib/maturation/Maturing';
 import { Quantity } from '../../lib/quantity';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
+import { VesselKindMixin } from '../../lib/bulk/VesselKind';
 
-const VatBase = MaturingMixin(
-  CraftedMixin(
-    SealableMixin(ThermalMixin(BulkableMixin(DetailedMixin(Thing)))),
+// Merge of two independent changes: master wrapped the vat in
+// `VesselKindMixin`; this branch renamed `FermentingMixin` to
+// `MaturingMixin` (bleaching is a photochemical maturation, not a
+// ferment — see maturation.md). Both apply.
+const VatBase = VesselKindMixin(
+  MaturingMixin(
+    CraftedMixin(
+      SealableMixin(ThermalMixin(BulkableMixin(DetailedMixin(Thing)))),
+    ),
   ),
 );
 

@@ -1,0 +1,25 @@
+# The table knife — the smithing ladder's cutlery rung, and a near-copy of
+# `belt-knife` on purpose: same one ferrous item, same anvil and striking
+# tools, a gentler heat and an easier grade because serviceware is not a
+# blade. ⭐ It exists so the demand a dinner table creates has a maker: one
+# table wakes three trades, and this is the smith's share of it.
+recipeId: table-knife
+name: Table Knife
+keywords:
+- table-knife
+- cutlery
+inputSlots:
+- slot: stock
+  category: ferrous
+  minGrade: fair
+  kind: item
+  count: 1
+toolCapabilities:
+- striking
+- anvil
+outputTemplate: /stuff/thing/cutlery/table-knife
+outputMaterial: ''
+outputApplication: tangible
+requiresHeatK: 1300
+difficulty: easy
+discipline: smithing

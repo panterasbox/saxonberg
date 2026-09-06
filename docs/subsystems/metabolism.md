@@ -247,6 +247,24 @@ flow:
   `bands`; cleared when the level falls below the lowest band. No
   per-band spawn/clear churn.
 
+⭐ **`ToxinTag.labileAtK` — the selective kill.** A dose may declare the
+temperature at which a WORKING destroys it (a raw bean's lectin). It rides
+the tag the food authors rather than the `Condition` seed, because
+lability is a fact about the *substance*: the cook needs to know at what
+temperature, while nothing about the body's response changes. Crafting
+drops labile doses whose temperature the working actually reached.
+
+⚠ **Three things deliberately author none and honestly survive the pot:**
+alcohol; the ptomaine a spoiled input already grew (heat stops the growth,
+it does not un-poison what the growth produced — **cooking spoiled food
+does not make it safe**); and everything nobody has thought about, because
+absence is the safe default. See [spoilage.md](./spoilage.md).
+
+⚠⚠ `Material.setToxicity` rebuilds each entry field by field rather than
+spreading it, so a new `ToxinTag` field must be added THERE too or it is
+silently dropped at the setter — which is exactly what happened to
+`labileAtK` on its first run, with nothing anywhere saying why.
+
 The per-body rate params (`ToxinBehavior`: absorption / clearance /
 potency / bands / storeRaw) live on the toxin's **`Condition` seed**
 (`Condition.toxinBehavior`), resolved by `<TemplatePathPrefixes.metabolismCondition><type>`
@@ -255,6 +273,43 @@ potency / bands / storeRaw) live on the toxin's **`Condition` seed**
 `Metabolic.ts` (types on the owning mixin module, not a standalone file).
 v1 ships acute content: alcohol, ptomaine (spoiled food), venom, and lead
 (wired, chronic content deferred).
+
+⭐ **Ptomaine is no longer authored per row.** Since the cooking build the
+dose is DERIVED from a food's own microbial load at the moment it is
+swallowed, on a curve rather than a step, and folded into the ingest
+payload at the read — see [spoilage.md](./spoilage.md) § The ingest reach.
+The shipped `spoiled-ration` keeps its authored dose as a head start; it
+also now grows.
+
+### ⭐⭐ `exposeToPathogens` — where an infection starts
+
+`ingest` is the ONE place food becomes body — every route reaches it (the
+discrete arm of `eat`, the dish arm, `drink`, `sip`) — so it is where the
+pathogen loads riding a `BulkPayload` become a thing happening inside
+somebody. See [spoilage.md](./spoilage.md) for the food side and
+[vitals.md](./vitals.md) for what happens next.
+
+Two arms, and only one of them needs anything here:
+
+- **`infect`** — at or above the organism's `infectiousDose`, the
+  population is handed to the body as an `AfflictionRecord` carrying a
+  live `pathogenLoad`, incubating until `symptomsAt`. A second bad meal
+  makes the illness worse rather than starting a second one.
+- **`intoxicate`** — nothing to do. The poison was made in the FOOD before
+  you picked it up and has already ridden in through the toxin loop above.
+  *Killing the population does not unmake it*, which is exactly why
+  cooking is not a universal answer.
+
+⚠ A load under the `infectiousDose` does nothing at all. That is not
+leniency — it is the difference between "there are some on it" and "you
+have eaten enough of them", and it is what makes cooking-and-eating-
+promptly a real answer rather than a hope.
+
+⭐ **And the record names the cook.** When the payload carries a `maker`
+that is not the eater, an accountability `harm` row is appended (the
+trap's producer shape, verbatim). Eating your own risky food is a private
+gamble; putting it in front of a paying customer is a choice about
+another person, and the ledger is what makes the two different acts.
 
 ### `introduceToxin` — the bloodstream seam (past digestion)
 

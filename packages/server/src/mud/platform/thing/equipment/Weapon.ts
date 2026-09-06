@@ -56,6 +56,24 @@ import type { FieldMeta } from '../../../lib/mixin';
 // KeenMixin adds the fast-cycling working-surface (edge) axis alongside
 // Durable's structural condition — read only on edge/point delivery, so
 // it's inert for hafted/blunt forms.
+// ⚠⚠ **NOT `ContaminableMixin`, and that is a correction.** It was composed
+// here for one build so that the clasp knife a player buys could carry
+// pathogens off a carcass — which put `getPathogenLoad()` on the documented
+// author surface of a mace, a flail, a warhammer and a whip. Most weapons
+// are never used on food, so the claim *"this can carry pathogens between
+// things"* is false of most of this host set, and the governing
+// `callable == visible == cared-about` invariant says that settles it.
+//
+// ⭐ The carrying moved to where it is TRUE and where the real lesson lives:
+// the **butcher's block** (`/trade/cooking/thing/ButcherBlock`). A board is
+// the canonical cross-contamination vector in any food-safety training —
+// *do not prep vegetables on the board you cut raw meat on* — and it is a
+// pack class, so nothing in the kernel had to widen.
+//
+// The split that survives, and it is the same one: **butchering** is an
+// affordance of an edge (the verb, gated on `constructionForm: bladed`, so
+// any blade still opens a carcass), while **carrying** is a property of food
+// equipment. A blade does the cutting; it is not food kit.
 const WeaponBase = WieldableMixin(
   SlottableMixin(
     KeenMixin(

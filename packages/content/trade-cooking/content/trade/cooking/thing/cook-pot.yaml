@@ -1,0 +1,22 @@
+# The cook pot — the cooking branch's build vessel + `pot` tool, and the
+# smithing ladder's easy rung (forge one, then cook in it). Portable
+# capital: reachable heat + a pot is a kitchen, anywhere.
+class: /trade/cooking/thing/CookPot
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a cook pot
+  primaryKeyword: pot
+  keywords: [pot, cook-pot, kettle]
+  longDescription: |
+    A deep-bellied iron pot with a bail handle, seasoned black inside. It has boiled a thousand suppers and is ready for the next.
+  capabilities:
+    - { kind: pot }
+  # ⭐ The vessel kind, and it is load-bearing: a pot is a member of the
+  # same claimable pool as the plates and bowls, so a meal with no clean
+  # dish in reach lands here instead of nowhere. Kind-matching is also
+  # what stops it ever being claimed as a drink glass.
+  category: pot
+  interiorBulk: true
+  interiorCapacity: 4
+  _materialPath: /stuff/idea/material/element/iron
+  mass: 2.5

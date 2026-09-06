@@ -40,6 +40,7 @@ import {
   type Cultivable,
 } from '../../../../lib/husbandry/Cultivable';
 import type { Reserved } from '../../../../lib/reserve';
+import { BlendIdentity } from '../../../../lib/craft/BlendIdentity';
 
 const TOPIC = 'act.deed';
 
@@ -201,7 +202,7 @@ export default class FeedController extends CommandController<FeedModel> {
     }
 
     const appearance =
-      payload?.appearance ?? (material?.getAppearance() || 'compost');
+      BlendIdentity.appearanceOf(payload, material) || 'compost';
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(

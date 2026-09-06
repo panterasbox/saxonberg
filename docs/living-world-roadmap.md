@@ -10,7 +10,7 @@
 > project-wide navigation aid organized *by area*; this is one family's work
 > organized *by order*. Where they disagree, this doc is narrower and newer.
 >
-> **Status: phases 1–3 are a plan. Phases 4–9 are a direction.** See
+> **Status: phases 1–3 are SHIPPED. Phases 4–9 are a direction.** See
 > *The honest part*.
 
 **Member slates:** [farming](./slates/builds/farming-slate.md) ·
@@ -33,7 +33,7 @@ conventions](./slates/builds/ranching-slate.md).
 |---|---|---|---|
 | **1** | **A thing that grows** | the houseplant in your dorm | *(none — dodges everything)* |
 | **2** | **Ground you own** | a garden bed + a harvest | **land use** |
-| **3** | **Food that doesn't keep** | spoilage · salt · curing | **the growth term** |
+| **3** ✅ | **Food that doesn't keep** | spoilage · salt · curing | **the growth term** |
 | **4** | **The field** | farming's staple loop | **sun→light** · **the weather resolve** |
 | **5** | **Animals** | pets, then ranching | **chattel-on-`Creature`** · **maturation** · **the condition score** |
 | **6** | **Sickness** | blight → herd disease | **`ContagionSpec`** · host range |
@@ -167,7 +167,31 @@ allowance meter nor the deferred region parcel.
 
 ---
 
-## Phase 3 — Food that doesn't keep
+## Phase 3 — Food that doesn't keep ✅ SHIPPED
+
+> **Shipped 2026-09-04** by the food-safety build, on top of the spoilage
+> gauge the cooking build landed. See
+> [spoilage.md](./subsystems/spoilage.md).
+>
+> ⭐ **The enabler landed as specified: the growth term.** A toxin burden
+> only decays; a pathogen *replicates*, and one positive term is the whole
+> difference. `PathogenBehavior` sits beside `ToxinBehavior` on the same
+> `Condition` row and carries the term — in the food (`ContaminableMixin`)
+> and again in the host (`VitalsMixin`'s infection arm). **Phase 6 inherits
+> it already working**, exactly as this phase promised.
+>
+> ⚠ **Two things this phase predicted that came out differently.** The
+> *"third wear axis beside `Durable` and `Keen`, copying `Wet.ts`"* became
+> **three** gauges, not one: the population that grows on its own
+> (`FreshnessMixin`), the water it has to grow in (`CuredMixin`), and the
+> population somebody *put* there (`ContaminableMixin`). And the headline
+> is the distinction between the last two — *spoilage is a clock,
+> contamination is an event* — which this phase's own framing ("spoilage is
+> disease without transmission") did not anticipate.
+>
+> The `ThermalMixin` cost the phase flagged never materialized: `Provision`
+> already composed it from the cooking build, and it is still the only
+> discrete food class.
 
 **Ships:** spoilage, salt as a Material, and one curing recipe.
 
@@ -308,7 +332,7 @@ already decomposes the date and **throws the month away**.
 
 ## The honest part
 
-**Phases 1–3 are a plan. Phases 4–9 are a direction.**
+**Phases 1–3 are SHIPPED. Phases 4–9 are a direction.**
 
 The early phases are well-specified, carry few open questions, and touch
 substrate that has been verified directly against the code. The later ones carry

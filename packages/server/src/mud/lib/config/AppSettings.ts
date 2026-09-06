@@ -1105,6 +1105,78 @@ export const AppSettingKeys = {
   /** Wetness — saturation at/above which the band reads `soaked`. */
   wetnessBandSoakedAt: "wetness.band.soakedAt",
 
+  /* ────────────────────────── freshness (spoilage) ────────────────────────── */
+  /**
+   * Spoilage — the per-object microbial-load gauge's magnitudes
+   * (`FreshnessMixin`). Growth is logistic from an inoculum, reconcile-on-
+   * read over game-time with NO far-past guard (food rots over the whole
+   * absence) and no linkdead freeze. The rate is
+   * `μ_max · f_T(T) · f_aw(a_w)`; the per-material half (activation energy,
+   * water activity) is tabulated on the `Material`, never dialled here.
+   * See docs/subsystems/spoilage.md.
+   */
+  /** Spoilage — the maximum specific growth rate (per game-hour) at the
+   * reference temperature, before the temperature and water-activity terms. */
+  freshnessMuMaxPerHour: "freshness.muMaxPerHour",
+  /** Spoilage — the Arrhenius reference temperature (K), where `f_T = 1`. */
+  freshnessReferenceK: "freshness.referenceK",
+  /** Spoilage — at/below this temperature (K) the water is ice and growth
+   * PAUSES (it does not reset — a thawed thing resumes where it left off). */
+  freshnessFreezingK: "freshness.freezingK",
+  /** Spoilage — at/above this temperature (K) the flora dies exponentially
+   * instead of growing. This is the temperature cooking has to reach. */
+  freshnessKillK: "freshness.killK",
+  /** Spoilage — the exponential death rate (per game-hour) AT the kill
+   * temperature; it climbs from there (see below). */
+  freshnessKillRatePerHour: "freshness.killRatePerHour",
+  /** Spoilage — activation energy (J/mol) of the DEATH curve: what makes
+   * the kill a rate rather than a threshold, so a long hold at a lower heat
+   * and a brief moment at a higher one do the same work. */
+  freshnessKillActivationEnergy: "freshness.killActivationEnergy",
+  /** Spoilage — the water activity (a_w) below which nothing grows at all:
+   * why salt, sugar, honey and spirits keep, with no shelf-stable flag. */
+  freshnessAwFloor: "freshness.awFloor",
+  /** Spoilage — the a_w assumed for a perishable Material that tabulates none. */
+  freshnessAwDefault: "freshness.awDefault",
+  /** Spoilage — the seed population (fraction of carrying capacity) a
+   * perishable host starts its logistic growth from. */
+  freshnessInoculum: "freshness.inoculum",
+  /** Spoilage — the ambient temperature (K) a gauge on a non-Thermal host reads. */
+  freshnessAmbientK: "freshness.ambientK",
+  /** Spoilage — load at/above which the band reads `tainted`. */
+  freshnessBandTaintedAt: "freshness.band.taintedAt",
+  /** Spoilage — load at/above which the band reads `spoiled`. */
+  freshnessBandSpoiledAt: "freshness.band.spoiledAt",
+  /** Spoilage — load at/above which the band reads `rotten`. */
+  freshnessBandRottenAt: "freshness.band.rottenAt",
+  /** Spoilage — load at/below which an ingest carries NO ptomaine dose. */
+  freshnessDoseOnsetLoad: "freshness.dose.onsetLoad",
+  /** Spoilage — the ptomaine dose (mg) a fully rotten serving carries; the
+   * curve between the onset and here is superlinear, never a step. */
+  freshnessDoseScaleMg: "freshness.dose.scaleMg",
+
+  /* ────────────────────────── cure (water state) ────────────────────────── */
+  /**
+   * Curing — the per-instance water state (`CuredMixin`): `moisture` and
+   * `solute`, which multiply the Material's tabulated `a_w` into the
+   * effective one the growth law reads. Drying reverses toward the ambient
+   * equilibrium; curing never does. The bands below are PRESENTATION
+   * cutoffs for the cured-state line — never a number a player sees.
+   * See docs/subsystems/spoilage.md.
+   */
+  /** Curing — fraction of the moisture gap a dried thing closes per game-hour. */
+  cureRehydrationPerHour: "cure.rehydrationPerHour",
+  /** Curing — the relative humidity (%) assumed where nothing authors one. */
+  cureAmbientHumidity: "cure.ambientHumidity",
+  /** Curing — moisture at/below which a thing reads thoroughly dried. */
+  cureBandDriedAt: "cure.band.driedAt",
+  /** Curing — moisture below which a thing reads partly dried. */
+  cureBandDryingAt: "cure.band.dryingAt",
+  /** Curing — solute at/above which a thing reads heavily salted. */
+  cureBandCuredAt: "cure.band.curedAt",
+  /** Curing — solute above which a thing reads lightly salted. */
+  cureBandCuringAt: "cure.band.curingAt",
+
   /* ────────────────────────── husbandry (living world phase 1) ────────────────────────── */
   /**
    * Husbandry — the growth model's dials (GrowingMixin). Growth is

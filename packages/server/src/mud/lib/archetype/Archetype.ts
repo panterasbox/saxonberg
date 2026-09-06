@@ -453,7 +453,7 @@ function satisfyingItem(
   if ('vesselKind' in need) {
     // The vessel kind, empty or full — the capability is the vessel.
     const hit = pool.find(
-      (i) => MixinApi.isBulkable(i) && i.getCategory() === need.vesselKind,
+      (i) => MixinApi.isVesselKind(i) && i.getCategory() === need.vesselKind,
     );
     return hit ? hit.getPresentation() : null;
   }
@@ -484,7 +484,9 @@ function holdsBulkOf(item: Stuff, token: string): boolean {
     // Match on the material's LEAF (`…/liquid/water` for `water`), or on
     // the vessel kind (`ice-bin`) — the two ways content names a source.
     if (path && (path === token || path.endsWith(`/${token}`))) return true;
-    if (item.getCategory() === token) return true;
+    if (MixinApi.isVesselKind(item) && item.getCategory() === token) {
+      return true;
+    }
   }
   return false;
 }

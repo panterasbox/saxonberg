@@ -1,0 +1,33 @@
+verbs: [butcher, dress]
+controller: /trade/cooking/idea/cmd/crafting/ButcherController
+description: "Take a dead animal apart for meat"
+help: |
+  `butcher <body>` — open a carcass and work it down to cuts. You need
+  something bladed in reach; a clasp knife does.
+
+  Two things answer to your skill at it, and neither is a damage number:
+  how much meat you get, and how much of the animal's gut ends up on it.
+  Gut spillage is where contamination comes from, and an unskilled hand
+  makes a mess — so a first butchering yields less and is dirtier than a
+  practised one.
+
+  ⚠ **The clock starts at the kill, not at the knife.** A carcass left
+  lying is meat that has already been going off; butchering it does not
+  give you back the hours. Dress it promptly and get it cold.
+
+  ⚠ Whatever comes off a carcass is raw, and raw meat has been in contact
+  with a gut. Nothing you can see, smell or taste will tell you so.
+
+  You cannot butcher a person.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: body
+    type: object
+    required: true
+    scope: "reachable"
+    requires: any
+    validators:
+      - /lib/command/validators/canReach

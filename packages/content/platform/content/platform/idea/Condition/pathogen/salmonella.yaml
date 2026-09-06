@@ -1,0 +1,41 @@
+# Salmonella — the classic. An INFECTION: it does not poison the food, it
+# grows inside you afterwards, which is why the illness arrives hours after
+# the meal and not at the table.
+#
+# ⚠ It has no spores. Cooking removes it ENTIRELY — which is exactly what
+# makes "cook it properly and eat it promptly" a real, learnable answer,
+# and what makes the cured-and-eaten-raw case the counterexample: curing
+# stops it growing and preserves every cell that was already there.
+#
+# Its infectious dose is deliberately at the inoculum a contaminating event
+# deposits: a freshly contaminated cut is already dangerous. That is honest
+# (salmonella's real infectious dose is famously low) and it is what makes
+# the raw-meat lesson land on the first try instead of the fourth.
+class: /platform/idea/Condition
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: salmonellosis
+  signature: []
+  progression:
+    intervalMs: 1800000
+  resolution:
+    by: rest
+  observableSigns: [feverish, cramping, dehydrated]
+  contagion: null
+  pathogenBehavior:
+    reach: infect
+    muMaxPerHour: 0.9
+    activationEnergy: 90000
+    referenceK: 303
+    minGrowthK: 280
+    killK: 331
+    killRatePerHour: 8
+    killActivationEnergy: 200000
+    killSurvivalFraction: 0
+    awFloor: 0.94
+    inoculum: 0.03
+    infectiousDose: 0.02
+    # ⭐⭐ EMPTY, and the emptiness is the design: no sense reports this.
+    channels: []
+    inHostPerHour: 0.25
+    incubationSec: 21600

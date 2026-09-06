@@ -24,7 +24,7 @@ import CartesianZone from '@saxonberg/server/mud/platform/idea/location/Cartesia
 import Material from '@saxonberg/server/mud/platform/idea/material/Material';
 import Biome from '@saxonberg/server/mud/platform/idea/Biome';
 import SingletonCartesianLocation from '@saxonberg/server/mud/platform/location/SingletonCartesianLocation';
-import Prop from '@saxonberg/server/mud/platform/thing/Prop';
+import Thing from '@saxonberg/server/mud/platform/thing/Thing';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
@@ -118,7 +118,7 @@ describe('the canary', () => {
     })) as never);
 
     for (const room of [chain[0]!, chain[5]!, chain[10]!]) {
-      const bird = makeStuff(() => new Prop());
+      const bird = makeStuff(() => new Thing());
       bird.setShortDescription('a canary');
       ContainmentApi.move(bird as unknown as Stuff & Containable, room as unknown as Stuff & Container);
       await readsAir.act(ctxFor(bird as unknown as Stuff));

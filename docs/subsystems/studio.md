@@ -16,6 +16,21 @@ go-live, same gates), and **authoring is free while only *publish* is
 gated** — so composition is open to everyone without opening a
 code-execution surface.
 
+
+> ⚠⚠ **`blueprints` is a CACHE that persists, and is a deletion candidate**
+> (collection audit, 2026-09-03). `BlueprintCatalogue.postRegister` calls
+> `rebuild()` — the only `rebuild()` among 39 singletons, where every other
+> catalogue `warm()`s — and `Blueprint.find()` appears **twice in the whole
+> non-test tree, both inside that rebuild.** 147 rows survive a restart and
+> are then discarded and re-derived by the only code that reads them.
+> ⭐ It is **not** a duplicate of the `blueprint` document kind: the two
+> hold disjoint populations by design (machine-minted `bp-<class-path>`
+> skeletons vs hand-authored curated overlays; **zero id overlap** in both
+> live worlds). ⚠ The seam to prove first is `rebuild()`'s read of the
+> previous generation for *drift-safe on id* + the signature dedup.
+> See [document-store.md § When a collection should be a document
+> instead](./document-store.md).
+
 ## Field-schema derivation — the `@authorable` classification
 
 A form needs, per field, its *type shape* and whether it is author-facing.

@@ -113,10 +113,10 @@ const STUBS: Doc[] = [
     data: { seatIn: "/world/test/crossroads-room", keywords: ["crossroads"], directionality: "both", routes: [] },
   },
   { path: "/world/test/crossroads-room", class: "/platform/location/VoidLocation", hydratorClass: PH, data: { shortDescription: "the crossroads" } },
-  // The terminal office lists the clerk under props (a Prop stub keeps the
+  // The terminal office lists the clerk under props (a bare-`Thing` stub keeps the
   // cascade light); the registry office's registrar rides `cast:`, which
   // the loader strips.
-  { path: "/world/terminus/terminal/agent/clerk", class: "/platform/thing/Prop", hydratorClass: PH, data: { shortDescription: "the clerk" } },
+  { path: "/world/terminus/terminal/agent/clerk", class: "/platform/thing/Thing", hydratorClass: PH, data: { shortDescription: "the clerk" } },
   { path: "/world/terminus/university-avenue/location/crossing", class: "/platform/location/VoidLocation", hydratorClass: PH, data: { shortDescription: "University Avenue" } },
 ];
 

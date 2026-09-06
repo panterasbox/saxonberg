@@ -32,6 +32,13 @@ Substrate: [watershed](../../subsystems/watershed.md) ·
 [retail](../../subsystems/retail.md) ·
 [civics](../../subsystems/civics.md)
 
+⭐⭐ **The model these towns are authored against is
+[settlement-model.md](../../settlement-model.md)** (2026-09-03) — the
+sixteen needs, the site/exit type taxonomy, the specialization gradient,
+*zoning exists because of density*, singleton-vs-warren, and the one-
+`PlatBook` growth mechanism. Read it first; this slate is its three
+worked examples.
+
 **Content for all three towns is staged under `docs/staging/`** — the
 cast rosters, routines, room maps, culture and per-town build hooks. Those
 are drafting docs and are deleted once they graduate into YAML; the design
@@ -757,6 +764,148 @@ six.**
 ⚠ The Weeping Moor is a different case — it holds a root prefix
 deliberately, in the *other* basin, and `Locality/moor.yaml` explains why.
 Leave it.
+
+---
+
+## ⭐ The venue scorecard
+
+Every settlement scores against
+[settlement-model.md](../../settlement-model.md)'s sixteen needs. What it
+cannot meet locally is either **imported** (correctly) or a **gap that
+wants a venue** — and ⭐ **the gaps are the character, not a to-do list.**
+
+✓ met · **im** imported · ⚠ a gap
+
+| need | **Rejection** | **Hinkley** | **Heart's Delight** |
+|---|---|---|---|
+| food, raw | im | ✓ beds (subsistence) | ✓✓✓ the basic sector |
+| food, prepared | ⚠ | im — home kitchens | ⚠ |
+| food, retail | ✓ Provisioning | ⚠ the shop | ⚠ the store |
+| water | ⚠⚠ **none, and it fouls a river** | ✓✓ standpipe + tank | ⚠ pump house + tower |
+| fuel | ✓ the fuel yard | im | ⚠ a woodlot |
+| clothing | im | im | ⚠ ← where fibre goes |
+| health | ⚠⚠ | im | ⚠ |
+| tools | im (sold, not made) | im | ⚠ ← Hendy's seat |
+| repair | ⚠ the sharpening shop | ⚠ or a home workshop | ⚠ implement smith |
+| storage & exchange | ✓ assay + provisioning | ⚠ the platform | ✓✓ packing house + depot |
+| transport | ⚠ the weighbridge | ✓ the rail stop | ✓ the depot |
+| housing | ⚠⚠ **nobody sleeps anywhere** | ✓✓ the whole point | ✓ farmsteads |
+| drink & assembly | ⚠⚠ the Tallow | ⚠⚠ **and see below** | ✓ Rovere's |
+| education | ⚠ the Institute | im | ⚠ |
+| ceremony | ⚠⚠ | ⚠ the hall | ⚠ |
+| law | ✓ the register (property only) | ⚠ the District, unused | ~ the co-op (not law) |
+
+⭐⭐ **Rejection meets 4 of 16. Hinkley meets 4 of 16** — same score,
+opposite causes. The camp is too new and remote to have acquired them; the
+suburb is close enough to import them. Identical scores, completely
+different lists.
+
+### Rejection — tiered by what a camp cannot run without
+
+**Tier 1** — the Rest (lodging **and board**: in a camp the boarding house
+*is* the cookhouse) · the sharpening shop (⭐ Banished: no tools = everyone
+at 25 %, so this is the most load-bearing building in town, and Ines'
+six-years-frozen rate has real weight) · the infirmary.
+**Tier 2** — the Tallow · the Institute · the weighbridge depot.
+**Tier 3** — the print shop, and:
+
+> ⭐⭐⭐ **a burial ground — the thing that turns a camp into a town. You
+> can leave a camp. You cannot leave your dead.**
+
+Rejection kills people and there is currently nowhere for any of them to
+go. Act I hands it three occupants in the first week.
+
+### Hinkley — and its missing venue *is* the theme
+
+Short list, because a suburb correctly imports nearly everything: the shop
+at the stop · the District office · the hall · **the home workshop** (the
+burgage rung — see settlement-model § 4).
+
+> ⭐⭐⭐ **Hinkley's real gap is drink & assembly, and its absence is why
+> the town is paranoid.**
+
+Groceries come off the train. What cannot be imported is **a room where
+nine people can be together** — so the only social mechanism left is
+watching each other from the front step. ⚠ Which means **giving Hinkley a
+pub would defuse the death man.** Either a reason not to, or a reason that
+*getting one* is the arc. The hall exists, the District owns it, and it has
+been used four times; somebody asking to use it is a bigger event than it
+sounds.
+
+### Heart's Delight — and this is where the farm count derives
+
+The crossroads (node town): the store + post office · the packing house ·
+the depot · the co-op hall · Rovere's · the pump house + the tower.
+
+The farms derive from three constraints — **every input category the
+trades need** (`lint:supply`), **food variety** (Farthest Frontier's rule
+that a monotonous diet sickens), and **a ladder of scales**:
+
+| farm | shape | crop | its downstream consumer |
+|---|---|---|---|
+| **Furtado's** | orchard | apricot, cherry — flats, **senior** water | the pack; the drying yards |
+| **Avila's** | orchard | prune — bench, **junior**, his own well | the pack |
+| a **vineyard** | vineyard | grape | `trade-winemaking` |
+| a **citrus grove** | orchard | citrus ×4 | `trade-hospitality`'s house juices |
+| a **market garden** | market garden | mixed veg, mint, carrot | `trade-hearth-cooking`; **food variety** |
+| a **grain farm** | row crop | ⚠ **barley — species gap** | brewing, distilling |
+| a **woodlot** | coppice | wood | ⭐ the valley's *own* fuel gap |
+| the **hill outfits** | pasture | stock | manure ↔ feed; ranching |
+
+⭐⭐⭐ **Eight, each justified by a named downstream consumer** — a
+derivation, not a count, which is what survives the 10×. And the ladder
+falls out: the market garden is rung 2, Avila's rung 3, **Furtado's rung 4
+(seniority, which money cannot buy).**
+
+---
+
+## ⭐⭐ The necropolis — a sixth locality, and a LULU town
+
+Already designed twice, and the two agree. `zoning-slate` has the
+mechanism — *exit to escape a **prohibition***: cities did not zone burial
+to the margins, they **banned** it; Roman law forbade it inside the walls,
+San Francisco evicted its cemeteries in 1900, and that is why **Colma**
+exists. Same category as the tannery, the powder magazine, the lazaretto,
+the rendering works, the gallows.
+
+And `vocations.md` has the venue, answering chronicle's empty-substrate
+question: **the monument mason at the necropolis — *the chronicle made
+physical*.**
+
+### ⭐⭐⭐ Which dissolves the respawn objection
+
+> **It is not a grave. It is a chronicle entry you can stand in front of.**
+
+The chronicle is the append-only *identity* ledger — deeds and claims — so
+a monument commemorates **what somebody did**, not where their body is. A
+living person can have one. Mortality agrees: `reembody` **never reads the
+corpse**, because a body decays, can be destroyed, and does not survive a
+restart.
+
+⭐ A monument to somebody who *came back* is more interesting, not less — a
+stone recording a death that happened and was undone is exactly what an
+append-only ledger should carry, and something a person should have to walk
+past. And there are permanent occupants regardless: **NPCs stay dead.**
+
+### Its mechanical seat is pre-authorized
+
+`mortality.md` says `passage` is the **floor** — zero arguments, always
+available, drains your reserves, leaves a `recovering` affliction — and
+then, explicitly: *"`reembody` takes no position on what dying should cost
+— that is the caller's business, which is exactly what lets **a temple or
+a clinic offer a better return**."*
+
+⭐⭐ So a necropolis is the place that charges you and gives you more back.
+A business with customers, not a memorial park.
+
+⚠ **And a monument is BOUGHT.** Otherwise the place becomes a million
+identical stones (literally Colma's condition, and bad play). The monument
+mason is a vocation; somebody pays for stone and carving, and everyone else
+goes to potter's field — which teaches something sharp: **who is
+remembered is a function of who could pay.**
+
+⚠ **Open, and it decides whether this is scenery or consequence: did
+Terminus ban burial, when, and could a player-held office repeal it?**
 
 ---
 

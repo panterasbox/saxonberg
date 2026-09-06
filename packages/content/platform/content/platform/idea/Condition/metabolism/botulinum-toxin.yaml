@@ -1,0 +1,27 @@
+# Botulinum toxin — the most potent thing in the library, by a very long
+# way. Half a milligram in a serving is a top-band burden, which is what
+# `potency: 2000` says: it is not a big dose, it is an unforgiving one.
+#
+# ⚠ Slow in and slow out (`absorptionRate: 1`, `clearanceRate: 0.002`).
+# That is the arc it should have: hours before anything shows, and then a
+# long, frightening one — which is exactly the window a medic exists for,
+# and why its `resolution.by` is `antitoxin` and not `rest`.
+class: /platform/idea/Condition
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: botulinum toxin
+  signature: []
+  progression: null
+  resolution:
+    by: antitoxin
+  observableSigns: [slack-faced, weak, blurred-sighted]
+  contagion: null
+  toxinBehavior:
+    toxinType: botulinum-toxin
+    absorptionRate: 1
+    clearanceRate: 0.002
+    potency: 2000
+    bands:
+      - { threshold: 2, severity: 1 }
+      - { threshold: 6, severity: 2 }
+      - { threshold: 12, severity: 3 }

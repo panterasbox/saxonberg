@@ -29,6 +29,7 @@ import { PropertiedMixin } from '../../lib/stuff/Propertied';
 import { Quantity } from '../../lib/quantity';
 import type { Vitals } from '../../lib/vitals/Vitals';
 import type { ToxinBehavior } from '../../lib/metabolism/Metabolic';
+import type { PathogenBehavior } from '../../lib/material/Contaminable';
 import type { Channel } from '../../lib/material/Channel';
 import type { MagicProvenance } from '../../lib/magic/Grid';
 import type { ResistBand } from '../../lib/magic/Resist';
@@ -53,9 +54,31 @@ export interface AfflictionRecord {
    * scalars — persists free (the `mechanism`/`inflictedBy` precedent).
    */
   magicOrigin?: MagicProvenance;
-  /** The game-time (seconds) the magic decay arm last integrated this —
-   * only present on a `magicOrigin`-tagged affliction. */
+  /** The game-time (seconds) an integrating arm last touched this —
+   * the magic decay arm, or the in-host infection arm below. */
   tickedAt?: number;
+  /**
+   * ⭐⭐ **The in-host population**, `[0, 1]` — present iff this affliction
+   * is an INFECTION (a row under `Condition/pathogen/` whose
+   * `pathogenBehavior.reach` is `infect`).
+   *
+   * The distinction from `stage` is the whole of it: `stage` is the
+   * banded severity a medic reads, and this is the thing that is actually
+   * happening. The load grows against the body's resistance, and the
+   * stage is derived from it — so an infection getting worse and a
+   * treatment starting to work are the same number moving.
+   */
+  pathogenLoad?: number;
+  /**
+   * Game-time (seconds) at which symptoms begin — the incubation.
+   *
+   * ⭐ **Why illness arrives hours after the meal and not at the table.**
+   * Before this, every consequence in the engine was immediate, and food
+   * poisoning that announced itself as you swallowed would teach the
+   * wrong lesson entirely: the whole point is that you have to reason
+   * backwards to *what you did* rather than forwards from what you feel.
+   */
+  symptomsAt?: number;
 }
 
 /** The closed engine trauma vocabulary. Grow additively. */
@@ -591,6 +614,22 @@ export default class Condition extends SingletonMixin(
   protected toxinBehavior: ToxinBehavior | null = null;
 
   /**
+   * ⭐⭐ **Optional pathogen behavior — the per-population constants of a
+   * living organism**, as against `toxinBehavior`'s per-body rates for a
+   * burden that decays.
+   *
+   * The distinction is the build's: a toxin is an *amount* you carry and
+   * clear, a pathogen is a *population* that grows — in food, and then in
+   * you. Both live on this row because both are afflictions with names,
+   * signs and a resolution, and a row may honestly carry both (an
+   * intoxicating population's toxin is its own row, with its own bands).
+   *
+   * Authored only on the pathogen roster under
+   * `/platform/idea/Condition/pathogen/`; `null` everywhere else.
+   */
+  protected pathogenBehavior: PathogenBehavior | null = null;
+
+  /**
    * Optional mental-resist bands — the ascending `{threshold, stage}`
    * cutoffs the magic mental resolver stages a post-fold residual
    * against, scaled by the target's live Composure factor (the
@@ -621,6 +660,7 @@ export default class Condition extends SingletonMixin(
     resolution: { persistent: true, spoiler: 1, spoilerName: 0 },
     contagion: { persistent: true, spoiler: 1, spoilerName: 0 },
     toxinBehavior: { persistent: true, spoiler: 1, spoilerName: 0 },
+    pathogenBehavior: { persistent: true, spoiler: 1, spoilerName: 0 },
     mentalBands: { persistent: true, spoiler: 1, spoilerName: 0 },
   };
 
@@ -672,6 +712,14 @@ export default class Condition extends SingletonMixin(
   }
   public setToxinBehavior(value: ToxinBehavior | null): void {
     this.toxinBehavior = value;
+  }
+
+  /** The pathogen behavior block (null for everything but the roster). */
+  public getPathogenBehavior(): PathogenBehavior | null {
+    return this.pathogenBehavior;
+  }
+  public setPathogenBehavior(value: PathogenBehavior | null): void {
+    this.pathogenBehavior = value;
   }
 
   /** The mental-resist bands (null for non-mental conditions). */

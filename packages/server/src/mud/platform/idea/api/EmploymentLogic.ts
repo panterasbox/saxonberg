@@ -880,58 +880,85 @@ export class EmploymentLogic extends ApiLogic {
     const date = DefaultCalendar.singleton().decompose(now);
     const nowRaw = now.rawValue();
     for (const business of this.allBusinesses()) {
-      const businessPath = business.getTemplatePath() ?? '';
-      if (!businessPath) continue;
-      const roster = business.getRoster();
-      for (const assignment of roster.getAssignments()) {
-        const actor = StuffApi.findByTemplatePath(assignment.assignee);
-        if (!actor || !MixinApi.isEmployed(actor)) {
-          console.warn(
-            `EmploymentLogic: roster ${businessPath}/${assignment.positionKey} — ` +
-              `assignee ${assignment.assignee} ${actor ? 'is not Employed' : 'is not live'}`,
-          );
-          continue;
-        }
-        const employed = actor as EmployedActor;
+      this.tickBusiness(business, date, nowRaw);
+    }
+  }
 
-        const emp = business.ensureRostered(
-          employed,
-          assignment.positionKey,
-          nowRaw,
+  /**
+   * ⭐ One business's roster pass — the body `runTick` runs for each, split
+   * out so a **single venue** can be brought current without walking the
+   * realm.
+   *
+   * ⚠⚠ **Why it had to be splittable.** The roster is resolved against the
+   * assignees that are LIVE at the moment of the pass, and cast NPCs are
+   * spawned lazily by residency when a player arrives — so at boot the pass
+   * skips them (`… is not live`) and nothing re-runs it when they appear.
+   * The result, found by driving the Hearthworks cookhouse: the cook stands
+   * at his own hearth with **no employment record at all**, so nothing
+   * confers `MakerMixin`, and `order` answers *"There's no one on hand to
+   * make that"* — until the next scheduled tick, a whole game-hour later.
+   *
+   * `ensureOperatorAt` was already written to prevent exactly this ("a cold
+   * venue's first customer must find the roster already on shift") but it
+   * returned EARLY when the business was already live, so the one venue that
+   * needed the pass never got it. It calls this now.
+   */
+  private tickBusiness(
+    business: BusinessStuff,
+    date: ReturnType<InstanceType<typeof DefaultCalendar>['decompose']>,
+    nowRaw: number,
+  ): void {
+    const businessPath = business.getTemplatePath() ?? '';
+    if (!businessPath) return;
+    const roster = business.getRoster();
+    for (const assignment of roster.getAssignments()) {
+      const actor = StuffApi.findByTemplatePath(assignment.assignee);
+      if (!actor || !MixinApi.isEmployed(actor)) {
+        console.warn(
+          `EmploymentLogic: roster ${businessPath}/${assignment.positionKey} — ` +
+            `assignee ${assignment.assignee} ${actor ? 'is not Employed' : 'is not live'}`,
         );
-        {
-          // A roster-materialized purchasing NPC is dealt its house card
-          // (3d). Idempotent on the inventory — a restored hand carries the
-          // card it was dealt (an unstamped good rides its holder's record)
-          // — so this is a no-op on every tick but the first. Fire-and-
-          // forget like the wage settle below.
-          void issueHouseCardImpl(
-            business,
-            actor,
-            assignment.positionKey,
-          ).catch((err) =>
-            console.error('EmploymentLogic: house card issue failed', err),
-          );
-        }
-        if (TERMINAL.includes(emp.status)) continue;
+        continue;
+      }
+      const employed = actor as EmployedActor;
 
-        const desired = roster.evaluate(assignment, date);
-        const currentlyOn = emp.status === 'on-shift';
-        if (desired === 'on-shift' && !currentlyOn) {
-          business.beginShift(employed, nowRaw);
-        } else if (desired === 'off-shift' && currentlyOn) {
-          // Settle off the captured record (has `onShiftSince`) at this
-          // tick's instant, before the synchronous clear below — no race.
-          void settleShiftWageImpl(
-            business,
-            assignment.assignee,
-            emp,
-            nowRaw,
-          ).catch((err) =>
-            console.error('EmploymentLogic: shift-wage settle failed', err),
-          );
-          business.endShift(employed);
-        }
+      const emp = business.ensureRostered(
+        employed,
+        assignment.positionKey,
+        nowRaw,
+      );
+      {
+        // A roster-materialized purchasing NPC is dealt its house card
+        // (3d). Idempotent on the inventory — a restored hand carries the
+        // card it was dealt (an unstamped good rides its holder's record)
+        // — so this is a no-op on every tick but the first. Fire-and-
+        // forget like the wage settle below.
+        void issueHouseCardImpl(
+          business,
+          actor,
+          assignment.positionKey,
+        ).catch((err) =>
+          console.error('EmploymentLogic: house card issue failed', err),
+        );
+      }
+      if (TERMINAL.includes(emp.status)) continue;
+
+      const desired = roster.evaluate(assignment, date);
+      const currentlyOn = emp.status === 'on-shift';
+      if (desired === 'on-shift' && !currentlyOn) {
+        business.beginShift(employed, nowRaw);
+      } else if (desired === 'off-shift' && currentlyOn) {
+        // Settle off the captured record (has `onShiftSince`) at this
+        // tick's instant, before the synchronous clear below — no race.
+        void settleShiftWageImpl(
+          business,
+          assignment.assignee,
+          emp,
+          nowRaw,
+        ).catch((err) =>
+          console.error('EmploymentLogic: shift-wage settle failed', err),
+        );
+        business.endShift(employed);
       }
     }
   }
@@ -1117,7 +1144,28 @@ export class EmploymentLogic extends ApiLogic {
     const live = this.findBusiness((b) =>
       b.getOperatingLocations().includes(locationPath),
     );
-    if (live) return live;
+    if (live) {
+      // ⚠⚠ **An already-live business still needs the pass.** This used to
+      // `return live` here, which quietly voided the promise the paragraph
+      // below makes — and voided it for precisely the venue that needed it.
+      // The roster resolves against the assignees LIVE at the moment of the
+      // pass; a cast NPC is spawned by residency only when a player walks
+      // in, so the boot pass logged `… is not live` and skipped them, and
+      // nothing re-ran it once they existed. The cook then stood at his own
+      // hearth uncontracted — no `MakerMixin`, `order` → "There's no one on
+      // hand to make that" — for up to a whole game-hour.
+      //
+      // One venue's roster, not the realm's, and idempotent: `ensureRostered`
+      // and the house-card issue are no-ops after the first, and
+      // begin/endShift only fire on a transition.
+      const now = WorldClockApi.getNow();
+      this.tickBusiness(
+        live,
+        DefaultCalendar.singleton().decompose(now),
+        now.rawValue(),
+      );
+      return live;
+    }
     // Derive the operator from the authored Business templates and stand it up
     // lazily (idempotent). No manifest entry, no clerk/venue standup hook.
     const idx = await this.buildOperatorIndex();

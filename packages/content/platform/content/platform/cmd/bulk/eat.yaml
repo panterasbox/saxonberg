@@ -1,13 +1,22 @@
 verbs: [eat]
 controller: /platform/idea/cmd/bulk/EatController
-description: "Eat a discrete edible item"
+description: "Eat an edible item, or a meal out of the dish it came in"
 help: |
-  Consume a whole edible item — an apple, a loaf, a ration. Unlike
-  `drink`, which empties a holder, `eat` is for discrete things you
-  hold and finish off; the item is gone afterward.
+  Eat something. Two shapes, one act:
 
-  The target has to actually be edible, so you can't eat a rock or
-  a lantern. For liquids in a cup or flask, reach for `drink` or
+    eat ration      a whole discrete item — an apple, a loaf, a ration.
+                    It is gone afterward.
+    eat stew        a portion of a meal out of the dish it was served
+                    in. The dish stays; when you have finished it, it
+                    is a bowl to wash rather than a bowl that has
+                    ceased to exist.
+
+  If a clean spoon, fork or table knife is in reach you use one — and
+  dirty it. If none is, you eat with your fingers, which works exactly
+  as well; cutlery is never a requirement.
+
+  The target has to be edible, or be holding something edible, so you
+  can't eat a rock or a lantern. For liquids, reach for `drink` or
   `sip` instead.
 validators:
   - /lib/command/validators/requiresAnimate

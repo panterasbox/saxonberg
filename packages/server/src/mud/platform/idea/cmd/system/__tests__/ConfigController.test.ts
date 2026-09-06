@@ -21,6 +21,8 @@ import { makeStuff } from "../../../../../lib/security/__tests__/test-setup";
 import requiresWizard from "../../../../../lib/command/validators/requiresWizard";
 import { AccessApi } from "../../../../../api/access";
 import type { CommandContext, CommandModel } from "../../../../../api/command";
+import { AuthorMixin } from "../../../../../lib/shell/Author";
+import { Idea } from "../../../../../lib/stuff/Idea";
 
 function stubPM() {
   let findResult: Record<string, unknown>[] = [];
@@ -150,5 +152,26 @@ describe("config verb — wizard gate", () => {
     vi.spyOn(AccessApi, "isWizard").mockResolvedValue(true as never);
     await expect(requiresWizard.preload!(ctx)).resolves.toBe(true);
     vi.restoreAllMocks();
+  });
+});
+
+describe('⚠⚠ `config` is actually AFFORDED (the binder, not the controller)', () => {
+  it('the operator command surface offers `config`', () => {
+    // ⭐ This is the assertion whose absence let the verb ship
+    // UNREACHABLE. Everything above is green and always was: the view
+    // parses, the gate rejects a non-wizard, the controller lists and
+    // sets. None of it asked the one question that matters — *can
+    // anybody type the word* — because the suite loads `config.yaml`
+    // by path and calls `ConfigController` directly, which skips the
+    // binder. A live drive typed `config freshness.muMaxPerHour 120`
+    // as a WIZARD and the world answered "I don't understand
+    // 'config'". Same shape as `eat`/`vomit` in this build and
+    // `feel`/`taste` before them.
+    const contributed = (
+      AuthorMixin(Idea) as unknown as {
+        commandContributions?: { self?: string[] };
+      }
+    ).commandContributions?.self;
+    expect(contributed).toContain('platform/cmd/system/config.yaml');
   });
 });

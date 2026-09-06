@@ -27,9 +27,9 @@ afterAll(() => rmSync(src, { recursive: true, force: true }));
 
 describe('StuffApi.resolveClassFile', () => {
   it('a kernel root resolves into the kernel tree', () => {
-    const r = StuffApi.resolveClassFile('/platform/thing/Prop');
+    const r = StuffApi.resolveClassFile('/platform/thing/Thing');
     expect(r.origin).toBe('kernel');
-    expect(r.file.replace(/\\/g, '/')).toMatch(/\/src\/mud\/platform\/thing\/Prop\.ts$/);
+    expect(r.file.replace(/\\/g, '/')).toMatch(/\/src\/mud\/platform\/thing\/Thing\.ts$/);
   });
 
   it('a pack root resolves into the pack src/ and says so', () => {
@@ -51,7 +51,7 @@ describe('StuffApi.resolveClassFile', () => {
   });
 
   it('the traversal guard is the only shape rule', () => {
-    expect(() => StuffApi.resolveClassFile('platform/thing/Prop')).toThrow(/must start with \//);
+    expect(() => StuffApi.resolveClassFile('platform/thing/Thing')).toThrow(/must start with \//);
     expect(() => StuffApi.resolveClassFile('/platform/../secret')).toThrow(/cannot contain/);
   });
 

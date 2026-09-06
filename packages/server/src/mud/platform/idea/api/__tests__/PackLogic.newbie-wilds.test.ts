@@ -47,7 +47,7 @@ afterEach(() => {
 describe('the widened domain-kind walk', () => {
   it('a fixture file under content/world/ reconciles to /world/…', async () => {
     const root = writePack('p', []);
-    writeDomainFile(root, { rel: 'world/x/y.yaml', class: '/platform/thing/Prop', data: { name: 'y' } });
+    writeDomainFile(root, { rel: 'world/x/y.yaml', class: '/platform/thing/Thing', data: { name: 'y' } });
     vi.spyOn(await import('../../../../api/stuff').then((m) => m.StuffApi), 'loadClassByPath')
       .mockResolvedValue(class {} as never);
     const [r] = await PackApi.install([root]);

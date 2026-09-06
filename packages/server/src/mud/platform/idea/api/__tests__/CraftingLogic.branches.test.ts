@@ -36,6 +36,8 @@ import { NamedMixin } from '../../../../lib/description/Named';
 import { CraftedMixin } from '../../../../lib/craft/Crafted';
 import { GlobbableMixin } from '../../../../lib/stuff/Globbable';
 import { Stuff } from '../../../../lib/stuff/Stuff';
+import { BlendLabel } from '../../../../lib/metabolism/BlendLabel';
+import { BlendIdentity } from '../../../../lib/craft/BlendIdentity';
 import {
   makeStuff,
   makeStuffAtPath,
@@ -332,6 +334,22 @@ describe('broken tools', () => {
 });
 
 describe('the edible (cooking) branch', () => {
+  /**
+   * ⭐ A clean dish IN REACH — the edible output is now CLAIMED from the
+   * vessel pool exactly as a bar glass is, never cloned per meal. A test
+   * that stocks no crockery is testing the pot-as-last-resort path.
+   */
+  function cleanDish(): CraftVessel {
+    const d = makeStuffAtPath(
+      () => new CraftVessel(),
+      DISH_T,
+    ) as unknown as CraftVessel;
+    (d as unknown as { interiorBulk: boolean }).interiorBulk = true;
+    d.setInteriorCapacity(Quantity.of(1, 'L'));
+    ContainmentApi.move(d, room);
+    return d;
+  }
+
   function stockKitchen(): { veg: TestProduce; meat: Thing } {
     const veg = makeStuff(() => new TestProduce());
     veg.setQuantity(5);
@@ -350,6 +368,7 @@ describe('the edible (cooking) branch', () => {
   }
 
   it('fills the dish with the authored food material at the portion', async () => {
+    cleanDish();
     const { veg, meat } = stockKitchen();
     const outcome = await craftAs(smith, {
       recipeRef: 'hearty-stew',
@@ -366,16 +385,20 @@ describe('the edible (cooking) branch', () => {
   });
 
   it('throws (conservation breach) when a matched glob shrinks before consume', async () => {
+    cleanDish();
     const { veg } = stockKitchen();
-    // Rig: the stack shrinks between slot-match and consume (the clone is
-    // the intervening await) — the strict debit must throw, not short-draw.
-    vi.mocked(StuffApi.clone).mockImplementation(async () => {
-      veg.setQuantity(1);
-      const g = makeStuff(() => new CraftVessel());
-      (g as unknown as { interiorBulk: boolean }).interiorBulk = true;
-      g.setInteriorCapacity(Quantity.of(1, 'L'));
-      return g as never;
-    });
+    // Rig: the stack shrinks between slot-match and consume — the strict
+    // debit must throw, not short-draw. ⚠ The intervening await used to be
+    // the output CLONE; the edible branch claims now, so the hook moved to
+    // the output material's own resolve, which is the next await in the
+    // same window.
+    const realSingleton = StuffApi.singleton.bind(StuffApi);
+    vi.spyOn(StuffApi, 'singleton').mockImplementation((async (
+      path: string,
+    ) => {
+      if (path === STEW) veg.setQuantity(1);
+      return realSingleton(path);
+    }) as typeof StuffApi.singleton);
     await expect(
       craftAs(smith, { recipeRef: 'hearty-stew', makerMode: 'self' }),
     ).rejects.toThrow(/conservation breach/);
@@ -439,8 +462,8 @@ describe('the gather walk rungs', () => {
     const slot = BulkableApi.slotFor(outcome.output, undefined)!;
     expect(slot.getMaterialPath()).toBe(MIXED);
     const payload = slot.getPayload()!;
-    expect(payload.name).toBe('Gin Martini');
-    expect(payload.appearance).toMatch(/crystal-clear martini/);
-    expect(payload.toxicity).toEqual([{ type: 'alcohol', amount: 26 }]);
+    expect(BlendIdentity.nameOf(payload, null)).toBe('Gin Martini');
+    expect(BlendIdentity.appearanceOf(payload, null)).toMatch(/crystal-clear martini/);
+    expect(BlendLabel.toxicityOf(payload, null)).toEqual([{ type: 'alcohol', amount: 26 }]);
   });
 });

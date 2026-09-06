@@ -132,7 +132,7 @@ credentials.
 > terminate: `shell.*` was already pointing at Lightsail, the EBS was
 > snapshotted (`snap-0afbf77eb589d026d`), and the old box died last.
 
-## The Mongo environment policy — four databases, ever
+## The Mongo environment policy — one database per worktree
 
 The dev Atlas cluster caps at **500 collections cluster-wide**, and one
 world is ~46 collections. On 2026-08-25 the cluster hit the cap under
@@ -146,11 +146,31 @@ collection. So the rule, from that day:
 | `saxonberg_build1` | the `build-1` worktree | `packages/server/.env` → `MONGODB_DATABASE` |
 | `saxonberg_build2` | the `build-2` worktree | same |
 | `saxonberg_build3` | the `build-3` worktree | same |
+| `saxonberg_build4` | the `build-4` worktree | same — **added 2026-09-03** with the worktree |
 
-**No fifth database.** A "verify" boot, a drive, a one-off experiment
-runs against the worktree's own database — drop and reboot it if a
-clean world is needed (a boot re-seeds; the packs reconcile). Never
-mint `saxonberg_<feature>`.
+> ⭐⭐ **The rule is ONE DATABASE PER WORKTREE, AND NOTHING ELSE.**
+
+⚠ It was written on 2026-08-25 as *"four databases, ever"*, and that was
+the right number **for four worktrees**. `build-4` was minted 2026-09-03,
+so the count is five — but the invariant never was the count. **The 2026-08-25
+incident was caused by thirteen abandoned *drive* databases, not by
+worktrees**, so the rule that actually prevents it is:
+
+**A "verify" boot, a drive, a one-off experiment runs against the
+worktree's OWN database** — drop and reboot it if a clean world is needed
+(a boot re-seeds; the packs reconcile). **Never mint
+`saxonberg_<feature>`.**
+
+**The arithmetic, measured 2026-09-03** (rather than estimated): a world
+is **exactly 46 collections**, the cluster held **185 / 500** across the
+four worlds plus a stray 1-collection `test` database, and `build4` takes
+it to **231** — under half the cap, with headroom for roughly five more
+worlds. So a *worktree* is affordable; **a habit of feature databases is
+not**, which is the thing that broke it before.
+
+⚠ Adding a worktree therefore means: add its row here, add it to
+`~/.local/bin/saxo`'s `WORKTREES` array, and re-measure — do not assume
+the headroom.
 
 **Nothing is ever migrated.** This game has never held data a boot of
 the same checkout did not write, so a rename (a path, a collection, a
