@@ -794,7 +794,12 @@ on Character). `Creature` is concrete, so a bare non-agent body (a frog,
 a corpse) is valid. `Character` has two leaf subclasses: `Avatar`
 (player-driven, in `platform/agent/`) and the thin `NPC` (`lib/npc/NPC.ts` =
 `Character` + `BehavedMixin`) for authored, automation-driven characters —
-which keeps `Behaved` off players. See [behavior.md](./subsystems/behavior.md).
+which keeps `Behaved` off players. `NPC` is **substrate**: a row names one
+of its two identity rungs, `platform/agent/Cast` (somebody) or
+`platform/agent/Extra` (a role), or a capability combination over them
+(`Crafter = CastMixin(MakerMixin(NPC))`). See
+[behavior.md](./subsystems/behavior.md) and
+[identity.md](./subsystems/identity.md).
 
 The five branch constructors are registered with `Stuff` **by class
 identity** through `Stuff.registerTopLevelBranches([...])`, called once
@@ -966,7 +971,8 @@ registry) lives in `lib/mixin.ts`.
 | `lib/time/` | `TimekeepingMixin` | the display seam — an in-world object that reads/shows game-time via `WorldClockApi`. (Accurate by default; drift is a *content* concern layered on top — see the locality `MechanicalMovement`. The clock tower is prose, not a Timekeeping Stuff.) See [time.md](./subsystems/time.md). |
 | `lib/time/` | `MechanicalMovementMixin` | the windable, drifting clockwork inside a mechanical timepiece (`Timekeeping` over `Reserved` — the mainspring); `wind`/`adjust` gate on its presence. In `lib/time` since content packs wave 4b (graduated out of University Avenue; `Watch` stays content). See [time.md](./subsystems/time.md). |
 | `lib/spatial/` | `DoorBearingMixin` | adds `door: Door \| null` for hosts whose exits are synthesized rather than authored (`ExitableVessel`). Constrained to `Stuff & Exitable`. |
-| `lib/stuff/` | `SingletonMixin` | class-level uniqueness — refuses a second `clone()` for the same templatePath. Composed by `CartesianZone` / `SphericalZone`. |
+| `lib/stuff/` | `SingletonMixin` | class-level uniqueness — refuses a second `clone()` for the same templatePath. Composed by `CartesianZone` / `SphericalZone`, and by `CastMixin`. |
+| `lib/npc/` | `CastMixin` | the **identity rung**: `SingletonMixin` plus the authored dossier (`archetype` · `prologue` · `competence` · `renown`), seeded once at `postRegister` as `claim` evidence. ⭐ A mixin rather than a base class because identity and capability are two axes and TypeScript has single inheritance — Dave must be a `Crafter` *and* cast. Clone targets `platform/agent/Cast` / `platform/agent/Extra`. See [identity.md](./subsystems/identity.md). |
 | `lib/stuff/` | `PopulatesMixin` | declarative content-spawn for Container hosts; `props:` instruction field lists entries to clone (non-singletons) or singleton-resolve into self — each a bare templatePath (moved in) or a `{template, onto}` object (placed on an already-populated sibling surface via `placeOn`). Phase 2 applier. |
 | `lib/message/` | `SensorMixin` | `handleMessage(frame)` notification hook |
 | `lib/message/` | `VocalMixin` | `say(text)` with scope inference |

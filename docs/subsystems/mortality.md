@@ -609,6 +609,40 @@ grew the dying clock, the material fork slices and `adoptMaterialState`.
 - **Forensic examination verbs** — the readability curve ships; nothing
   consumes it yet.
 
+## A corpse's own identity (2026-09) — #40 unblocked
+
+`mintCorpseFrom` cloned the authored template and stamped **no
+identity**, so every corpse in the world shared one
+(`/stuff/agent/Corpse`). Per-instance facts survived as hydrated
+*fields*, which is exactly why nothing looked broken — but two bodies in
+a room were **one object** to every identity-keyed ledger: to the
+chronicle, to belief, to chattel, to anything that asks *whose is this*.
+A necropolis that cannot tell two bodies apart is not a necropolis.
+
+The scheme is `OuterWarren`'s — a root plus a derived key:
+`${corpseRoot}/${deceased}/${diedAtGameSec}`, the deceased's leading
+slash dropped so the two compose into segments. ⚠ It has to survive two
+things, and the second is the one that catches people:
+
+- **`reembody`** — one person can leave several corpses over a life, so
+  the deceased's key alone is not enough; the **moment** is the second
+  half;
+- **a shared deceased key** — an `Extra` keeps its own identity, so two
+  dead sentries genuinely share the first half. Different seconds
+  separate them; the same second falls through to an **ordinal**.
+
+⚠ The ordinal asks the **registry** whether the key is taken, which is
+what makes it survive a reboot as well as a battle — and is why a test's
+corpse stand-in must **stamp** the identity rather than swallow it. A
+mock that only records the path tests the wrong branch: the ordinal never
+fires, two corpses look distinct in the test, and they collide in the
+world.
+
+⚠⚠ **`ConditionApi.die` also used to RETURN before the ledger write on
+the circle path**, so an in-circle death wrote no accountability row at
+all. The append is hoisted above the circle branch — see
+[accountability.md](./accountability.md).
+
 ## History
 
 Built 2026-07-31 in eight waves. Two decisions reversed during the build,

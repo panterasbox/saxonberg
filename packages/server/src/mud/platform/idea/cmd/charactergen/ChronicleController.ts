@@ -63,7 +63,7 @@ interface ChronicleModel extends CommandModel {
 
 export default class ChronicleController extends RecordControllerBase<ChronicleModel> {
   async execute(model: ChronicleModel, context: CommandContext): Promise<void> {
-    const actor = context.commandGiver as unknown as Stuff;
+    const actor = context.commandGiver;
     const asked = (model.subject ?? '').trim();
 
     if (!asked) {

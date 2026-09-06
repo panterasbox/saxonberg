@@ -174,7 +174,7 @@ function importedClassPath(
   file: string,
   sources: readonly PackSource[],
 ): string | null {
-  const re = /import\s+([^;]*?)\s+from\s+[\'"]([^\'"]+)[\'"]/g;
+  const re = /import\s+([^;]*?)\s+from\s+['"]([^'"]+)['"]/g;
   let m: RegExpExecArray | null;
   while ((m = re.exec(source))) {
     const clause = m[1] ?? "";

@@ -610,6 +610,51 @@ two-beat turn-in) lives in [contract.md](./contract.md).
   **multi-tender coverage** (`required-on-shift > 1`), and NPC
   **auto-collect** at shift-end.
 
+## ⭐ Who answers for you — `institutionPath` (2026-09)
+
+`EmployedMixin` carries one thing that is not employment: the **standing
+party that fields an actor**, which the harm ledger stamps onto every row
+as `killerFor` / `victimFor` ([accountability.md](./accountability.md)).
+
+```
+institutionPath() =  an authored `institution:`  →  the employer  →  null
+```
+
+⚠⚠ **It is not `directedBy`** — that is *episodic* (a captain's recorded
+order began this act) where this is *standing* (you are fielded by X,
+order or no order). A guard acting for the watch was not *directed* by
+the watch on this occasion, and conflating them would make every
+institutional act read as a command.
+
+⚠ **Resolved from the DECLARED affiliation, never the current
+location.** A guard who walks into a tavern does not become the tavern's.
+
+⚠ **Synchronous, and that is load-bearing** — combat appends its
+accountability rows in the *synchronous* prefix of the beat, because the
+coup choreography reads the ledger in the same turn as the killing blow.
+That is also why the design's third tier (`ParcelApi.ownerOf(<declared
+home>)`) is deferred: it is async, it has no consumer today
+(`_domicileAddress` is authored on exactly one row in the shipped world,
+and she is employed), and two of the three owner kinds would be wrong
+anyway — a wizard `group` and a `player` are not institutions.
+
+⭐ **Tier 2 was free.** The identity build expected to have to write the
+person→organization reverse lookup (`organization → people` shipped;
+`person → organization` did not). `getActiveEmployment()` was already it.
+
+⚠ It shipped as its own `AffiliatedMixin` and was **folded in during
+review**: a mixin whose composers are exactly one class (`Character`) is
+the mixin-on-the-wrong-host tell, and both shipped tiers are
+authored-or-employment. Split it back out if a third tier over ground
+title lands, or if a non-employable host ever needs fielding — by then
+there is a second composer to justify it.
+
+⚠⚠ **Only a BUSINESS roster materializes an `Employment` record.** The
+roster tick enumerates `mixin.BusinessMixin` and nothing else, so a plain
+`Organization`'s `rosterSlots:` resolves to nothing at runtime — which is
+why a role fielded by a body that does not trade (a watch) states its
+`institution:` outright, and why `lint:identity` credits only the former.
+
 ## History
 
 Built phase-by-phase (Jul 2026, `3785a763..4f24c15a`) from a since-retired

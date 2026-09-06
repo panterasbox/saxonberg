@@ -48,7 +48,7 @@ export default class CompetenceController extends RecordControllerBase<Competenc
     model: CompetenceModel,
     context: CommandContext,
   ): Promise<void> {
-    const actor = context.commandGiver as unknown as Stuff;
+    const actor = context.commandGiver;
     const asked = (model.subject ?? "").trim();
 
     let subject: Stuff = actor;

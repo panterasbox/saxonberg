@@ -10,10 +10,15 @@ could not get past it.
 > the npc's history and what things *would* aggregate to if real records
 > were modelled."**
 
-> **Status: design conversation, captured. Not requirements.**
+> **Status: ✅ SHIPPED 2026-09** — `design/dossier`, MR !248, permanent
+> record at [../../subsystems/identity.md](../../subsystems/identity.md).
+> This slate is now a **tail**: kept for the four questions the build did
+> not close (Q2 · Q3 · Q4 · Q5, below), not as a live proposal. Everything
+> above them is the design conversation as it happened; where it disagrees
+> with `identity.md`, the subsystem doc is right.
 
 **Read first:**
-[cast-archetype-slate](./cast-archetype-slate.md) — ⭐⭐⭐ **this slate is
+[cast-archetype-slate](../builds/cast-archetype-slate.md) — ⭐⭐⭐ **this slate is
 its Change 2 given a home.** That slate reached the same missing axis from
 the opposite direction (*"role is what you do, temperament is how you are,
 and the missing axis is where you stand"*) and settled two things this one
@@ -317,7 +322,7 @@ later at any price.
 > thinking is that they're only archetype and nothing else."**
 
 This is the same line as everything above, drawn at the class level — and
-[cast-archetype-slate](./cast-archetype-slate.md) had already reached it
+[cast-archetype-slate](../builds/cast-archetype-slate.md) had already reached it
 from the archetype side. Its answer stands and is not restated here:
 **one archetype, two compilation targets** — *a mask on a prop; a birth
 certificate on cast*. A lens is the same estimator with the save step
@@ -493,8 +498,9 @@ is a better outcome than the engine papering over it.
 
 *This section originally argued that an `Extra` should override
 `getIdentityPath()` to return its institution, on the sandbox `WireBody`
-precedent. **That was wrong and has been replaced** — see
-[identity-ledgers-plan](../../plans/identity-ledgers-plan.md) § D7.*
+precedent. **That was wrong and has been replaced** — the institution is a
+**second derived attribution**, and an `Extra` keeps its own identity. See
+[identity.md](../../subsystems/identity.md) § *Who answers for you*.*
 
 Two things broke it:
 
@@ -732,7 +738,14 @@ consumes, failing closed and silent.
    beside `directedBy` (plan § D7/D7c). It is also not free: the
    accountability producers key on `getTemplatePath()`, not
    `getIdentityPath()`, so seven call sites move with it.
-1. ⭐ **One document, or a block on the row?** The provocation says
+1. ✅ **CLOSED 2026-09-04 — a BLOCK ON THE ROW** (plan § D1). The
+   relationship is 1:1 with a row; `dispositions:` is the shipped
+   precedent for exactly this; and the deed-row hazard applies identically
+   either way, so separation bought no safety. Player dossiers stay with
+   char-gen. *Revisit only if a dossier must be edited independently of
+   its row (a CMS surface).* The original framing follows.
+
+   ⭐ **One document, or a block on the row?** The provocation says
    *"single document"*. A block keeps one file per character and matches
    how `dispositions:` already works; a `DocumentKinds` entry (the closed
    registry — `archetype` is the recent precedent) is separable,
@@ -742,22 +755,40 @@ consumes, failing closed and silent.
    instance and survive every re-mint, so **standing is cast-only and must
    be enforced rather than assumed** — a document keyed by path has
    exactly the same problem.
-2. **The materialized trio — seed-and-fold, or make them derive?**
+2. ⚠ **STILL OPEN — the build took seed-and-fold.** `RenownApi.seedTo`
+   appends evidence and schedules a **debounced** recompute (33 characters
+   seeding at boot produce one fold). Participation and influence stay
+   untouched, so their share of the trap stays somebody else's. The honest
+   fix below is unchanged, and the warning still lives in three docs.
+
+   **The materialized trio — seed-and-fold, or make them derive?**
    Triggering a recompute after seeding is the cheap fix. Making
    `renownOf` derive from the log like `transcripts` does is the honest
    one, and would delete a warning that is currently copy-pasted into
    three docs. Cost unknown; the boot-warmed map exists for a reason
    nobody has restated recently.
-3. **Does a seeded condition need a cause?** The clinic wants *"you have
+3. ⏸ **DEFERRED to the clinic by scoping** (plan § D3) — it is a third
+   shape and the build that needs it should settle it.
+
+   **Does a seeded condition need a cause?** The clinic wants *"you have
    to reason backwards to what you did"* — but a claim has `when = null`
    by construction, and an affliction's `symptomsAt` is exactly a *when*.
    A seeded illness may be a third kind: not a deed, not timeless
    backstory, but **an asserted event with an asserted time**. Settle
    before the clinic depends on it.
-4. **Do businesses and organizations get dossiers?** A firm's standing is
+4. ⚠ **STILL OPEN.** ⭐ The build made it more answerable rather than
+   less: a body of people now *has* a readable record
+   (`institutionRecordFor` — what it lost, what it answers for), so the
+   question narrows to whether it also gets an authored *history*.
+
+   **Do businesses and organizations get dossiers?** A firm's standing is
    as derived as a person's, and *"never half-grown"* argues for one
    substrate. Probably yes; deliberately out of the first build.
-5. **Where does char-gen land?** It already seeds chronicle claims from
+5. ⚠ **STILL OPEN**, and unchanged by the build — the dossier seeder and
+   `EnrollController` both call `seedChronicleClaims` and neither knows
+   about the other.
+
+   **Where does char-gen land?** It already seeds chronicle claims from
    `char-gen.yaml`, which is one of the two existing homes. Converging it
    onto the dossier would unify the last fragment — or would drag a
    player-facing intake flow into a content-authoring build for no gain.

@@ -121,6 +121,7 @@ behavior. Read the relevant doc before editing in its area.
   - [lifecycle.md](./docs/subsystems/lifecycle.md) — create/destroy choreography, construction sentinel, onDestruct
   - [residency.md](./docs/subsystems/residency.md) — object self-maintenance sweeps: self-eviction of the cold tail, `canEvict` veto, ResidencyLogic
   - [residence.md](./docs/subsystems/residence.md) — the dorm-room first home over Warren + parcels + spine; `(scope, key)` multi-instance persistence; DeferredDestinationExit; Katie
+  - [identity.md](./docs/subsystems/identity.md) — who a character IS: the `Cast`/`Extra` rungs (name OR the definite article), the authored dossier as seeded evidence + the archetype stamp, who answers for you, the three gates; ⭐ the Compact stays players-only by ARITHMETIC
   - [holding.md](./docs/subsystems/holding.md) — the residence ladder as ONE substrate: a holding is a warren one level down; Warren/Inner/Outer tiers, PlatPlan + the gate ring, the shell clock vs the goods clock, tenure terms, the D/P decision index
   - [state-model.md](./docs/subsystems/state-model.md) — what gets persisted; Avatar self-contained, Document track for auth/meta
   - [connection.md](./docs/subsystems/connection.md) — login/logout, WebSocket upgrade, Interactive/Login/Avatar handoff, multiplexing
@@ -842,16 +843,20 @@ platform/thing/FoldingChair` is ordinary OO and correct. Only classes that are
 
 **When a substrate class is also cloned generically, split it.** The
 abstract base stays in `lib/`; a thin concrete subclass in `platform/`
-absorbs the clones, and templates name that. Nine exist. **Eight
+absorbs the clones, and templates name that. Ten exist. **Seven
 deliberately share their base's name** (the import aliases it as
 `<Name>Base`; the module registry keys on class identity, not name):
-`platform/thing/Thing`, `platform/thing/Vessel`, `platform/agent/NPC`,
+`platform/thing/Thing`, `platform/thing/Vessel`,
 `platform/location/CartesianLocation`,
 `platform/location/SingletonCartesianLocation`, `platform/idea/Exit`,
-`platform/idea/material/Material`, `platform/idea/Biome`. **One is a real
-rename because it is a real concept**: `platform/agent/Corpse`
-(← `Creature`). ⭐ Sharing the name is the DEFAULT — a twin that renames
-is claiming to be a different thing, and had better be one.
+`platform/idea/material/Material`, `platform/idea/Biome`. **Three are
+real renames because they are real concepts**: `platform/agent/Corpse`
+(← `Creature`), and ⭐ `platform/agent/Extra` + `platform/agent/Cast`,
+where the concrete twin **split into two things** — `lib/npc/NPC`'s two
+identity rungs, a role and a person (`platform/agent/NPC` retired; see
+[docs/subsystems/identity.md](./docs/subsystems/identity.md)). ⭐ Sharing
+the name is the DEFAULT — a twin that renames is claiming to be a
+different thing, and had better be one.
 `platform/thing/Thing` was called `Prop` until 2026-09-03, which named
 nothing (there is no prop concept anywhere in the tree) and read as
 "generic object nobody cares about" — so nobody defended it, and a

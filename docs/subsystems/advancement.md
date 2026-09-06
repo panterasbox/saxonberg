@@ -310,9 +310,17 @@ exercisable standalone:
 - **`practice <discipline> [difficulty] [outcome]`** (`cmd/author/`,
   wizard-gated via `requiresWizard` + AuthorMixin visibility) — the
   harness that fabricates one `deed`, standing in for real practice.
-- **`competence`** (`cmd/charactergen/`, the `chronicle`-verb shape) — the
-  zero-arg, self-only, **bands-only** self-view; afforded by
-  `AdvancementMixin`'s static `commandContributions.self`.
+- **`competence [<subject>]`** (`cmd/charactergen/`, the `chronicle`-verb
+  shape) — the **bands-only** view; afforded by `AdvancementMixin`'s
+  static `commandContributions.self`. ⭐ **It takes a subject since the
+  identity build**, honouring the asymmetric read gate this doc already
+  specified: an authored character's competence is a fact about the world
+  any viewer may learn, a **player's** is their own and asking is
+  refused. ⚠⚠ It was zero-arg and self-only before, so *the gate was open
+  and there was no door* — nobody could ask what Dave is good at, and the
+  permission model was describing a capability that had never run.
+  Subject resolution is shared with `chronicle`
+  ([chronicle.md](./chronicle.md)).
 - **`flourish`** (`cmd/social/`) — a self-contained placeholder verb the
   Mixology Discipline confers at `competent`. It is in **no** static
   contribution, so seeing it appear IS the demonstration that advancement
@@ -375,6 +383,39 @@ taken, an armed opening an ally cashed, a captain's call landing, the
 coup directive, the formation shift), so a master/captain advances the
 one discipline that cannot be ground solo — the teaching payoff. See
 [combat-formations.md](./combat-formations.md).
+## ⭐⭐ Seeding a band — `Competence.seedRunFor`, the estimator's inverse
+
+The identity build settled the fork this doc named and could not close
+(*"which differ on whether `bandOf` stays a pure derivation"*): **a
+competence claim is SEEDED EVIDENCE, never a declared floor.** The
+chronicle/trait precedent had already answered it — seed evidence, mark
+it `claim`, and the derivation stays pure. A floor felt necessary only
+because nobody had the claim marker in view.
+
+`Competence.seedRunFor(band)` is the inverse of `bandOf`: the shortest
+run of `(difficulty, success)` rows whose fold lands exactly on `band`.
+It lives beside the estimator it inverts so the two cannot drift —
+re-legislate the constants and the seeds follow, which is the same
+re-scorability every ledger here has.
+
+⚠⚠ **It is SEARCHED rather than tabulated, and that is not decoration: a
+fixed difficulty cannot reach every band.** Measured against the shipped
+constants, a run of `easy` successes **saturates at θ≈0.612** — it can
+never reach `proficient`, however many you write — while `hard` reaches
+`expert` in four. A table would have silently produced a character who
+asserts `expert` and reads `competent`.
+
+⭐ Difficulties are tried in **ascending** order, so a character's seeded
+history is the gentlest one that honestly warrants the claim — and the
+arithmetic then says something true about the world: **you do not become
+an expert by doing ordinary things very often.** Nobody wrote that rule;
+it is the desirable-difficulty design showing through.
+
+`lint:dossiers` runs the same function and compares its fold to the
+author's `asserting:` — the assert-vs-derive check, possible only because
+the estimator is a pure function of its evidence. See
+[identity.md](./identity.md).
+
 ## Disciplines the food-safety build added
 
 - **`butchery`** — `specializes: cooking`. Two things answer to it and
@@ -389,6 +430,50 @@ one discipline that cannot be ground solo — the teaching payoff. See
   the spin-out seam: when ranching brings volume and `trade-butchery`
   leaves `trade-cooking`, the move carries a verb and a controller — not a
   skill model.
+
+## Disciplines the identity build added
+
+The 39-character content pass asked what each character is good at and
+found four crafts the register had no word for. ⭐ Each is anchored, and
+the anchor is what keeps the register from filling with **job titles**:
+
+> **A Discipline is a FIELD OF STUDY, not a JOB TITLE.** If you cannot
+> anchor it to a real ISCED-F code, it is not a Discipline — it is a
+> position, and positions live on a Business roster.
+
+The test settles the hard cases immediately: *"pantry hand"* anchors to
+nothing and correctly gets none (a hand practises their trade's
+Discipline); *mining* anchors to a real field and gets one.
+
+- **`mining`** — ISCED-F **0724** (mining and extraction). The metal
+  chain shipped `hew` / `drive` / `sink` / `shore` with **no Discipline
+  behind them**, so a hewer who had cut a hundred yards of drift read as
+  untrained at cutting rock. ⚠ A **sibling** of `colliery` (0722,
+  materials), not a duplicate: the collier chars **wood**, the hewer cuts
+  **rock**. Genuinely different fields, correctly different codes.
+- **`guarding`** — **1032** (protection of persons and property). The
+  watchpost sentry and Gus both do this for a living and the world had no
+  word for it. ⭐ It pairs with the institution rule: *the watch is the
+  body the sentry needs to answer to anyway*, so naming the craft and
+  naming the body landed in the same pass. `stealth` shares the code — a
+  **sibling**, and a pointed one: hiding from a watch and keeping one are
+  the same field studied from opposite ends.
+- **`brewing`** / **`winemaking`** — **0721**, both
+  `specializes: [fermenting]`, under *Prefer specializations* below.
+
+⚠ **Sharing an ISCED-F code does not argue against a split.**
+`distilling` already sits at 0721 beside `fermenting`. A shared code
+means the same *field*; it does not mean the same *practice*. The anchor
+answers *"is this a field of study at all?"*; the divergence test answers
+*"is it its own branch?"*
+
+⭐⭐ **And treat the catalogue as more careful than it looks.** Every
+anchor checked in that pass was deliberate, several carry their meaning
+as an inline comment, and the one that looked wrong (`colliery` at 0722 —
+suspected of meaning coal-mining) turned out to be right: this world's
+collier is unambiguously the charcoal-burner. A new Discipline should
+meet that standard — the code named, its meaning written beside it —
+rather than assuming the existing rows are loose.
 
 ## Deferred (seams left open)
 
