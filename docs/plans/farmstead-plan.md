@@ -85,7 +85,7 @@ W9's downstream ends:
 | assumed | actual | what W9 does instead |
 |---|---|---|
 | `tannin.yaml` ships (textiles) | no tannin, no `trade-dyeing` | hide ships as a **material + a thing**; tanning stays the seam it already was. Nothing in tier 1–2 tans. |
-| the cooking chain is `trade-cooking` | still `trade-hearth-cooking` | meat and tallow land in the shipped pack under its shipped name |
+| the cooking chain is `trade-cooking` | it was still `trade-hearth-cooking` when W9 ran; master renamed it to `trade-cooking` on 2026-09-02 and the catch-up merge brought that in | meat and tallow land in the shipped pack under its shipped name |
 | wool reaches "the textiles chain" | no `trade-textiles` | wool reaches the shipped **`base-library` `wool` material**, which gains `biologicalSource` — the half of AC 12 that is actually checkable here |
 
 ⭐ **This is a narrowing of AC 12's reach, not a weakening of it.** The

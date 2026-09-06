@@ -119,8 +119,25 @@ composing `FreshnessMixin`. CI-gating, no exemption list — a row that
 legitimately holds perishable matter on an inert class is a design
 conversation, not a list edit.
 
-⚠ **What the gate cannot see, stated rather than implied:** a RUNTIME
-`setMaterial(perishable)` onto a non-`Fresh` host. A gate reads authored
+⚠⚠ **The gate shipped with two blind spots, both found by the farmstead
+merge and both now closed.** It reads the class chain TEXTUALLY (a lint
+that boots the world is a lint nobody runs), and the two consequences of
+that were not free:
+
+- it read only the first identifier in an `extends` clause, so
+  `class HayBale extends SelfHeatingMixin(Provision)` resolved the
+  *mixin* and never the base carrying the gauge — a false alarm on a row
+  that was fine. It now follows **every** identifier in the clause,
+  because a composed base is a base;
+- more seriously, it matched `FreshnessMixin` **inside comments**, and
+  `lib/stuff/Thing.ts` carries the line *"`FreshnessMixin` is
+  deliberately NOT here."* Every row on the bare `/platform/thing/Thing`
+  therefore passed by reaching a sentence asserting the opposite — which
+  is the single largest class of offender the gate exists to catch. It
+  strips comments first now.
+
+⚠ **What the gate still cannot see, stated rather than implied:** a
+RUNTIME `setMaterial(perishable)` onto a non-`Fresh` host. A gate reads authored
 rows; it cannot read a craft's output assignment. The gap is narrow — the
 craft paths flow material onto outputs of known classes — and it is the
 price of the narrowing.

@@ -151,7 +151,12 @@ configured**.
   surface of a rock. The answer was that a food class already existed
   (`Provision`) and four rows were on the wrong one. ⚠ **This gate is
   what buys that narrowing**: a perishable material on a class that does
-  not compose the mixin would simply never rot, silently.
+  not compose the mixin would simply never rot, silently. ⚠⚠ Its textual
+  class walk was blind twice over until 2026-09-06 — it read only the
+  first identifier of an `extends` clause (missing a mixin-wrapped base)
+  and it matched the mixin name inside COMMENTS, so every bare `Thing`
+  row passed on a comment saying the mixin is deliberately NOT there. See
+  [spoilage.md](./subsystems/spoilage.md).
 - **`lint:world-scan`** — MQL is how you search: no bespoke
   `getAllObjects()` scans.
 

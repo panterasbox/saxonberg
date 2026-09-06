@@ -19,5 +19,5 @@ data:
   longDescription: >-
     Cut grass, still smelling green, with clover and a few seed heads
     through it. It will want turning before it is fit to stack.
-  _materialPath: /stuff/idea/material/food/root-vegetable
+  _materialPath: /stuff/idea/material/food/hay
   mass: 1

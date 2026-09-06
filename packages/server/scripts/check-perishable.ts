@@ -102,6 +102,21 @@ function templateRows(): Row[] {
 }
 
 /**
+ * The source with its comments removed.
+ *
+ * ⚠⚠ **Load-bearing, and the gate was blind without it.** The check below
+ * is `src.includes('FreshnessMixin')`, and `lib/stuff/Thing.ts` carries
+ * the line *"`FreshnessMixin` is deliberately NOT here"* — so every row on
+ * the bare `/platform/thing/Thing` satisfied the gate by reaching a
+ * comment that says the opposite of what the gate concluded. That is the
+ * single largest class of offender this file exists to catch, and it
+ * passed silently.
+ */
+function stripComments(src: string): string {
+  return src.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/\/\/[^\n]*/g, ' ');
+}
+
+/**
  * Whether a class module's composition reaches `FreshnessMixin` — the
  * declared base chain, followed through `extends` and the import that
  * names the base.
@@ -119,19 +134,30 @@ function reachesFreshness(
   seen.add(classPath);
   const file = classFileOf(classPath, sources);
   if (!existsSync(file)) return false;
-  const src = readFileSync(file, 'utf8');
+  const src = stripComments(readFileSync(file, 'utf8'));
   if (src.includes(REQUIRED_MIXIN)) return true;
-  // Follow the one base class this module extends, wherever it lives.
-  const ext = /class\s+\w+\s+extends\s+(\w+)/.exec(src);
+  /*
+   * Follow the base this module extends, wherever it lives.
+   *
+   * ⚠ The extends clause is rarely a bare name: `class HayBale extends
+   * SelfHeatingMixin(Provision)` is the ordinary shape, and reading only
+   * the first identifier resolves the MIXIN and never the class that
+   * actually carries the gauge. That reported a row as unable to rot
+   * when its base composes `FreshnessMixin` two levels up. So take every
+   * identifier in the clause and follow each — a composed base is a base.
+   */
+  const ext = /class\s+\w+\s+extends\s+([^{]+)\{/.exec(src);
   if (!ext) return false;
-  const base = ext[1]!;
-  const imp = new RegExp(
-    `import\\s+(?:\\{[^}]*\\b${base}\\b[^}]*\\}|${base})\\s+from\\s+['"]([^'"]+)['"]`,
-  ).exec(src);
-  if (!imp) return false;
-  const resolved = resolve(dirname(file), imp[1]!);
-  const rel = '/' + relative(MUD, resolved).split('\\').join('/');
-  return reachesFreshness(rel, sources, seen);
+  for (const base of ext[1]!.match(/[A-Za-z_$][\w$]*/g) ?? []) {
+    const imp = new RegExp(
+      `import\\s+(?:\\{[^}]*\\b${base}\\b[^}]*\\}|${base})\\s+from\\s+['"]([^'"]+)['"]`,
+    ).exec(src);
+    if (!imp) continue;
+    const resolved = resolve(dirname(file), imp[1]!);
+    const rel = '/' + relative(MUD, resolved).split('\\').join('/');
+    if (reachesFreshness(rel, sources, seen)) return true;
+  }
+  return false;
 }
 
 function main(): void {

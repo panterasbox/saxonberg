@@ -10,5 +10,5 @@ data:
   keywords: [clover, crop]
   longDescription: |
     Clover hay, leafier and sweeter-smelling than grass hay, and worth more per pound to anything that eats it.
-  material: /stuff/idea/material/food/root-vegetable
+  material: /stuff/idea/material/food/hay
   mass: 20
