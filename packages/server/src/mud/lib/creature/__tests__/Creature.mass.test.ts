@@ -136,13 +136,38 @@ describe('Species size — own, else the plan, else zero', () => {
   }
 
   it("a species override wins over the plan", () => {
+    // ⚠⚠ RETARGETED by the farmstead merge, and the intent is unchanged.
+    // `Creature.getMass()` no longer consults `Species.baseMass` at all:
+    // that field is a body-SHAPE default (every quadruped shares one
+    // number, so it cannot tell a cow from a collie), and the honest
+    // per-species number is `adultMass` walked down the maturation
+    // curve. With no curve authored `massAt` returns the adult mass
+    // outright, which is what this asserts.
+    //
+    // ⭐ The old assertion — species.baseMass beating plan.baseMass —
+    // was testing a precedence the engine stopped having. It failed
+    // loudly on the merge rather than silently agreeing, which is the
+    // only reason this was noticed.
+    const { species, creature } = sized(
+      { baseMass: 125, stature: 2.0 },
+      { baseMass: 70, baseStature: 1.75 },
+    );
+    species.setAdultMass(125);
+    expect(species.getStature()).toBe(2.0);
+    expect(creature.getMass().rawValue()).toBe(125);
+  });
+
+  it("⚠ Species.baseMass no longer drives a creature's mass", () => {
+    // It is still live for combat's structural read
+    // (`CombatLogic` → `NaturalBodyRead`), so it is not dead — it just
+    // stopped being the mass answer. Stating the narrowing explicitly so
+    // the next person does not have to infer it from a merge.
     const { species, creature } = sized(
       { baseMass: 125, stature: 2.0 },
       { baseMass: 70, baseStature: 1.75 },
     );
     expect(species.getBaseMass()).toBe(125);
-    expect(species.getStature()).toBe(2.0);
-    expect(creature.getMass().rawValue()).toBe(125);
+    expect(creature.getMass().rawValue()).toBe(70); // the PLAN's
   });
 
   it("an absent override inherits the plan", () => {
