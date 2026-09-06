@@ -25,6 +25,8 @@ import { MixinApi } from "../../../../api/mixin";
 import { MessageApi } from "../../../../api/message";
 import { Mml } from "../../../../api/mml";
 import { StuffApi } from "../../../../api/stuff";
+import { Contamination } from '../../../../lib/material/Contaminable';
+import { Freshness } from "../../../../lib/material/Freshness";
 
 const TOPIC = "act.deed";
 /** A standard manual pour (≥ every demo recipe's per-slot measure). */
@@ -106,6 +108,10 @@ export default class PourController extends ManualBuildController<PourModel> {
       beginSelf: Mml.compose`You start pouring ${Mml.thing(bottle)} into ${Mml.thing(vessel)}.`,
       beginPeers: Mml.compose`${Mml.actor(giver)} starts pouring ${Mml.thing(bottle)} into ${Mml.thing(vessel)}.`,
       onComplete: () => {
+        // ⚠ Read the spoilage BEFORE the draw — a full drain clears the
+        // source's payload, and the gauge rides the payload.
+        const freshnessLoad = Freshness.loadOf(slot);
+        const pathogenLoads = Contamination.loadsFor(slot);
         const result = BulkableApi.transfer(slot, null, {
           kind: "measure",
           litres: STANDARD_POUR_L,
@@ -125,6 +131,8 @@ export default class PourController extends ManualBuildController<PourModel> {
           measureL: result.applied,
           gradeBand,
           materialPath: material?.getTemplatePath() ?? undefined,
+          freshnessLoad,
+          pathogenLoads,
         });
         vessel.recordCommand(commandText);
         MessageApi.scene(giver)
@@ -171,6 +179,12 @@ export default class PourController extends ManualBuildController<PourModel> {
             : 1,
           tags: [...material.getTags()],
           materialPath: material.getTemplatePath() ?? undefined,
+          pathogenLoads: MixinApi.isContaminable(ingredient)
+            ? ingredient.getPathogenLoads()
+            : {},
+          freshnessLoad: MixinApi.isFresh(ingredient)
+            ? ingredient.getMicrobialLoad()
+            : 0,
         });
         build.recordCommand(commandText);
         MessageApi.scene(giver)

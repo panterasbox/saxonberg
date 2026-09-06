@@ -38,6 +38,30 @@ const cast = () => readdirSync(`${VENUE}agent/`).filter((f) => f.endsWith('.yaml
 const shiftsOf = (row: Row) => row.data.behaviors?.find((b) => b.brain === '/lib/behavior/shifts');
 
 class Post extends ContainerMixin(ContainableMixin(Idea)) { static _mixinName = 'Post'; }
+
+/**
+ * Give a stand-in cast member a RESOLVED employment record.
+ *
+ * ⚠ The `shifts` brain migrates nobody whose roster has not resolved: an
+ * empty employment store means *"not known yet"*, not *"off duty"* — the
+ * conflation that used to teleport this venue's cook out of his own
+ * kitchen a beat after residency spawned him. This test is about WHICH
+ * ROOM the cast parks in, so its stand-ins need a record for the
+ * migration to be reached; the status is irrelevant here because
+ * `shiftStateOf` is mocked per phase.
+ */
+function employ(host: Stuff): void {
+  (host as unknown as { employments: unknown[] }).employments = [
+    {
+      organizationPath: '/org/test',
+      positionKey: 'cast',
+      status: 'off-shift',
+      hiredAt: 0,
+      onShiftSince: null,
+    },
+  ];
+}
+
 class Mover extends EmployedMixin(MobileMixin(ContainableMixin(Idea))) {
   static _mixinName = 'Mover';
 }
@@ -72,6 +96,7 @@ describe('the lounge parks its cast through Offstage', () => {
     const members = cast()
       .filter(([, row]) => shiftsOf(row))
       .map(([f, row]) => ({ f, cfg: shiftsOf(row)!.config!, npc: makeStuff(() => new Mover()) }));
+    for (const m of members) employ(m.npc);
     const ctx = (m: (typeof members)[number]): BrainContext =>
       ({ host: m.npc, config: m.cfg, state: {}, trigger: { source: 'cadence', raw: 'cadence:30s' } } as unknown as BrainContext);
 

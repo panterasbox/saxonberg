@@ -1,0 +1,16 @@
+# The butcher's block — end-grain elm, scrubbed pale, scored to a shallow
+# dish in the middle by however many years of work.
+#
+# ⭐ It is what affords `butcher`. The act itself still wants an edge in
+# reach (any `bladed` construction — a boning knife, a clasp knife); the
+# block is how you learn the verb exists by walking into a kitchen.
+class: /trade/cooking/thing/ButcherBlock
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a butcher's block
+  primaryKeyword: block
+  keywords: [block, butcher, butchers-block, bench]
+  longDescription: |
+    A squat block of end-grain elm on four legs, scrubbed pale and scored to a shallow dish in the middle. The near edge is darker than the rest, the way a thing goes when hands have rested on it for years.
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 60

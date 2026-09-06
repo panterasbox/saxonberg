@@ -1,0 +1,31 @@
+# ⭐ THE FLOOR OF THE GRID, and half of its central lesson. Roots and water
+# at a boil: the cheapest, easiest, most forgiving thing a kitchen does.
+# Pair it with `roasted-roots` — the SAME two roots, dry, at 430 K — and
+# the difference between them is not a table anybody wrote. It is that
+# water stops at 373 and browning does not start until later.
+recipeId: boiled-roots
+name: Boiled Roots
+keywords:
+- boiled-roots
+- boiled
+inputSlots:
+- slot: water
+  category: water
+  minGrade: fair
+  kind: bulk
+  measureL: 0.4
+- slot: roots
+  category: vegetable
+  minGrade: poor
+  kind: item
+  count: 2
+toolCapabilities:
+- pot
+outputTemplate: /stuff/thing/items/bowl
+outputAppearance: pale boiled roots in their own thin liquor
+outputApplication: edible
+outputPortionL: 0.4
+requiresHeatK: 373
+medium: water
+difficulty: trivial
+discipline: cooking

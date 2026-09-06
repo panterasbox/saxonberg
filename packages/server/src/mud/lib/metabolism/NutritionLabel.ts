@@ -24,6 +24,7 @@ import type { Stuff } from "../stuff/Stuff";
 import type { MarkupAugmenter } from "../../api/mml";
 import { MixinApi } from "../../api/mixin";
 import type Material from "../material/Material";
+import { BlendLabel } from "./BlendLabel";
 
 /**
  * Render the nutrition label lines from the given face (a Material's
@@ -88,16 +89,19 @@ interface LabelFace {
 function labelFaceOf(host: Stuff): LabelFace | null {
   if (MixinApi.isBulkable(host)) {
     const aff = host.hasInteriorBulk() ? 'interior' : 'surface';
+    // ⭐ One derivation, both cases. `BlendLabel` reads the composition
+    // when there is one and falls back to the held Material when there
+    // is not, so the two arms this used to have — "the blend's own
+    // figures" and "the bare material's" — are the same call.
     const payload = host.getBulkPayload(aff);
-    if (payload && payload.edible) {
+    const held = host.getBulkMaterial(aff);
+    if (BlendLabel.isEdible(payload, held)) {
       return {
         edible: true,
-        nutrientAmounts: payload.nutrientAmounts,
-        toxicity: payload.toxicity,
+        nutrientAmounts: BlendLabel.amountsOf(payload, held),
+        toxicity: BlendLabel.toxicityOf(payload, held),
       };
     }
-    const held = host.getBulkMaterial(aff);
-    if (held && held.getEdibility() === true) return faceOfMaterial(held);
   }
   const own = MixinApi.isTangible(host) ? host.getMaterial() : null;
   return own ? faceOfMaterial(own) : null;

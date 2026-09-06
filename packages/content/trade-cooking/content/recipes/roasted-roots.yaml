@@ -1,0 +1,24 @@
+# ⭐ The other half of the Maillard pair. Identical stock to
+# `boiled-roots`, no water, and 430 K — which a hearth can deliver and a
+# pot of water can never carry. That is browning, and it is the whole
+# reason a cook chooses a method rather than being told one.
+recipeId: roasted-roots
+name: Roasted Roots
+keywords:
+- roasted-roots
+- roasted
+inputSlots:
+- slot: roots
+  category: vegetable
+  minGrade: fair
+  kind: item
+  count: 2
+toolCapabilities:
+- pot
+outputTemplate: /stuff/thing/items/platter
+outputAppearance: roots roasted dark at the edges, sweet and caramelised
+outputApplication: edible
+outputPortionL: 0.4
+requiresHeatK: 430
+difficulty: standard
+discipline: cooking

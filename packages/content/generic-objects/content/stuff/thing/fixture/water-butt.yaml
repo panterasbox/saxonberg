@@ -1,0 +1,24 @@
+# The water butt — a standing barrel of water, and the water source for
+# any floor that has no plumbing to put a basin on.
+#
+# The basin's exact part (an `UnboundedReceptacle` whose interior is
+# water) with none of the basin's implied tier: a cookhouse, a yard, a
+# camp kitchen and a farmhouse all have one, and none of them has a tap.
+# ⚠ Keep it tier-agnostic the way `basin.yaml` is — nothing here says
+# where or when it stands.
+#
+# It earns its place because wet cooking now REQUIRES water: a recipe
+# declaring `medium: water` must match an input carrying the `water` tag,
+# so a kitchen with no water source cannot boil, which is correct and
+# would otherwise be an accident.
+class: /platform/thing/WaterFixture
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a water butt
+  primaryKeyword: water-butt
+  keywords: [water-butt, butt, barrel, cask, water, rainwater]
+  longDescription: |
+    A broad oak barrel standing against the wall, hooped in iron and dark with damp, brim-full of cold water. A tin dipper hangs from a nail beside it.
+  interiorBulk: true
+  interiorMaterial: /stuff/idea/material/bulk/water
+  mass: 60

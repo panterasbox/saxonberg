@@ -30,6 +30,28 @@ class Mover extends EmployedMixin(MobileMixin(ContainableMixin(Idea))) {
   static _mixinName = 'Mover';
 }
 
+/**
+ * Give a host a RESOLVED employment record.
+ *
+ * ⚠ The brain migrates nobody whose roster has not resolved — an empty
+ * employment store means *"not known yet"*, not *"off duty"* (it is what
+ * used to teleport the Hearthworks cook out of his own kitchen). This test
+ * is about which ROOM each venue's cast parks in, so its movers need a
+ * record for the migration to be reached at all; the status below is
+ * irrelevant because `shiftStateOf` is mocked per phase.
+ */
+function employ(host: Stuff): void {
+  (host as unknown as { employments: unknown[] }).employments = [
+    {
+      organizationPath: '/org/test',
+      positionKey: 'tender',
+      status: 'off-shift',
+      hiredAt: 0,
+      onShiftSince: null,
+    },
+  ];
+}
+
 function ctxFor(host: Stuff, offstage: string): BrainContext {
   return {
     host,
@@ -66,6 +88,8 @@ describe('Offstage — the off-shift parking role', () => {
     );
     const bartender = makeStuff(() => new Mover());
     const cook = makeStuff(() => new Mover());
+    employ(bartender);
+    employ(cook);
     ContainmentApi.move(bartender, post);
     ContainmentApi.move(cook, post);
 

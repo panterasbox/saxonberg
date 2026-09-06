@@ -1,0 +1,14 @@
+# Syrup bottle — the receptacle the simple-syrup recipe FILLS from the pool
+# (a `bulk` output claims a clean, empty CraftVessel; nothing is cloned).
+# Over `/platform/thing/CraftVessel` because the pool requires Crafted +
+# Bulkable — a `Bottle` is a floor vessel, never a claimable output.
+class: /platform/thing/ServingVessel
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a syrup bottle
+  longDescription: A squat half-litre bottle with a pouring spout.
+  primaryKeyword: syrup-bottle
+  keywords: [syrup-bottle, bottle, syrup]
+  category: syrup-bottle
+  interiorBulk: true
+  interiorCapacity: 0.5

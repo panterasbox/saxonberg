@@ -19,6 +19,15 @@ alongside this.
 | Generic capability | `ThermalMixin` | a bulk `getTemperature()` | any Tangible+Containable Stuff (thermos, corpse, campfire, body) |
 | Living regulation | `ThermalRegulationMixin` | `coreTemperature` (Vitals) | every `Creature` (composes over `ThermalMixin`) |
 
+⭐ **Food is a Thermal host, and that is not decoration.** `Prop` and
+`Provision` — the classes every food row in the library is over — compose
+`ThermalMixin` since the cooking build, because the spoilage gauge asks
+its host what temperature it is. A cold larder and a warm windowsill are
+then different answers to the same question, for free, and preservation
+becomes a subject rather than a flag. Thermal is reconcile-on-read and
+costs nothing until something reads it, so the anvil and the toilet carry
+it unharmed. See [spoilage.md](./spoilage.md).
+
 A bare `Thermal` object drifts toward ambient. The regulation layer
 defends a setpoint by spending metabolism's reserves; when it fails (out
 of fuel, an ectotherm, a corpse) the body falls back to the passive

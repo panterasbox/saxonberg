@@ -9,6 +9,6 @@
  * subdivide, transfer) is its own.
  */
 
-import Prop from "@saxonberg/server/mud/platform/thing/Thing";
+import Thing from "@saxonberg/server/mud/platform/thing/Thing";
 
-export default class DeedDesk extends Prop {}
+export default class DeedDesk extends Thing {}

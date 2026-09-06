@@ -15,6 +15,8 @@ import { BulkableApi } from '../../../../api/bulk';
 import { MixinApi } from '../../../../api/mixin';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
+import { Freshness } from "../../../../lib/material/Freshness";
+import { BlendIdentity } from "../../../../lib/craft/BlendIdentity";
 
 const TOPIC = 'act.deed';
 
@@ -57,7 +59,9 @@ export default class DrinkController extends CommandController<DrinkModel> {
     // Capture the material BEFORE the transfer empties (and clears) the
     // slot, for the ingest hand-off and the prose.
     const material = fromSlot.getMaterial();
-    const payload = fromSlot.getPayload();
+    // ⭐ The INGEST payload, not the stored one: whatever the matter
+    // has spoiled into rides along with it (see `Freshness.withDose`).
+    const payload = Freshness.ingestPayloadOf(fromSlot);
     // …and, for an IDENTIFIABLE substance, capture how it looked to this
     // drinker before they swallowed it. Taken here on purpose:
     // swallowing an unidentified draught may teach you what it was
@@ -113,7 +117,7 @@ export default class DrinkController extends CommandController<DrinkModel> {
     const drunk = seenAs
       ? Mml.compose`You drink ${seenAs}.`
       : Mml.compose`You drink the ${
-          payload?.appearance ?? (material?.getAppearance() || 'it')
+          BlendIdentity.appearanceOf(payload, material) || 'it'
         }.`;
     MessageApi.scene(giver)
       .topic(TOPIC)

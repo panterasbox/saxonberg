@@ -5,7 +5,7 @@
  * the one verified by-hand performance; a *watching* bystander gains the
  * known-of claim but `forge` still declines for them (information buys
  * optimization, never competence); `order` works for everyone
- * throughout. The same deed gate is asserted for cooking in the hearth-cooking pack's `knowledge-gate.test.ts`. Craft-resolve
+ * throughout. The same deed gate is asserted for cooking in the cooking pack's `knowledge-gate.test.ts`. Craft-resolve
  * appends Transcript rows against the seeded disciplines at the authored
  * difficulty; recipes authoring no discipline (the bar's) append
  * nothing.

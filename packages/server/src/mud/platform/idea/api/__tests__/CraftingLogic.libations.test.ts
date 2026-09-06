@@ -41,6 +41,7 @@ import Receptacle from '../../../thing/Receptacle';
 import CraftVessel from '../../../thing/CraftVessel';
 import ToolItem from '../../../thing/ToolItem';
 import RecipeCatalogue from '../../RecipeCatalogue';
+import { BlendLabel } from '../../../../lib/metabolism/BlendLabel';
 import {
   makeStuff,
   makeStuffAtPath,
@@ -438,7 +439,9 @@ describe('the recipe substrate (1d)', () => {
       6,
     );
     // Carbonation rides the payload; the presentation reads it.
-    expect(slot(highball).getPayload()?.tags).toContain('carbonated');
+    expect(
+      BlendLabel.tagsOf(slot(highball).getPayload(), slot(highball).getMaterial()),
+    ).toContain('carbonated');
     expect(highball.getLong()).toMatch(/fizzing/);
     expect(highball.getLong()).toMatch(/on the rocks/);
 
@@ -515,7 +518,9 @@ describe('the recipe substrate (1d)', () => {
     expect(out.output).toBe(bottle);
     expect(lime.isDestroyed()).toBe(true);
     expect(slot(bottle).getAmount().rawValue()).toBeCloseTo(0.03, 6);
-    expect(slot(bottle).getPayload()?.tags).toContain('lime');
+    expect(
+      BlendLabel.tagsOf(slot(bottle).getPayload(), slot(bottle).getMaterial()),
+    ).toContain('lime');
     expect((bottle as CraftVessel).getTechnique()).toBe('built');
   });
 });

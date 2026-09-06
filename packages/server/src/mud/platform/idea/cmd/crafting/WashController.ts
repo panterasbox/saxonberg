@@ -20,7 +20,6 @@ import { MixinApi } from "../../../../api/mixin";
 import { MessageApi } from "../../../../api/message";
 import { Mml } from "../../../../api/mml";
 import { BulkableApi } from "../../../../api/bulk";
-import CraftVessel from "../../../thing/CraftVessel";
 
 const TOPIC = "act.deed";
 const WASH_MS = 3000;
@@ -33,7 +32,17 @@ export default class WashController extends ManualBuildController<WashModel> {
   execute(model: WashModel, context: CommandContext): void {
     const giver = context.commandGiver;
     const glass = model.glass?.stuff ?? null;
-    if (!(glass instanceof CraftVessel)) {
+    // ⭐ **Washing is not a glassware verb.** It was `instanceof
+    // CraftVessel`, which is why a knife could not be washed at all — and
+    // a knife is the one implement in the kitchen that most needs it, the
+    // whole counterplay to cross-contamination. Anything that gets
+    // SOILED or gets DIRTY can be washed; the two are separate facts and
+    // a target may be either or both.
+    const serviceable =
+      glass !== null && MixinApi.isServiceable(glass) ? glass : null;
+    const contaminable =
+      glass !== null && MixinApi.isContaminable(glass) ? glass : null;
+    if (glass === null || (serviceable === null && contaminable === null)) {
       this.declineStep(context, Mml.compose`Wash what?`, "no-glass");
       return;
     }
@@ -51,7 +60,16 @@ export default class WashController extends ManualBuildController<WashModel> {
       durationMs: WASH_MS,
       beginSelf: Mml.compose`You take ${Mml.thing(glass)} to ${Mml.thing(water)}.`,
       onComplete: () => {
-        glass.wash();
+        // The serviceware half: dregs out, garnish out, ice tipped, the
+        // soil mark cleared so the pool will claim it again.
+        serviceable?.wash();
+        // ⭐⭐ The contamination half, and it is the counterplay the whole
+        // build turns on. ⚠ It clears the SURFACE and never the contents:
+        // washing a pot of bad stew is not a cure for the stew. (On a
+        // `CraftVessel` the serviceware wash has already tipped the dregs,
+        // so the ordering is not load-bearing — but the two acts are
+        // different and the comment is what keeps them apart.)
+        contaminable?.clearContamination();
         MessageApi.scene(giver)
           .topic(TOPIC)
           .toSelf(Mml.compose`You wash ${Mml.thing(glass)} clean.`)

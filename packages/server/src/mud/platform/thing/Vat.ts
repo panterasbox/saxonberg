@@ -29,10 +29,13 @@ import { FermentingMixin } from '../../lib/ferment/Fermenting';
 import { Quantity } from '../../lib/quantity';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
+import { VesselKindMixin } from '../../lib/bulk/VesselKind';
 
-const VatBase = FermentingMixin(
+const VatBase = VesselKindMixin(
+  FermentingMixin(
   CraftedMixin(
     SealableMixin(ThermalMixin(BulkableMixin(DetailedMixin(Thing)))),
+  ),
   ),
 );
 

@@ -374,7 +374,7 @@ data:
     everything twice.
   roleConfig:
     consigns:
-      stock: /trade/hearth-cooking/thing/pantry-stock
+      stock: /trade/cooking/thing/pantry-stock
       shelf: /trade/distilling/thing/counter
       ask: { pantry:sugar: 8, pantry:salt: 5, pantry:coffee: 22, pantry:syrup: 6 }
     idles:

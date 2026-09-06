@@ -307,6 +307,9 @@ export const Mixins = {
   Forkable: 'ForkableMixin',
   Globbable: 'GlobbableMixin',
   Bulkable: 'BulkableMixin',
+  VesselKind: 'VesselKindMixin',
+  Cutlery: 'CutleryMixin',
+  Serviceable: 'ServiceableMixin',
   UnboundedSource: 'UnboundedSourceMixin',
   Engaged: 'EngagedMixin',
   Atmospheric: 'AtmosphericMixin',
@@ -332,11 +335,26 @@ export const Mixins = {
   Identifiable: 'IdentifiableMixin',
   Metabolic: 'MetabolicMixin',
   NutritionLabel: 'NutritionLabelMixin',
+  // The derived taste reading, projected through the taster's own
+  // competence in the discipline that MADE the thing.
+  Palatable: 'PalatableMixin',
   Thermal: 'ThermalMixin',
   ThermalRegulation: 'ThermalRegulationMixin',
   Respiration: 'RespirationMixin',
   // The cross-cutting wetness gauge — any Thing / body can be wet.
   Wet: 'WetMixin',
+  // The cross-cutting spoilage gauge — any Thing can go off (inert until
+  // its Material tabulates a spoilage activation energy).
+  Fresh: 'FreshnessMixin',
+  // The per-instance water state — drying and curing, the levers that
+  // move a thing's effective water activity off its Material's tabulated
+  // base. NOT the spoilage gauge: this is the matter, that is the
+  // population living in it.
+  Cured: 'CuredMixin',
+  // The SECOND population — event-seeded, silent, and carried between
+  // objects rather than grown from nothing. Not the spoilage gauge: that
+  // is a clock, this is a consequence.
+  Contaminable: 'ContaminableMixin',
   // The living-world growth model — a cultivated thing that grows.
   Growing: 'GrowingMixin',
   // Soil that keeps its own time: a moisture + nutrient reserve, a

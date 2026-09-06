@@ -64,7 +64,8 @@ describe('the hearthworks venue pack props/cast rows the packs ship at those pat
       '/trade/smithing/thing/whetstone', '/trade/smithing/thing/workbench',
     ]);
     expect([...seen].filter((p) => p.startsWith('/stuff/thing/items/')).sort()).toEqual([
-      '/stuff/thing/items/dry-log', '/stuff/thing/items/hide-stock', '/stuff/thing/items/plated-dish', '/stuff/thing/items/prime-cut',
+      '/stuff/thing/items/bowl', '/stuff/thing/items/dry-log', '/stuff/thing/items/hide-stock',
+      '/stuff/thing/items/plated-dish', '/stuff/thing/items/platter', '/stuff/thing/items/prime-cut',
       '/stuff/thing/items/ration-stock', '/stuff/thing/items/root-vegetables', '/stuff/thing/items/stew-meat', '/stuff/thing/items/wet-log',
     ]);
     expect([...seen].filter((p) => p.startsWith('/world/hearthworks/')).sort()).toEqual([

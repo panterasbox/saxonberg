@@ -203,6 +203,34 @@ At `spent` the corpse **stops vetoing `canEvict`** rather than destructing
 — withdrawing an objection, so goods on it evacuate through shipped
 container behaviour instead of dying with it.
 
+### ⭐⭐ `sinceDeath()` is public, and butchering reads it
+
+The food-safety build made the clock a second reader's input, and the
+reason is worth stating: **a knife must not reset a clock that has been
+running since the animal died.** If the cuts' spoilage gauge started at
+the butchering, a player could kill a boar, leave it lying three days,
+come back, and get *fresh meat* — a free lunch of exactly the shape the
+cooking build closed when it made the kill step deposit the dose the
+population had already earned. The failure is silent and reads as
+generosity.
+
+So `butcher` derives the cuts' initial microbial load from `sinceDeath()`
+at the carcass's own temperature. Field dressing is time-critical, and the
+cellar earns its keep from the first kill.
+
+⚠ **The two clocks stay separate.** This one stays forensic and keeps its
+own stages; spoilage reads it as an *input*. Nothing fuses them, and
+`Creature` composes no `FreshnessMixin` — see [spoilage.md](./spoilage.md).
+
+⚠⚠ **And a corpse's species must be WARMED before it is asked anything.**
+A `Species` Idea is not resident at boot, and `SpeciesApi.isSentient`
+answers **false** for one that is not — so the "you cannot butcher a
+person" gate failed *open* on any corpse whose species nobody had touched
+yet. The live drive is what found it. `ButcherController` calls
+`SpeciesApi.preloadAnatomy` first and refuses outright on a species it
+cannot resolve; anything else reading a corpse's species should do the
+same. (The reference-Ideas-inert-at-boot trap, third recurrence.)
+
 ## The doctrinal split
 
 race.md's **death ≠ destruction** holds, and the axis is whether an

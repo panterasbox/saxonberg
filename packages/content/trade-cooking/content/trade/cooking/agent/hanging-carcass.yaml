@@ -1,0 +1,27 @@
+# The carcass hanging in the cookhouse — a dressed hog on a hook.
+#
+# ⭐⭐ **It ships so that butchering is learnable where the trade is
+# practised.** A cook should not have to hunt before they can find out what
+# a knife does to a carcass; a victualler's kitchen has always had one of
+# these hanging in it, and this is that.
+#
+# It is a real `Corpse` — the same class a death mints — so `butcher` needs
+# no special case for it and everything downstream (the cuts, the gut
+# spill, the knife that carries it away) is the ordinary path.
+#
+# ⚠ `diedAtGameSec` is left at its default, so `sinceDeath()` reads null
+# and the cuts come off at the inoculum: this one was hung this morning.
+# A carcass that had been lying in the sun is a different animal, and the
+# arithmetic for it is the same one — see the `butcher` verb's help.
+class: /platform/agent/Corpse
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  _speciesPath: /stuff/idea/species/hog
+  lifecycleState: dead
+  shortDescription: a hog carcass on a hook
+  primaryKeyword: carcass
+  keywords: [carcass, hog, pig, body, hook]
+  longDescription: >-
+    A dressed hog hangs head-down from a hook in the rafters, split and
+    scraped and gone cold. Somebody has already done the hard part; what
+    is left is knife work.

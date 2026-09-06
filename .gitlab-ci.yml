@@ -85,101 +85,16 @@ lint:
   # warnings (e.g. unused vars) that don't fail the build.
   script:
     - pnpm lint
-    # Persistence-gating lockdown: PersistenceManager.get() only via the
-    # PersistApi facade / sanctioned framework boundary.
-    - pnpm -C packages/server lint:pm
-    # The driver/mudlib import boundary: nothing under src/mud/ imports
-    # outside the tree (Node built-ins included) but the Api tier.
-    - pnpm -C packages/server lint:imports
-    # Materials-response legibility: no construction/implement does nothing.
-    - pnpm -C packages/server lint:does-nothing
-    # Weapon-playstyle legibility: no seeded weapon derives an inert profile.
-    - pnpm -C packages/server lint:inert-weapon
-    # No-module-scope-statements rule: module scope declares; lifecycles
-    # initialize (the 2026-07 antipattern sweep's tripwire).
-    - pnpm -C packages/server lint:module-scope
-    # MQL is how you search: no bespoke getAllObjects() scans.
-    - pnpm -C packages/server lint:world-scan
-    # No thin Api wrapper around a single object method.
-    - pnpm -C packages/server lint:thin-forwarder
-    - pnpm -C packages/server lint:object-verbs
-    # The combat engine branches on physics; dynamics come through hooks.
-    - pnpm -C packages/server lint:combat-dynamics
-    # Field metadata is ONE field-keyed static: no legacy
-    # persistentFields/fieldMarshallers/instructionFields/globIdentityFields
-    # coming back, and every `fieldMeta` entry well-formed. Registration
-    # only validates classes it loads; this sees the whole tree.
-    - pnpm -C packages/server lint:field-meta
-    # Nothing instances /lib/: no template's class: resolves to substrate,
-    # no template path lives under /lib/, and hydratorClass is neither
-    # redundant nor missing where there is data to apply.
-    - pnpm -C packages/server lint:instanceable
-    # Descriptor banks stay disjoint from the materials vocabulary
-    # (names ∪ keywords ∪ appearance words). A collision is a PARSER
-    # ambiguity bug, not a style wobble — and it fires in both
-    # directions, so a new MATERIAL colliding with a shipped descriptor
-    # is caught too. That is the direction nobody thinks to check.
-    - pnpm -C packages/server lint:descriptors
-    # Topic vocabulary totality. Every emitted topic key must resolve to
-    # an AUTHORED descriptor, and every root must be one of the seven.
-    # TopicCatalogue's third tier derives a plausible descriptor for any
-    # unknown key, so a typo or a rename fails silently and looks fine —
-    # when this gate was first run, 45 of 105 emitted topics had no
-    # authored descriptor at all. It also enforces roots-are-closed:
-    # content packs may add leaves, never a root, because a pack-minted
-    # root breaks subtree muting for every player.
-    - pnpm -C packages/server lint:topics
-    # Affordance honesty. Every object-typed slot declares `requires:` —
-    # a mixin name it must compose, or `any` for deliberately
-    # unconstrained. The resolver's candidate set is syntactic, so an
-    # undeclared arg makes the verb menu assert things the controller
-    # will refuse — `attack` on a chair. The client cannot filter those
-    # out; it is forbidden from re-deriving semantics, so a wrong figure
-    # on the wire is a wrong figure on screen.
+    # The lint family — every `lint:*` gate, as ONE job. The roster is
+    # DERIVED from packages/server/package.json, so a new gate runs here
+    # automatically and this list can never drift again.
     #
-    # It also fails on a name that is not in the Mixins registry, which
-    # is the point of naming a mixin rather than asserting `any`: the
-    # predecessor marker could not be wrong, and three of its fifty uses
-    # were. Reports two tiers — menu-visible positionals vs every object
-    # field — so a regression says which claim it broke. Also fails on
-    # any spec it cannot PARSE: an unreadable spec silently shrinks
-    # every total and makes the gate look better.
-    - pnpm -C packages/server lint:arg-kinds --lint
-    # The framework wiring is an explicit import, not a global setup
-    # file. A test that touches the wired runtime must say so; this
-    # keeps the two in sync. It fails only in the cheap direction (a
-    # file that needs wiring and lacks the import) — a redundant import
-    # is free, because the bootstrap is once-guarded.
-    - pnpm -C packages/server lint:test-bootstrap
-    # ...and that the gate can SEE every file vitest runs. Scanning only
-    # `*.test.ts` silently missed two `.test.js` files, and the check
-    # meant to catch that was itself filtered through `grep test.ts` —
-    # so it confirmed the undercount instead of exposing it. This asks
-    # vitest directly, across both configs, with no filtering.
-    - pnpm -C packages/server lint:test-bootstrap:verify
-    # Kernel tests that name shipped content (/world/<locality>) are a
-    # shrinking allowlist: a listed one warns, a NEW one fails, and a
-    # listed path that no longer offends is stale and fails too (the
-    # list only shrinks). A kernel test proves the kernel over synthetic
-    # fixtures; a test of real content lives beside the content.
-    - pnpm -C packages/server lint:test-content
-    # The `core` group is dead (content-packs wave 3): no source, script,
-    # content or e2e line names it (one marked migration branch excepted),
-    # ParcelOwner is exactly its three kinds, no pack-installers, no
-    # author tier, no requiresCoreAccess / requiresAuthor.
-    # Every path a pack ships under a title root is claimed by some pack —
-    # with no state default an unclaimed path is one nobody can edit,
-    # broadcast over or teleport within, silently.
-    - pnpm -C packages/server lint:untitled
-    # Every collection has one authored schema doc, the doc names the
-    # class that writes it and the subsystem doc that owns the concept,
-    # the three generated tables (Collections / COLLECTION_POLICIES /
-    # RESET_DISPOSITIONS) are current with the docs, and no
-    # `static collectionName` is a bare string literal. The four legs
-    # used to live in four TypeScript files with nothing tying them
-    # together — 11 classes named their collection with a string, and 44
-    # of 48 collections had no prose anywhere.
-    - pnpm -C packages/server lint:schema
+    # It drifted badly before: 25 gates existed, this job named 19,
+    # CLAUDE.md documented 13 and /finalize named 3 — and four gates
+    # documented as "CI-gating" (gates, boundary, census, locations) ran
+    # nowhere at all. Per-gate rationale now lives in docs/lint-family.md,
+    # which is where it can be maintained.
+    - pnpm -C packages/server lint:family
 
 test:
   extends: [.node, .mr-only]
