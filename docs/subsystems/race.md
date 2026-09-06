@@ -561,7 +561,7 @@ reads it.**
 | | the fact | what reads it | what it confers |
 |---|---|---|---|
 | **player** | `bornAt` | the birthday, milestones, seniority | **nothing, ever** |
-| **NPC** | `bornAt` + the species' `ageCurve` | life stage, and in time capability and lifespan | ability |
+| **NPC** | `bornAt` + the species' `ageCurve` | life stage, and in time capability | ability — but ⚠ **never death**, see below |
 | **livestock** | `bornAt` (or the herd's founding) + curve | maturity, breeding, cull, the generation interval | the management game |
 
 ⚠⚠ **A played human and an innkeeper are the same species row**, so the
@@ -575,13 +575,64 @@ wall-clock time rather than something defended against being farmed.
 ⭐ The number stays readable for everybody. It is the *consequence* that
 stops, never the telling — a birthday is worth having.
 
-⚠ **Not built:** lifespans that bite. Every playable species already
-authors `lifespanMin`/`lifespanMax` and almost nothing reads them; making
-them real means NPCs die of old age, which is a content-loss question
-(*does the innkeeper die, and who replaces her?*) that belongs with
-[mortality.md](./mortality.md) and wants deciding on purpose rather than
-inheriting. The mechanism is ready — `ageCurve` + `lifeStageAt` is
-general, and extending it is authoring rather than engineering.
+### ⚠⚠ What an NPC author has to know before writing a curve
+
+Two facts, and the second is the one that bites.
+
+**1. The world clock STOPS when the server does.** `WorldClockRegistry.
+restore()` re-anchors to `now` and does not add the downtime —
+`lastShutdownRealMs` is persisted and passed around but never read to
+advance anything. So an outage costs zero game time, for age exactly as
+for weather, seasons, soil reversion and herd metabolism. **Nobody ages
+through a shutdown.** (This is worth stating because the opposite is the
+natural assumption, and designing around a phantom is expensive.)
+
+**2. ⭐⭐ The scale factor is the whole effect.** `DEFAULT_SCALE = 12`, so:
+
+> **one real year of uptime is TWELVE game years.**
+
+That is the arithmetic to design against, and it is unforgiving:
+
+| species lifespan | visibly old after |
+|---|---|
+| 15 years (a dog) | ~15 months of real operation |
+| 40 years | ~3⅓ real years |
+| 120 years (a human) | ~a real decade |
+
+So author a curve **only on a species whose ageing you actually want to
+watch**. A long-lived, persistent, named NPC either wants no curve at all
+or wants numbers chosen against that table — not against intuition about
+how long a person lives.
+
+⚠ **And age is the one clock-driven quantity with no recovery path.** A
+field can be re-cleared, a herd re-fed, a crop replanted; every other
+thing the clock drives can be restored by playing. **An NPC cannot be
+un-aged.** That asymmetry, not the shutdown question, is what earns age
+more caution than soil.
+
+### ⭐ DECIDED — curves without lifespans
+
+`ageCurve` is live: it gives life stages, and a life stage may confer
+ability. **`lifespanMin` / `lifespanMax` deliberately do NOT bite.**
+Nothing dies of old age.
+
+That is a decision, not an omission, and it should not be quietly
+"finished" by a later build wiring `lifespanMax` into mortality. The
+reason is the table above: under 12× compression, lifespans that bite
+mean a named NPC reliably dies inside the game's ordinary operational
+life, and *"does the innkeeper die, and who replaces her?"* is a
+succession problem nobody has solved. **Ability from age, yes; death from
+age, not yet.**
+
+⭐ The lifespan numbers are not inert, though — they are *informational*.
+`SpeciesLogic` prints `~120 years` on the char-gen species dossier: a
+fact the world knows about a kind of creature, told to a player choosing
+one. The world knows how long its people live; it just does not kill them
+with it.
+
+⚠ When it is time, it belongs with [mortality.md](./mortality.md) and
+needs the succession answer first. The mechanism is ready — `ageCurve` +
+`lifeStageAt` is general and extending it is authoring, not engineering.
 
 `OrganismMixin` is composed:
 
