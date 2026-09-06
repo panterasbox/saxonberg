@@ -1,8 +1,15 @@
 # Farmstead — implementation plan
 
-**Input:** [farmstead-requirements.md](../requirements/farmstead-requirements.md)
-— 106 decisions, 65 acceptance criteria, staging decided. **This plan covers
-tiers 1 and 2 only**; tier 3 (D70–D74, D79–D83) is a follow-on build.
+**Input:** the farmstead requirements — 106 decisions, 65 acceptance criteria,
+staging decided. ⚠ **That doc was retired at `/finalize`**, as requirements docs
+always are; what it asked to keep for the follow-on (the tier-3 criteria) was
+salvaged into this plan first — see *Tier 3 — the criteria this MR does NOT
+gate* below. **This plan covers tiers 1 and 2 only**; tier 3 (D70–D74, D79–D83)
+is a follow-on build.
+
+⭐ **This plan is KEPT rather than retired**, because it now carries three things
+no subsystem doc does: the tier-3 criteria, the four criteria this build did not
+meet and why, and the record of what was cut after being built.
 
 Read alongside: [husbandry.md](../subsystems/husbandry.md) ·
 [smallholding.md](../subsystems/smallholding.md) ·
@@ -704,6 +711,67 @@ and do not gate this MR.** Two carry unusual weight:
   work spread across every wave rather than a task in one.
 - **AC 62** (the campus farm needs zero pack code) — W12, and **failing it is a
   design finding to report, not a problem to code around.**
+
+### ⚠⚠ Criteria NOT met, and why — settled at `/finalize`
+
+Two features were cut after they were built, and the honest accounting is
+that they take four criteria with them. **Recorded rather than reworded:**
+
+| AC | what it asked | why it is not met |
+|---|---|---|
+| **14** | a hive pollinates, a swarm is caught | **W15 cut** per this plan's own cut order (risk 5). The pollination hook (`fruitSetCount`, `_flowering`, `onFloweringLatched`) ships in place and unused. |
+| **19** | clover fixes N, feeds grazers, **and shapes a hive's honey** | The first two clauses hold. The third is bees, so it falls with AC 14 — the one row does satisfy the two shipped readings without a special case. |
+| **28** | wilderness yields forage, declining as ground is cleared | **D61 cut at review.** It shipped reachable only on ground you had already plotted, drawing on a table no row authored, yielding an item nothing consumed — so the decision it existed to dramatise was never actually available. Foraging is a follow-on that owns wilderness too. |
+| **8** | ewes conceive in the short-day window **and lamb in late winter** | **Half met.** Conception is gated by derived daylength and not by an authored date, which is the criterion's real claim and it holds. Lambing does not happen: `breed` writes *served* and the tally does not move, because gestation and heredity were claimed and not modelled. See `ranching-slate.md § Breeding`. |
+
+⭐ AC 62 — the campus farm needs zero pack code — **is met**, and it was
+the one the plan said failing would be a design finding rather than a
+bug. AC 18's *"`pnpm test` green once before the MR and once at
+finalize"* is met; the drive was run four times over the review, not
+once.
+
+### Tier 3 — the criteria this MR does NOT gate
+
+⚠ **Salvaged verbatim from the requirements doc at `/finalize`**, which
+retires. The requirements said outright that it was keeping these *"so the
+follow-on build inherits them rather than re-deriving them"*, so retiring
+the doc without moving them would have thrown away the one thing it asked
+to keep. They gate the tier-3 build, not this one.
+
+```
+36. A coppice stand is cut and regrows on a rotation, and a single stand cannot
+    simultaneously satisfy charcoal, mine timber and winter firewood — the
+    contest is observable.
+37. A saltern yields salt as a function of weather over elapsed time, with no
+    plant involved; brine boiling yields it faster and consumes fuel that
+    heating and charcoal also want.
+38. Cut peat does not measurably regrow, and a drained peat field subsides.
+39. A flooded bog can be harvested by flotation, and draining ground upstream
+    changes water reaching ground downstream.
+40. A right to take produce from land somebody else holds — grazing, mast, wood,
+    turf — is expressible and enforceable without transferring title.
+41. No spell, item or working improves a field's fertility, waters a field, or
+    warms one at production scale; attempts are priced out by the shipped price
+    list rather than refused by a special case.
+42. A caster can read soil and animal condition as instrument-tier readings with
+    error bars, and can quiet an animal — and doing so requires being present at
+    the thing read.
+43. An animal's record is readable by a prospective buyer, not only by its
+    keeper, and a recorded animal fetches more than an unrecorded one.
+44. Two producers can trade hay, manure, stud service and grazing (agistment)
+    through the contract substrate, including forward and in-kind terms.
+45. A market day occurs on the calendar; prices at it are set by what sellers and
+    buyers do rather than by an authored figure.
+46. A specialist producer's output is measurably better than a generalist's, so
+    buying beats making without anything being withheld.
+47. An indivisible capital asset can be owned jointly and its use scheduled
+    between the owners.
+```
+
+⭐ AC 41–42 (the magic negatives — no working improves fertility, waters or
+warms at production scale; a caster reads instrument-tier with error bars
+and must be present) are **this MR's** and are met by absence plus the
+shipped price list, which is what D75–D78 asked for.
 
 ## Risks & opens
 

@@ -68,17 +68,26 @@ registry prefix**, or somebody writes `kind: 'herd'` on their own home
 branch and it counts. The separator is part of the check —
 `/trade/ranching/herdsX/…` is not under `/trade/ranching/herds`.
 
-### The write needed a pinned transport
+### The write needed a register transport
 
 `DocumentApi.save`'s gate admits the **branch owner**, which here is the
 trade — so a keeper drafting a head out could not write, and granting
-them the branch would hand them the pen. `DocumentApi.saveHerd` is
-`saveRelease`'s shape: **no owner parameter**, a **pinned prefix**, a
-**pinned kind**, and a gate naming the one consumer.
+them the branch would hand them the pen. The herdbook writes through
+`DocumentApi.saveToRegister` instead: it takes **no owner and no kind**,
+because a `Registrar` declares its own branch, owner and kind and the
+transport derives all three.
 
-⚠ The kernel names a pack path in that gate, which is normally the tell
-of a mis-cut. It is not one here: a document KIND is a platform act by
-construction, and naming its one consumer alongside it is the same act.
+> ⚠⚠ The first cut was a pinned `saveHerd` with `/trade/ranching/herds`,
+> `/trade/ranching` and a `FromTemplate` gate naming this class **as
+> kernel constants** — a pack's namespace hardcoded in the engine, and
+> not something that survives the second register. It was replaced
+> during the pre-merge review.
+
+⭐ What keeps it narrow is an invariant rather than an allowlist: **the
+owner must be a prefix of the register's own template path, and its
+branch must lie under that owner** — so a register keeps its own book and
+nobody else's, and the kernel never learns which societies exist. See
+[document-store.md § The register transport](./document-store.md).
 
 ### ⚠ Two sources, deliberately
 

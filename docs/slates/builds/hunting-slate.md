@@ -1,7 +1,7 @@
 # Hunting slate — the fugitive resource
 
 > **Status: design surface, unbuilt, no phase gate passed.** Spun out of the
-> [farmstead](../../requirements/farmstead-requirements.md) design pass
+> [farmstead](../../plans/farmstead-plan.md) design pass
 > (2026-09-03), whose D60 put deer, rabbits and boar on a farm as **ongoing
 > pest pressure** and then had nowhere to send them. Hunting is where they go —
 > and it turns out to carry the hardest property question in the game.

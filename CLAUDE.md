@@ -189,6 +189,8 @@ behavior. Read the relevant doc before editing in its area.
   - [metabolism.md](./docs/subsystems/metabolism.md) — the intake/chemistry driver: digestion buffer, reconcile-on-read, condition cascades, meal chemistry, toxins
   - [husbandry.md](./docs/subsystems/husbandry.md) — the growth model: GrowingMixin reconcile-on-read (no far-past guard), min-of-four limiting factor, the pot-as-N=1-bed object shape, the houseplant
   - [smallholding.md](./docs/subsystems/smallholding.md) — ground you own: CultivableMixin (a pot is a bed with one slot), soil's own checkpoint, land use's closed six, weakest-link harvest grade, `title`, PlatBook/PlatWarren/LotGateExit, Hinkley Hills
+  - [soil.md](./docs/subsystems/soil.md) — ground as a ledger: SoilMixin's four reserves + the sky edge, GroundCharacter (the third seeded field; character prices IMPROVEMENT, never yield), the survey ladder, `Field` + `plot`, the sward, winter
+  - [ranching.md](./docs/subsystems/ranching.md) — the animal economy: the herdbook as a filed record (you file, you do not hold the pen), draft/return, `flesh` as a stock, the taps, three ROLES not three classes, ⚠ breeding writes SERVED only
   - [mining.md](./docs/subsystems/mining.md) — ground you cut: the Deposit field (seeded, never drawn), WorkingMixin's four reads, MineWarren carve/shore/promote, the damps + the canary, grade end-to-end to the smelt
   - [thermal.md](./docs/subsystems/thermal.md) — heat exchange: ThermalMixin Newton cooling, the thermos/campfire, ThermalRegulation
   - [respiration.md](./docs/subsystems/respiration.md) — air exchange + asphyxiation: the crisis engagement drain, `breathableMedia`, AirTank

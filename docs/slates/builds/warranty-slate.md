@@ -1,7 +1,7 @@
 # Warranty slate — the claim you make about the thing you sell
 
 > **Status: design surface, unbuilt, no phase gate passed.** Found 2026-09-03 by
-> the [farmstead](../../requirements/farmstead-requirements.md) multiplayer pass,
+> the [farmstead](../../plans/farmstead-plan.md) multiplayer pass,
 > which needed producers to sell to each other and discovered they cannot say
 > anything binding about what they are selling.
 >
@@ -18,7 +18,7 @@
 
 See also: [auction-slate](./auction-slate.md) (**the sibling** — it already names
 the lemons problem and the winner's curse, and the appraiser is this slate's
-natural ally) · [farmstead requirements](../../requirements/farmstead-requirements.md)
+natural ally) · [farmstead plan](../../plans/farmstead-plan.md)
 (**D79** the herdbook as a sales document · **D81** producer trade · **D48** the
 hay that burns the barn) · [legal-code-slate](./legal-code-slate.md) (**where the
 polity chooses**) · [credit-slate](./credit-slate.md) ·

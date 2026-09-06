@@ -50,7 +50,7 @@ information**).
 > **⭐ Two consumers arrived 2026-09-03 (the farmstead design pass), and this
 > slate is unchanged by either — they consume it, they do not restate it.**
 >
-> - [farmstead requirements](../../requirements/farmstead-requirements.md) **D61**
+> - [farmstead plan](../../plans/farmstead-plan.md) **D61**
 >   — forage is the income that pays for *reclamation*: newly claimed ground is
 >   wilderness, and **the forage declines as you clear it.** Converting a
 >   foraging commons into a farm is the neolithic transition expressed as a

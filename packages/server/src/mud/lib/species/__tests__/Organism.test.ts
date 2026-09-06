@@ -41,7 +41,7 @@ function timedSpecies(): Species {
     () => new Species(),
     `/stuff/idea/species/_test/timed-${timedSeq}`,
   ) as Species;
-  sp.setAgeCurve({ weanedAt: 60, matureAt: 400, agedAt: 3000 });
+  sp.setAgeCurve({ weanedAt: 60, matureAt: 400, agedAt: 3000, senescentAt: 5000 });
   return sp;
 }
 

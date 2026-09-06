@@ -26,11 +26,15 @@ that shapes every slate.
 > first production brain (`farms`, shipped in trade-farming). **Stage B
 > (Heart's Delight) is no longer gated on residences** — Waves 0–5 landed
 > (`HoldingWarren`/`PlatPlan`/`HoldingProgramme`, D17 identity), and B0
-> re-grounds. ⚠ It is now gated on **winter**, which does not exist for
-> plants (the clock has seasons; husbandry has *"no bloom, no season of
-> readiness"*) — and the valley is what justifies building it. **Ranching
-> ships first**: nitrogen is a faucet at both ends, and *pasture is a
-> field*. See [towns-slate](./slates/builds/towns-slate.md) D27 +
+> re-grounds. ⭐⭐ **The FARMSTEAD build then shipped both blockers at once
+> (2026-09-06):** winter is real (cold and short days *at a place*, not a
+> mode), and ranching landed with it — the field-room and `plot`, the soil
+> ledger's four reserves, the sward and grazing-vs-hay, the herdbook,
+> draft/return, the taps, body condition as a stock, and the university
+> teaching farm bound from archetypes with **zero pack code**. See
+> [soil.md](./subsystems/soil.md) + [ranching.md](./subsystems/ranching.md).
+> ⚠ Cut and recorded rather than half-shipped: **bees/pollination** and
+> **foraging**; breeding writes *served* and gestation is a follow-on. See [towns-slate](./slates/builds/towns-slate.md) D27 +
 > [venue-and-supply-slate](./slates/builds/venue-and-supply-slate.md) V11.
 
 ---

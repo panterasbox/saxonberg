@@ -130,9 +130,24 @@ three systems, chosen **per content, not per system**:
 
 > aggregate matter → slotted individual → carved individual
 
-- **Aggregate (default for a production herd).** Don't instance 100 cattle. The
-  herd is headcount + condition + composition, modeled like farming's continuous
-  crop. Scales cozily; no 100-object room, no per-head `look` spam.
+- ~~**Aggregate (default for a production herd).**~~ **CORRECTED by the
+  farmstead build (D19, D20): the INDIVIDUAL is the base case and the
+  aggregate is the compression** — not the other way round.
+
+  > The slate's original stance (livestock are fungible, managed at scale)
+  > is true of a 500-head operation and false of six goats on a quarter
+  > acre, which is the land this game actually has. **Pets settles it:**
+  > there is never a herd of pets, so if the herd were the base case a pet
+  > would be a special case of it, and it obviously is not.
+
+  ⚠⚠ **And the aggregate is a RECORD, not an object** (D20). There is no
+  `Herd` class and there never will be: the herd is a filed document —
+  headcount, composition, ownership, a sparse overlay of what became of
+  the head somebody looked at — and the room's prose describes the
+  animals. There is never a herd-object to `look` at. Drafting mints a
+  `Creature` from `(herdId, index)`; returning destructs it and folds what
+  it became back into the record. **Identity is earned by being
+  measured.** See [ranching.md](../../subsystems/ranching.md).
 - **Slotted individual (breeding stock, the prize bull).** Where identity
   genuinely matters — lineage, quality, a name — the animal is an instance.
 - **Carved individual** is the pet, the far end of the same dial.
@@ -395,6 +410,20 @@ field-room is a **land-use decision each season**:
 | **Crop** | you, at maturity | one lump | field committed all season |
 | **Graze** | the animal, continuously | as milk / wool / growth | **can't be stored**; only while grass grows |
 | **Hay** | you cut, the animal eats later | deferred | cutting + storage losses |
+
+> ⚠⚠ **CORRECTED by the farmstead build (D7): these are DESCRIPTIONS, not
+> settings.** The table reads like a seasonal commitment a holder
+> declares. It is not, and nothing in the shipped code declares anything —
+> **there is no `use` field on a field.**
+>
+> All of them fall out of **two facts**: *was there a mouth standing on
+> it*, and *did anything get carried off*. Grazing and mowing are the same
+> draw on the same sward; the only difference is where the animal was, and
+> that difference is where the nitrogen goes. So **fertility follows the
+> mouths** is a sentence a player derives from watching rather than a rule
+> they are told, and a field is whatever its history made it rather than
+> whatever its owner declared. See
+> [soil.md](../../subsystems/soil.md) § the sward.
 
 This makes **hay mechanically necessary rather than an authored recipe.**
 Grazing is far the most efficient path — no cutting, no hauling, no storage

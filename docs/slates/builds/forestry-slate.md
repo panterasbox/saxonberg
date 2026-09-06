@@ -1,7 +1,7 @@
 # Forestry slate — the crop you inherit
 
 > **Status: design surface, unbuilt, no phase gate passed.** Written
-> 2026-09-03 out of the [farmstead](../../requirements/farmstead-requirements.md)
+> 2026-09-03 out of the [farmstead](../../plans/farmstead-plan.md)
 > land-use pass, which found that **wood has more consumers than any other
 > material in the game and no producer designed for it.**
 >
@@ -16,7 +16,7 @@
 > *charcoal burner / collier*, marked shipped — which is a customer, not a
 > producer.
 
-See also: [farmstead requirements](../../requirements/farmstead-requirements.md)
+See also: [farmstead plan](../../plans/farmstead-plan.md)
 (**D63** winter fuel · **D70** woodland as a land use · **D74** the commons
 rights) · [mining-slate](./mining-slate.md) + [metal-chain-slate](./metal-chain-slate.md)
 (**the three-pack precedent, and the timber customer**) ·

@@ -29,7 +29,7 @@ is to build a subject from scratch and teach it honestly.
 > **Addition, 2026-09-03 — three agricultural worked examples.** Added
 > under *Worked examples*: the nitrogen-fixation, glasshouse-heating and
 > ground-reading calculations, prompted by the
-> [farmstead requirements](./requirements/farmstead-requirements.md)
+> [farmstead plan](./plans/farmstead-plan.md)
 > (D77–D78) needing to know whether magic could do farm work. **No
 > mechanic, number or law changed** — all three are consequences of the
 > shipped `k = 1 kJ/τ`, the 300 τ mid reserve and the existing price
