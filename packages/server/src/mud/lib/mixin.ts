@@ -390,11 +390,11 @@ export const Mixins = {
   // augments). A ministry is an organization that does not trade.
   Organization: 'OrganizationMixin',
   Business: 'BusinessMixin',
+  // ⭐ `EmployedMixin` also carries "who answers for you"
+  // (`institutionPath`) — the standing party that fields an actor, which
+  // is NOT the episodic `directedBy`: a guard acting for the watch was
+  // not ordered by the watch on this occasion.
   Employed: 'EmployedMixin',
-  // Accountability — the standing party that fields a character (which is
-  // NOT the episodic `directedBy`: a guard acting for the watch was not
-  // ordered by the watch on this occasion).
-  Affiliated: 'AffiliatedMixin',
   // Cast — the IDENTITY rung. A character who is somebody (a name, or the
   // definite article) rather than a role anybody could fill. Carries
   // `SingletonMixin` (one live instance per row: the throw at the second

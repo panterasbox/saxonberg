@@ -631,9 +631,18 @@ enumerates `mixin.BusinessMixin`, so a plain Organization's
 `rosterSlots:` materializes no Employment record; crediting one would
 make the gate pass while the runtime resolve returned `null`.
 
-**Host: `AffiliatedMixin` sits on `Character`, not on `lib/npc/NPC`.**
-*Every attribution has a person and a party* is true of a player too, and
-an Avatar is neither rung.
+**Host: the institution read sits on `EmployedMixin`** (which is on
+`Character`, not on `lib/npc/NPC`) — *every attribution has a person and a
+party* is true of a player too, and an Avatar is neither rung.
+
+⚠ **It shipped as its own `AffiliatedMixin` and was folded in during
+review**, on the plan's own argument against a `DossieredMixin`: a mixin
+whose composers are exactly one class is the mixin-on-the-wrong-host tell,
+and both shipped tiers are authored-or-employment — tier 2 *is*
+`getActiveEmployment()`. The wider name would have been earned by the
+parcel tier, which D10 defers. → **split it back out** if a third tier
+over ground title lands, or if a non-employable host ever needs fielding;
+by then there is a second composer to justify it.
 
 **Content — D7b fired on three sentient Extras, exactly as predicted:**
 

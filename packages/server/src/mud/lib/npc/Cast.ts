@@ -35,8 +35,8 @@
  * touches `getIdentityPath()`. An `Extra` keeps its own identity (two
  * dead sentries do not collapse into one corpse); what an Extra lacks is
  * a *person* to attribute to, which is why the institutional attribution
- * (`AffiliatedMixin`) is a **second** attribution rather than a
- * replacement projection.
+ * (`EmployedMixin.institutionPath`) is a **second** attribution rather
+ * than a replacement projection.
  *
  * ## Promotion
  *

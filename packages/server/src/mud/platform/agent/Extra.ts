@@ -10,10 +10,10 @@
  * It is the plain substrate with no identity rung — deliberately NOT a
  * singleton, because two sentries are the point. What an Extra lacks is a
  * *person* to attribute to, so the party that fields it is the only
- * attribution its harms carry (`AffiliatedMixin`), and a sentient Extra
- * that answers to nobody is a build error (`lint:identity`): if hurting
- * something is a crime, the victim must be *someone*. An animal answers
- * to nobody forever.
+ * attribution its harms carry (`EmployedMixin.institutionPath`), and a
+ * sentient Extra that answers to nobody is a build error
+ * (`lint:identity`): if hurting something is a crime, the victim must be
+ * *someone*. An animal answers to nobody forever.
  *
  * ⚠ **A role-filler still has a personality**, and it reads the same as
  * anyone's — `dispositions:` stays on `BehavedMixin`, which both rungs

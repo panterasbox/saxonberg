@@ -9,9 +9,8 @@
  * `Creature` (`lib/creature/Creature.ts`).
  *
  * Composition (agency, inner→outer on `Creature`):
- *   Employed + Affiliated + BeliefStore + Persona + Gendered + Sensor +
- *   Perceiver + Perception + Vocal + Soul + Engaged + Hauler + Mobile +
- *   CommandGiver
+ *   Employed + BeliefStore + Persona + Gendered + Sensor + Perceiver +
+ *   Perception + Vocal + Soul + Engaged + Hauler + Mobile + CommandGiver
  *
  * Commands are inherited from mixins and subclasses:
  * - ContainerMixin (on Creature) provides: inventory, get, drop
@@ -51,7 +50,6 @@ import { MemorizedMixin } from '../magic/Memorized';
 import { BeliefStoreMixin } from '../belief/BeliefStore';
 import { StatusMixin } from '../status/Status';
 import { EmployedMixin } from '../employment/Employed';
-import { AffiliatedMixin } from '../accountability/Affiliated';
 import { CombatantMixin } from '../combat/Combatant';
 import { HidingMixin } from '../concealment/Hiding';
 import type { FieldMeta } from '../mixin';
@@ -83,11 +81,11 @@ import type { FieldMeta } from '../mixin';
 //   all — it reads nothing from the other mixins, so position is free;
 //   placing it at the base of the agency stack keeps every PC and NPC
 //   (the viewer types) carrying it.
-// - AffiliatedMixin sits directly ABOVE EmployedMixin — its tier-2 read
-//   IS `getActiveEmployment()`, so the mixin it depends on is the one
-//   beneath it. Placed on Character rather than on NPC deliberately:
-//   "every attribution has a person and a party" is true of a player too,
-//   and an Avatar is neither Cast nor Extra.
+// - EmployedMixin carries "who answers for you" (`institutionPath`) as
+//   well as the employment records — the harm ledger's `killerFor` /
+//   `victimFor`. On Character rather than on NPC deliberately: "every
+//   attribution has a person and a party" is true of a player too, and
+//   an Avatar is neither Cast nor Extra.
 // - AdvancementMixin sits OUTERMOST, above CommandGiverMixin: it pushes
 //   competence-conferred verbs onto the giver's affordance stack, so it
 //   needs CommandGiver's surface (pushCommandSource/popCommandSource) in
@@ -109,7 +107,7 @@ const CharacterBase = AdvancementMixin(
                   DispositionedMixin(
                   PersonaMixin(
                     StatusMixin(
-                    BeliefStoreMixin(HidingMixin(AffiliatedMixin(EmployedMixin(Creature))))
+                    BeliefStoreMixin(HidingMixin(EmployedMixin(Creature)))
                   )
                   )
                   )

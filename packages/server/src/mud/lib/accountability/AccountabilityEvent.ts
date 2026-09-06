@@ -224,9 +224,14 @@ export default class AccountabilityEvent extends Document {
    * collapse into one corpse), so this is genuinely a *second*
    * attribution rather than a projection that overwrites the first —
    * which is what an earlier draft of the design got wrong.
+   *
+   * The read itself is {@link Employed.institutionPath} — authored
+   * `institution:`, else the employer, else nobody. It lives on
+   * `EmployedMixin` because both of its tiers are authored-or-employment;
+   * see that mixin's doc for why it is not a mixin of its own.
    */
   static partyForOf(subject: Stuff): string {
-    return MixinApi.isAffiliated(subject)
+    return MixinApi.isEmployed(subject)
       ? (subject.institutionPath() ?? AccountabilityEvent.NOBODY)
       : AccountabilityEvent.NOBODY;
   }

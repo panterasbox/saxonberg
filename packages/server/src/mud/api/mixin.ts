@@ -172,7 +172,6 @@ import type { Organization } from '../lib/employment/Organization';
 import type { Publisher } from '../lib/press/Publisher';
 import type { Attendant } from '../lib/attendant/Attendant';
 import type { Employed } from '../lib/employment/Employed';
-import type { Affiliated } from '../lib/accountability/Affiliated';
 import type { Cast } from '../lib/npc/Cast';
 import type { Combatant } from '../lib/combat/Combatant';
 import type { CombatReactive } from '../lib/combat/CombatReactive';
@@ -1433,14 +1432,13 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.Attendant);
   }
 
-  /** An actor that can hold employment relationships (`EmployedMixin`). */
+  /**
+   * An actor that can hold employment relationships (`EmployedMixin`) —
+   * and, on the same mixin, that a standing institution may field
+   * (`institutionPath`, the harm ledger's `killerFor` / `victimFor`).
+   */
   public static isEmployed(obj: Stuff): obj is Stuff & Employed {
     return this.hasMixin(obj, Mixins.Employed);
-  }
-
-  /** An actor that a standing institution fields (`AffiliatedMixin`). */
-  public static isAffiliated(obj: Stuff): obj is Stuff & Affiliated {
-    return this.hasMixin(obj, Mixins.Affiliated);
   }
 
   /**
