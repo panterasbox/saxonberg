@@ -195,6 +195,38 @@ this build exists to make real.
 
 ---
 
+### ⭐⭐⭐ Fault tolerance: what breaks an in-flight journey, and how it ends
+
+A Journey holds a **route snapshot, a leg index, a vehicle ref and a
+driver ref**, and every one can go stale. The per-leg transaction
+boundary is where they are re-checked — *"a journey that checked once at
+the start would drive through a door somebody shut an hour ago"*.
+
+| state change | how it ends |
+|---|---|
+| the driver is **displaced** (teleport, `goto`, carried off) | `displaced` — and they are **not** dragged back |
+| the driver **leaves a self-propelled vessel** | `displaced` — a barge nobody is steering does not sail on |
+| the driver **dies or collapses** | `driver-incapable` |
+| the vehicle is destroyed | `vehicle-disabled` |
+| the hitch breaks (breakaway, unhitch, a teleport severing it) | `vehicle-disabled` — never *"the driver walks on with the cargo standing in the road"* |
+| an exit is blocked, removed, or its gate now refuses | `route-blocked` |
+| the lane is recompiled under it | `route-blocked`, via a leg that no longer joins |
+| the server restarts or the pack reloads | the journey is simply **gone** — engagements are deliberately non-persistent, so the driver is parked in a real room with every slot free |
+| the driver is attacked | ⭐ nothing — `combat` is deliberately absent from `interruptibleBy`. Being shot at does not stop your wagon; stopping is the driver's own `cancel` |
+| a passenger disembarks | nothing — a passenger holds no engagement |
+
+⚠⚠ **Displacement was the dangerous one, and the reason is worth
+keeping.** `Mobile.traverse` takes its origin from the **exit**, not from
+the mover. Every other caller resolves its exit from the room the mover
+is standing in, so origin correctness is *structural* for them — and a
+journey is the only caller that holds an exit **across time**. A beat
+firing while the driver stood somewhere else moved them from wherever
+they were to the far end of a road they had left: a teleport, dressed as
+a step.
+
+⭐ A NON-LIVING driver is never `driver-incapable`, on purpose: an
+automaton pulling a cart does not die at the reins.
+
 ## The vehicles
 
 ⭐⭐ **`VehicularMixin` is what makes them one kind.** A wagon, a barge

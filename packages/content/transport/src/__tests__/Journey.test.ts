@@ -37,6 +37,7 @@ import { makeStuff } from '@saxonberg/server/mud/lib/security/__tests__/test-set
 import type { AbortReason } from '@saxonberg/types';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Engaged } from '@saxonberg/server/mud/lib/activity/Engaged';
+import { OrganismMixin } from '@saxonberg/server/mud/lib/species/Organism';
 import LaneCatalogue from '../idea/LaneCatalogue';
 import { Journey } from '../lib/journey/Journey';
 import HaulageRig from '../thing/HaulageRig';
@@ -53,6 +54,18 @@ class TestDriver extends HaulerMixin(
   EngagedMixin(ContainerMixin(MobileMixin(ContainableMixin(Idea)))),
 ) {
   static _mixinName = 'TestDriver';
+}
+
+/**
+ * A LIVING driver — the same, plus `Organism`, so the journey can ask
+ * whether it is still alive. ⚠ A plain `TestDriver` is not an organism
+ * and is correctly never "incapable": an automaton pulling a cart does
+ * not die at the reins.
+ */
+class LivingDriver extends OrganismMixin(
+  HaulerMixin(EngagedMixin(ContainerMixin(MobileMixin(ContainableMixin(Idea))))),
+) {
+  static _mixinName = 'LivingDriver';
 }
 
 /** A passenger — mobile, but holding no engagement of its own. */
@@ -329,5 +342,81 @@ describe('the Journey', () => {
     expect(await loadedJourney.estimateRemainingGameMinutes()).toBeGreaterThan(
       emptyEstimate,
     );
+  });
+});
+
+/**
+ * ⭐⭐⭐ **Fault tolerance** — what happens when the world changes under
+ * an in-flight journey.
+ *
+ * A `Journey` holds a route SNAPSHOT, a leg index, a vehicle ref and a
+ * driver ref, and every one of them can go stale. The per-leg
+ * transaction boundary re-validates the road and the coupling; these are
+ * the three faults it did not check, found by walking the state changes
+ * one at a time.
+ */
+describe('the Journey under fault', () => {
+  it('⚠⚠⚠ a DISPLACED driver stops the journey — it does not drag them back', async () => {
+    /*
+     * The dangerous one. `Mobile.traverse` takes its origin from the
+     * EXIT, not from the mover, and every other caller resolves its exit
+     * from the room the mover stands in — so origin correctness is
+     * structural for them. A journey is the only caller that holds an
+     * exit across time, so a beat firing while the driver stood
+     * elsewhere moved them from wherever they were to the far end of a
+     * road they had left: a teleport, dressed as a step.
+     */
+    const ctx = await setup();
+    const aborts = watchAborts();
+    await start(ctx);
+    await tick(2);
+
+    // Something else moves the driver — a spell, an author, a mount.
+    // Off the leg the route thinks it is on — still a real room, which
+    // is the honest shape of a displacement.
+    const elsewhere = ctx.road.rooms.get(P(4))!;
+    ContainmentApi.move(ctx.driver as never, elsewhere as never);
+    const before = ctx.driver.getContainer();
+
+    await tick(6);
+
+    expect(aborts).toContain('displaced');
+    // ⭐ And they were NOT hauled back onto the road.
+    expect(ctx.driver.getContainer()).toBe(before);
+  });
+
+  it('⚠ a driver who DIES stops the wagon', async () => {
+    // Nothing in the death path touches engagements, so without the
+    // guard a corpse keeps its wagon rolling.
+    const ctx = await setup();
+    // Swap in a driver that can die, hitched to the same rig.
+    ctx.driver.unhitch();
+    const living = makeStuff(() => new LivingDriver());
+    ContainmentApi.move(living as never, ctx.road.rooms.get(P(0))! as never);
+    living.hitch(ctx.rig as never);
+    ctx.driver = living as unknown as typeof ctx.driver;
+
+    const aborts = watchAborts();
+    await start(ctx);
+    await tick(2);
+
+    (living as unknown as { lifecycleState: string }).lifecycleState = 'dead';
+    await tick(6);
+
+    expect(aborts).toContain('driver-incapable');
+  });
+
+  it('the faults already covered stay covered — an unhitched rig ends it', async () => {
+    // `mover()` has always checked the coupling; this is here so the new
+    // guards cannot quietly displace the old one.
+    const ctx = await setup();
+    const aborts = watchAborts();
+    await start(ctx);
+    await tick(2);
+
+    ctx.driver.unhitch();
+    await tick(6);
+
+    expect(aborts).toContain('vehicle-disabled');
   });
 });

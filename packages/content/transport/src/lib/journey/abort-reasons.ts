@@ -21,6 +21,27 @@ declare module '@saxonberg/types' {
     'vehicle-disabled': true;
     /** The team cannot pull any further. */
     'team-exhausted': true;
+    /**
+     * ⭐⭐ The driver is no longer where the road left them, or no longer
+     * with the vehicle — teleported off, relocated by an author, carried
+     * away. The journey stops rather than dragging them back.
+     *
+     * ⚠ It is a REAL fault rather than a tidy-up. A journey keeps a
+     * route snapshot and a leg index, and `Mobile.traverse` takes its
+     * origin from the EXIT, not from the mover — so a beat that fired
+     * while the driver stood somewhere else would move them from
+     * wherever they were to the far end of a road they had left. Every
+     * other caller of `traverse` resolves its exit from the room the
+     * mover is standing in, so it cannot happen there; a journey is the
+     * only caller that holds an exit across time.
+     */
+    displaced: true;
+    /**
+     * The driver cannot drive any more — dead, or collapsed at the
+     * reins. ⚠ Nothing in the death path touches engagements, so
+     * without this a corpse keeps its wagon rolling.
+     */
+    'driver-incapable': true;
   }
 }
 

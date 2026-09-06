@@ -64,6 +64,7 @@ import type {
 import { SchedulerApi } from '@saxonberg/server/mud/api/scheduler';
 import { LocomotionApi } from '@saxonberg/server/mud/api/locomotion';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { AppApi } from '@saxonberg/server/mud/api/app';
@@ -239,6 +240,35 @@ export class Journey implements SustainedEngagement {
       SchedulerApi.cancel(this, 'vehicle-disabled');
       return;
     }
+
+    // ⚠⚠ Can the driver still drive? Nothing in the death path touches
+    // engagements, so without this a corpse keeps its wagon rolling.
+    if (!this.driverCapable()) {
+      SchedulerApi.cancel(this, 'driver-incapable');
+      return;
+    }
+
+    /*
+     * ⚠⚠⚠ Is the mover still WHERE THE ROUTE THINKS IT IS?
+     *
+     * This is the fault the per-leg boundary was missing, and it was the
+     * dangerous one. `Mobile.traverse` takes its origin from the EXIT,
+     * not from the mover — every other caller resolves its exit from the
+     * room the mover is standing in, so origin correctness is structural
+     * for them and a journey is the only caller that holds an exit
+     * across time. A beat that fired while the driver stood somewhere
+     * else would have moved them from wherever they were to the far end
+     * of a road they had left: a teleport, dressed as a step.
+     */
+    if (mover.getContainer()?.getTemplatePath() !== from) {
+      SchedulerApi.cancel(this, 'displaced');
+      return;
+    }
+    // …and for a self-propelled vessel, is the driver still aboard it?
+    if (!this.driverAboard(mover as unknown as Stuff)) {
+      SchedulerApi.cancel(this, 'displaced');
+      return;
+    }
     const exit = await LaneCatalogue.exitBetween(from, to);
     if (!exit || exit.isBlocked()) {
       SchedulerApi.cancel(this, 'route-blocked');
@@ -321,6 +351,47 @@ export class Journey implements SustainedEngagement {
       return null;
     }
     return driver as Stuff & Mobile & Containable;
+  }
+
+  /**
+   * ⭐ Is the DRIVER still aboard the thing that is moving?
+   *
+   * Only asked of a self-propelled vessel, because a towed rig's
+   * coupling is already the hitch check above. A barge whose steersman
+   * teleported off is a barge nobody is driving, and it must not sail
+   * on: the engagement lives on the driver, so it would keep ticking
+   * with the vessel and the driver in different counties.
+   */
+  private driverAboard(mover: Stuff): boolean {
+    const driver = this.actor as unknown as Stuff;
+    if (driver === mover) return true;
+    if (!MixinApi.isContainable(driver)) return false;
+    // Inside it, or in one of its slots (a seat, a tiller position).
+    if (driver.getContainer() === mover) return true;
+    if (MixinApi.isSlottable(driver)) {
+      for (const [host] of driver.occupiedSlots().entries()) {
+        if ((host as unknown as Stuff) === mover) return true;
+      }
+    }
+    return false;
+  }
+
+  /** Whether the driver is alive and on their feet. */
+  private driverCapable(): boolean {
+    const driver = this.actor as unknown as Stuff;
+    if (driver.isDestroyed()) return false;
+    if (MixinApi.isOrganism(driver) && !driver.isAlive()) return false;
+    if (
+      MixinApi.isVitals(driver) &&
+      driver.hasCondition(
+        (c) =>
+          c.kind === 'affliction' &&
+          c.templatePath === TemplatePaths.metabolismCollapse,
+      )
+    ) {
+      return false;
+    }
+    return true;
   }
 
   /**
