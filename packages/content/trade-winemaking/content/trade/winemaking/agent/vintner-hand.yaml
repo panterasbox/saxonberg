@@ -3,7 +3,7 @@
 # brain drives the literal verbs — `get`, `wallet use house`, `consign …
 # --ask` — carrying the stock to the cash-and-carry counter and consigning
 # it AS the outfit. The counter path is this config's, never the trade's.
-class: /platform/agent/NPC
+class: /platform/agent/Cast
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Ilse Marrow
@@ -17,6 +17,17 @@ data:
     A wiry hand with purple-stained fingers and a habit of holding a bottle up to the light before she cases it.
   dispositions:
     - { disposition: diligence, valence: 60 }
+  # ── the dossier ─────────────────────────────────────────────────
+  # Evidence, never values: each entry below expands into the same rows a
+  # lived history would have written, marked `claim`. Seeded once at
+  # postRegister and skipped if any claim already exists, so a reclone or
+  # a reboot cannot mint a second history.
+  # ⚠ A best-guess pass, explicitly provisional — the considered version
+  # is a content pass of its own before go-live.
+  archetype: hand
+  competence:
+    - { discipline: winemaking, asserting: novice }
+    - { discipline: fermenting, asserting: novice }
   behaviors:
     # The producing beat (fermentation W4): work the press off the
     # cellar book, tend the vats, bottle and consign the take. The W8

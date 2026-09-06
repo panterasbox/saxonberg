@@ -223,14 +223,42 @@ describe('the venue itself', () => {
     }
   });
 
-  it('⚠ NO inbound exit is wired from another locality — arrival is by TPA', () => {
+  it('⭐⭐ EXACTLY TWO seams to another locality, both on the Kestrel road and both written out on both sides', () => {
+    /*
+     * ⚠⚠ This assertion USED to be *"no inbound exit from another
+     * locality — arrival is by TPA"*, and the logistics build is the
+     * thing that reversed it: **the realm is one connected place**, and
+     * a mining town nobody can reach on foot cannot have a haulage
+     * corridor. That is not the old rule failing, it is the old rule
+     * being superseded by a later decision.
+     *
+     * ⭐ What the old rule was PROTECTING survives intact, and it is the
+     * part worth keeping: **neither pack reaches into the other's
+     * files.** Every half of every seam is authored explicitly, in the
+     * pack that owns the room, and both seams are on the ROAD — nothing
+     * in the town proper, the mine or the chambers crosses a locality
+     * boundary. A content-area standup is still clean and the blast
+     * radius of the road is two exit pairs.
+     */
+    const seams: string[] = [];
     for (const rel of files(REJECTION, (f) => f.endsWith('.yaml'))) {
       const text = readFileSync(join(REJECTION, rel), 'utf8');
-      // Nothing here reaches into terminus, hinkley-hills, hearthworks or
-      // anywhere else — which is what keeps a content-area standup clean
-      // and what kept this build off another build's files entirely.
-      expect(text).not.toMatch(/destination: \/world\/(?!rejection)/);
+      if (/destination: \/world\/(?!rejection)/.test(text)) seams.push(rel);
     }
+    expect(seams.sort()).toEqual([
+      'content/world/rejection/kestrel-road/lower-climb.yaml',
+      'content/world/rejection/kestrel-road/yard-gate.yaml',
+    ]);
+    // Down the valley: the crossroads on the Delight road, whose far half
+    // Terminus authors for itself.
+    const climb = row('content/world/rejection/kestrel-road/lower-climb.yaml');
+    const climbExits = climb.data!.exits as Record<string, { destination: string }>;
+    expect(climbExits['east']!.destination).toBe('/world/terminus/delight-road/crossroads');
+    // ⭐ Past the diggings, the road runs on into uncounted country — the
+    // newbie wilds, whose far half that pack authors for itself.
+    const gate = row('content/world/rejection/kestrel-road/yard-gate.yaml');
+    const gateExits = gate.data!.exits as Record<string, { destination: string }>;
+    expect(gateExits['north']!.destination).toBe('/world/newbie-wilds/crossroads/hub');
   });
 
   it('⭐ the region zone carries the deposit, so the SURFACE can be surveyed', () => {
@@ -305,16 +333,22 @@ describe('the venue itself', () => {
       (row(rel).class ?? '').includes('/location/SphericalZone'),
     );
     /*
-     * ⭐ FOUR, and the region is now one of them. It used to be listed
+     * ⭐ FIVE, and the region is one of them. It used to be listed
      * separately because it was a `MineZone` and this filter did not
      * match it — which is a small demonstration of the cost of the
      * subclass: the town's own zone did not read as a zone to a check
      * looking for zones.
+     *
+     * ⭐ The fifth is the **Kestrel road** (logistics W4): the climb out
+     * of the valley to the pithead is authored ground like everything
+     * else here, five rooms in a zone of its own, and it is the reason
+     * a wagon can reach this town at all.
      */
     expect(zones.sort()).toEqual([
       'content/world/rejection.yaml',
       'content/world/rejection/ferrow.yaml',
       'content/world/rejection/hush.yaml',
+      'content/world/rejection/kestrel-road.yaml',
       'content/world/rejection/location.yaml',
     ]);
   });

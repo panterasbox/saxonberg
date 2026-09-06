@@ -20,6 +20,43 @@
  * `confers` list. `MixinApi.collectAugmentConferralNames` picks it up via a
  * structural soft-lookup (no import), so an on-shift bartender's gated
  * `MakerMixin` goes active — and an off-shift one's goes inert.
+ *
+ * ## ⭐ And **who answers for you** — {@link Employed.institutionPath}
+ *
+ * The harm ledger names two persons (`killer` and `victim`); what it
+ * lacked was their two **parties**. `institutionPath()` is that read: the
+ * standing institution that fields this actor, whether or not anybody
+ * gave an order on the day. `AccountabilityEvent.partyForOf` calls it and
+ * six producers stamp the answer onto every harm row as
+ * `killerFor` / `victimFor`.
+ *
+ * ⚠⚠ **It is NOT `directedBy`, and folding those two together would be a
+ * lie the governance design is careful never to tell by accident:**
+ *
+ *   | | |
+ *   |---|---|
+ *   | `directedBy` | **episodic** — a captain's recorded directive began *this act* |
+ *   | the institution | **standing** — this actor is fielded by X, order or no order |
+ *
+ * A guard acting for the watch was not *directed* by the watch on this
+ * occasion. Conflating them would make every institutional act read as a
+ * command.
+ *
+ * ⭐ **Two attributions or one — same field, different arity.** A `Cast`
+ * member carries both, and both are real: Odile's bad ruling is Odile's
+ * act *and* the Registry's failure, which is how offices work. A sentient
+ * `Extra` has no identity of its own, so its institutional attribution is
+ * the only one it has. A wolf has neither, and answers to nobody forever.
+ *
+ * ⚠ **Why it lives HERE rather than on a mixin of its own.** It shipped
+ * as `AffiliatedMixin` and was folded in: a mixin whose composers are
+ * exactly one class (`Character`) is the mixin-on-the-wrong-host tell,
+ * and both of the read's tiers are authored-or-employment — tier 2 IS
+ * `getActiveEmployment()`. The wider name would have been justified by
+ * the parcel tier, and that is deferred (below). If a third tier over
+ * ground title ever lands, or a non-employable host needs to be fielded
+ * by somebody, splitting it back out is the honest move — and by then
+ * there will be a second composer to justify it.
  */
 
 import { Mixins, type MixinConstructor, type FieldMeta } from '../mixin';
@@ -77,6 +114,59 @@ const ByEmployingOrganization = SecurityPolicies.AnyOf(
  * Hydrator but is not the contract surface.
  */
 export interface Employed {
+  /** The authored institution override, or `null`. */
+  getInstitution(): string | null;
+  /** Set the authored override (an identity path-string). */
+  setInstitution(value: string | null): void;
+  /**
+   * ⭐ **Who answers for this actor** — the standing party that fields
+   * them: an authored `institution:`, else the employer, else `null`.
+   *
+   * The chain shape this codebase uses everywhere
+   * (`LocomotionApi.defaultModeFor`, the biome outward walk, the address
+   * longest-prefix):
+   *
+   *   1. an authored `institution:` — explicit wins;
+   *   2. else **the employer** — the first still-active `Employment`'s
+   *      `organizationPath`. ⭐ The identity build expected to have to
+   *      *write* this reverse lookup (`organization → people` shipped;
+   *      `person → organization` did not). It was already here.
+   *   3. else `null`.
+   *
+   * ⚠⚠ **Resolved from the DECLARED affiliation, never the current
+   * location.** A guard who walks into a tavern does not become the
+   * tavern's. There is no containment read on this path at all, and that
+   * is the one way to get this obviously wrong.
+   *
+   * ⚠ **Synchronous, and that is load-bearing.** Combat appends its
+   * accountability rows in the *synchronous* prefix of the beat,
+   * deliberately — the coup choreography reads the ledger in the same
+   * turn as the killing blow.
+   *
+   * ## ⚠ Why there is no parcel tier (identity-ledgers D10)
+   *
+   * The plan's third tier was `ParcelApi.ownerOf(<declared home>)`.
+   * Deferred, for three reasons that compound:
+   *
+   *   - **It is async**, and an await here would be a real behaviour
+   *     change bought for a tier with no consumer;
+   *   - **it has no consumer**: tier 3's only input is
+   *     `Character.getDomicileAddress()`, authored on exactly ONE row in
+   *     the shipped world (Odile) — who is employed, so tier 2 answers
+   *     her first;
+   *   - **two of the three owner kinds would be wrong anyway.** A
+   *     parcel's owner may be a wizard `group` or a `player`; neither is
+   *     an institution in the fiction, and attributing the watch's losses
+   *     to the `lounge` wizard group is worse than attributing them to
+   *     nobody.
+   *
+   * ⭐ The honest answer for someone with no employer and no authored
+   * institution is *nobody fields you* — and `lint:identity` turns that
+   * into a build error for a sentient `Extra`, so an **author** is told
+   * rather than the engine guessing from ground title.
+   */
+  institutionPath(): string | null;
+
   // The actor face (F4) — forwards into EmploymentLogic.
   quitJob(organizationPath: string): Promise<void>;
   buysFor(): Promise<BusinessStuff[]>;
@@ -123,6 +213,7 @@ export function EmployedMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     static fieldMeta: FieldMeta = {
       employments: { persistent: true, runtimeState: true },
+      institution: { ref: 'identity', persistent: true, authorable: true },
     };
 
     /**
@@ -131,6 +222,39 @@ export function EmployedMixin<TBase extends MixinConstructor>(Base: TBase) {
      * `Employment` value objects on read.
      */
     public employments: StoredEmployment[] | null = null;
+
+    /**
+     * The authored institution — an **identity path-string**, not a live
+     * ref. It has to survive a reclone, and holding a live `Business`
+     * would keep that business resident for as long as any of its people
+     * are standing; see `ref-shapes.md`.
+     */
+    public institution: string | null = null;
+
+    public getInstitution(): string | null {
+      return this.institution;
+    }
+
+    public setInstitution(value: string | null): void {
+      if (value !== null && typeof value !== 'string') {
+        throw new TypeError(
+          'EmployedMixin.institution must be a path string or null',
+        );
+      }
+      const trimmed = value?.trim() ?? '';
+      this.institution = trimmed.length > 0 ? trimmed : null;
+    }
+
+    /** See {@link Employed.institutionPath}. */
+    public institutionPath(): string | null {
+      // 1 — explicit wins.
+      if (this.institution) return this.institution;
+      // 2 — the employer.
+      const path = this.getActiveEmployment()?.organizationPath;
+      if (path) return path;
+      // 3 — nobody fields you, and the world should say so out loud.
+      return null;
+    }
 
     public getEmployments(): readonly Employment[] {
       return (this.employments ?? []).map((e) => Employment.fromData(e));

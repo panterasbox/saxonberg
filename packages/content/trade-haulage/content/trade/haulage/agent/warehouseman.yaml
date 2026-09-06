@@ -1,0 +1,42 @@
+# The warehouseman — a **seat**, not a wizard stand-in.
+#
+# ⚠⚠ `requiresWizard` appears nowhere in this build. A depot's
+# warehouseman and a carrier's dispatcher are POSITIONS the fiction
+# defines and a person can hold; if an act here seems to need a
+# stand-in, that is a MISSING SEAT and gets filed as a finding.
+class: /platform/agent/Cast
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sensitivus
+  lifecycleState: alive
+  primaryKeyword: warehouseman
+  keywords: [warehouseman, clerk, counter]
+  shortDescription: the warehouseman
+  longDescription: >-
+    Broad, patient, and entirely uninterested in what is in your crate.
+    She writes it down as you describe it, reads it back to you once,
+    and hands you the counterfoil, and the whole transaction takes
+    about as long as saying it did.
+  # ── the dossier ─────────────────────────────────────────────────
+  # Evidence, never values: each entry below expands into the same rows a
+  # lived history would have written, marked `claim`. Seeded once at
+  # postRegister and skipped if any claim already exists, so a reclone or
+  # a reboot cannot mint a second history.
+  # ⚠ A best-guess pass, explicitly provisional — the considered version
+  # is a content pass of its own before go-live.
+  archetype: warehouseman
+  competence:
+    - { discipline: business-administration, asserting: competent }
+    - { discipline: appraisal, asserting: competent }
+  dispositions:
+    - { disposition: patience, valence: 70 }
+    - { disposition: diligence, valence: 65 }
+    - { disposition: curiosity, valence: -50 }
+  behaviors:
+    - brain: /lib/behavior/idles
+      trigger: cadence:50s
+      config:
+        pool:
+          - { kind: free, value: "reads a docket back to somebody, word for word, without inflection." }
+          - { kind: free, value: "says, \"I hold it. I do not own it. If that stops being clear we will both be in front of somebody.\"" }
+          - { kind: free, value: "chalks a number on a crate and rubs out the one under it." }

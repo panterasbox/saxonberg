@@ -58,11 +58,11 @@ describe('HitchController', () => {
   beforeEach(() => installV1QuantityMarshallers());
   afterEach(() => StuffApi.clearAll());
 
-  it('self-haul: giver takes hold of the cart', () => {
+  it('self-haul: giver takes hold of the cart', async () => {
     const { giver, loc } = placedBearer();
     const c = cart();
     ContainmentApi.move(c, loc);
-    makeStuff(() => new HitchController()).execute(
+    await makeStuff(() => new HitchController()).execute(
       { target: one(c, 'cart') },
       ctxFor(giver, loc, 'hitch'),
     );
@@ -70,38 +70,38 @@ describe('HitchController', () => {
     expect(c.getHauledBy()).toBe(giver);
   });
 
-  it('self-haul declined when already hitched', () => {
+  it('self-haul declined when already hitched', async () => {
     const { giver, loc } = placedBearer();
     const a = cart();
     const b = cart();
     giver.hitch(a);
     const ctx = ctxFor(giver, loc, 'hitch');
-    makeStuff(() => new HitchController()).execute({ target: one(b, 'cart') }, ctx);
+    await makeStuff(() => new HitchController()).execute({ target: one(b, 'cart') }, ctx);
     expect(giver.getHauledCart()).toBe(a); // unchanged
     expect(ctx.getNotes()).toContainEqual(
       expect.objectContaining({ kind: 'controller-rejected', reason: 'already-hitched' }),
     );
   });
 
-  it('self-haul declined when hands are full (wielding)', () => {
+  it('self-haul declined when hands are full (wielding)', async () => {
     const { giver, loc } = placedBearer();
     const c = cart();
     equip(giver, heldThing(1), 'hand:left'); // occupy a Wieldable slot
     const ctx = ctxFor(giver, loc, 'hitch');
-    makeStuff(() => new HitchController()).execute({ target: one(c, 'cart') }, ctx);
+    await makeStuff(() => new HitchController()).execute({ target: one(c, 'cart') }, ctx);
     expect(giver.isHitched()).toBe(false);
     expect(ctx.getNotes()).toContainEqual(
       expect.objectContaining({ kind: 'controller-rejected', reason: 'hands-occupied' }),
     );
   });
 
-  it('harness: hitches the cart to a draft beast, rider hands stay free', () => {
+  it('harness: hitches the cart to a draft beast, rider hands stay free', async () => {
     const { giver, loc } = placedBearer();
     const beast = haulingBearer(400); // a strong puller
     ContainmentApi.move(beast, loc);
     const c = cart();
     ContainmentApi.move(c, loc);
-    makeStuff(() => new HitchController()).execute(
+    await makeStuff(() => new HitchController()).execute(
       { target: one(c, 'cart'), mount: one(beast, 'beast') },
       ctxFor(giver, loc, 'hitch'),
     );

@@ -12,7 +12,7 @@
 # not the doing, and enrols you into the Circle (the `bank-circle` effect sets
 # the recognized-standing marker → the raised withdrawal quota) with the
 # Enclave-housing steer — the velvet cage in one gesture.
-class: /platform/agent/NPC
+class: /platform/agent/Cast
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Halloran
@@ -37,7 +37,19 @@ data:
   dispositions:
     - { disposition: compassion, valence: 55 }
     - { disposition: patience, valence: 60 }
-    - { disposition: greed, valence: 30 }
+    - { disposition: generosity, valence: -30 }
+  # ── the dossier ─────────────────────────────────────────────────
+  # Evidence, never values: each entry below expands into the same rows a
+  # lived history would have written, marked `claim`. Seeded once at
+  # postRegister and skipped if any claim already exists, so a reclone or
+  # a reboot cannot mint a second history.
+  # ⚠ A best-guess pass, explicitly provisional — the considered version
+  # is a content pass of its own before go-live.
+  archetype: branch-officer
+  competence:
+    - { discipline: business-admin-law, asserting: proficient }
+    - { discipline: business-administration, asserting: proficient }
+    - { discipline: appraisal, asserting: competent }
   behaviors:
     - brain: /lib/behavior/introduces
       trigger: arrival

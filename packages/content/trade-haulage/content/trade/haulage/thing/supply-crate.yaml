@@ -1,0 +1,25 @@
+# ⭐⭐ The supply crate — **the thing that makes a fungible shipment
+# postable.**
+#
+# The gig substrate's `Condition` refuses `Globbable` outright ("a merging
+# stack has no stable identity"), and supply needs are overwhelmingly
+# fungible: litres of gin, kilos of ore, six of anything. A gig for
+# "twenty bottles" is unpostable, and widening the condition vocabulary
+# was never the answer.
+#
+# So the consignment is a DISCRETE, chattel-stamped container, and the
+# bill of lading is what says what is in it. No new condition template,
+# no vocabulary edit, no engine seam — and it is why the paper is
+# load-bearing rather than decorative.
+#
+# ⭐ It is also the entry rung's shape: a crate goes on a back or in a
+# barrow, so the smallest posted job needs no capital.
+class: /platform/thing/Crate
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a supply crate
+  primaryKeyword: crate
+  keywords: [crate, box, case, consignment]
+  longDescription: |
+    A slatted timber crate with rope handles at each end and a card pocket nailed to one side. Somebody has written on the card, crossed it out, and written on it again.
+  mass: 4

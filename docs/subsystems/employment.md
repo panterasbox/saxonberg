@@ -75,10 +75,14 @@ Four value objects + two mixins + the concrete entity:
   a marker mixin — nothing else on `Position` is authority-shaped.
 - **`ParLine`** (`lib/employment/ParLine.ts`) — one line of a Business's
   **par manifest**: `{ category, minGrade?, level, unit: 'L'|'count'|'kg',
-  supplier? }`. `category` matches a **material tag** (a bottle of gin,
-  a bag of ice, a crate of limes — the bulk interior material for `L`/`kg`,
-  `Tangible.getMaterial()` for `count`) or a pool glass's own
-  `getCategory()`; `supplier` is a Business template path. The par is the
+  supplier?, exemplar? }`. `category` matches a **material tag** (a
+  bottle of gin, a bag of ice, a crate of limes — the bulk interior
+  material for `L`/`kg`, `Tangible.getMaterial()` for `count`) or a pool
+  glass's own `getCategory()`; `supplier` is a Business template path.
+  ⭐ `exemplar` is the template the house ORDERS when the line is short
+  and there is none left to point at — without it a venue that opens
+  with an empty shelf can never order anything and never opens at all
+  (logistics). The par is the
   owner's policy; what is *on hand* is a derived read (below).
 - **`Authority`** — the `PrincipalRef` tagged union: *who may fill this
   organization's positions?* See below.
@@ -457,6 +461,18 @@ a lime in a crate — never sealed ones, filtered by
 and the `restocks` brain. `goodsFor(viewer, category)` returns the
 matching items so a buyer can name what to `buy`.
 
+⭐⭐ **The matcher itself lives in one place** —
+`lib/employment/CategoryMeasure` — and answers both *does this count
+against the category* and *how much of the unit is it*. The sheet, the
+keeper's exemplar scan, the carter's crate finder and a `supply`
+contract's tally all read it. ⚠ There were FOUR copies of that question
+and two were wrong in different ways: one read a bottle's **vessel
+kind** as its par category (so no bulk line ever matched), and one bound
+a template path (so *eight of that exact row* was the only way to
+satisfy an order for six litres). A business is denominated in category
+and unit; everything it handles is denominated in objects; the
+translation is where it kept going wrong.
+
 `Business.parLines` (persistent + authorable; `getParLines` /
 `setParLine` / `removeParLine`). The lounge's `business.yaml` authors 46
 lines (the vinegar line joined with the fermentation build — the cook
@@ -609,6 +625,51 @@ two-beat turn-in) lives in [contract.md](./contract.md).
   attribution** (route to the `CraftedMixin.maker` of the last drink),
   **multi-tender coverage** (`required-on-shift > 1`), and NPC
   **auto-collect** at shift-end.
+
+## ⭐ Who answers for you — `institutionPath` (2026-09)
+
+`EmployedMixin` carries one thing that is not employment: the **standing
+party that fields an actor**, which the harm ledger stamps onto every row
+as `killerFor` / `victimFor` ([accountability.md](./accountability.md)).
+
+```
+institutionPath() =  an authored `institution:`  →  the employer  →  null
+```
+
+⚠⚠ **It is not `directedBy`** — that is *episodic* (a captain's recorded
+order began this act) where this is *standing* (you are fielded by X,
+order or no order). A guard acting for the watch was not *directed* by
+the watch on this occasion, and conflating them would make every
+institutional act read as a command.
+
+⚠ **Resolved from the DECLARED affiliation, never the current
+location.** A guard who walks into a tavern does not become the tavern's.
+
+⚠ **Synchronous, and that is load-bearing** — combat appends its
+accountability rows in the *synchronous* prefix of the beat, because the
+coup choreography reads the ledger in the same turn as the killing blow.
+That is also why the design's third tier (`ParcelApi.ownerOf(<declared
+home>)`) is deferred: it is async, it has no consumer today
+(`_domicileAddress` is authored on exactly one row in the shipped world,
+and she is employed), and two of the three owner kinds would be wrong
+anyway — a wizard `group` and a `player` are not institutions.
+
+⭐ **Tier 2 was free.** The identity build expected to have to write the
+person→organization reverse lookup (`organization → people` shipped;
+`person → organization` did not). `getActiveEmployment()` was already it.
+
+⚠ It shipped as its own `AffiliatedMixin` and was **folded in during
+review**: a mixin whose composers are exactly one class (`Character`) is
+the mixin-on-the-wrong-host tell, and both shipped tiers are
+authored-or-employment. Split it back out if a third tier over ground
+title lands, or if a non-employable host ever needs fielding — by then
+there is a second composer to justify it.
+
+⚠⚠ **Only a BUSINESS roster materializes an `Employment` record.** The
+roster tick enumerates `mixin.BusinessMixin` and nothing else, so a plain
+`Organization`'s `rosterSlots:` resolves to nothing at runtime — which is
+why a role fielded by a body that does not trade (a watch) states its
+`institution:` outright, and why `lint:identity` credits only the former.
 
 ## History
 

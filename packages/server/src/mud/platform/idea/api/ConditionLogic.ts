@@ -25,7 +25,9 @@ import { PlayerApi } from '../../../api/player';
 import { AccountabilityApi } from '../../../api/accountability';
 import { SpeciesApi } from '../../../api/species';
 import { SecurityApi } from '../../../api/security';
-import type { AccountabilityFields } from '../../../lib/accountability/AccountabilityEvent';
+import AccountabilityEvent, {
+  type AccountabilityFields,
+} from '../../../lib/accountability/AccountabilityEvent';
 import type { DeathSpec } from '../../../api/condition';
 import { Channels } from '../../../lib/material/Channel';
 import type { Channel } from '../../../lib/material/Channel';
@@ -323,6 +325,24 @@ async function dieImpl(
     //    material half, and the identity walks off as a shade.
     const player = playerBodyOf(host);
 
+    // The accountability row is a SYNCHRONOUS fire-and-forget append, and
+    // it stays in the sync prefix deliberately: a consumer that reads the
+    // ledger in the same turn as the killing blow (combat's own coup
+    // choreography does) must not race the write.
+    //
+    // ⚠⚠ **It is hoisted ABOVE the circle branch, which used to `return`
+    // before reaching it.** `sandbox.md` classes `accountability_events`
+    // PASS(mark) — *"Identity-real … what happened to YOU stays yours"* —
+    // and a death inside a circle wrote no row at all, so the one thing
+    // the policy promises to keep was the one thing dropped. The mark is
+    // stamped by the persistence layer from the ambient circle context,
+    // and `deriveBlame` is what refuses to convict on it: recorded, and
+    // structurally incapable of being evidence.
+    AccountabilityApi.record(
+      (attribution as AccountabilityFields | undefined) ??
+        environmentalRow(host),
+    );
+
     // A death inside a holodeck circle is REAL there and discarded with
     // it — which is the point of a holodeck, and what lets an author test
     // a lethal trap on themselves. The body leaves a circle-scoped corpse
@@ -353,15 +373,6 @@ async function dieImpl(
         if (nowS !== null) host.markDeceasedAt(nowS);
       }
     }
-
-    // The accountability row is a SYNCHRONOUS fire-and-forget append, and
-    // it stays in the sync prefix deliberately: a consumer that reads the
-    // ledger in the same turn as the killing blow (combat's own coup
-    // choreography does) must not race the write.
-    AccountabilityApi.record(
-      (attribution as AccountabilityFields | undefined) ??
-        environmentalRow(host),
-    );
 
     // ── async tail ──────────────────────────────────────────────────
     await recordDeathDeed(host, cause);
@@ -489,6 +500,56 @@ async function divideBody(avatar: PlayerBody, cause: string): Promise<void> {
 }
 
 /**
+ * ⭐ **A corpse's own identity — issue #40's blocker.**
+ *
+ * Every corpse used to share ONE identity (the template path
+ * `/stuff/agent/Corpse`), because nothing stamped one. Per-instance facts
+ * survived as hydrated *fields*, which is why nothing looked broken — but
+ * every identity-keyed ledger saw one object. Two bodies in a room were
+ * one body to the chronicle, to belief, to chattel, to anything that
+ * asks *whose is this*. A necropolis that cannot tell two bodies apart is
+ * not a necropolis.
+ *
+ * The scheme is `OuterWarren`'s: a root plus a derived key
+ * (`${corpseRoot}/${deceased}/${diedAtGameSec}`, the deceased's leading
+ * slash dropped so the two paths compose into segments).
+ *
+ * ⚠ **It has to survive two things**, and the second is the one that
+ * catches people:
+ *
+ *   - `reembody` — one person can leave several corpses over a life, so
+ *     the deceased's key alone is not enough. The **moment** is the
+ *     second half.
+ *   - a shared deceased key — under D7 an `Extra` keeps its own identity,
+ *     so two dead sentries genuinely share the first half. Different
+ *     seconds separate them; the same second falls through to the
+ *     ordinal, which is the only remaining honest distinction.
+ *
+ * A body with no identity at all (a bare fixture) gets no minted identity
+ * — the corpse then behaves exactly as every corpse did before, rather
+ * than minting a key on `stuffId` that no reader could query after a
+ * reboot.
+ */
+function corpseIdentityFor(body: Stuff, nowS: number): string | undefined {
+  const deceased = body.getIdentityPath();
+  if (!deceased) return undefined;
+  const base =
+    `${TemplatePaths.mortalityCorpse}/` +
+    `${deceased.replace(/^\/+/, '')}/${nowS}`;
+  // Two deaths in one game-second: the ordinal is the disambiguator. A
+  // reaped corpse leaves the index, so keys are recycled rather than
+  // monotonic — which is correct, because identity is about telling live
+  // bodies apart, not about an audit trail (that is the chronicle's job).
+  if (StuffApi.findAllByTemplatePath(base).length === 0) return base;
+  for (let n = 2; ; n++) {
+    const candidate = `${base}-${n}`;
+    if (StuffApi.findAllByTemplatePath(candidate).length === 0) {
+      return candidate;
+    }
+  }
+}
+
+/**
  * Mint a corpse carrying a body's material state and its loadout.
  *
  * Cloned from the authored corpse template, then configured from the body
@@ -527,6 +588,7 @@ async function mintCorpseFrom(
       causeOfDeath: cause,
       diedAtGameSec: nowS,
     },
+    asIdentityPath: corpseIdentityFor(body, nowS),
   });
   if (!MixinApi.isVitals(corpse)) {
     throw new Error(
@@ -792,10 +854,20 @@ function environmentalRow(host: Stuff): AccountabilityFields {
   return {
     kind: 'death',
     sessionId: SecurityApi.uuid(),
-    initiator: '',
-    opponent: '',
-    victim: host.getTemplatePath() ?? host.stuffId,
-    killer: '',
+    // ⭐ `NOBODY` on all three actor fields is the CLAIM this row makes —
+    // an environmental death is nobody's doing. It is the one legitimate
+    // empty party id in the ledger.
+    initiator: AccountabilityEvent.NOBODY,
+    opponent: AccountabilityEvent.NOBODY,
+    // The victim is keyed on IDENTITY, like every other ledger. The
+    // `?? stuffId` fallback is gone: an unidentifiable victim is refused
+    // by the append seam rather than filed under a shared key.
+    victim: AccountabilityEvent.partyIdOf(host) ?? AccountabilityEvent.NOBODY,
+    killer: AccountabilityEvent.NOBODY,
+    // ⭐ The loss is counted even though nobody is to blame. The watch
+    // loses a guard to a blizzard exactly as it loses one to a duel.
+    killerFor: AccountabilityEvent.NOBODY,
+    victimFor: AccountabilityEvent.partyForOf(host),
     consented: false,
     sentient: SpeciesApi.isSentient(host),
   };

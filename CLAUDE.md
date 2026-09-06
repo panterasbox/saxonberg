@@ -121,6 +121,7 @@ behavior. Read the relevant doc before editing in its area.
   - [lifecycle.md](./docs/subsystems/lifecycle.md) — create/destroy choreography, construction sentinel, onDestruct
   - [residency.md](./docs/subsystems/residency.md) — object self-maintenance sweeps: self-eviction of the cold tail, `canEvict` veto, ResidencyLogic
   - [residence.md](./docs/subsystems/residence.md) — the dorm-room first home over Warren + parcels + spine; `(scope, key)` multi-instance persistence; DeferredDestinationExit; Katie
+  - [identity.md](./docs/subsystems/identity.md) — who a character IS: the `Cast`/`Extra` rungs (name OR the definite article), the authored dossier as seeded evidence + the archetype stamp, who answers for you, the three gates; ⭐ the Compact stays players-only by ARITHMETIC
   - [holding.md](./docs/subsystems/holding.md) — the residence ladder as ONE substrate: a holding is a warren one level down; Warren/Inner/Outer tiers, PlatPlan + the gate ring, the shell clock vs the goods clock, tenure terms, the D/P decision index
   - [state-model.md](./docs/subsystems/state-model.md) — what gets persisted; Avatar self-contained, Document track for auth/meta
   - [connection.md](./docs/subsystems/connection.md) — login/logout, WebSocket upgrade, Interactive/Login/Avatar handoff, multiplexing
@@ -183,7 +184,7 @@ behavior. Read the relevant doc before editing in its area.
   - [chronicle.md](./docs/subsystems/chronicle.md) — append-only identity ledger: deed vs claim, three singularity patterns, the `chronicle` verb
   - [participation.md](./docs/subsystems/participation.md) — the quantity half of influence: `participation_events`, real-time decay, the engagement×renown projection
   - [advancement.md](./docs/subsystems/advancement.md) — growth measurement: Discipline catalog, Transcript, derive-on-read Competence bands, conferrals
-  - [trait.md](./docs/subsystems/trait.md) — the personality layer: 17 opposed pairs, `disposition_events`, derive-on-read TraitPosition, regard baseline
+  - [trait.md](./docs/subsystems/trait.md) — the personality layer: 19 opposed pairs, `disposition_events`, derive-on-read TraitPosition, regard baseline
   - [renown.md](./docs/subsystems/renown.md) — measured standing: `renown_events` → RenownStanding, reaction + reception signals, per-scope derive
   - [influence.md](./docs/subsystems/influence.md) — the three-stock contract: InfluenceApi dispatcher, the producer stock, the account roll-up seam, conviction hold/flip/tally
   - [provenance.md](./docs/subsystems/provenance.md) — authorship ledger: `authoring_events`, context-derived author, the `recordAuthoring` gate, CreditRouting
@@ -235,6 +236,7 @@ behavior. Read the relevant doc before editing in its area.
   - [posture.md](./docs/subsystems/posture.md) — Postured + Posed + Postures vocabulary, the posture-bearing slot
   - [conveyance.md](./docs/subsystems/conveyance.md) — Mountable/Drivable, the traverse ripple, mount/dismount, haulage (hitch/unhitch)
   - [locomotion.md](./docs/subsystems/locomotion.md) — LocomotionMode singletons, enablement mixins, per-mode controllers, the sneak/run pace modes
+  - [logistics.md](./docs/subsystems/logistics.md) — goods over real ground: induced lanes, the Route/Journey, the paper, the depot, the haulage labor market, the cost surface
   - [fasttravel.md](./docs/subsystems/fasttravel.md) — the TPA teleport network, now a **utility that runs on mana**: ⭐⭐ the VERB is the kernel's and the NETWORK is the `tpa` pack's, meeting over the `TravelNode` shape (you must not need the TPA to teleport — free-in-your-extent and the anchored spell are kernel forks); FastTravelMixin nodes + `ride()`, the travel credential, the board-for-everyone, the three supplies + the arming floor + the amber band, the derived mana rate, the self-governing Authority
   - [credential.md](./docs/subsystems/credential.md) — the unified credential substrate: the wallet mixin, payment/travel/key kinds, lock/key + `presentsKey`
   - [glob.md](./docs/subsystems/glob.md) — fungible stacks: Globbable quantity, split/merge/applyQuantity, the MQL quantity surface
@@ -843,16 +845,20 @@ platform/thing/FoldingChair` is ordinary OO and correct. Only classes that are
 
 **When a substrate class is also cloned generically, split it.** The
 abstract base stays in `lib/`; a thin concrete subclass in `platform/`
-absorbs the clones, and templates name that. Nine exist. **Eight
+absorbs the clones, and templates name that. Ten exist. **Seven
 deliberately share their base's name** (the import aliases it as
 `<Name>Base`; the module registry keys on class identity, not name):
-`platform/thing/Thing`, `platform/thing/Vessel`, `platform/agent/NPC`,
+`platform/thing/Thing`, `platform/thing/Vessel`,
 `platform/location/CartesianLocation`,
 `platform/location/SingletonCartesianLocation`, `platform/idea/Exit`,
-`platform/idea/material/Material`, `platform/idea/Biome`. **One is a real
-rename because it is a real concept**: `platform/agent/Corpse`
-(← `Creature`). ⭐ Sharing the name is the DEFAULT — a twin that renames
-is claiming to be a different thing, and had better be one.
+`platform/idea/material/Material`, `platform/idea/Biome`. **Three are
+real renames because they are real concepts**: `platform/agent/Corpse`
+(← `Creature`), and ⭐ `platform/agent/Extra` + `platform/agent/Cast`,
+where the concrete twin **split into two things** — `lib/npc/NPC`'s two
+identity rungs, a role and a person (`platform/agent/NPC` retired; see
+[docs/subsystems/identity.md](./docs/subsystems/identity.md)). ⭐ Sharing
+the name is the DEFAULT — a twin that renames is claiming to be a
+different thing, and had better be one.
 `platform/thing/Thing` was called `Prop` until 2026-09-03, which named
 nothing (there is no prop concept anywhere in the tree) and read as
 "generic object nobody cares about" — so nobody defended it, and a

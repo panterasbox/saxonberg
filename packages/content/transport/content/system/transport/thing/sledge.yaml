@@ -1,0 +1,31 @@
+# The sledge — ⭐ **the second-variant probe, answered in a data row.**
+#
+# The standing question when a second variant appears is *does this need
+# a class?* A dragged sledge is the strongest case for "yes" in this
+# whole build: it has no wheels, it behaves completely differently, and
+# it is the thing a wagon is not.
+#
+# It does not need a class. `draftFactor: 0.35` — an order of magnitude
+# worse than the wagon's 0.03, because runners on ground are not wheels
+# on a road — is the entire difference, and the encumbrance substrate
+# turns that one number into everything a player will notice: a sledge
+# with the same load on the same team is brutal, and on the one surface
+# where wheels are useless it is the only thing that moves at all.
+#
+# ⚠ `passageMode: wheeled` anyway, because the mode names the MEDIUM a
+# conveyance uses rather than what it has under it, and the exits that
+# refuse a sledge are the ones that refuse a wagon.
+class: /system/transport/thing/HaulageRig
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a dragged sledge
+  primaryKeyword: sledge
+  keywords: [sledge, sled, drag, boat]
+  longDescription: |
+    Two shaped runners under a slatted deck, with a rope bridle at the front and nothing else. It has no wheels, no axles and nothing that can break, which is why it is still in use on ground where a wagon would be firewood inside a season.
+  mass: 60
+  draftFactor: 0.35
+  handedness: 2
+  passageMode: wheeled
+  interiorBulk: true
+  interiorCapacity: 250

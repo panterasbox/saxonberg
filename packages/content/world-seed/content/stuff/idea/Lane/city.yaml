@@ -1,0 +1,25 @@
+# The city — ⭐ **the lane a hauler actually works.**
+#
+# `mode: walk`, induced, seeded at the goods yards. Every ordinary city
+# exit admits walking (an exit with no `media` is the legacy walk-only
+# default), so this lane compiles the whole of Terminus with **no content
+# change anywhere** — which is what an induced lane is for.
+#
+# ⚠ It is the freight lane that matters day to day, and it is a WALKING
+# one: the realm's supply chain is a handful of crates crossing a city,
+# not a wagon train. The spine exists for the load a person cannot carry,
+# which is exactly the capacity-not-distance premise the build is built
+# on.
+#
+# `operator: null` — the public street.
+class: /system/transport/idea/Lane
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: city
+  name: the city streets
+  mode: walk
+  seeds:
+    - /world/terminus/goods-yards/yard
+  edges: []
+  stops: []
+  operator: null

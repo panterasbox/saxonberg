@@ -21,6 +21,7 @@ import { PersonaMixin } from '../../../../lib/character/Persona';
 import { ConditionApi } from '../../../../api/condition';
 import { AccountabilityApi } from '../../../../api/accountability';
 import { StuffApi } from '../../../../api/stuff';
+import { Stuff } from '../../../../lib/stuff/Stuff';
 import AccountabilityEvent from '../../../../lib/accountability/AccountabilityEvent';
 import type { AccountabilityFields } from '../../../../lib/accountability/AccountabilityEvent';
 import { makeStuff } from '../../../../lib/security/__tests__/test-setup';
@@ -31,8 +32,19 @@ let deeds: { tags?: string[] }[] = [];
 
 class StoriedCreature extends PersonaMixin(Creature) {}
 
+/**
+ * ⚠ The fixture is TEMPLATE-STAMPED, and it has to be. The ledger keys
+ * every party on `getIdentityPath()` — which for an ordinary body IS its
+ * template path — and refuses a terminal row that names no victim rather
+ * than filing it under the empty string. An unstamped fixture is not a
+ * body the world could ever contain; the old `?? stuffId` fallback made
+ * it look like one, at the price of minting a session-ephemeral key that
+ * no reader could query after a reboot.
+ */
+let bodySeq = 0;
 function body(): Creature {
   const c = makeStuff(() => new Creature());
+  Stuff._stampTemplatePath(c, `/stuff/agent/test-body/${++bodySeq}`);
   c.setLifecycleState('alive');
   return c;
 }
@@ -40,6 +52,7 @@ function body(): Creature {
 /** A persona-composed body whose own recordDeed is the capture seam. */
 function storiedBody(): StoriedCreature {
   const c = makeStuff(() => new StoriedCreature());
+  Stuff._stampTemplatePath(c, `/stuff/agent/test-storied/${++bodySeq}`);
   c.setLifecycleState('alive');
   vi.spyOn(c, 'recordDeed').mockImplementation(async (f) => {
     deeds.push(f as { tags?: string[] });
@@ -128,7 +141,9 @@ describe('ConditionApi.die — one transition', () => {
     const c = body();
     await ConditionApi.die(c, 'starvation');
     expect(rows).toHaveLength(1);
-    expect(rows[0]!.victim).toBeTruthy();
+    // And it reaches it under the key a reader will actually ask with:
+    // the victim's IDENTITY, not a session-ephemeral stand-in.
+    expect(rows[0]!.victim).toBe(c.getIdentityPath());
   });
 
   it('caller-supplied attribution is used verbatim — the ledger never infers', async () => {

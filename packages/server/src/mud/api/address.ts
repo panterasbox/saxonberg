@@ -129,6 +129,48 @@ export class AddressApi {
     return logic().findByAddress(address);
   }
 
+  /**
+   * ⭐⭐ **The one way a player names a place**, as a durable path:
+   * `here` → something reachable → a Locality by NAME → a Locality by
+   * ADDRESS → a literal path. `''` when nothing answers.
+   *
+   * ⚠⚠ It lives here because it was living in two places and they had
+   * already drifted. `job post` resolved `here`-or-reachable-or-path;
+   * `ship` resolved reachable-or-path — and since a shipment's
+   * destination is BY DEFINITION out of reach, that left a template
+   * path as the only working form and made both of `ship`'s own help
+   * examples lies. Two implementations of one question, one of them
+   * quietly wrong, is the same shape as the bug that had a keeper
+   * reading a bottle's vessel kind as its par category.
+   *
+   * ⭐ A Locality is the right unit for somewhere you cannot see: every
+   * Locality is resident (the registry eagerly clones the roster at
+   * boot), while an arbitrary ROOM may not be — and a bill of lading
+   * names a consignee place, not a room, anyway.
+   */
+  public static resolvePlace(
+    raw: string,
+    giver: Stuff,
+    herePath = '',
+  ): string {
+    return logic().resolvePlace(raw, giver, herePath);
+  }
+
+  /**
+   * The Locality known by `name`, case-insensitively — *"which place is
+   * called Rejection"*.
+   *
+   * ⭐ The player-facing sibling of {@link AddressApi.findByAddress}: an
+   * address is how the engine files a place, a NAME is how somebody
+   * asks for one. A verb that takes a destination out of earshot (a
+   * bill of lading's consignee, a carriage order) has no other honest
+   * way to let a player say where — MQL only reaches what is reachable,
+   * and a template path is not something anybody says out loud.
+   */
+  public static findLocalityByName(name: string): Locality | null {
+    return logic().findLocalityByName(name);
+  }
+
   /** Resolve a Locality singleton by its templatePath (HMR-safe). */
   public static findByPath(path: string): Locality | null {
     return logic().findByPath(path);

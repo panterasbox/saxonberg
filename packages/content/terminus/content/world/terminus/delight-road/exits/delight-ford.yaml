@@ -1,0 +1,25 @@
+# The exit-kind for the Delight ford — the ONE seasonal crossing in the
+# realm, and the acceptance instrument for "a road changes with the
+# season, reading the watershed's derived flow rather than a new field".
+#
+# ⚠ Authored here, in the locality, rather than in `generic-objects`
+# alongside `stair` and `archway`: the reach it crosses and the flow it
+# floods at are facts about THIS water, and a generic ford kind would
+# have to carry somebody's river in it. The mechanism is the transport
+# system's; the crossing is Terminus's.
+#
+# `delight:mouth` is the Delight's last reach before the confluence — a
+# catchment of ~240 km² of farming valley. 12 m³/s is roughly the spring
+# rise: comfortably passable through summer and autumn, up in the melt.
+class: /system/transport/idea/FordExit
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  media: [ground]
+  # ⚠ Wheels are admitted: a cart crosses a ford in summer exactly as a
+  # person does. What refuses wheels in this realm is the PASS, and it is
+  # meant to be the only thing that does.
+  wheelPassable: true
+  crossesReach: delight:mouth
+  floodThresholdM3S: 12
+  messageOut: "{{ mover }} splashes across the ford."
+  messageIn: "{{ mover }} comes up out of the water on this side."

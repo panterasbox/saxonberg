@@ -12,3 +12,14 @@ requires:
       purpose: the frontier's own body
   title:
     - { extent: /world/newbie-wilds, holder: { group: newbie-wilds } }
+
+# ⚠⚠ **The reference-Idea trap, which has now fired five times.** These
+# two organizations are `Idea` singletons that nothing clones and nothing
+# walks: without a boot entry they never stand up, `chronicle the watch`
+# finds no such body, and the institution the sentry names resolves to a
+# path with nothing behind it. The ATTRIBUTION still works (an
+# `institution:` is a path string, not a live ref) — which is exactly why
+# the omission would have been silent.
+boot:
+  - { template: /world/newbie-wilds/idea/watch, role: producer, reason: the sentry's `institution:` names it and `chronicle <body>` resolves it by label }
+  - { template: /world/newbie-wilds/idea/long-road, role: producer, reason: the sellsword's `institution:` names it and `chronicle <body>` resolves it by label }

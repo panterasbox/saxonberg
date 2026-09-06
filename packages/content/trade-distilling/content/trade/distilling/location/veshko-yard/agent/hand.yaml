@@ -1,7 +1,7 @@
 # Petra Volkova — Veshko Distilling's hand. Dealt the house card at hire; the
 # `consigns` brain carries the yard's product to the cash-and-carry counter
 # and lists it AS Veshko Distilling. The annex names the host.
-class: /platform/agent/NPC
+class: /platform/agent/Cast
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Petra Volkova
@@ -15,13 +15,33 @@ data:
     A brisk, square woman in a grey company coat with the Veshko mark on the breast, who moves pallets like she is being timed. She probably is.
   dispositions:
     - { disposition: diligence, valence: 80 }
+  # ── the dossier ─────────────────────────────────────────────────
+  # Evidence, never values: each entry below expands into the same rows a
+  # lived history would have written, marked `claim`. Seeded once at
+  # postRegister and skipped if any claim already exists, so a reclone or
+  # a reboot cannot mint a second history.
+  # ⚠ A best-guess pass, explicitly provisional — the considered version
+  # is a content pass of its own before go-live.
+  archetype: hand
+  competence:
+    - { discipline: distilling, asserting: novice }
   behaviors:
     - brain: /lib/behavior/consigns
-      trigger: cadence:90s
+      trigger: cadence:4m
       config:
         stock: /trade/distilling/location/veshko-yard/thing/stock
         shelf: /trade/distribution/thing/counter
-        batch: 6
+        # ⚠⚠ `board`, `crate` and `carriage` USED to sit here — the
+        # posting version of this beat, from before the hand could
+        # walk. `consigns` reads none of them, so they were three keys
+        # that looked like configuration and were configuration of
+        # nothing. Removed rather than left: a dead key in a row is the
+        # quietest lie a content tree can tell.
+        #
+        # ⚠ Retuned by logistics D11 all the same: twelve a beat, not six
+        # loose goods, because a walk to the counter and back is the same
+        # walk whatever the hand is carrying.
+        batch: 12
         ask:
           # Volk carries the mark and a premium over the same liquid
           # unbranded — the whole Kirkland lesson in two numbers.

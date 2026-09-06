@@ -12,6 +12,14 @@
  * not a sense organ — a sheet shows what you could see from where you
  * stand).
  *
+ * ⭐⭐ `exemplar` is what the house ORDERS when the line is short and
+ * there is none left to point at. A carriage order names an item, and a
+ * keeper with an empty rail has none — so without this a venue that
+ * opens with nothing on the shelf can never order anything and never
+ * opens at all. It is the proprietor's decision (*which* gin this bar
+ * stocks), which is why it is authored beside the level rather than read
+ * off whatever the supplier happens to have.
+ *
  * `category` is matched against a **material tag** (a bottle of gin
  * carries the `gin` tag on its interior material; a crate of limes the
  * `lime` tag on the fruit's material) or, for glassware, the glass row's
@@ -34,6 +42,12 @@ export interface ParLineData {
   unit: ParUnit;
   /** The Business (templatePath) this line is bought from (`''` = none). */
   supplier?: string;
+  /**
+   * The template path of the good to order when the line is short and
+   * nothing of it is on hand (`''` = none — the line can then only be
+   * re-ordered while a unit is still on the shelf).
+   */
+  exemplar?: string;
 }
 
 export class ParLine {
@@ -43,6 +57,7 @@ export class ParLine {
     public readonly level: number,
     public readonly unit: ParUnit,
     public readonly supplier: string,
+    public readonly exemplar: string,
   ) {}
 
   /** Coerce a loosely-typed (authored / hydrated) blob into a ParLine. */
@@ -57,6 +72,7 @@ export class ParLine {
       Number.isFinite(level) && level > 0 ? level : 0,
       unit,
       String(data.supplier ?? ''),
+      String(data.exemplar ?? ''),
     );
   }
 
@@ -68,6 +84,7 @@ export class ParLine {
       unit: this.unit,
       ...(this.minGrade ? { minGrade: this.minGrade } : {}),
       ...(this.supplier ? { supplier: this.supplier } : {}),
+      ...(this.exemplar ? { exemplar: this.exemplar } : {}),
     };
   }
 }

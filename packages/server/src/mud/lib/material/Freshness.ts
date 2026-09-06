@@ -26,11 +26,27 @@
  *     whole reason salt, sugar, honey and spirits keep: they are
  *     shelf-stable *by physics*, with no shelf-stable flag anywhere.
  *
- * **Universal, and inert by default.** The mixin composes onto every
- * `Thing` (beside `WetMixin`), but a Material that tabulates no
- * `spoilActivationEnergy` never advances past zero — an anvil does not
- * rot. Storage is therefore sparse in the `WetMixin` shape: two scalar
- * fields at their `0` defaults.
+ * ⚠ **Narrow, not universal — and this docstring said the opposite until
+ * 2026-09-04.** It claimed the mixin "composes onto every `Thing` (beside
+ * `WetMixin`)", which was true of an earlier draft and false of the
+ * shipped code: it composes on **`Provision` and only `Provision`**
+ * (`platform/thing/Provision.ts`), the one class in the library that is
+ * food by name. Composing it wide put five spoilage methods on the
+ * documented author surface of a rock, a lantern and a pair of socks,
+ * against `callable == visible == cared-about`.
+ *
+ * The wide version was not arbitrary — perishability really is a property
+ * of the **Material**, not the class, so "compose everywhere and let inert
+ * materials no-op" reads correct. What it costs is the author surface, and
+ * `pnpm lint:perishable` is what buys the narrowing back: it fails CI on
+ * any row whose Material tabulates a non-zero `spoilActivationEnergy` but
+ * whose class does not reach this mixin. Without that gate the narrowing
+ * would fail the way this codebase fails worst — **silently**, with a
+ * perishable material that simply never rots and nothing anywhere to say
+ * so. See `scripts/check-perishable.ts`.
+ *
+ * Storage is sparse in the `WetMixin` shape regardless: two scalar fields
+ * at their `0` defaults until something actually spoils.
  *
  * **Two divergences from `WetMixin`, both deliberate:**
  *

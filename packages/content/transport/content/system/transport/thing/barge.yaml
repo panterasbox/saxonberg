@@ -1,0 +1,27 @@
+# The barge — the water rig, and the only thing in the realm that moves
+# freight without a road.
+#
+# ⭐ It carries an order of magnitude more than a wagon and it can only
+# go where the water goes, which is the **capacity ↔ reach** axis this
+# whole build is about: technologies coexist because they sit at
+# different points on it, not because one is better.
+#
+# ⚠ It is `Mobile` — a barge steers, so the VESSEL traverses and the
+# conveyance ripple carries whoever is aboard. `Bulkable` at 12,000 L for
+# grain and ore; the deck holds discrete cargo as ordinary contents.
+#
+# ⭐ An open deck is why passengers watch the river go by, and it costs
+# nothing: an open container is an open container.
+class: /system/transport/thing/Barge
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a flat-bottomed barge
+  primaryKeyword: barge
+  keywords: [barge, boat, lighter, craft]
+  longDescription: |
+    Sixty feet of flat-bottomed timber with a shallow well amidships, a stubby mast that folds, and a steering sweep as long as a house. She draws less than a person is tall loaded, which is the only reason she gets up this river at all.
+  mass: 4200
+  controllerSlot: "driver:1"
+  vehicularMode: /platform/idea/LocomotionMode/sailed
+  interiorBulk: true
+  interiorCapacity: 12000

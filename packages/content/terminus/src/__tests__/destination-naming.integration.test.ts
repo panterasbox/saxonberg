@@ -90,6 +90,17 @@ const STUBS: Doc[] = [
   // cascade light); the registry office's registrar rides `cast:`, which
   // the loader strips.
   { path: "/world/terminus/terminal/agent/clerk", class: "/platform/thing/Thing", hydratorClass: PH, data: { shortDescription: "the clerk" } },
+  // ⭐⭐ The two ends of the Kestrel road (logistics W4). Terminus's
+  // Delight road and the wilds crossroads both wire an exit into the
+  // rejection pack now — the realm is one connected place — and
+  // `applyExits` resolves a destination as a singleton, so the row has
+  // to exist. Stubs rather than the real rooms: this suite is about how
+  // a TPA destination is named from its covering Locality, and loading
+  // the whole mining town to satisfy two exits would drag its trades in
+  // behind it. The road itself is asserted in the transport pack and in
+  // `logistics-corridors`.
+  { path: "/world/rejection/kestrel-road/lower-climb", class: "/platform/location/VoidLocation", hydratorClass: PH, data: { shortDescription: "the lower climb" } },
+  { path: "/world/rejection/kestrel-road/yard-gate", class: "/platform/location/VoidLocation", hydratorClass: PH, data: { shortDescription: "the yard gate" } },
 ];
 
 describe("destination naming + crossroads (real seeds)", () => {

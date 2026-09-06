@@ -1,0 +1,23 @@
+# The PASSENGER-CONVEYANCE archetype — the other half of AC15k, and the
+# one where the needs read most obviously.
+#
+# ⚠ **The passenger MARKET does not exist yet, and that is deliberate**
+# (D21): a service does not compete with walking for a person carrying
+# nothing, and this realm is a basin you cross in five real minutes. The
+# taxonomy is recorded, the `ride` experience ships, and no coach line
+# does. The one rung with real demand today is the PORTER — somebody to
+# carry what you cannot — and that is D16's entry gig.
+#
+# So this row is a contract for content that arrives with distance or
+# with danger. It costs one file and it means nobody has to re-derive it.
+archetypeId: passenger-conveyance
+label: a passenger conveyance
+materializesOnto: /system/transport/thing/coach
+surveyScope: off-room
+capabilities:
+  - { key: seating, needs: { seating: 4 } }
+  # ⭐ The night coach's lamp. A shut coach is opaque and an unlit
+  # interior is PITCH BLACK — every object in it reads as "something" —
+  # so a conveyance you sit inside has to answer for its own light in a
+  # way an open wagon never does.
+  - { key: light, needs: { lightLux: 20 }, default: /stuff/thing/fixture/sconce-lamp }

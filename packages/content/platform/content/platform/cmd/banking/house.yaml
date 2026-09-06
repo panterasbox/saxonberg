@@ -1,6 +1,6 @@
 verbs: [house]
 controller: /platform/idea/cmd/banking/HouseController
-description: "The house app — pnl / payroll / par / stock"
+description: "The house app — pnl / payroll / par / stock / freight / traffic"
 opens_card: stock
 help: |
   The house app, for whoever keeps the house: a position held there or
@@ -54,5 +54,55 @@ subcommands:
         short: f
         type: string
         description: "The supplier (a business path) this line is bought from."
+  # ⭐⭐ The freight reads (logistics D12/D18). A stanza on this shipped
+  # view with the trade's controller behind it — the instrumentation
+  # split. ⚠ Without `trade-haulage` installed they die on dispatch with
+  # a legible `controller-error`, never a crash.
+  freight:
+    description: "What your house has shipped — the bills of lading, newest first"
+    help: |
+      Read your own paper: what moved, how much of it, from where to
+      where, what it was declared at, and how the carriage happened.
+
+      `--from <place>` / `--to <place>` narrow it; `--since season`
+      cuts it to the last quarter.
+
+      ⚠ **Your own**, and only your own. Bills are filed under the
+      business that filed them, so a depot's records cover exactly what
+      it handled and nothing else. That is not a permission check — it
+      is what the records ARE. Nobody in this realm can see the whole of
+      trade; the closest thing to it is a depot, and its coverage is its
+      market share.
+    controller: /trade/haulage/idea/cmd/banking/HouseFreightController
+    options:
+      from:
+        type: string
+        description: "Only loads that started here."
+      to:
+        type: string
+        description: "Only loads that ended here."
+      since:
+        type: string
+        description: "`season` — only the last quarter."
+  traffic:
+    description: "Which stretches of road your loads crossed most — counted off the bills"
+    help: |
+      ⭐⭐ Which corridor segments carried the most, busiest first.
+
+      **It is arithmetic over the paper, and there is no traffic counter
+      anywhere in the realm.** Nobody authors that the valley road is
+      busy: it is busy because the ore goes down it, and if the mine
+      closes it stops being busy on its own.
+
+      The gap between what a road was BUILT for — its grade, its mode
+      gates, how long its edges are — and what it actually CARRIES is
+      where the stories are: a fine road nobody uses, a rut carrying
+      more than it should, a high street that was the only way through
+      before the cut-off.
+    controller: /trade/haulage/idea/cmd/banking/HouseFreightController
+    options:
+      since:
+        type: string
+        description: "`season` — only the last quarter."
   stock:
     description: "The live stock sheet — the rail against par"

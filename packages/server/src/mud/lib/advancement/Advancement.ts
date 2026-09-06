@@ -50,6 +50,8 @@ export interface RecordOptions {
   /** Game-time seconds; defaults to the witness clock when omitted. */
   when?: number | null;
   tags?: string[];
+  /** The minting archetype (claims only) — see `TranscriptEntry.archetype`. */
+  archetype?: string;
 }
 
 /** A Discipline the owner has evidence in, with its current band. */
@@ -90,6 +92,7 @@ async function buildAndSave(
   entry.difficulty = fields.difficulty;
   entry.outcome = fields.outcome;
   entry.tags = fields.tags ?? [];
+  entry.archetype = fields.archetype ?? "";
   await entry.save();
   // AFTER the write, never before. One call site covers creditSignature
   // AND creditDeed (creditDeed routes through creditSignatureImpl into
@@ -123,6 +126,7 @@ async function creditSignatureImpl(
       outcome: sub.outcome,
       when,
       tags: opts.tags,
+      archetype: opts.archetype,
     });
   }
 }

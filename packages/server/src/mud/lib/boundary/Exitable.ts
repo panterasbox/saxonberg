@@ -230,6 +230,17 @@ export interface ExitInstruction {
    * inherits the default. See `Exit.wheelPassable`.
    */
   wheelPassable?: boolean;
+  /**
+   * Game minutes for one baseline (unloaded, walk-mode) traverse of this
+   * edge. Omitted → the `transport.defaultEdgeMinutes` corridor default.
+   * ⚠ Nothing in the kernel reads it — ordinary movement stays
+   * instantaneous; only the transport system's Journey spends it. Wired
+   * through the one-way path (alongside `media` / `wheelPassable`),
+   * which is the path corridors use: both sides of a road edge are
+   * authored explicitly, so each side carries its own budget. See
+   * `Exit.edgeMinutes`.
+   */
+  edgeMinutes?: number | null;
 }
 
 export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>(Base: TBase) {
@@ -634,6 +645,7 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
         messageOut: spec.messageOut,
         media: spec.media,
         wheelPassable: spec.wheelPassable,
+        edgeMinutes: spec.edgeMinutes,
       };
       let exit: Exit;
       if (kindPath) {

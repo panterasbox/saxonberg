@@ -1,15 +1,33 @@
 verbs: [chronicle]
 controller: /platform/idea/cmd/charactergen/ChronicleController
-description: "Read your own chronicle — your prologue and your deeds."
+description: "Read a chronicle — a life on the record, or a body's losses."
 help: |
-  Your character's life on the record. `chronicle` reads back your
-  own story in a fixed order, never interleaved: first your bio (the
-  self-narrative you carry), then your prologue, then your deeds.
+  A life on the record. `chronicle` reads back a story in a fixed
+  order, never interleaved: first the bio (the self-narrative they
+  carry), then the prologue, then the deeds.
 
-  The prologue is the founding history you were given when you
-  enrolled — the claims that came with your aspiration. The timeline
-  below it is the running list of witnessed moments the world has
-  recorded as you've played, oldest first.
+  The prologue is the founding history — the claims that came with
+  who they are. The timeline below it is the running list of
+  witnessed moments the world has recorded, oldest first.
 
-  It's a read-only, self-only view: you can look at your own
-  chronicle, not anyone else's, and the verb takes no arguments.
+  With no argument you read your own. Name somebody in reach to read
+  theirs instead — a written history is a fact about the world, so
+  anyone may learn it. ⭐ A **player's** chronicle stays their own,
+  and asking for one is refused: your life is yours to tell.
+
+  Name a body of people — a watch, a company, a house — and you read
+  its record instead: what it has lost, and what it is blamed for. A
+  body counts its fallen whether or not anybody did wrong; it is
+  blamed only where a wrong was actually done.
+examples:
+  - cmd: chronicle
+    note: Read your own
+  - cmd: chronicle the collier
+    note: Read somebody else's
+  - cmd: chronicle the watch
+    note: What a body of people has lost
+args:
+  - name: subject
+    type: string
+    required: false
+    greedy: true

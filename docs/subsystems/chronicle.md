@@ -153,6 +153,32 @@ once), so they resist farming by nature; the farmable categories
 (grind, completion %, time-played, kill-counts) are exactly what the gate
 excludes.
 
+## Authored history — the dossier seeder
+
+Char-gen is no longer the only source of claims. A `Cast` row carries a
+**dossier** (`archetype` · `prologue` · `competence` · `renown`) that
+`CastMixin` seeds at `postRegister` — the shipped `dispositions:`
+precedent exactly: **idempotent, once**, skipped when any `claim` row
+already exists, so a re-clone, a reboot or a CMS go-live cannot mint a
+second history.
+
+⭐⭐ **Every seeded row carries the archetype that minted it.** `kind`
+separates *authored* from *earned*; it does **not** separate an
+**archetype claim** from a **deviation claim**, and an author who writes
+"a bartender, but unusually blunt" is stating a departure from a
+baseline. `deviation = current derived − archetype baseline` is
+uncomputable without knowing which baseline. ⚠ It costs one field now and
+is **unrecoverable later** — a sum with no seams cannot be unwound
+afterwards at any price. The stamp is on `ChronicleEntry`,
+`TranscriptEntry` and `DispositionEntry` alike.
+
+`lint:dossiers` checks assert-vs-derive: what the author says a character
+should read as, against what the estimator actually derives. ⭐ That is
+the one thing stopping a dossier drifting back into a stat sheet, because
+a declared value cannot disagree with itself and a seeded history can.
+See [advancement.md](./advancement.md) and
+[lint-family.md](../lint-family.md).
+
 ## Char-gen claim-seeding
 
 Each aspiration in `mud/config/char-gen.yaml` carries a `claimSeeds: [{
@@ -162,13 +188,70 @@ read the same aspiration, neither touches the other. At
 `getTemplatePath()` resolves), `avatar.seedChronicleClaims(
 aspiration?.claimSeeds ?? [])` mints the `claim` entries.
 
-## The `chronicle` verb — the self-view
+## The `chronicle` verb — three readings, one question
 
-A single-token, zero-arg, **self-only, read-only** verb (the MVC triple:
+A read-only verb taking an **optional subject** (the MVC triple:
 `cmd/charactergen/chronicle.yaml` + `platform/idea/cmd/charactergen/
 ChronicleController.ts` + the controller seed). It subsumes the *view*
 role the char-gen subsystem sketched as the deferred `records` verb;
 `records`-style bio **editing** stays deferred.
+
+It answers one question — *what does the world remember about you* — and
+the answer's shape follows the subject rather than the command:
+
+| subject | reading |
+|---|---|
+| none | your own: bio → prologue → deeds |
+| **a person in reach** | theirs, with one refusal |
+| ⭐ **a body of people** | its accountability record — what it has lost, and what it answers for ([accountability.md](./accountability.md)) |
+
+⚠⚠ **It was zero-arg and self-only until the identity build, and so was
+`competence`.** Meanwhile the permission model already said an authored
+character's history is a fact about the world that any viewer may learn.
+⭐ **The gate was open and there was no door**: nobody could ask what
+Dave is good at or what the collier has been through, so seeding authored
+history would have shipped unreachable — the `feel` / `taste` shape
+exactly, a capability that ships and has never run.
+
+**The refusal is the feature.** Asking about another **player** is
+declined — a person's own history is theirs to tell; an authored
+character's is a fact about the world. `getPlayerId()` is the
+discriminator, structurally, so a future player-bearing class behaves the
+same without being enumerated.
+
+### ⭐ Resolving the subject — `RecordControllerBase`
+
+`chronicle` and `competence` share it (the `BankingControllerBase`
+precedent: a base controller, not a free helper). The rule is **not**
+"whatever MQL returns first", and the live drive found both failure
+directions in one run:
+
+- `competence dave` answered **"Dave's Bar"** — the Business Idea whose
+  `name` also contains *dave* — and reported that a bar knows nothing
+  about bartending;
+- `chronicle the watch` answered **"a watchful sentry"**, because MQL
+  matches a prefix and *watch* is a prefix of *watchful*. The watch the
+  sentry answers to was unreachable behind the sentry.
+
+> ⭐⭐ **A subject must be addressed by a word it CALLS ITSELF.** A person
+> by a word of their presentation; a body of people by a word of its
+> label.
+
+Both halves are "what the thing says its name is", which is the honest
+symmetry — and it settles both cases with no special rule for either:
+*watch* is a whole word of "the Watch of the Last Counted Mile" and only
+a prefix inside "a watchful sentry"; *dave* is a whole word of "Dave" and
+only a fragment of "Dave's". A tie goes to the person, because someone
+standing in front of you is the likelier subject; when neither matches on
+a whole word MQL's loose match still answers, so `competence sentr` keeps
+working.
+
+⚠ The subject is a greedy **string** arg, not `type: object`. Two
+reasons: a body of people is an `Idea` and stands nowhere, so
+`scope: reachable` finds none of them; and an object arg with
+`requires: A|B` deletes a check. It also sidesteps issue **#43** — a
+definite article breaks every non-greedy object arg in the game, so
+`chronicle the watch` parses where `look the sentry` does not.
 
 The verb is afforded by **`PersonaMixin`** (via a mixin-level
 `commandContributions.self`, collected by the affordance walk
@@ -176,7 +259,7 @@ The verb is afforded by **`PersonaMixin`** (via a mixin-level
 `PerceiverMixin`'s self verbs) — Persona is its conceptual home because
 it already owns the `bio` / `aspiration` the view reads.
 
-The controller reads `actor.chronicleEntries()` and renders, in a
+The controller reads the subject's `chronicleEntries()` and renders, in a
 fixed order and **never interleaved**:
 
 1. **bio** — the Persona-owned claimed self-narrative (escaped: it is
@@ -188,7 +271,14 @@ Each entry's `text` is MML-safe (claim authored; deed `ProseApi`-rendered
 with raw interpolations escaped), so it re-wraps via `Mml.fromMarkup`.
 The readout emits on the existing self-facing `world.identity` topic
 (reuse, not a new topic). Empty state still renders the bio plus a
-"your chronicle is just beginning" line.
+"your chronicle is just beginning" line — and for a subject who is not
+you, *"Nothing is written down about …"*, ⭐ so an `Extra` reads as a
+**role** rather than as an empty person.
+
+⚠ Each entry is wrapped with `Mml.li`. `Mml.unorderedList` wraps a
+sequence of `<li>` items; handed bare bodies it emits one run-together
+blob, which nobody noticed while a prologue was a single line and which
+the live drive made obvious the moment a character had three.
 
 ## Three demo minters
 

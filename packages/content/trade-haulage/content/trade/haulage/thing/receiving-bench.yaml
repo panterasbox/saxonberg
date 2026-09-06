@@ -1,0 +1,21 @@
+# ⭐ The receiving bench — where an order lands, and it exists for a
+# MECHANICAL reason rather than a decorative one.
+#
+# A gig is refused when its condition **already holds**, and a venue that
+# is short of a line usually still has some of it on the shelf. An order
+# aimed at the shelf would therefore be refused precisely when the bar
+# most wanted it. The bench is empty by construction, because the keeper
+# clears it onto the shelf every beat — so it is always a legal
+# destination for the next delivery.
+#
+# It is also the honest object: a loading dock is a real thing a working
+# bar has, and "put it on the bench, I'll deal with it" is what anybody
+# would say to a delivery.
+class: /platform/thing/Surface
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the receiving bench
+  primaryKeyword: bench
+  keywords: [bench, dock, delivery, receiving, counter]
+  longDescription: |
+    A scarred zinc-topped bench by the cellar door with a docket spike at one end and a stub of chalk on a string. Whatever comes in goes here first and gets looked at before it gets put away. There is a ring of something that was not looked at quickly enough.

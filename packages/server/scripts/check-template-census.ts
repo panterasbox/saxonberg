@@ -119,6 +119,12 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     // find. Read here rather than added to `UNREAD_PATH_FIELDS`,
     // because that list only ever shrinks.
     'mainsRef', 'bornWithCell',
+    // ⭐ `institution` (identity ledgers W3) — the standing party that
+    // fields a character, and the ONLY attribution a role's harms carry.
+    // A rowless one is a sentient Extra whose crimes name a body that
+    // does not exist: `lint:identity` proves the field is *present*, and
+    // this proves it *resolves*. The two gates are halves of one claim.
+    'institution',
   ] as const) {
     push(f, data[f]);
   }
@@ -237,6 +243,61 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
   const lode = data.lode;
   if (lode && typeof lode === 'object') {
     push('lode.gangue', (lode as Record<string, unknown>).gangue);
+  }
+  /*
+   * ⭐ The WAYS. A `Lane` and a `ServiceRoute` are pure-data Ideas whose
+   * whole content is references to places: the room an induced walk
+   * starts from, the endpoints of an authored edge (rail, the TPA), the
+   * nodes a service run passes and the subset of them it stops at.
+   *
+   * A lane naming a room that does not exist is a road that compiles
+   * EMPTY — the wagon can go nowhere and no message anywhere says why —
+   * and a stop naming nothing is a place a timetable claims you can get
+   * off at and you cannot. Both are exactly the silent failure this
+   * census exists to catch.
+   *
+   * `operator` is a durable path when a lane is run by somebody (the
+   * Teleport Authority) and `null` for the public highway; `null` is not
+   * a path, so it is simply not pushed.
+   */
+  for (const field of ['seeds', 'nodes', 'stops'] as const) {
+    const entries = data[field];
+    if (!Array.isArray(entries)) continue;
+    for (const entry of entries) push(field, entry);
+  }
+  const laneEdges = data.edges;
+  if (Array.isArray(laneEdges)) {
+    for (const e of laneEdges) {
+      if (e && typeof e === 'object') {
+        push('edges.from', (e as Record<string, unknown>).from);
+        push('edges.to', (e as Record<string, unknown>).to);
+      }
+    }
+  }
+  push('operator', data.operator);
+  /*
+   * ⭐ A conveyance's VEHICULAR MODE — the `LocomotionMode` row a barge or
+   * a coach engages when driven. `Drivable` stores it as an identity ref
+   * (a template path) and `LocomotionApi.resolveHostMode` **throws** on a
+   * Drivable whose mode is null, so a row naming a mode that does not
+   * exist is a vehicle that refuses to move the first time somebody
+   * drives it — with a message about the content author's bug rather
+   * than about the road.
+   */
+  push('vehicularMode', data.vehicularMode);
+  /*
+   * ⭐ The haulage desk's three citations. A depot counter names the
+   * CARRIER whose paper it files and the SHED it puts goods in; a
+   * warehouse names the BAILEE that owes the duty of care for them.
+   *
+   * All three resolve live, and all three fail QUIETLY when they name
+   * nothing: a counter with no carrier refuses every tender with "this
+   * counter acts for no carrier", and a shed with no bailee throws on
+   * the first deposit — both a long way from the row an author
+   * mistyped. Censusing them turns a live puzzle into a build error.
+   */
+  for (const f of ['carrierPath', 'holdPath', 'baileePath'] as const) {
+    push(f, data[f]);
   }
   /*
    * The warren's own citation: the working TYPE it clones per cell.

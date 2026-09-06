@@ -20,3 +20,11 @@ requires:
       owner: { office: prime-minister }
   title:
     - { extent: /world/rejection, holder: { group: rejection } }
+    # ⭐ The Kestrel road, subdivided as its own parcel under the town's
+    # extent (logistics D18/D20). `wild` — "unserviced ground: PASSAGE
+    # and gathering only" — because nothing between the crossroads and
+    # the yard gate is maintained by anybody: the revetment is failing in
+    # three places and three of the chain stakes are missing, which is
+    # what unserviced ground looks like when you stand on it. **No
+    # seventh land use.**
+    - { extent: /world/rejection/kestrel-road, parentParcel: /world/rejection, holder: { group: rejection }, landUse: wild }

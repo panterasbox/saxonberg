@@ -307,6 +307,18 @@ the marker and the terminal no-op. (`CommandGiver`'s own `postRegister`
 deeper in the chain is shadowed, but it self-seeds lazily, and NPCs emit
 through Apis directly rather than the command system.)
 
+⭐ **`NPC` is substrate, not a clone target.** Since the identity build,
+a row names one of the two **rungs** —
+`platform/agent/Cast` (somebody) or `platform/agent/Extra` (a role) — or
+a capability combination over them (`Crafter = CastMixin(MakerMixin(NPC))`).
+`platform/agent/NPC` retired: after the split no row named it, and *a
+class nothing instances does not belong in `platform/`*. See
+[identity.md](./identity.md).
+
+⚠ `dispositions:` stays on `BehavedMixin`, deliberately: **both rungs
+have brains**, and a role-filler still has a personality that reads the
+same as anyone's — it simply never changes. A role is a mask, not a life.
+
 `Behaved` is **branch-agnostic** — composable on any `Stuff`. Wave 1
 puts it only on `NPC`, which keeps automated behavior **off player
 Avatars** (they extend `ShelledCharacter`, not `NPC`) and off base
@@ -422,7 +434,8 @@ dangling brain path is caught at author time, not silently at spawn.
 | `BehaviorSpec` / `BrainContext` / `BrainStatics` / `parseTrigger` vocab | `lib/behavior/brain.ts` | The brain category contract + trigger alias table |
 | `BehaviorBeat` | `lib/behavior/BehaviorBeat.ts` | Generic short `DurativeActivity` that holds a slot for the contention window |
 | The canned brains | `lib/behavior/{idles,random-chatter,wanders,patrols,greets,reacts,shifts,covers,enforces}.ts` | Path-resolved strategy modules (`covers` = the proprietor cover-driver; see [employment.md](./employment.md)) |
-| `NPC` | `lib/npc/NPC.ts` | `Character` + `Behaved` archetype |
+| `NPC` | `lib/npc/NPC.ts` | `Character` + `Behaved` archetype — **substrate**; rows name a rung, not this |
+| `CastMixin` / `Cast` / `Extra` | `lib/npc/Cast.ts`, `platform/agent/` | The identity rungs ([identity.md](./identity.md)) |
 | `StuffApi.resolveExport` / `resolveExportSync` | `api/stuff.ts` | Path → fs → hot-reload registry brain-export seam |
 | `validateBehaviorPaths` | `platform/idea/api/CmsLogic.ts` | Save-gate brain-path validation |
 | `Mixins.Behaved` | `lib/mixin.ts` | Mixin registry marker |

@@ -6,6 +6,7 @@ import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
+import { MqlApi } from '../../../api/mql';
 import { TemplatePaths } from '../../../lib/paths';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';
@@ -200,6 +201,38 @@ export class AddressLogic extends ApiLogic {
   @CallSecurity(AddressApiCallers)
   public findByAddress(address: string): Locality | null {
     return lookupRegistry()?.findByExactAddress(address) ?? null;
+  }
+
+  /** See {@link AddressApi.resolvePlace}. */
+  @CallSecurity(AddressApiCallers)
+  public resolvePlace(raw: string, giver: Stuff, herePath: string): string {
+    const trimmed = raw.trim();
+    if (trimmed.length === 0) return '';
+    // 1. `here` — where the asker is standing.
+    if (trimmed.toLowerCase() === 'here') return herePath;
+    // 2. Something they can point at (a shed behind the desk).
+    const hit = MixinApi.isCommandGiver(giver)
+      ? MqlApi.resolveMany(trimmed, {
+          commandGiver: giver,
+          scope: 'reachable',
+        }).stuff[0]
+      : undefined;
+    const reachable = hit?.getTemplatePath() ?? '';
+    if (reachable.length > 0) return reachable;
+    // 3. A place by the name it is known by — the ordinary remote case.
+    const named = lookupRegistry()?.findByName(trimmed) ?? null;
+    if (named) return named.getTemplatePath() ?? '';
+    // 4. …or by its address in the namespace (`terminus/rejection`).
+    const addressed = lookupRegistry()?.findByExactAddress(trimmed) ?? null;
+    if (addressed) return addressed.getTemplatePath() ?? '';
+    // 5. A durable path, for anything the four above cannot name.
+    return trimmed.startsWith('/') ? trimmed : '';
+  }
+
+  /** See {@link AddressApi.findLocalityByName}. */
+  @CallSecurity(AddressApiCallers)
+  public findLocalityByName(name: string): Locality | null {
+    return lookupRegistry()?.findByName(name) ?? null;
   }
 
   /** See {@link AddressApi.findByPath}. */
