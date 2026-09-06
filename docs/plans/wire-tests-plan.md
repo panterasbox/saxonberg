@@ -550,7 +550,7 @@ graduation path in the skills`.
 ### W6 — the drive, and the MR
 
 Run the requirements' five-step drive (§ The drive): full suite once
-(unchanged, wire-free) → `lint:family` 26/26 (25 + the new gate) →
+(unchanged, wire-free) → `lint:family` 30/30 (29 today + the new gate) →
 wire suite cold, one boot, per-file timings → **immediate re-run of
 the clean set with no reset, green** → Playwright minus the migrated
 specs. Append the drive record below, including the first dirty-census
