@@ -1,0 +1,36 @@
+# The Long Road Company — a free company of blades that hires out at
+# crossroads, and the body that answers for the sellsword.
+#
+# ⚠ Also authored because `lint:identity` refused the alternative. A
+# sellsword is recruited BY ROLE, not by name — the row says so — so she
+# is an Extra, and an Extra has no identity of its own to attribute a
+# harm to. Murder her at the treeline and the wrong has to land
+# somewhere; a free company is what has always fielded a professional who
+# belongs to no lord.
+#
+# ⭐ And it earns its keep beyond the lint: a company that counts its
+# fallen is a company that can want something back, which is a hook the
+# frontier did not have. Nothing reads that yet, and nothing needs to —
+# the ledger accumulates from today.
+#
+# An Organization, not a Business: the company's contracts are struck
+# person to person at the crossroads, not across a counter, and it holds
+# no operating account. Same consequence as the watch — the sellsword
+# states her `institution:` rather than riding a roster.
+class: /platform/idea/Organization
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  # A free company answers to its own captain, and at this crossroads
+  # that is the blade standing in it. Small companies were exactly this.
+  appointingAuthority:
+    kind: entity
+    path: /world/newbie-wilds/agent/sellsword
+  positions:
+    - key: blade
+      label: taking a side for a while
+      wageRate: 0
+      confers: []
+  rosterSlots: []
+  label: "the Long Road Company"
+  realm: world
+  visibility: members

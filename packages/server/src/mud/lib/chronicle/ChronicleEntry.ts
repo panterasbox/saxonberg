@@ -55,6 +55,8 @@ export interface ChronicleEntryFields {
   when?: number | null;
   /** Claim prologue order. */
   order?: number | null;
+  /** The minting archetype (claims only) — see the field doc. */
+  archetype?: string;
   where?: string | null;
   who?: string[];
   tags?: string[];
@@ -65,6 +67,8 @@ export interface ChronicleEntryFields {
 export interface ChronicleClaimSeed {
   text: string;
   order: number;
+  /** The minting archetype, stamped on the row. */
+  archetype?: string;
 }
 
 export default class ChronicleEntry extends Document {
@@ -79,6 +83,7 @@ export default class ChronicleEntry extends Document {
     text: { persistent: true },
     tags: { persistent: true },
     key: { persistent: true },
+    archetype: { persistent: true },
   };
 
   /** Durable owner key (the character's `templatePath`) — indexed. */
@@ -99,4 +104,20 @@ export default class ChronicleEntry extends Document {
   tags: string[] = [];
   /** `recordOnce` category-first dedup key, or `null`. */
   key: string | null = null;
+  /**
+   * ⭐⭐ **Which archetype minted this row** — `''` for anything a
+   * character actually did.
+   *
+   * `kind` separates *authored* from *earned*. It does **not** separate
+   * an **archetype claim** from a **deviation claim**, and those are
+   * different things: an author who writes "a bartender, but unusually
+   * blunt" is stating a departure from a baseline, and
+   * `deviation = current derived − archetype baseline` is uncomputable
+   * without knowing which baseline.
+   *
+   * ⚠ It costs one field now and is **unrecoverable later**: provenance
+   * separability cannot be retrofitted, because unwinding a sum with no
+   * seams is not possible afterwards at any price.
+   */
+  archetype = '';
 }

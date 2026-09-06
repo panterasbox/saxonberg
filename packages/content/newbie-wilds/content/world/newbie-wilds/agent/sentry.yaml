@@ -10,13 +10,17 @@
 # hiding well, from cover and stillness, is the difference between sneaking
 # through and being hailed. Not `hostile`: it challenges, it doesn't open a
 # fight — leaving the player to sneak on, retreat, or ambush it themselves.
-class: /platform/agent/NPC
+class: /platform/agent/Extra
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive
   primaryKeyword: sentry
   shortDescription: a watchful sentry
+  # ⭐ Who fields this picket. An Extra has no identity of its own, so the
+  # institution is the ONLY attribution its harms carry — and the crime
+  # marker below is exactly what needed somewhere to land.
+  institution: /world/newbie-wilds/idea/watch
   longDescription: >-
     A picket in a patched oilcloth coat, planted where the road meets the
     trees, eyes going slow across the ground in front of the wood. A

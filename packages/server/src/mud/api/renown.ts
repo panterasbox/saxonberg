@@ -34,6 +34,7 @@ import { HotReloadApi } from './hot-reload';
 import { RenownLogic } from '../platform/idea/api/RenownLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
+import type { BandName } from '../lib/standing/Band';
 
 export type { RenownEventFields, RenownScope };
 
@@ -86,6 +87,29 @@ export class RenownApi {
    */
   public static async recompute(): Promise<void> {
     return logic().recompute();
+  }
+
+  /**
+   * ⭐ **Seed an authored reputation** — append `reception` evidence for
+   * `subjectId` until the current value function derives `band` within
+   * `scope`, then schedule the fold. Returns how many rows were written
+   * (`0` when the subject already reads at the band, or when no run
+   * inside the cap reaches it).
+   *
+   * ⚠ It writes **events**, never a standing. The doctrine forbids
+   * setting the figure, not authoring the evidence the figure derives
+   * from — which is the dossier's founding move everywhere else.
+   *
+   * ⚠⚠ And it schedules a recompute, debounced. `renownOf` reads the
+   * MATERIALIZED aggregate, so seeding the log alone moves nothing and a
+   * bare restart re-warms from a collection the seeding never wrote.
+   */
+  public static async seedTo(
+    subjectId: string,
+    scope: RenownScope | null,
+    band: BandName
+  ): Promise<number> {
+    return logic().seedTo(subjectId, scope ?? null, band);
   }
 
   /**

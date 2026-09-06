@@ -792,3 +792,32 @@ open a circle could stage a killing and mint a real crime row against a
 real identity. The writes are unchanged and still ride the policy table —
 the fix is in the consumer, where derive-on-read re-legislates every row
 without rewriting one.
+
+## The accountability row is now actually WRITTEN (2026-09)
+
+`sandbox.md` has classed `accountability_events` **PASS (mark)** since
+the policy table was written — *"Identity-real … what happened to **you**
+stays yours"* — and `deriveBlame` has carried a circle filter so nobody
+can *"stage a killing and mint a real crime row against a real
+identity."* Two things were wrong with that, and the identity build (MR
+!248) fixed both:
+
+1. ⚠⚠ **`ConditionApi.die` RETURNED before the ledger write on the circle
+   path.** An in-circle death wrote **no row at all**, so the one thing
+   the PASS(mark) classification promises to keep was the one thing
+   dropped. The append is hoisted above the circle branch; the mark is
+   stamped by the persistence layer from the ambient context, and
+   `deriveBlame` is what refuses to convict on it — recorded, and
+   structurally incapable of being evidence.
+2. ⚠ **The rows were keyed on the VESSEL.** A `WireBody` is stamped
+   `/platform/agent/Avatar/<id>/wire` while *projecting* the player's
+   real identity, and the ledger keyed on `getTemplatePath()`. So an
+   in-circle harm filed under a key no reader ever asks about.
+
+⭐ **Together these are what make the circle filter load-bearing.** It
+had never been exercised by a row it could match, because no in-circle
+row was ever keyed on a real identity. It is now, and there is a test
+that stages the killing end to end: the row files under the real
+identity, the same row convicts on the field, and convicts nobody in the
+circle.
+

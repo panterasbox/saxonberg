@@ -28,6 +28,7 @@ import type { Containable } from '../../lib/spatial/Containable';
 import type { Slottable } from '../../lib/slot/Slottable';
 import type { Slotted } from '../../lib/slot/Slotted';
 import { NPC } from '../../lib/npc/NPC';
+import { CastMixin } from '../../lib/npc/Cast';
 import { StuffApi } from '../../api/stuff';
 import { ContainmentApi } from '../../api/containment';
 import { SpeciesApi } from '../../api/species';
@@ -54,7 +55,7 @@ interface SlotClaimer {
   getSlotClaim(bodyPlanPath: string): readonly string[];
 }
 
-export default class Gus extends NPC {
+export default class Gus extends CastMixin(NPC) {
   /**
    * @hook Standup: chain `super.postRegister` (so `Behaved` still wires the
    *   `behaviors:` list) then dress for the shift.

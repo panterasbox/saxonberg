@@ -23,6 +23,10 @@ import WireBody from '../../platform/agent/sandbox/WireBody';
 import { Events } from '../../lib/events';
 import { OMNI_SCOPE } from '../execution-context';
 import { ScheduleApi } from '../schedule';
+import { AccountabilityApi } from '../accountability';
+import AccountabilityEvent, {
+  type AccountabilityFields,
+} from '../../lib/accountability/AccountabilityEvent';
 
 /*
  * ⚠⚠ **A 20 s timeout, and the number is a MEASUREMENT rather than a
@@ -271,6 +275,165 @@ describe('sandbox crossing', () => {
     // The FIELD body is untouched — it did not die with the vessel.
     expect(avatar.getLifecycleState()).not.toBe('dead');
     expect(avatar.getMortalArc()).toBeNull();
+  });
+
+  /**
+   * ⚠⚠ **Issue #42, and the reason it stayed invisible.**
+   *
+   * The accountability ledger keyed on `getTemplatePath()` while every
+   * other ledger keyed on `getIdentityPath()`. A `WireBody` is stamped
+   * `/platform/agent/Avatar/<playerId>/wire` — a vessel path, backed by
+   * nothing — while *projecting* the player's real identity. So an
+   * in-circle harm filed under the **vessel**: invisible to
+   * `blameFor(realIdentity)`, and unreachable by the one reader that
+   * cares.
+   *
+   * ⚠ `sandbox.md` classes `accountability_events` PASS(mark) — *"what
+   * happened to YOU stays yours"* — and `deriveBlame` carries a circle
+   * filter written precisely so nobody can *"stage a killing and mint a
+   * real crime row against a real identity."* ⭐ **That filter had never
+   * been exercised by a row it could match**, because no in-circle row
+   * was ever keyed on a real identity to begin with. Keying on
+   * `getIdentityPath()` is what makes it load-bearing — which is why it
+   * is proven here, in the same change that makes it matter.
+   */
+  it('a death inside a circle files under the REAL identity, and convicts nobody', async () => {
+    const { avatar } = await makeRig();
+    await SandboxApi.enter(avatar);
+    const vessel = SandboxApi.activeBodyFor(PLAYER)!;
+    // The premise: the vessel's template path is its OWN, and it is not
+    // the person. If these two ever converge, this test is lying.
+    expect(vessel.getTemplatePath()).toBe(
+      `${Avatar.getTemplatePath(PLAYER)}/wire`,
+    );
+    expect(vessel.getIdentityPath()).toBe(Avatar.getTemplatePath(PLAYER));
+
+    const rows: AccountabilityFields[] = [];
+    vi.spyOn(AccountabilityApi, 'record').mockImplementation(
+      (fields: AccountabilityFields) => {
+        rows.push(fields);
+      },
+    );
+
+    const realClone = StuffApi.clone.bind(StuffApi);
+    vi.spyOn(StuffApi, 'clone').mockImplementation((async (
+      path: string,
+      ...rest: unknown[]
+    ) => {
+      if (path === TemplatePaths.mortalityCorpse) {
+        return StuffApi.create(() => new Creature());
+      }
+      return realClone(path, ...(rest as []));
+    }) as unknown as typeof StuffApi.clone);
+
+    await ExecutionContextApi.runRoot(
+      null,
+      'test.circle-death',
+      () => ConditionApi.die(vessel, 'slain'),
+      { circleScope: SCOPE },
+    );
+
+    const death = rows.find((r) => r.kind === 'death');
+    expect(death).toBeDefined();
+    // The defect, stated: this was the VESSEL's path, which no reader
+    // ever asks about — so what happened to you in your own circle was
+    // recorded and then addressed to nobody.
+    expect(death!.victim).not.toBe(vessel.getTemplatePath());
+    expect(death!.victim).toBe(Avatar.getTemplatePath(PLAYER));
+
+    // Now the half that used to be unreachable. Take the identity the
+    // production path just produced and stage the killing that WOULD
+    // convict — lethal terms, no consent, a sentient victim.
+    const staged = (marked: boolean): AccountabilityEvent => {
+      const ev = new AccountabilityEvent();
+      Object.assign(ev, {
+        kind: 'death',
+        sessionId: 'staged',
+        initiator: '/platform/agent/Avatar/forger',
+        opponent: '/platform/agent/Avatar/forger',
+        victim: death!.victim,
+        killer: '/platform/agent/Avatar/forger',
+        lethality: 'lethal',
+        consented: false,
+        sentient: true,
+        realAt: 1,
+        circleScope: marked ? SCOPE : null,
+      });
+      return ev;
+    };
+    // The control: on the field, that row convicts.
+    expect(AccountabilityEvent.deriveBlame([staged(false)])!.crime).toBe(true);
+    // In the circle, against the very same real identity, it does not.
+    expect(AccountabilityEvent.deriveBlame([staged(true)])).toBeNull();
+  });
+
+  /**
+   * ⭐ **Issue #40's blocker: every corpse shared one identity.**
+   *
+   * `mintCorpseFrom` cloned the authored corpse template and stamped no
+   * identity, so every body in the world was the same object to every
+   * identity-keyed ledger. Per-instance facts survived as hydrated
+   * *fields*, which is exactly why nothing looked broken.
+   *
+   * The scheme has to survive one person leaving SEVERAL corpses, which
+   * is what this drives: two deaths, one identity, two bodies.
+   */
+  it('two corpses of the same person are told apart', async () => {
+    const { avatar } = await makeRig();
+    const minted: (string | undefined)[] = [];
+
+    const realClone = StuffApi.clone.bind(StuffApi);
+    vi.spyOn(StuffApi, 'clone').mockImplementation((async (
+      path: string,
+      container?: unknown,
+      opts?: { asIdentityPath?: string },
+    ) => {
+      if (path === TemplatePaths.mortalityCorpse) {
+        minted.push(opts?.asIdentityPath);
+        // ⚠ The stand-in has to STAMP, not just record. The scheme's
+        // same-second disambiguator asks the registry whether that
+        // identity is already taken, so a mock that swallows the stamp
+        // silently tests the wrong branch — the ordinal would never fire
+        // and two corpses would look distinct in the test while
+        // colliding in the world.
+        const c = await StuffApi.create(() => new Creature());
+        if (opts?.asIdentityPath) {
+          Stuff._stampIdentityPath(c, opts.asIdentityPath);
+          StuffApi.unregister(c);
+          StuffApi.register(c);
+        }
+        return c;
+      }
+      return realClone(path, container as never, opts as never);
+    }) as unknown as typeof StuffApi.clone);
+
+    const dieInCircle = async (): Promise<void> => {
+      await SandboxApi.enter(avatar);
+      const vessel = SandboxApi.activeBodyFor(PLAYER)!;
+      await ExecutionContextApi.runRoot(
+        null,
+        'test.circle-death',
+        () => ConditionApi.die(vessel, 'slain'),
+        { circleScope: SCOPE },
+      );
+    };
+
+    await dieInCircle();
+    await dieInCircle();
+
+    expect(minted).toHaveLength(2);
+    // Both are real identities — not `undefined`, which is what every
+    // corpse in the game had.
+    expect(minted[0]).toBeTruthy();
+    expect(minted[1]).toBeTruthy();
+    // Both name the deceased…
+    for (const id of minted) {
+      expect(id).toContain(Avatar.getTemplatePath(PLAYER).replace(/^\//, ''));
+    }
+    // …and they are not the same body. (Same game-second in a test world
+    // whose clock does not advance — so this is the ORDINAL branch, which
+    // is the case a moment-only scheme would have got wrong.)
+    expect(minted[0]).not.toBe(minted[1]);
   });
 
   it('reconnect inside grace lands on the SAME wire body, in the circle', async () => {

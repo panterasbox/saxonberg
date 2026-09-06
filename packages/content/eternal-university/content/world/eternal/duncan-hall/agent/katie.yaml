@@ -58,6 +58,19 @@ data:
     - { disposition: diligence, valence: 80 }
     - { disposition: fairness, valence: -55 }
     - { disposition: honesty, valence: 45 }
+  # ── the dossier ─────────────────────────────────────────────────
+  # Evidence, never values: each entry below expands into the same rows a
+  # lived history would have written, marked `claim`. Seeded once at
+  # postRegister and skipped if any claim already exists, so a reclone or
+  # a reboot cannot mint a second history.
+  # ⚠ A best-guess pass, explicitly provisional — the considered version
+  # is a content pass of its own before go-live.
+  archetype: building-super
+  prologue:
+    - "Thirty years of tenants."
+  competence:
+    - { discipline: business-administration, asserting: competent }
+    - { discipline: personal-services, asserting: competent }
   behaviors:
     # The upkeep round. The dorm's term is `institution-all` — the
     # university keeps its rooms, inside and out — and this is the

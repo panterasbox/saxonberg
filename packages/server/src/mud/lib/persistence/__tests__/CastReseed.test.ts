@@ -51,7 +51,7 @@ class Trinket extends ContainableMixin(Idea) {}
 const FLOOR = "/test/cast/floor";
 const COUNTER = "/test/cast/counter";
 const HAND = "/test/cast/agent/hand";
-const HAND_CLASS = "/platform/agent/NPC";
+const HAND_CLASS = "/platform/agent/Extra";
 const TRINKET = "/test/cast/thing/trinket";
 
 /* ─────────────────────────── PM + clone mocks ──────────────────────── */

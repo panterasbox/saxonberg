@@ -39,7 +39,7 @@ import {
   stampTemplatePathForTest,
 } from '../../lib/security/__tests__/test-setup';
 import { collectSubscribableFields } from '../../api/mql-subscription';
-import NPC from '../agent/NPC';
+import Extra from '../agent/Extra';
 import { InfluenceApi, STOCK_LEVEL } from '../../api/influence';
 import RenownStanding, {
   COMPACT_WIDE,
@@ -343,7 +343,7 @@ describe('standing splits by level', () => {
     });
 
     it('an NPC has the same competence fields a player does', () => {
-      const dave = makeStuff(() => new NPC()) as unknown as Stuff;
+      const dave = makeStuff(() => new Extra()) as unknown as Stuff;
       stampTemplatePathForTest(dave, '/obj/npc/dave-test');
       const names = [...collectSubscribableFields(dave).keys()];
       expect(names).toContain('competenceDigest');
@@ -373,7 +373,7 @@ describe('standing splits by level', () => {
     }
 
     it('reads an NPC for any viewer, but a player only for themselves', async () => {
-      const dave = makeStuff(() => new NPC()) as unknown as Stuff;
+      const dave = makeStuff(() => new Extra()) as unknown as Stuff;
       stampTemplatePathForTest(dave, '/obj/npc/dave-test-2');
       expect(dave.getPlayerId()).toBeNull();
 
