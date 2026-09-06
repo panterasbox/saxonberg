@@ -42,13 +42,20 @@ subcommands:
 
         job post deliver <thing> to <place> for <reward>
         job post supply <n> <kind> to <place> for <reward>
+        job post supply <n> litres of <what> to <place> for <reward>
 
       ⭐ `deliver` is one named thing arriving somewhere — point at it,
       and if it is marked as yours the gig means THAT one. `supply` is a
-      quantity of a KIND arriving somewhere, and how the courier sourced
-      it is their business: mined, salvaged, bought or dug out of a
-      cupboard all count. That is deliberate — a supply contract you
-      could only fill by mining would have no market in it.
+      quantity arriving somewhere, and how the courier sourced it is
+      their business: mined, salvaged, bought or dug out of a cupboard
+      all count. That is deliberate — a supply contract you could only
+      fill by mining would have no market in it.
+
+      ⭐⭐ Say it in LITRES or KILOS and you are ordering the goods
+      rather than the packaging: `supply 6 litres of gin` is filled by a
+      demijohn, a keg, or eight bottles, whichever the courier can get.
+      Name a kind instead (`supply 10 iron-ore`) when it is the thing
+      itself you want counted.
 
       ⚠ Only work the engine can CHECK can be posted, because the reward
       is real money held in escrow from the moment it goes up. "Deliver
@@ -63,8 +70,8 @@ subcommands:
         note: One named thing, one destination
       - cmd: job post supply 10 iron-ore to the smelter for 200
         note: Ten of a kind — however the courier comes by them
-      - cmd: job post supply 6 gin to the bench for 30 --bounty --business
-        note: A bar ordering its rail in, funded by the house
+      - cmd: job post supply 6 litres of gin to the bench for 30 --bounty --business
+        note: A bar ordering its rail in — any vessel, so long as it is six litres
       - cmd: job post deliver crate to the depot for 30 --from the brewing floor
         note: Name where the goods are collected, so a hauler can find the backhaul
     args:

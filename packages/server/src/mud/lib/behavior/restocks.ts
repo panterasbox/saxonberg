@@ -71,12 +71,16 @@ import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { EmploymentApi, type Business, type StockSheetLine } from '../../api/employment';
 import { ContractApi } from '../../api/contract';
+import type { ConditionData } from '../employment/Condition';
 import type { CommandGiver } from '../command/CommandGiver';
 import type { Stuff } from '../stuff/Stuff';
 import type { Mobile } from '../spatial/Mobile';
 import type { Container } from '../spatial/Container';
 import type { Containable } from '../spatial/Containable';
 import type { BrainContext, BrainStatics } from './brain';
+
+/** How a par unit is said in an order — the `job post` phrase's words. */
+const UNIT_WORD: Record<string, string> = { L: 'litres', kg: 'kilos' };
 
 const DEFAULT_BATCH = 12;
 /**
@@ -328,7 +332,9 @@ async function order(
       const kind = onHand?.getTemplatePath() ?? line.line.exemplar;
       if (!kind) continue;
       // Already on the board and still un-carried: wait for it.
-      if (pending.has(kind)) continue;
+      const key =
+        line.line.unit === 'count' ? kind : `cat:${line.line.category}`;
+      if (pending.has(key)) continue;
       // What she names: the unit on the rail by keyword, or the kind by
       // its path when there is nothing to point at.
       const naming = onHand ? keywordOf(onHand) : kind;
@@ -341,33 +347,42 @@ async function order(
         traded = true;
       }
       /*
-       * ⭐⭐ ONE gig per short line, for the QUANTITY the line is short.
+       * ⭐⭐⭐ ONE gig per short line, in the LINE'S OWN WORDS.
        *
-       * It used to post one single-item bounty per line — twelve of them
-       * a beat, twelve escrows — because a contract could not say "six
-       * litres of gin": the par sheet is denominated in quantities and
-       * the condition vocabulary had only `delivery`, which is one of
-       * something. `supply` is that missing sentence, and the keeper is
-       * the reason it exists.
+       * It posted twelve single-item bounties a beat before `supply`
+       * existed, then one gig per line for a GUESSED bottle count — and
+       * the guess was itself the bug the review found: a contract bound
+       * to a template path means "eight of that exact row", so a hauler
+       * who brought one demijohn holding six litres had done the job and
+       * the engine counted zero.
        *
-       * ⚠ The shortfall is in the LINE's unit (litres, kilos, count) and
-       * a gig counts DISCRETE things, so this asks for whole units of
-       * the exemplar kind and rounds up — under-ordering leaves the rail
-       * short for another whole beat, and one bottle spare is cheaper
-       * than that.
+       * ⭐ Now it orders what the par sheet says: `supply 6 litres of
+       * gin`. The unit conversion is gone because there is nothing left
+       * to convert, and how somebody fills it — bottles, a keg, a
+       * demijohn, bought or carried from home — is their business.
        */
-      const wanted = Math.max(
-        1,
-        Math.ceil(line.shortfall / unitsPer(line, onHand)),
-      );
+      const shortfall = Math.round(line.shortfall * 1000) / 1000;
+      const phrase =
+        line.line.unit === 'count'
+          ? `supply ${Math.ceil(shortfall)} ${naming}`
+          : `supply ${shortfall} ${UNIT_WORD[line.line.unit]} of ${line.line.category}`;
       await keeper.forceCommand(
-        `job post supply ${wanted} ${naming} to ${opts.benchPath} ` +
-          `for ${opts.reward} --bounty --business --from ${fromPath}`,
+        `job post ${phrase} to ${opts.benchPath} for ${opts.reward} ` +
+          `--bounty --business --from ${fromPath}`,
       );
-      pending.add(kind);
+      pending.add(key);
       budget -= 1;
     }
   }
+}
+
+/**
+ * What identifies a line on the board — a kind's path, or a category.
+ * ⚠ The two shapes must produce the same key here and at the post site,
+ * or the re-order guard silently stops guarding.
+ */
+function pendingKey(item: ConditionData['item']): string {
+  return item.kind === 'category' ? `cat:${item.category}` : item.kind === 'template' ? item.path : `chattel:${item.chattelId}`;
 }
 
 /** The kinds already posted to this bench and not yet carried. */
@@ -380,7 +395,12 @@ async function pendingKinds(
   for (const gig of open) {
     const condition = gig.clause?.condition;
     if (!condition || condition.destinationPath !== benchPath) continue;
-    if (condition.item.kind === 'template') kinds.add(condition.item.path);
+    // ⚠⚠ BOTH shapes. The guard read template paths only, and the day
+    // the keeper started ordering by CATEGORY it went blind — every
+    // beat re-posting a line already on the board, which is the bankrupt
+    // -by-morning bug all over again. The key is whatever identifies the
+    // line, and a category line is identified by its category.
+    kinds.add(pendingKey(condition.item));
   }
   return kinds;
 }
@@ -426,27 +446,6 @@ async function unpackBench(
   return taken;
 }
 
-/**
- * How much of a line ONE of `exemplar` covers, in the line's own unit —
- * so a shortfall of 6 litres becomes 8 bottles of 0.75 L.
- *
- * ⚠ With NO exemplar (the cold rail, which is every line on a fresh
- * realm) the size is unknowable without cloning one, so it orders by the
- * line's unit and lets the next beat correct. Over-ordering by a bottle
- * costs a bottle; under-ordering costs a whole beat with the rail still
- * short.
- */
-function unitsPer(line: StockSheetLine, exemplar: Stuff | null): number {
-  if (line.line.unit === 'count') return 1;
-  if (!exemplar || !MixinApi.isBulkable(exemplar)) return 1;
-  if (!exemplar.hasInteriorBulk()) return 1;
-  const litres = exemplar.getBulkAmount('interior').rawValue();
-  if (litres <= 0) return 1;
-  if (line.line.unit === 'L') return litres;
-  const density =
-    exemplar.getBulkMaterial('interior')?.getDensity().rawValue() ?? 1000;
-  return (litres / 1000) * density;
-}
 
 /**
  * A unit of this line already on the rail — what `job post` names.

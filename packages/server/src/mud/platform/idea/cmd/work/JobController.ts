@@ -33,6 +33,24 @@ const TOPIC = "act.deed";
 /** The browse's short id — enough to be unique on one board. */
 const SHORT_ID_LEN = 8;
 
+/**
+ * The unit words a `supply` phrase accepts, mapped to the par
+ * vocabulary. ⚠ Prose spellings on purpose — somebody ordering stock
+ * says "litres", not "L".
+ */
+const UNIT_WORDS: Record<string, "L" | "kg" | "count"> = {
+  l: "L",
+  litre: "L",
+  litres: "L",
+  liter: "L",
+  liters: "L",
+  kg: "kg",
+  kilo: "kg",
+  kilos: "kg",
+  kilogram: "kg",
+  kilograms: "kg",
+};
+
 interface JobModel extends CommandModel {
   /**
    * `post`: the condition PHRASE — `deliver <thing> to <place>` or
@@ -193,9 +211,39 @@ export default class JobController extends CommandController<JobModel> {
 
     if (verb === "supply") {
       const count = Number(subject.shift());
-      if (!Number.isInteger(count) || count < 1) {
+      if (!Number.isFinite(count) || count <= 0) {
         return {
-          error: `Supply how many? \`supply 10 iron-ore to <place>\`.`,
+          error:
+            `Supply how much? \`supply 10 iron-ore to <place>\`, or ` +
+            `\`supply 6 litres of gin to <place>\`.`,
+          reason: "no-count",
+        };
+      }
+
+      /*
+       * ⭐⭐ `supply <n> <unit> of <category>` — what the BUSINESS wants,
+       * rather than the packaging somebody imagined it in. Six litres of
+       * gin is six litres whether it arrives in one demijohn or eight
+       * bottles, and a player who solves it their own way has still
+       * done the job.
+       */
+      const unit = UNIT_WORDS[(subject[0] ?? "").toLowerCase()];
+      if (unit && (subject[1] ?? "").toLowerCase() === "of") {
+        const category = subject.slice(2).join(" ").trim();
+        if (category.length === 0) {
+          return { error: `Supply how much of WHAT?`, reason: "no-item" };
+        }
+        return {
+          template: "supply",
+          itemRef: { kind: "category", category, unit },
+          destinationPath,
+          count,
+        };
+      }
+      if (!Number.isInteger(count)) {
+        return {
+          error: `You cannot order half a thing — say a unit, as in ` +
+            `\`supply 6 litres of gin\`.`,
           reason: "no-count",
         };
       }

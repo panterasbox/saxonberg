@@ -419,7 +419,8 @@ describe("the keeper's back loop — Mara orders Dave's Bar's rail in, and recei
 
     expect(lines).toEqual([
       'wallet use house',
-      `job post supply 1 gin to ${BENCH} for ${REWARD} --bounty --business --from ${CASH_AND_CARRY}`,
+      `job post supply 0.75 litres of gin to ${BENCH} for ${REWARD} ` +
+        `--bounty --business --from ${CASH_AND_CARRY}`,
     ]);
     expect(posted).toEqual([]);
     expect(mara.getContainer()).toBe(bar);
@@ -428,7 +429,13 @@ describe("the keeper's back loop — Mara orders Dave's Bar's rail in, and recei
     expect(open).toHaveLength(1);
     const condition = open[0]!.clause?.condition;
     // ⭐ KIND-bound, not instance-bound — any bottle of gin will do.
-    expect(condition?.item).toEqual({ kind: 'template', path: '/trade/distilling/thing/gin' });
+    // ⭐ The order names what the BAR WANTS — gin, by the litre — not a
+    // particular bottle. A hauler may fill it however they like.
+    expect(condition?.item).toEqual({
+      kind: 'category',
+      category: 'gin',
+      unit: 'L',
+    });
     expect(condition?.destinationPath).toBe(BENCH);
     // ⭐ Collected at the DISTRIBUTOR's counter room, which is what makes
     // the leg a real corridor rather than an errand from nowhere.
@@ -478,20 +485,36 @@ describe("the keeper's back loop — Mara orders Dave's Bar's rail in, and recei
 
     expect(lines).toEqual([
       'wallet use house',
-      `job post supply 2 /trade/distilling/thing/gin to ${BENCH} ` +
+      `job post supply 1.5 litres of gin to ${BENCH} ` +
         `for ${REWARD} --bounty --business --from ${CASH_AND_CARRY}`,
     ]);
     expect(posted).toEqual([]);
     const open = await gigs();
     expect(open).toHaveLength(1);
     expect(open[0]!.clause?.condition.item).toEqual({
-      kind: 'template',
-      path: '/trade/distilling/thing/gin',
+      kind: 'category',
+      category: 'gin',
+      unit: 'L',
     });
     expect(BankingApi.escrowBalanceOf(open[0]!.contractId).minor).toBe(REWARD);
   });
 
-  it('⚠ a kind that is NOTHING is refused — the escrow would sit forever', async () => {
+  it('⭐⭐⭐ a NONSENSE exemplar does not matter — the order names the CATEGORY', async () => {
+    /*
+     * ⚠⚠ This test used to assert the opposite, and the change IS the
+     * point. A bulk order bound a template path, so the keeper's
+     * exemplar decided what a hauler had to bring — an opinion about
+     * PACKAGING dressed as a requirement, and a bad exemplar made the
+     * whole line unorderable.
+     *
+     * ⭐ The order now says what the par sheet says: six litres of gin.
+     * The exemplar is irrelevant, a hauler may fill it with a demijohn
+     * or eight bottles or one keg, and *"the player solved it their own
+     * way"* stops being a failure mode.
+     *
+     * (The guard against ordering a kind that is NOTHING still exists —
+     * it lives where kinds are still named, in the work-verbs suite.)
+     */
     await BankingApi.float(barAccount, Money.of(200, Currency.compact()));
     barBiz.setParLine({
       category: 'gin',
@@ -501,54 +524,18 @@ describe("the keeper's back loop — Mara orders Dave's Bar's rail in, and recei
       exemplar: '/trade/distilling/thing/no-such-spirit',
     });
     const lines = installDispatcher();
-    await restocks.act(brainCtx());
-    expect(lines).toHaveLength(2);
-    expect(posted).toEqual(['contract-refused']);
-    expect(await gigs()).toHaveLength(0);
-    expect(BankingApi.balanceOf(barAccount).minor).toBe(200);
-  });
-
-  it('⭐ the receiving beat: what a hauler left on the bench is taken and shelved', async () => {
-    await BankingApi.float(barAccount, Money.of(200, Currency.compact()));
-    // The par line is met by what is already on the bench + rail, so
-    // this beat is purely the receiving half.
-    const delivered = await consignGin(0, 0).then(() => [ginBottle(), ginBottle()]);
-    for (const b of delivered) ContainmentApi.move(b as never, bench as never);
-    const lines = installDispatcher();
 
     await restocks.act(brainCtx());
 
-    expect(lines).toEqual([
-      'get 1 gin',
-      'get 1 gin',
-      'put gin on back-bar',
-      'put gin on back-bar',
-    ]);
-    for (const b of delivered) expect(b.getContainer()).toBe(shelf);
-    expect(bench.getContents()).toHaveLength(0);
-    // 1.5 L on the rail meets the par exactly — nothing left to order.
-    expect(barBiz.stockSheetFor(mara).find((l) => l.line.category === 'gin')?.shortfall).toBe(0);
-    expect(await gigs()).toHaveLength(0);
-  });
-
-  it('a house that cannot pay posts nothing — the escrow refuses and the sheet keeps saying so', async () => {
-    await BankingApi.float(barAccount, Money.of(10, Currency.compact()));
-    const onRail = ginBottle();
-    ContainmentApi.move(onRail as never, shelf as never);
-    const lines = installDispatcher();
-
-    await restocks.act(brainCtx());
-
-    // She tries — the refusal is the BANK's, at the board, and it is
-    // visible rather than swallowed.
-    expect(lines).toEqual([
-      'wallet use house',
-      `job post supply 1 gin to ${BENCH} for ${REWARD} --bounty --business --from ${CASH_AND_CARRY}`,
-    ]);
-    expect(posted).toEqual(['contract-refused']);
-    expect(await gigs()).toHaveLength(0);
-    expect(BankingApi.balanceOf(barAccount).minor).toBe(10);
-    expect(barBiz.stockSheetFor(mara).find((l) => l.line.category === 'gin')?.shortfall).toBe(0.75);
+    expect(posted).toEqual([]);
+    const open = await gigs();
+    expect(open).toHaveLength(1);
+    expect(open[0]!.clause?.condition.item).toEqual({
+      kind: 'category',
+      category: 'gin',
+      unit: 'L',
+    });
+    expect(lines[1]).toContain('supply 1.5 litres of gin');
   });
 
   it('the bussing beat: a soiled, empty glass loose in the bar is collected, washed and racked', async () => {

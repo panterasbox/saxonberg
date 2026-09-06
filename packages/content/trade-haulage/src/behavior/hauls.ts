@@ -57,6 +57,7 @@
  */
 
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { Condition } from '@saxonberg/server/mud/lib/employment/Condition';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { AppApi } from '@saxonberg/server/mud/api/app';
 import { ContractApi } from '@saxonberg/server/mud/api/contract';
@@ -271,18 +272,13 @@ function crateFor(carter: Carter, gig: ContractRecord): (Stuff & Containable) | 
   if (!here || !MixinApi.isContainer(here)) return null;
   const condition = gig.clause?.condition;
   if (!condition) return null;
+  // ⚠ `Condition.matchesItem` — never a re-implementation. This was a
+  // FOURTH copy of "does this thing satisfy that condition", beside the
+  // par sheet's, the keeper's and the contract's, and copies of that
+  // question have been wrong in two different ways in this build alone.
   for (const thing of here.getContents() as Stuff[]) {
     if (!MixinApi.isContainable(thing)) continue;
-    if (condition.item.kind === 'chattel') {
-      if (
-        MixinApi.isChattel(thing) &&
-        thing.getChattelId() === condition.item.chattelId
-      ) {
-        return thing as Stuff & Containable;
-      }
-      continue;
-    }
-    if (thing.getTemplatePath() === condition.item.path) {
+    if (Condition.matchesItem(condition, thing)) {
       return thing as Stuff & Containable;
     }
   }

@@ -26,6 +26,9 @@ import { ContainerMixin } from "../../../../../lib/spatial/Container";
 import { ContainableMixin } from "../../../../../lib/spatial/Containable";
 import { PerceptibleMixin } from "../../../../../lib/description/Perceptible";
 import { ChattelMixin } from "../../../../../lib/chattel/Chattel";
+import { BulkableMixin } from "../../../../../lib/bulk/Bulkable";
+import { Quantity } from "../../../../../lib/quantity";
+import Material from "../../../material/Material";
 import ChattelRegistry from "../../../ChattelRegistry";
 import { CommandGiverMixin } from "../../../../../lib/command/CommandGiver";
 import { SensorMixin } from "../../../../../lib/message/Sensor";
@@ -60,6 +63,10 @@ class TestCrate extends ContainableMixin(PerceptibleMixin(Idea)) {
 /** A crate somebody OWNS — the `--kind` case turns on the mark. */
 class MarkedCrate extends ChattelMixin(ContainableMixin(PerceptibleMixin(Idea))) {
   static _mixinName = "MarkedCrate";
+}
+/** A vessel that can hold gin — any shape, which is the point. */
+class TestVessel extends BulkableMixin(ContainableMixin(PerceptibleMixin(Idea))) {
+  static _mixinName = "TestVessel";
 }
 
 const BOARD = "/world/terminus/terminal/thing/job-board";
@@ -112,6 +119,7 @@ describe("work verbs", () => {
   let poster: Person;
   let courier: Person;
   let crate: TestCrate;
+  let ginMaterial: Material;
 
   beforeEach(async () => {
     installV1QuantityMarshallers();
@@ -127,6 +135,13 @@ describe("work verbs", () => {
     board = makeStuffAtPath(() => new JobBoard(), BOARD);
     poster = makeStuffAtPath(() => new Person(), POSTER);
     courier = makeStuffAtPath(() => new Person(), COURIER);
+    ginMaterial = makeStuffAtPath(() => {
+      const m = new Material();
+      m.setName("gin");
+      m.setTags(["spirit", "gin"]);
+      m.setDensity(Quantity.of(940, "kg/m³"));
+      return m;
+    }, "/stuff/idea/material/spirit/gin") as unknown as Material;
     crate = makeStuffAtPath(() => new TestCrate(), CRATE);
     crate.setKeywords(["crate"]);
     ContainmentApi.move(board as never, room);
@@ -491,5 +506,95 @@ describe("work verbs", () => {
       const def = CommandDefinition.fromYaml(raw, `${name}.yaml`);
       expect(def.getHelpText().length).toBeGreaterThan(40);
     }
+  });
+
+
+/**
+ * ⭐⭐⭐ **A contract says what the business WANTS.**
+ *
+ * The agency test. A `supply` gig bound to a template path is an opinion
+ * about packaging dressed as a requirement: it means *eight of that
+ * exact row*, so somebody who solves the problem their own way — one big
+ * vessel instead of eight small ones — has done the job and gets
+ * nothing. A business wants six litres of gin; how it arrives is the
+ * hauler's business.
+ */
+
+  /** A vessel holding `litres` of a material tagged `gin`. */
+  function vesselOf(litres: number): Stuff {
+    const v = makeStuff(() => new TestVessel());
+    v.interiorBulk = true;
+    v.setInteriorCapacity(Quantity.of(Math.max(litres, 1), "L"));
+    v.setBulkMaterial("interior", ginMaterial);
+    v.setBulkAmount("interior", Quantity.of(litres, "L"));
+    return v as unknown as Stuff;
+  }
+
+  it("⭐ ONE demijohn of six litres satisfies `supply 6 litres of gin`", async () => {
+    const c = ctx(poster);
+    await asGiver(poster, () =>
+      job().execute(
+        {
+          subcommand: "post",
+          condition: `supply 6 litres of gin to ${DEST}`,
+          reward: 40,
+          bounty: true,
+        } as never,
+        c,
+      ),
+    );
+    expect(c.note).not.toHaveBeenCalled();
+    const gigs = await ContractApi.openGigsOn(BOARD);
+    const id = gigs[gigs.length - 1]!.contractId;
+    expect(gigs[gigs.length - 1]!.clause?.condition.item).toEqual({
+      kind: "category",
+      category: "gin",
+      unit: "L",
+    });
+
+    // ⭐ One vessel, six litres. Nothing about the packaging matched a
+    // template path, and it is still exactly what was ordered.
+    ContainmentApi.move(vesselOf(6) as never, dest);
+    const done = ctx(courier);
+    await asGiver(courier, () =>
+      job().execute({ subcommand: "complete", id: id.slice(0, 8) } as never, done),
+    );
+    expect(done.note).not.toHaveBeenCalled();
+  });
+
+  it("⚠ four litres is not six — the tally is a measure, not a count", async () => {
+    const c = ctx(poster);
+    await asGiver(poster, () =>
+      job().execute(
+        {
+          subcommand: "post",
+          condition: `supply 6 litres of gin to ${DEST}`,
+          reward: 40,
+          bounty: true,
+        } as never,
+        c,
+      ),
+    );
+    const gigs = await ContractApi.openGigsOn(BOARD);
+    const id = gigs[gigs.length - 1]!.contractId;
+
+    // Two vessels, two litres each — four. Short is short.
+    ContainmentApi.move(vesselOf(2) as never, dest);
+    ContainmentApi.move(vesselOf(2) as never, dest);
+    const short = ctx(courier);
+    await asGiver(courier, () =>
+      job().execute({ subcommand: "complete", id: id.slice(0, 8) } as never, short),
+    );
+    expect(short.note).toHaveBeenCalledWith(
+      expect.objectContaining({ reason: "contract-refused" }),
+    );
+
+    // A third vessel tips it over six, across THREE containers.
+    ContainmentApi.move(vesselOf(2) as never, dest);
+    const done = ctx(courier);
+    await asGiver(courier, () =>
+      job().execute({ subcommand: "complete", id: id.slice(0, 8) } as never, done),
+    );
+    expect(done.note).not.toHaveBeenCalled();
   });
 });

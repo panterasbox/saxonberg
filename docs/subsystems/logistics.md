@@ -437,6 +437,26 @@ way to fill one and the thing that makes a spot market liquid. **How you
 sourced it is your business.** Mining, salvage, purchase and hoarding
 collapse into one predicate the engine can count.
 
+⭐⭐⭐ **And a contract says what the BUSINESS wants, not what the author
+imagined it arriving in.** A supply condition may bind a *category and a
+unit* — `6 L of gin` — instead of a template path, and the tally then
+MEASURES rather than counts: six litres is six litres whether it comes
+in one demijohn or eight bottles.
+
+⚠⚠ That is a player-agency fix, and the bug it replaces is the sharp
+version of a mistake this build made twice. A business is denominated in
+**category and unit**; everything it handles is denominated in
+**objects**; and translating between them is where things went wrong —
+first when `exemplarFor` read a bottle's *vessel kind* as its par
+category and no bulk line ever matched, then when a gig bound a template
+path so *eight of that exact row* was the only way to satisfy it. A
+player who brought one demijohn holding six litres had done the job in
+every sense the bar cares about, and the engine counted zero. ⭐ The
+matcher now lives in ONE place (`CategoryMeasure`), and the par sheet,
+the keeper's exemplar scan, the carter's crate finder and the contract
+tally all read the same answer — there were four copies, and two were
+wrong in different ways.
+
 ⭐ The condition is a **phrase**, not a flag and not a subcommand:
 `post`/`claim`/`complete`/`abandon` are what you are DOING, the phrase is
 what the work IS — two axes, two slots. A third template adds a phrase

@@ -170,7 +170,11 @@ async function resolveDestination(path: string): Promise<Stuff | null> {
  * candidate is confirmed with the authoritative `Condition.holdsFor`.
  */
 /**
- * How many delivered matching items are at `dest` — the `supply` tally.
+ * How much of what the condition asks for is delivered at `dest` — the
+ * `supply` tally. ⭐ A COUNT of things for a kind, and a measured
+ * QUANTITY for a category: six litres of gin is six litres whether it
+ * arrived in one demijohn or eight bottles, which is the whole point of
+ * letting a contract say what the business wants.
  *
  * ⭐ The same walk as {@link findDeliveredItemAt}, counting instead of
  * short-circuiting. It is a separate function rather than a flag because
@@ -194,7 +198,7 @@ function countDeliveredItemsAt(
         Condition.matchesItem(condition, item) &&
         Condition.holdsFor(condition, item)
       ) {
-        found += 1;
+        found += Condition.contributionOf(condition, item);
       }
     }
   }
@@ -205,7 +209,7 @@ function countDeliveredItemsAt(
       Condition.matchesItem(condition, item) &&
       Condition.holdsFor(condition, item)
     ) {
-      found += 1;
+      found += Condition.contributionOf(condition, item);
     }
     found += countDeliveredItemsAt(item, condition, depth + 1);
   }
