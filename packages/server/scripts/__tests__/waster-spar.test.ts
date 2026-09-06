@@ -24,7 +24,7 @@ import { Character } from "../../src/mud/lib/character/Character";
 import Species from "../../src/mud/platform/idea/species/Species";
 import BodyPlan from "../../src/mud/platform/idea/species/BodyPlan";
 import Weapon from "../../src/mud/platform/thing/equipment/Weapon";
-import Armor from "../../src/mud/platform/thing/equipment/Armor";
+import Garment from "../../src/mud/platform/thing/equipment/Garment";
 import Material from "../../src/mud/lib/material/Material";
 import { Construction } from "../../src/mud/lib/material/Construction";
 import { ContainerMixin } from "../../src/mud/lib/spatial/Container";
@@ -148,7 +148,7 @@ function makeFighter(
   if (gambeson) {
     // The sparring kit: a padded jacket AND coif (exploits call head shots).
     for (const slot of ["torso", "head"] as const) {
-      const pad = makeStuff(() => new Armor());
+      const pad = makeStuff(() => new Garment());
       pad.setMaterial(linen());
       pad.setConstruction(Construction.of("padded"));
       pad.setSlotClaim(plan.getTemplatePath()!, [slot]);

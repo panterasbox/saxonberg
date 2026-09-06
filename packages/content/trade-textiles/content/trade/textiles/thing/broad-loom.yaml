@@ -1,0 +1,17 @@
+# The broad loom — wide enough that two people throw it.
+#
+# ⭐ Rung two, and the ladder above it (flying shuttle, power loom) is
+# more rows at higher rates rather than more code. `weave`'s decision is
+# the same decision in a mill.
+class: /trade/textiles/thing/Loom
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a broad loom
+  primaryKeyword: broadloom
+  keywords: [broadloom, broad-loom, loom, wide]
+  longDescription: |
+    Twice the width of the hand loom and built like a barn, with a bench long enough for two. One throws, one catches, and neither of them talks much.
+  capabilities:
+    - { kind: weaving, rate: 2 }
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 90

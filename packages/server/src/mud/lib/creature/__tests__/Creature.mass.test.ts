@@ -96,3 +96,110 @@ describe('Creature biological reserve readers — the contract surface', () => {
     expect(c.getEndurance().key).toBe('endurance');
   });
 });
+
+/**
+ * ⭐⭐ Size resolves through the SPECIES, and that is the whole point.
+ *
+ * Before this, every playable species inherited `biped`'s 70 kg — so a
+ * halfling and a dragonborn carried the same weight, punched with the
+ * same energy, ate the same and cooled at the same rate. Fit cannot key
+ * on a constant, which is what forced the fix.
+ *
+ * ⭐ And there is exactly ONE accessor, so lineage can later override on
+ * the individual without touching either layer.
+ */
+describe('Species size — own, else the plan, else zero', () => {
+  afterEach(() => StuffApi.clearAll());
+
+  function sized(
+    own: { baseMass?: number; stature?: number },
+    plan: { baseMass?: number; baseStature?: number } = {},
+  ): { species: Species; creature: Creature } {
+    const n = seq++;
+    const bodyPlan = makeStuff(() => new BodyPlan());
+    bodyPlan.setName(`sized-plan-${n}`);
+    if (plan.baseMass !== undefined) bodyPlan.setBaseMass(plan.baseMass);
+    if (plan.baseStature !== undefined) {
+      bodyPlan.setBaseStature(plan.baseStature);
+    }
+    stampTemplatePathForTest(bodyPlan, `/stuff/idea/species/BodyPlan/sized-${n}`);
+
+    const species = makeStuff(() => new Species());
+    species.setBodyPlan(bodyPlan);
+    if (own.baseMass !== undefined) species.setBaseMass(own.baseMass);
+    if (own.stature !== undefined) species.setStature(own.stature);
+    stampTemplatePathForTest(species, `/stuff/idea/species/test/sized-${n}`);
+
+    const creature = makeStuff(() => new Creature());
+    creature.setSpecies(species);
+    return { species, creature };
+  }
+
+  it("a species override wins over the plan", () => {
+    // ⚠⚠ RETARGETED by the farmstead merge, and the intent is unchanged.
+    // `Creature.getMass()` no longer consults `Species.baseMass` at all:
+    // that field is a body-SHAPE default (every quadruped shares one
+    // number, so it cannot tell a cow from a collie), and the honest
+    // per-species number is `adultMass` walked down the maturation
+    // curve. With no curve authored `massAt` returns the adult mass
+    // outright, which is what this asserts.
+    //
+    // ⭐ The old assertion — species.baseMass beating plan.baseMass —
+    // was testing a precedence the engine stopped having. It failed
+    // loudly on the merge rather than silently agreeing, which is the
+    // only reason this was noticed.
+    const { species, creature } = sized(
+      { baseMass: 125, stature: 2.0 },
+      { baseMass: 70, baseStature: 1.75 },
+    );
+    species.setAdultMass(125);
+    expect(species.getStature()).toBe(2.0);
+    expect(creature.getMass().rawValue()).toBe(125);
+  });
+
+  it("⚠ Species.baseMass no longer drives a creature's mass", () => {
+    // It is still live for combat's structural read
+    // (`CombatLogic` → `NaturalBodyRead`), so it is not dead — it just
+    // stopped being the mass answer. Stating the narrowing explicitly so
+    // the next person does not have to infer it from a merge.
+    const { species, creature } = sized(
+      { baseMass: 125, stature: 2.0 },
+      { baseMass: 70, baseStature: 1.75 },
+    );
+    expect(species.getBaseMass()).toBe(125);
+    expect(creature.getMass().rawValue()).toBe(70); // the PLAN's
+  });
+
+  it("an absent override inherits the plan", () => {
+    const { species, creature } = sized({}, { baseMass: 70, baseStature: 1.75 });
+    expect(species.getBaseMass()).toBe(70);
+    expect(species.getStature()).toBe(1.75);
+    expect(creature.getMass().rawValue()).toBe(70);
+  });
+
+  it("an authored INSTANCE mass still wins over both", () => {
+    // The deviation rule is unchanged: species size is a default, not a
+    // ceiling, and a specific creature may simply weigh what it weighs.
+    const { creature } = sized(
+      { baseMass: 125 },
+      { baseMass: 70, baseStature: 1.75 },
+    );
+    creature.setMass(Quantity.of(43, 'kg'));
+    expect(creature.getMass().rawValue()).toBe(43);
+  });
+
+  it("with neither authored, both read zero and readers fall back", () => {
+    const { species, creature } = sized({});
+    expect(species.getBaseMass()).toBe(0);
+    expect(species.getStature()).toBe(0);
+    expect(creature.getMass().rawValue()).toBe(0);
+  });
+
+  it("both setters refuse negative / non-finite values", () => {
+    const { species } = sized({});
+    expect(() => species.setBaseMass(-1)).toThrow(RangeError);
+    expect(() => species.setStature(Number.NaN)).toThrow(RangeError);
+    const plan = makeStuff(() => new BodyPlan());
+    expect(() => plan.setBaseStature(-0.5)).toThrow(RangeError);
+  });
+});

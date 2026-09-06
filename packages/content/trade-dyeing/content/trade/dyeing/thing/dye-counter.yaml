@@ -1,0 +1,35 @@
+# The dyehouse counter — an AttendancePoint, `discipline: line`.
+#
+# ⭐ The price board shows P19's STAGE GRADIENT before you buy rather
+# than after: dyeing a finished garment is cheapest, most convenient and
+# WORST. That the convenient option is the inferior one needs no
+# balancing, because it is true — seams and thread take colour
+# differently, and the unevenness shows.
+#
+# ⭐⭐ Which is what gives the customization loop its gradient: **a rich
+# person's clothes are visibly better because they were dyed earlier in
+# the chain.** Honest economics, legible on sight.
+class: /platform/thing/AttendancePoint
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: "the dyehouse counter"
+  primaryKeyword: counter
+  keywords: [counter, board, dyehouse]
+  longDescription: |
+    A plank counter with a slate behind it, and the slate is the whole argument: garment-dye cheapest, piece-dye dearer, yarn-dye dearer still. Somebody has chalked WOAD ×2 under all of it and boxed it.
+  discipline: line
+  attendDurationMs: 8000
+  businessPath: /trade/dyeing/idea/dyehouse
+  serverPositionKeys: [dyer]
+  skin:
+    poke: "The dyer wipes her hands and nods you over."
+  prices:
+    # ⚠ Off the wage ladder, not picked: a dyer on 5/hr, an 8-hour day
+    # at 24 minor unskilled. Mordanting is cheap because it is one bath
+    # and no colour; the woad vat is the premium because a living vat is
+    # capital somebody feeds every day.
+    mordant: 10
+    garment-dye: 25
+    piece-dye: 40
+    yarn-dye: 50
+    woad: 80

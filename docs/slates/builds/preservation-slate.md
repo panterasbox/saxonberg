@@ -221,10 +221,10 @@ with acidity as chemistry the microbes hate.
 Two consequences:
 
 1. **Acidity's carrier already ships.** Pickling and lacto-fermentation
-   are durative transforms in a vessel — literally `FermentingMixin`
-   ([fermentation.md](../../subsystems/fermentation.md)): profiles,
+   are durative transforms in a vessel — literally `MaturingMixin`
+   ([maturation.md](../../subsystems/maturation.md)): profiles,
    cultures, strains, the cellar. The pickling branch is a
-   `FermentProfile` row plus an acidity read feeding `f_pH`, not a new
+   `MaturationProfile` row plus an acidity read feeding `f_pH`, not a new
    subsystem.
 2. **Sealing stays binary on purpose.** Honest oxygen means splitting
    the flora into aerobes and anaerobes, and anaerobic sealed-jar

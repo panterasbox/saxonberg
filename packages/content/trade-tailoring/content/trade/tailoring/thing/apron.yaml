@@ -1,0 +1,26 @@
+# A coarse work apron — what `sew` makes.
+#
+# ⭐ THE APRON IS THE EXPOSURE-CHANNEL RULE MADE LITERAL. Nobody authored
+# "this is an apron": it is cheap, it is coarse, it sits OUTERMOST, and
+# it covers a lot — and apron-ness emerges from those four facts. It
+# routes a deposit away from the shirt underneath the moment a soiling
+# driver exists (`wearer.outermostAt(part)` is the seam, and it already
+# ships), and until then it is an honest, cheap, ugly garment.
+#
+# ⚠ It authors NO `clo`. Insulation derives from the material's
+# conductivity, the form's loft and the mass over the area covered — an
+# authored number would silently override the whole thermal model.
+class: /platform/thing/equipment/Garment
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a coarse work apron
+  primaryKeyword: apron
+  keywords: [apron, pinny, work]
+  longDescription: |
+    Sackcloth, cut wide, tied twice. It is not meant to look like anything — it is meant to be the thing that gets ruined instead of your shirt.
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": [torso, legs]
+  _materialPath: /stuff/idea/material/textile/linen
+  constructionForm: sackcloth
+  gradeBand: fair
+  mass: 0.6

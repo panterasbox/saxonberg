@@ -1,0 +1,17 @@
+# Line — the long clean fibre, and what everything good is made of.
+#
+# ⭐ Its GRADE is the staple length, carried from the field's worst
+# stretch by the shipped weakest-link rule. There is no separate staple
+# number, because a second number saying the same thing would drift from
+# the first.
+class: /trade/textiles/thing/TextileStock
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a hank of flax line
+  primaryKeyword: line
+  keywords: [line, flax, fibre, hank, strick]
+  longDescription: |
+    Combed flax, pale and heavy and cool, hanging in a long unbroken switch. It has the weight of hair and none of the give.
+  _materialPath: /stuff/idea/material/textile/linen
+  mass: 0.5
+  gradeBand: fair

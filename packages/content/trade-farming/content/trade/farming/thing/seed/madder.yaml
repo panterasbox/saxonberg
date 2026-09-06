@@ -1,0 +1,13 @@
+# A packet of madder seed. The same discrete-Thing shape every shipped seed
+# uses — it names the plant it grows into and carries no variation of
+# its own.
+class: /platform/thing/Seed
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a packet of madder seed
+  primaryKeyword: seed
+  keywords: [seed, seeds, packet, "madder seed", madder, alizarin]
+  longDescription: |
+    A pinch of dark seed, and a note on the packet in somebody else's hand saying THREE YEARS, underlined twice.
+  growsIntoPath: /trade/farming/thing/plant/madder
+  _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/gentianales/rubiaceae/rubia/tinctorum

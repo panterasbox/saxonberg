@@ -38,7 +38,21 @@ import type { Tangible } from '../material/Tangible';
 import type { Reserved } from '../reserve';
 import type { Vitals, ConditionBand } from '../vitals/Vitals';
 import { MixinApi } from '../../api/mixin';
+import { AppApi } from '../../api/app';
+import { AppSettingKeys } from '../config/AppSettings';
 import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
+
+/** Numeric AppSetting read with a seeded-literal fallback. */
+function readDial(key: string, fallback: number): number {
+  try {
+    const raw = AppApi.setting(key);
+    if (raw === '' || raw == null) return fallback;
+    const n = Number.parseFloat(raw);
+    return Number.isFinite(n) ? n : fallback;
+  } catch {
+    return fallback;
+  }
+}
 
 /**
  * Engine dials for the encumbrance gauge — **deferred dials** (numeric
@@ -63,6 +77,12 @@ export const LOAD_BEARING_DEFAULTS = {
    * the value the derived placement coupling returns for a held slot.
    */
   LOOSE_CARRY_SURCHARGE: 1.25,
+  /**
+   * Extra placement coupling per unit of a worn garment's `tightness`.
+   * Clothes cut for a smaller body bind, and binding is a real load;
+   * a garment cut for you, or cut generous, adds nothing.
+   */
+  TIGHT_FIT_SURCHARGE: 0.5,
   /** Load ratio below which a traverse costs no endurance. */
   LIGHT_LOAD_FLOOR: 0.25,
   /** Endurance drawn per loaded traverse, scaled by overload (`%`). */
@@ -247,10 +267,26 @@ export function LoadBearingMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
 
       // b) Slot occupants — worn / wielded; placement from the slot kind.
+      //
+      // ⭐ A TIGHT garment costs more than its mass. Clothes cut for a
+      // smaller body bind, and binding is a real load on a body that
+      // has to move in them — so `tightness` (the fit reading's signed
+      // half) adds a surcharge on top of the placement coupling. A
+      // garment cut for you, or cut generous, adds nothing.
+      const tightSurcharge = readDial(
+        AppSettingKeys.textilesFitTightnessBurden,
+        LOAD_BEARING_DEFAULTS.TIGHT_FIT_SURCHARGE,
+      );
+      const self0 = this as unknown as Stuff;
       for (const [slotName, occupants] of bearer.getAllOccupants()) {
         const placement = placementCouplingFor(bearer.getSlotSpec(slotName));
         for (const occ of occupants) {
-          total += walk(occ as unknown as Stuff, 1.0, placement, 0, visited);
+          const asStuff = occ as unknown as Stuff;
+          let coupling = placement;
+          if (MixinApi.isWearable(asStuff)) {
+            coupling += asStuff.fitOn(self0).tightness * tightSurcharge;
+          }
+          total += walk(asStuff, 1.0, coupling, 0, visited);
         }
       }
 

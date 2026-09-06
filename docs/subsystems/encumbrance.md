@@ -101,15 +101,32 @@ Both margins pull capacity *down* off the body-mass baseline. Environmental
 margins (spo2, gravity) are deferred — nothing drives them off baseline
 yet.
 
-## Body mass — `BodyPlan.baseMass` + `Creature.getMass()`
+## Body mass — `Species.getBaseMass()` + `Creature.getMass()`
 
-`BodyPlan` gains an authored `baseMass` (plain kg number). A `Creature`
-seeds its `getMass()` from the resolved plan's `baseMass` lazily, the
-first time mass is read: `Creature.getMass()` returns an
-explicitly-authored mass unchanged (the deviation wins), else adopts
-`species → bodyPlan → baseMass`, else stays at `0` (sessile / no plan —
+`BodyPlan` carries an authored `baseMass` (plain kg number) and, since
+the textiles build, a sibling `baseStature` (m). A `Creature` seeds its
+`getMass()` lazily, the first time mass is read: `Creature.getMass()`
+returns an explicitly-authored mass unchanged (the deviation wins), else
+adopts `species.getBaseMass()`, else stays at `0` (sessile / no plan —
 graceful, no throw). The "is mass still 0?" check is the idempotency
 guard; there is no persistent "seeded" flag.
+
+> ⚠⚠ **The resolution is one layer deeper than it was.** It reads
+> **`Species.getBaseMass()`**, which resolves *own → plan → 0* —
+> **not** `bodyPlan.getBaseMass()` directly.
+>
+> Before that, no species overrode `biped`'s 70 kg, so all ten playable
+> species massed the same: a halfling and a dragonborn carried the same
+> weight, punched with the same energy, ate the same, and cooled at the
+> same rate. Fit cannot key on a constant, which is what forced the fix.
+>
+> ⭐ **Three production reads changed and only three** —
+> `Creature.seedMassFromBodyPlan`, combat's mass-scaled fist, and the
+> natural-attack `largeBody` threshold. Everything else (capacity here,
+> metabolism's basal drain, `Thermal.getTau`) reads
+> `Creature.getMass()` and inherited it for free. That is the point of
+> the one accessor: lineage will later vary mass on the **individual**
+> without either layer changing.
 
 The seed runs at read-time rather than from a post-hydrate hook because the
 `postRegister` chain is not uniformly threaded below `CommandGiver`
@@ -227,7 +244,9 @@ one axis:
   `draftFactor: 0.04`) — the draft term: 300 kg of cargo hitched behind
   you costs ~9 effective kg.
 
-`biped.yaml` authors `baseMass: 70` (a human-ish body).
+`biped.yaml` authors `baseMass: 70` and `baseStature: 1.75` (a human-ish
+body) — the defaults every species that authors none inherits. The ten
+playable species all override; see [race.md](./race.md) § *Size*.
 
 ## Haulage — the cart (the draft term)
 

@@ -16,7 +16,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parse } from 'yaml';
 import Vat from '../../platform/thing/Vat';
-import FermentProfile from '../../platform/idea/ferment/FermentProfile';
+import MaturationProfile from '../../platform/idea/maturation/MaturationProfile';
 import GardenBed from '../../platform/thing/GardenBed';
 import Receptacle from '../../platform/thing/Receptacle';
 import FeedController from '../../platform/idea/cmd/bulk/FeedController';
@@ -72,10 +72,10 @@ function rowData(rel: string): Record<string, unknown> {
 let seq = 0;
 
 /** Stand a profile row's data up through the class's own setters. */
-function standProfile(rel: string): FermentProfile {
+function standProfile(rel: string): MaturationProfile {
   const data = rowData(rel);
   return makeStuffAtPath(() => {
-    const p = new FermentProfile();
+    const p = new MaturationProfile();
     for (const [k, v] of Object.entries(data)) {
       const setter = `set${k[0]!.toUpperCase()}${k.slice(1)}`;
       const fn = (p as unknown as Record<string, unknown>)[setter];
@@ -86,7 +86,7 @@ function standProfile(rel: string): FermentProfile {
       }
     }
     return p;
-  }, `/stuff/idea/brewing-w5-${seq}/idea/ferment/${data.key as string}`);
+  }, `/stuff/idea/brewing-w5-${seq}/idea/maturation/${data.key as string}`);
 }
 
 /** Stand a material row's ferment-relevant face. */
@@ -146,10 +146,10 @@ afterEach(() => {
 
 describe('the authored profiles agree with the strain contract (D14)', () => {
   it('the lager gate is the lager culture, and the lees trace to their species rows', () => {
-    const lager = rowData('idea/ferment/lager.yaml');
-    const lagerCulture = rowData('idea/ferment/lager-culture.yaml');
+    const lager = rowData('idea/maturation/lager.yaml');
+    const lagerCulture = rowData('idea/maturation/lager-culture.yaml');
     expect(lager.requiresStrain).toBe(lagerCulture.strain);
-    const aleCulture = rowData('idea/ferment/ale-culture.yaml');
+    const aleCulture = rowData('idea/maturation/ale-culture.yaml');
     const aleLees = rowData('idea/material/ale-lees.yaml');
     expect((aleLees.tags as string[])).toContain(aleCulture.inputCategory);
     // The D13 bridge: each lees' biologicalSource names a shipped
@@ -170,27 +170,27 @@ describe('the authored profiles agree with the strain contract (D14)', () => {
 
 describe('boiled wort is sterile (the ale profile, real rows)', () => {
   it('sealed never starts; open catches wild flora after the lag; a pitch starts at once', () => {
-    standProfile('idea/ferment/ale.yaml');
+    standProfile('idea/maturation/ale.yaml');
     const sealed = makeVat(288);
     fill(sealed, wort, 50);
-    sealed.getFermentPhase();
+    sealed.getMaturationPhase();
     setNow(12 * DAY);
     expect(sealed.getFractionConverted()).toBe(0);
-    expect(sealed.getFermentPhase()).toBe('active'); // waiting, not dead
+    expect(sealed.getMaturationPhase()).toBe('active'); // waiting, not dead
 
     const open = makeVat(288);
     fill(open, wort, 50);
     open.open();
-    open.getFermentPhase();
+    open.getMaturationPhase();
     setNow(15 * DAY);
-    open.getFermentPhase();
+    open.getMaturationPhase();
     setNow(18 * DAY);
     expect(open.getBatchStrain()).toBe('wild');
     expect(open.getFractionConverted()).toBeGreaterThan(0);
 
     const pitched = makeVat(288);
     fill(pitched, wort, 50);
-    pitched.getFermentPhase();
+    pitched.getMaturationPhase();
     pitched.applyForeignPour('pitch', 'ale-yeast', 0.2);
     setNow(19 * DAY);
     expect(pitched.getFractionConverted()).toBeGreaterThan(0.2);
@@ -199,27 +199,27 @@ describe('boiled wort is sterile (the ale profile, real rows)', () => {
 
 describe('the lager line (D14 on real rows)', () => {
   it('refuses wild, refuses the warm brewhouse, ferments in the cold store on its strain', () => {
-    standProfile('idea/ferment/lager.yaml');
+    standProfile('idea/maturation/lager.yaml');
     const wild = makeVat(279);
     fill(wild, lagerWort, 50);
     wild.open();
-    wild.getFermentPhase();
+    wild.getMaturationPhase();
     setNow(6 * DAY);
-    wild.getFermentPhase();
+    wild.getMaturationPhase();
     setNow(20 * DAY);
     expect(wild.getBatchStrain()).toBe('wild');
     expect(wild.getFractionConverted()).toBe(0);
 
     const warm = makeVat(288); // the brewhouse — above stallAboveK 287
     fill(warm, lagerWort, 50);
-    warm.getFermentPhase();
+    warm.getMaturationPhase();
     warm.applyForeignPour('pitch', 'lager-yeast', 0.2);
     setNow(24 * DAY);
     expect(warm.getFractionConverted()).toBe(0);
 
     const cold = makeVat(279); // the cold store
     fill(cold, lagerWort, 50);
-    cold.getFermentPhase();
+    cold.getMaturationPhase();
     cold.applyForeignPour('pitch', 'lager-yeast', 0.2);
     setNow(30 * DAY);
     expect(cold.getFractionConverted()).toBeGreaterThan(0.4);
@@ -228,7 +228,7 @@ describe('the lager line (D14 on real rows)', () => {
 
 describe('the cask conditions (P9 on real rows)', () => {
   it('sealed ale referments its residual sugar into carbonated cask ale; open just breathes', () => {
-    standProfile('idea/ferment/cask-conditioning.yaml');
+    standProfile('idea/maturation/cask-conditioning.yaml');
     const ale = StuffApi.findByTemplatePath<Material>(
       '/trade/brewing/idea/material/ale',
     )!;
@@ -237,9 +237,9 @@ describe('the cask conditions (P9 on real rows)', () => {
 
     const sealed = makeVat(286);
     fill(sealed, ale, 40);
-    sealed.getFermentPhase(); // keyed + closed (a Vat defaults shut)
+    sealed.getMaturationPhase(); // keyed + closed (a Vat defaults shut)
     setNow(6 * DAY);
-    expect(sealed.getFermentPhase()).toBe('finished');
+    expect(sealed.getMaturationPhase()).toBe('finished');
     expect(sealed.getBulkMaterialPath('interior')).toBe(
       '/trade/brewing/idea/material/cask-ale',
     );
@@ -252,7 +252,7 @@ describe('the cask conditions (P9 on real rows)', () => {
     const open = makeVat(286);
     fill(open, ale, 40);
     open.open();
-    open.getFermentPhase();
+    open.getMaturationPhase();
     setNow(12 * DAY);
     expect(open.getFractionConverted()).toBe(0); // sealedOnly
   });

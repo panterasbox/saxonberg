@@ -9,3 +9,8 @@ data:
     trouble.
   slotClaims:
     "/stuff/idea/species/BodyPlan/biped": [torso]
+  # Heavy close-woven duck. The weight IS the weather-proofing — a dense weave is what breaks a wind.
+  _materialPath: /stuff/idea/material/textile/linen
+  constructionForm: woven
+  gradeBand: fair
+  mass: 1.4

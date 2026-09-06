@@ -1,0 +1,28 @@
+# The book — ⭐⭐ **a business asset, and the reason the shop is worth
+# more than its fixtures.**
+#
+# It transfers with the shop: a tailor who quits does not take the
+# town's measurements away, and a tailor who buys the shop inherits a
+# book of everyone who ever came in.
+#
+# ⚠ It carries no date and never will. Whether an entry is still YOU is
+# answerable from the numbers alone — staleness is body-change, not a
+# clock — so a stable body keeps a good entry forever and a changed one
+# wants re-measuring. That is a reason to come in, and a gift cut from
+# an old entry is a slightly-off gift rather than a broken one.
+class: /trade/tailoring/thing/MeasureBook
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the shop's book
+  primaryKeyword: book
+  keywords: [book, ledger, measurements, measure]
+  longDescription: |
+    A fat ledger with a strap round it, kept on the counter and never off it. Names down the left, two numbers against each, and a great many of the names have been written twice.
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 2
+  entries: []
+  details:
+    names:
+      keywords: [names, entries, pages]
+      description: |
+        Half the town, some of them three times over in different hands. The oldest entries are in an ink that has gone brown, and beside a few of those somebody has written a single word in the margin: DECEASED, or MOVED, or — once — TWINS.

@@ -1,0 +1,28 @@
+# The Wharfside dyehouse — a Business, and a SERVICE rather than a
+# producer.
+#
+# ⚠ `dyer` at wage 5 — the same as the mill's weaver and above its
+# spinner. Skilled, and the trade's whole product is fastness and
+# repeatability, which is knowledge rather than throughput.
+class: /platform/idea/Business
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: "the Wharfside dyehouse"
+  appointingAuthority:
+    kind: office
+    office: prime-minister
+  positions:
+    - key: dyer
+      label: at the vats
+      wageRate: 5
+      confers: []
+      purchases: true
+  rosterSlots:
+    - positionKey: dyer
+      assignee: /trade/dyeing/agent/dyer
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [0, 24] }
+  banksAt: goodkin
+  operatingLocations:
+    - /trade/dyeing/location/dyehouse
+    - /trade/dyeing/thing/dye-counter

@@ -9,3 +9,8 @@ data:
     intend to.
   slotClaims:
     "/stuff/idea/species/BodyPlan/biped": [torso]
+  # Bleached linen. ⭐ It is white for a REASON: the coat is sacrificial, and a stain shows.
+  _materialPath: /stuff/idea/material/textile/linen
+  constructionForm: woven
+  gradeBand: fair
+  mass: 0.7

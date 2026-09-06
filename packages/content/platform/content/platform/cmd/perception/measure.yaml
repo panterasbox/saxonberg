@@ -232,6 +232,61 @@ subcommands:
       - name: detail
         type: string
         required: false
+  # ⭐ The tailor's fitting — a STANZA on this shipped view, the same
+  # shape as `strike` and `dip` above: a platform view naming a PACK
+  # controller by absolute path. Zero new verbs for the whole tailoring
+  # trade's measuring, and `measure` is where a player would look for it
+  # anyway.
+  #
+  # ⭐⭐ It is `figure`, and it shipped for a day as `customer`. Every
+  # other stanza here names the CHANNEL being read — `light`,
+  # `temperature`, `density`, `strike`, `dip` — while `customer` named
+  # the subject's SOCIAL ROLE, which is the wrong axis and reads that
+  # way. It is also not true off the shop floor: a quartermaster
+  # measuring recruits, a parent measuring a child, or you measuring
+  # yourself are all this act with no customer anywhere in it.
+  # `figure` is the tailor's own word for the two numbers taken.
+  #
+  # ⚠ In an install WITHOUT `trade-tailoring` this dies on dispatch with
+  # a legible `controller-error` note, never a crash — the same
+  # arrangement the mining stanzas already have.
+  figure:
+    description: "Take somebody's measure and write it in the book"
+    help: |
+      Run a tape over somebody and record the two numbers a garment is
+      cut to. It needs a measure book to write in — held, or on the
+      counter where you stand.
+
+      ⭐ Name nobody and you measure YOURSELF, which needs no shop and
+      nobody's leave. `measure figure the customer at the counter` takes
+      somebody else's.
+
+      ⭐ It is free, on purpose. It is the thing that gets you into the
+      book and brings you back.
+
+      ⚠ Whether an entry is still YOU is answerable from the numbers
+      alone, so the book carries no date. A body that has not changed
+      keeps a good entry forever; one that has wants re-measuring, and
+      anything cut from the old figures will sit off.
+    examples:
+      - cmd: measure figure
+        note: Take your own measure
+      - cmd: measure figure the customer at the counter
+        note: Take the waiting customer's measure
+    controller: /trade/tailoring/idea/cmd/perception/MeasureFigureController
+    args:
+      - name: subject
+        type: object
+        # ⭐ Bare `measure figure` is your own, the `measure light`
+        # default-to-`here` shape with the other pronoun.
+        required: false
+        default: "me"
+        scope: [reachable]
+        # The two numbers come off a BODY — `measurementsOf` reads the
+        # species' stature and the instance's mass, and returns null for
+        # anything that is not an organism. Declaring it here is what
+        # turns "nothing happens" into a sentence.
+        requires: OrganismMixin
   dip:
     description: "Read how steeply an ore body falls, off an exposed vein (needs a surveyor's instrument)"
     help: |

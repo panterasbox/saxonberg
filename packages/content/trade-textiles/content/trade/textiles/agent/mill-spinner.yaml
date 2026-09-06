@@ -1,0 +1,54 @@
+# Sefa Roke — at the wheel, on 3 an hour.
+#
+# ⚠ She does the slowest step in the trade for the lowest wage in the
+# shop, which is not an oversight and is not hers to fix. It is the fact
+# the whole build is arranged to let a player notice.
+class: /platform/agent/Cast
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: Sefa Roke
+  pronouns: she
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  primaryKeyword: spinner
+  alternateNames: ["sefa", "roke"]
+  shortDescription: "a spinner at the wheel with her hands full and her mouth free"
+  longDescription: |
+    She has not looked at the wheel in eleven years. The thread comes off it even because her fingers know it, which leaves the whole of her attention for whatever is being argued about along the bench.
+  dispositions:
+    - { disposition: diligence, valence: 55 }
+  # ⭐⭐ The floor's PRODUCER beat. Sefa works the whole ladder — scutch,
+  # spin, weave — and shelves the bolts in the mill's stock, where Adren's
+  # `consigns` beat finds them and carries them to the general store.
+  #
+  # ⭐ The two seats stay meaningful: the spinner MAKES, the weaver
+  # CARRIES (his position is the one with `purchases: true`, which is
+  # what trading as the house needs). One hand runs all three acts rather
+  # than splitting them across the pair because line and yarn would then
+  # have to change hands, and the only shared container on this floor is
+  # the stock — which `consigns` drains to a shop counter, so a spinner
+  # shelving yarn there would have it sold as cloth. A real two-hand
+  # split wants a work bench neither beat consigns from; that is the next
+  # wave, not this one.
+  #
+  # ⚠ 90 s against the consigning beat's 120 s: the floor should run a
+  # little ahead of the cart, or the cart arrives to an empty shelf.
+  # ── the dossier ─────────────────────────────────────────────────
+  # ⚠ `lint:dossiers` (identity-ledgers): a Cast row is a named person,
+  # and a named person the ledgers cannot attribute to is the gate's
+  # whole reason. `hand` is the shipped archetype for floor labour.
+  #
+  # ⭐ Competent, not proficient. She is good at the wheel and the mill
+  # is where she does it; the build's own bench says the spinner is the
+  # bottleneck job AND the worst paid, and inflating her band would
+  # quietly argue with that finding.
+  archetype: hand
+  competence:
+    - { discipline: textiles, asserting: competent }
+  behaviors:
+    - brain: /trade/textiles/behavior/weaves
+      trigger: cadence:90s
+      config:
+        floor: /trade/textiles/location/mill
+        stock: /trade/textiles/thing/mill-stock
+        batch: 4

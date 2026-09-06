@@ -8,3 +8,8 @@ data:
     the bushel to every incoming class and quietly worn to graduation.
   slotClaims:
     "/stuff/idea/species/BodyPlan/biped": [legs]
+  # Issued by the bushel, so: hard-wearing, close-woven, and nobody's best work.
+  _materialPath: /stuff/idea/material/textile/linen
+  constructionForm: woven
+  gradeBand: fair
+  mass: 0.5

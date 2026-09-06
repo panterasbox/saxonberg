@@ -568,10 +568,15 @@ function actorStrikeProfile(
   const attacks = naturalAttacksFor(actor);
   const spec = attacks[session ? rotationIndex(session, attacks.length) : 0];
   if (!spec) return { ...NEUTRAL_NATURAL_PROFILE };
-  const bodyPlan = MixinApi.isOrganism(actor)
-    ? (actor.getSpecies()?.getBodyPlan() ?? null)
+  // ⚠ The body read is the SPECIES, which resolves its own baseMass
+  // else the plan's — `NaturalBodyRead` is structural (`getBaseMass()`),
+  // so Species satisfies it exactly as BodyPlan did. Without this the
+  // largeBody threshold could only ever be crossed by authoring it on
+  // the plan, i.e. by every species at once.
+  const body = MixinApi.isOrganism(actor)
+    ? (actor.getSpecies() ?? null)
     : null;
-  return NaturalAttack.deriveProfile(spec, bodyPlan, naturalProfileConfig());
+  return NaturalAttack.deriveProfile(spec, body, naturalProfileConfig());
 }
 
 /**
@@ -628,7 +633,7 @@ function wieldedShield(actor: Stuff): Stuff | null {
       if (
         MixinApi.isWieldable(occ) &&
         MixinApi.isConstructed(occ) &&
-        occ.getConstruction()?.isArmor()
+        occ.getConstruction()?.isCovering()
       ) {
         return occ as Stuff;
       }
@@ -2141,8 +2146,10 @@ function naturalMassScale(
   spec: NaturalAttackSpec | null,
 ): number {
   if (!spec?.massScaled) return 1;
+  // ⚠ Through the SPECIES (own, else the plan's), not the plan directly:
+  // otherwise every playable species shares one 70 kg fist.
   const bodyMass = MixinApi.isOrganism(attacker)
-    ? (attacker.getSpecies()?.getBodyPlan()?.getBaseMass() ?? 0)
+    ? (attacker.getSpecies()?.getBaseMass() ?? 0)
     : 0;
   const ref = dial(AppSettingKeys.combatNaturalEnergyRefMassKg, 70);
   if (!(bodyMass > 0) || !(ref > 0)) return 1;
@@ -2754,31 +2761,19 @@ function coveringGearAt(
   site: string,
   shieldFacing: boolean,
 ): Stuff[] {
-  if (!MixinApi.isOrganism(target) || !MixinApi.isSlotted(target)) return [];
-  const items: Array<{ item: Stuff; depth: number }> = [];
-  const covering = target.getSpecies()?.getBodyPlan()?.getSlotsCovering(site);
-  for (const spec of covering ?? []) {
-    for (const occ of target.getOccupants(spec.name)) {
-      if (!MixinApi.isConstructed(occ) || !MixinApi.isWearable(occ)) continue;
-      const construction = occ.getConstruction();
-      if (!construction || !construction.isArmor()) continue;
-      items.push({ item: occ as Stuff, depth: construction.getLayerDepth() });
-    }
+  if (!MixinApi.isOrganism(target) || !MixinApi.isAttired(target)) return [];
+  // ⭐ ONE outside-in walk, on the target that owns the slots — the
+  // second of the three hand-rolled copies this replaced. `includeHeld`
+  // is the raised shield, which fronts any struck part rather than
+  // riding a `covers` edge.
+  const items: Stuff[] = [];
+  for (const occ of target.coveringAt(site, { includeHeld: shieldFacing })) {
+    const asStuff = occ as unknown as Stuff;
+    if (!MixinApi.isConstructed(asStuff)) continue;
+    if (!asStuff.getConstruction()?.isCovering()) continue;
+    items.push(asStuff);
   }
-  if (shieldFacing) {
-    for (const [, occupants] of target.getAllOccupants()) {
-      for (const occ of occupants) {
-        if (!MixinApi.isWieldable(occ) || !MixinApi.isConstructed(occ)) {
-          continue;
-        }
-        const construction = occ.getConstruction();
-        if (!construction || !construction.isArmor()) continue;
-        items.push({ item: occ as Stuff, depth: construction.getLayerDepth() });
-      }
-    }
-  }
-  items.sort((a, b) => b.depth - a.depth);
-  return items.map((i) => i.item);
+  return items;
 }
 
 /**

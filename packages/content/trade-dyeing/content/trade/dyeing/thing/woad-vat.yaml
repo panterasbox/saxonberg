@@ -1,0 +1,22 @@
+# The woad vat — ⭐⭐ ALIVE, and the dyer's most valuable possession.
+#
+# It is kept by feeding it, killed by too much oxygen or the wrong pH,
+# and takes days to bring back. ⚠ That is a harsher failure than
+# anything else in the chain: neglect destroys CAPITAL, not a batch.
+# Deliberate.
+#
+# ⚠ Sealed, unlike every other vat here — oxygen is what kills a
+# reduction, and the seal is the difference between a living vat and a
+# dead one.
+class: /trade/dyeing/thing/WoadVat
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the woad vat
+  primaryKeyword: woad-vat
+  keywords: [woad-vat, woad, vat, blue]
+  longDescription: |
+    A lidded vat sunk to its rim in the floor, warm to the hand. Lift the lid and the surface is a coppery bloom over yellow-green liquor that smells like a stable and a brewery having an argument.
+
+    Somebody feeds it bran and lime on a schedule they do not write down, because they have not needed to write it down in eleven years.
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 160

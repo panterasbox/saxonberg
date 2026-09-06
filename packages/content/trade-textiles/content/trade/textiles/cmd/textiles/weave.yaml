@@ -1,0 +1,33 @@
+verbs: [weave]
+controller: /trade/textiles/idea/cmd/textiles/WeaveController
+description: "Set a web on the loom and cut cloth off it"
+help: |
+  `weave <yarn>` warps a loom and throws the shuttle until there is
+  cloth to cut off.
+
+  ⭐ The decision is how close to set it. `--open` gets the most cloth
+  out of the thread and makes sackcloth — it breathes, which is what a
+  sack is for. `--close` gets the least and makes fine linen, which
+  breaks a wind and outlasts the other two. Plain is the middle and the
+  default.
+
+  ⚠ A fine web is hard to keep clean. Set one before you have the hands
+  for it and there will be a slub in it, and a slub costs a grade band
+  you cannot get back.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: yarn
+    type: object
+    required: true
+    scope: [inventory, reachable]
+    requires: GlobbableMixin
+options:
+  close:
+    type: boolean
+    description: "Set it close — less cloth, finer, windproof, longer-wearing"
+  open:
+    type: boolean
+    description: "Set it open — more cloth, coarser; sackcloth"

@@ -1,0 +1,31 @@
+verbs: [spin]
+controller: /trade/textiles/idea/cmd/textiles/SpinController
+description: "Draw fibre into yarn at a chosen count"
+help: |
+  `spin <line>` draws fibre into thread. `--count <n>` sets the yarn
+  count — hanks to the pound, so **higher is finer**.
+
+  ⭐ How fine you can go is what skill in this trade buys, and reaching
+  past your band does not make worse yarn: it makes LESS yarn. The
+  thread parts, and the line that parted is gone. The flax is unchanged
+  either way — no amount of skill lengthens a staple.
+
+  ⭐⭐ Spinning occupies your hands and leaves your voice free, which is
+  not an oversight. It was the social work: done in company, at length,
+  talking. It is also the slowest step in the whole chain by a long way,
+  and a spinning wheel does it about three times faster without changing
+  a single thing about the decision.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: stock
+    type: object
+    required: true
+    scope: [inventory, reachable]
+    requires: GlobbableMixin
+options:
+  count:
+    type: number
+    description: "The yarn count — hanks to the pound; higher is finer"

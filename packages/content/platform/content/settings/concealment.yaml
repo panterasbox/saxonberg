@@ -7,6 +7,14 @@ settings:
   # names + ordering are code (lib/concealment/ConcealmentLevel.ts); these
   # are the tunable magnitudes. hiddenDefaultLevel = the band a legacy
   # Exit.hidden:true migrates to. See docs/subsystems/concealment.md.
+  # ⭐ The band BELOW obvious, and it is NEGATIVE on purpose: a
+  # conspicuous thing resolves for a viewer who would miss an ordinary
+  # one. ⚠ `perceives` saturates below obvious and always will — an
+  # obvious thing already always resolves — so this band earns its keep
+  # on the ACTOR side, in the hide floor, not on the target side.
+  - key: concealment.level.conspicuous
+    value: "-2"
+
   - key: concealment.level.subtle
     value: "2"
 

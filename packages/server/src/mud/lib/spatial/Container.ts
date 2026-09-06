@@ -103,6 +103,25 @@ const CalledFromSetContainer = SecurityPolicies.Custom(() => {
   return callerFrame?.method === 'setContainer';
 }, 'CalledFromSetContainer');
 
+/**
+ * The ids of everything currently occupying a slot on `host` — empty
+ * when the host is not `Slotted` at all (a chest holds things and wears
+ * nothing). The `contents` projection subtracts these so the worn half
+ * and the carried half stay disjoint.
+ */
+function wornOccupantIds(host: Stuff): ReadonlySet<string> {
+  if (!MixinApi.isSlotted(host)) return EMPTY_IDS;
+  const ids = new Set<string>();
+  for (const occupants of host.getAllOccupants().values()) {
+    for (const occupant of occupants) {
+      ids.add((occupant as unknown as Stuff).stuffId);
+    }
+  }
+  return ids;
+}
+
+const EMPTY_IDS: ReadonlySet<string> = new Set<string>();
+
 export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
   class ContainerMixin extends Base {
     // Mixin marker for detection by MixinApi
@@ -320,9 +339,17 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
         name: 'contents',
         read: (stuff, viewer) => {
           const host = stuff as Stuff & Container;
+          // ⭐ `contents` and `worn` are a PARTITION of one set. Wearing
+          // something never takes it out of the wearer's contents — the
+          // `wear` verb only claims slots — so without this clause a
+          // shirt would render in both projections. Skipping children
+          // that currently occupy a slot ON THIS HOST is what makes
+          // "worn vs carried" mean anything.
+          const wornHere = wornOccupantIds(host);
           const visible = host.getContents().filter(
             (child) =>
               child.stuffId !== viewer.stuffId &&
+              !wornHere.has(child.stuffId) &&
               !MixinApi.isAdornment(child) &&
               MixinApi.isVisible(child) &&
               // Honest fog on the wire: a concealed-undiscovered child never

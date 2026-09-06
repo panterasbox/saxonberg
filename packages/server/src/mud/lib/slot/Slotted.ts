@@ -27,7 +27,24 @@ import { Final, Unshadowable } from '../security/decorators';
 import { Mixins } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Slottable } from './Slottable';
+import type { Wearable } from './Wearable';
+import type { Graded } from '../craft/Graded';
+import { GRADE_BANDS } from '../craft/Grade';
+import type { Durable } from '../material/Durable';
+import type { Branded } from '../corpo/Branded';
 import { MixinApi } from '../../api/mixin';
+import { PerceptionApi } from '../../api/perception';
+import type { MarkupAugmenter } from '../../api/mml';
+import {
+  MqlSubscriptionApi,
+  REF_FIELDS,
+  type SubscribableFieldDescriptor,
+} from '../../api/mql-subscription';
+import { Impression, type ImpressionClause } from './Impression';
+import { Quantity } from '../quantity';
+import { AppApi } from '../../api/app';
+import { AppSettingKeys } from '../config/AppSettings';
+import type BodyPlan from '../../platform/idea/species/BodyPlan';
 import type {
   CaptureContext,
   SlottedSlice,
@@ -112,6 +129,7 @@ export interface Slotted {
   isSlotFull(slot: string): boolean;
 
   canOccupy(candidate: Stuff & Slottable, slot: string): boolean;
+
 
   /**
    * **Take `item` off this body entirely** — every slot it occupies, as
@@ -215,6 +233,7 @@ function validateSlotSpecs(specs: SlotSpec[]): void {
   }
 }
 
+
 export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
   Base: TBase
 ) {
@@ -225,6 +244,7 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
     static fieldMeta: FieldMeta = {
       staticSlots: { persistent: true, authorable: true },
     };
+
 
     /**
      * Authoring data — only used by the default `getSlotNames` /
@@ -300,6 +320,7 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
       }
       return set.values().next().value as Stuff & Slottable;
     }
+
 
     public canOccupy(candidate: Stuff & Slottable, slot: string): boolean {
       const spec = this.getSlotSpec(slot);
@@ -394,6 +415,7 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
           console.warn('Slotted: onWielded threw — skipped', err);
         }
       }
+      this.fireOccupancyChange();
     }
 
     public vacate(
@@ -429,6 +451,7 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
           console.warn('Slotted: onUnwielded threw — skipped', err);
         }
       }
+      this.fireOccupancyChange();
       return candidate;
     }
 
@@ -613,7 +636,24 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
           console.warn('Slotted: onUnwielded threw — skipped', err);
         }
       }
+      this.fireOccupancyChange();
       return sole;
+    }
+
+    /**
+     * Poke the subscription substrate after an occupancy change. The
+     * substrate matches on `(KIND, 'field', 'occupants')` and re-projects the
+     * host, so the values carried are documentation-only — which is why
+     * they are deliberately unequal rather than a real before/after
+     * count (`fireFieldChange` suppresses an `Object.is` no-op).
+     */
+    private fireOccupancyChange(): void {
+      MqlSubscriptionApi.fireFieldChange(
+        this as unknown as Stuff,
+        'occupants',
+        null,
+        this.slots.size,
+      );
     }
 
     /**

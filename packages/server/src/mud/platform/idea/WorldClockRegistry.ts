@@ -112,7 +112,7 @@ const WorldClockRegistryBase = PostRegistrationMixin(Idea);
 export default class WorldClockRegistry extends WorldClockRegistryBase {
 
   /**
-   * Self-warming boot (the FermentProfileCatalogue shape; no
+   * Self-warming boot (the MaturationProfileCatalogue shape; no
    * `WorldClockApi.boot()` sequencer line): restore the persisted
    * game-time anchor (or seed a zero clock on a fresh DB), start the
    * crash backstop, and register the system schedules. Runs when the

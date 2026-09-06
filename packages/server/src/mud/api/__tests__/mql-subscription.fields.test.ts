@@ -27,6 +27,7 @@ describe('MQL subscription — field-set aliases', () => {
       'bulkMaterial',
       'mass',
       'contents',
+      'worn',
       'exits',
     ]);
   });

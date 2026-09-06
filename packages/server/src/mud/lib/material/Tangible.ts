@@ -44,7 +44,9 @@
 import type { CommandContributions } from '../../api/command';
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import { StuffApi } from '../../api/stuff';
+import { MixinApi } from '../../api/mixin';
 import type Material from './Material';
+import type { Stuff } from '../stuff/Stuff';
 import { Quantity } from '../quantity';
 import { QuantityMarshaller } from '../../platform/idea/persistence/QuantityMarshaller';
 import { EventApi } from '../../api/event';
@@ -316,8 +318,42 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
     }
 
+    /**
+     * Mass in kg — **wet mass** for a wetted object.
+     *
+     * ⭐ A soaked cloak really is heavier, and this is the one place
+     * that can be true for every reader at once: encumbrance sums
+     * `getMass()`, thermal capacity multiplies by it, and the clo
+     * derivation divides by area with it. Mass belongs to `Tangible`,
+     * and *"wet matter weighs more"* is a fact about matter, so it
+     * lives here rather than being re-applied at each consumer.
+     *
+     * ```
+     * wet = dry × (1 + wetness × waterAbsorptionCapacity / 100)
+     * ```
+     *
+     * ⚠⚠ **Organisms are excluded, deliberately.** A body's water is
+     * metabolism's business — it is already modelled as hydration — and
+     * flesh authors a 25% absorption capacity, so without this carve-out
+     * a rained-on character would gain a quarter of their body mass and
+     * move carry capacity, thermal mass, basal drain and the mass-scaled
+     * fist all at once. `WetMixin` models the *surface wetting of an
+     * object*; a creature's mass is its composition's.
+     */
     public getMass(): Quantity<'kg'> {
-      return this._mass;
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isWet(self) || MixinApi.isOrganism(self)) {
+        return this._mass;
+      }
+      const wetness = self.getWetness();
+      if (!(wetness > 0)) return this._mass;
+      const capacity =
+        this.getMaterial()?.getWaterAbsorptionCapacity().rawValue() ?? 0;
+      if (!(capacity > 0)) return this._mass;
+      return Quantity.of(
+        this._mass.rawValue() * (1 + (wetness * capacity) / 100),
+        'kg',
+      );
     }
 
     /**

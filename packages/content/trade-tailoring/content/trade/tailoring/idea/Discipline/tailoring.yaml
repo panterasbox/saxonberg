@@ -1,0 +1,28 @@
+# Tailoring — the discipline of making cloth fit a body.
+#
+# ⭐⭐ What competence buys: **fit precision** — how tightly the `cutTo`
+# stamp matches the body it was measured against. It consumes the fit
+# model on day one, and it is *why* a master tailor beats a novice one
+# rather than merely being faster.
+#
+# ⚠ It buys no cloth. A master gets the same yardage out of the same
+# bolt; what a master gets is a coat that sits, and a seam allowance
+# left where it will be wanted.
+#
+# ⚠ `conferrals` stays empty — competence GRADES, it does not gate.
+class: /platform/idea/Discipline
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: tailoring
+  channel: skill
+  label: Tailoring
+  iscedf: "0723"  # ISCED-F 2013: textiles (clothes, footwear and leather)
+  description: >-
+    Measuring a body, cutting a pattern to it, and sewing the pieces
+    into something that sits. It never makes more cloth than the loom
+    made — what it buys is how nearly the thing fits the person it was
+    cut for, and how much room is left to let it out later.
+  requires: [recipe-knowledge]
+  specializes: []
+  synergizes: [textiles, appraisal]
+  conferrals: []

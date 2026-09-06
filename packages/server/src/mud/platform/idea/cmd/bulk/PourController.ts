@@ -90,8 +90,8 @@ export default class PourController extends CommandController<PourModel> {
     // The rack credit (fermentation W7/D9): drawing off a FINISHED
     // batch is the craft's timing act — credit `fermenting` at the
     // deed (the WaterController shape; no credit for an idle pour).
-    if (result.applied > 0 && MixinApi.isFermenting(source)) {
-      const phase = source.getFermentPhase();
+    if (result.applied > 0 && MixinApi.isMaturing(source)) {
+      const phase = source.getMaturationPhase();
       if (phase === 'finished' || phase === 'turned') {
         try {
           if (MixinApi.isAdvancing(giver))

@@ -1,0 +1,34 @@
+# Woad — the dye, as reference data.
+#
+# ⚠⚠ Indigotin, and a VAT dye: insoluble, reduced in an alkaline oxygen-poor vat to be absorbed at all, then OXIDISED IN THE AIR to blue. It takes NO MORDANT — the single shade below is keyed to the empty mordant, so `shadeFor('alum')` returns null and the verb refuses rather than silently ignoring. ⭐ The chemistry does the refusing; the verb only reports it.
+#
+# ⭐ AUTHORS AUTHOR DYES, NOT COLOURS. A dyed thing stores the
+# application stack and never a colour word; what this row carries is
+# where each `(dyestuff, mordant)` pair lands. Overdyeing is therefore
+# arithmetic rather than a table row, and fading is desaturation.
+#
+# ⚠ `fastness` is the CRAFT's half — how many washes the colour
+# survives. Competence in dyeing adds to it and never to the hue.
+#
+# ⭐⭐ `transmitR/G/B` IS the position — what this (dye, mordant)
+# pair lets through, per channel. Subtractive, so a yellow is a
+# thing that eats blue. The cloth multiplies the stack, which is
+# what makes blue over yellow come out GREEN with no green row
+# anywhere. ⚠ Four independent entries, not one hue under a
+# per-mordant filter: the metal ion is part of the chromophore, so
+# alum-madder and iron-madder are different pigments rather than
+# one pigment darkened.
+class: /trade/dyeing/idea/Dyestuff
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: woad
+  materialPath: /trade/farming/idea/material/woad
+  chemistry: vat
+  shades:
+    - mordant: ""
+      colour: "a deep even blue"
+      fastness: 0.88
+      # transmits R/G/B — subtractive, so this is what SURVIVES the dye.
+      transmitR: 0.12
+      transmitG: 0.4
+      transmitB: 0.75

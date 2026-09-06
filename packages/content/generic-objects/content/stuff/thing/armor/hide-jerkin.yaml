@@ -1,4 +1,4 @@
-class: /platform/thing/equipment/Armor
+class: /platform/thing/equipment/Garment
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a hide jerkin

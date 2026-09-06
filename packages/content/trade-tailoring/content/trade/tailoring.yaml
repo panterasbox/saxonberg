@@ -1,0 +1,9 @@
+# The Tailor's Shop — the tailoring trade's ground.
+#
+# ⚠ At the INDUSTRY ROOT (`lint:instanceable`'s invariant 7), like the
+# other two trades' zones.
+class: /platform/idea/location/CartesianZone
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: The Tailor's Shop
+  cellSize: 3.0

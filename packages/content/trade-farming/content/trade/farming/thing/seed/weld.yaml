@@ -1,0 +1,13 @@
+# A packet of weld seed. The same discrete-Thing shape every shipped seed
+# uses — it names the plant it grows into and carries no variation of
+# its own.
+class: /platform/thing/Seed
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a packet of weld seed
+  primaryKeyword: seed
+  keywords: [seed, seeds, packet, "weld seed", weld, rocket]
+  longDescription: |
+    Far more seed than the packet ought to hold, which is what weld is like. Half of it will come up where you did not put it.
+  growsIntoPath: /trade/farming/thing/plant/weld
+  _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/brassicales/resedaceae/reseda/luteola

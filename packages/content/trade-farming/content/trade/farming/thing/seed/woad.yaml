@@ -1,0 +1,13 @@
+# A packet of woad seed. The same discrete-Thing shape every shipped seed
+# uses — it names the plant it grows into and carries no variation of
+# its own.
+class: /platform/thing/Seed
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a packet of woad seed
+  primaryKeyword: seed
+  keywords: [seed, seeds, packet, "woad seed", woad, pastel]
+  longDescription: |
+    Papery winged seeds like tiny brown blades. SOW THICK AND CUT OFTEN is written on the back in pencil.
+  growsIntoPath: /trade/farming/thing/plant/woad
+  _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/brassicales/brassicaceae/isatis/tinctoria

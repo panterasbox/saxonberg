@@ -191,6 +191,7 @@ behavior. Read the relevant doc before editing in its area.
   - [crafting.md](./docs/subsystems/crafting.md) — craft-resolve, Grade/Tool/Durable/Crafted mixins, Recipe docs, the by-hand manual build, Dave's Bar
   - [retail.md](./docs/subsystems/retail.md) — the general store: PricedOffer, the Stock counter, consignment over chattel, `buy`/`consign`/`reclaim`
   - [corpo.md](./docs/subsystems/corpo.md) — the mark substrate: Corpo/Brand data Ideas, CorpoCatalogue, BrandedMixin resolve-on-read
+  - [textiles.md](./docs/subsystems/textiles.md) — cloth and what it is FOR: purpose is which channel a garment intercepts, the covering ladder + derived `clo`, fit as two numbers and a stamp, the subtractive dye stack + fade, the soiling seam; the three-trade chain
   - [banking.md](./docs/subsystems/banking.md) — two-tier money, the conservation chokepoint, custodial banks, settle/credential, coinage, Terms, quotas
   - [attendant.md](./docs/subsystems/attendant.md) — storefront attention: queue + lease on AttendantMixin, AttendanceEngagement, idle-eviction sweep
   - [employment.md](./docs/subsystems/employment.md) — the Business Idea, positions/roster/shifts/wages/tips, on-shift MakerMixin conferral
@@ -207,7 +208,7 @@ behavior. Read the relevant doc before editing in its area.
   - [ranged.md](./docs/subsystems/ranged.md) — the `close·reach·near·far` band ladder, the arena cap from real room extent, aim×answer placement, the Delivery Profile, `energySource` readiness, splash-as-relationship + its consent gate, `throw`
   - [combat-hooks.md](./docs/subsystems/combat-hooks.md) — wizard-facing combat extension grammar: three `@hook` surfaces, the augment carrier, the influence bridge, species vocabulary
   - [electricity.md](./docs/subsystems/electricity.md) — the shock channel + conduction spread: the Ohm's-law core, the ElectricityApi walk, SustainedShock, FloodedCell
-  - [fermentation.md](./docs/subsystems/fermentation.md) — the durative transform: FermentingMixin on the VESSEL, FermentProfile rows + the boot-warmed roster, the grade/mark/strain transfer seam, cultures + the lees split, the cellar CO₂, the cellars brain, the work boards; zero new verbs
+  - [maturation.md](./docs/subsystems/maturation.md) — the durative transform: MaturingMixin on the VESSEL, MaturationProfile rows + the boot-warmed roster, the grade/mark/strain transfer seam, cultures + the lees split, the cellar CO₂, the cellars brain, the work boards; zero new verbs
   - [fire.md](./docs/subsystems/fire.md) — combustion + high heat: the heat channel, FireApi/Combustible, the ignition balance, phase change, furnaces, Hearthworks
   - [magic.md](./docs/subsystems/magic.md) — effect substrate + casting: Effect-iff-gated-Api, the grid as Disciplines, CasterMixin faculty, suppression, the Practicum
   - [magic-items.md](./docs/subsystems/magic-items.md) — using a thing as a way to act: the EffectContext split (origin/actor/source), Arcane grid footprint, the three item classes + `S* = inflow/d` charge economy denominated in **τ**, `ManaPowered` as ChargedMixin's second consumer (the wall socket), BUC + the `canAfflict` veto, derived appearance + descriptor banks, the fade/defective-copy memory loop, census-gated distribution
@@ -232,7 +233,7 @@ behavior. Read the relevant doc before editing in its area.
   - [git-workflow.md](./docs/subsystems/git-workflow.md) — the in-runtime VCS: GitApi snapshot-and-push, the same-gate security spine, the `git` verb + CMS panel
   - [studio.md](./docs/subsystems/studio.md) — the mixin-aware composition surface: describeClass/blueprints, the `@authorable` schema, the catalogue-first client
   - [perceiver.md](./docs/subsystems/perceiver.md) — PerceiverMixin (look/scry/locate), the Sensor/Visible/Perceiver split, ScryableMixin
-  - [slot.md](./docs/subsystems/slot.md) — Slotted/Slottable substrate, accepts + fitsSlot, capacity, Foldable
+  - [slot.md](./docs/subsystems/slot.md) — Slotted/Slottable substrate, accepts + fitsSlot, capacity, Foldable; **Attired** is the covering half split off Slotted (a rack is slotted and wears nothing) and composes on Creature
   - [embodiment.md](./docs/subsystems/embodiment.md) — Wearable/Wieldable body-side affordances, per-body-plan slotClaims, multi-slot atomicity
   - [posture.md](./docs/subsystems/posture.md) — Postured + Posed + Postures vocabulary, the posture-bearing slot
   - [conveyance.md](./docs/subsystems/conveyance.md) — Mountable/Drivable, the traverse ripple, mount/dismount, haulage (hitch/unhitch)
@@ -870,9 +871,15 @@ spoilage gauge got hung on it to serve four rows that belonged on
 `platform/<branch>/<cluster>/` directory only where 3+ cohesive classes land together
 — today `equipment/`, `modalities/`, `location/`, `species/`, `magic/`,
 `corpo/`, `persistence/`, `sandbox/`, `material/`, plus the pre-existing
-`instrument/`. `material/` is the one cluster that is load-bearing rather
-than cosmetic: `MaterialLogic.boot` keeps a row only when
-`tpl.class.startsWith('/platform/idea/material/')`, so the directory IS the filter. Lowercase content-tree roots under `/stuff/<branch>/` (`gear/`,
+`instrument/`. ⚠ **No cluster is load-bearing — `material/` included.**
+The warm is `MaterialCatalogue.warm()`: it selects candidates by
+**template-path infix** (`/idea/material/`, every root's subtree) and
+keeps a row whose **`class` extends `Material` wherever it lives** —
+*never an allowlist of roots*, which is exactly how a pack's
+`/system/arcana/idea/material/PotionMaterial` qualifies. **The kernel
+directory is NOT the filter**, and there is no `MaterialLogic.boot`.
+
+Lowercase content-tree roots under `/stuff/<branch>/` (`gear/`,
 `exits/`, `material/`, `biome/`) are template namespaces whose backing
 classes live elsewhere — that is fine and pre-existing.
 

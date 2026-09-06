@@ -9,6 +9,15 @@ data:
   sentient: true
   commonNames: ["halfling"]
   _bodyPlanPath: /stuff/idea/species/BodyPlan/biped
+  # ── Size (textiles A4). Overrides the plan's 70 kg / 1.75 m; `0`
+  # would inherit. ⭐ The fiction — *small, fond of a good meal* — FALLS OUT of the
+  # arithmetic rather than being asserted: girth = √(mass/stature)
+  # = 6.02 against the human's 6.32, so this one is near-human girth at 60% of the height, which is exactly what separates a halfling from a gnome.
+  # ⚠ Paid for, deliberately: mass drives carry capacity, basal
+  # drain, thermal mass and the mass-scaled fist alike. Do not
+  # 'balance' the cost away — incomparability is the point.
+  baseMass: 38
+  stature: 1.05
   # Fisticuffs (the bar-fight build): the humanoid innate — a
   # mass-scaled blunt fist, so a disarmed or unarmed person can still
   # brawl and a heavier build hits harder. Rides the same

@@ -90,7 +90,6 @@ function makeViewer(): Stuff {
 function stubSubstrate(recognized: boolean): void {
   // Identity mixin predicates — the target carries them all; never disguised.
   vi.spyOn(MixinApi, 'isOrganism').mockReturnValue(true);
-  vi.spyOn(MixinApi, 'isSexed').mockReturnValue(true);
   vi.spyOn(MixinApi, 'isGendered').mockReturnValue(true);
   vi.spyOn(MixinApi, 'isStatus').mockReturnValue(true);
   vi.spyOn(MixinApi, 'isNamed').mockReturnValue(true);

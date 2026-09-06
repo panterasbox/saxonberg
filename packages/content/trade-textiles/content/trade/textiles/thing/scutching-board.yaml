@@ -1,0 +1,19 @@
+# The scutching board — an upright board and a wooden knife.
+#
+# ⭐ The tool ladder's rung ONE. Rung zero is your hands and anything
+# hard, and it already works: `paceMs` returns the base duration when no
+# instrument resolves, so hands-only work needs no special case. That is
+# what makes prehistoric the bottom of this ladder rather than a
+# different one.
+class: /trade/textiles/thing/ScutchingBoard
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a scutching board
+  primaryKeyword: board
+  keywords: [board, scutching, knife, swingle]
+  longDescription: |
+    An upright board slotted into a foot, worn hollow on one edge, with a flat wooden knife hanging beside it on a string.
+  capabilities:
+    - { kind: scutching, rate: 2 }
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 9

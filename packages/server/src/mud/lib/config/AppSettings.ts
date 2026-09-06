@@ -953,6 +953,10 @@ export const AppSettingKeys = {
    * the seeded literal so a pre-warm / test read is safe. See
    * docs/subsystems/concealment.md.
    */
+  /** Concealment — the requirement for the band BELOW obvious. ⭐
+   * Negative on purpose: a conspicuous thing resolves for a viewer who
+   * would miss an ordinary one. */
+  concealmentLevelConspicuous: "concealment.level.conspicuous",
   concealmentLevelSubtle: "concealment.level.subtle",
   concealmentLevelHidden: "concealment.level.hidden",
   concealmentLevelDeep: "concealment.level.deep",
@@ -1026,6 +1030,10 @@ export const AppSettingKeys = {
    * non-creature object in the room the hider can duck behind, capped).
    * Read with a seeded-literal fallback. */
   stealthHideCoverWeight: "stealth.hide.coverWeight",
+  /** Stealth — how many concealment band-ranks a fully conspicuous (or
+   * fully quiet) worn covering is worth. ⭐ A person in a hi-vis vest
+   * who hides gets a worse FLOOR than a person in grey. */
+  stealthHideCoveringWeight: "stealth.hide.coveringWeight",
   /** Stealth (hide) — score per band of darkness below neutral light (a
    * dark corner hides better). Read with a seeded-literal fallback. */
   stealthHideLightWeight: "stealth.hide.lightWeight",
@@ -1040,6 +1048,10 @@ export const AppSettingKeys = {
    * seeded-literal fallbacks.
    */
   stealthHideBandSubtle: "stealth.hide.band.subtle",
+  /** Stealth — the hide score BELOW which a failed hide bottoms out one
+   * band worse than obvious. ⭐ The floor is no longer flat: a person in
+   * a hi-vis vest who hides is easier to see than one in grey. */
+  stealthHideBandConspicuous: "stealth.hide.band.conspicuous",
   stealthHideBandHidden: "stealth.hide.band.hidden",
   stealthHideBandDeep: "stealth.hide.band.deep",
   stealthHideBandBuried: "stealth.hide.band.buried",
@@ -1385,6 +1397,10 @@ export const AppSettingKeys = {
    * worn ring flattens in days where a stowed wand lasts months.
    * *Calibrate at launch.* */
   magicChargeStandbyWatts: "magic.charge.standbyWatts",
+  /** Magic — the lowest `attentionFactor` any garment can produce.
+   * ⚠ Bounded well above zero on purpose: a hood makes a binding
+   * CHEAPER to hold, never free. Faculty is capacity, never access. */
+  magicAttentionFloor: "magic.attention.floor",
   /** Magic — a focus's pattern rot, per GAME second. Much slower than
    * charge decay: a binding is a state held away from equilibrium and a
    * pattern that does work cannot BE at equilibrium, so it relaxes — but
@@ -1561,6 +1577,63 @@ export const AppSettingKeys = {
    * so investing in treatment moves the threshold rather than the
    * river. */
   waterFouledAt: "water.fouledAt",
+
+  /* ─────────────────────────── textiles ─────────────────────────── */
+  /**
+   * Textiles — the `clo` derivation's three reference constants. ⚠ The
+   * PHYSICS is not dialable and is not here: `R_CLO = 0.155 m²·K/W` is
+   * the unit's definition, and the conductivities of air and water are
+   * facts. What operators may move is the reference BODY these numbers
+   * are stated against.
+   */
+  /** Textiles — reference whole-body surface area (m²) a garment's
+   * covered area is a share of. */
+  textilesCloReferenceSurfaceM2: "textiles.clo.referenceSurfaceM2",
+  /** Textiles — surface share assumed for a garment whose `slotClaims`
+   * resolve to no body plan (a fixture, a stock row). */
+  textilesCloDefaultCoveredFraction: "textiles.clo.defaultCoveredFraction",
+  /** Textiles — the `waterAbsorptionCapacity` (%) at which a soaked
+   * material's loft counts as fully flooded. Wool sits at 33 and linen
+   * at 20, so this is what decides how far apart wet wool and wet linen
+   * end up. */
+  textilesCloAbsorptionReference: "textiles.clo.absorptionReference",
+  /** Textiles — how much of a covered part's insulation an air gap
+   * costs at maximum looseness (`0..1`). The fit consequence. */
+  textilesFitLoosenessCloPenalty: "textiles.fit.loosenessCloPenalty",
+  /** Textiles — the outermost layer's weave density scales a wind
+   * term; this is its weight against the still-air baseline. */
+  textilesWindproofWeight: "textiles.windproofWeight",
+  /** Textiles — extra placement coupling per unit of a worn garment's
+   * tightness. Clothes that bind are a real load. */
+  textilesFitTightnessBurden: "textiles.fit.tightnessBurden",
+  /** Textiles — extra seam wear per unit of tightness, as a multiplier
+   * on the EXISTING per-blow decrement. ⚠ Not a clock: wear stays
+   * act-driven. */
+  textilesFitTightnessWear: "textiles.fit.tightnessWear",
+  /** Textiles — the fit distance above which a garment simply will not
+   * go on. A halfling's coat on a dragonborn fails on a NUMBER. */
+  textilesFitRefuseAbove: "textiles.fit.refuseAbove",
+
+  /*
+   * ⭐⭐ Dressing DIALS. Getting a garment on is an engaged act whose
+   * duration is DERIVED from the thing itself — the `clo` doctrine, not
+   * a `donSeconds` on every row: a linen shirt is seconds because it
+   * weighs nothing and a mail hauberk is minutes because it weighs ten
+   * kilos, and that falls out of what they ARE. These two scale the
+   * whole ladder rather than editing garments one at a time.
+   */
+  equipBaseMs: "equip.baseMs",
+  equipMsPerKg: "equip.msPerKg",
+  /** Textiles — fraction of remaining colour a FULLY UNBOUND dye loses
+   * per wash. Scaled by `1 − fastness`, so a well-mordanted piece keeps
+   * nearly all of it and an un-mordanted one washes straight out. */
+  textilesDyeWashLoss: "textiles.dye.washLoss",
+  /** Textiles — how much the BOND itself weakens per wash. Why even
+   * good work eventually needs redoing. */
+  textilesDyeBondLoss: "textiles.dye.bondLoss",
+  /** Textiles — application strength below which a colour no longer
+   * reads at all, and the thing is undyed again. */
+  textilesDyeLegibleAt: "textiles.dye.legibleAt",
 } as const;
 
 export type AppSettingKey =

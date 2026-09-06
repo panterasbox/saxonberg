@@ -1,0 +1,26 @@
+# Linum usitatissimum — flax, and the first FIBRE plant.
+#
+# ⭐ Its epithet means "most useful", which is not flattery: the seed is
+# oil and the stem is cloth, and it has been both for eight thousand
+# years. What this row grows is the STEM — the crop is a sheaf of straw,
+# not a fruit, and everything a linen shirt is made of is inside it.
+#
+# ⚠ The fibre is BAST — it runs in bundles inside the stem, glued to the
+# woody core by pectin. That is why flax is not simply picked and spun:
+# something has to rot the glue away first, which is what the retting
+# pit is for and why the harvest yields straw rather than fibre.
+class: /platform/idea/species/Species
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  binomial: Linum usitatissimum
+  commonNames: ["flax", "linseed"]
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/sessile
+  _parentCladePath: /stuff/idea/species/plantae
+  _defaultMaterialPath: /stuff/idea/material/tissue/plant-tissue
+  lifecycleStates: ["alive", "dead"]
+  sexDeterminationSystem: monoecious
+  reproductiveMode: sexual
+  lifespanMin: 0
+  lifespanMax: 1
+  circadianBand: aperiodic
+  diet: photosynthesis

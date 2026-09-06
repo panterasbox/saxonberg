@@ -27,6 +27,9 @@ import { PerceptionMixin } from '../../lib/perception/Perception';
 import { NamedMixin } from '../../lib/description/Named';
 import { VisibleMixin } from '../../lib/description/Visible';
 import { TangibleMixin } from '../../lib/material/Tangible';
+import { WearableMixin } from '../../lib/slot/Wearable';
+import { WieldableMixin } from '../../lib/slot/Wieldable';
+import { SlottableMixin } from '../../lib/slot/Slottable';
 import { IdentifiableMixin } from '../../lib/identification/Identifiable';
 import { BeliefStoreMixin, IDENTIFICATION } from '../../lib/belief/BeliefStore';
 import { OrganismMixin } from '../../lib/species/Organism';
@@ -300,5 +303,59 @@ describe('⚠⚠ the spoiler gate DELETES, it does not flag', () => {
     const out = (await CommandApi.resolveAffordances(wand, viewerOf(viewer)))!;
     expect(out.composition).toContain('IdentifiableMixin');
     expect(out.composition).toContain('TangibleMixin');
+  });
+});
+
+/**
+ * ⚠⚠ **A view nobody contributes is a verb nobody can type.**
+ *
+ * `help wear` prints a full entry — `help` reads the CATALOGUE — while
+ * dispatch needs the verb AFFORDED by something in reach. So a shipped
+ * view with no contributor anywhere in the tree is a dead verb that
+ * *documents itself*, and nothing fails: no test, no lint, no boot
+ * warning. The tailoring pack shipped exactly that twice in one build
+ * (`measure figure` behind a `MeasureBook` with no static; the four
+ * equip views behind nothing at all).
+ *
+ * ⭐ These are facts about the FILES, deliberately — the same shape as
+ * `trade-cooking`'s `kitchen-affordances` test. Behaviour can be made to
+ * work with a helper; the claim here is that the wiring exists.
+ */
+describe('⚠⚠ every equip view has something that affords it', () => {
+  const EQUIP_VIEWS = [
+    'platform/cmd/inventory/wear.yaml',
+    'platform/cmd/inventory/remove.yaml',
+    'platform/cmd/inventory/wield.yaml',
+    'platform/cmd/inventory/unwield.yaml',
+    'platform/cmd/inventory/equip.yaml',
+    'platform/cmd/inventory/unequip.yaml',
+  ] as const;
+
+  it('WearableMixin and WieldableMixin between them contribute all six', () => {
+    const contributed = new Set<string>();
+    for (const m of [WearableMixin, WieldableMixin]) {
+      const host = m(
+        SlottableMixin(ContainableMixin(NamedMixin(Idea))) as never,
+      ) as unknown as { commandContributions?: Record<string, string[]> };
+      const c = host.commandContributions ?? {};
+      for (const axis of ['self', 'inventory', 'environment', 'peers']) {
+        for (const v of c[axis] ?? []) contributed.add(v);
+      }
+    }
+    for (const view of EQUIP_VIEWS) {
+      expect(contributed, `nothing affords ${view}`).toContain(view);
+    }
+  });
+
+  it('⭐ the INVENTORY axis carries them — you wear what you are holding', () => {
+    // `WieldableMixin` declared `environment` only while its own
+    // docstring said "a wieldable IN INVENTORY affords `wield`". The
+    // axis and the sentence disagreed, and the sentence was right.
+    const host = WieldableMixin(
+      SlottableMixin(ContainableMixin(NamedMixin(Idea))) as never,
+    ) as unknown as { commandContributions?: Record<string, string[]> };
+    expect(host.commandContributions?.inventory ?? []).toContain(
+      'platform/cmd/inventory/wield.yaml',
+    );
   });
 });

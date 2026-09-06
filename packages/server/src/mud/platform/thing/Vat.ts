@@ -1,6 +1,6 @@
 /**
  * Vat — the fermenting vessel (fermentation P5): the ONE concrete every
- * trade's ferment rows name. `FermentingMixin` over
+ * trade's ferment rows name. `MaturingMixin` over
  * `Crafted + Sealable + Thermal + Bulkable + Detailed + Thing` — a
  * bulk holder that ferments what its interior holds, drifts toward its
  * room's temperature (the cold cellar is a place), keeps or turns by
@@ -25,17 +25,21 @@ import { BulkableMixin } from '../../lib/bulk/Bulkable';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
 import { SealableMixin } from '../../lib/spatial/Sealable';
 import { CraftedMixin } from '../../lib/craft/Crafted';
-import { FermentingMixin } from '../../lib/ferment/Fermenting';
+import { MaturingMixin } from '../../lib/maturation/Maturing';
 import { Quantity } from '../../lib/quantity';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
 import { VesselKindMixin } from '../../lib/bulk/VesselKind';
 
+// Merge of two independent changes: master wrapped the vat in
+// `VesselKindMixin`; this branch renamed `FermentingMixin` to
+// `MaturingMixin` (bleaching is a photochemical maturation, not a
+// ferment — see maturation.md). Both apply.
 const VatBase = VesselKindMixin(
-  FermentingMixin(
-  CraftedMixin(
-    SealableMixin(ThermalMixin(BulkableMixin(DetailedMixin(Thing)))),
-  ),
+  MaturingMixin(
+    CraftedMixin(
+      SealableMixin(ThermalMixin(BulkableMixin(DetailedMixin(Thing)))),
+    ),
   ),
 );
 

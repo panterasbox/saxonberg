@@ -1,0 +1,28 @@
+# Gallnut tannin — a MORDANT.
+#
+# ⭐⭐ THE CELLULOSE ENABLER, and on linen it is not one option of four — it is the workhorse. Cellulose does not hold metal ions; tannin gives the metal something to bind to. It is what makes linen dyeable at all, and it becomes optional the day wool arrives.
+#
+# ⚠ A mordant is not a dye. It carries no colour of its own; it is what
+# a colour BINDS TO, which is why the skill in this trade is
+# front-loaded: you commit to a colour family in the first bath, before
+# you can see anything at all.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: tannin
+  appearance: dark astringent tannin
+  keywords: [tannin, tannin]
+  density: 1750
+  thermalConductivity: 0.3
+  hardness: 2
+  toughness: 1
+  specificHeat: 900
+  electricalConductivity: 1.0e-4
+  waterAbsorptionCapacity: 5
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ['mordant', 'organic', 'once-living', 'tannin']
+  composition: []
+  chemistry: null
+  biologicalSource: null

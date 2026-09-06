@@ -1,5 +1,5 @@
 # The fermenting vat — the winery's working vessel: a 100 L oak vat
-# over the platform Vat concrete (FermentingMixin — it ferments what
+# over the platform Vat concrete (MaturingMixin — it ferments what
 # its interior holds, drifts to the cellar's temperature, keeps or
 # turns by its bung, and carries the batch's band + mark for the
 # transfer seam). `open`/`close` work the bung; `pour` racks.

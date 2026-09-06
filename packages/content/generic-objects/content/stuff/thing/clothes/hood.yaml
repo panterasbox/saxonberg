@@ -14,3 +14,8 @@ data:
   appearsAs: a hooded figure
   masksIdentity: true
   covers: [face]
+  # Coarse wool, as the prose already said.
+  _materialPath: /stuff/idea/material/textile/wool
+  constructionForm: woven
+  gradeBand: fair
+  mass: 0.3

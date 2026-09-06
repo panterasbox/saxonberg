@@ -25,7 +25,7 @@ import { Character } from "../../../../lib/character/Character";
 import Species from "../../species/Species";
 import BodyPlan from "../../species/BodyPlan";
 import Weapon from "../../../thing/equipment/Weapon";
-import Armor from "../../../thing/equipment/Armor";
+import Garment from "../../../thing/equipment/Garment";
 import Material from "../../../../lib/material/Material";
 import { Construction } from "../../../../lib/material/Construction";
 import { ContainerMixin } from "../../../../lib/spatial/Container";
@@ -118,8 +118,8 @@ function armWith(f: TestFighter, condition = 1): Weapon {
   return w;
 }
 
-function armorWith(f: TestFighter, form = "plate"): Armor {
-  const a = makeStuff(() => new Armor());
+function armorWith(f: TestFighter, form = "plate"): Garment {
+  const a = makeStuff(() => new Garment());
   a.setMaterial(steel());
   a.setConstruction(Construction.of(form));
   a.setSlotClaim(planPathOf(f), ["torso"]);

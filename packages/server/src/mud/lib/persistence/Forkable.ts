@@ -34,7 +34,7 @@
  */
 
 import type { Stuff } from '../stuff/Stuff';
-import { Mixins, type MixinConstructor } from '../mixin';
+import type { MixinConstructor } from '../mixin';
 
 const FORK_PREFIX = 'forkSlice_';
 const MERGE_PREFIX = 'mergeSlice_';
@@ -56,7 +56,17 @@ export function ForkableMixin<TBase extends MixinConstructor<Stuff>>(
   Base: TBase
 ) {
   return class ForkableMixin extends Base {
-    static _mixinName = Mixins.Forkable;
+    /*
+     * ⚠⚠ A PLAIN literal, deliberately — never `Mixins.Forkable` and never
+     * an annotation. `Mixins` is `as const`, so both forms pin this static
+     * to a LITERAL type while every other composed class in a chain carries
+     * `_mixinName: string`. That makes the class STATIC SIDE incompatible
+     * (TS2417) for outer mixins and fixtures that declare their own name,
+     * and because `Base` is a type parameter the check is DEFERRED — it
+     * surfaces hundreds of files away as a base class collapsing to
+     * `never`. Cost two sessions on `AttiredMixin`; see slot.md.
+     */
+    static _mixinName = 'ForkableMixin';
 
     /**
      * Read every offered slice off this host, keyed by slice name.

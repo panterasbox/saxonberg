@@ -14,7 +14,7 @@ import { MixinApi } from '../../../../api/mixin';
 import { Creature } from '../../../../lib/creature/Creature';
 import Species from '../../species/Species';
 import BodyPlan from '../../species/BodyPlan';
-import Armor from '../../../thing/equipment/Armor';
+import Garment from '../../../thing/equipment/Garment';
 import Weapon from '../../../thing/equipment/Weapon';
 import Material from '../../../../lib/material/Material';
 import { Construction } from '../../../../lib/material/Construction';
@@ -104,8 +104,8 @@ function bodied(): Creature {
 }
 
 /** Wear a piece of armor of `material` + `form` on the torso of `c`. */
-function wearTorso(c: Creature, material: Material, form: string): Armor {
-  const a = makeStuff(() => new Armor());
+function wearTorso(c: Creature, material: Material, form: string): Garment {
+  const a = makeStuff(() => new Garment());
   a.setMaterial(material);
   a.setConstruction(Construction.of(form));
   a.setSlotClaim(planPathOf(c), ['torso']);
@@ -250,7 +250,7 @@ describe('materials-response — inflict through the covering stack', () => {
     ] as const;
     for (const [form, channel] of cases) {
       const body = bodied();
-      const a = makeStuff(() => new Armor());
+      const a = makeStuff(() => new Garment());
       a.setMaterial(steelMat);
       a.setConstruction(Construction.of(form));
       a.setSlotClaim(planPathOf(body), ['torso']);

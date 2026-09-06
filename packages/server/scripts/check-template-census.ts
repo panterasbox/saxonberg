@@ -204,6 +204,36 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     }
   }
 
+  /*
+   * ⭐ `materialPath` — a reference Idea naming the MATERIAL it is
+   * about. The dyeing trade's `Dyestuff` rows are the first to carry
+   * one, and the census caught it on the same pass: a dyestuff naming a
+   * material that does not exist would make the whole dye act a silent
+   * no-op, because the bath is matched BY that path.
+   */
+  push('materialPath', data.materialPath);
+
+  /*
+   * ⭐ `biologicalSource.speciesPath` — a material that says what it
+   * came FROM. The field shipped for years with every single row
+   * leaving it `null`, so the census had never seen one; the textile
+   * build's fibre and dyestuff rows are the first to populate it, and
+   * the gate caught them on the same pass — including the fact that
+   * the first draft authored a bare path where the field is a
+   * `{ speciesPath, tissueType }` composite.
+   *
+   * ⚠ It matters for the same reason `composition.materialPath` does:
+   * a material naming a species that does not exist is a silent lie
+   * about what the substance IS, and nothing else checks it.
+   */
+  const bio = data.biologicalSource;
+  if (bio && typeof bio === 'object' && !Array.isArray(bio)) {
+    push(
+      'biologicalSource.speciesPath',
+      (bio as Record<string, unknown>).speciesPath,
+    );
+  }
+
   const composition = data.composition;
   if (Array.isArray(composition)) {
     for (const part of composition) {

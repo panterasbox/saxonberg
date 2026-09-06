@@ -1,0 +1,30 @@
+# Madder — the RED, and the slowest thing in any garden.
+#
+# ⚠ Three years to a usable root, modelled honestly as the longest
+# `daysToStage` of any shipped plant. That is not a difficulty knob: it
+# is why madder was a landholder's crop and not a smallholder's, and why
+# a red coat signalled what it signalled.
+class: /platform/thing/Plant
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a bed of madder
+  primaryKeyword: madder
+  keywords: [madder, crop]
+  longDescription: |
+    Sprawling whorled leaves on square prickly stems, flopping over each other. Nothing about the top of it explains why anyone bothers; the answer is a metre down.
+  _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/gentianales/rubiaceae/rubia/tinctorum
+  material: /stuff/idea/material/tissue/plant-tissue
+  lifecycleState: alive
+  seedTemplatePath: /trade/farming/thing/seed/madder
+  harvestTemplatePath: /trade/farming/thing/crop/madder-root
+  # A heavy feeder over three years in one place — the reason madder
+  # beds were rested afterwards.
+  nutrientDraw: 30
+  profile:
+    moistureHappyAt: 0.3
+    moistureWiltAt: 0.06
+    litresPerGameDay: 0.1
+    luxHappyAt: 100
+    luxDarkAt: 12
+    rootDemand: { seedling: 0.3, young: 1.2, established: 2.4, mature: 3.6 }
+    daysToStage: { young: 60, established: 300, mature: 1080 }

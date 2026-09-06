@@ -1,6 +1,6 @@
 /**
  * MaterialCatalogue — the self-warming material roster (the boot()-
- * retirement shape, FermentProfileCatalogue precedent): postRegister
+ * retirement shape, MaturationProfileCatalogue precedent): postRegister
  * stands up every `Material` row and skips the FolderZone folders, and
  * the platform pack's boot manifest is what makes it EAGER (asserted
  * on the pack.yaml — the wiring is the part that silently rots).

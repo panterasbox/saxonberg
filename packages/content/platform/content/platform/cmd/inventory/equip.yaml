@@ -1,0 +1,74 @@
+# ⭐⭐ The ORCHESTRATOR over `wear` and `wield` — the whole kit at once.
+#
+# ⚠ NOT an alias of them, and that was a live decision. An earlier draft
+# collapsed all four verbs into this one; it made `wear sword` legal,
+# because a single arg spanning both mixins cannot refuse either. The
+# four precise verbs keep their own narrow `requires:` — `wear` wants a
+# `WearableMixin`, `wield` a `WieldableMixin` — and `equip` sits on top
+# of them for the thing none of them can do.
+#
+# ⭐ What it does that they cannot is ORDERING. The covering ladder means
+# a light thing will not go on over a heavy one — a fact about the model
+# the engine knows exactly, and which the player used to rediscover one
+# refusal at a time. `equip` puts things on innermost-first so nobody has
+# to work it out.
+#
+# ⭐ It shares `EquipController` with `wear`/`wield`: the gates and the
+# timing are one implementation, and only the GRAMMAR differs.
+verbs: [equip]
+controller: /platform/idea/cmd/inventory/EquipController
+description: "Put your whole kit on, in the right order"
+help: |
+  `equip` on its own puts on everything you are carrying that will go
+  on — innermost first, so the layers land in an order that works. It
+  tells you what went on, and it tells you what it left and why.
+
+  `equip <thing>` does one thing, whether it is worn or held — and
+  `wear` / `wield` are still there when you want to be precise about
+  which.
+
+  ⭐ **Getting dressed takes time.** A shirt is a moment; a mail hauberk
+  is minutes, and the difference is the weight of the thing. Your hands
+  are busy while you do it — your voice is not — and if you are
+  interrupted, whatever went on stays on. You cannot armour up once the
+  fighting has started.
+
+  `equip <thing> --from <container>` reaches into a chest or a wardrobe
+  you can see, so getting dressed at home is one command and not six.
+
+  `equip set <name>` puts on a set you saved; `equip set <name> --save`
+  records what you have on right now; `equip sets` lists them. A set is
+  worth having mostly for the wardrobe — anything it names that you no
+  longer own is simply reported as missed.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresSlotted
+  - /lib/command/validators/requiresEmbodied
+args:
+  # ⚠ NOT required: bare `equip` is the whole-kit form and the main path.
+  - name: target
+    type: object
+    required: false
+    scope: [inventory, reachable]
+    requires: WearableMixin|WieldableMixin
+options:
+  from:
+    type: object
+    scope: [reachable]
+    description: "A chest or wardrobe to take the kit out of first"
+    requires: ContainerMixin
+fallthrough: true
+subcommands:
+  set:
+    description: "Put on a saved set (`--save` to record what you have on)"
+    args:
+      - name: name
+        type: string
+        required: true
+    options:
+      save:
+        type: boolean
+        description: "Save what you are wearing right now under <name>"
+  sets:
+    description: "List your saved sets"

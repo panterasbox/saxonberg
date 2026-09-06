@@ -1,0 +1,16 @@
+# Madder root — three years in the ground, and worth it.
+#
+# The crop is the ROOT, dried and ground to the dyestuff the dye pot
+# consumes. ⚠ Its grade comes off the plant's worst stretch like any
+# other harvest, and for madder that stretch is three years long, which
+# is exactly why red cloth cost what it cost.
+class: /platform/thing/Crop
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a bundle of madder root
+  primaryKeyword: madder
+  keywords: [madder, root, roots, dyestuff]
+  longDescription: |
+    Knotted red-brown roots, scrubbed and snapped short. They stain the hands of anyone who handles them, which is the entire point of them.
+  material: /trade/farming/idea/material/madder
+  mass: 0.8

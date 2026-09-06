@@ -593,6 +593,7 @@ describe("the four inspection bodies", () => {
                 shortDescription: "a subject",
                 exits: [{ direction: "north" }],
                 contents: [{ stuffId: "s2", displayName: "a thing inside" }],
+                worn: [{ stuffId: "s3", displayName: "a plain shirt" }],
                 mass: { value: 2, unit: "kg" },
               },
             ] as never,
@@ -615,6 +616,22 @@ describe("the four inspection bodies", () => {
     const text = body("agent");
     expect(text).not.toMatch(/a thing inside/);
     expect(text).not.toMatch(/north/);
+  });
+
+  it("⭐ an AGENT DOES list what they are wearing — worn is public", () => {
+    // The hole the worn projection fills: contents is suppressed for a
+    // person because it is their pockets, which left the card unable to
+    // show the most public fact about them.
+    const text = body("agent");
+    expect(text).toMatch(/Worn/);
+    expect(text).toMatch(/a plain shirt/);
+  });
+
+  it("a PLACE and a THING carry the worn section too", () => {
+    // A mannequin is a thing and wears things; the section is offered
+    // wherever the field arrives, and renders itself away when absent.
+    expect(body("thing")).toMatch(/a plain shirt/);
+    expect(body("location")).toMatch(/a plain shirt/);
   });
 
   it("⭐ a THING may show contents, and never ways out", () => {

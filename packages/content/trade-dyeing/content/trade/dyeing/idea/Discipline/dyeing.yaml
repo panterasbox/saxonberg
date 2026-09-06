@@ -1,0 +1,31 @@
+# Dyeing — the discipline of putting colour on cloth and making it stay.
+#
+# ⭐⭐ What competence buys: **fastness and repeatability** — how many
+# washes the colour survives, and whether you can match last month's
+# lot. Never a brighter hue: the hue comes from the dyestuff and the
+# mordant, and no amount of skill makes madder redder.
+#
+# ⭐ That repeatability is mechanically visible rather than asserted: two
+# bolts merge only if their dye application stacks match exactly, so a
+# master's stock consolidates into clean bolts and a novice's fragments
+# into a dozen almost-matching piles. Competence in the inventory, with
+# no gauge and no number.
+#
+# ⭐ And this is why dyeing earns its own row rather than riding
+# `apothecary`: extraction is apothecary's business, but **fastness is
+# nobody else's**.
+class: /platform/idea/Discipline
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: dyeing
+  channel: skill
+  label: Dyeing
+  iscedf: "0711"  # ISCED-F 2013: chemical engineering and processes
+  description: >-
+    Mordanting, dyeing and keeping a vat. It never changes what colour a
+    dyestuff is — what it buys is whether the colour is still there
+    after four washes, and whether the next batch matches this one.
+  requires: [recipe-knowledge]
+  specializes: []
+  synergizes: [apothecary, appraisal]
+  conferrals: []

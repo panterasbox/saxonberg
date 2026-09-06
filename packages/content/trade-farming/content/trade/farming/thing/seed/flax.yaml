@@ -1,0 +1,13 @@
+# A packet of flax seed. The same discrete-Thing shape every shipped seed
+# uses — it names the plant it grows into and carries no variation of
+# its own.
+class: /platform/thing/Seed
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a packet of flax seed
+  primaryKeyword: seed
+  keywords: [seed, seeds, packet, "flax seed", flax, linseed]
+  longDescription: |
+    Tiny hard brown seeds, slippery between the fingers and shining like they have been oiled — because they have.
+  growsIntoPath: /trade/farming/thing/plant/flax
+  _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/malpighiales/linaceae/linum/usitatissimum

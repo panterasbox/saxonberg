@@ -1,0 +1,20 @@
+# The Mill Floor — the textile trade's ground.
+#
+# ⚠ The zone sits at the INDUSTRY ROOT (`/trade/textiles`) rather than at
+# `/trade/textiles/location`: a class row must be at
+# `<root>/<branch>/<leaf>` (`lint:instanceable`'s invariant 7), so a row
+# AT the branch directory is illegal — and the industry root is where a
+# zone covering the whole trade belongs anyway. `trade-farming` records
+# the same fix, and the lint caught this one within a minute of it being
+# written.
+#
+# ⚠⚠ And `coords:` on the floor is not decoration: `setCoords` is the
+# ONLY path by which an authored row joins a zone, so a cartesian room
+# with no coords is in NO GRID and inherits nothing — no address, no
+# Locality, no atmosphere override. Every trade floor in the repo was in
+# that state once.
+class: /platform/idea/location/CartesianZone
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: textiles-mill
+  cellSize: 4.0

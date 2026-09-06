@@ -12,7 +12,9 @@ class: /platform/idea/material/Material
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: jute
-  appearance: coarse woven hessian
+  # ⚠ A material must not assert a CONSTRUCTION; hessian is jute WOVEN
+  # open, which is the garment's form, not the fibre's nature.
+  appearance: coarse tan jute
   keywords: [jute, hessian, burlap, sacking]
   density: 1450
   thermalConductivity: 0.06
@@ -30,7 +32,7 @@ data:
   edibility: false
   nutrients: []
   toxicity: []
-  tags: ["textile", "fibre", "organic", "plant", "once-living"]
+  tags: ["textile", "fibre", "organic", "plant", "cellulose", "once-living"]
   composition: []
   chemistry: null
   biologicalSource: null

@@ -1,0 +1,36 @@
+# The tailor's counter — an AttendancePoint, `discipline: appointment`.
+#
+# ⭐ **`measure` is FREE**, and everything else is off the wage ladder:
+# a tailor on 6/hr, an unskilled day at 24 minor. Measuring free is the
+# loss-leader that fills the book and brings people back — real retail
+# behaviour, and it is what makes the book worth anything.
+#
+# ⚠ The prices derive from labour rather than being picked. A spinner on
+# 3/hr earns 24 a day, so a stock coat is ~8 days of her own labour and
+# a bespoke one is a month; the tailor clears it in half that. Clothing
+# is a serious purchase for the person who makes the yarn — stratified,
+# but not absurd. ⚠⚠ **The numbers move together or not at all**:
+# pulling one without the others breaks the wage/price consistency that
+# makes them teach anything.
+class: /platform/thing/AttendancePoint
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: "the tailor's counter"
+  primaryKeyword: counter
+  keywords: [counter, desk, tailor]
+  longDescription: |
+    A narrow counter with a tape measure hanging off the end of it and the book strapped shut beside the till. The price card is written small, which is its own kind of statement.
+  discipline: appointment
+  attendDurationMs: 12000
+  businessPath: /trade/tailoring/idea/tailor-shop
+  serverPositionKeys: [tailor]
+  skin:
+    poke: "Vasca sets down the shears. 'Now then — let's have your measure.'"
+  prices:
+    measure: 0
+    alteration: 20
+    shirt: 50
+    trousers: 60
+    coat: 200
+    bespoke-shirt: 120
+    bespoke-coat: 500

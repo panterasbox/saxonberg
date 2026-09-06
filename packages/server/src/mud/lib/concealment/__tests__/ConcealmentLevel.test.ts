@@ -6,8 +6,11 @@ import {
 import type { ConcealmentLevel } from '../ConcealmentLevel';
 
 describe('ConcealmentLevel vocabulary', () => {
-  it('is the five ordered bands, obvious first', () => {
+  it('is the six ordered bands, conspicuous first', () => {
     expect(CONCEALMENT_LEVELS).toEqual([
+      // ⭐ The scale extends BELOW obvious: a hi-vis thing is not merely
+      // un-hidden, it is harder to miss than an ordinary one.
+      'conspicuous',
       'obvious',
       'subtle',
       'hidden',
@@ -25,17 +28,22 @@ describe('ConcealmentLevel vocabulary', () => {
     expect(ConcealmentLevels.isLevel(undefined)).toBe(false);
   });
 
-  it('isConcealed is true for every band except obvious', () => {
+  it('isConcealed is true for every band ABOVE obvious', () => {
+    // ⚠ It used to read `level !== 'obvious'`, which was equivalent
+    // while obvious was the floor and is wrong now: a CONSPICUOUS thing
+    // is the opposite of concealed, not a kind of it.
     expect(ConcealmentLevels.isConcealed('obvious')).toBe(false);
-    for (const level of CONCEALMENT_LEVELS.filter((l) => l !== 'obvious')) {
+    expect(ConcealmentLevels.isConcealed('conspicuous')).toBe(false);
+    for (const level of ['subtle', 'hidden', 'deep', 'buried'] as const) {
       expect(ConcealmentLevels.isConcealed(level)).toBe(true);
     }
   });
 
-  it('rankOf is the monotone ordinal (0 = obvious … 4 = buried)', () => {
-    expect(ConcealmentLevels.rankOf('obvious')).toBe(0);
-    expect(ConcealmentLevels.rankOf('subtle')).toBe(1);
-    expect(ConcealmentLevels.rankOf('buried')).toBe(4);
+  it('rankOf is the monotone ordinal (0 = conspicuous … 5 = buried)', () => {
+    expect(ConcealmentLevels.rankOf('conspicuous')).toBe(0);
+    expect(ConcealmentLevels.rankOf('obvious')).toBe(1);
+    expect(ConcealmentLevels.rankOf('subtle')).toBe(2);
+    expect(ConcealmentLevels.rankOf('buried')).toBe(5);
   });
 });
 

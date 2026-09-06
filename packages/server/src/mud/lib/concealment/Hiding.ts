@@ -99,9 +99,22 @@ export function HidingMixin<TBase extends MixinConstructor<Concealable>>(
 
     public degradeHide(bands: number): void {
       if (!this.hiding || bands <= 0) return;
+      /*
+       * ⚠ The floor is `obvious`, NAMED — it used to be the literal
+       * `0`, which was the same thing only while `obvious` was the
+       * bottom of the scale. Extending the vocabulary downward with
+       * `conspicuous` silently moved that `0` one band, and the effect
+       * was a walking hider staying "hidden" at `obvious`, which is
+       * incoherent: a hide that has degraded to obvious is not a hide.
+       *
+       * And `conspicuous` is not a thing walking can DO to you — you
+       * get there by what you are wearing. So the floor is the band,
+       * not the index.
+       */
+      const floor = ConcealmentLevels.rankOf('obvious');
       const rank = ConcealmentLevels.rankOf(this.hiddenLevel);
-      const newRank = Math.max(0, rank - Math.floor(bands));
-      if (newRank <= 0) {
+      const newRank = Math.max(floor, rank - Math.floor(bands));
+      if (newRank <= floor) {
         this.breakHide();
         return;
       }

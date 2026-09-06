@@ -1,7 +1,7 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import {
   Construction,
-  ARMOR_FORMS,
+  COVERING_FORMS,
   WEAPON_DELIVERY_FORMS,
   CONSTRUCTION_FORMS,
 } from '../Construction';
@@ -16,25 +16,25 @@ describe('Construction', () => {
     expect(() => Construction.of('')).toThrow(RangeError);
   });
 
-  it('isForm / isArmorForm / isDeliveryForm narrow correctly', () => {
+  it('isForm / isCoveringForm / isDeliveryForm narrow correctly', () => {
     expect(Construction.isForm('plate')).toBe(true);
     expect(Construction.isForm('bladed')).toBe(true);
     expect(Construction.isForm('nonsense')).toBe(false);
-    expect(Construction.isArmorForm('plate')).toBe(true);
-    expect(Construction.isArmorForm('bladed')).toBe(false);
+    expect(Construction.isCoveringForm('plate')).toBe(true);
+    expect(Construction.isCoveringForm('bladed')).toBe(false);
     expect(Construction.isDeliveryForm('bladed')).toBe(true);
     expect(Construction.isDeliveryForm('plate')).toBe(false);
   });
 
   it('classifies domain', () => {
-    expect(Construction.of('plate').getDomain()).toBe('armor');
-    expect(Construction.of('plate').isArmor()).toBe(true);
+    expect(Construction.of('plate').getDomain()).toBe('covering');
+    expect(Construction.of('plate').isCovering()).toBe(true);
     expect(Construction.of('bladed').getDomain()).toBe('weapon-delivery');
     expect(Construction.of('bladed').isWeapon()).toBe(true);
   });
 
-  it('armor grid is complete — every ArmorForm × MechanicalChannel resolves', () => {
-    for (const form of ARMOR_FORMS) {
+  it('covering grid is complete — every kernel CoveringForm × MechanicalChannel resolves', () => {
+    for (const form of COVERING_FORMS) {
       const c = Construction.of(form);
       for (const ch of MECHANICAL_CHANNELS) {
         expect(typeof c.responseFor(ch)).toBe('string');
@@ -160,5 +160,112 @@ describe('Construction', () => {
     expect(
       Construction.deliveryProfileHasEffect(['none', 'primary', 'none']),
     ).toBe(true);
+  });
+});
+
+/**
+ * The second source — the textile half of the covering vocabulary.
+ *
+ * ⚠ Four constraints hold at once and each has its own test here:
+ * `getLayerDepth()` stays TOTAL across both sources (three hot paths
+ * call it unconditionally); `Construction.ts` stays import-pure;
+ * a pack adds a form with no kernel edit; and content NEVER authors a
+ * resist profile.
+ */
+describe('Construction — the fabric registry (the second covering source)', () => {
+  beforeEach(() => Construction.clearFabrics());
+  afterEach(() => Construction.clearFabrics());
+
+  const woven = {
+    key: 'woven',
+    layerBand: 0,
+    loft: 0.1,
+    weaveDensity: 0.75,
+    drape: 0.6,
+  };
+
+  it('a registered fabric joins the vocabulary with no kernel edit', () => {
+    expect(Construction.isForm('woven')).toBe(false);
+    Construction.registerFabric(woven);
+    expect(Construction.isForm('woven')).toBe(true);
+    expect(Construction.isCoveringForm('woven')).toBe(true);
+    expect(Construction.isFabricForm('woven')).toBe(true);
+    expect(Construction.of('woven').getDomain()).toBe('covering');
+    expect(Construction.of('woven').isCovering()).toBe(true);
+    expect(Construction.of('woven').isWeapon()).toBe(false);
+  });
+
+  it('⭐ responseFor on a fabric is POOR everywhere, and is not authored', () => {
+    // "A linen shirt is armor that does not work" — as one line of
+    // kernel data. Adding `lace` changes nothing about combat.
+    Construction.registerFabric(woven);
+    Construction.registerFabric({ ...woven, key: 'lace', weaveDensity: 0.1 });
+    for (const key of ['woven', 'lace']) {
+      const c = Construction.of(key);
+      for (const ch of MECHANICAL_CHANNELS) {
+        expect(c.responseFor(ch)).toBe('poor');
+      }
+      // Still honestly mechanical: shock resolves by circuit, not here.
+      expect(() => c.responseFor('shock')).toThrow(RangeError);
+      // `poor` is not inert — a shirt attenuates a little.
+      expect(c.doesNothing()).toBe(false);
+    }
+  });
+
+  it('⚠ the depth ladder stays TOTAL over kernel ∪ registered forms', () => {
+    Construction.registerFabric(woven);
+    Construction.registerFabric({ ...woven, key: 'felted', layerBand: 1 });
+    const depths = new Map<string, number>();
+    for (const form of [...COVERING_FORMS, 'woven', 'felted']) {
+      // Unconditional — this is exactly how the three hot paths call it.
+      depths.set(form, Construction.of(form).getLayerDepth());
+    }
+    expect(depths.get('padded')).toBe(0);
+    expect(depths.get('quilted')).toBe(1);
+    expect(depths.get('hide')).toBe(2);
+    expect(depths.get('mail')).toBe(3);
+    expect(depths.get('plate')).toBe(4);
+    expect(depths.get('woven')).toBe(0);
+    expect(depths.get('felted')).toBe(1);
+    for (const d of depths.values()) expect(Number.isInteger(d)).toBe(true);
+  });
+
+  it('an out-of-range or malformed row is refused AT REGISTRATION', () => {
+    // The totality guard has to fire at hydration, loudly — not at the
+    // moment somebody swings.
+    expect(() => Construction.registerFabric({ ...woven, layerBand: 5 })).toThrow(
+      RangeError,
+    );
+    expect(() => Construction.registerFabric({ ...woven, layerBand: -1 })).toThrow(
+      RangeError,
+    );
+    expect(() =>
+      Construction.registerFabric({ ...woven, layerBand: 1.5 }),
+    ).toThrow(RangeError);
+    expect(() => Construction.registerFabric({ ...woven, loft: 2 })).toThrow(
+      RangeError,
+    );
+    expect(() => Construction.registerFabric({ ...woven, key: 'Woven' })).toThrow(
+      RangeError,
+    );
+    // And a fabric may never shadow a kernel form.
+    expect(() => Construction.registerFabric({ ...woven, key: 'plate' })).toThrow(
+      RangeError,
+    );
+  });
+
+  it('survives clear + re-register (the HMR / go-live re-warm)', () => {
+    Construction.registerFabric(woven);
+    expect(Construction.fabricKeys()).toEqual(['woven']);
+    Construction.clearFabrics();
+    expect(Construction.isForm('woven')).toBe(false);
+    Construction.registerFabric(woven);
+    expect(Construction.of('woven').getFabric()?.weaveDensity).toBe(0.75);
+  });
+
+  it('every kernel covering form still has a real effect', () => {
+    for (const form of COVERING_FORMS) {
+      expect(Construction.of(form).doesNothing()).toBe(false);
+    }
   });
 });

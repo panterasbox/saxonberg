@@ -1,0 +1,34 @@
+# Woad leaf — the blue, and ⚠⚠ a VAT dye rather than a mordant one.
+#
+# Indigotin does not dissolve. It is chemically REDUCED in an alkaline,
+# oxygen-poor vat to be absorbed at all, then OXIDISED in the air
+# afterwards — which is why a piece comes out of the vat yellow-green
+# and walks up through jade to a deep even blue as you watch.
+#
+# ⚠ It takes NO MORDANT. A mordant applied before a woad vat is wasted
+# alum, and the trade refuses it rather than silently ignoring it —
+# because the point is that dyeing is TWO chemistries, not one.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: woad
+  appearance: bruised blue-green woad
+  keywords: [woad, indigotin, pastel]
+  density: 600
+  thermalConductivity: 0.09
+  hardness: 1
+  toughness: 1
+  specificHeat: 1400
+  electricalConductivity: 1.0e-9
+  waterAbsorptionCapacity: 55
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["dyestuff", "vat-dye", "plant", "organic", "once-living"]
+  composition: []
+  chemistry: null
+  # ⚠ A COMPOSITE, not a bare path: `{speciesPath, tissueType}`. Every
+  # shipped material left this null, so these are the first rows to
+  # populate it — and the census caught the bare-path shape the moment
+  # they did, which is the gate doing exactly its job.
+  biologicalSource: { speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/brassicales/brassicaceae/isatis/tinctoria, tissueType: leaf }

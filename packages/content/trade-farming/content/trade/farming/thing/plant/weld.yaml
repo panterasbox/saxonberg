@@ -1,0 +1,28 @@
+# Weld — the cheap yellow, and a weed that pays.
+#
+# ⭐ The counterweight to madder in the same garden: fastest of the three
+# to a harvest, lightest feeder, and the reason yellow cloth was
+# ordinary. Two crops in one plot teach the price of red without anyone
+# writing a price down.
+class: /platform/thing/Plant
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a stand of weld
+  primaryKeyword: weld
+  keywords: [weld, rocket, crop]
+  longDescription: |
+    A tall thin spike of tight green flowers on a stem that reaches past the beds either side of it. It has the look of something that got in rather than something that was put in.
+  _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/brassicales/resedaceae/reseda/luteola
+  material: /stuff/idea/material/tissue/plant-tissue
+  lifecycleState: alive
+  seedTemplatePath: /trade/farming/thing/seed/weld
+  harvestTemplatePath: /trade/farming/thing/crop/weld-bundle
+  nutrientDraw: 6
+  profile:
+    moistureHappyAt: 0.25
+    moistureWiltAt: 0.05
+    litresPerGameDay: 0.08
+    luxHappyAt: 110
+    luxDarkAt: 12
+    rootDemand: { seedling: 0.15, young: 0.6, established: 1.2, mature: 1.8 }
+    daysToStage: { young: 10, established: 35, mature: 70 }

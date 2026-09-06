@@ -25,6 +25,14 @@ import { callSecPlugin } from "./src/services/loader/vite-plugin";
 export const GYM_TESTS = [
   "scripts/__tests__/combat-gym.test.ts",
   "scripts/__tests__/waster-spar.test.ts",
+  // ⚠ Not a fight bench, and it belongs here anyway. The other two
+  // drive SYNTHETIC body plans with explicit `baseMass`, so they are
+  // blind to a shipped-species change by construction; this one is the
+  // run that would actually catch one. It reads the shipped rows
+  // through the real encumbrance / thermal / natural-attack readers and
+  // snapshots the table, which is what makes "any movement is recorded"
+  // a committed artifact rather than a promise.
+  "scripts/__tests__/species-mass.bench.test.ts",
 ];
 
 /**

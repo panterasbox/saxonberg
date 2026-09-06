@@ -1,0 +1,45 @@
+# The mill's bale store — where the flax comes in.
+#
+# ⭐⭐ **A SECOND Stock, and the second one is the point.** The mill's
+# other Stock (`mill-stock`) is its OUTPUT: the weaver's `consigns` beat
+# drains it to the general store's counter. If the incoming bales stood
+# there too, the cart would carry raw fibre to a shop and sell it as
+# cloth — so the input has its own shelf, which nothing consigns from.
+# In goes flax, out goes linen, and the two are different pieces of
+# furniture.
+#
+# ⚠ `stockLines` + `par` is the faucet, and it is the general store's
+# own shape: the reset sweep tops each line back to par. Not the census
+# spawn table — that wants a `Circulating` class and scatters a good
+# across regions by material tag, which is how a branded bottle finds
+# its way into shops and is not how you keep two bales in one shed.
+#
+# ⚠⚠ **This is the abstraction, stated plainly**: the carts coming down
+# from the flax fields. It is legitimate under the abstraction law only
+# while it costs nobody the activity — a player who grows flax still
+# rets and works their own — and the honest next step is the mill BUYING
+# sheaves off the market (a `restocks`-shaped trip) so a real grower's
+# crop displaces the faucet. Until somebody is farming flax for sale,
+# the alternative is not a purer economy; it is a mill that stands idle
+# and a chain nobody can buy into. The metal chain put it best: supply
+# must not be a function of concurrency.
+class: /platform/thing/Stock
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: "the mill's bale store"
+  # ⚠ `bales`, not `stock` — the output shelf already answers to `stock`,
+  # and a hand told to `get bale from stock` must not find the shelf it
+  # is meant to be filling.
+  primaryKeyword: bales
+  keywords: [bales, bale-store, store, flax, delivery]
+  longDescription: "Bales of retted flax stacked against the river end of the shed, still smelling of the pond they came out of. The cord bindings are somebody else's knots."
+  discipline: scrum
+  attendDurationMs: 0
+  staffingPolicy: self-service
+  serverPositionKeys: []
+  businessPath: /trade/textiles/idea/mill
+  # Two bales standing — a working day's worth, not a warehouse.
+  stockLines:
+    - { itemTemplatePath: /trade/textiles/thing/flax-bale, par: 2 }
+  # Nothing is SOLD here; the mill works it.
+  prices: {}

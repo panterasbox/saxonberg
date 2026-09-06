@@ -8,3 +8,8 @@ data:
     particular about you — which is rather the point of starting over.
   slotClaims:
     "/stuff/idea/species/BodyPlan/biped": [torso]
+  # Plain linen, soft from washing — the shirt against the skin, which is what linen has always been.
+  _materialPath: /stuff/idea/material/textile/linen
+  constructionForm: woven
+  gradeBand: fair
+  mass: 0.25

@@ -343,9 +343,50 @@ used to be a single list copied verbatim onto two rows:
 | platform `boil` | the FURNACE — you cannot boil without a heat source | `FurnaceMixin` (oven, kiln, forge) |
 | smithing `hammer`, `quench`, `forge` + platform `repair`, `salvage` | the ANVIL | `/trade/smithing/thing/Anvil` |
 | platform `repair`, `salvage` | mending capital | `/platform/thing/MendingTool` (sewing kit, sewing machine) |
+| tailoring `cut` | the SHEARS — and the bench is the same class, faster | `/trade/tailoring/thing/CuttingTool` (shears, cutting table) |
+| tailoring `sew`, `alter` + platform `repair`, `salvage` | the NEEDLE | `/trade/tailoring/thing/SewingTool` (needle-case) |
 | smithing `sharpen` | the STONE, **carried only** | `/trade/smithing/thing/Whetstone` |
 | platform `water` | the CAN, **carried only** | `/platform/thing/WateringCan` |
 | `striking` · `strainer` · `juicer` · `tap` · `bar-spoon` · `still` | — | bare kinds: recipe-side requirements, no verbs |
+
+⚠⚠ **Tailoring was the one trade that broke this rule, and it broke it
+for a whole build.** `cut`, `sew` and `alter` were all declared on
+`CuttingTable` — a room fixture. `cut` at least happens *on* a table;
+`sew` does not happen on furniture at all, and the split ran wrong in
+both directions: a player holding a sewing kit in a field was offered no
+`sew`, and a player standing at the shipped sewing MACHINE — the rate-3
+tool this table's last row exists to demonstrate — was offered none
+either. The kit carried the capability, the table carried the
+affordance, and neither carried both. Fixed by applying the rule above
+rather than by inventing anything: two instrument classes, and both
+rungs as rows over each.
+
+⭐ **A `SewingTool` extends `MendingTool`**, so a needle-case mends as
+well as sews. ⚠ It must **restate** `repair`/`salvage`: `bucketFilenames`
+unions a class's own contributions with every *mixin* in its chain, but
+a base **class** is not a mixin and `getContributions` is a plain
+property read — so a subclass's static shadows its base's outright.
+**Mixins union; base classes shadow.**
+
+### ⚠⚠ The tool ladder ranks on RATE, and used to rank on luck
+
+Every trade here is the same shape: **rung zero is portable and bad,
+rung one is fixed and good** — spindle/wheel, hand-loom/broad-loom,
+household-vat/dye-vat, sewing-kit/sewing-machine, shears/cutting-table.
+
+`ManualBuildController.findCapability` scanned held kit first and
+returned the **first** match, so **carrying your cheap tool made you
+worse off than leaving it at home**: walk into a workshop with a spindle
+in your pack and you spun at the spindle's rate beside an idle wheel.
+Nothing reported it and nothing could have — a slower step is not an
+error, it completes and produces the right goods, and the only symptom
+is a number nobody sees. It now picks the best rate, held-first on ties,
+so no equal-rung arrangement moves.
+
+⚠ Ranked on **rate only**. `control` is a separate axis a step may read
+for quality — `cut` charges a unit of cloth for a `coarse` instrument,
+which is what makes a bench worth walking to — and folding the two into
+one score would silently trade somebody's cloth for their time.
 
 **Carried vs reachable is the bucket, not a second word.** A class
 declaring both `environment` and `peers` is reachable (carried or on the
@@ -482,6 +523,31 @@ the present on-shift maker.
   the glass, because a syrup bottle and a juice bottle are
   `CraftVessel`s too. Bussing is `get <glass>` / `put <glass> in rack` —
   shipped verbs.
+  ### ⭐ `wash <garment>` — the same verb, a third branch (textiles)
+
+  `wash`'s target already required `CraftedMixin`, and a `Garment`
+  composes it — so the laundry branch needed **no arg change and no new
+  verb**. Each wash strips colour in proportion to `1 − fastness`, so an
+  un-mordanted piece comes out of the first tub pale and a well-mordanted
+  one survives many washes.
+
+  ⭐ **This is where the dyer's craft is measured.** Hue comes from the
+  dyestuff; *durability comes from the craft*, which is why competence
+  in dyeing buys fastness and repeatability and never a brighter colour.
+
+  ⚠⚠ **Three concepts share the word, and they are not folded together.**
+  The soil mark (`Serviceable`) is *is this claimable for a fill* and the
+  pathogen load (`Contaminable`) is *is it dirty* — both binary by
+  necessity. What laundering does to a garment is *how much colour is
+  still bound*, which is continuous. So the routing reads all three:
+  a `Dyed` target that is **neither** serviceware nor a contamination
+  carrier is a garment and takes `launderGarment`; anything else takes
+  the wash flow above, which folds `launder()` in so **a dyed apron
+  still fades when it is washed for the soil**. ⚠ Water stays a
+  **precondition, never a consumable** on both branches, which is also
+  why there is no laundry vocation: the care loop is not an errand per
+  wash.
+
 - **`cure`/`salt`**, **`dry`/`hang`**, **`smoke`** (trade-cooking) — the
   **preserving acts**, one `PreserveController` base and three six-line
   subclasses that name only a recipe id and their prose. Each recipe
@@ -1101,6 +1167,35 @@ serviceware. The cutlery was borrowing a vocabulary that was never about
 it. `utensilKind` on `CutleryMixin` is the one that is, and `eat` now
 narrows on `isCutlery` + `isServiceable`.
 
+
+## ⭐ The textile chain — three trades over one substrate
+
+`trade-textiles` · `trade-dyeing` · `trade-tailoring` ship as
+capability packs and add **eight verbs and no more**:
+
+| pack | verbs (category) | Discipline | what competence buys |
+|---|---|---|---|
+| textiles | `scutch` `spin` `weave` (`textiles`) | `/trade/textiles/idea/Discipline/textiles` | **how fine you can go before it breaks** |
+| dyeing | `mordant` `dye` (`dyeing`) | `/trade/dyeing/idea/Discipline/dyeing` | **fastness and repeatability**, never a hue |
+| tailoring | `cut` `sew` `alter` (`tailoring`) | `/trade/tailoring/idea/Discipline/tailoring` | **fit precision** |
+
+⭐ Two more affordances ship as **stanzas on views that already exist** —
+`measure figure` on the platform's `measure` (the `measure strike`
+precedent) and the saved-set stanza on the dressing view — so a whole
+wardrobe and the tailor's fitting cost **zero verbs**.
+
+⭐⭐ **Preparation and finishing ship with zero verbs at all.** Retting
+is a real slow bacterial ferment, so `MaturingMixin` runs it
+unchanged; the bleaching green is that shape applied to weather. What
+you do is judge the moment — and the pit has four days' grace before
+`turnedMaterial` (vinegar's mechanism, verbatim) makes the fibre
+worthless.
+
+⚠ Every one of these competence answers keeps the trade rule: **it never
+buys yield.** Overreaching on `spin` does not make worse yarn, it makes
+**less** yarn; a poor mordant does not make a duller colour, it makes
+one that washes out. Full detail in
+[textiles.md](./textiles.md).
 
 ## Deferred (non-goals)
 

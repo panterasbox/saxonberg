@@ -11,6 +11,25 @@ behavior/brain system, the parcel property gate — and the unified
 [accountability.md](./accountability.md) ledger so ambush and traps derive
 `crime` the same way combat does.
 
+
+## ⭐ What you are WEARING is in the hide score
+
+`hideLevelForImpl` gains one term — `− actor.concealmentOffset()`,
+weighted by `stealth.hide.coveringWeight` — so a dark close weave helps
+you hide and a bright open one hurts, through the score rather than a
+special case.
+
+And the **floor is no longer flat**. A failed hide used to bottom out at
+`obvious` however loudly the actor was dressed; below
+`stealth.hide.band.conspicuous` it now bottoms out at the new
+`conspicuous` band. ⭐ **A person in a hi-vis vest who hides gets a worse
+floor than a person in grey** — which is the one place the extended
+scale is load-bearing, since `perceives` saturates below `obvious` on
+the target side. See [concealment.md](./concealment.md).
+
+⚠ The offset is **absolute, not terrain-matched** — terrain-matched
+camouflage is the search slate's.
+
 ## `hide` — a Character-level actor state, level derived on the engine
 
 **`HidingMixin`** (`lib/concealment/Hiding.ts`, `Mixins.Hiding`) is composed

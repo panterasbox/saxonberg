@@ -90,12 +90,12 @@ this bar.* The quality ladder is already the gate.
 # Part 1 — ⭐⭐⭐ The one genuinely missing mechanic: a durative transform
 
 > ✅ **OVERTAKEN — the fermentation build shipped this (2026-09-01,
-> MR !215):** `FermentingMixin` (lib/ferment/) is the durative
+> MR !215):** `MaturingMixin` (lib/maturation/) is the durative
 > transform — its own mixin, not a mode on Growing; profile-driven
-> (`FermentProfile` rows), temperature+time, reconcile-on-read, no
+> (`MaturationProfile` rows), temperature+time, reconcile-on-read, no
 > far-past guard; overshoot IS where the stakes live (an open finished
 > batch turns to vinegar over `turnDays`). Part 6's kernel bill and the
-> grade seam landed with it. See docs/subsystems/fermentation.md.
+> grade seam landed with it. See docs/subsystems/maturation.md.
 
 **Crafting is instantaneous** — inputs in, output out, one act. Fermentation
 and aging happen **over game-time, under conditions.**

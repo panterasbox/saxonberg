@@ -48,6 +48,32 @@ data:
       destination: /world/terminus/goods-yards/yard
       media: [ground]
       edgeMinutes: 3
+    # ⚠ The textile chain sited SOUTHEAST and SOUTHWEST, not south/east:
+    # the logistics build took those two for the Delight road and the
+    # estuary, and a road out of the city beats a trade floor for the
+    # cardinal. The siting ARGUMENT is unchanged and is the point —
+    # retting wants standing water and stank badly enough to be banned
+    # upstream of towns, a bleaching green wants open ground and sun, and
+    # a dyeing yard (urine was the classic woad vat) wants water and room
+    # to hang cloth. ⚠⚠ **The textile chain IS the nuisance-trade
+    # chain** — retting ponds, dyehouses, and the tannery that is Stage
+    # C's and stank worst — so it belongs downwind and downstream of the
+    # market, which is exactly where these two corners are. That is a
+    # coherent industrial identity rather than three coincidences, and it
+    # is what makes siting a real decision.
+    #
+    # ⭐ They carry `media`/`edgeMinutes` like every other edge here: a
+    # trade floor the lane graph cannot see is a floor no hauler can be
+    # routed to, and the whole point of the logistics build is that goods
+    # move because somebody carried them.
+    southeast:
+      destination: /trade/textiles/location/mill
+      media: [ground]
+      edgeMinutes: 5
+    southwest:
+      destination: /trade/dyeing/location/dyehouse
+      media: [ground]
+      edgeMinutes: 5
   props:
     - /world/terminus/wharfside/thing/city-intake
     - /world/terminus/wharfside/thing/city-outfall

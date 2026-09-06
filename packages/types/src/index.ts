@@ -1547,6 +1547,21 @@ export interface StuffDetailRecord extends StuffRefRecord {
   mass?: { value: number; unit: 'kg' };
   contents?: StuffRefRecord[];
   /**
+   * What the subject is **wearing** — the body half against `contents`'
+   * pack half, and a partition of the same set rather than a second copy
+   * of it: a worn garment is filtered OUT of `contents` and appears
+   * here instead.
+   *
+   * Outermost-first. Per-viewer filtered exactly as `contents` is (no
+   * self, `Visible` only, perceivable only). Omitted entirely for hosts
+   * that expose no slots.
+   *
+   * ⚠ Worn is **public** in a way carried is not — it is what anyone
+   * looking at you can see — which is why the card renders it for an
+   * `agent`, where contents is deliberately suppressed.
+   */
+  worn?: StuffRefRecord[];
+  /**
    * Obvious exits for Exitable hosts — what `look` would surface as
    * "Obvious exits: ...". Omitted entirely for non-Exitable hosts.
    * Each entry carries the direction string (`'south'`, `'up'`); the
@@ -3580,6 +3595,55 @@ export interface ClientStateUpdateMessage {
   type: 'client-state-update';
   payload: { key: string; value: unknown };
 }
+
+/**
+ * ⭐⭐ The colour words a dyed thing can be named by — the SHARED half
+ * of the dye colour model.
+ *
+ * The server folds a dye stack subtractively into a continuous colour
+ * and names it by its nearest neighbour here (`lib/perception/Colour.ts`);
+ * the client maps each word onto one of the theme's eight tints
+ * (`MmlRenderer`'s `COLOR_ALIASES`). The **positions** stay server-side,
+ * because where madder-with-alum lands is physics and not wire.
+ *
+ * ⚠⚠ It lives here because the two sides must not drift. An unlisted
+ * token falls through to `neutral` **silently** in the renderer, so a
+ * word added on the server and forgotten on the client would render a
+ * whole textile economy grey with nothing to say so. Both ends assert
+ * against this array, which is what turns that into a failing test
+ * instead of a shrug.
+ */
+export const DYE_COLOR_TAGS = [
+  'white',
+  'cream',
+  'oatmeal',
+  'fawn',
+  'grey',
+  'black',
+  'pale blue',
+  'sage',
+  'straw',
+  'dusty rose',
+  'slate',
+  'brown',
+  'russet',
+  'red',
+  'maroon',
+  'pink',
+  'orange',
+  'gold',
+  'yellow',
+  'olive',
+  'green',
+  'teal',
+  'blue',
+  'indigo',
+  'purple',
+  'violet',
+] as const;
+
+/** One of the {@link DYE_COLOR_TAGS}. */
+export type DyeColorTag = (typeof DYE_COLOR_TAGS)[number];
 
 // ============================================================================
 // Style overlay (message-rendering Wave 1)

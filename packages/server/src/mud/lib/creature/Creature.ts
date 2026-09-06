@@ -39,7 +39,6 @@ import { Agent } from '../stuff/Agent';
 import { PropertiedMixin } from '../stuff/Propertied';
 import { NamedMixin } from '../description/Named';
 import { OrganismMixin } from '../species/Organism';
-import { SexedMixin } from '../character/Sexed';
 import { SlottedMixin } from '../slot/Slotted';
 import { BodyPlanSlotsMixin } from '../slot/BodyPlanSlots';
 import { PosedMixin } from '../character/Posed';
@@ -56,6 +55,7 @@ import { RespirationMixin } from '../respiration/Respiration';
 import { DisguisableMixin } from '../disguise/Disguisable';
 import { ConcealableMixin } from '../concealment/Concealable';
 import { SlottableMixin } from '../slot/Slottable';
+import { AttiredMixin } from '../slot/Attired';
 import { ChattelMixin } from '../chattel/Chattel';
 import { BrandedMixin } from '../corpo/Branded';
 import { PostmortemMixin } from '../mortality/Postmortem';
@@ -157,14 +157,17 @@ const CreatureBase = ChattelMixin(
                         // always Slottable via Avatar's composition", which
                         // was never true. Found by driving the world.
                         SlottableMixin(
+                        // ⭐ The only composer of Attired: a body is the
+                        // only thing that wears anything. See Attired.ts.
+                        AttiredMixin(
                         BodyPlanSlotsMixin(
                           SlottedMixin(
-                            SexedMixin(
                               OrganismMixin(
                                 NamedMixin(PropertiedMixin(Agent))
                               )
                             )
                           )
+                        )
                         )
                         )
                       )
@@ -177,7 +180,6 @@ const CreatureBase = ChattelMixin(
         )
       )
     )
-  )
   )
   )
   )
@@ -313,7 +315,7 @@ export class Creature extends CreatureBase {
   /**
    * Mass override that lazy-seeds the body-grounded default. When the
    * instance authored no mass of its own (still `0`), resolve
-   * `species → bodyPlan → baseMass` and adopt it; an explicitly-authored
+   * `species → baseMass` (own, else the plan's) and adopt it; an explicitly-authored
    * mass is the deviation that wins (the guard short-circuits and this is
    * a plain `super.getMass()`).
    *
@@ -333,7 +335,7 @@ export class Creature extends CreatureBase {
   }
 
   /**
-   * Resolve the body-plan `baseMass` and adopt it as this body's mass,
+   * Resolve the species' `baseMass` and adopt it as this body's mass,
    * returning the seeded quantity (or `null` when there is no plan /
    * `baseMass` is absent or `0`). Does **not** read `getMass()` — the
    * zero-guard lives in {@link getMass}, so this stays recursion-free and

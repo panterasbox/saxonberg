@@ -23,6 +23,22 @@ settings:
   - key: stealth.hide.stillnessBonus
     value: "1"
 
+  # The hide score BELOW which a failed hide bottoms out one band WORSE
+  # than obvious. ⭐ The floor is no longer flat: a person in a hi-vis
+  # vest who tries to hide is easier to see than one in grey, not merely
+  # equally visible.
+  - key: stealth.hide.band.conspicuous
+    value: "-1"
+
+  # How many concealment band-ranks a fully conspicuous (or fully quiet)
+  # worn covering is worth in the hide score. ⭐ Derived from the
+  # garment's own colour and weave — a pack authoring a new dye gets
+  # concealment behaviour for free, and nobody writes `isCamouflage`.
+  # ⚠ ABSOLUTE, not terrain-matched: real camouflage is a relationship
+  # to a background and belongs to the search slate.
+  - key: stealth.hide.coveringWeight
+    value: "1.5"
+
   - key: stealth.hide.band.subtle
     value: "0"
 

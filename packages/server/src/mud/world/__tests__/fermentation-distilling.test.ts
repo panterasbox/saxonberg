@@ -16,7 +16,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parse } from 'yaml';
 import Vat from '../../platform/thing/Vat';
-import FermentProfile from '../../platform/idea/ferment/FermentProfile';
+import MaturationProfile from '../../platform/idea/maturation/MaturationProfile';
 import Material from '../../lib/material/Material';
 import { Recipe } from '../../lib/craft/Recipe';
 import { CombustibleMixin } from '../../lib/fire/Combustible';
@@ -80,7 +80,7 @@ describe('the wash (real rows)', () => {
   it("ferments the still-house's rough wort, foreshot character authored and inert", () => {
     const profileData = rowData(
       DISTILLING,
-      'content/trade/distilling/idea/ferment/wash.yaml',
+      'content/trade/distilling/idea/maturation/wash.yaml',
     );
     expect(String(profileData.foreshotCharacter).length).toBeGreaterThan(0);
 
@@ -104,23 +104,23 @@ describe('the wash (real rows)', () => {
       return m;
     }, '/trade/distilling/idea/material/wash');
     makeStuffAtPath(() => {
-      const p = new FermentProfile();
+      const p = new MaturationProfile();
       for (const [k, v] of Object.entries(profileData)) {
         const setter = `set${k[0]!.toUpperCase()}${k.slice(1)}`;
         const fn = (p as unknown as Record<string, unknown>)[setter];
         if (typeof fn === 'function') (fn as (x: unknown) => void).call(p, v);
       }
       return p;
-    }, `${root}/ferment/wash`);
+    }, `${root}/maturation/wash`);
 
     const vat = makeStuff(() => new Vat());
     vat.lastAmbientK = 289;
     vat.stampedTemperatureK = 289;
     vat.setBulkMaterial('interior', wort);
     vat.setBulkAmount('interior', Quantity.of(60, 'L'));
-    vat.getFermentPhase();
+    vat.getMaturationPhase();
     setNow(5 * DAY); // 0.3/day → finished
-    expect(vat.getFermentPhase()).toBe('finished');
+    expect(vat.getMaturationPhase()).toBe('finished');
     expect(vat.getBulkMaterialPath('interior')).toBe(
       '/trade/distilling/idea/material/wash',
     );

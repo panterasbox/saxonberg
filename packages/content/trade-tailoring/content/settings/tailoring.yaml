@@ -1,0 +1,19 @@
+# trade-tailoring — the acts' durations.
+#
+# ⚠ Dials rather than constants, for the same reason the textile trade's
+# are: the price ladder is DERIVED from labour time, so a duration that
+# only exists in code cannot be checked against the price it implies.
+settings:
+  # ⭐ Cutting is the skilled minute and sewing is the long hour, which
+  # is why "cloth is the expensive part, sewing the cheap half" is true
+  # of the CLOTH and not of the time. A pattern takes judgement; a seam
+  # takes patience.
+  - key: tailoring.cut.baseMs
+    value: "2400000"
+  - key: tailoring.sew.baseMs
+    value: "5400000"
+  # ⭐ An alteration is under an hour and takes no cloth, which is what
+  # makes it a 20-minor service against a 200-minor coat — and what
+  # makes tailoring a recurring business rather than a one-time sale.
+  - key: tailoring.alter.baseMs
+    value: "1500000"

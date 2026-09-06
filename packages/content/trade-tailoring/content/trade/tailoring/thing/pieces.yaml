@@ -1,0 +1,12 @@
+# A bundle of cut pieces.
+class: /trade/tailoring/thing/CutPieces
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a bundle of cut pieces
+  primaryKeyword: pieces
+  keywords: [pieces, pattern, cut, panels]
+  longDescription: |
+    Panels of cloth with chalk lines still on them, stacked in the order they go together and pinned at the corners. Whoever cut them knew whose body they were for.
+  _materialPath: /stuff/idea/material/textile/linen
+  mass: 1
+  gradeBand: fair

@@ -56,7 +56,29 @@ export function WieldableMixin<
     static commandContributions: CommandContributions = {
       self: [],
       peers: [],
-      environment: ['platform/cmd/inventory/wield.yaml', 'platform/cmd/inventory/unwield.yaml'],
+      // ⭐ `equip`/`unequip` are the orchestrators over BOTH kinds, so
+      // either an item you can hold or one you can put on affords them.
+      // Contributions from different mixins UNION (base classes shadow;
+      // mixins do not), so naming them here and on `WearableMixin` is
+      // additive rather than a conflict.
+      // ⚠⚠ `inventory`, and this line is the bug that hid for a release:
+      // the docstring above says "a wieldable IN INVENTORY affords
+      // `wield`" and the code declared `environment` only — so the verb
+      // vanished the moment you picked the thing up, which is precisely
+      // when you want it. `wield <weapon>` answered "I don't understand
+      // 'wield'" to a player holding the weapon.
+      inventory: [
+        'platform/cmd/inventory/wield.yaml',
+        'platform/cmd/inventory/unwield.yaml',
+        'platform/cmd/inventory/equip.yaml',
+        'platform/cmd/inventory/unequip.yaml',
+      ],
+      environment: [
+        'platform/cmd/inventory/wield.yaml',
+        'platform/cmd/inventory/unwield.yaml',
+        'platform/cmd/inventory/equip.yaml',
+        'platform/cmd/inventory/unequip.yaml',
+      ],
     };
 
     public slotClaims: Record<string, string[]> = {};

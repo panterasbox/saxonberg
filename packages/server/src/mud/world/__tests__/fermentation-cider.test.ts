@@ -12,7 +12,7 @@
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Vat from '../../platform/thing/Vat';
-import FermentProfile from '../../platform/idea/ferment/FermentProfile';
+import MaturationProfile from '../../platform/idea/maturation/MaturationProfile';
 import Material from '../../lib/material/Material';
 import { WorldClockApi } from '../../api/worldclock';
 import { Quantity } from '../../lib/quantity';
@@ -60,7 +60,7 @@ describe('cider from rows alone (the second-drink test)', () => {
       return m;
     }, '/test/cider/idea/material/cider-vinegar');
     makeStuffAtPath(() => {
-      const p = new FermentProfile();
+      const p = new MaturationProfile();
       p.setKey('cider');
       p.setInputCategory('apple-must');
       p.setStallBelowK(281);
@@ -71,7 +71,7 @@ describe('cider from rows alone (the second-drink test)', () => {
       p.setTurnedMaterial('/test/cider/idea/material/cider-vinegar');
       p.setTurnDays(3);
       return p;
-    }, '/test/cider/idea/ferment/cider');
+    }, '/test/cider/idea/maturation/cider');
 
     // ── the world does the rest ──
     const vat = makeStuff(() => new Vat());
@@ -80,13 +80,13 @@ describe('cider from rows alone (the second-drink test)', () => {
     vat.setBulkMaterial('interior', must);
     vat.setBulkAmount('interior', Quantity.of(30, 'L'));
 
-    expect(vat.getFermentPhase()).toBe('active'); // matched by tag
-    expect(vat.getFermentProfileKey()).toBe('cider');
+    expect(vat.getMaturationPhase()).toBe('active'); // matched by tag
+    expect(vat.getMaturationProfileKey()).toBe('cider');
     now = BASE + 4 * DAY;
     expect(vat.getFractionConverted()).toBeCloseTo(0.6, 9);
     expect(vat.getAbvPercent()).toBeCloseTo((130 * 0.6) / 17, 9);
     now = BASE + 8 * DAY;
-    expect(vat.getFermentPhase()).toBe('finished');
+    expect(vat.getMaturationPhase()).toBe('finished');
     expect(vat.getBulkMaterialPath('interior')).toBe(
       '/test/cider/idea/material/cider',
     );
@@ -96,7 +96,7 @@ describe('cider from rows alone (the second-drink test)', () => {
     // And D3 still teaches: opened and forgotten, it is vinegar.
     vat.open();
     now = BASE + 12 * DAY;
-    expect(vat.getFermentPhase()).toBe('turned');
+    expect(vat.getMaturationPhase()).toBe('turned');
     expect(vat.getBulkMaterialPath('interior')).toBe(
       '/test/cider/idea/material/cider-vinegar',
     );

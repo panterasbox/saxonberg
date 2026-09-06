@@ -9,3 +9,8 @@ data:
     forgets to eat.
   slotClaims:
     "/stuff/idea/species/BodyPlan/biped": [torso]
+  # Knit, not woven: the loops are why it is soft and why it lets the wind straight through.
+  _materialPath: /stuff/idea/material/textile/wool
+  constructionForm: knit
+  gradeBand: fair
+  mass: 0.7

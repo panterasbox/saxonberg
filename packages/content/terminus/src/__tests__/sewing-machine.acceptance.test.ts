@@ -27,7 +27,7 @@ import { PersistenceManager } from "@saxonberg/server/mud/lib/persistence/__test
 import { Quantity } from "@saxonberg/server/mud/lib/quantity";
 import Material from "@saxonberg/server/mud/lib/material/Material";
 import Thing from "@saxonberg/server/mud/lib/stuff/Thing";
-import Armor from "@saxonberg/server/mud/platform/thing/equipment/Armor";
+import Garment from "@saxonberg/server/mud/platform/thing/equipment/Garment";
 import MendingTool from "@saxonberg/server/mud/platform/thing/MendingTool";
 import PersistentHydrator from "@saxonberg/server/mud/platform/idea/persistence/PersistentHydrator";
 import RecipeCatalogue from "@saxonberg/server/mud/platform/idea/RecipeCatalogue";
@@ -143,7 +143,7 @@ describe("the sewing machine (a MendingTool row)", () => {
     hide.setMass(Quantity.of(2, "kg"));
     ContainmentApi.move(hide, room);
 
-    const jerkin = makeStuff(() => new Armor());
+    const jerkin = makeStuff(() => new Garment());
     jerkin.setMaterial(
       StuffApi.findByTemplatePath<Material>(LEATHER) as unknown as Material,
     );

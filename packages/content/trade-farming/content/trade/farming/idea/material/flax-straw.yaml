@@ -1,0 +1,38 @@
+# Flax straw — the harvest, and NOT yet a fibre.
+#
+# ⚠ This is the whole reason the chain has a preparation stage. The
+# fibre is BAST: it runs in bundles inside the stem, glued to the woody
+# core by pectin. Straw is those bundles still stuck in the stem, and
+# nothing will spin it.
+#
+# `retting` is the tag the pit matches on — the material says what can be
+# done to it, and the pit's ferment profile finds it by that tag rather
+# than by naming this row. ⭐ Which is what lets wool's scouring and
+# cotton's ginning arrive later as their own profiles over their own
+# materials, with the textile trade unchanged.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: flax straw
+  appearance: stiff pale flax straw
+  keywords: [straw, flax-straw, stems, haulm]
+  density: 400
+  thermalConductivity: 0.05
+  hardness: 4
+  toughness: 2
+  specificHeat: 1360
+  electricalConductivity: 1.0e-11
+  # Very thirsty, which is exactly what makes retting work: the pit soaks
+  # it and the water does the rest.
+  waterAbsorptionCapacity: 60
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["plant", "organic", "once-living", "fibre-stock", "retting"]
+  composition: []
+  chemistry: null
+  # ⚠ A COMPOSITE, not a bare path: `{speciesPath, tissueType}`. Every
+  # shipped material left this null, so these are the first rows to
+  # populate it — and the census caught the bare-path shape the moment
+  # they did, which is the gate doing exactly its job.
+  biologicalSource: { speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/malpighiales/linaceae/linum/usitatissimum, tissueType: stem }

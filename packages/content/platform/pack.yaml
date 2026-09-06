@@ -53,7 +53,7 @@ boot:
   - { template: /compact/executive, role: producer, reason: "appoint, the publish path and every organization-held title resolve it by templatePath" }
   - { template: /platform/idea/PressBoard, role: producer, reason: the news-ticker window warms from the release documents at postRegister, dependsOn: [/compact/press, /compact/executive] }
   - { template: /platform/idea/DisciplineCatalogue, role: sync-read, reason: the advancement Catalog's descriptor cache }
-  - { template: /platform/idea/FermentProfileCatalogue, role: sync-read, reason: "stands the ferment-profile roster up for the vat reconcile's sync match (the reference-Ideas-inert-at-boot rule, self-warming — no Api.boot)" }
+  - { template: /platform/idea/MaturationProfileCatalogue, role: sync-read, reason: "stands the maturation-profile roster up for the vat reconcile's sync match (the reference-Ideas-inert-at-boot rule, self-warming — no Api.boot)" }
   - { template: /platform/idea/CorpoCatalogue, role: sync-read, reason: the corpo/brand descriptor caches CorpoApi reads }
   - { template: /platform/idea/GovernmentCatalogue, role: sync-read, reason: the diegetic-government roster GovernmentApi reads }
   - { template: /platform/idea/SpellCatalogue, role: sync-read, reason: the authored spell roster MagicApi reads; validates every effect at postRegister }
@@ -70,6 +70,7 @@ boot:
   - { template: /platform/idea/AddressRegistry, role: producer, reason: warms the Locality roster and the address coverage trie at postRegister }
   - { template: /platform/idea/EventSubscriptions, role: sync-read, reason: the live listener registry the EventApi bus dispatches through, dependsOn: [/platform/idea/EventRegistry] }
   - { template: /platform/idea/MaterialCatalogue, role: sync-read, reason: "stands the authored material roster up for the sync resolve-on-read seams (getMaterial / bulk slots / autoignition; self-warming — no Api.boot)" }
+  - { template: /platform/idea/FabricCatalogue, role: sync-read, reason: "registers the textile construction forms into Construction's second source; a garment row authoring `constructionForm: woven` THROWS at hydration if the roster is cold, so this must precede any locality's props: clone (self-warming — no Api.boot)" }
   - { template: /platform/idea/ConditionCatalogue, role: sync-read, reason: "stands the authored condition roster up for the sync resolve-on-read seams (toxin behavior / signs / progression; after materials — signs can name tissue materials)", dependsOn: [/platform/idea/MaterialCatalogue] }
   - { template: /platform/idea/WorldClockRegistry, role: sync-read, reason: "game-time anchor and the schedule registry; postRegister restores the persisted anchor and arms the backstop + system schedules (self-warming — no Api.boot)", dependsOn: [/platform/idea/EventSubscriptions] }
   - { template: /platform/idea/RenownStandings, role: producer, reason: "warms the renown aggregate cache and arms the reaction+reception taps + recompute schedule at postRegister (self-warming — no Api.boot)", dependsOn: [/platform/idea/EventSubscriptions, /platform/idea/WorldClockRegistry] }

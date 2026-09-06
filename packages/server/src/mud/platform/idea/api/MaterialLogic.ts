@@ -359,7 +359,7 @@ function attenuateImpl(
 ): AttenuationResult {
   const e = Math.max(0, energy);
   // A non-armor (weapon) construction attenuates nothing — energy passes.
-  if (!construction.isArmor()) {
+  if (!construction.isCovering()) {
     return { residualEnergy: e, channel };
   }
   // The thermal channel (heat) folds through the covering stack by
@@ -443,7 +443,7 @@ function previewBandImpl(
   condition?: number,
 ): OutcomeBand {
   const refEnergy = dial(AppSettingKeys.responsePreviewReferenceEnergy, 2);
-  if (construction.isArmor()) {
+  if (construction.isCovering()) {
     const { residualEnergy } = attenuateImpl(
       channel,
       refEnergy,

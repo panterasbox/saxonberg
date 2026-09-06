@@ -29,7 +29,9 @@ describe('Creature — the body layer', () => {
     expect(MixinApi.isOrganism(creature)).toBe(true);
     expect(MixinApi.isContainer(creature)).toBe(true);
     expect(MixinApi.isNamed(creature)).toBe(true);
-    expect(MixinApi.hasMixin(creature, Mixins.Sexed)).toBe(true);
+    // ⚠ `Sexed` retired — sex is a facet of Organism now (the mixin
+    // was merged to reclaim a slot in CreatureBase's inference budget).
+    expect(MixinApi.hasMixin(creature, Mixins.Organism)).toBe(true);
     expect(MixinApi.hasMixin(creature, Mixins.Slotted)).toBe(true);
     expect(MixinApi.hasMixin(creature, Mixins.Posed)).toBe(true);
   });

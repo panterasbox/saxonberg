@@ -11,6 +11,7 @@ boundary fixture system (post-retrofit `Adornable`).
 | Name | Location | Role |
 |---|---|---|
 | `Slotted` | `lib/slot/Slotted.ts` | Host mixin — exposes slots that things can occupy |
+| `Attired` | `lib/slot/Attired.ts` | Host mixin — the **covering** half, split off `Slotted` 2026-09-06. Composed only on `Creature`: a body is the only thing that wears anything |
 | `Slottable` | `lib/slot/Slottable.ts` | Marker mixin — anything that can sit in a slot. Carries `fitsSlot(host, slot)` with a default `() => true`; Wearable/Wieldable override |
 | `SlotSpec` | `lib/slot/Slotted.ts` | Per-slot declaration (name, accepts, capacity, postures, userFacingDetail, `bodyPart`, `covers`). `bodyPart`/`covers` are optional `body.*` references to anatomy (Vitals) — a slot is its own axis that *references* anatomy where it has a home; see [vitals.md](./vitals.md) |
 | `UNBOUNDED_CAPACITY` | `lib/slot/Slotted.ts` | Sentinel = `Number.MAX_SAFE_INTEGER`; JSON/BSON-safe substitute for `Infinity` |
@@ -21,6 +22,38 @@ boundary fixture system (post-retrofit `Adornable`).
 `Slotted` composes on `Stuff` (no `Container` prereq). Composing
 `Slottable` doesn't constrain a host — it just marks a Stuff as
 slot-occupant-eligible.
+
+## ⭐ `Slotted` vs `Attired` — occupancy vs covering
+
+They were one mixin until 2026-09-06. **A slot is not a garment.** Nine
+of ten `Slotted` composers are not bodies: a chair, a coat rack, a
+garden bed, a door, a saddle and a wall sconce all have named occupancy
+positions and none of them wears anything.
+
+- **`Slotted` = occupancy.** `getSlotNames` / `getSlotSpec` /
+  `occupy` / `vacate` / `getOccupants` / `canOccupy`. Composed widely.
+- **`Attired` = covering.** `wornStack`, `coveringAt`, `outermostAt`,
+  `insulationAt`, `bodyInsulation`, `windproofing`,
+  `concealmentOffset`, `attentionFactor`, `wouldLayerViolate` — plus
+  the `worn` subscribable field and the dressed-impression line.
+  Composed on **`Creature`** and nowhere else, which is why barding
+  works and why a `Corpse` is still dressed.
+
+`Attired` requires `Slotted` beneath it (the covering reads walk the
+occupants), so `MixinApi.isAttired` narrows to
+`Stuff & Slotted & Attired`. **Narrow on `isAttired`, not `isSlotted`,
+before any covering read** — before the split those calls compiled
+against a coat rack and answered zero at runtime; now they do not
+compile at all.
+
+⚠⚠ **A mixin's `static _mixinName` must WIDEN to `string`** — write
+`static _mixinName = 'FooMixin';` and nothing else. Annotating it, or
+initialising from the `as const` `Mixins` table, pins it to a literal
+type, makes the class static side incompatible with the rest of the
+chain, and — because `Base` is a type parameter, so the check is
+deferred — reports as several hundred errors in unrelated files with
+`AvatarBase` collapsed to `never`. This cost two sessions; see
+[the slate](../slates/builds/slotted-split-slate.md).
 
 ## Slot universe — three patterns
 
@@ -123,8 +156,17 @@ the `Chair`/`sit` posture-slot side this gates.
 
 `SlotSpec.capacity` defaults to 1. Authored values:
 
-- `1` (default) — chairs, mount slots, worn-clothing slots.
-- `> 1` — benches (4), queen bed (2).
+- `1` (default) — chairs, mount slots.
+- `> 1` — benches (4), queen bed (2), and ⚠ **every covering slot**
+  (`capacity: 4` on the biped's and quadruped's `head` / `torso` /
+  `legs` / `feet` / `hands`). Worn-clothing slots used to take the
+  default, which meant **layering was impossible**: one torso garment,
+  full stop, so the shipped gambeson and hauberk could never be worn
+  together and the covering stack had nothing to walk. Four is a real
+  historical stack — shirt, gambeson, mail, surcoat — and it is a cap
+  rather than unbounded because "wear forty shirts" would otherwise be
+  free insulation. The ladder decides the ORDER; this decides the
+  DEPTH.
 - `UNBOUNDED_CAPACITY` (= `Number.MAX_SAFE_INTEGER`) — floor's
   `ground:1`. **Don't use `Infinity`** — it doesn't round-trip
   through JSON/BSON. The sentinel constant is JSON-safe and
@@ -132,6 +174,54 @@ the `Chair`/`sit` posture-slot side this gates.
 
 `isSlotFull(slot)` returns `count >= capacity`. `isSlotOccupied`
 returns `count > 0`.
+
+## ⭐ The wardrobe — `equip set`, and zero verbs of its own
+
+`WardrobeMixin` (`lib/slot/Wardrobe.ts`, composed by `Avatar`) holds
+named outfits as `wardrobes: Record<string, string[]>` — a set name to
+an ordered **keyword** list, innermost-first.
+
+**Why a mixin field**, stated because each alternative is wrong for a
+different reason: not a Mongo collection (forbidden, and it rides the
+Avatar's existing `holder_snapshots` capture for free); not a
+`Property` (a prop is for a slot whose *key* is computed at runtime,
+and this field is narrowed on and Hydrator-reflected); not an
+`EnvironmentMixin` setting (fixed keyspace — wardrobes are whatever the
+player calls them). It is byte-identical in shape to
+`Wearable.slotClaims`, and it is the persistent-fields doctrine's named
+**variable-key** escape hatch — the exact contrast to the fit stamp's
+three fixed scalars.
+
+⭐ **Keywords, not instance refs.** A saved set survives buying a
+replacement shirt (the new one answers to the same word), a keyword
+resolving to nothing is **skipped with a readable line** rather than
+dangling, and there is no lifetime relationship to maintain.
+
+**Replay** dresses in the saved order, which is wear order, which is
+innermost-first — so a saved set never trips the covering ladder's
+refusal. ⚠ **Failures are per-item and non-fatal**: a dressing mistake
+has to be survivable and readable, and that starts here.
+
+### ⚠ It is a STANZA, not a verb
+
+`equip set <name>` (with `--save`) and `equip sets` are `subcommands:`
+on `cmd/inventory/equip.yaml`, alongside its existing `args:` — the
+`measure strike` precedent, second instance. `fallthrough: true` is what
+keeps bare `equip <item>` working once the verb has subcommands: an
+unrecognised first token binds against `args:` instead of erroring.
+
+⚠ It shipped as `wear set` and **moved to `equip` on the same branch**,
+when the orchestrator landed. The stanza is unchanged; it simply rides
+the verb that owns getting your whole kit on. See
+[equip-slate.md](../slates/builds/equip-slate.md).
+
+⚠ **The requirement said *"`dress` is not taken"* and that premise was
+stale.** `medical/treat.yaml` has shipped `verbs: [treat, bind, dress]`
+since the medic build, where it means *dressing a wound*. So "unclaimed"
+was already false and the constraint as written is unsatisfiable. What
+it protects is checkable and is what the source-shape test asserts:
+**the wardrobe adds no verb**, so `dress` still resolves to exactly one
+view and that view is medical's.
 
 ## Mutation surface
 
@@ -174,7 +264,7 @@ returns `count > 0`.
 > Before the TPA reform **nothing in the game could put anything into a
 > non-body slot by any verb.**
 
-`wear`/`wield` are body slots, `plant`/`repot` are the plant slot,
+`equip`/`wear`/`wield` are body slots, `plant`/`repot` the plant slot,
 `mount` is conveyance, and the whole `device` category (`arm · disarm ·
 douse · fold · ignite · pump · switch · unfold`) drives no slot at all.
 So a battery bay, a lamp's oil reservoir and a mill's replaceable stone
@@ -271,11 +361,11 @@ go through Slotted/Slottable when you need the verbose form."
 
 ## Wear / wield / mount failure notes
 
-The slot-claiming verbs (`wear`, `wield`, `mount`) emit a
+The slot-claiming verbs (`equip`/`wear`/`wield`, and `mount`) emit a
 `slot-occupied { host: StuffRef, slot: string, occupant?: StuffRef }`
 note onto the dispatch context when the required slot is already
-taken. `host` identifies who owns the slot — the actor for `wear` /
-`wield`, the mount target for `mount`. `slot` is the canonical
+taken. `host` identifies who owns the slot — the actor for the dressing
+verbs, the mount target for `mount`. `slot` is the canonical
 body-plan slot name (`'hand:left'`, `'mount:1'`, …). `occupant` is
 the current occupant when known, omitted otherwise.
 

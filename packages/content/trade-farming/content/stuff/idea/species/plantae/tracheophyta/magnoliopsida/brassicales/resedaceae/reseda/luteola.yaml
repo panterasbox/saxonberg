@@ -1,0 +1,22 @@
+# Reseda luteola — weld. The YELLOW, and the fastest of the three to
+# grow: a weed that pays.
+#
+# Luteolin lives in the whole above-ground plant, so the harvest is the
+# stems and leaves rather than a root — one season rather than madder's
+# three, which is exactly why yellow cloth was ordinary and red was not.
+# Also a mordant dye: alum brightens it, iron saddens it to olive.
+class: /platform/idea/species/Species
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  binomial: Reseda luteola
+  commonNames: ["weld", "dyer's rocket", "dyer's weed"]
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/sessile
+  _parentCladePath: /stuff/idea/species/plantae
+  _defaultMaterialPath: /stuff/idea/material/tissue/plant-tissue
+  lifecycleStates: ["alive", "dead"]
+  sexDeterminationSystem: monoecious
+  reproductiveMode: sexual
+  lifespanMin: 0
+  lifespanMax: 2
+  circadianBand: aperiodic
+  diet: photosynthesis

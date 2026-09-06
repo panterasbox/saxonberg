@@ -1,6 +1,6 @@
 /**
  * ResidencyWarden — the self-warming home of the residency sweeps — cold-tail self-eviction, the game-time reset (repop) sweep, and the census spawn sweep
- * (the FermentProfileCatalogue shape; the boot()-retirement direction:
+ * (the MaturationProfileCatalogue shape; the boot()-retirement direction:
  * an operator-shaped sweep install does not belong on a consumer Api).
  *
  * `postRegister` arms the sweep(s) on the {@link ResidencyLogic}

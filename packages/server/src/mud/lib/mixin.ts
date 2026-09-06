@@ -245,7 +245,6 @@ export const Mixins = {
   Perception: 'PerceptionMixin',
   Tangible: 'TangibleMixin',
   Organism: 'OrganismMixin',
-  Sexed: 'SexedMixin',
   Vitals: 'VitalsMixin',
   // What a body does after it stops: the decay clock, the forensic
   // readability curve, and the eviction veto that keeps a corpse in the
@@ -263,6 +262,7 @@ export const Mixins = {
   // The form axis — a material worked into a Construction (materials-
   // response). Composed by armor (resist profile) and weapons (delivery).
   Constructed: 'ConstructedMixin',
+  Dyed: 'DyedMixin',
   Branded: 'BrandedMixin',
   // Chattel — a movable good's durable per-instance identity, the key its
   // unspoofable ownership is stamped against (the parcel-title twin).
@@ -290,8 +290,10 @@ export const Mixins = {
   Perceiver: 'PerceiverMixin',
   Scryable: 'ScryableMixin',
   Slotted: 'SlottedMixin',
+  Attired: 'AttiredMixin',
   Slottable: 'SlottableMixin',
   Wearable: 'WearableMixin',
+  Wardrobe: 'WardrobeMixin',
   Wieldable: 'WieldableMixin',
   Postured: 'PosturedMixin',
   Posed: 'PosedMixin',
@@ -374,7 +376,7 @@ export const Mixins = {
   Plantable: 'PlantableMixin',
   // The durative ferment — a VESSEL whose contents convert over
   // game-time (growth accretes, fermentation converts).
-  Fermenting: 'FermentingMixin',
+  Maturing: 'MaturingMixin',
   Behaved: 'BehavedMixin',
   Graded: 'GradedMixin',
   // A physical thing that wears out with use (the condition/wear gauge).
@@ -584,6 +586,14 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
 
   // Bodies & behavior.
   VitalsMixin: "{} isn't alive",
+  /*
+   * ⚠ A measurement is taken off a BODY. `measure figure`, `cut --for`
+   * and `alter --for` all read stature off the species and girth off the
+   * instance's mass, and every one of them returns null for a thing. The
+   * phrase names what the target would have to BE, because "isn't the
+   * right kind of thing" tells nobody who to go and find.
+   */
+  OrganismMixin: "{} isn't a body you can measure",
   BehavedMixin: "{} has nothing to say",
   CastMixin: "{} is a role, not a person",
   PosturedMixin: "you can't change posture on {}",
@@ -614,6 +624,12 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   DurableMixin: "{} doesn't wear out",
   KeenMixin: "{} doesn't take an edge",
   WearableMixin: "{} isn't something you can wear",
+  /*
+   * ⚠ Dyeing is a property of the FIBRE, not of the object — a stone
+   * mug and a steel blade compose nothing that could take colour. The
+   * phrase says the material fact rather than the mixin's name.
+   */
+  DyedMixin: "{} won't take a dye",
   WieldableMixin: "{} isn't something you can wield",
 
   // Stacks, charges, marks, labels.

@@ -155,7 +155,10 @@ describe('seniority is not a life stage', () => {
     expect(player.getBornAt()).toBeGreaterThan(0);
   });
 
-  it('getSex returns null when SexedMixin is not composed', () => {
+  // ⚠ Retitled by the merge: `SexedMixin` folded into `Organism`
+  // on this branch, so there is no longer a mixin to leave uncomposed.
+  // The behaviour is unchanged — an unset sex reads null.
+  it('getSex returns null until a sex is set', () => {
     const organism = makeStuff(() => new OrganismThing());
     expect(organism.getSex()).toBeNull();
   });

@@ -1,0 +1,30 @@
+# Weld — the yellow dyestuff, the whole plant dried.
+#
+# The fastest and cheapest of the three, and a mordant dye like madder:
+# alum gives a bright yellow, iron drops it to olive and khaki. ⭐ Blue
+# over yellow is how green was made, so this is half of every green in
+# the world before synthetics.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: weld
+  appearance: dusty straw-yellow weld
+  keywords: [weld, luteolin]
+  density: 500
+  thermalConductivity: 0.07
+  hardness: 2
+  toughness: 1
+  specificHeat: 1400
+  electricalConductivity: 1.0e-9
+  waterAbsorptionCapacity: 50
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["dyestuff", "mordant-dye", "plant", "organic", "once-living"]
+  composition: []
+  chemistry: null
+  # ⚠ A COMPOSITE, not a bare path: `{speciesPath, tissueType}`. Every
+  # shipped material left this null, so these are the first rows to
+  # populate it — and the census caught the bare-path shape the moment
+  # they did, which is the gate doing exactly its job.
+  biologicalSource: { speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/brassicales/resedaceae/reseda/luteola, tissueType: stem }

@@ -46,6 +46,7 @@ import { PersistableApi } from "../../api/persistable";
 import { HasInteractiveMixin } from "../../lib/connection/HasInteractive";
 import { AetherMixin } from "../../lib/message/Aether";
 import { ContactsMixin } from "../../lib/social/Contacts";
+import { WardrobeMixin } from "../../lib/slot/Wardrobe";
 import { NotifyPolicyMixin } from "../../lib/social/NotifyPolicy";
 import { SubjectSubscriberMixin } from "../../lib/forum/SubjectSubscriber";
 import { PartyMemberMixin } from "../../lib/party/PartyMember";
@@ -164,7 +165,13 @@ const AvatarBase = PersistableMixin(
           AetherMixin(
             NotifyPolicyMixin(
               ContactsMixin(
-                PartyMemberMixin(SubjectSubscriberMixin(ShelledCharacter)),
+                // ⭐ The wardrobe rides the `holder_snapshots` capture
+                // this composition already performs — named outfits are
+                // a `Record<string, string[]>` field, so they need no
+                // collection and no marshaller of their own.
+                WardrobeMixin(
+                  PartyMemberMixin(SubjectSubscriberMixin(ShelledCharacter)),
+                ),
               ),
             ),
           ),
@@ -1130,7 +1137,7 @@ export default class Avatar extends AvatarBase {
             );
             // A cranial implant lives in the avatar's possession AND the
             // slot — the worn/wielded contract (see `Gus.equipLoadout` /
-            // WearController). Move it in FIRST so it travels with the
+            // EquipController). Move it in FIRST so it travels with the
             // avatar and never lists as loose room contents, THEN occupy
             // the slot. (Occupy alone doesn't set containment, so a
             // freshly cloned implant would otherwise leak into the room.)

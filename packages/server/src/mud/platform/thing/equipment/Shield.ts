@@ -1,7 +1,7 @@
 /**
  * Shield — wielded protection: **armor you hold, not armor you wear**.
  *
- * The cross of {@link Armor} and {@link Weapon}: like armor it carries an
+ * The cross of {@link Garment} and {@link Weapon}: like a covering it carries an
  * *armor* `Construction` (a resist profile + a layer depth) so it turns blows
  * through the very same materials-response covering stack; like a weapon it is
  * `Wieldable` (it claims a hand slot via `slotClaims`, costing a hand you

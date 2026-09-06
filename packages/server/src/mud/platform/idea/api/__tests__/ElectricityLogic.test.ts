@@ -15,7 +15,7 @@ import { NamedMixin } from '../../../../lib/description/Named';
 import { Idea } from '../../../../lib/stuff/Idea';
 import Location from '../../../../lib/stuff/Location';
 import Floor from '../../../thing/Floor';
-import Armor from '../../../thing/equipment/Armor';
+import Garment from '../../../thing/equipment/Garment';
 import { Construction } from '../../../../lib/material/Construction';
 import { Creature } from '../../../../lib/creature/Creature';
 import Species from '../../species/Species';
@@ -82,9 +82,9 @@ function metalFloor(room: Location, material: Material): Floor {
 }
 
 /** Wear a Constructed armor layer of `material` + `form` on the torso. */
-function wearTorso(c: Creature, material: Material, form: string): Armor {
+function wearTorso(c: Creature, material: Material, form: string): Garment {
   const plan = makeBodyPlanTorso(c);
-  const a = makeStuff(() => new Armor());
+  const a = makeStuff(() => new Garment());
   a.setMaterial(material);
   a.setConstruction(Construction.of(form));
   a.setSlotClaim(plan, ['torso']);
@@ -148,7 +148,7 @@ function makeBody(room: Location | null): Creature {
 
 function bootBody(room: Location, material: Material): Creature {
   const c = makeBody(room);
-  const boots = makeStuff(() => new Armor());
+  const boots = makeStuff(() => new Garment());
   boots.setMaterial(material);
   boots.setSlotClaim(c.getSpecies()!.getBodyPlan()!.getTemplatePath()!, [
     'feet',

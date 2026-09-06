@@ -1,0 +1,35 @@
+verbs: [scutch]
+controller: /trade/textiles/idea/cmd/textiles/ScutchController
+description: "Beat the woody boon out of retted flax"
+help: |
+  `scutch <bundle>` works retted flax against a board until the woody
+  core falls away and the fibre is left. Break, scutch and hackle are
+  three motions with one decision, so they are one verb.
+
+  ⭐ The decision is how hard. Worked gently you get long line and a
+  good deal of tow; worked `--hard` you get more line out of the same
+  straw and BREAK some of it, which costs you a grade band. Long
+  unbroken fibre is the whole value of flax, so that is a real choice
+  and not a difficulty setting.
+
+  It yields two things besides line: **tow**, the short fibre, which
+  spins into coarse yarn and stuffs a mattress; and **shive**, the woody
+  boon, which is fuel and litter. Neither is waste.
+
+  ⚠ Straw that has not been retted refuses, and so does straw that has
+  been retted too long — that one is grey and short and there is nothing
+  in it to save.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: source
+    type: object
+    required: true
+    scope: [inventory, reachable]
+    requires: BulkableMixin
+options:
+  hard:
+    type: boolean
+    description: "Work it harder — more line, one grade band lower"

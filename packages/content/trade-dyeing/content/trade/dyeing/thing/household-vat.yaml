@@ -1,0 +1,17 @@
+# The household pot — rung ZERO, and the reason dyeing is the DOMESTIC
+# trade of the three.
+#
+# ⭐ Yours, cheap, small, and poor control. You go to a tailor to be
+# measured, but you recolour your own coat at home — and that asymmetry
+# is what makes "buy rarely, recolour often" actually often.
+class: /trade/dyeing/thing/DyeVat
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a dyeing pot
+  primaryKeyword: pot
+  keywords: [pot, dyeing-pot, household]
+  longDescription: |
+    A blackened iron pot that has plainly cooked as many dinners as it has dyed shirts, and which will now do neither without reminding you of the other.
+  _materialPath: /stuff/idea/material/element/iron
+  interiorCapacity: 20
+  mass: 6

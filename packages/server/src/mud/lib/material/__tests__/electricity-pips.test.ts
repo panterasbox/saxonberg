@@ -7,7 +7,7 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import Armor from '../../../platform/thing/equipment/Armor';
+import Garment from '../../../platform/thing/equipment/Garment';
 import Material from '../Material';
 import { Construction } from '../Construction';
 import { StuffApi } from '../../../api/stuff';
@@ -28,16 +28,16 @@ function mat(conductivity: number): Material {
   return m;
 }
 
-function plateArmor(conductivity: number): Armor {
-  const a = makeStuff(() => new Armor());
+function plateArmor(conductivity: number): Garment {
+  const a = makeStuff(() => new Garment());
   a.setMaterial(mat(conductivity));
   a.setConstruction(Construction.of('plate'));
   return a;
 }
 
 /** Filled-pip count of the `shock` column in the rendered pip line. */
-function shockPips(a: Armor): number {
-  const augment = (Armor as unknown as {
+function shockPips(a: Garment): number {
+  const augment = (Garment as unknown as {
     markupAugmenters: Array<(t: string, h: unknown, v: unknown) => string>;
   }).markupAugmenters[0]!;
   const rendered = augment('', a, a);

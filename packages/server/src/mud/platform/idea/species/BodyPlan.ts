@@ -169,6 +169,25 @@ export default class BodyPlan extends SingletonMixin(PropertiedMixin(Idea)) {
   protected baseMass: number = 0;
 
   /**
+   * Reference **stature** in metres for a typical adult of this plan —
+   * the linear scale beside {@link baseMass}'s bulk. `0` means "no
+   * body-grounded default" (the sessile plan, a test stub); readers
+   * fall back gracefully.
+   *
+   * ⭐ Deliberately a SCALAR, not two axes. Lineage's body budget
+   * already owns *build* via the fat/muscle/bone split at one mass, so
+   * a second build axis here would duplicate it. What stature buys is
+   * the other half of a fit measurement: with mass it yields a ponderal
+   * index (`√(mass / stature)`), and those two numbers are what a
+   * garment is cut to.
+   *
+   * Species override it (`Species.stature`); an individual's variance
+   * arrives later through `Creature.getMass()` alone, which is why this
+   * is the plan's default rather than anyone's actual height.
+   */
+  protected baseStature: number = 0;
+
+  /**
    * Thermoregulatory strategy. `endotherm` (the default) defends a
    * setpoint by spending metabolism's reserves (the mammal/bird path);
    * `ectotherm` lets its core float to the effective ambient (the
@@ -209,6 +228,7 @@ export default class BodyPlan extends SingletonMixin(PropertiedMixin(Idea)) {
     sensoryPorts: { persistent: true },
     bodyParts: { persistent: true },
     baseMass: { persistent: true },
+    baseStature: { persistent: true },
     thermalStrategy: { persistent: true },
     breathableMedia: { persistent: true },
     respires: { persistent: true },
@@ -241,6 +261,17 @@ export default class BodyPlan extends SingletonMixin(PropertiedMixin(Idea)) {
       );
     }
     this.baseMass = value;
+  }
+
+  public getBaseStature(): number { return this.baseStature; }
+  public setBaseStature(value: number): void {
+    if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) {
+      throw new RangeError(
+        `BodyPlan.setBaseStature: must be a finite, non-negative number, ` +
+          `got ${value}`,
+      );
+    }
+    this.baseStature = value;
   }
 
   public getSlots(): readonly SlotSpec[] { return this.slots; }
@@ -405,6 +436,44 @@ export default class BodyPlan extends SingletonMixin(PropertiedMixin(Idea)) {
   /** Slots whose occupant covers the given part key (coverage relation). */
   public getSlotsCovering(partKey: string): readonly SlotSpec[] {
     return this.slots.filter((s) => (s.covers ?? []).includes(partKey));
+  }
+
+  /**
+   * The share of this body's **external surface** that `partKey`
+   * carries, as a fraction summing to 1 across the plan.
+   *
+   * ⭐ Derived by **Meeh's law** — surface scales as `mass^(2/3)` — over
+   * the tissue masses `bodyParts` already authors. There is no new
+   * authored field and there is not going to be one: a per-part surface
+   * number would be a second copy of a fact the tissue masses already
+   * carry, and the two would drift.
+   *
+   * ⚠ **Organs are excluded.** A part with `governsVital` is internal
+   * (the heart, the lungs) and has no external surface at all; counting
+   * it would dilute every other part's share by a body nobody can put a
+   * coat on. That signal is already in the data, so the exclusion is
+   * principled rather than a hand-picked list.
+   *
+   * This is what lets *"an uncovered part is colder"* mean something
+   * proportionate: a bare hand costs exactly its surface share (~2.7% of
+   * a biped, each), and a cloak beats a shirt because it covers more.
+   * A plan with no authored tissue masses returns `0` for everything
+   * and the caller falls back to a body-wide read.
+   */
+  public getPartSurfaceFraction(partKey: string): number {
+    let total = 0;
+    let own = 0;
+    for (const part of this.bodyParts) {
+      if (part.governsVital) continue;
+      let mass = 0;
+      for (const t of part.tissues ?? []) mass += t.mass;
+      if (!(mass > 0)) continue;
+      const area = Math.pow(mass, 2 / 3);
+      total += area;
+      if (part.key === partKey) own = area;
+    }
+    if (!(total > 0)) return 0;
+    return own / total;
   }
 
   /**

@@ -1,7 +1,7 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
-import Armor from '../../../platform/thing/equipment/Armor';
+import Garment from '../../../platform/thing/equipment/Garment';
 import Weapon from '../../../platform/thing/equipment/Weapon';
 import Material from '../../material/Material';
 import Thing from '../../stuff/Thing';
@@ -29,9 +29,20 @@ function steel(): Material {
   return m;
 }
 
-describe('Armor — emergent composition', () => {
-  it('composes the material + construction + graded + tool + wearable stack', () => {
-    const a = makeStuff(() => new Armor());
+/**
+ * ⭐⭐ Armor-ness is material + construction form, not a class.
+ *
+ * `Armor` was a sibling of `Garment` that composed four more mixins and
+ * added no behavior. Now that `Garment` composes them, the two stacks
+ * are byte-identical — so a steel breastplate is a Garment whose
+ * material is steel and whose form is `plate`, and a linen shirt is a
+ * Garment whose material is linen and whose form is `woven`. The blow
+ * resolves the same way through both, because the covering walk asks
+ * the material and the form and never asks what class they are.
+ */
+describe('Garment — emergent composition', () => {
+  it('composes the material + construction + graded + durable + wearable stack', () => {
+    const a = makeStuff(() => new Garment());
     expect(MixinApi.isTangible(a)).toBe(true);
     expect(MixinApi.isConstructed(a)).toBe(true);
     expect(MixinApi.isGraded(a)).toBe(true);
@@ -39,12 +50,44 @@ describe('Armor — emergent composition', () => {
     expect(MixinApi.isDurable(a)).toBe(true);
     expect(MixinApi.isTool(a)).toBe(false);
     expect(MixinApi.isWearable(a)).toBe(true);
+    // Also Detailed — the surface a maker's authored prose rides on.
+    expect(MixinApi.isDetailed(a)).toBe(true);
     // No ArmorMixin — armor is the composition, nothing narrows on it.
     expect((MixinApi as unknown as { isArmor?: unknown }).isArmor).toBeUndefined();
   });
 
+  it('⭐ a cloth garment and a plate one are the SAME class', async () => {
+    // The retirement, asserted. Both go through `Construction`, both
+    // answer `isCovering`, and what differs is two authored words.
+    Construction.registerFabric({
+      key: 'woven',
+      layerBand: 0,
+      loft: 0.1,
+      weaveDensity: 0.75,
+      drape: 0.6,
+    });
+    try {
+      const shirt = makeStuff(() => new Garment());
+      const cuirass = makeStuff(() => new Garment());
+      shirt.setConstruction(Construction.of('woven'));
+      cuirass.setConstruction(Construction.of('plate'));
+      expect(shirt.constructor).toBe(cuirass.constructor);
+      expect(shirt.getConstruction()!.isCovering()).toBe(true);
+      expect(cuirass.getConstruction()!.isCovering()).toBe(true);
+      // "A linen shirt is armor that does not work" — legibly.
+      expect(shirt.getConstruction()!.responseFor('edge')).toBe('poor');
+      expect(cuirass.getConstruction()!.responseFor('edge')).toBe('deflect');
+      // …and it still sits INSIDE the plate on the ladder.
+      expect(shirt.getConstruction()!.getLayerDepth()).toBeLessThan(
+        cuirass.getConstruction()!.getLayerDepth(),
+      );
+    } finally {
+      Construction.clearFabrics();
+    }
+  });
+
   it('carries material, construction, grade, and a wearing condition', () => {
-    const a = makeStuff(() => new Armor());
+    const a = makeStuff(() => new Garment());
     if (!MixinApi.isTangible(a)) throw new Error('tangible');
     if (!MixinApi.isGraded(a)) throw new Error('graded');
     a.setMaterial(steel());
@@ -79,7 +122,7 @@ describe('Weapon — delivery half', () => {
     const viewer = makeStuff(() => new Thing()) as unknown as Stuff;
     const steelMat = steel(); // one singleton — shared by both pieces
 
-    const breastplate = makeStuff(() => new Armor());
+    const breastplate = makeStuff(() => new Garment());
     breastplate.setMaterial(steelMat);
     breastplate.setConstruction(Construction.of('plate'));
     const armorOut = breastplate.getMarkupLong(viewer);

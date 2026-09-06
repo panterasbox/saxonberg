@@ -12,7 +12,9 @@
  *     round-trip** (capture → clone → materialize restores the `_chattelId`
  *     and `ownerOf` still resolves).
  *   - `chattel_events` records a `mint` then a `transfer` row.
- *   - a fungible stack (`Globbable`) is **refused** (owned-by-possession).
+ *   - a fungible STACK (`Globbable`, quantity > 1) is **refused**
+ *     (owned-by-possession) — but a LOT OF ONE can be titled, which is
+ *     what lets a good whose fungibility is load-bearing be sold.
  *   - GC on destruct releases the current-state row + appends a terminal
  *     `released` event; a fresh clone is unaffected.
  *
@@ -366,9 +368,34 @@ describe("chattel possession core", () => {
     expect(stamp.ok).toBe(false);
     if (!stamp.ok) expect(stamp.reason).toMatch(/possession/);
 
-    // ownerOf of a glob is null (not asked; owned-by-possession).
+    // ownerOf of a stack is null (not asked; owned-by-possession).
     expect(await glob.chattelOwner()).toBeNull();
     expect(glob.getChattelId()).toBe("");
+  });
+
+  it("⭐⭐ but a LOT OF ONE can be titled — the split has nothing to divide", async () => {
+    /*
+     * The doctrine's objection is "a split of a stack of five has no
+     * answer for which unit keeps the id, and a merge equates
+     * identities". Both halves are about a stack that is still a stack;
+     * neither survives at quantity one, and the paired veto in
+     * `GlobbableMixin.canMergeWith` (a titled stack does not merge)
+     * closes the second. Without this, a mill could weave cloth it could
+     * never sell — a bolt is a glob on purpose.
+     */
+    const lot = makeTorch();
+    const alice = makeOwner("alice");
+    vi.spyOn(MixinApi, "isGlobbable").mockImplementation((o) => o === lot);
+    // A lot of one says so.
+    (lot as unknown as { getQuantity(): number }).getQuantity = () => 1;
+
+    const stamp = await lot.stampChattel(alice);
+    expect(stamp.ok).toBe(true);
+    expect(lot.getChattelId()).toBeTruthy();
+    expect(await lot.chattelOwner()).toEqual({
+      kind: "player",
+      templatePath: "/platform/agent/Avatar/alice",
+    });
   });
 
   it("GC on destruct releases the current-state row + logs a terminal event", async () => {

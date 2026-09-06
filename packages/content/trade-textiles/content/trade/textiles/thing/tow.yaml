@@ -1,0 +1,16 @@
+# Tow — the short fibre the comb takes out.
+#
+# ⭐ A BYPRODUCT, and byproducts are what make a trade economic. It
+# spins into coarse yarn, twists into rope, and stuffs a mattress. A
+# chain whose off-cuts vanish has quietly stopped being an economy.
+class: /trade/textiles/thing/TextileStock
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a wad of tow
+  primaryKeyword: tow
+  keywords: [tow, wad, short, fibre]
+  longDescription: |
+    A tangled wad of short flax, all ends and no length. It will spin, after a fashion, and what it spins into will look like what it came from.
+  _materialPath: /stuff/idea/material/textile/linen
+  mass: 0.3
+  gradeBand: poor

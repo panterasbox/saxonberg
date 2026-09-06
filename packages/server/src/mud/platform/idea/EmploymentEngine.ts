@@ -1,6 +1,6 @@
 /**
  * EmploymentEngine — the self-warming home of the recurring game-time roster tick — each assignee's shift status maintained, shift-end wages settled. (The IMMEDIATE boot-time roster pass stays a sequencer line — EmploymentApi.tickRoster() after BootstrapManager.run — because the Businesses it walks are other packs' manifest entries, which platform dependsOn edges cannot name; see the plan's P2.)
- * (the FermentProfileCatalogue shape; the boot()-retirement direction:
+ * (the MaturationProfileCatalogue shape; the boot()-retirement direction:
  * an operator-shaped sweep install does not belong on a consumer Api).
  *
  * `postRegister` arms the sweep(s) on the {@link EmploymentLogic}

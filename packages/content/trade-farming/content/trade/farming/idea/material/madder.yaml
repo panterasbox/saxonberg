@@ -1,0 +1,35 @@
+# Madder root — the dyestuff, dried and ground.
+#
+# ⚠ A DYESTUFF, not a crop: what the dye pot consumes is this material,
+# and where it came from — a bed, a field, or one day a retort — is
+# upstream and none of dyeing's business. ⭐ That seam is what lets a
+# synthetic alizarin plug into the same chain without the dyeing trade
+# changing a line, which is the door Perkin walked through in 1856.
+#
+# `mordant-dye`: alizarin needs a metal ion to bind, so the colour is
+# decided at the mordant bath. Alum gives a clear red, iron saddens it
+# to maroon, tannin softens it to brick.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: madder
+  appearance: gritty brick-coloured madder
+  keywords: [madder, alizarin]
+  density: 700
+  thermalConductivity: 0.08
+  hardness: 2
+  toughness: 1
+  specificHeat: 1400
+  electricalConductivity: 1.0e-9
+  waterAbsorptionCapacity: 45
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["dyestuff", "mordant-dye", "plant", "organic", "once-living"]
+  composition: []
+  chemistry: null
+  # ⚠ A COMPOSITE, not a bare path: `{speciesPath, tissueType}`. Every
+  # shipped material left this null, so these are the first rows to
+  # populate it — and the census caught the bare-path shape the moment
+  # they did, which is the gate doing exactly its job.
+  biologicalSource: { speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/gentianales/rubiaceae/rubia/tinctorum, tissueType: root }

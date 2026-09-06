@@ -1,0 +1,36 @@
+# The leather jerkin — ⭐ **moved out of `trade-smithing`, where it never
+# belonged.**
+#
+# It is the one soft-goods recipe in the tree, and it had been squatting
+# in the smithy because there was nowhere else to put it. There is now:
+# cutting and sewing hide is the same act as cutting and sewing cloth,
+# which is exactly the roster's claim that leatherwork SHARES THE CODE
+# with textiles rather than being a parallel trade.
+#
+# ⚠⚠ Its `{category: hide}` input still has NO PRODUCER, and that is not
+# this build's to fix. Hide comes from an animal, and nothing in the
+# world produces one — a tannery now would tan imports. **Do not invent
+# a hide faucet**: the gap is leatherwork's, it waits on ranching or a
+# butchery, and closing it with a spawn would be exactly the kind of
+# quiet dishonesty the conservation rule exists to prevent.
+#
+# So this row is here, correct, and unmakeable — which is a better state
+# than being makeable in the wrong shop.
+recipeId: leather-jerkin
+name: Leather Jerkin
+keywords:
+- jerkin
+- leather-jerkin
+inputSlots:
+- slot: hide
+  category: hide
+  minGrade: fair
+  kind: item
+  count: 1
+toolCapabilities:
+- mending
+outputTemplate: /stuff/thing/armor/hide-jerkin
+outputMaterial: ''
+outputApplication: tangible
+difficulty: hard
+discipline: tailoring

@@ -221,7 +221,7 @@ Alcohol *is* a drug; what differs between libations and pharma is the
 > kernel ferment; their floor faucets are retired (the switchover).
 > Bottling stays the stub (carbonation is its own physics), and the
 > cash-and-carry moved to the `distribution` pack (D10 — sibling
-> trades share no edges). See docs/subsystems/fermentation.md.
+> trades share no edges). See docs/subsystems/maturation.md.
 
 > **User: "I kinda wanna stub the winemaking and maybe even brewery trades
 > if we're planning on stocking beer and wine in the bar."**
