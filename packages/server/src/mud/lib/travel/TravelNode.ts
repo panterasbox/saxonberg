@@ -23,8 +23,11 @@
  * Exactly `SupplyReporting`'s (see
  * [watershed.md](../../../../../docs/subsystems/watershed.md)): plain
  * data in, plain data out, so the kernel never has to name a pack's
- * class. `AnalyzeWaterController` is a kernel verb reading the water
- * pack's works this way; this is the same seam for travel.
+ * class. `SupplyReporting` is the same seam for water: anything that
+ * carries water anywhere answers `analyze water <target>` without the
+ * asker importing it — and that controller now lives in the water pack
+ * for the same reason `analyze soil`'s lives in `trade-farming`, which
+ * makes the shape the ONLY thing crossing between packs.
  *
  * Optional by construction — a thing either answers the question or it
  * is not a travel node, and {@link asTravelNode} checks rather than the

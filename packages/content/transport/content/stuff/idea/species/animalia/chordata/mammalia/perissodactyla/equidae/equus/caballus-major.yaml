@@ -16,6 +16,9 @@ data:
   binomial: Equus caballus major
   commonNames: ["draft horse", "carthorse", "horse", "shire"]
   _bodyPlanPath: /stuff/idea/species/BodyPlan/quadruped
+  # ⭐ Adult liveweight in kg. A shire, and the weight IS the animal:
+  # a heavy horse pulls by leaning its own mass into the collar.
+  adultMass: 900
   _parentCladePath: /stuff/idea/species/animalia
   _defaultMaterialPath: /stuff/idea/material/tissue/flesh
   vitalProfile:

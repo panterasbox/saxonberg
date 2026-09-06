@@ -58,6 +58,7 @@ import { Pronouns, PRONOUN_LABELS } from "@saxonberg/types";
 type CharGenField = "species" | "sex" | "name" | "pronouns" | "aspiration";
 import { SpeciesApi } from "../../../../api/species";
 import { SourceTreeApi } from "../../../../api/source-tree";
+import { WorldClockApi } from "../../../../api/worldclock";
 
 /**
  * Pronoun options for a PLAYER CHARACTER.
@@ -694,6 +695,18 @@ export default class EnrollController extends CommandController<EnrollModel> {
         (seed.data as Record<string, unknown>).longDescription,
     };
     if (draft.surname) overlay.surname = draft.surname;
+
+    // ⭐⭐ **The birthday.** A character is dated the moment they arrive,
+    // and everything about their age is arithmetic on this from then on
+    // — `now − bornAt`, derived, stored nowhere.
+    //
+    // ⚠ It confers NOTHING and must not: `getLifeStage()` returns `null`
+    // for a played body on purpose, so a player's age is seniority and a
+    // thing to say out loud, never an input to a capability. That is what
+    // makes parking a character worth exactly nothing, and it is why the
+    // number can be honest wall-clock time rather than something that
+    // has to be defended against being farmed.
+    overlay.bornAt = WorldClockApi.getNow().rawValue();
 
     // 2. Register ownership — THE atomicity boundary. Nothing before
     //    this persisted into the user's roster.

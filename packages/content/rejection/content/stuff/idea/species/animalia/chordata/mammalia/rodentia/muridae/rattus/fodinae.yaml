@@ -11,6 +11,8 @@ data:
   binomial: Rattus fodinae
   commonNames: ["delve rat", "rat"]
   _bodyPlanPath: /stuff/idea/species/BodyPlan/quadruped
+  # ⭐ Adult liveweight in kg. A grown delve rat.
+  adultMass: 0.4
   _parentCladePath: /stuff/idea/species/animalia
   _defaultMaterialPath: /stuff/idea/material/tissue/flesh
   vitalProfile:

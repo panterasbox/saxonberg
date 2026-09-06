@@ -460,8 +460,13 @@ slots (the wear/equip pattern).
 > model in [ranching § Land use](./ranching-slate.md); farming owns the plot,
 > the soil, and the biology it runs on.
 
-Each field-room is committed each season to one of four uses, and **they differ
-in nutrient flow, not just yield**:
+~~Each field-room is committed each season to one of four uses~~ — **CORRECTED
+by the farmstead build (D7): these are four DESCRIPTIONS, not four settings.**
+Nothing is committed and nothing is declared; **there is no `use` field on a
+field.** All four fall out of **two facts** — *was there a mouth standing on
+it*, and *did anything get carried off* — and the table below is what those two
+facts look like in the four combinations that have names. They still differ in
+nutrient flow rather than yield, which was the table's real point:
 
 | Use | Harvested by | Nutrient flow | Effect on the field |
 |---|---|---|---|
@@ -472,7 +477,10 @@ in nutrient flow, not just yield**:
 
 So a field cropped or hayed hard watches its reserves sag, and the fix — **put
 the herd on the tired field for a season** — is something a player *derives*
-rather than looks up. Real mixed farms rotate land through pasture for exactly
+rather than looks up. ⭐ Grazing and mowing are the **same draw on the same
+sward**; the only difference is where the animal was, and that difference is
+where the nitrogen goes, so *fertility follows the mouths* is derived from
+watching rather than told. Real mixed farms rotate land through pasture for exactly
 this reason, and here it falls out of the soil accounting being correct rather
 than from an authored "+N grazing" bonus.
 

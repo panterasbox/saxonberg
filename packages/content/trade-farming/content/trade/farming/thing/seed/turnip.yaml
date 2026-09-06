@@ -1,0 +1,11 @@
+# Seed for turnips — the same discrete-Thing shape every shipped seed has.
+class: /platform/thing/Seed
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a paper of turnip seed
+  primaryKeyword: seed
+  keywords: [seed, seeds, turnips]
+  longDescription: |
+    Tiny round black seed, far more of it than seems reasonable for the size of the root.
+  growsIntoPath: /trade/farming/thing/plant/turnip
+  _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/brassicales/brassicaceae/brassica/rapa

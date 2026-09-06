@@ -1,0 +1,26 @@
+# Animal fat — ⭐ what the cooking chain's `render-tallow` has been
+# waiting for, and what a candle and a bar of soap are made of.
+#
+# ⚠ It lives in the COMMONS: fat is a fact about animals.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: animal fat
+  appearance: hard and waxy white
+  keywords: [fat, tallow, suet]
+  density: 900
+  specificHeat: 2000
+  thermalConductivity: 0.17
+  electricalConductivity: 1.0e-12
+  waterAbsorptionCapacity: 0
+  hardness: 1
+  toughness: 1
+  # ⭐ The smoke point is what makes it a cooking MEDIUM rather than a
+  # calorie: fat fries because it goes far above water's ceiling.
+  smokePoint: 478
+  edibility: true
+  nutrients: ["fat"]
+  nutrientAmounts: { fat: 900000 }
+  toxicity: []
+  tags: ["food", "fat", "rendering", "once-living"]
+  composition: []

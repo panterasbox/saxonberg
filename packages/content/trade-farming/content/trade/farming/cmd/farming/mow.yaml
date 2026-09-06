@@ -1,0 +1,28 @@
+verbs: [mow]
+controller: /trade/farming/idea/cmd/farming/MowController
+description: "Cut the standing grass for hay"
+help: |
+  Set a scythe into the sward and work across the field in swathes.
+
+  ⭐⭐ There is no setting on a field that says "this is a hay meadow".
+  Hay and grazing are the SAME draw on the same grass; what makes one of
+  them hay is that the mouth was somewhere else. So this act does exactly
+  one thing grazing does not: what you carry off, the field does not get
+  back.
+
+  Cut a field for hay year after year and it will tell you. Graze it
+  instead and it will not. Fertility follows the mouths — nobody wrote
+  that rule down; it is what the two acts do.
+
+  ⭐ It cuts to the residual and no further, which is not a mercy: a
+  scythe cannot cut below the ground, and a sward cut into its crowns is
+  a sward that will not come again.
+
+  Needs a scythe.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  - name: detail
+    type: string
+    required: false

@@ -1,0 +1,30 @@
+# Turnips — ⭐⭐ winter fodder, and the term that makes the four-course
+# need NO FALLOW YEAR.
+#
+# They are FOLDED: sheep penned on the turnip field eat them where they
+# stand and manure as they go, which is literally the graze row applied
+# to a root crop and needs no new mechanism at all.
+class: /platform/thing/Plant
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a field of turnips
+  primaryKeyword: turnips
+  keywords: [turnips, crop]
+  longDescription: |
+    Broad blue-green leaves standing shoulder-high over roots half out of the ground, purple where the sun has got at them.
+  _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/brassicales/brassicaceae/brassica/rapa
+  material: /stuff/idea/material/tissue/plant-tissue
+  lifecycleState: alive
+  seedTemplatePath: /trade/farming/thing/seed/turnip
+  harvestTemplatePath: /trade/farming/thing/crop/turnip
+  nutrientDraw: 12
+  profile:
+    moistureHappyAt: 0.3
+    moistureWiltAt: 0.05
+    litresPerGameDay: 0.14
+    luxHappyAt: 200
+    luxDarkAt: 20
+    coldStopK: 278
+    warmHappyK: 289
+    rootDemand: { seedling: 0.2, young: 1.0, established: 2.0, mature: 3.0 }
+    daysToStage: { young: 11, established: 35, mature: 70 }

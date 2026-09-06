@@ -1,0 +1,30 @@
+# Barley in the ground — the arable half of the four-course, and ⭐ the
+# crop that finally stands behind malt.
+#
+# ⚠ It authors `coldStopK`, which every crop in this build does and no
+# houseplant does: an outdoor cereal stops in winter because it is cold,
+# and the same plant under glass does not. Winter is not a mode.
+class: /platform/thing/Plant
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a stand of barley
+  primaryKeyword: barley
+  keywords: [barley, crop]
+  longDescription: |
+    Barley standing in the ear, the awns catching the light, and the whole field going over together when the wind crosses it.
+  _speciesPath: /stuff/idea/species/plantae/tracheophyta/liliopsida/poales/poaceae/hordeum/vulgare
+  material: /stuff/idea/material/tissue/plant-tissue
+  lifecycleState: alive
+  seedTemplatePath: /trade/farming/thing/seed/barley
+  harvestTemplatePath: /trade/farming/thing/crop/barley
+  nutrientDraw: 18
+  profile:
+    moistureHappyAt: 0.3
+    moistureWiltAt: 0.05
+    litresPerGameDay: 0.14
+    luxHappyAt: 200
+    luxDarkAt: 20
+    coldStopK: 278
+    warmHappyK: 289
+    rootDemand: { seedling: 0.2, young: 1.0, established: 2.0, mature: 3.0 }
+    daysToStage: { young: 16, established: 50, mature: 100 }

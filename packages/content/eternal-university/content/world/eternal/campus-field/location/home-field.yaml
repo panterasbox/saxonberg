@@ -1,0 +1,58 @@
+# The home field — ⭐⭐ a `Field` authored directly, with NO pack code
+# anywhere, which is the whole of AC 62.
+#
+# It is four hundred square metres of ground with a name, a position on
+# the soil field, and a clover ley already in it. Everything else about
+# it — its texture, how it drains, what it is sour, what it would cost to
+# bring further in — is DERIVED from where it is, and stored nowhere.
+#
+# ⭐ `legumeFraction` is the one authored number that matters and it is
+# the teaching one: the ley is already down, so a student who grazes it
+# watches fertility rise and a student who cuts it for hay watches
+# fertility fall, on the same field, in the same season. That is the
+# whole of D7 available in the first hour anybody works here.
+#
+# ⚠ It authors no reserves, because it cannot: `reserves` is engine
+# state. The class stands itself up at registration from its own ground —
+# which is exactly what makes authoring one possible without code.
+class: /trade/farming/location/Field
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  fieldName: the home field
+  shortDescription: the home field
+  primaryKeyword: field
+  keywords: [field, "home field", ground, ley]
+  longDescription: |
+    Four hundred square metres of good level ground behind the yard, laid
+    down to a clover ley that is a shade greener than it has any business
+    being. The gate back to the yard hangs true.
+  coords: { x: 0, y: 0, z: 0 }
+  # ⭐ A meadow, which is the biome a ley in grass actually is — and
+  # being SkyExposed is doing real work rather than set dressing: the
+  # soil's own sky edge (rain, daylight, the season) is gated on it, and
+  # so is being able to see the field at all.
+  _biomePath: /stuff/idea/biome/outdoor/meadow
+  # ⚠⚠ **And the room has to author its own ambient light.** A biome makes
+  # a place SkyExposed — which is what the soil's sky edge and the weather
+  # read — but it does NOT hand it any lux. A room that authors no ambient
+  # is PITCH BLACK, forever, and the tell is every object in it reading
+  # "something": `analyze sky` said *"daylight over the university
+  # farmyard, sun altitude 47°"* while `analyze light` said *"0 lux,
+  # contributing sources: none"* and `get spade` said *"you don't see any
+  # 'spade' here"*. Daylight numbers are the Hinkley stop's.
+  # ⭐ **Lux is lumen over AREA, and a farm is big.** The shipped outdoor
+  # convention is the Hinkley stop's 600 lumen — but that room's zone
+  # runs 6-metre cells, and this one runs 20-metre cells, so the same
+  # number lands 3 lux here against its 66 and everything still reads as
+  # "something". 40 000 lumen over ~400 m² is about 100 lux: a bright
+  # overcast day, and comfortably clear of the threshold where a person
+  # can pick a spade out of a yard.
+  ambientIntensity: 40000
+  ambientColorTemperature: 5800
+  groundSpotX: 4
+  groundSpotY: 7
+  areaM2: 400
+  legumeFraction: 0.4
+  exits:
+    yard:
+      destination: /world/eternal/campus-farm/location/yard

@@ -1,0 +1,32 @@
+# The honeybee — ⭐ and the colony is the herdbook with the individual
+# end amputated (D34).
+#
+# You never draft a bee. A hive is a population with a strength, stores
+# and a queen, on a piece of ground — which is exactly the herd record
+# minus the promotion act, and that VALIDATES the primitive: if the
+# aggregate stands alone it is a real thing rather than a compression
+# trick.
+#
+# ⚠ The row ships here; the hive, the pollination coupling and swarming
+# are the cuttable wave's, and the row is inert without them. It is
+# authored now because the coupling would be painful to retrofit and the
+# species is a fact about the world either way.
+class: /platform/idea/species/Species
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  binomial: Apis mellifera
+  commonNames: ["bee", "honeybee", "bees"]
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/sessile
+  _parentCladePath: /stuff/idea/species/animalia
+  _defaultMaterialPath: /stuff/idea/material/tissue/flesh
+  lifecycleStates: ["alive", "dead"]
+  sexDeterminationSystem: haplodiploid
+  reproductiveMode: sexual
+  lifespanMin: 0
+  lifespanMax: 1
+  circadianBand: diurnal
+  diet: herbivore
+  longDescription: >-
+    A honeybee, furred and unbothered, working over a clover head with
+    its back legs already loaded orange.
+  nameBankKeys: []

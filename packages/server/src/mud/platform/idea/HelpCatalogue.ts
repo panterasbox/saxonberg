@@ -73,7 +73,12 @@ export interface AuthorSurface {
 
 /** Fixed display order for kinds (categories + search groups). */
 const KIND_ORDER: HelpKind[] = [
+  // ⭐ Concepts come SECOND, after the commands and ahead of the author
+  // surface. A player looking for the rulebook should meet *what
+  // nitrogen is* before they meet `Soil.fixNitrogen`'s signature, and
+  // the ordering is the only place that preference is expressed.
   "command",
+  "concept",
   "api",
   "mixin",
   "type",
@@ -81,6 +86,7 @@ const KIND_ORDER: HelpKind[] = [
 ];
 const KIND_TITLE: Record<HelpKind, string> = {
   command: "Commands",
+  concept: "Concepts",
   api: "Apis",
   mixin: "Mixins",
   type: "Types",
@@ -167,7 +173,12 @@ export default class HelpCatalogue extends HelpCatalogueBase {
     commandDefs?: CommandDefinition[];
     surface?: AuthorSurface | null;
     schema?: SchemaDoc[] | null;
+    concepts?: HelpTopic[] | null;
   }): Promise<void> {
+    this.concepts =
+      opts === undefined || opts.concepts === undefined
+        ? await loadConceptTopics()
+        : (opts.concepts ?? []);
     const commandDefs = opts?.commandDefs ?? CommandApi.allDefinitions();
     const surface =
       opts === undefined || opts.surface === undefined
@@ -180,6 +191,13 @@ export default class HelpCatalogue extends HelpCatalogueBase {
     const fields = schema === null ? new Map() : await harvestFields(schema);
     this.rebuild(commandDefs, surface, schema, fields);
   }
+
+  /**
+   * The authored concept topics, loaded at `warm`. ⚠ Held rather than
+   * re-read on every rebuild, because the rebuild is synchronous and
+   * reading templates is not.
+   */
+  private concepts: HelpTopic[] = [];
 
   /** Drop the warmed index (HMR / admin invalidation). */
   public invalidate(): void {
@@ -307,6 +325,10 @@ export default class HelpCatalogue extends HelpCatalogueBase {
   ): void {
     const topics = new Map<string, HelpTopic>();
     for (const t of this.projectCommands(commandDefs)) topics.set(t.id, t);
+    // ⭐⭐ The concept projector. Every other kind is harvested from
+    // something that exists for another reason; this one is authored,
+    // because *what nitrogen IS* is not derivable from any signature.
+    for (const t of this.concepts) topics.set(t.id, t);
 
     if (schema === null) {
       if (!this.warnedMissingSchema) {
@@ -930,4 +952,61 @@ function renderMemberBody(m: AuthorSurfaceMember): string {
     for (const ex of m.examples) lines.push(`  ${ex}`);
   }
   return lines.join("\n");
+}
+
+/**
+ * Load every authored concept as a help topic.
+ *
+ * ⭐ It reads **templates**, not residents: a concept has no runtime
+ * existence and cloning one would be meaningless, so `HelpConcept` rows
+ * are reference data the same way a `Discipline` row is.
+ *
+ * ⚠ A row missing its key or title is skipped LOUDLY rather than taking
+ * the index down with it — the `ArchetypeCatalogue` rule, and the reason
+ * a malformed pack row degrades one topic instead of the rulebook.
+ */
+async function loadConceptTopics(): Promise<HelpTopic[]> {
+  let rows: Array<{ data?: Record<string, unknown> }> = [];
+  try {
+    const { Template } = await import("../../lib/stuff/Template");
+    rows = (await Template.findByClass(
+      "/platform/idea/HelpConcept",
+    )) as unknown as Array<{ data?: Record<string, unknown> }>;
+  } catch {
+    // No store (pre-boot, a unit test): no concepts, and every other
+    // projector is unaffected.
+    return [];
+  }
+  const out: HelpTopic[] = [];
+  for (const row of rows) {
+    const d = row.data ?? {};
+    const key = typeof d.key === "string" ? d.key : "";
+    const title = typeof d.title === "string" ? d.title : "";
+    if (key === "" || title === "") {
+      console.warn("HelpCatalogue: skipping a HelpConcept with no key/title");
+      continue;
+    }
+    const keywords = Array.isArray(d.keywords)
+      ? (d.keywords as unknown[]).filter((k): k is string => typeof k === "string")
+      : [];
+    const seeAlso = Array.isArray(d.seeAlso)
+      ? (d.seeAlso as unknown[]).filter((k): k is string => typeof k === "string")
+      : [];
+    out.push({
+      id: `concept.${key}`,
+      kind: "concept",
+      title,
+      summary: typeof d.summary === "string" ? d.summary : "",
+      keywords: [key, ...keywords],
+      body: typeof d.body === "string" ? d.body : "",
+      relations: seeAlso.map((other) => ({
+        kind: "see-also" as const,
+        targetId: `concept.${other}`,
+        targetTitle: other,
+      })),
+      spoiler: false,
+      source: { subdivision: "commands", ref: `concept:${key}` },
+    });
+  }
+  return out;
 }

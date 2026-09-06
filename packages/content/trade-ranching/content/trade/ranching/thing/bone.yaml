@@ -1,0 +1,17 @@
+# Bone — ⭐ and it closes D28's completeness ethic INTO THE SOIL.
+#
+# Bone meal is phosphorus, which is the second thing a field runs out of
+# after nitrogen. So the animal that ate the field feeds it back at both
+# ends: the manure while it lived and the bone when it did not, which is
+# as complete as a cycle gets and needed no new substance to say so.
+class: /platform/thing/Provision
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a heap of bone
+  primaryKeyword: bone
+  keywords: [bone, bones]
+  longDescription: >-
+    Sawn and jointed bone, still with a little meat on it. Boiled it
+    gives up its fat and its gelatin; ground it goes back on the land.
+  _materialPath: /stuff/idea/material/tissue/bone
+  mass: 8

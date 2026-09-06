@@ -1,0 +1,25 @@
+# Barley grain — ⭐ what `malt.yaml` has been made from all along, with
+# nothing behind it until now.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: barley grain
+  appearance: pale gold, plump and hulled
+  keywords: [barley, grain, corn]
+  density: 620
+  specificHeat: 1900
+  thermalConductivity: 0.16
+  electricalConductivity: 1.0e-9
+  waterAbsorptionCapacity: 14
+  hardness: 20
+  toughness: 2
+  edibility: true
+  nutrients: ["carb", "protein"]
+  # ⭐ The protein is what the nitrogen ledger reads: crude protein is
+  # nitrogen × 6.25, so a crop carrying this off the field is a crop
+  # carrying that much nitrogen off it. Feed value and fertility are the
+  # same number seen twice.
+  nutrientAmounts: { carb: 730000, protein: 105000 }
+  toxicity: []
+  tags: ["food", "grain", "cereal", "brewing", "feed"]
+  composition: []

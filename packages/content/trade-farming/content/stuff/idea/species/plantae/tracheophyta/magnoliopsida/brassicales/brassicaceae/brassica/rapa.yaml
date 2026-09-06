@@ -1,0 +1,34 @@
+# Turnips — ⭐⭐ and with them the **Norfolk four-course becomes
+# derivable** (D67).
+#
+# With turnips beside barley and clover the build contains the whole
+# historical rotation — wheat → turnips → barley → clover ley — and every
+# term of it is already a mechanic: clover FIXES nitrogen; the ley is
+# GRAZED and returns fertility in place; and turnips are **folded** —
+# sheep penned on the turnip field, eating it where it stands and
+# manuring as they go, which is literally the graze row applied to a root
+# crop and needs no new mechanism at all.
+#
+# So the rotation needs NO FALLOW YEAR, which is the entire point of it,
+# and a player who understands the nitrogen ledger can rediscover the
+# agricultural revolution from the mechanics rather than read about it.
+#
+# ⚠ Author it honestly: the four-course was developed more gradually and
+# by more hands than the "Turnip Townshend" story suggests. The mechanism
+# is real; the great-man framing is not.
+class: /platform/idea/species/Species
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  binomial: Brassica rapa
+  commonNames: ["turnip", "turnips", "neeps", "roots"]
+  _parentCladePath: /stuff/idea/species/plantae
+  _defaultMaterialPath: /stuff/idea/material/tissue/plant-tissue
+  lifecycleStates: ["alive", "dead"]
+  reproductiveMode: sexual
+  lifespanMin: 0
+  lifespanMax: 2
+  diet: none
+  longDescription: >-
+    Turnips standing shoulder-high in leaf, the roots half out of the
+    ground and purple where the sun has got at them.
+  nameBankKeys: []

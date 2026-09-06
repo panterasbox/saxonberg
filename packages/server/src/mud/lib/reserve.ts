@@ -36,6 +36,7 @@
  * | `endurance` | `%` | Creature + `MetabolicMixin` (recovery) | `Creature.getEndurance()`; drained internally by Vitals (limp), LoadBearing (traversal) — same-host keyed writes are the body's own economy |
  * | `satiation` | `%` | Creature + `MetabolicMixin` | `Creature.getSatiation()`; spent internally by ThermalRegulation (setpoint defense) |
  * | `hydration` | `%` | Creature + `MetabolicMixin` | `Creature.getHydration()` (the tighter recovery leash) |
+ * | `flesh` | `%` | Creature + `MetabolicMixin` (the partition leg) | `Creature.getFlesh()`; ⭐ **the STOCK the flow deposits into** — `satiation` is hours, flesh is months. Read as a BAND (`Creature.bodyConditionBand`), never as a number, unless somebody lays hands on the animal |
  * | `fuel` | `%` | `CombustibleMixin` / `FurnaceMixin` (theme `combustion`) | `getFuelRemaining()` |
  * | `air` | `%` | an enclosed scope's Location (fire chemistry) | `FireLogic`-internal (no external reader) |
  * | `mana` | `pt` | `CasterMixin` (theme `arcane`; capacity from the depth band) | `getMana()` / `getManaFraction()` — raw keyed reads SKIP the recovery reconcile, never use them outside `lib/magic` |
@@ -65,6 +66,7 @@ export const BIOLOGICAL_RESERVE_KEYS = [
   'endurance',
   'satiation',
   'hydration',
+  'flesh',
 ] as const;
 
 /**
@@ -136,6 +138,24 @@ export class Reserve {
       endurance: full('collapse'),
       satiation: full('starvation'),
       hydration: full('dehydration'),
+      // ⭐⭐ **Body condition is fat cover, which is a STOCK.** It is not
+      // a summary of history and not a derived buffer — it is a reserve
+      // in exactly the sense this module already means, and the
+      // substrate was not merely available, it was already biological.
+      //
+      // ⚠ It starts at 55 rather than full, and that is the one place
+      // this table is not uniform. A body at 100 % fat cover is not a
+      // healthy default, it is an obese one; 55 is *in good flesh*,
+      // which is where an animal you would buy actually sits and what
+      // leaves room in both directions for the partition cascade to
+      // mean something.
+      flesh: {
+        capacityValue: 100,
+        currentValue: 55,
+        unit: '%',
+        theme: 'biological',
+        floorEffect: 'emaciation',
+      },
     };
   }
 }

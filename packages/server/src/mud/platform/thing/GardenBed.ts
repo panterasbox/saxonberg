@@ -40,16 +40,24 @@ import { ContainerMixin } from "../../lib/spatial/Container";
 import { PopulatesMixin } from "../../lib/stuff/Populates";
 import { ReservedMixin } from "../../lib/reserve";
 import { CultivableMixin } from "../../lib/husbandry/Cultivable";
+import { SoilMixin } from "../../lib/husbandry/Soil";
 import type { FieldMeta } from "../../lib/mixin";
 
-// The same stack the pot composes — a bed is a pot with a bigger N.
-const GardenBedBase = CultivableMixin(
+// The GROUND half — soil's own two checkpoints — is composed first and
+// separately: its host constraint is `Stuff & Reserved` alone, which is
+// what lets a FIELD have soil without having a plant slot. Naming the
+// intermediate stack is not cosmetic: inference through this many nested
+// generic mixin factories in one expression collapses to `never`.
+const GardenBedGround = SoilMixin(
   PopulatesMixin(
     SlottedMixin(
       BulkableMixin(ContainerMixin(ReservedMixin(DetailedMixin(Thing)))),
     ),
   ),
 );
+
+// The same stack the pot composes — a bed is a pot with a bigger N.
+const GardenBedBase = CultivableMixin(GardenBedGround);
 
 export default class GardenBed extends GardenBedBase {
   static fieldMeta: FieldMeta = {};

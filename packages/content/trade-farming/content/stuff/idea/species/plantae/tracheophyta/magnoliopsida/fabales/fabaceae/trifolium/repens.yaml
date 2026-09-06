@@ -1,0 +1,27 @@
+# Clover — ⭐⭐ **the plant three other decisions already assumed.**
+#
+# It is simultaneously the LEGUME that fixes atmospheric nitrogen (D15),
+# among the best FORAGE there is in a sward (D9), and the classic BEE
+# plant — which is why "clover honey" is the default honey in the real
+# world (D37). One row satisfying all three without a special case
+# anywhere, which is what makes the nutrient loop, the pasture and the
+# hive ONE system rather than three that share a field.
+#
+# ⚠ It was implicit in three decisions and unstated in all of them.
+# Naming it was a correction, not an addition.
+class: /platform/idea/species/Species
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  binomial: Trifolium repens
+  commonNames: ["clover", "white clover", "trefoil"]
+  _parentCladePath: /stuff/idea/species/plantae
+  _defaultMaterialPath: /stuff/idea/material/tissue/plant-tissue
+  lifecycleStates: ["alive", "dead"]
+  reproductiveMode: sexual
+  lifespanMin: 0
+  lifespanMax: 5
+  diet: none
+  longDescription: >-
+    White clover threading through the grass, its heads working with
+    bees and its leaves marked with a pale crescent.
+  nameBankKeys: []

@@ -1,0 +1,14 @@
+# Turnips — ⭐ WINTER FODDER, which is what D13's feeding sequence
+# otherwise has to buy in. They earn their place twice: once as the
+# rotation's root course and once as the thing that gets the stock
+# through February.
+class: /platform/thing/Crop
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a load of turnips
+  primaryKeyword: turnips
+  keywords: [turnips, crop]
+  longDescription: |
+    Roots with the leaf twisted off, muddy and cold, the size of two fists.
+  material: /stuff/idea/material/food/root-vegetable
+  mass: 40

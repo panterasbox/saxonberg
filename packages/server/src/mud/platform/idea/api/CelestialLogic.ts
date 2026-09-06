@@ -318,6 +318,41 @@ export class CelestialLogic extends ApiLogic {
     return sunriseHourAngleDeg(profile, latitudeDegrees, t);
   }
 
+  /** See {@link CelestialApi.daylightSecondsFor}. */
+  @CallSecurity(CelestialApiCallers)
+  public daylightSecondsFor(
+    profile: CelestialProfile,
+    latitudeDegrees: number,
+    t: number
+  ): number {
+    return daylightSeconds(profile, latitudeDegrees, t);
+  }
+
+  /** See {@link CelestialApi.daylightAt}. */
+  @CallSecurity(CelestialApiCallers)
+  public async daylightAt(
+    location: Stuff,
+    time?: Quantity<'s'>
+  ): Promise<Quantity<'s'>> {
+    const profile = await this.profileFor(location);
+    return Quantity.of(
+      daylightSeconds(profile, CAMPUS_LATITUDE, nowOr(time)),
+      's'
+    );
+  }
+
+  /** See {@link CelestialApi.daylightFractionAt}. */
+  @CallSecurity(CelestialApiCallers)
+  public async daylightFractionAt(
+    location: Stuff,
+    time?: Quantity<'s'>
+  ): Promise<number> {
+    const profile = await this.profileFor(location);
+    const day = profile.dayLengthSeconds;
+    if (day <= 0) return 0;
+    return daylightSeconds(profile, CAMPUS_LATITUDE, nowOr(time)) / day;
+  }
+
   /** See {@link CelestialApi.sunriseSecOfDay}. */
   @CallSecurity(CelestialApiCallers)
   public sunriseSecOfDay(
@@ -543,6 +578,31 @@ function sunriseHourAngleDeg(
   if (cosH0 < -1) return 'polar-day';
   if (cosH0 > 1) return 'polar-night';
   return toDeg(Math.acos(clamp(cosH0, -1, 1)));
+}
+
+/**
+ * ⭐ **Daylength — the keystone signal, and arithmetic on two shipped
+ * calls** (D11).
+ *
+ * `2·H0/360` of a rotation, where `H0` is the hour-angle magnitude at
+ * altitude 0 that `sunriseHourAngleDeg` already solves from the
+ * declination this engine already computes from real orbital geometry.
+ * Nothing new is modelled here; the number was derivable all along and
+ * nobody had ever asked for it.
+ *
+ * ⚠ Polar day answers the whole rotation and polar night answers zero,
+ * which are the honest limits rather than special cases — at 66.5° and
+ * beyond, both genuinely happen.
+ */
+function daylightSeconds(
+  profile: CelestialProfile,
+  latitudeDegrees: number,
+  t: number
+): number {
+  const H0 = sunriseHourAngleDeg(profile, latitudeDegrees, t);
+  if (H0 === 'polar-day') return profile.dayLengthSeconds;
+  if (H0 === 'polar-night') return 0;
+  return (profile.dayLengthSeconds * 2 * H0) / DEG_PER_TURN;
 }
 
 function sunriseSecOfDay(

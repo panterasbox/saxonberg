@@ -1,0 +1,40 @@
+# The university farm unit — ⭐⭐⭐ **rung zero of the agricultural
+# ladder** (D104), and it matters that it is rung ZERO rather than a
+# tutorial.
+#
+# > **work somebody else's ground → a windowbox → a yard with hens → a
+# > tenancy → a smallholding → a farm.**
+#
+# You need no parcel, no lot and no capital: you go to the campus farm
+# and work, for a wage, on real ground, doing the real acts. That is also
+# how people actually learn farming, and it is the only on-ramp
+# consistent with *everyone is an author* and with how capital is really
+# accumulated.
+#
+# ⭐ The unit is a teaching facility and a BUSINESS at once — Davis and
+# Cal Poly, which is where the whole idea comes from: small enough to
+# walk, real enough to sell. It produces because it is farmed, and its
+# output is small, seasonal and real, which is what keeps it a transform
+# rather than a faucet (D105).
+#
+# ⚠ The `labourer` position confers nothing and requires nothing. There
+# is no gate, no prerequisite and no application: a character with an
+# empty wallet in their first session can take it, and the acts they do
+# for the wage are the same acts a holder does on their own ground.
+class: /platform/idea/Business
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: "the university farm"
+  appointingAuthority:
+    kind: office
+    office: prime-minister
+  positions:
+    - key: labourer
+      label: working on the university farm
+      wageRate: 2
+      confers: []
+      purchases: false
+  banksAt: goodkin
+  operatingLocations:
+    - /world/eternal/campus-farm/location/yard
+    - /world/eternal/campus-field/location/home-field

@@ -478,6 +478,23 @@ sessile plan is the stand-in for organisms with no agency anatomy
   (e.g. `['alive', 'dead', 'undead']`)
 - `sexDeterminationSystem`, `reproductiveMode`
 - `lifespanMin`, `lifespanMax`
+- ⭐⭐ `adultMass` — **what a grown one weighs, in kg**, and the number
+  the body plan cannot give. `BodyPlan.baseMass` is a body-SHAPE default:
+  every quadruped shares it, so it cannot tell a cow from a collie.
+  `Species.massAt(ageDays)` walks the adult mass back down the
+  `ageCurve` — linear from 7 % of adult at birth to the whole of it at
+  `matureAt`, flat after — and `Creature.getMass()` seeds from that,
+  falling back to `baseMass`. `0` means *this species does not say*.
+
+  ⚠⚠ **Until 2026-09-06 only `biped` authored a `baseMass`, so every
+  quadruped and every bird in the realm massed ZERO** — and four
+  subsystems read that number (encumbrance for carry capacity,
+  metabolism for the Kleiber basal drain, thermal for thermal mass,
+  ranching for what comes off a carcass). Nothing threw: `butcher` on a
+  healthy cow answered *"there was less on it than you hoped"*, a true
+  report about a body that weighed nothing. `Species.authoredMass.test.ts`
+  now reads it from the reader's end — every shipped animal species must
+  arrive at a real mass by some route.
 - `circadianBand`
 - `diet` (DietApi-deferred)
 - `visionProfile` — flat 3-scalar record consumed by `VisionModality`
@@ -595,9 +612,108 @@ Composing `OrganismMixin` declares: "this Stuff is a member of a
 Species, with biological state." The mixin carries:
 
 - `_speciesPath: string | null` — cross-reference to Species
-- `age: number`
+- `bornAt: number` — the birthday, in game-seconds
+- `diedAt: number` — `0` while it lives
 - `lifecycleState: string` — initial value from the leaf template's
   `data`
+
+### ⭐⭐ Age is a DATE, and what it confers is the whole design
+
+`getAgeDays()` is `(diedAt ?? now) − bornAt`, derived on read and stored
+nowhere. There is no counter and no reconcile, and that is not a
+micro-optimisation:
+
+- ⚠ **There is nothing to farm.** An accumulating counter rewards leaving
+  a character logged in, or logged out, or simply existing — which is why
+  the first cut needed an absence guard and an argument about whose clock
+  stops. Arithmetic on a fixed date has no such question.
+- ⭐ **A long absence is a non-event.** Nothing to integrate, nothing to
+  drop, no stepped walk to bound.
+- ⭐ It is the same primitive the herdbook uses for a head born into the
+  record (`HeadOverlay.bornAt`), so a lamb and a person are old in one
+  way.
+- ⚠ **The dead stop.** `setLifecycleState('dead')` stamps `diedAt`, so a
+  corpse's age is the age it died at — which is what a forensic read of
+  one is asking, and a fact the old counter got by skipping.
+
+**What differs between a player and an NPC is not the clock. It is what
+reads it.**
+
+| | the fact | what reads it | what it confers |
+|---|---|---|---|
+| **player** | `bornAt` | the birthday, milestones, seniority | **nothing, ever** |
+| **NPC** | `bornAt` + the species' `ageCurve` | life stage, and in time capability | ability — but ⚠ **never death**, see below |
+| **livestock** | `bornAt` (or the herd's founding) + curve | maturity, breeding, cull, the generation interval | the management game |
+
+⚠⚠ **A played human and an innkeeper are the same species row**, so the
+authored curve cannot be what tells them apart. `getLifeStage()` returns
+`null` for a body somebody plays — always — because **we do not model a
+player character's biological arc**. Their age is seniority: a number to
+say out loud, never an input to a capability. That is what makes parking
+a character worth exactly nothing, and it is why the number can be honest
+wall-clock time rather than something defended against being farmed.
+
+⭐ The number stays readable for everybody. It is the *consequence* that
+stops, never the telling — a birthday is worth having.
+
+### ⚠⚠ What an NPC author has to know before writing a curve
+
+Two facts, and the second is the one that bites.
+
+**1. The world clock STOPS when the server does.** `WorldClockRegistry.
+restore()` re-anchors to `now` and does not add the downtime —
+`lastShutdownRealMs` is persisted and passed around but never read to
+advance anything. So an outage costs zero game time, for age exactly as
+for weather, seasons, soil reversion and herd metabolism. **Nobody ages
+through a shutdown.** (This is worth stating because the opposite is the
+natural assumption, and designing around a phantom is expensive.)
+
+**2. ⭐⭐ The scale factor is the whole effect.** `DEFAULT_SCALE = 12`, so:
+
+> **one real year of uptime is TWELVE game years.**
+
+That is the arithmetic to design against, and it is unforgiving:
+
+| species lifespan | visibly old after |
+|---|---|
+| 15 years (a dog) | ~15 months of real operation |
+| 40 years | ~3⅓ real years |
+| 120 years (a human) | ~a real decade |
+
+So author a curve **only on a species whose ageing you actually want to
+watch**. A long-lived, persistent, named NPC either wants no curve at all
+or wants numbers chosen against that table — not against intuition about
+how long a person lives.
+
+⚠ **And age is the one clock-driven quantity with no recovery path.** A
+field can be re-cleared, a herd re-fed, a crop replanted; every other
+thing the clock drives can be restored by playing. **An NPC cannot be
+un-aged.** That asymmetry, not the shutdown question, is what earns age
+more caution than soil.
+
+### ⭐ DECIDED — curves without lifespans
+
+`ageCurve` is live: it gives life stages, and a life stage may confer
+ability. **`lifespanMin` / `lifespanMax` deliberately do NOT bite.**
+Nothing dies of old age.
+
+That is a decision, not an omission, and it should not be quietly
+"finished" by a later build wiring `lifespanMax` into mortality. The
+reason is the table above: under 12× compression, lifespans that bite
+mean a named NPC reliably dies inside the game's ordinary operational
+life, and *"does the innkeeper die, and who replaces her?"* is a
+succession problem nobody has solved. **Ability from age, yes; death from
+age, not yet.**
+
+⭐ The lifespan numbers are not inert, though — they are *informational*.
+`SpeciesLogic` prints `~120 years` on the char-gen species dossier: a
+fact the world knows about a kind of creature, told to a player choosing
+one. The world knows how long its people live; it just does not kill them
+with it.
+
+⚠ When it is time, it belongs with [mortality.md](./mortality.md) and
+needs the succession answer first. The mechanism is ready — `ageCurve` +
+`lifeStageAt` is general and extending it is authoring, not engineering.
 
 `OrganismMixin` is composed:
 

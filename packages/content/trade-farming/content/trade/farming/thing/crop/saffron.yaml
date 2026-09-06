@@ -1,0 +1,15 @@
+# ⭐⭐ Saffron — TEN GRAMS, and look at the mass. That number is the
+# whole of D44: roughly 150 flowers per gram, every stigma pulled by
+# hand, and its value comes from LABOUR rather than land. The exact
+# inverse of the barley sack beside it, which weighs twenty-five kilos
+# and took a field.
+class: /platform/thing/Crop
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a paper of saffron
+  primaryKeyword: saffron
+  keywords: [saffron, crop]
+  longDescription: |
+    A folded paper holding a pinch of crimson threads. It weighs almost nothing and it took a morning on your knees.
+  material: /stuff/idea/material/food/saffron
+  mass: 0.01

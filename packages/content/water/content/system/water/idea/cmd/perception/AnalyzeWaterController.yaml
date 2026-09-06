@@ -1,0 +1,13 @@
+# The `analyze water` controller's seed.
+#
+# ⭐ It lives in the WATER pack, with the system whose subject matter it
+# reads — the instrumentation split, the same one that puts `analyze
+# soil`'s controller in `trade-farming` and `measure strike`'s in
+# `trade-mining`. The STANZA stays on the platform's shipped `analyze`
+# view; only the controller is the pack's.
+#
+# ⚠ It used to be the platform's, and the tell was a kernel constant
+# naming `/system/water/idea/WatercourseCatalogue`. The kernel does not
+# know which systems exist.
+class: /system/water/idea/cmd/perception/AnalyzeWaterController
+data: {}

@@ -1,0 +1,11 @@
+# Seed for barley — the same discrete-Thing shape every shipped seed has.
+class: /platform/thing/Seed
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a sack of barley seed
+  primaryKeyword: seed
+  keywords: [seed, seeds, barley]
+  longDescription: |
+    Plump hulled grain, kept back from last year's crop and screened for the drill.
+  growsIntoPath: /trade/farming/thing/plant/barley
+  _speciesPath: /stuff/idea/species/plantae/tracheophyta/liliopsida/poales/poaceae/hordeum/vulgare

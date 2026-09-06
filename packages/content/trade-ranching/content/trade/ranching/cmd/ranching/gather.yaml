@@ -1,0 +1,24 @@
+verbs: [gather]
+controller: /trade/ranching/idea/cmd/ranching/GatherController
+description: "Collect what has been laid"
+help: |
+  Feel under the straw.
+
+  ⭐ Eggs ACCRUE, so collect whenever — a hen forgives an absence in a
+  way a dairy cow does not, and that forgiveness is the same reason hens
+  are where anybody sensible starts.
+
+  ⚠ Past what a clutch will hold they spoil in the nest and the surplus
+  is gone. The gentlest failure on the farm.
+
+  ⚠ And in short days there will be nothing there at all. That is not a
+  sick bird — it is a bird, in winter.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  - name: target
+    type: object
+    required: true
+    scope: ["reachable"]
+    requires: HandlingMixin

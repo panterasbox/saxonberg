@@ -39,6 +39,7 @@ import {
   SOIL_NITROGEN_RESERVE_KEY,
   type Cultivable,
 } from '../../../../lib/husbandry/Cultivable';
+import type { Soil } from '../../../../lib/husbandry/Soil';
 import type { Reserved } from '../../../../lib/reserve';
 import { BlendIdentity } from '../../../../lib/craft/BlendIdentity';
 
@@ -216,7 +217,9 @@ export default class FeedController extends CommandController<FeedModel> {
    * The cultivable ground `named` refers to: itself when it is ground, or
    * the ground it is rooted in when it is a plant.
    */
-  private resolveGround(named: Stuff): (Stuff & Cultivable & Reserved) | null {
+  private resolveGround(
+    named: Stuff,
+  ): (Stuff & Cultivable & Soil & Reserved) | null {
     if (MixinApi.isCultivable(named) && MixinApi.isReserved(named)) {
       return named;
     }

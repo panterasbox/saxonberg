@@ -1,0 +1,23 @@
+verbs: [ditch]
+controller: /trade/farming/idea/cmd/farming/DitchController
+description: "Cut a drain along the fall of the ground"
+help: |
+  Open a line along the fall of the field and throw the spoil to the high
+  side, so the water has somewhere to go.
+
+  ⭐ You are not changing the soil — you cannot; the texture of a field is
+  the earth it is made of. You are changing where the water goes, which
+  is a different job with a different answer.
+
+  ⚠ Heavy wet ground is far dearer to drain than light wet ground,
+  because the two things that make ground hard to drain compound. Ground
+  that sheds its own water wants no ditch at all, and says so.
+
+  Needs a spade.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  - name: detail
+    type: string
+    required: false

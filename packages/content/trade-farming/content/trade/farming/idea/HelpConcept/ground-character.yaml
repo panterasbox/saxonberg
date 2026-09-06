@@ -1,0 +1,30 @@
+# ⭐⭐ D55, said to the player: character prices the WORK, not the yield.
+class: /platform/idea/HelpConcept
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: ground-character
+  title: What ground is like
+  summary: Texture, drainage and sourness — and why they price the WORK.
+  keywords: [ground, soil, texture, character, survey, drainage, clay, sand, loam, ph]
+  seeAlso: [nitrogen, structure]
+  body: |
+    Every piece of ground has a character it was born with: what it is
+    made of, how it holds water and lets it go, how much stone is in it,
+    which way it faces, and whether it is sour.
+
+    ⭐ **None of that is a yield number.** It is a bill. Stony ground costs
+    stone-picking; wet ground costs ditching; steep ground costs work you
+    will do every year forever; sour ground costs lime. That is why some
+    land has been farmed for a thousand years and some was never farmed at
+    all — not because it grew less, but because bringing it in cost more
+    than it returned.
+
+    You cannot change a field's texture. It is the earth. What you CAN
+    change is where the water goes, how sour it is, and how much life is
+    in it — and a raised bed is not a small field, it is soil you carried
+    there, which is why a bed's texture is whatever you filled it with.
+
+    ⚠ Sourness is invisible. A sour field looks exactly like a sweet one
+    and grows a visibly poor crop, which is the whole reason a soil kit
+    is worth owning: lime is dear, slow to undo, and wasted if the ground
+    did not need it.

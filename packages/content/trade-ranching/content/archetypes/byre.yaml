@@ -1,0 +1,34 @@
+# ⭐⭐ The BYRE archetype — what keeping animals NEEDS.
+#
+# ⭐ **Two archetypes, not one, and the pack cut is why.** The
+# requirements say "a farmstead archetype"; mining, brewing, distilling
+# and winemaking each ship their own, and **a holding that only grows
+# crops must not fail a byre slot**. A mixed farmstead satisfies both,
+# which is the honest reading of a mixed farm — and it gives the campus
+# farm TWO bindings to prove rather than one.
+#
+# ⚠⚠ **Reported, never enforced**, exactly as the farm's is. A byre
+# missing its muck heap is a legal, visible state and nothing multiplies
+# off it.
+#
+# ⭐ `water` is the divergence slot again, and it ships with no default
+# for the same reason: every byre needs it and no two places answer the
+# same way.
+archetypeId: byre
+label: a place that keeps stock
+industry: ranching
+capabilities:
+  # D12's winter, stated as a need rather than as a season: somewhere
+  # out of the weather is what makes a hard winter survivable.
+  - { key: shelter, needs: { presence: byre } }
+  # Fencing, and ⭐ note where it comes from — a stony field is dear to
+  # clear and CHEAP TO FENCE, because the wall is the field's own stones.
+  - { key: enclosure, needs: { presence: wall } }
+  # ⭐ The divergence slot. No default, on purpose.
+  - { key: water, needs: { bulkSource: water } }
+  # The winter feed budget, made a place rather than a number.
+  - { key: feed, needs: { presence: hay } }
+  # ⚠ Somewhere the muck goes (D68) — and it is not waste, it is the
+  # return leg of the nitrogen ledger. A byre with nowhere to put it is a
+  # byre throwing away half of what the animals are for.
+  - { key: muck, needs: { presence: midden } }

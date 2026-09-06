@@ -57,10 +57,10 @@ describe('discovery', () => {
 });
 
 describe('the shipped packs (real discovery, no install)', () => {
-  it('forty-one ship; the trade packs order after generic-objects (wave 4a); the venues after their trades (wave 4b); the localities after residence (residences D18); every consigner after distribution (fermentation D10); the localities after water (watershed W9); the metal chain after ITS trades; every locality with a terminal after tpa (the TPA reform); the textile chain after farming AND the locality it consigns into; the haulage trade after the transport system it runs on', () => {
+  it('forty-two ship; the trade packs order after generic-objects (wave 4a); the venues after their trades (wave 4b); the localities after residence (residences D18); every consigner after distribution (fermentation D10); the localities after water (watershed W9); the metal chain after ITS trades; every locality with a terminal after tpa (the TPA reform); ranching after farming (farmstead P9 — pasture is a field); the lanes and the haulier after transport (logistics); the textile chain after farming AND the locality it consigns into', () => {
     const ids = PackApi.contentRoots().map((root) => root.split('/').slice(-2)[0]!);
-    expect(ids).toHaveLength(41);    expect(ids[0]).toBe('platform');
-    for (const trade of ['trade-smithing', 'trade-cooking', 'trade-hospitality', 'trade-distilling']) {
+    expect(ids).toHaveLength(42);
+    expect(ids[0]).toBe('platform');    for (const trade of ['trade-smithing', 'trade-cooking', 'trade-hospitality', 'trade-distilling']) {
       expect(ids.indexOf(trade)).toBeGreaterThan(ids.indexOf('generic-objects'));
     }
     for (const trade of ['trade-smithing', 'trade-cooking']) {
@@ -125,6 +125,15 @@ describe('the shipped packs (real discovery, no install)', () => {
     ]) {
       expect(ids.indexOf(namer)).toBeGreaterThan(ids.indexOf('tpa'));
     }
+    // ⭐⭐ The farmstead cut, and it is the design's own claim made
+    // installable: **pasture is a field.** The ground an animal stands
+    // on is farming's, so ranching depends on farming and installs after
+    // it — the metal chain's shape (mining → fuel → smelting) reached
+    // from the other direction, and declared in the manifest rather than
+    // assumed.
+    expect(ids.indexOf('trade-ranching')).toBeGreaterThan(
+      ids.indexOf('trade-farming'),
+    );
     expect(ids.indexOf('tpa')).toBeGreaterThan(ids.indexOf('arcana'));
     // ⭐ The logistics cut: the realm's lanes and service routes are rows
     // in the COMMONS (world-seed), and Terminus's ford names the

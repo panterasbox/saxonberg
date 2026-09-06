@@ -110,8 +110,122 @@ export interface VitalBand {
   baseline: number;
   survivableMin: number;
   survivableMax: number;
-  // reserved: ageCurve?: AgeCurveSpec — declared-but-empty seam.
+  // reserved: a per-sign age curve — still an empty seam. The
+  // WHOLE-ORGANISM age curve is {@link AgeCurveSpec} below; this one
+  // would be "how does a lamb's resting heart rate differ from a ewe's",
+  // which nothing asks yet.
 }
+
+/**
+ * ⭐⭐ **The maturation curve — how long this species takes to become
+ * itself** (farmstead D23).
+ *
+ * `Organism.age` and `lifecycleState` have been persistent fields with
+ * **no driver** since the race build: `setAge` had zero non-test callers
+ * and the age curve was a comment. This is the shape that driver walks.
+ *
+ * ## ⚠ Compress the absolute scale; preserve the inter-species RATIOS
+ *
+ * A game year is 30 real days, so a true cattle generation interval —
+ * two and a half years — is a **two-to-three real month** investment.
+ * The term that makes animal breeding interesting is the term that would
+ * make it unplayable. So the numbers here are compressed, and what is
+ * held exactly is the *proportion between species*: what teaches
+ * `R = h²·S / L` is that **sheep improve faster than cattle because
+ * their generation interval is shorter**, and that survives compression
+ * intact.
+ *
+ * Every figure is per-species authored and none is hardcoded anywhere.
+ */
+/**
+ * What a newborn weighs as a fraction of its grown self.
+ *
+ * ⭐ One number for every species on purpose: across mammals and birds a
+ * neonate runs a few per cent of adult mass and the spread between a
+ * lamb and a calf is far smaller than the spread in what they grow INTO
+ * — which the species' own `adultMass` already carries. A per-species
+ * birth weight would be a second authored number saying almost the same
+ * thing.
+ */
+const BIRTH_MASS_FRACTION = 0.07;
+
+export interface AgeCurveSpec {
+  /** Game-days from birth to weaning — off the mother, on solid feed. */
+  weanedAt: number;
+  /** Game-days to breeding age. ⭐ The generation interval's numerator. */
+  matureAt: number;
+  /** Game-days at which the animal is past its best. */
+  agedAt: number;
+  /** Game-days at which it is at the end of its life. */
+  senescentAt: number;
+}
+
+/**
+ * ⭐⭐ **One tap — a renewable product, and how it FAILS** (farmstead
+ * D25, D93).
+ *
+ * Three renewable products, three genuine consequences, and no invented
+ * punishments. The behaviour is the whole spec:
+ *
+ * | | behaviour | neglect |
+ * |---|---|---|
+ * | **milk** | `expire` — taken twice a **game** day | she **dries off** for that lactation. ⚠ A large **slope**, not a cliff: the next lactation is unaffected |
+ * | **eggs** | `accrue` — collect whenever | they **spoil** in the nest past what a clutch will hold |
+ * | **wool** | `continuous` — grows, harvested once | a worse fleece, and a hot sheep |
+ *
+ * ⭐ **Accrual for the on-ramp, expiry for the committed** (D93). The
+ * forgiving end of the roster accrues and expiry is what you take on
+ * when you commit — which is why hens are the on-ramp and a dairy cow is
+ * a tyrant, and why that is a choice a player makes honestly rather than
+ * a gate.
+ *
+ * ⚠⚠ **A tap fills from the PRODUCTION SLICE of the energy budget** and
+ * mints nothing. Copy `Stock`'s reset *sweep*; never its `par`
+ * semantics, which is a faucet shape and would make matter from nothing.
+ */
+export interface TapSpec {
+  /** What comes out — the key the verbs and the register speak. */
+  key: string;
+  /** The row a take mints. */
+  yieldRow: string;
+  /** Units per GAME day at full production (D89 — never "daily"). */
+  perGameDay: number;
+  /** How it behaves when nobody comes. */
+  behaviour: 'accrue' | 'expire' | 'continuous';
+  /**
+   * Game-days after which an untaken `expire` tap gives up for the
+   * season, or an `accrue` tap starts losing what is standing.
+   */
+  windowDays: number;
+}
+
+/**
+ * ⭐ **Breeding: a photoperiod SEASON, not a date** (D26, D11).
+ *
+ * Ewes are short-day breeders and lamb in late winter; cattle are
+ * near-aseasonal; horses are long-day. **Lambing in spring is a
+ * consequence of the calendar rather than a flavour decision anybody
+ * authors** — the window is stated in daylength, and the calendar
+ * decides when that happens.
+ */
+export interface BreedingSpec {
+  /**
+   * The daylength band, as a fraction of the rotation, in which this
+   * species will conceive. A short-day breeder authors a LOW band; a
+   * near-aseasonal one authors `[0, 1]` and is never out of season.
+   */
+  daylightFrom: number;
+  daylightTo: number;
+  /** Gestation, in game days. */
+  gestationDays: number;
+  /** Young per birth. */
+  litter: number;
+}
+
+/** The life stages the curve resolves into, young to old. */
+export const LIFE_STAGES = ['newborn', 'juvenile', 'adult', 'aged'] as const;
+
+export type LifeStage = (typeof LIFE_STAGES)[number];
 
 /**
  * Per-species vital baselines + survivable bands. Keyed by the
@@ -181,6 +295,42 @@ export default class Species extends SingletonMixin(
   /** Lifespan band (years). v1 is descriptive only. */
   protected lifespanMin: number = 0;
   protected lifespanMax: number = 0;
+
+  /**
+   * ⭐⭐ **What a grown one of these weighs, in kg** — the species'
+   * answer, and the one the body plan cannot give.
+   *
+   * `BodyPlan.baseMass` is a body-SHAPE default: every quadruped shares
+   * it, so it cannot tell a cow from a collie, and a plan authoring none
+   * leaves the body at **zero** — which is what `quadruped` and `avian`
+   * both did until 2026-09-06, so every four-legged and every winged
+   * animal in the realm massed nothing. Three subsystems read that
+   * number (encumbrance for carry capacity, metabolism for the Kleiber
+   * basal drain, thermal for thermal mass) and a fourth found it:
+   * butchering a drafted beast handed back nothing at all, because every
+   * cut of zero rounds to nothing.
+   *
+   * `0` means *this species does not say*, and the body plan's default
+   * stands — so authoring it is an improvement, never a requirement.
+   *
+   * ⚠ It is the ADULT mass. What an animal weighs today is
+   * {@link massAt}, which walks it up the maturation curve.
+   */
+  protected adultMass: number = 0;
+
+  /**
+   * The maturation curve (D23), or `null` for a species nobody has
+   * timed. ⚠ `null` is the ordinary case and means *this species does
+   * not age in this game*, which is not the same as *it ages instantly*
+   * — the driver reads it and does nothing.
+   */
+  protected ageCurve: AgeCurveSpec | null = null;
+
+  /** What this species produces while you keep it (D25). Empty = nothing. */
+  protected production: TapSpec[] = [];
+
+  /** When and how it breeds (D26), or `null` for a species that does not. */
+  protected breeding: BreedingSpec | null = null;
 
   /**
    * `'diurnal'`, `'nocturnal'`, `'crepuscular'`, `'cathemeral'`,
@@ -383,6 +533,10 @@ export default class Species extends SingletonMixin(
     reproductiveMode: { persistent: true },
     lifespanMin: { persistent: true },
     lifespanMax: { persistent: true },
+    adultMass: { persistent: true, authorable: true },
+    ageCurve: { persistent: true, authorable: true },
+    production: { persistent: true, authorable: true },
+    breeding: { persistent: true, authorable: true },
     circadianBand: { persistent: true },
     diet: { persistent: true },
     visionProfile: { persistent: true },
@@ -523,6 +677,78 @@ export default class Species extends SingletonMixin(
   public getReproductiveMode(): string { return this.reproductiveMode; }
   public setReproductiveMode(value: string): void {
     this.reproductiveMode = value;
+  }
+
+  public getProduction(): readonly TapSpec[] { return this.production; }
+  public setProduction(value: TapSpec[]): void {
+    this.production = Array.isArray(value) ? value : [];
+  }
+
+  public getBreeding(): BreedingSpec | null { return this.breeding; }
+  public setBreeding(value: BreedingSpec | null): void {
+    this.breeding = value ?? null;
+  }
+
+  /**
+   * ⭐ Is `daylightFraction` inside this species' breeding window?
+   *
+   * ⚠ A band, not a date, and it wraps: a short-day breeder's window is
+   * `[0, 0.42]` and a long-day breeder's is `[0.55, 1]`, so the test is
+   * a plain interval — but a species authoring `from > to` means a
+   * window that crosses the solstice, and that is a real shape too.
+   */
+  public breedsAtDaylight(daylightFraction: number): boolean {
+    const b = this.breeding;
+    if (!b) return false;
+    const { daylightFrom: from, daylightTo: to } = b;
+    return from <= to
+      ? daylightFraction >= from && daylightFraction <= to
+      : daylightFraction >= from || daylightFraction <= to;
+  }
+
+  public getAdultMass(): number { return this.adultMass; }
+  public setAdultMass(value: number): void {
+    this.adultMass = Number.isFinite(value) && value > 0 ? value : 0;
+  }
+
+  /**
+   * ⭐ What one of these weighs at `ageDays` — the adult mass walked back
+   * down the maturation curve, or `0` when the species does not say.
+   *
+   * Growth is linear from {@link BIRTH_MASS_FRACTION} of adult at birth
+   * to the whole of it at `matureAt`, and flat thereafter. A real growth
+   * curve is sigmoid; this is the honest cheap version, and the shape
+   * that matters is the one it gets right — **a calf is not a cow, and
+   * killing one early costs you the difference.** With no curve authored
+   * the species has no maturation to walk, so the adult mass stands.
+   */
+  public massAt(ageDays: number): number {
+    const adult = this.adultMass;
+    if (adult <= 0) return 0;
+    const curve = this.ageCurve;
+    if (!curve || curve.matureAt <= 0) return adult;
+    if (ageDays >= curve.matureAt) return adult;
+    const grown = Math.max(0, ageDays) / curve.matureAt;
+    return adult * (BIRTH_MASS_FRACTION + (1 - BIRTH_MASS_FRACTION) * grown);
+  }
+
+  public getAgeCurve(): AgeCurveSpec | null { return this.ageCurve; }
+  public setAgeCurve(value: AgeCurveSpec | null): void {
+    this.ageCurve = value ?? null;
+  }
+
+  /**
+   * The life stage an animal of `ageDays` has reached — ⭐ derived, and
+   * `null` for a species with no curve, which reads as *unmodelled* and
+   * never as *newborn*.
+   */
+  public lifeStageAt(ageDays: number): LifeStage | null {
+    const curve = this.ageCurve;
+    if (!curve) return null;
+    if (ageDays < curve.weanedAt) return 'newborn';
+    if (ageDays < curve.matureAt) return 'juvenile';
+    if (ageDays < curve.agedAt) return 'adult';
+    return 'aged';
   }
 
   public getLifespanMin(): number { return this.lifespanMin; }

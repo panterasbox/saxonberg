@@ -1,0 +1,26 @@
+# ⭐ D24, said to the player. And it is the one read that costs an act.
+class: /platform/idea/HelpConcept
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: body-condition
+  title: Body condition
+  summary: How much of an animal is condition, and why you have to lay hands on it.
+  keywords: [condition, flesh, thin, fat, score, palpation, scoring]
+  seeAlso: [husbandry-clock, nitrogen]
+  body: |
+    Body condition is fat cover, and it is a store rather than a mood.
+    An animal fills it when it is fed above what it needs and spends it
+    when it is fed below — over **months**, not hours. Hunger is a matter
+    of a day; condition is a matter of a season.
+
+    ⭐ Production goes first. A cow short of feed stops milking well before
+    she starts losing flesh, because milk is made out of the surplus and
+    the store is what is left over. That is a warning, and it is the only
+    one you get.
+
+    ⚠ By eye you get a band — thin, in good flesh, fat. To get a SCORE you
+    have to put your hands on the animal and feel the spine and the ribs
+    and the hips, because that is what body condition scoring actually is.
+    The same act quiets the animal, so the person who handles their stock
+    is the person who knows what condition it is in. Neither is bought
+    separately.

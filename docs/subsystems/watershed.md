@@ -877,24 +877,38 @@ check:
 - **`boil`** is the one act with no plausible existing home (W8), and it
   is `crafting`, afforded by the fire.
 
-### `analyze water`, and how the kernel reads a pack object
+### `analyze water` — the stanza is the platform's, the controller is ours
 
 Bare, it reports the ground you stand on — the reach the covering
 locality declares, what is passing, how much is snowmelt, how much snow
 is still lying above you, whether a boat gets through. Pointed at a
 waterworks, it reports that instead.
 
-⚠ **The kernel does not import the water pack.** Both readings go over
-shapes: a supply answers `supplyReport` (`SupplyReporting` in
-`lib/supply/SupplyState.ts`), and the drainage catalogue is reached by
-template path rather than by module — the `HoldingView` seam the
-residences build established. A realm with no water pack installed gets
-an honest "nothing here knows about water", never a crash. Ground that
-drains nowhere says so, and that is a normal state of the world.
+⭐ **The controller lives in the water pack** (`/system/water/idea/cmd/
+perception/AnalyzeWaterController`), with the system whose subject matter
+it reads. That is the instrumentation split — a channel's STANZA goes on
+the platform's shipped `measure`/`analyze` view, its CONTROLLER goes with
+whoever owns the subject — and it is the same arrangement that puts
+`analyze soil`'s controller in `trade-farming` and `measure strike`'s in
+`trade-mining`.
+
+> ⚠ It was the platform's until 2026-09-05, and the tell was a kernel
+> constant naming `/system/water/idea/WatercourseCatalogue`. **The engine
+> does not know which systems exist.** Everything else about the seam was
+> already careful — the shim, the try/catch, the honest degrade — which
+> is what made the one string easy to miss.
+
+⭐ **The shape seam is untouched and is the part that matters.** A supply
+answers `supplyReport` (`SupplyReporting` in `lib/supply/SupplyState.ts`)
+— plain data in, plain data out — so anything that carries water
+anywhere answers `analyze water <target>` whether or not this pack has
+heard of it. What moved is only the half that was always about THIS
+system: the bare reading, which asks the drainage catalogue what is
+passing here, and which now simply imports it.
 
 The arg is declared `requires: any` deliberately: a waterworks is
-recognised by the shape it answers, not by a mixin, because there is no
-kernel mixin here to name.
+recognised by the shape it answers, not by a mixin. Ground that drains
+nowhere says so, and that is a normal state of the world.
 
 ## The realm on the water (W9)
 

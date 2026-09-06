@@ -1,0 +1,30 @@
+# Milk — ⭐ and it is where dairy becomes a BUSINESS rather than a store
+# cupboard.
+#
+# ⚠ It keeps for hours. That single fact is why every dairying culture
+# invented cheese, butter and yoghurt, and it is why milk lands on the
+# shipped fermentation substrate rather than in a sack: what you do with
+# milk you have to do today.
+#
+# ⚠ It lives in the COMMONS rather than under `/trade/ranching`, because
+# milk is a fact about mammals and not about the trade. A cow gives it
+# whether or not anybody is ranching.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: milk
+  appearance: white and faintly warm
+  keywords: [milk]
+  density: 1030
+  specificHeat: 3930
+  thermalConductivity: 0.53
+  electricalConductivity: 0.5
+  waterAbsorptionCapacity: 0
+  hardness: 0
+  toughness: 0
+  edibility: true
+  nutrients: ["fat", "protein", "sugar", "water"]
+  nutrientAmounts: { fat: 34000, protein: 33000, sugar: 48000, water: 870000 }
+  toxicity: []
+  tags: ["food", "dairy", "liquid", "perishable", "once-living"]
+  composition: []

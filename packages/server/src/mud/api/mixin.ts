@@ -93,6 +93,8 @@ import type { Contaminable } from '../lib/material/Contaminable';
 import type { Growing } from '../lib/husbandry/Growing';
 import type { Maturing } from '../lib/maturation/Maturing';
 import type { Plantable } from '../lib/husbandry/Plantable';
+import type { Soil } from '../lib/husbandry/Soil';
+import type { Handling } from '../lib/husbandry/Handling';
 import type { Cultivable } from '../lib/husbandry/Cultivable';
 import type { Combustible } from '../lib/fire/Combustible';
 import type { Meltable } from '../lib/thermal/Meltable';
@@ -172,6 +174,7 @@ import type { Bank } from '../lib/banking/Bank';
 import type { Business } from '../platform/idea/Business';
 import type { Organization } from '../lib/employment/Organization';
 import type { Publisher } from '../lib/press/Publisher';
+import type { Registrar } from '../lib/document/Register';
 import type { Attendant } from '../lib/attendant/Attendant';
 import type { Employed } from '../lib/employment/Employed';
 import type { Cast } from '../lib/npc/Cast';
@@ -1084,18 +1087,38 @@ export class MixinApi {
   }
 
   /**
+   * An animal that can be handled — tractability, the flight zone, and
+   * (the half that matters) the risk it presents to whoever is working
+   * it.
+   */
+  public static isHandling(obj: Stuff): obj is Stuff & Handling {
+    return this.hasMixin(obj, Mixins.Handling);
+  }
+
+  /**
+   * Ground with SOIL in it — the moisture/nutrient reserves and their
+   * reconcile window. A pot, a bed and a field all answer yes; only the
+   * first two are also {@link isCultivable}, because a field's crop does
+   * not sit in a plant slot.
+   */
+  public static isSoil(obj: Stuff): obj is Stuff & Soil {
+    return this.hasMixin(obj, Mixins.Soil);
+  }
+
+  /**
    * Ground that holds plants — a pot (N = 1) or a garden bed (N > 1).
    * The narrowing that replaced `instanceof PlantPot` across the
    * cultivation verbs.
    *
    * Narrows to the WHOLE composed surface, not just `Cultivable`:
-   * `CultivableMixin`'s base constraint already requires Container +
-   * Bulkable + Slotted, so a cultivable provably has them, and a caller
-   * that needs `occupy`/`vacate` should not have to narrow twice.
+   * `CultivableMixin`'s base constraint already requires Soil + Container
+   * + Bulkable + Slotted, so a cultivable provably has them, and a caller
+   * that needs `occupy`/`vacate` — or `reconcileSoil` — should not have to
+   * narrow twice.
    */
   public static isCultivable(
     obj: Stuff
-  ): obj is Stuff & Cultivable & Container & Bulkable & Slotted {
+  ): obj is Stuff & Cultivable & Soil & Container & Bulkable & Slotted {
     return this.hasMixin(obj, Mixins.Cultivable);
   }
 
@@ -1438,6 +1461,14 @@ export class MixinApi {
    */
   public static isPublisher(obj: Stuff): obj is Stuff & Publisher {
     return this.hasMixin(obj, Mixins.Publisher);
+  }
+
+  /**
+   * A **register** — a body that keeps a book about somebody else, and
+   * may file into its own branch of the document store (`Registrar`).
+   */
+  public static isRegistrar(obj: Stuff): obj is Stuff & Registrar {
+    return this.hasMixin(obj, Mixins.Registrar);
   }
 
   /** A standalone employing Business (the `BusinessMixin` marker). */

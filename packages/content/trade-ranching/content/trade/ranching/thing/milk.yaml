@@ -1,0 +1,15 @@
+# Milk — ⭐ into the shipped fermentation substrate, which is where dairy
+# becomes interesting.
+#
+# ⚠ It spoils, which is the entire reason a dairy is a business rather
+# than a store cupboard: what you do with milk you have to do today.
+class: /platform/thing/Provision
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a pail of milk
+  primaryKeyword: milk
+  keywords: [milk, pail]
+  longDescription: >-
+    Warm and frothing at the top, with the cream not yet risen.
+  _materialPath: /stuff/idea/material/food/milk
+  mass: 10
