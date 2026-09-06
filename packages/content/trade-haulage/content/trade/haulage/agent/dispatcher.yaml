@@ -1,6 +1,6 @@
 # The dispatcher — keeps the book, and knows where everything is without
 # looking at it.
-class: /platform/agent/NPC
+class: /platform/agent/Cast
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sensitivus
@@ -13,6 +13,22 @@ data:
     open on a slope-desk that he does not appear to consult. He knows
     what is on the road, what is in the shed, and what is late, and he
     tells you the third one first.
+  # ── the dossier ─────────────────────────────────────────────────
+  # Evidence, never values: each entry below expands into the same rows a
+  # lived history would have written, marked `claim`. Seeded once at
+  # postRegister and skipped if any claim already exists, so a reclone or
+  # a reboot cannot mint a second history.
+  # ⚠ A best-guess pass, explicitly provisional — the considered version
+  # is a content pass of its own before go-live.
+  archetype: dispatcher
+  prologue:
+    - "Has kept the road in his head long enough that the ledger is a formality."
+  competence:
+    - { discipline: teamstering, asserting: competent }
+    - { discipline: business-administration, asserting: proficient }
+  dispositions:
+    - { disposition: composure, valence: 60 }
+    - { disposition: diligence, valence: 70 }
   behaviors:
     - brain: /lib/behavior/idles
       trigger: cadence:44s

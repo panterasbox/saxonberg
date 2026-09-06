@@ -8,7 +8,7 @@
 # ⚠ He runs on the SAME `Journey` object a player drives. There is no
 # second implementation, so a background haul is visibly a job a player
 # could have taken and didn't.
-class: /platform/agent/NPC
+class: /platform/agent/Cast
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sensitivus
@@ -20,6 +20,21 @@ data:
     Weather-cut, deliberate, and dressed for standing still in the cold
     for a long time. He walks at the horse's head rather than riding,
     which tells you what he thinks about the state of the road.
+  # ── the dossier ─────────────────────────────────────────────────
+  # Evidence, never values: each entry below expands into the same rows a
+  # lived history would have written, marked `claim`. Seeded once at
+  # postRegister and skipped if any claim already exists, so a reclone or
+  # a reboot cannot mint a second history.
+  # ⚠ A best-guess pass, explicitly provisional — the considered version
+  # is a content pass of its own before go-live.
+  archetype: carter
+  competence:
+    - { discipline: teamstering, asserting: proficient }
+    - { discipline: appraisal, asserting: novice }
+  dispositions:
+    - { disposition: patience, valence: 70 }
+    - { disposition: compassion, valence: 55 }
+    - { disposition: diligence, valence: 60 }
   behaviors:
     # ⭐⭐ The reserve supply. Every beat he reads the works boards, and
     # for any haul nobody has taken inside its window he does the work
