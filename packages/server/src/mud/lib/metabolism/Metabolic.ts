@@ -50,6 +50,9 @@ import { StuffApi } from "../../api/stuff";
 import { WorldClockApi } from "../../api/worldclock";
 import { TemplatePaths, TemplatePathPrefixes } from "../paths";
 import { BlendLabel } from './BlendLabel';
+import { Contamination } from '../material/Contaminable';
+import { AccountabilityApi } from '../../api/accountability';
+import { SpeciesApi } from '../../api/species';
 import { BlendIdentity } from '../../lib/craft/BlendIdentity';
 
 /* ─────────────────────────── toxin model (types) ─────────────────────────── */
@@ -1040,6 +1043,104 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
         if (tox.amount <= 0) continue;
         pools[tox.type] = (pools[tox.type] ?? 0) + tox.amount;
       }
+      // ⚠⚠ **And the living half.** A toxin is a dose that routes into a
+      // pool; a pathogen is a population that has to be handed to the body
+      // as something that GROWS. Same seam, one line apart, because this
+      // is the one place food becomes body.
+      this.exposeToPathogens(payload);
+    }
+
+    /**
+     * ⭐⭐ **Where an infection starts.** Every route from food into a
+     * body — the discrete arm of `eat`, the dish arm, `drink`, `sip` —
+     * arrives at `ingest`, so this is the one place the pathogen loads on
+     * the payload become a thing happening inside somebody.
+     *
+     * Two arms, and only one of them needs anything here:
+     *
+     *   - **`infect`** — the population is handed to the body as an
+     *     `AfflictionRecord` carrying a live `pathogenLoad`, incubating
+     *     until `symptomsAt`. `VitalsMixin` grows it from there.
+     *   - **`intoxicate`** — nothing to do. The poison was made in the
+     *     FOOD before you ever picked it up, and it has already ridden in
+     *     as a formed toxin through the loop above. Killing the population
+     *     does not unmake it, which is why cooking is not a universal
+     *     answer.
+     *
+     * ⚠ A load under the organism's `infectiousDose` does nothing at all.
+     * That is not leniency — it is the difference between "there are some
+     * on it" and "you have eaten enough of them", and it is what makes
+     * cooking-then-eating-promptly a real answer rather than a hope.
+     */
+    protected exposeToPathogens(payload: BulkPayload | null): void {
+      const loads = payload?.pathogens;
+      if (!loads) return;
+      const self = this as unknown as MetabolicHost;
+      const nowS = StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)
+        ? WorldClockApi.getNow().rawValue()
+        : 0;
+      for (const [key, load] of Object.entries(loads)) {
+        const behavior = Contamination.behaviorOf(key);
+        if (!behavior || behavior.reach !== 'infect') continue;
+        if (load < behavior.infectiousDose) continue;
+        const path = TemplatePathPrefixes.pathogenCondition + key;
+        const existing = this.findAffliction(path);
+        if (existing) {
+          // Already carrying it: a second bad meal makes it worse rather
+          // than starting a second illness.
+          existing.pathogenLoad = Math.min(
+            1,
+            (existing.pathogenLoad ?? 0) + load,
+          );
+          continue;
+        }
+        self.afflict({
+          kind: 'affliction',
+          templatePath: path,
+          stage: 0,
+          elapsed: 0,
+          pathogenLoad: Math.min(1, load),
+          symptomsAt: nowS + (behavior.incubationSec ?? 0),
+        });
+        this.noteMealAccountability(payload);
+      }
+    }
+
+    /**
+     * ⭐⭐ **The record names the cook (criterion 18).**
+     *
+     * ⚠ Only when the cook is somebody else. Eating your own risky food is
+     * a private gamble; putting it in front of a paying customer is a
+     * choice about another person, and D8 exists precisely so the two are
+     * different acts. A row against yourself would flatten them back
+     * together.
+     *
+     * The producer shape is the trap's, verbatim (`Hazard.
+     * noteHarmAccountability`): the ledger records the FACTS and derives
+     * blame on read. Nothing here decides whether it was a crime.
+     */
+    protected noteMealAccountability(payload: BulkPayload | null): void {
+      const maker = payload?.maker;
+      if (!maker) return;
+      const self = this as unknown as Stuff;
+      const victimId = self.getIdentityPath() ?? self.getTemplatePath();
+      if (!victimId || victimId === maker) return;
+      let sentient = false;
+      try {
+        sentient = SpeciesApi.isSentient(self);
+      } catch {
+        sentient = false;
+      }
+      AccountabilityApi.record({
+        kind: 'harm',
+        sessionId: `meal:${self.stuffId}:${maker}`,
+        initiator: maker,
+        opponent: victimId,
+        victim: victimId,
+        killer: maker,
+        consented: false,
+        sentient,
+      });
     }
 
     /**

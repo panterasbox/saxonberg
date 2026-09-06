@@ -182,10 +182,21 @@ export class BlendLabel {
         }
       }
     }
-    // ⚠ Formed toxins ride past the heat filter by construction: they are
-    // added after it, because heat stops growth and does not un-poison
-    // what the growth produced.
-    for (const tox of payload?.formedToxins ?? []) add(tox, 1);
+    // ⚠ Formed toxins ride past the heat filter **by default**: heat stops
+    // growth, it does not un-poison what the growth already produced. That
+    // is the ptomaine rule and it is unchanged — the spoilage dose authors
+    // no `labileAtK`, so it survives the pot exactly as before.
+    //
+    // ⭐ But a formed toxin that DOES author one means it, and the roster
+    // needs both: *Staph aureus* makes a heat-stable poison (kill the
+    // population, keep the poison — boiling does not save you) and
+    // *C. botulinum* makes a heat-labile one (boiling does). That
+    // distinction is the whole of requirement D10, and flattening it would
+    // make every toxin behave like ptomaine.
+    for (const tox of payload?.formedToxins ?? []) {
+      if (tox.labileAtK !== undefined && tox.labileAtK <= heatK) continue;
+      add(tox, 1);
+    }
     return [...out.values()];
   }
 }

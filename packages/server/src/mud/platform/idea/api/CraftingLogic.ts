@@ -20,6 +20,11 @@ import {
 } from '../../../lib/advancement/ActSignature';
 import type Material from '../../../lib/material/Material';
 import { Freshness } from '../../../lib/material/Freshness';
+import { Cure } from '../../../lib/material/Cured';
+import {
+  Contamination,
+  type PathogenLoads,
+} from '../../../lib/material/Contaminable';
 import type { ToxinTag } from '../../../lib/metabolism/Metabolic';
 import {
   Recipe,
@@ -612,6 +617,7 @@ function pickItemInputs(
   items: ItemCandidate[],
   claimedUnits: Map<Stuff, number>,
   brandKey: string | null,
+  preferred: Stuff | null = null,
 ): MatchedItemInput[] | null {
   const minGrade = Grade.of(inSlot.minGrade);
   const need = inSlot.count ?? 1;
@@ -623,6 +629,15 @@ function pickItemInputs(
   );
   if (eligible.length === 0) return null;
   eligible.sort((x, y) => {
+    // ⭐ The named target first, ahead of everything: an act performed on
+    // a particular thing is performed on THAT thing. Without this, drying
+    // a cut you had just salted could pick the plain one off the table
+    // and hurdles could never be stacked deliberately.
+    if (preferred) {
+      const px = x.stuff === preferred ? 1 : 0;
+      const py = y.stuff === preferred ? 1 : 0;
+      if (px !== py) return py - px;
+    }
     if (brandKey) {
       const bx = carriesBrand(x.stuff, brandKey) ? 1 : 0;
       const by = carriesBrand(y.stuff, brandKey) ? 1 : 0;
@@ -652,9 +667,49 @@ function pickItemInputs(
   return remaining <= 0 ? picked : null;
 }
 
+/**
+ * Move what the inputs were carrying onto the tools the working used.
+ *
+ * ⭐ The mechanism is the board's, generalized: a surface that worked on
+ * contaminated matter carries it to whatever it works on next. Which tools
+ * can hold a load is a CLASS decision (`KitchenTool` does, `ToolItem` does
+ * not), so this offers it to all of them and the host set decides.
+ */
+function contaminateTools(
+  usedTools: readonly Stuff[],
+  matched: readonly MatchedInput[],
+  matchedItems: readonly MatchedItemInput[],
+): void {
+  const targets = usedTools.filter((t) => MixinApi.isContaminable(t));
+  if (targets.length === 0) return;
+  const parts: { loads: PathogenLoads; weight: number }[] = [];
+  for (const m of matched) {
+    if (m.measureL > 0) {
+      parts.push({ loads: Contamination.loadsFor(m.slot), weight: m.measureL });
+    }
+  }
+  for (const m of matchedItems) {
+    parts.push({
+      loads: MixinApi.isContaminable(m.stuff) ? m.stuff.getPathogenLoads() : {},
+      weight: Math.max(0.1, m.count),
+    });
+  }
+  const carried = Contamination.blendAll(parts);
+  if (Contamination.isClean(carried)) return;
+  for (const tool of targets) {
+    if (!MixinApi.isContaminable(tool)) continue;
+    const have = tool.getPathogenLoads();
+    tool.setPathogenLoads(Contamination.blend(carried, 1, have, 1));
+  }
+}
+
 /** Stamp a working's spoilage outcome onto the output slot. */
 function applySpoilage(outSlot: BulkSlot, outcome: SpoilageOutcome): void {
   Freshness.stampLoad(outSlot, outcome.load);
+  // ⚠⚠ The silent half, and it must ride the SAME stamp. A dish that
+  // carried the flora through and dropped the pathogens would be a build
+  // whose unit tests all pass and whose contaminated stew is harmless.
+  Contamination.stampLoads(outSlot, outcome.pathogens);
   const formed = outcome.formed;
   if (!formed) return;
   const payload = outSlot.getPayload();
@@ -677,6 +732,8 @@ function applySpoilage(outSlot: BulkSlot, outcome: SpoilageOutcome): void {
 interface SpoilageOutcome {
   load: number;
   formed: ToxinTag | null;
+  /** ⚠ The SECOND population — silent, event-seeded, its own kill curve. */
+  pathogens: PathogenLoads;
 }
 
 /**
@@ -698,15 +755,18 @@ interface SpoilageOutcome {
  */
 function outputMicrobialLoad(
   effectiveHeatK: number,
+  holdS: number,
   matched: readonly MatchedInput[],
   matchedItems: readonly MatchedItemInput[],
 ): SpoilageOutcome {
   let weighted = 0;
   let total = 0;
+  const parts: { loads: PathogenLoads; weight: number }[] = [];
   for (const m of matched) {
     const w = m.measureL;
     if (w <= 0) continue;
     weighted += Freshness.loadOf(m.slot) * w;
+    parts.push({ loads: Contamination.loadsFor(m.slot), weight: w });
     total += w;
   }
   for (const m of matchedItems) {
@@ -716,9 +776,23 @@ function outputMicrobialLoad(
     const w = (unitKg > 0 ? unitKg : 0.1) * m.count;
     const load = MixinApi.isFresh(m.stuff) ? m.stuff.getMicrobialLoad() : 0;
     weighted += load * w;
+    // ⭐ The contamination the INPUTS brought with them — a carcass cut
+    // with a dirty knife makes a contaminated stew, and it must survive
+    // the trip from a discrete item into a blend.
+    parts.push({
+      loads: MixinApi.isContaminable(m.stuff)
+        ? m.stuff.getPathogenLoads()
+        : {},
+      weight: w,
+    });
     total += w;
   }
-  return resolveSpoilage(effectiveHeatK, total > 0 ? weighted / total : 0);
+  return resolveSpoilage(
+    effectiveHeatK,
+    holdS,
+    total > 0 ? weighted / total : 0,
+    Contamination.blendAll(parts),
+  );
 }
 
 /**
@@ -728,17 +802,25 @@ function outputMicrobialLoad(
  */
 function buildMicrobialLoad(
   effectiveHeatK: number,
+  holdS: number,
   contributions: readonly BuildContribution[],
 ): SpoilageOutcome {
   let weighted = 0;
   let total = 0;
+  const parts: { loads: PathogenLoads; weight: number }[] = [];
   for (const c of contributions) {
     const w = c.kind === 'item' ? 0.1 * (c.count ?? 1) : c.measureL;
     if (w <= 0) continue;
     weighted += (c.freshnessLoad ?? 0) * w;
+    parts.push({ loads: c.pathogenLoads ?? {}, weight: w });
     total += w;
   }
-  return resolveSpoilage(effectiveHeatK, total > 0 ? weighted / total : 0);
+  return resolveSpoilage(
+    effectiveHeatK,
+    holdS,
+    total > 0 ? weighted / total : 0,
+    Contamination.blendAll(parts),
+  );
 }
 
 /**
@@ -759,14 +841,37 @@ function buildMicrobialLoad(
  */
 function resolveSpoilage(
   effectiveHeatK: number,
+  holdS: number,
   blended: number,
+  pathogens: PathogenLoads = {},
 ): SpoilageOutcome {
+  // ⭐ Each population answers to its OWN kill temperature and its own
+  // survival floor, so this runs whatever the flora did — a working under
+  // the flora's kill can still be over some organism's, and a working
+  // over both still leaves a spore-former's floor alive.
+  const survivors = Contamination.killOver(
+    pathogens,
+    effectiveHeatK,
+    holdS,
+    // The working's water activity is the food's; a craft has no cure
+    // state to consult mid-working, and the kill does not read `a_w`
+    // anyway (only growth does).
+    1,
+  );
   if (effectiveHeatK < Freshness.killTemperatureK()) {
     // A lazy warm-through launders nothing: the load rides straight
     // through and the dose stays derived from it at the ingest.
-    return { load: blended, formed: null };
+    return { load: blended, formed: null, pathogens: survivors };
   }
-  return { load: 0, formed: Freshness.doseFor(blended) };
+  // ⭐⭐ **The kill is a rate held for a time.** `holdS === 0` is a recipe
+  // that authors no hold, which means the working was as long as it needed
+  // — byte-identical to the threshold this replaced, and what keeps every
+  // shipped recipe cooking exactly as it did. A hold that IS authored is a
+  // claim that the working was brief, and is integrated.
+  const load = holdS > 0 ? Freshness.killOver(blended, holdS, effectiveHeatK) : 0;
+  // ⚠ And what the killed population already MADE stays in the dish,
+  // derived from the load that was there before the heat touched it.
+  return { load, formed: Freshness.doseFor(blended), pathogens: survivors };
 }
 
 /**
@@ -786,6 +891,7 @@ function deriveBlendPayload(
   keywords: readonly string[],
   parts: { material: Material; servings: number }[],
   effectiveHeatK = 0,
+  makerPath = '',
 ): BulkPayload {
   // ⭐ The composition: what went in, by PATH, with its servings summed
   // per material and first-seen order kept. Every derived fact below —
@@ -814,6 +920,11 @@ function deriveBlendPayload(
   if (appearance) payload.appearance = appearance;
   if (keywords.length > 0) payload.keywords = [...keywords];
   if (effectiveHeatK > 0) payload.cookedAtK = effectiveHeatK;
+  // ⭐ Who made it — the sixth irreducible fact, and the one that makes
+  // harm from a meal nameable. A dish reaches a body as
+  // `(material, litres, payload)`; the eater never sees the bowl, so the
+  // vessel's own `CraftedMixin` stamp cannot answer for it.
+  if (makerPath) payload.maker = makerPath;
   if (composition.size > 0) {
     payload.composition = [...composition].map(([materialPath, servings]) => ({
       materialPath,
@@ -933,6 +1044,7 @@ async function applyBulkOutput(
   matched: MatchedInput[],
   matchedItems: MatchedItemInput[] = [],
   effectiveHeatK = 0,
+  makerPath = '',
 ): Promise<void> {
   const outSlot = BulkableApi.slotFor(output, undefined);
   if (!outSlot) {
@@ -974,6 +1086,7 @@ async function applyBulkOutput(
         ...matchedItems.map((m) => ({ material: m.material, servings: m.count })),
       ],
       effectiveHeatK,
+      makerPath,
     ),
   );
   // A cold bar mix carries its inputs' spoilage through unchanged — a
@@ -981,7 +1094,7 @@ async function applyBulkOutput(
   // lime juice, and nothing about shaking it says otherwise.
   applySpoilage(
     outSlot,
-    outputMicrobialLoad(effectiveHeatK, matched, matchedItems),
+    outputMicrobialLoad(effectiveHeatK, recipe.getHoldS(), matched, matchedItems),
   );
 }
 
@@ -994,7 +1107,9 @@ async function applyBulkOutput(
 function applyTangibleOutput(
   output: Stuff,
   recipe: Recipe,
+  matched: MatchedInput[],
   matchedItems: MatchedItemInput[],
+  effectiveHeatK: number,
 ): void {
   const primary = matchedItems[0];
   if (!primary) {
@@ -1017,6 +1132,43 @@ function applyTangibleOutput(
   }
   output.setMaterial(primary.material);
   if (totalKg > 0) output.setMass(Quantity.of(totalKg, 'kg'));
+
+  // ⭐⭐ **The matter's own state rides the transform.** A tangible output
+  // used to start blank, which was invisible while every such recipe made
+  // a metal tool out of ore. It stops being invisible the moment the
+  // transform is a PRESERVING one: a cure that reset the microbial load
+  // would make salting a way to launder rotten meat, and one that dropped
+  // the water state would make the second hurdle undo the first.
+  //
+  // Both halves, in order: what was already growing in the stock (killed
+  // by the working's heat, or blended through if it never got hot), then
+  // what the working does to the water.
+  if (MixinApi.isFresh(output)) {
+    const outcome = outputMicrobialLoad(
+      effectiveHeatK,
+      recipe.getHoldS(),
+      matched,
+      matchedItems,
+    );
+    output.setMicrobialLoad(outcome.load);
+    // ⚠ The silent half rides the discrete transform too, or curing a
+    // contaminated cut would quietly clean it — which is the exact
+    // opposite of what curing does.
+    if (MixinApi.isContaminable(output)) {
+      output.setPathogenLoads(outcome.pathogens);
+    }
+  }
+  if (MixinApi.isCured(output)) {
+    // The input's own water state first — a dried cut smoked is still a
+    // dried cut — then the recipe's treatment, stronger-axis-wins.
+    const inherited = MixinApi.isCured(primary.stuff)
+      ? primary.stuff.getCureState()
+      : Cure.untreated();
+    const treatment = recipe.getCure();
+    output.setCureState(
+      treatment ? Cure.applyTreatment(inherited, treatment) : inherited,
+    );
+  }
 }
 
 /**
@@ -1032,6 +1184,7 @@ async function applyEdibleOutput(
   matched: MatchedInput[],
   matchedItems: MatchedItemInput[],
   effectiveHeatK: number,
+  makerPath = '',
 ): Promise<void> {
   const outSlot = BulkableApi.slotFor(output, undefined);
   if (!outSlot) {
@@ -1057,9 +1210,14 @@ async function applyEdibleOutput(
     }
     outSlot.setMaterial(material);
     outSlot.setAmount(Quantity.of(recipe.getOutputPortionL(), 'L'));
+    // An authored-substance dish carries no derived composition, but it
+    // still had a cook — and the harm record has to be able to say so.
+    if (makerPath) {
+      outSlot.setPayload({ ...(outSlot.getPayload() ?? {}), maker: makerPath });
+    }
     applySpoilage(
       outSlot,
-      outputMicrobialLoad(effectiveHeatK, matched, matchedItems),
+      outputMicrobialLoad(effectiveHeatK, recipe.getHoldS(), matched, matchedItems),
     );
     return;
   }
@@ -1075,11 +1233,12 @@ async function applyEdibleOutput(
       recipe.getKeywords(),
       matchedItems.map((m) => ({ material: m.material, servings: m.count })),
       effectiveHeatK,
+      makerPath,
     ),
   );
   applySpoilage(
     outSlot,
-    outputMicrobialLoad(effectiveHeatK, matched, matchedItems),
+    outputMicrobialLoad(effectiveHeatK, recipe.getHoldS(), matched, matchedItems),
   );
 }
 
@@ -1547,14 +1706,25 @@ async function mintVessel(
         recipe ? recipe.getKeywords() : material.getKeywords(),
         parts,
         effectiveHeatK,
+        makerPath,
       ),
     );
+  } else if (makerPath) {
+    // An authored-substance build still had a hand behind it.
+    outSlot.setPayload({ ...(outSlot.getPayload() ?? {}), maker: makerPath });
   }
   // The spoilage the buffer brought with it: killed off if the working
   // actually got hot enough, otherwise blended through (a lazy
   // warm-through launders nothing) — and either way, what the killed
   // population already made stays in the dish.
-  applySpoilage(outSlot, buildMicrobialLoad(effectiveHeatK, req.contributions));
+  applySpoilage(
+    outSlot,
+    buildMicrobialLoad(
+      effectiveHeatK,
+      recipe?.getHoldS() ?? 0,
+      req.contributions,
+    ),
+  );
 
   // The working finishes the glass: chill + dilution, the technique
   // stamp, the soil mark. Ice and garnish are the hand's own steps
@@ -1625,7 +1795,13 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
     : null;
   for (const inSlot of recipe.getInputSlots()) {
     if (Recipe.isItemSlot(inSlot)) {
-      const picks = pickItemInputs(inSlot, items, claimedUnits, brandKey);
+      const picks = pickItemInputs(
+        inSlot,
+        items,
+        claimedUnits,
+        brandKey,
+        req.target ?? null,
+      );
       if (!picks) {
         return { ok: false, reason: 'insufficient-input', detail: inSlot.category };
       }
@@ -1768,7 +1944,7 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
     output = await StuffApi.clone<Stuff>(recipe.getOutputTemplate());
   }
   if (application === 'tangible') {
-    applyTangibleOutput(output, recipe, matchedItems);
+    applyTangibleOutput(output, recipe, matched, matchedItems, workingHeatK);
   } else if (application === 'edible') {
     await applyEdibleOutput(
       output,
@@ -1776,6 +1952,7 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
       matched,
       matchedItems,
       workingHeatK,
+      maker.getTemplatePath() ?? '',
     );
   } else {
     await applyBulkOutput(
@@ -1784,6 +1961,7 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
       matched,
       matchedItems,
       workingHeatK,
+      maker.getTemplatePath() ?? '',
     );
     const outSlot = BulkableApi.slotFor(output, undefined)!;
     await finishGlass(
@@ -1814,6 +1992,23 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
     craftedAt: WorldClockApi.getNow().rawValue(),
   });
 
+  // ⭐⭐ **A working DIRTIES the tools it was done with** — a press that
+  // pressed contaminated fruit is a dirty press, the board's route one
+  // instrument over.
+  //
+  // ⚠⚠ **Before the consume, and that ordering is load-bearing.** Placed
+  // after it, this read the inputs' loads off objects that had just been
+  // destructed — and a destroyed Stuff is an inert proxy whose every call
+  // no-ops to `undefined`, so it threw rather than quietly returning
+  // nothing. Consumption is what destroys the evidence; take it first.
+  //
+  // ⚠ Offered to every used tool and taken only by the ones that can HOLD
+  // it: `ContaminableMixin` is composed on food kit (`KitchenTool`), not
+  // on `ToolItem`, whose host set is a felling axe, a sledge and a shovel.
+  // A smith's hammer is offered the same contamination and is structurally
+  // unable to take it — the narrowing does the work, not a guard here.
+  contaminateTools(usedTools, matched, matchedItems);
+
   consumeBulkInputs(matched);
   consumeItemInputs(matchedItems);
 
@@ -1839,6 +2034,7 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
   // Tools wear on use — the durable-good half (a ToolItem composes
   // DurableMixin alongside ToolMixin).
   for (const t of usedTools) if (MixinApi.isDurable(t)) t.wear();
+
 
   // The evidence tail: advancement deed + watch-=-claim for witnesses
   // (a no-op for recipes authoring no discipline — every bar row).

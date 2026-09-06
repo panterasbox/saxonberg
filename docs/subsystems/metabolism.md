@@ -281,6 +281,36 @@ payload at the read — see [spoilage.md](./spoilage.md) § The ingest reach.
 The shipped `spoiled-ration` keeps its authored dose as a head start; it
 also now grows.
 
+### ⭐⭐ `exposeToPathogens` — where an infection starts
+
+`ingest` is the ONE place food becomes body — every route reaches it (the
+discrete arm of `eat`, the dish arm, `drink`, `sip`) — so it is where the
+pathogen loads riding a `BulkPayload` become a thing happening inside
+somebody. See [spoilage.md](./spoilage.md) for the food side and
+[vitals.md](./vitals.md) for what happens next.
+
+Two arms, and only one of them needs anything here:
+
+- **`infect`** — at or above the organism's `infectiousDose`, the
+  population is handed to the body as an `AfflictionRecord` carrying a
+  live `pathogenLoad`, incubating until `symptomsAt`. A second bad meal
+  makes the illness worse rather than starting a second one.
+- **`intoxicate`** — nothing to do. The poison was made in the FOOD before
+  you picked it up and has already ridden in through the toxin loop above.
+  *Killing the population does not unmake it*, which is exactly why
+  cooking is not a universal answer.
+
+⚠ A load under the `infectiousDose` does nothing at all. That is not
+leniency — it is the difference between "there are some on it" and "you
+have eaten enough of them", and it is what makes cooking-and-eating-
+promptly a real answer rather than a hope.
+
+⭐ **And the record names the cook.** When the payload carries a `maker`
+that is not the eater, an accountability `harm` row is appended (the
+trap's producer shape, verbatim). Eating your own risky food is a private
+gamble; putting it in front of a paying customer is a choice about
+another person, and the ledger is what makes the two different acts.
+
 ### `introduceToxin` — the bloodstream seam (past digestion)
 
 `introduceToxin(type, amount)` injects a toxin dose **directly onto the

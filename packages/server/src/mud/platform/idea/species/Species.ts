@@ -37,6 +37,17 @@ import { NameBank } from '../../../lib/species/NameBank';
 import type { FieldMeta } from '../../../lib/mixin';
 
 /** A suggested character name (given + optional surname). */
+/**
+ * One line of a species' butchery yield: a cut template and how many a
+ * clean butchering gives. A messy one gives fewer; nothing gives more.
+ */
+export interface ButcheryYield {
+  /** Template path of the Provision a cut produces. */
+  cut: string;
+  /** Units a clean butchering yields (a rounded-down share on a poor one). */
+  units: number;
+}
+
 export interface SuggestedName {
   name: string;
   surname?: string;
@@ -263,6 +274,24 @@ export default class Species extends SingletonMixin(
   protected sentient: boolean = false;
 
   /**
+   * ⭐ **What a carcass of this species yields to a knife** — a list of
+   * `{ cut, units }`, where `cut` is the template path of the Provision a
+   * clean butchering produces and `units` is how many a clean one gives.
+   *
+   * It lives here because the Species row is already the field guide for
+   * the animal — `diet`, `lifespanMax`, `naturalAttacks`, `vitalProfile`,
+   * and `sentient` are all here — so a new huntable animal is ONE row and
+   * a second butcher is content. A separate butchery Idea would have been
+   * a row in strict 1:1 with this one plus a second catalogue to warm, for
+   * no gain.
+   *
+   * ⭐ **Empty is not a gap; it is a statement.** An empty yield means
+   * *there is nothing here worth cutting* — the right answer for a rat, a
+   * canary and a beetle, and authored rather than crashed.
+   */
+  protected butcheryYield: ButcheryYield[] = [];
+
+  /**
    * The species' **natural attacks** — its innate combat vocabulary
    * (bite / claw / tail…), each a `NaturalAttackSpec`
    * `{key, channel, reach?, massKg?, lengthM?}`. Multiple attacks rotate
@@ -324,6 +353,7 @@ export default class Species extends SingletonMixin(
     olfactoryProfile: { persistent: true },
     nameBankKeys: { persistent: true },
     sentient: { persistent: true },
+    butcheryYield: { persistent: true, authorable: true },
 
     // ── What you learn by meeting it ──
     vitalProfile: { persistent: true, spoiler: 1, spoilerName: 0 },
@@ -356,6 +386,14 @@ export default class Species extends SingletonMixin(
 
   public isSentient(): boolean { return this.sentient; }
   public setSentient(value: boolean): void { this.sentient = value; }
+
+  /** What a carcass yields to a knife; empty ⇒ nothing worth cutting. */
+  public getButcheryYield(): readonly ButcheryYield[] {
+    return this.butcheryYield;
+  }
+  public setButcheryYield(value: ButcheryYield[]): void {
+    this.butcheryYield = Array.isArray(value) ? value : [];
+  }
 
   public getBodyPlan(): BodyPlan | null {
     if (!this._bodyPlanPath) return null;

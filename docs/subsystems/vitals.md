@@ -181,9 +181,11 @@ behind one `ActiveCondition` collection (`getConditions` / `afflict` /
   conditions) carrying a toxin's per-body rate params — read by
   metabolism's reconcile, the only consumer.
 
-  > **The Ideas are not live yet.** Condition seeds are inserted as
-  > template ROWS and nothing clones them into Ideas at boot, so
-  > `findByTemplatePath` answers `null` for **every** condition in a
+  > **⚠ HISTORICAL — closed by `ConditionCatalogue`.** Left standing
+  > because the failure mode is the interesting part, not because it is
+  > still true: condition seeds were inserted as template ROWS and nothing
+  > cloned them into Ideas at boot, so
+  > `findByTemplatePath` answered `null` for **every** condition in a
   > running world — `starvation` as much as `recovering`. Every consumer
   > written so far quietly tolerates it (`Metabolic.resolveToxinBehavior`
   > `?.`-chains to null; `MagicLogic` null-checks its seed; `assess`
@@ -211,10 +213,48 @@ behind one `ActiveCondition` collection (`getConditions` / `afflict` /
   read path beyond trauma's bleed.
 
 All records are plain-serializable → the collection persists with no
-marshaller. Progression shapes (`ProgressionSpec`) target
-**`ScheduleApi.recurring`**, NOT the engagement-bound `ScheduledEmission`
-(a condition occupies no engagement slot — see [activity.md](./activity.md)).
-**Nothing ticks** in this build — `afflict`/`relieve` are pure add/remove.
+marshaller.
+
+### ⭐⭐ The infection arm (the food-safety build)
+
+An affliction may carry a live **population** rather than a stage
+somebody set: `pathogenLoad` (`[0, 1]`) plus `symptomsAt`, present iff
+the row under `/platform/idea/Condition/pathogen/` declares
+`pathogenBehavior.reach: 'infect'`. `reconcileConditions` grows it at a
+NET rate — the organism's authored in-host growth against the body's own
+clearance — closed-form logistic, with full presence-freeze parity
+(linkdead re-stamp, far-past guard). See
+[spoilage.md](./spoilage.md).
+
+The distinction from `stage` is the whole of it: `stage` is the banded
+severity a medic reads, and the load is the thing that is actually
+happening. The band derives from the load, so an infection getting worse
+and a treatment starting to work are the same number moving.
+
+- ⭐ **Nothing shows until `symptomsAt`.** Illness arrives hours after the
+  meal, not at the table — the information is in what you *did*.
+- ⭐ **D12, resistance is thin:** clearance scales with one read of
+  `getConditionBand()`. No immune memory, no exposure history, no
+  per-pathogen resistance; those are the disease build's.
+- ⭐ **Nothing new kills anyone.** A severe infection drains `hydration`,
+  which is what dysentery does, and dehydration already ends in the
+  shipped rescuable dying window.
+- `treat` gained an illness arm that spends no dressing — you do not
+  bandage dysentery — and knocks the population back by the medic's band.
+
+### `ProgressionSpec`, finally read
+
+`ProgressionSpec` (`{ intervalMs }`) shipped with the comment *"no live
+scheduler is built here"*, was authored by three rows
+(`starvation` / `dehydration` / `recovering`) and was **read by nothing**
+— so a body three days into starvation staged identically to one that had
+missed lunch. `reconcileConditions` now advances `elapsed` and derives
+`stage` on the authored cadence.
+
+⚠ **Only for what nothing else drives.** A toxin's stage is a live band
+read off its burden (`reconcileToxinConditions`), so a row carrying a
+`toxinBehavior` is skipped here on purpose — a dwell counter fighting the
+burden read would make the answer depend on which arm ran last.
 
 ## Death & consciousness seams
 

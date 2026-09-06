@@ -1,0 +1,21 @@
+# A treated cut — the output of every preserving act, and deliberately
+# ONE row for all of them.
+#
+# ⭐⭐ The alternative was a template per state (fresh pork, salt pork,
+# dried pork, salt-and-dried pork), which is honest for one change and
+# explodes the moment hurdles stack — which is exactly what the trade
+# practises. How well a thing keeps is a state of the INDIVIDUAL thing
+# now (`CuredMixin`), so the row says only "a cut that has been treated"
+# and the cure state says which treatment, and how far.
+#
+# Its material is flowed from whatever went in (the tangible transform),
+# so a treated cut of beef is still beef and can be treated again — dry
+# the one you salted and the hurdles multiply.
+class: /platform/thing/Provision
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a treated cut of meat
+  primaryKeyword: cut
+  keywords: [cut, meat, treated, cured, salted, dried, smoked]
+  _materialPath: /stuff/idea/material/food/stew-meat
+  mass: 0.4

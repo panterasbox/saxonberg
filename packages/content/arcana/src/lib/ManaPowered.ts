@@ -399,7 +399,7 @@ export function ManaPoweredMixin<
       const candidates: SupplyState[] = [];
       if (this.mainsRef) {
         const main = StuffApi.findByTemplatePath<Stuff>(this.mainsRef);
-        const s = ManaPoweredMixin.reportedState(main);
+        const s = ManaPoweredMixin.reportedState(main ?? null);
         if (s) candidates.push(s);
       }
       if (!this.isArmed()) candidates.push('dry');

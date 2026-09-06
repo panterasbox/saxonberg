@@ -1,0 +1,15 @@
+# The salting trough — a stone tub for packing meat down in salt.
+#
+# ⭐ It affords `cure`. The salt itself comes from any reachable sack, so a
+# trough standing alone declines in the ordinary way rather than hiding the
+# verb: afford statically, decline diegetically.
+class: /trade/cooking/thing/SaltingTrough
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a salting trough
+  primaryKeyword: trough
+  keywords: [trough, salting, salting-trough, tub]
+  longDescription: |
+    A long trough hollowed out of a single block of grey stone, standing on trestles at hip height. The inside is bleached and slightly powdery to the touch; there is a plug at the low end for the brine to run off.
+  _materialPath: /stuff/idea/material/rock/granite
+  mass: 90

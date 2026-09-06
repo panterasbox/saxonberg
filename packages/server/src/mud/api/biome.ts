@@ -181,6 +181,22 @@ export class BiomeApi {
     return logic().resolveHumidityFor(scope, detailKey);
   }
 
+  /**
+   * ⭐ **The cheap, SYNCHRONOUS humidity read** — the containment walk's
+   * authored overrides and biome defaults, terminating at the root
+   * universe biome. `null` only when even that authors none.
+   *
+   * ⚠ It deliberately skips two tiers the full {@link resolveHumidityFor}
+   * covers: the **Zone** field-inheritance step (which is async) and the
+   * **weather deviation** (which needs an address walk). Use it only where
+   * awaiting is genuinely impossible — a reconcile-on-read gauge running
+   * off a getter, which is what it exists for (`Cure.ambientHumidityOf`).
+   * Everything that can await should call `resolveHumidityFor` instead.
+   */
+  public static localHumidityFor(scope: Stuff & Container): number | null {
+    return logic().localHumidityFor(scope);
+  }
+
   public static async resolveWindFor(
     scope: Stuff & Container,
     detailKey?: string

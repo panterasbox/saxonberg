@@ -436,6 +436,21 @@ with the remaining packs** — a failed pack boots *without* the pack; it
 never bricks the boot (A17.1 / A10.10). `sync` (one pack, an operator at
 the keyboard) throws instead.
 
+#### ⚠⚠ `owned by pack X` when X *is* the pack — two installers, one DB
+
+A reconcile that fails with `E11000 duplicate key`, or with
+`pack 'trade-cooking' wants /trade/cooking/... but it is owned by pack
+'trade-cooking'`, is **not** a content bug and no amount of reading the
+YAML will find it. It means two server processes were installing into the
+same database concurrently: each read a baseline the other had not
+finished writing, so each sees rows it does not remember claiming. The
+message reads exactly like a stamp collision because at the row level
+that is what it is.
+
+The fix is procedural, never a code edit: **one database per worktree,
+one server on it, drop and boot ONCE.** (Found the hard way by the
+food-safety drive, which spent a round chasing it as a pack defect.)
+
 ### requires-kernel
 
 Before any write, the installer resolves every distinct `class:` (and

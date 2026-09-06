@@ -1,0 +1,29 @@
+# The salt on the kitchen shelf.
+#
+# ⚠ **The live drive is why this row exists.** The pantry outfit stocks
+# its floor sacks in its own storeroom — which is a different room from
+# the hearth — so `cure` declined with *"there isn't enough salt"* in the
+# one kitchen the whole build is proven at. A cook reaches for salt; it
+# has to be within reach.
+#
+# ⭐ Deliberately NOT the pantry's `salt-sack` row listed twice: that one
+# self-places into the pantry stock through its own `container:`, carries
+# a `censusKey` and is part of the outfit's par. This is a working sack on
+# a shelf, and it is the trade's own content rather than the retail
+# outfit's stock.
+class: /platform/thing/Bottle
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: "a working sack of salt"
+  longDescription: "A half-empty sack of coarse salt, folded over at the neck, standing where a cook can get a hand into it without looking."
+  primaryKeyword: salt
+  keywords: ["salt", "sack"]
+  category: sack
+  interiorBulk: true
+  interiorCapacity: 20
+  interiorMaterial: /trade/cooking/idea/material/salt
+  interiorAmount: 4
+  material: /stuff/idea/material/textile/jute
+  closure: liquidTight
+  gradeBand: fair
+  materialTags: ["food", "salt"]

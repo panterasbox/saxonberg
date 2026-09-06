@@ -42,6 +42,13 @@ import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 // Every strand of it is one a pot genuinely wants — see the class doc.
 const CookPotBase = ManualBuildMixin(ToolMixin(DurableMixin(ServingVessel)));
 
+// ⚠⚠ **Three verbs, and all three are a POT's.** `cure`, `dry`, `smoke`
+// and `butcher` lived here for one build, which handed a saucepan the
+// power to take a hog apart and stopped this class's name from predicting
+// its own surface. That is the `wash`-on-`UnboundedReceptacle` mistake —
+// *an urn is not a degraded basin* — and each of those verbs now sits on
+// the station that actually performs it: `ButcherBlock`, `SaltingTrough`,
+// `DryingRack`, `SmokeChimney`.
 const HEARTH = [
   'platform/cmd/crafting/heat.yaml',
   'trade/cooking/cmd/crafting/cook.yaml',

@@ -48,13 +48,15 @@ import type {
   DyingRecord,
 } from '../../platform/idea/Condition';
 import { HARM_DEFAULTS, TRAUMA_BEHAVIOR } from '../../platform/idea/Condition';
+import type Condition from '../../platform/idea/Condition';
 import { StuffApi } from '../../api/stuff';
 import { WorldClockApi } from '../../api/worldclock';
 import { ConditionApi } from '../../api/condition';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
 import type { Energized } from '../electricity/Energized';
-import { TemplatePaths } from '../paths';
+import { TemplatePaths, TemplatePathPrefixes } from '../paths';
+import { Contamination } from '../material/Contaminable';
 import type { VetoResult } from '../errors';
 import { Suppressions } from '../magic/Suppression';
 import { MagicGrid } from '../magic/Grid';
@@ -203,6 +205,47 @@ export const UNIVERSE_DEFAULT_VITAL_PROFILE: VitalProfile = {
   spo2: { baseline: 98, survivableMin: 70, survivableMax: 100 },
   bloodVolume: { baseline: 5, survivableMin: 3.2, survivableMax: 5 },
 };
+
+/**
+ * The in-host infection dials. Playtest-tuned rates, greppable in one
+ * place (the `HARM_DEFAULTS` precedent). The per-ORGANISM half — how fast
+ * it grows in you, and how long before you feel it — is authored on the
+ * `Condition` row, never here: these are the body's side of the fight.
+ */
+const VITALS_DEFAULTS = {
+  SECONDS_PER_HOUR: 3600,
+  /** The baseline rate a body clears an infection at, per game-hour. */
+  INFECTION_CLEARANCE_PER_HOUR: 0.22,
+  /** Below this load the body has won and the record is relieved. */
+  INFECTION_CLEARED_LOAD: 0.01,
+  /** Load per severity stage — three stages over the full range. */
+  INFECTION_STAGE_LOAD: 0.34,
+  /** `%` hydration a severe infection costs per game-hour, per stage over 1. */
+  INFECTION_HYDRATION_PCT_PER_HOUR: 3,
+} as const;
+
+/**
+ * ⭐ **D12 — resistance is thin.** How well a body fights an infection off
+ * is one read of how well the body is doing at all: a healthy one clears
+ * faster, a critical one barely clears at all. No immune memory, no
+ * exposure history, no per-pathogen resistance — those belong to the
+ * disease build, and inventing them here would be the richest possible way
+ * to make the wrong thing true.
+ */
+function infectionResistance(band: ConditionBand): number {
+  switch (band) {
+    case 'healthy':
+      return 1;
+    case 'hurt':
+      return 0.8;
+    case 'serious':
+      return 0.55;
+    case 'critical':
+      return 0.3;
+    default:
+      return 0.2;
+  }
+}
 
 const SEVERITY_BANDS: readonly ConditionBand[] = [
   'healthy',
@@ -854,6 +897,128 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
+     * ⭐ **Advance a plain affliction on its own authored cadence.**
+     *
+     * `ProgressionSpec` is `{ intervalMs }` and it has been authored by
+     * three shipped rows and read by nothing since it landed — so a body
+     * three days into starvation staged identically to one that had missed
+     * lunch, and `assess` had nothing to grade. Dwell time now moves the
+     * stage.
+     *
+     * ⚠ **Only what nothing else drives.** A toxin's stage is a live band
+     * read off its burden (`reconcileToxinConditions`), and a dwell counter
+     * fighting it would make the reading depend on which arm ran last. So
+     * a row carrying a `toxinBehavior` is skipped here, on purpose.
+     */
+    private progressAffliction(
+      record: AfflictionRecord,
+      elapsedSec: number,
+    ): void {
+      const row = StuffApi.findByTemplatePath<Condition>(record.templatePath);
+      if (!row) return;
+      if (row.getToxinBehavior()) return; // a burden's stage is a live band
+      const spec = row.getProgression();
+      if (!spec || !(spec.intervalMs > 0)) return;
+      record.elapsed += elapsedSec * 1000;
+      record.stage = Math.floor(record.elapsed / spec.intervalMs);
+    }
+
+    /**
+     * ⭐⭐ **Grow (or clear) one infection over `elapsedSec`, and derive
+     * what it is doing to the body.**
+     *
+     * The load moves at a NET rate: the organism's authored in-host growth
+     * against the body's own clearance. Both terms are per game-hour and
+     * the integration is closed-form logistic, so the same arithmetic
+     * serves a moment and an overnight absence.
+     *
+     * ⭐ **D12 — resistance is thin, and deliberately.** There is no immune
+     * memory, no exposure history and no per-pathogen resistance. How well
+     * a body fights this off is one read of how well the body is doing at
+     * all: a healthy one clears faster than a critical one, and that is
+     * the whole model. Anything richer belongs to the disease build.
+     *
+     * ⭐ **Nothing new kills anyone (criterion 16).** A severe infection
+     * drains the body's HYDRATION, which is what dysentery actually does —
+     * and dehydration already has a lethal cascade with a rescuable dying
+     * window at the end of it. The illness does not need a death path of
+     * its own and does not get one.
+     */
+    private progressInfection(
+      record: AfflictionRecord,
+      elapsedSec: number,
+      nowS: number,
+    ): void {
+      const key = record.templatePath.startsWith(
+        TemplatePathPrefixes.pathogenCondition,
+      )
+        ? record.templatePath.slice(
+            TemplatePathPrefixes.pathogenCondition.length,
+          )
+        : '';
+      const behavior = key ? Contamination.behaviorOf(key) : null;
+      if (!behavior) return; // an unwarmed row leaves the load alone
+
+      const hours = elapsedSec / VITALS_DEFAULTS.SECONDS_PER_HOUR;
+      const growth = behavior.inHostPerHour ?? 0;
+      const clearance =
+        VITALS_DEFAULTS.INFECTION_CLEARANCE_PER_HOUR *
+        // ⚠ Safe from inside the reconcile: `_reconcilingConditions` is
+        // set, so `getConditionBand`'s own `reconcileConditions()` call
+        // returns immediately. That guard is what makes the vital-sign
+        // reads in this whole method non-reentrant.
+        infectionResistance(this.getConditionBand());
+      const net = growth - clearance;
+      const l0 = Math.max(0, Math.min(1, record.pathogenLoad ?? 0));
+
+      let load: number;
+      if (net === 0 || l0 <= 0) {
+        load = l0;
+      } else if (net > 0) {
+        const g = Math.exp(net * hours);
+        load = Number.isFinite(g)
+          ? Math.min(1, (l0 * g) / (1 - l0 + l0 * g))
+          : 1;
+      } else {
+        load = l0 * Math.exp(net * hours);
+      }
+      record.pathogenLoad = load;
+
+      // ⭐ Cleared. The body won; the record goes, and it goes quietly.
+      if (load <= VITALS_DEFAULTS.INFECTION_CLEARED_LOAD) {
+        this.relieve(record);
+        return;
+      }
+
+      // ⭐ The incubation: no stage, no signs, nothing to assess, until
+      // the organism has had its hours. This is why illness arrives well
+      // after the meal — you have to reason backwards to what you DID.
+      if (record.symptomsAt !== undefined && nowS < record.symptomsAt) {
+        record.stage = 0;
+        return;
+      }
+      record.elapsed += elapsedSec * 1000;
+      record.stage = Math.min(
+        3,
+        Math.max(1, Math.ceil(load / VITALS_DEFAULTS.INFECTION_STAGE_LOAD)),
+      );
+
+      // The consequence, and it is the SHIPPED one: fluid loss. A severe
+      // infection dehydrates you, and dehydration already ends where it
+      // ends.
+      const self = this as unknown as Stuff;
+      if (record.stage >= 2 && MixinApi.isReserved(self)) {
+        const drained =
+          VITALS_DEFAULTS.INFECTION_HYDRATION_PCT_PER_HOUR *
+          (record.stage - 1) *
+          hours;
+        if (drained > 0) {
+          self.adjustReserve('hydration', Quantity.of(-drained, '%'));
+        }
+      }
+    }
+
+    /**
      * Reconcile-on-read wound progression — the harm driver, reconcile
      * style (the metabolism / thermal / respiration precedent, NOT a
      * recurring push tick). For each active trauma, integrate the in-session
@@ -897,6 +1062,27 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
         (c): c is AfflictionRecord =>
           c.kind === 'affliction' && c.magicOrigin !== undefined,
       );
+      // ⭐ The infections — an affliction that carries a live POPULATION
+      // rather than a burden or a stage somebody set. Identified by the
+      // field, not by the path prefix: what makes it an infection is that
+      // something is growing.
+      const infections = this.conditions.filter(
+        (c): c is AfflictionRecord =>
+          c.kind === 'affliction' && c.pathogenLoad !== undefined,
+      );
+      // ⭐ The plain PROGRESSING afflictions — the ones that just get worse
+      // the longer they last, on a cadence their own row authors.
+      // `ProgressionSpec` shipped with the comment *"no live scheduler is
+      // built here"*, was authored by three rows, and was read by nothing:
+      // starvation, dehydration and `recovering` all sat at stage 0 for
+      // ever, so a body three days without food read exactly like one that
+      // had missed lunch. This is the arm that fills it.
+      const progressing = this.conditions.filter(
+        (c): c is AfflictionRecord =>
+          c.kind === 'affliction' &&
+          c.pathogenLoad === undefined &&
+          c.magicOrigin === undefined,
+      );
       const dyings = this.conditions.filter(
         (c): c is DyingRecord => c.kind === 'dying',
       );
@@ -905,6 +1091,8 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
         shocks.length === 0 &&
         sustained.length === 0 &&
         decayingMagic.length === 0 &&
+        infections.length === 0 &&
+        progressing.length === 0 &&
         dyings.length === 0
       ) {
         return;
@@ -1051,6 +1239,52 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
           }
           a.stage -= decayPerSec * elapsed;
           if (a.stage <= 0) this.relieve(a);
+        }
+
+        // ── the in-host infections ──────────────────────────────────
+        // ⭐⭐ **The population half of the illness.** A toxin is an amount
+        // you carry and clear; an infection is a thing that GROWS, and it
+        // grows against how well the body is holding up. The band a medic
+        // reads is derived from the load, so an infection getting worse
+        // and a treatment starting to work are the same number moving.
+        //
+        // ⚠ Full presence-freeze parity with trauma — the linkdead
+        // re-stamp and the far-past guard both apply. Being away must
+        // never cost a player anything, and this arm is not the dying
+        // clock.
+        for (const a of infections) {
+          if (a.tickedAt === undefined) {
+            a.tickedAt = nowS;
+            continue;
+          }
+          if (linkdead) {
+            a.tickedAt = nowS;
+            continue;
+          }
+          const elapsed = nowS - a.tickedAt;
+          a.tickedAt = nowS;
+          if (elapsed <= 0 || elapsed > HARM_DEFAULTS.MAX_REASONABLE_GAP_SEC) {
+            continue;
+          }
+          this.progressInfection(a, elapsed, nowS);
+        }
+
+        // ── the plain progressing afflictions ───────────────────────
+        for (const a of progressing) {
+          if (a.tickedAt === undefined) {
+            a.tickedAt = nowS;
+            continue;
+          }
+          if (linkdead) {
+            a.tickedAt = nowS;
+            continue;
+          }
+          const elapsed = nowS - a.tickedAt;
+          a.tickedAt = nowS;
+          if (elapsed <= 0 || elapsed > HARM_DEFAULTS.MAX_REASONABLE_GAP_SEC) {
+            continue;
+          }
+          this.progressAffliction(a, elapsed);
         }
 
         // Relieve any wound healed to (near) zero severity.

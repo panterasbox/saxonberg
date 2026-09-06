@@ -26,6 +26,15 @@ settings:
   - key: freshness.killRatePerHour
     value: "6"
 
+  # ⭐⭐ The kill is a RATE, not a line you cross, and this is its
+  # steepness. 200 kJ/mol is in the real range for thermal death of
+  # vegetative bacteria: at 60 °C the base rate halves the population in
+  # about seven minutes; at 100 °C the same population is gone in under a
+  # second. That is why a sear and a simmer arrive at the same place and a
+  # lazy warm-through does not.
+  - key: freshness.killActivationEnergy
+    value: "200000"
+
   # 0.60 a_w — the classical floor for microbial growth. Honey, dried
   # salt, sugar and spirits all sit under it, which is why they keep.
   - key: freshness.awFloor

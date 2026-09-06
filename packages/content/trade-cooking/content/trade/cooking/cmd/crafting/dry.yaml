@@ -1,0 +1,28 @@
+verbs: [dry, hang]
+controller: /trade/cooking/idea/cmd/crafting/DryController
+description: "Hang a cut up to dry"
+help: |
+  `dry <cut>` — hang a cut of meat up to dry. Costs nothing but the time.
+
+  Drying takes the water away where salting binds it, so the two multiply
+  rather than compete.
+
+  ⚠ Drying is the hurdle that reverses. A dried cut left somewhere damp
+  slowly softens back and loses what the drying bought; a dry, cold store
+  is what keeps it. A salted cut never un-salts.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: target
+    type: object
+    required: false
+    scope: "reachable"
+    # ⭐ `any`, deliberately: what you may preserve is decided by the
+    # RECIPE's input slot (a `meat`-tagged material today), not by a mixin
+    # named here. A pack that ships a fish or a hide authors the row and
+    # this file never learns the word.
+    requires: any
+    validators:
+      - /lib/command/validators/canReach

@@ -1,0 +1,25 @@
+# Butchery — taking an animal apart cleanly, a specialization of cooking.
+#
+# ⭐ Two things answer to it and they are the two that matter: how MUCH you
+# get, and how much of the animal's gut ends up on the meat. Gut spillage is
+# the dominant real contamination route and it is exactly what an unskilled
+# butcher does — so the skill is not a damage number, it is the difference
+# between dinner and food poisoning.
+#
+# ⚠ It is its own Discipline rather than a use of `cooking`, and that is
+# the seam: when ranching brings volume and `trade-butchery` spins out of
+# `trade-cooking`, the move carries a verb and a controller — not a skill
+# model.
+class: /platform/idea/Discipline
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: butchery
+  channel: skill
+  label: Butchery
+  iscedf: "0811"  # ISCED-F 2013: crop and livestock production
+  specializes:
+    - cooking
+  description: >-
+    Taking an animal apart: where the joints are, which cut is which, and
+    how to open a carcass without opening its gut. Yield and cleanliness
+    both answer to the hand that holds the knife.

@@ -337,6 +337,21 @@ taken, an armed opening an ally cashed, a captain's call landing, the
 coup directive, the formation shift), so a master/captain advances the
 one discipline that cannot be ground solo — the teaching payoff. See
 [combat-formations.md](./combat-formations.md).
+## Disciplines the food-safety build added
+
+- **`butchery`** — `specializes: cooking`. Two things answer to it and
+  neither is a damage number: **how much** meat a carcass yields, and
+  **how much of the animal's gut ends up on it**. Gut spillage is the
+  dominant real contamination route and it is exactly what an unskilled
+  hand does, so one band read decides both. ⚠ An expert still deposits a
+  floor of it — the answer to that hazard has to be cooking and cold,
+  never a good enough butcher. See [spoilage.md](./spoilage.md).
+
+  ⭐ It is its own Discipline rather than a use of `cooking`, and that is
+  the spin-out seam: when ranching brings volume and `trade-butchery`
+  leaves `trade-cooking`, the move carries a verb and a controller — not a
+  skill model.
+
 ## Deferred (seams left open)
 
 The loadout (capacity-not-decay, savings warm-up); guilds (venue / mentors

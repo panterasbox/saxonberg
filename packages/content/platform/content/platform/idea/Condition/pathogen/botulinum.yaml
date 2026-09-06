@@ -1,0 +1,46 @@
+# ⭐⭐ Botulinum — BOTH mechanisms at once, and a build that treats
+# "spore-former" and "toxin-producer" as alternatives cannot author it.
+#
+# It is a spore-former (`killSurvivalFraction`), so cooking reduces it and
+# never removes it; its survivors germinate as the food cools; and what
+# they then make is a formed toxin, not an infection.
+#
+# ⭐ And its toxin IS heat-labile (`labileAtK: 358`, 85 °C) — the exact
+# opposite of staph's. **Boiling destroys this poison and not that one.**
+# Two rows, two authored numbers, and the whole of "which one does cooking
+# fix?" becomes a real question with a learnable answer instead of a rule.
+#
+# Slow, fussy and rare: it wants a wet, still, long-neglected food
+# (`awFloor: 0.95`, `muMaxPerHour: 0.35`, a high `infectiousDose`). When it
+# does arrive it is the worst thing in the roster.
+class: /platform/idea/Condition
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: botulism
+  signature: []
+  progression: null
+  resolution:
+    by: antitoxin
+  observableSigns: [slack-faced, weak, blurred-sighted]
+  contagion: null
+  pathogenBehavior:
+    reach: intoxicate
+    muMaxPerHour: 0.35
+    activationEnergy: 100000
+    referenceK: 303
+    minGrowthK: 285
+    killK: 333
+    germinationK: 325
+    killRatePerHour: 6
+    killActivationEnergy: 200000
+    killSurvivalFraction: 0.01
+    awFloor: 0.95
+    inoculum: 0.002
+    infectiousDose: 0.35
+    channels: []
+    toxin:
+      type: botulinum-toxin
+      scaleMg: 0.5
+      # ⭐ 358 K — boiling destroys it. This is the number that makes
+      # "boil it" a real answer to one poison and useless against another.
+      labileAtK: 358

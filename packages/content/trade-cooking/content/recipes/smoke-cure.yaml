@@ -1,0 +1,25 @@
+# Smoke-cure — a cut hung in the smoke of a banked fire.
+#
+# ⭐⭐ `requiresHeatK: 320` is the whole design of this row, and it is 13 K
+# UNDER the temperature at which the flora starts dying. Smoking needs a
+# fire and must not be a cooking: it preserves by drying and by the smoke,
+# never by sterilising. A smoked cut that went up contaminated comes down
+# contaminated — which is why "cure it or cook it" is two lessons and not
+# one, and why the number here is a decision rather than a dial.
+recipeId: smoke-cure
+name: Smoked cut
+keywords: ["smoke-cure", "smoke", "smoked"]
+discipline: cooking
+difficulty: standard
+inputSlots:
+- slot: meat
+  category: meat
+  minGrade: fair
+  kind: item
+  count: 1
+toolCapabilities: []
+outputApplication: tangible
+outputTemplate: /trade/cooking/thing/treated-cut
+requiresHeatK: 320
+cure:
+  moisture: 0.55

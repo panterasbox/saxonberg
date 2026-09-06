@@ -1,0 +1,37 @@
+# cure — application settings shipped by the platform pack (the `settings`
+# kind: merge-missing — a key the app_settings singleton lacks is merged
+# in; a value the operator changed via `config` is never touched).
+settings:
+  # Curing — the per-instance water state (`CuredMixin`). Two scalars,
+  # `moisture` and `solute`, multiply the Material's tabulated water
+  # activity into the effective one the growth law reads:
+  #   a_w = a_w(material) · moisture · (1 − solute)
+  # `moisture: 1, solute: 0` is the identity, so an untreated thing keeps
+  # exactly as well as its Material always said it would.
+  # See docs/subsystems/spoilage.md.
+
+  # Fraction of the moisture gap a dried thing closes per game-hour while
+  # it sits in damp air. Slow on purpose: a ham softens over weeks, not
+  # over an afternoon, and a dry store has to be worth building.
+  # ⚠ ONE-WAY. Nothing dries by itself — drying is an act.
+  - key: cure.rehydrationPerHour
+    value: "0.02"
+
+  # The relative humidity (%) assumed where nothing in the containment
+  # chain and no biome authors one.
+  - key: cure.ambientHumidity
+    value: "60"
+
+  # Presentation cutoffs for the cured-state line. Bands, never numbers —
+  # a player reads "thoroughly dried and heavily salted", never 0.35.
+  - key: cure.band.driedAt
+    value: "0.5"
+
+  - key: cure.band.dryingAt
+    value: "0.85"
+
+  - key: cure.band.curedAt
+    value: "0.35"
+
+  - key: cure.band.curingAt
+    value: "0.05"

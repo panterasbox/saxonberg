@@ -1,0 +1,16 @@
+# The smoke chimney — the cold-smoking flue.
+#
+# ⭐ It affords `smoke`. The fire is what does the work, and it has to be a
+# COOL one: `smoke-cure` requires 320 K, deliberately 13 K under the
+# temperature at which the flora starts dying, so smoking preserves
+# without sterilising. Banking the fire down is the skill.
+class: /trade/cooking/thing/SmokeChimney
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a smoke chimney
+  primaryKeyword: chimney
+  keywords: [chimney, smoke, smokehouse, flue]
+  longDescription: |
+    A brick throat in the wall beside the hearth, wide enough to stand in and black to the shoulder with a generation of soot. Iron bars cross it at head height. The draught up it is slow and cool, which is the whole point of it.
+  _materialPath: /stuff/idea/material/ceramic/ceramic
+  mass: 400
