@@ -135,7 +135,7 @@ export default class FurnishableRoom extends FurnishableRoomBase {
    *
    * That is not squeamishness — it falls out of the shipped types. To gate
    * entry the engine would have to pick an identity axis, and it ships
-   * exactly two, deliberately kept apart: `SexedMixin` (biology, whose valid
+   * exactly two, deliberately kept apart: `Organism`'s sex (biology, whose valid
    * set is derived from the species' `sexDeterminationSystem` — `xy` yields
    * male/female/intersex, `monoecious` yields `male-and-female`, `none`
    * yields nothing at all) and `GenderedMixin` (pronouns and social

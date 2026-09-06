@@ -39,6 +39,7 @@ import { DressingStep } from '../../../../lib/slot/DressingStep';
 import { donDurationMs } from './EquipController';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Slotted } from '../../../../lib/slot/Slotted';
+import type { Attired } from '../../../../lib/slot/Attired';
 
 const TOPIC = 'sense.survey';
 
@@ -50,7 +51,7 @@ interface UnequipModel extends CommandModel {
 export default class UnequipController extends CommandController<UnequipModel> {
   async execute(model: UnequipModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
-    if (!MixinApi.isSlotted(giver)) {
+    if (!MixinApi.isAttired(giver)) {
       throw new Error(
         `UnequipController: requiresSlotted should have caught ${giver.stuffId}`,
       );
@@ -69,7 +70,7 @@ export default class UnequipController extends CommandController<UnequipModel> {
    */
   private async strip(
     context: CommandContext,
-    giver: Stuff & Slotted,
+    giver: Stuff & Slotted & Attired,
   ): Promise<void> {
     const stack = [...giver.wornStack()] as unknown as Stuff[];
     if (stack.length === 0) {
@@ -123,7 +124,7 @@ export default class UnequipController extends CommandController<UnequipModel> {
   private async takeOff(
     target: Stuff,
     context: CommandContext,
-    giver: Stuff & Slotted,
+    giver: Stuff & Slotted & Attired,
     quiet: boolean,
   ): Promise<boolean> {
     const wieldy = this.heldSpeak(target, context);

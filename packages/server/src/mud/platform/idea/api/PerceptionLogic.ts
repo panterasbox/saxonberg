@@ -821,7 +821,7 @@ function hideLevelForImpl(
     // is negative for a dark close weave and positive for a bright open
     // one, so a person in grey hides better than the same person in a
     // hi-vis vest — through the score, not a special case.
-    (MixinApi.isSlotted(actor) ? -actor.concealmentOffset() : 0);
+    (MixinApi.isAttired(actor) ? -actor.concealmentOffset() : 0);
 
   const buried = dialNumber(
     AppSettingKeys.stealthHideBandBuried,

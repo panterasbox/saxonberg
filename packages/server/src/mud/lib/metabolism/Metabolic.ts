@@ -101,7 +101,7 @@ export interface ToxinBehavior {
 
 /**
  * Widmark `r` factor by biological sex (volume-of-distribution ratio).
- * Read by `getBAC()` off `SexedMixin.getSex()`; a neutral default
+ * Read by `getBAC()` off `Organism.getSex()`; a neutral default
  * backstops unset / other values.
  */
 const WIDMARK_R_BY_SEX: Record<string, number> = {

@@ -236,7 +236,7 @@ function footPartsOf(body: Stuff): string[] {
  * foot parts specifically — a plate breastplate does NOT insulate the feet.
  */
 function groundContactInsulated(body: Stuff): boolean {
-  if (!MixinApi.isOrganism(body) || !MixinApi.isSlotted(body)) return false;
+  if (!MixinApi.isOrganism(body) || !MixinApi.isAttired(body)) return false;
   const insulatorMax = dial(
     AppSettingKeys.electricityInsulatorMaxConductivity,
     0.001,
@@ -402,7 +402,7 @@ function pathResistance(bodyResistanceOhms: number, victim: Stuff): number {
 /** The worn `Constructed` armor-layer materials — the series-resistance path
  * (the armor inversion: metal spreads/lowers, rubber/leather adds). */
 function wornConstructedMaterials(body: Stuff): Array<Material | null> {
-  if (!MixinApi.isOrganism(body) || !MixinApi.isSlotted(body)) return [];
+  if (!MixinApi.isOrganism(body) || !MixinApi.isAttired(body)) return [];
   const plan = body.getSpecies()?.getBodyPlan();
   if (!plan) return [];
   const mats: Array<Material | null> = [];

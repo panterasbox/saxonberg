@@ -15,9 +15,30 @@
  * field; `getSpecies()` resolves on each call via
  * `StuffApi.findByTemplatePath`. HMR-safe; no instance cache.
  *
- * Sex delegation: `getSex()` checks `MixinApi.isSexed(this)` and
- * delegates to the SexedMixin surface when composed. Hosts that don't
- * compose `SexedMixin` (e.g. v1 plants) get `null`.
+ * ⭐⭐ **Sex lives HERE**, absorbed from the retired `SexedMixin`.
+ *
+ * It was always a facet of this concept rather than a peer: `Organism`
+ * already declared `getSex()` and delegated to `SexedMixin` when
+ * composed, while `SexedMixin` read this host's SPECIES to know which
+ * values are legal. Two mixins pointing at each other to express one
+ * fact.
+ *
+ * ⚠⚠ Merged for a second and harder reason. `CreatureBase` was a
+ * 21-deep class-factory chain sitting exactly on TypeScript's
+ * inference ceiling — adding ANY mixin there collapsed `Avatar` to
+ * `never` (measured; an empty do-nothing mixin does it too, under both
+ * `tsc` and the Go rewrite). **Composition depth is a budgeted
+ * resource**, so a 95-line near-stateless capability composed by
+ * exactly one class does not get its own layer. See
+ * `docs/slates/builds/slotted-split-slate.md`.
+ *
+ * ⚠ A host whose species declares `sexDeterminationSystem: 'none'`
+ * (v1 plants) still answers `null` and still rejects every `setSex` —
+ * the empty valid-set does that, exactly as before. What changes is
+ * that such a host now carries a null `sex` field it did not before.
+ *
+ * Sexed is biology, not gender: `GenderedMixin` (pronouns, social
+ * presentation) stays separate and composes orthogonally.
  */
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
@@ -39,7 +60,26 @@ export interface Organism {
   /** Runs living processes? Neither `!isDead()` nor `isAlive()` — see impl. */
   isLivingBody(): boolean;
   getSex(): string | null;
+  setSex(value: string | null): void;
+  getValidSexSet(): readonly string[];
 }
+
+/**
+ * Map a species' `sexDeterminationSystem` to its valid sex value set.
+ * Centralized so adding a system is one edit. Absorbed from the former
+ * `SexedMixin`.
+ */
+const VALID_SEX_BY_SYSTEM: Record<string, readonly string[]> = {
+  xy: ['male', 'female', 'intersex'],
+  zw: ['male', 'female', 'intersex'],
+  environmental: ['male', 'female'],
+  haplodiploid: ['male', 'female'],
+  'hermaphroditic-simultaneous': ['hermaphrodite'],
+  'hermaphroditic-sequential': ['male', 'female', 'hermaphrodite'],
+  dioecious: ['male', 'female'],
+  monoecious: ['male-and-female'],
+  none: [],
+};
 
 export function OrganismMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class OrganismMixin extends Base {
@@ -48,6 +88,7 @@ export function OrganismMixin<TBase extends MixinConstructor>(Base: TBase) {
       _speciesPath: { persistent: true, authorable: true, authorPicker: 'Species' },
       age: { persistent: true, authorable: true },
       lifecycleState: { persistent: true, runtimeState: true },
+      sex: { persistent: true, authorable: true },
     };
 
     /**
@@ -138,14 +179,43 @@ export function OrganismMixin<TBase extends MixinConstructor>(Base: TBase) {
     public isUndead(): boolean { return this.lifecycleState === 'undead'; }
     public isPowered(): boolean { return this.lifecycleState === 'powered'; }
 
-    /**
-     * Sex default — `null` for biology-only organisms (v1 plants,
-     * Constructa, raw Animalia without SexedMixin). When the host
-     * composes `SexedMixin` (Item 7), that mixin's `getSex()` shadows
-     * this default through the standard mixin override chain.
-     */
+    /** The host's biological sex, or `null` when it has none. */
+    public sex: string | null = null;
+
     public getSex(): string | null {
-      return null;
+      return this.sex;
+    }
+
+    public setSex(value: string | null): void {
+      if (value === null) {
+        this.sex = null;
+        return;
+      }
+      const valid = this.getValidSexSet();
+      if (valid.length === 0) {
+        throw new Error(
+          `Organism.setSex: species' sex-determination system rejects all sex values; ` +
+            `cannot set '${value}'.`
+        );
+      }
+      if (!valid.includes(value)) {
+        throw new Error(
+          `Organism.setSex: '${value}' not in valid set ` +
+            `[${valid.join(', ')}] for species' sex-determination system.`
+        );
+      }
+      this.sex = value;
+    }
+
+    /**
+     * The legal sex values for this host's species. Empty when the
+     * species is unset or its system is `'none'` — the setter then
+     * rejects everything, which is how a plant stays sexless.
+     */
+    public getValidSexSet(): readonly string[] {
+      const species = this.getSpecies();
+      if (!species) return [];
+      return VALID_SEX_BY_SYSTEM[species.getSexDeterminationSystem()] ?? [];
     }
   };
 }

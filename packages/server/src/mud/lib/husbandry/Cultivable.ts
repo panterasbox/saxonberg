@@ -46,7 +46,7 @@
 
 import type { PopulateSpec, Populates } from "../stuff/Populates";
 import type { CommandContributions } from "../../api/command";
-import { Mixins, type MixinConstructor, type FieldMeta } from "../mixin";
+import type { MixinConstructor, FieldMeta } from "../mixin";
 import { MixinApi } from "../../api/mixin";
 import { StuffApi } from "../../api/stuff";
 import { WorldClockApi } from "../../api/worldclock";
@@ -179,7 +179,17 @@ export function CultivableMixin<
   >,
 >(Base: TBase) {
   return class CultivableMixin extends Base implements Cultivable {
-    static _mixinName = Mixins.Cultivable;
+    /*
+     * ⚠⚠ A PLAIN literal, deliberately — never `Mixins.Cultivable` and never
+     * an annotation. `Mixins` is `as const`, so both forms pin this static
+     * to a LITERAL type while every other composed class in a chain carries
+     * `_mixinName: string`. That makes the class STATIC SIDE incompatible
+     * (TS2417) for outer mixins and fixtures that declare their own name,
+     * and because `Base` is a type parameter the check is DEFERRED — it
+     * surfaces hundreds of files away as a base class collapsing to
+     * `never`. Cost two sessions on `AttiredMixin`; see slot.md.
+     */
+    static _mixinName = "CultivableMixin";
 
     /**
      * **A reachable bed IS a garden.** The working verbs ride the

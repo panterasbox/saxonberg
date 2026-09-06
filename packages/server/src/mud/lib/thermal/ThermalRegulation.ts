@@ -397,7 +397,7 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
         // number the loom already decides — and a soaked shell stops
         // working, because wet cloth wicks it straight through. A body
         // with nothing on reads 0 and the chill is untouched.
-        const windproof = MixinApi.isSlotted(self) ? self.windproofing() : 0;
+        const windproof = MixinApi.isAttired(self) ? self.windproofing() : 0;
         const shelter =
           1 -
           windproof *
@@ -588,7 +588,7 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
      */
     protected wornInsulationKelvin(): number {
       const self = this.regHost;
-      if (!MixinApi.isSlotted(self)) return 0;
+      if (!MixinApi.isAttired(self)) return 0;
       return self.bodyInsulation().rawValue() * THERMAL_DEFAULTS.CLO_TO_KELVIN;
     }
 

@@ -178,8 +178,9 @@ export class ProfileLogic extends ApiLogic {
         if (common) card.species = common;
         const stage = target.getLifecycleState();
         if (stage) card.ageStage = stage;
-      }
-      if (MixinApi.isSexed(target)) {
+        // ⚠ Inside the organism narrow, not beside it — `Sexed` is
+        // retired and sex is a facet of being an organism now, so the
+        // read needs `isOrganism` to have narrowed `target` first.
         const sex = target.getSex();
         if (sex) card.sex = sex;
       }

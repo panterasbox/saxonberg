@@ -23,6 +23,7 @@ import Species from '../../../platform/idea/species/Species';
 import BodyPlan from '../../../platform/idea/species/BodyPlan';
 import { Quantity } from '../../quantity';
 import { StuffApi } from '../../../api/stuff';
+import { MixinApi } from '../../../api/mixin';
 import {
   makeStuff,
   stampTemplatePathForTest,
@@ -348,15 +349,17 @@ describe('the covering stack orders itself', () => {
     expect(body.coveringAt('body.torso')).toHaveLength(0);
   });
 
-  it('a Slotted host with no body plan answers empty and zero', () => {
+  // ⭐ This used to assert that a Slotted host with no body plan
+  // answered empty-and-zero at RUNTIME. After the Attired split that
+  // case is unrepresentable: a coat rack holds garments on pegs and
+  // wears nothing, so it never carries the covering surface at all.
+  // The degenerate answer became a type, and what is left to prove is
+  // that the two mixins really did come apart.
+  it('a Slotted host is not thereby Attired — a rack wears nothing', () => {
     const rack = makeStuff(() => new Rack());
     rack.setStaticSlots([{ name: 'peg:1', accepts: 'WearableMixin' }]);
-    expect(rack.coveringAt('body.torso')).toHaveLength(0);
-    expect(rack.outermostAt('body.torso')).toBeNull();
-    expect(rack.bodyInsulation().rawValue()).toBe(0);
-    expect(rack.wouldLayerViolate(
-      makeStuff(() => new TestGarment()),
-    )).toBe(false);
+    expect(MixinApi.isSlotted(rack)).toBe(true);
+    expect(MixinApi.isAttired(rack)).toBe(false);
   });
 });
 

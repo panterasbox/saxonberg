@@ -79,7 +79,6 @@ import type { Tangible } from '../lib/material/Tangible';
 import type { Constructed } from '../lib/material/Constructed';
 import type { Dyed } from '../lib/material/Dyed';
 import type { Organism } from '../lib/species/Organism';
-import type { Sexed } from '../lib/character/Sexed';
 import type { Vitals } from '../lib/vitals/Vitals';
 import type { Postmortem } from '../lib/mortality/Postmortem';
 import type { Incorporeal } from '../lib/mortality/Incorporeal';
@@ -102,6 +101,7 @@ import type { Author } from '../lib/shell/Author';
 import type { Perceiver } from '../lib/description/Perceiver';
 import type { Scryable } from '../lib/perception/Scryable';
 import type { Slotted } from '../lib/slot/Slotted';
+import type { Attired } from '../lib/slot/Attired';
 import type { Persistable } from '../lib/persistence/Persistable';
 import type { Forkable } from '../lib/persistence/Forkable';
 import type {
@@ -985,9 +985,6 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.Organism);
   }
 
-  public static isSexed(obj: Stuff): obj is Stuff & Sexed {
-    return this.hasMixin(obj, Mixins.Sexed);
-  }
 
   public static isVitals(obj: Stuff): obj is Stuff & Vitals {
     return this.hasMixin(obj, Mixins.Vitals);
@@ -1096,6 +1093,17 @@ export class MixinApi {
 
   public static isSlotted(obj: Stuff): obj is Stuff & Slotted {
     return this.hasMixin(obj, Mixins.Slotted);
+  }
+
+  /**
+   * ⚠ A body with clothes on it — NOT the same question as
+   * {@link isSlotted}. A chair, a garden bed and a door are all slotted
+   * and none of them wears anything, which is why the covering reads
+   * moved off the slot substrate. Narrow on this before calling
+   * `wornStack` / `bodyInsulation` / `windproofing`.
+   */
+  public static isAttired(obj: Stuff): obj is Stuff & Slotted & Attired {
+    return this.hasMixin(obj, Mixins.Attired);
   }
 
   public static isSlottable(obj: Stuff): obj is Stuff & Slottable {
