@@ -1,0 +1,43 @@
+# The estuary mouth — the end of the water lane, and the edge of the
+# realm's map.
+#
+# ⚠ It goes no further, and it says so. The sea is not content; what
+# matters here is that the export road HAS an end a barge can be at, so
+# "carry it downriver" is a thing you can do rather than a direction you
+# can face.
+class: /platform/location/SingletonCartesianLocation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the mouth of the estuary
+  primaryKeyword: mouth
+  alternateNames: [estuary, saltings, marsh, water]
+  _address: terminus/city/wharfside/estuary-mouth
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  ambientIntensity: 700
+  ambientColorTemperature: 5900
+  longDescription: |
+    The banks give up. The river spreads into a mile of saltings and mud and channels that move between one season and the next, and the made path ends at a post with a lamp bracket on it and no lamp.
+
+    A deep channel keeps to the northern side and is marked, after a fashion, by withies pushed into the mud. Beyond that there is grey water and a great deal of sky, and whatever is out there is nobody's business here.
+  coords:
+    x: 3
+    y: 0
+    z: 0
+  exits:
+    west:
+      destination: /world/terminus/estuary/reach
+      media: [ground, water]
+      edgeMinutes: 4
+  details:
+    withies:
+      keywords: [withies, withy, marks, channel, sticks]
+      description: |
+        Willow rods pushed into the mud along the edge of the deep water, leaning with the last tide. Somebody replaces them. There is no authority that says who, and there never has been.
+    saltings:
+      keywords: [saltings, marsh, mud, flats, samphire]
+      description: |
+        Grey-green and cut to pieces by creeks, dry twice a day and not the rest of the time. Nothing crosses it that does not know it, and knowing it is a trade of its own that this realm has not troubled to name.
+    post:
+      keywords: [post, lamp, bracket, pole]
+      description: |
+        Oak, set in a stone base, with an iron bracket at head height shaped to take a lamp. There is no lamp. There has not been one for long enough that the bracket has rusted shut.

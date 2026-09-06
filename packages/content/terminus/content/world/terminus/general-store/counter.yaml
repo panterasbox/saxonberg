@@ -87,6 +87,25 @@ data:
     # world, and a shop that sells it.
     - { itemTemplatePath: /system/arcana/thing/mana-cell, par: 4 }
     - { itemTemplatePath: /system/arcana/thing/mana-lamp, par: 2 }
+    # ⭐⭐ The HAULAGE line, and the first row of it is the whole point.
+    #
+    # A labor market whose smallest job needs capital is not an entry
+    # rung. The handcart's template has existed since the encumbrance
+    # build and was **placed nowhere and sold nowhere** — the mechanism
+    # correct, the enabling data absent, and the failure silent. It is on
+    # a shelf now, cheap, so a character with a stipend and no transcript
+    # can take a haul gig on the day they arrive.
+    #
+    # ⚠ You cannot MAKE any of these. The wainwright is a named gap in
+    # vocations.md and a stated non-goal of the logistics build, so until
+    # somebody builds one the general store is where a rig comes from —
+    # and this comment is the record that it is a stand-in rather than a
+    # design. The barge and the coach are NOT here: a boat in a general
+    # store is silly, and the depot at Wharfside is where those belong.
+    - { itemTemplatePath: /stuff/thing/gear/handcart, par: 3 }
+    - { itemTemplatePath: /system/transport/thing/sledge, par: 1 }
+    - { itemTemplatePath: /system/transport/thing/dray, par: 1 }
+    - { itemTemplatePath: /system/transport/thing/wagon, par: 1 }
   prices:
     /world/terminus/general-store/thing/torch: 2
     /world/terminus/general-store/thing/rations: 3
@@ -143,3 +162,20 @@ data:
     # a little dearer for never needing oil.
     /system/arcana/thing/mana-cell: 6
     /system/arcana/thing/mana-lamp: 16
+    # ⭐⭐ The haulage ladder, and the FIRST NUMBER IS THE DESIGN.
+    #
+    # A handcart at 8 is inside a 20-credit stipend with change for
+    # rations — so band 0 can obtain a rig, take a haul gig and be paid,
+    # without borrowing money and without a transcript (AC15a). Everything
+    # above it is a real step: the sledge is cheap and horrible, the dray
+    # is a working purchase, and the wagon sits above the bed as the
+    # dearest thing in the shop — because a wagon is a business and a bed
+    # is a home, and those are the two things worth saving for.
+    #
+    # ⚠ None of these prices is a balance claim. They are a LADDER
+    # against the shipped anchors (stipend 20, wages 4-6 per game-hour),
+    # and the one that matters is the bottom of it.
+    /stuff/thing/gear/handcart: 8
+    /system/transport/thing/sledge: 14
+    /system/transport/thing/dray: 60
+    /system/transport/thing/wagon: 95

@@ -1,0 +1,35 @@
+# Equus caballus major — the draft horse. Tall, heavy-boned, deliberate,
+# and bred for one number.
+#
+# ⭐ That number is `mass: 700`, and it is the whole of the animal's
+# haulage advantage: carry capacity derives from body mass in the shipped
+# encumbrance substrate, so a wagon's draft load sits at a fraction of
+# the ratio a person would bear. Nothing in this pack computes it.
+#
+# It ships in the transport pack rather than the species commons for the
+# reason the pit pony ships in the mining trade: a draft animal is a need
+# every ROAD has, and the functional half of an ecology belongs with the
+# system that needs it. A realm's own beasts belong to the realm.
+class: /platform/idea/species/Species
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  binomial: Equus caballus major
+  commonNames: ["draft horse", "carthorse", "horse", "shire"]
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/quadruped
+  _parentCladePath: /stuff/idea/species/animalia
+  _defaultMaterialPath: /stuff/idea/material/tissue/flesh
+  vitalProfile:
+    coreTemperature: { baseline: 310, survivableMin: 300, survivableMax: 316 }
+    heartRate: { baseline: 34, survivableMin: 16, survivableMax: 110 }
+    respiratoryRate: { baseline: 12, survivableMin: 5, survivableMax: 56 }
+    bloodPressureSystolic: { baseline: 120, survivableMin: 65, survivableMax: 180 }
+    bloodPressureDiastolic: { baseline: 75, survivableMin: 40, survivableMax: 120 }
+    spo2: { baseline: 97, survivableMin: 50, survivableMax: 100 }
+    bloodVolume: { baseline: 55, survivableMin: 34, survivableMax: 55 }
+  lifecycleStates: ["alive", "dead"]
+  sexDeterminationSystem: xy
+  reproductiveMode: sexual
+  lifespanMin: 0
+  lifespanMax: 28
+  circadianBand: diurnal
+  diet: herbivore

@@ -26,18 +26,58 @@
  */
 
 import { MixinApi } from "../../api/mixin";
+import { CategoryMeasure } from "./CategoryMeasure";
+import { PAR_UNITS, type ParUnit } from "./ParLine";
 import { Creature } from "../creature/Creature";
 import type { Stuff } from "../stuff/Stuff";
 
-/** The closed, engine-verifiable condition-template vocabulary (v1). */
-export const CONDITION_TEMPLATES = ["delivery"] as const;
+/**
+ * The closed, engine-verifiable condition-template vocabulary.
+ *
+ * | | what must be true at turn-in |
+ * |---|---|
+ * | `delivery` | **this** thing (or one of this kind) is at the destination |
+ * | `supply` | **`count` of this kind** are at the destination |
+ *
+ * ⭐⭐ `supply` is the quantity contract, and it is why *"go mine ten
+ * iron ore"* needs no extraction template. Requiring that YOU mined it
+ * would mean provenance on every lump — expensive to verify, and bad
+ * economics besides: it would forbid filling a supply contract by
+ * BUYING, which is a legitimate way to fill one and the thing that makes
+ * a spot market liquid. **How you sourced it is your business.** Mining,
+ * salvage, purchase and hoarding all collapse into one predicate the
+ * engine can simply count.
+ *
+ * ⚠ Every member must be checkable by the engine at turn-in with no
+ * human adjudicating, because escrow holds real money. That is the wall
+ * fuzzier intents ("guard my shop", "be nice to Mara") sit behind, and
+ * it is the reason this list is closed rather than authored.
+ */
+export const CONDITION_TEMPLATES = ["delivery", "supply"] as const;
 
 export type ConditionTemplate = (typeof CONDITION_TEMPLATES)[number];
 
-/** The item a delivery condition binds — a specific instance or a kind. */
+/**
+ * What a condition binds.
+ *
+ * | | means |
+ * |---|---|
+ * | `chattel` | **that** object — the one you pointed at, marked as somebody's |
+ * | `template` | anything cloned from that row |
+ * | ⭐ `category` | **what the business actually wants** — six litres of gin, in whatever you like |
+ *
+ * ⚠⚠ The third exists because the first two are opinions about
+ * PACKAGING. A `supply` gig bound to a template path means "eight of
+ * that exact row", so a player who brings one demijohn holding six
+ * litres has done the job in every sense the bar cares about and the
+ * engine counts zero. A business is denominated in category and unit;
+ * saying so directly is what lets somebody solve the problem their own
+ * way.
+ */
 export type ConditionItemRef =
   | { kind: "template"; path: string }
-  | { kind: "chattel"; chattelId: string };
+  | { kind: "chattel"; chattelId: string }
+  | { kind: "category"; category: string; unit: ParUnit };
 
 /** The serializable condition payload a Contract carries. */
 export interface ConditionData {
@@ -46,6 +86,11 @@ export interface ConditionData {
   item: ConditionItemRef;
   /** The destination's durable `templatePath` (a Container/Surfaced). */
   destinationPath: string;
+  /**
+   * `supply` only: how many must arrive. Absent (or 1) for `delivery`,
+   * which is the one-of-something case.
+   */
+  count?: number;
 }
 
 /** How deep the upward ancestor walk goes (a chest inside a room is 2). */
@@ -69,11 +114,52 @@ export class Condition {
       if (!item.path) return "a template-bound item needs a path";
     } else if (item.kind === "chattel") {
       if (!item.chattelId) return "a chattel-bound item needs its id";
+    } else if (item.kind === "category") {
+      if (!item.category) return "a category-bound item needs a category";
+      if (!PAR_UNITS.includes(item.unit)) {
+        return `a category needs a unit — one of ${PAR_UNITS.join(", ")}`;
+      }
     } else {
-      return "item must be template- or chattel-bound";
+      return "item must be template-, chattel- or category-bound";
     }
     if (!d.destinationPath) return "condition needs a destinationPath";
+    if (d.template === "supply") {
+      const n = d.count;
+      // ⚠ Whole things are counted in wholes; litres and kilos are not.
+      // "Six litres" is a perfectly good order and 6.5 is too.
+      const wholeOnly =
+        item.kind !== "category" || item.unit === "count";
+      if (typeof n !== "number" || !Number.isFinite(n) || n <= 0) {
+        return "a supply condition needs a quantity greater than zero";
+      }
+      if (wholeOnly && !Number.isInteger(n)) {
+        return "a supply condition counts whole things in whole numbers";
+      }
+      // ⚠ A supply gig never binds ONE marked object: "ten of THIS one"
+      // is not a thing anybody can mean.
+      if (item.kind === "chattel") {
+        return "a supply condition counts a KIND, not one marked item";
+      }
+    }
     return null;
+  }
+
+  /**
+   * How much `item` contributes toward this condition — 1 for a named
+   * object, and its measured quantity for a category.
+   */
+  public static contributionOf(data: ConditionData, item: Stuff): number {
+    if (data.item.kind !== "category") return 1;
+    return CategoryMeasure.contribution(
+      item,
+      data.item.category,
+      data.item.unit,
+    );
+  }
+
+  /** How many the condition asks for — 1 unless it is a counted supply. */
+  public static countOf(data: ConditionData): number {
+    return data.template === "supply" ? Math.max(1, data.count ?? 1) : 1;
   }
 
   /**
@@ -82,6 +168,13 @@ export class Condition {
    * chattel precedent), so a fungible good can never satisfy a gig.
    */
   public static matchesItem(data: ConditionData, stuff: Stuff): boolean {
+    if (data.item.kind === "category") {
+      // ⚠ A glob is allowed HERE and nowhere else: a category condition
+      // measures QUANTITY, so a stack of six limes is six limes and has
+      // no identity problem to solve. The identity rule that refuses
+      // globs is about naming ONE object, which this never does.
+      return CategoryMeasure.counts(stuff, data.item.category);
+    }
     if (MixinApi.isGlobbable(stuff)) return false;
     if (data.item.kind === "chattel") {
       return (

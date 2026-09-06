@@ -42,6 +42,7 @@ import {
   type OrganizationFields,
 } from '../../lib/employment/Organization';
 import { ParLine, type ParLineData } from '../../lib/employment/ParLine';
+import type { ContractRecord } from '../../lib/employment/ContractRecord';
 
 /**
  * The trading half of the surface — what a Business adds to the chart
@@ -64,6 +65,31 @@ export interface BusinessTrade {
   setParLine(line: ParLineData): void;
   /** Remove the par line for `category`; returns whether one was there. */
   removeParLine(category: string): boolean;
+  /**
+   * @hook A contract this business ISSUED has settled — the courier was
+   * paid and the work is done.
+   *
+   * ⭐⭐ The framework tells the one party that cares, and names nobody
+   * who might. A settled gig is a fact some trades act on — haulage
+   * files a bill of lading, because a player who claims a haul gig and
+   * delivers it must file the same paper `ship` at a counter does — and
+   * the contract substrate has no business knowing which trades those
+   * are. A subclass overrides; everyone else inherits the no-op.
+   *
+   * ⚠⚠ This replaced a GLOBAL BUS EVENT (`contract.settled`), which had
+   * exactly one emitter and one subscriber and cost the kernel three
+   * pieces of vocabulary to serve one pack: an `Events` entry, an event
+   * interface shaped around that pack's fields, and an `emittableBy()`
+   * policy left OPEN so anything could forge "a gig settled". A hook on
+   * the issuer is narrower in every direction — only the issuer hears,
+   * nothing can announce on its behalf, and the kernel learns no new
+   * nouns.
+   *
+   * ⚠ Fire-and-forget by contract: the settle has already happened and
+   * the money has already moved when this runs. A throwing override must
+   * not unwind a completed contract, so the caller swallows and logs.
+   */
+  onContractSettled(record: ContractRecord): Promise<void>;
 }
 
 /**
@@ -90,6 +116,15 @@ export function BusinessMixin<
   TBase extends MixinConstructor<Organization & OrganizationFields>,
 >(Base: TBase) {
   class BusinessMixin extends Base implements BusinessTrade {
+    /**
+     * @hook See {@link BusinessTrade.onContractSettled}. The no-op
+     * terminal, so a subclass can `super.onContractSettled(record)`
+     * without ceremony (the `Stuff.onDestruct` precedent).
+     */
+    public async onContractSettled(_record: ContractRecord): Promise<void> {
+      // Most businesses do not care that a gig they posted settled.
+    }
+
     static _mixinName = 'BusinessMixin';
 
     static fieldMeta: FieldMeta = {

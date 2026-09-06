@@ -81,6 +81,13 @@ export default class GotoController extends CommandController<GotoModel> {
       );
     }
 
+    // D14 — the wizard path refuses too. An honest wizard path IS the
+    // ⭐ Coupling no longer refuses the move: `Mobile.teleport` severs
+    // the hitch (or the seat) and announces it on both sides. What the
+    // raw fallback below must NOT do is move a coupled mover without
+    // that severing — which is the defect the refusal was standing in
+    // for — so the fallback checks and detaches too.
+
     // 1. Polished path.
     if (MixinApi.isMobile(giver)) {
       try {
@@ -143,6 +150,11 @@ export default class GotoController extends CommandController<GotoModel> {
     if (!model.force && veto && !veto.ok) {
       return this.fail(context, 'vetoed', `canTeleport veto: ${veto.reason}`);
     }
+
+    // ⭐ Relocating something that is coupled is fine: `teleport` slips
+    // the hitch (or the seat) and tells both sides. An author moving a
+    // hitched cart gets the cart, and the horse is left standing where
+    // it was — which is what "relocate this object" should mean.
 
     const subjectName = subject.getPresentation();
     const destName = dest.getPresentation();

@@ -83,6 +83,41 @@ export const DOCUMENT_KINDS = {
    * the water pack's.
    */
   'water-right': { kind: 'water-right', naturalKey: null, contentDir: 'water-rights', ext: 'yaml', onVanish: 'keep' },
+  /**
+   * A **bill of lading** — what, how much, from where, to where, whose,
+   * and at what declared value, filed by a completed carriage.
+   *
+   * ⚠ Runtime-written, on the `water-right` pattern and for the same
+   * reason: it is *a record of something that happened*, so
+   * `onVanish: 'keep'` — no absent file may erase a shipment. Path-keyed
+   * under the filing carrier's own branch
+   * (`/trade/haulage/<business>/bills-of-lading/<id>`), because a
+   * depot's coverage is `list(prefix)` — **its records cover exactly
+   * what it handled, structurally**, which is the whole of the market-
+   * share reading in logistics D12.
+   *
+   * ⭐ It is not a reporting feature. It is the paper a carrier needs to
+   * prove what they took, and it happens to be the datum every freight
+   * statistic in the design reads from.
+   */
+  'bill-of-lading': { kind: 'bill-of-lading', naturalKey: null, contentDir: 'bills-of-lading', ext: 'yaml', onVanish: 'keep' },
+  /**
+   * A **warehouse receipt** — a bailee's acknowledgement that it holds
+   * named goods for a named depositor. A document of TITLE: you transfer
+   * the receipt instead of moving anything. Runtime-written, path-keyed,
+   * `keep` — same three reasons as the bill of lading.
+   */
+  'warehouse-receipt': { kind: 'warehouse-receipt', naturalKey: null, contentDir: 'warehouse-receipts', ext: 'yaml', onVanish: 'keep' },
+  /**
+   * A **rate card** — a carrier's published charges by route, weight and
+   * commodity.
+   *
+   * ⚠ `keep` rather than `delete` even though a card is *current* rather
+   * than historical: rate discrimination is evidence, and a superseded
+   * card is exactly the row an antitrust argument needs. Publishing a
+   * new one writes a new path; nothing overwrites the old.
+   */
+  'rate-card': { kind: 'rate-card', naturalKey: null, contentDir: 'rate-cards', ext: 'yaml', onVanish: 'keep' },
 } as const satisfies Record<string, DocumentKindSpec>;
 
 export type DeclaredDocumentKind = keyof typeof DOCUMENT_KINDS;

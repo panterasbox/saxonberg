@@ -1,0 +1,30 @@
+# The draft horse — the team, and the only "technology" in this build
+# that eats.
+#
+# ⭐ It is hitched with the SHIPPED `hitch <cart> to <horse>` and nothing
+# else. The tow inside `Mobile.traverse` carries the rig and its cargo as
+# a unit through an exit; the breakaway and terrain gates in
+# `LocomotionApi` refuse an overloaded one. Not a line of that is new.
+class: /system/transport/agent/DraftHorse
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/perissodactyla/equidae/equus/caballus-major
+  lifecycleState: alive
+  primaryKeyword: horse
+  keywords: ["horse", "draft-horse", "carthorse", "shire", "team"]
+  shortDescription: a heavy draft horse
+  longDescription: >-
+    Seventeen hands of deliberate animal with feathered feet and a neck
+    like a barrel, standing with the patience of something that has
+    never once been in a hurry. The collar has moulded itself to its
+    shoulders over years.
+  mass: 700
+  behaviors:
+    - brain: /lib/behavior/idles
+      trigger: cadence:70s
+      config:
+        pool:
+          - { kind: free, value: "shifts a foot and lets its weight down again." }
+          - { kind: free, value: "swings its head round to look at the load, then forward again." }
+          - { kind: free, value: "leans into the collar without being asked, feels nothing follow, and stops." }
+          - { kind: free, value: "blows out through its nose in the cold." }

@@ -329,6 +329,34 @@ they carry the **participant contract**
 whose timer set must stay in sync with the map) calls them as itself
 from `register`/`deregister`, with its own frame on the stack.
 
+### ⚠ Why the lifecycle verbs are on the Api, not on the Engagement
+
+The OO sweep moved every `FooApi.bar(foo)` onto its object and
+`lint:object-verbs` holds that census at **zero**, so `SchedulerApi.start`
+/ `.cancel` / `.complete` taking the engagement first looks like a miss.
+It is not: `SchedulerApi` is on the gate's **doctrine-exempt** list with
+`ContainmentApi`, `LocomotionApi`, `ConditionApi` and `StuffApi` — *"the
+orchestrators whose subject-first methods ARE the mandate"*.
+
+Two reasons, and the second is the real one:
+
+1. **An `Engagement` is not a world object.** It is a plain interface —
+   no `templatePath`, no proxy, not in the registry — so a method on it
+   would not be "a verb on a Stuff" in the sense the sweep was about.
+2. ⭐ **These change the SCHEDULER's state, not the engagement's.**
+   `complete` clears the registry's timers, deregisters, frees the
+   actor's slots, then dispatches. Almost nothing it touches belongs to
+   the engagement. That is the `StuffApi.destruct(obj)` shape — the
+   canonical transition that must *not* be `obj.destroy()`, because the
+   state being changed is the framework's.
+
+⚠ **The confusable part**, and it is worth naming because it will come up
+again: an `Engagement` carries `onStart`, `onAbort` and (durative)
+`onComplete`, so it reads as behaviour-bearing. **Those are hooks the
+scheduler CALLS; the Api methods are the scheduler being TOLD to run a
+transition.** Different direction, different owner — and a verb pair
+(`cancel`/`complete`) split across two homes would be the worse read.
+
 ## EngagedMixin
 
 `EngagedMixin` (`lib/activity/Engaged.ts`) is the actor-side

@@ -1,0 +1,27 @@
+# The express — the same lane, the same ground, two stops.
+#
+# ⭐ It PASSES THROUGH the milestone, the drove crossing and the flats
+# without stopping, which is what lets somebody standing at the drove
+# watch traffic go by that they cannot board. That is D2's *"an edge may
+# pass through nodes it does not stop at"* — the thing that means a realm
+# never has to be carpeted in rooms to have a road network.
+#
+# The two stops are the two places a load is actually handled: the
+# Wharfside quay and the valley crossroads, which is where the wheeled
+# road ends and bulk breaks.
+class: /system/transport/idea/ServiceRoute
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: spine-express
+  name: the express
+  laneKey: spine
+  nodes:
+    - /world/terminus/wharfside/bank
+    - /world/terminus/delight-road/ford
+    - /world/terminus/delight-road/milestone
+    - /world/terminus/delight-road/drove
+    - /world/terminus/delight-road/flats
+    - /world/terminus/delight-road/crossroads
+  stops:
+    - /world/terminus/wharfside/bank
+    - /world/terminus/delight-road/crossroads

@@ -18,9 +18,9 @@
 
 import { CommandController } from "../../../../lib/command/CommandController";
 import type { CommandContext, CommandModel } from "../../../../api/command";
-import type { MqlOneResult } from "../../../../api/mql";
 import { MessageApi } from "../../../../api/message";
 import { MixinApi } from "../../../../api/mixin";
+import { AddressApi } from "../../../../api/address";
 import { MqlApi } from "../../../../api/mql";
 import { Mml } from "../../../../api/mml";
 import { ContractApi } from "../../../../api/contract";
@@ -33,16 +33,44 @@ const TOPIC = "act.deed";
 /** The browse's short id — enough to be unique on one board. */
 const SHORT_ID_LEN = 8;
 
+/**
+ * The unit words a `supply` phrase accepts, mapped to the par
+ * vocabulary. ⚠ Prose spellings on purpose — somebody ordering stock
+ * says "litres", not "L".
+ */
+const UNIT_WORDS: Record<string, "L" | "kg" | "count"> = {
+  l: "L",
+  litre: "L",
+  litres: "L",
+  liter: "L",
+  liters: "L",
+  kg: "kg",
+  kilo: "kg",
+  kilos: "kg",
+  kilogram: "kg",
+  kilograms: "kg",
+};
+
 interface JobModel extends CommandModel {
-  /** `post`: the item exemplar (reachable). */
-  item?: MqlOneResult;
-  /** `post`: the destination (name reachable-first, else a path). */
-  destination?: string;
+  /**
+   * `post`: the condition PHRASE — `deliver <thing> to <place>` or
+   * `supply <n> <kind> to <place>`. Greedy up to `for`, parsed here
+   * against the closed template vocabulary.
+   */
+  condition?: string;
   /** `post`: the reward, minor units (a string arg; coerced here). */
   reward?: string;
+  /** `post`: where the work STARTS (name reachable-first, else a path). */
+  from?: string;
   bounty?: boolean;
   business?: boolean;
   expires?: number;
+  /**
+   * ⭐ browse: list gigs whose ORIGIN is here rather than what hangs on
+   * this board — the backhaul (D17). `here` is the only value that means
+   * anything today; anything else is read as a place name.
+   */
+  origin?: string;
   /** `claim`/`complete`/`abandon`: a gig id (or unique prefix). */
   id?: string;
 }
@@ -63,7 +91,7 @@ export default class JobController extends CommandController<JobModel> {
       case "abandon":
         return this.executeAbandon(model, context, board);
       case "browse":
-        return this.executeBrowse(context, board);
+        return this.executeBrowse(model, context, board);
       default:
         return this.fail(
           context,
@@ -76,11 +104,38 @@ export default class JobController extends CommandController<JobModel> {
   /* ─────────────────────────── browse ─────────────────────────── */
 
   private async executeBrowse(
+    model: JobModel,
     context: CommandContext,
     board: JobBoard,
   ): Promise<void> {
     const giver = context.commandGiver;
     const giverKey = giver.getIdentityPath() ?? "";
+
+    // ⭐ `jobs --origin here` is the BACKHAUL read (D17): a hauler at the
+    // far end of a corridor asking what wants moving back. It is a
+    // different question from "what hangs on this board" — the return
+    // load is posted wherever the shipper is, not where you are standing
+    // — so it reads by origin rather than by board.
+    const originRaw = (model.origin ?? "").trim();
+    if (originRaw) {
+      const originPath = this.place(originRaw, context);
+      const back = await ContractApi.openGigsFrom(originPath);
+      if (back.length === 0) {
+        this.send(
+          context,
+          Mml.compose`\nNothing wants moving out of ${leafOf(originPath)} right now — you would go back empty.\n`,
+        );
+        return;
+      }
+      this.send(
+        context,
+        Mml.compose`\nWanting carriage out of ${leafOf(originPath)}:\n${back
+          .map((gig) => this.describeGig(gig, giverKey))
+          .join("\n")}\n`,
+      );
+      return;
+    }
+
     const gigs = await ContractApi.openGigsOn(board.getTemplatePath() ?? "");
     if (gigs.length === 0) {
       this.send(
@@ -93,6 +148,181 @@ export default class JobController extends CommandController<JobModel> {
     this.send(
       context,
       Mml.compose`\nPosted work:\n${lines.join("\n")}\n`,
+    );
+  }
+
+  /**
+   * Parse the condition PHRASE into an engine-verifiable condition.
+   *
+   * ```
+   * deliver <thing> to <place>        → { delivery, item, destination }
+   * supply <n> <kind> to <place>      → { supply, item, destination, count }
+   * ```
+   *
+   * ⭐⭐ The condition is a phrase rather than a flag or a subcommand
+   * because it is **what the work IS**, while `post`/`claim`/`complete`/
+   * `abandon` are what you are DOING about it — two axes, two slots. A
+   * third template adds a form here and changes nothing else.
+   *
+   * ⚠ This is also what retired `--kind`. One grammar was doing two
+   * jobs, so a flag had to say which; now `supply 10 gin` is obviously a
+   * kind and `deliver <that crate>` is obviously an instance, and the
+   * flag has nothing left to disambiguate.
+   */
+  private parseCondition(
+    raw: string,
+    context: CommandContext,
+  ):
+    | {
+        template: "delivery" | "supply";
+        itemRef: ConditionData["item"];
+        destinationPath: string;
+        count: number;
+      }
+    | { error: string; reason: string } {
+    const words = raw.trim().split(/\s+/).filter(Boolean);
+    const verb = (words.shift() ?? "").toLowerCase();
+    if (verb !== "deliver" && verb !== "supply") {
+      return {
+        error:
+          `Post what? Say what has to be true — ` +
+          `\`deliver <thing> to <place>\` or ` +
+          `\`supply <n> <kind> to <place>\`.`,
+        reason: "no-condition",
+      };
+    }
+    // The destination is everything after `to`; the subject is what is
+    // left in front of it.
+    const at = words.findIndex((w) => w.toLowerCase() === "to");
+    if (at < 0 || at === 0 || at === words.length - 1) {
+      return {
+        error: `Deliver it WHERE? Name a place after \`to\`.`,
+        reason: "no-destination",
+      };
+    }
+    const subject = words.slice(0, at);
+    const destinationPath = this.place(words.slice(at + 1).join(" "), context);
+    if (destinationPath.length === 0) {
+      return {
+        error: `Nobody here has heard of that place.`,
+        reason: "unknown-destination",
+      };
+    }
+
+    if (verb === "supply") {
+      const count = Number(subject.shift());
+      if (!Number.isFinite(count) || count <= 0) {
+        return {
+          error:
+            `Supply how much? \`supply 10 iron-ore to <place>\`, or ` +
+            `\`supply 6 litres of gin to <place>\`.`,
+          reason: "no-count",
+        };
+      }
+
+      /*
+       * ⭐⭐ `supply <n> <unit> of <category>` — what the BUSINESS wants,
+       * rather than the packaging somebody imagined it in. Six litres of
+       * gin is six litres whether it arrives in one demijohn or eight
+       * bottles, and a player who solves it their own way has still
+       * done the job.
+       */
+      const unit = UNIT_WORDS[(subject[0] ?? "").toLowerCase()];
+      if (unit && (subject[1] ?? "").toLowerCase() === "of") {
+        const category = subject.slice(2).join(" ").trim();
+        if (category.length === 0) {
+          return { error: `Supply how much of WHAT?`, reason: "no-item" };
+        }
+        return {
+          template: "supply",
+          itemRef: { kind: "category", category, unit },
+          destinationPath,
+          count,
+        };
+      }
+      if (!Number.isInteger(count)) {
+        return {
+          error: `You cannot order half a thing — say a unit, as in ` +
+            `\`supply 6 litres of gin\`.`,
+          reason: "no-count",
+        };
+      }
+      const kind = this.kindOf(subject.join(" "), context);
+      if (kind.length === 0) {
+        return { error: `There is no such thing.`, reason: "no-item" };
+      }
+      return {
+        template: "supply",
+        itemRef: { kind: "template", path: kind },
+        destinationPath,
+        count,
+      };
+    }
+
+    // `deliver` — point at it. A MARKED thing means THAT one; anything
+    // else means its kind.
+    const rawItem = subject.join(" ");
+    const item =
+      MqlApi.resolveMany(rawItem, {
+        commandGiver: context.commandGiver,
+        scope: "reachable",
+      }).stuff[0] ?? null;
+    if (!item) {
+      const kind = this.kindOf(rawItem, context);
+      if (kind.length === 0) {
+        return {
+          error: `There's no '${rawItem}' here to post about.`,
+          reason: "no-item",
+        };
+      }
+      return {
+        template: "delivery",
+        itemRef: { kind: "template", path: kind },
+        destinationPath,
+        count: 1,
+      };
+    }
+    const chattelId = MixinApi.isChattel(item) ? item.getChattelId() : "";
+    return {
+      template: "delivery",
+      itemRef: chattelId
+        ? { kind: "chattel", chattelId }
+        : { kind: "template", path: item.getTemplatePath() ?? "" },
+      destinationPath,
+      count: 1,
+    };
+  }
+
+  /**
+   * A KIND, as a durable path: something reachable resolves to its
+   * template, and anything else is read as a path. ⚠ `ContractApi.post`
+   * re-validates that the kind is really something — a gig for a kind
+   * that is nothing would hold its escrow forever.
+   */
+  private kindOf(raw: string, context: CommandContext): string {
+    const trimmed = raw.trim();
+    if (trimmed.length === 0) return "";
+    const hit = MqlApi.resolveMany(trimmed, {
+      commandGiver: context.commandGiver,
+      scope: "reachable",
+    }).stuff[0];
+    const path = hit?.getTemplatePath() ?? "";
+    if (path.length > 0) return path;
+    return trimmed.startsWith("/") ? trimmed : "";
+  }
+
+  /**
+   * A place the player named, as a durable path — ⭐ the ONE ladder, on
+   * `AddressApi`. It used to be a private copy here that knew only
+   * `here`, reachable and a path; `ship` grew a second, different copy,
+   * and the two drifted until one of them could not name a remote
+   * destination at all.
+   */
+  private place(raw: string, context: CommandContext): string {
+    return AddressApi.resolvePlace(
+      raw,
+      context.commandGiver,
+      context.location?.getTemplatePath() ?? "",
     );
   }
 
@@ -124,39 +354,33 @@ export default class JobController extends CommandController<JobModel> {
     context: CommandContext,
     board: JobBoard,
   ): Promise<void> {
-    const item = model.item?.stuff ?? null;
-    if (!item) {
-      return this.fail(
-        context,
-        `There's no '${model.item?.raw ?? "item"}' here to post about.`,
-        "no-item",
-      );
+    const parsed = this.parseCondition(model.condition ?? "", context);
+    if ("error" in parsed) {
+      return this.fail(context, parsed.error, parsed.reason);
     }
+    const { itemRef, destinationPath, template, count } = parsed;
     const reward = Number(model.reward);
 
-    // Instance-bound when the exemplar carries a chattel id (deliver THIS
-    // crate); else kind-bound on its template.
-    const chattelId =
-      MixinApi.isChattel(item) ? item.getChattelId() : "";
-    const itemRef: ConditionData["item"] = chattelId
-      ? { kind: "chattel", chattelId }
-      : { kind: "template", path: item.getTemplatePath() ?? "" };
-
-    // Destination: a reachable thing by name first, else treat the string
-    // as a template path — ContractApi re-validates either way.
-    const raw = (model.destination ?? "").trim();
-    const reachable = MqlApi.resolveMany(raw, {
-      commandGiver: context.commandGiver,
-      scope: "reachable",
-    }).stuff[0];
-    const destinationPath = reachable?.getTemplatePath() ?? raw;
+    // Where the work STARTS. Omitted ⇒ ContractApi derives it from the
+    // poster's own environment, which is right for an NPC posting from
+    // its floor and for a player posting at the board they stand at.
+    const fromRaw = (model.from ?? "").trim();
 
     const result = await ContractApi.post({
       boardPath: board.getTemplatePath() ?? "",
-      condition: { template: "delivery", item: itemRef, destinationPath },
+      condition: {
+        template,
+        item: itemRef,
+        destinationPath,
+        // ⚠ Always on a supply, even at 1: `validate` requires it, and
+        // omitting it "because 1 is the default" made `supply 1` — the
+        // one-of-a-kind case that replaced `--kind` — refuse itself.
+        ...(template === "supply" ? { count } : {}),
+      },
       rewardMinor: reward,
       claimMode: model.bounty ? "open-bounty" : "exclusive",
       asBusiness: model.business === true,
+      ...(fromRaw ? { originPath: this.place(fromRaw, context) } : {}),
       ...(model.expires ? { expiresGameHours: Number(model.expires) } : {}),
     });
     if (!result.ok) {

@@ -53,6 +53,7 @@ export class ContractRecord extends Document {
     contractId: { persistent: true },
     state: { persistent: true },
     boardPath: { persistent: true },
+    origin: { persistent: true },
     issuer: { persistent: true },
     issuerAccountId: { persistent: true },
     claimMode: { persistent: true },
@@ -75,6 +76,22 @@ export class ContractRecord extends Document {
   state: ContractState = "open";
   /** The board this gig is posted to (its fixture's `templatePath`). */
   boardPath = "";
+  /**
+   * ⭐ Where the work STARTS — the durable `templatePath` of the place the
+   * goods are collected from. `""` when the posting names none.
+   *
+   * A gig already carried a destination (in its condition) and nothing
+   * said where it began, which made **the empty return invisible**: a
+   * hauler standing at the far end of a corridor could not ask *what
+   * wants moving back*. That is the one collective structure logistics
+   * D17 ships, and *you cannot solve your own backhaul* — you need
+   * somebody else's cargo going the other way, so the board has to be
+   * askable by origin.
+   *
+   * Set from the poster's own environment when the post omits it, so an
+   * NPC posting from its floor gets the right answer for free.
+   */
+  origin = "";
   /** Who posted (and funds) the gig. */
   issuer: ContractParty = { kind: "player", templatePath: "" };
   /** The issuer-side funding account (where a revert returns the stake). */
@@ -120,6 +137,23 @@ export class ContractRecord extends Document {
     });
     const claimed = await ContractRecord.find<ContractRecord>({
       boardPath,
+      state: "claimed",
+    });
+    return [...open, ...claimed].sort((a, b) => a.postedAt - b.postedAt);
+  }
+
+  /**
+   * The live gigs whose **origin** is `origin`, oldest-first — the
+   * backhaul read (D17). A hauler standing in Rejection asks this to see
+   * what wants moving to Terminus.
+   */
+  static async findLiveByOrigin(origin: string): Promise<ContractRecord[]> {
+    const open = await ContractRecord.find<ContractRecord>({
+      origin,
+      state: "open",
+    });
+    const claimed = await ContractRecord.find<ContractRecord>({
+      origin,
       state: "claimed",
     });
     return [...open, ...claimed].sort((a, b) => a.postedAt - b.postedAt);
