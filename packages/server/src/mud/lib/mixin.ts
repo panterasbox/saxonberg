@@ -290,6 +290,7 @@ export const Mixins = {
   Perceiver: 'PerceiverMixin',
   Scryable: 'ScryableMixin',
   Slotted: 'SlottedMixin',
+  Attired: 'AttiredMixin',
   Slottable: 'SlottableMixin',
   Wearable: 'WearableMixin',
   Wardrobe: 'WardrobeMixin',

@@ -55,6 +55,7 @@ import { RespirationMixin } from '../respiration/Respiration';
 import { DisguisableMixin } from '../disguise/Disguisable';
 import { ConcealableMixin } from '../concealment/Concealable';
 import { SlottableMixin } from '../slot/Slottable';
+import { AttiredMixin } from '../slot/Attired';
 import { PostmortemMixin } from '../mortality/Postmortem';
 import { Quantity } from '../quantity';
 
@@ -131,6 +132,9 @@ const CreatureBase = PostmortemMixin(
                         // always Slottable via Avatar's composition", which
                         // was never true. Found by driving the world.
                         SlottableMixin(
+                        // ⭐ The only composer of Attired: a body is the
+                        // only thing that wears anything. See Attired.ts.
+                        AttiredMixin(
                         BodyPlanSlotsMixin(
                           SlottedMixin(
                               OrganismMixin(
@@ -138,6 +142,7 @@ const CreatureBase = PostmortemMixin(
                               )
                             )
                           )
+                        )
                         )
                         )
                       )

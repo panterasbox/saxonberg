@@ -101,6 +101,7 @@ import type { Author } from '../lib/shell/Author';
 import type { Perceiver } from '../lib/description/Perceiver';
 import type { Scryable } from '../lib/perception/Scryable';
 import type { Slotted } from '../lib/slot/Slotted';
+import type { Attired } from '../lib/slot/Attired';
 import type { Persistable } from '../lib/persistence/Persistable';
 import type { Forkable } from '../lib/persistence/Forkable';
 import type {
@@ -1092,6 +1093,17 @@ export class MixinApi {
 
   public static isSlotted(obj: Stuff): obj is Stuff & Slotted {
     return this.hasMixin(obj, Mixins.Slotted);
+  }
+
+  /**
+   * ⚠ A body with clothes on it — NOT the same question as
+   * {@link isSlotted}. A chair, a garden bed and a door are all slotted
+   * and none of them wears anything, which is why the covering reads
+   * moved off the slot substrate. Narrow on this before calling
+   * `wornStack` / `bodyInsulation` / `windproofing`.
+   */
+  public static isAttired(obj: Stuff): obj is Stuff & Slotted & Attired {
+    return this.hasMixin(obj, Mixins.Attired);
   }
 
   public static isSlottable(obj: Stuff): obj is Stuff & Slottable {
