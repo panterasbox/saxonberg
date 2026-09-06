@@ -351,6 +351,35 @@ What makes the roles separable is that **the verbs live on capabilities**:
 So `WorkingAnimal` adds nothing but a name and an **absence**, and the
 absence is the point.
 
+### ⚠⚠ What the carcass opens onto — two silent failures, both found live
+
+`butcher` announces *"nothing is wasted"* and lists what came off. Both
+halves of that sentence were false for a while, and neither threw.
+
+1. **The beast weighed nothing.** Yields are fractions of live mass, and
+   a drafted head's mass seeds from its species — which authored none,
+   over a `quadruped` body plan which authored none either. Every cut
+   rounded to zero and the act reported the zero-yield line, *"there was
+   less on it than you hoped"*, which is a true statement about a body
+   that massed 0 kg. Fixed by `Species.adultMass` (see
+   [race.md](./race.md)); a cow is 550 kg and dresses accordingly.
+2. **The meat line named a MATERIAL, not a row.** It pointed at
+   `/stuff/idea/material/food/stew-meat` — what a cut is made *of* —
+   so the clone threw, `mint`'s deliberate catch swallowed it, and the
+   carcass came apart into tallow, hide and bone with **no meat at all**,
+   reported as success. It is `/stuff/thing/items/stew-meat` now: the
+   shipped `Provision`, so butchered meat arrives carrying Freshness,
+   Cured and Contaminable and the clock the cooking chain starts at the
+   kill is the same clock ([spoilage.md](./spoilage.md)).
+
+⭐ The catch in `mint` stays — a missing cut row genuinely should not
+lose the rest of the carcass — so the guard is a test that walks the
+yield table (`carcass-rows.test.ts`), because `lint:census` reads
+path-valued fields in shipped ROWS and these paths live in TypeScript.
+
+⚠ Both were invisible to the suite for the same reason: a fixture hands
+the mass and the row straight in. The first one masked the second.
+
 ⚠ `HandledMixin` is the affordance half only — the kernel owns the
 mechanism (`lib/husbandry/Handling`) and cannot name a pack's command
 view. It does **not** compose `HandlingMixin`: nesting a factory inside a

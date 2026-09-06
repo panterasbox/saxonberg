@@ -39,6 +39,8 @@ data:
   lifespanMax: 15
   circadianBand: diurnal
   diet: carnivore
+  # ⭐ Adult liveweight in kg. A grown working collie.
+  adultMass: 20
   ageCurve: { weanedAt: 20, matureAt: 200, agedAt: 1200, senescentAt: 1800 }
   breeding: { daylightFrom: 0, daylightTo: 1, gestationDays: 25, litter: 5 }
   production: []

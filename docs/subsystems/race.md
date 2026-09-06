@@ -476,6 +476,23 @@ sessile plan is the stand-in for organisms with no agency anatomy
   (e.g. `['alive', 'dead', 'undead']`)
 - `sexDeterminationSystem`, `reproductiveMode`
 - `lifespanMin`, `lifespanMax`
+- ⭐⭐ `adultMass` — **what a grown one weighs, in kg**, and the number
+  the body plan cannot give. `BodyPlan.baseMass` is a body-SHAPE default:
+  every quadruped shares it, so it cannot tell a cow from a collie.
+  `Species.massAt(ageDays)` walks the adult mass back down the
+  `ageCurve` — linear from 7 % of adult at birth to the whole of it at
+  `matureAt`, flat after — and `Creature.getMass()` seeds from that,
+  falling back to `baseMass`. `0` means *this species does not say*.
+
+  ⚠⚠ **Until 2026-09-06 only `biped` authored a `baseMass`, so every
+  quadruped and every bird in the realm massed ZERO** — and four
+  subsystems read that number (encumbrance for carry capacity,
+  metabolism for the Kleiber basal drain, thermal for thermal mass,
+  ranching for what comes off a carcass). Nothing threw: `butcher` on a
+  healthy cow answered *"there was less on it than you hoped"*, a true
+  report about a body that weighed nothing. `Species.authoredMass.test.ts`
+  now reads it from the reader's end — every shipped animal species must
+  arrive at a real mass by some route.
 - `circadianBand`
 - `diet` (DietApi-deferred)
 - `visionProfile` — flat 3-scalar record consumed by `VisionModality`

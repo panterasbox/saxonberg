@@ -29,6 +29,8 @@ data:
   lifespanMax: 15
   circadianBand: diurnal
   diet: omnivore
+  # ⭐ Adult liveweight in kg. A grown sow; a fattened barrow goes heavier.
+  adultMass: 120
   ageCurve: { weanedAt: 20, matureAt: 130, agedAt: 900, senescentAt: 1300 }
   breeding: { daylightFrom: 0, daylightTo: 1, gestationDays: 38, litter: 8 }
   production: []

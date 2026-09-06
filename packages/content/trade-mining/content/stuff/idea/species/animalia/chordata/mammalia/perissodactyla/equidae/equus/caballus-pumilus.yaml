@@ -16,6 +16,8 @@ data:
   binomial: Equus caballus pumilus
   commonNames: ["pit pony", "pony", "horse"]
   _bodyPlanPath: /stuff/idea/species/BodyPlan/quadruped
+  # ⭐ Adult liveweight in kg. A grown pit pony — small enough for a drift, strong enough for the tubs.
+  adultMass: 250
   _parentCladePath: /stuff/idea/species/animalia
   _defaultMaterialPath: /stuff/idea/material/tissue/flesh
   vitalProfile:

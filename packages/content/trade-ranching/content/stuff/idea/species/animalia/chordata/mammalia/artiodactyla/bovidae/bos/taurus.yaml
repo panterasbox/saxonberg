@@ -36,6 +36,8 @@ data:
   diet: herbivore
   # ⚠ Twice the sheep's generation interval, compressed by the same
   # factor. The RATIO is the teachable term and it is exact.
+  # ⭐ Adult liveweight in kg. A grown cow in a working dairy-and-draught landrace — not a modern beef animal.
+  adultMass: 550
   ageCurve: { weanedAt: 60, matureAt: 300, agedAt: 1800, senescentAt: 2600 }
   breeding: { daylightFrom: 0, daylightTo: 1, gestationDays: 120, litter: 1 }
   production:

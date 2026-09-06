@@ -47,7 +47,17 @@ import Livestock from '../../../agent/Livestock';
  * fat around 5 %, and bone the rest of what is not meat.
  */
 const YIELDS: ReadonlyArray<{ row: string; fraction: number; what: string }> = [
-  { row: '/stuff/idea/material/food/stew-meat', fraction: 0.42, what: 'meat' },
+  // ⚠⚠ The THING row, not the material path it is made of. This named
+  // `/stuff/idea/material/food/stew-meat` — a Material Idea — until
+  // 2026-09-06, so the clone threw, `mint`'s catch swallowed it, and the
+  // carcass came apart into tallow, hide and bone with **no meat**: the
+  // one product the whole act exists for, missing, and reported as
+  // success. It was invisible because every head massed zero, so the
+  // yield read as empty for a different reason.
+  // ⭐ Being the shipped `Provision` row is the point: butchered meat
+  // arrives carrying Freshness, Cured and Contaminable, so the clock the
+  // cooking chain starts at the kill is the same clock.
+  { row: '/stuff/thing/items/stew-meat', fraction: 0.42, what: 'meat' },
   { row: '/trade/ranching/thing/tallow', fraction: 0.05, what: 'tallow' },
   { row: '/trade/ranching/thing/hide', fraction: 0.07, what: 'a hide' },
   { row: '/trade/ranching/thing/bone', fraction: 0.12, what: 'bone' },

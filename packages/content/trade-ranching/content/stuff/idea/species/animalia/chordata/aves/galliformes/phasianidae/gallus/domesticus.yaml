@@ -33,6 +33,8 @@ data:
   lifespanMax: 8
   circadianBand: diurnal
   diet: omnivore
+  # ⭐ Adult liveweight in kg. A grown hen. ⚠ Her body plan is `biped`, whose 70 kg default is a PERSON — without this number a hen massed as much as a farmhand.
+  adultMass: 2.5
   ageCurve: { weanedAt: 10, matureAt: 60, agedAt: 500, senescentAt: 800 }
   # ⚠ A LONG-day layer: she comes into lay as the days lengthen and goes
   # off as they shorten. The third distinct photoperiod response in the

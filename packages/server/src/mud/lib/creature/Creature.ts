@@ -340,7 +340,25 @@ export class Creature extends CreatureBase {
    * is the single place the body-grounded default is applied.
    */
   protected seedMassFromBodyPlan(): Quantity<'kg'> | null {
-    const baseMass = this.getSpecies()?.getBodyPlan()?.getBaseMass();
+    const species = this.getSpecies();
+    /*
+     * ⭐ The SPECIES answers first, and the body plan is the fallback.
+     *
+     * `baseMass` is a body-SHAPE default — every quadruped shares one
+     * number, so it cannot tell a cow from a collie — and a plan that
+     * authors none leaves the body at zero. `quadruped` and `avian` both
+     * did, so every four-legged and every winged animal massed nothing
+     * until 2026-09-06. The species' own `adultMass`, walked down its
+     * maturation curve, is the honest number; the plan's default stands
+     * for a species that does not state one.
+     */
+    const speciesMass = species?.massAt(this.getAgeDays());
+    if (speciesMass !== undefined && speciesMass > 0) {
+      const seeded = Quantity.of(speciesMass, 'kg');
+      this.setMass(seeded);
+      return seeded;
+    }
+    const baseMass = species?.getBodyPlan()?.getBaseMass();
     if (baseMass !== undefined && baseMass > 0) {
       const seeded = Quantity.of(baseMass, 'kg');
       this.setMass(seeded);

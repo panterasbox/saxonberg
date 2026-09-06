@@ -137,6 +137,18 @@ export interface VitalBand {
  *
  * Every figure is per-species authored and none is hardcoded anywhere.
  */
+/**
+ * What a newborn weighs as a fraction of its grown self.
+ *
+ * ⭐ One number for every species on purpose: across mammals and birds a
+ * neonate runs a few per cent of adult mass and the spread between a
+ * lamb and a calf is far smaller than the spread in what they grow INTO
+ * — which the species' own `adultMass` already carries. A per-species
+ * birth weight would be a second authored number saying almost the same
+ * thing.
+ */
+const BIRTH_MASS_FRACTION = 0.07;
+
 export interface AgeCurveSpec {
   /** Game-days from birth to weaning — off the mother, on solid feed. */
   weanedAt: number;
@@ -283,6 +295,28 @@ export default class Species extends SingletonMixin(
   /** Lifespan band (years). v1 is descriptive only. */
   protected lifespanMin: number = 0;
   protected lifespanMax: number = 0;
+
+  /**
+   * ⭐⭐ **What a grown one of these weighs, in kg** — the species'
+   * answer, and the one the body plan cannot give.
+   *
+   * `BodyPlan.baseMass` is a body-SHAPE default: every quadruped shares
+   * it, so it cannot tell a cow from a collie, and a plan authoring none
+   * leaves the body at **zero** — which is what `quadruped` and `avian`
+   * both did until 2026-09-06, so every four-legged and every winged
+   * animal in the realm massed nothing. Three subsystems read that
+   * number (encumbrance for carry capacity, metabolism for the Kleiber
+   * basal drain, thermal for thermal mass) and a fourth found it:
+   * butchering a drafted beast handed back nothing at all, because every
+   * cut of zero rounds to nothing.
+   *
+   * `0` means *this species does not say*, and the body plan's default
+   * stands — so authoring it is an improvement, never a requirement.
+   *
+   * ⚠ It is the ADULT mass. What an animal weighs today is
+   * {@link massAt}, which walks it up the maturation curve.
+   */
+  protected adultMass: number = 0;
 
   /**
    * The maturation curve (D23), or `null` for a species nobody has
@@ -463,6 +497,7 @@ export default class Species extends SingletonMixin(
     reproductiveMode: { persistent: true },
     lifespanMin: { persistent: true },
     lifespanMax: { persistent: true },
+    adultMass: { persistent: true, authorable: true },
     ageCurve: { persistent: true, authorable: true },
     production: { persistent: true, authorable: true },
     breeding: { persistent: true, authorable: true },
@@ -601,6 +636,32 @@ export default class Species extends SingletonMixin(
     return from <= to
       ? daylightFraction >= from && daylightFraction <= to
       : daylightFraction >= from || daylightFraction <= to;
+  }
+
+  public getAdultMass(): number { return this.adultMass; }
+  public setAdultMass(value: number): void {
+    this.adultMass = Number.isFinite(value) && value > 0 ? value : 0;
+  }
+
+  /**
+   * ⭐ What one of these weighs at `ageDays` — the adult mass walked back
+   * down the maturation curve, or `0` when the species does not say.
+   *
+   * Growth is linear from {@link BIRTH_MASS_FRACTION} of adult at birth
+   * to the whole of it at `matureAt`, and flat thereafter. A real growth
+   * curve is sigmoid; this is the honest cheap version, and the shape
+   * that matters is the one it gets right — **a calf is not a cow, and
+   * killing one early costs you the difference.** With no curve authored
+   * the species has no maturation to walk, so the adult mass stands.
+   */
+  public massAt(ageDays: number): number {
+    const adult = this.adultMass;
+    if (adult <= 0) return 0;
+    const curve = this.ageCurve;
+    if (!curve || curve.matureAt <= 0) return adult;
+    if (ageDays >= curve.matureAt) return adult;
+    const grown = Math.max(0, ageDays) / curve.matureAt;
+    return adult * (BIRTH_MASS_FRACTION + (1 - BIRTH_MASS_FRACTION) * grown);
   }
 
   public getAgeCurve(): AgeCurveSpec | null { return this.ageCurve; }

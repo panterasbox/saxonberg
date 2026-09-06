@@ -13,6 +13,8 @@ data:
   binomial: Subterracavia pallida
   commonNames: ["pale grazer", "grazer"]
   _bodyPlanPath: /stuff/idea/species/BodyPlan/quadruped
+  # ⭐ Adult liveweight in kg. A grown pale grazer — a cavy, built like a big guinea pig.
+  adultMass: 1.2
   _parentCladePath: /stuff/idea/species/animalia
   _defaultMaterialPath: /stuff/idea/material/tissue/flesh
   vitalProfile:

@@ -20,6 +20,8 @@ data:
   binomial: Serinus canaria
   commonNames: ["canary", "bird"]
   _bodyPlanPath: /stuff/idea/species/BodyPlan/avian
+  # ⭐ Adult liveweight in kg. A grown canary. ⚠ Twenty grams, and the reason it answers the damps before a man does.
+  adultMass: 0.02
   _parentCladePath: /stuff/idea/species/animalia
   _defaultMaterialPath: /stuff/idea/material/tissue/flesh
   vitalProfile:

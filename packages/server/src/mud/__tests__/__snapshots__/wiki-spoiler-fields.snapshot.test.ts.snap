@@ -744,6 +744,7 @@ SpawnedMixin._spawner = 0
 Species._bodyPlanPath = 0
 Species._defaultMaterialPath = 0
 Species._parentCladePath = 0
+Species.adultMass = 0
 Species.affordedGambits = 1 (name 0)
 Species.ageCurve = 0
 Species.binomial = 0

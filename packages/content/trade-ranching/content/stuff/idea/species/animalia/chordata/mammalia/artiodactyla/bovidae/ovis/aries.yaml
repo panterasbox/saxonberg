@@ -40,6 +40,8 @@ data:
   # ⭐ Compressed absolute scale, RATIOS preserved: a ewe is breedable at
   # about half the age a heifer is, which is exactly why sheep improve
   # faster than cattle and why `R = h²·S / L` is learnable here.
+  # ⭐ Adult liveweight in kg. A grown ewe of an unimproved hill breed.
+  adultMass: 70
   ageCurve: { weanedAt: 30, matureAt: 150, agedAt: 900, senescentAt: 1400 }
   breeding: { daylightFrom: 0, daylightTo: 0.44, gestationDays: 60, litter: 2 }
   production:
