@@ -47,6 +47,35 @@ const RESIDENCE_DIR = fileURLToPath(
 const ARCANA_DIR = fileURLToPath(
   new URL("../../../arcana/content/system/arcana/", import.meta.url),
 );
+// The haulage line (logistics W5/W6): the rigs are the transport
+// system's rows, stocked cross-pack like the farming pots.
+const TRANSPORT_DIR = fileURLToPath(
+  new URL("../../../transport/content/system/transport/", import.meta.url),
+);
+
+/**
+ * ⭐ Where a stocked good's row lives, by the prefix of its template
+ * path — longest prefix wins, and the commons is the fallback.
+ *
+ * This was an eight-deep nested ternary, doubled (one chain to pick the
+ * directory, a second identical one to strip the prefix). The haulage
+ * line would have made it nine, so it is a table: one row per pack, the
+ * prefix written once, and adding a line to the counter is adding a row
+ * here rather than threading two more branches through both chains.
+ */
+const GOOD_HOMES: { prefix: string; dir: () => string }[] = [
+  { prefix: "/world/terminus/general-store/", dir: () => STORE_DIR },
+  { prefix: "/trade/farming/", dir: () => PRODUCE_DIR },
+  { prefix: "/system/residence/", dir: () => RESIDENCE_DIR },
+  { prefix: "/trade/winemaking/", dir: () => WINE_DIR },
+  { prefix: "/trade/brewing/", dir: () => BREW_DIR },
+  { prefix: "/trade/distilling/", dir: () => DIST_DIR },
+  { prefix: "/system/arcana/", dir: () => ARCANA_DIR },
+  { prefix: "/system/transport/", dir: () => TRANSPORT_DIR },
+  // The commons — the generic-objects pack, and the fallback.
+  { prefix: "/stuff/", dir: () => OBJ_DIR },
+];
+
 const CH_DIR = fileURLToPath(
   new URL("../../../terminus/content/world/terminus/counting-houses/", import.meta.url),
 );
@@ -141,6 +170,16 @@ describe("general-store content integrity", () => {
     // authored slot and rest quality), `Surface` the table, `Chest` the
     // wardrobe, and `SconceLamp` the one class the line needed — a light
     // that goes on a WALL rather than in a pocket.
+    // ⭐⭐ The haulage line (logistics W5/W6). A `Handcart` is the
+    // encumbrance build's shipped class — placed nowhere and sold
+    // nowhere until this build put it on a shelf, which is what makes
+    // the labor market's first rung reachable on a stipend. The other
+    // three are one `HaulageRig` class differing only in row data
+    // (capacity, tare, what pulls it), the way the furnishings line is
+    // one `Chair`. All discrete, none Globbable — a cart is a thing you
+    // own, not a quantity you carry.
+    "/platform/thing/equipment/Handcart",
+    "/system/transport/thing/HaulageRig",
     "/platform/thing/Chair",
     "/platform/thing/Surface",
     "/platform/thing/Chest",
@@ -160,50 +199,15 @@ describe("general-store content integrity", () => {
     for (const line of lines) {
       // A stock line's `itemTemplatePath` takes ANY path: the store-local
       // staples live under `thing/` because they are store-specific, while
-      // the gardening line points straight at shared `/obj/` templates
+      // the gardening line points straight at the commons' templates
       // (duplicating those would mean two pots, and two seeds growing the
-      // same plant, drifting apart). Resolve either home.
-      const local = line.itemTemplatePath.startsWith(
-        "/world/terminus/general-store/",
+      // same plant, drifting apart). Resolve whichever home owns it.
+      const home = GOOD_HOMES.find((h) =>
+        line.itemTemplatePath.startsWith(h.prefix),
       );
-      const produce = line.itemTemplatePath.startsWith("/trade/farming/");
-      const residence = line.itemTemplatePath.startsWith("/system/residence/");
-      // The homebrew line (fermentation D15): the kit rows live with
-      // the trades they miniaturize; carboy + jar in the commons.
-      const wine = line.itemTemplatePath.startsWith("/trade/winemaking/");
-      const brew = line.itemTemplatePath.startsWith("/trade/brewing/");
-      const dist = line.itemTemplatePath.startsWith("/trade/distilling/");
-      const arcana = line.itemTemplatePath.startsWith("/system/arcana/");
-      const dir = local
-        ? STORE_DIR
-        : produce
-          ? PRODUCE_DIR
-          : residence
-            ? RESIDENCE_DIR
-            : wine
-              ? WINE_DIR
-              : brew
-                ? BREW_DIR
-                : dist
-                  ? DIST_DIR
-                  : arcana
-                    ? ARCANA_DIR
-                    : OBJ_DIR;
-      const rel = local
-        ? line.itemTemplatePath.replace("/world/terminus/general-store/", "")
-        : produce
-          ? line.itemTemplatePath.replace("/trade/farming/", "")
-          : residence
-            ? line.itemTemplatePath.replace("/system/residence/", "")
-            : wine
-              ? line.itemTemplatePath.replace("/trade/winemaking/", "")
-              : brew
-                ? line.itemTemplatePath.replace("/trade/brewing/", "")
-                : dist
-                  ? line.itemTemplatePath.replace("/trade/distilling/", "")
-                  : arcana
-                    ? line.itemTemplatePath.replace("/system/arcana/", "")
-                    : line.itemTemplatePath.replace("/stuff/", "");
+      expect(home, `${line.itemTemplatePath}: no pack owns this prefix`).toBeDefined();
+      const dir = home!.dir();
+      const rel = line.itemTemplatePath.slice(home!.prefix.length);
       expect(existsSync(`${dir}${rel}.yaml`), line.itemTemplatePath).toBe(true);
       const good = load(dir, `${rel}.yaml`);
       // A real, discrete item class (backed by a shipped system, not a prop).

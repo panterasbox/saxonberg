@@ -40,7 +40,11 @@ import { ContainmentApi } from '../../api/containment';
 import { PerceptionApi } from '../../api/perception';
 
 const RECIPES_PATH = '/platform/idea/RecipeCatalogue';
-/** The platform's bare venue row {@link Archetype.materialize} clones. */
+/**
+ * The platform's bare venue row — the DEFAULT
+ * {@link ArchetypeData.materializesOnto}, no longer the only thing
+ * {@link Archetype.materialize} can clone.
+ */
 const VENUE_PATH = '/platform/location/venue';
 
 /**
@@ -156,8 +160,46 @@ export interface ArchetypeData {
    * "derive from everything".
    */
   industry: string | null;
+  /**
+   * ⭐ **What a scaffold of this archetype BUILDS.** A template path,
+   * defaulting to the platform's bare venue row.
+   *
+   * `materialize()` has always returned `Stuff & Container` rather than a
+   * room; the only thing that bound archetypes to locations was one
+   * constant. Making it an authored field is what lets a **`haulage-rig`
+   * archetype build a wagon** — the needs vocabulary already reaches
+   * conveyances (the mining archetype's `haulage: { presence: pony }`),
+   * and nothing in the checker ever cared whether the space was a room.
+   */
+  materializesOnto: string;
+  /**
+   * ⚠ **Where this archetype is REPORTED, which is not the same question
+   * as where it is checked.**
+   *
+   * `survey` reports every industry-less archetype in the room you stand
+   * in. That was right while the industry-less archetypes were the four
+   * furnishing ones; the moment a corridor, a depot, a rig, a coach and a
+   * livery join them, five extra lines land on every `survey` in the
+   * game — in every bedroom, for every player.
+   *
+   * | value | reported |
+   * |---|---|
+   * | `space` | the room you stand in (today's behaviour, the default) |
+   * | `corridor` | the rooms of the corridor zone you stand in, at once — and never from a room that is not in one |
+   * | `off-room` | never from a room. A rig and a coach are surveyed by naming them |
+   *
+   * ⭐ The corridor space set is resolved **by zone**, not by lane, so the
+   * kernel controller stays free of any pack import and the shipped
+   * `valley-road` zone is READ rather than extended.
+   */
+  surveyScope: SurveyScope;
   capabilities: CapabilitySlot[];
 }
+
+/** See {@link ArchetypeData.surveyScope}. */
+export const SURVEY_SCOPES = ['space', 'corridor', 'off-room'] as const;
+
+export type SurveyScope = (typeof SURVEY_SCOPES)[number];
 
 const NEED_KEYS = [
   'tool',
@@ -228,6 +270,33 @@ export class Archetype {
       fail(id, "'industry', when present, must name the discipline whose recipes derive the floor");
     }
     const industry = typeof rawIndustry === 'string' ? rawIndustry : null;
+
+    // What a scaffold builds. Absent ⇒ the bare venue row, so every
+    // shipped archetype is byte-identical with the field unauthored.
+    const rawOnto = data.materializesOnto;
+    if (
+      rawOnto !== undefined &&
+      (typeof rawOnto !== 'string' || !rawOnto.startsWith('/'))
+    ) {
+      fail(id, "'materializesOnto', when present, must be a template path");
+    }
+    const materializesOnto =
+      typeof rawOnto === 'string' ? rawOnto : VENUE_PATH;
+
+    // Where it is REPORTED. Absent ⇒ today's behaviour.
+    const rawScope = data.surveyScope;
+    if (
+      rawScope !== undefined &&
+      !SURVEY_SCOPES.includes(rawScope as SurveyScope)
+    ) {
+      fail(
+        id,
+        `'surveyScope', when present, must be one of ${SURVEY_SCOPES.join(' | ')}`,
+      );
+    }
+    const surveyScope =
+      typeof rawScope === 'string' ? (rawScope as SurveyScope) : 'space';
+
     const rawCaps = data.capabilities ?? [];
     if (!Array.isArray(rawCaps)) fail(id, "'capabilities' must be a list");
     const seen = new Set<string>();
@@ -244,12 +313,23 @@ export class Archetype {
       }
       return { key, needs: needOf(id, key, c.needs), default: typeof dflt === 'string' ? dflt : null };
     });
-    return new Archetype({ archetypeId: id, label, industry, capabilities });
+    return new Archetype({
+      archetypeId: id,
+      label,
+      industry,
+      materializesOnto,
+      surveyScope,
+      capabilities,
+    });
   }
 
   getArchetypeId(): string { return this.data.archetypeId; }
   getLabel(): string { return this.data.label; }
   getIndustry(): string | null { return this.data.industry; }
+  /** See {@link ArchetypeData.materializesOnto}. */
+  getMaterializesOnto(): string { return this.data.materializesOnto; }
+  /** See {@link ArchetypeData.surveyScope}. */
+  getSurveyScope(): SurveyScope { return this.data.surveyScope; }
   getCapabilities(): readonly CapabilitySlot[] { return this.data.capabilities; }
 
   /** A stable identity for a need, so a derived row merges with an authored one. */
@@ -373,7 +453,9 @@ export class Archetype {
    * honesty — a reader of {@link describe} names them.
    */
   async materialize(): Promise<Stuff & Container> {
-    const venue = (await StuffApi.clone(VENUE_PATH)) as Stuff & Container;
+    const venue = (await StuffApi.clone(
+      this.data.materializesOnto,
+    )) as Stuff & Container;
     for (const slot of this.getCapabilities()) {
       if (!slot.default) continue;
       const item = await StuffApi.clone(slot.default);

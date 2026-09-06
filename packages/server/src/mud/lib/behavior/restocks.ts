@@ -8,34 +8,70 @@
  * on shift, the keeper reads `EmploymentApi.stockSheetFor` — the SAME
  * sheet `house stock` shows a player, perception-scoped, so she counts
  * what she can see from where she stands — groups the short lines by
- * supplier, goes to the supplier's counter, trades as the house, buys a
- * unit at a time until the line is covered, comes back and shelves what
- * she bought. Then the bussing beat: any soiled, empty glass in the room
+ * supplier, and posts a carriage bounty for each one that is short and
+ * not already on the board. Then she empties the receiving bench onto
+ * the rail. Then the bussing beat: any soiled, empty glass in the room
  * is collected, washed and racked.
  *
  * ⭐ **Nothing here is unavailable to a player.** Every act is a literal
- * verb through `forceCommand` (the giver's own method since the OO sweep) — `wallet use house`, `buy`,
- * `put … on`, `pour … into`, `get`, `wash` — gated exactly as a typed
- * line is: the seat is the authority, the wallet's active account is the
- * principal, and a `buy` the house cannot afford declines the way it
- * would for anyone (the beat stops there; the sheet keeps saying so and
- * `house pnl` shows why). Movement between the bar and the supplier is a
- * `teleport` (the `shifts` shape — a walk is the locomotion slate's).
+ * verb through `forceCommand` (the giver's own method since the OO sweep)
+ * — `wallet use house`, `job post`, `get`, `put … on`, `pour … into`,
+ * `wash` — gated exactly as a typed line is.
+ *
+ * ## ⭐⭐ The keeper stopped TRAVELLING (logistics D11)
+ *
+ * She used to `teleport` to the supplier's counter, buy the shortfall,
+ * and `teleport` back. **Distance was free** — the same magic as the
+ * bar's `populates:` bottles, one level up the chain.
+ *
+ * She does not walk instead. She **posts the work and receives the
+ * goods**, and somebody else carries them: a player, or the carrier's
+ * own carter as the fallback. That is a better reading of the goal than
+ * the literal one — not *"the keeper walks four rooms"* but ***"the
+ * keeper does not travel, because carriage is somebody's job"*** — and
+ * it is the whole point of the logistics build.
+ *
+ * ⚠ The literal reading was impossible anyway: this brain's host is the
+ * **Saxonberg Lounge bar**, and *"Saxonberg and the Lounge joining the
+ * map"* is a stated non-goal. The leg into the Lounge rides the TPA
+ * lane, which is a lane with no intermediate stops and no duration —
+ * D2's own limit case doing exactly the work D2 says it does.
+ *
+ * ## ⚠ Why the order names a BENCH and not the shelf
+ *
+ * A gig is refused if its condition **already holds**, and a short line
+ * usually still has something on the shelf — so an order whose
+ * destination was the shelf would be refused precisely when the bar most
+ * wanted it. The order lands on a **receiving bench**, which the keeper
+ * empties onto the shelf every beat and which is therefore empty by
+ * construction. The bench is the loading dock, and it exists for a
+ * mechanical reason rather than a decorative one.
+ *
+ * ⭐ The hauler buys at the supplier and is reimbursed by the reward, so
+ * the distributor is still paid and the consignors still see their
+ * resale. That is a real **second rung** of the labor market: the
+ * producer leg needs no capital at all, and this one needs enough to
+ * front a load.
  *
  * Not presence-gated and not ambient: the back loop runs unwatched, on
  * the authored cadence.
  *
- * config: `{ shelf: string, rack?: string, bin?: string, batch?: number }`
- * — template paths of the fixtures in the keeper's own room (bottles and
- * crates go ON the shelf, glasses IN the rack, ice is poured INTO the
- * bin); `batch` caps the buys per beat (default 12). The supplier is never
- * config — it comes from each par line.
+ * config: `{ shelf: string, rack?: string, bin?: string, batch?: number,
+ * board?: string, bench?: string, reward?: number }` — template paths of
+ * the fixtures in the keeper's own room (bottles and crates go ON the
+ * shelf, glasses IN the rack, ice is poured INTO the bin); `batch` caps
+ * the orders per beat (default 12); `board` the works board she posts
+ * to, `bench` the receiving bench orders land on, and `reward` what the
+ * house pays for one delivered line — **goods plus carriage**, because
+ * the hauler fronts the purchase. The supplier is never config: it comes
+ * from each par line.
  */
 
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
-import { CommandApi } from '../../api/command';
 import { EmploymentApi, type Business, type StockSheetLine } from '../../api/employment';
+import { ContractApi } from '../../api/contract';
+import type { ConditionData } from '../employment/Condition';
 import type { CommandGiver } from '../command/CommandGiver';
 import type { Stuff } from '../stuff/Stuff';
 import type { Mobile } from '../spatial/Mobile';
@@ -43,7 +79,16 @@ import type { Container } from '../spatial/Container';
 import type { Containable } from '../spatial/Containable';
 import type { BrainContext, BrainStatics } from './brain';
 
+/** How a par unit is said in an order — the `job post` phrase's words. */
+const UNIT_WORD: Record<string, string> = { L: 'litres', kg: 'kilos' };
+
 const DEFAULT_BATCH = 12;
+/**
+ * ⭐ What the house pays for one delivered line — **goods plus
+ * carriage**, because the hauler fronts the purchase at the supplier
+ * and is reimbursed on delivery. Authored per venue; this is the floor.
+ */
+const DEFAULT_REWARD = 24;
 
 type Keeper = Stuff & Mobile & Containable & Container & CommandGiver;
 
@@ -95,28 +140,28 @@ export const brain = class {
       else bySupplier.set(l.line.supplier, [l]);
     }
 
-    let bought: Stuff[] = [];
-    let budget = batch;
-    for (const [supplierPath, lines] of bySupplier) {
-      if (budget <= 0) break;
-      const counterRoom = counterRoomOf(supplierPath);
-      if (!counterRoom) continue;
-      keeper.teleport(counterRoom as Stuff & Container);
-      try {
-        if (!ctx.state.house) {
-          await keeper.forceCommand('wallet use house');
-          ctx.state.house = true;
-        }
-        const got = await buyLines(keeper, lines, budget);
-        bought = bought.concat(got.items);
-        budget -= got.items.length;
-        if (got.declined) break; // the house can't pay — the sheet says so
-      } finally {
-        keeper.teleport(home as Stuff & Container);
-      }
+    // ⭐⭐ **Order the shortfall; do not go and get it.** One posting per
+    // short line, bounded by `batch`, funded by the house, landing on
+    // the receiving bench.
+    const boardPath = ctx.config.board;
+    const benchPath = ctx.config.bench;
+    if (typeof boardPath === 'string' && typeof benchPath === 'string') {
+      await order(keeper, bySupplier, {
+        boardPath,
+        benchPath,
+        reward: positiveInt(ctx.config.reward, DEFAULT_REWARD),
+        batch,
+      });
     }
 
-    // Shelve what came back: ice into the bin, glasses into the rack,
+    // ⭐ **Receive.** Anything a hauler put on the bench is the bar's
+    // now — take it off and shelve it exactly as a purchase used to be
+    // shelved. This is the whole of what "the keeper became a receiver"
+    // means, and it is the same six lines as before with a different
+    // source.
+    const bought = await unpackBench(keeper, home, benchPath, batch);
+
+    // Shelve what came in: ice into the bin, glasses into the rack,
     // everything else onto the shelf.
     const shelfKw = fixtureKeyword(home, shelfPath);
     const rackKw = fixtureKeyword(home, ctx.config.rack);
@@ -135,12 +180,21 @@ export const brain = class {
 
     // The bussing beat: a used, empty glass loose in the room is
     // collected, washed and racked.
+    //
+    // ⚠⚠ `get 1 <kw>`, never a bare `get <kw>` — and this one WAS bare
+    // until the logistics build's structural assertion caught it. `get`
+    // binds GREEDILY, so a bar with six dirty coupes on it put all six
+    // in the keeper's hands on the first pass of a loop that then washed
+    // and racked one of them per iteration, five of them out of her
+    // hands rather than off the bar. The sibling `consigns` brain
+    // carries a long comment about exactly this failure, found by
+    // driving; the bussing beat kept it.
     if (rackKw) {
       for (const item of home.getContents() as Stuff[]) {
         if (!isGlass(item) || !isSoiledEmpty(item) || !MixinApi.isContainable(item)) continue;
         const kw = keywordOf(item);
         if (!kw) continue;
-        await keeper.forceCommand(`get ${kw}`);
+        await keeper.forceCommand(`get 1 ${kw}`);
         if (item.getContainer() !== keeper) continue;
         await keeper.forceCommand(`wash ${kw}`);
         await keeper.forceCommand(`put ${kw} in ${rackKw}`);
@@ -179,48 +233,6 @@ function counterRoomOf(supplierPath: string): (Stuff & Container) | null {
   return null;
 }
 
-/**
- * Buy against each short line at the counter the keeper now stands at:
- * the perceived goods that match the category, one `buy` per unit until
- * the shortfall is covered or the counter runs out. A `buy` that leaves
- * the good where it was declined — stop.
- */
-async function buyLines(
-  keeper: Keeper,
-  lines: StockSheetLine[],
-  budget: number,
-): Promise<{ items: Stuff[]; declined: boolean }> {
-  const items: Stuff[] = [];
-  for (const { line, shortfall } of lines) {
-    let need = shortfall;
-    const candidates = EmploymentApi.goodsFor(keeper, line.category).filter(
-      (g): g is Stuff & Containable =>
-        MixinApi.isContainable(g) && g.getContainer() !== keeper && MixinApi.isChattel(g),
-    );
-    for (const good of candidates) {
-      if (need <= 0 || items.length >= budget) break;
-      const kw = keywordOf(good);
-      if (!kw) continue;
-      await keeper.forceCommand(`buy ${kw}`);
-      if (good.getContainer() !== keeper) return { items, declined: true };
-      items.push(good);
-      need -= unitsOf(good, line.unit);
-    }
-  }
-  return { items, declined: false };
-}
-
-/** How much of a par line one good covers, in the line's unit. */
-function unitsOf(good: Stuff, unit: 'L' | 'count' | 'kg'): number {
-  if (unit === 'count') {
-    return MixinApi.isGlobbable(good) ? good.getQuantity() : 1;
-  }
-  if (!MixinApi.isBulkable(good) || !good.hasInteriorBulk()) return 1;
-  const litres = good.getBulkAmount('interior').rawValue();
-  if (unit === 'L') return litres;
-  const density = good.getBulkMaterial('interior')?.getDensity().rawValue() ?? 1000;
-  return (litres / 1000) * density;
-}
 
 /** The primary keyword of the live instance of `templatePath` in `room`. */
 function fixtureKeyword(room: Stuff & Container, templatePath: unknown): string | null {
@@ -256,4 +268,199 @@ function isSoiledEmpty(thing: Stuff): boolean {
 
 function positiveInt(v: unknown, fallback: number): number {
   return typeof v === 'number' && Number.isFinite(v) && v > 0 ? Math.floor(v) : fallback;
+}
+
+/**
+ * Post one carriage order per short line, on the works board the keeper
+ * stands beside.
+ *
+ * ⚠⚠ **How the order names what it wants.** A unit already on the rail
+ * is the best answer: point at it and say `--kind`, so the order reads
+ * *a bottle of this* rather than *this bottle* (every bottle a bar owns
+ * is chattel-marked, because the bar bought it).
+ *
+ * ⭐⭐ But a bar that has RUN DRY has nothing to point at — and that is
+ * exactly when it most wants a delivery. The rail-only version could
+ * therefore never order a line at literal zero, which on a fresh realm
+ * is every line: **Dave's Bar shipped unable to open.** The par line's
+ * own `exemplar` names the kind (`job post --of <kind>`), which is the
+ * proprietor's decision anyway — *which* gin this bar stocks. A line
+ * with no `exemplar` still behaves the old way, and can only be
+ * re-ordered while a unit is on the shelf.
+ *
+ * ⭐ `job post` takes its item as a STRING, resolved reachable-first and
+ * falling back to a kind's path — the same rule its `destination` has
+ * always used, and for the same reason: what you name may not be here.
+ *
+ * ⚠⚠ `--bounty` and NO `--expires`. A bounty escrows at post and has no
+ * claim step, so **anyone may turn it in and the first to do so is
+ * paid** — which is how "a player who takes it is paid and the NPC does
+ * not also perform it" falls out for free. And a posting that lapsed
+ * would revert the escrow and leave the bar unstocked, which is the
+ * exact regression D11 forbids: the window a hauler waits is the
+ * CARTER's patience, not the posting's lifetime.
+ *
+ * ⚠⚠⚠ **And a line already ordered is not ordered again.** A bounty with
+ * no expiry sits on the board until somebody carries it, while the line
+ * it was posted about stays short until they do — so without this the
+ * keeper escrows another reward every single beat and the house is
+ * bankrupt by morning. Nothing in the suite could see that (one beat
+ * looks perfect) and the live drive's window was minutes, not a night.
+ */
+async function order(
+  keeper: Keeper,
+  bySupplier: Map<string, StockSheetLine[]>,
+  opts: { boardPath: string; benchPath: string; reward: number; batch: number },
+): Promise<void> {
+  let budget = opts.batch;
+  let traded = false;
+  const pending = await pendingKinds(opts.boardPath, opts.benchPath);
+  for (const [supplierPath, lines] of bySupplier) {
+    if (budget <= 0) break;
+    const counterRoom = counterRoomOf(supplierPath);
+    if (!counterRoom) continue;
+    const fromPath = counterRoom.getTemplatePath() ?? '';
+    if (fromPath === '') continue;
+
+    for (const line of lines) {
+      if (budget <= 0) break;
+      // What to name in the order, and how. A unit on the rail is the
+      // best answer — point at it and say `--kind`. With the rail bare
+      // there is nothing to point at, so the par line's own `exemplar`
+      // names the kind directly.
+      const onHand = exemplarFor(keeper, line);
+      const kind = onHand?.getTemplatePath() ?? line.line.exemplar;
+      if (!kind) continue;
+      // Already on the board and still un-carried: wait for it.
+      const key =
+        line.line.unit === 'count' ? kind : `cat:${line.line.category}`;
+      if (pending.has(key)) continue;
+      // What she names: the unit on the rail by keyword, or the kind by
+      // its path when there is nothing to point at.
+      const naming = onHand ? keywordOf(onHand) : kind;
+      if (!naming) continue;
+      if (!traded) {
+        // Every beat, not once: a forced command reports no outcome, and
+        // a keeper dealt her card after a failed first attempt must still
+        // trade as the house.
+        await keeper.forceCommand('wallet use house');
+        traded = true;
+      }
+      /*
+       * ⭐⭐⭐ ONE gig per short line, in the LINE'S OWN WORDS.
+       *
+       * It posted twelve single-item bounties a beat before `supply`
+       * existed, then one gig per line for a GUESSED bottle count — and
+       * the guess was itself the bug the review found: a contract bound
+       * to a template path means "eight of that exact row", so a hauler
+       * who brought one demijohn holding six litres had done the job and
+       * the engine counted zero.
+       *
+       * ⭐ Now it orders what the par sheet says: `supply 6 litres of
+       * gin`. The unit conversion is gone because there is nothing left
+       * to convert, and how somebody fills it — bottles, a keg, a
+       * demijohn, bought or carried from home — is their business.
+       */
+      const shortfall = Math.round(line.shortfall * 1000) / 1000;
+      const phrase =
+        line.line.unit === 'count'
+          ? `supply ${Math.ceil(shortfall)} ${naming}`
+          : `supply ${shortfall} ${UNIT_WORD[line.line.unit]} of ${line.line.category}`;
+      await keeper.forceCommand(
+        `job post ${phrase} to ${opts.benchPath} for ${opts.reward} ` +
+          `--bounty --business --from ${fromPath}`,
+      );
+      pending.add(key);
+      budget -= 1;
+    }
+  }
+}
+
+/**
+ * What identifies a line on the board — a kind's path, or a category.
+ * ⚠ The two shapes must produce the same key here and at the post site,
+ * or the re-order guard silently stops guarding.
+ */
+function pendingKey(item: ConditionData['item']): string {
+  return item.kind === 'category' ? `cat:${item.category}` : item.kind === 'template' ? item.path : `chattel:${item.chattelId}`;
+}
+
+/** The kinds already posted to this bench and not yet carried. */
+async function pendingKinds(
+  boardPath: string,
+  benchPath: string,
+): Promise<Set<string>> {
+  const open = await ContractApi.openGigsOn(boardPath);
+  const kinds = new Set<string>();
+  for (const gig of open) {
+    const condition = gig.clause?.condition;
+    if (!condition || condition.destinationPath !== benchPath) continue;
+    // ⚠⚠ BOTH shapes. The guard read template paths only, and the day
+    // the keeper started ordering by CATEGORY it went blind — every
+    // beat re-posting a line already on the board, which is the bankrupt
+    // -by-morning bug all over again. The key is whatever identifies the
+    // line, and a category line is identified by its category.
+    kinds.add(pendingKey(condition.item));
+  }
+  return kinds;
+}
+
+/**
+ * Take everything a hauler left on the receiving bench, so the shelving
+ * pass can put it away.
+ *
+ * ⚠⚠ `get 1 <kw>`, never a bare `get <kw>` — `get` binds GREEDILY, and a
+ * bench holding six of one thing would otherwise put all six in the
+ * keeper's arms in one call and make every bound above it meaningless.
+ * The `consigns` brain learned this the expensive way.
+ */
+async function unpackBench(
+  keeper: Keeper,
+  home: Stuff & Container,
+  benchPath: unknown,
+  batch: number,
+): Promise<Stuff[]> {
+  if (typeof benchPath !== 'string' || benchPath === '') return [];
+  const bench = (home.getContents() as Stuff[]).find(
+    (c) => c.getTemplatePath() === benchPath,
+  );
+  if (!bench) return [];
+
+  // A bench is a surface if it is one, and a container otherwise —
+  // whichever it is, what a hauler put down is what comes off it.
+  const landed: Stuff[] = MixinApi.isSurfaced(bench)
+    ? [...bench.getResting()]
+    : MixinApi.isContainer(bench)
+      ? (bench.getContents() as Stuff[])
+      : [];
+
+  const taken: Stuff[] = [];
+  for (const item of landed.slice(0, batch)) {
+    if (!MixinApi.isContainable(item)) continue;
+    const kw = keywordOf(item);
+    if (!kw) continue;
+    await keeper.forceCommand(`get 1 ${kw}`);
+    if (item.getContainer() !== (keeper as unknown as Stuff)) continue;
+    taken.push(item);
+  }
+  return taken;
+}
+
+
+/**
+ * A unit of this line already on the rail — what `job post` names.
+ *
+ * ⚠⚠ **The same matcher the SHEET uses**, via `EmploymentApi.goodsFor`,
+ * and that is the whole point: a par category is a MATERIAL tag (`gin`)
+ * for a bulk line and a vessel kind (`coupe`) for a count line. This
+ * scanned `getCategory()` alone until the post path got its first test —
+ * which reads the vessel kind off a bottle (`bottle`), matches no bulk
+ * line ever, and so ordered nothing for the flagship line while
+ * reporting no error at all. Read the sheet with the sheet's own eyes.
+ */
+function exemplarFor(keeper: Keeper, line: StockSheetLine): Stuff | null {
+  for (const good of EmploymentApi.goodsFor(keeper, line.line.category)) {
+    if (MixinApi.isContainable(good) && keywordOf(good)) return good;
+  }
+  return null;
 }

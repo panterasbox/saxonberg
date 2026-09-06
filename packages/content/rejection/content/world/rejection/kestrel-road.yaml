@@ -1,0 +1,20 @@
+# The Kestrel road — the crossroads to the pithead, over the pass.
+#
+# ⭐⭐ **The pass is on the SPINE, and that is the whole economic design.**
+# The road is wheeled from Terminus to the valley crossroads and refuses
+# wheels over the pass, so a wagon can reach the crossroads and cannot
+# reach Rejection. Bulk therefore breaks at the crossroads on the day the
+# road opens — which is the depot's one shipped product (handling,
+# consolidation) doing real work instead of being a service nobody needs.
+#
+# The alternative was a wheeled spine with a wheels-refused spur. One
+# line cheaper, and it makes the pass decorative.
+#
+# ⚠ It carries no `deposit:` — the region zone above it does, and the
+# outward walk is what makes `measure strike` work at the yard gate as
+# well as in the yard.
+class: /platform/idea/location/CartesianZone
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: The Kestrel Road
+  cellSize: 20.0

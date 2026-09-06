@@ -24,6 +24,12 @@ import { ExecutionContextApi } from "../../../../../api/execution-context";
 import { Idea } from "../../../../../lib/stuff/Idea";
 import { ContainerMixin } from "../../../../../lib/spatial/Container";
 import { ContainableMixin } from "../../../../../lib/spatial/Containable";
+import { PerceptibleMixin } from "../../../../../lib/description/Perceptible";
+import { ChattelMixin } from "../../../../../lib/chattel/Chattel";
+import { BulkableMixin } from "../../../../../lib/bulk/Bulkable";
+import { Quantity } from "../../../../../lib/quantity";
+import Material from "../../../material/Material";
+import ChattelRegistry from "../../../ChattelRegistry";
 import { CommandGiverMixin } from "../../../../../lib/command/CommandGiver";
 import { SensorMixin } from "../../../../../lib/message/Sensor";
 import type { CommandContext } from "../../../../../api/command";
@@ -47,8 +53,20 @@ class Person extends SensorMixin(
 class TestRoom extends ContainerMixin(Idea) {
   static _mixinName = "TestRoom";
 }
-class TestCrate extends ContainableMixin(Idea) {
+// ⚠ Perceptible and keyworded, because `job post` resolves its item the
+// way `destination` always has — reachable-first by name, falling back to
+// reading the string as a KIND's path. A fixture whose crate cannot be
+// SEEN would only ever exercise the fallback.
+class TestCrate extends ContainableMixin(PerceptibleMixin(Idea)) {
   static _mixinName = "TestCrate";
+}
+/** A crate somebody OWNS — the `--kind` case turns on the mark. */
+class MarkedCrate extends ChattelMixin(ContainableMixin(PerceptibleMixin(Idea))) {
+  static _mixinName = "MarkedCrate";
+}
+/** A vessel that can hold gin — any shape, which is the point. */
+class TestVessel extends BulkableMixin(ContainableMixin(PerceptibleMixin(Idea))) {
+  static _mixinName = "TestVessel";
 }
 
 const BOARD = "/world/terminus/terminal/thing/job-board";
@@ -57,6 +75,7 @@ const DEST = "/world/test/bar";
 const CRATE = "/obj/test/crate";
 const POSTER = "/platform/agent/Avatar/poster";
 const COURIER = "/platform/agent/Avatar/courier";
+const MARKED_CRATE = "/obj/test/marked-crate";
 
 let sent: string[];
 
@@ -100,17 +119,31 @@ describe("work verbs", () => {
   let poster: Person;
   let courier: Person;
   let crate: TestCrate;
+  let ginMaterial: Material;
 
   beforeEach(async () => {
     installV1QuantityMarshallers();
     installBankingHarness();
     muteScenes();
+    // A mark needs the registry that keeps the chain of title.
+    await makeStuffAtPath(
+      () => new ChattelRegistry(),
+      "/platform/idea/ChattelRegistry",
+    ).postRegister();
     room = makeStuffAtPath(() => new TestRoom(), HERE);
     dest = makeStuffAtPath(() => new TestRoom(), DEST);
     board = makeStuffAtPath(() => new JobBoard(), BOARD);
     poster = makeStuffAtPath(() => new Person(), POSTER);
     courier = makeStuffAtPath(() => new Person(), COURIER);
+    ginMaterial = makeStuffAtPath(() => {
+      const m = new Material();
+      m.setName("gin");
+      m.setTags(["spirit", "gin"]);
+      m.setDensity(Quantity.of(940, "kg/m³"));
+      return m;
+    }, "/stuff/idea/material/spirit/gin") as unknown as Material;
     crate = makeStuffAtPath(() => new TestCrate(), CRATE);
+    crate.setKeywords(["crate"]);
     ContainmentApi.move(board as never, room);
     ContainmentApi.move(poster, room);
     ContainmentApi.move(courier, room);
@@ -149,8 +182,7 @@ describe("work verbs", () => {
       job().execute(
         {
           subcommand: "post",
-          item: { stuff: crate, raw: "crate" },
-          destination: DEST,
+          condition: `deliver crate to ${DEST}`,
           reward: 25,
           ...extra,
         } as never,
@@ -186,6 +218,156 @@ describe("work verbs", () => {
     expect(record?.clause?.condition.destinationPath).toBe(DEST);
     // Exclusive by default: funds checked, not yet escrowed.
     expect(BankingApi.escrowBalanceOf(id).minor).toBe(0);
+  });
+
+  it("⭐ a MARKED exemplar binds the gig to that instance — deliver THIS crate", async () => {
+    const marked = makeStuffAtPath(() => new MarkedCrate(), MARKED_CRATE);
+    marked.setKeywords(["marked"]);
+    ContainmentApi.move(marked as never, room);
+    await asGiver(poster, () => marked.stampChattel(poster));
+    const id = await postGig({ condition: `deliver marked to ${DEST}` });
+    const record = await ContractApi.contractById(id);
+    expect(record?.clause?.condition.item.kind).toBe("chattel");
+  });
+
+  it("⭐⭐ ONE of a kind is `supply 1` — `deliver` always means THAT one", async () => {
+    /*
+     * ⭐ This is what retired `--kind`. One grammar was doing two jobs,
+     * so a flag had to say which; now the two readings have two
+     * sentences. `deliver` points — and a marked thing is somebody's, so
+     * pointing at it means THAT one. `supply n` counts a kind, and one
+     * of a kind is just `supply 1`.
+     */
+    const marked = makeStuffAtPath(() => new MarkedCrate(), MARKED_CRATE);
+    ContainmentApi.move(marked as never, room);
+    await asGiver(poster, () => marked.stampChattel(poster));
+
+    const kindBound = await postGig({
+      condition: `supply 1 ${MARKED_CRATE} to ${DEST}`,
+    });
+    const record = await ContractApi.contractById(kindBound);
+    expect(record?.clause?.condition.item).toEqual({
+      kind: "template",
+      path: MARKED_CRATE,
+    });
+    expect(record?.clause?.condition.template).toBe("supply");
+  });
+
+  it("⭐⭐⭐ `supply n` counts — n must ARRIVE before it settles", async () => {
+    const id = await postGig({
+      condition: `supply 3 ${CRATE} to ${DEST}`,
+      bounty: true,
+    });
+    const record = await ContractApi.contractById(id);
+    expect(record?.clause?.condition.count).toBe(3);
+
+    // Two is not three: the turn-in is refused while the tally is short.
+    for (let i = 0; i < 2; i++) {
+      const c = makeStuffAtPath(() => new TestCrate(), CRATE);
+      c.setKeywords(["crate"]);
+      ContainmentApi.move(c as never, dest);
+    }
+    const short = ctx(courier);
+    await asGiver(courier, () =>
+      job().execute({ subcommand: "complete", id: id.slice(0, 8) } as never, short),
+    );
+    expect(short.note).toHaveBeenCalledWith(
+      expect.objectContaining({ reason: "contract-refused" }),
+    );
+
+    // The third arrives and it settles.
+    const third = makeStuffAtPath(() => new TestCrate(), CRATE);
+    third.setKeywords(["crate"]);
+    ContainmentApi.move(third as never, dest);
+    const done = ctx(courier);
+    await asGiver(courier, () =>
+      job().execute({ subcommand: "complete", id: id.slice(0, 8) } as never, done),
+    );
+    expect(done.note).not.toHaveBeenCalled();
+  });
+
+  it("⭐⭐ a KIND'S PATH orders what you have none of to point at", async () => {
+    /*
+     * The case that matters: a venue orders precisely what it has run
+     * out of, so there is nothing on its shelf to name. Without this a
+     * bar that ships with an empty rail can never order anything and
+     * never opens at all.
+     */
+    const c = ctx(poster);
+    await asGiver(poster, () =>
+      job().execute(
+        {
+          subcommand: "post",
+          condition: `deliver ${CRATE} to ${DEST}`,
+          reward: 25,
+          bounty: true,
+        } as never,
+        c,
+      ),
+    );
+    expect(c.note).not.toHaveBeenCalled();
+    const gigs = await ContractApi.openGigsOn(BOARD);
+    expect(gigs[gigs.length - 1]?.clause?.condition.item).toEqual({
+      kind: "template",
+      path: CRATE,
+    });
+  });
+
+  it("⭐⭐⭐ a kind with MANY live instances posts — the common case", async () => {
+    /*
+     * ⚠⚠ The whole point of a kind-bound gig is a kind, and a kind you
+     * order is one there are lots of. `ContractApi.post` used
+     * `StuffApi.findByTemplatePath` for its Globbable check, and that
+     * form THROWS on more than one live instance — so ordering anything
+     * ordinary threw `expected singleton, found N` from inside a forced
+     * NPC command, where nothing surfaces it.
+     *
+     * A live drive is what caught it: the bar keeper issued twelve
+     * postings for twelve short lines and filed NOTHING, silently,
+     * because twelve bottles of gin exist in the world.
+     */
+    for (let i = 0; i < 12; i++) {
+      const dup = makeStuffAtPath(() => new TestCrate(), CRATE);
+      dup.setKeywords(["crate"]);
+      ContainmentApi.move(dup as never, room);
+    }
+    const c = ctx(poster);
+    await asGiver(poster, () =>
+      job().execute(
+        {
+          subcommand: "post",
+          condition: `deliver ${CRATE} to ${DEST}`,
+          reward: 25,
+          bounty: true,
+        } as never,
+        c,
+      ),
+    );
+    expect(c.note).not.toHaveBeenCalled();
+    const gigs = await ContractApi.openGigsOn(BOARD);
+    expect(gigs[gigs.length - 1]?.clause?.condition.item).toEqual({
+      kind: "template",
+      path: CRATE,
+    });
+  });
+
+  it("⚠ a kind that is nothing is refused — the escrow would sit forever", async () => {
+    const c = ctx(poster);
+    await asGiver(poster, () =>
+      job().execute(
+        {
+          subcommand: "post",
+          condition: `deliver /obj/test/no-such-thing to ${DEST}`,
+          reward: 25,
+          bounty: true,
+        } as never,
+        c,
+      ),
+    );
+    expect(c.note).toHaveBeenCalledWith(
+      expect.objectContaining({ reason: "contract-refused" }),
+    );
+    expect(await ContractApi.openGigsOn(BOARD)).toHaveLength(0);
   });
 
   it("post --bounty escrows immediately", async () => {
@@ -324,5 +506,95 @@ describe("work verbs", () => {
       const def = CommandDefinition.fromYaml(raw, `${name}.yaml`);
       expect(def.getHelpText().length).toBeGreaterThan(40);
     }
+  });
+
+
+/**
+ * ⭐⭐⭐ **A contract says what the business WANTS.**
+ *
+ * The agency test. A `supply` gig bound to a template path is an opinion
+ * about packaging dressed as a requirement: it means *eight of that
+ * exact row*, so somebody who solves the problem their own way — one big
+ * vessel instead of eight small ones — has done the job and gets
+ * nothing. A business wants six litres of gin; how it arrives is the
+ * hauler's business.
+ */
+
+  /** A vessel holding `litres` of a material tagged `gin`. */
+  function vesselOf(litres: number): Stuff {
+    const v = makeStuff(() => new TestVessel());
+    v.interiorBulk = true;
+    v.setInteriorCapacity(Quantity.of(Math.max(litres, 1), "L"));
+    v.setBulkMaterial("interior", ginMaterial);
+    v.setBulkAmount("interior", Quantity.of(litres, "L"));
+    return v as unknown as Stuff;
+  }
+
+  it("⭐ ONE demijohn of six litres satisfies `supply 6 litres of gin`", async () => {
+    const c = ctx(poster);
+    await asGiver(poster, () =>
+      job().execute(
+        {
+          subcommand: "post",
+          condition: `supply 6 litres of gin to ${DEST}`,
+          reward: 40,
+          bounty: true,
+        } as never,
+        c,
+      ),
+    );
+    expect(c.note).not.toHaveBeenCalled();
+    const gigs = await ContractApi.openGigsOn(BOARD);
+    const id = gigs[gigs.length - 1]!.contractId;
+    expect(gigs[gigs.length - 1]!.clause?.condition.item).toEqual({
+      kind: "category",
+      category: "gin",
+      unit: "L",
+    });
+
+    // ⭐ One vessel, six litres. Nothing about the packaging matched a
+    // template path, and it is still exactly what was ordered.
+    ContainmentApi.move(vesselOf(6) as never, dest);
+    const done = ctx(courier);
+    await asGiver(courier, () =>
+      job().execute({ subcommand: "complete", id: id.slice(0, 8) } as never, done),
+    );
+    expect(done.note).not.toHaveBeenCalled();
+  });
+
+  it("⚠ four litres is not six — the tally is a measure, not a count", async () => {
+    const c = ctx(poster);
+    await asGiver(poster, () =>
+      job().execute(
+        {
+          subcommand: "post",
+          condition: `supply 6 litres of gin to ${DEST}`,
+          reward: 40,
+          bounty: true,
+        } as never,
+        c,
+      ),
+    );
+    const gigs = await ContractApi.openGigsOn(BOARD);
+    const id = gigs[gigs.length - 1]!.contractId;
+
+    // Two vessels, two litres each — four. Short is short.
+    ContainmentApi.move(vesselOf(2) as never, dest);
+    ContainmentApi.move(vesselOf(2) as never, dest);
+    const short = ctx(courier);
+    await asGiver(courier, () =>
+      job().execute({ subcommand: "complete", id: id.slice(0, 8) } as never, short),
+    );
+    expect(short.note).toHaveBeenCalledWith(
+      expect.objectContaining({ reason: "contract-refused" }),
+    );
+
+    // A third vessel tips it over six, across THREE containers.
+    ContainmentApi.move(vesselOf(2) as never, dest);
+    const done = ctx(courier);
+    await asGiver(courier, () =>
+      job().execute({ subcommand: "complete", id: id.slice(0, 8) } as never, done),
+    );
+    expect(done.note).not.toHaveBeenCalled();
   });
 });

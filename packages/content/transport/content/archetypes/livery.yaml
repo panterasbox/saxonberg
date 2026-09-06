@@ -1,0 +1,22 @@
+# The LIVERY archetype — ⚠ **the file ships; the content does not.**
+#
+# A stable is where a team is kept, fed and watered between runs, and it
+# is the premises half of the draft animal. But feed, mucking out and the
+# economics of keeping an animal alive are **ranching's**, in flight in a
+# sibling build — and shipping a stable with no feed economy behind it
+# would be a finished thing with nothing to do, which is the same failure
+# as a coach nobody rides.
+#
+# What ships is the contract, so that when ranching builds one there is
+# already an answer to *what does a livery have to have*, and it did not
+# have to be invented twice.
+archetypeId: livery
+label: a livery
+surveyScope: space
+capabilities:
+  - { key: shelter, needs: { rest: 1 } }
+  - { key: water, needs: { bulkSource: water } }
+  # Feed is a bulk source too — hay is continuous matter, and this is
+  # the slot ranching fills.
+  - { key: feed, needs: { bulkSource: fodder } }
+  - { key: light, needs: { lightLux: 30 } }

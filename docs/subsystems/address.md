@@ -72,6 +72,16 @@ future Vessel-carries-an-address case.
 
 ## The resolve chain (the four steps)
 
+⭐⭐ **`resolvePlace` is the one way a player names a place**, as a
+durable path: `here` → something reachable → a Locality by NAME → a
+Locality by ADDRESS → a literal path. It exists because the ladder was
+living in two controllers and had drifted — `ship`'s knew only
+reachable-or-path, and a shipment's destination is BY DEFINITION out of
+reach, so a template path was the only working form and both of that
+verb's own help examples were untypeable. ⚠ Name collisions resolve to
+the BROADER place (two shipped Localities are called *Terminus*), with a
+tie keeping the incumbent so a rebuild's order cannot change the answer.
+
 `AddressApi.resolveLocalityFor(scope)` mirrors the biome chain
 step-for-step (simplified — one field, no detail keys):
 
@@ -140,6 +150,8 @@ resolveFor(scope): Promise<AddressResolution>          // + matched address + so
 traceResolveFor(scope): Promise<AddressTrace>          // + provenance + coverage chain
 coveringLocalityOf(address): Locality | null           // SYNC longest-prefix fast-path
 findByAddress(address): Locality | null                // SYNC exact-match
+findLocalityByName(name): Locality | null              // SYNC, case-insensitive
+resolvePlace(raw, giver, herePath?): string            // the ONE place-naming ladder
 findByPath(path): Locality | null                      // SYNC templatePath lookup
 // index lifecycle (Locality self-registration; gated)
 registerLocality / deregisterLocality / rebuildCoverageIndex

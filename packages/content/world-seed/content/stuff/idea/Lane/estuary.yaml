@@ -1,0 +1,25 @@
+# The estuary lane — the realm's one water road, and the reason Wharfside
+# exists.
+#
+# `mode: sailed`, induced. It runs below the confluence and stops there,
+# and NOTHING HERE SAYS SO: the exits downstream of the bank declare
+# `media: [ground, water]` and the towpath up the gorge declares nothing,
+# so a barge simply cannot get past. ⭐ The hydrology decided this before
+# the road did — the Kestrel's gorge is authored as *"steep enough that no
+# boat has ever been up it"* — and this lane inherits the decision instead
+# of restating it.
+#
+# ⚠ It shares its ground with the walking towpath. Two lanes over one set
+# of edges is exactly why edge duration lives on the EXIT: the number
+# belongs to the ground, not to the lane.
+class: /system/transport/idea/Lane
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: estuary
+  name: the estuary
+  mode: sailed
+  seeds:
+    - /world/terminus/wharfside/bank
+  edges: []
+  stops: []
+  operator: null

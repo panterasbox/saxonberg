@@ -40,7 +40,13 @@ data:
         inputMin: 1
         vesselCategory: spirit-bottle
         vesselKeyword: bottle
-        batch: 3
+        # ⚠ Retuned by logistics D11: a CRATE, not six loose goods. The
+
+        # carriage is per consignment, so a bigger crate is the same haul
+
+        # and the loop closes in fewer trips.
+
+        batch: 12
         buyEvery: 5
         distills:
           recipe: distil
@@ -54,10 +60,19 @@ data:
           grappa: 11
           brandy: 14
     - brain: /lib/behavior/consigns
-      trigger: cadence:90s
+      trigger: cadence:4m
       config:
         stock: /trade/distilling/thing/crowsfoot-stock
         shelf: /trade/distribution/thing/counter
+        # ⚠⚠ `board`, `crate` and `carriage` USED to sit here — the
+        # posting version of this beat, from before the hand could
+        # walk. `consigns` reads none of them, so they were three keys
+        # that looked like configuration and were configuration of
+        # nothing. Removed rather than left: a dead key in a row is the
+        # quietest lie a content tree can tell.
+        #
+        # ⚠ Six a beat: the smallest floor, and a walk to the counter and
+        # back is the same walk whatever the hand is carrying.
         batch: 6
         ask:
           spirit:crowsfoot-gin: 40

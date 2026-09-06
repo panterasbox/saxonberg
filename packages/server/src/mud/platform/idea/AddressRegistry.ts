@@ -69,6 +69,38 @@ export default class AddressRegistry extends AddressRegistryBase {
    */
   private coverage = new PathTrie<Locality>();
 
+  /**
+   * ⭐ Name → Locality, lowercased. The coverage trie answers *"who
+   * covers this address"*; this answers *"which place is called
+   * Rejection"*, which is the question a PLAYER asks — and the only one
+   * that lets a verb take a place by the name it is known by rather
+   * than by a path nobody says out loud.
+   *
+   * ⚠⚠ **Names collide and the tie is broken deliberately.** Two shipped
+   * Localities are called *Terminus* — the municipality (`terminus`) and
+   * the city proper (`terminus/city`) — so a plain `Map` would let
+   * whichever indexed last win, silently and differently on every boot.
+   * The BROADER place wins (shortest claimed address), because somebody
+   * naming a place they are not standing in means the big one: a bill
+   * consigned "to Terminus" means the town, not one district of it.
+   */
+  private byName = new Map<string, Locality>();
+
+  /** Index `locality` under its name, broadest-claim-wins (see above). */
+  private indexName(locality: Locality): void {
+    const name = locality.getName().trim().toLowerCase();
+    if (name.length === 0) return;
+    const held = this.byName.get(name);
+    if (held && held !== locality) {
+      const heldAddr = held.getAddress();
+      const mine = locality.getAddress();
+      // Shorter claimed address = the broader place = the winner. A tie
+      // keeps the incumbent, so the order of a rebuild cannot matter.
+      if (heldAddr.length > 0 && heldAddr.length <= mine.length) return;
+    }
+    this.byName.set(name, locality);
+  }
+
   public override async postRegister(_context?: unknown): Promise<void> {
     await this.rebuildIndex();
   }
@@ -84,6 +116,7 @@ export default class AddressRegistry extends AddressRegistryBase {
     SecurityApi.assertFieldMutation(this, 'registerLocality');
     const addr = locality.getAddress();
     if (addr.length > 0) this.coverage.insert(addr, locality);
+    this.indexName(locality);
   }
 
   /** Remove a Locality from the index (onDestruct / HMR re-clone). */
@@ -91,6 +124,8 @@ export default class AddressRegistry extends AddressRegistryBase {
   public deregisterLocality(locality: Locality): void {
     const addr = locality.getAddress();
     if (addr.length > 0) this.coverage.remove(addr, locality);
+    const name = locality.getName().trim().toLowerCase();
+    if (this.byName.get(name) === locality) this.byName.delete(name);
   }
 
   /** Drop + rebuild the index from the cloned Locality roster. */
@@ -137,6 +172,12 @@ export default class AddressRegistry extends AddressRegistryBase {
     return this.coverage.exact(address)[0] ?? null;
   }
 
+  /** The Locality known by `name` (case-insensitive), or `null`. */
+  @CallSecurity(AddressLogicCaller)
+  public findByName(name: string): Locality | null {
+    return this.byName.get(name.trim().toLowerCase()) ?? null;
+  }
+
   /**
    * Eagerly clone every Locality template under the two roster prefixes and
    * index its claimed prefix. Ungated private — `postRegister` and the
@@ -144,12 +185,14 @@ export default class AddressRegistry extends AddressRegistryBase {
    */
   private async rebuildIndex(): Promise<void> {
     this.coverage.clear();
+    this.byName.clear();
     const templates = (await Promise.all(ADDRESS_ROSTER.map((p) => Template.findDescendants(p)))).flat();
     for (const t of templates) {
       if (t.class !== LOCALITY_CLASS) continue;
       const loc = await StuffApi.singleton<Locality>(t.path);
       const addr = loc.getAddress();
       if (addr.length > 0) this.coverage.insert(addr, loc);
+      this.indexName(loc);
     }
   }
 }

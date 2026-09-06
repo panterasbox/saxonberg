@@ -6,6 +6,7 @@
   "description": "TRANSITIONAL \u2014 moor, practicum, substation, the common TPA travel card and the commons stuff/ tree, until each is homed in its own pack.",
   "dependencies": {
     "@saxonberg/content-platform": "workspace:*",
+    "@saxonberg/content-transport": "workspace:*",
     "@saxonberg/content-water": "workspace:*",
     "@saxonberg/server": "workspace:*",
     "@saxonberg/types": "workspace:*"

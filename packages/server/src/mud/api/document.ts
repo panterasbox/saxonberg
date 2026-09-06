@@ -24,6 +24,7 @@
 
 import type { StoredDocument } from "../lib/document/StoredDocument";
 import type { Publisher } from "../lib/press/Publisher";
+import type { Business } from "../platform/idea/Business";
 import type { Stuff } from "../lib/stuff/Stuff";
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
@@ -111,6 +112,37 @@ export class DocumentApi {
     data: Record<string, unknown>,
   ): Promise<void> {
     return logic().saveRelease(publisher, path, data);
+  }
+
+  /**
+   * ⚠⚠ **The business-filed-paper transport — `saveRelease`'s twin, and
+   * the second ownership bypass.** Writes a document **owned by a
+   * `Business`** rather than by the acting author.
+   *
+   * A bill of lading is issued by a *clerk* on behalf of a *carrier*, and
+   * {@link DocumentApi.save}'s gate admits the parcel owner — the
+   * landowner, not the clerk. Titling each carrier an extent works for
+   * the proprietor and fails for every employee, and a player-run carrier
+   * cannot be given a group.
+   *
+   * Three rails, all structural: **no caller-supplied owner** (derived
+   * from the business), **the path must lie under that business's own
+   * branch** (which is also what makes a depot's records cover exactly
+   * what it handled, read by prefix), and **the `kind` must be one of the
+   * closed three** — `bill-of-lading`, `warehouse-receipt`, `rate-card`.
+   *
+   * ⚠ Deliberately **no caller-module allowlist**, unlike `saveRelease`:
+   * its callers are pack registries, and a `FromModule` list here would
+   * be a kernel edit every paper-filing pack needs. See
+   * [logistics.md](../../../docs/subsystems/logistics.md).
+   */
+  static saveAsBusiness(
+    business: Stuff & Business,
+    path: string,
+    kind: string,
+    data: Record<string, unknown>,
+  ): Promise<void> {
+    return logic().saveAsBusiness(business, path, kind, data);
   }
 
   /**

@@ -1,0 +1,6 @@
+# /trade/haulage/idea/RateCardRegistry — the singleton that publishes and
+# reads carriers' tariffs.
+#
+# Pure data, lazily cloned, like its sibling.
+class: /trade/haulage/idea/RateCardRegistry
+data: {}

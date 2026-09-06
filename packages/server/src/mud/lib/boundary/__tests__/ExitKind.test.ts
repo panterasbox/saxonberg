@@ -70,6 +70,7 @@ function mockKindTemplates(): void {
         t.data = {
           media: ['ground'],
           wheelPassable: false,
+          _edgeMinutes: 9,
           messageOut: '{{ mover }} takes the stairs.',
         };
         return t;
@@ -137,6 +138,19 @@ describe('exit-kind templates', () => {
     );
     // …while untouched kind defaults survive.
     expect(exit.isWheelPassable()).toBe(false);
+    expect(exit.getEdgeMinutes()).toBe(9);
+  });
+
+  it('a per-site edgeMinutes overrides the kind default', async () => {
+    const restore = stubDestination(locB);
+    await locA.applyExits({
+      up: { destination: '/test/loc-b', kind: STAIR, edgeMinutes: 2 },
+    });
+    restore();
+
+    // The lonely-stretch dial: the kind says how a stair usually reads,
+    // the SITE says how long this particular one is.
+    expect(locA.getExits().get('up')!.getEdgeMinutes()).toBe(2);
   });
 
   it('a bidirectional kind entry clones one instance per edge', async () => {

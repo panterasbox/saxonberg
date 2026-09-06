@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { Roster, type RosterAssignment } from '../Roster';
+import { DefaultCalendar } from '../../time/DefaultCalendar';
+import { Quantity } from '../../quantity';
 
 // Mara's day-shift window, lifted from the seed: weekdays 0–4, hours [6,14).
 const MARA: RosterAssignment = {
@@ -25,6 +27,33 @@ describe('Roster', () => {
     const r = Roster.of([MARA]);
     expect(r.evaluate(MARA, { weekday: 2, hour: 5 })).toBe('off-shift'); // pre
     expect(r.evaluate(MARA, { weekday: 2, hour: 14 })).toBe('off-shift'); // end excluded
+  });
+
+  it('⭐⭐⭐ NOBODY IS ON SHIFT AT BOOT — a fresh realm starts at midnight', () => {
+    /*
+     * ⚠⚠ This cost the logistics build several live drives and very
+     * nearly shipped as a "the loop is broken" conclusion.
+     *
+     * A fresh database restores the world clock at **0s**, and 0s
+     * decomposes to hour 0 — midnight — on weekday 0. Every shipped
+     * roster window starts hours later, so **on a freshly reset realm
+     * every rostered NPC is off shift**, and every brain gated on
+     * `shiftState()` does nothing at all.
+     *
+     * ⭐ At the default 12× scale, game 06:00 is **thirty real minutes**
+     * after boot. A drive that settles for four minutes is looking at
+     * game 00:48 and will see a dead world, correctly, and conclude the
+     * wrong thing.
+     */
+    const boot = DefaultCalendar.singleton().decompose(Quantity.of(0, 's'));
+    expect(boot.hour).toBe(0);
+    expect(boot.weekday).toBe(0);
+    const r = Roster.of([MARA]);
+    expect(r.evaluate(MARA, boot)).toBe('off-shift');
+    // …and she opens the bar six game-hours later.
+    expect(
+      r.evaluate(MARA, DefaultCalendar.singleton().decompose(Quantity.of(6 * 3600, 's'))),
+    ).toBe('on-shift');
   });
 
   it('is off-shift on a non-scheduled weekday', () => {

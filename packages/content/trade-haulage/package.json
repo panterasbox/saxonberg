@@ -1,0 +1,24 @@
+{
+  "name": "@saxonberg/content-trade-haulage",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Haulage — the carrier, the depot, the bill of lading, the rate card, teamstering, and the hauls brain.",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@saxonberg/content-base-library": "workspace:*",
+    "@saxonberg/content-platform": "workspace:*",
+    "@saxonberg/content-transport": "workspace:*",
+    "@saxonberg/server": "workspace:*",
+    "@saxonberg/types": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "vitest": "^2.0.0",
+    "yaml": "^2.8.2"
+  }
+}

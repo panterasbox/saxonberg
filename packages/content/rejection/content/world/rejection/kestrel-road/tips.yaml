@@ -1,0 +1,43 @@
+# The tips — where the town's waste has been going for as long as there
+# has been a town, and the road runs through it.
+class: /platform/location/SingletonCartesianLocation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the tips
+  primaryKeyword: tips
+  alternateNames: [spoil, road, waste, bank]
+  _address: terminus/rejection/road/tips
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  ambientIntensity: 520
+  ambientColorTemperature: 5600
+  longDescription: |
+    The path comes down off the saddle onto grey ground. Spoil banks stand on both sides of it, forty feet of broken country rock tipped over the edge of a bench and running out at the angle it wants to, with nothing growing on any of it.
+
+    The road here is not made. It is simply the line where the tipping stops, and it has been moved before.
+  coords:
+    x: -3
+    y: 0
+    z: 0
+  exits:
+    east:
+      destination: /world/rejection/kestrel-road/the-pass
+      media: [ground]
+      wheelPassable: false
+      edgeMinutes: 12
+    west:
+      destination: /world/rejection/kestrel-road/yard-gate
+      media: [ground]
+      edgeMinutes: 8
+  details:
+    spoil:
+      keywords: [spoil, tips, rock, waste, bank, banks]
+      description: |
+        Broken country rock, sorted by nothing but gravity — the fines at the top of the slope and the fist-sized pieces run out to the bottom. Some of it is green-stained, which means somebody threw away ore, which means somebody was not being paid to look.
+    line:
+      keywords: [line, road, edge, track]
+      description: |
+        Where the tipping stops. It has been pushed outward at least twice, judging by the two older lines of trodden ground you can still see under the newer spoil. The road is whatever is left.
+    nothing:
+      keywords: [nothing, growth, plants, ground, grey]
+      description: |
+        Not a blade of anything, on ground that is not obviously poisoned. It is simply too new and too loose. Give it fifty years and there will be birches.

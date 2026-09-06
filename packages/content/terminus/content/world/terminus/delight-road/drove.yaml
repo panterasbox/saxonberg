@@ -1,0 +1,47 @@
+# The drove road — where the wide green way for driven stock crosses the
+# made road, and neither gives way to the other.
+#
+# ⚠ Live cargo is a NON-GOAL of this build (the steer walks, the carcass
+# rides — that is ranching's). The drove is authored anyway because it is
+# a real fact about a valley road, and because when ranching lands, the
+# place its drovers use is already here and already crosses the freight.
+class: /platform/location/SingletonCartesianLocation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the drove crossing
+  primaryKeyword: drove
+  alternateNames: [crossing, road, green]
+  _address: terminus/delight-valley/drove
+  _biomePath: /stuff/idea/biome/outdoor/meadow
+  ambientIntensity: 640
+  ambientColorTemperature: 5750
+  longDescription: |
+    A green way forty paces wide comes down off the eastern hills, crosses the road, and goes on into the water-meadows on the other side. It is unmade, unfenced and cropped flat, and where it crosses the road the made surface has been ground back to earth by generations of hooves.
+
+    There is a pound of dry-stone wall in the angle of the crossing, roofless, with a gate off. Nothing has been kept in it for a long time.
+  coords:
+    x: 0
+    y: -3
+    z: 0
+  exits:
+    north:
+      destination: /world/terminus/delight-road/milestone
+      media: [ground]
+      edgeMinutes: 8
+    south:
+      destination: /world/terminus/delight-road/flats
+      media: [ground]
+      edgeMinutes: 8
+  details:
+    green:
+      keywords: [green, drove, way, track, sward]
+      description: |
+        Grass, cropped to a lawn by animals that were not stopping. It runs up over the shoulder of the hill in one direction and down into the meadows in the other, and it is wider than any road anybody in this valley has ever paid to build.
+    pound:
+      keywords: [pound, wall, pen, fold, gate]
+      description: |
+        Dry-stone, chest high, four square walls and no roof. The gate is off its hangings and lying in the nettles inside. It was built to hold stock overnight and somebody stopped needing it.
+    hooves:
+      keywords: [hooves, mud, surface, ruts, earth]
+      description: |
+        The made road stops being a made road for forty paces. Whoever keeps the road and whoever keeps the drove have evidently never agreed about this, and neither has given way.

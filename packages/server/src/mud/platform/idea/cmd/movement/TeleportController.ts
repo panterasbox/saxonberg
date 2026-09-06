@@ -79,6 +79,13 @@ export default class TeleportController extends CommandController<TeleportModel>
   async execute(model: TeleportModel, context: CommandContext): Promise<void> {
     const giver: Stuff = context.commandGiver;
 
+    // ⭐ 0 · Coupling is no longer a refusal. `Mobile.teleport` slips the
+    //     hitch (or the seat) and announces it on both sides — you go,
+    //     the wagon stays where it stands. Freight still does not
+    //     teleport, so the cost surface is untouched; what changed is
+    //     that the spell stops feeling broken, and *"you cannot teleport
+    //     while holding a rope"* stops being a rule of the world.
+
     // 1 · Free movement inside an extent you hold AUTHORIAL AUTHORITY
     //     over (D11). Needs a named destination — a bare `teleport` is
     //     always a request to read a board.

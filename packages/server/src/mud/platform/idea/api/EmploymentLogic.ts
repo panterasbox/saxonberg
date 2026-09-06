@@ -7,6 +7,7 @@ import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
+import { CategoryMeasure } from '../../../lib/employment/CategoryMeasure';
 import { MqlApi } from '../../../api/mql';
 import { CompactApi } from '../../../api/compact';
 import { GovernmentApi } from '../../../api/government';
@@ -493,15 +494,16 @@ function perceivedGoods(viewer: Stuff): Stuff[] {
   return out;
 }
 
-/** Whether `item` counts against a par category (see {@link ParLine}). */
+/**
+ * Whether `item` counts against a par category (see {@link ParLine}).
+ *
+ * ⚠ One line, delegating: the rule lives on {@link CategoryMeasure} so
+ * the sheet, the keeper's exemplar scan and a `supply` contract all read
+ * the SAME answer. They used to each have their own, and two of the
+ * three were wrong in different ways.
+ */
 function matchesCategory(item: Stuff, category: string): boolean {
-  const named = (item as unknown as Categorized).getCategory?.();
-  if (named === category) return true;
-  if (MixinApi.isTangible(item)) {
-    const material = item.getMaterial();
-    if (material?.hasTag(category)) return true;
-  }
-  return false;
+  return CategoryMeasure.names(item, category);
 }
 
 /**
@@ -511,11 +513,9 @@ function matchesCategory(item: Stuff, category: string): boolean {
  * crate of the fruit, a glass that names the category).
  */
 function goodsForImpl(viewer: Stuff, category: string): Stuff[] {
-  return perceivedGoods(viewer).filter((item) => {
-    if (matchesCategory(item, category)) return true;
-    if (!MixinApi.isBulkable(item) || !item.hasInteriorBulk()) return false;
-    return item.getBulkMaterial('interior')?.hasTag(category) ?? false;
-  });
+  return perceivedGoods(viewer).filter((item) =>
+    CategoryMeasure.counts(item, category),
+  );
 }
 
 /**
@@ -535,19 +535,7 @@ function stockSheetForImpl(
   return business.getParLines().map((line) => {
     let onHand = 0;
     for (const item of goods) {
-      if (line.unit === 'count') {
-        if (!matchesCategory(item, line.category)) continue;
-        onHand += MixinApi.isGlobbable(item) ? item.getQuantity() : 1;
-        continue;
-      }
-      if (!MixinApi.isBulkable(item) || !item.hasInteriorBulk()) continue;
-      const material = item.getBulkMaterial('interior');
-      if (!material?.hasTag(line.category)) continue;
-      const litres = item.getBulkAmount('interior').rawValue();
-      onHand +=
-        line.unit === 'L'
-          ? litres
-          : (litres / 1000) * material.getDensity().rawValue();
+      onHand += CategoryMeasure.contribution(item, line.category, line.unit);
     }
     onHand = Math.round(onHand * 1000) / 1000;
     return { line, onHand, shortfall: Math.max(0, line.level - onHand) };

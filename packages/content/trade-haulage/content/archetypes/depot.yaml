@@ -1,0 +1,21 @@
+# The DEPOT archetype — what a place has to have to be where a lane
+# touches the local economy.
+#
+# ⚠ Every slot is a shipped capability, and that is the claim: a depot is
+# not a new kind of place, it is four known things standing together. A
+# depot missing one reports the gap and functions anyway — reported,
+# never enforced.
+archetypeId: depot
+label: a depot
+surveyScope: space
+capabilities:
+  # The counter — an attendant queue, so one clerk serves one customer
+  # and everybody else is free to mill.
+  - { key: counter, needs: { presence: clerk }, default: /trade/haulage/agent/warehouseman }
+  # Somewhere to set a crate down while it waits for a wagon.
+  - { key: loading, needs: { surface: true } }
+  # ⭐ The weighbridge. `presence` rather than a measurement need,
+  # because standards, weights and measures are their own small build —
+  # what ships is the PLATE, in the place a weighbridge goes.
+  - { key: scale, needs: { presence: weighbridge } }
+  - { key: light, needs: { lightLux: 60 } }

@@ -1,0 +1,21 @@
+# The Delight road — Terminus to the valley crossroads, up the Delight.
+#
+# ⭐ **The lonely stretch.** Four rooms and long edges, which is the whole
+# of its character: nothing for a long time, then something. Compare the
+# towpath one zone over — moderate rooms, short edges, a walk you take
+# rather than one you endure. The two corridors carry the SAME total
+# duration and read completely differently, which is what D18 means by
+# *length is an event budget, not a distance*.
+#
+# ⚠ Elevation is not declared, on the shipped `valley-road` precedent:
+# the road climbs from the city's 35 m at the ford to the Delight flats
+# at 180 m, and rather than split the zone the CROSSROADS is where the
+# road meets the valley's own ground. A corridor zone carrying one number
+# would be false at both ends.
+#
+# Cells are 20 m — a road room is a stretch of country, not a parlour.
+class: /platform/idea/location/CartesianZone
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: The Delight Road
+  cellSize: 20.0
