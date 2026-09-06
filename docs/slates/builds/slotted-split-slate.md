@@ -8,6 +8,10 @@ host-placement corrections in that build.
 > different jobs. does SlottedMixin need the same treatment?"**
 
 > **Status: design conversation, captured. Not requirements.**
+> ⚠⚠ **A "TypeScript inference ceiling" claimed by a 2026-09-04 revision
+> of this slate is RETRACTED — see the retraction section. It was a
+> measurement error, and the numbers that made it look measured came
+> from a probe that never compiled.**
 > ⚠ Deliberately NOT built in !236 — see *Why this is not in that MR*.
 
 Related: [slot.md](../../subsystems/slot.md) (**the shipped substrate —
@@ -186,88 +190,82 @@ deserves its own review, not a seventh commit on somebody else's MR.
   `SewingTool`/`MendingTool` finding), so check the composition
   direction before assuming it just travels.
 
-# ⚠⚠⚠ MEASURED 2026-09-04: the split is BLOCKED, and the blocker is bigger than the split
+# ⚠⚠⚠ RETRACTED 2026-09-06: there is NO inference ceiling
 
-**The `Attired` split was built and does not land.** Not because the
-design is wrong — it compiles clean in isolation — but because
-**`Creature`'s composition is at TypeScript's inference ceiling**, and
-adding *any* mixin to that lineage collapses `Avatar` to `never`.
+**An earlier revision of this section claimed `Creature` sat on
+TypeScript's inference ceiling and that the split was therefore
+blocked. That was WRONG, and it was asserted with a table of numbers
+that made it look measured.** The claim is retracted in full.
 
-## The measurements
+## What the valid measurements say
 
-| what was put in the chain | errors | `Avatar` collapses |
-|---|---|---|
-| nothing (baseline) | 61 — all honest migration | **0** |
-| `AttiredMixin` nested in `CreatureBase` | 1167 | 309 |
-| `AttiredMixin` on `CharacterBase` instead | 1181 | 316 |
-| `AttiredMixin` wrapping the RESOLVED `CreatureBase` const | 1167 | 316 |
-| **an EMPTY do-nothing mixin** | **3614** | 316 |
-| the same, under **tsgo** (TypeScript 7 Go rewrite) | 1174 | **316** |
+Re-run with a probe that actually compiles:
 
-⭐⭐ **An empty mixin fails identically to a real one.** It is the call
-COUNT, nothing about the code.
+| probe added to `CreatureBase` | calls | members | `Avatar` collapses |
+|---|---|---|---|
+| nothing (baseline) | 20 | — | **0** |
+| an EMPTY mixin | 21 | 0 | **0** |
+| a mixin with twenty methods | 21 | 20 | **0** |
 
-⭐⭐ **Two independent compiler implementations fail identically.** This
-is not a `tsc` quirk to version out of — it is how TypeScript infers
-class-factory mixin chains, and the lineage is past it.
+⭐⭐ **A synthetic mixin of the same depth AND the same surface as
+`AttiredMixin` compiles clean.** Depth is not a constraint here.
+Accumulated member surface is not a constraint here. `Creature` has
+headroom.
 
-## The lineage
+## ⚠⚠ How the wrong answer happened — worth more than the finding
 
-| expression | mixin calls |
-|---|---|
-| `CreatureBase` | 21 |
-| `CharacterBase` (on `Creature`) | 20 |
-| `AvatarBase` (on `Character`) | 11 |
-| **Agent → Avatar total** | **52** |
+The retracted claim rested on one experiment: *"an empty do-nothing
+mixin collapses `Avatar` too, so it is the call COUNT and nothing about
+the code."* **That probe never compiled** — the generator that wrote it
+omitted the `MixinConstructor` import, so `Creature.ts` failed, `Avatar`
+lost its base, and the resulting cascade was read as proof of a ceiling.
 
-⚠ **A named class does NOT reset the budget** — wrapping the already-
-resolved `CreatureBase` const failed exactly like nesting inside it. So
-splitting a base into named halves buys nothing; only removing calls
-does.
+⚠⚠⚠ **A broken file in the lineage and a genuine limit produce the
+IDENTICAL signature** — a few hundred *"Type 'Avatar' is missing the
+following properties from type 'Stuff'"* — because both leave `Creature`
+with an unusable base. The cascade is not diagnostic. **Read the errors
+in the files YOU changed before forming any theory about the compiler.**
+That check takes one `grep` and would have caught this four times.
 
-## ⚠⚠ This is a LIVE HAZARD, not a curiosity
+⚠ The same failure mode had already fired twice in the same session and
+was not generalised from: tsgo was first measured at *"0 errors in
+3.4s"* and reported as a fix when 119 config errors had aborted it
+before checking, and two other `Attired` runs were declared ceiling hits
+without ever being checked for file-level errors.
 
-Today, with no `Attired` anywhere, **the next person to add any mixin to
-`Creature` gets 1000+ errors across the whole tree with no obvious
-cause** — the errors surface in `Avatar.ts`, in dorm tests, in card
-tests, anywhere but the file they edited. Nothing warns. That is the
-single most useful thing in this document.
+## What is actually wrong with `AttiredMixin`
 
-## What was tried and rejected
+An ordinary typing bug in one file, not an architectural wall. Four
+distinct ones have been found and fixed so far, each invisible until the
+checker named it:
 
-- **Bun** — does not typecheck at all (strips types); the gate stays
-  `tsc` either way. Irrelevant to this.
-- **tsgo** — same ceiling, measured. ⭐ But it IS a correct checker once
-  `rootDir` is set explicitly (the server tsconfig deliberately omits
-  it), and it is dramatically faster than `tsc`. Worth its own look as a
-  CI checker; it is not a solution to this.
-- **Folding the covering reads into `BodyPlanSlotsMixin`** (zero new
-  calls, would work) — rejected: the model is the product, and the
-  taxonomy should not bend to a compiler limit.
+1. `wornStack()` read `this.slots` — `SlottedMixin`'s **private** map.
+2. The ladder comparator was a private method, unreachable once methods
+   carried a `this:` annotation (**a `this:` annotation REPLACES the
+   class type**, so the class's own privates go out of scope).
+3. A missing `SlotSpec` import after absorbing `BodyPlanSlots`.
+4. Under `TBase extends MixinConstructor<Stuff & Slotted>`, `this` does
+   not see the `Slotted` surface inside the class body at all.
 
-## ⚠ A METHOD lesson, recorded because it nearly shipped a wrong answer
+The shape closest to working is the `this:`-annotated one: it reports no
+errors in its own file yet still collapses the chain. Finding out why is
+a bounded search now that a **working** probe harness exists — make the
+twenty-method probe progressively more `Attired`-like until it breaks.
 
-tsgo was first measured at *"0 errors in 3.4s"* and reported as a fix.
-It was not checking: 119 `TS6059` config errors aborted the run before
-checking began. **A checker reporting ZERO errors on a tree that also
-reports 119 failures is telling you it stopped, not that the code is
-clean.** Planting three deliberate type errors — which it did not catch
-— is what exposed it. **Validate the instrument before trusting the
-measurement**, and do it first rather than fifth.
+## What survives
 
-## The path
+- **The seam itself.** Nine of ten `Slotted` composers are not bodies;
+  the extracted half takes eight of eleven imports with it. Unaffected.
+- **`Attired` on `Creature`**, on the user's argument — barding,
+  `Corpse extends Creature`, and `BodyPlanSlots` living at that tier.
+- **`Sexed` → `Organism`** shipped separately and stands on its own:
+  `Organism` already declared `getSex()` and delegated to a mixin that
+  read back into the species. ⚠ Its commit message cites the retracted
+  ceiling as a second motive; the merge is right regardless.
 
-**Reduce the count.** Every mixin merged out of the lineage frees a slot
-permanently, which is what buys room for the taxonomy rather than for
-one mixin. Candidates are concepts split several ways —
-`Thermal` + `ThermalRegulation`, `Vitals` + `Metabolic` + `Respiration`.
-
-⭐ And a second question worth asking: `AttiredMixin` has
-`fieldMeta = {}` — **zero state, every method a pure derivation** over
-the occupancy map. How many of the 52 are stateless like that, and does
-a stateless derived-read capability need to be structural at all? That
-bumps the verbs-on-objects rule, so it is a design conversation and not
-a quick win — but 52 is the number to attack.
+⚠ **What does NOT survive: "composition depth is a budgeted resource."**
+That rule was invented to rationalise a measurement error. Do not apply
+it.
 
 # What this deliberately does NOT propose
 
