@@ -190,6 +190,7 @@ behavior. Read the relevant doc before editing in its area.
   - [crafting.md](./docs/subsystems/crafting.md) — craft-resolve, Grade/Tool/Durable/Crafted mixins, Recipe docs, the by-hand manual build, Dave's Bar
   - [retail.md](./docs/subsystems/retail.md) — the general store: PricedOffer, the Stock counter, consignment over chattel, `buy`/`consign`/`reclaim`
   - [corpo.md](./docs/subsystems/corpo.md) — the mark substrate: Corpo/Brand data Ideas, CorpoCatalogue, BrandedMixin resolve-on-read
+  - [textiles.md](./docs/subsystems/textiles.md) — cloth and what it is FOR: purpose is which channel a garment intercepts, the covering ladder + derived `clo`, fit as two numbers and a stamp, the subtractive dye stack + fade, the soiling seam; the three-trade chain
   - [banking.md](./docs/subsystems/banking.md) — two-tier money, the conservation chokepoint, custodial banks, settle/credential, coinage, Terms, quotas
   - [attendant.md](./docs/subsystems/attendant.md) — storefront attention: queue + lease on AttendantMixin, AttendanceEngagement, idle-eviction sweep
   - [employment.md](./docs/subsystems/employment.md) — the Business Idea, positions/roster/shifts/wages/tips, on-shift MakerMixin conferral
@@ -229,7 +230,7 @@ behavior. Read the relevant doc before editing in its area.
   - [git-workflow.md](./docs/subsystems/git-workflow.md) — the in-runtime VCS: GitApi snapshot-and-push, the same-gate security spine, the `git` verb + CMS panel
   - [studio.md](./docs/subsystems/studio.md) — the mixin-aware composition surface: describeClass/blueprints, the `@authorable` schema, the catalogue-first client
   - [perceiver.md](./docs/subsystems/perceiver.md) — PerceiverMixin (look/scry/locate), the Sensor/Visible/Perceiver split, ScryableMixin
-  - [slot.md](./docs/subsystems/slot.md) — Slotted/Slottable substrate, accepts + fitsSlot, capacity, Foldable
+  - [slot.md](./docs/subsystems/slot.md) — Slotted/Slottable substrate, accepts + fitsSlot, capacity, Foldable; **Attired** is the covering half split off Slotted (a rack is slotted and wears nothing) and composes on Creature
   - [embodiment.md](./docs/subsystems/embodiment.md) — Wearable/Wieldable body-side affordances, per-body-plan slotClaims, multi-slot atomicity
   - [posture.md](./docs/subsystems/posture.md) — Postured + Posed + Postures vocabulary, the posture-bearing slot
   - [conveyance.md](./docs/subsystems/conveyance.md) — Mountable/Drivable, the traverse ripple, mount/dismount, haulage (hitch/unhitch)

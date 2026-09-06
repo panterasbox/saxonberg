@@ -4106,3 +4106,46 @@ Enforced by `pnpm lint:object-verbs` (CI-gating since the sweep): a new
 subject-first static on a non-exempt Api fails the build; the
 `EXEMPT_APIS` table carries a one-line mandate reason per surviving
 Api, and widening it is a deliberate, reviewable diff.
+
+## An optional call through a structural cast
+
+⚠⚠ **The most dangerous line in the codebase is `(x as unknown as { f?():
+void }).f?.()`.** It type-checks against anything, and when the method is
+not there it does nothing and says nothing.
+
+```typescript
+// NOT ALLOWED — compiles against any object; silently no-ops when wrong
+const asPieces = pieces as unknown as { setSeamAllowance?(n: number): void };
+asPieces.setSeamAllowance?.(allowance);
+
+// CORRECT — narrow on the mixin (or `instanceof` for a concrete class)
+if (MixinApi.isWearable(pieces)) pieces.setSeamAllowance(allowance);
+```
+
+**What it cost.** The textiles build wrote exactly this in `sew`, to copy
+the seam allowance from the `CutPieces` onto the finished `Garment`.
+`seamAllowance` lived on the pack's `CutPieces` alone and `Garment` is a
+kernel class, so the setter was never there: the cloth folded in at `cut`
+vanished on every sew, `alter`'s read answered `0` forever, and **letting
+out a garment refused every garment in the game** with *"was cut close.
+There is nothing folded in the seams"* — a sentence that was never true
+of any of them. A hard call would have been a `TypeError` on the first
+`sew`. The `?.` is what bought the silence.
+
+⭐ **The unit test passed throughout**, because it exercised `CutPieces`
+in isolation and the break was in the *chain*. A component test proves
+the component; when a value has to survive a hand-off, the assertion
+worth writing is that **both ends carry the field** — which in this case
+was only true once it moved to the shared `WearableMixin`, beside its
+twin `cutTo`.
+
+**The tell**, and it is visible without knowing any of the above: the
+optional-call line sits *directly beside* lines doing the same job
+properly (`if (MixinApi.isWearable(pieces)) pieces.setCutTo(...)`). When
+one field in a cluster is reached differently from its neighbours, the
+odd one out is usually the one whose home is wrong.
+
+⚠ Optional chaining on a *value* (`getConstruction()?.getFabric()`) is
+ordinary and fine. This is about optional chaining on a **method the
+type system was told to stop checking for**.
+

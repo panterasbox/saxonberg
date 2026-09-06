@@ -117,11 +117,13 @@ async function finish(
         garment.setCutTo(cut.bodyPlanPath, cut.statureM, cut.girthIndex);
       }
     }
-    const allowance =
-      (pieces as unknown as { getSeamAllowance?(): number }).getSeamAllowance?.() ?? 0;
-    (garment as unknown as { setSeamAllowance?(n: number): void }).setSeamAllowance?.(
-      allowance,
-    );
+    // ⚠⚠ The allowance must SURVIVE the sew — this is the seam that was
+    // broken. It was an optional call through a structural cast onto a
+    // `Garment` that had no such method, so the cloth folded in at `cut`
+    // silently vanished and `alter` could never let anything out.
+    if (MixinApi.isWearable(pieces) && MixinApi.isWearable(garment)) {
+      garment.setSeamAllowance(pieces.getSeamAllowance());
+    }
 
     // ⭐ The maker's mark. The maker is NEVER a parameter — it derives
     // from who is acting, through the authoring context.

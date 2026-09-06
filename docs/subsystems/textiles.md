@@ -162,6 +162,20 @@ fifteen shipped rows read as ill-fitting hand-me-downs with no content
 edit. Consequences, the wrong-body refusal and the distance refusal:
 [embodiment.md](./embodiment.md) § *Fit*.
 
+⚠⚠ **`seamAllowance` is the stamp's twin and lives beside it on
+`WearableMixin`** — both are *what the cutting did to this cloth*, and
+both must survive `cut` → `sew` → `alter`. It briefly lived on the
+tailoring pack's `CutPieces` alone, which meant `sew` wrote it through
+an optional call onto a kernel `Garment` that had no such method: the
+cloth folded in at `cut` vanished silently, and `alter` refused to let
+out **every garment in the game** with *"was cut close. There is nothing
+folded in the seams"* — a sentence that was never true of any of them.
+
+⭐ **The unit test passed throughout**, because it exercised `CutPieces`
+in isolation and the break was in the chain. The assertion that catches
+it is that *both ends carry the field*, which is only true while it
+lives on the shared mixin.
+
 ---
 
 ## Dye, wash and fade

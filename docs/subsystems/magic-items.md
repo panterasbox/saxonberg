@@ -433,7 +433,7 @@ caster recover endurance *slower* than a non-caster.
 ### ⭐⭐ The attention term — a mundane hood makes an arcane veil cheaper
 
 The standby draw is not a flat global number. It is multiplied by the
-**wearer's** `Slotted.attentionFactor()`, `[floor, 1]`:
+**wearer's** `Attired.attentionFactor()`, `[floor, 1]`:
 
 ```
 standbyWatts_effective = dial(magic.charge.standbyWatts) × wearer.attentionFactor()

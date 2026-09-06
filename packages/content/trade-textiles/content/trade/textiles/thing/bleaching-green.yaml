@@ -16,5 +16,12 @@ data:
   keywords: [green, sward, bleaching, grass]
   longDescription: |
     A close-cropped acre pegged out in long pale strips, weighted at the corners against the wind. Somebody walks it twice a day with a watering can, which is the entire technology.
-  _materialPath: /stuff/idea/material/tissue/plant-tissue
+  # ⚠ NO `_materialPath`, and `lint:perishable` is why. It was
+  # `tissue/plant-tissue`, which ROTS — so an acre of turf was a
+  # perishable object on a class that cannot spoil, which does not throw:
+  # it silently never spoils, and the row would have sat there lying
+  # about itself forever. A bleaching green is LAND, and the shipped
+  # precedent for land is `GardenBed`, whose row declares no material at
+  # all. Nothing reads this object's own material — `scutch` reads what
+  # is IN the slot, not what the green is made of.
   mass: 50

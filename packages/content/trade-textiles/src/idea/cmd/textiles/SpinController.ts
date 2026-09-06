@@ -45,6 +45,7 @@ import { AppApi } from '@saxonberg/server/mud/api/app';
 import { Grade } from '@saxonberg/server/mud/lib/craft/Grade';
 import { CompetenceBand } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
 import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
+import TextileStock from '../../../thing/TextileStock';
 
 const TOPIC = 'act.deed';
 const YARN_ROW = '/trade/textiles/thing/yarn';
@@ -179,8 +180,10 @@ async function finish(
     if (MixinApi.isGraded(yarn) && MixinApi.isGraded(stock)) {
       yarn.setGrade(Grade.of(bandOf(stock)));
     }
-    const asStock = yarn as unknown as { setYarnCount?(n: number): void };
-    asStock.setYarnCount?.(count);
+    // ⚠ A hard call, not an optional one through a cast: if the yarn row
+    // ever stops being TextileStock the count must break loudly rather
+    // than be silently dropped.
+    if (yarn instanceof TextileStock) yarn.setYarnCount(count);
     if (MixinApi.isContainable(yarn) && MixinApi.isContainer(giver)) {
       ContainmentApi.move(
         yarn as Stuff & Containable,

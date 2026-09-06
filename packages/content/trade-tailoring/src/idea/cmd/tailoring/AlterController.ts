@@ -80,8 +80,9 @@ export default class AlterController extends ManualBuildController<AlterModel> {
     // folded into the seams; taking in is just cutting and is always
     // available.
     const lettingOut = fit.tightness > 0;
-    const allowance =
-      (garment as unknown as { getSeamAllowance?(): number }).getSeamAllowance?.() ?? 0;
+    const allowance = MixinApi.isWearable(garment)
+      ? garment.getSeamAllowance()
+      : 0;
     if (lettingOut && allowance < AlterController.ALLOWANCE_PER_ACT) {
       this.declineStep(
         context,
@@ -108,9 +109,9 @@ export default class AlterController extends ManualBuildController<AlterModel> {
         if (!MixinApi.isWearable(garment)) return;
         garment.setCutTo(measured.bodyPlan, measured.stature, measured.girth);
         if (lettingOut) {
-          (garment as unknown as {
-            setSeamAllowance?(n: number): void;
-          }).setSeamAllowance?.(allowance - AlterController.ALLOWANCE_PER_ACT);
+          garment.setSeamAllowance(
+            allowance - AlterController.ALLOWANCE_PER_ACT,
+          );
         }
         if (giver.isDestroyed()) return;
         MessageApi.scene(giver)

@@ -177,7 +177,7 @@ thermal mass, basal drain and the mass-scaled fist at once. A body's
 water is metabolism's business.
 
 **The sum is per part.** `wornInsulationKelvin()` now reads
-`Slotted.bodyInsulation()`, which weights each part's covering by its
+`Attired.bodyInsulation()`, which weights each part's covering by its
 share of the body's surface — Meeh's law (`m^(2/3)`) over the tissue
 masses `BodyPlan.bodyParts` already authors, organs excluded. ⚠ A
 body-wide sum **cannot** teach that bare extremities cost you: gloves

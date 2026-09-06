@@ -50,6 +50,14 @@ const MUD_ROOT = join(SERVER_ROOT, "src", "mud");
  * materials-response quality model, not a dynamic.
  */
 export const COMBAT_DYNAMICS_ALLOWLIST: ReadonlySet<string> = new Set([
+  // ⭐ `isAttired` joins `isSlotted` for the reason `isSlotted` was here:
+  // the struck-site armour walk asks the target what it is WEARING, and
+  // what is between a blow and a body is combat physics if anything is.
+  // The textiles build split `Slotted` in two — occupancy stayed, the
+  // covering reads moved — so `CombatLogic`'s one covering narrowing
+  // changed name without changing meaning. ⚠ The gate is why that was
+  // noticed at all: a rename breaks the DEPENDENTS, not what you edited.
+  "isAttired",
   "isCombatReactive",
   "isCombatant",
   // The EVIDENCE TAIL's narrowing (the Api OO sweep, waves C1–C3): the

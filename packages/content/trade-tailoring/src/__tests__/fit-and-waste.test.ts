@@ -15,6 +15,7 @@ import { dirname, join } from "path";
 import YAML from "yaml";
 import MeasureBook from "../thing/MeasureBook";
 import CutPieces from "../thing/CutPieces";
+import Garment from "@saxonberg/server/mud/platform/thing/equipment/Garment";
 import { StuffApi } from "@saxonberg/server/mud/api/stuff";
 import { makeStuff } from "@saxonberg/server/mud/lib/security/__tests__/test-setup";
 
@@ -113,6 +114,33 @@ describe("⭐ cut is optimisation under waste", () => {
     pieces.setSeamAllowance(2);
     expect(pieces.getSeamAllowance()).toBe(2);
     expect(() => pieces.setSeamAllowance(-1)).toThrow(RangeError);
+  });
+
+  it("⚠⚠ the allowance SURVIVES the sew — pieces and garment share the surface", () => {
+    // ⭐⭐ This is the assertion whose absence hid a dead feature. The
+    // test above proves `CutPieces` carries an allowance, and passed
+    // happily while `seamAllowance` lived on `CutPieces` ALONE — so
+    // `sew`'s `garment.setSeamAllowance?.()` was an optional call onto a
+    // `Garment` with no such method, the cloth folded in at `cut`
+    // silently vanished, and `alter` refused to let out EVERY garment in
+    // the game with "was cut close": a sentence that was never true.
+    //
+    // A component test proves the component. The chain is what broke, so
+    // the fact worth pinning is that BOTH ends carry the field — which
+    // is only true while it lives on the shared `WearableMixin`, beside
+    // its twin `cutTo`.
+    const garment = makeStuff(() => new Garment());
+    expect(garment.getSeamAllowance()).toBe(0);
+    garment.setSeamAllowance(3);
+    expect(garment.getSeamAllowance()).toBe(3);
+    expect(() => garment.setSeamAllowance(-1)).toThrow(RangeError);
+
+    // …and the transfer `sew` performs is now a plain read/write pair.
+    const cut = makeStuff(() => new CutPieces());
+    cut.setSeamAllowance(2);
+    const sewn = makeStuff(() => new Garment());
+    sewn.setSeamAllowance(cut.getSeamAllowance());
+    expect(sewn.getSeamAllowance()).toBe(2);
   });
 
   it("⭐ the pieces are Wearable BEFORE they are wearable — the stamp travels", () => {

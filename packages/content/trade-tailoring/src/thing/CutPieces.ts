@@ -34,27 +34,14 @@ const CutPiecesBase = WearableMixin(
 
 export default class CutPieces extends CutPiecesBase {
   static fieldMeta: FieldMeta = {
-    seamAllowance: { persistent: true, authorable: true },
   };
 
   /**
    * Cloth folded inside the seams, in units — `alter`'s entire budget.
    * `0` means the cut was tight and this can never be let out.
    */
-  public seamAllowance = 0;
 
-  public getSeamAllowance(): number {
-    return this.seamAllowance;
-  }
 
-  public setSeamAllowance(value: number): void {
-    if (!Number.isFinite(value) || value < 0) {
-      throw new RangeError(
-        `CutPieces.setSeamAllowance: must be finite and non-negative, got ${value}`,
-      );
-    }
-    this.seamAllowance = value;
-  }
 
   // ⚠ TS re-surface of the inner `GradedMixin`'s members (the
   // documented `Crafted.ts` cast quirk — `GradedReceptacle` carries the

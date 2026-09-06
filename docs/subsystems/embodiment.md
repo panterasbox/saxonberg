@@ -122,7 +122,7 @@ the argument.
 
 | reading | consequence | where |
 |---|---|---|
-| *loose* | air gaps → `insulationAt` scales the layer's clo by `1 − looseness × dial` | `Slotted.insulationAt` — it needs the wearer, which is why it is not inside `getClo()` |
+| *loose* | air gaps → `insulationAt` scales the layer's clo by `1 − looseness × dial` | `Attired.insulationAt` — it needs the wearer, which is why it is not inside `getClo()` |
 | *tight* | a burden surcharge on the placement coupling | `LoadBearing.getBorneBurden` |
 | *tight* | a multiplier on the **existing** per-blow condition decrement — ⚠ never a clock | `ConditionLogic`'s covering-wear site |
 | *impossible* | `WearController` refuses above `textiles.fit.refuseAbove` | a `fit-impossible` note |

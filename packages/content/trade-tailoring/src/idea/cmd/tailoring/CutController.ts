@@ -179,8 +179,9 @@ async function finish(
     if (MixinApi.isWearable(pieces) && measured) {
       pieces.setCutTo(measured.bodyPlan, measured.stature, measured.girth);
     }
-    const asPieces = pieces as unknown as { setSeamAllowance?(n: number): void };
-    asPieces.setSeamAllowance?.(allowance);
+    // ⭐ Folded into the SAME `isWearable` narrowing as the cut stamp —
+    // the two are twins and now live on the same mixin.
+    if (MixinApi.isWearable(pieces)) pieces.setSeamAllowance(allowance);
     if (MixinApi.isContainable(pieces) && MixinApi.isContainer(giver)) {
       ContainmentApi.move(
         pieces as Stuff & Containable,

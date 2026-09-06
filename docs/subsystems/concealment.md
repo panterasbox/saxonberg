@@ -65,7 +65,7 @@ persisted field is the **author's claim about the thing itself**, and
 the read folds in what is true right now.
 
 `ConcealableMixin.getConcealment()` shifts the authored band by
-`Slotted.concealmentOffset()` when the host has slots;
+`Attired.concealmentOffset()` when the host is a dressed body (⚠ `Attired`, not `Slotted` — a coat rack has slots and wears nothing);
 `getBaseConcealment()` is the authored value, untouched. ⚠ A
 non-`Slotted` host — a trapdoor, a cached letter — reads exactly its
 authored band, so every shipped concealment row behaves identically to

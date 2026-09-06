@@ -93,6 +93,22 @@ export interface Wearable extends Slottable {
   setCutToStature(value: number): void;
   getCutToGirth(): number;
   setCutToGirth(value: number): void;
+
+  /**
+   * How much cloth is folded into the seams — `cut`'s other output and
+   * `alter`'s whole budget. Letting a garment out spends it; there is
+   * nowhere else for the cloth to come from.
+   *
+   * ⚠⚠ **It lives here, beside `cutTo`, and not on the pack's
+   * `CutPieces`** — because it has to survive `cut` → `sew` → `alter`,
+   * and the thing `sew` produces is a kernel `Garment`. It was on
+   * `CutPieces` alone, which made `garment.setSeamAllowance?.()` a
+   * silent no-op and `alter --let-out` refuse **every garment in the
+   * game** with "was cut close" — a sentence that was never true. The
+   * two facts are twins: both are what the CUTTING did to this cloth.
+   */
+  getSeamAllowance(): number;
+  setSeamAllowance(value: number): void;
 }
 
 /**
@@ -194,6 +210,7 @@ export function WearableMixin<
       cutToBodyPlan: { persistent: true, authorable: true },
       cutToStature: { persistent: true, authorable: true },
       cutToGirth: { persistent: true, authorable: true },
+      seamAllowance: { persistent: true, authorable: true },
     };
 
     /**
@@ -234,6 +251,15 @@ export function WearableMixin<
     }
     public setCutToGirth(value: number): void {
       this.cutToGirth = nonNegative('setCutToGirth', value);
+    }
+
+    /** Cloth folded into the seams — see {@link Wearable.getSeamAllowance}. */
+    public seamAllowance = 0;
+    public getSeamAllowance(): number {
+      return this.seamAllowance;
+    }
+    public setSeamAllowance(value: number): void {
+      this.seamAllowance = nonNegative('setSeamAllowance', value);
     }
 
     public getCutTo(): FitReading['cut'] {
