@@ -30,7 +30,7 @@
  *     outsiders: you still have to hold a position.
  */
 
-import { Mixins, type MixinConstructor, type FieldMeta } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Organization } from '../employment/Organization';
 
 /**
@@ -116,7 +116,17 @@ export function PublisherMixin<
   TBase extends MixinConstructor<Organization>,
 >(Base: TBase) {
   class PublisherMixin extends Base implements Publisher {
-    static _mixinName = Mixins.Publisher;
+    /*
+     * ⚠⚠ A PLAIN literal, deliberately — never `Mixins.Publisher` and never
+     * an annotation. `Mixins` is `as const`, so both forms pin this static
+     * to a LITERAL type while every other composed class in a chain carries
+     * `_mixinName: string`. That makes the class STATIC SIDE incompatible
+     * (TS2417) for outer mixins and fixtures that declare their own name,
+     * and because `Base` is a type parameter the check is DEFERRED — it
+     * surfaces hundreds of files away as a base class collapsing to
+     * `never`. Cost two sessions on `AttiredMixin`; see slot.md.
+     */
+    static _mixinName = 'PublisherMixin';
 
     static fieldMeta: FieldMeta = {
       label: { persistent: true, authorable: true },
