@@ -310,7 +310,7 @@ export class Journey implements SustainedEngagement {
       // diagnostic on every completed run in the realm. The shipped
       // `sendCompletedEnvelope` asks the same question for the same
       // reason.
-      const driver = this.actor as unknown as Stuff;
+      const driver = this.driverStuff();
       if (MixinApi.isSensor(driver)) {
         MessageApi.scene(driver)
           .topic('act.move')
@@ -343,7 +343,7 @@ export class Journey implements SustainedEngagement {
     // rig that comes off the hitch mid-route ends the journey with a
     // reason that names the vehicle, rather than the driver walking on
     // alone with the cargo standing in the road behind them.
-    const driver = this.actor as unknown as Stuff;
+    const driver = this.driverStuff();
     if (!MixinApi.isMobile(driver) || !MixinApi.isContainable(driver)) {
       return null;
     }
@@ -351,6 +351,11 @@ export class Journey implements SustainedEngagement {
       return null;
     }
     return driver as Stuff & Mobile & Containable;
+  }
+
+  /** The driver as plain `Stuff` — `actor` is `Stuff & Engaged`. */
+  private driverStuff(): Stuff {
+    return this.actor as unknown as Stuff;
   }
 
   /**
@@ -363,7 +368,7 @@ export class Journey implements SustainedEngagement {
    * with the vessel and the driver in different counties.
    */
   private driverAboard(mover: Stuff): boolean {
-    const driver = this.actor as unknown as Stuff;
+    const driver = this.driverStuff();
     if (driver === mover) return true;
     if (!MixinApi.isContainable(driver)) return false;
     // Inside it, or in one of its slots (a seat, a tiller position).
@@ -378,7 +383,7 @@ export class Journey implements SustainedEngagement {
 
   /** Whether the driver is alive and on their feet. */
   private driverCapable(): boolean {
-    const driver = this.actor as unknown as Stuff;
+    const driver = this.driverStuff();
     if (driver.isDestroyed()) return false;
     if (MixinApi.isOrganism(driver) && !driver.isAlive()) return false;
     if (
@@ -434,7 +439,7 @@ export class Journey implements SustainedEngagement {
 
   /** How full the rig is, 0..1; `0` when nothing here bears a load. */
   private loadFraction(): number {
-    const bearer = this.actor as unknown as Stuff;
+    const bearer = this.driverStuff();
     if (!MixinApi.isLoadBearing(bearer)) return 0;
     const capacity = bearer.getCarryCapacity().rawValue();
     if (!(capacity > 0)) return 0;

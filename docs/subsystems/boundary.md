@@ -82,6 +82,12 @@ Carries:
   movement narration.
 - `inverse?: Exit` — counterpart on the other side, wired by
   `addBidirectionalExit` or by the mutual-exit verifier.
+- `edgeMinutes: number | null` — ⭐ how long this leg takes, in game
+  minutes. ⚠ **Nothing in the kernel reads it**: ordinary movement stays
+  instantaneous, and only the transport pack's Journey spends it. That
+  is deliberate — *moving around must not feel like netlag* — and its
+  consequence (the cost surface is opt-in) is named in
+  [logistics.md](./logistics.md).
 - `media: string[]` — locomotion media this exit admits (`'ground'`,
   `'water'`, etc.). Empty list = the **ground pace family**
   (`walk`/`sneak`/`run`) — widened from walk-only when the care↔speed

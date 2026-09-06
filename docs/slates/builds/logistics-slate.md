@@ -974,11 +974,18 @@ on, a scale, and `coldStorage` with no default.
 
 # Part 12 — Open questions
 
-1. **Rates** — per weight×distance, per journey, or negotiated per
-   contract? The antitrust arc needs them **visible and settable**,
-   whatever the form.
-2. **Load model** — cargo as `Container` contents, `Bulkable` slots, or
-   both? (Crates versus grain; probably both.)
+> ⭐ **Four of these were answered by the logistics build** (2026-09) and
+> are marked ✅ with a pointer. The slate is KEPT rather than retired
+> because the rest — piracy, live cargo and drovers, infrastructure
+> politics, the railway, the entrenchment tier — is design surface the
+> build never touched, and § 8–11 above go with them.
+
+1. ✅ **Rates** — ANSWERED (logistics build): a published `rate-card`
+   document, visible to a non-employee and settable by the carrier. See
+   [logistics.md](../../subsystems/logistics.md) § The rate card.
+2. ✅ **Load model** — ANSWERED: **both**, on one rig. `HaulageRig` is
+   `Bulkable(Haulable(Vessel))` — discrete cargo in the vessel, continuous
+   matter in bulk slots, "because half of freight is not countable".
 3. **Live cargo / drovers** — the steer walks and the carcass rides, the
    marquee case. Deferred in conversation because ranching is in flight;
    **not formally ruled out.**
@@ -986,8 +993,10 @@ on, a scale, and `coldStorage` with no default.
    warehouse receipt come nearly free with the bill of lading. The
    tollgate, the turnpike trust and the barricade/banditry cluster are a
    bigger bite. Where is the line?
-5. **Journey duration in real minutes** — derivable from the
-   vulnerability rule (§ 5), but somebody picks the number.
+5. ✅ **Journey duration** — ANSWERED, and in GAME minutes rather than
+   real: `edgeMinutes × modeFactor × loadFactor`, spent on a
+   one-game-minute metronome. ⚠ The build's own AC had to be corrected
+   from real hours to game hours mid-flight; the ratio is 12×.
 6. **Does the rail ship with trains, or arrive as a shock?** User wants
    as much built or designed as possible. Building the road economy first
    and *then* landing the railroad on it is the nineteenth century
@@ -996,10 +1005,11 @@ on, a scale, and `coldStorage` with no default.
 7. **Entrenchment tier for free movement.** D9 ships without the rule; if
    fragmentation stalls the economy, is the mitigation a Compact-tier
    default the polity may repeal, or a C-tier the polity must enact?
-8. ⚠ **Can a passenger perceive out of a moving vessel?** Unverified.
-   `Vessel.transmissionFactor` is encumbrance attenuation, not
-   perception. If the world does *not* go past the window, the "room that
-   moves" loses most of its point.
+8. ✅ **Can a passenger perceive out of a moving vessel?** ANSWERED, and
+   it needed no seam: an open rig is an **open container**, and
+   `MixinApi.isOpenContainer` is the single rule `canReach`, the MQL
+   `peers` walk and `VisionModality` all already ask. Open conveyance =
+   you watch the road go by; sealed = you do not.
 9. **Does the barricade reference exits or lane edges?** § 10 needs the
    latter; the freight slate left exits-vs-directions open.
 10. ⚠ **The Delight/Kestrel inconsistency** (§ 2) — the locality build's

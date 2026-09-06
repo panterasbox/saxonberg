@@ -379,8 +379,8 @@ local economy. ⚠ *(An earlier revision said "`consign` already works
 there, so **no new verb**." **Withdrawn 2026-09-03** — retail's `consign`
 creates a priced `ConsignmentListing`; handing goods to a carrier creates
 a bill of lading, and overloading the one verb makes ship-it-and-sell-it-
-there unexpressible. Carriage gets `ship` in the haulage pack; see the
-[logistics requirements](./requirements/logistics-requirements.md) D8.)*
+there unexpressible. Carriage gets `ship` in the haulage pack; see
+[logistics.md](./subsystems/logistics.md).)*
 Each one looks completely different — a weighbridge at an adit, a rail platform
 with a noticeboard, a loading dock stacked with empty trays.
 
