@@ -44,7 +44,7 @@ export const brain = class TailorsBrain {
 
     for (const other of room.getContents()) {
       if (other === self) continue;
-      if (!MixinApi.isSlotted(other)) continue;
+      if (!MixinApi.isAttired(other)) continue;
       const worn = other.wornStack();
       if (worn.length === 0) continue;
 

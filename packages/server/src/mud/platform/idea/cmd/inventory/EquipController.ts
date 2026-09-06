@@ -73,6 +73,7 @@ import { AppSettingKeys } from '../../../../lib/config/AppSettings';
 import { DressingStep } from '../../../../lib/slot/DressingStep';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Slotted } from '../../../../lib/slot/Slotted';
+import type { Attired } from '../../../../lib/slot/Attired';
 import type { Container } from '../../../../lib/spatial/Container';
 import type { Containable } from '../../../../lib/spatial/Containable';
 
@@ -168,7 +169,7 @@ export function donDurationMs(item: Stuff): number {
 export default class EquipController extends CommandController<EquipModel> {
   async execute(model: EquipModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
-    if (!MixinApi.isSlotted(giver)) {
+    if (!MixinApi.isAttired(giver)) {
       throw new Error(
         `EquipController: requiresSlotted should have caught ${giver.stuffId}`,
       );
@@ -290,7 +291,7 @@ export default class EquipController extends CommandController<EquipModel> {
   private async equipAll(
     pool: readonly Stuff[],
     context: CommandContext,
-    giver: Stuff & Slotted,
+    giver: Stuff & Slotted & Attired,
   ): Promise<void> {
     const remaining = pool.filter((c) => this.equippable(c));
     if (remaining.length === 0) {
@@ -346,7 +347,7 @@ export default class EquipController extends CommandController<EquipModel> {
     worn: Stuff[],
     skipped: Array<[Stuff, SkipReason]>,
     context: CommandContext,
-    giver: Stuff & Slotted,
+    giver: Stuff & Slotted & Attired,
   ): void {
     for (;;) {
       let next: Stuff | null = null;
@@ -419,7 +420,7 @@ export default class EquipController extends CommandController<EquipModel> {
     worn: readonly Stuff[],
     skipped: ReadonlyArray<readonly [Stuff, SkipReason]>,
     context: CommandContext,
-    giver: Stuff & Slotted,
+    giver: Stuff & Slotted & Attired,
   ): void {
     const names = worn.map((w) => w.getPresentation()).join(', ');
     const scene = MessageApi.scene(giver).topic(TOPIC);
@@ -484,7 +485,7 @@ export default class EquipController extends CommandController<EquipModel> {
    */
   private canEquip(
     item: Stuff,
-    giver: Stuff & Slotted,
+    giver: Stuff & Slotted & Attired,
     mode: EquipMode,
   ): SkipReason | null {
     const as = this.claimAs(item, mode);
@@ -537,7 +538,7 @@ export default class EquipController extends CommandController<EquipModel> {
   }
 
   /** Claim the slots. Atomic via `occupyAll`. */
-  private put(item: Stuff, giver: Stuff & Slotted, mode: EquipMode): void {
+  private put(item: Stuff, giver: Stuff & Slotted & Attired, mode: EquipMode): void {
     const plan = SpeciesApi.tryGetBodyPlanPath(giver) ?? '';
     const as = this.claimAs(item, mode);
     const slots = as === null ? [] : this.slotsFor(item, plan, as);
@@ -556,7 +557,7 @@ export default class EquipController extends CommandController<EquipModel> {
     reason: SkipReason,
     mode: EquipMode,
     context: CommandContext,
-    giver: Stuff & Slotted,
+    giver: Stuff & Slotted & Attired,
   ): void {
     if (reason === 'slot-full') {
       const plan = SpeciesApi.tryGetBodyPlanPath(giver) ?? '';
@@ -604,7 +605,7 @@ export default class EquipController extends CommandController<EquipModel> {
    * rather than just "no". Falls back to a bare phrase if the stack has
    * gone empty between the check and the read.
    */
-  private outermostInWay(item: Stuff, giver: Stuff & Slotted): string {
+  private outermostInWay(item: Stuff, giver: Stuff & Slotted & Attired): string {
     const outer = [...giver.wornStack()][0] as unknown as Stuff | undefined;
     void item;
     return outer && MixinApi.isPerceptible(outer)
@@ -618,7 +619,7 @@ export default class EquipController extends CommandController<EquipModel> {
   private engage(
     item: Stuff,
     context: CommandContext,
-    giver: Stuff & Slotted,
+    giver: Stuff & Slotted & Attired,
     onComplete: () => void,
   ): Promise<void> {
     if (!MixinApi.isEngaged(giver)) {
@@ -657,7 +658,7 @@ export default class EquipController extends CommandController<EquipModel> {
   private async pool(
     model: EquipModel,
     context: CommandContext,
-    giver: Stuff & Slotted,
+    giver: Stuff & Slotted & Attired,
   ): Promise<readonly Stuff[] | null> {
     if (!MixinApi.isContainer(giver)) return [];
     const source = model.from?.stuff ?? null;
@@ -720,7 +721,7 @@ export default class EquipController extends CommandController<EquipModel> {
   ): Promise<void> {
     const giver = context.commandGiver;
     const name = (model.name ?? '').trim();
-    if (!MixinApi.isWardrobe(giver) || !MixinApi.isSlotted(giver)) {
+    if (!MixinApi.isWardrobe(giver) || !MixinApi.isAttired(giver)) {
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(Mml.compose`You can't keep sets.`)

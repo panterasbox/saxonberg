@@ -100,7 +100,7 @@ export function ConcealableMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     getConcealment(): ConcealmentLevel {
       const self = this as unknown as Stuff;
-      if (!MixinApi.isSlotted(self)) return this.concealment;
+      if (!MixinApi.isAttired(self)) return this.concealment;
       const offset = self.concealmentOffset();
       if (offset === 0) return this.concealment;
       // Positive offset = louder = a LOWER band; the ranks run

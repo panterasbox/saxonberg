@@ -116,7 +116,7 @@ function resolveCoveringStack(
   partKey: string,
   shieldFacing = true
 ): CoveringLayer[] {
-  if (!MixinApi.isOrganism(host) || !MixinApi.isSlotted(host)) return [];
+  if (!MixinApi.isOrganism(host) || !MixinApi.isAttired(host)) return [];
   // ⭐ ONE outside-in walk, on the host that owns the slots. This used
   // to be a hand-rolled copy — the same loop existed here, in the
   // struck-site armor stack, and in the conduction walk. `coveringAt`

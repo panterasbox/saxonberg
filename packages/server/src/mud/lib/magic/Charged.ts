@@ -206,7 +206,7 @@ function attentionOfWearer(host: Stuff): number {
   const bearer = MixinApi.isSlottable(host) ? host.getOccupiedHost() : null;
   const carrier =
     bearer ?? (MixinApi.isContainable(host) ? host.getContainer() : null);
-  if (carrier && MixinApi.isSlotted(carrier)) return carrier.attentionFactor();
+  if (carrier && MixinApi.isAttired(carrier)) return carrier.attentionFactor();
   return 1;
 }
 

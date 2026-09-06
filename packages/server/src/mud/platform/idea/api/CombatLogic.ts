@@ -2759,7 +2759,7 @@ function coveringGearAt(
   site: string,
   shieldFacing: boolean,
 ): Stuff[] {
-  if (!MixinApi.isOrganism(target) || !MixinApi.isSlotted(target)) return [];
+  if (!MixinApi.isOrganism(target) || !MixinApi.isAttired(target)) return [];
   // ⭐ ONE outside-in walk, on the target that owns the slots — the
   // second of the three hand-rolled copies this replaced. `includeHeld`
   // is the raised shield, which fronts any struck part rather than

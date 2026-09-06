@@ -11,6 +11,7 @@ boundary fixture system (post-retrofit `Adornable`).
 | Name | Location | Role |
 |---|---|---|
 | `Slotted` | `lib/slot/Slotted.ts` | Host mixin — exposes slots that things can occupy |
+| `Attired` | `lib/slot/Attired.ts` | Host mixin — the **covering** half, split off `Slotted` 2026-09-06. Composed only on `Creature`: a body is the only thing that wears anything |
 | `Slottable` | `lib/slot/Slottable.ts` | Marker mixin — anything that can sit in a slot. Carries `fitsSlot(host, slot)` with a default `() => true`; Wearable/Wieldable override |
 | `SlotSpec` | `lib/slot/Slotted.ts` | Per-slot declaration (name, accepts, capacity, postures, userFacingDetail, `bodyPart`, `covers`). `bodyPart`/`covers` are optional `body.*` references to anatomy (Vitals) — a slot is its own axis that *references* anatomy where it has a home; see [vitals.md](./vitals.md) |
 | `UNBOUNDED_CAPACITY` | `lib/slot/Slotted.ts` | Sentinel = `Number.MAX_SAFE_INTEGER`; JSON/BSON-safe substitute for `Infinity` |
@@ -21,6 +22,38 @@ boundary fixture system (post-retrofit `Adornable`).
 `Slotted` composes on `Stuff` (no `Container` prereq). Composing
 `Slottable` doesn't constrain a host — it just marks a Stuff as
 slot-occupant-eligible.
+
+## ⭐ `Slotted` vs `Attired` — occupancy vs covering
+
+They were one mixin until 2026-09-06. **A slot is not a garment.** Nine
+of ten `Slotted` composers are not bodies: a chair, a coat rack, a
+garden bed, a door, a saddle and a wall sconce all have named occupancy
+positions and none of them wears anything.
+
+- **`Slotted` = occupancy.** `getSlotNames` / `getSlotSpec` /
+  `occupy` / `vacate` / `getOccupants` / `canOccupy`. Composed widely.
+- **`Attired` = covering.** `wornStack`, `coveringAt`, `outermostAt`,
+  `insulationAt`, `bodyInsulation`, `windproofing`,
+  `concealmentOffset`, `attentionFactor`, `wouldLayerViolate` — plus
+  the `worn` subscribable field and the dressed-impression line.
+  Composed on **`Creature`** and nowhere else, which is why barding
+  works and why a `Corpse` is still dressed.
+
+`Attired` requires `Slotted` beneath it (the covering reads walk the
+occupants), so `MixinApi.isAttired` narrows to
+`Stuff & Slotted & Attired`. **Narrow on `isAttired`, not `isSlotted`,
+before any covering read** — before the split those calls compiled
+against a coat rack and answered zero at runtime; now they do not
+compile at all.
+
+⚠⚠ **A mixin's `static _mixinName` must WIDEN to `string`** — write
+`static _mixinName = 'FooMixin';` and nothing else. Annotating it, or
+initialising from the `as const` `Mixins` table, pins it to a literal
+type, makes the class static side incompatible with the rest of the
+chain, and — because `Base` is a type parameter, so the check is
+deferred — reports as several hundred errors in unrelated files with
+`AvatarBase` collapsed to `never`. This cost two sessions; see
+[the slate](../slates/builds/slotted-split-slate.md).
 
 ## Slot universe — three patterns
 

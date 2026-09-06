@@ -21,6 +21,7 @@ import { Creature } from '../../creature/Creature';
 import Species from '../../../platform/idea/species/Species';
 import BodyPlan from '../../../platform/idea/species/BodyPlan';
 import { StuffApi } from '../../../api/stuff';
+import { MixinApi } from '../../../api/mixin';
 import { Mml } from '../../../api/mml';
 import {
   makeStuff,
@@ -120,10 +121,13 @@ describe('Slotted.wornStack — the body half', () => {
     expect(body.wornStack()).toHaveLength(0);
   });
 
-  it('a Slotted host with no body plan answers an empty stack', () => {
+  // See the sibling note in Slotted.covering.test.ts: the empty stack a
+  // plan-less Slotted host used to return is now a type, not a value.
+  it('a Slotted host is not thereby Attired — a rack wears nothing', () => {
     const rack = makeStuff(() => new Rack());
     rack.setStaticSlots([{ name: 'peg:1', accepts: 'WearableMixin' }]);
-    expect(rack.wornStack()).toHaveLength(0);
+    expect(MixinApi.isSlotted(rack)).toBe(true);
+    expect(MixinApi.isAttired(rack)).toBe(false);
   });
 });
 

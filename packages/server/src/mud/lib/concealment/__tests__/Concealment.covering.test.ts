@@ -87,6 +87,14 @@ function covering(
         dyestuff: '/stuff/idea/material/dyestuff/madder',
         mordant: 'alum',
         strength: opts.dye,
+        // ⚠ The transmittance triple is what a dye act copies off the
+        // dyestuff row at dye time, and `conspicuityOf` reads DEPTH off
+        // the folded mix — not `strength`. A stack without it is a
+        // legible application of no colour, so loud and quiet came out
+        // identical. These are the shipped madder/alum numbers.
+        transmitR: 0.74,
+        transmitG: 0.1,
+        transmitB: 0.14,
       },
     ]);
     g.setFastness(0.9);

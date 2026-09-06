@@ -7,12 +7,15 @@ host-placement corrections in that build.
 > up BulkableMixin into a few different pieces since it was doing a few
 > different jobs. does SlottedMixin need the same treatment?"**
 
-> **Status: design conversation, captured. Not requirements.**
+> **Status: BUILT 2026-09-06 on `design/mixin-depth`** (off
+> `design/textiles`; merges together with !236). `AttiredMixin` composes
+> on `Creature`; the nine covering reads left `Slotted`; the narrowing
+> sites moved to `MixinApi.isAttired`.
 > ⚠⚠ **A "TypeScript inference ceiling" claimed by a 2026-09-04 revision
 > of this slate is RETRACTED — see the retraction section. It was a
 > measurement error, and the numbers that made it look measured came
-> from a probe that never compiled.**
-> ⚠ Deliberately NOT built in !236 — see *Why this is not in that MR*.
+> from a probe that never compiled. The real cause was a two-token
+> typing bug; the bisection that found it is recorded below.**
 
 Related: [slot.md](../../subsystems/slot.md) (**the shipped substrate —
 read it first**), [embodiment.md](../../subsystems/embodiment.md)
@@ -233,11 +236,67 @@ was not generalised from: tsgo was first measured at *"0 errors in
 before checking, and two other `Attired` runs were declared ceiling hits
 without ever being checked for file-level errors.
 
-## What is actually wrong with `AttiredMixin`
+## ⭐⭐⭐ The actual cause: a pinned literal on a mixin static
 
-An ordinary typing bug in one file, not an architectural wall. Four
-distinct ones have been found and fixed so far, each invisible until the
-checker named it:
+`AttiredMixin` declared
+
+```ts
+static _mixinName: 'AttiredMixin' = Mixins.Attired;
+```
+
+Both halves of that line pin the static to a **literal type** — the
+annotation obviously, and `= Mixins.Attired` too, because `Mixins` is
+declared `as const`. (An earlier revision "fixed" this by dropping the
+annotation and keeping `Mixins.Attired`, which changes nothing. That
+no-op fix is why the theory kept getting discarded.)
+
+Every other composed class in the chain carries `_mixinName: string`
+(a bare `= 'FooMixin'` initializer widens). A pinned literal therefore
+makes the class **static side** incompatible with every outer mixin and
+every test fixture that declares its own name — **TS2417 × 20**. And
+because `Base` is a type parameter, TypeScript **defers** that check to
+instantiation, so nothing is reported at the mixin. It surfaces
+hundreds of files away as `AvatarBase` collapsing to `never` (TS2507)
+plus ~440 bogus *"Avatar is missing the following properties from
+Stuff."*
+
+**The fix is `static _mixinName = 'AttiredMixin';`** — 1151 errors → 20,
+and the 20 were the expected `isSlotted`→`isAttired` sites.
+
+⚠ `Mixins.Publisher`, `Mixins.Forkable` and `Mixins.Cultivable` use the
+same pinned form. They compile today only because nothing downstream
+happens to re-declare the name against them — they are the same
+landmine, and worth a sweep.
+
+## The bisection that found it
+
+One variable per run, from the known-GOOD end toward the failing one.
+Every run validated the instrument with a planted error and was checked
+for errors in the changed files **first**.
+
+| probe | change from the row above | result |
+|---|---|---|
+| baseline | planted error, no probe | instrument OK, **0** |
+| P1 | bare mixin in a separate file | **0** |
+| P2 | + exported `interface` | **0** |
+| P3a | + the `Mixins` value import | **0** |
+| P3b | + `static _mixinName = 'ProbeMixin'` (widens) | **0** |
+| P3c | + `static _mixinName: 'ProbeMixin' = 'ProbeMixin'` | **440** |
+| P5 | + `fieldMeta`, + `isProbe` 3-way predicate | **440** (same) |
+
+So: the separate file, the import, the interface, the registry entry,
+the 3-way predicate, `fieldMeta`, member surface and chain depth are all
+eliminated **by measurement**, not by argument.
+
+⭐ **The methodological finding is the durable one.** Going from the
+*failing* end and guessing produced five wrong diagnoses across two
+sessions. Going from the *passing* end, one variable at a time, found it
+in six runs.
+
+## Four real typing bugs found on the way (all fixed, all worth knowing)
+
+Each was invisible until the checker named it, and none of them was the
+collapse:
 
 1. `wornStack()` read `this.slots` — `SlottedMixin`'s **private** map.
 2. The ladder comparator was a private method, unreachable once methods
@@ -246,11 +305,6 @@ checker named it:
 3. A missing `SlotSpec` import after absorbing `BodyPlanSlots`.
 4. Under `TBase extends MixinConstructor<Stuff & Slotted>`, `this` does
    not see the `Slotted` surface inside the class body at all.
-
-The shape closest to working is the `this:`-annotated one: it reports no
-errors in its own file yet still collapses the chain. Finding out why is
-a bounded search now that a **working** probe harness exists — make the
-twenty-method probe progressively more `Attired`-like until it breaks.
 
 ## What survives
 
